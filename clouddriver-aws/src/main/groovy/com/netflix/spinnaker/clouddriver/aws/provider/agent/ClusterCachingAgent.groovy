@@ -777,6 +777,8 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
       this.vpcId = vpcId
       if (asg.launchTemplate) {
         launchTemplate = Keys.getLaunchTemplateKey(asg.launchTemplate.launchTemplateName, account, region)
+      } else if (asg.mixedInstancesPolicy) {
+        launchTemplate = Keys.getLaunchTemplateKey(asg.mixedInstancesPolicy.launchTemplate.launchTemplateSpecification.launchTemplateName, account, region)
       } else {
         launchConfig = Keys.getLaunchConfigKey(asg.launchConfigurationName, account, region)
       }

@@ -148,7 +148,7 @@ class ModifyAsgLaunchConfigurationOperation implements AtomicOperation<Void> {
     Optional.ofNullable(description.associatePublicIpAddress).ifPresent {
       settingsBuilder.associatePublicIpAddress(description.associatePublicIpAddress) }
     Optional.ofNullable(description.spotPrice).ifPresent {
-      settingsBuilder.spotPrice(description.spotPrice == "" ? null : description.spotPrice)} // a spotPrice of "" indicates that it should be removed regardless of value on source launch configuration
+      settingsBuilder.spotMaxPrice(description.spotPrice == "" ? null : description.spotPrice)} // a spotMaxPrice of "" indicates that it should be removed regardless of value on source launch configuration
     Optional.ofNullable(description.ramdiskId).ifPresent { settingsBuilder.ramdiskId(description.ramdiskId) }
     Optional.ofNullable(description.instanceMonitoring).ifPresent {
       settingsBuilder.instanceMonitoring(new Boolean(description.instanceMonitoring)) }

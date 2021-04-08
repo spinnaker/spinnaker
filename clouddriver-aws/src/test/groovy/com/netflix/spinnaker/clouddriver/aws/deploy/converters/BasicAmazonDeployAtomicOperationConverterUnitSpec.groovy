@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.converters
 
 import com.amazonaws.services.ec2.AmazonEC2
+import com.amazonaws.services.ec2.model.LaunchTemplatePlacementRequest
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.aws.model.SubnetAnalyzer
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
@@ -127,5 +128,29 @@ class BasicAmazonDeployAtomicOperationConverterUnitSpec extends Specification {
     min = "5"
     max = "10"
     desired = "8"
+  }
+
+  void "should serialize launch template fields correctly"() {
+    setup:
+    def input = [application: "kato", credentials: 'test',
+                 setLaunchTemplate: true, requireIMDSv2: true, associateIPv6Address: true, unlimitedCpuCredits: true,
+                 placement: [groupName: "test-placement"], licenseSpecifications: [[arn: "test-arn"]],
+                 onDemandAllocationStrategy: "prioritized", onDemandBaseCapacity: 2, onDemandPercentageAboveBaseCapacity: 50, spotAllocationStrategy: "capacity-optimized",
+                 spotInstancePools: 3, spotPrice: "0.5", launchTemplateOverridesForInstanceType: [[instanceType: "some.type.large", weightedCapacity: 2]]]
+
+    when:
+    def description = converter.convertDescription(input)
+
+    then:
+    description.application == "kato"
+    description.placement == new BasicAmazonDeployDescription.LaunchTemplatePlacement(groupName: "test-placement")
+    description.licenseSpecifications == [new BasicAmazonDeployDescription.LaunchTemplateLicenseSpecification(arn: "test-arn")]
+    description.onDemandAllocationStrategy == "prioritized"
+    description.onDemandBaseCapacity == 2
+    description.onDemandPercentageAboveBaseCapacity == 50
+    description.spotAllocationStrategy == "capacity-optimized"
+    description.spotInstancePools == 3
+    description.spotPrice == "0.5"
+    description.launchTemplateOverridesForInstanceType == [new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(instanceType: "some.type.large", weightedCapacity: 2)]
   }
 }

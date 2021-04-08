@@ -101,14 +101,14 @@ public class PrepareModifyServerGroupLaunchTemplate
       maxPrice = marketOptions.getSpotOptions().getMaxPrice();
     }
 
-    String spotPrice = Optional.ofNullable(description.getSpotPrice()).orElse(maxPrice);
-    if (spotPrice != null && spotPrice.equals("")) {
-      // a spotPrice of "" indicates that it should be removed regardless of value on source
+    String spotMaxPrice = Optional.ofNullable(description.getSpotPrice()).orElse(maxPrice);
+    if (spotMaxPrice != null && spotMaxPrice.equals("")) {
+      // a spotMaxPrice of "" indicates that it should be removed regardless of value on source
       // launch template
       description.setSpotPrice(null);
     }
 
-    description.setSpotPrice(spotPrice);
+    description.setSpotPrice(spotMaxPrice);
     if (description.getImageId() == null) {
       saga.log("Resolving Image Id for " + description.getAmiName());
       // resolve imageId

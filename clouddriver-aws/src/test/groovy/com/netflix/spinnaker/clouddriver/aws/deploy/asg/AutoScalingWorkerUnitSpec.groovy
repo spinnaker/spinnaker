@@ -16,10 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.asg
 
-import com.amazonaws.services.autoscaling.model.CreateAutoScalingGroupRequest
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.asg.asgbuilders.AsgWithLaunchConfigurationBuilder
 import com.netflix.spinnaker.clouddriver.aws.deploy.asg.asgbuilders.AsgWithLaunchTemplateBuilder
+import com.netflix.spinnaker.clouddriver.aws.deploy.asg.asgbuilders.AsgWithMixedInstancesPolicyBuilder
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.clouddriver.aws.userdata.UserDataOverride
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTask
@@ -141,6 +142,55 @@ class AutoScalingWorkerUnitSpec extends Specification {
     1        || "myasg-stack-details-v001"   ||  false
     11       || "myasg-stack-details-v011"   ||  false
     111      || "myasg-stack-details-v111"   ||  false
+  }
+
+  @Unroll
+  void "deploy workflow creates asg backed by mixed instances policy if certain fields are set"() {
+    setup:
+    def autoScalingWorker = new AutoScalingWorker(regionScopedProvider, dynamicConfigService)
+    def asgConfig = new AutoScalingWorker.AsgConfiguration(
+      application: "myasg",
+      stack: "stack",
+      region: "us-east-1",
+      freeFormDetails: "details",
+      credentials: credential,
+      sequence: 1,
+      setLaunchTemplate: true,
+      ignoreSequence: false)
+    asgConfig."$mipFieldName" = mipFieldValue
+
+    and:
+    def asgBuilder = Mock(AsgWithMixedInstancesPolicyBuilder)
+    regionScopedProvider.getAsgBuilderForMixedInstancesPolicy() >> asgBuilder
+
+    when:
+    autoScalingWorker.deploy(asgConfig)
+
+    then:
+    1 * dynamicConfigService.isEnabled('aws.features.launch-templates', false) >> true
+    1 * dynamicConfigService.isEnabled('aws.features.launch-templates.all-applications', false) >> false
+    1 * dynamicConfigService.getConfig(String.class, "aws.features.launch-templates.excluded-accounts", "") >> ""
+    0 * dynamicConfigService.getConfig(String.class, "aws.features.launch-templates.allowed-accounts", "") >> ""
+    1 * dynamicConfigService.getConfig(String.class,"aws.features.launch-templates.excluded-applications", "") >> ""
+    1 * dynamicConfigService.getConfig(String.class,"aws.features.launch-templates.allowed-applications", "") >> { "myasg:foo:us-east-1" }
+    1 * dynamicConfigService.getConfig(Boolean.class, 'aws.features.launch-templates.ipv6.foo', false) >> false
+    0 * dynamicConfigService._
+
+    and:
+    awsServerGroupNameResolver.generateServerGroupName('myasg', 'stack', 'details', 1, false) >> "myasg-stack-details-v001"
+
+    and:
+    1 * asgBuilder.build(task, taskPhase, "myasg-stack-details-v001", asgConfig)
+    0 * asgBuilder._
+
+    where:
+           mipFieldName                      | mipFieldValue
+    "onDemandBaseCapacity"                   |    1
+    "onDemandPercentageAboveBaseCapacity"    |    50
+    "spotAllocationStrategy"                 |"lowest-price"
+    "spotAllocationStrategy"                 |"capacity-optimized"
+    "spotInstancePools"                      |      3
+    "launchTemplateOverridesForInstanceType" |[new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(instanceType: "t.test", weightedCapacity: 2)]
   }
 
   @Unroll

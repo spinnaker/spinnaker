@@ -68,10 +68,12 @@ class AsgWithLaunchTemplateBuilderSpec extends Specification {
     asgConfig = new AutoScalingWorker.AsgConfiguration(
       setLaunchTemplate: true,
       credentials: credential,
+      legacyUdf: false,
       application: "myasg",
       region: "us-east-1",
       minInstances: 1,
       maxInstances: 3,
+      desiredInstances: 2,
       instanceType: "t1.test",
       securityGroups: ["my-sg"]
     )
@@ -95,9 +97,7 @@ class AsgWithLaunchTemplateBuilderSpec extends Specification {
     def asgWithLtBuilder = new AsgWithLaunchTemplateBuilder(ltService, securityGroupService, deployDefaults,  autoScaling, amazonEC2, asgLifecycleHookWorker)
     asgConfig.availabilityZones = ["us-east-1a"]
     asgConfig.subnetType = "internal"
-    asgConfig.legacyUdf = false
-    asgConfig.desiredInstances = 2
-    asgConfig.spotMaxPrice = 0.5
+    asgConfig.spotMaxPrice = "0.5"
     asgConfig.classicLoadBalancers = ["one", "two"]
     asgConfig.targetGroupArns = ["tg1", "tg2"]
     asgConfig.cooldown = 5
@@ -300,17 +300,9 @@ class AsgWithLaunchTemplateBuilderSpec extends Specification {
     def asgWithLtBuilder = new AsgWithLaunchTemplateBuilder(ltService, securityGroupService, deployDefaults,  autoScaling, amazonEC2, asgLifecycleHookWorker)
     asgConfig.availabilityZones = ["us-east-1a"]
     asgConfig.subnetType = "internal"
-    asgConfig.legacyUdf = false
-    asgConfig.desiredInstances = 2
-    asgConfig.spotMaxPrice = 0.5
     asgConfig.classicLoadBalancers = ["one", "two"]
     asgConfig.targetGroupArns = ["tg1", "tg2"]
-    asgConfig.cooldown = 5
-    asgConfig.healthCheckGracePeriod = 5
-    asgConfig.healthCheckType = "ec2"
-    asgConfig.terminationPolicies = ["Default", "OldestInstance"]
     asgConfig.userDataOverride = userDataOverride
-    asgConfig.ebsOptimized = true
     asgConfig.securityGroups = ["mysg"]
 
     when:
@@ -388,9 +380,7 @@ class AsgWithLaunchTemplateBuilderSpec extends Specification {
     asgConfig.subnetType = sbTypeReq
     asgConfig.subnetIds = sbReq
     asgConfig.availabilityZones = azReq
-    asgConfig.legacyUdf = false
-    asgConfig.desiredInstances = 2
-    asgConfig.spotMaxPrice = 0.5
+    asgConfig.spotMaxPrice = "0.5"
     asgConfig.classicLoadBalancers = ["two", "one"]
     asgConfig.targetGroupArns = ["tg2", "tg1"]
     asgConfig.cooldown = 5
@@ -469,9 +459,7 @@ class AsgWithLaunchTemplateBuilderSpec extends Specification {
     asgConfig.subnetType = sb == null ? null :"internal"
     asgConfig.subnetIds = sb == null ? null : ["sb2","sb1"]
     asgConfig.availabilityZones = azReq
-    asgConfig.legacyUdf = false
-    asgConfig.desiredInstances = 2
-    asgConfig.spotMaxPrice = 0.5
+    asgConfig.spotMaxPrice = "0.5"
     asgConfig.classicLoadBalancers = ["two", "one"]
     asgConfig.targetGroupArns = ["tg2", "tg1"]
     asgConfig.cooldown = 5

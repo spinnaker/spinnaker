@@ -144,5 +144,9 @@ class RegionScopedProviderFactory {
     AsgBuilder getAsgBuilderForLaunchTemplate() {
       new AsgWithLaunchTemplateBuilder(getLaunchTemplateService(), getSecurityGroupService(), deployDefaults, getAutoScaling(), getAmazonEC2(), getAsgLifecycleHookWorker())
     }
+
+    AsgBuilder getAsgBuilderForMixedInstancesPolicy() {
+      new AsgWithMixedInstancesPolicyBuilder(getLaunchTemplateService(), getSecurityGroupService(), deployDefaults, getAutoScaling(), getAmazonEC2(), getAsgLifecycleHookWorker())
+    }
   }
 }

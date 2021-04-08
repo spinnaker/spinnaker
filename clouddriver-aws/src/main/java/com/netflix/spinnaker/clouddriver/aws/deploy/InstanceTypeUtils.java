@@ -53,21 +53,25 @@ public class InstanceTypeUtils {
    * instance families that support PV are listed in {@link #PARAVIRTUAL_FAMILIES}.
    *
    * @param virtualizationType from the AMI
-   * @param instanceType
+   * @param instanceTypes
    */
-  public static void validateCompatibility(String virtualizationType, String instanceType) {
-    final String family = getInstanceFamily(instanceType);
+  public static void validateCompatibility(String virtualizationType, Set<String> instanceTypes) {
+    instanceTypes.forEach(
+        instanceType -> {
+          final String family = getInstanceFamily(instanceType);
 
-    // if virtualizationType is PV, check for compatiblity. Otherwise, assume compatiblity is true.
-    if (PARAVIRTUAL.equals(virtualizationType) && !PARAVIRTUAL_FAMILIES.contains(family)) {
-      throw new IllegalArgumentException(
-          "Instance type "
-              + instanceType
-              + " does not support "
-              + "virtualization type "
-              + virtualizationType
-              + ". Please select a different image or instance type.");
-    }
+          // if virtualizationType is PV, check for compatibility. Otherwise, assume compatibility
+          // is true.
+          if (PARAVIRTUAL.equals(virtualizationType) && !PARAVIRTUAL_FAMILIES.contains(family)) {
+            throw new IllegalArgumentException(
+                "Instance type "
+                    + instanceType
+                    + " does not support "
+                    + "virtualization type "
+                    + virtualizationType
+                    + ". Please select a different image or instance type.");
+          }
+        });
   }
 
   public static boolean getDefaultEbsOptimizedFlag(String instanceType) {
@@ -76,6 +80,16 @@ public class InstanceTypeUtils {
 
   public static boolean isBurstingSupported(String instanceType) {
     return BURSTABLE_PERFORMANCE_FAMILIES.contains(getInstanceFamily(instanceType));
+  }
+
+  public static boolean isBurstingSupportedByAllTypes(Set<String> instanceTypes) {
+    // return true iff all instance types support bursting
+    for (String type : instanceTypes) {
+      if (!isBurstingSupported(type)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   private static String getInstanceFamily(String instanceType) {

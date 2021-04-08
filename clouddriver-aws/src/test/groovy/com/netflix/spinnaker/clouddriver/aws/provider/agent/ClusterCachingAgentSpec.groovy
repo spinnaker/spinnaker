@@ -19,8 +19,10 @@ package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
+import com.amazonaws.services.autoscaling.model.LaunchTemplate
+import com.amazonaws.services.autoscaling.model.LaunchTemplateSpecification
+import com.amazonaws.services.autoscaling.model.MixedInstancesPolicy
 import com.amazonaws.services.autoscaling.model.SuspendedProcess
 import com.amazonaws.services.autoscaling.model.TagDescription
 import com.amazonaws.services.ec2.AmazonEC2
@@ -125,6 +127,39 @@ class ClusterCachingAgentSpec extends Specification {
     then:
     def e = thrown(RuntimeException)
     e.message.startsWith("failed to resolve only one vpc")
+  }
+
+  @Unroll
+  def "should create launchTemplate/Config key correctly for all types of asg"() {
+    given:
+    AutoScalingGroup asg = new AutoScalingGroup()
+      .withAutoScalingGroupName("app-stack-v000")
+      .withDesiredCapacity(defaultDesired)
+      .withMinSize(defaultMin)
+      .withMaxSize(defaultMax)
+      ."$asgPropKey"(asgPropValue)
+
+    when:
+    def asgData = new ClusterCachingAgent.AsgData(asg, null, null, "acc", "us-west-1", null)
+
+    then:
+    asgData.launchConfig == launchConfigKey
+    asgData.launchTemplate == launchTemplateKey
+
+    where:
+    asgPropKey                    |          asgPropValue                     ||           launchTemplateKey             ||  launchConfigKey
+    "withLaunchConfigurationName" |         "launchConfig-1"                  ||                 null                    || "aws:launchConfigs:acc:us-west-1:launchConfig-1"
+    "withLaunchTemplate"          | new LaunchTemplateSpecification()
+                                      .withLaunchTemplateName("lt-1")
+                                      .withVersion("2")                       ||"aws:launchTemplates:acc:us-west-1:lt-1" || null
+    "withMixedInstancesPolicy"    | new MixedInstancesPolicy()
+                                    .withLaunchTemplate(new LaunchTemplate()
+                                      .withLaunchTemplateSpecification(
+                                        new LaunchTemplateSpecification()
+                                        .withLaunchTemplateName("lt-1")
+                                        .withVersion("\$Latest")
+                                      )
+                                    )                                         ||"aws:launchTemplates:acc:us-west-1:lt-1" || null
   }
 
   def "on demand update result should have authoritative types correctly set"() {

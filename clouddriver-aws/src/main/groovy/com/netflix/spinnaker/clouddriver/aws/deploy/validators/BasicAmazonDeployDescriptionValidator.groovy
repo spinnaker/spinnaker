@@ -80,8 +80,14 @@ class BasicAmazonDeployDescriptionValidator extends AmazonDescriptionValidationS
     }
 
     // unlimitedCpuCredits (set to true / false) is valid only with supported instance types
-    if (description.unlimitedCpuCredits != null && !InstanceTypeUtils.isBurstingSupported(description.instanceType)) {
+    if (description.unlimitedCpuCredits != null
+      && !InstanceTypeUtils.isBurstingSupportedByAllTypes(description.getAllInstanceTypes())) {
       errors.rejectValue "unlimitedCpuCredits", "basicAmazonDeployDescription.bursting.not.supported.by.instanceType"
+    }
+
+    // spotInstancePools is applicable only for 'lowest-price' spotAllocationStrategy
+    if (description.spotInstancePools && description.spotInstancePools > 0 && description.spotAllocationStrategy != "lowest-price") {
+      errors.rejectValue "spotInstancePools", "basicAmazonDeployDescription.spotInstancePools.not.supported.for.spotAllocationStrategy"
     }
 
     // log warnings
@@ -98,31 +104,28 @@ class BasicAmazonDeployDescriptionValidator extends AmazonDescriptionValidationS
 
     // certain features work as expected only when AWS EC2 Launch Template feature is enabled and used
     if (!description.setLaunchTemplate) {
-      def ltFeaturesEnabled = []
-      if (description.requireIMDSv2) {
-        ltFeaturesEnabled.add("requireIMDSv2")
-      }
-      if (description.associateIPv6Address) {
-        ltFeaturesEnabled.add("associateIPv6Address")
-      }
-      if (description.unlimitedCpuCredits != null) {
-        ltFeaturesEnabled.add("unlimitedCpuCredits")
-      }
-      if (description.placement != null) {
-        ltFeaturesEnabled.add("placement")
-      }
-      if (description.licenseSpecifications != null) {
-        ltFeaturesEnabled.add("licenseSpecifications")
-      }
-
+      def ltFeaturesEnabled = getLtFeaturesEnabled(description)
       if (ltFeaturesEnabled) {
         warnings.add("WARNING: The following fields ${ltFeaturesEnabled} work as expected only with AWS EC2 Launch Template, " +
                 "but 'setLaunchTemplate' is set to false in request with account: ${description.account}, " +
                 "application: ${description.application}, stack: ${description.stack})")
       }
     }
-
     return warnings.join("\n")
+  }
+
+  private List<String> getLtFeaturesEnabled(final BasicAmazonDeployDescription descToValidate) {
+    def allLtFeatures = BasicAmazonDeployDescription.getLaunchTemplateOnlyFieldNames()
+    def descWithDefaults = new BasicAmazonDeployDescription()
+    def ltFeaturesEnabled = []
+
+    allLtFeatures.each({
+      if (descToValidate."$it" != descWithDefaults."$it") {
+        ltFeaturesEnabled.add(it)
+      }
+    })
+
+    return ltFeaturesEnabled.sort()
   }
 
   enum BlockDeviceRules {

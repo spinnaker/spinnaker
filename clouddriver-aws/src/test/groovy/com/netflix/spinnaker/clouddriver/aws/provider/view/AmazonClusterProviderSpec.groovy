@@ -114,6 +114,8 @@ class AmazonClusterProviderSpec extends Specification {
     allServerGroups[0].launchConfig != null
     allServerGroups[0].buildInfo != null
     allServerGroups[0].image != null
+    allServerGroups[0].launchTemplate == null
+    allServerGroups[0].mixedInstancesPolicy == null
   }
 
   def "should get cluster details by app with build info"() {
@@ -163,6 +165,8 @@ class AmazonClusterProviderSpec extends Specification {
     allServerGroups[0].launchConfig != null
     allServerGroups[0].buildInfo != null
     allServerGroups[0].image != null
+    allServerGroups[0].launchTemplate == null
+    allServerGroups[0].mixedInstancesPolicy == null
   }
 
   def "should resolve server group launch config"() {
@@ -190,6 +194,7 @@ class AmazonClusterProviderSpec extends Specification {
       result.serverGroups.size() == 1
       sg.launchConfig == launchConfiguration.attributes
       sg.launchTemplate == null
+      sg.mixedInstancesPolicy == null
     }
   }
 
@@ -245,6 +250,7 @@ class AmazonClusterProviderSpec extends Specification {
     then:
     result.serverGroups.size() == 1
     result.serverGroups[0].launchConfig == null
+    result.serverGroups[0].mixedInstancesPolicy == null
     result.serverGroups[0].launchTemplate.versionNumber == resolvedVersion
 
     where:
@@ -252,5 +258,149 @@ class AmazonClusterProviderSpec extends Specification {
     '1'                      | 1
     '$Default'               | 0
     '$Latest'                | 1
+  }
+
+  def "should get server group with expected properties for asg with launch configuration"() {
+    given:
+    def lcKey = Keys.getLaunchConfigKey(launchConfigName, account, region)
+    def lcCacheAttr = [imageId: "ami-1"]
+    def lcCache = new DefaultCacheData(lcKey, lcCacheAttr, [serverGroups: [serverGroupId]])
+
+    and:
+    def imageKey = Keys.getImageKey("ami-1", account, region)
+    def imageCacheAttr = [imageId: "ami-1", tags: [appversion: "app-0.487.0-h514.f4be391/job/1"]]
+    def imageCache = new DefaultCacheData(imageKey, imageCacheAttr, [:])
+
+    and:
+    serverGroup.asg = [ launchConfigName: launchConfigName]
+    serverGroup["launchConfigName"] = launchConfigName
+    def sgCache = new DefaultCacheData(serverGroupId, serverGroup, [launchConfigs: [lcCache.id]])
+
+    and:
+    cacheView.get(SERVER_GROUPS.ns, serverGroupId) >> sgCache
+    cacheView.get(LAUNCH_CONFIGS.ns, lcKey) >> lcCache
+    cacheView.get(IMAGES.ns, imageKey) >> imageCache
+
+    when:
+    def actualServerGroup = provider.getServerGroup(account, region, serverGroupName, false)
+
+    then:
+    actualServerGroup.image["imageId"] == imageCacheAttr["imageId"]
+    actualServerGroup.launchConfig == lcCacheAttr
+    actualServerGroup.launchTemplate == null
+    actualServerGroup.mixedInstancesPolicy == null
+  }
+
+  def "should get server group with expected properties for asg with launch template"() {
+    given:
+    def latestVersion = [
+      launchTemplateName: launchTemplateName,
+      versionNumber: 1,
+      defaultVersion: false,
+      launchTemplateData: [
+        imageId: "ami-1"
+      ]
+    ]
+    def ltKey = Keys.getLaunchTemplateKey(launchTemplateName, account, region)
+    def ltCacheAttr = [ launchTemplateName: launchTemplateName,
+      latestVersion: latestVersion,
+      versions: [latestVersion]]
+    def ltCache = new DefaultCacheData(ltKey, ltCacheAttr, [serverGroups: [serverGroupId]])
+
+    and:
+    def imageKey = Keys.getImageKey("ami-1", account, region)
+    def imageCacheAttr = [imageId: "ami-1", tags: [appversion: "app-0.487.0-h514.f4be391/job/1"]]
+    def imageCache = new DefaultCacheData(imageKey, imageCacheAttr, [:])
+
+    and:
+    serverGroup.asg = [
+      launchTemplate: [
+        launchTemplateName: launchTemplateName,
+        version: '1'
+      ]
+    ]
+    def sgCache = new DefaultCacheData(serverGroupId, serverGroup, [launchTemplates: [ltCache.id]])
+
+    and:
+    cacheView.get(SERVER_GROUPS.ns, serverGroupId) >> sgCache
+    cacheView.get(LAUNCH_TEMPLATES.ns, ltKey) >> ltCache
+    cacheView.get(IMAGES.ns, imageKey) >> imageCache
+
+    when:
+    def actualServerGroup = provider.getServerGroup(account, region, serverGroupName, false)
+
+    then:
+    actualServerGroup.image["imageId"] == imageCacheAttr["imageId"]
+    actualServerGroup.launchTemplate == latestVersion
+    actualServerGroup.launchConfig == null
+    actualServerGroup.mixedInstancesPolicy == null
+  }
+
+  def "should get server group with expected properties for asg with mixed instances policy"() {
+    given:
+    def latestVersion = [
+      launchTemplateName: launchTemplateName,
+      versionNumber: 1,
+      defaultVersion: false,
+      launchTemplateData: [
+        imageId: "ami-1",
+        instanceType: "some.type.small"
+      ]
+    ]
+    def ltKey = Keys.getLaunchTemplateKey(launchTemplateName, account, region)
+    def ltCacheAttr = [ launchTemplateName: launchTemplateName,
+                        latestVersion: latestVersion,
+                        versions: [latestVersion]]
+    def ltCache = new DefaultCacheData(ltKey, ltCacheAttr, [serverGroups: [serverGroupId]])
+
+    and:
+    def imageKey = Keys.getImageKey("ami-1", account, region)
+    def imageCacheAttr = [imageId: "ami-1", tags: [appversion: "app-0.487.0-h514.f4be391/job/1"]]
+    def imageCache = new DefaultCacheData(imageKey, imageCacheAttr, [:])
+
+    and:
+    serverGroup.asg = [
+      mixedInstancesPolicy: [
+        instancesDistribution: [
+          onDemandAllocationStrategy: "prioritized",
+          onDemandBaseCapacity: 1,
+          onDemandPercentageAboveBaseCapacity: 50,
+          spotAllocationStrategy: "lowest-price",
+          spotInstancePools: 4,
+          spotMaxPrice: "1"
+        ],
+        launchTemplate: [
+          launchTemplateSpecification: [
+            launchTemplateName: launchTemplateName,
+            version: "\$Latest"
+          ],
+          overrides: overrides
+        ]
+      ]
+    ]
+    def sgCache = new DefaultCacheData(serverGroupId, serverGroup, [launchTemplates: [ltCache.id]])
+
+    and:
+    cacheView.get(SERVER_GROUPS.ns, serverGroupId) >> sgCache
+    cacheView.get(LAUNCH_TEMPLATES.ns, ltKey) >> ltCache
+    cacheView.get(IMAGES.ns, imageKey) >> imageCache
+
+    when:
+    def actualServerGroup = provider.getServerGroup(account, region, serverGroupName, false)
+
+    then:
+    actualServerGroup.image["imageId"] == imageCacheAttr["imageId"]
+    actualServerGroup.launchConfig == null
+    actualServerGroup.launchTemplate == null
+    actualServerGroup.mixedInstancesPolicy.allowedInstanceTypes == expectedAllowedInstanceTypes
+    actualServerGroup.mixedInstancesPolicy.instancesDiversification == serverGroup.asg["mixedInstancesPolicy"]["instancesDistribution"]
+    actualServerGroup.mixedInstancesPolicy.launchTemplates == expectedInstanceTypeInLtData ? latestVersion : {latestVersion.clone(); latestVersion["launchTemplateData"].remove("instanceType")}
+    actualServerGroup.mixedInstancesPolicy.launchTemplateOverridesForInstanceType == overrides
+
+    where:
+                        overrides                             || expectedInstanceTypeInLtData | expectedAllowedInstanceTypes
+                                            null              ||     "some.type.small"        | ["some.type.small"]
+    [[instanceType: "some.type.large", weightedCapacity: 2],
+     [instanceType: "some.type.xlarge", weightedCapacity: 4]] ||           null               | ["some.type.large", "some.type.xlarge"]
   }
 }

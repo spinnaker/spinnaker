@@ -295,6 +295,10 @@ public abstract class AsgBuilder {
                 "launch template",
                 Objects.equals(existingAsg.getLaunchTemplate(), request.getLaunchTemplate()))
             .put(
+                "mixed instances policy",
+                Objects.equals(
+                    existingAsg.getMixedInstancesPolicy(), request.getMixedInstancesPolicy()))
+            .put(
                 "availability zones",
                 Objects.equals(
                     sortList(existingAsg.getAvailabilityZones()),

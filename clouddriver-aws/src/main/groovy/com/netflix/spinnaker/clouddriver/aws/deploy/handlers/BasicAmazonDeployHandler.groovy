@@ -16,15 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.handlers
 
-import com.amazonaws.services.autoscaling.model.BlockDeviceMapping
+import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
-import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest
-import com.amazonaws.services.ec2.model.LaunchTemplateBlockDeviceMapping
-import com.amazonaws.services.ec2.model.LaunchTemplateVersion
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
+import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AsgConfigHelper
 import com.netflix.spinnaker.config.AwsConfiguration
 import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults
 import com.netflix.spinnaker.clouddriver.aws.deploy.AmiIdResolver
@@ -223,6 +221,8 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         }
       }
 
+      // Get default block device mapping for requested instance type.
+      // For the case of multiple instance types in request, top-level instance type is used to derive defaults.
       if (description.blockDevices == null) {
         description.blockDevices = blockDeviceConfig.getBlockDevicesForInstanceType(description.instanceType)
       }
@@ -233,7 +233,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       if (!ami) {
         throw new IllegalArgumentException("unable to resolve AMI imageId from $description.amiName in $region")
       }
-      InstanceTypeUtils.validateCompatibility(ami.virtualizationType, description.instanceType)
+      InstanceTypeUtils.validateCompatibility(ami.virtualizationType, description.getAllInstanceTypes())
 
       def account = accountCredentialsRepository.getOne(description.credentials.name)
       if (account == null) {
@@ -241,7 +241,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       }
 
       if (description.useAmiBlockDeviceMappings) {
-        description.blockDevices = convertBlockDevices(ami.blockDeviceMappings)
+        description.blockDevices = AsgConfigHelper.transformBlockDeviceMapping(ami.blockDeviceMappings)
       }
 
       if (description.spotPrice == "") {
@@ -303,9 +303,17 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         setLaunchTemplate: description.setLaunchTemplate,
         requireIMDSv2: description.requireIMDSv2,
         associateIPv6Address: description.associateIPv6Address,
-        unlimitedCpuCredits: getUnlimitedCpuCredits(description.unlimitedCpuCredits, description.instanceType),
+        unlimitedCpuCredits: description.unlimitedCpuCredits != null
+          ? description.unlimitedCpuCredits
+          : getDefaultUnlimitedCpuCredits(description.getAllowedInstanceTypes()),
         placement: description.placement,
-        licenseSpecifications: description.licenseSpecifications
+        licenseSpecifications: description.licenseSpecifications,
+        onDemandAllocationStrategy: description.onDemandAllocationStrategy,
+        onDemandBaseCapacity: description.onDemandBaseCapacity,
+        onDemandPercentageAboveBaseCapacity: description.onDemandPercentageAboveBaseCapacity,
+        spotAllocationStrategy: description.spotAllocationStrategy,
+        spotInstancePools: description.spotInstancePools,
+        launchTemplateOverridesForInstanceType: description.launchTemplateOverridesForInstanceType
       )
 
       def asgName = autoScalingWorker.deploy(asgConfig)
@@ -412,41 +420,25 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
     ).autoScalingGroups
     def sourceAsg = ancestorAsgs.getAt(0)
 
-    if (!sourceAsg?.launchConfigurationName && sourceAsg?.launchTemplate == null) {
+    if (!sourceAsg?.launchConfigurationName && sourceAsg?.launchTemplate == null && sourceAsg?.mixedInstancesPolicy == null) {
       if (useSourceCapacity) {
         throw new IllegalStateException("useSourceCapacity requested, but no source ASG found")
       }
       return description
     }
 
+    // capacity
     if (useSourceCapacity) {
       description.capacity.min = sourceAsg.minSize
       description.capacity.max = sourceAsg.maxSize
       description.capacity.desired = sourceAsg.desiredCapacity
     }
 
-    //skip a describeLaunchConfiguration if we won't use it for anything
+    // block device mappings
     if (!description.copySourceCustomBlockDeviceMappings) {
       return description
-    }
-
-    if (description.copySourceCustomBlockDeviceMappings) {
-      if (sourceAsg.launchTemplate != null) {
-        LaunchTemplateVersion launchTemplateVersion = sourceRegionScopedProvider
-          .getLaunchTemplateService()
-          .getLaunchTemplateVersion(sourceAsg.launchTemplate)
-          .orElseThrow {
-            new IllegalStateException("Launch template $sourceAsg.launchTemplate.version was requested but was not found for $sourceAsg")
-          }
-
-        description.blockDevices = buildBlockDeviceMappings(description, new LaunchSetting(launchTemplateVersion: launchTemplateVersion))
-      } else {
-        def sourceLaunchConfiguration = sourceRegionScopedProvider.asgService.getLaunchConfiguration(
-          sourceAsg.launchConfigurationName
-        )
-
-        description.blockDevices = buildBlockDeviceMappings(description, new LaunchSetting(launchConfiguration: sourceLaunchConfiguration))
-      }
+    } else {
+      description.blockDevices = buildBlockDeviceMappingsFromSourceAsg(sourceRegionScopedProvider, sourceAsg, description)
     }
 
     return description
@@ -491,7 +483,11 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
   }
 
   /**
-   * default unlimitedCpuCredits to false if applicable (i.e. burstable performance instance type), and not specified
+   * Default unlimitedCpuCredits to false if applicable (i.e. burstable performance instance type), and not specified.
+   *
+   * For the multiple instance types case, the Spinnaker default false is used ONLY if all types support bursting to ensure compatibility with ALL instance types.
+   * In such cases, the AWS default comes into play.
+   *
    * Reasoning:
    * 1) consistent default cpu credits value for burstable performance instance families
    * AWS default mode if cpu credits is not specified depends on the instance family:
@@ -501,126 +497,15 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
    * 2) let users explicitly choose 'unlimited' bursting which could translate to higher instance costs, depending on usage
    */
   @VisibleForTesting
-  static Boolean getUnlimitedCpuCredits(final Boolean unlimitedCpuCredits, final String instanceType) {
-    def isApplicableButNotSpecified = unlimitedCpuCredits == null && InstanceTypeUtils.isBurstingSupported(instanceType)
-    return isApplicableButNotSpecified ? false : unlimitedCpuCredits
-  }
+  static Boolean getDefaultUnlimitedCpuCredits(final Set<String> instanceTypes) {
 
-  @VisibleForTesting
-  @PackageScope
-  static List<AmazonBlockDevice> convertBlockDevices(List<BlockDeviceMapping> blockDeviceMappings) {
-    blockDeviceMappings.collect {
-      def device = new AmazonBlockDevice(deviceName: it.deviceName, virtualName: it.virtualName)
-      it.ebs?.with {
-        device.iops = iops
-        device.deleteOnTermination = deleteOnTermination
-        device.size = volumeSize
-        device.volumeType = volumeType
-        device.snapshotId = snapshotId
-        if (snapshotId == null) {
-          // only set encryption if snapshotId isn't provided. AWS will error out otherwise
-          device.encrypted = encrypted
-        }
-      }
-      device
-    }
-  }
-
-  @VisibleForTesting
-  @PackageScope
-  static List<AmazonBlockDevice> convertLaunchTemplateBlockDevices(List<LaunchTemplateBlockDeviceMapping> launchTemplateBlockDeviceMappings) {
-    return launchTemplateBlockDeviceMappings.collect {
-      def device = new AmazonBlockDevice(deviceName: it.deviceName, virtualName: it.virtualName)
-      it.ebs?.with {
-        device.iops = iops
-        device.deleteOnTermination = deleteOnTermination
-        device.size = volumeSize
-        device.volumeType = volumeType
-        device.snapshotId = snapshotId
-        if (snapshotId == null) {
-          // only set encryption if snapshotId isn't provided. AWS will error out otherwise
-          device.encrypted = encrypted
-        }
-      }
-
-      return device
-    }
+    // return the default, false only if all instance types support bursting
+    return InstanceTypeUtils.isBurstingSupportedByAllTypes(instanceTypes) ? false : null
   }
 
   static String iamRole(BasicAmazonDeployDescription description, DeployDefaults deployDefaults) {
     def iamRole = description.iamRole ?: deployDefaults.iamRole
     return description.application ? iamRole.replaceAll(Pattern.quote('{{application}}'), description.application) : iamRole
-  }
-
-  private RegionScopedProviderFactory.RegionScopedProvider buildSourceRegionScopedProvider(Task task,
-                                                                                           BasicAmazonDeployDescription.Source source) {
-    if (source.account && source.region && source.asgName) {
-      def sourceRegion = source.region
-      def sourceAsgCredentials = accountCredentialsRepository.getOne(source.account)
-      def regionScopedProvider = regionScopedProviderFactory.forRegion(sourceAsgCredentials, sourceRegion)
-
-      def sourceAsgs = regionScopedProvider.autoScaling.describeAutoScalingGroups(
-        new DescribeAutoScalingGroupsRequest(autoScalingGroupNames: [source.asgName])
-      )
-
-      if (!sourceAsgs.autoScalingGroups) {
-        task.updateStatus BASE_PHASE, "Unable to locate source asg (${source.account}:${source.region}:${source.asgName})"
-        return null
-      }
-
-      return regionScopedProvider
-    }
-
-    return null
-  }
-
-  /**
-   * Determine block devices
-   *
-   * If:
-   * - The source launch configuration or template is using default block device mappings
-   * - The instance type has changed
-   *
-   * Then:
-   * - Re-generate block device mappings based on the new instance type
-   *
-   * Otherwise:
-   * - Continue to use any custom block device mappings (if set)
-   */
-  @VisibleForTesting
-  @PackageScope
-  Collection<AmazonBlockDevice> buildBlockDeviceMappings(
-    BasicAmazonDeployDescription description,
-    LaunchSetting sourceLaunchSetting
-  ) {
-    if (description.blockDevices != null) {
-      // block device mappings have been explicitly specified and should be used regardless of instance type
-      return description.blockDevices
-    }
-
-    String instanceType = sourceLaunchSetting.instanceType
-    if (instanceType != description.instanceType) {
-      // instance type has changed, verify that the block device mappings are still legitimate (ebs vs. ephemeral)
-      def blockDevicesForSourceAsg = sourceLaunchSetting.blockDeviceMappings.collect {
-        [deviceName: it.deviceName, virtualName: it.virtualName, size: it.ebs?.volumeSize]
-      }.sort { it.deviceName }
-      def blockDevicesForSourceInstanceType = blockDeviceConfig.getBlockDevicesForInstanceType(
-        instanceType
-      ).collect {
-        [deviceName: it.deviceName, virtualName: it.virtualName, size: it.size]
-      }.sort { it.deviceName }
-
-      if (blockDevicesForSourceAsg == blockDevicesForSourceInstanceType) {
-        // use default block mappings for the new instance type (since default block mappings were used on the previous instance type)
-        return blockDeviceConfig.getBlockDevicesForInstanceType(description.instanceType)
-      }
-    }
-
-    if (sourceLaunchSetting.launchTemplateVersion != null) {
-      return convertLaunchTemplateBlockDevices(sourceLaunchSetting.getLaunchTemplateBlockDeviceMapping())
-    }
-
-    return convertBlockDevices(sourceLaunchSetting.getBlockDeviceMapping())
   }
 
   @VisibleForTesting
@@ -665,32 +550,68 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
     return description
   }
 
-  static class LaunchSetting {
-    LaunchConfiguration launchConfiguration
-    LaunchTemplateVersion launchTemplateVersion
+  private RegionScopedProviderFactory.RegionScopedProvider buildSourceRegionScopedProvider(Task task,
+                                                                                           BasicAmazonDeployDescription.Source source) {
+    if (source.account && source.region && source.asgName) {
+      def sourceRegion = source.region
+      def sourceAsgCredentials = accountCredentialsRepository.getOne(source.account)
+      def regionScopedProvider = regionScopedProviderFactory.forRegion(sourceAsgCredentials, sourceRegion)
 
-    String getInstanceType() {
-      if (launchConfiguration != null) {
-        return launchConfiguration.instanceType
+      def sourceAsgs = regionScopedProvider.autoScaling.describeAutoScalingGroups(
+        new DescribeAutoScalingGroupsRequest(autoScalingGroupNames: [source.asgName])
+      )
+
+      if (!sourceAsgs.autoScalingGroups) {
+        task.updateStatus BASE_PHASE, "Unable to locate source asg (${source.account}:${source.region}:${source.asgName})"
+        return null
       }
 
-      return launchTemplateVersion?.launchTemplateData?.instanceType
+      return regionScopedProvider
     }
 
-    List getBlockDeviceMappings() {
-      if (launchConfiguration != null) {
-        return getBlockDeviceMapping()
+    return null
+  }
+
+  /**
+   * Build block device mappings for the request from source ASG.
+   * Used when copy from source is requested.
+   *
+   * @param sourceAsgRegionScopedProvider regionScopedProvider for the source ASG
+   * @param sourceAsg source AWS AutoScalingGroup
+   * @param newAsgDescription description in request
+   * @return a list of {@link AmazonBlockDevice} for the requested configuration
+   */
+  @VisibleForTesting
+  @PackageScope
+  List<AmazonBlockDevice> buildBlockDeviceMappingsFromSourceAsg(
+    RegionScopedProviderFactory.RegionScopedProvider sourceAsgRegionScopedProvider,
+    AutoScalingGroup sourceAsg,
+    BasicAmazonDeployDescription newAsgDescription) {
+
+    // if block device mappings are explicitly specified, they should be used regardless of source ASG settings
+    if (newAsgDescription.blockDevices != null) {
+      return newAsgDescription.blockDevices
+    }
+
+    if (newAsgDescription.getAllowedInstanceTypes() != AsgConfigHelper.getAllowedInstanceTypesForAsg(sourceAsg, sourceAsgRegionScopedProvider)) {
+      // If instance type(s) being requested is NOT the same as those in source ASG,
+      // get default mapping for the new type ONLY IF that same logic was applied for source ASG.
+      // For the case of multiple instance types in request, top-level instance type is used to derive defaults.
+      // Top-level instance type is nothing but the description.instanceType
+      def blockDevicesForSourceAsg = AsgConfigHelper.getBlockDeviceMappingForAsg(sourceAsg, sourceAsgRegionScopedProvider)
+        .collect { [deviceName: it.deviceName, virtualName: it.virtualName, size: it.size] }
+        .sort { it.deviceName }
+
+      def defaultBlockDevicesForSourceInsType =
+        blockDeviceConfig.getBlockDevicesForInstanceType(AsgConfigHelper.getTopLevelInstanceTypeForAsg(sourceAsg, sourceAsgRegionScopedProvider))
+          .collect { [deviceName: it.deviceName, virtualName: it.virtualName, size: it.size] }
+          .sort { it.deviceName }
+
+      if (blockDevicesForSourceAsg == defaultBlockDevicesForSourceInsType) {
+        return blockDeviceConfig.getBlockDevicesForInstanceType(newAsgDescription.getInstanceType())
       }
-
-      return getLaunchTemplateBlockDeviceMapping()
     }
 
-    List<LaunchTemplateBlockDeviceMapping> getLaunchTemplateBlockDeviceMapping() {
-      return launchTemplateVersion?.launchTemplateData?.blockDeviceMappings
-    }
-
-    List<BlockDeviceMapping> getBlockDeviceMapping() {
-      return launchConfiguration?.blockDeviceMappings
-    }
+    return AsgConfigHelper.getBlockDeviceMappingForAsg(sourceAsg, sourceAsgRegionScopedProvider)
   }
 }

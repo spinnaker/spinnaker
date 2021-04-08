@@ -21,9 +21,11 @@ import com.fasterxml.jackson.annotation.JsonAnyGetter
 import com.fasterxml.jackson.annotation.JsonAnySetter
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
+import com.netflix.spinnaker.clouddriver.documentation.Empty
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
+import com.netflix.spinnaker.kork.annotations.Alpha
 import groovy.transform.CompileStatic
 
 @CompileStatic
@@ -35,8 +37,18 @@ class AmazonServerGroup implements ServerGroup, Serializable {
   Set<Instance> instances
   Set health
   Map<String, Object> image
+
+  /**
+   * An ASG can be configured with a launchConfig or launchTemplate or mixedInstancesPolicy.
+   */
   Map<String, Object> launchConfig
   Map<String, Object> launchTemplate
+  /**
+   * The fields marked @Alpha are subject to change in the future due to addition of newer ASG features like multiple launch templates.
+   */
+  @Alpha
+  MixedInstancesPolicySettings mixedInstancesPolicy
+
   Map<String, Object> asg
   List<Map> scalingPolicies
   List<Map> scheduledActions
@@ -114,8 +126,13 @@ class AmazonServerGroup implements ServerGroup, Serializable {
       securityGroups = (Set<String>) launchConfig.securityGroups
     }
 
+    RequestLaunchTemplateData launchTemplateData = null
     if (launchTemplate) {
-      def launchTemplateData = (RequestLaunchTemplateData) launchTemplate.get("launchTemplateData")
+      launchTemplateData = (RequestLaunchTemplateData) launchTemplate["launchTemplateData"]
+    } else if (mixedInstancesPolicy) {
+      launchTemplateData = (RequestLaunchTemplateData) mixedInstancesPolicy.launchTemplates[0]["launchTemplateData"]
+    }
+    if (launchTemplateData) {
       def securityGroupIds = (Set<String>) launchTemplateData?.securityGroupIds ?: []
 
       if (securityGroupIds?.size()) {
@@ -132,9 +149,28 @@ class AmazonServerGroup implements ServerGroup, Serializable {
     return securityGroups
   }
 
+  /**
+   * Get a single instance type for a server group.
+   * Used for the case of single instance type i.e. ASG with launch config, launch template, mixed instances policy without overrides
+   *
+   * For the case of multiple instance types i.e. ASG MixedInstancesPolicy with overrides, use mixedInstancesPolicy.allowedInstanceTypes.
+   * @return a single instance type for ASG
+   */
   @Override
   String getInstanceType() {
-    return launchConfig?.instanceType ?: ((Map<String, String>)launchTemplate?.launchTemplateData)?.instanceType
+    if (launchConfig) {
+      return launchConfig.instanceType
+    } else if (launchTemplate) {
+      return ((Map<String, Object>)launchTemplate.launchTemplateData).instanceType
+    } else if (mixedInstancesPolicy) {
+      if (!mixedInstancesPolicy.launchTemplateOverridesForInstanceType) {
+        def mipLt = (Map<String, Object>) mixedInstancesPolicy.launchTemplates.get(0)
+        return mipLt["launchTemplateData"]["instanceType"]
+      }
+      return null
+    } else {
+      return null
+    }
   }
 
   @Override
@@ -187,13 +223,54 @@ class AmazonServerGroup implements ServerGroup, Serializable {
     }
   }
 
-    @Override
+  @Override
   ServerGroup.ImageSummary getImageSummary() {
     imagesSummary?.summaries?.get(0)
+  }
+
+  @Empty
+  @JsonIgnore
+  @Alpha
+  Map getLaunchTemplateSpecification() {
+    if (this.asg?.launchTemplate) {
+      return this.asg.launchTemplate as Map
+    } else if (this.asg?.mixedInstancesPolicy) {
+      return this.asg.mixedInstancesPolicy["launchTemplate"]["launchTemplateSpecification"] as Map
+    } else {
+      return null
+    }
   }
 
   static Collection<Instance> filterInstancesByHealthState(Collection<Instance> instances, HealthState healthState) {
     instances.findAll { Instance it -> it.getHealthState() == healthState }
   }
 
+  /**
+   * MixedInstancesPolicySettings represents the configuration parameters for an ASG with mixed instances policy
+   */
+  static class MixedInstancesPolicySettings {
+    /**
+     * Instance types that the Amazon Server Group can realistically launch.
+     *
+     * If launchTemplateOverrides are specified, they will override the same properties in launch template e.g. instanceType
+     * https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_LaunchTemplate.html
+     */
+    List<String> allowedInstanceTypes
+
+    /**
+     * Instance diversification configuration.
+     */
+    Map instancesDiversification
+
+    /**
+     * A list of launch template objects configured in the ASG.
+     */
+    List<Map> launchTemplates
+
+    /**
+     * A list of overrides, one for each instance type configured in the ASG.
+     * Each override includes the information in LaunchTemplateOverrides https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_LaunchTemplateOverrides.html
+     */
+    List<Map> launchTemplateOverridesForInstanceType
+  }
 }

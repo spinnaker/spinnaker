@@ -319,8 +319,12 @@ public class LaunchTemplateService {
           new LaunchTemplateInstanceMetadataOptionsRequest().withHttpTokens("required"));
     }
 
-    // instance market options
-    setSpotInstanceMarketOptions(request, asgConfig.getSpotMaxPrice());
+    // instance market options only when mixed instances policy is not used in order to maintain
+    // launch template compatibility
+
+    if (!asgConfig.shouldUseMixedInstancesPolicy()) {
+      setSpotInstanceMarketOptions(request, asgConfig.getSpotMaxPrice());
+    }
 
     setCreditSpecification(request, asgConfig.getUnlimitedCpuCredits());
 

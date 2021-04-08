@@ -17,17 +17,33 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.asg;
 
+import com.amazonaws.services.autoscaling.model.AutoScalingGroup;
+import com.amazonaws.services.autoscaling.model.BlockDeviceMapping;
+import com.amazonaws.services.autoscaling.model.Ebs;
+import com.amazonaws.services.autoscaling.model.LaunchConfiguration;
+import com.amazonaws.services.autoscaling.model.LaunchTemplateSpecification;
+import com.amazonaws.services.ec2.model.LaunchTemplateBlockDeviceMapping;
+import com.amazonaws.services.ec2.model.LaunchTemplateEbsBlockDevice;
+import com.amazonaws.services.ec2.model.LaunchTemplateVersion;
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription;
+import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice;
+import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory;
 import com.netflix.spinnaker.clouddriver.aws.services.SecurityGroupService;
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
 import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
-/** A helper class for utility methods related to {@link AutoScalingWorker.AsgConfiguration} */
+/**
+ * A helper class for utility methods related to {@link AutoScalingWorker.AsgConfiguration} and
+ * general ASG related configuration.
+ */
 @Slf4j
 public class AsgConfigHelper {
 
@@ -113,6 +129,153 @@ public class AsgConfigHelper {
     return asgConfig;
   }
 
+  /**
+   * Get block device mappings specified in an ASG.
+   *
+   * @param asg AWS AutoScalingGroup
+   * @param asgRegionScopedProvider regionScopedProvider for the asg
+   * @return a list of AmazonBlockDevice indicating the block device mapping specified in the asg
+   * @throws IllegalStateException if certain AWS entities are not found / show error conditions.
+   */
+  public static List<AmazonBlockDevice> getBlockDeviceMappingForAsg(
+      final AutoScalingGroup asg,
+      RegionScopedProviderFactory.RegionScopedProvider asgRegionScopedProvider) {
+    if (asg.getLaunchConfigurationName() != null) {
+      final LaunchConfiguration lc =
+          asgRegionScopedProvider
+              .getAsgService()
+              .getLaunchConfiguration(asg.getLaunchConfigurationName());
+      if (lc == null) {
+        throw new IllegalStateException(
+            "Launch configuration "
+                + asg.getLaunchConfigurationName()
+                + " was requested but was not found for ASG with launch configuration "
+                + asg.getAutoScalingGroupName());
+      }
+      return transformBlockDeviceMapping(lc.getBlockDeviceMappings());
+    } else if (asg.getLaunchTemplate() != null) {
+      final LaunchTemplateVersion ltVersion =
+          asgRegionScopedProvider
+              .getLaunchTemplateService()
+              .getLaunchTemplateVersion(asg.getLaunchTemplate())
+              .orElseThrow(
+                  () ->
+                      new IllegalStateException(
+                          "Launch template "
+                              + asg.getLaunchTemplate()
+                              + " was requested but was not found for ASG with launch template "
+                              + asg.getAutoScalingGroupName()));
+      return transformLaunchTemplateBlockDeviceMapping(
+          ltVersion.getLaunchTemplateData().getBlockDeviceMappings());
+    } else if (asg.getMixedInstancesPolicy() != null) {
+      final LaunchTemplateSpecification ltSpec =
+          asg.getMixedInstancesPolicy().getLaunchTemplate().getLaunchTemplateSpecification();
+      final LaunchTemplateVersion ltVersion =
+          asgRegionScopedProvider
+              .getLaunchTemplateService()
+              .getLaunchTemplateVersion(ltSpec)
+              .orElseThrow(
+                  () ->
+                      new IllegalStateException(
+                          "Launch template "
+                              + ltSpec
+                              + " was requested but was not found for ASG with mixed instances policy "
+                              + asg.getAutoScalingGroupName()));
+      return transformLaunchTemplateBlockDeviceMapping(
+          ltVersion.getLaunchTemplateData().getBlockDeviceMappings());
+    } else {
+      throw new IllegalStateException(
+          String.format(
+              "An AWS ASG %s is expected to have a launch configuration or launch template or mixed instances policy",
+              asg.getAutoScalingGroupName()));
+    }
+  }
+
+  /**
+   * Get instance types specified in an ASG.
+   *
+   * @param asg AWS AutoScalingGroup
+   * @param asgRegionScopedProvider regionScopedProvider for the asg
+   * @return a list of instance types with a single type for launch configuration / launch template
+   *     and multiple types for mixed instances policy backed ASG
+   * @throws IllegalStateException if certain AWS entities are not found / show error conditions.
+   */
+  public static Set<String> getAllowedInstanceTypesForAsg(
+      final AutoScalingGroup asg,
+      RegionScopedProviderFactory.RegionScopedProvider asgRegionScopedProvider) {
+    if (asg.getMixedInstancesPolicy() != null
+        && asg.getMixedInstancesPolicy().getLaunchTemplate().getOverrides() != null) {
+      return asg.getMixedInstancesPolicy().getLaunchTemplate().getOverrides().stream()
+          .map(override -> override.getInstanceType())
+          .collect(Collectors.toSet());
+    } else {
+      return Collections.singleton(getTopLevelInstanceTypeForAsg(asg, asgRegionScopedProvider));
+    }
+  }
+
+  /**
+   * Get the top-level instance type specified in an ASG. For the case of multiple instance types,
+   * top-level instance type is the one specified in the launch template (NOT overrides). The
+   * top-level instance type in an ASG is nothing but the {@link
+   * BasicAmazonDeployDescription#getInstanceType()}
+   *
+   * @param asg asg AWS AutoScalingGroup
+   * @param asgRegionScopedProvider regionScopedProvider for the asg
+   * @return a single instance type which corresponds to {@link
+   *     BasicAmazonDeployDescription#getInstanceType()}
+   * @throws IllegalStateException if certain AWS entities are not found / show error conditions.
+   */
+  public static String getTopLevelInstanceTypeForAsg(
+      final AutoScalingGroup asg,
+      RegionScopedProviderFactory.RegionScopedProvider asgRegionScopedProvider) {
+    if (asg.getLaunchConfigurationName() != null) {
+      final LaunchConfiguration lc =
+          asgRegionScopedProvider
+              .getAsgService()
+              .getLaunchConfiguration(asg.getLaunchConfigurationName());
+      if (lc == null) {
+        throw new IllegalStateException(
+            String.format(
+                "Launch configuration %s was requested but was not found for ASG with launch configuration %s.",
+                asg.getLaunchConfigurationName(), asg.getAutoScalingGroupName()));
+      }
+      return lc.getInstanceType();
+    } else if (asg.getLaunchTemplate() != null) {
+      final LaunchTemplateVersion ltVersion =
+          asgRegionScopedProvider
+              .getLaunchTemplateService()
+              .getLaunchTemplateVersion(asg.getLaunchTemplate())
+              .orElseThrow(
+                  () ->
+                      new IllegalStateException(
+                          String.format(
+                              "Launch template %s was requested but was not found for ASG with launch template %s.",
+                              asg.getLaunchTemplate(), asg.getAutoScalingGroupName())));
+
+      return ltVersion.getLaunchTemplateData().getInstanceType();
+    } else if (asg.getMixedInstancesPolicy() != null) {
+      final LaunchTemplateSpecification ltSpec =
+          asg.getMixedInstancesPolicy().getLaunchTemplate().getLaunchTemplateSpecification();
+      final LaunchTemplateVersion ltVersion =
+          asgRegionScopedProvider
+              .getLaunchTemplateService()
+              .getLaunchTemplateVersion(ltSpec)
+              .orElseThrow(
+                  () ->
+                      new IllegalStateException(
+                          String.format(
+                              "Launch template %s was requested but was not found for ASG with mixed instances policy %s.",
+                              ltSpec, asg.getAutoScalingGroupName())));
+
+      return ltVersion.getLaunchTemplateData().getInstanceType();
+    } else {
+      throw new IllegalStateException(
+          "An AWS ASG is expected to include a launch configuration or launch template or mixed instances policy "
+              + "but neither was found in ASG "
+              + asg);
+    }
+  }
+
   private static String createSecurityGroupForApp(
       SecurityGroupService securityGroupService, String application, String subnetType) {
 
@@ -132,5 +295,75 @@ public class AsgConfigHelper {
 
   private static String createDefaultSuffix() {
     return new LocalDateTime().toString("MMddYYYYHHmmss");
+  }
+
+  /**
+   * Transform AWS BlockDeviceMapping (found in ASG LaunchConfiguration) to {@link
+   * AmazonBlockDevice}. Used while extracting launch settings from AWS AutoScalingGroup.
+   *
+   * @param blockDeviceMappings AWS BlockDeviceMappings
+   * @return list of AmazonBlockDevice
+   */
+  protected static List<AmazonBlockDevice> transformBlockDeviceMapping(
+      List<BlockDeviceMapping> blockDeviceMappings) {
+    return blockDeviceMappings.stream()
+        .map(
+            bdm -> {
+              AmazonBlockDevice amzBd =
+                  new AmazonBlockDevice.Builder()
+                      .deviceName(bdm.getDeviceName())
+                      .virtualName(bdm.getVirtualName())
+                      .build();
+
+              if (bdm.getEbs() != null) {
+                final Ebs ebs = bdm.getEbs();
+                amzBd.setIops(ebs.getIops());
+                amzBd.setDeleteOnTermination(ebs.getDeleteOnTermination());
+                amzBd.setSize(ebs.getVolumeSize());
+                amzBd.setVolumeType(ebs.getVolumeType());
+                amzBd.setSnapshotId(ebs.getSnapshotId());
+                if (ebs.getSnapshotId() == null) {
+                  // only set encryption if snapshotId isn't provided. AWS will error out otherwise
+                  amzBd.setEncrypted(ebs.getEncrypted());
+                }
+              }
+              return amzBd;
+            })
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * Transform AWS BlockDeviceMapping (found in EC2 LaunchTemplate) to {@link AmazonBlockDevice}.
+   * Used while extracting launch settings from AWS AutoScalingGroup.
+   *
+   * @param launchTemplateBlockDeviceMappings AWS LaunchTemplate BlockDeviceMappings
+   * @return list of AmazonBlockDevice
+   */
+  protected static List<AmazonBlockDevice> transformLaunchTemplateBlockDeviceMapping(
+      List<LaunchTemplateBlockDeviceMapping> launchTemplateBlockDeviceMappings) {
+    return launchTemplateBlockDeviceMappings.stream()
+        .map(
+            ltBdm -> {
+              AmazonBlockDevice amzBd =
+                  new AmazonBlockDevice.Builder()
+                      .deviceName(ltBdm.getDeviceName())
+                      .virtualName(ltBdm.getVirtualName())
+                      .build();
+
+              if (ltBdm.getEbs() != null) {
+                final LaunchTemplateEbsBlockDevice ebs = ltBdm.getEbs();
+                amzBd.setIops(ebs.getIops());
+                amzBd.setDeleteOnTermination(ebs.getDeleteOnTermination());
+                amzBd.setSize(ebs.getVolumeSize());
+                amzBd.setVolumeType(ebs.getVolumeType());
+                amzBd.setSnapshotId(ebs.getSnapshotId());
+                if (ebs.getSnapshotId() == null) {
+                  // only set encryption if snapshotId isn't provided. AWS will error out otherwise
+                  amzBd.setEncrypted(ebs.getEncrypted());
+                }
+              }
+              return amzBd;
+            })
+        .collect(Collectors.toList());
   }
 }

@@ -43,7 +43,6 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   Collection<String> enabledMetrics
   Integer healthCheckGracePeriod
   String healthCheckType
-  String spotPrice
   Set<String> suspendedProcesses = []
   Collection<String> terminationPolicies
   String kernelId
@@ -53,37 +52,6 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   String base64UserData
   Boolean legacyUdf
   UserDataOverride userDataOverride = new UserDataOverride()
-
-  /**
-   * When set to true, the created server group will use a launch template instead of a launch configuration.
-   */
-  Boolean setLaunchTemplate = true
-
-  /**
-   * When set to true, the created server group will be configured with IMDSv2.
-   * This is a Launch Template only feature
-   * * https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-instance-metadata-service.html
-   */
-  Boolean requireIMDSv2 = false
-
-  /**
-   * Associate an IPv6 address
-   * This is a Launch Template only feature
-   */
-  Boolean associateIPv6Address
-
-  /**
-   * Applicable only for burstable performance instance types like t2/t3.
-   * * set to null when not applicable / by default.
-   *
-   * The burstable performance instances in the created server group will have:
-   * * unlimited CPU credits, when set to true
-   * * standard CPU credits, when set to false
-   * https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-performance-instances-unlimited-mode.html
-   *
-   * This is a Launch Template only feature.
-   */
-  Boolean unlimitedCpuCredits
 
   Collection<OperationEvent> events = []
 
@@ -132,6 +100,38 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   Map<String, String> tags
   Map<String, String> blockDeviceTags
 
+  // Launch Template features:start
+  /**
+   * When set to true, the created server group will use a launch template instead of a launch configuration.
+   */
+  Boolean setLaunchTemplate = true
+
+  /**
+   * When set to true, the created server group will be configured with IMDSv2.
+   * This is a Launch Template only feature
+   * * https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-instance-metadata-service.html
+   */
+  Boolean requireIMDSv2 = false
+
+  /**
+   * Associate an IPv6 address
+   * This is a Launch Template only feature
+   */
+  Boolean associateIPv6Address
+
+  /**
+   * Applicable only for burstable performance instance types like t2/t3.
+   * * set to null when not applicable / by default.
+   *
+   * The burstable performance instances in the created server group will have:
+   * * unlimited CPU credits, when set to true
+   * * standard CPU credits, when set to false
+   * https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-performance-instances-unlimited-mode.html
+   *
+   * This is a Launch Template only feature.
+   */
+  Boolean unlimitedCpuCredits
+
   /**
    * Launch template placement details, see {@link com.amazonaws.services.ec2.model.LaunchTemplatePlacementRequest}.
    */
@@ -141,6 +141,109 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
    * Launch template license specifications, see {@link com.amazonaws.services.ec2.model.LaunchTemplateLicenseConfigurationRequest}.
    */
   List<LaunchTemplateLicenseSpecification> licenseSpecifications
+
+  /**
+   * Indicates how to allocate instance types to fulfill On-Demand capacity. The only valid value is prioritized.
+   * This strategy uses the order of instance types in the LaunchTemplateOverrides to define the launch priority of each instance type.
+   * default: prioritized
+   */
+  String onDemandAllocationStrategy
+
+  /** The minimum amount of the Auto Scaling group's capacity that must be fulfilled by On-Demand Instances.
+   * If weights are specified for the instance types in the overrides,
+   * set the value of OnDemandBaseCapacity in terms of the number of capacity units, and not number of instances.
+   * default: 0
+   */
+  Integer onDemandBaseCapacity
+
+  /**
+   * The percentages of On-Demand Instances and Spot Instances for additional capacity beyond OnDemandBaseCapacity
+   * default: 100, i.e. only On-Demand instances
+   */
+  Integer onDemandPercentageAboveBaseCapacity
+
+  /**
+   * Indicates how to allocate instances across Spot Instance pools. 2 strategies:
+   * 1) capacity-optimized (recommended): instances launched using Spot pools that are optimally chosen based on the available Spot capacity.
+   * 2) lowest-price: instances launched using Spot pools with the lowest price, and evenly allocated across the number of Spot pools specified in spotInstancePools.
+   * default: lowest-price
+   */
+  String spotAllocationStrategy
+
+  /**
+   * The number of Spot Instance pools across which to allocate Spot Instances. The Spot pools are determined from the different instance types in the overrides.
+   * default: 2, only applicable with 'lowest-price' spotAllocationStrategy
+   * limits: 1 to 20
+   */
+  Integer spotInstancePools
+
+  /**
+   * The maximum price per unit hour that the user is willing to pay for a Spot Instance.
+   * default: On-Demand price for the configuration
+   */
+  String spotPrice
+
+  /**
+   * A list of parameters to override corresponding parameters in the launch template.
+   * limits:
+   * * instances that can be associated with an ASG: 40
+   * * distinct launch templates that can be associated with an ASG: 20
+   */
+  List<LaunchTemplateOverridesForInstanceType> launchTemplateOverridesForInstanceType
+
+  static Set<String> getLaunchTemplateOnlyFieldNames() {
+    return ["requireIMDSv2", "associateIPv6Address", "unlimitedCpuCredits",
+            "placement", "licenseSpecifications", "onDemandAllocationStrategy",
+            "onDemandBaseCapacity", "onDemandPercentageAboveBaseCapacity", "spotAllocationStrategy",
+            "spotInstancePools", "launchTemplateOverridesForInstanceType"].toSet()
+  }
+
+  static Set<String> getMixedInstancesPolicyFieldNames() {
+    return ["onDemandAllocationStrategy", "onDemandBaseCapacity", "onDemandPercentageAboveBaseCapacity",
+            "spotAllocationStrategy", "spotInstancePools", "launchTemplateOverridesForInstanceType"].toSet()
+  }
+
+  /**
+   * Get all instance types in description.
+   *
+   * Why does this method exist?
+   *      When launchTemplateOverrides are specified, either the overrides or instanceType is used,
+   *      but all instance type inputs are returned by this method.
+   * When is this method used?
+   *      Used primarily for validation purposes, to ensure all instance types in request are compatible with
+   *      other validated configuration parameters (to prevent ambiguity).
+   *
+   * @return all instance type(s)
+   */
+  Set<String> getAllInstanceTypes() {
+    Set<String> instanceTypes = [instanceType]
+    if (launchTemplateOverridesForInstanceType) {
+      launchTemplateOverridesForInstanceType.each {
+        instanceTypes << it.instanceType
+      }
+    }
+    return instanceTypes
+  }
+
+  /**
+   * Get allowed instance types in description. These are the instance types that an ASG can realistically launch.
+   *
+   * Why does this method exist?
+   *      If launchTemplateOverrides are specified, they will override the same properties in launch template e.g. instanceType
+   *      https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_LaunchTemplate.html.
+   * When is this method used?
+   *      Used for functional purposes and when the result is used for further actions like deriving certain defaults, whether to allow modifying cpu credit spec or not.
+   *
+   * @return allowed instance type(s)
+   */
+  Set<String> getAllowedInstanceTypes() {
+    if (launchTemplateOverridesForInstanceType) {
+      launchTemplateOverridesForInstanceType.collect{ it.instanceType }.toSet()
+    } else {
+      Collections.singleton(instanceType)
+    }
+  }
+ // Launch Template features:end
 
   @Override
   Collection<String> getApplications() {
@@ -177,5 +280,24 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   @Canonical
   static class LaunchTemplateLicenseSpecification {
     String arn
+  }
+
+  /**
+   * Support for multiple instance types.
+   * This class encapsulates configuration mapped to a particular instance type.
+   */
+  @Canonical
+  static class LaunchTemplateOverridesForInstanceType {
+    /**
+     * An instance type that is supported in the requested region and availability zone.
+     * Required field when instanceTypeConfigOverrides is used.
+     */
+    String instanceType
+
+    /**
+     * The number of capacity units provided by {@link #instanceType} in terms of virtual CPUs, memory, storage, throughput, or other relative performance characteristic.
+     * When an instance of type {@link #instanceType} is provisioned, it's capacity units count toward the desired capacity.
+     */
+    String weightedCapacity
   }
 }

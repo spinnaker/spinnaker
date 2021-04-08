@@ -76,7 +76,7 @@ public interface LaunchConfigurationBuilder {
     String kernelId;
     String ramdiskId;
     boolean ebsOptimized;
-    String spotPrice;
+    String spotMaxPrice;
     boolean instanceMonitoring;
     List<AmazonBlockDevice> blockDevices;
     List<String> securityGroups;
@@ -101,7 +101,7 @@ public interface LaunchConfigurationBuilder {
         String kernelId,
         String ramdiskId,
         boolean ebsOptimized,
-        String spotPrice,
+        String spotMaxPrice,
         boolean instanceMonitoring,
         List<AmazonBlockDevice> blockDevices,
         List<String> securityGroups,
@@ -123,7 +123,7 @@ public interface LaunchConfigurationBuilder {
       this.kernelId = kernelId;
       this.ramdiskId = ramdiskId;
       this.ebsOptimized = ebsOptimized;
-      this.spotPrice = spotPrice;
+      this.spotMaxPrice = spotMaxPrice;
       this.instanceMonitoring = instanceMonitoring;
       this.blockDevices = blockDevices;
       this.securityGroups = securityGroups;

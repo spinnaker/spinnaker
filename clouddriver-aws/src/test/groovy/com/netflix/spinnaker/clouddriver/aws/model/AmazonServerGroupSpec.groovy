@@ -19,16 +19,15 @@ package com.netflix.spinnaker.clouddriver.aws.model
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
+import org.junit.jupiter.api.BeforeEach
 import spock.lang.Specification
 import spock.lang.Unroll
 
-/**
- * Created by zthrash on 1/7/15.
- */
 class AmazonServerGroupSpec extends Specification {
 
   ServerGroup serverGroup
 
+  @BeforeEach
   def setup() {
     serverGroup = new AmazonServerGroup()
   }
@@ -80,4 +79,206 @@ class AmazonServerGroupSpec extends Specification {
     instance
   }
 
+  void 'server group instance type is extracted as expected for asg with launch configuration'() {
+    when:
+    serverGroup.launchConfig = [
+      application: "app",
+      createdTime: 1612794814579,
+      imageId: "ami-1",
+      instanceType: "some.type.1",
+      launchConfigurationARN: "arn:aws:autoscaling:us-east-1:00000000:launchConfiguration:000-000-000:launchConfigurationName/app-stack-v000-000",
+      launchConfigurationName: "app-stack-v000-000"
+    ]
+
+    then:
+    serverGroup.getInstanceType() == "some.type.1"
+  }
+
+  void 'server group instance type is extracted as expected for asg with launch template'() {
+    when:
+    serverGroup.launchTemplate = [
+      createTime: 1612794814579,
+      launchTemplateData: [
+        imageId: "ami-1",
+        instanceType: "some.type.1",
+      ],
+      launchTemplateId: "lt-1",
+      launchTemplateName: "app-stack-v000-000",
+      version: "1"
+    ]
+
+    then:
+    serverGroup.getInstanceType() == "some.type.1"
+  }
+
+  @Unroll
+  void 'server group instance type is extracted as expected for asg with mixed instances policy'() {
+    when:
+    serverGroup.mixedInstancesPolicy = new AmazonServerGroup.MixedInstancesPolicySettings().tap {
+      instancesDiversification = [
+        onDemandAllocationStrategy: "prioritized",
+        onDemandBaseCapacity: 1,
+        onDemandPercentageAboveBaseCapacity: 50,
+        spotAllocationStrategy: "lowest-price",
+        spotInstancePools: 4,
+        spotMaxPrice: "1"
+      ]
+      launchTemplates = [
+        [
+          createTime: 1612794814579,
+          launchTemplateData: [
+            imageId: "ami-1",
+            instanceType: "some.type.1",
+          ],
+          launchTemplateId: "lt-1",
+          launchTemplateName: "app-stack-v000-000",
+          versionNumber: 1,
+        ]]
+      launchTemplateOverridesForInstanceType = overrides
+    }
+
+    then:
+    serverGroup.getInstanceType() == expectedInstanceType
+
+    where:
+    overrides                                                 || expectedInstanceType
+    null                                                      || "some.type.1"
+    [[instanceType: "some.type.2", weightedCapacity: "2"],
+     [instanceType: "some.type.3", weightedCapacity: "4"]]    || null
+    [[instanceType: "some.type.2", weightedCapacity: "2"]]    || null
+  }
+
+  void 'server group launch template specification is null for asg with launch configuration'() {
+    when:
+    serverGroup.asg = [launchConfigurationName: "app-stack-v000-000"]
+    def ltSpec = serverGroup.getLaunchTemplateSpecification()
+
+    then:
+    ltSpec == null
+  }
+
+  void 'server group launch template specification is identified as expected for asg with launch template'() {
+    when:
+    serverGroup.asg = [launchTemplate: [
+        launchTemplateId: "lt-1",
+        launchTemplateName: "app-stack-v000-000",
+        version: "1"
+    ]]
+    def ltSpec = serverGroup.getLaunchTemplateSpecification()
+
+    then:
+    ltSpec.launchTemplateId == "lt-1"
+    ltSpec.launchTemplateName == "app-stack-v000-000"
+    ltSpec.version == "1"
+  }
+
+  void 'server group launch template specification is identified as expected for asg with mixed instances policy'() {
+    when:
+    serverGroup.asg = [
+        mixedInstancesPolicy: [
+          instancesDistribution: [
+            onDemandAllocationStrategy: "prioritized",
+            onDemandBaseCapacity: 1,
+            onDemandPercentageAboveBaseCapacity: 50,
+            spotAllocationStrategy: "lowest-price",
+            spotInstancePools: 4,
+            spotMaxPrice: "1"
+          ],
+          launchTemplate: [
+            launchTemplateSpecification: [
+              launchTemplateId: "lt-1",
+              launchTemplateName: "app-stack-v000-000",
+              version: "1"
+            ]
+          ]
+        ]
+      ]
+    def ltSpec = serverGroup.getLaunchTemplateSpecification()
+
+    then:
+    ltSpec.launchTemplateId == "lt-1"
+    ltSpec.launchTemplateName == "app-stack-v000-000"
+    ltSpec.version == "1"
+  }
+
+  void 'security group is extracted as expected for asg with launch configuration'() {
+    when:
+    serverGroup.launchConfig = [
+      application: "app",
+      createdTime: 1612794814579,
+      imageId: "ami-1",
+      instanceType: "some.type.1",
+      launchConfigurationARN: "arn:aws:autoscaling:us-east-1:00000000:launchConfiguration:000-000-000:launchConfigurationName/app-stack-v000-000",
+      launchConfigurationName: "app-stack-v000-000",
+      securityGroups: ["sg-123"]
+    ]
+
+    then:
+    serverGroup.getSecurityGroups() == ["sg-123"].toSet()
+  }
+
+  @Unroll
+  void 'security group is extracted as expected for asg with launch template'() {
+    when:
+    serverGroup.launchTemplate = [
+      createTime: 1612794814579,
+      launchTemplateData: [
+        imageId: "ami-1",
+        instanceType: "some.type.1",
+        securityGroupIds: secGroupIds,
+        networkInterfaces: networkInterfaceInput
+      ],
+      launchTemplateId: "lt-1",
+      launchTemplateName: "app-stack-v000-000",
+      version: "1"
+    ]
+
+    then:
+    serverGroup.getSecurityGroups() == expectedSecGroupsIds.toSet()
+
+    where:
+    secGroupIds   | networkInterfaceInput  || expectedSecGroupsIds
+    null          | [[deviceIndex: 0,
+                      groups: ["sg-123"]]] ||  ["sg-123"]
+    ["sg-123"]    |    null                ||  ["sg-123"]
+    null          |    null                ||  []
+  }
+
+  @Unroll
+  void 'security group is extracted as expected for asg with mixed instances policy'() {
+    when:
+    serverGroup.mixedInstancesPolicy = new AmazonServerGroup.MixedInstancesPolicySettings().tap {
+      allowedInstanceTypes = ["some.type.1"]
+      instancesDiversification = [
+        onDemandAllocationStrategy: "prioritized",
+        onDemandBaseCapacity: 1,
+        onDemandPercentageAboveBaseCapacity: 50,
+        spotAllocationStrategy: "lowest-price",
+        spotInstancePools: 4,
+        spotMaxPrice: "1"
+      ]
+      launchTemplates = [[
+        createTime: 1612794814579,
+        launchTemplateData: [
+          imageId: "ami-1",
+          instanceType: "some.type.1",
+          securityGroupIds: secGroupIds,
+          networkInterfaces: networkInterfaceInput
+        ],
+        launchTemplateId: "lt-1",
+        launchTemplateName: "app-stack-v000-000",
+        versionNumber: 1,
+      ]]
+    }
+
+    then:
+    serverGroup.getSecurityGroups() == expectedSecGroupsIds.toSet()
+
+    where:
+    secGroupIds   |  networkInterfaceInput  || expectedSecGroupsIds
+    null          | [[deviceIndex: 0,
+                      groups: ["sg-123"]]]  ||  ["sg-123"]
+    ["sg-123"]    |    null                 ||  ["sg-123"]
+    null          |    null                 ||  []
+  }
 }

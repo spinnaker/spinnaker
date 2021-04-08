@@ -110,48 +110,66 @@ class InstanceTypeUtilsSpec extends Specification {
     't4g.nano'      | true
     'c3.large'      | false
     'invalid'       | false
+    null            | false
+    ''              | false
+  }
+
+  def 'support for bursting is reported correctly for multiple instance types'() {
+    when:
+    def result = InstanceTypeUtils.isBurstingSupportedByAllTypes(instanceTypes as Set)
+
+    then:
+    result == expectedResult
+
+    where:
+    instanceTypes             | expectedResult
+    ['t2.large', 't3.large']  | true
+    ['t3.small', 'm5.small']  | false
+    ['c3.large']              | false
+    ['t3.small', null]        | false
+    ['t3.small', '']          | false
   }
 
   def 'compatible ami virtualization #virtualization and instance family does not throw exception'() {
     when:
-    InstanceTypeUtils.validateCompatibility(virtualization, instanceType)
+    InstanceTypeUtils.validateCompatibility(virtualization, instanceTypes.toSet())
 
     then:
     notThrown(IllegalArgumentException)
 
     where:
-    virtualization   | instanceType
-    'paravirtual'    | 'c3.large'
-    'paravirtual'    | 't1.micro'
-    'hvm'            | 't1.micro'
-    'hvm'            | 't3.small'
+    virtualization   | instanceTypes
+    'paravirtual'    | ['c3.large', 'm3.large']
+    'paravirtual'    | ['t1.micro']
+    'hvm'            | ['t1.micro']
+    'hvm'            | ['t3.small']
   }
 
   def 'compatibility is assumed to be true if virtualization type is not paravirtual'() {
     when:
-    InstanceTypeUtils.validateCompatibility(virtualization, instanceType)
+    InstanceTypeUtils.validateCompatibility(virtualization, instanceTypes.toSet())
 
     then:
     notThrown(IllegalArgumentException)
 
     where:
-    virtualization | instanceType
-    'hvm'          | 'c5.large'
-    'hvm'          | 't3a.small'
-    'hvm'          | 't1.micro'
+    virtualization | instanceTypes
+    'hvm'          | ['c5.large', 'c4.large']
+    'hvm'          | ['t3a.small']
+    'hvm'          | ['t1.micro']
   }
 
   def 'incompatible ami virtualization #virtualization and instance family throws exception'() {
     when:
-    InstanceTypeUtils.validateCompatibility(virtualization, instanceType)
+    InstanceTypeUtils.validateCompatibility(virtualization, instanceTypes.toSet())
 
     then:
     thrown(IllegalArgumentException)
 
     where:
-    virtualization | instanceType
-    'paravirtual'  | 't2.large'
-    'paravirtual'  | 't3.small'
+    virtualization | instanceTypes
+    'paravirtual'  | ['t2.large', 't1.large']
+    'paravirtual'  | ['t3.small']
   }
 
   def 'default ebs optimized is reported correctly for instance type'() {
