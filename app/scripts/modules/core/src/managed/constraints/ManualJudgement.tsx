@@ -21,7 +21,8 @@ export const ManualJudgementTitle = ({ constraint }: { constraint: IConstraint }
     case 'FAIL':
       return (
         <span>
-          Something went wrong <span className="text-regular">—</span>{' '}
+          {constraint.comment?.includes('Timed out') ? 'Manual judgement was rejected' : 'Manual judgement failed'}{' '}
+          <span className="text-regular">—</span>{' '}
           <span className="text-regular">{constraint.comment || NO_FAILURE_MESSAGE}</span>
         </span>
       );
