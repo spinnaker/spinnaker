@@ -1,5 +1,5 @@
 /* tslint:disable: no-console */
-import { cloneDeep, uniq, without, isNil } from 'lodash';
+import { cloneDeep, isNil, uniq, without } from 'lodash';
 
 import { SETTINGS } from 'core/config/settings';
 
