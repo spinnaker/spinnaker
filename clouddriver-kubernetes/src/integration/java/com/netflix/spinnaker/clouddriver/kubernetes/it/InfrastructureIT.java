@@ -36,6 +36,8 @@ public class InfrastructureIT extends BaseTest {
 
   private static final int CACHE_TIMEOUT_MIN = 5;
   private static final String DEPLOYMENT_1_NAME = "deployment1";
+  private static final String NETWORK_POLICY_1_NAME = "default-deny-ingress";
+  private static final String NETWORK_POLICY_2_NAME = "default-deny-ingress-second";
   private static final String SERVICE_1_NAME = "service1";
   private static String ns;
 
@@ -828,5 +830,352 @@ public class InfrastructureIT extends BaseTest {
             + " minutes for GET /applications/"
             + appName
             + "/rawResources to return valid data");
+  }
+
+  @DisplayName(
+      ".\n===\n"
+          + "Given two kubernetes network policies\n"
+          + "When sending get securityGroups\n"
+          + "Then response should contain two lists with the security group for each\n===")
+  @Test
+  public void shouldListSecurityGroups() throws InterruptedException, IOException {
+    // ------------------------- given --------------------------
+
+    String appName = "getmanifest";
+    System.out.println("> Using namespace " + ns);
+
+    KubeTestUtils.deployIfMissing(
+        baseUrl(), ACCOUNT1_NAME, ns, "networkPolicy", NETWORK_POLICY_1_NAME, appName, kubeCluster);
+    KubeTestUtils.deployIfMissing(
+        baseUrl(), ACCOUNT2_NAME, ns, "networkPolicy", NETWORK_POLICY_1_NAME, appName, kubeCluster);
+
+    KubeTestUtils.repeatUntilTrue(
+        () -> {
+          // ------------------------- when --------------------------
+          System.out.println("> Sending get securityGroups request");
+          Response resp = get(baseUrl() + "/securityGroups");
+
+          // ------------------------- then --------------------------
+          System.out.println(resp.asString());
+
+          resp.then().statusCode(200);
+          List<Object> list1 = resp.jsonPath().getList(ACCOUNT1_NAME + ".kubernetes." + ns);
+          List<Object> list2 = resp.jsonPath().getList(ACCOUNT2_NAME + ".kubernetes." + ns);
+          return list1 != null && !list1.isEmpty() && list2 != null && !list2.isEmpty();
+        },
+        CACHE_TIMEOUT_MIN,
+        TimeUnit.MINUTES,
+        "Waited "
+            + CACHE_TIMEOUT_MIN
+            + " minutes for GET /securityGroups"
+            + " to return valid data");
+  }
+
+  @DisplayName(
+      ".\n===\n"
+          + "Given two kubernetes network policies for one account\n"
+          + "When sending get securityGroups/{account}\n"
+          + "Then response should contain a list with security groups of size 2\n===")
+  @Test
+  public void shouldListSecurityGroupsByAccount() throws InterruptedException, IOException {
+    // ------------------------- given --------------------------
+
+    String appName = "getmanifest";
+    System.out.println("> Using namespace " + ns);
+
+    KubeTestUtils.deployIfMissing(
+        baseUrl(), ACCOUNT1_NAME, ns, "networkPolicy", NETWORK_POLICY_1_NAME, appName, kubeCluster);
+    KubeTestUtils.deployIfMissing(
+        baseUrl(), ACCOUNT1_NAME, ns, "networkPolicy", NETWORK_POLICY_2_NAME, appName, kubeCluster);
+
+    KubeTestUtils.repeatUntilTrue(
+        () -> {
+          // ------------------------- when --------------------------
+          System.out.println("> Sending get securityGroups request");
+          Response resp = get(baseUrl() + "/securityGroups/" + ACCOUNT1_NAME);
+
+          // ------------------------- then --------------------------
+          System.out.println(resp.asString());
+          if (resp.statusCode() == 404) {
+            return false;
+          }
+          resp.then().statusCode(200);
+          List<Object> securityGroupList = resp.jsonPath().getList("kubernetes." + ns);
+          return securityGroupList != null && securityGroupList.size() == 2;
+        },
+        CACHE_TIMEOUT_MIN,
+        TimeUnit.MINUTES,
+        "Waited "
+            + CACHE_TIMEOUT_MIN
+            + " minutes for GET /securityGroups/"
+            + ACCOUNT1_NAME
+            + " to return valid data");
+  }
+
+  @DisplayName(
+      ".\n===\n"
+          + "Given two kubernetes network policies for different namespaces\n"
+          + "When sending get securityGroups/{account}?region={region}\n"
+          + "Then response should contain a list with security groups of size 1\n===")
+  @Test
+  public void shouldListSecurityGroupsByAccountAndRegion()
+      throws InterruptedException, IOException {
+    // ------------------------- given --------------------------
+
+    String appName = "getmanifest";
+    System.out.println("> Using namespace " + ns);
+
+    KubeTestUtils.deployIfMissing(
+        baseUrl(), ACCOUNT1_NAME, ns, "networkPolicy", NETWORK_POLICY_1_NAME, appName, kubeCluster);
+    KubeTestUtils.deployIfMissing(
+        baseUrl(),
+        ACCOUNT2_NAME,
+        "default",
+        "networkPolicy",
+        NETWORK_POLICY_2_NAME,
+        appName,
+        kubeCluster);
+
+    KubeTestUtils.repeatUntilTrue(
+        () -> {
+          // ------------------------- when --------------------------
+          System.out.println("> Sending get securityGroups request");
+          Response resp = get(baseUrl() + "/securityGroups/" + ACCOUNT1_NAME + "?region=" + ns);
+
+          // ------------------------- then --------------------------
+          System.out.println(resp.asString());
+          if (resp.statusCode() == 404) {
+            return false;
+          }
+          resp.then().statusCode(200);
+          List<Object> securityGroupList = resp.jsonPath().getList("kubernetes." + ns);
+          return securityGroupList != null && securityGroupList.size() == 1;
+        },
+        CACHE_TIMEOUT_MIN,
+        TimeUnit.MINUTES,
+        "Waited "
+            + CACHE_TIMEOUT_MIN
+            + " minutes for GET /securityGroups/"
+            + ACCOUNT1_NAME
+            + "?region="
+            + ns
+            + " to return valid data");
+  }
+
+  @DisplayName(
+      ".\n===\n"
+          + "Given a kubernetes network policies for one account\n"
+          + "When sending get securityGroups/{account}/{cloudprovider}\n"
+          + "Then response should contain the securityGroup\n===")
+  @Test
+  public void shouldListSecurityGroupsByAccountAndCloudProvider()
+      throws InterruptedException, IOException {
+    // ------------------------- given --------------------------
+
+    String appName = "getmanifest";
+    System.out.println("> Using namespace " + ns);
+
+    KubeTestUtils.deployIfMissing(
+        baseUrl(), ACCOUNT1_NAME, ns, "networkPolicy", NETWORK_POLICY_1_NAME, appName, kubeCluster);
+    ;
+
+    KubeTestUtils.repeatUntilTrue(
+        () -> {
+          // ------------------------- when --------------------------
+          System.out.println("> Sending get securityGroups request");
+          Response resp = get(baseUrl() + "/securityGroups/" + ACCOUNT1_NAME + "/kubernetes");
+
+          // ------------------------- then --------------------------
+          System.out.println(resp.asString());
+          if (resp.statusCode() == 404) {
+            return false;
+          }
+          resp.then().statusCode(200);
+          List<Object> securityGroupList = resp.jsonPath().getList(ns);
+          return securityGroupList != null && securityGroupList.size() > 0;
+        },
+        CACHE_TIMEOUT_MIN,
+        TimeUnit.MINUTES,
+        "Waited "
+            + CACHE_TIMEOUT_MIN
+            + " minutes for GET /securityGroups/"
+            + ACCOUNT1_NAME
+            + "/kubernetes"
+            + " to return valid data");
+  }
+
+  @DisplayName(
+      ".\n===\n"
+          + "Given two kubernetes network policies for one account\n"
+          + "When sending get securityGroups/{account}/{cloudprovider}/{name}\n"
+          + "Then response should contain the security group specified in name\n===")
+  @Test
+  public void shouldListSecurityGroupsByAccountAndCloudProviderAndName()
+      throws InterruptedException, IOException {
+    // ------------------------- given --------------------------
+    String appName = "getmanifest";
+    System.out.println("> Using namespace " + ns);
+
+    KubeTestUtils.deployIfMissing(
+        baseUrl(), ACCOUNT1_NAME, ns, "networkPolicy", NETWORK_POLICY_1_NAME, appName, kubeCluster);
+    KubeTestUtils.deployIfMissing(
+        baseUrl(), ACCOUNT1_NAME, ns, "networkPolicy", NETWORK_POLICY_2_NAME, appName, kubeCluster);
+
+    KubeTestUtils.repeatUntilTrue(
+        () -> {
+          // ------------------------- when --------------------------
+          System.out.println("> Sending get securityGroups request");
+          Response resp =
+              get(
+                  baseUrl()
+                      + "/securityGroups/"
+                      + ACCOUNT1_NAME
+                      + "/kubernetes/networkpolicy "
+                      + NETWORK_POLICY_1_NAME);
+
+          // ------------------------- then --------------------------
+          System.out.println(resp.asString());
+          if (resp.statusCode() == 404) {
+            return false;
+          }
+          resp.then().statusCode(200);
+          List<Object> securityGroupList = resp.jsonPath().getList(ns);
+          return securityGroupList != null && securityGroupList.size() == 1;
+        },
+        CACHE_TIMEOUT_MIN,
+        TimeUnit.MINUTES,
+        "Waited "
+            + CACHE_TIMEOUT_MIN
+            + " minutes for GET /securityGroups/"
+            + ACCOUNT1_NAME
+            + "/kubernetes/networkpolicy "
+            + NETWORK_POLICY_1_NAME
+            + " to return valid data");
+  }
+
+  @DisplayName(
+      ".\n===\n"
+          + "Given a kubernetes network policy for one account\n"
+          + "When sending get securityGroups/{account}/{cloudProvider}/{region}/{securityGroupNameOrId}\n"
+          + "Then response should contain the security group specified in securityGroupNameOrId\n===")
+  @Test
+  public void shouldGetSecurityGroupByAccountAndName() throws InterruptedException, IOException {
+    // ------------------------- given --------------------------
+    String appName = "getmanifest";
+    System.out.println("> Using namespace " + ns);
+
+    KubeTestUtils.deployIfMissing(
+        baseUrl(), ACCOUNT1_NAME, ns, "networkPolicy", NETWORK_POLICY_1_NAME, appName, kubeCluster);
+    KubeTestUtils.repeatUntilTrue(
+        () -> {
+          // ------------------------- when --------------------------
+          System.out.println("> Sending get securityGroups request");
+          Response resp =
+              get(
+                  baseUrl()
+                      + "/securityGroups/"
+                      + ACCOUNT1_NAME
+                      + "/kubernetes/"
+                      + ns
+                      + "/networkolicy "
+                      + NETWORK_POLICY_1_NAME);
+
+          // ------------------------- then --------------------------
+          System.out.println(resp.asString());
+          if (resp.statusCode() == 404) {
+            return false;
+          }
+          resp.then().statusCode(200);
+          var displayName = resp.jsonPath().getString("displayName");
+          return displayName != null && displayName.equals(NETWORK_POLICY_1_NAME);
+        },
+        CACHE_TIMEOUT_MIN,
+        TimeUnit.MINUTES,
+        "Waited "
+            + CACHE_TIMEOUT_MIN
+            + " minutes for GET /securityGroups/"
+            + ACCOUNT1_NAME
+            + "/kubernetes/"
+            + ns
+            + "/networkolicy "
+            + NETWORK_POLICY_1_NAME
+            + " to return valid data");
+  }
+
+  @DisplayName(
+      ".\n===\n"
+          + "Given a kubernetes deployments\n"
+          + "When sending get clusters /applications/{appName}/serverGroupManagers\n"
+          + "Then the deployment should be present in serverGroups list of the response\n===")
+  @Test
+  public void shouldGetServerGroupManagerForApplication() throws InterruptedException, IOException {
+    // ------------------------- given --------------------------
+    String appName = "getclusters";
+    System.out.println("> Using namespace " + ns);
+    KubeTestUtils.deployIfMissing(
+        baseUrl(), ACCOUNT1_NAME, ns, "deployment", DEPLOYMENT_1_NAME, appName, kubeCluster);
+
+    KubeTestUtils.repeatUntilTrue(
+        () -> {
+          // ------------------------- when --------------------------
+          System.out.println("> Sending get clusters request");
+          Response resp = get(baseUrl() + "/applications/" + appName + "/serverGroupManagers");
+
+          // ------------------------- then --------------------------
+          System.out.println(resp.asString());
+          if (resp.statusCode() == 404) {
+            return false;
+          }
+          resp.then().statusCode(200);
+          List<Object> serverGroupList = resp.jsonPath().getList("$");
+          return serverGroupList != null && serverGroupList.size() == 1;
+        },
+        CACHE_TIMEOUT_MIN,
+        TimeUnit.MINUTES,
+        "Waited "
+            + CACHE_TIMEOUT_MIN
+            + " minutes for 'deployment "
+            + "deployment"
+            + "' cluster to return from GET /applications/"
+            + appName
+            + "/serverGroupManagers");
+  }
+
+  @DisplayName(
+      ".\n===\n"
+          + "Given a kubernetes deployment of one application made by spinnaker\n"
+          + "When sending get /applications/{application} request\n"
+          + "Then an application object should be returned\n===")
+  @Test
+  public void shouldGetApplicationInCluster() throws InterruptedException, IOException {
+    // ------------------------- given --------------------------
+    String appName = "getclusters";
+    System.out.println("> Using namespace " + ns);
+    KubeTestUtils.deployIfMissing(
+        baseUrl(), ACCOUNT1_NAME, ns, "deployment", DEPLOYMENT_1_NAME, appName, kubeCluster);
+
+    KubeTestUtils.repeatUntilTrue(
+        () -> {
+          // ------------------------- when --------------------------
+          System.out.println("> Sending get clusters request");
+          Response resp = get(baseUrl() + "/applications/" + appName);
+
+          // ------------------------- then --------------------------
+          System.out.println(resp.asString());
+          if (resp.statusCode() == 404) {
+            return false;
+          }
+          resp.then().statusCode(200).and();
+          var appNameResp = resp.jsonPath().getString("name");
+          return appNameResp != null && appNameResp.equals(appName);
+        },
+        CACHE_TIMEOUT_MIN,
+        TimeUnit.MINUTES,
+        "Waited "
+            + CACHE_TIMEOUT_MIN
+            + " minutes for 'deployment "
+            + "deployment"
+            + "' cluster to return from GET /applications/"
+            + appName);
   }
 }

@@ -30,6 +30,7 @@ kubernetes:
         - service
         - configmap
         - secret
+        - networkpolicy
       omitKinds: []
       customResources: []
       cachingPolicies: []
