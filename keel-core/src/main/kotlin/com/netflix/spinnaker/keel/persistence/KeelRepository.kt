@@ -3,12 +3,14 @@ package com.netflix.spinnaker.keel.persistence
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
+import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactMetadata
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.persistence.KeelReadOnlyRepository
 import com.netflix.spinnaker.keel.api.verification.VerificationContext
 import com.netflix.spinnaker.keel.core.api.ApplicationSummary
@@ -193,7 +195,7 @@ interface KeelRepository : KeelReadOnlyRepository {
     artifact: DeliveryArtifact,
     version: String,
     targetEnvironment: String,
-    supersededByVersion: String
+    supersededByVersion: String?
   )
 
   /**
@@ -207,7 +209,7 @@ interface KeelRepository : KeelReadOnlyRepository {
     artifactReference: String,
     versions: List<String>
   ): List<ArtifactSummaryInEnvironment>
-  
+
   /**
    * Given information about a delivery config, environment, artifact and version, returns a summary that can be
    * used by the UI, or null if the artifact version is not applicable to the environment.
@@ -249,5 +251,18 @@ interface KeelRepository : KeelReadOnlyRepository {
     minTimeSinceLastCheck: Duration,
     limit: Int
   ) : Collection<VerificationContext>
+
+
+  /**
+   * Updates the state of [verification] as run against [context].
+   *
+   * @param metadata if non-empty this will overwrite any existing metadata.
+   */
+  fun updateState(
+    context: VerificationContext,
+    verification: Verification,
+    status: ConstraintStatus,
+    metadata: Map<String, Any?> = emptyMap()
+  )
   // END VerificationRepository methods
 }

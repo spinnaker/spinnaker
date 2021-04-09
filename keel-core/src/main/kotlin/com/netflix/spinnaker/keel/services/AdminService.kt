@@ -4,13 +4,16 @@ import com.netflix.spinnaker.keel.api.StatefulConstraint
 import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.api.artifacts.DOCKER
 import com.netflix.spinnaker.keel.api.artifacts.NPM
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.supporting
+import com.netflix.spinnaker.keel.api.verification.VerificationContext
 import com.netflix.spinnaker.keel.core.api.ApplicationSummary
 import com.netflix.spinnaker.keel.exceptions.NoSuchEnvironmentException
 import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
+import com.netflix.spinnaker.kork.exceptions.UserException
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
@@ -113,4 +116,55 @@ class AdminService(
     }
   }
 
+  /**
+   * Mark artifact [version] as SKIPPED in [environment]
+   *
+   * Preconditions:
+   *   - there is a delivery config in the repository that corresponds to [application]
+   *   - config has an environment named [environment]
+   *   - config has an artifact with reference [artifactReference]
+   *   - there is a version of artifact with reference [artifactReference], in environment [environment], with a status of CURRENT
+   *
+   * Postconditions:
+   *   - the artifact version [version] record is updated with:
+   *      * promotion_status set to skipped
+   *      * replaced_by set to the version that is CURRENT
+   *      * replaced_at set to now
+   */
+  fun forceSkipArtifactVersion(application: String, environment: String, artifactReference: String, version: String) {
+    val deliveryConfig = repository.getDeliveryConfigForApplication(application)
+    val artifact = deliveryConfig.matchingArtifactByReference(artifactReference)
+      ?: throw UserException("application $application contains no artifact ref $artifactReference. Artifact references are: ${deliveryConfig.artifacts.map { it.reference }}")
+
+     // Identify the current version in the environment
+    val currentVersion = repository.getCurrentArtifactVersions(deliveryConfig, environment)
+      .firstOrNull { it.reference == artifactReference }
+
+    if(currentVersion == null) {
+      log.warn("forcing application $application artifact $artifactReference version $version to SKIPPED even though there is no version in CURRENT state")
+    }
+
+    // Mark as skipped
+    repository.markAsSkipped(deliveryConfig, artifact, version, environment, currentVersion?.version)
+  }
+
+  fun forceFailVerifications(application: String, environmentName: String, artifactReference: String, version: String, verificationId: String) {
+    val deliveryConfig = repository.getDeliveryConfigForApplication(application)
+    val context = VerificationContext(
+      deliveryConfig = deliveryConfig,
+      environmentName = environmentName,
+      artifactReference = artifactReference,
+      version = version
+    )
+
+    val environment = deliveryConfig.environments
+      .firstOrNull { it.name == environmentName }
+      ?: throw UserException("application $application has no environment named $environmentName. Names are: ${deliveryConfig.environments.map { it.name }}")
+
+    val verification = environment.verifyWith
+      .firstOrNull { it.id == verificationId }
+      ?: throw UserException("application $application in environment $environmentName has no verification with ID $verificationId. IDs are: ${environment.verifyWith.map { it.id }}")
+
+    repository.updateState(context, verification, ConstraintStatus.OVERRIDE_FAIL)
+  }
 }

@@ -3,9 +3,11 @@ package com.netflix.spinnaker.keel.rest
 import com.netflix.spinnaker.keel.events.NotificationEvent
 import com.netflix.spinnaker.keel.services.AdminService
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
+import com.netflix.spinnaker.kork.exceptions.UserException
 import org.slf4j.LoggerFactory.getLogger
 import org.springframework.http.HttpStatus.NO_CONTENT
 import org.springframework.http.MediaType
+import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -63,6 +65,59 @@ class AdminController(
   ) {
     adminService.forceConstraintReevaluation(application, environment, type)
   }
+
+  data class ReferencePayload(
+    val reference: String
+  )
+
+  /**
+   * Force the state of [version] to "SKIPPED"
+   *
+   * The artifact reference is passed in the body, as a "reference" field,
+   * because it may include a slash. By default, tomcat and spring both disallow url-encoded path parameters by default.
+   */
+  @PostMapping(
+    path = ["/application/{application}/environment/{environment}/version/{version}/skip"],
+    consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
+  )
+  fun forceSkipArtifactVersion(
+    @PathVariable("application") application: String,
+    @PathVariable("environment") environment: String,
+    @PathVariable("version") version: String,
+    @RequestBody payload: ReferencePayload
+  ) {
+    adminService.forceSkipArtifactVersion(
+      application = application,
+      environment = environment,
+      artifactReference = payload.reference,
+      version = version)
+  }
+
+  data class ReferenceVerificationPayload(
+    val reference: String,
+    val verification: String
+  )
+
+  /**
+   * Force the state of verification with id {verification} in [environment] to OVERRIDE_FAIL
+   *
+   * The artifact reference and verification iss are passed in the body, as "reference", "verification" fields
+   * because they may include slashes. By default, tomcat and spring both disallow url-encoded path parameters by default.
+   */
+  @PostMapping(
+    path = ["/application/{application}/environment/{environment}/version/{version}/fail"],
+    consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
+  )
+  fun forceFailVerifications(
+    @PathVariable("application") application: String,
+    @PathVariable("environment") environment: String,
+    @PathVariable("version") version: String,
+    @RequestBody payload: ReferenceVerificationPayload
+
+  ) {
+    adminService.forceFailVerifications(application, environment, payload.reference, version, payload.verification)
+  }
+
 
   // This endpoint will update artifact version records with missing metadata, if available, by type [deb/docker/npm].
   // Please note: this is an admin endpoint and is not intented to be used more than once per environment for now.

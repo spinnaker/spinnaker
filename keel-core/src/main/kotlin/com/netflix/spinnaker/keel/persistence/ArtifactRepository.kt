@@ -196,13 +196,16 @@ interface ArtifactRepository : PeriodicallyCheckedRepository<DeliveryArtifact> {
 
   /**
    * Marks a version of an artifact as skipped for an environment, with information on what version superseded it.
+   *
+   * We allow [supersededByVersion] to be null to enable an operator to mark a version as skipped even when no other
+   * versions have been deployed yet (e.g., the first version got stuck).
    */
   fun markAsSkipped(
     deliveryConfig: DeliveryConfig,
     artifact: DeliveryArtifact,
     version: String,
     targetEnvironment: String,
-    supersededByVersion: String
+    supersededByVersion: String?
   )
 
   /**
