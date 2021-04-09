@@ -26,4 +26,5 @@ export interface ITitusInstance extends IInstance {
   privateIpAddress?: string;
   publicDnsName?: string;
   publicIpAddress?: string;
+  titusUiEndpoint: string;
 }

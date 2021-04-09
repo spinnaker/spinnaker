@@ -1,7 +1,28 @@
 import * as React from 'react';
 
 import { IAmazonHealth, InstanceStatus } from '@spinnaker/amazon';
-import { AccountService, Action, Application, CollapsibleSection, ConsoleOutputLink, IAccountDetails, IInstanceDetailsProps, IMoniker, InstanceActions, InstanceDetailsHeader, InstanceDetailsPane, InstanceInsights, InstanceLinks, InstanceReader, IOverridableProps, overridableComponent, RecentHistoryService, SETTINGS, Spinner, useData } from '@spinnaker/core';
+import {
+  AccountService,
+  Action,
+  Application,
+  CollapsibleSection,
+  ConsoleOutputLink,
+  IAccountDetails,
+  IInstanceDetailsProps,
+  IMoniker,
+  InstanceActions,
+  InstanceDetailsHeader,
+  InstanceDetailsPane,
+  InstanceInsights,
+  InstanceLinks,
+  InstanceReader,
+  IOverridableProps,
+  overridableComponent,
+  RecentHistoryService,
+  SETTINGS,
+  Spinner,
+  useData,
+} from '@spinnaker/core';
 
 import { TitusInstanceDns } from './TitusInstanceDns';
 import { TitusInstanceInformation } from './TitusInstanceInformation';
@@ -45,8 +66,6 @@ const TitusInstanceDetailsContent = ({
   region,
 }: ITitusInstanceDetailsContentProps) => {
   const defaultSshLink = `ssh -t ${account?.bastionHost} 'titus-ssh -region ${region} ${instanceId}'`;
-  const regionDetails = (account.regions || []).find((r) => r.name === region);
-
   return (
     <div className="details-panel">
       <div className="header">
@@ -65,7 +84,7 @@ const TitusInstanceDetailsContent = ({
         </div>
       </div>
       <div className="content">
-        <TitusInstanceInformation instance={instance} titusUiEndpoint={regionDetails?.endpoint} />
+        <TitusInstanceInformation instance={instance} titusUiEndpoint={instance.titusUiEndpoint} />
         <InstanceStatus
           healthMetrics={healthMetrics}
           healthState={instance.healthState}
@@ -125,15 +144,25 @@ export const TitusInstanceDetails = ({ app, environment, instance, moniker }: IT
     ]);
   };
 
+  const addTitusUiEndpoint = (result: [ITitusInstance, IAccountDetails]) => {
+    const [instance, account] = result;
+    const regionDetails = (account?.regions || []).find((r) => r.name === region);
+
+    return [{ titusUiEndpoint: regionDetails?.endpoint, ...instance }, account];
+  };
+
   const {
     result: [currentInstance, currentAccount],
     status,
   } = useData(
     () => {
       if (app.isStandalone) {
-        return retrieveInstance();
+        return retrieveInstance().then((result) => addTitusUiEndpoint(result as [ITitusInstance, IAccountDetails]));
       } else {
-        return app.serverGroups.ready().then(retrieveInstance);
+        return app.serverGroups
+          .ready()
+          .then(retrieveInstance)
+          .then((result: [ITitusInstance, IAccountDetails]) => addTitusUiEndpoint(result));
       }
     },
     [{} as ITitusInstance, {} as IAccountDetails],
