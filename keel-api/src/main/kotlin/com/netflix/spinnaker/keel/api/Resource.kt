@@ -19,8 +19,8 @@ data class Resource<out T : ResourceSpec>(
 
   @get:ExcludedFromDiff
   val version: Int
-    // version is not a mandatory metadata field, so we default to -1 when missing
-    get() = metadata.getValue("version") as? Int ?: -1
+    // version is not a mandatory metadata field, so we default to 0 when missing
+    get() = metadata["version"] as? Int ?: 0
 
   val serviceAccount: String
     get() = metadata.getValue("serviceAccount").toString()

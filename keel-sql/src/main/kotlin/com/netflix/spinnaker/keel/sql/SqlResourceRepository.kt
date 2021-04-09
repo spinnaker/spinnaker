@@ -23,8 +23,8 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.LATEST_ENVIRONMEN
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.PAUSED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_LAST_CHECKED
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_VERSION
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_WITH_METADATA
-import com.netflix.spinnaker.keel.persistence.metamodel.tables.Environment.ENVIRONMENT
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.resources.SpecMigrator
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
@@ -135,43 +135,42 @@ open class SqlResourceRepository(
   override fun <T : ResourceSpec> store(resource: Resource<T>): Resource<T> {
     val version = jooq.select(
         coalesce(
-          max(RESOURCE.VERSION),
+          max(RESOURCE_VERSION.VERSION),
           value(0)
         )
       )
-      .from(RESOURCE)
+      .from(RESOURCE_VERSION)
+      .join(RESOURCE)
+      .on(RESOURCE.UID.eq(RESOURCE_VERSION.RESOURCE_UID))
       .where(RESOURCE.ID.eq(resource.id))
       .fetchOneInto(Int::class.java)
 
-    val oldUid = if (version > 0 ) {
-      getResourceUid(resource.id, version)
+    val uid = if (version > 0 ) {
+      getResourceUid(resource.id)
     } else {
-      null
+      randomUID().toString()
+        .also { uid ->
+          jooq.insertInto(RESOURCE)
+            .set(RESOURCE.UID, uid)
+            .set(RESOURCE.KIND, resource.kind.toString())
+            .set(RESOURCE.ID, resource.id)
+            .set(RESOURCE.APPLICATION, resource.application)
+            .execute()
+        }
     }
-    val uid = randomUID().toString()
 
-    jooq.insertInto(RESOURCE)
-      .set(RESOURCE.UID, uid)
-      .set(RESOURCE.KIND, resource.kind.toString())
-      .set(RESOURCE.ID, resource.id)
-      .set(RESOURCE.VERSION, version + 1)
-      .set(RESOURCE.SPEC, objectMapper.writeValueAsString(resource.spec))
-      .set(RESOURCE.APPLICATION, resource.application)
+    jooq.insertInto(RESOURCE_VERSION)
+      .set(RESOURCE_VERSION.RESOURCE_UID, uid)
+      .set(RESOURCE_VERSION.VERSION, version + 1)
+      .set(RESOURCE_VERSION.SPEC, objectMapper.writeValueAsString(resource.spec))
       .execute()
 
     jooq.insertInto(RESOURCE_LAST_CHECKED)
       .set(RESOURCE_LAST_CHECKED.RESOURCE_UID, uid)
       .set(RESOURCE_LAST_CHECKED.AT, EPOCH.plusSeconds(1))
+      .onDuplicateKeyUpdate()
+      .set(RESOURCE_LAST_CHECKED.AT, EPOCH.plusSeconds(1))
       .execute()
-
-    // This is somewhat temporary because eventually we'll define a new environment version
-    if (oldUid != null) {
-      jooq
-        .update(ENVIRONMENT_RESOURCE)
-        .set(ENVIRONMENT_RESOURCE.RESOURCE_UID, uid)
-        .where(ENVIRONMENT_RESOURCE.RESOURCE_UID.eq(oldUid))
-        .execute()
-    }
 
     return resource.copy(
       metadata = resource.metadata + mapOf("uid" to uid, "version" to version + 1)
@@ -235,7 +234,7 @@ open class SqlResourceRepository(
   // todo: add sql retries once we've rethought repository structure: https://github.com/spinnaker/keel/issues/740
   override fun appendHistory(event: ResourceEvent) {
     // for historical reasons, we use the resource UID (not the ID) as an identifier in resource events
-    val ref = getResourceUid(event.ref, event.version)
+    val ref = getResourceUid(event.ref)
     doAppendHistory(event, ref)
   }
 
@@ -377,13 +376,12 @@ open class SqlResourceRepository(
     }
   }
 
-  fun getResourceUid(id: String, version: Int) =
+  fun getResourceUid(id: String) =
     sqlRetry.withRetry(READ) {
       jooq
         .select(RESOURCE.UID)
         .from(RESOURCE)
         .where(RESOURCE.ID.eq(id))
-        .and(RESOURCE.VERSION.eq(version))
         .fetchOne(RESOURCE.UID)
         ?: throw IllegalStateException("Resource with id $id not found. Retrying.")
     }
@@ -395,5 +393,5 @@ open class SqlResourceRepository(
       .limit(1)
 
   private val Resource<*>.uid: String
-    get() = getResourceUid(id, version)
+    get() = getResourceUid(id)
 }

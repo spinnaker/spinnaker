@@ -8,7 +8,7 @@ data class Environment(
   val notifications: Set<NotificationConfig> = emptySet() // applies to each resource
 ) {
   val resourceIds: Set<String>
-    get() = resources.map { it.id }.toSet()
+    get() = resources.mapTo(mutableSetOf(), Resource<*>::id)
 }
 
 val Set<Constraint>.anyStateful: Boolean

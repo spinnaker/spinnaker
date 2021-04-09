@@ -701,8 +701,8 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
       }
 
       before {
-        store()
         storeResources()
+        store()
       }
 
       test("application summary can be retrieved successfully") {

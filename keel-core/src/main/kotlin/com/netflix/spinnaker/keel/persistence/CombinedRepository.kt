@@ -132,8 +132,6 @@ class CombinedRepository(
    * delivery config and are not present in the [new] delivery config
    */
   override fun removeDependents(old: DeliveryConfig, new: DeliveryConfig) {
-    val newResources = new.resources.map { it.id }
-
     old.artifacts.forEach { artifact ->
       val stillPresent = new.artifacts.any {
         it.name == artifact.name &&
@@ -146,19 +144,19 @@ class CombinedRepository(
       }
     }
 
+    val newResources = new.resources.map { it.id }
+
     old.environments
       .forEach { environment ->
-        environment.resources.forEach { resource ->
-          if (resource.id !in newResources) {
-            log.debug("Updating config ${new.name}: removing resource ${resource.id} in environment ${environment.name}")
-            deliveryConfigRepository.deleteResourceFromEnv(
-              deliveryConfigName = old.name, environmentName = environment.name, resourceId = resource.id
-            )
-            deleteResource(resource.id)
-          }
-        }
         if (environment.name !in new.environments.map { it.name }) {
           log.debug("Updating config ${new.name}: removing environment ${environment.name}")
+          environment.resources.map(Resource<*>::id).forEach {
+            // only delete the resource if it's not somewhere else in the delivery config -- e.g.
+            // it's been moved from one environment to another or the environment has been renamed
+            if (it !in newResources) {
+              resourceRepository.delete(it)
+            }
+          }
           deliveryConfigRepository.deleteEnvironment(new.name, environment.name)
         }
       }
