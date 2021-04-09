@@ -21,6 +21,7 @@ import com.netflix.spinnaker.keel.events.ArtifactDeployedNotification
 import com.netflix.spinnaker.keel.events.DeliveryConfigChangedNotification
 import com.netflix.spinnaker.keel.events.MarkAsBadNotification
 import com.netflix.spinnaker.keel.events.PinnedNotification
+import com.netflix.spinnaker.keel.events.ResourceTaskFailed
 import com.netflix.spinnaker.keel.events.UnpinnedNotification
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEvent
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus
@@ -234,6 +235,33 @@ class NotificationEventListener(
         ARTIFACT_DEPLOYMENT_SUCCEEDED,
         targetEnvironment)
     }
+  }
+
+  @EventListener(ResourceTaskFailed::class)
+  fun onArtifactVersionDeployFailed(notification: ResourceTaskFailed) {
+    log.debug("Attempting to send deployment failed notification for failing task:: {}", notification)
+    val resource = repository.getResource(notification.id)
+    val config = repository.getDeliveryConfigForApplication(notification.application)
+    val artifact = resource.findAssociatedArtifact(config) ?: return
+    val environment = config.environments.find { it.resourceIds.contains(resource.id) } ?: return
+
+    // attempt to parse latest version from the task name, we have a convention
+    val regex = Regex(pattern = """(?<=\Deploy )(.*?)(?=\ to)""")
+    val taskName = notification.tasks.firstOrNull()?.name ?: return
+    val match = regex.find(taskName) ?: return
+    val latestApprovedVersion = match.groups[1]?.value ?: return //should be the version string
+    val latestArtifact = repository.getArtifactVersion(artifact, latestApprovedVersion, null) ?: return
+
+    sendSlackMessage(config,
+      SlackArtifactDeploymentNotification(
+        time = clock.instant(),
+        application = notification.application,
+        artifact = latestArtifact,
+        targetEnvironment = environment.name,
+        status = DeploymentStatus.FAILED
+      ),
+      ARTIFACT_DEPLOYMENT_FAILED,
+      environment.name)
   }
 
   @EventListener(ArtifactVersionVetoed::class)

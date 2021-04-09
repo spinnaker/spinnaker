@@ -5,6 +5,8 @@ import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.api.NotificationFrequency
 import com.netflix.spinnaker.keel.api.NotificationType
+import com.netflix.spinnaker.keel.api.ResourceKind
+import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
@@ -14,6 +16,7 @@ import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
 import com.netflix.spinnaker.keel.events.ApplicationActuationPaused
 import com.netflix.spinnaker.keel.events.ArtifactDeployedNotification
 import com.netflix.spinnaker.keel.events.PinnedNotification
+import com.netflix.spinnaker.keel.events.ResourceTaskFailed
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEvent
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventScope
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus
@@ -30,9 +33,7 @@ import com.netflix.spinnaker.time.MutableClock
 import com.slack.api.model.kotlin_extension.block.SectionBlockBuilder
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import io.mockk.Runs
 import io.mockk.every
-import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
 import java.time.Instant
@@ -48,13 +49,25 @@ class NotificationEventListenerTests : JUnit5Minutests {
     val version1 = "fnord-1.0.1-h1.b1b1b1b"
     val versions = listOf(version0, version1)
 
+    val resourceTest = resource(
+      spec = DummyArtifactReferenceResourceSpec(
+        artifactReference = releaseArtifact.reference
+      )
+    )
+    val resourceStaging = resource(
+      spec = DummyArtifactReferenceResourceSpec(
+        artifactReference = releaseArtifact.reference
+      )
+    )
+
+
     val clock: MutableClock = MutableClock(
       Instant.parse("2020-03-25T00:00:00.00Z"),
       ZoneId.of("UTC")
     )
 
     val pin = EnvironmentArtifactPin("test", releaseArtifact.reference, version0, "keel@keel.io", "comment")
-    val application1 = "fnord1"
+    val application1 = "fnord"
     val singleArtifactEnvironments = listOf(
       Environment(
         name = "test",
@@ -65,13 +78,7 @@ class NotificationEventListenerTests : JUnit5Minutests {
             frequency = NotificationFrequency.normal
           )
         ),
-        resources = setOf(
-          resource(
-            spec = DummyArtifactReferenceResourceSpec(
-              artifactReference = releaseArtifact.reference
-            )
-          )
-        )
+        resources = setOf(resourceTest)
       ),
       Environment(
         name = "staging",
@@ -82,13 +89,7 @@ class NotificationEventListenerTests : JUnit5Minutests {
             frequency = NotificationFrequency.quiet
           )
         ),
-        resources = setOf(
-          resource(
-            spec = DummyArtifactReferenceResourceSpec(
-              artifactReference = releaseArtifact.reference
-            )
-          )
-        )
+        resources = setOf(resourceStaging)
       ),
       Environment(
         name = "production",
@@ -167,7 +168,7 @@ class NotificationEventListenerTests : JUnit5Minutests {
       id = "bake-$version0",
     )
 
-    val failedToDeployNotification = ArtifactVersionVetoed(
+    val artifactVersionVetoedNotification = ArtifactVersionVetoed(
       application1,
       EnvironmentArtifactVeto(
         "production",
@@ -177,6 +178,17 @@ class NotificationEventListenerTests : JUnit5Minutests {
         "Automatically marked as bad because multiple deployments of this version failed."
       ),
       singleArtifactDeliveryConfig)
+
+    val artifactDeploymentFailedNotification = ResourceTaskFailed(
+      resource = resourceTest,
+      tasks = listOf(
+        Task(
+          id = "01F22T9NS1X411AG40MF5FJ188",
+          name = "Deploy $version0 to server group waffletime-test in test/us-east-1"
+        )
+      ),
+      reason = "Failed to update resource to match definition - Stage createServerGroup timed out after 30 minutes 5 seconds"
+    )
 
     val artifactDeployedNotification = ArtifactDeployedNotification(
       singleArtifactDeliveryConfig,
@@ -315,6 +327,8 @@ class NotificationEventListenerTests : JUnit5Minutests {
         every {
           repository.getDeliveryConfigForApplication(application1)
         } returns singleArtifactDeliveryConfig
+
+        every { repository.getResource(resourceTest.id) } returns resourceTest
       }
 
       test("send successful deployment notifications using the right handler to the right env") {
@@ -324,8 +338,8 @@ class NotificationEventListenerTests : JUnit5Minutests {
         }
       }
 
-      test("send failed deployment notifications using the right handler to the right env") {
-        subject.onArtifactVersionVetoed(failedToDeployNotification)
+      test("send vetoed deployment notifications using the right handler to the right env") {
+        subject.onArtifactVersionVetoed(artifactVersionVetoedNotification)
         verify(exactly = 2) {
           artifactDeployedNotificationHandler.sendMessage(any(), any())
         }
@@ -336,6 +350,13 @@ class NotificationEventListenerTests : JUnit5Minutests {
           targetEnvironment = "staging"
         ))
         verify(exactly = 0) {
+          artifactDeployedNotificationHandler.sendMessage(any(), any())
+        }
+      }
+
+      test("send failed deployment notifications using right handler to right env") {
+        subject.onArtifactVersionDeployFailed(artifactDeploymentFailedNotification)
+        verify(exactly = 1) {
           artifactDeployedNotificationHandler.sendMessage(any(), any())
         }
       }
