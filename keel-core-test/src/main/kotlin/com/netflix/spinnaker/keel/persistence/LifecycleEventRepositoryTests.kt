@@ -41,21 +41,24 @@ abstract class LifecycleEventRepositoryTests<T: LifecycleEventRepository> : JUni
     val subject: T
   )
   val artifact = DockerArtifact(name = "my-artifact", deliveryConfigName = "my-config", branch = "main")
-  val version = "123.4"
-  val link = "http://www.bake.com/$version"
-  val event = LifecycleEvent(
+  val version1 = "123.4"
+  val version2 = "123.5"
+  val link = "http://www.bake.com/$version1"
+  val v1Event1 = LifecycleEvent(
     scope = PRE_DEPLOYMENT,
     artifactRef = artifact.toLifecycleRef(),
-    artifactVersion = version,
+    artifactVersion = version1,
     type = BAKE,
     status = NOT_STARTED,
-    id = "bake-$version",
-    text = "Submitting bake for version $version",
+    id = "bake-$version1",
+    text = "Submitting bake for version $version1",
     link = link,
     data = mapOf("hi" to "whatsup"),
     startMonitoring = true
   )
-  val anotherEvent = event.copy(id = "bake-$version-2")
+  val v1Event2 = v1Event1.copy(id = "bake-$version1-2")
+  val v2event1 = v1Event1.copy(artifactVersion = version2, id = "bake-$version2")
+  val v2event2 = v1Event1.copy(artifactVersion = version2, id = "bake-$version2-2")
 
   fun tests() = rootContext<Fixture<T>> {
     fixture {
@@ -69,11 +72,11 @@ abstract class LifecycleEventRepositoryTests<T: LifecycleEventRepository> : JUni
 
     context("saving events") {
       before {
-        subject.saveEvent(event)
+        subject.saveEvent(v1Event1)
       }
 
       test("can get saved event") {
-        val events = subject.getEvents(artifact, version)
+        val events = subject.getEvents(artifact, version1)
         expect {
           that(events.size).isEqualTo(1)
           that(events.first().status).isEqualTo(NOT_STARTED)
@@ -86,8 +89,8 @@ abstract class LifecycleEventRepositoryTests<T: LifecycleEventRepository> : JUni
       test("updates timestamp if duplicate event") {
         clock.tickMinutes(1)
         val now = clock.instant()
-        subject.saveEvent(event.copy(timestamp = now))
-        val events = subject.getEvents(artifact, version)
+        subject.saveEvent(v1Event1.copy(timestamp = now))
+        val events = subject.getEvents(artifact, version1)
         expect {
           that(events.size).isEqualTo(1)
           that(events.first().timestamp).isEqualTo(now)
@@ -97,11 +100,11 @@ abstract class LifecycleEventRepositoryTests<T: LifecycleEventRepository> : JUni
 
     context("turning events into steps") {
       before {
-        subject.saveEvent(event)
+        subject.saveEvent(v1Event1)
       }
 
       test("can transform single event to step") {
-        val steps = subject.getSteps(artifact, version)
+        val steps = subject.getSteps(artifact, version1)
         expect {
           that(steps.size).isEqualTo(1)
           that(steps.first().status).isEqualTo(NOT_STARTED)
@@ -113,13 +116,13 @@ abstract class LifecycleEventRepositoryTests<T: LifecycleEventRepository> : JUni
       context("multiple events single id") {
         before {
           clock.tickMinutes(1)
-          subject.saveEvent(event.copy(status = RUNNING, text = null, link = null))
+          subject.saveEvent(v1Event1.copy(status = RUNNING, text = null, link = null))
           clock.tickMinutes(1)
-          subject.saveEvent(event.copy(status = SUCCEEDED, text = "Bake finished! Here's your cake", link = null))
+          subject.saveEvent(v1Event1.copy(status = SUCCEEDED, text = "Bake finished! Here's your cake", link = null))
         }
 
         test("can transform multiple events to step") {
-          val steps = subject.getSteps(artifact, version)
+          val steps = subject.getSteps(artifact, version1)
           expect {
             that(steps.size).isEqualTo(1)
             that(steps.first().status).isEqualTo(SUCCEEDED)
@@ -135,13 +138,13 @@ abstract class LifecycleEventRepositoryTests<T: LifecycleEventRepository> : JUni
       context("timestamps are a bit out of order") {
         before {
           clock.tickMinutes(1)
-          subject.saveEvent(event.copy(status = SUCCEEDED, text = "Bake finished! Here's your cake", link = null))
+          subject.saveEvent(v1Event1.copy(status = SUCCEEDED, text = "Bake finished! Here's your cake", link = null))
           clock.tickMinutes(1)
-          subject.saveEvent(event.copy(status = RUNNING, text = null, link = null))
+          subject.saveEvent(v1Event1.copy(status = RUNNING, text = null, link = null))
         }
 
         test("step still shows completed event") {
-          val steps = subject.getSteps(artifact, version)
+          val steps = subject.getSteps(artifact, version1)
           expectThat(steps.size).isEqualTo(1)
           expectThat(steps.first()){
             get { status }.isEqualTo(SUCCEEDED)
@@ -157,19 +160,19 @@ abstract class LifecycleEventRepositoryTests<T: LifecycleEventRepository> : JUni
       context("multiple event ids") {
         before {
           clock.tickMinutes(1)
-          subject.saveEvent(anotherEvent)
+          subject.saveEvent(v1Event2)
           clock.tickMinutes(1)
-          subject.saveEvent(event.copy(status = RUNNING, text = null, link = null))
+          subject.saveEvent(v1Event1.copy(status = RUNNING, text = null, link = null))
           clock.tickMinutes(1)
-          subject.saveEvent(anotherEvent.copy(status = RUNNING, text = null, link = null))
+          subject.saveEvent(v1Event2.copy(status = RUNNING, text = null, link = null))
           clock.tickMinutes(1)
-          subject.saveEvent(event.copy(status = FAILED, text = "Oops, this failed", link = null))
+          subject.saveEvent(v1Event1.copy(status = FAILED, text = "Oops, this failed", link = null))
           clock.tickMinutes(1)
-          subject.saveEvent(anotherEvent.copy(status = SUCCEEDED, text = "Bake succeeded", link = null))
+          subject.saveEvent(v1Event2.copy(status = SUCCEEDED, text = "Bake succeeded", link = null))
         }
 
         test("can transform multiple events to multiple steps") {
-          val steps = subject.getSteps(artifact, version)
+          val steps = subject.getSteps(artifact, version1)
           expect {
             that(steps.size).isEqualTo(2)
             that(steps.first().status).isEqualTo(FAILED)
@@ -180,29 +183,51 @@ abstract class LifecycleEventRepositoryTests<T: LifecycleEventRepository> : JUni
             that(steps.last().link).isEqualTo(link)
           }
         }
+
+        context("multiple versions") {
+          before {
+            subject.saveEvent(v2event1)
+            clock.tickMinutes(1)
+            subject.saveEvent(v2event2)
+            clock.tickMinutes(1)
+            subject.saveEvent(v2event1.copy(status = RUNNING, text = null, link = null))
+            clock.tickMinutes(1)
+            subject.saveEvent(v2event2.copy(status = RUNNING, text = null, link = null))
+            clock.tickMinutes(1)
+            subject.saveEvent(v2event1.copy(status = FAILED, text = "Oops, this failed", link = null))
+            clock.tickMinutes(1)
+            subject.saveEvent(v2event2.copy(status = SUCCEEDED, text = "Bake succeeded", link = null))
+          }
+
+          test("can pull multiple versions at once") {
+            val steps = subject.getSteps(artifact)
+            expectThat(steps.size).isEqualTo(4)
+          }
+        }
+
       }
     }
 
     context("hiding steps") {
       before {
-        subject.saveEvent(event.copy(link = "i.am.a.link"))
+        subject.saveEvent(v1Event1.copy(link = "i.am.a.link"))
       }
 
       test("no steps returned when link isn't valid") {
-        val steps = subject.getSteps(artifact, version)
+        val steps = subject.getSteps(artifact, version1)
         expectThat(steps).isEmpty()
       }
     }
 
     context("don't need a NOT_STARTED event to calculate steps") {
       before {
-        subject.saveEvent(event.copy(status = RUNNING))
+        subject.saveEvent(v1Event1.copy(status = RUNNING))
         clock.tickMinutes(1)
-        subject.saveEvent(event.copy(status = SUCCEEDED, text = "Bake finished! Here's your cake", link = null))
+        subject.saveEvent(v1Event1.copy(status = SUCCEEDED, text = "Bake finished! Here's your cake", link = null))
       }
 
       test("successful step generated") {
-        val steps = subject.getSteps(artifact, version)
+        val steps = subject.getSteps(artifact, version1)
         expect {
           that(steps.size).isEqualTo(1)
           that(steps.first().status).isEqualTo(SUCCEEDED)
@@ -217,44 +242,44 @@ abstract class LifecycleEventRepositoryTests<T: LifecycleEventRepository> : JUni
     context("backfilling monitoring") {
       context("single event does not have an ending status") {
         before {
-          subject.saveEvent(event)
+          subject.saveEvent(v1Event1)
           clock.tickMinutes(1)
         }
 
         test("one minute old event does not trigger re-monitoring") {
-          subject.getSteps(artifact, version)
+          subject.getSteps(artifact, version1)
           verify { publisher wasNot Called }
         }
 
         test("ten minute old event does trigger re-monitoring") {
           clock.tickMinutes(10)
-          subject.getSteps(artifact, version)
+          subject.getSteps(artifact, version1)
           verify(exactly = 1) { publisher.publishEvent(ofType<StartMonitoringEvent>())}
         }
       }
 
       context("single event has ending status") {
         before {
-          subject.saveEvent(event.copy(status = SUCCEEDED))
+          subject.saveEvent(v1Event1.copy(status = SUCCEEDED))
           clock.tickMinutes(10)
         }
 
         test("succeeded event does not trigger re-monitoring") {
-          subject.getSteps(artifact, version)
+          subject.getSteps(artifact, version1)
           verify { publisher wasNot Called }
         }
       }
 
       context("more than one event") {
         before {
-          subject.saveEvent(event)
+          subject.saveEvent(v1Event1)
           clock.tickMinutes(1)
-          subject.saveEvent(event.copy(status = SUCCEEDED))
+          subject.saveEvent(v1Event1.copy(status = SUCCEEDED))
           clock.tickMinutes(10)
         }
 
         test("several events do not trigger a re-monitoring") {
-          subject.getSteps(artifact, version)
+          subject.getSteps(artifact, version1)
           verify { publisher wasNot Called }
         }
       }
@@ -265,15 +290,15 @@ abstract class LifecycleEventRepositoryTests<T: LifecycleEventRepository> : JUni
       var endTime: Instant? = null
       before {
         startTime = clock.instant()
-        subject.saveEvent(event)
+        subject.saveEvent(v1Event1)
         clock.tickMinutes(1)
-        subject.saveEvent(event.copy(status = RUNNING, text = null, link = null))
+        subject.saveEvent(v1Event1.copy(status = RUNNING, text = null, link = null))
         clock.tickMinutes(1)
-        subject.saveEvent(event.copy(status = SUCCEEDED, text = "Bake succeeded", link = null))
+        subject.saveEvent(v1Event1.copy(status = SUCCEEDED, text = "Bake succeeded", link = null))
         endTime = clock.instant()
       }
       test("time is correct") {
-        val steps = subject.getSteps(artifact, version)
+        val steps = subject.getSteps(artifact, version1)
         expect {
           that(steps.size).isEqualTo(1)
           that(steps.first().startedAt).isEqualTo(startTime)

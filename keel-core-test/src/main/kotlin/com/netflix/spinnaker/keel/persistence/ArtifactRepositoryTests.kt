@@ -50,6 +50,7 @@ import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.isSuccess
 import strikt.assertions.isTrue
+import strikt.assertions.size
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
@@ -450,6 +451,12 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
           expectThat(subject.isDeployingTo(manifest, testEnvironment.name)).isFalse()
         }
 
+        test("can get pending versions") {
+          expectThat(
+            subject.getPendingVersionsInEnvironment(manifest, versionedSnapshotDebian.reference, testEnvironment.name).size
+          ).isEqualTo(3)
+        }
+
         test("an artifact version can be vetoed even if it was not previously deployed") {
           val veto = EnvironmentArtifactVeto(
             targetEnvironment = testEnvironment.name,
@@ -589,7 +596,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
           }
 
           test("querying for current returns the full artifact") {
-            val artifacts = subject.getCurrentArtifactVersions(manifest, testEnvironment.name)
+            val artifacts = subject.getArtifactVersionsByStatus(manifest, testEnvironment.name, listOf(PromotionStatus.CURRENT))
             expect {
               that(artifacts.size).isEqualTo(1)
               that(artifacts.first().version).isEqualTo(version1)
@@ -678,6 +685,11 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
               }
 
               expectThat(subject.isDeployingTo(manifest, testEnvironment.name)).isFalse()
+            }
+
+            test("can get all information about the versions") {
+              val versions = subject.getAllVersionsForEnvironment(versionedSnapshotDebian, manifest, testEnvironment.name)
+              expectThat(versions.size).isEqualTo(3)
             }
           }
         }

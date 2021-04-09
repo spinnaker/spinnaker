@@ -26,6 +26,7 @@ import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
 import com.netflix.spinnaker.keel.core.api.EnvironmentSummary
 import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
 import com.netflix.spinnaker.keel.core.api.PromotionStatus
+import com.netflix.spinnaker.keel.core.api.PublishedArtifactInEnvironment
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.core.api.UID
 import com.netflix.spinnaker.keel.events.ApplicationEvent
@@ -349,11 +350,24 @@ class CombinedRepository(
   override fun markAsSuccessfullyDeployedTo(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact, version: String, targetEnvironment: String) =
     artifactRepository.markAsSuccessfullyDeployedTo(deliveryConfig, artifact, version, targetEnvironment)
 
-  override fun getCurrentArtifactVersions(
+  override fun getArtifactVersionsByStatus(
     deliveryConfig: DeliveryConfig,
+    environmentName: String,
+    statuses: List<PromotionStatus>
+  ): List<PublishedArtifact> =
+    artifactRepository.getArtifactVersionsByStatus(deliveryConfig, environmentName, statuses)
+
+  override fun getPendingVersionsInEnvironment(
+    deliveryConfig: DeliveryConfig,
+    artifactReference: String,
     environmentName: String
   ): List<PublishedArtifact> =
-    artifactRepository.getCurrentArtifactVersions(deliveryConfig, environmentName)
+    artifactRepository.getPendingVersionsInEnvironment(deliveryConfig, artifactReference, environmentName)
+
+  override fun getAllVersionsForEnvironment(
+    artifact: DeliveryArtifact, config: DeliveryConfig, environmentName: String
+  ): List<PublishedArtifactInEnvironment> =
+    artifactRepository.getAllVersionsForEnvironment(artifact, config, environmentName)
 
   override fun getEnvironmentSummaries(deliveryConfig: DeliveryConfig): List<EnvironmentSummary> =
     artifactRepository.getEnvironmentSummaries(deliveryConfig)

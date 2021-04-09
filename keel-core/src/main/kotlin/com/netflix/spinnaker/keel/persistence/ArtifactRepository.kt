@@ -14,6 +14,7 @@ import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
 import com.netflix.spinnaker.keel.core.api.EnvironmentSummary
 import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
 import com.netflix.spinnaker.keel.core.api.PromotionStatus
+import com.netflix.spinnaker.keel.core.api.PublishedArtifactInEnvironment
 import com.netflix.spinnaker.keel.services.StatusInfoForArtifactInEnvironment
 import com.netflix.spinnaker.kork.exceptions.UserException
 import java.time.Duration
@@ -209,9 +210,24 @@ interface ArtifactRepository : PeriodicallyCheckedRepository<DeliveryArtifact> {
   )
 
   /**
-   * Gets all published artifacts that are current in an environment.
+   * Gets all published artifacts that have the specified statuses in an environment.
    */
-  fun getCurrentArtifactVersions(deliveryConfig: DeliveryConfig, environmentName: String): List<PublishedArtifact>
+  fun getArtifactVersionsByStatus(deliveryConfig: DeliveryConfig, environmentName: String, statuses: List<PromotionStatus>): List<PublishedArtifact>
+
+  /**
+   * Bulk loads all data we have about an artifact in an environment.
+   * Includes pending versions.
+   */
+  fun getAllVersionsForEnvironment(
+    artifact: DeliveryArtifact,
+    config: DeliveryConfig,
+    environmentName: String
+  ): List<PublishedArtifactInEnvironment>
+
+  /**
+   * Returns artifact versions that are pending for an artifact in an environment
+   */
+  fun getPendingVersionsInEnvironment(deliveryConfig: DeliveryConfig, artifactReference: String, environmentName: String): List<PublishedArtifact>
 
   /**
    * Fetches the status of artifact versions in the environments of [deliveryConfig].

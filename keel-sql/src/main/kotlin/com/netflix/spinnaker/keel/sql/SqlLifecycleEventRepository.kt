@@ -85,8 +85,8 @@ class SqlLifecycleEventRepository(
   override fun getEvents(
     artifact: DeliveryArtifact,
     artifactVersion: String
-  ): List<LifecycleEvent> {
-    return sqlRetry.withRetry(READ) {
+  ): List<LifecycleEvent> =
+    sqlRetry.withRetry(READ) {
       jooq.select(LIFECYCLE_EVENT.JSON, LIFECYCLE_EVENT.TIMESTAMP)
         .from(LIFECYCLE_EVENT)
         .where(LIFECYCLE_EVENT.REF.eq(artifact.toLifecycleRef()))
@@ -97,6 +97,19 @@ class SqlLifecycleEventRepository(
           event.copy(timestamp = timestamp)
         }.filterNotNull()
     }
+
+  fun getEvents(
+    artifact: DeliveryArtifact
+  ): List<LifecycleEvent> =
+  sqlRetry.withRetry(READ) {
+    jooq.select(LIFECYCLE_EVENT.JSON, LIFECYCLE_EVENT.TIMESTAMP)
+      .from(LIFECYCLE_EVENT)
+      .where(LIFECYCLE_EVENT.REF.eq(artifact.toLifecycleRef()))
+      .orderBy(LIFECYCLE_EVENT.TIMESTAMP.asc()) // oldest first
+      .fetch()
+      .map { (event, timestamp) ->
+        event.copy(timestamp = timestamp)
+      }.filterNotNull()
   }
 
   /**
@@ -113,6 +126,15 @@ class SqlLifecycleEventRepository(
   override fun getSteps(artifact: DeliveryArtifact, artifactVersion: String): List<LifecycleStep> {
     val startTime = clock.instant()
     val events = getEvents(artifact, artifactVersion)
+    val steps = calculateSteps(events)
+    spectator.timer(
+      LIFECYCLE_STEP_CALCULATION_DURATION_ID,
+      listOf(BasicTag("artifactRef", artifact.toLifecycleRef()))
+    ).record(Duration.between(startTime, clock.instant()))
+    return steps
+  }
+
+  private fun calculateSteps(events: List<LifecycleEvent>): List<LifecycleStep> {
     val steps: MutableList<LifecycleStep> = mutableListOf()
 
     // associateBy overwrites values when presented with duplicate keys
@@ -148,12 +170,19 @@ class SqlLifecycleEventRepository(
       }
     }
 
+    return steps.toList().sortedBy { it.startedAt }
+  }
+
+  override fun getSteps(artifact: DeliveryArtifact): List<LifecycleStep> {
+    val startTime = clock.instant()
+    val events = getEvents(artifact)
+    val steps = calculateSteps(events)
+
     spectator.timer(
-      LIFECYCLE_STEP_CALCULATION_DURATION_ID,
+      LIFECYCLE_STEP_CALCULATION_ALL_DURATION_ID,
       listOf(BasicTag("artifactRef", artifact.toLifecycleRef()))
     ).record(Duration.between(startTime, clock.instant()))
-
-    return steps.toList().sortedBy { it.startedAt }
+    return steps
   }
 
   /**
@@ -199,4 +228,5 @@ class SqlLifecycleEventRepository(
   }
 
   private val LIFECYCLE_STEP_CALCULATION_DURATION_ID = "keel.lifecycle.step.calculation.duration"
+  private val LIFECYCLE_STEP_CALCULATION_ALL_DURATION_ID = "keel.lifecycle.step.calculation.all.duration"
 }

@@ -24,4 +24,5 @@ data class LifecycleStep(
   val link: String?,
   val startedAt: Instant? = null,
   val completedAt: Instant? = null,
+  val artifactVersion: String
 )

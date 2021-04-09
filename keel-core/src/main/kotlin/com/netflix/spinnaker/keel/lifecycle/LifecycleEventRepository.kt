@@ -20,4 +20,9 @@ interface LifecycleEventRepository {
    * Returns the event summaries by type ("steps") for an artifact version
    */
   fun getSteps(artifact: DeliveryArtifact, artifactVersion: String): List<LifecycleStep>
+
+  /**
+   * Returns the event summaries by type ("steps") for all known artifact versions
+   */
+  fun getSteps(artifact: DeliveryArtifact): List<LifecycleStep>
 }

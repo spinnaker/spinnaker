@@ -7,6 +7,8 @@ import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.core.api.PipelineConstraint
+import com.netflix.spinnaker.keel.core.api.PromotionStatus
+import com.netflix.spinnaker.keel.core.api.PromotionStatus.CURRENT
 import com.netflix.spinnaker.keel.core.api.TimeWindow
 import com.netflix.spinnaker.keel.core.api.TimeWindowConstraint
 import com.netflix.spinnaker.keel.pause.ActuationPauser
@@ -94,7 +96,7 @@ class AdminServiceTests : JUnit5Minutests {
         every { version } returns "v16"
       }
 
-      every { repository.getCurrentArtifactVersions(deliveryConfig, environment.name) } returns listOf(current)
+      every { repository.getArtifactVersionsByStatus(deliveryConfig, environment.name, listOf(CURRENT)) } returns listOf(current)
 
       subject.forceSkipArtifactVersion(application, environment.name, artifact.reference, "v15")
 

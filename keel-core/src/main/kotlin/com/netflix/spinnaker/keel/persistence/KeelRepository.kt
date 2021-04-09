@@ -21,6 +21,7 @@ import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
 import com.netflix.spinnaker.keel.core.api.EnvironmentSummary
 import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
 import com.netflix.spinnaker.keel.core.api.PromotionStatus
+import com.netflix.spinnaker.keel.core.api.PublishedArtifactInEnvironment
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.core.api.UID
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
@@ -172,7 +173,11 @@ interface KeelRepository : KeelReadOnlyRepository {
 
   fun getEnvironmentSummaries(deliveryConfig: DeliveryConfig): List<EnvironmentSummary>
 
-  fun getCurrentArtifactVersions(deliveryConfig: DeliveryConfig, environmentName: String): List<PublishedArtifact>
+  fun getArtifactVersionsByStatus(deliveryConfig: DeliveryConfig, environmentName: String, statuses: List<PromotionStatus>): List<PublishedArtifact>
+
+  fun getPendingVersionsInEnvironment(deliveryConfig: DeliveryConfig, artifactReference: String, environmentName: String): List<PublishedArtifact>
+
+  fun getAllVersionsForEnvironment(artifact: DeliveryArtifact, config: DeliveryConfig, environmentName: String): List<PublishedArtifactInEnvironment>
 
   fun pinEnvironment(deliveryConfig: DeliveryConfig, environmentArtifactPin: EnvironmentArtifactPin)
 

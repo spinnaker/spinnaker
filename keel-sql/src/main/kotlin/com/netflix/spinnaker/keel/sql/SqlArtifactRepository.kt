@@ -29,6 +29,7 @@ import com.netflix.spinnaker.keel.core.api.PromotionStatus.PENDING
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.PREVIOUS
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.SKIPPED
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.VETOED
+import com.netflix.spinnaker.keel.core.api.PublishedArtifactInEnvironment
 import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.persistence.ArtifactNotFoundException
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
@@ -43,9 +44,12 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIF
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_VETO
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.LATEST_ENVIRONMENT
+import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
+import com.netflix.spinnaker.keel.resources.SpecMigrator
 import com.netflix.spinnaker.keel.services.StatusInfoForArtifactInEnvironment
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
+import com.netflix.spinnaker.keel.sql.deliveryconfigs.deliveryConfigByName
 import io.github.resilience4j.retry.Retry
 import io.github.resilience4j.retry.RetryConfig
 import org.jooq.DSLContext
@@ -57,6 +61,7 @@ import org.jooq.impl.DSL.select
 import org.jooq.impl.DSL.selectOne
 import org.jooq.util.mysql.MySQLDSL
 import org.slf4j.LoggerFactory
+import java.lang.IllegalStateException
 import java.security.MessageDigest
 import java.time.Clock
 import java.time.Duration
@@ -943,7 +948,11 @@ class SqlArtifactRepository(
     }
   }
 
-  override fun getCurrentArtifactVersions(deliveryConfig: DeliveryConfig, environmentName: String): List<PublishedArtifact> {
+  override fun getArtifactVersionsByStatus(
+    deliveryConfig: DeliveryConfig,
+    environmentName: String,
+    statuses: List<PromotionStatus>
+  ): List<PublishedArtifact> {
     return sqlRetry.withRetry(READ) {
       jooq
         .select(
@@ -964,13 +973,136 @@ class SqlArtifactRepository(
         .and(DELIVERY_ARTIFACT.TYPE.eq(ARTIFACT_VERSIONS.TYPE))
         .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(ARTIFACT_VERSIONS.VERSION))
         .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(deliveryConfig.getUidFor(environmentName)))
-        .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(CURRENT))
+        .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.`in`(statuses))
         .fetch { (name, type, version, reference, status, createdAt, gitMetadata, buildMetadata) ->
           PublishedArtifact(
             name = name,
             type = type,
             version = version,
             reference = reference,
+            status = status,
+            createdAt = createdAt,
+            gitMetadata = gitMetadata,
+            buildMetadata = buildMetadata
+          )
+        }
+    }
+  }
+
+  override fun getAllVersionsForEnvironment(
+    artifact: DeliveryArtifact,
+    config: DeliveryConfig,
+    environmentName: String
+  ): List<PublishedArtifactInEnvironment> {
+    val existingVersions: List<PublishedArtifactInEnvironment> = sqlRetry.withRetry(READ) {
+      jooq
+        .select(
+          ARTIFACT_VERSIONS.NAME,
+          ARTIFACT_VERSIONS.TYPE,
+          ARTIFACT_VERSIONS.VERSION,
+          DELIVERY_ARTIFACT.REFERENCE,
+          ARTIFACT_VERSIONS.RELEASE_STATUS,
+          ARTIFACT_VERSIONS.CREATED_AT,
+          ARTIFACT_VERSIONS.GIT_METADATA,
+          ARTIFACT_VERSIONS.BUILD_METADATA,
+          ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS,
+        )
+        .from(ENVIRONMENT_ARTIFACT_VERSIONS)
+        .innerJoin(DELIVERY_ARTIFACT)
+        .on(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(DELIVERY_ARTIFACT.UID))
+        .innerJoin(ARTIFACT_VERSIONS)
+        .on(DELIVERY_ARTIFACT.NAME.eq(ARTIFACT_VERSIONS.NAME))
+        .innerJoin(LATEST_ENVIRONMENT)
+        .on(LATEST_ENVIRONMENT.UID.eq(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID))
+        .and(DELIVERY_ARTIFACT.TYPE.eq(ARTIFACT_VERSIONS.TYPE))
+        .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(ARTIFACT_VERSIONS.VERSION))
+        .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
+        .where(LATEST_ENVIRONMENT.NAME.eq(environmentName))
+        .fetch { (name, type, version, reference, status, createdAt, gitMetadata, buildMetadata, promotionStatus) ->
+          val publishedArtifact = PublishedArtifact(
+            name = name,
+            type = type,
+            version = version,
+            reference = reference,
+            status = status,
+            createdAt = createdAt,
+            gitMetadata = gitMetadata,
+            buildMetadata = buildMetadata,
+          )
+          PublishedArtifactInEnvironment(
+            publishedArtifact,
+            promotionStatus,
+            environmentName
+          )
+        }
+    }
+    val pending = getPendingVersions(artifact, config, environmentName)
+    return existingVersions + pending
+  }
+
+  /**
+   * Gets all pending version for each environment
+   */
+  private fun getPendingVersions(
+    artifact: DeliveryArtifact,
+    config: DeliveryConfig,
+    environmentName: String
+  ): List<PublishedArtifactInEnvironment> =
+    getPendingVersionsInEnvironment(config, artifact.reference, environmentName)
+      .map { publishedArtifact ->
+        PublishedArtifactInEnvironment(
+          publishedArtifact,
+          PENDING,
+          environmentName
+        )
+      }
+
+
+  override fun getPendingVersionsInEnvironment(
+    deliveryConfig: DeliveryConfig,
+    artifactReference: String,
+    environmentName: String
+  ): List<PublishedArtifact> {
+    val artifact = deliveryConfig.matchingArtifactByReference(artifactReference) ?: throw ArtifactNotFoundException(artifactReference, deliveryConfig.name)
+    return sqlRetry.withRetry(READ) {
+      jooq
+        .select(
+          ARTIFACT_VERSIONS.NAME,
+          ARTIFACT_VERSIONS.TYPE,
+          ARTIFACT_VERSIONS.VERSION,
+          ARTIFACT_VERSIONS.RELEASE_STATUS,
+          ARTIFACT_VERSIONS.CREATED_AT,
+          ARTIFACT_VERSIONS.GIT_METADATA,
+          ARTIFACT_VERSIONS.BUILD_METADATA,
+        )
+        .from(
+          ARTIFACT_VERSIONS,
+          DELIVERY_ARTIFACT,
+          LATEST_ENVIRONMENT,
+          DELIVERY_CONFIG
+        )
+        .where(DELIVERY_ARTIFACT.NAME.eq(artifact.name))
+        .and(DELIVERY_ARTIFACT.TYPE.eq(artifact.type))
+        .and(DELIVERY_ARTIFACT.REFERENCE.eq(artifact.reference))
+        .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(deliveryConfig.name))
+        .and(LATEST_ENVIRONMENT.DELIVERY_CONFIG_UID.eq(DELIVERY_CONFIG.UID))
+        .and(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
+        .and(LATEST_ENVIRONMENT.NAME.eq(environmentName))
+        .and(ARTIFACT_VERSIONS.NAME.eq(artifact.name))
+        .and(ARTIFACT_VERSIONS.TYPE.eq(artifact.type))
+        .apply { if (artifact.statuses.isNotEmpty()) and(ARTIFACT_VERSIONS.RELEASE_STATUS.`in`(*artifact.statuses.toTypedArray())) }
+        .andNotExists(
+          selectOne()
+            .from(ENVIRONMENT_ARTIFACT_VERSIONS)
+            .where(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(ARTIFACT_VERSIONS.VERSION))
+            .and(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(LATEST_ENVIRONMENT.UID))
+            .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(DELIVERY_ARTIFACT.UID))
+        ).fetch { (name, type, version, status, createdAt, gitMetadata, buildMetadata) ->
+          PublishedArtifact(
+            name = name,
+            type = type,
+            version = version,
+            reference = artifactReference,
             status = status,
             createdAt = createdAt,
             gitMetadata = gitMetadata,

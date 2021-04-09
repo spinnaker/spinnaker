@@ -46,8 +46,9 @@ data class LifecycleEvent(
       status = status,
       text = text,
       link = link,
-      startedAt = timestamp
+      startedAt = timestamp,
       // if we're using this, it's the first event we have,
-      // so the timestamp will be the start time
+      // so the timestamp will be the start time,
+      artifactVersion = artifactVersion
     )
 }

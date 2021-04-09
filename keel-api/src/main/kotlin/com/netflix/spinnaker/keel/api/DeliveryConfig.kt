@@ -11,7 +11,7 @@ data class DeliveryConfig(
   val environments: Set<Environment> = emptySet(),
   val apiVersion: String = "delivery.config.spinnaker.netflix.com/v1",
   @get:ExcludedFromDiff
-  val metadata: Map<String, Any?> = emptyMap()
+  val metadata: Map<String, Any?> = emptyMap(),
 ) {
   @get:ExcludedFromDiff
   val resources: Set<Resource<*>>
@@ -22,4 +22,16 @@ data class DeliveryConfig(
 
   fun matchingArtifactByName(name: String, type: ArtifactType): DeliveryArtifact? =
     artifacts.find { it.name == name && it.type == type }
+
+  /**
+   * Returns all artifacts used by resources in the environment
+   */
+  fun artifactsUsedIn(environmentName: String): Set<DeliveryArtifact> =
+    environments
+      .find { it.name == environmentName }
+      ?.resources
+        ?.mapNotNull { resource ->
+          resource.findAssociatedArtifact(this)
+        }
+      ?.toSet() ?: emptySet()
 }

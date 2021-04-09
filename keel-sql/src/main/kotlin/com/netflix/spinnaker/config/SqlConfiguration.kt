@@ -44,7 +44,7 @@ import javax.annotation.PostConstruct
 @ConditionalOnProperty("sql.enabled")
 @Import(DefaultSqlConfiguration::class, SqlRetryProperties::class, EnvironmentExclusionConfig::class)
 class SqlConfiguration
- {
+{
 
   @Autowired
   lateinit var jooqConfiguration: DefaultConfiguration

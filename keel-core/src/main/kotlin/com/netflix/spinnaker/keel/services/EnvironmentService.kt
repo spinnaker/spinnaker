@@ -3,6 +3,8 @@ package com.netflix.spinnaker.keel.services
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
+import com.netflix.spinnaker.keel.core.api.PromotionStatus
+import com.netflix.spinnaker.keel.core.api.PromotionStatus.CURRENT
 import com.netflix.spinnaker.keel.core.api.ResourceSummary
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigException
@@ -33,7 +35,7 @@ class EnvironmentService(
 
     return deliveryConfig.environments.map { environment ->
       val currentArtifacts = try {
-        repository.getCurrentArtifactVersions(deliveryConfig, environment.name).toSet()
+        repository.getArtifactVersionsByStatus(deliveryConfig, environment.name, listOf(CURRENT)).toSet()
       } catch (e: Exception) {
         log.error("Failed to get current artifacts for $application: ", e)
         emptySet()

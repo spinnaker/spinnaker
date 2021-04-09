@@ -9,6 +9,8 @@ import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.supporting
 import com.netflix.spinnaker.keel.api.verification.VerificationContext
 import com.netflix.spinnaker.keel.core.api.ApplicationSummary
+import com.netflix.spinnaker.keel.core.api.PromotionStatus
+import com.netflix.spinnaker.keel.core.api.PromotionStatus.CURRENT
 import com.netflix.spinnaker.keel.exceptions.NoSuchEnvironmentException
 import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
@@ -137,7 +139,7 @@ class AdminService(
       ?: throw UserException("application $application contains no artifact ref $artifactReference. Artifact references are: ${deliveryConfig.artifacts.map { it.reference }}")
 
      // Identify the current version in the environment
-    val currentVersion = repository.getCurrentArtifactVersions(deliveryConfig, environment)
+    val currentVersion = repository.getArtifactVersionsByStatus(deliveryConfig, environment, listOf(CURRENT))
       .firstOrNull { it.reference == artifactReference }
 
     if(currentVersion == null) {
