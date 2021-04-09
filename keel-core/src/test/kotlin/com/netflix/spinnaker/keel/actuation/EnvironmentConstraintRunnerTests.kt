@@ -292,11 +292,11 @@ internal class EnvironmentConstraintRunnerTests : JUnit5Minutests {
             .map { PublishedArtifact(artifact.name, artifact.type, it) }
 
           every {
-            repository.constraintStateFor("my-manifest", "staging", "1.2")
+            repository.constraintStateFor("my-manifest", "staging", "1.2", artifact.reference)
           } returns listOf(passedManualJudgement)
 
           every {
-            repository.constraintStateFor("my-manifest", "staging", "2.0")
+            repository.constraintStateFor("my-manifest", "staging", "2.0", artifact.reference)
           } returns listOf(pendingManualJudgement)
 
           every { statelessEvaluator.canPromote(artifact, "1.2", deliveryConfig, environment) } returns true
@@ -387,7 +387,7 @@ internal class EnvironmentConstraintRunnerTests : JUnit5Minutests {
           every { statefulEvaluator.canPromote(artifact, "2.0", deliveryConfig, environment) } returns false
 
           every {
-            repository.constraintStateFor("my-manifest", "staging", "2.0")
+            repository.constraintStateFor("my-manifest", "staging", "2.0", artifact.reference)
           } returns listOf(pendingManualJudgement)
 
           every { repository.latestVersionApprovedIn(any(), any(), any()) } returns null
@@ -455,7 +455,7 @@ internal class EnvironmentConstraintRunnerTests : JUnit5Minutests {
           every { repository.approveVersionFor(deliveryConfig, artifact, "1.0", environment.name) } returns true
 
           every {
-            repository.constraintStateFor("my-manifest", "staging", "2.0")
+            repository.constraintStateFor("my-manifest", "staging", "2.0", artifact.reference)
           } returns listOf(pendingManualJudgement)
 
           runBlocking { subject.checkEnvironment(generateContext(versions = listOf("2.0", "1.2", "1.1", "1.0", "0.9"))) }

@@ -106,7 +106,7 @@ class EnvironmentConstraintRunner(
 
         if (envContext.environment.constraints.anyStateful) {
           versionIsPending = repository
-            .constraintStateFor(envContext.deliveryConfig.name, envContext.environment.name, v)
+            .constraintStateFor(envContext.deliveryConfig.name, envContext.environment.name, v, envContext.artifact.reference)
             .any { it.status == ConstraintStatus.PENDING }
         }
 

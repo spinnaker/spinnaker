@@ -192,8 +192,8 @@ class CombinedRepository(
   override fun getConstraintState(deliveryConfigName: String, environmentName: String, artifactVersion: String, type: String, artifactReference: String?): ConstraintState? =
     deliveryConfigRepository.getConstraintState(deliveryConfigName, environmentName, artifactVersion, type, artifactReference)
 
-  override fun constraintStateFor(deliveryConfigName: String, environmentName: String, artifactVersion: String): List<ConstraintState> =
-    deliveryConfigRepository.constraintStateFor(deliveryConfigName, environmentName, artifactVersion)
+  override fun constraintStateFor(deliveryConfigName: String, environmentName: String, artifactVersion: String, artifactReference: String): List<ConstraintState> =
+    deliveryConfigRepository.constraintStateFor(deliveryConfigName, environmentName, artifactVersion, artifactReference)
 
   override fun getPendingArtifactVersions(deliveryConfigName: String, environmentName: String, artifact: DeliveryArtifact): List<PublishedArtifact> =
     deliveryConfigRepository.getPendingArtifactVersions(deliveryConfigName, environmentName, artifact)

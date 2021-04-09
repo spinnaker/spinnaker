@@ -34,5 +34,5 @@ interface ConstraintRepository {
 
   fun constraintStateFor(deliveryConfigName: String, environmentName: String, limit: Int): List<ConstraintState>
 
-  fun constraintStateFor(deliveryConfigName: String, environmentName: String, artifactVersion: String): List<ConstraintState>
+  fun constraintStateFor(deliveryConfigName: String, environmentName: String, artifactVersion: String, artifactReference: String): List<ConstraintState>
 }

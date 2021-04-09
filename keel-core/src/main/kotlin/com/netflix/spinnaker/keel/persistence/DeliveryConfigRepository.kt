@@ -142,7 +142,8 @@ interface DeliveryConfigRepository : PeriodicallyCheckedRepository<DeliveryConfi
   fun constraintStateFor(
     deliveryConfigName: String,
     environmentName: String,
-    artifactVersion: String
+    artifactVersion: String,
+    artifactReference: String
   ): List<ConstraintState>
 
   /**

@@ -321,7 +321,7 @@ class ApplicationServiceTests : JUnit5Minutests {
       context("a delivery config with a single artifact for all environments") {
         before {
           every {
-            repository.constraintStateFor(singleArtifactDeliveryConfig.name, any(), any<String>())
+            repository.constraintStateFor(singleArtifactDeliveryConfig.name, any(), any<String>(), any())
           } returns emptyList()
 
           every {
@@ -425,7 +425,7 @@ class ApplicationServiceTests : JUnit5Minutests {
             } returns productionSummariesInEnv
 
             every {
-              repository.constraintStateFor(singleArtifactDeliveryConfig.name, any(), any<String>())
+              repository.constraintStateFor(singleArtifactDeliveryConfig.name, any(), any<String>(), any())
             } answers {
               when (val environment = arg<String>(1)) {
                 "production" -> {
@@ -656,7 +656,7 @@ class ApplicationServiceTests : JUnit5Minutests {
             }
 
             every {
-              repository.constraintStateFor(singleArtifactDeliveryConfig.name, any(), any<String>())
+              repository.constraintStateFor(singleArtifactDeliveryConfig.name, any(), any<String>(), any())
             } returns emptyList()
 
             every {
@@ -873,7 +873,7 @@ class ApplicationServiceTests : JUnit5Minutests {
             }
 
             every {
-              repository.constraintStateFor(dualArtifactDeliveryConfig.name, any(), any<String>())
+              repository.constraintStateFor(dualArtifactDeliveryConfig.name, any(), any<String>(), any())
             } returns emptyList()
           }
 
@@ -1109,7 +1109,7 @@ class ApplicationServiceTests : JUnit5Minutests {
         }
 
         every {
-          repository.constraintStateFor(singleArtifactDeliveryConfig.name, any(), any<String>())
+          repository.constraintStateFor(singleArtifactDeliveryConfig.name, any(), any<String>(), any())
         } returns emptyList()
 
 

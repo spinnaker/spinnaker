@@ -248,7 +248,7 @@ class ComparableLinksTests : JUnit5Minutests {
         ) } returns stagingSummaryInEnv
 
         every {
-          repository.constraintStateFor(singleArtifactDeliveryConfig.name, any(), any<String>())
+          repository.constraintStateFor(singleArtifactDeliveryConfig.name, any(), any<String>(), any())
         } answers {
           emptyList()
         }

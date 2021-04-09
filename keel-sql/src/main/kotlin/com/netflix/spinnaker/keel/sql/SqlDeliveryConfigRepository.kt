@@ -477,6 +477,7 @@ class SqlDeliveryConfigRepository(
               .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.UID, uid)
               .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.ENVIRONMENT_UID, envUid)
               .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_VERSION, state.artifactVersion)
+              .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_REFERENCE, state.artifactReference)
               .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.TYPE, state.type)
               .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.CREATED_AT, state.createdAt)
               .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.STATUS, state.status)
@@ -487,7 +488,6 @@ class SqlDeliveryConfigRepository(
                 ENVIRONMENT_ARTIFACT_CONSTRAINT.ATTRIBUTES,
                 objectMapper.writeValueAsString(state.attributes)
               )
-              .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_REFERENCE, state.artifactReference)
               .onDuplicateKeyUpdate()
               .set(
                 ENVIRONMENT_ARTIFACT_CONSTRAINT.STATUS,
@@ -533,6 +533,7 @@ class SqlDeliveryConfigRepository(
               state.deliveryConfigName,
               state.environmentName,
               state.artifactVersion,
+              state.artifactReference,
               txn
             )
             if (allStates.allPass && allStates.size >= environment.constraints.statefulCount) {
@@ -851,15 +852,17 @@ class SqlDeliveryConfigRepository(
   override fun constraintStateFor(
     deliveryConfigName: String,
     environmentName: String,
-    artifactVersion: String
+    artifactVersion: String,
+    artifactReference: String
   ): List<ConstraintState> {
-    return constraintStateForWithTransaction(deliveryConfigName, environmentName, artifactVersion)
+    return constraintStateForWithTransaction(deliveryConfigName, environmentName, artifactVersion, artifactReference)
   }
 
   private fun constraintStateForWithTransaction(
     deliveryConfigName: String,
     environmentName: String,
     artifactVersion: String,
+    artifactReference: String,
     txn: DSLContext = jooq
   ): List<ConstraintState> {
     val environmentUID = environmentUidByName(deliveryConfigName, environmentName)
@@ -883,7 +886,8 @@ class SqlDeliveryConfigRepository(
         .from(ENVIRONMENT_ARTIFACT_CONSTRAINT)
         .where(
           ENVIRONMENT_ARTIFACT_CONSTRAINT.ENVIRONMENT_UID.eq(environmentUID),
-          ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_VERSION.eq(artifactVersion)
+          ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_VERSION.eq(artifactVersion),
+          ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_REFERENCE.eq(artifactReference)
         )
         .fetch { (
                    deliveryConfigName,

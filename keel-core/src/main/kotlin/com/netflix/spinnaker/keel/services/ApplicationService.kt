@@ -574,7 +574,7 @@ class ApplicationService(
      artifact: DeliveryArtifact
   ): ArtifactSummaryInEnvironment {
     val persistedStates = repository
-      .constraintStateFor(deliveryConfig.name, environment.name, version)
+      .constraintStateFor(deliveryConfig.name, environment.name, version, artifact.reference)
       .removePrivateConstraintAttrs()
     val notEvaluatedPersistedConstraints = environment.constraints.filter { constraint ->
       constraint is StatefulConstraint && persistedStates.none { it.type == constraint.type }

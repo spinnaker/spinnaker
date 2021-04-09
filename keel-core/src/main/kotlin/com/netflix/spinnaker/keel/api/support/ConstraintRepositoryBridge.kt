@@ -55,7 +55,7 @@ class ConstraintRepositoryBridge(
     return keelRepository.constraintStateFor(deliveryConfigName, environmentName, limit)
   }
 
-  override fun constraintStateFor(deliveryConfigName: String, environmentName: String, artifactVersion: String): List<ConstraintState> {
-    return keelRepository.constraintStateFor(deliveryConfigName, environmentName, artifactVersion)
+  override fun constraintStateFor(deliveryConfigName: String, environmentName: String, artifactVersion: String, artifactReference: String): List<ConstraintState> {
+    return keelRepository.constraintStateFor(deliveryConfigName, environmentName, artifactVersion, artifactReference)
   }
 }
