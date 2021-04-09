@@ -108,7 +108,7 @@ class CombinedRepository(
     if (configWithSameName != null) {
       removeDependents(configWithSameName, deliveryConfig)
     }
-    return deliveryConfig
+    return getDeliveryConfig(deliveryConfig.name)
   }
 
   /**

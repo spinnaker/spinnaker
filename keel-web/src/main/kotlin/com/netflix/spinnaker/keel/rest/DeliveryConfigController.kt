@@ -56,7 +56,7 @@ class DeliveryConfigController(
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   private val sendConfigChangedNotification: Boolean
-    get() = springEnv.getProperty("keel.notifications.send-config-changed", Boolean::class.java, false)
+    get() = springEnv.getProperty("keel.notifications.send-config-changed", Boolean::class.java, true)
 
   @Operation(
     description = "Registers or updates a delivery config manifest."
@@ -102,12 +102,20 @@ class DeliveryConfigController(
         validator.validate(processedDeliveryConfig)
         log.debug("Upserting delivery config '${processedDeliveryConfig.name}' for app '${processedDeliveryConfig.application}'")
         val config = repository.upsertDeliveryConfig(processedDeliveryConfig)
-        if (sendConfigChangedNotification) {
+        if (shouldNotifyOfConfigChange(existing, config)) {
           publisher.publishEvent(DeliveryConfigChangedNotification(config = config, gitMetadata = gitMetadata, new = existing == null))
         }
         return config
       }
   }
+
+  fun shouldNotifyOfConfigChange(existing: DeliveryConfig?, new: DeliveryConfig) =
+    when {
+      !sendConfigChangedNotification -> false
+      existing == null -> true
+      DefaultResourceDiff(existing, new).hasChanges() -> true
+      else -> false
+    }
 
   @GetMapping(
     path = ["/{name}"],
