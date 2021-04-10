@@ -332,6 +332,7 @@ class SqlDeliveryConfigRepository(
           jooq.insertInto(ENVIRONMENT_VERSION)
             .set(ENVIRONMENT_VERSION.ENVIRONMENT_UID, environmentUid)
             .set(ENVIRONMENT_VERSION.VERSION, newVersion)
+            .set(ENVIRONMENT_VERSION.CREATED_AT, clock.instant())
             .execute()
 
           newVersionResources.forEach { (resourceUid, resourceVersion) ->

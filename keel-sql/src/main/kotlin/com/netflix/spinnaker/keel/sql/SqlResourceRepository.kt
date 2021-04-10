@@ -163,6 +163,7 @@ open class SqlResourceRepository(
       .set(RESOURCE_VERSION.RESOURCE_UID, uid)
       .set(RESOURCE_VERSION.VERSION, version + 1)
       .set(RESOURCE_VERSION.SPEC, objectMapper.writeValueAsString(resource.spec))
+      .set(RESOURCE_VERSION.CREATED_AT, clock.instant())
       .execute()
 
     jooq.insertInto(RESOURCE_LAST_CHECKED)

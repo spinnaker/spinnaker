@@ -1,0 +1,32 @@
+databaseChangeLog:
+- changeSet:
+    id: version-table-timestamps
+    author: fletch
+    changes:
+    - addColumn:
+        tableName: resource_version
+        columns:
+        - column:
+            name: created_at
+            type: datetime(3)
+            afterColumn: version
+            constraints:
+              nullable: true
+    - sql:
+        sql: |
+          update resource_version
+          join resource
+          on resource.uid = resource_version.resource_uid
+          join event
+          on event.json -> '$.ref' = resource.id
+          and event.json -> '$.type' = 'ResourceCreated'
+          set resource_version.created_at = event.timestamp
+          where resource_version.version = 1;
+    - addColumn:
+        tableName: environment_version
+        columns:
+        - column:
+            name: created_at
+            type: datetime(3)
+            constraints:
+              nullable: true
