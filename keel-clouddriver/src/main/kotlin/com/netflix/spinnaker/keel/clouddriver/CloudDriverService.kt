@@ -174,6 +174,7 @@ interface CloudDriverService {
     @Query("repository") repository: String? = null,
     @Query("tag") tag: String? = null,
     @Query("q") q: String? = null,
+    @Query("includeDetails") includeDetails: Boolean? = null,
     @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
   ): List<DockerImage>
 

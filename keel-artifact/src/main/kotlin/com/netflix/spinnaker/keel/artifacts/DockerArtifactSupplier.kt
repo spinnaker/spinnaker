@@ -37,7 +37,7 @@ class DockerArtifactSupplier(
     return runWithIoContext {
       // TODO: we currently don't have a way to derive account information from artifacts,
       //  so we look in all accounts.
-      cloudDriverService.findDockerImages(account = "*", repository = artifact.name, tag = version)
+      cloudDriverService.findDockerImages(account = "*", repository = artifact.name, tag = version, includeDetails = true)
         .map { dockerImage ->
           PublishedArtifact(
             name = dockerImage.repository,

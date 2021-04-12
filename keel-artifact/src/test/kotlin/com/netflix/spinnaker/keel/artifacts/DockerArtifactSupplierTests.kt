@@ -61,7 +61,7 @@ internal class DockerArtifactSupplierTests : JUnit5Minutests {
         "buildNumber" to "1",
         "commitId" to "a15p0",
         "branch" to "master",
-        "date" to "1598707355157"
+        "createdAt" to "1598707355157"
       )
     )
 
@@ -77,6 +77,17 @@ internal class DockerArtifactSupplierTests : JUnit5Minutests {
       repository = latestArtifact.name,
       tag = latestArtifact.version,
       digest = "sha123"
+    )
+
+    val dockerImageWithMetaData = DockerImage(
+      account = "test",
+      repository = latestArtifact.name,
+      tag = latestArtifact.version,
+      digest = "sha123",
+      commitId = "a15p0",
+      buildNumber = "1",
+      branch = "master",
+      date = "1598707355157"
     )
 
     val artifactMetadata = ArtifactMetadata(
@@ -122,7 +133,7 @@ internal class DockerArtifactSupplierTests : JUnit5Minutests {
       val versionSlot = slot<String>()
       before {
         every {
-          clouddriverService.findDockerImages(account = "*", repository = dockerArtifact.name, tag = null)
+          clouddriverService.findDockerImages(account = "*", repository = dockerArtifact.name, tag = null, includeDetails = true)
         } returns listOf(latestDockerImage)
       }
 
@@ -145,7 +156,7 @@ internal class DockerArtifactSupplierTests : JUnit5Minutests {
         }
         expectThat(result).isEqualTo(latestArtifact)
         verify(exactly = 1) {
-          clouddriverService.findDockerImages(account = "*", repository = latestArtifact.name, tag = null)
+          clouddriverService.findDockerImages(account = "*", repository = latestArtifact.name, tag = null, includeDetails = true)
         }
       }
 
@@ -179,6 +190,9 @@ internal class DockerArtifactSupplierTests : JUnit5Minutests {
         every {
           artifactMetadataService.getArtifactMetadata("1", "a15p0")
         } returns artifactMetadata
+        every {
+          clouddriverService.findDockerImages(account = "*", repository = dockerArtifact.name, tag = null, includeDetails = true)
+        } returns listOf(dockerImageWithMetaData)
       }
 
        test("returns artifact metadata based on ci provider") {
@@ -188,7 +202,13 @@ internal class DockerArtifactSupplierTests : JUnit5Minutests {
         expectThat(results)
           .isEqualTo(artifactMetadata)
       }
-
+      test("returns artifact with metadata from Docker image") {
+        val results = runBlocking {
+          dockerArtifactSupplier.getLatestArtifact(deliveryConfig, dockerArtifact)
+        }
+        expectThat(results)
+          .isEqualTo(latestArtifactWithMetadata)
+      }
     }
   }
 }
