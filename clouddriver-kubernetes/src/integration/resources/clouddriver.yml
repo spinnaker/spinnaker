@@ -17,11 +17,12 @@ kubernetes:
       configureImagePullSecrets: true
       cacheThreads: 3
       namespaces:
-        - testns00
-        - testns01
-        - testns02
-        - testns03
-        - testns04
+        - default
+        - account1-testns00
+        - account1-testns01
+        - account1-testns02
+        - account1-testns03
+        - account1-testns04
       omitNamespaces: []
       kinds:
         - pod
@@ -38,18 +39,26 @@ kubernetes:
       oAuthScopes: []
       onlySpinnakerManaged: true
       metrics: false
-      kubeconfigFile: ${KUBECONFIGS_HOME}/kubecfg-${account1_containername}.yml  # File is automatically created during initialization
+      kubeconfigFile: ${KUBECONFIGS_HOME}/kubecfg-${containername}.yml  # File is automatically created during initialization
     - name: account2
-      cacheIntervalSeconds: 30
+      cacheIntervalSeconds: 5
       requiredGroupMembership: []
       providerVersion: V2
       permissions: {}
       dockerRegistries: []
       configureImagePullSecrets: true
       cacheThreads: 1
-      namespaces: []
+      namespaces:
+        - account2-testns00
       omitNamespaces: []
-      kinds: []
+      kinds:
+        - pod
+        - replicaset
+        - deployment
+        - service
+        - configmap
+        - secret
+        - networkpolicy
       omitKinds: []
       customResources: []
       cachingPolicies: []
@@ -57,7 +66,7 @@ kubernetes:
       oAuthScopes: []
       onlySpinnakerManaged: true
       metrics: false
-      kubeconfigFile: ${KUBECONFIGS_HOME}/kubecfg-${account1_containername}.yml  # File is automatically created during initialization
+      kubeconfigFile: ${KUBECONFIGS_HOME}/kubecfg-${containername}.yml  # File is automatically created during initialization
 
 logging.level.com.netflix.spinnaker.cats.sql.cluster: INFO
 logging.level.com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCacheDataConverter: WARN

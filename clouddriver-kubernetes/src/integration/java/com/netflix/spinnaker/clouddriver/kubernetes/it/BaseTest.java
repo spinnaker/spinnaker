@@ -44,7 +44,7 @@ public abstract class BaseTest {
   public static final KubernetesCluster kubeCluster;
 
   static {
-    kubeCluster = KubernetesCluster.getInstance(ACCOUNT1_NAME);
+    kubeCluster = KubernetesCluster.getInstance();
     kubeCluster.start();
     RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
   }
