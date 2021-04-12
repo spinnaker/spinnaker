@@ -27,10 +27,7 @@ import com.netflix.spinnaker.kork.dynamicconfig.SpringDynamicConfigService;
 import com.netflix.spinnaker.kork.plugins.*;
 import com.netflix.spinnaker.kork.plugins.actuator.InstalledPluginsEndpoint;
 import com.netflix.spinnaker.kork.plugins.bundle.PluginBundleExtractor;
-import com.netflix.spinnaker.kork.plugins.config.ConfigFactory;
-import com.netflix.spinnaker.kork.plugins.config.ConfigResolver;
-import com.netflix.spinnaker.kork.plugins.config.RepositoryConfigCoordinates;
-import com.netflix.spinnaker.kork.plugins.config.SpringEnvironmentConfigResolver;
+import com.netflix.spinnaker.kork.plugins.config.*;
 import com.netflix.spinnaker.kork.plugins.proxy.aspects.InvocationAspect;
 import com.netflix.spinnaker.kork.plugins.proxy.aspects.InvocationState;
 import com.netflix.spinnaker.kork.plugins.proxy.aspects.LogInvocationAspect;
@@ -71,7 +68,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
@@ -80,7 +77,6 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 
-@EnableConfigurationProperties(PluginsConfigurationProperties.class)
 @Import({Front50PluginsConfiguration.class, RemotePluginsConfiguration.class})
 public class PluginsAutoConfiguration {
 
@@ -142,6 +138,13 @@ public class PluginsAutoConfiguration {
   }
 
   @Bean
+  PluginsConfigurationProperties pluginsConfigurationProperties(Environment environment) {
+    return Binder.get(environment)
+        .bind(PluginsConfigurationProperties.CONFIG_NAMESPACE, PluginsConfigurationProperties.class)
+        .orElseGet(PluginsConfigurationProperties::new);
+  }
+
+  @Bean
   @ConditionalOnProperty(
       value = "spinnaker.extensibility.framework.version",
       havingValue = FRAMEWORK_V1,
@@ -172,7 +175,8 @@ public class PluginsAutoConfiguration {
       ConfigFactory configFactory,
       List<SdkFactory> sdkFactories,
       PluginBundleExtractor pluginBundleExtractor,
-      PluginFactory pluginFactory) {
+      PluginFactory pluginFactory,
+      PluginsConfigurationProperties pluginsConfigurationProperties) {
     return new SpinnakerPluginManager(
         serviceVersion,
         versionManager,
@@ -181,7 +185,7 @@ public class PluginsAutoConfiguration {
         sdkFactories,
         Objects.requireNonNull(
             applicationContext.getEnvironment().getProperty("spring.application.name")),
-        determineRootPluginPath(applicationContext),
+        determineRootPluginPath(pluginsConfigurationProperties),
         pluginBundleExtractor,
         pluginFactory);
   }
@@ -190,14 +194,13 @@ public class PluginsAutoConfiguration {
    * If the plugins-root-path property is set, returns the absolute path to the property. Otherwise,
    * returns the default root path 'plugins'.
    */
-  private static Path determineRootPluginPath(ApplicationContext applicationContext) {
-    String rootPathConfig =
-        applicationContext
-            .getEnvironment()
-            .getProperty(PluginsConfigurationProperties.ROOT_PATH_CONFIG);
-    return rootPathConfig == null
+  private static Path determineRootPluginPath(
+      PluginsConfigurationProperties pluginsConfigurationProperties) {
+    return pluginsConfigurationProperties
+            .getPluginsRootPath()
+            .equals(PluginsConfigurationProperties.DEFAULT_ROOT_PATH)
         ? Paths.get(PluginsConfigurationProperties.DEFAULT_ROOT_PATH)
-        : Paths.get(rootPathConfig).toAbsolutePath();
+        : Paths.get(pluginsConfigurationProperties.getPluginsRootPath()).toAbsolutePath();
   }
 
   @Bean
@@ -293,14 +296,14 @@ public class PluginsAutoConfiguration {
 
       repositories.add(
           new ConfigurableUpdateRepository(
-              "spinnaker-official",
+              PluginsConfigurationProperties.SPINNAKER_OFFICIAL_REPOSITORY,
               new URL(
                   "https://raw.githubusercontent.com/spinnaker/plugins/master/official/plugins.json"),
               fileDownloaderProvider.get(null),
               new CompoundVerifier()));
       repositories.add(
           new ConfigurableUpdateRepository(
-              "spinnaker-community",
+              PluginsConfigurationProperties.SPINNAKER_COMMUNITY_REPOSITORY,
               new URL(
                   "https://raw.githubusercontent.com/spinnaker/plugins/master/community/plugins.json"),
               fileDownloaderProvider.get(null),

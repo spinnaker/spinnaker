@@ -20,33 +20,30 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Nullable;
 import lombok.SneakyThrows;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * Root-level configuration properties for plugins.
  *
+ * <p>These properties are mapped using a {@link
+ * org.springframework.boot.context.properties.bind.Binder} because they are needed before the
+ * {@link org.springframework.boot.context.properties.ConfigurationPropertiesBindingPostProcessor}
+ * has run.
+ *
  * @see PluginsAutoConfiguration
  */
-@ConfigurationProperties(PluginsConfigurationProperties.CONFIG_NAMESPACE)
 public class PluginsConfigurationProperties {
   public static final String CONFIG_NAMESPACE = "spinnaker.extensibility";
   public static final String DEFAULT_ROOT_PATH = "plugins";
   public static final String FRONT5O_REPOSITORY = "front50";
+  public static final String SPINNAKER_OFFICIAL_REPOSITORY = "spinnaker-official";
+  public static final String SPINNAKER_COMMUNITY_REPOSITORY = "spinnaker-community";
 
   /**
    * The root filepath to the directory containing all plugins.
    *
    * <p>If an absolute path is not provided, the path will be calculated relative to the executable.
    */
-  // Note that this property is not bound at PluginManager initialization time,
-  // but is retained here for documentation purposes. Later consumers of this property
-  // will see the correctly bound value that was used when initializing the plugin subsystem.
   private String pluginsRootPath = DEFAULT_ROOT_PATH;
-
-  // If for some reason we change the associated property name ensure this constant
-  // is updated to match. This is the actual value we will read from the environment
-  // at init time.
-  public static final String ROOT_PATH_CONFIG = CONFIG_NAMESPACE + ".plugins-root-path";
 
   public String getPluginsRootPath() {
     return pluginsRootPath;
