@@ -91,4 +91,13 @@ interface StatefulConstraintEvaluator<T : Constraint, A : ConstraintStateAttribu
     constraint: T,
     state: ConstraintState
   ): Boolean
+
+  /**
+   * Callback API for [ConstraintStateChanged]. Override this method if your [StatefulConstraintEvaluator] needs
+   * to take action when a supported constraint's state changes.
+   */
+  @JvmDefault
+  fun onConstraintStateChanged(event: ConstraintStateChanged) {
+    // default implementation is a no-op
+  }
 }

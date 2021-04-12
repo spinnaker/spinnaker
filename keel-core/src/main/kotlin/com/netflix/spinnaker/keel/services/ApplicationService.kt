@@ -436,8 +436,8 @@ class ApplicationService(
   }
 
   private fun getVerificationStates(
-      deliveryConfig: DeliveryConfig,
-      artifactVersions: List<PublishedArtifact>
+    deliveryConfig: DeliveryConfig,
+    artifactVersions: List<PublishedArtifact>
   ) =
     if (verificationsEnabled) {
       repository.getVerificationStates(deliveryConfig, artifactVersions)
@@ -546,14 +546,14 @@ class ApplicationService(
   ): PublishedArtifact? {
     // there can only be one pinned version
     val pinnedVersion = context.artifactSummariesInEnv.firstOrNull { it.pinned != null }?.version
-     return if (pinnedVersion != version) {
-       pinnedVersion?.let {
-         context.allVersions.find { it.version == pinnedVersion }
-       }
-     } else { //if pinnedVersion == current version, fetch the version which the pinned version replaced
-       val chosenVersion = context.artifactInfoInEnvironment.find { it.replacedByVersion == pinnedVersion && it.status == PREVIOUS }?.version
-       context.allVersions.find { it.version == chosenVersion }
-     }
+    return if (pinnedVersion != version) {
+      pinnedVersion?.let {
+        context.allVersions.find { it.version == pinnedVersion }
+      }
+    } else { //if pinnedVersion == current version, fetch the version which the pinned version replaced
+      val chosenVersion = context.artifactInfoInEnvironment.find { it.replacedByVersion == pinnedVersion && it.status == PREVIOUS }?.version
+      context.allVersions.find { it.version == chosenVersion }
+    }
   }
 
   /**
@@ -569,9 +569,9 @@ class ApplicationService(
    */
   private fun ArtifactSummaryInEnvironment.addConstraintSummaries(
     deliveryConfig: DeliveryConfig,
-     environment: Environment,
-     version: String,
-     artifact: DeliveryArtifact
+    environment: Environment,
+    version: String,
+    artifact: DeliveryArtifact
   ): ArtifactSummaryInEnvironment {
     val persistedStates = repository
       .constraintStateFor(deliveryConfig.name, environment.name, version, artifact.reference)

@@ -25,13 +25,19 @@ import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint
 
 /**
- * TODO: Docs
+ * A [ConstraintEvaluator] is a Keel plugin that implements the handling of a specific type
+ * of environment promotion [Constraint].
+ *
+ * Constraint evaluators can be stateless, for constraints that require re-evaluation every time
+ * an environment promotion is considered, such as a dependency on a successful deployment in a
+ * previous environment in a sequence, or stateful, when the constraint requires storing and checking
+ * state, for example a manual approval (where the approver and the time of approval would be recorded).
  */
 interface ConstraintEvaluator<T : Constraint> : SpinnakerExtensionPoint {
 
   companion object {
     /**
-     * TODO: Docs
+     * @return The constraint of the type supported by this evaluator within the specified target environment.
      */
     fun <T> getConstraintForEnvironment(
       deliveryConfig: DeliveryConfig,
@@ -51,13 +57,10 @@ interface ConstraintEvaluator<T : Constraint> : SpinnakerExtensionPoint {
   }
 
   /**
-   * TODO: Docs
+   * The supported constraint type mapping for this evaluator.
    */
   val supportedType: SupportedConstraintType<T>
 
-  /**
-   * TODO: Docs
-   */
   val eventPublisher: EventPublisher
 
   /**
