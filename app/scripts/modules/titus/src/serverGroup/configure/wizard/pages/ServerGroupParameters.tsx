@@ -65,7 +65,7 @@ function IPv6CheckboxInput(props: IFormInputProps) {
   const mappedProps = useFormInputValueMapper(
     props,
     (val: string) => val === 'true', // formik -> checkbox
-    (_val, e) => (e.target.checked ? 'true' : undefined), // checkbox -> formik
+    (_val, e) => (e.target.checked ? 'true' : 'false'), // checkbox -> formik
   );
   return <CheckboxInput {...mappedProps} />;
 }

@@ -88,19 +88,12 @@ export class ServerGroupBasicSettings
     setFieldValue('credentials', account);
 
     const accountDetails = values.backingData.credentialsKeyedByAccount[account];
-    if (accountDetails.environment === 'test') {
-      const newAttr = {
-        ...values.containerAttributes,
-        'titusParameter.agent.assignIPv6Address': 'true',
-      };
-      setFieldValue('containerAttributes', newAttr);
-    }
 
-    if (accountDetails.environment !== 'test' && values.containerAttributes['titusParameter.agent.assignIPv6Address']) {
-      const newAttr = { ...values.containerAttributes };
-      delete newAttr['titusParameter.agent.assignIPv6Address'];
-      setFieldValue('containerAttributes', newAttr);
-    }
+    const newAttr = {
+      ...values.containerAttributes,
+      'titusParameter.agent.assignIPv6Address': accountDetails.environment === 'test' ? 'true' : 'false',
+    };
+    setFieldValue('containerAttributes', newAttr);
   };
 
   private regionUpdated = (region: string): void => {
