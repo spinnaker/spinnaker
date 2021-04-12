@@ -82,7 +82,13 @@ export function GitTrigger(gitTriggerProps: IGitTriggerConfigProps) {
           )}
         />
       )}
-
+      {SETTINGS.stashTriggerInfo && trigger.source === 'stash' && (
+        <div className="flex-container-h center">
+          <a className="sp-margin-m-yaxis" href={SETTINGS.stashTriggerInfo} target="_blank">
+            See how to add a stash trigger to Spinnaker
+          </a>
+        </div>
+      )}
       <FormikFormField
         name="project"
         label={projectLabel}

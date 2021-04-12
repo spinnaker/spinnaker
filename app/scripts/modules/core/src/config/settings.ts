@@ -125,6 +125,7 @@ export interface ISpinnakerSettings {
   slack?: {
     baseUrl: string;
   };
+  stashTriggerInfo?: string;
   pollSchedule: number;
   providers?: {
     [key: string]: IProviderSettings; // allows custom providers not typed in here (good for testing too)
