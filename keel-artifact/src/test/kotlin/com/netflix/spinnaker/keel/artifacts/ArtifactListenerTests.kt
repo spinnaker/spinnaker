@@ -14,6 +14,7 @@ import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.events.ArtifactPublishedEvent
 import com.netflix.spinnaker.keel.api.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.api.plugins.SupportedArtifact
+import com.netflix.spinnaker.keel.config.ArtifactRefreshConfig
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEvent
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus.RUNNING
 import com.netflix.spinnaker.keel.persistence.KeelRepository
@@ -83,13 +84,18 @@ internal class ArtifactListenerTests : JUnit5Minutests {
 
   val artifactVersion = slot<PublishedArtifact>()
 
+
   abstract class ArtifactListenerFixture {
     val repository: KeelRepository = mockk(relaxUnitFun = true)
     val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
     val dockerArtifactSupplier: DockerArtifactSupplier = mockk(relaxUnitFun = true)
     val debianArtifactSupplier: DebianArtifactSupplier = mockk(relaxUnitFun = true)
-    val listener: ArtifactListener = ArtifactListener(repository, publisher,
-      listOf(debianArtifactSupplier, dockerArtifactSupplier))
+    val config = ArtifactRefreshConfig()
+    val listener: ArtifactListener = ArtifactListener(
+      repository,
+      publisher,
+      listOf(debianArtifactSupplier, dockerArtifactSupplier),
+      config)
   }
 
   data class ArtifactPublishedFixture(
@@ -331,19 +337,19 @@ internal class ArtifactListenerTests : JUnit5Minutests {
       context("versions are available") {
         before {
           every {
-            debianArtifactSupplier.getLatestArtifact(deliveryConfig, debArtifact)
-          } returns publishedDeb
+            debianArtifactSupplier.getLatestArtifacts(deliveryConfig, debArtifact, 1)
+          } returns listOf(publishedDeb)
 
           every {
-            dockerArtifactSupplier.getLatestArtifact(deliveryConfig, dockerArtifact)
-          } returns publishedDocker
+            dockerArtifactSupplier.getLatestArtifacts(deliveryConfig, dockerArtifact, 1)
+          } returns listOf(publishedDocker)
 
           every { repository.getAllArtifacts(DEBIAN, any()) } returns listOf(debianArtifact)
           every { repository.getAllArtifacts(DOCKER, any()) } returns listOf(dockerArtifact)
         }
 
         test("latest versions are stored") {
-          listener.syncArtifactVersions()
+          listener.syncLastLimitArtifactVersions()
 
           val artifactVersions = mutableListOf<PublishedArtifact>()
 
@@ -381,16 +387,16 @@ internal class ArtifactListenerTests : JUnit5Minutests {
       context("no newer versions are available") {
         before {
           every {
-            debianArtifactSupplier.getLatestArtifact(deliveryConfig, debArtifact)
-          } returns publishedDeb
+            debianArtifactSupplier.getLatestArtifacts(deliveryConfig, debArtifact, 1)
+          } returns listOf(publishedDeb)
 
           every {
-            dockerArtifactSupplier.getLatestArtifact(deliveryConfig, dockerArtifact)
-          } returns publishedDocker
+            dockerArtifactSupplier.getLatestArtifacts(deliveryConfig, dockerArtifact, 1)
+          } returns listOf(publishedDocker)
         }
 
         test("store not called") {
-          listener.syncArtifactVersions()
+          listener.syncLastLimitArtifactVersions()
           verify(exactly = 0) { repository.storeArtifactVersion(any()) }
         }
       }
@@ -398,19 +404,19 @@ internal class ArtifactListenerTests : JUnit5Minutests {
       context("newer versions are available") {
         before {
           every {
-            debianArtifactSupplier.getLatestArtifact(deliveryConfig, debArtifact)
-          } returns newerPublishedDeb
+            debianArtifactSupplier.getLatestArtifacts(deliveryConfig, debArtifact, 1)
+          } returns listOf(newerPublishedDeb)
 
           every {
-            dockerArtifactSupplier.getLatestArtifact(deliveryConfig, dockerArtifact)
-          } returns newerPublishedDocker
+            dockerArtifactSupplier.getLatestArtifacts(deliveryConfig, dockerArtifact, 1)
+          } returns listOf(newerPublishedDocker)
 
           every { repository.getAllArtifacts(DEBIAN, any()) } returns listOf(debianArtifact)
           every { repository.getAllArtifacts(DOCKER, any()) } returns listOf(dockerArtifact)
         }
 
         test("new versions are stored") {
-          listener.syncArtifactVersions()
+          listener.syncLastLimitArtifactVersions()
 
           val artifactVersions = mutableListOf<PublishedArtifact>()
 

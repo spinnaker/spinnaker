@@ -50,6 +50,14 @@ interface ArtifactSupplier<A : DeliveryArtifact, V : SortingStrategy> : Spinnake
   fun getLatestArtifact(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact): PublishedArtifact?
 
   /**
+   * Returns the latest [limit] available versions for the given [DeliveryArtifact], represented
+   * as [PublishedArtifact]s.
+   *
+   * This function may interact with external systems to retrieve artifact information as needed.
+   */
+  fun getLatestArtifacts(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact, limit: Int): List<PublishedArtifact>
+
+  /**
    * Returns the published artifact [DeliveryArtifact] by version, represented
    * as a [PublishedArtifact].
    *

@@ -39,13 +39,21 @@ class DebianArtifactSupplier(
     get() = springEnv.getProperty("keel.artifacts.debian.forceSortByVersion", Boolean::class.java, false)
 
   override fun getLatestArtifact(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact): PublishedArtifact? =
+    getLatestArtifacts(deliveryConfig, artifact, 1).firstOrNull()
+
+  override fun getLatestArtifacts(
+    deliveryConfig: DeliveryConfig,
+    artifact: DeliveryArtifact,
+    limit: Int
+  ): List<PublishedArtifact> =
     runWithIoContext {
+      log.info("Fetching latest $limit debian versions for $artifact")
       val versions = artifactService.getVersions(artifact.name, artifact.statusesForQuery, DEBIAN)
 
-      val latestVersion = if (forceSortByVersion) {
+      if (forceSortByVersion) {
         versions.sortedWith(DEBIAN_VERSION_COMPARATOR)
-          .firstOrNull()
-          ?.let {
+          .take(limit)
+          .map {
             artifactService.getArtifact(artifact.name, it, DEBIAN)
           }
       } else {
@@ -59,11 +67,9 @@ class DebianArtifactSupplier(
             artifactService.getArtifact(artifact.name, version, DEBIAN)
           }
           .sortedWith(artifact.sortingStrategy.comparator)
-          .firstOrNull() // versioning strategies return descending by default... ¯\_(ツ)_/¯
+          .take(limit) // versioning strategies return descending by default... ¯\_(ツ)_/¯
       }
-
-      latestVersion
-    }
+  }
 
   override fun getArtifactByVersion(artifact: DeliveryArtifact, version: String): PublishedArtifact? =
     runWithIoContext {

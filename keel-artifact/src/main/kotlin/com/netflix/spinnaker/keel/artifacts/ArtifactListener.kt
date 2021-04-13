@@ -11,6 +11,7 @@ import com.netflix.spinnaker.keel.api.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.api.events.ArtifactSyncEvent
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.supporting
+import com.netflix.spinnaker.keel.config.ArtifactRefreshConfig
 import com.netflix.spinnaker.keel.exceptions.InvalidSystemStateException
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEvent
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventScope.PRE_DEPLOYMENT
@@ -21,17 +22,20 @@ import com.netflix.spinnaker.keel.telemetry.ArtifactVersionUpdated
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.event.EventListener
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.util.concurrent.atomic.AtomicBoolean
 
+@EnableConfigurationProperties(ArtifactRefreshConfig::class)
 @Component
 class ArtifactListener(
   private val repository: KeelRepository,
   private val publisher: ApplicationEventPublisher,
-  private val artifactSuppliers: List<ArtifactSupplier<*, *>>
+  private val artifactSuppliers: List<ArtifactSupplier<*, *>>,
+  private val artifactRefreshConfig: ArtifactRefreshConfig
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -147,44 +151,35 @@ class ArtifactListener(
   @EventListener(ArtifactSyncEvent::class)
   fun triggerArtifactSync(event: ArtifactSyncEvent) {
     if (event.controllerTriggered) {
-      log.info("Fetching latest version of all registered artifacts...")
+      log.info("Fetching latest ${artifactRefreshConfig.limit} version(s) of all registered artifacts...")
     }
-    syncArtifactVersions()
+    syncLastLimitArtifactVersions()
   }
 
   /**
-   * For each registered debian artifact, get the last version, and persist if it's newer than what we have.
+   * For each registered artifact, get the last [artifactRefreshConfig.limit] versions, and persist if it's newer than what we have.
    */
-  // todo eb: should we fetch more than one version?
   @Scheduled(fixedDelayString = "\${keel.artifact-refresh.frequency:PT6H}")
-  fun syncArtifactVersions() {
+  fun syncLastLimitArtifactVersions() {
     if (enabled.get()) {
       runBlocking {
-        log.debug("Syncing artifact versions...")
+        log.debug("Syncing last ${artifactRefreshConfig.limit} artifact version(s)...")
         repository.getAllArtifacts().forEach { artifact ->
           launch {
-            val lastRecordedVersion = getLatestStoredVersion(artifact)
-            log.debug("Last recorded version of $artifact: $lastRecordedVersion")
+            val lastStoredVersions = repository.artifactVersions(artifact, artifactRefreshConfig.limit)
+            val currentVersions = lastStoredVersions.map { it.version }
+              log.debug("Last recorded versions of $artifact: $currentVersions")
 
             val artifactSupplier = artifactSuppliers.supporting(artifact.type)
-            val latestArtifact = artifactSupplier.getLatestArtifact(artifact.deliveryConfig, artifact)
-            log.debug("Latest available version of $artifact: ${latestArtifact?.version}")
+            val latestAvailableVersions = artifactSupplier.getLatestArtifacts(artifact.deliveryConfig, artifact, artifactRefreshConfig.limit)
+            log.debug("Latest available versions of $artifact: ${latestAvailableVersions.map { it.version }}")
 
-            if (latestArtifact != null) {
-              val hasNew = when {
-                lastRecordedVersion == null -> true
-                latestArtifact.version != lastRecordedVersion.version -> {
-                  artifact.sortingStrategy.comparator.compare(lastRecordedVersion, latestArtifact) > 0
-                }
-                else -> false
-              }
-
-              if (hasNew) {
-                log.debug("$artifact has a missing version ${latestArtifact.version}, persisting.")
-                enrichAndStore(latestArtifact, artifactSupplier)
-              } else {
-                log.debug("No new versions to persist for $artifact")
-              }
+            val newVersions = latestAvailableVersions.filterNot { currentVersions.contains(it.version) }
+            if (newVersions.isNotEmpty()) {
+              log.debug("$artifact has a missing version(s) ${newVersions.map { it.version }}, persisting.")
+              newVersions.forEach { enrichAndStore(it, artifactSupplier) }
+            } else {
+              log.debug("No new versions to persist for $artifact")
             }
           }
         }
@@ -203,9 +198,6 @@ class ArtifactListener(
     publishBuildLifecycleEvent(enrichedArtifact)
     return repository.storeArtifactVersion(enrichedArtifact)
   }
-
-  private fun getLatestStoredVersion(artifact: DeliveryArtifact): PublishedArtifact? =
-    repository.artifactVersions(artifact, 1).firstOrNull()
 
   /**
    * Returns a copy of the [PublishedArtifact] with the git and build metadata populated, if available.

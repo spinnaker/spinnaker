@@ -64,14 +64,21 @@ class DockerArtifactSupplier(
   override fun getArtifactByVersion(artifact: DeliveryArtifact, version: String): PublishedArtifact? =
     findArtifactVersions(artifact, version).firstOrNull()
 
-  override fun getLatestArtifact(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact): PublishedArtifact? {
+  override fun getLatestArtifact(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact): PublishedArtifact? =
+    getLatestArtifacts(deliveryConfig, artifact, 1).firstOrNull()
+
+  override fun getLatestArtifacts(
+    deliveryConfig: DeliveryConfig,
+    artifact: DeliveryArtifact,
+    limit: Int
+  ): List<PublishedArtifact> {
     if (artifact !is DockerArtifact) {
       throw IllegalArgumentException("Only Docker artifacts are supported by this implementation.")
     }
 
     return findArtifactVersions(artifact)
-        .sortedWith(artifact.sortingStrategy.comparator)
-        .firstOrNull()
+      .sortedWith(artifact.sortingStrategy.comparator)
+      .take(limit)
   }
 
   override fun parseDefaultBuildMetadata(artifact: PublishedArtifact, sortingStrategy: SortingStrategy): BuildMetadata? {

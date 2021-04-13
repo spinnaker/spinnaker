@@ -34,6 +34,13 @@ class NpmArtifactSupplier(
     SupportedSortingStrategy(NPM, NpmVersionSortingStrategy::class.java)
 
   override fun getLatestArtifact(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact): PublishedArtifact? =
+    getLatestArtifacts(deliveryConfig, artifact, 1).firstOrNull()
+
+  override fun getLatestArtifacts(
+    deliveryConfig: DeliveryConfig,
+    artifact: DeliveryArtifact,
+    limit: Int
+  ): List<PublishedArtifact> =
     runWithIoContext {
       artifactService
         .getVersions(artifact.nameForQuery, artifact.statusesForQuery, NPM)
@@ -46,7 +53,7 @@ class NpmArtifactSupplier(
           artifactService.getArtifact(artifact.name, version, NPM)
         }
         .sortedWith(artifact.sortingStrategy.comparator)
-        .firstOrNull() // versioning strategies return descending by default... ¯\_(ツ)_/¯
+        .take(limit) // versioning strategies return descending by default... ¯\_(ツ)_/¯
     }
 
   override fun getArtifactByVersion(artifact: DeliveryArtifact, version: String): PublishedArtifact? =
