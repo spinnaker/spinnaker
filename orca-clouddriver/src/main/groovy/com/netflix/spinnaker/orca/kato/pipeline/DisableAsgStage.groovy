@@ -16,16 +16,15 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.WaitForRequiredInstancesDownTask
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceLinearStageSupport
 import com.netflix.spinnaker.orca.kato.tasks.DisableAsgTask
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
 import groovy.transform.CompileStatic
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import javax.annotation.Nonnull
@@ -36,16 +35,13 @@ import javax.annotation.Nonnull
 class DisableAsgStage extends TargetReferenceLinearStageSupport {
   static final String PIPELINE_CONFIG_TYPE = "disableAsg"
 
-  @Autowired
-  Class<? extends Task> waitForAllInstancesDownOnDisableTaskType
-
   @Override
   void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
     builder
       .withTask("determineHealthProviders", DetermineHealthProvidersTask)
       .withTask("disableAsg", DisableAsgTask)
       .withTask("monitorAsg", MonitorKatoTask)
-      .withTask("waitForDownInstances", waitForAllInstancesDownOnDisableTaskType)
+      .withTask("waitForDownInstances", WaitForRequiredInstancesDownTask)
       .withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
   }
 }
