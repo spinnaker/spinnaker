@@ -14,9 +14,4 @@ interface Verification {
    * in the database.
    */
   val id: String
-
-  /**
-   * Generate a URL that a user can be directed to in order to view the current state of a verification
-   */
-  fun getLink(state: VerificationState) : String? = null
 }

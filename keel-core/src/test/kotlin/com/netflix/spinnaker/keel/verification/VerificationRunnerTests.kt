@@ -200,7 +200,7 @@ internal class VerificationRunnerTests {
     every { repository.getState(any(), DummyVerification("1")) } returns PENDING.toState()
     every { repository.getState(any(), DummyVerification("2")) } returns null
 
-    every { evaluator.evaluate(context, DummyVerification("1"), emptyMap()) } returns PENDING
+    every { evaluator.evaluate(context, DummyVerification("1"), any()) } returns VerificationState(PENDING, startedAt = mockk(), null)
 
     subject.runVerificationsFor(context)
 
@@ -240,7 +240,7 @@ internal class VerificationRunnerTests {
     every { repository.getState(any(), DummyVerification("1")) } returns PENDING.toState()
     every { repository.getState(any(), DummyVerification("2")) } returns null
 
-    every { evaluator.evaluate(context, DummyVerification("1"), any()) } returns status
+    every { evaluator.evaluate(context, DummyVerification("1"), any()) } returns VerificationState(status, mockk(), mockk())
 
     every { evaluator.start(any(), any()) } returns emptyMap()
 

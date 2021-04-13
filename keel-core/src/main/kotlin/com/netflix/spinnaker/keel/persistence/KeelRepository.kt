@@ -267,7 +267,8 @@ interface KeelRepository : KeelReadOnlyRepository {
     context: VerificationContext,
     verification: Verification,
     status: ConstraintStatus,
-    metadata: Map<String, Any?> = emptyMap()
-  )
+    metadata: Map<String, Any?> = emptyMap(),
+    link: String? = null,
+    )
   // END VerificationRepository methods
 }

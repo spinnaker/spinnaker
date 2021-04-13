@@ -138,7 +138,8 @@ class SqlVerificationRepository(
           VERIFICATION_STATE.STATUS,
           VERIFICATION_STATE.STARTED_AT,
           VERIFICATION_STATE.ENDED_AT,
-          VERIFICATION_STATE.METADATA
+          VERIFICATION_STATE.METADATA,
+          VERIFICATION_STATE.LINK
         )
         .from(VERIFICATION_STATE)
         .where(VERIFICATION_STATE.ENVIRONMENT_UID.eq(environmentUid))
@@ -157,15 +158,16 @@ class SqlVerificationRepository(
           VERIFICATION_STATE.STATUS,
           VERIFICATION_STATE.STARTED_AT,
           VERIFICATION_STATE.ENDED_AT,
-          VERIFICATION_STATE.METADATA
+          VERIFICATION_STATE.METADATA,
+          VERIFICATION_STATE.LINK
         )
           .from(VERIFICATION_STATE)
           .where(VERIFICATION_STATE.ENVIRONMENT_UID.eq(environmentUid))
           .and(VERIFICATION_STATE.ARTIFACT_UID.eq(artifactUid))
           .and(VERIFICATION_STATE.ARTIFACT_VERSION.eq(version))
           .fetch()
-          .associate { (id, status, started_at, ended_at, metadata) ->
-            id to VerificationState(status, started_at, ended_at, metadata)
+          .associate { (id, status, started_at, ended_at, metadata, link) ->
+            id to VerificationState(status, started_at, ended_at, metadata, link)
           }
       }
     }
@@ -230,7 +232,8 @@ class SqlVerificationRepository(
         VERIFICATION_STATE.STATUS,
         VERIFICATION_STATE.STARTED_AT,
         VERIFICATION_STATE.ENDED_AT,
-        VERIFICATION_STATE.METADATA
+        VERIFICATION_STATE.METADATA,
+        VERIFICATION_STATE.LINK
       )
         .from(ctxTable)
         .leftJoin(LATEST_ENVIRONMENT)
@@ -249,7 +252,7 @@ class SqlVerificationRepository(
         .fetch()
 
         // sort the results by the "ind" (index) column, so that outputs are same order as inputs
-        .groupBy { (index, _, _, _, _, _) -> index as Long }
+        .groupBy { (index, _, _, _, _, _, _) -> index as Long }
         .toSortedMap()
         .values
 
@@ -259,8 +262,8 @@ class SqlVerificationRepository(
             // since we do a left join, there may be rows where there is no corresponding records in the
             // verification_state database, so we filter them out, which will result in an empty map
             .filter { (_, _, status, _, _, _) -> status != null }
-            .associate { (_, verification_id, status, started_at, ended_at, metadata) ->
-              verification_id to VerificationState(status, started_at, ended_at, metadata)
+            .associate { (_, verification_id, status, started_at, ended_at, metadata, link) ->
+              verification_id to VerificationState(status, started_at, ended_at, metadata, link)
             }
         }
         .toList()
@@ -272,13 +275,15 @@ class SqlVerificationRepository(
     context: VerificationContext,
     verification: Verification,
     status: ConstraintStatus,
-    metadata: Map<String, Any?>
+    metadata: Map<String, Any?>,
+    link: String?
   ) {
     with(context) {
       jooq
         .insertInto(VERIFICATION_STATE)
         .set(VERIFICATION_STATE.STATUS, status)
         .set(VERIFICATION_STATE.METADATA, metadata)
+        .set(VERIFICATION_STATE.LINK, link)
         .set(VERIFICATION_STATE.STARTED_AT, currentTimestamp())
         .run {
           if (status.complete) {
@@ -293,6 +298,7 @@ class SqlVerificationRepository(
         .set(VERIFICATION_STATE.VERIFICATION_ID, verification.id)
         .onDuplicateKeyUpdate()
         .set(VERIFICATION_STATE.STATUS, status)
+        .set(VERIFICATION_STATE.LINK, link)
         .run {
           if (status.complete) {
             set(VERIFICATION_STATE.ENDED_AT, currentTimestamp())

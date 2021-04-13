@@ -278,3 +278,6 @@ databaseChangeLog:
   - include:
       file: changelog/20210409-add-version-timestamps.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20210409-add-verif-link-column.yml
+      relativeToChangelogFile: true

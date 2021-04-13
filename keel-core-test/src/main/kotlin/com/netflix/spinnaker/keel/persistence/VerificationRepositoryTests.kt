@@ -116,6 +116,7 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
       .isNotNull()
       .with(VerificationState::status) { isEqualTo(status) }
       .with(VerificationState::metadata) { isEqualTo(metadata) }
+      .with(VerificationState::link) { isNull() }
   }
 
   @Test
@@ -153,6 +154,20 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
       .isNotNull()
       .with(VerificationState::status) { isEqualTo(OVERRIDE_PASS) }
       .with(VerificationState::metadata) { isEqualTo(initialMetadata + newMetadata) }
+  }
+
+  @Test
+  fun `updates set the link`() {
+    context.setup()
+
+    subject.updateState(context, verification, PENDING, link="http://www.example.com")
+
+    expectCatching {
+      subject.getState(context, verification)
+    }
+      .isSuccess()
+      .isNotNull()
+      .with(VerificationState::link) { isEqualTo("http://www.example.com") }
   }
 
   @Test
@@ -410,7 +425,7 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
     context.setup()
     val contexts = listOf(context)
 
-    subject.updateState(context, verification, PENDING)
+    subject.updateState(context, verification, PENDING, link="http://www.example.com")
 
     val stateMaps = subject.getStatesBatch(contexts)
 
@@ -424,6 +439,7 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
     expectThat(stateMap[verification.id])
       .isNotNull()
       .with(VerificationState::status) { isEqualTo(PENDING) }
+      .with(VerificationState::link) { isEqualTo("http://www.example.com") }
   }
 
   @Test
@@ -443,11 +459,11 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
     contexts.forEach { it.setup() }
 
     // First context: v1: PASS, v2: FAIL
-    subject.updateState(c1, v1, PASS)
+    subject.updateState(c1, v1, PASS, link="http://www.example.com/pass")
     subject.updateState(c1, v2, FAIL)
 
     // Second context: v1: PENDING, v2: PENDING
-    subject.updateState(c2, v1, PENDING)
+    subject.updateState(c2, v1, PENDING, link="http://www.example.com/pending")
     subject.updateState(c2, v2, PENDING)
 
 
@@ -462,11 +478,13 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
           get { get(v1.id) }
           .isNotNull()
           .with(VerificationState::status) { isEqualTo(PASS) }
+          .with(VerificationState::link) { isEqualTo("http://www.example.com/pass") }
         }
         .and {
           get { get(v2.id) }
           .isNotNull()
           .with(VerificationState::status) { isEqualTo(FAIL) }
+          .with(VerificationState::link) { isNull() }
         }
 
       that(result[1])
@@ -474,6 +492,7 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
           get { get(v1.id) }
             .isNotNull()
             .with(VerificationState::status) { isEqualTo(PENDING) }
+            .with(VerificationState::link) { isEqualTo("http://www.example.com/pending") }
         }
         .and {
           get { get(v2.id) }

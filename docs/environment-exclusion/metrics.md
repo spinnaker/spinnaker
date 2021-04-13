@@ -25,5 +25,5 @@ Tags:
 * action: `verification` or `actuation`
 * outcome:
   - `granted` if lease was granted
-  - `denieed` if lease was denied
+  - `denied` if lease was denied
 

@@ -86,6 +86,7 @@ internal class TestContainerVerificationEvaluatorTests {
     }
   }
 
+  @Suppress("UNCHECKED_CAST")
   private fun verifyImageId(expectedImageId : String) {
     verify {
       taskLauncher.submitJob(
@@ -188,7 +189,7 @@ internal class TestContainerVerificationEvaluatorTests {
       status = taskStatus
     )
 
-    expectThat(subject.evaluate(context, verification, previousState.metadata)) isEqualTo PENDING
+    expectThat(subject.evaluate(context, verification, previousState).status) isEqualTo PENDING
   }
 
   @ParameterizedTest(name = "verification is considered successful if orca status is {0}")
@@ -212,7 +213,7 @@ internal class TestContainerVerificationEvaluatorTests {
       status = taskStatus
     )
 
-    expectThat(subject.evaluate(context, verification, previousState.metadata)) isEqualTo PASS
+    expectThat(subject.evaluate(context, verification, previousState).status) isEqualTo PASS
   }
 
   @ParameterizedTest(name = "verification is considered failed if orca status is {0}")
@@ -236,7 +237,7 @@ internal class TestContainerVerificationEvaluatorTests {
       status = taskStatus
     )
 
-    expectThat(subject.evaluate(context, verification, previousState.metadata)) isEqualTo FAIL
+    expectThat(subject.evaluate(context, verification, previousState).status) isEqualTo FAIL
   }
 
   private fun stubTaskLaunch(): String =

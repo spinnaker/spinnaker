@@ -65,7 +65,7 @@ data class VerificationSummary(
   val link: String? = null
 ) {
   constructor(v: Verification, s: VerificationState) :
-    this(v.id, v.type, s.status.toString(), s.startedAt, s.endedAt, v.getLink(s))
+    this(v.id, v.type, s.status.toString(), s.startedAt, s.endedAt, s.link)
 }
 
 data class ActionMetadata(

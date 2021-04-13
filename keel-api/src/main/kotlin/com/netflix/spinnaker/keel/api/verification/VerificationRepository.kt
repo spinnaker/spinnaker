@@ -53,7 +53,8 @@ interface VerificationRepository {
     context: VerificationContext,
     verification: Verification,
     status: ConstraintStatus,
-    metadata: Map<String, Any?> = emptyMap()
+    metadata: Map<String, Any?> = emptyMap(),
+    link: String? = null,
   )
 
   fun nextEnvironmentsForVerification(minTimeSinceLastCheck: Duration, limit: Int) : Collection<VerificationContext>
@@ -69,10 +70,16 @@ data class VerificationState(
   val status: ConstraintStatus,
   val startedAt: Instant,
   val endedAt: Instant?,
+
   /**
    * Used for storing any contextual information (such as task ids).
    */
-  val metadata: Map<String, Any?> = emptyMap()
+  val metadata: Map<String, Any?> = emptyMap(),
+
+  /**
+   * User-meaningful url that points to additional detail about the state of the verification
+   */
+  val link: String? = null
 )
 
 data class VerificationContext(

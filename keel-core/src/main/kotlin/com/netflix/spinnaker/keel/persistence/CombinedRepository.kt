@@ -452,8 +452,9 @@ class CombinedRepository(
     context: VerificationContext,
     verification: Verification,
     status: ConstraintStatus,
-    metadata: Map<String, Any?>
-  ) = verificationRepository.updateState(context, verification, status, metadata)
+    metadata: Map<String, Any?>,
+    link: String?
+  ) = verificationRepository.updateState(context, verification, status, metadata, link)
 
 
   override fun getVerificationStatesBatch(contexts: List<VerificationContext>) : List<Map<String, VerificationState>> =

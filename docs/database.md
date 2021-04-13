@@ -43,3 +43,7 @@ import com.netflix.spinnaker.keel.core.api.randomUID
 val uid = randomUID().toString()
 ```
 
+### Column ordering
+
+The biggest columns should be farthest right.
+
