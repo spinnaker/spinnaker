@@ -78,6 +78,7 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
   Boolean doNotRunExtensionsOnOverprovisionedVMs = false
   Boolean useSystemManagedIdentity = false
   String userAssignedIdentities
+  Boolean enableIpForwarding = false
 
   static class AzureScaleSetSku {
     String name
@@ -177,6 +178,13 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
     azureSG.appGatewayName = scaleSet.tags?.appGatewayName
     azureSG.loadBalancerType = azureSG.appGatewayName != null ? AzureLoadBalancer.AzureLoadBalancerType.AZURE_APPLICATION_GATEWAY.toString() : AzureLoadBalancer.AzureLoadBalancerType.AZURE_LOAD_BALANCER.toString()
     azureSG.appGatewayBapId = scaleSet.tags?.appGatewayBapId
+
+    def networkInterfaceConfigurations = scaleSet.virtualMachineProfile()?.networkProfile()?.networkInterfaceConfigurations()
+
+    if (networkInterfaceConfigurations && networkInterfaceConfigurations.size() > 0) {
+      azureSG.enableIpForwarding = networkInterfaceConfigurations[0].enableIPForwarding()
+    }
+    // scaleSet.virtualMachineProfile()?.networkProfile()?.networkInterfaceConfigurations()?[0].ipConfigurations()?[0].applicationGatewayBackendAddressPools()?[0].id()
     // TODO: appGatewayBapId can be retrieved via scaleSet->networkProfile->networkInterfaceConfigurations->ipConfigurations->ApplicationGatewayBackendAddressPools
     azureSG.subnetId = scaleSet.tags?.subnetId
     azureSG.subnet = AzureUtilities.getNameFromResourceId(azureSG.subnetId)

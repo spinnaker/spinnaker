@@ -607,6 +607,7 @@ class AzureServerGroupResourceTemplate {
    */
   static class NetworkInterfaceConfigurationProperty {
     boolean primary
+    boolean enableIpForwarding
     ArrayList<NetworkInterfaceIPConfiguration> ipConfigurations = []
 
     /**
@@ -615,6 +616,7 @@ class AzureServerGroupResourceTemplate {
      */
     NetworkInterfaceConfigurationProperty(AzureServerGroupDescription description) {
       primary = true
+      enableIpForwarding = description.enableIpForwarding
       ipConfigurations.add(new NetworkInterfaceIPConfiguration(description))
     }
   }
