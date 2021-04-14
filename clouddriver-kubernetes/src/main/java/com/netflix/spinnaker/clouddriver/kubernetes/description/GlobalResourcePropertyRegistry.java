@@ -34,6 +34,8 @@ import org.springframework.stereotype.Component;
 @ParametersAreNonnullByDefault
 public class GlobalResourcePropertyRegistry implements ResourcePropertyRegistry {
   private final ImmutableMap<KubernetesKind, KubernetesResourceProperties> globalProperties;
+  private ImmutableMap<KubernetesKind, KubernetesResourceProperties> crdProperties =
+      ImmutableMap.of();
   private final KubernetesResourceProperties defaultProperties;
 
   @Autowired
@@ -50,12 +52,26 @@ public class GlobalResourcePropertyRegistry implements ResourcePropertyRegistry 
         new KubernetesResourceProperties(defaultHandler, defaultHandler.versioned());
   }
 
+  public void updateCrdProperties(List<KubernetesHandler> handlers) {
+    this.crdProperties =
+        handlers.stream()
+            .collect(
+                toImmutableMap(
+                    KubernetesHandler::kind,
+                    h -> new KubernetesResourceProperties(h, h.versioned())));
+  }
+
   @Override
   @Nonnull
   public KubernetesResourceProperties get(KubernetesKind kind) {
-    KubernetesResourceProperties globalResult = globalProperties.get(kind);
-    if (globalResult != null) {
-      return globalResult;
+    KubernetesResourceProperties result = globalProperties.get(kind);
+    if (result != null) {
+      return result;
+    }
+
+    result = crdProperties.get(kind);
+    if (result != null) {
+      return result;
     }
 
     return defaultProperties;

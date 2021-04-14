@@ -610,7 +610,9 @@ final class KubernetesDataProviderIntegrationTest {
             new ConfigFileService(new CloudConfigResourceService()),
             new AccountResourcePropertyRegistry.Factory(resourcePropertyRegistry),
             new KubernetesKindRegistry.Factory(new GlobalKubernetesKindRegistry()),
-            kindMap);
+            kindMap,
+            new GlobalResourcePropertyRegistry(
+                ImmutableList.of(), new KubernetesUnregisteredCustomResourceHandler()));
     return new KubernetesNamedAccountCredentials(managedAccount, credentialFactory);
   }
 

@@ -21,9 +21,11 @@ import com.google.common.collect.ImmutableList
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties
 import com.netflix.spinnaker.clouddriver.kubernetes.description.AccountResourcePropertyRegistry
+import com.netflix.spinnaker.clouddriver.kubernetes.description.GlobalResourcePropertyRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesSpinnakerKindMap
 import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesManifestNamer
 import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesNamerRegistry
+import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesUnregisteredCustomResourceHandler
 import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor
 import com.netflix.spinnaker.fiat.model.Authorization
 import com.netflix.spinnaker.kork.configserver.ConfigFileService
@@ -37,6 +39,7 @@ class KubernetesNamedAccountCredentialsSpec extends Specification {
   AccountResourcePropertyRegistry.Factory resourcePropertyRegistryFactory = Mock(AccountResourcePropertyRegistry.Factory)
   KubernetesKindRegistry.Factory kindRegistryFactory = Mock(KubernetesKindRegistry.Factory)
   KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap = new KubernetesSpinnakerKindMap(ImmutableList.of())
+  GlobalResourcePropertyRegistry globalResourcePropertyRegistry = new GlobalResourcePropertyRegistry(ImmutableList.of(), new KubernetesUnregisteredCustomResourceHandler())
   KubernetesCredentials.Factory credentialFactory = new KubernetesCredentials.Factory(
     new NoopRegistry(),
     namerRegistry,
@@ -44,7 +47,8 @@ class KubernetesNamedAccountCredentialsSpec extends Specification {
     configFileService,
     resourcePropertyRegistryFactory,
     kindRegistryFactory,
-    kubernetesSpinnakerKindMap
+    kubernetesSpinnakerKindMap,
+    globalResourcePropertyRegistry
   )
 
 

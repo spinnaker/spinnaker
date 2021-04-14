@@ -70,7 +70,9 @@ final class KubernetesCredentialsTest {
                     ImmutableList.of(), new KubernetesUnregisteredCustomResourceHandler())),
             new KubernetesKindRegistry.Factory(
                 new GlobalKubernetesKindRegistry(ImmutableList.of())),
-            new KubernetesSpinnakerKindMap(ImmutableList.of()));
+            new KubernetesSpinnakerKindMap(ImmutableList.of()),
+            new GlobalResourcePropertyRegistry(
+                ImmutableList.of(), new KubernetesUnregisteredCustomResourceHandler()));
     ManagedAccount managedAccount = new ManagedAccount();
     managedAccount.setName("my-account");
     return factory.build(managedAccount);
