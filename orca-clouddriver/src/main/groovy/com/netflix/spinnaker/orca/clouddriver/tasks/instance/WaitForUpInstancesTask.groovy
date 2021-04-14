@@ -20,7 +20,6 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 
 import java.util.concurrent.TimeUnit
 import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
-import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper.HealthCountSnapshot
 import groovy.util.logging.Slf4j
 import org.slf4j.MDC
 import org.springframework.stereotype.Component
@@ -323,4 +322,14 @@ class WaitForUpInstancesTask extends AbstractInstancesCheckTask {
   }
 
   private static NoopSplainer NOOPSPLAINER = new NoopSplainer()
+
+  static class HealthCountSnapshot {
+    int up
+    int down
+    int outOfService
+    int starting
+    int succeeded
+    int failed
+    int unknown
+  }
 }

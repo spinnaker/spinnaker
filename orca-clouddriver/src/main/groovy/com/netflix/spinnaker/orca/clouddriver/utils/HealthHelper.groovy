@@ -14,112 +14,136 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.clouddriver.utils
+package com.netflix.spinnaker.orca.clouddriver.utils;
 
-import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
-import com.netflix.spinnaker.orca.clouddriver.model.HealthState
+import static com.netflix.spinnaker.orca.clouddriver.model.HealthState.*;
 
-import static com.netflix.spinnaker.orca.clouddriver.model.HealthState.*
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import com.netflix.spinnaker.orca.clouddriver.model.HealthState;
+import java.util.*;
+import java.util.stream.Collectors;
 
-class HealthHelper {
+public class HealthHelper {
   /**
    * If stage.context.interestingHealthProviderNames is not null, return it. Otherwise, return
-   * providersIfNotExplicitlySpecified. This mechanism enables tasks to have interestingHealthProviderNames be passed
-   * in, while still allowing for defaults to be defined. Explicitly-empty lists are preserved and are not ignored in
-   * favor of defaults.
+   * providersIfNotExplicitlySpecified. This mechanism enables tasks to have
+   * interestingHealthProviderNames be passed in, while still allowing for defaults to be defined.
+   * Explicitly-empty lists are preserved and are not ignored in favor of defaults.
    */
-  static List<String> getInterestingHealthProviderNames(StageExecution stage, List<String> providersIfNotExplicitlySpecified) {
-    stage.context.interestingHealthProviderNames != null ?
-      stage.context.interestingHealthProviderNames : providersIfNotExplicitlySpecified
+  public static List<String> getInterestingHealthProviderNames(
+      StageExecution stage, List<String> providersIfNotExplicitlySpecified) {
+    List<String> result = (List<String>) stage.getContext().get("interestingHealthProviderNames");
+    return result != null ? result : providersIfNotExplicitlySpecified;
   }
 
   /**
-   * If interestingHealthProviderNames is not null, return all matching healths (that is, return the intersection of the
-   * health providers deemed interesting and the healths defined on the instance). Otherwise, return all healths defined
-   * on the instance.
+   * If interestingHealthProviderNames is not null, return all matching healths (that is, return the
+   * intersection of the health providers deemed interesting and the healths defined on the
+   * instance). Otherwise, return all healths defined on the instance.
    */
-  static List<Map> filterHealths(Map instance, Collection<String> interestingHealthProviderNames) {
-    return interestingHealthProviderNames != null
-        ? instance.health.findAll { health -> health.type in interestingHealthProviderNames }
-        : instance.health
+  public static List<Map<String, Object>> filterHealths(
+      Map<String, Object> instance, Collection<String> interestingHealthProviderNames) {
+    List<Map<String, Object>> healths = (List<Map<String, Object>>) instance.get("health");
+    if (healths == null) {
+      return List.of();
+    }
+    if (interestingHealthProviderNames == null) {
+      return healths;
+    }
+    return healths.stream()
+        .filter(health -> interestingHealthProviderNames.contains(health.get("type")))
+        .collect(Collectors.toList());
   }
 
   /**
-   * Return true if platform health was specified in interestingHealthProviderNames, and its state is not 'Down'.
-   * Otherwise, return the value of someAreUp.
+   * Return true if platform health was specified in interestingHealthProviderNames, and its state
+   * is not 'Down'. Otherwise, return the value of someAreUp.
    */
-  static boolean areSomeUpConsideringPlatformHealth(List<Map> healths,
-                                                    Collection<String> interestingHealthProviderNames,
-                                                    boolean someAreUp) {
-   Map platformHealth = findPlatformHealth(healths)
+  private static boolean areSomeUpConsideringPlatformHealth(
+      List<Map<String, Object>> healths,
+      Collection<String> interestingHealthProviderNames,
+      boolean someAreUp) {
 
-   if (platformHealth && interestingHealthProviderNames?.contains(platformHealth.type)) {
-     // Given that platform health (e.g. 'Amazon' or 'GCE') never reports as 'Up' (only 'Unknown') we can only verify it
-     // isn't 'Down'.
-     someAreUp = someAreUp || platformHealth.state != 'Down'
-   }
-
-   return someAreUp
- }
-
-  /**
-   * Return true if there is exactly one (filtered) health, it is a platform health, and its state is 'Unknown'.
-   * Otherwise, return false.
-   */
-  static boolean isDownConsideringPlatformHealth(List<Map> healths) {
-    Map platformHealth = findPlatformHealth(healths)
-
-    if (platformHealth && healths.size() == 1 && healths[0].type == platformHealth.type && healths[0].state == "Unknown") {
-      return true
+    if (interestingHealthProviderNames == null || someAreUp) {
+      return someAreUp;
     }
 
-    return false
+    return findPlatformHealth(healths)
+        .filter(it -> interestingHealthProviderNames.contains(it.get("type")))
+        .map(platformHealth -> !"Down".equals(platformHealth.get("state")))
+        .orElse(someAreUp);
   }
 
   /**
-   * Return the first health with a healthClass of 'platform', or null if none is found.
+   * Return true if there is exactly one (filtered) health, it is a platform health, and its state
+   * is 'Unknown'. Otherwise, return false.
    */
-  static Map findPlatformHealth(List<Map> healths) {
-    return healths.find { Map health ->
-      health.healthClass == 'platform'
-    } as Map
+  private static boolean isDownConsideringPlatformHealth(List<Map<String, Object>> healths) {
+    if (healths.size() != 1) {
+      return false;
+    }
+    Map<String, Object> health = healths.get(0);
+
+    return findPlatformHealth(healths)
+        .map(
+            platformHealth ->
+                Objects.equals(health.get("type"), platformHealth.get("type"))
+                    && "Unknown".equals(health.get("state")))
+        .orElse(false);
   }
 
-  static boolean someAreDownAndNoneAreUp(Map instance, Collection<String> interestingHealthProviderNames) {
-    List<Map> healths = filterHealths(instance, interestingHealthProviderNames)
+  /** Return the first health with a healthClass of 'platform', or null if none is found. */
+  private static Optional<Map<String, Object>> findPlatformHealth(
+      List<Map<String, Object>> healths) {
+    return healths.stream()
+        .filter(health -> "platform".equals(health.get("healthClass")))
+        .findFirst();
+  }
 
-    if (!interestingHealthProviderNames && !healths) {
+  public static boolean someAreDownAndNoneAreUp(
+      Map<String, Object> instance, Collection<String> interestingHealthProviderNames) {
+    List<Map<String, Object>> healths = filterHealths(instance, interestingHealthProviderNames);
+
+    if ((interestingHealthProviderNames == null || interestingHealthProviderNames.isEmpty())
+        && healths.isEmpty()) {
       // No health indications (and no specific providers to check), consider instance to be down.
-      return true
+      return true;
     }
 
     if (isDownConsideringPlatformHealth(healths)) {
-      return true
+      return true;
     }
 
+    Set<HealthState> downStates = Set.of(Down, OutOfService, Starting);
+    Set<HealthState> upStates = Set.of(Up, Draining);
+
+    List<HealthState> healthStates = healthStates(healths);
+
     // no health indicators is indicative of being down
-    boolean someAreDown = !healths || healths.any { HealthState.fromString(it.state) in [Down, OutOfService, Starting] }
-    boolean noneAreUp = !healths.any { HealthState.fromString(it.state) in [Up, Draining] }
+    boolean someAreDown = healths.isEmpty() || healthStates.stream().anyMatch(downStates::contains);
+    boolean noneAreUp = healthStates.stream().noneMatch(upStates::contains);
 
-    return someAreDown && noneAreUp
+    return someAreDown && noneAreUp;
   }
 
-  static boolean someAreUpAndNoneAreDownOrStarting(Map instance, Collection<String> interestingHealthProviderNames) {
-    List<Map> healths = filterHealths(instance, interestingHealthProviderNames)
+  public static boolean someAreUpAndNoneAreDownOrStarting(
+      Map<String, Object> instance, Collection<String> interestingHealthProviderNames) {
+    List<Map<String, Object>> healths = filterHealths(instance, interestingHealthProviderNames);
 
-    boolean someAreUp = healths.any { HealthState.fromString(it.state) == Up }
-    boolean noneAreDown = !healths.any { HealthState.fromString(it.state) in [Down, OutOfService, Starting, Draining] }
+    Set<HealthState> downStates = Set.of(Down, OutOfService, Starting, Draining);
 
-    return areSomeUpConsideringPlatformHealth(healths, interestingHealthProviderNames, someAreUp) && noneAreDown
+    List<HealthState> healthStates = healthStates(healths);
+
+    boolean someAreUp = healthStates.stream().anyMatch(it -> it == Up);
+    boolean noneAreDown = healthStates.stream().noneMatch(downStates::contains);
+
+    return areSomeUpConsideringPlatformHealth(healths, interestingHealthProviderNames, someAreUp)
+        && noneAreDown;
   }
 
-  static class HealthCountSnapshot {
-    int up
-    int down
-    int outOfService
-    int starting
-    int succeeded
-    int failed
-    int unknown
+  private static List<HealthState> healthStates(List<Map<String, Object>> healths) {
+    return healths.stream()
+        .map(it -> HealthState.fromString((String) it.get("state")))
+        .collect(Collectors.toList());
   }
 }
