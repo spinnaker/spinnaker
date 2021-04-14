@@ -164,8 +164,7 @@ angular
         ReactModal.show(RenamePipelineModal, { pipeline: $scope.pipeline, application: $scope.application })
           .then((pipelineName) => {
             $scope.pipeline.name = pipelineName;
-            setOriginal($scope.pipeline);
-            markDirty();
+            return this.applyUpdateTs($scope.pipeline);
           })
           .catch(() => {});
       };
@@ -363,20 +362,25 @@ angular
           .finally(() => this.setViewState({ loading: false }));
       };
 
+      this.applyUpdateTs = (toSave) => {
+        return $scope.application.pipelineConfigs.refresh(true).then((pipelines) => {
+          const latestFromServer = pipelines.find((p) => p.id === toSave.id);
+          if (latestFromServer && latestFromServer.updateTs) {
+            toSave.updateTs = latestFromServer.updateTs;
+            this.updatePipelineConfig({ updateTs: latestFromServer.updateTs });
+          }
+          setOriginal(toSave);
+          markDirty();
+        });
+      };
+
       this.savePipeline = () => {
         this.setViewState({ saving: true });
         const toSave = _.cloneDeep($scope.pipeline);
         PipelineConfigService.savePipeline(toSave)
-          .then(() => $scope.application.pipelineConfigs.refresh(true))
+          .then(() => this.applyUpdateTs(toSave))
           .then(
-            (pipelines) => {
-              const latestFromServer = pipelines.find((p) => p.id === toSave.id);
-              if (latestFromServer && latestFromServer.updateTs) {
-                toSave.updateTs = latestFromServer.updateTs;
-                this.updatePipelineConfig({ updateTs: latestFromServer.updateTs });
-              }
-              setOriginal(toSave);
-              markDirty();
+            () => {
               this.setViewState({
                 saveError: false,
                 saving: false,
