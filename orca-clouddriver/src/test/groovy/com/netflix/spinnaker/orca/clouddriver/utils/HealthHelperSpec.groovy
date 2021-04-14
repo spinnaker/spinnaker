@@ -13,7 +13,7 @@ class HealthHelperSpec extends Specification {
   }
 
   def instance(List<HealthState> healthStates) {
-    return [health: healthStates.collect({ it -> health(it)})]
+    return [health: healthStates == null ? null : healthStates.collect({ it -> health(it)})]
   }
 
   @Unroll
@@ -44,6 +44,7 @@ class HealthHelperSpec extends Specification {
 
     [Draining]              || false
     [Up, Draining]          || false
+    null                    || false
   }
 
   @Unroll
@@ -76,5 +77,6 @@ class HealthHelperSpec extends Specification {
     [Down, Draining]         || false
     [OutOfService, Draining] || false
     [Starting, Draining]     || false
+    null                     || true
   }
 }
