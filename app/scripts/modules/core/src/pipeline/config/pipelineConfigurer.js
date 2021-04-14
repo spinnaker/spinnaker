@@ -371,9 +371,11 @@ angular
           .then(
             (pipelines) => {
               const latestFromServer = pipelines.find((p) => p.id === toSave.id);
-              const latest = latestFromServer || toSave;
-              setOriginal(latest);
-              this.revertPipelineChanges();
+              if (latestFromServer && latestFromServer.updateTs) {
+                toSave.updateTs = latestFromServer.updateTs;
+                this.updatePipelineConfig({ updateTs: latestFromServer.updateTs });
+              }
+              setOriginal(toSave);
               markDirty();
               this.setViewState({
                 saveError: false,
@@ -450,7 +452,7 @@ angular
               this.navigateTo({ section: 'triggers' });
             }
           }
-          $scope.viewState.revertCount++;
+          $scope.viewState.revertCount = ($scope.viewState.revertCount || 0) + 1;
           $scope.$broadcast('pipeline-reverted');
         });
       };

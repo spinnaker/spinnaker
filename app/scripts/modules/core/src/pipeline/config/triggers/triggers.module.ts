@@ -13,6 +13,6 @@ module(TRIGGERS, []).component(
     'pipeline',
     'fieldUpdated',
     'updatePipelineConfig',
-    'viewState',
+    'revertCount',
   ]),
 );

@@ -4,12 +4,10 @@ import { IPipeline, IPipelineTag } from 'core/domain';
 import { HelpField } from 'core/help';
 import {
   createFakeReactSyntheticEvent,
-  FormikFormField,
+  FormField,
   IFormInputProps,
-  SpinFormik,
   TextAreaInput,
   ValidationMessage,
-  WatchValue,
 } from 'core/presentation';
 
 export interface IMetadataPageContentProps {
@@ -104,33 +102,30 @@ export function MetadataPageContent(props: IMetadataPageContentProps) {
   const { pipeline, updatePipelineConfig } = props;
 
   return (
-    <SpinFormik<Partial<IPipeline>>
-      initialValues={pipeline}
-      onSubmit={() => {}}
-      render={(formik) => (
-        <>
-          <WatchValue onChange={updatePipelineConfig} value={formik.values} />
-          <FormikFormField
-            name="description"
-            label="Description"
-            input={(inputProps) => (
-              <TextAreaInput
-                {...inputProps}
-                placeholder={
-                  '(Optional) anything that might be helpful to explain the purpose of this pipeline; Markdown is okay'
-                }
-                rows={3}
-              />
-            )}
+    <>
+      <FormField
+        name="description"
+        label="Description"
+        value={pipeline.description}
+        onChange={(e) => updatePipelineConfig({ description: e.target.value })}
+        input={(inputProps) => (
+          <TextAreaInput
+            {...inputProps}
+            placeholder={
+              '(Optional) anything that might be helpful to explain the purpose of this pipeline; Markdown is okay'
+            }
+            rows={3}
           />
-          <FormikFormField
-            name="tags"
-            label="Tags"
-            help={<HelpField id="pipeline.config.tags" />}
-            input={(inputProps) => <TagsInput {...inputProps} />}
-          />
-        </>
-      )}
-    />
+        )}
+      />
+      <FormField
+        name="tags"
+        label="Tags"
+        value={pipeline.tags}
+        onChange={(e) => updatePipelineConfig({ description: e.target.value })}
+        help={<HelpField id="pipeline.config.tags" />}
+        input={(inputProps) => <TagsInput {...inputProps} />}
+      />
+    </>
   );
 }
