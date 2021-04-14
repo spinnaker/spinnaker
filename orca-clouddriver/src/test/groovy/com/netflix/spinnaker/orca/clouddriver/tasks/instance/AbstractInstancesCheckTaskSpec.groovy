@@ -16,18 +16,14 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
-import com.netflix.spinnaker.orca.clouddriver.OortService
-import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.mime.TypedInput
-import retrofit.mime.TypedString
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -61,7 +57,10 @@ class AbstractInstancesCheckTaskSpec extends Specification {
     }
   }
 
-  @Subject task = new TestInstancesCheckTask(cloudDriverService: Mock(CloudDriverService))
+  HasSucceededSpy hasSucceededSpy = Mock()
+  CloudDriverService cloudDriverService = Mock()
+
+  @Subject task = new TestInstancesCheckTask(cloudDriverService: cloudDriverService, hasSucceededSpy: hasSucceededSpy)
 
   Closure<Response> constructResponse = { int status, String body ->
     new Response("", status, "", [], new TypedInput() {
@@ -83,8 +82,6 @@ class AbstractInstancesCheckTaskSpec extends Specification {
   }
 
   void "should be provided with health provider names"() {
-    task.cloudDriverService = Mock(CloudDriverService)
-    task.hasSucceededSpy = Mock(HasSucceededSpy)
 
     def pipeline = PipelineExecutionImpl.newPipeline("orca")
     def stage = new StageExecutionImpl(pipeline, "whatever", [
@@ -98,7 +95,7 @@ class AbstractInstancesCheckTaskSpec extends Specification {
     task.execute(stage)
 
     then:
-    1 * task.cloudDriverService.getServerGroup("test", "us-west-1", "front50-v000") >>
+    1 * cloudDriverService.getServerGroup("test", "us-west-1", "front50-v000") >>
 [
     "name": "front50-v000",
     "region": "us-west-1",
@@ -116,13 +113,11 @@ class AbstractInstancesCheckTaskSpec extends Specification {
 ]
 
     and:
-    1 * task.hasSucceededSpy.hasSucceeded(_, [['name': 'i-12345678']], ['JustTrustMeBroItIsHealthy'])
+    1 * hasSucceededSpy.hasSucceeded(_, [['name': 'i-12345678']], ['JustTrustMeBroItIsHealthy'])
   }
 
   @Unroll
   void 'should reset zeroDesiredCapacityCount when targetDesiredCapacity is not zero, otherwise increment'() {
-    task.cloudDriverService = Mock(CloudDriverService)
-    task.hasSucceededSpy = Mock(HasSucceededSpy)
 
     def pipeline = PipelineExecutionImpl.newPipeline("orca")
     def stage = new StageExecutionImpl(pipeline, "whatever", [
@@ -142,7 +137,7 @@ class AbstractInstancesCheckTaskSpec extends Specification {
 
     then:
     result.context.zeroDesiredCapacityCount == expected
-    1 * task.cloudDriverService.getServerGroup("test", "us-west-1", "front50-v000") >>
+    1 * cloudDriverService.getServerGroup("test", "us-west-1", "front50-v000") >>
 [
     "name": "front50-v000",
     "region": "us-west-1",
@@ -162,7 +157,7 @@ class AbstractInstancesCheckTaskSpec extends Specification {
 ]
 
     and:
-    1 * task.hasSucceededSpy.hasSucceeded(_, _, _) >> false
+    1 * hasSucceededSpy.hasSucceeded(_, _, _) >> false
 
     where:
     desiredCapacity || expected
@@ -171,9 +166,6 @@ class AbstractInstancesCheckTaskSpec extends Specification {
   }
 
   void 'should set zeroDesiredCapacityCount when targetDesiredCapacity is zero and no zeroDesiredCapacityCount is not present on context'() {
-    task.cloudDriverService = Mock(CloudDriverService)
-    task.hasSucceededSpy = Mock(HasSucceededSpy)
-
     def pipeline = PipelineExecutionImpl.newPipeline("orca")
     def stage = new StageExecutionImpl(pipeline, "whatever", [
       "account.name"                  : "test",
@@ -186,7 +178,7 @@ class AbstractInstancesCheckTaskSpec extends Specification {
 
     then:
     result.context.zeroDesiredCapacityCount == 1
-    1 * task.cloudDriverService.getServerGroup("test", "us-west-1", "front50-v000") >>
+    1 * cloudDriverService.getServerGroup("test", "us-west-1", "front50-v000") >>
 [
     "name": "front50-v000",
     "region": "us-west-1",
@@ -206,7 +198,7 @@ class AbstractInstancesCheckTaskSpec extends Specification {
 ]
 
     and:
-    1 * task.hasSucceededSpy.hasSucceeded(_, _, _) >> false
+    1 * hasSucceededSpy.hasSucceeded(_, _, _) >> false
   }
 
   @Unroll
@@ -219,13 +211,13 @@ class AbstractInstancesCheckTaskSpec extends Specification {
     def thrownException
 
     try {
-      serverGroups = task.fetchServerGroups("test", "aws", ["us-west-2": [serverGroupName]], new Moniker())
+      serverGroups = task.fetchServerGroups("test", "aws", ["us-west-2": [serverGroupName]], new Moniker(), false)
     } catch (Exception e) {
       thrownException = e
     }
 
     then:
-    1 * task.cloudDriverService.getServerGroup("test", "us-west-2", serverGroupName) >> {
+    1 * cloudDriverService.getServerGroup("test", "us-west-2", serverGroupName) >> {
       if (statusCode == 200) {
         return ["name": serverGroupName]
       }
