@@ -1,0 +1,50 @@
+query fetchApplication($appName: String!) {
+  application(appName: $appName) {
+    name
+    account
+    environments {
+      name
+      state {
+        artifacts {
+          name
+          type
+          reference
+          versions(statuses: [PENDING, APPROVED, DEPLOYING, CURRENT]) {
+            version
+            createdAt
+            status
+            gitMetadata {
+              commit
+              author
+              branch
+              commitInfo {
+                sha
+                link
+                message
+              }
+              pullRequest {
+                number
+                link
+              }
+            }
+          }
+          pinnedVersion {
+            name
+            reference
+          }
+        }
+        resources {
+          id
+          kind
+          status
+          displayName
+          artifact {
+            name
+            type
+            reference
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,7 +1,9 @@
+import { ApolloProvider } from '@apollo/client';
 import { UIView } from '@uirouter/react';
 import React from 'react';
 
 import { RecentHistoryService } from 'core/history';
+import { createApolloClient } from 'core/managed/graphql/client';
 import { DebugWindow } from 'core/utils/consoleDebug';
 
 import { ApplicationContextProvider } from './ApplicationContext';
@@ -15,6 +17,8 @@ export interface IApplicationComponentProps {
 }
 
 export class ApplicationComponent extends React.Component<IApplicationComponentProps> {
+  private client = createApolloClient();
+
   constructor(props: IApplicationComponentProps) {
     super(props);
     this.mountApplication(props.app);
@@ -71,9 +75,11 @@ export class ApplicationComponent extends React.Component<IApplicationComponentP
           </div>
         )}
         <ApplicationContextProvider app={app}>
-          <div className="container scrollable-columns">
-            <UIView className="secondary-panel" name="insight" />
-          </div>
+          <ApolloProvider client={this.client}>
+            <div className="container scrollable-columns">
+              <UIView className="secondary-panel" name="insight" />
+            </div>
+          </ApolloProvider>
         </ApplicationContextProvider>
       </div>
     );

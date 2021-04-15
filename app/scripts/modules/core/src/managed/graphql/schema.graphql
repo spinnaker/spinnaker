@@ -1,0 +1,139 @@
+scalar InstantTime
+
+type Query {
+  application(appName: String!): DgsApplication
+}
+
+type DgsApplication {
+  name: String!
+  account: String!
+  environments: [DgsEnvironment!]!
+}
+
+type DgsEnvironment {
+  name: String!
+  state: DgsEnvironmentState!
+  # TODO: add this once Rob's versioning lands
+  #  version: String # could default to 1 until we have other data
+  #  history: [EnvironmentState!] # could just be the current state until we have history
+}
+
+type DgsEnvironmentState {
+  version: String! # TODO: add this once Rob's versioning lands
+  resources: [DgsResource!]
+  artifacts: [DgsArtifact!]
+}
+
+type DgsPinnedVersion {
+  name: String!
+  reference: String!
+  version: String!
+  pinnedAt: String
+  pinnedBy: String
+  comment: String
+}
+
+type DgsArtifact {
+  environment: String!
+  name: String!
+  type: String! # todo Convert to enum
+  reference: String!
+  versions(statuses: [DgsArtifactStatusInEnvironment!]): [DgsArtifactVersionInEnvironment!]
+  pinnedVersion: DgsPinnedVersion
+}
+
+type DgsArtifactVersionInEnvironment {
+  version: String!
+  createdAt: String
+  resources: [DgsResource!]
+  gitMetadata: DgsGitMetadata
+  environment: String
+  reference: String!
+  status: DgsArtifactStatusInEnvironment
+  lifecycleSteps: [DgsLifecycleStep!]
+  constraints: [DgsConstraint!] # TODO: replace this with environment constraints once we have versioning
+}
+
+type DgsLifecycleStep {
+  scope: String! #todo make enum
+  type: String! #todo make enum
+  id: String
+  status: String! #todo make enum
+  text: String
+  link: String
+  startedAt: String
+  completedAt: String
+  artifactVersion: String
+}
+
+type DgsGitMetadata {
+  commit: String
+  author: String
+  project: String
+  branch: String
+  repoName: String
+  pullRequest: DgsPullRequest
+  commitInfo: DgsCommitInfo
+}
+
+type DgsPullRequest {
+  number: String
+  link: String
+}
+
+type DgsCommitInfo {
+  sha: String
+  link: String
+  message: String
+}
+
+type DgsResource {
+  id: String!
+  kind: String! # Convert to enum
+  status: String # Convert to enum
+  artifact: DgsArtifact
+  displayName: String
+  location: DgsLocation
+}
+
+type DgsLocation {
+  regions: [String!]
+}
+
+enum DgsConstraintStatus {
+  NOT_EVALUATED
+  PENDING
+  PASS
+  FAIL
+  OVERRIDE_PASS
+  OVERRIDE_FAIL
+}
+
+enum DgsArtifactStatusInEnvironment {
+  PENDING
+  APPROVED
+  DEPLOYING
+  CURRENT
+  PREVIOUS
+  VETOED
+  SKIPPED
+}
+
+type DgsConstraint {
+  type: String!
+  status: DgsConstraintStatus!
+  startedAt: InstantTime
+  judgedAt: InstantTime
+  judgedBy: String
+  comment: String
+  attributes: String
+}
+
+type DgsVerification {
+  id: String!
+  type: String!
+  status: DgsConstraintStatus
+  startedAt: String
+  completedAt: String
+  link: String
+}

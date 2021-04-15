@@ -1,0 +1,19 @@
+overwrite: true
+schema: app/scripts/modules/core/src/managed/graphql/schema.graphql # TODO: move this file to a separate node module
+documents: app/scripts/modules/core/src/**/*.graphql
+generates:
+  app/scripts/modules/core/src/managed/graphql/graphql-sdk.ts:
+    plugins:
+      - add:
+          content: "/* eslint-disable @typescript-eslint/array-type */"
+      - typescript
+      - typescript-operations
+      - typescript-react-apollo
+    config:
+      declarationKind: 'interface'
+      enumsAsTypes: true
+      scalars:
+        InstantTime: Date
+  ./graphql.schema.json:
+    plugins:
+      - "introspection"
