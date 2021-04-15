@@ -1,0 +1,54 @@
+databaseChangeLog:
+- changeSet:
+    id: environment-features-per-version
+    author: fletch
+    changes:
+    - dropView:
+        viewName: latest_environment
+    - addColumn:
+        tableName: environment_version
+        columns:
+        - column:
+            name: constraints
+            type: json
+            constraints:
+              nullable: false
+        - column:
+            name: verifications
+            type: json
+            constraints:
+              nullable: false
+        - column:
+            name: notifications
+            type: json
+            constraints:
+              nullable: false
+    - sql:
+        sql: |
+          update environment_version
+          join environment
+          on environment.uid = environment_version.environment_uid
+          set environment_version.constraints = environment.constraints
+            , environment_version.verifications = environment.verifications
+            , environment_version.notifications = environment.notifications;
+    - dropColumn:
+        tableName: environment
+        columns:
+        - column:
+            name: constraints
+        - column:
+            name: verifications
+        - column:
+            name: notifications
+    - createView:
+        viewName: latest_environment
+        selectQuery: |
+          select uid, delivery_config_uid, name, version, constraints, notifications, verifications
+          from environment
+          join environment_version
+            on environment.uid = environment_version.environment_uid
+            and environment_version.version = (
+              select max(ev2.version)
+              from environment_version ev2
+              where environment.uid = ev2.environment_uid
+            );

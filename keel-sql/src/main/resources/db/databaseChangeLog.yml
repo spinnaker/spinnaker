@@ -281,3 +281,6 @@ databaseChangeLog:
   - include:
       file: changelog/20210409-add-verif-link-column.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20210413-environment-features-per-version.yml
+      relativeToChangelogFile: true

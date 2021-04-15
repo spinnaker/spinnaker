@@ -285,54 +285,58 @@ class SqlDeliveryConfigRepository(
           .set(ENVIRONMENT.UID, environmentUid)
           .set(ENVIRONMENT.DELIVERY_CONFIG_UID, deliveryConfigUid)
           .set(ENVIRONMENT.NAME, environment.name)
-          .set(ENVIRONMENT.CONSTRAINTS, environment.constraints.toJson())
-          .set(ENVIRONMENT.NOTIFICATIONS, environment.notifications.toJson())
-          .set(ENVIRONMENT.VERIFICATIONS, environment.verifyWith.toJson())
-          .onDuplicateKeyUpdate()
-          .set(ENVIRONMENT.CONSTRAINTS, environment.constraints.toJson())
-          .set(ENVIRONMENT.NOTIFICATIONS, environment.notifications.toJson())
-          .set(ENVIRONMENT.VERIFICATIONS, environment.verifyWith.toJson())
+          .onDuplicateKeyIgnore()
           .execute()
         val currentVersion = jooq
           .select(coalesce(max(ENVIRONMENT_VERSION.VERSION), value(0)))
           .from(ENVIRONMENT_VERSION)
           .where(ENVIRONMENT_VERSION.ENVIRONMENT_UID.eq(environmentUid))
           .fetchOneInto<Int>()
-        val currentVersionResources = when (currentVersion) {
-          0 -> emptyMap()
-          else -> jooq
-            .select(RESOURCE.UID, RESOURCE_VERSION.VERSION)
-            .from(RESOURCE)
-            .join(RESOURCE_VERSION)
-            .on(RESOURCE.UID.eq(RESOURCE_VERSION.RESOURCE_UID))
-            .whereExists(
-              selectOne()
-                .from(ENVIRONMENT_RESOURCE)
-                .where(ENVIRONMENT_RESOURCE.RESOURCE_UID.eq(RESOURCE.UID))
-                .and(ENVIRONMENT_RESOURCE.RESOURCE_VERSION.eq(RESOURCE_VERSION.VERSION))
-                .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(environmentUid))
-                .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_VERSION.eq(currentVersion))
-            )
-            .fetch { (uid, version) -> uid to version }
-            .toMap()
-        }
-        val newVersionResources = environment.resources.let { resources ->
-          jooq.select(RESOURCE.UID, max(RESOURCE_VERSION.VERSION))
-            .from(RESOURCE)
-            .join(RESOURCE_VERSION)
-            .on(RESOURCE.UID.eq(RESOURCE_VERSION.RESOURCE_UID))
-            .where(RESOURCE.ID.`in`(resources.map(Resource<*>::id)))
-            .groupBy(RESOURCE.UID)
-            .fetch { (uid, version) -> uid to version }
-            .toMap()
-        }
-        if (currentVersion == 0 || currentVersionResources != newVersionResources) {
-          val newVersion = currentVersion + 1
 
+        val newVersion = currentVersion + 1
+
+        val currentVersionResources = resourceUidsAndVersionsFor(environmentUid, currentVersion)
+        val newVersionResources = environment.latestResourceUidsAndVersions()
+        val currentVersionConfig = configFor(environmentUid, currentVersion)
+        val newVersionConfig = mapOf(
+          "constraints" to environment.constraints.toJson(),
+          "verifications" to environment.verifyWith.toJson(),
+          "notifications" to environment.notifications.toJson()
+        )
+
+        val newVersionRequired = if (currentVersion == 0) {
+          log.debug("Creating initial version of environment {}/{}", application, environment.name)
+          true
+        } else if (currentVersionConfig != newVersionConfig) {
+          log.debug(
+            "Creating a new version {} of environment {}/{} because environment configuration changed",
+            newVersion,
+            application,
+            environment.name
+          )
+          true
+        } else if (currentVersionResources != newVersionResources) {
+          log.debug(
+            "Creating a new version {} of environment {}/{} because resources changed from {} to {}",
+            newVersion,
+            application,
+            environment.name,
+            currentVersionResources,
+            newVersionResources
+          )
+          true
+        } else {
+          false
+        }
+
+        if (newVersionRequired) {
           jooq.insertInto(ENVIRONMENT_VERSION)
             .set(ENVIRONMENT_VERSION.ENVIRONMENT_UID, environmentUid)
             .set(ENVIRONMENT_VERSION.VERSION, newVersion)
             .set(ENVIRONMENT_VERSION.CREATED_AT, clock.instant())
+            .set(ENVIRONMENT_VERSION.CONSTRAINTS, environment.constraints.toJson())
+            .set(ENVIRONMENT_VERSION.VERIFICATIONS, environment.verifyWith.toJson())
+            .set(ENVIRONMENT_VERSION.NOTIFICATIONS, environment.notifications.toJson())
             .execute()
 
           newVersionResources.forEach { (resourceUid, resourceVersion) ->
@@ -354,6 +358,65 @@ class SqlDeliveryConfigRepository(
         .execute()
     }
   }
+
+  /**
+   * @return a map of uid to version for the latest versions of all resources used in this
+   * environment.
+   */
+  private fun Environment.latestResourceUidsAndVersions() =
+    jooq.select(RESOURCE.UID, max(RESOURCE_VERSION.VERSION))
+      .from(RESOURCE)
+      .join(RESOURCE_VERSION)
+      .on(RESOURCE.UID.eq(RESOURCE_VERSION.RESOURCE_UID))
+      .where(RESOURCE.ID.`in`(resources.map(Resource<*>::id)))
+      .groupBy(RESOURCE.UID)
+      .fetch { (uid, version) -> uid to version }
+      .toMap()
+
+  /**
+   * @return a map of uid to version for all resources used in [version] of an environment.
+   */
+  private fun resourceUidsAndVersionsFor(environmentUid: String, version: Int) =
+    when (version) {
+      0 -> emptyMap()
+      else -> jooq
+        .select(RESOURCE.UID, RESOURCE_VERSION.VERSION)
+        .from(RESOURCE)
+        .join(RESOURCE_VERSION)
+        .on(RESOURCE.UID.eq(RESOURCE_VERSION.RESOURCE_UID))
+        .whereExists(
+          selectOne()
+            .from(ENVIRONMENT_RESOURCE)
+            .where(ENVIRONMENT_RESOURCE.RESOURCE_UID.eq(RESOURCE.UID))
+            .and(ENVIRONMENT_RESOURCE.RESOURCE_VERSION.eq(RESOURCE_VERSION.VERSION))
+            .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(environmentUid))
+            .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_VERSION.eq(version))
+        )
+        .fetch { (uid, version) -> uid to version }
+        .toMap()
+    }
+
+  /**
+   * @return the constraints, verifications, and notifications used in [version] of an environment.
+   */
+  private fun configFor(environmentUid: String, version: Int) =
+    when (version) {
+      0 -> emptyMap()
+      else -> jooq
+        .select(ENVIRONMENT_VERSION.CONSTRAINTS,
+          ENVIRONMENT_VERSION.VERIFICATIONS,
+          ENVIRONMENT_VERSION.NOTIFICATIONS)
+        .from(ENVIRONMENT_VERSION)
+        .where(ENVIRONMENT_VERSION.ENVIRONMENT_UID.eq(environmentUid))
+        .and(ENVIRONMENT_VERSION.VERSION.eq(version))
+        .fetchOne { (constraints, verifications, notifications) ->
+          mapOf(
+            "constraints" to constraints,
+            "verifications" to verifications,
+            "notifications" to notifications
+          )
+        }
+    }
 
   override fun get(name: String): DeliveryConfig =
     deliveryConfigByName(name)
