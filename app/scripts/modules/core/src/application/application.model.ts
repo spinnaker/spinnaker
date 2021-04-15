@@ -93,6 +93,8 @@ export class Application {
    */
   public activeState: ApplicationDataSource = null;
 
+  private refreshListeners: Array<() => void> = [];
+
   public activeDataSource$ = new ReplaySubject<ApplicationDataSource>(1);
   /** @deprecated use activeDataSource$ */
   public activeStateChangeStream: Subject<any> = new Subject();
@@ -161,6 +163,7 @@ export class Application {
   public refresh(forceRefresh?: boolean): PromiseLike<any> {
     // refresh hidden data sources but do not consider their results when determining when the refresh completes
     this.dataSources.filter((ds) => !ds.visible).forEach((ds) => ds.refresh(forceRefresh));
+    this.refreshListeners.forEach((cb) => cb());
     return $q.all(this.dataSources.filter((ds) => ds.visible).map((source) => source.refresh(forceRefresh))).then(
       () => this.applicationLoadSuccess(),
       (error) => this.applicationLoadError(error),
@@ -278,5 +281,13 @@ export class Application {
   private setDefaults(): void {
     this.defaultCredentials = this.extractProviderDefault('credentialsField');
     this.defaultRegions = this.extractProviderDefault('regionField');
+  }
+
+  public subscribeToRefresh(onRefreshCb: () => void) {
+    this.refreshListeners.push(onRefreshCb);
+    const unsubscribeCb = () => {
+      this.refreshListeners.filter((cb) => cb !== onRefreshCb);
+    };
+    return unsubscribeCb;
   }
 }

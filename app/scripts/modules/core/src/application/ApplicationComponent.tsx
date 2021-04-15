@@ -17,7 +17,8 @@ export interface IApplicationComponentProps {
 }
 
 export class ApplicationComponent extends React.Component<IApplicationComponentProps> {
-  private client = createApolloClient();
+  private apolloClient = createApolloClient();
+  private unsubscribeAppRefresh?: () => void;
 
   constructor(props: IApplicationComponentProps) {
     super(props);
@@ -41,7 +42,10 @@ export class ApplicationComponent extends React.Component<IApplicationComponentP
 
     DebugWindow.application = app;
     // KLUDGE: warning, do not use, this is temporarily and will be removed very soon.
-    !app.attributes?.disableAutoRefresh && app.enableAutoRefresh();
+    if (!app.attributes?.disableAutoRefresh) {
+      this.unsubscribeAppRefresh = this.props.app.subscribeToRefresh(this.apolloClient.onRefresh);
+      app.enableAutoRefresh();
+    }
   }
 
   private unmountApplication(app: Application) {
@@ -49,6 +53,8 @@ export class ApplicationComponent extends React.Component<IApplicationComponentP
       return;
     }
     DebugWindow.application = undefined;
+    this.unsubscribeAppRefresh?.();
+    this.unsubscribeAppRefresh = undefined;
     app.disableAutoRefresh();
   }
 
@@ -75,7 +81,7 @@ export class ApplicationComponent extends React.Component<IApplicationComponentP
           </div>
         )}
         <ApplicationContextProvider app={app}>
-          <ApolloProvider client={this.client}>
+          <ApolloProvider client={this.apolloClient.client}>
             <div className="container scrollable-columns">
               <UIView className="secondary-panel" name="insight" />
             </div>

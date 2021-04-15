@@ -1,4 +1,4 @@
-import { ApolloClient, ApolloProvider, HttpLink, InMemoryCache } from '@apollo/client';
+import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client';
 import { REST } from 'core/api';
 
 const customFetch: typeof fetch = (uri, options) => {
@@ -24,5 +24,6 @@ export const createApolloClient = () => {
   const client = new ApolloClient({ cache: new InMemoryCache() });
   const link = new HttpLink({ uri: '/managed/graphql', fetch: customFetch });
   client.setLink(link);
-  return client;
+  const onRefresh = () => client.reFetchObservableQueries();
+  return { client, onRefresh };
 };
