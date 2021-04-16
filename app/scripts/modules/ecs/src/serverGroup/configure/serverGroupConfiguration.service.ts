@@ -148,6 +148,7 @@ export interface IEcsServerGroupCommand extends IServerGroupCommand {
   targetGroupMappings: IEcsTargetGroupMapping[];
   serviceDiscoveryAssociations: IEcsServiceDiscoveryRegistryAssociation[];
   useTaskDefinitionArtifact: boolean;
+  evaluateTaskDefinitionArtifactExpressions: boolean;
 
   capacityProviderStrategy: IEcsCapacityProviderStrategyItem[];
   useDefaultCapacityProviders: boolean;

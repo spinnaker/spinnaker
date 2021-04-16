@@ -13,6 +13,8 @@ import {
   StageArtifactSelectorDelegate,
   TetheredSelect,
   withErrorBoundary,
+  StageConfigField,
+  CheckboxInput,
 } from '@spinnaker/core';
 
 import {
@@ -37,6 +39,7 @@ interface ITaskDefinitionState {
   dockerImages: IEcsDockerImage[];
   targetGroupsAvailable: string[];
   loadBalancedContainer: string;
+  evaluateTaskDefinitionArtifactExpressions: boolean
 }
 
 export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskDefinitionState> {
@@ -73,6 +76,7 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
       dockerImages: cmd.backingData && cmd.backingData.filtered ? cmd.backingData.filtered.images : [],
       loadBalancedContainer: cmd.loadBalancedContainer || defaultContainer,
       taskDefArtifactAccount: cmd.taskDefinitionArtifactAccount,
+      evaluateTaskDefinitionArtifactExpressions: cmd.evaluateTaskDefinitionArtifactExpressions,
     };
   }
 
@@ -200,6 +204,11 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
     this.setState({ targetGroupMappings: currentMappings });
   };
 
+  private updateEvaluateTaskDefArtifactFlag = () => {
+    this.props.notifyAngular('evaluateTaskDefinitionArtifactExpressions', !this.props.command.evaluateTaskDefinitionArtifactExpressions);
+    this.setState({evaluateTaskDefinitionArtifactExpressions: !this.props.command.evaluateTaskDefinitionArtifactExpressions})
+  }
+
   public render(): React.ReactElement<TaskDefinition> {
     const { command } = this.props;
     const removeMapping = this.removeMapping;
@@ -209,6 +218,7 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
     const updateTargetGroupMappingContainer = this.updateTargetGroupMappingContainer;
     const updateTargetGroupMappingTargetGroup = this.updateTargetGroupMappingTargetGroup;
     const updateTargetGroupMappingPort = this.updateTargetGroupMappingPort;
+    const updateEvaluateTaskDefArtifactFlag = this.updateEvaluateTaskDefArtifactFlag;
 
     const dockerImageOptions = this.state.dockerImages.map(function (image) {
       let msg = '';
@@ -342,6 +352,15 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
             />
           </div>
         </div>
+
+        <StageConfigField groupClassName="form-group evaluateTaskDef" label="Expression Evaluation" helpKey="ecs.evaluateExpression" labelColumns={5} fieldColumns={7} >
+          <CheckboxInput
+            checked={command.evaluateTaskDefinitionArtifactExpressions === true}
+            onChange={() =>  { updateEvaluateTaskDefArtifactFlag(); }}
+            text="Evaluate SpEL expressions in artifact"
+          />
+        </StageConfigField>
+
         <div className="form-group">
           <div className="sm-label-left">
             <b>Container Mappings</b>

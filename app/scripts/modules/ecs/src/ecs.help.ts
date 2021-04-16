@@ -83,6 +83,8 @@ const helpContents: { [key: string]: string } = {
     '<p>Designates how many tasks, at a minimum, to run on the specified capacity provider. Only one capacity provider in a capacity provider strategy can have a <em>base</em> defined.</p>',
   'ecs.capacityProviderWeight':
     '<p>Designates the relative percentage of the total number of tasks launched that should use the specified capacity provider.</p>',
+  'ecs.evaluateExpression':
+    '<p>Whether to evaluate <a href="https://spinnaker.io/guides/user/pipeline/expressions/" target="_blank"><b>pipeline expressions</b></a> within the task definition artifact in this stage. Checking this box let\'s you evaluate your task definition artifact coming from external sources.(e.g. GitHub) </p>',
 };
 
 Object.keys(helpContents).forEach((key) => HelpContentsRegistry.register(key, helpContents[key]));
