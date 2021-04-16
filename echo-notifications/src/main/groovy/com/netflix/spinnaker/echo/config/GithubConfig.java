@@ -34,7 +34,7 @@ import retrofit.converter.JacksonConverter;
 @Slf4j
 public class GithubConfig {
 
-  @Value("${github-status.endpoint:'https://api.github.com'}")
+  @Value("${github-status.endpoint:https://api.github.com}")
   private String endpoint;
 
   @Bean

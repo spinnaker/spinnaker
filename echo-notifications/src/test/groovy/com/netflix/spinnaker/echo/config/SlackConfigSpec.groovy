@@ -5,16 +5,11 @@ import com.netflix.spinnaker.echo.slack.SlackService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
-import retrofit.RestAdapter.LogLevel
-import retrofit.client.Client
 import spock.lang.Specification
 import spock.lang.Subject
 
 @SpringBootTest(
-  classes = [ SlackConfig, MockRetrofitConfig ],
+  classes = [SlackConfig, MockRetrofitConfig],
   properties = [
     "slack.enabled = true",
     // Used for the old bot
@@ -128,11 +123,3 @@ class SlackConfigSpec extends Specification {
 
 }
 
-@Configuration
-class MockRetrofitConfig extends Specification {
-  @MockBean Client client
-
-  @Bean LogLevel getRetrofitLogLevel() {
-    return LogLevel.BASIC
-  }
-}
