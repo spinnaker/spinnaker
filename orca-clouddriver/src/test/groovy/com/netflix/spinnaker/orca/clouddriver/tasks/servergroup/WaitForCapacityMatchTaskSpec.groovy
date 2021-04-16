@@ -29,7 +29,6 @@ class WaitForCapacityMatchTaskSpec extends Specification {
 
   CloudDriverService cloudDriverService = Mock()
   @Subject WaitForCapacityMatchTask task = new WaitForCapacityMatchTask() {
-
     @Override
     void verifyServerGroupsExist(StageExecution stage) {
       // do nothing

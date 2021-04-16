@@ -18,17 +18,21 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 
+import javax.annotation.Nonnull
 import java.util.concurrent.TimeUnit
 import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
 import groovy.util.logging.Slf4j
 import org.slf4j.MDC
 import org.springframework.stereotype.Component
 
+import java.util.stream.IntStream
+import java.util.stream.Stream
+
 @Component
 @Slf4j
 class WaitForUpInstancesTask extends AbstractInstancesCheckTask {
 
-  static final int MIN_ZERO_INSTANCE_RETRY_COUNT = 12
+  private static final int MIN_ZERO_INSTANCE_RETRY_COUNT = 12
 
   // We do not want to fail before the server group has been created.
   boolean waitForUpServerGroup() {
@@ -36,54 +40,75 @@ class WaitForUpInstancesTask extends AbstractInstancesCheckTask {
   }
 
   @Override
-  Map getAdditionalRunningStageContext(StageExecution stage, Map serverGroup) {
-    def additionalRunningStageContext = [
-      targetDesiredSize: calculateTargetDesiredSize(stage, serverGroup),
-      lastCapacityCheck: getHealthCountSnapshot(stage, serverGroup)
-    ]
+  protected Map<String, Object> getAdditionalRunningStageContext(StageExecution stage, Map<String, Object> serverGroup) {
+    Map<String, Object> additionalRunningStageContext = new HashMap<>()
 
-    if (!stage.context.capacitySnapshot) {
-      def initialTargetCapacity = getServerGroupCapacity(stage, serverGroup)
-      additionalRunningStageContext.capacitySnapshot = [
-        minSize        : initialTargetCapacity.min,
-        desiredCapacity: initialTargetCapacity.desired,
-        maxSize        : initialTargetCapacity.max
-      ]
+    additionalRunningStageContext.put("targetDesiredSize", calculateTargetDesiredSize(stage, serverGroup))
+    additionalRunningStageContext.put("lastCapacityCheck", getHealthCountSnapshot(stage, serverGroup))
+
+    Map<String, Object> snapshot = (Map<String, Object>) stage.getContext().get("capacitySnapshot")
+
+    if (snapshot == null || snapshot.isEmpty()) {
+      Map<String, Integer> initialTargetCapacity = getServerGroupCapacity(stage, serverGroup)
+
+      snapshot = new HashMap<>()
+      snapshot.put("minSize", initialTargetCapacity.get("min"))
+      snapshot.put("desiredCapacity", initialTargetCapacity.get("desired"))
+      snapshot.put("maxSize", initialTargetCapacity.get("max"))
+
+      additionalRunningStageContext.put("capacitySnapshot", snapshot)
     }
 
     return additionalRunningStageContext
   }
 
-  static boolean allInstancesMatch(StageExecution stage,
-                                   Map serverGroup,
-                                   List<Map> instances,
-                                   Collection<String> interestingHealthProviderNames,
-                                   Splainer parentSplainer = null) {
-    def splainer = parentSplainer ?: new Splainer()
-      .add("Instances up check for server group ${serverGroup?.name} [executionId=${stage.execution.id}, stagedId=${stage.execution.id}]")
+  public static boolean allInstancesMatch(StageExecution stage,
+                                          Map<String, Object> serverGroup,
+                                          List<Map<String, Object>> instances,
+                                          Collection<String> interestingHealthProviderNames) {
+    return allInstancesMatch(stage, serverGroup, instances, interestingHealthProviderNames, null)
+  }
+
+   public static boolean allInstancesMatch(StageExecution stage,
+                                          Map<String, Object> serverGroup,
+                                          List<Map<String, Object>> instances,
+                                          Collection<String> interestingHealthProviderNames,
+                                          Splainer parentSplainer) {
+    Splainer splainer = parentSplainer == null ? new Splainer() : parentSplainer
+
+    if (serverGroup == null) {
+      splainer.add("short-circuiting out of allInstancesMatch because of null serverGroup")
+      return false
+    }
+
+    String execId = stage.getExecution().getId()
+
+    splainer.add(String.format("Instances up check for server group %s [executionId=%s, stagedId=%s]", serverGroup.get("name"), execId, execId))
 
     try {
-      if (!(serverGroup?.capacity)) {
-        splainer.add("short-circuiting out of allInstancesMatch because of empty capacity in serverGroup=${serverGroup}")
+      Object capacity = serverGroup.get("capacity")
+      if (capacity == null || (capacity instanceof Map && capacity.isEmpty())) {
+        splainer.add(String.format("short-circuiting out of allInstancesMatch because of empty capacity in serverGroup=%s", serverGroup))
         return false
       }
 
+      Map<String, Object> capacitySnapshot = (Map<String, Object>) stage.getContext().get("capacitySnapshot")
+
       int targetDesiredSize = calculateTargetDesiredSize(stage, serverGroup, splainer)
-      if (targetDesiredSize == 0 && stage.context.capacitySnapshot) {
+      if (targetDesiredSize == 0 && capacitySnapshot != null && !capacitySnapshot.isEmpty()) {
         // if we've seen a non-zero value before, but we are seeing a target size of zero now, assume
         // it's a transient issue with edda unless we see it repeatedly
-        Map snapshot = stage.context.capacitySnapshot as Map
-        Integer snapshotDesiredCapacity = snapshot.desiredCapacity as Integer
+        Integer snapshotDesiredCapacity = capacitySnapshot.get("desiredCapacity") as Integer
         if (snapshotDesiredCapacity != 0) {
-          Integer seenCount = stage.context.zeroDesiredCapacityCount as Integer
+          Number seenCount = ((Number) stage.getContext().get("zeroDesiredCapacityCount"))
           boolean noLongerRetrying = seenCount >= MIN_ZERO_INSTANCE_RETRY_COUNT
-          splainer.add("seeing targetDesiredSize=0 but capacitySnapshot=${snapshot} has non-0 desiredCapacity after ${seenCount}/${MIN_ZERO_INSTANCE_RETRY_COUNT} retries}")
+          splainer.add(String.format("seeing targetDesiredSize=0 but capacitySnapshot=%s has non-0 desiredCapacity after %s/%s retries}", capacitySnapshot, seenCount, MIN_ZERO_INSTANCE_RETRY_COUNT))
           return noLongerRetrying
         }
       }
 
       if (targetDesiredSize > instances.size()) {
-        splainer.add("short-circuiting out of allInstancesMatch because targetDesiredSize=${targetDesiredSize} > instances.size()=${instances.size()}")
+        splainer.add(String.format("short-circuiting out of allInstancesMatch because targetDesiredSize=%s > instances.size()=%s", targetDesiredSize, instances.size()))
         return false
       }
 
@@ -92,11 +117,13 @@ class WaitForUpInstancesTask extends AbstractInstancesCheckTask {
         return true
       }
 
-      def healthyCount = instances.count { Map instance ->
-        HealthHelper.someAreUpAndNoneAreDownOrStarting(instance, interestingHealthProviderNames)
-      }
+      long healthyCount = instances.stream()
+          .filter({ Map instance ->
+            HealthHelper.someAreUpAndNoneAreDownOrStarting(instance, interestingHealthProviderNames)
+          })
+          .count()
 
-      splainer.add("returning healthyCount=${healthyCount} >= targetDesiredSize=${targetDesiredSize}")
+      splainer.add(String.format("returning healthyCount=%s >= targetDesiredSize=%s", healthyCount, targetDesiredSize))
       return healthyCount >= targetDesiredSize
     } finally {
       // if we have a parent splainer, then it's not our job to splain
@@ -106,11 +133,21 @@ class WaitForUpInstancesTask extends AbstractInstancesCheckTask {
     }
   }
 
-  static int calculateTargetDesiredSize(StageExecution stage, Map serverGroup, Splainer splainer = NOOPSPLAINER) {
+  public static int calculateTargetDesiredSize(StageExecution stage, @Nonnull Map<String, Object> serverGroup) {
+    return calculateTargetDesiredSize(stage, serverGroup, NOOPSPLAINER)
+  }
+
+  public static int calculateTargetDesiredSize(StageExecution stage, @Nonnull Map<String, Object> serverGroup, Splainer splainer) {
+    Map<String, Object> context = stage.getContext()
+
     // Don't wait for spot instances to come up if the deployment strategy is None. All other deployment strategies rely on
     // confirming the new serverGroup is up and working correctly, so doing this is only safe with the None strategy
     // This should probably be moved to an AWS-specific part of the codebase
-    if (serverGroup?.launchConfig?.spotPrice != null && stage.context.strategy == '') {
+    boolean hasSpotPrice = Optional.ofNullable(serverGroup)
+        .map({ (Map) it.get("launchConfig") })
+        .map({ it.get("spotPrice") })
+        .isPresent()
+    if (hasSpotPrice && "".equals(context.get("strategy"))) {
       splainer.add("setting targetDesiredSize=0 because the server group has a spot price configured and the strategy is None")
       return 0
     }
@@ -119,55 +156,70 @@ class WaitForUpInstancesTask extends AbstractInstancesCheckTask {
     Integer targetDesiredSize
 
     if (useConfiguredCapacity(stage, currentCapacity)) {
-      targetDesiredSize = ((Map<String, Integer>) stage.context.capacity).desired as Integer
-      splainer.add("setting targetDesiredSize=${targetDesiredSize} from the configured stage context.capacity=${stage.context.capacity}")
+      targetDesiredSize = ((Map<String, Integer>) context.get("capacity")).get("desired") as Integer
+      splainer.add(String.format("setting targetDesiredSize=%s from the configured stage context.capacity=%s", targetDesiredSize, context.capacity))
     } else {
-      targetDesiredSize = currentCapacity.desired as Integer
-      splainer.add("setting targetDesiredSize=${targetDesiredSize} from the desired size in current serverGroup capacity=${currentCapacity}")
+      targetDesiredSize = currentCapacity.get("desired") as Integer
+      splainer.add(String.format("setting targetDesiredSize=%s from the desired size in current serverGroup capacity=%s", targetDesiredSize, currentCapacity))
     }
 
-    if (stage.context.targetHealthyDeployPercentage != null) {
-      Integer percentage = (Integer) stage.context.targetHealthyDeployPercentage
+    Integer percentage = (Integer) context.get("targetHealthyDeployPercentage")
+    if (percentage != null) {
+
       if (percentage < 0 || percentage > 100) {
         throw new NumberFormatException("targetHealthyDeployPercentage must be an integer between 0 and 100")
       }
 
-      def newTargetDesiredSize = Math.round(percentage * targetDesiredSize / 100D) as Integer
+      Integer newTargetDesiredSize = Math.round(percentage * targetDesiredSize / 100D) as Integer
       if ((newTargetDesiredSize == 0) && (percentage != 0) && (targetDesiredSize > 0)) {
         // Unless the user specified they want 0% or we actually have 0 instances in the server group,
         // never allow 0 instances due to rounding
         newTargetDesiredSize = 1
       }
-      splainer.add("setting targetDesiredSize=${newTargetDesiredSize} based on configured targetHealthyDeployPercentage=${percentage}% of previous targetDesiredSize=${targetDesiredSize}")
+      splainer.add(String.format("setting targetDesiredSize=%s based on configured targetHealthyDeployPercentage=%s%% of previous targetDesiredSize=%s", newTargetDesiredSize, percentage, targetDesiredSize))
       targetDesiredSize = newTargetDesiredSize
-    } else if (stage.context.desiredPercentage != null) {
-      Integer percentage = (Integer) stage.context.desiredPercentage
-      targetDesiredSize = WaitingForInstancesTaskHelper.getDesiredInstanceCount(currentCapacity, percentage)
-      splainer.add("setting targetDesiredSize=${targetDesiredSize} based on desiredPercentage=${percentage}% of capacity=${currentCapacity}")
+    } else {
+      percentage = (Integer) context.get("desiredPercentage")
+      if (percentage != null) {
+        targetDesiredSize = WaitingForInstancesTaskHelper.getDesiredInstanceCount(currentCapacity, percentage)
+        splainer.add(String.format("setting targetDesiredSize=%s based on desiredPercentage=%s%% of capacity=%s", targetDesiredSize, percentage, currentCapacity))
+      }
     }
 
     return targetDesiredSize
   }
 
+
+  private static final Set<String> CAPACITY_KEYS = Set.of("min", "max", "desired")
   // If either the configured capacity or current serverGroup has autoscaling disabled, calculate
   // targetDesired from the configured capacity. This relaxes the need for clouddriver onDemand
   // cache updates while resizing serverGroups.
   static boolean useConfiguredCapacity(StageExecution stage, Map<String, Integer> current) {
-    Map<String, Integer> configured =
-      (stage.context.getOrDefault("capacity", [:]))
-      .subMap(["min", "max", "desired"])
-      .collectEntries { k, v -> [(k): v as Integer] } as Map<String, Integer>
 
-    if (configured.desired == null) {
+    if (current.get("desired") == null) {
+      return true
+    }
+    Map<String, Object> contextCapacity = (Map<String, Object>) stage.getContext().get("capacity")
+
+    if (contextCapacity == null || contextCapacity.get("desired") == null) {
       return false
     }
 
-    if (current.desired == null) {
-      return true
-    }
-
-    return (configured.min == configured.max && configured.min == configured.desired) ||
-      (current.min == current.max && current.min == current.desired)
+    // need convert values to integers but other keys may be present
+    Map<String, Integer> configured = new HashMap<>()
+    contextCapacity.forEach({ k, v ->
+      if (CAPACITY_KEYS.contains(k)) {
+        Integer value = null
+        if (v instanceof Number) {
+          value = ((Number) v).intValue()
+        } else if (v != null) {
+          value = Integer.parseInt(v.toString())
+        }
+        configured.put(k, value)
+      }
+    })
+    return (configured.get("min") == configured.get("max") && configured.get("min") == configured.get("desired")) ||
+        (current.get("min") == current.get("max") && current.get("min") == current.get("desired"))
   }
 
   @Override
@@ -176,40 +228,42 @@ class WaitForUpInstancesTask extends AbstractInstancesCheckTask {
   }
 
   @Override
-  protected boolean hasSucceeded(StageExecution stage, Map serverGroup, List<Map> instances, Collection<String> interestingHealthProviderNames) {
+  protected boolean hasSucceeded(StageExecution stage, Map<String, Object> serverGroup, List<Map<String, Object>> instances, Collection<String> interestingHealthProviderNames) {
     allInstancesMatch(stage, serverGroup, instances, interestingHealthProviderNames)
   }
 
-  private static HealthCountSnapshot getHealthCountSnapshot(StageExecution stage, Map serverGroup) {
+  private static HealthCountSnapshot getHealthCountSnapshot(StageExecution stage, Map<String, Object> serverGroup) {
     HealthCountSnapshot snapshot = new HealthCountSnapshot()
     Collection<String> interestingHealthProviderNames = stage.context.interestingHealthProviderNames as Collection
     if (interestingHealthProviderNames != null && interestingHealthProviderNames.isEmpty()) {
       snapshot.up = serverGroup.instances.size()
       return snapshot
     }
-    serverGroup.instances.each { Map instance ->
-      List<Map> healths = HealthHelper.filterHealths(instance, interestingHealthProviderNames)
+    serverGroup.get("instances").each { Map instance ->
+      List<Map<String, Object>> healths = HealthHelper.filterHealths(instance, interestingHealthProviderNames)
       if (HealthHelper.someAreUpAndNoneAreDownOrStarting(instance, interestingHealthProviderNames)) {
         snapshot.up++
       } else if (someAreDown(instance, interestingHealthProviderNames)) {
         snapshot.down++
-      } else if (healths.any { it.state == 'OutOfService' }) {
-        snapshot.outOfService++
-      } else if (healths.any { it.state == 'Starting' }) {
-        snapshot.starting++
-      } else if (healths.every { it.state == 'Succeeded' }) {
-        snapshot.succeeded++
-      } else if (healths.any { it.state == 'Failed' }) {
-        snapshot.failed++
       } else {
-        snapshot.unknown++
+        if (healths.stream().anyMatch({ "OutOfService".equals(it.get("state")) })) {
+          snapshot.outOfService++
+        } else if (healths.stream().anyMatch({ "Starting".equals(it.get("state")) })) {
+          snapshot.starting++
+        } else if (healths.stream().allMatch({ "Succeeded".equals(it.get("state")) })) {
+          snapshot.succeeded++
+        } else if (healths.stream().anyMatch({ "Failed".equals(it.get("state")) })) {
+          snapshot.failed++
+        } else {
+          snapshot.unknown++
+        }
       }
     }
     return snapshot
   }
 
   private static boolean someAreDown(Map instance, Collection<String> interestingHealthProviderNames) {
-    List<Map> healths = HealthHelper.filterHealths(instance, interestingHealthProviderNames)
+    List<Map<String, Object>> healths = HealthHelper.filterHealths(instance, interestingHealthProviderNames)
 
     if (!interestingHealthProviderNames && !healths) {
       // No health indications (and no specific providers to check), consider instance to be in an unknown state.
@@ -217,7 +271,7 @@ class WaitForUpInstancesTask extends AbstractInstancesCheckTask {
     }
 
     // no health indicators is indicative of being down
-    return !healths || healths.any { it.state == 'Down' || it.state == 'OutOfService' }
+    return !healths || healths.stream().anyMatch({ it.state == 'Down' || it.state == 'OutOfService' })
   }
 
   /**
@@ -229,20 +283,24 @@ class WaitForUpInstancesTask extends AbstractInstancesCheckTask {
    * This method aims to generically detect these scenarios and use the target capacity of the
    * server group rather than 0/0/0.
    */
-  private static Map<String, Integer> getServerGroupCapacity(StageExecution stage, Map serverGroup) {
-    def serverGroupCapacity = serverGroup.capacity as Map<String, Integer>
+  protected static Map<String, Integer> getServerGroupCapacity(StageExecution stage, Map<String, Object> serverGroup) {
+    Map<String, Integer> serverGroupCapacity = serverGroup.get("capacity") as Map<String, Integer>
 
-    def cloudProvider = stage.context.cloudProvider
+    String execId = stage.getExecution().getId()
 
-    Optional<String> taskStartTime = Optional.ofNullable(MDC.get("taskStartTime"));
-    if (taskStartTime.isPresent()) {
-      if (System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(10) > Long.valueOf(taskStartTime.get())) {
+    String cloudProvider = (String) stage.getContext().get("cloudProvider")
+
+    String taskStartTime = MDC.get("taskStartTime")
+    if (taskStartTime != null) {
+      if (System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(10) > Long.valueOf(taskStartTime)) {
         // expectation is reconciliation has happened within 10 minutes and that the
         // current server group capacity should be preferred
         log.warn(
-          "Short circuiting initial target capacity determination after 10 minutes (serverGroup: {}, executionId: {})",
-          "${cloudProvider}:${serverGroup.region}:${serverGroup.name}",
-          stage.execution.id
+            "Short circuiting initial target capacity determination after 10 minutes (serverGroup: {}:{}:{}, executionId: {})",
+            cloudProvider,
+            serverGroup.get("region"),
+            serverGroup.get("name"),
+            execId
         )
         return serverGroupCapacity
       }
@@ -251,30 +309,36 @@ class WaitForUpInstancesTask extends AbstractInstancesCheckTask {
     def initialTargetCapacity = getInitialTargetCapacity(stage, serverGroup)
     if (!initialTargetCapacity) {
       log.debug(
-        "Unable to determine initial target capacity (serverGroup: {}, executionId: {})",
-        "${cloudProvider}:${serverGroup.region}:${serverGroup.name}",
-        stage.execution.id
+          "Unable to determine initial target capacity (serverGroup: {}:{}:{}, executionId: {})",
+          cloudProvider,
+          serverGroup.get("region"),
+          serverGroup.get("name"),
+          execId
       )
       return serverGroupCapacity
     }
 
-    if ((serverGroup.capacity.max == 0 && initialTargetCapacity.max != 0) ||
-      (serverGroup.capacity.desired == 0 && initialTargetCapacity.desired > 0)) {
+    if ((serverGroupCapacity.get("max") == 0 && initialTargetCapacity.get("max") != 0) ||
+        (serverGroupCapacity.get("desired") == 0 && initialTargetCapacity.get("desired") > 0)) {
       log.info(
-        "Overriding server group capacity (serverGroup: {}, initialTargetCapacity: {}, executionId: {})",
-        "${cloudProvider}:${serverGroup.region}:${serverGroup.name}",
-        initialTargetCapacity,
-        stage.execution.id
+          "Overriding server group capacity (serverGroup: {}:{}:{}, initialTargetCapacity: {}, executionId: {})",
+          cloudProvider,
+          serverGroup.get("region"),
+          serverGroup.get("name"),
+          initialTargetCapacity,
+          execId
       )
       serverGroupCapacity = initialTargetCapacity
     }
 
     log.debug(
-      "Determined server group capacity (serverGroup: {}, serverGroupCapacity: {}, initialTargetCapacity: {}, executionId: {}",
-      "${cloudProvider}:${serverGroup.region}:${serverGroup.name}",
-      serverGroupCapacity,
-      initialTargetCapacity,
-      stage.execution.id
+        "Determined server group capacity (serverGroup: {}:{}:{}, serverGroupCapacity: {}, initialTargetCapacity: {}, executionId: {}",
+        cloudProvider,
+        serverGroup.get("region"),
+        serverGroup.get("name"),
+        serverGroupCapacity,
+        initialTargetCapacity,
+        execId
     )
 
     return serverGroupCapacity
@@ -283,42 +347,73 @@ class WaitForUpInstancesTask extends AbstractInstancesCheckTask {
   /**
    * Fetch the new server group's initial capacity _if_ it was passed back from clouddriver.
    */
-  private static Map<String, Integer> getInitialTargetCapacity(StageExecution stage, Map serverGroup) {
-    def katoTasks = (stage.context."kato.tasks" as List<Map<String, Object>>)?.reverse()
-    def katoTask = katoTasks?.find {
-      ((List<Map>) it.getOrDefault("resultObjects", [])).any {
-        it.containsKey("deployments")
-      }
+  static Map<String, Integer> getInitialTargetCapacity(StageExecution stage, Map<String, Object> serverGroup) {
+    List<Map<String, Object>> katoTasks = (List<Map<String, Object>>) stage.getContext().get("kato.tasks")
+
+    if (katoTasks == null) {
+      return null
     }
 
-    def deployments = ((List<Map>) katoTask?.getOrDefault("resultObjects", []))?.find {
-      it.containsKey("deployments")
-    }?.get("deployments") as List<Map>
+    String name = (String) serverGroup.get("name")
+    String region = (String) serverGroup.get("region")
 
-    def deployment = deployments?.find {
-      serverGroup.name == it.get("serverGroupName") && serverGroup.region == it.get("location")
+    Optional<List<Map<String, Object>>> maybeDeployments = reverseStream(katoTasks)
+        .map({
+          List<Map> results = (List<Map<String, Object>>) it.get("resultObjects")
+          if (results == null) {
+            return null
+          }
+          results.stream()
+              .map({ (List<Map<String, Object>>) it.get("deployments") })
+              .filter({ it != null })
+              .findFirst()
+              .orElse(null)
+        })
+        .filter({ it != null })
+        .findFirst()
+
+    // find the last resultObjects with deployments
+    Map<String, Integer> result = maybeDeployments
+        .flatMap({ deployments ->
+          deployments.stream()
+              .filter({ deployment ->
+                Objects.equals(name, deployment.get("serverGroupName")) && Objects.equals(region, deployment.get("location"))
+              })
+              .map({ deployment ->
+                deployment.get("capacity") as Map<String, Integer>
+              })
+              .findFirst()
+        })
+        .orElse(null)
+    return result
+  }
+
+  static <T> Stream<T> reverseStream(List<T> list) {
+    if (list.isEmpty()) {
+      return Stream.empty()
+    } else if (list.size() == 1) {
+      return list.stream()
     }
-
-    return deployment?.capacity as Map<String, Integer>
+    return IntStream.range(1, list.size() + 1).mapToObj({ list.get(list.size() - it) })
   }
 
   public static class Splainer {
     List<String> messages = new ArrayList<>()
 
-    def add(String message) {
+    Splainer add(String message) {
       messages.add(message)
       return this
     }
 
-    def splain() {
-      log.info(messages.join("\n  - "))
+    void splain() {
+      log.info(String.join("\n  - ", messages))
     }
   }
 
   private static class NoopSplainer extends Splainer {
-    def add(String message) {}
+    NoopSplainer add(String message) { this }
 
-    def splain() {}
+    void splain() {}
   }
 
   private static NoopSplainer NOOPSPLAINER = new NoopSplainer()

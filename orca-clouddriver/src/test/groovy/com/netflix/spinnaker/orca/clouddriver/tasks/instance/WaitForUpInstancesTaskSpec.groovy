@@ -21,28 +21,25 @@ import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 
 import java.util.concurrent.TimeUnit
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
-import com.netflix.spinnaker.orca.clouddriver.OortService
-import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import org.slf4j.MDC
-import retrofit.client.Response
-import retrofit.mime.TypedString
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+
+import java.util.stream.Collectors
+
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class WaitForUpInstancesTaskSpec extends Specification {
 
-  @Subject task = new WaitForUpInstancesTask() {
+  @Subject WaitForUpInstancesTask task = new WaitForUpInstancesTask() {
     @Override
     void verifyServerGroupsExist(StageExecution stage) {
       // do nothing
     }
   }
-
-  def mapper = OrcaObjectMapper.newInstance()
 
   void cleanup() {
     MDC.clear()
@@ -137,7 +134,7 @@ class WaitForUpInstancesTaskSpec extends Specification {
     !task.hasSucceeded(new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", "", [:]), serverGroup, instances, null)
 
     where:
-    serverGroup << [null, [:], [asg: [], capacity: [],]]
+    serverGroup << [null, [:], [asg: [:], capacity: [:]]]
 
   }
 
@@ -406,10 +403,10 @@ class WaitForUpInstancesTaskSpec extends Specification {
   void 'should throw an exception if targetHealthyDeployPercentage is not between 0 and 100'() {
     when:
     task.hasSucceeded(
-      new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", "", [
-        targetHealthyDeployPercentage: percent
-      ]
-      ), [asg: [desiredCapacity: 2], capacity: [desired: 2]], [], null
+        new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", "", [
+            targetHealthyDeployPercentage: percent
+        ]
+        ), [asg: [desiredCapacity: 2], capacity: [desired: 2]], [], null
     )
 
     then:
@@ -554,21 +551,29 @@ class WaitForUpInstancesTaskSpec extends Specification {
     WaitForUpInstancesTask.getInitialTargetCapacity(stage, serverGroup) == expectedInitialTargetCapacity
 
     where:
-    katoTasks || expectedInitialTargetCapacity
-    null      || null
-    []        || null
-    [[:]]     || null
-    [
-      [resultObjects: [[deployments: [
+    katoTasks                                               || expectedInitialTargetCapacity
+    null                                                    || null
+    []                                                      || null
+    [[:]]                                                   || null
+    [[resultObjects: [[deployments: [
         deployment("app-v001", "us-west-2", 0, 1, 1),
         deployment("app-v002", "us-west-2", 0, 2, 2),
-        deployment("app-v001", "us-east-1", 0, 3, 3),
-      ]]]]
-    ]         || [min: 0, max: 1, desired: 1]     // should match on serverGroupName and location
-    [
-      [resultObjects: [[deployments: [deployment("app-v001", "us-west-2", 0, 1, 1)]]]],
-      [resultObjects: [[deployments: [deployment("app-v001", "us-west-2", 0, 2, 2)]]]],
-    ]         || [min: 0, max: 2, desired: 2]     // should look for most recent katoTask result object
+        deployment("app-v001", "us-east-1", 0, 3, 3),]]]]]  || [min: 0, max: 1, desired: 1]     // should match on serverGroupName and location
+    [[resultObjects: [[deployments: [
+        deployment("app-v001", "us-west-2", 0, 1, 1)]]]],
+     [resultObjects: [[deployments: [
+         deployment("app-v001", "us-west-2", 0, 2, 2)]]]],] || [min: 0, max: 2, desired: 2]     // should look for most recent katoTask result object
+  }
+
+  def 'reverse stream'() {
+    expect:
+    WaitForUpInstancesTask.reverseStream(list).collect(Collectors.toList()) == list.reverse()
+
+    where:
+    scenario | list
+    'empty'  | []
+    '1'      | [1]
+    'many'   | [1, 2, 4, 3]
   }
 
   @Unroll

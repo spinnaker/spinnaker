@@ -238,7 +238,7 @@ class WaitForRequiredInstancesDownTaskSpec extends Specification {
 
     where:
     lastTaskId | katoTask                                                                             || expectedInstanceNamesToDisable
-    100        | []                                                                                   || []
+    100        | [:]                                                                                  || []
     100        | [id: 100, resultObjects: [[:]]]                                                      || []
     100        | [id: 100, resultObjects: [[instanceIdsToDisable: ["i-1234"]]]]                       || ["i-1234"]
     100        | [id: 100, resultObjects: [[instanceIdsToDisable: ["i-1234", "i-5678"]],

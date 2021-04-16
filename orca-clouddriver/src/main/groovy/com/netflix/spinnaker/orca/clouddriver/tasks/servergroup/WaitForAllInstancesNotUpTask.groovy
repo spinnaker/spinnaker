@@ -14,45 +14,50 @@
  * limitations under the License.
  */
 
+package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup;
 
-package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import com.netflix.spinnaker.orca.clouddriver.tasks.instance.AbstractInstancesCheckTask;
+import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitingForInstancesTaskHelper;
+import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import org.springframework.stereotype.Component;
 
-import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
-import com.netflix.spinnaker.orca.clouddriver.tasks.instance.AbstractInstancesCheckTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitingForInstancesTaskHelper
-import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
-import groovy.util.logging.Slf4j
-import org.springframework.stereotype.Component
-
-@Slf4j
 @Component
 @Deprecated
 /**
- * @deprecated this does not handle some corner cases (like the platformHealthOnly flag), use {@link WaitForRequiredInstancesDownTask} instead
+ * @deprecated this does not handle some corner cases (like the platformHealthOnly flag), use {@link
+ *     WaitForRequiredInstancesDownTask} instead.
  */
-class WaitForAllInstancesNotUpTask extends AbstractInstancesCheckTask {
+public class WaitForAllInstancesNotUpTask extends AbstractInstancesCheckTask {
   @Override
   protected Map<String, List<String>> getServerGroups(StageExecution stage) {
-    return WaitingForInstancesTaskHelper.extractServerGroups(stage)
+    return WaitingForInstancesTaskHelper.extractServerGroups(stage);
   }
 
   @Override
-  protected boolean hasSucceeded(StageExecution stage, Map serverGroup, List<Map> instances, Collection<String> interestingHealthProviderNames) {
+  protected boolean hasSucceeded(
+      StageExecution stage,
+      Map<String, Object> serverGroup,
+      List<Map<String, Object>> instances,
+      Collection<String> interestingHealthProviderNames) {
     if (interestingHealthProviderNames != null && interestingHealthProviderNames.isEmpty()) {
-      return true
+      return true;
     }
 
-    instances.every { instance ->
-      List<Map> healths = HealthHelper.filterHealths(instance, interestingHealthProviderNames)
+    return instances.stream()
+        .allMatch(
+            instance -> {
+              List<Map<String, Object>> healths =
+                  HealthHelper.filterHealths(instance, interestingHealthProviderNames);
 
-      if (!interestingHealthProviderNames && !healths) {
-        // No health indications (and no specific providers to check), consider instance to be down.
-        return true
-      }
-
-      boolean noneAreUp = !healths.any { it.state == 'Up' }
-      return noneAreUp
-    }
+              boolean noneAreUp =
+                  healths == null // No health indications (and no specific providers to check),
+                      // consider instance to be down.
+                      || healths.stream().noneMatch(health -> "Up".equals(health.get("state")));
+              return noneAreUp;
+            });
   }
 }
-

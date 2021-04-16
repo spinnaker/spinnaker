@@ -82,8 +82,8 @@ public abstract class AbstractInstancesCheckTask
 
   protected abstract boolean hasSucceeded(
       StageExecution stage,
-      Map serverGroup,
-      List<Map> instances,
+      Map<String, Object> serverGroup,
+      List<Map<String, Object>> instances,
       Collection<String> interestingHealthProviderNames);
 
   protected Map<String, Object> getAdditionalRunningStageContext(
@@ -166,7 +166,8 @@ public abstract class AbstractInstancesCheckTask
         Collection<String> interestingHealthProviderNames =
             (Collection<String>) context.get("interestingHealthProviderNames");
 
-        List<Map> instances = (List<Map>) serverGroup.get("instances");
+        List<Map<String, Object>> instances =
+            (List<Map<String, Object>>) serverGroup.get("instances");
         if (instances == null) {
           instances = List.of();
         }

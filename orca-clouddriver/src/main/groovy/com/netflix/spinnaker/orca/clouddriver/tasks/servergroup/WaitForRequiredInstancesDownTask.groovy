@@ -24,120 +24,141 @@ import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
 import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
 
+import java.util.stream.Collectors
+
 @Component
 @Slf4j
-class WaitForRequiredInstancesDownTask extends AbstractInstancesCheckTask {
+public class WaitForRequiredInstancesDownTask extends AbstractInstancesCheckTask {
   @Override
   protected Map<String, List<String>> getServerGroups(StageExecution stage) {
     return WaitingForInstancesTaskHelper.extractServerGroups(stage)
   }
 
   @Override
-  protected boolean hasSucceeded(StageExecution stage, Map serverGroup, List<Map> instances, Collection<String> interestingHealthProviderNames) {
+  protected boolean hasSucceeded(StageExecution stage, Map<String, Object> serverGroup, List<Map<String, Object>> instances, Collection<String> interestingHealthProviderNames) {
     if (interestingHealthProviderNames != null && interestingHealthProviderNames.isEmpty()) {
       return true
     }
 
-    def targetDesiredSize = instances.size()
+    int targetDesiredSize = instances.size()
 
     // During a rolling red/black we want a percentage of instances to be disabled.
-    def desiredPercentage = stage.context.desiredPercentage
+    Object desiredPercentage = stage.getContext().get("desiredPercentage")
     if (desiredPercentage != null) {
       List<String> skippedIds = getSkippedInstances(stage)
-      List<Map> skippedInstances = instances.findAll { skippedIds.contains(it.name) }
+
+      List<Map> skippedInstances = skippedIds.isEmpty()
+          ? List.of()
+          : instances.stream().filter({ skippedIds.contains(it.get("name")) }).collect(Collectors.toList())
+
       List<Map> instancesToDisable = getInstancesToDisable(stage, instances)
 
       if (!skippedInstances.isEmpty()) {
-        List<Map> skippedButNotDown = skippedInstances.findAll {
-          !HealthHelper.someAreDownAndNoneAreUp(it, interestingHealthProviderNames)
-        }
-        Map<String, List<Map>> skippedInstanceHealths = skippedButNotDown.collectEntries { instance ->
-          [(instance.name): HealthHelper.filterHealths(instance, interestingHealthProviderNames)]
-        }
+        List<Map> skippedButNotDown = skippedInstances.stream().
+            filter({ !HealthHelper.someAreDownAndNoneAreUp(it, interestingHealthProviderNames) })
+            .collect(Collectors.toList())
+
+        Map<String, List<Map<String, Object>>> skippedInstanceHealths = new HashMap<>()
+
+        skippedButNotDown.stream().forEach({ instance ->
+          skippedInstanceHealths.put((String) instance.get("name"), HealthHelper.filterHealths(instance, interestingHealthProviderNames))
+        })
+
         if (!skippedInstanceHealths.isEmpty()) {
           log.debug(
-            "Health for instances in {} that clouddriver skipped deregistering but are " +
-              "reporting as up: {} (executionId: {})",
-            serverGroup.name,
-            skippedInstanceHealths,
-            stage.execution.id
-          )
+              "Health for instances in {} that clouddriver skipped deregistering but are " +
+                  "reporting as up: {} (executionId: {})",
+              serverGroup.get("name"),
+              skippedInstanceHealths,
+              stage.getExecution().getId())
         }
       }
 
-      if (instancesToDisable) {
+      if (!instancesToDisable.isEmpty()) {
         /**
          * Ensure that any explicitly supplied (by clouddriver!) instance ids have been disabled.
          *
          * If no instance ids found, fall back to using `desiredPercentage` to calculate how many instances
          * should be disabled.
          */
-        def instancesAreDisabled = instancesToDisable.every { instance ->
+        boolean instancesAreDisabled = instancesToDisable.stream().allMatch({ instance ->
           return HealthHelper.someAreDownAndNoneAreUp(instance, interestingHealthProviderNames)
-        }
+        })
 
         log.debug(
-          "{} {}% of {}: {} (executionId: {})",
-          instancesAreDisabled ? "Disabled" : "Disabling",
-          desiredPercentage,
-          serverGroup.name,
-          instancesToDisable.collect { it.name }.join(", "),
-          stage.execution.id
+            "{} {}% of {}: {} (executionId: {})",
+            instancesAreDisabled ? "Disabled" : "Disabling",
+            desiredPercentage,
+            serverGroup.get("name"),
+            instancesToDisable.stream().map({ it.get("name") }).collect(Collectors.joining(", ")),
+            stage.getExecution().getId()
         )
 
         return instancesAreDisabled
       }
 
-      Map capacity = (Map) serverGroup.capacity
+      Map capacity = (Map) serverGroup.get("capacity")
       Integer percentage = (Integer) desiredPercentage
       targetDesiredSize = WaitingForInstancesTaskHelper.getDesiredInstanceCount(capacity, percentage)
     }
 
     // We need at least target instances to be disabled.
-    return instances.count { instance ->
-      return HealthHelper.someAreDownAndNoneAreUp(instance, interestingHealthProviderNames)
-    } >= targetDesiredSize
+    return instances.stream()
+        .filter({ instance -> HealthHelper.someAreDownAndNoneAreUp(instance, interestingHealthProviderNames) })
+        .count() >= targetDesiredSize
   }
 
-  static List<String> getSkippedInstances(StageExecution stage, List<Map> results = []) {
-    def resultObjects = results.isEmpty() ? getKatoResults(stage) : results
-    def skippedInstances = resultObjects.find {
-      it.containsKey("discoverySkippedInstanceIds")
-    }?.discoverySkippedInstanceIds ?: []
+  private static List<String> getSkippedInstances(StageExecution stage, List<Map> results = List.of()) {
+    List<Map> resultObjects = results.isEmpty() ? getKatoResults(stage) : results
+    List<String> skippedInstances = resultObjects.stream()
+        .filter({ it.containsKey("discoverySkippedInstanceIds") })
+        .map({ it.get("discoverySkippedInstanceIds") as List<String> })
+        .filter({ it != null })
+        .findFirst()
+        .orElse(List.of())
 
-    return skippedInstances as List<String>
+    return skippedInstances
   }
 
-  static List<Map> getInstancesToDisable(StageExecution stage, List<Map> instances) {
-    def resultObjects = getKatoResults(stage)
+  protected static List<Map> getInstancesToDisable(StageExecution stage, List<Map> instances) {
+    List<Map> resultObjects = getKatoResults(stage)
 
     if (!resultObjects.isEmpty()) {
-      def instanceIdsToDisable = resultObjects.find {
-        it.containsKey("instanceIdsToDisable")
-      }?.instanceIdsToDisable ?: []
+      Collection<String> instanceIdsToDisable = resultObjects.stream()
+          .filter({ it.containsKey("instanceIdsToDisable") })
+          .map({ it.get("instanceIdsToDisable") as Collection<String> })
+          .filter({ it != null })
+          .findFirst()
+          .orElse(List.of())
 
-      def skippedInstances = getSkippedInstances(stage, resultObjects)
+      List<String> skippedInstances = getSkippedInstances(stage, resultObjects)
 
-      return instances.findAll {
-        instanceIdsToDisable.contains(it.name) &&
-          !skippedInstances.contains(it.name)
+      return instances.stream()
+          .filter({instance ->
+            String name = (String) instance.get("name")
+            return instanceIdsToDisable.contains(name) && !skippedInstances.contains(name)
+          })
+          .collect(Collectors.toList())
+    }
+    return List.of()
+  }
+
+  private static List<Map> getKatoResults(StageExecution stage) {
+    Map<String, Object> context = stage.getContext();
+    TaskId lastTaskId = context.get("kato.last.task.id") as TaskId //TODO: this coercion is gross
+    List<Map> katoTasks = context.get("kato.tasks") as List<Map>
+
+    if (katoTasks != null && lastTaskId != null) {
+      Map lastKatoTask = katoTasks.stream()
+          .filter({ it.get("id").toString().equals(lastTaskId.getId()) })
+          .findFirst()
+          .orElse(null)
+
+      if (lastKatoTask != null && !lastKatoTask.isEmpty()) {
+        def resultObjects = lastKatoTask.get("resultObjects") as List<Map>
+        return resultObjects
       }
     }
-
-    return []
+    return List.of()
   }
-
-  static List<Map> getKatoResults(StageExecution stage) {
-    TaskId lastTaskId = stage.context."kato.last.task.id" as TaskId
-    def katoTasks = stage.context."kato.tasks" as List<Map>
-    def lastKatoTask = katoTasks.find { it.id.toString() == lastTaskId.id }
-
-    if (lastKatoTask) {
-      def resultObjects = lastKatoTask.resultObjects as List<Map>
-      return resultObjects
-    } else {
-      return []
-    }
-  }
-
 }

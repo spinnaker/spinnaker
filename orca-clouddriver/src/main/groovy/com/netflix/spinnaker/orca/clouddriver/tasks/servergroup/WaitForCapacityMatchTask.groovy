@@ -14,72 +14,116 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
+package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup;
 
-import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
-import com.netflix.spinnaker.orca.clouddriver.tasks.instance.AbstractInstancesCheckTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForUpInstancesTask
-import groovy.util.logging.Slf4j
-import org.springframework.stereotype.Component
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import com.netflix.spinnaker.orca.clouddriver.tasks.instance.AbstractInstancesCheckTask;
+import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForUpInstancesTask;
+import java.util.*;
+import org.springframework.stereotype.Component;
 
-@Slf4j
 @Component
-class WaitForCapacityMatchTask extends AbstractInstancesCheckTask {
+public class WaitForCapacityMatchTask extends AbstractInstancesCheckTask {
 
   @Override
   protected Map<String, List<String>> getServerGroups(StageExecution stage) {
-    (Map<String, List<String>>) stage.context."deploy.server.groups"
+    return (Map<String, List<String>>) stage.getContext().get("deploy.server.groups");
   }
 
   @Override
-  Map getAdditionalRunningStageContext(StageExecution stage, Map serverGroup) {
-    return serverGroup.disabled ?
-      [:] :
-      [ targetDesiredSize: WaitForUpInstancesTask.calculateTargetDesiredSize(stage, serverGroup) ]
+  protected Map<String, Object> getAdditionalRunningStageContext(
+      StageExecution stage, Map<String, Object> serverGroup) {
+    Map<String, Object> result = new HashMap<>();
+    boolean disabled = Boolean.TRUE.equals(serverGroup.get("disabled"));
+    if (!disabled) {
+      result.put(
+          "targetDesiredSize",
+          WaitForUpInstancesTask.calculateTargetDesiredSize(stage, serverGroup));
+    }
+    return result;
   }
 
   @Override
-  protected boolean hasSucceeded(StageExecution stage, Map serverGroup, List<Map> instances, Collection<String> interestingHealthProviderNames) {
-    def splainer = new WaitForUpInstancesTask.Splainer()
-      .add("Capacity match check for server group ${serverGroup?.name} [executionId=${stage.execution.id}, stagedId=${stage.execution.id}]")
+  protected boolean hasSucceeded(
+      StageExecution stage,
+      Map<String, Object> serverGroup,
+      List<Map<String, Object>> instances,
+      Collection<String> interestingHealthProviderNames) {
+    WaitForUpInstancesTask.Splainer splainer =
+        new WaitForUpInstancesTask.Splainer()
+            .add(
+                String.format(
+                    "Capacity match check for server group %s [executionId=%s, stagedId=%s]",
+                    serverGroup.get("name"),
+                    stage.getExecution().getId(),
+                    stage.getExecution().getId()));
 
     try {
-      if (!serverGroup.capacity) {
-        splainer.add("short-circuiting out of WaitForCapacityMatchTask because of empty capacity in serverGroup=${serverGroup}")
-        return false
+      Map<String, Object> context = stage.getContext();
+
+      Map<String, Integer> capacity =
+          (Map<String, Integer>) serverGroup.getOrDefault("capacity", Map.of());
+      if (capacity.isEmpty()) {
+        splainer.add(
+            "short-circuiting out of WaitForCapacityMatchTask because of empty capacity in serverGroup="
+                + serverGroup);
+        return false;
       }
 
-      Integer desired
+      Integer desired;
 
-      if (WaitForUpInstancesTask.useConfiguredCapacity(stage, serverGroup.capacity as Map<String, Integer>)) {
-        desired = ((Map<String, Integer>) stage.context.capacity).desired as Integer
-        splainer.add("using desired from stage.context.capacity ($desired)")
+      if (WaitForUpInstancesTask.useConfiguredCapacity(stage, capacity)) {
+        desired =
+            Optional.ofNullable((Map<String, Object>) context.get("capacity"))
+                .map(it -> it.get("desired"))
+                .map(
+                    value ->
+                        value instanceof Number
+                            ? ((Number) value).intValue()
+                            : Integer.parseInt(value.toString()))
+                .orElse(null);
+        splainer.add(String.format("using desired from stage.context.capacity (%s)", desired));
       } else {
-        desired = ((Map<String, Integer>)serverGroup.capacity).desired
+        desired = capacity.get("desired");
       }
 
-      splainer.add("checking if capacity matches (desired=${desired}, target=${stage.context.targetDesiredSize ?: "none"} current=${instances.size()}) ")
-      if (stage.context.targetDesiredSize) {
-        // `targetDesiredSize` is derived from `targetHealthyDeployPercentage` and if present, then scaling has
-        // succeeded if the number of instances is greater than this value.
-        if (instances.size() < (stage.context.targetDesiredSize as Integer)) {
-          splainer.add("short-circuiting out of WaitForCapacityMatchTask because targetDesired and current capacity don't match")
-          return false
+      Integer targetDesiredSize =
+          Optional.ofNullable((Number) context.get("targetDesiredSize"))
+              .map(Number::intValue)
+              .orElse(null);
+
+      splainer.add(
+          String.format(
+              "checking if capacity matches (desired=%s, target=%s current=%s)",
+              desired, targetDesiredSize == null ? "none" : targetDesiredSize, instances.size()));
+      if (targetDesiredSize != null && targetDesiredSize != 0) {
+        // `targetDesiredSize` is derived from `targetHealthyDeployPercentage` and if present,
+        // then scaling has succeeded if the number of instances is greater than this value.
+        if (instances.size() < targetDesiredSize) {
+          splainer.add(
+              "short-circuiting out of WaitForCapacityMatchTask because targetDesired and current capacity don't match");
+          return false;
         }
-      } else if (desired != instances.size()) {
-        splainer.add("short-circuiting out of WaitForCapacityMatchTask because expected and current capacity don't match}")
-        return false
+      } else if (desired == null || desired != instances.size()) {
+        splainer.add(
+            "short-circuiting out of WaitForCapacityMatchTask because expected and current capacity don't match");
+        return false;
       }
 
-      if (serverGroup.disabled) {
-        splainer.add("capacity matches but server group is disabled, so returning hasSucceeded=true")
-        return true
+      boolean disabled = Boolean.TRUE.equals(serverGroup.get("disabled"));
+
+      if (disabled) {
+        splainer.add(
+            "capacity matches but server group is disabled, so returning hasSucceeded=true");
+        return true;
       }
 
-      splainer.add("capacity matches and server group is enabled, so we delegate to WaitForUpInstancesTask to check for healthy instances")
-      return WaitForUpInstancesTask.allInstancesMatch(stage, serverGroup, instances, interestingHealthProviderNames, splainer)
+      splainer.add(
+          "capacity matches and server group is enabled, so we delegate to WaitForUpInstancesTask to check for healthy instances");
+      return WaitForUpInstancesTask.allInstancesMatch(
+          stage, serverGroup, instances, interestingHealthProviderNames, splainer);
     } finally {
-      splainer.splain()
+      splainer.splain();
     }
   }
 }
