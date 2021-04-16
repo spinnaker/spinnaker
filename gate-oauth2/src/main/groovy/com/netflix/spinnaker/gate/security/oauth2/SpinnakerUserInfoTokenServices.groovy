@@ -28,6 +28,7 @@ import com.netflix.spinnaker.security.User
 import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties
 import org.springframework.boot.autoconfigure.security.oauth2.resource.UserInfoTokenServices
 import org.springframework.security.authentication.BadCredentialsException
@@ -40,6 +41,7 @@ import org.springframework.security.oauth2.provider.token.ResourceServerTokenSer
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken
 import retrofit.RetrofitError
 
+import java.util.function.BiFunction
 import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
 
@@ -85,6 +87,10 @@ class SpinnakerUserInfoTokenServices implements ResourceServerTokenServices {
   @Autowired
   Registry registry
 
+  @Autowired(required = false)
+  @Qualifier("spinnaker-oauth2-group-extractor")
+  BiFunction<String, Map, List<String>> groupExtractor
+
   RetrySupport retrySupport = new RetrySupport()
 
   @Override
@@ -108,7 +114,10 @@ class SpinnakerUserInfoTokenServices implements ResourceServerTokenServices {
     }
 
     def username = details[userInfoMapping.username] as String
-    def roles = getRoles(details) ?: []
+    def roles = Optional.ofNullable(groupExtractor)
+      .map({ extractor -> extractor.apply(accessToken, details) })
+      .or({ Optional.ofNullable(getRoles(details)) })
+      .orElse([])
 
     // Service accounts are already logged in.
     if (!isServiceAccount) {
