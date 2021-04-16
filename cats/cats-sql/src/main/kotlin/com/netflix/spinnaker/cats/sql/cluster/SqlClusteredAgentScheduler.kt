@@ -153,6 +153,7 @@ class SqlClusteredAgentScheduler(
   }
 
   private fun findCandidateAgentLocks(): Map<String, AgentExecutionAction> {
+    cleanupZombieAgents()
     val skip = HashMap(activeAgents).entries
     val maxConcurrentAgents = dynamicConfigService.getConfig(Int::class.java, "sql.agent.max-concurrent-agents", 100)
     val availableAgents = maxConcurrentAgents - skip.size
@@ -231,6 +232,16 @@ class SqlClusteredAgentScheduler(
       }
 
     return trimmedCandidates
+  }
+
+  private fun cleanupZombieAgents() {
+    val zombieAgentThreshold = dynamicConfigService.getConfig(Long::class.java, "sql.agent.zombie-threshold-ms", 3600000)
+    activeAgents
+      .filter { it.value.currentTime < System.currentTimeMillis() - zombieAgentThreshold }
+      .forEach {
+        log.warn("Found zombie agent {}, removing it", it.key)
+        activeAgents.remove(it.key, it.value)
+    }
   }
 
   private fun tryAcquireSingle(agentType: String, now: Long, timeout: Long): Boolean {
