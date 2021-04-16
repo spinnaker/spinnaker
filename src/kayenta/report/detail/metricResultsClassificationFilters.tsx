@@ -40,7 +40,7 @@ const MetricFilters = ({
       <input
         type="checkbox"
         checked={metricFilters.includes(o.classification)}
-        onClick={() => toggle(o.classification)}
+        onChange={() => toggle(o.classification)}
       />{' '}
       {o.classification} ({o.count}){' '}
     </label>

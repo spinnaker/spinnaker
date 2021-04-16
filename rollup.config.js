@@ -11,14 +11,15 @@ const external = [
   '@spinnaker/core',
   '@uirouter/react',
   '@uirouter/core',
+  'formik',
   'lodash',
   'luxon',
   'prop-types',
-  'formik',
   'react',
   'react-dom',
   'rxjs',
   'rxjs/Observable',
+  'semiotic',
 ];
 
 basePluginConfig.input = 'src/index.ts';

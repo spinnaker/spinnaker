@@ -14,7 +14,7 @@
     "yarn": ">=1.21.1"
   },
   "scripts": {
-    "build": "npm run clean && rollup -c",
+    "build": "npm run clean && NODE_ENV=production rollup -c",
     "test": "jest",
     "test:debug": "node --inspect-brk ./node_modules/.bin/jest --runInBand",
     "prepublishOnly": "npm run build",
@@ -63,7 +63,7 @@
     "redux-observable": "^0.14.1",
     "reselect": "^3.0.1",
     "rxjs": "^5.4.2",
-    "semiotic": "^2.0.0-rc.5",
+    "semiotic": "1.20.6",
     "spel2js": "^0.2.6",
     "ui-select": "^0.19.6"
   },

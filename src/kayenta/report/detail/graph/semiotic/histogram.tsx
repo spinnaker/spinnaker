@@ -218,7 +218,7 @@ export default class Histogram extends React.Component<ISemioticChartProps, IHis
       },
       customHoverBehavior: this.createChartHoverHandler(chartData),
       data: this.generateChartData(),
-      axes: [
+      axis: [
         {
           orient: 'left',
           label: 'measurement count',

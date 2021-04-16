@@ -257,7 +257,7 @@ export default class BoxPlot extends React.Component<ISemioticChartProps, IBoxPl
       rAccessor: (d: IChartDataPoint) => d.value,
       svgAnnotationRules: this.customAnnotationFunction,
       summaryClass: 'boxplot-summary',
-      axes: {
+      axis: {
         orient: 'left',
         label: 'metric value',
         tickFormat: (d: number) => utils.formatMetricValue(d),
