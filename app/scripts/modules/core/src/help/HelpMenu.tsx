@@ -8,7 +8,6 @@ import './HelpMenu.less';
 
 const DOCS_URL = 'https://spinnaker.io/docs';
 const COMMUNITY_URL = 'https://spinnaker.io/community';
-const VERSIONS_URL = 'https://www.spinnaker.io/community/releases/versions/';
 
 const Feedback = () =>
   SETTINGS.feedback && SETTINGS.feedback.url ? (
@@ -39,8 +38,8 @@ const Version = () => {
     return null;
   }
 
-  const CHANGELOG_PATH = `${SETTINGS.version.replace(/\./g, '-')}-changelog`;
-  const CHANGELOG_URL = `${VERSIONS_URL}${CHANGELOG_PATH}`;
+  const CHANGELOG_PATH = SETTINGS.version.replace(/\./g, '-');
+  const CHANGELOG_URL = SETTINGS.changelogUrl.replace(':version', CHANGELOG_PATH);
 
   return (
     <MenuItem href={CHANGELOG_URL} target="_blank">

@@ -138,6 +138,7 @@ export interface ISpinnakerSettings {
   triggerTypes: string[];
   useClassicFirewallLabels: boolean;
   kubernetesAdHocInfraWritesEnabled: boolean;
+  changelogUrl: string;
 }
 
 export const SETTINGS: ISpinnakerSettings = (window as any).spinnakerSettings || {};
@@ -149,6 +150,8 @@ SETTINGS.analytics = SETTINGS.analytics || {};
 SETTINGS.providers = SETTINGS.providers || {};
 SETTINGS.defaultTimeZone = SETTINGS.defaultTimeZone || 'America/Los_Angeles';
 SETTINGS.dockerInsights = SETTINGS.dockerInsights || { enabled: false, url: '' };
+SETTINGS.changelogUrl =
+  SETTINGS.changelogUrl || 'https://www.spinnaker.io/community/releases/versions/:version-changelog';
 SETTINGS.managedDelivery = SETTINGS.managedDelivery || {
   defaultManifest: 'spinnaker.yml',
   manifestBasePath: '.spinnaker',
