@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.model;
 
+import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
 import lombok.extern.slf4j.Slf4j;
 
 // adapted from clouddriver's com.netflix.spinnaker.clouddriver.model.HealthState
@@ -28,7 +29,9 @@ public enum HealthState {
   Starting,
   Succeeded,
   Up,
-  Draining;
+  Draining,
+  @JsonEnumDefaultValue
+  BAD_VALUE;
 
   /**
    * {@code HealthState.valueOf} does:

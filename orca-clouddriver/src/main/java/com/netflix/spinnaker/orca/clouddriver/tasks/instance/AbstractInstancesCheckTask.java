@@ -25,6 +25,9 @@ import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.TaskExecution;
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService;
+import com.netflix.spinnaker.orca.clouddriver.model.Cluster;
+import com.netflix.spinnaker.orca.clouddriver.model.Instance;
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper;
@@ -82,12 +85,12 @@ public abstract class AbstractInstancesCheckTask
 
   protected abstract boolean hasSucceeded(
       StageExecution stage,
-      Map<String, Object> serverGroup,
-      List<Map<String, Object>> instances,
+      ServerGroup serverGroup,
+      List<Instance> instances,
       Collection<String> interestingHealthProviderNames);
 
   protected Map<String, Object> getAdditionalRunningStageContext(
-      StageExecution stage, Map<String, Object> serverGroup) {
+      StageExecution stage, ServerGroup serverGroup) {
     return new HashMap<>();
   }
 
@@ -130,7 +133,7 @@ public abstract class AbstractInstancesCheckTask
     try {
       String cloudProvider = getCloudProvider(stage);
       Moniker moniker = MonikerHelper.monikerFromStage(stage);
-      List<Map<String, Object>> serverGroups =
+      List<ServerGroup> serverGroups =
           fetchServerGroups(
               account, cloudProvider, serverGroupsByRegion, moniker, waitForUpServerGroup());
       if (serverGroups.isEmpty()) {
@@ -144,9 +147,9 @@ public abstract class AbstractInstancesCheckTask
           .flatMap(Collection::stream)
           .forEach(serverGroup -> seenServerGroup.put(serverGroup, false));
 
-      for (Map<String, Object> serverGroup : serverGroups) {
-        String region = (String) serverGroup.get("region");
-        String name = (String) serverGroup.get("name");
+      for (ServerGroup serverGroup : serverGroups) {
+        String region = serverGroup.getRegion();
+        String name = serverGroup.getName();
 
         boolean matches =
             serverGroupsByRegion.entrySet().stream()
@@ -166,8 +169,7 @@ public abstract class AbstractInstancesCheckTask
         Collection<String> interestingHealthProviderNames =
             (Collection<String>) context.get("interestingHealthProviderNames");
 
-        List<Map<String, Object>> instances =
-            (List<Map<String, Object>>) serverGroup.get("instances");
+        List<Instance> instances = serverGroup.getInstances();
         if (instances == null) {
           instances = List.of();
         }
@@ -179,7 +181,7 @@ public abstract class AbstractInstancesCheckTask
           Map<String, Object> newContext = getAdditionalRunningStageContext(stage, serverGroup);
           if (!seenServerGroup.isEmpty()) {
 
-            Map<String, Integer> capacity = (Map<String, Integer>) serverGroup.get("capacity");
+            var capacity = serverGroup.getCapacity();
 
             if (!context.containsKey("capacitySnapshot")) {
               newContext.put("zeroDesiredCapacityCount", 0);
@@ -187,14 +189,14 @@ public abstract class AbstractInstancesCheckTask
                   "capacitySnapshot",
                   ignore -> {
                     Map<String, Integer> result = new HashMap<>();
-                    result.put("minSize", capacity.get("min"));
-                    result.put("desiredCapacity", capacity.get("desired"));
-                    result.put("maxSize", capacity.get("max"));
+                    result.put("minSize", capacity.getMin());
+                    result.put("desiredCapacity", capacity.getDesired());
+                    result.put("maxSize", capacity.getMax());
                     return result;
                   });
             }
 
-            if (Objects.equals(capacity.get("desired"), 0)) {
+            if (Objects.equals(capacity.getDesired(), 0)) {
               int zeroDesiredCapacityCount =
                   (Integer) context.getOrDefault("zeroDesiredCapacityCount", 0);
               newContext.put("zeroDesiredCapacityCount", zeroDesiredCapacityCount + 1);
@@ -288,7 +290,7 @@ public abstract class AbstractInstancesCheckTask
                 }));
   }
 
-  protected final List<Map<String, Object>> fetchServerGroups(
+  protected final List<ServerGroup> fetchServerGroups(
       String account,
       String cloudProvider,
       Map<String, List<String>> serverGroupsByRegion,
@@ -303,11 +305,10 @@ public abstract class AbstractInstancesCheckTask
       String appName = Optional.ofNullable(moniker).map(Moniker::getApp).orElseGet(names::getApp);
       String clusterName =
           Optional.ofNullable(moniker).map(Moniker::getCluster).orElseGet(names::getCluster);
-      Map<String, Object> cluster =
-          cloudDriverService.getCluster(appName, account, clusterName, cloudProvider);
+      Cluster cluster =
+          cloudDriverService.getClusterTyped(appName, account, clusterName, cloudProvider);
 
-      return Optional.ofNullable((List<Map<String, Object>>) cluster.get("serverGroups"))
-          .orElse(List.of());
+      return Optional.ofNullable(cluster.getServerGroups()).orElse(List.of());
     } else {
       // only one server group so no need to get the whole cluster
       Map.Entry<String, List<String>> onlyEntry = serverGroupsByRegion.entrySet().iterator().next();
@@ -315,8 +316,8 @@ public abstract class AbstractInstancesCheckTask
       String serverGroupName = onlyEntry.getValue().get(0);
 
       try {
-        Map<String, Object> response =
-            cloudDriverService.getServerGroup(account, region, serverGroupName);
+        ServerGroup response =
+            cloudDriverService.getServerGroupTyped(account, region, serverGroupName);
         return List.of(response);
       } catch (RetrofitError e) {
         Response response = e.getResponse();

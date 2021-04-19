@@ -19,6 +19,8 @@ package com.netflix.spinnaker.orca.kato.tasks.rollingpush
 import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
+import com.netflix.spinnaker.orca.clouddriver.model.Instance
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
 
 import java.util.concurrent.TimeUnit
@@ -43,13 +45,13 @@ class WaitForNewUpInstancesLaunchTask implements OverridableTimeoutRetryableTask
     StageData stageData = stage.mapTo(StageData)
 
     // similar check in `AbstractInstancesCheckTask`
-    Map serverGroup = cloudDriverService.getServerGroup(
+    ServerGroup serverGroup = cloudDriverService.getServerGroupTyped(
       stageData.account,
       stage.context.region as String,
       stage.context.asgName as String
     )
 
-    List<Map> serverGroupInstances = serverGroup.instances as List<Map>
+    List<Instance> serverGroupInstances = serverGroup.instances
     Set<String> knownInstanceIds = new HashSet(stage.context.knownInstanceIds as List)
 
     List<String> healthProviders = stage.context.interestingHealthProviderNames as List<String>

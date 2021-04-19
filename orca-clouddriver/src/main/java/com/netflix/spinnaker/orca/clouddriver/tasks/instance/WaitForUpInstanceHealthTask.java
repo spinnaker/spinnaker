@@ -56,7 +56,8 @@ public class WaitForUpInstanceHealthTask implements OverridableTimeoutRetryableT
             .anyMatch(
                 it -> {
                   var instance =
-                      cloudDriverService.getInstance(inputs.accountToUse(), inputs.getRegion(), it);
+                      cloudDriverService.getInstanceTyped(
+                          inputs.accountToUse(), inputs.getRegion(), it);
                   return !HealthHelper.someAreUpAndNoneAreDownOrStarting(
                       instance, inputs.getInterestingHealthProviderNames());
                 });

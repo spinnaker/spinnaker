@@ -231,7 +231,7 @@ class DetermineRollbackCandidatesTaskSpec extends Specification {
   @Unroll
   def "should calculate 'targetHealthyRollbackPercentage' when not explicitly provided"() {
     given:
-    def capacity = new ServerGroup.Capacity(min: 1, max: 100, desired: desired)
+    def capacity = ServerGroup.Capacity.builder().min(1).max(100).desired(desired).build()
 
     expect:
     determineTargetHealthyRollbackPercentage(capacity, override) == expectedTargetHealthyRollbackPercentage

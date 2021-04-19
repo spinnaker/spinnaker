@@ -1,10 +1,15 @@
 package com.netflix.spinnaker.orca.clouddriver.model;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.RollbackServerGroupStage;
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.Builder;
 import lombok.Data;
 
 @Data
@@ -14,6 +19,8 @@ public class ServerGroup {
   public String region;
   public String cluster;
   public String cloudProvider;
+  public String servingStatus;
+  public List<String> zones; // GCE only?
 
   public Moniker moniker;
   public Long createdTime;
@@ -21,7 +28,14 @@ public class ServerGroup {
   public Capacity capacity;
 
   public List<Instance> instances;
+
+  /**
+   * For some reason TargetServerGroup allows looking at 2 properties: {@link
+   * TargetServerGroup#isDisabled()} } *
+   */
+  @JsonAlias("isDisabled")
   public Boolean disabled;
+
   public Map<String, Object> launchConfig;
   public Asg asg;
   public Integer minSize;
@@ -46,15 +60,22 @@ public class ServerGroup {
   }
 
   @Data
+  @Builder
+  @JsonDeserialize(builder = Capacity.CapacityBuilder.class)
   public static class Capacity {
     public Integer min;
     public Integer desired;
     public Integer max;
+
+    @JsonPOJOBuilder(withPrefix = "")
+    public static class CapacityBuilder {}
   }
 
   @Data
   public static class Asg {
     Object desiredCapacity;
+    Object minSize;
+    Object maxSize;
     List<Process> suspendedProcesses;
   }
 

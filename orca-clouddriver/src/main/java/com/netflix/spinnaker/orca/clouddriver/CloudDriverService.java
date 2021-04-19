@@ -2,7 +2,9 @@ package com.netflix.spinnaker.orca.clouddriver;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.orca.clouddriver.model.Cluster;
 import com.netflix.spinnaker.orca.clouddriver.model.EntityTags;
+import com.netflix.spinnaker.orca.clouddriver.model.Instance;
 import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +40,8 @@ public class CloudDriverService {
     return readBody(response, SERVER_GROUPS);
   }
 
+  @Deprecated
+  /** @deprecated See {@link #getServerGroupTyped(String, String, String)}.* */
   public Map<String, Object> getServerGroup(String account, String region, String serverGroup) {
     Response response = oortService.getServerGroup(account, region, serverGroup);
     return readBody(response, JSON_MAP);
@@ -76,15 +80,29 @@ public class CloudDriverService {
     return oortService.getByAmiId(type, account, region, imageId);
   }
 
+  @Deprecated
+  /** @deprecated See {@link #getClusterTyped(String, String, String, String)}.* */
   public Map<String, Object> getCluster(
       String app, String account, String cluster, String cloudProvider) {
     Response response = oortService.getCluster(app, account, cluster, cloudProvider);
     return readBody(response, JSON_MAP);
   }
 
+  public Cluster getClusterTyped(String app, String account, String cluster, String cloudProvider) {
+    Response response = oortService.getCluster(app, account, cluster, cloudProvider);
+    return readBody(response, Cluster.class);
+  }
+
+  @Deprecated
+  /** @deprecated See {@link #getInstanceTyped(String, String, String)}.* */
   public Map<String, Object> getInstance(String account, String region, String instanceId) {
     Response response = oortService.getInstance(account, region, instanceId);
     return readBody(response, JSON_MAP);
+  }
+
+  public Instance getInstanceTyped(String account, String region, String instanceId) {
+    Response response = oortService.getInstance(account, region, instanceId);
+    return readBody(response, Instance.class);
   }
 
   @SneakyThrows // code may have depended on the exceptions thrown that groovy was hiding

@@ -18,6 +18,8 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
+import com.netflix.spinnaker.orca.clouddriver.ModelUtils
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup
 
 import java.util.concurrent.TimeUnit
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
@@ -48,7 +50,7 @@ class WaitForUpInstancesTaskSpec extends Specification {
   void "should check cluster to get server groups"() {
     given:
     def pipeline = PipelineExecutionImpl.newPipeline("orca")
-    def response = [
+    def response = ModelUtils.cluster([
       name        : "front50",
       serverGroups: [
         [
@@ -82,8 +84,8 @@ class WaitForUpInstancesTaskSpec extends Specification {
           ]
         ]
       ]
-    ]
-    def response2 = [
+    ])
+    def response2 = ModelUtils.cluster([
       name        : "front50",
       serverGroups: [
         [
@@ -102,9 +104,9 @@ class WaitForUpInstancesTaskSpec extends Specification {
           ]
         ]
       ]
-    ]
+    ])
     task.cloudDriverService = Stub(CloudDriverService) {
-      getCluster(*_) >>> [response, response2]
+      getClusterTyped(*_) >>> [response, response2]
     }
 
     and:
@@ -128,13 +130,13 @@ class WaitForUpInstancesTaskSpec extends Specification {
   @Unroll
   void 'should return false for hasSucceeded when server group is #serverGroup'() {
     setup:
-    def instances = [[health: [[state: 'Up']]]]
+    def instances = [ModelUtils.instance([health: [[state: 'Up']]])]
 
     expect:
     !task.hasSucceeded(new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", "", [:]), serverGroup, instances, null)
 
     where:
-    serverGroup << [null, [:], [asg: [:], capacity: [:]]]
+    serverGroup << [null, [:], [asg: [:], capacity: [:]]].collect {ModelUtils.serverGroup(it) }
 
   }
 
@@ -143,16 +145,16 @@ class WaitForUpInstancesTaskSpec extends Specification {
     expect:
     def instances = []
     healthy.times {
-      instances << [health: [[state: 'Up']]]
+      instances << ModelUtils.instance([health: [[state: 'Up']]])
     }
-    def serverGroup = [
+    def serverGroup = ModelUtils.serverGroup([
       asg     : [
         desiredCapacity: total
       ],
       capacity: [
         desired: total
       ]
-    ]
+    ])
     hasSucceeded == task.hasSucceeded(
       new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", "", [
         targetHealthyDeployPercentage: percent
@@ -191,9 +193,9 @@ class WaitForUpInstancesTaskSpec extends Specification {
     expect:
     def instances = []
     healthy.times {
-      instances << [health: [[state: 'Up']]]
+      instances << ModelUtils.instance([health: [[state: 'Up']]])
     }
-    def serverGroup = [
+    def serverGroup = ModelUtils.serverGroup([
       asg     : [
         desiredCapacity: total
       ],
@@ -202,7 +204,7 @@ class WaitForUpInstancesTaskSpec extends Specification {
         desired: total,
         max    : max
       ]
-    ]
+    ])
     hasSucceeded == task.hasSucceeded(
       new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", "", [
         desiredPercentage: percent
@@ -236,21 +238,21 @@ class WaitForUpInstancesTaskSpec extends Specification {
 
   void 'should succeed when ASG desired size is reached, even though snapshotCapacity is larger'() {
     when:
-    def serverGroup = [
+    def serverGroup = ModelUtils.serverGroup([
       asg     : [
         desiredCapacity: 2
       ],
       capacity: [
         desired: 2
       ]
-    ]
+    ])
     def context = [
       snapshotCapacity: [desiredCapacity: 5]
     ]
 
     def instances = [
-      [health: [[state: 'Up']]],
-      [health: [[state: 'Up']]]
+      ModelUtils.instance([health: [[state: 'Up']]]),
+      ModelUtils.instance([health: [[state: 'Up']]])
     ]
 
     then:
@@ -262,7 +264,7 @@ class WaitForUpInstancesTaskSpec extends Specification {
 
   void 'should succeed when spotPrice is set and the deployment strategy is None, even if no instances are up'() {
     when:
-    def serverGroup = [
+    def serverGroup = ModelUtils.serverGroup([
       asg         : [
         desiredCapacity: 2
       ],
@@ -272,7 +274,7 @@ class WaitForUpInstancesTaskSpec extends Specification {
       launchConfig: [
         spotPrice: 0.87
       ]
-    ]
+    ])
     def context = [
       capacity: [desired: 5],
       strategy: ''
@@ -291,14 +293,14 @@ class WaitForUpInstancesTaskSpec extends Specification {
   @Unroll
   void 'should return #result for #healthy instances when #description'() {
     when:
-    def serverGroup = [
+    def serverGroup = ModelUtils.serverGroup([
       asg     : [
         desiredCapacity: asg
       ],
       capacity: [
         desired: asg
       ]
-    ]
+    ])
 
     def context = [:]
     if (configured) {
@@ -310,7 +312,7 @@ class WaitForUpInstancesTaskSpec extends Specification {
 
     def instances = []
     healthy.times {
-      instances << [health: [[state: 'Up']]]
+      instances << ModelUtils.instance([health: [[state: 'Up']]])
     }
 
     then:
@@ -333,7 +335,7 @@ class WaitForUpInstancesTaskSpec extends Specification {
   @Unroll
   void 'calculates targetDesired based on configured capacity or servergroup depending on value'() {
     when:
-    def serverGroup = [
+    def serverGroup = ModelUtils.serverGroup([
       asg     : [
         desiredCapacity: asg.desired
       ],
@@ -342,7 +344,7 @@ class WaitForUpInstancesTaskSpec extends Specification {
         max    : asg.max,
         desired: asg.desired
       ]
-    ]
+    ])
 
     def context = [:]
 
@@ -361,7 +363,7 @@ class WaitForUpInstancesTaskSpec extends Specification {
 
     def instances = []
     healthy.times {
-      instances << [health: [[state: 'Up']]]
+      instances << ModelUtils.instance([health: [[state: 'Up']]])
     }
 
     then:
@@ -406,7 +408,7 @@ class WaitForUpInstancesTaskSpec extends Specification {
         new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", "", [
             targetHealthyDeployPercentage: percent
         ]
-        ), [asg: [desiredCapacity: 2], capacity: [desired: 2]], [], null
+        ), ModelUtils.serverGroup([asg: [desiredCapacity: 2], capacity: [desired: 2]]), [], null
     )
 
     then:
@@ -425,7 +427,7 @@ class WaitForUpInstancesTaskSpec extends Specification {
         desiredCapacity: snapshotCapacity
       ]
     ]
-    def serverGroup = [asg: [desiredCapacity: 0], capacity: [desired: 0]]
+    def serverGroup = ModelUtils.serverGroup([asg: [desiredCapacity: 0], capacity: [desired: 0]])
     hasSucceeded == task.hasSucceeded(new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", "", context), serverGroup, [], null)
 
     where:
@@ -439,10 +441,13 @@ class WaitForUpInstancesTaskSpec extends Specification {
 
   @Unroll
   void 'should succeed as #hasSucceeded based on instance providers #healthProviderNames for instances #instances'() {
+    given:
+    def serverGroup = ModelUtils.serverGroup([asg: [desiredCapacity: desiredCapacity], capacity: [desired: desiredCapacity]])
+    def instanceList = instances.collect { ModelUtils.instance(it) }
+
     expect:
     hasSucceeded == task.hasSucceeded(
-      new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", "", [:]), [asg: [desiredCapacity: desiredCapacity], capacity: [desired: desiredCapacity]], instances, healthProviderNames
-    )
+      new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", "", [:]), serverGroup, instanceList, healthProviderNames)
 
     where:
     hasSucceeded || desiredCapacity | healthProviderNames | instances
@@ -545,7 +550,7 @@ class WaitForUpInstancesTaskSpec extends Specification {
       ]
     }
 
-    def serverGroup = [name: "app-v001", region: "us-west-2"]
+    def serverGroup = ModelUtils.serverGroup([name: "app-v001", region: "us-west-2"])
 
     expect:
     WaitForUpInstancesTask.getInitialTargetCapacity(stage, serverGroup) == expectedInitialTargetCapacity
@@ -558,11 +563,11 @@ class WaitForUpInstancesTaskSpec extends Specification {
     [[resultObjects: [[deployments: [
         deployment("app-v001", "us-west-2", 0, 1, 1),
         deployment("app-v002", "us-west-2", 0, 2, 2),
-        deployment("app-v001", "us-east-1", 0, 3, 3),]]]]]  || [min: 0, max: 1, desired: 1]     // should match on serverGroupName and location
+        deployment("app-v001", "us-east-1", 0, 3, 3),]]]]]  || ServerGroup.Capacity.builder().min(0).max(1).desired(1).build()     // should match on serverGroupName and location
     [[resultObjects: [[deployments: [
         deployment("app-v001", "us-west-2", 0, 1, 1)]]]],
      [resultObjects: [[deployments: [
-         deployment("app-v001", "us-west-2", 0, 2, 2)]]]],] || [min: 0, max: 2, desired: 2]     // should look for most recent katoTask result object
+         deployment("app-v001", "us-west-2", 0, 2, 2)]]]],] || ServerGroup.Capacity.builder().min(0).max(2).desired(2).build()     // should look for most recent katoTask result object
   }
 
   def 'reverse stream'() {
@@ -585,16 +590,18 @@ class WaitForUpInstancesTaskSpec extends Specification {
       ]
     }
 
-    def serverGroup = [name: "app-v001", region: "us-west-2", capacity: serverGroupCapacity]
+    def serverGroup = ModelUtils.serverGroup([name: "app-v001", region: "us-west-2", capacity: serverGroupCapacity])
+
+    def expectedCapacity = ServerGroup.Capacity.builder().min(cap.min).max(cap.max).desired(cap.desired).build()
 
     and:
     MDC.put("taskStartTime", taskStartTime.toString())
 
     expect:
-    WaitForUpInstancesTask.getServerGroupCapacity(stage, serverGroup) == expectedServerGroupCapacity
+    WaitForUpInstancesTask.getServerGroupCapacity(stage, serverGroup) == expectedCapacity
 
     where:
-    katoTasks                                                                          | taskStartTime | serverGroupCapacity            || expectedServerGroupCapacity
+    katoTasks                                                                          | taskStartTime | serverGroupCapacity            || cap
     null                                                                               | startTime(0)  | [min: 0, max: 0, desired: 0]   || [min: 0, max: 0, desired: 0]
     [[resultObjects: [[deployments: [deployment("app-v001", "us-west-2", 0, 1, 1)]]]]] | startTime(9)  | [min: 0, max: 0, desired: 0]   || [min: 0, max: 1, desired: 1]   // should take initial capacity b/c max = 0
     [[resultObjects: [[deployments: [deployment("app-v001", "us-west-2", 0, 1, 1)]]]]] | startTime(9)  | [min: 0, max: 400, desired: 0] || [min: 0, max: 1, desired: 1]   // should take initial capacity b/c desired = 0

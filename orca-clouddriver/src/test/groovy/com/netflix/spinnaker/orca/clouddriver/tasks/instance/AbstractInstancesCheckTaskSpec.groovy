@@ -19,6 +19,9 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
+import com.netflix.spinnaker.orca.clouddriver.ModelUtils
+import com.netflix.spinnaker.orca.clouddriver.model.Instance
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import retrofit.RetrofitError
@@ -32,7 +35,7 @@ class AbstractInstancesCheckTaskSpec extends Specification {
 
   // The standard Spock Spy behavior was breaking here.
   static interface HasSucceededSpy {
-    boolean hasSucceeded(Map asg, List instances, Collection<String> interestingHealthProviderNames)
+    boolean hasSucceeded(ServerGroup asg, List<Instance> instances, Collection<String> interestingHealthProviderNames)
   }
 
   static class TestInstancesCheckTask extends AbstractInstancesCheckTask {
@@ -47,7 +50,7 @@ class AbstractInstancesCheckTaskSpec extends Specification {
     }
 
     @Override
-    protected boolean hasSucceeded(StageExecution stage, Map<String, Object> asg, List<Map<String, Object>> instances, Collection<String> interestingHealthProviderNames) {
+    protected boolean hasSucceeded(StageExecution stage, ServerGroup asg, List<Instance> instances, Collection<String> interestingHealthProviderNames) {
       hasSucceededSpy.hasSucceeded(asg, instances, interestingHealthProviderNames)
     }
 
@@ -91,29 +94,31 @@ class AbstractInstancesCheckTaskSpec extends Specification {
     ])
     stage.context.interestingHealthProviderNames = ["JustTrustMeBroItIsHealthy"]
 
+
+    def serverGroup = ModelUtils.serverGroup([
+        "name": "front50-v000",
+        "region": "us-west-1",
+        "asg": [
+            "minSize": 1
+        ],
+        "capacity": [
+            "min": 1
+        ],
+        "instances": [
+            [
+                "name": "i-12345678"
+            ]
+        ]
+    ])
+
     when:
     task.execute(stage)
 
     then:
-    1 * cloudDriverService.getServerGroup("test", "us-west-1", "front50-v000") >>
-[
-    "name": "front50-v000",
-    "region": "us-west-1",
-    "asg": [
-        "minSize": 1
-    ],
-    "capacity": [
-        "min": 1
-    ],
-    "instances": [
-        [
-            "name": "i-12345678"
-        ]
-    ]
-]
+    1 * cloudDriverService.getServerGroupTyped("test", "us-west-1", "front50-v000") >> serverGroup
 
     and:
-    1 * hasSucceededSpy.hasSucceeded(_, [['name': 'i-12345678']], ['JustTrustMeBroItIsHealthy'])
+    1 * hasSucceededSpy.hasSucceeded(_, serverGroup.instances, ['JustTrustMeBroItIsHealthy'])
   }
 
   @Unroll
@@ -137,8 +142,8 @@ class AbstractInstancesCheckTaskSpec extends Specification {
 
     then:
     result.context.zeroDesiredCapacityCount == expected
-    1 * cloudDriverService.getServerGroup("test", "us-west-1", "front50-v000") >>
-[
+    1 * cloudDriverService.getServerGroupTyped("test", "us-west-1", "front50-v000") >>
+ModelUtils.serverGroup([
     "name": "front50-v000",
     "region": "us-west-1",
     "asg": [
@@ -154,7 +159,7 @@ class AbstractInstancesCheckTaskSpec extends Specification {
             "name": "i-12345678"
         ]
     ]
-]
+])
 
     and:
     1 * hasSucceededSpy.hasSucceeded(_, _, _) >> false
@@ -178,8 +183,8 @@ class AbstractInstancesCheckTaskSpec extends Specification {
 
     then:
     result.context.zeroDesiredCapacityCount == 1
-    1 * cloudDriverService.getServerGroup("test", "us-west-1", "front50-v000") >>
-[
+    1 * cloudDriverService.getServerGroupTyped("test", "us-west-1", "front50-v000") >>
+ModelUtils.serverGroup([
     "name": "front50-v000",
     "region": "us-west-1",
     "asg": [
@@ -195,7 +200,7 @@ class AbstractInstancesCheckTaskSpec extends Specification {
             "name": "i-12345678"
         ]
     ]
-]
+])
 
     and:
     1 * hasSucceededSpy.hasSucceeded(_, _, _) >> false
@@ -217,9 +222,9 @@ class AbstractInstancesCheckTaskSpec extends Specification {
     }
 
     then:
-    1 * cloudDriverService.getServerGroup("test", "us-west-2", serverGroupName) >> {
+    1 * cloudDriverService.getServerGroupTyped("test", "us-west-2", serverGroupName) >> {
       if (statusCode == 200) {
-        return ["name": serverGroupName]
+        return new ServerGroup("name": serverGroupName)
       }
 
       throw RetrofitError.httpError(

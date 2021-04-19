@@ -17,6 +17,9 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.clouddriver.model.Health
+import com.netflix.spinnaker.orca.clouddriver.model.Instance
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.AbstractInstancesCheckTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitingForInstancesTaskHelper
@@ -35,7 +38,7 @@ public class WaitForRequiredInstancesDownTask extends AbstractInstancesCheckTask
   }
 
   @Override
-  protected boolean hasSucceeded(StageExecution stage, Map<String, Object> serverGroup, List<Map<String, Object>> instances, Collection<String> interestingHealthProviderNames) {
+  protected boolean hasSucceeded(StageExecution stage, ServerGroup serverGroup, List<Instance> instances, Collection<String> interestingHealthProviderNames) {
     if (interestingHealthProviderNames != null && interestingHealthProviderNames.isEmpty()) {
       return true
     }
@@ -47,28 +50,28 @@ public class WaitForRequiredInstancesDownTask extends AbstractInstancesCheckTask
     if (desiredPercentage != null) {
       List<String> skippedIds = getSkippedInstances(stage)
 
-      List<Map> skippedInstances = skippedIds.isEmpty()
+      List<Instance> skippedInstances = skippedIds.isEmpty()
           ? List.of()
-          : instances.stream().filter({ skippedIds.contains(it.get("name")) }).collect(Collectors.toList())
+          : instances.stream().filter({ skippedIds.contains(it.getName()) }).collect(Collectors.toList())
 
-      List<Map> instancesToDisable = getInstancesToDisable(stage, instances)
+      List<Instance> instancesToDisable = getInstancesToDisable(stage, instances)
 
       if (!skippedInstances.isEmpty()) {
-        List<Map> skippedButNotDown = skippedInstances.stream().
+        List<Instance> skippedButNotDown = skippedInstances.stream().
             filter({ !HealthHelper.someAreDownAndNoneAreUp(it, interestingHealthProviderNames) })
             .collect(Collectors.toList())
 
-        Map<String, List<Map<String, Object>>> skippedInstanceHealths = new HashMap<>()
+        Map<String, List<Health>> skippedInstanceHealths = new HashMap<>()
 
         skippedButNotDown.stream().forEach({ instance ->
-          skippedInstanceHealths.put((String) instance.get("name"), HealthHelper.filterHealths(instance, interestingHealthProviderNames))
+          skippedInstanceHealths.put(instance.getName(), HealthHelper.filterHealths(instance, interestingHealthProviderNames))
         })
 
         if (!skippedInstanceHealths.isEmpty()) {
           log.debug(
               "Health for instances in {} that clouddriver skipped deregistering but are " +
                   "reporting as up: {} (executionId: {})",
-              serverGroup.get("name"),
+              serverGroup.getName(),
               skippedInstanceHealths,
               stage.getExecution().getId())
         }
@@ -89,15 +92,15 @@ public class WaitForRequiredInstancesDownTask extends AbstractInstancesCheckTask
             "{} {}% of {}: {} (executionId: {})",
             instancesAreDisabled ? "Disabled" : "Disabling",
             desiredPercentage,
-            serverGroup.get("name"),
-            instancesToDisable.stream().map({ it.get("name") }).collect(Collectors.joining(", ")),
+            serverGroup.getName(),
+            instancesToDisable.stream().map({ it.getName() }).collect(Collectors.joining(", ")),
             stage.getExecution().getId()
         )
 
         return instancesAreDisabled
       }
 
-      Map capacity = (Map) serverGroup.get("capacity")
+      ServerGroup.Capacity capacity = serverGroup.getCapacity()
       Integer percentage = (Integer) desiredPercentage
       targetDesiredSize = WaitingForInstancesTaskHelper.getDesiredInstanceCount(capacity, percentage)
     }
@@ -120,7 +123,7 @@ public class WaitForRequiredInstancesDownTask extends AbstractInstancesCheckTask
     return skippedInstances
   }
 
-  protected static List<Map> getInstancesToDisable(StageExecution stage, List<Map> instances) {
+  protected static List<Instance> getInstancesToDisable(StageExecution stage, List<Instance> instances) {
     List<Map> resultObjects = getKatoResults(stage)
 
     if (!resultObjects.isEmpty()) {
@@ -135,7 +138,7 @@ public class WaitForRequiredInstancesDownTask extends AbstractInstancesCheckTask
 
       return instances.stream()
           .filter({instance ->
-            String name = (String) instance.get("name")
+            String name = instance.getName()
             return instanceIdsToDisable.contains(name) && !skippedInstances.contains(name)
           })
           .collect(Collectors.toList())

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.instance;
 
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -43,16 +44,16 @@ public class WaitingForInstancesTaskHelper {
    * @return
    */
   public static int getDesiredInstanceCount(
-      Map<String, Integer> capacity, Integer desiredPercentage) {
+      ServerGroup.Capacity capacity, Integer desiredPercentage) {
     if (desiredPercentage == null || desiredPercentage < 0 || desiredPercentage > 100) {
       throw new NumberFormatException("desiredPercentage must be an integer between 0 and 100");
     }
 
     // TODO: seems like this should be an error if it is null
-    Integer desired = capacity.get("desired");
+    Integer desired = capacity.getDesired();
 
-    Integer min = capacity.get("min") != null ? capacity.get("min") : desired;
-    Integer max = capacity.get("max") != null ? capacity.get("max") : desired;
+    Integer min = capacity.getMin() != null ? capacity.getMin() : desired;
+    Integer max = capacity.getMax() != null ? capacity.getMax() : desired;
 
     return (int) Math.ceil(((desiredPercentage / 100D) - 1D) * max + min);
   }

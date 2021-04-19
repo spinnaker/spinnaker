@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.clouddriver.ModelUtils
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Shared
@@ -42,7 +43,7 @@ class WaitForDownInstanceHealthTaskSpec extends Specification {
         account: 'acct')
 
     if (interestedHealthProviderNames != []) {
-      1 * cloudDriverService.getInstance(inputs.getAccount(), inputs.getRegion(), 'id') >> instance
+      1 * cloudDriverService.getInstanceTyped(inputs.getAccount(), inputs.getRegion(), 'id') >> ModelUtils.instance(instance)
     }
     expect:
     task.process(inputs).status == shouldBeDown ? ExecutionStatus.RUNNING : ExecutionStatus.SUCCEEDED
@@ -69,8 +70,8 @@ class WaitForDownInstanceHealthTaskSpec extends Specification {
   @Unroll
   void 'should be #expectedResult for #instanceDetails with #interestingHealthProviderNames relevant health providers (WaitForDownInstances)'() {
     given:
-    def localInstanceDetails = instanceDetails
-    cloudDriverService.getInstance(_, _, _) >> { a, r, instanceId -> localInstanceDetails.find { it.instanceId == instanceId } }
+    def localInstanceDetails = instanceDetails.collect { ModelUtils.instance(it) }
+    cloudDriverService.getInstanceTyped(_, _, _) >> { a, r, instanceId -> localInstanceDetails.find { it.instanceId == instanceId } }
 
     def stage = new StageExecutionImpl(pipeline, "waitForDownInstance", [
         instanceIds: localInstanceDetails*.instanceId,

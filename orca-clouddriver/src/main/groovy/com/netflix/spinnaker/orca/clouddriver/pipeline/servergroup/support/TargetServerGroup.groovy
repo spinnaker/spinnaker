@@ -20,6 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
 import groovy.transform.InheritConstructors
 import groovy.transform.ToString
@@ -30,7 +32,7 @@ import groovy.util.logging.Slf4j
  */
 class TargetServerGroup {
 
-  final static ObjectMapper objectMapper = new ObjectMapper()
+  final static ObjectMapper objectMapper = OrcaObjectMapper.getInstance()
 
   // Delegates all Map interface calls to this object.
   @Delegate
@@ -274,6 +276,10 @@ class TargetServerGroup {
       }
       p
     }
+  }
+
+  ServerGroup toServerGroup() {
+    objectMapper.convertValue(serverGroup, ServerGroup)
   }
 
   @InheritConstructors

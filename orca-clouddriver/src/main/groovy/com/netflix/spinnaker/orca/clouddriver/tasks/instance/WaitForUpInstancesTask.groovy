@@ -17,6 +17,11 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.clouddriver.model.Health
+import com.netflix.spinnaker.orca.clouddriver.model.HealthState
+import com.netflix.spinnaker.orca.clouddriver.model.Instance
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup.Capacity
 
 import javax.annotation.Nonnull
 import java.util.concurrent.TimeUnit
@@ -40,7 +45,7 @@ class WaitForUpInstancesTask extends AbstractInstancesCheckTask {
   }
 
   @Override
-  protected Map<String, Object> getAdditionalRunningStageContext(StageExecution stage, Map<String, Object> serverGroup) {
+  protected Map<String, Object> getAdditionalRunningStageContext(StageExecution stage, ServerGroup serverGroup) {
     Map<String, Object> additionalRunningStageContext = new HashMap<>()
 
     additionalRunningStageContext.put("targetDesiredSize", calculateTargetDesiredSize(stage, serverGroup))
@@ -49,12 +54,12 @@ class WaitForUpInstancesTask extends AbstractInstancesCheckTask {
     Map<String, Object> snapshot = (Map<String, Object>) stage.getContext().get("capacitySnapshot")
 
     if (snapshot == null || snapshot.isEmpty()) {
-      Map<String, Integer> initialTargetCapacity = getServerGroupCapacity(stage, serverGroup)
+      ServerGroup.Capacity initialTargetCapacity = getServerGroupCapacity(stage, serverGroup)
 
       snapshot = new HashMap<>()
-      snapshot.put("minSize", initialTargetCapacity.get("min"))
-      snapshot.put("desiredCapacity", initialTargetCapacity.get("desired"))
-      snapshot.put("maxSize", initialTargetCapacity.get("max"))
+      snapshot.put("minSize", initialTargetCapacity.getMin())
+      snapshot.put("desiredCapacity", initialTargetCapacity.getDesired())
+      snapshot.put("maxSize", initialTargetCapacity.getMax())
 
       additionalRunningStageContext.put("capacitySnapshot", snapshot)
     }
@@ -63,15 +68,15 @@ class WaitForUpInstancesTask extends AbstractInstancesCheckTask {
   }
 
   public static boolean allInstancesMatch(StageExecution stage,
-                                          Map<String, Object> serverGroup,
-                                          List<Map<String, Object>> instances,
+                                          ServerGroup serverGroup,
+                                          List<Instance> instances,
                                           Collection<String> interestingHealthProviderNames) {
     return allInstancesMatch(stage, serverGroup, instances, interestingHealthProviderNames, null)
   }
 
   public static boolean allInstancesMatch(StageExecution stage,
-                                          Map<String, Object> serverGroup,
-                                          List<Map<String, Object>> instances,
+                                          ServerGroup serverGroup,
+                                          List<Instance> instances,
                                           Collection<String> interestingHealthProviderNames,
                                           Splainer parentSplainer) {
     Splainer splainer = parentSplainer == null ? new Splainer() : parentSplainer
@@ -83,11 +88,11 @@ class WaitForUpInstancesTask extends AbstractInstancesCheckTask {
 
     String execId = stage.getExecution().getId()
 
-    splainer.add(String.format("Instances up check for server group %s [executionId=%s, stagedId=%s]", serverGroup.get("name"), execId, execId))
+    splainer.add(String.format("Instances up check for server group %s [executionId=%s, stagedId=%s]", serverGroup.getName(), execId, execId))
 
     try {
-      Object capacity = serverGroup.get("capacity")
-      if (capacity == null || (capacity instanceof Map && capacity.isEmpty())) {
+      Capacity capacity = serverGroup.getCapacity()
+      if (capacity == null || capacity.getDesired() == null) {
         splainer.add(String.format("short-circuiting out of allInstancesMatch because of empty capacity in serverGroup=%s", serverGroup))
         return false
       }
@@ -118,7 +123,7 @@ class WaitForUpInstancesTask extends AbstractInstancesCheckTask {
       }
 
       long healthyCount = instances.stream()
-          .filter({ Map instance ->
+          .filter({ instance ->
             HealthHelper.someAreUpAndNoneAreDownOrStarting(instance, interestingHealthProviderNames)
           })
           .count()
@@ -133,18 +138,18 @@ class WaitForUpInstancesTask extends AbstractInstancesCheckTask {
     }
   }
 
-  public static int calculateTargetDesiredSize(StageExecution stage, @Nonnull Map<String, Object> serverGroup) {
+  public static int calculateTargetDesiredSize(StageExecution stage, @Nonnull ServerGroup serverGroup) {
     return calculateTargetDesiredSize(stage, serverGroup, NOOPSPLAINER)
   }
 
-  public static int calculateTargetDesiredSize(StageExecution stage, @Nonnull Map<String, Object> serverGroup, Splainer splainer) {
+  public static int calculateTargetDesiredSize(StageExecution stage, @Nonnull ServerGroup serverGroup, Splainer splainer) {
     Map<String, Object> context = stage.getContext()
 
     // Don't wait for spot instances to come up if the deployment strategy is None. All other deployment strategies rely on
     // confirming the new serverGroup is up and working correctly, so doing this is only safe with the None strategy
     // This should probably be moved to an AWS-specific part of the codebase
     boolean hasSpotPrice = Optional.ofNullable(serverGroup)
-        .map({ (Map) it.get("launchConfig") })
+        .map({ it.getLaunchConfig() })
         .map({ it.get("spotPrice") })
         .isPresent()
     if (hasSpotPrice && "".equals(context.get("strategy"))) {
@@ -152,14 +157,16 @@ class WaitForUpInstancesTask extends AbstractInstancesCheckTask {
       return 0
     }
 
-    Map<String, Integer> currentCapacity = getServerGroupCapacity(stage, serverGroup)
+    def currentCapacity = getServerGroupCapacity(stage, serverGroup)
     Integer targetDesiredSize
 
     if (useConfiguredCapacity(stage, currentCapacity)) {
-      targetDesiredSize = ((Map<String, Integer>) context.get("capacity")).get("desired") as Integer
-      splainer.add(String.format("setting targetDesiredSize=%s from the configured stage context.capacity=%s", targetDesiredSize, context.capacity))
+      Capacity contextCapacity = stage.mapTo("/capacity", Capacity)
+
+      targetDesiredSize = contextCapacity.getDesired()
+      splainer.add(String.format("setting targetDesiredSize=%s from the configured stage context.capacity=%s", targetDesiredSize, contextCapacity))
     } else {
-      targetDesiredSize = currentCapacity.get("desired") as Integer
+      targetDesiredSize = currentCapacity.getDesired()
       splainer.add(String.format("setting targetDesiredSize=%s from the desired size in current serverGroup capacity=%s", targetDesiredSize, currentCapacity))
     }
 
@@ -189,14 +196,13 @@ class WaitForUpInstancesTask extends AbstractInstancesCheckTask {
     return targetDesiredSize
   }
 
-
   private static final Set<String> CAPACITY_KEYS = Set.of("min", "max", "desired")
   // If either the configured capacity or current serverGroup has autoscaling disabled, calculate
   // targetDesired from the configured capacity. This relaxes the need for clouddriver onDemand
   // cache updates while resizing serverGroups.
-  static boolean useConfiguredCapacity(StageExecution stage, Map<String, Integer> current) {
+  static boolean useConfiguredCapacity(StageExecution stage, Capacity current) {
 
-    if (current.get("desired") == null) {
+    if (current.getDesired() == null) {
       return true
     }
     Map<String, Object> contextCapacity = (Map<String, Object>) stage.getContext().get("capacity")
@@ -219,7 +225,7 @@ class WaitForUpInstancesTask extends AbstractInstancesCheckTask {
       }
     })
     return (configured.get("min") == configured.get("max") && configured.get("min") == configured.get("desired")) ||
-        (current.get("min") == current.get("max") && current.get("min") == current.get("desired"))
+        (current.getMin() == current.getMax() && current.getMin() == current.getDesired())
   }
 
   @Override
@@ -228,31 +234,31 @@ class WaitForUpInstancesTask extends AbstractInstancesCheckTask {
   }
 
   @Override
-  protected boolean hasSucceeded(StageExecution stage, Map<String, Object> serverGroup, List<Map<String, Object>> instances, Collection<String> interestingHealthProviderNames) {
+  protected boolean hasSucceeded(StageExecution stage, ServerGroup serverGroup, List<Instance> instances, Collection<String> interestingHealthProviderNames) {
     allInstancesMatch(stage, serverGroup, instances, interestingHealthProviderNames)
   }
 
-  private static HealthCountSnapshot getHealthCountSnapshot(StageExecution stage, Map<String, Object> serverGroup) {
+  private static HealthCountSnapshot getHealthCountSnapshot(StageExecution stage, ServerGroup serverGroup) {
     HealthCountSnapshot snapshot = new HealthCountSnapshot()
     Collection<String> interestingHealthProviderNames = stage.context.interestingHealthProviderNames as Collection
     if (interestingHealthProviderNames != null && interestingHealthProviderNames.isEmpty()) {
       snapshot.up = serverGroup.instances.size()
       return snapshot
     }
-    serverGroup.get("instances").each { Map instance ->
-      List<Map<String, Object>> healths = HealthHelper.filterHealths(instance, interestingHealthProviderNames)
+    serverGroup.getInstances().each { instance ->
+      List<Health> healths = HealthHelper.filterHealths(instance, interestingHealthProviderNames)
       if (HealthHelper.someAreUpAndNoneAreDownOrStarting(instance, interestingHealthProviderNames)) {
         snapshot.up++
       } else if (someAreDown(instance, interestingHealthProviderNames)) {
         snapshot.down++
       } else {
-        if (healths.stream().anyMatch({ "OutOfService".equals(it.get("state")) })) {
+        if (healths.stream().anyMatch({ HealthState.OutOfService == it.state })) {
           snapshot.outOfService++
-        } else if (healths.stream().anyMatch({ "Starting".equals(it.get("state")) })) {
+        } else if (healths.stream().anyMatch({ HealthState.Starting == it.state })) {
           snapshot.starting++
-        } else if (healths.stream().allMatch({ "Succeeded".equals(it.get("state")) })) {
+        } else if (healths.stream().allMatch({ HealthState.Succeeded == it.state })) {
           snapshot.succeeded++
-        } else if (healths.stream().anyMatch({ "Failed".equals(it.get("state")) })) {
+        } else if (healths.stream().anyMatch({ HealthState.Failed == it.state })) {
           snapshot.failed++
         } else {
           snapshot.unknown++
@@ -262,8 +268,8 @@ class WaitForUpInstancesTask extends AbstractInstancesCheckTask {
     return snapshot
   }
 
-  private static boolean someAreDown(Map instance, Collection<String> interestingHealthProviderNames) {
-    List<Map<String, Object>> healths = HealthHelper.filterHealths(instance, interestingHealthProviderNames)
+  private static boolean someAreDown(Instance instance, Collection<String> interestingHealthProviderNames) {
+    List<Health> healths = HealthHelper.filterHealths(instance, interestingHealthProviderNames)
 
     if (!interestingHealthProviderNames && !healths) {
       // No health indications (and no specific providers to check), consider instance to be in an unknown state.
@@ -271,7 +277,7 @@ class WaitForUpInstancesTask extends AbstractInstancesCheckTask {
     }
 
     // no health indicators is indicative of being down
-    return !healths || healths.stream().anyMatch({ it.state == 'Down' || it.state == 'OutOfService' })
+    return !healths || healths.stream().anyMatch({ it.state == HealthState.Down || it.state == HealthState.OutOfService })
   }
 
   /**
@@ -283,8 +289,8 @@ class WaitForUpInstancesTask extends AbstractInstancesCheckTask {
    * This method aims to generically detect these scenarios and use the target capacity of the
    * server group rather than 0/0/0.
    */
-  protected static Map<String, Integer> getServerGroupCapacity(StageExecution stage, Map<String, Object> serverGroup) {
-    Map<String, Integer> serverGroupCapacity = serverGroup.get("capacity") as Map<String, Integer>
+  protected static Capacity getServerGroupCapacity(StageExecution stage, ServerGroup serverGroup) {
+    Capacity serverGroupCapacity = serverGroup.getCapacity()
 
     String execId = stage.getExecution().getId()
 
@@ -298,33 +304,33 @@ class WaitForUpInstancesTask extends AbstractInstancesCheckTask {
         log.warn(
             "Short circuiting initial target capacity determination after 10 minutes (serverGroup: {}:{}:{}, executionId: {})",
             cloudProvider,
-            serverGroup.get("region"),
-            serverGroup.get("name"),
+            serverGroup.getRegion(),
+            serverGroup.getName(),
             execId
         )
         return serverGroupCapacity
       }
     }
 
-    def initialTargetCapacity = getInitialTargetCapacity(stage, serverGroup)
+    Capacity initialTargetCapacity = getInitialTargetCapacity(stage, serverGroup)
     if (!initialTargetCapacity) {
       log.debug(
           "Unable to determine initial target capacity (serverGroup: {}:{}:{}, executionId: {})",
           cloudProvider,
-          serverGroup.get("region"),
-          serverGroup.get("name"),
+          serverGroup.getRegion(),
+          serverGroup.getName(),
           execId
       )
       return serverGroupCapacity
     }
 
-    if ((serverGroupCapacity.get("max") == 0 && initialTargetCapacity.get("max") != 0) ||
-        (serverGroupCapacity.get("desired") == 0 && initialTargetCapacity.get("desired") > 0)) {
+    if ((serverGroupCapacity.getMax() == 0 && initialTargetCapacity.getMax() != 0) ||
+        (serverGroupCapacity.getDesired() == 0 && initialTargetCapacity.getDesired() > 0)) {
       log.info(
           "Overriding server group capacity (serverGroup: {}:{}:{}, initialTargetCapacity: {}, executionId: {})",
           cloudProvider,
-          serverGroup.get("region"),
-          serverGroup.get("name"),
+          serverGroup.getRegion(),
+          serverGroup.getName(),
           initialTargetCapacity,
           execId
       )
@@ -334,8 +340,8 @@ class WaitForUpInstancesTask extends AbstractInstancesCheckTask {
     log.debug(
         "Determined server group capacity (serverGroup: {}:{}:{}, serverGroupCapacity: {}, initialTargetCapacity: {}, executionId: {}",
         cloudProvider,
-        serverGroup.get("region"),
-        serverGroup.get("name"),
+        serverGroup.getRegion(),
+        serverGroup.getName(),
         serverGroupCapacity,
         initialTargetCapacity,
         execId
@@ -347,15 +353,15 @@ class WaitForUpInstancesTask extends AbstractInstancesCheckTask {
   /**
    * Fetch the new server group's initial capacity _if_ it was passed back from clouddriver.
    */
-  static Map<String, Integer> getInitialTargetCapacity(StageExecution stage, Map<String, Object> serverGroup) {
+  static Capacity getInitialTargetCapacity(StageExecution stage, ServerGroup serverGroup) {
     List<Map<String, Object>> katoTasks = (List<Map<String, Object>>) stage.getContext().get("kato.tasks")
 
     if (katoTasks == null) {
       return null
     }
 
-    String name = (String) serverGroup.get("name")
-    String region = (String) serverGroup.get("region")
+    String name = serverGroup.getName()
+    String region = serverGroup.getRegion()
 
     Optional<List<Map<String, Object>>> maybeDeployments = reverseStream(katoTasks)
         .map({
@@ -373,7 +379,7 @@ class WaitForUpInstancesTask extends AbstractInstancesCheckTask {
         .findFirst()
 
     // find the last resultObjects with deployments
-    Map<String, Integer> result = maybeDeployments
+    Capacity result = maybeDeployments
         .flatMap({ deployments ->
           deployments.stream()
               .filter({ deployment ->
@@ -385,7 +391,15 @@ class WaitForUpInstancesTask extends AbstractInstancesCheckTask {
               .filter({ it != null })
               .findFirst()
         })
+        .map({
+          Capacity.builder()
+              .min(it.get("min"))
+              .desired(it.get("desired"))
+              .max(it.get("max"))
+              .build()
+        })
         .orElse(null)
+
     return result
   }
 

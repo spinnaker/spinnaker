@@ -1,19 +1,20 @@
 package com.netflix.spinnaker.orca.clouddriver.utils
 
+import com.netflix.spinnaker.orca.clouddriver.model.Health
 import com.netflix.spinnaker.orca.clouddriver.model.HealthState
+import com.netflix.spinnaker.orca.clouddriver.model.Instance
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import static com.netflix.spinnaker.orca.clouddriver.model.HealthState.*
 
-
 class HealthHelperSpec extends Specification {
-  def health(HealthState state, String type = "SomeHealth", healthClass = "SomeHealthClass") {
-    return [state: state.toString(), type: type, healhClass: healthClass]
+  Health health(HealthState state, String type = "SomeHealth", healthClass = "SomeHealthClass") {
+    return new Health(state: state, type: type, healthClass: healthClass)
   }
 
-  def instance(List<HealthState> healthStates) {
-    return [health: healthStates == null ? null : healthStates.collect({ it -> health(it)})]
+  Instance instance(List<HealthState> healthStates) {
+    return new Instance(health: healthStates == null ? null : healthStates.collect({ it -> health(it)}))
   }
 
   @Unroll

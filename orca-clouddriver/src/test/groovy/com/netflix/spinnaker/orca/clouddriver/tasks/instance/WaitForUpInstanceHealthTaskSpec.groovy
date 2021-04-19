@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
+import com.netflix.spinnaker.orca.clouddriver.ModelUtils
 import com.netflix.spinnaker.orca.clouddriver.model.HealthState
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
@@ -44,7 +45,7 @@ class WaitForUpInstanceHealthTaskSpec extends Specification {
         account: 'acct')
 
     if (interestingHealthProviderNames != []) {
-      1 * cloudDriverService.getInstance(inputs.getAccount(), inputs.getRegion(), 'id') >> instance
+      1 * cloudDriverService.getInstanceTyped(inputs.getAccount(), inputs.getRegion(), 'id') >> ModelUtils.instance(instance)
     }
 
     expect:
@@ -94,13 +95,13 @@ class WaitForUpInstanceHealthTaskSpec extends Specification {
   @Unroll
   void 'should be #expectedResult for #instanceDetails with #interestingHealthProviderNames relevant health providers (WaitForUpInstances)'() {
     given:
-    def localInstanceDetails = instanceDetails
+    def localInstanceDetails = instanceDetails.collect { ModelUtils.instance(it) }
     def stage = new StageExecutionImpl(pipeline, "waitForDownInstance", [
         instanceIds: localInstanceDetails*.instanceId,
         interestingHealthProviderNames: interestingHealthProviderNames
     ])
 
-    cloudDriverService.getInstance(_, _, _) >> { a, r, instanceId -> localInstanceDetails.find { it.instanceId == instanceId } }
+    cloudDriverService.getInstanceTyped(_, _, _) >> { a, r, instanceId -> localInstanceDetails.find { it.instanceId == instanceId } }
 
     expect:
     task.execute(stage).status == expectedResult

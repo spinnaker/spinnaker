@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup;
 
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import com.netflix.spinnaker.orca.clouddriver.model.Instance;
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.AbstractInstancesCheckTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForUpInstancesTask;
 import java.util.*;
@@ -32,9 +34,9 @@ public class WaitForCapacityMatchTask extends AbstractInstancesCheckTask {
 
   @Override
   protected Map<String, Object> getAdditionalRunningStageContext(
-      StageExecution stage, Map<String, Object> serverGroup) {
+      StageExecution stage, ServerGroup serverGroup) {
     Map<String, Object> result = new HashMap<>();
-    boolean disabled = Boolean.TRUE.equals(serverGroup.get("disabled"));
+    boolean disabled = Boolean.TRUE.equals(serverGroup.getDisabled());
     if (!disabled) {
       result.put(
           "targetDesiredSize",
@@ -46,24 +48,23 @@ public class WaitForCapacityMatchTask extends AbstractInstancesCheckTask {
   @Override
   protected boolean hasSucceeded(
       StageExecution stage,
-      Map<String, Object> serverGroup,
-      List<Map<String, Object>> instances,
+      ServerGroup serverGroup,
+      List<Instance> instances,
       Collection<String> interestingHealthProviderNames) {
     WaitForUpInstancesTask.Splainer splainer =
         new WaitForUpInstancesTask.Splainer()
             .add(
                 String.format(
                     "Capacity match check for server group %s [executionId=%s, stagedId=%s]",
-                    serverGroup.get("name"),
+                    serverGroup.getName(),
                     stage.getExecution().getId(),
                     stage.getExecution().getId()));
 
     try {
       Map<String, Object> context = stage.getContext();
 
-      Map<String, Integer> capacity =
-          (Map<String, Integer>) serverGroup.getOrDefault("capacity", Map.of());
-      if (capacity.isEmpty()) {
+      ServerGroup.Capacity capacity = serverGroup.getCapacity();
+      if (capacity == null || capacity.getDesired() == null) {
         splainer.add(
             "short-circuiting out of WaitForCapacityMatchTask because of empty capacity in serverGroup="
                 + serverGroup);
@@ -84,7 +85,7 @@ public class WaitForCapacityMatchTask extends AbstractInstancesCheckTask {
                 .orElse(null);
         splainer.add(String.format("using desired from stage.context.capacity (%s)", desired));
       } else {
-        desired = capacity.get("desired");
+        desired = capacity.getDesired();
       }
 
       Integer targetDesiredSize =
@@ -110,7 +111,7 @@ public class WaitForCapacityMatchTask extends AbstractInstancesCheckTask {
         return false;
       }
 
-      boolean disabled = Boolean.TRUE.equals(serverGroup.get("disabled"));
+      boolean disabled = Boolean.TRUE.equals(serverGroup.getDisabled());
 
       if (disabled) {
         splainer.add(

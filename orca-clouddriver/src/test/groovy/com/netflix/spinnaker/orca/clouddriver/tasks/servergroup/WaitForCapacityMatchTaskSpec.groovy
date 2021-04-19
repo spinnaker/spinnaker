@@ -19,6 +19,10 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
+import com.netflix.spinnaker.orca.clouddriver.ModelUtils
+import com.netflix.spinnaker.orca.clouddriver.model.Instance
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
@@ -38,7 +42,7 @@ class WaitForCapacityMatchTaskSpec extends Specification {
   void "should properly wait for a scale up operation"() {
     setup:
       task.cloudDriverService = cloudDriverService
-      cloudDriverService.getServerGroup("test", "us-east-1", "kato-main-v000") >> serverGroup
+      cloudDriverService.getServerGroupTyped("test", "us-east-1", "kato-main-v000") >> serverGroup
       def context = [account: "test", "deploy.server.groups": ["us-east-1": ["kato-main-v000"]]]
       def stage = new StageExecutionImpl(PipelineExecutionImpl.newOrchestration("orca"), "resizeServerGroup", context)
 
@@ -58,7 +62,7 @@ class WaitForCapacityMatchTaskSpec extends Specification {
       result.status == ExecutionStatus.SUCCEEDED
 
     where:
-      serverGroup = [
+      serverGroup = ModelUtils.serverGroup([
             name: "kato-main-v000",
             region: "us-east-1",
             instances: [
@@ -70,13 +74,13 @@ class WaitForCapacityMatchTaskSpec extends Specification {
             capacity: [
               desired: 3
             ]
-          ]
+          ])
   }
 
   @Unroll
   void "should return status #status for a scale up operation when server group is not disabled and instance health is #healthState"() {
     setup:
-    def serverGroup = [
+    def serverGroup = ModelUtils.serverGroup([
           name: "kato-main-v000",
           region: "us-east-1",
           instances: [
@@ -90,10 +94,10 @@ class WaitForCapacityMatchTaskSpec extends Specification {
             min: 3,
             desired: 3
           ]
-        ]
+        ])
 
     task.cloudDriverService = cloudDriverService
-    cloudDriverService.getServerGroup("test", "us-east-1", "kato-main-v000") >> serverGroup
+    cloudDriverService.getServerGroupTyped("test", "us-east-1", "kato-main-v000") >> serverGroup
     def context = [account: "test", "deploy.server.groups": ["us-east-1": ["kato-main-v000"]]]
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newOrchestration("orca"), "resizeServerGroup", context)
 
@@ -125,7 +129,7 @@ class WaitForCapacityMatchTaskSpec extends Specification {
   void "should properly wait for a scale down operation"() {
     setup:
     task.cloudDriverService = cloudDriverService
-    cloudDriverService.getServerGroup("test", "us-east-1", "kato-main-v000") >> serverGroup
+    cloudDriverService.getServerGroupTyped("test", "us-east-1", "kato-main-v000") >> serverGroup
     def context = [account: "test", "deploy.server.groups": ["us-east-1": ["kato-main-v000"]]]
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newOrchestration("orca"), "resizeServerGroup", context)
 
@@ -145,7 +149,7 @@ class WaitForCapacityMatchTaskSpec extends Specification {
     result.status == ExecutionStatus.SUCCEEDED
 
     where:
-    serverGroup = [
+    serverGroup = ModelUtils.serverGroup([
           name: "kato-main-v000",
           region: "us-east-1",
           instances: [
@@ -159,7 +163,7 @@ class WaitForCapacityMatchTaskSpec extends Specification {
           capacity: [
             desired: 1
           ]
-        ]
+        ])
   }
 
   @Unroll
@@ -176,7 +180,7 @@ class WaitForCapacityMatchTaskSpec extends Specification {
         ? Math.round(targetHealthyDeployPercentage * configured.desired / 100) : null
     ]
 
-    def serverGroup = [
+    def serverGroup = ModelUtils.serverGroup([
       asg: [
         desiredCapacity: asg.desired
       ],
@@ -185,11 +189,11 @@ class WaitForCapacityMatchTaskSpec extends Specification {
         max: asg.max,
         desired: asg.desired
       ]
-    ]
+    ])
 
     def instances = []
     (1..healthy).each {
-      instances << [health: [[state: 'Up']]]
+      instances << ModelUtils.instance([health: [[state: 'Up']]])
     }
 
     then:
@@ -209,7 +213,7 @@ class WaitForCapacityMatchTaskSpec extends Specification {
   @Unroll
   void 'should wait based on configured capacity when autoscaling is disabled'() {
     when:
-    def serverGroup = [
+    def serverGroup = ModelUtils.serverGroup([
       asg     : [
         desiredCapacity: asg.desired
       ],
@@ -218,7 +222,7 @@ class WaitForCapacityMatchTaskSpec extends Specification {
         max    : asg.max,
         desired: asg.desired
       ]
-    ]
+    ])
 
     def context = [
       source: [useSourceCapacity: false],
@@ -234,7 +238,7 @@ class WaitForCapacityMatchTaskSpec extends Specification {
 
     def instances = []
     (1..healthy).each {
-      instances << [health: [[state: 'Up']]]
+      instances << ModelUtils.instance( [health: [[state: 'Up']]])
     }
 
     then:
@@ -262,7 +266,7 @@ class WaitForCapacityMatchTaskSpec extends Specification {
     true   || 4       | [min: 3, max: 10, desired: 4]   | [min: "1", max: "50", desired: "5"]
   }
 
-  private static Map makeInstance(id, healthState = 'Up') {
-    [instanceId: id, health: [ [ state: healthState ] ]]
+  private static Instance makeInstance(id, healthState = 'Up') {
+    ModelUtils.instance([instanceId: id, health: [ [ state: healthState ] ]])
   }
 }

@@ -17,6 +17,10 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup;
 
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import com.netflix.spinnaker.orca.clouddriver.model.Health;
+import com.netflix.spinnaker.orca.clouddriver.model.HealthState;
+import com.netflix.spinnaker.orca.clouddriver.model.Instance;
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.AbstractInstancesCheckTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitingForInstancesTaskHelper;
 import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper;
@@ -40,8 +44,8 @@ public class WaitForAllInstancesNotUpTask extends AbstractInstancesCheckTask {
   @Override
   protected boolean hasSucceeded(
       StageExecution stage,
-      Map<String, Object> serverGroup,
-      List<Map<String, Object>> instances,
+      ServerGroup serverGroup,
+      List<Instance> instances,
       Collection<String> interestingHealthProviderNames) {
     if (interestingHealthProviderNames != null && interestingHealthProviderNames.isEmpty()) {
       return true;
@@ -50,13 +54,13 @@ public class WaitForAllInstancesNotUpTask extends AbstractInstancesCheckTask {
     return instances.stream()
         .allMatch(
             instance -> {
-              List<Map<String, Object>> healths =
+              List<Health> healths =
                   HealthHelper.filterHealths(instance, interestingHealthProviderNames);
 
               boolean noneAreUp =
                   healths == null // No health indications (and no specific providers to check),
                       // consider instance to be down.
-                      || healths.stream().noneMatch(health -> "Up".equals(health.get("state")));
+                      || healths.stream().noneMatch(health -> HealthState.Up == health.getState());
               return noneAreUp;
             });
   }

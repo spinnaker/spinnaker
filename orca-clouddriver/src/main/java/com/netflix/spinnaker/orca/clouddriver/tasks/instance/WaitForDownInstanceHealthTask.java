@@ -56,7 +56,8 @@ public class WaitForDownInstanceHealthTask implements OverridableTimeoutRetryabl
             .anyMatch(
                 it -> {
                   var instance =
-                      cloudDriverService.getInstance(inputs.accountToUse(), inputs.getRegion(), it);
+                      cloudDriverService.getInstanceTyped(
+                          inputs.accountToUse(), inputs.getRegion(), it);
                   return !HealthHelper.someAreDownAndNoneAreUp(
                       instance, inputs.getInterestingHealthProviderNames());
                 });

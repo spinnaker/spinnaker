@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.kato.tasks.rollingpush
 
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
+import com.netflix.spinnaker.orca.clouddriver.ModelUtils
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
@@ -43,15 +44,15 @@ class WaitForNewUpInstancesLaunchTaskSpec extends Specification {
 
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newOrchestration("orca"), 'test', context)
 
-    def oortResponse = [
+    def oortResponse = ModelUtils.serverGroup([
       instances: currentInstances.collect { [instanceId: it, health: [ [type: 'Discovery', state: healthState] ] ] }
-    ]
+    ])
 
     when:
     def response = task.execute(stage)
 
     then:
-    1 * cloudDriverService.getServerGroup(account, region, serverGroup) >> oortResponse
+    1 * cloudDriverService.getServerGroupTyped(account, region, serverGroup) >> oortResponse
     response.status == expectedStatus
 
 

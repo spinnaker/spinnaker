@@ -60,8 +60,8 @@ class RestorePinnedServerGroupsPollerSpec extends Specification {
     executionType: ExecutionType.PIPELINE,
     executionId: "execution-id-1",
 
-    pinnedCapacity: new ServerGroup.Capacity(min: 3, max: 5, desired: 3),
-    unpinnedCapacity: new ServerGroup.Capacity(min: 2, max: 5, desired: 3)
+    pinnedCapacity: ServerGroup.Capacity.builder().min(3).max(5).desired(3).build(),
+    unpinnedCapacity: ServerGroup.Capacity.builder().min(2).max(5).desired(3).build()
   )
 
   def pinnedServerGroupTag2 = new RestorePinnedServerGroupsPoller.PinnedServerGroupTag(
@@ -76,8 +76,8 @@ class RestorePinnedServerGroupsPollerSpec extends Specification {
     executionType: ExecutionType.PIPELINE,
     executionId: "execution-id-2",
 
-    pinnedCapacity: new ServerGroup.Capacity(min: 3, max: 5, desired: 3),
-    unpinnedCapacity: new ServerGroup.Capacity(min: 2, max: 5, desired: 3)
+    pinnedCapacity: ServerGroup.Capacity.builder().min(3).max(5).desired(3).build(),
+    unpinnedCapacity: ServerGroup.Capacity.builder().min(2).max(5).desired(3).build()
   )
 
   @Subject
@@ -110,7 +110,7 @@ class RestorePinnedServerGroupsPollerSpec extends Specification {
       return Optional.of(
         new ServerGroup(
           moniker: new Moniker(app: "app"),
-          capacity: new ServerGroup.Capacity(min: 3, max: 5, desired: 3)
+          capacity: ServerGroup.Capacity.builder().min(3).max(5).desired(3).build()
         )
       )
     }
@@ -139,7 +139,7 @@ class RestorePinnedServerGroupsPollerSpec extends Specification {
         new ServerGroup(
           moniker: [app: "app"],
           // current 'min' capacity no longer matches the pinned 'min' capacity, assume something else resized!
-          capacity: new ServerGroup.Capacity(min: 2, max: 5, desired: 3)
+          capacity: ServerGroup.Capacity.builder().min(2).max(5).desired(3).build()
         )
       )
     }

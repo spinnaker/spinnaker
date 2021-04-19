@@ -19,6 +19,8 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
+import com.netflix.spinnaker.orca.clouddriver.ModelUtils
+import com.netflix.spinnaker.orca.clouddriver.model.Instance
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
@@ -49,7 +51,7 @@ class WaitForRequiredInstancesDownTaskSpec extends Specification {
   void "should fetch server groups"() {
     given:
     def pipeline = PipelineExecutionImpl.newPipeline("orca")
-    def response = [
+    def response = ModelUtils.serverGroup([
         region: 'us-east-1',
         name: 'front50-v000',
         asg: [
@@ -60,9 +62,9 @@ class WaitForRequiredInstancesDownTaskSpec extends Specification {
                 health: [[state: 'Down']]
             ]
         ]
-    ]
+    ])
 
-    cloudDriverService.getServerGroup(*_) >> response
+    cloudDriverService.getServerGroupTyped(*_) >> response
 
     2 * serverGroupCacheForceRefreshTask.execute(_) >> TaskResult.ofStatus(ExecutionStatus.SUCCEEDED)
     1 * oortHelper.getTargetServerGroup("test", "front50-v000", "us-east-1", "aws") >> Optional.of(new TargetServerGroup(region: "us-east-1"))
@@ -90,9 +92,12 @@ class WaitForRequiredInstancesDownTaskSpec extends Specification {
   void "should succeed as #hasSucceeded based on instance providers #healthProviderNames for instances #instances"() {
     given:
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", [desiredPercentage: desiredPercentage])
+    def serverGroup = ModelUtils.serverGroup([capacity: [min: min, max: max, desired: desired], minSize: 0])
+
+    def  instanceList = instances.collect { ModelUtils.instance(it) }
 
     expect:
-    hasSucceeded == task.hasSucceeded(stage, [capacity: [min: min, max: max, desired: desired], minSize: 0], instances, healthProviderNames)
+    hasSucceeded == task.hasSucceeded(stage, serverGroup, instanceList, healthProviderNames)
 
     where:
     hasSucceeded || healthProviderNames   | instances                                                                                                                                                                                                                    | min              | max              | desired          | desiredPercentage
@@ -226,8 +231,8 @@ class WaitForRequiredInstancesDownTaskSpec extends Specification {
 
     and:
     def allInstances = [
-        [name: "i-1234"],
-        [name: "i-5678"]
+        new Instance(name: "i-1234"),
+        new Instance(name: "i-5678")
     ]
 
     when:

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreator
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.WaitForRequiredInstancesDownTask
@@ -91,6 +92,8 @@ class WaitForClusterDisableTask extends AbstractWaitForClusterWideClouddriverTas
     // we want to make sure instances are down
     // to prevent downstream stages (e.g. scaleDownCluster) from having to deal with disabled-but-instances-up server groups
     // note that waitForRequiredInstancesDownTask knows how to deal with desiredPercentages, interestingHealthProviderNames, etc.
-    return !waitForRequiredInstancesDownTask.hasSucceeded(stage, targetServerGroup as Map, targetServerGroup.getInstances(), interestingHealthProviderNames)
+
+    ServerGroup sg = targetServerGroup.toServerGroup()
+    return !waitForRequiredInstancesDownTask.hasSucceeded(stage, sg, sg.getInstances(), interestingHealthProviderNames)
   }
 }
