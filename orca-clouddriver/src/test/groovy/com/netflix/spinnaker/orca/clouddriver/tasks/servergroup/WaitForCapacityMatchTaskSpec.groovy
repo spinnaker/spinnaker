@@ -21,8 +21,6 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.ModelUtils
 import com.netflix.spinnaker.orca.clouddriver.model.Instance
-import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup
-import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
@@ -42,7 +40,7 @@ class WaitForCapacityMatchTaskSpec extends Specification {
   void "should properly wait for a scale up operation"() {
     setup:
       task.cloudDriverService = cloudDriverService
-      cloudDriverService.getServerGroupTyped("test", "us-east-1", "kato-main-v000") >> serverGroup
+      cloudDriverService.getServerGroup("test", "us-east-1", "kato-main-v000") >> serverGroup
       def context = [account: "test", "deploy.server.groups": ["us-east-1": ["kato-main-v000"]]]
       def stage = new StageExecutionImpl(PipelineExecutionImpl.newOrchestration("orca"), "resizeServerGroup", context)
 
@@ -97,7 +95,7 @@ class WaitForCapacityMatchTaskSpec extends Specification {
         ])
 
     task.cloudDriverService = cloudDriverService
-    cloudDriverService.getServerGroupTyped("test", "us-east-1", "kato-main-v000") >> serverGroup
+    cloudDriverService.getServerGroup("test", "us-east-1", "kato-main-v000") >> serverGroup
     def context = [account: "test", "deploy.server.groups": ["us-east-1": ["kato-main-v000"]]]
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newOrchestration("orca"), "resizeServerGroup", context)
 
@@ -129,7 +127,7 @@ class WaitForCapacityMatchTaskSpec extends Specification {
   void "should properly wait for a scale down operation"() {
     setup:
     task.cloudDriverService = cloudDriverService
-    cloudDriverService.getServerGroupTyped("test", "us-east-1", "kato-main-v000") >> serverGroup
+    cloudDriverService.getServerGroup("test", "us-east-1", "kato-main-v000") >> serverGroup
     def context = [account: "test", "deploy.server.groups": ["us-east-1": ["kato-main-v000"]]]
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newOrchestration("orca"), "resizeServerGroup", context)
 

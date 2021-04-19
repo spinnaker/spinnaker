@@ -305,8 +305,7 @@ public abstract class AbstractInstancesCheckTask
       String appName = Optional.ofNullable(moniker).map(Moniker::getApp).orElseGet(names::getApp);
       String clusterName =
           Optional.ofNullable(moniker).map(Moniker::getCluster).orElseGet(names::getCluster);
-      Cluster cluster =
-          cloudDriverService.getClusterTyped(appName, account, clusterName, cloudProvider);
+      Cluster cluster = cloudDriverService.getCluster(appName, account, clusterName, cloudProvider);
 
       return Optional.ofNullable(cluster.getServerGroups()).orElse(List.of());
     } else {
@@ -316,8 +315,7 @@ public abstract class AbstractInstancesCheckTask
       String serverGroupName = onlyEntry.getValue().get(0);
 
       try {
-        ServerGroup response =
-            cloudDriverService.getServerGroupTyped(account, region, serverGroupName);
+        ServerGroup response = cloudDriverService.getServerGroup(account, region, serverGroupName);
         return List.of(response);
       } catch (RetrofitError e) {
         Response response = e.getResponse();

@@ -115,7 +115,7 @@ abstract class AbstractClusterWideClouddriverTask implements RetryableTask, Clou
     log.debug("Filtered cluster server groups (excluding parent deploys) in locations ${locations}: ${filteredServerGroups*.name}")
     Map<Location, List<TargetServerGroup>> filteredServerGroupsByLocation = filteredServerGroups.groupBy { it.getLocation(exactLocationType) }
 
-    List<Map<String, Map>> katoOps = filteredServerGroups.collect(this.&buildOperationPayloads.curry(stage)).flatten()
+    List<Map<String, Map>> katoOps = filteredServerGroups.collect { buildOperationPayloads(stage, it) }.flatten()
     log.debug("Kato ops for executionId (${stage.getExecution().getId()}): ${katoOps}")
     if (!katoOps) {
       log.warn("$stage.execution.id: No server groups to operate on from $serverGroupsByLocation in $locations")

@@ -52,7 +52,7 @@ class WaitForNewUpInstancesLaunchTaskSpec extends Specification {
     def response = task.execute(stage)
 
     then:
-    1 * cloudDriverService.getServerGroupTyped(account, region, serverGroup) >> oortResponse
+    1 * cloudDriverService.getServerGroup(account, region, serverGroup) >> oortResponse
     response.status == expectedStatus
 
 

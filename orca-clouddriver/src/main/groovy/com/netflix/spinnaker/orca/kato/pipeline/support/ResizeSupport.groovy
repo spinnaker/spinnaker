@@ -49,7 +49,7 @@ class ResizeSupport {
 
       def description = new HashMap(stage.context)
       if (descriptions.containsKey(asg.name)) {
-        descriptions[asg.name as String].regions.add(region)
+        descriptions[asg.name].regions.add(region)
         continue
       }
       description.asgName = asg.name

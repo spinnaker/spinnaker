@@ -37,7 +37,7 @@ public class PollerSupport {
     return retrySupport.retry(
         () -> {
           try {
-            ServerGroup response = cloudDriverService.getServerGroupTyped(account, region, name);
+            ServerGroup response = cloudDriverService.getServerGroup(account, region, name);
             return Optional.of(response);
           } catch (Exception e) {
             if (e instanceof RetrofitError) {

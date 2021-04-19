@@ -21,6 +21,7 @@ import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.FeaturesService
+import com.netflix.spinnaker.orca.clouddriver.ModelUtils
 import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup
 import spock.lang.Specification
 import spock.lang.Subject
@@ -65,12 +66,12 @@ class DetermineRollbackCandidatesTaskSpec extends Specification {
     }
 
     and: "there are at least two server groups"
-    cloudDriverService.getCluster("app", "test", "app-stack-details", "aws") >> [
+    cloudDriverService.getCluster("app", "test", "app-stack-details", "aws") >> ModelUtils.cluster([
         serverGroups: [
             buildServerGroup("servergroup-v001", "us-west-2", 100, true, [:], [:], 5),
             buildServerGroup("servergroup-v002", "us-west-2", 150, false, [:], [:], 5)
         ]
-    ]
+    ])
 
     when: "the task is executed"
     def result = task.execute(stage)
@@ -105,20 +106,20 @@ class DetermineRollbackCandidatesTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    (shouldFetchServerGroup ? 1 : 0) * cloudDriverService.getServerGroupTyped("test", "us-west-2", "servergroup-v002") >> new ServerGroup(
+    (shouldFetchServerGroup ? 1 : 0) * cloudDriverService.getServerGroup("test", "us-west-2", "servergroup-v002") >> new ServerGroup(
         moniker: new Moniker(
             app: "app",
             cluster: "app-stack-details"
         ))
 
-    1 * cloudDriverService.getCluster("app", "test", "app-stack-details", "aws") >> [
+    1 * cloudDriverService.getCluster("app", "test", "app-stack-details", "aws") >> ModelUtils.cluster([
         serverGroups: [
             buildServerGroup("servergroup-v000", "us-west-2", 50, false, [name: "my_image-0"], [:], 5),
             // disabled server groups should be skipped when evaluating rollback candidates, but only on automatic rollbacks after a failed deployment
             buildServerGroup("servergroup-v001", "us-west-2", 100, true, [name: "my_image-1"], [:], 5),
             buildServerGroup("servergroup-v002", "us-west-2", 150, false, [name: "my_image-2"], [:], 5)
         ]
-    ]
+    ])
     1 * featuresService.areEntityTagsAvailable() >> areEntityTagsEnabled
     (shouldFetchEntityTags ? 1 : 0) * cloudDriverService.getEntityTags(*_) >> { return [] }
 
@@ -160,12 +161,12 @@ class DetermineRollbackCandidatesTaskSpec extends Specification {
     }
 
     and: "there's an enabled server group with the same image id"
-    cloudDriverService.getCluster("app", "test", "app-stack-details", "aws") >> [
+    cloudDriverService.getCluster("app", "test", "app-stack-details", "aws") >> ModelUtils.cluster([
         serverGroups: [
             buildServerGroup("servergroup-v001", "us-west-2", 100, false, [name: "my_image-0", imageId: "ami-xxxxx0"], [:], 5),
             buildServerGroup("servergroup-v002", "us-west-2", 150, false, [name: "my_image-1", imageId: "ami-xxxxx1"], [:], 5)
         ]
-    ]
+    ])
 
     when: "the task executes"
     def result = task.execute(stage)
@@ -197,12 +198,12 @@ class DetermineRollbackCandidatesTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    1 * cloudDriverService.getCluster("app", _, "app-stack-details", _) >> [
+    1 * cloudDriverService.getCluster("app", _, "app-stack-details", _) >> ModelUtils.cluster([
         serverGroups: [
             buildServerGroup("servergroup-v002", "us-west-2", 50, false, null, [:], 80),
             buildServerGroup("servergroup-v001", "us-west-2", 100, false, [:], [:], 80),
         ]
-    ]
+    ])
     1 * featuresService.areEntityTagsAvailable() >> { return true }
     1 * cloudDriverService.getEntityTags(*_) >> {
       return [buildSpinnakerMetadata("my_image-0", "ami-xxxxx0", "5")]

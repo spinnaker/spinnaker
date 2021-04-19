@@ -115,7 +115,7 @@ class AbstractInstancesCheckTaskSpec extends Specification {
     task.execute(stage)
 
     then:
-    1 * cloudDriverService.getServerGroupTyped("test", "us-west-1", "front50-v000") >> serverGroup
+    1 * cloudDriverService.getServerGroup("test", "us-west-1", "front50-v000") >> serverGroup
 
     and:
     1 * hasSucceededSpy.hasSucceeded(_, serverGroup.instances, ['JustTrustMeBroItIsHealthy'])
@@ -142,7 +142,7 @@ class AbstractInstancesCheckTaskSpec extends Specification {
 
     then:
     result.context.zeroDesiredCapacityCount == expected
-    1 * cloudDriverService.getServerGroupTyped("test", "us-west-1", "front50-v000") >>
+    1 * cloudDriverService.getServerGroup("test", "us-west-1", "front50-v000") >>
 ModelUtils.serverGroup([
     "name": "front50-v000",
     "region": "us-west-1",
@@ -183,7 +183,7 @@ ModelUtils.serverGroup([
 
     then:
     result.context.zeroDesiredCapacityCount == 1
-    1 * cloudDriverService.getServerGroupTyped("test", "us-west-1", "front50-v000") >>
+    1 * cloudDriverService.getServerGroup("test", "us-west-1", "front50-v000") >>
 ModelUtils.serverGroup([
     "name": "front50-v000",
     "region": "us-west-1",
@@ -222,7 +222,7 @@ ModelUtils.serverGroup([
     }
 
     then:
-    1 * cloudDriverService.getServerGroupTyped("test", "us-west-2", serverGroupName) >> {
+    1 * cloudDriverService.getServerGroup("test", "us-west-2", serverGroupName) >> {
       if (statusCode == 200) {
         return new ServerGroup("name": serverGroupName)
       }

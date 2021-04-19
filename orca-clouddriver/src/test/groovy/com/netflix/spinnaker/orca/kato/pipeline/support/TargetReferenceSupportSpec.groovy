@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
+import com.netflix.spinnaker.orca.clouddriver.ModelUtils
+import com.netflix.spinnaker.orca.clouddriver.model.Cluster
 import com.netflix.spinnaker.orca.kato.pipeline.DetermineTargetReferenceStage
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
@@ -32,7 +34,7 @@ class TargetReferenceSupportSpec extends Specification {
 
   def pipeline = PipelineExecutionImpl.newPipeline("orca")
 
-  def cluster = [serverGroups: [
+  Cluster cluster = ModelUtils.cluster([serverGroups: [
                                 [
                                   name  : "kato-main-v999",
                                   createdTime: 0,
@@ -78,7 +80,7 @@ class TargetReferenceSupportSpec extends Specification {
                                     maxSize        : 5,
                                     desiredCapacity: 5
                                   ]
-                                ]]]
+                                ]]])
 
   @Unroll
   void "should resolve target (#target) reference appropriately"() {
@@ -119,7 +121,7 @@ class TargetReferenceSupportSpec extends Specification {
       credentials : "prod"
     ]
     def stage = new StageExecutionImpl(pipeline, "test", config)
-    def response =
+    def response = ModelUtils.cluster(
       [serverGroups: [[
         name  : "kato-main-v001",
         createdTime: 2,
@@ -130,7 +132,7 @@ class TargetReferenceSupportSpec extends Specification {
             desiredCapacity: 5
           ]
         ]
-      ]]
+      ]])
 
     when:
     subject.getTargetAsgReferences(stage)
@@ -150,7 +152,7 @@ class TargetReferenceSupportSpec extends Specification {
       credentials : "prod"
     ]
     def stage = new StageExecutionImpl(pipeline, "test", config)
-    def response = [serverGroups: []]
+    def response = new Cluster(serverGroups: [])
 
     when:
     subject.getTargetAsgReferences(stage)

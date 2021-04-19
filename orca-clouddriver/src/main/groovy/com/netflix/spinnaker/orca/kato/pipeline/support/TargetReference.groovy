@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup
 import groovy.transform.ToString
 
 @Deprecated
@@ -23,5 +24,5 @@ import groovy.transform.ToString
 class TargetReference {
   String region
   String cluster
-  Map<String, Object> asg
+  ServerGroup asg
 }

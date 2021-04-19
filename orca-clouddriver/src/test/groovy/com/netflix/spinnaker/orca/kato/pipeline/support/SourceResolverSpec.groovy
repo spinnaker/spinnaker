@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.kato.pipeline.support
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
+import com.netflix.spinnaker.orca.clouddriver.ModelUtils
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupResolver
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
@@ -45,11 +46,11 @@ class SourceResolverSpec extends Specification {
     def exampleAsgs = [
       empty       : [],
       singleRegion: [
-        [name: "test-v000", region: "us-west-1", disabled: false, instances: [1, 2, 3]],
-        [name: "test-v001", region: "us-west-1", disabled: false, instances: [1, 2]],
-        [name: "test-v003", region: "us-west-1", disabled: false, instances: [1]],
-        [name: "test-v004", region: "us-west-1", disabled: true, instances: [1, 2, 3, 4]],
-        [name: "test-v004", region: "us-west-1", instances: [1, 2, 3, 4, 5]]
+        [name: "test-v000", region: "us-west-1", disabled: false, instances: [[:], [:], [:]]],
+        [name: "test-v001", region: "us-west-1", disabled: false, instances: [[:], [:]]],
+        [name: "test-v003", region: "us-west-1", disabled: false, instances: [[:]]],
+        [name: "test-v004", region: "us-west-1", disabled: true, instances: [[:], [:], [:], [:]]],
+        [name: "test-v004", region: "us-west-1", instances: [[:], [:], [:], [:], [:]]]
       ],
       mixedRegions: [
         [name: "test-v000", region: "us-west-1", disabled: false],
@@ -60,7 +61,9 @@ class SourceResolverSpec extends Specification {
         [name: "test-v000", region: "us-west-1", disabled: true],
         [name: "test-v001", region: "us-west-1", disabled: true],
       ]
-    ]
+    ].collectEntries {k, v ->
+      [(k): v.collect { ModelUtils.serverGroup(it) }]
+    }
 
     def resolver = Spy(SourceResolver) {
       (0..1) * getExistingAsgs("app", "test", "app-test", "aws") >> {
@@ -225,7 +228,7 @@ class SourceResolverSpec extends Specification {
     def existing = resolver.getExistingAsgs('foo', 'test', 'foo-test', 'aws')
 
     then:
-    1 * cloudDriverService.getCluster('foo', 'test', 'foo-test', 'aws') >>
+    1 * cloudDriverService.getCluster('foo', 'test', 'foo-test', 'aws') >> ModelUtils.cluster(
     [
       "serverGroups": [[
         "name": "foo-test-v001",
@@ -244,7 +247,7 @@ class SourceResolverSpec extends Specification {
         "region": "us-east-1",
         "createdTime": 1
       ]]
-    ]
+    ])
     existing*.name == ['foo-test-v999', 'foo-test-v000', 'foo-test-v000', 'foo-test-v001']
   }
 
@@ -276,33 +279,33 @@ class SourceResolverSpec extends Specification {
       ]
     )
 
-    serverGroups =
+    serverGroups = ModelUtils.cluster(
     [
       "serverGroups": [[
         "name": "foo-test-v001",
         "region": "us-west-1",
         "createdTime": 4,
         "disabled": false,
-        "instances": [ 1, 2, 3 ]
+        "instances": [ [:], [:], [:] ]
       ],[
         "name": "foo-test-v000",
         "region": "us-west-1",
         "disabled": false,
-        "instances": [ 1, 2, 3 ],
+        "instances": [ [:], [:], [:] ],
         "createdTime": 3
       ],[
         "name": "foo-test-v000",
         "region": "us-east-1",
         "disabled": false,
-        "instances": [ 1, 2, 3 ],
+        "instances": [ [:], [:], [:] ],
         "createdTime": 2
       ],[
         "name": "foo-test-v999",
         "region": "us-east-1",
         "disabled": false,
-        "instances": [ 1, 2, 3 ],
+        "instances": [ [:], [:], [:] ],
         "createdTime": 1
       ]]
-    ]
+    ])
   }
 }

@@ -1,21 +1,16 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup;
 
-import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.SkippableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService;
-import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
-import com.netflix.spinnaker.orca.clouddriver.utils.ServerGroupDescriptor;
 import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler;
-import java.io.IOException;
 import java.util.Collections;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -28,19 +23,9 @@ public class WaitForDisabledServerGroupTask
 
   private final CloudDriverService cloudDriverService;
 
-  private final ServerGroupFetcher serverGroupFetcher;
-
   @Autowired
   WaitForDisabledServerGroupTask(CloudDriverService cloudDriverService) {
-    this(cloudDriverService, null);
-  }
-
-  @VisibleForTesting
-  WaitForDisabledServerGroupTask(
-      CloudDriverService cloudDriverService, ServerGroupFetcher serverGroupFetcher) {
     this.cloudDriverService = cloudDriverService;
-    this.serverGroupFetcher =
-        serverGroupFetcher == null ? new ServerGroupFetcher() : serverGroupFetcher;
   }
 
   @Override
@@ -69,17 +54,17 @@ public class WaitForDisabledServerGroupTask
 
     // we have established that this is a full disable, so we need to enforce that the server group
     // is actually disabled
-    val serverGroupDescriptor = getServerGroupDescriptor(stage);
+    var serverGroupDescriptor = getServerGroupDescriptor(stage);
     try {
-      var serverGroup = serverGroupFetcher.fetchServerGroup(serverGroupDescriptor);
-      return serverGroup.isDisabled() ? TaskResult.SUCCEEDED : TaskResult.RUNNING;
+      var serverGroup = cloudDriverService.getServerGroup(serverGroupDescriptor);
+      return serverGroup.getDisabled() ? TaskResult.SUCCEEDED : TaskResult.RUNNING;
     } catch (RetrofitError e) {
-      val retrofitErrorResponse = new RetrofitExceptionHandler().handle(stage.getName(), e);
+      var retrofitErrorResponse = new RetrofitExceptionHandler().handle(stage.getName(), e);
       log.error("Unexpected retrofit error {}", retrofitErrorResponse, e);
       return TaskResult.builder(ExecutionStatus.RUNNING)
           .context(Collections.singletonMap("lastRetrofitException", retrofitErrorResponse))
           .build();
-    } catch (IOException e) {
+    } catch (Exception e) {
       log.error("Unexpected exception", e);
       return TaskResult.builder(ExecutionStatus.RUNNING)
           .context(Collections.singletonMap("lastException", e))
@@ -102,19 +87,6 @@ public class WaitForDisabledServerGroupTask
         throw new IllegalArgumentException(
             "desiredPercentage is expected to be in [0, 100] but found " + desiredPercentage);
       }
-    }
-  }
-
-  // separating it out for testing purposes
-  class ServerGroupFetcher {
-    TargetServerGroup fetchServerGroup(ServerGroupDescriptor serverGroupDescriptor)
-        throws IOException {
-      var serverGroupData =
-          cloudDriverService.getServerGroup(
-              serverGroupDescriptor.getAccount(),
-              serverGroupDescriptor.getRegion(),
-              serverGroupDescriptor.getName());
-      return new TargetServerGroup(serverGroupData);
     }
   }
 }

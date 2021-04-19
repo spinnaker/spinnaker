@@ -31,6 +31,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService;
 import com.netflix.spinnaker.orca.clouddriver.FeaturesService;
+import com.netflix.spinnaker.orca.clouddriver.model.Cluster;
 import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup.Capacity;
 import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup.RollbackDetails;
@@ -78,7 +79,6 @@ public class DetermineRollbackCandidatesTask implements CloudProviderAware, Retr
   private static final TypeReference<List<ServerGroup>> listOfServerGroupsTypeReference =
       new TypeReference<>() {};
 
-  private final ObjectMapper objectMapper;
   private final RetrySupport retrySupport;
   private final CloudDriverService cloudDriverService;
   private final PreviousImageRollbackSupport previousImageRollbackSupport;
@@ -89,7 +89,6 @@ public class DetermineRollbackCandidatesTask implements CloudProviderAware, Retr
       RetrySupport retrySupport,
       CloudDriverService cloudDriverService,
       FeaturesService featuresService) {
-    this.objectMapper = objectMapper;
     this.retrySupport = retrySupport;
     this.cloudDriverService = cloudDriverService;
     this.previousImageRollbackSupport =
@@ -273,18 +272,14 @@ public class DetermineRollbackCandidatesTask implements CloudProviderAware, Retr
   private List<ServerGroup> getServerGroups(
       Moniker moniker, String credentials, String cloudProvider) {
     return Optional.ofNullable(fetchClusterInfoWithRetry(moniker, credentials, cloudProvider))
-        .map(clusterInfo -> clusterInfo.get("serverGroups"))
-        .map(this::toServerGroups)
+        .map(Cluster::getServerGroups)
+        .map(
+            serverGroups ->
+                // The list is sorted by creation time, newest first
+                serverGroups.stream()
+                    .sorted(Comparator.comparing((ServerGroup o) -> o.createdTime).reversed())
+                    .collect(Collectors.toList()))
         .orElse(null);
-  }
-
-  /** Deserialize a list of server groups. The list is sorted by creation time, newest first */
-  @Nonnull
-  private List<ServerGroup> toServerGroups(Object obj) {
-    List<ServerGroup> serverGroups =
-        objectMapper.convertValue(obj, listOfServerGroupsTypeReference);
-    serverGroups.sort(Comparator.comparing((ServerGroup o) -> o.createdTime).reversed());
-    return serverGroups;
   }
 
   /** Verify that a rollback is actually possible */
@@ -392,7 +387,7 @@ public class DetermineRollbackCandidatesTask implements CloudProviderAware, Retr
       try {
         ServerGroup serverGroup =
             retrySupport.retry(
-                () -> cloudDriverService.getServerGroupTyped(credentials, region, serverGroupName),
+                () -> cloudDriverService.getServerGroup(credentials, region, serverGroupName),
                 5,
                 1000,
                 false);
@@ -413,7 +408,7 @@ public class DetermineRollbackCandidatesTask implements CloudProviderAware, Retr
 
   /** Get info about cluster */
   @Nullable
-  private Map<String, Object> fetchClusterInfoWithRetry(
+  private Cluster fetchClusterInfoWithRetry(
       Moniker moniker, String credentials, String cloudProvider) {
     try {
       return retrySupport.retry(

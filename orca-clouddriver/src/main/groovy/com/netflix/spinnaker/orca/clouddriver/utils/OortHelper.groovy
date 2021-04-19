@@ -57,6 +57,11 @@ class OortHelper {
     }
   }
 
+  /**
+   * @deprecated see:
+   * {@link com.netflix.spinnaker.orca.clouddriver.CloudDriverService#maybeCluster(String, String, String, String }
+   **/
+  @Deprecated
   Optional<Map> getCluster(String application, String account, String cluster, String cloudProvider) {
     return convertedResponse(Map) { oortService.getCluster(application, account, cluster, cloudProvider) }
   }

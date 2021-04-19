@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
+import com.netflix.spinnaker.orca.clouddriver.ModelUtils
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
@@ -42,7 +43,7 @@ class ResizeSupportSpec extends Specification {
     targetRefs = [
       new TargetReference(
         region: "us-west-1",
-        asg: [
+        asg: ModelUtils.serverGroup([
           name  : "testapp-asg-v001",
           region: "us-west-1",
           asg   : [
@@ -50,7 +51,7 @@ class ResizeSupportSpec extends Specification {
             maxSize        : 10,
             desiredCapacity: 10
           ]
-        ]
+        ])
       )
     ]
   }

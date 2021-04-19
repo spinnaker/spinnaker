@@ -106,7 +106,7 @@ class WaitForUpInstancesTaskSpec extends Specification {
       ]
     ])
     task.cloudDriverService = Stub(CloudDriverService) {
-      getClusterTyped(*_) >>> [response, response2]
+      getCluster(*_) >>> [response, response2]
     }
 
     and:

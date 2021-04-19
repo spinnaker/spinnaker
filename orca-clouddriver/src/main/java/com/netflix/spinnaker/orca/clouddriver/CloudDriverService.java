@@ -6,11 +6,15 @@ import com.netflix.spinnaker.orca.clouddriver.model.Cluster;
 import com.netflix.spinnaker.orca.clouddriver.model.EntityTags;
 import com.netflix.spinnaker.orca.clouddriver.model.Instance;
 import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup;
+import com.netflix.spinnaker.orca.clouddriver.utils.ServerGroupDescriptor;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Supplier;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import retrofit.RetrofitError;
 import retrofit.client.Response;
 
 @Component
@@ -40,15 +44,15 @@ public class CloudDriverService {
     return readBody(response, SERVER_GROUPS);
   }
 
-  @Deprecated
-  /** @deprecated See {@link #getServerGroupTyped(String, String, String)}.* */
-  public Map<String, Object> getServerGroup(String account, String region, String serverGroup) {
+  public ServerGroup getServerGroup(String account, String region, String serverGroup) {
     Response response = oortService.getServerGroup(account, region, serverGroup);
-    return readBody(response, JSON_MAP);
+    return readBody(response, ServerGroup.class);
   }
 
-  public ServerGroup getServerGroupTyped(String account, String region, String serverGroup) {
-    Response response = oortService.getServerGroup(account, region, serverGroup);
+  public ServerGroup getServerGroup(ServerGroupDescriptor descriptor) {
+    Response response =
+        oortService.getServerGroup(
+            descriptor.getAccount(), descriptor.getRegion(), descriptor.getName());
     return readBody(response, ServerGroup.class);
   }
 
@@ -80,17 +84,26 @@ public class CloudDriverService {
     return oortService.getByAmiId(type, account, region, imageId);
   }
 
-  @Deprecated
-  /** @deprecated See {@link #getClusterTyped(String, String, String, String)}.* */
-  public Map<String, Object> getCluster(
-      String app, String account, String cluster, String cloudProvider) {
-    Response response = oortService.getCluster(app, account, cluster, cloudProvider);
-    return readBody(response, JSON_MAP);
-  }
-
-  public Cluster getClusterTyped(String app, String account, String cluster, String cloudProvider) {
+  public Cluster getCluster(String app, String account, String cluster, String cloudProvider) {
     Response response = oortService.getCluster(app, account, cluster, cloudProvider);
     return readBody(response, Cluster.class);
+  }
+
+  public Optional<Cluster> maybeCluster(
+      String app, String account, String cluster, String cloudProvider) {
+    return maybe(() -> getCluster(app, account, cluster, cloudProvider));
+  }
+
+  private static <T> Optional<T> maybe(Supplier<T> supplier) {
+    try {
+      T result = supplier.get();
+      return Optional.ofNullable(result);
+    } catch (RetrofitError re) {
+      if (re.getKind() == RetrofitError.Kind.HTTP && re.getResponse().getStatus() == 404) {
+        return Optional.empty();
+      }
+      throw re;
+    }
   }
 
   @Deprecated

@@ -30,7 +30,7 @@ class ResumeScalingProcessTask extends AbstractScalingProcessTask {
       return []
     }
 
-    def targetAsgConfiguration = targetReference.asg.asg as Map<String, Object>
+    def targetAsgConfiguration = targetReference.asg.asg
     if (targetAsgConfiguration.suspendedProcesses) {
       def suspendedProcesses = targetAsgConfiguration.suspendedProcesses*.processName as List<String>
       return suspendedProcesses.intersect(processes) ?: []

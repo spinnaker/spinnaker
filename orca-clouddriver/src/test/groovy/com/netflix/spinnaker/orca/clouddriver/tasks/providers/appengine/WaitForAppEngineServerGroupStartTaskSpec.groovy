@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.appengine
 
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
+import com.netflix.spinnaker.orca.clouddriver.ModelUtils
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
@@ -60,7 +61,7 @@ class WaitForAppEngineServerGroupStartTaskSpec extends Specification {
       result.status == ExecutionStatus.SUCCEEDED
 
     where:
-      cluster = [
+      cluster = ModelUtils.cluster([
         name: "app-stack-detail",
         account: "my-appengine-account",
         serverGroups: [
@@ -70,6 +71,6 @@ class WaitForAppEngineServerGroupStartTaskSpec extends Specification {
             servingStatus: "STOPPED",
           ]
         ]
-      ]
+      ])
   }
 }

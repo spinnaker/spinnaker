@@ -22,6 +22,8 @@ import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
+import com.netflix.spinnaker.orca.clouddriver.model.Cluster
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 
 import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler
@@ -48,9 +50,9 @@ abstract class AbstractWaitForAppEngineServerGroupStopStartTask implements Cloud
     String appName = stage.context.moniker?.app ?: names.app
     String clusterName = stage.context.moniker?.cluster ?: names.cluster
     try {
-      Map cluster = cloudDriverService.getCluster(appName, account, clusterName, cloudProvider)
+      Cluster cluster = cloudDriverService.getCluster(appName, account, clusterName, cloudProvider)
 
-      def serverGroup = cluster.serverGroups.find { it.name == serverGroupName }
+      ServerGroup serverGroup = cluster.serverGroups.find { it.getName() == serverGroupName }
       if (!serverGroup) {
         log.info("${serverGroupName}: not found.")
         return TaskResult.ofStatus(ExecutionStatus.TERMINAL)

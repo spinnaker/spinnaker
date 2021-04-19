@@ -64,7 +64,7 @@ class WaitForRequiredInstancesDownTaskSpec extends Specification {
         ]
     ])
 
-    cloudDriverService.getServerGroupTyped(*_) >> response
+    cloudDriverService.getServerGroup(*_) >> response
 
     2 * serverGroupCacheForceRefreshTask.execute(_) >> TaskResult.ofStatus(ExecutionStatus.SUCCEEDED)
     1 * oortHelper.getTargetServerGroup("test", "front50-v000", "us-east-1", "aws") >> Optional.of(new TargetServerGroup(region: "us-east-1"))

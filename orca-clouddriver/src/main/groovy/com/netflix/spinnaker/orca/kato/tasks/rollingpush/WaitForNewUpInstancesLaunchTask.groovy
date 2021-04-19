@@ -45,7 +45,7 @@ class WaitForNewUpInstancesLaunchTask implements OverridableTimeoutRetryableTask
     StageData stageData = stage.mapTo(StageData)
 
     // similar check in `AbstractInstancesCheckTask`
-    ServerGroup serverGroup = cloudDriverService.getServerGroupTyped(
+    ServerGroup serverGroup = cloudDriverService.getServerGroup(
       stageData.account,
       stage.context.region as String,
       stage.context.asgName as String

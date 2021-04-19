@@ -12,4 +12,5 @@ public class Instance {
   HealthState healthState;
   String zone;
   String cloudProvider;
+  String privateIpAddress;
 }
