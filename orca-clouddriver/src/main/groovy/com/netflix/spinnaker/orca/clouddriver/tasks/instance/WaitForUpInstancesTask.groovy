@@ -69,7 +69,7 @@ class WaitForUpInstancesTask extends AbstractInstancesCheckTask {
     return allInstancesMatch(stage, serverGroup, instances, interestingHealthProviderNames, null)
   }
 
-   public static boolean allInstancesMatch(StageExecution stage,
+  public static boolean allInstancesMatch(StageExecution stage,
                                           Map<String, Object> serverGroup,
                                           List<Map<String, Object>> instances,
                                           Collection<String> interestingHealthProviderNames,
@@ -382,6 +382,7 @@ class WaitForUpInstancesTask extends AbstractInstancesCheckTask {
               .map({ deployment ->
                 deployment.get("capacity") as Map<String, Integer>
               })
+              .filter({ it != null })
               .findFirst()
         })
         .orElse(null)
