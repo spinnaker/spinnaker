@@ -20,6 +20,7 @@ import com.netflix.spinnaker.gate.config.AuthConfig
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.autoconfigure.security.oauth2.client.EnableOAuth2Sso
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2SsoProperties
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -68,6 +69,11 @@ class OAuth2SsoConfig extends WebSecurityConfigurerAdapter {
 
   @Primary
   @Bean
+  @ConditionalOnProperty(
+    prefix = 'security.oauth2.resource.spinnaker-user-info-token-services',
+    name = 'enabled',
+    havingValue = 'true',
+    matchIfMissing = true)
   ResourceServerTokenServices spinnakerUserInfoTokenServices() {
     new SpinnakerUserInfoTokenServices()
   }
