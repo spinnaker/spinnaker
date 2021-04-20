@@ -28,7 +28,7 @@ install_packer() {
 install_helm() {
   wget https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get
   chmod +x get
-  ./get
+  ./get --version v2.17.0
   rm get
 }
 
