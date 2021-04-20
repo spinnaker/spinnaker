@@ -114,7 +114,7 @@ class TargetServerGroupResolver {
       throw new TargetServerGroup.NotFoundException("No TargetServerGroups found for stage $stage.id")
     }
     List<TargetServerGroup> tsgs = dtsgStage.context.targetReferences.collect {
-      return new TargetServerGroup(it)
+      return it instanceof TargetServerGroup ? it : new TargetServerGroup(it)
     }
     if (!tsgs) {
       throw new TargetServerGroup.NotFoundException("No targetReferences found on DetermineTargetServerGroup stage $stage.id")

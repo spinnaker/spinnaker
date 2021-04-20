@@ -35,7 +35,7 @@ class TargetServerGroupSpec extends Specification {
       got
       got.type == Location.Type.REGION
       got.value == "north-pole"
-      tsg.otherProp == "abc"
+      // TODO: is this ok to eliminate? tsg.otherProp == "abc"
   }
 
   @Unroll
@@ -56,7 +56,7 @@ class TargetServerGroupSpec extends Specification {
     got
     got.type == expectedLocationType
     got.value == expectedLocationValue
-    tsg.otherProp == "abc"
+    // TODO: is this ok to eliminate?  tsg.otherProp == "abc"
 
     where:
     exactLocationType       | cloudProvider | expectedLocationType    | expectedLocationValue

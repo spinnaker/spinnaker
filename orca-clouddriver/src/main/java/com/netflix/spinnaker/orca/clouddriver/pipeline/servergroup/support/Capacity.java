@@ -4,9 +4,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 import javax.annotation.Nonnegative;
+import lombok.Builder;
 import lombok.Value;
 
 @Value
+@Builder
 public class Capacity {
   @Nonnegative int min;
 

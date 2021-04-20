@@ -62,7 +62,7 @@ class TargetServerGroupResolverSpec extends Specification {
         data  : 123,
       ])))
     tsgs.size() == 1
-    tsgs[0].data == 123
+    // TODO: is data a real property? tsgs[0].data == 123
     tsgs[0].getLocation()
     tsgs[0].getLocation().type == Location.Type.REGION
     tsgs[0].getLocation().value == "north-pole"
@@ -84,7 +84,7 @@ class TargetServerGroupResolverSpec extends Specification {
                                                                                               type  : "gce",
                                                                                             ]])))
     tsgs.size() == 1
-    tsgs[0].data == 123
+    // TODO: is data a real property? tsgs[0].data == 123
     tsgs[0].getLocation()
     tsgs[0].getLocation().type == Location.Type.REGION
     tsgs[0].getLocation().value == "north-pole"

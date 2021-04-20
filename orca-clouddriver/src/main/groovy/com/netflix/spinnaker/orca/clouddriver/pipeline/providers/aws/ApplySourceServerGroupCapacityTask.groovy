@@ -81,7 +81,7 @@ class ApplySourceServerGroupCapacityTask extends AbstractServerGroupTask {
           context.capacity = sourceServerGroupCapacitySnapshot
           break
         default:
-          context.capacity = targetServerGroup.capacity + [
+          context.capacity = targetServerGroup.capacity.asMap() + [
             min: minCapacity
           ]
       }

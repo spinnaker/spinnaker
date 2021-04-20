@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.CaptureSourceServerGroupCapacityTask
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Capacity
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
@@ -108,12 +109,11 @@ class CaptureSourceServerGroupCapacityTaskSpec extends Specification {
       desired: 5,
       max    : 10
     ]
-    result.context.sourceServerGroupCapacitySnapshot == [
-      min    : 0,
-      desired: 5,
-      max    : 10
-
-    ]
+    result.context.sourceServerGroupCapacitySnapshot == Capacity.builder()
+        .min(0)
+        .desired(5)
+        .max(10)
+        .build()
     result.outputs.isEmpty()
   }
 }

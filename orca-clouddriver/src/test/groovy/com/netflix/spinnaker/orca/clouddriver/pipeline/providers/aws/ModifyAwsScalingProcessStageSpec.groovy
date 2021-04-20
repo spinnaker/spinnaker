@@ -46,11 +46,11 @@ class ModifyAwsScalingProcessStageSpec extends Specification {
     taskResult.status == expectedTaskResultStatus
 
     1 * oortHelper.getTargetServerGroup("test", "test-asg", "us-east-1", "aws") >> {
-      new TargetServerGroup(
+      Optional.of(new TargetServerGroup(
         asg: [
           suspendedProcesses: suspendedProcesses?.collect { [processName: it] }
         ]
-      )
+      ))
     }
 
     where:

@@ -35,7 +35,7 @@ class TargetServerGroup {
   final static ObjectMapper objectMapper = OrcaObjectMapper.getInstance()
 
   // Delegates all Map interface calls to this object.
-  @Delegate
+  //@Delegate
   private final Map<String, Object> serverGroup
 
   TargetServerGroup(Map<String, Object> serverGroupData) {
@@ -71,11 +71,28 @@ class TargetServerGroup {
     return serverGroup.name
   }
 
+  String getRegion() {
+    return serverGroup.get('region')
+  }
+
   Capacity getCapacity() {
-    return new Capacity(
-        toInt(serverGroup.capacity.min),
-        toInt(serverGroup.capacity.max),
-        toInt(serverGroup.capacity.desired))
+    return Capacity.builder()
+        .min(toInt(serverGroup.capacity.min))
+        .max(toInt(serverGroup.capacity.max))
+        .desired(toInt(serverGroup.capacity.desired))
+        .build()
+  }
+
+  Map<String, Object> getAsg() {
+    return (Map<String, Object>) serverGroup.get('asg')
+  }
+
+  Object getCredentials() { // TODO: is type String?
+    return serverGroup.get('credentials')
+  }
+
+  Long getCreatedTime() {
+    return serverGroup.get('createdTime') as Long
   }
 
   private static int toInt(Object field) {

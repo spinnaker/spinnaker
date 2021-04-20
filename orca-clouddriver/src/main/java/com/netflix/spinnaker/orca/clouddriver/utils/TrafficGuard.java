@@ -90,65 +90,61 @@ public class TrafficGuard {
       }
     }
 
-    instancesPerServerGroup
-        .entrySet()
-        .forEach(
-            entry -> {
-              String serverGroupName = entry.getKey();
+    instancesPerServerGroup.forEach(
+        (serverGroupName, instances) -> {
 
-              // handle scenarios where the stage moniker is invalid (ie. stage had no server group
-              // details provided)
-              Moniker moniker =
-                  serverGroupMonikerFromStage.getApp() == null
-                      ? MonikerHelper.friggaToMoniker(serverGroupName)
-                      : serverGroupMonikerFromStage;
+          // handle scenarios where the stage moniker is invalid (ie. stage had no server group
+          // details provided)
+          Moniker moniker =
+              serverGroupMonikerFromStage.getApp() == null
+                  ? MonikerHelper.friggaToMoniker(serverGroupName)
+                  : serverGroupMonikerFromStage;
 
-              if (!front50Cache.hasDisableLock(moniker, account, location)) {
-                log.debug(
-                    "No traffic guard configured for '{}' in {}/{}",
-                    serverGroupName,
-                    account,
-                    location.getValue());
-                return;
-              }
+          if (!front50Cache.hasDisableLock(moniker, account, location)) {
+            log.debug(
+                "No traffic guard configured for '{}' in {}/{}",
+                serverGroupName,
+                account,
+                location.getValue());
+            return;
+          }
 
-              // TODO rz - Remove: No longer needed since all data is retrieved in above clouddriver
-              // calls
-              TargetServerGroup targetServerGroup =
-                  oortHelper
-                      .getTargetServerGroup(
-                          account, serverGroupName, location.getValue(), cloudProvider)
-                      .orElseThrow(
-                          () ->
-                              new TrafficGuardException(
-                                  format(
-                                      "failed to look up server group named %s in %s/%s",
-                                      serverGroupName, account, location)));
+          // TODO rz - Remove: No longer needed since all data is retrieved in above clouddriver
+          // calls
+          TargetServerGroup targetServerGroup =
+              oortHelper
+                  .getTargetServerGroup(
+                      account, serverGroupName, location.getValue(), cloudProvider)
+                  .orElseThrow(
+                      () ->
+                          new TrafficGuardException(
+                              format(
+                                  "failed to look up server group named %s in %s/%s",
+                                  serverGroupName, account, location)));
 
-              Optional<Map> thisInstance =
-                  targetServerGroup.getInstances().stream()
-                      .filter(i -> "Up".equals(i.get("healthState")))
-                      .findFirst();
-              if (thisInstance.isPresent()) {
-                long otherActiveInstances =
-                    targetServerGroup.getInstances().stream()
-                        .filter(
-                            i ->
-                                "Up".equals(i.get("healthState"))
-                                    && !entry.getValue().contains(i.get("name")))
-                        .count();
-                if (otherActiveInstances == 0) {
-                  verifyTrafficRemoval(
-                      serverGroupName,
-                      moniker,
-                      account,
-                      location,
-                      cloudProvider,
-                      operationDescriptor,
-                      front50Cache);
-                }
-              }
-            });
+          Optional<Map> thisInstance =
+              targetServerGroup.getInstances().stream()
+                  .filter(i -> "Up".equals(i.get("healthState")))
+                  .findFirst();
+          if (thisInstance.isPresent()) {
+            long otherActiveInstances =
+                targetServerGroup.getInstances().stream()
+                    .filter(
+                        i ->
+                            "Up".equals(i.get("healthState")) && !instances.contains(i.get("name")))
+                    .count();
+            if (otherActiveInstances == 0) {
+              verifyTrafficRemoval(
+                  serverGroupName,
+                  moniker,
+                  account,
+                  location,
+                  cloudProvider,
+                  operationDescriptor,
+                  front50Cache);
+            }
+          }
+        });
   }
 
   private Optional<String> resolveServerGroupNameForInstance(

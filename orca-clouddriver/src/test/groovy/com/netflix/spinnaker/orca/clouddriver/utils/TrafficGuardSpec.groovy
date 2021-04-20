@@ -72,7 +72,7 @@ class TrafficGuardSpec extends Specification {
 
   def "pinned should not appear in serialized capacity"() {
     def mapper = new ObjectMapper()
-    def capacity = new Capacity(1, 1, 1)
+    def capacity = Capacity.builder().min(1).max(1).desired(1).build()
 
     expect:
     !mapper.writeValueAsString(capacity).contains('pinned')
@@ -499,7 +499,7 @@ class TrafficGuardSpec extends Specification {
     1 * front50Service.get("app") >> application
     1 * oortHelper.getSearchResults("i-1", "instances", "aws") >>
       [[results: [[account: "test", region: location.value, serverGroup: targetName]]]]
-    1 * oortHelper.getTargetServerGroup("test", targetName, location.value, "aws") >> (targetServerGroup as TargetServerGroup)
+    1 * oortHelper.getTargetServerGroup("test", targetName, location.value, "aws") >> Optional.of(new TargetServerGroup(targetServerGroup))
     1 * oortHelper.getCluster("app", "test", "app-foo", "aws") >>
       [serverGroups: [targetServerGroup]]
   }
@@ -517,7 +517,7 @@ class TrafficGuardSpec extends Specification {
     1 * front50Service.get("app") >> application
     1 * oortHelper.getSearchResults("i-1", "instances", "aws") >>
       [[results: [[account: "test", region: location.value, serverGroup: targetName]]]]
-    1 * oortHelper.getTargetServerGroup("test", targetName, location.value, "aws") >> (targetServerGroup as TargetServerGroup)
+    1 * oortHelper.getTargetServerGroup("test", targetName, location.value, "aws") >> Optional.of(new TargetServerGroup(targetServerGroup))
     1 * oortHelper.getCluster("app", "test", "app-foo", "aws") >> [
       serverGroups: [
         targetServerGroup,
@@ -539,7 +539,7 @@ class TrafficGuardSpec extends Specification {
     1 * front50Service.get("app") >> application
     1 * oortHelper.getSearchResults("i-1", "instances", "aws") >>
       [[results: [[account: "test", region: location.value, serverGroup: targetName]]]]
-    1 * oortHelper.getTargetServerGroup("test", targetName, location.value, "aws") >> (targetServerGroup as TargetServerGroup)
+    1 * oortHelper.getTargetServerGroup("test", targetName, location.value, "aws") >> Optional.of(new TargetServerGroup(targetServerGroup))
     1 * oortHelper.getCluster("app", "test", "app-foo", "aws") >> [
       serverGroups: [
         targetServerGroup,
@@ -561,7 +561,7 @@ class TrafficGuardSpec extends Specification {
     1 * front50Service.get("app") >> application
     1 * oortHelper.getSearchResults("i-1", "instances", "aws") >> [[results: [[account: "test", region: location.value, serverGroup: targetName]]]]
     1 * oortHelper.getSearchResults("i-2", "instances", "aws") >> [[results: [[account: "test", region: location.value, serverGroup: targetName]]]]
-    1 * oortHelper.getTargetServerGroup("test", targetName, location.value, "aws") >> (targetServerGroup as TargetServerGroup)
+    1 * oortHelper.getTargetServerGroup("test", targetName, location.value, "aws") >> Optional.of(new TargetServerGroup(targetServerGroup))
     1 * oortHelper.getCluster("app", "test", "app-foo", "aws") >> [
       serverGroups: [
         targetServerGroup,
@@ -583,7 +583,7 @@ class TrafficGuardSpec extends Specification {
     1 * oortHelper.getSearchResults("i-1", "instances", "aws") >>
       [[results: [[account: "test", region: location.value, serverGroup: targetName]]]]
     1 * oortHelper.getTargetServerGroup("test", targetName, location.value, "aws") >>
-      (makeServerGroup(targetName, 0, 0, [instances: [[name: "i-1"]]]) as TargetServerGroup)
+      Optional.of(new TargetServerGroup(makeServerGroup(targetName, 0, 0, [instances: [[name: "i-1"]]])))
     0 * _
   }
 
@@ -599,7 +599,7 @@ class TrafficGuardSpec extends Specification {
 
     1 * front50Service.get("app") >> application
     1 * oortHelper.getTargetServerGroup("test", targetName, location.value, "aws") >>
-      (makeServerGroup(targetName, 0, 0, [instances: [[name: "i-1"]]]) as TargetServerGroup)
+      Optional.of(new TargetServerGroup(makeServerGroup(targetName, 0, 0, [instances: [[name: "i-1"]]])))
     0 * _
   }
 

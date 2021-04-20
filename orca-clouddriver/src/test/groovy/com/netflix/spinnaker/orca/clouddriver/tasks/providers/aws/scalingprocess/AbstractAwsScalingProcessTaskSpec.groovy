@@ -92,7 +92,7 @@ class AbstractAwsScalingProcessTaskSpec extends Specification {
     given:
       def tsg = tSG("targetAsg", ["Launch"])
       def resolver = GroovySpy(TargetServerGroupResolver, global: true)
-      GroovySpy(TargetServerGroup, global: true, constructorArgs: [tsg])
+      GroovySpy(TargetServerGroup, global: true, constructorArgs: [[:]])
 
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), null, sD("targetAsg", ["Launch"]))
       def task = new ResumeAwsScalingProcessTask(resolver: resolver, katoService: katoService)
@@ -108,7 +108,7 @@ class AbstractAwsScalingProcessTaskSpec extends Specification {
   def "should send asg name to kato when dynamic references configured"() {
     given:
       def tsg = tSG("targetAsg", ["Launch"])
-      GroovySpy(TargetServerGroup, global: true, constructorArgs: [tsg])
+      GroovySpy(TargetServerGroup, global: true, constructorArgs: [[:]])
       def resolver = GroovySpy(TargetServerGroupResolver, global: true)
       KatoService katoService = Mock(KatoService)
 
