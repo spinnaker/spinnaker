@@ -177,12 +177,22 @@ export class ExecutionFilterService {
     }
   }
 
+  private static awaitingJudgementFilter(execution: IExecution): boolean {
+    const sortFilter: ISortFilter = ExecutionState.filterModel.asFilterModel.sortFilter;
+    if (sortFilter.awaitingJudgement) {
+      return execution.stages.some(({ type, status }) => type === 'manualJudgment' && status === 'RUNNING');
+    } else {
+      return true;
+    }
+  }
+
   public static filterExecutionsForDisplay(executions: IExecution[], application: Application): IExecution[] {
     return chain(executions)
       .filter((e: IExecution) => this.textFilter(e))
       .filter((e: IExecution) => this.tagsFilter(e, application))
       .filter((e: IExecution) => this.pipelineNameFilter(e))
       .filter((e: IExecution) => this.statusFilter(e))
+      .filter((e: IExecution) => this.awaitingJudgementFilter(e))
       .value();
   }
 

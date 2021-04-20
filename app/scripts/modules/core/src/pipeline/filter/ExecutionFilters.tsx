@@ -236,6 +236,7 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
 
   public render() {
     const { pipelineNames, searchString, strategyNames, pipelineReorderEnabled, tags, pipelineTags } = this.state;
+    const { sortFilter } = ExecutionState.filterModel.asFilterModel;
 
     return (
       <div className="execution-filters">
@@ -298,7 +299,13 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
 
             <FilterSection heading="Status" expanded={true}>
               <div className="form">
-                <FilterStatus status="RUNNING" label="Running" refresh={this.refreshExecutions} />
+                <FilterStatus
+                  status="RUNNING"
+                  label="Running"
+                  refresh={this.refreshExecutions}
+                  disabled={sortFilter.awaitingJudgement}
+                />
+                <FilterAwaitingJudgement refresh={this.refreshExecutions} />
                 <FilterStatus status="TERMINAL" label="Terminal" refresh={this.refreshExecutions} />
                 <FilterStatus status="SUCCEEDED" label="Succeeded" refresh={this.refreshExecutions} />
                 <FilterStatus status="NOT_STARTED" label="Not Started" refresh={this.refreshExecutions} />
@@ -414,7 +421,12 @@ const PipelineTagFilter = (props: { group: string; value: string; refresh: () =>
   );
 };
 
-const FilterStatus = (props: { status: string; label: string; refresh: () => void }): JSX.Element => {
+const FilterStatus = (props: {
+  status: string;
+  disabled?: boolean;
+  label: string;
+  refresh: () => void;
+}): JSX.Element => {
   const sortFilter = ExecutionState.filterModel.asFilterModel.sortFilter;
   const changed = () => {
     ReactGA.event({ category: 'Pipelines', action: 'Filter: status', label: props.label.toUpperCase() });
@@ -424,8 +436,34 @@ const FilterStatus = (props: { status: string; label: string; refresh: () => voi
   return (
     <div className="checkbox">
       <label>
-        <input type="checkbox" checked={sortFilter.status[props.status] || false} onChange={changed} />
+        <input
+          type="checkbox"
+          checked={sortFilter.status[props.status] || false}
+          disabled={!!props.disabled}
+          onChange={changed}
+        />
         {props.label}
+      </label>
+    </div>
+  );
+};
+
+const FilterAwaitingJudgement = (props: { refresh: () => void }): JSX.Element => {
+  const { sortFilter } = ExecutionState.filterModel.asFilterModel;
+  const label = 'Awaiting Judgement';
+  const changed = () => {
+    ReactGA.event({ category: 'Pipelines', action: 'Filter: status', label });
+    sortFilter.awaitingJudgement = !sortFilter.awaitingJudgement;
+    if (sortFilter.awaitingJudgement) {
+      sortFilter.status['RUNNING'] = true;
+    }
+    props.refresh();
+  };
+  const checked = !!sortFilter.awaitingJudgement;
+  return (
+    <div className="checkbox">
+      <label>
+        <input type="checkbox" checked={checked} onChange={changed} /> {label}
       </label>
     </div>
   );

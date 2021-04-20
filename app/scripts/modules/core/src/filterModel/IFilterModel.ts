@@ -22,6 +22,7 @@ export interface ITrueKeyModel {
 export interface ISortFilter {
   account: ITrueKeyModel;
   availabilityZone: ITrueKeyModel;
+  awaitingJudgement: boolean;
   category: { [key: string]: any };
   clusters: { [key: string]: any };
   count: number;
