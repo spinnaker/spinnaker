@@ -165,7 +165,7 @@ public class CreateServerGroupSpec extends AwsBaseSpec {
                   .assertThat()
                   .body("message", Matchers.equalTo("Validation Failed"))
                   .body("errors.size()", Matchers.equalTo(1))
-                  .body("errors[0]", Matchers.equalTo(expectedValidationMsg));
+                  .body("errors[0]", Matchers.containsString(expectedValidationMsg));
             });
   }
 
