@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
+import com.netflix.spinnaker.orca.clouddriver.model.HealthState
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.AbstractClusterWideClouddriverOperationStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.AbstractClusterWideClouddriverOperationStage.ClusterSelection
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CloneServerGroupStage
@@ -260,7 +261,7 @@ abstract class AbstractClusterWideClouddriverTask implements RetryableTask, Clou
   }
 
   static boolean isActive(TargetServerGroup serverGroup) {
-    return serverGroup.disabled == false || serverGroup.instances.any { it.healthState == 'Up' }
+    return serverGroup.disabled == false || serverGroup.instances.any { it.healthState == HealthState.Up }
   }
 
   static class IsActive implements Comparator<TargetServerGroup> {

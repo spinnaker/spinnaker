@@ -28,9 +28,9 @@ class SuspendAwsScalingProcessTask extends AbstractAwsScalingProcessTask {
       return []
     }
 
-    def targetAsgConfiguration = targetServerGroup.asg as Map<String, Object>
+    def targetAsgConfiguration = targetServerGroup.asg
     if (targetAsgConfiguration.suspendedProcesses) {
-      def suspendedProcesses = targetAsgConfiguration.suspendedProcesses*.processName as List<String>
+      List<String> suspendedProcesses = targetAsgConfiguration.suspendedProcesses*.processName
       return processes - suspendedProcesses
     }
 

@@ -21,6 +21,10 @@ public class ServerGroup {
   public String cloudProvider;
   public String servingStatus;
   public List<String> zones; // GCE only?
+  public String zone;
+  public String namespace;
+  private String serverGroupName; // Is this real?
+  private String type;
 
   public Moniker moniker;
   public Long createdTime;

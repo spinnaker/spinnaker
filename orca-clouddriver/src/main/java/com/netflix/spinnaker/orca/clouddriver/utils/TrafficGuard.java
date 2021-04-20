@@ -24,6 +24,8 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.impl.Preconditions;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.moniker.Moniker;
+import com.netflix.spinnaker.orca.clouddriver.model.HealthState;
+import com.netflix.spinnaker.orca.clouddriver.model.Instance;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup;
 import com.netflix.spinnaker.orca.front50.Front50Service;
@@ -122,16 +124,17 @@ public class TrafficGuard {
                                   "failed to look up server group named %s in %s/%s",
                                   serverGroupName, account, location)));
 
-          Optional<Map> thisInstance =
+          Optional<Instance> thisInstance =
               targetServerGroup.getInstances().stream()
-                  .filter(i -> "Up".equals(i.get("healthState")))
+                  .filter(i -> HealthState.Up == i.getHealthState())
                   .findFirst();
           if (thisInstance.isPresent()) {
             long otherActiveInstances =
                 targetServerGroup.getInstances().stream()
                     .filter(
                         i ->
-                            "Up".equals(i.get("healthState")) && !instances.contains(i.get("name")))
+                            HealthState.Up == i.getHealthState()
+                                && !instances.contains(i.getName()))
                     .count();
             if (otherActiveInstances == 0) {
               verifyTrafficRemoval(
@@ -422,14 +425,19 @@ public class TrafficGuard {
     }
   }
 
-  private List<Map> generateContext(Collection<TargetServerGroup> targetServerGroups) {
+  private List<Map<String, Object>> generateContext(
+      Collection<TargetServerGroup> targetServerGroups) {
     return targetServerGroups.stream()
         .map(
             tsg ->
-                ImmutableMap.builder()
+                ImmutableMap.<String, Object>builder()
                     .put("name", tsg.getName())
                     .put("disabled", tsg.isDisabled())
-                    .put("instances", tsg.getInstances())
+                    .put(
+                        "instances",
+                        tsg.getInstances().stream()
+                            .map(Instance::minimalInstance)
+                            .collect(Collectors.toList()))
                     .put("capacity", tsg.getCapacity())
                     .build())
         .collect(Collectors.toList());
@@ -438,7 +446,7 @@ public class TrafficGuard {
   private int getServerGroupCapacity(TargetServerGroup serverGroup) {
     return (int)
         serverGroup.getInstances().stream()
-            .filter(instance -> "Up".equals(instance.get("healthState")))
+            .filter(instance -> HealthState.Up == instance.getHealthState())
             .count();
   }
 

@@ -74,7 +74,7 @@ class ScaleDownClusterTaskSpec extends Specification {
 
   TargetServerGroup sg(boolean disabled = false, int instances = 10) {
     new TargetServerGroup(name: 'foo-v' + inc.incrementAndGet(), region: 'us-east-1', createdTime: inc.incrementAndGet(), disabled: disabled, instances: (0..instances).collect {
-      [[id: 'i' + inc.incrementAndGet(), healthState: disabled ? 'OutOfService' : 'Up']]
+      [id: 'i' + inc.incrementAndGet(), healthState: (disabled ? 'OutOfService' : 'Up')]
     })
   }
 }

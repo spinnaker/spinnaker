@@ -20,7 +20,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.clouddriver.model.Instance
 import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup.Asg
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
 import groovy.transform.InheritConstructors
@@ -32,26 +34,19 @@ import groovy.util.logging.Slf4j
  */
 class TargetServerGroup {
 
-  final static ObjectMapper objectMapper = OrcaObjectMapper.getInstance()
+  private final ServerGroup serverGroup
 
-  // Delegates all Map interface calls to this object.
-  //@Delegate
-  private final Map<String, Object> serverGroup
+  // Overloaded constructor should be fine for groovy since the old constructor would have thrown a null pointer
+  TargetServerGroup(ServerGroup serverGroup) {
+    this.serverGroup = serverGroup
+  }
 
   TargetServerGroup(Map<String, Object> serverGroupData) {
-    if (serverGroupData.instances && serverGroupData.instances instanceof Collection) {
-      serverGroupData.instances = serverGroupData.instances.collect {
-        [name: it.name, launchTime: it.launchTime, health: it.health, healthState: it.healthState, zone: it.zone]
-      }
-    }
-    if (serverGroupData.containsKey("asg") && serverGroupData.asg instanceof Map) {
-      ((Map) serverGroupData.get("asg")).remove("instances")
-    }
-    serverGroup = new HashMap(serverGroupData).asImmutable()
+    serverGroup = OrcaObjectMapper.getInstance().convertValue(serverGroupData, ServerGroup)
   }
 
   Collection<String> getSuspendedProcesses() {
-    def asgDetails = serverGroup.asg as Map
+    def asgDetails = serverGroup.asg
     return asgDetails.suspendedProcesses*.processName
   }
 
@@ -72,7 +67,7 @@ class TargetServerGroup {
   }
 
   String getRegion() {
-    return serverGroup.get('region')
+    return serverGroup.getRegion()
   }
 
   Capacity getCapacity() {
@@ -83,16 +78,16 @@ class TargetServerGroup {
         .build()
   }
 
-  Map<String, Object> getAsg() {
-    return (Map<String, Object>) serverGroup.get('asg')
+  Asg getAsg() {
+    return serverGroup.getAsg()
   }
 
   Object getCredentials() { // TODO: is type String?
-    return serverGroup.get('credentials')
+    return serverGroup.getCredentials()
   }
 
   Long getCreatedTime() {
-    return serverGroup.get('createdTime') as Long
+    return serverGroup.getCreatedTime()
   }
 
   private static int toInt(Object field) {
@@ -103,21 +98,21 @@ class TargetServerGroup {
    * Used in TrafficGuard, which is Java, which doesn't play nice with @Delegate
    */
   Boolean isDisabled() {
-    return serverGroup.isDisabled == null ? serverGroup.disabled : serverGroup.isDisabled
+    return serverGroup.disabled
   }
 
   /**
    * Used in TrafficGuard, which is Java, which doesn't play nice with @Delegate
    */
-  List<Map> getInstances() {
-    return (serverGroup.instances ?: []) as List<Map>
+  List<Instance> getInstances() {
+    return (serverGroup.instances ?: [])
   }
 
   /**
    * Used in TrafficGuard, which is Java, which doesn't play nice with @Delegate
    */
   Moniker getMoniker() {
-    return serverGroup?.moniker ? objectMapper.convertValue(serverGroup?.moniker, Moniker) : null
+    return serverGroup?.moniker
   }
 
   String getCloudProvider() {
@@ -129,7 +124,7 @@ class TargetServerGroup {
    * @return
    */
   Map<String, Object> getAutoscalingPolicy() {
-    return (Map<String, Object>) serverGroup.autoscalingPolicy
+    return serverGroup.autoscalingPolicy
   }
 
   Map toClouddriverOperationPayload(String account) {
@@ -177,7 +172,7 @@ class TargetServerGroup {
       }
     }
 
-    static Location locationFromServerGroup(Map<String, Object> serverGroup, Location.Type exactLocationType) {
+    static Location locationFromServerGroup(ServerGroup serverGroup, Location.Type exactLocationType) {
       switch (exactLocationType) {
         case (Location.Type.NAMESPACE):
           return Location.namespace(serverGroup.namespace)
@@ -296,7 +291,7 @@ class TargetServerGroup {
   }
 
   ServerGroup toServerGroup() {
-    objectMapper.convertValue(serverGroup, ServerGroup)
+    return serverGroup
   }
 
   @InheritConstructors
