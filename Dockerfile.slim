@@ -23,7 +23,7 @@ RUN wget https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get-he
 # Install Helm 2
 RUN wget https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get && \
   chmod +x get && \
-  ./get && \
+  ./get --version v2.17.0 && \
   rm get
 
 RUN mkdir kustomize && \
