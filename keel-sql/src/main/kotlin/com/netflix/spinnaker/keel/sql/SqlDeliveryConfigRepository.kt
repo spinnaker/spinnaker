@@ -285,7 +285,13 @@ class SqlDeliveryConfigRepository(
           .set(ENVIRONMENT.UID, environmentUid)
           .set(ENVIRONMENT.DELIVERY_CONFIG_UID, deliveryConfigUid)
           .set(ENVIRONMENT.NAME, environment.name)
-          .onDuplicateKeyIgnore()
+          .set(ENVIRONMENT.CONSTRAINTS, environment.constraints.toJson())
+          .set(ENVIRONMENT.NOTIFICATIONS, environment.notifications.toJson())
+          .set(ENVIRONMENT.VERIFICATIONS, environment.verifyWith.toJson())
+          .onDuplicateKeyUpdate()
+          .set(ENVIRONMENT.CONSTRAINTS, environment.constraints.toJson())
+          .set(ENVIRONMENT.NOTIFICATIONS, environment.notifications.toJson())
+          .set(ENVIRONMENT.VERIFICATIONS, environment.verifyWith.toJson())
           .execute()
         val currentVersion = jooq
           .select(coalesce(max(ENVIRONMENT_VERSION.VERSION), value(0)))
@@ -297,23 +303,9 @@ class SqlDeliveryConfigRepository(
 
         val currentVersionResources = resourceUidsAndVersionsFor(environmentUid, currentVersion)
         val newVersionResources = environment.latestResourceUidsAndVersions()
-        val currentVersionConfig = configFor(environmentUid, currentVersion)
-        val newVersionConfig = mapOf(
-          "constraints" to environment.constraints.toJson(),
-          "verifications" to environment.verifyWith.toJson(),
-          "notifications" to environment.notifications.toJson()
-        )
 
         val newVersionRequired = if (currentVersion == 0) {
           log.debug("Creating initial version of environment {}/{}", application, environment.name)
-          true
-        } else if (currentVersionConfig != newVersionConfig) {
-          log.debug(
-            "Creating a new version {} of environment {}/{} because environment configuration changed",
-            newVersion,
-            application,
-            environment.name
-          )
           true
         } else if (currentVersionResources != newVersionResources) {
           log.debug(
@@ -334,9 +326,6 @@ class SqlDeliveryConfigRepository(
             .set(ENVIRONMENT_VERSION.ENVIRONMENT_UID, environmentUid)
             .set(ENVIRONMENT_VERSION.VERSION, newVersion)
             .set(ENVIRONMENT_VERSION.CREATED_AT, clock.instant())
-            .set(ENVIRONMENT_VERSION.CONSTRAINTS, environment.constraints.toJson())
-            .set(ENVIRONMENT_VERSION.VERIFICATIONS, environment.verifyWith.toJson())
-            .set(ENVIRONMENT_VERSION.NOTIFICATIONS, environment.notifications.toJson())
             .execute()
 
           newVersionResources.forEach { (resourceUid, resourceVersion) ->
@@ -396,28 +385,6 @@ class SqlDeliveryConfigRepository(
         .toMap()
     }
 
-  /**
-   * @return the constraints, verifications, and notifications used in [version] of an environment.
-   */
-  private fun configFor(environmentUid: String, version: Int) =
-    when (version) {
-      0 -> emptyMap()
-      else -> jooq
-        .select(ENVIRONMENT_VERSION.CONSTRAINTS,
-          ENVIRONMENT_VERSION.VERIFICATIONS,
-          ENVIRONMENT_VERSION.NOTIFICATIONS)
-        .from(ENVIRONMENT_VERSION)
-        .where(ENVIRONMENT_VERSION.ENVIRONMENT_UID.eq(environmentUid))
-        .and(ENVIRONMENT_VERSION.VERSION.eq(version))
-        .fetchOne { (constraints, verifications, notifications) ->
-          mapOf(
-            "constraints" to constraints,
-            "verifications" to verifications,
-            "notifications" to notifications
-          )
-        }
-    }
-
   override fun get(name: String): DeliveryConfig =
     deliveryConfigByName(name)
 
@@ -457,12 +424,10 @@ class SqlDeliveryConfigRepository(
         .fetchOne(DELIVERY_CONFIG.UID)
         ?: randomUID().toString()
       jooq
-        .select(
-          LATEST_ENVIRONMENT.NOTIFICATIONS,
-        )
-        .from(LATEST_ENVIRONMENT)
-        .where(LATEST_ENVIRONMENT.NAME.eq(environmentName))
-        .and(LATEST_ENVIRONMENT.DELIVERY_CONFIG_UID.eq(uid))
+        .select(ENVIRONMENT.NOTIFICATIONS)
+        .from(ENVIRONMENT)
+        .where(ENVIRONMENT.NAME.eq(environmentName))
+        .and(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(uid))
         .fetchOne { (notificationsJson) ->
           notificationsJson?.let { objectMapper.readValue(it) }
         } ?: emptySet()
@@ -1170,36 +1135,36 @@ class SqlDeliveryConfigRepository(
   private fun environmentUidByName(deliveryConfigName: String, environmentName: String): String? =
     sqlRetry.withRetry(READ) {
       jooq
-        .select(LATEST_ENVIRONMENT.UID)
+        .select(ENVIRONMENT.UID)
         .from(DELIVERY_CONFIG)
-        .innerJoin(LATEST_ENVIRONMENT).on(DELIVERY_CONFIG.UID.eq(LATEST_ENVIRONMENT.DELIVERY_CONFIG_UID))
+        .innerJoin(ENVIRONMENT).on(DELIVERY_CONFIG.UID.eq(ENVIRONMENT.DELIVERY_CONFIG_UID))
         .where(
           DELIVERY_CONFIG.NAME.eq(deliveryConfigName),
-          LATEST_ENVIRONMENT.NAME.eq(environmentName)
+          ENVIRONMENT.NAME.eq(environmentName)
         )
-        .fetchOne(LATEST_ENVIRONMENT.UID)
+        .fetchOne(ENVIRONMENT.UID)
     }
       ?: null
 
   private fun envUid(deliveryConfigName: String, environmentName: String): Select<Record1<String>> =
-    select(LATEST_ENVIRONMENT.UID)
+    select(ENVIRONMENT.UID)
       .from(DELIVERY_CONFIG)
-      .innerJoin(LATEST_ENVIRONMENT).on(DELIVERY_CONFIG.UID.eq(LATEST_ENVIRONMENT.DELIVERY_CONFIG_UID))
+      .innerJoin(ENVIRONMENT).on(DELIVERY_CONFIG.UID.eq(ENVIRONMENT.DELIVERY_CONFIG_UID))
       .where(
         DELIVERY_CONFIG.NAME.eq(deliveryConfigName),
-        LATEST_ENVIRONMENT.NAME.eq(environmentName)
+        ENVIRONMENT.NAME.eq(environmentName)
       )
 
   private fun envUidString(deliveryConfigName: String, environmentName: String): String? =
     sqlRetry.withRetry(READ) {
-      jooq.select(LATEST_ENVIRONMENT.UID)
+      jooq.select(ENVIRONMENT.UID)
         .from(DELIVERY_CONFIG)
-        .innerJoin(LATEST_ENVIRONMENT).on(DELIVERY_CONFIG.UID.eq(LATEST_ENVIRONMENT.DELIVERY_CONFIG_UID))
+        .innerJoin(ENVIRONMENT).on(DELIVERY_CONFIG.UID.eq(ENVIRONMENT.DELIVERY_CONFIG_UID))
         .where(
           DELIVERY_CONFIG.NAME.eq(deliveryConfigName),
-          LATEST_ENVIRONMENT.NAME.eq(environmentName)
+          ENVIRONMENT.NAME.eq(environmentName)
         )
-        .fetchOne(LATEST_ENVIRONMENT.UID)
+        .fetchOne(ENVIRONMENT.UID)
     }
 
   private fun applicationByDeliveryConfigName(name: String): String =

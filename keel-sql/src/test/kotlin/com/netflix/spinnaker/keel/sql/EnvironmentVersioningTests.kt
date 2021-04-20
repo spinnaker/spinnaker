@@ -1,7 +1,5 @@
 package com.netflix.spinnaker.keel.sql
 
-import com.fasterxml.jackson.databind.jsontype.NamedType
-import com.netflix.spinnaker.keel.api.Constraint
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.NotificationConfig
@@ -9,6 +7,7 @@ import com.netflix.spinnaker.keel.api.NotificationFrequency.normal
 import com.netflix.spinnaker.keel.api.NotificationType.slack
 import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.plugins.kind
+import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.persistence.CombinedRepository
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_RESOURCE
@@ -27,9 +26,7 @@ import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
 import org.jooq.Table
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestFactory
 import org.springframework.mock.env.MockEnvironment
 import strikt.api.Assertion
 import strikt.api.expect
@@ -39,16 +36,16 @@ import strikt.assertions.first
 import strikt.assertions.hasSize
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
+import strikt.assertions.isNull
 import strikt.assertions.isSuccess
 import java.time.Clock.systemUTC
+import kotlin.math.exp
+import java.time.Clock
 import java.time.Duration
 
 class EnvironmentVersioningTests {
   private val jooq = testDatabase.context
-  private val objectMapper = configuredTestObjectMapper().apply {
-    registerSubtypes(NamedType(DummyConstraint::class.java, "dummy"))
-    registerSubtypes(NamedType(DummyVerification::class.java, "dummy"))
-  }
+  private val objectMapper = configuredTestObjectMapper()
   private val retryProperties = RetryProperties(1, 0)
   private val sqlRetry = SqlRetry(SqlRetryProperties(retryProperties, retryProperties))
   private val resourceSpecIdentifier =
@@ -122,23 +119,42 @@ class EnvironmentVersioningTests {
     expectThat(updatedVersion).describedAs("updated version") isEqualTo initialVersion
   }
 
-  @TestFactory
-  fun `storing an updated environment creates a new version`() =
-    mapOf(
-      "constraints" to deliveryConfig.withConstraint(),
-      "verifications" to deliveryConfig.withVerification(),
-      "notifications" to deliveryConfig.withNotification(),
-      "resources" to deliveryConfig.withUpdatedResource()
-    ).map { (description, updatedDeliveryConfig) ->
-      dynamicTest("storing an environment with updated $description creates a new version") {
-        val initialVersion = latestVersion()
+  @Test
+  fun `storing an environment with updated constraints, verifications, or notifications does not create a new version`() {
+    val initialVersion = latestVersion()
+    expectThat(initialVersion).describedAs("initial version") isEqualTo 1
 
-        repository.upsertDeliveryConfig(updatedDeliveryConfig)
-
-        val updatedVersion = latestVersion()
-        expectThat(updatedVersion).describedAs("updated version") isEqualTo initialVersion + 1
-      }
+    deliveryConfig.run {
+      copy(
+        environments = environments.first().run {
+          copy(
+            constraints = setOf(ManualJudgementConstraint()),
+            verifyWith = listOf(DummyVerification()),
+            notifications = setOf(NotificationConfig(type = slack,
+              address = "#trashpandas",
+              frequency = normal))
+          )
+        }
+          .let(::setOf)
+      )
     }
+    repository.upsertDeliveryConfig(deliveryConfig)
+
+    val updatedVersion = latestVersion()
+    expectThat(updatedVersion).describedAs("updated version") isEqualTo initialVersion
+  }
+
+  @Test
+  fun `storing an environment with an updated resource creates a new version`() {
+    val initialVersion = latestVersion()
+    expectThat(initialVersion).describedAs("initial version") isEqualTo 1
+
+    deliveryConfig.withUpdatedResource()
+      .also(repository::upsertDeliveryConfig)
+
+    val updatedVersion = latestVersion()
+    expectThat(updatedVersion).describedAs("updated version") isEqualTo initialVersion + 1
+  }
 
   @Test
   fun `after creating a new environment version it's still possible to get the environment for a resource`() {
@@ -283,34 +299,6 @@ class EnvironmentVersioningTests {
   private fun DeliveryConfig.withNoEnvironments() =
     copy(environments = emptySet())
 
-  private fun DeliveryConfig.withConstraint() =
-    copy(
-      environments = environments.first().run {
-        copy(constraints = setOf(DummyConstraint()))
-      }
-        .let(::setOf)
-    )
-
-  private fun DeliveryConfig.withVerification() =
-    copy(
-      environments = environments.first().run {
-        copy(verifyWith = listOf(DummyVerification()))
-      }
-        .let(::setOf)
-    )
-
-  private fun DeliveryConfig.withNotification() =
-    copy(
-      environments = environments.first().run {
-        copy(notifications = setOf(NotificationConfig(
-          type = slack,
-          address = "#trashpandas",
-          frequency = normal
-        )))
-      }
-        .let(::setOf)
-    )
-
   private fun latestVersion() =
     jooq
       .select(LATEST_ENVIRONMENT.VERSION)
@@ -325,18 +313,16 @@ class EnvironmentVersioningTests {
 
   private fun <T : Table<*>> Assertion.Builder<T>.isEmpty() =
     assert("has no rows") { subject ->
-      when (val rowCount = subject.count()) {
+      when(val rowCount = subject.count()) {
         0 -> pass("found 0 rows")
         1 -> fail("found 1 row")
         else -> fail("found $rowCount rows")
       }
     }
 
-  class DummyConstraint : Constraint("dummy")
-
   data class DummyVerification(
     override val id: String = "whatever",
   ) : Verification {
-    override val type = "dummy"
+    override val type = "verification"
   }
 }
