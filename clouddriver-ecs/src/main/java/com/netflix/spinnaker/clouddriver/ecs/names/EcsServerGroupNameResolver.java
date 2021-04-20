@@ -69,9 +69,9 @@ public class EcsServerGroupNameResolver {
       for (Service service : result.getServices()) {
         Moniker moniker = naming.deriveMoniker(new EcsResourceService(service));
 
-        if (StringUtils.equals(currentName.getApp(), moniker.getApp())
-            && StringUtils.equals(currentName.getDetail(), moniker.getDetail())
-            && StringUtils.equals(currentName.getStack(), moniker.getStack())) {
+        if (isSameName(currentName.getApp(), moniker.getApp())
+            && isSameName(currentName.getDetail(), moniker.getDetail())
+            && isSameName(currentName.getStack(), moniker.getStack())) {
           takenSequences.add(moniker.getSequence());
         }
       }
@@ -105,6 +105,11 @@ public class EcsServerGroupNameResolver {
                             + " are taken."));
 
     return new EcsServerGroupName(newMoniker);
+  }
+
+  private boolean isSameName(String name, String name2) {
+    return (StringUtils.isBlank(name) && StringUtils.isBlank(name2))
+        || StringUtils.equals(name, name2);
   }
 
   private boolean isNotTaken(Moniker newMoniker) {
