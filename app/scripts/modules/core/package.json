@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/core",
   "license": "Apache-2.0",
-  "version": "0.0.568",
+  "version": "0.0.569",
   "main": "lib/lib.js",
   "typings": "lib/index.d.ts",
   "scripts": {
