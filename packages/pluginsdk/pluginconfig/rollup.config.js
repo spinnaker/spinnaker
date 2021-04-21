@@ -43,7 +43,18 @@ const plugins = [
 ];
 
 if (ROLLUP_MINIFY) {
-  plugins.push(terser());
+  plugins.push(
+    terser({
+      format: {
+        comments: function (node, comment) {
+          if (comment.type == 'comment2') {
+            // Preserve multiline comments containing any of these strings
+            return /@preserve|@license|@cc_on|webpackChunkName|webpackIgnore/i.test(comment.value);
+          }
+        },
+      },
+    }),
+  );
 }
 
 if (ROLLUP_STATS) {

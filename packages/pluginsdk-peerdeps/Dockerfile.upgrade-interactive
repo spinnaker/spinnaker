@@ -14,4 +14,4 @@ CMD cp /mnt/pluginsdk-peerdeps/package.json . && \
   yarn && \
   yarn upgrade-interactive --latest && \
   /work/scripts/convert-peerdeps.js --to-peerdeps --input package.json --output package.json && \
-  cp package.json /pluginsdk-peerdeps
+  cp package.json /mnt/pluginsdk-peerdeps/package.json
