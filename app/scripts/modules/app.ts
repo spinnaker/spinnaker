@@ -1,4 +1,4 @@
-///<reference path="./modules/core/src/types/index.d.ts" />
+///<reference path="./core/src/types/index.d.ts" />
 /* eslint-disable @spinnaker/import-sort */
 import 'jquery'; // ensures jQuery is loaded before Angular so Angular does not use jqlite
 import { module } from 'angular';
@@ -9,7 +9,7 @@ import { DOCKER_MODULE } from '@spinnaker/docker';
 import { AMAZON_MODULE } from '@spinnaker/amazon';
 import { APPENGINE_MODULE } from '@spinnaker/appengine';
 import { GOOGLE_MODULE } from '@spinnaker/google';
-import { CANARY_MODULE } from './modules/canary/canary.module';
+import { CANARY_MODULE } from './canary/canary.module';
 import { KUBERNETES_MODULE } from '@spinnaker/kubernetes';
 import { ORACLE_MODULE } from '@spinnaker/oracle';
 import { KAYENTA_MODULE } from '@spinnaker/kayenta';

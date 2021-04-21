@@ -10,7 +10,7 @@ Error.stackTraceLimit = Infinity;
 global.$ = global.jQuery = require('jquery');
 
 import './settings';
-import './app/scripts/app';
+import './app/scripts/modules/app';
 import './test/helpers/customMatchers';
 import { jasmineMockHttpSupport } from 'core/api/mock/jasmine';
 

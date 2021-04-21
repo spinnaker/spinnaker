@@ -52,7 +52,7 @@ import './validation/applicationName.validator';
 import './logo/kubernetes.logo.less';
 
 // load all templates into the $templateCache
-const templates = require.context('kubernetes', true, /\.html$/);
+const templates = require.context('./', true, /\.html$/);
 templates.keys().forEach(function (key) {
   templates(key);
 });

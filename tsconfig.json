@@ -51,7 +51,13 @@
       "huaweicloud": ["huaweicloud/src"],
       "@spinnaker/tencentcloud": ["tencentcloud/src"],
       "tencentcloud/*": ["tencentcloud/src/*"],
-      "tencentcloud": ["tencentcloud/src"]
+      "tencentcloud": ["tencentcloud/src"],
+      "@spinnaker/azure": ["azure/src"],
+      "azure/*": ["azure/src/*"],
+      "azure": ["azure/src"],
+      "@spinnaker/ecs": ["ecs/src"],
+      "ecs/*": ["ecs/src/*"],
+      "ecs": ["ecs/src"]
     },
     "pretty": true,
     "removeComments": false,
