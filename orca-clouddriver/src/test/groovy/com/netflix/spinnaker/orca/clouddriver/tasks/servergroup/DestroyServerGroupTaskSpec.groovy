@@ -20,7 +20,6 @@ import com.netflix.spinnaker.orca.api.operations.OperationsInput
 import com.netflix.spinnaker.orca.api.operations.OperationsRunner
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.kork.core.RetrySupport
-import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.KatoOperationsContext
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
@@ -100,13 +99,12 @@ class DestroyServerGroupTaskSpec extends Specification {
     }
     GroovyMock(TargetServerGroupResolver, global: true)
     TargetServerGroupResolver.fromPreviousStage(_) >> new TargetServerGroup(region: "us-west-1", name: "foo-v001")
-    GroovyMock(TargetServerGroup, global: true)
-    TargetServerGroup.isDynamicallyBound(_) >> true
 
     when:
     def result = task.execute(stage)
 
     then:
+    TargetServerGroup.isDynamicallyBound(stage) == true
     result.context.asgName == "foo-v001"
     result.context."deploy.server.groups" == ["us-west-1": ["foo-v001"]]
   }

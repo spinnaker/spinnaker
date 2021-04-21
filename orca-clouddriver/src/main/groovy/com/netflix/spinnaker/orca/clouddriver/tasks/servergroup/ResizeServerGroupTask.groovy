@@ -66,7 +66,7 @@ class ResizeServerGroupTask extends AbstractServerGroupTask {
     String serverGroupName = operation.serverGroupName
     String cloudProvider = getCloudProvider(stage)
     String account = getCredentials(stage)
-    Location location = TargetServerGroup.Support.locationFromOperation(operation)
+    Location location = locationFromOperation(operation)
     def resizeConfig = stage.mapTo(OptionalConfiguration)
 
     ResizeStrategy strategy = resizeStrategies.find { it.handles(resizeConfig.actualAction) }
@@ -85,6 +85,13 @@ class ResizeServerGroupTask extends AbstractServerGroupTask {
     operation.originalCapacity = capacitySet.original
 
     return operation
+  }
+
+  static Location locationFromOperation(Map<String, Object> operation) {
+    if (!operation.targetLocation) {
+      return null
+    }
+    new Location(type: Location.Type.valueOf(operation.targetLocation.type), value: operation.targetLocation.value)
   }
 
   @Override

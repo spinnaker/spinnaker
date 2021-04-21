@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 public class Location {
@@ -56,7 +56,7 @@ public class Location {
     this.value = value;
   }
 
-  public Location(HashMap args) {
+  public Location(Map args) {
     this((Type) args.get("type"), (String) args.get("value"));
   }
 
