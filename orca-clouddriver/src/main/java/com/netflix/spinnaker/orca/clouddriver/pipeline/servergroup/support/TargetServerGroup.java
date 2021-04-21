@@ -268,11 +268,11 @@ public class TargetServerGroup {
     }
 
     public String getCluster() {
-      if (cluster != null) {
-        return cluster;
-      }
       if (moniker != null && moniker.getCluster() != null) {
         return moniker.getCluster();
+      }
+      if (cluster != null) {
+        return cluster;
       }
       return Names.parseName(serverGroupName).getCluster();
     }
