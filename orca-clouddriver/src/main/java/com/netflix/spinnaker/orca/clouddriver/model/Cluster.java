@@ -5,5 +5,6 @@ import lombok.Data;
 
 @Data
 public class Cluster {
+  private String name;
   private List<ServerGroup> serverGroups;
 }

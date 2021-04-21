@@ -20,6 +20,8 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
+import com.netflix.spinnaker.orca.clouddriver.model.Cluster
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.AbstractClusterWideClouddriverOperationStage.ClusterSelection
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
@@ -47,7 +49,7 @@ abstract class AbstractWaitForClusterWideClouddriverTask implements CloudProvide
   }
 
   @Autowired
-  OortHelper oortHelper
+  CloudDriverService cloudDriverService
 
   protected TaskResult missingClusterResult(StageExecution stage,
                                             ClusterSelection clusterSelection) {
@@ -56,7 +58,7 @@ abstract class AbstractWaitForClusterWideClouddriverTask implements CloudProvide
 
   protected TaskResult emptyClusterResult(StageExecution stage,
                                           ClusterSelection clusterSelection,
-                                          Map cluster) {
+                                          Cluster cluster) {
     throw new IllegalStateException("no server groups found in cluster $clusterSelection")
   }
 
@@ -113,7 +115,7 @@ abstract class AbstractWaitForClusterWideClouddriverTask implements CloudProvide
       return TaskResult.SUCCEEDED
     }
 
-    Optional<Map> cluster = oortHelper.getCluster(clusterSelection.getApplication(), clusterSelection.credentials, clusterSelection.cluster, clusterSelection.cloudProvider)
+    Optional<Cluster> cluster = cloudDriverService.maybeCluster(clusterSelection.getApplication(), clusterSelection.credentials, clusterSelection.cluster, clusterSelection.cloudProvider)
     if (!cluster.isPresent()) {
       return missingClusterResult(stage, clusterSelection)
     }
@@ -126,7 +128,9 @@ abstract class AbstractWaitForClusterWideClouddriverTask implements CloudProvide
     }
 
     List<String> healthProviderTypesToCheck = stage.context.interestingHealthProviderNames as List<String>
-    List<DeployServerGroup> stillRemaining = remainingDeployServerGroups.findAll(this.&isServerGroupOperationInProgress.curry(stage, serverGroups, healthProviderTypesToCheck))
+    List<DeployServerGroup> stillRemaining = remainingDeployServerGroups.findAll {
+      isServerGroupOperationInProgress(stage, serverGroups, healthProviderTypesToCheck, it)
+    }
 
     if (stillRemaining) {
       log.info "Pipeline ${stage.execution?.id} still has $stillRemaining"

@@ -24,11 +24,13 @@ import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService;
+import com.netflix.spinnaker.orca.clouddriver.model.Cluster;
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper;
-import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -38,7 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public abstract class AbstractBulkServerGroupTask implements CloudProviderAware, RetryableTask {
   private static final Logger LOGGER = LoggerFactory.getLogger(AbstractBulkServerGroupTask.class);
 
-  @Autowired protected OortHelper oortHelper;
+  @Autowired protected CloudDriverService cloudDriverService;
 
   @Autowired protected MonikerHelper monikerHelper;
 
@@ -60,35 +62,33 @@ public abstract class AbstractBulkServerGroupTask implements CloudProviderAware,
 
   @Override
   public TaskResult execute(StageExecution stage) {
-    ServerGroupRequest request = (ServerGroupRequest) stage.mapTo(ServerGroupRequest.class);
+    ServerGroupRequest request = stage.mapTo(ServerGroupRequest.class);
     if (request.getServerGroupNames() == null || request.getServerGroupNames().isEmpty()) {
       throw new IllegalArgumentException("Server group names must be provided");
     }
-    String clusterName =
-        monikerHelper.getClusterNameFromStage(stage, request.getServerGroupNames().get(0));
-    Map cluster =
-        oortHelper
-            .getCluster(
-                monikerHelper.getAppNameFromStage(stage, request.getServerGroupNames().get(0)),
-                request.getCredentials(),
-                clusterName,
-                request.getCloudProvider())
+    if (request.getRegion() == null) {
+      throw new IllegalArgumentException("A region is required for this operation");
+    }
+    String fallbackFriggaName = request.getServerGroupNames().get(0);
+
+    String clusterName = monikerHelper.getClusterNameFromStage(stage, fallbackFriggaName);
+    String appName = monikerHelper.getAppNameFromStage(stage, fallbackFriggaName);
+    Cluster cluster =
+        cloudDriverService
+            .maybeCluster(
+                appName, request.getCredentials(), clusterName, request.getCloudProvider())
             .orElseThrow(
                 () ->
                     new IllegalArgumentException(
                         String.format("No Cluster details found for %s", clusterName)));
 
-    List<Map> serverGroups =
-        Optional.ofNullable((List<Map>) cluster.get("serverGroups"))
-            .orElseThrow(
-                () ->
-                    new IllegalArgumentException(
-                        String.format("No server groups found for cluster %s", clusterName)));
+    List<ServerGroup> serverGroups = cluster.getServerGroups();
+    if (serverGroups == null) {
+      throw new IllegalArgumentException(
+          String.format("No server groups found for cluster %s", clusterName));
+    }
 
-    Location location =
-        Optional.ofNullable(Location.region(request.getRegion()))
-            .orElseThrow(
-                () -> new IllegalArgumentException("A region is required for this operation"));
+    Location location = Location.region(request.getRegion());
 
     List<TargetServerGroup> targetServerGroups = new ArrayList<>();
     serverGroups.forEach(
@@ -109,7 +109,8 @@ public abstract class AbstractBulkServerGroupTask implements CloudProviderAware,
     targetServerGroups.forEach(
         targetServerGroup -> {
           Map<String, Map> tmp = new HashMap<>();
-          Map operation = targetServerGroup.toClouddriverOperationPayload(request.getCredentials());
+          Map<String, Object> operation =
+              targetServerGroup.toClouddriverOperationPayload(request.getCredentials());
           Moniker moniker = targetServerGroup.getMoniker();
           if (moniker == null || moniker.getCluster() == null) {
             moniker = MonikerHelper.friggaToMoniker(targetServerGroup.getName());
@@ -134,7 +135,7 @@ public abstract class AbstractBulkServerGroupTask implements CloudProviderAware,
     return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(result).build();
   }
 
-  protected Location getLocation(Map operation) {
+  protected Location getLocation(Map<String, Object> operation) {
     return Location.region((String) operation.get("region"));
   }
 

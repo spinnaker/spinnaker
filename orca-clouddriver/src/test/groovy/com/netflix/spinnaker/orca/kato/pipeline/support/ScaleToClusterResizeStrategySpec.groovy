@@ -16,8 +16,9 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
+import com.netflix.spinnaker.orca.clouddriver.ModelUtils
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
-import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy.Capacity
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
@@ -28,8 +29,8 @@ import java.util.concurrent.atomic.AtomicInteger
 class ScaleToClusterResizeStrategySpec extends Specification {
 
 
-  OortHelper oortHelper = Mock(OortHelper)
-  @Subject ScaleToClusterResizeStrategy strategy = new ScaleToClusterResizeStrategy(oortHelper: oortHelper)
+  CloudDriverService cloudDriverService = Mock()
+  @Subject ScaleToClusterResizeStrategy strategy = new ScaleToClusterResizeStrategy(cloudDriverService: cloudDriverService)
 
   def 'empty or missing cluster fails on scale_to_cluster'() {
     given:
@@ -40,12 +41,16 @@ class ScaleToClusterResizeStrategySpec extends Specification {
 
     then:
     thrown(IllegalStateException)
-    1 * oortHelper.getCluster(application, account, clusterName, cloudProvider) >> cluster
+    1 * cloudDriverService.maybeCluster(application, account, clusterName, cloudProvider) >> cluster
     0 * _
 
     where:
     serverGroupName = asgName()
-    cluster << [Optional.empty(), Optional.of([serverGroups: []]), Optional.of([serverGroups: [mkSG(0, 0, 0, 'boom')]])]
+    cluster << [
+        Optional.empty(),
+        Optional.of(ModelUtils.cluster([serverGroups: []])),
+        Optional.of(ModelUtils.cluster([serverGroups: [mkSG(0, 0, 0, 'boom')]]))
+    ]
     resizeConfig = cfg()
   }
 
@@ -59,7 +64,7 @@ class ScaleToClusterResizeStrategySpec extends Specification {
     then:
     cap.original == null    // capacity bounds could come from multiple server groups -- no single source
     cap.target == expectedCapacity
-    1 * oortHelper.getCluster(application, account, clusterName, cloudProvider) >> cluster
+    1 * cloudDriverService.maybeCluster(application, account, clusterName, cloudProvider) >> cluster
     0 * _
 
     where:
@@ -71,7 +76,7 @@ class ScaleToClusterResizeStrategySpec extends Specification {
 
     serverGroupName = asgName()
     resizeConfig = cfg()
-    cluster = Optional.of([serverGroups: serverGroups])
+    cluster = Optional.of(ModelUtils.cluster([serverGroups: serverGroups]))
   }
 
   def 'desired capacity is increased by scalePct or scaleNum for scale_to_cluster within the min/max bounds'() {
@@ -84,7 +89,7 @@ class ScaleToClusterResizeStrategySpec extends Specification {
     then:
     cap.original == null    // capacity bounds could come from multiple server groups -- no single source
     cap.target == expectedCapacity
-    1 * oortHelper.getCluster(application, account, clusterName, cloudProvider) >> cluster
+    1 * cloudDriverService.maybeCluster(application, account, clusterName, cloudProvider) >> cluster
     0 * _
 
     where:
@@ -95,7 +100,7 @@ class ScaleToClusterResizeStrategySpec extends Specification {
     [mkSG(100, 0, 1000)]                           | null     | 1        || new Capacity(1000, 101, 0)
 
     resizeConfig = cfg(scalePct, scaleNum)
-    cluster = Optional.of([serverGroups: serverGroups])
+    cluster = Optional.of(ModelUtils.cluster([serverGroups: serverGroups]))
     serverGroupName = asgName()
   }
 

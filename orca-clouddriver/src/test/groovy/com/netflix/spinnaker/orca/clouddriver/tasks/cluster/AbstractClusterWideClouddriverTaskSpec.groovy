@@ -18,13 +18,14 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
+import com.netflix.spinnaker.orca.clouddriver.model.Cluster
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.AbstractClusterWideClouddriverOperationStage.ClusterSelection
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CloneServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CreateServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.DisableServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
-import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
@@ -35,6 +36,8 @@ class AbstractClusterWideClouddriverTaskSpec extends Specification {
   static def sg2 = sg("sg-2", "us-west-1", 200)
   static def sg3 = sg("sg-3", "us-west-1", 300)
   static def sg4 = sg("sg-4", "us-east-1", 400)
+
+  CloudDriverService cloudDriverService = Mock()
 
   def "should extract server groups from parent stages"() {
     given:
@@ -123,14 +126,13 @@ class AbstractClusterWideClouddriverTaskSpec extends Specification {
         return null
       }
     }
-    def oortHelper = Mock(OortHelper)
-    task.oortHelper = oortHelper
+    task.cloudDriverService = cloudDriverService
 
     when:
     def result = task.execute(stage)
 
     then:
-    1 * oortHelper.getCluster(_, _, _, _) >> Optional.empty()
+    1 * cloudDriverService.maybeCluster(_, _, _, _) >> Optional.empty()
     result == TaskResult.SUCCEEDED
 
   }
@@ -149,14 +151,13 @@ class AbstractClusterWideClouddriverTaskSpec extends Specification {
         return null
       }
     }
-    def oortHelper = Mock(OortHelper)
-    task.oortHelper = oortHelper
+    task.cloudDriverService = cloudDriverService
 
     when:
     def result = task.execute(stage)
 
     then:
-    1 * oortHelper.getCluster(_, _, _, _) >> Optional.of([serverGroups: []])
+    1 * cloudDriverService.maybeCluster(_, _, _, _) >> Optional.of(new Cluster(serverGroups: []))
     result == TaskResult.SUCCEEDED
 
   }

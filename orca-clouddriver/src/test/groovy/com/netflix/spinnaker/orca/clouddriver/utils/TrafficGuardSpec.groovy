@@ -21,6 +21,8 @@ import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.moniker.Moniker
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
+import com.netflix.spinnaker.orca.clouddriver.ModelUtils
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Capacity
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location.Type
@@ -40,6 +42,7 @@ class TrafficGuardSpec extends Specification {
   Front50Service front50Service = Mock(Front50Service)
   Registry registry = new NoopRegistry()
   DynamicConfigService dynamicConfigService = Mock(DynamicConfigService)
+  CloudDriverService cloudDriverService = Mock()
 
   Application application = Stub(Application) {
     details() >> applicationDetails
@@ -52,7 +55,7 @@ class TrafficGuardSpec extends Specification {
   @Shared Map<String, Object> applicationDetails = [:]
 
   @Subject
-  TrafficGuard trafficGuard = new TrafficGuard(oortHelper, new Optional<>(front50Service), registry, dynamicConfigService)
+  TrafficGuard trafficGuard = new TrafficGuard(oortHelper, new Optional<>(front50Service), registry, dynamicConfigService, cloudDriverService)
 
   void setup() {
     applicationDetails.clear()
@@ -102,12 +105,12 @@ class TrafficGuardSpec extends Specification {
     def e = thrown(TrafficGuardException)
     e.message.startsWith("This cluster ('app-foo' in test/us-east-1) has traffic guards enabled.")
     1 * front50Service.get("app") >> application
-    1 * oortHelper.getCluster("app", "test", "app-foo", "aws") >> [
+    1 * cloudDriverService.maybeCluster("app", "test", "app-foo", "aws") >> Optional.of(ModelUtils.cluster([
       serverGroups: [
         makeServerGroup(targetName, 1),
         makeServerGroup(otherName, 0, 1, [isDisabled: true])
       ]
-    ]
+    ]))
   }
 
   void "should throw exception when target server group can not be found in cluster"() {
@@ -121,12 +124,12 @@ class TrafficGuardSpec extends Specification {
     def e = thrown(TrafficGuardException)
     e.message.startsWith("Could not find server group 'app-foo-v999'")
     1 * front50Service.get("app") >> application
-    1 * oortHelper.getCluster("app", "test", "app-foo", "aws") >> [
+    1 * cloudDriverService.maybeCluster("app", "test", "app-foo", "aws") >> Optional.of(ModelUtils.cluster([
       serverGroups: [
         makeServerGroup(targetName, 1),
         makeServerGroup(otherName, 0, 1, [isDisabled: true])
       ]
-    ]
+    ]))
   }
 
   void "should be able to handle a server group in a namespace"() {
@@ -139,12 +142,12 @@ class TrafficGuardSpec extends Specification {
     then:
     notThrown(TrafficGuardException)
     1 * front50Service.get("app") >> application
-    1 * oortHelper.getCluster("app", "test", "app-foo", "aws") >> [
+    1 * cloudDriverService.maybeCluster("app", "test", "app-foo", "aws") >> Optional.of(ModelUtils.cluster([
       serverGroups: [
         makeServerGroup(targetName, 2, 0, [namespace: 'us-east-1']),
         makeServerGroup(otherName, 1, 0, [namespace: 'us-east-1'])
       ]
-    ]
+    ]))
 
   }
 
@@ -158,12 +161,12 @@ class TrafficGuardSpec extends Specification {
     then:
     thrown(TrafficGuardException)
     1 * front50Service.get("app") >> application
-    1 * oortHelper.getCluster("app", "test", "app-foo", "aws") >> [
+    1 * cloudDriverService.maybeCluster("app", "test", "app-foo", "aws") >> Optional.of(ModelUtils.cluster([
       serverGroups: [
         makeServerGroup(targetName, 2),
         makeServerGroup(otherName, 1)
       ]
-    ]
+    ]))
 
     // configure a minimum desired ratio of 40%, which means going from 3 to 1 instances (33%) is not ok
     1 * dynamicConfigService.getConfig(Double.class, TrafficGuard.MIN_CAPACITY_RATIO, 0d) >> 0.4d
@@ -179,12 +182,12 @@ class TrafficGuardSpec extends Specification {
     then:
     notThrown(TrafficGuardException)
     1 * front50Service.get("app") >> application
-    1 * oortHelper.getCluster("app", "test", "app-foo", "aws") >> [
+    1 * cloudDriverService.maybeCluster("app", "test", "app-foo", "aws") >> Optional.of(ModelUtils.cluster([
       serverGroups: [
         makeServerGroup(targetName, 2),
         makeServerGroup(otherName, 1)
       ]
-    ]
+    ]))
 
     // configure a minimum desired ratio of 25%, which means going from 3 to 1 instances (33%) is ok
     1 * dynamicConfigService.getConfig(Double.class, TrafficGuard.MIN_CAPACITY_RATIO, 0d) >> 0.25d
@@ -331,9 +334,9 @@ class TrafficGuardSpec extends Specification {
     then:
     thrown(TrafficGuardException)
     1 * front50Service.get("app") >> application
-    1 * oortHelper.getCluster("app", "test", "app-foo", "aws") >> [
+    1 * cloudDriverService.maybeCluster("app", "test", "app-foo", "aws") >> Optional.of(ModelUtils.cluster([
       serverGroups: [makeServerGroup(targetName, 1)]
-    ]
+    ]))
   }
 
   void "should validate location when looking for other enabled server groups in cluster"() {
@@ -346,11 +349,11 @@ class TrafficGuardSpec extends Specification {
     then:
     thrown(TrafficGuardException)
     1 * front50Service.get("app") >> application
-    1 * oortHelper.getCluster("app", "test", "app-foo", "aws") >> [
+    1 * cloudDriverService.maybeCluster("app", "test", "app-foo", "aws") >> Optional.of(ModelUtils.cluster([
       serverGroups: [
         makeServerGroup(targetName, 1),
         makeServerGroup(otherName, 1, 0, [region: 'us-west-1'])]
-    ]
+    ]))
   }
 
   void "should not throw exception when cluster has no active instances"() {
@@ -363,9 +366,9 @@ class TrafficGuardSpec extends Specification {
     then:
     noExceptionThrown()
     1 * front50Service.get("app") >> application
-    1 * oortHelper.getCluster("app", "test", "app-foo", "aws") >> [
+    1 * cloudDriverService.maybeCluster("app", "test", "app-foo", "aws") >> Optional.of(ModelUtils.cluster([
       serverGroups: [makeServerGroup(targetName, 0, 1)]
-    ]
+    ]))
   }
 
   void "should validate existence of cluster"() {
@@ -379,7 +382,7 @@ class TrafficGuardSpec extends Specification {
     def e = thrown(TrafficGuardException)
     e.message.startsWith('Could not find cluster')
     1 * front50Service.get("app") >> application
-    1 * oortHelper.getCluster("app", "test", "app-foo", "aws") >> Optional.empty()
+    1 * cloudDriverService.maybeCluster("app", "test", "app-foo", "aws") >> Optional.empty()
   }
 
   void "should not throw if another server group is enabled and has instances"() {
@@ -392,11 +395,11 @@ class TrafficGuardSpec extends Specification {
     then:
     notThrown(TrafficGuardException)
     1 * front50Service.get("app") >> application
-    1 * oortHelper.getCluster("app", "test", "app-foo", "aws") >> [
+    1 * cloudDriverService.maybeCluster("app", "test", "app-foo", "aws") >> Optional.of(ModelUtils.cluster([
       serverGroups: [
         makeServerGroup(targetName, 1),
         makeServerGroup(otherName, 1)]
-    ]
+    ]))
   }
 
   void "should throw if another server group is enabled but no instances are 'Up'"() {
@@ -409,11 +412,11 @@ class TrafficGuardSpec extends Specification {
     then:
     thrown(TrafficGuardException)
     1 * front50Service.get("app") >> application
-    1 * oortHelper.getCluster("app", "test", "app-foo", "aws") >> [
+    1 * cloudDriverService.maybeCluster("app", "test", "app-foo", "aws") >> Optional.of(ModelUtils.cluster([
       serverGroups: [
         makeServerGroup(targetName, 1),
         makeServerGroup(otherName, 0, 1)]
-    ]
+    ]))
   }
 
   @Unroll
@@ -500,8 +503,8 @@ class TrafficGuardSpec extends Specification {
     1 * oortHelper.getSearchResults("i-1", "instances", "aws") >>
       [[results: [[account: "test", region: location.value, serverGroup: targetName]]]]
     1 * oortHelper.getTargetServerGroup("test", targetName, location.value, "aws") >> Optional.of(new TargetServerGroup(targetServerGroup))
-    1 * oortHelper.getCluster("app", "test", "app-foo", "aws") >>
-      [serverGroups: [targetServerGroup]]
+    1 * cloudDriverService.maybeCluster("app", "test", "app-foo", "aws") >>
+        Optional.of(ModelUtils.cluster([serverGroups: [targetServerGroup]]))
   }
 
   void "instance termination should fail when last healthy instance in only active server group in cluster"() {
@@ -518,12 +521,12 @@ class TrafficGuardSpec extends Specification {
     1 * oortHelper.getSearchResults("i-1", "instances", "aws") >>
       [[results: [[account: "test", region: location.value, serverGroup: targetName]]]]
     1 * oortHelper.getTargetServerGroup("test", targetName, location.value, "aws") >> Optional.of(new TargetServerGroup(targetServerGroup))
-    1 * oortHelper.getCluster("app", "test", "app-foo", "aws") >> [
+    1 * cloudDriverService.maybeCluster("app", "test", "app-foo", "aws") >> Optional.of(ModelUtils.cluster([
       serverGroups: [
         targetServerGroup,
         makeServerGroup(otherName, 0, 1)
       ]
-    ]
+    ]))
   }
 
   void "instance termination should succeed when other server group in cluster contains healthy instance"() {
@@ -540,12 +543,12 @@ class TrafficGuardSpec extends Specification {
     1 * oortHelper.getSearchResults("i-1", "instances", "aws") >>
       [[results: [[account: "test", region: location.value, serverGroup: targetName]]]]
     1 * oortHelper.getTargetServerGroup("test", targetName, location.value, "aws") >> Optional.of(new TargetServerGroup(targetServerGroup))
-    1 * oortHelper.getCluster("app", "test", "app-foo", "aws") >> [
+    1 * cloudDriverService.maybeCluster("app", "test", "app-foo", "aws") >> Optional.of(ModelUtils.cluster([
       serverGroups: [
         targetServerGroup,
         makeServerGroup(otherName, 1, 0)
       ]
-    ]
+    ]))
   }
 
   void "instance termination should fail when trying to terminate all up instances in the cluster"() {
@@ -562,12 +565,12 @@ class TrafficGuardSpec extends Specification {
     1 * oortHelper.getSearchResults("i-1", "instances", "aws") >> [[results: [[account: "test", region: location.value, serverGroup: targetName]]]]
     1 * oortHelper.getSearchResults("i-2", "instances", "aws") >> [[results: [[account: "test", region: location.value, serverGroup: targetName]]]]
     1 * oortHelper.getTargetServerGroup("test", targetName, location.value, "aws") >> Optional.of(new TargetServerGroup(targetServerGroup))
-    1 * oortHelper.getCluster("app", "test", "app-foo", "aws") >> [
+    1 * cloudDriverService.maybeCluster("app", "test", "app-foo", "aws") >> Optional.of(ModelUtils.cluster([
       serverGroups: [
         targetServerGroup,
         makeServerGroup(otherName, 0, 1)
       ]
-    ]
+    ]))
   }
 
   void "instance termination should succeed when instance is not up, regardless of other instances"() {

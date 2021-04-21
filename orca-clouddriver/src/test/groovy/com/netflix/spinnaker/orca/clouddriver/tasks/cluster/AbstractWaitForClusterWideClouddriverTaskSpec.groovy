@@ -18,6 +18,9 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
+import com.netflix.spinnaker.orca.clouddriver.ModelUtils
+import com.netflix.spinnaker.orca.clouddriver.model.Cluster
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractWaitForClusterWideClouddriverTask.DeployServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
@@ -42,15 +45,15 @@ class AbstractWaitForClusterWideClouddriverTaskSpec extends Specification {
     }
   }
 
-  OortHelper oortHelper = Mock(OortHelper)
-  @Subject TestTask task = new TestTask(oortHelper: oortHelper)
+  CloudDriverService cloudDriverService = Mock()
+  @Subject TestTask task = new TestTask(cloudDriverService: cloudDriverService)
 
   def 'uses deploy.server.groups to populate inital remainingDeployServerGroups list'() {
     when:
     def result = task.execute(stage(['deploy.server.groups': deployServerGroups, regions: regions]))
 
     then:
-    1 * oortHelper.getCluster(application, credentials, cluster, cloudProvider) >> Optional.of([serverGroups: serverGroups])
+    1 * cloudDriverService.maybeCluster(application, credentials, cluster, cloudProvider) >> Optional.of(ModelUtils.cluster([serverGroups: serverGroups]))
 
     result.status == ExecutionStatus.RUNNING
     result.context.remainingDeployServerGroups == expected
@@ -73,7 +76,7 @@ class AbstractWaitForClusterWideClouddriverTaskSpec extends Specification {
     def result = task.execute(stage([remainingDeployServerGroups: [dsg('c1')]]))
 
     then:
-    1 * oortHelper.getCluster(application, credentials, cluster, cloudProvider) >> Optional.empty()
+    1 * cloudDriverService.maybeCluster(application, credentials, cluster, cloudProvider) >> Optional.empty()
 
     thrown(IllegalStateException)
   }
@@ -83,7 +86,7 @@ class AbstractWaitForClusterWideClouddriverTaskSpec extends Specification {
     def result = task.execute(stage([remainingDeployServerGroups: [dsg('c1')]]))
 
     then:
-    1 * oortHelper.getCluster(application, credentials, cluster, cloudProvider) >> Optional.of([serverGroups: []])
+    1 * cloudDriverService.maybeCluster(application, credentials, cluster, cloudProvider) >> Optional.of(new Cluster(serverGroups: []))
 
     thrown(IllegalStateException)
   }
@@ -93,7 +96,7 @@ class AbstractWaitForClusterWideClouddriverTaskSpec extends Specification {
     def result = task.execute(stage([remainingDeployServerGroups: [dsg('c1'), dsg('c2')]]))
 
     then:
-    1 * oortHelper.getCluster(application, credentials, cluster, cloudProvider) >> Optional.of([serverGroups: [sg('c1')]])
+    1 * cloudDriverService.maybeCluster(application, credentials, cluster, cloudProvider) >> Optional.of(ModelUtils.cluster([serverGroups: [sg('c1')]]))
 
     result.status == ExecutionStatus.RUNNING
     result.context.remainingDeployServerGroups == [dsg('c1')]
@@ -104,7 +107,7 @@ class AbstractWaitForClusterWideClouddriverTaskSpec extends Specification {
     def result = task.execute(stage([remainingDeployServerGroups: [dsg('c1')]]))
 
     then:
-    1 * oortHelper.getCluster(application, credentials, cluster, cloudProvider) >> Optional.of([serverGroups: [sg('c2'), sg('c3')]])
+    1 * cloudDriverService.maybeCluster(application, credentials, cluster, cloudProvider) >> Optional.of(ModelUtils.cluster([serverGroups: [sg('c2'), sg('c3')]]))
 
     result.status == ExecutionStatus.SUCCEEDED
   }

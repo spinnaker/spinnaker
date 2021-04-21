@@ -24,6 +24,8 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.impl.Preconditions;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.moniker.Moniker;
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService;
+import com.netflix.spinnaker.orca.clouddriver.model.Cluster;
 import com.netflix.spinnaker.orca.clouddriver.model.HealthState;
 import com.netflix.spinnaker.orca.clouddriver.model.Instance;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location;
@@ -48,6 +50,7 @@ public class TrafficGuard {
   private final Front50Service front50Service;
   private final Registry registry;
   private final DynamicConfigService dynamicConfigService;
+  private final CloudDriverService cloudDriverService;
 
   private final Id savesId;
 
@@ -56,12 +59,14 @@ public class TrafficGuard {
       OortHelper oortHelper,
       Optional<Front50Service> front50Service,
       Registry registry,
-      DynamicConfigService dynamicConfigService) {
+      DynamicConfigService dynamicConfigService,
+      CloudDriverService cloudDriverService) {
     this.oortHelper = oortHelper;
     this.front50Service = front50Service.orElse(null);
     this.registry = registry;
     this.dynamicConfigService = dynamicConfigService;
     this.savesId = registry.createId("trafficGuard.saves");
+    this.cloudDriverService = cloudDriverService;
   }
 
   public void verifyInstanceTermination(
@@ -201,23 +206,25 @@ public class TrafficGuard {
       return;
     }
 
-    Optional<Map> cluster =
-        oortHelper.getCluster(
-            serverGroupMoniker.getApp(), account, serverGroupMoniker.getCluster(), cloudProvider);
-
-    if (!cluster.isPresent()) {
-      throw new TrafficGuardException(
-          format(
-              "Could not find cluster '%s' in %s/%s",
-              serverGroupMoniker.getCluster(), account, location.getValue()));
-    }
+    Cluster cluster =
+        cloudDriverService
+            .maybeCluster(
+                serverGroupMoniker.getApp(),
+                account,
+                serverGroupMoniker.getCluster(),
+                cloudProvider)
+            .orElseThrow(
+                () ->
+                    new TrafficGuardException(
+                        format(
+                            "Could not find cluster '%s' in %s/%s",
+                            serverGroupMoniker.getCluster(), account, location.getValue())));
 
     List<TargetServerGroup> targetServerGroups =
-        ((List<Map<String, Object>>) cluster.get().get("serverGroups"))
-            .stream()
-                .map(TargetServerGroup::new)
-                .filter(tsg -> location.equals(tsg.getLocation(location.getType())))
-                .collect(Collectors.toList());
+        cluster.getServerGroups().stream()
+            .map(TargetServerGroup::new)
+            .filter(tsg -> location.equals(tsg.getLocation(location.getType())))
+            .collect(Collectors.toList());
 
     TargetServerGroup serverGroupGoingAway =
         targetServerGroups.stream()

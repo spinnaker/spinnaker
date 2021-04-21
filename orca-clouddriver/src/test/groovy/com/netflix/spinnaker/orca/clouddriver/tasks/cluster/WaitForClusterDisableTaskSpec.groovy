@@ -1,9 +1,11 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
+import com.netflix.spinnaker.orca.clouddriver.ModelUtils
+import com.netflix.spinnaker.orca.clouddriver.model.Cluster
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreator
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.WaitForRequiredInstancesDownTask
-import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import org.springframework.core.env.Environment
@@ -17,13 +19,15 @@ import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUC
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class WaitForClusterDisableTaskSpec extends Specification {
-  def oortHelper = Mock(OortHelper)
+  CloudDriverService cloudDriverService = Mock()
   def environment = Mock(Environment) {
     getProperty(WaitForClusterDisableTask.TOGGLE, Boolean, false) >> true
   }
 
-  @Shared def region = "region"
-  @Shared def clusterName = "clusterName"
+  @Shared
+  def region = "region"
+  @Shared
+  def clusterName = "clusterName"
 
   @Shared
   ServerGroupCreator serverGroupCreator = Stub(ServerGroupCreator) {
@@ -32,7 +36,8 @@ class WaitForClusterDisableTaskSpec extends Specification {
     getOperations(_) >> [["aOp": "foo"]]
   }
 
-  @Subject WaitForClusterDisableTask task = new WaitForClusterDisableTask([serverGroupCreator]).with {
+  @Subject
+  WaitForClusterDisableTask task = new WaitForClusterDisableTask([serverGroupCreator]).with {
     environment = this.environment
     return it
   }
@@ -42,36 +47,36 @@ class WaitForClusterDisableTaskSpec extends Specification {
     given:
     def stage = stage {
       context = [
-        cluster                                     : clusterName,
-        credentials                                 : "test",
-        "deploy.server.groups"                      : [
-          (dsgregion): ["$clusterName-$oldServerGroup".toString()]
-        ],
-        (desiredPct ? "desiredPercentage" : "blerp"): desiredPct,
-        interestingHealthProviderNames              : interestingHealthProviderNames
+          cluster: clusterName,
+          credentials: "test",
+          "deploy.server.groups": [
+              (dsgregion): ["$clusterName-$oldServerGroup".toString()]
+          ],
+          (desiredPct ? "desiredPercentage" : "blerp"): desiredPct,
+          interestingHealthProviderNames: interestingHealthProviderNames
       ]
     }
     stage.setStartTime(System.currentTimeMillis())
 
-    oortHelper.getCluster(*_) >> [
-      name: clusterName,
-      serverGroups: [
-        serverGroup("$clusterName-v050".toString(), "us-west-1", [:]),
-        serverGroup("$clusterName-v051".toString(), "us-west-1", [:]),
-        serverGroup("$clusterName-$newServerGroup".toString(), region, [:]),
-        serverGroup("$clusterName-$oldServerGroup".toString(), region, [
-          disabled: disabled,
-          capacity: [desired: desired],
-          instances: [
-            instance('i-1', platformHealthState, extraHealths),
-            instance('i-2', platformHealthState, extraHealths),
-            instance('i-3', platformHealthState, extraHealths),
-          ]
-        ])
-      ]
-    ]
+    cloudDriverService.maybeCluster(*_) >> Optional.of(ModelUtils.cluster([
+        name: clusterName,
+        serverGroups: [
+            serverGroup("$clusterName-v050".toString(), "us-west-1", [:]),
+            serverGroup("$clusterName-v051".toString(), "us-west-1", [:]),
+            serverGroup("$clusterName-$newServerGroup".toString(), region, [:]),
+            serverGroup("$clusterName-$oldServerGroup".toString(), region, [
+                disabled: disabled,
+                capacity: [desired: desired],
+                instances: [
+                    instance('i-1', platformHealthState, extraHealths),
+                    instance('i-2', platformHealthState, extraHealths),
+                    instance('i-3', platformHealthState, extraHealths),
+                ]
+            ])
+        ]
+    ]))
 
-    task.oortHelper = oortHelper
+    task.cloudDriverService = cloudDriverService
     task.waitForRequiredInstancesDownTask = new WaitForRequiredInstancesDownTask()
     task.MINIMUM_WAIT_TIME_MS = minWaitTime
 
@@ -122,15 +127,15 @@ class WaitForClusterDisableTaskSpec extends Specification {
   def "fails with '#message' when clusterData=#clusterData"() {
     given:
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "test", [
-      cluster: clusterName,
-      credentials: 'test',
-      "deploy.server.groups": [
-        (region): ["$clusterName-v42".toString()]
-      ]
+        cluster: clusterName,
+        credentials: 'test',
+        "deploy.server.groups": [
+            (region): ["$clusterName-v42".toString()]
+        ]
     ])
 
-    oortHelper.getCluster(*_) >> clusterData
-    task.oortHelper = oortHelper
+    cloudDriverService.maybeCluster(*_) >> clusterData
+    task.cloudDriverService = cloudDriverService
 
     when:
     task.execute(stage)
@@ -140,33 +145,33 @@ class WaitForClusterDisableTaskSpec extends Specification {
     e.message.startsWith(expectedMessage)
 
     where:
-    clusterData                            || expectedMessage
-    Optional.empty()                       || 'no cluster details found'
-    [name: clusterName, serverGroups: []]  || 'no server groups found'
+    clusterData                                                   || expectedMessage
+    Optional.empty()                                              || 'no cluster details found'
+    Optional.of(new Cluster(name: clusterName, serverGroups: [])) || 'no server groups found'
   }
 
   private static Map instance(name, platformHealthState = 'Unknown', extraHealths = []) {
     return [
-      name: name,
-      launchTime: null,
-      health: [[healthClass: 'platform', type: 'platformHealthType', state: platformHealthState]] + extraHealths,
-      healthState: null,
-      zone: 'thezone'
+        name: name,
+        launchTime: null,
+        health: [[healthClass: 'platform', type: 'platformHealthType', state: platformHealthState]] + extraHealths,
+        healthState: null,
+        zone: 'thezone'
     ]
   }
 
   private static Map serverGroup(name, region, Map other) {
     return [
-      name  : name,
-      region: region,
+        name: name,
+        region: region,
     ] + other
   }
 
   private static Map health(String name, String state) {
     return [
-      healthClass: name + 'Class',
-      type: name + 'Type',
-      state: state
+        healthClass: name + 'Class',
+        type: name + 'Type',
+        state: state
     ]
   }
 }

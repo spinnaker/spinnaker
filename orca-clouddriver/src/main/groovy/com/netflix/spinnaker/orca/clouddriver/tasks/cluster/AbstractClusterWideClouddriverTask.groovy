@@ -21,8 +21,11 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.KatoService
+import com.netflix.spinnaker.orca.clouddriver.model.Cluster
 import com.netflix.spinnaker.orca.clouddriver.model.HealthState
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.AbstractClusterWideClouddriverOperationStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.AbstractClusterWideClouddriverOperationStage.ClusterSelection
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CloneServerGroupStage
@@ -62,6 +65,7 @@ abstract class AbstractClusterWideClouddriverTask implements RetryableTask, Clou
   @Autowired OortHelper oortHelper
   @Autowired KatoService katoService
   @Autowired TrafficGuard trafficGuard
+  @Autowired CloudDriverService cloudDriverService
 
   protected TaskResult missingClusterResult(StageExecution stage,
                                             ClusterSelection clusterSelection) {
@@ -69,7 +73,7 @@ abstract class AbstractClusterWideClouddriverTask implements RetryableTask, Clou
   }
 
   protected TaskResult emptyClusterResult(StageExecution stage,
-                                          ClusterSelection clusterSelection, Map cluster) {
+                                          ClusterSelection clusterSelection, Cluster cluster) {
     throw new IllegalStateException("No ServerGroups found in cluster $clusterSelection")
   }
 
@@ -77,7 +81,7 @@ abstract class AbstractClusterWideClouddriverTask implements RetryableTask, Clou
   @Override
   TaskResult execute(StageExecution stage) {
     def clusterSelection = stage.mapTo(ClusterSelection)
-    Optional<Map> cluster = oortHelper.getCluster(clusterSelection.getApplication(),
+    Optional<Cluster> cluster = cloudDriverService.maybeCluster(clusterSelection.getApplication(),
                                                   clusterSelection.credentials,
                                                   clusterSelection.cluster,
                                                   clusterSelection.cloudProvider)
@@ -88,7 +92,7 @@ abstract class AbstractClusterWideClouddriverTask implements RetryableTask, Clou
       return missingClusterResult(stage, clusterSelection)
     }
 
-    List<Map> serverGroups = cluster.get().serverGroups
+    List<ServerGroup> serverGroups = cluster.get().serverGroups
     log.debug("Server groups fetched from cluster (${cluster.get().name}): ${serverGroups*.name}")
 
     if (!serverGroups) {
@@ -98,7 +102,7 @@ abstract class AbstractClusterWideClouddriverTask implements RetryableTask, Clou
       return emptyClusterResult(stage, clusterSelection, cluster.get())
     }
 
-    def locations = AbstractClusterWideClouddriverOperationStage.locationsFromStage(stage.context)
+    List<Location> locations = AbstractClusterWideClouddriverOperationStage.locationsFromStage(stage.context)
 
     Location.Type exactLocationType = locations?.getAt(0)?.type
 

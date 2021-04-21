@@ -16,11 +16,13 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
+import com.netflix.spinnaker.orca.clouddriver.ModelUtils
+import com.netflix.spinnaker.orca.clouddriver.model.Cluster
 import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
 
 import java.util.concurrent.atomic.AtomicInteger
 import com.netflix.spinnaker.orca.clouddriver.KatoService
-import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
@@ -28,7 +30,6 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractClusterWideC
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractClusterWideClouddriverTask.CreatedTime
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractClusterWideClouddriverTask.InstanceCount
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractClusterWideClouddriverTask.IsActive
-import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
@@ -38,29 +39,28 @@ import spock.lang.Unroll
 class ShrinkClusterTaskSpec extends Specification {
 
   static AtomicInteger inc = new AtomicInteger(100)
-  OortService oortService = Mock(OortService)
   KatoService katoService = Mock(KatoService)
-  OortHelper oortHelper = Mock(OortHelper)
   TrafficGuard trafficGuard = Mock(TrafficGuard)
+  CloudDriverService cloudDriverService = Mock()
 
   @Subject
   ShrinkClusterTask task
 
   def setup() {
-    task = new ShrinkClusterTask(oortHelper: oortHelper, katoService: katoService, trafficGuard: trafficGuard)
+    task = new ShrinkClusterTask(katoService: katoService, trafficGuard: trafficGuard, cloudDriverService: cloudDriverService)
   }
 
   @Unroll
   def "stage context #desc"() {
     setup:
     StageExecutionImpl orchestration = new StageExecutionImpl(PipelineExecutionImpl.newOrchestration("orca"), 'test', context)
-    Map cluster = [serverGroups: serverGroups]
+    Cluster cluster = ModelUtils.cluster([serverGroups: serverGroups])
 
     when:
     def result = task.execute(orchestration)
 
     then:
-    1 * oortHelper.getCluster('foo', 'test', 'foo-test', 'aws') >> cluster
+    1 * cloudDriverService.maybeCluster('foo', 'test', 'foo-test', 'aws') >> Optional.of(cluster)
 
     (expectedItems ? 1 : 0) * katoService.requestOperations('aws', _) >> { p, ops ->
       assert ops.size == expected.size()

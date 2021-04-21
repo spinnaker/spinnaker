@@ -18,9 +18,10 @@ package com.netflix.spinnaker.orca.kato.pipeline.support
 
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
+import com.netflix.spinnaker.orca.clouddriver.model.Cluster
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
-import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -28,7 +29,7 @@ import org.springframework.stereotype.Component
 class ScaleToClusterResizeStrategy implements ResizeStrategy{
 
   @Autowired
-  OortHelper oortHelper
+  CloudDriverService cloudDriverService
 
   @Override
   boolean handles(ResizeAction resizeAction) {
@@ -46,10 +47,11 @@ class ScaleToClusterResizeStrategy implements ResizeStrategy{
     def appName = stage?.context?.moniker?.app ?: names.app
     def clusterName = stage?.context?.moniker?.cluster ?:names.cluster
 
-    def cluster = oortHelper.getCluster(appName, account, clusterName, cloudProvider)
+    Optional<Cluster> cluster = cloudDriverService.maybeCluster(appName, account, clusterName, cloudProvider)
     List<TargetServerGroup> targetServerGroups = cluster
-      .orElse([serverGroups: []])
-      .serverGroups.collect { new TargetServerGroup(it) }
+      .map({ it.serverGroups })
+      .map({ serverGroups -> serverGroups.collect { new TargetServerGroup(it) }})
+      .orElse(List.of())
       .findAll { it.getLocation() == location }
 
     if (!targetServerGroups) {

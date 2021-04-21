@@ -18,10 +18,12 @@ package com.netflix.spinnaker.orca.mine.pipeline
 
 import com.netflix.spinnaker.orca.api.pipeline.CancellableStage.Result
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
+import com.netflix.spinnaker.orca.clouddriver.model.Cluster
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.DestroyServerGroupTask
 import com.netflix.spinnaker.orca.clouddriver.KatoService
-import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -66,12 +68,12 @@ class CanaryStageSpec extends Specification {
       endTime = 10
     }
 
-    OortHelper oortHelper = Mock(OortHelper)
+    CloudDriverService cloudDriverService = Mock()
     KatoService katoService = Mock(KatoService)
     DestroyServerGroupTask destroyServerGroupTask = Mock(DestroyServerGroupTask)
 
     CanaryStage canaryStage = new CanaryStage(
-      oortHelper: oortHelper,
+        cloudDriverService: cloudDriverService,
       katoService: katoService,
       destroyServerGroupTask: destroyServerGroupTask,
       retrySupport: Spy(RetrySupport) {
@@ -84,12 +86,12 @@ class CanaryStageSpec extends Specification {
 
     then:
     result.details.destroyContexts.size() == destroyedServerGroups
-    1 * oortHelper.getCluster("app", "test", "app-stack1-baseline", "aws") >> [
+    1 * cloudDriverService.maybeCluster("app", "test", "app-stack1-baseline", "aws") >> cluster([
       serverGroups: [[region: "us-east-1", createdTime: createdTime, name: "app-stack1-baseline-v003"]]
-    ]
-    1 * oortHelper.getCluster("app", "test", "app-stack1-canary", "aws") >> [
+    ])
+    1 * cloudDriverService.maybeCluster("app", "test", "app-stack1-canary", "aws") >> cluster([
       serverGroups: [[region: "us-east-1", createdTime: createdTime, name: "app-stack1-canary-v003"]]
-    ]
+    ])
 
     disableOps * katoService.requestOperations("aws", disableOperation) >> { taskId }
 
@@ -102,6 +104,10 @@ class CanaryStageSpec extends Specification {
     5010        | 0          | 0
     5011        | 0          | 0
 
+  }
+
+  static Optional<Cluster> cluster(cluster) {
+    Optional.of(OrcaObjectMapper.instance.convertValue(cluster, Cluster))
   }
 
 }

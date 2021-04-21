@@ -18,6 +18,9 @@ package com.netflix.spinnaker.orca.mine.pipeline
 
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageGraphBuilder
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
+import com.netflix.spinnaker.orca.clouddriver.model.Cluster
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 
 import java.util.concurrent.TimeUnit
@@ -27,7 +30,6 @@ import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.api.pipeline.CancellableStage
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.DestroyServerGroupTask
-import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -41,7 +43,7 @@ class CanaryStage implements StageDefinitionBuilder, CancellableStage {
   @Autowired DeployCanaryStage deployCanaryStage
   @Autowired MonitorCanaryStage monitorCanaryStage
   @Autowired DestroyServerGroupTask destroyServerGroupTask
-  @Autowired OortHelper oortHelper
+  @Autowired CloudDriverService cloudDriverService
   @Autowired KatoService katoService
   @Autowired RetrySupport retrySupport
 
@@ -85,9 +87,11 @@ class CanaryStage implements StageDefinitionBuilder, CancellableStage {
 
         def cloudProvider = cluster.cloudProvider ?: 'aws'
         // it's possible the server groups haven't been created yet, retry with backoff before cleanup
-        Map<String, Object> deployedCluster = [:]
+        Cluster deployedCluster = new Cluster()
         retrySupport.retry({
-          deployedCluster = oortHelper.getCluster(cluster.application, cluster.account, builder.buildGroupName(), cloudProvider).orElse([:])
+          deployedCluster = cloudDriverService.maybeCluster(cluster.application, cluster.account, builder.buildGroupName(), cloudProvider)
+              .orElse(new Cluster())
+
           if (deployedCluster.serverGroups == null || deployedCluster.serverGroups?.size() == 0) {
             throw new IllegalStateException("Expected serverGroup matching cluster {$cluster}")
           }
@@ -96,10 +100,10 @@ class CanaryStage implements StageDefinitionBuilder, CancellableStage {
         // add a small buffer to deal with latency between the cloud provider and Orca
         Long createdTimeCutoff = (stage.endTime ?: System.currentTimeMillis()) + 5000
 
-        List<Map> serverGroups = deployedCluster.serverGroups ?: []
+        List<ServerGroup> serverGroups = deployedCluster.serverGroups ?: []
 
         String clusterRegion = cluster.region ?: (cluster.availabilityZones as Map).keySet().first()
-        List<Map> matches = serverGroups.findAll {
+        List<ServerGroup> matches = serverGroups.findAll {
           it.region == clusterRegion && it.createdTime > start && it.createdTime < createdTimeCutoff
         } ?: []
 

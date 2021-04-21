@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.OortService
-import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import retrofit.client.Response
@@ -32,9 +32,9 @@ import static retrofit.RetrofitError.httpError
 class WaitForClusterShrinkTaskSpec extends Specification {
 
   def oortService = Mock(OortService)
-  def objectMapper = new ObjectMapper()
+  def objectMapper = OrcaObjectMapper.getInstance()
   @Subject def task = new WaitForClusterShrinkTask(
-    oortHelper: new OortHelper(oortService, objectMapper)
+    cloudDriverService: new CloudDriverService(oortService, objectMapper)
   )
 
   def "does not complete if previous ASG is still there"() {
