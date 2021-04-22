@@ -80,6 +80,7 @@ export class CloudFoundryLoadBalancerTransformer {
       region: '',
       domain: '',
       serverGroups: [],
+      routes: [],
     };
   }
 

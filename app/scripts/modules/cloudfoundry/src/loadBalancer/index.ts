@@ -1,3 +1,3 @@
 export * from './loadBalancer.transformer';
 export * from './details';
-export * from './configure/cloudFoundryNoLoadBalancerModal';
+export * from './configure/CloudFoundryMapLoadBalancerModal';

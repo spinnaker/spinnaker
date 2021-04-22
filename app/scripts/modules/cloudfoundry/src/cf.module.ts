@@ -4,7 +4,7 @@ import { CloudFoundryInstanceDetails } from 'cloudfoundry/instance/details';
 import {
   CloudFoundryLoadBalancerDetails,
   CloudFoundryLoadBalancerTransformer,
-  CloudFoundryNoLoadBalancerModal,
+  CloudFoundryMapLoadBalancerModal,
 } from 'cloudfoundry/loadBalancer';
 import 'cloudfoundry/pipeline/config/validation/cfTargetImpedance.validator';
 import 'cloudfoundry/pipeline/config/validation/instanceSize.validator';
@@ -56,7 +56,7 @@ CloudProviderRegistry.registerProvider('cloudfoundry', {
   loadBalancer: {
     transformer: CloudFoundryLoadBalancerTransformer,
     details: CloudFoundryLoadBalancerDetails,
-    CreateLoadBalancerModal: CloudFoundryNoLoadBalancerModal,
+    CreateLoadBalancerModal: CloudFoundryMapLoadBalancerModal,
   },
   serverGroup: {
     skipUpstreamStageCheck: true,
