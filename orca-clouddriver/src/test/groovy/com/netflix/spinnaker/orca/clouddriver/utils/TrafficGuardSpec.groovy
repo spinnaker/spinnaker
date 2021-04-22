@@ -23,6 +23,7 @@ import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.ModelUtils
+import com.netflix.spinnaker.orca.clouddriver.model.SearchResultSet
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Capacity
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location.Type
@@ -38,7 +39,6 @@ import spock.lang.Unroll
 
 class TrafficGuardSpec extends Specification {
 
-  OortHelper oortHelper = Mock(OortHelper)
   Front50Service front50Service = Mock(Front50Service)
   Registry registry = new NoopRegistry()
   DynamicConfigService dynamicConfigService = Mock(DynamicConfigService)
@@ -55,7 +55,7 @@ class TrafficGuardSpec extends Specification {
   @Shared Map<String, Object> applicationDetails = [:]
 
   @Subject
-  TrafficGuard trafficGuard = new TrafficGuard(oortHelper, new Optional<>(front50Service), registry, dynamicConfigService, cloudDriverService)
+  TrafficGuard trafficGuard = new TrafficGuard(Optional.of(front50Service), registry, dynamicConfigService, cloudDriverService)
 
   void setup() {
     applicationDetails.clear()
@@ -91,7 +91,7 @@ class TrafficGuardSpec extends Specification {
     then: 'we never look up anything in clouddriver if traffic guards are not enabled'
     notThrown(TrafficGuardException)
     1 * front50Service.get("app") >> application
-    0 * oortHelper._
+    0 * cloudDriverService._
   }
 
   void "should throw exception when target server group is the only one enabled in cluster"() {
@@ -500,9 +500,9 @@ class TrafficGuardSpec extends Specification {
     then:
     thrown(TrafficGuardException)
     1 * front50Service.get("app") >> application
-    1 * oortHelper.getSearchResults("i-1", "instances", "aws") >>
-      [[results: [[account: "test", region: location.value, serverGroup: targetName]]]]
-    1 * oortHelper.getTargetServerGroup("test", targetName, location.value, "aws") >> Optional.of(new TargetServerGroup(targetServerGroup))
+    1 * cloudDriverService.getSearchResults("i-1", "instances", "aws") >>
+      [new SearchResultSet(results: [[account: "test", region: location.value, serverGroup: targetName]])]
+    1 * cloudDriverService.getTargetServerGroup("test", targetName, location.value) >> Optional.of(new TargetServerGroup(targetServerGroup))
     1 * cloudDriverService.maybeCluster("app", "test", "app-foo", "aws") >>
         Optional.of(ModelUtils.cluster([serverGroups: [targetServerGroup]]))
   }
@@ -518,9 +518,9 @@ class TrafficGuardSpec extends Specification {
     then:
     thrown(TrafficGuardException)
     1 * front50Service.get("app") >> application
-    1 * oortHelper.getSearchResults("i-1", "instances", "aws") >>
-      [[results: [[account: "test", region: location.value, serverGroup: targetName]]]]
-    1 * oortHelper.getTargetServerGroup("test", targetName, location.value, "aws") >> Optional.of(new TargetServerGroup(targetServerGroup))
+    1 * cloudDriverService.getSearchResults("i-1", "instances", "aws") >>
+      [new SearchResultSet(results: [[account: "test", region: location.value, serverGroup: targetName]])]
+    1 * cloudDriverService.getTargetServerGroup("test", targetName, location.value) >> Optional.of(new TargetServerGroup(targetServerGroup))
     1 * cloudDriverService.maybeCluster("app", "test", "app-foo", "aws") >> Optional.of(ModelUtils.cluster([
       serverGroups: [
         targetServerGroup,
@@ -540,9 +540,9 @@ class TrafficGuardSpec extends Specification {
     then:
     notThrown(TrafficGuardException)
     1 * front50Service.get("app") >> application
-    1 * oortHelper.getSearchResults("i-1", "instances", "aws") >>
-      [[results: [[account: "test", region: location.value, serverGroup: targetName]]]]
-    1 * oortHelper.getTargetServerGroup("test", targetName, location.value, "aws") >> Optional.of(new TargetServerGroup(targetServerGroup))
+    1 * cloudDriverService.getSearchResults("i-1", "instances", "aws") >>
+      [new SearchResultSet(results: [[account: "test", region: location.value, serverGroup: targetName]])]
+    1 * cloudDriverService.getTargetServerGroup("test", targetName, location.value) >> Optional.of(new TargetServerGroup(targetServerGroup))
     1 * cloudDriverService.maybeCluster("app", "test", "app-foo", "aws") >> Optional.of(ModelUtils.cluster([
       serverGroups: [
         targetServerGroup,
@@ -562,9 +562,9 @@ class TrafficGuardSpec extends Specification {
     then:
     thrown(TrafficGuardException)
     1 * front50Service.get("app") >> application
-    1 * oortHelper.getSearchResults("i-1", "instances", "aws") >> [[results: [[account: "test", region: location.value, serverGroup: targetName]]]]
-    1 * oortHelper.getSearchResults("i-2", "instances", "aws") >> [[results: [[account: "test", region: location.value, serverGroup: targetName]]]]
-    1 * oortHelper.getTargetServerGroup("test", targetName, location.value, "aws") >> Optional.of(new TargetServerGroup(targetServerGroup))
+    1 * cloudDriverService.getSearchResults("i-1", "instances", "aws") >> [new SearchResultSet(results: [[account: "test", region: location.value, serverGroup: targetName]])]
+    1 * cloudDriverService.getSearchResults("i-2", "instances", "aws") >> [new SearchResultSet(results: [[account: "test", region: location.value, serverGroup: targetName]])]
+    1 * cloudDriverService.getTargetServerGroup("test", targetName, location.value) >> Optional.of(new TargetServerGroup(targetServerGroup))
     1 * cloudDriverService.maybeCluster("app", "test", "app-foo", "aws") >> Optional.of(ModelUtils.cluster([
       serverGroups: [
         targetServerGroup,
@@ -583,9 +583,9 @@ class TrafficGuardSpec extends Specification {
     then:
     notThrown(TrafficGuardException)
     1 * front50Service.get("app") >> application
-    1 * oortHelper.getSearchResults("i-1", "instances", "aws") >>
-      [[results: [[account: "test", region: location.value, serverGroup: targetName]]]]
-    1 * oortHelper.getTargetServerGroup("test", targetName, location.value, "aws") >>
+    1 * cloudDriverService.getSearchResults("i-1", "instances", "aws") >>
+      [new SearchResultSet(results: [[account: "test", region: location.value, serverGroup: targetName]])]
+    1 * cloudDriverService.getTargetServerGroup("test", targetName, location.value) >>
       Optional.of(new TargetServerGroup(makeServerGroup(targetName, 0, 0, [instances: [[name: "i-1"]]])))
     0 * _
   }
@@ -601,7 +601,7 @@ class TrafficGuardSpec extends Specification {
     notThrown(TrafficGuardException)
 
     1 * front50Service.get("app") >> application
-    1 * oortHelper.getTargetServerGroup("test", targetName, location.value, "aws") >>
+    1 * cloudDriverService.getTargetServerGroup("test", targetName, location.value) >>
       Optional.of(new TargetServerGroup(makeServerGroup(targetName, 0, 0, [instances: [[name: "i-1"]]])))
     0 * _
   }

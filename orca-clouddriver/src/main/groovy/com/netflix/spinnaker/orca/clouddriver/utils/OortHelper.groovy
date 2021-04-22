@@ -45,6 +45,8 @@ class OortHelper {
     converter = new JacksonConverter(objectMapper)
   }
 
+  /** @deprecated use {@link com.netflix.spinnaker.orca.clouddriver.CloudDriverService#getSearchResults(String, String, String)} **/
+  @Deprecated
   List<Map> getSearchResults(String searchTerm, String type, String platform) {
     convert(oortService.getSearchResults(searchTerm, type, platform), List)
   }
@@ -57,6 +59,8 @@ class OortHelper {
     }
   }
 
+  /** @deprecated use {@link com.netflix.spinnaker.orca.clouddriver.CloudDriverService#getTargetServerGroup(String, String, String)} **/
+  @Deprecated
   Optional<TargetServerGroup> getTargetServerGroup(String account,
                                                    String serverGroupName,
                                                    String location,
@@ -66,7 +70,7 @@ class OortHelper {
     }.map({ Map serverGroup -> new TargetServerGroup(serverGroup) })
   }
 
-  public <T> Optional<T> convertedResponse(Class<T> type, Closure<Response> request) {
+  private <T> Optional<T> convertedResponse(Class<T> type, Closure<Response> request) {
     Response r
     try {
       r = request.call()

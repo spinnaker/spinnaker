@@ -46,7 +46,6 @@ public class TrafficGuard {
   private static final String MIN_CAPACITY_RATIO = "traffic-guards.min-capacity-ratio";
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  private final OortHelper oortHelper;
   private final Front50Service front50Service;
   private final Registry registry;
   private final DynamicConfigService dynamicConfigService;
@@ -56,12 +55,10 @@ public class TrafficGuard {
 
   @Autowired
   public TrafficGuard(
-      OortHelper oortHelper,
       Optional<Front50Service> front50Service,
       Registry registry,
       DynamicConfigService dynamicConfigService,
       CloudDriverService cloudDriverService) {
-    this.oortHelper = oortHelper;
     this.front50Service = front50Service.orElse(null);
     this.registry = registry;
     this.dynamicConfigService = dynamicConfigService;
@@ -119,9 +116,8 @@ public class TrafficGuard {
           // TODO rz - Remove: No longer needed since all data is retrieved in above clouddriver
           // calls
           TargetServerGroup targetServerGroup =
-              oortHelper
-                  .getTargetServerGroup(
-                      account, serverGroupName, location.getValue(), cloudProvider)
+              cloudDriverService
+                  .getTargetServerGroup(account, serverGroupName, location.getValue())
                   .orElseThrow(
                       () ->
                           new TrafficGuardException(
@@ -157,13 +153,17 @@ public class TrafficGuard {
 
   private Optional<String> resolveServerGroupNameForInstance(
       String instanceId, String account, String region, String cloudProvider) {
-    List<Map> searchResults =
-        (List<Map>)
-            oortHelper
-                .getSearchResults(instanceId, "instances", cloudProvider)
-                .get(0)
-                .getOrDefault("results", new ArrayList<>());
-    Optional<Map> instance =
+    List<Map<String, Object>> searchResults =
+        cloudDriverService
+            .getSearchResults(instanceId, "instances", cloudProvider)
+            .get(0)
+            .getResults();
+
+    if (searchResults == null) {
+      searchResults = List.of();
+    }
+
+    Optional<Map<String, Object>> instance =
         searchResults.stream()
             .filter(r -> account.equals(r.get("account")) && region.equals(r.get("region")))
             .findFirst();

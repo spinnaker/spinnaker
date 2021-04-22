@@ -2,10 +2,8 @@ package com.netflix.spinnaker.orca.clouddriver;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.orca.clouddriver.model.Cluster;
-import com.netflix.spinnaker.orca.clouddriver.model.EntityTags;
-import com.netflix.spinnaker.orca.clouddriver.model.Instance;
-import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup;
+import com.netflix.spinnaker.orca.clouddriver.model.*;
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup;
 import com.netflix.spinnaker.orca.clouddriver.utils.ServerGroupDescriptor;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +21,8 @@ public class CloudDriverService {
   private static final TypeReference<List<ServerGroup>> SERVER_GROUPS = new TypeReference<>() {};
   private static final TypeReference<Map<String, Object>> JSON_MAP = new TypeReference<>() {};
   private static final TypeReference<List<EntityTags>> ENTITY_TAGS = new TypeReference<>() {};
+  private static final TypeReference<List<SearchResultSet>> SEARCH_RESULTS =
+      new TypeReference<>() {};
 
   private final OortService oortService;
 
@@ -47,6 +47,17 @@ public class CloudDriverService {
   public ServerGroup getServerGroup(String account, String region, String serverGroup) {
     Response response = oortService.getServerGroup(account, region, serverGroup);
     return readBody(response, ServerGroup.class);
+  }
+
+  public List<SearchResultSet> getSearchResults(String searchTerm, String type, String platform) {
+    Response response = oortService.getSearchResults(searchTerm, type, platform);
+    return readBody(response, SEARCH_RESULTS);
+  }
+
+  public Optional<TargetServerGroup> getTargetServerGroup(
+      String account, String serverGroupName, String location) {
+    return maybe(() -> getServerGroup(account, location, serverGroupName))
+        .map(TargetServerGroup::new);
   }
 
   public ServerGroup getServerGroup(ServerGroupDescriptor descriptor) {
