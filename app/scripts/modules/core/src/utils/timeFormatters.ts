@@ -1,5 +1,5 @@
 import { module } from 'angular';
-import * as distanceInWordsToNow from 'date-fns/distance_in_words_to_now';
+import { formatDistanceToNow } from 'date-fns';
 import { DateTime, Duration } from 'luxon';
 import { react2angular } from 'react2angular';
 
@@ -65,7 +65,7 @@ export function relativeTime(input?: number) {
   const now = Date.now();
   const inFuture = input > now;
   const thisMoment = DateTime.fromMillis(input);
-  const baseText = distanceInWordsToNow(thisMoment.toJSDate(), { includeSeconds: true });
+  const baseText = formatDistanceToNow(thisMoment.toJSDate(), { includeSeconds: true });
   return thisMoment.isValid ? `${inFuture ? 'in ' : ''}${baseText}${inFuture ? '' : ' ago'}` : '-';
 }
 

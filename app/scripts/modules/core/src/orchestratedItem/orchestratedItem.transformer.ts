@@ -1,4 +1,4 @@
-import { distanceInWords } from 'date-fns';
+import { formatDistance } from 'date-fns';
 import { $log } from 'ngimport';
 
 import { IOrchestratedItem, IOrchestratedItemVariable, ITask, ITaskStep } from 'core/domain';
@@ -95,7 +95,7 @@ export class OrchestratedItemTransformer {
         get: () => {
           const now = Date.now();
           const start = new Date(now - this.calculateRunningTime(item)());
-          return distanceInWords(start, now, { includeSeconds: true });
+          return formatDistance(start, now, { includeSeconds: true });
         },
         configurable: true,
       },
