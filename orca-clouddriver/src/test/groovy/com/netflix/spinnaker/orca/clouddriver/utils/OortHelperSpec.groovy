@@ -16,22 +16,15 @@
 
 package com.netflix.spinnaker.orca.clouddriver.utils
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.clouddriver.OortService
-import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
-import retrofit.RetrofitError
-import retrofit.client.Response
-import retrofit.mime.TypedString
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
+import com.netflix.spinnaker.orca.clouddriver.model.Cluster
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
-
-import static java.net.HttpURLConnection.HTTP_NOT_FOUND
 
 class OortHelperSpec extends Specification {
-  ObjectMapper objectMapper = new ObjectMapper()
-  OortService oortService = Mock()
-  @Subject oortHelper = new OortHelper(oortService, objectMapper)
+  CloudDriverService cloudDriverService = Mock()
+  @Subject oortHelper = new OortHelper(cloudDriverService)
 
   def "getInstancesForCluster fails if > 1 asg in the cluster"() {
     given:
@@ -54,9 +47,8 @@ class OortHelperSpec extends Specification {
       }]
     }
     '''.stripIndent()
-    Response response = new Response('http://oort', 200, 'OK', [], new TypedString(oortResponse))
     Map deployContext = ["region" : "us-west-2", "account" : "prod", "kato.tasks" : [[resultObjects : [[ancestorServerGroupNameByRegion: ["us-west-2" : "myapp-v000"]],[serverGroupNameByRegion : ["us-west-2" : "myapp-v002"]]]]]]
-    1 * oortService.getCluster("myapp", "prod", "myapp", "aws") >> response
+    1 * cloudDriverService.getCluster("myapp", "prod", "myapp", "aws") >> cluster(oortResponse)
 
     when:
     oortHelper.getInstancesForCluster(deployContext, "myapp-v002", true, true)
@@ -80,9 +72,8 @@ class OortHelperSpec extends Specification {
       }]
     }
     '''.stripIndent()
-    Response response = new Response('http://oort', 200, 'OK', [], new TypedString(oortResponse))
     Map deployContext = ["region" : "us-west-2", "account" : "prod", "kato.tasks" : [[resultObjects : [[ancestorServerGroupNameByRegion: ["us-west-2" : "myapp-v000"]],[serverGroupNameByRegion : ["us-west-2" : "myapp-v002"]]]]]]
-    1 * oortService.getCluster("myapp", "prod", "myapp", "aws") >> response
+    1 * cloudDriverService.getCluster("myapp", "prod", "myapp", "aws") >> cluster(oortResponse)
 
     when:
     oortHelper.getInstancesForCluster(deployContext, "myapp-v002", true, true)
@@ -106,16 +97,15 @@ class OortHelperSpec extends Specification {
       }]
     }
     '''.stripIndent()
-    Response response = new Response('http://oort', 200, 'OK', [], new TypedString(oortResponse))
     Map deployContext = ["region" : "us-west-2", "account" : "prod", "kato.tasks" : [[resultObjects : [[ancestorServerGroupNameByRegion: ["us-west-2" : "myapp-v000"]],[serverGroupNameByRegion : ["us-west-2" : "myapp-v002"]]]]]]
-    1 * oortService.getCluster("myapp", "prod", "myapp", "aws") >> response
+    1 * cloudDriverService.getCluster("myapp", "prod", "myapp", "aws") >> cluster(oortResponse)
 
     when:
     def result = oortHelper.getInstancesForCluster(deployContext, "myapp-v002", true, true)
 
     then:
-    result.get(1).healthCheckUrl == "http://foo/bar"
-    result.get(2).healthCheckUrl == "http://foo2/bar2"
+    result.get('1').healthCheckUrl == "http://foo/bar"
+    result.get('2').healthCheckUrl == "http://foo2/bar2"
   }
 
   def "getInstancesForCluster passes if any instances are down/starting and failIfAnyInstancesUnhealthy == false"() {
@@ -136,14 +126,17 @@ class OortHelperSpec extends Specification {
       }]
     }
     '''.stripIndent()
-    Response response = new Response('http://oort', 200, 'OK', [], new TypedString(oortResponse))
     Map deployContext = ["region" : "us-west-2", "account" : "prod", "kato.tasks" : [[resultObjects : [[ancestorServerGroupNameByRegion: ["us-west-2" : "myapp-v000"]],[serverGroupNameByRegion : ["us-west-2" : "myapp-v002"]]]]]]
-    1 * oortService.getCluster("myapp", "prod", "myapp", "aws") >> response
+    1 * cloudDriverService.getCluster("myapp", "prod", "myapp", "aws") >> cluster(oortResponse)
 
     when:
     def result = oortHelper.getInstancesForCluster(deployContext, "myapp-v002", true, false)
 
     then:
     result.size() == 4
+  }
+
+  static Cluster cluster(String json) {
+    OrcaObjectMapper.instance.readValue(json, Cluster)
   }
 }

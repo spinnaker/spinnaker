@@ -16,15 +16,11 @@
 
 package com.netflix.spinnaker.orca.clouddriver.utils
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.clouddriver.OortService
-import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
+import com.netflix.spinnaker.orca.clouddriver.model.Cluster
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import retrofit.RetrofitError
-import retrofit.client.Response
-import retrofit.converter.ConversionException
-import retrofit.converter.JacksonConverter
 
 /**
  * Helper methods for filtering Cluster/ASG/Instance information from Oort
@@ -32,35 +28,22 @@ import retrofit.converter.JacksonConverter
 @Component
 class OortHelper {
 
-  private final OortService oortService
-
-  private final ObjectMapper objectMapper
-
-  private final JacksonConverter converter
+  private final CloudDriverService cloudDriverService
 
   @Autowired
-  OortHelper(OortService oortService, ObjectMapper objectMapper) {
-    this.oortService = oortService
-    this.objectMapper = objectMapper
-    converter = new JacksonConverter(objectMapper)
+  OortHelper(CloudDriverService cloudDriverService) {
+    this.cloudDriverService = cloudDriverService
   }
 
-  private <T> T convert(Response response, Class<T> type) {
-    try {
-      return type.cast(converter.fromBody(response.body, type))
-    } catch (ConversionException ce) {
-      throw RetrofitError.conversionError(response.url, response, converter, type, ce)
-    }
-  }
-
-  Map getInstancesForCluster(Map context, String expectedAsgName = null, boolean expectOneAsg = false, boolean failIfAnyInstancesUnhealthy = false) {
+  // TODO: failIfAnyInstancesUnhealthy seems to only be false in tasks that call this
+  Map<String, Object> getInstancesForCluster(Map<String, Object> context, String expectedAsgName, boolean expectOneAsg, boolean failIfAnyInstancesUnhealthy) {
     // infer the app from the cluster prefix since this is used by quip and we want to be able to quick patch different apps from the same pipeline
-    def app
-    def clusterName
+    String app
+    String clusterName
     if (expectedAsgName) {
       app = expectedAsgName.substring(0, expectedAsgName.indexOf("-"))
       clusterName = expectedAsgName.substring(0, expectedAsgName.lastIndexOf("-"))
-    } else if (context?.clusterName?.indexOf("-") > 0) {
+    } else if (context.clusterName?.indexOf("-") > 0) {
       app = context.clusterName.substring(0, context.clusterName.indexOf("-"))
       clusterName = context.clusterName
     } else {
@@ -68,21 +51,22 @@ class OortHelper {
       clusterName = context.clusterName
     }
 
-    def response = oortService.getCluster(app, context.account, clusterName, context.cloudProvider ?: context.providerType ?: "aws")
-    def oortCluster = convert(response, Map)
-    def instanceMap = [:]
+    String account = context.account
+    String cloudProvider = context.cloudProvider ?: context.providerType ?: "aws"
+
+    Cluster oortCluster = cloudDriverService.getCluster(app, account, clusterName, cloudProvider)
 
     if (!oortCluster || !oortCluster.serverGroups) {
       throw new RuntimeException("unable to find any server groups")
     }
 
-    def region = context.region ?: context.source.region
+    String region = context.region ?: context.source.region
 
     if (!region) {
       throw new RuntimeException("unable to determine region")
     }
 
-    def asgsForCluster = oortCluster.serverGroups.findAll {
+    List<ServerGroup> asgsForCluster = oortCluster.serverGroups.findAll {
       it.region == region
     }
 
@@ -103,31 +87,29 @@ class OortHelper {
       }
     }
 
+    Map<String, Object> instanceMap = [:]
     searchAsg.instances.each { instance ->
       String hostName = instance.publicDnsName
       if (!hostName || hostName.isEmpty()) { // some instances dont have a public address, fall back to the private ip
         hostName = instance.privateIpAddress
       }
 
-      String healthCheckUrl
-      instance.health.eachWithIndex { health, idx ->
+      String healthCheckUrl = null
+      instance.health.each { health ->
         if (health.healthCheckUrl != null && !health.healthCheckUrl.isEmpty()) {
           healthCheckUrl = health.healthCheckUrl
         }
       }
 
-      def status = instance.health.find { healthItem ->
-        healthItem.find {
-          key, value ->
-            key == "status"
-        }
-      }?.status
+      def status = instance.health.findResult { healthItem ->
+        healthItem.status // TODO: should this be state?
+      }
 
       if (failIfAnyInstancesUnhealthy && (!healthCheckUrl || !status || status != "UP")) {
         throw new RuntimeException("at least one instance is DOWN or in the STARTING state, exiting")
       }
 
-      Map instanceInfo = [
+      Map<String, Object> instanceInfo = [
           hostName: hostName,
           healthCheckUrl: healthCheckUrl,
           privateIpAddress: instance.privateIpAddress

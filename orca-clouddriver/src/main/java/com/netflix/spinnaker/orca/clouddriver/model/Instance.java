@@ -14,6 +14,7 @@ public class Instance {
   String zone;
   String cloudProvider;
   String privateIpAddress;
+  String publicDnsName;
 
   /**
    * Method to cut down on the instance data that is serialized to the context

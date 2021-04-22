@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.orca.clouddriver
 
-
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import retrofit.RetrofitError
 import retrofit.client.Response
@@ -12,7 +11,8 @@ import spock.lang.Unroll
 class CloudDriverServiceSpec extends Specification {
 
   OortService oortService = Mock()
-  @Subject CloudDriverService cloudDriverService = new CloudDriverService(oortService, OrcaObjectMapper.instance)
+  @Subject
+  CloudDriverService cloudDriverService = new CloudDriverService(oortService, OrcaObjectMapper.instance)
 
   @Unroll
   def "should support fetching a target server group that does not exist"() {
