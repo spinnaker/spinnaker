@@ -15,11 +15,11 @@ dependencies {
   implementation "com.netflix.spinnaker.front50:front50-core:$front50Version"
   implementation "com.netflix.spinnaker.front50:front50-gcs:$front50Version"
   implementation "com.netflix.spinnaker.front50:front50-s3:$front50Version"
-  implementation 'com.netflix.spinnaker.kork:kork-secrets'
-  implementation 'com.netflix.spinnaker.kork:kork-secrets-aws'
-  implementation 'com.netflix.spinnaker.kork:kork-secrets-gcp'
-  implementation "com.netflix.spinnaker.kork:kork-web"
-  implementation "com.netflix.spinnaker.kork:kork-cloud-config-server"
+  implementation 'io.spinnaker.kork:kork-secrets'
+  implementation 'io.spinnaker.kork:kork-secrets-aws'
+  implementation 'io.spinnaker.kork:kork-secrets-gcp'
+  implementation "io.spinnaker.kork:kork-web"
+  implementation "io.spinnaker.kork:kork-cloud-config-server"
   implementation 'com.amazonaws:aws-java-sdk-core:1.11.534'
   implementation 'com.amazonaws:aws-java-sdk-s3:1.11.534'
   implementation 'com.google.apis:google-api-services-compute'

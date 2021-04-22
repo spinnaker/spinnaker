@@ -4,7 +4,7 @@ dependencies {
 
   implementation 'org.springframework.boot:spring-boot'
   implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
-  implementation 'com.netflix.spinnaker.kork:kork-secrets'
+  implementation 'io.spinnaker.kork:kork-secrets'
   implementation 'org.apache.commons:commons-lang3'
   implementation 'org.apache.commons:commons-text:1.6'
   implementation 'ch.qos.logback:logback-classic'
