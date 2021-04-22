@@ -71,6 +71,7 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
   Boolean hasNewSubnet = false
   Boolean createNewSubnet = false
   AzureExtensionCustomScriptSettings customScriptsSettings
+  AzureExtensionHealthSettings healthSettings
   Boolean enableInboundNAT = false
   List<VirtualMachineScaleSetDataDisk> dataDisks
   Integer terminationNotBeforeTimeoutInMinutes
@@ -99,6 +100,12 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
     int frontEndPortRangeStart
     int frontEndPortRangeEnd
     int backendPort
+  }
+
+  static class AzureExtensionHealthSettings {
+    String protocol
+    String port
+    String requestPath
   }
 
   static class AzureExtensionCustomScriptSettings {

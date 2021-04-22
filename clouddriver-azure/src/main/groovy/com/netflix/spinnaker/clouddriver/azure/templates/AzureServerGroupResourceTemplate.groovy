@@ -412,14 +412,9 @@ class AzureServerGroupResourceTemplate {
       upgradePolicy["mode"] = description.upgradePolicy.toString()
       doNotRunExtensionsOnOverprovisionedVMs = description.doNotRunExtensionsOnOverprovisionedVMs
 
-      if (description.customScriptsSettings?.commandToExecute) {
-        Collection<String> uriTemp = description.customScriptsSettings.fileUris
-        if (!uriTemp || uriTemp.isEmpty() || (uriTemp.size() == 1 && !uriTemp.first()?.trim())) {
-
-          // if there are no custom scripts provided, set the fileUris section as an empty array.
-          description.customScriptsSettings.fileUris = []
-        }
-
+      // protocol is the only required setting in both scenarios
+      // https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-health-extension#settings
+      if (description.customScriptsSettings?.commandToExecute || description.healthSettings?.protocol) {
         virtualMachineProfile = new ScaleSetVMProfilePropertyWithExtension(description)
       }
       else {
@@ -841,31 +836,84 @@ class AzureServerGroupResourceTemplate {
 
   /**** VMSS extensionsProfile ****/
   static class ScaleSetExtensionProfileProperty {
-    Collection<Extensions> extensions = []
+    Collection<IExtensions> extensions = []
 
     ScaleSetExtensionProfileProperty(AzureServerGroupDescription description) {
-      extensions.add(new Extensions(description))
+      if (description.customScriptsSettings?.commandToExecute) {
+        Collection<String> uriTemp = description.customScriptsSettings.fileUris
+        if (!uriTemp || uriTemp.isEmpty() || (uriTemp.size() == 1 && !uriTemp.first()?.trim())) {
+
+          // if there are no custom scripts provided, set the fileUris section as an empty array.
+          description.customScriptsSettings.fileUris = []
+        }
+
+        extensions.add(new CustomScriptExtensions(description))
+      }
+
+      // protocol is the only required setting in both scenarios
+      // https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-health-extension#settings
+      if (description.healthSettings?.protocol) {
+        extensions.add(new HealthExtensions(description))
+      }
     }
   }
 
-  static class Extensions {
+  interface IExtensions {
     String name
-    ExtensionProperty properties
+    IExtensionProperty properties
+  }
 
-    Extensions(AzureServerGroupDescription description) {
-      name = description.application + "_ext"
-      properties = new ExtensionProperty(description)
+  static class HealthExtensions implements IExtensions {
+    String name
+    HealthExtensionProperty properties
+
+    HealthExtensions(AzureServerGroupDescription description) {
+      name = description.application + "_health_ext"
+      properties = new HealthExtensionProperty(description)
     }
   }
 
-  static class ExtensionProperty {
+  static class CustomScriptExtensions implements IExtensions {
+    String name
+    CustomStringExtensionProperty properties
+
+    CustomScriptExtensions(AzureServerGroupDescription description) {
+      name = description.application + "_ext"
+      properties = new CustomStringExtensionProperty(description)
+    }
+  }
+
+  interface IExtensionProperty {
+    String publisher
+    String type
+    String typeHandlerVersion // This will need to be updated every time the custom script extension major version is updated
+    Boolean autoUpgradeMinorVersion = true
+    IExtensionSettings settings
+  }
+
+  static class HealthExtensionProperty implements IExtensionProperty {
+    String publisher
+    String type
+    String typeHandlerVersion // This will need to be updated every time the custom script extension major version is updated
+    Boolean autoUpgradeMinorVersion = true
+    HealthExtensionSettings settings
+
+    HealthExtensionProperty(AzureServerGroupDescription description) {
+      settings = new HealthExtensionSettings(description)
+      publisher = AzureUtilities.AZURE_HEALTH_EXT_PUBLISHER
+      type = AzureUtilities.AZURE_HEALTH_EXT_TYPE
+      typeHandlerVersion = AzureUtilities.AZURE_HEALTH_EXT_VERSION
+    }
+  }
+
+  static class CustomStringExtensionProperty implements IExtensionProperty {
     String publisher
     String type
     String typeHandlerVersion // This will need to be updated every time the custom script extension major version is updated
     Boolean autoUpgradeMinorVersion = true
     CustomScriptExtensionSettings settings
 
-    ExtensionProperty(AzureServerGroupDescription description) {
+    CustomStringExtensionProperty(AzureServerGroupDescription description) {
       settings = new CustomScriptExtensionSettings(description)
       publisher = description.image?.ostype?.toLowerCase() == "linux" ? AzureUtilities.AZURE_CUSTOM_SCRIPT_EXT_PUBLISHER_LINUX : AzureUtilities.AZURE_CUSTOM_SCRIPT_EXT_PUBLISHER_WINDOWS
       type = description.image?.ostype?.toLowerCase() == "linux" ? AzureUtilities.AZURE_CUSTOM_SCRIPT_EXT_TYPE_LINUX: AzureUtilities.AZURE_CUSTOM_SCRIPT_EXT_TYPE_WINDOWS
@@ -873,7 +921,21 @@ class AzureServerGroupResourceTemplate {
     }
   }
 
-  static class CustomScriptExtensionSettings {
+  interface IExtensionSettings {}
+
+  static class HealthExtensionSettings implements IExtensionSettings {
+    String protocol
+    String port
+    String requestPath
+
+    HealthExtensionSettings(AzureServerGroupDescription description) {
+      protocol = description.healthSettings.protocol
+      port = description.healthSettings.port
+      requestPath = description.healthSettings.requestPath
+    }
+  }
+
+  static class CustomScriptExtensionSettings implements IExtensionSettings {
     Collection<String> fileUris
     String commandToExecute
 
