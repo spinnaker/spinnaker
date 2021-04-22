@@ -77,15 +77,15 @@ public class ServerGroup {
 
   @Data
   public static class Asg {
-    Object desiredCapacity;
-    Object minSize;
-    Object maxSize;
-    List<Process> suspendedProcesses;
+    public Object desiredCapacity;
+    public Object minSize;
+    public Object maxSize;
+    public List<Process> suspendedProcesses;
   }
 
   @Data
   public static class Process {
-    String processName;
+    public String processName;
   }
 
   @Data
