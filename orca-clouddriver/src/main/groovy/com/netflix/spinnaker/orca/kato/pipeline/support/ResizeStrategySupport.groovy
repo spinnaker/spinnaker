@@ -18,11 +18,11 @@ package com.netflix.spinnaker.orca.kato.pipeline.support
 
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.RollingRedBlackStageData
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupResolver
-import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy.Capacity
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import groovy.util.logging.Slf4j
@@ -34,7 +34,7 @@ import org.springframework.stereotype.Component
 public class ResizeStrategySupport {
 
   @Autowired
-  OortHelper oortHelper
+  CloudDriverService cloudDriverService
 
   @Autowired
   Registry registry
@@ -76,7 +76,7 @@ public class ResizeStrategySupport {
                                              String serverGroupName,
                                              String cloudProvider,
                                              String location) {
-    TargetServerGroup tsg = oortHelper.getTargetServerGroup(account, serverGroupName, location, cloudProvider)
+    TargetServerGroup tsg = cloudDriverService.getTargetServerGroup(account, serverGroupName, location)
       .orElseThrow({
       new IllegalStateException("no server group found $cloudProvider/$account/$serverGroupName in $location")
     })

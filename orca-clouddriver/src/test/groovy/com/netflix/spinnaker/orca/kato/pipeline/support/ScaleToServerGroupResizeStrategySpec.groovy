@@ -17,8 +17,8 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
-import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
@@ -27,13 +27,13 @@ import spock.lang.Unroll
 
 class ScaleToServerGroupResizeStrategySpec extends Specification {
   StageExecutionImpl stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "Scale", [:])
-  OortHelper oortHelper = Mock(OortHelper)
+  CloudDriverService cloudDriverService = Mock()
 
   def resizeConfig = new ResizeStrategy.OptionalConfiguration()
-  def resizeStrategySupport = new ResizeStrategySupport(oortHelper: oortHelper)
+  def resizeStrategySupport = new ResizeStrategySupport(cloudDriverService: cloudDriverService)
 
   @Subject
-  def strategy = new ScaleToServerGroupResizeStrategy(oortHelper: oortHelper, resizeStrategySupport: resizeStrategySupport)
+  def strategy = new ScaleToServerGroupResizeStrategy(resizeStrategySupport: resizeStrategySupport)
 
   def "should throw exception if no source is available"() {
     when:
@@ -67,7 +67,7 @@ class ScaleToServerGroupResizeStrategySpec extends Specification {
     strategy.capacityForOperation(stage, "test", "s-v001", "aws", null, null)
 
     then:
-    1 * oortHelper.getTargetServerGroup("test", "s-v001", "us-west-1", "aws") >> { return Optional.empty() }
+    1 * cloudDriverService.getTargetServerGroup("test", "s-v001", "us-west-1") >> { return Optional.empty() }
     thrown(IllegalStateException)
   }
 
@@ -91,7 +91,7 @@ class ScaleToServerGroupResizeStrategySpec extends Specification {
     def capacity = strategy.capacityForOperation(stage, "test", "s-v001", "aws", null, resizeConfig)
 
     then:
-    1 * oortHelper.getTargetServerGroup("test", "s-v001", "us-west-1", "aws") >> {
+    1 * cloudDriverService.getTargetServerGroup("test", "s-v001", "us-west-1") >> {
       return Optional.of(new TargetServerGroup(
         capacity: [
           min    : 1,

@@ -18,8 +18,8 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
-import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner
@@ -32,13 +32,13 @@ import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class ApplySourceServerGroupSnapshotTaskSpec extends Specification {
-  def oortHelper = Mock(OortHelper)
-  def executionRepository = Mock(ExecutionRepository)
+  ExecutionRepository executionRepository = Mock()
+  CloudDriverService cloudDriverService = Mock()
 
   @Subject
   def task = new ApplySourceServerGroupCapacityTask(
-    oortHelper: oortHelper,
     executionRepository: executionRepository,
+    cloudDriverService: cloudDriverService,
     objectMapper: new ObjectMapper()
   )
 
@@ -139,7 +139,6 @@ class ApplySourceServerGroupSnapshotTaskSpec extends Specification {
         )
       }
     }
-    task.oortHelper = oortHelper
 
     and:
     def targetServerGroup = new TargetServerGroup(
@@ -150,16 +149,16 @@ class ApplySourceServerGroupSnapshotTaskSpec extends Specification {
         max    : 10
       ]
     )
+    task.cloudDriverService = cloudDriverService
 
     when:
     def result = task.convert(null)
 
     then:
-    1 * oortHelper.getTargetServerGroup(
+    1 * cloudDriverService.getTargetServerGroup(
       "test",
       "application-stack-v001",
-      "us-east-1",
-      cloudProvider
+      "us-east-1"
     ) >> Optional.of(targetServerGroup)
 
     result.cloudProvider == cloudProvider

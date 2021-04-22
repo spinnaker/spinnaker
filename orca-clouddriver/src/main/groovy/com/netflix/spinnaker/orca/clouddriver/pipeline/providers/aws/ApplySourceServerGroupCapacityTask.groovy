@@ -22,10 +22,10 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CreateServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.AbstractServerGroupTask
-import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.util.logging.Slf4j
@@ -40,7 +40,7 @@ class ApplySourceServerGroupCapacityTask extends AbstractServerGroupTask {
   String serverGroupAction = getType(ResizeServerGroupStage)
 
   @Autowired
-  OortHelper oortHelper
+  CloudDriverService cloudDriverService
 
   @Autowired
   ObjectMapper objectMapper
@@ -56,16 +56,15 @@ class ApplySourceServerGroupCapacityTask extends AbstractServerGroupTask {
       def context = operationContext.context
       def sourceServerGroupCapacitySnapshot = operationContext.sourceServerGroupCapacitySnapshot
 
-      def targetServerGroup = oortHelper.getTargetServerGroup(
+      def targetServerGroup = cloudDriverService.getTargetServerGroup(
         context.credentials as String,
         context.serverGroupName as String,
-        context.region as String,
-        context.cloudProvider as String
+        context.region as String
       ).get()
 
       def minCapacity = Math.min(
         sourceServerGroupCapacitySnapshot.min as Long,
-        targetServerGroup.capacity.min as Long
+          (long) targetServerGroup.capacity.min
       )
 
 

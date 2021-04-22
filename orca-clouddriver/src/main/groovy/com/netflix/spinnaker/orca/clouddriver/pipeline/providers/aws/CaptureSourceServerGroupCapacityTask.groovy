@@ -22,7 +22,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
-import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -32,7 +32,7 @@ import javax.annotation.Nonnull
 @Component
 class CaptureSourceServerGroupCapacityTask implements Task {
   @Autowired
-  OortHelper oortHelper
+  CloudDriverService cloudDriverService
 
   @Autowired
   ObjectMapper objectMapper
@@ -49,11 +49,10 @@ class CaptureSourceServerGroupCapacityTask implements Task {
           useSourceCapacity: false
         ]
       } else {
-        def sourceServerGroup = oortHelper.getTargetServerGroup(
+        def sourceServerGroup = cloudDriverService.getTargetServerGroup(
           stageData.source.account,
           stageData.source.asgName,
-          stageData.source.region,
-          stageData.cloudProvider ?: stageData.providerType
+          stageData.source.region
         ).orElse(null)
 
         if (sourceServerGroup) {

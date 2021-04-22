@@ -16,9 +16,10 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support
 
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
+import com.netflix.spinnaker.orca.clouddriver.model.SearchResultSet
 import com.netflix.spinnaker.orca.clouddriver.pipeline.instance.TerminatingInstance
 import com.netflix.spinnaker.orca.clouddriver.pipeline.instance.TerminatingInstanceSupport
-import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
@@ -27,8 +28,8 @@ import spock.lang.Unroll
 
 class TerminatingInstanceSupportSpec extends Specification {
 
-  OortHelper oortHelper = Mock(OortHelper)
-  @Subject support = new TerminatingInstanceSupport(oortHelper: oortHelper)
+  CloudDriverService cloudDriverService = Mock()
+  @Subject support = new TerminatingInstanceSupport(cloudDriverService: cloudDriverService)
 
   @Unroll
   def "should lookup instances by server group name"() {
@@ -43,7 +44,7 @@ class TerminatingInstanceSupportSpec extends Specification {
       def results = support.remainingInstances(stage)
 
     then:
-      getTSGCount * oortHelper.getTargetServerGroup("creds", "santa-claus", "north-pole", "aws") >> [
+      getTSGCount * cloudDriverService.getTargetServerGroup("creds", "santa-claus", "north-pole") >> [
           new TargetServerGroup(instances: returnedInstances)
       ]
       results == expected
@@ -72,7 +73,7 @@ class TerminatingInstanceSupportSpec extends Specification {
       def results = support.remainingInstances(stage)
 
     then:
-      searchCount * oortHelper.getSearchResults("abc123", "instances", "aws") >> [[totalMatches: totalMatches]]
+      searchCount * cloudDriverService.getSearchResults("abc123", "instances", "aws") >> [new SearchResultSet(totalMatches: totalMatches)]
       results == expected
 
     where:

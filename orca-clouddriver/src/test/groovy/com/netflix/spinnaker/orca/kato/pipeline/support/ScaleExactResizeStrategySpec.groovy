@@ -16,10 +16,11 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
+
 import java.util.concurrent.atomic.AtomicInteger
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
-import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy.Capacity
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy.OptionalConfiguration
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
@@ -29,9 +30,9 @@ import spock.lang.Unroll
 
 class ScaleExactResizeStrategySpec extends Specification {
 
-  OortHelper oortHelper = Mock(OortHelper)
-  ResizeStrategySupport resizeStrategySupport = new ResizeStrategySupport(oortHelper: oortHelper)
-  ScaleExactResizeStrategy strategy = new ScaleExactResizeStrategy(oortHelper: oortHelper, resizeStrategySupport: resizeStrategySupport)
+  CloudDriverService cloudDriverService = Mock()
+  ResizeStrategySupport resizeStrategySupport = new ResizeStrategySupport(cloudDriverService: cloudDriverService)
+  ScaleExactResizeStrategy strategy = new ScaleExactResizeStrategy(resizeStrategySupport: resizeStrategySupport)
 
   @Unroll
   def "should derive capacity from ASG (#current) when partial values supplied in context (#specifiedCap)"() {
@@ -48,7 +49,7 @@ class ScaleExactResizeStrategySpec extends Specification {
     then:
     cap.original == new Capacity(current)
     cap.target == expected
-    1 * oortHelper.getTargetServerGroup(account, serverGroupName, region, cloudProvider) >> targetServerGroup
+    1 * cloudDriverService.getTargetServerGroup(account, serverGroupName, region) >> targetServerGroup
     0 * _
 
     where:
@@ -82,7 +83,7 @@ class ScaleExactResizeStrategySpec extends Specification {
     def capacity = strategy.capacityForOperation(stage, account, serverGroupName, cloudProvider, location, resizeConfig)
 
     then:
-    1 * oortHelper.getTargetServerGroup(account, serverGroupName, region, cloudProvider) >> targetServerGroup
+    1 * cloudDriverService.getTargetServerGroup(account, serverGroupName, region) >> targetServerGroup
     capacity.original == originalCapacity
     capacity.target == expectedCapacity
 

@@ -16,19 +16,20 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
+
 import java.util.concurrent.atomic.AtomicInteger
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
-import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.test.model.ExecutionBuilder
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class ScaleRelativeResizeStrategySpec extends Specification {
-  OortHelper oortHelper = Mock(OortHelper)
+  CloudDriverService cloudDriverService = Mock()
   StageExecutionImpl stage = ExecutionBuilder.stage {}
-  ScaleRelativeResizeStrategy strategy = new ScaleRelativeResizeStrategy(oortHelper: oortHelper)
+  ScaleRelativeResizeStrategy strategy = new ScaleRelativeResizeStrategy(cloudDriverService: cloudDriverService)
 
   @Unroll
   def "should scale target capacity up or down by percentage or number"() {
@@ -39,7 +40,7 @@ class ScaleRelativeResizeStrategySpec extends Specification {
     then:
     cap.original == original
     cap.target == expected
-    1 * oortHelper.getTargetServerGroup(account, serverGroupName, region, cloudProvider) >> targetServerGroup
+    1 * cloudDriverService.getTargetServerGroup(account, serverGroupName, region) >> targetServerGroup
     0 * _
 
     where:

@@ -19,8 +19,8 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.gce;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup;
-import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper;
 import java.util.Optional;
 import javax.annotation.Nonnull;
 import lombok.Data;
@@ -29,7 +29,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class WaitForGceAutoscalingPolicyTask implements RetryableTask {
-  @Autowired private OortHelper oortHelper;
+  @Autowired private CloudDriverService cloudDriverService;
 
   @Override
   public long getBackoffPeriod() {
@@ -55,8 +55,8 @@ public class WaitForGceAutoscalingPolicyTask implements RetryableTask {
 
   private TargetServerGroup getTargetGroupForLocation(StageData data, String location) {
     Optional<TargetServerGroup> maybeTargetServerGroup =
-        oortHelper.getTargetServerGroup(
-            data.getAccountName(), data.getServerGroupName(), location, "gce");
+        cloudDriverService.getTargetServerGroup(
+            data.getAccountName(), data.getServerGroupName(), location);
 
     if (!maybeTargetServerGroup.isPresent()) {
       throw new IllegalStateException(

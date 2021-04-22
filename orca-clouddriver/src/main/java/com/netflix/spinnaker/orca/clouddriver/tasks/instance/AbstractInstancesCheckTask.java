@@ -31,7 +31,6 @@ import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper;
-import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper;
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler;
 import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler;
 import java.time.Duration;
@@ -72,8 +71,6 @@ public abstract class AbstractInstancesCheckTask
   @Autowired protected CloudDriverService cloudDriverService;
 
   @Autowired protected ServerGroupCacheForceRefreshTask serverGroupCacheForceRefreshTask;
-
-  @Autowired protected OortHelper oortHelper;
 
   /**
    * Other components (namely: deck) require this map to be region --> serverGroups, rather than
@@ -276,9 +273,7 @@ public abstract class AbstractInstancesCheckTask
         (String region, List<String> serverGroupNames) ->
             serverGroupNames.forEach(
                 it -> {
-                  if (!oortHelper
-                      .getTargetServerGroup(account, it, region, cloudProvider)
-                      .isPresent()) {
+                  if (!cloudDriverService.getTargetServerGroup(account, it, region).isPresent()) {
                     log.error(
                         "Server group '{}:{}' does not exist (forceCacheRefreshResult: {}",
                         region,

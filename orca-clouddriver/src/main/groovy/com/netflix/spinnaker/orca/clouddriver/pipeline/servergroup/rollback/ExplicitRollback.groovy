@@ -20,13 +20,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.ApplySourceServerGroupCapacityStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.CaptureSourceServerGroupCapacityStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.DisableServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.EnableServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
-import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy
 import com.netflix.spinnaker.orca.pipeline.StageExecutionFactory
 import com.netflix.spinnaker.orca.pipeline.WaitStage
@@ -78,7 +78,7 @@ class ExplicitRollback implements Rollback {
 
   @Autowired
   @JsonIgnore
-  OortHelper oortHelper
+  CloudDriverService cloudDriverService
 
   @Autowired
   @JsonIgnore
@@ -155,7 +155,7 @@ class ExplicitRollback implements Rollback {
       // because we are in a StartStage message and need to response quickly
       // this is a bit of a hack, the proper long term fix would be to encapsulate this remote call in a task
       Callable authenticatedRequest = AuthenticatedRequest.propagate({
-        return oortHelper.getTargetServerGroup(
+        return cloudDriverService.getTargetServerGroup(
           fromContext.credentials,
           serverGroupName,
           fromContext.location

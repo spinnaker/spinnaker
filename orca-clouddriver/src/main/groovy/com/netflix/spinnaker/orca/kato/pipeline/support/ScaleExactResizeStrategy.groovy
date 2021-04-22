@@ -18,15 +18,11 @@ package com.netflix.spinnaker.orca.kato.pipeline.support
 
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
-import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
 class ScaleExactResizeStrategy implements ResizeStrategy {
-
-  @Autowired
-  OortHelper oortHelper
 
   @Autowired
   ResizeStrategySupport resizeStrategySupport

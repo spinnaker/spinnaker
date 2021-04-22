@@ -34,7 +34,6 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Locat
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 
-import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
 import com.netflix.spinnaker.orca.kato.pipeline.CopyLastAsgStage
 import groovy.util.logging.Slf4j
@@ -62,7 +61,6 @@ abstract class AbstractClusterWideClouddriverTask implements RetryableTask, Clou
     return getClouddriverOperation().toLowerCase()
   }
 
-  @Autowired OortHelper oortHelper
   @Autowired KatoService katoService
   @Autowired TrafficGuard trafficGuard
   @Autowired CloudDriverService cloudDriverService

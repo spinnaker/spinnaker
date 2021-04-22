@@ -19,7 +19,6 @@ package com.netflix.spinnaker.orca.kato.pipeline.support
 
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
-import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -27,9 +26,6 @@ import org.springframework.stereotype.Component
 @Component
 @Slf4j
 class ScaleToServerGroupResizeStrategy implements ResizeStrategy {
-
-  @Autowired
-  OortHelper oortHelper
 
   @Autowired
   ResizeStrategySupport resizeStrategySupport

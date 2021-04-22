@@ -26,7 +26,6 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.AbstractClusterWi
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 
-import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import groovy.transform.Canonical
 import groovy.transform.ToString
 import org.slf4j.Logger

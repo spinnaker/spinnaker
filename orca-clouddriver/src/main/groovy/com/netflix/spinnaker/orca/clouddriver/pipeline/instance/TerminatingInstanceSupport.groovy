@@ -17,9 +17,10 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.instance
 
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
+import com.netflix.spinnaker.orca.clouddriver.model.SearchResultSet
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
-import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -36,7 +37,7 @@ class TerminatingInstanceSupport implements CloudProviderAware {
   static final String TERMINATE_REMAINING_INSTANCES = "terminate.remaining.instances"
 
   @Autowired
-  OortHelper oortHelper
+  CloudDriverService cloudDriverService
 
   /**
    * Some platforms kill instances within server groups and recreate them with different IDs - for these, we just
@@ -82,7 +83,7 @@ class TerminatingInstanceSupport implements CloudProviderAware {
     String cloudProvider = getCloudProvider(stage)
     String location = stage.context.region
 
-    def tsg = oortHelper.getTargetServerGroup(account, serverGroupName, location, cloudProvider)
+    def tsg = cloudDriverService.getTargetServerGroup(account, serverGroupName, location)
     return tsg.map { TargetServerGroup sg ->
       return terminatingInstances.findResults { TerminatingInstance terminatingInstance ->
         def sgInst = sg.instances.find { it.name == terminatingInstance.id }
@@ -112,9 +113,9 @@ class TerminatingInstanceSupport implements CloudProviderAware {
   List<TerminatingInstance> getRemainingInstancesFromSearch(StageExecution stage, List<TerminatingInstance> terminatingInstances) {
     String cloudProvider = getCloudProvider(stage)
     return terminatingInstances.findAll { TerminatingInstance terminatingInstance ->
-      List<Map> searchResult
+      List<SearchResultSet> searchResult
       try {
-        searchResult = oortHelper.getSearchResults(terminatingInstance.id, "instances", cloudProvider)
+        searchResult = cloudDriverService.getSearchResults(terminatingInstance.id, "instances", cloudProvider)
       } catch (RetrofitError e) {
         log.warn e.message
       }

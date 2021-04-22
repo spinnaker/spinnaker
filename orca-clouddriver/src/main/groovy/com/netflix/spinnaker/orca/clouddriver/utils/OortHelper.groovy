@@ -45,42 +45,12 @@ class OortHelper {
     converter = new JacksonConverter(objectMapper)
   }
 
-  /** @deprecated use {@link com.netflix.spinnaker.orca.clouddriver.CloudDriverService#getSearchResults(String, String, String)} **/
-  @Deprecated
-  List<Map> getSearchResults(String searchTerm, String type, String platform) {
-    convert(oortService.getSearchResults(searchTerm, type, platform), List)
-  }
-
   private <T> T convert(Response response, Class<T> type) {
     try {
       return type.cast(converter.fromBody(response.body, type))
     } catch (ConversionException ce) {
       throw RetrofitError.conversionError(response.url, response, converter, type, ce)
     }
-  }
-
-  /** @deprecated use {@link com.netflix.spinnaker.orca.clouddriver.CloudDriverService#getTargetServerGroup(String, String, String)} **/
-  @Deprecated
-  Optional<TargetServerGroup> getTargetServerGroup(String account,
-                                                   String serverGroupName,
-                                                   String location,
-                                                   String cloudProvider = null) {
-    return convertedResponse(Map) {
-      oortService.getServerGroup(account, location, serverGroupName)
-    }.map({ Map serverGroup -> new TargetServerGroup(serverGroup) })
-  }
-
-  private <T> Optional<T> convertedResponse(Class<T> type, Closure<Response> request) {
-    Response r
-    try {
-      r = request.call()
-    } catch (RetrofitError re) {
-      if (re.kind == RetrofitError.Kind.HTTP && re.response.status == 404) {
-        return Optional.empty()
-      }
-      throw re
-    }
-    return Optional.of(convert(r, type))
   }
 
   Map getInstancesForCluster(Map context, String expectedAsgName = null, boolean expectOneAsg = false, boolean failIfAnyInstancesUnhealthy = false) {

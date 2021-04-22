@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.rollback
 
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.ApplySourceServerGroupCapacityStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.CaptureSourceServerGroupCapacityStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.DisableServerGroupStage
@@ -24,7 +25,6 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.EnableServerG
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
-import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.WaitStage
 import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner
 import spock.lang.Specification
@@ -42,7 +42,7 @@ class ExplicitRollbackSpec extends Specification {
   def captureSourceServerGroupCapacityStage = new CaptureSourceServerGroupCapacityStage()
   def applySourceServerGroupCapacityStage = new ApplySourceServerGroupCapacityStage()
   def waitStage = new WaitStage()
-  def oortHelper = Mock(OortHelper)
+  CloudDriverService cloudDriverService = Mock()
 
   def stage = stage {
     type = "rollbackServerGroup"
@@ -61,7 +61,7 @@ class ExplicitRollbackSpec extends Specification {
     captureSourceServerGroupCapacityStage: captureSourceServerGroupCapacityStage,
     applySourceServerGroupCapacityStage: applySourceServerGroupCapacityStage,
     waitStage: waitStage,
-    oortHelper: oortHelper
+    cloudDriverService: cloudDriverService
   )
 
   def setup() {
@@ -91,8 +91,8 @@ class ExplicitRollbackSpec extends Specification {
     def afterStages = allStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
 
     then:
-    1 * oortHelper.getTargetServerGroup(_, rollbackServerGroupName, _) >> Optional.of(serverGroup(rollbackServerGroupName, 2))
-    1 * oortHelper.getTargetServerGroup(_, restoreServerGroupName, _) >> Optional.of(serverGroup(restoreServerGroupName, restoreServerGroupCapacity))
+    1 * cloudDriverService.getTargetServerGroup(_, rollbackServerGroupName, _) >> Optional.of(serverGroup(rollbackServerGroupName, 2))
+    1 * cloudDriverService.getTargetServerGroup(_, restoreServerGroupName, _) >> Optional.of(serverGroup(restoreServerGroupName, restoreServerGroupCapacity))
 
     afterStages*.type == expectedAfterStageTypes
 
@@ -110,8 +110,8 @@ class ExplicitRollbackSpec extends Specification {
     def afterStages = allStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
 
     then:
-    1 * oortHelper.getTargetServerGroup(_, rollbackServerGroupName, _) >> Optional.of(serverGroup(rollbackServerGroupName, 2, 0, 4))
-    1 * oortHelper.getTargetServerGroup(_, restoreServerGroupName, _) >> Optional.of(serverGroup(restoreServerGroupName, restoreDesired, restoreMin, restoreMax))
+    1 * cloudDriverService.getTargetServerGroup(_, rollbackServerGroupName, _) >> Optional.of(serverGroup(rollbackServerGroupName, 2, 0, 4))
+    1 * cloudDriverService.getTargetServerGroup(_, restoreServerGroupName, _) >> Optional.of(serverGroup(restoreServerGroupName, restoreDesired, restoreMin, restoreMax))
 
     afterStages[2].context.capacity == expectedCapacity
 
@@ -131,8 +131,8 @@ class ExplicitRollbackSpec extends Specification {
     def afterStages = allStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
 
     then:
-    1 * oortHelper.getTargetServerGroup(_, rollbackServerGroupName, _) >> Optional.of(serverGroup(rollbackServerGroupName, 2))
-    1 * oortHelper.getTargetServerGroup(_, restoreServerGroupName, _) >> Optional.of(serverGroup(restoreServerGroupName, 1))
+    1 * cloudDriverService.getTargetServerGroup(_, rollbackServerGroupName, _) >> Optional.of(serverGroup(rollbackServerGroupName, 2))
+    1 * cloudDriverService.getTargetServerGroup(_, restoreServerGroupName, _) >> Optional.of(serverGroup(restoreServerGroupName, 1))
 
     beforeStages.isEmpty()
     afterStages*.type == [
@@ -192,8 +192,8 @@ class ExplicitRollbackSpec extends Specification {
     def afterStages = allStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
 
     then:
-    1 * oortHelper.getTargetServerGroup(_, rollbackServerGroupName, _) >> Optional.of(serverGroup(rollbackServerGroupName, 2))
-    1 * oortHelper.getTargetServerGroup(_, restoreServerGroupName, _) >> Optional.of(serverGroup(restoreServerGroupName, 1))
+    1 * cloudDriverService.getTargetServerGroup(_, rollbackServerGroupName, _) >> Optional.of(serverGroup(rollbackServerGroupName, 2))
+    1 * cloudDriverService.getTargetServerGroup(_, restoreServerGroupName, _) >> Optional.of(serverGroup(restoreServerGroupName, 1))
 
     afterStages*.type.contains("wait") == waitStageExpected
     afterStages*.type.indexOf("wait") < afterStages*.type.indexOf("disableServerGroup")
@@ -210,7 +210,7 @@ class ExplicitRollbackSpec extends Specification {
     rollback.buildStages(stage)
 
     then:
-    1 * oortHelper.getTargetServerGroup(_, rollbackServerGroupName, _) >> { throw new Exception(":(") }
+    1 * cloudDriverService.getTargetServerGroup(_, rollbackServerGroupName, _) >> { throw new Exception(":(") }
     thrown(SpinnakerException)
   }
 }

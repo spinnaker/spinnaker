@@ -18,20 +18,20 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws
 
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
-import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class ModifyAwsScalingProcessStageSpec extends Specification {
-  def oortHelper = Mock(OortHelper)
+  CloudDriverService cloudDriverService = Mock()
 
   @Unroll
   def "should only succeed when suspendedProcesses reflect desired state"() {
     given:
-    def task = new ModifyAwsScalingProcessStage.WaitForScalingProcess(oortHelper: oortHelper)
+    def task = new ModifyAwsScalingProcessStage.WaitForScalingProcess(cloudDriverService: cloudDriverService)
 
     when:
     def taskResult = task.execute(new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", "", [
@@ -45,7 +45,7 @@ class ModifyAwsScalingProcessStageSpec extends Specification {
     then:
     taskResult.status == expectedTaskResultStatus
 
-    1 * oortHelper.getTargetServerGroup("test", "test-asg", "us-east-1", "aws") >> {
+    1 * cloudDriverService.getTargetServerGroup("test", "test-asg", "us-east-1") >> {
       Optional.of(new TargetServerGroup(
         asg: [
           suspendedProcesses: suspendedProcesses?.collect { [processName: it] }

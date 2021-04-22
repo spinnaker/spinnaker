@@ -17,9 +17,9 @@
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
-import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -27,7 +27,7 @@ import org.springframework.stereotype.Component
 class ScaleRelativeResizeStrategy implements ResizeStrategy {
 
   @Autowired
-  OortHelper oortHelper
+  CloudDriverService cloudDriverService
 
   @Override
   boolean handles(ResizeAction resizeAction) {
@@ -41,7 +41,7 @@ class ScaleRelativeResizeStrategy implements ResizeStrategy {
                                    String cloudProvider,
                                    Location location,
                                    OptionalConfiguration resizeConfig) {
-    TargetServerGroup tsg = oortHelper.getTargetServerGroup(account, serverGroupName, location.value, cloudProvider)
+    TargetServerGroup tsg = cloudDriverService.getTargetServerGroup(account, serverGroupName, location.value)
       .orElseThrow({
       new IllegalStateException("no server group found $cloudProvider/$account/$serverGroupName in $location")
     })

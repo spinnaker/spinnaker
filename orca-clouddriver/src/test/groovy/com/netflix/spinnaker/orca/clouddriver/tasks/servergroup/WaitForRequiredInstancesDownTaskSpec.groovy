@@ -22,7 +22,6 @@ import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.ModelUtils
 import com.netflix.spinnaker.orca.clouddriver.model.Instance
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
-import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
@@ -34,13 +33,11 @@ import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 class WaitForRequiredInstancesDownTaskSpec extends Specification {
 
   CloudDriverService cloudDriverService = Mock()
-  OortHelper oortHelper = Mock()
   ServerGroupCacheForceRefreshTask serverGroupCacheForceRefreshTask = Mock()
 
   @Subject
   WaitForRequiredInstancesDownTask task = new WaitForRequiredInstancesDownTask(
       cloudDriverService: cloudDriverService,
-      oortHelper: oortHelper,
       serverGroupCacheForceRefreshTask: serverGroupCacheForceRefreshTask)
 
 
@@ -67,8 +64,8 @@ class WaitForRequiredInstancesDownTaskSpec extends Specification {
     cloudDriverService.getServerGroup(*_) >> response
 
     2 * serverGroupCacheForceRefreshTask.execute(_) >> TaskResult.ofStatus(ExecutionStatus.SUCCEEDED)
-    1 * oortHelper.getTargetServerGroup("test", "front50-v000", "us-east-1", "aws") >> Optional.of(new TargetServerGroup(region: "us-east-1"))
-    1 * oortHelper.getTargetServerGroup("test", "front50-v000", "us-east-1", "aws") >> Optional.empty()
+    1 * cloudDriverService.getTargetServerGroup("test", "front50-v000", "us-east-1") >> Optional.of(new TargetServerGroup(region: "us-east-1"))
+    1 * cloudDriverService.getTargetServerGroup("test", "front50-v000", "us-east-1") >> Optional.empty()
 
     and:
     def stage = new StageExecutionImpl(pipeline, 'asgActionWaitForDownInstances', [
