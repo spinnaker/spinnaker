@@ -1,0 +1,26 @@
+[
+  {
+    "patchManifest": {
+      "enableTraffic": true,
+      "allArtifacts": [],
+      "cloudProvider": "kubernetes",
+      "options": {
+        "mergeStrategy": "strategic",
+        "record": true
+      },
+      "trafficManagement": {
+        "options": {
+          "enableTraffic": false
+        },
+        "enabled": false
+      },
+      "moniker": {},
+      "source": "text",
+      "account": "",
+      "skipExpressionEvaluation": false,
+      "requiredArtifacts": [],
+      "manifests": [],
+      "mode": "static"
+    }
+  }
+]
