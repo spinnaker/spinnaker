@@ -16,20 +16,19 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.quip
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
+import com.netflix.spinnaker.orca.clouddriver.model.Instance.InstanceInfo
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
-import retrofit.client.Client
 
 @Component
-class InstanceHealthCheckTask extends AbstractQuipTask implements RetryableTask  {
-  @Autowired ObjectMapper objectMapper
+@Deprecated
+class InstanceHealthCheckTask extends AbstractQuipTask implements RetryableTask {
 
   long backoffPeriod = 10000
   long timeout = 3600000 // 60min
@@ -37,43 +36,39 @@ class InstanceHealthCheckTask extends AbstractQuipTask implements RetryableTask 
   @Autowired
   OortHelper oortHelper
 
-  @Autowired
-  Client retrofitClient
-
   @Override
   TaskResult execute(StageExecution stage) {
-    Map stageOutputs = [:]
-    def instances = stage.context?.instances
+    Map<String, InstanceInfo> instances = stage.mapTo(Inputs).instances
 
-    ExecutionStatus executionStatus = ExecutionStatus.SUCCEEDED
-    //skipped instances
-    if (!instances) {
-      return TaskResult.ofStatus(ExecutionStatus.SUCCEEDED)
+    if (instances == null || instances.isEmpty()) {
+      return TaskResult.SUCCEEDED
     }
-    // verify instance list, package, and version are in the context
-    if(instances) {
-      // trigger patch on target server
-      for (instanceEntry in instances) {
-        def instance = instanceEntry.value
-        if (!instance.healthCheckUrl || instance.healthCheckUrl.isEmpty()) {
-          // ask kato for a refreshed version of the instance info
-          instances = oortHelper.getInstancesForCluster(stage.context, null, true, false)
-          stageOutputs << [instances: instances]
-          return TaskResult.builder(ExecutionStatus.RUNNING).context(stageOutputs).build()
-        }
 
-        URL healthCheckUrl = new URL(instance.healthCheckUrl)
-        def host = instance.privateIpAddress ?: healthCheckUrl.host
-        def instanceService = createInstanceService("http://${host}:${healthCheckUrl.port}")
-        try { // keep trying until we get a 200 or time out
-          instanceService.healthCheck(healthCheckUrl.path.substring(1))
-        } catch(RetrofitError e) {
-          executionStatus = ExecutionStatus.RUNNING
-        }
+    Map<String, Object> stageOutputs = new HashMap<>()
+    ExecutionStatus executionStatus = ExecutionStatus.SUCCEEDED
+    for (instanceEntry in instances) {
+      // TODO: Run these health checks in parallel?
+      InstanceInfo instance = instanceEntry.value
+      if (!instance.healthCheckUrl || instance.healthCheckUrl.isEmpty()) {
+        // get a refreshed version of the instance info
+        instances = oortHelper.getInstancesForCluster(stage.context, null, true)
+        stageOutputs.put("instances", instances)
+        return TaskResult.builder(ExecutionStatus.RUNNING).context(stageOutputs).build()
       }
-    } else {
-      throw new RuntimeException("one or more required parameters are missing : instances")
+
+      URL healthCheckUrl = new URL(instance.healthCheckUrl)
+      def host = instance.privateIpAddress ?: healthCheckUrl.host
+      def instanceService = createInstanceService("http://${host}:${healthCheckUrl.port}")
+      try { // keep trying until we get a 200 or time out
+        instanceService.healthCheck(healthCheckUrl.path.substring(1))
+      } catch (RetrofitError e) {
+        executionStatus = ExecutionStatus.RUNNING
+      }
     }
     return TaskResult.builder(executionStatus).context(stageOutputs).build()
+  }
+
+  protected static class Inputs {
+    public Map<String, InstanceInfo> instances
   }
 }

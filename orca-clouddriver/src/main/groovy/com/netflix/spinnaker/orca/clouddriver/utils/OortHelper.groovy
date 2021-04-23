@@ -18,9 +18,13 @@ package com.netflix.spinnaker.orca.clouddriver.utils
 
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.model.Cluster
+import com.netflix.spinnaker.orca.clouddriver.model.Instance
+import com.netflix.spinnaker.orca.clouddriver.model.Instance.InstanceInfo
 import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+
+import java.util.stream.Collectors
 
 /**
  * Helper methods for filtering Cluster/ASG/Instance information from Oort
@@ -36,7 +40,12 @@ class OortHelper {
   }
 
   // TODO: failIfAnyInstancesUnhealthy seems to only be false in tasks that call this
-  Map<String, Object> getInstancesForCluster(Map<String, Object> context, String expectedAsgName, boolean expectOneAsg, boolean failIfAnyInstancesUnhealthy) {
+  Map<String, Instance.InstanceInfo> getInstancesForCluster(Map<String, Object> context, String expectedAsgName, boolean expectOneAsg) {
+    String region = context.region ?: context.source.region
+    if (region == null) {
+      throw new RuntimeException("unable to determine region")
+    }
+
     // infer the app from the cluster prefix since this is used by quip and we want to be able to quick patch different apps from the same pipeline
     String app
     String clusterName
@@ -54,23 +63,17 @@ class OortHelper {
     String account = context.account
     String cloudProvider = context.cloudProvider ?: context.providerType ?: "aws"
 
-    Cluster oortCluster = cloudDriverService.getCluster(app, account, clusterName, cloudProvider)
+    Cluster cluster = cloudDriverService.getCluster(app, account, clusterName, cloudProvider)
 
-    if (!oortCluster || !oortCluster.serverGroups) {
+    if (!cluster || !cluster.serverGroups) {
       throw new RuntimeException("unable to find any server groups")
     }
 
-    String region = context.region ?: context.source.region
-
-    if (!region) {
-      throw new RuntimeException("unable to determine region")
-    }
-
-    List<ServerGroup> asgsForCluster = oortCluster.serverGroups.findAll {
+    List<ServerGroup> asgsForCluster = cluster.serverGroups.findAll {
       it.region == region
     }
 
-    def searchAsg
+    ServerGroup searchAsg
     if (expectOneAsg) {
       if (asgsForCluster.size() != 1) {
         throw new RuntimeException("there is more than one server group in the cluster : ${clusterName}:${region}")
@@ -87,35 +90,10 @@ class OortHelper {
       }
     }
 
-    Map<String, Object> instanceMap = [:]
-    searchAsg.instances.each { instance ->
-      String hostName = instance.publicDnsName
-      if (!hostName || hostName.isEmpty()) { // some instances dont have a public address, fall back to the private ip
-        hostName = instance.privateIpAddress
-      }
-
-      String healthCheckUrl = null
-      instance.health.each { health ->
-        if (health.healthCheckUrl != null && !health.healthCheckUrl.isEmpty()) {
-          healthCheckUrl = health.healthCheckUrl
-        }
-      }
-
-      def status = instance.health.findResult { healthItem ->
-        healthItem.status // TODO: should this be state?
-      }
-
-      if (failIfAnyInstancesUnhealthy && (!healthCheckUrl || !status || status != "UP")) {
-        throw new RuntimeException("at least one instance is DOWN or in the STARTING state, exiting")
-      }
-
-      Map<String, Object> instanceInfo = [
-          hostName: hostName,
-          healthCheckUrl: healthCheckUrl,
-          privateIpAddress: instance.privateIpAddress
-      ]
-      instanceMap.put(instance.instanceId, instanceInfo)
-    }
+    Map<String, InstanceInfo> instanceMap = searchAsg.getInstances().stream()
+        .collect(Collectors.toMap(
+            { Instance it -> it.getInstanceId() },
+            { Instance it -> it.instanceInfo() }))
 
     return instanceMap
   }

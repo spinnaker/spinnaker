@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.InstanceService
+import com.netflix.spinnaker.orca.clouddriver.ModelUtils
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.libdiffs.DefaultComparableLooseVersion
 import com.netflix.spinnaker.orca.libdiffs.Library
@@ -174,8 +175,8 @@ class JarDiffsTaskSpec extends Specification {
 
     when:
     task.oortHelper = oortHelper
-    1 * oortHelper.getInstancesForCluster(stage.context, "myapp-v000", false, false) >> sourceExpectedInstances
-    1 * oortHelper.getInstancesForCluster(stage.context, "myapp-v002", false, false) >> targetExpectedInstances
+    1 * oortHelper.getInstancesForCluster(stage.context, "myapp-v000", false) >> sourceExpectedInstances
+    1 * oortHelper.getInstancesForCluster(stage.context, "myapp-v002", false) >> targetExpectedInstances
     1 * instanceService.getJars() >> sourceResponse
     1 * instanceService.getJars() >> targetResponse
 
@@ -185,8 +186,8 @@ class JarDiffsTaskSpec extends Specification {
     result.context.jarDiffs.downgraded.size() == 1
 
     where:
-    sourceExpectedInstances = ["i-1234" : [hostName : "foo.com", healthCheckUrl : "http://foo.com:7001/healthCheck"]]
-    targetExpectedInstances = ["i-2345" : [hostName : "foo.com", healthCheckUrl : "http://foo.com:7001/healthCheck"]]
+    sourceExpectedInstances = ["i-1234" : ModelUtils.instanceInfo([hostName : "foo.com", healthCheckUrl : "http://foo.com:7001/healthCheck"])]
+    targetExpectedInstances = ["i-2345" : ModelUtils.instanceInfo([hostName : "foo.com", healthCheckUrl : "http://foo.com:7001/healthCheck"])]
   }
 
   def "succeeds when there is an exception"() {
@@ -212,8 +213,8 @@ class JarDiffsTaskSpec extends Specification {
 
     when:
     task.oortHelper = oortHelper
-    1 * oortHelper.getInstancesForCluster(stage.context, "myapp-v000", false, false) >> sourceExpectedInstances
-    1 * oortHelper.getInstancesForCluster(stage.context, "myapp-v002", false, false) >> targetExpectedInstances
+    1 * oortHelper.getInstancesForCluster(stage.context, "myapp-v000", false) >> sourceExpectedInstances
+    1 * oortHelper.getInstancesForCluster(stage.context, "myapp-v002", false) >> targetExpectedInstances
     1 * instanceService.getJars() >> {throw new RetrofitError(null, null, null, null, null, null, null)}
     1 * instanceService.getJars() >> targetResponse
 
@@ -230,8 +231,8 @@ class JarDiffsTaskSpec extends Specification {
     }
 
     where:
-    sourceExpectedInstances = ["i-1234" : [hostName : "foo.com", healthCheckUrl : "http://foo.com:7001/healthCheck"]]
-    targetExpectedInstances = ["i-2345" : [hostName : "foo.com", healthCheckUrl : "http://foo.com:7001/healthCheck"]]
+    sourceExpectedInstances = ["i-1234" : ModelUtils.instanceInfo([hostName : "foo.com", healthCheckUrl : "http://foo.com:7001/healthCheck"])]
+    targetExpectedInstances = ["i-2345" : ModelUtils.instanceInfo([hostName : "foo.com", healthCheckUrl : "http://foo.com:7001/healthCheck"])]
   }
 
   def "return success if retries limit hit"() {

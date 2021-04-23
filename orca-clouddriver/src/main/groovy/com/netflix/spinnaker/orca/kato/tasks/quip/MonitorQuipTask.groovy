@@ -26,6 +26,7 @@ import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 import retrofit.client.Client
 
+@Deprecated
 @Component
 class MonitorQuipTask extends AbstractQuipTask implements RetryableTask {
   @Autowired ObjectMapper objectMapper

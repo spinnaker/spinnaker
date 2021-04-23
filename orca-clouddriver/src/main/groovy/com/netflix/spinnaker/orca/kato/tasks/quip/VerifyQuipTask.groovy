@@ -29,6 +29,7 @@ import retrofit.client.Client
 
 import javax.annotation.Nonnull
 
+@Deprecated
 @Component
 class VerifyQuipTask extends AbstractQuipTask implements Task {
 

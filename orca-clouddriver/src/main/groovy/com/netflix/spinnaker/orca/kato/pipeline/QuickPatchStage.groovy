@@ -18,10 +18,10 @@ package com.netflix.spinnaker.orca.kato.pipeline
 
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageGraphBuilder
+import com.netflix.spinnaker.orca.clouddriver.model.Instance.InstanceInfo
 import com.netflix.spinnaker.orca.pipeline.StageExecutionFactory
 
 import javax.annotation.Nonnull
-import java.util.concurrent.ConcurrentHashMap
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.kato.tasks.quip.ResolveQuipVersionTask
@@ -32,13 +32,12 @@ import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import retrofit.client.Client
 
 /**
- * Wrapper stage over BuilkQuickPatchStage.  We do this so we can reuse the same steps whether or not we are doing
+ * Wrapper stage over {@link BulkQuickPatchStage}.  We do this so we can reuse the same steps whether or not we are doing
  * a rolling quick patch.  The difference is that the rolling version will only update one instance at a time while
  * the non-rolling version will act on all instances at once.  This is done by controlling the instances we
- * send to BuilkQuickPatchStage.
+ * send to {@link BulkQuickPatchStage}.
  */
 @Slf4j
 @Component
@@ -50,9 +49,6 @@ class QuickPatchStage implements StageDefinitionBuilder {
 
   @Autowired
   OortHelper oortHelper
-
-  @Autowired
-  Client retrofitClient
 
   public static final String PIPELINE_CONFIG_TYPE = "quickPatch"
 
@@ -69,52 +65,36 @@ class QuickPatchStage implements StageDefinitionBuilder {
 
   @Override
   void afterStages(@Nonnull StageExecution stage, @Nonnull StageGraphBuilder graph) {
-    List<StageExecution> stages = new ArrayList<>()
-    Map<String, Object> nextStageContext = new HashMap<>()
-
-    def instances = getInstancesForCluster(stage)
+    Map<String, InstanceInfo> instances = oortHelper.getInstancesForCluster(stage.context, null, true)
     if (instances.size() == 0) {
       // skip since nothing to do
     } else if (stage.context.rollingPatch) {
       // rolling means instances in the asg will be updated sequentially
       instances.each { key, value ->
-        def instance = [:]
-        instance.put(key, value)
-        nextStageContext.putAll(stage.context)
-        nextStageContext.put("instances", instance)
-        nextStageContext.put("instanceIds", [key]) // for WaitForDown/UpInstancesTask
+        Map<String, InstanceInfo> instance = Map.of(key, value)
+        // TODO: this also seems wrong because there is only one instance of nextStageContext
+        //  and the keys keep being overwritten in this loop
 
-        stages << StageExecutionFactory.newStage(
-          stage.execution,
-          bulkQuickPatchStage.type,
-          "bulkQuickPatchStage",
-          nextStageContext,
-          stage,
-          SyntheticStageOwner.STAGE_AFTER
-        )
+        StageExecution next = makeStage(stage, instance)
+        graph.append(next)
       }
     } else { // quickpatch all instances in the asg at once
-      nextStageContext.putAll(stage.context)
-      nextStageContext.put("instances", instances)
-      nextStageContext.put("instanceIds", instances.collect { key, value -> key })
-      // for WaitForDown/UpInstancesTask
+      StageExecution next = makeStage(stage, instances)
+      graph.append(next)
+    }
+  }
 
-      stages << StageExecutionFactory.newStage(
+  private StageExecution makeStage(StageExecution stage, Map<String, InstanceInfo> instances) {
+    Map<String, Object> nextStageContext = new HashMap<>(stage.context)
+    nextStageContext.put("instances", instances)
+    nextStageContext.put("instanceIds", new ArrayList(instances.keySet()))
+
+    return StageExecutionFactory.newStage(
         stage.execution,
         bulkQuickPatchStage.type,
         "bulkQuickPatchStage",
         nextStageContext,
         stage,
-        SyntheticStageOwner.STAGE_AFTER
-      )
-    }
-
-    stages.forEach({ graph.append(it) })
+        SyntheticStageOwner.STAGE_AFTER)
   }
-
-  Map getInstancesForCluster(StageExecution stage) {
-    ConcurrentHashMap instances = new ConcurrentHashMap(oortHelper.getInstancesForCluster(stage.context, null, true, false))
-    return instances
-  }
-
 }

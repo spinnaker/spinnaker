@@ -16,13 +16,12 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.quip
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.InstanceService
+import com.netflix.spinnaker.orca.clouddriver.ModelUtils
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import retrofit.RetrofitError
-import retrofit.client.Client
 import retrofit.client.Response
 import retrofit.mime.TypedString
 import spock.lang.Specification
@@ -36,10 +35,6 @@ class InstanceHealthCheckTaskSpec extends Specification {
   InstanceService instanceService = Mock(InstanceService)
   def oortHelper = Mock(OortHelper)
 
-  def setup() {
-    task.objectMapper = new ObjectMapper()
-    task.retrofitClient = Stub(Client)
-  }
 
   @Unroll
   def "check different tasks statuses, servers with responseCode #responseCode expect #executionStatus"() {
@@ -96,7 +91,7 @@ class InstanceHealthCheckTaskSpec extends Specification {
 
     when:
     task.oortHelper = oortHelper
-    1 * oortHelper.getInstancesForCluster(_, _, _, _) >> ["i-1234" : ["hostName" : "foo.com", "healthCheckUrl" : "http://foo.com:7001/healthCheck"]]
+    1 * oortHelper.getInstancesForCluster(_, _, _) >> ["i-1234" : ModelUtils.instanceInfo(["hostName" : "foo.com", "healthCheckUrl" : "http://foo.com:7001/healthCheck"])]
 
     def result = task.execute(stage)
 
@@ -120,7 +115,7 @@ class InstanceHealthCheckTaskSpec extends Specification {
     task.oortHelper = oortHelper
 
     when:
-    1 * oortHelper.getInstancesForCluster(_, _, _, _) >> ["i-1234" : ["hostName" : "foo.com", "healthCheckUrl" : "http://foo.com:7001/healthCheck"]]
+    1 * oortHelper.getInstancesForCluster(_, _, _) >> ["i-1234" : ModelUtils.instanceInfo(["hostName" : "foo.com", "healthCheckUrl" : "http://foo.com:7001/healthCheck"])]
     1 * instanceService.healthCheck("healthCheck") >> new Response('http://foo.com', 200, 'OK', [], new TypedString("Good"))
     1 * task.createInstanceService(_) >> instanceService
 

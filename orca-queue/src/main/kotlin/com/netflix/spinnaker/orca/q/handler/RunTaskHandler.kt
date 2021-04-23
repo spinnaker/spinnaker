@@ -60,6 +60,7 @@ import com.netflix.spinnaker.orca.time.toDuration
 import com.netflix.spinnaker.orca.time.toInstant
 import com.netflix.spinnaker.q.Message
 import com.netflix.spinnaker.q.Queue
+import java.lang.Deprecated
 import java.time.Clock
 import java.time.Duration
 import java.time.Duration.ZERO
@@ -103,6 +104,9 @@ class RunTaskHandler(
 
       stage.withAuth {
         stage.withLoggingContext(taskModel) {
+          if (task.javaClass.isAnnotationPresent(Deprecated::class.java)) {
+            log.warn("deprecated-task-run ${task.javaClass.simpleName}")
+          }
           val thisInvocationStartTimeMs = clock.millis()
           val execution = stage.execution
           var taskResult: TaskResult? = null

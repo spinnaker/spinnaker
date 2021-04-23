@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.clouddriver.model.Instance.InstanceInfo
 
 import java.util.concurrent.TimeUnit
 import java.util.regex.Matcher
@@ -81,12 +82,12 @@ class JarDiffsTask implements DiffTask {
       String targetAsg = getTargetAsg(stage.context, region)
       String sourceAsg = getSourceAsg(stage.context, region)
 
-      def targetInstances = [:]
-      def sourceInstances = [:]
+      Map<String, InstanceInfo> targetInstances = [:]
+      Map<String, InstanceInfo> sourceInstances = [:]
       try {
         // get healthy instances from each
-        targetInstances = oortHelper.getInstancesForCluster(stage.context, targetAsg, false, false)
-        sourceInstances = oortHelper.getInstancesForCluster(stage.context, sourceAsg, false, false)
+        targetInstances = oortHelper.getInstancesForCluster(stage.context, targetAsg, false)
+        sourceInstances = oortHelper.getInstancesForCluster(stage.context, sourceAsg, false)
       } catch (Exception e) {
         log.warn("Unable to fetch instances (targetAsg: ${targetAsg}, sourceAsg: ${sourceAsg}), reason: ${e.message}", e)
       }
@@ -97,8 +98,8 @@ class JarDiffsTask implements DiffTask {
       }
 
       // get jar json info
-      List targetJarList = getJarList(targetInstances)
-      List sourceJarList = getJarList(sourceInstances)
+      List<Library> targetJarList = getJarList(targetInstances)
+      List<Library> sourceJarList = getJarList(sourceInstances)
 
       // diff
       LibraryDiffTool libraryDiffTool = new LibraryDiffTool(comparableLooseVersion, false)
@@ -129,18 +130,18 @@ class JarDiffsTask implements DiffTask {
     return restAdapter.create(InstanceService.class)
   }
 
-  List getJarList(Map instances) {
-    List jarList = []
+  List<Library> getJarList(Map<String, InstanceInfo> instances) {
+    List<Library> jarList = []
     Map jarMap = [:]
 
     int numberOfInstancesChecked = 0;
-    instances.find { String key, Map valueMap ->
+    instances.find { key, instanceInfo ->
       if (numberOfInstancesChecked++ >= 5) {
         log.info("Unable to check jar list after 5 attempts, giving up!")
         return true
       }
 
-      String hostName = valueMap.privateIpAddress ?: valueMap.hostName
+      String hostName = instanceInfo.privateIpAddress ?: instanceInfo.hostName
       log.debug("attempting to get a jar list from : ${key} (${hostName}:${platformPort})")
       def instanceService = createInstanceService("http://${hostName}:${platformPort}")
       try {

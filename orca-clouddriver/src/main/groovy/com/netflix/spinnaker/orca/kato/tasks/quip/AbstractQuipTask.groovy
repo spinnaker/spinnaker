@@ -23,6 +23,7 @@ import retrofit.RestAdapter
 import retrofit.client.OkClient
 import static retrofit.RestAdapter.LogLevel.BASIC
 
+@Deprecated
 abstract class AbstractQuipTask implements Task {
   InstanceService createInstanceService(String address) {
     RestAdapter restAdapter = new RestAdapter.Builder()

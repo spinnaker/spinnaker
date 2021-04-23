@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.orca.kato.pipeline
 
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.clouddriver.ModelUtils
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
-import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilderImpl
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
@@ -29,7 +29,6 @@ class QuickPatchStageSpec extends Specification {
 
   def oortHelper = Mock(OortHelper)
   def bulkQuickPatchStage = new BulkQuickPatchStage()
-  def objectMapper = OrcaObjectMapper.newInstance()
 
   @Subject
     quickPatchStage = new QuickPatchStage(oortHelper: oortHelper, bulkQuickPatchStage: bulkQuickPatchStage)
@@ -40,7 +39,7 @@ class QuickPatchStageSpec extends Specification {
     def graphBefore = StageGraphBuilderImpl.beforeStages(stage)
     def graphAfter = StageGraphBuilderImpl.afterStages(stage)
 
-    oortHelper.getInstancesForCluster(_, null, true, false) >> [:]
+    oortHelper.getInstancesForCluster(_, null, true) >> [:]
 
     when:
     quickPatchStage.beforeStages(stage, graphBefore)
@@ -68,7 +67,7 @@ class QuickPatchStageSpec extends Specification {
     def graphBefore = StageGraphBuilderImpl.beforeStages(stage)
     def graphAfter = StageGraphBuilderImpl.afterStages(stage)
 
-    oortHelper.getInstancesForCluster(config, null, true, false) >> {
+    oortHelper.getInstancesForCluster(config, null, true) >> {
       throw new RuntimeException("too many asgs!")
     }
 
@@ -92,7 +91,7 @@ class QuickPatchStageSpec extends Specification {
       region     : "us-east-1",
       baseOs     : "ubuntu"
     ]
-    oortHelper.getInstancesForCluster(config, null, true, false) >> expectedInstances
+    oortHelper.getInstancesForCluster(config, null, true) >> expectedInstances
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "quickPatch", config)
     def graphBefore = StageGraphBuilderImpl.beforeStages(stage)
     def graphAfter = StageGraphBuilderImpl.afterStages(stage)
@@ -119,7 +118,7 @@ class QuickPatchStageSpec extends Specification {
       instances.size() == expectedInstances.size()
       instances.every {
         it.value.hostName == expectedInstances.get(it.key).hostName
-        it.value.healthCheck == expectedInstances.get(it.key).healthCheck
+        it.value.healthCheckUrl == expectedInstances.get(it.key).healthCheckUrl
       }
     }
 
@@ -127,7 +126,8 @@ class QuickPatchStageSpec extends Specification {
     asgNames = ["deck-prestaging-v300"]
     instance1 = [instanceId: "i-1234", publicDnsName: "foo.com", health: [[foo: "bar"], [healthCheckUrl: "http://foo.com:7001/healthCheck"]]]
     instance2 = [instanceId: "i-2345", publicDnsName: "foo2.com", health: [[foo2: "bar"], [healthCheckUrl: "http://foo2.com:7001/healthCheck"]]]
-    expectedInstances = ["i-1234": [hostName: "foo.com", healthCheckUrl: "http://foo.com:7001/healthCheck"], "i-2345": [hostName: "foo2.com", healthCheckUrl: "http://foo.com:7001/healthCheck"]]
+    expectedInstances = ["i-1234": ModelUtils.instanceInfo([hostName: "foo.com", healthCheckUrl: "http://foo.com:7001/healthCheck"]),
+                         "i-2345": ModelUtils.instanceInfo([hostName: "foo2.com", healthCheckUrl: "http://foo.com:7001/healthCheck"])]
   }
 
   def "configures rolling quickpatch"() {
@@ -141,7 +141,7 @@ class QuickPatchStageSpec extends Specification {
     syntheticStages.addAll(graphAfter.build())
 
     then:
-    1 * oortHelper.getInstancesForCluster(config, null, true, false) >> expectedInstances
+    1 * oortHelper.getInstancesForCluster(config, null, true) >> expectedInstances
 
     and:
     syntheticStages.size() == 2
@@ -159,7 +159,7 @@ class QuickPatchStageSpec extends Specification {
       instances.size() == 1
       instances.every {
         it.value.hostName == expectedInstances.get(it.key).hostName
-        it.value.healthCheck == expectedInstances.get(it.key).healthCheck
+        it.value.healthCheckUrl == expectedInstances.get(it.key).healthCheckUrl
       }
     }
 
@@ -173,7 +173,7 @@ class QuickPatchStageSpec extends Specification {
       instances.size() == 1
       instances.every {
         it.value.hostName == expectedInstances.get(it.key).hostName
-        it.value.healthCheck == expectedInstances.get(it.key).healthCheck
+        it.value.healthCheckUrl == expectedInstances.get(it.key).healthCheckUrl
       }
     }
 
@@ -181,7 +181,8 @@ class QuickPatchStageSpec extends Specification {
     asgNames = ["deck-prestaging-v300"]
     instance1 = [instanceId: "i-1234", publicDnsName: "foo.com", health: [[foo: "bar"], [healthCheckUrl: "http://foo.com:7001/healthCheck"]]]
     instance2 = [instanceId: "i-2345", publicDnsName: "foo2.com", health: [[foo2: "bar"], [healthCheckUrl: "http://foo2.com:7001/healthCheck"]]]
-    expectedInstances = ["i-1234": [hostName: "foo.com", healthCheckUrl: "http://foo.com:7001/healthCheck"], "i-2345": [hostName: "foo2.com", healthCheckUrl: "http://foo.com:7001/healthCheck"]]
+    expectedInstances = ["i-1234": ModelUtils.instanceInfo([hostName: "foo.com", healthCheckUrl: "http://foo.com:7001/healthCheck"]),
+                         "i-2345": ModelUtils.instanceInfo([hostName: "foo2.com", healthCheckUrl: "http://foo.com:7001/healthCheck"])]
 
     config | _
     [application: "deck", clusterName: "deck-cluster", account: "account", region: "us-east-1", rollingPatch: true, baseOs: "ubuntu"] | _
