@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.ModelUtils
 import com.netflix.spinnaker.orca.clouddriver.model.Cluster
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractWaitForClusterWideClouddriverTask.DeployServerGroup
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
@@ -39,7 +40,7 @@ class AbstractWaitForClusterWideClouddriverTaskSpec extends Specification {
     @Override
     boolean isServerGroupOperationInProgress(StageExecution stage,
                                              List<Map> interestingHealthProviderNames,
-                                             Optional<TargetServerGroup> serverGroup) {
+                                             Optional<ServerGroup> serverGroup) {
       return serverGroup.isPresent()
     }
   }

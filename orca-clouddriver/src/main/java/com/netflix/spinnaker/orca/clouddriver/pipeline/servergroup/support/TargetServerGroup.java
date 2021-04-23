@@ -87,6 +87,14 @@ public class TargetServerGroup {
         .build();
   }
 
+  public String getNamespace() {
+    return serverGroup.getNamespace();
+  }
+
+  public List<String> getZones() {
+    return serverGroup.getZones();
+  }
+
   public Asg getAsg() {
     return serverGroup.getAsg();
   }

@@ -22,12 +22,11 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.model.Cluster
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.AbstractClusterWideClouddriverOperationStage.ClusterSelection
-import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 
 import groovy.transform.Canonical
-import groovy.transform.ToString
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -62,7 +61,7 @@ abstract class AbstractWaitForClusterWideClouddriverTask implements CloudProvide
   }
 
   boolean isServerGroupOperationInProgress(StageExecution stage,
-                                           List<TargetServerGroup> currentServerGroups,
+                                           List<ServerGroup> currentServerGroups,
                                            List<Map> interestingHealthProviderNames,
                                            DeployServerGroup deployServerGroup) {
     def matchingServerGroups = Optional.ofNullable(currentServerGroups.find {
@@ -79,10 +78,9 @@ abstract class AbstractWaitForClusterWideClouddriverTask implements CloudProvide
 
   abstract boolean isServerGroupOperationInProgress(StageExecution stage,
                                                     List<Map> interestingHealthProviderNames,
-                                                    Optional<TargetServerGroup> serverGroup)
+                                                    Optional<ServerGroup> serverGroup)
 
   @Canonical
-  @ToString(includeNames = true, includePackage = false)
   static class DeployServerGroup {
     String region
     String name
@@ -94,17 +92,17 @@ abstract class AbstractWaitForClusterWideClouddriverTask implements CloudProvide
   }
 
   static class RemainingDeployServerGroups {
-    List<DeployServerGroup> remainingDeployServerGroups = []
+    List<DeployServerGroup> remainingDeployServerGroups = List.of()
   }
 
   @Override
   TaskResult execute(StageExecution stage) {
-    def clusterSelection = stage.mapTo(ClusterSelection)
+    ClusterSelection clusterSelection = stage.mapTo(ClusterSelection)
 
     List<DeployServerGroup> remainingDeployServerGroups = stage.mapTo(RemainingDeployServerGroups).remainingDeployServerGroups
 
-    if (!remainingDeployServerGroups) {
-      Map<String, List<String>> dsg = stage.context.'deploy.server.groups' as Map
+    if (remainingDeployServerGroups == null || remainingDeployServerGroups.isEmpty()) {
+      Map<String, List<String>> dsg = stage.getContext().get('deploy.server.groups') as Map
       remainingDeployServerGroups = dsg?.collect { String region, List<String> groups ->
         groups?.collect { new DeployServerGroup(region, it) } ?: []
       }?.flatten() ?: []
@@ -119,7 +117,7 @@ abstract class AbstractWaitForClusterWideClouddriverTask implements CloudProvide
       return missingClusterResult(stage, clusterSelection)
     }
 
-    def serverGroups = cluster.get().serverGroups.collect { new TargetServerGroup(it) }
+    List<ServerGroup> serverGroups = cluster.get().serverGroups
     log.info "Pipeline ${stage.execution?.id} looking for server groups: $remainingDeployServerGroups found: $serverGroups"
 
     if (!serverGroups) {

@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService;
 import com.netflix.spinnaker.orca.clouddriver.FeaturesService;
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup.BuildInfo;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -133,14 +134,6 @@ public class PreviousImageRollbackSupport {
 
     String getBuildNumber() {
       return (buildInfo == null || buildInfo.jenkins == null) ? null : buildInfo.jenkins.number;
-    }
-
-    static class BuildInfo {
-      public Jenkins jenkins;
-
-      static class Jenkins {
-        public String number;
-      }
     }
   }
 }

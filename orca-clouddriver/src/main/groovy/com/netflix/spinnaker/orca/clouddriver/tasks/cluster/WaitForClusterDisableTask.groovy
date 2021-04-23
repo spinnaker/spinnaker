@@ -72,7 +72,7 @@ class WaitForClusterDisableTask extends AbstractWaitForClusterWideClouddriverTas
   @Override
   boolean isServerGroupOperationInProgress(StageExecution stage,
                                            List<Map> interestingHealthProviderNames,
-                                           Optional<TargetServerGroup> serverGroup) {
+                                           Optional<ServerGroup> serverGroup) {
     // null vs empty interestingHealthProviderNames do mean very different things to Spinnaker
     // a null value will result in Spinnaker waiting for discovery + platform, etc. whereas an empty will not wait for anything.
     if (interestingHealthProviderNames != null && interestingHealthProviderNames.isEmpty()) {
@@ -85,7 +85,7 @@ class WaitForClusterDisableTask extends AbstractWaitForClusterWideClouddriverTas
 
     // make sure that we wait for the disabled flag to be set
     def targetServerGroup = serverGroup.get()
-    if (environment.getProperty(TOGGLE, Boolean, false) && !targetServerGroup.isDisabled()) {
+    if (environment.getProperty(TOGGLE, Boolean, false) && !targetServerGroup.getDisabled()) {
       return RUNNING
     }
 
@@ -93,7 +93,6 @@ class WaitForClusterDisableTask extends AbstractWaitForClusterWideClouddriverTas
     // to prevent downstream stages (e.g. scaleDownCluster) from having to deal with disabled-but-instances-up server groups
     // note that waitForRequiredInstancesDownTask knows how to deal with desiredPercentages, interestingHealthProviderNames, etc.
 
-    ServerGroup sg = targetServerGroup.toServerGroup()
-    return !waitForRequiredInstancesDownTask.hasSucceeded(stage, sg, sg.getInstances(), interestingHealthProviderNames)
+    return !waitForRequiredInstancesDownTask.hasSucceeded(stage, targetServerGroup, targetServerGroup.getInstances(), interestingHealthProviderNames)
   }
 }
