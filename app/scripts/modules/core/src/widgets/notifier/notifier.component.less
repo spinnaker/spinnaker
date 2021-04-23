@@ -1,37 +1,23 @@
 @import (reference) '~core/presentation/less/imports/commonImports.less';
 
-.user-notifications {
-  position: fixed;
-  bottom: 5px;
-  width: 100%;
-  z-index: var(--layer-critical);
-}
-.user-notification {
-  .fade-in(0.1);
-  text-align: center;
-  font-size: 120%;
-  margin: 10px;
-  padding: 10px;
-  background-color: var(--color-accent);
-  box-shadow: 0 2px 5px var(--color-concrete);
-  color: var(--color-white);
-
-  a {
-    color: var(--color-white);
+.Toastify__toast-container {
+  .Toastify__toast {
+    color: var(--color-text-primary);
   }
 
-  & > .message {
-    width: 100%;
-    padding-right: 30px;
-    .action {
-      display: inline-block;
-      padding: 0 10px;
-      font-weight: 600;
+  .Toastify__toast--info {
+    background-color: var(--color-status-info-light);
+
+    .Toastify__close-button {
+      color: var(--color-dovegray);
     }
   }
-  & > button.close-notification {
-    width: 20px;
-    padding: 1px 5px;
-    color: var(--color-white);
+
+  .Toastify__toast--warning {
+    background-color: var(--color-status-warning-light);
+
+    .Toastify__close-button {
+      color: var(--color-dovegray);
+    }
   }
 }

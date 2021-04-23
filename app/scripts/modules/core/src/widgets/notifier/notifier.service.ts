@@ -1,25 +1,23 @@
 import React from 'react';
-import { Subject } from 'rxjs';
-
+import { toast, ToastOptions } from 'react-toastify';
 export interface INotifier {
   key: string;
-  action: 'remove' | 'create';
-  body?: string /* Deprecated in favor of `content` */;
+  action: 'create';
   content?: React.ReactNode;
+  options?: ToastOptions;
 }
 
 export class NotifierService {
-  private static stream = new Subject<INotifier>();
-
-  public static get messageStream(): Subject<INotifier> {
-    return this.stream;
-  }
-
   public static publish(message: INotifier): void {
-    this.stream.next(message);
+    const existing = toast.isActive(message.key);
+    if (existing) {
+      toast.update(message.key, { render: message.content, ...message.options });
+    } else {
+      toast(message.content, { toastId: message.key, ...message.options });
+    }
   }
 
   public static clear(key: string): void {
-    this.stream.next({ action: 'remove', key });
+    toast.dismiss(key);
   }
 }

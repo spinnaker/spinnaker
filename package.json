@@ -89,6 +89,7 @@
     "react-sortable-hoc": "^0.6.8",
     "react-spring": "^8.0.27",
     "react-tether": "^1.0.5",
+    "react-toastify": "^7.0.3",
     "react-tooltip": "^3.10.0",
     "react-transition-group": "4.2.2",
     "react-ultimate-pagination": "^1.2.0",
