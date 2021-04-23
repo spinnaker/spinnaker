@@ -117,7 +117,7 @@ public class SqlTestUtil {
   }
 
   public static TestDatabase initDualTcMysqlDatabases() {
-    return initDualTcDatabases("mysql:5.7.22", SQLDialect.MYSQL);
+    return initDualTcDatabases("mysql:5.7.34", SQLDialect.MYSQL);
   }
 
   public static TestDatabase initDualTcPostgresDatabases() {
