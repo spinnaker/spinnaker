@@ -724,8 +724,7 @@ abstract class PipelineExecutionRepositoryTck<T extends ExecutionRepository> ext
     where:
     pipelineStatus  | firstStageStatus  | secondStageStatus || expectedPipelineStatus
     NOT_STARTED     | NOT_STARTED       | NOT_STARTED       || CANCELED
-    // FIXME: cancelling a pipeline like this should result in a pipeline status of CANCELED
-    RUNNING         | SUCCEEDED         | NOT_STARTED       || RUNNING
+    RUNNING         | SUCCEEDED         | NOT_STARTED       || CANCELED
     SUCCEEDED       | SUCCEEDED         | SUCCEEDED         || SUCCEEDED
     TERMINAL        | SUCCEEDED         | TERMINAL          || TERMINAL
   }
