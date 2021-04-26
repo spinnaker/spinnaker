@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.orca.clouddriver
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
+import com.netflix.spinnaker.orca.clouddriver.model.Ami
 import com.netflix.spinnaker.orca.clouddriver.model.Manifest
 import com.netflix.spinnaker.orca.clouddriver.model.ManifestCoordinates
 import retrofit.client.Response
@@ -125,7 +126,7 @@ interface OortService {
                                    @Path("name") String name)
 
   @GET("/{type}/images/{account}/{region}/{imageId}")
-  List<Map<String, Object>> getByAmiId(@Path("type") String type,
+  List<Ami> getByAmiId(@Path("type") String type,
                        @Path("account") String account,
                        @Path("region") String region,
                        @Path("imageId") imageId)

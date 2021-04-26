@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.igor.tasks
 
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
+import com.netflix.spinnaker.orca.clouddriver.model.Ami
 import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup
 
 import java.util.concurrent.TimeUnit
@@ -153,7 +154,7 @@ class GetCommitsTask implements DiffTask {
   }
 
   Map resolveInfoFromAmi(String ami, String account, String region) {
-    List<Map<String, Object>> amiDetails = cloudDriverService.getByAmiId("aws", account, region, ami)
+    List<Ami> amiDetails = cloudDriverService.getByAmiId("aws", account, region, ami)
     def appVersion = amiDetails[0]?.tags?.appversion
 
     def buildInfo = [:]

@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
+import com.netflix.spinnaker.orca.clouddriver.model.Ami
 import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
@@ -200,8 +201,8 @@ class GetCommitsTaskSpec extends Specification {
     def sg = new ServerGroup(launchConfig: [imageId: sourceImage])
     task.cloudDriverService = cloudDriverService
     serverGroupCalls * cloudDriverService.getServerGroupFromCluster(app, account, cluster, serverGroup, region, "aws") >> sg
-    List<Map> sourceResponse = [["tags": ["appversion": "myapp-1.143-h216.186605b/MYAPP-package-myapp/216"]]]
-    List<Map> targetResponse = [["tags": ["appversion": "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217"]]]
+    List<Ami> sourceResponse = [new Ami("tags": ["appversion": "myapp-1.143-h216.186605b/MYAPP-package-myapp/216"])]
+    List<Ami> targetResponse = [new Ami("tags": ["appversion": "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217"])]
     oortCalls * cloudDriverService.getByAmiId("aws", account, region, sourceImage) >> sourceResponse
     oortCalls * cloudDriverService.getByAmiId("aws", account, region, targetImage) >> targetResponse
     return stage
@@ -242,8 +243,8 @@ class GetCommitsTaskSpec extends Specification {
 
     and:
     def response = new ServerGroup(launchConfig: [imageId: sourceImage])
-    List<Map> sourceResponse = [["tags": ["appversion": "myapp-1.143-h216.186605b/MYAPP-package-myapp/216"]]]
-    List<Map> targetResponse = [["tags": ["appversion": "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217"]]]
+    List<Ami> sourceResponse = [new Ami("tags": ["appversion": "myapp-1.143-h216.186605b/MYAPP-package-myapp/216"])]
+    List<Ami> targetResponse = [new Ami("tags": ["appversion": "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217"])]
 
     task.cloudDriverService = cloudDriverService
     1 * cloudDriverService.getServerGroupFromCluster(app, account, cluster, serverGroup, region, "aws") >> response
@@ -306,7 +307,7 @@ class GetCommitsTaskSpec extends Specification {
   def "return info from ami or empty map if not in the right format"() {
     given:
     task.cloudDriverService = cloudDriverService
-    1 * cloudDriverService.getByAmiId("aws", account, region, image) >> [["tags": ["appversion": appVersion]]]
+    1 * cloudDriverService.getByAmiId("aws", account, region, image) >> [new Ami("tags": ["appversion": appVersion])]
 
     when:
     Map result = task.resolveInfoFromAmi(image, account, region)
@@ -369,8 +370,8 @@ class GetCommitsTaskSpec extends Specification {
     taskStatus = SUCCEEDED
 
     cluster | serverGroup | targetServerGroup | sourceTags | targetTags
-    "myapp" | "myapp-v001" | "myapp-v002" | [["tags": ["appversion": "myapp-1.143-h216.186605b/MYAPP-package-myapp/216"]]] | [["tags": []]]
-    "myapp" | "myapp-v001" | "myapp-v002" | [["tags": []]] | [["tags": ["appversion": "myapp-1.143-h216.186605b/MYAPP-package-myapp/216"]]]
+    "myapp" | "myapp-v001" | "myapp-v002" | [new Ami("tags": ["appversion": "myapp-1.143-h216.186605b/MYAPP-package-myapp/216"])] | [new Ami("tags": [:])]
+    "myapp" | "myapp-v001" | "myapp-v002" | [new Ami("tags": [:])] | [new Ami("tags": ["appversion": "myapp-1.143-h216.186605b/MYAPP-package-myapp/216"])]
   }
 
   @Unroll
@@ -395,8 +396,8 @@ class GetCommitsTaskSpec extends Specification {
 
     and:
     def response = new ServerGroup(launchConfig: [imageId: sourceImage])
-    List<Map> sourceResponse = [["tags": ["appversion": "myapp-1.143-h216.186605b/MYAPP-package-myapp/216"]]]
-    List<Map> targetResponse = [["tags": ["appversion": "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217"]]]
+    List<Ami> sourceResponse = [new Ami("tags": ["appversion": "myapp-1.143-h216.186605b/MYAPP-package-myapp/216"])]
+    List<Ami> targetResponse = [new Ami("tags": ["appversion": "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217"])]
     task.cloudDriverService = cloudDriverService
     1 * cloudDriverService.getServerGroupFromCluster(app, account, cluster, serverGroup, region, "aws") >> response
 
@@ -458,8 +459,8 @@ class GetCommitsTaskSpec extends Specification {
 
     and:
     def response = new ServerGroup(launchConfig: [imageId: sourceImage])
-    List<Map> sourceResponse = [["tags": ["appversion": "myapp-1.143-h216.186605b/MYAPP-package-myapp/216"]]]
-    List<Map> targetResponse = [["tags": ["appversion": "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217"]]]
+    List<Ami> sourceResponse = [new Ami("tags": ["appversion": "myapp-1.143-h216.186605b/MYAPP-package-myapp/216"])]
+    List<Ami> targetResponse = [new Ami("tags": ["appversion": "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217"])]
     task.cloudDriverService = cloudDriverService
     1 * cloudDriverService.getServerGroupFromCluster(app, account, cluster, serverGroup, region, "aws") >> response
     1 * cloudDriverService.getByAmiId("aws", account, region, sourceImage) >> sourceResponse

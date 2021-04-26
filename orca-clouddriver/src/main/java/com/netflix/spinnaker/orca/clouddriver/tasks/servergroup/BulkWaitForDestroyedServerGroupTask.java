@@ -22,6 +22,9 @@ import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
+import com.netflix.spinnaker.orca.clouddriver.model.Cluster;
+import com.netflix.spinnaker.orca.clouddriver.model.Instance;
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper;
 import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler;
@@ -60,23 +63,30 @@ public class BulkWaitForDestroyedServerGroupTask implements CloudProviderAware, 
               monikerHelper.getClusterNameFromStage(stage, serverGroupNames.get(0)),
               getCloudProvider(stage));
 
+      // TODO: get rid of explicit status code handling
       if (response.getStatus() != 200) {
         return TaskResult.RUNNING;
       }
 
-      Map cluster = objectMapper.readValue(response.getBody().in(), Map.class);
+      Cluster cluster = objectMapper.readValue(response.getBody().in(), Cluster.class);
       Map<String, Object> output = new HashMap<>();
       output.put("remainingInstances", Collections.emptyList());
-      if (cluster == null || cluster.get("serverGroups") == null) {
+      if (cluster == null || cluster.getServerGroups() == null) {
         return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(output).build();
       }
 
-      List<Map<String, Object>> serverGroups = getServerGroups(region, cluster, serverGroupNames);
+      List<ServerGroup> serverGroups = getServerGroups(region, cluster, serverGroupNames);
       if (serverGroups.isEmpty()) {
         return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(output).build();
       }
 
-      List<Map<String, Object>> instances = getInstances(serverGroups);
+      List<Instance> instances =
+          serverGroups.stream()
+              .map(ServerGroup::getInstances)
+              .filter(Objects::nonNull)
+              .flatMap(List::stream)
+              .collect(Collectors.toList());
+
       LOGGER.info("{} not destroyed, found instances {}", serverGroupNames, instances);
       output.put("remainingInstances", instances);
       return TaskResult.builder(ExecutionStatus.RUNNING).context(output).build();
@@ -105,25 +115,11 @@ public class BulkWaitForDestroyedServerGroupTask implements CloudProviderAware, 
     }
   }
 
-  private List<Map<String, Object>> getServerGroups(
-      String region, Map cluster, List<String> serverGroupNames) {
-    return ((List<Map<String, Object>>) cluster.get("serverGroups"))
-        .stream()
-            .filter(
-                sg -> serverGroupNames.contains(sg.get("name")) && sg.get("region").equals(region))
-            .collect(Collectors.toList());
-  }
-
-  private List<Map<String, Object>> getInstances(List<Map<String, Object>> serverGroups) {
-    List<Map<String, Object>> instances = new ArrayList<>();
-    serverGroups.forEach(
-        serverGroup -> {
-          if (serverGroup.get("instances") != null) {
-            instances.addAll((List<Map<String, Object>>) serverGroup.get("instances"));
-          }
-        });
-
-    return instances;
+  private List<ServerGroup> getServerGroups(
+      String region, Cluster cluster, List<String> serverGroupNames) {
+    return cluster.getServerGroups().stream()
+        .filter(sg -> serverGroupNames.contains(sg.getName()) && sg.getRegion().equals(region))
+        .collect(Collectors.toList());
   }
 
   @Override

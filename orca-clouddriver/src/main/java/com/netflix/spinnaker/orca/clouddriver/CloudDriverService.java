@@ -91,8 +91,7 @@ public class CloudDriverService {
     return objectMapper.convertValue(response, ENTITY_TAGS);
   }
 
-  public List<Map<String, Object>> getByAmiId(
-      String type, String account, String region, Object imageId) {
+  public List<Ami> getByAmiId(String type, String account, String region, Object imageId) {
     return oortService.getByAmiId(type, account, region, imageId);
   }
 
