@@ -23,6 +23,8 @@ import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService;
 import com.netflix.spinnaker.orca.clouddriver.KatoService;
+import com.netflix.spinnaker.orca.clouddriver.model.EntityTags;
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper;
@@ -58,7 +60,7 @@ public class CleanUpTagsTask implements CloudProviderAware, RetryableTask {
           Optional.ofNullable(source.getServerGroupName()).orElse(source.getAsgName());
       String cloudProvider = getCloudProvider(stage);
 
-      Map<String, Object> serverGroup =
+      ServerGroup serverGroup =
           cloudDriverService.getServerGroupFromCluster(
               monikerHelper.getAppNameFromStage(stage, serverGroupName),
               source.getAccount(),
@@ -67,9 +69,9 @@ public class CleanUpTagsTask implements CloudProviderAware, RetryableTask {
               source.getRegion(),
               cloudProvider);
 
-      String imageId = (String) ((Map) serverGroup.get("launchConfig")).get("imageId");
+      String imageId = (String) serverGroup.getLaunchConfig().get("imageId");
 
-      List<Map<String, Object>> tags =
+      List<EntityTags> tags =
           cloudDriverService.getEntityTags(
               cloudProvider,
               "servergroup",
@@ -79,10 +81,10 @@ public class CleanUpTagsTask implements CloudProviderAware, RetryableTask {
 
       List<String> tagsToDelete =
           tags.stream()
-              .flatMap(entityTag -> ((List<Map>) entityTag.get("tags")).stream())
-              .filter(tag -> "astrid_rules".equals(tag.get("namespace")))
+              .flatMap(entityTag -> entityTag.tags.stream())
+              .filter(tag -> "astrid_rules".equals(tag.namespace))
               .filter(hasNonMatchingImageId(imageId))
-              .map(t -> (String) t.get("name"))
+              .map(t -> t.name)
               .collect(Collectors.toList());
 
       log.info("found tags to delete {}", tagsToDelete);
@@ -91,7 +93,7 @@ public class CleanUpTagsTask implements CloudProviderAware, RetryableTask {
       }
 
       // All IDs should be the same; use the first one
-      String entityId = (String) tags.get(0).get("id");
+      String entityId = tags.get(0).id;
 
       TaskId taskId =
           katoService.requestOperations(cloudProvider, operations(entityId, tagsToDelete));
@@ -116,12 +118,12 @@ public class CleanUpTagsTask implements CloudProviderAware, RetryableTask {
     }
   }
 
-  private Predicate<Map> hasNonMatchingImageId(String imageId) {
+  private Predicate<EntityTags.Tag> hasNonMatchingImageId(String imageId) {
     return tag -> {
-      if (!"object".equals(tag.get("valueType"))) {
+      if (EntityTags.ValueType.object != tag.valueType) {
         return false;
       }
-      Map value = ((Map) tag.getOrDefault("value", Collections.EMPTY_MAP));
+      Map value = tag.value instanceof Map ? (Map) tag.value : Collections.emptyMap();
       return value.containsKey("imageId") && !value.get("imageId").equals(imageId);
     };
   }

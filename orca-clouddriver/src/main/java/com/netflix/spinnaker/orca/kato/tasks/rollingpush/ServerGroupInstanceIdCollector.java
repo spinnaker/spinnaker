@@ -16,8 +16,8 @@
 package com.netflix.spinnaker.orca.kato.tasks.rollingpush;
 
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import com.netflix.spinnaker.orca.clouddriver.model.Instance;
 import java.util.List;
-import java.util.Map;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -26,7 +26,7 @@ public interface ServerGroupInstanceIdCollector {
 
   boolean supports(String cloudProvider);
 
-  List<String> collect(List<Map<String, Object>> serverGroupInstances);
+  List<String> collect(List<Instance> serverGroupInstances);
 
-  String one(Map<String, Object> serverGroupInstance);
+  String one(Instance serverGroupInstance);
 }

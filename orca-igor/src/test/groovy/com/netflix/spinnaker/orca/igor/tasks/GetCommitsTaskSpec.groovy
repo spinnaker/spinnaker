@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
-import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
 import com.netflix.spinnaker.orca.igor.ScmService
@@ -30,8 +30,6 @@ import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.test.model.ExecutionBuilder
 import retrofit.RetrofitError
 import retrofit.client.Response
-import retrofit.mime.TypedString
-import spock.lang.IgnoreRest
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -199,9 +197,9 @@ class GetCommitsTaskSpec extends Specification {
     task.front50Service = front50Service
     1 * front50Service.get(app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash")
 
-    def oortResponse = [launchConfig: [imageId: sourceImage]]
+    def sg = new ServerGroup(launchConfig: [imageId: sourceImage])
     task.cloudDriverService = cloudDriverService
-    serverGroupCalls * cloudDriverService.getServerGroupFromCluster(app, account, cluster, serverGroup, region, "aws") >> oortResponse
+    serverGroupCalls * cloudDriverService.getServerGroupFromCluster(app, account, cluster, serverGroup, region, "aws") >> sg
     List<Map> sourceResponse = [["tags": ["appversion": "myapp-1.143-h216.186605b/MYAPP-package-myapp/216"]]]
     List<Map> targetResponse = [["tags": ["appversion": "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217"]]]
     oortCalls * cloudDriverService.getByAmiId("aws", account, region, sourceImage) >> sourceResponse
@@ -243,7 +241,7 @@ class GetCommitsTaskSpec extends Specification {
     1 * front50Service.get(app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash")
 
     and:
-    def response = [launchConfig: [imageId: sourceImage]]
+    def response = new ServerGroup(launchConfig: [imageId: sourceImage])
     List<Map> sourceResponse = [["tags": ["appversion": "myapp-1.143-h216.186605b/MYAPP-package-myapp/216"]]]
     List<Map> targetResponse = [["tags": ["appversion": "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217"]]]
 
@@ -348,7 +346,7 @@ class GetCommitsTaskSpec extends Specification {
     1 * front50Service.get(app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash")
 
     and:
-    def response = [launchConfig: [imageId: sourceImage]]
+    def response = new ServerGroup(launchConfig: [imageId: sourceImage])
     task.cloudDriverService = cloudDriverService
     1 * cloudDriverService.getServerGroupFromCluster(app, account, cluster, serverGroup, region, "aws") >> response
     cloudDriverService.getByAmiId("aws", account, region, sourceImage) >> sourceTags
@@ -396,7 +394,7 @@ class GetCommitsTaskSpec extends Specification {
     1 * front50Service.get(app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash")
 
     and:
-    def response = [launchConfig: [imageId: sourceImage]]
+    def response = new ServerGroup(launchConfig: [imageId: sourceImage])
     List<Map> sourceResponse = [["tags": ["appversion": "myapp-1.143-h216.186605b/MYAPP-package-myapp/216"]]]
     List<Map> targetResponse = [["tags": ["appversion": "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217"]]]
     task.cloudDriverService = cloudDriverService
@@ -459,7 +457,7 @@ class GetCommitsTaskSpec extends Specification {
     1 * front50Service.get(app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash")
 
     and:
-    def response = [launchConfig: [imageId: sourceImage]]
+    def response = new ServerGroup(launchConfig: [imageId: sourceImage])
     List<Map> sourceResponse = [["tags": ["appversion": "myapp-1.143-h216.186605b/MYAPP-package-myapp/216"]]]
     List<Map> targetResponse = [["tags": ["appversion": "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217"]]]
     task.cloudDriverService = cloudDriverService

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
@@ -52,12 +53,11 @@ class TitusInterestingHealthProviderNamesSupplierSpec extends Specification {
   def "should process interestingHealthNames by inspecting labels on titus serverGroup"() {
     given:
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "createServerGroup", stageContext)
-    def response = [
-      application: "app",
+    def response = new ServerGroup(
       region: "region",
       account: "test",
       labels: labels
-    ]
+    )
 
     and:
     1 * cloudDriverService.getServerGroupFromCluster(*_) >> response

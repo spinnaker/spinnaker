@@ -3,6 +3,8 @@ package com.netflix.spinnaker.orca.kato.tasks.rollingpush
 
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.KatoService
+import com.netflix.spinnaker.orca.clouddriver.ModelUtils
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper
 import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver
@@ -28,7 +30,7 @@ class CleanUpTagsTaskSpec extends Specification {
 
     and:
     def tags = [
-      [
+        ModelUtils.tags([
         tags: [
           [
             namespace: "astrid_rules",
@@ -47,8 +49,8 @@ class CleanUpTagsTaskSpec extends Specification {
             valueType: "object"
           ]
         ]
-      ],
-      [
+      ]),
+        ModelUtils.tags([
         tags: [
           [
             namespace: "astrid_rules",
@@ -63,14 +65,14 @@ class CleanUpTagsTaskSpec extends Specification {
             name     : "tagName3"
           ]
         ]
-      ]
+      ])
     ]
 
-    def serverGroup = [
+    def serverGroup = new ServerGroup(
       launchConfig: [
         imageId: "imageId"
       ]
-    ]
+    )
 
     List<Map> operations = []
     task.monikerHelper = Mock(MonikerHelper) {

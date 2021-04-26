@@ -67,7 +67,7 @@ public class CloudDriverService {
     return readBody(response, ServerGroup.class);
   }
 
-  public Map<String, Object> getServerGroupFromCluster(
+  public ServerGroup getServerGroupFromCluster(
       String app,
       String account,
       String cluster,
@@ -77,15 +77,16 @@ public class CloudDriverService {
     Response response =
         oortService.getServerGroupFromCluster(
             app, account, cluster, serverGroup, region, cloudProvider);
-    return readBody(response, JSON_MAP);
+    return readBody(response, ServerGroup.class);
   }
 
-  public List<Map<String, Object>> getEntityTags(
+  public List<EntityTags> getEntityTags(
       String cloudProvider, String entityType, String entityId, String account, String region) {
-    return oortService.getEntityTags(cloudProvider, entityType, entityId, account, region);
+    var response = oortService.getEntityTags(cloudProvider, entityType, entityId, account, region);
+    return objectMapper.convertValue(response, ENTITY_TAGS);
   }
 
-  public List<EntityTags> getEntityTagsTyped(Map parameters) {
+  public List<EntityTags> getEntityTags(Map parameters) {
     List<Map> response = oortService.getEntityTags(parameters);
     return objectMapper.convertValue(response, ENTITY_TAGS);
   }

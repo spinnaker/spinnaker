@@ -22,6 +22,8 @@ import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
+import com.netflix.spinnaker.orca.clouddriver.model.Instance
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -40,9 +42,9 @@ class DetermineTerminationCandidatesTask implements Task {
   @Override
   TaskResult execute(@Nonnull StageExecution stage) {
     def stageData = stage.mapTo(StageData)
-    def serverGroup = cloudDriverService.getServerGroupFromCluster(stageData.application, stageData.account, stageData.cluster, stage.context.asgName, stage.context.region, stage.context.cloudProvider ?: 'aws')
+    ServerGroup serverGroup = cloudDriverService.getServerGroupFromCluster(stageData.application, stageData.account, stageData.cluster, stage.context.asgName, stage.context.region, stage.context.cloudProvider ?: 'aws')
     boolean ascending = stage.context.termination?.order != 'newest'
-    def serverGroupInstances = serverGroup.instances.sort { ascending ? it.launchTime : -it.launchTime }
+    List<Instance> serverGroupInstances = serverGroup.instances.sort { ascending ? it.launchTime : -it.launchTime }
     // need to use id instead of instanceIds for titus as the titus API doesn't yet support this yet.
     def knownInstanceIds = getServerGroupInstanceIdCollector(stage)
         .flatMap { it.collect(serverGroupInstances) }

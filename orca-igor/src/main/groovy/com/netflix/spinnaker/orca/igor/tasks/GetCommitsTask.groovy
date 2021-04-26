@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.igor.tasks
 
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup
 
 import java.util.concurrent.TimeUnit
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
@@ -204,7 +205,7 @@ class GetCommitsTask implements DiffTask {
         sourceCluster = ancestorAsg
       }
 
-      Map<String, Object> sourceServerGroup = cloudDriverService.getServerGroupFromCluster(context.application,
+      ServerGroup sourceServerGroup = cloudDriverService.getServerGroupFromCluster(context.application,
         account, sourceCluster,
         ancestorAsg, region, "aws")
       return sourceServerGroup.launchConfig.imageId

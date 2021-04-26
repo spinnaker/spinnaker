@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.kato.tasks.rollingpush
 
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
+import com.netflix.spinnaker.orca.clouddriver.ModelUtils
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
@@ -45,15 +46,15 @@ class DetermineTerminationCandidatesTaskSpec extends Specification {
 
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newOrchestration("orca"), 'test', context)
 
-    def oortResponse = [
+    def sg = ModelUtils.serverGroup([
       instances: knownInstanceIds.inject([]) { List l, id -> l << [instanceId: id, launchTime: l.size()] }
-    ]
+    ])
 
     when:
     def response = task.execute(stage)
 
     then:
-    1 * cloudDriverService.getServerGroupFromCluster(application, account, cluster, serverGroup, region, cloudProvider) >> oortResponse
+    1 * cloudDriverService.getServerGroupFromCluster(application, account, cluster, serverGroup, region, cloudProvider) >> sg
     response.context.terminationInstanceIds == expectedTerminations
     response.context.knownInstanceIds.toSet() == knownInstanceIds.toSet()
     expectedTerminations == response.context.terminationInstanceIds

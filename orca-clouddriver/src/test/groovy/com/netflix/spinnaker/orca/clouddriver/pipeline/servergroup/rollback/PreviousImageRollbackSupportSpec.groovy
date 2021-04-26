@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.FeaturesService
+import com.netflix.spinnaker.orca.clouddriver.model.EntityTags
 import spock.lang.Specification
 import spock.lang.Subject;
 
@@ -42,8 +43,8 @@ class PreviousImageRollbackSupportSpec extends Specification {
     1 * featuresService.areEntityTagsAvailable() >> { return true }
     1 * cloudDriverService.getEntityTags(*_) >> {
       return [
-        [id: "1"],
-        [id: "2"]
+        new EntityTags(id: "1"),
+        new EntityTags(id: "2")
       ]
     }
 

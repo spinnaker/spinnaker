@@ -124,7 +124,7 @@ class ApplySourceServerGroupCapacityStage implements StageDefinitionBuilder, For
     }
 
     retrySupport.retry({
-      return oortService.getEntityTagsTyped([
+      return oortService.getEntityTags([
         ("tag:${PINNED_CAPACITY_TAG}".toString()): "*",
         entityId                                 : stage.context.serverGroupName,
         account                                  : stage.context.credentials,

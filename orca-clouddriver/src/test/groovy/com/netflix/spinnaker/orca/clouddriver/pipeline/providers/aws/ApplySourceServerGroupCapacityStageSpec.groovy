@@ -59,7 +59,7 @@ class ApplySourceServerGroupCapacityStageSpec extends Specification {
 
     then:
     1 * featuresService.areEntityTagsAvailable() >> { return false }
-    0 * cloudDriverService.getEntityTagsTyped(_)
+    0 * cloudDriverService.getEntityTags(_)
 
     afterStages.isEmpty()
   }
@@ -72,7 +72,7 @@ class ApplySourceServerGroupCapacityStageSpec extends Specification {
 
     then:
     1 * featuresService.areEntityTagsAvailable() >> { return true }
-    1 * cloudDriverService.getEntityTagsTyped(_) >> { return [] }
+    1 * cloudDriverService.getEntityTags(_) >> { return [] }
 
     afterStages.isEmpty()
   }
@@ -87,7 +87,7 @@ class ApplySourceServerGroupCapacityStageSpec extends Specification {
     notThrown(RuntimeException)
 
     1 * featuresService.areEntityTagsAvailable() >> { throw new RuntimeException("An Exception!") }
-    0 * cloudDriverService.getEntityTagsTyped(_)
+    0 * cloudDriverService.getEntityTags(_)
 
     afterStages.isEmpty()
   }
@@ -107,7 +107,7 @@ class ApplySourceServerGroupCapacityStageSpec extends Specification {
     notThrown(RuntimeException)
 
     1 * featuresService.areEntityTagsAvailable() >> { return true }
-    0 * cloudDriverService.getEntityTagsTyped(_)
+    0 * cloudDriverService.getEntityTags(_)
 
     afterStages.isEmpty()
 
@@ -129,7 +129,7 @@ class ApplySourceServerGroupCapacityStageSpec extends Specification {
 
     then:
     1 * featuresService.areEntityTagsAvailable() >> { return true }
-    1 * cloudDriverService.getEntityTagsTyped([
+    1 * cloudDriverService.getEntityTags([
       "tag:spinnaker:pinned_capacity": "*",
       "entityId"                     : "app-stack-details-v001",
       "account"                      : "test",

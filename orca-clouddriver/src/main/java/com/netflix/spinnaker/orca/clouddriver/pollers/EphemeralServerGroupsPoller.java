@@ -205,7 +205,7 @@ public class EphemeralServerGroupsPoller extends AbstractPollingNotificationAgen
               () ->
                   retrySupport.retry(
                       () ->
-                          cloudDriverService.getEntityTagsTyped(
+                          cloudDriverService.getEntityTags(
                               Map.of("tag:" + TTL_TAG, "*", "entityType", "servergroup")),
                       15,
                       2000,

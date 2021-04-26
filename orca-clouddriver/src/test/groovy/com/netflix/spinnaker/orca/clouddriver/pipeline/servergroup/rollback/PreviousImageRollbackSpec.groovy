@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.FeaturesService
+import com.netflix.spinnaker.orca.clouddriver.ModelUtils
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CloneServerGroupStage
 import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner
 import spock.lang.Specification
@@ -73,7 +74,7 @@ class PreviousImageRollbackSpec extends Specification {
     then:
     (imageName ? 0 : 1) * cloudDriverService.getEntityTags(*_) >> {
       // should only call `getEntityTags()` if an image was not explicitly provided to the rollback
-      return [[
+      return [ModelUtils.tags([
                 tags: [
                   [
                     name : "spinnaker:metadata",
@@ -85,7 +86,7 @@ class PreviousImageRollbackSpec extends Specification {
                     ]
                   ]
                 ]
-              ]]
+              ])]
 
     }
 

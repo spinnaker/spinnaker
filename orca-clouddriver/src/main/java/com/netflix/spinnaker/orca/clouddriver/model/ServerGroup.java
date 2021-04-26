@@ -33,6 +33,8 @@ public class ServerGroup {
 
   public List<Instance> instances;
 
+  public Map<String, String> labels;
+
   /**
    * For some reason TargetServerGroup allows looking at 2 properties: {@link
    * TargetServerGroup#isDisabled()} } *

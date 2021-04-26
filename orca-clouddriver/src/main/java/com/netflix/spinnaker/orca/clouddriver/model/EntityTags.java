@@ -25,8 +25,10 @@ public class EntityTags {
   public EntityRef entityRef;
 
   public static class Tag {
+    public String namespace;
     public String name;
     public Object value;
+    public ValueType valueType;
   }
 
   public static class EntityRef {
@@ -37,5 +39,10 @@ public class EntityTags {
 
     public String entityType;
     public String entityId;
+  }
+
+  public enum ValueType {
+    literal, // number or string
+    object // map
   }
 }

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup;
 
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService;
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver;
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData;
 import java.util.Arrays;
@@ -69,7 +70,7 @@ public class TitusInterestingHealthProviderNamesSupplier
         String serverGroupName =
             source.getServerGroupName() != null ? source.getServerGroupName() : source.getAsgName();
 
-        Map<String, Object> serverGroup =
+        ServerGroup serverGroup =
             cloudDriverService.getServerGroupFromCluster(
                 stageData.getApplication(),
                 source.getAccount(),
@@ -78,12 +79,12 @@ public class TitusInterestingHealthProviderNamesSupplier
                 source.getRegion(),
                 cloudProvider);
 
-        Map titusServerGroupLabels = (Map) serverGroup.get("labels");
+        Map<String, String> titusServerGroupLabels = serverGroup.getLabels();
 
         if (titusServerGroupLabels != null
             && titusServerGroupLabels.containsKey(INTERESTING_HEALTH_PROVIDER_NAMES)) {
           String healthProviderNames =
-              (String) titusServerGroupLabels.get(INTERESTING_HEALTH_PROVIDER_NAMES);
+              titusServerGroupLabels.get(INTERESTING_HEALTH_PROVIDER_NAMES);
           return Arrays.asList(healthProviderNames.split(","));
         }
       }

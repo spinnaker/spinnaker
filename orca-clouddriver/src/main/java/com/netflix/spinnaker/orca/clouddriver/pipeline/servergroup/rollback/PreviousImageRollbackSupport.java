@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService;
 import com.netflix.spinnaker.orca.clouddriver.FeaturesService;
+import com.netflix.spinnaker.orca.clouddriver.model.EntityTags;
 import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup.BuildInfo;
 import java.util.Collections;
 import java.util.List;
@@ -51,7 +52,7 @@ public class PreviousImageRollbackSupport {
 
   public ImageDetails getImageDetailsFromEntityTags(
       String cloudProvider, String credentials, String region, String serverGroupName) {
-    List<Map<String, Object>> entityTags = null;
+    List<EntityTags> entityTags = null;
 
     try {
       entityTags =
@@ -83,11 +84,11 @@ public class PreviousImageRollbackSupport {
       return null;
     }
 
-    List<Map> tags = (List<Map>) entityTags.get(0).get("tags");
+    List<EntityTags.Tag> tags = entityTags.get(0).tags;
     PreviousServerGroup previousServerGroup =
         tags.stream()
-            .filter(t -> "spinnaker:metadata".equalsIgnoreCase((String) t.get("name")))
-            .map(t -> (Map<String, Object>) ((Map) t.get("value")).get("previousServerGroup"))
+            .filter(t -> "spinnaker:metadata".equalsIgnoreCase(t.name))
+            .map(t -> (Map<String, Object>) ((Map) t.value).get("previousServerGroup"))
             .filter(Objects::nonNull)
             .map(m -> objectMapper.convertValue(m, PreviousServerGroup.class))
             .findFirst()

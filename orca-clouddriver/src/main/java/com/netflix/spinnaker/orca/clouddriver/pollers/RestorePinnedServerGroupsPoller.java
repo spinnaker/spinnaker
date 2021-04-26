@@ -203,7 +203,7 @@ public class RestorePinnedServerGroupsPoller extends AbstractPollingNotification
             () ->
                 retrySupport.retry(
                     () ->
-                        cloudDriverService.getEntityTagsTyped(
+                        cloudDriverService.getEntityTags(
                             Map.of("tag:" + PINNED_CAPACITY_TAG, "*", "entityType", "servergroup")),
                     15,
                     2000,

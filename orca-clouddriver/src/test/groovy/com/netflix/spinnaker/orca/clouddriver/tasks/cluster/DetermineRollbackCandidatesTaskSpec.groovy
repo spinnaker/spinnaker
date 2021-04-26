@@ -22,13 +22,14 @@ import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.FeaturesService
 import com.netflix.spinnaker.orca.clouddriver.ModelUtils
+import com.netflix.spinnaker.orca.clouddriver.model.EntityTags
 import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
 import static DetermineRollbackCandidatesTask.determineTargetHealthyRollbackPercentage
-import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage;
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class DetermineRollbackCandidatesTaskSpec extends Specification {
   def objectMapper = new ObjectMapper()
@@ -267,8 +268,8 @@ class DetermineRollbackCandidatesTaskSpec extends Specification {
     ]
   }
 
-  private static Map buildSpinnakerMetadata(String imageName, String imageId, String buildNumber) {
-    return [
+  private static EntityTags buildSpinnakerMetadata(String imageName, String imageId, String buildNumber) {
+    return ModelUtils.tags([
         tags: [
             [
                 name: "spinnaker:metadata",
@@ -285,6 +286,6 @@ class DetermineRollbackCandidatesTaskSpec extends Specification {
                 ]
             ]
         ]
-    ]
+    ])
   }
 }
