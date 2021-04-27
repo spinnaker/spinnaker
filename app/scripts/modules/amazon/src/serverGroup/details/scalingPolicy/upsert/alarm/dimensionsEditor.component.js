@@ -2,7 +2,8 @@
 
 import { module } from 'angular';
 import _ from 'lodash';
-import { Observable, Subject } from 'rxjs';
+import { Subject, from as observableFrom } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
 import { CloudMetricsReader } from '@spinnaker/core';
 
@@ -29,14 +30,14 @@ module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_ALARM_DIMENSIONSEDITOR_CO
       this.fetchDimensionOptions = () => {
         this.viewState.loadingDimensions = true;
         const filters = { namespace: this.alarm.namespace };
-        return Observable.fromPromise(
+        return observableFrom(
           CloudMetricsReader.listMetrics('aws', this.serverGroup.account, this.serverGroup.region, filters),
         );
       };
 
       const dimensionSubject = new Subject();
 
-      dimensionSubject.switchMap(this.fetchDimensionOptions).subscribe((results) => {
+      dimensionSubject.pipe(switchMap(this.fetchDimensionOptions)).subscribe((results) => {
         this.viewState.loadingDimensions = false;
         results = results || [];
         results.forEach((r) => (r.dimensions = r.dimensions || []));

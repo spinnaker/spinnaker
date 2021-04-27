@@ -3,8 +3,8 @@
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import * as angular from 'angular';
 import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
-import { extend } from 'lodash';
-import { Observable, Subject } from 'rxjs';
+import { Subject, from as observableFrom } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
 import {
   ArtifactTypePatterns,
@@ -38,7 +38,7 @@ angular
     '$state',
     function ($scope, $controller, $uibModalStack, $state) {
       function fetchImagesForAccount() {
-        return Observable.fromPromise(
+        return observableFrom(
           GceImageReader.findImages({
             account: $scope.command.credentials,
             provider: $scope.command.selectedProvider,
@@ -48,7 +48,7 @@ angular
       }
 
       const imageSearchResultsStream = new Subject();
-      imageSearchResultsStream.switchMap(fetchImagesForAccount).subscribe((images) => {
+      imageSearchResultsStream.pipe(switchMap(fetchImagesForAccount)).subscribe((images) => {
         $scope.command.backingData.allImages = images;
       });
 

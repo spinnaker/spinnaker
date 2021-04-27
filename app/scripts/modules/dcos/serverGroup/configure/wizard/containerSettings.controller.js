@@ -1,7 +1,8 @@
 'use strict';
 
 import { module } from 'angular';
-import { Observable, Subject } from 'rxjs';
+import { Subject, from as observableFrom } from 'rxjs';
+import { debounceTime, switchMap } from 'rxjs/operators';
 
 export const DCOS_SERVERGROUP_CONFIGURE_WIZARD_CONTAINERSETTINGS_CONTROLLER =
   'spinnaker.dcos.serverGroup.configure.containerSettings';
@@ -25,14 +26,14 @@ module(DCOS_SERVERGROUP_CONFIGURE_WIZARD_CONTAINERSETTINGS_CONTROLLER, []).contr
       };
 
       function searchImages(q) {
-        return Observable.fromPromise(
+        return observableFrom(
           dcosServerGroupConfigurationService.configureCommand($scope.application, $scope.command, q),
         );
       }
 
       const imageSearchResultsStream = new Subject();
 
-      imageSearchResultsStream.debounceTime(250).switchMap(searchImages).subscribe();
+      imageSearchResultsStream.pipe(debounceTime(250), switchMap(searchImages)).subscribe();
 
       this.searchImages = function (q) {
         imageSearchResultsStream.next(q);

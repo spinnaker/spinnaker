@@ -3,6 +3,7 @@
 import { module } from 'angular';
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { take } from 'rxjs/operators';
 
 import { AccountService } from 'core/account/AccountService';
 import { SETTINGS } from 'core/config/settings';
@@ -33,7 +34,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_BASEPROVIDERSTAGE_BASEPROVIDERSTAGE, []).cont
     }
 
     AccountService.listProviders$($scope.application)
-      .take(1)
+      .pipe(take(1))
       .subscribe(function (providers) {
         $scope.viewState.loading = false;
         const availableProviders = [];
