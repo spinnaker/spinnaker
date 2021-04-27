@@ -108,6 +108,8 @@ angular
           delete labels['source'];
           delete labels['spinnakerAccount'];
 
+          delete labels[''];
+
           Object.keys(labels).forEach((key) => {
             if (key.startsWith('titus.')) {
               delete labels[key];
