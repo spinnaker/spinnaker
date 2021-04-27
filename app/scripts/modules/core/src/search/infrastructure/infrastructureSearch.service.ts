@@ -1,5 +1,6 @@
 import { IDeferred, IQService, module } from 'angular';
-import { Observable, Subject } from 'rxjs';
+import { Observable, of as observableOf, Subject } from 'rxjs';
+import { switchMap, toArray } from 'rxjs/operators';
 
 import { PROVIDER_SERVICE_DELEGATE, ProviderServiceDelegate } from 'core/cloudProvider';
 
@@ -26,15 +27,17 @@ export class InfrastructureSearcher {
 
   constructor(private $q: IQService, private providerServiceDelegate: ProviderServiceDelegate) {
     this.querySubject
-      .switchMap((query: string) => {
-        if (!query || query.trim() === '') {
-          const fallbackResults = searchResultTypeRegistry
-            .getAll()
-            .map((type) => ({ type, results: [], status: SearchStatus.INITIAL } as ISearchResultSet));
-          return Observable.of(fallbackResults);
-        }
-        return InfrastructureSearchServiceV2.search({ key: query }).toArray();
-      })
+      .pipe(
+        switchMap((query: string) => {
+          if (!query || query.trim() === '') {
+            const fallbackResults = searchResultTypeRegistry
+              .getAll()
+              .map((type) => ({ type, results: [], status: SearchStatus.INITIAL } as ISearchResultSet));
+            return observableOf(fallbackResults);
+          }
+          return InfrastructureSearchServiceV2.search({ key: query }).pipe(toArray());
+        }),
+      )
       .subscribe((result: ISearchResultSet[]) => {
         this.deferred.resolve(result);
       });

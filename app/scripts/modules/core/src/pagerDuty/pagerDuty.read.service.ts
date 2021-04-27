@@ -1,4 +1,4 @@
-import { Observable } from 'rxjs';
+import { from as observableFrom, Observable } from 'rxjs';
 
 import { REST } from 'core/api/ApiService';
 
@@ -24,10 +24,10 @@ export interface IOnCall {
 
 export class PagerDutyReader {
   public static listServices(): Observable<IPagerDutyService[]> {
-    return Observable.fromPromise(REST('/pagerDuty/services').get());
+    return observableFrom(REST('/pagerDuty/services').get());
   }
 
   public static listOnCalls(): Observable<{ [id: string]: IOnCall[] }> {
-    return Observable.fromPromise(REST('/pagerDuty/oncalls').get());
+    return observableFrom(REST('/pagerDuty/oncalls').get());
   }
 }

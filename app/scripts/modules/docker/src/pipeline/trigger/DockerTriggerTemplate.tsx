@@ -2,7 +2,8 @@ import { get } from 'lodash';
 import { $q } from 'ngimport';
 import React from 'react';
 import { Option } from 'react-select';
-import { Observable, Subject, Subscription } from 'rxjs';
+import { from as observableFrom, Observable, Subject, Subscription } from 'rxjs';
+import { debounceTime, switchMap } from 'rxjs/operators';
 
 import {
   HelpField,
@@ -54,7 +55,7 @@ export class DockerTriggerTemplate extends React.Component<
 
   private handleQuery = () => {
     const trigger = this.props.command.trigger as IDockerTrigger;
-    return Observable.fromPromise(
+    return observableFrom(
       DockerImageReader.findTags({
         provider: 'dockerRegistry',
         account: trigger.account,
@@ -150,8 +151,7 @@ export class DockerTriggerTemplate extends React.Component<
     }
 
     this.subscription = this.queryStream
-      .debounceTime(250)
-      .switchMap(this.handleQuery)
+      .pipe(debounceTime(250), switchMap(this.handleQuery))
       .subscribe(this.tagLoadSuccess, this.tagLoadFailure);
 
     this.searchTags();

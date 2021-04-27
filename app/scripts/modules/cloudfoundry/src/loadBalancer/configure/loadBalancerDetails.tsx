@@ -1,7 +1,8 @@
 import { FormikErrors, FormikProps } from 'formik';
 import React from 'react';
 import Select, { Option } from 'react-select';
-import { Observable, Subject } from 'rxjs';
+import { from as observableFrom, Observable, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 import { AccountService, Application, IAccount, IRegion, IWizardPageComponent } from '@spinnaker/core';
 import { ICloudFoundryAccount, ICloudFoundryDomain, ICloudFoundryLoadBalancerUpsertCommand } from 'cloudfoundry/domain';
@@ -65,8 +66,8 @@ export class LoadBalancerDetails
   }
 
   private loadAccounts(): void {
-    Observable.fromPromise(AccountService.listAccounts('cloudfoundry'))
-      .takeUntil(this.destroy$)
+    observableFrom(AccountService.listAccounts('cloudfoundry'))
+      .pipe(takeUntil(this.destroy$))
       .subscribe((accounts) => {
         this.setState({ accounts });
         this.loadDomainsAndRegions();
@@ -82,11 +83,11 @@ export class LoadBalancerDetails
   private loadDomainsAndRegions(): void {
     const account = this.props.formik.values.credentials;
     if (account) {
-      Observable.fromPromise(AccountService.getAccountDetails(account))
-        .takeUntil(this.destroy$)
+      observableFrom(AccountService.getAccountDetails(account))
+        .pipe(takeUntil(this.destroy$))
         .subscribe((accountDetails: ICloudFoundryAccount) => this.setState({ domains: accountDetails.domains }));
-      Observable.fromPromise(AccountService.getRegionsForAccount(account))
-        .takeUntil(this.destroy$)
+      observableFrom(AccountService.getRegionsForAccount(account))
+        .pipe(takeUntil(this.destroy$))
         .subscribe((regions) => this.setState({ regions }));
     }
   }
@@ -96,8 +97,8 @@ export class LoadBalancerDetails
     this.props.formik.setFieldValue('region', region);
     if (region) {
       const { credentials } = this.props.formik.values;
-      Observable.fromPromise(AccountService.getAccountDetails(credentials))
-        .takeUntil(this.destroy$)
+      observableFrom(AccountService.getAccountDetails(credentials))
+        .pipe(takeUntil(this.destroy$))
         .subscribe((accountDetails: ICloudFoundryAccount) => {
           const { domains } = accountDetails;
           this.setState({

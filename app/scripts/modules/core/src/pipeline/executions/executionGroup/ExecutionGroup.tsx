@@ -2,7 +2,8 @@ import classnames from 'classnames';
 import { flatten, uniq, without } from 'lodash';
 import React from 'react';
 import ReactGA from 'react-ga';
-import { Observable, Subject, Subscription } from 'rxjs';
+import { from as observableFrom, Observable, Subject, Subscription } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 import { AccountTag } from 'core/account';
 import { Application } from 'core/application/application.model';
@@ -144,7 +145,7 @@ export class ExecutionGroup extends React.PureComponent<IExecutionGroupProps, IE
   }
 
   public triggerPipeline(trigger: IExecutionTrigger = null, config = this.state.pipelineConfig): void {
-    Observable.fromPromise(
+    observableFrom(
       new Promise((resolve) => {
         if (PipelineTemplateV2Service.isV2PipelineConfig(config)) {
           PipelineTemplateReader.getPipelinePlan(config as IPipelineTemplateConfigV2)
@@ -155,7 +156,7 @@ export class ExecutionGroup extends React.PureComponent<IExecutionGroupProps, IE
         }
       }),
     )
-      .takeUntil(this.destroy$)
+      .pipe(takeUntil(this.destroy$))
       .subscribe((pipeline) =>
         ManualExecutionModal.show({
           pipeline,

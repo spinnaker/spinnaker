@@ -1,7 +1,8 @@
 import { FormikProps } from 'formik';
 import { get } from 'lodash';
 import React from 'react';
-import { Observable, Subject } from 'rxjs';
+import { from as observableFrom, Observable, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 import {
   Application,
@@ -66,8 +67,8 @@ export class FormikAccountRegionSelector extends React.Component<
     const { application } = this.props;
     const accountFilter: IServerGroupFilter = (serverGroup: IServerGroup) =>
       serverGroup ? serverGroup.account === credentials : true;
-    Observable.fromPromise(application.ready())
-      .takeUntil(this.destroy$)
+    observableFrom(application.ready())
+      .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         const availableRegions = AppListExtractor.getRegions([application], accountFilter);
         availableRegions.sort();

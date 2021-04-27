@@ -1,6 +1,7 @@
 import { isEmpty } from 'lodash';
 import { uniqBy } from 'lodash';
-import { Observable, Subject } from 'rxjs';
+import { from as observableFrom, Observable, of as observableOf, Subject } from 'rxjs';
+import { catchError, finalize, map, mergeMap, tap } from 'rxjs/operators';
 
 import { IQueryParams, UrlBuilder } from 'core/navigation';
 
@@ -17,7 +18,7 @@ export class InfrastructureSearchServiceV2 {
 
   public static search(apiParams: IQueryParams): Observable<ISearchResultSet> {
     if (isEmpty(apiParams)) {
-      return Observable.from(this.EMPTY_RESULTS);
+      return observableFrom(this.EMPTY_RESULTS);
     }
 
     const params = { ...apiParams };
@@ -44,17 +45,18 @@ export class InfrastructureSearchServiceV2 {
     };
 
     const emitErrorResultSet = (error: any, type: SearchResultType): Observable<ISearchResultSet> => {
-      return Observable.of({ error, type, results: [], status: SearchStatus.ERROR });
+      return observableOf({ error, type, results: [], status: SearchStatus.ERROR });
     };
 
-    return Observable.from(types)
-      .mergeMap((type: SearchResultType) => {
-        return type
-          .search(params, otherResults$)
-          .map((searchResults: ISearchResults<any>) => makeResultSet(searchResults, type))
-          .catch((error: any) => emitErrorResultSet(error, type));
-      })
-      .do((result: ISearchResultSet<any>) => otherResults$.next(result))
-      .finally(() => otherResults$.complete());
+    return observableFrom(types).pipe(
+      mergeMap((type: SearchResultType) => {
+        return type.search(params, otherResults$).pipe(
+          map((searchResults: ISearchResults<any>) => makeResultSet(searchResults, type)),
+          catchError((error: any) => emitErrorResultSet(error, type)),
+        );
+      }),
+      tap((result: ISearchResultSet<any>) => otherResults$.next(result)),
+      finalize(() => otherResults$.complete()),
+    );
   }
 }

@@ -1,6 +1,7 @@
 import { isEqual } from 'lodash';
 import React from 'react';
 import { Subject } from 'rxjs';
+import { distinctUntilChanged, map, takeUntil } from 'rxjs/operators';
 
 import { IInstance, IServerGroup } from 'core/domain';
 import { SortToggle } from 'core/presentation/sortToggle/SortToggle';
@@ -49,14 +50,16 @@ export class InstanceList extends React.Component<IInstanceListProps, IInstanceL
   }
 
   public componentDidMount() {
-    ClusterState.multiselectModel.instancesStream.takeUntil(this.destroy$).subscribe(() => {
+    ClusterState.multiselectModel.instancesStream.pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.setState({ allSelected: this.instanceGroup.selectAll });
     });
 
     this.$uiRouter.globals.params$
-      .map((params) => [params.multiselect, params.instanceSort])
-      .distinctUntilChanged(isEqual)
-      .takeUntil(this.destroy$)
+      .pipe(
+        map((params) => [params.multiselect, params.instanceSort]),
+        distinctUntilChanged(isEqual),
+        takeUntil(this.destroy$),
+      )
       .subscribe(() => {
         this.setState({
           multiselect: this.$state.params.multiselect,

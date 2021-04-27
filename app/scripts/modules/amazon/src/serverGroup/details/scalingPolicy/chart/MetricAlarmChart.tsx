@@ -1,7 +1,7 @@
 import { module } from 'angular';
 import * as React from 'react';
 import { react2angular } from 'react2angular';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 
 import {
   CloudMetricsReader,

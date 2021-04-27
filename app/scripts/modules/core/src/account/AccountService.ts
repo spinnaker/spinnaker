@@ -1,7 +1,8 @@
 import { IQResolveReject } from 'angular';
 import { chain, intersection, uniq, zipObject } from 'lodash';
 import { $log, $q } from 'ngimport';
-import { Observable } from 'rxjs';
+import { defer as observableDefer, from as observableFrom, Observable } from 'rxjs';
+import { map, publishReplay, refCount } from 'rxjs/operators';
 
 import { REST } from 'core/api/ApiService';
 import { Application } from 'core/application/application.model';
@@ -66,17 +67,17 @@ export class AccountService {
   public static providers$: Observable<string[]>;
 
   public static initialize(): void {
-    this.accounts$ = Observable.defer(() => {
+    this.accounts$ = observableDefer(() => {
       const promise = REST('/credentials').useCache().query({ expand: true }).get();
-      return Observable.fromPromise<IAccountDetails[]>(promise);
-    })
-      .publishReplay(1)
-      .refCount();
+      return observableFrom<IAccountDetails[]>(promise);
+    }).pipe(publishReplay(1), refCount());
 
-    this.providers$ = AccountService.accounts$.map((accounts: IAccountDetails[]) => {
-      const providersFromAccounts: string[] = uniq(accounts.map((account) => account.type));
-      return intersection(providersFromAccounts, CloudProviderRegistry.listRegisteredProviders());
-    });
+    this.providers$ = AccountService.accounts$.pipe(
+      map((accounts: IAccountDetails[]) => {
+        const providersFromAccounts: string[] = uniq(accounts.map((account) => account.type));
+        return intersection(providersFromAccounts, CloudProviderRegistry.listRegisteredProviders());
+      }),
+    );
   }
 
   public static challengeDestructiveActions(account: string): PromiseLike<boolean> {
@@ -185,8 +186,8 @@ export class AccountService {
   }
 
   public static listProviders$(application: Application = null): Observable<string[]> {
-    return this.providers$
-      .map((available: string[]) => {
+    return this.providers$.pipe(
+      map((available: string[]) => {
         if (!application) {
           return available;
         } else if (application.attributes.cloudProviders.length) {
@@ -196,8 +197,9 @@ export class AccountService {
         } else {
           return available;
         }
-      })
-      .map((results) => results.sort());
+      }),
+      map((results) => results.sort()),
+    );
   }
 
   public static listProviders(application: Application = null): PromiseLike<string[]> {

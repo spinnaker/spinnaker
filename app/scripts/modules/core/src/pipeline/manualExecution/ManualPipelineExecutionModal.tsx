@@ -2,7 +2,8 @@ import { Form, Formik } from 'formik';
 import { assign, clone, compact, extend, get, head, isArray, isEmpty, isEqual, pickBy, uniq } from 'lodash';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
-import { Observable, Subject } from 'rxjs';
+import { from as observableFrom, Observable, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 import { Application } from 'core/application';
 import { AuthenticationService } from 'core/authentication';
@@ -134,8 +135,8 @@ export class ManualExecutionModal extends React.Component<IManualExecutionModalP
 
     this.triggerChanged(trigger);
 
-    Observable.fromPromise(AppNotificationsService.getNotificationsForApplication(application.name))
-      .takeUntil(this.destroy$)
+    observableFrom(AppNotificationsService.getNotificationsForApplication(application.name))
+      .pipe(takeUntil(this.destroy$))
       .subscribe((notifications) => {
         const applicationNotifications: INotification[] = [];
         Object.keys(notifications)
@@ -274,10 +275,8 @@ export class ManualExecutionModal extends React.Component<IManualExecutionModalP
 
   private updateTriggerOptions = (triggers: ITrigger[]) => {
     triggers.map((t, i) => {
-      Observable.fromPromise(
-        (Registry.pipeline.getManualExecutionComponentForTriggerType(t.type) as any).formatLabel(t),
-      )
-        .takeUntil(this.destroy$)
+      observableFrom((Registry.pipeline.getManualExecutionComponentForTriggerType(t.type) as any).formatLabel(t))
+        .pipe(takeUntil(this.destroy$))
         .subscribe(
           (label: string) => {
             const newTriggers = triggers.slice(0);

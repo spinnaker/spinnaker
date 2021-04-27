@@ -1,7 +1,8 @@
 import { FormikErrors, FormikProps } from 'formik';
 import { get } from 'lodash';
 import React from 'react';
-import { Observable, Subject } from 'rxjs';
+import { from as observableFrom, Observable, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 import {
   AccountService,
@@ -39,8 +40,8 @@ export class CloudFoundryServerGroupBasicSettings
   };
 
   public componentDidMount(): void {
-    Observable.fromPromise(AccountService.listAccounts('cloudfoundry'))
-      .takeUntil(this.destroy$)
+    observableFrom(AccountService.listAccounts('cloudfoundry'))
+      .pipe(takeUntil(this.destroy$))
       .subscribe((accounts) => {
         this.setState({ accounts });
         this.updateRegionList();
@@ -59,8 +60,8 @@ export class CloudFoundryServerGroupBasicSettings
   private updateRegionList = (): void => {
     const credentials = get(this.props.formik.values, 'credentials', undefined);
     if (credentials) {
-      Observable.fromPromise(AccountService.getRegionsForAccount(credentials))
-        .takeUntil(this.destroy$)
+      observableFrom(AccountService.getRegionsForAccount(credentials))
+        .pipe(takeUntil(this.destroy$))
         .subscribe((regions) => this.setState({ regions }));
     }
   };

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Observable } from 'rxjs';
+import { from as observableFrom, Observable } from 'rxjs';
 
 import { DefaultSearchResultTab } from './DefaultSearchResultTab';
 import { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
@@ -50,6 +50,6 @@ export abstract class SearchResultType<T extends ISearchResult = ISearchResult> 
       searchParams.allowShortQuery = 'true';
     }
 
-    return Observable.fromPromise(SearchService.search(searchParams));
+    return observableFrom(SearchService.search(searchParams));
   }
 }

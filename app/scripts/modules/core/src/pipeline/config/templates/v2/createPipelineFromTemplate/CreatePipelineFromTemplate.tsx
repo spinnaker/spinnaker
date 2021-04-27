@@ -1,7 +1,8 @@
 import React from 'react';
 import { Button, Modal } from 'react-bootstrap';
 import { Option } from 'react-select';
-import { Observable, Subject } from 'rxjs';
+import { from as observableFrom, Observable, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 import { Application, ApplicationReader, IApplicationSummary } from 'core/application';
 import { IPipelineTemplateV2 } from 'core/domain/IPipelineTemplateV2';
@@ -46,8 +47,8 @@ export class CreatePipelineFromTemplate extends React.Component<
   private destroy$ = new Subject();
 
   public componentDidMount() {
-    Observable.fromPromise(ApplicationReader.listApplications())
-      .takeUntil(this.destroy$)
+    observableFrom(ApplicationReader.listApplications())
+      .pipe(takeUntil(this.destroy$))
       .subscribe(
         (applications) => this.setState({ applications, loading: false }),
         () => {
@@ -82,8 +83,8 @@ export class CreatePipelineFromTemplate extends React.Component<
     } = this.state;
 
     this.setState({ submitting: true });
-    Observable.fromPromise(ApplicationReader.getApplication(name))
-      .takeUntil(this.destroy$)
+    observableFrom(ApplicationReader.getApplication(name))
+      .pipe(takeUntil(this.destroy$))
       .subscribe(
         (loadedApplication) => {
           loadedApplication.getDataSource('pipelineConfigs').activate();

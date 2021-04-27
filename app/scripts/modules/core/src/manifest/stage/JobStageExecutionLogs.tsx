@@ -1,6 +1,7 @@
 import { isEmpty, template } from 'lodash';
 import React from 'react';
-import { Observable, Subject } from 'rxjs';
+import { from as observableFrom, Observable, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 import { Application } from 'core/application';
 import { IManifest } from 'core/domain/IManifest';
@@ -31,8 +32,8 @@ export class JobStageExecutionLogs extends React.Component<IJobStageExecutionLog
 
   public componentDidMount() {
     const { account, location, deployedName } = this.props;
-    Observable.from(ManifestReader.getManifest(account, location, deployedName))
-      .takeUntil(this.destroy$)
+    observableFrom(ManifestReader.getManifest(account, location, deployedName))
+      .pipe(takeUntil(this.destroy$))
       .subscribe(
         (manifest) => this.setState({ manifest }),
         () => {},

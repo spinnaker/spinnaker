@@ -2,7 +2,8 @@ import { FormikProps } from 'formik';
 import { clone, head } from 'lodash';
 import React from 'react';
 import Select, { Option } from 'react-select';
-import { Observable, Subject } from 'rxjs';
+import { from as observableFrom, Observable, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 import { IPipelineCommand, ITrigger } from 'core/domain';
 import { FormField } from 'core/presentation';
@@ -35,10 +36,10 @@ export class Triggers extends React.Component<ITriggersProps> {
 
   private updateTriggerDescription = (trigger: ITrigger) => {
     if (trigger && !trigger.description && Registry.pipeline.hasManualExecutionComponentForTriggerType(trigger.type)) {
-      Observable.fromPromise(
+      observableFrom(
         (Registry.pipeline.getManualExecutionComponentForTriggerType(trigger.type) as any).formatLabel(trigger),
       )
-        .takeUntil(this.destroy$)
+        .pipe(takeUntil(this.destroy$))
         .subscribe((label: string) => {
           const newTrigger = clone(trigger);
           newTrigger.description = label;

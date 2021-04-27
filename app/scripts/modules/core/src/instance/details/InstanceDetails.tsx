@@ -1,5 +1,6 @@
 import React from 'react';
-import { Observable, Subject } from 'rxjs';
+import { forkJoin as observableForkJoin, from as observableFrom, Observable, Subject } from 'rxjs';
+import { mergeMap, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { AccountService } from 'core/account/AccountService';
 import { Application } from 'core/application';
@@ -42,17 +43,19 @@ export class InstanceDetails extends React.Component<IInstanceDetailsProps, IIns
 
   public componentDidMount() {
     this.props$
-      .do(({ $stateParams: { provider, instanceId } }) => {
-        this.setState({ provider, instanceId, loading: true, accountId: null, moniker: null, environment: null });
-      })
-      .switchMap(({ app, $stateParams }) => {
-        const { provider, instanceId } = $stateParams;
-        const accountId = Observable.fromPromise(AccountService.getAccountForInstance(provider, instanceId, app));
-        const moniker = Observable.fromPromise(NameUtils.getMonikerForInstance(provider, instanceId, app));
-        const accountDetails = accountId.mergeMap((id) => AccountService.getAccountDetails(id));
-        return Observable.forkJoin(accountId, moniker, accountDetails);
-      })
-      .takeUntil(this.destroy$)
+      .pipe(
+        tap(({ $stateParams: { provider, instanceId } }) => {
+          this.setState({ provider, instanceId, loading: true, accountId: null, moniker: null, environment: null });
+        }),
+        switchMap(({ app, $stateParams }) => {
+          const { provider, instanceId } = $stateParams;
+          const accountId = observableFrom(AccountService.getAccountForInstance(provider, instanceId, app));
+          const moniker = observableFrom(NameUtils.getMonikerForInstance(provider, instanceId, app));
+          const accountDetails = accountId.pipe(mergeMap((id) => AccountService.getAccountDetails(id)));
+          return observableForkJoin(accountId, moniker, accountDetails);
+        }),
+        takeUntil(this.destroy$),
+      )
       .subscribe(([accountId, moniker, accountDetails]) => {
         const environment = accountDetails && accountDetails.environment;
         this.setState({ accountId, moniker, environment, loading: false });

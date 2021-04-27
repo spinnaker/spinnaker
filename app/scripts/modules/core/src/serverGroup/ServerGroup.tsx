@@ -4,6 +4,7 @@ import { $interpolate } from 'ngimport';
 import React from 'react';
 import ReactGA from 'react-ga';
 import { Subscription } from 'rxjs';
+import { merge } from 'rxjs/operators';
 
 import { Application } from 'core/application';
 import { SETTINGS } from 'core/config';
@@ -144,7 +145,9 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
   public componentDidMount(): void {
     const { serverGroupsStream, instancesStream } = ClusterState.multiselectModel;
 
-    this.serverGroupsSubscription = serverGroupsStream.merge(instancesStream).subscribe(this.onServerGroupsChanged);
+    this.serverGroupsSubscription = serverGroupsStream
+      .pipe(merge(instancesStream))
+      .subscribe(this.onServerGroupsChanged);
     this.stateChangeSubscription = ReactInjector.$uiRouter.globals.success$.subscribe(this.onStateChanged);
     this.onStateChanged();
   }

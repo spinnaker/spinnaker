@@ -1,6 +1,7 @@
 import { isEmpty, pickBy } from 'lodash';
 import React from 'react';
-import { Observable, Subject } from 'rxjs';
+import { empty as observableEmpty, Observable, Subject } from 'rxjs';
+import { distinctUntilChanged, map, scan, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { InsightMenu } from 'core/insight/InsightMenu';
 import { IQueryParams } from 'core/navigation';
@@ -70,32 +71,33 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
     // when searching for an instance ID
     const autoNavigate = window.location.href.endsWith('route=true');
     this.$uiRouter.globals.params$
-      .map((stateParams) => this.getApiFilterParams(stateParams))
-      .do((params: IQueryParams) => this.setState({ params }))
-      .distinctUntilChanged((a, b) => API_PARAMS.every((key) => a[key] === b[key]))
-      .do(() => this.setState({ resultSets: this.INITIAL_RESULTS, isSearching: true }))
-      // Got new params... fire off new queries for each backend
-      // Use switchMap so new queries cancel any pending previous queries
-      .switchMap(
-        (params: IQueryParams): Observable<ISearchResultSet[]> => {
-          if (isEmpty(params)) {
-            return Observable.empty();
-          }
+      .pipe(
+        map((stateParams) => this.getApiFilterParams(stateParams)),
+        tap((params: IQueryParams) => this.setState({ params })),
+        distinctUntilChanged((a, b) => API_PARAMS.every((key) => a[key] === b[key])),
+        tap(() => this.setState({ resultSets: this.INITIAL_RESULTS, isSearching: true })),
+        // Got new params... fire off new queries for each backend
+        // Use switchMap so new queries cancel any pending previous queries
+        switchMap(
+          (params: IQueryParams): Observable<ISearchResultSet[]> => {
+            if (isEmpty(params)) {
+              return observableEmpty();
+            }
 
-          // Start fetching results for each search type from the search service.
-          // Update the overall results with the results for each search type.
-          return InfrastructureSearchServiceV2.search({ ...params }).scan(
-            (acc: ISearchResultSet[], resultSet: ISearchResultSet): ISearchResultSet[] => {
-              const status = resultSet.status === SearchStatus.SEARCHING ? SearchStatus.FINISHED : resultSet.status;
-              resultSet = { ...resultSet, status };
-              // Replace the result set placeholder with the results for this type
-              return acc.filter((set) => set.type !== resultSet.type).concat(resultSet);
-            },
-            this.INITIAL_RESULTS,
-          );
-        },
+            // Start fetching results for each search type from the search service.
+            // Update the overall results with the results for each search type.
+            return InfrastructureSearchServiceV2.search({ ...params }).pipe(
+              scan((acc: ISearchResultSet[], resultSet: ISearchResultSet): ISearchResultSet[] => {
+                const status = resultSet.status === SearchStatus.SEARCHING ? SearchStatus.FINISHED : resultSet.status;
+                resultSet = { ...resultSet, status };
+                // Replace the result set placeholder with the results for this type
+                return acc.filter((set) => set.type !== resultSet.type).concat(resultSet);
+              }, this.INITIAL_RESULTS),
+            );
+          },
+        ),
+        takeUntil(this.destroy$),
       )
-      .takeUntil(this.destroy$)
       .subscribe(
         (resultSets) => {
           const finishedSearching = resultSets.map((r) => r.status).every((s) => s === SearchStatus.FINISHED);
@@ -116,9 +118,11 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
       );
 
     this.$uiRouter.globals.params$
-      .map((params) => params.tab)
-      .distinctUntilChanged()
-      .takeUntil(this.destroy$)
+      .pipe(
+        map((params) => params.tab),
+        distinctUntilChanged(),
+        takeUntil(this.destroy$),
+      )
       .subscribe((selectedTab) => this.setState({ selectedTab }));
   }
 

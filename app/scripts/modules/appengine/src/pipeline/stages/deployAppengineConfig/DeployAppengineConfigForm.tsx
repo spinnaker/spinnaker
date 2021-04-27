@@ -1,5 +1,6 @@
 import React from 'react';
-import { Observable, Subject } from 'rxjs';
+import { from as observableFrom, Observable, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 import {
   AccountService,
@@ -38,8 +39,8 @@ export class DeployAppengineConfigForm extends React.Component<
   };
 
   public componentDidMount() {
-    Observable.fromPromise(AccountService.listAccounts('appengine'))
-      .takeUntil(this.destroy$)
+    observableFrom(AccountService.listAccounts('appengine'))
+      .pipe(takeUntil(this.destroy$))
       .subscribe((accounts) => this.setState({ accounts }));
   }
 

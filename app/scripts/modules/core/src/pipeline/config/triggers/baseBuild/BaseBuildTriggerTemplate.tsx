@@ -2,7 +2,8 @@ import { capitalize, get } from 'lodash';
 import { $q } from 'ngimport';
 import React from 'react';
 import { Option } from 'react-select';
-import { Observable, Subject } from 'rxjs';
+import { from as observableFrom, Observable, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 import { BuildServiceType, IgorService } from 'core/ci';
 import { IBuild, IBuildInfo, IBuildTrigger, IPipelineCommand } from 'core/domain';
@@ -101,8 +102,8 @@ export class BaseBuildTriggerTemplate extends React.Component<
       return;
     }
 
-    Observable.fromPromise(IgorService.listBuildsForJob(trigger.master, trigger.job))
-      .takeUntil(this.destroy$)
+    observableFrom(IgorService.listBuildsForJob(trigger.master, trigger.job))
+      .pipe(takeUntil(this.destroy$))
       .subscribe(this.buildLoadSuccess, this.buildLoadFailure);
   };
 

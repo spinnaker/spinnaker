@@ -2,7 +2,8 @@ import { module } from 'angular';
 import React from 'react';
 import Select from 'react-select';
 import { react2angular } from 'react2angular';
-import { Observable, Subject } from 'rxjs';
+import { from as observableFrom, Observable, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 import { AccountService, IArtifactAccount } from 'core/account';
 import { IArtifact, IExpectedArtifact, IPipeline, IStage } from 'core/domain';
@@ -58,8 +59,8 @@ export class StageArtifactSelector extends React.Component<IStageArtifactSelecto
 
   public componentDidMount(): void {
     const excludedPatterns = this.props.excludedArtifactTypePatterns;
-    Observable.fromPromise(AccountService.getArtifactAccounts())
-      .takeUntil(this.destroy$)
+    observableFrom(AccountService.getArtifactAccounts())
+      .pipe(takeUntil(this.destroy$))
       .subscribe((artifactAccounts) => {
         this.setState({
           artifactAccounts: excludedPatterns

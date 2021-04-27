@@ -2,7 +2,8 @@ import classNames from 'classnames';
 import { Field, FieldProps, FormikErrors, FormikProps } from 'formik';
 import { chain, groupBy, isNil, uniq } from 'lodash';
 import React from 'react';
-import { Observable, Subject } from 'rxjs';
+import { combineLatest as observableCombineLatest, from as observableFrom, Observable, Subject } from 'rxjs';
+import { distinctUntilChanged, map, shareReplay, switchMap, takeUntil, withLatestFrom } from 'rxjs/operators';
 
 import {
   AccountSelectInput,
@@ -119,58 +120,81 @@ export class LoadBalancerLocation
       this.buildName();
     }
 
-    const formValues$ = this.props$.map((props) => props.formik.values);
-    const appName$ = this.props$.map((props) => props.app.name).distinctUntilChanged();
+    const formValues$ = this.props$.pipe(map((props) => props.formik.values));
+    const appName$ = this.props$.pipe(
+      map((props) => props.app.name),
+      distinctUntilChanged(),
+    );
 
     const form = {
-      account$: formValues$.map((x) => x.credentials).distinctUntilChanged(),
-      region$: formValues$.map((x) => x.region).distinctUntilChanged(),
-      subnetPurpose$: formValues$.map((x) => x.subnetType).distinctUntilChanged(),
-      stack$: formValues$.map((x) => x.stack).distinctUntilChanged(),
-      detail$: formValues$.map((x) => x.detail).distinctUntilChanged(),
+      account$: formValues$.pipe(
+        map((x) => x.credentials),
+        distinctUntilChanged(),
+      ),
+      region$: formValues$.pipe(
+        map((x) => x.region),
+        distinctUntilChanged(),
+      ),
+      subnetPurpose$: formValues$.pipe(
+        map((x) => x.subnetType),
+        distinctUntilChanged(),
+      ),
+      stack$: formValues$.pipe(
+        map((x) => x.stack),
+        distinctUntilChanged(),
+      ),
+      detail$: formValues$.pipe(
+        map((x) => x.detail),
+        distinctUntilChanged(),
+      ),
     };
 
-    const allAccounts$ = Observable.fromPromise(AccountService.listAccounts('aws')).shareReplay(1);
+    const allAccounts$ = observableFrom(AccountService.listAccounts('aws')).pipe(shareReplay(1));
 
     // combineLatest with allAccounts to wait for accounts to load and be cached
-    const accountRegions$ = Observable.combineLatest(form.account$, allAccounts$)
-      .switchMap(([currentAccount, _allAccounts]) => AccountService.getRegionsForAccount(currentAccount))
-      .shareReplay(1);
+    const accountRegions$ = observableCombineLatest(form.account$, allAccounts$).pipe(
+      switchMap(([currentAccount, _allAccounts]) => AccountService.getRegionsForAccount(currentAccount)),
+      shareReplay(1),
+    );
 
     const allLoadBalancers$ = this.props.app.getDataSource('loadBalancers').data$ as Observable<IAmazonLoadBalancer[]>;
-    const regionLoadBalancers$ = Observable.combineLatest(allLoadBalancers$, form.account$, form.region$)
-      .map(([allLoadBalancers, currentAccount, currentRegion]) => {
+    const regionLoadBalancers$ = observableCombineLatest(allLoadBalancers$, form.account$, form.region$).pipe(
+      map(([allLoadBalancers, currentAccount, currentRegion]) => {
         return allLoadBalancers
           .filter((lb) => lb.account === currentAccount && lb.region === currentRegion)
           .map((lb) => lb.name);
-      })
-      .shareReplay(1);
+      }),
+      shareReplay(1),
+    );
 
-    const regionSubnets$ = Observable.combineLatest(form.account$, form.region$)
-      .switchMap(([currentAccount, currentRegion]) => this.getAvailableSubnets(currentAccount, currentRegion))
-      .map((availableSubnets) => this.makeSubnetOptions(availableSubnets))
-      .shareReplay(1);
+    const regionSubnets$ = observableCombineLatest(form.account$, form.region$).pipe(
+      switchMap(([currentAccount, currentRegion]) => this.getAvailableSubnets(currentAccount, currentRegion)),
+      map((availableSubnets) => this.makeSubnetOptions(availableSubnets)),
+      shareReplay(1),
+    );
 
-    const subnet$ = Observable.combineLatest(regionSubnets$, form.subnetPurpose$).map(
-      ([allSubnets, subnetPurpose]) => allSubnets && allSubnets.find((subnet) => subnet.purpose === subnetPurpose),
+    const subnet$ = observableCombineLatest(regionSubnets$, form.subnetPurpose$).pipe(
+      map(([allSubnets, subnetPurpose]) => allSubnets && allSubnets.find((subnet) => subnet.purpose === subnetPurpose)),
     );
 
     // I don't understand why we use subnet.availabilityZones here, but region.availabilityZones below.
-    const availabilityZones$ = subnet$.map((subnet) => (subnet ? uniq(subnet.availabilityZones).sort() : []));
+    const availabilityZones$ = subnet$.pipe(map((subnet) => (subnet ? uniq(subnet.availabilityZones).sort() : [])));
 
     // Update selected zones when the selected region changes
-    const regionZones$ = form.region$
-      .withLatestFrom(accountRegions$)
-      .map(([currentRegion, accountRegions]) => accountRegions.find((region) => region.name === currentRegion))
-      .map((region) => (region ? region.availabilityZones : []));
+    const regionZones$ = form.region$.pipe(
+      withLatestFrom(accountRegions$),
+      map(([currentRegion, accountRegions]) => accountRegions.find((region) => region.name === currentRegion)),
+      map((region) => (region ? region.availabilityZones : [])),
+    );
 
-    const moniker$ = Observable.combineLatest(appName$, form.stack$, form.detail$).map(([app, stack, detail]) => {
-      return { app, stack, detail, cluster: NameUtils.getClusterName(app, stack, detail) } as IMoniker;
-    });
+    const moniker$ = observableCombineLatest(appName$, form.stack$, form.detail$).pipe(
+      map(([app, stack, detail]) => {
+        return { app, stack, detail, cluster: NameUtils.getClusterName(app, stack, detail) } as IMoniker;
+      }),
+    );
 
     accountRegions$
-      .withLatestFrom(form.region$)
-      .takeUntil(this.destroy$)
+      .pipe(withLatestFrom(form.region$), takeUntil(this.destroy$))
       .subscribe(([accountRegions, selectedRegion]) => {
         // If the selected region doesn't exist in the new list of regions (for a new acct), select the first region.
         if (!accountRegions.some((x) => x.name === selectedRegion)) {
@@ -178,11 +202,11 @@ export class LoadBalancerLocation
         }
       });
 
-    regionZones$.takeUntil(this.destroy$).subscribe((regionZones) => {
+    regionZones$.pipe(takeUntil(this.destroy$)).subscribe((regionZones) => {
       this.props.formik.setFieldValue('regionZones', regionZones);
     });
 
-    subnet$.takeUntil(this.destroy$).subscribe((subnet) => {
+    subnet$.pipe(takeUntil(this.destroy$)).subscribe((subnet) => {
       this.props.formik.setFieldValue('vpcId', subnet && subnet.vpcIds[0]);
       this.props.formik.setFieldValue('subnetType', subnet && subnet.purpose);
       if (!this.state.hideInternalFlag && !this.state.internalFlagToggled && subnet && subnet.purpose) {
@@ -191,13 +215,13 @@ export class LoadBalancerLocation
       }
     });
 
-    moniker$.takeUntil(this.destroy$).subscribe((moniker) => {
+    moniker$.pipe(takeUntil(this.destroy$)).subscribe((moniker) => {
       this.props.formik.setFieldValue('moniker', moniker);
       this.props.formik.setFieldValue('name', moniker.cluster);
     });
 
-    Observable.combineLatest(allAccounts$, accountRegions$, availabilityZones$, regionLoadBalancers$, regionSubnets$)
-      .takeUntil(this.destroy$)
+    observableCombineLatest(allAccounts$, accountRegions$, availabilityZones$, regionLoadBalancers$, regionSubnets$)
+      .pipe(takeUntil(this.destroy$))
       .subscribe(([accounts, regions, availabilityZones, existingLoadBalancerNames, subnets]) => {
         return this.setState({ accounts, regions, availabilityZones, existingLoadBalancerNames, subnets });
       });

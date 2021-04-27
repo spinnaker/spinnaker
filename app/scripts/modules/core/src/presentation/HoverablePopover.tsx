@@ -1,7 +1,8 @@
 import React from 'react';
 import { Overlay, Popover, PopoverProps } from 'react-bootstrap';
 import ReactDOM from 'react-dom';
-import { Observable, Subject } from 'rxjs';
+import { merge as observableMerge, Observable, of as observableOf, Subject } from 'rxjs';
+import { delay, filter, map, switchMap, takeUntil } from 'rxjs/operators';
 
 import { UUIDGenerator } from 'core/utils';
 
@@ -77,21 +78,27 @@ export class HoverablePopover extends React.Component<IHoverablePopoverProps, IH
 
   public componentDidMount() {
     const shouldShowEvents = ['mouseenter', 'mouseover'];
-    const showHideMouseEvents$ = this.mouseEvents$.map((event: React.MouseEvent<any>) => {
-      const shouldOpen = shouldShowEvents.includes(event.type);
-      const eventDelay = shouldOpen ? this.props.delayShow : this.props.delayHide;
-      return { shouldOpen, eventDelay, animation: true };
-    });
+    const showHideMouseEvents$ = this.mouseEvents$.pipe(
+      map((event: React.MouseEvent<any>) => {
+        const shouldOpen = shouldShowEvents.includes(event.type);
+        const eventDelay = shouldOpen ? this.props.delayShow : this.props.delayHide;
+        return { shouldOpen, eventDelay, animation: true };
+      }),
+    );
 
-    const hideProgramatically$ = this.hidePopoverEvents$.map(() => {
-      return { shouldOpen: false, eventDelay: 0, animation: false };
-    });
+    const hideProgramatically$ = this.hidePopoverEvents$.pipe(
+      map(() => {
+        return { shouldOpen: false, eventDelay: 0, animation: false };
+      }),
+    );
 
-    Observable.merge(showHideMouseEvents$, hideProgramatically$)
-      .map(({ shouldOpen, eventDelay, animation }) => Observable.of({ shouldOpen, animation }).delay(eventDelay))
-      .switchMap((result) => result)
-      .filter(({ shouldOpen }) => shouldOpen !== this.state.popoverIsOpen)
-      .takeUntil(this.destroy$)
+    observableMerge(showHideMouseEvents$, hideProgramatically$)
+      .pipe(
+        map(({ shouldOpen, eventDelay, animation }) => observableOf({ shouldOpen, animation }).pipe(delay(eventDelay))),
+        switchMap((result) => result),
+        filter(({ shouldOpen }) => shouldOpen !== this.state.popoverIsOpen),
+        takeUntil(this.destroy$),
+      )
       .subscribe(({ shouldOpen, animation }) => this.setPopoverOpen(shouldOpen, animation));
   }
 

@@ -1,6 +1,7 @@
 import { get } from 'lodash';
 import React from 'react';
-import { Observable, Subject } from 'rxjs';
+import { Observable, of as observableOf, Subject } from 'rxjs';
+import { map, switchMap, takeUntil } from 'rxjs/operators';
 
 import { AccountService, IAccountDetails } from 'core/account/AccountService';
 import { CloudProviderRegistry } from 'core/cloudProvider';
@@ -66,15 +67,17 @@ export function overridableComponent<P extends IOverridableProps, T extends Reac
       let constructing = true;
 
       this.account$
-        .switchMap((accountName) => {
-          if (!accountName) {
-            return Observable.of(null);
-          }
+        .pipe(
+          switchMap((accountName) => {
+            if (!accountName) {
+              return observableOf(null);
+            }
 
-          return AccountService.accounts$.map((accts) => accts.find((acct) => acct.name === accountName));
-        })
-        .map((accountDetails: IAccountDetails) => this.getComponent(accountDetails))
-        .takeUntil(this.destroy$)
+            return AccountService.accounts$.pipe(map((accts) => accts.find((acct) => acct.name === accountName)));
+          }),
+          map((accountDetails: IAccountDetails) => this.getComponent(accountDetails)),
+          takeUntil(this.destroy$),
+        )
         .subscribe((Component) => {
           // The component may be ready synchronously (when the constructor is run), or it might require async.
           // Handle either case here

@@ -1,7 +1,8 @@
 import { FormikErrors, FormikProps } from 'formik';
 import { filter, flatten, groupBy, set, uniq } from 'lodash';
 import React from 'react';
-import { Observable, Subject } from 'rxjs';
+import { from as observableFrom, Observable, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 import {
   Application,
@@ -138,8 +139,8 @@ export class TargetGroups
     const { app, loadBalancer } = props;
 
     const targetGroupsByAccountAndRegion: { [account: string]: { [region: string]: string[] } } = {};
-    Observable.fromPromise(app.getDataSource('loadBalancers').refresh(true))
-      .takeUntil(this.destroy$)
+    observableFrom(app.getDataSource('loadBalancers').refresh(true))
+      .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         app.getDataSource('loadBalancers').data.forEach((lb: IAmazonApplicationLoadBalancer) => {
           if (lb.loadBalancerType !== 'classic') {

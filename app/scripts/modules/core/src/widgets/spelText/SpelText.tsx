@@ -4,7 +4,8 @@ import $ from 'jquery';
 import 'jquery-textcomplete';
 import { $q, $timeout } from 'ngimport';
 import React from 'react';
-import { Observable, Subject } from 'rxjs';
+import { from as observableFrom, Observable, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 import { SpelAutocompleteService } from './SpelAutocompleteService';
 import { IPipeline } from '../../domain';
@@ -38,8 +39,8 @@ export class SpelText extends React.Component<ISpelTextProps, ISpelTextState> {
     super(props);
     this.state = { textcompleteConfig: [] };
     this.autocompleteService = new SpelAutocompleteService($q, new ExecutionService($q, {} as StateService, $timeout));
-    Observable.fromPromise(this.autocompleteService.addPipelineInfo(this.props.pipeline))
-      .takeUntil(this.destroy$)
+    observableFrom(this.autocompleteService.addPipelineInfo(this.props.pipeline))
+      .pipe(takeUntil(this.destroy$))
       .subscribe((textcompleteConfig) => {
         this.setState({ textcompleteConfig: textcompleteConfig });
       });

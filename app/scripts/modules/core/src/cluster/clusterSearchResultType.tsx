@@ -1,6 +1,7 @@
 import { uniqBy } from 'lodash';
 import React from 'react';
 import { Observable } from 'rxjs';
+import { filter, first, map } from 'rxjs/operators';
 
 import { IQueryParams } from 'core/navigation';
 import { ReactInjector } from 'core/reactShims';
@@ -82,10 +83,10 @@ class ClustersSearchResultType extends SearchResultType<IClusterSearchResult> {
     _params: IQueryParams,
     otherResults: Observable<ISearchResultSet>,
   ): Observable<ISearchResults<IClusterSearchResult>> {
-    return otherResults
-      .filter((resultSet) => resultSet.type.id === 'serverGroups')
-      .first()
-      .map((resultSet: ISearchResultSet) => {
+    return otherResults.pipe(
+      filter((resultSet) => resultSet.type.id === 'serverGroups'),
+      first(),
+      map((resultSet: ISearchResultSet) => {
         const { status, results, error } = resultSet;
         if (status === SearchStatus.ERROR) {
           throw error;
@@ -95,7 +96,8 @@ class ClustersSearchResultType extends SearchResultType<IClusterSearchResult> {
         const searchResults = serverGroups.map((sg) => this.makeSearchResult(sg));
         const clusters: IClusterSearchResult[] = uniqBy(searchResults, (sg) => `${sg.account}-${sg.cluster}`);
         return { results: clusters };
-      });
+      }),
+    );
   }
 
   public displayFormatter(searchResult: IClusterSearchResult) {

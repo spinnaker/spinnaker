@@ -1,6 +1,6 @@
 import { IHttpPromiseCallbackArg } from 'angular';
 import { $http, $location, $rootScope } from 'ngimport';
-import { Observable, Subscription } from 'rxjs';
+import { fromEvent as observableFromEvent, Observable, Subscription } from 'rxjs';
 
 import { SETTINGS } from 'core/config/settings';
 import { ModalInjector } from 'core/reactShims/modal.injector';
@@ -39,7 +39,7 @@ export class AuthenticationInitializer {
     this.userLoggedOut = true;
     this.openLoggedOutModal();
 
-    this.visibilityWatch = Observable.fromEvent(document, 'visibilitychange').subscribe(() => {
+    this.visibilityWatch = observableFromEvent(document, 'visibilitychange').subscribe(() => {
       if (document.visibilityState === 'visible') {
         this.checkForReauthentication();
       }

@@ -1,4 +1,5 @@
 import { Observable, Subject } from 'rxjs';
+import { filter, map } from 'rxjs/operators';
 
 export interface IEventMessage {
   key: string;
@@ -17,7 +18,10 @@ export class EventBus {
    * @return {Observable<any>}
    */
   public static observe<T>(key: string): Observable<T> {
-    return this.message$.filter((m) => m.key === key).map((m) => m.payload);
+    return this.message$.pipe(
+      filter((m) => m.key === key),
+      map((m) => m.payload),
+    );
   }
 
   /**

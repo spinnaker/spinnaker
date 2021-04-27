@@ -2,6 +2,7 @@ import classNames from 'classnames';
 import { isEqual } from 'lodash';
 import React from 'react';
 import { Subject } from 'rxjs';
+import { distinctUntilChanged, map, takeUntil } from 'rxjs/operators';
 
 import { IInstance, ILoadBalancerHealth, IServerGroup } from 'core/domain';
 import { Tooltip } from 'core/presentation';
@@ -39,14 +40,16 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
   }
 
   public componentDidMount() {
-    ClusterState.multiselectModel.instancesStream.takeUntil(this.destroy$).subscribe(() => {
+    ClusterState.multiselectModel.instancesStream.pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.setState({ selectedInstanceIds: this.getSelectedInstanceIds() });
     });
 
     this.$uiRouter.globals.params$
-      .map((params) => [params.instanceId, params.multiselect, params.instanceSort])
-      .distinctUntilChanged(isEqual)
-      .takeUntil(this.destroy$)
+      .pipe(
+        map((params) => [params.instanceId, params.multiselect, params.instanceSort]),
+        distinctUntilChanged(isEqual),
+        takeUntil(this.destroy$),
+      )
       .subscribe(() => {
         const { params } = this.$state;
         this.setState({

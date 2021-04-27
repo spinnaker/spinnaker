@@ -1,5 +1,5 @@
 import { $log, $timeout, $window } from 'ngimport';
-import { Observable, Subject, Subscription } from 'rxjs';
+import { Observable, Subject, Subscription, timer as observableTimer } from 'rxjs';
 
 import { SETTINGS } from 'core/config/settings';
 
@@ -19,7 +19,7 @@ export class SchedulerFactory {
 
     // When creating the timer, use last run as the dueTime (first arg); zero can lead to concurrency issues
     // where the scheduler will fire shortly after being subscribed to, resulting in surprising immediate refreshes
-    let source = Observable.timer(pollSchedule, pollSchedule);
+    let source = observableTimer(pollSchedule, pollSchedule);
 
     const run = (): void => {
       if (suspended) {

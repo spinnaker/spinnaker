@@ -15,7 +15,7 @@ import {
   TableCellProps,
   TableHeaderProps,
 } from 'react-virtualized';
-import { Observable } from 'rxjs';
+import { forkJoin as observableForkJoin, from as observableFrom, Observable } from 'rxjs';
 
 import { ApplicationReader, IApplicationSummary } from 'core/application';
 import { SETTINGS } from 'core/config';
@@ -120,8 +120,8 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
 
   public componentDidMount(): void {
     // Get the data from all the necessary sources before rendering
-    Observable.forkJoin(
-      Observable.fromPromise(ApplicationReader.listApplications()),
+    observableForkJoin(
+      observableFrom(ApplicationReader.listApplications()),
       PagerDutyReader.listOnCalls(),
       PagerDutyReader.listServices(),
     ).subscribe((results: [IApplicationSummary[], { [id: string]: IOnCall[] }, IPagerDutyService[]]) => {

@@ -4,6 +4,7 @@ import '@uirouter/rx';
 import React from 'react';
 import { Dropdown, MenuItem } from 'react-bootstrap';
 import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 import { IProject } from 'core/domain';
 import { Overridable } from 'core/overrideRegistry';
@@ -32,7 +33,7 @@ export class ProjectHeader extends React.Component<IProjectHeaderProps, IProject
 
   public componentDidMount() {
     const { success$ } = this.props.transition.router.globals;
-    success$.takeUntil(this.destroy$).subscribe((success) => {
+    success$.pipe(takeUntil(this.destroy$)).subscribe((success) => {
       const state = success.to().name;
       const application = success.params().application;
       this.setState({ state, application });

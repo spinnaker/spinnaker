@@ -1,7 +1,7 @@
 import React from 'react';
-
 import Select, { Option } from 'react-select';
-import { Observable, Subject } from 'rxjs';
+import { from as observableFrom, Observable, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 import { AccountService, IAccount, IRegion, IStageConfigProps, StageConfigField } from '@spinnaker/core';
 
@@ -25,8 +25,8 @@ export class CloudfoundryDestroyServiceStageConfig extends React.Component<
   }
 
   public componentDidMount(): void {
-    Observable.fromPromise(AccountService.listAccounts('cloudfoundry'))
-      .takeUntil(this.destroy$)
+    observableFrom(AccountService.listAccounts('cloudfoundry'))
+      .pipe(takeUntil(this.destroy$))
       .subscribe((accounts) => {
         this.setState({ accounts });
         if (this.props.stage.credentials) {
@@ -43,8 +43,8 @@ export class CloudfoundryDestroyServiceStageConfig extends React.Component<
     this.setState({ regions: [] });
     const { credentials } = this.props.stage;
     if (credentials) {
-      Observable.fromPromise(AccountService.getRegionsForAccount(credentials))
-        .takeUntil(this.destroy$)
+      observableFrom(AccountService.getRegionsForAccount(credentials))
+        .pipe(takeUntil(this.destroy$))
         .subscribe((regions) => this.setState({ regions }));
     }
   };

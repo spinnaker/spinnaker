@@ -2,7 +2,8 @@ import { groupBy, sortBy } from 'lodash';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 import { Option } from 'react-select';
-import { Observable, Subject } from 'rxjs';
+import { from as observableFrom, Observable, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 import {
   AccountTag,
@@ -139,8 +140,8 @@ export class ManifestCopier extends React.Component<IManifestCopierProps, IManif
     const {
       data: { account, region, name },
     } = this.state.selectedManifest;
-    Observable.fromPromise(ManifestReader.getManifest(account, region, name))
-      .takeUntil(this.destroy$)
+    observableFrom(ManifestReader.getManifest(account, region, name))
+      .pipe(takeUntil(this.destroy$))
       .subscribe((manifest: IManifest) => {
         this.props.onManifestSelected(JSON.parse(manifest.manifest.metadata.annotations[LAST_APPLIED_CONFIGURATION]));
       });

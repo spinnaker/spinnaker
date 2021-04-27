@@ -1,6 +1,27 @@
 import { IScope } from 'angular';
 import { $log, $q } from 'ngimport';
-import { BehaviorSubject, Observable, Subject } from 'rxjs';
+import {
+  BehaviorSubject,
+  empty as observableEmpty,
+  from as observableFrom,
+  merge as observableMerge,
+  Observable,
+  of as observableOf,
+  Subject,
+} from 'rxjs';
+import {
+  catchError,
+  filter,
+  map,
+  mergeMap,
+  skip,
+  startWith,
+  switchMap,
+  take,
+  takeUntil,
+  tap,
+  withLatestFrom,
+} from 'rxjs/operators';
 
 import { IEntityTags } from 'core/domain';
 import { IconNames, robotToHuman } from 'core/presentation';
@@ -381,30 +402,39 @@ export class ApplicationDataSource<T = any> implements IDataSourceConfig<T> {
 
     this.data$ = new BehaviorSubject(this.data);
 
-    this.refresh$ = this.data$.skip(1);
-    this.refreshFailure$ = this.status$.skip(1).filter(({ status }) => status === 'ERROR');
-    this.throwFailures$ = this.refreshFailure$.map(({ error }) => {
-      throw error;
-    });
-    this.nextRefresh$ = Observable.merge(this.data$.skip(1), this.throwFailures$).take(1);
+    this.refresh$ = this.data$.pipe(skip(1));
+    this.refreshFailure$ = this.status$.pipe(
+      skip(1),
+      filter(({ status }) => status === 'ERROR'),
+    );
+    this.throwFailures$ = this.refreshFailure$.pipe(
+      map(({ error }) => {
+        throw error;
+      }),
+    );
+    this.nextRefresh$ = observableMerge(this.data$.pipe(skip(1)), this.throwFailures$).pipe(take(1));
 
-    const fetchStream$ = this.fetchRequest$
-      .do(() => this.debug('fetch requested...'))
-      .switchMap(() => {
-        return Observable.fromPromise(this.loader(this.application))
-          .mergeMap((data) => this.onLoad(this.application, data))
-          .map((data) => ({ status: 'FETCHED', lastRefresh: Date.now(), data }))
-          .catch((error) => Observable.of({ status: 'ERROR', lastRefresh: this.lastRefresh, data: this.data, error }))
-          .startWith({ status: 'FETCHING', lastRefresh: this.lastRefresh, data: this.data });
-      })
-      .startWith(this.status$.value)
-      .takeUntil(this.destroy$) as Observable<IFetchStatus>;
+    const fetchStream$ = this.fetchRequest$.pipe(
+      tap(() => this.debug('fetch requested...')),
+      switchMap(() => {
+        return observableFrom(this.loader(this.application)).pipe(
+          mergeMap((data) => this.onLoad(this.application, data)),
+          map((data) => ({ status: 'FETCHED', lastRefresh: Date.now(), data })),
+          catchError((error) =>
+            observableOf({ status: 'ERROR', lastRefresh: this.lastRefresh, data: this.data, error }),
+          ),
+          startWith({ status: 'FETCHING', lastRefresh: this.lastRefresh, data: this.data }),
+        );
+      }),
+      startWith(this.status$.value),
+      takeUntil(this.destroy$),
+    ) as Observable<IFetchStatus>;
 
     // Some data sources expect other data sources to exist on the application
     // Wait one tick before processing the stream so all data sources are registered
-    const nextTick$ = Observable.fromPromise($q.resolve());
+    const nextTick$ = observableFrom($q.resolve());
 
-    fetchStream$.withLatestFrom(nextTick$).subscribe(([fetchStatus, _void]) => {
+    fetchStream$.pipe(withLatestFrom(nextTick$)).subscribe(([fetchStatus, _void]) => {
       // Update mutable flags
       this.statusUpdated(fetchStatus);
       fetchStatus.loaded = this.loaded;
@@ -453,12 +483,14 @@ export class ApplicationDataSource<T = any> implements IDataSourceConfig<T> {
    * @return a method to call to unsubscribe
    */
   public onRefresh($scope: IScope, callback: (data?: any) => void, onError?: (err?: any) => void): () => void {
-    const failures$ = this.refreshFailure$.mergeMap(({ error }) => {
-      onError && onError(error);
-      return Observable.empty();
-    });
+    const failures$ = this.refreshFailure$.pipe(
+      mergeMap(({ error }) => {
+        onError && onError(error);
+        return observableEmpty();
+      }),
+    );
 
-    const subscription = Observable.merge(this.data$.skip(1), failures$).subscribe((data) => callback(data));
+    const subscription = observableMerge(this.data$.pipe(skip(1)), failures$).subscribe((data) => callback(data));
 
     $scope && $scope.$on('$destroy', () => subscription.unsubscribe());
     return () => subscription.unsubscribe();
@@ -533,7 +565,7 @@ export class ApplicationDataSource<T = any> implements IDataSourceConfig<T> {
       return $q.resolve(this.data);
     }
 
-    const promise = toIPromise(this.data$.skip(1).take(1));
+    const promise = toIPromise(this.data$.pipe(skip(1), take(1)));
 
     if (this.loading && !forceRefresh) {
       $log.info(`${this.key} still loading, skipping refresh`);

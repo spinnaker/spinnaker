@@ -1,7 +1,8 @@
 import classNames from 'classnames';
 import { FormikErrors, FormikProps } from 'formik';
 import React from 'react';
-import { Observable, Subject } from 'rxjs';
+import { combineLatest as observableCombineLatest, from as observableFrom, Observable, Subject } from 'rxjs';
+import { distinctUntilChanged, map, shareReplay, switchMap, takeUntil, withLatestFrom } from 'rxjs/operators';
 
 import {
   AccountService,
@@ -85,36 +86,58 @@ export class FunctionBasicInformation
   }
 
   public componentDidMount(): void {
-    const formValues$ = this.props$.map((props) => props.formik.values);
+    const formValues$ = this.props$.pipe(map((props) => props.formik.values));
 
     const form = {
-      account$: formValues$.map((x) => x.credentials).distinctUntilChanged(),
-      region$: formValues$.map((x) => x.region).distinctUntilChanged(),
-      functionName$: formValues$.map((x) => x.functionName).distinctUntilChanged(),
-      runtime$: formValues$.map((x) => x.runtime).distinctUntilChanged(),
-      s3bucket$: formValues$.map((x) => x.s3bucket).distinctUntilChanged(),
-      s3key$: formValues$.map((x) => x.s3key).distinctUntilChanged(),
-      handler$: formValues$.map((x) => x.handler).distinctUntilChanged(),
+      account$: formValues$.pipe(
+        map((x) => x.credentials),
+        distinctUntilChanged(),
+      ),
+      region$: formValues$.pipe(
+        map((x) => x.region),
+        distinctUntilChanged(),
+      ),
+      functionName$: formValues$.pipe(
+        map((x) => x.functionName),
+        distinctUntilChanged(),
+      ),
+      runtime$: formValues$.pipe(
+        map((x) => x.runtime),
+        distinctUntilChanged(),
+      ),
+      s3bucket$: formValues$.pipe(
+        map((x) => x.s3bucket),
+        distinctUntilChanged(),
+      ),
+      s3key$: formValues$.pipe(
+        map((x) => x.s3key),
+        distinctUntilChanged(),
+      ),
+      handler$: formValues$.pipe(
+        map((x) => x.handler),
+        distinctUntilChanged(),
+      ),
     };
 
-    const allAccounts$ = Observable.fromPromise(AccountService.listAccounts('aws')).shareReplay(1);
+    const allAccounts$ = observableFrom(AccountService.listAccounts('aws')).pipe(shareReplay(1));
     // combineLatest with allAccounts to wait for accounts to load and be cached
-    const accountRegions$ = Observable.combineLatest(form.account$, allAccounts$)
-      .switchMap(([currentAccount, _allAccounts]) => AccountService.getRegionsForAccount(currentAccount))
-      .shareReplay(1);
+    const accountRegions$ = observableCombineLatest(form.account$, allAccounts$).pipe(
+      switchMap(([currentAccount, _allAccounts]) => AccountService.getRegionsForAccount(currentAccount)),
+      shareReplay(1),
+    );
 
     const allFunctions$ = this.props.app.getDataSource('functions').data$ as Observable<IAmazonFunction[]>;
-    const regionfunctions$ = Observable.combineLatest(allFunctions$, form.account$, form.region$)
-      .map(([allFunctions, currentAccount, currentRegion]) => {
+    const regionfunctions$ = observableCombineLatest(allFunctions$, form.account$, form.region$).pipe(
+      map(([allFunctions, currentAccount, currentRegion]) => {
         return allFunctions
           .filter((fn) => fn.account === currentAccount && fn.region === currentRegion)
           .map((fn) => fn.functionName);
-      })
-      .shareReplay(1);
+      }),
+      shareReplay(1),
+    );
 
     accountRegions$
-      .withLatestFrom(form.region$)
-      .takeUntil(this.destroy$)
+      .pipe(withLatestFrom(form.region$), takeUntil(this.destroy$))
       .subscribe(([accountRegions, selectedRegion]) => {
         // If the selected region doesn't exist in the new list of regions (for a new acct), select the first region.
         if (!accountRegions.some((x) => x.name === selectedRegion)) {
@@ -122,8 +145,8 @@ export class FunctionBasicInformation
         }
       });
 
-    Observable.combineLatest(allAccounts$, accountRegions$, regionfunctions$)
-      .takeUntil(this.destroy$)
+    observableCombineLatest(allAccounts$, accountRegions$, regionfunctions$)
+      .pipe(takeUntil(this.destroy$))
       .subscribe(([accounts, regions, existingFunctionNames]) => {
         return this.setState({ accounts, regions, existingFunctionNames });
       });

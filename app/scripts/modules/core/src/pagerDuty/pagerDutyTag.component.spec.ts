@@ -1,4 +1,4 @@
-import { Observable } from 'rxjs';
+import { of as observableOf, Observable } from 'rxjs';
 import { IComponentControllerService, mock } from 'angular';
 import { IPagerDutyService, PagerDutyReader } from './pagerDuty.read.service';
 import { PAGER_DUTY_TAG_COMPONENT, PagerDutyTagComponentController } from './pagerDutyTag.component';
@@ -43,7 +43,7 @@ describe('PagerDutyTagComponent', () => {
   beforeEach(
     mock.inject((_$componentController_: IComponentControllerService) => {
       $componentController = _$componentController_;
-      spyOn(PagerDutyReader, 'listServices').and.returnValue(Observable.of(services));
+      spyOn(PagerDutyReader, 'listServices').and.returnValue(observableOf(services));
     }),
   );
 

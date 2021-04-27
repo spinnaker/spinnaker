@@ -2,7 +2,8 @@ import { FormikErrors, FormikProps } from 'formik';
 import { get, isEqual, partition, uniq } from 'lodash';
 import React from 'react';
 import VirtualizedSelect from 'react-virtualized-select';
-import { Observable, Subject } from 'rxjs';
+import { combineLatest as observableCombineLatest, Observable, Subject } from 'rxjs';
+import { distinctUntilChanged, map, mergeMap, switchMap, takeUntil, tap, withLatestFrom } from 'rxjs/operators';
 
 import {
   FirewallLabels,
@@ -108,26 +109,30 @@ export class SecurityGroups
   }
 
   public componentDidMount(): void {
-    const allSecurityGroups$ = this.refresh$
-      .do(() => this.onRefreshStart())
-      .switchMap(() => ReactInjector.cacheInitializer.refreshCache('securityGroups'))
-      .mergeMap(() => ReactInjector.securityGroupReader.getAllSecurityGroups())
-      .do(() => this.onRefreshComplete());
+    const allSecurityGroups$ = this.refresh$.pipe(
+      tap(() => this.onRefreshStart()),
+      switchMap(() => ReactInjector.cacheInitializer.refreshCache('securityGroups')),
+      mergeMap(() => ReactInjector.securityGroupReader.getAllSecurityGroups()),
+      tap(() => this.onRefreshComplete()),
+    );
 
-    const formValues$ = this.props$.map((props) => props.formik.values);
-    const vpcId$ = formValues$.map((values) => values.vpcId).distinctUntilChanged();
+    const formValues$ = this.props$.pipe(map((props) => props.formik.values));
+    const vpcId$ = formValues$.pipe(
+      map((values) => values.vpcId),
+      distinctUntilChanged(),
+    );
 
-    const availableSecurityGroups$ = Observable.combineLatest(vpcId$, allSecurityGroups$)
-      .withLatestFrom(formValues$)
-      .map(([[vpcId, allSecurityGroups], formValues]) => {
+    const availableSecurityGroups$ = observableCombineLatest(vpcId$, allSecurityGroups$).pipe(
+      withLatestFrom(formValues$),
+      map(([[vpcId, allSecurityGroups], formValues]) => {
         const forAccount = allSecurityGroups[formValues.credentials] || {};
         const forRegion = (forAccount.aws && forAccount.aws[formValues.region]) || [];
         return forRegion.filter((securityGroup) => vpcId === securityGroup.vpcId).sort();
-      });
+      }),
+    );
 
     availableSecurityGroups$
-      .withLatestFrom(formValues$)
-      .takeUntil(this.destroy$)
+      .pipe(withLatestFrom(formValues$), takeUntil(this.destroy$))
       .subscribe(([availableSecurityGroups, formValues]) => {
         const makeOption = (sg: ISecurityGroup) => ({ label: `${sg.name} (${sg.id})`, value: sg.name });
         this.setState({ availableSecurityGroups: availableSecurityGroups.map(makeOption) });

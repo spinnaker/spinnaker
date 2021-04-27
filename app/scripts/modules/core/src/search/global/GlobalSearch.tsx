@@ -3,7 +3,8 @@ import { flatten } from 'lodash';
 import { Debounce } from 'lodash-decorators';
 import React from 'react';
 import ReactGA from 'react-ga';
-import { Observable, Subject } from 'rxjs';
+import { from as observableFrom, Observable, Subject } from 'rxjs';
+import { debounceTime, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { Tooltip } from 'core/presentation/Tooltip';
 import { ReactInjector } from 'core/reactShims';
@@ -59,22 +60,24 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
     const search = infrastructureSearchService.getSearcher();
 
     this.query$
-      .debounceTime(300)
-      .do((query) => {
-        ReactGA.event({ category: 'Global Search', action: 'Query', label: query });
-        this.setState({ querying: true });
-      })
-      .switchMap((query: string) => Observable.fromPromise(search.query(query)))
-      .map((result) =>
-        result
-          .filter(({ results }) => results.length)
-          .map((category) => ({
-            ...category,
-            results: searchRank(category.results, category.query).slice(0, 5),
-          }))
-          .sort((a, b) => a.type.order - b.type.order),
+      .pipe(
+        debounceTime(300),
+        tap((query) => {
+          ReactGA.event({ category: 'Global Search', action: 'Query', label: query });
+          this.setState({ querying: true });
+        }),
+        switchMap((query: string) => observableFrom(search.query(query))),
+        map((result) =>
+          result
+            .filter(({ results }) => results.length)
+            .map((category) => ({
+              ...category,
+              results: searchRank(category.results, category.query).slice(0, 5),
+            }))
+            .sort((a, b) => a.type.order - b.type.order),
+        ),
+        takeUntil(this.destroy$),
       )
-      .takeUntil(this.destroy$)
       .subscribe((categories) => {
         this.resultRefs = categories.map(() => []);
 

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Observable, Subject } from 'rxjs';
+import { from as observableFrom, Observable, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 import { HelpField } from 'core/help';
 
@@ -31,8 +32,8 @@ export class CronAdvance extends React.Component<ICronTriggerConfigProps, ICronA
   }
 
   private validateCronExpression = (cronExpression: string) => {
-    Observable.fromPromise(CronValidatorService.validate(cronExpression))
-      .takeUntil(this.destroy$)
+    observableFrom(CronValidatorService.validate(cronExpression))
+      .pipe(takeUntil(this.destroy$))
       .subscribe(
         (result: { valid: boolean; message?: string; description?: string }) => {
           if (result.valid) {

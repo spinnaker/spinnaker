@@ -1,6 +1,6 @@
 import React from 'react';
 import Select from 'react-select';
-import { Observable } from 'rxjs';
+import { forkJoin as observableForkJoin, from as observableFrom, Observable } from 'rxjs';
 
 import { REST } from 'core/api/ApiService';
 
@@ -43,7 +43,7 @@ export class GremlinStageConfig extends React.Component<IStageConfigProps> {
   };
 
   private fetchCommands = (apiKey: string) => {
-    return Observable.fromPromise(
+    return observableFrom(
       REST('/integrations/gremlin/templates/command')
         .post({
           apiKey,
@@ -61,7 +61,7 @@ export class GremlinStageConfig extends React.Component<IStageConfigProps> {
   };
 
   private fetchTargets = (apiKey: string) => {
-    return Observable.fromPromise(
+    return observableFrom(
       REST('/integrations/gremlin/templates/target')
         .post({
           apiKey,
@@ -89,7 +89,7 @@ export class GremlinStageConfig extends React.Component<IStageConfigProps> {
     });
 
     // Get the data from all the necessary sources before rendering
-    Observable.forkJoin(this.fetchCommands(gremlinApiKey), this.fetchTargets(gremlinApiKey)).subscribe((results) => {
+    observableForkJoin(this.fetchCommands(gremlinApiKey), this.fetchTargets(gremlinApiKey)).subscribe((results) => {
       const newState: IState = {
         isFetchingData: false,
       };

@@ -1,7 +1,8 @@
 import { IScope } from 'angular';
 import { map, union, uniq } from 'lodash';
 import { $log, $q } from 'ngimport';
-import { Observable, ReplaySubject, Subject, Subscription } from 'rxjs';
+import { combineLatest as observableCombineLatest, Observable, ReplaySubject, Subject, Subscription } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 import { ICluster } from '../domain/ICluster';
 import { ApplicationDataSource, IDataSourceConfig, IFetchStatus } from './service/applicationDataSource';
@@ -113,8 +114,8 @@ export class Application {
     dataSourceConfigs: Array<IDataSourceConfig<any>>,
   ) {
     dataSourceConfigs.forEach((config) => this.addDataSource(config));
-    this.status$ = Observable.combineLatest(this.dataSources.map((ds) => ds.status$)).map((statuses) =>
-      this.getDerivedApplicationStatus(statuses),
+    this.status$ = observableCombineLatest(this.dataSources.map((ds) => ds.status$)).pipe(
+      map((statuses) => this.getDerivedApplicationStatus(statuses)),
     );
   }
 

@@ -1,5 +1,6 @@
 import React from 'react';
-import { BehaviorSubject, Observable, Subject } from 'rxjs';
+import { BehaviorSubject, from as observableFrom, Observable, of as observableOf, Subject } from 'rxjs';
+import { bufferCount, catchError, concatMap, filter, mergeMap, takeUntil } from 'rxjs/operators';
 
 import { REST } from 'core/api';
 import { IInstanceCounts, IServerGroup } from 'core/domain';
@@ -63,7 +64,7 @@ const fetchServerGroups = (toFetch: IServerGroupSearchResult[]): Observable<ISer
     .get()
     .then((fetched: IServerGroup[]) => makeServerGroupTuples(toFetch, fetched));
 
-  return Observable.fromPromise(fetchPromise);
+  return observableFrom(fetchPromise);
 };
 
 /**
@@ -87,23 +88,24 @@ const AddHealthCounts = (
 
       // results to use when a fetch has failed.
       const failedFetch = (failedFetches: IServerGroupSearchResult[]) =>
-        Observable.of(failedFetches.map((toFetch) => ({ toFetch, fetched: { instanceCounts: null } as IServerGroup })));
+        observableOf(failedFetches.map((toFetch) => ({ toFetch, fetched: { instanceCounts: null } as IServerGroup })));
 
       // fetch a batch of server groups.
       const processBatch = (batch: IServerGroupSearchResult[]): Observable<IServerGroupTuple[]> =>
-        fetchServerGroups(batch).catch(() => failedFetch(batch));
+        fetchServerGroups(batch).pipe(catchError(() => failedFetch(batch)));
 
       this.results$
-        .mergeMap((searchResults: IServerGroupSearchResult[]) => {
-          return (
-            Observable.from(searchResults)
-              .filter((result) => result.instanceCounts === undefined)
+        .pipe(
+          mergeMap((searchResults: IServerGroupSearchResult[]) => {
+            return observableFrom(searchResults).pipe(
+              filter((result) => result.instanceCounts === undefined),
               // Serially fetch instance counts in batches of 25
-              .bufferCount(25)
-              .concatMap(processBatch)
-          );
-        })
-        .takeUntil(this.stop$)
+              bufferCount(25),
+              concatMap(processBatch),
+            );
+          }),
+          takeUntil(this.stop$),
+        )
         .subscribe((tuples: IServerGroupTuple[]) => {
           tuples.forEach((result) => (result.toFetch.instanceCounts = result.fetched.instanceCounts));
           const resultSet = { ...this.props.resultSet, results: this.results$.value.slice() };

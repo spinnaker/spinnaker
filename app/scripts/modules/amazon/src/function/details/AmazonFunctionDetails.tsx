@@ -1,7 +1,7 @@
 import { isEmpty } from 'lodash';
 import React from 'react';
-import { Observable } from 'rxjs/Observable';
-import { Subject } from 'rxjs/Subject';
+import { from as observableFrom, Observable, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 import {
   AccountTag,
@@ -49,7 +49,7 @@ export class AmazonFunctionDetails extends React.Component<IAmazonFunctionDetail
     });
 
     if (functionDef) {
-      Observable.fromPromise(
+      observableFrom(
         AwsReactInjector.functionReader.getFunctionDetails(
           'aws',
           functionFromProps.account,
@@ -57,7 +57,7 @@ export class AmazonFunctionDetails extends React.Component<IAmazonFunctionDetail
           functionFromProps.functionName,
         ),
       )
-        .takeUntil(this.destroy$)
+        .pipe(takeUntil(this.destroy$))
         .subscribe((details: IAmazonFunctionSourceData[]) => {
           if (details.length) {
             this.setState({
@@ -77,8 +77,8 @@ export class AmazonFunctionDetails extends React.Component<IAmazonFunctionDetail
   public componentDidMount(): void {
     const { app } = this.props;
     const dataSource = app.functions;
-    Observable.fromPromise(dataSource.ready())
-      .takeUntil(this.destroy$)
+    observableFrom(dataSource.ready())
+      .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         const dataSourceUnsubscribe = dataSource.onRefresh(null, () => this.extractFunction());
         this.setState({ dataSourceUnsubscribe });
