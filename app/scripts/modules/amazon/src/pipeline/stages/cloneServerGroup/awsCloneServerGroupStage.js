@@ -132,5 +132,9 @@ module(AMAZON_PIPELINE_STAGES_CLONESERVERGROUP_AWSCLONESERVERGROUPSTAGE, [])
           stage.useAmiBlockDeviceMappings = false;
         }
       };
+
+      this.onRedBlackFieldChange = (key, value) => {
+        _.set(stage, key, value);
+      };
     },
   ]);

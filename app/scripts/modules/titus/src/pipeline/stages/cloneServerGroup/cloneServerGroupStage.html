@@ -97,5 +97,10 @@
   </stage-config-field>
   <stage-platform-health-override application="application" stage="stage" platform-health-type="'Titus'">
   </stage-platform-health-override>
-  <deployment-strategy-selector label-columns="3" field-columns="6" command="stage"></deployment-strategy-selector>
+  <deployment-strategy-selector
+    label-columns="3"
+    field-columns="6"
+    command="stage"
+    on-field-change="cloneServerGroupStageCtrl.onRedBlackFieldChange"
+  ></deployment-strategy-selector>
 </div>

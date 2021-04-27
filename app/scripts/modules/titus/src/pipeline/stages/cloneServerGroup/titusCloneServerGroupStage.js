@@ -93,5 +93,9 @@ module(TITUS_PIPELINE_STAGES_CLONESERVERGROUP_TITUSCLONESERVERGROUPSTAGE, [
       this.processIsSuspended = (process) => {
         return stage.suspendedProcesses && stage.suspendedProcesses.includes(process);
       };
+
+      this.onRedBlackFieldChange = (key, value) => {
+        _.set(stage, key, value);
+      };
     },
   ]);

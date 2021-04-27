@@ -10,6 +10,7 @@ module(DEPLOYMENT_STRATEGY_SELECTOR_COMPONENT, []).component(
   'deploymentStrategySelector',
   react2angular(withErrorBoundary(DeploymentStrategySelector, 'deploymentStrategySelector'), [
     'command',
+    'onFieldChange',
     'onStrategyChange',
     'labelColumns',
     'fieldColumns',
