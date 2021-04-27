@@ -113,7 +113,7 @@ export class Network
       });
 
     const secGroups$ = Promise.resolve(this.getAvailableSecurityGroups());
-    observableCombineLatest(allSubnets, secGroups$)
+    observableCombineLatest([allSubnets, secGroups$])
       .pipe(takeUntil(this.destroy$))
       .subscribe(([availableSubnets, securityGroups]) => {
         return this.setState({ availableSubnets, securityGroups });

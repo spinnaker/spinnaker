@@ -114,7 +114,7 @@ export class Application {
     dataSourceConfigs: Array<IDataSourceConfig<any>>,
   ) {
     dataSourceConfigs.forEach((config) => this.addDataSource(config));
-    this.status$ = observableCombineLatest(this.dataSources.map((ds) => ds.status$)).pipe(
+    this.status$ = observableCombineLatest([this.dataSources.map((ds) => ds.status$)]).pipe(
       map((statuses) => this.getDerivedApplicationStatus(statuses)),
     );
   }

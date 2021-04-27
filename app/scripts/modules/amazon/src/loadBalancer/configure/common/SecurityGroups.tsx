@@ -122,7 +122,7 @@ export class SecurityGroups
       distinctUntilChanged(),
     );
 
-    const availableSecurityGroups$ = observableCombineLatest(vpcId$, allSecurityGroups$).pipe(
+    const availableSecurityGroups$ = observableCombineLatest([vpcId$, allSecurityGroups$]).pipe(
       withLatestFrom(formValues$),
       map(([[vpcId, allSecurityGroups], formValues]) => {
         const forAccount = allSecurityGroups[formValues.credentials] || {};

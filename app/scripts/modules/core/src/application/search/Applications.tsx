@@ -79,7 +79,7 @@ export class Applications extends React.Component<{}, IApplicationsState> {
         map((apps) => apps.map((app) => this.fixAccount(app))),
 
         // Apply filter/sort
-        combineLatest(this.filter$, this.sort$),
+        combineLatest([this.filter$, this.sort$]),
         map(([apps, filter, sort]) => {
           const viewState: IViewState = { filter, sort };
           this.applicationsCache.put('#global', viewState);
@@ -87,7 +87,7 @@ export class Applications extends React.Component<{}, IApplicationsState> {
         }),
 
         // validate and update pagination
-        combineLatest(this.pagination$.pipe(distinctUntilChanged(isEqual))),
+        combineLatest([this.pagination$.pipe(distinctUntilChanged(isEqual))]),
         map(([applications, pagination]) => {
           const lastPage = Math.floor(applications.length / pagination.itemsPerPage) + 1;
           const currentPage = Math.min(pagination.currentPage, lastPage);

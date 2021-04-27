@@ -121,13 +121,13 @@ export class FunctionBasicInformation
 
     const allAccounts$ = observableFrom(AccountService.listAccounts('aws')).pipe(shareReplay(1));
     // combineLatest with allAccounts to wait for accounts to load and be cached
-    const accountRegions$ = observableCombineLatest(form.account$, allAccounts$).pipe(
+    const accountRegions$ = observableCombineLatest([form.account$, allAccounts$]).pipe(
       switchMap(([currentAccount, _allAccounts]) => AccountService.getRegionsForAccount(currentAccount)),
       shareReplay(1),
     );
 
     const allFunctions$ = this.props.app.getDataSource('functions').data$ as Observable<IAmazonFunction[]>;
-    const regionfunctions$ = observableCombineLatest(allFunctions$, form.account$, form.region$).pipe(
+    const regionfunctions$ = observableCombineLatest([allFunctions$, form.account$, form.region$]).pipe(
       map(([allFunctions, currentAccount, currentRegion]) => {
         return allFunctions
           .filter((fn) => fn.account === currentAccount && fn.region === currentRegion)
@@ -145,7 +145,7 @@ export class FunctionBasicInformation
         }
       });
 
-    observableCombineLatest(allAccounts$, accountRegions$, regionfunctions$)
+    observableCombineLatest([allAccounts$, accountRegions$, regionfunctions$])
       .pipe(takeUntil(this.destroy$))
       .subscribe(([accounts, regions, existingFunctionNames]) => {
         return this.setState({ accounts, regions, existingFunctionNames });

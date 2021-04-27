@@ -152,13 +152,13 @@ export class LoadBalancerLocation
     const allAccounts$ = observableFrom(AccountService.listAccounts('aws')).pipe(shareReplay(1));
 
     // combineLatest with allAccounts to wait for accounts to load and be cached
-    const accountRegions$ = observableCombineLatest(form.account$, allAccounts$).pipe(
+    const accountRegions$ = observableCombineLatest([form.account$, allAccounts$]).pipe(
       switchMap(([currentAccount, _allAccounts]) => AccountService.getRegionsForAccount(currentAccount)),
       shareReplay(1),
     );
 
     const allLoadBalancers$ = this.props.app.getDataSource('loadBalancers').data$ as Observable<IAmazonLoadBalancer[]>;
-    const regionLoadBalancers$ = observableCombineLatest(allLoadBalancers$, form.account$, form.region$).pipe(
+    const regionLoadBalancers$ = observableCombineLatest([allLoadBalancers$, form.account$, form.region$]).pipe(
       map(([allLoadBalancers, currentAccount, currentRegion]) => {
         return allLoadBalancers
           .filter((lb) => lb.account === currentAccount && lb.region === currentRegion)
@@ -167,13 +167,13 @@ export class LoadBalancerLocation
       shareReplay(1),
     );
 
-    const regionSubnets$ = observableCombineLatest(form.account$, form.region$).pipe(
+    const regionSubnets$ = observableCombineLatest([form.account$, form.region$]).pipe(
       switchMap(([currentAccount, currentRegion]) => this.getAvailableSubnets(currentAccount, currentRegion)),
       map((availableSubnets) => this.makeSubnetOptions(availableSubnets)),
       shareReplay(1),
     );
 
-    const subnet$ = observableCombineLatest(regionSubnets$, form.subnetPurpose$).pipe(
+    const subnet$ = observableCombineLatest([regionSubnets$, form.subnetPurpose$]).pipe(
       map(([allSubnets, subnetPurpose]) => allSubnets && allSubnets.find((subnet) => subnet.purpose === subnetPurpose)),
     );
 
@@ -187,7 +187,7 @@ export class LoadBalancerLocation
       map((region) => (region ? region.availabilityZones : [])),
     );
 
-    const moniker$ = observableCombineLatest(appName$, form.stack$, form.detail$).pipe(
+    const moniker$ = observableCombineLatest([appName$, form.stack$, form.detail$]).pipe(
       map(([app, stack, detail]) => {
         return { app, stack, detail, cluster: NameUtils.getClusterName(app, stack, detail) } as IMoniker;
       }),
@@ -220,7 +220,7 @@ export class LoadBalancerLocation
       this.props.formik.setFieldValue('name', moniker.cluster);
     });
 
-    observableCombineLatest(allAccounts$, accountRegions$, availabilityZones$, regionLoadBalancers$, regionSubnets$)
+    observableCombineLatest([allAccounts$, accountRegions$, availabilityZones$, regionLoadBalancers$, regionSubnets$])
       .pipe(takeUntil(this.destroy$))
       .subscribe(([accounts, regions, availabilityZones, existingLoadBalancerNames, subnets]) => {
         return this.setState({ accounts, regions, availabilityZones, existingLoadBalancerNames, subnets });

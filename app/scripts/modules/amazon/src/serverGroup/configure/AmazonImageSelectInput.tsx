@@ -145,7 +145,7 @@ export class AmazonImageSelectInput extends React.Component<IAmazonImageSelector
     );
 
     const packageImagesInRegion$ = packageImages$.pipe(
-      combineLatest(region$, this.sortImagesBy$),
+      combineLatest([region$, this.sortImagesBy$]),
       map(([packageImages, latestRegion, sortImagesBy]) => {
         const images = packageImages.filter((img) => !!img.amis[latestRegion]);
         return this.sortImages(images, sortImagesBy);
@@ -170,7 +170,7 @@ export class AmazonImageSelectInput extends React.Component<IAmazonImageSelector
     );
 
     const searchImagesInRegion$ = searchImages$.pipe(
-      combineLatest(region$, this.sortImagesBy$),
+      combineLatest([region$, this.sortImagesBy$]),
       map(([searchResults, latestRegion, sortImagesBy]) => {
         const { searchString } = this.state;
         // allow 'advanced' users to continue with just an ami id (backing image may not have been indexed yet)
