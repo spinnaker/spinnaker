@@ -209,7 +209,7 @@ class GetCommitsTask implements DiffTask {
       ServerGroup sourceServerGroup = cloudDriverService.getServerGroupFromCluster(context.application,
         account, sourceCluster,
         ancestorAsg, region, "aws")
-      return sourceServerGroup.launchConfig.imageId
+      return sourceServerGroup.launchConfig?.imageId
     }
   }
 
