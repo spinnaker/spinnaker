@@ -1,6 +1,7 @@
 ///<reference path="./core/src/types/index.d.ts" />
 /* eslint-disable @spinnaker/import-sort */
 import 'jquery'; // ensures jQuery is loaded before Angular so Angular does not use jqlite
+import 'rxjs-compat';
 import { module } from 'angular';
 import './strictDi';
 
