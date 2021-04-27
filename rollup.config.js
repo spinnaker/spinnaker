@@ -6,7 +6,7 @@ const basePluginConfig = require('@spinnaker/pluginsdk/pluginconfig/rollup.confi
 basePluginConfig.plugins = basePluginConfig.plugins.filter((x) => x.name !== 'rollup-plugin-external-globals');
 basePluginConfig.plugins.push(angularJsTemplateLoader({ sourceMap: true }));
 
-const external = [
+const externals = [
   'angular',
   '@spinnaker/core',
   '@uirouter/react',
@@ -18,11 +18,12 @@ const external = [
   'react',
   'react-dom',
   'rxjs',
-  'rxjs/Observable',
   'semiotic',
 ];
 
 basePluginConfig.input = 'src/index.ts';
-basePluginConfig.external = external;
+basePluginConfig.external = function (id) {
+  return externals.includes(id) || id.startsWith('rxjs/');
+};
 
 export default basePluginConfig;
