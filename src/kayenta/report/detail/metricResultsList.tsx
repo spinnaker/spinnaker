@@ -29,19 +29,36 @@ interface IResultsListStateProps {
 export interface IMetricResultsTableRow {
   metricName: string;
   results: ICanaryAnalysisResult[];
+  hasMultipleRows: boolean;
 }
 
 const buildTableRows = (
   results: ICanaryAnalysisResult[],
   metricFilters: MetricClassificationLabel[],
 ): IMetricResultsTableRow[] => {
+  const unfilteredCounts = results.reduce((map, result) => {
+    if (!map.has(result.name)) {
+      map.set(result.name, 0);
+    }
+    map.set(result.name, map.get(result.name) + 1);
+    return map;
+  }, new Map<string, number>());
+
   const tableRowsByMetricName = results
     .filter((result) => !metricFilters.length || metricFilters.includes(result.classification))
     .reduce(
       (map, result) =>
         map.has(result.name)
-          ? map.set(result.name, { metricName: result.name, results: map.get(result.name).results.concat(result) })
-          : map.set(result.name, { metricName: result.name, results: [result] }),
+          ? map.set(result.name, {
+              metricName: result.name,
+              results: map.get(result.name).results.concat(result),
+              hasMultipleRows: unfilteredCounts.get(result.name) > 1,
+            })
+          : map.set(result.name, {
+              metricName: result.name,
+              results: [result],
+              hasMultipleRows: unfilteredCounts.get(result.name) > 1,
+            }),
       new Map<string, IMetricResultsTableRow>(),
     );
 
@@ -49,7 +66,7 @@ const buildTableRows = (
 };
 
 const buildRowForMetricWithMultipleResults = (row: IMetricResultsTableRow) => {
-  if (row.results.length < 2) {
+  if (!row.hasMultipleRows) {
     return null;
   }
 
