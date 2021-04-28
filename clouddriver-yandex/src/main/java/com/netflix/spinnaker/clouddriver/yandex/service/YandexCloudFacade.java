@@ -323,7 +323,7 @@ public class YandexCloudFacade {
           credentials,
           phase);
     } catch (StatusRuntimeException e) {
-      if (e.getStatus() != Status.INVALID_ARGUMENT) {
+      if (e.getStatus().getCode() != Status.Code.INVALID_ARGUMENT) {
         throw e;
       }
     }

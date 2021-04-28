@@ -46,7 +46,7 @@ public abstract class AbstractYandexDeployTest {
           .modules(new JavaTimeModule())
           .build();
 
-  public AbstractYandexDeployTest() {
+  protected AbstractYandexDeployTest() {
     ACCOUNTS.forEach(
         account -> accountCredentialsRepository.update(account, createCredentials(account)));
   }

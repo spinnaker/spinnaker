@@ -30,6 +30,7 @@ public class YandexConfigurationProperties {
   @Data
   public static class Account {
     private String endpoint;
+    private String iamEndpoint;
     private String name;
     private String folder;
     private String environment;

@@ -111,10 +111,7 @@ public class YandexImageController {
                 (a, b) -> b));
   }
 
-  /**
-   * in deck we use only <code>imageId</code> and <code>imageName</code> todo: rename properties in
-   * deck and remove class
-   */
+  /** Used in deck and orca, probably better rename in <code>YandexCloudImage</code> */
   @Data
   @AllArgsConstructor
   public static class YandexImage {

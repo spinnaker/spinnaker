@@ -26,6 +26,7 @@ import com.google.protobuf.FieldMask;
 import com.netflix.spinnaker.clouddriver.yandex.deploy.description.YandexInstanceGroupDescription;
 import com.netflix.spinnaker.clouddriver.yandex.model.YandexCloudServerGroup;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
@@ -81,7 +82,17 @@ public class YandexInstanceGroupConverter {
     UpdateInstanceGroupRequest.Builder builder =
         UpdateInstanceGroupRequest.newBuilder()
             .setInstanceGroupId(igID)
-            //        .setUpdateMask(FieldMask.newBuilder().addPaths()) // todo:
+            .setUpdateMask(
+                FieldMask.newBuilder()
+                    .addAllPaths(
+                        Arrays.asList(
+                            "name",
+                            "labels",
+                            "instance_template",
+                            "scale_policy",
+                            "deploy_policy",
+                            "allocation_policy",
+                            "health_checks_spec")))
             .setInstanceTemplate(mapInstanceTemplate(description.getInstanceTemplate()))
             .setScalePolicy(
                 mapScalePolicy(description.getAutoScalePolicy(), description.getTargetSize()))
@@ -112,15 +123,6 @@ public class YandexInstanceGroupConverter {
     //              description.getBalancers()));
     //      }
     //    }
-    if (description.getBalancers() != null) {
-      builder.setLoadBalancerSpec(mapLoadBalancerSpec(description.getTargetGroupSpec()));
-      builder
-          .getInstanceTemplateBuilder()
-          .putMetadata(
-              YandexCloudServerGroup.LOAD_BALANCERS_SPECS,
-              YandexCloudServerGroup.serializeLoadBalancersWithHealthChecks(
-                  description.getBalancers()));
-    }
     return builder.build();
   }
 

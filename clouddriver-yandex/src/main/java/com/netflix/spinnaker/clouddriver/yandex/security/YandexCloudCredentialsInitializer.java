@@ -69,10 +69,14 @@ public class YandexCloudCredentialsInitializer implements CredentialsInitializer
   }
 
   private static ServiceFactory makeJDKConfig(YandexConfigurationProperties.Account account) {
+    var credProvider = Auth.apiKeyBuilder().fromFile(Paths.get(account.getJsonPath()));
+    if (account.getIamEndpoint() != null) {
+      credProvider.cloudIAMEndpoint(account.getIamEndpoint());
+    }
     return ServiceFactory.builder()
         .endpoint(
             account.getEndpoint() != null ? account.getEndpoint() : ChannelFactory.DEFAULT_ENDPOINT)
-        .credentialProvider(Auth.apiKeyBuilder().fromFile(Paths.get(account.getJsonPath())))
+        .credentialProvider(credProvider)
         .requestTimeout(Duration.ofMinutes(1))
         .build();
   }
