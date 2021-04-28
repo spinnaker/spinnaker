@@ -68,8 +68,8 @@ export class AccountService {
 
   public static initialize(): void {
     this.accounts$ = observableDefer(() => {
-      const promise = REST('/credentials').useCache().query({ expand: true }).get();
-      return observableFrom<IAccountDetails[]>(promise);
+      const promise = REST('/credentials').useCache().query({ expand: true }).get<IAccountDetails[]>();
+      return observableFrom(promise);
     }).pipe(publishReplay(1), refCount());
 
     this.providers$ = AccountService.accounts$.pipe(

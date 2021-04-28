@@ -50,6 +50,6 @@ export abstract class SearchResultType<T extends ISearchResult = ISearchResult> 
       searchParams.allowShortQuery = 'true';
     }
 
-    return observableFrom(SearchService.search(searchParams));
+    return observableFrom(SearchService.search<T>(searchParams));
   }
 }

@@ -2,7 +2,8 @@ import { isEqual } from 'lodash';
 import React from 'react';
 import { SelectCallback } from 'react-bootstrap';
 import { BehaviorSubject, from as observableFrom, Subject } from 'rxjs';
-import { combineLatest, distinctUntilChanged, map, takeUntil } from 'rxjs/operators';
+import { combineLatest as observableCombineLatest } from 'rxjs';
+import { distinctUntilChanged, map, takeUntil } from 'rxjs/operators';
 
 import { IAccount } from 'core/account';
 import { ICache, ViewStateCache } from 'core/cache';
@@ -74,20 +75,22 @@ export class Applications extends React.Component<{}, IApplicationsState> {
       return (a[key] || '').localeCompare(b[key] || '') * (reverse ? -1 : 1);
     };
 
-    observableFrom(ApplicationReader.listApplications())
+    const applicationSummaries$ = observableFrom(ApplicationReader.listApplications()).pipe(
+      map((apps) => apps.map((app) => this.fixAccount(app))),
+    );
+
+    const filteredApps$ = observableCombineLatest([applicationSummaries$, this.filter$, this.sort$]).pipe(
+      // Apply filter/sort
+      map(([apps, filter, sort]) => {
+        const viewState: IViewState = { filter, sort };
+        this.applicationsCache.put('#global', viewState);
+        return apps.filter((app) => appMatchesQuery(filter, app)).sort((a, b) => appSort(sort, a, b));
+      }),
+    );
+
+    // validate and update pagination
+    observableCombineLatest([filteredApps$, this.pagination$.pipe(distinctUntilChanged(isEqual))])
       .pipe(
-        map((apps) => apps.map((app) => this.fixAccount(app))),
-
-        // Apply filter/sort
-        combineLatest([this.filter$, this.sort$]),
-        map(([apps, filter, sort]) => {
-          const viewState: IViewState = { filter, sort };
-          this.applicationsCache.put('#global', viewState);
-          return apps.filter((app) => appMatchesQuery(filter, app)).sort((a, b) => appSort(sort, a, b));
-        }),
-
-        // validate and update pagination
-        combineLatest([this.pagination$.pipe(distinctUntilChanged(isEqual))]),
         map(([applications, pagination]) => {
           const lastPage = Math.floor(applications.length / pagination.itemsPerPage) + 1;
           const currentPage = Math.min(pagination.currentPage, lastPage);
@@ -95,7 +98,6 @@ export class Applications extends React.Component<{}, IApplicationsState> {
           const validatedPagination = { ...pagination, currentPage, maxSize } as IApplicationPagination;
           return { applications, pagination: validatedPagination };
         }),
-
         takeUntil(this.destroy$),
       )
       .subscribe(

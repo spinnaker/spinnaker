@@ -1,17 +1,14 @@
 import { $q } from 'ngimport';
 import React from 'react';
 import { HandlerRendererResult, MenuRendererProps, Option, OptionValues, ReactSelectProps } from 'react-select';
-import { BehaviorSubject, from as observableFrom, of as observableOf, Subject } from 'rxjs';
 import {
-  catchError,
-  combineLatest,
-  debounceTime,
-  distinctUntilChanged,
-  map,
-  switchMap,
-  takeUntil,
-  tap,
-} from 'rxjs/operators';
+  BehaviorSubject,
+  combineLatest as observableCombineLatest,
+  from as observableFrom,
+  of as observableOf,
+  Subject,
+} from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { Application, HelpField, TetheredSelect, ValidationMessage } from '@spinnaker/core';
 import { AwsImageReader, IAmazonImage } from 'amazon/image';
@@ -144,8 +141,7 @@ export class AmazonImageSelectInput extends React.Component<IAmazonImageSelector
       tap(() => this.setState({ isLoadingPackageImages: false })),
     );
 
-    const packageImagesInRegion$ = packageImages$.pipe(
-      combineLatest([region$, this.sortImagesBy$]),
+    const packageImagesInRegion$ = observableCombineLatest([packageImages$, region$, this.sortImagesBy$]).pipe(
       map(([packageImages, latestRegion, sortImagesBy]) => {
         const images = packageImages.filter((img) => !!img.amis[latestRegion]);
         return this.sortImages(images, sortImagesBy);
@@ -169,8 +165,7 @@ export class AmazonImageSelectInput extends React.Component<IAmazonImageSelector
       tap(() => this.setState({ isSearching: false })),
     );
 
-    const searchImagesInRegion$ = searchImages$.pipe(
-      combineLatest([region$, this.sortImagesBy$]),
+    const searchImagesInRegion$ = observableCombineLatest([searchImages$, region$, this.sortImagesBy$]).pipe(
       map(([searchResults, latestRegion, sortImagesBy]) => {
         const { searchString } = this.state;
         // allow 'advanced' users to continue with just an ami id (backing image may not have been indexed yet)
