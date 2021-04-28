@@ -445,7 +445,11 @@ class SqlCache(
       jooq
         .select(field("id"))
         .from(table(sqlNames.resourceTableName(type)))
-        .where(field("id").like(glob.replace('*', '%')))
+        // The underscore is treated as a single character wildcard in currently supported sql backends (mysql/psql)
+        // leading to inconsistencies in current usages of `filterIdentifiers()`.
+        //
+        // If single character wildcard is desired, use '?' rather than '_'.
+        .where(field("id").like(glob.replace('*', '%').replace("_", """\_""")))
     }
 
     val ids = try {
