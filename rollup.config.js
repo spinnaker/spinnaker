@@ -17,13 +17,12 @@ const externals = [
   'prop-types',
   'react',
   'react-dom',
-  'rxjs',
   'semiotic',
 ];
 
 basePluginConfig.input = 'src/index.ts';
 basePluginConfig.external = function (id) {
-  return externals.includes(id) || id.startsWith('rxjs/');
+  return externals.includes(id);
 };
 
 export default basePluginConfig;
