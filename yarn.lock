@@ -3178,10 +3178,10 @@
   dependencies:
     lodash "^4.17.20"
 
-"@spinnaker/kayenta@1.0.4":
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-1.0.4.tgz#fc01131a2505cf019e712c8a645844a1ffbf2d5a"
-  integrity sha512-SjY1OE21FAoEl+3TC9tOWkqs8LAmyem6zrwPITQJjlTfnxWmSu6ZbUulcCclviJT6zT2OGv+9JFceNSXGVpSHA==
+"@spinnaker/kayenta@1.0.5":
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-1.0.5.tgz#ef5200cbbf8be552fbd800935e0fd8b86eff577a"
+  integrity sha512-yCoDmnl/NqL6tTyXsRYGFBsonopAPAst/VQSGp3fUyjaf1hnYvGwZlTSPTAN1XzzeiEJg3PjIFTIyqb79uikjQ==
   dependencies:
     "@uirouter/core" "6.0.4"
     "@uirouter/react" "1.0.2"
