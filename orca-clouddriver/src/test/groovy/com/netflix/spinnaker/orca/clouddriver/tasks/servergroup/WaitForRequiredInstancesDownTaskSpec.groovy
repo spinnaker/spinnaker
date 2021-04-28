@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
@@ -41,8 +42,7 @@ class WaitForRequiredInstancesDownTaskSpec extends Specification {
   void "should fetch server groups"() {
     given:
     def pipeline = PipelineExecutionImpl.newPipeline("orca")
-    task.objectMapper = mapper
-    def response = mapper.writeValueAsString([
+    def response = [
           region   : 'us-east-1',
           name     : 'front50-v000',
           asg      : [
@@ -53,10 +53,10 @@ class WaitForRequiredInstancesDownTaskSpec extends Specification {
               health: [[state: 'Down']]
             ]
           ]
-      ])
+      ]
 
-    task.oortService = Stub(OortService) {
-      getServerGroup(*_) >> new Response('oort', 200, 'ok', [], new TypedString(response))
+    task.cloudDriverService = Stub(CloudDriverService) {
+      getServerGroup(*_) >> response
     }
     task.serverGroupCacheForceRefreshTask = Mock(ServerGroupCacheForceRefreshTask) {
       2 * execute(_) >> TaskResult.ofStatus(ExecutionStatus.SUCCEEDED)

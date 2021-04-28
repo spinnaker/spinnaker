@@ -142,7 +142,8 @@ public class DelegatingOortService extends DelegatingClouddriverService<OortServ
   }
 
   @Override
-  public List<Map> getByAmiId(String type, String account, String region, Object imageId) {
+  public List<Map<String, Object>> getByAmiId(
+      String type, String account, String region, Object imageId) {
     return getService().getByAmiId(type, account, region, imageId);
   }
 
@@ -153,7 +154,7 @@ public class DelegatingOortService extends DelegatingClouddriverService<OortServ
   }
 
   @Override
-  public List<Map> getEntityTags(
+  public List<Map<String, Object>> getEntityTags(
       String cloudProvider, String entityType, String entityId, String account, String region) {
     return getService().getEntityTags(cloudProvider, entityType, entityId, account, region);
   }

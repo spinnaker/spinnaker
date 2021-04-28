@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.igor.tasks
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
@@ -30,6 +31,7 @@ import com.netflix.spinnaker.orca.test.model.ExecutionBuilder
 import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.mime.TypedString
+import spock.lang.IgnoreRest
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -42,9 +44,9 @@ class GetCommitsTaskSpec extends Specification {
   @Subject
   GetCommitsTask task = new GetCommitsTask()
 
-  ScmService scmService = Mock(ScmService)
-  OortService oortService = Mock(OortService)
-  Front50Service front50Service = Mock(Front50Service)
+  ScmService scmService = Mock()
+  CloudDriverService cloudDriverService = Mock()
+  Front50Service front50Service = Mock()
 
   @Shared
   def pipeline = ExecutionBuilder.pipeline {}
@@ -69,11 +71,11 @@ class GetCommitsTaskSpec extends Specification {
   def "get commits from a deploy stage"() {
     given:
     String katoTasks = "[{\"resultObjects\": [" +
-      "{\"ancestorServerGroupNameByRegion\": { \"${region}\":\"${serverGroup}\"}}," +
-      "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
+        "{\"ancestorServerGroupNameByRegion\": { \"${region}\":\"${serverGroup}\"}}," +
+        "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
     def katoMap = getObjectMapper().readValue(katoTasks, List)
     def contextMap = [application: app, account: account,
-                      source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[imageId: "ami-foo", ami: "amiFooName", region: "us-east-1"], [imageId: targetImage, ami: targetImageName, region: region]], "kato.tasks": katoMap]
+                      source: [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[imageId: "ami-foo", ami: "amiFooName", region: "us-east-1"], [imageId: targetImage, ami: targetImageName, region: region]], "kato.tasks": katoMap]
     def stage = setupGetCommits(contextMap, account, app, sourceImage, targetImage, region, cluster, serverGroup)
 
     when:
@@ -101,11 +103,11 @@ class GetCommitsTaskSpec extends Specification {
   def "get commits from a copy last asg stage"() {
     given:
     String katoTasks = "[{\"resultObjects\": [" +
-      "{\"ancestorServerGroupNameByRegion\": { \"${region}\":\"${serverGroup}\"}}," +
-      "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
+        "{\"ancestorServerGroupNameByRegion\": { \"${region}\":\"${serverGroup}\"}}," +
+        "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
     def katoMap = getObjectMapper().readValue(katoTasks, List)
     def contextMap = [application: app, account: account,
-                      source     : [asgName: serverGroup, region: region, account: account], imageId: targetImage, amiName: targetImageName, "kato.tasks": katoMap]
+                      source: [asgName: serverGroup, region: region, account: account], imageId: targetImage, amiName: targetImageName, "kato.tasks": katoMap]
     def stage = setupGetCommits(contextMap, account, app, sourceImage, targetImageName, region, cluster, serverGroup)
 
     when:
@@ -129,10 +131,10 @@ class GetCommitsTaskSpec extends Specification {
 
   def "get commits from a single region canary stage"() {
     given:
-    def contextMap = [application : app, account: account,
-                      source      : [asgName: serverGroup, region: region, account: account],
+    def contextMap = [application: app, account: account,
+                      source: [asgName: serverGroup, region: region, account: account],
                       clusterPairs:
-                        [[baseline: [amiName: sourceImage, availabilityZones: [(region): ["${region}-1c"]]], canary: [imageId: targetImage, amiName: targetImageName, availabilityZones: [(region): ["${region}-1c"]]]]]
+                          [[baseline: [amiName: sourceImage, availabilityZones: [(region): ["${region}-1c"]]], canary: [imageId: targetImage, amiName: targetImageName, availabilityZones: [(region): ["${region}-1c"]]]]]
     ]
     def stage = setupGetCommits(contextMap, account, app, sourceImage, targetImageName, region, cluster, serverGroup, 0)
 
@@ -157,12 +159,12 @@ class GetCommitsTaskSpec extends Specification {
 
   def "get commits from a multi-region canary stage"() {
     given:
-    def contextMap = [application : app, account: account,
-                      source      : [asgName: serverGroup, region: region, account: account],
+    def contextMap = [application: app, account: account,
+                      source: [asgName: serverGroup, region: region, account: account],
                       clusterPairs: [
-                        [baseline: [amiName: "ami-fake", availabilityZones: ["us-east-1": ["us-east-1-1c"]]], canary: [amiName: "ami-fake2", availabilityZones: ["us-east-1": ["us-east-1-1c"]]]],
-                        [baseline: [amiName: sourceImage, availabilityZones: [(region): ["${region}-1c"]]], canary: [amiName: targetImage, availabilityZones: [(region): ["${region}-1c"]]]],
-                        [baseline: [amiName: "ami-fake3", availabilityZones: ["eu-west-1": ["eu-west-1-1c"]]], canary: [amiName: "ami-fake4", availabilityZones: ["eu-west-1": ["eu-west-1-1c"]]]]
+                          [baseline: [amiName: "ami-fake", availabilityZones: ["us-east-1": ["us-east-1-1c"]]], canary: [amiName: "ami-fake2", availabilityZones: ["us-east-1": ["us-east-1-1c"]]]],
+                          [baseline: [amiName: sourceImage, availabilityZones: [(region): ["${region}-1c"]]], canary: [amiName: targetImage, availabilityZones: [(region): ["${region}-1c"]]]],
+                          [baseline: [amiName: "ami-fake3", availabilityZones: ["eu-west-1": ["eu-west-1-1c"]]], canary: [amiName: "ami-fake4", availabilityZones: ["eu-west-1": ["eu-west-1-1c"]]]]
                       ]
     ]
     def stage = setupGetCommits(contextMap, account, app, sourceImage, targetImage, region, cluster, serverGroup, 0)
@@ -197,15 +199,13 @@ class GetCommitsTaskSpec extends Specification {
     task.front50Service = front50Service
     1 * front50Service.get(app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash")
 
-    task.objectMapper = getObjectMapper()
-    def oortResponse = "{\"launchConfig\" : {\"imageId\" : \"${sourceImage}\"}}".stripIndent()
-    Response response = new Response('http://oort', 200, 'OK', [], new TypedString(oortResponse))
-    task.oortService = oortService
-    serverGroupCalls * oortService.getServerGroupFromCluster(app, account, cluster, serverGroup, region, "aws") >> response
+    def oortResponse = [launchConfig: [imageId: sourceImage]]
+    task.cloudDriverService = cloudDriverService
+    serverGroupCalls * cloudDriverService.getServerGroupFromCluster(app, account, cluster, serverGroup, region, "aws") >> oortResponse
     List<Map> sourceResponse = [["tags": ["appversion": "myapp-1.143-h216.186605b/MYAPP-package-myapp/216"]]]
     List<Map> targetResponse = [["tags": ["appversion": "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217"]]]
-    oortCalls * oortService.getByAmiId("aws", account, region, sourceImage) >> sourceResponse
-    oortCalls * oortService.getByAmiId("aws", account, region, targetImage) >> targetResponse
+    oortCalls * cloudDriverService.getByAmiId("aws", account, region, sourceImage) >> sourceResponse
+    oortCalls * cloudDriverService.getByAmiId("aws", account, region, targetImage) >> targetResponse
     return stage
   }
 
@@ -228,30 +228,29 @@ class GetCommitsTaskSpec extends Specification {
     return true
   }
 
+  @Unroll
   def "returns running where there is an error talking to igor"() {
     given:
     String katoTasks = "[{\"resultObjects\": [" +
-      "{\"ancestorServerGroupNameByRegion\": { \"${region}\":\"${serverGroup}\"}}," +
-      "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
+        "{\"ancestorServerGroupNameByRegion\": { \"${region}\":\"${serverGroup}\"}}," +
+        "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
     def katoMap = getObjectMapper().readValue(katoTasks, List)
     def stage = new StageExecutionImpl(pipeline, "stash", [application: app, account: account,
-                                                           source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [imageId: targetImage, ami: targetImageName, region: region]], "kato.tasks": katoMap])
+                                                           source: [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [imageId: targetImage, ami: targetImageName, region: region]], "kato.tasks": katoMap])
 
     and:
     task.front50Service = front50Service
     1 * front50Service.get(app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash")
 
     and:
-    task.objectMapper = getObjectMapper()
-    def oortResponse = "{\"launchConfig\" : {\"imageId\" : \"${sourceImage}\"}}".stripIndent()
-    Response response = new Response('http://oort', 200, 'OK', [], new TypedString(oortResponse))
+    def response = [launchConfig: [imageId: sourceImage]]
     List<Map> sourceResponse = [["tags": ["appversion": "myapp-1.143-h216.186605b/MYAPP-package-myapp/216"]]]
     List<Map> targetResponse = [["tags": ["appversion": "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217"]]]
 
-    task.oortService = oortService
-    1 * oortService.getServerGroupFromCluster(app, account, cluster, serverGroup, region, "aws") >> response
-    1 * oortService.getByAmiId("aws", account, region, sourceImage) >> sourceResponse
-    1 * oortService.getByAmiId("aws", account, region, targetImage) >> targetResponse
+    task.cloudDriverService = cloudDriverService
+    1 * cloudDriverService.getServerGroupFromCluster(app, account, cluster, serverGroup, region, "aws") >> response
+    1 * cloudDriverService.getByAmiId("aws", account, region, sourceImage) >> sourceResponse
+    1 * cloudDriverService.getByAmiId("aws", account, region, targetImage) >> targetResponse
 
     and:
     task.scmService = scmService
@@ -262,7 +261,7 @@ class GetCommitsTaskSpec extends Specification {
     then:
     1 * scmService.compareCommits("stash", "projectKey", "repositorySlug", ['to': '186605b', 'from': 'a86305d', 'limit': 100]) >> {
       throw new RetrofitError(null, null,
-        new Response("http://stash.com", 500, "test reason", [], null), null, null, null, null)
+          new Response("http://stash.com", 500, "test reason", [], null), null, null, null, null)
     }
     result.status == taskStatus
 
@@ -308,8 +307,8 @@ class GetCommitsTaskSpec extends Specification {
 
   def "return info from ami or empty map if not in the right format"() {
     given:
-    task.oortService = oortService
-    1 * oortService.getByAmiId("aws", account, region, image) >> [["tags": ["appversion": appVersion]]]
+    task.cloudDriverService = cloudDriverService
+    1 * cloudDriverService.getByAmiId("aws", account, region, image) >> [["tags": ["appversion": appVersion]]]
 
     when:
     Map result = task.resolveInfoFromAmi(image, account, region)
@@ -332,11 +331,11 @@ class GetCommitsTaskSpec extends Specification {
   def "returns success if commit info is missing"() {
     given:
     String katoTasks = "[{\"resultObjects\": [" +
-      "{\"ancestorServerGroupNameByRegion\": { \"${region}\":\"${serverGroup}\"}}," +
-      "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
+        "{\"ancestorServerGroupNameByRegion\": { \"${region}\":\"${serverGroup}\"}}," +
+        "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
     def katoMap = getObjectMapper().readValue(katoTasks, List)
     def stage = new StageExecutionImpl(pipeline, "stash", [application: app, account: account,
-                                                           source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImageName, imageId: targetImage, region: region]], "kato.tasks": katoMap])
+                                                           source: [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImageName, imageId: targetImage, region: region]], "kato.tasks": katoMap])
 
     and:
     task.scmService = Stub(ScmService) {
@@ -349,13 +348,11 @@ class GetCommitsTaskSpec extends Specification {
     1 * front50Service.get(app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash")
 
     and:
-    task.objectMapper = getObjectMapper()
-    def oortResponse = "{\"launchConfig\" : {\"imageId\" : \"${sourceImage}\"}}".stripIndent()
-    Response response = new Response('http://oort', 200, 'OK', [], new TypedString(oortResponse))
-    task.oortService = oortService
-    1 * oortService.getServerGroupFromCluster(app, account, cluster, serverGroup, region, "aws") >> response
-    oortService.getByAmiId("aws", account, region, sourceImage) >> sourceTags
-    oortService.getByAmiId("aws", account, region, targetImage) >> targetTags
+    def response = [launchConfig: [imageId: sourceImage]]
+    task.cloudDriverService = cloudDriverService
+    1 * cloudDriverService.getServerGroupFromCluster(app, account, cluster, serverGroup, region, "aws") >> response
+    cloudDriverService.getByAmiId("aws", account, region, sourceImage) >> sourceTags
+    cloudDriverService.getByAmiId("aws", account, region, targetImage) >> targetTags
 
     when:
     def result = task.execute(stage)
@@ -378,14 +375,15 @@ class GetCommitsTaskSpec extends Specification {
     "myapp" | "myapp-v001" | "myapp-v002" | [["tags": []]] | [["tags": ["appversion": "myapp-1.143-h216.186605b/MYAPP-package-myapp/216"]]]
   }
 
+  @Unroll
   def "oort service 404 results in success"() {
     given:
     String katoTasks = "[{\"resultObjects\": [" +
-      "{\"ancestorServerGroupNameByRegion\": { \"${region}\":\"${serverGroup}\"}}," +
-      "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
+        "{\"ancestorServerGroupNameByRegion\": { \"${region}\":\"${serverGroup}\"}}," +
+        "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
     def katoMap = getObjectMapper().readValue(katoTasks, List)
     def stage = new StageExecutionImpl(pipeline, "stash", [application: app, account: account,
-                                                           source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImageName, imageId: targetImage, region: region]], "kato.tasks": katoMap])
+                                                           source: [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImageName, imageId: targetImage, region: region]], "kato.tasks": katoMap])
 
     and:
     task.scmService = Stub(ScmService) {
@@ -398,30 +396,24 @@ class GetCommitsTaskSpec extends Specification {
     1 * front50Service.get(app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash")
 
     and:
-    task.objectMapper = getObjectMapper()
-    def oortResponse = "{\"launchConfig\" : {\"imageId\" : \"${sourceImage}\"}}".stripIndent()
-    Response response = new Response('http://oort', 200, 'OK', [], new TypedString(oortResponse))
+    def response = [launchConfig: [imageId: sourceImage]]
     List<Map> sourceResponse = [["tags": ["appversion": "myapp-1.143-h216.186605b/MYAPP-package-myapp/216"]]]
     List<Map> targetResponse = [["tags": ["appversion": "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217"]]]
-    task.oortService = oortService
-    1 * oortService.getServerGroupFromCluster(app, account, cluster, serverGroup, region, "aws") >>> response
+    task.cloudDriverService = cloudDriverService
+    1 * cloudDriverService.getServerGroupFromCluster(app, account, cluster, serverGroup, region, "aws") >> response
 
-    if (sourceThrowRetrofitError) {
-      1 * oortService.getByAmiId("aws", account, region, sourceImage) >> {
+    1 * cloudDriverService.getByAmiId("aws", account, region, sourceImage) >> {
+      if (sourceThrowRetrofitError) {
         throw new RetrofitError(null, null, new Response("http://stash.com", 404, "test reason", [], null), null, null, null, null)
       }
-    } else {
-      1 * oortService.getByAmiId("aws", account, region, sourceImage) >> sourceResponse
-
+      return sourceResponse
     }
 
-    if (targetThrowRetrofitError) {
-      (sourceThrowRetrofitError ? 0 : 1) * oortService.getByAmiId("aws", account, region, targetImage) >> {
+    (sourceThrowRetrofitError ? 0 : 1) * cloudDriverService.getByAmiId("aws", account, region, targetImage) >> {
+      if (targetThrowRetrofitError) {
         throw new RetrofitError(null, null, new Response("http://stash.com", 404, "test reason", [], null), null, null, null, null)
       }
-    } else {
-      (sourceThrowRetrofitError ? 0 : 1) * oortService.getByAmiId("aws", account, region, targetImage) >> targetResponse
-
+      return targetResponse
     }
 
     when:
@@ -449,11 +441,11 @@ class GetCommitsTaskSpec extends Specification {
   def "igor service 404 results in success"() {
     given:
     String katoTasks = "[{\"resultObjects\": [" +
-      "{\"ancestorServerGroupNameByRegion\": { \"${region}\":\"${serverGroup}\"}}," +
-      "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
+        "{\"ancestorServerGroupNameByRegion\": { \"${region}\":\"${serverGroup}\"}}," +
+        "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
     def katoMap = getObjectMapper().readValue(katoTasks, List)
     def stage = new StageExecutionImpl(pipeline, "stash", [application: app, account: account,
-                                                           source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImageName, imageId: targetImage, region: region]], "kato.tasks": katoMap])
+                                                           source: [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImageName, imageId: targetImage, region: region]], "kato.tasks": katoMap])
 
     and:
     task.scmService = Stub(ScmService) {
@@ -467,15 +459,13 @@ class GetCommitsTaskSpec extends Specification {
     1 * front50Service.get(app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash")
 
     and:
-    task.objectMapper = getObjectMapper()
-    def oortResponse = "{\"launchConfig\" : {\"imageId\" : \"${sourceImage}\"}}".stripIndent()
-    Response response = new Response('http://oort', 200, 'OK', [], new TypedString(oortResponse))
+    def response = [launchConfig: [imageId: sourceImage]]
     List<Map> sourceResponse = [["tags": ["appversion": "myapp-1.143-h216.186605b/MYAPP-package-myapp/216"]]]
     List<Map> targetResponse = [["tags": ["appversion": "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217"]]]
-    task.oortService = oortService
-    1 * oortService.getServerGroupFromCluster(app, account, cluster, serverGroup, region, "aws") >> response
-    1 * oortService.getByAmiId("aws", account, region, sourceImage) >> sourceResponse
-    1 * oortService.getByAmiId("aws", account, region, targetImage) >> targetResponse
+    task.cloudDriverService = cloudDriverService
+    1 * cloudDriverService.getServerGroupFromCluster(app, account, cluster, serverGroup, region, "aws") >> response
+    1 * cloudDriverService.getByAmiId("aws", account, region, sourceImage) >> sourceResponse
+    1 * cloudDriverService.getByAmiId("aws", account, region, targetImage) >> targetResponse
 
     when:
     def result = task.execute(stage)
@@ -512,10 +502,10 @@ class GetCommitsTaskSpec extends Specification {
   def "return success if there is no ancestor asg"() {
     given:
     String katoTasks = "[{\"resultObjects\": [" +
-      "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
+        "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
     def katoMap = getObjectMapper().readValue(katoTasks, List)
     def contextMap = [application: app, account: account,
-                      source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImageName, imageId: targetImage, region: region]], "kato.tasks": katoMap]
+                      source: [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImageName, imageId: targetImage, region: region]], "kato.tasks": katoMap]
     def stage = setupGetCommits(contextMap, account, app, sourceImage, targetImage, region, cluster, serverGroup, 0, 0)
 
     when:
@@ -576,14 +566,14 @@ class GetCommitsTaskSpec extends Specification {
   def "add the ancestor and target build info to the result"() {
     given:
     String katoTasks = "[{\"resultObjects\": [" +
-      "{\"ancestorServerGroupNameByRegion\": { \"${region}\":\"${serverGroup}\"}}," +
-      "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
+        "{\"ancestorServerGroupNameByRegion\": { \"${region}\":\"${serverGroup}\"}}," +
+        "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
     def katoMap = getObjectMapper().readValue(katoTasks, List)
-    def contextMap = [application      : app,
-                      account          : account,
-                      source           : [region: region, account: account],
+    def contextMap = [application: app,
+                      account: account,
+                      source: [region: region, account: account],
                       deploymentDetails: [[imageId: targetImage, ami: targetImageName, region: region]],
-                      "kato.tasks"     : katoMap]
+                      "kato.tasks": katoMap]
     def stage = setupGetCommits(contextMap, account, app, sourceImage, targetImage, region, cluster, serverGroup)
 
     when:
@@ -612,11 +602,11 @@ class GetCommitsTaskSpec extends Specification {
   def "get commits from parent pipelines"() {
     given:
     String katoTasks = "[{\"resultObjects\": [" +
-      "{\"ancestorServerGroupNameByRegion\": { \"${region}\":\"${serverGroup}\"}}," +
-      "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
+        "{\"ancestorServerGroupNameByRegion\": { \"${region}\":\"${serverGroup}\"}}," +
+        "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
     def katoMap = getObjectMapper().readValue(katoTasks, List)
     def contextMap = [application: app, account: account,
-                      source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], "kato.tasks": katoMap]
+                      source: [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], "kato.tasks": katoMap]
 
     def parentPipeline = ExecutionBuilder.pipeline { name = "parentPipeline" }
     def childPipeline = ExecutionBuilder.pipeline {

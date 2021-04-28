@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws
 
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 
 import java.util.concurrent.TimeUnit
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
@@ -50,8 +51,7 @@ class WaitForAllNetflixAWSInstancesDownTaskSpec extends Specification {
   void "should fetch server group"() {
     given:
     def pipeline = PipelineExecutionImpl.newPipeline("orca")
-    task.objectMapper = mapper
-    def response = mapper.writeValueAsString([
+    def response = [
       region   : "us-west-1",
       name     : "front50-v000",
       asg      : [
@@ -62,11 +62,11 @@ class WaitForAllNetflixAWSInstancesDownTaskSpec extends Specification {
           health: [[state: "Down"]]
         ]
       ]
-    ])
+    ]
 
 
-    task.oortService = Stub(OortService) {
-      getServerGroup(*_) >> new Response('oort', 200, 'ok', [], new TypedString(response))
+    task.cloudDriverService = Stub(CloudDriverService) {
+      getServerGroup(*_) >> response
     }
 
     and:

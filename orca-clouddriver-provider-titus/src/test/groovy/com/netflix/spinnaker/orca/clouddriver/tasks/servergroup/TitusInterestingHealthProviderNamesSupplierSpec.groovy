@@ -16,23 +16,19 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
-import com.netflix.spinnaker.orca.clouddriver.OortService
-import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
-import retrofit.client.Response
-import retrofit.mime.TypedString
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
 class TitusInterestingHealthProviderNamesSupplierSpec extends Specification {
-  def oortService = Mock(OortService)
-  def mapper = OrcaObjectMapper.newInstance()
+  CloudDriverService cloudDriverService = Mock()
 
   @Subject
-  def titusInterestingHealthProviderNamesSupplier = new TitusInterestingHealthProviderNamesSupplier(oortService, new SourceResolver(), mapper)
+  def titusInterestingHealthProviderNamesSupplier = new TitusInterestingHealthProviderNamesSupplier(cloudDriverService, new SourceResolver())
 
   @Unroll
   def "should only support if cloudProvider is titus and stage type in [enableServerGroup, cloneServerGroup]"() {
@@ -56,15 +52,15 @@ class TitusInterestingHealthProviderNamesSupplierSpec extends Specification {
   def "should process interestingHealthNames by inspecting labels on titus serverGroup"() {
     given:
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "createServerGroup", stageContext)
-    def response = mapper.writeValueAsString([
+    def response = [
       application: "app",
       region: "region",
       account: "test",
       labels: labels
-    ])
+    ]
 
     and:
-    1 * oortService.getServerGroupFromCluster(*_) >> new Response('oort', 200, 'ok', [], new TypedString(response))
+    1 * cloudDriverService.getServerGroupFromCluster(*_) >> response
 
     when:
     def interestingHealthProviderNames = titusInterestingHealthProviderNamesSupplier.process("titus", stage)

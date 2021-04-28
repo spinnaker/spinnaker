@@ -50,7 +50,7 @@ public class PreviousImageRollbackSupport {
 
   public ImageDetails getImageDetailsFromEntityTags(
       String cloudProvider, String credentials, String region, String serverGroupName) {
-    List<Map> entityTags = null;
+    List<Map<String, Object>> entityTags = null;
 
     try {
       entityTags =

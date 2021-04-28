@@ -21,8 +21,8 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.MortService
-import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.front50.model.Application
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -35,7 +35,7 @@ import javax.annotation.Nonnull
 @Slf4j
 class VerifyApplicationHasNoDependenciesTask implements Task {
   @Autowired
-  OortService oortService
+  CloudDriverService cloudDriverService
 
   @Autowired
   MortService mortService
@@ -50,7 +50,7 @@ class VerifyApplicationHasNoDependenciesTask implements Task {
 
     def existingDependencyTypes = []
     try {
-      def oortResult = getOortResult(application.name as String)
+      def oortResult = cloudDriverService.getApplication(application.name as String)
       if (oortResult && oortResult.clusters) {
         existingDependencyTypes << "clusters"
       }
@@ -89,11 +89,6 @@ class VerifyApplicationHasNoDependenciesTask implements Task {
             }
         ]
     ]]).build()
-  }
-
-  protected Map getOortResult(String applicationName) {
-    def oortResponse = oortService.getApplication(applicationName)
-    return objectMapper.readValue(oortResponse.body.in().text, Map)
   }
 
   protected List<Map> getMortResults(String applicationName, String type) {

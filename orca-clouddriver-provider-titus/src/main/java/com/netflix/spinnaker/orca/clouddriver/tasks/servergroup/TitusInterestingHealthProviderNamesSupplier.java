@@ -16,9 +16,8 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
-import com.netflix.spinnaker.orca.clouddriver.OortService;
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService;
 import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver;
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData;
 import java.util.Arrays;
@@ -29,7 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import retrofit.client.Response;
 
 @Component
 public class TitusInterestingHealthProviderNamesSupplier
@@ -42,16 +40,14 @@ public class TitusInterestingHealthProviderNamesSupplier
   private static final List<String> SUPPORTED_STAGES =
       Arrays.asList("cloneservergroup", "enableservergroup");
 
-  private final OortService oortService;
-  private final ObjectMapper objectMapper;
+  private final CloudDriverService cloudDriverService;
   private final SourceResolver sourceResolver;
 
   @Autowired
   public TitusInterestingHealthProviderNamesSupplier(
-      OortService oortService, SourceResolver sourceResolver, ObjectMapper objectMapper) {
-    this.oortService = oortService;
+      CloudDriverService cloudDriverService, SourceResolver sourceResolver) {
+    this.cloudDriverService = cloudDriverService;
     this.sourceResolver = sourceResolver;
-    this.objectMapper = objectMapper;
   }
 
   @Override
@@ -73,8 +69,8 @@ public class TitusInterestingHealthProviderNamesSupplier
         String serverGroupName =
             source.getServerGroupName() != null ? source.getServerGroupName() : source.getAsgName();
 
-        Response response =
-            oortService.getServerGroupFromCluster(
+        Map<String, Object> serverGroup =
+            cloudDriverService.getServerGroupFromCluster(
                 stageData.getApplication(),
                 source.getAccount(),
                 stageData.getCluster(),
@@ -82,7 +78,6 @@ public class TitusInterestingHealthProviderNamesSupplier
                 source.getRegion(),
                 cloudProvider);
 
-        Map serverGroup = objectMapper.readValue(response.getBody().in(), Map.class);
         Map titusServerGroupLabels = (Map) serverGroup.get("labels");
 
         if (titusServerGroupLabels != null

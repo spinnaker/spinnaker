@@ -18,12 +18,11 @@ package com.netflix.spinnaker.orca.kato.tasks.rollingpush;
 
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService;
 import com.netflix.spinnaker.orca.clouddriver.KatoService;
-import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
 import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper;
@@ -37,7 +36,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import retrofit.client.Response;
 
 @Component
 public class CleanUpTagsTask extends AbstractCloudProviderAwareTask implements RetryableTask {
@@ -46,11 +44,9 @@ public class CleanUpTagsTask extends AbstractCloudProviderAwareTask implements R
 
   @Autowired KatoService katoService;
 
-  @Autowired OortService oortService;
+  @Autowired CloudDriverService cloudDriverService;
 
   @Autowired SourceResolver sourceResolver;
-
-  @Autowired ObjectMapper objectMapper;
 
   @Autowired MonikerHelper monikerHelper;
 
@@ -62,8 +58,8 @@ public class CleanUpTagsTask extends AbstractCloudProviderAwareTask implements R
           Optional.ofNullable(source.getServerGroupName()).orElse(source.getAsgName());
       String cloudProvider = getCloudProvider(stage);
 
-      Response serverGroupResponse =
-          oortService.getServerGroupFromCluster(
+      Map<String, Object> serverGroup =
+          cloudDriverService.getServerGroupFromCluster(
               monikerHelper.getAppNameFromStage(stage, serverGroupName),
               source.getAccount(),
               monikerHelper.getClusterNameFromStage(stage, serverGroupName),
@@ -71,11 +67,10 @@ public class CleanUpTagsTask extends AbstractCloudProviderAwareTask implements R
               source.getRegion(),
               cloudProvider);
 
-      Map serverGroup = objectMapper.readValue(serverGroupResponse.getBody().in(), Map.class);
       String imageId = (String) ((Map) serverGroup.get("launchConfig")).get("imageId");
 
-      List<Map> tags =
-          oortService.getEntityTags(
+      List<Map<String, Object>> tags =
+          cloudDriverService.getEntityTags(
               cloudProvider,
               "servergroup",
               serverGroupName,

@@ -18,31 +18,27 @@ package com.netflix.spinnaker.orca.clouddriver.pollers;
 
 import static java.lang.String.format;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.core.RetrySupport;
-import com.netflix.spinnaker.orca.clouddriver.OortService;
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService;
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup;
 import java.util.Optional;
 import retrofit.RetrofitError;
-import retrofit.client.Response;
 
 public class PollerSupport {
-  private final ObjectMapper objectMapper;
   private final RetrySupport retrySupport;
-  private final OortService oortService;
+  private final CloudDriverService cloudDriverService;
 
-  public PollerSupport(
-      ObjectMapper objectMapper, RetrySupport retrySupport, OortService oortService) {
-    this.objectMapper = objectMapper;
+  public PollerSupport(RetrySupport retrySupport, CloudDriverService cloudDriverService) {
     this.retrySupport = retrySupport;
-    this.oortService = oortService;
+    this.cloudDriverService = cloudDriverService;
   }
 
   public Optional<ServerGroup> fetchServerGroup(String account, String region, String name) {
     return retrySupport.retry(
         () -> {
           try {
-            Response response = oortService.getServerGroup(account, region, name);
-            return Optional.of(objectMapper.readValue(response.getBody().in(), ServerGroup.class));
+            ServerGroup response = cloudDriverService.getServerGroupTyped(account, region, name);
+            return Optional.of(response);
           } catch (Exception e) {
             if (e instanceof RetrofitError) {
               RetrofitError re = (RetrofitError) e;

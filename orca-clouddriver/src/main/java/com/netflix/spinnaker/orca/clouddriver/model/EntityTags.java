@@ -14,21 +14,28 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.clouddriver.pollers;
+package com.netflix.spinnaker.orca.clouddriver.model;
 
-class ServerGroup {
-  public Moniker moniker;
-  public Long createdTime;
+import java.util.List;
 
-  public Capacity capacity;
+public class EntityTags {
+  public String id;
+  public List<Tag> tags;
 
-  static class Moniker {
-    public String app;
+  public EntityRef entityRef;
+
+  public static class Tag {
+    public String name;
+    public Object value;
   }
 
-  static class Capacity {
-    public Integer min;
-    public Integer desired;
-    public Integer max;
+  public static class EntityRef {
+    public String cloudProvider;
+    public String application;
+    public String account;
+    public String region;
+
+    public String entityType;
+    public String entityId;
   }
 }

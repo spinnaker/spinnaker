@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 
 import java.util.concurrent.TimeUnit
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
@@ -50,8 +51,7 @@ class WaitForUpInstancesTaskSpec extends Specification {
   void "should check cluster to get server groups"() {
     given:
     def pipeline = PipelineExecutionImpl.newPipeline("orca")
-    task.objectMapper = mapper
-    def response = new Response('oort', 200, 'ok', [], new TypedString(mapper.writeValueAsString([
+    def response = [
       name        : "front50",
       serverGroups: [
         [
@@ -85,8 +85,8 @@ class WaitForUpInstancesTaskSpec extends Specification {
           ]
         ]
       ]
-    ])))
-    def response2 = new Response('oort', 200, 'ok', [], new TypedString(mapper.writeValueAsString([
+    ]
+    def response2 = [
       name        : "front50",
       serverGroups: [
         [
@@ -105,8 +105,8 @@ class WaitForUpInstancesTaskSpec extends Specification {
           ]
         ]
       ]
-    ])))
-    task.oortService = Stub(OortService) {
+    ]
+    task.cloudDriverService = Stub(CloudDriverService) {
       getCluster(*_) >>> [response, response2]
     }
 

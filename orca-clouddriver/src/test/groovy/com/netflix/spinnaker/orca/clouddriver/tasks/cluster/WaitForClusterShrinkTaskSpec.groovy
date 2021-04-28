@@ -34,7 +34,7 @@ class WaitForClusterShrinkTaskSpec extends Specification {
   def oortService = Mock(OortService)
   def objectMapper = new ObjectMapper()
   @Subject def task = new WaitForClusterShrinkTask(
-    oortHelper: new OortHelper(oortService: oortService, objectMapper: objectMapper)
+    oortHelper: new OortHelper(oortService, objectMapper)
   )
 
   def "does not complete if previous ASG is still there"() {

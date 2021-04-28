@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
@@ -60,7 +61,7 @@ class AbstractInstancesCheckTaskSpec extends Specification {
     }
   }
 
-  @Subject task = new TestInstancesCheckTask(oortService: Mock(OortService), objectMapper: new ObjectMapper())
+  @Subject task = new TestInstancesCheckTask(cloudDriverService: Mock(CloudDriverService))
 
   Closure<Response> constructResponse = { int status, String body ->
     new Response("", status, "", [], new TypedInput() {
@@ -82,8 +83,7 @@ class AbstractInstancesCheckTaskSpec extends Specification {
   }
 
   void "should be provided with health provider names"() {
-    task.oortService = Mock(OortService)
-    task.objectMapper = OrcaObjectMapper.newInstance()
+    task.cloudDriverService = Mock(CloudDriverService)
     task.hasSucceededSpy = Mock(HasSucceededSpy)
 
     def pipeline = PipelineExecutionImpl.newPipeline("orca")
@@ -98,23 +98,22 @@ class AbstractInstancesCheckTaskSpec extends Specification {
     task.execute(stage)
 
     then:
-    1 * task.oortService.getServerGroup("test", "us-west-1", "front50-v000") >> constructResponse(200, '''
-{
+    1 * task.cloudDriverService.getServerGroup("test", "us-west-1", "front50-v000") >>
+[
     "name": "front50-v000",
     "region": "us-west-1",
-    "asg": {
+    "asg": [
         "minSize": 1
-    },
-    "capacity": {
+    ],
+    "capacity": [
         "min": 1
-    },
+    ],
     "instances": [
-        {
+        [
             "name": "i-12345678"
-        }
+        ]
     ]
-}
-''')
+]
 
     and:
     1 * task.hasSucceededSpy.hasSucceeded(_, [['name': 'i-12345678']], ['JustTrustMeBroItIsHealthy'])
@@ -122,8 +121,7 @@ class AbstractInstancesCheckTaskSpec extends Specification {
 
   @Unroll
   void 'should reset zeroDesiredCapacityCount when targetDesiredCapacity is not zero, otherwise increment'() {
-    task.oortService = Mock(OortService)
-    task.objectMapper = OrcaObjectMapper.newInstance()
+    task.cloudDriverService = Mock(CloudDriverService)
     task.hasSucceededSpy = Mock(HasSucceededSpy)
 
     def pipeline = PipelineExecutionImpl.newPipeline("orca")
@@ -144,25 +142,24 @@ class AbstractInstancesCheckTaskSpec extends Specification {
 
     then:
     result.context.zeroDesiredCapacityCount == expected
-    1 * task.oortService.getServerGroup("test", "us-west-1", "front50-v000") >> constructResponse(200, '''
-{
+    1 * task.cloudDriverService.getServerGroup("test", "us-west-1", "front50-v000") >>
+[
     "name": "front50-v000",
     "region": "us-west-1",
-    "asg": {
+    "asg": [
         "minSize": 1,
-        "desiredCapacity": ''' + desiredCapacity + '''
-    },
-    "capacity": {
+        "desiredCapacity": desiredCapacity
+    ],
+    "capacity": [
         "min": 1,
-        "desired": ''' + desiredCapacity + '''
-    },
+        "desired": desiredCapacity
+    ],
     "instances": [
-        {
+        [
             "name": "i-12345678"
-        }
+        ]
     ]
-}
-''')
+]
 
     and:
     1 * task.hasSucceededSpy.hasSucceeded(_, _, _) >> false
@@ -174,8 +171,7 @@ class AbstractInstancesCheckTaskSpec extends Specification {
   }
 
   void 'should set zeroDesiredCapacityCount when targetDesiredCapacity is zero and no zeroDesiredCapacityCount is not present on context'() {
-    task.oortService = Mock(OortService)
-    task.objectMapper = OrcaObjectMapper.newInstance()
+    task.cloudDriverService = Mock(CloudDriverService)
     task.hasSucceededSpy = Mock(HasSucceededSpy)
 
     def pipeline = PipelineExecutionImpl.newPipeline("orca")
@@ -190,25 +186,24 @@ class AbstractInstancesCheckTaskSpec extends Specification {
 
     then:
     result.context.zeroDesiredCapacityCount == 1
-    1 * task.oortService.getServerGroup("test", "us-west-1", "front50-v000") >> constructResponse(200, '''
-{
+    1 * task.cloudDriverService.getServerGroup("test", "us-west-1", "front50-v000") >>
+[
     "name": "front50-v000",
     "region": "us-west-1",
-    "asg": {
+    "asg": [
         "minSize": 1,
         "desiredCapacity": 0
-    },
-    "capacity": {
+    ],
+    "capacity": [
         "min": 1,
         "desired": 0
-    },
+    ],
     "instances": [
-        {
+        [
             "name": "i-12345678"
-        }
+        ]
     ]
-}
-''')
+]
 
     and:
     1 * task.hasSucceededSpy.hasSucceeded(_, _, _) >> false
@@ -230,9 +225,9 @@ class AbstractInstancesCheckTaskSpec extends Specification {
     }
 
     then:
-    1 * task.oortService.getServerGroup("test", "us-west-2", serverGroupName) >> {
+    1 * task.cloudDriverService.getServerGroup("test", "us-west-2", serverGroupName) >> {
       if (statusCode == 200) {
-        return new Response("http://clouddriver", statusCode, "OK", [], new TypedString("""{"name": "${serverGroupName}"}"""))
+        return ["name": serverGroupName]
       }
 
       throw RetrofitError.httpError(

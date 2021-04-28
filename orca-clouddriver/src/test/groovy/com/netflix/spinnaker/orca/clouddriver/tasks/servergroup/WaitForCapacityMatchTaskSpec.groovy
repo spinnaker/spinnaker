@@ -16,28 +16,19 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
-import com.netflix.spinnaker.orca.clouddriver.OortService
-import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
-import retrofit.client.Response
-import retrofit.mime.TypedString
-import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
 class WaitForCapacityMatchTaskSpec extends Specification {
 
-  @Shared OortService oort
-  @Shared ObjectMapper mapper = OrcaObjectMapper.newInstance()
+  CloudDriverService cloudDriverService = Mock()
   @Subject WaitForCapacityMatchTask task = new WaitForCapacityMatchTask() {
-    {
-      objectMapper = mapper
-    }
 
     @Override
     void verifyServerGroupsExist(StageExecution stage) {
@@ -47,9 +38,8 @@ class WaitForCapacityMatchTaskSpec extends Specification {
 
   void "should properly wait for a scale up operation"() {
     setup:
-      oort = Stub(OortService)
-      oort.getServerGroup("test", "us-east-1", "kato-main-v000") >> { new Response('kato', 200, 'ok', [], new TypedString(mapper.writeValueAsString(serverGroup))) }
-      task.oortService = oort
+      task.cloudDriverService = cloudDriverService
+      cloudDriverService.getServerGroup("test", "us-east-1", "kato-main-v000") >> serverGroup
       def context = [account: "test", "deploy.server.groups": ["us-east-1": ["kato-main-v000"]]]
       def stage = new StageExecutionImpl(PipelineExecutionImpl.newOrchestration("orca"), "resizeServerGroup", context)
 
@@ -87,7 +77,6 @@ class WaitForCapacityMatchTaskSpec extends Specification {
   @Unroll
   void "should return status #status for a scale up operation when server group is not disabled and instance health is #healthState"() {
     setup:
-    oort = Stub(OortService)
     def serverGroup = [
           name: "kato-main-v000",
           region: "us-east-1",
@@ -104,8 +93,8 @@ class WaitForCapacityMatchTaskSpec extends Specification {
           ]
         ]
 
-    oort.getServerGroup("test", "us-east-1", "kato-main-v000") >> { new Response('kato', 200, 'ok', [], new TypedString(mapper.writeValueAsString(serverGroup))) }
-    task.oortService = oort
+    task.cloudDriverService = cloudDriverService
+    cloudDriverService.getServerGroup("test", "us-east-1", "kato-main-v000") >> serverGroup
     def context = [account: "test", "deploy.server.groups": ["us-east-1": ["kato-main-v000"]]]
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newOrchestration("orca"), "resizeServerGroup", context)
 
@@ -136,9 +125,8 @@ class WaitForCapacityMatchTaskSpec extends Specification {
 
   void "should properly wait for a scale down operation"() {
     setup:
-    oort = Stub(OortService)
-    oort.getServerGroup("test", "us-east-1", "kato-main-v000") >> { new Response('kato', 200, 'ok', [], new TypedString(mapper.writeValueAsString(serverGroup))) }
-    task.oortService = oort
+    task.cloudDriverService = cloudDriverService
+    cloudDriverService.getServerGroup("test", "us-east-1", "kato-main-v000") >> serverGroup
     def context = [account: "test", "deploy.server.groups": ["us-east-1": ["kato-main-v000"]]]
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newOrchestration("orca"), "resizeServerGroup", context)
 

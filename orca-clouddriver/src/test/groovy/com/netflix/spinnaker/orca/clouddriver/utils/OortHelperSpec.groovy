@@ -29,16 +29,12 @@ import spock.lang.Unroll
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND
 
 class OortHelperSpec extends Specification {
-  @Subject oortHelper = Spy(OortHelper)
-  OortService oortService = Mock(OortService)
-
-  def setup() {
-    oortHelper.oortService = oortService
-    oortHelper.objectMapper = new ObjectMapper()
-  }
+  ObjectMapper objectMapper = new ObjectMapper()
+  OortService oortService = Mock()
+  @Subject oortHelper = new OortHelper(oortService, objectMapper)
 
   def "getInstancesForCluster fails if > 1 asg in the cluster"() {
-    when:
+    given:
     def oortResponse = '''\
     {
       "serverGroups":[{
@@ -61,6 +57,8 @@ class OortHelperSpec extends Specification {
     Response response = new Response('http://oort', 200, 'OK', [], new TypedString(oortResponse))
     Map deployContext = ["region" : "us-west-2", "account" : "prod", "kato.tasks" : [[resultObjects : [[ancestorServerGroupNameByRegion: ["us-west-2" : "myapp-v000"]],[serverGroupNameByRegion : ["us-west-2" : "myapp-v002"]]]]]]
     1 * oortService.getCluster("myapp", "prod", "myapp", "aws") >> response
+
+    when:
     oortHelper.getInstancesForCluster(deployContext, "myapp-v002", true, true)
 
     then:
@@ -69,7 +67,7 @@ class OortHelperSpec extends Specification {
   }
 
   def "getInstancesForCluster fails if any instances are down/starting"() {
-    when:
+    given:
     def oortResponse = '''\
     {
       "serverGroups":[{
@@ -85,7 +83,9 @@ class OortHelperSpec extends Specification {
     Response response = new Response('http://oort', 200, 'OK', [], new TypedString(oortResponse))
     Map deployContext = ["region" : "us-west-2", "account" : "prod", "kato.tasks" : [[resultObjects : [[ancestorServerGroupNameByRegion: ["us-west-2" : "myapp-v000"]],[serverGroupNameByRegion : ["us-west-2" : "myapp-v002"]]]]]]
     1 * oortService.getCluster("myapp", "prod", "myapp", "aws") >> response
-   oortHelper.getInstancesForCluster(deployContext, "myapp-v002", true, true)
+
+    when:
+    oortHelper.getInstancesForCluster(deployContext, "myapp-v002", true, true)
 
     then:
     def e = thrown(RuntimeException)
@@ -93,7 +93,7 @@ class OortHelperSpec extends Specification {
   }
 
   def "getInstancesForCluster works with deploy context"() {
-    when:
+    given:
     def oortResponse = '''\
     {
       "serverGroups":[{
@@ -109,6 +109,8 @@ class OortHelperSpec extends Specification {
     Response response = new Response('http://oort', 200, 'OK', [], new TypedString(oortResponse))
     Map deployContext = ["region" : "us-west-2", "account" : "prod", "kato.tasks" : [[resultObjects : [[ancestorServerGroupNameByRegion: ["us-west-2" : "myapp-v000"]],[serverGroupNameByRegion : ["us-west-2" : "myapp-v002"]]]]]]
     1 * oortService.getCluster("myapp", "prod", "myapp", "aws") >> response
+
+    when:
     def result = oortHelper.getInstancesForCluster(deployContext, "myapp-v002", true, true)
 
     then:
@@ -117,7 +119,7 @@ class OortHelperSpec extends Specification {
   }
 
   def "getInstancesForCluster passes if any instances are down/starting and failIfAnyInstancesUnhealthy == false"() {
-    when:
+    given:
     def oortResponse = '''\
     {
       "serverGroups":[{
@@ -137,6 +139,8 @@ class OortHelperSpec extends Specification {
     Response response = new Response('http://oort', 200, 'OK', [], new TypedString(oortResponse))
     Map deployContext = ["region" : "us-west-2", "account" : "prod", "kato.tasks" : [[resultObjects : [[ancestorServerGroupNameByRegion: ["us-west-2" : "myapp-v000"]],[serverGroupNameByRegion : ["us-west-2" : "myapp-v002"]]]]]]
     1 * oortService.getCluster("myapp", "prod", "myapp", "aws") >> response
+
+    when:
     def result = oortHelper.getInstancesForCluster(deployContext, "myapp-v002", true, false)
 
     then:

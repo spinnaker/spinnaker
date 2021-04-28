@@ -20,7 +20,7 @@ import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
-import com.netflix.spinnaker.orca.clouddriver.OortService;
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.image.DeleteImageStage;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
 import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler;
@@ -38,11 +38,11 @@ public class MonitorDeleteImageTask extends AbstractCloudProviderAwareTask
     implements OverridableTimeoutRetryableTask {
   private static final Logger log = LoggerFactory.getLogger(MonitorDeleteImageTask.class);
 
-  private final OortService oortService;
+  private final CloudDriverService cloudDriverService;
 
   @Autowired
-  public MonitorDeleteImageTask(OortService oortService) {
-    this.oortService = oortService;
+  public MonitorDeleteImageTask(CloudDriverService cloudDriverService) {
+    this.cloudDriverService = cloudDriverService;
   }
 
   @Override
@@ -60,7 +60,7 @@ public class MonitorDeleteImageTask extends AbstractCloudProviderAwareTask
         .forEach(
             imageId -> {
               try {
-                oortService.getByAmiId(
+                cloudDriverService.getByAmiId(
                     deleteImageRequest.getCloudProvider(),
                     deleteImageRequest.getCredentials(),
                     deleteImageRequest.getRegion(),

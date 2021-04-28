@@ -19,7 +19,6 @@ package com.netflix.spinnaker.orca.clouddriver.pollers;
 import static com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.PinnedServerGroupTagGenerator.PINNED_CAPACITY_TAG;
 import static java.lang.String.format;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
@@ -28,7 +27,9 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
-import com.netflix.spinnaker.orca.clouddriver.OortService;
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService;
+import com.netflix.spinnaker.orca.clouddriver.model.EntityTags;
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent;
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock;
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher;
@@ -51,7 +52,7 @@ public class RestorePinnedServerGroupsPoller extends AbstractPollingNotification
   private static final Logger log = LoggerFactory.getLogger(RestorePinnedServerGroupsPoller.class);
 
   private final ObjectMapper objectMapper;
-  private final OortService oortService;
+  private final CloudDriverService cloudDriverService;
   private final RetrySupport retrySupport;
   private final ExecutionLauncher executionLauncher;
   private final ExecutionRepository executionRepository;
@@ -67,7 +68,7 @@ public class RestorePinnedServerGroupsPoller extends AbstractPollingNotification
   public RestorePinnedServerGroupsPoller(
       NotificationClusterLock notificationClusterLock,
       ObjectMapper objectMapper,
-      OortService oortService,
+      CloudDriverService cloudDriverService,
       RetrySupport retrySupport,
       Registry registry,
       ExecutionLauncher executionLauncher,
@@ -76,20 +77,20 @@ public class RestorePinnedServerGroupsPoller extends AbstractPollingNotification
     this(
         notificationClusterLock,
         objectMapper,
-        oortService,
+        cloudDriverService,
         retrySupport,
         registry,
         executionLauncher,
         executionRepository,
         username,
-        new PollerSupport(objectMapper, retrySupport, oortService));
+        new PollerSupport(retrySupport, cloudDriverService));
   }
 
   @VisibleForTesting
   public RestorePinnedServerGroupsPoller(
       NotificationClusterLock notificationClusterLock,
       ObjectMapper objectMapper,
-      OortService oortService,
+      CloudDriverService cloudDriverService,
       RetrySupport retrySupport,
       Registry registry,
       ExecutionLauncher executionLauncher,
@@ -99,7 +100,7 @@ public class RestorePinnedServerGroupsPoller extends AbstractPollingNotification
     super(notificationClusterLock);
 
     this.objectMapper = objectMapper;
-    this.oortService = oortService;
+    this.cloudDriverService = cloudDriverService;
     this.retrySupport = retrySupport;
     this.executionLauncher = executionLauncher;
     this.executionRepository = executionRepository;
@@ -202,13 +203,8 @@ public class RestorePinnedServerGroupsPoller extends AbstractPollingNotification
             () ->
                 retrySupport.retry(
                     () ->
-                        objectMapper.convertValue(
-                            oortService.getEntityTags(
-                                ImmutableMap.<String, String>builder()
-                                    .put("tag:" + PINNED_CAPACITY_TAG, "*")
-                                    .put("entityType", "servergroup")
-                                    .build()),
-                            new TypeReference<List<EntityTags>>() {}),
+                        cloudDriverService.getEntityTagsTyped(
+                            Map.of("tag:" + PINNED_CAPACITY_TAG, "*", "entityType", "servergroup")),
                     15,
                     2000,
                     false));

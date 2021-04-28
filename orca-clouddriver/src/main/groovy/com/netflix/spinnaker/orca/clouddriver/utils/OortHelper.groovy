@@ -31,18 +31,25 @@ import retrofit.converter.JacksonConverter
  */
 @Component
 class OortHelper {
-  @Autowired
-  OortService oortService
+
+  private final OortService oortService
+
+  private final ObjectMapper objectMapper
+
+  private final JacksonConverter converter
 
   @Autowired
-  ObjectMapper objectMapper
+  OortHelper(OortService oortService, ObjectMapper objectMapper) {
+    this.oortService = oortService
+    this.objectMapper = objectMapper
+    converter = new JacksonConverter(objectMapper)
+  }
 
   List<Map> getSearchResults(String searchTerm, String type, String platform) {
     convert(oortService.getSearchResults(searchTerm, type, platform), List)
   }
 
   private <T> T convert(Response response, Class<T> type) {
-    def converter = new JacksonConverter(objectMapper)
     try {
       return type.cast(converter.fromBody(response.body, type))
     } catch (ConversionException ce) {
@@ -80,10 +87,10 @@ class OortHelper {
     // infer the app from the cluster prefix since this is used by quip and we want to be able to quick patch different apps from the same pipeline
     def app
     def clusterName
-    if(expectedAsgName) {
+    if (expectedAsgName) {
       app = expectedAsgName.substring(0, expectedAsgName.indexOf("-"))
       clusterName = expectedAsgName.substring(0, expectedAsgName.lastIndexOf("-"))
-    } else if(context?.clusterName?.indexOf("-") > 0) {
+    } else if (context?.clusterName?.indexOf("-") > 0) {
       app = context.clusterName.substring(0, context.clusterName.indexOf("-"))
       clusterName = context.clusterName
     } else {
@@ -101,7 +108,7 @@ class OortHelper {
 
     def region = context.region ?: context.source.region
 
-    if(!region) {
+    if (!region) {
       throw new RuntimeException("unable to determine region")
     }
 
@@ -111,24 +118,24 @@ class OortHelper {
 
     def searchAsg
     if (expectOneAsg) {
-      if(asgsForCluster.size() != 1) {
+      if (asgsForCluster.size() != 1) {
         throw new RuntimeException("there is more than one server group in the cluster : ${clusterName}:${region}")
       }
       searchAsg = asgsForCluster.get(0)
-    } else if(expectedAsgName) {
+    } else if (expectedAsgName) {
       searchAsg = asgsForCluster.findResult {
-        if(it.name == expectedAsgName) {
-        return it
+        if (it.name == expectedAsgName) {
+          return it
         }
       }
-      if(!searchAsg) {
+      if (!searchAsg) {
         throw new RuntimeException("did not find the expected asg name : ${expectedAsgName}")
       }
     }
 
     searchAsg.instances.each { instance ->
       String hostName = instance.publicDnsName
-      if(!hostName || hostName.isEmpty()) { // some instances dont have a public address, fall back to the private ip
+      if (!hostName || hostName.isEmpty()) { // some instances dont have a public address, fall back to the private ip
         hostName = instance.privateIpAddress
       }
 
@@ -146,14 +153,14 @@ class OortHelper {
         }
       }?.status
 
-      if(failIfAnyInstancesUnhealthy && (!healthCheckUrl || !status || status != "UP")) {
+      if (failIfAnyInstancesUnhealthy && (!healthCheckUrl || !status || status != "UP")) {
         throw new RuntimeException("at least one instance is DOWN or in the STARTING state, exiting")
       }
 
       Map instanceInfo = [
-        hostName : hostName,
-        healthCheckUrl : healthCheckUrl,
-        privateIpAddress: instance.privateIpAddress
+          hostName: hostName,
+          healthCheckUrl: healthCheckUrl,
+          privateIpAddress: instance.privateIpAddress
       ]
       instanceMap.put(instance.instanceId, instanceInfo)
     }

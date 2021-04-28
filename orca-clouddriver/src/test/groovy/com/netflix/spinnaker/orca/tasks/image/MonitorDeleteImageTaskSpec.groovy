@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.tasks.image
 
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.MonitorDeleteImageTask
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
@@ -26,6 +27,9 @@ import retrofit.client.Response
 import spock.lang.Specification
 
 class MonitorDeleteImageTaskSpec extends Specification {
+
+  CloudDriverService cloudDriverService = Mock()
+
   def "should monitor image deletion"() {
     given:
     def context = [
@@ -35,13 +39,11 @@ class MonitorDeleteImageTaskSpec extends Specification {
       imageIds: ["ami-123", "ami-321"]
     ]
 
-    def oortService = Mock(OortService) {
-      1 * getByAmiId("aws", "test", "us-east-1", "ami-123") >> { error(404) }
-      1 * getByAmiId("aws", "test", "us-east-1",  "ami-321") >> { error(404) }
-    }
+    1 * cloudDriverService.getByAmiId("aws", "test", "us-east-1", "ami-123") >> { error(404) }
+    1 * cloudDriverService.getByAmiId("aws", "test", "us-east-1",  "ami-321") >> { error(404) }
 
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "deleteImage", context)
-    def task = new MonitorDeleteImageTask(oortService)
+    def task = new MonitorDeleteImageTask(cloudDriverService)
 
     expect:
     task.execute(stage).status == ExecutionStatus.SUCCEEDED
@@ -56,13 +58,11 @@ class MonitorDeleteImageTaskSpec extends Specification {
       imageIds: ["ami-123", "ami-321"]
     ]
 
-    def oortService = Mock(OortService) {
-      1 * getByAmiId("aws", "test", "us-east-1", "ami-123") >> { error(404) }
-      1 * getByAmiId("aws", "test", "us-east-1",  "ami-321") >> { error(500) }
-    }
+    1 * cloudDriverService.getByAmiId("aws", "test", "us-east-1", "ami-123") >> { error(404) }
+    1 * cloudDriverService.getByAmiId("aws", "test", "us-east-1",  "ami-321") >> { error(500) }
 
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "deleteImage", context)
-    def task = new MonitorDeleteImageTask(oortService)
+    def task = new MonitorDeleteImageTask(cloudDriverService)
 
     expect:
     task.execute(stage).status == ExecutionStatus.RUNNING

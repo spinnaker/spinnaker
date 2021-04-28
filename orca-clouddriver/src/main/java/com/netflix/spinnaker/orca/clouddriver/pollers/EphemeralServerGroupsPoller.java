@@ -19,7 +19,6 @@ package com.netflix.spinnaker.orca.clouddriver.pollers;
 import static com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.EphemeralServerGroupEntityTagGenerator.TTL_TAG;
 import static java.lang.String.format;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spectator.api.Counter;
@@ -28,8 +27,10 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.exceptions.SystemException;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
-import com.netflix.spinnaker.orca.clouddriver.OortService;
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService;
 import com.netflix.spinnaker.orca.clouddriver.config.PollerConfigurationProperties;
+import com.netflix.spinnaker.orca.clouddriver.model.EntityTags;
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.front50.model.Application;
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent;
@@ -57,7 +58,7 @@ public class EphemeralServerGroupsPoller extends AbstractPollingNotificationAgen
   private static final Logger log = LoggerFactory.getLogger(EphemeralServerGroupsPoller.class);
 
   private final ObjectMapper objectMapper;
-  private final OortService oortService;
+  private final CloudDriverService cloudDriverService;
   private final RetrySupport retrySupport;
   private final Registry registry;
   private final ExecutionLauncher executionLauncher;
@@ -73,7 +74,7 @@ public class EphemeralServerGroupsPoller extends AbstractPollingNotificationAgen
   public EphemeralServerGroupsPoller(
       NotificationClusterLock notificationClusterLock,
       ObjectMapper objectMapper,
-      OortService oortService,
+      CloudDriverService cloudDriverService,
       RetrySupport retrySupport,
       Registry registry,
       ExecutionLauncher executionLauncher,
@@ -82,14 +83,14 @@ public class EphemeralServerGroupsPoller extends AbstractPollingNotificationAgen
     super(notificationClusterLock);
 
     this.objectMapper = objectMapper;
-    this.oortService = oortService;
+    this.cloudDriverService = cloudDriverService;
     this.retrySupport = retrySupport;
     this.registry = registry;
     this.executionLauncher = executionLauncher;
     this.front50Service = front50Service;
     this.pollerConfigurationProperties = pollerConfigurationProperties;
 
-    this.pollerSupport = new PollerSupport(objectMapper, retrySupport, oortService);
+    this.pollerSupport = new PollerSupport(retrySupport, cloudDriverService);
 
     this.triggeredCounterId = registry.createId("poller.ephemeralServerGroups.triggered");
     this.errorsCounter = registry.counter("poller.ephemeralServerGroups.errors");
@@ -114,8 +115,18 @@ public class EphemeralServerGroupsPoller extends AbstractPollingNotificationAgen
   protected void tick() {
     log.info("Checking for ephemeral server groups");
 
-    List<EphemeralServerGroupTag> ephemeralServerGroupTags = fetchEphemeralServerGroupTags();
-    log.info("Found {} ephemeral server groups", ephemeralServerGroupTags.size());
+    List<EphemeralServerGroupTag> ephemeralServerGroupTags = new ArrayList<>();
+
+    try {
+      ephemeralServerGroupTags.addAll(fetchEphemeralServerGroupTags());
+      log.info(
+          "Found {} ephemeral server groups: {}",
+          ephemeralServerGroupTags.size(),
+          ephemeralServerGroupTags);
+    } catch (Exception e) {
+      log.error("Unable to fetch ephemeral server groups", e);
+      errorsCounter.increment();
+    }
 
     if (ephemeralServerGroupTags.isEmpty()) {
       return;
@@ -194,13 +205,8 @@ public class EphemeralServerGroupsPoller extends AbstractPollingNotificationAgen
               () ->
                   retrySupport.retry(
                       () ->
-                          objectMapper.convertValue(
-                              oortService.getEntityTags(
-                                  ImmutableMap.<String, String>builder()
-                                      .put("tag:" + TTL_TAG, "*")
-                                      .put("entityType", "servergroup")
-                                      .build()),
-                              new TypeReference<List<EntityTags>>() {}),
+                          cloudDriverService.getEntityTagsTyped(
+                              Map.of("tag:" + TTL_TAG, "*", "entityType", "servergroup")),
                       15,
                       2000,
                       false));

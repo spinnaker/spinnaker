@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.applications.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.pipeline.model.TaskExecutionImpl
 import spock.lang.Shared
 import spock.lang.Specification
@@ -35,16 +36,14 @@ class VerifyApplicationHasNoDependenciesTaskSpec extends Specification {
     }
   }
 
+  CloudDriverService cloudDriverService = Mock()
+
   @Unroll
   void "should be TERMINAL when application has clusters or security groups"() {
     given:
     def fixedSecurityGroups = securityGroups
     def fixedClusters = clusters
     def task = new VerifyApplicationHasNoDependenciesTask() {
-      @Override
-      protected Map getOortResult(String applicationName) {
-        return [clusters: fixedClusters]
-      }
 
       @Override
       protected List<Map> getMortResults(String applicationName, String type) {
@@ -52,8 +51,11 @@ class VerifyApplicationHasNoDependenciesTaskSpec extends Specification {
       }
     }
     task.objectMapper = new ObjectMapper()
+    task.cloudDriverService = cloudDriverService
+    cloudDriverService.getApplication(_) >> [clusters: fixedClusters]
 
     and:
+
     def stage = pipeline.stages.first()
     stage.tasks = [new TaskExecutionImpl(name: "T1"), new TaskExecutionImpl(name: "T2")]
 

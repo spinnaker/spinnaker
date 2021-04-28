@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.rollingpush
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+
 import com.netflix.spinnaker.orca.api.pipeline.Task
-import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
-import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -32,9 +32,7 @@ import javax.annotation.Nonnull
 class DetermineTerminationCandidatesTask implements Task {
 
   @Autowired
-  OortService oortService
-  @Autowired
-  ObjectMapper objectMapper
+  CloudDriverService cloudDriverService
   @Autowired(required = false)
   List<ServerGroupInstanceIdCollector> serverGroupInstanceIdCollectors = []
 
@@ -42,8 +40,7 @@ class DetermineTerminationCandidatesTask implements Task {
   @Override
   TaskResult execute(@Nonnull StageExecution stage) {
     def stageData = stage.mapTo(StageData)
-    def response = oortService.getServerGroupFromCluster(stageData.application, stageData.account, stageData.cluster, stage.context.asgName, stage.context.region, stage.context.cloudProvider ?: 'aws')
-    def serverGroup = objectMapper.readValue(response.body.in(), Map)
+    def serverGroup = cloudDriverService.getServerGroupFromCluster(stageData.application, stageData.account, stageData.cluster, stage.context.asgName, stage.context.region, stage.context.cloudProvider ?: 'aws')
     boolean ascending = stage.context.termination?.order != 'newest'
     def serverGroupInstances = serverGroup.instances.sort { ascending ? it.launchTime : -it.launchTime }
     // need to use id instead of instanceIds for titus as the titus API doesn't yet support this yet.

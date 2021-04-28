@@ -16,19 +16,16 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.rollingpush
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
-import retrofit.client.Response
-import retrofit.mime.TypedByteArray
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class DetermineTerminationCandidatesTaskSpec extends Specification {
 
-  def oortService = Mock(OortService)
-  def task = new DetermineTerminationCandidatesTask(oortService: oortService, objectMapper: new ObjectMapper())
+  CloudDriverService cloudDriverService = Mock()
+  def task = new DetermineTerminationCandidatesTask(cloudDriverService: cloudDriverService)
 
   @Unroll
   def 'should order and filter instances correctly'() {
@@ -48,15 +45,15 @@ class DetermineTerminationCandidatesTaskSpec extends Specification {
 
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newOrchestration("orca"), 'test', context)
 
-    def oortResponse = oortResponse([
+    def oortResponse = [
       instances: knownInstanceIds.inject([]) { List l, id -> l << [instanceId: id, launchTime: l.size()] }
-    ])
+    ]
 
     when:
     def response = task.execute(stage)
 
     then:
-    1 * oortService.getServerGroupFromCluster(application, account, cluster, serverGroup, region, cloudProvider) >> oortResponse
+    1 * cloudDriverService.getServerGroupFromCluster(application, account, cluster, serverGroup, region, cloudProvider) >> oortResponse
     response.context.terminationInstanceIds == expectedTerminations
     response.context.knownInstanceIds.toSet() == knownInstanceIds.toSet()
     expectedTerminations == response.context.terminationInstanceIds
@@ -105,10 +102,5 @@ class DetermineTerminationCandidatesTaskSpec extends Specification {
     }
 
     return termination
-  }
-
-  Response oortResponse(Map response) {
-    def bytes = new TypedByteArray('application/json', task.objectMapper.writeValueAsBytes(response))
-    new Response('http://oortse.cx', 200, 'OK', [], bytes)
   }
 }

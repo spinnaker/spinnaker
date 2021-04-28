@@ -17,13 +17,11 @@
 package com.netflix.spinnaker.orca.igor.tasks
 
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 
 import java.util.concurrent.TimeUnit
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
-import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
 import com.netflix.spinnaker.orca.igor.ScmService
@@ -44,10 +42,7 @@ class GetCommitsTask implements DiffTask {
   // always set this higher than retries * backoffPeriod would take
 
   @Autowired
-  OortService oortService
-
-  @Autowired
-  ObjectMapper objectMapper
+  CloudDriverService cloudDriverService
 
   @Autowired(required = false)
   ScmService scmService
@@ -157,7 +152,7 @@ class GetCommitsTask implements DiffTask {
   }
 
   Map resolveInfoFromAmi(String ami, String account, String region) {
-    List<Map> amiDetails = oortService.getByAmiId("aws", account, region, ami)
+    List<Map<String, Object>> amiDetails = cloudDriverService.getByAmiId("aws", account, region, ami)
     def appVersion = amiDetails[0]?.tags?.appversion
 
     def buildInfo = [:]
@@ -209,10 +204,9 @@ class GetCommitsTask implements DiffTask {
         sourceCluster = ancestorAsg
       }
 
-      TypeReference<Map> jsonMapType = new TypeReference<Map>() {}
-      Map sourceServerGroup = objectMapper.readValue(oortService.getServerGroupFromCluster(context.application,
+      Map<String, Object> sourceServerGroup = cloudDriverService.getServerGroupFromCluster(context.application,
         account, sourceCluster,
-        ancestorAsg, region, "aws").body.in(), jsonMapType)
+        ancestorAsg, region, "aws")
       return sourceServerGroup.launchConfig.imageId
     }
   }

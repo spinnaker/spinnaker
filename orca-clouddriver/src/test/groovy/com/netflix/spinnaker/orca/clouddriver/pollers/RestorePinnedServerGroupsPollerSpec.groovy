@@ -22,7 +22,8 @@ import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
-import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -34,7 +35,7 @@ class RestorePinnedServerGroupsPollerSpec extends Specification {
     tryAcquireLock(_, _) >> true
   }
   def objectMapper = new ObjectMapper()
-  def oortService = Mock(OortService)
+  CloudDriverService cloudDriverService = Mock()
   def executionLauncher = Mock(ExecutionLauncher)
   def executionRepository = Mock(ExecutionRepository)
   def pollerSupport = Mock(PollerSupport)
@@ -84,7 +85,7 @@ class RestorePinnedServerGroupsPollerSpec extends Specification {
     constructorArgs: [
       notificationClusterLock,
       objectMapper,
-      oortService,
+      cloudDriverService,
       retrySupport,
       registry,
       executionLauncher,

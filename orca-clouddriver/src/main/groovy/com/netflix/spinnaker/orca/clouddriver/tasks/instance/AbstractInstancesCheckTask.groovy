@@ -17,17 +17,16 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper
 
 import java.time.Duration
 import java.util.concurrent.TimeUnit
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
-import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
@@ -43,10 +42,7 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
   long serverGroupWaitTime = TimeUnit.MINUTES.toMillis(10)
 
   @Autowired
-  OortService oortService
-
-  @Autowired
-  ObjectMapper objectMapper
+  CloudDriverService cloudDriverService
 
   @Autowired
   ServerGroupCacheForceRefreshTask serverGroupCacheForceRefreshTask
@@ -213,16 +209,15 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
       Names names = Names.parseName(serverGroupsByRegion.values().flatten()[0])
       def appName = moniker?.app ?: names.app
       def clusterName = moniker?.cluster ?: names.cluster
-      def response = oortService.getCluster(appName, account, clusterName, cloudProvider)
-      def cluster = objectMapper.readValue(response.body.in().text, Map)
+      def cluster = cloudDriverService.getCluster(appName, account, clusterName, cloudProvider)
       return cluster.serverGroups ?: []
     } else {
       def region = serverGroupsByRegion.keySet()[0]
       def serverGroupName = serverGroupsByRegion[region][0]
 
       try {
-        def response = oortService.getServerGroup(account, region, serverGroupName)
-        return [objectMapper.readValue(response.body.in().text, Map)]
+        def response = cloudDriverService.getServerGroup(account, region, serverGroupName)
+        return [response]
       } catch (RetrofitError e) {
         if (e.response?.status != 404 || waitForUpServerGroup()) {
           throw e

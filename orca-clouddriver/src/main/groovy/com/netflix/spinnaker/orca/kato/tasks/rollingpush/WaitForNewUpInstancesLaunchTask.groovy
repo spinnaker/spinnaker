@@ -18,13 +18,12 @@ package com.netflix.spinnaker.orca.kato.tasks.rollingpush
 
 import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
 
 import java.util.concurrent.TimeUnit
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
-import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -32,8 +31,7 @@ import org.springframework.stereotype.Component
 @Component
 class WaitForNewUpInstancesLaunchTask implements OverridableTimeoutRetryableTask {
 
-  @Autowired OortService oortService
-  @Autowired ObjectMapper objectMapper
+  @Autowired CloudDriverService cloudDriverService
   @Autowired(required = false) List<ServerGroupInstanceIdCollector> serverGroupInstanceIdCollectors = []
 
   long getBackoffPeriod() { TimeUnit.SECONDS.toMillis(10) }
@@ -45,13 +43,11 @@ class WaitForNewUpInstancesLaunchTask implements OverridableTimeoutRetryableTask
     StageData stageData = stage.mapTo(StageData)
 
     // similar check in `AbstractInstancesCheckTask`
-    def response = oortService.getServerGroup(
+    Map serverGroup = cloudDriverService.getServerGroup(
       stageData.account,
       stage.context.region as String,
       stage.context.asgName as String
     )
-
-    Map serverGroup = objectMapper.readValue(response.body.in(), Map)
 
     List<Map> serverGroupInstances = serverGroup.instances as List<Map>
     Set<String> knownInstanceIds = new HashSet(stage.context.knownInstanceIds as List)
