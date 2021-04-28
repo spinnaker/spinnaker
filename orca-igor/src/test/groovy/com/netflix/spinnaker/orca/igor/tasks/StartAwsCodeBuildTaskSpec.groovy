@@ -427,6 +427,122 @@ class StartAwsCodeBuildTaskSpec extends Specification {
     }) >> igorResponse
   }
 
+  def "should override secondary sources version"() {
+    given:
+    def context = getDefaultContext(false)
+    context.put("secondarySourcesVersionOverride", [
+        [
+            sourceIdentifier: "secondary_source",
+            sourceVersion: "main",
+        ],
+    ] as Serializable)
+    def stage = new StageExecutionImpl(
+        execution,
+        "awsCodeBuild",
+        context
+    )
+
+    when:
+    task.execute(stage)
+
+    then:
+    1 * igorService.startAwsCodeBuild(ACCOUNT, {
+      it.get("secondarySourcesVersionOverride") == [[
+          sourceIdentifier: "secondary_source",
+          sourceVersion: "main",
+      ]]
+    }) >> igorResponse
+  }
+
+  def "should combine secondary sources and versions"() {
+    given:
+    def context = getDefaultContext(false)
+    context.put("secondarySourcesVersionOverride", [
+        [
+            sourceIdentifier: "secondary_source",
+            sourceVersion: "main",
+        ],
+    ] as Serializable)
+
+    context.put("secondarySources", [
+        [
+            sourceArtifact: [
+                artifactId: ARTIFACT_ID,
+            ],
+        ],
+        [
+            sourceArtifact: [
+                artifactId: ARTIFACT_ID,
+            ],
+            sourceVersion: "master",
+        ],
+        [
+            sourceArtifact: [
+                artifactId: ANOTHER_ARTIFACT_ID,
+            ],
+            sourceVersion: "master",
+        ],
+    ] as Serializable)
+    def artifact = Artifact.builder()
+        .type("git/repo")
+        .reference("https://github.com/codebuild/repo.git")
+        .version("artifact-version")
+        .artifactAccount("my-codebuild-account").build()
+    def artifactWithoutVersion = Artifact.builder()
+        .type("git/repo")
+        .reference("https://github.com/codebuild/another-repo.git")
+        .artifactAccount("my-codebuild-account").build()
+    def stage = new StageExecutionImpl(
+        execution,
+        "awsCodeBuild",
+        context
+    )
+
+    when:
+    task.execute(stage)
+
+    then:
+    2 * artifactUtils.getBoundArtifactForStage(stage, ARTIFACT_ID, null) >> artifact
+    1 * artifactUtils.getBoundArtifactForStage(stage, ANOTHER_ARTIFACT_ID, null) >> artifactWithoutVersion
+    1 * igorService.startAwsCodeBuild(ACCOUNT, {
+      it.get("secondarySourcesOverride") == [
+          [
+              type: "GITHUB",
+              location: "https://github.com/codebuild/repo.git",
+              sourceIdentifier: "0",
+          ],
+          [
+              type: "GITHUB",
+              location: "https://github.com/codebuild/repo.git",
+              sourceIdentifier: "1",
+          ],
+          [
+              type: "GITHUB",
+              location: "https://github.com/codebuild/another-repo.git",
+              sourceIdentifier: "2",
+          ],
+      ]
+      it.get("secondarySourcesVersionOverride") == [
+          [
+              sourceIdentifier: "0",
+              sourceVersion: "artifact-version",
+          ],
+          [
+              sourceIdentifier: "1",
+              sourceVersion: "master",
+          ],
+          [
+              sourceIdentifier: "2",
+              sourceVersion: "master",
+          ],
+          [
+              sourceIdentifier: "secondary_source",
+              sourceVersion: "main",
+          ]
+      ]
+    }) >> igorResponse
+  }
+
   def getDefaultContext(Boolean sourceOverride = true) {
     [
         account       : ACCOUNT,

@@ -29,6 +29,7 @@ public class AwsCodeBuildStageDefinition implements RetryableStageDefinition {
   private Map<String, String> environmentVariables;
   private String image;
   private List<AwsCodeBuildSource> secondarySources;
+  private List<AwsCodeBuildSecondarySourceVersionOverride> secondarySourcesVersionOverride;
   private AwsCodeBuildExecution buildInfo;
   private int consecutiveErrors;
 
@@ -45,5 +46,11 @@ public class AwsCodeBuildStageDefinition implements RetryableStageDefinition {
   public static class AwsCodeBuildSourceArtifact {
     private String artifactId;
     private Artifact artifact;
+  }
+
+  @Data
+  public static class AwsCodeBuildSecondarySourceVersionOverride {
+    private String sourceIdentifier;
+    private String sourceVersion;
   }
 }

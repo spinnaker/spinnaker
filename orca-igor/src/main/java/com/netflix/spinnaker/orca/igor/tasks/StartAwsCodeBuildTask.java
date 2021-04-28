@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.igor.IgorService;
 import com.netflix.spinnaker.orca.igor.model.AwsCodeBuildExecution;
 import com.netflix.spinnaker.orca.igor.model.AwsCodeBuildStageDefinition;
+import com.netflix.spinnaker.orca.igor.model.AwsCodeBuildStageDefinition.AwsCodeBuildSecondarySourceVersionOverride;
 import com.netflix.spinnaker.orca.igor.model.AwsCodeBuildStageDefinition.AwsCodeBuildSource;
 import com.netflix.spinnaker.orca.igor.model.AwsCodeBuildStageDefinition.AwsCodeBuildSourceArtifact;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
@@ -69,7 +70,7 @@ public class StartAwsCodeBuildTask implements Task {
 
     appendSource(requestInput, stage, stageDefinition.getSource());
 
-    appendSecondarySources(requestInput, stage, stageDefinition.getSecondarySources());
+    appendSecondarySourcesAndVersions(requestInput, stage, stageDefinition);
 
     appendImage(requestInput, stageDefinition.getImage());
     appendEnvironmentVariables(requestInput, stageDefinition.getEnvironmentVariables());
@@ -112,18 +113,36 @@ public class StartAwsCodeBuildTask implements Task {
     }
   }
 
-  private void appendSecondarySources(
+  private void appendSecondarySourcesAndVersions(
+      Map<String, Object> requestInput,
+      StageExecution stage,
+      AwsCodeBuildStageDefinition stageDefinition) {
+
+    List<Map<String, String>> secondarySourcesVersion = new ArrayList<>();
+    secondarySourcesVersion.addAll(
+        appendSecondarySources(requestInput, stage, stageDefinition.getSecondarySources()));
+    secondarySourcesVersion.addAll(
+        appendSecondarySourcesVersionOverride(
+            requestInput, stage, stageDefinition.getSecondarySourcesVersionOverride()));
+
+    if (!secondarySourcesVersion.isEmpty()) {
+      requestInput.put(SECONDARY_SOURCES_VERSION, secondarySourcesVersion);
+    }
+  }
+
+  private List<Map<String, String>> appendSecondarySources(
       Map<String, Object> requestInput, StageExecution stage, List<AwsCodeBuildSource> sources) {
+    List<Map<String, String>> secondarySourcesVersion = new ArrayList<>();
     if (sources != null) {
       List<Map<String, String>> secondarySources = new ArrayList<>();
-      List<Map<String, String>> secondarySourcesVersion = new ArrayList<>();
+
       for (AwsCodeBuildSource source : sources) {
         Artifact matchArtifact = getSourceArtifact(stage, source.getSourceArtifact());
         appendSecondarySource(secondarySources, secondarySourcesVersion, matchArtifact, source);
       }
       requestInput.put(SECONDARY_SOURCES, secondarySources);
-      requestInput.put(SECONDARY_SOURCES_VERSION, secondarySourcesVersion);
     }
+    return secondarySourcesVersion;
   }
 
   private void appendSecondarySource(
@@ -155,6 +174,23 @@ public class StartAwsCodeBuildTask implements Task {
     if (!sourceVersion.isEmpty()) {
       secondarySourcesVersion.add(sourceVersion);
     }
+  }
+
+  private List<Map<String, String>> appendSecondarySourcesVersionOverride(
+      Map<String, Object> requestInput,
+      StageExecution stage,
+      List<AwsCodeBuildSecondarySourceVersionOverride> sources) {
+
+    List<Map<String, String>> secondarySourcesVersion = new ArrayList<>();
+    if (sources != null) {
+      for (AwsCodeBuildSecondarySourceVersionOverride source : sources) {
+        secondarySourcesVersion.add(
+            Map.ofEntries(
+                Map.entry(SECONDARY_SOURCE_IDENTIFIER, source.getSourceIdentifier()),
+                Map.entry(SECONDARY_SOURCE_VERSION, source.getSourceVersion())));
+      }
+    }
+    return secondarySourcesVersion;
   }
 
   private void appendImage(Map<String, Object> requestInput, String image) {
