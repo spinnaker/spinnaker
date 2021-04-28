@@ -1,6 +1,6 @@
 import { IHttpPromiseCallbackArg } from 'angular';
 import { $http, $location, $rootScope } from 'ngimport';
-import { fromEvent as observableFromEvent, Observable, Subscription } from 'rxjs';
+import { fromEvent as observableFromEvent, Subscription } from 'rxjs';
 
 import { SETTINGS } from 'core/config/settings';
 import { ModalInjector } from 'core/reactShims/modal.injector';

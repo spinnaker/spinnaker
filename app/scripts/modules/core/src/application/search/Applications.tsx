@@ -1,7 +1,7 @@
 import { isEqual } from 'lodash';
 import React from 'react';
 import { SelectCallback } from 'react-bootstrap';
-import { BehaviorSubject, from as observableFrom, Observable, Subject } from 'rxjs';
+import { BehaviorSubject, from as observableFrom, Subject } from 'rxjs';
 import { combineLatest, distinctUntilChanged, map, takeUntil } from 'rxjs/operators';
 
 import { IAccount } from 'core/account';

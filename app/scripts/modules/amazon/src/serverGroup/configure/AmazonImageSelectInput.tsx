@@ -1,7 +1,7 @@
 import { $q } from 'ngimport';
 import React from 'react';
 import { HandlerRendererResult, MenuRendererProps, Option, OptionValues, ReactSelectProps } from 'react-select';
-import { BehaviorSubject, from as observableFrom, Observable, of as observableOf, Subject } from 'rxjs';
+import { BehaviorSubject, from as observableFrom, of as observableOf, Subject } from 'rxjs';
 import {
   catchError,
   combineLatest,

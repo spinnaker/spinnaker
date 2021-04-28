@@ -2,7 +2,7 @@ import { get } from 'lodash';
 import { $q } from 'ngimport';
 import React from 'react';
 import { Option } from 'react-select';
-import { from as observableFrom, Observable, Subject, Subscription } from 'rxjs';
+import { from as observableFrom, Subject, Subscription } from 'rxjs';
 import { debounceTime, switchMap } from 'rxjs/operators';
 
 import {

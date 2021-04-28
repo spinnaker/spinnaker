@@ -1,5 +1,5 @@
 import { IDeferred, IQService, module } from 'angular';
-import { Observable, of as observableOf, Subject } from 'rxjs';
+import { of as observableOf, Subject } from 'rxjs';
 import { switchMap, toArray } from 'rxjs/operators';
 
 import { PROVIDER_SERVICE_DELEGATE, ProviderServiceDelegate } from 'core/cloudProvider';

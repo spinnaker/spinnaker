@@ -2,7 +2,7 @@ import classnames from 'classnames';
 import { flatten, uniq, without } from 'lodash';
 import React from 'react';
 import ReactGA from 'react-ga';
-import { from as observableFrom, Observable, Subject, Subscription } from 'rxjs';
+import { from as observableFrom, Subject, Subscription } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import { AccountTag } from 'core/account';

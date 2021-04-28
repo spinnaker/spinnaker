@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import { capitalize, filter, flatten, get, isEmpty } from 'lodash';
 import React from 'react';
-import { from as observableFrom, Observable, Subject } from 'rxjs';
+import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import { Application } from 'core/application';

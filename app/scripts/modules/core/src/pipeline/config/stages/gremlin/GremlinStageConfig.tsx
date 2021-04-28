@@ -1,6 +1,6 @@
 import React from 'react';
 import Select from 'react-select';
-import { forkJoin as observableForkJoin, from as observableFrom, Observable } from 'rxjs';
+import { forkJoin as observableForkJoin, from as observableFrom } from 'rxjs';
 
 import { REST } from 'core/api/ApiService';
 

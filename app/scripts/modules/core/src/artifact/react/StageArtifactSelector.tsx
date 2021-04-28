@@ -2,7 +2,7 @@ import { module } from 'angular';
 import React from 'react';
 import Select from 'react-select';
 import { react2angular } from 'react2angular';
-import { from as observableFrom, Observable, Subject } from 'rxjs';
+import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import { AccountService, IArtifactAccount } from 'core/account';

@@ -2,7 +2,7 @@ import { FormikErrors, FormikProps } from 'formik';
 import { get, isEqual, partition, uniq } from 'lodash';
 import React from 'react';
 import VirtualizedSelect from 'react-virtualized-select';
-import { combineLatest as observableCombineLatest, Observable, Subject } from 'rxjs';
+import { combineLatest as observableCombineLatest, Subject } from 'rxjs';
 import { distinctUntilChanged, map, mergeMap, switchMap, takeUntil, tap, withLatestFrom } from 'rxjs/operators';
 
 import {

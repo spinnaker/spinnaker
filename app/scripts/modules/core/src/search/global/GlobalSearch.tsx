@@ -3,7 +3,7 @@ import { flatten } from 'lodash';
 import { Debounce } from 'lodash-decorators';
 import React from 'react';
 import ReactGA from 'react-ga';
-import { from as observableFrom, Observable, Subject } from 'rxjs';
+import { from as observableFrom, Subject } from 'rxjs';
 import { debounceTime, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { Tooltip } from 'core/presentation/Tooltip';

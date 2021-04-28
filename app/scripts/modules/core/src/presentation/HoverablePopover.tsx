@@ -1,7 +1,7 @@
 import React from 'react';
 import { Overlay, Popover, PopoverProps } from 'react-bootstrap';
 import ReactDOM from 'react-dom';
-import { merge as observableMerge, Observable, of as observableOf, Subject } from 'rxjs';
+import { merge as observableMerge, of as observableOf, Subject } from 'rxjs';
 import { delay, filter, map, switchMap, takeUntil } from 'rxjs/operators';
 
 import { UUIDGenerator } from 'core/utils';

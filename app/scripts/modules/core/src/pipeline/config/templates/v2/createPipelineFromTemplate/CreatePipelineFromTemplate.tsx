@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button, Modal } from 'react-bootstrap';
 import { Option } from 'react-select';
-import { from as observableFrom, Observable, Subject } from 'rxjs';
+import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import { Application, ApplicationReader, IApplicationSummary } from 'core/application';

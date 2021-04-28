@@ -1,6 +1,6 @@
 import { get } from 'lodash';
 import React from 'react';
-import { Observable, of as observableOf, Subject } from 'rxjs';
+import { of as observableOf, Subject } from 'rxjs';
 import { map, switchMap, takeUntil } from 'rxjs/operators';
 
 import { AccountService, IAccountDetails } from 'core/account/AccountService';

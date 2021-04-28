@@ -2,7 +2,7 @@ import { get, isEmpty } from 'lodash';
 import { $q } from 'ngimport';
 import React from 'react';
 import Select, { Creatable, Option } from 'react-select';
-import { from as observableFrom, Observable, Subject } from 'rxjs';
+import { from as observableFrom, Subject } from 'rxjs';
 import { switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import {

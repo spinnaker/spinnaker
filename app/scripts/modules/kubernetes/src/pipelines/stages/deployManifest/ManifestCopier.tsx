@@ -2,7 +2,7 @@ import { groupBy, sortBy } from 'lodash';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 import { Option } from 'react-select';
-import { from as observableFrom, Observable, Subject } from 'rxjs';
+import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import {

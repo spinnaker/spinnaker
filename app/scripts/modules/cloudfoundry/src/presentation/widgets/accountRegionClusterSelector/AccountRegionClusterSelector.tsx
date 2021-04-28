@@ -1,7 +1,7 @@
 import { first, isNil, uniq } from 'lodash';
 import React from 'react';
 import Select, { Creatable, Option } from 'react-select';
-import { from as observableFrom, Observable, Subject } from 'rxjs';
+import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import {

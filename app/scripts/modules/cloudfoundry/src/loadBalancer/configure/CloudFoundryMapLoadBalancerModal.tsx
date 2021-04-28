@@ -4,7 +4,7 @@ import { Form, Formik } from 'formik';
 import { $q } from 'ngimport';
 import React from 'react';
 import { Modal, ModalFooter } from 'react-bootstrap';
-import { from as observableFrom, Observable, Subject } from 'rxjs';
+import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import {

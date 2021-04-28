@@ -2,7 +2,7 @@ import { FormikProps } from 'formik';
 import { clone, head } from 'lodash';
 import React from 'react';
 import Select, { Option } from 'react-select';
-import { from as observableFrom, Observable, Subject } from 'rxjs';
+import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import { IPipelineCommand, ITrigger } from 'core/domain';

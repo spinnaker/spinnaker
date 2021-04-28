@@ -4,7 +4,7 @@ import $ from 'jquery';
 import 'jquery-textcomplete';
 import { $q, $timeout } from 'ngimport';
 import React from 'react';
-import { from as observableFrom, Observable, Subject } from 'rxjs';
+import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import { SpelAutocompleteService } from './SpelAutocompleteService';

@@ -15,7 +15,7 @@ import {
   TableCellProps,
   TableHeaderProps,
 } from 'react-virtualized';
-import { forkJoin as observableForkJoin, from as observableFrom, Observable } from 'rxjs';
+import { forkJoin as observableForkJoin, from as observableFrom } from 'rxjs';
 
 import { ApplicationReader, IApplicationSummary } from 'core/application';
 import { SETTINGS } from 'core/config';

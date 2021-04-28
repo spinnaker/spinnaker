@@ -2,7 +2,7 @@ import { FormikErrors, FormikProps } from 'formik';
 import { forOwn, uniqBy } from 'lodash';
 import React from 'react';
 import { Option } from 'react-select';
-import { combineLatest as observableCombineLatest, from as observableFrom, Observable, Subject } from 'rxjs';
+import { combineLatest as observableCombineLatest, from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import {

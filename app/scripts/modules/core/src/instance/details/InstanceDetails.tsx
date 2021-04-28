@@ -1,5 +1,5 @@
 import React from 'react';
-import { forkJoin as observableForkJoin, from as observableFrom, Observable, Subject } from 'rxjs';
+import { forkJoin as observableForkJoin, from as observableFrom, Subject } from 'rxjs';
 import { mergeMap, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { AccountService } from 'core/account/AccountService';

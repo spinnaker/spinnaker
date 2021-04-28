@@ -2,7 +2,7 @@ import { Form, Formik } from 'formik';
 import { assign, clone, compact, extend, get, head, isArray, isEmpty, isEqual, pickBy, uniq } from 'lodash';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
-import { from as observableFrom, Observable, Subject } from 'rxjs';
+import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import { Application } from 'core/application';
