@@ -33,7 +33,6 @@ subprojects {
     }
   }
 
-  group = "com.netflix.spinnaker.echo"
   if (name != "echo-bom") {
     apply plugin: "java-library"
     apply plugin: "groovy"
