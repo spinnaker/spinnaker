@@ -69,6 +69,7 @@
     "ui-select": "^0.19.6"
   },
   "devDependencies": {
+    "@apollo/client": "^3.3.15",
     "@babel/preset-env": "^7.13.12",
     "@babel/preset-react": "^7.13.13",
     "@babel/preset-typescript": "^7.13.0",
@@ -131,6 +132,7 @@
     "eslint": "7.10.0",
     "eslint-config-prettier": "6.12.0",
     "eslint-plugin-react-hooks": "4.1.2",
+    "graphql": "^15.5.0",
     "jest": "^26.6.3",
     "jquery": "3.5.1",
     "jquery-textcomplete": "1.6.1",
@@ -142,6 +144,7 @@
     "prettier": "2.1.2",
     "pretty-quick": "3.1.0",
     "prop-types": "15.6.1",
+    "react-toastify": "^7.0.4",
     "react2angular": "^3.2.1",
     "redux-test-utils": "^0.3.0",
     "rollup": "2.45.2",
