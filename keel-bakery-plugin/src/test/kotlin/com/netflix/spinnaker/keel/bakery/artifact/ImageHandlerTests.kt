@@ -29,6 +29,7 @@ import io.mockk.CapturingSlot
 import io.mockk.mockk
 import io.mockk.slot
 import org.springframework.context.ApplicationEventPublisher
+import org.springframework.mock.env.MockEnvironment
 import strikt.api.Assertion
 import strikt.api.expect
 import strikt.api.expectCatching
@@ -66,7 +67,8 @@ internal class ImageHandlerTests : JUnit5Minutests {
       imageService,
       publisher,
       taskLauncher,
-      BakeCredentials("keel@spinnaker.io", "keel")
+      BakeCredentials("keel@spinnaker.io", "keel"),
+      MockEnvironment()
     )
 
     val artifact = DebianArtifact(

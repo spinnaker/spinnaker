@@ -18,6 +18,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.env.Environment
 
 @Configuration
 @ConditionalOnProperty("keel.plugins.bakery.enabled")
@@ -34,7 +35,8 @@ class BakeryConfiguration {
     publisher: ApplicationEventPublisher,
     taskLauncher: TaskLauncher,
     @Value("\${bakery.defaults.serviceAccount:keel@spinnaker.io}") defaultServiceAccount: String,
-    @Value("\${bakery.defaults.application:keel}") defaultApplication: String
+    @Value("\${bakery.defaults.application:keel}") defaultApplication: String,
+    springEnv: Environment
   ) = ImageHandler(
     keelRepository,
     baseImageCache,
@@ -43,7 +45,8 @@ class BakeryConfiguration {
     imageService,
     publisher,
     taskLauncher,
-    BakeCredentials(defaultServiceAccount, defaultApplication)
+    BakeCredentials(defaultServiceAccount, defaultApplication),
+    springEnv
   )
 
   @Bean

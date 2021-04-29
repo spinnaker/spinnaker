@@ -26,6 +26,7 @@ import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
 import com.netflix.spinnaker.keel.telemetry.ArtifactCheckSkipped
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
+import org.springframework.core.env.Environment
 
 class ImageHandler(
   private val repository: KeelRepository,
@@ -35,7 +36,8 @@ class ImageHandler(
   private val imageService: ImageService,
   private val publisher: ApplicationEventPublisher,
   private val taskLauncher: TaskLauncher,
-  private val defaultCredentials: BakeCredentials
+  private val defaultCredentials: BakeCredentials,
+  private val springEnv: Environment
 ) : ArtifactHandler {
 
   override suspend fun handle(artifact: DeliveryArtifact) {
@@ -107,10 +109,13 @@ class ImageHandler(
   private suspend fun DebianArtifact.findLatestAmi(desiredArtifactVersion: String) =
     imageService.getLatestNamedImages(
       appVersion = AppVersion.parseName(desiredArtifactVersion),
-      account = "test",
+      account = defaultImageAccount,
       regions = vmOptions.regions,
       baseOs = vmOptions.baseOs
     )
+
+  private val defaultImageAccount: String
+    get() = springEnv.getProperty("images.default-account", String::class.java, "test")
 
   private fun DebianArtifact.findLatestBaseAmiName() =
     baseImageCache.getBaseAmiName(vmOptions.baseOs, vmOptions.baseLabel)
