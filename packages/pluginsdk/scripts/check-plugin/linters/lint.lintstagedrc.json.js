@@ -1,7 +1,7 @@
 const { assertFileExists } = require('../asserters/assertFileExists');
 
-function checkLintStaged(report) {
+function checkLintStagedRc(report) {
   assertFileExists(report, '.lintstagedrc.json');
 }
 
-module.exports = { checkLintStaged };
+module.exports = { checkLintStagedRc };
