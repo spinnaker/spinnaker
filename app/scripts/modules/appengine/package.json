@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/appengine",
   "license": "Apache-2.0",
-  "version": "0.0.31",
+  "version": "0.0.32",
   "main": "lib/lib.js",
   "typings": "lib/index.d.ts",
   "scripts": {
