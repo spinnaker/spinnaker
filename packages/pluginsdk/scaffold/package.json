@@ -9,6 +9,7 @@
     "build": "npm run clean && NODE_ENV=production rollup -c",
     "lint": "eslint --ext js,jsx,ts,tsx src",
     "postinstall": "check-plugin && check-peer-dependencies || true",
+    "prepare": "husky-install",
     "prettier": "prettier --write 'src/**/*.{js,jsx,ts,tsx,html,css,less,json}'",
     "proxy": "dev-proxy",
     "watch": "rollup -c -w --no-watch.clearScreen"
