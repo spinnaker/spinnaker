@@ -6,6 +6,11 @@ export interface IAwsCodeBuildSource {
   sourceVersion?: string;
 }
 
+export interface IAwsCodeBuildSecondarySourcesVersion {
+  sourceIdentifier: string;
+  sourceVersion: string;
+}
+
 interface IAwsCodeBuildSourceArtifact {
   artifactId?: string;
   artifactDisplayName?: string;

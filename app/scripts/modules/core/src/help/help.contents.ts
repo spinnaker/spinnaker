@@ -528,6 +528,9 @@ const helpContents: { [key: string]: string } = {
   'pipeline.config.codebuild.sourceVersion': `(Optional) Source version of the build. If not specified, the artifact version will be used. If artifact doesn't have a version, the latest version will be used. See the <a href="https://docs.aws.amazon.com/codebuild/latest/APIReference/API_StartBuild.html#CodeBuild-StartBuild-request-sourceVersion">CodeBuild reference</a> for more information.`,
   'pipeline.config.codebuild.buildspec': `(Optional) Inline buildspec definition of the build. If not specified, buildspec configured in CodeBuild project will be used.`,
   'pipeline.config.codebuild.secondarySources': `(Optional) Secondary sources of the build. It can be overridden by adding Spinnaker Artifacts. If not specified, secondary sources configured in CodeBuild project will be used.`,
+  'pipeline.config.codebuild.secondarySourcesVersionOverride': `(Optional) Existing secondary sources version overrides. Pre-defined secondary source's version can be overriden by specifying the source identifier and version. If not specified, secondary sources configured in CodeBuild project will be used.`,
+  'pipeline.config.codebuild.sourceIdentifier': `(Optional) Name of a pre-defined secondary source.`,
+  'pipeline.config.codebuild.secondarySourceVersion': `Version of secondary source identifier to use. Required if specifying a source identifier.`,
   'pipeline.config.codebuild.image': `(Optional) Image in which the build will run. It can be overridden by specifying the name of the image. If not specified, image configured in CodeBuild project will be used.`,
   'pipeline.config.codebuild.envVar': `(Optional) Environment variables that will be propagated into the build.`,
 };

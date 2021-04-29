@@ -14,6 +14,7 @@ import {
   StageArtifactSelector,
   TextInput,
 } from 'core';
+
 import { Form, Formik, FormikProps } from 'formik';
 import { get } from 'lodash';
 import React from 'react';
@@ -21,10 +22,11 @@ import { Modal } from 'react-bootstrap';
 
 import { ModalClose, SubmitButton } from 'core/modal';
 
-import { EXCLUDED_ARTIFACT_TYPES, IAwsCodeBuildSource, SOURCE_TYPES } from './IAwsCodeBuildSource';
+import { EXCLUDED_ARTIFACT_TYPES, IAwsCodeBuildSource, IAwsCodeBuildSecondarySourcesVersion, SOURCE_TYPES } from './IAwsCodeBuildSource';
 
 export interface IEditAwsCodeBuildSourceModalProps extends IModalComponentProps {
   source: IAwsCodeBuildSource;
+  secondarySourcesVersionOverride: IAwsCodeBuildSecondarySourcesVersion;
   stage: IStage;
   pipeline: IPipeline;
 }
@@ -50,7 +52,7 @@ export class EditAwsCodeBuildSourceModal extends React.Component<IEditAwsCodeBui
     formik.setFieldValue(
       'sourceArtifact.artifactType',
       (artifact.matchArtifact && artifact.matchArtifact.type) ||
-        (artifact.defaultArtifact && artifact.defaultArtifact.type),
+      (artifact.defaultArtifact && artifact.defaultArtifact.type),
     );
     formik.setFieldValue('sourceArtifact.artifact', null);
   };
