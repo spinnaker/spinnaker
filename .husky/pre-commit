@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# CHECK THIS FILE INTO SOURCE CONTROL!
+
+. "$(dirname "$0")/_/husky.sh"
+
+[[ -e deck-kayenta/node_modules/.bin/lint-staged ]] && cd deck-kayenta; ./node_modules/.bin/lint-staged -p false
