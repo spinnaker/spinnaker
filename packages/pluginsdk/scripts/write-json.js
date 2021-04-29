@@ -1,9 +1,14 @@
 #!/usr/bin/env node
-const { writeJsonField } = require('./check-plugin/util/readWriteJson');
-const [filename, jsonPath, value] = require('yargs').argv._;
+const { writeJsonField, deleteJsonField } = require('./check-plugin/util/readWriteJson');
+const yargs = require('yargs').option('delete', { type: 'boolean' });
+const [filename, jsonPath, value] = yargs.argv._;
 
 try {
-  writeJsonField(filename, jsonPath, value);
+  if (yargs.argv.delete) {
+    deleteJsonField(filename, jsonPath);
+  } else {
+    writeJsonField(filename, jsonPath, value);
+  }
 } catch (error) {
   console.error(`Unable to write json path ${jsonPath} in file ${filename}`, error);
   process.exit(-1);
