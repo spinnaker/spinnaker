@@ -2,7 +2,7 @@
 
 import { module } from 'angular';
 import _ from 'lodash';
-import { Subject, from as observableFrom } from 'rxjs';
+import { from as observableFrom, Subject } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 
 import { CloudMetricsReader } from '@spinnaker/core';

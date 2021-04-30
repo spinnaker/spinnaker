@@ -1,7 +1,7 @@
 'use strict';
 
 import { module } from 'angular';
-import { Subject, from as observableFrom } from 'rxjs';
+import { from as observableFrom, Subject } from 'rxjs';
 import { debounceTime, switchMap } from 'rxjs/operators';
 
 export const DCOS_SERVERGROUP_CONFIGURE_WIZARD_CONTAINERSETTINGS_CONTROLLER =

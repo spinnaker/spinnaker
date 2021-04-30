@@ -3,7 +3,7 @@
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import * as angular from 'angular';
 import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
-import { Subject, from as observableFrom } from 'rxjs';
+import { from as observableFrom, Subject } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 
 import {
