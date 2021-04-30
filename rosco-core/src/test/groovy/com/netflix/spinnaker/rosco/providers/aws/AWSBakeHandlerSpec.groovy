@@ -50,6 +50,9 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
   RoscoAWSConfiguration.AWSBakeryDefaults awsBakeryDefaults
 
   @Shared
+  List<RoscoAWSConfiguration.AWSNamedImage> searchByNameResults
+
+  @Shared
   RoscoConfiguration roscoConfiguration
 
   void setupSpec() {
@@ -165,11 +168,80 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
               spotPriceAutoProduct: "Windows (Amazon VPC)"
             ]
           ]
-        ]
+        ],
+        [
+            baseImage: [
+                id: "xenial",
+                packageType: "DEB",
+            ],
+            virtualizationSettings: [
+                [
+                    region: REGION,
+                    virtualizationType: "hvm",
+                    instanceType: "t2.micro",
+                    sourceAmi: "ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-",
+                    mostRecent: true,
+                    sshUserName: "ubuntu",
+                    spotPrice: "auto",
+                    spotPriceAutoProduct: "Linux/UNIX (Amazon VPC)"
+                ]
+            ]
+        ],
+        [
+            baseImage: [
+                id: "xenial-not-recent",
+                packageType: "DEB",
+            ],
+            virtualizationSettings: [
+                [
+                    region: REGION,
+                    virtualizationType: "hvm",
+                    instanceType: "t2.micro",
+                    sourceAmi: "ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-",
+                    mostRecent: false,
+                    sshUserName: "ubuntu",
+                    spotPrice: "auto",
+                    spotPriceAutoProduct: "Linux/UNIX (Amazon VPC)"
+                ]
+            ]
+        ],
       ]
     ]
 
     awsBakeryDefaults = new ObjectMapper().convertValue(awsBakeryDefaultsJson, RoscoAWSConfiguration.AWSBakeryDefaults)
+
+    searchByNameResults = [
+        new RoscoAWSConfiguration.AWSNamedImage(
+            imageName: "ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-20200126",
+            attributes: new RoscoAWSConfiguration.AWSImageAttributes(
+                creationDate: new Date(2020, 1, 26),
+                virtualizationType: BakeRequest.VmType.hvm
+            ),
+            amis: [
+                (REGION): ["ami-20200126"]
+            ]
+        ),
+        new RoscoAWSConfiguration.AWSNamedImage(
+            imageName: "ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-20201210",
+            attributes: new RoscoAWSConfiguration.AWSImageAttributes(
+                creationDate: new Date(2020, 12, 10),
+                virtualizationType: BakeRequest.VmType.hvm
+            ),
+            amis: [
+                (REGION): ["ami-20201210"]
+            ]
+        ),
+        new RoscoAWSConfiguration.AWSNamedImage(
+            imageName: "ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-20201009",
+            attributes: new RoscoAWSConfiguration.AWSImageAttributes(
+                creationDate: new Date(2020, 10, 9),
+                virtualizationType: BakeRequest.VmType.hvm
+            ),
+            amis: [
+                (REGION): ["ami-20201009"]
+            ]
+        ),
+    ]
   }
 
   void 'can scrape packer logs for image name'() {
@@ -492,6 +564,60 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
       1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages, DEB_PACKAGE_TYPE) >> null
       1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/$awsBakeryDefaults.templateFile")
+  }
+
+  void 'produces packer command with all required parameters for ubuntu, using ami lookup by name'() {
+    setup:
+      def clouddriverService = Stub(ClouddriverService) {
+        findAmazonImageByName(_, _, _) >> {
+          return searchByNameResults
+        }
+      }
+      def packerCommandFactoryMock = Mock(PackerCommandFactory)
+      def imageNameFactoryMock = Mock(ImageNameFactory)
+      def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+                                        package_name: PACKAGES_NAME,
+                                        base_os: base_os,
+                                        vm_type: BakeRequest.VmType.hvm,
+                                        cloud_provider_type: BakeRequest.CloudProviderType.aws)
+      def targetImageName = "kato-x8664-timestamp-ubuntu"
+      def osPackages = parseDebOsPackageNames(PACKAGES_NAME)
+      def parameterMap = [
+        aws_region: REGION,
+        aws_ssh_username: "ubuntu",
+        aws_instance_type: "t2.micro",
+        aws_spot_price: "auto",
+        aws_spot_price_auto_product: "Linux/UNIX (Amazon VPC)",
+        aws_source_ami: expected,
+        aws_target_ami: targetImageName,
+        repository: DEBIAN_REPOSITORY,
+        package_type: DEB_PACKAGE_TYPE.util.packageType,
+        packages: PACKAGES_NAME,
+        configDir: configDir
+      ]
+
+      @Subject
+      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(configDir: configDir,
+                                                         clouddriverService: clouddriverService,
+                                                         retrySupport: new RetrySupport(),
+                                                         awsBakeryDefaults: awsBakeryDefaults,
+                                                         imageNameFactory: imageNameFactoryMock,
+                                                         packerCommandFactory: packerCommandFactoryMock,
+                                                         debianRepository: DEBIAN_REPOSITORY)
+
+    when:
+      awsBakeHandler.produceBakeRecipe(REGION, bakeRequest)
+
+    then:
+      1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages, DEB_PACKAGE_TYPE) >> null
+      1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
+      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/$awsBakeryDefaults.templateFile")
+
+    where:
+    base_os             | expected
+    "xenial"            | "ami-20201210"
+    "xenial-not-recent" | "ami-20200126"
   }
 
   void 'produces packer command with all required parameters for amzn, using default vm type'() {

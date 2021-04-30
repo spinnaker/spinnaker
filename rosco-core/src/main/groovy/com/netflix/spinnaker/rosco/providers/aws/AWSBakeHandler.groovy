@@ -119,13 +119,13 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
     if (!awsVirtualizationSettings.sourceAmi) {
       String base = lookupBaseByDynamicProperty(region, bakeRequest)
       if (base != null && !base.matches(AMI_ID)) {
-        awsVirtualizationSettings.sourceAmi = lookupAmiByName(base, region, account, vm_type)
+        awsVirtualizationSettings.sourceAmi = lookupAmiByName(base, region, account, vm_type, awsVirtualizationSettings.mostRecent)
       } else {
         awsVirtualizationSettings.sourceAmi = base
       }
     } else if (!awsVirtualizationSettings.sourceAmi.matches(AMI_ID)) {
       awsVirtualizationSettings.sourceAmi = lookupAmiByName(
-        awsVirtualizationSettings.sourceAmi, region, account, vm_type)
+        awsVirtualizationSettings.sourceAmi, region, account, vm_type, awsVirtualizationSettings.mostRecent)
     }
 
     if (awsVirtualizationSettings.sourceAmi == null) {
@@ -231,7 +231,7 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
     return new Bake(id: bakeId, ami: amiId, image_name: imageName, artifacts: artifacts)
   }
 
-  private String lookupAmiByName(String name, String region, String account, VmType vmType) {
+  private String lookupAmiByName(String name, String region, String account, VmType vmType, boolean mostRecent) {
     def images = AuthenticatedRequest.allowAnonymous(
       {
         retrySupport.retry({
@@ -239,7 +239,15 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
         }, 3, Duration.ofSeconds(3), false)
       }
     )
-    def image = images?.find { it.attributes.virtualizationType == vmType }
+
+    def image
+    if (mostRecent) {
+      def matchingImages = images?.findAll { it?.attributes?.virtualizationType == vmType }
+      image = matchingImages?.max {it?.attributes?.creationDate }
+    } else {
+      image = images?.find { it.attributes.virtualizationType == vmType }
+    }
+    
     return image?.amis?.get(region)?.first()
   }
 }

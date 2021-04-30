@@ -71,6 +71,7 @@ class RoscoAWSConfiguration {
     BakeRequest.VmType virtualizationType
     String instanceType
     String sourceAmi
+    boolean mostRecent
     String sshUserName
     String winRmUserName
     String spotPrice
@@ -86,6 +87,7 @@ class RoscoAWSConfiguration {
   }
 
   static class AWSImageAttributes {
+    Date creationDate
     BakeRequest.VmType virtualizationType
   }
 
