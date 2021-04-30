@@ -1,3 +1,5 @@
+/// <reference path="./index.d.ts" />
+
 export { TITUS_MODULE } from './titus.module';
 
 export * from './reactShims';
