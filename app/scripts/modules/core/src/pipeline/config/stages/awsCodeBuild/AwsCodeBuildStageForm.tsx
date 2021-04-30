@@ -17,8 +17,9 @@ import { get } from 'lodash';
 import React from 'react';
 
 import { CheckboxInput } from 'core/presentation';
-import { EXCLUDED_ARTIFACT_TYPES, SOURCE_TYPES, IAwsCodeBuildSource } from './IAwsCodeBuildSource';
-import { AwsCodeBuildSourceList, AwsCodeBuildSecondarySourcesVersionList } from './AwsCodeBuildSourceList';
+
+import { AwsCodeBuildSecondarySourcesVersionList, AwsCodeBuildSourceList } from './AwsCodeBuildSourceList';
+import { EXCLUDED_ARTIFACT_TYPES, IAwsCodeBuildSource, SOURCE_TYPES } from './IAwsCodeBuildSource';
 
 export function AwsCodeBuildStageForm(props: IFormikStageConfigInjectedProps) {
   const stage = props.formik.values;
@@ -146,11 +147,7 @@ export function AwsCodeBuildStageForm(props: IFormikStageConfigInjectedProps) {
         label="Secondary Sources Version"
         name="secondarySourcesVersionOverride"
         input={(inputProps: IFormInputProps) => (
-          <AwsCodeBuildSecondarySourcesVersionList
-            {...inputProps}
-            stage={stage}
-            pipeline={props.pipeline}
-          />
+          <AwsCodeBuildSecondarySourcesVersionList {...inputProps} stage={stage} pipeline={props.pipeline} />
         )}
       />
       <h4>Environment Configuration</h4>
