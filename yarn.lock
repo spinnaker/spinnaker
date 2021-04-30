@@ -3229,14 +3229,14 @@
   resolved "https://registry.yarnpkg.com/@spinnaker/mocks/-/mocks-1.0.7.tgz#3e30fde4d691b310910e7fa5201c7424609042c0"
   integrity sha512-WXoNtZoFZFNDTrckCbbTShxoRN088IN+awWweNNv89EU4GsMX8HnnG/9J6N9rAt0R3ZgzhJmaNG06/JHHBzxEw==
 
-"@spinnaker/presentation@^0.0.4":
+"@spinnaker/presentation@0.0.4":
   version "0.0.4"
   resolved "https://registry.yarnpkg.com/@spinnaker/presentation/-/presentation-0.0.4.tgz#021ea6336a729a6af9126fbdf2564c2fb37dc65c"
   integrity sha512-IOdtVnRGAHayJjPOUAXw7jqE2FtVheguwHR+Ztq1lQxW4LUsBDb4Ti2xB44qvtMxfmqAlYr9OLOTl2RY8jYPDw==
   dependencies:
     formik "^1.4.1"
 
-"@spinnaker/styleguide@^1.0.22":
+"@spinnaker/styleguide@1.0.22":
   version "1.0.22"
   resolved "https://registry.yarnpkg.com/@spinnaker/styleguide/-/styleguide-1.0.22.tgz#84b5523deb110eb02d5a511cf6b24ee8a5cb318b"
   integrity sha512-/K+sF8AFmuShbFABkg57/VWNu6S8PBaYZUsGv1XF0TR1kPN6P/NcHbr6223EuyRQpArPKN7RMqmgxg5CcXzutQ==
