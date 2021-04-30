@@ -85,24 +85,26 @@ export class TitusSecurityGroupsDetailsSection extends React.Component<
         <ul>
           {initializing && serverGroup.securityGroups.map((sgId) => <li key={sgId}>...</li>)}
           <UIRouterContextComponent>
-            {sortBy(securityGroups, 'name').map((securityGroup) => (
-              <li key={securityGroup.name}>
-                <UISref
-                  to="^.firewallDetails"
-                  params={{
-                    name: securityGroup.name,
-                    accountId: securityGroup.account,
-                    region: serverGroup.region,
-                    vpcId: securityGroup.vpcId,
-                    provider: 'aws',
-                  }}
-                >
-                  <a>
-                    {securityGroup.name} ({securityGroup.id})
-                  </a>
-                </UISref>
-              </li>
-            ))}
+            <>
+              {sortBy(securityGroups, 'name').map((securityGroup) => (
+                <li key={securityGroup.name}>
+                  <UISref
+                    to="^.firewallDetails"
+                    params={{
+                      name: securityGroup.name,
+                      accountId: securityGroup.account,
+                      region: serverGroup.region,
+                      vpcId: securityGroup.vpcId,
+                      provider: 'aws',
+                    }}
+                  >
+                    <a>
+                      {securityGroup.name} ({securityGroup.id})
+                    </a>
+                  </UISref>
+                </li>
+              ))}
+            </>
           </UIRouterContextComponent>
         </ul>
       </CollapsibleSection>
