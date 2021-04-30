@@ -26,6 +26,7 @@ const getDefaultRegion = (app: Application, provider: string) =>
 const getAngularModalOptions = (provider: any, selectedProvider: string, app: Application) => ({
   templateUrl: provider.createSecurityGroupTemplateUrl,
   controller: `${provider.createSecurityGroupController} as ctrl`,
+  windowClass: 'modal-z-index',
   size: 'lg',
   resolve: {
     securityGroup: () => {
