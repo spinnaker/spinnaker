@@ -128,6 +128,8 @@ const helpContents: { [key: string]: string } = {
   'aws.targetGroup.attributes.stickinessEnabled': ' Indicates whether sticky sessions are enabled.',
   'aws.targetGroup.attributes.deregistrationDelayConnectionTermination':
     'If enabled, your Network Load Balancer will terminate active connections when deregistration delay is reached.',
+  'aws.targetGroup.attributes.preserveClientIp':
+    'If enabled, your Network Load Balancer will preserve client IP addresses to the target.',
   'aws.targetGroup.attributes.stickinessType':
     'The type of sticky sessions. The only current possible value is <code>lb_cookie</code>.',
   'aws.targetGroup.attributes.stickinessDuration':

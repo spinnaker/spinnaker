@@ -470,6 +470,7 @@ export class AwsLoadBalancerTransformer {
               deregistrationDelayConnectionTermination: Boolean(
                 targetGroup.attributes['deregistration_delay.connection_termination.enabled'] === 'true',
               ),
+              preserveClientIp: Boolean(targetGroup.attributes['preserve_client_ip.enabled'] === 'true'),
             },
           };
         });

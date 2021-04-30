@@ -161,6 +161,7 @@ export class TargetGroups
       unhealthyThreshold: 10,
       attributes: {
         deregistrationDelay: 300,
+        preserveClientIp: true,
       },
     });
     setFieldValue('targetGroups', values.targetGroups);
@@ -403,6 +404,21 @@ export class TargetGroups
                               }}
                             />
                             <HelpField id="aws.targetGroup.attributes.deregistrationDelayConnectionTermination" />
+                          </span>
+                          <span className="wizard-pod-content">
+                            <CheckboxInput
+                              name="preserveClientIp"
+                              text="Preserve Client IP"
+                              checked={targetGroup.attributes.preserveClientIp}
+                              onChange={(event: { target: { checked: boolean } }) => {
+                                this.targetGroupFieldChanged(
+                                  index,
+                                  'attributes.preserveClientIp',
+                                  event.target.checked,
+                                );
+                              }}
+                            />
+                            <HelpField id="aws.targetGroup.attributes.preserveClientIp" />
                           </span>
                         </div>
                       </div>

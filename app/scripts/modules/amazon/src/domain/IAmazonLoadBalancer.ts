@@ -209,6 +209,7 @@ export interface INLBTargetGroupDescription {
     // Defaults to 300
     deregistrationDelay?: number;
     deregistrationDelayConnectionTermination?: boolean;
+    preserveClientIp?: boolean;
   };
   // Defaults to 10
   healthCheckInterval?: number;

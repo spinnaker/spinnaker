@@ -130,6 +130,8 @@
         <dd>{{ctrl.targetGroup.attributes['stickiness.lb_cookie.duration_seconds']}} seconds</dd>
         <dt>Stickiness Type</dt>
         <dd ng-if-end>{{ctrl.targetGroup.attributes['stickiness.type']}}</dd>
+        <dt ng-if-start="ctrl.loadBalancer.loadBalancerType === 'network'">Preserve Client IP</dt>
+        <dd ng-if-end>{{ctrl.targetGroup.attributes['preserve_client_ip.enabled']}}</dd>
       </dl>
     </collapsible-section>
   </div>
