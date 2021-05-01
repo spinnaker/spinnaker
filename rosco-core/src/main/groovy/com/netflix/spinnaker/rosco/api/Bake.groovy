@@ -41,4 +41,7 @@ class Bake {
 
   @JsonInclude(JsonInclude.Include.NON_NULL)
   List<Artifact> artifacts
+
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  String base_ami
 }
