@@ -55,6 +55,7 @@
       <tr>
         <th width="30%">Step</th>
         <th>Started</th>
+        <th>Completed</th>
         <th>Duration</th>
         <th>Status</th>
       </tr>
@@ -72,6 +73,7 @@
       >
         <td><span ng-include="$ctrl.getStepLabel(step)"></span></td>
         <td>{{ step.startTime | timestamp }}</td>
+        <td>{{ step.endTime | timestamp }}</td>
         <td>{{ step.runningTimeInMs | duration }}</td>
         <td>
           <span class="label label-default label-{{ step.status | lowercase }}">

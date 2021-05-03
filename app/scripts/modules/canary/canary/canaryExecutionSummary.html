@@ -25,6 +25,7 @@
       <tr>
         <th width="40%">Deployment</th>
         <th>Started</th>
+        <th>Completed</th>
         <th>Running Time</th>
       </tr>
     </thead>
@@ -39,6 +40,7 @@
           <strong>Canary Summary</strong>
         </td>
         <td>{{stageSummary.startTime | timestamp}}</td>
+        <td>{{stageSummary.endTime | timestamp}}</td>
         <td>{{stageSummary.runningTimeInMs | duration}}</td>
       </tr>
       <tr
@@ -50,6 +52,7 @@
       >
         <td>{{ stage.name }}</td>
         <td>{{ stage.startTime | timestamp }}</td>
+        <td>{{stageSummary.endTime | timestamp}}</td>
         <td>{{stage.runningTimeInMs | duration}}</td>
       </tr>
     </tbody>
