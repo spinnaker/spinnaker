@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import java.io.Closeable;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -66,14 +65,52 @@ public class GitRepoArtifactCredentials implements ArtifactCredentials {
     String repoBasename = getRepoBasename(repoUrl);
     Path outputFile = Paths.get(stagingPath.toString(), repoBasename + ".tgz");
 
-    if (!gitRepoFileSystem.canRetainClone()) {
-      // delete clone before returning
-      try (Closeable ignored = () -> FileUtils.deleteDirectory(stagingPath.toFile())) {
+    try {
+      return getLockedInputStream(repoUrl, subPath, branch, stagingPath, repoBasename, outputFile);
+    } catch (InterruptedException e) {
+      throw new IOException(
+          "Interrupted while waiting to acquire file system lock for "
+              + repoUrl
+              + " (branch "
+              + branch
+              + ").",
+          e);
+    }
+  }
+
+  @NotNull
+  private FileInputStream getLockedInputStream(
+      String repoUrl,
+      String subPath,
+      String branch,
+      Path stagingPath,
+      String repoBasename,
+      Path outputFile)
+      throws InterruptedException, IOException {
+
+    if (gitRepoFileSystem.tryTimedLock(repoUrl, branch)) {
+      try {
         return getInputStream(repoUrl, subPath, branch, stagingPath, repoBasename, outputFile);
+
+      } finally {
+        // if not deleted explicitly, clones are deleted by
+        // gitRepoFileSystem depending on retention period
+        if (!gitRepoFileSystem.canRetainClone()) {
+          log.debug("Deleting clone for {} (branch {})", repoUrl, branch);
+          FileUtils.deleteDirectory(stagingPath.toFile());
+        }
+        gitRepoFileSystem.unlock(repoUrl, branch);
       }
+
     } else {
-      // clones are deleted by gitRepoFileSystem depending on retention period
-      return getInputStream(repoUrl, subPath, branch, stagingPath, repoBasename, outputFile);
+      throw new IOException(
+          "Timeout waiting to acquire file system lock for "
+              + repoUrl
+              + " (branch "
+              + branch
+              + "). Waited "
+              + gitRepoFileSystem.getCloneWaitLockTimeoutSec()
+              + " seconds.");
     }
   }
 
@@ -86,34 +123,10 @@ public class GitRepoArtifactCredentials implements ArtifactCredentials {
       String repoBasename,
       Path outputFile)
       throws IOException {
-    try {
-      if (gitRepoFileSystem.tryTimedLock(repoUrl, branch)) {
-        try {
-          executor.cloneOrPull(repoUrl, branch, stagingPath, repoBasename);
-          log.info("Creating archive for git/repo {}", repoUrl);
-          executor.archive(
-              Paths.get(stagingPath.toString(), repoBasename), branch, subPath, outputFile);
-          return new FileInputStream(outputFile.toFile());
-        } finally {
-          gitRepoFileSystem.unlock(repoUrl, branch);
-        }
-      } else {
-        throw new IllegalStateException(
-            "Timeout waiting to acquire file system lock for "
-                + repoUrl
-                + " (branch "
-                + branch
-                + ").");
-      }
-    } catch (InterruptedException e) {
-      throw new IllegalStateException(
-          "Interrupted while waiting to acquire file system lock for "
-              + repoUrl
-              + " (branch "
-              + branch
-              + ").",
-          e);
-    }
+    executor.cloneOrPull(repoUrl, branch, stagingPath, repoBasename);
+    log.info("Creating archive for git/repo {}", repoUrl);
+    executor.archive(Paths.get(stagingPath.toString(), repoBasename), branch, subPath, outputFile);
+    return new FileInputStream(outputFile.toFile());
   }
 
   private String getRepoBasename(String url) {

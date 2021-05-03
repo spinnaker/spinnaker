@@ -49,26 +49,62 @@ public class GitRepoFileSystem {
     return Paths.get(CLONES_HOME.toString(), hashCoordinates(repoUrl, branch));
   }
 
+  public int getCloneWaitLockTimeoutSec() {
+    return config.getCloneWaitLockTimeoutSec();
+  }
+
   public boolean tryTimedLock(String repoUrl, String branch) throws InterruptedException {
     String hash = hashCoordinates(repoUrl, branch);
-    Lock lock = pathLocks.computeIfAbsent(hash, k -> new ReentrantLock());
-    return lock.tryLock(config.getCloneWaitLockTimeoutSec(), TimeUnit.SECONDS);
+
+    log.debug(
+        "Trying filesystem timed lock for {} (branch {}), hash: {} for {} seconds",
+        repoUrl,
+        branch,
+        hash,
+        config.getCloneWaitLockTimeoutSec());
+
+    Lock lock = createOrGetLock(hash);
+    boolean locked = lock.tryLock(config.getCloneWaitLockTimeoutSec(), TimeUnit.SECONDS);
+    log.debug(
+        "Lock {} acquired for {} (branch {}), hash {}, lock instance: {}",
+        (locked ? "" : "NOT"),
+        repoUrl,
+        branch,
+        hash,
+        lock);
+    return locked;
+  }
+
+  private synchronized Lock createOrGetLock(String hash) {
+    if (!pathLocks.containsKey(hash)) {
+      log.debug("Creating new lock instance for hash: {}", hash);
+      pathLocks.put(hash, new ReentrantLock());
+    }
+    return pathLocks.get(hash);
   }
 
   public boolean tryLock(String cloneHashDir) {
-    Lock lock = pathLocks.computeIfAbsent(cloneHashDir, k -> new ReentrantLock());
-    return lock.tryLock();
+    log.debug("Trying filesystem lock for hash: {}", cloneHashDir);
+    Lock lock = createOrGetLock(cloneHashDir);
+    boolean locked = lock.tryLock();
+    log.debug("Lock {} acquired for hash {}", (locked ? "" : "NOT"), cloneHashDir);
+    return locked;
   }
 
   public void unlock(String repoUrl, String branch) {
-    unlock(hashCoordinates(repoUrl, branch));
+    String hash = hashCoordinates(repoUrl, branch);
+    log.debug("Unlocking filesystem for {} (branch {}), hash: {}", repoUrl, branch, hash);
+    unlock(hash);
   }
 
-  public void unlock(String cloneHashDir) {
+  public synchronized void unlock(String cloneHashDir) {
     if (!pathLocks.containsKey(cloneHashDir)) {
+      log.warn(
+          "Attempting to unlock filesystem with hash {} that doesn't have a lock", cloneHashDir);
       return;
     }
-    Lock lock = pathLocks.remove(cloneHashDir);
+    Lock lock = pathLocks.get(cloneHashDir);
+    log.debug("Unlocking filesystem for hash {}, lock instance: {}", cloneHashDir, lock);
     lock.unlock();
   }
 
