@@ -30,6 +30,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.env.Environment
 import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
 
@@ -68,7 +69,8 @@ class ClouddriverConfiguration {
   @Bean
   fun imageService(
     cloudDriverService: CloudDriverService,
-    cacheFactory: CacheFactory
-  ) = ImageService(cloudDriverService, cacheFactory)
+    cacheFactory: CacheFactory,
+    springEnv: Environment
+  ) = ImageService(cloudDriverService, cacheFactory, springEnv)
 }
 
