@@ -4,16 +4,14 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.KeelApplication
-import com.netflix.spinnaker.keel.api.DeliveryConfig
-import com.netflix.spinnaker.keel.api.Environment
-import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.PreviewEnvironmentSpec
+import com.netflix.spinnaker.keel.api.artifacts.BranchFilter
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.core.api.SubmittedEnvironment
 import com.netflix.spinnaker.keel.core.api.SubmittedResource
-import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigName
@@ -105,31 +103,13 @@ internal class DeliveryConfigControllerTests
         ),
         constraints = setOf(DependsOnConstraint("test"))
       )
-    )
-  )
-
-  private fun SubmittedDeliveryConfig.toDeliveryConfig(): DeliveryConfig = DeliveryConfig(
-    name = safeName,
-    application = application,
-    serviceAccount = serviceAccount!!,
-    artifacts = artifacts,
-    environments = environments.map {
-      Environment(
-        name = it.name,
-        resources = it.resources.map {
-          Resource(
-            kind = it.kind,
-            metadata = mapOf(
-              "id" to randomUID().toString(),
-              "version" to 1,
-              "serviceAccount" to serviceAccount,
-              "application" to application
-            ),
-            spec = it.spec
-          )
-        }.toSet()
+    ),
+    previewEnvironments = setOf(
+      PreviewEnvironmentSpec(
+        branch = BranchFilter(startsWith = "feature/"),
+        baseEnvironment = "test"
       )
-    }.toSet()
+    )
   )
 
   fun tests() = rootContext {
@@ -359,7 +339,7 @@ internal class DeliveryConfigControllerTests
         } returns deliveryConfig.toDeliveryConfig()
       }
 
-      context("when manifest retried successfully") {
+      context("when manifest retrieved successfully") {
         before {
           every {
             importer.import("stash", "proj", "repo", "spinnaker.yml", "refs/heads/master")
@@ -394,7 +374,7 @@ internal class DeliveryConfigControllerTests
           } throws retrofitError
         }
 
-        test("the error from the dowstream service is returned") {
+        test("the error from the downstream service is returned") {
           val request =
             post("/delivery-configs/import?repoType=stash&projectKey=proj&repoSlug=repo&manifestPath=spinnaker.yml")
               .accept(APPLICATION_YAML)

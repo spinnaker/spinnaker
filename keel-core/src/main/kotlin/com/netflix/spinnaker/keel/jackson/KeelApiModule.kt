@@ -24,6 +24,7 @@ import com.netflix.spinnaker.keel.api.Constraint
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.Monikered
+import com.netflix.spinnaker.keel.api.PreviewEnvironmentSpec
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceSpec
@@ -36,6 +37,7 @@ import com.netflix.spinnaker.keel.api.artifacts.SortingStrategy
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStateAttributes
+import com.netflix.spinnaker.keel.api.postdeploy.PostDeployAction
 import com.netflix.spinnaker.keel.jackson.mixins.ClusterDeployStrategyMixin
 import com.netflix.spinnaker.keel.jackson.mixins.CommitMixin
 import com.netflix.spinnaker.keel.jackson.mixins.ConstraintStateMixin
@@ -43,6 +45,7 @@ import com.netflix.spinnaker.keel.jackson.mixins.DeliveryArtifactMixin
 import com.netflix.spinnaker.keel.jackson.mixins.DeliveryConfigMixin
 import com.netflix.spinnaker.keel.jackson.mixins.LocatableMixin
 import com.netflix.spinnaker.keel.jackson.mixins.MonikeredMixin
+import com.netflix.spinnaker.keel.jackson.mixins.PreviewEnvironmentSpecMixin
 import com.netflix.spinnaker.keel.jackson.mixins.ResourceKindMixin
 import com.netflix.spinnaker.keel.jackson.mixins.ResourceMixin
 import com.netflix.spinnaker.keel.jackson.mixins.ResourceSpecMixin
@@ -72,6 +75,7 @@ object KeelApiModule : SimpleModule("Keel API") {
       setMixInAnnotations<ResourceSpec, ResourceSpecMixin>()
       setMixInAnnotations<Commit, CommitMixin>()
       setMixInAnnotations<Verification, VerificationMixin>()
+      setMixInAnnotations<PreviewEnvironmentSpec, PreviewEnvironmentSpecMixin>()
       insertAnnotationIntrospector(FactoryAnnotationIntrospector())
     }
   }
@@ -99,7 +103,8 @@ internal object KeelApiAnnotationIntrospector : NopAnnotationIntrospector() {
     ConstraintStateAttributes::class.java,
     DeliveryArtifact::class.java,
     SortingStrategy::class.java,
-    Verification::class.java
+    Verification::class.java,
+    PostDeployAction::class.java
   )
 
   override fun findTypeResolver(config: MapperConfig<*>, ac: AnnotatedClass, baseType: JavaType): TypeResolverBuilder<*>? =

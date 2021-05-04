@@ -9,6 +9,7 @@ import com.netflix.spinnaker.keel.exceptions.DuplicateArtifactReferenceException
 import com.netflix.spinnaker.keel.exceptions.DuplicateResourceIdException
 import com.netflix.spinnaker.keel.exceptions.InvalidAppNameException
 import com.netflix.spinnaker.keel.exceptions.InvalidArtifactReferenceException
+import com.netflix.spinnaker.keel.exceptions.InvalidEnvironmentReferenceException
 import com.netflix.spinnaker.keel.exceptions.MissingEnvironmentReferenceException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -102,6 +103,16 @@ class DeliveryConfigValidator {
               throw InvalidArtifactReferenceException(it, refs)
             }
           }
+      }
+    }
+
+    /**
+     * check: all referenced environments in preview environments exist
+     */
+    config.previewEnvironments.forEach { previewEnvironmentSpec ->
+      val validEnvironments = config.environments.map { it.name }
+      if (previewEnvironmentSpec.baseEnvironment !in validEnvironments) {
+        throw InvalidEnvironmentReferenceException(previewEnvironmentSpec.baseEnvironment, validEnvironments)
       }
     }
   }

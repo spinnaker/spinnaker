@@ -44,6 +44,7 @@ include(
   "keel-retrofit",
   "keel-retrofit-test-support",
   "keel-schema-generator",
+  "keel-preview",
   "keel-spring-test-support",
   "keel-slack",
   "keel-sql",

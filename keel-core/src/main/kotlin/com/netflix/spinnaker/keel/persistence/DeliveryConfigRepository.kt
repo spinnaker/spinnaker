@@ -9,6 +9,7 @@ import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.core.api.ApplicationSummary
 import com.netflix.spinnaker.keel.core.api.UID
+import com.netflix.spinnaker.keel.persistence.DependentAttachFilter.ATTACH_ALL
 import com.netflix.spinnaker.kork.exceptions.ConfigurationException
 import com.netflix.spinnaker.kork.exceptions.SystemException
 import java.time.Instant
@@ -27,6 +28,18 @@ interface DeliveryConfigRepository : PeriodicallyCheckedRepository<DeliveryConfi
    * @throws NoSuchDeliveryConfigException if [name] does not map to a persisted config
    */
   fun get(name: String): DeliveryConfig
+
+  /**
+   * Retrieves all available [DeliveryConfig] entries in the database.
+   *
+   * Because this is a potentially expensive set of queries, this method allows you to specify
+   * which "dependents" (artifacts, environments and preview environments) you want to load with
+   * the delivery config. The default is to load the complete delivery config with all dependents
+   * attached, but you can specify one or more filters depending on the data you're interested in.
+   *
+   * @return The set of all available [DeliveryConfig] entries.
+   */
+  fun all(vararg dependentAttachFilter: DependentAttachFilter = arrayOf(ATTACH_ALL)): Set<DeliveryConfig>
 
   /**
    * Retrieve the [Environment] a resource belongs to, by the resource [id].
@@ -68,6 +81,22 @@ interface DeliveryConfigRepository : PeriodicallyCheckedRepository<DeliveryConfi
    * Does not delete the resources within an environment
    */
   fun deleteEnvironment(deliveryConfigName: String, environmentName: String)
+
+
+  /**
+   * Deletes a preview environment spec associated with a delivery config.
+   */
+  fun deletePreviewEnvironment(deliveryConfigName: String, baseEnvironmentName: String)
+
+  /**
+   * Stores/updates an [Environment] associated with a [DeliveryConfig].
+   *
+   * Generally, updating environments should be done via [store]. This method is primarily
+   * intended to support the creation of preview environments, where none of the other
+   * properties of the delivery config have changed, which allows us to use a more efficient
+   * storage algorithm.
+   */
+  fun storeEnvironment(deliveryConfigName: String, environment: Environment)
 
   /**
    * Updates state for a stateful [Environment] constraint.

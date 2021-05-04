@@ -13,7 +13,10 @@ class DeliveryConfigImporter(
   private val jsonMapper: ObjectMapper,
   private val scmService: ScmService
 ) {
-  private val log by lazy { LoggerFactory.getLogger(javaClass) }
+  companion object {
+    private val log by lazy { LoggerFactory.getLogger(DeliveryConfigImporter::class.java) }
+    const val DEFAULT_MANIFEST_PATH = "spinnaker.yml"
+  }
 
   /**
    * Imports a delivery config from source control via igor.

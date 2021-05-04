@@ -13,6 +13,8 @@ import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.verification.VerificationContext
 import com.netflix.spinnaker.keel.api.verification.VerificationState
+import com.netflix.spinnaker.keel.persistence.DependentAttachFilter
+import com.netflix.spinnaker.keel.persistence.DependentAttachFilter.ATTACH_ALL
 
 /**
  * A read-only repository for interacting with delivery configs, artifacts, and resources.
@@ -27,6 +29,18 @@ interface KeelReadOnlyRepository {
   fun deliveryConfigFor(resourceId: String): DeliveryConfig
 
   fun getDeliveryConfigForApplication(application: String): DeliveryConfig
+
+  /**
+   * Retrieves all available [DeliveryConfig] entries in the database.
+   *
+   * Because this is a potentially expensive set of queries, this method allows you to specify
+   * which "dependents" (artifacts, environments and preview environments) you want to load with
+   * the delivery config. The default is to load the complete delivery config with all dependents
+   * attached, but you can specify one or more filters depending on the data you're interested in.
+   *
+   * @return The set of all available [DeliveryConfig] entries.
+   */
+  fun allDeliveryConfigs(vararg dependentAttachFilter: DependentAttachFilter = arrayOf(ATTACH_ALL)): Set<DeliveryConfig>
 
   fun getConstraintState(deliveryConfigName: String, environmentName: String, artifactVersion: String, type: String, artifactReference: String?): ConstraintState?
 

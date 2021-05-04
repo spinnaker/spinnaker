@@ -7,11 +7,11 @@ import com.netflix.spinnaker.keel.api.Highlander
 import com.netflix.spinnaker.keel.api.RedBlack
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceSpec
-import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.constraints.StatefulConstraintEvaluator
 import com.netflix.spinnaker.keel.api.constraints.StatelessConstraintEvaluator
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.ConstraintEvaluator
+import com.netflix.spinnaker.keel.api.plugins.PostDeployActionRunner
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.SupportedKind
@@ -38,6 +38,7 @@ class KeelConfigurationFinalizer(
   private val specMigrators: List<SpecMigrator<*, *>> = emptyList(),
   private val constraintEvaluators: List<ConstraintEvaluator<*>> = emptyList(),
   private val verificationEvaluators: List<VerificationEvaluator<*>> = emptyList(),
+  private val postDeployActionRunners: List<PostDeployActionRunner<*>> = emptyList(),
   private val artifactHandlers: List<ArtifactHandler> = emptyList(),
   private val artifactSuppliers: List<ArtifactSupplier<*, *>> = emptyList(),
   private val objectMappers: List<ObjectMapper>,
@@ -84,7 +85,17 @@ class KeelConfigurationFinalizer(
       .map { it.supportedVerification }
       .forEach { (type, implementingClass) ->
         log.info("Registering Verification sub-type {}: {}", type, implementingClass.simpleName)
-        extensionRegistry.register<Verification>(implementingClass, type)
+        extensionRegistry.register(implementingClass, type)
+      }
+  }
+
+  @PostConstruct
+  fun registerPostDeploySubtypes() {
+    postDeployActionRunners
+      .map { it.supportedType }
+      .forEach { postDeployActionType ->
+        log.info("Registering post deploy action runner sub-type {}: {}", postDeployActionType.name, postDeployActionType.type.simpleName)
+        extensionRegistry.register(postDeployActionType.type, postDeployActionType.name)
       }
   }
 
@@ -148,6 +159,8 @@ class KeelConfigurationFinalizer(
     log.info("Supported artifacts: {}", artifactSuppliers.joinToString { it.supportedArtifact.name })
     log.info("Using resource handlers: {}", resourceHandlers.joinToString { it.name })
     log.info("Using artifact handlers: {}", artifactHandlers.joinToString { it.name })
+    log.info("Using verification evaluators: {}", verificationEvaluators.joinToString { it.javaClass.simpleName })
+    log.info("Using post deploy action runners: {}", postDeployActionRunners.joinToString { it.javaClass.simpleName })
     log.info("Using resolvers: {}", resolvers.joinToString { it.name })
   }
 }

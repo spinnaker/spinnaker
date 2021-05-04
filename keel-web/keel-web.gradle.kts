@@ -21,6 +21,7 @@ dependencies {
   implementation(project(":keel-ec2-plugin"))
   implementation(project(":keel-titus-plugin"))
   implementation(project(":keel-schema-generator"))
+  implementation(project(":keel-preview"))
 
   implementation("com.netflix.graphql.dgs:graphql-dgs-spring-boot-starter:3.9.3")
   implementation("io.spinnaker.kork:kork-web")

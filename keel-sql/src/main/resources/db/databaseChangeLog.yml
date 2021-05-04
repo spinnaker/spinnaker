@@ -287,3 +287,9 @@ databaseChangeLog:
   - include:
       file: changelog/20210419-actually-no-environment-features-per-version.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20210415-preview-environment.yml
+      relativeToChangelogFile: true
+  - include:
+      file: changelog/20210420-add-post-deploy-actions.yml
+      relativeToChangelogFile: true

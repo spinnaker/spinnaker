@@ -9,6 +9,7 @@ data class DeliveryConfig(
   val serviceAccount: String,
   val artifacts: Set<DeliveryArtifact> = emptySet(),
   val environments: Set<Environment> = emptySet(),
+  val previewEnvironments: Set<PreviewEnvironmentSpec> = emptySet(),
   val apiVersion: String = "delivery.config.spinnaker.netflix.com/v1",
   @get:ExcludedFromDiff
   val metadata: Map<String, Any?> = emptyMap(),

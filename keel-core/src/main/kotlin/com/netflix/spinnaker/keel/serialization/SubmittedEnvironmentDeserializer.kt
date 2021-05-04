@@ -13,6 +13,7 @@ import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.Verification
+import com.netflix.spinnaker.keel.api.postdeploy.PostDeployAction
 import com.netflix.spinnaker.keel.api.toSimpleLocations
 import com.netflix.spinnaker.keel.core.api.SubmittedEnvironment
 import com.netflix.spinnaker.keel.core.api.SubmittedResource
@@ -29,13 +30,14 @@ class SubmittedEnvironmentDeserializer : StdNodeBasedDeserializer<SubmittedEnvir
       val constraints: Set<Constraint> = convert(root, "constraints") ?: emptySet()
       val verifyWith: List<Verification> = convert(root, "verifyWith") ?: emptyList()
       val notifications: Set<NotificationConfig> = convert(root, "notifications") ?: emptySet()
+      val postDeploy: List<PostDeployAction> = convert(root, "postDeploy") ?: emptyList()
       val locations: SubnetAwareLocations? = convert(root, "locations")
       val resources: Set<SubmittedResource<*>> = copy().run {
         injectableValues = InjectableLocations(locations)
         convert(root, "resources") ?: emptySet()
       }
       try {
-        SubmittedEnvironment(name, resources, constraints, verifyWith, notifications, locations)
+        SubmittedEnvironment(name, resources, constraints, verifyWith, notifications, postDeploy, locations)
       } catch (e: Exception) {
         throw context.instantiationException<SubmittedEnvironment>(e)
       }

@@ -1,5 +1,7 @@
 package com.netflix.spinnaker.keel.validators
 
+import com.netflix.spinnaker.keel.api.PreviewEnvironmentSpec
+import com.netflix.spinnaker.keel.api.artifacts.BranchFilter
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
@@ -9,6 +11,7 @@ import com.netflix.spinnaker.keel.exceptions.DuplicateArtifactReferenceException
 import com.netflix.spinnaker.keel.exceptions.DuplicateResourceIdException
 import com.netflix.spinnaker.keel.exceptions.InvalidAppNameException
 import com.netflix.spinnaker.keel.exceptions.InvalidArtifactReferenceException
+import com.netflix.spinnaker.keel.exceptions.InvalidEnvironmentReferenceException
 import com.netflix.spinnaker.keel.exceptions.MissingEnvironmentReferenceException
 import com.netflix.spinnaker.keel.test.DummyArtifactReferenceResourceSpec
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
@@ -18,6 +21,7 @@ import dev.minutest.rootContext
 import strikt.api.expectCatching
 import strikt.assertions.isA
 import strikt.assertions.isFailure
+import strikt.assertions.message
 
 internal class DeliveryConfigValidatorTests : JUnit5Minutests {
 
@@ -185,6 +189,33 @@ internal class DeliveryConfigValidatorTests : JUnit5Minutests {
           subject.validate(submittedConfig)
         }.isFailure()
           .isA<InvalidArtifactReferenceException>()
+      }
+    }
+
+    context("preview environment with reference to non-existent base environment") {
+      val submittedConfig = SubmittedDeliveryConfig(
+        name = configName,
+        application = "keel",
+        serviceAccount = "keel@spinnaker",
+        environments = setOf(
+          SubmittedEnvironment(
+            name = "test",
+            resources = emptySet()
+          )
+        ),
+        previewEnvironments = setOf(
+          PreviewEnvironmentSpec(
+            branch = BranchFilter(startsWith = "feature/"),
+            baseEnvironment = "notfound"
+          )
+        )
+      )
+
+      test("an error is thrown") {
+        expectCatching {
+          subject.validate(submittedConfig)
+        }.isFailure()
+          .isA<InvalidEnvironmentReferenceException>()
       }
     }
   }

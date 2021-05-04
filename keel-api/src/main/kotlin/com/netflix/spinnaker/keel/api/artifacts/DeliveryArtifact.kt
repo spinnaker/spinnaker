@@ -41,7 +41,28 @@ data class BranchFilter(
       "Please specify only one of 'name', 'startsWith' or 'regex'."
     }
   }
+
+  fun matches(branch: String): Boolean =
+    when {
+      name != null -> branch == name
+      startsWith != null -> branch.startsWith(startsWith)
+      regex != null -> Regex(regex).matches(branch)
+      else -> false
+    }
+
+  override fun toString(): String =
+    when {
+      name != null -> "Branch name is '$name'"
+      startsWith != null -> "Branch name starts with '$startsWith"
+      regex != null -> "Branch name matches regex '$regex'"
+      else -> "Malformed branch filter. This is a bug."
+    }
 }
+
+// Utility functions to create branch filters
+fun branchStartsWith(startsWith: String) = BranchFilter(startsWith = startsWith)
+fun branchName(name: String) = BranchFilter(name = name)
+fun branchRegex(regex: String) = BranchFilter(regex = regex)
 
 /**
  * Filters for the origin of an artifact in source control.

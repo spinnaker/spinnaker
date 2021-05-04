@@ -2,9 +2,14 @@ package com.netflix.spinnaker.keel.persistence
 
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.NotificationConfig
+import com.netflix.spinnaker.keel.api.NotificationFrequency.normal
+import com.netflix.spinnaker.keel.api.NotificationType.slack
+import com.netflix.spinnaker.keel.api.PreviewEnvironmentSpec
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.artifacts.DOCKER
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.BRANCH_JOB_COMMIT_BY_JOB
+import com.netflix.spinnaker.keel.api.artifacts.branchStartsWith
 import com.netflix.spinnaker.keel.api.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.api.verification.VerificationRepository
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
@@ -34,6 +39,7 @@ import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
+import strikt.assertions.isNotEmpty
 import strikt.assertions.isSuccess
 import strikt.assertions.isTrue
 import java.time.Duration
@@ -63,12 +69,17 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
   val secondResource = resource()
   val firstEnv = Environment(name = "env1", resources = setOf(firstResource))
   val secondEnv = Environment(name = "env2", resources = setOf(secondResource))
+  val previewEnv = PreviewEnvironmentSpec(
+    branch = branchStartsWith("feature/"),
+    baseEnvironment = "env1"
+  )
   val deliveryConfig = DeliveryConfig(
     name = configName,
     application = application,
     serviceAccount = "keel@spinnaker",
     artifacts = setOf(artifact),
-    environments = setOf(firstEnv)
+    environments = setOf(firstEnv),
+    previewEnvironments = setOf(previewEnv)
   )
   val secondDeliveryConfig = DeliveryConfig(
     name = secondConfigName,
@@ -270,6 +281,39 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
               that(config.resources.first().id).isEqualTo(firstResource.id)
               that(config.artifacts.size).isEqualTo(0)
               that(artifactRepository.get(artifact.name, artifact.type, configName)).isEmpty()
+            }
+          }
+        }
+
+        context("preview environment removed") {
+          before {
+            val updatedConfig = deliveryConfig.copy(
+              previewEnvironments = emptySet()
+            )
+            subject.upsertDeliveryConfig(updatedConfig)
+          }
+          test("old preview environment is gone") {
+            val config = deliveryConfigRepository.get(configName)
+            expect {
+              that(config.previewEnvironments).isEmpty()
+            }
+          }
+        }
+
+        context("preview environment changed") {
+          before {
+            val updatedConfig = deliveryConfig.copy(
+              previewEnvironments = setOf(
+                previewEnv.copy(notifications = setOf(NotificationConfig(slack, "#test", normal)))
+              )
+            )
+            subject.upsertDeliveryConfig(updatedConfig)
+          }
+          test("preview environment is modified accordingly") {
+            val config = deliveryConfigRepository.get(configName)
+            expect {
+              that(config.previewEnvironments).hasSize(1)
+              that(config.previewEnvironments.first().notifications).isNotEmpty()
             }
           }
         }

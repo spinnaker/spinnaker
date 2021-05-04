@@ -28,5 +28,7 @@ data class SupportedConstraintType<T : Constraint>(
 /**
  * TODO: Docs.
  */
-inline fun <reified T : Constraint> SupportedConstraintType(name: String): SupportedConstraintType<T> =
+inline fun <reified T : Constraint> SupportedConstraintType(
+  name: String
+): SupportedConstraintType<T> =
   SupportedConstraintType(name, T::class.java)

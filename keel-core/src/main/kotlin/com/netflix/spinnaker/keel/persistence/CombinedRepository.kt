@@ -32,6 +32,7 @@ import com.netflix.spinnaker.keel.core.api.UID
 import com.netflix.spinnaker.keel.events.ApplicationEvent
 import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.events.ResourceHistoryEvent
+import com.netflix.spinnaker.keel.persistence.DependentAttachFilter.ATTACH_ALL
 import com.netflix.spinnaker.keel.services.StatusInfoForArtifactInEnvironment
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
@@ -160,6 +161,14 @@ class CombinedRepository(
           deliveryConfigRepository.deleteEnvironment(new.name, environment.name)
         }
       }
+
+    old.previewEnvironments
+      .forEach { previewEnvSpec ->
+        if (previewEnvSpec.baseEnvironment !in new.previewEnvironments.map { it.baseEnvironment }) {
+          log.debug("Updating config ${new.name}: removing preview environment $previewEnvSpec")
+          deliveryConfigRepository.deletePreviewEnvironment(new.name, previewEnvSpec.baseEnvironment)
+        }
+      }
   }
 
   // START Delivery config methods
@@ -181,11 +190,17 @@ class CombinedRepository(
   override fun getDeliveryConfigForApplication(application: String): DeliveryConfig =
     deliveryConfigRepository.getByApplication(application)
 
+  override fun allDeliveryConfigs(vararg dependentAttachFilter: DependentAttachFilter): Set<DeliveryConfig> =
+    deliveryConfigRepository.all(*dependentAttachFilter)
+
   override fun deleteResourceFromEnv(deliveryConfigName: String, environmentName: String, resourceId: String) =
     deliveryConfigRepository.deleteResourceFromEnv(deliveryConfigName, environmentName, resourceId)
 
   override fun deleteEnvironment(deliveryConfigName: String, environmentName: String) =
     deliveryConfigRepository.deleteEnvironment(deliveryConfigName, environmentName)
+
+  override fun storeEnvironment(deliveryConfigName: String, environment: Environment) =
+    deliveryConfigRepository.storeEnvironment(deliveryConfigName, environment)
 
   override fun storeConstraintState(state: ConstraintState) =
     deliveryConfigRepository.storeConstraintState(state)

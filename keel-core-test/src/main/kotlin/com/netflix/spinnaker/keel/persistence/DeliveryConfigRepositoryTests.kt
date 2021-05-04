@@ -4,7 +4,10 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.api.NotificationFrequency
+import com.netflix.spinnaker.keel.api.NotificationFrequency.normal
 import com.netflix.spinnaker.keel.api.NotificationType
+import com.netflix.spinnaker.keel.api.NotificationType.slack
+import com.netflix.spinnaker.keel.api.PreviewEnvironmentSpec
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind.Companion.parseKind
 import com.netflix.spinnaker.keel.api.Verification
@@ -14,6 +17,7 @@ import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
+import com.netflix.spinnaker.keel.api.artifacts.branchStartsWith
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.plugins.kind
@@ -24,6 +28,10 @@ import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.events.ApplicationActuationPaused
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.pause.PauseScope
+import com.netflix.spinnaker.keel.persistence.DependentAttachFilter.ATTACH_ARTIFACTS
+import com.netflix.spinnaker.keel.persistence.DependentAttachFilter.ATTACH_ENVIRONMENTS
+import com.netflix.spinnaker.keel.persistence.DependentAttachFilter.ATTACH_PREVIEW_ENVIRONMENTS
+import com.netflix.spinnaker.keel.persistence.DependentAttachFilter.ATTACH_NONE
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.resource
@@ -34,6 +42,7 @@ import strikt.api.expect
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.api.expectThrows
+import strikt.assertions.all
 import strikt.assertions.contains
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.first
@@ -43,7 +52,6 @@ import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import strikt.assertions.isNotEmpty
-import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.isSuccess
 import strikt.assertions.map
@@ -678,6 +686,57 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
       }
     }
 
+    context("storing a delivery config with preview environments") {
+      deriveFixture {
+        copy(
+          deliveryConfig = deliveryConfig.copy(
+            artifacts = setOf(
+              artifact, artifactFromBranch
+            ),
+            environments = setOf(
+              Environment(
+                name = "test",
+                resources = setOf(
+                  resource(kind = parseKind("ec2/cluster@v1")),
+                  resource(kind = parseKind("ec2/security-group@v1"))
+                )
+              )
+            ),
+            previewEnvironments = setOf(
+              PreviewEnvironmentSpec(
+                branch = branchStartsWith("feature/"),
+                baseEnvironment = "test",
+                notifications = setOf(
+                  NotificationConfig(slack, "#test", normal)
+                ),
+                verifyWith = listOf(
+                  DummyVerification()
+                )
+              )
+            )
+          )
+        )
+      }
+
+      before {
+        store()
+      }
+
+      test("preview environments are attached when retrieved by name") {
+        getByName()
+          .isSuccess()
+          .get { previewEnvironments }
+          .isEqualTo(deliveryConfig.previewEnvironments)
+      }
+
+      test("preview environments are attached when retrieved by application") {
+        getByApplication()
+          .isSuccess()
+          .get { previewEnvironments }
+          .isEqualTo(deliveryConfig.previewEnvironments)
+      }
+    }
+
     context("delivery config with resources exists") {
       deriveFixture {
         val resources = setOf(
@@ -722,6 +781,83 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
           .hasSize(1)
           .first()
           .isEqualTo(appSummary)
+      }
+    }
+
+    context("multiple delivery configs with all dependents are stored") {
+      before {
+        (1..10).forEach {
+          val tmpArtifact = artifact.copy(deliveryConfigName = "config$it")
+          artifactRepository.register(tmpArtifact)
+
+          repository.store(deliveryConfig.copy(
+            application = "app$it",
+            name = "config$it",
+            artifacts = setOf(tmpArtifact),
+            environments = setOf(
+              Environment(
+                name = "test",
+                resources = emptySet()
+              )
+            ),
+            previewEnvironments = setOf(
+              PreviewEnvironmentSpec(
+                branch = branchStartsWith("feature/"),
+                baseEnvironment = "test"
+              )
+            )
+          ))
+        }
+      }
+
+      test("can retrieve delivery configs with all dependents attached ") {
+        val deliveryConfigs = repository.all()
+        expectThat(deliveryConfigs)
+          .hasSize(10)
+          .none { get { artifacts }.isEmpty() }
+          .none { get { environments }.isEmpty() }
+          .none { get { previewEnvironments }.isEmpty() }
+      }
+
+
+      test("can retrieve delivery configs with no dependents attached ") {
+        val deliveryConfigs = repository.all(ATTACH_NONE)
+        expectThat(deliveryConfigs)
+          .hasSize(10)
+          .all { get { artifacts }.isEmpty() }
+          .all { get { environments }.isEmpty() }
+          .all { get { previewEnvironments }.isEmpty() }
+      }
+
+      test("can retrieve delivery configs with specific dependent types attached ") {
+        var deliveryConfigs = repository.all(ATTACH_ARTIFACTS)
+        expectThat(deliveryConfigs)
+          .hasSize(10)
+          .none { get { artifacts }.isEmpty() }
+          .all { get { environments }.isEmpty() }
+          .all { get { previewEnvironments }.isEmpty() }
+
+        deliveryConfigs = repository.all(ATTACH_ENVIRONMENTS)
+        expectThat(deliveryConfigs)
+          .hasSize(10)
+          .all { get { artifacts }.isEmpty() }
+          .none { get { environments }.isEmpty() }
+          .all { get { previewEnvironments }.isEmpty() }
+
+        deliveryConfigs = repository.all(ATTACH_PREVIEW_ENVIRONMENTS)
+        expectThat(deliveryConfigs)
+          .hasSize(10)
+          .all { get { artifacts }.isEmpty() }
+          .all { get { environments }.isEmpty() }
+          .none { get { previewEnvironments }.isEmpty() }
+
+        deliveryConfigs = repository.all(ATTACH_ARTIFACTS, ATTACH_ENVIRONMENTS)
+        expectThat(deliveryConfigs)
+          .hasSize(10)
+          .none { get { artifacts }.isEmpty() }
+          .none { get { environments }.isEmpty() }
+          .all { get { previewEnvironments }.isEmpty() }
+
       }
     }
   }

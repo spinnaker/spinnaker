@@ -2,14 +2,15 @@ package com.netflix.spinnaker.keel.core.api
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.api.Constraint
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.NotificationConfig
+import com.netflix.spinnaker.keel.api.PreviewEnvironmentSpec
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.postdeploy.PostDeployAction
 import com.netflix.spinnaker.keel.api.schema.Description
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
@@ -27,6 +28,7 @@ data class SubmittedDeliveryConfig(
   val serviceAccount: String?,
   val artifacts: Set<DeliveryArtifact> = emptySet(),
   val environments: Set<SubmittedEnvironment> = emptySet(),
+  val previewEnvironments: Set<PreviewEnvironmentSpec> = emptySet(),
   val metadata: Map<String, Any?>? = emptyMap()
 ) {
   val safeName: String
@@ -55,9 +57,11 @@ data class SubmittedDeliveryConfig(
         },
         constraints = env.constraints,
         verifyWith = env.verifyWith,
-        notifications = env.notifications
+        notifications = env.notifications,
+        postDeploy = env.postDeploy
       )
     },
+    previewEnvironments = previewEnvironments,
     metadata = metadata ?: emptyMap()
   )
 }
@@ -69,6 +73,7 @@ data class SubmittedEnvironment(
   val constraints: Set<Constraint> = emptySet(),
   val verifyWith: List<Verification> = emptyList(),
   val notifications: Set<NotificationConfig> = emptySet(),
+  val postDeploy: List<PostDeployAction> = emptyList(),
   @Description("Optional locations that are propagated to any [resources] where they are not specified.")
   val locations: SubnetAwareLocations? = null
 )

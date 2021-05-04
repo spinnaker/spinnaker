@@ -5,6 +5,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.fiat.shared.EnableFiatAutoConfig
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
+import com.netflix.spinnaker.keel.api.plugins.PostDeployActionRunner
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.VerificationEvaluator
 import com.netflix.spinnaker.keel.api.support.ExtensionRegistry
@@ -87,6 +88,10 @@ class DefaultConfiguration(
   @Bean
   @ConditionalOnMissingBean(VerificationEvaluator::class)
   fun noVerificationEvaluators(): List<VerificationEvaluator<*>> = emptyList()
+
+  @Bean
+  @ConditionalOnMissingBean(PostDeployActionRunner::class)
+  fun noPostDeployActionRunners(): List<PostDeployActionRunner<*>> = emptyList()
 
   @Bean
   fun authenticatedRequestFilter(): FilterRegistrationBean<AuthenticatedRequestFilter> =

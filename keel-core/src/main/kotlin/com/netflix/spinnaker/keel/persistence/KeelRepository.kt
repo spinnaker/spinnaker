@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.persistence
 
 import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.Verification
@@ -106,6 +107,16 @@ interface KeelRepository : KeelReadOnlyRepository {
   fun deleteResourceFromEnv(deliveryConfigName: String, environmentName: String, resourceId: String)
 
   fun deleteEnvironment(deliveryConfigName: String, environmentName: String)
+
+  /**
+   * Stores/updates an [Environment] associated with a [DeliveryConfig].
+   *
+   * Generally, updating environments should be done via [store]. This method is primarily
+   * intended to support the creation of preview environments, where none of the other
+   * properties of the delivery config have changed, which allows us to use a more efficient
+   * storage algorithm.
+   */
+  fun storeEnvironment(deliveryConfigName: String, environment: Environment)
 
   fun storeConstraintState(state: ConstraintState)
 

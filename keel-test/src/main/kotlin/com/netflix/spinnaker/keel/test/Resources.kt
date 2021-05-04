@@ -141,9 +141,10 @@ fun artifactReferenceResource(
   kind: ResourceKind = TEST_API_V1.qualify("artifactReference"),
   id: String = randomString(),
   application: String = "fnord",
-  artifactReference: String = "fnord"
+  artifactReference: String = "fnord",
+  artifactType: ArtifactType = DEBIAN
 ): Resource<DummyArtifactReferenceResourceSpec> =
-  DummyArtifactReferenceResourceSpec(id = id, application = application, artifactReference = artifactReference)
+  DummyArtifactReferenceResourceSpec(id = id, application = application, artifactReference = artifactReference, artifactType = artifactType)
     .let { spec ->
       resource(
         kind = kind,
@@ -198,7 +199,8 @@ data class DummyArtifactReferenceResourceSpec(
   override val artifactType: ArtifactType? = DEBIAN,
   override val artifactReference: String? = "fnord",
   override val displayName: String = "fnord-artifact-reference-dummy",
-) : ResourceSpec, ArtifactReferenceProvider
+  override val moniker: Moniker = Moniker("fnord", "artifactReference", "dummy")
+) : ResourceSpec, ArtifactReferenceProvider, Monikered
 
 data class DummyResource(
   val id: String = randomString(),

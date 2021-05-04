@@ -127,7 +127,7 @@ jooq {
 liquibase {
   activities.register("local") {
     arguments = mapOf(
-      "logLevel" to "info",
+      "logLevel" to "error",
       "changeLogFile" to "src/main/resources/db/databaseChangeLog.yml",
       "url" to "jdbc:mysql://localhost:3306/keel?useSSL=false&serverTimezone=UTC",
       "username" to "root",
@@ -136,7 +136,7 @@ liquibase {
   }
   activities.register("docker") {
     arguments = mapOf(
-      "logLevel" to "info",
+      "logLevel" to "error",
       "changeLogFile" to "src/main/resources/db/databaseChangeLog.yml",
       "url" to "jdbc:mysql://127.0.0.1:6603/keel?useSSL=false&serverTimezone=UTC",
       "username" to "root",

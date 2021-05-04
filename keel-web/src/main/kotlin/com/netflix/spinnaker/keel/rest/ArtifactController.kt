@@ -6,8 +6,10 @@ import com.netflix.spinnaker.keel.api.events.ArtifactSyncEvent
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.UnsupportedArtifactException
 import com.netflix.spinnaker.keel.api.plugins.supporting
-import com.netflix.spinnaker.keel.persistence.KeelRepository
+import com.netflix.spinnaker.keel.api.scm.isCodeEvent
+import com.netflix.spinnaker.keel.api.scm.toCodeEvent
 import com.netflix.spinnaker.keel.igor.artifact.ArtifactMetadataService
+import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
@@ -32,6 +34,16 @@ class ArtifactController(
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
+  /**
+   * Handles "artifact events" submitted from other Spinnaker services (Echo for Debian and NPM packages,
+   * Igor for Docker images).
+   *
+   * TODO: At Netflix, the events originating from Echo are essentially relayed from our CI service, Rocket,
+   *  and include events that are not necessarily about artifacts, such as SCM events like "commit created",
+   *  "PR merged", etc. Currently, we take advantage of this fact to enable use cases that require monitoring
+   *  code repos, such as preview environments. This should be refactored in the future to use a separate and
+   *  proper API for code events.
+   */
   @PostMapping(
     path = ["/events"],
     consumes = [APPLICATION_JSON_VALUE]
@@ -40,13 +52,19 @@ class ArtifactController(
   fun submitArtifact(@RequestBody echoArtifactEvent: EchoArtifactEvent) {
     log.debug("Received artifact event: $echoArtifactEvent")
     echoArtifactEvent.payload.artifacts.forEach { artifact ->
-      try {
-        log.debug("Processing artifact from event: $artifact")
-        val artifactSupplier = artifactSuppliers.supporting(artifact.type.toLowerCase())
-        log.debug("Publishing artifact ${artifact.name} version ${artifact.version} via ${artifactSupplier::class.simpleName}")
-        artifactSupplier.publishArtifact(artifact)
-      } catch (e: UnsupportedArtifactException) {
-        log.debug("Ignoring artifact event with unsupported type {}: {}", artifact.type, artifact)
+      if (artifact.isCodeEvent) {
+        val codeEvent = artifact.toCodeEvent()
+        log.debug("Republishing as code event: $codeEvent")
+        eventPublisher.publishEvent(codeEvent)
+      } else {
+        try {
+          log.debug("Processing artifact from event: $artifact")
+          val artifactSupplier = artifactSuppliers.supporting(artifact.type.toLowerCase())
+          log.debug("Publishing artifact ${artifact.name} version ${artifact.version} via ${artifactSupplier::class.simpleName}")
+          artifactSupplier.publishArtifact(artifact)
+        } catch (e: UnsupportedArtifactException) {
+          log.debug("Ignoring artifact event with unsupported type {}: {}", artifact.type, artifact)
+        }
       }
     }
   }

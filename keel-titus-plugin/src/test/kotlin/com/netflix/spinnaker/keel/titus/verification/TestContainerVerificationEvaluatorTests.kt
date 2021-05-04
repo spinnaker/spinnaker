@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.titus.verification
 
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.keel.api.actuation.SubjectType.VERIFICATION
 import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
@@ -39,7 +40,13 @@ internal class TestContainerVerificationEvaluatorTests {
 
   private val orca = mockk<OrcaService>()
   private val taskLauncher = mockk<TaskLauncher>()
-  private val subject = TestContainerVerificationEvaluator(orca, taskLauncher)
+  private val spectator = NoopRegistry()
+  private val subject = TestContainerVerificationEvaluator(
+    orca = orca,
+    taskLauncher = taskLauncher,
+    spectator = spectator,
+    linkStrategy = null
+  )
 
   private val context = VerificationContext(
     deliveryConfig = deliveryConfig(),
