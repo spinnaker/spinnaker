@@ -209,6 +209,7 @@ class BasicAmazonDeployDescriptionValidatorSpec extends Specification {
     'unlimitedCpuCredits'   | false            | 't3.large'
     'requireIMDSv2'         | true             | 'c3.small'
     'associateIPv6Address'  | true             | 'm5.large'
+    'enableEnclave'         | true             | 'm5.large'
   }
 
   void "valid request with launch template disabled and all launch template only features omitted succeeds validation"() {

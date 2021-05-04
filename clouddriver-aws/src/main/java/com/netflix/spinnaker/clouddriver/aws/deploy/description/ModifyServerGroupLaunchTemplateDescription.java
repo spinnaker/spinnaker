@@ -24,6 +24,7 @@ public class ModifyServerGroupLaunchTemplateDescription
   private String imageId;
   private Boolean associateIPv6Address;
   private Boolean unlimitedCpuCredits;
+  private Boolean enableEnclave;
 
   public Boolean getRequireIMDV2() {
     return requireIMDV2;
@@ -63,5 +64,13 @@ public class ModifyServerGroupLaunchTemplateDescription
 
   public void setUnlimitedCpuCredits(Boolean unlimitedCpuCredits) {
     this.unlimitedCpuCredits = unlimitedCpuCredits;
+  }
+
+  public Boolean getEnableEnclave() {
+    return enableEnclave;
+  }
+
+  public void setEnableEnclave(Boolean enableEnclave) {
+    this.enableEnclave = enableEnclave;
   }
 }

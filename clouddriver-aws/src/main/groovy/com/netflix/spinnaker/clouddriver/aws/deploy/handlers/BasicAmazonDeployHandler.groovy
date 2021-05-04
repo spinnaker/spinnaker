@@ -302,6 +302,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         lifecycleHooks: getLifecycleHooks(account, description),
         setLaunchTemplate: description.setLaunchTemplate,
         requireIMDSv2: description.requireIMDSv2,
+        enableEnclave: description.enableEnclave,
         associateIPv6Address: description.associateIPv6Address,
         unlimitedCpuCredits: description.unlimitedCpuCredits != null
           ? description.unlimitedCpuCredits

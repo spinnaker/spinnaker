@@ -121,6 +121,7 @@ class AutoScalingWorker {
       }
       return shouldUseMip
     }
+    Boolean enableEnclave
   }
 
   /**

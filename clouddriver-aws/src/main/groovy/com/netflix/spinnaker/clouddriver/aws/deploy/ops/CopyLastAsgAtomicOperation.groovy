@@ -169,8 +169,9 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
           iamInstanceProfile = launchTemplateData.iamInstanceProfile?.name
           instanceMonitoring = launchTemplateData.monitoring?.enabled
           spotMaxPrice = launchTemplateData.instanceMarketOptions?.spotOptions?.maxPrice
+          newDescription.enableEnclave = description.enableEnclave != null ? description.enableEnclave :  launchTemplateData.enclaveOptions?.getEnabled()
           newDescription.requireIMDSv2 = description.requireIMDSv2 != null ? description.requireIMDSv2 : launchTemplateData.metadataOptions?.httpTokens == "required"
-          newDescription.associateIPv6Address = description.associateIPv6Address 
+          newDescription.associateIPv6Address = description.associateIPv6Address
           if (!launchTemplateData.networkInterfaces?.empty && launchTemplateData.networkInterfaces*.associatePublicIpAddress?.any()) {
             associatePublicIpAddress = true
           }

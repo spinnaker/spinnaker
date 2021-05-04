@@ -105,6 +105,7 @@ class BasicAmazonDeployDescriptionValidator extends AmazonDescriptionValidationS
     // certain features work as expected only when AWS EC2 Launch Template feature is enabled and used
     if (!description.setLaunchTemplate) {
       def ltFeaturesEnabled = getLtFeaturesEnabled(description)
+
       if (ltFeaturesEnabled) {
         warnings.add("WARNING: The following fields ${ltFeaturesEnabled} work as expected only with AWS EC2 Launch Template, " +
                 "but 'setLaunchTemplate' is set to false in request with account: ${description.account}, " +

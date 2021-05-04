@@ -133,6 +133,13 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   Boolean unlimitedCpuCredits
 
   /**
+   * When set to true, the created server group will be configured with Nitro Enclaves enabled
+   * This is a Launch Template only feature
+   * * https://docs.aws.amazon.com/enclaves/latest/user/nitro-enclave.html
+   */
+  Boolean enableEnclave
+
+  /**
    * Launch template placement details, see {@link com.amazonaws.services.ec2.model.LaunchTemplatePlacementRequest}.
    */
   LaunchTemplatePlacement placement
@@ -195,7 +202,7 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
     return ["requireIMDSv2", "associateIPv6Address", "unlimitedCpuCredits",
             "placement", "licenseSpecifications", "onDemandAllocationStrategy",
             "onDemandBaseCapacity", "onDemandPercentageAboveBaseCapacity", "spotAllocationStrategy",
-            "spotInstancePools", "launchTemplateOverridesForInstanceType"].toSet()
+            "spotInstancePools", "launchTemplateOverridesForInstanceType", "enableEnclave"].toSet()
   }
 
   static Set<String> getMixedInstancesPolicyFieldNames() {
