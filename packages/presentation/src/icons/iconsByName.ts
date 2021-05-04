@@ -78,6 +78,7 @@ import { ReactComponent as spMenuProperties } from './vectors/spMenuProperties.s
 import { ReactComponent as spMenuSecurityGroups } from './vectors/spMenuSecurityGroups.svg';
 import { ReactComponent as spMenuTasks } from './vectors/spMenuTasks.svg';
 import { ReactComponent as spMenuTimeline } from './vectors/spMenuTimeline.svg';
+import { ReactComponent as spMenuZuul } from './vectors/spMenuZuul.svg';
 
 // Kayenta
 import { ReactComponent as canaryConfig } from './vectors/canaryConfig.svg';
@@ -230,6 +231,7 @@ export const iconsByName = {
   spMenuSecurityGroups,
   spMenuTasks,
   spMenuTimeline,
+  spMenuZuul,
   spel,
   templateFull,
   templateS,
