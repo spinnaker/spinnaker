@@ -7,7 +7,7 @@
 const fs = require(`fs`);
 const path = require(`path`);
 const yargs = require('yargs')
-  .usage(`$0 [--no-dev] [--no-peer] [package.json]`)
+  .usage(`$0 [--no-dev] [--no-peer] [--no-spinnaker] [--source package.json] [--dest otherpackage.json]`)
   .option('source', {
     description: 'The source package.json',
     default: '../../package.json',
@@ -16,8 +16,9 @@ const yargs = require('yargs')
     description: 'The destination package.json',
     default: './package.json',
   })
-  .option('no-dev', { type: 'boolean', description: 'do not sync devDependencies', default: false })
-  .option('no-peer', { type: 'boolean', description: 'do not sync peerDependencies', default: false });
+  .option('spinnaker', { type: 'boolean', description: 'include @spinnaker/* dependencies', default: true })
+  .option('dev', { type: 'boolean', description: 'include devDependencies', default: true })
+  .option('peer', { type: 'boolean', description: 'include peerDependencies', default: true });
 
 const { argv } = yargs;
 const targetPackageJson = path.resolve(argv.dest);
@@ -46,15 +47,17 @@ const getDesiredVersion = (pkgName) => {
   }
 };
 
+const shouldSkipType = (key) =>
+  (key === 'devDependencies' && argv.dev === false) || (key === 'peerDependencies' && argv.peer === false);
+const shouldSkipPackage = (packageName) => argv.spinnaker === false && packageName.startsWith('@spinnaker/');
+
 const packageJson = parse(targetPackageJson);
-const shouldSkip = (key) =>
-  (key === 'devDependencies' && argv['no-dev']) || (key === 'peerDependencies' && argv['no-peer']);
-
-const keys = ['dependencies', 'peerDependencies', 'devDependencies'].filter((key) => !shouldSkip(key));
-
+const keys = ['dependencies', 'peerDependencies', 'devDependencies'].filter((key) => !shouldSkipType(key));
 keys.forEach((key) => {
   Object.keys(packageJson[key] || {}).forEach((pkgName) => {
-    packageJson[key][pkgName] = getDesiredVersion(pkgName) || packageJson[key][pkgName];
+    if (!shouldSkipPackage(pkgName)) {
+      packageJson[key][pkgName] = getDesiredVersion(pkgName) || packageJson[key][pkgName];
+    }
   });
 });
 
