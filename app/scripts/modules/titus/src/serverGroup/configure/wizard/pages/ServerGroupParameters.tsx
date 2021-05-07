@@ -163,7 +163,8 @@ export class ServerGroupParameters
 
         <FormikFormField
           name="containerAttributes['titusParameter.agent.assignIPv6Address']"
-          label="Associate IPv6 Address"
+          label="Associate IPv6 Address (Recommended)"
+          help={<HelpField id="serverGroup.ipv6" />}
           input={(props) => <IPv6CheckboxInput {...props} />}
         />
 
