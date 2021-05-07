@@ -30,6 +30,7 @@ import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DescribeImagesRequest
 import com.amazonaws.services.ec2.model.DescribeImagesResult
 import com.amazonaws.services.ec2.model.DescribeVpcClassicLinkResult
+import com.amazonaws.services.ec2.model.EbsBlockDevice
 import com.amazonaws.services.ec2.model.Image
 import com.amazonaws.services.ec2.model.LaunchTemplateBlockDeviceMapping
 import com.amazonaws.services.ec2.model.LaunchTemplateVersion
@@ -429,9 +430,9 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
       new DescribeImagesResult()
         .withImages(new Image()
         .withImageId('ami-12345')
-        .withBlockDeviceMappings([new BlockDeviceMapping()
-                                    .withDeviceName("/dev/sdh")
-                                    .withEbs(new Ebs().withVolumeSize(500))])
+          .withBlockDeviceMappings([new com.amazonaws.services.ec2.model.BlockDeviceMapping()
+                                      .withDeviceName("/dev/sdh")
+                                      .withEbs(new EbsBlockDevice().withVolumeSize(500))])
         .withVirtualizationType('hvm'))
     setBlockDevices == expectedBlockDevices
 

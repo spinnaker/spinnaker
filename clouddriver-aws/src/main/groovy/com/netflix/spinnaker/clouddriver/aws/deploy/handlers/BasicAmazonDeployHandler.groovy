@@ -220,12 +220,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
           task.updateStatus(BASE_PHASE, "Attaching $classicLinkGroupNames as classicLinkVpcSecurityGroups")
         }
       }
-
-      // Get default block device mapping for requested instance type.
-      // For the case of multiple instance types in request, top-level instance type is used to derive defaults.
-      if (description.blockDevices == null) {
-        description.blockDevices = blockDeviceConfig.getBlockDevicesForInstanceType(description.instanceType)
-      }
+      
       ResolvedAmiResult ami = priorOutputs.find({
         it instanceof ResolvedAmiResult && it.region == region && (it.amiName == description.amiName || it.amiId == description.amiName)
       }) ?: AmiIdResolver.resolveAmiIdFromAllSources(amazonEC2, region, description.amiName, description.credentials.accountId)
@@ -241,7 +236,11 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       }
 
       if (description.useAmiBlockDeviceMappings) {
-        description.blockDevices = AsgConfigHelper.transformBlockDeviceMapping(ami.blockDeviceMappings)
+        description.blockDevices = AsgConfigHelper.convertBlockDevices(ami.blockDeviceMappings)
+      } else if(description.blockDevices == null){
+        // Get default block device mapping for requested instance type.
+        // For the case of multiple instance types in request, top-level instance type is used to derive defaults.
+        description.blockDevices = blockDeviceConfig.getBlockDevicesForInstanceType(description.instanceType)
       }
 
       if (description.spotPrice == "") {
