@@ -2,11 +2,7 @@ import React from 'react';
 
 import { CheckboxInput, FormikFormField, HelpField, NumberInput } from '@spinnaker/core';
 
-export interface IALBAdvancedSettingsProps {
-  isInternal: boolean;
-}
-
-export const ALBAdvancedSettings = React.forwardRef<HTMLDivElement, IALBAdvancedSettingsProps>((props, ref) => (
+export const ALBAdvancedSettings = React.forwardRef<HTMLDivElement, {}>((_, ref) => (
   <div ref={ref}>
     <FormikFormField
       name="idleTimeout"
@@ -26,9 +22,7 @@ export const ALBAdvancedSettings = React.forwardRef<HTMLDivElement, IALBAdvanced
       name="dualstack"
       label="Dualstack"
       help={<HelpField id="loadBalancer.advancedSettings.albIpAddressType" />}
-      input={(inputProps) => (
-        <CheckboxInput {...inputProps} text="Assign Ipv4 and IPv6" disabled={Boolean(props.isInternal)} />
-      )}
+      input={(inputProps) => <CheckboxInput {...inputProps} text="Assign Ipv4 and IPv6" />}
     />
   </div>
 ));

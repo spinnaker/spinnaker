@@ -216,7 +216,7 @@ const helpContents: { [key: string]: string } = {
   'loadBalancer.advancedSettings.loadBalancingCrossZone':
     '<p>Cross-zone load balancing distributes traffic evenly across all targets in the Availability Zones enabled for the load balancer.</p><p> Default: <b>True</b></p>',
   'loadBalancer.advancedSettings.albIpAddressType':
-    '<p>Assigns both a v4 and v6 IP address to the load balancer. This option is only valid for an external load balancer. If left unchecked, this value will default to <b>"ipv4"</b>.</p>',
+    '<p>Assigns both a v4 and v6 IP address to the load balancer. If left unchecked, this value will default to <b>"ipv4"</b>.</p>',
   'loadBalancer.advancedSettings.nlbIpAddressType':
     '<p>Assigns both a v4 and v6 IP address to the load balancer. This option is only valid for NLBs which are external and only have Ip targets (not instance targets). If left unchecked, this value will default to <b>"ipv4"</b>.</p>',
   'pipeline.config.resizeAsg.action': `

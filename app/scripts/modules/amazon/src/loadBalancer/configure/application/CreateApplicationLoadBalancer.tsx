@@ -326,7 +326,7 @@ export class CreateApplicationLoadBalancer extends React.Component<
                 label="Advanced Settings"
                 wizard={wizard}
                 order={nextIdx()}
-                render={({ innerRef }) => <ALBAdvancedSettings ref={innerRef} isInternal={formik.values.isInternal} />}
+                render={({ innerRef }) => <ALBAdvancedSettings ref={innerRef} />}
               />
             </>
           );
