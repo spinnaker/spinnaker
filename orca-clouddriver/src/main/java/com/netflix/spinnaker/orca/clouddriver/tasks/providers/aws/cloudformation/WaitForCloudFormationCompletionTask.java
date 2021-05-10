@@ -120,7 +120,6 @@ public class WaitForCloudFormationCompletionTask implements OverridableTimeoutRe
         Arrays.asList(
             CloudFormationStates.ROLLBACK_COMPLETE.name(),
             CloudFormationStates.ROLLBACK_FAILED.name(),
-            CloudFormationStates.DELETE_FAILED.name(),
             CloudFormationStates.UPDATE_ROLLBACK_FAILED.name());
     if (unrecoverableStatuses.contains(stack.get("stackStatus"))) {
       return "Irrecoverable stack status - Review the error, make changes in template and delete the stack to re-run the pipeline successfully; Reason: "
@@ -161,7 +160,8 @@ public class WaitForCloudFormationCompletionTask implements OverridableTimeoutRe
   private boolean isComplete(Object status) {
     if (status instanceof String) {
       return ((String) status).endsWith(CloudFormationStates.CREATE_COMPLETE.toString())
-          || ((String) status).endsWith(CloudFormationStates.UPDATE_COMPLETE.toString());
+          || ((String) status).endsWith(CloudFormationStates.UPDATE_COMPLETE.toString())
+          || ((String) status).endsWith(CloudFormationStates.DELETE_COMPLETE.toString());
     } else {
       return false;
     }
@@ -170,7 +170,8 @@ public class WaitForCloudFormationCompletionTask implements OverridableTimeoutRe
   private boolean isInProgress(Object status) {
     if (status instanceof String) {
       return ((String) status).endsWith(CloudFormationStates.IN_PROGRESS.toString())
-          || ((String) status).endsWith(CloudFormationStates.NOT_YET_READY.toString());
+          || ((String) status).endsWith(CloudFormationStates.NOT_YET_READY.toString())
+          || ((String) status).endsWith(CloudFormationStates.DELETE_IN_PROGRESS.toString());
     } else {
       return false;
     }
@@ -179,7 +180,8 @@ public class WaitForCloudFormationCompletionTask implements OverridableTimeoutRe
   private boolean isFailed(Object status) {
     if (status instanceof String) {
       return ((String) status).endsWith(CloudFormationStates.ROLLBACK_COMPLETE.toString())
-          || ((String) status).endsWith(CloudFormationStates.FAILED.toString());
+          || ((String) status).endsWith(CloudFormationStates.FAILED.toString())
+          || ((String) status).endsWith(CloudFormationStates.DELETE_FAILED.toString());
     } else {
       return false;
     }
@@ -194,6 +196,8 @@ public class WaitForCloudFormationCompletionTask implements OverridableTimeoutRe
     DELETE_FAILED,
     ROLLBACK_FAILED,
     UPDATE_ROLLBACK_FAILED,
-    FAILED;
+    FAILED,
+    DELETE_IN_PROGRESS,
+    DELETE_COMPLETE;
   }
 }

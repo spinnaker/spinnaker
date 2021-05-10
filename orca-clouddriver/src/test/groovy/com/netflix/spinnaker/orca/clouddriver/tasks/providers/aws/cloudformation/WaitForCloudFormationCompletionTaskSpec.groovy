@@ -71,6 +71,7 @@ class WaitForCloudFormationCompletionTaskSpec extends Specification {
     isChangeSet | status            | statusReason                                        | shouldDeleteChangeset || expectedResult
     false       | 'CREATE_COMPLETE' | 'ignored'                                           | false                 || ExecutionStatus.SUCCEEDED
     false       | 'UPDATE_COMPLETE' | 'ignored'                                           | false                 || ExecutionStatus.SUCCEEDED
+    false       | 'DELETE_COMPLETE' | 'ignored'                                           | false                 || ExecutionStatus.SUCCEEDED
     true        | 'FAILED'          | 'The submitted information didn\'t contain changes' | true                  || ExecutionStatus.SUCCEEDED
     true        | 'CREATE_COMPLETE' | 'ignored'                                           | false                 || ExecutionStatus.SUCCEEDED
   }
@@ -101,6 +102,7 @@ class WaitForCloudFormationCompletionTaskSpec extends Specification {
     'UPDATE_IN_PROGRESS'          | ExecutionStatus.RUNNING
     'ROLLBACK_IN_PROGRESS'        | ExecutionStatus.RUNNING
     'UPDATE_ROLLBACK_IN_PROGRESS' | ExecutionStatus.RUNNING
+    'DELETE_IN_PROGRESS'          | ExecutionStatus.RUNNING
   }
 
   def "should be running while clouddriver doesn't return the stack (still not cached)"() {
@@ -159,6 +161,7 @@ class WaitForCloudFormationCompletionTaskSpec extends Specification {
     false       | 'UNKNOWN'           || 'Unexpected stack status'
     false       | 'ROLLBACK_COMPLETE' || 'Irrecoverable stack status - Review the error, make changes in template and delete the stack to re-run the pipeline successfully; Reason: Stack failed'
     false       | 'CREATE_FAILED'     || 'Stack failed'
+    false       | 'DELETE_FAILED'     || 'Stack failed'
     true        | 'UNKNOWN'           || 'Unexpected stack status'
     true        | 'ROLLBACK_COMPLETE' || 'Irrecoverable stack status - Review the error, make changes in template and delete the stack to re-run the pipeline successfully; Reason: Stack failed'
     true        | 'FAILED'            || 'Change set failed'
