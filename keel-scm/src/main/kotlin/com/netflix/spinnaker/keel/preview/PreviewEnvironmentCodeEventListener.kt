@@ -15,11 +15,12 @@ import com.netflix.spinnaker.keel.api.scm.PrCreatedEvent
 import com.netflix.spinnaker.keel.api.scm.PrMergedEvent
 import com.netflix.spinnaker.keel.api.titus.TitusClusterSpec
 import com.netflix.spinnaker.keel.docker.ReferenceProvider
-import com.netflix.spinnaker.keel.front50.Front50Service
+import com.netflix.spinnaker.keel.front50.Front50Cache
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter.Companion.DEFAULT_MANIFEST_PATH
 import com.netflix.spinnaker.keel.persistence.DependentAttachFilter.ATTACH_PREVIEW_ENVIRONMENTS
 import com.netflix.spinnaker.keel.persistence.KeelRepository
+import com.netflix.spinnaker.keel.scm.matchesApplicationConfig
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.context.event.EventListener
@@ -34,7 +35,7 @@ import org.springframework.stereotype.Component
 class PreviewEnvironmentCodeEventListener(
   private val repository: KeelRepository,
   private val deliveryConfigImporter: DeliveryConfigImporter,
-  private val front50Service: Front50Service,
+  private val front50Cache: Front50Cache,
   private val objectMapper: ObjectMapper
 ) {
   companion object {
@@ -62,32 +63,20 @@ class PreviewEnvironmentCodeEventListener(
    */
   @EventListener(CommitCreatedEvent::class)
   fun handleCommitCreated(event: CommitCreatedEvent) {
-    val (repoType, projectKey, repoSlug) = event.repoKey.split("/")
-      .also {
-        if (it.size < 3) {
-          log.warn("Ignoring commit event with malformed git repository key: ${event.repoKey}")
-          return
-        }
-      }
-
     val matchingPreviewEnvironments = repository
       .allDeliveryConfigs(ATTACH_PREVIEW_ENVIRONMENTS)
       .associateWith { deliveryConfig ->
         val appConfig = runBlocking {
           try {
-            // TODO: cache application data
-            front50Service.applicationByName(deliveryConfig.application)
+            front50Cache.applicationByName(deliveryConfig.application)
           } catch (e: Exception) {
-            log.error("Error retrieving application ${deliveryConfig.application}: $e", e)
+            log.error("Error retrieving application ${deliveryConfig.application}: $e")
             null
           }
         }
 
         deliveryConfig.previewEnvironments.filter { previewEnvSpec ->
-          repoType.equals(appConfig?.repoType, ignoreCase = true)
-            && projectKey.equals(appConfig?.repoProjectKey, ignoreCase = true)
-            && repoSlug.equals(appConfig?.repoSlug, ignoreCase = true)
-            && previewEnvSpec.branch.matches(event.targetBranch)
+          event.matchesApplicationConfig(appConfig)  && previewEnvSpec.branch.matches(event.targetBranch)
         }
       }
       .filterValues { it.isNotEmpty() }
@@ -104,10 +93,7 @@ class PreviewEnvironmentCodeEventListener(
 
       val newDeliveryConfig = try {
         deliveryConfigImporter.import(
-          repoType = repoType,
-          projectKey = projectKey,
-          repoSlug = repoSlug,
-          ref = event.commitHash,
+          commitEvent = event,
           manifestPath = DEFAULT_MANIFEST_PATH // TODO: allow location of manifest to be configurable
         ).toDeliveryConfig()
       } catch (e: Exception) {

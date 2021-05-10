@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.igor
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.keel.api.scm.CommitCreatedEvent
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
@@ -49,4 +50,12 @@ class DeliveryConfigImporter(
       )
     )
   }
+
+  /**
+   * Imports a delivery config from source control based on the details of the [CommitCreatedEvent].
+   */
+  fun import(commitEvent: CommitCreatedEvent, manifestPath: String = DEFAULT_MANIFEST_PATH) =
+    with(commitEvent) {
+      import(repoType, projectKey, repoSlug, manifestPath, commitHash)
+    }
 }

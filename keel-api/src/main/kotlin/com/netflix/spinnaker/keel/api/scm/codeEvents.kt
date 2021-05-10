@@ -6,10 +6,28 @@ import com.netflix.spinnaker.kork.exceptions.SystemException
 /**
  * An event from an SCM system.
  */
-sealed class CodeEvent(
+abstract class CodeEvent(
   open val repoKey: String,
-  open val targetBranch: String
-)
+  open val targetBranch: String,
+) {
+  private val repoParts: List<String> by lazy { repoKey.split("/") }
+
+  fun validate() {
+    if (repoParts.size < 3) {
+      throw InvalidCodeEvent("Commit event with malformed git repository key: $repoKey " +
+        "(expected {repoType}/{projectKey}/{repoSlug})")
+    }
+  }
+
+  val repoType: String
+    get() = repoParts[0]
+
+  val projectKey: String
+    get() = repoParts[1]
+
+  val repoSlug: String
+    get() = repoParts[2]
+}
 
 /**
  * Event that signals the creation of a PR.
@@ -18,7 +36,9 @@ data class PrCreatedEvent(
   override val repoKey: String,
   override val targetBranch: String,
   val sourceBranch: String
-) : CodeEvent(repoKey, targetBranch)
+) : CodeEvent(repoKey, targetBranch) {
+  init { validate() }
+}
 
 /**
  * Event that signals a PR was merged.
@@ -27,7 +47,9 @@ data class PrMergedEvent(
   override val repoKey: String,
   override val targetBranch: String,
   val sourceBranch: String
-) : CodeEvent(repoKey, targetBranch)
+) : CodeEvent(repoKey, targetBranch) {
+  init { validate() }
+}
 
 /**
  * Event that signals a commit was created (i.e. pushed to a repo).
@@ -35,8 +57,10 @@ data class PrMergedEvent(
 data class CommitCreatedEvent(
   override val repoKey: String,
   override val targetBranch: String,
-  val commitHash: String
-) : CodeEvent(repoKey, targetBranch)
+  val commitHash: String,
+) : CodeEvent(repoKey, targetBranch) {
+  init { validate() }
+}
 
 /**
  * @return a [CodeEvent] based on the properties of this "artifact" definition from an Echo event.
@@ -72,5 +96,4 @@ val PublishedArtifact.isCodeEvent: Boolean
 class MissingCodeEventDetails(what: String, event: PublishedArtifact) :
   SystemException("Missing $what information in code event: $event")
 
-
-
+class InvalidCodeEvent(message: String) : SystemException(message)

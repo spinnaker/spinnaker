@@ -17,6 +17,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.stereotype.Component
 import java.time.Duration
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.Executor
 import java.util.function.BiFunction
 import java.util.function.Function
@@ -116,7 +117,7 @@ fun <K : Any, V> (suspend () -> Map<K, V>).toAsyncBulkCacheLoader(): AsyncCacheL
  * An implementation of [AsyncLoadingCache] that _always_ uses [AsyncCacheLoader.asyncLoadAll] to
  * populate the cache.
  */
-private class AsyncBulkLoadingCache<K : Any, V>(delegate: AsyncLoadingCache<K, V>) :
+private class AsyncBulkLoadingCache<K : Any, V>(private val delegate: AsyncLoadingCache<K, V>) :
   AsyncLoadingCache<K, V> by delegate {
   override fun get(key: K): CompletableFuture<V> = getAll(listOf(key)).thenApply { it[key] }
 
@@ -129,6 +130,14 @@ private class AsyncBulkLoadingCache<K : Any, V>(delegate: AsyncLoadingCache<K, V
     mappingFunction: BiFunction<in K, Executor, CompletableFuture<V>>
   ): CompletableFuture<V> {
     throw UnsupportedOperationException()
+  }
+
+  // The Kotlin compiler causes the default implementation of the method on the AsyncLoadingCache to be called
+  // instead of the overridden function in the subclass (a BoundedLocalCache.BoundedLocalAsyncLoadingCache as
+  // of this note). Explicitly calling the delegate here fixes that.
+  // See https://youtrack.jetbrains.com/issue/KT-34612
+  override fun asMap(): ConcurrentMap<K, CompletableFuture<V>> {
+    return delegate.asMap()
   }
 }
 

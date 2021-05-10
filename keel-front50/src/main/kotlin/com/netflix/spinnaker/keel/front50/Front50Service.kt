@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.front50
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.front50.model.Delivery
+import com.netflix.spinnaker.keel.front50.model.Pipeline
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Path
@@ -25,4 +26,10 @@ interface Front50Service {
   suspend fun allApplications(
     @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
   ): List<Application>
+
+  @GET("/pipelines/{application}")
+  suspend fun pipelinesByApplication(
+    @Path("application") application: String,
+    @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
+  ): List<Pipeline>
 }

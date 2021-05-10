@@ -14,7 +14,7 @@ import com.netflix.spinnaker.keel.api.scm.CommitCreatedEvent
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.core.api.SubmittedEnvironment
-import com.netflix.spinnaker.keel.front50.Front50Service
+import com.netflix.spinnaker.keel.front50.Front50Cache
 import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.front50.model.DataSources
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
@@ -29,28 +29,27 @@ import com.netflix.spinnaker.keel.test.submittedResource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.called
-import io.mockk.clearMocks
-import io.mockk.coEvery as every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.slot
-import io.mockk.coVerify as verify
 import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import io.mockk.coEvery as every
+import io.mockk.coVerify as verify
 
 class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
-  object Fixture {
+  class Fixture {
     private val objectMapper = configuredTestObjectMapper()
 
     val repository: KeelRepository = mockk()
 
     val importer: DeliveryConfigImporter = mockk()
 
-    val front50Service: Front50Service = mockk()
+    val front50Cache: Front50Cache = mockk()
 
-    val subject = PreviewEnvironmentCodeEventListener(repository, importer, front50Service, objectMapper)
+    val subject = PreviewEnvironmentCodeEventListener(repository, importer, front50Cache, objectMapper)
 
     val appConfig = Application(
       name = "fnord",
@@ -110,17 +109,17 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
 
     val previewEnv = slot<Environment>()
 
-    fun resetMocks() {
+    fun setupMocks() {
       every {
         repository.allDeliveryConfigs(any())
       } returns setOf(deliveryConfig)
 
       every {
-        front50Service.applicationByName("fnord")
+        front50Cache.applicationByName("fnord")
       } returns appConfig
 
       every {
-        importer.import("stash", "myorg", "myrepo", "spinnaker.yml", any())
+        importer.import(commitEvent, "spinnaker.yml")
       } returns with(deliveryConfig) {
         SubmittedDeliveryConfig(
           application = application,
@@ -147,11 +146,11 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
   }
 
   fun tests() = rootContext<Fixture> {
-    fixture { Fixture }
+    fixture { Fixture() }
 
     context("a delivery config exists in a branch") {
       before {
-        resetMocks()
+        setupMocks()
       }
 
       context("a commit event matching a preview environment spec is received") {
@@ -162,11 +161,8 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
         test("the delivery config is imported from the commit in the event") {
           verify(exactly = 1) {
             importer.import(
-              repoType = "stash",
-              projectKey = "myorg",
-              repoSlug = "myrepo",
-              manifestPath = "spinnaker.yml",
-              ref = "1d52038730f431be19a8012f6f3f333e95a53772"
+              commitEvent = commitEvent,
+              manifestPath = "spinnaker.yml"
             )
           }
         }
@@ -212,7 +208,7 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
         }
 
         before {
-          resetMocks()
+          setupMocks() // to pick up the updated delivery config above
           subject.handleCommitCreated(commitEvent)
         }
 
@@ -225,7 +221,6 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
 
       context("a commit event NOT matching a preview environment spec is received") {
         before {
-          clearMocks(repository, importer, recordedCalls = true, answers = false)
           subject.handleCommitCreated(nonMatchingCommitEvent)
         }
 
@@ -244,10 +239,10 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
 
     context("a commit event matching a preview spec branch filter but from a different app's repo") {
       before {
-        resetMocks()
+        setupMocks()
 
         every {
-          front50Service.applicationByName("fnord")
+          front50Cache.applicationByName("fnord")
         } returns appConfig.copy(
           repoProjectKey = "anotherorg",
           repoSlug = "another-repo"
