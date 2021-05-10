@@ -29,7 +29,7 @@ public class GcsPersistentStore extends PersistentStore {
   private String project;
   private String bucket;
   private String rootFolder = "front50";
-  private String bucketLocation;
+  private String bucketLocation = "";
 
   @Override
   public PersistentStoreType persistentStoreType() {

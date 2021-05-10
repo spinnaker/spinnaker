@@ -35,7 +35,7 @@ public class GoogleCanaryAccount extends AbstractCanaryAccount implements Clonea
   private String project;
   @LocalFile @SecretFile private String jsonPath;
   private String bucket;
-  private String bucketLocation;
+  private String bucketLocation = "";
   private String rootFolder = "kayenta";
   private SortedSet<AbstractCanaryServiceIntegration.SupportedTypes> supportedTypes =
       new TreeSet<>();
