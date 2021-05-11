@@ -59,7 +59,6 @@ dependencies {
   testImplementation "io.spinnaker.kork:kork-exceptions"
   testImplementation "cglib:cglib-nodep"
   testImplementation "com.natpryce:hamkrest"
-  testImplementation "junit:junit"
   testImplementation "org.objenesis:objenesis"
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.spockframework:spock-spring"
