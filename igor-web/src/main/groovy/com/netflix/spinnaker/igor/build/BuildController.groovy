@@ -201,7 +201,8 @@ class BuildController {
       HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE)).split('/').drop(4).join('/')
 
     String pendingKey = computePendingBuildKey(master, job, requestParams, startTime)
-    String buildNumber = null
+    // Initializing buildNumber to null will get it silently casted to "null" down the line
+    String buildNumber = ""
 
     PendingOperationsCache.OperationState pendingStatus = pendingOperationsCache.getAndSetOperationStatus(pendingKey, PendingOperationsCache.OperationStatus.PENDING, "")
     if (pendingStatus.status == PendingOperationsCache.OperationStatus.PENDING) {
