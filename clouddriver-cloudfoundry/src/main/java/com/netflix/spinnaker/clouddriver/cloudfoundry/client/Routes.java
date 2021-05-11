@@ -35,8 +35,8 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryServerGr
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -100,9 +100,17 @@ public class Routes {
     try {
       mappedApps =
           routeMappings.get(res.getMetadata().getGuid()).stream()
-              .map(rm -> applications.findById(rm.getAppGuid()))
+              .map(
+                  rm -> {
+                    try {
+                      return applications.findById(rm.getAppGuid());
+                    } catch (Exception e) {
+                      return null;
+                    }
+                  })
+              .filter(Objects::nonNull)
               .collect(Collectors.toSet());
-    } catch (ExecutionException e) {
+    } catch (Exception e) {
       if (!(e.getCause() instanceof ResourceNotFoundException))
         throw new CloudFoundryApiException(e.getCause(), "Unable to find route mappings by id");
     }
