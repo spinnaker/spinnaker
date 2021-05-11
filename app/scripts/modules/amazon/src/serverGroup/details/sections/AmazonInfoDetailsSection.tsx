@@ -78,8 +78,8 @@ export class AmazonInfoDetailsSection extends React.Component<
           <dd>
             <VpcTag vpcId={serverGroup.vpcId} />
           </dd>
-          {serverGroup.vpcId && <dt>Subnet</dt>}
-          {serverGroup.vpcId && <dd>{serverGroup.subnetType || 'None (EC2 Classic)'}</dd>}
+          {serverGroup.vpcId && serverGroup.subnetType && <dt>Subnet</dt>}
+          {serverGroup.vpcId && serverGroup.subnetType && <dd>{serverGroup.subnetType}</dd>}
           {serverGroup.asg && <dt>Zones</dt>}
           {serverGroup.asg && (
             <dd>
