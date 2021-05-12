@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.front50.tasks
 
 
-import com.netflix.spinnaker.orca.extensionpoint.pipeline.ExecutionPreprocessor
+import com.netflix.spinnaker.orca.api.pipeline.ExecutionPreprocessor
 import com.netflix.spinnaker.orca.front50.DependentPipelineStarter
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor

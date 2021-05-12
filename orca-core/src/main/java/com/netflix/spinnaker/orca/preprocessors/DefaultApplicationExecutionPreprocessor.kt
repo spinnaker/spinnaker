@@ -16,7 +16,7 @@
 package com.netflix.spinnaker.orca.preprocessors
 
 import com.netflix.spinnaker.orca.config.DefaultApplicationConfigurationProperties
-import com.netflix.spinnaker.orca.extensionpoint.pipeline.ExecutionPreprocessor
+import com.netflix.spinnaker.orca.api.pipeline.ExecutionPreprocessor
 import javax.annotation.Nonnull
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component

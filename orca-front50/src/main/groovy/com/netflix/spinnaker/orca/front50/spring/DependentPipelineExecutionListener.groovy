@@ -20,7 +20,7 @@ import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.exceptions.PipelineTemplateValidationException
-import com.netflix.spinnaker.orca.extensionpoint.pipeline.ExecutionPreprocessor
+import com.netflix.spinnaker.orca.api.pipeline.ExecutionPreprocessor
 import com.netflix.spinnaker.orca.front50.DependentPipelineStarter
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.listeners.ExecutionListener

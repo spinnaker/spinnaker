@@ -28,7 +28,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.Trigger
 import com.netflix.spinnaker.orca.clouddriver.service.JobService
 import com.netflix.spinnaker.orca.exceptions.OperationFailedException
 import com.netflix.spinnaker.orca.exceptions.PipelineTemplateValidationException
-import com.netflix.spinnaker.orca.extensionpoint.pipeline.ExecutionPreprocessor
+import com.netflix.spinnaker.orca.api.pipeline.ExecutionPreprocessor
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.PipelineModelMutator
 import com.netflix.spinnaker.orca.igor.BuildService

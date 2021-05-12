@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Netflix, Inc.
+ * Copyright 2021 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca;
+package com.netflix.spinnaker.orca.api.pipeline;
 
-import com.netflix.spinnaker.orca.api.pipeline.Task;
-import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
+import com.netflix.spinnaker.kork.annotations.Beta;
+import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import java.util.concurrent.TimeUnit;
 
@@ -37,16 +37,41 @@ import java.util.concurrent.TimeUnit;
  * longer than the lock extension. The minimum maxTaskBackoff among all registered
  * TaskExecutionInterceptors will be used to constrain the task backoff supplied by a RetryableTask.
  */
-public interface TaskExecutionInterceptor {
+@Beta
+public interface TaskExecutionInterceptor extends SpinnakerExtensionPoint {
 
+  /**
+   * hook that is called to program the collective maximum backoff of all TaskExecutionInterceptors.
+   * A retryable task has a backoff period which is configured by defaults and then constrained by
+   * the minimum backoff configured by all registered interceptors.
+   *
+   * @return long
+   */
   default long maxTaskBackoff() {
     return TimeUnit.MINUTES.toMillis(2);
   }
 
+  /**
+   * hook that is called before a task executes.
+   *
+   * @param task The task that is being handled.
+   * @param stage The stage for the task execution.
+   * @return stage The stage for the task execution.
+   */
   default StageExecution beforeTaskExecution(Task task, StageExecution stage) {
     return stage;
   }
 
+  /**
+   * hook that is called after a task executes successfully.
+   *
+   * <p>As an example you can modify the taskResult here before it gets propagated.
+   *
+   * @param task The task that is being handled.
+   * @param stage The stage for the task execution.
+   * @param taskResult The result of executing the task.
+   * @return taskResult The result of executing the task.
+   */
   default TaskResult afterTaskExecution(Task task, StageExecution stage, TaskResult taskResult) {
     return taskResult;
   }

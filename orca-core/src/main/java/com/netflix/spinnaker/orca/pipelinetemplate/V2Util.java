@@ -17,9 +17,9 @@
 package com.netflix.spinnaker.orca.pipelinetemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.orca.api.pipeline.ExecutionPreprocessor;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.exceptions.PipelineTemplateValidationException;
-import com.netflix.spinnaker.orca.extensionpoint.pipeline.ExecutionPreprocessor;
 import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import java.util.Collections;

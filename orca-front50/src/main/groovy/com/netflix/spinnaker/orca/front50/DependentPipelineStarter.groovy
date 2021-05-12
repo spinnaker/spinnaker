@@ -23,7 +23,7 @@ import com.netflix.spinnaker.kork.exceptions.ConfigurationException
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.Trigger
 import com.netflix.spinnaker.orca.exceptions.PipelineTemplateValidationException
-import com.netflix.spinnaker.orca.extensionpoint.pipeline.ExecutionPreprocessor
+import com.netflix.spinnaker.orca.api.pipeline.ExecutionPreprocessor
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor

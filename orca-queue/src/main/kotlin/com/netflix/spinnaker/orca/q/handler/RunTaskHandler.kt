@@ -20,7 +20,7 @@ import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.exceptions.UserException
-import com.netflix.spinnaker.orca.TaskExecutionInterceptor
+import com.netflix.spinnaker.orca.api.pipeline.TaskExecutionInterceptor
 import com.netflix.spinnaker.orca.TaskResolver
 import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask

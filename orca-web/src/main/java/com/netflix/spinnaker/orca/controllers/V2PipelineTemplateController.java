@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.controllers;
 
-import com.netflix.spinnaker.orca.extensionpoint.pipeline.ExecutionPreprocessor;
+import com.netflix.spinnaker.orca.api.pipeline.ExecutionPreprocessor;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import com.netflix.spinnaker.orca.pipelinetemplate.V2Util;
 import java.util.ArrayList;

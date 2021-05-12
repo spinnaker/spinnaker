@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.pipelinetemplate
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.orca.extensionpoint.pipeline.ExecutionPreprocessor
+import com.netflix.spinnaker.orca.api.pipeline.ExecutionPreprocessor
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.PipelineMissingTemplateVariabledException
 import com.netflix.spinnaker.orca.pipelinetemplate.handler.DefaultHandlerChain
 import com.netflix.spinnaker.orca.pipelinetemplate.handler.GlobalPipelineTemplateContext
