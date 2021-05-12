@@ -2,7 +2,7 @@ import { AppengineServerGroupTransformer } from './transformer';
 
 describe('command transforms', () => {
   it('converts the command into an AppengineDeployDescription object', () => {
-    const transformer = new AppengineServerGroupTransformer();
+    const transformer = new AppengineServerGroupTransformer(null);
     const command: any = {
       expectedArtifact: {
         id: '1234',
