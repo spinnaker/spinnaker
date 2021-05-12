@@ -179,7 +179,20 @@ function configure(env, webpackOpts) {
         {
           test: /\.js$/,
           enforce: 'pre',
-          use: ['source-map-loader'],
+          use: [
+            {
+              loader: 'source-map-loader',
+              options: {
+                filterSourceMappingUrl: (url, resourcePath) => {
+                  if (IS_PRODUCTION) return true;
+                  if (/.*\/node_modules\/(rxjs-compat|graphql-tag)\/.*/.test(resourcePath)) {
+                    return false;
+                  }
+                  return true;
+                },
+              },
+            },
+          ],
         },
       ],
     },
