@@ -778,7 +778,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
       }
 
       it("it tries to cancel the task") {
-        verify(task).onCancel(any())
+        verify(task).onCancelWithResult(any())
       }
     }
 

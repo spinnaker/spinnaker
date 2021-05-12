@@ -17,6 +17,7 @@ package com.netflix.spinnaker.orca.api.pipeline;
 
 import com.netflix.spinnaker.kork.annotations.Beta;
 import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -58,9 +59,28 @@ public interface Task extends SpinnakerExtensionPoint {
    * <p>This method should be used if you need to perform cleanup in response to the task being
    * cancelled before it was able to complete.
    *
+   * @deprecated Use onCancelWithResult instead
    * @param stage The running state execution state
    */
+  @Deprecated
   default void onCancel(@Nonnull StageExecution stage) {}
+
+  /**
+   * Behavior to be called on Task cancellation.
+   *
+   * <p>This method should be used if you need to perform cleanup in response to the task being
+   * cancelled before it was able to complete.
+   *
+   * <p>When returning a {@link TaskResult}, the {@link ExecutionStatus} will be ignored, as the
+   * resulting status will always be {@link ExecutionStatus#CANCELED}.
+   *
+   * @param stage The running state execution state
+   */
+  @Nullable
+  default TaskResult onCancelWithResult(@Nonnull StageExecution stage) {
+    onCancel(stage);
+    return null;
+  }
 
   /** A collection of known aliases. */
   default Collection<String> aliases() {
