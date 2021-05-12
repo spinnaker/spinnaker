@@ -7,6 +7,7 @@ import { SETTINGS } from 'core/config/settings';
 import { Spinner } from 'core/widgets';
 
 import { ColumnHeader } from './ColumnHeader';
+import { Environments2 } from './Environments2';
 import { EnvironmentsHeader } from './EnvironmentsHeader';
 import { EnvironmentsList } from './EnvironmentsList';
 import { Application, ApplicationDataSource } from '../application';
@@ -64,7 +65,15 @@ interface IEnvironmentsProps {
   app: Application;
 }
 
-export const Environments: React.FC<IEnvironmentsProps> = ({ app }) => {
+export const Environments: React.FC<IEnvironmentsProps> = (props) => {
+  const { params } = useCurrentStateAndParams();
+  if (params.new_ui === '1') {
+    return <Environments2 />;
+  }
+  return <EnvironmentsOld {...props} />;
+};
+
+export const EnvironmentsOld: React.FC<IEnvironmentsProps> = ({ app }) => {
   const dataSource: ApplicationDataSource<IManagedApplicationEnvironmentSummary> = app.getDataSource('environments');
   const {
     data: { environments, artifacts, resources },

@@ -1,0 +1,117 @@
+.Artifact {
+  .artifact-current-version {
+    display: flex;
+    flex-direction: column;
+    border-radius: 5px;
+  }
+
+  .artifact-versions-title {
+    margin-bottom: var(--s-spacing);
+    text-transform: uppercase;
+    color: var(--color-titanium);
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .artifact-pending-versions {
+    margin-top: var(--l-spacing);
+    position: relative;
+    --circle-shift: 6px;
+
+    .artifact-pending-versions-list {
+      padding-left: var(--l-spacing);
+
+      .artifact-pending-version {
+        display: flex;
+        flex-direction: column;
+        padding-right: var(--l-spacing);
+        border-radius: 5px;
+        position: relative;
+        padding-left: 48px;
+
+        &:not(:last-of-type) {
+          padding-bottom: 32px;
+        }
+
+        // Line
+        &::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 24px;
+          height: 100%;
+          border-left: 2px solid var(--color-accent-g2);
+        }
+
+        // circle
+        &::after {
+          content: '';
+          position: absolute;
+          top: var(--circle-shift);
+          left: 20px;
+          width: 10px;
+          height: 10px;
+          background: var(--color-accent-g2);
+          border-radius: 50%;
+        }
+
+        &:last-of-type {
+          &::before {
+            height: var(--circle-shift);
+          }
+        }
+
+        &:first-of-type {
+          &::before {
+            top: var(--circle-shift);
+          }
+        }
+
+        .artifact-pending-version-timestamp {
+          position: absolute;
+          // Align the right side of the text
+          right: calc(100% - 10px);
+          top: 0px;
+          white-space: nowrap;
+          color: var(--color-concrete);
+        }
+
+        .artifact-pending-version-commit {
+          font-weight: 600;
+          display: flex;
+          flex-direction: row;
+          white-space: pre-wrap;
+        }
+      }
+    }
+  }
+
+  .version-badge {
+    border-radius: 3px;
+    padding: 0 var(--s-spacing);
+    display: flex;
+    flex-direction: row;
+    & > svg {
+      margin-right: 4px;
+    }
+  }
+
+  .version-deploying {
+    background-color: var(--color-accent);
+    color: var(--color-white);
+  }
+
+  .version-pinned {
+    background-color: var(--color-warning);
+    color: var(--color-black);
+  }
+
+  .another-version-pinned-warning {
+    margin-top: var(--s-spacing);
+    font-weight: 600;
+
+    > i {
+      color: var(--color-warning);
+    }
+  }
+}

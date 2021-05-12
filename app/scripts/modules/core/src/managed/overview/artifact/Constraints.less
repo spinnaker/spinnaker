@@ -1,0 +1,45 @@
+.Constraints {
+  margin-top: var(--s-spacing);
+  color: var(--color-dovegray);
+
+  .pending-version-constraint {
+    display: grid;
+    grid-template-columns: 14px auto;
+    column-gap: 6px;
+    align-items: center;
+
+    .constraint-title {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      color: inherit;
+      padding: 0;
+      margin: 0;
+      border: 0;
+
+      & > svg {
+        margin-left: var(~'--2xs-spacing');
+        padding-top: 2px;
+        transition: transform 0.15s ease;
+      }
+    }
+
+    .constraint-content {
+      margin-top: var(--s-spacing);
+      margin-bottom: var(--m-spacing);
+
+      .constraint-action-button {
+        min-width: 80px;
+        font-size: 13px;
+        padding: var(~'--2xs-spacing') var(--s-spacing);
+        margin-right: var(--s-spacing);
+      }
+    }
+
+    & > i {
+      align-self: flex-start;
+      font-size: 12px;
+      margin-top: 5px;
+    }
+  }
+}

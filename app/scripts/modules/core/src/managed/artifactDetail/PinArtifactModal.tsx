@@ -71,6 +71,26 @@ export const showPinArtifactModal = (props: IPinArtifactModalProps) =>
     return result;
   });
 
+export const PinVersionIntro = ({ application }: { application: string }) => {
+  return (
+    <div className="flex-container-h middle sp-margin-xl-bottom">
+      <span className="sp-margin-m-right" style={{ minWidth: 145 }}>
+        <Illustration name="pinArtifactVersion" />
+      </span>
+      <span>
+        <p>
+          Pinning ensures an environment uses a specific version, even if Spinnaker would've normally deployed a
+          different one. If you pin a version, it'll remain pinned until you manually unpin it.
+        </p>{' '}
+        <a target="_blank" onClick={() => logEvent('Pinning docs link clicked', application)} href={PINNING_DOCS_URL}>
+          Check out our documentation
+        </a>{' '}
+        for more information.
+      </span>
+    </div>
+  );
+};
+
 export const PinArtifactModal = memo(
   ({ application, reference, version, resourcesByEnvironment, dismissModal, closeModal }: IPinArtifactModalProps) => {
     const optionRenderer = useCallback(
@@ -120,26 +140,7 @@ export const PinArtifactModal = memo(
               <>
                 <ModalBody>
                   <div className="flex-container-v middle sp-padding-xl-yaxis">
-                    <div className="flex-container-h middle sp-margin-xl-bottom">
-                      <span className="sp-margin-m-right" style={{ minWidth: 145 }}>
-                        <Illustration name="pinArtifactVersion" />
-                      </span>
-                      <span>
-                        <p>
-                          Pinning ensures an environment uses a specific version, even if Spinnaker would've normally
-                          deployed a different one. If you pin a version, it'll remain pinned until you manually unpin
-                          it.
-                        </p>{' '}
-                        <a
-                          target="_blank"
-                          onClick={() => logEvent('Pinning docs link clicked', application.name)}
-                          href={PINNING_DOCS_URL}
-                        >
-                          Check out our documentation
-                        </a>{' '}
-                        for more information.
-                      </span>
-                    </div>
+                    <PinVersionIntro application={application.name} />
                     <FormikFormField
                       name="environment"
                       label="Environment"

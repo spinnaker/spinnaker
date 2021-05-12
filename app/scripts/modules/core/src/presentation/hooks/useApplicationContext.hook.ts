@@ -9,3 +9,11 @@ export const useApplicationContext = (): Application | undefined => {
   }
   return app;
 };
+
+export const useApplicationContextSafe = (): Application => {
+  const app = React.useContext(ApplicationContext);
+  if (app === undefined) {
+    throw new Error('Application context provider is missing');
+  }
+  return app;
+};

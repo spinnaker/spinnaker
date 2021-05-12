@@ -1,21 +1,23 @@
+import cx from 'classnames';
 import React from 'react';
-
-const { useContext } = React;
 
 import { ModalContext } from './ModalContext';
 
 import './ModalHeader.less';
 
+const { useContext } = React;
+
 export interface IModalHeaderProps {
   children?: React.ReactNode;
+  className?: string;
 }
 
-export const ModalHeader = ({ children }: IModalHeaderProps) => {
+export const ModalHeader = ({ className, children }: IModalHeaderProps) => {
   const { onRequestClose } = useContext(ModalContext);
 
   return (
     <div className="ModalHeader">
-      <div className="sp-modal-title">{children}</div>
+      <div className={cx('sp-modal-title', className)}>{children}</div>
       <button className="sp-modal-close" onClick={() => onRequestClose && onRequestClose()}>
         <i className="ico icon-close" />
       </button>

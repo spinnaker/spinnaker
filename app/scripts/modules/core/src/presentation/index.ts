@@ -31,3 +31,4 @@ export * from './text';
 export * from './ToggleButtonGroup';
 export * from './Tooltip';
 export * from './WatchValue';
+export * from './IconTooltip';

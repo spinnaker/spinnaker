@@ -8,6 +8,8 @@ import { CopyToClipboard, timeDiffToString } from '../utils';
 export interface IRelativeTimestampProps {
   timestamp: DateTime;
   clickToCopy?: boolean;
+  removeStyles?: boolean;
+  delayShow?: number;
 }
 
 const TIMEZONE = SETTINGS.feature.displayTimestampsInUserLocalTime ? undefined : SETTINGS.defaultTimeZone;
@@ -55,7 +57,7 @@ const getDistanceFromNow = (timestamp: DateTime) =>
   timestamp.diffNow().negate().shiftTo('years', 'months', 'days', 'hours', 'minutes', 'seconds');
 
 export const RelativeTimestamp = memo(
-  ({ timestamp: timestampInOriginalZone, clickToCopy }: IRelativeTimestampProps) => {
+  ({ timestamp: timestampInOriginalZone, clickToCopy, delayShow, removeStyles }: IRelativeTimestampProps) => {
     const timestamp = TIMEZONE ? timestampInOriginalZone.setZone(TIMEZONE) : timestampInOriginalZone;
     const [formattedTimestamp, setFormattedTimestamp] = useState(
       formatTimestamp(timestamp, getDistanceFromNow(timestamp)),
@@ -67,14 +69,16 @@ export const RelativeTimestamp = memo(
 
     useInterval(updateTimestamp, 1000);
     useEffect(updateTimestamp, [timestamp]);
-
     if (!formattedTimestamp) {
       return null;
     }
 
     const absoluteTimestamp = timestamp.toFormat('yyyy-MM-dd HH:mm:ss ZZZZ');
     const relativeTimestamp = (
-      <span className="text-regular text-italic" style={{ fontSize: 13, lineHeight: 1 }}>
+      <span
+        className={removeStyles ? undefined : 'text-regular text-italic'}
+        style={removeStyles ? undefined : { fontSize: 13, lineHeight: 1 }}
+      >
         {formattedTimestamp}
       </span>
     );
@@ -88,7 +92,11 @@ export const RelativeTimestamp = memo(
         />
       );
     } else {
-      return <Tooltip value={absoluteTimestamp}>{relativeTimestamp}</Tooltip>;
+      return (
+        <Tooltip value={absoluteTimestamp} delayShow={delayShow}>
+          {relativeTimestamp}
+        </Tooltip>
+      );
     }
   },
 );

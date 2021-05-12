@@ -1,3 +1,4 @@
+import classnames from 'classnames';
 import React from 'react';
 import { Overlay, Popover, PopoverProps } from 'react-bootstrap';
 import ReactDOM from 'react-dom';
@@ -32,6 +33,8 @@ export interface IHoverablePopoverProps extends React.HTMLProps<any> {
   hOffsetPercent?: string;
   /** class to put on the popover content */
   className?: string;
+  /** class to put on the wrapper element */
+  wrapperClassName?: string;
   /** Rendered on the top of the popover content */
   title?: string;
   id?: string;
@@ -166,7 +169,11 @@ export class HoverablePopover extends React.Component<IHoverablePopoverProps, IH
     );
 
     return (
-      <Wrapper className="HoverablePopover" onMouseEnter={this.handleMouseEvent} onMouseLeave={this.handleMouseEvent}>
+      <Wrapper
+        className={classnames('HoverablePopover', this.props.wrapperClassName)}
+        onMouseEnter={this.handleMouseEvent}
+        onMouseLeave={this.handleMouseEvent}
+      >
         {this.props.children}
         <Overlay
           show={popoverIsOpen}

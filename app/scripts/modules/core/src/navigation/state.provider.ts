@@ -24,7 +24,7 @@ export interface IReactHybridIntermediate extends Ng1StateDeclaration {
 
 export interface INestedState extends IReactHybridIntermediate {
   children?: INestedState[];
-  component?: React.ComponentClass<any> | string;
+  component?: React.ComponentType | string;
   views?: { [key: string]: ReactViewDeclaration | Ng1ViewDeclaration };
 }
 

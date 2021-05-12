@@ -1,5 +1,6 @@
 overwrite: true
-schema: app/scripts/modules/core/src/managed/graphql/schema.graphql # TODO: move this file to a separate node module
+schema: 
+  - app/scripts/modules/core/src/managed/graphql/schema.graphql # TODO: move this file to a separate node module
 documents: app/scripts/modules/core/src/**/*.graphql
 generates:
   app/scripts/modules/core/src/managed/graphql/graphql-sdk.ts:
@@ -12,8 +13,9 @@ generates:
     config:
       declarationKind: 'interface'
       enumsAsTypes: true
+      maybeValue: T | undefined
       scalars:
-        InstantTime: Date
+        InstantTime: string
   ./graphql.schema.json:
     plugins:
       - "introspection"

@@ -10,14 +10,15 @@ const getTitle = (constraint: IDependsOnConstraint) => {
   const prerequisiteEnv = constraint.attributes.dependsOnEnvironment.toUpperCase();
   switch (constraint.status) {
     case 'PASS':
-    case 'OVERRIDE_PASS':
-      return `Deployed to prerequisite environment (${prerequisiteEnv}) successfully`;
+      return `Prerequisite deployment to ${prerequisiteEnv} succeeded`;
+    case 'FORCE_PASS':
+      return `Prerequisite deployment to ${prerequisiteEnv} was overridden`;
     case 'FAIL':
-      return `Prerequisite environment (${prerequisiteEnv}) deployment failed`;
-    case 'OVERRIDE_FAIL':
-      return `Overriding prerequisite environment (${prerequisiteEnv}) deployment failure`;
+      return `Prerequisite deployment to ${prerequisiteEnv} failed`;
+    case 'PENDING':
+      return `Awaiting prerequisite deployment to ${prerequisiteEnv}`;
     default:
-      return `Awaiting deployment to prerequisite environment (${prerequisiteEnv})`;
+      return `Depends on ${prerequisiteEnv} - ${constraint.status}`;
   }
 };
 

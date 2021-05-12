@@ -1,8 +1,10 @@
+import classnames from 'classnames';
 import React from 'react';
 
 export interface ISpinnerProps {
   size?: 'nano' | 'small' | 'medium' | 'large';
   message?: string;
+  fullWidth?: boolean;
 }
 
 export class Spinner extends React.Component<ISpinnerProps> {
@@ -27,8 +29,7 @@ export class Spinner extends React.Component<ISpinnerProps> {
   }
 
   public render(): React.ReactElement<Spinner> {
-    const { size, message } = this.props;
-    const mainClassNames = `load ${size || 'small'}`;
+    const { size, message, fullWidth } = this.props;
     const messageClassNames = `message color-text-accent ${size === 'medium' ? 'heading-4' : 'heading-2'}`;
 
     const messageNode = ['medium', 'large'].includes(size) && (
@@ -42,7 +43,7 @@ export class Spinner extends React.Component<ISpinnerProps> {
     );
 
     return (
-      <div className={mainClassNames}>
+      <div className={classnames('load', size || 'small', { 'full-width': fullWidth })}>
         {messageNode}
         {bars}
       </div>

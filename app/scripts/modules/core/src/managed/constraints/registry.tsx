@@ -1,3 +1,4 @@
+import { isEmpty } from 'lodash';
 import { DateTime } from 'luxon';
 import React from 'react';
 
@@ -54,6 +55,11 @@ class ConstraintsManager extends BasePluginManager<IConstraintHandler> {
     return `${constraint.type} constraint - ${constraint.status}`;
   }
 
+  hasContent(constraint: IConstraint): boolean {
+    const overrideActions = this.getActions(constraint);
+    return Boolean(this.getHandler(constraint.type)?.descriptionRender) || !isEmpty(overrideActions);
+  }
+
   renderDescription(constraint: IConstraint): React.ReactNode {
     const Component = this.getHandler(constraint.type)?.descriptionRender;
     if (Component) {
@@ -74,8 +80,8 @@ class ConstraintsManager extends BasePluginManager<IConstraintHandler> {
     return finalTime ? DateTime.fromISO(finalTime) : undefined;
   }
 
-  getOverrideActions(constraint: IConstraint, environment: IManagedArtifactVersionEnvironment) {
-    if (environment.state === 'skipped') {
+  getActions(constraint: IConstraint, environmentState?: IManagedArtifactVersionEnvironment['state']) {
+    if (environmentState === 'skipped') {
       return undefined;
     }
     const actions = this.getHandler(constraint.type)?.overrideActions;
