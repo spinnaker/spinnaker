@@ -8,7 +8,6 @@ import { V2_INSTANCE_TYPE_SELECTOR } from './configure/common/v2InstanceTypeSele
 import { V2_INSTANCE_ARCHETYPE_SELECTOR } from './configure/common/v2instanceArchetypeSelector.component';
 import { CORE_SERVERGROUP_DETAILS_MULTIPLESERVERGROUPS_CONTROLLER } from './details/multipleServerGroups.controller';
 import { VIEW_SCALING_ACTIVITIES_LINK } from './details/scalingActivities/viewScalingActivitiesLink.component';
-import { CORE_SERVERGROUP_POD_RUNNINGTASKSTAG_DIRECTIVE } from './pod/runningTasksTag.directive';
 import { SERVER_GROUP_DATA_SOURCE } from './serverGroup.dataSource';
 import { SERVER_GROUP_STATES } from './serverGroup.states';
 import { CORE_SERVERGROUP_SERVERGROUP_TRANSFORMER } from './serverGroup.transformer';
@@ -20,7 +19,6 @@ module(SERVERGROUP_MODULE, [
   SERVER_GROUP_CONFIGURATION_SERVICE,
   V2_INSTANCE_ARCHETYPE_SELECTOR,
   V2_INSTANCE_TYPE_SELECTOR,
-  CORE_SERVERGROUP_POD_RUNNINGTASKSTAG_DIRECTIVE,
   CORE_SERVERGROUP_DETAILS_MULTIPLESERVERGROUPS_CONTROLLER,
   SERVER_GROUP_DATA_SOURCE,
   CORE_SERVERGROUP_CONFIGURE_COMMON_BASICSETTINGSMIXIN_CONTROLLER,
