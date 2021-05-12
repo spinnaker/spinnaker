@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/amazon",
   "license": "Apache-2.0",
-  "version": "0.0.304",
+  "version": "0.0.305",
   "main": "lib/lib.js",
   "typings": "lib/index.d.ts",
   "scripts": {
