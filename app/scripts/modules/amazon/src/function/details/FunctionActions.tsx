@@ -2,11 +2,11 @@ import React from 'react';
 import { Dropdown } from 'react-bootstrap';
 
 import {
+  AddEntityTagLinks,
   Application,
   ApplicationReader,
   ConfirmationModalService,
   FunctionWriter,
-  NgReact,
   SETTINGS,
 } from '@spinnaker/core';
 import { IAmazonFunction, IAmazonFunctionDeleteCommand } from 'amazon/domain';
@@ -92,8 +92,6 @@ export class FunctionActions extends React.Component<IFunctionActionsProps, IFun
   public render() {
     const { app, functionDef } = this.props;
     const { application } = this.state;
-
-    const { AddEntityTagLinks } = NgReact;
 
     return (
       <div style={{ display: 'inline-block' }}>

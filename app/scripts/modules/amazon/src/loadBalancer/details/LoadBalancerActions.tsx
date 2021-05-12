@@ -3,13 +3,13 @@ import React from 'react';
 import { Dropdown } from 'react-bootstrap';
 
 import {
+  AddEntityTagLinks,
   Application,
   ApplicationReader,
   ConfirmationModalService,
   HelpField,
   LoadBalancerWriter,
   ManagedMenuItem,
-  NgReact,
   SETTINGS,
 } from '@spinnaker/core';
 import { IAmazonLoadBalancer, IAmazonLoadBalancerDeleteCommand } from 'amazon/domain';
@@ -104,7 +104,6 @@ export class LoadBalancerActions extends React.Component<ILoadBalancerActionsPro
   public render() {
     const { app, loadBalancer } = this.props;
     const { application } = this.state;
-    const { AddEntityTagLinks } = NgReact;
 
     const { loadBalancerType, instances, instanceCounts } = loadBalancer;
     const loadBalancerAppName = loadBalancer.name.split('-')[0];

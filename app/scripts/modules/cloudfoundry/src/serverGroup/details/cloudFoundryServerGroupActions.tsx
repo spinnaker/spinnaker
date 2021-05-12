@@ -3,12 +3,12 @@ import React from 'react';
 import { Dropdown, Tooltip } from 'react-bootstrap';
 
 import {
+  AddEntityTagLinks,
   ClusterTargetBuilder,
   ConfirmationModalService,
   IOwnerOption,
   IServerGroupActionsProps,
   IServerGroupJob,
-  NgReact,
   ReactInjector,
   ServerGroupWarningMessageService,
   SETTINGS,
@@ -284,7 +284,6 @@ export class CloudFoundryServerGroupActions extends React.Component<ICloudFoundr
   public render(): JSX.Element {
     const { app, serverGroup } = this.props;
     const { loadBalancers } = serverGroup;
-    const { AddEntityTagLinks } = NgReact;
     const showEntityTags = SETTINGS.feature && SETTINGS.feature.entityTags;
     const entityTagTargets: IOwnerOption[] = ClusterTargetBuilder.buildClusterTargets(serverGroup);
 

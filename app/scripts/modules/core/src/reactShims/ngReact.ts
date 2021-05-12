@@ -3,9 +3,7 @@ import React from 'react';
 
 import { IViewChangesLinkProps } from 'core/diffs/ViewChangesLink';
 import { viewChangesLinkWrapper } from 'core/diffs/viewChangesLink.component';
-import { IAddEntityTagLinksProps } from 'core/entityTag/AddEntityTagLinks';
 import { IEntitySourceProps } from 'core/entityTag/EntitySource';
-import { addEntityTagLinksWrapperComponent } from 'core/entityTag/addEntityTagLinks.component';
 import { entitySourceComponent } from 'core/entityTag/entitySource.component';
 import { INumberListProps } from 'core/forms/numberList/NumberList';
 import { numberListWrapperComponent } from 'core/forms/numberList/numberList.component';
@@ -41,7 +39,6 @@ export class NgReactInjector extends ReactInject {
 
   // Reactified components
   public AccountRegionClusterSelector: React.ComponentClass<IAccountRegionClusterSelectorProps> = angular2react('accountRegionClusterSelectorWrapper', accountRegionClusterSelectorWrapperComponent, this.$injectorProxy) as any;
-  public AddEntityTagLinks: React.ComponentClass<IAddEntityTagLinksProps>                       = angular2react('addEntityTagLinksWrapper', addEntityTagLinksWrapperComponent, this.$injectorProxy) as any;
   public ButtonBusyIndicator: React.ComponentClass<IButtonBusyIndicatorProps>                   = angular2react('buttonBusyIndicator', buttonBusyIndicatorComponent, this.$injectorProxy) as any;
   public EntitySource: React.ComponentClass<IEntitySourceProps>                                 = angular2react('entitySource', entitySourceComponent, this.$injectorProxy) as any;
   public HelpField: React.ComponentClass<IHelpFieldProps>                                       = angular2react('helpFieldWrapper', helpFieldWrapperComponent, this.$injectorProxy) as any;

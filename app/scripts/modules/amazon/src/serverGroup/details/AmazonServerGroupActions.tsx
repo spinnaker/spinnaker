@@ -3,6 +3,7 @@ import React from 'react';
 import { Dropdown, MenuItem, Tooltip } from 'react-bootstrap';
 
 import {
+  AddEntityTagLinks,
   ClusterTargetBuilder,
   ConfirmationModalService,
   IOwnerOption,
@@ -10,7 +11,6 @@ import {
   IServerGroupJob,
   ManagedMenuItem,
   ModalInjector,
-  NgReact,
   Overridable,
   ReactInjector,
   ServerGroupWarningMessageService,
@@ -285,7 +285,6 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
   public render(): JSX.Element {
     const { app, serverGroup } = this.props;
 
-    const { AddEntityTagLinks } = NgReact;
     const showEntityTags = SETTINGS.feature && SETTINGS.feature.entityTags;
     const entityTagTargets: IOwnerOption[] = ClusterTargetBuilder.buildClusterTargets(serverGroup);
 
