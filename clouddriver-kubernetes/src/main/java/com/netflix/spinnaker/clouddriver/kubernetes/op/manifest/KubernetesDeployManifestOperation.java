@@ -40,6 +40,9 @@ import com.netflix.spinnaker.moniker.Moniker;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,8 +71,101 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
   public OperationResult operate(List<OperationResult> _unused) {
     getTask().updateStatus(OP_NAME, "Beginning deployment of manifest...");
 
+    final List<KubernetesManifest> inputManifests = getManifestsFromDescription();
+    sortManifests(inputManifests);
+    Map<String, Artifact> allArtifacts = initializeArtifacts();
+
+    OperationResult result = new OperationResult();
+    List<ManifestArtifactHolder> toDeploy =
+        inputManifests.stream()
+            .map(
+                manifest -> {
+                  KubernetesManifestAnnotater.validateAnnotationsForRolloutStrategies(
+                      manifest, description.getStrategy());
+
+                  // Bind artifacts
+                  manifest = bindArtifacts(manifest, allArtifacts.values(), result);
+
+                  KubernetesResourceProperties properties = findResourceProperties(manifest);
+                  KubernetesManifestStrategy strategy =
+                      KubernetesManifestAnnotater.getStrategy(manifest);
+
+                  OptionalInt version =
+                      isVersioned(properties, strategy)
+                          ? resourceVersioner.getVersion(manifest, credentials)
+                          : OptionalInt.empty();
+
+                  Moniker moniker = cloneMoniker(description.getMoniker());
+                  version.ifPresent(moniker::setSequence);
+                  if (Strings.isNullOrEmpty(moniker.getCluster())) {
+                    moniker.setCluster(manifest.getFullResourceName());
+                  }
+
+                  Artifact artifact =
+                      ArtifactConverter.toArtifact(manifest, description.getAccount(), version);
+                  // Artifacts generated in this stage replace any required or optional artifacts
+                  // coming from the request
+                  allArtifacts.put(getArtifactKey(artifact), artifact);
+
+                  getTask()
+                      .updateStatus(
+                          OP_NAME,
+                          "Annotating manifest "
+                              + manifest.getFullResourceName()
+                              + " with artifact, relationships & moniker...");
+                  KubernetesManifestAnnotater.annotateManifest(manifest, artifact);
+
+                  KubernetesHandler deployer = properties.getHandler();
+                  if (strategy.isUseSourceCapacity() && deployer instanceof CanScale) {
+                    Double replicas =
+                        KubernetesSourceCapacity.getSourceCapacity(manifest, credentials);
+                    if (replicas != null) {
+                      manifest.setReplicas(replicas);
+                    }
+                  }
+
+                  setTrafficAnnotation(description.getServices(), manifest);
+                  if (description.isEnableTraffic()) {
+                    KubernetesManifestTraffic traffic =
+                        KubernetesManifestAnnotater.getTraffic(manifest);
+                    applyTraffic(traffic, manifest, inputManifests);
+                  }
+
+                  credentials.getNamer().applyMoniker(manifest, moniker);
+                  manifest.setName(artifact.getReference());
+
+                  return new ManifestArtifactHolder(manifest, artifact, strategy);
+                })
+            .collect(Collectors.toList());
+
+    checkIfArtifactsBound(result);
+
+    toDeploy.forEach(
+        holder -> {
+          KubernetesResourceProperties properties = findResourceProperties(holder.manifest);
+          KubernetesManifestStrategy strategy = holder.strategy;
+          KubernetesHandler deployer = properties.getHandler();
+          getTask()
+              .updateStatus(
+                  OP_NAME,
+                  "Submitting manifest "
+                      + holder.manifest.getFullResourceName()
+                      + " to kubernetes master...");
+          log.debug("Manifest in {} to be deployed: {}", accountName, holder.manifest);
+          result.merge(deployer.deploy(credentials, holder.manifest, strategy.getDeployStrategy()));
+
+          result.getCreatedArtifacts().add(holder.artifact);
+        });
+
+    result.removeSensitiveKeys(credentials.getResourcePropertyRegistry());
+
+    getTask().updateStatus(OP_NAME, "Deploy manifest task completed successfully.");
+    return result;
+  }
+
+  @NotNull
+  private List<KubernetesManifest> getManifestsFromDescription() {
     List<KubernetesManifest> inputManifests = description.getManifests();
-    List<KubernetesManifest> deployManifests = new ArrayList<>();
     if (inputManifests == null || inputManifests.isEmpty()) {
       // The stage currently only supports using the `manifests` field but we need to continue to
       // check `manifest` for backwards compatibility until all existing stages have been updated.
@@ -82,140 +178,88 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
           manifest.getName());
       inputManifests = ImmutableList.of(manifest);
     }
-
     inputManifests = inputManifests.stream().filter(Objects::nonNull).collect(Collectors.toList());
+    return inputManifests;
+  }
 
-    List<Artifact> requiredArtifacts = description.getRequiredArtifacts();
-    if (requiredArtifacts == null) {
-      requiredArtifacts = new ArrayList<>();
+  @NotNull
+  private Map<String, Artifact> initializeArtifacts() {
+    Map<String, Artifact> allArtifacts = new HashMap<>();
+    if (!description.isEnableArtifactBinding()) {
+      return allArtifacts;
     }
-
-    List<Artifact> optionalArtifacts = description.getOptionalArtifacts();
-    if (optionalArtifacts == null) {
-      optionalArtifacts = new ArrayList<>();
+    // Required artifacts are explicitly set in stage configuration
+    if (description.getRequiredArtifacts() != null) {
+      description
+          .getRequiredArtifacts()
+          .forEach(a -> allArtifacts.putIfAbsent(getArtifactKey(a), a));
     }
-
-    List<Artifact> artifacts = new ArrayList<>();
-    // Optional artifacts are intentionally added before required artifacts. This is to ensure that
-    // when artifact replacement occurs the required artifacts are not overwritten by optional
-    // artifacts.
-    artifacts.addAll(optionalArtifacts);
-    artifacts.addAll(requiredArtifacts);
-
-    Set<Artifact> boundArtifacts = new HashSet<>();
-
-    for (KubernetesManifest manifest : inputManifests) {
-      KubernetesManifestAnnotater.validateAnnotationsForRolloutStrategies(
-          manifest, description.getStrategy());
-
-      getTask()
-          .updateStatus(
-              OP_NAME,
-              "Swapping out artifacts in " + manifest.getFullResourceName() + " from context...");
-      ReplaceResult replaceResult =
-          findResourceProperties(manifest)
-              .getHandler()
-              .replaceArtifacts(manifest, artifacts, description.getAccount());
-      deployManifests.add(replaceResult.getManifest());
-      boundArtifacts.addAll(replaceResult.getBoundArtifacts());
+    // Optional artifacts are taken from the pipeline trigger or pipeline execution context
+    if (description.getOptionalArtifacts() != null) {
+      description
+          .getOptionalArtifacts()
+          .forEach(a -> allArtifacts.putIfAbsent(getArtifactKey(a), a));
     }
+    return allArtifacts;
+  }
 
-    Set<ArtifactKey> unboundArtifacts =
-        Sets.difference(
-            ArtifactKey.fromArtifacts(description.getRequiredArtifacts()),
-            ArtifactKey.fromArtifacts(boundArtifacts));
+  private KubernetesManifest bindArtifacts(
+      KubernetesManifest manifest,
+      Collection<Artifact> artifacts,
+      OperationResult operationResult) {
+    getTask()
+        .updateStatus(OP_NAME, "Binding artifacts in " + manifest.getFullResourceName() + "...");
 
+    ReplaceResult replaceResult =
+        findResourceProperties(manifest)
+            .getHandler()
+            .replaceArtifacts(manifest, List.copyOf(artifacts), description.getAccount());
+
+    getTask()
+        .updateStatus(OP_NAME, "Bound artifacts: " + replaceResult.getBoundArtifacts() + "...");
+
+    operationResult.getBoundArtifacts().addAll(replaceResult.getBoundArtifacts());
+    return replaceResult.getManifest();
+  }
+
+  private void checkIfArtifactsBound(OperationResult operationResult) {
     getTask().updateStatus(OP_NAME, "Checking if all requested artifacts were bound...");
-    if (!unboundArtifacts.isEmpty()) {
-      throw new IllegalArgumentException(
-          String.format(
-              "The following required artifacts could not be bound: '%s'. "
-                  + "Check that the Docker image name above matches the name used in the image field of your manifest. "
-                  + "Failing the stage as this is likely a configuration error.",
-              unboundArtifacts));
-    }
+    if (description.isEnableArtifactBinding()) {
+      Set<ArtifactKey> unboundArtifacts =
+          Sets.difference(
+              ArtifactKey.fromArtifacts(description.getRequiredArtifacts()),
+              ArtifactKey.fromArtifacts(operationResult.getBoundArtifacts()));
 
+      if (!unboundArtifacts.isEmpty()) {
+        throw new IllegalArgumentException(
+            String.format(
+                "The following required artifacts could not be bound: '%s'. "
+                    + "Check that the Docker image name above matches the name used in the image field of your manifest. "
+                    + "Failing the stage as this is likely a configuration error.",
+                unboundArtifacts));
+      }
+    }
+  }
+
+  private void sortManifests(List<KubernetesManifest> manifests) {
     getTask().updateStatus(OP_NAME, "Sorting manifests by priority...");
-    deployManifests.sort(
+    manifests.sort(
         Comparator.comparingInt(m -> findResourceProperties(m).getHandler().deployPriority()));
     getTask()
         .updateStatus(
             OP_NAME,
             "Deploy order is: "
-                + deployManifests.stream()
+                + manifests.stream()
                     .map(KubernetesManifest::getFullResourceName)
                     .collect(Collectors.joining(", ")));
+  }
 
-    OperationResult result = new OperationResult();
-    for (KubernetesManifest manifest : deployManifests) {
-      KubernetesResourceProperties properties = findResourceProperties(manifest);
-      KubernetesManifestStrategy strategy = KubernetesManifestAnnotater.getStrategy(manifest);
-
-      OptionalInt version =
-          isVersioned(properties, strategy)
-              ? resourceVersioner.getVersion(manifest, credentials)
-              : OptionalInt.empty();
-
-      Moniker moniker = cloneMoniker(description.getMoniker());
-      version.ifPresent(moniker::setSequence);
-      if (Strings.isNullOrEmpty(moniker.getCluster())) {
-        moniker.setCluster(manifest.getFullResourceName());
-      }
-
-      Artifact artifact = ArtifactConverter.toArtifact(manifest, description.getAccount(), version);
-
-      getTask()
-          .updateStatus(
-              OP_NAME,
-              "Annotating manifest "
-                  + manifest.getFullResourceName()
-                  + " with artifact, relationships & moniker...");
-      KubernetesManifestAnnotater.annotateManifest(manifest, artifact);
-
-      KubernetesHandler deployer = properties.getHandler();
-      if (strategy.isUseSourceCapacity() && deployer instanceof CanScale) {
-        Double replicas = KubernetesSourceCapacity.getSourceCapacity(manifest, credentials);
-        if (replicas != null) {
-          manifest.setReplicas(replicas);
-        }
-      }
-
-      setTrafficAnnotation(description.getServices(), manifest);
-      if (description.isEnableTraffic()) {
-        KubernetesManifestTraffic traffic = KubernetesManifestAnnotater.getTraffic(manifest);
-        applyTraffic(traffic, manifest, deployManifests);
-      }
-
-      credentials.getNamer().applyMoniker(manifest, moniker);
-      manifest.setName(artifact.getReference());
-
-      getTask()
-          .updateStatus(
-              OP_NAME,
-              "Swapping out artifacts in "
-                  + manifest.getFullResourceName()
-                  + " from other deployments...");
-      ReplaceResult replaceResult =
-          deployer.replaceArtifacts(
-              manifest, new ArrayList<>(result.getCreatedArtifacts()), description.getAccount());
-      boundArtifacts.addAll(replaceResult.getBoundArtifacts());
-      manifest = replaceResult.getManifest();
-
-      getTask()
-          .updateStatus(
-              OP_NAME,
-              "Submitting manifest " + manifest.getFullResourceName() + " to kubernetes master...");
-      log.debug("Manifest in {} to be deployed: {}", accountName, manifest);
-      result.merge(deployer.deploy(credentials, manifest, strategy.getDeployStrategy()));
-
-      result.getCreatedArtifacts().add(artifact);
-    }
-
-    result.getBoundArtifacts().addAll(boundArtifacts);
-    result.removeSensitiveKeys(credentials.getResourcePropertyRegistry());
-
-    getTask().updateStatus(OP_NAME, "Deploy manifest task completed successfully.");
-    return result;
+  private String getArtifactKey(Artifact artifact) {
+    return String.format(
+        "[%s]-[%s]-[%s]",
+        artifact.getType(),
+        artifact.getName(),
+        artifact.getLocation() != null ? artifact.getLocation() : "");
   }
 
   private void setTrafficAnnotation(List<String> services, KubernetesManifest manifest) {
@@ -318,5 +362,13 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
     KubernetesKind kind = manifest.getKind();
     getTask().updateStatus(OP_NAME, "Finding deployer for " + kind + "...");
     return credentials.getResourcePropertyRegistry().get(kind);
+  }
+
+  @Data
+  @RequiredArgsConstructor
+  private static class ManifestArtifactHolder {
+    @Nonnull private KubernetesManifest manifest;
+    @Nonnull private Artifact artifact;
+    @Nonnull private KubernetesManifestStrategy strategy;
   }
 }

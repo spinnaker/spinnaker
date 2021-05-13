@@ -20,11 +20,13 @@ import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.it.utils.KubeTestUtils;
 import io.restassured.response.Response;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import org.apache.logging.log4j.util.Strings;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -34,6 +36,7 @@ import org.testcontainers.containers.Container;
 public class DeployManifestIT extends BaseTest {
 
   private static final String DEPLOYMENT_1_NAME = "deployment1";
+  private static final String REPLICASET_1_NAME = "rs1";
   private static final String SERVICE_1_NAME = "service1";
   private static String account1Ns;
 
@@ -424,6 +427,76 @@ public class DeployManifestIT extends BaseTest {
 
   @DisplayName(
       ".\n===\n"
+          + "Given a replicaSet manifest without image tag\n"
+          + "  And required docker artifact present\n"
+          + "When sending deploy manifest request two times\n"
+          + "Then there are two replicaSet versions deployed\n===")
+  @Test
+  public void shouldStepReplicaSetVersion() throws IOException, InterruptedException {
+    // ------------------------- given --------------------------
+    String appName = "step-rs";
+    System.out.println("> Using namespace: " + account1Ns + ", appName: " + appName);
+    String imageNoTag = "index.docker.io/library/alpine";
+    String imageWithTag = "index.docker.io/library/alpine:3.12";
+
+    List<Map<String, Object>> manifest =
+        KubeTestUtils.loadYaml("classpath:manifests/replicaset.yml")
+            .withValue("metadata.namespace", account1Ns)
+            .withValue("metadata.name", REPLICASET_1_NAME)
+            .withValue("spec.template.spec.containers[0].image", imageNoTag)
+            .withValue(
+                "spec.template.spec.containers[0].command",
+                ImmutableList.of("tail", "-f", "/dev/null"))
+            .asList();
+    Map<String, Object> artifact =
+        KubeTestUtils.loadJson("classpath:requests/artifact.json")
+            .withValue("name", imageNoTag)
+            .withValue("type", "docker/image")
+            .withValue("reference", imageWithTag)
+            .withValue("version", imageWithTag.substring(imageNoTag.length() + 1))
+            .asMap();
+
+    // ------------------------- when --------------------------
+    List<Map<String, Object>> body =
+        KubeTestUtils.loadJson("classpath:requests/deploy_manifest.json")
+            .withValue("deployManifest.account", ACCOUNT1_NAME)
+            .withValue("deployManifest.moniker.app", appName)
+            .withValue("deployManifest.manifests", manifest)
+            .withValue("deployManifest.requiredArtifacts[0]", artifact)
+            .asList();
+    KubeTestUtils.deployAndWaitStable(
+        baseUrl(), body, account1Ns, "replicaSet " + REPLICASET_1_NAME + "-v000");
+    KubeTestUtils.deployAndWaitStable(
+        baseUrl(), body, account1Ns, "replicaSet " + REPLICASET_1_NAME + "-v001");
+
+    // ------------------------- then --------------------------
+    String pods = kubeCluster.execKubectl("-n " + account1Ns + " get pods");
+    String readyPods =
+        kubeCluster.execKubectl(
+            "-n "
+                + account1Ns
+                + " get rs "
+                + REPLICASET_1_NAME
+                + "-v001 -o=jsonpath='{.status.readyReplicas}'");
+    assertEquals(
+        "1",
+        readyPods,
+        "Expected one ready pod for " + REPLICASET_1_NAME + "-v001 replicaSet. Pods:\n" + pods);
+    String imageDeployed =
+        kubeCluster.execKubectl(
+            "-n "
+                + account1Ns
+                + " get rs "
+                + REPLICASET_1_NAME
+                + "-v001 -o=jsonpath='{.spec.template.spec.containers[0].image}'");
+    assertEquals(
+        imageWithTag,
+        imageDeployed,
+        "Expected correct " + REPLICASET_1_NAME + "-v001 image to be deployed");
+  }
+
+  @DisplayName(
+      ".\n===\n"
           + "Given a deployment manifest without image tag\n"
           + "  And required docker artifact present\n"
           + "  And optional docker artifact present\n"
@@ -646,6 +719,83 @@ public class DeployManifestIT extends BaseTest {
                 + " -o=jsonpath='{.spec.template.spec.volumes[0].secret.secretName}'");
     assertEquals(
         secretName + "-" + version, secretNameDeployed, "Expected correct secret to be referenced");
+  }
+
+  @DisplayName(
+      ".\n===\n"
+          + "Given a deployment manifest with docker image tag\n"
+          + "  And a required and optional docker artifacts\n"
+          + "  And artifact binding disabled\n"
+          + "When sending deploy manifest request\n"
+          + "  And waiting on manifest stable\n"
+          + "Then the manifest is deployed with the original image tag in the manifest\n===")
+  @Test
+  public void shouldNotBindArtifacts() throws IOException, InterruptedException {
+    // ------------------------- given --------------------------
+    String appName = "bind-disabled";
+    System.out.println("> Using namespace: " + account1Ns + ", appName: " + appName);
+    String imageInManifest = "index.docker.io/library/alpine:3.11";
+    String requiredImage = "index.docker.io/library/alpine:3.12";
+    String optionalImage = "index.docker.io/library/alpine:3.13";
+
+    List<Map<String, Object>> manifest =
+        KubeTestUtils.loadYaml("classpath:manifests/deployment.yml")
+            .withValue("metadata.namespace", account1Ns)
+            .withValue("metadata.name", DEPLOYMENT_1_NAME)
+            .withValue("spec.template.spec.containers[0].image", imageInManifest)
+            .asList();
+    Map<String, Object> requiredArtifact =
+        KubeTestUtils.loadJson("classpath:requests/artifact.json")
+            .withValue("name", imageInManifest.substring(0, imageInManifest.indexOf(':')))
+            .withValue("type", "docker/image")
+            .withValue("reference", requiredImage)
+            .withValue("version", requiredImage.substring(requiredImage.indexOf(':') + 1))
+            .asMap();
+    Map<String, Object> optionalArtifact =
+        KubeTestUtils.loadJson("classpath:requests/artifact.json")
+            .withValue("name", imageInManifest.substring(0, imageInManifest.indexOf(':')))
+            .withValue("type", "docker/image")
+            .withValue("reference", optionalImage)
+            .withValue("version", optionalImage.substring(optionalImage.indexOf(':') + 1))
+            .asMap();
+
+    // ------------------------- when --------------------------
+    List<Map<String, Object>> body =
+        KubeTestUtils.loadJson("classpath:requests/deploy_manifest.json")
+            .withValue("deployManifest.account", ACCOUNT1_NAME)
+            .withValue("deployManifest.moniker.app", appName)
+            .withValue("deployManifest.manifests", manifest)
+            .withValue("deployManifest.requiredArtifacts[0]", requiredArtifact)
+            .withValue("deployManifest.optionalArtifacts[0]", optionalArtifact)
+            .withValue("deployManifest.enableArtifactBinding", false)
+            .asList();
+    KubeTestUtils.deployAndWaitStable(
+        baseUrl(), body, account1Ns, "deployment " + DEPLOYMENT_1_NAME);
+
+    // ------------------------- then --------------------------
+    String pods = kubeCluster.execKubectl("-n " + account1Ns + " get pods");
+    String readyPods =
+        kubeCluster.execKubectl(
+            "-n "
+                + account1Ns
+                + " get deployment "
+                + DEPLOYMENT_1_NAME
+                + " -o=jsonpath='{.status.readyReplicas}'");
+    assertEquals(
+        "1",
+        readyPods,
+        "Expected one ready pod for " + DEPLOYMENT_1_NAME + " deployment. Pods:\n" + pods);
+    String imageDeployed =
+        kubeCluster.execKubectl(
+            "-n "
+                + account1Ns
+                + " get deployment "
+                + DEPLOYMENT_1_NAME
+                + " -o=jsonpath='{.spec.template.spec.containers[0].image}'");
+    assertEquals(
+        imageInManifest,
+        imageDeployed,
+        "Expected correct " + DEPLOYMENT_1_NAME + " image to be deployed");
   }
 
   @DisplayName(
@@ -965,12 +1115,29 @@ public class DeployManifestIT extends BaseTest {
                 + " get service "
                 + SERVICE_1_NAME
                 + " -o=jsonpath='{.spec.ports[0].nodePort}'");
-    Container.ExecResult result =
-        kubeCluster.execInContainer("wget", "http://localhost:" + port, "-O", "-");
-    assertEquals(
-        0,
-        result.getExitCode(),
-        "stdout: " + result.getStdout() + " stderr: " + result.getStderr());
+    KubeTestUtils.repeatUntilTrue(
+        () -> {
+          try {
+            Container.ExecResult result =
+                kubeCluster.execInContainer("wget", "http://localhost:" + port, "-O", "-");
+            if (result.getExitCode() != 0) {
+              System.out.println(
+                  "Error running wget \"http://localhost:"
+                      + port
+                      + " -0 -\": Stdout: "
+                      + result.getStdout()
+                      + " Stderr: "
+                      + result.getStderr());
+            }
+            return result.getExitCode() == 0;
+          } catch (Exception e) {
+            fail("Failed executing \"wget http://localhost:" + port + "-O" + "-\" in container", e);
+            return false;
+          }
+        },
+        10,
+        TimeUnit.SECONDS,
+        "Error querying service with wget, waited 10 seconds.");
     List<String> podNames =
         Splitter.on(" ")
             .splitToList(
@@ -1052,12 +1219,29 @@ public class DeployManifestIT extends BaseTest {
                 + " get service "
                 + SERVICE_1_NAME
                 + " -o=jsonpath='{.spec.ports[0].nodePort}'");
-    Container.ExecResult result =
-        kubeCluster.execInContainer("wget", "http://localhost:" + port, "-O", " -");
-    assertEquals(
-        0,
-        result.getExitCode(),
-        "stdout: " + result.getStdout() + " stderr: " + result.getStderr());
+    KubeTestUtils.repeatUntilTrue(
+        () -> {
+          try {
+            Container.ExecResult result =
+                kubeCluster.execInContainer("wget", "http://localhost:" + port, "-O", "-");
+            if (result.getExitCode() != 0) {
+              System.out.println(
+                  "Error running wget \"http://localhost:"
+                      + port
+                      + " -0 -\": Stdout: "
+                      + result.getStdout()
+                      + " Stderr: "
+                      + result.getStderr());
+            }
+            return result.getExitCode() == 0;
+          } catch (Exception e) {
+            fail("Failed executing \"wget http://localhost:" + port + "-O" + "-\" in container", e);
+            return false;
+          }
+        },
+        10,
+        TimeUnit.SECONDS,
+        "Error querying service with wget, waited 10 seconds.");
     List<String> podNames =
         Splitter.on(" ")
             .splitToList(

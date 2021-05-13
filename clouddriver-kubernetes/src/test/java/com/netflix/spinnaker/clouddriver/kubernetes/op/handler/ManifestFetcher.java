@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.op.handler;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.Resources;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
@@ -24,6 +26,8 @@ import io.kubernetes.client.util.Yaml;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
+import java.util.stream.StreamSupport;
 
 /**
  * Helper class to fetch Kubernetes manifest objects stored as resources on the classpath. Only
@@ -39,11 +43,17 @@ public final class ManifestFetcher {
   }
 
   static KubernetesManifest getManifest(String basePath) {
-    return getManifest(ManifestFetcher.class, basePath);
+    return getManifest(ManifestFetcher.class, basePath).get(0);
   }
 
-  public static KubernetesManifest getManifest(Class<?> referenceClass, String basePath) {
-    return Yaml.loadAs(getResource(referenceClass, basePath), KubernetesManifest.class);
+  public static ImmutableList<KubernetesManifest> getManifest(
+      Class<?> referenceClass, String basePath) {
+    ObjectMapper mapper = new ObjectMapper();
+    return StreamSupport.stream(
+            Yaml.getSnakeYaml().loadAll(getResource(referenceClass, basePath)).spliterator(), false)
+        .filter(Objects::nonNull)
+        .map(o -> mapper.convertValue(o, KubernetesManifest.class))
+        .collect(ImmutableList.toImmutableList());
   }
 
   private static String getResource(Class<?> referenceClass, String name) {

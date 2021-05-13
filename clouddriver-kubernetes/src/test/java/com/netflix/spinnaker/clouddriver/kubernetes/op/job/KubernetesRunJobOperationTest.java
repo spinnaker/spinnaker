@@ -112,7 +112,7 @@ final class KubernetesRunJobOperationTest {
     KubernetesRunJobOperationDescription runJobDescription =
         new KubernetesRunJobOperationDescription()
             .setManifest(
-                ManifestFetcher.getManifest(KubernetesRunJobOperationTest.class, manifest));
+                ManifestFetcher.getManifest(KubernetesRunJobOperationTest.class, manifest).get(0));
     runJobDescription.setCredentials(getNamedAccountCredentials());
     return runJobDescription;
   }

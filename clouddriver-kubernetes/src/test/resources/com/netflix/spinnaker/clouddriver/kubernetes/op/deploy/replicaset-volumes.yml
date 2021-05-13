@@ -16,3 +16,10 @@ spec:
       containers:
         - image: 'index.docker.io/library/nginx'
           name: nginx
+          volumeMounts:
+            - mountPath: /tmp/mounted
+              name: myconfig
+      volumes:
+        - name: myconfig
+          configMap:
+            name: myconfig

@@ -588,7 +588,8 @@ final class KubernetesDataProviderIntegrationTest {
                     .map(
                         file ->
                             ManifestFetcher.getManifest(
-                                KubernetesDataProviderIntegrationTest.class, file))
+                                    KubernetesDataProviderIntegrationTest.class, file)
+                                .get(0))
                     .filter(m -> invocation.getArgument(1, List.class).contains(m.getKind()))
                     .collect(toImmutableList()));
     return jobExecutor;
