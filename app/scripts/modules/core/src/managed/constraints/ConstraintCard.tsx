@@ -19,6 +19,7 @@ import './ConstraintCard.less';
 
 const constraintCardAppearanceByStatus: { [key in ConstraintStatus]: IStatusCardProps['appearance'] } = {
   NOT_EVALUATED: 'future',
+  BLOCKED: 'future',
   PENDING: 'info',
   PASS: 'neutral',
   FAIL: 'error',
@@ -29,6 +30,7 @@ const constraintCardAppearanceByStatus: { [key in ConstraintStatus]: IStatusCard
 
 const skippedConstraintCardAppearanceByStatus: { [key in ConstraintStatus]: IStatusCardProps['appearance'] } = {
   NOT_EVALUATED: 'future',
+  BLOCKED: 'future',
   PENDING: 'future',
   PASS: 'neutral',
   FAIL: 'neutral',

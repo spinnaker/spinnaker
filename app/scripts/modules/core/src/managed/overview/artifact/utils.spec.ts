@@ -28,6 +28,31 @@ describe('Constraints status summary', () => {
     });
   });
 
+  it('with one blocked', () => {
+    expect(
+      getConstraintsStatusSummary([
+        { type: 'manual-judgement', status: 'BLOCKED' },
+        { type: 'manual-judgement', status: 'PASS' },
+      ]),
+    ).toEqual({
+      text: '1 passed, 1 pending',
+      status: 'PENDING',
+    });
+  });
+
+  it('combine pending and blocked', () => {
+    expect(
+      getConstraintsStatusSummary([
+        { type: 'manual-judgement', status: 'PENDING' },
+        { type: 'manual-judgement', status: 'BLOCKED' },
+        { type: 'manual-judgement', status: 'PASS' },
+      ]),
+    ).toEqual({
+      text: '1 passed, 2 pending',
+      status: 'PENDING',
+    });
+  });
+
   it('with one overridden', () => {
     expect(
       getConstraintsStatusSummary([

@@ -1051,6 +1051,12 @@
         "interfaces": null,
         "enumValues": [
           {
+            "name": "BLOCKED",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "PENDING",
             "description": null,
             "isDeprecated": false,

@@ -7,13 +7,11 @@ import { timeDiffToString } from 'core/utils';
 import { MarkAsBadActionModal, PinActionModal, UnpinActionModal } from './ArtifactActionModal';
 import { ManagedWriter } from '../../ManagedWriter';
 import { VersionAction } from './VersionMetadata';
-import { actionStatusUtils } from './VersionOperation';
+import { ACTION_DISPLAY_NAMES, getActionStatusData } from './VersionOperation';
 import { useFetchApplicationLazyQuery } from '../../graphql/graphql-sdk';
 import { QueryArtifactVersion, QueryConstraint, QueryLifecycleStep } from '../types';
 import { OVERVIEW_VERSION_STATUSES } from '../utils';
 import { MODAL_MAX_WIDTH } from '../../utils/defaults';
-
-const ALL_CONSTRAINT_STATUSES: Array<QueryConstraint['status']> = ['PASS', 'FORCE_PASS', 'PENDING', 'FAIL'];
 
 export const getConstraintsStatusSummary = (constraints: QueryConstraint[]) => {
   let finalStatus: QueryConstraint['status'] = 'PASS';
@@ -21,17 +19,17 @@ export const getConstraintsStatusSummary = (constraints: QueryConstraint[]) => {
     if (status === 'FAIL') {
       finalStatus = 'FAIL';
       break;
-    } else if (status === 'PENDING') {
+    } else if (status === 'PENDING' || status === 'BLOCKED') {
       finalStatus = 'PENDING';
     } else if (status === 'FORCE_PASS' && finalStatus !== 'PENDING') {
       finalStatus = 'FORCE_PASS';
     }
   }
 
-  const byStatus = groupBy(constraints, (c) => c.status);
-  const summary = ALL_CONSTRAINT_STATUSES.map((status) => {
-    const constraintsOfStatus = byStatus[status];
-    return constraintsOfStatus ? `${constraintsOfStatus.length} ${actionStatusUtils[status].displayName}` : undefined;
+  const byStatus = groupBy(constraints, (c) => getActionStatusData(c.status)?.displayName || 'pending');
+  const summary = ACTION_DISPLAY_NAMES.map((displayName) => {
+    const constraintsOfStatus = byStatus[displayName];
+    return constraintsOfStatus ? `${constraintsOfStatus.length} ${displayName}` : undefined;
   })
     .filter(Boolean)
     .join(', ');

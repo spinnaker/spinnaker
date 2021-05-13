@@ -64,7 +64,7 @@ const timeWindowToString = (window: AllowedTimeWindow, timeZone = 'PST') => {
 
 const DeploymentWindow = ({ allowedTimes, timezone }: IAllowedTimesConstraint['attributes']) => {
   return (
-    <ul className="sp-margin-xs-top sp-padding-l-left">
+    <ul className="sp-margin-xs-top sp-padding-l-left sp-margin-2xs-bottom">
       {allowedTimes.map((window, index) => (
         <li key={index}>{timeWindowToString(window, timezone)}</li>
       ))}

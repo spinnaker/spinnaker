@@ -157,6 +157,7 @@ type MdLocation {
 }
 
 enum MdConstraintStatus {
+  BLOCKED
   PENDING
   PASS
   FAIL
