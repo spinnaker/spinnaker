@@ -23,7 +23,7 @@ export const RunningTasksTag = ({ executions, tasks }: IRunningTasksTagProps) =>
 
   return (
     <span className="RunningTasksTag">
-      <HoverablePopover Component={PopoverContent}>
+      <HoverablePopover Component={PopoverContent} className="menu-running-tasks">
         <span className="icon">
           <span className="glyphicon icon-spinner fa-spin-slow"></span>
         </span>
