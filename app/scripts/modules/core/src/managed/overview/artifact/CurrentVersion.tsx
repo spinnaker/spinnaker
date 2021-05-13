@@ -1,7 +1,7 @@
 import React from 'react';
 
+import { ArtifactVersionTasks } from './ArtifactVersionTasks';
 import { GitLink } from './GitLink';
-import { Verifications } from './Verifications';
 import { VersionMetadata } from './VersionMetadata';
 import { QueryArtifactVersion } from '../types';
 import { getLifecycleEventDuration, getLifecycleEventLink, useCreateVersionActions } from './utils';
@@ -15,7 +15,7 @@ interface ICurrentVersionProps {
 }
 
 export const CurrentVersion = ({ data, environment, reference, numNewerVersions, isPinned }: ICurrentVersionProps) => {
-  const { gitMetadata, verifications } = data;
+  const { gitMetadata, verifications, postDeploy } = data;
   const actions = useCreateVersionActions({
     environment,
     reference,
@@ -40,7 +40,8 @@ export const CurrentVersion = ({ data, environment, reference, numNewerVersions,
         actions={actions}
         isPinned={isPinned}
       />
-      {verifications && <Verifications verifications={verifications} />}
+      {verifications && <ArtifactVersionTasks type="Verification" tasks={verifications} />}
+      {postDeploy && <ArtifactVersionTasks type="Post deploy" tasks={postDeploy} />}
     </div>
   );
 };

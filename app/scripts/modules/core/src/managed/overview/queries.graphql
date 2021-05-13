@@ -60,6 +60,14 @@ query fetchApplication($appName: String!, $statuses: [MdArtifactStatusInEnvironm
               completedAt
               link
             }
+            postDeploy {
+              id
+              type
+              status
+              startedAt
+              completedAt
+              link
+            }
           }
           pinnedVersion {
             id

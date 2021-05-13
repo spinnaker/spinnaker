@@ -4,10 +4,10 @@ import { Tooltip } from 'core/presentation';
 
 import { DurationRender } from '../../RelativeTimestamp';
 import { VersionOperationIcon } from './VersionOperation';
-import { QueryVerification, QueryVerificationStatus } from '../types';
+import { QueryArtifactVersionTask, QueryVerificationStatus } from '../types';
 import { TOOLTIP_DELAY } from '../../utils/defaults';
 
-import './Verifications.less';
+import './ArtifactVersionTasks.less';
 
 const statusToText: {
   [key in QueryVerificationStatus]: string;
@@ -19,20 +19,21 @@ const statusToText: {
   NOT_EVALUATED: 'has not started yet',
 };
 
-interface IVerificationProps {
-  verification: QueryVerification;
+interface IArtifactVersionTaskProps {
+  type: string;
+  task: QueryArtifactVersionTask;
 }
 
-const Verification = ({ verification }: IVerificationProps) => {
-  const status = verification.status || 'PENDING';
-  const { link, startedAt, completedAt } = verification;
+const ArtifactVersionTask = ({ type, task }: IArtifactVersionTaskProps) => {
+  const status = task.status || 'PENDING';
+  const { link, startedAt, completedAt } = task;
   return (
-    <div className="version-verification">
+    <div className="version-task">
       <VersionOperationIcon status={status} />
-      <div className="verification-content">
-        Verification {verification.id} {statusToText[status]}{' '}
+      <div className="task-content">
+        {type} {task.id} {statusToText[status]}{' '}
         {startedAt && (
-          <span className="verification-metadata verification-runtime">
+          <span className="task-metadata task-runtime">
             <Tooltip value="Runtime duration" delayShow={TOOLTIP_DELAY}>
               <i className="far fa-clock" />
             </Tooltip>
@@ -40,7 +41,7 @@ const Verification = ({ verification }: IVerificationProps) => {
           </span>
         )}
         {link && (
-          <span className="verification-metadata">
+          <span className="task-metadata">
             <a href={link} target="_blank" rel="noreferrer">
               View logs
             </a>
@@ -52,14 +53,15 @@ const Verification = ({ verification }: IVerificationProps) => {
 };
 
 interface IVerificationsProps {
-  verifications: QueryVerification[];
+  type: string;
+  tasks: QueryArtifactVersionTask[];
 }
 
-export const Verifications = ({ verifications }: IVerificationsProps) => {
+export const ArtifactVersionTasks = ({ type, tasks }: IVerificationsProps) => {
   return (
-    <div className="Verifications">
-      {verifications.map((verification) => (
-        <Verification key={verification.id} verification={verification} />
+    <div className="ArtifactVersionTasks">
+      {tasks.map((task) => (
+        <ArtifactVersionTask key={task.id} type={type} task={task} />
       ))}
     </div>
   );
