@@ -143,7 +143,6 @@ class ApiDocTests
         .isArray()
         .findValuesAsText("\$ref")
         .containsExactlyInAnyOrder(
-          "#/\$defs/CanaryConstraint",
           "#/\$defs/DependsOnConstraint",
           "#/\$defs/ManualJudgementConstraint",
           "#/\$defs/PipelineConstraint",

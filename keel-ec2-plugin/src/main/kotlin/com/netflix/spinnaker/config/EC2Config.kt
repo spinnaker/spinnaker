@@ -22,9 +22,6 @@ import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ImageService
-import com.netflix.spinnaker.keel.constraints.CanaryConstraintConfigurationProperties
-import com.netflix.spinnaker.keel.constraints.CanaryConstraintDeployHandler
-import com.netflix.spinnaker.keel.ec2.constraints.Ec2CanaryConstraintDeployHandler
 import com.netflix.spinnaker.keel.ec2.resolvers.ImageResolver
 import com.netflix.spinnaker.keel.ec2.resource.ApplicationLoadBalancerHandler
 import com.netflix.spinnaker.keel.ec2.resource.BlockDeviceConfig
@@ -42,7 +39,6 @@ import org.springframework.context.annotation.Configuration
 import java.time.Clock
 
 @Configuration
-@EnableConfigurationProperties(CanaryConstraintConfigurationProperties::class)
 @ConditionalOnProperty("keel.plugins.ec2.enabled")
 class EC2Config {
   @Bean
@@ -118,23 +114,5 @@ class EC2Config {
       orcaService,
       taskLauncher,
       normalizers
-    )
-
-  @Bean
-  fun ec2CanaryDeployHandler(
-    defaults: CanaryConstraintConfigurationProperties,
-    taskLauncher: TaskLauncher,
-    cloudDriverService: CloudDriverService,
-    cloudDriverCache: CloudDriverCache,
-    imageService: ImageService,
-    imageResolver: ImageResolver
-  ): CanaryConstraintDeployHandler =
-    Ec2CanaryConstraintDeployHandler(
-      defaults,
-      taskLauncher,
-      cloudDriverService,
-      cloudDriverCache,
-      imageService,
-      imageResolver
     )
 }
