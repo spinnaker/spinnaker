@@ -57,11 +57,8 @@ public class WaitForCloudFormationCompletionTask implements OverridableTimeoutRe
               + stack.get("stackStatus"));
 
       boolean isChangeSet = isChangeSetStage(stage);
-      boolean isChangeSetExecution =
-          (boolean)
-              Optional.ofNullable(stage.getContext().get("isChangeSetExecution")).orElse(false);
-      boolean isChangeSetDeletion =
-          (boolean) Optional.ofNullable(stage.getContext().get("deleteChangeSet")).orElse(false);
+      boolean isChangeSetExecution = isChangeSetExecution(stage);
+      boolean isChangeSetDeletion = isChangeSetDeletion(stage);
 
       log.info("Deploying a CloudFormation ChangeSet for stackId " + stackId + ": " + isChangeSet);
 
@@ -105,6 +102,15 @@ public class WaitForCloudFormationCompletionTask implements OverridableTimeoutRe
     return (boolean) Optional.ofNullable(stage.getContext().get("isChangeSet")).orElse(false);
   }
 
+  private boolean isChangeSetExecution(StageExecution stage) {
+    return (boolean)
+        Optional.ofNullable(stage.getContext().get("isChangeSetExecution")).orElse(false);
+  }
+
+  private boolean isChangeSetDeletion(StageExecution stage) {
+    return (boolean) Optional.ofNullable(stage.getContext().get("deleteChangeSet")).orElse(false);
+  }
+
   @Override
   public long getBackoffPeriod() {
     return backoffPeriod;
@@ -125,9 +131,12 @@ public class WaitForCloudFormationCompletionTask implements OverridableTimeoutRe
       return "Irrecoverable stack status - Review the error, make changes in template and delete the stack to re-run the pipeline successfully; Reason: "
           + getStackInfo(stack, "stackStatusReason");
     }
-    return isChangeSetStage(stage)
-        ? getChangeSetInfo(stack, stage.getContext(), "statusReason")
-        : getStackInfo(stack, "stackStatusReason");
+
+    if (isChangeSetStage(stage) && !isChangeSetExecution(stage) && !isChangeSetDeletion(stage)) {
+      return getChangeSetInfo(stack, stage.getContext(), "statusReason");
+    } else {
+      return getStackInfo(stack, "stackStatusReason");
+    }
   }
 
   private String getStackInfo(Map stack, String field) {
