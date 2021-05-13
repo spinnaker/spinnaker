@@ -58,8 +58,13 @@ public class DatadogTimeSeries {
 
         // If the point at this index matches the timestamp at this position,
         // add the value to the array and advance the index.
-        if (point.get(0).longValue() == time && point.get(1) != null) {
-          this.adjustedPointList.add(point.get(1).doubleValue());
+        if (point.get(0).longValue() == time) {
+          if (point.get(1) == null) {
+            this.adjustedPointList.add(Double.NaN);
+          } else {
+            this.adjustedPointList.add(point.get(1).doubleValue());
+          }
+
           idx++;
         } else {
           // Otherwise, put in a NaN to represent the "gap" in the Datadog
