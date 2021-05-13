@@ -4,12 +4,6 @@ plugins {
   application
 }
 
-repositories {
-  maven {
-    url = uri("https://kotlin.bintray.com/kotlinx")
-  }
-}
-
 sourceSets {
   main {
     dependencies {

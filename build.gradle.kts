@@ -32,15 +32,15 @@ jacoco {
 allprojects {
   apply(plugin = "io.spinnaker.project")
   repositories {
+    if (property("korkVersion").toString().endsWith("-SNAPSHOT")) {
+      mavenLocal()
+    }
+    mavenCentral()
     jcenter() {
       metadataSources {
         artifact()
         mavenPom()
       }
-    }
-    mavenCentral()
-    if (property("korkVersion").toString().endsWith("-SNAPSHOT")) {
-      mavenLocal()
     }
   }
 }
