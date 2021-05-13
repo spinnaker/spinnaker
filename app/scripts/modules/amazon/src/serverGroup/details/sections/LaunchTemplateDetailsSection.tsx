@@ -39,10 +39,12 @@ export const LaunchTemplateDetailsSection = ({ serverGroup }: IAmazonServerGroup
         )}
         {creditSpecification && <LabeledValue label="CPU Credit Specification" value={creditSpecification} />}
         <LabeledValue label="IAM Profile" value={launchTemplateData.iamInstanceProfile.name} />
-        <LabeledValue
-          label="Instance Monitoring"
-          value={launchTemplateData.monitoring.enabled ? 'enabled' : 'disabled'}
-        />
+        {launchTemplateData.monitoring && (
+          <LabeledValue
+            label="Instance Monitoring"
+            value={launchTemplateData.monitoring.enabled ? 'enabled' : 'disabled'}
+          />
+        )}
         {maxSpotPrice && <LabeledValue label="Max Spot Price" value={maxSpotPrice} />}
         {launchTemplateData.keyName && <LabeledValue label="Key Name" value={launchTemplateData.keyName} />}
         {launchTemplateData.kernelId && <LabeledValue label="Kernel ID" value={launchTemplateData.kernelId} />}
