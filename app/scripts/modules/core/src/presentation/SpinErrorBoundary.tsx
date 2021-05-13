@@ -4,6 +4,8 @@ import { module } from 'angular';
 import React, { ErrorInfo } from 'react';
 import ReactGA from 'react-ga';
 
+import { logger } from 'core/utils/Logger';
+
 import { CollapsibleSection } from './collapsibleSection/CollapsibleSection';
 import { ValidationMessage } from './forms/validation/ValidationMessage';
 
@@ -42,6 +44,7 @@ export class SpinErrorBoundary extends React.Component<ISpinErrorBoundaryProps, 
       action: 'React Error Boundary Caught',
       label: error.message,
     });
+    logger.log({ level: 'ERROR', message: error.message, error, data: _errorInfo });
   }
 
   render() {

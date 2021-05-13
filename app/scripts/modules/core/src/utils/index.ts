@@ -19,3 +19,4 @@ export * from './unicodeBase64';
 export * from './uuid.service';
 export * from './workerPool';
 export * from './json/filterObjectValues';
+export * from './Logger';
