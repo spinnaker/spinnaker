@@ -24,7 +24,7 @@ export interface IFilterTagsState {
 }
 
 export const FilterTags = ({ clearFilters, tags, tagCleared }: IFilterTagsProps) => {
-  const hasExtraTags = tags.length > 5;
+  const hasExtraTags = tags?.length > 5;
   const [showExtraTags, setShowExtraTags] = React.useState(
     hasExtraTags && CollapsibleSectionStateCache.isExpanded('filterTags'),
   );
