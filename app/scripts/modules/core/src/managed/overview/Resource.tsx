@@ -60,7 +60,7 @@ const Status = ({
         />
         <div>
           <div>{state.reason || statusUtils[state.status].defaultReason}</div>
-          {state.event && <div>{state.event}</div>}
+          {state.event && state.event !== state.reason && <div>{state.event}</div>}
         </div>
       </div>
     );
