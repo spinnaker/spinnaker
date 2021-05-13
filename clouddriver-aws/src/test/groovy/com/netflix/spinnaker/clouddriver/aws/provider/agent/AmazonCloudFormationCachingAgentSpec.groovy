@@ -27,17 +27,19 @@ import com.amazonaws.services.cloudformation.model.Stack
 import com.amazonaws.services.cloudformation.model.StackEvent
 import com.amazonaws.services.ec2.AmazonEC2
 import com.netflix.spectator.api.Registry
+import com.google.common.collect.ImmutableMap
+import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
-import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandType
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import java.time.Instant
 
 class AmazonCloudFormationCachingAgentSpec extends Specification {
   static String region = 'region'
@@ -213,7 +215,7 @@ class AmazonCloudFormationCachingAgentSpec extends Specification {
     result == expected
 
     where:
-    onDemandType                              | provider               || expected
+    onDemandType                | provider               || expected
     OnDemandType.CloudFormation | AmazonCloudProvider.ID || true
     OnDemandType.CloudFormation | "other"                || false
     OnDemandType.Job            | AmazonCloudProvider.ID || false
@@ -261,6 +263,94 @@ class AmazonCloudFormationCachingAgentSpec extends Specification {
     def expected = cache.cacheResults.get(Keys.Namespace.STACKS.ns).collect { it.attributes } as Set
     def onDemand = results.cacheResult.cacheResults.get(Keys.Namespace.STACKS.ns).collect { it.attributes } as Set
     expected == onDemand
+  }
+
+  void "should evict processed onDemand entries"() {
+    given:
+    def amazonCloudFormation = Mock(AmazonCloudFormation)
+    def stackResults = Mock(DescribeStacksResult)
+    def providerCache = Mock(ProviderCache)
+    def id = "aws:stacks:account:region:arn:aws:cloudformation:region:accountid:stackname"
+    def cacheData = new DefaultCacheData(id, (int) 20,
+      ImmutableMap.of("cacheTime", (long) 10 , "processedCount", 1), ImmutableMap.of())
+
+
+    when:
+    agent.loadData(providerCache)
+
+    then:
+    1 * acp.getAmazonCloudFormation(_, _) >> amazonCloudFormation
+    1 * amazonCloudFormation.describeStacks(_) >> stackResults
+    1 * stackResults.stacks >> [ ]
+    3 * providerCache.getAll(Keys.Namespace.ON_DEMAND.ns,_) >> [ cacheData ]
+    1 * providerCache.evictDeletedItems(Keys.Namespace.ON_DEMAND.ns, [ id ])
+  }
+
+  void "should insert onDemand requests into onDemand NS"() {
+    given:
+    def postData = [ credentials: "accountName", stackName: "stackName", region: ["region"]]
+    def stack1 = new Stack().withStackId("stack1").withStackStatus("CREATE_SUCCESS")
+    def stack2 = new Stack().withStackId("stack1").withStackStatus("CREATE_SUCCESS")
+    def amazonCloudFormation = Mock(AmazonCloudFormation)
+    def stackResults = Mock(DescribeStacksResult)
+    def providerCache = Mock(ProviderCache)
+    def stackChangeSetsResults = Mock(ListChangeSetsResult)
+
+    when:
+    agent.handle(providerCache, postData)
+
+    then:
+    1 * acp.getAmazonCloudFormation(_, _) >> amazonCloudFormation
+    1 * amazonCloudFormation.describeStacks(_) >> stackResults
+    1 * stackResults.stacks >> [ stack1, stack2 ]
+    2 * amazonCloudFormation.listChangeSets(_) >> stackChangeSetsResults
+    2 * stackChangeSetsResults.getSummaries() >> new ArrayList()
+    2 * providerCache.putCacheData(Keys.Namespace.ON_DEMAND.ns, _)
+    }
+
+
+  void "should keep unprocessed onDemand entries"() {
+    given:
+    def amazonCloudFormation = Mock(AmazonCloudFormation)
+    def stackResults = Mock(DescribeStacksResult)
+    def providerCache = Mock(ProviderCache)
+    def id = "aws:stacks:account:region:arn:aws:cloudformation:region:accountid:stackname"
+    def cacheData =  new DefaultCacheData(id, (int) 20,
+      ImmutableMap.of("cacheTime", (long) 1, "processedCount", 0), ImmutableMap.of())
+
+    when:
+    agent.loadData(providerCache)
+
+    then:
+    1 * acp.getAmazonCloudFormation(_, _) >> amazonCloudFormation
+    1 * amazonCloudFormation.describeStacks(_) >> stackResults
+    1 * stackResults.stacks >> [ ]
+    3 * providerCache.getAll(Keys.Namespace.ON_DEMAND.ns,_) >> [ cacheData ]
+    1 * providerCache.putCacheData(Keys.Namespace.ON_DEMAND.ns, cacheData )
+    1 * providerCache.evictDeletedItems(Keys.Namespace.ON_DEMAND.ns, [])
+  }
+
+  void "should keep newer onDemand entries"() {
+    given:
+    def amazonCloudFormation = Mock(AmazonCloudFormation)
+    def stackResults = Mock(DescribeStacksResult)
+    def providerCache = Mock(ProviderCache)
+    def now = Instant.now()
+    def id = "aws:stacks:account:region:arn:aws:cloudformation:region:accountid:stackname"
+    def cacheData = new DefaultCacheData(id, (int) 20,
+      ImmutableMap.of("cacheTime", (long) now.plusMillis(100).toEpochMilli(),
+      "processedCount", 1), ImmutableMap.of())
+
+    when:
+    agent.loadData(providerCache)
+
+    then:
+    1 * acp.getAmazonCloudFormation(_, _) >> amazonCloudFormation
+    1 * amazonCloudFormation.describeStacks(_) >> stackResults
+    1 * stackResults.stacks >> [ ]
+    3 * providerCache.getAll(Keys.Namespace.ON_DEMAND.ns,_) >> [ cacheData ]
+    1 * providerCache.putCacheData(Keys.Namespace.ON_DEMAND.ns, cacheData)
+    1 * providerCache.evictDeletedItems(Keys.Namespace.ON_DEMAND.ns, [])
   }
 
   void "should paginate through all stacks"() {

@@ -115,7 +115,7 @@ class Keys implements KeyParser {
         result << [address: parts[2], account: parts[3], region: parts[4]]
         break
       case Namespace.STACKS.ns:
-        result << [id: parts[2], account: parts[3], region: parts[4]]
+        result << [id: parts[9], account: parts[2], region: parts[3]]
         break;
       default:
         return null

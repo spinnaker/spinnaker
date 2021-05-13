@@ -15,12 +15,15 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.provider.agent;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
 import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.STACKS;
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.ON_DEMAND;
 
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.model.*;
 import com.amazonaws.services.cloudformation.model.Stack;
+import com.google.common.collect.ImmutableMap;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.*;
 import com.netflix.spinnaker.cats.cache.CacheData;
@@ -34,9 +37,11 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent;
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport;
 import com.netflix.spinnaker.clouddriver.cache.OnDemandType;
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.CollectionUtils;
 
 @Slf4j
 public class AmazonCloudFormationCachingAgent
@@ -45,6 +50,7 @@ public class AmazonCloudFormationCachingAgent
   private final NetflixAmazonCredentials account;
   private final String region;
   private final OnDemandMetricsSupport metricsSupport;
+  protected static final String ON_DEMAND_TYPE = "onDemand";
 
   static final Set<AgentDataType> types =
       new HashSet<>(Collections.singletonList(AUTHORITATIVE.forType(STACKS.getNs())));
@@ -91,14 +97,35 @@ public class AmazonCloudFormationCachingAgent
           "Updating CloudFormation cache for account: {} and region: {}",
           account.getName(),
           this.region);
+
       DescribeStacksRequest describeStacksRequest =
           Optional.ofNullable((String) data.get("stackName"))
               .map(stackName -> new DescribeStacksRequest().withStackName(stackName))
               .orElse(new DescribeStacksRequest());
-      return new OnDemandResult(
-          getOnDemandAgentType(),
-          queryStacks(providerCache, describeStacksRequest, true),
-          Collections.emptyMap());
+
+      CacheResult result = queryStacks(providerCache, describeStacksRequest, true);
+      Collection<String> keys =
+          result.getCacheResults().get("stacks").stream()
+              .map(cachedata -> cachedata.getId())
+              .collect(Collectors.toList());
+
+      keys.forEach(
+          key -> {
+            CacheData cacheData =
+                new DefaultCacheData(
+                    key,
+                    (int) Duration.ofMinutes(10).getSeconds(),
+                    ImmutableMap.of(
+                        "cacheTime",
+                        System.currentTimeMillis(),
+                        "cacheResults",
+                        result,
+                        "processedCount",
+                        0),
+                    /* relationShips= */ ImmutableMap.of());
+            providerCache.putCacheData(ON_DEMAND.getNs(), cacheData);
+          });
+      return new OnDemandResult(getOnDemandAgentType(), result, Collections.emptyMap());
     } else {
       return null;
     }
@@ -115,7 +142,24 @@ public class AmazonCloudFormationCachingAgent
 
   @Override
   public Collection<Map<String, Object>> pendingOnDemandRequests(ProviderCache providerCache) {
-    return Collections.emptyList();
+    Collection<String> ownedKeys =
+        providerCache.filterIdentifiers(
+            ON_DEMAND.getNs(), Keys.getCloudFormationKey("*", this.region, this.getAccountName()));
+    Collection<Map<String, Object>> onDemandEntriesToReturn =
+        providerCache.getAll(ON_DEMAND.getNs(), ownedKeys).stream()
+            .map(
+                cacheData -> {
+                  Map<String, Object> map = new HashMap<>();
+                  map.put("details", Keys.parse(cacheData.getId()));
+                  map.put("moniker", cacheData.getAttributes().get("moniker"));
+                  map.put("cacheTime", cacheData.getAttributes().get("cacheTime"));
+                  map.put("processedCount", cacheData.getAttributes().get("processedCount"));
+                  map.put("processedTime", cacheData.getAttributes().get("processedTime"));
+                  return map;
+                })
+            .collect(toImmutableList());
+
+    return onDemandEntriesToReturn;
   }
 
   @Override
@@ -137,7 +181,45 @@ public class AmazonCloudFormationCachingAgent
 
   @Override
   public CacheResult loadData(ProviderCache providerCache) {
-    return queryStacks(providerCache, new DescribeStacksRequest(), false);
+    log.info(getAgentType() + ": agent is starting");
+
+    List<String> keepInOnDemand = new ArrayList<>();
+    List<String> evictFromOnDemand = new ArrayList<>();
+    Long start = System.currentTimeMillis();
+
+    CacheResult stacks = queryStacks(providerCache, new DescribeStacksRequest(), false);
+    Collection<String> keys =
+        stacks.getCacheResults().get("stacks").stream()
+            .map(cachedata -> cachedata.getId())
+            .collect(Collectors.toList());
+
+    Collection<CacheData> onDemandEntries = providerCache.getAll(ON_DEMAND.getNs(), keys);
+    if (!CollectionUtils.isEmpty(onDemandEntries)) {
+      onDemandEntries.forEach(
+          cacheData -> {
+            long cacheTime = (long) cacheData.getAttributes().get("cacheTime");
+            if (cacheTime < start && (int) cacheData.getAttributes().get("processedCount") > 0) {
+              evictFromOnDemand.add(cacheData.getId());
+            } else {
+              keepInOnDemand.add(cacheData.getId());
+            }
+          });
+    }
+    onDemandEntries = providerCache.getAll(ON_DEMAND.getNs(), keepInOnDemand);
+    if (!CollectionUtils.isEmpty(onDemandEntries)) {
+      providerCache
+          .getAll(ON_DEMAND.getNs(), keepInOnDemand)
+          .forEach(
+              cacheData -> {
+                cacheData.getAttributes().put("processedTime", System.currentTimeMillis());
+                int processedCount = (Integer) cacheData.getAttributes().get("processedCount");
+                cacheData.getAttributes().put("processedCount", processedCount + 1);
+                providerCache.putCacheData(ON_DEMAND.getNs(), cacheData);
+              });
+    }
+    providerCache.evictDeletedItems(ON_DEMAND.getNs(), evictFromOnDemand);
+
+    return stacks;
   }
 
   public CacheResult queryStacks(
