@@ -2,6 +2,7 @@ import React from 'react';
 
 import { IPipeline, IPipelineTag } from 'core/domain';
 import { HelpField } from 'core/help';
+import { IOverridableProps, overridableComponent } from 'core/overrideRegistry';
 import {
   createFakeReactSyntheticEvent,
   FormField,
@@ -98,7 +99,7 @@ function TagsInput({ name, onChange, value, validation }: ITagsInput) {
   );
 }
 
-export function MetadataPageContent(props: IMetadataPageContentProps) {
+export function MetadataPage(props: IMetadataPageContentProps) {
   const { pipeline, updatePipelineConfig } = props;
 
   return (
@@ -122,10 +123,15 @@ export function MetadataPageContent(props: IMetadataPageContentProps) {
         name="tags"
         label="Tags"
         value={pipeline.tags}
-        onChange={(e) => updatePipelineConfig({ description: e.target.value })}
+        onChange={(e) => updatePipelineConfig({ tags: e.target.value })}
         help={<HelpField id="pipeline.config.tags" />}
         input={(inputProps) => <TagsInput {...inputProps} />}
       />
     </>
   );
 }
+
+export const MetadataPageContent = overridableComponent<
+  IMetadataPageContentProps & IOverridableProps,
+  typeof MetadataPage
+>(MetadataPage, 'metadataPageContent');
