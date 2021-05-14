@@ -62,7 +62,7 @@ module(MANAGED_STATES, [APPLICATION_STATE_PROVIDER]).config([
           const { new_ui } = transition.params();
           localStorage.setItem(featureFlag, '1');
 
-          if (new_ui) {
+          if (new_ui === '1') {
             return 'home.applications.application.environments.overview';
           }
           return undefined;
