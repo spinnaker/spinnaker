@@ -90,7 +90,6 @@ export class ExecutionGroups extends React.Component<IExecutionGroupsProps, IExe
     const { groups = [], container, showingDetails } = this.state;
     const hasGroups = groups.length > 0;
     const className = `row pipelines executions ${showingDetails ? 'showing-details' : ''}`;
-
     const allGroups = (groups || [])
       .filter((g: IExecutionGroup) => g?.config?.migrationStatus === 'Started')
       .concat(groups.filter((g) => g?.config?.migrationStatus !== 'Started'));

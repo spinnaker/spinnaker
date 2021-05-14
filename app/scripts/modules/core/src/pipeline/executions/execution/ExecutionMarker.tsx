@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactGA from 'react-ga';
+import { UISref } from '@uirouter/react';
 
 import { Application } from 'core/application/application.model';
 import { SETTINGS } from 'core/config/settings';
@@ -11,6 +12,7 @@ import { OrchestratedItemRunningTime } from './OrchestratedItemRunningTime';
 import { ExecutionBarLabel } from '../../config/stages/common/ExecutionBarLabel';
 
 import './executionMarker.less';
+import { isEmpty } from 'lodash';
 
 export interface IExecutionMarkerProps {
   active?: boolean;
@@ -81,15 +83,26 @@ export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExe
     });
   };
 
+  private stageStatus = (stageStatus: string) => {
+    if (stageStatus === 'running') {
+      const currentStatus = this.props.stage.stages.filter(
+        (stage) => stage.status.toLowerCase() === 'running' && stage.type === 'pipeline' && !isEmpty(stage.others),
+      );
+      if (!isEmpty(currentStatus)) return 'waiting';
+    }
+    return stageStatus;
+  };
+
   public render() {
     const { stage, application, execution, active, previousStageActive, width } = this.props;
     const stageType = (stage.activeStageType || stage.type).toLowerCase(); // support groups
+    const pipelineStatus = this.stageStatus(stage.status.toLowerCase());
     const markerClassName = [
       stage.type !== 'group' ? 'clickable' : '',
       'stage',
       'execution-marker',
       `stage-type-${stageType}`,
-      `execution-marker-${stage.status.toLowerCase()}`,
+      `execution-marker-${pipelineStatus}`,
       active ? 'active' : '',
       previousStageActive ? 'after-active' : '',
       stage.isRunning ? 'glowing' : '',
@@ -102,15 +115,38 @@ export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExe
       SETTINGS.feature.executionMarkerInformationModal &&
       stage.status.toLowerCase() === 'terminal' &&
       stage.type === 'pipeline';
-    const stageContents = (
-      <div className={markerClassName} style={{ width, backgroundColor: stage.color }} onClick={this.handleStageClick}>
-        <span className="horizontal center middle">
-          <MarkerIcon stage={stage} />
-          <span className="duration">{this.state.duration}</span>
-          {showInfoIcon && <i className="fa fa-info-circle" onClick={this.handleStageInformationClick} />}
-        </span>
-      </div>
-    );
+    const stageContents =
+    pipelineStatus === 'waiting' ? (
+        <div className={markerClassName} style={{ width, backgroundColor: stage.color }}>
+          <UISref
+            to="home.applications.application.pipelines.executionDetails.execution"
+            params={{
+              application: stage.stages[0].others.leafnodeApplicationName,
+              executionId: stage.stages[0].others.leafnodePipelineExecutionId,
+              executionParams: { application: application.name, executionId: execution.id },
+            }}
+          >
+            <a target="_self" className="execution-waiting-link">
+              <span className="horizontal center middle">
+                <span className="duration">waiting </span>
+                {<i className="fa fa-clock execution-waiting-fa"></i>}
+              </span>
+            </a>
+          </UISref>
+        </div>
+      ) : (
+        <div
+          className={markerClassName}
+          style={{ width, backgroundColor: stage.color }}
+          onClick={this.handleStageClick}
+        >
+          <span className="horizontal center middle">
+            <MarkerIcon stage={stage} />
+            <span className="duration">{this.state.duration}</span>
+            {showInfoIcon && <i className="fa fa-info-circle" onClick={this.handleStageInformationClick} />}
+          </span>
+        </div>
+      );
     return (
       <span>
         <TooltipComponent application={application} execution={execution} stage={stage} executionMarker={true}>
