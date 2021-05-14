@@ -53,7 +53,7 @@
     "cachefactory": "^3.0.0",
     "chart.js": "^3.0.0-rc.5",
     "chartjs-adapter-luxon": "^1.0.0-beta.2",
-    "classname": "^0.0.0",
+    "classnames": "^2.2.5",
     "clipboard": "^1.5.12",
     "commonmark": "^0.28.1",
     "core-js": "^2.0.0",

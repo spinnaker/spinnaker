@@ -1,4 +1,3 @@
-///<reference path="./classnames.d.ts" />
 ///<reference path="./angular-messages.d.ts" />
 ///<reference path="./angular-sanitize.d.ts" />
 ///<reference path="./angular-spinner.d.ts" />
