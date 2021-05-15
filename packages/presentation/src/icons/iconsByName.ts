@@ -53,6 +53,8 @@ import { ReactComponent as toggleOff } from './vectors/toggleOff.svg';
 import { ReactComponent as toggleOn } from './vectors/toggleOn.svg';
 import { ReactComponent as trash } from './vectors/trash.svg';
 import { ReactComponent as unpin } from './vectors/unpin.svg';
+import { ReactComponent as minus } from './vectors/minus.svg';
+import { ReactComponent as plus } from './vectors/plus.svg';
 
 // Icons prefixed sp* are intended for use with the current Spinnaker UI design. They are visually heavier.
 import { ReactComponent as spCIBranch } from './vectors/spCIBranch.svg';
@@ -202,9 +204,11 @@ export const iconsByName = {
   mdVerification,
   menu,
   menuClose,
+  minus,
   pin,
   placeholder,
   play,
+  plus,
   resourceT,
   securityGroup,
   servergroupAws,
