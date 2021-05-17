@@ -32,8 +32,8 @@ export const MultiTaskMonitor = ({ monitors = [], title, closeModal }: IMultiTas
       </Modal.Header>
       <Modal.Body>
         <div className="clearfix">
-          {monitors.map((monitor) => (
-            <div className="col-md-6 overlay-modal-status" key={monitor.task.id}>
+          {monitors.map((monitor, idx) => (
+            <div className="col-md-6 overlay-modal-status" key={`${monitor.task?.id ?? idx}`}>
               <h4>{monitor.title}</h4>
               <TaskMonitorStatus monitor={monitor} />
               <TaskMonitorError task={monitor.task} errorMessage={monitor.errorMessage} />
@@ -42,12 +42,12 @@ export const MultiTaskMonitor = ({ monitors = [], title, closeModal }: IMultiTas
         </div>
       </Modal.Body>
       <Modal.Footer>
-        {hasErrors && (
+        {!hasErrors && (
           <button className="btn btn-primary" onClick={closeModal}>
             Close
           </button>
         )}
-        {!hasErrors && (
+        {hasErrors && (
           <>
             <button className="btn btn-primary" onClick={clearErrors}>
               Go back and try to fix this
