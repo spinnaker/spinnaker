@@ -11,7 +11,6 @@ import com.netflix.spinnaker.keel.api.artifacts.BranchFilter
 import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
 import com.netflix.spinnaker.keel.api.artifacts.Commit
 import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
-import com.netflix.spinnaker.keel.api.artifacts.DEFAULT_MAX_ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.api.artifacts.DOCKER
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
@@ -33,6 +32,8 @@ import com.netflix.spinnaker.keel.core.api.PromotionStatus
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.mockk
+import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expect
 import strikt.api.expectCatching
 import strikt.api.expectThat
@@ -56,7 +57,9 @@ import java.time.Duration
 import java.time.Instant
 
 abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests {
-  abstract fun factory(clock: Clock): T
+  val publisher: ApplicationEventPublisher = mockk(relaxed = true)
+
+  abstract fun factory(clock: Clock, publisher: ApplicationEventPublisher): T
 
   val clock = MutableClock()
 
@@ -205,6 +208,8 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
         project = "spkr",
       )
     )
+
+    val limit = 15
   }
 
   open fun Fixture<T>.persist() {
@@ -249,7 +254,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
   }
 
   fun tests() = rootContext<Fixture<T>> {
-    fixture { Fixture(factory(clock)) }
+    fixture { Fixture(factory(clock, publisher)) }
 
     after {
       subject.flush()
@@ -268,7 +273,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
 
       test("trying to get versions throws an exception") {
         expectThrows<NoSuchArtifactException> {
-          subject.versions(versionedSnapshotDebian)
+          subject.versions(versionedSnapshotDebian, limit)
         }
       }
     }
@@ -295,7 +300,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
 
       context("no versions exist") {
         test("listing versions returns an empty list") {
-          expectThat(subject.versions(versionedSnapshotDebian)).isEmpty()
+          expectThat(subject.versions(versionedSnapshotDebian, limit)).isEmpty()
         }
 
         test("no version is deploying") {
@@ -315,21 +320,21 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
         test("registering the same version is a no-op") {
           val result = subject.storeArtifactVersion(versionedSnapshotDebian.toArtifactVersion(version1, SNAPSHOT))
           expectThat(result).isFalse()
-          expectThat(subject.versions(versionedSnapshotDebian)).hasSize(1)
+          expectThat(subject.versions(versionedSnapshotDebian, limit)).hasSize(1)
         }
 
         test("adding a new version adds it to the list") {
           val result = subject.storeArtifactVersion(versionedSnapshotDebian.toArtifactVersion(version2, SNAPSHOT))
 
           expectThat(result).isTrue()
-          expectThat(subject.versions(versionedSnapshotDebian).map { it.version })
+          expectThat(subject.versions(versionedSnapshotDebian, limit).map { it.version })
             .containsExactly(version2, version1)
         }
 
         test("querying for the list of versions returns both versions") {
           // status is stored on the artifact
           subject.storeArtifactVersion(versionedSnapshotDebian.toArtifactVersion(version2, SNAPSHOT))
-          expectThat(subject.versions(versionedSnapshotDebian).map { it.version })
+          expectThat(subject.versions(versionedSnapshotDebian, limit).map { it.version })
             .containsExactly(version2, version1)
         }
       }
@@ -349,9 +354,9 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
 
         test("versions are returned newest first and status is respected") {
           expect {
-            that(subject.versions(versionedSnapshotDebian).map { it.version })
+            that(subject.versions(versionedSnapshotDebian, limit).map { it.version })
               .isEqualTo(listOf(version3, version2, version1))
-            that(subject.versions(versionedReleaseDebian).map { it.version })
+            that(subject.versions(versionedReleaseDebian, limit).map { it.version })
               .isEqualTo(listOf(version5, version4))
           }
         }
@@ -365,12 +370,12 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
         context("debian") {
           test("querying for all returns all") {
             val artifactWithAll = versionedSnapshotDebian.copy(statuses = emptySet())
-            expectThat(subject.versions(artifactWithAll).map { it.version })
+            expectThat(subject.versions(artifactWithAll, limit).map { it.version })
               .containsExactly(version5, version4, version3, version2, version1)
           }
 
           test("querying with only release returns correct versions") {
-            expectThat(subject.versions(versionedReleaseDebian).map { it.version })
+            expectThat(subject.versions(versionedReleaseDebian, limit).map { it.version })
               .containsExactly(version5, version4)
           }
 
@@ -383,12 +388,12 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
 
         context("docker") {
           test("querying for all returns all") {
-            expectThat(subject.versions(versionedDockerArtifact).map { it.version })
+            expectThat(subject.versions(versionedDockerArtifact, limit).map { it.version })
               .containsExactlyInAnyOrder(version6)
           }
 
           test("querying the artifact filters out the bad tag") {
-            expectThat(subject.versions(versionedDockerArtifact).map { it.version })
+            expectThat(subject.versions(versionedDockerArtifact, limit).map { it.version })
               .containsExactly(version6)
           }
 
@@ -399,7 +404,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
               reference = "docker-artifact",
               tagVersionStrategy = SEMVER_JOB_COMMIT_BY_JOB
             )
-            expectThat(subject.versions(incorrectArtifact)).isEmpty()
+            expectThat(subject.versions(incorrectArtifact, limit)).isEmpty()
           }
         }
       }
@@ -409,10 +414,6 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
           (1..100).map { "1.0.$it"}.forEach {
             subject.storeArtifactVersion(versionedSnapshotDebian.toArtifactVersion(it, SNAPSHOT))
           }
-        }
-
-        test("default cap applies with no limit specified") {
-          expectThat(subject.versions(versionedSnapshotDebian)).hasSize(DEFAULT_MAX_ARTIFACT_VERSIONS)
         }
 
         test("limit parameter takes effect when specified") {
@@ -498,6 +499,20 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
             .isNotNull()
             .get { state }
             .isEqualTo("skipped")
+        }
+      }
+
+      context("we mark old pending versions as skipped") {
+        before {
+          subject.approveVersionFor(manifest, versionedSnapshotDebian, version2, testEnvironment.name)
+          subject.markAsSuccessfullyDeployedTo(manifest, versionedSnapshotDebian, version2, testEnvironment.name)
+        }
+
+        test("we mark version 1 as skipped") {
+          val artifactInEnvSummary = subject.getAllVersionsForEnvironment(versionedSnapshotDebian, manifest, testEnvironment.name)
+          expectThat(artifactInEnvSummary.find{ it.publishedArtifact.version == version1 }?.status)
+            .isNotNull()
+            .isEqualTo(PromotionStatus.SKIPPED)
         }
       }
 

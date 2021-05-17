@@ -38,6 +38,8 @@ import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.mockk
+import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expect
 import strikt.api.expectCatching
 import strikt.api.expectThat
@@ -62,9 +64,11 @@ import java.time.Instant
 abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : ResourceRepository, A : ArtifactRepository, P : PausedRepository> :
   JUnit5Minutests {
 
-  abstract fun createDeliveryConfigRepository(resourceSpecIdentifier: ResourceSpecIdentifier): T
-  abstract fun createResourceRepository(resourceSpecIdentifier: ResourceSpecIdentifier): R
-  abstract fun createArtifactRepository(): A
+  val publisher: ApplicationEventPublisher = mockk(relaxed = true)
+
+  abstract fun createDeliveryConfigRepository(resourceSpecIdentifier: ResourceSpecIdentifier, publisher: ApplicationEventPublisher): T
+  abstract fun createResourceRepository(resourceSpecIdentifier: ResourceSpecIdentifier, publisher: ApplicationEventPublisher): R
+  abstract fun createArtifactRepository(publisher: ApplicationEventPublisher): A
   abstract fun createPausedRepository(): P
 
   open fun flush() {}
@@ -181,9 +185,9 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
   fun tests() = rootContext<Fixture<T, R, A, P>>() {
     fixture {
       Fixture(
-        deliveryConfigRepositoryProvider = this@DeliveryConfigRepositoryTests::createDeliveryConfigRepository,
-        resourceRepositoryProvider = this@DeliveryConfigRepositoryTests::createResourceRepository,
-        artifactRepositoryProvider = this@DeliveryConfigRepositoryTests::createArtifactRepository,
+        deliveryConfigRepositoryProvider = { this@DeliveryConfigRepositoryTests.createDeliveryConfigRepository(it, publisher) },
+        resourceRepositoryProvider = { this@DeliveryConfigRepositoryTests.createResourceRepository(it, publisher) },
+        artifactRepositoryProvider = { this@DeliveryConfigRepositoryTests.createArtifactRepository(publisher) },
         pausedRepositoryProvider = this@DeliveryConfigRepositoryTests::createPausedRepository
       )
     }
@@ -413,7 +417,7 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
 
             test("can retrieve sorted pending artifact versions") {
               expectThat(
-                repository.getPendingArtifactVersions(deliveryConfig.name, "staging", artifact)
+                repository.getPendingConstraintsForArtifactVersions(deliveryConfig.name, "staging", artifact)
                   .map { it.version }
               )
                 .isEqualTo((1..5).map { "${artifact.name}-1.0.$it" }.reversed())
@@ -439,7 +443,7 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
 
             test("can retrieve pending artifact versions sorted by timestamp") {
               expectThat(
-                repository.getPendingArtifactVersions(deliveryConfig.name, "staging", artifactFromBranch)
+                repository.getPendingConstraintsForArtifactVersions(deliveryConfig.name, "staging", artifactFromBranch)
                   .map { it.version }
               )
                 .isEqualTo((1..5).map { "${artifactFromBranch.name}-1.0.$it" })

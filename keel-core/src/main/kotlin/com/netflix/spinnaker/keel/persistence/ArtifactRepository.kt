@@ -4,7 +4,6 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactMetadata
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
-import com.netflix.spinnaker.keel.api.artifacts.DEFAULT_MAX_ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
@@ -48,8 +47,13 @@ interface ArtifactRepository : PeriodicallyCheckedRepository<DeliveryArtifact> {
    */
   fun versions(
     artifact: DeliveryArtifact,
-    limit: Int = DEFAULT_MAX_ARTIFACT_VERSIONS
+    limit: Int
   ): List<PublishedArtifact>
+
+  /**
+   * @return [limit] number of versions without metadata newer than [maxAge]
+   */
+  fun getVersionsWithoutMetadata(limit: Int, maxAge: Duration): List<PublishedArtifact>
 
   /**
    * Persists the specified instance of the artifact.
@@ -153,6 +157,9 @@ interface ArtifactRepository : PeriodicallyCheckedRepository<DeliveryArtifact> {
   /**
    * Marks [version] as successfully deployed to [targetEnvironment] (i.e. future calls to
    * [wasSuccessfullyDeployedTo] will return `true` for that version.
+   *
+   * Marks previously approved but not deployed versions as skipped.
+   * Marks pending versions as skipped.
    */
   fun markAsSuccessfullyDeployedTo(
     deliveryConfig: DeliveryConfig,
@@ -228,6 +235,12 @@ interface ArtifactRepository : PeriodicallyCheckedRepository<DeliveryArtifact> {
    * Returns artifact versions that are pending for an artifact in an environment
    */
   fun getPendingVersionsInEnvironment(deliveryConfig: DeliveryConfig, artifactReference: String, environmentName: String): List<PublishedArtifact>
+
+  /**
+   * Returns the number of pending versions that would be promoted if the given version was promoted.
+   * This is meant to calculate how many pending versions would be promoted if a manual judgement was approved.
+   */
+  fun getNumPendingToBePromoted(deliveryConfig: DeliveryConfig, artifactReference: String, environmentName: String, version: String): Int
 
   /**
    * Fetches the status of artifact versions in the environments of [deliveryConfig].

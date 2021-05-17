@@ -8,6 +8,7 @@ plugins {
   id("kotlin-spring")
   id("nu.studer.jooq") version "5.2"
   id("org.liquibase.gradle") version "2.0.4"
+  id("com.diffplug.spotless")
 }
 
 afterEvaluate {
@@ -127,7 +128,7 @@ jooq {
 liquibase {
   activities.register("local") {
     arguments = mapOf(
-      "logLevel" to "error",
+      "logLevel" to "severe",
       "changeLogFile" to "src/main/resources/db/databaseChangeLog.yml",
       "url" to "jdbc:mysql://localhost:3306/keel?useSSL=false&serverTimezone=UTC",
       "username" to "root",
@@ -136,7 +137,7 @@ liquibase {
   }
   activities.register("docker") {
     arguments = mapOf(
-      "logLevel" to "error",
+      "logLevel" to "severe",
       "changeLogFile" to "src/main/resources/db/databaseChangeLog.yml",
       "url" to "jdbc:mysql://127.0.0.1:6603/keel?useSSL=false&serverTimezone=UTC",
       "username" to "root",

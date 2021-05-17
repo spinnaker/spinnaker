@@ -7,7 +7,6 @@ import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.artifacts.Commit
 import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
-import com.netflix.spinnaker.keel.api.artifacts.DEFAULT_MAX_ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.OVERRIDE_PASS
 import com.netflix.spinnaker.keel.api.constraints.UpdatedConstraintStatus
@@ -42,14 +41,11 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import strikt.api.expectThat
-import strikt.assertions.all
 import strikt.assertions.containsExactly
 import strikt.assertions.containsExactlyInAnyOrder
-import strikt.assertions.containsKey
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEmpty
-import strikt.assertions.isNotNull
 import strikt.assertions.size
 
 @SpringBootTest(webEnvironment = MOCK)
@@ -73,6 +69,7 @@ internal class ApplicationControllerTests
     const val application = "fnord"
     const val user = "keel@keel.io"
     val deliveryConfig = deliveryConfig()
+    val limit = 15
   }
 
   val payloadWithLongComment =
@@ -100,7 +97,7 @@ internal class ApplicationControllerTests
         every { applicationService.getConstraintStatesFor(application) } returns emptyList()
         every { applicationService.getResourceSummariesFor(application) } returns emptyList()
         every { applicationService.getEnvironmentSummariesFor(application) } returns envSummaries
-        every { applicationService.getArtifactSummariesFor(application) } returns emptyList()
+        every { applicationService.getArtifactSummariesFor(application, limit) } returns emptyList()
         every {
           applicationService.getArtifactSummariesFor(
             application,
@@ -212,7 +209,7 @@ internal class ApplicationControllerTests
           verify {
             applicationService.getArtifactSummariesFor(
               application,
-              DEFAULT_MAX_ARTIFACT_VERSIONS
+              limit
             )
           }
         }

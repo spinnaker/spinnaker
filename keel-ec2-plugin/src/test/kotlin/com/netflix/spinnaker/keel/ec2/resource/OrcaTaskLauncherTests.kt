@@ -22,6 +22,7 @@ import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.api.NotificationFrequency.quiet
 import com.netflix.spinnaker.keel.api.NotificationType.slack
 import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.plugins.JobInterceptor
 import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.model.NotificationEvent.ORCHESTRATION_FAILED
@@ -39,6 +40,7 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
+import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import strikt.api.expectThat
 import strikt.assertions.first
@@ -52,7 +54,8 @@ class OrcaTaskLauncherTests : JUnit5Minutests {
     val publisher: EventPublisher = mockk(relaxUnitFun = true)
     val springEnv: SpringEnv = mockk(relaxUnitFun = true)
     val combinedRepository = mockk<KeelRepository>()
-    val taskLauncher = OrcaTaskLauncher(orcaService, combinedRepository, publisher, springEnv)
+    val jobInterceptor: JobInterceptor = mockk()
+    val taskLauncher = OrcaTaskLauncher(orcaService, combinedRepository, publisher, springEnv, listOf(jobInterceptor))
     val resource: Resource<DummyResourceSpec> = resource()
     val request = slot<OrchestrationRequest>()
   }
@@ -80,6 +83,10 @@ class OrcaTaskLauncherTests : JUnit5Minutests {
         )
         every { combinedRepository.environmentFor(resource.id) } returns env
 
+        every { combinedRepository.environmentFor(resource.id) } returns env
+
+        every { jobInterceptor.intercept(any(), any()) } returns emptyList()
+
         runBlocking {
           taskLauncher.submitJob(resource, "task description", "correlate this", mapOf())
         }
@@ -93,6 +100,12 @@ class OrcaTaskLauncherTests : JUnit5Minutests {
           first().get { message }.isEqualTo(
             mapOf(ORCHESTRATION_FAILED.text() to ORCHESTRATION_FAILED.notificationMessage())
           )
+        }
+      }
+
+      test("job interceptors get called") {
+        verify {
+          jobInterceptor.intercept(any(), any())
         }
       }
     }

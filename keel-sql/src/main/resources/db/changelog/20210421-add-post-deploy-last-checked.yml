@@ -1,0 +1,36 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-post-deploy-last-checked
+      author: emjburns
+      changes:
+        - createTable:
+            tableName: environment_last_post_deploy
+            columns:
+              - column:
+                  name: environment_uid
+                  type: char(26)
+                  constraints:
+                    primaryKey: true
+                    foreignKeyName: fk_environment_last_post_deploy_environment
+                    referencedTableName: environment
+                    referencedColumnNames: uid
+                    deleteCascade: true
+              - column:
+                  name: artifact_uid
+                  type: char(26)
+                  constraints:
+                    primaryKey: true
+                    foreignKeyName: fk_environment_last_post_deploy_delivery_artifact
+                    referencedTableName: delivery_artifact
+                    referencedColumnNames: uid
+                    deleteCascade: true
+              - column:
+                  name: artifact_version
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: at
+                  type: timestamp(3)
+                  constraints:
+                    nullable: false

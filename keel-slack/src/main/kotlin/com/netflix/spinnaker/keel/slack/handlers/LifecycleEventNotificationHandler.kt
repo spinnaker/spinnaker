@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 /**
- * Sends notification for a lifecycle event, like bake / build failures
+ * Sends notification for a lifecycle event, like bake failures
  */
 @Component
 class LifecycleEventNotificationHandler(
@@ -28,7 +28,6 @@ class LifecycleEventNotificationHandler(
 
       val imageUrl = when (eventType) {
         LifecycleEventType.BAKE -> "https://raw.githubusercontent.com/spinnaker/spinnaker.github.io/master/assets/images/md_icons/bake_fail.png"
-        LifecycleEventType.BUILD -> "https://raw.githubusercontent.com/spinnaker/spinnaker.github.io/master/assets/images/md_icons/build_fail.png"
         else -> Strings.EMPTY
       }
 

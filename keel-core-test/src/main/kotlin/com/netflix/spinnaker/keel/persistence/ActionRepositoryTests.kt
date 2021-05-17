@@ -8,9 +8,11 @@ import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.FAIL
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.OVERRIDE_PASS
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PASS
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PENDING
-import com.netflix.spinnaker.keel.api.verification.VerificationContext
-import com.netflix.spinnaker.keel.api.verification.VerificationRepository
-import com.netflix.spinnaker.keel.api.verification.VerificationState
+import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
+import com.netflix.spinnaker.keel.api.action.ActionRepository
+import com.netflix.spinnaker.keel.api.action.ActionState
+import com.netflix.spinnaker.keel.api.action.ActionType
+import com.netflix.spinnaker.keel.api.action.ActionType.VERIFICATION
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.time.MutableClock
 import de.huxhorn.sulky.ulid.ULID
@@ -39,16 +41,16 @@ import strikt.assertions.one
 import strikt.assertions.withFirst
 import java.time.Duration
 
-abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationRepository> {
+abstract class ActionRepositoryTests<IMPLEMENTATION : ActionRepository> {
 
   abstract fun createSubject(): IMPLEMENTATION
 
   val clock = MutableClock()
   val subject: IMPLEMENTATION by lazy { createSubject() }
 
-  open fun VerificationContext.setup() {}
-  open fun VerificationContext.setupCurrentArtifactVersion() {}
-  open fun VerificationContext.pauseApplication() {}
+  open fun ArtifactInEnvironmentContext.setup() {}
+  open fun ArtifactInEnvironmentContext.setupCurrentArtifactVersion() {}
+  open fun ArtifactInEnvironmentContext.pauseApplication() {}
 
   protected data class DummyVerification(val value: String) : Verification {
     override val type = "dummy"
@@ -83,7 +85,7 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
     ),
     environments = setOf( environment )
   )
-  private val context = VerificationContext(
+  private val context = ArtifactInEnvironmentContext(
     deliveryConfig = deliveryConfig,
     environmentName = "test",
     artifactReference = "fnord-docker-stable",
@@ -114,9 +116,9 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
     }
       .isSuccess()
       .isNotNull()
-      .with(VerificationState::status) { isEqualTo(status) }
-      .with(VerificationState::metadata) { isEqualTo(metadata) }
-      .with(VerificationState::link) { isNull() }
+      .with(ActionState::status) { isEqualTo(status) }
+      .with(ActionState::metadata) { isEqualTo(metadata) }
+      .with(ActionState::link) { isNull() }
   }
 
   @Test
@@ -133,8 +135,8 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
     }
       .isSuccess()
       .isNotNull()
-      .with(VerificationState::status) { isEqualTo(PASS) }
-      .with(VerificationState::metadata) { isEqualTo(metadata) }
+      .with(ActionState::status) { isEqualTo(PASS) }
+      .with(ActionState::metadata) { isEqualTo(metadata) }
   }
 
   @Test
@@ -152,8 +154,8 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
     }
       .isSuccess()
       .isNotNull()
-      .with(VerificationState::status) { isEqualTo(OVERRIDE_PASS) }
-      .with(VerificationState::metadata) { isEqualTo(initialMetadata + newMetadata) }
+      .with(ActionState::status) { isEqualTo(OVERRIDE_PASS) }
+      .with(ActionState::metadata) { isEqualTo(initialMetadata + newMetadata) }
   }
 
   @Test
@@ -167,7 +169,7 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
     }
       .isSuccess()
       .isNotNull()
-      .with(VerificationState::link) { isEqualTo("http://www.example.com") }
+      .with(ActionState::link) { isEqualTo("http://www.example.com") }
   }
 
   @Test
@@ -185,7 +187,7 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
     }
       .isSuccess()
       .isNotNull()
-      .with(VerificationState::metadata) {
+      .with(ActionState::metadata) {
         get("tasks").isA<List<*>>().hasSize(2)
       }
   }
@@ -221,16 +223,16 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
     }
       .isSuccess()
       .isNotNull()
-      .with(VerificationState::status) { isEqualTo(PASS) }
-      .with(VerificationState::metadata) { isEqualTo(metadata1) }
+      .with(ActionState::status) { isEqualTo(PASS) }
+      .with(ActionState::metadata) { isEqualTo(metadata1) }
 
     expectCatching {
       subject.getState(context, verification2)
     }
       .isSuccess()
       .isNotNull()
-      .with(VerificationState::status) { isEqualTo(PENDING) }
-      .with(VerificationState::metadata) { isEqualTo(metadata2) }
+      .with(ActionState::status) { isEqualTo(PENDING) }
+      .with(ActionState::metadata) { isEqualTo(metadata2) }
   }
 
   @DisplayName("selecting verifications to check")
@@ -415,7 +417,7 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
     context.setup()
     val contexts = listOf(context)
 
-    expectThat(subject.getStatesBatch(contexts))
+    expectThat(subject.getStatesBatch(contexts, VERIFICATION))
       .hasSize(contexts.size)
       .containsExactly(emptyMap())
   }
@@ -427,7 +429,7 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
 
     subject.updateState(context, verification, PENDING, link="http://www.example.com")
 
-    val stateMaps = subject.getStatesBatch(contexts)
+    val stateMaps = subject.getStatesBatch(contexts, VERIFICATION)
 
     expectThat(stateMaps)
       .hasSize(contexts.size)
@@ -438,14 +440,14 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
 
     expectThat(stateMap[verification.id])
       .isNotNull()
-      .with(VerificationState::status) { isEqualTo(PENDING) }
-      .with(VerificationState::link) { isEqualTo("http://www.example.com") }
+      .with(ActionState::status) { isEqualTo(PENDING) }
+      .with(ActionState::link) { isEqualTo("http://www.example.com") }
   }
 
   @Test
   fun `multiple contexts, multiple verifications`() {
     val c1 = context
-    val c2 = VerificationContext(
+    val c2 = ArtifactInEnvironmentContext(
       deliveryConfig = deliveryConfig,
       environmentName = "test",
       artifactReference = "fnord-docker-stable",
@@ -467,7 +469,7 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
     subject.updateState(c2, v2, PENDING)
 
 
-    val result = subject.getStatesBatch(contexts)
+    val result = subject.getStatesBatch(contexts, VERIFICATION)
 
     expect {
       that(result)
@@ -477,27 +479,27 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
         .and {
           get { get(v1.id) }
           .isNotNull()
-          .with(VerificationState::status) { isEqualTo(PASS) }
-          .with(VerificationState::link) { isEqualTo("http://www.example.com/pass") }
+          .with(ActionState::status) { isEqualTo(PASS) }
+          .with(ActionState::link) { isEqualTo("http://www.example.com/pass") }
         }
         .and {
           get { get(v2.id) }
           .isNotNull()
-          .with(VerificationState::status) { isEqualTo(FAIL) }
-          .with(VerificationState::link) { isNull() }
+          .with(ActionState::status) { isEqualTo(FAIL) }
+          .with(ActionState::link) { isNull() }
         }
 
       that(result[1])
         .and {
           get { get(v1.id) }
             .isNotNull()
-            .with(VerificationState::status) { isEqualTo(PENDING) }
-            .with(VerificationState::link) { isEqualTo("http://www.example.com/pending") }
+            .with(ActionState::status) { isEqualTo(PENDING) }
+            .with(ActionState::link) { isEqualTo("http://www.example.com/pending") }
         }
         .and {
           get { get(v2.id) }
             .isNotNull()
-            .get(VerificationState::status) isEqualTo PENDING
+            .get(ActionState::status) isEqualTo PENDING
         }
     }
   }
@@ -508,14 +510,14 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
       .onEach { it.setup() }
 
     // verify it doesn't explode with a SQLSyntaxErrorException
-    expectCatching { subject.getStatesBatch(contexts) }.isSuccess()
+    expectCatching { subject.getStatesBatch(contexts, VERIFICATION) }.isSuccess()
   }
 
   @Test
   fun `zero states`() {
     context.setup()
 
-    val stateMaps = subject.getStatesBatch(emptyList())
+    val stateMaps = subject.getStatesBatch(emptyList(), VERIFICATION)
 
     expectThat(stateMaps).isEmpty()
   }
@@ -524,7 +526,7 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
   fun `getContextsWithStatus with no pending verifications`() {
     context.setup()
 
-    val contexts = subject.getContextsWithStatus(deliveryConfig, environment, PENDING)
+    val contexts = subject.getVerificationContextsWithStatus(deliveryConfig, environment, PENDING)
     expectThat(contexts).isEmpty()
   }
 
@@ -533,7 +535,7 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
     context.setup()
     subject.updateState(context, verification, PENDING)
 
-    val contexts = subject.getContextsWithStatus(deliveryConfig, environment, PENDING)
+    val contexts = subject.getVerificationContextsWithStatus(deliveryConfig, environment, PENDING)
 
     expectThat(contexts).containsExactly(context)
   }
@@ -547,7 +549,7 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
     subject.updateState(context, otherVerification, PENDING)
 
 
-    val contexts = subject.getContextsWithStatus(deliveryConfig, environment, PENDING)
+    val contexts = subject.getVerificationContextsWithStatus(deliveryConfig, environment, PENDING)
     expectThat(contexts).hasSize(2)
     expectThat(contexts).contains(context)
   }
@@ -567,7 +569,7 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
       environments = setOf(otherEnvironment)
     )
 
-    val otherContext = VerificationContext(
+    val otherContext = ArtifactInEnvironmentContext(
       deliveryConfig = otherConfig,
       environmentName = "test",
       artifactReference = "acme",
@@ -577,9 +579,7 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
     otherContext.setup()
     subject.updateState(otherContext, verification, PENDING)
 
-    expectThat(subject.getContextsWithStatus(deliveryConfig, environment, PENDING)).isEmpty()
-    expectThat(subject.getContextsWithStatus(otherConfig, otherEnvironment, PENDING)).containsExactly(otherContext)
+    expectThat(subject.getVerificationContextsWithStatus(deliveryConfig, environment, PENDING)).isEmpty()
+    expectThat(subject.getVerificationContextsWithStatus(otherConfig, otherEnvironment, PENDING)).containsExactly(otherContext)
   }
-
-
 }

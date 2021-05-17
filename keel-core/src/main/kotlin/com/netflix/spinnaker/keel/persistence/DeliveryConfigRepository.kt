@@ -178,7 +178,7 @@ interface DeliveryConfigRepository : PeriodicallyCheckedRepository<DeliveryConfi
   /**
    * Fetches all versions have a pending stateful constraint in an environment
    */
-  fun getPendingArtifactVersions(deliveryConfigName: String, environmentName: String, artifact: DeliveryArtifact): List<PublishedArtifact>
+  fun getPendingConstraintsForArtifactVersions(deliveryConfigName: String, environmentName: String, artifact: DeliveryArtifact): List<PublishedArtifact>
 
   /**
    * Gets all versions queued for approval for the environment
@@ -204,6 +204,17 @@ interface DeliveryConfigRepository : PeriodicallyCheckedRepository<DeliveryConfi
    * (EPOCH + 1s) so that the environments will immediately be rechecked.
    */
   fun triggerRecheck(application: String)
+
+  /**
+   * Associates [version] of [artifact] with the specified environment, creating a new environment
+   * version if necessary.
+   */
+  fun addArtifactVersionToEnvironment(
+    deliveryConfig: DeliveryConfig,
+    environmentName: String,
+    artifact: DeliveryArtifact,
+    version: String,
+  )
 }
 
 abstract class NoSuchDeliveryConfigException(message: String) :

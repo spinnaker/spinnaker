@@ -116,7 +116,7 @@ internal class EnvironmentConstraintRunnerTests : JUnit5Minutests {
         } returns true
 
         every {
-          repository.getPendingArtifactVersions(any(), any(), any())
+          repository.getPendingConstraintsForArtifactVersions(any(), any(), any())
         } returns emptyList()
       }
 
@@ -190,7 +190,7 @@ internal class EnvironmentConstraintRunnerTests : JUnit5Minutests {
         before {
           // TODO: sucks that this is necessary but when using deriveFixture you get a different mockk
           every {
-            repository.getPendingArtifactVersions(any(), any(), any())
+            repository.getPendingConstraintsForArtifactVersions(any(), any(), any())
           } returns emptyList()
 
           every { statelessEvaluator.canPromote(artifact, "1.2", deliveryConfig, environment) } returns true
@@ -287,7 +287,7 @@ internal class EnvironmentConstraintRunnerTests : JUnit5Minutests {
           } returns passedManualJudgement
 
           every {
-            repository.getPendingArtifactVersions(any(), any(), any())
+            repository.getPendingConstraintsForArtifactVersions(any(), any(), any())
           } returns listOf("2.0", "1.2")
             .map { PublishedArtifact(artifact.name, artifact.type, it) }
 
@@ -382,7 +382,7 @@ internal class EnvironmentConstraintRunnerTests : JUnit5Minutests {
 
         before {
           // TODO: sucks that this is necessary but when using deriveFixture you get a different mockk
-          every { repository.getPendingArtifactVersions(any(), any(), any()) } returns emptyList()
+          every { repository.getPendingConstraintsForArtifactVersions(any(), any(), any()) } returns emptyList()
 
           every { statefulEvaluator.canPromote(artifact, "2.0", deliveryConfig, environment) } returns false
 
@@ -434,7 +434,7 @@ internal class EnvironmentConstraintRunnerTests : JUnit5Minutests {
           every { repository.latestVersionApprovedIn(deliveryConfig, artifact, environment.name) } returns "1.1"
 
           every {
-            repository.getPendingArtifactVersions(any(), any(), any())
+            repository.getPendingConstraintsForArtifactVersions(any(), any(), any())
           } returns listOf("1.2", "1.1")
             .map { PublishedArtifact(artifact.name, artifact.type, it) }
 

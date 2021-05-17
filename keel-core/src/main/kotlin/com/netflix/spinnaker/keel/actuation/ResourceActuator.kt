@@ -1,5 +1,7 @@
 package com.netflix.spinnaker.keel.actuation
 
+import com.netflix.spectator.api.Registry
+import com.netflix.spectator.api.patterns.ThreadPoolMonitor
 import com.netflix.spinnaker.keel.api.CompleteVersionedArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
@@ -58,6 +60,7 @@ import java.time.Duration
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
+import java.util.concurrent.ThreadPoolExecutor
 import org.springframework.core.env.Environment as SpringEnvironment
 
 /**
@@ -80,12 +83,14 @@ class ResourceActuator(
   private val vetoEnforcer: VetoEnforcer,
   private val publisher: ApplicationEventPublisher,
   private val clock: Clock,
-  private val environmentExclusionEnforcer: EnvironmentExclusionEnforcer
+  private val environmentExclusionEnforcer: EnvironmentExclusionEnforcer,
+  private val spectator: Registry
 ) {
   companion object {
-    private val asyncExecutor: Executor = Executors.newCachedThreadPool()
+    val asyncExecutor: Executor = Executors.newCachedThreadPool()
   }
 
+  private val threadPoolMonitor = ThreadPoolMonitor.attach(spectator, asyncExecutor as ThreadPoolExecutor, "keel-resource-actuator-thread-pool")
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   @Trace(dispatcher=true)

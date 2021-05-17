@@ -4,11 +4,10 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
-import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.FAIL
-import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PASS
-import com.netflix.spinnaker.keel.api.verification.VerificationContext
-import com.netflix.spinnaker.keel.api.verification.VerificationRepository
-import com.netflix.spinnaker.keel.api.verification.VerificationState
+import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
+import com.netflix.spinnaker.keel.api.action.ActionRepository
+import com.netflix.spinnaker.keel.api.action.ActionType.POST_DEPLOY
+import com.netflix.spinnaker.keel.api.action.ActionType.VERIFICATION
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
@@ -52,14 +51,16 @@ class DependsOnConstraintEvaluatorWithVerificationsTests : JUnit5Minutests {
       environments = setOf(previousEnvironment, constrainedEnvironment)
     )
 
-    val verContext = VerificationContext( manifest, previousEnvironment.name, artifact.reference, "1.1")
+    val verContext = ArtifactInEnvironmentContext( manifest, previousEnvironment.name, artifact.reference, "1.1")
   }
 
   val artifactRepository: ArtifactRepository = mockk(relaxUnitFun = true)
-  val verificationRepository: VerificationRepository = mockk()
+  val actionRepository: ActionRepository = mockk() {
+    every { allStarted(any(), POST_DEPLOY) } returns true
+  }
   val clock = MutableClock()
 
-  val subject = DependsOnConstraintEvaluator(artifactRepository, verificationRepository, mockk(), clock)
+  val subject = DependsOnConstraintEvaluator(artifactRepository, actionRepository, mockk(), clock)
 
 
   fun tests() = rootContext<Fixture> {
@@ -80,11 +81,7 @@ class DependsOnConstraintEvaluatorWithVerificationsTests : JUnit5Minutests {
 
     context("verification succeeded") {
       before {
-        every {
-          verificationRepository.getStates(
-            verContext
-          )
-        } returns mapOf("fake-id" to VerificationState(status= PASS, startedAt=mockk(), endedAt=mockk()))
+          every { actionRepository.allPassed(verContext, VERIFICATION) } returns true
       }
 
       test("promotion is allowed") {
@@ -95,11 +92,7 @@ class DependsOnConstraintEvaluatorWithVerificationsTests : JUnit5Minutests {
 
     context("verification did not succeed") {
       before {
-        every {
-          verificationRepository.getStates(
-            verContext
-          )
-        } returns mapOf("fake-id" to VerificationState(status=FAIL, startedAt=mockk(), endedAt=mockk()))
+        every { actionRepository.allPassed(verContext, VERIFICATION) } returns false
       }
 
       test("promotion is not allowed") {

@@ -38,12 +38,10 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.future.await
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.core.env.Environment
 
 class ImageService(
   private val cloudDriverService: CloudDriverService,
-  cacheFactory: CacheFactory,
-  private val springEnv: Environment
+  cacheFactory: CacheFactory
 ) {
   val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -165,14 +163,11 @@ class ImageService(
     }
   }
 
-  private val defaultImageAccount: String
-    get() = springEnv.getProperty("images.default-account", String::class.java, "test")
-
   /**
    * Given a [baseImageId] this function returns its name.
    */
   suspend fun findBaseImageName(baseImageId: String, region: String): String =
-    cloudDriverService.getImage(defaultImageAccount, region, baseImageId)
+    cloudDriverService.getImage("test", region, baseImageId)
       .lastOrNull()
       ?.imageName
       ?: throw BaseAmiNotFound(baseImageId)

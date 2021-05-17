@@ -39,7 +39,8 @@ abstract class LifecycleMonitorRepositoryTests<T : LifecycleMonitorRepository, E
   val version = "123.4"
   val event = LifecycleEvent(
     scope = LifecycleEventScope.PRE_DEPLOYMENT,
-    artifactRef = artifact.toLifecycleRef(),
+    artifactReference = artifact.reference,
+    deliveryConfigName = artifact.deliveryConfigName!!,
     artifactVersion = version,
     type = BAKE,
     status = LifecycleEventStatus.NOT_STARTED,

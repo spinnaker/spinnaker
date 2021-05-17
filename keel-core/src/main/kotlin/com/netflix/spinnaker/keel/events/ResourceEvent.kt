@@ -335,7 +335,7 @@ data class ResourceTaskFailed(
   override val timestamp: Instant,
   override val level: EventLevel = ERROR,
   override val displayName: String = "Failed to update resource to match definition${if (reason != null) " - $reason" else ""}",
-) : ResourceEvent() {
+) : ResourceEvent(message = reason) {
 
   constructor(resource: Resource<*>, reason: String?, tasks: List<Task>, clock: Clock = Companion.clock) : this(
     resource.kind,
@@ -545,7 +545,7 @@ data class VerificationBlockedActuation(
     resource.application,
     clock.instant(),
     message = if(e.active.count() == 1) {
-      "there is an verification against version ${e.active.first()}"
+      "there is an active verification against version ${e.active.first().version}"
     } else {
       "there are active verifications against versions ${e.active.map { it.version }}"
     }

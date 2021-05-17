@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.services
 
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.config.ArtifactConfig
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.ScmInfo
@@ -70,6 +71,8 @@ class ComparableLinksTests : JUnit5Minutests {
     val version4 = "fnord-1.0.4-h4.e4e4e4e"
 
     val versions = listOf(version0, version1, version2, version3, version4)
+
+    val limit = 15
 
     val singleArtifactEnvironments = listOf("test", "staging").associateWith { name ->
       Environment(
@@ -141,7 +144,8 @@ class ComparableLinksTests : JUnit5Minutests {
       publisher,
       springEnv,
       clock,
-      registry
+      registry,
+      ArtifactConfig()
     )
 
     val buildMetadata = BuildMetadata(
@@ -286,7 +290,7 @@ class ComparableLinksTests : JUnit5Minutests {
 
       context("stash") {
         before {
-          every { repository.artifactVersions(releaseArtifact) } returns versions.toArtifactVersions(
+          every { repository.artifactVersions(releaseArtifact, limit) } returns versions.toArtifactVersions(
             releaseArtifact,
             "stash"
           )
@@ -294,7 +298,7 @@ class ComparableLinksTests : JUnit5Minutests {
 
         test("compare links for previous-->current are generated as expected, in the correct env") {
           // current is compared against what it replaced
-          val summaries = applicationService.getArtifactSummariesFor(application1)
+          val summaries = applicationService.getArtifactSummariesFor(application1, limit)
           expectThat(summaries.first())
             .withVersionInEnvironment(version2, "test") {
               state.isEqualTo(CURRENT.name.toLowerCase())
@@ -309,7 +313,7 @@ class ComparableLinksTests : JUnit5Minutests {
 
         test("compare links for current --> deploying are generated as expected, in the correct env") {
           // deploying is compared against the current version
-          val summaries = applicationService.getArtifactSummariesFor(application1)
+          val summaries = applicationService.getArtifactSummariesFor(application1, limit)
           expectThat(summaries.first())
             .withVersionInEnvironment(version3, "test") {
               state.isEqualTo(DEPLOYING.name.toLowerCase())
@@ -320,7 +324,7 @@ class ComparableLinksTests : JUnit5Minutests {
 
         test("compare links for previous --> current  are generated as expected, in the correct env") {
           // previous is compared to what replaced it, which we know.
-          val summaries = applicationService.getArtifactSummariesFor(application1)
+          val summaries = applicationService.getArtifactSummariesFor(application1, limit)
           expectThat(summaries.first())
             .withVersionInEnvironment(version0, "staging") {
               state.isEqualTo(PREVIOUS.name.toLowerCase())
@@ -330,7 +334,7 @@ class ComparableLinksTests : JUnit5Minutests {
 
         test("compare links for pending --> current  are generated as expected, in the correct env") {
           // pending is compared to current
-          val summaries = applicationService.getArtifactSummariesFor(application1)
+          val summaries = applicationService.getArtifactSummariesFor(application1, limit)
           expectThat(summaries.first())
             .withVersionInEnvironment(version2, "staging") {
               state.isEqualTo(PENDING.name.toLowerCase())
@@ -390,7 +394,7 @@ class ComparableLinksTests : JUnit5Minutests {
 
           test("get the correct compare link when pinning forward (current)") {
             // pinning to version 3 here
-            val summaries = applicationService.getArtifactSummariesFor(application1)
+            val summaries = applicationService.getArtifactSummariesFor(application1, limit)
             expectThat(summaries.first())
               .withVersionInEnvironment(version1, "staging") {
                 compareLink.isEqualTo("https://stash/projects/spkr/repos/keel/compare/commits?targetBranch=${version1}&sourceBranch=${version3}")
@@ -398,7 +402,7 @@ class ComparableLinksTests : JUnit5Minutests {
           }
 
           test("get the correct compare link when pinning forward (pending)") {
-            val summaries = applicationService.getArtifactSummariesFor(application1)
+            val summaries = applicationService.getArtifactSummariesFor(application1, limit)
             expectThat(summaries.first())
               .withVersionInEnvironment(version4, "test") {
                 compareLink.isEqualTo("https://stash/projects/spkr/repos/keel/compare/commits?targetBranch=${version0}&sourceBranch=${version4}")
@@ -406,7 +410,7 @@ class ComparableLinksTests : JUnit5Minutests {
           }
 
           test("get the correct compare link when pinning forward (prev)") {
-            val summaries = applicationService.getArtifactSummariesFor(application1)
+            val summaries = applicationService.getArtifactSummariesFor(application1, limit)
             expectThat(summaries.first())
               .withVersionInEnvironment(version1, "test") {
                 compareLink.isEqualTo("https://stash/projects/spkr/repos/keel/compare/commits?targetBranch=${version1}&sourceBranch=${version2}")
@@ -414,7 +418,7 @@ class ComparableLinksTests : JUnit5Minutests {
           }
 
           test("get the correct compare link when pinning backwards") {
-            val summaries = applicationService.getArtifactSummariesFor(application1)
+            val summaries = applicationService.getArtifactSummariesFor(application1, limit)
             expectThat(summaries.first())
               .withVersionInEnvironment(version2, "test") {
                 compareLink.isEqualTo("https://stash/projects/spkr/repos/keel/compare/commits?targetBranch=${version0}&sourceBranch=${version2}")
@@ -439,7 +443,7 @@ class ComparableLinksTests : JUnit5Minutests {
             }
 
             test("generate the right compare link") {
-              val summaries = applicationService.getArtifactSummariesFor(application1)
+              val summaries = applicationService.getArtifactSummariesFor(application1, limit)
               expectThat(summaries.first())
                 .withVersionInEnvironment(version1, "staging") {
                   compareLink.isEqualTo("https://stash/projects/spkr/repos/keel/compare/commits?targetBranch=${version0}&sourceBranch=${version1}")
@@ -451,14 +455,14 @@ class ComparableLinksTests : JUnit5Minutests {
 
       context("github") {
         before {
-          every { repository.artifactVersions(releaseArtifact) } returns versions.toArtifactVersions(
+          every { repository.artifactVersions(releaseArtifact, any()) } returns versions.toArtifactVersions(
             releaseArtifact,
             "https://github.com/repo/123"
           )
         }
 
         test("compare links for current --> deploying shows the deploying github link") {
-          val summaries = applicationService.getArtifactSummariesFor(application1)
+          val summaries = applicationService.getArtifactSummariesFor(application1, limit)
           expectThat(summaries.first())
             .withVersionInEnvironment(version3, "test") {
               state.isEqualTo(DEPLOYING.name.toLowerCase())
@@ -468,7 +472,7 @@ class ComparableLinksTests : JUnit5Minutests {
         }
 
         test("compare links for previous --> current shows the current github link") {
-          val summaries = applicationService.getArtifactSummariesFor(application1)
+          val summaries = applicationService.getArtifactSummariesFor(application1, limit)
           expectThat(summaries.first())
             .withVersionInEnvironment(version0, "staging") {
               state.isEqualTo(PREVIOUS.name.toLowerCase())
@@ -477,7 +481,7 @@ class ComparableLinksTests : JUnit5Minutests {
         }
 
         test("compare links for pending --> current, shows the current github link") {
-          val summaries = applicationService.getArtifactSummariesFor(application1)
+          val summaries = applicationService.getArtifactSummariesFor(application1, limit)
           expectThat(summaries.first())
             .withVersionInEnvironment(version2, "staging") {
               state.isEqualTo(PENDING.name.toLowerCase())

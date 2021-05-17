@@ -66,8 +66,7 @@ class OrcaTaskMonitorAgent(
                   true -> {
                     log.warn(
                       "Exception ${e.message} has caught while calling orca to fetch status for execution id: ${it.id}" +
-                        " Possible reason: orca is saving info for 2000 tasks/app and this task is older.",
-                      e
+                        " Possible reason: orca is saving info for 2000 tasks/app and this task is older."
                     )
                     // when we get not found exception from orca, we shouldn't try to get the status anymore
                     taskTrackingRepository.delete(it.id)
@@ -97,7 +96,7 @@ class OrcaTaskMonitorAgent(
                   false -> publisher.publishEvent(
                     ResourceTaskFailed(
                       resourceRepository.get(id),
-                      taskDetails.execution.stages.getFailureMessage()
+                      taskDetails.execution?.stages.getFailureMessage()
                         ?: "",
                       listOf(Task(taskDetails.id, taskDetails.name)), clock
                     )

@@ -7,6 +7,7 @@ import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
+import io.mockk.mockk
 import java.time.Clock
 
 internal object SqlUnhealthyRepositoryTests : UnhealthyRepositoryTests<SqlUnhealthyRepository>() {
@@ -19,7 +20,8 @@ internal object SqlUnhealthyRepositoryTests : UnhealthyRepositoryTests<SqlUnheal
     DummyResourceSpecIdentifier,
     emptyList(),
     configuredObjectMapper(),
-    sqlRetry
+    sqlRetry,
+    publisher = mockk(relaxed = true)
   )
 
   override fun factory(clock: Clock): SqlUnhealthyRepository =

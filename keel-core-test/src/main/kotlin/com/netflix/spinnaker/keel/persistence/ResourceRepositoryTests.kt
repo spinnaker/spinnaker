@@ -39,6 +39,7 @@ import io.mockk.confirmVerified
 import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifyAll
+import org.springframework.context.ApplicationEventPublisher
 import strikt.api.Assertion
 import strikt.api.expectCatching
 import strikt.api.expectThat
@@ -64,7 +65,9 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
   protected val clock = MutableClock()
 
-  abstract fun factory(clock: Clock): T
+  val publisher: ApplicationEventPublisher = mockk(relaxed = true)
+
+  abstract fun factory(clock: Clock, publisher: ApplicationEventPublisher): T
 
   abstract val storeDeliveryConfig: (DeliveryConfig) -> Unit
 
@@ -83,7 +86,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
   fun tests(): RootContextBuilder = rootContext<Fixture<T>> {
     fixture {
-      Fixture(subject = factory(clock))
+      Fixture(subject = factory(clock, publisher))
     }
 
     after { confirmVerified(callback) }

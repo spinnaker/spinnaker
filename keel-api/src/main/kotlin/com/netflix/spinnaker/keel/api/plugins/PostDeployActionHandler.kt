@@ -1,7 +1,9 @@
 package com.netflix.spinnaker.keel.api.plugins
 
+import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.action.ActionState
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.postdeploy.PostDeployAction
 import com.netflix.spinnaker.keel.api.postdeploy.SupportedPostDeployActionType
@@ -14,7 +16,7 @@ import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint
  *
  * All post deploy actions are run in parallel.
  */
-interface PostDeployActionRunner<T: PostDeployAction> : SpinnakerExtensionPoint {
+interface PostDeployActionHandler<T: PostDeployAction> : SpinnakerExtensionPoint {
   /**
    * The supported post deploy action type mapping for this runner.
    */
@@ -26,12 +28,22 @@ interface PostDeployActionRunner<T: PostDeployAction> : SpinnakerExtensionPoint 
   //todo eb: centralized eventing for monitoring?
 
   /**
-   * Launches the post deploy action
+   * Start running [action]
+   *
+   * @return any metadata needed to evaulate the verification in the future
    */
-  fun launch(
-    artifact: DeliveryArtifact,
-    artifactVersion: String,
-    deliveryConfig: DeliveryConfig,
-    targetEnvironment: Environment
-  )
+  suspend fun start(
+    context: ArtifactInEnvironmentContext,
+    action: PostDeployAction
+  ): Map<String, Any?>
+
+  /**
+   * @param oldState previous verification state
+   * @return updated verification state
+   */
+  suspend fun evaluate(
+    context: ArtifactInEnvironmentContext,
+    action: PostDeployAction,
+    oldState: ActionState
+  ): ActionState
 }

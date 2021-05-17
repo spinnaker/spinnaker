@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.persistence
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.jsontype.NamedType
+import com.netflix.spinnaker.config.ArtifactConfig
 import com.netflix.spinnaker.keel.actuation.EnvironmentConstraintRunner
 import com.netflix.spinnaker.keel.actuation.EnvironmentPromotionChecker
 import com.netflix.spinnaker.keel.api.Constraint
@@ -91,10 +92,16 @@ abstract class ApproveOldVersionTests<T : KeelRepository> : JUnit5Minutests {
       listOf(statelessEvaluator, statefulEvaluator, implicitStatelessEvaluator)
     )
 
+    val springEnv: org.springframework.core.env.Environment = mockk(relaxed = true) {
+      every { getProperty("keel.environment-promotion.fetch-pending", Boolean::class.java, false) } returns false
+    }
+
     val subject = EnvironmentPromotionChecker(
       repository,
       environmentConstraintRunner,
-      publisher
+      publisher,
+      ArtifactConfig(),
+      springEnv
     )
 
     val artifact = DebianArtifact(

@@ -19,13 +19,6 @@ plugins {
   id("kotlin-spring")
 }
 
-apply(plugin = "com.netflix.dgs.codegen")
-
-tasks.withType<com.netflix.graphql.dgs.codegen.gradle.GenerateJavaTask> {
-  schemaPaths = mutableListOf("${projectDir}/src/main/resources/schema")
-  packageName = "com.netflix.spinnaker.keel.graphql"
-}
-
 dependencies {
   api(project(":keel-api"))
   api("com.fasterxml.jackson.core:jackson-databind")
@@ -42,7 +35,6 @@ dependencies {
   api("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j")
   api("org.apache.commons:commons-lang3")
   api("com.github.ben-manes.caffeine:caffeine")
-  implementation("com.netflix.graphql.dgs:graphql-dgs-spring-boot-starter:3.9.3")
 
   implementation("org.springframework:spring-tx")
   implementation ("io.github.resilience4j:resilience4j-kotlin")

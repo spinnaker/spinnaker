@@ -6,6 +6,14 @@ plugins {
 
 apply(plugin = "io.spinnaker.package")
 
+apply(plugin = "com.netflix.dgs.codegen")
+
+tasks.withType<com.netflix.graphql.dgs.codegen.gradle.GenerateJavaTask> {
+  schemaPaths = mutableListOf("${projectDir}/src/main/resources/schema")
+  packageName = "com.netflix.spinnaker.keel.graphql"
+  typeMapping = mutableMapOf("InstantTime" to "java.time.Instant", "JSON" to "kotlin.Any")
+}
+
 dependencies {
   api(project(":keel-core"))
   api(project(":keel-clouddriver"))
@@ -23,7 +31,6 @@ dependencies {
   implementation(project(":keel-schema-generator"))
   implementation(project(":keel-scm"))
 
-  implementation("com.netflix.graphql.dgs:graphql-dgs-spring-boot-starter:3.9.3")
   implementation("io.spinnaker.kork:kork-web")
   implementation("io.spinnaker.kork:kork-artifacts")
   implementation("org.springframework.boot:spring-boot-starter-actuator")
@@ -36,6 +43,8 @@ dependencies {
   implementation("org.apache.maven:maven-artifact:3.6.3")
   implementation("io.spinnaker.kork:kork-plugins")
   implementation("com.slack.api:bolt-servlet:1.6.0")
+  implementation("com.graphql-java:graphql-java-extended-scalars:16.0.0")
+  implementation("com.netflix.graphql.dgs:graphql-dgs-spring-boot-starter:3.9.3")
 
   runtimeOnly("io.spinnaker.kork:kork-runtime") {
     // these dependencies weren't previously being included, keeping them out for now, if there

@@ -6,8 +6,8 @@ import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.NOT_EVALUATED
-import com.netflix.spinnaker.keel.api.verification.VerificationRepository
-import com.netflix.spinnaker.keel.api.verification.VerificationState
+import com.netflix.spinnaker.keel.api.action.ActionRepository
+import com.netflix.spinnaker.keel.api.action.ActionState
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.rest.VerificationController.RetryVerificationRequest
@@ -46,7 +46,7 @@ internal class VerificationControllerTests
   lateinit var deliveryConfigRepository: DeliveryConfigRepository
 
   @MockkBean(relaxUnitFun = true)
-  lateinit var verificationRepository: VerificationRepository
+  lateinit var verificationRepository: ActionRepository
 
   private val verification = DummyVerification("1")
   private val environment = Environment(
@@ -147,7 +147,7 @@ internal class VerificationControllerTests
 
     every {
       verificationRepository.getState(any(), any())
-    } returns currentStatus?.let { VerificationState(it, now(), now()) }
+    } returns currentStatus?.let { ActionState(it, now(), now()) }
 
     mvc.perform(request).andExpect(status().isOk)
 
@@ -180,7 +180,7 @@ internal class VerificationControllerTests
 
     every {
       verificationRepository.getState(any(), any())
-    } returns VerificationState(currentStatus, now(), null)
+    } returns ActionState(currentStatus, now(), null)
 
     mvc.perform(request).andExpect(status().isConflict)
 

@@ -20,10 +20,10 @@ class SqlApproveOldVersionTests : ApproveOldVersionTests<CombinedRepository>() {
   private val clock = Clock.systemUTC()
 
   override fun createKeelRepository(resourceSpecIdentifier: ResourceSpecIdentifier, mapper: ObjectMapper): CombinedRepository {
-    val deliveryConfigRepository = SqlDeliveryConfigRepository(jooq, clock, resourceSpecIdentifier, mapper, sqlRetry, defaultArtifactSuppliers())
-    val resourceRepository = SqlResourceRepository(jooq, clock, resourceSpecIdentifier, emptyList(), mapper, sqlRetry)
-    val artifactRepository = SqlArtifactRepository(jooq, clock, mapper, sqlRetry, defaultArtifactSuppliers())
-    val verificationRepository = SqlVerificationRepository(jooq, clock, resourceSpecIdentifier, mapper, sqlRetry, environment = mockk())
+    val deliveryConfigRepository = SqlDeliveryConfigRepository(jooq, clock, resourceSpecIdentifier, mapper, sqlRetry, defaultArtifactSuppliers(), publisher = mockk(relaxed = true))
+    val resourceRepository = SqlResourceRepository(jooq, clock, resourceSpecIdentifier, emptyList(), mapper, sqlRetry, publisher = mockk(relaxed = true))
+    val artifactRepository = SqlArtifactRepository(jooq, clock, mapper, sqlRetry, defaultArtifactSuppliers(), publisher = mockk(relaxed = true))
+    val verificationRepository = SqlActionRepository(jooq, clock, resourceSpecIdentifier, mapper, sqlRetry, environment = mockk())
     return CombinedRepository(
       deliveryConfigRepository,
       artifactRepository,

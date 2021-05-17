@@ -9,7 +9,7 @@ interface TaskLauncher {
     resource: Resource<*>,
     description: String,
     correlationId: String,
-    job: Map<String, Any?>
+    job: Job
   ): Task =
     submitJob(
       resource = resource,
@@ -22,7 +22,7 @@ interface TaskLauncher {
     resource: Resource<*>,
     description: String,
     correlationId: String,
-    stages: List<Map<String, Any?>>
+    stages: List<Job>
   ): Task
 
   fun submitJobAsync(
@@ -39,7 +39,7 @@ interface TaskLauncher {
     subject: String,
     description: String,
     correlationId: String? = null,
-    stages: List<Map<String, Any?>>,
+    stages: List<Job>,
     artifacts: List<Map<String, Any?>> = emptyList(),
     parameters: Map<String, Any> = emptyMap()
   ): Task =
@@ -56,6 +56,12 @@ interface TaskLauncher {
       parameters = parameters
     )
 
+  /**
+   * Submits the list of actuation jobs specified by [stages].
+   *
+   * Implementations should call any registered [JobInterceptor] plugins on the list before
+   * submitting the jobs for execution.
+   */
   suspend fun submitJob(
     user: String,
     application: String,
@@ -63,7 +69,7 @@ interface TaskLauncher {
     subject: String,
     description: String,
     correlationId: String? = null,
-    stages: List<Map<String, Any?>>,
+    stages: List<Job>,
     type: SubjectType,
     artifacts: List<Map<String, Any?>> = emptyList(),
     parameters: Map<String, Any> = emptyMap()

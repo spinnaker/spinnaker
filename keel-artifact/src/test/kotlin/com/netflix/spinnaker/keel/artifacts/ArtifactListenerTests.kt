@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.artifacts
 
+import com.netflix.spinnaker.config.ArtifactConfig
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactMetadata
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.FINAL
@@ -88,14 +89,20 @@ internal class ArtifactListenerTests : JUnit5Minutests {
   abstract class ArtifactListenerFixture {
     val repository: KeelRepository = mockk(relaxUnitFun = true)
     val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
-    val dockerArtifactSupplier: DockerArtifactSupplier = mockk(relaxUnitFun = true)
-    val debianArtifactSupplier: DebianArtifactSupplier = mockk(relaxUnitFun = true)
-    val config = ArtifactRefreshConfig()
+    val dockerArtifactSupplier: DockerArtifactSupplier = mockk(relaxUnitFun = true) {
+      every { shouldProcessArtifact(any()) } returns true
+    }
+    val debianArtifactSupplier: DebianArtifactSupplier = mockk(relaxUnitFun = true) {
+      every { shouldProcessArtifact(any()) } returns true
+    }
+    val artifactConfig = ArtifactConfig()
+    val refreshConfig = ArtifactRefreshConfig()
     val listener: ArtifactListener = ArtifactListener(
       repository,
       publisher,
       listOf(debianArtifactSupplier, dockerArtifactSupplier),
-      config)
+      artifactConfig,
+      refreshConfig)
   }
 
   data class ArtifactPublishedFixture(
@@ -233,7 +240,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
 
     context("artifact already has saved versions") {
       before {
-        every { repository.artifactVersions(event.artifact) } returns listOf(publishedDeb)
+        every { repository.artifactVersions(event.artifact, any()) } returns listOf(publishedDeb)
         listener.onArtifactRegisteredEvent(event)
       }
 
@@ -244,7 +251,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
 
     context("the artifact does not have any versions stored") {
       before {
-        every { repository.artifactVersions(event.artifact) } returns emptyList()
+        every { repository.artifactVersions(event.artifact, any()) } returns emptyList()
       }
 
       context("there are available versions of the artifact") {

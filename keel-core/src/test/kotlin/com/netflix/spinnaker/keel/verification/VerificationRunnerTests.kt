@@ -12,25 +12,24 @@ import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PENDING
 import com.netflix.spinnaker.keel.api.plugins.CurrentImages
 import com.netflix.spinnaker.keel.api.plugins.ImageInRegion
 import com.netflix.spinnaker.keel.api.plugins.VerificationEvaluator
-import com.netflix.spinnaker.keel.api.verification.VerificationContext
-import com.netflix.spinnaker.keel.api.verification.VerificationRepository
-import com.netflix.spinnaker.keel.api.verification.VerificationState
+import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
+import com.netflix.spinnaker.keel.api.action.ActionRepository
+import com.netflix.spinnaker.keel.api.action.ActionState
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.enforcers.EnvironmentExclusionEnforcer
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.EnvironmentLeaseRepository
-import com.netflix.spinnaker.keel.persistence.Lease
 import com.netflix.spinnaker.keel.telemetry.VerificationCompleted
 import com.netflix.spinnaker.keel.telemetry.VerificationStarted
 import de.huxhorn.sulky.ulid.ULID
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.context.ApplicationEventPublisher
-import java.time.Clock
 import org.springframework.core.env.Environment as SpringEnvironment
 import java.time.Instant.now
 
@@ -41,7 +40,8 @@ internal class VerificationRunnerTests {
     override val type = "dummy"
   }
 
-  private val repository = mockk<VerificationRepository>(relaxUnitFun = true)
+  private val repository = mockk<ActionRepository>(relaxUnitFun = true)
+  private val specator = NoopRegistry()
   private val evaluator = mockk<VerificationEvaluator<DummyVerification>>(relaxUnitFun = true) {
     every { supportedVerification } returns ("dummy" to DummyVerification::class.java)
   }
@@ -63,8 +63,8 @@ internal class VerificationRunnerTests {
     every { getImages(any(), any()) } returns images
   }
 
-  private val verificationRepository = mockk<VerificationRepository>() {
-    every { getContextsWithStatus(any(), any(), any()) }  returns emptyList()
+  private val verificationRepository = mockk<ActionRepository>() {
+    every { getVerificationContextsWithStatus(any(), any(), any()) }  returns emptyList()
   }
 
   private val artifactRepository = mockk<ArtifactRepository>() {
@@ -75,6 +75,7 @@ internal class VerificationRunnerTests {
     every { tryAcquireLease(any(), any(), any()) } returns mockk(relaxUnitFun = true)
   }
 
+
   private val environmentExclusionEnforcer = EnvironmentExclusionEnforcer(springEnv, verificationRepository, artifactRepository, environmentLeaseRepository)
 
   private val subject = VerificationRunner(
@@ -82,12 +83,13 @@ internal class VerificationRunnerTests {
     listOf(evaluator),
     publisher,
     imageFinder,
-    environmentExclusionEnforcer
+    environmentExclusionEnforcer,
+    specator
   )
 
   @Test
   fun `no-ops for an environment with no verifications`() {
-    val context = VerificationContext(
+    val context = ArtifactInEnvironmentContext(
       deliveryConfig = DeliveryConfig(
         application = "fnord",
         name = "fnord-manifest",
@@ -104,7 +106,9 @@ internal class VerificationRunnerTests {
       version = "fnord-0.190.0-h378.eacb135"
     )
 
-    subject.runVerificationsFor(context)
+    runBlocking {
+      subject.runFor(context)
+    }
 
     verify(exactly = 0) { evaluator.start(any(), any()) }
     verify(exactly = 0) { publisher.publishEvent(any()) }
@@ -112,7 +116,7 @@ internal class VerificationRunnerTests {
 
   @Test
   fun `starts the first verification if none have been run yet`() {
-    val context = VerificationContext(
+    val context = ArtifactInEnvironmentContext(
       deliveryConfig = DeliveryConfig(
         application = "fnord",
         name = "fnord-manifest",
@@ -136,7 +140,7 @@ internal class VerificationRunnerTests {
     every { repository.getState(any(), any()) } returns null
     every { evaluator.start(any(), any()) } returns metadata
 
-    subject.runVerificationsFor(context)
+    runBlocking { subject.runFor(context) }
 
     verify { evaluator.start(context, DummyVerification("1")) }
     verify { repository.updateState(any(), DummyVerification("1"), PENDING, metadata) }
@@ -144,8 +148,41 @@ internal class VerificationRunnerTests {
   }
 
   @Test
+  fun `saves the link if it hasnt already been saved`() {
+    val context = ArtifactInEnvironmentContext(
+      deliveryConfig = DeliveryConfig(
+        application = "fnord",
+        name = "fnord-manifest",
+        serviceAccount = "jamm@illuminati.org",
+        artifacts = setOf(
+          DockerArtifact(name = "fnord", reference = "fnord-docker", branch = "main")
+        ),
+        environments = setOf(
+          Environment(
+            name = "test",
+            verifyWith = listOf(DummyVerification("1"), DummyVerification("2"))
+          )
+        )
+      ),
+      environmentName = "test",
+      artifactReference = "fnord-docker",
+      version = "fnord-0.190.0-h378.eacb135"
+    )
+
+    every { repository.getState(any(), any()) } returns ActionState(PENDING, now(), null, mapOf("tasks" to listOf(ULID().nextULID())))
+    every { evaluator.evaluate(any(), any(), any()) } answers {
+      val oldState = thirdArg<ActionState>()
+      oldState.copy(link = "www.mylink.com")
+    }
+
+    runBlocking { subject.runFor(context) }
+
+    verify { repository.updateState(any(), any(), PENDING, any(), "www.mylink.com") }
+  }
+
+  @Test
   fun `re-starts a verification if a user has requested it be retried`() {
-    val context = VerificationContext(
+    val context = ArtifactInEnvironmentContext(
       deliveryConfig = DeliveryConfig(
         application = "fnord",
         name = "fnord-manifest",
@@ -165,10 +202,10 @@ internal class VerificationRunnerTests {
       version = "fnord-0.190.0-h378.eacb135"
     )
 
-    every { repository.getState(any(), any()) } returns VerificationState(NOT_EVALUATED, now(), null, mapOf("tasks" to listOf(ULID().nextULID())))
+    every { repository.getState(any(), any()) } returns ActionState(NOT_EVALUATED, now(), null, mapOf("tasks" to listOf(ULID().nextULID())))
     every { evaluator.start(any(), any()) } answers { mapOf("tasks" to listOf(ULID().nextULID())) }
 
-    subject.runVerificationsFor(context)
+    runBlocking { subject.runFor(context) }
 
     verify { evaluator.start(context, DummyVerification("1")) }
     verify { repository.updateState(any(), DummyVerification("1"), PENDING, any()) }
@@ -177,7 +214,7 @@ internal class VerificationRunnerTests {
 
   @Test
   fun `no-ops if any verification was already running and has yet to complete`() {
-    val context = VerificationContext(
+    val context = ArtifactInEnvironmentContext(
       deliveryConfig = DeliveryConfig(
         application = "fnord",
         name = "fnord-manifest",
@@ -200,9 +237,9 @@ internal class VerificationRunnerTests {
     every { repository.getState(any(), DummyVerification("1")) } returns PENDING.toState()
     every { repository.getState(any(), DummyVerification("2")) } returns null
 
-    every { evaluator.evaluate(context, DummyVerification("1"), any()) } returns VerificationState(PENDING, startedAt = mockk(), null)
+    every { evaluator.evaluate(context, DummyVerification("1"), any()) } returns ActionState(PENDING, startedAt = mockk(), null)
 
-    subject.runVerificationsFor(context)
+    runBlocking { subject.runFor(context) }
 
     verify { evaluator.evaluate(context, DummyVerification("1"), any()) }
     verify(exactly = 0) { evaluator.start(any(), any()) }
@@ -217,7 +254,7 @@ internal class VerificationRunnerTests {
     names = ["PASS", "FAIL"]
   )
   fun `continues to the next if any verification was already running and has now completed`(status: ConstraintStatus) {
-    val context = VerificationContext(
+    val context = ArtifactInEnvironmentContext(
       deliveryConfig = DeliveryConfig(
         application = "fnord",
         name = "fnord-manifest",
@@ -240,11 +277,11 @@ internal class VerificationRunnerTests {
     every { repository.getState(any(), DummyVerification("1")) } returns PENDING.toState()
     every { repository.getState(any(), DummyVerification("2")) } returns null
 
-    every { evaluator.evaluate(context, DummyVerification("1"), any()) } returns VerificationState(status, mockk(), mockk())
+    every { evaluator.evaluate(context, DummyVerification("1"), any()) } returns ActionState(status, mockk(), mockk())
 
     every { evaluator.start(any(), any()) } returns emptyMap()
 
-    subject.runVerificationsFor(context)
+    runBlocking { subject.runFor(context) }
 
     verify { repository.updateState(any(), DummyVerification("1"), status) }
     verify { publisher.publishEvent(ofType<VerificationCompleted>()) }
@@ -262,7 +299,7 @@ internal class VerificationRunnerTests {
     names = ["PASS", "FAIL"]
   )
   fun `no-ops if all verifications are already complete`(status: ConstraintStatus) {
-    val context = VerificationContext(
+    val context = ArtifactInEnvironmentContext(
       deliveryConfig = DeliveryConfig(
         application = "fnord",
         name = "fnord-manifest",
@@ -285,7 +322,7 @@ internal class VerificationRunnerTests {
     every { repository.getState(any(), DummyVerification("1")) } returns PASS.toState()
     every { repository.getState(any(), DummyVerification("2")) } returns status.toState()
 
-    subject.runVerificationsFor(context)
+    runBlocking { subject.runFor(context) }
 
     verify(exactly = 0) {
       evaluator.start(any(), any())
@@ -293,7 +330,7 @@ internal class VerificationRunnerTests {
   }
 
   private fun ConstraintStatus.toState() =
-    VerificationState(
+    ActionState(
       status = this,
       startedAt = now(),
       endedAt = if (complete) now() else null

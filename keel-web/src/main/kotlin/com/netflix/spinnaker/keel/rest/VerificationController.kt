@@ -4,8 +4,8 @@ import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.NOT_EVALUATED
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.OVERRIDE_FAIL
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.OVERRIDE_PASS
-import com.netflix.spinnaker.keel.api.verification.VerificationContext
-import com.netflix.spinnaker.keel.api.verification.VerificationRepository
+import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
+import com.netflix.spinnaker.keel.api.action.ActionRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import org.springframework.http.HttpStatus.CONFLICT
@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 class VerificationController(
-  private val verificationRepository: VerificationRepository,
+  private val verificationRepository: ActionRepository,
   private val deliveryConfigRepository: DeliveryConfigRepository
 ) {
   @PostMapping(
@@ -44,7 +44,7 @@ class VerificationController(
       throw NotOverrideStatus()
     }
 
-    VerificationContext(
+    ArtifactInEnvironmentContext(
       deliveryConfig = deliveryConfigRepository.getByApplication(application),
       environmentName = environment,
       artifactReference = payload.artifactReference,
@@ -52,7 +52,7 @@ class VerificationController(
     ).apply {
       verificationRepository.updateState(
         context = this,
-        verification = verification(payload.verificationId) ?: throw InvalidVerificationId(payload.verificationId, this),
+        action = verification(payload.verificationId) ?: throw InvalidVerificationId(payload.verificationId, this),
         status = payload.status,
         mapOf("overriddenBy" to user, "comment" to payload.comment)
       )
@@ -86,7 +86,7 @@ class VerificationController(
     @PathVariable("environment") environment: String,
     @RequestBody payload: RetryVerificationRequest
   ) {
-    VerificationContext(
+    ArtifactInEnvironmentContext(
       deliveryConfig = deliveryConfigRepository.getByApplication(application),
       environmentName = environment,
       artifactReference = payload.artifactReference,
@@ -94,14 +94,14 @@ class VerificationController(
     ).apply {
       verificationRepository.getState(
         context = this,
-        verification = verification(payload.verificationId) ?: throw InvalidVerificationId(payload.verificationId, this)
+        action = verification(payload.verificationId) ?: throw InvalidVerificationId(payload.verificationId, this)
       )?.apply {
         if (!status.complete) throw VerificationIncomplete()
       }
 
       verificationRepository.updateState(
         context = this,
-        verification = verification(payload.verificationId) ?: throw InvalidVerificationId(payload.verificationId, this),
+        action = verification(payload.verificationId) ?: throw InvalidVerificationId(payload.verificationId, this),
         status = NOT_EVALUATED,
         mapOf("retryRequestedBy" to user)
       )
@@ -119,6 +119,6 @@ class VerificationController(
     IllegalStateException("Verifications may only be retried once complete.")
 
   @ResponseStatus(NOT_FOUND)
-  private class InvalidVerificationId(id: String, context: VerificationContext) :
+  private class InvalidVerificationId(id: String, context: ArtifactInEnvironmentContext) :
     IllegalStateException("Unknown verification id: $id. Expecting one of: ${context.verifications.map { it.id }}")
 }

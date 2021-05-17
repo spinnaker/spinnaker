@@ -30,10 +30,12 @@ internal class ContainerAttributesResolverTests : JUnit5Minutests {
   val westSubnets = "subnet-west-3, subnet-west-4"
   val account = "titus"
   val awsAccountId = "1234"
+  val ipv6key = "titus.ipv6"
 
   val defaults = mockk<DefaultContainerAttributes> {
     every { getAccountKey() } returns accountKey
     every { getSubnetKey() } returns subnetKey
+    every { getIPv6Key() } returns ipv6key
     every { getSubnetValue(account, "east")} returns eastSubnets
     every { getSubnetValue(account, "west")} returns westSubnets
     every { getSubnetValue(account, "south")} returns null
@@ -51,8 +53,8 @@ internal class ContainerAttributesResolverTests : JUnit5Minutests {
   )
 
   val clouddriverService = mockk<CloudDriverService>() {
-    coEvery { getAccountInformation(account, any()) } returns mapOf("awsAccount" to "aws")
-    coEvery { getAccountInformation("aws", any()) } returns mapOf("accountId" to awsAccountId)
+    coEvery { getAccountInformation(account, any()) } returns mapOf("awsAccount" to "aws", "environment" to "test")
+    coEvery { getAccountInformation("aws", any()) } returns mapOf("accountId" to awsAccountId, "environment" to "test")
   }
   val springEnv: Environment = mockk(relaxed = true) {
     coEvery { getProperty("keel.titus.resolvers.container-attributes.enabled", Boolean::class.java, true) } returns true

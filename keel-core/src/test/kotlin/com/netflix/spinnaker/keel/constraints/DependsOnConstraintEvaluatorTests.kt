@@ -4,7 +4,8 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
-import com.netflix.spinnaker.keel.api.verification.VerificationRepository
+import com.netflix.spinnaker.keel.api.action.ActionRepository
+import com.netflix.spinnaker.keel.api.action.ActionType.VERIFICATION
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
@@ -46,10 +47,13 @@ internal class DependsOnConstraintEvaluatorTests : JUnit5Minutests {
     )
 
     val artifactRepository: ArtifactRepository = mockk(relaxUnitFun = true)
-    val verificationRepository : VerificationRepository = mockk()
+    val actionRepository: ActionRepository = mockk() {
+      every { allPassed(any(), any()) } returns true
+      every { allStarted(any(), any()) } returns true
+    }
     val clock = MutableClock()
 
-    val subject = DependsOnConstraintEvaluator(artifactRepository, verificationRepository, mockk(), clock)
+    val subject = DependsOnConstraintEvaluator(artifactRepository, actionRepository, mockk(), clock)
   }
 
   fun tests() = rootContext<Fixture> {
@@ -57,7 +61,7 @@ internal class DependsOnConstraintEvaluatorTests : JUnit5Minutests {
 
     before {
       every {
-        verificationRepository.getStates(any())
+        actionRepository.getStates(any(), VERIFICATION)
       } returns emptyMap()
     }
 

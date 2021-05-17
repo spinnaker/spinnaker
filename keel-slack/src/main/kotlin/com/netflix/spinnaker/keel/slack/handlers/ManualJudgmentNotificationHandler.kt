@@ -35,6 +35,13 @@ class ManualJudgmentNotificationHandler(
   override fun sendMessage(notification: SlackManualJudgmentNotification, channel: String) {
     log.debug("Sending manual judgment await notification for application ${notification.application}")
 
+    val numVersionsToBePromoted = repository.getNumPendingToBePromoted(
+      application = notification.application,
+      artifactReference = notification.deliveryArtifact.reference,
+      environmentName = notification.targetEnvironment,
+      version = notification.artifactCandidate.version
+    )
+
     with(notification) {
       val compareLink = generateCompareLink(scmInfo, artifactCandidate, currentArtifact, deliveryArtifact)
       val headerText = "Awaiting manual judgement"
@@ -50,6 +57,12 @@ class ManualJudgmentNotificationHandler(
         gitDataGenerator
       )
       val actionBlocks = withBlocks {
+        if (numVersionsToBePromoted > 1) {
+          // add info about how many versions will be promoted if there is more than one
+          section {
+            markdownText(":speaking_head_in_silhouette: _$numVersionsToBePromoted versions ahead of current_")
+          }
+        }
         actions {
           elements {
             button {
@@ -81,7 +94,7 @@ class ManualJudgmentNotificationHandler(
                 text("See changes", emoji = true)
                 url(compareLink)
                 // action id will be consisted by 3 sections with ":" between them to keep it consistent
-                actionId("button:url:diff")
+                actionId("button:url:mj-diff-link")
               }
             }
           }
@@ -126,7 +139,7 @@ class ManualJudgmentNotificationHandler(
             imageUrl,
             artifactCandidate,
             imageAltText,
-            env = env
+            env = env,
           )
         }
         val gitMetadata = artifactCandidate.gitMetadata

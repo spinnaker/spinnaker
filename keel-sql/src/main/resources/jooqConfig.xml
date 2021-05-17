@@ -2,10 +2,11 @@
 <configuration xmlns="http://www.jooq.org/xsd/jooq-codegen-3.13.0.xsd">
   <jdbc>
     <driver>com.mysql.cj.jdbc.Driver</driver>
-    <url>jdbc:mysql://127.0.0.1:6603/keel?useLegacyDatetimeCode=false&amp;serverTimezone=UTC</url>
+    <url>jdbc:mysql://127.0.0.1:6603/keel?useSSL=false&amp;useLegacyDatetimeCode=false&amp;serverTimezone=UTC</url>
     <user>root</user>
     <password>sa</password>
   </jdbc>
+  <logging>WARN</logging>
   <generator>
     <database>
       <name>org.jooq.meta.mysql.MySQLDatabase</name>
@@ -39,7 +40,7 @@
         <forcedType>
           <userType><![CDATA[java.util.Map<String, ?>]]></userType>
           <converter>com.netflix.spinnaker.jooq.JsonToMapConverter</converter>
-          <includeExpression>(DELIVERY_CONFIG|VERIFICATION_STATE)\\.METADATA</includeExpression>
+          <includeExpression>(DELIVERY_CONFIG|ACTION_STATE)\\.METADATA</includeExpression>
         </forcedType>
         <!-- Automatically convert remaining JSON columns to String -->
         <forcedType>
@@ -106,7 +107,12 @@
         <forcedType>
           <userType>com.netflix.spinnaker.keel.api.constraints.ConstraintStatus</userType>
           <enumConverter>true</enumConverter>
-          <includeExpression>VERIFICATION_STATE\\.STATUS</includeExpression>
+          <includeExpression>ACTION_STATE\\.STATUS</includeExpression>
+        </forcedType>
+        <forcedType>
+          <userType>com.netflix.spinnaker.keel.api.action.ActionType</userType>
+          <enumConverter>true</enumConverter>
+          <includeExpression>ACTION_STATE\\.TYPE</includeExpression>
         </forcedType>
       </forcedTypes>
     </database>

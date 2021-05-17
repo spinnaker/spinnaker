@@ -44,9 +44,13 @@ abstract class BakedImageRepositoryTests<T : BakedImageRepository> : JUnit5Minut
   val artifact = DebianArtifact(
     name = "keel",
     deliveryConfigName = "keel-config",
-    vmOptions = VirtualMachineOptions(baseOs = "bionic-classic", regions = setOf("us-west-1", "us-east-1")))
+    vmOptions = VirtualMachineOptions(
+      baseOs = "bionic-classic",
+      regions = setOf("us-west-1", "us-east-1")
+    )
+  )
 
-  data class Fixture<T: BakedImageRepository>(
+  data class Fixture<T : BakedImageRepository>(
     val subject: T
   )
 
@@ -63,13 +67,13 @@ abstract class BakedImageRepositoryTests<T : BakedImageRepository> : JUnit5Minut
           .isSuccess()
       }
 
-      test("can retrieve stored image"){
+      test("can retrieve stored image") {
         subject.store(bakedImage)
         val image = subject.getByArtifactVersion(version, artifact)
-        expect {
-          that(image).isNotNull()
-          that(image?.amiIdsByRegion).isEqualTo(amisByRegion)
-        }
+        expectThat(image)
+          .isNotNull()
+          .get { amiIdsByRegion }
+          .isEqualTo(amisByRegion)
       }
     }
 
@@ -81,6 +85,29 @@ abstract class BakedImageRepositoryTests<T : BakedImageRepository> : JUnit5Minut
 
       test("getting latest by version returns null") {
         expectThat(subject.getByArtifactVersion(version, artifact)).isNull()
+      }
+    }
+
+    context("updating a baked image if it gets re-baked with a newer base AMI") {
+      before {
+        subject.store(bakedImage)
+      }
+
+      test("the newer AMI details are stored") {
+        val newBakedImage  = bakedImage.copy(
+          name = "$version-x86_64-20210429221913-bionic-classic-hvm-sriov-ebs",
+          baseAmiName = "ami-456",
+          amiIdsByRegion = mapOf(
+            "us-east-1" to "ami-3",
+            "us-west-1" to "ami-4"
+          )
+        )
+        subject.store(newBakedImage)
+
+        expectThat(subject.getByArtifactVersion(version, artifact))
+          .isNotNull()
+          .get { amiIdsByRegion }
+          .isEqualTo(newBakedImage.amiIdsByRegion)
       }
     }
   }

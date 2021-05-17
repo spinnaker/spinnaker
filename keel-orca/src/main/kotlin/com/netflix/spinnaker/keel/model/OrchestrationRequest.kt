@@ -15,6 +15,8 @@
  */
 package com.netflix.spinnaker.keel.model
 
+import com.netflix.spinnaker.keel.api.actuation.Job
+
 data class OrchestrationRequest(
   val name: String,
   val application: String,
@@ -22,8 +24,6 @@ data class OrchestrationRequest(
   val job: List<Job>,
   val trigger: OrchestrationTrigger
 )
-
-class Job(type: String, m: Map<String, Any?>) : HashMap<String, Any?>(m + mapOf("type" to type, "user" to "Spinnaker"))
 
 data class OrchestrationTrigger(
   val correlationId: String?,

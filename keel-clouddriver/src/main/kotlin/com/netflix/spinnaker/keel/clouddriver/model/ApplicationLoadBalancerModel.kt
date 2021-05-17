@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.clouddriver.model
 import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonAnyGetter
 import com.netflix.spinnaker.keel.api.Moniker
+import java.time.Duration
 
 data class ApplicationLoadBalancerModel(
   override val moniker: Moniker?,
@@ -35,7 +36,8 @@ data class ApplicationLoadBalancerModel(
     val type: String,
     val order: Int,
     val targetGroupName: String?,
-    val redirectConfig: RedirectConfig?
+    val redirectConfig: RedirectConfig?,
+    val authenticateOidcConfig: AuthenticateOidcConfig?
   )
 
   data class Rule(
@@ -57,6 +59,19 @@ data class ApplicationLoadBalancerModel(
     val path: String,
     val query: String?,
     val statusCode: String
+  )
+
+  data class AuthenticateOidcConfig(
+    val issuer: String,
+    val authorizationEndpoint: String,
+    val tokenEndpoint: String,
+    val userInfoEndpoint: String,
+    val clientId: String,
+    val sessionCookieName: String,
+    val scope: String,
+    val sessionTimeout: Long,
+    val onUnauthenticatedRequest: String = "authenticate",
+    val authenticationRequestExtraParams: Map<String, Any?> = emptyMap()
   )
 
   data class TargetGroup(

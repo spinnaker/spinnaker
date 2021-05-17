@@ -4,18 +4,21 @@ import com.netflix.spinnaker.keel.events.ApplicationActuationPaused
 import com.netflix.spinnaker.keel.events.ApplicationActuationResumed
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceActuationResumed
-import com.netflix.spinnaker.keel.events.ResourceDiffNotActionable
 import com.netflix.spinnaker.keel.events.ResourceActuationVetoed
 import com.netflix.spinnaker.keel.events.ResourceCheckError
 import com.netflix.spinnaker.keel.events.ResourceCheckUnresolvable
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
 import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
+import com.netflix.spinnaker.keel.events.ResourceDiffNotActionable
+import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.events.ResourceHistoryEvent
 import com.netflix.spinnaker.keel.events.ResourceMissing
 import com.netflix.spinnaker.keel.events.ResourceTaskFailed
 import com.netflix.spinnaker.keel.events.ResourceTaskSucceeded
+import com.netflix.spinnaker.keel.events.ResourceUpdated
 import com.netflix.spinnaker.keel.events.ResourceValid
+import com.netflix.spinnaker.keel.events.VerificationBlockedActuation
 import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceStatus
@@ -57,6 +60,8 @@ class ResourceStatusService(
     }
 
     val history = resourceRepository.eventHistory(id, 10)
+      .filterForStatus()
+
     return when {
       history.isEmpty() -> UNKNOWN // shouldn't happen, but is a safeguard since events are persisted asynchronously
       history.isHappy() -> HAPPY
@@ -74,8 +79,53 @@ class ResourceStatusService(
     }
   }
 
+  fun getActuationState(id: String): ResourceActuationState {
+    // For the PAUSED status, we look at the `paused` table as opposed to events, since these records
+    // persist even when a delivery config/resource (and associated events) have been deleted. We do
+    // this so we don't inadvertently start actuating on a resource that had been previously paused,
+    // without explicit action from the user to resume.
+    if (actuationPauser.isPaused(id)) {
+      return ResourceActuationState(ResourceStatusUserFriendly.NOT_MANAGED)
+    }
+
+    val history = resourceRepository.eventHistory(id, 10)
+      .filterForStatus()
+
+    val firstMessage = history.getFirstMessage()
+
+    return when {
+      history.isHappy() -> ResourceStatusUserFriendly.UP_TO_DATE.toActuationState(eventMessage = firstMessage)
+      history.isBlocked() -> ResourceStatusUserFriendly.WAITING.toActuationState(reason = "Resource is locked while verifications are running", eventMessage = firstMessage)
+      history.isEmpty() -> ResourceStatusUserFriendly.PROCESSING.toActuationState(reason = "New resource will be created shortly")
+      history.isDiff() -> ResourceStatusUserFriendly.PROCESSING.toActuationState(reason = "Resource does not match the config and will be updated soon", eventMessage = firstMessage)
+      history.isActuating() -> ResourceStatusUserFriendly.PROCESSING.toActuationState(reason = "Resource is being updated", eventMessage = firstMessage)
+      history.isCreated() -> ResourceStatusUserFriendly.PROCESSING.toActuationState(reason = "New resource will be created shortly", eventMessage = firstMessage)
+      history.isResumed() -> ResourceStatusUserFriendly.PROCESSING.toActuationState(reason = "Resource management will resume shortly", eventMessage = firstMessage)
+      history.isMissingDependency() -> ResourceStatusUserFriendly.ERROR.toActuationState(reason = firstMessage, eventMessage = firstMessage)
+      history.isVetoed() -> ResourceStatusUserFriendly.ERROR.toActuationState(reason = "We failed to update the resource multiple times", eventMessage = firstMessage)
+      history.isDiffNotActionable() -> ResourceStatusUserFriendly.ERROR.toActuationState(reason = "We are unable to update resource to match the config", eventMessage = firstMessage)
+      history.isError() -> ResourceStatusUserFriendly.ERROR.toActuationState(reason = "Unknown reason", eventMessage = firstMessage)
+      history.isCurrentlyUnresolvable() -> ResourceStatusUserFriendly.ERROR.toActuationState(reason = "We are temporarily unable to check resource status", eventMessage = firstMessage)
+      else -> ResourceStatusUserFriendly.ERROR.toActuationState(reason = "Unknown reason", eventMessage = firstMessage)
+    }
+
+  }
+
+  fun List<ResourceHistoryEvent>.getFirstMessage(): String? =
+    filterIsInstance<ResourceEvent>().firstOrNull()?.message
+
+  /**
+   * Filter out resource events that are not relevant to determine status.
+   */
+  private fun List<ResourceHistoryEvent>.filterForStatus() =
+    filter { it !is ResourceUpdated }
+
   private fun List<ResourceHistoryEvent>.isHappy(): Boolean {
     return first() is ResourceValid || first() is ResourceDeltaResolved
+  }
+
+  private fun List<ResourceHistoryEvent>.isBlocked(): Boolean {
+    return first() is VerificationBlockedActuation
   }
 
   private fun List<ResourceHistoryEvent>.isDiffNotActionable(): Boolean {
@@ -83,9 +133,10 @@ class ResourceStatusService(
   }
 
   private fun List<ResourceHistoryEvent>.isActuating(): Boolean {
-    return first() is ResourceActuationLaunched || first() is ResourceTaskSucceeded ||
+    val first = first()
+    return first is ResourceActuationLaunched || first is ResourceTaskSucceeded ||
       // we might want to move ResourceTaskFailed to isError later on
-      first() is ResourceTaskFailed
+      first is ResourceTaskFailed
   }
 
   private fun List<ResourceHistoryEvent>.isError(): Boolean {
@@ -116,13 +167,17 @@ class ResourceStatusService(
     return first() is ResourceCheckUnresolvable
   }
 
+  private fun List<ResourceHistoryEvent>.isVetoed(): Boolean {
+    return first() is ResourceActuationVetoed && (first() as ResourceActuationVetoed).getStatus() == UNHAPPY
+  }
+
   /**
    * Returns true if a resource has been vetoed by the unhappy veto,
    * or if the last 10 events are only ResourceActuationLaunched or ResourceDeltaDetected events,
    * or if the resource has been vetoed by an unspecified veto that we don't have an explicit status mapping for.
    */
   private fun List<ResourceHistoryEvent>.isUnhappy(): Boolean {
-    if (first() is ResourceActuationVetoed && (first() as ResourceActuationVetoed).getStatus() == UNHAPPY) {
+    if (isVetoed()) {
       return true
     }
 
@@ -159,4 +214,24 @@ class ResourceStatusService(
    */
   private fun ResourceActuationVetoed.isMissingDependency(): Boolean =
     reason?.contains("is not found in", true) ?: false
+}
+
+data class ResourceActuationState(
+  val status: ResourceStatusUserFriendly,
+  /** A user friendly reason based on our understanding of the current state */
+  val reason: String? = null,
+  /** The content of the last event */
+  val eventMessage: String? = null
+)
+
+enum class ResourceStatusUserFriendly {
+  PROCESSING,
+  UP_TO_DATE,
+  ERROR,
+  WAITING,
+  NOT_MANAGED;
+
+  fun toActuationState(reason: String? = null, eventMessage: String? = null): ResourceActuationState {
+    return ResourceActuationState(status = this, reason = reason, eventMessage = eventMessage)
+  }
 }

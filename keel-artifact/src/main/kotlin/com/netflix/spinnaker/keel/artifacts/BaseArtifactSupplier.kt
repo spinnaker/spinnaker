@@ -24,7 +24,7 @@ abstract class BaseArtifactSupplier<A : DeliveryArtifact, V : SortingStrategy>(
       "with build number: $buildNumber and commit id: $commitId")
     return try {
       val artifactMetadata = artifactMetadataService.getArtifactMetadata(buildNumber, commitId)
-      log.debug("received $artifactMetadata for build $buildNumber and commit $commitId")
+      log.debug("received artifact metadata $artifactMetadata for build $buildNumber and commit $commitId")
       artifactMetadata
 
     } catch (ex: Exception) {

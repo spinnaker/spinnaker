@@ -11,7 +11,7 @@ import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStateAttributes
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
-import com.netflix.spinnaker.keel.api.verification.VerificationState
+import com.netflix.spinnaker.keel.api.action.ActionState
 import com.netflix.spinnaker.keel.constraints.AllowedTimesConstraintEvaluator
 import com.netflix.spinnaker.keel.lifecycle.LifecycleStep
 import java.time.Instant
@@ -64,7 +64,7 @@ data class VerificationSummary(
   val completedAt: Instant? = null,
   val link: String? = null
 ) {
-  constructor(v: Verification, s: VerificationState) :
+  constructor(v: Verification, s: ActionState) :
     this(v.id, v.type, s.status.toString(), s.startedAt, s.endedAt, s.link)
 }
 

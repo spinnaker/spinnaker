@@ -17,8 +17,8 @@
  */
 package com.netflix.spinnaker.keel.rest
 
+import com.netflix.spinnaker.config.ArtifactConfig
 import com.netflix.spinnaker.keel.api.DeliveryConfig
-import com.netflix.spinnaker.keel.api.artifacts.DEFAULT_MAX_ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.constraints.UpdatedConstraintStatus
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
@@ -30,6 +30,7 @@ import com.netflix.spinnaker.keel.services.ApplicationService
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import org.slf4j.LoggerFactory
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.security.access.prepost.PreAuthorize
@@ -46,9 +47,11 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping(path = ["/application"])
+@EnableConfigurationProperties(ArtifactConfig::class)
 class ApplicationController(
   private val actuationPauser: ActuationPauser,
-  private val applicationService: ApplicationService
+  private val applicationService: ApplicationService,
+  private val artifactConfig: ArtifactConfig
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -83,7 +86,7 @@ class ApplicationController(
             "resources" -> applicationService.getResourceSummariesFor(application)
             "environments" -> applicationService.getEnvironmentSummariesFor(application)
             "artifacts" -> applicationService.getArtifactSummariesFor(application,
-              maxArtifactVersions ?: DEFAULT_MAX_ARTIFACT_VERSIONS)
+              maxArtifactVersions ?: artifactConfig.defaultMaxConsideredVersions)
             else -> throw InvalidRequestException("Unknown entity type: $entity")
           }
         }

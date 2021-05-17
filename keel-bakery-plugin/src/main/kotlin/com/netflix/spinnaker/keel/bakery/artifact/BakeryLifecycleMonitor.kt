@@ -95,7 +95,7 @@ class BakeryLifecycleMonitor(
    */
   suspend fun storeBakedImage(execution: ExecutionDetailResponse) {
     // we know we launch a bake task with a stage called "bake".
-    val bakeStageRaw = execution.execution.stages?.find { it["type"] == "bake" }
+    val bakeStageRaw = execution.execution?.stages?.find { it["type"] == "bake" }
     if (bakeStageRaw == null) {
       log.error("Trying to find baked ami information, but can't find a bake stage for app ${execution.application} in execution ${execution.id}")
       return

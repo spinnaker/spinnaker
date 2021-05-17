@@ -1,0 +1,29 @@
+databaseChangeLog:
+  - changeSet:
+      id: environment-is-preview
+      author: lpollo
+      changes:
+        - addColumn:
+            tableName: environment
+            columns:
+              - column:
+                  name: is_preview
+                  type: boolean
+                  defaultValue: false
+                  constraints:
+                    nullable: false
+                  afterColumn: name
+        - dropView:
+            viewName: latest_environment
+        - createView:
+            viewName: latest_environment
+            selectQuery: |
+              select uid, delivery_config_uid, name, version, is_preview, constraints, notifications, verifications, post_deploy_actions
+              from environment
+              join environment_version
+                on environment.uid = environment_version.environment_uid
+                and environment_version.version = (
+                  select max(ev2.version)
+                  from environment_version ev2
+                  where environment.uid = ev2.environment_uid
+                );

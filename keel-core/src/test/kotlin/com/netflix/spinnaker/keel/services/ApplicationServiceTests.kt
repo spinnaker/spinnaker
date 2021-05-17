@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.services
 
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.config.ArtifactConfig
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.ScmInfo
@@ -9,7 +10,6 @@ import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.RELEASE
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.SNAPSHOT
 import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
 import com.netflix.spinnaker.keel.api.artifacts.Commit
-import com.netflix.spinnaker.keel.api.artifacts.DEFAULT_MAX_ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
@@ -24,8 +24,8 @@ import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintType
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.ConstraintEvaluator
 import com.netflix.spinnaker.keel.api.plugins.SupportedArtifact
-import com.netflix.spinnaker.keel.api.verification.VerificationContext
-import com.netflix.spinnaker.keel.api.verification.VerificationState
+import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
+import com.netflix.spinnaker.keel.api.action.ActionState
 import com.netflix.spinnaker.keel.core.api.ArtifactSummary
 import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
 import com.netflix.spinnaker.keel.core.api.ArtifactVersionStatus
@@ -70,7 +70,6 @@ import strikt.assertions.first
 import strikt.assertions.hasSize
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
-import strikt.assertions.isFalse
 import strikt.assertions.isTrue
 import strikt.assertions.withFirst
 import java.time.Instant
@@ -94,6 +93,8 @@ class ApplicationServiceTests : JUnit5Minutests {
 
     val releaseArtifact = DummyArtifact(reference = "release")
     val snapshotArtifact = DummyArtifact(reference = "snapshot")
+
+    val limit=15
 
     data class DummyVerification(override val id: String) : Verification {
       override val type = "dummy"
@@ -149,6 +150,24 @@ class ApplicationServiceTests : JUnit5Minutests {
       serviceAccount = "keel@spinnaker",
       artifacts = setOf(releaseArtifact, snapshotArtifact),
       environments = dualArtifactEnvironments.values.toSet()
+    )
+
+    val serialEnvironments = listOf("test", "staging", "production").shuffled().associateWith { name ->
+      Environment(
+        name = name,
+        constraints = when (name) {
+          "production" -> setOf(DependsOnConstraint("staging"))
+          "staging" -> setOf(DependsOnConstraint("test"))
+          else -> emptySet()
+        }
+      )
+    }
+
+    val serialEnvironmentsDeliveryConfig = DeliveryConfig(
+      name = "manifest_$application1",
+      application = application1,
+      serviceAccount = "keel@spinnaker",
+      environments = serialEnvironments.values.toSet()
     )
 
     val version0 = "fnord-1.0.0-h0.a0a0a0a"
@@ -215,7 +234,8 @@ class ApplicationServiceTests : JUnit5Minutests {
       publisher,
       springEnv,
       clock,
-      spectator
+      spectator,
+      ArtifactConfig()
     )
 
     val buildMetadata = BuildMetadata(
@@ -312,8 +332,8 @@ class ApplicationServiceTests : JUnit5Minutests {
 
     context("artifact summaries by application") {
       before {
-        every { repository.artifactVersions(releaseArtifact) } returns versions.toArtifactVersions(releaseArtifact)
-        every { repository.artifactVersions(snapshotArtifact) } returns snapshotVersions.toArtifactVersions(
+        every { repository.artifactVersions(releaseArtifact, any()) } returns versions.toArtifactVersions(releaseArtifact)
+        every { repository.artifactVersions(snapshotArtifact, any()) } returns snapshotVersions.toArtifactVersions(
           snapshotArtifact
         )
       }
@@ -360,7 +380,7 @@ class ApplicationServiceTests : JUnit5Minutests {
           }
 
           test("artifact summary shows all versions pending in all environments") {
-            val summaries = applicationService.getArtifactSummariesFor(application1)
+            val summaries = applicationService.getArtifactSummariesFor(application1, limit)
 
             expectThat(summaries) {
               hasSize(1)
@@ -457,14 +477,14 @@ class ApplicationServiceTests : JUnit5Minutests {
               arg(1) in listOf(version0, version1)
             }
 
-            val contexts = slot<List<VerificationContext>>()
+            val contexts = slot<List<ArtifactInEnvironmentContext>>()
             every {
               repository.getVerificationStatesBatch(capture(contexts))
             } returns emptyList()
           }
 
           test("artifact summary shows correct current version in each environment") {
-            val summaries = applicationService.getArtifactSummariesFor(application1)
+            val summaries = applicationService.getArtifactSummariesFor(application1, limit)
             expectThat(summaries) {
               first()
                 .withVersionInEnvironment(version3, "test") {
@@ -480,7 +500,7 @@ class ApplicationServiceTests : JUnit5Minutests {
           }
 
           test("artifact summary shows correct previous versions in each environment") {
-            val summaries = applicationService.getArtifactSummariesFor(application1)
+            val summaries = applicationService.getArtifactSummariesFor(application1, limit)
             expectThat(summaries) {
               first()
                 .withVersionInEnvironment(version2, "test") {
@@ -505,7 +525,7 @@ class ApplicationServiceTests : JUnit5Minutests {
           }
 
           test("artifact summary shows correct pending versions in each environment") {
-            val summaries = applicationService.getArtifactSummariesFor(application1)
+            val summaries = applicationService.getArtifactSummariesFor(application1, limit)
             expectThat(summaries) {
               first()
                 .withVersionInEnvironment(version4, "test") {
@@ -530,7 +550,7 @@ class ApplicationServiceTests : JUnit5Minutests {
           }
 
           test("stateless constraint details are included in the summary") {
-            val summaries = applicationService.getArtifactSummariesFor(application1)
+            val summaries = applicationService.getArtifactSummariesFor(application1, limit)
 
             expectThat(summaries.first())
               .withVersionInEnvironment(version1, "production") {
@@ -550,7 +570,7 @@ class ApplicationServiceTests : JUnit5Minutests {
           }
 
           test("stateful constraint details are included in the summary") {
-            val summaries = applicationService.getArtifactSummariesFor(application1)
+            val summaries = applicationService.getArtifactSummariesFor(application1, limit)
 
             expectThat(summaries.first())
               .withVersionInEnvironment(version1, "production") {
@@ -566,7 +586,7 @@ class ApplicationServiceTests : JUnit5Minutests {
           }
 
           test("non-evaluated stateful constraint details are included in the summary") {
-            val summaries = applicationService.getArtifactSummariesFor(application1)
+            val summaries = applicationService.getArtifactSummariesFor(application1, limit)
 
             expectThat(summaries.first { it.reference == releaseArtifact.reference })
               .withVersionInEnvironment(version1, "production") {
@@ -687,7 +707,7 @@ class ApplicationServiceTests : JUnit5Minutests {
             }
 
             test("we use the summary we found for the skipped version") {
-              val summaries = applicationService.getArtifactSummariesFor(application1)
+              val summaries = applicationService.getArtifactSummariesFor(application1, limit)
 
               expectThat(summaries) {
                 first()
@@ -700,7 +720,7 @@ class ApplicationServiceTests : JUnit5Minutests {
 
           context("the skipped version has an artifact summary for the environment with a status of 'pending'") {
             test("we ignore the summary we found for the skipped version") {
-              val summaries = applicationService.getArtifactSummariesFor(application1)
+              val summaries = applicationService.getArtifactSummariesFor(application1, limit)
 
               expectThat(summaries) {
                 first()
@@ -713,7 +733,7 @@ class ApplicationServiceTests : JUnit5Minutests {
 
           context("the skipped version has no artifact summary for the environment") {
             test("we synthesize a summary for the skipped version") {
-              val summaries = applicationService.getArtifactSummariesFor(application1)
+              val summaries = applicationService.getArtifactSummariesFor(application1, limit)
 
               expectThat(summaries) {
                 first()
@@ -755,13 +775,6 @@ class ApplicationServiceTests : JUnit5Minutests {
                 singleArtifactEnvironments.getValue("production")
               )
             } returns false
-          }
-
-          test("getting artifact summaries has a default cap on versions") {
-            applicationService.getArtifactSummariesFor(application1).also {
-              verify { repository.artifactVersions(releaseArtifact, DEFAULT_MAX_ARTIFACT_VERSIONS) }
-              expectThat(it.first().versions).hasSize(DEFAULT_MAX_ARTIFACT_VERSIONS)
-            }
           }
 
           test("getting artifact summaries respects the max versions parameter") {
@@ -878,7 +891,7 @@ class ApplicationServiceTests : JUnit5Minutests {
           }
 
           test("artifact summary shows correct current version in each environment") {
-            val summaries = applicationService.getArtifactSummariesFor(application2)
+            val summaries = applicationService.getArtifactSummariesFor(application2, limit)
             expectThat(summaries) {
               hasSize(2)
               first { it.reference == snapshotArtifact.reference }
@@ -893,7 +906,7 @@ class ApplicationServiceTests : JUnit5Minutests {
           }
 
           test("artifact summary shows correct previous versions in each environment") {
-            val summaries = applicationService.getArtifactSummariesFor(application2)
+            val summaries = applicationService.getArtifactSummariesFor(application2, limit)
             expectThat(summaries) {
               first { it.reference == snapshotArtifact.reference }
                 .withVersionInEnvironment(snapshotVersion1, "pr") {
@@ -913,7 +926,7 @@ class ApplicationServiceTests : JUnit5Minutests {
           }
 
           test("artifact summary shows no pending versions in each environment when they're not used") {
-            val summaries = applicationService.getArtifactSummariesFor(application2)
+            val summaries = applicationService.getArtifactSummariesFor(application2, limit)
             val releaseVersionsSummary = summaries.first { it.reference == releaseArtifact.reference }.versions
             val snapshotVersionsSummary = summaries.first { it.reference == snapshotArtifact.reference }.versions
 
@@ -1079,15 +1092,15 @@ class ApplicationServiceTests : JUnit5Minutests {
           }
         }
 
-        every { repository.artifactVersions(releaseArtifact) } returns versions.toArtifactVersions(releaseArtifact)
+        every { repository.artifactVersions(releaseArtifact, any()) } returns versions.toArtifactVersions(releaseArtifact)
 
-        val contexts = slot<List<VerificationContext>>()
+        val contexts = slot<List<ArtifactInEnvironmentContext>>()
         every {
           repository.getVerificationStatesBatch(capture(contexts))
         } answers {
           contexts.captured.map {
-            val c = { env: String, ver: String -> VerificationContext(singleArtifactDeliveryConfig, env, "release", ver) }
-            val s = { status: ConstraintStatus -> VerificationState(status, clock.instant(), clock.instant()) }
+            val c = { env: String, ver: String -> ArtifactInEnvironmentContext(singleArtifactDeliveryConfig, env, "release", ver) }
+            val s = { status: ConstraintStatus -> ActionState(status, clock.instant(), clock.instant()) }
             when (it) {
               c("test", version0) -> mapOf("smoke" to s(FAIL))
 
@@ -1119,7 +1132,7 @@ class ApplicationServiceTests : JUnit5Minutests {
       }
 
       test("verification summaries") {
-        val summary = applicationService.getArtifactSummariesFor(application1)[0]
+        val summary = applicationService.getArtifactSummariesFor(application1, limit)[0]
 
         // helper
         val v = { ver: String, env: String ->
@@ -1147,13 +1160,27 @@ class ApplicationServiceTests : JUnit5Minutests {
         }
 
         test("artifact summaries succeeds, with no verification info") {
-          val versions = applicationService.getArtifactSummariesFor(application1)[0].versions
+          val versions = applicationService.getArtifactSummariesFor(application1, limit)[0].versions
           versions.forEach {
             expectThat(it.environments).all {
               this.get { verifications }.isEmpty()
             }
           }
         }
+      }
+    }
+
+    context("delivery config with serial environments") {
+      before {
+        every { repository.getDeliveryConfigForApplication(application1) } returns serialEnvironmentsDeliveryConfig
+        every {repository.getEnvironmentSummaries(serialEnvironmentsDeliveryConfig) } returns serialEnvironments.values.map {
+          toEnvironmentSummary(it) {  ArtifactVersionStatus() }
+        }
+      }
+
+      test("environment summaries are ordered based on dependencies") {
+        val envSummaries = applicationService.getEnvironmentSummariesFor(application1)
+        expectThat(envSummaries.map { it.name }).containsExactly(listOf("test", "staging", "production"))
       }
     }
   }

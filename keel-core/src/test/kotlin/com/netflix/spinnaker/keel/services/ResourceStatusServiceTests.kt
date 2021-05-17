@@ -15,6 +15,7 @@ import com.netflix.spinnaker.keel.events.ResourceHistoryEvent
 import com.netflix.spinnaker.keel.events.ResourceMissing
 import com.netflix.spinnaker.keel.events.ResourceTaskFailed
 import com.netflix.spinnaker.keel.events.ResourceTaskSucceeded
+import com.netflix.spinnaker.keel.events.ResourceUpdated
 import com.netflix.spinnaker.keel.events.ResourceValid
 import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
@@ -76,12 +77,24 @@ class ResourceStatusServiceTests : JUnit5Minutests {
           before {
             every { actuationPauser.isPaused(resource.id) } returns false
           }
+
           context("when last event is ResourceCreated") {
             before {
               events.add(ResourceCreated(resource))
             }
 
             test("returns CREATED") {
+              expectThat(subject.getStatus(resource.id)).isEqualTo(CREATED)
+            }
+          }
+
+          context("when last event is ResourceUpdated") {
+            before {
+              events.add(ResourceCreated(resource))
+              events.add(ResourceUpdated(resource, mapOf("something" to "changed")))
+            }
+
+            test("returns the status corresponding to the previous event") {
               expectThat(subject.getStatus(resource.id)).isEqualTo(CREATED)
             }
           }

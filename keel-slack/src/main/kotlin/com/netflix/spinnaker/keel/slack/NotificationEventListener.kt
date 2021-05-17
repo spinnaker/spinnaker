@@ -25,6 +25,7 @@ import com.netflix.spinnaker.keel.events.ResourceTaskFailed
 import com.netflix.spinnaker.keel.events.UnpinnedNotification
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEvent
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus
+import com.netflix.spinnaker.keel.lifecycle.LifecycleEventType
 import com.netflix.spinnaker.keel.notifications.NotificationType.APPLICATION_PAUSED
 import com.netflix.spinnaker.keel.notifications.NotificationType.APPLICATION_RESUMED
 import com.netflix.spinnaker.keel.notifications.NotificationType.ARTIFACT_DEPLOYMENT_FAILED
@@ -189,16 +190,17 @@ class NotificationEventListener(
   fun onLifecycleEvent(notification: LifecycleEvent) {
     with(notification) {
       val (config, artifact) = getConfigAndArtifact(
-        deliveryConfigName = artifactRef.split(":")[0],
-        artifactReference = artifactRef.split(":")[1],
-        version = artifactVersion) ?: return
+        deliveryConfigName = deliveryConfigName,
+        artifactReference = artifactReference,
+        version = artifactVersion
+      ) ?: return
 
       val deliveryArtifact = config.artifacts.find {
-        it.reference == artifactRef.split(":")[1]
+        it.reference == artifactReference
       } ?: return
 
-      // we only send notifications for failures
-      if (status == LifecycleEventStatus.FAILED) {
+      // we only send notifications for bake failures
+      if (status == LifecycleEventStatus.FAILED && type == LifecycleEventType.BAKE) {
         sendSlackMessage(config,
           SlackLifecycleNotification(
             time = clock.instant(),
@@ -498,4 +500,3 @@ class NotificationEventListener(
     return Pair(deliveryConfig, artifact.copy(reference = deliveryArtifact.reference))
   }
 }
-

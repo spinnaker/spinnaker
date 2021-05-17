@@ -13,8 +13,19 @@ environments:
         protocol: HTTPS
         certificate: fnord.prod.illuminati.org-DigiCertSHA2SecureServerCA-20200205-20210205
         defaultActions:
-        - type: forward
+        - type: authenticate-oidc
           order: 1
+          authenticateOidcConfig:
+            issuer: https://meechum.netflix.com
+            authorizationEndpoint: https://meechum.netflix.com/as/authorization.oauth2
+            tokenEndpoint: https://meechum.netflix.com/as/token.oauth2
+            userInfoEndpoint: https://meechum.netflix.com/idp/userinfo.openid
+            clientId: fnord
+            sessionCookieName: fnord
+            scope: default fnord
+            sessionTimeout: PT1H
+        - type: forward
+          order: 2
           targetGroupName: fnord
       locations:
         vpc: vpc0

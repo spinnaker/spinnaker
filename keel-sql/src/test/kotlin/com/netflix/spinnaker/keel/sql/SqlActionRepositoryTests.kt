@@ -2,10 +2,10 @@ package com.netflix.spinnaker.keel.sql
 
 import com.fasterxml.jackson.databind.jsontype.NamedType
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
-import com.netflix.spinnaker.keel.api.verification.VerificationContext
+import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
 import com.netflix.spinnaker.keel.artifacts.DockerArtifactSupplier
 import com.netflix.spinnaker.keel.jackson.registerKeelApiModule
-import com.netflix.spinnaker.keel.persistence.VerificationRepositoryTests
+import com.netflix.spinnaker.keel.persistence.ActionRepositoryTests
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
@@ -18,8 +18,8 @@ import org.junit.jupiter.api.AfterEach
 import org.springframework.core.env.Environment
 import java.time.Instant
 
-internal class SqlVerificationRepositoryTests :
-  VerificationRepositoryTests<SqlVerificationRepository>() {
+internal class SqlActionRepositoryTests :
+  ActionRepositoryTests<SqlActionRepository>() {
 
   private val jooq = testDatabase.context
   private val retryProperties = RetryProperties(1, 0)
@@ -38,14 +38,16 @@ internal class SqlVerificationRepositoryTests :
     resourceSpecIdentifier = ResourceSpecIdentifier(),
     objectMapper = mapper,
     sqlRetry = sqlRetry,
-    artifactSuppliers = artifactSuppliers
+    artifactSuppliers = artifactSuppliers,
+    publisher = mockk(relaxed = true)
   )
   private val artifactRepository = SqlArtifactRepository(
     jooq = jooq,
     clock = clock,
     objectMapper = mapper,
     sqlRetry = sqlRetry,
-    artifactSuppliers = artifactSuppliers
+    artifactSuppliers = artifactSuppliers,
+    publisher = mockk(relaxed = true)
   )
 
   private val pausedRepository = SqlPausedRepository(
@@ -71,7 +73,7 @@ internal class SqlVerificationRepositoryTests :
   }
 
   override fun createSubject() =
-    SqlVerificationRepository(
+    SqlActionRepository(
       jooq = jooq,
       clock = clock,
       resourceSpecIdentifier = mockk(),
@@ -81,7 +83,7 @@ internal class SqlVerificationRepositoryTests :
       environment = mockEnvironment()
     )
 
-  override fun VerificationContext.setup() {
+  override fun ArtifactInEnvironmentContext.setup() {
     deliveryConfig.artifacts.forEach(artifactRepository::register)
     deliveryConfigRepository.store(deliveryConfig)
     artifactRepository.storeArtifactVersion(
@@ -94,7 +96,7 @@ internal class SqlVerificationRepositoryTests :
     )
   }
 
-  override fun VerificationContext.setupCurrentArtifactVersion() {
+  override fun ArtifactInEnvironmentContext.setupCurrentArtifactVersion() {
     artifactRepository.markAsSuccessfullyDeployedTo(
       deliveryConfig,
       artifact,
@@ -103,7 +105,7 @@ internal class SqlVerificationRepositoryTests :
     )
   }
 
-  override fun VerificationContext.pauseApplication() {
+  override fun ArtifactInEnvironmentContext.pauseApplication() {
     pausedRepository.pauseApplication(
       deliveryConfig.application,
       "fzlem@netflix.com"

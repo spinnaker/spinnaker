@@ -27,7 +27,9 @@ class SqlBakedImageRepository(
         .insertInto(BAKED_IMAGES)
         .set(BAKED_IMAGES.IMAGE, objectMapper.writeValueAsString(image))
         .set(BAKED_IMAGES.TIME_DETECTED, clock.instant())
-        .onDuplicateKeyIgnore()
+        .onDuplicateKeyUpdate()
+        .set(BAKED_IMAGES.IMAGE, objectMapper.writeValueAsString(image))
+        .set(BAKED_IMAGES.TIME_DETECTED, clock.instant())
         .execute()
     }
   }

@@ -13,6 +13,7 @@ import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
+import io.mockk.mockk
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -54,7 +55,8 @@ class MigratorErrorTests {
     resourceSpecIdentifier = multiVersionResourceSpecIdentifier,
     specMigrators = listOf(bedShittingSpecMigrator),
     objectMapper = objectMapper,
-    sqlRetry = sqlRetry
+    sqlRetry = sqlRetry,
+    publisher = mockk(relaxed = true)
   )
 
   private val deliveryConfigRepository = SqlDeliveryConfigRepository(
@@ -64,7 +66,8 @@ class MigratorErrorTests {
     objectMapper = objectMapper,
     sqlRetry = sqlRetry,
     artifactSuppliers = defaultArtifactSuppliers(),
-    specMigrators = listOf(bedShittingSpecMigrator)
+    specMigrators = listOf(bedShittingSpecMigrator),
+    publisher = mockk(relaxed = true)
   )
 
   val deliveryConfig = DeliveryConfig(

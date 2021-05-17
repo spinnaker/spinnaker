@@ -31,7 +31,6 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
-import org.springframework.mock.env.MockEnvironment
 import strikt.api.expectThat
 import strikt.assertions.all
 import strikt.assertions.contains
@@ -50,7 +49,7 @@ import io.mockk.coVerify as verify
 class ImageServiceTests : JUnit5Minutests {
   class Fixture {
     val cloudDriver = mockk<CloudDriverService>()
-    val subject = ImageService(cloudDriver, TEST_CACHE_FACTORY, MockEnvironment())
+    val subject = ImageService(cloudDriver, TEST_CACHE_FACTORY)
     val artifact = DebianArtifact("my-package", vmOptions = VirtualMachineOptions(baseOs = "trusty", regions = emptySet()))
 
     val image1 = NamedImage(

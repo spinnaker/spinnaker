@@ -134,7 +134,5 @@ abstract class DeliveryArtifact {
       .map { (it.spec as? ArtifactReferenceProvider)?.artifactReference }
       .contains(reference)
 
-  fun toLifecycleRef() = "$deliveryConfigName:$reference"
-
   override fun toString() = "${type.toUpperCase()} artifact $name (ref: $reference)"
 }

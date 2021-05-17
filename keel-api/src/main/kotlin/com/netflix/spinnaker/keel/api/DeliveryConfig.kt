@@ -31,8 +31,24 @@ data class DeliveryConfig(
     environments
       .find { it.name == environmentName }
       ?.resources
-        ?.mapNotNull { resource ->
-          resource.findAssociatedArtifact(this)
-        }
+      ?.mapNotNull { resource ->
+        resource.findAssociatedArtifact(this)
+      }
       ?.toSet() ?: emptySet()
+
+  fun resourcesUsing(artifactReference: String, environmentName: String): List<Resource<*>> =
+    environments
+      .find { it.name == environmentName }
+      ?.resources
+      ?.filter { resource ->
+        resource.findAssociatedArtifact(this)?.reference == artifactReference
+      } ?: emptyList()
+
+  fun constraintInEnvironment(environmentName: String, constraintType: String): Constraint {
+    val target = environments.firstOrNull { it.name == environmentName }
+    requireNotNull(target) {
+      "No environment named $environmentName exists in the configuration $name"
+    }
+    return target.constraints.first { it.type == constraintType }
+  }
 }

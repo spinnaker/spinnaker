@@ -20,6 +20,7 @@ import com.netflix.spinnaker.keel.igor.artifact.ArtifactService
 import com.netflix.spinnaker.keel.persistence.BakedImageRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
+import com.netflix.spinnaker.keel.persistence.PausedRepository
 import com.netflix.spinnaker.keel.telemetry.ArtifactCheckSkipped
 import com.netflix.spinnaker.keel.test.deliveryConfig
 import dev.minutest.junit.JUnit5Minutests
@@ -50,12 +51,32 @@ import io.mockk.coVerify as verify
 internal class ImageHandlerTests : JUnit5Minutests {
 
   internal class Fixture {
-    val repository = mockk<KeelRepository>(relaxUnitFun = true)
+    val artifact = DebianArtifact(
+      name = "keel",
+      deliveryConfigName = "delivery-config",
+      vmOptions = VirtualMachineOptions(
+        baseLabel = RELEASE,
+        baseOs = "xenial",
+        regions = setOf("us-west-2", "us-east-1"),
+        storeType = EBS
+      )
+    )
+    val deliveryConfig = deliveryConfig(
+      configName = artifact.deliveryConfigName!!,
+      artifact = artifact
+    )
+
+    val repository = mockk<KeelRepository>(relaxUnitFun = true) {
+      every { getDeliveryConfig(any()) } returns deliveryConfig
+    }
     val igorService = mockk<ArtifactService>()
     val baseImageCache = mockk<BaseImageCache>()
     val bakedImageRepository = mockk<BakedImageRepository>()
     val imageService = mockk<ImageService>() {
       every { log } returns org.slf4j.LoggerFactory.getLogger(ImageService::class.java)
+    }
+    val pausedRepository: PausedRepository = mockk() {
+      every { applicationPaused(any()) } returns false
     }
     val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
     val taskLauncher = mockk<TaskLauncher>()
@@ -68,18 +89,8 @@ internal class ImageHandlerTests : JUnit5Minutests {
       publisher,
       taskLauncher,
       BakeCredentials("keel@spinnaker.io", "keel"),
+      pausedRepository,
       MockEnvironment()
-    )
-
-    val artifact = DebianArtifact(
-      name = "keel",
-      deliveryConfigName = "delivery-config",
-      vmOptions = VirtualMachineOptions(
-        baseLabel = RELEASE,
-        baseOs = "xenial",
-        regions = setOf("us-west-2", "us-east-1"),
-        storeType = EBS
-      )
     )
 
     val appVersion = "${artifact.name}-0.161.0-h63.24d0843"
@@ -101,11 +112,6 @@ internal class ImageHandlerTests : JUnit5Minutests {
 
     val artifactVersion =
       artifact.toArtifactVersion(appVersion.removePrefix("${artifact.name}-"))
-
-    val deliveryConfig = deliveryConfig(
-      configName = artifact.deliveryConfigName!!,
-      artifact = artifact
-    )
 
     lateinit var handlerResult: Assertion.Builder<Result<Unit>>
     val bakeTask = slot<List<Map<String, Any?>>>()
@@ -145,6 +151,21 @@ internal class ImageHandlerTests : JUnit5Minutests {
     context("the artifact is not a Debian") {
       before {
         runHandler(DockerArtifact(artifact.name, branch = "main"))
+      }
+
+      test("nothing happens") {
+        verify { imageService wasNot Called }
+        verify { igorService wasNot Called }
+        verify { baseImageCache wasNot Called }
+        verify { taskLauncher wasNot Called }
+        verify { publisher wasNot Called }
+      }
+    }
+
+    context("the application is paused") {
+      before {
+        every { pausedRepository.applicationPaused(any()) } returns true
+        runHandler(artifact)
       }
 
       test("nothing happens") {

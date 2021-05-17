@@ -9,9 +9,11 @@ import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.constraints.StatefulConstraintEvaluator
 import com.netflix.spinnaker.keel.api.constraints.StatelessConstraintEvaluator
+import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
+import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec.Action
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.ConstraintEvaluator
-import com.netflix.spinnaker.keel.api.plugins.PostDeployActionRunner
+import com.netflix.spinnaker.keel.api.plugins.PostDeployActionHandler
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.SupportedKind
@@ -38,7 +40,7 @@ class KeelConfigurationFinalizer(
   private val specMigrators: List<SpecMigrator<*, *>> = emptyList(),
   private val constraintEvaluators: List<ConstraintEvaluator<*>> = emptyList(),
   private val verificationEvaluators: List<VerificationEvaluator<*>> = emptyList(),
-  private val postDeployActionRunners: List<PostDeployActionRunner<*>> = emptyList(),
+  private val postDeployActionHandlers: List<PostDeployActionHandler<*>> = emptyList(),
   private val artifactHandlers: List<ArtifactHandler> = emptyList(),
   private val artifactSuppliers: List<ArtifactSupplier<*, *>> = emptyList(),
   private val objectMappers: List<ObjectMapper>,
@@ -91,7 +93,7 @@ class KeelConfigurationFinalizer(
 
   @PostConstruct
   fun registerPostDeploySubtypes() {
-    postDeployActionRunners
+    postDeployActionHandlers
       .map { it.supportedType }
       .forEach { postDeployActionType ->
         log.info("Registering post deploy action runner sub-type {}: {}", postDeployActionType.name, postDeployActionType.type.simpleName)
@@ -142,6 +144,15 @@ class KeelConfigurationFinalizer(
   }
 
   @PostConstruct
+  fun registerListenerActionSubtypes() {
+    with(extensionRegistry) {
+      register<Action>(Action.RedirectAction::class.java, "redirect")
+      register<Action>(Action.ForwardAction::class.java, "forward")
+      register<Action>(Action.AuthenticateOidcAction::class.java, "authenticate-oidc")
+    }
+  }
+
+  @PostConstruct
   fun initialStatus() {
     sequenceOf(
       BaseImageCache::class to baseImageCache?.javaClass
@@ -160,7 +171,7 @@ class KeelConfigurationFinalizer(
     log.info("Using resource handlers: {}", resourceHandlers.joinToString { it.name })
     log.info("Using artifact handlers: {}", artifactHandlers.joinToString { it.name })
     log.info("Using verification evaluators: {}", verificationEvaluators.joinToString { it.javaClass.simpleName })
-    log.info("Using post deploy action runners: {}", postDeployActionRunners.joinToString { it.javaClass.simpleName })
+    log.info("Using post deploy action runners: {}", postDeployActionHandlers.joinToString { it.javaClass.simpleName })
     log.info("Using resolvers: {}", resolvers.joinToString { it.name })
   }
 }

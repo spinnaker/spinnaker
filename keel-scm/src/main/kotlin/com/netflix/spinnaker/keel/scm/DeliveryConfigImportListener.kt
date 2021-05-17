@@ -2,8 +2,10 @@ package com.netflix.spinnaker.keel.scm
 
 import com.netflix.spinnaker.keel.api.scm.CommitCreatedEvent
 import com.netflix.spinnaker.keel.front50.Front50Cache
+import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter.Companion.DEFAULT_MANIFEST_PATH
+import com.netflix.spinnaker.keel.igor.ScmService
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
@@ -19,7 +21,8 @@ import org.springframework.stereotype.Component
 class DeliveryConfigImportListener(
   private val repository: KeelRepository,
   private val deliveryConfigImporter: DeliveryConfigImporter,
-  private val front50Cache: Front50Cache
+  private val front50Cache: Front50Cache,
+  private val scmService: ScmService
 ) {
   companion object {
     private val log by lazy { LoggerFactory.getLogger(DeliveryConfigImportListener::class.java) }
@@ -50,7 +53,7 @@ class DeliveryConfigImportListener(
     val matchingApps = apps
       .filter { app ->
         app != null
-          && app.importDeliveryConfig == true
+          && app.managedDelivery?.importDeliveryConfig == true
           && event.matchesApplicationConfig(app)
           && event.targetBranch == app.defaultBranch
       }
@@ -79,4 +82,13 @@ class DeliveryConfigImportListener(
       repository.upsertDeliveryConfig(newDeliveryConfig)
     }
   }
+
+  private val Application.defaultBranch: String
+    get() = runBlocking {
+      scmService.getDefaultBranch(
+        scmType = repoType ?: error("Missing SCM type in config for application $name"),
+        projectKey = repoProjectKey ?: error("Missing SCM project in config for application $name"),
+        repoSlug = repoSlug ?: error("Missing SCM repository in config for application $name")
+      ).name
+    }
 }

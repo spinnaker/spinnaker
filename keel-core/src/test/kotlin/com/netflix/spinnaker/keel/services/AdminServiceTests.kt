@@ -16,6 +16,7 @@ import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.test.DummyArtifact
 import com.netflix.spinnaker.keel.test.DummySortingStrategy
+import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
@@ -30,6 +31,7 @@ class AdminServiceTests : JUnit5Minutests {
     val actuationPauser: ActuationPauser = mockk()
     private val artifactSupplier = mockk<ArtifactSupplier<DummyArtifact, DummySortingStrategy>>(relaxUnitFun = true)
     val publisher: ApplicationEventPublisher = mockk(relaxed = true)
+    val clock = MutableClock()
 
     val application = "leapp"
 
@@ -59,7 +61,8 @@ class AdminServiceTests : JUnit5Minutests {
       actuationPauser,
       diffFingerprintRepository,
       listOf(artifactSupplier),
-      publisher
+      publisher,
+      clock
     )
   }
 

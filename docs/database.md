@@ -4,6 +4,12 @@ Keel assumes a SQL database backend.
 The codebase uses the [jOOQ](https://jooq.org) library for generating and executing SQL queries.
 Internally, Netflix uses Amazon Aurora MySQL to back keel, so that's the most battle-tested back-end.
 
+## Transaction isolation
+
+Keel defaults to READ COMMITTED transaction isolation level, which is weaker than the MySQL default of REPEATABLE READ.
+Keel inherits this setting from [Kork](http://github.com/spinnaker/kork), in [DefaultSqlConfiguration.dataSourceConnectionProvider](https://github.com/spinnaker/kork/blob/master/kork-sql/src/main/kotlin/com/netflix/spinnaker/kork/sql/config/DefaultSqlConfiguration.kt#L146-L154)
+
+
 ## Migrations
 
 Keel uses [liquibase](https://www.liquibase.org/) for database migrations.

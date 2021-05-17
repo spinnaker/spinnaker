@@ -9,7 +9,7 @@ import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.plugins.ActionDecision
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.SupportedKind
-import com.netflix.spinnaker.keel.api.verification.VerificationRepository
+import com.netflix.spinnaker.keel.api.action.ActionRepository
 import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.enforcers.EnvironmentExclusionEnforcer
 import com.netflix.spinnaker.keel.events.ResourceValid
@@ -18,7 +18,6 @@ import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
 import com.netflix.spinnaker.keel.persistence.EnvironmentLeaseRepository
-import com.netflix.spinnaker.keel.persistence.Lease
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.UnhappyVetoRepository
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
@@ -78,8 +77,8 @@ class IntermittentFailureTests : JUnit5Minutests {
     val clock = MutableClock()
     val vetoRepository = mockk<UnhappyVetoRepository>(relaxUnitFun = true)
 
-    val verificationRepository = mockk<VerificationRepository>() {
-      every { getContextsWithStatus(any(), any(), any()) }  returns emptyList()
+    val verificationRepository = mockk<ActionRepository>() {
+      every { getVerificationContextsWithStatus(any(), any(), any()) }  returns emptyList()
     }
 
     val environmentExclusionEnforcer = EnvironmentExclusionEnforcer(springEnv, verificationRepository, artifactRepository, environmentLeaseRepository)
@@ -113,7 +112,8 @@ class IntermittentFailureTests : JUnit5Minutests {
       vetoEnforcer,
       publisher,
       Clock.systemUTC(),
-      environmentExclusionEnforcer
+      environmentExclusionEnforcer,
+      NoopRegistry()
     )
     val desired = DummyResourceSpec(data = "fnord")
     val current = DummyResourceSpec()

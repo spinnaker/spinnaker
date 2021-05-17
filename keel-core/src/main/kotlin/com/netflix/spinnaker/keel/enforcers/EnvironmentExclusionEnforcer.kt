@@ -3,8 +3,8 @@ package com.netflix.spinnaker.keel.enforcers
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PENDING
-import com.netflix.spinnaker.keel.api.verification.VerificationContext
-import com.netflix.spinnaker.keel.api.verification.VerificationRepository
+import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
+import com.netflix.spinnaker.keel.api.action.ActionRepository
 import com.netflix.spinnaker.keel.exceptions.EnvironmentCurrentlyBeingActedOn
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.EnvironmentLeaseRepository
@@ -13,7 +13,7 @@ import kotlinx.coroutines.withContext
 import org.springframework.stereotype.Component
 import org.springframework.core.env.Environment as SpringEnvironment
 
-class ActiveVerifications(val active: Collection<VerificationContext>, deliveryConfig: DeliveryConfig, environment: Environment) :
+class ActiveVerifications(val active: Collection<ArtifactInEnvironmentContext>, deliveryConfig: DeliveryConfig, environment: Environment) :
   EnvironmentCurrentlyBeingActedOn("active verifications in ${deliveryConfig.name} ${environment.name} against versions ${active.map {it.version}}")
 
 class ActiveDeployments(deliveryConfig: DeliveryConfig, environment: Environment ) :
@@ -43,7 +43,7 @@ class ActiveDeployments(deliveryConfig: DeliveryConfig, environment: Environment
 @Component
 class EnvironmentExclusionEnforcer(
   private val springEnv: SpringEnvironment,
-  private val verificationRepository: VerificationRepository,
+  private val verificationRepository: ActionRepository,
   private val artifactRepository: ArtifactRepository,
   private val environmentLeaseRepository: EnvironmentLeaseRepository
 ) {
@@ -58,7 +58,7 @@ class EnvironmentExclusionEnforcer(
    * 2. No active deployments
    * 3. No active verifications
    */
-  fun <T> withVerificationLease(context: VerificationContext, action: () -> T) : T {
+  fun <T> withVerificationLease(context: ArtifactInEnvironmentContext, action: () -> T) : T {
     if(!enforcementEnabled) {
       return action.invoke()
     }
@@ -118,7 +118,7 @@ class EnvironmentExclusionEnforcer(
    * @throws ActiveVerifications if there's an active verification
    */
   private fun ensureNoActiveVerifications(deliveryConfig: DeliveryConfig, environment: Environment)  {
-    val activeVerifications = verificationRepository.getContextsWithStatus(deliveryConfig, environment, PENDING)
+    val activeVerifications = verificationRepository.getVerificationContextsWithStatus(deliveryConfig, environment, PENDING)
     if(activeVerifications.isNotEmpty()) {
       throw ActiveVerifications(activeVerifications, deliveryConfig, environment)
     }

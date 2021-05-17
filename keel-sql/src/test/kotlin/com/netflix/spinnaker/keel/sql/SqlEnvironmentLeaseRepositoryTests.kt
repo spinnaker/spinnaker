@@ -29,7 +29,8 @@ internal class SqlEnvironmentLeaseRepositoryTests :
     resourceSpecIdentifier = ResourceSpecIdentifier(),
     objectMapper = mapper,
     sqlRetry = sqlRetry,
-    artifactSuppliers = artifactSuppliers
+    artifactSuppliers = artifactSuppliers,
+    publisher = mockk(relaxed = true)
   )
   override fun createSubject() =
     SqlEnvironmentLeaseRepository(

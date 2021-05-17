@@ -4,6 +4,7 @@ import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.UnhappyControl
 import com.netflix.spinnaker.keel.api.ec2.LoadBalancerType.APPLICATION
+import com.netflix.spinnaker.keel.api.schema.Discriminator
 import com.netflix.spinnaker.keel.api.schema.Optional
 import java.time.Duration
 
@@ -70,6 +71,7 @@ data class ApplicationLoadBalancerSpec(
         "targetGroup names have a 32 character limit"
       }
     }
+
     override fun toString() = name
   }
 
@@ -79,12 +81,32 @@ data class ApplicationLoadBalancerSpec(
     val targetGroups: Set<TargetGroup>? = null
   )
 
-  data class Action(
-    val type: String,
-    val order: Int,
-    val targetGroupName: String?,
-    val redirectConfig: RedirectConfig?
-  )
+  abstract class Action {
+    @Discriminator
+    abstract val type: String
+    abstract val order: Int
+
+    data class ForwardAction(
+      override val order: Int,
+      val targetGroupName: String
+    ) : Action() {
+      override val type = "forward"
+    }
+
+    data class RedirectAction(
+      override val order: Int,
+      val redirectActionConfig: RedirectConfig
+    ) : Action() {
+      override val type = "redirect"
+    }
+
+    data class AuthenticateOidcAction(
+      override val order: Int,
+      val authenticateOidcConfig: AuthenticateOidcActionConfig
+    ) : Action() {
+      override val type = "authenticate-oidc"
+    }
+  }
 
   data class Rule(
     val priority: String,
@@ -95,15 +117,27 @@ data class ApplicationLoadBalancerSpec(
 
   data class Condition(
     val field: String,
-    val values: List<String>
+    val values: List<String>,
   )
 
   data class RedirectConfig(
     val protocol: String,
-    val port: String?,
     val host: String,
+    val port: String?,
     val path: String,
     val query: String?,
     val statusCode: String
+  )
+
+  data class AuthenticateOidcActionConfig(
+    val issuer: String,
+    val authorizationEndpoint: String,
+    val tokenEndpoint: String,
+    val userInfoEndpoint: String,
+    val clientId: String,
+    val sessionCookieName: String,
+    val scope: String,
+    val sessionTimeout: Duration,
+    val authenticationRequestExtraParams: Map<String, Any?> = emptyMap()
   )
 }

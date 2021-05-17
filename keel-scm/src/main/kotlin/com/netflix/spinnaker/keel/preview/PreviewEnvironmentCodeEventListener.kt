@@ -127,6 +127,7 @@ class PreviewEnvironmentCodeEventListener(
         // if the branch is "feature/abc", and the base environment is "test", then the environment
         // would be named "test-feature-abc"
         name = "${baseEnv.name}-$branchDetail",
+        isPreview = true,
         constraints = emptySet(),
         verifyWith = previewEnvSpec.verifyWith,
         notifications = previewEnvSpec.notifications,

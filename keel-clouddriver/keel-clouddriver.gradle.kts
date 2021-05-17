@@ -20,7 +20,6 @@ dependencies {
   testImplementation("com.squareup.okhttp3:mockwebserver")
   testImplementation("dev.minutest:minutest")
   testImplementation("io.strikt:strikt-core")
-  testImplementation(project(":keel-spring-test-support"))
 
   runtime("org.jetbrains.kotlin:kotlin-reflect")
 }

@@ -11,7 +11,7 @@ import com.netflix.spinnaker.keel.api.artifacts.DOCKER
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.BRANCH_JOB_COMMIT_BY_JOB
 import com.netflix.spinnaker.keel.api.artifacts.branchStartsWith
 import com.netflix.spinnaker.keel.api.events.ArtifactRegisteredEvent
-import com.netflix.spinnaker.keel.api.verification.VerificationRepository
+import com.netflix.spinnaker.keel.api.action.ActionRepository
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.core.api.SubmittedResource
 import com.netflix.spinnaker.keel.core.api.normalize
@@ -49,7 +49,7 @@ import java.time.Duration
  *
  * Tests that only apply to one repository should live in the repository-specific test classes.
  */
-abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : ResourceRepository, A : ArtifactRepository, V : VerificationRepository> :
+abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : ResourceRepository, A : ArtifactRepository, V : ActionRepository> :
   JUnit5Minutests {
 
   abstract fun createDeliveryConfigRepository(resourceSpecIdentifier: ResourceSpecIdentifier): D
@@ -105,7 +105,7 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
     environments = setOf(firstEnv)
   )
 
-  data class Fixture<D : DeliveryConfigRepository, R : ResourceRepository, A : ArtifactRepository, V : VerificationRepository>(
+  data class Fixture<D : DeliveryConfigRepository, R : ResourceRepository, A : ArtifactRepository, V : ActionRepository>(
     val deliveryConfigRepositoryProvider: (ResourceSpecIdentifier) -> D,
     val resourceRepositoryProvider: (ResourceSpecIdentifier) -> R,
     val artifactRepositoryProvider: () -> A,

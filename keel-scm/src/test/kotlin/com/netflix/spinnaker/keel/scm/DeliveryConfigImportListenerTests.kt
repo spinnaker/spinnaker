@@ -9,7 +9,10 @@ import com.netflix.spinnaker.keel.core.api.SubmittedEnvironment
 import com.netflix.spinnaker.keel.front50.Front50Cache
 import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.front50.model.DataSources
+import com.netflix.spinnaker.keel.front50.model.ManagedDeliveryConfig
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
+import com.netflix.spinnaker.keel.igor.ScmService
+import com.netflix.spinnaker.keel.igor.model.Branch
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.test.submittedResource
 import dev.minutest.junit.JUnit5Minutests
@@ -27,7 +30,9 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
 
     val front50Cache: Front50Cache = mockk()
 
-    val subject = DeliveryConfigImportListener(repository, importer, front50Cache)
+    val scmService: ScmService = mockk()
+
+    val subject = DeliveryConfigImportListener(repository, importer, front50Cache, scmService)
 
     val configuredApp = Application(
       name = "fnord",
@@ -35,8 +40,7 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
       repoType = "stash",
       repoProjectKey = "myorg",
       repoSlug = "myrepo",
-      importDeliveryConfig = true,
-      defaultBranch = "main",
+      managedDelivery = ManagedDeliveryConfig(importDeliveryConfig = true),
       dataSources = DataSources(enabled = emptyList(), disabled = emptyList())
     )
 
@@ -94,6 +98,10 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
       every {
         repository.upsertDeliveryConfig(deliveryConfig)
       } returns deliveryConfig.toDeliveryConfig()
+
+      every {
+        scmService.getDefaultBranch(configuredApp.repoType!!, configuredApp.repoProjectKey!!, configuredApp.repoSlug!!)
+      } returns Branch("main", "refs/heads/main", default = true)
     }
   }
 

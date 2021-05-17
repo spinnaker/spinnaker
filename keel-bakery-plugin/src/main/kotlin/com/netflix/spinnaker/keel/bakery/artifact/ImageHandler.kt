@@ -18,11 +18,13 @@ import com.netflix.spinnaker.keel.lifecycle.LifecycleEvent
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventScope.PRE_DEPLOYMENT
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus.NOT_STARTED
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventType.BAKE
-import com.netflix.spinnaker.keel.model.Job
+import com.netflix.spinnaker.keel.api.actuation.Job
+import com.netflix.spinnaker.keel.model.OrcaJob
 import com.netflix.spinnaker.keel.parseAppVersion
 import com.netflix.spinnaker.keel.persistence.BakedImageRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
+import com.netflix.spinnaker.keel.persistence.PausedRepository
 import com.netflix.spinnaker.keel.telemetry.ArtifactCheckSkipped
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
@@ -37,11 +39,12 @@ class ImageHandler(
   private val publisher: ApplicationEventPublisher,
   private val taskLauncher: TaskLauncher,
   private val defaultCredentials: BakeCredentials,
+  private val pausedRepository: PausedRepository,
   private val springEnv: Environment
 ) : ArtifactHandler {
 
   override suspend fun handle(artifact: DeliveryArtifact) {
-    if (artifact is DebianArtifact) {
+    if (artifact is DebianArtifact && !artifact.isPaused()) {
       val desiredAppVersion = try {
         artifact.findLatestArtifactVersion()
       } catch (e: NoKnownArtifactVersions) {
@@ -95,6 +98,14 @@ class ImageHandler(
       }
     }
   }
+
+  private fun DeliveryArtifact.isPaused(): Boolean =
+    if (deliveryConfigName == null) {
+      false
+    } else {
+      val config = repository.getDeliveryConfig(deliveryConfigName!!)
+      pausedRepository.applicationPaused(config.application)
+    }
 
   private fun DebianArtifact.wasPreviouslyBakedWith(
     desiredAppVersion: String,
@@ -189,7 +200,7 @@ class ImageHandler(
         description = description,
         correlationId = artifact.correlationId(desiredVersion),
         stages = listOf(
-          Job(
+          OrcaJob(
             "bake",
             mapOf(
               "amiSuffix" to "",
@@ -208,7 +219,8 @@ class ImageHandler(
       publisher.publishEvent(BakeLaunched(desiredVersion))
       publisher.publishEvent(LifecycleEvent(
         scope = PRE_DEPLOYMENT,
-        artifactRef = artifact.toLifecycleRef(),
+        deliveryConfigName = checkNotNull(artifact.deliveryConfigName),
+        artifactReference = artifact.reference,
         artifactVersion = desiredVersion,
         type = BAKE,
         id = "bake-$desiredVersion",

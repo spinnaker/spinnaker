@@ -1,5 +1,9 @@
 package com.netflix.spinnaker.keel.actuation
 
+import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.config.EnvironmentVerificationConfig
+import com.netflix.spinnaker.config.PostDeployActionsConfig
+import com.netflix.spinnaker.config.ResourceCheckConfig
 import com.netflix.spinnaker.keel.api.ResourceKind.Companion.parseKind
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.plugins.UnsupportedKind
@@ -7,6 +11,7 @@ import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.persistence.AgentLockRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
+import com.netflix.spinnaker.keel.postdeploy.PostDeployActionRunner
 import com.netflix.spinnaker.keel.scheduled.ScheduledAgent
 import com.netflix.spinnaker.keel.telemetry.ResourceLoadFailed
 import com.netflix.spinnaker.keel.test.resource
@@ -27,11 +32,27 @@ import java.time.Duration
 internal object CheckSchedulerTests : JUnit5Minutests {
 
   private val repository: KeelRepository = mockk()
+  private val postDeployActionRunner: PostDeployActionRunner = mockk()
   private val resourceActuator = mockk<ResourceActuator>(relaxUnitFun = true)
   private val environmentPromotionChecker = mockk<EnvironmentPromotionChecker>()
   private val artifactHandler = mockk<ArtifactHandler>(relaxUnitFun = true)
   private val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
+  private val registry = NoopRegistry()
   private val checkMinAge = Duration.ofMinutes(5)
+  private val resourceCheckConfig = ResourceCheckConfig().also {
+    it.minAgeDuration = checkMinAge
+    it.batchSize = 2
+  }
+  private val verificationConfig = EnvironmentVerificationConfig().also {
+    it.minAgeDuration = checkMinAge
+    it.batchSize = 2
+    it.timeoutDuration = Duration.ofMinutes(2)
+  }
+  private val postDeployConfig = PostDeployActionsConfig().also {
+    it.minAgeDuration = checkMinAge
+    it.batchSize = 2
+  }
+
   private val springEnv: Environment = mockk(relaxed = true) {
     every {
       getProperty("keel.check.min-age-duration", Duration::class.java, any())
@@ -89,17 +110,17 @@ internal object CheckSchedulerTests : JUnit5Minutests {
         repository = repository,
         resourceActuator = resourceActuator,
         environmentPromotionChecker = environmentPromotionChecker,
+        postDeployActionRunner = postDeployActionRunner,
         artifactHandlers = listOf(artifactHandler),
-        resourceCheckMinAge = checkMinAge,
-        resourceCheckBatchSize = 2,
-        environmentVerificationMinAge = Duration.ofMinutes(5),
-        environmentVerificationBatchSize = 2,
-        checkTimeout = Duration.ofMinutes(2),
+        resourceCheckConfig = resourceCheckConfig,
+        verificationConfig = verificationConfig,
+        postDeployConfig = postDeployConfig,
         publisher = publisher,
         agentLockRepository = agentLockRepository,
         verificationRunner = verificationRunner,
         clock = MutableClock(),
-        springEnv = springEnv
+        springEnv = springEnv,
+        spectator = registry
       )
     }
 

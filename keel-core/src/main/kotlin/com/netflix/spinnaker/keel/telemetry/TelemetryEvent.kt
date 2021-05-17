@@ -5,10 +5,12 @@ import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
-import com.netflix.spinnaker.keel.api.verification.VerificationContext
+import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
+import com.netflix.spinnaker.keel.api.postdeploy.PostDeployAction
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventType
 import java.time.Duration
+import java.time.Instant
 
 sealed class TelemetryEvent
 
@@ -31,6 +33,12 @@ data class ResourceLoadFailed(
 data class ResourceCheckCompleted(
   val duration: Duration
 ) : TelemetryEvent()
+
+data class AboutToBeChecked(
+  val lastCheckedAt: Instant,
+  val type: String,
+  val identifier: String? = null
+)
 
 data class LifecycleMonitorLoadFailed(
   val ex: Throwable
@@ -106,7 +114,7 @@ data class VerificationStarted(
   val artifactVersion: String,
   val verificationType: String
 ) : TelemetryEvent() {
-  constructor(context: VerificationContext, verification: Verification) : this(
+  constructor(context: ArtifactInEnvironmentContext, verification: Verification) : this(
     context.deliveryConfig.application,
     context.deliveryConfig.name,
     context.environmentName,
@@ -130,7 +138,7 @@ data class VerificationCompleted(
   val metadata: Map<String,Any?>
 ) : TelemetryEvent() {
   constructor(
-    context: VerificationContext,
+    context: ArtifactInEnvironmentContext,
     verification: Verification,
     status: ConstraintStatus,
     metadata: Map<String, Any?>
@@ -156,7 +164,7 @@ data class VerificationTimedOut(
   val artifactType: ArtifactType,
   val artifactVersion: String
 ) {
-  constructor(context: VerificationContext) : this(
+  constructor(context: ArtifactInEnvironmentContext) : this(
     context.deliveryConfig.application,
     context.deliveryConfig.name,
     context.environmentName,
@@ -172,3 +180,77 @@ data class InvalidVerificationIdSeen(
   val deliveryConfigName: String,
   val environmentName: String,
 )
+
+data class PostDeployActionCheckComplete(
+  val duration: Duration
+) : TelemetryEvent()
+
+
+data class PostDeployActionTimedOut(
+  val application: String,
+  val deliveryConfigName: String,
+  val environmentName: String,
+  val artifactName: String,
+  val artifactType: ArtifactType,
+  val artifactVersion: String
+) {
+  constructor(context: ArtifactInEnvironmentContext) : this(
+    context.deliveryConfig.application,
+    context.deliveryConfig.name,
+    context.environmentName,
+    context.artifact.name,
+    context.artifact.type,
+    context.version
+  )
+}
+
+data class PostDeployActionCompleted(
+  val application: String,
+  val deliveryConfigName: String,
+  val environmentName: String,
+  val artifactReference: String,
+  val artifactType: ArtifactType,
+  val artifactVersion: String,
+  val postDeployActionType: String,
+  val postDeployActionTypeId: String,
+  val status: ConstraintStatus,
+  val metadata: Map<String,Any?>
+) : TelemetryEvent() {
+  constructor(
+    context: ArtifactInEnvironmentContext,
+    action: PostDeployAction,
+    status: ConstraintStatus,
+    metadata: Map<String, Any?>
+  ) : this(
+    context.deliveryConfig.application,
+    context.deliveryConfig.name,
+    context.environmentName,
+    context.artifact.reference,
+    context.artifact.type,
+    context.version,
+    action.type,
+    action.type, // todo eb: needed???
+    status,
+    metadata
+  )
+}
+
+data class PostDeployActionStarted(
+  val application: String,
+  val deliveryConfigName: String,
+  val environmentName: String,
+  val artifactName: String,
+  val artifactType: ArtifactType,
+  val artifactVersion: String,
+  val verificationType: String
+) : TelemetryEvent() {
+  constructor(context: ArtifactInEnvironmentContext, action: PostDeployAction) : this(
+    context.deliveryConfig.application,
+    context.deliveryConfig.name,
+    context.environmentName,
+    context.artifact.name,
+    context.artifact.type,
+    context.version,
+    action.type
+  )
+}

@@ -14,6 +14,7 @@ import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.mockk
 import strikt.api.expectCatching
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
@@ -82,7 +83,8 @@ internal class LegacySpecUpgradeTests : JUnit5Minutests {
       systemUTC(),
       resourceTypeIdentifier,
       configuredObjectMapper(),
-      sqlRetry
+      sqlRetry,
+      publisher = mockk(relaxed = true)
     )
     val resourceRepository = SqlResourceRepository(
       jooq,
@@ -90,7 +92,8 @@ internal class LegacySpecUpgradeTests : JUnit5Minutests {
       resourceTypeIdentifier,
       listOf(v1to2Migrator, v2to3Migrator),
       configuredObjectMapper(),
-      sqlRetry
+      sqlRetry,
+      publisher = mockk(relaxed = true)
     )
 
     val ancientResource = resource(v1.kind, SpecV1("whatever"))

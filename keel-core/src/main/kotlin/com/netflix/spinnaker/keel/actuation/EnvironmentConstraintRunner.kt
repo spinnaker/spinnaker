@@ -47,10 +47,10 @@ class EnvironmentConstraintRunner(
   fun checkEnvironment(
     envContext: EnvironmentContext
   ) {
-    val pendingVersionsToCheck: MutableList<PublishedArtifact> =
+    val versionsWithPendingStatefulConstraintStatus: MutableList<PublishedArtifact> =
       if (envContext.environment.constraints.anyStateful) {
         repository
-          .getPendingArtifactVersions(envContext.deliveryConfig.name, envContext.environment.name, envContext.artifact)
+          .getPendingConstraintsForArtifactVersions(envContext.deliveryConfig.name, envContext.environment.name, envContext.artifact)
           .filter { envContext.versions.contains(it.version) }
           .toMutableList()
       } else {
@@ -59,7 +59,7 @@ class EnvironmentConstraintRunner(
 
     checkConstraints(
       envContext,
-      pendingVersionsToCheck
+      versionsWithPendingStatefulConstraintStatus
     )
 
     /*
@@ -67,7 +67,7 @@ class EnvironmentConstraintRunner(
      * finding the latest version above, recheck in ascending version order
      * so they can be timed out, failed, or approved.
      */
-    handleOlderPendingVersions(envContext, pendingVersionsToCheck)
+    handleOlderPendingVersions(envContext, versionsWithPendingStatefulConstraintStatus)
   }
 
   /**
@@ -80,7 +80,7 @@ class EnvironmentConstraintRunner(
    */
   private fun checkConstraints(
     envContext: EnvironmentContext,
-    pendingVersionsToCheck: MutableList<PublishedArtifact>
+    versionsWithPendingStatefulConstraintStatus: MutableList<PublishedArtifact>
   ) {
     var version: String? = null
     var versionIsPending = false
@@ -91,10 +91,10 @@ class EnvironmentConstraintRunner(
         "versions=${envContext.versions.joinToString()}, vetoed=${envContext.vetoedVersions.joinToString()}"
     )
 
-    version = envContext.versions
+    version = envContext.versions //all versions
       .filterNot { vetoedVersions.contains(it) }
       .firstOrNull { v ->
-        pendingVersionsToCheck.removeIf { it.version == v } // remove to indicate we are rechecking this version
+        versionsWithPendingStatefulConstraintStatus.removeIf { it.version == v } // remove to indicate we are rechecking this version
         /**
          * Only check stateful evaluators if all stateless evaluators pass. We don't
          * want to request judgement or deploy a canary for artifacts that aren't
@@ -137,10 +137,10 @@ class EnvironmentConstraintRunner(
    */
   private fun handleOlderPendingVersions(
     envContext: EnvironmentContext,
-    pendingVersionsToCheck: MutableList<PublishedArtifact>
+    versionsWithPendingStatefulConstraintStatus: MutableList<PublishedArtifact>
   ) {
-    log.debug("pendingVersionsToCheck: [$pendingVersionsToCheck] of artifact ${envContext.artifact.name} for environment ${envContext.environment.name} ")
-    pendingVersionsToCheck
+    log.debug("pendingVersionsToCheck: [$versionsWithPendingStatefulConstraintStatus] of artifact ${envContext.artifact.name} for environment ${envContext.environment.name} ")
+    versionsWithPendingStatefulConstraintStatus
       .reversed() // oldest first
       .forEach { artifactVersion ->
         val passesConstraints =

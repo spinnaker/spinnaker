@@ -1,14 +1,14 @@
 package com.netflix.spinnaker.keel.rest.dgs
 
 import com.netflix.graphql.dgs.DgsDataLoader
-import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.graphql.dgs.context.DgsContext
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
-import com.netflix.spinnaker.keel.core.api.PromotionStatus
 import com.netflix.spinnaker.keel.core.api.PublishedArtifactInEnvironment
-import com.netflix.spinnaker.keel.graphql.types.DgsArtifactStatusInEnvironment
-import com.netflix.spinnaker.keel.graphql.types.DgsArtifactVersionInEnvironment
+import com.netflix.spinnaker.keel.graphql.types.MdArtifactStatusInEnvironment
+import com.netflix.spinnaker.keel.graphql.types.MdArtifactVersionInEnvironment
 import com.netflix.spinnaker.keel.persistence.KeelRepository
-import org.dataloader.MappedBatchLoader
+import org.dataloader.BatchLoaderEnvironment
+import org.dataloader.MappedBatchLoaderWithContext
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionStage
 
@@ -16,22 +16,36 @@ import java.util.concurrent.CompletionStage
  * Loads all the version data for an artifacts in an environment.
  * This includes details about the version as well as the status in the specified environment.
  */
-@DgsDataLoader(name = "artifact-in-environment")
+@DgsDataLoader(name = ArtifactInEnvironmentDataLoader.Descriptor.name)
 class ArtifactInEnvironmentDataLoader(
   private val keelRepository: KeelRepository
-) : MappedBatchLoader<ArtifactAndEnvironment, List<DgsArtifactVersionInEnvironment>> {
+) : MappedBatchLoaderWithContext<ArtifactAndEnvironment, List<MdArtifactVersionInEnvironment>> {
 
-  override fun load(keys: MutableSet<ArtifactAndEnvironment>?): CompletionStage<MutableMap<ArtifactAndEnvironment, List<DgsArtifactVersionInEnvironment>>> {
+  object Descriptor {
+    const val name = "artifact-in-environment"
+  }
+
+  override fun load(keys: MutableSet<ArtifactAndEnvironment>, environment: BatchLoaderEnvironment):
+    CompletionStage<MutableMap<ArtifactAndEnvironment, List<MdArtifactVersionInEnvironment>>> {
+    
+    val applicationContext: ApplicationContext = DgsContext.getCustomContext(environment)
     return CompletableFuture.supplyAsync {
-      keys
-        ?.associateWith { key ->
+      val requestedStatuses = applicationContext.requestedStatuses
+      val requestedVersionIds = applicationContext.requestedVersionIds
+      val allVersions = keys
+        .associateWith { key ->
           keelRepository
-            .getAllVersionsForEnvironment(key.artifact, key.deliveryConfig, key.environmentName)
-            .map { it.toDgs() }
-            .filter { key.statuses.isEmpty() || key.statuses.contains(it.status) }
+            .getAllVersionsForEnvironment(key.artifact, applicationContext.getConfig(), key.environmentName)
         }
-        ?.toMutableMap()
-        ?: mutableMapOf()
+      applicationContext.allVersions = allVersions
+
+      allVersions.mapValues { (key, versions) ->
+        versions.map { it.toDgs() }
+          .filter {
+            (requestedStatuses.isNullOrEmpty() || requestedStatuses.contains(it.status)) &&
+              (requestedVersionIds.isNullOrEmpty() || requestedVersionIds.contains(it.version))
+          }
+      }.toMutableMap()
     }
   }
 }
@@ -40,20 +54,22 @@ class ArtifactInEnvironmentDataLoader(
 data class ArtifactAndEnvironment(
   val artifact: DeliveryArtifact,
   val environmentName: String,
-  val deliveryConfig: DeliveryConfig,
-  val statuses: List<DgsArtifactStatusInEnvironment> = emptyList()
 )
 
 fun PublishedArtifactInEnvironment.toDgs() =
-  DgsArtifactVersionInEnvironment(
+  MdArtifactVersionInEnvironment(
+    id = "${environmentName}-${publishedArtifact.reference}-${publishedArtifact.version}",
     version = publishedArtifact.version,
-    createdAt = publishedArtifact.createdAt.toString(),
-    gitMetadata = if (publishedArtifact.gitMetadata == null){
+    buildNumber = publishedArtifact.buildNumber,
+    createdAt = publishedArtifact.createdAt,
+    deployedAt = deployedAt,
+    gitMetadata = if (publishedArtifact.gitMetadata == null) {
       null
     } else {
       publishedArtifact.gitMetadata?.toDgs()
     },
     environment = environmentName,
     reference = publishedArtifact.reference,
-    status = DgsArtifactStatusInEnvironment.valueOf(status.name)
+    status = MdArtifactStatusInEnvironment.valueOf(status.name)
   )
+

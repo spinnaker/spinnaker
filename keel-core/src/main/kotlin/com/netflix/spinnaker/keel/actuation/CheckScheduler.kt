@@ -1,15 +1,23 @@
 package com.netflix.spinnaker.keel.actuation
 
+import com.netflix.spectator.api.Registry
+import com.netflix.spectator.api.histogram.PercentileTimer
+import com.netflix.spinnaker.config.EnvironmentVerificationConfig
+import com.netflix.spinnaker.config.PostDeployActionsConfig
+import com.netflix.spinnaker.config.ResourceCheckConfig
 import com.netflix.spinnaker.keel.activation.ApplicationDown
 import com.netflix.spinnaker.keel.activation.ApplicationUp
 import com.netflix.spinnaker.keel.exceptions.EnvironmentCurrentlyBeingActedOn
 import com.netflix.spinnaker.keel.logging.TracingSupport.Companion.blankMDC
 import com.netflix.spinnaker.keel.persistence.AgentLockRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
+import com.netflix.spinnaker.keel.postdeploy.PostDeployActionRunner
 import com.netflix.spinnaker.keel.telemetry.AgentInvocationComplete
 import com.netflix.spinnaker.keel.telemetry.ArtifactCheckComplete
 import com.netflix.spinnaker.keel.telemetry.ArtifactCheckTimedOut
 import com.netflix.spinnaker.keel.telemetry.EnvironmentsCheckTimedOut
+import com.netflix.spinnaker.keel.telemetry.PostDeployActionCheckComplete
+import com.netflix.spinnaker.keel.telemetry.PostDeployActionTimedOut
 import com.netflix.spinnaker.keel.telemetry.ResourceCheckCompleted
 import com.netflix.spinnaker.keel.telemetry.ResourceCheckTimedOut
 import com.netflix.spinnaker.keel.telemetry.ResourceLoadFailed
@@ -24,7 +32,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withTimeout
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.event.EventListener
 import org.springframework.core.env.Environment
@@ -32,10 +40,16 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.time.Clock
 import java.time.Duration
+import java.time.Instant
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.CoroutineContext
 import kotlin.math.max
 
+@EnableConfigurationProperties(
+  ResourceCheckConfig::class,
+  EnvironmentVerificationConfig::class,
+  PostDeployActionsConfig::class
+)
 @Component
 class CheckScheduler(
   private val repository: KeelRepository,
@@ -43,16 +57,16 @@ class CheckScheduler(
   private val environmentPromotionChecker: EnvironmentPromotionChecker,
   private val verificationRunner: VerificationRunner,
   private val artifactHandlers: Collection<ArtifactHandler>,
-  @Value("\${keel.resource-check.min-age-duration:60s}") private val resourceCheckMinAge: Duration,
-  @Value("\${keel.resource-check.batch-size:1}") private val resourceCheckBatchSize: Int,
-  @Value("\${keel.resource-check.timeout-duration:2m}") private val checkTimeout: Duration,
-  @Value("\${keel.environment-verification.min-age-duration:60s}") private val environmentVerificationMinAge: Duration,
-  @Value("\${keel.environment-verification.batch-size:1}") private val environmentVerificationBatchSize: Int,
+  private val postDeployActionRunner: PostDeployActionRunner,
+  private val resourceCheckConfig: ResourceCheckConfig,
+  private val verificationConfig: EnvironmentVerificationConfig,
+  private val postDeployConfig: PostDeployActionsConfig,
   private val publisher: ApplicationEventPublisher,
   private val agentLockRepository: AgentLockRepository,
   private val clock: Clock,
-  private val springEnv: Environment
-) : CoroutineScope {
+  private val springEnv: Environment,
+  private val spectator: Registry
+  ) : CoroutineScope {
   override val coroutineContext: CoroutineContext = Dispatchers.IO
 
   private val enabled = AtomicBoolean(false)
@@ -71,7 +85,7 @@ class CheckScheduler(
 
   // Used for resources, environments, and artifacts.
   private val checkMinAge: Duration
-    get() = springEnv.getProperty("keel.check.min-age-duration", Duration::class.java, resourceCheckMinAge)
+    get() = springEnv.getProperty("keel.check.min-age-duration", Duration::class.java, resourceCheckConfig.minAgeDuration)
 
   @Scheduled(fixedDelayString = "\${keel.resource-check.frequency:PT1S}")
   fun checkResources() {
@@ -81,7 +95,7 @@ class CheckScheduler(
         supervisorScope {
           runCatching {
             repository
-              .resourcesDueForCheck(checkMinAge, resourceCheckBatchSize)
+              .resourcesDueForCheck(checkMinAge, resourceCheckConfig.batchSize)
           }
             .onFailure {
               publisher.publishEvent(ResourceLoadFailed(it))
@@ -93,7 +107,7 @@ class CheckScheduler(
                    * Allow individual resource checks to timeout but catch the `CancellationException`
                    * to prevent the cancellation of all coroutines under [job]
                    */
-                  withTimeout(checkTimeout.toMillis()) {
+                  withTimeout(resourceCheckConfig.timeoutDuration.toMillis()) {
                     launch {
                       resourceActuator.checkResource(it)
                       publisher.publishEvent(ResourceCheckCompleted(Duration.between(startTime, clock.instant())))
@@ -108,18 +122,20 @@ class CheckScheduler(
         }
       }
       runBlocking { job.join() }
+      recordDuration(startTime, "resource")
     }
   }
 
   @Scheduled(fixedDelayString = "\${keel.environment-check.frequency:PT1S}")
   fun checkEnvironments() {
     if (enabled.get()) {
+      val startTime = clock.instant()
       publisher.publishEvent(ScheduledEnvironmentCheckStarting)
 
       val job = launch(blankMDC) {
         supervisorScope {
           repository
-            .deliveryConfigsDueForCheck(checkMinAge, resourceCheckBatchSize)
+            .deliveryConfigsDueForCheck(checkMinAge, resourceCheckConfig.batchSize)
             .forEach {
               try {
                 /**
@@ -129,7 +145,7 @@ class CheckScheduler(
                  * TODO: consider refactoring environmentPromotionChecker so that it can be called for
                  *  individual environments, allowing fairer timeouts.
                  */
-                withTimeout(checkTimeout.toMillis() * max(it.environments.size, 1)) {
+                withTimeout(resourceCheckConfig.timeoutDuration.toMillis() * max(it.environments.size, 1)) {
                   launch { environmentPromotionChecker.checkEnvironments(it) }
                 }
               } catch (e: TimeoutCancellationException) {
@@ -143,8 +159,18 @@ class CheckScheduler(
       }
 
       runBlocking { job.join() }
+      recordDuration(startTime, "environment")
     }
   }
+
+  private fun recordDuration(startTime : Instant, type: String) =
+    PercentileTimer
+      .builder(spectator)
+      .withName("keel.scheduled.method.duration")
+      .withTag("type", type)
+      .build()
+      .record(Duration.between(startTime, clock.instant()))
+
 
   @Scheduled(fixedDelayString = "\${keel.artifact-check.frequency:PT1S}")
   fun checkArtifacts() {
@@ -153,10 +179,10 @@ class CheckScheduler(
       publisher.publishEvent(ScheduledArtifactCheckStarting)
       val job = launch(blankMDC) {
         supervisorScope {
-          repository.artifactsDueForCheck(checkMinAge, resourceCheckBatchSize)
+          repository.artifactsDueForCheck(checkMinAge, resourceCheckConfig.batchSize)
             .forEach { artifact ->
               try {
-                withTimeout(checkTimeout.toMillis()) {
+                withTimeout(resourceCheckConfig.timeoutDuration.toMillis()) {
                   launch {
                     artifactHandlers.forEach { handler ->
                       handler.handle(artifact)
@@ -172,6 +198,7 @@ class CheckScheduler(
       }
       runBlocking { job.join() }
       publisher.publishEvent(ArtifactCheckComplete(Duration.between(startTime, clock.instant())))
+      recordDuration(startTime, "artifact")
     }
   }
 
@@ -184,13 +211,13 @@ class CheckScheduler(
       val job = launch(blankMDC) {
         supervisorScope {
           repository
-            .nextEnvironmentsForVerification(environmentVerificationMinAge, environmentVerificationBatchSize)
+            .nextEnvironmentsForVerification(verificationConfig.minAgeDuration, verificationConfig.batchSize)
             .forEach {
               try {
-                withTimeout(checkTimeout.toMillis()) {
+                withTimeout(verificationConfig.timeoutDuration.toMillis()) {
                   launch {
                     try {
-                      verificationRunner.runVerificationsFor(it)
+                      verificationRunner.runFor(it)
                     } catch (e: EnvironmentCurrentlyBeingActedOn) {
                       log.info("Couldn't verify ${it.version} in ${it.deliveryConfig.application}/${it.environmentName} because environment is currently being acted on", e.message)
                     }
@@ -206,6 +233,38 @@ class CheckScheduler(
 
       runBlocking { job.join() }
       publisher.publishEvent(VerificationCheckComplete(Duration.between(startTime, clock.instant())))
+      recordDuration(startTime, "verification")
+    }
+  }
+
+  @Scheduled(fixedDelayString = "\${keel.environment-post-deploy.frequency:PT1S}")
+  fun runPostDeployActions() {
+    if (enabled.get()) {
+      val startTime = clock.instant()
+      publisher.publishEvent(ScheduledPostDeployActionRunStarting)
+
+      val job = launch(blankMDC) {
+        supervisorScope {
+          repository
+            .nextEnvironmentsForPostDeployAction(postDeployConfig.minAgeDuration, postDeployConfig.batchSize)
+            .forEach {
+              try {
+                withTimeout(postDeployConfig.timeoutDuration.toMillis()) {
+                  launch {
+                    postDeployActionRunner.runFor(it)
+                  }
+                }
+              } catch (e: TimeoutCancellationException) {
+                log.error("Timed out running post deploy actions on ${it.version} in ${it.deliveryConfig.application}/${it.environmentName}", e)
+                publisher.publishEvent(PostDeployActionTimedOut(it))
+              }
+            }
+        }
+      }
+
+      runBlocking { job.join() }
+      publisher.publishEvent(PostDeployActionCheckComplete(Duration.between(startTime, clock.instant())))
+      recordDuration(startTime, "postdeploy")
     }
   }
 
@@ -225,6 +284,7 @@ class CheckScheduler(
           publisher.publishEvent(AgentInvocationComplete(Duration.between(startTime, clock.instant()), agentName))
         }
       }
+      recordDuration(startTime, "agent")
     }
   }
 

@@ -7,14 +7,15 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
-import com.netflix.spinnaker.keel.api.artifacts.DEFAULT_MAX_ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
-import com.netflix.spinnaker.keel.api.verification.VerificationContext
-import com.netflix.spinnaker.keel.api.verification.VerificationState
+import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
+import com.netflix.spinnaker.keel.api.action.ActionState
+import com.netflix.spinnaker.keel.api.action.ActionStateFull
 import com.netflix.spinnaker.keel.persistence.DependentAttachFilter
 import com.netflix.spinnaker.keel.persistence.DependentAttachFilter.ATTACH_ALL
+import java.time.Duration
 
 /**
  * A read-only repository for interacting with delivery configs, artifacts, and resources.
@@ -50,7 +51,7 @@ interface KeelReadOnlyRepository {
 
   fun constraintStateFor(deliveryConfigName: String, environmentName: String, artifactVersion: String, artifactReference: String): List<ConstraintState>
 
-  fun getPendingArtifactVersions(deliveryConfigName: String, environmentName: String, artifact: DeliveryArtifact): List<PublishedArtifact>
+  fun getPendingConstraintsForArtifactVersions(deliveryConfigName: String, environmentName: String, artifact: DeliveryArtifact): List<PublishedArtifact>
 
   fun getArtifactVersionsQueuedForApproval(deliveryConfigName: String, environmentName: String, artifact: DeliveryArtifact): List<PublishedArtifact>
 
@@ -72,9 +73,13 @@ interface KeelReadOnlyRepository {
 
   fun isRegistered(name: String, type: ArtifactType): Boolean
 
-  fun artifactVersions(artifact: DeliveryArtifact, limit: Int = DEFAULT_MAX_ARTIFACT_VERSIONS): List<PublishedArtifact>
+  fun artifactVersions(artifact: DeliveryArtifact, limit: Int): List<PublishedArtifact>
 
-  fun getVerificationStatesBatch(contexts: List<VerificationContext>) : List<Map<String, VerificationState>>
+  fun getVersionsWithoutMetadata(limit: Int, maxAge: Duration): List<PublishedArtifact>
+
+  fun getVerificationStatesBatch(contexts: List<ArtifactInEnvironmentContext>) : List<Map<String, ActionState>>
+
+  fun getAllActionStatesBatch(contexts: List<ArtifactInEnvironmentContext>) : List<List<ActionStateFull>>
 
   fun latestVersionApprovedIn(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact, targetEnvironment: String): String?
 

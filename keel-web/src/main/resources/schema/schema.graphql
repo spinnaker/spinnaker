@@ -1,0 +1,248 @@
+scalar InstantTime
+scalar JSON
+
+type Query {
+  application(appName: String!): MdApplication
+}
+
+type MdApplication {
+  id: String!
+  name: String!
+  account: String!
+  isPaused: Boolean
+  environments: [MdEnvironment!]!
+}
+
+type MdEnvironment {
+  id: String!
+  name: String!
+  state: MdEnvironmentState!
+}
+
+type MdEnvironmentState {
+  id: String!
+  resources: [MdResource!]
+  artifacts: [MdArtifact!]
+}
+
+type MdPinnedVersion {
+  id: String!
+  name: String!
+  reference: String!
+  version: String!
+  gitMetadata: MdGitMetadata
+  buildNumber: String
+  pinnedAt: InstantTime
+  pinnedBy: String
+  comment: String
+}
+
+type MdArtifact {
+  id: String!
+  environment: String!
+  name: String!
+  type: String!
+  reference: String!
+  versions(statuses: [MdArtifactStatusInEnvironment!], versions: [String!]): [MdArtifactVersionInEnvironment!]
+  pinnedVersion: MdPinnedVersion
+}
+
+type MdArtifactVersionInEnvironment {
+  id: String!
+  version: String!
+  buildNumber: String
+  createdAt: InstantTime
+  deployedAt: InstantTime
+  resources: [MdResource!]
+  gitMetadata: MdGitMetadata
+  environment: String
+  reference: String!
+  status: MdArtifactStatusInEnvironment
+  lifecycleSteps: [MdLifecycleStep!]
+  constraints: [MdConstraint!]
+  verifications: [MdAction!]
+  postDeploy: [MdAction!]
+}
+
+enum MdLifecycleEventScope {
+  PRE_DEPLOYMENT
+}
+
+enum MdLifecycleEventType {
+  BAKE,
+  BUILD
+}
+
+enum MdLifecycleEventStatus {
+  NOT_STARTED,
+  RUNNING,
+  SUCCEEDED,
+  FAILED,
+  ABORTED,
+  UNKNOWN
+}
+
+type MdLifecycleStep {
+  scope: MdLifecycleEventScope
+  type: MdLifecycleEventType!
+  id: String
+  status: MdLifecycleEventStatus!
+  text: String
+  link: String
+  startedAt: InstantTime
+  completedAt: InstantTime
+  artifactVersion: String
+}
+
+type MdGitMetadata {
+  commit: String
+  author: String
+  project: String
+  branch: String
+  repoName: String
+  pullRequest: MdPullRequest
+  commitInfo: MdCommitInfo
+  comparisonLinks: MdComparisonLinks
+}
+
+type MdComparisonLinks {
+  toPreviousVersion: String
+  toCurrentVersion: String
+}
+
+type MdPullRequest {
+  number: String
+  link: String
+}
+
+type MdCommitInfo {
+  sha: String
+  link: String
+  message: String
+}
+
+enum MdResourceActuationStatus {
+  PROCESSING
+  UP_TO_DATE
+  ERROR
+  WAITING
+  NOT_MANAGED
+}
+
+type MdResourceActuationState {
+  status: MdResourceActuationStatus!
+  reason: String
+  event: String
+}
+
+type MdResource {
+  id: String!
+  kind: String!
+  moniker: MdMoniker
+  state: MdResourceActuationState
+  artifact: MdArtifact
+  displayName: String
+  location: MdLocation
+}
+
+type MdMoniker {
+  app: String
+  stack: String
+  detail: String
+}
+
+type MdLocation {
+  account: String
+  regions: [String!]
+}
+
+enum MdConstraintStatus {
+  BLOCKED
+  PENDING
+  PASS
+  FAIL
+  FORCE_PASS
+}
+
+enum MdArtifactStatusInEnvironment {
+  PENDING,
+  APPROVED,
+  DEPLOYING,
+  CURRENT,
+  PREVIOUS
+  VETOED,
+  SKIPPED
+}
+
+type MdConstraint {
+  type: String!
+  status: MdConstraintStatus!
+  startedAt: InstantTime
+  judgedAt: InstantTime
+  judgedBy: String
+  comment: String
+  attributes: JSON
+}
+
+enum MdActionStatus {
+  NOT_EVALUATED
+  PENDING
+  PASS
+  FAIL
+  FORCE_PASS
+}
+
+enum MdActionType {
+  VERIFICATION
+  POST_DEPLOY
+}
+
+type MdAction {
+  id: String!
+  type: String!
+  status: MdActionStatus!
+  startedAt: InstantTime
+  completedAt: InstantTime
+  link: String
+  actionType: MdActionType!
+}
+
+type Mutation {
+  updateConstraintStatus(payload: MdConstraintStatusPayload!): Boolean
+  toggleManagement(application: String!, isPaused: Boolean!): Boolean
+  pinArtifactVersion(payload: MdArtifactVersionActionPayload!): Boolean
+  markArtifactVersionAsBad(payload: MdArtifactVersionActionPayload!): Boolean
+  unpinArtifactVersion(payload: MdUnpinArtifactVersionPayload!): Boolean
+  markArtifactVersionAsGood(payload: MdMarkArtifactVersionAsGoodPayload!): Boolean
+}
+
+input MdConstraintStatusPayload {
+  application: String!
+  environment: String!
+  type: String!
+  version: String!
+  reference: String!
+  status: MdConstraintStatus!
+}
+
+input MdArtifactVersionActionPayload {
+  application: String!
+  environment: String!
+  reference: String!
+  comment: String!
+  version: String!
+}
+
+input MdMarkArtifactVersionAsGoodPayload {
+  application: String!
+  environment: String!
+  reference: String!
+  version: String!
+}
+
+input MdUnpinArtifactVersionPayload {
+  application: String!
+  environment: String!
+  reference: String!
+}
+

@@ -9,12 +9,14 @@ import com.netflix.spinnaker.keel.lifecycle.LifecycleEventRepository
 import com.netflix.spinnaker.keel.lifecycle.LifecycleStep
 import com.netflix.spinnaker.keel.lifecycle.StartMonitoringEvent
 import com.netflix.spinnaker.keel.lifecycle.isEndingStatus
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_ARTIFACT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.LIFECYCLE_EVENT
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
 import de.huxhorn.sulky.ulid.ULID
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
+import org.jooq.impl.DSL.select
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import java.time.Clock
@@ -40,7 +42,8 @@ class SqlLifecycleEventRepository(
         txn.select(LIFECYCLE_EVENT.UID, LIFECYCLE_EVENT.JSON)
           .from(LIFECYCLE_EVENT)
           .where(LIFECYCLE_EVENT.SCOPE.eq(event.scope.name))
-          .and(LIFECYCLE_EVENT.REF.eq(event.artifactRef))
+          .and(LIFECYCLE_EVENT.DELIVERY_CONFIG_NAME.eq(event.deliveryConfigName))
+          .and(LIFECYCLE_EVENT.ARTIFACT_REFERENCE.eq(event.artifactReference))
           .and(LIFECYCLE_EVENT.ARTIFACT_VERSION.eq(event.artifactVersion))
           .and(LIFECYCLE_EVENT.TYPE.eq(event.type))
           .and(LIFECYCLE_EVENT.ID.eq(event.id))
@@ -68,7 +71,8 @@ class SqlLifecycleEventRepository(
           txn.insertInto(LIFECYCLE_EVENT)
             .set(LIFECYCLE_EVENT.UID, eventUid)
             .set(LIFECYCLE_EVENT.SCOPE, event.scope.name)
-            .set(LIFECYCLE_EVENT.REF, event.artifactRef)
+            .set(LIFECYCLE_EVENT.DELIVERY_CONFIG_NAME, event.deliveryConfigName)
+            .set(LIFECYCLE_EVENT.ARTIFACT_REFERENCE, event.artifactReference)
             .set(LIFECYCLE_EVENT.ARTIFACT_VERSION, event.artifactVersion)
             .set(LIFECYCLE_EVENT.TYPE, event.type)
             .set(LIFECYCLE_EVENT.ID, event.id)
@@ -82,6 +86,12 @@ class SqlLifecycleEventRepository(
     return eventUid
   }
 
+  private val LifecycleEvent.artifactUid
+    get() = select(DELIVERY_ARTIFACT.UID)
+      .from(DELIVERY_ARTIFACT)
+      .where(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(deliveryConfigName))
+      .and(DELIVERY_ARTIFACT.NAME.eq(artifactReference))
+
   override fun getEvents(
     artifact: DeliveryArtifact,
     artifactVersion: String
@@ -89,7 +99,8 @@ class SqlLifecycleEventRepository(
     sqlRetry.withRetry(READ) {
       jooq.select(LIFECYCLE_EVENT.JSON, LIFECYCLE_EVENT.TIMESTAMP)
         .from(LIFECYCLE_EVENT)
-        .where(LIFECYCLE_EVENT.REF.eq(artifact.toLifecycleRef()))
+        .where(LIFECYCLE_EVENT.DELIVERY_CONFIG_NAME.eq(artifact.deliveryConfigName))
+        .and(LIFECYCLE_EVENT.ARTIFACT_REFERENCE.eq(artifact.reference))
         .and(LIFECYCLE_EVENT.ARTIFACT_VERSION.eq(artifactVersion))
         .orderBy(LIFECYCLE_EVENT.TIMESTAMP.asc()) // oldest first
         .fetch()
@@ -104,7 +115,8 @@ class SqlLifecycleEventRepository(
   sqlRetry.withRetry(READ) {
     jooq.select(LIFECYCLE_EVENT.JSON, LIFECYCLE_EVENT.TIMESTAMP)
       .from(LIFECYCLE_EVENT)
-      .where(LIFECYCLE_EVENT.REF.eq(artifact.toLifecycleRef()))
+      .where(LIFECYCLE_EVENT.DELIVERY_CONFIG_NAME.eq(artifact.deliveryConfigName))
+      .and(LIFECYCLE_EVENT.ARTIFACT_REFERENCE.eq(artifact.reference))
       .orderBy(LIFECYCLE_EVENT.TIMESTAMP.asc()) // oldest first
       .fetch()
       .map { (event, timestamp) ->
@@ -129,7 +141,7 @@ class SqlLifecycleEventRepository(
     val steps = calculateSteps(events)
     spectator.timer(
       LIFECYCLE_STEP_CALCULATION_DURATION_ID,
-      listOf(BasicTag("artifactRef", artifact.toLifecycleRef()))
+      listOf(BasicTag("artifactRef", "${artifact.deliveryConfigName}:${artifact.reference}"))
     ).record(Duration.between(startTime, clock.instant()))
     return steps
   }
@@ -180,7 +192,7 @@ class SqlLifecycleEventRepository(
 
     spectator.timer(
       LIFECYCLE_STEP_CALCULATION_ALL_DURATION_ID,
-      listOf(BasicTag("artifactRef", artifact.toLifecycleRef()))
+      listOf(BasicTag("artifactRef", "${artifact.deliveryConfigName}:${artifact.reference}"))
     ).record(Duration.between(startTime, clock.instant()))
     return steps
   }
@@ -212,19 +224,19 @@ class SqlLifecycleEventRepository(
     }
   }
 
-  private fun LifecycleEvent.getUid(): String {
-    return sqlRetry.withRetry(READ) {
+  private fun LifecycleEvent.getUid() =
+    sqlRetry.withRetry(READ) {
       jooq.select(LIFECYCLE_EVENT.UID)
         .from(LIFECYCLE_EVENT)
         .where(LIFECYCLE_EVENT.SCOPE.eq(scope.name))
         .and(LIFECYCLE_EVENT.TYPE.eq(type))
-        .and(LIFECYCLE_EVENT.REF.eq(artifactRef))
+        .and(LIFECYCLE_EVENT.DELIVERY_CONFIG_NAME.eq(deliveryConfigName))
+        .and(LIFECYCLE_EVENT.ARTIFACT_REFERENCE.eq(artifactReference))
         .and(LIFECYCLE_EVENT.ARTIFACT_VERSION.eq(artifactVersion))
         .and(LIFECYCLE_EVENT.ID.eq(id))
         .and(LIFECYCLE_EVENT.STATUS.eq(status))
         .fetch(LIFECYCLE_EVENT.UID)
         .first()
-    }
   }
 
   private val LIFECYCLE_STEP_CALCULATION_DURATION_ID = "keel.lifecycle.step.calculation.duration"

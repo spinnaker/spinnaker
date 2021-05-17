@@ -63,6 +63,13 @@ class ContainerAttributesResolver(
         }
       }
     }
+
+    val containerEnv = getAccountEnvironment(account)
+    if (containerEnv == "test" && !keyPresentInAllRegions(resource, defaults.getIPv6Key())) {
+      // Container tunables should be a true/false boolean string
+      topLevelAttrs.putIfAbsent(defaults.getIPv6Key(), "true")
+    }
+
     val resourceDefaults = resource.spec.defaults.copy(containerAttributes = topLevelAttrs)
     val newSpec = resource.spec.copy(overrides = overrides, _defaults = resourceDefaults)
     return resource.copy(spec = newSpec)
@@ -96,4 +103,9 @@ class ContainerAttributesResolver(
   private suspend fun getAccountId(accountName: String): String =
     cloudDriverService.getAccountInformation(accountName, DEFAULT_SERVICE_ACCOUNT)["accountId"]?.toString()
       ?: throw AwsAccountConfigurationException(accountName, "accountId")
+
+  private fun getAccountEnvironment(titusAccount: String): String = runBlocking {
+    cloudDriverService.getAccountInformation(titusAccount, DEFAULT_SERVICE_ACCOUNT)["environment"]?.toString()
+      ?: throw AwsAccountConfigurationException(titusAccount, "environment")
+  }
 }

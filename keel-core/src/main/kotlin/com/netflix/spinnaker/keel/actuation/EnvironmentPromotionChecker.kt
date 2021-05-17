@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.actuation
 
+import com.netflix.spinnaker.config.ArtifactConfig
 import com.netflix.spinnaker.keel.actuation.EnvironmentConstraintRunner.EnvironmentContext
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
@@ -12,22 +13,30 @@ import com.netflix.spinnaker.keel.telemetry.ArtifactVersionApproved
 import com.netflix.spinnaker.keel.telemetry.EnvironmentCheckComplete
 import com.newrelic.api.agent.Trace
 import org.slf4j.LoggerFactory
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import java.time.Clock
 import java.time.Duration
+import org.springframework.core.env.Environment as SpringEnvironment
 
 /**
  * This class is responsible for approving artifacts in environments
  */
 @Component
+@EnableConfigurationProperties(ArtifactConfig::class)
 class EnvironmentPromotionChecker(
   private val repository: KeelRepository,
   private val constraintRunner: EnvironmentConstraintRunner,
   private val publisher: ApplicationEventPublisher,
+  private val artifactConfig: ArtifactConfig,
+  private val springEnv: SpringEnvironment,
   private val clock: Clock = Clock.systemDefaultZone()
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
+
+  private val fetchOnlyPending: Boolean
+    get() = springEnv.getProperty("keel.environment-promotion.fetch-pending", Boolean::class.java, false)
 
   @Trace(dispatcher = true)
   suspend fun checkEnvironments(deliveryConfig: DeliveryConfig) {
@@ -43,18 +52,37 @@ class EnvironmentPromotionChecker(
 
       deliveryConfig
         .artifacts
-        .associateWith { repository.artifactVersions(it) }
+        .associateWith { repository.artifactVersions(it, artifactConfig.defaultMaxConsideredVersions) }
         .forEach { (artifact, versions) ->
           if (versions.isEmpty()) {
             log.warn("No versions for ${artifact.type} artifact name ${artifact.name} and reference ${artifact.reference} are known")
           } else {
             deliveryConfig.environments.forEach { environment ->
               if (artifact.isUsedIn(environment)) {
+
+                val latestVersions = versions.map { it.version }
+                val versionsToUse = if (fetchOnlyPending) {
+                  // get the newest pending versions in the environment and only check them
+                  repository
+                    .getPendingVersionsInEnvironment(
+                      deliveryConfig,
+                      artifact.reference,
+                      environment.name
+                    )
+                    .sortedWith(artifact.sortingStrategy.comparator)
+                    .map { it.version }
+                    .intersect(latestVersions) // only take newest ones so we avoid checking really old versions
+                    .toList()
+                } else {
+                  // check all versions
+                  latestVersions
+                }
+
                 val envContext = EnvironmentContext(
                   deliveryConfig = deliveryConfig,
                   environment = environment,
                   artifact = artifact,
-                  versions = versions.map { it.version },
+                  versions = versionsToUse,
                   vetoedVersions = (vetoedArtifacts[envPinKey(environment.name, artifact)]?.versions)
                     ?: emptySet()
                 )

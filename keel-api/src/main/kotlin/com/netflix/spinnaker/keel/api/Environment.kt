@@ -8,7 +8,8 @@ data class Environment(
   val constraints: Set<Constraint> = emptySet(),
   val verifyWith: List<Verification> = emptyList(),
   val notifications: Set<NotificationConfig> = emptySet(), // applies to each resource
-  val postDeploy: List<PostDeployAction> = emptyList()
+  val postDeploy: List<PostDeployAction> = emptyList(),
+  val isPreview: Boolean = false
 ) {
   val resourceIds: Set<String>
     get() = resources.mapTo(mutableSetOf(), Resource<*>::id)

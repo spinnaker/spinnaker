@@ -27,7 +27,8 @@ import java.time.Instant
  */
 data class LifecycleEvent(
   val scope: LifecycleEventScope,
-  val artifactRef: String,
+  val deliveryConfigName: String,
+  val artifactReference: String,
   val artifactVersion: String,
   val type: LifecycleEventType,
   val id: String,

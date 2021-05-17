@@ -1,0 +1,32 @@
+databaseChangeLog:
+- changeSet:
+    id: separate-delivery-config-and-artifact-on-lifecycle-event
+    author: fletch
+    changes:
+    - addColumn:
+        tableName: lifecycle_event
+        columns:
+        - column:
+            name: artifact_reference
+            type: varchar(255)
+            afterColumn: scope
+        - column:
+            name: delivery_config_name
+            type: varchar(255)
+            afterColumn: scope
+    - sql:
+        sql: |
+          update lifecycle_event
+          set lifecycle_event.delivery_config_name = substring_index(lifecycle_event.ref, ':', 1)
+          ,   lifecycle_event.artifact_reference = substring_index(lifecycle_event.ref, ':', -1);
+    - addNotNullConstraint:
+        tableName: lifecycle_event
+        columnName: delivery_config_name
+        columnDataType: varchar(255)
+    - addNotNullConstraint:
+        tableName: lifecycle_event
+        columnName: artifact_reference
+        columnDataType: varchar(255)
+    - dropColumn:
+        tableName: lifecycle_event
+        columnName: ref

@@ -159,7 +159,7 @@ class ClusterExportHelper(
 
   @Suppress("UNCHECKED_CAST")
   private fun ExecutionDetailResponse.getTaskContext(taskType: String) =
-    execution.stages
+    execution?.stages
       ?.find { stage -> stage["type"] == taskType }
       ?.let { stage -> stage["context"] }
       ?.let { context -> context as? Map<String, Any> }

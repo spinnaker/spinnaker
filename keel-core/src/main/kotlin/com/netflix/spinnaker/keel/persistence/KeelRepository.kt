@@ -13,7 +13,7 @@ import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.persistence.KeelReadOnlyRepository
-import com.netflix.spinnaker.keel.api.verification.VerificationContext
+import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
 import com.netflix.spinnaker.keel.core.api.ApplicationSummary
 import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
@@ -188,6 +188,8 @@ interface KeelRepository : KeelReadOnlyRepository {
 
   fun getPendingVersionsInEnvironment(deliveryConfig: DeliveryConfig, artifactReference: String, environmentName: String): List<PublishedArtifact>
 
+  fun getNumPendingToBePromoted(application: String, artifactReference: String, environmentName: String, version: String): Int
+
   fun getAllVersionsForEnvironment(artifact: DeliveryArtifact, config: DeliveryConfig, environmentName: String): List<PublishedArtifactInEnvironment>
 
   fun pinEnvironment(deliveryConfig: DeliveryConfig, environmentArtifactPin: EnvironmentArtifactPin)
@@ -262,12 +264,16 @@ interface KeelRepository : KeelReadOnlyRepository {
 
   // END ArtifactRepository methods
 
-  // START VerificationRepository methods
+  // START ActionRepository methods
   fun nextEnvironmentsForVerification(
     minTimeSinceLastCheck: Duration,
     limit: Int
-  ) : Collection<VerificationContext>
+  ) : Collection<ArtifactInEnvironmentContext>
 
+  fun nextEnvironmentsForPostDeployAction(
+    minTimeSinceLastCheck: Duration,
+    limit: Int
+  ) : Collection<ArtifactInEnvironmentContext>
 
   /**
    * Updates the state of [verification] as run against [context].
@@ -275,11 +281,11 @@ interface KeelRepository : KeelReadOnlyRepository {
    * @param metadata if non-empty this will overwrite any existing metadata.
    */
   fun updateState(
-    context: VerificationContext,
+    context: ArtifactInEnvironmentContext,
     verification: Verification,
     status: ConstraintStatus,
     metadata: Map<String, Any?> = emptyMap(),
     link: String? = null,
     )
-  // END VerificationRepository methods
+  // END ActionRepository methods
 }

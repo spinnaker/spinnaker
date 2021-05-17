@@ -3,19 +3,30 @@ package com.netflix.spinnaker.keel.titus
 import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.keel.api.actuation.SubjectType
+import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
+import com.netflix.spinnaker.keel.api.action.Action
+import com.netflix.spinnaker.keel.api.action.ActionState
+import com.netflix.spinnaker.keel.api.actuation.SubjectType.VERIFICATION
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.titus.TitusServerGroup
+import com.netflix.spinnaker.keel.orca.ExecutionDetailResponse
+import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.titus.batch.ContainerJobConfig
 import com.netflix.spinnaker.keel.titus.batch.createRunJobStage
+import com.netflix.spinnaker.keel.titus.verification.LinkStrategy
 import com.netflix.spinnaker.keel.titus.verification.TASKS
+import com.netflix.spinnaker.keel.titus.verification.getLink
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Component
 
-abstract class AbstractContainerRunner(
+@Component
+class ContainerRunner(
   private val taskLauncher: TaskLauncher,
+  private val orca: OrcaService,
   private val spectator: Registry
 ) {
 
@@ -24,10 +35,35 @@ abstract class AbstractContainerRunner(
     private const val CONTAINER_LAUNCHED_COUNTER_ID = "keel.titus.run-job.launched"
   }
 
+  suspend fun getNewState(
+    oldState: ActionState,
+    linkStrategy: LinkStrategy?
+  ): ActionState {
+    @Suppress("UNCHECKED_CAST")
+    val taskId = (oldState.metadata[TASKS] as Iterable<String>?)?.last()
+    require(taskId is String) {
+      "No task id found in previous verification state"
+    }
+
+    val response = withContext(Dispatchers.IO) {
+        orca.getOrchestrationExecution(taskId)
+      }
+
+    log.debug("Container test task $taskId status: ${response.status.name}")
+
+    val status = when {
+      response.status.isSuccess() -> ConstraintStatus.PASS
+      response.status.isIncomplete() -> ConstraintStatus.PENDING
+      else -> ConstraintStatus.FAIL
+    }
+
+    return oldState.copy(status=status, link= getLink(response, linkStrategy))
+  }
+
   /**
    * Launches the container, increments a metric, returns the task ids.
    */
-  fun launchContainer(
+  suspend fun launchContainer(
     imageId: String,
     subjectLine: String,
     description: String,
@@ -35,12 +71,12 @@ abstract class AbstractContainerRunner(
     application: String,
     environmentName: String,
     location: TitusServerGroup.Location,
-    environmentVariables: Map<String, String> = emptyMap()
+    environmentVariables: Map<String, String> = emptyMap(),
+    containerApplication: String = application
   ): Map<String, Any?> {
-    return runBlocking {
-      withContext(Dispatchers.IO) {
+      return withContext(Dispatchers.IO) {
         taskLauncher.submitJob(
-          type = SubjectType.VERIFICATION,
+          type = VERIFICATION,
           subject = subjectLine,
           description = description,
           user = serviceAccount,
@@ -48,7 +84,7 @@ abstract class AbstractContainerRunner(
           notifications = emptySet(),
           stages = listOf(
             ContainerJobConfig(
-              application = application,
+              application = containerApplication,
               location = location,
               credentials = location.account,
               image = imageId,
@@ -56,22 +92,21 @@ abstract class AbstractContainerRunner(
             ).createRunJobStage()
           )
         )
-      }
         .let { task ->
-          log.debug("Launched container task ${task.id} for $application environment $environmentName by ${javaClass.simpleName}")
-          incrementContainerLaunchedCounter(application, environmentName)
+          log.debug("Launched container task ${task.id} for $application environment $environmentName")
+          incrementContainerLaunchedCounter(application, environmentName, imageId)
           mapOf(TASKS to listOf(task.id))
         }
     }
   }
 
-  private fun incrementContainerLaunchedCounter(application: String, environmentName: String) {
+  private fun incrementContainerLaunchedCounter(application: String, environmentName: String, imageId: String) {
     spectator.counter(
       CONTAINER_LAUNCHED_COUNTER_ID,
       listOf(
         BasicTag("application", application),
         BasicTag("environmentName", environmentName),
-        BasicTag("runner", javaClass.simpleName)
+        BasicTag("imageId", imageId)
       )
     ).safeIncrement()
   }

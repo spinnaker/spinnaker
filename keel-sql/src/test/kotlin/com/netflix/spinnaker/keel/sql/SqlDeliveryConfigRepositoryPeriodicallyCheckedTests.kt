@@ -15,6 +15,7 @@ import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
 import dev.minutest.rootContext
+import io.mockk.mockk
 import strikt.api.expectThat
 import strikt.assertions.first
 import strikt.assertions.hasSize
@@ -38,7 +39,8 @@ internal class SqlDeliveryConfigRepositoryPeriodicallyCheckedTests :
       resourceSpecIdentifier = DummyResourceSpecIdentifier,
       objectMapper = objectMapper,
       sqlRetry = sqlRetry,
-      artifactSuppliers = defaultArtifactSuppliers()
+      artifactSuppliers = defaultArtifactSuppliers(),
+      publisher = mockk(relaxed = true)
     )
   }
 
@@ -118,7 +120,8 @@ internal class SqlDeliveryConfigRepositoryPeriodicallyCheckedTests :
         resourceSpecIdentifier = multipleVersionsResourceSpecIdentifier,
         specMigrators = listOf(migrator),
         objectMapper = objectMapper,
-        sqlRetry = sqlRetry
+        sqlRetry = sqlRetry,
+        publisher = mockk(relaxed = true)
       )
 
       val factory = { clock: Clock ->
@@ -129,7 +132,8 @@ internal class SqlDeliveryConfigRepositoryPeriodicallyCheckedTests :
           objectMapper = objectMapper,
           sqlRetry = sqlRetry,
           artifactSuppliers = defaultArtifactSuppliers(),
-          specMigrators = listOf(migrator)
+          specMigrators = listOf(migrator),
+          publisher = mockk(relaxed = true)
         )
       }
 

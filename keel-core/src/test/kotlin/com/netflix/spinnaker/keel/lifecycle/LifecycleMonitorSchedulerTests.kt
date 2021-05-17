@@ -1,7 +1,9 @@
 package com.netflix.spinnaker.keel.lifecycle
 
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.LifecycleConfig
 import com.netflix.spinnaker.keel.telemetry.LifecycleMonitorLoadFailed
+import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.coVerify
@@ -17,13 +19,15 @@ class LifecycleMonitorSchedulerTests : JUnit5Minutests {
     val monitorRepository: LifecycleMonitorRepository = mockk(relaxed = true)
     val publisher: ApplicationEventPublisher = mockk(relaxed = true)
     val config = LifecycleConfig()
+    val clock = MutableClock()
+    val registry = NoopRegistry()
 
-    val artifactRef = "my-artifact:my-config"
     val version = "123.4"
     val link = "www.bake.com/$version"
     val event = LifecycleEvent(
       scope = LifecycleEventScope.PRE_DEPLOYMENT,
-      artifactRef = artifactRef,
+      deliveryConfigName = "my-config",
+      artifactReference = "my-artifact",
       artifactVersion = version,
       type = LifecycleEventType.BAKE,
       status = LifecycleEventStatus.NOT_STARTED,
@@ -49,7 +53,9 @@ class LifecycleMonitorSchedulerTests : JUnit5Minutests {
       monitors,
       monitorRepository,
       publisher,
-      config
+      config,
+      clock,
+      registry
     )
   }
 

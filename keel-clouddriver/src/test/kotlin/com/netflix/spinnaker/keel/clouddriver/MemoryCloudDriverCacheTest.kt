@@ -68,7 +68,7 @@ internal class MemoryCloudDriverCacheTest {
     } returns sg2
     every {
       cloudDriver.getCredential("prod")
-    } returns Credential("prod", "aws")
+    } returns Credential("prod", "aws", "prod")
 
     subject.securityGroupById("prod", "us-east-1", "sg-2").let { securityGroupSummary ->
       expectThat(securityGroupSummary) {
@@ -85,7 +85,7 @@ internal class MemoryCloudDriverCacheTest {
     } returns sg1
     every {
       cloudDriver.getCredential("prod")
-    } returns Credential("prod", "aws")
+    } returns Credential("prod", "aws", "prod")
 
     subject.securityGroupByName("prod", "us-east-1", "foo").let { securityGroupSummary ->
       expectThat(securityGroupSummary) {
@@ -99,7 +99,7 @@ internal class MemoryCloudDriverCacheTest {
   fun `subsequent requests for the same security groups are served from the cache`() {
     every {
       cloudDriver.getCredential("prod")
-    } returns Credential("prod", "aws")
+    } returns Credential("prod", "aws", "prod")
     every {
       cloudDriver.getSecurityGroupSummaryByName("prod", "aws", "us-east-1", "foo")
     } returns sg1
@@ -119,7 +119,7 @@ internal class MemoryCloudDriverCacheTest {
   fun `a 404 from CloudDriver is translated into a ResourceNotFound exception`() {
     every {
       cloudDriver.getCredential("prod")
-    } returns Credential("prod", "aws")
+    } returns Credential("prod", "aws","prod")
     every {
       cloudDriver.getSecurityGroupSummaryById("prod", "aws", "us-east-1", "sg-4")
     } throws RETROFIT_NOT_FOUND

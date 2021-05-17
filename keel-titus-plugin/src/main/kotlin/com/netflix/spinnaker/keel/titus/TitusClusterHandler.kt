@@ -25,6 +25,7 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceDiff
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
+import com.netflix.spinnaker.keel.api.actuation.Job
 import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
@@ -191,7 +192,9 @@ class TitusClusterHandler(
           val job = when {
             diff.isCapacityOnly() -> diff.resizeServerGroupJob()
             diff.isEnabledOnly() -> diff.disableOtherServerGroupJob(resource, version.toString())
-            else -> diff.upsertServerGroupJob(tagToUse) + resource.spec.deployWith.toOrcaJobProperties("Titus")
+            else -> diff.upsertServerGroupJob(tagToUse) +
+              resource.spec.deployWith.toOrcaJobProperties("Titus") +
+              mapOf("metadata" to mapOf("resource" to resource.id))
           }
 
           val description = when {
@@ -338,7 +341,7 @@ class TitusClusterHandler(
       false
     }
 
-  private suspend fun ResourceDiff<TitusServerGroup>.disableOtherServerGroupJob(resource: Resource<TitusClusterSpec>, desiredVersion: String): Map<String, Any?> {
+  private suspend fun ResourceDiff<TitusServerGroup>.disableOtherServerGroupJob(resource: Resource<TitusClusterSpec>, desiredVersion: String): Job {
     val current = requireNotNull(current) {
       "Current server group must not be null when generating a disable job"
     }
@@ -383,7 +386,7 @@ class TitusClusterHandler(
     )
   }
 
-  private fun ResourceDiff<TitusServerGroup>.resizeServerGroupJob(): Map<String, Any?> {
+  private fun ResourceDiff<TitusServerGroup>.resizeServerGroupJob(): Job {
     val current = requireNotNull(current) {
       "Current server group must not be null when generating a resize job"
     }
@@ -406,7 +409,7 @@ class TitusClusterHandler(
    * If a tag is provided, deploys by tag.
    * Otherwise, deploys by digest.
    */
-  private fun ResourceDiff<TitusServerGroup>.upsertServerGroupJob(tag: String?): Map<String, Any?> =
+  private fun ResourceDiff<TitusServerGroup>.upsertServerGroupJob(tag: String?): Job =
     with(desired) {
       val image = if (tag == null) {
         mapOf(

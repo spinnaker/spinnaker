@@ -5,7 +5,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.fiat.shared.EnableFiatAutoConfig
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
-import com.netflix.spinnaker.keel.api.plugins.PostDeployActionRunner
+import com.netflix.spinnaker.keel.api.plugins.PostDeployActionHandler
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.VerificationEvaluator
 import com.netflix.spinnaker.keel.api.support.ExtensionRegistry
@@ -21,13 +21,12 @@ import de.huxhorn.sulky.ulid.ULID
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.jackson.JsonComponentModule
+import org.springframework.boot.task.TaskSchedulerCustomizer
 import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Primary
 import org.springframework.core.Ordered.HIGHEST_PRECEDENCE
-import org.springframework.scheduling.TaskScheduler
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 import java.time.Clock
@@ -90,8 +89,8 @@ class DefaultConfiguration(
   fun noVerificationEvaluators(): List<VerificationEvaluator<*>> = emptyList()
 
   @Bean
-  @ConditionalOnMissingBean(PostDeployActionRunner::class)
-  fun noPostDeployActionRunners(): List<PostDeployActionRunner<*>> = emptyList()
+  @ConditionalOnMissingBean(PostDeployActionHandler::class)
+  fun noPostDeployActionRunners(): List<PostDeployActionHandler<*>> = emptyList()
 
   @Bean
   fun authenticatedRequestFilter(): FilterRegistrationBean<AuthenticatedRequestFilter> =
@@ -99,14 +98,11 @@ class DefaultConfiguration(
       .apply { order = HIGHEST_PRECEDENCE }
 
   @Bean
-  fun taskScheduler(
-    @Value("\${keel.scheduler.pool-size:5}") poolSize: Int
-  ): TaskScheduler {
-    val scheduler = ThreadPoolTaskScheduler()
-    scheduler.threadNamePrefix = "scheduler-"
-    scheduler.poolSize = poolSize
-    return scheduler
-  }
+  fun taskSchedulerCustomizer(@Value("\${keel.scheduler.pool-size:10}") poolSize: Int): TaskSchedulerCustomizer =
+    TaskSchedulerCustomizer { scheduler ->
+      scheduler.poolSize = poolSize
+      scheduler.threadNamePrefix = "scheduler-"
+    }
 
   @Bean
   fun deliveryConfigYamlParsingFilter(): FilterRegistrationBean<*> {

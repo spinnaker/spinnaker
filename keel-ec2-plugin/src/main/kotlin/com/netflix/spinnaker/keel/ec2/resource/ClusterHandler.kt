@@ -9,6 +9,7 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceDiff
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
+import com.netflix.spinnaker.keel.api.actuation.Job
 import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.UNKNOWN
@@ -256,13 +257,12 @@ class ClusterHandler(
           stages.add(dependsOn(dependsOn))
           refId++
         }
-        when {
-          diff.shouldDeployAndModifyScalingPolicies() -> {
-            stages.add(diff.createServerGroupJob(refId, resource))
-            refId++
-            stages.addAll(diff.modifyScalingPolicyJob(refId))
-          }
-          else -> stages.add(diff.createServerGroupJob(refId, resource))
+
+        stages.add(diff.createServerGroupJob(refId, resource))
+
+        if (diff.shouldDeployAndModifyScalingPolicies()) {
+          refId++
+          stages.addAll(diff.modifyScalingPolicyJob(refId))
         }
 
         if (stages.isEmpty()) {
@@ -624,7 +624,7 @@ class ClusterHandler(
           current!!.scaling.stepScalingPolicies != desired.scaling.stepScalingPolicies
         )
 
-  private fun ResourceDiff<ServerGroup>.disableOtherServerGroupJob(resource: Resource<ClusterSpec>, desiredVersion: String): Map<String, Any?> {
+  private fun ResourceDiff<ServerGroup>.disableOtherServerGroupJob(resource: Resource<ClusterSpec>, desiredVersion: String): Job {
     val current = requireNotNull(current) {
       "Current server group must not be null when generating a disable job"
     }
@@ -669,10 +669,11 @@ class ClusterHandler(
     )
   }
 
-  private fun ResourceDiff<ServerGroup>.createServerGroupJob(refId: Int, resource: Resource<ClusterSpec>): Map<String, Any?> =
-    createServerGroupJobBase(refId) + resource.spec.deployWith.toOrcaJobProperties("Amazon")
+  private fun ResourceDiff<ServerGroup>.createServerGroupJob(refId: Int, resource: Resource<ClusterSpec>): Job =
+    createServerGroupJobBase(refId) + resource.spec.deployWith.toOrcaJobProperties("Amazon") +
+      mapOf("metadata" to mapOf("resource" to resource.id))
 
-  private fun ResourceDiff<ServerGroup>.createServerGroupJobBase(startingRefId: Int = 0): Map<String, Any?> =
+  private fun ResourceDiff<ServerGroup>.createServerGroupJobBase(startingRefId: Int = 0): Job =
     with(desired) {
       mutableMapOf(
         "application" to moniker.app,
@@ -743,7 +744,7 @@ class ClusterHandler(
         }
       }
 
-  private fun ResourceDiff<ServerGroup>.resizeServerGroupJob(): Map<String, Any?> {
+  private fun ResourceDiff<ServerGroup>.resizeServerGroupJob(): Job {
     val current = requireNotNull(current) {
       "Current server group must not be null when generating a resize job"
     }
@@ -770,7 +771,7 @@ class ClusterHandler(
    * Scaling policies are treated as immutable by keel once applied. If an existing
    * policy is modified, it will be deleted and reapplied via a single task.
    */
-  private fun ResourceDiff<ServerGroup>.modifyScalingPolicyJob(startingRefId: Int = 0): List<Map<String, Any?>> {
+  private fun ResourceDiff<ServerGroup>.modifyScalingPolicyJob(startingRefId: Int = 0): List<Job> {
     var (refId, stages) = toDeletePolicyJob(startingRefId)
     val newTargetPolicies = when (current) {
       null -> desired.scaling.targetTrackingPolicies
@@ -798,8 +799,7 @@ class ClusterHandler(
     return stages
   }
 
-  private fun ResourceDiff<ServerGroup>.toDeletePolicyJob(startingRefId: Int):
-    Pair<Int, MutableList<Map<String, Any?>>> {
+  private fun ResourceDiff<ServerGroup>.toDeletePolicyJob(startingRefId: Int): Pair<Int, MutableList<Job>> {
     var refId = startingRefId
     val stages: MutableList<Map<String, Any?>> = mutableListOf()
     if (current == null) {
@@ -840,8 +840,7 @@ class ClusterHandler(
     return Pair(refId, stages)
   }
 
-  private fun Set<TargetTrackingPolicy>.toCreateJob(startingRefId: Int, serverGroup: ServerGroup):
-    Pair<Int, List<Map<String, Any?>>> {
+  private fun Set<TargetTrackingPolicy>.toCreateJob(startingRefId: Int, serverGroup: ServerGroup): Pair<Int, List<Job>> {
     var refId = startingRefId
     val stages = map {
       refId++
@@ -890,8 +889,7 @@ class ClusterHandler(
     return Pair(refId, stages)
   }
 
-  private fun Set<StepScalingPolicy>.toCreateJob(startingRefId: Int, serverGroup: ServerGroup):
-    List<Map<String, Any?>> {
+  private fun Set<StepScalingPolicy>.toCreateJob(startingRefId: Int, serverGroup: ServerGroup): List<Job> {
     var refId = startingRefId
     return map {
       refId++

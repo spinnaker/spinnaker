@@ -44,12 +44,10 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIF
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_VETO
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.LATEST_ENVIRONMENT
-import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
-import com.netflix.spinnaker.keel.resources.SpecMigrator
 import com.netflix.spinnaker.keel.services.StatusInfoForArtifactInEnvironment
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
-import com.netflix.spinnaker.keel.sql.deliveryconfigs.deliveryConfigByName
+import com.netflix.spinnaker.keel.telemetry.AboutToBeChecked
 import io.github.resilience4j.retry.Retry
 import io.github.resilience4j.retry.RetryConfig
 import org.jooq.DSLContext
@@ -61,7 +59,7 @@ import org.jooq.impl.DSL.select
 import org.jooq.impl.DSL.selectOne
 import org.jooq.util.mysql.MySQLDSL
 import org.slf4j.LoggerFactory
-import java.lang.IllegalStateException
+import org.springframework.context.ApplicationEventPublisher
 import java.security.MessageDigest
 import java.time.Clock
 import java.time.Duration
@@ -73,7 +71,8 @@ class SqlArtifactRepository(
   private val clock: Clock,
   private val objectMapper: ObjectMapper,
   private val sqlRetry: SqlRetry,
-  private val artifactSuppliers: List<ArtifactSupplier<*, *>> = emptyList()
+  private val artifactSuppliers: List<ArtifactSupplier<*, *>> = emptyList(),
+  private val publisher: ApplicationEventPublisher
 ) : ArtifactRepository {
 
   override fun register(artifact: DeliveryArtifact) {
@@ -252,6 +251,27 @@ class SqlArtifactRepository(
         .and(ARTIFACT_VERSIONS.TYPE.eq(artifact.type))
         .fetchSortedArtifactVersions(artifact, limit)
         .map { it.copy(reference = artifact.reference) }
+    }
+  }
+
+  override fun getVersionsWithoutMetadata(limit: Int, maxAge: Duration): List<PublishedArtifact> {
+    return sqlRetry.withRetry(READ) {
+      jooq
+        .select(
+          ARTIFACT_VERSIONS.NAME,
+          ARTIFACT_VERSIONS.TYPE,
+          ARTIFACT_VERSIONS.VERSION,
+          ARTIFACT_VERSIONS.RELEASE_STATUS,
+          ARTIFACT_VERSIONS.CREATED_AT,
+          ARTIFACT_VERSIONS.GIT_METADATA,
+          ARTIFACT_VERSIONS.BUILD_METADATA
+        )
+        .from(ARTIFACT_VERSIONS)
+        .where(ARTIFACT_VERSIONS.GIT_METADATA.isNull)
+        .or(ARTIFACT_VERSIONS.BUILD_METADATA.isNull)
+        .and(ARTIFACT_VERSIONS.CREATED_AT.ge(clock.instant().minus(maxAge)))
+        .limit(limit)
+        .fetchArtifactVersions()
     }
   }
 
@@ -532,6 +552,8 @@ class SqlArtifactRepository(
   ) {
     val environment = deliveryConfig.environmentNamed(targetEnvironment)
     val environmentUid = deliveryConfig.getUidFor(environment)
+    val environmentUidString = deliveryConfig.getUidStringFor(environment)
+    val artifactUid = artifact.uidString
     val artifactVersion = getArtifactVersion(artifact, version)
       ?: throw NoSuchArtifactVersionException(artifact, version)
 
@@ -608,6 +630,38 @@ class SqlArtifactRepository(
             .execute()
 
           log.debug("markAsSuccessfullyDeployedTo: # of records marked SKIPPED: $skippedUpdates. name: ${artifact.name}. version: $version. env: $targetEnvironment")
+        }
+
+        val pendingButOld = getPendingVersionsInEnvironment(
+          deliveryConfig,
+          artifact.reference,
+          targetEnvironment
+        ).filter { isOlder(artifact, it, artifactVersion) }
+          .map { it.version }
+          .take(100) // only take some of the records so this isn't a giant query
+          .toTypedArray()
+
+        log.debug("markAsSuccessfullyDeployedTo: # of pendingButOld: ${pendingButOld.size}. ${artifact.name}. version: $version. env: $targetEnvironment")
+
+        if (pendingButOld.isNotEmpty()) {
+          val skippedUpdates = txn
+            .insertInto(ENVIRONMENT_ARTIFACT_VERSIONS,
+              ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID,
+              ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID,
+              ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION,
+              ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS,
+              ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_BY,
+              ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_AT
+            )
+            .apply {
+              // this should skip all pending old versions in the env
+              pendingButOld.forEach {
+                values(environmentUidString, artifactUid, it, SKIPPED, version, clock.instant())
+              }
+            }
+            .execute()
+
+          log.debug("markAsSuccessfullyDeployedTo: # of pending versions marked SKIPPED: $skippedUpdates. name: ${artifact.name}. version: $version. env: $targetEnvironment")
         }
       }
     }
@@ -1006,6 +1060,8 @@ class SqlArtifactRepository(
           ARTIFACT_VERSIONS.GIT_METADATA,
           ARTIFACT_VERSIONS.BUILD_METADATA,
           ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS,
+          ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT,
+          ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_BY
         )
         .from(ENVIRONMENT_ARTIFACT_VERSIONS)
         .innerJoin(DELIVERY_ARTIFACT)
@@ -1018,7 +1074,7 @@ class SqlArtifactRepository(
         .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(ARTIFACT_VERSIONS.VERSION))
         .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
         .where(LATEST_ENVIRONMENT.NAME.eq(environmentName))
-        .fetch { (name, type, version, reference, status, createdAt, gitMetadata, buildMetadata, promotionStatus) ->
+        .fetch { (name, type, version, reference, status, createdAt, gitMetadata, buildMetadata, promotionStatus, deployedAt, replacedBy) ->
           val publishedArtifact = PublishedArtifact(
             name = name,
             type = type,
@@ -1032,7 +1088,9 @@ class SqlArtifactRepository(
           PublishedArtifactInEnvironment(
             publishedArtifact,
             promotionStatus,
-            environmentName
+            environmentName,
+            deployedAt,
+            replacedBy
           )
         }
     }
@@ -1109,6 +1167,50 @@ class SqlArtifactRepository(
             buildMetadata = buildMetadata,
           )
         }
+    }
+  }
+
+  override fun getNumPendingToBePromoted(
+    deliveryConfig: DeliveryConfig,
+    artifactReference: String,
+    environmentName: String,
+    version: String
+  ): Int {
+    val artifact = deliveryConfig.matchingArtifactByReference(artifactReference) ?: throw ArtifactNotFoundException(artifactReference, deliveryConfig.name)
+    val pendingVersions = getPendingVersions(artifact, deliveryConfig, environmentName)
+      .map { it.publishedArtifact }
+    val currentVersion = getArtifactVersionsByStatus(
+      deliveryConfig,
+      environmentName,
+      listOf(CURRENT)
+    ).firstOrNull { it.reference == artifactReference }
+    return removeExtra(pendingVersions, artifact, version, currentVersion).size
+  }
+
+  /**
+   * Removes any pending artifacts that are newer than the specified version, because they would not be promoted.
+   * Removes any older than the current version, because they are not relevant.
+   */
+  fun removeExtra(versions: List<PublishedArtifact>, artifact: DeliveryArtifact, mjVersion: String, currentVersion: PublishedArtifact?): List<PublishedArtifact> {
+    if (versions.isEmpty()) {
+      return emptyList()
+    }
+    val fullVersions = if (currentVersion != null) {
+      versions + currentVersion
+    } else {
+      versions
+    }
+
+    val sortedVersions = fullVersions.sortedWith(artifact.sortingStrategy.comparator) // newest will be first
+    val mjArtifact = sortedVersions.find { it.version == mjVersion } ?: return sortedVersions // mj version isn't still pending? or there is a bug?
+    // remove all versions that are newer than the mj version, they won't be promoted
+    val newerRemoved = sortedVersions.dropWhile { it != mjArtifact }
+
+    return if (currentVersion != null) {
+      // remove all versions that are older than the current version, and the current version
+      newerRemoved.dropLastWhile { it != currentVersion }.filterNot { it == currentVersion }
+    } else {
+      newerRemoved
     }
   }
 
@@ -1597,7 +1699,15 @@ class SqlArtifactRepository(
     val cutoff = now.minus(minTimeSinceLastCheck)
     return sqlRetry.withRetry(WRITE) {
       jooq.inTransaction {
-        select(DELIVERY_ARTIFACT.UID, DELIVERY_ARTIFACT.NAME, DELIVERY_ARTIFACT.TYPE, DELIVERY_ARTIFACT.DETAILS, DELIVERY_ARTIFACT.REFERENCE, DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME)
+        select(
+          DELIVERY_ARTIFACT.UID,
+          DELIVERY_ARTIFACT.NAME,
+          DELIVERY_ARTIFACT.TYPE,
+          DELIVERY_ARTIFACT.DETAILS,
+          DELIVERY_ARTIFACT.REFERENCE,
+          DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME,
+          ARTIFACT_LAST_CHECKED.AT
+        )
           .from(DELIVERY_ARTIFACT, ARTIFACT_LAST_CHECKED)
           .where(DELIVERY_ARTIFACT.UID.eq(ARTIFACT_LAST_CHECKED.ARTIFACT_UID))
           .and(ARTIFACT_LAST_CHECKED.AT.lessOrEqual(cutoff))
@@ -1606,13 +1716,20 @@ class SqlArtifactRepository(
           .forUpdate()
           .fetch()
           .also {
-            it.forEach { (uid, _, _, _, _, _) ->
+            it.forEach { (uid, _, _, _, _, deliveryConfigName, lastCheckedAt) ->
               insertInto(ARTIFACT_LAST_CHECKED)
                 .set(ARTIFACT_LAST_CHECKED.ARTIFACT_UID, uid)
                 .set(ARTIFACT_LAST_CHECKED.AT, now)
                 .onDuplicateKeyUpdate()
                 .set(ARTIFACT_LAST_CHECKED.AT, now)
                 .execute()
+              publisher.publishEvent(
+                AboutToBeChecked(
+                  lastCheckedAt,
+                  "artifact",
+                  "deliveryConfig:$deliveryConfigName"
+                )
+              )
             }
           }
           .map { (_, name, type, details, reference, deliveryConfigName) ->

@@ -4,6 +4,7 @@ import com.netflix.spinnaker.keel.events.NotificationEvent
 import com.netflix.spinnaker.keel.services.AdminService
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import com.netflix.spinnaker.kork.exceptions.UserException
+import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory.getLogger
 import org.springframework.http.HttpStatus.NO_CONTENT
 import org.springframework.http.MediaType
@@ -118,16 +119,11 @@ class AdminController(
     adminService.forceFailVerifications(application, environment, payload.reference, version, payload.verification)
   }
 
-
-  // This endpoint will update artifact version records with missing metadata, if available, by type [deb/docker/npm].
-  // Please note: this is an admin endpoint and is not intented to be used more than once per environment for now.
   @PostMapping(
-    path = ["/artifacts/{type}/metadata/backfill"]
+    path = ["/artifacts/metadata/backfill"]
   )
-  fun backFillArtifactMetadata(
-    @PathVariable("type") type: String
-  ) {
-    adminService.backFillArtifactMetadata(type)
+  fun backFillAllArtifactMetadata() {
+    adminService.backfillArtifactMetadataAsync()
   }
 
 }

@@ -16,17 +16,16 @@
 package com.netflix.spinnaker.keel.clouddriver.model
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter
-import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonAnySetter
 
 data class Credential(
   val name: String,
   val type: String,
-  @get:JsonAnyGetter val attributes: Map<String, Any?> = emptyMap()
+  val environment: String,
+  @get:JsonAnyGetter val attributes: MutableMap<String, Any?> = mutableMapOf()
 ) {
-  @JsonCreator
-  constructor(data: Map<String, Any?>) : this(
-    name = data.getValue("name") as String,
-    type = data.getValue("type") as String,
-    attributes = data - "name" - "type"
-  )
+    @JsonAnySetter
+    fun setAttribute(key: String, value: Any?) {
+      attributes[key] = value
+    }
 }

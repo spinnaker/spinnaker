@@ -66,7 +66,7 @@ class AllowedTimesConstraintEvaluator(
       """^\d+$""".toRegex()
     val intRange =
       """^\d+\-\d+$""".toRegex()
-    val seperators =
+    val separators =
       """[\s,\-]""".toRegex()
     val fullDayFormatter: DateTimeFormatter = DateTimeFormatter
       .ofPattern("EEEE", Locale.getDefault())
@@ -86,13 +86,13 @@ class AllowedTimesConstraintEvaluator(
     val dayAliases = setOf("weekdays", "weekends")
 
     fun validateHours(hours: String): Boolean {
-      return hours.split(seperators).all {
+      return hours.split(separators).all {
         it.matches(intOnly) && it.toInt() >= 0 && it.toInt() <= 23
       }
     }
 
     fun validateDays(days: String): Boolean {
-      return days.toLowerCase().split(seperators).all {
+      return days.toLowerCase().split(separators).all {
         daysOfWeek.contains(it) || dayAliases.contains(it)
       }
     }
@@ -154,7 +154,7 @@ class AllowedTimesConstraintEvaluator(
       }
 
       return days.map { word ->
-        DayOfWeek.valueOf(word.toUpperCase()).value
+        word.toDayOfWeek()
       }.toSet()
     }
 
@@ -178,6 +178,12 @@ class AllowedTimesConstraintEvaluator(
         else -> throw InvalidConstraintException(CONSTRAINT_NAME, "Failed parsing day alias $this")
       }
 
+    private fun String.toDayOfWeek(): Int =
+      (fullDayFormatter.parseUnresolved(this.capitalize(), ParsePosition(0))
+        ?: shortDayFormatter.parseUnresolved(this.capitalize(), ParsePosition(0)))
+        ?.let { DayOfWeek.from(it).value }
+        ?: throw InvalidConstraintException(CONSTRAINT_NAME, "Failed parsing day '$this'")
+
     private fun String.dayRange(): Set<String> {
       /**
        * Convert Mon-Fri or Monday-Friday to [DayOfWeek] integers to compute
@@ -185,15 +191,8 @@ class AllowedTimesConstraintEvaluator(
        * matched against.
        */
       val days = this.split("-").map { it.capitalize() }
-      val day1Temporal = fullDayFormatter.parseUnresolved(days[0], ParsePosition(0))
-        ?: shortDayFormatter.parseUnresolved(days[0], ParsePosition(0))
-        ?: throw InvalidConstraintException(CONSTRAINT_NAME, "Failed parsing day range $this")
-      val day2Temporal = fullDayFormatter.parseUnresolved(days[1], ParsePosition(0))
-        ?: shortDayFormatter.parseUnresolved(days[1], ParsePosition(0))
-        ?: throw InvalidConstraintException(CONSTRAINT_NAME, "Failed parsing day range $this")
-
-      val day1 = DayOfWeek.from(day1Temporal).value
-      val day2 = DayOfWeek.from(day2Temporal).value
+      val day1 = days[0].toDayOfWeek()
+      val day2 = days[1].toDayOfWeek()
 
       val intRange = if (day2 > day1) {
         // Mon - Fri

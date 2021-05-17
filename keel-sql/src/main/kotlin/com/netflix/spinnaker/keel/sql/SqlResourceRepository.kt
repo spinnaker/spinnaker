@@ -29,6 +29,7 @@ import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.resources.SpecMigrator
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
+import com.netflix.spinnaker.keel.telemetry.AboutToBeChecked
 import de.huxhorn.sulky.ulid.ULID
 import org.jooq.DSLContext
 import org.jooq.Record1
@@ -39,6 +40,7 @@ import org.jooq.impl.DSL.max
 import org.jooq.impl.DSL.select
 import org.jooq.impl.DSL.value
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
@@ -50,7 +52,8 @@ open class SqlResourceRepository(
   private val resourceSpecIdentifier: ResourceSpecIdentifier,
   private val specMigrators: List<SpecMigrator<*, *>>,
   private val objectMapper: ObjectMapper,
-  private val sqlRetry: SqlRetry
+  private val sqlRetry: SqlRetry,
+  private val publisher: ApplicationEventPublisher
 ) : ResourceRepository {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -315,7 +318,14 @@ open class SqlResourceRepository(
     val cutoff = now.minus(minTimeSinceLastCheck)
     return sqlRetry.withRetry(WRITE) {
       jooq.inTransaction {
-        select(RESOURCE_WITH_METADATA.UID, RESOURCE_WITH_METADATA.KIND, RESOURCE_WITH_METADATA.METADATA, RESOURCE_WITH_METADATA.SPEC)
+        select(
+          RESOURCE_WITH_METADATA.UID,
+          RESOURCE_WITH_METADATA.KIND,
+          RESOURCE_WITH_METADATA.METADATA,
+          RESOURCE_WITH_METADATA.SPEC,
+          RESOURCE_WITH_METADATA.APPLICATION,
+          RESOURCE_LAST_CHECKED.AT
+        )
           .from(RESOURCE_WITH_METADATA, RESOURCE_LAST_CHECKED)
           .where(RESOURCE_WITH_METADATA.UID.eq(RESOURCE_LAST_CHECKED.RESOURCE_UID))
           .and(RESOURCE_LAST_CHECKED.AT.lessOrEqual(cutoff))
@@ -325,13 +335,18 @@ open class SqlResourceRepository(
           .forUpdate()
           .fetch()
           .also {
-            it.forEach { (uid, _, _, _) ->
+            it.forEach { (uid, _, _, _, application, lastCheckedAt) ->
               insertInto(RESOURCE_LAST_CHECKED)
                 .set(RESOURCE_LAST_CHECKED.RESOURCE_UID, uid)
                 .set(RESOURCE_LAST_CHECKED.AT, now)
                 .onDuplicateKeyUpdate()
                 .set(RESOURCE_LAST_CHECKED.AT, now)
                 .execute()
+              publisher.publishEvent(AboutToBeChecked(
+                lastCheckedAt,
+                "resource",
+                "application:$application"
+              ))
             }
           }
       }

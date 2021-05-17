@@ -15,9 +15,11 @@ import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.events.ArtifactRegisteredEvent
-import com.netflix.spinnaker.keel.api.verification.VerificationContext
-import com.netflix.spinnaker.keel.api.verification.VerificationRepository
-import com.netflix.spinnaker.keel.api.verification.VerificationState
+import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
+import com.netflix.spinnaker.keel.api.action.ActionRepository
+import com.netflix.spinnaker.keel.api.action.ActionState
+import com.netflix.spinnaker.keel.api.action.ActionStateFull
+import com.netflix.spinnaker.keel.api.action.ActionType.VERIFICATION
 import com.netflix.spinnaker.keel.core.api.ApplicationSummary
 import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
@@ -32,7 +34,6 @@ import com.netflix.spinnaker.keel.core.api.UID
 import com.netflix.spinnaker.keel.events.ApplicationEvent
 import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.events.ResourceHistoryEvent
-import com.netflix.spinnaker.keel.persistence.DependentAttachFilter.ATTACH_ALL
 import com.netflix.spinnaker.keel.services.StatusInfoForArtifactInEnvironment
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
@@ -59,7 +60,7 @@ class CombinedRepository(
   val deliveryConfigRepository: DeliveryConfigRepository,
   val artifactRepository: ArtifactRepository,
   val resourceRepository: ResourceRepository,
-  val verificationRepository: VerificationRepository,
+  val actionRepository: ActionRepository,
   override val clock: Clock,
   override val publisher: ApplicationEventPublisher,
   val objectMapper: ObjectMapper
@@ -211,8 +212,8 @@ class CombinedRepository(
   override fun constraintStateFor(deliveryConfigName: String, environmentName: String, artifactVersion: String, artifactReference: String): List<ConstraintState> =
     deliveryConfigRepository.constraintStateFor(deliveryConfigName, environmentName, artifactVersion, artifactReference)
 
-  override fun getPendingArtifactVersions(deliveryConfigName: String, environmentName: String, artifact: DeliveryArtifact): List<PublishedArtifact> =
-    deliveryConfigRepository.getPendingArtifactVersions(deliveryConfigName, environmentName, artifact)
+  override fun getPendingConstraintsForArtifactVersions(deliveryConfigName: String, environmentName: String, artifact: DeliveryArtifact): List<PublishedArtifact> =
+    deliveryConfigRepository.getPendingConstraintsForArtifactVersions(deliveryConfigName, environmentName, artifact)
 
   override fun getArtifactVersionsQueuedForApproval(deliveryConfigName: String, environmentName: String, artifact: DeliveryArtifact): List<PublishedArtifact> =
     deliveryConfigRepository.getArtifactVersionsQueuedForApproval(deliveryConfigName, environmentName, artifact)
@@ -339,6 +340,9 @@ class CombinedRepository(
   override fun artifactVersions(artifact: DeliveryArtifact, limit: Int): List<PublishedArtifact> =
     artifactRepository.versions(artifact, limit)
 
+  override fun getVersionsWithoutMetadata(limit: Int, maxAge: Duration): List<PublishedArtifact> =
+    artifactRepository.getVersionsWithoutMetadata(limit, maxAge)
+
   override fun latestVersionApprovedIn(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact, targetEnvironment: String): String? =
     artifactRepository.latestVersionApprovedIn(deliveryConfig, artifact, targetEnvironment)
 
@@ -376,6 +380,19 @@ class CombinedRepository(
     environmentName: String
   ): List<PublishedArtifact> =
     artifactRepository.getPendingVersionsInEnvironment(deliveryConfig, artifactReference, environmentName)
+
+  override fun getNumPendingToBePromoted(
+    application: String,
+    artifactReference: String,
+    environmentName: String,
+    version: String
+  ): Int =
+    artifactRepository.getNumPendingToBePromoted(
+      getDeliveryConfigForApplication(application),
+      artifactReference,
+      environmentName,
+      version
+    )
 
   override fun getAllVersionsForEnvironment(
     artifact: DeliveryArtifact, config: DeliveryConfig, environmentName: String
@@ -460,20 +477,29 @@ class CombinedRepository(
   override fun nextEnvironmentsForVerification(
     minTimeSinceLastCheck: Duration,
     limit: Int
-  ) : Collection<VerificationContext> =
-    verificationRepository.nextEnvironmentsForVerification(minTimeSinceLastCheck, limit)
+  ) : Collection<ArtifactInEnvironmentContext> =
+    actionRepository.nextEnvironmentsForVerification(minTimeSinceLastCheck, limit)
+
+  override fun nextEnvironmentsForPostDeployAction(
+    minTimeSinceLastCheck: Duration,
+    limit: Int
+  ): Collection<ArtifactInEnvironmentContext> =
+    actionRepository.nextEnvironmentsForPostDeployAction(minTimeSinceLastCheck, limit)
 
   override fun updateState(
-    context: VerificationContext,
+    context: ArtifactInEnvironmentContext,
     verification: Verification,
     status: ConstraintStatus,
     metadata: Map<String, Any?>,
     link: String?
-  ) = verificationRepository.updateState(context, verification, status, metadata, link)
+  ) = actionRepository.updateState(context, verification, status, metadata, link)
 
 
-  override fun getVerificationStatesBatch(contexts: List<VerificationContext>) : List<Map<String, VerificationState>> =
-    verificationRepository.getStatesBatch(contexts)
+  override fun getVerificationStatesBatch(contexts: List<ArtifactInEnvironmentContext>) : List<Map<String, ActionState>> =
+    actionRepository.getStatesBatch(contexts, VERIFICATION)
+
+  override fun getAllActionStatesBatch(contexts: List<ArtifactInEnvironmentContext>): List<List<ActionStateFull>> =
+    actionRepository.getAllStatesBatch(contexts)
 
   // END VerificationRepository methods
 }

@@ -24,6 +24,7 @@ import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.ec2.resolvers.ApplicationLoadBalancerDefaultsResolver
 import com.netflix.spinnaker.keel.ec2.resolvers.ApplicationLoadBalancerNetworkResolver
 import com.netflix.spinnaker.keel.ec2.toEc2Api
+import com.netflix.spinnaker.keel.ec2.toOrcaRequest
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.OrcaTaskLauncher
@@ -140,7 +141,8 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
             order = 1,
             targetGroupName = "managedogge-wow-tg",
             type = "forward",
-            redirectConfig = null
+            redirectConfig = null,
+            authenticateOidcConfig = null
           )
         )
       )
@@ -230,7 +232,7 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
           get("defaultActions")
             .isA<Collection<*>>()
             .first()
-            .isEqualTo(model().listeners.first().defaultActions.first().toEc2Api())
+            .isEqualTo(model().listeners.first().defaultActions.first().toEc2Api().toOrcaRequest())
           get("certificates")
             .isA<Collection<Map<String, Any?>>>()
             .first()

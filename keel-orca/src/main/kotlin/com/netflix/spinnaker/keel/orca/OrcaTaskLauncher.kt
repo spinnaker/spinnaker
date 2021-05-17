@@ -25,7 +25,8 @@ import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
 import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.events.TaskCreatedEvent
-import com.netflix.spinnaker.keel.model.Job
+import com.netflix.spinnaker.keel.api.actuation.Job
+import com.netflix.spinnaker.keel.api.plugins.JobInterceptor
 import com.netflix.spinnaker.keel.model.OrcaNotification
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
@@ -47,7 +48,8 @@ class OrcaTaskLauncher(
   private val orcaService: OrcaService,
   private val repository: KeelRepository,
   private val publisher: EventPublisher,
-  private val springEnv: Environment
+  private val springEnv: Environment,
+  private val jobInterceptors: List<JobInterceptor> = emptyList()
 ) : TaskLauncher {
 
   private val isNewSlackEnabled: Boolean
@@ -58,7 +60,7 @@ class OrcaTaskLauncher(
     resource: Resource<*>,
     description: String,
     correlationId: String,
-    stages: List<Map<String, Any?>>
+    stages: List<Job>
   ) =
     submitJob(
       user = resource.serviceAccount,
@@ -75,7 +77,7 @@ class OrcaTaskLauncher(
     resource: Resource<*>,
     description: String,
     correlationId: String,
-    stages: List<Map<String, Any?>>
+    stages: List<Job>
   ): CompletableFuture<Task> = GlobalScope.future {
     submitJob(resource, description, correlationId, stages)
   }
@@ -87,7 +89,7 @@ class OrcaTaskLauncher(
     subject: String,
     description: String,
     correlationId: String?,
-    stages: List<Map<String, Any?>>,
+    stages: List<Job>,
     type: SubjectType,
     artifacts: List<Map<String, Any?>>,
     parameters: Map<String, Any>
@@ -99,7 +101,9 @@ class OrcaTaskLauncher(
           name = description,
           application = application,
           description = description,
-          job = stages.map { Job(it["type"].toString(), it) },
+          job = jobInterceptors.fold(stages) { updatedStages, interceptor ->
+            interceptor.intercept(updatedStages, user)
+          },
           trigger = OrchestrationTrigger(
             correlationId = correlationId,
             notifications = generateNotifications(notifications),

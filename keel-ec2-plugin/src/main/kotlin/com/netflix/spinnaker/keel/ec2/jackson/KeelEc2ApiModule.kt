@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.Module
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.jsontype.NamedType
 import com.fasterxml.jackson.databind.module.SimpleModule
+import com.netflix.spinnaker.keel.api.ClusterDeployStrategy
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.CidrRule
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerSpec
@@ -28,6 +29,7 @@ import com.netflix.spinnaker.keel.api.ec2.old.ApplicationLoadBalancerV1Spec
 import com.netflix.spinnaker.keel.api.ec2.old.ApplicationLoadBalancerV1_1Spec
 import com.netflix.spinnaker.keel.api.ec2.old.ClusterV1Spec
 import com.netflix.spinnaker.keel.api.support.ExtensionRegistry
+import com.netflix.spinnaker.keel.ec2.jackson.mixins.ActionMixin
 import com.netflix.spinnaker.keel.ec2.jackson.mixins.ApplicationLoadBalancerSpecMixin
 import com.netflix.spinnaker.keel.ec2.jackson.mixins.BuildInfoMixin
 import com.netflix.spinnaker.keel.ec2.jackson.mixins.ClassicLoadBalancerSpecMixin
@@ -72,6 +74,7 @@ fun ExtensionRegistry.registerEc2Subtypes() {
 internal object KeelEc2ApiModule : SimpleModule("Keel EC2 API") {
   override fun setupModule(context: SetupContext) {
     with(context) {
+      setMixInAnnotations<ApplicationLoadBalancerSpec.Action, ActionMixin>()
       setMixInAnnotations<ApplicationLoadBalancerSpec, ApplicationLoadBalancerSpecMixin>()
       // same annotations are required for these legacy models, so they can reuse the same mixin
       setMixInAnnotations<ApplicationLoadBalancerV1_1Spec, ApplicationLoadBalancerSpecMixin>()

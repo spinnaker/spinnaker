@@ -28,6 +28,7 @@ import com.netflix.spinnaker.keel.telemetry.ArtifactVersionVetoed
 import com.netflix.spinnaker.keel.telemetry.VerificationCompleted
 import com.netflix.spinnaker.keel.test.DummyArtifact
 import com.netflix.spinnaker.keel.test.DummyArtifactReferenceResourceSpec
+import com.netflix.spinnaker.keel.test.deliveryConfig
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.time.MutableClock
 import com.slack.api.model.kotlin_extension.block.SectionBlockBuilder
@@ -163,7 +164,8 @@ class NotificationEventListenerTests : JUnit5Minutests {
       type = LifecycleEventType.BAKE,
       scope = LifecycleEventScope.PRE_DEPLOYMENT,
       status = LifecycleEventStatus.FAILED,
-      artifactRef = releaseArtifact.toLifecycleRef(),
+      deliveryConfigName = releaseArtifact.deliveryConfigName!!,
+      artifactReference = releaseArtifact.reference,
       artifactVersion = version0,
       id = "bake-$version0",
     )

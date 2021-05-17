@@ -3,7 +3,11 @@ package com.netflix.spinnaker.keel.telemetry
 import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Registry
+import com.netflix.spectator.api.histogram.PercentileTimer
 import com.netflix.spectator.api.patterns.PolledMeter
+import com.netflix.spectator.api.patterns.ThreadPoolMonitor
+import com.netflix.spinnaker.keel.activation.ApplicationDown
+import com.netflix.spinnaker.keel.activation.ApplicationUp
 import com.netflix.spinnaker.keel.actuation.ScheduledArtifactCheckStarting
 import com.netflix.spinnaker.keel.actuation.ScheduledEnvironmentCheckStarting
 import com.netflix.spinnaker.keel.actuation.ScheduledEnvironmentVerificationStarting
@@ -12,16 +16,20 @@ import com.netflix.spinnaker.keel.events.ResourceCheckResult
 import com.netflix.spinnaker.keel.events.VerificationBlockedActuation
 import org.slf4j.LoggerFactory
 import org.springframework.context.event.EventListener
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler
 import org.springframework.stereotype.Component
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 
 @Component
 class TelemetryListener(
   private val spectator: Registry,
-  private val clock: Clock
+  private val clock: Clock,
+  private val threadPoolExecutors: List<ThreadPoolTaskScheduler>,
 ) {
   private val lastResourceCheck: AtomicReference<Instant> =
     createDriftGauge(RESOURCE_CHECK_DRIFT_GAUGE)
@@ -31,6 +39,46 @@ class TelemetryListener(
     createDriftGauge(ARTIFACT_CHECK_DRIFT_GAUGE)
   private val lastVerificationCheck: AtomicReference<Instant> =
     createDriftGauge(VERIFICATION_CHECK_DRIFT_GAUGE)
+  private val lastPostDeployCheck: AtomicReference<Instant> =
+    createDriftGauge(POST_DEPLOY_CHECK_DRIFT_GAUGE)
+
+  private val enabled = AtomicBoolean(false)
+
+  init {
+    // attach monitors for all the thread pools we have
+    threadPoolExecutors.forEach { executor ->
+      ThreadPoolMonitor.attach(spectator, executor.scheduledThreadPoolExecutor, executor.threadNamePrefix + "spring")
+    }
+
+    // todo: add coroutines once you can actually monitor them as described here: https://github.com/Kotlin/kotlinx.coroutines/issues/1360
+    // need to monitor Dispatchers.Default, Dispatchers.IO, and Dispatchers.Unconfined
+  }
+
+  @EventListener(ApplicationUp::class)
+  fun onApplicationUp() {
+    enabled.set(true)
+  }
+
+  @EventListener(ApplicationDown::class)
+  fun onApplicationDown() {
+    enabled.set(false)
+  }
+
+  @EventListener(AboutToBeChecked::class)
+  fun onAboutToBeChecked(event: AboutToBeChecked) {
+    if (event.lastCheckedAt == Instant.EPOCH.plusSeconds(1)) {
+      // recheck was triggered or resource is new, ignore this
+      return
+    }
+
+    spectator.timer(
+      TIME_SINCE_LAST_CHECK,
+      listOf(
+        BasicTag("identifier", event.identifier),
+        BasicTag("type", event.type)
+      )
+    ).record(Duration.between(event.lastCheckedAt, clock.instant()).toSeconds(), TimeUnit.SECONDS)
+  }
 
   @EventListener(ResourceCheckResult::class)
   fun onResourceChecked(event: ResourceCheckResult) {
@@ -173,7 +221,7 @@ class TelemetryListener(
   }
 
   @EventListener(VerificationCheckComplete::class)
-  fun onEnvironmentCheckComplete(event: VerificationCheckComplete) {
+  fun onVerificationCheckComplete(event: VerificationCheckComplete) {
     spectator.timer(
       VERIFICATION_CHECK_DURATION_ID,
     ).record(event.duration)
@@ -221,6 +269,13 @@ class TelemetryListener(
     ).safeIncrement()
   }
 
+  @EventListener(PostDeployActionCheckComplete::class)
+  fun onPostDeployCheckCompleted(event: PostDeployActionCheckComplete) {
+    spectator.timer(
+      POST_DEPLOY_CHECK_DURATION_ID,
+    ).record(event.duration)
+  }
+
   @EventListener(VerificationBlockedActuation::class)
   fun onBlockedActuation(event: VerificationBlockedActuation) {
     spectator.counter(BLOCKED_ACTUATION_ID,
@@ -232,16 +287,22 @@ class TelemetryListener(
     )
   }
 
+  private fun secondsSince(start: AtomicReference<Instant>) : Double  =
+    Duration
+      .between(start.get(), clock.instant())
+      .toMillis()
+      .toDouble()
+      .div(1000)
+
   private fun createDriftGauge(name: String): AtomicReference<Instant> =
     PolledMeter
       .using(spectator)
       .withName(name)
-      .monitorValue(AtomicReference(clock.instant())) {
-        Duration
-          .between(it.get(), clock.instant())
-          .toMillis()
-          .toDouble()
-          .div(1000) // convert to seconds
+      .monitorValue(AtomicReference(clock.instant())) { previous ->
+        when(enabled.get()) {
+          true -> secondsSince(previous)
+          false -> 0.0
+        }
       }
 
   private fun Counter.safeIncrement() =
@@ -254,6 +315,7 @@ class TelemetryListener(
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   companion object {
+    private const val TIME_SINCE_LAST_CHECK = "keel.periodically.checked.age"
     private const val RESOURCE_CHECKED_COUNTER_ID = "keel.resource.checked"
     private const val RESOURCE_CHECK_SKIPPED_COUNTER_ID = "keel.resource.check.skipped"
     private const val RESOURCE_CHECK_TIMED_OUT_ID = "keel.resource.check.timeout"
@@ -276,5 +338,7 @@ class TelemetryListener(
     private const val INVALID_VERIFICATION_ID_SEEN_COUNTER_ID = "keel.verification.invalid.id.seen"
     private const val BLOCKED_ACTUATION_ID = "keel.actuation.blocked"
     private const val AGENT_DURATION_ID = "keel.agent.duration"
+    private const val POST_DEPLOY_CHECK_DRIFT_GAUGE = "keel.post-deploy.check.drift"
+    private const val POST_DEPLOY_CHECK_DURATION_ID = "keel.post-deploy.check.duration"
   }
 }

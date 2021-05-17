@@ -223,6 +223,10 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
           constraint = TimeWindowConstraint(
             windows = listOf(
               TimeWindow(
+                days = "thu",
+                hours = "11-16"
+              ),
+              TimeWindow(
                 days = "mon-fri",
                 hours = "11-16"
               )
@@ -240,9 +244,10 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
       test("ui format is correct") {
         val windows = AllowedTimesConstraintEvaluator.toNumericTimeWindows(constraint)
         expect {
-          that(windows.size).isEqualTo(1)
+          that(windows.size).isEqualTo(2)
           that(windows).containsExactlyInAnyOrder(
-            TimeWindowNumeric(IntRange(1,5).toSet(), IntRange(11,16).toSet()),
+            TimeWindowNumeric(setOf(4), IntRange(11,16).toSet()),
+            TimeWindowNumeric(IntRange(1,5).toSet(), IntRange(11,16).toSet())
           )
         }
       }

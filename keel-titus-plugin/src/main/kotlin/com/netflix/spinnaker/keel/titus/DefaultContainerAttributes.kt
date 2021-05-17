@@ -8,6 +8,8 @@ class DefaultContainerAttributes {
 
   fun getAccountKey() = "titusParameter.agent.accountId"
 
+  fun getIPv6Key() = "titusParameter.agent.assignIPv6Address"
+
   fun getSubnetKey() = "titusParameter.agent.subnets"
 
   fun getSubnetValue(account: String, region: String): String? {

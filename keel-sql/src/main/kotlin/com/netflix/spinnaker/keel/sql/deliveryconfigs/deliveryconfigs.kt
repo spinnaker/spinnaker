@@ -94,21 +94,27 @@ internal fun SqlStorageContext.attachDependents(
           LATEST_ENVIRONMENT.UID,
           LATEST_ENVIRONMENT.NAME,
           LATEST_ENVIRONMENT.VERSION,
+          LATEST_ENVIRONMENT.IS_PREVIEW,
           LATEST_ENVIRONMENT.CONSTRAINTS,
           LATEST_ENVIRONMENT.NOTIFICATIONS,
-          LATEST_ENVIRONMENT.VERIFICATIONS
+          LATEST_ENVIRONMENT.VERIFICATIONS,
+          LATEST_ENVIRONMENT.POST_DEPLOY_ACTIONS
         )
         .from(LATEST_ENVIRONMENT)
         .where(LATEST_ENVIRONMENT.DELIVERY_CONFIG_UID.eq(deliveryConfig.uid))
-        .fetch { (environmentUid, name, _, constraintsJson, notificationsJson, verifyWithJson) ->
+        .fetch { (environmentUid, name, _, isPreview, constraintsJson, notificationsJson, verifyWithJson, postDeployActionsJson) ->
           Environment(
             name = name,
+            isPreview = isPreview,
             resources = resourcesForEnvironment(environmentUid),
             constraints = objectMapper.readValue(constraintsJson),
             notifications = notificationsJson?.let { objectMapper.readValue(it) } ?: emptySet(),
             verifyWith = verifyWithJson?.let {
               objectMapper.readValue(it)
-            } ?: emptyList()
+            } ?: emptyList(),
+            postDeploy = postDeployActionsJson?.let {
+              objectMapper.readValue(it)
+            } ?: emptyList(),
           )
         }
     }

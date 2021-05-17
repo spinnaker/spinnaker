@@ -23,7 +23,9 @@ import com.netflix.spinnaker.keel.clouddriver.ResourceNotFound
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.diff.toIndividualDiffs
 import com.netflix.spinnaker.keel.ec2.toEc2Api
-import com.netflix.spinnaker.keel.model.Job
+import com.netflix.spinnaker.keel.api.actuation.Job
+import com.netflix.spinnaker.keel.ec2.toOrcaRequest
+import com.netflix.spinnaker.keel.model.OrcaJob
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import kotlinx.coroutines.async
@@ -238,6 +240,7 @@ class ApplicationLoadBalancerHandler(
                     "internal",
                     ignoreCase = true
                   ),
+                  idleTimeout = Duration.ofSeconds(lb.idleTimeout.toLong()),
                   listeners = lb.listeners.map { l ->
                     ApplicationLoadBalancerSpec.Listener(
                       port = l.port,
@@ -290,7 +293,7 @@ class ApplicationLoadBalancerHandler(
 
   private fun ResourceDiff<ApplicationLoadBalancer>.toUpsertJob(): Job =
     with(desired) {
-      Job(
+      OrcaJob(
         "upsertLoadBalancer",
         mapOf(
           "application" to moniker.app,
@@ -310,7 +313,12 @@ class ApplicationLoadBalancerHandler(
               "port" to it.port,
               "protocol" to it.protocol,
               "rules" to it.rules,
-              "defaultActions" to it.defaultActions,
+              "defaultActions" to it.defaultActions.map { action ->
+                mapOf(
+                  "type" to action.type,
+                  "order" to action.order,
+                ) + action.toOrcaRequest()
+              },
             ).run {
               it.certificate?.let { certificateName ->
                 this + mapOf(

@@ -11,7 +11,7 @@ import io.mockk.mockk
 import java.time.Clock
 
 internal object SqlCombinedRepositoryTests :
-  CombinedRepositoryTests<SqlDeliveryConfigRepository, SqlResourceRepository, SqlArtifactRepository, SqlVerificationRepository>() {
+  CombinedRepositoryTests<SqlDeliveryConfigRepository, SqlResourceRepository, SqlArtifactRepository, SqlActionRepository>() {
   private val jooq = testDatabase.context
   private val objectMapper = configuredTestObjectMapper()
   private val retryProperties = RetryProperties(1, 0)
@@ -25,17 +25,18 @@ internal object SqlCombinedRepositoryTests :
       resourceSpecIdentifier,
       objectMapper,
       sqlRetry,
-      defaultArtifactSuppliers()
+      defaultArtifactSuppliers(),
+      publisher = mockk(relaxed = true)
     )
 
   override fun createResourceRepository(resourceSpecIdentifier: ResourceSpecIdentifier): SqlResourceRepository =
-    SqlResourceRepository(jooq, clock, resourceSpecIdentifier, emptyList(), objectMapper, sqlRetry)
+    SqlResourceRepository(jooq, clock, resourceSpecIdentifier, emptyList(), objectMapper, sqlRetry, publisher = mockk(relaxed = true))
 
   override fun createArtifactRepository(): SqlArtifactRepository =
-    SqlArtifactRepository(jooq, clock, objectMapper, sqlRetry, defaultArtifactSuppliers())
+    SqlArtifactRepository(jooq, clock, objectMapper, sqlRetry, defaultArtifactSuppliers(), publisher = mockk(relaxed = true))
 
-  override fun createVerificationRepository(resourceSpecIdentifier: ResourceSpecIdentifier): SqlVerificationRepository =
-    SqlVerificationRepository(jooq, clock, resourceSpecIdentifier, objectMapper, sqlRetry, environment = mockk())
+  override fun createVerificationRepository(resourceSpecIdentifier: ResourceSpecIdentifier): SqlActionRepository =
+    SqlActionRepository(jooq, clock, resourceSpecIdentifier, objectMapper, sqlRetry, environment = mockk())
 
   override fun flush() {
     SqlTestUtil.cleanupDb(jooq)

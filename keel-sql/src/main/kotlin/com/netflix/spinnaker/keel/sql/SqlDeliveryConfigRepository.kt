@@ -38,6 +38,7 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIF
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_RESOURCE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_VERSION
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_VERSION_ARTIFACT_VERSION
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.EVENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.LATEST_ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.PAUSED
@@ -53,6 +54,7 @@ import com.netflix.spinnaker.keel.sql.deliveryconfigs.attachDependents
 import com.netflix.spinnaker.keel.sql.deliveryconfigs.deliveryConfigByName
 import com.netflix.spinnaker.keel.sql.deliveryconfigs.resourcesForEnvironment
 import com.netflix.spinnaker.keel.sql.deliveryconfigs.uid
+import com.netflix.spinnaker.keel.telemetry.AboutToBeChecked
 import de.huxhorn.sulky.ulid.ULID
 import org.jooq.DSLContext
 import org.jooq.Record1
@@ -67,6 +69,7 @@ import org.jooq.impl.DSL.selectOne
 import org.jooq.impl.DSL.value
 import org.jooq.util.mysql.MySQLDSL.values
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import java.net.InetAddress
 import java.time.Clock
 import java.time.Duration
@@ -81,6 +84,7 @@ class SqlDeliveryConfigRepository(
   sqlRetry: SqlRetry,
   artifactSuppliers: List<ArtifactSupplier<*, *>> = emptyList(),
   specMigrators: List<SpecMigrator<*, *>> = emptyList(),
+  private val publisher: ApplicationEventPublisher
 ) : SqlStorageContext(
   jooq,
   clock,
@@ -327,6 +331,7 @@ class SqlDeliveryConfigRepository(
       .set(ENVIRONMENT.UID, environmentUid)
       .set(ENVIRONMENT.DELIVERY_CONFIG_UID, deliveryConfig.uid)
       .set(ENVIRONMENT.NAME, environment.name)
+      .set(ENVIRONMENT.IS_PREVIEW, environment.isPreview)
       .set(ENVIRONMENT.CONSTRAINTS, environment.constraints.toJson())
       .set(ENVIRONMENT.NOTIFICATIONS, environment.notifications.toJson())
       .set(ENVIRONMENT.VERIFICATIONS, environment.verifyWith.toJson())
@@ -370,6 +375,26 @@ class SqlDeliveryConfigRepository(
         .set(ENVIRONMENT_VERSION.ENVIRONMENT_UID, environmentUid)
         .set(ENVIRONMENT_VERSION.VERSION, newVersion)
         .set(ENVIRONMENT_VERSION.CREATED_AT, clock.instant())
+        .execute()
+
+      jooq.insertInto(ENVIRONMENT_VERSION_ARTIFACT_VERSION)
+        .columns(
+          ENVIRONMENT_VERSION_ARTIFACT_VERSION.ENVIRONMENT_UID,
+          ENVIRONMENT_VERSION_ARTIFACT_VERSION.ENVIRONMENT_VERSION,
+          ENVIRONMENT_VERSION_ARTIFACT_VERSION.ARTIFACT_UID,
+          ENVIRONMENT_VERSION_ARTIFACT_VERSION.ARTIFACT_VERSION
+        )
+        .select(
+          select(
+            ENVIRONMENT_VERSION_ARTIFACT_VERSION.ENVIRONMENT_UID,
+            value(newVersion),
+            ENVIRONMENT_VERSION_ARTIFACT_VERSION.ARTIFACT_UID,
+            ENVIRONMENT_VERSION_ARTIFACT_VERSION.ARTIFACT_VERSION
+          )
+            .from(ENVIRONMENT_VERSION_ARTIFACT_VERSION)
+            .where(ENVIRONMENT_VERSION_ARTIFACT_VERSION.ENVIRONMENT_UID.eq(environmentUid))
+            .and(ENVIRONMENT_VERSION_ARTIFACT_VERSION.ENVIRONMENT_VERSION.eq(currentVersion))
+        )
         .execute()
     }
 
@@ -459,6 +484,7 @@ class SqlDeliveryConfigRepository(
           LATEST_ENVIRONMENT.UID,
           LATEST_ENVIRONMENT.NAME,
           LATEST_ENVIRONMENT.VERSION,
+          LATEST_ENVIRONMENT.IS_PREVIEW,
           LATEST_ENVIRONMENT.CONSTRAINTS,
           LATEST_ENVIRONMENT.NOTIFICATIONS,
           LATEST_ENVIRONMENT.VERIFICATIONS,
@@ -469,9 +495,10 @@ class SqlDeliveryConfigRepository(
         .and(ENVIRONMENT_RESOURCE.RESOURCE_UID.eq(RESOURCE.UID))
         .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(LATEST_ENVIRONMENT.UID))
         .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_VERSION.eq(LATEST_ENVIRONMENT.VERSION))
-        .fetchOne { (uid, name, _, constraintsJson, notificationsJson, verifyWithJson, postDeployActionsJson) ->
+        .fetchOne { (uid, name, _, isPreview, constraintsJson, notificationsJson, verifyWithJson, postDeployActionsJson) ->
           Environment(
             name = name,
+            isPreview = isPreview,
             resources = resourcesForEnvironment(uid),
             constraints = objectMapper.readValue(constraintsJson),
             notifications = notificationsJson?.let { objectMapper.readValue(it) } ?: emptySet(),
@@ -995,7 +1022,7 @@ class SqlDeliveryConfigRepository(
     }
   }
 
-  override fun getPendingArtifactVersions(
+  override fun getPendingConstraintsForArtifactVersions(
     deliveryConfigName: String,
     environmentName: String,
     artifact: DeliveryArtifact
@@ -1134,7 +1161,7 @@ class SqlDeliveryConfigRepository(
     val cutoff = now.minus(minTimeSinceLastCheck)
     return sqlRetry.withRetry(WRITE) {
       jooq.inTransaction {
-        select(DELIVERY_CONFIG.UID, DELIVERY_CONFIG.NAME)
+        select(DELIVERY_CONFIG.UID, DELIVERY_CONFIG.NAME, DELIVERY_CONFIG_LAST_CHECKED.AT)
           .from(DELIVERY_CONFIG, DELIVERY_CONFIG_LAST_CHECKED)
           .where(DELIVERY_CONFIG.UID.eq(DELIVERY_CONFIG_LAST_CHECKED.DELIVERY_CONFIG_UID))
           // has not been checked recently
@@ -1157,12 +1184,19 @@ class SqlDeliveryConfigRepository(
           .forUpdate()
           .fetch()
           .also {
-            it.forEach { (uid, _) ->
+            it.forEach { (uid, name, lastCheckedAt) ->
               update(DELIVERY_CONFIG_LAST_CHECKED)
                 .set(DELIVERY_CONFIG_LAST_CHECKED.LEASED_BY, InetAddress.getLocalHost().hostName)
                 .set(DELIVERY_CONFIG_LAST_CHECKED.LEASED_AT, now)
                 .where(DELIVERY_CONFIG_LAST_CHECKED.DELIVERY_CONFIG_UID.eq(uid))
                 .execute()
+              publisher.publishEvent(
+                AboutToBeChecked(
+                  lastCheckedAt,
+                  "deliveryConfig",
+                  "deliveryConfig:$name"
+                )
+              )
             }
           }
       }
@@ -1280,6 +1314,118 @@ class SqlDeliveryConfigRepository(
         .and(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
         .fetchSingle(DELIVERY_CONFIG_LAST_CHECKED.AT) ?: EPOCH
     }
+
+  override fun addArtifactVersionToEnvironment(
+    deliveryConfig: DeliveryConfig,
+    environmentName: String,
+    artifact: DeliveryArtifact,
+    version: String,
+  ) {
+    val environmentUid = envUid(deliveryConfig.name, environmentName)
+    sqlRetry.withRetry(WRITE) {
+      val alreadyExists = jooq
+        .selectCount()
+        .from(ENVIRONMENT_VERSION_ARTIFACT_VERSION)
+        .where(ENVIRONMENT_VERSION_ARTIFACT_VERSION.ENVIRONMENT_UID.eq(environmentUid))
+        .and(ENVIRONMENT_VERSION_ARTIFACT_VERSION.ARTIFACT_UID.eq(artifact.uid))
+        .and(ENVIRONMENT_VERSION_ARTIFACT_VERSION.ARTIFACT_VERSION.eq(version))
+        .fetchOneInto<Int>() > 0
+
+      if (alreadyExists) {
+        // this method should never be called in this case, log it and do nothing
+        log.error(
+          "Artifact {} version {} is already associated with {}/{}",
+          artifact.name,
+          version,
+          deliveryConfig.application,
+          environmentName
+        )
+      } else {
+        val currentVersion = jooq
+          .select(coalesce(max(ENVIRONMENT_VERSION.VERSION), value(0)))
+          .from(ENVIRONMENT_VERSION)
+          .where(ENVIRONMENT_VERSION.ENVIRONMENT_UID.eq(environmentUid))
+          .fetchOneInto<Int>()
+        val newVersion = currentVersion + 1
+
+        log.debug(
+          "Creating a new version {} of environment {}/{} because of a new version {} of artifact {}",
+          newVersion,
+          deliveryConfig.application,
+          environmentName,
+          version,
+          artifact.name
+        )
+
+        jooq.inTransaction {
+          // insert a new environment version
+          insertInto(ENVIRONMENT_VERSION)
+            .set(ENVIRONMENT_VERSION.ENVIRONMENT_UID, environmentUid)
+            .set(ENVIRONMENT_VERSION.VERSION, newVersion)
+            .set(ENVIRONMENT_VERSION.CREATED_AT, clock.instant())
+            .execute()
+
+          // copy all existing resource versions to the new environment version
+          insertInto(ENVIRONMENT_RESOURCE)
+            .columns(
+              ENVIRONMENT_RESOURCE.ENVIRONMENT_UID,
+              ENVIRONMENT_RESOURCE.ENVIRONMENT_VERSION,
+              ENVIRONMENT_RESOURCE.RESOURCE_UID,
+              ENVIRONMENT_RESOURCE.RESOURCE_VERSION
+            )
+            .select(
+              select(
+                ENVIRONMENT_RESOURCE.ENVIRONMENT_UID,
+                value(newVersion),
+                ENVIRONMENT_RESOURCE.RESOURCE_UID,
+                ENVIRONMENT_RESOURCE.RESOURCE_VERSION
+              )
+                .from(ENVIRONMENT_RESOURCE)
+                .where(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(environmentUid))
+                .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_VERSION.eq(currentVersion))
+            )
+            .execute()
+
+          // add the new artifact version to the new environment version
+          insertInto(ENVIRONMENT_VERSION_ARTIFACT_VERSION)
+            .set(ENVIRONMENT_VERSION_ARTIFACT_VERSION.ENVIRONMENT_UID, environmentUid)
+            .set(ENVIRONMENT_VERSION_ARTIFACT_VERSION.ENVIRONMENT_VERSION, newVersion)
+            .set(ENVIRONMENT_VERSION_ARTIFACT_VERSION.ARTIFACT_UID, artifact.uid)
+            .set(ENVIRONMENT_VERSION_ARTIFACT_VERSION.ARTIFACT_VERSION, version)
+            .execute()
+
+          // copy any other artifact versions to the new environment version
+          insertInto(ENVIRONMENT_VERSION_ARTIFACT_VERSION)
+            .columns(
+              ENVIRONMENT_VERSION_ARTIFACT_VERSION.ENVIRONMENT_UID,
+              ENVIRONMENT_VERSION_ARTIFACT_VERSION.ENVIRONMENT_VERSION,
+              ENVIRONMENT_VERSION_ARTIFACT_VERSION.ARTIFACT_UID,
+              ENVIRONMENT_VERSION_ARTIFACT_VERSION.ARTIFACT_VERSION
+            )
+            .select(
+              select(
+                ENVIRONMENT_VERSION_ARTIFACT_VERSION.ENVIRONMENT_UID,
+                value(newVersion),
+                ENVIRONMENT_VERSION_ARTIFACT_VERSION.ARTIFACT_UID,
+                ENVIRONMENT_VERSION_ARTIFACT_VERSION.ARTIFACT_VERSION
+              )
+                .from(ENVIRONMENT_VERSION_ARTIFACT_VERSION)
+                .where(ENVIRONMENT_VERSION_ARTIFACT_VERSION.ENVIRONMENT_UID.eq(environmentUid))
+                .and(ENVIRONMENT_VERSION_ARTIFACT_VERSION.ENVIRONMENT_VERSION.eq(currentVersion))
+                .and(ENVIRONMENT_VERSION_ARTIFACT_VERSION.ARTIFACT_UID.ne(artifact.uid))
+            )
+            .execute()
+        }
+      }
+    }
+  }
+
+  private val DeliveryArtifact.uid
+    get() = jooq
+      .select(DELIVERY_ARTIFACT.UID)
+      .from(DELIVERY_ARTIFACT)
+      .where(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(deliveryConfigName))
+      .and(DELIVERY_ARTIFACT.REFERENCE.eq(reference))
 
   companion object {
     private const val DELETE_CHUNK_SIZE = 20

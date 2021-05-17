@@ -25,7 +25,8 @@ import com.netflix.spinnaker.keel.clouddriver.ResourceNotFound
 import com.netflix.spinnaker.keel.core.parseMoniker
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.diff.toIndividualDiffs
-import com.netflix.spinnaker.keel.model.Job
+import com.netflix.spinnaker.keel.api.actuation.Job
+import com.netflix.spinnaker.keel.model.OrcaJob
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import kotlinx.coroutines.async
@@ -297,7 +298,7 @@ class ClassicLoadBalancerHandler(
 
   private fun ResourceDiff<ClassicLoadBalancer>.toUpsertJob(): Job =
     with(desired) {
-      Job(
+      OrcaJob(
         "upsertLoadBalancer",
         mapOf(
           "application" to moniker.app,

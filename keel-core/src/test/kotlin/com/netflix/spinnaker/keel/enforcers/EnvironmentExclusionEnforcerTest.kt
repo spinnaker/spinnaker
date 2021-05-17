@@ -4,8 +4,8 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
-import com.netflix.spinnaker.keel.api.verification.VerificationContext
-import com.netflix.spinnaker.keel.api.verification.VerificationRepository
+import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
+import com.netflix.spinnaker.keel.api.action.ActionRepository
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.exceptions.ActiveLeaseExists
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
@@ -31,8 +31,8 @@ internal class EnvironmentExclusionEnforcerTest {
     every { getProperty("keel.enforcement.environment-exclusion.enabled", Boolean::class.java, any())} returns true
   }
 
-  private val verificationRepository = mockk<VerificationRepository>() {
-    every { getContextsWithStatus(any(), any(), any()) }  returns emptyList()
+  private val verificationRepository = mockk<ActionRepository>() {
+    every { getVerificationContextsWithStatus(any(), any(), any()) }  returns emptyList()
   }
   private val artifactRepository = mockk<ArtifactRepository>()
   private val environmentLeaseRepository = mockk<EnvironmentLeaseRepository>(relaxUnitFun = true) {
@@ -66,7 +66,7 @@ internal class EnvironmentExclusionEnforcerTest {
   @Test
   fun `withVerificationLease invokes the action when there are no pending verifications or deployments`() {
     every { artifactRepository.isDeployingTo(any(), any()) } returns false
-    every { verificationRepository.getContextsWithStatus(any(), any(), ConstraintStatus.PENDING) } returns emptyList()
+    every { verificationRepository.getVerificationContextsWithStatus(any(), any(), ConstraintStatus.PENDING) } returns emptyList()
     val action : () -> Unit = mockk(relaxed=true)
 
     enforcer.withVerificationLease(mockk(relaxed=true), action)
@@ -78,7 +78,7 @@ internal class EnvironmentExclusionEnforcerTest {
 
   @Test
   fun `withActuationLease invokes the action when there are no pending verifications`() {
-    every { verificationRepository.getContextsWithStatus(any(), any(), ConstraintStatus.PENDING) } returns emptyList()
+    every { verificationRepository.getVerificationContextsWithStatus(any(), any(), ConstraintStatus.PENDING) } returns emptyList()
     val action : suspend () -> Unit = mockk(relaxed=true)
     runBlocking {
       enforcer.withActuationLease(mockk(), mockk(), action)
@@ -92,8 +92,8 @@ internal class EnvironmentExclusionEnforcerTest {
 
   @Test
   fun `withActuationLease does not invoke the action when there are pending verifications`() {
-    every { verificationRepository.getContextsWithStatus(any(), any(), ConstraintStatus.PENDING) } returns
-      listOf(VerificationContext(deliveryConfig, "test", "fnord-docker-stable", "fnord-0.190.0-h378.eacb135"))
+    every { verificationRepository.getVerificationContextsWithStatus(any(), any(), ConstraintStatus.PENDING) } returns
+      listOf(ArtifactInEnvironmentContext(deliveryConfig, "test", "fnord-docker-stable", "fnord-0.190.0-h378.eacb135"))
 
     val action : suspend () -> Unit = mockk(relaxed=true)
 
@@ -112,7 +112,7 @@ internal class EnvironmentExclusionEnforcerTest {
   @Test
   fun `withVerificationLease throws an exception when there are pending verifications`() {
     every { artifactRepository.isDeployingTo(any(), any()) } returns false
-    every { verificationRepository.getContextsWithStatus(any(), any(), ConstraintStatus.PENDING) } returns listOf(mockk(relaxed=true))
+    every { verificationRepository.getVerificationContextsWithStatus(any(), any(), ConstraintStatus.PENDING) } returns listOf(mockk(relaxed=true))
 
     val action : () -> Unit = mockk(relaxed=true)
 
@@ -127,7 +127,7 @@ internal class EnvironmentExclusionEnforcerTest {
 
   @Test
   fun `withVerificationLease throws an exception when there are ongoing deployments`() {
-    every { verificationRepository.getContextsWithStatus(any(), any(), ConstraintStatus.PENDING) } returns emptyList()
+    every { verificationRepository.getVerificationContextsWithStatus(any(), any(), ConstraintStatus.PENDING) } returns emptyList()
     every { artifactRepository.isDeployingTo(any(), any()) } returns true
 
     val action : () -> Unit = mockk(relaxed=true)
@@ -159,7 +159,7 @@ internal class EnvironmentExclusionEnforcerTest {
   fun `withVerificationLease invokes the action whether the feature flag is enabled or not`(enabled: Boolean) {
     every { springEnv.getProperty("keel.enforcement.environment-exclusion.enabled", Boolean::class.java, any())} returns enabled
 
-    every { verificationRepository.getContextsWithStatus(any(), any(), ConstraintStatus.PENDING) } returns emptyList()
+    every { verificationRepository.getVerificationContextsWithStatus(any(), any(), ConstraintStatus.PENDING) } returns emptyList()
     every { artifactRepository.isDeployingTo(any(), any()) } returns false
 
     val action : () -> Unit = mockk(relaxed=true)
@@ -176,7 +176,7 @@ internal class EnvironmentExclusionEnforcerTest {
   fun `withActuationLease invokes the action whether the feature flag is enabled or not`(enabled: Boolean) {
     every { springEnv.getProperty("keel.enforcement.environment-exclusion.enabled", Boolean::class.java, any())} returns enabled
 
-    every { verificationRepository.getContextsWithStatus(any(), any(), ConstraintStatus.PENDING) } returns emptyList()
+    every { verificationRepository.getVerificationContextsWithStatus(any(), any(), ConstraintStatus.PENDING) } returns emptyList()
     every { artifactRepository.isDeployingTo(any(), any()) } returns false
 
     val action : suspend () -> Unit = mockk(relaxed=true)

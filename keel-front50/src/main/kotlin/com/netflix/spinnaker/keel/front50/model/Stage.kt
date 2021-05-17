@@ -9,9 +9,8 @@ import com.fasterxml.jackson.annotation.JsonAnySetter
 data class Stage(
   val type: String,
   val name: String,
-  open val refId: String,
-  open val requisiteStageRefIds: List<String> = emptyList(),
-  open val restrictExecutionDuringTimeWindow: Boolean = false,
+  val refId: String,
+  val requisiteStageRefIds: List<String> = emptyList(),
   @get:JsonAnyGetter val details: MutableMap<String, Any> = mutableMapOf()
 ) {
   @JsonAnySetter

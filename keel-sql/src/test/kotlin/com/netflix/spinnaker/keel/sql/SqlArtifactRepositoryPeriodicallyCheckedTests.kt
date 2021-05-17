@@ -5,6 +5,7 @@ import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.test.defaultArtifactSuppliers
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
+import io.mockk.mockk
 import java.time.Clock
 
 class SqlArtifactRepositoryPeriodicallyCheckedTests :
@@ -15,6 +16,6 @@ class SqlArtifactRepositoryPeriodicallyCheckedTests :
   private val sqlRetry = SqlRetry(SqlRetryProperties(retryProperties, retryProperties))
 
   override val factory: (clock: Clock) -> SqlArtifactRepository = { clock ->
-    SqlArtifactRepository(jooq, clock, objectMapper, sqlRetry, defaultArtifactSuppliers())
+    SqlArtifactRepository(jooq, clock, objectMapper, sqlRetry, defaultArtifactSuppliers(), publisher = mockk(relaxed = true))
   }
 }

@@ -293,3 +293,24 @@ databaseChangeLog:
   - include:
       file: changelog/20210420-add-post-deploy-actions.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20210421-add-post-deploy-last-checked.yml
+      relativeToChangelogFile: true
+  - include:
+      file: changelog/20210423-rename-verification-state-action-state.yml
+      relativeToChangelogFile: true
+  - include:
+      file: changelog/20210420-tie-environment-version-to-artifact-version.yml
+      relativeToChangelogFile: true
+  - include:
+      file: changelog/20210503-separate-delivery-config-and-artifact-on-lifecycle-event.yml
+      relativeToChangelogFile: true
+  - include:
+      file: changelog/20210506-fix-lifecycle-event-json.yml
+      relativeToChangelogFile: true
+  - include:
+      file: changelog/20210506-fix-build-links-in-lifecycle-events.yml
+      relativeToChangelogFile: true
+  - include:
+      file: changelog/20210505-environment-is-preview.yml
+      relativeToChangelogFile: true

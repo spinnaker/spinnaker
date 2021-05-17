@@ -45,7 +45,8 @@ import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel
 import com.netflix.spinnaker.keel.core.name
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.diff.toIndividualDiffs
-import com.netflix.spinnaker.keel.model.Job
+import com.netflix.spinnaker.keel.api.actuation.Job
+import com.netflix.spinnaker.keel.model.OrcaJob
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import kotlinx.coroutines.async
@@ -338,7 +339,7 @@ open class SecurityGroupHandler(
 
   protected open fun generateCreateJob(securityGroup: SecurityGroup): Job =
     with(securityGroup) {
-      Job(
+      OrcaJob(
         "upsertSecurityGroup",
         mapOf(
           "application" to moniker.app,
@@ -366,7 +367,7 @@ open class SecurityGroupHandler(
 
   protected open fun generateUpdateJob(securityGroup: SecurityGroup): Job =
     with(securityGroup) {
-      Job(
+      OrcaJob(
         "upsertSecurityGroup",
         mapOf(
           "application" to moniker.app,

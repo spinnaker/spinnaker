@@ -46,7 +46,8 @@ abstract class LifecycleEventRepositoryTests<T: LifecycleEventRepository> : JUni
   val link = "http://www.bake.com/$version1"
   val v1Event1 = LifecycleEvent(
     scope = PRE_DEPLOYMENT,
-    artifactRef = artifact.toLifecycleRef(),
+    deliveryConfigName = artifact.deliveryConfigName!!,
+    artifactReference = artifact.reference,
     artifactVersion = version1,
     type = BAKE,
     status = NOT_STARTED,

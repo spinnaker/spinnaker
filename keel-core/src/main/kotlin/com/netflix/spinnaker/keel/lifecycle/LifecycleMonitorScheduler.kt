@@ -1,5 +1,7 @@
 package com.netflix.spinnaker.keel.lifecycle
 
+import com.netflix.spectator.api.Registry
+import com.netflix.spectator.api.histogram.PercentileTimer
 import com.netflix.spinnaker.config.LifecycleConfig
 import com.netflix.spinnaker.keel.activation.ApplicationDown
 import com.netflix.spinnaker.keel.activation.ApplicationUp
@@ -19,6 +21,9 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.event.EventListener
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
+import java.time.Clock
+import java.time.Duration
+import java.time.Instant
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.CoroutineContext
 
@@ -28,11 +33,16 @@ class LifecycleMonitorScheduler(
   val monitors: List<LifecycleMonitor>,
   val monitorRepository: LifecycleMonitorRepository,
   val publisher: ApplicationEventPublisher,
-  val lifecycleConfig: LifecycleConfig
+  val lifecycleConfig: LifecycleConfig,
+  private val clock: Clock,
+  private val spectator: Registry
 ) : CoroutineScope {
   override val coroutineContext: CoroutineContext = Dispatchers.IO
 
   private val enabled = AtomicBoolean(false)
+
+  private val timerBuilder = PercentileTimer.builder(spectator).withName("keel.scheduled.method.duration")
+
 
   @EventListener(ApplicationUp::class)
   fun onApplicationUp() {
@@ -61,7 +71,7 @@ class LifecycleMonitorScheduler(
   @Scheduled(fixedDelayString = "\${keel.lifecycle-monitor.frequency:PT1S}")
   fun invokeMonitoring() {
     if (enabled.get()) {
-
+      val startTime = clock.instant()
       val job: Job = launch {
         supervisorScope {
           runCatching {
@@ -91,13 +101,22 @@ class LifecycleMonitorScheduler(
                   }
                 } catch (e: TimeoutCancellationException) {
                   log.error("Timed out monitoring task $task", e)
-                  publisher.publishEvent(LifecycleMonitorTimedOut(task.type, task.link, task.triggeringEvent.artifactRef))
+                  publisher.publishEvent(LifecycleMonitorTimedOut(task.type, task.link, task.triggeringEvent.artifactReference))
                 }
               }
             }
         }
       }
       runBlocking { job.join() }
+      recordDuration(startTime, "lifecycle")
     }
   }
+
+  private fun recordDuration(startTime : Instant, type: String) =
+    timerBuilder
+      .withTag("type", type)
+      .build()
+      .record(Duration.between(startTime, clock.instant()))
+
+
 }

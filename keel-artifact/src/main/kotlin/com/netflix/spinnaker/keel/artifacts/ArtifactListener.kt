@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.artifacts
 
+import com.netflix.spinnaker.config.ArtifactConfig
 import com.netflix.spinnaker.keel.activation.ApplicationDown
 import com.netflix.spinnaker.keel.activation.ApplicationUp
 import com.netflix.spinnaker.keel.api.DeliveryConfig
@@ -29,12 +30,13 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.util.concurrent.atomic.AtomicBoolean
 
-@EnableConfigurationProperties(ArtifactRefreshConfig::class)
+@EnableConfigurationProperties(ArtifactConfig::class, ArtifactRefreshConfig::class)
 @Component
 class ArtifactListener(
   private val repository: KeelRepository,
   private val publisher: ApplicationEventPublisher,
   private val artifactSuppliers: List<ArtifactSupplier<*, *>>,
+  private val artifactConfig: ArtifactConfig,
   private val artifactRefreshConfig: ArtifactRefreshConfig
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -105,7 +107,8 @@ class ArtifactListener(
 
               publisher.publishEvent(LifecycleEvent(
                 scope = PRE_DEPLOYMENT,
-                artifactRef = deliveryArtifact.toLifecycleRef(),
+                deliveryConfigName = configName,
+                artifactReference = deliveryArtifact.reference,
                 artifactVersion = artifact.version,
                 type = BUILD,
                 id = "build-${artifact.version}",
@@ -131,7 +134,7 @@ class ArtifactListener(
   fun onArtifactRegisteredEvent(event: ArtifactRegisteredEvent) {
     val artifact = event.artifact
 
-    if (repository.artifactVersions(artifact).isEmpty()) {
+    if (repository.artifactVersions(artifact, artifactConfig.defaultMaxConsideredVersions).isEmpty()) {
       val artifactSupplier = artifactSuppliers.supporting(artifact.type)
 
       val latestArtifact = runBlocking {
@@ -174,7 +177,9 @@ class ArtifactListener(
             val latestAvailableVersions = artifactSupplier.getLatestArtifacts(artifact.deliveryConfig, artifact, artifactRefreshConfig.limit)
             log.debug("Latest available versions of $artifact: ${latestAvailableVersions.map { it.version }}")
 
-            val newVersions = latestAvailableVersions.filterNot { currentVersions.contains(it.version) }
+            val newVersions = latestAvailableVersions
+              .filterNot { currentVersions.contains(it.version) }
+              .filter { artifactSupplier.shouldProcessArtifact(it) }
             if (newVersions.isNotEmpty()) {
               log.debug("$artifact has a missing version(s) ${newVersions.map { it.version }}, persisting.")
               newVersions.forEach { enrichAndStore(it, artifactSupplier) }

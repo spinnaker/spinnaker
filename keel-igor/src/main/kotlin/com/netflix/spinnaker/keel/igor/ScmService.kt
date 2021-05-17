@@ -2,14 +2,15 @@ package com.netflix.spinnaker.keel.igor
 
 import com.netflix.spinnaker.keel.api.ScmInfo
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
+import com.netflix.spinnaker.keel.igor.model.Branch
 import retrofit2.http.GET
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 /**
  * Igor methods related to Source Control Management (SCM) operations.
  */
-interface ScmService: ScmInfo
-{
+interface ScmService: ScmInfo {
   /**
    * Retrieves a delivery config manifest from a source control repository.
    *
@@ -36,4 +37,14 @@ interface ScmService: ScmInfo
    */
   @GET("/scm/masters")
   override suspend fun getScmInfo(): Map<String, String?>
+
+  /**
+   * Returns the default [Branch] for the specified repo.
+   */
+  @GET("/scm/repos/{scmType}/{projectKey}/{repoSlug}/branches/default")
+  suspend fun getDefaultBranch(
+    @Path("scmType") scmType: String,
+    @Path("projectKey") projectKey: String,
+    @Path("repoSlug") repoSlug: String
+  ): Branch
 }

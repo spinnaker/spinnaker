@@ -6,18 +6,16 @@ import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.FAIL
-import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.NOT_EVALUATED
-import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.OVERRIDE_FAIL
-import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.OVERRIDE_PASS
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PASS
-import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PENDING
 import com.netflix.spinnaker.keel.api.constraints.StatelessConstraintEvaluator
 import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintAttributesType
 import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintType
 import com.netflix.spinnaker.keel.api.plugins.ConstraintEvaluator.Companion.getConstraintForEnvironment
 import com.netflix.spinnaker.keel.api.support.EventPublisher
-import com.netflix.spinnaker.keel.api.verification.VerificationContext
-import com.netflix.spinnaker.keel.api.verification.VerificationRepository
+import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
+import com.netflix.spinnaker.keel.api.action.ActionRepository
+import com.netflix.spinnaker.keel.api.action.ActionType.POST_DEPLOY
+import com.netflix.spinnaker.keel.api.action.ActionType.VERIFICATION
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import org.slf4j.LoggerFactory
@@ -27,7 +25,7 @@ import java.time.Clock
 @Component
 class DependsOnConstraintEvaluator(
   private val artifactRepository: ArtifactRepository,
-  private val verificationRepository: VerificationRepository,
+  private val actionRepository: ActionRepository,
   override val eventPublisher: EventPublisher,
   private val clock: Clock
 ) : StatelessConstraintEvaluator<DependsOnConstraint, DependsOnConstraintAttributes> {
@@ -54,17 +52,16 @@ class DependsOnConstraintEvaluator(
     requireNotNull(requiredEnvironment) {
       "No environment named ${constraint.environment} exists in the configuration ${deliveryConfig.name}"
     }
+
+    val context = ArtifactInEnvironmentContext(deliveryConfig, requiredEnvironment.name, artifact.reference, version)
+
     return artifactRepository.wasSuccessfullyDeployedTo(
       deliveryConfig,
       artifact,
       version,
       requiredEnvironment.name
-    ) && allVerificationsSucceededIn(
-      deliveryConfig,
-      artifact,
-      version,
-      requiredEnvironment
-    )
+    ) && actionRepository.allPassed(context, VERIFICATION)
+     && actionRepository.allStarted(context, POST_DEPLOY)
   }
 
   override fun generateConstraintStateSnapshot(
@@ -95,35 +92,5 @@ class DependsOnConstraintEvaluator(
       judgedAt = clock.instant(),
       judgedBy = "Spinnaker"
     )
-  }
-
-  private fun allVerificationsSucceededIn(
-    deliveryConfig: DeliveryConfig,
-    artifact: DeliveryArtifact,
-    version: String,
-    environment: Environment
-  ) : Boolean {
-
-    val context = VerificationContext(deliveryConfig, environment.name, artifact.reference, version)
-    val states = verificationRepository.getStates(context)
-
-    return environment.verifyWith
-      .map { it.id }
-      .all { id ->
-        when (states[id]?.status) {
-          PASS, OVERRIDE_PASS -> true.also {
-            log.info("verification ($id) passed against version $version for app ${deliveryConfig.application}")
-          }
-          FAIL, OVERRIDE_FAIL -> false.also {
-            log.info("verification ($id) failed against version $version for app ${deliveryConfig.application}")
-          }
-          NOT_EVALUATED, PENDING -> false.also {
-            log.info("verification ($id) still running against version $version for app ${deliveryConfig.application}")
-          }
-          null -> false.also {
-            log.info("no database entry for verification ($id) against version $version for app ${deliveryConfig.application}")
-          }
-        }
-      }
   }
 }

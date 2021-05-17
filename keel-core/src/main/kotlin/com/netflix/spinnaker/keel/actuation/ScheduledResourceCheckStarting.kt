@@ -5,3 +5,5 @@ object ScheduledEnvironmentCheckStarting
 object ScheduledEnvironmentVerificationStarting
 
 object ScheduledArtifactCheckStarting
+
+object ScheduledPostDeployActionRunStarting

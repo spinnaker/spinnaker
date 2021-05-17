@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.actuation
 
+import com.netflix.spinnaker.config.ArtifactConfig
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
@@ -31,6 +32,7 @@ import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isSuccess
+import org.springframework.core.env.Environment as SpringEnv
 
 internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
   class Fixture {
@@ -39,6 +41,9 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
     val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
 
     val constraint = TimeWindowConstraint(windows = listOf(TimeWindow(days = "Monday-Sunday", hours = "0-23")))
+    val springEnv: SpringEnv = mockk(relaxUnitFun = true) {
+      every { getProperty("keel.environment-promotion.fetch-pending", Boolean::class.java, false) } returns false
+    }
 
     val environmentConstraintRunner: EnvironmentConstraintRunner = mockk(relaxed = true) {
       every { getStatelessConstraintSnapshots(any(), any(), any(), any(), PASS) } returns
@@ -61,7 +66,9 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
     val subject = EnvironmentPromotionChecker(
       repository,
       environmentConstraintRunner,
-      publisher
+      publisher,
+      ArtifactConfig(),
+      springEnv
     )
 
     val dockerArtifact = DockerArtifact(
@@ -131,7 +138,7 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
     context("no versions of an artifact exist") {
       before {
         every {
-          repository.artifactVersions(dockerArtifact)
+          repository.artifactVersions(dockerArtifact, any())
         } returns emptyList()
 
         every {
@@ -154,7 +161,7 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
     context("multiple versions of an artifact exist") {
       before {
         every {
-          repository.artifactVersions(dockerArtifact)
+          repository.artifactVersions(dockerArtifact, any())
         } returns listOf("2.0", "1.2", "1.1", "1.0").toArtifactVersions()
 
         every {
@@ -362,7 +369,7 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
         } returns emptyList()
 
         every {
-          repository.artifactVersions(dockerArtifact)
+          repository.artifactVersions(dockerArtifact, any())
         } returns listOf("2.0", "1.2", "1.1", "1.0").toArtifactVersions()
 
         every {
@@ -434,11 +441,11 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
     context("config contains multiple types of artifacts") {
       before {
         every {
-          repository.artifactVersions(dockerArtifact)
+          repository.artifactVersions(dockerArtifact, any())
         } returns listOf("2.0").toArtifactVersions()
 
         every {
-          repository.artifactVersions(debianArtifact)
+          repository.artifactVersions(debianArtifact, any())
         } returns listOf("3.0").toArtifactVersions()
 
         every {
@@ -495,7 +502,7 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
       context("docker artifact have more than one approved version") {
         before {
           every {
-            repository.artifactVersions(dockerArtifact)
+            repository.artifactVersions(dockerArtifact, any())
           } returns listOf("2.0", "1.1").toArtifactVersions()
           every {
             repository.getArtifactVersionsQueuedForApproval(deliveryConfigWith2ArtifactTypes.name, multiArtifactEnvironment.name, dockerArtifact)
@@ -532,7 +539,7 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
     context("an artifact is not used in an environment") {
       before {
         every {
-          repository.artifactVersions(dockerArtifact)
+          repository.artifactVersions(dockerArtifact, any())
         } returns listOf("2.0", "1.2", "1.1", "1.0").toArtifactVersions()
 
         every {

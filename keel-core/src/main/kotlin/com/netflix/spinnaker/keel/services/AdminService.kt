@@ -1,27 +1,31 @@
 package com.netflix.spinnaker.keel.services
 
+import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
 import com.netflix.spinnaker.keel.api.StatefulConstraint
-import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
-import com.netflix.spinnaker.keel.api.artifacts.DOCKER
-import com.netflix.spinnaker.keel.api.artifacts.NPM
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.supporting
-import com.netflix.spinnaker.keel.api.verification.VerificationContext
 import com.netflix.spinnaker.keel.core.api.ApplicationSummary
-import com.netflix.spinnaker.keel.core.api.PromotionStatus
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.CURRENT
 import com.netflix.spinnaker.keel.exceptions.NoSuchEnvironmentException
+import com.netflix.spinnaker.keel.logging.TracingSupport.Companion.blankMDC
 import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.kork.exceptions.UserException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.supervisorScope
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
-import java.lang.Thread.sleep
+import java.time.Clock
+import java.time.Duration
+import kotlin.coroutines.CoroutineContext
 
 @Component
 class AdminService(
@@ -29,8 +33,10 @@ class AdminService(
   private val actuationPauser: ActuationPauser,
   private val diffFingerprintRepository: DiffFingerprintRepository,
   private val artifactSuppliers: List<ArtifactSupplier<*, *>>,
-  private val publisher: ApplicationEventPublisher
-) {
+  private val publisher: ApplicationEventPublisher,
+  private val clock: Clock
+) : CoroutineScope {
+  override val coroutineContext: CoroutineContext = Dispatchers.IO
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -73,49 +79,50 @@ class AdminService(
     }
   }
 
-  /**
-   * For each artifact type [deb/docker/npm], run back-fill script to in case there's some missing data
-   */
   @Scheduled(fixedDelayString = "\${keel.artifact-metadata-backfill.frequency:PT1H}")
-  fun periodicallyBackFillArtifactMetadata(){
-    listOf(DEBIAN, NPM, DOCKER)
-      .forEach{
-        type ->  backFillArtifactMetadata(type)
+  fun scheduledBackfillArtifactMetadata() {
+    val startTime = clock.instant()
+    val job = launch(blankMDC) {
+      supervisorScope {
+        backfillArtifactMetadata()
       }
+    }
+    runBlocking { job.join() }
+    log.info("Back-filled artifact metadata in ${Duration.between(startTime, clock.instant()).seconds} seconds")
   }
 
   /**
    * Updates last 10 artifact's versions with the corresponding metadata, if available, by type [deb/docker/npm]
    */
-  fun backFillArtifactMetadata(type: String) {
-    val artifactSupplier = artifactSuppliers.supporting(type)
+  fun backfillArtifactMetadataAsync() {
+    launch(blankMDC) {
+      backfillArtifactMetadata()
+    }
+  }
+
+  /**
+   * Updates last 10 artifact's versions with the corresponding metadata, if available, by type [deb/docker/npm]
+   */
+  suspend fun backfillArtifactMetadata() {
     log.debug("Starting to back-fill old artifacts versions with artifact metadata...")
-    // 1. get all registered artifacts
-    val deliveryArtifacts = repository.getAllArtifacts(type = type)
-    // 2. for each artifact, fetch all versions
-    deliveryArtifacts.forEach { artifact ->
-      val versions = repository.artifactVersions(artifact, 10)
+    val versions = repository
+      // only check versions that are < 3 hours old, and probably nothing changes after one hour
+      .getVersionsWithoutMetadata(100, Duration.ofHours(3))
       versions.forEach { artifactVersion ->
-        sleep(5000) // sleep a little in-between versions to cut the instance where this runs some slack
-        log.debug("Evaluating $artifact version ${artifactVersion.version} as candidate to back-fill metadata")
-        // don't update if metadata is already exists
-        if (artifactVersion.gitMetadata == null || artifactVersion.buildMetadata == null) {
-          runBlocking {
-            try {
-              // 3. for each version, get and store artifact metadata
-              log.debug("Fetching artifact metadata for $artifact version $artifactVersion")
-              val artifactMetadata = artifactSupplier.getArtifactMetadata(artifactVersion)
-              if (artifactMetadata != null) {
-                log.debug("Storing updated metadata for $artifact version $artifactVersion: $artifactMetadata")
-                repository.updateArtifactMetadata(artifactVersion, artifactMetadata)
-              }
-            } catch (ex: Exception) {
-              log.error("error trying to get artifact by version or its metadata for artifact ${artifact.name}, and version $artifactVersion", ex)
-            }
+        log.debug("Evaluating version ${artifactVersion.version} as candidate to back-fill metadata")
+        try {
+          log.debug("Fetching artifact metadata for version $artifactVersion")
+          val artifactSupplier = artifactSuppliers.supporting(artifactVersion.type)
+          val artifactMetadata = artifactSupplier.getArtifactMetadata(artifactVersion)
+          if (artifactMetadata != null) {
+            log.debug("Storing updated metadata for version $artifactVersion: $artifactMetadata")
+            repository.updateArtifactMetadata(artifactVersion, artifactMetadata)
           }
+        } catch (ex: Exception) {
+          log.error("error trying to get artifact by version or its metadata for version $artifactVersion", ex)
         }
       }
-    }
+    delay(Duration.ofSeconds(1).toMillis()) // sleep a little in-between versions to cut the instance where this runs some slack
   }
 
   /**
@@ -152,7 +159,7 @@ class AdminService(
 
   fun forceFailVerifications(application: String, environmentName: String, artifactReference: String, version: String, verificationId: String) {
     val deliveryConfig = repository.getDeliveryConfigForApplication(application)
-    val context = VerificationContext(
+    val context = ArtifactInEnvironmentContext(
       deliveryConfig = deliveryConfig,
       environmentName = environmentName,
       artifactReference = artifactReference,

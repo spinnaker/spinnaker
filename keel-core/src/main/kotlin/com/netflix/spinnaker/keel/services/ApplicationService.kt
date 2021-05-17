@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.services
 
 import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.config.ArtifactConfig
 import com.netflix.spinnaker.keel.api.Constraint
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
@@ -10,7 +11,6 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ScmInfo
 import com.netflix.spinnaker.keel.api.StatefulConstraint
 import com.netflix.spinnaker.keel.api.Verification
-import com.netflix.spinnaker.keel.api.artifacts.DEFAULT_MAX_ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
@@ -24,14 +24,13 @@ import com.netflix.spinnaker.keel.api.events.ConstraintStateChanged
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.ConstraintEvaluator
 import com.netflix.spinnaker.keel.api.plugins.supporting
-import com.netflix.spinnaker.keel.api.verification.VerificationContext
-import com.netflix.spinnaker.keel.api.verification.VerificationState
+import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
+import com.netflix.spinnaker.keel.api.action.Action
+import com.netflix.spinnaker.keel.api.action.ActionState
 import com.netflix.spinnaker.keel.artifacts.generateCompareLink
 import com.netflix.spinnaker.keel.constraints.AllowedTimesConstraintAttributes
 import com.netflix.spinnaker.keel.constraints.AllowedTimesConstraintEvaluator.Companion.toNumericTimeWindows
 import com.netflix.spinnaker.keel.constraints.DependsOnConstraintAttributes
-import com.netflix.spinnaker.keel.constraints.ManualJudgementConstraintAttributes
-import com.netflix.spinnaker.keel.core.api.AllowedTimesConstraintMetadata
 import com.netflix.spinnaker.keel.core.api.ArtifactSummary
 import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
 import com.netflix.spinnaker.keel.core.api.VerificationSummary
@@ -58,22 +57,30 @@ import com.netflix.spinnaker.keel.exceptions.InvalidConstraintException
 import com.netflix.spinnaker.keel.exceptions.InvalidSystemStateException
 import com.netflix.spinnaker.keel.exceptions.InvalidVetoException
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventRepository
+import com.netflix.spinnaker.keel.logging.TracingSupport.Companion.blankMDC
 import com.netflix.spinnaker.keel.persistence.ArtifactNotFoundException
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigException
 import com.netflix.spinnaker.keel.telemetry.InvalidVerificationIdSeen
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import org.slf4j.LoggerFactory
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.core.env.Environment as SpringEnvironment
 import org.springframework.stereotype.Component
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
+import kotlin.coroutines.CoroutineContext
 
 /**
  * Service object that offers high-level APIs for application-related operations.
  */
 @Component
+@EnableConfigurationProperties(ArtifactConfig::class)
 class ApplicationService(
   private val repository: KeelRepository,
   private val resourceStatusService: ResourceStatusService,
@@ -84,8 +91,16 @@ class ApplicationService(
   private val publisher: ApplicationEventPublisher,
   private val springEnv: SpringEnvironment,
   private val clock: Clock,
-  private val spectator: Registry
-) {
+  private val spectator: Registry,
+  private val artifactConfig: ArtifactConfig
+) : CoroutineScope {
+  override val coroutineContext: CoroutineContext = Dispatchers.Default
+
+  companion object {
+    //attributes that should be stripped before being returned through the api
+    val privateConstraintAttrs = listOf("manual-judgement")
+  }
+
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   private val verificationsEnabled: Boolean
@@ -107,23 +122,15 @@ class ApplicationService(
     .filterIsInstance<StatelessConstraintEvaluator<*,*>>()
     .map { it.attributeType.name }
 
-  //attributes that should be stripped before being returned through the api
-  private val privateConstraintAttrs = listOf("manual-judgement")
-
-  fun List<ConstraintState>.removePrivateConstraintAttrs() =
-    map { state ->
-      if (state.attributes?.type in privateConstraintAttrs) {
-        state.copy(attributes = null)
-      } else {
-        state
-      }
-    }
-
   fun hasManagedResources(application: String) = repository.hasManagedResources(application)
 
   fun getDeliveryConfig(application: String) = repository.getDeliveryConfigForApplication(application)
 
-  fun deleteConfigByApp(application: String) = repository.deleteDeliveryConfigByApplication(application)
+  fun deleteConfigByApp(application: String) {
+    launch(blankMDC) {
+      repository.deleteDeliveryConfigByApplication(application)
+    }
+  }
 
   fun getConstraintStatesFor(application: String): List<ConstraintState> =
     repository
@@ -139,7 +146,7 @@ class ApplicationService(
     return repository.constraintStateFor(config.name, environment, limit).removePrivateConstraintAttrs()
   }
 
-  fun updateConstraintStatus(user: String, application: String, environment: String, status: UpdatedConstraintStatus) {
+  fun updateConstraintStatus(user: String, application: String, environment: String, status: UpdatedConstraintStatus): Boolean {
     val config = repository.getDeliveryConfigForApplication(application)
     val currentState = repository.getConstraintState(
       config.name,
@@ -160,28 +167,15 @@ class ApplicationService(
     repository.storeConstraintState(newState)
 
     // publish changed notification so we can update any slack messages sent
-    val constraint = getConstraintForEnvironment(
-      config,
-      environment,
-      status.type
-    )
+    val constraint = config.constraintInEnvironment(environment, status.type)
+
     if (currentState.status != newState.status){
       publisher.publishEvent(
         ConstraintStateChanged(config.environments.first{ it.name == environment }, constraint, currentState, newState)
       )
+      return true
     }
-  }
-
-  fun getConstraintForEnvironment(
-    deliveryConfig: DeliveryConfig,
-    targetEnvironment: String,
-    constraintType: String
-  ): Constraint {
-    val target = deliveryConfig.environments.firstOrNull { it.name == targetEnvironment }
-    requireNotNull(target) {
-      "No environment named $targetEnvironment exists in the configuration ${deliveryConfig.name}"
-    }
-    return target.constraints.first { it.type == constraintType }
+    return false
   }
 
   fun pin(user: String, application: String, pin: EnvironmentArtifactPin) {
@@ -239,7 +233,7 @@ class ApplicationService(
     summaries["resources"] = getResourceSummariesFor(application)
     val envSummary = getEnvironmentSummariesFor(application)
     summaries["environments"] = envSummary
-    summaries["artifacts"] = getArtifactSummariesFor(application, envSummary)
+    summaries["artifacts"] = getArtifactSummariesFor(application, envSummary, artifactConfig.defaultMaxConsideredVersions)
     return summaries
   }
 
@@ -295,10 +289,27 @@ class ApplicationService(
         ENV_SUMMARY_CONSTRUCT_DURATION_ID,
         listOf(BasicTag("application", application))
       ).record(Duration.between(startTime, now))
-      summaries
+      summaries.sortedByDependencies()
     } catch (e: NoSuchDeliveryConfigException) {
       emptyList()
     }
+
+  private fun List<EnvironmentSummary>.sortedByDependencies() =
+    sortedWith { env1, env2 ->
+      when {
+        env1.dependsOn(env2) -> 1
+        env2.dependsOn(env1) -> -1
+        env1.hasDependencies() && !env2.hasDependencies() -> 1
+        env2.hasDependencies() && !env1.hasDependencies() -> -1
+        else -> 0
+      }
+    }
+
+  private fun EnvironmentSummary.dependsOn(another: EnvironmentSummary) =
+    environment.constraints.any { it is DependsOnConstraint && it.environment == another.environment.name }
+
+  private fun EnvironmentSummary.hasDependencies() =
+    environment.constraints.any { it is DependsOnConstraint }
 
   /**
    * Returns a list of [ArtifactSummary] for the specified application by traversing the list of [EnvironmentSummary]
@@ -308,7 +319,7 @@ class ApplicationService(
    *
    * This function assumes there's a single delivery config associated with the application.
    */
-  fun getArtifactSummariesFor(application: String, limit: Int = DEFAULT_MAX_ARTIFACT_VERSIONS): List<ArtifactSummary> {
+  fun getArtifactSummariesFor(application: String, limit: Int): List<ArtifactSummary> {
     val startTime = now
     val environmentSummaries = getEnvironmentSummariesFor(application)
     spectator.timer(
@@ -322,7 +333,7 @@ class ApplicationService(
    * If we've already calculated the env summaries, pass them in so we don't have to query again.
    * It's non-trivial to pull that data.
    */
-  fun getArtifactSummariesFor(application: String, envSummaries: List<EnvironmentSummary>, limit: Int = DEFAULT_MAX_ARTIFACT_VERSIONS): List<ArtifactSummary> {
+  fun getArtifactSummariesFor(application: String, envSummaries: List<EnvironmentSummary>, limit: Int): List<ArtifactSummary> {
     val startTime = now
     val deliveryConfig = try {
       repository.getDeliveryConfigForApplication(application)
@@ -449,10 +460,10 @@ class ApplicationService(
     deliveryConfig: DeliveryConfig,
     environment: Environment,
     artifactVersion: PublishedArtifact,
-    verificationStateMap: Map<VerificationContext, Map<Verification, VerificationState>>
+    verificationStateMap: Map<ArtifactInEnvironmentContext, Map<Verification, ActionState>>
   ) : List<VerificationSummary> =
     if(verificationsEnabled) {
-      val verificationContext = VerificationContext(deliveryConfig, environment, artifactVersion)
+      val verificationContext = ArtifactInEnvironmentContext(deliveryConfig, environment, artifactVersion)
       verificationStateMap[verificationContext]
         ?.map { (verification, state) -> VerificationSummary(verification, state) }
         ?: emptyList()
@@ -655,8 +666,8 @@ class ApplicationService(
   fun KeelRepository.getVerificationStates(
     deliveryConfig: DeliveryConfig,
     versions: List<PublishedArtifact>
-  ): Map<VerificationContext, Map<Verification, VerificationState>> =
-    deliveryConfig.contexts(versions).let { contexts: List<VerificationContext> ->
+  ): Map<ArtifactInEnvironmentContext, Map<Verification, ActionState>> =
+    deliveryConfig.contexts(versions).let { contexts: List<ArtifactInEnvironmentContext> ->
       contexts.zip(getVerificationStatesBatch(contexts))
         .associate { (ctx, vIdToState) -> ctx to vIdToState.toVerificationMap(deliveryConfig, ctx) }
     }
@@ -666,9 +677,9 @@ class ApplicationService(
    *
    * Most of the logic in this method is to deal with the case where the verification id is invalid
    */
-  fun Map<String, VerificationState>.toVerificationMap(deliveryConfig: DeliveryConfig, ctx: VerificationContext) : Map<Verification, VerificationState> =
+  fun Map<String, ActionState>.toVerificationMap(deliveryConfig: DeliveryConfig, ctx: ArtifactInEnvironmentContext) : Map<Verification, ActionState> =
     entries
-      .mapNotNull { (vId: String, state: VerificationState) ->
+      .mapNotNull { (vId: String, state: ActionState) ->
         ctx.verification(vId)
           ?.let { verification -> verification to state }
           .also { if (it == null) { onInvalidVerificationId(vId, deliveryConfig, ctx) } }
@@ -679,7 +690,7 @@ class ApplicationService(
    * Actions to take when the verification state database table references a verification id that doesn't exist
    * in the delivery config
    */
-  fun onInvalidVerificationId(vId: String, deliveryConfig: DeliveryConfig, ctx: VerificationContext) {
+  fun onInvalidVerificationId(vId: String, deliveryConfig: DeliveryConfig, ctx: ArtifactInEnvironmentContext) {
     publisher.publishEvent(
       InvalidVerificationIdSeen(
         vId,
@@ -691,6 +702,15 @@ class ApplicationService(
     log.error("verification_state table contains invalid verification id: $vId  config: ${deliveryConfig.name} env: ${ctx.environmentName}. Valid ids in this env: ${ctx.environment.verifyWith.map { it.id }}")
   }
 }
+
+fun List<ConstraintState>.removePrivateConstraintAttrs() =
+  map { state ->
+    if (state.attributes?.type in ApplicationService.privateConstraintAttrs) {
+      state.copy(attributes = null)
+    } else {
+      state
+    }
+  }
 
 /**
  * Container class for pre-loaded information, to be used by functions in this class
@@ -714,9 +734,9 @@ data class ArtifactSummaryContext(
  */
 fun DeliveryConfig.contexts(
   versions: List<PublishedArtifact>
-): List<VerificationContext> =
+): List<ArtifactInEnvironmentContext> =
   versions.flatMap { version ->
-    environments.map { env -> VerificationContext(this, env, version) }
+    environments.map { env -> ArtifactInEnvironmentContext(this, env, version) }
   }
 
 /**

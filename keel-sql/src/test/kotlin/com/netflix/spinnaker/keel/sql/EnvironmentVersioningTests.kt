@@ -6,12 +6,17 @@ import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.api.NotificationFrequency.normal
 import com.netflix.spinnaker.keel.api.NotificationType.slack
 import com.netflix.spinnaker.keel.api.Verification
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.RELEASE
+import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.plugins.kind
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.persistence.CombinedRepository
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_RESOURCE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_VERSION
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_VERSION_ARTIFACT_VERSION
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.LATEST_ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
@@ -23,6 +28,7 @@ import com.netflix.spinnaker.keel.test.randomString
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
+import io.mockk.mockk
 import org.jooq.Table
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -36,12 +42,13 @@ import strikt.assertions.first
 import strikt.assertions.hasSize
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
+import strikt.assertions.isGreaterThan
+import strikt.assertions.isNotEqualTo
 import strikt.assertions.isNull
 import strikt.assertions.isSuccess
 import java.time.Clock.systemUTC
-import kotlin.math.exp
-import java.time.Clock
 import java.time.Duration
+import java.time.Instant
 
 class EnvironmentVersioningTests {
   private val jooq = testDatabase.context
@@ -60,14 +67,16 @@ class EnvironmentVersioningTests {
     resourceSpecIdentifier,
     objectMapper,
     sqlRetry,
-    defaultArtifactSuppliers()
+    defaultArtifactSuppliers(),
+    publisher = mockk(relaxed = true)
   )
 
   private val artifactRepository = SqlArtifactRepository(
     jooq,
     systemUTC(),
     objectMapper,
-    sqlRetry
+    sqlRetry,
+    publisher = mockk(relaxed = true)
   )
 
   private val resourceRepository = SqlResourceRepository(
@@ -76,10 +85,11 @@ class EnvironmentVersioningTests {
     resourceSpecIdentifier,
     emptyList(),
     objectMapper,
-    sqlRetry
+    sqlRetry,
+    mockk(relaxed = true)
   )
 
-  private val verificationRepository = SqlVerificationRepository(
+  private val verificationRepository = SqlActionRepository(
     jooq = jooq,
     clock = systemUTC(),
     resourceSpecIdentifier = resourceSpecIdentifier,
@@ -101,6 +111,12 @@ class EnvironmentVersioningTests {
   @BeforeEach
   fun storeDeliveryConfig() {
     repository.upsertDeliveryConfig(deliveryConfig)
+    deliveryConfigRepository.addArtifactVersionToEnvironment(
+      deliveryConfig,
+      deliveryConfig.environments.single().name,
+      deliveryConfig.artifacts.single(),
+      "fnord-0.1055.0-h1521.ecf8531",
+    )
   }
 
   @AfterEach
@@ -111,7 +127,6 @@ class EnvironmentVersioningTests {
   @Test
   fun `storing an environment with no changes does not create a new version`() {
     val initialVersion = latestVersion()
-    expectThat(initialVersion).describedAs("initial version") isEqualTo 1
 
     repository.upsertDeliveryConfig(deliveryConfig)
 
@@ -122,7 +137,6 @@ class EnvironmentVersioningTests {
   @Test
   fun `storing an environment with updated constraints, verifications, or notifications does not create a new version`() {
     val initialVersion = latestVersion()
-    expectThat(initialVersion).describedAs("initial version") isEqualTo 1
 
     deliveryConfig.run {
       copy(
@@ -147,13 +161,54 @@ class EnvironmentVersioningTests {
   @Test
   fun `storing an environment with an updated resource creates a new version`() {
     val initialVersion = latestVersion()
-    expectThat(initialVersion).describedAs("initial version") isEqualTo 1
 
     deliveryConfig.withUpdatedResource()
       .also(repository::upsertDeliveryConfig)
 
     val updatedVersion = latestVersion()
     expectThat(updatedVersion).describedAs("updated version") isEqualTo initialVersion + 1
+  }
+
+  @Test
+  fun `after creating a new environment version any existing artifact versions are linked to the new environment version`() {
+    val initialVersion = latestVersion()
+
+    deliveryConfig.withUpdatedResource()
+      .also(repository::upsertDeliveryConfig)
+
+    val updatedVersion = latestVersion()
+    val countForInitialVersion = jooq
+      .selectCount()
+      .from(ENVIRONMENT_VERSION_ARTIFACT_VERSION)
+      .where(ENVIRONMENT_VERSION_ARTIFACT_VERSION.ENVIRONMENT_VERSION.eq(initialVersion))
+      .fetchOneInto<Int>()
+    val countForNewVersion = jooq
+      .selectCount()
+      .from(ENVIRONMENT_VERSION_ARTIFACT_VERSION)
+      .where(ENVIRONMENT_VERSION_ARTIFACT_VERSION.ENVIRONMENT_VERSION.eq(updatedVersion))
+      .fetchOneInto<Int>()
+    expectThat(countForNewVersion)
+      .isGreaterThan(0)
+      .isEqualTo(countForInitialVersion)
+  }
+
+  @Test
+  fun `attaching a new artifact version to an environment creates a new environment version`() {
+    val initialVersion = latestVersion()
+
+    deliveryConfigRepository.addArtifactVersionToEnvironment(
+      deliveryConfig,
+      deliveryConfig.environments.single().name,
+      deliveryConfig.artifacts.single(),
+      "fnord-0.1056.0-h1523.88f67f6"
+    )
+
+    val updatedVersion = latestVersion()
+    expectThat(updatedVersion) isEqualTo initialVersion + 1
+
+    expectThat(deliveryConfigRepository.get(deliveryConfig.name))
+      .get(DeliveryConfig::resources)
+      .hasSize(deliveryConfig.resources.size)
   }
 
   @Test
@@ -232,7 +287,6 @@ class EnvironmentVersioningTests {
   @Test
   fun `removing a resource from an environment creates a new version without that resource`() {
     val initialVersion = latestVersion()
-    expectThat(initialVersion).describedAs("initial version") isEqualTo 1
 
     deliveryConfig.withEmptyEnvironment()
       .also(repository::upsertDeliveryConfig)
@@ -250,14 +304,21 @@ class EnvironmentVersioningTests {
 
   @Test
   fun `removing a resource from an environment does not delete the resource and it remains attached to the old environment version`() {
+    val initialEnvVersionCount = ENVIRONMENT_VERSION.count()
+    val initialEnvResourceCount = ENVIRONMENT_RESOURCE.count()
+
     deliveryConfig.withEmptyEnvironment()
       .also(repository::upsertDeliveryConfig)
 
     expect {
-      that(ENVIRONMENT).count() isEqualTo 1          // environment still exists
-      that(RESOURCE).count() isEqualTo 1             // resource still exists
-      that(ENVIRONMENT_VERSION).count() isEqualTo 2  // there are 2 versions of the environment
-      that(ENVIRONMENT_RESOURCE).count() isEqualTo 1 // only one environment version links to a resource
+      // environment still exists
+      that(ENVIRONMENT).count() isEqualTo 1
+      // resource still exists
+      that(RESOURCE).count() isEqualTo 1
+      // there is one more version of the environment
+      that(ENVIRONMENT_VERSION).count() isEqualTo initialEnvVersionCount + 1
+      // only the original environment version links to a resource
+      that(ENVIRONMENT_RESOURCE).count() isEqualTo initialEnvResourceCount
     }
   }
 
@@ -313,7 +374,7 @@ class EnvironmentVersioningTests {
 
   private fun <T : Table<*>> Assertion.Builder<T>.isEmpty() =
     assert("has no rows") { subject ->
-      when(val rowCount = subject.count()) {
+      when (val rowCount = subject.count()) {
         0 -> pass("found 0 rows")
         1 -> fail("found 1 row")
         else -> fail("found $rowCount rows")
