@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.KubernetesProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCachingAgentDispatcher;
@@ -50,7 +51,11 @@ public class KubernetesCredentialsLifecycleHandlerTest {
 
     KubernetesNamedAccountCredentials namedCredentials =
         Mockito.mock(KubernetesNamedAccountCredentials.class);
-    when(namedCredentials.getCredentials()).thenReturn(mock(KubernetesCredentials.class));
+
+    KubernetesCredentials kubernetesCredentials = mock(KubernetesCredentials.class);
+    when(kubernetesCredentials.getDeclaredNamespaces()).thenReturn(ImmutableList.of());
+
+    when(namedCredentials.getCredentials()).thenReturn(kubernetesCredentials);
 
     handler.credentialsAdded(namedCredentials);
     // We should have added an agent

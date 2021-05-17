@@ -136,7 +136,7 @@ public class KubernetesCredentials {
   private final PermissionValidator permissionValidator;
   private final Supplier<ImmutableMap<KubernetesKind, KubernetesKindProperties>> crdSupplier =
       Suppliers.memoizeWithExpiration(this::crdSupplier, CRD_EXPIRY_SECONDS, TimeUnit.SECONDS);
-  private final Supplier<ImmutableList<String>> liveNamespaceSupplier =
+  private final Memoizer<ImmutableList<String>> liveNamespaceSupplier =
       Memoizer.memoizeWithExpiration(
           this::namespaceSupplier, NAMESPACE_EXPIRY_SECONDS, TimeUnit.SECONDS);
   @Getter private final Namer<KubernetesManifest> namer;
@@ -225,6 +225,12 @@ public class KubernetesCredentials {
     @Override
     public T get() {
       return cache.get(CACHE_KEY);
+    }
+
+    /** Return the value from the cache or null if there is no cached value */
+    @Nullable
+    public T getIfPresent() {
+      return cache.getIfPresent(CACHE_KEY);
     }
 
     public static <U> Memoizer<U> memoizeWithExpiration(
@@ -357,20 +363,52 @@ public class KubernetesCredentials {
     }
   }
 
-  public List<String> getDeclaredNamespaces() {
-    List<String> result;
+  @Nonnull
+  public ImmutableList<String> filterNamespaces(@Nonnull ImmutableList<String> namespaces) {
+    ImmutableList<String> result = namespaces;
+    if (!omitNamespaces.isEmpty()) {
+      result =
+          result.stream()
+              .filter(n -> !omitNamespaces.contains(n))
+              .collect(ImmutableList.toImmutableList());
+    }
+
+    return result;
+  }
+
+  /** Get declared namespaces without making a call to the kubernetes cluster */
+  @Nonnull
+  public ImmutableList<String> getDeclaredNamespacesFromCache() {
+    ImmutableList<String> result;
+    if (!namespaces.isEmpty()) {
+      result = namespaces;
+    } else {
+      result = liveNamespaceSupplier.getIfPresent();
+      if (result == null) {
+        // There's nothing in the cache, so return an empty list
+        log.warn("No cached namespaces for account {}", accountName);
+        result = ImmutableList.of();
+      }
+    }
+
+    return filterNamespaces(result);
+  }
+
+  /**
+   * Get declared namespaces, making a call to the kubernetes cluster if there's no cached value, or
+   * the cache is stale. Note that this is a best-effort call. If there's an error communicating to
+   * the kubernetes cluster, this routine may return an empty list.
+   */
+  @Nonnull
+  public ImmutableList<String> getDeclaredNamespaces() {
+    ImmutableList<String> result;
     if (!namespaces.isEmpty()) {
       result = namespaces;
     } else {
       result = liveNamespaceSupplier.get();
     }
 
-    if (!omitNamespaces.isEmpty()) {
-      result =
-          result.stream().filter(n -> !omitNamespaces.contains(n)).collect(Collectors.toList());
-    }
-
-    return result;
+    return filterNamespaces(result);
   }
 
   public boolean isMetricsEnabled() {

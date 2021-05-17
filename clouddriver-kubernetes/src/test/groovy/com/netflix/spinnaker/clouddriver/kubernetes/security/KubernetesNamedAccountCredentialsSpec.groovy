@@ -40,10 +40,13 @@ class KubernetesNamedAccountCredentialsSpec extends Specification {
   KubernetesKindRegistry.Factory kindRegistryFactory = Mock(KubernetesKindRegistry.Factory)
   KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap = new KubernetesSpinnakerKindMap(ImmutableList.of())
   GlobalResourcePropertyRegistry globalResourcePropertyRegistry = new GlobalResourcePropertyRegistry(ImmutableList.of(), new KubernetesUnregisteredCustomResourceHandler())
+
+  KubectlJobExecutor mockKubectlJobExecutor = Mock(KubectlJobExecutor)
+
   KubernetesCredentials.Factory credentialFactory = new KubernetesCredentials.Factory(
     new NoopRegistry(),
     namerRegistry,
-    Mock(KubectlJobExecutor),
+    mockKubectlJobExecutor,
     configFileService,
     resourcePropertyRegistryFactory,
     kindRegistryFactory,
@@ -83,5 +86,21 @@ class KubernetesNamedAccountCredentialsSpec extends Specification {
     cleanup:
       Files.delete(file1)
       Files.delete(file2)
+  }
+
+  void 'getting namespaces makes no calls to kubernetes'() {
+    given: 'an account that does not specify namespaces'
+      def account1Def = new KubernetesConfigurationProperties.ManagedAccount()
+      account1Def.setName("test")
+      account1Def.setCacheThreads(1)
+      account1Def.getPermissions().add(Authorization.READ, "test@test.com")
+      account1Def.setServiceAccount(true);
+      def account1 = new KubernetesNamedAccountCredentials(account1Def, credentialFactory)
+
+    when: 'retrieving namespaces for the account'
+      account1.getNamespaces()
+
+    then: 'no calls to kubernetes occurred'
+      0 * mockKubectlJobExecutor._
   }
 }

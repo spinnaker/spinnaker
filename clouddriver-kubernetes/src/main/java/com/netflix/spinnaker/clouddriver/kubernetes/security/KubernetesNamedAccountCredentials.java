@@ -89,8 +89,12 @@ public class KubernetesNamedAccountCredentials
     return requiredGroupMembership;
   }
 
+  /**
+   * Get the namespaces without making a call to the kubernetes cluster. If the cache is empty,
+   * return an empty list.
+   */
   public List<String> getNamespaces() {
-    return credentials.getDeclaredNamespaces();
+    return credentials.getDeclaredNamespacesFromCache();
   }
 
   public Map<String, String> getSpinnakerKindMap() {
