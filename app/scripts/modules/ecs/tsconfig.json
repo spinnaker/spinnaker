@@ -10,7 +10,7 @@
     "paths": {
       "@spinnaker/core": ["../../core/lib"],
       "core/*": ["../../core/lib/*"],
-      "@spinnaker/amazon": ["../../amazon/lib"],
+      "@spinnaker/amazon": ["../../amazon/dist"],
       "@spinnaker/docker": ["../../docker/lib"],
       "ecs/*": ["*"],
       "ecs": ["."]
