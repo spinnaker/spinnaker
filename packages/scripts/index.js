@@ -15,11 +15,11 @@ const getRollupConfigPath = (file) => {
     process.exit(1);
   }
   // If user does't provide a rollup config file, then search for `rollup.config.js` in the project directory. If it is
-  // not found, then use `basePluginRollupConfig.js` which contains pretty reasonable defaults.
+  // not found, then use `rollup.config.base.module.js` which contains pretty reasonable defaults.
   const projectRollupConfigFilePath = path.resolve(path.join('.', file || 'rollup.config.js'));
   return fs.existsSync(projectRollupConfigFilePath)
     ? projectRollupConfigFilePath
-    : path.resolve(path.join(__dirname), 'basePluginRollupConfig.js');
+    : path.resolve(path.join(__dirname), 'config', 'rollup.config.base.module.js');
 };
 
 const OUTPUT_DIR_REGEX = /\/?(\w+)$/;
