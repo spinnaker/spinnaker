@@ -95,7 +95,7 @@ data class ApplicationLoadBalancerSpec(
 
     data class RedirectAction(
       override val order: Int,
-      val redirectActionConfig: RedirectConfig
+      val redirectConfig: RedirectConfig
     ) : Action() {
       override val type = "redirect"
     }

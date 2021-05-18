@@ -27,6 +27,8 @@ import de.danielbechler.diff.inclusion.InclusionResolver
 import de.danielbechler.diff.introspection.IntrospectionService
 import de.danielbechler.diff.node.DiffNode
 import de.danielbechler.diff.node.DiffNode.State.CHANGED
+import java.lang.reflect.Modifier
+import java.time.Duration
 import java.time.Instant
 
 data class DefaultResourceDiff<T : Any>(
@@ -82,7 +84,10 @@ data class DefaultResourceDiff<T : Any>(
     val differ: ObjectDiffer = ObjectDifferBuilder
       .startBuilding()
       .apply {
-        comparison().ofType(Instant::class.java).toUseEqualsMethod()
+        comparison().apply {
+          ofType(Instant::class.java).toUseEqualsMethod()
+          ofType(Duration::class.java).toUseEqualsMethod()
+        }
         inclusion().resolveUsing(object : InclusionResolver {
           override fun getInclusion(node: DiffNode): Inclusion =
             if (node.getPropertyAnnotation<ExcludedFromDiff>() != null) EXCLUDED else INCLUDED
@@ -136,12 +141,11 @@ private class PolymorphismAwareDifferFactory(
 
     override fun accepts(type: Class<*>): Boolean =
       // we don't want to handle collections as the existing differ works
-      delegate.accepts(type) && !Collection::class.java.isAssignableFrom(type) && !Map::class.java.isAssignableFrom(type)
+      !type.isFinal && !type.isCollection && !type.isMap
 
     override fun compare(parentNode: DiffNode?, instances: Instances): DiffNode =
       if (instances.areDifferentSubTypes()) {
-        DiffNode(parentNode, instances.sourceAccessor, instances.type)
-          .apply { state = CHANGED }
+        DiffNode(parentNode, instances.sourceAccessor, instances.type).apply { state = CHANGED }
       } else {
         delegate.compare(parentNode, instances)
       }
@@ -154,5 +158,14 @@ private class PolymorphismAwareDifferFactory(
         // this is the case we want to handle specially
         working.javaClass != base.javaClass
       }
+
+    private val Class<*>.isFinal: Boolean
+      get() = Modifier.isFinal(modifiers)
+
+    private val Class<*>.isCollection: Boolean
+      get() = Collection::class.java.isAssignableFrom(this)
+
+    private val Class<*>.isMap: Boolean
+      get() = Map::class.java.isAssignableFrom(this)
   }
 }

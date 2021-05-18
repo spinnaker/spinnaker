@@ -64,7 +64,7 @@ fun Action.toOrcaRequest(): Map<String, Any?> =
       "targetGroupName" to targetGroupName
     )
     is RedirectAction -> mapOf(
-      "redirectActionConfig" to redirectActionConfig
+      "redirectActionConfig" to redirectConfig
     )
     is AuthenticateOidcAction -> mapOf(
       "authenticateOidcActionConfig" to mapOf(

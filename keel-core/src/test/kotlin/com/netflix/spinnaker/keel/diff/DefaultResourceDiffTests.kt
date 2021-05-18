@@ -19,12 +19,19 @@ package com.netflix.spinnaker.keel.diff
 
 import de.danielbechler.diff.node.DiffNode.State.CHANGED
 import de.danielbechler.diff.node.DiffNode.State.UNTOUCHED
+import de.danielbechler.diff.node.ToMapPrintingVisitor
+import de.danielbechler.diff.path.NodePath
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import org.junit.jupiter.api.Test
+import strikt.api.expect
 import strikt.api.expectThat
+import strikt.assertions.containsKey
+import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
+import java.time.Duration
 
-internal class DefaultResourceDiffTests : JUnit5Minutests {
+internal class DefaultResourceDiffTests {
   private data class Container(val prop: Parent)
 
   private interface Parent {
@@ -41,34 +48,65 @@ internal class DefaultResourceDiffTests : JUnit5Minutests {
     val anotherProp: String
   ) : Parent
 
-  fun tests() = rootContext<DefaultResourceDiff<Any>> {
-    /**
-     * Diffing should work between objects of the same parent, but different sub classes.
-     *
-     * https://github.com/spinnaker/keel/issues/317
-     */
-    context("delta in the type of a polymorphic property") {
-      fixture {
-        val obj1 = Container(Child1("common", "myprop"))
-        val obj2 = Container(Child2("common", "anotherProp"))
-        DefaultResourceDiff(obj1, obj2)
-      }
+  /**
+   * Diffing should work between objects of the same parent, but different sub classes.
+   *
+   * https://github.com/spinnaker/keel/issues/317
+   */
+  @Test
+  fun `detects a delta in the type of a polymorphic property`() {
+    val obj1 = Container(Child1("common", "myprop"))
+    val obj2 = Container(Child2("common", "anotherProp"))
 
-      test("the delta is detected") {
-        expectThat(diff.state).isEqualTo(CHANGED)
+    with(DefaultResourceDiff(obj1, obj2)) {
+      expectThat(diff.state) isEqualTo CHANGED
+    }
+  }
+
+  @Test
+  fun `does not detect a delta in two different types of empty map`() {
+    val obj1 = emptyMap<Any, Any>()
+    val obj2 = LinkedHashMap<Any, Any>()
+
+    with(DefaultResourceDiff(obj1, obj2)) {
+      expectThat(diff.state) isEqualTo UNTOUCHED
+    }
+  }
+
+  private data class DurationContainer(val duration: Duration)
+
+  @Test
+  fun `treats a Duration property as a single value`() {
+    val obj1 = DurationContainer(Duration.ofSeconds(1))
+    val obj2 = DurationContainer(Duration.ofSeconds(2))
+
+    with(DefaultResourceDiff(obj1, obj2)) {
+      expect {
+        that(diff.state) isEqualTo CHANGED
+        that(diff.getChild("duration")) {
+          get { state } isEqualTo CHANGED
+          get { childCount() } isEqualTo 0
+        }
       }
     }
+  }
 
-    context("two different types of empty map") {
-      fixture {
-        val obj1 = emptyMap<Any, Any>()
-        val obj2 = LinkedHashMap<Any, Any>()
-        DefaultResourceDiff(obj1, obj2)
-      }
+  @Test
+  fun `treats a Duration value as a single value`() {
+    val obj1 = Duration.ofSeconds(1)
+    val obj2 = Duration.ofSeconds(2)
 
-      test("no delta is detected") {
-        expectThat(diff.state).isEqualTo(UNTOUCHED)
+    with(DefaultResourceDiff(obj1, obj2)) {
+      expect {
+        that(diff.state) isEqualTo CHANGED
+        that(diff.childCount()) isEqualTo 0
       }
     }
+  }
+
+  private fun <T : Any> DefaultResourceDiff<T>.toMap(): Map<String, String> {
+    val visitor = ToMapPrintingVisitor(desired, current)
+    diff.visitChildren(visitor)
+    return visitor.messages.mapKeys { (k, _) -> k.toString() }
   }
 }
