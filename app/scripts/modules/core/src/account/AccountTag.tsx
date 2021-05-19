@@ -50,9 +50,12 @@ export class AccountTag extends React.Component<IAccountTagProps, IAccountTagSta
   public render() {
     const { account, className } = this.props;
     const { isProdAccount } = this.state;
+    const shouldShowTitle = className === 'account-tag-wrapper';
     return (
       <span className={`account-tag account-tag-${isProdAccount ? 'prod' : 'notprod'} ${className || ''}`}>
-        {account}
+        <span className="account-tag-name" title={shouldShowTitle ? account : null}>
+          {account}
+        </span>
       </span>
     );
   }
