@@ -29,15 +29,15 @@ import com.netflix.spinnaker.clouddriver.model.JobProvider;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import io.kubernetes.client.openapi.models.V1Job;
 import io.kubernetes.client.openapi.models.V1Pod;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import lombok.Getter;
 import org.apache.commons.lang3.NotImplementedException;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -46,12 +46,15 @@ public class KubernetesJobProvider implements JobProvider<KubernetesJobStatus> {
   @Getter private final String platform = "kubernetes";
   private final AccountCredentialsProvider accountCredentialsProvider;
   private final KubernetesManifestProvider manifestProvider;
+  private final boolean detailedPodStatus;
 
   KubernetesJobProvider(
       AccountCredentialsProvider accountCredentialsProvider,
-      KubernetesManifestProvider manifestProvider) {
+      KubernetesManifestProvider manifestProvider,
+      @Value("${kubernetes.jobs.detailed-pod-status:true}") boolean detailedPodStatus) {
     this.accountCredentialsProvider = accountCredentialsProvider;
     this.manifestProvider = manifestProvider;
+    this.detailedPodStatus = detailedPodStatus;
   }
 
   @Override
@@ -73,14 +76,32 @@ public class KubernetesJobProvider implements JobProvider<KubernetesJobStatus> {
             jobStatus.getLocation(),
             KubernetesSelectorList.fromMatchLabels(selector));
 
-    jobStatus.setPods(
+    List<V1Pod> typedPods =
         pods.stream()
-            .map(
-                p -> {
-                  V1Pod pod = KubernetesCacheDataConverter.getResource(p, V1Pod.class);
-                  return new KubernetesJobStatus.PodStatus(pod);
+            .map(m -> KubernetesCacheDataConverter.getResource(m, V1Pod.class))
+            .sorted(
+                (p1, p2) -> {
+                  DateTime dtDefault = new DateTime(0);
+                  DateTime time1 =
+                      p1.getStatus() != null
+                          ? Optional.ofNullable(p1.getStatus().getStartTime()).orElse(dtDefault)
+                          : dtDefault;
+                  DateTime time2 =
+                      p2.getStatus() != null
+                          ? Optional.ofNullable(p2.getStatus().getStartTime()).orElse(dtDefault)
+                          : dtDefault;
+                  return time1.compareTo(time2);
                 })
-            .collect(Collectors.toList()));
+            .collect(Collectors.toList());
+
+    V1Pod mostRecentPod = typedPods.get(typedPods.size() - 1);
+    jobStatus.setMostRecentPodName(
+        mostRecentPod.getMetadata() != null ? mostRecentPod.getMetadata().getName() : "");
+
+    if (detailedPodStatus) {
+      jobStatus.setPods(
+          typedPods.stream().map(KubernetesJobStatus.PodStatus::new).collect(Collectors.toList()));
+    }
 
     return jobStatus;
   }

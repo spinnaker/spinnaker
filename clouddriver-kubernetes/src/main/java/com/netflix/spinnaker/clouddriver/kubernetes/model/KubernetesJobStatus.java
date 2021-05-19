@@ -48,6 +48,7 @@ public class KubernetesJobStatus implements JobStatus {
   String logs;
   @JsonIgnore V1Job job;
   List<PodStatus> pods;
+  String mostRecentPodName;
 
   public KubernetesJobStatus(V1Job job, String account) {
     this.job = job;

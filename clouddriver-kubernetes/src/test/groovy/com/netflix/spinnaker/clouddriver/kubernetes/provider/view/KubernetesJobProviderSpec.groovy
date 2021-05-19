@@ -58,7 +58,7 @@ class KubernetesJobProviderSpec extends Specification {
     }
 
     when:
-    def provider = new KubernetesJobProvider(mockAccountCredentialsProvider, mockManifestProvider)
+    def provider = new KubernetesJobProvider(mockAccountCredentialsProvider, mockManifestProvider, true)
     def logResult = provider.getFileContents("a", "b", "c", "d")
 
     then:
