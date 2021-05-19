@@ -4,7 +4,7 @@ import com.netflix.spinnaker.config.BaseUrlConfig
 import com.netflix.spinnaker.keel.api.ScmInfo
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
-import com.netflix.spinnaker.keel.artifacts.getScmBaseLink
+import com.netflix.spinnaker.keel.artifacts.ArtifactVersionLinks
 import com.netflix.spinnaker.keel.slack.SlackService
 import com.slack.api.model.kotlin_extension.block.SectionBlockBuilder
 import com.slack.api.model.kotlin_extension.block.dsl.LayoutBlockDsl
@@ -26,7 +26,8 @@ import org.springframework.stereotype.Component
 class GitDataGenerator(
   private val scmInfo: ScmInfo,
   val config: BaseUrlConfig,
-  val slackService: SlackService
+  val slackService: SlackService,
+  private val artifactVersionLinks: ArtifactVersionLinks,
 ) {
 
   companion object {
@@ -37,7 +38,7 @@ class GitDataGenerator(
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   private fun generateStashRepoLink(gitMetadata: GitMetadata): String {
-      val baseScmUrl = gitMetadata.commitInfo?.link?.let { getScmBaseLink(scmInfo, it) }
+      val baseScmUrl = gitMetadata.commitInfo?.link?.let { artifactVersionLinks.getScmBaseLink(it) }
       return "$baseScmUrl/projects/${gitMetadata.project}/repos/${gitMetadata.repo?.name}"
   }
 

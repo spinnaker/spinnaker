@@ -1,11 +1,9 @@
 package com.netflix.spinnaker.keel.slack.handlers
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.api.ScmInfo
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
-import com.netflix.spinnaker.keel.artifacts.generateCompareLink
+import com.netflix.spinnaker.keel.artifacts.ArtifactVersionLinks
 import com.netflix.spinnaker.keel.constraints.ManualJudgementConstraintAttributes
 import com.netflix.spinnaker.keel.constraints.OriginalSlackMessageDetail
 import com.netflix.spinnaker.keel.notifications.NotificationType.MANUAL_JUDGMENT_AWAIT
@@ -26,8 +24,8 @@ import org.springframework.stereotype.Component
 class ManualJudgmentNotificationHandler(
   private val slackService: SlackService,
   private val gitDataGenerator: GitDataGenerator,
-  private val scmInfo: ScmInfo,
   private val repository: KeelRepository,
+  private val artifactVersionLinks: ArtifactVersionLinks,
 ) : SlackNotificationHandler<SlackManualJudgmentNotification> {
   override val supportedTypes = listOf(MANUAL_JUDGMENT_AWAIT)
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -43,7 +41,7 @@ class ManualJudgmentNotificationHandler(
     )
 
     with(notification) {
-      val compareLink = generateCompareLink(scmInfo, artifactCandidate, currentArtifact, deliveryArtifact)
+      val compareLink = artifactVersionLinks.generateCompareLink(artifactCandidate, currentArtifact, deliveryArtifact)
       val headerText = "Awaiting manual judgement"
       val imageUrl = "https://raw.githubusercontent.com/spinnaker/spinnaker.github.io/master/assets/images/md_icons/mj_needed.png"
       val baseBlocks = constructMessageWithoutButtons(

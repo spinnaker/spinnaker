@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.echo
 
+import com.github.benmanes.caffeine.cache.AsyncLoadingCache
 import com.netflix.spinnaker.config.BaseUrlConfig
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
@@ -17,12 +18,16 @@ import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.events.ConstraintStateChanged
+import com.netflix.spinnaker.keel.artifacts.ArtifactVersionLinks
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
+import com.netflix.spinnaker.keel.caffeine.CacheFactory
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.core.api.PromotionStatus
 import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.echo.model.EchoNotification
 import com.netflix.spinnaker.keel.persistence.KeelRepository
+import com.netflix.spinnaker.keel.services.mockCacheFactory
+import com.netflix.spinnaker.keel.services.mockScmInfo
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -41,6 +46,8 @@ import strikt.assertions.isFailure
 import strikt.assertions.isFalse
 import strikt.assertions.isGreaterThan
 import strikt.assertions.isNull
+import java.util.concurrent.CompletableFuture
+import java.util.function.Function
 
 internal class ManualJudgementNotifierTests : JUnit5Minutests {
 
@@ -57,26 +64,20 @@ internal class ManualJudgementNotifierTests : JUnit5Minutests {
     val artifact = DebianArtifact("mypkg", "test", "deb",
       vmOptions = VirtualMachineOptions(RELEASE, "bionic", emptySet())
     )
-    val scmInfo = mockk<ScmInfo>() {
-      coEvery {
-        getScmInfo()
-      } answers {
-        mapOf("stash" to "https://stash")
-      }
-    }
 
     val springEnv: org.springframework.core.env.Environment = mockk(relaxed = true) {
       coEvery { getProperty("keel.notifications.slack", Boolean::class.java, true) } returns false
     }
 
+    val artifactVersionLinks = ArtifactVersionLinks(mockScmInfo(), mockCacheFactory())
 
     val subject = ManualJudgementNotifier(
       keelNotificationConfig,
       echoService,
       repository,
-      scmInfo,
       springEnv,
-      BaseUrlConfig()
+      BaseUrlConfig(),
+      artifactVersionLinks,
     )
   }
 

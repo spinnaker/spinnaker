@@ -16,6 +16,7 @@ import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintType
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.ConstraintEvaluator
 import com.netflix.spinnaker.keel.api.plugins.SupportedArtifact
+import com.netflix.spinnaker.keel.artifacts.ArtifactVersionLinks
 import com.netflix.spinnaker.keel.core.api.ActionMetadata
 import com.netflix.spinnaker.keel.core.api.ArtifactSummary
 import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
@@ -124,6 +125,8 @@ class ComparableLinksTests : JUnit5Minutests {
       every { getSteps(any(), any()) } returns emptyList()
     }
 
+    val artifactVersionLinks = ArtifactVersionLinks(mockScmInfo(), mockCacheFactory())
+
     val publisher: ApplicationEventPublisher = mockk(relaxed = true)
 
     val springEnv: SpringEnvironment = mockk() {
@@ -145,7 +148,8 @@ class ComparableLinksTests : JUnit5Minutests {
       springEnv,
       clock,
       registry,
-      ArtifactConfig()
+      ArtifactConfig(),
+      artifactVersionLinks
     )
 
     val buildMetadata = BuildMetadata(

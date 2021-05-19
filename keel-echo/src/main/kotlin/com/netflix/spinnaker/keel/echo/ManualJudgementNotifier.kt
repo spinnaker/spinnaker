@@ -6,7 +6,7 @@ import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.api.ScmInfo
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.events.ConstraintStateChanged
-import com.netflix.spinnaker.keel.artifacts.generateCompareLink
+import com.netflix.spinnaker.keel.artifacts.ArtifactVersionLinks
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.core.api.PromotionStatus
 import com.netflix.spinnaker.keel.echo.model.EchoNotification
@@ -32,9 +32,9 @@ class ManualJudgementNotifier(
   private val keelNotificationConfig: KeelNotificationConfig,
   private val echoService: EchoService,
   private val repository: KeelRepository,
-  private val scmInfo: ScmInfo,
   private val springEnv: Environment,
-  private val baseUrlConfig: BaseUrlConfig
+  private val baseUrlConfig: BaseUrlConfig,
+  private val artifactVersionLinks: ArtifactVersionLinks,
 ) {
   companion object {
     const val MANUAL_JUDGEMENT_DOC_URL =
@@ -92,7 +92,7 @@ class ManualJudgementNotifier(
 
       if (currentArtifactInEnvironment?.gitMetadata != null) {
         try {
-          val compareLink = generateCompareLink(scmInfo, currentDeployableArtifact, currentArtifactInEnvironment, artifact)
+          val compareLink = artifactVersionLinks.generateCompareLink(currentDeployableArtifact, currentArtifactInEnvironment, artifact)
           if (compareLink != null) {
             details += "<$compareLink|*See changes*>\n"
           }

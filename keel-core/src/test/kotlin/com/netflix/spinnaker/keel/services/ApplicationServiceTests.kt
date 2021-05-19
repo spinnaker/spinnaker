@@ -26,6 +26,7 @@ import com.netflix.spinnaker.keel.api.plugins.ConstraintEvaluator
 import com.netflix.spinnaker.keel.api.plugins.SupportedArtifact
 import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
 import com.netflix.spinnaker.keel.api.action.ActionState
+import com.netflix.spinnaker.keel.artifacts.ArtifactVersionLinks
 import com.netflix.spinnaker.keel.core.api.ArtifactSummary
 import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
 import com.netflix.spinnaker.keel.core.api.ArtifactVersionStatus
@@ -223,6 +224,8 @@ class ApplicationServiceTests : JUnit5Minutests {
 
     val spectator = NoopRegistry()
 
+    val artifactVersionLinks = ArtifactVersionLinks(mockScmInfo(), mockCacheFactory())
+
     // subject
     val applicationService = ApplicationService(
       repository,
@@ -235,7 +238,8 @@ class ApplicationServiceTests : JUnit5Minutests {
       springEnv,
       clock,
       spectator,
-      ArtifactConfig()
+      ArtifactConfig(),
+      artifactVersionLinks
     )
 
     val buildMetadata = BuildMetadata(

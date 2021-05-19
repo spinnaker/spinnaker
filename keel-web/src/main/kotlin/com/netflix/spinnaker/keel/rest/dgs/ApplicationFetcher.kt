@@ -12,12 +12,11 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ScmInfo
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.action.ActionType
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
-import com.netflix.spinnaker.keel.artifacts.generateCompareLink
+import com.netflix.spinnaker.keel.artifacts.ArtifactVersionLinks
 import com.netflix.spinnaker.keel.core.api.PromotionStatus
 import com.netflix.spinnaker.keel.graphql.DgsConstants
 import com.netflix.spinnaker.keel.graphql.types.MdApplication
@@ -58,8 +57,8 @@ import java.util.concurrent.CompletableFuture
 class ApplicationFetcher(
   private val keelRepository: KeelRepository,
   private val resourceStatusService: ResourceStatusService,
-  private val scmInfo: ScmInfo,
   private val actuationPauser: ActuationPauser,
+  private val artifactVersionLinks: ArtifactVersionLinks,
 ) {
 
   private fun getDeliveryConfigFromContext(dfe: DataFetchingEnvironment): DeliveryConfig {
@@ -71,7 +70,7 @@ class ApplicationFetcher(
   fun application(dfe: DataFetchingEnvironment, @InputArgument("appName") appName: String): MdApplication {
     val config = try {
       keelRepository.getDeliveryConfigForApplication(appName)
-    } catch(ex: NoDeliveryConfigForApplication) {
+    } catch (ex: NoDeliveryConfigForApplication) {
       throw DgsEntityNotFoundException(ex.message!!)
     }
     val context: ApplicationContext = DgsContext.getCustomContext(dfe)
@@ -171,12 +170,12 @@ class ApplicationFetcher(
     val previousVersion = artifactVersions.firstOrNull { it.replacedBy == mdArtifactVersion.version }
     return MdComparisonLinks(
       toPreviousVersion = if (previousVersion != thisVersion) {
-        generateCompareLink(scmInfo, thisVersion.publishedArtifact, previousVersion?.publishedArtifact, deliveryArtifact)
+        artifactVersionLinks.generateCompareLink(thisVersion.publishedArtifact, previousVersion?.publishedArtifact, deliveryArtifact)
       } else {
         null
       },
       toCurrentVersion = if (currentVersion != thisVersion) {
-        generateCompareLink(scmInfo, thisVersion.publishedArtifact, currentVersion?.publishedArtifact, deliveryArtifact)
+        artifactVersionLinks.generateCompareLink(thisVersion.publishedArtifact, currentVersion?.publishedArtifact, deliveryArtifact)
       } else {
         null
       }

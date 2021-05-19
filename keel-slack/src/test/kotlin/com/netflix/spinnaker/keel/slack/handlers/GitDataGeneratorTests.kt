@@ -3,6 +3,9 @@ package com.netflix.spinnaker.keel.slack.handlers
 import com.netflix.spinnaker.config.BaseUrlConfig
 import com.netflix.spinnaker.keel.api.ScmInfo
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
+import com.netflix.spinnaker.keel.artifacts.ArtifactVersionLinks
+import com.netflix.spinnaker.keel.services.mockCacheFactory
+import com.netflix.spinnaker.keel.services.mockScmInfo
 import com.netflix.spinnaker.keel.slack.SlackService
 import com.netflix.spinnaker.time.MutableClock
 import com.slack.api.model.block.SectionBlock
@@ -24,8 +27,9 @@ class GitDataGeneratorTests : JUnit5Minutests {
     val scmInfo: ScmInfo = mockk()
     val slackService: SlackService = mockk()
     val config: BaseUrlConfig = BaseUrlConfig()
+    val artifactVersionLinks = ArtifactVersionLinks(mockScmInfo(), mockCacheFactory())
 
-    val subject = GitDataGenerator(scmInfo, config, slackService)
+    val subject = GitDataGenerator(scmInfo, config, slackService, artifactVersionLinks)
 
     val clock: MutableClock = MutableClock()
 

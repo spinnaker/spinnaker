@@ -27,7 +27,7 @@ import com.netflix.spinnaker.keel.api.plugins.supporting
 import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
 import com.netflix.spinnaker.keel.api.action.Action
 import com.netflix.spinnaker.keel.api.action.ActionState
-import com.netflix.spinnaker.keel.artifacts.generateCompareLink
+import com.netflix.spinnaker.keel.artifacts.ArtifactVersionLinks
 import com.netflix.spinnaker.keel.constraints.AllowedTimesConstraintAttributes
 import com.netflix.spinnaker.keel.constraints.AllowedTimesConstraintEvaluator.Companion.toNumericTimeWindows
 import com.netflix.spinnaker.keel.constraints.DependsOnConstraintAttributes
@@ -92,7 +92,8 @@ class ApplicationService(
   private val springEnv: SpringEnvironment,
   private val clock: Clock,
   private val spectator: Registry,
-  private val artifactConfig: ArtifactConfig
+  private val artifactConfig: ArtifactConfig,
+  private val artifactVersionLinks: ArtifactVersionLinks,
 ) : CoroutineScope {
   override val coroutineContext: CoroutineContext = Dispatchers.Default
 
@@ -490,7 +491,7 @@ class ApplicationService(
           version = currentArtifact.version,
           state = status.name.toLowerCase(),
           // comparing PENDING (version in question, new code) vs. CURRENT (old code)
-          compareLink = generateCompareLink(scmInfo, currentArtifact, olderArtifactVersion, context.artifact)
+          compareLink = artifactVersionLinks.generateCompareLink(currentArtifact, olderArtifactVersion, context.artifact)
         )
       }
       SKIPPED -> {
@@ -509,7 +510,7 @@ class ApplicationService(
         val olderArtifactVersion = pinnedArtifact?: getArtifactVersionByPromotionStatus(context, CURRENT, null)
         potentialSummary?.copy(
           // comparing DEPLOYING/APPROVED (version in question, new code) vs. CURRENT (old code)
-          compareLink = generateCompareLink(scmInfo, currentArtifact, olderArtifactVersion, context.artifact)
+          compareLink = artifactVersionLinks.generateCompareLink(currentArtifact, olderArtifactVersion, context.artifact)
         )
       }
       PREVIOUS -> {
@@ -517,14 +518,14 @@ class ApplicationService(
         potentialSummary?.copy(
           //comparing PREVIOUS (version in question, old code) vs. the version which replaced it (new code)
           //pinned artifact should not be consider here, as we know exactly which version replace the current one
-          compareLink = generateCompareLink(scmInfo, currentArtifact, newerArtifactVersion, context.artifact)
+          compareLink = artifactVersionLinks.generateCompareLink(currentArtifact, newerArtifactVersion, context.artifact)
         )
       }
       CURRENT -> {
         val olderArtifactVersion = pinnedArtifact?: getArtifactVersionByPromotionStatus(context, PREVIOUS, null)
         potentialSummary?.copy(
           // comparing CURRENT (version in question, new code) vs. PREVIOUS (old code)
-          compareLink = generateCompareLink(scmInfo, currentArtifact, olderArtifactVersion, context.artifact)
+          compareLink = artifactVersionLinks.generateCompareLink(currentArtifact, olderArtifactVersion, context.artifact)
         )
       }
       else -> potentialSummary
