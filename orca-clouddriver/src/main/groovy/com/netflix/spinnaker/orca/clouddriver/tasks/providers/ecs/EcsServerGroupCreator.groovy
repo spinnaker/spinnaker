@@ -18,19 +18,40 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.ecs
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
+import com.netflix.spinnaker.kork.exceptions.ConfigurationException
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreator
 import com.netflix.spinnaker.orca.kato.tasks.DeploymentDetailsAware
 import com.netflix.spinnaker.orca.pipeline.model.DockerTrigger
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import groovy.util.logging.Slf4j
+import org.springframework.beans.factory.annotation.Autowired
+import retrofit.client.Response
+
 import javax.annotation.Nullable
 import org.springframework.stereotype.Component
+import com.fasterxml.jackson.core.type.TypeReference
+import com.google.common.collect.ImmutableMap
+import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
+import org.yaml.snakeyaml.Yaml
+import org.yaml.snakeyaml.constructor.SafeConstructor
+
+import java.time.Duration
+import java.util.function.Supplier
+import java.util.stream.StreamSupport
+import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 
 @Slf4j
 @Component
 class EcsServerGroupCreator implements ServerGroupCreator, DeploymentDetailsAware {
+  final private OortService oortService
+  private final ContextParameterProcessor contextParameterProcessor
+  private static final ThreadLocal<Yaml> yamlParser =
+      ThreadLocal.withInitial({ -> new Yaml(new SafeConstructor()) })
 
   final String cloudProvider = "ecs"
   final boolean katoResultExpected = false
@@ -39,9 +60,15 @@ class EcsServerGroupCreator implements ServerGroupCreator, DeploymentDetailsAwar
 
   final ObjectMapper mapper = new ObjectMapper()
   final ArtifactUtils artifactUtils
+  private static final ObjectMapper objectMapper = OrcaObjectMapper.getInstance()
+  private final RetrySupport retrySupport
 
-  EcsServerGroupCreator(ArtifactUtils artifactUtils) {
+  @Autowired
+  EcsServerGroupCreator(ArtifactUtils artifactUtils, OortService oort, ContextParameterProcessor contextParameterProcessor, RetrySupport retrySupport) {
     this.artifactUtils = artifactUtils
+    this.oortService = oort
+    this.contextParameterProcessor = contextParameterProcessor
+    this.retrySupport = retrySupport
   }
 
   @Override
@@ -57,6 +84,22 @@ class EcsServerGroupCreator implements ServerGroupCreator, DeploymentDetailsAwar
     if (operation.useTaskDefinitionArtifact) {
       if (operation.taskDefinitionArtifact) {
         operation.resolvedTaskDefinitionArtifact = getTaskDefArtifact(stage, operation.taskDefinitionArtifact)
+        if (operation.evaluateTaskDefinitionArtifactExpressions) {
+          Iterable<Object> rawArtifact =
+              retrySupport.retry(
+                  fetchAndParseArtifact(operation.resolvedTaskDefinitionArtifact), 10, Duration.ofMillis(200), true)
+
+          List<Map<Object, Object>> unevaluatedArtifact =
+              StreamSupport.stream(rawArtifact.spliterator(), false)
+                  .filter(Objects.&nonNull)
+                  .map(this.&coerceArtifactToList)
+                  .collect()
+                  .flatten()
+
+          Map<Object, Object> evaluatedArtifact = getSpelEvaluatedArtifact(unevaluatedArtifact, stage)
+
+          operation.spelProcessedTaskDefinitionArtifact = evaluatedArtifact
+        }
       } else {
         throw new IllegalStateException("No task definition artifact found in context for operation.")
       }
@@ -84,6 +127,47 @@ class EcsServerGroupCreator implements ServerGroupCreator, DeploymentDetailsAwar
     }
 
     return [[(ServerGroupCreator.OPERATION): operation]]
+  }
+
+  private Supplier<Iterable<Object>> fetchAndParseArtifact(Artifact artifact) {
+    return { ->
+      Response artifactText = oortService.fetchArtifact(artifact)
+      try {
+        if(artifactText != null && artifactText.getBody() != null){
+          return yamlParser.get().loadAll(artifactText.getBody().in());
+        } else{
+          throw new ConfigurationException("Invalid artifact configuration or task definition artifact is null")
+        }
+      } catch (Exception e) {
+        throw new IllegalStateException(e);
+      }
+    }
+  }
+
+  private List<Map<Object, Object>> coerceArtifactToList(Object artifact) {
+    Map<Object, Object> singleArtifact =
+        objectMapper.convertValue(artifact, new TypeReference<Map<Object, Object>>() {})
+    return List.of(singleArtifact)
+  }
+
+  private Map<Object, Object> getSpelEvaluatedArtifact(
+      List<Map<Object, Object>> unevaluatedArtifact, StageExecution stage) {
+    Map<String, Object> processorInput = ImmutableMap.of("artifact", unevaluatedArtifact);
+
+    Map<String, Object> processorResult =
+        contextParameterProcessor.process(
+            processorInput,
+            contextParameterProcessor.buildExecutionContext(stage),
+            true)
+
+    if ((boolean) stage.getContext().getOrDefault("failOnFailedExpressions", false)
+        && processorResult.containsKey(PipelineExpressionEvaluator.SUMMARY)) {
+      throw new IllegalStateException(
+          String.format(
+              "Failure evaluating Artifact expressions: %s",
+              processorResult.get(PipelineExpressionEvaluator.SUMMARY)))
+    }
+    return processorResult.get("artifact").get(0)
   }
 
   static String buildImageId(Object registry, Object repo, Object tag) {
