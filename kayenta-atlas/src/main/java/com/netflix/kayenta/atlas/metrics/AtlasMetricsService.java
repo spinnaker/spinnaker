@@ -56,7 +56,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Slf4j
 public class AtlasMetricsService implements MetricsService {
 
-  public final String URI_SCHEME = "http";
+  public final String URI_SCHEME = "https";
 
   public final int MAX_RETRIES = 10; // maximum number of times we'll retry an Atlas query
   public final long RETRY_BACKOFF = 1000; // time between retries in millis
