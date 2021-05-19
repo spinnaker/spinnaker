@@ -176,10 +176,10 @@ describe('Launch template details', () => {
     const multipleInstanceTypesTableRows = multipleInstanceTypes.find('td');
 
     expect(multipleInstanceTypesTableRows.length).toEqual(4);
-    expect(multipleInstanceTypesTableRows.at(0).equals('some.type.medium'));
-    expect(multipleInstanceTypesTableRows.at(1).equals('2'));
-    expect(multipleInstanceTypesTableRows.at(2).equals('some.type.large'));
-    expect(multipleInstanceTypesTableRows.at(3).equals('4'));
+    expect(multipleInstanceTypesTableRows.at(0).text()).toEqual('some.type.medium');
+    expect(multipleInstanceTypesTableRows.at(1).text()).toEqual('2');
+    expect(multipleInstanceTypesTableRows.at(2).text()).toEqual('some.type.large');
+    expect(multipleInstanceTypesTableRows.at(3).text()).toEqual('4');
   });
 
   it('should conditionally render image information', () => {

@@ -348,6 +348,7 @@ export class AmazonImageSelectInput extends React.Component<IAmazonImageSelector
 
       return (
         <div className="col-md-9">
+          {/* @ts-ignore */}
           <TetheredSelect
             {...commonReactSelectProps}
             menuRenderer={this.buildImageMenu}
@@ -369,6 +370,7 @@ export class AmazonImageSelectInput extends React.Component<IAmazonImageSelector
       // User can pick an image from the preloaded 'packageImages' using the typeahead
       return (
         <div className="col-md-9">
+          {/* @ts-ignore */}
           <TetheredSelect
             {...commonReactSelectProps}
             menuRenderer={this.buildImageMenu}
@@ -389,6 +391,7 @@ export class AmazonImageSelectInput extends React.Component<IAmazonImageSelector
       // Show a disabled react-select while waiting for 'packageImages' to load
       return (
         <div className="col-md-9">
+          {/* @ts-ignore */}
           <TetheredSelect
             {...commonReactSelectProps}
             isLoading={isLoadingPackageImages}
