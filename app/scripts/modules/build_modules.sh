@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 beginGroup() {
   if [[ -n "$GITHUB_ACTIONS" ]] ; then
     echo "::group::$*"
@@ -24,6 +26,7 @@ BUILD_ORDER=$(./build_order.sh $*)
 for PACKAGE in $BUILD_ORDER ; do
   beginGroup "$PACKAGE"
   pushd "$PACKAGE" || exit $?
+  yarn || exit 255
   yarn lib || exit 255
   endGroup "$PACKAGE"
   popd || exit $?
