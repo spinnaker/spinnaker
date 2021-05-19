@@ -334,17 +334,34 @@ public class CreateServerGroupAtomicOperation
     return request;
   }
 
+  private RegisterTaskDefinitionRequest getSpelProcessedArtifact() {
+    if (description.getSpelProcessedTaskDefinitionArtifact() != null) {
+      return mapper.convertValue(
+          description.getSpelProcessedTaskDefinitionArtifact(),
+          RegisterTaskDefinitionRequest.class);
+    } else {
+      throw new IllegalArgumentException("Task definition artifact can not be null");
+    }
+  }
+
+  private RegisterTaskDefinitionRequest getArtifactFromFile() {
+    File artifactFile =
+        downloadTaskDefinitionArtifact(description.getResolvedTaskDefinitionArtifact());
+    try {
+      return mapper.readValue(artifactFile, RegisterTaskDefinitionRequest.class);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
   protected RegisterTaskDefinitionRequest makeTaskDefinitionRequestFromArtifact(
       String ecsServiceRole, EcsServerGroupName newServerGroupName) {
 
-    File artifactFile =
-        downloadTaskDefinitionArtifact(description.getResolvedTaskDefinitionArtifact());
-
-    RegisterTaskDefinitionRequest requestTemplate;
-    try {
-      requestTemplate = mapper.readValue(artifactFile, RegisterTaskDefinitionRequest.class);
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
+    RegisterTaskDefinitionRequest requestTemplate = null;
+    if (description.isEvaluateTaskDefinitionArtifactExpressions()) {
+      requestTemplate = getSpelProcessedArtifact();
+    } else {
+      requestTemplate = getArtifactFromFile();
     }
 
     String templateMode = requestTemplate.getNetworkMode();

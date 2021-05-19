@@ -93,7 +93,9 @@ public class CreateServerGroupDescription extends AbstractECSDescription {
   List<ServiceDiscoveryAssociation> serviceDiscoveryAssociations;
 
   boolean useTaskDefinitionArtifact;
+  boolean evaluateTaskDefinitionArtifactExpressions;
   Artifact resolvedTaskDefinitionArtifact;
+  Map<Object, Object> spelProcessedTaskDefinitionArtifact;
   String taskDefinitionArtifactAccount;
   Map<String, String> containerToImageMap;
 

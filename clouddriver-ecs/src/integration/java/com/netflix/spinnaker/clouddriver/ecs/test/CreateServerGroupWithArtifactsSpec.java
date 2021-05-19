@@ -19,8 +19,7 @@ import static io.restassured.RestAssured.get;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -601,5 +600,94 @@ public class CreateServerGroupWithArtifactsSpec extends EcsSpec {
     assertEquals(
         "integArtifactEC2TgMappingskWithMultipleLBsAndContainers-cluster",
         seenCreateServRequest.getCluster());
+  }
+
+  @Test
+  public void createServerGroup_ProcessedArtifactsEC2TgMappingsTest()
+      throws IOException, InterruptedException {
+
+    // given
+    String url = getTestUrl(CREATE_SG_TEST_PATH);
+    String requestBody =
+        generateStringFromTestFile(
+            "/createServerGroup-spelProcessedArtifact-EC2-targetGroupMappings.json");
+    String expectedServerGroupName =
+        "ecs-integSpELProcessedArtifactsEC2TgMappingsStack-detailTest-v000";
+
+    String taskId =
+        given()
+            .contentType(ContentType.JSON)
+            .body(requestBody)
+            .when()
+            .post(url)
+            .then()
+            .statusCode(200)
+            .contentType(ContentType.JSON)
+            .body("id", notNullValue())
+            .body("resourceUri", containsString("/task/"))
+            .extract()
+            .path("id");
+
+    retryUntilTrue(
+        () -> {
+          List<Object> taskHistory =
+              get(getTestUrl("/task/" + taskId))
+                  .then()
+                  .contentType(ContentType.JSON)
+                  .extract()
+                  .path("history");
+          if (taskHistory
+              .toString()
+              .contains(String.format("Done creating 1 of %s", expectedServerGroupName))) {
+            return true;
+          }
+          return false;
+        },
+        String.format("Failed to detect service creation in %s seconds", TASK_RETRY_SECONDS),
+        TASK_RETRY_SECONDS);
+
+    ArgumentCaptor<RegisterTaskDefinitionRequest> registerTaskDefArgs =
+        ArgumentCaptor.forClass(RegisterTaskDefinitionRequest.class);
+    verify(mockECS).registerTaskDefinition(registerTaskDefArgs.capture());
+    RegisterTaskDefinitionRequest seenTaskDefRequest = registerTaskDefArgs.getValue();
+    assertEquals(expectedServerGroupName, seenTaskDefRequest.getFamily() + "-v000");
+    assertEquals(1, seenTaskDefRequest.getContainerDefinitions().size());
+    assertEquals(
+        "arn:aws:iam:::executionRole/testExecutionRole:1",
+        seenTaskDefRequest.getExecutionRoleArn());
+    assertEquals("application", seenTaskDefRequest.getContainerDefinitions().get(0).getName());
+    assertEquals(
+        "awslogs",
+        seenTaskDefRequest.getContainerDefinitions().get(0).getLogConfiguration().getLogDriver());
+    assertEquals(
+        "spinnaker-ecs-demo",
+        seenTaskDefRequest
+            .getContainerDefinitions()
+            .get(0)
+            .getLogConfiguration()
+            .getOptions()
+            .get("awslogs-group"));
+
+    ContainerDefinition containerDefinition =
+        seenTaskDefRequest.getContainerDefinitions().stream()
+            .filter(container -> container.getName().equals("application"))
+            .collect(Collectors.toList())
+            .get(0);
+
+    assertEquals(80, containerDefinition.getPortMappings().get(0).getContainerPort());
+
+    assertEquals("tcp", containerDefinition.getPortMappings().get(0).getProtocol());
+
+    assertEquals(256, containerDefinition.getCpu());
+
+    assertEquals(512, containerDefinition.getMemoryReservation());
+
+    assertEquals("PLACEHOLDER", containerDefinition.getImage());
+
+    assertEquals("bridge", seenTaskDefRequest.getNetworkMode());
+    assertEquals(
+        "ecs-integSpELProcessedArtifactsEC2TgMappingsStack-detailTest",
+        seenTaskDefRequest.getFamily());
+    assertEquals("bridge", seenTaskDefRequest.getNetworkMode());
   }
 }
