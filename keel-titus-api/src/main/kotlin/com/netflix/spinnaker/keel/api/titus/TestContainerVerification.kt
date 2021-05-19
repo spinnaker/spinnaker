@@ -21,7 +21,9 @@ data class TestContainerVerification(
   val tag: String? = "latest",
 
   val location: Location,
-  val application: String? = null
+  val application: String? = null,
+
+  val entrypoint: String? = null
 ) : Verification {
   override val type = TYPE
   override val id = imageId

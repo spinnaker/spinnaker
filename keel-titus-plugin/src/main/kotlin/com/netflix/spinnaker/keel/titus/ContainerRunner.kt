@@ -72,7 +72,8 @@ class ContainerRunner(
     environmentName: String,
     location: TitusServerGroup.Location,
     environmentVariables: Map<String, String> = emptyMap(),
-    containerApplication: String = application
+    containerApplication: String = application,
+    entrypoint: String = ""
   ): Map<String, Any?> {
       return withContext(Dispatchers.IO) {
         taskLauncher.submitJob(
@@ -88,7 +89,8 @@ class ContainerRunner(
               location = location,
               credentials = location.account,
               image = imageId,
-              environmentVariables = environmentVariables
+              environmentVariables = environmentVariables,
+              entrypoint = entrypoint
             ).createRunJobStage()
           )
         )

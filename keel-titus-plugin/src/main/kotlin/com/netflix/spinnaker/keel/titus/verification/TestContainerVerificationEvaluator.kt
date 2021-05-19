@@ -53,7 +53,8 @@ class TestContainerVerificationEvaluator(
         application = context.deliveryConfig.application,
         containerApplication = verification.application ?: context.deliveryConfig.application,
         environmentName = context.environmentName,
-        location = verification.location
+        location = verification.location,
+        entrypoint = verification.entrypoint ?: ""
       )
     }
   }
