@@ -357,6 +357,18 @@ module(CORE_PIPELINE_CONFIG_STAGES_STAGE_MODULE, [
           body =
             '<p><strong>This pipeline is currently running - restarting this stage will result in multiple concurrently running pipelines.</strong></p>';
         }
+
+        const configId = $scope.execution.pipelineConfigId;
+        const executions = $scope.application.executions.data;
+        const concurrentExecutions = executions.filter(
+          (e) => e.pipelineConfigId === configId && e.status === 'RUNNING',
+        );
+
+        if (concurrentExecutions.length && $scope.execution.limitConcurrent) {
+          body =
+            '<p class="alert alert-warning"><i class="fa fa-exclamation-triangle sp-margin-xs-right"></i>This stage <strong>will not</strong> restart until the running execution completes since concurrency is disabled for this pipeline';
+        }
+
         ConfirmationModalService.confirm({
           header: 'Really restart ' + $scope.stage.name + '?',
           buttonText: 'Restart ' + $scope.stage.name,
