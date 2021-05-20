@@ -18,6 +18,7 @@ package com.netflix.kayenta.controllers;
 
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryConfigUpdateResponse;
+import com.netflix.kayenta.canary.CanaryMetricConfig;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.storage.ObjectType;
@@ -27,16 +28,25 @@ import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/canaryConfig")
@@ -47,13 +57,17 @@ public class CanaryConfigController {
 
   private final AccountCredentialsRepository accountCredentialsRepository;
   private final StorageServiceRepository storageServiceRepository;
+  private final boolean disableMetricNameValidation;
 
   @Autowired
   public CanaryConfigController(
       AccountCredentialsRepository accountCredentialsRepository,
-      StorageServiceRepository storageServiceRepository) {
+      StorageServiceRepository storageServiceRepository,
+      @Value("${kayenta.disable.metricname.validation:false}")
+          boolean disableMetricNameValidation) {
     this.accountCredentialsRepository = accountCredentialsRepository;
     this.storageServiceRepository = storageServiceRepository;
+    this.disableMetricNameValidation = disableMetricNameValidation;
   }
 
   @ApiOperation(value = "Retrieve a canary config from object storage")
@@ -106,6 +120,7 @@ public class CanaryConfigController {
     String canaryConfigId = canaryConfig.getId();
 
     validateNameAndApplicationAttributes(canaryConfig);
+    validateMetricConfigNames(canaryConfig);
 
     try {
       configurationService.loadObject(
@@ -147,6 +162,7 @@ public class CanaryConfigController {
         Instant.ofEpochMilli(canaryConfig.getUpdatedTimestamp()).toString());
 
     validateNameAndApplicationAttributes(canaryConfig);
+    validateMetricConfigNames(canaryConfig);
 
     try {
       configurationService.loadObject(
@@ -186,6 +202,33 @@ public class CanaryConfigController {
           "Canary config cannot be named '"
               + canaryConfigName
               + "'. Names must contain only letters, numbers, dashes (-) and underscores (_).");
+    }
+  }
+
+  private void validateMetricConfigNames(CanaryConfig canaryConfig) {
+    if (disableMetricNameValidation) {
+      return;
+    }
+
+    List<CanaryMetricConfig> metrics = canaryConfig.getMetrics();
+
+    if (CollectionUtils.isEmpty(metrics)) {
+      return;
+    }
+
+    Set<String> metricNameSet = new HashSet<>();
+
+    for (CanaryMetricConfig metricConfig : metrics) {
+      String metricName = metricConfig.getName();
+
+      if (StringUtils.isEmpty(metricName)) {
+        throw new IllegalArgumentException("Metric config must specify a name.");
+      } else if (metricNameSet.contains(metricName)) {
+        throw new IllegalArgumentException(
+            "Metric config name must be unique. '" + metricName + "' is duplicated.");
+      } else {
+        metricNameSet.add(metricName);
+      }
     }
   }
 

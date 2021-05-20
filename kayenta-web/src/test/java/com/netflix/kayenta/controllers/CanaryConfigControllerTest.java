@@ -1,10 +1,11 @@
 package com.netflix.kayenta.controllers;
 
+import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -12,6 +13,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
+import java.io.InputStream;
+import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
 public class CanaryConfigControllerTest extends BaseControllerTest {
@@ -30,7 +33,6 @@ public class CanaryConfigControllerTest extends BaseControllerTest {
                 "/canaryConfig/{configId}?configurationAccountName={account}",
                 CONFIG_ID,
                 CONFIGS_ACCOUNT))
-        .andDo(print())
         .andExpect(status().isOk())
         .andExpect(content().contentType("application/json"))
         .andExpect(jsonPath("$.applications.length()").value(is(1)))
@@ -49,7 +51,6 @@ public class CanaryConfigControllerTest extends BaseControllerTest {
                 "/canaryConfig/{configId}?configurationAccountName={account}",
                 CONFIG_ID,
                 CONFIGS_ACCOUNT))
-        .andDo(print())
         .andExpect(status().isNotFound())
         .andExpect(content().contentType("application/json"))
         .andExpect(jsonPath("$.message").value(is("dummy message")));
@@ -63,9 +64,23 @@ public class CanaryConfigControllerTest extends BaseControllerTest {
                 "/canaryConfig/{configId}?configurationAccountName={account}",
                 CONFIG_ID,
                 "unknown-account"))
-        .andDo(print())
         .andExpect(status().isBadRequest())
         .andExpect(content().contentType("application/json"))
         .andExpect(jsonPath("$.message", equalTo("Unable to resolve account unknown-account.")));
+  }
+
+  @Test
+  public void postCanaryConfig_returnsBadRequestResponseForDuplicateMetricName() throws Exception {
+    InputStream testConfig =
+        BaseControllerTest.class
+            .getClassLoader()
+            .getResourceAsStream("canary-configs/duplicated-metric-name.json");
+    String testConfigContent = IOUtils.toString(testConfig, "UTF-8");
+
+    this.mockMvc
+        .perform(post("/canaryConfig").contentType("application/json").content(testConfigContent))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().contentType("application/json"))
+        .andExpect(jsonPath("$.message", endsWith("'mem' is duplicated.")));
   }
 }
