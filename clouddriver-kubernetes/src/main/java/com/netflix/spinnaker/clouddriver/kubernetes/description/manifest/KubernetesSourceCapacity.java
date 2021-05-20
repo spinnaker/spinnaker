@@ -21,7 +21,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordi
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 
 public class KubernetesSourceCapacity {
-  public static Double getSourceCapacity(
+  public static Integer getSourceCapacity(
       KubernetesManifest manifest, KubernetesCredentials credentials) {
     KubernetesManifest currentManifest =
         credentials.get(

@@ -224,7 +224,7 @@ public class KubernetesManifest extends HashMap<String, Object> {
 
   @JsonIgnore
   @SuppressWarnings("unchecked")
-  public Double getReplicas() {
+  public Integer getReplicas() {
     if (!containsKey("spec")) {
       return null;
     }
@@ -233,21 +233,19 @@ public class KubernetesManifest extends HashMap<String, Object> {
     if (!spec.containsKey("replicas")) {
       return null;
     }
-    return (Double) spec.get("replicas");
+
+    return ((Number) spec.get("replicas")).intValue();
   }
 
   @JsonIgnore
   @SuppressWarnings("unchecked")
-  public void setReplicas(Double replicas) {
+  public void setReplicas(Number replicas) {
     if (!containsKey("spec")) {
       return;
     }
 
     Map<String, Object> spec = (Map<String, Object>) get("spec");
-    if (!spec.containsKey("replicas")) {
-      return;
-    }
-    spec.put("replicas", replicas);
+    spec.put("replicas", replicas.intValue());
   }
 
   @JsonIgnore

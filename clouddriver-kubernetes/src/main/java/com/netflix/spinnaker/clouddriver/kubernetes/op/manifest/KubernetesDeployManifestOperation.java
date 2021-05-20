@@ -117,7 +117,7 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
 
                   KubernetesHandler deployer = properties.getHandler();
                   if (strategy.isUseSourceCapacity() && deployer instanceof CanScale) {
-                    Double replicas =
+                    Integer replicas =
                         KubernetesSourceCapacity.getSourceCapacity(manifest, credentials);
                     if (replicas != null) {
                       manifest.setReplicas(replicas);
