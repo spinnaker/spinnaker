@@ -15,7 +15,7 @@ module.exports = function angularJsTemplateLoader(options = {}) {
       const templateRegex = /require\(['"]([^'"]+\.html)['"]\)/g;
 
       // look for things like require('./template.html')
-      if (!code.includes("require('./") || code.includes('node_modules')) {
+      if (!code.includes("require('") || code.includes('node_modules')) {
         return;
       }
 
