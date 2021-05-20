@@ -182,6 +182,8 @@ export class ServerGroupBasicSettings
     const accounts = values.backingData.accounts;
     const readOnlyFields = values.viewState.readOnlyFields || {};
 
+    const customImage = values.imageId && values.imageId !== '${trigger.properties.imageName}';
+
     return (
       <div className="container-fluid form-horizontal">
         <DeployingIntoManagedClusterWarning app={app} formik={formik} />
@@ -254,6 +256,14 @@ export class ServerGroupBasicSettings
             deferInitialization={values.deferredInitialization}
             onChange={this.dockerValuesChanged}
           />
+        )}
+        {values.viewState.disableImageSelection && customImage && (
+          <div className="form-group">
+            <div className="col-md-3 sm-label-right">
+              <b>Image</b> <HelpField id="titus.deploy.imageId" />
+            </div>
+            <div className="col-md-7 sp-padding-xs-yaxis">{values.imageId}</div>
+          </div>
         )}
         <div className="form-group">
           <div className="col-md-3 sm-label-right">
