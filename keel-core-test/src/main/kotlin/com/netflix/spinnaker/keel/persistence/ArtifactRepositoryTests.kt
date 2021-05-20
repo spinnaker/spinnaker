@@ -298,6 +298,12 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
         expectThat(subject.isRegistered(versionedSnapshotDebian.name, versionedSnapshotDebian.type)).isTrue()
       }
 
+      test("changing an artifact name works") {
+        subject.register(versionedSnapshotDebian.copy(name="keeldemo-but-a-different-name"))
+        val artifact = subject.get(versionedSnapshotDebian.deliveryConfigName!!, versionedSnapshotDebian.reference)
+        expectThat(artifact.name).isEqualTo("keeldemo-but-a-different-name")
+      }
+
       context("no versions exist") {
         test("listing versions returns an empty list") {
           expectThat(subject.versions(versionedSnapshotDebian, limit)).isEmpty()

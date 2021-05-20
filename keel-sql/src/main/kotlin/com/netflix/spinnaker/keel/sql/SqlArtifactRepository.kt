@@ -82,8 +82,7 @@ class SqlArtifactRepository(
           .select(DELIVERY_ARTIFACT.UID)
           .from(DELIVERY_ARTIFACT)
           .where(
-            DELIVERY_ARTIFACT.NAME.eq(artifact.name)
-              .and(DELIVERY_ARTIFACT.TYPE.eq(artifact.type))
+              DELIVERY_ARTIFACT.TYPE.eq(artifact.type)
               .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(artifact.deliveryConfigName))
               .and(DELIVERY_ARTIFACT.REFERENCE.eq(artifact.reference))
           )
@@ -102,7 +101,7 @@ class SqlArtifactRepository(
         .set(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME, artifact.deliveryConfigName)
         .set(DELIVERY_ARTIFACT.DETAILS, artifact.detailsAsJson())
         .onDuplicateKeyUpdate()
-        .set(DELIVERY_ARTIFACT.REFERENCE, artifact.reference)
+        .set(DELIVERY_ARTIFACT.NAME, artifact.name)
         .set(DELIVERY_ARTIFACT.DETAILS, artifact.detailsAsJson())
         .execute()
       jooq.insertInto(ARTIFACT_LAST_CHECKED)
