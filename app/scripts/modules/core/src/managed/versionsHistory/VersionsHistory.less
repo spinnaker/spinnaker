@@ -1,0 +1,88 @@
+.VersionsHistory {
+  width: 100%;
+  .version-item {
+    background-color: var(--color-white);
+    padding: var(--m-spacing);
+    margin-bottom: var(--xl-spacing);
+    box-shadow: 0 3px 6px 0 rgba(0, 0, 0, 0.1);
+
+    .version-heading {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+
+      .section-heading-chevron {
+        border-radius: 999px;
+        padding: 4px;
+      }
+
+      &:hover {
+        .section-heading-chevron {
+          background-color: var(--color-cirrus);
+        }
+      }
+    }
+
+    .version-body {
+      margin-top: var(--l-spacing);
+    }
+  }
+
+  .version-toggle {
+    &:hover {
+      text-decoration: none;
+    }
+  }
+
+  .version-environments {
+    display: flex;
+    flex-direction: row;
+    margin-top: var(--s-spacing);
+
+    > .chip {
+      min-width: 100px;
+      justify-content: center;
+      margin-right: var(--m-spacing);
+    }
+  }
+
+  .chip {
+    border-radius: 999px;
+    padding: var(~'--3xs-spacing') var(--l-spacing);
+    display: flex;
+    flex-direction: row;
+    color: var(--color-mineshaft);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+
+    &.chip-outlined {
+      border: 1px solid var(--color-silver);
+    }
+
+    &.approved {
+      background-color: var(--color-status-progress);
+    }
+
+    &.pending {
+      background-color: var(--color-status-progress);
+    }
+
+    &.vetoed {
+      background-color: var(--color-status-error);
+    }
+
+    &.current {
+      background-color: var(--color-status-success);
+    }
+
+    &.previous {
+      background-color: var(--color-status-neutral);
+    }
+
+    &.deploying {
+      background-color: var(--color-accent);
+    }
+  }
+}

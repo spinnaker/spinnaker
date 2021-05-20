@@ -96,7 +96,7 @@ const Constraint = ({ constraint, versionProps }: IConstraintProps) => {
             }}
           >
             {title}
-            <Icon name="accordionExpand" size="12px" className={isExpanded ? 'rotated-90' : undefined} />
+            <Icon name="accordionExpand" size="12px" className={isExpanded ? 'rotate-m90' : undefined} />
           </button>
         ) : (
           <span className="constraint-title">{title}</span>
@@ -112,11 +112,12 @@ export const Constraints = ({
   versionProps,
   expandedByDefault,
 }: {
-  constraints: QueryConstraint[];
+  constraints?: QueryConstraint[];
   versionProps: ArtifactVersionProps;
   expandedByDefault?: boolean;
 }) => {
   const [showSummary, setShowSummary] = React.useState(Boolean(expandedByDefault));
+  if (!constraints || !constraints.length) return null;
   const summary = getConstraintsStatusSummary(constraints);
   return (
     <div className="Constraints">

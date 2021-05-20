@@ -54,10 +54,11 @@ const ArtifactVersionTask = ({ type, task }: IArtifactVersionTaskProps) => {
 
 interface IVerificationsProps {
   type: string;
-  tasks: QueryArtifactVersionTask[];
+  tasks?: QueryArtifactVersionTask[];
 }
 
 export const ArtifactVersionTasks = ({ type, tasks }: IVerificationsProps) => {
+  if (!tasks || !tasks.length) return null;
   return (
     <div className="ArtifactVersionTasks">
       {tasks.map((task) => (

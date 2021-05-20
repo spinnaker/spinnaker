@@ -1,10 +1,11 @@
 import { sortBy } from 'lodash';
 import React from 'react';
 
-import { HoverablePopover, IconTooltip, Markdown } from 'core/presentation';
+import { HoverablePopover, Markdown } from 'core/presentation';
 
 import { CurrentVersion } from './CurrentVersion';
 import { PendingVersion } from './PendingVersion';
+import { EnvironmentItem } from '../../environmentBaseElements/EnvironmentItem';
 import { QueryArtifact, QueryArtifactVersion } from '../types';
 import { TOOLTIP_DELAY } from '../../utils/defaults';
 
@@ -61,50 +62,44 @@ export const Artifact = ({ artifact }: IArtifactProps) => {
   const { pinnedVersion } = artifact;
 
   return (
-    <div className="Artifact environment-row-element">
-      <div className="row-icon">
-        <IconTooltip
-          tooltip={`Artifact - ${artifact.type}`}
-          name="artifact"
-          color="primary-g1"
-          delayShow={TOOLTIP_DELAY}
+    <EnvironmentItem
+      iconName="artifact"
+      iconTooltip={`Artifact - ${artifact.type}`}
+      className="Artifact"
+      title={artifact.reference}
+    >
+      <div className="artifact-versions-title sp-margin-m-top">Current version</div>
+      {currentVersion ? (
+        <CurrentVersion
+          data={currentVersion}
+          environment={artifact.environment}
+          reference={artifact.reference}
+          numNewerVersions={newerVersions?.length}
+          isPinned={pinnedVersion?.version === currentVersion.version}
         />
-      </div>
-      <div className="row-details">
-        <div className="row-title">{artifact.reference}</div>
-        <div className="artifact-versions-title sp-margin-m-top">Current version</div>
-        {currentVersion ? (
-          <CurrentVersion
-            data={currentVersion}
-            environment={artifact.environment}
-            reference={artifact.reference}
-            numNewerVersions={newerVersions?.length}
-            isPinned={pinnedVersion?.version === currentVersion.version}
-          />
-        ) : (
-          <div>No version is deployed</div>
-        )}
-        {pinnedVersion && pinnedVersion.buildNumber !== currentVersion?.buildNumber && (
-          <PinnedVersion version={pinnedVersion} />
-        )}
-        {newerVersions?.length ? (
-          <section className="artifact-pending-versions">
-            <div className="artifact-versions-title">Pending Versions</div>
-            <div className="artifact-pending-versions-list">
-              {newerVersions?.map((version, index) => (
-                <PendingVersion
-                  key={version.version}
-                  index={index}
-                  environment={artifact.environment}
-                  reference={artifact.reference}
-                  data={version}
-                  isPinned={pinnedVersion?.version === version.version}
-                />
-              ))}
-            </div>
-          </section>
-        ) : undefined}
-      </div>
-    </div>
+      ) : (
+        <div>No version is deployed</div>
+      )}
+      {pinnedVersion && pinnedVersion.buildNumber !== currentVersion?.buildNumber && (
+        <PinnedVersion version={pinnedVersion} />
+      )}
+      {newerVersions?.length ? (
+        <section className="artifact-pending-versions">
+          <div className="artifact-versions-title">Pending Versions</div>
+          <div className="artifact-pending-versions-list">
+            {newerVersions?.map((version, index) => (
+              <PendingVersion
+                key={version.version}
+                index={index}
+                environment={artifact.environment}
+                reference={artifact.reference}
+                data={version}
+                isPinned={pinnedVersion?.version === version.version}
+              />
+            ))}
+          </div>
+        </section>
+      ) : undefined}
+    </EnvironmentItem>
   );
 };

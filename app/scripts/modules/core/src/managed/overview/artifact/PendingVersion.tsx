@@ -5,10 +5,10 @@ import React from 'react';
 import { Constraints } from './Constraints';
 import { GitLink } from './GitLink';
 import { RelativeTimestamp } from '../../RelativeTimestamp';
-import { VersionMetadata } from './VersionMetadata';
 import { QueryArtifactVersion } from '../types';
 import { getLifecycleEventDuration, getLifecycleEventLink, useCreateVersionActions } from './utils';
 import { TOOLTIP_DELAY } from '../../utils/defaults';
+import { VersionMetadata } from '../../versionMetadata/VersionMetadata';
 
 interface IPendingVersionProps {
   data: QueryArtifactVersion;

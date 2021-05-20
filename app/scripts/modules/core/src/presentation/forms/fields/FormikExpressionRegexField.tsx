@@ -59,7 +59,7 @@ export class FormikExpressionRegexField extends React.Component<
       <CollapsibleSection
         heading={sectionHeading}
         outerDivClassName=""
-        toggleClassName="clickable"
+        toggleClassName=""
         defaultExpanded={defaultExpanded}
       >
         <div className="flex-container-h baseline">

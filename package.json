@@ -82,6 +82,7 @@
     "react-bootstrap": "^0.32.1",
     "react-bootstrap-typeahead": "^3.2.4",
     "react-container-dimensions": "^1.4.1",
+    "react-content-loader": "^6.0.3",
     "react-day-picker": "^7.3.0",
     "react-dom": "~16.14.0",
     "react-ga": "^2.4.1",

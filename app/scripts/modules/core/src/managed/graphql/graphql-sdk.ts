@@ -391,6 +391,153 @@ export type FetchApplicationQuery = { __typename?: 'Query' } & {
   >;
 };
 
+export type FetchVersionsHistoryQueryVariables = Exact<{
+  appName: Scalars['String'];
+}>;
+
+export type FetchVersionsHistoryQuery = { __typename?: 'Query' } & {
+  application?: Maybe<
+    { __typename?: 'MdApplication' } & Pick<MdApplication, 'id' | 'name' | 'account'> & {
+        environments: Array<
+          { __typename?: 'MdEnvironment' } & Pick<MdEnvironment, 'id' | 'name'> & {
+              state: { __typename?: 'MdEnvironmentState' } & Pick<MdEnvironmentState, 'id'> & {
+                  artifacts?: Maybe<
+                    Array<
+                      { __typename?: 'MdArtifact' } & Pick<
+                        MdArtifact,
+                        'id' | 'name' | 'environment' | 'type' | 'reference'
+                      > & {
+                          versions?: Maybe<
+                            Array<
+                              { __typename?: 'MdArtifactVersionInEnvironment' } & Pick<
+                                MdArtifactVersionInEnvironment,
+                                'id' | 'buildNumber' | 'version' | 'createdAt' | 'status'
+                              > & {
+                                  gitMetadata?: Maybe<
+                                    { __typename?: 'MdGitMetadata' } & Pick<
+                                      MdGitMetadata,
+                                      'commit' | 'author' | 'branch'
+                                    > & {
+                                        commitInfo?: Maybe<
+                                          { __typename?: 'MdCommitInfo' } & Pick<
+                                            MdCommitInfo,
+                                            'sha' | 'link' | 'message'
+                                          >
+                                        >;
+                                        pullRequest?: Maybe<
+                                          { __typename?: 'MdPullRequest' } & Pick<MdPullRequest, 'number' | 'link'>
+                                        >;
+                                      }
+                                  >;
+                                }
+                            >
+                          >;
+                          pinnedVersion?: Maybe<
+                            { __typename?: 'MdPinnedVersion' } & Pick<
+                              MdPinnedVersion,
+                              'id' | 'version' | 'buildNumber' | 'pinnedAt' | 'pinnedBy' | 'comment'
+                            >
+                          >;
+                        }
+                    >
+                  >;
+                };
+            }
+        >;
+      }
+  >;
+};
+
+export type FetchVersionQueryVariables = Exact<{
+  appName: Scalars['String'];
+  versions?: Maybe<Array<Scalars['String']> | Scalars['String']>;
+}>;
+
+export type FetchVersionQuery = { __typename?: 'Query' } & {
+  application?: Maybe<
+    { __typename?: 'MdApplication' } & Pick<MdApplication, 'id' | 'name' | 'account'> & {
+        environments: Array<
+          { __typename?: 'MdEnvironment' } & Pick<MdEnvironment, 'id' | 'name'> & {
+              state: { __typename?: 'MdEnvironmentState' } & Pick<MdEnvironmentState, 'id'> & {
+                  artifacts?: Maybe<
+                    Array<
+                      { __typename?: 'MdArtifact' } & Pick<
+                        MdArtifact,
+                        'id' | 'name' | 'environment' | 'type' | 'reference'
+                      > & {
+                          versions?: Maybe<
+                            Array<
+                              { __typename?: 'MdArtifactVersionInEnvironment' } & Pick<
+                                MdArtifactVersionInEnvironment,
+                                'id' | 'buildNumber' | 'version' | 'createdAt' | 'status' | 'deployedAt'
+                              > & {
+                                  gitMetadata?: Maybe<
+                                    { __typename?: 'MdGitMetadata' } & Pick<
+                                      MdGitMetadata,
+                                      'commit' | 'author' | 'branch'
+                                    > & {
+                                        commitInfo?: Maybe<
+                                          { __typename?: 'MdCommitInfo' } & Pick<
+                                            MdCommitInfo,
+                                            'sha' | 'link' | 'message'
+                                          >
+                                        >;
+                                        pullRequest?: Maybe<
+                                          { __typename?: 'MdPullRequest' } & Pick<MdPullRequest, 'number' | 'link'>
+                                        >;
+                                        comparisonLinks?: Maybe<
+                                          { __typename?: 'MdComparisonLinks' } & Pick<
+                                            MdComparisonLinks,
+                                            'toPreviousVersion' | 'toCurrentVersion'
+                                          >
+                                        >;
+                                      }
+                                  >;
+                                  lifecycleSteps?: Maybe<
+                                    Array<
+                                      { __typename?: 'MdLifecycleStep' } & Pick<
+                                        MdLifecycleStep,
+                                        'startedAt' | 'completedAt' | 'type' | 'status' | 'link'
+                                      >
+                                    >
+                                  >;
+                                  constraints?: Maybe<
+                                    Array<
+                                      { __typename?: 'MdConstraint' } & Pick<
+                                        MdConstraint,
+                                        'type' | 'status' | 'judgedBy' | 'attributes'
+                                      >
+                                    >
+                                  >;
+                                  verifications?: Maybe<
+                                    Array<
+                                      { __typename?: 'MdAction' } & Pick<
+                                        MdAction,
+                                        'id' | 'type' | 'status' | 'startedAt' | 'completedAt' | 'link'
+                                      >
+                                    >
+                                  >;
+                                  postDeploy?: Maybe<
+                                    Array<
+                                      { __typename?: 'MdAction' } & Pick<
+                                        MdAction,
+                                        'id' | 'type' | 'status' | 'startedAt' | 'completedAt' | 'link'
+                                      >
+                                    >
+                                  >;
+                                }
+                            >
+                          >;
+                        }
+                    >
+                  >;
+                };
+            }
+        >;
+      }
+  >;
+};
+
 export type FetchResourceStatusQueryVariables = Exact<{
   appName: Scalars['String'];
 }>;
@@ -579,6 +726,210 @@ export function useFetchApplicationLazyQuery(
 export type FetchApplicationQueryHookResult = ReturnType<typeof useFetchApplicationQuery>;
 export type FetchApplicationLazyQueryHookResult = ReturnType<typeof useFetchApplicationLazyQuery>;
 export type FetchApplicationQueryResult = Apollo.QueryResult<FetchApplicationQuery, FetchApplicationQueryVariables>;
+export const FetchVersionsHistoryDocument = gql`
+  query fetchVersionsHistory($appName: String!) {
+    application(appName: $appName) {
+      id
+      name
+      account
+      environments {
+        id
+        name
+        state {
+          id
+          artifacts {
+            id
+            name
+            environment
+            type
+            reference
+            versions {
+              id
+              buildNumber
+              version
+              createdAt
+              status
+              gitMetadata {
+                commit
+                author
+                branch
+                commitInfo {
+                  sha
+                  link
+                  message
+                }
+                pullRequest {
+                  number
+                  link
+                }
+              }
+            }
+            pinnedVersion {
+              id
+              version
+              buildNumber
+              pinnedAt
+              pinnedBy
+              comment
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+/**
+ * __useFetchVersionsHistoryQuery__
+ *
+ * To run a query within a React component, call `useFetchVersionsHistoryQuery` and pass it any options that fit your needs.
+ * When your component renders, `useFetchVersionsHistoryQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useFetchVersionsHistoryQuery({
+ *   variables: {
+ *      appName: // value for 'appName'
+ *   },
+ * });
+ */
+export function useFetchVersionsHistoryQuery(
+  baseOptions: Apollo.QueryHookOptions<FetchVersionsHistoryQuery, FetchVersionsHistoryQueryVariables>,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<FetchVersionsHistoryQuery, FetchVersionsHistoryQueryVariables>(
+    FetchVersionsHistoryDocument,
+    options,
+  );
+}
+export function useFetchVersionsHistoryLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<FetchVersionsHistoryQuery, FetchVersionsHistoryQueryVariables>,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<FetchVersionsHistoryQuery, FetchVersionsHistoryQueryVariables>(
+    FetchVersionsHistoryDocument,
+    options,
+  );
+}
+export type FetchVersionsHistoryQueryHookResult = ReturnType<typeof useFetchVersionsHistoryQuery>;
+export type FetchVersionsHistoryLazyQueryHookResult = ReturnType<typeof useFetchVersionsHistoryLazyQuery>;
+export type FetchVersionsHistoryQueryResult = Apollo.QueryResult<
+  FetchVersionsHistoryQuery,
+  FetchVersionsHistoryQueryVariables
+>;
+export const FetchVersionDocument = gql`
+  query fetchVersion($appName: String!, $versions: [String!]) {
+    application(appName: $appName) {
+      id
+      name
+      account
+      environments {
+        id
+        name
+        state {
+          id
+          artifacts {
+            id
+            name
+            environment
+            type
+            reference
+            versions(versions: $versions) {
+              id
+              buildNumber
+              version
+              createdAt
+              status
+              gitMetadata {
+                commit
+                author
+                branch
+                commitInfo {
+                  sha
+                  link
+                  message
+                }
+                pullRequest {
+                  number
+                  link
+                }
+                comparisonLinks {
+                  toPreviousVersion
+                  toCurrentVersion
+                }
+              }
+              deployedAt
+              lifecycleSteps {
+                startedAt
+                completedAt
+                type
+                status
+                link
+              }
+              constraints {
+                type
+                status
+                judgedBy
+                attributes
+              }
+              verifications {
+                id
+                type
+                status
+                startedAt
+                completedAt
+                link
+              }
+              postDeploy {
+                id
+                type
+                status
+                startedAt
+                completedAt
+                link
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+/**
+ * __useFetchVersionQuery__
+ *
+ * To run a query within a React component, call `useFetchVersionQuery` and pass it any options that fit your needs.
+ * When your component renders, `useFetchVersionQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useFetchVersionQuery({
+ *   variables: {
+ *      appName: // value for 'appName'
+ *      versions: // value for 'versions'
+ *   },
+ * });
+ */
+export function useFetchVersionQuery(
+  baseOptions: Apollo.QueryHookOptions<FetchVersionQuery, FetchVersionQueryVariables>,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<FetchVersionQuery, FetchVersionQueryVariables>(FetchVersionDocument, options);
+}
+export function useFetchVersionLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<FetchVersionQuery, FetchVersionQueryVariables>,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<FetchVersionQuery, FetchVersionQueryVariables>(FetchVersionDocument, options);
+}
+export type FetchVersionQueryHookResult = ReturnType<typeof useFetchVersionQuery>;
+export type FetchVersionLazyQueryHookResult = ReturnType<typeof useFetchVersionLazyQuery>;
+export type FetchVersionQueryResult = Apollo.QueryResult<FetchVersionQuery, FetchVersionQueryVariables>;
 export const FetchResourceStatusDocument = gql`
   query fetchResourceStatus($appName: String!) {
     application(appName: $appName) {

@@ -1,6 +1,7 @@
-import cx from 'classnames';
+import classnames from 'classnames';
 import React from 'react';
 
+import { IIconProps } from '@spinnaker/presentation';
 import { CollapsibleSectionStateCache } from 'core/cache';
 import { Icon } from 'core/index';
 
@@ -9,11 +10,11 @@ export interface ICollapsibleSectionProps {
   toggleClassName?: string;
   headingClassName?: string;
   bodyClassName?: string;
-  useGlyphiconChevron?: boolean;
-  chevronColor?: string;
   cacheKey?: string;
   enableCaching?: boolean;
   defaultExpanded?: boolean;
+  expandIconPosition?: 'left' | 'right';
+  expandIconType?: 'arrow' | 'plus';
   heading: ((props: { chevron: JSX.Element }) => JSX.Element) | string;
 }
 
@@ -22,80 +23,90 @@ export interface ICollapsibleSectionState {
   expanded: boolean;
 }
 
-export class CollapsibleSection extends React.Component<ICollapsibleSectionProps, ICollapsibleSectionState> {
-  public static defaultProps: Partial<ICollapsibleSectionProps> = {
-    outerDivClassName: 'collapsible-section',
-    toggleClassName: 'clickable section-heading',
-    headingClassName: 'collapsible-heading',
-    bodyClassName: 'content-body',
-    cacheKey: undefined as string,
-    useGlyphiconChevron: true,
-    enableCaching: true,
-  };
+const rotationByPosition = {
+  left: {
+    expanded: 'rotate-0',
+    collapsed: 'rotate-m90',
+  },
+  right: {
+    expanded: 'rotate-p180',
+    collapsed: 'rotate-p270',
+  },
+};
 
-  constructor(props: ICollapsibleSectionProps) {
-    super(props);
+export const CollapsibleSection: React.FC<ICollapsibleSectionProps> = ({
+  outerDivClassName = 'collapsible-section',
+  toggleClassName = 'section-heading',
+  headingClassName = 'collapsible-heading',
+  bodyClassName = 'content-body',
+  enableCaching = true,
+  cacheKey: cacheKeyInternal,
+  defaultExpanded,
+  heading,
+  expandIconPosition = 'left',
+  expandIconType = 'arrow',
+  children,
+}) => {
+  const cacheKey = React.useMemo(
+    () => cacheKeyInternal || (typeof heading === 'string' ? (heading as string) : undefined),
+    [cacheKeyInternal, heading],
+  );
+  const [isExpanded, setIsExpanded] = React.useState(
+    enableCaching && CollapsibleSectionStateCache.isSet(cacheKey)
+      ? CollapsibleSectionStateCache.isExpanded(cacheKey)
+      : defaultExpanded,
+  );
 
-    const cacheKey = props.cacheKey || (typeof props.heading === 'string' ? (props.heading as string) : undefined);
-    const expanded =
-      props.enableCaching && CollapsibleSectionStateCache.isSet(cacheKey)
-        ? CollapsibleSectionStateCache.isExpanded(cacheKey)
-        : props.defaultExpanded;
-
-    this.state = { cacheKey, expanded };
-  }
-
-  private toggle = (): void => {
-    const { cacheKey, expanded } = this.state;
-    this.setState({ expanded: !expanded });
-    if (this.props.enableCaching) {
-      CollapsibleSectionStateCache.setExpanded(cacheKey, !expanded);
+  const toggle = () => {
+    setIsExpanded(!isExpanded);
+    if (enableCaching) {
+      CollapsibleSectionStateCache.setExpanded(cacheKey, !isExpanded);
     }
   };
 
-  public render() {
-    const {
-      outerDivClassName,
-      toggleClassName,
-      headingClassName,
-      bodyClassName,
-      children,
-      heading,
-      useGlyphiconChevron,
-      chevronColor,
-    } = this.props;
-    const { expanded } = this.state;
+  const expandIconProps: Partial<IIconProps> = {
+    size: '16px',
+    color: 'concrete',
+  };
 
-    const chevron = useGlyphiconChevron ? (
-      <span
-        className="glyphicon glyphicon-chevron-right section-heading-chevron"
-        style={{ transform: `rotate(${expanded ? 90 : 0}deg)`, color: chevronColor }}
-      />
-    ) : (
-      <Icon
-        name="accordionCollapse"
-        size="16px"
-        className={cx(['section-heading-chevron', { 'rotated-90': !expanded }])}
-        color={chevronColor || 'concrete'}
-      />
-    );
-    const Heading =
-      typeof heading === 'string' ? (
-        <h4 className={headingClassName}>
-          {chevron} {heading}
-        </h4>
+  const expandIcon = (
+    <span className={classnames('section-heading-chevron', expandIconPosition)}>
+      {expandIconType === 'arrow' ? (
+        <Icon
+          name="accordionCollapse"
+          className={rotationByPosition[expandIconPosition][isExpanded ? 'expanded' : 'collapsed']}
+          {...expandIconProps}
+        />
       ) : (
-        <>{heading({ chevron })}</>
-      );
+        <Icon name={isExpanded ? 'minus' : 'plus'} {...expandIconProps} />
+      )}
+    </span>
+  );
 
-    return (
-      <div className={outerDivClassName}>
-        <a className={toggleClassName} onClick={this.toggle}>
-          {Heading}
-        </a>
-
-        {expanded && <div className={bodyClassName}>{children}</div>}
-      </div>
+  const Heading =
+    typeof heading === 'string' ? (
+      <h4 className={headingClassName}>
+        {expandIconPosition === 'left' ? (
+          <>
+            {expandIcon} {heading}
+          </>
+        ) : (
+          <>
+            {heading} {expandIcon}
+          </>
+        )}
+      </h4>
+    ) : (
+      <>{heading({ chevron: expandIcon })}</>
     );
-  }
-}
+
+  return (
+    <div className={outerDivClassName}>
+      <a className={classnames(toggleClassName, 'clickable')} onClick={toggle}>
+        {Heading}
+      </a>
+
+      {isExpanded && <div className={bodyClassName}>{children}</div>}
+    </div>
+  );
+};

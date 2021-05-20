@@ -2,9 +2,9 @@ import React from 'react';
 
 import { ArtifactVersionTasks } from './ArtifactVersionTasks';
 import { GitLink } from './GitLink';
-import { VersionMetadata } from './VersionMetadata';
 import { QueryArtifactVersion } from '../types';
 import { getLifecycleEventDuration, getLifecycleEventLink, useCreateVersionActions } from './utils';
+import { VersionMetadata } from '../../versionMetadata/VersionMetadata';
 
 interface ICurrentVersionProps {
   data: QueryArtifactVersion;

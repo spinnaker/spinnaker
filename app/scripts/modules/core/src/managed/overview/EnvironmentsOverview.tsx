@@ -6,6 +6,7 @@ import { Spinner } from 'core/widgets';
 import { Resource } from './Resource';
 import { Artifact } from './artifact/Artifact';
 import { ManagementWarning } from '../config/ManagementWarning';
+import { BaseEnvironment } from '../environmentBaseElements/BaseEnvironment';
 import { useFetchApplicationQuery, useFetchResourceStatusQuery } from '../graphql/graphql-sdk';
 import { QueryEnvironment } from './types';
 import { OVERVIEW_VERSION_STATUSES } from './utils';
@@ -25,14 +26,19 @@ export const EnvironmentsOverview = () => {
 
   if (error) {
     console.warn(error);
-    return <div style={{ width: '100%' }}>Failed to load environments data, please refresh and try again.</div>;
+    return (
+      <div style={{ width: '100%' }}>
+        Failed to load environments data, please refresh and try again.
+        <p>{error.message}</p>
+      </div>
+    );
   }
 
   return (
-    <div className="EnvironmentOverview">
+    <div className="EnvironmentsOverview">
       <ManagementWarning appName={app.name} />
       {data?.application?.environments.map((env) => (
-        <Environment key={env.name} environment={env} appName={app.name} />
+        <EnvironmentOverview key={env.name} environment={env} appName={app.name} />
       ))}
     </div>
   );
@@ -42,7 +48,6 @@ const sectionProps: Partial<ICollapsibleSectionProps> = {
   outerDivClassName: 'environment-section',
   headingClassName: 'environment-section-heading',
   bodyClassName: 'environment-section-body',
-  useGlyphiconChevron: false,
 };
 
 interface IEnvironmentProps {
@@ -50,14 +55,13 @@ interface IEnvironmentProps {
   environment: QueryEnvironment;
 }
 
-const Environment = ({ appName, environment }: IEnvironmentProps) => {
+const EnvironmentOverview = ({ appName, environment }: IEnvironmentProps) => {
   const { data } = useFetchResourceStatusQuery({ variables: { appName } });
   const resources = data?.application?.environments.find((env) => env.name === environment.name)?.state.resources;
   const hasResourcesWithIssues = resources?.some((resource) => resource.state?.status !== 'UP_TO_DATE');
   const state = environment.state;
   return (
-    <section className="Environment">
-      <div className="EnvironmentTitle">{environment.name}</div>
+    <BaseEnvironment title={environment.name}>
       <CollapsibleSection heading="Artifacts" {...sectionProps} defaultExpanded enableCaching={false}>
         {state.artifacts?.map((artifact) => (
           <Artifact key={artifact.reference} artifact={artifact} />
@@ -74,6 +78,6 @@ const Environment = ({ appName, environment }: IEnvironmentProps) => {
           <Resource key={resource.id} resource={resource} environment={environment.name} />
         ))}
       </CollapsibleSection>
-    </section>
+    </BaseEnvironment>
   );
 };

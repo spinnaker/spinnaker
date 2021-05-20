@@ -1,0 +1,32 @@
+@borderRadius: 4px;
+
+.BaseEnvironment {
+  &:not(:first-of-type) {
+    margin-top: 16px;
+  }
+  max-width: 1200px;
+  width: 100%;
+  border: 1px solid var(--color-cirrus);
+  border-radius: @borderRadius;
+  background-color: var(--color-white);
+
+  .EnvironmentTitle {
+    width: 100%;
+    min-height: 40px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: var(--m-spacing) var(--base-horizontal-padding);
+    color: var(--color-primary);
+    background-color: var(--color-accent-g4);
+    text-transform: uppercase;
+    font-size: 18px;
+    font-weight: 700;
+    border-radius: @borderRadius @borderRadius 0 0;
+
+    &.small {
+      padding: var(--s-spacing) var(--base-horizontal-padding);
+      font-size: 15px;
+    }
+  }
+}

@@ -12,6 +12,7 @@ export const featureFlag = 'MD_new_ui';
 
 const tabsInternal: { [key in Routes]: string } = {
   overview: 'Overview',
+  history: 'History',
   config: 'Configuration',
 };
 

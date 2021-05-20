@@ -945,12 +945,51 @@ select:invalid {
 }
 
 .section-heading-chevron {
-  transition: transform 0.15s ease;
-  margin-right: 4px;
+  &.left {
+    margin-right: 4px;
+  }
+
+  &.right {
+    margin-left: 4px;
+  }
+  display: flex;
 }
 
-.rotated-90 {
+@rotate-transition: transform 0.15s ease;
+
+.rotate-0 {
+  transition: @rotate-transition;
+  transform: rotate(0deg);
+}
+
+.rotate-m90 {
+  transition: @rotate-transition;
   transform: rotate(-90deg);
+}
+
+.rotate-p90 {
+  transition: @rotate-transition;
+  transform: rotate(90deg);
+}
+
+.rotate-m180 {
+  transition: @rotate-transition;
+  transform: rotate(-180deg);
+}
+
+.rotate-p180 {
+  transition: @rotate-transition;
+  transform: rotate(180deg);
+}
+
+.rotate-m270 {
+  transition: @rotate-transition;
+  transform: rotate(-270deg);
+}
+
+.rotate-p270 {
+  transition: @rotate-transition;
+  transform: rotate(270deg);
 }
 
 .collapsible-section {
@@ -961,12 +1000,10 @@ select:invalid {
   h4.collapsible-heading {
     padding: 10px 15px;
     background-color: var(--color-alabaster);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
     margin: 0;
-    .glyphicon {
-      font-size: 13px;
-      opacity: 0.7;
-      margin-right: 4px;
-    }
     font-weight: 600;
     text-transform: uppercase;
     font-size: 115%;

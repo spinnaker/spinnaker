@@ -9,6 +9,8 @@
 
   .metadata-element {
     display: flex;
+    flex-direction: row;
+    align-items: center;
 
     &:not(:first-of-type)::before {
       content: '•';
@@ -23,6 +25,10 @@
     & > svg {
       height: 16px;
     }
+  }
+
+  i.metadata-icon {
+    font-size: 12px;
   }
 
   .element-actions-menu-toggle {
