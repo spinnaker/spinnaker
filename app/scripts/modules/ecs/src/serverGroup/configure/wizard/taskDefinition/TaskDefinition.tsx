@@ -7,14 +7,14 @@ import { react2angular } from 'react2angular';
 
 import {
   ArtifactTypePatterns,
+  CheckboxInput,
   HelpField,
   IArtifact,
   IExpectedArtifact,
   StageArtifactSelectorDelegate,
+  StageConfigField,
   TetheredSelect,
   withErrorBoundary,
-  StageConfigField,
-  CheckboxInput,
 } from '@spinnaker/core';
 
 import {
@@ -39,7 +39,7 @@ interface ITaskDefinitionState {
   dockerImages: IEcsDockerImage[];
   targetGroupsAvailable: string[];
   loadBalancedContainer: string;
-  evaluateTaskDefinitionArtifactExpressions: boolean
+  evaluateTaskDefinitionArtifactExpressions: boolean;
 }
 
 export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskDefinitionState> {
@@ -205,9 +205,14 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
   };
 
   private updateEvaluateTaskDefArtifactFlag = () => {
-    this.props.notifyAngular('evaluateTaskDefinitionArtifactExpressions', !this.props.command.evaluateTaskDefinitionArtifactExpressions);
-    this.setState({evaluateTaskDefinitionArtifactExpressions: !this.props.command.evaluateTaskDefinitionArtifactExpressions})
-  }
+    this.props.notifyAngular(
+      'evaluateTaskDefinitionArtifactExpressions',
+      !this.props.command.evaluateTaskDefinitionArtifactExpressions,
+    );
+    this.setState({
+      evaluateTaskDefinitionArtifactExpressions: !this.props.command.evaluateTaskDefinitionArtifactExpressions,
+    });
+  };
 
   public render(): React.ReactElement<TaskDefinition> {
     const { command } = this.props;
@@ -353,10 +358,18 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
           </div>
         </div>
 
-        <StageConfigField groupClassName="form-group evaluateTaskDef" label="Expression Evaluation" helpKey="ecs.evaluateExpression" labelColumns={5} fieldColumns={7} >
+        <StageConfigField
+          groupClassName="form-group evaluateTaskDef"
+          label="Expression Evaluation"
+          helpKey="ecs.evaluateExpression"
+          labelColumns={5}
+          fieldColumns={7}
+        >
           <CheckboxInput
             checked={command.evaluateTaskDefinitionArtifactExpressions === true}
-            onChange={() =>  { updateEvaluateTaskDefArtifactFlag(); }}
+            onChange={() => {
+              updateEvaluateTaskDefArtifactFlag();
+            }}
             text="Evaluate SpEL expressions in artifact"
           />
         </StageConfigField>

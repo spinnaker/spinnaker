@@ -1,6 +1,7 @@
+import { UISref } from '@uirouter/react';
+import { isEmpty } from 'lodash';
 import React from 'react';
 import ReactGA from 'react-ga';
-import { UISref } from '@uirouter/react';
 
 import { Application } from 'core/application/application.model';
 import { SETTINGS } from 'core/config/settings';
@@ -12,7 +13,6 @@ import { OrchestratedItemRunningTime } from './OrchestratedItemRunningTime';
 import { ExecutionBarLabel } from '../../config/stages/common/ExecutionBarLabel';
 
 import './executionMarker.less';
-import { isEmpty } from 'lodash';
 
 export interface IExecutionMarkerProps {
   active?: boolean;
@@ -116,7 +116,7 @@ export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExe
       stage.status.toLowerCase() === 'terminal' &&
       stage.type === 'pipeline';
     const stageContents =
-    pipelineStatus === 'waiting' ? (
+      pipelineStatus === 'waiting' ? (
         <div className={markerClassName} style={{ width, backgroundColor: stage.color }}>
           <UISref
             to="home.applications.application.pipelines.executionDetails.execution"
