@@ -77,7 +77,7 @@ const helpContents: { [key: string]: string } = {
   'titus.disruptionbudget.description': `
     <p>
       The Job Disruption Budget is part of the job descriptor, and defines the behavior of how containers of the
-      job can be relocated.{' '}
+      job can be relocated.
       <a href="http://manuals.test.netflix.net/view/titus-docs/mkdocs/master/disruption_budget/" target="_blank">
         Read the full documentation
       </a>

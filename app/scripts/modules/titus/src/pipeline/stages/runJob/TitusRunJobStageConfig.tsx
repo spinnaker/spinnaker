@@ -13,10 +13,12 @@ import {
   MapEditor,
   RegionSelectField,
   SpelNumberInput,
+  SpinFormik,
   StageConfigField,
 } from '@spinnaker/core';
 import { DockerImageAndTagSelector, DockerImageUtils, IDockerImageAndTagChanges } from '@spinnaker/docker';
-import { ITitusResources } from 'titus/domain';
+import { IJobDisruptionBudget, ITitusResources } from 'titus/domain';
+import { JobDisruptionBudget } from 'titus/serverGroup/configure/wizard/pages';
 
 import { TitusSecurityGroupPicker } from './TitusSecurityGroupPicker';
 import { TitusProviderSettings } from '../../../titus.settings';
@@ -169,8 +171,14 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
     this.forceUpdate();
   };
 
+  public disruptionBudgetChanged = (values: IJobDisruptionBudget) => {
+    const { stage, stageFieldUpdated } = this.props;
+    stage.cluster.disruptionBudget = values;
+    stageFieldUpdated();
+  };
+
   public render() {
-    const { stage } = this.props;
+    const { application, stage } = this.props;
     const { credentials, loaded, regions } = this.state;
     const awsAccount = (this.credentialsKeyedByAccount[stage.credentials] || { awsAccount: '' }).awsAccount;
 
@@ -362,6 +370,21 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
                 onChange={this.groupsChanged}
               />
             )}
+          </StageConfigField>
+
+          <StageConfigField label={'Disruption Budget'} helpKey="titus.disruptionbudget.description">
+            <SpinFormik
+              initialValues={stage.cluster}
+              onSubmit={() => {}}
+              render={(formik) => (
+                <JobDisruptionBudget
+                  formik={formik}
+                  app={application}
+                  runJobView={true}
+                  onStageChange={this.disruptionBudgetChanged}
+                />
+              )}
+            />
           </StageConfigField>
 
           <StageConfigField label="Job Attributes (optional)">

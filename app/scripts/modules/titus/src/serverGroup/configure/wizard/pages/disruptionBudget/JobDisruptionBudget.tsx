@@ -26,6 +26,8 @@ import {
 export interface IJobDisruptionBudgetProps {
   formik: FormikProps<ITitusServerGroupCommand>;
   app: Application;
+  runJobView?: boolean;
+  onStageChange?: (values: IJobDisruptionBudget) => void;
 }
 
 export interface IJobDisruptionBudgetState {
@@ -99,6 +101,15 @@ export class JobDisruptionBudget extends React.Component<IJobDisruptionBudgetPro
     return options.find((o) => !!disruptionBudget[o.field]);
   }
 
+  componentDidUpdate = (oldProps: IJobDisruptionBudgetProps) => {
+    if (
+      this.props.onStageChange &&
+      !isEqual(oldProps.formik.values.disruptionBudget, this.props.formik.values.disruptionBudget)
+    ) {
+      this.props.onStageChange(this.props.formik.values.disruptionBudget);
+    }
+  };
+
   private optionTypeChanged = (e: IFieldOption, options: IFieldOption[]) => {
     const deselected = options.filter((o) => o !== e);
     deselected.forEach((o) => this.props.formik.setFieldValue('disruptionBudget.' + o.field, undefined));
@@ -136,6 +147,7 @@ export class JobDisruptionBudget extends React.Component<IJobDisruptionBudgetPro
   }
 
   public render() {
+    const { runJobView } = this.props;
     const { usingDefault } = this.state;
     const budget = this.props.formik.values.disruptionBudget || getDefaultJobDisruptionBudgetForApp(this.props.app);
 
@@ -150,11 +162,12 @@ export class JobDisruptionBudget extends React.Component<IJobDisruptionBudgetPro
     const selectedProviders = budget.containerHealthProviders.map((p) => p.name);
 
     const isSelfManaged = !!budget.selfManaged;
+    const showConfig = !runJobView || (runJobView && !usingDefault);
 
     return (
       <LayoutProvider value={ResponsiveFieldLayout}>
         <div className="form-horizontal sp-margin-l-xaxis">
-          <DisruptionBudgetDescription />
+          {!runJobView && <DisruptionBudgetDescription />}
 
           <FormikFormField
             name="usingDefault"
@@ -165,103 +178,106 @@ export class JobDisruptionBudget extends React.Component<IJobDisruptionBudgetPro
                 text={<b>Use Netflix Defaults</b>}
               />
             )}
+            layout={runJobView ? ({ input }) => <>{input}</> : undefined}
           />
 
-          <div style={{ opacity: usingDefault ? 0.5 : 1 }}>
-            <div className="sp-formGroup">
-              <div className="groupHeader">
-                <FormikFormField
-                  name="policyType"
-                  label="Policy"
-                  input={(props) => (
-                    <div>
-                      <TetheredSelect
-                        {...props}
-                        menuContainerStyle={{ height: '300px' }}
-                        className="Select-menu-long"
-                        style={{ width: '300px' }}
-                        disabled={usingDefault}
-                        clearable={false}
-                        onChange={this.policyTypeChanged}
-                        value={policyType}
-                        options={policyOptions}
-                      />
-                      <HelpField
-                        expand={true}
-                        content="A job policy defines container relocation rules and constraints"
-                      />
-                    </div>
-                  )}
-                />
-              </div>
-              <div className="sp-formItem">
-                <p>{policyType.description}</p>
-              </div>
-              {PolicyFields && <PolicyFields isDisabled={usingDefault} />}
-            </div>
-            {!isSelfManaged && (
-              <div>
-                <div className={`${budget.rateUnlimited ? '' : 'sp-formGroup'}`}>
-                  <div className={`${budget.rateUnlimited ? '' : 'groupHeader'}`}>
-                    <FormikFormField
-                      name="rates"
-                      label="Rates"
-                      input={(props) => (
+          {showConfig && (
+            <div style={{ opacity: usingDefault ? 0.5 : 1 }}>
+              <div className="sp-formGroup">
+                <div className="groupHeader">
+                  <FormikFormField
+                    name="policyType"
+                    label="Policy"
+                    input={(props) => (
+                      <div>
                         <TetheredSelect
                           {...props}
+                          menuContainerStyle={{ height: '300px' }}
+                          className="Select-menu-long"
                           style={{ width: '300px' }}
                           disabled={usingDefault}
                           clearable={false}
-                          onChange={this.rateTypeChanged}
-                          value={rateType}
-                          options={rateOptions}
+                          onChange={this.policyTypeChanged}
+                          value={policyType}
+                          options={policyOptions}
                         />
-                      )}
-                    />
-                  </div>
-                  <div className="sp-formItem">
-                    <p>{rateType.description}</p>
-                  </div>
-                  {RateFields && <RateFields isDisabled={usingDefault} />}
+                        <HelpField
+                          expand={true}
+                          content="A job policy defines container relocation rules and constraints"
+                        />
+                      </div>
+                    )}
+                  />
                 </div>
+                <div className="sp-formItem">
+                  <p>{policyType.description}</p>
+                </div>
+                {PolicyFields && <PolicyFields isDisabled={usingDefault} />}
+              </div>
+              {!isSelfManaged && (
+                <div>
+                  <div className={`${budget.rateUnlimited ? '' : 'sp-formGroup'}`}>
+                    <div className={`${budget.rateUnlimited ? '' : 'groupHeader'}`}>
+                      <FormikFormField
+                        name="rates"
+                        label="Rates"
+                        input={(props) => (
+                          <TetheredSelect
+                            {...props}
+                            style={{ width: '300px' }}
+                            disabled={usingDefault}
+                            clearable={false}
+                            onChange={this.rateTypeChanged}
+                            value={rateType}
+                            options={rateOptions}
+                          />
+                        )}
+                      />
+                    </div>
+                    <div className="sp-formItem">
+                      <p>{rateType.description}</p>
+                    </div>
+                    {RateFields && <RateFields isDisabled={usingDefault} />}
+                  </div>
 
-                <div className={`${budget.timeWindows ? 'sp-formGroup' : ''}`}>
-                  <div className={`${budget.timeWindows ? 'groupHeader' : ''}`}>
-                    <FormikFormField
-                      name="timeWindows"
-                      label="When Can Disruption Occur?"
-                      input={(props) => (
-                        <TetheredSelect
-                          {...props}
-                          style={{ width: '300px' }}
-                          disabled={usingDefault}
-                          clearable={false}
-                          onChange={this.timeWindowsChanged}
-                          value={windowType}
-                          options={this.timeWindowOptions}
-                        />
-                      )}
-                    />
-                  </div>
-                  {budget.timeWindows && <WindowPicker isDisabled={usingDefault} formik={this.props.formik} />}
-                </div>
-                <FormikFormField
-                  name="healthProviders"
-                  label="Container Health Provider"
-                  input={() => (
-                    <div>
-                      <CheckboxInput
-                        checked={selectedProviders.includes('eureka')}
-                        onChange={() => this.toggleHealthProvider('eureka')}
-                        text="Discovery"
-                        disabled={usingDefault}
+                  <div className={`${budget.timeWindows ? 'sp-formGroup' : ''}`}>
+                    <div className={`${budget.timeWindows ? 'groupHeader' : ''}`}>
+                      <FormikFormField
+                        name="timeWindows"
+                        label="When Can Disruption Occur?"
+                        input={(props) => (
+                          <TetheredSelect
+                            {...props}
+                            style={{ width: '300px' }}
+                            disabled={usingDefault}
+                            clearable={false}
+                            onChange={this.timeWindowsChanged}
+                            value={windowType}
+                            options={this.timeWindowOptions}
+                          />
+                        )}
                       />
                     </div>
-                  )}
-                />
-              </div>
-            )}
-          </div>
+                    {budget.timeWindows && <WindowPicker isDisabled={usingDefault} formik={this.props.formik} />}
+                  </div>
+                  <FormikFormField
+                    name="healthProviders"
+                    label="Container Health Provider"
+                    input={() => (
+                      <div>
+                        <CheckboxInput
+                          checked={selectedProviders.includes('eureka')}
+                          onChange={() => this.toggleHealthProvider('eureka')}
+                          text="Discovery"
+                          disabled={usingDefault}
+                        />
+                      </div>
+                    )}
+                  />
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </LayoutProvider>
     );
