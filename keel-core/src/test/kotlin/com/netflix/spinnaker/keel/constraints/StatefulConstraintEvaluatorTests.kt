@@ -18,6 +18,7 @@ import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintType
 import com.netflix.spinnaker.keel.api.events.ConstraintStateChanged
 import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
+import com.netflix.spinnaker.keel.test.deliveryConfig
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -133,44 +134,6 @@ internal class StatefulConstraintEvaluatorTests : JUnit5Minutests {
       }
       // We ignore the timestamp because it's generated dynamically
       expectThat(state.captured).isEqualTo(pendingConstraintState.createdAt(state.captured.createdAt))
-    }
-
-    test("canPromote generates an event when first storing state") {
-      val expectedEvent = ConstraintStateChanged(
-        environment = environment,
-        constraint = constraint,
-        previousState = null,
-        currentState = pendingConstraintState
-      )
-
-      expectThat(subject.canPromote(artifact, "v1.0.0", manifest, environment))
-        .isTrue()
-
-      val event = slot<ConstraintStateChanged>()
-      verify(exactly = 1) {
-        eventPublisher.publishEvent(capture(event))
-      }
-
-      expectThat(event.captured).isEqualTo(
-        // We ignore the timestamp as it's dynamically generated
-        expectedEvent.copy(
-          currentState = expectedEvent.currentState.createdAt(event.captured.currentState.createdAt)
-        )
-      )
-    }
-
-    test("canPromote does NOT generate an event after the first state change") {
-      subject.canPromote(artifact, "v1.0.0", manifest, environment)
-      subject.canPromote(artifact, "v1.0.1", manifest, environment)
-
-      verify(exactly = 2) {
-        repository.getConstraintState("test", "test", any(), "fake", artifact.reference)
-      }
-
-      val event = slot<ConstraintStateChanged>()
-      verify(exactly = 1) {
-        eventPublisher.publishEvent(capture(event))
-      }
     }
   }
 

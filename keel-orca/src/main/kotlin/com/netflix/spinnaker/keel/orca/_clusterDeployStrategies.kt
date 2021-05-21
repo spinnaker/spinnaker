@@ -2,11 +2,13 @@ package com.netflix.spinnaker.keel.orca
 
 import com.netflix.spinnaker.keel.api.ClusterDeployStrategy
 import com.netflix.spinnaker.keel.api.ClusterDeployStrategy.Companion.DEFAULT_WAIT_FOR_INSTANCES_UP
-import com.netflix.spinnaker.keel.api.DeployHealth
 import com.netflix.spinnaker.keel.api.DeployHealth.AUTO
 import com.netflix.spinnaker.keel.api.DeployHealth.NONE
 import com.netflix.spinnaker.keel.api.Highlander
+import com.netflix.spinnaker.keel.api.NoStrategy
 import com.netflix.spinnaker.keel.api.RedBlack
+import com.netflix.spinnaker.keel.api.RollingPush
+import com.netflix.spinnaker.keel.filterNotNullValues
 import java.time.Duration.ZERO
 
 /**
@@ -41,6 +43,17 @@ fun ClusterDeployStrategy.toOrcaJobProperties(vararg instanceOnlyHealthProviders
         NONE -> instanceOnlyHealthProviders.toList()
         AUTO -> null
       }
+    )
+    is NoStrategy -> mapOf(
+      "strategy" to ""
+    )
+    is RollingPush -> mapOf(
+      "strategy" to "rollingpush",
+      "termination" to mapOf(
+        "relaunchAllInstances" to relaunchAllInstances,
+        "order" to terminationOrder,
+        "concurrentRelaunches" to numConcurrentRelaunches
+      ).filterNotNullValues()
     )
     else -> error("Unhandled cluster deploy strategy ${javaClass.name}")
   }

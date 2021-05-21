@@ -4,9 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.actuation.ArtifactHandler
 import com.netflix.spinnaker.keel.api.ClusterDeployStrategy
 import com.netflix.spinnaker.keel.api.Highlander
+import com.netflix.spinnaker.keel.api.NoStrategy
 import com.netflix.spinnaker.keel.api.RedBlack
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceSpec
+import com.netflix.spinnaker.keel.api.RollingPush
 import com.netflix.spinnaker.keel.api.constraints.StatefulConstraintEvaluator
 import com.netflix.spinnaker.keel.api.constraints.StatelessConstraintEvaluator
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
@@ -141,6 +143,8 @@ class KeelConfigurationFinalizer(
   fun registerClusterDeployStrategySubtypes() {
     extensionRegistry.register<ClusterDeployStrategy>(RedBlack::class.java, "red-black")
     extensionRegistry.register<ClusterDeployStrategy>(Highlander::class.java, "highlander")
+    extensionRegistry.register<ClusterDeployStrategy>(NoStrategy::class.java, "none")
+    extensionRegistry.register<ClusterDeployStrategy>(RollingPush::class.java, "rolling-push")
   }
 
   @PostConstruct

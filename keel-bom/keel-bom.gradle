@@ -1,0 +1,18 @@
+plugins {
+  id "java-platform"
+}
+
+javaPlatform {
+  allowDependencies()
+}
+
+dependencies {
+  api(platform("io.spinnaker.kork:kork-bom:${korkVersion}"))
+  constraints {
+    rootProject
+      .subprojects
+      .stream()
+      .filter { it != project }
+      .forEach { api(project(it.path)) }
+  }
+}

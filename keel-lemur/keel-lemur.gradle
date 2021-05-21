@@ -1,0 +1,10 @@
+dependencies {
+  implementation(project(":keel-retrofit"))
+  implementation(project(":keel-core"))
+  implementation(project(":keel-ec2-api"))
+  implementation("org.springframework.boot:spring-boot-autoconfigure")
+
+  testImplementation("io.strikt:strikt-core")
+  testImplementation(project(":keel-spring-test-support"))
+  testImplementation(project(":keel-test"))
+}

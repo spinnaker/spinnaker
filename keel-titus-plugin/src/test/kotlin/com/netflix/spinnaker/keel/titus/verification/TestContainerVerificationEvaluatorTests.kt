@@ -1,14 +1,24 @@
 package com.netflix.spinnaker.keel.titus.verification
 
+import com.netflix.spinnaker.config.GitLinkConfig
 import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
+import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
+import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.titus.TestContainerVerification
 import com.netflix.spinnaker.keel.api.titus.TitusServerGroup.Location
+import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.test.deliveryConfig
 import com.netflix.spinnaker.keel.titus.ContainerRunner
 import de.huxhorn.sulky.ulid.ULID
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import org.junit.jupiter.api.Test
+import strikt.api.expect
 import strikt.api.expectCatching
+import strikt.api.expectThat
+import strikt.assertions.containsKeys
 import strikt.assertions.first
 import strikt.assertions.get
 import strikt.assertions.isA
@@ -17,12 +27,6 @@ import strikt.assertions.isSuccess
 import io.mockk.coVerify as verify
 
 internal class TestContainerVerificationEvaluatorTests {
-
-  private val containerRunner: ContainerRunner = mockk()
-  private val subject = TestContainerVerificationEvaluator(
-    containerRunner = containerRunner,
-    linkStrategy = null
-  )
 
   private val context = ArtifactInEnvironmentContext(
     deliveryConfig = deliveryConfig(),
@@ -43,6 +47,34 @@ internal class TestContainerVerificationEvaluatorTests {
     application = app
   )
 
+  private val publishedArtifact = PublishedArtifact(
+    type = "DEB",
+    customKind = false,
+    name = "fnord",
+    version = "0.161.0-h61.116f116",
+    reference = "debian-local:pool/f/fnord/fnord_0.161.0-h61.116f116_all.deb",
+    metadata = mapOf("releaseStatus" to ArtifactStatus.FINAL, "buildNumber" to "61", "commitId" to "116f116"),
+    provenance = "https://my.jenkins.master/jobs/fnord-release/60",
+    buildMetadata = BuildMetadata(
+      id = 58,
+      number = "58",
+      status = "BUILDING",
+      uid = "just-a-uid-obviously"
+    )
+  ).normalized()
+
+  private val containerRunner: ContainerRunner = mockk()
+  private val keelRepository: KeelRepository = mockk() {
+    every { getArtifactVersion(any(), any(), any()) } returns publishedArtifact
+  }
+  private val subject = TestContainerVerificationEvaluator(
+    containerRunner = containerRunner,
+    linkStrategy = null,
+    gitLinkConfig = GitLinkConfig(),
+    keelRepository = keelRepository
+  )
+
+
   @Test
   fun `starting verification launches a container job via containerRunner`() {
     val taskId = stubTaskLaunch()
@@ -52,6 +84,8 @@ internal class TestContainerVerificationEvaluatorTests {
       .get(TASKS)
       .isA<Iterable<String>>()
       .first() isEqualTo taskId
+
+    val slot = slot<Map<String, String>>()
 
     verify {
       containerRunner.launchContainer(
@@ -63,9 +97,21 @@ internal class TestContainerVerificationEvaluatorTests {
         containerApplication = any(),
         environmentName = context.environmentName,
         location = verification.location,
-        environmentVariables = any()
+        environmentVariables = capture(slot)
       )
     }
+    val PREFIX = "TEST_"
+    expectThat(slot.captured).containsKeys(
+      "${PREFIX}ENV",
+      "${PREFIX}REPO_URL",
+      "${PREFIX}BUILD_NUMBER",
+      "${PREFIX}ARTIFACT_VERSION",
+      "${PREFIX}BRANCH_NAME",
+      "${PREFIX}COMMIT_SHA",
+      "${PREFIX}COMMIT_URL",
+      "${PREFIX}PR_NUMBER",
+      "${PREFIX}PR_URL"
+    )
   }
 
   @Suppress("UNCHECKED_CAST")

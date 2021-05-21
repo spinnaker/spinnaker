@@ -71,11 +71,7 @@ class ManualJudgementNotifier(
   }
 
   private fun ConstraintStateChanged.toEchoNotification(config: NotificationConfig): EchoNotification {
-    val artifact = currentState.artifactReference?.let {
-      repository.getArtifact(currentState.deliveryConfigName, it)
-    } ?: throw SystemException("Required artifact reference missing in constraint state object")
-
-    val deliveryConfig = repository.getDeliveryConfig(currentState.deliveryConfigName)
+    val artifact = repository.getArtifact(currentState.deliveryConfigName, currentState.artifactReference)
     val artifactUrl = "${baseUrlConfig.baseUrl}/#/applications/${deliveryConfig.application}/environments/${artifact.reference}/${currentState.artifactVersion}"
     val normalizedVersion = currentState.artifactVersion.removePrefix("${artifact.name}-")
     val currentDeployableArtifact = repository.getArtifactVersion(artifact, currentState.artifactVersion, null)

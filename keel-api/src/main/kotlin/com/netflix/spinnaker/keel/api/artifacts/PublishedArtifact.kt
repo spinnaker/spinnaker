@@ -16,6 +16,9 @@ data class PublishedArtifact(
   val type: String,
   val reference: String,
   val version: String,
+  // artifacts come with a tilde in place of an underscore in the version, which breaks clouddriver image lookups
+  // (e.g. lpollo-local-test-0.0.1~snapshot instead of lpollo-local-test-0.0.1_snapshot)
+  val normalizedVersion: String = version.replaceFirst('~', '_'),
   val customKind: Boolean? = null,
   val location: String? = null,
   val artifactAccount: String? = null,

@@ -1,0 +1,31 @@
+dependencies {
+  api(project(":keel-api"))
+  api("com.fasterxml.jackson.core:jackson-databind")
+  api("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
+  api("com.fasterxml.jackson.module:jackson-module-kotlin")
+  api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+  api("de.danielbechler:java-object-diff")
+  api("org.springframework:spring-context")
+  api("org.springframework.boot:spring-boot-autoconfigure")
+  api("com.netflix.frigga:frigga")
+  api("io.spinnaker.kork:kork-core")
+  api("net.swiftzer.semver:semver:1.1.0")
+  api("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8")
+  api("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j")
+  api("org.apache.commons:commons-lang3")
+  api("com.github.ben-manes.caffeine:caffeine")
+
+  implementation("org.springframework:spring-tx")
+  implementation ("io.github.resilience4j:resilience4j-kotlin")
+  implementation ("io.github.resilience4j:resilience4j-retry")
+  implementation("com.newrelic.agent.java:newrelic-api:6.1.0")
+  implementation("io.spinnaker.kork:kork-plugins")
+
+  testImplementation(project(":keel-test"))
+  testImplementation(project(":keel-core-test"))
+  testImplementation("io.strikt:strikt-jackson")
+  testImplementation("dev.minutest:minutest")
+
+  testImplementation("org.assertj:assertj-core")
+  testImplementation("org.springframework.boot:spring-boot-test-autoconfigure")
+}

@@ -9,8 +9,13 @@ data class NamedImage(
   val attributes: Map<String, Any?>,
   val tagsByImageId: Map<String, Map<String, String?>?>,
   val accounts: Set<String>,
-  val amis: Map<String, List<String>?>
-)
+  val amis: Map<String, List<String>?>,
+  // image names come with an underscore in place of a tilde in the version, which breaks bakery metadata lookups
+  // (e.g. lpollo-local-test-0.0.1_snapshot instead of lpollo-local-test-0.0.1~snapshot)
+  val normalizedImageName: String = imageName.replaceFirst('_', '~')
+) {
+  constructor(imageName: String) : this(imageName, emptyMap(), emptyMap(), emptySet(), emptyMap())
+}
 
 object NamedImageComparator : Comparator<NamedImage> {
   override fun compare(a: NamedImage, b: NamedImage): Int {

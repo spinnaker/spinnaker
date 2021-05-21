@@ -1,5 +1,7 @@
 package com.netflix.spinnaker.keel.titus.verification
 
+import com.netflix.spinnaker.config.GitLinkConfig
+import com.netflix.spinnaker.config.PromoteJarConfig
 import com.netflix.spinnaker.keel.titus.ContainerRunner
 import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.FAIL
@@ -9,12 +11,16 @@ import com.netflix.spinnaker.keel.api.plugins.VerificationEvaluator
 import com.netflix.spinnaker.keel.api.titus.TestContainerVerification
 import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
 import com.netflix.spinnaker.keel.api.action.ActionState
+import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.orca.ExecutionDetailResponse
 import com.netflix.spinnaker.keel.orca.OrcaService
+import com.netflix.spinnaker.keel.persistence.KeelRepository
+import com.netflix.spinnaker.keel.titus.postdeploy.repoUrl
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.stereotype.Component
 
 /**
@@ -25,10 +31,15 @@ import org.springframework.stereotype.Component
  *
  */
 @Component
+@EnableConfigurationProperties(PromoteJarConfig::class)
 class TestContainerVerificationEvaluator(
   private val linkStrategy: LinkStrategy? = null,
-  private val containerRunner: ContainerRunner
+  private val containerRunner: ContainerRunner,
+  private val keelRepository: KeelRepository,
+  private val gitLinkConfig: GitLinkConfig
 ) : VerificationEvaluator<TestContainerVerification> {
+
+  private val PREFIX = "TEST_"
 
   override val supportedVerification: Pair<String, Class<TestContainerVerification>> =
     TestContainerVerification.TYPE to TestContainerVerification::class.java
@@ -44,6 +55,17 @@ class TestContainerVerificationEvaluator(
     require(verification is TestContainerVerification) {
       "Expected a ${TestContainerVerification::class.simpleName} but received a ${verification.javaClass.simpleName}"
     }
+
+    val deliveryArtifact = context.deliveryConfig.matchingArtifactByReference(context.artifactReference)
+    requireNotNull(deliveryArtifact) { "Artifact reference (${context.artifactReference}) in config (${context.deliveryConfig.application}) must correspond to a valid artifact" }
+
+    val fullArtifact = keelRepository.getArtifactVersion(
+      artifact = deliveryArtifact,
+      version = context.version,
+      status = null
+    )
+    requireNotNull(fullArtifact) { "No artifact details found for artifact reference ${context.artifactReference} and version ${context.version} in config ${context.deliveryConfig.application}" }
+
     return runBlocking {
       containerRunner.launchContainer(
         imageId = verification.imageId,
@@ -54,7 +76,18 @@ class TestContainerVerificationEvaluator(
         containerApplication = verification.application ?: context.deliveryConfig.application,
         environmentName = context.environmentName,
         location = verification.location,
-        entrypoint = verification.entrypoint ?: ""
+        entrypoint = verification.entrypoint ?: "",
+        environmentVariables = mapOf(
+          "${PREFIX}ENV" to context.environmentName,
+          "${PREFIX}REPO_URL" to fullArtifact.repoUrl(gitLinkConfig.gitUrlPrefix),
+          "${PREFIX}BUILD_NUMBER" to "${fullArtifact.buildNumber}",
+          "${PREFIX}ARTIFACT_VERSION" to fullArtifact.version,
+          "${PREFIX}BRANCH_NAME" to "${fullArtifact.gitMetadata?.branch}",
+          "${PREFIX}COMMIT_SHA" to "${fullArtifact.gitMetadata?.commit}",
+          "${PREFIX}COMMIT_URL" to "${fullArtifact.gitMetadata?.commitInfo?.link}",
+          "${PREFIX}PR_NUMBER" to "${fullArtifact.gitMetadata?.pullRequest?.number}",
+          "${PREFIX}PR_URL" to "${fullArtifact.gitMetadata?.pullRequest?.url}",
+        )
       )
     }
   }

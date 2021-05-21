@@ -51,6 +51,8 @@ interface KeelReadOnlyRepository {
 
   fun constraintStateFor(deliveryConfigName: String, environmentName: String, artifactVersion: String, artifactReference: String): List<ConstraintState>
 
+  fun constraintStateForEnvironments(deliveryConfigName: String, environmentUIDs: List<String> = emptyList()): List<ConstraintState>
+
   fun getPendingConstraintsForArtifactVersions(deliveryConfigName: String, environmentName: String, artifact: DeliveryArtifact): List<PublishedArtifact>
 
   fun getArtifactVersionsQueuedForApproval(deliveryConfigName: String, environmentName: String, artifact: DeliveryArtifact): List<PublishedArtifact>

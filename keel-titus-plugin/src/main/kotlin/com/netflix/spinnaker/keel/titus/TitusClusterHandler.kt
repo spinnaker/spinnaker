@@ -20,6 +20,7 @@ package com.netflix.spinnaker.keel.titus
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Moniker
+import com.netflix.spinnaker.keel.api.NoStrategy
 import com.netflix.spinnaker.keel.api.RedBlack
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceDiff
@@ -505,14 +506,20 @@ class TitusClusterHandler(
       resource.spec.locations.regions.map { it.name }.toSet(),
       resource.serviceAccount
     ).map { activeServerGroup ->
-      val numEnabled = existingServerGroups
-        .getOrDefault(activeServerGroup.location.region, emptyList<ServerGroup>())
-        .filter { !it.disabled }
-        .size
+      if (resource.spec.deployWith is NoStrategy) {
+        // we only care about num enabled if there is a deploy strategy
+        // if there is no deploy strategy, ignore the calculation so that there isn't a diff ever in this property.
+        activeServerGroup.copy(onlyEnabledServerGroup = true)
+      } else {
+        val numEnabled = existingServerGroups
+          .getOrDefault(activeServerGroup.location.region, emptyList<ServerGroup>())
+          .filter { !it.disabled }
+          .size
 
-      when (numEnabled) {
-        1 -> activeServerGroup.copy(onlyEnabledServerGroup = true)
-        else -> activeServerGroup.copy(onlyEnabledServerGroup = false)
+        when (numEnabled) {
+          1 -> activeServerGroup.copy(onlyEnabledServerGroup = true)
+          else -> activeServerGroup.copy(onlyEnabledServerGroup = false)
+        }
       }
     }
 

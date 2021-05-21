@@ -1,0 +1,142 @@
+plugins {
+  id("nu.studer.jooq") version "5.2"
+  id("org.liquibase.gradle") version "2.0.4"
+}
+
+def buildingInDocker = java.lang.Boolean.parseBoolean(
+        project.properties["buildingInDocker"]?.toString() ?: "false")
+
+afterEvaluate {
+  tasks.getByName("compileKotlin") {
+    dependsOn("jooqGenerate")
+  }
+}
+
+sourceSets {
+  main {
+    java {
+      srcDir("$projectDir/src/generated/java")
+    }
+  }
+}
+
+clean {
+  delete.add("$projectDir/src/generated/java")
+}
+
+dependencies {
+  implementation(project(":keel-core"))
+  implementation(project(":keel-artifact"))
+  implementation("io.spinnaker.kork:kork-sql")
+  implementation("org.springframework:spring-jdbc")
+  implementation("org.springframework:spring-tx")
+  implementation("org.jooq:jooq")
+  implementation("com.zaxxer:HikariCP")
+  implementation("org.liquibase:liquibase-core")
+
+  runtimeOnly("mysql:mysql-connector-java")
+
+  testImplementation("io.spinnaker.kork:kork-sql-test")
+  testImplementation("io.strikt:strikt-core")
+  testImplementation(project(":keel-spring-test-support"))
+  testImplementation(project(":keel-test"))
+  testImplementation(project(":keel-core-test"))
+  testImplementation(project(":keel-web")) {
+    // avoid circular dependency which breaks Liquibase
+    exclude(module: "keel-sql")
+  }
+  testImplementation("org.testcontainers:mysql:${testContainersVersion}")
+
+  jooqGenerator(platform("io.spinnaker.kork:kork-bom:${korkVersion}"))
+  jooqGenerator("mysql:mysql-connector-java")
+  jooqGenerator("org.jooq:jooq-meta-extensions")
+  jooqGenerator("ch.qos.logback:logback-classic:1.2.3")
+
+  liquibaseRuntime(platform("io.spinnaker.kork:kork-bom:${korkVersion}"))
+  liquibaseRuntime("org.liquibase:liquibase-core:3.8.9")
+  liquibaseRuntime("ch.qos.logback:logback-classic:1.2.3")
+  liquibaseRuntime("org.yaml:snakeyaml:1.28")
+  liquibaseRuntime("mysql:mysql-connector-java")
+}
+
+// expand properties in jooqConfig.xml so it gets a fully-qualified directory to generate into
+tasks.withType(ProcessResources) {
+  filesMatching("jooqConfig.xml") {
+    expand(project.properties)
+  }
+}
+
+liquibaseUpdate {
+  inputs.dir("$projectDir/src/main/resources/db")
+  outputs.dir("$projectDir/src/generated/java")
+
+  doFirst {
+    if (!buildingInDocker) {
+      exec {
+        commandLine("sh", "-c", "docker stop mysqlJooq >/dev/null 2>&1 || true")
+      }
+      exec {
+        commandLine("sh", "-c", "docker run --name mysqlJooq --health-cmd='mysqladmin ping -s' -d --rm -e MYSQL_ROOT_PASSWORD=sa -e MYSQL_DATABASE=keel -p 6603:3306 mysql:5.7 --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci >/dev/null 2>&1; while STATUS=\$(docker inspect --format \"{{.State.Health.Status}}\" mysqlJooq); [ \$STATUS != \"healthy\" ]; do if [ \$STATUS = \"unhealthy\" ]; then echo \"Docker failed to start\"; exit -1; fi; sleep 1; done")
+      }
+    }
+  }
+}
+
+// Task used when building in Docker in place of jooqModelator (see Dockerfile.compile)
+tasks.register("jooqGenerate") {
+  group = "Execution"
+  description = "Run the jOOQ code generation tool"
+
+  dependsOn("processResources", "liquibaseUpdate")
+
+  inputs.dir("$projectDir/src/main/resources/db")
+  outputs.dir("$projectDir/src/generated/java")
+
+  doLast {
+    javaexec {
+      classpath = configurations.named("jooqGenerator").get()
+      main = "org.jooq.codegen.GenerationTool"
+      args = ["$buildDir/resources/main/jooqConfig.xml"]
+    }
+    if (!buildingInDocker) {
+      exec {
+        commandLine("sh", "-c", "docker stop mysqlJooq >/dev/null 2>&1 || true")
+      }
+    }
+  }
+}
+
+// Don't enforce spotless for generated code
+afterEvaluate {
+  spotless {
+    java {
+      targetExclude(fileTree("$projectDir/src/generated/java"))
+    }
+  }
+}
+
+jooq {
+  version.set("3.13.2")
+}
+
+liquibase {
+  activities.register("local") {
+    arguments = [
+      "logLevel": "severe",
+      "changeLogFile": "src/main/resources/db/databaseChangeLog.yml",
+      "url": "jdbc:mysql://localhost:3306/keel?useSSL=false&serverTimezone=UTC",
+      "username": "root",
+      "password": ""
+    ]
+  }
+  activities.register("docker") {
+    arguments = [
+      "logLevel": "severe",
+      "changeLogFile": "src/main/resources/db/databaseChangeLog.yml",
+      "url": "jdbc:mysql://127.0.0.1:6603/keel?useSSL=false&serverTimezone=UTC",
+      "username": "root",
+      "password": "sa"
+    ]
+  }
+  runList = "docker"
+}

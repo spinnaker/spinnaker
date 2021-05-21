@@ -167,13 +167,7 @@ class ApplicationService(
     )
     repository.storeConstraintState(newState)
 
-    // publish changed notification so we can update any slack messages sent
-    val constraint = config.constraintInEnvironment(environment, status.type)
-
     if (currentState.status != newState.status){
-      publisher.publishEvent(
-        ConstraintStateChanged(config.environments.first{ it.name == environment }, constraint, currentState, newState)
-      )
       return true
     }
     return false

@@ -160,10 +160,6 @@ class GitDataGenerator(
                          olderVersion: String?  = null,
                          env: String? = null
   ): SectionBlockBuilder {
-    var details = ""
-    if (olderVersion != null && olderVersion.isNotEmpty()) {
-      details += "~$olderVersion~ →"
-    }
     var envDetails = ""
     if (env != null) {
       envDetails +=  "*Environment:* $env\n "
@@ -171,33 +167,47 @@ class GitDataGenerator(
 
     var text = "*App:* $application\n $envDetails"
 
-    val artifactUrl = generateArtifactUrl(application, artifact.reference, artifact.version)
     with(sectionBlockBuilder) {
-      with(artifact) {
-        if (buildMetadata == null && gitMetadata == null) {
-          // fall back to info on the artifact
-          text += "*Version:* ${artifact.version} for artifact reference ${artifact.reference}"
-        }
-
-        if (buildMetadata?.number != null) {
-          text += "*Version:* $details <$artifactUrl|#${buildMetadata?.number}> "
-        }
-
-        if (gitMetadata?.commitInfo != null) {
-          val author = gitMetadata?.author
-          if (author != null) {
-            val username = slackService.getUsernameByEmailPrefix(author)
-            text += "by $username"
-          }
-          text += "\n\n ${formatCommitMessage(gitMetadata)}"
-        }
-
-        markdownText(text)
-        accessory {
-          image(imageUrl = imageUrl, altText = altText)
-        }
+      text += generateVersionMarkdown(application, artifact.reference, artifact, olderVersion)
+      text += "\n\n ${formatCommitMessage(artifact.gitMetadata)}"
+      markdownText(text)
+      accessory {
+        image(imageUrl = imageUrl, altText = altText)
       }
       return this
+    }
+  }
+
+  fun generateVersionMarkdown(
+    application: String,
+    reference: String,
+    artifact: PublishedArtifact,
+    olderVersion: String?,
+  ): String {
+    with(artifact) {
+      var details = ""
+      if (olderVersion != null && olderVersion.isNotEmpty()) {
+        details += "~$olderVersion~ →"
+      }
+      val url = generateArtifactUrl(application, reference, artifact.version)
+      var text = ""
+      if (buildMetadata == null && gitMetadata == null) {
+        // fall back to info on the artifact
+        text += "*Version:* ${artifact.version} for artifact reference ${artifact.reference}"
+      }
+
+      if (buildMetadata?.number != null) {
+        text += "*Version:* $details <$url|#${buildMetadata?.number}> "
+      }
+
+      if (gitMetadata?.commitInfo != null) {
+        val author = gitMetadata?.author
+        if (author != null) {
+          val username = slackService.getUsernameByEmailPrefix(author)
+          text += "by $username"
+        }
+      }
+      return text
     }
   }
 

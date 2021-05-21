@@ -631,6 +631,8 @@ class SqlDeliveryConfigRepository(
             /**
              * Passing the transaction here since [constraintStateForWithTransaction] is querying [ENVIRONMENT_ARTIFACT_CONSTRAINT]
              * table, and we need to make sure the new state was persisted prior to checking all states for a given artifact version.
+             *
+             * We need to do this so that stateful constraints that aren't the latest still get approved for deployment.
              */
             val allStates = constraintStateForWithTransaction(
               state.deliveryConfigName,
@@ -896,18 +898,12 @@ class SqlDeliveryConfigRepository(
     }
   }
 
-  override fun constraintStateFor(
-    deliveryConfigName: String,
-    environmentName: String,
-    limit: Int
-  ): List<ConstraintState> {
-    val environmentUID = environmentUidByName(deliveryConfigName, environmentName)
-      ?: return emptyList()
+  override fun constraintStateForEnvironments(deliveryConfigName: String, environmentUIDs: List<String>, limit: Int?): List<ConstraintState> {
     return sqlRetry.withRetry(READ) {
       jooq
         .select(
           inline(deliveryConfigName).`as`("deliveryConfigName"),
-          inline(environmentName).`as`("environmentName"),
+          ENVIRONMENT.NAME.`as`("environmentName"),
           ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_VERSION,
           ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_REFERENCE,
           ENVIRONMENT_ARTIFACT_CONSTRAINT.TYPE,
@@ -919,9 +915,23 @@ class SqlDeliveryConfigRepository(
           ENVIRONMENT_ARTIFACT_CONSTRAINT.ATTRIBUTES
         )
         .from(ENVIRONMENT_ARTIFACT_CONSTRAINT)
-        .where(ENVIRONMENT_ARTIFACT_CONSTRAINT.ENVIRONMENT_UID.eq(environmentUID))
+        .join(ENVIRONMENT)
+        .on(ENVIRONMENT.UID.eq(ENVIRONMENT_ARTIFACT_CONSTRAINT.ENVIRONMENT_UID))
+        .run {
+          if (environmentUIDs.isNotEmpty()) {
+            and(ENVIRONMENT.UID.`in`(environmentUIDs))
+          } else {
+            join(DELIVERY_CONFIG)
+              .on(DELIVERY_CONFIG.UID.eq(ENVIRONMENT.DELIVERY_CONFIG_UID))
+              .and(DELIVERY_CONFIG.NAME.eq(deliveryConfigName))
+          }
+        }
         .orderBy(ENVIRONMENT_ARTIFACT_CONSTRAINT.CREATED_AT.desc())
-        .limit(limit)
+        .apply {
+          if (limit != null) {
+            limit(limit)
+          }
+        }
         .fetch { (
                    deliveryConfigName,
                    environmentName,
@@ -950,6 +960,16 @@ class SqlDeliveryConfigRepository(
           )
         }
     }
+  }
+
+  override fun constraintStateFor(
+    deliveryConfigName: String,
+    environmentName: String,
+    limit: Int
+  ): List<ConstraintState> {
+    val environmentUID = environmentUidByName(deliveryConfigName, environmentName)
+      ?: return emptyList()
+    return constraintStateForEnvironments(deliveryConfigName, listOf(environmentUID), limit)
   }
 
   override fun constraintStateFor(
@@ -1086,9 +1106,8 @@ class SqlDeliveryConfigRepository(
   }
 
   /**
-   * Not actually used because this is done in [storeConstraintState], except
-   * in that place the envId does not have to be queried for.
-   * It's also done as part of the existing transaction
+   * Used in the [EnvironmentConstraintRunner] to queue artifact versions for approval by the
+   * [EnvironmentPromotionChecker].
    */
   override fun queueArtifactVersionForApproval(
     deliveryConfigName: String,

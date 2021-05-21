@@ -1,5 +1,7 @@
 package com.netflix.spinnaker.keel.persistence
 
+import com.fasterxml.jackson.databind.jsontype.NamedType
+import com.netflix.spinnaker.keel.api.Constraint
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.NotificationConfig
@@ -12,12 +14,19 @@ import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.BRANCH_JOB_CO
 import com.netflix.spinnaker.keel.api.artifacts.branchStartsWith
 import com.netflix.spinnaker.keel.api.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.api.action.ActionRepository
+import com.netflix.spinnaker.keel.api.constraints.ConstraintState
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.api.events.ConstraintStateChanged
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
+import com.netflix.spinnaker.keel.core.api.MANUAL_JUDGEMENT_CONSTRAINT_TYPE
+import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.core.api.SubmittedResource
 import com.netflix.spinnaker.keel.core.api.normalize
+import com.netflix.spinnaker.keel.events.ArtifactDeployedNotification
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceUpdated
 import com.netflix.spinnaker.keel.exceptions.DuplicateManagedResourceException
+import com.netflix.spinnaker.keel.lifecycle.LifecycleEvent
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.TEST_API_V1
@@ -26,9 +35,12 @@ import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.spyk
 import io.mockk.verify
+import org.springframework.context.ApplicationEvent
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expect
 import strikt.api.expectCatching
@@ -104,6 +116,8 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
     artifacts = setOf(artifact),
     environments = setOf(firstEnv)
   )
+
+  val configWithStatefulConstraint = deliveryConfig.copy(environments = setOf(firstEnv.copy(constraints = setOf(ManualJudgementConstraint()))))
 
   data class Fixture<D : DeliveryConfigRepository, R : ResourceRepository, A : ArtifactRepository, V : ActionRepository>(
     val deliveryConfigRepositoryProvider: (ResourceSpecIdentifier) -> D,
@@ -481,6 +495,48 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
           deliveryConfigRepository.get(
             anotherDeliveryConfigWithSameApp.name
           )
+        }
+      }
+    }
+
+    context("storing constraint states") {
+      val pendingState = ConstraintState(
+        deliveryConfigName = configWithStatefulConstraint.name,
+        environmentName = firstEnv.name,
+        artifactVersion = "1.1",
+        artifactReference = "myartifact",
+        type = MANUAL_JUDGEMENT_CONSTRAINT_TYPE,
+        status = ConstraintStatus.PENDING,
+      )
+      before {
+        subject.upsertDeliveryConfig(configWithStatefulConstraint)
+      }
+      context("no previous state") {
+        test("event sent when saving config for the first time") {
+          subject.storeConstraintState(pendingState)
+          verify (exactly = 1) { publisher.publishEvent(ofType<ConstraintStateChanged>()) }
+        }
+      }
+      context("a different previous state") {
+        test("event sent when saving config for the first time") {
+          subject.storeConstraintState(pendingState)
+          val state = ConstraintState(
+            deliveryConfigName = configWithStatefulConstraint.name,
+            environmentName = firstEnv.name,
+            artifactVersion = "1.1",
+            artifactReference = artifact.reference,
+            type = MANUAL_JUDGEMENT_CONSTRAINT_TYPE,
+            status = ConstraintStatus.FAIL,
+          )
+          subject.storeConstraintState(state)
+          verify (exactly = 2) { publisher.publishEvent(ofType<ConstraintStateChanged>()) }
+        }
+      }
+      context("the same previous state") {
+        test("event sent only once") {
+          subject.storeConstraintState(pendingState)
+          subject.storeConstraintState(pendingState)
+          verify (exactly = 1) { publisher.publishEvent(ofType<ConstraintStateChanged>()) }
         }
       }
     }

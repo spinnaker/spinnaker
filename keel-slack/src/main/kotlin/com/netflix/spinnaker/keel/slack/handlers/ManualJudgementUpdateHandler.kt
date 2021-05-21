@@ -71,9 +71,9 @@ class ManualJudgementUpdateHandler(
   fun fallbackText(user: String?, status: ConstraintStatus): String {
     val handle = user?.let { slackService.getUsernameByEmail(user) }
     val action = if (status.passes()) {
-      "approved"
+      "approve"
     } else {
-      "rejected"
+      "reject"
     }
     val emoji = if (status.passes()) {
       ":white_check_mark:"

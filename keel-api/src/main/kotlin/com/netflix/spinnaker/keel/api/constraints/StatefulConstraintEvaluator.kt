@@ -21,6 +21,7 @@ import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.events.ConstraintStateChanged
 import com.netflix.spinnaker.keel.api.plugins.ConstraintEvaluator
+import com.netflix.spinnaker.keel.api.plugins.PluginNotificationConfig
 
 /**
  * A [ConstraintEvaluator] that deals with the logic for stateful constraints.
@@ -69,7 +70,6 @@ interface StatefulConstraintEvaluator<T : Constraint, A : ConstraintStateAttribu
         status = ConstraintStatus.PENDING
       ).also {
         repository.storeConstraintState(it)
-        eventPublisher.publishEvent(ConstraintStateChanged(targetEnvironment, constraint, null, it))
       }
     }
 
@@ -95,9 +95,29 @@ interface StatefulConstraintEvaluator<T : Constraint, A : ConstraintStateAttribu
   /**
    * Callback API for [ConstraintStateChanged]. Override this method if your [StatefulConstraintEvaluator] needs
    * to take action when a supported constraint's state changes.
+   *
+   * Don't implement both [onConstraintStateChanged] and [onConstraintStateChangedWithNotification], because both
+   * will be called.
    */
   @JvmDefault
+  @Deprecated(
+    message = "Implement the new method with notifications",
+    replaceWith = ReplaceWith("onConstraintStateChangedWithNotification")
+  )
   fun onConstraintStateChanged(event: ConstraintStateChanged) {
     // default implementation is a no-op
+  }
+
+  /**
+   * Callback API for [ConstraintStateChanged]. Override this method if your [StatefulConstraintEvaluator] needs
+   * to take action when a supported constraint's state changes AND you need to send a notification.
+   *
+   * Don't implement both [onConstraintStateChanged] and [onConstraintStateChangedWithNotification], because both
+   * will be called.
+   */
+  @JvmDefault
+  fun onConstraintStateChangedWithNotification(event: ConstraintStateChanged): PluginNotificationConfig? {
+    // default implementation is a no-op
+    return null
   }
 }

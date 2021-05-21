@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.titus.postdeploy
 
+import com.netflix.spinnaker.config.GitLinkConfig
 import com.netflix.spinnaker.config.PromoteJarConfig
 import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
 import com.netflix.spinnaker.keel.api.action.ActionState
@@ -22,6 +23,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
+import org.springframework.boot.autoconfigure.info.ProjectInfoProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.stereotype.Component
 
@@ -31,11 +33,12 @@ import org.springframework.stereotype.Component
  * repo (REPO_URL) and jenkins build number (BUILD_NUM) passed in as env
  * variables to the container.
  */
-@EnableConfigurationProperties(PromoteJarConfig::class)
+@EnableConfigurationProperties(PromoteJarConfig::class, GitLinkConfig::class)
 @Component
 class PromoteJarHandler(
   override val eventPublisher: EventPublisher,
   val config: PromoteJarConfig,
+  val gitConfig: GitLinkConfig,
   val keelRepository: KeelRepository,
   val containerRunner: ContainerRunner,
   private val linkStrategy: LinkStrategy? = null
@@ -74,14 +77,11 @@ class PromoteJarHandler(
       environmentName = context.environmentName,
       location = config.location(),
       environmentVariables = mapOf(
-        "REPO_URL" to fullArtifact.repoUrl(),
+        "REPO_URL" to fullArtifact.repoUrl(gitConfig.gitUrlPrefix),
         "BUILD_NUMBER" to fullArtifact.buildNumber()
       )
     )
   }
-
-  fun PublishedArtifact.repoUrl(): String =
-    config.gitUrlPrefix + gitMetadata?.project + "/" + gitMetadata?.repo?.name + ".git"
 
   fun PublishedArtifact.buildNumber(): String =
     "$buildNumber"
@@ -92,3 +92,6 @@ class PromoteJarHandler(
     return TitusServerGroup.Location(account!!, region!!)
   }
 }
+
+fun PublishedArtifact.repoUrl(gitUrlPrefix: String?): String =
+  gitUrlPrefix + gitMetadata?.project + "/" + gitMetadata?.repo?.name + ".git"

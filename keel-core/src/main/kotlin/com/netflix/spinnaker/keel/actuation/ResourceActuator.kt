@@ -48,6 +48,7 @@ import com.netflix.spinnaker.keel.veto.VetoResponse
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException
 import com.netflix.spinnaker.kork.exceptions.SystemException
 import com.netflix.spinnaker.kork.exceptions.UserException
+import com.netflix.spinnaker.kork.plugins.proxy.ExtensionInvocationProxy
 import com.newrelic.api.agent.Trace
 import kotlinx.coroutines.async
 import kotlinx.coroutines.future.asDeferred
@@ -55,13 +56,13 @@ import kotlinx.coroutines.supervisorScope
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
+import java.lang.reflect.Proxy
 import java.time.Clock
 import java.time.Duration
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadPoolExecutor
-import org.springframework.core.env.Environment as SpringEnvironment
 
 /**
  * The core component in keel responsible for resource state monitoring and actuation.
@@ -328,7 +329,6 @@ class ResourceActuator(
     } as SpinnakerException
 
   private suspend fun <T : Any> ResourceHandler<*, T>.resolve(resource: Resource<ResourceSpec>): Pair<T, T?> {
-    val isKotlin = this.javaClass.isKotlinClass
     return supervisorScope {
       val desired = if (isKotlin) {
         async {
@@ -372,10 +372,17 @@ class ResourceActuator(
         .contains(resource.id)
     }
 
-  private val Class<*>.isKotlinClass: Boolean
-    get() = this.declaredAnnotations.any {
-      it.annotationClass.qualifiedName == "kotlin.Metadata"
-    }
+  private val ResourceHandler<*, *>.isKotlin: Boolean
+    get() = if (this is Proxy) {
+        (Proxy.getInvocationHandler(this) as? ExtensionInvocationProxy)?.targetClass
+      } else {
+        this.javaClass
+      }?.let {
+        it.declaredAnnotations.any { annotation ->
+          annotation.annotationClass.qualifiedName == "kotlin.Metadata"
+        }
+      }
+      ?: true // err on the side of Kotlin
 
   // These extensions get round the fact tht we don't know the spec type of the resource from
   // the repository. I don't want the `ResourceHandler` interface to be untyped though.

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.rocket.api.artifact.internal.debian.DebianArtifactParser
 import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Moniker
+import com.netflix.spinnaker.keel.api.NoStrategy
 import com.netflix.spinnaker.keel.api.RedBlack
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceDiff
@@ -155,7 +156,7 @@ class ClusterHandler(
     current(resource)
       .map { (region, serverGroup) ->
         val account = serverGroup.location.account
-        val images = cloudDriverService.getImage(account = account, region = region, amiId = serverGroup.launchConfiguration.imageId)
+        val images = cloudDriverService.  getImage(account = account, region = region, amiId = serverGroup.launchConfiguration.imageId)
         if (images.size > 1) {
           log.error("More than one image with ami id ${serverGroup.launchConfiguration.imageId}, using first...")
         }
@@ -831,7 +832,8 @@ class ClusterHandler(
             "cloudProvider" to CLOUD_PROVIDER,
             "credentials" to desired.location.account,
             "moniker" to current.moniker.orcaClusterMoniker,
-            "region" to current.location.region
+            "region" to current.location.region,
+            "serverGroupName" to current.moniker.serverGroup
           )
         }
         .toMutableList()
@@ -940,15 +942,22 @@ class ClusterHandler(
       regions = resource.spec.locations.regions.map { it.name }.toSet(),
       serviceAccount = resource.serviceAccount
     ).map { activeServerGroup ->
-      val numEnabled = existingServerGroups
-        .getOrDefault(activeServerGroup.location.region, emptyList())
-        .filter { !it.disabled }
-        .size
+      if (resource.spec.deployWith is NoStrategy) {
+        // we only care about num enabled if there is a deploy strategy
+        // if there is no deploy strategy, ignore the calculation so that there isn't a diff ever in this property.
+        activeServerGroup.copy(onlyEnabledServerGroup = true)
+      } else {
+        val numEnabled = existingServerGroups
+          .getOrDefault(activeServerGroup.location.region, emptyList())
+          .filter { !it.disabled }
+          .size
 
-      when (numEnabled) {
-        1 -> activeServerGroup.copy(onlyEnabledServerGroup = true)
-        else -> activeServerGroup.copy(onlyEnabledServerGroup = false)
+        when (numEnabled) {
+          1 -> activeServerGroup.copy(onlyEnabledServerGroup = true)
+          else -> activeServerGroup.copy(onlyEnabledServerGroup = false)
+        }
       }
+
     }
 
     val allSame: Boolean = activeServerGroups.distinctBy { it.launchConfiguration.appVersion }.size == 1

@@ -21,6 +21,7 @@ import com.netflix.spinnaker.keel.events.ArtifactDeployedNotification
 import com.netflix.spinnaker.keel.events.DeliveryConfigChangedNotification
 import com.netflix.spinnaker.keel.events.MarkAsBadNotification
 import com.netflix.spinnaker.keel.events.PinnedNotification
+import com.netflix.spinnaker.keel.events.PluginNotification
 import com.netflix.spinnaker.keel.events.ResourceTaskFailed
 import com.netflix.spinnaker.keel.events.UnpinnedNotification
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEvent
@@ -39,6 +40,9 @@ import com.netflix.spinnaker.keel.notifications.NotificationType.MANUAL_JUDGMENT
 import com.netflix.spinnaker.keel.notifications.NotificationType.MANUAL_JUDGMENT_AWAIT
 import com.netflix.spinnaker.keel.notifications.NotificationType.MANUAL_JUDGMENT_REJECTED
 import com.netflix.spinnaker.keel.notifications.NotificationType.MANUAL_JUDGMENT_UPDATE
+import com.netflix.spinnaker.keel.notifications.NotificationType.PLUGIN_NOTIFICATION_NORMAL
+import com.netflix.spinnaker.keel.notifications.NotificationType.PLUGIN_NOTIFICATION_QUIET
+import com.netflix.spinnaker.keel.notifications.NotificationType.PLUGIN_NOTIFICATION_VERBOSE
 import com.netflix.spinnaker.keel.notifications.NotificationType.TEST_FAILED
 import com.netflix.spinnaker.keel.notifications.NotificationType.TEST_PASSED
 import com.netflix.spinnaker.keel.persistence.KeelRepository
@@ -236,6 +240,38 @@ class NotificationEventListener(
         ),
         ARTIFACT_DEPLOYMENT_SUCCEEDED,
         targetEnvironment)
+    }
+  }
+
+  @EventListener(PluginNotification::class)
+  fun onPluginNotification(notification: PluginNotification) {
+    with(notification) {
+      val config = constraintStateChanged.deliveryConfig
+      val deliveryArtifact = config
+        .matchingArtifactByReference(constraintStateChanged.currentState.artifactReference) ?: return
+      val artifact = repository.getArtifactVersion(deliveryArtifact, constraintStateChanged.currentState.artifactVersion, null)
+      if (artifact == null) {
+        log.debug("artifact version is null for application ${constraintStateChanged.deliveryConfig.application}. Can't send deployed artifact notification.")
+        return
+      }
+
+      val level = when (notification.pluginNotificationConfig.notificationLevel) {
+        verbose -> PLUGIN_NOTIFICATION_VERBOSE
+          normal -> PLUGIN_NOTIFICATION_NORMAL
+          quiet ->PLUGIN_NOTIFICATION_QUIET
+      }
+
+      sendSlackMessage(config,
+        SlackPluginNotification(
+          time = clock.instant(),
+          application = config.application,
+          config = pluginNotificationConfig,
+          artifactVersion = artifact.copy(reference = deliveryArtifact.reference),
+          targetEnvironment = constraintStateChanged.currentState.environmentName,
+        ),
+        level,
+        constraintStateChanged.currentState.environmentName
+      )
     }
   }
 
@@ -459,10 +495,30 @@ class NotificationEventListener(
 
 
   private fun translateFrequencyToEvents(frequency: NotificationFrequency): List<Type> {
-    val quietNotifications = listOf(ARTIFACT_MARK_AS_BAD, ARTIFACT_PINNED, ARTIFACT_UNPINNED, LIFECYCLE_EVENT, APPLICATION_PAUSED,
-      APPLICATION_RESUMED, MANUAL_JUDGMENT_AWAIT, MANUAL_JUDGMENT_UPDATE, ARTIFACT_DEPLOYMENT_FAILED, TEST_FAILED)
-    val normalNotifications = quietNotifications + listOf(ARTIFACT_DEPLOYMENT_SUCCEEDED, DELIVERY_CONFIG_CHANGED, TEST_PASSED)
-    val verboseNotifications = normalNotifications + listOf(MANUAL_JUDGMENT_REJECTED, MANUAL_JUDGMENT_APPROVED)
+    val quietNotifications = listOf(
+      ARTIFACT_MARK_AS_BAD,
+      ARTIFACT_PINNED,
+      ARTIFACT_UNPINNED,
+      LIFECYCLE_EVENT,
+      APPLICATION_PAUSED,
+      APPLICATION_RESUMED,
+      MANUAL_JUDGMENT_AWAIT,
+      MANUAL_JUDGMENT_UPDATE,
+      ARTIFACT_DEPLOYMENT_FAILED,
+      TEST_FAILED,
+      PLUGIN_NOTIFICATION_QUIET
+    )
+    val normalNotifications = quietNotifications + listOf(
+      ARTIFACT_DEPLOYMENT_SUCCEEDED,
+      DELIVERY_CONFIG_CHANGED,
+      TEST_PASSED,
+      PLUGIN_NOTIFICATION_NORMAL
+    )
+    val verboseNotifications = normalNotifications + listOf(
+      MANUAL_JUDGMENT_REJECTED,
+      MANUAL_JUDGMENT_APPROVED,
+      PLUGIN_NOTIFICATION_VERBOSE
+    )
 
     return when (frequency) {
       verbose -> verboseNotifications

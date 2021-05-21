@@ -20,6 +20,7 @@ import com.netflix.spinnaker.keel.api.action.ActionRepository
 import com.netflix.spinnaker.keel.api.action.ActionState
 import com.netflix.spinnaker.keel.api.action.ActionStateFull
 import com.netflix.spinnaker.keel.api.action.ActionType.VERIFICATION
+import com.netflix.spinnaker.keel.api.events.ConstraintStateChanged
 import com.netflix.spinnaker.keel.core.api.ApplicationSummary
 import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
@@ -203,8 +204,35 @@ class CombinedRepository(
   override fun storeEnvironment(deliveryConfigName: String, environment: Environment) =
     deliveryConfigRepository.storeEnvironment(deliveryConfigName, environment)
 
-  override fun storeConstraintState(state: ConstraintState) =
+  override fun storeConstraintState(state: ConstraintState) {
+    val previousState = getConstraintState(
+      deliveryConfigName = state.deliveryConfigName,
+      environmentName = state.environmentName,
+      artifactVersion = state.artifactVersion,
+      type = state.type,
+      artifactReference = state.artifactReference
+    )
     deliveryConfigRepository.storeConstraintState(state)
+    if (!sameState(previousState, state)) {
+      val config = getDeliveryConfig(state.deliveryConfigName)
+      publisher.publishEvent(
+        ConstraintStateChanged(
+          environment = config.environments.first { it.name == state.environmentName },
+          constraint = config.constraintInEnvironment(state.environmentName, state.type),
+          deliveryConfig = config,
+          previousState = previousState,
+          currentState = state
+        )
+      )
+    }
+  }
+
+  private fun sameState(previous: ConstraintState?, current: ConstraintState): Boolean =
+    previous?.attributes == current.attributes
+      && previous?.status == current.status
+      && previous.judgedAt == current.judgedAt
+      && previous.judgedBy == current.judgedBy
+      && previous.comment == current.comment
 
   override fun getConstraintState(deliveryConfigName: String, environmentName: String, artifactVersion: String, type: String, artifactReference: String?): ConstraintState? =
     deliveryConfigRepository.getConstraintState(deliveryConfigName, environmentName, artifactVersion, type, artifactReference)
@@ -235,6 +263,9 @@ class CombinedRepository(
 
   override fun constraintStateFor(deliveryConfigName: String, environmentName: String, limit: Int): List<ConstraintState> =
     deliveryConfigRepository.constraintStateFor(deliveryConfigName, environmentName, limit)
+
+  override fun constraintStateForEnvironments(deliveryConfigName: String, environmentUIDs: List<String>): List<ConstraintState> =
+    deliveryConfigRepository.constraintStateForEnvironments(deliveryConfigName, environmentUIDs)
 
   override fun deliveryConfigsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<DeliveryConfig> =
     deliveryConfigRepository.itemsDueForCheck(minTimeSinceLastCheck, limit)

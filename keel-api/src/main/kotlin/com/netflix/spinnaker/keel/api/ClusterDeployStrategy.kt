@@ -40,6 +40,30 @@ data class Highlander(
   override val strategy = "highlander"
 }
 
+data class NoStrategy(
+  override val health: DeployHealth = AUTO
+): ClusterDeployStrategy() {
+  override val strategy = "none"
+}
+
+data class RollingPush(
+  override val health: DeployHealth = AUTO,
+  val relaunchAllInstances: Boolean = true,
+  /** Number of instances to terminate and relaunch at the same time */
+  val numConcurrentRelaunches: Int? = null,
+  val totalRelaunches: Int? = null,
+  val terminationOrder: TerminationOrder? = null
+): ClusterDeployStrategy() {
+  override val strategy = "rolling-push"
+}
+
+enum class TerminationOrder {
+  /** Terminates the newest instances first */
+  NEWEST_FIRST,
+  /** Terminates the oldest instances first */
+  OLDEST_FIRST
+}
+
 enum class DeployHealth {
   /** Use Orca's default (Discovery and ELB/Target group if attached). */
   AUTO,

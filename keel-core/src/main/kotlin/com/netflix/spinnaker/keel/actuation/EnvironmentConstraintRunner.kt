@@ -87,7 +87,7 @@ class EnvironmentConstraintRunner(
     val vetoedVersions: Set<String> = envContext.vetoedVersions
 
     log.debug(
-      "Checking constraints for ${envContext.artifact} in ${envContext.environment}, " +
+      "Checking constraints for ${envContext.artifact} in ${envContext.environment.name}, " +
         "versions=${envContext.versions.joinToString()}, vetoed=${envContext.vetoedVersions.joinToString()}"
     )
 
@@ -112,11 +112,11 @@ class EnvironmentConstraintRunner(
 
         log.debug(
           "Version $v of ${envContext.artifact} ${if (passesConstraints) "passes" else "does not pass"} " +
-            "constraints in ${envContext.environment}"
+            "constraints in ${envContext.environment.name}"
         )
         log.debug(
           "Version $v of ${envContext.artifact} ${if (versionIsPending) "is" else "is not"} " +
-            "pending constraint approval in ${envContext.environment}"
+            "pending constraint approval in ${envContext.environment.name}"
         )
 
         // select either the first version that passes all constraints,
@@ -139,7 +139,7 @@ class EnvironmentConstraintRunner(
     envContext: EnvironmentContext,
     versionsWithPendingStatefulConstraintStatus: MutableList<PublishedArtifact>
   ) {
-    log.debug("pendingVersionsToCheck: [$versionsWithPendingStatefulConstraintStatus] of artifact ${envContext.artifact.name} for environment ${envContext.environment.name} ")
+    log.debug("pendingVersionsToCheck: [${versionsWithPendingStatefulConstraintStatus.map { it.version }}] of artifact ${envContext.artifact.name} for environment ${envContext.environment.name} ")
     versionsWithPendingStatefulConstraintStatus
       .reversed() // oldest first
       .forEach { artifactVersion ->

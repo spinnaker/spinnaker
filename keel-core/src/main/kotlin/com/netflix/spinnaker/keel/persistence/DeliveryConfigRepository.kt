@@ -153,6 +153,16 @@ interface DeliveryConfigRepository : PeriodicallyCheckedRepository<DeliveryConfi
   fun constraintStateFor(application: String): List<ConstraintState>
 
   /**
+   * Retrieves recent [ConstraintState]'s for an app, or for a list of given [Environment]s of that app.
+   *
+   * @param deliveryConfigName the [DeliveryConfig] name
+   * @param environmentUIDs the [Environment] ids
+   *
+   * @return A list of [ConstraintState]'s or an empty list if none exist.
+   */
+  fun constraintStateForEnvironments(deliveryConfigName: String, environmentUIDs: List<String> = emptyList(), limit: Int? = null): List<ConstraintState>
+
+  /**
    * Retrieves recent [ConstraintState]'s for an [Environment].
    *
    * @param deliveryConfigName the [DeliveryConfig] name

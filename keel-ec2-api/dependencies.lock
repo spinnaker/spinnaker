@@ -1,0 +1,1025 @@
+{
+    "annotationProcessor": {
+        "com.netflix.spinnaker.netflixplatform:netflixplatform-bom": {
+            "locked": "2.79.0"
+        },
+        "org.springframework.boot:spring-boot-configuration-processor": {
+            "locked": "2.3.9.RELEASE"
+        }
+    },
+    "compileClasspath": {
+        "com.github.zafarkhaja:java-semver": {
+            "locked": "0.9.0",
+            "transitive": [
+                "org.pf4j:pf4j"
+            ]
+        },
+        "com.google.code.findbugs:jsr305": {
+            "locked": "3.0.2",
+            "transitive": [
+                "com.netflix.spinnaker.kork.internal:kork-annotations",
+                "com.netflix.spinnaker.kork.internal:kork-exceptions"
+            ]
+        },
+        "com.netflix.spinnaker.keel:keel-api": {
+            "project": true
+        },
+        "com.netflix.spinnaker.kork.internal:kork-annotations": {
+            "locked": "2.79.0",
+            "transitive": [
+                "com.netflix.spinnaker.kork.internal:kork-plugins-api"
+            ]
+        },
+        "com.netflix.spinnaker.kork.internal:kork-exceptions": {
+            "locked": "2.79.0",
+            "transitive": [
+                "com.netflix.spinnaker.keel:keel-api"
+            ]
+        },
+        "com.netflix.spinnaker.kork.internal:kork-plugins-api": {
+            "locked": "2.79.0",
+            "transitive": [
+                "com.netflix.spinnaker.keel:keel-api"
+            ]
+        },
+        "com.netflix.spinnaker.netflixplatform:netflixplatform-bom": {
+            "locked": "2.79.0"
+        },
+        "de.huxhorn.sulky:de.huxhorn.sulky.ulid": {
+            "locked": "8.2.0",
+            "transitive": [
+                "com.netflix.spinnaker.keel:keel-api"
+            ]
+        },
+        "javax.annotation:javax.annotation-api": {
+            "locked": "1.3.2",
+            "transitive": [
+                "com.netflix.spinnaker.kork.internal:kork-plugins-api"
+            ]
+        },
+        "org.jetbrains.kotlin:kotlin-stdlib": {
+            "locked": "1.4.32",
+            "transitive": [
+                "com.netflix.spinnaker.kork.internal:kork-plugins-api",
+                "org.jetbrains.kotlin:kotlin-stdlib-jdk7",
+                "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+            ]
+        },
+        "org.jetbrains.kotlin:kotlin-stdlib-common": {
+            "locked": "1.4.32",
+            "transitive": [
+                "org.jetbrains.kotlin:kotlin-stdlib"
+            ]
+        },
+        "org.jetbrains.kotlin:kotlin-stdlib-jdk7": {
+            "locked": "1.4.32",
+            "transitive": [
+                "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+            ]
+        },
+        "org.jetbrains.kotlin:kotlin-stdlib-jdk8": {
+            "locked": "1.4.32",
+            "transitive": [
+                "com.netflix.spinnaker.keel:keel-api"
+            ]
+        },
+        "org.jetbrains:annotations": {
+            "locked": "13.0",
+            "transitive": [
+                "org.jetbrains.kotlin:kotlin-stdlib"
+            ]
+        },
+        "org.pf4j:pf4j": {
+            "locked": "3.2.0",
+            "transitive": [
+                "com.netflix.spinnaker.kork.internal:kork-plugins-api"
+            ]
+        },
+        "org.slf4j:slf4j-api": {
+            "locked": "1.7.30",
+            "transitive": [
+                "com.netflix.spinnaker.kork.internal:kork-plugins-api",
+                "org.pf4j:pf4j"
+            ]
+        }
+    },
+    "kotlinCompilerClasspath": {
+        "org.jetbrains.intellij.deps:trove4j": {
+            "locked": "1.0.20181211",
+            "transitive": [
+                "org.jetbrains.kotlin:kotlin-compiler-embeddable"
+            ]
+        },
+        "org.jetbrains.kotlin:kotlin-compiler-embeddable": {
+            "locked": "1.4.32"
+        },
+        "org.jetbrains.kotlin:kotlin-daemon-embeddable": {
+            "locked": "1.4.32",
+            "transitive": [
+                "org.jetbrains.kotlin:kotlin-compiler-embeddable"
+            ]
+        },
+        "org.jetbrains.kotlin:kotlin-reflect": {
+            "locked": "1.4.32",
+            "transitive": [
+                "org.jetbrains.kotlin:kotlin-compiler-embeddable"
+            ]
+        },
+        "org.jetbrains.kotlin:kotlin-script-runtime": {
+            "locked": "1.4.32",
+            "transitive": [
+                "org.jetbrains.kotlin:kotlin-compiler-embeddable"
+            ]
+        },
+        "org.jetbrains.kotlin:kotlin-stdlib": {
+            "locked": "1.4.32",
+            "transitive": [
+                "org.jetbrains.kotlin:kotlin-compiler-embeddable",
+                "org.jetbrains.kotlin:kotlin-reflect"
+            ]
+        },
+        "org.jetbrains.kotlin:kotlin-stdlib-common": {
+            "locked": "1.4.32",
+            "transitive": [
+                "org.jetbrains.kotlin:kotlin-stdlib"
+            ]
+        },
+        "org.jetbrains:annotations": {
+            "locked": "13.0",
+            "transitive": [
+                "org.jetbrains.kotlin:kotlin-stdlib"
+            ]
+        }
+    },
+    "kotlinCompilerPluginClasspath": {
+        "org.jetbrains.kotlin:kotlin-allopen": {
+            "locked": "1.4.32"
+        },
+        "org.jetbrains.kotlin:kotlin-gradle-plugin-api": {
+            "locked": "1.4.32",
+            "transitive": [
+                "org.jetbrains.kotlin:kotlin-allopen"
+            ]
+        },
+        "org.jetbrains.kotlin:kotlin-gradle-plugin-model": {
+            "locked": "1.4.32",
+            "transitive": [
+                "org.jetbrains.kotlin:kotlin-allopen"
+            ]
+        },
+        "org.jetbrains.kotlin:kotlin-script-runtime": {
+            "locked": "1.4.32",
+            "transitive": [
+                "org.jetbrains.kotlin:kotlin-scripting-jvm"
+            ]
+        },
+        "org.jetbrains.kotlin:kotlin-scripting-common": {
+            "locked": "1.4.32",
+            "transitive": [
+                "org.jetbrains.kotlin:kotlin-scripting-compiler-impl-embeddable",
+                "org.jetbrains.kotlin:kotlin-scripting-jvm"
+            ]
+        },
+        "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable": {
+            "locked": "1.4.32"
+        },
+        "org.jetbrains.kotlin:kotlin-scripting-compiler-impl-embeddable": {
+            "locked": "1.4.32",
+            "transitive": [
+                "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable"
+            ]
+        },
+        "org.jetbrains.kotlin:kotlin-scripting-jvm": {
+            "locked": "1.4.32",
+            "transitive": [
+                "org.jetbrains.kotlin:kotlin-scripting-compiler-impl-embeddable"
+            ]
+        },
+        "org.jetbrains.kotlin:kotlin-stdlib": {
+            "locked": "1.4.32",
+            "transitive": [
+                "org.jetbrains.kotlin:kotlin-allopen",
+                "org.jetbrains.kotlin:kotlin-gradle-plugin-api",
+                "org.jetbrains.kotlin:kotlin-gradle-plugin-model",
+                "org.jetbrains.kotlin:kotlin-scripting-common",
+                "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable",
+                "org.jetbrains.kotlin:kotlin-scripting-compiler-impl-embeddable",
+                "org.jetbrains.kotlin:kotlin-scripting-jvm",
+                "org.jetbrains.kotlinx:kotlinx-coroutines-core"
+            ]
+        },
+        "org.jetbrains.kotlin:kotlin-stdlib-common": {
+            "locked": "1.4.32",
+            "transitive": [
+                "org.jetbrains.kotlin:kotlin-stdlib",
+                "org.jetbrains.kotlinx:kotlinx-coroutines-core"
+            ]
+        },
+        "org.jetbrains.kotlinx:kotlinx-coroutines-core": {
+            "locked": "1.3.8",
+            "transitive": [
+                "org.jetbrains.kotlin:kotlin-scripting-common",
+                "org.jetbrains.kotlin:kotlin-scripting-compiler-impl-embeddable"
+            ]
+        },
+        "org.jetbrains:annotations": {
+            "locked": "13.0",
+            "transitive": [
+                "org.jetbrains.kotlin:kotlin-stdlib"
+            ]
+        }
+    },
+    "kotlinKlibCommonizerClasspath": {
+        "org.jetbrains.intellij.deps:trove4j": {
+            "locked": "1.0.20181211",
+            "transitive": [
+                "org.jetbrains.kotlin:kotlin-compiler-embeddable"
+            ]
+        },
+        "org.jetbrains.kotlin:kotlin-compiler-embeddable": {
+            "locked": "1.4.32",
+            "transitive": [
+                "org.jetbrains.kotlin:kotlin-klib-commonizer-embeddable"
+            ]
+        },
+        "org.jetbrains.kotlin:kotlin-daemon-embeddable": {
+            "locked": "1.4.32",
+            "transitive": [
+                "org.jetbrains.kotlin:kotlin-compiler-embeddable"
+            ]
+        },
+        "org.jetbrains.kotlin:kotlin-klib-commonizer-embeddable": {
+            "locked": "1.4.32"
+        },
+        "org.jetbrains.kotlin:kotlin-reflect": {
+            "locked": "1.4.32",
+            "transitive": [
+                "org.jetbrains.kotlin:kotlin-compiler-embeddable"
+            ]
+        },
+        "org.jetbrains.kotlin:kotlin-script-runtime": {
+            "locked": "1.4.32",
+            "transitive": [
+                "org.jetbrains.kotlin:kotlin-compiler-embeddable"
+            ]
+        },
+        "org.jetbrains.kotlin:kotlin-stdlib": {
+            "locked": "1.4.32",
+            "transitive": [
+                "org.jetbrains.kotlin:kotlin-compiler-embeddable",
+                "org.jetbrains.kotlin:kotlin-klib-commonizer-embeddable",
+                "org.jetbrains.kotlin:kotlin-reflect"
+            ]
+        },
+        "org.jetbrains.kotlin:kotlin-stdlib-common": {
+            "locked": "1.4.32",
+            "transitive": [
+                "org.jetbrains.kotlin:kotlin-stdlib"
+            ]
+        },
+        "org.jetbrains:annotations": {
+            "locked": "13.0",
+            "transitive": [
+                "org.jetbrains.kotlin:kotlin-stdlib"
+            ]
+        }
+    },
+    "runtimeClasspath": {
+        "com.github.zafarkhaja:java-semver": {
+            "locked": "0.9.0",
+            "transitive": [
+                "org.pf4j:pf4j"
+            ]
+        },
+        "com.google.code.findbugs:jsr305": {
+            "locked": "3.0.2",
+            "transitive": [
+                "com.netflix.spinnaker.kork.internal:kork-annotations",
+                "com.netflix.spinnaker.kork.internal:kork-exceptions"
+            ]
+        },
+        "com.netflix.spinnaker.keel:keel-api": {
+            "project": true
+        },
+        "com.netflix.spinnaker.kork.internal:kork-annotations": {
+            "locked": "2.79.0",
+            "transitive": [
+                "com.netflix.spinnaker.kork.internal:kork-plugins-api"
+            ]
+        },
+        "com.netflix.spinnaker.kork.internal:kork-exceptions": {
+            "locked": "2.79.0",
+            "transitive": [
+                "com.netflix.spinnaker.keel:keel-api"
+            ]
+        },
+        "com.netflix.spinnaker.kork.internal:kork-plugins-api": {
+            "locked": "2.79.0",
+            "transitive": [
+                "com.netflix.spinnaker.keel:keel-api"
+            ]
+        },
+        "com.netflix.spinnaker.netflixplatform:netflixplatform-bom": {
+            "locked": "2.79.0",
+            "transitive": [
+                "com.netflix.spinnaker.keel:keel-api"
+            ]
+        },
+        "de.huxhorn.sulky:de.huxhorn.sulky.ulid": {
+            "locked": "8.2.0",
+            "transitive": [
+                "com.netflix.spinnaker.keel:keel-api"
+            ]
+        },
+        "javax.annotation:javax.annotation-api": {
+            "locked": "1.3.2",
+            "transitive": [
+                "com.netflix.spinnaker.kork.internal:kork-plugins-api"
+            ]
+        },
+        "org.jetbrains.kotlin:kotlin-stdlib": {
+            "locked": "1.4.32",
+            "transitive": [
+                "com.netflix.spinnaker.kork.internal:kork-plugins-api",
+                "org.jetbrains.kotlin:kotlin-stdlib-jdk7",
+                "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+            ]
+        },
+        "org.jetbrains.kotlin:kotlin-stdlib-common": {
+            "locked": "1.4.32",
+            "transitive": [
+                "org.jetbrains.kotlin:kotlin-stdlib"
+            ]
+        },
+        "org.jetbrains.kotlin:kotlin-stdlib-jdk7": {
+            "locked": "1.4.32",
+            "transitive": [
+                "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+            ]
+        },
+        "org.jetbrains.kotlin:kotlin-stdlib-jdk8": {
+            "locked": "1.4.32",
+            "transitive": [
+                "com.netflix.spinnaker.keel:keel-api"
+            ]
+        },
+        "org.jetbrains:annotations": {
+            "locked": "13.0",
+            "transitive": [
+                "org.jetbrains.kotlin:kotlin-stdlib"
+            ]
+        },
+        "org.pf4j:pf4j": {
+            "locked": "3.2.0",
+            "transitive": [
+                "com.netflix.spinnaker.kork.internal:kork-plugins-api"
+            ]
+        },
+        "org.slf4j:slf4j-api": {
+            "locked": "1.7.30",
+            "transitive": [
+                "com.netflix.spinnaker.keel:keel-api",
+                "com.netflix.spinnaker.kork.internal:kork-plugins-api",
+                "org.pf4j:pf4j"
+            ]
+        }
+    },
+    "testAnnotationProcessor": {
+        "com.netflix.spinnaker.netflixplatform:netflixplatform-bom": {
+            "locked": "2.79.0"
+        }
+    },
+    "testCompileClasspath": {
+        "com.github.zafarkhaja:java-semver": {
+            "locked": "0.9.0",
+            "transitive": [
+                "org.pf4j:pf4j"
+            ]
+        },
+        "com.google.code.findbugs:jsr305": {
+            "locked": "3.0.2",
+            "transitive": [
+                "com.netflix.spinnaker.kork.internal:kork-annotations",
+                "com.netflix.spinnaker.kork.internal:kork-exceptions"
+            ]
+        },
+        "com.netflix.spinnaker.keel:keel-api": {
+            "project": true
+        },
+        "com.netflix.spinnaker.kork.internal:kork-annotations": {
+            "locked": "2.79.0",
+            "transitive": [
+                "com.netflix.spinnaker.kork.internal:kork-plugins-api"
+            ]
+        },
+        "com.netflix.spinnaker.kork.internal:kork-exceptions": {
+            "locked": "2.79.0",
+            "transitive": [
+                "com.netflix.spinnaker.keel:keel-api"
+            ]
+        },
+        "com.netflix.spinnaker.kork.internal:kork-plugins-api": {
+            "locked": "2.79.0",
+            "transitive": [
+                "com.netflix.spinnaker.keel:keel-api"
+            ]
+        },
+        "com.netflix.spinnaker.netflixplatform:netflixplatform-bom": {
+            "locked": "2.79.0"
+        },
+        "com.nhaarman.mockitokotlin2:mockito-kotlin": {
+            "locked": "2.2.0"
+        },
+        "de.huxhorn.sulky:de.huxhorn.sulky.ulid": {
+            "locked": "8.2.0",
+            "transitive": [
+                "com.netflix.spinnaker.keel:keel-api"
+            ]
+        },
+        "dev.minutest:minutest": {
+            "locked": "1.11.0"
+        },
+        "io.mockk:mockk": {
+            "locked": "1.10.5"
+        },
+        "io.mockk:mockk-common": {
+            "locked": "1.10.5",
+            "transitive": [
+                "io.mockk:mockk"
+            ]
+        },
+        "io.mockk:mockk-dsl": {
+            "locked": "1.10.5",
+            "transitive": [
+                "io.mockk:mockk-common",
+                "io.mockk:mockk-dsl-jvm"
+            ]
+        },
+        "io.mockk:mockk-dsl-jvm": {
+            "locked": "1.10.5",
+            "transitive": [
+                "io.mockk:mockk"
+            ]
+        },
+        "io.strikt:strikt-core": {
+            "locked": "0.29.0"
+        },
+        "javax.annotation:javax.annotation-api": {
+            "locked": "1.3.2",
+            "transitive": [
+                "com.netflix.spinnaker.kork.internal:kork-plugins-api"
+            ]
+        },
+        "junit:junit": {
+            "locked": "4.13.2",
+            "transitive": [
+                "org.junit.platform:junit-platform-runner"
+            ]
+        },
+        "net.bytebuddy:byte-buddy": {
+            "locked": "1.10.20",
+            "transitive": [
+                "org.mockito:mockito-core"
+            ]
+        },
+        "net.bytebuddy:byte-buddy-agent": {
+            "locked": "1.10.20",
+            "transitive": [
+                "org.mockito:mockito-core"
+            ]
+        },
+        "org.apiguardian:apiguardian-api": {
+            "locked": "1.1.0",
+            "transitive": [
+                "org.junit.jupiter:junit-jupiter-api",
+                "org.junit.jupiter:junit-jupiter-engine",
+                "org.junit.jupiter:junit-jupiter-params",
+                "org.junit.platform:junit-platform-commons",
+                "org.junit.platform:junit-platform-engine",
+                "org.junit.platform:junit-platform-launcher",
+                "org.junit.platform:junit-platform-runner",
+                "org.junit.platform:junit-platform-suite-api"
+            ]
+        },
+        "org.hamcrest:hamcrest": {
+            "locked": "2.2",
+            "transitive": [
+                "org.hamcrest:hamcrest-core"
+            ]
+        },
+        "org.hamcrest:hamcrest-core": {
+            "locked": "2.2",
+            "transitive": [
+                "junit:junit"
+            ]
+        },
+        "org.jacoco:org.jacoco.agent": {
+            "locked": "0.8.5",
+            "transitive": [
+                "org.jacoco:org.jacoco.ant"
+            ]
+        },
+        "org.jacoco:org.jacoco.ant": {
+            "locked": "0.8.5"
+        },
+        "org.jacoco:org.jacoco.core": {
+            "locked": "0.8.5",
+            "transitive": [
+                "org.jacoco:org.jacoco.ant",
+                "org.jacoco:org.jacoco.report"
+            ]
+        },
+        "org.jacoco:org.jacoco.report": {
+            "locked": "0.8.5",
+            "transitive": [
+                "org.jacoco:org.jacoco.ant"
+            ]
+        },
+        "org.jetbrains.kotlin:kotlin-stdlib": {
+            "locked": "1.4.32",
+            "transitive": [
+                "com.netflix.spinnaker.kork.internal:kork-plugins-api",
+                "org.jetbrains.kotlin:kotlin-stdlib-jdk7",
+                "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+            ]
+        },
+        "org.jetbrains.kotlin:kotlin-stdlib-common": {
+            "locked": "1.4.32",
+            "transitive": [
+                "org.jetbrains.kotlin:kotlin-stdlib"
+            ]
+        },
+        "org.jetbrains.kotlin:kotlin-stdlib-jdk7": {
+            "locked": "1.4.32",
+            "transitive": [
+                "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+            ]
+        },
+        "org.jetbrains.kotlin:kotlin-stdlib-jdk8": {
+            "locked": "1.4.32",
+            "transitive": [
+                "com.netflix.spinnaker.keel:keel-api",
+                "io.strikt:strikt-core"
+            ]
+        },
+        "org.jetbrains:annotations": {
+            "locked": "13.0",
+            "transitive": [
+                "org.jetbrains.kotlin:kotlin-stdlib"
+            ]
+        },
+        "org.junit.jupiter:junit-jupiter-api": {
+            "locked": "5.7.1",
+            "transitive": [
+                "org.junit.jupiter:junit-jupiter-engine",
+                "org.junit.jupiter:junit-jupiter-params"
+            ]
+        },
+        "org.junit.jupiter:junit-jupiter-engine": {
+            "locked": "5.7.1"
+        },
+        "org.junit.jupiter:junit-jupiter-params": {
+            "locked": "5.7.1"
+        },
+        "org.junit.platform:junit-platform-commons": {
+            "locked": "1.7.1",
+            "transitive": [
+                "org.junit.jupiter:junit-jupiter-api",
+                "org.junit.platform:junit-platform-engine"
+            ]
+        },
+        "org.junit.platform:junit-platform-engine": {
+            "locked": "1.7.1",
+            "transitive": [
+                "org.junit.jupiter:junit-jupiter-engine",
+                "org.junit.platform:junit-platform-launcher"
+            ]
+        },
+        "org.junit.platform:junit-platform-launcher": {
+            "locked": "1.6.3",
+            "transitive": [
+                "org.junit.platform:junit-platform-runner"
+            ]
+        },
+        "org.junit.platform:junit-platform-runner": {
+            "locked": "1.6.3"
+        },
+        "org.junit.platform:junit-platform-suite-api": {
+            "locked": "1.6.3",
+            "transitive": [
+                "org.junit.platform:junit-platform-runner"
+            ]
+        },
+        "org.mockito:mockito-core": {
+            "locked": "3.3.3",
+            "transitive": [
+                "com.nhaarman.mockitokotlin2:mockito-kotlin"
+            ]
+        },
+        "org.objenesis:objenesis": {
+            "locked": "2.6",
+            "transitive": [
+                "org.mockito:mockito-core"
+            ]
+        },
+        "org.opentest4j:opentest4j": {
+            "locked": "1.2.0",
+            "transitive": [
+                "io.strikt:strikt-core",
+                "org.junit.jupiter:junit-jupiter-api",
+                "org.junit.platform:junit-platform-engine"
+            ]
+        },
+        "org.ow2.asm:asm": {
+            "locked": "9.0",
+            "transitive": [
+                "org.jacoco:org.jacoco.core",
+                "org.ow2.asm:asm-commons",
+                "org.ow2.asm:asm-tree"
+            ]
+        },
+        "org.ow2.asm:asm-analysis": {
+            "locked": "9.0",
+            "transitive": [
+                "org.ow2.asm:asm-commons"
+            ]
+        },
+        "org.ow2.asm:asm-commons": {
+            "locked": "9.0",
+            "transitive": [
+                "org.jacoco:org.jacoco.core"
+            ]
+        },
+        "org.ow2.asm:asm-tree": {
+            "locked": "9.0",
+            "transitive": [
+                "org.jacoco:org.jacoco.core",
+                "org.ow2.asm:asm-analysis",
+                "org.ow2.asm:asm-commons"
+            ]
+        },
+        "org.pf4j:pf4j": {
+            "locked": "3.2.0",
+            "transitive": [
+                "com.netflix.spinnaker.kork.internal:kork-plugins-api"
+            ]
+        },
+        "org.slf4j:slf4j-api": {
+            "locked": "1.7.30",
+            "transitive": [
+                "com.netflix.spinnaker.kork.internal:kork-plugins-api",
+                "org.pf4j:pf4j"
+            ]
+        }
+    },
+    "testRuntimeClasspath": {
+        "com.christophsturm:filepeek": {
+            "locked": "0.1.2",
+            "transitive": [
+                "io.strikt:strikt-core"
+            ]
+        },
+        "com.github.zafarkhaja:java-semver": {
+            "locked": "0.9.0",
+            "transitive": [
+                "org.pf4j:pf4j"
+            ]
+        },
+        "com.google.code.findbugs:jsr305": {
+            "locked": "3.0.2",
+            "transitive": [
+                "com.netflix.spinnaker.kork.internal:kork-annotations",
+                "com.netflix.spinnaker.kork.internal:kork-exceptions"
+            ]
+        },
+        "com.netflix.spinnaker.keel:keel-api": {
+            "project": true
+        },
+        "com.netflix.spinnaker.kork.internal:kork-annotations": {
+            "locked": "2.79.0",
+            "transitive": [
+                "com.netflix.spinnaker.kork.internal:kork-plugins-api"
+            ]
+        },
+        "com.netflix.spinnaker.kork.internal:kork-exceptions": {
+            "locked": "2.79.0",
+            "transitive": [
+                "com.netflix.spinnaker.keel:keel-api"
+            ]
+        },
+        "com.netflix.spinnaker.kork.internal:kork-plugins-api": {
+            "locked": "2.79.0",
+            "transitive": [
+                "com.netflix.spinnaker.keel:keel-api"
+            ]
+        },
+        "com.netflix.spinnaker.netflixplatform:netflixplatform-bom": {
+            "locked": "2.79.0",
+            "transitive": [
+                "com.netflix.spinnaker.keel:keel-api"
+            ]
+        },
+        "com.nhaarman.mockitokotlin2:mockito-kotlin": {
+            "locked": "2.2.0"
+        },
+        "de.huxhorn.sulky:de.huxhorn.sulky.ulid": {
+            "locked": "8.2.0",
+            "transitive": [
+                "com.netflix.spinnaker.keel:keel-api"
+            ]
+        },
+        "dev.minutest:minutest": {
+            "locked": "1.11.0"
+        },
+        "io.github.classgraph:classgraph": {
+            "locked": "4.8.86",
+            "transitive": [
+                "dev.minutest:minutest"
+            ]
+        },
+        "io.mockk:mockk": {
+            "locked": "1.10.5"
+        },
+        "io.mockk:mockk-agent-api": {
+            "locked": "1.10.5",
+            "transitive": [
+                "io.mockk:mockk-agent-common",
+                "io.mockk:mockk-agent-jvm"
+            ]
+        },
+        "io.mockk:mockk-agent-common": {
+            "locked": "1.10.5",
+            "transitive": [
+                "io.mockk:mockk-agent-jvm"
+            ]
+        },
+        "io.mockk:mockk-agent-jvm": {
+            "locked": "1.10.5",
+            "transitive": [
+                "io.mockk:mockk"
+            ]
+        },
+        "io.mockk:mockk-common": {
+            "locked": "1.10.5",
+            "transitive": [
+                "io.mockk:mockk"
+            ]
+        },
+        "io.mockk:mockk-dsl": {
+            "locked": "1.10.5",
+            "transitive": [
+                "io.mockk:mockk-common",
+                "io.mockk:mockk-dsl-jvm"
+            ]
+        },
+        "io.mockk:mockk-dsl-jvm": {
+            "locked": "1.10.5",
+            "transitive": [
+                "io.mockk:mockk"
+            ]
+        },
+        "io.strikt:strikt-core": {
+            "locked": "0.29.0"
+        },
+        "javax.annotation:javax.annotation-api": {
+            "locked": "1.3.2",
+            "transitive": [
+                "com.netflix.spinnaker.kork.internal:kork-plugins-api"
+            ]
+        },
+        "junit:junit": {
+            "locked": "4.13.2",
+            "transitive": [
+                "org.junit.platform:junit-platform-runner"
+            ]
+        },
+        "net.bytebuddy:byte-buddy": {
+            "locked": "1.10.20",
+            "transitive": [
+                "io.mockk:mockk-agent-jvm",
+                "org.mockito:mockito-core"
+            ]
+        },
+        "net.bytebuddy:byte-buddy-agent": {
+            "locked": "1.10.20",
+            "transitive": [
+                "io.mockk:mockk-agent-jvm",
+                "org.mockito:mockito-core"
+            ]
+        },
+        "org.apiguardian:apiguardian-api": {
+            "locked": "1.1.0",
+            "transitive": [
+                "org.junit.jupiter:junit-jupiter-api",
+                "org.junit.jupiter:junit-jupiter-engine",
+                "org.junit.jupiter:junit-jupiter-params",
+                "org.junit.platform:junit-platform-commons",
+                "org.junit.platform:junit-platform-engine",
+                "org.junit.platform:junit-platform-launcher",
+                "org.junit.platform:junit-platform-runner",
+                "org.junit.platform:junit-platform-suite-api"
+            ]
+        },
+        "org.hamcrest:hamcrest": {
+            "locked": "2.2",
+            "transitive": [
+                "org.hamcrest:hamcrest-core"
+            ]
+        },
+        "org.hamcrest:hamcrest-core": {
+            "locked": "2.2",
+            "transitive": [
+                "junit:junit"
+            ]
+        },
+        "org.jacoco:org.jacoco.agent": {
+            "locked": "0.8.5",
+            "transitive": [
+                "org.jacoco:org.jacoco.ant"
+            ]
+        },
+        "org.jacoco:org.jacoco.ant": {
+            "locked": "0.8.5"
+        },
+        "org.jacoco:org.jacoco.core": {
+            "locked": "0.8.5",
+            "transitive": [
+                "org.jacoco:org.jacoco.ant",
+                "org.jacoco:org.jacoco.report"
+            ]
+        },
+        "org.jacoco:org.jacoco.report": {
+            "locked": "0.8.5",
+            "transitive": [
+                "org.jacoco:org.jacoco.ant"
+            ]
+        },
+        "org.jetbrains.kotlin:kotlin-reflect": {
+            "locked": "1.4.32",
+            "transitive": [
+                "com.christophsturm:filepeek",
+                "dev.minutest:minutest",
+                "io.mockk:mockk",
+                "io.mockk:mockk-dsl-jvm",
+                "io.strikt:strikt-core"
+            ]
+        },
+        "org.jetbrains.kotlin:kotlin-stdlib": {
+            "locked": "1.4.32",
+            "transitive": [
+                "com.netflix.spinnaker.kork.internal:kork-plugins-api",
+                "io.mockk:mockk",
+                "io.mockk:mockk-agent-api",
+                "io.mockk:mockk-agent-common",
+                "io.mockk:mockk-agent-jvm",
+                "io.mockk:mockk-common",
+                "io.mockk:mockk-dsl",
+                "io.mockk:mockk-dsl-jvm",
+                "org.jetbrains.kotlin:kotlin-reflect",
+                "org.jetbrains.kotlin:kotlin-stdlib-jdk7",
+                "org.jetbrains.kotlin:kotlin-stdlib-jdk8",
+                "org.jetbrains.kotlinx:kotlinx-coroutines-core"
+            ]
+        },
+        "org.jetbrains.kotlin:kotlin-stdlib-common": {
+            "locked": "1.4.32",
+            "transitive": [
+                "org.jetbrains.kotlin:kotlin-stdlib",
+                "org.jetbrains.kotlinx:kotlinx-coroutines-core"
+            ]
+        },
+        "org.jetbrains.kotlin:kotlin-stdlib-jdk7": {
+            "locked": "1.4.32",
+            "transitive": [
+                "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+            ]
+        },
+        "org.jetbrains.kotlin:kotlin-stdlib-jdk8": {
+            "locked": "1.4.32",
+            "transitive": [
+                "com.christophsturm:filepeek",
+                "com.netflix.spinnaker.keel:keel-api",
+                "dev.minutest:minutest",
+                "io.strikt:strikt-core"
+            ]
+        },
+        "org.jetbrains.kotlinx:kotlinx-coroutines-core": {
+            "locked": "1.4.2",
+            "transitive": [
+                "io.strikt:strikt-core"
+            ]
+        },
+        "org.jetbrains:annotations": {
+            "locked": "13.0",
+            "transitive": [
+                "org.jetbrains.kotlin:kotlin-stdlib"
+            ]
+        },
+        "org.junit.jupiter:junit-jupiter-api": {
+            "locked": "5.7.1",
+            "transitive": [
+                "dev.minutest:minutest",
+                "org.junit.jupiter:junit-jupiter-engine",
+                "org.junit.jupiter:junit-jupiter-params"
+            ]
+        },
+        "org.junit.jupiter:junit-jupiter-engine": {
+            "locked": "5.7.1"
+        },
+        "org.junit.jupiter:junit-jupiter-params": {
+            "locked": "5.7.1"
+        },
+        "org.junit.platform:junit-platform-commons": {
+            "locked": "1.7.1",
+            "transitive": [
+                "org.junit.jupiter:junit-jupiter-api",
+                "org.junit.platform:junit-platform-engine"
+            ]
+        },
+        "org.junit.platform:junit-platform-engine": {
+            "locked": "1.7.1",
+            "transitive": [
+                "org.junit.jupiter:junit-jupiter-engine",
+                "org.junit.platform:junit-platform-launcher"
+            ]
+        },
+        "org.junit.platform:junit-platform-launcher": {
+            "locked": "1.6.3",
+            "transitive": [
+                "org.junit.platform:junit-platform-runner"
+            ]
+        },
+        "org.junit.platform:junit-platform-runner": {
+            "locked": "1.6.3"
+        },
+        "org.junit.platform:junit-platform-suite-api": {
+            "locked": "1.6.3",
+            "transitive": [
+                "org.junit.platform:junit-platform-runner"
+            ]
+        },
+        "org.mockito:mockito-core": {
+            "locked": "3.3.3",
+            "transitive": [
+                "com.nhaarman.mockitokotlin2:mockito-kotlin"
+            ]
+        },
+        "org.objenesis:objenesis": {
+            "locked": "3.1",
+            "transitive": [
+                "io.mockk:mockk-agent-jvm",
+                "org.mockito:mockito-core"
+            ]
+        },
+        "org.opentest4j:opentest4j": {
+            "locked": "1.2.0",
+            "transitive": [
+                "io.strikt:strikt-core",
+                "org.junit.jupiter:junit-jupiter-api",
+                "org.junit.platform:junit-platform-engine"
+            ]
+        },
+        "org.ow2.asm:asm": {
+            "locked": "9.0",
+            "transitive": [
+                "org.jacoco:org.jacoco.core",
+                "org.ow2.asm:asm-commons",
+                "org.ow2.asm:asm-tree"
+            ]
+        },
+        "org.ow2.asm:asm-analysis": {
+            "locked": "9.0",
+            "transitive": [
+                "org.ow2.asm:asm-commons"
+            ]
+        },
+        "org.ow2.asm:asm-commons": {
+            "locked": "9.0",
+            "transitive": [
+                "org.jacoco:org.jacoco.core"
+            ]
+        },
+        "org.ow2.asm:asm-tree": {
+            "locked": "9.0",
+            "transitive": [
+                "org.jacoco:org.jacoco.core",
+                "org.ow2.asm:asm-analysis",
+                "org.ow2.asm:asm-commons"
+            ]
+        },
+        "org.pf4j:pf4j": {
+            "locked": "3.2.0",
+            "transitive": [
+                "com.netflix.spinnaker.kork.internal:kork-plugins-api"
+            ]
+        },
+        "org.slf4j:slf4j-api": {
+            "locked": "1.7.30",
+            "transitive": [
+                "com.netflix.spinnaker.keel:keel-api",
+                "com.netflix.spinnaker.kork.internal:kork-plugins-api",
+                "org.pf4j:pf4j"
+            ]
+        }
+    }
+}

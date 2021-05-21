@@ -5,6 +5,7 @@ import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.api.plugins.PluginNotificationConfig
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
 import com.netflix.spinnaker.keel.core.api.UID
@@ -112,6 +113,14 @@ data class SlackConfigNotification(
   val config: DeliveryConfig,
   val gitMetadata: GitMetadata?,
   val new: Boolean
+) : SlackNotificationEvent(time, application)
+
+data class SlackPluginNotification(
+  override val time: Instant,
+  override val application: String,
+  val config: PluginNotificationConfig,
+  val artifactVersion: PublishedArtifact,
+  val targetEnvironment: String,
 ) : SlackNotificationEvent(time, application)
 
 enum class DeploymentStatus {

@@ -10,6 +10,5 @@ class PromoteJarConfig {
   var imageId: String? = null
   var account: String? = null
   var region: String? = null
-  var gitUrlPrefix: String? = null
   var application: String? = "keel"
 }

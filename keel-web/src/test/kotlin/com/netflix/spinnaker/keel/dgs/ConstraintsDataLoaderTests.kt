@@ -101,7 +101,7 @@ class ConstraintsDataLoaderTests: JUnit5Minutests {
 
     context("constraints - no data") {
       before {
-        every { keelRepository.constraintStateFor(any()) } returns emptyList()
+        every { keelRepository.constraintStateForEnvironments(any()) } returns emptyList()
       }
 
       test("no constraints") {
@@ -116,7 +116,7 @@ class ConstraintsDataLoaderTests: JUnit5Minutests {
     context("only time window constraints") {
       context("no persisted data") {
         before {
-          every { keelRepository.constraintStateFor(any()) } returns listOf()
+          every { keelRepository.constraintStateForEnvironments(any()) } returns listOf()
         }
 
         test("generates state") {
@@ -133,7 +133,7 @@ class ConstraintsDataLoaderTests: JUnit5Minutests {
 
       context("persisted data") {
         before {
-          every { keelRepository.constraintStateFor(any()) } returns listOf(
+          every { keelRepository.constraintStateForEnvironments(any()) } returns listOf(
             ConstraintState(
               deliveryConfig.name,
               environment.name,
@@ -168,7 +168,7 @@ class ConstraintsDataLoaderTests: JUnit5Minutests {
     context("mj constraint and time window constraint") {
       context("no summary saved") {
         before {
-          every { keelRepository.constraintStateFor(any()) } returns listOf()
+          every { keelRepository.constraintStateForEnvironments(any()) } returns listOf()
         }
 
         test("pending summary created") {
@@ -186,7 +186,7 @@ class ConstraintsDataLoaderTests: JUnit5Minutests {
 
       context("summary saved") {
         before {
-          every { keelRepository.constraintStateFor(any()) } returns listOf(
+          every { keelRepository.constraintStateForEnvironments(any()) } returns listOf(
             ConstraintState(
               deliveryConfigMjConst.name,
               environment.name,

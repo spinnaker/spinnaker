@@ -118,6 +118,9 @@ interface KeelRepository : KeelReadOnlyRepository {
    */
   fun storeEnvironment(deliveryConfigName: String, environment: Environment)
 
+  /**
+   * If the constraint state changed, publishes a [ConstraintStateChanged] event.
+   */
   fun storeConstraintState(state: ConstraintState)
 
   fun getConstraintStateById(uid: UID): ConstraintState?

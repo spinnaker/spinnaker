@@ -97,7 +97,7 @@ class ConstraintsDataLoader(
 
   fun getConstraintsState(requestedVersions: MutableSet<EnvironmentArtifactAndVersion>, config: DeliveryConfig):
     MutableMap<EnvironmentArtifactAndVersion, MutableList<ConstraintState>> {
-    val persistedStates = keelRepository.constraintStateFor(config.application)
+    val persistedStates = keelRepository.constraintStateForEnvironments(config.name)
       .removePrivateConstraintAttrs() // remove attributes that should not be exposed
       .groupByTo(mutableMapOf()) {
         EnvironmentArtifactAndVersion(environmentName = it.environmentName, artifactReference = it.artifactReference, version = it.artifactVersion)
@@ -127,7 +127,7 @@ fun ConstraintState.toDgs() =
       ConstraintStatus.FAIL -> MdConstraintStatus.FAIL
       ConstraintStatus.PASS -> MdConstraintStatus.PASS
       ConstraintStatus.OVERRIDE_FAIL -> MdConstraintStatus.FAIL
-      ConstraintStatus.OVERRIDE_PASS -> if (type === MANUAL_JUDGEMENT_CONSTRAINT_TYPE) {
+      ConstraintStatus.OVERRIDE_PASS -> if (type == MANUAL_JUDGEMENT_CONSTRAINT_TYPE) {
         MdConstraintStatus.PASS
       } else {
         MdConstraintStatus.FORCE_PASS

@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.keel.api.events
 
 import com.netflix.spinnaker.keel.api.Constraint
+import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 
@@ -33,6 +34,7 @@ sealed class ConstraintEvent(
 data class ConstraintStateChanged(
   override val environment: Environment,
   override val constraint: Constraint,
+  val deliveryConfig: DeliveryConfig,
   val previousState: ConstraintState?,
   val currentState: ConstraintState
 ) : ConstraintEvent(environment, constraint)

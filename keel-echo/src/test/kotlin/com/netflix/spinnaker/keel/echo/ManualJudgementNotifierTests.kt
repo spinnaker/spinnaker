@@ -55,6 +55,8 @@ internal class ManualJudgementNotifierTests : JUnit5Minutests {
     val manualJudgementConstraint = ManualJudgementConstraint()
   }
 
+  val config = DeliveryConfig("test", "test", "test@acme.net")
+
   data class Fixture(
     val event: ConstraintStateChanged
   ) {
@@ -85,6 +87,7 @@ internal class ManualJudgementNotifierTests : JUnit5Minutests {
     fixture {
       Fixture(
         ConstraintStateChanged(
+          deliveryConfig = config,
           environment = Environment(
             name = "test",
             notifications = setOf(
@@ -130,7 +133,7 @@ internal class ManualJudgementNotifierTests : JUnit5Minutests {
 
         every {
           repository.getDeliveryConfig("test")
-        } returns DeliveryConfig("test", "test", "test@acme.net")
+        } returns config
 
         every {
           repository.getArtifactVersion(artifact, "v1.0.0", any())

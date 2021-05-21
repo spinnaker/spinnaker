@@ -11,6 +11,7 @@ import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
+import com.netflix.spinnaker.keel.api.SimpleRegions
 import com.netflix.spinnaker.keel.api.VersionedArtifactProvider
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
@@ -199,8 +200,9 @@ data class DummyArtifactReferenceResourceSpec(
   override val artifactType: ArtifactType? = DEBIAN,
   override val artifactReference: String? = "fnord",
   override val displayName: String = "fnord-artifact-reference-dummy",
-  override val moniker: Moniker = Moniker("fnord", "artifactReference", "dummy")
-) : ResourceSpec, ArtifactReferenceProvider, Monikered
+  override val moniker: Moniker = Moniker("fnord", "artifactReference", "dummy"),
+  override val locations: SimpleRegions = SimpleRegions(setOf(SimpleRegionSpec("us-east-1")))
+) : ResourceSpec, ArtifactReferenceProvider, Monikered, Locatable<SimpleRegions>
 
 data class DummyResource(
   val id: String = randomString(),

@@ -9,7 +9,7 @@ import graphql.scalars.ExtendedScalars
 
 
 @DgsComponent
-class LongScalarRegistration {
+class JsonScalarRegistration {
   @DgsRuntimeWiring
   fun addScalar(builder: RuntimeWiring.Builder): RuntimeWiring.Builder {
     return builder.scalar(ExtendedScalars.Json)
