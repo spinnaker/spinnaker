@@ -13,3 +13,4 @@ out/
 /.shelf/
 **/*/out/*
 /plugins/
+**/dependency.lock
