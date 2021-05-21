@@ -134,10 +134,10 @@
   dependencies:
     lodash "^4.17.20"
 
-"@spinnaker/scripts@0.0.3":
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/@spinnaker/scripts/-/scripts-0.0.3.tgz#6c42479061b00a6aa6adca8d6ba6992c06f605f7"
-  integrity sha512-+38Ryz7C+azIBdcmT9GkhqX9AfqrKt0HuJWjA5JgS7gNB2iqxivkOY27xM6xwTotp6Xn9KDNEAwilAw9LzUeRQ==
+"@spinnaker/scripts@0.0.5":
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/@spinnaker/scripts/-/scripts-0.0.5.tgz#6d4cefae6265d81f3c738653baca65898e663d83"
+  integrity sha512-yI8cS1ASmewVxSztKMieS1sPKxx9V6dsDDfgvrVZtEwu5dcTgoCkWzC2ONvPoI6zgSSX8R20NFcoAczAEu1LRQ==
   dependencies:
     "@rollup/plugin-commonjs" "^17.0.0"
     "@rollup/plugin-json" "4.1.0"
