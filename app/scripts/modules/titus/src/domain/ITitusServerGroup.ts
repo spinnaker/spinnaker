@@ -13,7 +13,24 @@ export interface ITitusResources {
   networkMbps: number;
 }
 
+export interface ITitusBuildInfo {
+  docker: {
+    digest: string;
+    image: string;
+    tag: string;
+  };
+  images: string[];
+  jenkins: {
+    commitId?: string;
+    host?: string;
+    name?: string;
+    number?: string;
+    version?: string;
+  };
+}
+
 export interface ITitusServerGroup extends IServerGroup {
+  buildInfo: ITitusBuildInfo;
   capacityGroup?: string;
   disruptionBudget?: IJobDisruptionBudget;
   entryPoint: string;
