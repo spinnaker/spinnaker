@@ -17,7 +17,6 @@
 
 plugins {
   id "io.spinnaker.project" version "$spinnakerGradleVersion" apply false
-  id "nebula.kotlin" version "$kotlinVersion" apply false
   id 'idea'
 }
 
@@ -31,7 +30,6 @@ subprojects { project ->
   if (name != "kayenta-bom") {
     apply plugin: "java-library"
     apply plugin: "groovy"
-    apply plugin: "nebula.kotlin"
 
     def localVersions = [orcaVersion].find { it.endsWith('-SNAPSHOT') }
     if (localVersions) {
@@ -115,6 +113,7 @@ subprojects { project ->
       testRuntimeOnly "org.objenesis:objenesis"
     }
   }
+
 }
 
 defaultTasks ":kayenta-web:run"

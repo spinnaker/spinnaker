@@ -1,5 +1,3 @@
-apply from: "$rootDir/gradle/kotlin.gradle"
-
 dependencies {
   api "io.spinnaker.orca:keiko-spring"
   api "io.spinnaker.orca:orca-queue"
