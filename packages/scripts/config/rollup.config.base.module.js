@@ -7,5 +7,6 @@ module.exports = {
   input: 'src/index.ts',
   output: [{ dir: 'dist', format: 'es', sourcemap: true }],
   plugins: [...baseRollupConfig.plugins, angularJsTemplateLoader({ sourceMap: true }), autoExternal()],
+  // `autoExternal` cannot handle paths in import statements, so we need to explicitly add it in `externals`.
   externals: ['rxjs/operators'],
 };
