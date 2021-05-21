@@ -34,10 +34,13 @@ export const EnvironmentsOverview = () => {
     );
   }
 
+  // environments that depend on others appear last. We want to reverse that
+  const environments = [...(data?.application?.environments || [])].reverse();
+
   return (
     <div className="EnvironmentsOverview">
       <ManagementWarning appName={app.name} />
-      {data?.application?.environments.map((env) => (
+      {environments.map((env) => (
         <EnvironmentOverview key={env.name} environment={env} appName={app.name} />
       ))}
     </div>
