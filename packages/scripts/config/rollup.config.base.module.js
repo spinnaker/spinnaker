@@ -7,4 +7,5 @@ module.exports = {
   input: 'src/index.ts',
   output: [{ dir: 'dist', format: 'es', sourcemap: true }],
   plugins: [...baseRollupConfig.plugins, angularJsTemplateLoader({ sourceMap: true }), autoExternal()],
+  externals: ['rxjs/operators'],
 };
