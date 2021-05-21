@@ -6,7 +6,7 @@
     "jsx": "react",
     "module": "esnext",
     "sourceMap": true,
-    "target": "es6",
+    "target": "es2017",
 
     // strict checks
     "noImplicitAny": true,

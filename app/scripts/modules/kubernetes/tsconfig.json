@@ -1,19 +1,10 @@
 {
-  "extends": "../../../../tsconfig.json",
+  "extends": "../../../../tsconfig.base.json",
   "compilerOptions": {
     "baseUrl": "./src",
-    "declaration": true,
-    "declarationDir": "lib",
-    "outDir": "lib",
-    "rootDir": "./src",
-    "typeRoots": ["../../../../node_modules/@types"],
-    "paths": {
-      "@spinnaker/core": ["../../core/dist"],
-      "core/*": ["../../core/dist/*"],
-      "kubernetes/*": ["*"],
-      "kubernetes": ["."]
-    }
+    "outDir": "dist",
+    "rootDir": "./src"
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
-  "exclude": ["./lib", "**/*.spec.*"]
+  "exclude": ["./dist", "**/*.spec.*"]
 }

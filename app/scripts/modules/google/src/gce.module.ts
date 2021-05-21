@@ -22,6 +22,7 @@ import { GCE_TCP_LOAD_BALANCER_CTRL } from './loadBalancer/configure/tcp/gceCrea
 import { GOOGLE_LOADBALANCER_DETAILS_LOADBALANCERDETAIL_CONTROLLER } from './loadBalancer/details/loadBalancerDetail.controller';
 import { LOAD_BALANCER_SET_TRANSFORMER } from './loadBalancer/loadBalancer.setTransformer';
 import { GOOGLE_LOADBALANCER_LOADBALANCER_TRANSFORMER } from './loadBalancer/loadBalancer.transformer';
+import logo from './logo/gce.logo.png';
 import { GOOGLE_PIPELINE_STAGES_BAKE_GCEBAKESTAGE } from './pipeline/stages/bake/gceBakeStage';
 import { GOOGLE_PIPELINE_STAGES_CLONESERVERGROUP_GCECLONESERVERGROUPSTAGE } from './pipeline/stages/cloneServerGroup/gceCloneServerGroupStage';
 import { GOOGLE_PIPELINE_STAGES_DESTROYASG_GCEDESTROYASGSTAGE } from './pipeline/stages/destroyAsg/gceDestroyAsgStage';
@@ -51,11 +52,12 @@ import { GOOGLE_VALIDATION_APPLICATIONNAME_VALIDATOR } from './validation/applic
 
 import './logo/gce.logo.less';
 
-// load all templates into the $templateCache
-const templates = require.context('./', true, /\.html$/);
-templates.keys().forEach(function (key) {
+/* Start - Rollup Remove */
+const templates = (require as any).context('./', true, /\.html$/);
+templates.keys().forEach(function (key: string) {
   templates(key);
 });
+/* End - Rollup Remove */
 
 export const GOOGLE_MODULE = 'spinnaker.gce';
 module(GOOGLE_MODULE, [
@@ -107,7 +109,7 @@ module(GOOGLE_MODULE, [
   CloudProviderRegistry.registerProvider('gce', {
     name: 'Google',
     logo: {
-      path: require('./logo/gce.logo.png'),
+      path: logo,
     },
     cache: {
       configurer: 'gceCacheConfigurer',

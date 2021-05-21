@@ -6,6 +6,7 @@ import { CloudProviderRegistry, DeploymentStrategyRegistry } from '@spinnaker/co
 
 import { COMMON_MODULE } from './common/common.module';
 import './ecs.help';
+import './ecs.settings';
 import { ECS_CLUSTER_READ_SERVICE } from './ecsCluster/ecsCluster.read.service';
 import { IAM_ROLE_READ_SERVICE } from './iamRoles/iamRole.read.service';
 import { ECS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER } from './instance/details/instance.details.controller';
@@ -44,13 +45,12 @@ import { ECS_SERVER_GROUP_TRANSFORMER } from './serverGroup/serverGroup.transfor
 
 import './logo/ecs.logo.less';
 
-require('./ecs.settings');
-
-// load all templates into the $templateCache
-const templates = require.context('./', true, /\.html$/);
-templates.keys().forEach(function (key) {
+/* Start - Rollup Remove */
+const templates = (require as any).context('./', true, /\.html$/);
+templates.keys().forEach(function (key: string) {
   templates(key);
 });
+/* End - Rollup Remove */
 
 export const ECS_MODULE = 'spinnaker.ecs';
 module(ECS_MODULE, [

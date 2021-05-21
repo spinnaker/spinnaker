@@ -25,10 +25,12 @@ import { ORACLE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_CONTROLLER } from 
 import { ORACLE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_CONTROLLER } from './serverGroup/details/serverGroupDetails.controller';
 import { ORACLE_SERVERGROUP_SERVERGROUP_TRANSFORMER } from './serverGroup/serverGroup.transformer';
 
-const templates = require.context('./', true, /\.html$/);
-templates.keys().forEach(function (key) {
+/* Start - Rollup Remove */
+const templates = (require as any).context('./', true, /\.html$/);
+templates.keys().forEach(function (key: string) {
   templates(key);
 });
+/* End - Rollup Remove */
 
 export const ORACLE_MODULE = 'spinnaker.oracle';
 module(ORACLE_MODULE, [

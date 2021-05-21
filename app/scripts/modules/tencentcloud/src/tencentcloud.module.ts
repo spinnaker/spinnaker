@@ -6,6 +6,7 @@ import { CloudProviderRegistry, DeploymentStrategyRegistry } from '@spinnaker/co
 
 import './help/tencentcloud.help';
 import { TencentcloudImageReader } from './image';
+import logo from './logo/tencentcloud.logo.svg';
 // load pipeline stage
 import './pipeline/stages/disableCluster/disableClusterStage';
 import './pipeline/stages/rollbackCluster/rollbackClusterStage';
@@ -14,18 +15,21 @@ import './pipeline/stages/shrinkCluster/shrinkClusterStage';
 import { TENCENTCLOUD_REACT_MODULE } from './reactShims/tencentcloud.react.module';
 import { TENCENTCLOUD_SEARCH_SEARCHRESULTFORMATTER } from './search/searchResultFormatter';
 import './validation/ApplicationNameValidator';
+
+/* Start - Rollup Remove */
 // load all templates into the $templateCache
-const templates = require.context('./', true, /\.html$/);
-templates.keys().forEach(function (key) {
+const templates = (require as any).context('./', true, /\.html$/);
+templates.keys().forEach(function (key: string) {
   templates(key);
 });
+/* End - Rollup Remove */
 
 export const TENCENTCLOUD_MODULE = 'spinnaker.tencentcloud';
 module(TENCENTCLOUD_MODULE, [TENCENTCLOUD_REACT_MODULE, TENCENTCLOUD_SEARCH_SEARCHRESULTFORMATTER]).config(() => {
   CloudProviderRegistry.registerProvider('tencentcloud', {
     name: 'tencentcloud',
     logo: {
-      path: require('./logo/tencentcloud.logo.svg'),
+      path: logo,
     },
     image: {
       reader: TencentcloudImageReader,
