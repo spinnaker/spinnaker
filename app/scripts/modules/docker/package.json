@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/docker",
   "license": "Apache-2.0",
-  "version": "0.0.74",
+  "version": "0.0.75",
   "module": "dist/index.js",
   "typings": "dist/index.d.ts",
   "scripts": {
