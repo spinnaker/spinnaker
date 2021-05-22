@@ -129,10 +129,10 @@
   resolved "https://registry.yarnpkg.com/@spinnaker/mocks/-/mocks-1.0.7.tgz#3e30fde4d691b310910e7fa5201c7424609042c0"
   integrity sha512-WXoNtZoFZFNDTrckCbbTShxoRN088IN+awWweNNv89EU4GsMX8HnnG/9J6N9rAt0R3ZgzhJmaNG06/JHHBzxEw==
 
-"@spinnaker/scripts@0.0.5":
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/@spinnaker/scripts/-/scripts-0.0.5.tgz#6d4cefae6265d81f3c738653baca65898e663d83"
-  integrity sha512-yI8cS1ASmewVxSztKMieS1sPKxx9V6dsDDfgvrVZtEwu5dcTgoCkWzC2ONvPoI6zgSSX8R20NFcoAczAEu1LRQ==
+"@spinnaker/scripts@0.0.6":
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/@spinnaker/scripts/-/scripts-0.0.6.tgz#b5f121b9e4d25a44d25852fd0bdd59930aaa9549"
+  integrity sha512-vzgziBkkZzOnWJFn3Oc32+9ZV+194NVVcWv5QE7FzmKd8ikN+AFgypvJtEbYXbjzh1VajEfqix+pcKfgX4wK/g==
   dependencies:
     "@rollup/plugin-commonjs" "^17.0.0"
     "@rollup/plugin-json" "4.1.0"
