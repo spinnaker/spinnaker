@@ -102,17 +102,19 @@ export const VersionHeading = ({ group, chevron }: IVersionHeadingProps) => {
         </BaseVersionMetadata>
         {/* Shows a badge for each environment with the status of the artifacts in it */}
         <div className="version-environments">
-          {Object.entries(group.environments).map(([env, artifacts]) => {
-            const statusSummary = getEnvStatusSummary(artifacts);
-            const statusClassName = statusToClassName[statusSummary];
-            return (
-              <Tooltip delayShow={TOOLTIP_DELAY} value={statusToText[statusSummary]}>
-                <div key={env} className={classnames('chip', statusClassName)}>
-                  {env}
-                </div>
-              </Tooltip>
-            );
-          })}
+          {Object.entries(group.environments)
+            .reverse()
+            .map(([env, artifacts]) => {
+              const statusSummary = getEnvStatusSummary(artifacts);
+              const statusClassName = statusToClassName[statusSummary];
+              return (
+                <Tooltip delayShow={TOOLTIP_DELAY} value={statusToText[statusSummary]}>
+                  <div key={env} className={classnames('chip', statusClassName)}>
+                    {env}
+                  </div>
+                </Tooltip>
+              );
+            })}
         </div>
       </div>
       <div>{chevron}</div>
