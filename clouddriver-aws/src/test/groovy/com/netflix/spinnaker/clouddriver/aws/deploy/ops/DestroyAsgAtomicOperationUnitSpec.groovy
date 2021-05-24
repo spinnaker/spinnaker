@@ -21,7 +21,11 @@ import com.amazonaws.services.autoscaling.model.DeleteAutoScalingGroupRequest
 import com.amazonaws.services.autoscaling.model.DeleteLaunchConfigurationRequest
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
 import com.amazonaws.services.autoscaling.model.Instance
+import com.amazonaws.services.autoscaling.model.LaunchTemplate
+import com.amazonaws.services.autoscaling.model.LaunchTemplateSpecification
+import com.amazonaws.services.autoscaling.model.MixedInstancesPolicy
 import com.amazonaws.services.ec2.AmazonEC2
+import com.amazonaws.services.ec2.model.DeleteLaunchTemplateRequest
 import com.amazonaws.services.ec2.model.TerminateInstancesRequest
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DestroyAsgDescription
@@ -89,6 +93,50 @@ class DestroyAsgAtomicOperationUnitSpec extends Specification {
             new DeleteLaunchConfigurationRequest(launchConfigurationName: "launchConfig-v000"))
     1 * mockEC2.terminateInstances(new TerminateInstancesRequest(instanceIds: ["i-123456"]))
     0 * mockAutoScaling._
+  }
+
+  void "should delete ASG and Launch Template and terminate instances"() {
+    setup:
+    def op = new DestroyAsgAtomicOperation(
+      new DestroyAsgDescription(
+        asgs: [[
+                 serverGroupName: "my-stack-v000",
+                 region         : "us-east-1"
+               ]],
+        credentials: TestCredential.named('baz')))
+    op.amazonClientProvider = provider
+
+    when:
+    op.operate([])
+
+    then:
+    1 * mockAutoScaling.describeAutoScalingGroups(_) >> new DescribeAutoScalingGroupsResult(autoScalingGroups: [asg])
+    1 * mockAutoScaling.deleteAutoScalingGroup(
+      new DeleteAutoScalingGroupRequest(autoScalingGroupName: "my-stack-v000", forceDelete: true))
+    1 * mockEC2.deleteLaunchTemplate(
+      new DeleteLaunchTemplateRequest(launchTemplateId: "lt-1"))
+    1 * mockEC2.terminateInstances(new TerminateInstancesRequest(instanceIds: ["i-123456"]))
+    0 * mockAutoScaling._
+
+    where:
+    asg << [
+      new AutoScalingGroup(
+        instances: [new Instance(instanceId: "i-123456")],
+        launchTemplate: new LaunchTemplateSpecification()
+          .withLaunchTemplateId("lt-1")
+          .withVersion("1")
+      ),
+      new AutoScalingGroup(
+        instances: [new Instance(instanceId: "i-123456")],
+        mixedInstancesPolicy: new MixedInstancesPolicy(
+          launchTemplate: new LaunchTemplate(
+            launchTemplateSpecification: new LaunchTemplateSpecification()
+              .withLaunchTemplateId("lt-1")
+              .withVersion("1")
+          )
+        )
+      )
+    ]
   }
 
   void "should not delete launch config when not available"() {

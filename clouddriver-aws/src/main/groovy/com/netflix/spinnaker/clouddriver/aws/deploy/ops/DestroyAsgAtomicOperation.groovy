@@ -116,10 +116,10 @@ class DestroyAsgAtomicOperation implements AtomicOperation<Void> {
 
   private void deleteLaunchSetting(
     AutoScalingGroup autoScalingGroup, AmazonAutoScaling autoScaling, AmazonEC2 amazonEC2, String region) {
-    String lcName = autoScalingGroup.launchConfigurationName
-    String launchTemplateId = autoScalingGroup.launchTemplate?.launchTemplateId
     retrySupport.retry({
-      if (lcName) {
+      if (autoScalingGroup.launchConfigurationName) {
+        String lcName = autoScalingGroup.launchConfigurationName
+
         getTask().updateStatus BASE_PHASE, "Deleting launch config $lcName in $region."
         try {
           autoScaling.deleteLaunchConfiguration(
@@ -129,7 +129,11 @@ class DestroyAsgAtomicOperation implements AtomicOperation<Void> {
             throw e
           }
         }
-      } else if (launchTemplateId) {
+      } else if (autoScalingGroup.launchTemplate || autoScalingGroup.mixedInstancesPolicy) {
+        String launchTemplateId = autoScalingGroup.launchTemplate
+          ? autoScalingGroup.launchTemplate.launchTemplateId
+          : autoScalingGroup.mixedInstancesPolicy?.launchTemplate?.launchTemplateSpecification.launchTemplateId
+
         getTask().updateStatus BASE_PHASE, "Deleting launch template $launchTemplateId in $region."
         try {
           amazonEC2.deleteLaunchTemplate(
