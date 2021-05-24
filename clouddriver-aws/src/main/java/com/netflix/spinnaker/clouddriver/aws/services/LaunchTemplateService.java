@@ -348,6 +348,11 @@ public class LaunchTemplateService {
           new LaunchTemplateEnclaveOptionsRequest().withEnabled(asgConfig.getEnableEnclave()));
     }
 
+    // block device mappings
+    if (asgConfig.getBlockDevices() != null && !asgConfig.getBlockDevices().isEmpty()) {
+      request.setBlockDeviceMappings(buildDeviceMapping(asgConfig.getBlockDevices()));
+    }
+
     return request;
   }
 
