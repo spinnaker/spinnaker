@@ -2,7 +2,7 @@
   margin-top: var(--s-spacing);
   color: var(--color-dovegray);
 
-  .pending-version-constraint {
+  .version-constraint {
     display: grid;
     grid-template-columns: 14px auto;
     column-gap: 6px;
@@ -30,6 +30,14 @@
       }
     }
 
+    & > i {
+      align-self: flex-start;
+      font-size: 12px;
+      margin-top: 5px;
+    }
+  }
+
+  .single-constraint {
     .constraint-content {
       margin-top: var(--s-spacing);
       margin-bottom: var(--m-spacing);
@@ -42,16 +50,10 @@
       }
     }
 
-    &:last-of-type {
+    &:last-child {
       .constraint-content {
         margin-bottom: 0;
       }
-    }
-
-    & > i {
-      align-self: flex-start;
-      font-size: 12px;
-      margin-top: 5px;
     }
   }
 }

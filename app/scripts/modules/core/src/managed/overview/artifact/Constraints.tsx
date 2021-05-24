@@ -86,7 +86,7 @@ const Constraint = ({ constraint, versionProps }: IConstraintProps) => {
   const hasContent = constraintsManager.hasContent(constraint);
   const title = constraintsManager.renderTitle(constraint);
   return (
-    <div className="pending-version-constraint">
+    <div className="version-constraint single-constraint">
       <VersionOperationIcon status={constraint.status} />
       <CollapsibleSection
         outerDivClassName=""
@@ -94,6 +94,7 @@ const Constraint = ({ constraint, versionProps }: IConstraintProps) => {
         toggleClassName="constraint-toggle"
         enableCaching={false}
         expandIconSize="12px"
+        expandIconPosition="right"
         heading={({ chevron }) => (
           <div className="constraint-title">
             {title}{' '}
@@ -125,7 +126,7 @@ export const Constraints = ({
   const summary = getConstraintsStatusSummary(constraints);
   return (
     <div className="Constraints">
-      <div className="pending-version-constraint">
+      <div className="version-constraint">
         <VersionOperationIcon status={summary.status} />
         <CollapsibleSection
           heading={({ chevron }) => (
@@ -137,6 +138,7 @@ export const Constraints = ({
           toggleClassName="constraint-toggle"
           bodyClassName="sp-margin-xs-top sp-margin-xs-bottom"
           expandIconSize="12px"
+          expandIconPosition="right"
           defaultExpanded={expandedByDefault}
           enableCaching={false}
         >
