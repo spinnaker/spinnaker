@@ -1,9 +1,10 @@
-import { DateTime, Duration } from 'luxon';
+import { DateTime } from 'luxon';
 import React, { memo, useEffect, useState } from 'react';
 
 import { SETTINGS } from '../config';
 import { Tooltip, useInterval } from '../presentation';
 import { CopyToClipboard, timeDiffToString } from '../utils';
+import { ABSOLUTE_TIME_FORMAT } from './utils/defaults';
 
 export interface IRelativeTimestampProps {
   timestamp: DateTime | string;
@@ -30,7 +31,8 @@ export const DurationRender: React.FC<{ startedAt: string; completedAt?: string 
   return <>{timeDiffToString(startAtDateTime, endTime)}</>;
 };
 
-const formatTimestamp = (timestamp: DateTime, distance: Duration, withSuffix: boolean) => {
+export const formatToRelativeTimestamp = (timestamp: DateTime, withSuffix: boolean) => {
+  const distance = getDistanceFromNow(timestamp);
   const suffix = withSuffix ? ' ago' : '';
   if (distance.years || distance.months) {
     let currentTime = DateTime.local();
@@ -69,12 +71,10 @@ export const RelativeTimestamp = memo(
     const dateTimeTimestamp =
       typeof originalTimestamp === 'string' ? DateTime.fromISO(originalTimestamp) : originalTimestamp;
     const timestamp = TIMEZONE ? dateTimeTimestamp.setZone(TIMEZONE) : dateTimeTimestamp;
-    const [formattedTimestamp, setFormattedTimestamp] = useState(
-      formatTimestamp(timestamp, getDistanceFromNow(timestamp), withSuffix),
-    );
+    const [formattedTimestamp, setFormattedTimestamp] = useState(formatToRelativeTimestamp(timestamp, withSuffix));
 
     const updateTimestamp = () => {
-      setFormattedTimestamp(formatTimestamp(timestamp, getDistanceFromNow(timestamp), withSuffix));
+      setFormattedTimestamp(formatToRelativeTimestamp(timestamp, withSuffix));
     };
 
     useInterval(updateTimestamp, 1000);
@@ -83,7 +83,7 @@ export const RelativeTimestamp = memo(
       return null;
     }
 
-    const absoluteTimestamp = timestamp.toFormat('yyyy-MM-dd HH:mm:ss ZZZZ');
+    const absoluteTimestamp = timestamp.toFormat(ABSOLUTE_TIME_FORMAT);
     const relativeTimestamp = (
       <span
         className={removeStyles ? undefined : 'text-regular text-italic'}

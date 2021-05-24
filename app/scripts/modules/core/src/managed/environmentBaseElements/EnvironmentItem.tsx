@@ -4,7 +4,7 @@ import React from 'react';
 import { IIconProps } from '@spinnaker/presentation';
 import { IconTooltip } from 'core/presentation';
 
-import { TOOLTIP_DELAY } from '../utils/defaults';
+import { TOOLTIP_DELAY_SHOW } from '../utils/defaults';
 
 interface IEnvironmentItemProps {
   title: string | React.ReactElement;
@@ -30,7 +30,7 @@ export const EnvironmentItem: React.FC<IEnvironmentItemProps> = ({
           name={iconName}
           color="primary-g1"
           size={size === 'regular' ? '20px' : '18px'}
-          delayShow={TOOLTIP_DELAY}
+          delayShow={TOOLTIP_DELAY_SHOW}
         />
       </div>
       <div className="row-details">

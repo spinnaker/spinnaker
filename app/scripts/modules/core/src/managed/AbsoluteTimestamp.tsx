@@ -3,6 +3,7 @@ import React, { memo } from 'react';
 
 import { SETTINGS } from '../config';
 import { CopyToClipboard } from '../utils';
+import { ABSOLUTE_TIME_FORMAT } from './utils/defaults';
 
 export interface IAbsoluteTimestampProps {
   timestamp: DateTime;
@@ -15,7 +16,7 @@ export const AbsoluteTimestamp = memo(
   ({ timestamp: timestampInOriginalZone, clickToCopy }: IAbsoluteTimestampProps) => {
     const timestamp = TIMEZONE ? timestampInOriginalZone.setZone(TIMEZONE) : timestampInOriginalZone;
 
-    const fullTimestamp = timestamp.toFormat('yyyy-MM-dd HH:mm:ss ZZZZ');
+    const fullTimestamp = timestamp.toFormat(ABSOLUTE_TIME_FORMAT);
     const formattedTimestamp = timestamp.toFormat('MMM d, y HH:mm');
     const timestampElement = <span>{formattedTimestamp}</span>;
 

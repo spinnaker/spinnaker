@@ -4,17 +4,34 @@ import { IconTooltip } from 'core/presentation';
 
 import {
   BaseVersionMetadata,
-  DeployingBadge,
   IVersionMetadataProps,
+  MetadataBadge,
   MetadataElement,
-  PinnedBadge,
   VersionAuthor,
   VersionBuilds,
   VersionCreatedAt,
+  VersionMessage,
   VersionMetadataActions,
 } from './MetadataComponents';
-import { RelativeTimestamp } from '../RelativeTimestamp';
-import { TOOLTIP_DELAY } from '../utils/defaults';
+import { formatToRelativeTimestamp, RelativeTimestamp } from '../RelativeTimestamp';
+import { getLifecycleEventDuration, getLifecycleEventLink, getLifecycleEventSummary } from '../overview/artifact/utils';
+import { QueryArtifactVersion } from '../overview/types';
+import { TOOLTIP_DELAY_SHOW } from '../utils/defaults';
+import { SingleVersionArtifactVersion } from '../versionsHistory/types';
+
+export const getBaseMetadata = (
+  version: QueryArtifactVersion | SingleVersionArtifactVersion,
+): Partial<IVersionMetadataProps> => {
+  return {
+    buildNumber: version.buildNumber,
+    buildLink: getLifecycleEventLink(version, 'BUILD'),
+    author: version.gitMetadata?.author,
+    deployedAt: version.deployedAt,
+    buildDuration: getLifecycleEventDuration(version, 'BUILD'),
+    isDeploying: version.status === 'DEPLOYING',
+    baking: getLifecycleEventSummary(version, 'BAKE'),
+  };
+};
 
 export const VersionMetadata = ({
   buildNumber,
@@ -24,15 +41,21 @@ export const VersionMetadata = ({
   createdAt,
   buildDuration,
   buildsBehind,
+  baking,
   isDeploying,
-  isPinned,
+  pinned,
   actions,
 }: IVersionMetadataProps) => {
   return (
     <BaseVersionMetadata>
-      {isDeploying && <DeployingBadge />}
-      {isPinned && <PinnedBadge />}
-
+      {isDeploying && <MetadataBadge type="deploying" />}
+      {baking?.isRunning && (
+        <MetadataBadge
+          type="baking"
+          link={baking.link}
+          tooltip={`${baking.startedAt ? formatToRelativeTimestamp(baking.startedAt, true) : ''} (Click to view task)`}
+        />
+      )}
       {buildNumber && <VersionBuilds builds={[{ buildNumber, buildLink }]} />}
       <VersionAuthor author={author} />
       {deployedAt && (
@@ -42,9 +65,9 @@ export const VersionMetadata = ({
             name="cloudDeployed"
             size="12px"
             wrapperClassName="metadata-icon"
-            delayShow={TOOLTIP_DELAY}
+            delayShow={TOOLTIP_DELAY_SHOW}
           />
-          <RelativeTimestamp timestamp={deployedAt} delayShow={TOOLTIP_DELAY} removeStyles withSuffix />
+          <RelativeTimestamp timestamp={deployedAt} delayShow={TOOLTIP_DELAY_SHOW} removeStyles withSuffix />
         </MetadataElement>
       )}
       <VersionCreatedAt createdAt={createdAt} />
@@ -55,7 +78,7 @@ export const VersionMetadata = ({
             name="build"
             size="12px"
             wrapperClassName="metadata-icon"
-            delayShow={TOOLTIP_DELAY}
+            delayShow={TOOLTIP_DELAY_SHOW}
           />
           {buildDuration}
         </MetadataElement>
@@ -66,6 +89,7 @@ export const VersionMetadata = ({
         </MetadataElement>
       ) : null}
       {actions && <VersionMetadataActions id={`${buildNumber}-actions`} actions={actions} />}
+      {pinned && <VersionMessage type="pinned" data={pinned} />}
     </BaseVersionMetadata>
   );
 };

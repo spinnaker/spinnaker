@@ -8,9 +8,10 @@ import { EnvironmentItem } from '../environmentBaseElements/EnvironmentItem';
 import { useFetchVersionQuery } from '../graphql/graphql-sdk';
 import { ArtifactVersionTasks } from '../overview/artifact/ArtifactVersionTasks';
 import { Constraints } from '../overview/artifact/Constraints';
-import { getLifecycleEventDuration, getLifecycleEventLink, useCreateVersionActions } from '../overview/artifact/utils';
+import { useCreateVersionActions } from '../overview/artifact/utils';
 import { PinnedVersions, VersionData, VersionInEnvironment } from './types';
-import { VersionMetadata } from '../versionMetadata/VersionMetadata';
+import { toPinnedMetadata, VersionMessageData } from '../versionMetadata/MetadataComponents';
+import { getBaseMetadata, VersionMetadata } from '../versionMetadata/VersionMetadata';
 
 import './VersionsHistory.less';
 
@@ -39,16 +40,19 @@ const LoadingAnimation = () => (
 
 const VersionInEnvironment = ({ environment, version, envPinnedVersions }: IVersionInEnvironmentProps) => {
   const { detailedVersionData, loading } = useGetDetailedVersionData({ environment, version });
-  const isPinned = Boolean(
-    version.buildNumber !== undefined && envPinnedVersions?.[version.reference]?.buildNumber === version.buildNumber,
-  );
+  let pinnedData: VersionMessageData | undefined;
+  const currentPinnedVersion = envPinnedVersions?.[version.reference];
+  if (currentPinnedVersion && currentPinnedVersion.buildNumber === version.buildNumber) {
+    pinnedData = toPinnedMetadata(currentPinnedVersion);
+  }
+
   const actions = useCreateVersionActions({
     environment,
     reference: version.reference,
     version: version.version,
     buildNumber: version.buildNumber,
     commitMessage: version.gitMetadata?.commitInfo?.message,
-    isPinned,
+    isPinned: Boolean(pinnedData),
     compareLinks: {
       previous: detailedVersionData?.gitMetadata?.comparisonLinks?.toPreviousVersion,
       current: detailedVersionData?.gitMetadata?.comparisonLinks?.toCurrentVersion,
@@ -65,12 +69,10 @@ const VersionInEnvironment = ({ environment, version, envPinnedVersions }: IVers
       <VersionMetadata
         key={version.id}
         buildNumber={version.buildNumber}
-        buildLink={getLifecycleEventLink(detailedVersionData, 'BUILD')}
         author={version.gitMetadata?.author}
-        deployedAt={detailedVersionData?.deployedAt}
-        buildDuration={getLifecycleEventDuration(detailedVersionData, 'BUILD')}
+        {...(detailedVersionData ? getBaseMetadata(detailedVersionData) : undefined)}
         actions={actions}
-        isPinned={isPinned}
+        pinned={pinnedData}
       />
 
       {loading && <LoadingAnimation />}
@@ -93,10 +95,10 @@ interface IVersionContentProps {
 export const VersionContent = ({ versionData, pinnedVersions }: IVersionContentProps) => {
   return (
     <React.Fragment>
-      {Object.entries(versionData.environments).map(([env, artifactVersions]) => {
+      {Object.entries(versionData.environments).map(([env, { versions }]) => {
         return (
           <BaseEnvironment key={env} title={env} size="small">
-            {artifactVersions.map((version) => (
+            {versions.map((version) => (
               <VersionInEnvironment
                 environment={env}
                 key={version.id}

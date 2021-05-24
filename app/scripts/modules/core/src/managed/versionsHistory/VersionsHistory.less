@@ -40,10 +40,21 @@
     flex-direction: row;
     margin-top: var(--s-spacing);
 
-    > .chip {
+    .chip {
       min-width: 100px;
       justify-content: center;
       margin-right: var(--m-spacing);
+      position: relative;
+    }
+
+    .environment-pinned {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      padding: 2px;
+      box-shadow: 1px 1px 1px 0 rgba(0, 0, 0, 0.5);
+      border-radius: 999px;
+      background-color: var(--color-status-warning-light);
     }
   }
 

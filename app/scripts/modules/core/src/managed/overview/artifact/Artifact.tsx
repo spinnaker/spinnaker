@@ -7,7 +7,8 @@ import { CurrentVersion } from './CurrentVersion';
 import { PendingVersions } from './PendingVersion';
 import { EnvironmentItem } from '../../environmentBaseElements/EnvironmentItem';
 import { QueryArtifact, QueryArtifactVersion } from '../types';
-import { TOOLTIP_DELAY } from '../../utils/defaults';
+import { tooltipShowHideProps } from '../../utils/defaults';
+import { toPinnedMetadata } from '../../versionMetadata/MetadataComponents';
 
 import './Artifact.less';
 
@@ -44,7 +45,7 @@ export const PinnedVersion = ({ version }: { version: NonNullable<QueryArtifact[
       <i className="fas fa-exclamation-triangle" /> Version{' '}
       {commitMessage ? (
         <HoverablePopover
-          delayHide={TOOLTIP_DELAY}
+          {...tooltipShowHideProps}
           placement="top"
           Component={() => <Markdown className="git-commit-tooltip" message={commitMessage} />}
         >
@@ -81,7 +82,7 @@ export const Artifact = ({ artifact }: IArtifactProps) => {
           environment={artifact.environment}
           reference={artifact.reference}
           numNewerVersions={newerVersions?.length}
-          isPinned={pinnedVersion?.version === currentVersion.version}
+          pinned={pinnedVersion?.version === currentVersion.version ? toPinnedMetadata(pinnedVersion) : undefined}
         />
       ) : (
         <div>No version is deployed</div>

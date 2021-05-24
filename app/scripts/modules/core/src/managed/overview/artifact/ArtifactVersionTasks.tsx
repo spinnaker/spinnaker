@@ -5,7 +5,7 @@ import { Tooltip } from 'core/presentation';
 import { DurationRender, RelativeTimestamp } from '../../RelativeTimestamp';
 import { VersionOperationIcon } from './VersionOperation';
 import { QueryArtifactVersionTask, QueryVerificationStatus } from '../types';
-import { TOOLTIP_DELAY } from '../../utils/defaults';
+import { TOOLTIP_DELAY_SHOW } from '../../utils/defaults';
 
 import './ArtifactVersionTasks.less';
 
@@ -39,7 +39,7 @@ const ArtifactVersionTask = ({ type, task }: IArtifactVersionTaskProps) => {
         )}
         {startedAt && (
           <span className="task-metadata task-runtime">
-            <Tooltip value="Runtime duration" delayShow={TOOLTIP_DELAY}>
+            <Tooltip value="Runtime duration" delayShow={TOOLTIP_DELAY_SHOW}>
               <i className="far fa-clock" />
             </Tooltip>
             <DurationRender {...{ startedAt, completedAt }} />

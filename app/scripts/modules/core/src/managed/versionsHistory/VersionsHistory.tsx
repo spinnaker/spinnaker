@@ -9,6 +9,7 @@ import { VersionContent } from './VersionContent';
 import { VersionHeading } from './VersionHeading';
 import { ManagementWarning } from '../config/ManagementWarning';
 import { useFetchVersionsHistoryQuery } from '../graphql/graphql-sdk';
+import { isBaking } from '../overview/artifact/utils';
 import { HistoryEnvironment, PinnedVersions, VersionData } from './types';
 import { spinnerProps } from '../utils/defaults';
 
@@ -33,7 +34,6 @@ const setValueIfMissing = <Obj extends Record<string, any>, Key extends keyof Ob
   }
 };
 
-// TODO: write tests
 const groupVersionsByShaOrBuild = (environments: HistoryEnvironment[]) => {
   const groupedVersions: GroupedVersions = {};
   for (const env of environments) {
@@ -49,6 +49,11 @@ const groupVersionsByShaOrBuild = (environments: HistoryEnvironment[]) => {
         if (version.buildNumber) {
           groupedVersions[key].buildNumbers.add(version.buildNumber);
         }
+
+        if (isBaking(version)) {
+          groupedVersions[key].isBaking = true;
+        }
+
         groupedVersions[key].versions.add(version.version);
 
         setValueIfMissing(groupedVersions[key], 'createdAt', undefined, () =>
@@ -58,9 +63,12 @@ const groupVersionsByShaOrBuild = (environments: HistoryEnvironment[]) => {
 
         const buildEnvironments = groupedVersions[key].environments;
         if (!buildEnvironments[env.name]) {
-          buildEnvironments[env.name] = [];
+          buildEnvironments[env.name] = { versions: [] };
         }
-        buildEnvironments[env.name].push({ ...version, reference: artifact.reference, type: artifact.type });
+        if (artifact.pinnedVersion?.version === version.version) {
+          buildEnvironments[env.name].isPinned = true;
+        }
+        buildEnvironments[env.name].versions.push({ ...version, reference: artifact.reference, type: artifact.type });
       }
     }
   }

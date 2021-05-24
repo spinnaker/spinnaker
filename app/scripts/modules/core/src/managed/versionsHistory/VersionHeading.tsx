@@ -3,14 +3,19 @@ import classnames from 'classnames';
 import { sortBy, toNumber } from 'lodash';
 import React from 'react';
 
-import { Tooltip, useApplicationContextSafe } from 'core/presentation';
+import { Icon, Tooltip, useApplicationContextSafe } from 'core/presentation';
 
-import { FetchVersionDocument, FetchVersionQueryVariables } from '../graphql/graphql-sdk';
+import {
+  FetchVersionDocument,
+  FetchVersionQueryVariables,
+  MdArtifactStatusInEnvironment,
+} from '../graphql/graphql-sdk';
 import { GitLink } from '../overview/artifact/GitLink';
 import { HistoryArtifactVersion, VersionData } from './types';
-import { TOOLTIP_DELAY } from '../utils/defaults';
+import { TOOLTIP_DELAY_SHOW } from '../utils/defaults';
 import {
   BaseVersionMetadata,
+  MetadataBadge,
   VersionAuthor,
   VersionBuilds,
   VersionCreatedAt,
@@ -18,14 +23,14 @@ import {
 
 import './VersionsHistory.less';
 
-type VersionStatus = NonNullable<HistoryArtifactVersion['status']>;
+type VersionStatus = MdArtifactStatusInEnvironment;
 
 // TODO: could we have vetoed + current in the same env? unlikely
 const getEnvStatusSummary = (artifacts: HistoryArtifactVersion[]): VersionStatus => {
   // We sort from the newest to the oldest
   const sortedArtifacts = sortBy(artifacts, (artifact) => -1 * toNumber(artifact.buildNumber || 0));
 
-  let status: HistoryArtifactVersion['status'] = 'SKIPPED';
+  let status: MdArtifactStatusInEnvironment = 'SKIPPED';
   for (const artifact of sortedArtifacts) {
     switch (artifact.status) {
       case 'CURRENT':
@@ -96,6 +101,7 @@ export const VersionHeading = ({ group, chevron }: IVersionHeadingProps) => {
           <div>Build {Array.from(group.buildNumbers).join(', ')}</div>
         )}
         <BaseVersionMetadata>
+          {group.isBaking && <MetadataBadge type="baking" />}
           <VersionAuthor author={gitMetadata?.author} />
           <VersionBuilds builds={Array.from(group.buildNumbers).map((buildNumber) => ({ buildNumber }))} />
           <VersionCreatedAt createdAt={group.createdAt} />
@@ -105,11 +111,12 @@ export const VersionHeading = ({ group, chevron }: IVersionHeadingProps) => {
           {Object.entries(group.environments)
             .reverse()
             .map(([env, artifacts]) => {
-              const statusSummary = getEnvStatusSummary(artifacts);
+              const statusSummary = getEnvStatusSummary(artifacts.versions);
               const statusClassName = statusToClassName[statusSummary];
               return (
-                <Tooltip delayShow={TOOLTIP_DELAY} value={statusToText[statusSummary]}>
-                  <div key={env} className={classnames('chip', statusClassName)}>
+                <Tooltip key={env} delayShow={TOOLTIP_DELAY_SHOW} value={statusToText[statusSummary]}>
+                  <div className={classnames('chip', statusClassName)}>
+                    {artifacts.isPinned && <Icon name="pin" size="16px" className="environment-pinned" color="black" />}{' '}
                     {env}
                   </div>
                 </Tooltip>

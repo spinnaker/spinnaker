@@ -2,10 +2,11 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  margin-top: var(~'--2xs-spacing');
+  margin-top: var(--xs-spacing);
   color: var(--color-concrete);
   white-space: pre-wrap;
   font-size: 13px;
+  flex-wrap: wrap;
 
   .metadata-element {
     display: flex;
@@ -38,5 +39,41 @@
     &:not(:hover) {
       background-color: transparent;
     }
+  }
+
+  .version-badge {
+    border-radius: 3px;
+    padding: 0 var(--s-spacing);
+    display: flex;
+    min-width: 60px;
+    justify-content: center;
+    flex-direction: row;
+    & > svg {
+      margin-right: 4px;
+    }
+  }
+
+  .version-deploying {
+    background-color: var(--color-accent);
+    color: var(--color-white);
+  }
+
+  .version-baking {
+    background-color: var(--color-accent-g1);
+    color: var(--color-black);
+  }
+
+  .version-pinned {
+    background-color: var(--color-status-warning-light);
+    color: var(--color-mineshaft);
+  }
+
+  .version-message {
+    border-radius: 4px;
+    padding: var(--s-spacing);
+    padding-right: var(--xl-spacing);
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
   }
 }
