@@ -3,7 +3,6 @@ package com.netflix.spinnaker.keel.telemetry
 import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Registry
-import com.netflix.spectator.api.histogram.PercentileTimer
 import com.netflix.spectator.api.patterns.PolledMeter
 import com.netflix.spectator.api.patterns.ThreadPoolMonitor
 import com.netflix.spinnaker.keel.activation.ApplicationDown
@@ -16,6 +15,7 @@ import com.netflix.spinnaker.keel.events.ResourceCheckResult
 import com.netflix.spinnaker.keel.events.VerificationBlockedActuation
 import org.slf4j.LoggerFactory
 import org.springframework.context.event.EventListener
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler
 import org.springframework.stereotype.Component
 import java.time.Clock
@@ -29,7 +29,8 @@ import java.util.concurrent.atomic.AtomicReference
 class TelemetryListener(
   private val spectator: Registry,
   private val clock: Clock,
-  private val threadPoolExecutors: List<ThreadPoolTaskScheduler>,
+  threadPoolTaskSchedulers: List<ThreadPoolTaskScheduler>,
+  threadPoolTaskExecutors: List<ThreadPoolTaskExecutor>,
 ) {
   private val lastResourceCheck: AtomicReference<Instant> =
     createDriftGauge(RESOURCE_CHECK_DRIFT_GAUGE)
@@ -46,8 +47,12 @@ class TelemetryListener(
 
   init {
     // attach monitors for all the thread pools we have
-    threadPoolExecutors.forEach { executor ->
+    threadPoolTaskSchedulers.forEach { executor ->
       ThreadPoolMonitor.attach(spectator, executor.scheduledThreadPoolExecutor, executor.threadNamePrefix + "spring")
+    }
+
+    threadPoolTaskExecutors.forEach { executor ->
+      ThreadPoolMonitor.attach(spectator, executor.threadPoolExecutor, executor.threadNamePrefix + "spring")
     }
 
     // todo: add coroutines once you can actually monitor them as described here: https://github.com/Kotlin/kotlinx.coroutines/issues/1360

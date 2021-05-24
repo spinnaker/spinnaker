@@ -35,7 +35,7 @@ internal class TelemetryListenerTests : JUnit5Minutests {
 
   fun tests() = rootContext<TelemetryListener> {
     fixture {
-      TelemetryListener(registry, Clock.systemUTC(), emptyList())
+      TelemetryListener(registry, Clock.systemUTC(), emptyList(), emptyList())
     }
 
     context("successful metric submission") {
