@@ -106,7 +106,7 @@ export const Resource = ({ resource, environment }: { resource: QueryResource; e
               showManagedResourceHistoryModal({ id: resource.id, displayName: resource.displayName || resource.id });
             }}
           >
-            View logs
+            View history
           </a>
         </span>
       </div>

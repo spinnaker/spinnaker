@@ -4,7 +4,7 @@ import React from 'react';
 import { HoverablePopover, Markdown } from 'core/presentation';
 
 import { CurrentVersion } from './CurrentVersion';
-import { PendingVersion } from './PendingVersion';
+import { PendingVersions } from './PendingVersion';
 import { EnvironmentItem } from '../../environmentBaseElements/EnvironmentItem';
 import { QueryArtifact, QueryArtifactVersion } from '../types';
 import { TOOLTIP_DELAY } from '../../utils/defaults';
@@ -89,23 +89,7 @@ export const Artifact = ({ artifact }: IArtifactProps) => {
       {pinnedVersion && pinnedVersion.buildNumber !== currentVersion?.buildNumber && (
         <PinnedVersion version={pinnedVersion} />
       )}
-      {newerVersions?.length ? (
-        <section className="artifact-pending-versions">
-          <div className="artifact-versions-title">Pending Versions</div>
-          <div className="artifact-pending-versions-list">
-            {newerVersions?.map((version, index) => (
-              <PendingVersion
-                key={version.version}
-                index={index}
-                environment={artifact.environment}
-                reference={artifact.reference}
-                data={version}
-                isPinned={pinnedVersion?.version === version.version}
-              />
-            ))}
-          </div>
-        </section>
-      ) : undefined}
+      <PendingVersions artifact={artifact} pendingVersions={newerVersions} />
     </EnvironmentItem>
   );
 };

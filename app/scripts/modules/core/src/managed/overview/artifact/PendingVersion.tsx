@@ -5,10 +5,58 @@ import React from 'react';
 import { Constraints } from './Constraints';
 import { GitLink } from './GitLink';
 import { RelativeTimestamp } from '../../RelativeTimestamp';
-import { QueryArtifactVersion } from '../types';
+import { QueryArtifact, QueryArtifactVersion } from '../types';
 import { getLifecycleEventDuration, getLifecycleEventLink, useCreateVersionActions } from './utils';
 import { TOOLTIP_DELAY } from '../../utils/defaults';
 import { VersionMetadata } from '../../versionMetadata/VersionMetadata';
+
+export interface IPendingVersionsProps {
+  artifact: QueryArtifact;
+  pendingVersions?: QueryArtifactVersion[];
+}
+
+const NUM_VERSIONS_WHEN_COLLAPSED = 2;
+
+export const PendingVersions = ({ artifact, pendingVersions }: IPendingVersionsProps) => {
+  const numVersions = pendingVersions?.length || 0;
+  const [isExpanded, setIsExpanded] = React.useState(false);
+
+  if (!pendingVersions || !numVersions) return null;
+
+  const versionsToShow = isExpanded ? pendingVersions : pendingVersions.slice(0, NUM_VERSIONS_WHEN_COLLAPSED);
+  const numDeploying = pendingVersions.filter((version) => version.status === 'DEPLOYING').length;
+  const { pinnedVersion } = artifact;
+  return (
+    <section className="artifact-pending-versions">
+      <div className="artifact-versions-title">
+        {numVersions} Pending Versions {numDeploying > 0 ? `(${numDeploying} deploying)` : ''}
+      </div>
+      <div className="artifact-pending-versions-list">
+        {versionsToShow.map((version, index) => (
+          <PendingVersion
+            key={version.version}
+            index={index}
+            environment={artifact.environment}
+            reference={artifact.reference}
+            data={version}
+            isPinned={pinnedVersion?.version === version.version}
+          />
+        ))}
+        {numVersions > NUM_VERSIONS_WHEN_COLLAPSED ? (
+          <div className="artifact-pending-version">
+            <button
+              type="button"
+              className="btn btn-link show-more-versions"
+              onClick={() => setIsExpanded((state) => !state)}
+            >
+              {isExpanded ? 'Hide versions...' : 'Show all versions...'}
+            </button>
+          </div>
+        ) : undefined}
+      </div>
+    </section>
+  );
+};
 
 interface IPendingVersionProps {
   data: QueryArtifactVersion;
@@ -18,7 +66,7 @@ interface IPendingVersionProps {
   index: number;
 }
 
-export const PendingVersion = ({ data, reference, environment, isPinned, index }: IPendingVersionProps) => {
+const PendingVersion = ({ data, reference, environment, isPinned, index }: IPendingVersionProps) => {
   const { buildNumber, version, gitMetadata, constraints, status } = data;
   const actions = useCreateVersionActions({
     environment,

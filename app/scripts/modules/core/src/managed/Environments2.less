@@ -3,7 +3,21 @@
   padding: 0 var(--l-spacing);
   --base-horizontal-padding: var(--xl-spacing);
 
-  a {
+  a,
+  .btn-link {
     color: var(--color-text-link-g1);
+
+    &:focus,
+    &:active {
+      outline: none;
+      box-shadow: none;
+    }
+
+    &:focus {
+      &:active {
+        outline: none;
+        box-shadow: none;
+      }
+    }
   }
 }
