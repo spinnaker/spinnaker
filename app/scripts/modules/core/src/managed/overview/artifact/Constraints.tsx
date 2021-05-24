@@ -8,7 +8,7 @@ import { NotifierService } from 'core/widgets';
 
 import { VersionOperationIcon } from './VersionOperation';
 import { constraintsManager } from '../../constraints/registry';
-import { FetchApplicationDocument, useUpdateConstraintMutation } from '../../graphql/graphql-sdk';
+import { FetchVersionDocument, useUpdateConstraintMutation } from '../../graphql/graphql-sdk';
 import spinner from '../loadingIndicator.svg';
 import { ArtifactVersionProps, QueryConstraint } from '../types';
 import { getConstraintsStatusSummary } from './utils';
@@ -26,7 +26,9 @@ const ConstraintContent = ({ constraint, versionProps }: IConstraintContentProps
   const application = useApplicationContextSafe();
 
   const [updateConstraint, { loading, error }] = useUpdateConstraintMutation({
-    refetchQueries: [{ query: FetchApplicationDocument, variables: { appName: application?.name } }],
+    refetchQueries: [
+      { query: FetchVersionDocument, variables: { appName: application?.name, versions: [versionProps.version] } },
+    ],
   });
 
   React.useEffect(() => {
