@@ -50,6 +50,7 @@ query fetchApplication($appName: String!, $statuses: [MdArtifactStatusInEnvironm
               type
               status
               judgedBy
+              judgedAt
               attributes
             }
             verifications {
@@ -205,6 +206,7 @@ query fetchVersion($appName: String!, $versions: [String!]) {
               type
               status
               judgedBy
+              judgedAt
               attributes
             }
             verifications {

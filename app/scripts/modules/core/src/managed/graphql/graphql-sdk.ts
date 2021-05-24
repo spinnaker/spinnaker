@@ -338,7 +338,7 @@ export type FetchApplicationQuery = { __typename?: 'Query' } & {
                                     Array<
                                       { __typename?: 'MdConstraint' } & Pick<
                                         MdConstraint,
-                                        'type' | 'status' | 'judgedBy' | 'attributes'
+                                        'type' | 'status' | 'judgedBy' | 'judgedAt' | 'attributes'
                                       >
                                     >
                                   >;
@@ -505,7 +505,7 @@ export type FetchVersionQuery = { __typename?: 'Query' } & {
                                     Array<
                                       { __typename?: 'MdConstraint' } & Pick<
                                         MdConstraint,
-                                        'type' | 'status' | 'judgedBy' | 'attributes'
+                                        'type' | 'status' | 'judgedBy' | 'judgedAt' | 'attributes'
                                       >
                                     >
                                   >;
@@ -641,6 +641,7 @@ export const FetchApplicationDocument = gql`
                 type
                 status
                 judgedBy
+                judgedAt
                 attributes
               }
               verifications {
@@ -872,6 +873,7 @@ export const FetchVersionDocument = gql`
                 type
                 status
                 judgedBy
+                judgedAt
                 attributes
               }
               verifications {

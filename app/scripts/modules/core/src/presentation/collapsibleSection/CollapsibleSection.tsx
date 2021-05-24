@@ -15,6 +15,7 @@ export interface ICollapsibleSectionProps {
   defaultExpanded?: boolean;
   expandIconPosition?: 'left' | 'right';
   expandIconType?: 'arrow' | 'plus';
+  expandIconSize?: string;
   heading: ((props: { chevron: JSX.Element }) => JSX.Element) | string;
 }
 
@@ -45,6 +46,7 @@ export const CollapsibleSection: React.FC<ICollapsibleSectionProps> = ({
   heading,
   expandIconPosition = 'left',
   expandIconType = 'arrow',
+  expandIconSize,
   children,
 }) => {
   const cacheKey = React.useMemo(
@@ -65,11 +67,11 @@ export const CollapsibleSection: React.FC<ICollapsibleSectionProps> = ({
   };
 
   const expandIconProps: Partial<IIconProps> = {
-    size: '16px',
+    size: expandIconSize || '16px',
     color: 'concrete',
   };
 
-  const expandIcon = (
+  const expandIcon = children ? (
     <span className={classnames('section-heading-chevron', expandIconPosition)}>
       {expandIconType === 'arrow' ? (
         <Icon
@@ -81,7 +83,7 @@ export const CollapsibleSection: React.FC<ICollapsibleSectionProps> = ({
         <Icon name={isExpanded ? 'minus' : 'plus'} {...expandIconProps} />
       )}
     </span>
-  );
+  ) : undefined;
 
   const Heading =
     typeof heading === 'string' ? (
@@ -102,11 +104,15 @@ export const CollapsibleSection: React.FC<ICollapsibleSectionProps> = ({
 
   return (
     <div className={outerDivClassName}>
-      <a className={classnames(toggleClassName, 'clickable')} onClick={toggle}>
-        {Heading}
-      </a>
+      {children ? (
+        <a className={classnames(toggleClassName, 'clickable')} onClick={toggle}>
+          {Heading}
+        </a>
+      ) : (
+        Heading
+      )}
 
-      {isExpanded && <div className={bodyClassName}>{children}</div>}
+      {isExpanded && children && <div className={bodyClassName}>{children}</div>}
     </div>
   );
 };

@@ -2,7 +2,7 @@ import React from 'react';
 
 import { Tooltip } from 'core/presentation';
 
-import { DurationRender } from '../../RelativeTimestamp';
+import { DurationRender, RelativeTimestamp } from '../../RelativeTimestamp';
 import { VersionOperationIcon } from './VersionOperation';
 import { QueryArtifactVersionTask, QueryVerificationStatus } from '../types';
 import { TOOLTIP_DELAY } from '../../utils/defaults';
@@ -32,6 +32,11 @@ const ArtifactVersionTask = ({ type, task }: IArtifactVersionTaskProps) => {
       <VersionOperationIcon status={status} />
       <div className="task-content">
         {type} {task.id} {statusToText[status]}{' '}
+        {startedAt && completedAt && (
+          <>
+            (<RelativeTimestamp timestamp={completedAt} withSuffix />)
+          </>
+        )}
         {startedAt && (
           <span className="task-metadata task-runtime">
             <Tooltip value="Runtime duration" delayShow={TOOLTIP_DELAY}>

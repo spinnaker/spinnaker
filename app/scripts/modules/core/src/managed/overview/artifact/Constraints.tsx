@@ -2,10 +2,10 @@ import classnames from 'classnames';
 import { isEmpty } from 'lodash';
 import React from 'react';
 
-import { Icon } from '@spinnaker/presentation';
-import { useApplicationContextSafe } from 'core/presentation';
+import { CollapsibleSection, useApplicationContextSafe } from 'core/presentation';
 import { NotifierService } from 'core/widgets';
 
+import { RelativeTimestamp } from '../../RelativeTimestamp';
 import { VersionOperationIcon } from './VersionOperation';
 import { constraintsManager } from '../../constraints/registry';
 import { FetchVersionDocument, useUpdateConstraintMutation } from '../../graphql/graphql-sdk';
@@ -84,27 +84,30 @@ interface IConstraintProps {
 
 const Constraint = ({ constraint, versionProps }: IConstraintProps) => {
   const hasContent = constraintsManager.hasContent(constraint);
-  const [isExpanded, setIsExpanded] = React.useState(hasContent);
   const title = constraintsManager.renderTitle(constraint);
   return (
     <div className="pending-version-constraint">
       <VersionOperationIcon status={constraint.status} />
-      <div>
-        {hasContent ? (
-          <button
-            className="btn-link constraint-title"
-            onClick={() => {
-              setIsExpanded((state) => !state);
-            }}
-          >
-            {title}
-            <Icon name="accordionExpand" size="12px" className={isExpanded ? 'rotate-m90' : undefined} />
-          </button>
-        ) : (
-          <span className="constraint-title">{title}</span>
+      <CollapsibleSection
+        outerDivClassName=""
+        defaultExpanded
+        toggleClassName="constraint-toggle"
+        enableCaching={false}
+        expandIconSize="12px"
+        heading={({ chevron }) => (
+          <div className="constraint-title">
+            {title}{' '}
+            {constraint.judgedAt && (
+              <span className="sp-margin-xs-left">
+                (<RelativeTimestamp timestamp={constraint.judgedAt} withSuffix />)
+              </span>
+            )}
+            {chevron}
+          </div>
         )}
-        {isExpanded && hasContent && <ConstraintContent constraint={constraint} versionProps={versionProps} />}
-      </div>
+      >
+        {hasContent ? <ConstraintContent constraint={constraint} versionProps={versionProps} /> : undefined}
+      </CollapsibleSection>
     </div>
   );
 };
@@ -118,33 +121,30 @@ export const Constraints = ({
   versionProps: ArtifactVersionProps;
   expandedByDefault?: boolean;
 }) => {
-  const [showSummary, setShowSummary] = React.useState(Boolean(expandedByDefault));
   if (!constraints || !constraints.length) return null;
   const summary = getConstraintsStatusSummary(constraints);
   return (
     <div className="Constraints">
-      {showSummary ? (
-        constraints?.map((constraint, index) => (
-          <Constraint key={index} constraint={constraint} versionProps={versionProps} />
-        ))
-      ) : (
-        <div className="pending-version-constraint">
-          <VersionOperationIcon status={summary.status} />
-          <span className="constraint-title">
-            Constraints: {summary.text} (
-            <a
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                setShowSummary(true);
-              }}
-            >
-              expand
-            </a>
-            )
-          </span>
-        </div>
-      )}
+      <div className="pending-version-constraint">
+        <VersionOperationIcon status={summary.status} />
+        <CollapsibleSection
+          heading={({ chevron }) => (
+            <div className="horizontal">
+              Constraints: {summary.text} {chevron}
+            </div>
+          )}
+          outerDivClassName=""
+          toggleClassName="constraint-toggle"
+          bodyClassName="sp-margin-xs-top sp-margin-xs-bottom"
+          expandIconSize="12px"
+          defaultExpanded={expandedByDefault}
+          enableCaching={false}
+        >
+          {constraints?.map((constraint, index) => (
+            <Constraint key={index} constraint={constraint} versionProps={versionProps} />
+          ))}
+        </CollapsibleSection>
+      </div>
     </div>
   );
 };
