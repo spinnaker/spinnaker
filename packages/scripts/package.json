@@ -1,6 +1,6 @@
 {
   "name": "@spinnaker/scripts",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "",
   "main": "index.js",
   "bin": {
@@ -22,6 +22,7 @@
     "chalk": "^4.1.1",
     "ora": "^5.4.0",
     "postcss-nested": "^4.2.1",
+    "postcss-url": "9.0.0",
     "rollup": "^2.35.1",
     "rollup-plugin-auto-external": "^2.0.0",
     "rollup-plugin-external-globals": "0.6.1",
