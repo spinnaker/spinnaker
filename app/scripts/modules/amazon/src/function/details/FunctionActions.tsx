@@ -27,6 +27,7 @@ export interface IFunctionActionsState {
 export class FunctionActions extends React.Component<IFunctionActionsProps, IFunctionActionsState> {
   constructor(props: IFunctionActionsProps) {
     super(props);
+    this.state = { application: props.app };
   }
 
   public componentDidMount(): void {
