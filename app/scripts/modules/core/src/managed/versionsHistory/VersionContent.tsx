@@ -68,7 +68,6 @@ const VersionInEnvironment = ({ environment, version, envPinnedVersions }: IVers
     >
       <VersionMetadata
         key={version.id}
-        buildNumber={version.buildNumber}
         author={version.gitMetadata?.author}
         {...(detailedVersionData ? getBaseMetadata(detailedVersionData) : undefined)}
         actions={actions}

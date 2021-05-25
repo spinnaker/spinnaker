@@ -40,8 +40,7 @@ export const toPinnedMetadata = (data: {
 });
 
 export interface IVersionMetadataProps {
-  buildNumber?: string;
-  buildLink?: string;
+  build?: IVersionBuildProps['build'];
   author?: string;
   deployedAt?: string;
   createdAt?: IVersionCreatedAtProps['createdAt'];
@@ -181,21 +180,25 @@ export const VersionAuthor = ({ author }: IVersionAuthorProps) => {
 };
 
 interface IVersionBuildProps {
-  build: { buildNumber?: string; buildLink?: string };
+  build: { buildNumber?: string; buildLink?: string; version?: string };
   withPrefix?: boolean;
 }
 
 export const VersionBuild = ({ build, withPrefix }: IVersionBuildProps) => {
-  return (
-    <>
-      {build.buildLink ? (
-        <a href={build.buildLink}>
-          {withPrefix ? `Build ` : ''}#{build.buildNumber}
-        </a>
-      ) : (
-        `Build #${build.buildNumber}`
-      )}
-    </>
+  const content = build.buildLink ? (
+    <a href={build.buildLink}>
+      {withPrefix ? `Build ` : ''}#{build.buildNumber}
+    </a>
+  ) : (
+    `Build #${build.buildNumber}`
+  );
+
+  return build.version ? (
+    <Tooltip value={build.version} delayShow={TOOLTIP_DELAY_SHOW}>
+      {content}
+    </Tooltip>
+  ) : (
+    <>{content}</>
   );
 };
 

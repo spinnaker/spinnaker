@@ -23,8 +23,11 @@ export const getBaseMetadata = (
   version: QueryArtifactVersion | SingleVersionArtifactVersion,
 ): Partial<IVersionMetadataProps> => {
   return {
-    buildNumber: version.buildNumber,
-    buildLink: getLifecycleEventLink(version, 'BUILD'),
+    build: {
+      buildNumber: version.buildNumber,
+      buildLink: getLifecycleEventLink(version, 'BUILD'),
+      version: version.version,
+    },
     author: version.gitMetadata?.author,
     deployedAt: version.deployedAt,
     buildDuration: getLifecycleEventDuration(version, 'BUILD'),
@@ -34,8 +37,7 @@ export const getBaseMetadata = (
 };
 
 export const VersionMetadata = ({
-  buildNumber,
-  buildLink,
+  build,
   author,
   deployedAt,
   createdAt,
@@ -56,7 +58,7 @@ export const VersionMetadata = ({
           tooltip={`${baking.startedAt ? formatToRelativeTimestamp(baking.startedAt, true) : ''} (Click to view task)`}
         />
       )}
-      {buildNumber && <VersionBuilds builds={[{ buildNumber, buildLink }]} />}
+      {build?.buildNumber && <VersionBuilds builds={[build]} />}
       <VersionAuthor author={author} />
       {deployedAt && (
         <MetadataElement>
@@ -88,7 +90,7 @@ export const VersionMetadata = ({
           {buildsBehind} build{buildsBehind > 1 ? 's' : ''} behind
         </MetadataElement>
       ) : null}
-      {actions && <VersionMetadataActions id={`${buildNumber}-actions`} actions={actions} />}
+      {actions && <VersionMetadataActions id={`${build?.buildNumber}-actions`} actions={actions} />}
       {pinned && <VersionMessage type="pinned" data={pinned} />}
     </BaseVersionMetadata>
   );
