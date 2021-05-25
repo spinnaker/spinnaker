@@ -1,15 +1,19 @@
 {
-  "extends": "../../../../tsconfig.base.json",
+  "extends": "../../../../tsconfig.json",
   "compilerOptions": {
     "baseUrl": "./src",
-    "outDir": "dist",
+    "declaration": true,
+    "declarationDir": "lib",
+    "outDir": "lib",
+    "rootDir": "./src",
+    "typeRoots": ["../../../../node_modules/@types"],
     "paths": {
-      "core/*": ["../node_modules/@spinnaker/core/lib/*"],
-      "amazon": ["."],
-      "amazon/*": ["*"]
-    },
-    "rootDir": "./src"
+      "@spinnaker/core": ["../../core/lib"],
+      "core/*": ["../../core/lib/*"],
+      "amazon/*": ["*"],
+      "amazon": ["."]
+    }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
-  "exclude": ["./dist", "**/*.spec.*"]
+  "exclude": ["./lib", "**/*.spec.*"]
 }
