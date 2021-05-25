@@ -664,7 +664,6 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     handler.copySourceAttributes(
       sourceRegionScopedProvider, "sourceAsg", useSource, description
     )
-
     then:
     thrown(IllegalStateException)
 
@@ -884,9 +883,9 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
           .withLaunchTemplateId(launchTemplateVersion.launchTemplateId)
           .withLaunchTemplateName(launchTemplateVersion.launchTemplateName)
           .withVersion(launchTemplateVersion.versionNumber.toString()))
-        .withOverrides(sourceLtOverrides.collect{
-          new LaunchTemplateOverrides().withInstanceType(it.instanceType).withWeightedCapacity(it.wgtCap)
-        }))
+        .withOverrides(
+          new LaunchTemplateOverrides().withInstanceType("c3.large").withWeightedCapacity("2"),
+          new LaunchTemplateOverrides().withInstanceType("c3.xlarge").withWeightedCapacity("4")))
 
     def sourceAsg = new AutoScalingGroup().withMixedInstancesPolicy(mixedInstancesPolicy)
 
@@ -907,10 +906,10 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     and:
     def description = new BasicAmazonDeployDescription(
       instanceType: descInstanceType,
-      launchTemplateOverridesForInstanceType: descLtOverrides.collect{
-        new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(
-          instanceType: it.instanceType,
-          weightedCapacity: it.wgtCap)},
+      launchTemplateOverridesForInstanceType: [
+        new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(instanceType: "c4.large", weightedCapacity: "2"),
+        new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(instanceType: "c4.xlarge", weightedCapacity: "4")
+      ],
       blockDevices: descBlockDevices
     )
 
@@ -921,29 +920,14 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     blockDeviceMappings == expectedTargetBlockDevices
 
     where:
-    sourceInstanceType| descInstanceType|         sourceLtOverrides                    |         descLtOverrides                    |     sourceBlockDevices    | descBlockDevices   || expectedTargetBlockDevices
-    "c3.xlarge"       | "c4.xlarge"     | [[instanceType: "c3.large", wgtCap: "2"],
-                                           [instanceType: "c3.xlarge", wgtCap: "4"]]   | [[instanceType: "c4.large", wgtCap: "2"],
-                                                                                          [instanceType: "c4.xlarge", wgtCap: "4"]] | bD("c3.xlarge")           | bD("c3.xlarge")    || bD("c3.xlarge")                                 // use the explicitly provided block devices even if instance type has changed
-    "c3.xlarge"       | "c4.xlarge"     | [[instanceType: "c3.large", wgtCap: "2"],
-                                           [instanceType: "c3.xlarge", wgtCap: "4"]]   | [[instanceType: "c4.large", wgtCap: "2"],
-                                                                                          [instanceType: "c4.xlarge", wgtCap: "4"]] | bD("c3.xlarge")           | []                 || []                                              // use the explicitly provided block devices even if an empty list
-    "c3.xlarge"       | "c4.xlarge"     | [[instanceType: "c3.large", wgtCap: "2"],
-                                           [instanceType: "c3.xlarge", wgtCap: "4"]]   | [[instanceType: "c4.large", wgtCap: "2"],
-                                                                                          [instanceType: "c4.xlarge", wgtCap: "4"]] | bD("c3.xlarge")           | null               || bD("c4.xlarge")                                 // source ASG used default block devices, so use default block devices for top-level instance type in description i.e. descInstanceType
-    "c3.xlarge"       | "c4.xlarge"     | [[instanceType: "c3.large", wgtCap: "2"],
-                                           [instanceType: "c3.xlarge", wgtCap: "4"]]   | [[instanceType: "c4.large", wgtCap: "2"],
-                                                                                          [instanceType: "c4.xlarge", wgtCap: "4"]] | [new AmazonBlockDevice(
-                                                                                                                                      deviceName: "/dev/xxx")]  | null               || [new AmazonBlockDevice(deviceName: "/dev/xxx")] // custom block devices should be preserved
-    "c3.xlarge"       | "c4.100xlarge"  | [[instanceType: "c3.large", wgtCap: "2"],
-                                           [instanceType: "c3.xlarge", wgtCap: "4"]]   | [[instanceType: "c4.large", wgtCap: "2"],
-                                                                                          [instanceType: "c4.100xlarge", wgtCap: "4"]] | bD("c3.xlarge")        | null               || [deployDefaults.unknownInstanceTypeBlockDevice] // source ASG used default bD, so use default bD but no mapping for c4.200xlarge, use the default for unknown instance types
-    "c3.xlarge"       | "c3.xlarge"     | [[instanceType: "c3.large", wgtCap: "2"],
-                                           [instanceType: "c3.xlarge", wgtCap: "4"]]   | [[instanceType: "c3.large", wgtCap: "2"],
-                                                                                          [instanceType: "c3.xlarge", wgtCap: "4"]] | bD("c3.xlarge")           | null               || bD("c3.xlarge")                                 // allowed instance types match, use source ASG's block devices
-    "c3.xlarge"       | "r4.xlarge"     | [[instanceType: "c3.large", wgtCap: "2"],
-                                           [instanceType: "c3.xlarge", wgtCap: "4"]]   | [[instanceType: "c3.large", wgtCap: "2"],
-                                                                                          [instanceType: "c3.xlarge", wgtCap: "4"]] | bD("c3.xlarge")           | null               || bD("c3.xlarge")                                 // allowed instance types match, use source ASG's block devices
+    sourceInstanceType| descInstanceType|    sourceBlockDevices    | descBlockDevices   || expectedTargetBlockDevices
+    "c3.xlarge"       | "c4.xlarge"     |      bD("c3.xlarge")     | bD("c3.xlarge")    || bD("c3.xlarge")                                 // use the explicitly provided block devices even if instance type has changed
+    "c3.xlarge"       | "c4.xlarge"     |      bD("c3.xlarge")     | []                 || []                                              // use the explicitly provided block devices even if an empty list
+    "c3.xlarge"       | "c4.xlarge"     |      bD("c3.xlarge")     | null               || bD("c4.xlarge")                                 // source ASG used default block devices, so use default block devices for top-level instance type in description i.e. descInstanceType
+    "c3.xlarge"       | "c4.xlarge"     |[new AmazonBlockDevice(
+                                          deviceName: "/dev/xxx")] | null               || [new AmazonBlockDevice(deviceName: "/dev/xxx")] // custom block devices should be preserved
+    "c3.xlarge"       | "c4.100xlarge"  |      bD("c3.xlarge")     | null               || [deployDefaults.unknownInstanceTypeBlockDevice] // source ASG used default bD, so use default bD but no mapping for c4.200xlarge, use the default for unknown instance types
+    "c3.xlarge"       | "c3.xlarge"     |      bD("c3.xlarge")     | null               || bD("c3.xlarge")                                 // top-level instance types match, use source ASG's block devices
   }
 
   @Unroll

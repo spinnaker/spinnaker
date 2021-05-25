@@ -298,8 +298,8 @@ public class AsgConfigHelper {
   }
 
   /**
-   * Transform AWS BlockDeviceMapping (found in ASG LaunchConfiguration) to {@link
-   * AmazonBlockDevice}. Used while extracting launch settings from AWS AutoScalingGroup.
+   * Transform AWS BlockDeviceMapping to {@link AmazonBlockDevice}. Used while extracting launch
+   * settings from AWS AutoScalingGroup or AMI.
    *
    * @param blockDeviceMappings AWS BlockDeviceMappings
    * @return list of AmazonBlockDevice
@@ -329,7 +329,7 @@ public class AsgConfigHelper {
               }
               return amzBd;
             })
-        .collect(Collectors.toList());
+        .collect(Collectors.toUnmodifiableList());
   }
 
   /**
@@ -377,7 +377,7 @@ public class AsgConfigHelper {
    * @param launchTemplateBlockDeviceMappings AWS LaunchTemplate BlockDeviceMappings
    * @return list of AmazonBlockDevice
    */
-  protected static List<AmazonBlockDevice> transformLaunchTemplateBlockDeviceMapping(
+  public static List<AmazonBlockDevice> transformLaunchTemplateBlockDeviceMapping(
       List<LaunchTemplateBlockDeviceMapping> launchTemplateBlockDeviceMappings) {
     return launchTemplateBlockDeviceMappings.stream()
         .map(
@@ -402,6 +402,6 @@ public class AsgConfigHelper {
               }
               return amzBd;
             })
-        .collect(Collectors.toList());
+        .collect(Collectors.toUnmodifiableList());
   }
 }

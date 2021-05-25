@@ -135,7 +135,7 @@ class BasicAmazonDeployAtomicOperationConverterUnitSpec extends Specification {
     def input = [application: "kato", credentials: 'test',
                  setLaunchTemplate: true, requireIMDSv2: true, associateIPv6Address: true, unlimitedCpuCredits: true,
                  placement: [groupName: "test-placement"], licenseSpecifications: [[arn: "test-arn"]],
-                 onDemandAllocationStrategy: "prioritized", onDemandBaseCapacity: 2, onDemandPercentageAboveBaseCapacity: 50, spotAllocationStrategy: "capacity-optimized",
+                 onDemandAllocationStrategy: "prioritized", onDemandBaseCapacity: 2, onDemandPercentageAboveBaseCapacity: 50, spotAllocationStrategy: "lowest-price",
                  spotInstancePools: 3, spotPrice: "0.5", launchTemplateOverridesForInstanceType: [[instanceType: "some.type.large", weightedCapacity: 2]]]
 
     when:
@@ -148,7 +148,7 @@ class BasicAmazonDeployAtomicOperationConverterUnitSpec extends Specification {
     description.onDemandAllocationStrategy == "prioritized"
     description.onDemandBaseCapacity == 2
     description.onDemandPercentageAboveBaseCapacity == 50
-    description.spotAllocationStrategy == "capacity-optimized"
+    description.spotAllocationStrategy == "lowest-price"
     description.spotInstancePools == 3
     description.spotPrice == "0.5"
     description.launchTemplateOverridesForInstanceType == [new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(instanceType: "some.type.large", weightedCapacity: 2)]

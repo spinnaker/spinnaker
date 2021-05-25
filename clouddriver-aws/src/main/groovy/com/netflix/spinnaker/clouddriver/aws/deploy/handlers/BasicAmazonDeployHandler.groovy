@@ -593,7 +593,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       return newAsgDescription.blockDevices
     }
 
-    if (newAsgDescription.getAllowedInstanceTypes() != AsgConfigHelper.getAllowedInstanceTypesForAsg(sourceAsg, sourceAsgRegionScopedProvider)) {
+    if (newAsgDescription.getInstanceType() != AsgConfigHelper.getTopLevelInstanceTypeForAsg(sourceAsg, sourceAsgRegionScopedProvider)) {
       // If instance type(s) being requested is NOT the same as those in source ASG,
       // get default mapping for the new type ONLY IF that same logic was applied for source ASG.
       // For the case of multiple instance types in request, top-level instance type is used to derive defaults.
@@ -607,7 +607,8 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
           .collect { [deviceName: it.deviceName, virtualName: it.virtualName, size: it.size] }
           .sort { it.deviceName }
 
-      if (blockDevicesForSourceAsg == defaultBlockDevicesForSourceInsType) {
+      boolean isDefaultMappingUsedInSourceAsg = blockDevicesForSourceAsg == defaultBlockDevicesForSourceInsType
+      if (isDefaultMappingUsedInSourceAsg) {
         return blockDeviceConfig.getBlockDevicesForInstanceType(newAsgDescription.getInstanceType())
       }
     }

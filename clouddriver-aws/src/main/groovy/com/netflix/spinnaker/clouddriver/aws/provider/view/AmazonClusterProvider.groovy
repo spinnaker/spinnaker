@@ -599,13 +599,13 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster>, ServerGro
         }
 
         // launchTemplate#instanceType is ignored when it is overridden. So, remove it to prevent accidental misuse / ambiguity.
-        Map ec2LtMinusType = getLaunchTemplateForVersion(launchData, ltVersionStr)
-        ec2LtMinusType["launchTemplateData"].remove("instanceType")
+        Map ec2LtDataMinusType = ec2Lt?."launchTemplateData".findAll {it.key != "instanceType"}
+        ec2Lt?.replace("launchTemplateData", ec2LtDataMinusType)
 
         serverGroup.mixedInstancesPolicy = new AmazonServerGroup.MixedInstancesPolicySettings().tap {
           allowedInstanceTypes = types.sort()
           instancesDiversification = serverGroup.asg.mixedInstancesPolicy["instancesDistribution"]
-          launchTemplates = [ ec2LtMinusType ]
+          launchTemplates = [ ec2Lt ]
           launchTemplateOverridesForInstanceType = overrides
         }
       }
