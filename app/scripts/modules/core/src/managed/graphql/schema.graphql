@@ -59,6 +59,7 @@ type MdArtifactVersionInEnvironment {
   deployedAt: InstantTime
   resources: [MdResource!]
   gitMetadata: MdGitMetadata
+  packageDiff: MdPackageDiff
   environment: String
   reference: String!
   status: MdArtifactStatusInEnvironment
@@ -66,6 +67,13 @@ type MdArtifactVersionInEnvironment {
   constraints: [MdConstraint!]
   verifications: [MdAction!]
   postDeploy: [MdAction!]
+  veto: MdVersionVeto
+}
+
+type MdVersionVeto {
+  vetoedBy: String
+  vetoedAt: InstantTime
+  comment: String
 }
 
 enum MdLifecycleEventScope {
@@ -123,6 +131,23 @@ type MdCommitInfo {
   sha: String
   link: String
   message: String
+}
+
+type MdPackageDiff {
+  added: [MdPackageAndVersion!]
+  removed: [MdPackageAndVersion!]
+  changed: [MdPackageAndVersionChange!]
+}
+
+type MdPackageAndVersion {
+  package: String!
+  version: String!
+}
+
+type MdPackageAndVersionChange {
+  package: String!
+  oldVersion: String!
+  newVersion: String!
 }
 
 enum MdResourceActuationStatus {

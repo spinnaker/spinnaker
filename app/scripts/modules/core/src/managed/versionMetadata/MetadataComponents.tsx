@@ -39,6 +39,16 @@ export const toPinnedMetadata = (data: {
   comment: data.comment,
 });
 
+export const toVetoedMetadata = (data: {
+  vetoedAt?: string;
+  vetoedBy?: string;
+  comment?: string;
+}): VersionMessageData => ({
+  by: data.vetoedBy,
+  at: data.vetoedAt,
+  comment: data.comment,
+});
+
 export interface IVersionMetadataProps {
   build?: IVersionBuildProps['build'];
   author?: string;
@@ -49,6 +59,7 @@ export interface IVersionMetadataProps {
   isDeploying?: boolean;
   baking?: LifecycleEventSummary;
   pinned?: VersionMessageData;
+  vetoed?: VersionMessageData;
   actions?: VersionAction[];
 }
 

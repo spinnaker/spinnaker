@@ -7,6 +7,7 @@ import {
   IVersionMetadataProps,
   MetadataBadge,
   MetadataElement,
+  toVetoedMetadata,
   VersionAuthor,
   VersionBuilds,
   VersionCreatedAt,
@@ -33,6 +34,7 @@ export const getBaseMetadata = (
     buildDuration: getLifecycleEventDuration(version, 'BUILD'),
     isDeploying: version.status === 'DEPLOYING',
     baking: getLifecycleEventSummary(version, 'BAKE'),
+    vetoed: version.veto ? toVetoedMetadata(version.veto) : undefined,
   };
 };
 
@@ -46,6 +48,7 @@ export const VersionMetadata = ({
   baking,
   isDeploying,
   pinned,
+  vetoed,
   actions,
 }: IVersionMetadataProps) => {
   return (
@@ -92,6 +95,7 @@ export const VersionMetadata = ({
       ) : null}
       {actions && <VersionMetadataActions id={`${build?.buildNumber}-actions`} actions={actions} />}
       {pinned && <VersionMessage type="pinned" data={pinned} />}
+      {vetoed && <VersionMessage type="vetoed" data={vetoed} />}
     </BaseVersionMetadata>
   );
 };
