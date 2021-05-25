@@ -92,7 +92,7 @@ export const VersionsHistory = () => {
   const app = useApplicationContextSafe();
 
   const { data, error, loading } = useFetchVersionsHistoryQuery({
-    variables: { appName: app.name },
+    variables: { appName: app.name, limit: 100 }, // Fetch the last 100 versions
   });
 
   if (loading && !data) {

@@ -55,6 +55,7 @@ export interface MdArtifact {
 export interface MdArtifactVersionsArgs {
   statuses?: Maybe<Array<MdArtifactStatusInEnvironment>>;
   versions?: Maybe<Array<Scalars['String']>>;
+  limit?: Maybe<Scalars['Int']>;
 }
 
 export type MdArtifactStatusInEnvironment =
@@ -393,6 +394,7 @@ export type FetchApplicationQuery = { __typename?: 'Query' } & {
 
 export type FetchVersionsHistoryQueryVariables = Exact<{
   appName: Scalars['String'];
+  limit?: Maybe<Scalars['Int']>;
 }>;
 
 export type FetchVersionsHistoryQuery = { __typename?: 'Query' } & {
@@ -728,7 +730,7 @@ export type FetchApplicationQueryHookResult = ReturnType<typeof useFetchApplicat
 export type FetchApplicationLazyQueryHookResult = ReturnType<typeof useFetchApplicationLazyQuery>;
 export type FetchApplicationQueryResult = Apollo.QueryResult<FetchApplicationQuery, FetchApplicationQueryVariables>;
 export const FetchVersionsHistoryDocument = gql`
-  query fetchVersionsHistory($appName: String!) {
+  query fetchVersionsHistory($appName: String!, $limit: Int) {
     application(appName: $appName) {
       id
       name
@@ -744,7 +746,7 @@ export const FetchVersionsHistoryDocument = gql`
             environment
             type
             reference
-            versions {
+            versions(limit: $limit) {
               id
               buildNumber
               version
@@ -793,6 +795,7 @@ export const FetchVersionsHistoryDocument = gql`
  * const { data, loading, error } = useFetchVersionsHistoryQuery({
  *   variables: {
  *      appName: // value for 'appName'
+ *      limit: // value for 'limit'
  *   },
  * });
  */

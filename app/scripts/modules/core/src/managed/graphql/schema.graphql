@@ -43,7 +43,11 @@ type MdArtifact {
   name: String!
   type: String!
   reference: String!
-  versions(statuses: [MdArtifactStatusInEnvironment!], versions: [String!]): [MdArtifactVersionInEnvironment!]
+  versions(
+    statuses: [MdArtifactStatusInEnvironment!]
+    versions: [String!]
+    limit: Int
+  ): [MdArtifactVersionInEnvironment!]
   pinnedVersion: MdPinnedVersion
 }
 
