@@ -139,6 +139,10 @@ query fetchVersionsHistory($appName: String!, $limit: Int) {
                 link
               }
             }
+            lifecycleSteps {
+              type
+              status
+            }
           }
           pinnedVersion {
             id

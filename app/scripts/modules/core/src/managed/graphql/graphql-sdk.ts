@@ -431,6 +431,9 @@ export type FetchVersionsHistoryQuery = { __typename?: 'Query' } & {
                                         >;
                                       }
                                   >;
+                                  lifecycleSteps?: Maybe<
+                                    Array<{ __typename?: 'MdLifecycleStep' } & Pick<MdLifecycleStep, 'type' | 'status'>>
+                                  >;
                                 }
                             >
                           >;
@@ -765,6 +768,10 @@ export const FetchVersionsHistoryDocument = gql`
                   number
                   link
                 }
+              }
+              lifecycleSteps {
+                type
+                status
               }
             }
             pinnedVersion {
