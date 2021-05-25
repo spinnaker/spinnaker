@@ -54,7 +54,7 @@ public abstract class ExpressionAwareStageDefinitionBuilder implements StageDefi
    * @param summary (should be same as passed into processExpressions)
    * @param excludedKeys keys to exclude from processing
    */
-  final void processDefaultEntries(
+  public final void processDefaultEntries(
       @Nonnull StageExecution stage,
       @Nonnull ContextParameterProcessor contextParameterProcessor,
       @Nonnull ExpressionEvaluationSummary summary,

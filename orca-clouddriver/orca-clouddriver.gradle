@@ -46,6 +46,7 @@ dependencies {
   testImplementation(project(":orca-test"))
   testImplementation(project(":orca-test-groovy"))
   testImplementation(project(":orca-api-tck"))
+  testImplementation(project(":orca-queue"))
   testImplementation("com.github.tomakehurst:wiremock:2.15.0")
   testImplementation("org.springframework:spring-test")
   testImplementation("org.junit.jupiter:junit-jupiter-api")

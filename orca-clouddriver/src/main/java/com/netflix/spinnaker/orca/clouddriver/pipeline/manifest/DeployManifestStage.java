@@ -20,7 +20,7 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.manifest;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.common.collect.ImmutableList;
-import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
+import com.netflix.spinnaker.kork.expressions.ExpressionEvaluationSummary;
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageGraphBuilder;
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
@@ -31,7 +31,10 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.artifacts.CleanupArtifactsTa
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.*;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.DeployManifestContext.TrafficManagement;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ResolveDeploySourceManifestTask;
+import com.netflix.spinnaker.orca.pipeline.ExpressionAwareStageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.tasks.artifacts.BindProducedArtifactsTask;
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -40,7 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class DeployManifestStage implements StageDefinitionBuilder {
+public class DeployManifestStage extends ExpressionAwareStageDefinitionBuilder {
   public static final String PIPELINE_CONFIG_TYPE = "deployManifest";
 
   private final OortService oortService;
@@ -144,5 +147,19 @@ public class DeployManifestStage implements StageDefinitionBuilder {
         .filter(m -> !m.getFullResourceName().equals(newManifestName))
         .map(ManifestCoordinates::getFullResourceName)
         .collect(toImmutableList());
+  }
+
+  @Override
+  public boolean processExpressions(
+      @Nonnull StageExecution stage,
+      @Nonnull ContextParameterProcessor contextParameterProcessor,
+      @Nonnull ExpressionEvaluationSummary summary) {
+    DeployManifestContext context = stage.mapTo(DeployManifestContext.class);
+    if (context.isSkipExpressionEvaluation()) {
+      processDefaultEntries(
+          stage, contextParameterProcessor, summary, Collections.singletonList("manifests"));
+      return false;
+    }
+    return true;
   }
 }
