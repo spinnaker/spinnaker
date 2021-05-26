@@ -15,7 +15,7 @@ module.exports = function angularJsTemplateLoader(options = {}) {
       const templateRegex = /require\(['"]([^'"]+\.html)['"]\)/g;
 
       // look for things like require('./template.html')
-      if (!code.includes("require('") || code.includes('node_modules')) {
+      if (!code.includes("require('") || id.includes('node_modules')) {
         return;
       }
 
@@ -25,6 +25,8 @@ module.exports = function angularJsTemplateLoader(options = {}) {
 
       // Find the directory the JS source file is in
       const baseDir = fs.lstatSync(id).isDirectory() ? id : path.dirname(id);
+      const moduleRootDir = path.resolve('.');
+      const moduleDirName = path.basename(moduleRootDir);
 
       let match = templateRegex.exec(code);
       if (!match) {
@@ -42,6 +44,8 @@ module.exports = function angularJsTemplateLoader(options = {}) {
           throw new Error('Unable to load AngularJS template; could not find template file ' + contentPath);
         }
 
+        const templatePathFromModuleRoot = `${moduleDirName}${path.sep}${path.relative(moduleRootDir, contentPath)}`;
+
         const startIdx = match.index;
         const endIdx = startIdx + match[0].length;
 
@@ -49,23 +53,23 @@ module.exports = function angularJsTemplateLoader(options = {}) {
         const content = fs.readFileSync(contentPath, { encoding: 'UTF8' }).replace(/`/g, '\\`');
 
         // Replace: templateUrl: require('./template.html')
-        // With:    templateUrl: './template.html'
-        magicString.overwrite(startIdx, endIdx, `'${templatePath}'`);
+        // With:    templateUrl: 'path/from/module/root/to/template.html'
+        magicString.overwrite(startIdx, endIdx, `'${templatePathFromModuleRoot}'`);
 
         // Append a run block that adds the HTML content into the $templateCache (used by angularjs when loading templates)
         magicString.append(`
 
 /*********************************************************************
- * angularjs-template-loader rollup plugin -- ${templatePath} start  *
+ * angularjs-template-loader rollup plugin -- ${templatePathFromModuleRoot} start  *
  ********************************************************************/
 
 window.angular.module('ng').run(['$templateCache', function(templateCache) {
-  templateCache.put('${templatePath}',
+  templateCache.put('${templatePathFromModuleRoot}',
 \`${content}\`)
 }]);
 
 /*********************************************************************
- * angularjs-template-loader rollup plugin -- ${templatePath} end    *
+ * angularjs-template-loader rollup plugin -- ${templatePathFromModuleRoot} end    *
  ********************************************************************/
 `);
         // look for another match
