@@ -5,6 +5,7 @@ import { ReactComponent as appUnsynced } from './vectors/appUnsynced.svg';
 import { ReactComponent as dashboards } from './vectors/dashboards.svg';
 import { ReactComponent as disableManagement } from './vectors/disableManagement.svg';
 import { ReactComponent as markArtifactVersionAsBad } from './vectors/markArtifactVersionAsBad.svg';
+import { ReactComponent as markArtifactVersionAsGood } from './vectors/markArtifactVersionAsGood.svg';
 import { ReactComponent as metrics } from './vectors/metrics.svg';
 import { ReactComponent as pinArtifactVersion } from './vectors/pinArtifactVersion.svg';
 import { ReactComponent as runManagement } from './vectors/runManagement.svg';
@@ -18,6 +19,7 @@ export const illustrationsByName = {
   dashboards,
   disableManagement,
   markArtifactVersionAsBad,
+  markArtifactVersionAsGood,
   metrics,
   pinArtifactVersion,
   runManagement,
