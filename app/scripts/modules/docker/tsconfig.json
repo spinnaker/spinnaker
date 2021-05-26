@@ -1,18 +1,13 @@
 {
-  "extends": "../../../../tsconfig.json",
+  "extends": "../../../../tsconfig.base.json",
   "compilerOptions": {
     "baseUrl": "./src",
-    "declaration": true,
-    "declarationDir": "lib",
-    "outDir": "lib",
-    "rootDir": "./src",
-    "typeRoots": ["../../../../node_modules/@types"],
+    "outDir": "dist",
     "paths": {
-      "@spinnaker/core": ["../../core/lib"],
-      "core/*": ["core/src/*"]
-    }
+      "core/*": ["../node_modules/@spinnaker/core/lib/*"]
+    },
+    "rootDir": "./src"
   },
-  "files": ["src/index.ts"],
   "include": ["src/**/*.ts", "src/**/*.tsx"],
-  "exclude": ["./lib", "**/*.spec.*"]
+  "exclude": ["./dist", "**/*.spec.*"]
 }

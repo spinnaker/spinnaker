@@ -91,14 +91,15 @@ import { angularSpinner } from 'angular-spinner';
 import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 import UI_SELECT from 'ui-select';
 
+/* Start - Rollup Remove */
 // load all templates into the $templateCache
 const templates = require.context('./', true, /\.html$/);
 templates.keys().forEach(function (key) {
   templates(key);
 });
+/* End - Rollup Remove */
 
 const UI_ROUTER_STATE_EVENTS_SHIM = 'ui.router.state.events';
-
 export const CORE_MODULE = 'spinnaker.core';
 module(CORE_MODULE, [
   ANGULAR_MESSAGES,

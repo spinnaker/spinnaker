@@ -71,11 +71,13 @@ import { VPC_MODULE } from './vpc/vpc.module';
 
 import './logo/aws.logo.less';
 
+/* Start - Rollup Remove */
 // load all templates into the $templateCache
 const templates = require.context('./', true, /\.html$/);
 templates.keys().forEach(function (key) {
   templates(key);
 });
+/* End - Rollup Remove */
 
 export const AMAZON_MODULE = 'spinnaker.amazon';
 module(AMAZON_MODULE, [
