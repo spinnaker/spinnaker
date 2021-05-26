@@ -68,12 +68,13 @@ interface IPendingVersionProps {
 }
 
 const PendingVersion = ({ data, reference, environment, pinned, index }: IPendingVersionProps) => {
-  const { buildNumber, version, gitMetadata, constraints } = data;
+  const { buildNumber, version, gitMetadata, constraints, status } = data;
   const actions = useCreateVersionActions({
     environment,
     reference,
     buildNumber,
     version,
+    status,
     commitMessage: gitMetadata?.commitInfo?.message,
     isPinned: Boolean(pinned),
     compareLinks: {

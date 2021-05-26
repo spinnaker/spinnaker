@@ -60,6 +60,22 @@ fragment detailedVersionFields on MdArtifactVersionInEnvironment {
   }
 }
 
+fragment artifactPinnedVersionFields on MdArtifact {
+  pinnedVersion {
+    id
+    version
+    buildNumber
+    pinnedAt
+    pinnedBy
+    comment
+    gitMetadata {
+      commitInfo {
+        message
+      }
+    }
+  }
+}
+
 query fetchApplication($appName: String!, $statuses: [MdArtifactStatusInEnvironment!]) {
   application(appName: $appName) {
     id
@@ -79,19 +95,7 @@ query fetchApplication($appName: String!, $statuses: [MdArtifactStatusInEnvironm
           versions(statuses: $statuses) {
             ...detailedVersionFields
           }
-          pinnedVersion {
-            id
-            version
-            buildNumber
-            pinnedAt
-            pinnedBy
-            comment
-            gitMetadata {
-              commitInfo {
-                message
-              }
-            }
-          }
+          ...artifactPinnedVersionFields
         }
         resources {
           id
@@ -153,14 +157,30 @@ query fetchVersionsHistory($appName: String!, $limit: Int) {
               status
             }
           }
-          pinnedVersion {
-            id
-            version
-            buildNumber
-            pinnedAt
-            pinnedBy
-            comment
-          }
+          ...artifactPinnedVersionFields
+        }
+      }
+    }
+  }
+}
+
+query fetchPinnedVersions($appName: String!) {
+  application(appName: $appName) {
+    id
+    name
+    account
+    environments {
+      id
+      name
+      state {
+        id
+        artifacts {
+          id
+          name
+          environment
+          type
+          reference
+          ...artifactPinnedVersionFields
         }
       }
     }
@@ -229,4 +249,20 @@ mutation UpdateConstraint($payload: MdConstraintStatusPayload!) {
 
 mutation ToggleManagement($application: String!, $isPaused: Boolean!) {
   toggleManagement(application: $application, isPaused: $isPaused)
+}
+
+mutation PinVersion($payload: MdArtifactVersionActionPayload!) {
+  pinArtifactVersion(payload: $payload)
+}
+
+mutation UnpinVersion($payload: MdUnpinArtifactVersionPayload!) {
+  unpinArtifactVersion(payload: $payload)
+}
+
+mutation MarkVersionAsBad($payload: MdArtifactVersionActionPayload!) {
+  markArtifactVersionAsBad(payload: $payload)
+}
+
+mutation MarkVersionAsGood($payload: MdMarkArtifactVersionAsGoodPayload!) {
+  markArtifactVersionAsGood(payload: $payload)
 }

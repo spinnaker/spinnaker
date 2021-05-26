@@ -51,6 +51,7 @@ const VersionInEnvironment = ({ environment, version, envPinnedVersions }: IVers
     reference: version.reference,
     version: version.version,
     buildNumber: version.buildNumber,
+    status: version.status,
     commitMessage: version.gitMetadata?.commitInfo?.message,
     isPinned: Boolean(pinnedData),
     compareLinks: {

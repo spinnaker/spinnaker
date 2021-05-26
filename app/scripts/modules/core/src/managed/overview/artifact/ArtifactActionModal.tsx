@@ -1,4 +1,7 @@
 import React from 'react';
+
+import { Illustration } from '@spinnaker/presentation';
+
 import { MarkAsBadIntro } from '../../artifactDetail/MarkArtifactAsBadModal';
 import { PinVersionIntro } from '../../artifactDetail/PinArtifactModal';
 import { UnpinVersionIntro } from '../../artifactDetail/UnpinArtifactModal';
@@ -30,6 +33,28 @@ export const MarkAsBadActionModal = ({ application, ...props }: InternalModalPro
   return (
     <ActionModal logCategory="Environments::Artifact" {...props}>
       <MarkAsBadIntro application={application} />
+    </ActionModal>
+  );
+};
+
+const MarkAsGoodIntro = () => (
+  <div className="flex-container-h middle sp-margin-xl-bottom">
+    <span className="sp-margin-m-right" style={{ minWidth: 145 }}>
+      <Illustration name="markArtifactVersionAsGood" />
+    </span>
+    <span>
+      <p>
+        By marking this version as good, Spinnaker will be able to deploy it again. If this is the latest version, it
+        will be deployed immediately.
+      </p>
+    </span>
+  </div>
+);
+
+export const MarkAsGoodActionModal = ({ application, ...props }: InternalModalProps) => {
+  return (
+    <ActionModal logCategory="Environments::Artifact" {...props}>
+      <MarkAsGoodIntro />
     </ActionModal>
   );
 };

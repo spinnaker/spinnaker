@@ -23,6 +23,7 @@ export const CurrentVersion = ({ data, environment, reference, numNewerVersions,
     reference,
     version: data.version,
     buildNumber: data.buildNumber,
+    status: data.status,
     commitMessage: gitMetadata?.commitInfo?.message,
     isPinned: Boolean(pinned),
     compareLinks: {

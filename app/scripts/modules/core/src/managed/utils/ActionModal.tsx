@@ -21,6 +21,7 @@ export interface IArtifactActionModalProps extends IModalComponentProps {
   logCategory?: string;
   onAction: (comment?: string) => Promise<void> | PromiseLike<void>;
   onSuccess?: () => void;
+  error?: string;
 }
 
 export const ActionModal: React.FC<IArtifactActionModalProps> = ({
@@ -51,7 +52,7 @@ export const ActionModal: React.FC<IArtifactActionModalProps> = ({
               });
             closeModal?.();
           } catch (error) {
-            setStatus({ error: error.data });
+            setStatus({ error });
             logCategory &&
               logEvent({
                 category: [logCategory, actionName].join('::'),
@@ -62,9 +63,6 @@ export const ActionModal: React.FC<IArtifactActionModalProps> = ({
           }
         }}
         render={({ status, isValid, isSubmitting, submitForm }) => {
-          const errorTitle = status?.error?.error;
-          const errorMessage = status?.error?.message;
-
           return (
             <>
               <ModalBody>
@@ -92,8 +90,7 @@ export const ActionModal: React.FC<IArtifactActionModalProps> = ({
                         message={
                           <span className="flex-container-v">
                             <span className="text-bold">Something went wrong:</span>
-                            {errorTitle && <span className="text-semibold">{errorTitle}</span>}
-                            {errorMessage && <span>{errorMessage}</span>}
+                            {status.error.message && <span>{status.error.message}</span>}
                           </span>
                         }
                       />

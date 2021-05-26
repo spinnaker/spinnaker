@@ -350,6 +350,21 @@ export type DetailedVersionFieldsFragment = { __typename?: 'MdArtifactVersionInE
     veto?: Maybe<{ __typename?: 'MdVersionVeto' } & Pick<MdVersionVeto, 'vetoedBy' | 'vetoedAt' | 'comment'>>;
   };
 
+export type ArtifactPinnedVersionFieldsFragment = { __typename?: 'MdArtifact' } & {
+  pinnedVersion?: Maybe<
+    { __typename?: 'MdPinnedVersion' } & Pick<
+      MdPinnedVersion,
+      'id' | 'version' | 'buildNumber' | 'pinnedAt' | 'pinnedBy' | 'comment'
+    > & {
+        gitMetadata?: Maybe<
+          { __typename?: 'MdGitMetadata' } & {
+            commitInfo?: Maybe<{ __typename?: 'MdCommitInfo' } & Pick<MdCommitInfo, 'message'>>;
+          }
+        >;
+      }
+  >;
+};
+
 export type FetchApplicationQueryVariables = Exact<{
   appName: Scalars['String'];
   statuses?: Maybe<Array<MdArtifactStatusInEnvironment> | MdArtifactStatusInEnvironment>;
@@ -370,19 +385,7 @@ export type FetchApplicationQuery = { __typename?: 'Query' } & {
                           versions?: Maybe<
                             Array<{ __typename?: 'MdArtifactVersionInEnvironment' } & DetailedVersionFieldsFragment>
                           >;
-                          pinnedVersion?: Maybe<
-                            { __typename?: 'MdPinnedVersion' } & Pick<
-                              MdPinnedVersion,
-                              'id' | 'version' | 'buildNumber' | 'pinnedAt' | 'pinnedBy' | 'comment'
-                            > & {
-                                gitMetadata?: Maybe<
-                                  { __typename?: 'MdGitMetadata' } & {
-                                    commitInfo?: Maybe<{ __typename?: 'MdCommitInfo' } & Pick<MdCommitInfo, 'message'>>;
-                                  }
-                                >;
-                              }
-                          >;
-                        }
+                        } & ArtifactPinnedVersionFieldsFragment
                     >
                   >;
                   resources?: Maybe<
@@ -445,13 +448,33 @@ export type FetchVersionsHistoryQuery = { __typename?: 'Query' } & {
                                 }
                             >
                           >;
-                          pinnedVersion?: Maybe<
-                            { __typename?: 'MdPinnedVersion' } & Pick<
-                              MdPinnedVersion,
-                              'id' | 'version' | 'buildNumber' | 'pinnedAt' | 'pinnedBy' | 'comment'
-                            >
-                          >;
-                        }
+                        } & ArtifactPinnedVersionFieldsFragment
+                    >
+                  >;
+                };
+            }
+        >;
+      }
+  >;
+};
+
+export type FetchPinnedVersionsQueryVariables = Exact<{
+  appName: Scalars['String'];
+}>;
+
+export type FetchPinnedVersionsQuery = { __typename?: 'Query' } & {
+  application?: Maybe<
+    { __typename?: 'MdApplication' } & Pick<MdApplication, 'id' | 'name' | 'account'> & {
+        environments: Array<
+          { __typename?: 'MdEnvironment' } & Pick<MdEnvironment, 'id' | 'name'> & {
+              state: { __typename?: 'MdEnvironmentState' } & Pick<MdEnvironmentState, 'id'> & {
+                  artifacts?: Maybe<
+                    Array<
+                      { __typename?: 'MdArtifact' } & Pick<
+                        MdArtifact,
+                        'id' | 'name' | 'environment' | 'type' | 'reference'
+                      > &
+                        ArtifactPinnedVersionFieldsFragment
                     >
                   >;
                 };
@@ -541,6 +564,30 @@ export type ToggleManagementMutationVariables = Exact<{
 
 export type ToggleManagementMutation = { __typename?: 'Mutation' } & Pick<Mutation, 'toggleManagement'>;
 
+export type PinVersionMutationVariables = Exact<{
+  payload: MdArtifactVersionActionPayload;
+}>;
+
+export type PinVersionMutation = { __typename?: 'Mutation' } & Pick<Mutation, 'pinArtifactVersion'>;
+
+export type UnpinVersionMutationVariables = Exact<{
+  payload: MdUnpinArtifactVersionPayload;
+}>;
+
+export type UnpinVersionMutation = { __typename?: 'Mutation' } & Pick<Mutation, 'unpinArtifactVersion'>;
+
+export type MarkVersionAsBadMutationVariables = Exact<{
+  payload: MdArtifactVersionActionPayload;
+}>;
+
+export type MarkVersionAsBadMutation = { __typename?: 'Mutation' } & Pick<Mutation, 'markArtifactVersionAsBad'>;
+
+export type MarkVersionAsGoodMutationVariables = Exact<{
+  payload: MdMarkArtifactVersionAsGoodPayload;
+}>;
+
+export type MarkVersionAsGoodMutation = { __typename?: 'Mutation' } & Pick<Mutation, 'markArtifactVersionAsGood'>;
+
 export const DetailedVersionFieldsFragmentDoc = gql`
   fragment detailedVersionFields on MdArtifactVersionInEnvironment {
     id
@@ -604,6 +651,23 @@ export const DetailedVersionFieldsFragmentDoc = gql`
     }
   }
 `;
+export const ArtifactPinnedVersionFieldsFragmentDoc = gql`
+  fragment artifactPinnedVersionFields on MdArtifact {
+    pinnedVersion {
+      id
+      version
+      buildNumber
+      pinnedAt
+      pinnedBy
+      comment
+      gitMetadata {
+        commitInfo {
+          message
+        }
+      }
+    }
+  }
+`;
 export const FetchApplicationDocument = gql`
   query fetchApplication($appName: String!, $statuses: [MdArtifactStatusInEnvironment!]) {
     application(appName: $appName) {
@@ -624,19 +688,7 @@ export const FetchApplicationDocument = gql`
             versions(statuses: $statuses) {
               ...detailedVersionFields
             }
-            pinnedVersion {
-              id
-              version
-              buildNumber
-              pinnedAt
-              pinnedBy
-              comment
-              gitMetadata {
-                commitInfo {
-                  message
-                }
-              }
-            }
+            ...artifactPinnedVersionFields
           }
           resources {
             id
@@ -657,6 +709,7 @@ export const FetchApplicationDocument = gql`
     }
   }
   ${DetailedVersionFieldsFragmentDoc}
+  ${ArtifactPinnedVersionFieldsFragmentDoc}
 `;
 
 /**
@@ -733,19 +786,13 @@ export const FetchVersionsHistoryDocument = gql`
                 status
               }
             }
-            pinnedVersion {
-              id
-              version
-              buildNumber
-              pinnedAt
-              pinnedBy
-              comment
-            }
+            ...artifactPinnedVersionFields
           }
         }
       }
     }
   }
+  ${ArtifactPinnedVersionFieldsFragmentDoc}
 `;
 
 /**
@@ -788,6 +835,72 @@ export type FetchVersionsHistoryLazyQueryHookResult = ReturnType<typeof useFetch
 export type FetchVersionsHistoryQueryResult = Apollo.QueryResult<
   FetchVersionsHistoryQuery,
   FetchVersionsHistoryQueryVariables
+>;
+export const FetchPinnedVersionsDocument = gql`
+  query fetchPinnedVersions($appName: String!) {
+    application(appName: $appName) {
+      id
+      name
+      account
+      environments {
+        id
+        name
+        state {
+          id
+          artifacts {
+            id
+            name
+            environment
+            type
+            reference
+            ...artifactPinnedVersionFields
+          }
+        }
+      }
+    }
+  }
+  ${ArtifactPinnedVersionFieldsFragmentDoc}
+`;
+
+/**
+ * __useFetchPinnedVersionsQuery__
+ *
+ * To run a query within a React component, call `useFetchPinnedVersionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useFetchPinnedVersionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useFetchPinnedVersionsQuery({
+ *   variables: {
+ *      appName: // value for 'appName'
+ *   },
+ * });
+ */
+export function useFetchPinnedVersionsQuery(
+  baseOptions: Apollo.QueryHookOptions<FetchPinnedVersionsQuery, FetchPinnedVersionsQueryVariables>,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<FetchPinnedVersionsQuery, FetchPinnedVersionsQueryVariables>(
+    FetchPinnedVersionsDocument,
+    options,
+  );
+}
+export function useFetchPinnedVersionsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<FetchPinnedVersionsQuery, FetchPinnedVersionsQueryVariables>,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<FetchPinnedVersionsQuery, FetchPinnedVersionsQueryVariables>(
+    FetchPinnedVersionsDocument,
+    options,
+  );
+}
+export type FetchPinnedVersionsQueryHookResult = ReturnType<typeof useFetchPinnedVersionsQuery>;
+export type FetchPinnedVersionsLazyQueryHookResult = ReturnType<typeof useFetchPinnedVersionsLazyQuery>;
+export type FetchPinnedVersionsQueryResult = Apollo.QueryResult<
+  FetchPinnedVersionsQuery,
+  FetchPinnedVersionsQueryVariables
 >;
 export const FetchVersionDocument = gql`
   query fetchVersion($appName: String!, $versions: [String!]) {
@@ -1058,4 +1171,157 @@ export type ToggleManagementMutationResult = Apollo.MutationResult<ToggleManagem
 export type ToggleManagementMutationOptions = Apollo.BaseMutationOptions<
   ToggleManagementMutation,
   ToggleManagementMutationVariables
+>;
+export const PinVersionDocument = gql`
+  mutation PinVersion($payload: MdArtifactVersionActionPayload!) {
+    pinArtifactVersion(payload: $payload)
+  }
+`;
+export type PinVersionMutationFn = Apollo.MutationFunction<PinVersionMutation, PinVersionMutationVariables>;
+
+/**
+ * __usePinVersionMutation__
+ *
+ * To run a mutation, you first call `usePinVersionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `usePinVersionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [pinVersionMutation, { data, loading, error }] = usePinVersionMutation({
+ *   variables: {
+ *      payload: // value for 'payload'
+ *   },
+ * });
+ */
+export function usePinVersionMutation(
+  baseOptions?: Apollo.MutationHookOptions<PinVersionMutation, PinVersionMutationVariables>,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<PinVersionMutation, PinVersionMutationVariables>(PinVersionDocument, options);
+}
+export type PinVersionMutationHookResult = ReturnType<typeof usePinVersionMutation>;
+export type PinVersionMutationResult = Apollo.MutationResult<PinVersionMutation>;
+export type PinVersionMutationOptions = Apollo.BaseMutationOptions<PinVersionMutation, PinVersionMutationVariables>;
+export const UnpinVersionDocument = gql`
+  mutation UnpinVersion($payload: MdUnpinArtifactVersionPayload!) {
+    unpinArtifactVersion(payload: $payload)
+  }
+`;
+export type UnpinVersionMutationFn = Apollo.MutationFunction<UnpinVersionMutation, UnpinVersionMutationVariables>;
+
+/**
+ * __useUnpinVersionMutation__
+ *
+ * To run a mutation, you first call `useUnpinVersionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUnpinVersionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [unpinVersionMutation, { data, loading, error }] = useUnpinVersionMutation({
+ *   variables: {
+ *      payload: // value for 'payload'
+ *   },
+ * });
+ */
+export function useUnpinVersionMutation(
+  baseOptions?: Apollo.MutationHookOptions<UnpinVersionMutation, UnpinVersionMutationVariables>,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<UnpinVersionMutation, UnpinVersionMutationVariables>(UnpinVersionDocument, options);
+}
+export type UnpinVersionMutationHookResult = ReturnType<typeof useUnpinVersionMutation>;
+export type UnpinVersionMutationResult = Apollo.MutationResult<UnpinVersionMutation>;
+export type UnpinVersionMutationOptions = Apollo.BaseMutationOptions<
+  UnpinVersionMutation,
+  UnpinVersionMutationVariables
+>;
+export const MarkVersionAsBadDocument = gql`
+  mutation MarkVersionAsBad($payload: MdArtifactVersionActionPayload!) {
+    markArtifactVersionAsBad(payload: $payload)
+  }
+`;
+export type MarkVersionAsBadMutationFn = Apollo.MutationFunction<
+  MarkVersionAsBadMutation,
+  MarkVersionAsBadMutationVariables
+>;
+
+/**
+ * __useMarkVersionAsBadMutation__
+ *
+ * To run a mutation, you first call `useMarkVersionAsBadMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useMarkVersionAsBadMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [markVersionAsBadMutation, { data, loading, error }] = useMarkVersionAsBadMutation({
+ *   variables: {
+ *      payload: // value for 'payload'
+ *   },
+ * });
+ */
+export function useMarkVersionAsBadMutation(
+  baseOptions?: Apollo.MutationHookOptions<MarkVersionAsBadMutation, MarkVersionAsBadMutationVariables>,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<MarkVersionAsBadMutation, MarkVersionAsBadMutationVariables>(
+    MarkVersionAsBadDocument,
+    options,
+  );
+}
+export type MarkVersionAsBadMutationHookResult = ReturnType<typeof useMarkVersionAsBadMutation>;
+export type MarkVersionAsBadMutationResult = Apollo.MutationResult<MarkVersionAsBadMutation>;
+export type MarkVersionAsBadMutationOptions = Apollo.BaseMutationOptions<
+  MarkVersionAsBadMutation,
+  MarkVersionAsBadMutationVariables
+>;
+export const MarkVersionAsGoodDocument = gql`
+  mutation MarkVersionAsGood($payload: MdMarkArtifactVersionAsGoodPayload!) {
+    markArtifactVersionAsGood(payload: $payload)
+  }
+`;
+export type MarkVersionAsGoodMutationFn = Apollo.MutationFunction<
+  MarkVersionAsGoodMutation,
+  MarkVersionAsGoodMutationVariables
+>;
+
+/**
+ * __useMarkVersionAsGoodMutation__
+ *
+ * To run a mutation, you first call `useMarkVersionAsGoodMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useMarkVersionAsGoodMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [markVersionAsGoodMutation, { data, loading, error }] = useMarkVersionAsGoodMutation({
+ *   variables: {
+ *      payload: // value for 'payload'
+ *   },
+ * });
+ */
+export function useMarkVersionAsGoodMutation(
+  baseOptions?: Apollo.MutationHookOptions<MarkVersionAsGoodMutation, MarkVersionAsGoodMutationVariables>,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<MarkVersionAsGoodMutation, MarkVersionAsGoodMutationVariables>(
+    MarkVersionAsGoodDocument,
+    options,
+  );
+}
+export type MarkVersionAsGoodMutationHookResult = ReturnType<typeof useMarkVersionAsGoodMutation>;
+export type MarkVersionAsGoodMutationResult = Apollo.MutationResult<MarkVersionAsGoodMutation>;
+export type MarkVersionAsGoodMutationOptions = Apollo.BaseMutationOptions<
+  MarkVersionAsGoodMutation,
+  MarkVersionAsGoodMutationVariables
 >;
