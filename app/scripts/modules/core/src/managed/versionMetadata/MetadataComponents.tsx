@@ -206,7 +206,7 @@ export const VersionBuild = ({ build, withPrefix }: IVersionBuildProps) => {
 
   return build.version ? (
     <Tooltip value={build.version} delayShow={TOOLTIP_DELAY_SHOW}>
-      {content}
+      <span>{content}</span>
     </Tooltip>
   ) : (
     <>{content}</>
