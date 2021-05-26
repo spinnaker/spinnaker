@@ -75,42 +75,45 @@ export const ScalingActivitiesModal = ({ dismissModal, serverGroup }: IScalingAc
       <ModalHeader>{`Scaling Activities for ${serverGroup.name}`}</ModalHeader>
       <ModalBody>
         {loading && (
-          <div className="ScalingAcivitiesModalBody flex-container-v middle center sp-margin-xl-yaxis">
+          <div className="ScalingAcivitiesModalBody middle center sp-margin-xl-yaxis">
             <Spinner />
           </div>
         )}
         {!loading && Boolean(error) && (
-          <div className="ScalingAcivitiesModalBody flex-container-v middle sp-margin-xl-yaxis">
+          <div className="ScalingAcivitiesModalBody middle sp-margin-xl-yaxis">
             <p>{`There was an error loading scaling activities for ${serverGroup.name}. Please try again later.`}</p>
           </div>
         )}
         {!loading && !error && !scalingActivities.length && (
-          <div className="ScalingAcivitiesModalBody flex-container-v middle sp-margin-xl-yaxis">
+          <div className="ScalingAcivitiesModalBody middle sp-margin-xl-yaxis">
             <p>{`No scaling activities found for ${serverGroup.name}.`}</p>
           </div>
         )}
-        {!loading &&
-          !error &&
-          scalingActivities.length &&
-          scalingActivities.map((a, i) => (
-            <div key={a.cause} className="ScalingAcivitiesModalBody flex-container-v middle sp-margin-xl-yaxis">
-              <p className="clearfix">
-                <span className={`label label-${a.isSuccessful ? 'success' : 'danger'} pull-left`}>{a.statusCode}</span>
-                <span className="label label-default pull-right">{timestamp(a.startTime)}</span>
-              </p>
-              <p>{a.cause}</p>
-              <p>Summary of activities:</p>
-              <ul>
-                {sortBy(a.events, 'availabilityZone', 'description').map((e) => (
-                  <li key={e.description}>
-                    {e.description}
-                    {e.availabilityZone && <span>{e.availabilityZone}</span>}
-                  </li>
-                ))}
-              </ul>
-              {i !== scalingActivities.length - 1 && <hr />}
-            </div>
-          ))}
+        {!loading && !error && scalingActivities.length && (
+          <div className="ScalingAcivitiesModalBody middle sp-margin-xl-yaxis">
+            {scalingActivities.map((a, i) => (
+              <div key={a.cause}>
+                <p className="clearfix">
+                  <span className={`label label-${a.isSuccessful ? 'success' : 'danger'} pull-left`}>
+                    {a.statusCode}
+                  </span>
+                  <span className="label label-default pull-right">{timestamp(a.startTime)}</span>
+                </p>
+                <p>{a.cause}</p>
+                <p>Summary of activities:</p>
+                <ul>
+                  {sortBy(a.events, 'availabilityZone', 'description').map((e) => (
+                    <li key={e.description}>
+                      {e.description}
+                      {e.availabilityZone && <span>{e.availabilityZone}</span>}
+                    </li>
+                  ))}
+                </ul>
+                {i !== scalingActivities.length - 1 && <hr />}
+              </div>
+            ))}
+          </div>
+        )}
       </ModalBody>
       <ModalFooter
         primaryActions={
