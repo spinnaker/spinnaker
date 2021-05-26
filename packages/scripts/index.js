@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const chalk = require('chalk');
+const child_process = require('child_process');
 const fs = require('fs');
 const loadConfigFile = require('rollup/dist/loadConfigFile');
 const ora = require('ora');
@@ -29,7 +30,7 @@ const getOutputDir = (output) => {
   return outputDirMatch.length > 1 ? outputDirMatch[1] : output;
 };
 
-const startHandler = async ({ file }) => {
+const startHandler = async ({ file, push }) => {
   process.env.ROLLUP_WATCH = true;
 
   const { options, warnings } = await loadConfigFile(getRollupConfigPath(file));
@@ -44,6 +45,15 @@ const startHandler = async ({ file }) => {
     // Rollup will be emitting lifecycle events for the bundling process such as start, end and error. These events are
     // used to control a spinner in the terminal for each `input-output` bundle.
     switch (event.code) {
+      case 'END':
+        if (push) {
+          console.log();
+          console.log(chalk.gray.bold('yalc push'));
+          const yalcBin = path.resolve(__dirname, 'node_modules', '.bin', 'yalc');
+          const output = child_process.execSync(`${yalcBin} push`);
+          console.log(chalk.blue.bold(output.toString('utf-8')));
+        }
+        break;
       case 'BUNDLE_START':
         console.log('');
         event.output.forEach((output) => {
@@ -69,6 +79,7 @@ const startHandler = async ({ file }) => {
       case 'ERROR':
         Object.entries(spinners).forEach(([key, spinner]) => {
           spinner.fail(event.error);
+          console.error(event.error);
           delete spinners[key];
         });
         break;
@@ -104,14 +115,21 @@ const buildHandler = async ({ file }) => {
   }
 };
 
-const optionsConfigurer = (yargs) =>
-  yargs.option('file', {
-    alias: '-f',
-  });
+const fileOption = {
+  alias: 'file',
+  describe: 'custom rollup config file',
+  type: 'string',
+};
+
+const pushOption = {
+  alias: 'push',
+  default: false,
+  type: 'boolean',
+};
 
 require('yargs')
   .scriptName('spinnaker-scripts')
-  .command('start', 'Builds your package in watch mode', optionsConfigurer, startHandler)
-  .command('build', 'Builds your package', optionsConfigurer, buildHandler)
+  .command('start', 'Builds your package in watch mode', { f: fileOption, p: pushOption }, startHandler)
+  .command('build', 'Builds your package', { f: fileOption }, buildHandler)
   .help()
   .demandCommand().argv;
