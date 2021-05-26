@@ -11,6 +11,7 @@ export interface ICopyToClipboardProps {
   text: string;
   toolTip?: string;
   className?: string;
+  stopPropagation?: boolean;
 }
 
 interface ICopyToClipboardState {
@@ -59,6 +60,9 @@ export class CopyToClipboard extends React.Component<ICopyToClipboardProps, ICop
    */
   public handleClick = (e: React.SyntheticEvent): void => {
     e.preventDefault();
+    if (this.props.stopPropagation) {
+      e.stopPropagation();
+    }
 
     const { analyticsLabel, text } = this.props;
     ReactGA.event({

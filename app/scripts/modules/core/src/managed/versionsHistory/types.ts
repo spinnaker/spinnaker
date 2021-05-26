@@ -20,6 +20,7 @@ export interface VersionData {
   versions: Set<string>;
   createdAt?: DateTime;
   isBaking?: boolean;
+  isFocused?: boolean;
   environments: { [env: string]: { versions: VersionInEnvironment[]; isPinned?: boolean } };
   gitMetadata?: HistoryArtifactVersion['gitMetadata'];
   key: string;
