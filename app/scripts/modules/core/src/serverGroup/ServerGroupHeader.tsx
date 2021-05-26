@@ -124,7 +124,7 @@ export class SequenceAndBuildAndImages extends React.Component<IServerGroupHeade
         {!!serverGroupSequence && <span className="server-group-sequence"> {serverGroupSequence}</span>}
         {!!serverGroupSequence && (!!jenkins || !!images) && <span>: </span>}
         {!!jenkins && (
-          <a className="build-link" href={jenkins.href} target="_blank">
+          <a className="build-link sp-margin-xs-right" href={jenkins.href} target="_blank">
             Build: #{jenkins.number}
           </a>
         )}
