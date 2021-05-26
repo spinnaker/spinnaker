@@ -3,7 +3,6 @@ import { get } from 'lodash';
 import { DateTime } from 'luxon';
 import React from 'react';
 import { Dropdown } from 'react-bootstrap';
-import ReactGA from 'react-ga';
 import { Subject } from 'rxjs';
 
 import {
@@ -12,6 +11,7 @@ import {
   CollapsibleSection,
   ConfirmationModalService,
   IManifest,
+  logger,
   ManifestWriter,
   Overridable,
   Spinner,
@@ -118,7 +118,7 @@ export class RawResourceDetails extends React.Component<IRawResourceDetailsProps
     };
 
     const submitMethod = () => {
-      ReactGA.event({ category: 'RawResource', action: 'Delete clicked' });
+      logger.log({ category: 'RawResource', action: 'Delete clicked' });
       const command = {
         manifestName: this.state.name,
         location: this.state.region,
@@ -142,7 +142,7 @@ export class RawResourceDetails extends React.Component<IRawResourceDetailsProps
   };
 
   private handleEditClick = (): void => {
-    ReactGA.event({ category: 'RawResource', action: 'Edit clicked' });
+    logger.log({ category: 'RawResource', action: 'Edit clicked' });
     this.editRawResource();
   };
 

@@ -1,12 +1,12 @@
 import { get } from 'lodash';
 import React from 'react';
 import { Dropdown } from 'react-bootstrap';
-import ReactGA from 'react-ga';
 
 import { Application } from 'core/application';
 import { IPipeline } from 'core/domain';
 import { Tooltip } from 'core/presentation/Tooltip';
 import { ReactInjector } from 'core/reactShims';
+import { logger } from 'core/utils';
 
 import { CreatePipelineButton } from '../create/CreatePipelineButton';
 
@@ -16,7 +16,7 @@ export interface ICreatePipelineProps {
 
 export class CreatePipeline extends React.Component<ICreatePipelineProps> {
   private dropdownToggled = (): void => {
-    ReactGA.event({ category: 'Pipelines', action: 'Configure (top level)' });
+    logger.log({ category: 'Pipelines', action: 'Configure (top level)' });
   };
 
   public render() {
@@ -75,7 +75,7 @@ export class CreatePipeline extends React.Component<ICreatePipelineProps> {
 
 const Pipeline = (props: { pipeline: any; type: 'pipeline' | 'strategy' }): JSX.Element => {
   const clicked = () => {
-    ReactGA.event({ category: 'Pipelines', action: `Configure ${props.type} (via top level)` });
+    logger.log({ category: 'Pipelines', action: `Configure ${props.type} (via top level)` });
     const { $state } = ReactInjector;
     if (!$state.current.name.includes('.executions.execution')) {
       $state.go('^.pipelineConfig', { pipelineId: props.pipeline.id });

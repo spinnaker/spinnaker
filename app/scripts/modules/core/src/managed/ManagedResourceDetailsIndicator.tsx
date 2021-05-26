@@ -1,6 +1,5 @@
 import React from 'react';
 import { Dropdown, MenuItem } from 'react-bootstrap';
-import ReactGA from 'react-ga';
 
 import { Application } from 'core/application';
 import { SETTINGS } from 'core/config/settings';
@@ -9,6 +8,7 @@ import { HelpField } from 'core/help';
 import { HoverablePopover } from 'core/presentation';
 import { ReactInjector } from 'core/reactShims';
 
+import { logger } from '..';
 import managedDeliveryLogo from './icons/md-logo-color.svg';
 import { showManagedResourceHistoryModal } from './resourceHistory/ManagedResourceHistoryModal';
 import { toggleResourcePause } from './toggleResourceManagement';
@@ -21,10 +21,10 @@ export interface IManagedResourceDetailsIndicatorProps {
 }
 
 const logClick = (label: string, resourceId: string) =>
-  ReactGA.event({
+  logger.log({
     category: 'Managed Resource Menu',
     action: `${label} clicked`,
-    label: resourceId,
+    data: { label: resourceId },
   });
 
 export const ManagedResourceDetailsIndicator = ({

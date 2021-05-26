@@ -1,7 +1,7 @@
 import React, { memo, useState } from 'react';
-import ReactGA from 'react-ga';
 
 import { Illustration, IllustrationName } from '@spinnaker/presentation';
+import { logger } from 'core/utils';
 
 import { Button } from './Button';
 import { ManagedWriter } from './ManagedWriter';
@@ -16,10 +16,10 @@ import {
 } from '../presentation';
 
 const logClick = (label: string, application: string) =>
-  ReactGA.event({
+  logger.log({
     category: 'Environments - toggle application management modal',
     action: `${label} clicked`,
-    label: application,
+    data: { label: application },
   });
 
 export interface IToggleManagedResourceForApplicationModalProps extends IModalComponentProps {

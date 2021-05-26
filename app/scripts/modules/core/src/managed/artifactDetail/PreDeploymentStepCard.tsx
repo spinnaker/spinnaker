@@ -1,12 +1,11 @@
 import { DateTime } from 'luxon';
 import React, { memo } from 'react';
-import ReactGA from 'react-ga';
 
 import { Button } from '../Button';
 import { StatusCard } from '../StatusCard';
 import { Application } from '../../application';
 import { IManagedArtifactVersionLifecycleStep } from '../../domain';
-import { timeDiffToString } from '../../utils';
+import { logger, timeDiffToString } from '../../utils';
 
 const cardAppearanceByStatus = {
   NOT_STARTED: 'future',
@@ -69,10 +68,10 @@ const cardConfigurationByType = {
 } as const;
 
 const logEvent = (label: string, application: string, reference: string, type: string, status: string) =>
-  ReactGA.event({
+  logger.log({
     category: 'Environments - version details',
     action: label,
-    label: `${application}:${reference}:${type}:${status}`,
+    data: { label: `${application}:${reference}:${type}:${status}` },
   });
 
 const getTimestamp = (startedAt?: string, completedAt?: string) => {

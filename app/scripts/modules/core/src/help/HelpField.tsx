@@ -1,8 +1,8 @@
 import { isUndefined } from 'lodash';
 import React from 'react';
-import ReactGA from 'react-ga';
 
 import { HoverablePopover, Markdown, Placement } from 'core/presentation';
+import { logger } from 'core/utils';
 
 import { HelpTextExpandedContext } from './HelpTextExpandedContext';
 import { HelpContentsRegistry } from './helpContents.registry';
@@ -35,7 +35,7 @@ export function HelpField(props: IHelpFieldProps) {
   const onShow = (): void => setPopoverShownStart(Date.now());
   const onHide = (): void => {
     if (Date.now() - popoverShownStart > 500) {
-      ReactGA.event({ action: 'Help contents viewed', category: 'Help', label: props.id || props.content });
+      logger.log({ action: 'Help contents viewed', category: 'Help', data: { label: props.id || props.content } });
     }
   };
 

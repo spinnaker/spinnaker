@@ -1,4 +1,4 @@
-import ReactGA from 'react-ga';
+import { logger } from 'core/utils';
 import { useApplicationContext } from '../../presentation/hooks/useApplicationContext.hook';
 
 interface LogProps {
@@ -9,10 +9,10 @@ interface LogProps {
 }
 
 export const logEvent = ({ category, action, application, label }: LogProps) => {
-  ReactGA.event({
+  logger.log({
     category,
-    action,
-    label: (application ? `${application}:` : ``) + label,
+    action: action,
+    data: { label: (application ? `${application}:` : ``) + label },
   });
 };
 

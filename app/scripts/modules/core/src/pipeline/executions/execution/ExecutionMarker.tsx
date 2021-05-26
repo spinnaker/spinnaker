@@ -1,11 +1,11 @@
 import { UISref } from '@uirouter/react';
 import { isEmpty } from 'lodash';
 import React from 'react';
-import ReactGA from 'react-ga';
 
 import { Application } from 'core/application/application.model';
 import { SETTINGS } from 'core/config/settings';
 import { IExecution, IExecutionStageSummary } from 'core/domain';
+import { logger } from 'core/utils';
 import { duration } from 'core/utils/timeFormatters';
 
 import { ExecutionMarkerInformationModal } from './ExecutionMarkerInformationModal';
@@ -60,12 +60,12 @@ export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExe
   }
 
   private handleStageClick = (): void => {
-    ReactGA.event({ category: 'Pipeline', action: 'Stage clicked (bar)' });
+    logger.log({ category: 'Pipeline', action: 'Stage clicked (bar)' });
     this.props.onClick(this.props.stage.index);
   };
 
   private handleStageInformationClick = (event: any): void => {
-    ReactGA.event({ category: 'Pipeline', action: 'Stage show context menu (bar)' });
+    logger.log({ category: 'Pipeline', action: 'Stage show context menu (bar)' });
     event.preventDefault();
     event.stopPropagation();
     this.showExecutionMarkerInformationModal();

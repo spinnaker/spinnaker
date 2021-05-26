@@ -2,13 +2,13 @@ import { UIRouterContext } from '@uirouter/react-hybrid';
 import { flatten } from 'lodash';
 import { Debounce } from 'lodash-decorators';
 import React from 'react';
-import ReactGA from 'react-ga';
 import { from as observableFrom, Subject } from 'rxjs';
 import { debounceTime, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { Tooltip } from 'core/presentation/Tooltip';
 import { ReactInjector } from 'core/reactShims';
 import { ClusterState } from 'core/state';
+import { logger } from 'core/utils';
 import { Spinner } from 'core/widgets/spinners/Spinner';
 
 import { GlobalSearchRecentItems } from './GlobalSearchRecentItems';
@@ -63,7 +63,7 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
       .pipe(
         debounceTime(300),
         tap((query) => {
-          ReactGA.event({ category: 'Global Search', action: 'Query', label: query });
+          logger.log({ category: 'Global Search', action: 'Query', data: { label: query } });
           this.setState({ querying: true });
         }),
         switchMap((query: string) => observableFrom(search.query(query))),
@@ -126,19 +126,19 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
     const { key, shiftKey } = event;
 
     if (key === 'Escape') {
-      ReactGA.event({ category: 'Global Search', action: 'Keyboard Nav', label: 'escape (from input)' });
+      logger.log({ category: 'Global Search', action: 'Keyboard Nav', data: { label: 'escape (from input)' } });
       this.searchField.blur();
     } else if (key === 'ArrowDown') {
-      ReactGA.event({ category: 'Global Search', action: 'Keyboard Nav', label: 'arrow down (from input)' });
+      logger.log({ category: 'Global Search', action: 'Keyboard Nav', data: { label: 'arrow down (from input)' } });
       event.preventDefault();
       this.focusFirstSearchResult();
     } else if (key === 'ArrowUp') {
-      ReactGA.event({ category: 'Global Search', action: 'Keyboard Nav', label: 'arrow up (from input)' });
+      logger.log({ category: 'Global Search', action: 'Keyboard Nav', data: { label: 'arrow up (from input)' } });
       event.preventDefault();
       this.focusLastSearchResult();
     } else if (key === 'Tab') {
       if (!shiftKey) {
-        ReactGA.event({ category: 'Global Search', action: 'Keyboard Nav', label: 'tab (from input)' });
+        logger.log({ category: 'Global Search', action: 'Keyboard Nav', data: { label: 'tab (from input)' } });
         event.preventDefault();
         this.focusFirstSearchResult();
       }
@@ -174,7 +174,7 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
   private navigateResult = (event: React.KeyboardEvent<HTMLElement>) => {
     const { key, target } = event;
     if (key === 'Escape') {
-      ReactGA.event({ category: 'Global Search', action: 'Keyboard Nav', label: 'escape (from result)' });
+      logger.log({ category: 'Global Search', action: 'Keyboard Nav', data: { label: 'escape (from result)' } });
       this.setState({
         showDropdown: false,
         showMinLengthWarning: false,
@@ -187,12 +187,12 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
       const flattenedRefs = flatten(this.resultRefs);
       const lastResultRef = flattenedRefs[flattenedRefs.length - 1];
       if (target === lastResultRef) {
-        ReactGA.event({ category: 'Global Search', action: 'Keyboard Nav', label: 'tab (from result)' });
+        logger.log({ category: 'Global Search', action: 'Keyboard Nav', data: { label: 'tab (from result)' } });
         this.hideDropdown();
         return;
       }
     } else if (key === 'ArrowDown') {
-      ReactGA.event({ category: 'Global Search', action: 'Keyboard Nav', label: 'down (from result)' });
+      logger.log({ category: 'Global Search', action: 'Keyboard Nav', data: { label: 'down (from result)' } });
       const flattenedRefs = flatten(this.resultRefs);
       const currentRefIndex = flattenedRefs.indexOf(target as HTMLElement);
       const nextResultRef = flattenedRefs[currentRefIndex + 1];
@@ -200,7 +200,7 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
       nextResultRef && nextResultRef.focus();
       event.preventDefault();
     } else if (key === 'ArrowUp') {
-      ReactGA.event({ category: 'Global Search', action: 'Keyboard Nav', label: 'up (from result)' });
+      logger.log({ category: 'Global Search', action: 'Keyboard Nav', data: { label: 'up (from result)' } });
       const flattenedRefs = flatten(this.resultRefs);
       const currentRefIndex = flattenedRefs.indexOf(target as HTMLElement);
       const prevResultRef = flattenedRefs[currentRefIndex - 1];
@@ -208,7 +208,7 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
       prevResultRef && prevResultRef.focus();
       event.preventDefault();
     } else if (key === 'Enter') {
-      ReactGA.event({ category: 'Global Search', action: 'Keyboard Nav', label: 'enter (from result)' });
+      logger.log({ category: 'Global Search', action: 'Keyboard Nav', data: { label: 'enter (from result)' } });
       // Allow keyboard event to activate the href, then hide the drop down
       setTimeout(() => this.hideDropdown(), 100);
     }
@@ -345,7 +345,7 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
             onItemKeyDown={this.navigateResult}
             onResultClick={(category: string) => {
               this.hideDropdown();
-              ReactGA.event({ category: 'Global Search', action: `Recent item selected from ${category}` });
+              logger.log({ category: 'Global Search', action: `Recent item selected from ${category}` });
             }}
             resultRef={(categoryIndex, resultIndex, ref) => {
               if (this.resultRefs[categoryIndex]) {
@@ -367,12 +367,12 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
         query={query}
         onItemKeyDown={this.navigateResult}
         onResultClick={(result: ISearchResult) => {
-          ReactGA.event({ category: 'Global Search', action: 'Result Selected' });
+          logger.log({ category: 'Global Search', action: 'Result Selected' });
           this.hideDropdown();
           this.clearFilters(result);
         }}
         onSeeMoreClick={() => {
-          ReactGA.event({ category: 'Global Search', action: 'See all results selected' });
+          logger.log({ category: 'Global Search', action: 'See all results selected' });
           this.hideDropdown();
         }}
         resultRef={(categoryIndex, resultIndex, ref) => {

@@ -1,11 +1,11 @@
 import classNames from 'classnames';
 import { get } from 'lodash';
 import React from 'react';
-import ReactGA from 'react-ga';
 
 import { IExecutionStageSummary } from 'core/domain';
 import { LabelComponent, Markdown } from 'core/presentation';
 import { Popover } from 'core/presentation/Popover';
+import { logger } from 'core/utils';
 
 import { IPipelineGraphNode } from './pipelineGraph.service';
 import { GroupExecutionPopover } from '../stages/group/GroupExecutionPopover';
@@ -31,7 +31,7 @@ export class PipelineGraphNode extends React.Component<IPipelineGraphNodeProps> 
   };
 
   private handleClick = (): void => {
-    ReactGA.event({
+    logger.log({
       category: `Pipeline Graph (${this.props.isExecution ? 'execution' : 'config'})`,
       action: `Node clicked`,
     });
@@ -39,7 +39,7 @@ export class PipelineGraphNode extends React.Component<IPipelineGraphNodeProps> 
   };
 
   private subStageClicked = (groupStage: IExecutionStageSummary, stage: IExecutionStageSummary): void => {
-    ReactGA.event({
+    logger.log({
       category: `Pipeline Graph (${this.props.isExecution ? 'execution' : 'config'})`,
       action: `Grouped stage clicked`,
     });

@@ -1,13 +1,13 @@
 import { module } from 'angular';
 import classNames from 'classnames';
 import React from 'react';
-import ReactGA from 'react-ga';
 import { react2angular } from 'react2angular';
 
 import { ManagedWriter } from 'core/managed';
 import { useLatestCallback, ValidationMessage } from 'core/presentation';
 import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 import { NgReact } from 'core/reactShims';
+import { logger } from 'core/utils';
 
 import { Application } from '../../application.model';
 
@@ -21,10 +21,10 @@ export interface IManagedResourceConfigProps {
 }
 
 const logClick = (label: string, application: string) =>
-  ReactGA.event({
+  logger.log({
     category: 'Managed Resource Config',
     action: `${label} clicked`,
-    label: application,
+    data: { label: application },
   });
 
 const getManagementStatus = (paused: boolean) => {

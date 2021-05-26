@@ -3,7 +3,6 @@ import classNames from 'classnames';
 import { isEqual } from 'lodash';
 import { $location } from 'ngimport';
 import React from 'react';
-import ReactGA from 'react-ga';
 import { Subscription } from 'rxjs';
 
 import { AccountTag } from 'core/account';
@@ -17,6 +16,7 @@ import { Overridable } from 'core/overrideRegistry';
 import { Tooltip } from 'core/presentation/Tooltip';
 import { ReactInjector } from 'core/reactShims';
 import { ExecutionState } from 'core/state';
+import { logger } from 'core/utils';
 import { duration, timestamp } from 'core/utils/timeFormatters';
 
 import { ExecutionBreadcrumbs } from './ExecutionBreadcrumbs';
@@ -266,48 +266,48 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
   };
 
   private handleSourceNoStagesClick = (): void => {
-    ReactGA.event({ category: 'Pipeline', action: 'Execution source clicked (no stages found)' });
+    logger.log({ category: 'Pipeline', action: 'Execution source clicked (no stages found)' });
   };
 
   private handlePauseClick = (): void => {
-    ReactGA.event({ category: 'Pipeline', action: 'Execution pause clicked' });
+    logger.log({ category: 'Pipeline', action: 'Execution pause clicked' });
     this.pauseExecution();
   };
 
   private handleResumeClick = (): void => {
-    ReactGA.event({ category: 'Pipeline', action: 'Execution resume clicked' });
+    logger.log({ category: 'Pipeline', action: 'Execution resume clicked' });
     this.resumeExecution();
   };
 
   private handleDeleteClick = (): void => {
-    ReactGA.event({ category: 'Pipeline', action: 'Execution delete clicked' });
+    logger.log({ category: 'Pipeline', action: 'Execution delete clicked' });
     this.deleteExecution();
   };
 
   private handleCancelClick = (): void => {
-    ReactGA.event({ category: 'Pipeline', action: 'Execution cancel clicked' });
+    logger.log({ category: 'Pipeline', action: 'Execution cancel clicked' });
     this.cancelExecution();
   };
 
   private handleRerunClick = (): void => {
-    ReactGA.event({ category: 'Pipeline', action: 'Execution rerun clicked' });
+    logger.log({ category: 'Pipeline', action: 'Execution rerun clicked' });
     const { application, execution } = this.props;
     const pipelineConfig = application.pipelineConfigs.data.find((p: IPipeline) => p.id === execution.pipelineConfigId);
     this.props.onRerun(execution, pipelineConfig);
   };
 
   private handleSourceClick = (): void => {
-    ReactGA.event({ category: 'Pipeline', action: 'Execution source clicked' });
+    logger.log({ category: 'Pipeline', action: 'Execution source clicked' });
   };
 
   private handleToggleDetails = (showingDetails: boolean): void => {
-    ReactGA.event({ category: 'Pipeline', action: 'Execution details toggled (Details link)' });
+    logger.log({ category: 'Pipeline', action: 'Execution details toggled (Details link)' });
     showingDetails ? this.toggleDetails() : this.toggleDetails(0, 0);
   };
 
   private handleConfigureClicked = (e: React.MouseEvent<HTMLElement>): void => {
     const { application, execution } = this.props;
-    ReactGA.event({ category: 'Execution', action: 'Configuration' });
+    logger.log({ category: 'Execution', action: 'Configuration' });
     ReactInjector.$state.go('^.pipelineConfig', {
       application: application.name,
       pipelineId: execution.pipelineConfigId,

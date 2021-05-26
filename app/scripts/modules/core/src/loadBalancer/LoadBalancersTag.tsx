@@ -1,12 +1,12 @@
 import { sortBy } from 'lodash';
 import React from 'react';
-import ReactGA from 'react-ga';
 
 import { ILoadBalancer } from 'core/domain';
 import { HealthCounts } from 'core/healthCounts/HealthCounts';
 import { HoverablePopover } from 'core/presentation';
 import { Tooltip } from 'core/presentation/Tooltip';
 import { ReactInjector } from 'core/reactShims';
+import { logger } from 'core/utils';
 import { Spinner } from 'core/widgets';
 
 import { ILoadBalancersTagProps } from './LoadBalancersTagWrapper';
@@ -72,7 +72,7 @@ export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, IL
   private showLoadBalancerDetails = (loadBalancer: ILoadBalancer): void => {
     const { $state } = ReactInjector;
     const serverGroup = this.props.serverGroup;
-    ReactGA.event({ category: 'Cluster Pod', action: `Load Load Balancer Details (multiple menu)` });
+    logger.log({ category: 'Cluster Pod', action: `Load Load Balancer Details (multiple menu)` });
     const nextState = $state.current.name.endsWith('.clusters') ? '.loadBalancerDetails' : '^.loadBalancerDetails';
     $state.go(nextState, {
       region: serverGroup.region,
@@ -83,7 +83,7 @@ export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, IL
   };
 
   private handleShowPopover = () => {
-    ReactGA.event({ category: 'Cluster Pod', action: `Show Load Balancers Menu` });
+    logger.log({ category: 'Cluster Pod', action: `Show Load Balancers Menu` });
   };
 
   private handleClick = (e: React.MouseEvent<HTMLElement>): void => {

@@ -1,16 +1,16 @@
 import React from 'react';
 import { Dropdown } from 'react-bootstrap';
-import ReactGA from 'react-ga';
 
 import { IServerGroup } from 'core/domain';
+import { logger } from 'core/utils';
 
 export class ServerGroupInsightActions extends React.Component<{ serverGroup: IServerGroup }> {
   private onClick(label: string): void {
     const { serverGroup } = this.props;
-    ReactGA.event({
+    logger.log({
       category: 'Insight Menu (Server Group)',
       action: `${label} clicked`,
-      label: `${serverGroup.account}/${serverGroup.region}/${serverGroup.name}`,
+      data: { label: `${serverGroup.account}/${serverGroup.region}/${serverGroup.name}` },
     });
   }
 

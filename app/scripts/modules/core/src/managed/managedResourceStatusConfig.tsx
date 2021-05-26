@@ -1,9 +1,9 @@
 import React from 'react';
-import ReactGA from 'react-ga';
 
 import { IconNames } from '@spinnaker/presentation';
 import { Application } from 'core/application';
 import { IManagedResourceSummary, ManagedResourceStatus } from 'core/domain';
+import { logger } from 'core/utils';
 
 interface IViewConfiguration {
   appearance: 'info' | 'warning' | 'error';
@@ -12,10 +12,10 @@ interface IViewConfiguration {
 }
 
 const logClick = (label: string, resourceId: string, status: ManagedResourceStatus) =>
-  ReactGA.event({
+  logger.log({
     category: 'Managed Resource Status Indicator',
     action: `${label} clicked`,
-    label: `${resourceId},${status}`,
+    data: { label: `${resourceId},${status}` },
   });
 
 const LearnMoreLink = ({ resourceSummary }: { resourceSummary: IManagedResourceSummary }) => (

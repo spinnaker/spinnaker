@@ -1,9 +1,9 @@
 import React from 'react';
-import ReactGA from 'react-ga';
 import { Subscription } from 'rxjs';
 
 import { robotToHuman } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';
 import { ReactInjector } from 'core/reactShims';
+import { logger } from 'core/utils';
 
 export interface IExecutionDetailsSectionNavProps {
   sections: string[];
@@ -57,7 +57,7 @@ export class ExecutionDetailsSectionNav extends React.Component<
 
 const Section = (props: { section: string; active: boolean }): JSX.Element => {
   const clicked = () => {
-    ReactGA.event({ category: 'Pipeline', action: 'Execution details section selected', label: props.section });
+    logger.log({ category: 'Pipeline', action: 'Execution details section selected', data: { label: props.section } });
     ReactInjector.$state.go('.', { details: props.section });
   };
   return (

@@ -2,7 +2,6 @@ import classNames from 'classnames';
 import { has } from 'lodash';
 import { $interpolate } from 'ngimport';
 import React from 'react';
-import ReactGA from 'react-ga';
 import { Subscription } from 'rxjs';
 import { merge } from 'rxjs/operators';
 
@@ -14,7 +13,7 @@ import { InstanceList } from 'core/instance/InstanceList';
 import { Instances } from 'core/instance/Instances';
 import { ReactInjector } from 'core/reactShims';
 import { ClusterState } from 'core/state';
-import { ScrollToService } from 'core/utils';
+import { logger, ScrollToService } from 'core/utils';
 
 import { ServerGroupHeader } from './ServerGroupHeader';
 
@@ -176,7 +175,7 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
   }
 
   private handleServerGroupClicked = (event: React.MouseEvent<any>) => {
-    ReactGA.event({ category: 'Cluster Pod', action: 'Load Server Group Details' });
+    logger.log({ category: 'Cluster Pod', action: 'Load Server Group Details' });
     this.loadDetails(event);
   };
 

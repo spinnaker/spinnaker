@@ -1,7 +1,7 @@
 import React from 'react';
-import ReactGA from 'react-ga';
 
 import { CollapsibleSectionStateCache } from 'core/cache';
+import { logger } from 'core/utils';
 
 export interface IFilter {
   label: string;
@@ -39,13 +39,13 @@ export const FilterTags = ({ clearFilters, tags, tagCleared }: IFilterTagsProps)
     if (clearFilters) {
       clearFilters();
     }
-    ReactGA.event({ category: 'Filter Tags', action: 'Clear All clicked' });
+    logger.log({ category: 'Filter Tags', action: 'Clear All clicked' });
   };
 
   const clearIndividualFilter = (tag: IFilterTag): void => {
     tag.clear();
     tagCleared();
-    ReactGA.event({ category: 'Filter Tags', action: 'Individual tag removed' });
+    logger.log({ category: 'Filter Tags', action: 'Individual tag removed' });
   };
 
   return (

@@ -1,7 +1,6 @@
 import classnames from 'classnames';
 import { flatten, uniq, without } from 'lodash';
 import React from 'react';
-import ReactGA from 'react-ga';
 import { from as observableFrom, Subject, Subscription } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
@@ -22,6 +21,7 @@ import { Placement } from 'core/presentation/Placement';
 import { Popover } from 'core/presentation/Popover';
 import { ReactInjector } from 'core/reactShims';
 import { ExecutionState } from 'core/state';
+import { logger } from 'core/utils';
 import { RenderWhenVisible } from 'core/utils/RenderWhenVisible';
 import { IRetryablePromise } from 'core/utils/retryablePromise';
 import { Spinner } from 'core/widgets/spinners/Spinner';
@@ -203,32 +203,36 @@ export class ExecutionGroup extends React.PureComponent<IExecutionGroupProps, IE
   }
 
   private handleHeadingClicked = (): void => {
-    ReactGA.event({
+    logger.log({
       category: 'Pipeline',
       action: `Group ${this.state.open ? 'collapsed' : 'expanded'}`,
-      label: this.props.group.heading,
+      data: { label: this.props.group.heading },
     });
     this.toggle();
   };
 
   private handleConfigureClicked = (e: React.MouseEvent<HTMLElement>): void => {
-    ReactGA.event({
+    logger.log({
       category: 'Pipeline',
       action: 'Configure pipeline button clicked',
-      label: this.props.group.heading,
+      data: { label: this.props.group.heading },
     });
     this.configure(this.props.group.config.id);
     e.stopPropagation();
   };
 
   private handleTriggerClicked = (e: React.MouseEvent<HTMLElement>): void => {
-    ReactGA.event({ category: 'Pipeline', action: 'Trigger pipeline button clicked', label: this.props.group.heading });
+    logger.log({
+      category: 'Pipeline',
+      action: 'Trigger pipeline button clicked',
+      data: { label: this.props.group.heading },
+    });
     this.triggerPipeline();
     e.stopPropagation();
   };
 
   private rerunExecutionClicked = (execution: IExecution, config: IPipeline): void => {
-    ReactGA.event({ category: 'Pipeline', action: 'Rerun pipeline button clicked', label: config.name });
+    logger.log({ category: 'Pipeline', action: 'Rerun pipeline button clicked', data: { label: config.name } });
     this.triggerPipeline(execution.trigger, config);
   };
 

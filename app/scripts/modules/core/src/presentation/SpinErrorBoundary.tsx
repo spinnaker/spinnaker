@@ -2,7 +2,6 @@ import { StateObject, UIRouter } from '@uirouter/core';
 import { ReactViewDeclaration } from '@uirouter/react';
 import { module } from 'angular';
 import React, { ErrorInfo } from 'react';
-import ReactGA from 'react-ga';
 
 import { logger } from 'core/utils/Logger';
 
@@ -39,12 +38,13 @@ export class SpinErrorBoundary extends React.Component<ISpinErrorBoundaryProps, 
   }
 
   componentDidCatch(error: Error, _errorInfo: ErrorInfo) {
-    ReactGA.event({
+    logger.log({
+      level: 'ERROR',
       category: `SpinErrorBoundary - ${this.props.category}`,
-      action: 'React Error Boundary Caught',
-      label: error.message,
+      action: error.message,
+      error,
+      data: { label: error.message, componentStack: _errorInfo?.componentStack },
     });
-    logger.log({ level: 'ERROR', message: error.message, error, data: _errorInfo });
   }
 
   render() {

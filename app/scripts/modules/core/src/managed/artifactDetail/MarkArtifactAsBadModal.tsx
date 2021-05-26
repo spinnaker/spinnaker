@@ -1,8 +1,8 @@
 import React, { memo, useCallback, useEffect } from 'react';
-import ReactGA from 'react-ga';
 import { Option } from 'react-select';
 
 import { Illustration } from '@spinnaker/presentation';
+import { logger } from 'core/utils';
 
 import { Button } from '../Button';
 import { EnvironmentBadge } from '../EnvironmentBadge';
@@ -28,10 +28,10 @@ import { useEnvironmentTypeFromResources } from '../useEnvironmentTypeFromResour
 const MARK_BAD_DOCS_URL = 'https://www.spinnaker.io/guides/user/managed-delivery/marking-as-bad/';
 
 const logEvent = (label: string, application: string, environment?: string, reference?: string) =>
-  ReactGA.event({
+  logger.log({
     category: 'Environments - mark version as bad modal',
     action: label,
-    label: environment ? `${application}:${environment}:${reference}` : application,
+    data: { label: environment ? `${application}:${environment}:${reference}` : application },
   });
 
 type IEnvironmentOptionProps = Required<Option<string>> & {

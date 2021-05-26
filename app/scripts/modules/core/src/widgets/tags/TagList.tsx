@@ -1,5 +1,6 @@
 import React from 'react';
-import ReactGA from 'react-ga';
+
+import { logger } from 'core/utils';
 
 import { Key } from '../Keys';
 import { DeleteType, ITag, Tag } from './Tag';
@@ -75,7 +76,7 @@ export class TagList extends React.Component<ITagListProps> {
         break;
     }
 
-    ReactGA.event({ category: 'Infrastructure Search Tags', action: 'Individual tag removed' });
+    logger.log({ category: 'Infrastructure Search Tags', action: 'Individual tag removed' });
   };
 
   private handleFocus = (): void => {

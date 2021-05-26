@@ -1,8 +1,8 @@
 import { useCurrentStateAndParams, useSref } from '@uirouter/react';
 import React, { MouseEventHandler } from 'react';
-import ReactGA from 'react-ga';
 
 import { IExecution } from 'core/domain';
+import { logger } from 'core/utils';
 
 import { ExecutionInformationService } from './executionInformation.service';
 
@@ -45,7 +45,7 @@ function ExecutionPermaLink({ execution }: IExecutionBreadcrumbsProps) {
   const sref = useSref(toState, srefParams, srefOptions);
 
   const handleClick: MouseEventHandler<any> = (e) => {
-    ReactGA.event({ category: 'Pipeline', action: 'Execution build number clicked - parent pipeline' });
+    logger.log({ category: 'Pipeline', action: 'Execution build number clicked - parent pipeline' });
     sref.onClick(e);
   };
 

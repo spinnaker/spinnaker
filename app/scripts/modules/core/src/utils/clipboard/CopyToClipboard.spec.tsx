@@ -1,11 +1,10 @@
-import React from 'react';
-import ReactGA from 'react-ga';
 import { mount } from 'enzyme';
-
+import React from 'react';
+import { logger } from '../Logger';
 import { CopyToClipboard } from './CopyToClipboard';
 
 describe('<CopyToClipboard />', () => {
-  beforeEach(() => spyOn(ReactGA, 'event'));
+  beforeEach(() => spyOn(logger, 'log'));
 
   it('renders an input with the text value', () => {
     const wrapper = mount(<CopyToClipboard toolTip="Copy Rebel Girl" text="Rebel Girl" />);
@@ -41,6 +40,6 @@ describe('<CopyToClipboard />', () => {
     const wrapper = mount(<CopyToClipboard toolTip="Copy Rebel Girl" text="Rebel Girl" />);
     const button = wrapper.find('button');
     button.simulate('click');
-    expect(ReactGA.event).toHaveBeenCalled();
+    expect(logger.log).toHaveBeenCalled();
   });
 });

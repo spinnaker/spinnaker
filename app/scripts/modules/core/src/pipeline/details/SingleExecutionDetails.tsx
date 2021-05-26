@@ -1,7 +1,6 @@
 import { UISref, useCurrentStateAndParams } from '@uirouter/react';
 import { set } from 'lodash';
 import React, { useEffect, useState } from 'react';
-import ReactGA from 'react-ga';
 
 import { Application } from 'core/application/application.model';
 import { IExecution, IPipeline } from 'core/domain';
@@ -9,6 +8,7 @@ import { useData, useLatestPromise } from 'core/presentation';
 import { IStateChange, ReactInjector } from 'core/reactShims';
 import { SchedulerFactory } from 'core/scheduler';
 import { ExecutionState } from 'core/state';
+import { logger } from 'core/utils';
 
 import { Execution } from '../executions/execution/Execution';
 import { ManualExecutionModal } from '../manualExecution';
@@ -125,7 +125,7 @@ export function SingleExecutionDetails(props: ISingleExecutionDetailsProps) {
     const checked = event.target.checked;
     setShowDurations(checked);
     ExecutionState.filterModel.asFilterModel.sortFilter.showDurations = showDurations;
-    ReactGA.event({ category: 'Pipelines', action: 'Toggle Durations', label: checked.toString() });
+    logger.log({ category: 'Pipelines', action: 'Toggle Durations', data: { label: checked.toString() } });
   };
 
   const rerunExecution = (execution: IExecution, application: Application, pipeline: IPipeline) => {

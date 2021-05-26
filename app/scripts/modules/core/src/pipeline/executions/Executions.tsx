@@ -1,7 +1,6 @@
 import { get } from 'lodash';
 import { $q } from 'ngimport';
 import React from 'react';
-import ReactGA from 'react-ga';
 import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application';
@@ -13,6 +12,7 @@ import { ReactInjector } from 'core/reactShims';
 import { SchedulerFactory } from 'core/scheduler';
 import { IScheduler } from 'core/scheduler/SchedulerFactory';
 import { ExecutionState } from 'core/state';
+import { logger } from 'core/utils';
 import { IRetryablePromise } from 'core/utils/retryablePromise';
 import { Spinner } from 'core/widgets/spinners/Spinner';
 
@@ -136,12 +136,12 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
   }
 
   private expand = (): void => {
-    ReactGA.event({ category: 'Pipelines', action: 'Expand All' });
+    logger.log({ category: 'Pipelines', action: 'Expand All' });
     ExecutionState.filterModel.expandSubject.next(true);
   };
 
   private collapse = (): void => {
-    ReactGA.event({ category: 'Pipelines', action: 'Collapse All' });
+    logger.log({ category: 'Pipelines', action: 'Collapse All' });
     ExecutionState.filterModel.expandSubject.next(false);
   };
 
@@ -164,7 +164,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
   };
 
   private triggerPipeline(pipeline: IPipeline = null): void {
-    ReactGA.event({ category: 'Pipelines', action: 'Trigger Pipeline (top level)' });
+    logger.log({ category: 'Pipelines', action: 'Trigger Pipeline (top level)' });
     ManualExecutionModal.show({
       pipeline: pipeline,
       application: this.props.app,
@@ -268,7 +268,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
 
   private groupByChanged = (event: React.ChangeEvent<HTMLSelectElement>): void => {
     const value = event.target.value;
-    ReactGA.event({ category: 'Pipelines', action: 'Group By', label: value });
+    logger.log({ category: 'Pipelines', action: 'Group By', data: { label: value } });
     this.state.sortFilter.groupBy = value;
     this.updateExecutionGroups();
   };
@@ -276,7 +276,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
   private showCountChanged = (event: React.ChangeEvent<HTMLSelectElement>): void => {
     const value = event.target.value;
     this.state.sortFilter.count = parseInt(value, 10);
-    ReactGA.event({ category: 'Pipelines', action: 'Change Count', label: value });
+    logger.log({ category: 'Pipelines', action: 'Change Count', data: { label: value } });
     this.updateExecutionGroups(true);
   };
 
@@ -287,7 +287,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
     //       (or similar) store.
     this.state.sortFilter.showDurations = checked;
     this.setState({ sortFilter: this.state.sortFilter });
-    ReactGA.event({ category: 'Pipelines', action: 'Toggle Durations', label: checked.toString() });
+    logger.log({ category: 'Pipelines', action: 'Toggle Durations', data: { label: checked.toString() } });
   };
 
   public render(): React.ReactElement<Executions> {

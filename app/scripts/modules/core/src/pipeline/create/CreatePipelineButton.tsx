@@ -1,9 +1,9 @@
 import React from 'react';
-import ReactGA from 'react-ga';
 
 import { Application } from 'core/application';
 import { Tooltip } from 'core/presentation/Tooltip';
 import { ReactInjector } from 'core/reactShims';
+import { logger } from 'core/utils';
 
 import { CreatePipelineModal } from './CreatePipelineModal';
 
@@ -30,7 +30,7 @@ export class CreatePipelineButton extends React.Component<ICreatePipelineButtonP
   };
 
   private createPipeline = () => {
-    ReactGA.event({ category: 'Pipelines', action: 'Create Pipeline' });
+    logger.log({ category: 'Pipelines', action: 'Create Pipeline' });
     this.setState({ showCreatePipelineModal: true });
   };
 

@@ -2,7 +2,6 @@ import classNames from 'classnames';
 import { flatten, get, isEmpty, isEqual, orderBy, uniq } from 'lodash';
 import { Debounce } from 'lodash-decorators';
 import React from 'react';
-import ReactGA from 'react-ga';
 import { arrayMove, SortableContainer, SortableElement, SortableHandle, SortEnd } from 'react-sortable-hoc';
 import { Subscription } from 'rxjs';
 
@@ -13,6 +12,7 @@ import { IExecution, IPipeline, IPipelineTag } from 'core/domain';
 import { IFilterTag } from 'core/filterModel';
 import { ReactInjector } from 'core/reactShims';
 import { ExecutionState } from 'core/state';
+import { logger } from 'core/utils';
 
 import { PipelineConfigService } from '../config/services/PipelineConfigService';
 import { ExecutionFilterService } from './executionFilter.service';
@@ -86,12 +86,12 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
 
   private enablePipelineReorder = (): void => {
     this.setState({ pipelineReorderEnabled: true });
-    ReactGA.event({ category: 'Pipelines', action: 'Filter: reorder' });
+    logger.log({ category: 'Pipelines', action: 'Filter: reorder' });
   };
 
   private disablePipelineReorder = (): void => {
     this.setState({ pipelineReorderEnabled: false });
-    ReactGA.event({ category: 'Pipelines', action: 'Filter: stop reorder' });
+    logger.log({ category: 'Pipelines', action: 'Filter: stop reorder' });
   };
 
   private updateExecutionGroups(): void {
@@ -192,7 +192,7 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
   private updateFilterSearch(searchString: string): void {
     const sortFilter = ExecutionState.filterModel.asFilterModel.sortFilter;
     sortFilter.filter = searchString;
-    ReactGA.event({ category: 'Pipelines', action: 'Filter: search', label: sortFilter.filter });
+    logger.log({ category: 'Pipelines', action: 'Filter: search', data: { label: sortFilter.filter } });
     this.updateExecutionGroups();
   }
 
@@ -218,7 +218,7 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
 
   private applyNewPipelineSortOrder = (pipelineNames: string[]): void => {
     const { application } = this.props;
-    ReactGA.event({ category: 'Pipelines', action: 'Reordered pipeline' });
+    logger.log({ category: 'Pipelines', action: 'Reordered pipeline' });
     const idsToUpdatedIndices: { [key: string]: number } = {};
     application.pipelineConfigs.data.forEach((pipeline: IPipeline) => {
       const newIndex = pipelineNames.indexOf(pipeline.name);
@@ -331,7 +331,7 @@ const FilterCheckbox = (props: {
   const { pipeline, tag, update, visible } = props;
   const sortFilter = ExecutionState.filterModel.asFilterModel.sortFilter;
   const changeHandler = () => {
-    ReactGA.event({ category: 'Pipelines', action: 'Filter: pipeline', label: pipeline });
+    logger.log({ category: 'Pipelines', action: 'Filter: pipeline', data: { label: pipeline } });
     if (tag) {
       tag.clear();
     } else {
@@ -429,7 +429,7 @@ const FilterStatus = (props: {
 }): JSX.Element => {
   const sortFilter = ExecutionState.filterModel.asFilterModel.sortFilter;
   const changed = () => {
-    ReactGA.event({ category: 'Pipelines', action: 'Filter: status', label: props.label.toUpperCase() });
+    logger.log({ category: 'Pipelines', action: 'Filter: status', data: { label: props.label.toUpperCase() } });
     sortFilter.status[props.status] = !sortFilter.status[props.status];
     props.refresh();
   };
@@ -452,7 +452,7 @@ const FilterAwaitingJudgement = (props: { refresh: () => void }): JSX.Element =>
   const { sortFilter } = ExecutionState.filterModel.asFilterModel;
   const label = 'Awaiting Judgement';
   const changed = () => {
-    ReactGA.event({ category: 'Pipelines', action: 'Filter: status', label });
+    logger.log({ category: 'Pipelines', action: 'Filter: status', data: { label } });
     sortFilter.awaitingJudgement = !sortFilter.awaitingJudgement;
     if (sortFilter.awaitingJudgement) {
       sortFilter.status['RUNNING'] = true;

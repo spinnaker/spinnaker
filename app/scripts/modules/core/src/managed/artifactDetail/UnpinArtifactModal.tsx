@@ -1,7 +1,7 @@
 import React, { memo, useEffect, useState } from 'react';
-import ReactGA from 'react-ga';
 
 import { Illustration } from '@spinnaker/presentation';
+import { logger } from 'core/utils';
 
 import { Button } from '../Button';
 import { ManagedWriter } from '../ManagedWriter';
@@ -21,10 +21,10 @@ import {
 const PINNING_DOCS_URL = 'https://www.spinnaker.io/guides/user/managed-delivery/pinning';
 
 const logEvent = (label: string, application: string, environment?: string, reference?: string) =>
-  ReactGA.event({
+  logger.log({
     category: 'Environments - unpin version modal',
     action: label,
-    label: environment ? `${application}:${environment}:${reference}` : application,
+    data: { label: environment ? `${application}:${environment}:${reference}` : application },
   });
 
 export const UnpinVersionIntro = ({ application, environment }: { application: string; environment: string }) => (

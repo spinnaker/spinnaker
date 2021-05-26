@@ -1,13 +1,12 @@
 import { pick, uniq } from 'lodash';
 import React from 'react';
-import ReactGA from 'react-ga';
 
 import { Application } from 'core/application';
 import { ConfirmationModalService } from 'core/confirmationModal';
 import { IEntityTag, IEntityTags } from 'core/domain';
 import { HoverablePopover, IHoverablePopoverContentsProps, Placement } from 'core/presentation';
 import { ITaskMonitorConfig } from 'core/task';
-import { noop } from 'core/utils';
+import { logger, noop } from 'core/utils';
 
 import { CategorizedNotifications } from './CategorizedNotifications';
 import { EntityTagEditor, IEntityTagEditorProps } from '../EntityTagEditor';
@@ -154,7 +153,7 @@ export class NotificationsPopover extends React.Component<INotificationsPopoverP
 
   public fireGAEvent = (): void => {
     const analyticsLabel = this.props.gaLabelFn(this.props);
-    ReactGA.event({ action: 'SPAN', category: 'Alerts hovered', label: analyticsLabel });
+    logger.log({ action: 'SPAN', category: 'Alerts hovered', data: { label: analyticsLabel } });
   };
 
   private PopoverContent = ({ hidePopover }: IHoverablePopoverContentsProps) => {

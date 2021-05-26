@@ -1,9 +1,9 @@
 import React from 'react';
-import ReactGA from 'react-ga';
 
 import { IRecentHistoryEntry, RecentHistoryService } from 'core/history';
 import { useData } from 'core/presentation/hooks';
 import { ReactInjector } from 'core/reactShims';
+import { logger } from 'core/utils';
 
 import { ISearchResult, ISearchResultPodData, SearchResultPods } from './SearchResultPods';
 
@@ -53,7 +53,7 @@ export function RecentlyViewedItems(props: IRecentlyViewedItemsProps) {
   };
 
   const handleResultClick = (categoryName: string): void => {
-    ReactGA.event({ category: 'Primary Search', action: `Recent item selected from ${categoryName}` });
+    logger.log({ category: 'Primary Search', action: `Recent item selected from ${categoryName}` });
   };
 
   return Component ? (

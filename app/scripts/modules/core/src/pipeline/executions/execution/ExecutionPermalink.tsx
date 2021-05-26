@@ -1,8 +1,7 @@
 import React from 'react';
-import ReactGA from 'react-ga';
 
 import { ReactInjector } from 'core/reactShims';
-import { CopyToClipboard } from 'core/utils';
+import { CopyToClipboard, logger } from 'core/utils';
 
 export interface IExecutionPermalinkProps {
   standalone: boolean;
@@ -23,7 +22,7 @@ export const ExecutionPermalink = ({ standalone }: IExecutionPermalinkProps) => 
   }, []);
 
   const handlePermalinkClick = (): void => {
-    ReactGA.event({ category: 'Pipeline', action: 'Permalink clicked' });
+    logger.log({ category: 'Pipeline', action: 'Permalink clicked' });
   };
 
   return (

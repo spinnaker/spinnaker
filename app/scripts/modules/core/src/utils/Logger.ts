@@ -13,9 +13,10 @@ type Level = keyof typeof LEVELS;
 
 interface Event {
   level?: Level;
-  message: string;
+  action: string;
+  category?: string;
   error?: Error;
-  data?: object;
+  data?: Record<string, any>;
 }
 
 export interface LoggerSubscriber {
