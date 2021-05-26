@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+process.chdir(__dirname);
+
 const fs = require('fs');
 const child = require('child_process');
 const readline = require('readline');
