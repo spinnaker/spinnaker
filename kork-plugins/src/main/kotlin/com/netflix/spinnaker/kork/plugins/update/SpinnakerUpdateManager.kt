@@ -123,20 +123,15 @@ class SpinnakerUpdateManager(
       return null
     }
 
-    val systemVersion = pluginManager.systemVersion
-    val versionManager = SpinnakerServiceVersionManager(serviceName)
+    val versionManager = pluginManager.versionManager
     val lastPluginRelease: MutableMap<String, PluginRelease> = mutableMapOf()
 
-    // If service version cannot be determined(i.e 0.0.0),
-    // just check if the release requirement mentions the service to see if the plugin is applicable. This case should
-    // never happen, we should always know the system version but if it happens we can at least give a matching plugin
-    // to the service name in question.
-    //
-    // If version is determined, check the version constraint explicitly to decide if the plugin is applicable or not.
+    // We're loading a plugin for a different service and we don't know the other service's version
+    // (e.g., Gate doesn't know Deck's version).
+    // We check if the release requirement mentions the service to see if the plugin is applicable,
+    // then pick the latest version.
     for (release in pluginInfo.releases) {
-      if ((systemVersion == ServiceVersion.DEFAULT_VERSION && release.requires.contains(serviceName, ignoreCase = true)) ||
-        versionManager.checkVersionConstraint(systemVersion, release.requires)
-      ) {
+      if (release.requires.contains(serviceName, ignoreCase = true)) {
         if (lastPluginRelease[id] == null) {
           lastPluginRelease[id] = release
         } else if (versionManager.compareVersions(release.version, lastPluginRelease[id]!!.version) > 0) {

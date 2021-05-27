@@ -25,8 +25,10 @@ import com.netflix.spinnaker.kork.plugins.internal.PluginZip
 import com.netflix.spinnaker.kork.plugins.testplugin.TestPluginBuilderSupport
 import com.netflix.spinnaker.kork.plugins.update.internal.SpinnakerPluginInfo
 import com.netflix.spinnaker.kork.plugins.update.release.PluginInfoRelease
+import com.netflix.spinnaker.kork.version.ServiceVersion
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import java.io.File
@@ -45,6 +47,7 @@ import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.hasSize
 import strikt.assertions.isA
+import strikt.assertions.isEqualTo
 import strikt.assertions.isNull
 
 class SpinnakerUpdateManagerTest : JUnit5Minutests {
@@ -138,13 +141,46 @@ class SpinnakerUpdateManagerTest : JUnit5Minutests {
       expectThat(subject.getLastPluginRelease(plugin.id, "orca")).isA<PluginInfo.PluginRelease>()
       expectThat(subject.getLastPluginRelease(plugin.id, "deck")).isNull()
     }
+
+    test("Loads metadata for different service, can provide latest release") {
+      val deckPluginInfo = SpinnakerPluginInfo().apply {
+        id = "Spinnaker.DeckPlugin"
+        name = "Example Deck Plugin"
+        description = "A plugin for Deck"
+        provider = "Spinnaker"
+        releases = listOf(
+          SpinnakerPluginInfo.SpinnakerPluginRelease(false).apply {
+            requires = "deck>=0.0.2"
+            version = "0.0.1"
+            date = Date.from(Instant.now())
+            url = "/path/to/plugin"
+          },
+          SpinnakerPluginInfo.SpinnakerPluginRelease(false).apply {
+            requires = "deck>=0.0.2"
+            version = "0.0.2"
+            date = Date.from(Instant.now())
+            url = "/path/to/plugin"
+          }
+        )
+      }
+      changeRepository(subject, paths.repository, listOf(deckPluginInfo))
+
+      expectThat(subject.getLastPluginRelease(deckPluginInfo.id, "deck"))
+        .isA<PluginInfo.PluginRelease>().and {
+          get { requires }.isEqualTo("deck>=0.0.2")
+          get { version }.isEqualTo("0.0.2")
+        }
+    }
   }
 
   private class Fixture {
     val paths = setupTestPluginInfra()
     val applicationEventPublisher: ApplicationEventPublisher = mockk(relaxed = true)
+    val serviceVersion: ServiceVersion = mockk {
+      every { resolve() } returns "0.0.1"
+    }
     val pluginManager = SpinnakerPluginManager(
-      mockk(relaxed = true),
+      serviceVersion,
       SpinnakerServiceVersionManager("orca"),
       DefaultPluginStatusProvider(paths.plugins),
       mockk(relaxed = true),
