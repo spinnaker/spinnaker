@@ -9,6 +9,8 @@ describe('Amazon ECS: aws-prod-ecsdemo cluster', () => {
       '/applications/ecsapp/serverGroups/**/aws-prod-ecsdemo-v000?includeDetails=false',
       'fixture:ecs/clusters/serverGroup.ecsdemo-v000.json',
     );
+    cy.route('/instances/ecs-my-aws-devel-acct/us-west-2/f8757e00-184d-4288-b535-4124a739e7be',
+      'fixture:ecs/clusters/serverGroups.json');
   });
 
   it('shows stored ECS cluster with their sequences', () => {
@@ -50,5 +52,39 @@ describe('Amazon ECS: aws-prod-ecsdemo cluster', () => {
       .click()
       .get('a:contains("Rollback")')
       .click();
+  });
+
+  it('shows stored instance details view action', () => {
+    cy.visit('#/applications/ecsapp/clusters');
+
+    cy.get('.sub-group:contains("aws-prod-ecsdemo")')
+      .find('.server-group:contains("v000")')
+      .find('.cluster-container')
+      .find('.instances')
+      .find('.instance-group')
+      .get('a[title="f8757e00-184d-4288-b535-4124a739e7be"]')
+      .click();
+
+    cy.get('.details-panel > .header')
+      .get('instance-details-header')
+      .get('.header-text')
+      .get('h3:contains("f8757e00-184d-4288-b535-4124a739e7be")');
+
+    cy.get('[data-test-id="instanceDetails.content"]')
+      .get('.collapsible-section').eq(0)
+      .get('dd:contains("2020-07-20 03:41:03 PDT")');
+
+    cy.get('[data-test-id="instanceDetails.content"]')
+      .get('.collapsible-section').eq(0)
+      .get('dd:contains("aws-final-test-v000")');
+
+    cy.get('[data-test-id="instanceDetails.content"]')
+      .get('.collapsible-section').eq(1)
+      .get('span:contains("Up")');
+
+    cy.get('[data-test-id="instanceDetails.content"]')
+      .get('.collapsible-heading').eq(2)
+      .click()
+      .get('span:contains("SpinnakerVPC (vpc-0a9ccfd1cba7bc715)")');
   });
 });
