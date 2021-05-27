@@ -14,3 +14,5 @@ export const spinnerProps: ISpinnerProps = {
 };
 
 export const ABSOLUTE_TIME_FORMAT = 'yyyy-MM-dd HH:mm:ss ZZZZ';
+
+export const MD_CATEGORY = 'ManagedDelivery';

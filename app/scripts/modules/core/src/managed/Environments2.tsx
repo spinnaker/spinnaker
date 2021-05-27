@@ -2,8 +2,10 @@ import { UIView, useCurrentStateAndParams, useSref } from '@uirouter/react';
 import React from 'react';
 
 import { HorizontalTabs } from 'core/presentation/horizontalTabs/HorizontalTabs';
+import { logger } from 'core/utils';
 
 import { Routes } from './managed.states';
+import { MD_CATEGORY } from './utils/defaults';
 
 import './Environments2.less';
 import './overview/baseStyles.less';
@@ -37,6 +39,7 @@ export const UISwitcher = () => {
         } else {
           localStorage.setItem(uiFeatureFlag.key, uiFeatureFlag.value);
         }
+        logger.log({ category: MD_CATEGORY, action: 'ToggleNewUI', data: { mode: isNewUI ? 'old' : 'new' } });
         onClick(e);
       }}
       className="ui-switcher"
