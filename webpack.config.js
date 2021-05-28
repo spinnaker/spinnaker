@@ -27,7 +27,7 @@ function configure(env, webpackOpts) {
   console.log('Webpack mode: ' + WEBPACK_MODE);
 
   const plugins = [
-    new ESLintPlugin({ failOnError: ESLINT_FAIL_ON_ERROR }),
+    new ESLintPlugin({ failOnError: ESLINT_FAIL_ON_ERROR, threads: 4 }),
     new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true }),
     new CopyWebpackPlugin([
       { from: `${NODE_MODULE_PATH}/@spinnaker/styleguide/public/styleguide.html`, to: `./styleguide.html` },
