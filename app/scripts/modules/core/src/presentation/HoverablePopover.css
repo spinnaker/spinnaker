@@ -1,5 +1,3 @@
-@import (reference) '~core/presentation/less/imports/commonImports.less';
-
 .HoverablePopover {
   display: inline;
   text-decoration: dotted underline var(--color-dovegray);
