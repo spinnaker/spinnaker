@@ -7,6 +7,7 @@ const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
+const ESLintPlugin = require('eslint-webpack-plugin');
 const webpack = require('webpack');
 
 const CACHE_INVALIDATE = getCacheInvalidateString();
@@ -26,6 +27,7 @@ function configure(env, webpackOpts) {
   console.log('Webpack mode: ' + WEBPACK_MODE);
 
   const plugins = [
+    new ESLintPlugin({}),
     new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true }),
     new CopyWebpackPlugin([
       { from: `${NODE_MODULE_PATH}/@spinnaker/styleguide/public/styleguide.html`, to: `./styleguide.html` },
@@ -125,7 +127,6 @@ function configure(env, webpackOpts) {
             { loader: 'cache-loader', options: { cacheIdentifier: CACHE_INVALIDATE } },
             { loader: 'thread-loader', options: { workers: THREADS } },
             { loader: 'babel-loader' },
-            { loader: 'eslint-loader', options: { failOnError: ESLINT_FAIL_ON_ERROR } },
           ],
           exclude: /(node_modules(?!\/clipboard)|settings\.js)/,
         },
@@ -135,7 +136,6 @@ function configure(env, webpackOpts) {
             { loader: 'cache-loader', options: { cacheIdentifier: CACHE_INVALIDATE } },
             { loader: 'thread-loader', options: { workers: THREADS } },
             { loader: 'ts-loader', options: { happyPackMode: true } },
-            { loader: 'eslint-loader', options: { failOnError: ESLINT_FAIL_ON_ERROR } },
           ],
           exclude: /node_modules/,
         },
