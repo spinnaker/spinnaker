@@ -175,7 +175,7 @@
     "envify-loader": "^0.1.0",
     "enzyme": "^3.10.0",
     "enzyme-adapter-react-16": "1.15.1",
-    "eslint": "^6.7.2",
+    "eslint": "^7.27.0",
     "eslint-config-prettier": "^6.7.0",
     "eslint-loader": "^3.0.2",
     "eslint-plugin-react-hooks": "^2.5.0",
