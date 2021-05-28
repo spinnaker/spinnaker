@@ -3,6 +3,7 @@
 const path = require('path');
 const nodeExternals = require('webpack-node-externals');
 const TerserPlugin = require('terser-webpack-plugin');
+const ESLintPlugin = require('eslint-webpack-plugin');
 const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 
 const exclusionPattern = /(node_modules|\.\.\/deck)/;
@@ -64,7 +65,6 @@ module.exports.getBaseConfig = (libName) => {
             { loader: 'thread-loader', options: { workers: WEBPACK_THREADS } },
             { loader: 'babel-loader' },
             { loader: 'envify-loader' },
-            { loader: 'eslint-loader' },
           ],
           exclude: exclusionPattern,
         },
@@ -74,7 +74,6 @@ module.exports.getBaseConfig = (libName) => {
             { loader: 'cache-loader' },
             { loader: 'thread-loader', options: { workers: WEBPACK_THREADS } },
             { loader: 'ts-loader', options: { happyPackMode: true } },
-            { loader: 'eslint-loader' },
           ],
           exclude: exclusionPattern,
         },
@@ -117,7 +116,7 @@ module.exports.getBaseConfig = (libName) => {
         },
       ],
     },
-    plugins: [],
+    plugins: [new ESLintPlugin({})],
     externals: [nodeExternals({ modulesDir: '../../../../node_modules' })],
   };
 };
