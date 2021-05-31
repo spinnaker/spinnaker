@@ -1,7 +1,15 @@
 <div class="form-horizontal">
   <stage-config-field label="Application">
-    <input ng-model="stage.application" class="form-control input-sm" ng-if="stage.application.includes('${')" />
-    <ui-select ng-model="stage.application" class="form-control input-sm" ng-if="!stage.application.includes('${')">
+    <input
+      ng-model="stage.application"
+      class="form-control input-sm"
+      ng-if="pipelineStageCtrl.hasSpel(stage.application)"
+    />
+    <ui-select
+      ng-model="stage.application"
+      class="form-control input-sm"
+      ng-if="!pipelineStageCtrl.hasSpel(stage.application)"
+    >
       <ui-select-match placeholder="None">{{$select.selected}}</ui-select-match>
 
       <ui-select-choices
@@ -17,10 +25,10 @@
     <input
       ng-model="stage.pipeline"
       class="form-control input-sm"
-      ng-if="stage.pipeline.includes('${') || stage.application.includes('${')"
+      ng-if="pipelineStageCtrl.hasSpel(stage.pipeline) || pipelineStageCtrl.hasSpel(stage.application)"
     />
     <div
-      ng-if="stage.application && viewState.pipelinesLoaded && stage !== null && !stage.pipeline.includes('${') && !stage.application.includes('${')"
+      ng-if="stage.application && viewState.pipelinesLoaded && stage !== null && !pipelineStageCtrl.hasSpel(stage.pipeline) && !pipelineStageCtrl.hasSpel(stage.application)"
     >
       <ui-select class="form-control input-sm" ng-model="stage.pipeline">
         <ui-select-match placeholder="Select a pipeline...">{{$select.selected.name}}</ui-select-match>

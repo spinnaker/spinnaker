@@ -60,6 +60,9 @@ module(CORE_PIPELINE_CONFIG_STAGES_PIPELINE_PIPELINESTAGE, [])
         },
       };
 
+      this.hasSpel = function (string) {
+        return string && string.includes('${');
+      };
       this.addMoreItems = function () {
         $scope.viewState.infiniteScroll.currentItems += $scope.viewState.infiniteScroll.numToAdd;
       };
