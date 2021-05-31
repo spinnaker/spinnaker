@@ -1,4 +1,4 @@
-import * as classNames from 'classnames';
+import classNames from 'classnames';
 import { isEmpty, throttle } from 'lodash';
 import * as React from 'react';
 

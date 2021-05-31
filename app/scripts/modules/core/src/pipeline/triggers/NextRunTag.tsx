@@ -4,8 +4,9 @@ import React from 'react';
 import { SETTINGS } from 'core/config/settings';
 import { ICronTrigger, IPipeline } from 'core/domain';
 import { Popover } from 'core/presentation/Popover';
-import { later } from 'core/utils/later/later';
 import { relativeTime, timestamp } from 'core/utils/timeFormatters';
+
+import { later } from '../../utils/later/later';
 
 export interface INextRunTagProps {
   pipeline: IPipeline;
