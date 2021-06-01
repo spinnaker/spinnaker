@@ -57,8 +57,8 @@ class KeysSpec extends Specification {
     def application_2 = 'test-application-2'
 
     expect:
-    Keys.parse(ID + SEPARATOR + APPLICATIONS.ns + SEPARATOR + application_1) == [provider: ID, type: APPLICATIONS.ns, application: application_1]
-    Keys.parse(ID + SEPARATOR + APPLICATIONS.ns + SEPARATOR + application_2) == [provider: ID, type: APPLICATIONS.ns, application: application_2]
+    Keys.parse(ID + SEPARATOR + ECS_APPLICATIONS.ns + SEPARATOR + application_1) == [provider: ID, type: ECS_APPLICATIONS.ns, application: application_1]
+    Keys.parse(ID + SEPARATOR + ECS_APPLICATIONS.ns + SEPARATOR + application_2) == [provider: ID, type: ECS_APPLICATIONS.ns, application: application_2]
   }
 
   def 'should generate the proper application key'() {
@@ -67,8 +67,8 @@ class KeysSpec extends Specification {
     def application_2 = 'test-application-2'
 
     expect:
-    Keys.getApplicationKey(application_1) == ID + SEPARATOR + APPLICATIONS.ns + SEPARATOR + application_1
-    Keys.getApplicationKey(application_2) == ID + SEPARATOR + APPLICATIONS.ns + SEPARATOR + application_2
+    Keys.getApplicationKey(application_1) == ID + SEPARATOR + ECS_APPLICATIONS.ns + SEPARATOR + application_1
+    Keys.getApplicationKey(application_2) == ID + SEPARATOR + ECS_APPLICATIONS.ns + SEPARATOR + application_2
   }
 
   def 'should parse a given iam role key properly'() {

@@ -26,7 +26,7 @@ import java.util.Map;
 
 public class Keys implements KeyParser {
   public enum Namespace {
-    APPLICATIONS,
+    ECS_APPLICATIONS,
     IAM_ROLE,
     SERVICES,
     ECS_CLUSTERS,
@@ -98,7 +98,7 @@ public class Keys implements KeyParser {
         Namespace.valueOf(CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_UNDERSCORE, parts[1]));
 
     switch (namespace) {
-      case APPLICATIONS:
+      case ECS_APPLICATIONS:
         result.put("application", parts[2]);
         break;
       case SERVICES:
@@ -176,7 +176,7 @@ public class Keys implements KeyParser {
   }
 
   public static String getApplicationKey(String name) {
-    return ID + SEPARATOR + Namespace.APPLICATIONS + SEPARATOR + name.toLowerCase();
+    return ID + SEPARATOR + Namespace.ECS_APPLICATIONS + SEPARATOR + name.toLowerCase();
   }
 
   public static String getTaskKey(String account, String region, String taskId) {

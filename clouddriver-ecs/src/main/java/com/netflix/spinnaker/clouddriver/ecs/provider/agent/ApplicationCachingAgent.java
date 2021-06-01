@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
-import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.APPLICATIONS;
+import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.ECS_APPLICATIONS;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.ecs.AmazonECS;
@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
 public class ApplicationCachingAgent extends AbstractEcsOnDemandAgent<Application> {
   private static final Collection<AgentDataType> types =
       Collections.unmodifiableCollection(
-          Arrays.asList(AUTHORITATIVE.forType(APPLICATIONS.toString())));
+          Arrays.asList(AUTHORITATIVE.forType(ECS_APPLICATIONS.toString())));
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   private ObjectMapper objectMapper;
@@ -82,7 +82,7 @@ public class ApplicationCachingAgent extends AbstractEcsOnDemandAgent<Applicatio
 
     Map<String, Collection<CacheData>> cacheDataMap = new HashMap<>();
     log.info("Amazon ECS ApplicationCachingAgent will cache applications in a future update");
-    cacheDataMap.put(APPLICATIONS.toString(), applicationData);
+    cacheDataMap.put(ECS_APPLICATIONS.toString(), applicationData);
 
     return cacheDataMap;
   }
