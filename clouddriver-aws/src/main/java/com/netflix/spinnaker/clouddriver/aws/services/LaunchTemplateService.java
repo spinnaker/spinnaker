@@ -23,6 +23,8 @@ import com.amazonaws.services.autoscaling.model.LaunchTemplateSpecification;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.*;
 import com.netflix.spinnaker.clouddriver.aws.deploy.AmazonResourceTagger;
+import com.netflix.spinnaker.clouddriver.aws.deploy.InstanceTypeUtils;
+import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AsgConfigHelper;
 import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AutoScalingWorker.AsgConfiguration;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.ModifyServerGroupLaunchTemplateDescription;
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.LocalFileUserDataProperties;
@@ -80,21 +82,6 @@ public class LaunchTemplateService {
     this.amazonResourceTaggers = amazonResourceTaggers;
   }
 
-  public LaunchTemplateVersion modifyLaunchTemplate(
-      NetflixAmazonCredentials credentials,
-      ModifyServerGroupLaunchTemplateDescription description,
-      LaunchTemplateVersion sourceVersion) {
-    RequestLaunchTemplateData data =
-        buildLaunchTemplateData(credentials, new AsgConfiguration(), description, sourceVersion);
-    CreateLaunchTemplateVersionResult result =
-        ec2.createLaunchTemplateVersion(
-            new CreateLaunchTemplateVersionRequest()
-                .withSourceVersion(String.valueOf(sourceVersion.getVersionNumber()))
-                .withLaunchTemplateId(sourceVersion.getLaunchTemplateId())
-                .withLaunchTemplateData(data));
-    return result.getLaunchTemplateVersion();
-  }
-
   public Optional<LaunchTemplateVersion> getLaunchTemplateVersion(
       LaunchTemplateSpecification launchTemplateSpecification) {
     final List<LaunchTemplateVersion> versions = new ArrayList<>();
@@ -129,7 +116,7 @@ public class LaunchTemplateService {
       AsgConfiguration asgConfig, String asgName, String launchTemplateName) {
     final RequestLaunchTemplateData data =
         buildLaunchTemplateData(asgConfig, asgName, launchTemplateName);
-    log.debug("Creating launch template with name {}", launchTemplateName);
+    log.info("Creating launch template with name {}", launchTemplateName);
     return retrySupport.retry(
         () -> {
           final CreateLaunchTemplateRequest launchTemplateRequest =
@@ -143,37 +130,155 @@ public class LaunchTemplateService {
         false);
   }
 
+  public LaunchTemplateVersion modifyLaunchTemplate(
+      NetflixAmazonCredentials credentials,
+      ModifyServerGroupLaunchTemplateDescription description,
+      LaunchTemplateVersion sourceLtVersion,
+      boolean shouldUseMixedInstancesPolicy) {
+
+    RequestLaunchTemplateData data =
+        buildLaunchTemplateDataForModify(
+            credentials,
+            new AsgConfiguration(),
+            description,
+            sourceLtVersion,
+            shouldUseMixedInstancesPolicy);
+    CreateLaunchTemplateVersionResult result =
+        ec2.createLaunchTemplateVersion(
+            new CreateLaunchTemplateVersionRequest()
+                .withLaunchTemplateId(sourceLtVersion.getLaunchTemplateId())
+                .withLaunchTemplateData(data));
+
+    log.info(
+        String.format(
+            "Created new launch template version %s for launch template ID %s",
+            result.getLaunchTemplateVersion().getVersionNumber(),
+            result.getLaunchTemplateVersion().getLaunchTemplateId()));
+
+    return result.getLaunchTemplateVersion();
+  }
+
+  /**
+   * Delete a launch template version. A new launch template when it is modified.
+   * https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DeleteLaunchTemplateVersions.html
+   *
+   * @param launchTemplateId launch template ID for the version to delete
+   * @param versionToDelete launch template version to delete
+   */
+  public void deleteLaunchTemplateVersion(String launchTemplateId, Long versionToDelete) {
+    log.info(
+        String.format(
+            "Attempting to delete launch template version %s for launch template ID %s.",
+            versionToDelete, launchTemplateId));
+
+    DeleteLaunchTemplateVersionsResult result =
+        ec2.deleteLaunchTemplateVersions(
+            new DeleteLaunchTemplateVersionsRequest()
+                .withLaunchTemplateId(launchTemplateId)
+                .withVersions(String.valueOf(versionToDelete)));
+
+    if (result.getUnsuccessfullyDeletedLaunchTemplateVersions() != null
+        && !result.getUnsuccessfullyDeletedLaunchTemplateVersions().isEmpty()) {
+      DeleteLaunchTemplateVersionsResponseErrorItem responseErrorItem =
+          result.getUnsuccessfullyDeletedLaunchTemplateVersions().get(0);
+      ResponseError failureResponseError = responseErrorItem.getResponseError();
+
+      // certain error codes can be considered success when they match the desired end state.
+      // this also acts as a safety net in retry scenarios.
+      List<String> codesConsideredSuccess =
+          List.of("launchTemplateIdDoesNotExist", "launchTemplateVersionDoesNotExist");
+
+      if (failureResponseError != null
+          && !codesConsideredSuccess.contains(failureResponseError.getCode())) {
+        throw new RuntimeException(
+            String.format(
+                "Failed to delete launch template version %s for launch template ID %s because of error '%s'",
+                responseErrorItem.getVersionNumber(),
+                responseErrorItem.getLaunchTemplateId(),
+                failureResponseError.getCode()));
+      }
+    }
+  }
+
   /**
    * Build launch template data for launch template modification i.e. new launch template version
    */
-  private RequestLaunchTemplateData buildLaunchTemplateData(
+  private RequestLaunchTemplateData buildLaunchTemplateDataForModify(
       NetflixAmazonCredentials credentials,
       AsgConfiguration asgConfiguration,
-      ModifyServerGroupLaunchTemplateDescription description,
-      LaunchTemplateVersion launchTemplateVersion) {
+      ModifyServerGroupLaunchTemplateDescription modifyDesc,
+      LaunchTemplateVersion sourceLtVersion,
+      boolean shouldUseMixedInstancesPolicy) {
+
+    ResponseLaunchTemplateData sourceLtData = sourceLtVersion.getLaunchTemplateData();
+
     RequestLaunchTemplateData request =
         new RequestLaunchTemplateData()
-            .withImageId(description.getImageId())
-            .withKernelId(description.getKernelId())
-            .withInstanceType(description.getInstanceType())
-            .withRamDiskId(description.getRamdiskId())
-            .withIamInstanceProfile(
-                new LaunchTemplateIamInstanceProfileSpecificationRequest()
-                    .withName(description.getIamRole()));
+            .withImageId(
+                modifyDesc.getImageId() != null
+                    ? modifyDesc.getImageId()
+                    : sourceLtData.getImageId())
+            .withKernelId(
+                StringUtils.isNotBlank(modifyDesc.getKernelId())
+                    ? modifyDesc.getKernelId()
+                    : sourceLtData.getKernelId())
+            .withInstanceType(
+                StringUtils.isNotBlank(modifyDesc.getInstanceType())
+                    ? modifyDesc.getInstanceType()
+                    : sourceLtData.getInstanceType())
+            .withRamDiskId(
+                StringUtils.isNotBlank(modifyDesc.getRamdiskId())
+                    ? modifyDesc.getRamdiskId()
+                    : sourceLtData.getRamDiskId())
+            .withEbsOptimized(
+                Optional.ofNullable(modifyDesc.getEbsOptimized())
+                    .orElseGet(sourceLtData::getEbsOptimized));
 
+    // key name
+    if (StringUtils.isNotBlank(modifyDesc.getKeyPair())) {
+      request.withKeyName(modifyDesc.getKeyPair());
+    } else if (StringUtils.isNotBlank(sourceLtData.getKeyName())) {
+      request.withKeyName(sourceLtData.getKeyName());
+    }
+
+    // iam instance profile
+    if (StringUtils.isNotBlank(modifyDesc.getIamRole())) {
+      request.withIamInstanceProfile(
+          new LaunchTemplateIamInstanceProfileSpecificationRequest()
+              .withName(modifyDesc.getIamRole()));
+    } else if (sourceLtData.getIamInstanceProfile() != null
+        && StringUtils.isNotBlank(sourceLtData.getIamInstanceProfile().getName())) {
+      request.withIamInstanceProfile(
+          new LaunchTemplateIamInstanceProfileSpecificationRequest()
+              .withName(sourceLtData.getIamInstanceProfile().getName()));
+    }
+
+    // instance monitoring
+    if (modifyDesc.getInstanceMonitoring() != null) {
+      request.setMonitoring(
+          new LaunchTemplatesMonitoringRequest().withEnabled(modifyDesc.getInstanceMonitoring()));
+    } else if (sourceLtData.getMonitoring() != null
+        && sourceLtData.getMonitoring().getEnabled() != null) {
+      request.setMonitoring(
+          new LaunchTemplatesMonitoringRequest()
+              .withEnabled(sourceLtData.getMonitoring().getEnabled()));
+    }
+
+    // block device mappings
+    if (modifyDesc.getBlockDevices() != null) {
+      request.setBlockDeviceMappings(buildDeviceMapping(modifyDesc.getBlockDevices()));
+    } else if (sourceLtData.getBlockDeviceMappings() != null) {
+      request.setBlockDeviceMappings(
+          buildDeviceMapping(
+              AsgConfigHelper.transformLaunchTemplateBlockDeviceMapping(
+                  sourceLtData.getBlockDeviceMappings())));
+    }
+
+    // tags
     Optional<LaunchTemplateTagSpecificationRequest> tagSpecification =
-        tagSpecification(amazonResourceTaggers, asgConfiguration, description.getAsgName());
+        tagSpecification(amazonResourceTaggers, asgConfiguration, modifyDesc.getAsgName());
     if (tagSpecification.isPresent()) {
       request = request.withTagSpecifications(tagSpecification.get());
-    }
-
-    if (description.getEbsOptimized() != null) {
-      request.setEbsOptimized(description.getEbsOptimized());
-    }
-
-    if (description.getInstanceMonitoring() != null) {
-      request.setMonitoring(
-          new LaunchTemplatesMonitoringRequest().withEnabled(description.getInstanceMonitoring()));
     }
 
     /*
@@ -182,49 +287,59 @@ public class LaunchTemplateService {
     */
     String base64UserData =
         (localFileUserDataProperties != null && !localFileUserDataProperties.isEnabled())
-            ? launchTemplateVersion.getLaunchTemplateData().getUserData()
+            ? sourceLtData.getUserData()
             : null;
     setUserData(
         request,
-        description.getAsgName(),
-        launchTemplateVersion.getLaunchTemplateName(),
-        description.getRegion(),
-        description.getAccount(),
+        modifyDesc.getAsgName(),
+        sourceLtVersion.getLaunchTemplateName(),
+        modifyDesc.getRegion(),
+        modifyDesc.getAccount(),
         credentials.getEnvironment(),
         credentials.getAccountType(),
-        description.getIamRole(),
-        description.getImageId(),
+        modifyDesc.getIamRole(),
+        modifyDesc.getImageId(),
         base64UserData,
-        description.getLegacyUdf(),
-        description.getUserDataOverride());
-
-    // block device mappings
-    if (description.getBlockDevices() != null) {
-      request.setBlockDeviceMappings(buildDeviceMapping(description.getBlockDevices()));
-    }
+        modifyDesc.getLegacyUdf(),
+        modifyDesc.getUserDataOverride());
 
     // metadata options
-    if (description.getRequireIMDV2() != null) {
+    if (modifyDesc.getRequireIMDV2() != null) {
       request.setMetadataOptions(
           new LaunchTemplateInstanceMetadataOptionsRequest()
-              .withHttpTokens(description.getRequireIMDV2() ? "required" : ""));
+              .withHttpTokens(modifyDesc.getRequireIMDV2() ? "required" : ""));
+    } else if (sourceLtData.getMetadataOptions() != null) {
+      request.setMetadataOptions(
+          new LaunchTemplateInstanceMetadataOptionsRequest()
+              .withHttpTokens(sourceLtData.getMetadataOptions().getHttpTokens()));
     }
 
-    // instance market options
-    setSpotInstanceMarketOptions(request, description.getSpotPrice());
+    // set instance market options only when mixed instances policy is NOT used in order to maintain
+    // launch template compatibility
+    if (!shouldUseMixedInstancesPolicy) {
+      setSpotInstanceMarketOptions(request, modifyDesc.getSpotPrice());
+    }
 
-    setCreditSpecification(request, description.getUnlimitedCpuCredits());
+    // credit specification
+    if (modifyDesc.getUnlimitedCpuCredits() != null) {
+      // compatibility is already validated by validator
+      setCreditSpecification(request, modifyDesc.getUnlimitedCpuCredits());
+    } else if (sourceLtData.getCreditSpecification() != null) {
+      // The description might include changed instance types.
+      // Ensure compatibility before using value from sourceLtData.
+      Boolean unlimitedCpuCreditsFromSrcAsg =
+          AsgConfigHelper.getUnlimitedCpuCreditsFromAncestorLt(
+              sourceLtData.getCreditSpecification(),
+              InstanceTypeUtils.isBurstingSupportedByAllTypes(modifyDesc.getAllInstanceTypes()));
+      setCreditSpecification(request, unlimitedCpuCreditsFromSrcAsg);
+    }
 
     // network interfaces
-    LaunchTemplateInstanceNetworkInterfaceSpecificationRequest networkInterfaceRequest =
-        new LaunchTemplateInstanceNetworkInterfaceSpecificationRequest();
-
     LaunchTemplateInstanceNetworkInterfaceSpecification defaultInterface;
-    List<LaunchTemplateInstanceNetworkInterfaceSpecification> networkInterfaces =
-        launchTemplateVersion.getLaunchTemplateData().getNetworkInterfaces();
-    if (networkInterfaces != null && !networkInterfaces.isEmpty()) {
+    if (sourceLtData.getNetworkInterfaces() != null
+        && !sourceLtData.getNetworkInterfaces().isEmpty()) {
       defaultInterface =
-          networkInterfaces.stream()
+          sourceLtData.getNetworkInterfaces().stream()
               .filter(i -> i.getDeviceIndex() == 0)
               .findFirst()
               .orElseGet(LaunchTemplateInstanceNetworkInterfaceSpecification::new);
@@ -232,28 +347,35 @@ public class LaunchTemplateService {
       defaultInterface = new LaunchTemplateInstanceNetworkInterfaceSpecification();
     }
 
-    if (description.getAssociateIPv6Address() != null) {
-      networkInterfaceRequest.setIpv6AddressCount(
-          description.getAssociateIPv6Address() || defaultInterface.getIpv6AddressCount() > 0
-              ? 1
-              : 0);
-    }
-
-    if (description.getAssociatePublicIpAddress() != null) {
-      networkInterfaceRequest.setAssociatePublicIpAddress(
-          description.getAssociatePublicIpAddress());
-    }
-
-    networkInterfaceRequest.setDeviceIndex(0);
-    networkInterfaceRequest.setGroups(description.getSecurityGroups());
+    request.withNetworkInterfaces(
+        new LaunchTemplateInstanceNetworkInterfaceSpecificationRequest()
+            .withAssociatePublicIpAddress(
+                Optional.ofNullable(modifyDesc.getAssociatePublicIpAddress())
+                    .orElseGet(() -> defaultInterface.getAssociatePublicIpAddress()))
+            .withIpv6AddressCount(
+                modifyDesc.getAssociateIPv6Address() != null
+                    ? modifyDesc.getAssociateIPv6Address() ? 1 : 0
+                    : defaultInterface.getIpv6AddressCount() != null
+                            && defaultInterface.getIpv6AddressCount() > 0
+                        ? 1
+                        : 0)
+            .withGroups(
+                modifyDesc.getSecurityGroups() != null && !modifyDesc.getSecurityGroups().isEmpty()
+                    ? modifyDesc.getSecurityGroups()
+                    : defaultInterface.getGroups())
+            .withDeviceIndex(0));
 
     // Nitro Enclave options
-    if (description.getEnableEnclave() != null) {
+    if (modifyDesc.getEnableEnclave() != null) {
       request.setEnclaveOptions(
-          new LaunchTemplateEnclaveOptionsRequest().withEnabled(description.getEnableEnclave()));
+          new LaunchTemplateEnclaveOptionsRequest().withEnabled(modifyDesc.getEnableEnclave()));
+    } else if (sourceLtData.getEnclaveOptions() != null) {
+      request.setEnclaveOptions(
+          new LaunchTemplateEnclaveOptionsRequest()
+              .withEnabled(sourceLtData.getEnclaveOptions().getEnabled()));
     }
 
-    return request.withNetworkInterfaces(networkInterfaceRequest);
+    return request;
   }
 
   /** Build launch template data for new launch template creation */
@@ -325,9 +447,8 @@ public class LaunchTemplateService {
           new LaunchTemplateInstanceMetadataOptionsRequest().withHttpTokens("required"));
     }
 
-    // instance market options only when mixed instances policy is not used in order to maintain
+    // set instance market options only when mixed instances policy is NOT used in order to maintain
     // launch template compatibility
-
     if (!asgConfig.shouldUseMixedInstancesPolicy()) {
       setSpotInstanceMarketOptions(request, asgConfig.getSpotMaxPrice());
     }
@@ -375,7 +496,7 @@ public class LaunchTemplateService {
     if (maxSpotPrice != null && StringUtils.isNotEmpty(maxSpotPrice.trim())) {
       request.setInstanceMarketOptions(
           new LaunchTemplateInstanceMarketOptionsRequest()
-              .withMarketType("spot")
+              .withMarketType(MarketType.Spot)
               .withSpotOptions(
                   new LaunchTemplateSpotMarketOptionsRequest().withMaxPrice(maxSpotPrice)));
     }
@@ -415,6 +536,10 @@ public class LaunchTemplateService {
 
   private List<LaunchTemplateBlockDeviceMappingRequest> buildDeviceMapping(
       List<AmazonBlockDevice> amazonBlockDevices) {
+    if (amazonBlockDevices == null || amazonBlockDevices.isEmpty()) {
+      return null;
+    }
+
     final List<LaunchTemplateBlockDeviceMappingRequest> mappings = new ArrayList<>();
     for (AmazonBlockDevice blockDevice : amazonBlockDevices) {
       LaunchTemplateBlockDeviceMappingRequest mapping =

@@ -21,6 +21,7 @@ import static com.netflix.spinnaker.clouddriver.aws.deploy.ops.actions.PrepareMo
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.ModifyServerGroupLaunchTemplateDescription;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.actions.ModifyServerGroupLaunchTemplate;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.actions.PrepareModifyServerGroupLaunchTemplate;
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.actions.PrepareUpdateAutoScalingGroup;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.actions.UpdateAutoScalingGroup;
 import com.netflix.spinnaker.clouddriver.orchestration.sagas.AbstractSagaAtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.sagas.SagaAtomicOperationBridge;
@@ -29,6 +30,12 @@ import com.netflix.spinnaker.kork.exceptions.IntegrationException;
 import java.util.List;
 import javax.annotation.Nonnull;
 
+/**
+ * Atomic Operation Usage: To modify properties associated with the AWS entities associated with
+ * {@link ModifyServerGroupLaunchTemplateDescription}. Applicable to AWS AutoScalingGroups backed by
+ * EC2 launch template with / without mixed instances policy
+ * (https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/autoscaling/model/MixedInstancesPolicy.html)
+ */
 public class ModifyServerGroupLaunchTemplateAtomicOperation
     extends AbstractSagaAtomicOperation<ModifyServerGroupLaunchTemplateDescription, Object, Void> {
   public ModifyServerGroupLaunchTemplateAtomicOperation(
@@ -42,6 +49,7 @@ public class ModifyServerGroupLaunchTemplateAtomicOperation
     return new SagaFlow()
         .then(PrepareModifyServerGroupLaunchTemplate.class)
         .then(ModifyServerGroupLaunchTemplate.class)
+        .then(PrepareUpdateAutoScalingGroup.class)
         .then(UpdateAutoScalingGroup.class);
   }
 

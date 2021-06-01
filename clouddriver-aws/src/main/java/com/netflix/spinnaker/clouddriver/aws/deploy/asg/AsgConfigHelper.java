@@ -21,6 +21,7 @@ import com.amazonaws.services.autoscaling.model.AutoScalingGroup;
 import com.amazonaws.services.autoscaling.model.Ebs;
 import com.amazonaws.services.autoscaling.model.LaunchConfiguration;
 import com.amazonaws.services.autoscaling.model.LaunchTemplateSpecification;
+import com.amazonaws.services.ec2.model.CreditSpecification;
 import com.amazonaws.services.ec2.model.EbsBlockDevice;
 import com.amazonaws.services.ec2.model.LaunchTemplateBlockDeviceMapping;
 import com.amazonaws.services.ec2.model.LaunchTemplateEbsBlockDevice;
@@ -403,5 +404,31 @@ public class AsgConfigHelper {
               return amzBd;
             })
         .collect(Collectors.toUnmodifiableList());
+  }
+
+  /**
+   * Method to evaluate the value to be set for unlimitedCpuCredits given a value from source ASG.
+   * Used during CloneServerGroup and ModifyServerGroupLaunchTemplate operations, when the value is
+   * set in source ASG.
+   *
+   * @param sourceAsgCreditSpec credit specification from a source ASG.
+   * @param isBurstingSupportedByAllTypesRequested boolean, true if bursting is supported by all
+   *     instance types in request, includes changed types, if any.
+   * @return Boolean, non-null only if all instance types(description.instanceType and
+   *     description.launchTemplateOverridesForInstanceType.instanceType) support bursting. The
+   *     non-null value comes from source credit specification.
+   */
+  public static Boolean getUnlimitedCpuCreditsFromAncestorLt(
+      final CreditSpecification sourceAsgCreditSpec,
+      boolean isBurstingSupportedByAllTypesRequested) {
+    if (sourceAsgCreditSpec == null) {
+      return null;
+    }
+
+    // return non-null unlimitedCpuCredits iff ALL requested instance types (includes changed types,
+    // if any) support CPU credits specification, to ensure compatibility
+    return isBurstingSupportedByAllTypesRequested
+        ? sourceAsgCreditSpec.getCpuCredits().equals("unlimited") ? true : false
+        : null;
   }
 }

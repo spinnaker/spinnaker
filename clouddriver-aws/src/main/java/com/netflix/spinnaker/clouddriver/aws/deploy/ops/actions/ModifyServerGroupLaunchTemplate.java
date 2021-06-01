@@ -17,15 +17,12 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.actions;
 
-import com.amazonaws.services.autoscaling.model.LaunchTemplateSpecification;
 import com.amazonaws.services.ec2.model.LaunchTemplateVersion;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import com.netflix.spinnaker.clouddriver.aws.deploy.InstanceTypeUtils.BlockDeviceConfig;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.ModifyServerGroupLaunchTemplateDescription;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.ModifyServerGroupLaunchTemplateAtomicOperation.LaunchTemplateException;
-import com.netflix.spinnaker.clouddriver.aws.deploy.ops.actions.UpdateAutoScalingGroup.UpdateAutoScalingGroupCommand;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.aws.services.LaunchTemplateService;
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory;
@@ -42,18 +39,19 @@ import lombok.experimental.NonFinal;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
+/**
+ * Action to modify a EC2 launch template i.e. create a new version of the launch template with
+ * requested changes. This action may be skipped if no launch template changes are requested.
+ */
 @Component
 public class ModifyServerGroupLaunchTemplate
     implements SagaAction<ModifyServerGroupLaunchTemplate.ModifyServerGroupLaunchTemplateCommand> {
-  private final BlockDeviceConfig blockDeviceConfig;
   private final CredentialsRepository<NetflixAmazonCredentials> credentialsRepository;
   private final RegionScopedProviderFactory regionScopedProviderFactory;
 
   public ModifyServerGroupLaunchTemplate(
-      BlockDeviceConfig blockDeviceConfig,
       CredentialsRepository<NetflixAmazonCredentials> credentialsRepository,
       RegionScopedProviderFactory regionScopedProviderFactory) {
-    this.blockDeviceConfig = blockDeviceConfig;
     this.credentialsRepository = credentialsRepository;
     this.regionScopedProviderFactory = regionScopedProviderFactory;
   }
@@ -62,31 +60,53 @@ public class ModifyServerGroupLaunchTemplate
   @Override
   public Result apply(@NotNull ModifyServerGroupLaunchTemplateCommand command, @NotNull Saga saga) {
     ModifyServerGroupLaunchTemplateDescription description = command.description;
+
+    if (!command.isReqToModifyLaunchTemplate) {
+      saga.log(
+          "[SAGA_ACTION] Skipping ModifyServerGroupLaunchTemplate as only mixed instances policy will be updated.");
+
+      return new Result(
+          PrepareUpdateAutoScalingGroup.PrepareUpdateAutoScalingGroupCommand.builder()
+              .description(description)
+              .launchTemplateVersion(command.sourceVersion)
+              .newLaunchTemplateVersionNumber(null)
+              .isReqToUpgradeAsgToMixedInstancesPolicy(
+                  command.isReqToUpgradeAsgToMixedInstancesPolicy)
+              .build(),
+          Collections.emptyList());
+    }
+
     NetflixAmazonCredentials credentials =
         (NetflixAmazonCredentials) credentialsRepository.getOne(description.getAccount());
     RegionScopedProviderFactory.RegionScopedProvider regionScopedProvider =
         regionScopedProviderFactory.forRegion(credentials, description.getRegion());
 
+    saga.log(
+        "[SAGA_ACTION] Modifying launch template (i.e. creating a new version) for EC2 Auto Scaling Group "
+            + description.getAsgName());
+
     LaunchTemplateService launchTemplateService = regionScopedProvider.getLaunchTemplateService();
-    LaunchTemplateSpecification spec;
+    LaunchTemplateVersion newVersion;
     try {
-      LaunchTemplateVersion newVersion =
+      boolean shouldUseMixedInstancesPolicy =
+          command.isAsgBackedByMixedInstancesPolicy
+              || command.isReqToUpgradeAsgToMixedInstancesPolicy;
+      newVersion =
           launchTemplateService.modifyLaunchTemplate(
-              credentials, description, command.sourceVersion);
-      spec =
-          new LaunchTemplateSpecification()
-              .withLaunchTemplateId(newVersion.getLaunchTemplateId())
-              .withVersion(String.valueOf(newVersion.getVersionNumber()));
+              credentials, description, command.sourceVersion, shouldUseMixedInstancesPolicy);
     } catch (Exception e) {
-      throw new LaunchTemplateException("Failed while preparing for launch template update", e);
+      throw new LaunchTemplateException("Failed to modify launch template", e);
     }
 
-    UpdateAutoScalingGroupCommand updateCommand =
-        UpdateAutoScalingGroupCommand.builder()
+    return new Result(
+        PrepareUpdateAutoScalingGroup.PrepareUpdateAutoScalingGroupCommand.builder()
             .description(description)
-            .launchTemplateSpecification(spec)
-            .build();
-    return new Result(updateCommand, Collections.emptyList());
+            .launchTemplateVersion(newVersion)
+            .newLaunchTemplateVersionNumber(newVersion.getVersionNumber())
+            .isReqToUpgradeAsgToMixedInstancesPolicy(
+                command.isReqToUpgradeAsgToMixedInstancesPolicy)
+            .build(),
+        Collections.emptyList());
   }
 
   @Builder(builderClassName = "ModifyServerGroupLaunchTemplateCommandBuilder", toBuilder = true)
@@ -99,12 +119,14 @@ public class ModifyServerGroupLaunchTemplate
   public static class ModifyServerGroupLaunchTemplateCommand implements SagaCommand {
     @Nonnull private LaunchTemplateVersion sourceVersion;
     @Nonnull private ModifyServerGroupLaunchTemplateDescription description;
-
+    @Nonnull private Boolean isReqToModifyLaunchTemplate;
+    @Nonnull private Boolean isReqToUpgradeAsgToMixedInstancesPolicy;
+    @Nonnull private Boolean isAsgBackedByMixedInstancesPolicy;
     @NonFinal private EventMetadata metadata;
 
     @Override
-    public void setMetadata(@NotNull EventMetadata eventMetadata) {
-      this.metadata = eventMetadata;
+    public void setMetadata(@NotNull EventMetadata metadata) {
+      this.metadata = metadata;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
