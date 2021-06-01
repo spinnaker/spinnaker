@@ -14,18 +14,16 @@ import 'react-virtualized/styles.css';
 import 'react-virtualized-select/styles.css';
 import 'ui-select/dist/select.css';
 import '@spinnaker/styleguide/public/styleguide.min.css';
+import 'Select2/select2.css';
+import 'select2-bootstrap-css/select2-bootstrap.css';
+import 'source-sans-pro/source-sans-pro.css';
+import 'root/app/fonts/spinnaker/icons.css';
 
 import UI_ROUTER from '@uirouter/angularjs';
-const UI_ROUTER_STATE_EVENTS_SHIM = 'ui.router.state.events';
-require('@uirouter/angularjs/release/stateEvents');
+import '@uirouter/angularjs/release/stateEvents';
 import { UI_ROUTER_REACT_HYBRID } from '@uirouter/react-hybrid';
 
-// use require instead of import to ensure insertion order is preserved
-require('Select2/select2.css');
-require('select2-bootstrap-css/select2-bootstrap.css');
-import 'source-sans-pro/source-sans-pro.css';
 import { RECENT_HISTORY_SERVICE } from './history/recentHistory.service';
-require('root/app/fonts/spinnaker/icons.css');
 
 import './analytics/GoogleAnalyticsInitializer';
 import { UI_ROUTER_REACT_ERROR_BOUNDARY } from './presentation/SpinErrorBoundary';
@@ -98,6 +96,8 @@ const templates = require.context('./', true, /\.html$/);
 templates.keys().forEach(function (key) {
   templates(key);
 });
+
+const UI_ROUTER_STATE_EVENTS_SHIM = 'ui.router.state.events';
 
 export const CORE_MODULE = 'spinnaker.core';
 module(CORE_MODULE, [
