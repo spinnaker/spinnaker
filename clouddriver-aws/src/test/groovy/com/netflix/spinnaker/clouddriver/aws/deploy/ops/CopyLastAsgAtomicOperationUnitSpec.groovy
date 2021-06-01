@@ -22,8 +22,12 @@ import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
 import com.amazonaws.services.autoscaling.model.DescribeLaunchConfigurationsRequest
 import com.amazonaws.services.autoscaling.model.DescribeLaunchConfigurationsResult
 import com.amazonaws.services.autoscaling.model.Ebs
+import com.amazonaws.services.autoscaling.model.InstancesDistribution
 import com.amazonaws.services.autoscaling.model.LaunchConfiguration
+import com.amazonaws.services.autoscaling.model.LaunchTemplate
+import com.amazonaws.services.autoscaling.model.LaunchTemplateOverrides
 import com.amazonaws.services.autoscaling.model.LaunchTemplateSpecification
+import com.amazonaws.services.autoscaling.model.MixedInstancesPolicy
 import com.amazonaws.services.autoscaling.model.TagDescription
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.CreditSpecification
@@ -34,6 +38,7 @@ import com.amazonaws.services.ec2.model.LaunchTemplateSpotMarketOptions
 import com.amazonaws.services.ec2.model.LaunchTemplateVersion
 import com.amazonaws.services.ec2.model.ResponseLaunchTemplateData
 import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AWSServerGroupNameResolver
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType
 import com.netflix.spinnaker.clouddriver.aws.deploy.validators.BasicAmazonDeployDescriptionValidator
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.services.AsgService
@@ -274,8 +279,15 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
       capacity: new BasicAmazonDeployDescription.Capacity(min: 1, max: 3, desired: 5),
       securityGroups: ["someGroupName", "sg-12345a"],
       setLaunchTemplate: true,
-      unlimitedCpuCredits: unlimitedCpuCreditsInReq
+      unlimitedCpuCredits: unlimitedCpuCreditsInReq,
+      instanceType: instanceTypeInReq
     )
+    def overrides = null
+    if (instanceTypeOverride2InReq) {
+      overrides = [ new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(instanceType: "t3.large", weightedCapacity: "2"),
+                    new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(instanceType: instanceTypeOverride2InReq, weightedCapacity: "4")]
+      requestDescription.launchTemplateOverridesForInstanceType = overrides
+    }
 
     and:
     def deployHandler = Mock(BasicAmazonDeployHandler)
@@ -324,24 +336,148 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     op.operate([])
 
     then:
-    1 * deployHandler.handle(expectedDescription(null, expectedUnlimitedCpuCredits, 'us-east-1'), _) >>
+    1 * deployHandler.handle(expectedDescription(null, 'us-east-1', instanceTypeInReq, expectedUnlimitedCpuCredits, null, overrides), _) >>
       new DeploymentResult(serverGroupNames: ['asgard-stack-v001'], serverGroupNameByRegion: ['us-east-1': 'asgard-stack-v001'])
 
     where:
-    ancestorUnlimitedCpuCredits   ||  unlimitedCpuCreditsInReq  || expectedUnlimitedCpuCredits
-    "standard"                    ||    true                    || true
-    "standard"                    ||    false                   || false
-    "standard"                    ||    null                    || null
-    "unlimited"                   ||    true                    || true
-    "unlimited"                   ||    false                   || false
-    "unlimited"                   ||    null                    || null
+    ancestorUnlimitedCpuCredits   ||  unlimitedCpuCreditsInReq || instanceTypeInReq   || instanceTypeOverride2InReq  || expectedUnlimitedCpuCredits
+    "standard"                    ||    true                   ||     't2.large'      ||            null             || true
+    "standard"                    ||    false                  ||     't2.large'      ||            null             || false
+    "unlimited"                   ||    true                   ||     't2.large'      ||            null             || true
+    "unlimited"                   ||    false                  ||     't2.large'      ||            null             || false
+    "standard"                    ||    null                   ||     'c3.large'      ||            null             || null  // unsupported type, do NOT copy from ancestor
+    "standard"                    ||    null                   ||     't3.large'      ||            null             || false // supported type, copy from ancestor
+    "unlimited"                   ||    null                   ||     'c3.large'      ||            null             || null  // unsupported type, do NOT copy from ancestor
+    "unlimited"                   ||    null                   ||     't3.large'      ||            null             || true  // supported type, copy from ancestor
+    "standard"                    ||    null                   ||     't2.large'      ||       ['c4.large']          || null  // not all types supported, do NOT copy from ancestor
+    "unlimited"                   ||    null                   ||     't2.large'      ||       ['c4.large']          || null  // not all types supported, do NOTcopy from ancestor
+  }
+
+  @Unroll
+  void "operation builds description based on ancestor asg backed by mixed instances policy with launch template"() {
+    given:
+    def launchTemplateVersion = new LaunchTemplateVersion(
+      launchTemplateName: "foo",
+      launchTemplateId: "foo",
+      versionNumber: 0,
+      launchTemplateData: new ResponseLaunchTemplateData(
+        keyName: "key-pair-name",
+        blockDeviceMappings: [
+          new LaunchTemplateBlockDeviceMapping(
+            deviceName: "/dev/sdb",
+            ebs: new LaunchTemplateEbsBlockDevice(
+              volumeSize: 125
+            )
+          ),
+          new LaunchTemplateBlockDeviceMapping(
+            deviceName: "/dev/sdc",
+            virtualName: "ephemeral1"
+          )
+        ]
+      )
+    )
+    def launchTemplateSpec = new LaunchTemplateSpecification(
+      launchTemplateName: launchTemplateVersion.launchTemplateName,
+      launchTemplateId: launchTemplateVersion.launchTemplateId,
+      version: launchTemplateVersion.versionNumber.toString(),
+    )
+    def mixedInstancesPolicy = new MixedInstancesPolicy(
+      launchTemplate: new LaunchTemplate(
+        launchTemplateSpecification: launchTemplateSpec,
+        overrides: [new LaunchTemplateOverrides(instanceType: "c3.large", weightedCapacity: "2"),
+                    new LaunchTemplateOverrides(instanceType: "c3.xlarge", weightedCapacity: "4")]
+      ),
+      instancesDistribution: new InstancesDistribution(
+        onDemandAllocationStrategy: "prioritized",
+        onDemandBaseCapacity: 2,
+        onDemandPercentageAboveBaseCapacity: 50,
+        spotAllocationStrategy: "capacity-prioritized",
+        spotMaxPrice: ancestorSpotPrice
+      )
+    )
+
+    def description = new BasicAmazonDeployDescription(
+      application: "asgard",
+      stack: "stack",
+      availabilityZones: [
+        'us-east-1': []
+      ],
+      credentials: TestCredential.named('baz'),
+      securityGroups: ["someGroupName", "sg-12345a"],
+      capacity: new BasicAmazonDeployDescription.Capacity(min: 1, max: 3, desired: 5),
+      spotPrice: requestSpotPrice,
+    )
+
+    and:
+    def deployHandler = Mock(BasicAmazonDeployHandler)
+    def mockAutoScaling = Mock(AmazonAutoScaling)
+    def ec2 = Mock(AmazonEC2)
+    def mockProvider = Mock(AmazonClientProvider)
+    mockProvider.getAmazonEC2(_, _, true) >> ec2
+    mockProvider.getAutoScaling(_, _, true) >> mockAutoScaling
+
+    def op = new CopyLastAsgAtomicOperation(description)
+    op.amazonClientProvider = mockProvider
+    op.basicAmazonDeployHandler = deployHandler
+
+    def mockAsgReferenceCopier = Mock(AsgReferenceCopier)
+    def asgService = new AsgService(mockAutoScaling)
+    def serverGroupNameResolver = Mock(AWSServerGroupNameResolver)
+
+    op.regionScopedProviderFactory = Stub(RegionScopedProviderFactory) {
+      forRegion(_, _) >> Stub(RegionScopedProviderFactory.RegionScopedProvider) {
+        getAsgReferenceCopier(_, _) >> mockAsgReferenceCopier
+        getAsgService() >> asgService
+        getAWSServerGroupNameResolver() >> serverGroupNameResolver
+        getLaunchTemplateService() >> Mock(LaunchTemplateService) {
+          getLaunchTemplateVersion(launchTemplateSpec) >> Optional.of(launchTemplateVersion)
+        }
+      }
+    }
+
+    op.basicAmazonDeployDescriptionValidator = Stub(BasicAmazonDeployDescriptionValidator)
+
+    when:
+    def result = op.operate([])
+
+    then:
+    result.serverGroupNameByRegion['us-east-1'] == 'asgard-stack-v001'
+    result.serverGroupNames == ['asgard-stack-v001']
+
+    1 * mockAutoScaling.describeAutoScalingGroups(_) >> {
+      def mockAsg = Mock(AutoScalingGroup)
+      mockAsg.getAutoScalingGroupName() >> "asgard-stack-v000"
+      mockAsg.getMinSize() >> 0
+      mockAsg.getMaxSize() >> 2
+      mockAsg.getDesiredCapacity() >> 4
+      mockAsg.getMixedInstancesPolicy() >> mixedInstancesPolicy
+      mockAsg.getTags() >> [new TagDescription().withKey('Name').withValue('name-tag')]
+      new DescribeAutoScalingGroupsResult().withAutoScalingGroups([mockAsg])
+    }
+
+    1 * serverGroupNameResolver.resolveLatestServerGroupName("asgard-stack") >> { "asgard-stack-v000" }
+    0 * serverGroupNameResolver._
+    1 * deployHandler.handle(expectedDescription(expectedSpotPrice, "us-east-1", null, null, mixedInstancesPolicy), _) >>
+      new DeploymentResult(serverGroupNames: ['asgard-stack-v001'], serverGroupNameByRegion: ['us-east-1': 'asgard-stack-v001'])
+
+    where:
+    requestSpotPrice | ancestorSpotPrice || expectedSpotPrice
+    0.25             | null              || 0.25
+    0.25             | 0.5               || 0.25
+    null             | 0.25              || 0.25
+    ""               | 0.25              || null
+    null             | null              || null
   }
 
   private static BasicAmazonDeployDescription expectedDescription(
           Double expectedSpotPrice,
+          String region,
+          String instanceType = null,
           Boolean unlimitedCpuCredits = null,
-          String region) {
-    return new BasicAmazonDeployDescription(
+          MixedInstancesPolicy mip = null,
+          List<LaunchTemplateOverridesForInstanceType> overrides = null
+  ) {
+    def desc = new BasicAmazonDeployDescription(
       application: 'asgard',
       stack: 'stack',
       keyPair: 'key-pair-name',
@@ -355,7 +491,24 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
         account: 'baz',
         region: null
       ),
-      unlimitedCpuCredits: unlimitedCpuCredits
+      unlimitedCpuCredits: unlimitedCpuCredits,
+      instanceType: instanceType
     )
+
+    if (mip) {
+      desc.onDemandAllocationStrategy = mip.instancesDistribution.onDemandAllocationStrategy
+      desc.onDemandBaseCapacity = mip.instancesDistribution.onDemandBaseCapacity
+      desc.onDemandPercentageAboveBaseCapacity = mip.instancesDistribution.onDemandPercentageAboveBaseCapacity
+      desc.spotAllocationStrategy = mip.instancesDistribution.spotAllocationStrategy
+      desc.spotInstancePools = mip.instancesDistribution.spotInstancePools
+      desc.launchTemplateOverridesForInstanceType = mip.launchTemplate.overrides.collect {
+          new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(instanceType: it.instanceType, weightedCapacity: it.weightedCapacity)
+        }.toList()
+    }
+    if (overrides) {
+      desc.launchTemplateOverridesForInstanceType = overrides
+    }
+
+    return desc
   }
 }
