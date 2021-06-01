@@ -153,7 +153,7 @@ const SingleVersion = ({ versionData, pinnedVersions }: ISingleVersionProps) => 
         outerDivClassName="version-item"
         toggleClassName="version-toggle"
         bodyClassName="version-body"
-        expandIconType="plus"
+        expandIconType="arrowCross"
         defaultExpanded={versionData.isFocused}
         heading={({ chevron }) => <VersionHeading group={versionData} chevron={chevron} />}
       >

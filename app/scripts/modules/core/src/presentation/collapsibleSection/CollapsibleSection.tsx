@@ -14,7 +14,7 @@ export interface ICollapsibleSectionProps {
   enableCaching?: boolean;
   defaultExpanded?: boolean;
   expandIconPosition?: 'left' | 'right';
-  expandIconType?: 'arrow' | 'plus';
+  expandIconType?: 'arrow' | 'plus' | 'arrowCross';
   expandIconSize?: string;
   heading: ((props: { chevron: JSX.Element }) => JSX.Element) | string;
 }
@@ -79,8 +79,10 @@ export const CollapsibleSection: React.FC<ICollapsibleSectionProps> = ({
           className={rotationByPosition[expandIconPosition][isExpanded ? 'expanded' : 'collapsed']}
           {...expandIconProps}
         />
-      ) : (
+      ) : expandIconType === 'plus' ? (
         <Icon name={isExpanded ? 'minus' : 'plus'} {...expandIconProps} />
+      ) : (
+        <Icon name={isExpanded ? 'closeSmall' : 'accordionCollapse'} {...expandIconProps} />
       )}
     </span>
   ) : undefined;
