@@ -1,4 +1,4 @@
-import { get, last, sortBy } from 'lodash';
+import { get } from 'lodash';
 import React from 'react';
 
 import {
@@ -6,19 +6,12 @@ import {
   DefaultPodNameProvider,
   ExecutionDetailsSection,
   IExecutionDetailsSectionProps,
-  IJobOwnedPodStatus,
   JobStageExecutionLogs,
   StageFailureMessage,
 } from '@spinnaker/core';
 
 export class RunJobExecutionDetails extends React.Component<IExecutionDetailsSectionProps> {
   public static title = 'runJobConfig';
-
-  private mostRecentlyCreatedPodName(podsStatuses: IJobOwnedPodStatus[]): string {
-    const sorted = sortBy(podsStatuses, (p: IJobOwnedPodStatus) => p.status.startTime);
-    const mostRecent = last(sorted);
-    return mostRecent ? mostRecent.name : '';
-  }
 
   public render() {
     const { stage, name, current } = this.props;
@@ -27,7 +20,7 @@ export class RunJobExecutionDetails extends React.Component<IExecutionDetailsSec
     const namespace = get(stage, ['context', 'jobStatus', 'location'], '');
     const deployedName = namespace ? get<string[]>(context, ['deploy.jobs', namespace])[0] : '';
     const externalLink = get<string>(stage, ['context', 'execution', 'logs']);
-    const podName = this.mostRecentlyCreatedPodName(get(stage.context, ['jobStatus', 'pods'], []));
+    const podName = get(stage, ['context', 'jobStatus', 'mostRecentPodName'], '');
     const podNameProvider = new DefaultPodNameProvider(podName);
 
     return (
