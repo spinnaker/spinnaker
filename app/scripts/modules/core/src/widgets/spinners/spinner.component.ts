@@ -9,5 +9,5 @@ export const SPINNER_COMPONENT = 'spinnaker.core.spinner.component';
 
 module(SPINNER_COMPONENT, []).component(
   'loadingSpinner',
-  react2angular(withErrorBoundary(Spinner, 'loadingSpinner'), ['size', 'message']),
+  react2angular(withErrorBoundary(Spinner, 'loadingSpinner'), ['size', 'message', 'mode']),
 );

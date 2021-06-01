@@ -1,15 +1,35 @@
 import classnames from 'classnames';
 import React from 'react';
 
+import { ReactComponent as LoadingIndicator } from './loadingIndicator.svg';
+
 export interface ISpinnerProps {
-  size?: 'nano' | 'small' | 'medium' | 'large';
+  color?: string;
   message?: string;
+  mode?: 'circular' | 'horizontal';
   fullWidth?: boolean;
+  size?: 'nano' | 'small' | 'medium' | 'large';
 }
 
-export class Spinner extends React.Component<ISpinnerProps> {
-  public getBarRows(): React.ReactNode[] {
-    const { size } = this.props;
+export const Spinner = ({
+  color = '#ffffff',
+  fullWidth,
+  message,
+  mode = 'horizontal',
+  size = 'small',
+}: ISpinnerProps) => {
+  if (mode === 'circular') {
+    const sizeToHeight = {
+      nano: 12,
+      small: 16,
+      medium: 24,
+      large: 32,
+    };
+
+    return <LoadingIndicator style={{ height: sizeToHeight[size], fill: color }} />;
+  }
+
+  const getBarRows = (): React.ReactNode[] => {
     let count = 3;
 
     if (size) {
@@ -26,27 +46,25 @@ export class Spinner extends React.Component<ISpinnerProps> {
       rows.push(<div key={i} className="bar" />);
     }
     return rows;
-  }
+  };
 
-  public render(): React.ReactElement<Spinner> {
-    const { size, message, fullWidth } = this.props;
-    const messageClassNames = `message color-text-accent ${size === 'medium' ? 'heading-4' : 'heading-2'}`;
+  const messageClassNames = `message color-text-accent ${size === 'medium' ? 'heading-4' : 'heading-2'}`;
+  const messageNode = ['medium', 'large'].includes(size) && (
+    <div className={messageClassNames}>{message || 'Loading ...'}</div>
+  );
 
-    const messageNode = ['medium', 'large'].includes(size) && (
-      <div className={messageClassNames}>{message || 'Loading ...'}</div>
-    );
+  const bars = ['medium', 'large'].includes(size) ? <div className="bars">{getBarRows()}</div> : getBarRows();
 
-    const bars = ['medium', 'large'].includes(size) ? (
-      <div className="bars">{this.getBarRows()}</div>
-    ) : (
-      this.getBarRows()
-    );
+  return (
+    <div className={classnames('load', size || 'small', { 'full-width': fullWidth })}>
+      {messageNode}
+      {bars}
+    </div>
+  );
+};
 
-    return (
-      <div className={classnames('load', size || 'small', { 'full-width': fullWidth })}>
-        {messageNode}
-        {bars}
-      </div>
-    );
-  }
-}
+/**
+ * Note: This is a temporary component for backwards compatibility in NgReact.
+ * Once core is bumped, the `ButtonBusyIndicator` and `LegacySpinner` from NgReact can be replaced with `Spinner` in the other modules and removed.
+ */
+export const ButtonBusyIndicator = () => <Spinner mode="circular" />;
