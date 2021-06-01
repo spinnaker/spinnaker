@@ -3,6 +3,10 @@
   grid-template-columns: [icon] 40px [details] 1fr;
   padding: var(--l-spacing) var(--base-horizontal-padding) var(--s-spacing) var(--base-horizontal-padding);
 
+  @media (max-width: 768px) {
+    grid-template-columns: [icon] 30px [details] 1fr;
+  }
+
   .error-message {
     grid-column: 1 / 3;
   }
@@ -13,6 +17,10 @@
     flex-direction: column;
     min-width: 0;
     margin-right: var(--xl-spacing);
+
+    @media (max-width: 768px) {
+      margin-right: var(--m-spacing);
+    }
   }
 
   .row-icon {

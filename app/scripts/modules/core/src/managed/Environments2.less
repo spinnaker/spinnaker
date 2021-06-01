@@ -3,6 +3,11 @@
   padding: 0 var(--l-spacing);
   --base-horizontal-padding: var(--xl-spacing);
 
+  @media (max-width: 768px) {
+    padding: 0;
+    --base-horizontal-padding: var(--m-spacing);
+  }
+
   a,
   .btn-link {
     color: var(--color-text-link-g1);
@@ -30,4 +35,8 @@
   border: 1px solid var(--color-alto);
   bottom: 4px;
   right: 30px;
+
+  @media (max-width: 768px) {
+    right: 8px;
+  }
 }

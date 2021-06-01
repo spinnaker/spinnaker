@@ -6,6 +6,11 @@
     margin-bottom: var(--xl-spacing);
     box-shadow: 1px 3px 6px 0 rgba(0, 0, 0, 0.05);
 
+    @media (max-width: 768px) {
+      padding: var(--m-spacing) var(--s-spacing);
+      margin-bottom: var(--l-spacing);
+    }
+
     .copy-version-link {
       display: none;
     }
@@ -20,6 +25,12 @@
       flex-direction: row;
       justify-content: space-between;
       align-items: center;
+
+      .version-heading-content {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
 
       .section-heading-chevron {
         border-radius: 999px;
@@ -48,13 +59,7 @@
     display: flex;
     flex-direction: row;
     margin-top: var(--s-spacing);
-
-    .chip {
-      min-width: 100px;
-      justify-content: center;
-      margin-right: var(--m-spacing);
-      position: relative;
-    }
+    overflow: auto;
 
     .environment-pinned {
       position: absolute;
@@ -76,6 +81,16 @@
     font-size: 12px;
     font-weight: 600;
     text-transform: uppercase;
+    min-width: 100px;
+    justify-content: center;
+    margin-right: var(--m-spacing);
+    position: relative;
+
+    @media (max-width: 768px) {
+      min-width: 60px;
+      padding: var(~'--3xs-spacing') var(--m-spacing);
+      margin-right: var(--s-spacing);
+    }
 
     &.chip-outlined {
       border: 1px solid var(--color-silver);

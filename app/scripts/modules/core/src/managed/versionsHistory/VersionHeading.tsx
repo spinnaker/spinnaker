@@ -98,7 +98,7 @@ export const VersionHeading = ({ group, chevron }: IVersionHeadingProps) => {
   };
   return (
     <div className="version-heading" onMouseOver={prefetchData}>
-      <div>
+      <div className="version-heading-content">
         {gitMetadata ? (
           <GitLink gitMetadata={gitMetadata} asLink={false} />
         ) : (
