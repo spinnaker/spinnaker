@@ -545,7 +545,8 @@ public class CreateServerGroupAtomicOperation
             .withPlacementConstraints(description.getPlacementConstraints())
             .withPlacementStrategy(description.getPlacementStrategySequence())
             .withServiceRegistries(serviceRegistries)
-            .withDeploymentConfiguration(deploymentConfiguration);
+            .withDeploymentConfiguration(deploymentConfiguration)
+            .withEnableExecuteCommand(description.isEnableExecuteCommand());
 
     List<Tag> taskDefTags = new LinkedList<>();
     if (description.getTags() != null && !description.getTags().isEmpty()) {

@@ -179,6 +179,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
       request.tags.get(1).value == 'tomato'
       request.launchType == null
       request.platformVersion == null
+      request.enableExecuteCommand == false
     }) >> new CreateServiceResult().withService(service)
 
     result.getServerGroupNames().size() == 1
@@ -244,7 +245,8 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
       subnetType: 'public',
       securityGroupNames: ['helloworld'],
       associatePublicIpAddress: true,
-      serviceDiscoveryAssociations: [serviceRegistry]
+      serviceDiscoveryAssociations: [serviceRegistry],
+      enableExecuteCommand: true
     )
 
     def operation = new CreateServerGroupAtomicOperation(description)
@@ -308,6 +310,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
       request.tags == []
       request.launchType == 'FARGATE'
       request.platformVersion == '1.0.0'
+      request.enableExecuteCommand == true
     } as CreateServiceRequest) >> new CreateServiceResult().withService(service)
 
     result.getServerGroupNames().size() == 1

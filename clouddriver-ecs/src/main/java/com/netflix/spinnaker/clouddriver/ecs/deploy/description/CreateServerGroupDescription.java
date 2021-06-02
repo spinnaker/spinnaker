@@ -98,6 +98,7 @@ public class CreateServerGroupDescription extends AbstractECSDescription {
   Map<Object, Object> spelProcessedTaskDefinitionArtifact;
   String taskDefinitionArtifactAccount;
   Map<String, String> containerToImageMap;
+  boolean enableExecuteCommand;
 
   /**
    * @deprecated this field only allows for one container to be specified. ECS supports the ability
