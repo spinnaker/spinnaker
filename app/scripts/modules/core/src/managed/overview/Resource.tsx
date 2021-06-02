@@ -72,10 +72,12 @@ export const Resource = ({ resource, environment }: { resource: QueryResource; e
   const icon = resourceManager.getIcon(resource.kind);
   const app = useApplicationContextSafe();
 
+  const account = resource.location?.account;
+
   const resourceLinkProps: IResourceLinkProps = {
     kind: resource.kind,
     displayName: resource.displayName,
-    account: resource.location?.account,
+    account,
     detail: resource.moniker?.detail,
     stack: resource.moniker?.stack,
   };
@@ -98,6 +100,7 @@ export const Resource = ({ resource, environment }: { resource: QueryResource; e
             </span>
           ))}
         </span>
+        {account && <span>{account}</span>}
         <span>
           <a
             href="#"
