@@ -46,7 +46,7 @@ const ConstraintContent = ({ constraint, versionProps }: IConstraintContentProps
     <dl className="constraint-content">
       {description && <dd>{description}</dd>}
       {!isEmpty(actions) && (
-        <dd>
+        <dd className={description ? 'sp-margin-s-top' : undefined}>
           {actions?.map(({ title, pass }) => (
             <button
               className={classnames('btn md-btn constraint-action-button', pass ? 'md-btn-success' : 'md-btn-danger')}
