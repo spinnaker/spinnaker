@@ -155,7 +155,7 @@ export class TitusServerGroupConfigurationService {
     };
   }
 
-  public configureCommand(cmd: ITitusServerGroupCommand) {
+  public configureCommand(cmd: ITitusServerGroupCommand): PromiseLike<void> {
     cmd.viewState.accountChangedStream = new Subject();
     cmd.viewState.regionChangedStream = new Subject();
     cmd.viewState.groupsRemovedStream = new Subject();
