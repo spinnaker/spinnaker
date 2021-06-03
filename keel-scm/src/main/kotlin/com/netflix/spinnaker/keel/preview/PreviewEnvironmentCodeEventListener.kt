@@ -5,6 +5,8 @@ import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.keel.api.ArtifactReferenceProvider
 import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.Dependency
+import com.netflix.spinnaker.keel.api.Dependent
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.PreviewEnvironmentSpec
@@ -165,8 +167,14 @@ class PreviewEnvironmentCodeEventListener(
         constraints = emptySet(),
         verifyWith = previewEnvSpec.verifyWith,
         notifications = previewEnvSpec.notifications,
-        resources = baseEnv.resources.mapNotNull {
-          it.toPreviewResource(deliveryConfig, previewEnvSpec, branchDetail)
+        resources = baseEnv.resources.mapNotNull { res ->
+          (res as? Resource<Monikered>)
+            ?.toPreviewResource(deliveryConfig, previewEnvSpec, branchDetail)
+            .also {
+              if (it == null) {
+                log.debug("Ignoring non-monikered resource ${res.id} since it might conflict with the base environment")
+              }
+            }
         }.toSet()
       )
 
@@ -191,34 +199,27 @@ class PreviewEnvironmentCodeEventListener(
    * its artifact reference (if applicable) updated to use the artifact matching the [PreviewEnvironmentSpec]
    * branch filter, if available.
    */
-  private fun Resource<*>.toPreviewResource(
+  private fun <T: Monikered> Resource<T>.toPreviewResource(
     deliveryConfig: DeliveryConfig,
     previewEnvSpec: PreviewEnvironmentSpec,
     branchDetail: String
-  ): Resource<*>? {
-    if (spec !is Monikered) {
-      log.debug("Ignoring non-monikered resource ${this.id} since it might conflict with the base environment")
-      return null
+  ): Resource<T>? {
+    // start by adding the branch detail to the moniker/name/id
+    var previewResource =  withBranchDetail(branchDetail)
+      .copy(metadata = metadata.toMutableMap().also { metadata ->
+        // this is so the resource ID is updated with the new name (which is in the spec)
+        metadata["id"] = generateId(this.kind, this.spec)
+      })
+
+    // update artifact reference if applicable to match the branch filter of the preview environment
+    if (spec is ArtifactReferenceProvider) {
+      previewResource = previewResource.withBranchArtifact(deliveryConfig, previewEnvSpec)
     }
 
-    val previewResource = (this as Resource<Monikered>)
-      .withBranchDetail(branchDetail)
-      .run {
-        val updatedResource = copy(metadata = metadata.toMutableMap().also { metadata ->
-          // this is so the resource ID is updated with the new name (which is in the spec)
-          metadata["id"] = generateId(this.kind, this.spec)
-        })
-
-        // update artifact reference if applicable to match the branch filter of the preview environment
-        if (spec is ArtifactReferenceProvider) {
-          updatedResource.withBranchArtifact(deliveryConfig, previewEnvSpec)
-        } else {
-          updatedResource
-        }
-
-        // TODO: for clusters, need to check dependencies that might need renaming to match resources in the
-        //  preview environment
-      }
+    // update dependency names that are part of the preview environment and so have new names
+    if (spec is Dependent) {
+      previewResource = previewResource.withDependenciesRenamed(deliveryConfig, previewEnvSpec, branchDetail)
+    }
 
     log.debug("Renamed resource ${this.id} to ${previewResource.id} for preview environment")
     return previewResource
@@ -241,10 +242,10 @@ class PreviewEnvironmentCodeEventListener(
    * Replaces the artifact reference in the resource spec with the one matching the [PreviewEnvironmentSpec] branch
    * filter, if such an artifact is defined in the delivery config.
    */
-  private fun Resource<*>.withBranchArtifact(
+  private fun <T : Monikered> Resource<T>.withBranchArtifact(
     deliveryConfig: DeliveryConfig,
     previewEnvSpec: PreviewEnvironmentSpec
-  ): Resource<*> {
+  ): Resource<T> {
     val specArtifactReference = (spec as? ArtifactReferenceProvider)
       ?.artifactReference
       ?: return this
@@ -279,6 +280,43 @@ class PreviewEnvironmentCodeEventListener(
       this
     }
   }
+
+  /**
+   * Adds the specified [branchDetail] to the [Moniker.detail] field of the [ResourceSpec].
+   *
+   * Limitation: this method supports renaming only resources whose specs are [Monikered].
+   */
+  private fun <T : Monikered> Resource<T>.withDependenciesRenamed(
+    deliveryConfig: DeliveryConfig,
+    previewEnvSpec: PreviewEnvironmentSpec,
+    branchDetail: String
+  ): Resource<T> {
+    val baseEnvironment = deliveryConfig.findBaseEnvironment(previewEnvSpec)
+
+    val updatedSpec = if (spec is Dependent) {
+      val renamedDeps = (spec as Dependent).dependsOn.map { dep ->
+        val candidate = baseEnvironment.resources.find { it.spec is Monikered && it.named(dep.name) }
+        if (candidate != null) {
+          val newName = (candidate as Resource<Monikered>).withBranchDetail(branchDetail).name
+          Dependency(dep.type, dep.region, newName)
+        } else {
+          dep
+        }
+      }.toSet()
+      spec.withDependencies(spec::class, renamedDeps)
+    } else {
+      spec
+    }
+
+    return copy(spec = updatedSpec as T)
+  }
+
+  private fun DeliveryConfig.findBaseEnvironment(previewEnvSpec: PreviewEnvironmentSpec) =
+    environments.find { it.name == previewEnvSpec.baseEnvironment }
+      ?: error("Environment '${previewEnvSpec.baseEnvironment}' referenced in preview environment spec not found.")
+
+  private fun Resource<*>.named(name: String) =
+    (spec as? Monikered)?.moniker?.toString() == name
 
   private fun CodeEvent.emitCounterMetric(metric: String, extraTags: Collection<Pair<String, String>>, application: String? = null) =
     spectator.counter(metric, metricTags(application, extraTags) ).safeIncrement()

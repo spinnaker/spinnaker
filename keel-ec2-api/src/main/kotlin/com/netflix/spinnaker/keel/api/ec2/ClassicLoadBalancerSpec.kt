@@ -1,5 +1,8 @@
 package com.netflix.spinnaker.keel.api.ec2
 
+import com.netflix.spinnaker.keel.api.Dependency
+import com.netflix.spinnaker.keel.api.DependencyType.SECURITY_GROUP
+import com.netflix.spinnaker.keel.api.Dependent
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.UnhappyControl
@@ -16,7 +19,7 @@ data class ClassicLoadBalancerSpec(
   val listeners: Set<ClassicLoadBalancerListener> = emptySet(),
   val healthCheck: ClassicLoadBalancerHealthCheck,
   val overrides: Map<String, ClassicLoadBalancerOverride> = emptyMap()
-) : LoadBalancerSpec, UnhappyControl {
+) : LoadBalancerSpec, UnhappyControl, Dependent {
 
   init {
     require(moniker.toString().length <= 32) {
@@ -32,6 +35,14 @@ data class ClassicLoadBalancerSpec(
   override val loadBalancerType: LoadBalancerType = CLASSIC
 
   override val id: String = "${locations.account}:$moniker"
+
+  override val dependsOn: Set<Dependency>
+    get() = locations.regions.flatMap { region ->
+      dependencies.securityGroupNames.map { Dependency(SECURITY_GROUP, region.name, it) }
+    }.toSet() +
+      overrides.flatMap { (region, override) ->
+        override.dependencies?.securityGroupNames?.map { Dependency(SECURITY_GROUP, region, it) } ?: emptySet()
+      }
 }
 
 data class ClassicLoadBalancerOverride(

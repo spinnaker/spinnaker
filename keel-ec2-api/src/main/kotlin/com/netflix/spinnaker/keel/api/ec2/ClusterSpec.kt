@@ -1,11 +1,15 @@
 package com.netflix.spinnaker.keel.api.ec2
 
 import com.netflix.spinnaker.keel.api.ClusterDeployStrategy
+import com.netflix.spinnaker.keel.api.Dependency
+import com.netflix.spinnaker.keel.api.DependencyType.LOAD_BALANCER
+import com.netflix.spinnaker.keel.api.DependencyType.SECURITY_GROUP
+import com.netflix.spinnaker.keel.api.DependencyType.TARGET_GROUP
 import com.netflix.spinnaker.keel.api.ComputeResourceSpec
-import com.netflix.spinnaker.keel.api.Locatable
+import com.netflix.spinnaker.keel.api.Dependent
+import com.netflix.spinnaker.keel.api.ExcludedFromDiff
 import com.netflix.spinnaker.keel.api.Locations
 import com.netflix.spinnaker.keel.api.Moniker
-import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.RedBlack
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
@@ -125,7 +129,7 @@ data class ClusterSpec(
   override val overrides: Map<String, ServerGroupSpec> = emptyMap(),
   override val artifactName: String? = null,
   override val artifactVersion: String? = null
-) : ComputeResourceSpec, Monikered, Locatable<SubnetAwareLocations>, OverrideableClusterDependencyContainer<ServerGroupSpec>, UnhappyControl {
+) : ComputeResourceSpec<SubnetAwareLocations>, OverrideableClusterDependencyContainer<ServerGroupSpec>, UnhappyControl, Dependent {
   @Factory
   constructor(
     moniker: Moniker,
@@ -173,6 +177,31 @@ data class ClusterSpec(
 
   // Once clusters go unhappy, only retry when the diff changes, or if manually unvetoed
   override val unhappyWaitTime: Duration? = null
+
+  @get:ExcludedFromDiff
+  override val dependsOn: Set<Dependency>
+    get() = locations.regions.flatMap { region ->
+      val deps = mutableListOf<Dependency>()
+      _defaults.dependencies?.loadBalancerNames?.forEach {
+        deps.add(Dependency(LOAD_BALANCER, region.name, it))
+      }
+      _defaults.dependencies?.securityGroupNames?.forEach {
+        deps.add(Dependency(SECURITY_GROUP, region.name, it))
+      }
+      _defaults.dependencies?.targetGroups?.forEach {
+        deps.add(Dependency(TARGET_GROUP, region.name, it))
+      }
+      overrides[region.name]?.dependencies?.loadBalancerNames?.forEach {
+        deps.add(Dependency(LOAD_BALANCER, region.name, it))
+      }
+      overrides[region.name]?.dependencies?.securityGroupNames?.forEach {
+        deps.add(Dependency(SECURITY_GROUP, region.name, it))
+      }
+      overrides[region.name]?.dependencies?.targetGroups?.forEach {
+        deps.add(Dependency(TARGET_GROUP, region.name, it))
+      }
+      deps
+    }.toSet()
 
   data class ServerGroupSpec(
     val launchConfiguration: LaunchConfigurationSpec? = null,

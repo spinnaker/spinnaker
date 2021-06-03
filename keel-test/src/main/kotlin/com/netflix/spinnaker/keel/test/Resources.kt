@@ -2,6 +2,8 @@ package com.netflix.spinnaker.keel.test
 
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.ArtifactReferenceProvider
+import com.netflix.spinnaker.keel.api.Dependency
+import com.netflix.spinnaker.keel.api.Dependent
 import com.netflix.spinnaker.keel.api.ExcludedFromDiff
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.Moniker
@@ -79,6 +81,27 @@ fun locatableResource(
   moniker: Moniker = Moniker("fnord", "locatable", "dummy")
 ): Resource<DummyLocatableResourceSpec> =
   DummyLocatableResourceSpec(id = id, application = application, locations = locations, moniker = moniker)
+    .let { spec ->
+      resource(
+        kind = kind,
+        spec = spec,
+        application = application
+      )
+    }
+
+fun dependentResource(
+  kind: ResourceKind = TEST_API_V1.qualify("dependent"),
+  id: String = randomString(),
+  application: String = "fnord",
+  locations: SimpleLocations = SimpleLocations(
+    account = "test",
+    vpc = "vpc0",
+    regions = setOf(SimpleRegionSpec("us-west-1"))
+  ),
+  moniker: Moniker = Moniker("fnord", "dependent", "dummy"),
+  dependsOn: Set<Dependency> = emptySet()
+): Resource<DummyDependentResourceSpec> =
+  DummyDependentResourceSpec(id = id, application = application, locations = locations, moniker = moniker, dependsOn = dependsOn)
     .let { spec ->
       resource(
         kind = kind,
@@ -180,6 +203,20 @@ data class DummyLocatableResourceSpec(
   ),
   override val moniker: Moniker = Moniker("fnord", "locatable", "dummy")
 ) : ResourceSpec, Locatable<SimpleLocations>, Monikered
+
+data class DummyDependentResourceSpec(
+  override val id: String = randomString(),
+  val data: String = randomString(),
+  override val application: String = "fnord",
+  override val displayName: String = "fnord-locatable-dummy",
+  override val locations: SimpleLocations = SimpleLocations(
+    account = "test",
+    vpc = "vpc0",
+    regions = setOf(SimpleRegionSpec("us-west-1"))
+  ),
+  override val moniker: Moniker = Moniker("fnord", "locatable", "dummy"),
+  override val dependsOn: Set<Dependency>
+) : ResourceSpec, Locatable<SimpleLocations>, Monikered, Dependent
 
 data class DummyArtifactVersionedResourceSpec(
   @get:ExcludedFromDiff

@@ -7,6 +7,9 @@ data class Moniker(
   val sequence: Int? = null
 ) {
   override fun toString(): String =
+    toName()
+
+  fun toName(): String =
     when {
       stack == null && detail == null -> app
       detail == null -> "$app-$stack"

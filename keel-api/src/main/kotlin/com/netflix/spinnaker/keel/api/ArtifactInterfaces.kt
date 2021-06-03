@@ -55,8 +55,6 @@ interface ArtifactReferenceProvider {
     }
 }
 
-interface ComputeResourceSpec : ResourceSpec, VersionedArtifactProvider, ArtifactReferenceProvider
-
 /**
  * Simple container of the information defined in [ArtifactProvider] that ensures non-nullability of the fields.
  */

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY
 import com.fasterxml.jackson.annotation.JsonUnwrapped
+import com.netflix.spinnaker.keel.api.Dependency
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import java.time.Duration
@@ -32,4 +33,7 @@ interface ClusterSpecMixin {
 
   @get:JsonIgnore
   val artifactName: String?
+
+  @get:JsonIgnore
+  val dependsOn: Set<Dependency>
 }
