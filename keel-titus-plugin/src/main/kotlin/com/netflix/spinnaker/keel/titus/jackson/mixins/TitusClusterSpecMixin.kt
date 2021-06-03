@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY
 import com.fasterxml.jackson.annotation.JsonUnwrapped
+import com.netflix.spinnaker.keel.api.Dependency
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.titus.TitusServerGroupSpec
 import com.netflix.spinnaker.keel.docker.ContainerProvider
@@ -36,4 +37,7 @@ interface TitusClusterSpecMixin {
 
   @get:JsonUnwrapped
   val defaults: TitusServerGroupSpec
+
+  @get:JsonIgnore
+  val dependsOn: Set<Dependency>
 }
