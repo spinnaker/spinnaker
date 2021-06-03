@@ -70,6 +70,7 @@ const VersionInEnvironment = ({ environment, version, envPinnedVersions }: IVers
       <VersionMetadata
         key={version.id}
         author={version.gitMetadata?.author}
+        version={version.version}
         {...(detailedVersionData ? getBaseMetadata(detailedVersionData) : undefined)}
         actions={actions}
         pinned={pinnedData}

@@ -33,7 +33,13 @@ export const CurrentVersion = ({ data, environment, reference, numNewerVersions,
   return (
     <div className="artifact-current-version">
       {gitMetadata ? <GitLink gitMetadata={gitMetadata} /> : <div>Build {data?.version}</div>}
-      <VersionMetadata {...getBaseMetadata(data)} buildsBehind={numNewerVersions} actions={actions} pinned={pinned} />
+      <VersionMetadata
+        {...getBaseMetadata(data)}
+        createdAt={data.createdAt}
+        buildsBehind={numNewerVersions}
+        actions={actions}
+        pinned={pinned}
+      />
       {constraints && (
         <Constraints constraints={constraints} versionProps={{ environment, reference, version: data.version }} />
       )}

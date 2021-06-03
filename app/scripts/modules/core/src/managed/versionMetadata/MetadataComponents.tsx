@@ -1,3 +1,4 @@
+import { useSref } from '@uirouter/react';
 import classnames from 'classnames';
 import { DateTime } from 'luxon';
 import React from 'react';
@@ -5,7 +6,6 @@ import { Dropdown, MenuItem } from 'react-bootstrap';
 
 import { Icon, IconNames } from '@spinnaker/presentation';
 import { Tooltip } from 'core/presentation';
-import { CopyToClipboard } from 'core/utils';
 
 import { RelativeTimestamp } from '../RelativeTimestamp';
 import { LifecycleEventSummary } from '../overview/artifact/utils';
@@ -53,6 +53,8 @@ export const toVetoedMetadata = (data: {
 
 export interface IVersionMetadataProps {
   build?: IVersionBuildProps['build'];
+  version: string;
+  sha?: string;
   author?: string;
   deployedAt?: string;
   createdAt?: IVersionCreatedAtProps['createdAt'];
@@ -99,16 +101,21 @@ export const VersionMetadataActions = ({ id, actions }: IVersionMetadataActionsP
 
 interface IVersionCreatedAtProps {
   createdAt?: string | DateTime;
+  linkProps: Record<string, string>;
 }
 
-export const VersionCreatedAt = ({ createdAt }: IVersionCreatedAtProps) => {
+export const VersionCreatedAt = ({ createdAt, linkProps }: IVersionCreatedAtProps) => {
+  const { href, onClick } = useSref('home.applications.application.environments.history', linkProps);
   if (!createdAt) return null;
+
   return (
-    <MetadataElement>
+    <MetadataElement className="created-at">
       <Tooltip delayShow={TOOLTIP_DELAY_SHOW} value="Created at">
         <i className="far fa-calendar-alt metadata-icon" />
       </Tooltip>
-      <RelativeTimestamp timestamp={createdAt} delayShow={TOOLTIP_DELAY_SHOW} removeStyles withSuffix />
+      <a href={href} onClick={onClick}>
+        <RelativeTimestamp timestamp={createdAt} delayShow={TOOLTIP_DELAY_SHOW} removeStyles withSuffix />
+      </a>
     </MetadataElement>
   );
 };
@@ -239,23 +246,6 @@ export const VersionBuilds = ({ builds }: IVersionBuildsProps) => {
           ))}
         </>
       )}
-    </MetadataElement>
-  );
-};
-
-export const ShareLink = ({ link }: { link: string }) => {
-  return (
-    <MetadataElement className="copy-version-link">
-      <CopyToClipboard
-        text={link}
-        className="as-link"
-        stopPropagation
-        buttonInnerNode={
-          <span>
-            <span className="glyphicon glyphicon-copy" /> Copy link
-          </span>
-        }
-      />
     </MetadataElement>
   );
 };

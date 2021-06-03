@@ -107,9 +107,9 @@ export const CollapsibleSection: React.FC<ICollapsibleSectionProps> = ({
   return (
     <div className={outerDivClassName}>
       {children ? (
-        <a className={classnames(toggleClassName, 'clickable')} onClick={toggle}>
+        <div className={classnames(toggleClassName, 'clickable', 'as-link')} onClick={toggle}>
           {Heading}
-        </a>
+        </div>
       ) : (
         Heading
       )}

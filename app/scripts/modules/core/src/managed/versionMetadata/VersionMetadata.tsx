@@ -22,8 +22,10 @@ import { SingleVersionArtifactVersion } from '../versionsHistory/types';
 
 export const getBaseMetadata = (
   version: QueryArtifactVersion | SingleVersionArtifactVersion,
-): Partial<IVersionMetadataProps> => {
+): Omit<Partial<IVersionMetadataProps>, 'version'> & Pick<IVersionMetadataProps, 'version'> => {
   return {
+    version: version.version,
+    sha: version.gitMetadata?.commit,
     build: {
       buildNumber: version.buildNumber,
       buildLink: getLifecycleEventLink(version, 'BUILD'),
@@ -39,6 +41,8 @@ export const getBaseMetadata = (
 };
 
 export const VersionMetadata = ({
+  version,
+  sha,
   build,
   author,
   deployedAt,
@@ -62,6 +66,7 @@ export const VersionMetadata = ({
         />
       )}
       {build?.buildNumber && <VersionBuilds builds={[build]} />}
+      <VersionCreatedAt createdAt={createdAt} linkProps={sha ? { sha } : { version }} />
       <VersionAuthor author={author} />
       {deployedAt && (
         <MetadataElement>
@@ -75,7 +80,6 @@ export const VersionMetadata = ({
           <RelativeTimestamp timestamp={deployedAt} delayShow={TOOLTIP_DELAY_SHOW} removeStyles withSuffix />
         </MetadataElement>
       )}
-      <VersionCreatedAt createdAt={createdAt} />
       {buildDuration && (
         <MetadataElement>
           <IconTooltip
