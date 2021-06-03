@@ -3,6 +3,9 @@ package com.netflix.spinnaker.keel.api.ec2
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.UnhappyControl
+import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec.Action.AuthenticateOidcAction
+import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec.Action.ForwardAction
+import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec.Action.RedirectAction
 import com.netflix.spinnaker.keel.api.ec2.LoadBalancerType.APPLICATION
 import com.netflix.spinnaker.keel.api.schema.Discriminator
 import com.netflix.spinnaker.keel.api.schema.Optional
@@ -48,6 +51,17 @@ data class ApplicationLoadBalancerSpec(
         }
       }
     }
+
+    override fun toString(): String =
+      "${protocol}:${port} -> " +
+        defaultActions.joinToString() {
+          when (it) {
+            is ForwardAction -> "forward[${it.targetGroupName}]"
+            is RedirectAction -> "redirect[${it.redirectConfig.run { "${protocol}://${host}${port?.let { ":$port" } ?: ""}/$path" }}]"
+            is AuthenticateOidcAction -> "auth[${it.authenticateOidcConfig.clientId}]"
+            else -> ""
+          }
+        }
   }
 
   data class TargetGroup(

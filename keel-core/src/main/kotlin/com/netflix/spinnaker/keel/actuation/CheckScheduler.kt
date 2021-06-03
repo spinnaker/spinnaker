@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.actuation
 
+import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Registry
-import com.netflix.spectator.api.histogram.PercentileTimer
 import com.netflix.spinnaker.config.EnvironmentVerificationConfig
 import com.netflix.spinnaker.config.PostDeployActionsConfig
 import com.netflix.spinnaker.config.ResourceCheckConfig
@@ -23,6 +23,7 @@ import com.netflix.spinnaker.keel.telemetry.ResourceCheckTimedOut
 import com.netflix.spinnaker.keel.telemetry.ResourceLoadFailed
 import com.netflix.spinnaker.keel.telemetry.VerificationCheckComplete
 import com.netflix.spinnaker.keel.telemetry.VerificationTimedOut
+import com.netflix.spinnaker.keel.telemetry.recordDurationPercentile
 import com.netflix.spinnaker.keel.verification.VerificationRunner
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -164,13 +165,7 @@ class CheckScheduler(
   }
 
   private fun recordDuration(startTime : Instant, type: String) =
-    PercentileTimer
-      .builder(spectator)
-      .withName("keel.scheduled.method.duration")
-      .withTag("type", type)
-      .build()
-      .record(Duration.between(startTime, clock.instant()))
-
+    spectator.recordDurationPercentile("keel.scheduled.method.duration", clock, startTime, setOf(BasicTag("type", type)))
 
   @Scheduled(fixedDelayString = "\${keel.artifact-check.frequency:PT1S}")
   fun checkArtifacts() {

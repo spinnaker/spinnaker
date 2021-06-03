@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonAnySetter
 data class Application(
   val name: String,
   val email: String,
-  val dataSources: DataSources?,
+  val dataSources: DataSources? = null,
   val repoProjectKey: String? = null,
   val repoSlug: String? = null,
   val repoType: String? = null,

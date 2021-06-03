@@ -99,8 +99,7 @@ class DeliveryConfigYamlParsingTests @Autowired constructor(
         .get { environments.first().verifyWith.first() }
         .isEqualTo(
           TestContainerVerification(
-            repository = "acme/widget",
-            tag = "stable",
+            image = "acme/widget:stable",
             location = Location(account = "test", region = "us-east-1")
           )
         )

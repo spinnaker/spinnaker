@@ -3,6 +3,7 @@ package com.netflix.spinnaker.config
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.keel.echo.EchoService
+import com.netflix.spinnaker.keel.retrofit.InstrumentedJacksonConverter
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.springframework.beans.factory.BeanCreationException
@@ -26,7 +27,7 @@ class EchoConfiguration {
     clientProvider: OkHttpClientProvider
   ): EchoService =
     Retrofit.Builder()
-      .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+      .addConverterFactory(InstrumentedJacksonConverter.Factory("Echo", objectMapper))
       .baseUrl(echoEndpoint)
       .client(clientProvider.getClient(DefaultServiceEndpoint("echo", echoEndpoint.toString())))
       .build()

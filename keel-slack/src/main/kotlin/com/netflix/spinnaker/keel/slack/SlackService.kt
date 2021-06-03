@@ -1,10 +1,10 @@
 package com.netflix.spinnaker.keel.slack
 
 import com.netflix.spectator.api.BasicTag
-import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.SlackConfiguration
 import com.netflix.spinnaker.keel.notifications.NotificationType
+import com.netflix.spinnaker.keel.telemetry.safeIncrement
 import com.slack.api.Slack
 import com.slack.api.methods.response.chat.ChatPostMessageResponse
 import com.slack.api.model.block.LayoutBlock
@@ -193,16 +193,8 @@ class SlackService(
     return userId
   }
 
-
   companion object {
     private const val SLACK_MESSAGE_SENT = "keel.slack.message.sent"
     private const val SLACK_MESSAGE_FAILED = "keel.slack.message.failed"
   }
-
-  private fun Counter.safeIncrement() =
-    try {
-      increment()
-    } catch (ex: Exception) {
-      log.error("Exception incrementing {} counter: {}", id().name(), ex.message)
-    }
 }

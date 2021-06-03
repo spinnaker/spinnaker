@@ -156,7 +156,7 @@ class ClusterHandler(
     current(resource)
       .map { (region, serverGroup) ->
         val account = serverGroup.location.account
-        val images = cloudDriverService.  getImage(account = account, region = region, amiId = serverGroup.launchConfiguration.imageId)
+        val images = cloudDriverService.getImage(account = account, region = region, amiId = serverGroup.launchConfiguration.imageId)
         if (images.size > 1) {
           log.error("More than one image with ami id ${serverGroup.launchConfiguration.imageId}, using first...")
         }

@@ -22,8 +22,7 @@ environments:
             reference: rocketskates
     verifyWith:
       - type: test-container
-        repository: acme/widget
-        tag: stable
+        image: acme/widget:stable
         location:
           account: test
           region: us-east-1

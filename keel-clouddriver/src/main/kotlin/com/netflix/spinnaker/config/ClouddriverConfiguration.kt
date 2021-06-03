@@ -22,6 +22,7 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.MemoryCloudDriverCache
+import com.netflix.spinnaker.keel.retrofit.InstrumentedJacksonConverter
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.springframework.beans.factory.BeanCreationException
@@ -51,7 +52,7 @@ class ClouddriverConfiguration {
   ):
     CloudDriverService =
       Retrofit.Builder()
-        .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+        .addConverterFactory(InstrumentedJacksonConverter.Factory("CloudDriver", objectMapper))
         .baseUrl(clouddriverEndpoint)
         .client(clientProvider.getClient(DefaultServiceEndpoint("clouddriver", clouddriverEndpoint.toString())))
         .build()
@@ -71,4 +72,3 @@ class ClouddriverConfiguration {
     cacheFactory: CacheFactory
   ) = ImageService(cloudDriverService, cacheFactory)
 }
-

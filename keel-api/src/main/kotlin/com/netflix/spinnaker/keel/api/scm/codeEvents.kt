@@ -7,6 +7,7 @@ import com.netflix.spinnaker.kork.exceptions.SystemException
  * An event from an SCM system.
  */
 abstract class CodeEvent(
+  open val type: String,
   open val repoKey: String,
   open val targetBranch: String,
 ) {
@@ -33,10 +34,11 @@ abstract class CodeEvent(
  * Event that signals the creation of a PR.
  */
 data class PrCreatedEvent(
+  override val type: String = "pr.created",
   override val repoKey: String,
   override val targetBranch: String,
   val sourceBranch: String
-) : CodeEvent(repoKey, targetBranch) {
+) : CodeEvent(type, repoKey, targetBranch) {
   init { validate() }
 }
 
@@ -44,10 +46,11 @@ data class PrCreatedEvent(
  * Event that signals a PR was merged.
  */
 data class PrMergedEvent(
+  override val type: String = "pr.merged",
   override val repoKey: String,
   override val targetBranch: String,
   val sourceBranch: String
-) : CodeEvent(repoKey, targetBranch) {
+) : CodeEvent(type, repoKey, targetBranch) {
   init { validate() }
 }
 
@@ -55,10 +58,11 @@ data class PrMergedEvent(
  * Event that signals a commit was created (i.e. pushed to a repo).
  */
 data class CommitCreatedEvent(
+  override val type: String = "commit.created",
   override val repoKey: String,
   override val targetBranch: String,
   val commitHash: String,
-) : CodeEvent(repoKey, targetBranch) {
+) : CodeEvent(type, repoKey, targetBranch) {
   init { validate() }
 }
 

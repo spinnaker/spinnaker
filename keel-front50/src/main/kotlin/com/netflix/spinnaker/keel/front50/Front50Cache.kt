@@ -11,13 +11,15 @@ import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import java.util.concurrent.CompletableFuture
+import javax.annotation.PostConstruct
 
-@Component
 /**
  * Memory-based cache for Front50 data. Primarily intended to avoid making repeated slow calls to Front50
- * to retrieve application config in bulk (see [allApplications]), but has the side-benefit that retrieving
+ * to retrieve application config in bulk (see [allApplicationsCache]), but has the side-benefit that retrieving
  * individual application configs can be powered by the same bulk data.
  */
+@Component
 class Front50Cache(
   private val front50Service: Front50Service,
   private val cacheFactory: CacheFactory
@@ -26,29 +28,36 @@ class Front50Cache(
     private val log by lazy { LoggerFactory.getLogger(Front50Cache::class.java) }
   }
 
-  private val applicationsByName: AsyncLoadingCache<String, Application> = cacheFactory
-    .asyncBulkLoadingCache(cacheName = "applicationsByName") {
+  private val applicationsByNameCache: AsyncLoadingCache<String, Application> = cacheFactory
+    .asyncLoadingCache<String, Application>(cacheName = "applicationsByName") { app ->
       runCatching {
-        log.debug("Retrieving all applications from Front50")
+        front50Service.applicationByName(app)
+      }.getOrElse { e ->
+        throw CacheLoadingException("Error loading application $app into cache", e)
+      }
+    }
+
+  private val allApplicationsCache: AsyncLoadingCache<String, Application> = cacheFactory
+    .asyncBulkLoadingCache(cacheName = "allApplications") {
+      runCatching {
+        log.debug("Retrieving all applications from Front50 to populate cache")
         front50Service.allApplications(DEFAULT_SERVICE_ACCOUNT)
           .associateBy { it.name.toLowerCase() }
+          .also {
+            log.debug("Successfully primed application cache with ${it.size} entries")
+          }
+      }.getOrElse { e ->
+        throw CacheLoadingException("Error loading allApplications cache", e)
       }
-        .getOrElse { ex ->
-          throw CacheLoadingException("Error loading applicationsByName cache", ex)
-        }
-    }.also {
-      // force the cache to initialize
-      it.get("dummy")
     }
 
   private val pipelinesByApplication: AsyncLoadingCache<String, List<Pipeline>> = cacheFactory
     .asyncLoadingCache(cacheName = "pipelinesByApplication") { app ->
       runCatching {
         front50Service.pipelinesByApplication(app)
+      }.getOrElse { ex ->
+        throw CacheLoadingException("Error loading pipelines for app $app", ex)
       }
-        .getOrElse { ex ->
-          throw CacheLoadingException("Error loading pipelines for app $app", ex)
-        }
     }
 
   /**
@@ -59,7 +68,7 @@ class Front50Cache(
    * near-instantaneously until the cache expires.
    */
   suspend fun allApplications(): List<Application> =
-    applicationsByName.asMap().values.map { it.await() }
+    allApplicationsCache.asMap().values.map { it.await() }
 
   /**
    * Returns the cached [Application] by name.
@@ -67,8 +76,24 @@ class Front50Cache(
    * This call is expected to be slow before the cache is populated or refreshed, which should be a sporadic event.
    */
   suspend fun applicationByName(name: String): Application =
-    applicationsByName.get(name.toLowerCase()).await() ?: throw ApplicationNotFound(name)
+    applicationsByNameCache.get(name.toLowerCase()).await() ?: throw ApplicationNotFound(name)
 
   suspend fun pipelinesByApplication(application: String): List<Pipeline> =
     pipelinesByApplication.get(application).await()
+
+  @PostConstruct
+  fun primeCaches() {
+    log.debug("Priming Front50 application caches")
+    runBlocking {
+      try {
+        front50Service.allApplications(DEFAULT_SERVICE_ACCOUNT).forEach {
+          allApplicationsCache.put(it.name.toLowerCase(), CompletableFuture.supplyAsync { it })
+          applicationsByNameCache.put(it.name.toLowerCase(), CompletableFuture.supplyAsync { it })
+        }
+      } catch (e: Exception) {
+        log.error("Error priming application caches: $e. Performance will be degraded.")
+      }
+    }
+  }
 }
+

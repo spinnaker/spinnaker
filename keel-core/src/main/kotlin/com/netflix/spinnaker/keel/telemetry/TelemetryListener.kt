@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.keel.telemetry
 
 import com.netflix.spectator.api.BasicTag
-import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.patterns.PolledMeter
 import com.netflix.spectator.api.patterns.ThreadPoolMonitor
@@ -309,13 +308,6 @@ class TelemetryListener(
           false -> 0.0
         }
       }
-
-  private fun Counter.safeIncrement() =
-    try {
-      increment()
-    } catch (ex: Exception) {
-      log.error("Exception incrementing {} counter: {}", id().name(), ex.message)
-    }
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 

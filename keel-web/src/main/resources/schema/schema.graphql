@@ -17,6 +17,7 @@ type MdEnvironment {
   id: String!
   name: String!
   state: MdEnvironmentState!
+  isPreview: Boolean
 }
 
 type MdEnvironmentState {
@@ -43,7 +44,7 @@ type MdArtifact {
   name: String!
   type: String!
   reference: String!
-  versions(statuses: [MdArtifactStatusInEnvironment!], versions: [String!]): [MdArtifactVersionInEnvironment!]
+  versions(statuses: [MdArtifactStatusInEnvironment!], versions: [String!], limit: Int): [MdArtifactVersionInEnvironment!]
   pinnedVersion: MdPinnedVersion
 }
 
@@ -63,6 +64,13 @@ type MdArtifactVersionInEnvironment {
   constraints: [MdConstraint!]
   verifications: [MdAction!]
   postDeploy: [MdAction!]
+  veto: MdVersionVeto
+}
+
+type MdVersionVeto {
+  vetoedBy: String
+  vetoedAt: InstantTime
+  comment: String
 }
 
 enum MdLifecycleEventScope {
@@ -123,9 +131,9 @@ type MdCommitInfo {
 }
 
 type MdPackageDiff {
-  added: [MdPackageAndVersion!]!
-  removed: [MdPackageAndVersion!]!
-  changed: [MdPackageAndVersionChange!]!
+  added: [MdPackageAndVersion!]
+  removed: [MdPackageAndVersion!]
+  changed: [MdPackageAndVersionChange!]
 }
 
 type MdPackageAndVersion {

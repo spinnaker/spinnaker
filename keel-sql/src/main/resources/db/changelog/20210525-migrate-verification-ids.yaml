@@ -1,0 +1,30 @@
+databaseChangeLog:
+- changeSet:
+    id: migrate-verification-ids
+    author: fletch
+    changes:
+    - sql:
+        sql: |
+          update action_state
+          join environment
+          on environment.uid = action_state.environment_uid
+          set action_id = concat(
+            coalesce(environment.verifications ->> '$[0].image', environment.verifications ->> '$[0].imageId'),
+            '@',
+            environment.verifications ->> '$[0].location.account',
+            '/',
+            environment.verifications ->> '$[0].location.region',
+            if (
+              environment.verifications ->> '$[0].entrypoint' is not null,
+              concat('[', environment.verifications ->> '$[0].entrypoint', ']'),
+              ''
+            )
+          )
+          where action_state.type = 'VERIFICATION'
+          and json_length(environment.verifications) > 0
+          and convert(
+            coalesce(
+              environment.verifications ->> '$[0].image',
+              environment.verifications ->> '$[0].imageId'
+            ) using utf8
+          ) = action_id

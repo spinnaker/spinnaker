@@ -1,5 +1,8 @@
 package com.netflix.spinnaker.keel.preview
 
+import com.netflix.spectator.api.Registry
+import com.netflix.spectator.api.Tag
+import com.netflix.spectator.api.Timer
 import com.netflix.spinnaker.keel.api.ArtifactReferenceProvider
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
@@ -19,6 +22,15 @@ import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.front50.model.DataSources
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
 import com.netflix.spinnaker.keel.persistence.KeelRepository
+import com.netflix.spinnaker.keel.preview.PreviewEnvironmentCodeEventListener.Companion.APPLICATION_RETRIEVAL_ERROR
+import com.netflix.spinnaker.keel.preview.PreviewEnvironmentCodeEventListener.Companion.CODE_EVENT_COUNTER
+import com.netflix.spinnaker.keel.preview.PreviewEnvironmentCodeEventListener.Companion.COMMIT_HANDLING_DURATION
+import com.netflix.spinnaker.keel.preview.PreviewEnvironmentCodeEventListener.Companion.DELIVERY_CONFIG_NOT_FOUND
+import com.netflix.spinnaker.keel.preview.PreviewEnvironmentCodeEventListener.Companion.PREVIEW_ENVIRONMENT_UPSERT_ERROR
+import com.netflix.spinnaker.keel.preview.PreviewEnvironmentCodeEventListener.Companion.PREVIEW_ENVIRONMENT_UPSERT_SUCCESS
+import com.netflix.spinnaker.keel.scm.DELIVERY_CONFIG_RETRIEVAL_ERROR
+import com.netflix.spinnaker.keel.scm.DELIVERY_CONFIG_RETRIEVAL_SUCCESS
+import com.netflix.spinnaker.keel.scm.toTags
 import com.netflix.spinnaker.keel.test.DummyArtifactReferenceResourceSpec
 import com.netflix.spinnaker.keel.test.DummyLocatableResourceSpec
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
@@ -26,6 +38,9 @@ import com.netflix.spinnaker.keel.test.artifactReferenceResource
 import com.netflix.spinnaker.keel.test.configuredTestObjectMapper
 import com.netflix.spinnaker.keel.test.locatableResource
 import com.netflix.spinnaker.keel.test.submittedResource
+import com.netflix.spinnaker.kork.exceptions.SystemException
+import com.netflix.spinnaker.time.MutableClock
+import dev.minutest.TestContextBuilder
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.called
@@ -34,22 +49,26 @@ import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.slot
 import strikt.api.expectThat
+import strikt.assertions.contains
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import strikt.assertions.one
+import java.time.Clock
+import java.time.Duration
 import io.mockk.coEvery as every
 import io.mockk.coVerify as verify
 
 class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
   class Fixture {
     private val objectMapper = configuredTestObjectMapper()
-
+    private val clock: Clock = MutableClock()
+    val fakeTimer: Timer = mockk()
     val repository: KeelRepository = mockk()
-
     val importer: DeliveryConfigImporter = mockk()
-
     val front50Cache: Front50Cache = mockk()
-
-    val subject = PreviewEnvironmentCodeEventListener(repository, importer, front50Cache, objectMapper)
+    val springEnv: org.springframework.core.env.Environment = mockk()
+    val spectator: Registry = mockk()
+    val subject = PreviewEnvironmentCodeEventListener(repository, importer, front50Cache, objectMapper, springEnv, spectator, clock)
 
     val appConfig = Application(
       name = "fnord",
@@ -111,6 +130,26 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
 
     fun setupMocks() {
       every {
+        springEnv.getProperty("keel.previewEnvironments.enabled", Boolean::class.java, true)
+      } returns true
+
+      every {
+        spectator.counter(any(), any<Iterable<Tag>>())
+      } returns mockk {
+        every {
+          increment()
+        } just runs
+      }
+
+      every {
+        spectator.timer(any(), any<Iterable<Tag>>())
+      } returns fakeTimer
+
+      every {
+        fakeTimer.record(any<Duration>())
+      } just runs
+
+      every {
         repository.allDeliveryConfigs(any())
       } returns setOf(deliveryConfig)
 
@@ -164,6 +203,33 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
               commitEvent = commitEvent,
               manifestPath = "spinnaker.yml"
             )
+          }
+        }
+
+        test("a successful delivery config retrieval is counted") {
+          val tags = mutableListOf<Iterable<Tag>>()
+          verify {
+            spectator.counter(CODE_EVENT_COUNTER, capture(tags))
+          }
+          expectThat(tags).one {
+            contains(DELIVERY_CONFIG_RETRIEVAL_SUCCESS.toTags())
+          }
+        }
+
+        test("a successful preview environment upsert is counted") {
+          val tags = mutableListOf<Iterable<Tag>>()
+          verify {
+            spectator.counter(CODE_EVENT_COUNTER, capture(tags))
+          }
+          expectThat(tags).one {
+            contains(PREVIEW_ENVIRONMENT_UPSERT_SUCCESS.toTags())
+          }
+        }
+
+        test("a duration is recorded for successful handling of the commit event") {
+          verify(exactly = 1) {
+            spectator.timer(COMMIT_HANDLING_DURATION, any<Iterable<Tag>>())
+            fakeTimer.record(any<Duration>())
           }
         }
 
@@ -224,14 +290,21 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
           subject.handleCommitCreated(nonMatchingCommitEvent)
         }
 
-        test("event is ignored") {
-          verify(exactly = 0) {
-            repository.upsertResource<DummyLocatableResourceSpec>(any(), deliveryConfig.name)
-            repository.upsertResource<DummyArtifactReferenceResourceSpec>(any(), deliveryConfig.name)
-            repository.storeEnvironment(deliveryConfig.name, any())
-          }
+        testEventIgnored()
+
+        test("a delivery config not found is counted") {
+          val tags = mutableListOf<Iterable<Tag>>()
           verify {
-            importer wasNot called
+            spectator.counter(CODE_EVENT_COUNTER, capture(tags))
+          }
+          expectThat(tags).one {
+            contains(DELIVERY_CONFIG_NOT_FOUND.toTags())
+          }
+        }
+
+        test("duration metric is not recorded") {
+          verify {
+            fakeTimer wasNot called
           }
         }
       }
@@ -260,6 +333,105 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
         verify {
           importer wasNot called
         }
+      }
+    }
+
+    context("with feature flag disabled") {
+      modifyFixture {
+        every {
+          springEnv.getProperty("keel.previewEnvironments.enabled", Boolean::class.java, true)
+        } returns false
+      }
+
+      before {
+        subject.handleCommitCreated(nonMatchingCommitEvent)
+      }
+
+      testEventIgnored()
+    }
+
+    context("other error scenarios") {
+      before {
+        setupMocks()
+      }
+
+      context("failure to retrieve delivery config") {
+        modifyFixture {
+          every {
+            importer.import(commitEvent, "spinnaker.yml")
+          } throws SystemException("oh noes!")
+        }
+
+        before {
+          subject.handleCommitCreated(commitEvent)
+        }
+
+        test("a delivery config retrieval error is counted") {
+          val tags = mutableListOf<Iterable<Tag>>()
+          verify {
+            spectator.counter(CODE_EVENT_COUNTER, capture(tags))
+          }
+          expectThat(tags).one {
+            contains(DELIVERY_CONFIG_RETRIEVAL_ERROR.toTags())
+          }
+        }
+      }
+
+      context("failure to retrieve application") {
+        modifyFixture {
+          every {
+            front50Cache.applicationByName(deliveryConfig.application)
+          } throws SystemException("oh noes!")
+        }
+
+        before {
+          subject.handleCommitCreated(commitEvent)
+        }
+
+        test("an application retrieval error is counted") {
+          val tags = mutableListOf<Iterable<Tag>>()
+          verify {
+            spectator.counter(CODE_EVENT_COUNTER, capture(tags))
+          }
+          expectThat(tags).one {
+            contains(APPLICATION_RETRIEVAL_ERROR.toTags())
+          }
+        }
+      }
+
+      context("failure to usert preview environment") {
+        modifyFixture {
+          every {
+            repository.storeEnvironment(any(), any())
+          } throws SystemException("oh noes!")
+        }
+
+        before {
+          subject.handleCommitCreated(commitEvent)
+        }
+
+        test("an upsert error is counted") {
+          val tags = mutableListOf<Iterable<Tag>>()
+          verify {
+            spectator.counter(CODE_EVENT_COUNTER, capture(tags))
+          }
+          expectThat(tags).one {
+            contains(PREVIEW_ENVIRONMENT_UPSERT_ERROR.toTags())
+          }
+        }
+      }
+    }
+  }
+
+  private fun TestContextBuilder<Fixture, Fixture>.testEventIgnored() {
+    test("event is ignored") {
+      verify(exactly = 0) {
+        repository.upsertResource<DummyLocatableResourceSpec>(any(), deliveryConfig.name)
+        repository.upsertResource<DummyArtifactReferenceResourceSpec>(any(), deliveryConfig.name)
+        repository.storeEnvironment(deliveryConfig.name, any())
+      }
+      verify {
+        importer wasNot called
       }
     }
   }

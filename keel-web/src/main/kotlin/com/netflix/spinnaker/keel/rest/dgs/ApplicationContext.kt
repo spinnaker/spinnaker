@@ -19,6 +19,7 @@ class ApplicationContext() {
   var deliveryConfig: DeliveryConfig? = null
   var requestedStatuses: Set<MdArtifactStatusInEnvironment>? = null
   var requestedVersionIds: Set<String>? = null
+  var requestedLimit: Int? = null
   var allVersions: Map<ArtifactAndEnvironment, List<PublishedArtifactInEnvironment>> = emptyMap()
 
   fun getArtifactVersions(deliveryArtifact: DeliveryArtifact, environmentName: String): List<PublishedArtifactInEnvironment>? {

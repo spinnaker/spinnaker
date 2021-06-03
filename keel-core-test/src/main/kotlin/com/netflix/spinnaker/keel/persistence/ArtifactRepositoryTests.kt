@@ -24,6 +24,7 @@ import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.core.api.ActionMetadata
 import com.netflix.spinnaker.keel.core.api.ArtifactVersionStatus
+import com.netflix.spinnaker.keel.core.api.ArtifactVersionVetoData
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
@@ -476,7 +477,9 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
           subject.markAsVetoedIn(deliveryConfig = manifest, veto = veto, force = true)
 
           expectThat(
-            subject.vetoedEnvironmentVersions(manifest)
+            subject.vetoedEnvironmentVersions(manifest).map {
+              it.copy(versions = it.versions.map { v -> v.copy(vetoedAt = null)}.toMutableSet())
+            }
           )
             .isEqualTo(
               listOf(
@@ -484,7 +487,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
                   deliveryConfigName = manifest.name,
                   targetEnvironment = testEnvironment.name,
                   artifact = versionedSnapshotDebian,
-                  versions = mutableSetOf(version1)
+                  versions = mutableSetOf(ArtifactVersionVetoData(version = veto.version, vetoedBy = veto.vetoedBy, vetoedAt = null, comment = veto.comment))
                 )
               )
             )
@@ -877,14 +880,16 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
       }
 
       test("vetoedEnvironmentVersions reflects the veto") {
-        expectThat(subject.vetoedEnvironmentVersions(manifest))
+        expectThat(subject.vetoedEnvironmentVersions(manifest).map {
+          it.copy(versions = it.versions.map { v -> v.copy(vetoedAt = null)}.toMutableSet())
+        })
           .isEqualTo(
             listOf(
               EnvironmentArtifactVetoes(
                 deliveryConfigName = manifest.name,
                 targetEnvironment = stagingEnvironment.name,
                 artifact = versionedReleaseDebian,
-                versions = mutableSetOf(version5)
+                versions = mutableSetOf(ArtifactVersionVetoData(version = version5, vetoedBy = "tester", vetoedAt = null, comment = "you bad"))
               )
             )
           )

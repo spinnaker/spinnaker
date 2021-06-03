@@ -3,6 +3,7 @@ package com.netflix.spinnaker.config
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.keel.front50.Front50Service
+import com.netflix.spinnaker.keel.retrofit.InstrumentedJacksonConverter
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.springframework.beans.factory.BeanCreationException
@@ -11,7 +12,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
 
 @Configuration
 @ConditionalOnProperty("front50.enabled")
@@ -28,7 +28,7 @@ class Front50Config {
     clientProvider: OkHttpClientProvider
   ): Front50Service =
     Retrofit.Builder()
-      .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+      .addConverterFactory(InstrumentedJacksonConverter.Factory("Front50", objectMapper))
       .baseUrl(front50Endpoint)
       .client(clientProvider.getClient(DefaultServiceEndpoint("front50", front50Endpoint.toString())))
       .build()

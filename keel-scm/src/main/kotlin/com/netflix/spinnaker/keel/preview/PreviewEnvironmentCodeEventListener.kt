@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.preview
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.keel.api.ArtifactReferenceProvider
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Moniker
@@ -10,6 +11,7 @@ import com.netflix.spinnaker.keel.api.PreviewEnvironmentSpec
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.generateId
+import com.netflix.spinnaker.keel.api.scm.CodeEvent
 import com.netflix.spinnaker.keel.api.scm.CommitCreatedEvent
 import com.netflix.spinnaker.keel.api.scm.PrCreatedEvent
 import com.netflix.spinnaker.keel.api.scm.PrMergedEvent
@@ -20,11 +22,19 @@ import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter.Companion.DEFAULT_MANIFEST_PATH
 import com.netflix.spinnaker.keel.persistence.DependentAttachFilter.ATTACH_PREVIEW_ENVIRONMENTS
 import com.netflix.spinnaker.keel.persistence.KeelRepository
+import com.netflix.spinnaker.keel.scm.DELIVERY_CONFIG_RETRIEVAL_ERROR
+import com.netflix.spinnaker.keel.scm.DELIVERY_CONFIG_RETRIEVAL_SUCCESS
 import com.netflix.spinnaker.keel.scm.matchesApplicationConfig
+import com.netflix.spinnaker.keel.scm.metricTags
+import com.netflix.spinnaker.keel.telemetry.recordDuration
+import com.netflix.spinnaker.keel.telemetry.safeIncrement
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.context.event.EventListener
+import org.springframework.core.env.Environment
 import org.springframework.stereotype.Component
+import java.time.Clock
+import java.time.Instant
 
 /**
  * Listens to code events that are relevant to managing preview environments.
@@ -36,11 +46,23 @@ class PreviewEnvironmentCodeEventListener(
   private val repository: KeelRepository,
   private val deliveryConfigImporter: DeliveryConfigImporter,
   private val front50Cache: Front50Cache,
-  private val objectMapper: ObjectMapper
+  private val objectMapper: ObjectMapper,
+  private val springEnv: Environment,
+  private val spectator: Registry,
+  private val clock: Clock
 ) {
   companion object {
     private val log by lazy { LoggerFactory.getLogger(PreviewEnvironmentCodeEventListener::class.java) }
+    internal const val CODE_EVENT_COUNTER = "previewEnvironments.codeEvent.count"
+    internal val APPLICATION_RETRIEVAL_ERROR = listOf("type" to "application.retrieval", "status" to "error")
+    internal val DELIVERY_CONFIG_NOT_FOUND = "type" to "deliveryConfig.notFound"
+    internal val PREVIEW_ENVIRONMENT_UPSERT_ERROR = listOf("type" to "upsert", "status" to "error")
+    internal val PREVIEW_ENVIRONMENT_UPSERT_SUCCESS = listOf("type" to "upsert", "status" to "success")
+    internal const val COMMIT_HANDLING_DURATION = "previewEnvironments.commitHandlingDuration"
   }
+
+  private val enabled: Boolean
+    get() = springEnv.getProperty("keel.previewEnvironments.enabled", Boolean::class.java, true)
 
   @EventListener(PrCreatedEvent::class)
   fun handlePrCreated(event: PrCreatedEvent) {
@@ -63,6 +85,13 @@ class PreviewEnvironmentCodeEventListener(
    */
   @EventListener(CommitCreatedEvent::class)
   fun handleCommitCreated(event: CommitCreatedEvent) {
+    if (!enabled) {
+      log.debug("Preview environments disabled by feature flag. Ignoring commit event: $event")
+      return
+    }
+
+    val startTime = clock.instant()
+
     val matchingPreviewEnvironments = repository
       .allDeliveryConfigs(ATTACH_PREVIEW_ENVIRONMENTS)
       .associateWith { deliveryConfig ->
@@ -71,6 +100,7 @@ class PreviewEnvironmentCodeEventListener(
             front50Cache.applicationByName(deliveryConfig.application)
           } catch (e: Exception) {
             log.error("Error retrieving application ${deliveryConfig.application}: $e")
+            event.emitCounterMetric(CODE_EVENT_COUNTER, APPLICATION_RETRIEVAL_ERROR, deliveryConfig.application)
             null
           }
         }
@@ -83,6 +113,7 @@ class PreviewEnvironmentCodeEventListener(
 
     if (matchingPreviewEnvironments.isEmpty()) {
       log.debug("No delivery configs with matching preview environments found for event: $event")
+      event.emitCounterMetric(CODE_EVENT_COUNTER, DELIVERY_CONFIG_NOT_FOUND)
       return
     }
 
@@ -95,16 +126,19 @@ class PreviewEnvironmentCodeEventListener(
         deliveryConfigImporter.import(
           commitEvent = event,
           manifestPath = DEFAULT_MANIFEST_PATH // TODO: allow location of manifest to be configurable
-        ).toDeliveryConfig()
+        ).toDeliveryConfig().also {
+          event.emitCounterMetric(CODE_EVENT_COUNTER, DELIVERY_CONFIG_RETRIEVAL_SUCCESS, deliveryConfig.application)
+        }
       } catch (e: Exception) {
         log.error("Error retrieving delivery config: $e", e)
-        // TODO: emit event/metric
+        event.emitCounterMetric(CODE_EVENT_COUNTER, DELIVERY_CONFIG_RETRIEVAL_ERROR, deliveryConfig.application)
         return@forEach
       }
 
       log.info("Creating/updating preview environments for application ${deliveryConfig.application} " +
         "from branch ${event.targetBranch}")
       createPreviewEnvironments(event, newDeliveryConfig, previewEnvSpecs)
+      event.emitDurationMetric(COMMIT_HANDLING_DURATION, startTime, deliveryConfig.application)
     }
   }
 
@@ -143,9 +177,10 @@ class PreviewEnvironmentCodeEventListener(
           repository.upsertResource(resource, deliveryConfig.name)
         }
         repository.storeEnvironment(deliveryConfig.name, previewEnv)
+        commitEvent.emitCounterMetric(CODE_EVENT_COUNTER, PREVIEW_ENVIRONMENT_UPSERT_SUCCESS, deliveryConfig.application)
       } catch (e: Exception) {
         log.error("Error storing/updating preview environment ${deliveryConfig.application}/${previewEnv.name}: $e", e)
-        // TODO: emit event/metric
+        commitEvent.emitCounterMetric(CODE_EVENT_COUNTER, PREVIEW_ENVIRONMENT_UPSERT_ERROR, deliveryConfig.application)
       }
     }
   }
@@ -244,4 +279,13 @@ class PreviewEnvironmentCodeEventListener(
       this
     }
   }
+
+  private fun CodeEvent.emitCounterMetric(metric: String, extraTags: Collection<Pair<String, String>>, application: String? = null) =
+    spectator.counter(metric, metricTags(application, extraTags) ).safeIncrement()
+
+  private fun CodeEvent.emitCounterMetric(metric: String, extraTag: Pair<String, String>, application: String? = null) =
+    spectator.counter(metric, metricTags(application, setOf(extraTag)) ).safeIncrement()
+
+  private fun CodeEvent.emitDurationMetric(metric: String, startTime: Instant, application: String? = null) =
+    spectator.recordDuration(metric, clock, startTime, metricTags(application))
 }

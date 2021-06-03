@@ -42,7 +42,7 @@ internal class TestContainerVerificationEvaluatorTests {
   )
 
   private val verification = TestContainerVerification(
-    repository = "illuminati/fnord",
+    image = "illuminati/fnord:latest",
     location = loc,
     application = app
   )
@@ -131,24 +131,6 @@ internal class TestContainerVerificationEvaluatorTests {
         environmentVariables = any()
       )
     }
-  }
-
-  @Test
-  fun `image id specified by repository field and tag`() {
-    stubTaskLaunch()
-
-    subject.start(context, TestContainerVerification(repository="illuminati/fnord", tag="stable", location=loc, application=app))
-
-    verifyImageId("illuminati/fnord:stable")
-  }
-
-  @Test
-  fun `image id specified by repository field, no tag`() {
-    stubTaskLaunch()
-
-    subject.start(context, TestContainerVerification(repository="illuminati/fnord", location=loc, application=app))
-
-    verifyImageId("illuminati/fnord:latest")
   }
 
   @Test

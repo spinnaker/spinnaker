@@ -1,5 +1,7 @@
 package com.netflix.spinnaker.keel.scm
 
+import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.keel.api.scm.CodeEvent
 import com.netflix.spinnaker.keel.api.scm.CommitCreatedEvent
 import com.netflix.spinnaker.keel.front50.Front50Cache
 import com.netflix.spinnaker.keel.front50.model.Application
@@ -7,26 +9,32 @@ import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter.Companion.DEFAULT_MANIFEST_PATH
 import com.netflix.spinnaker.keel.igor.ScmService
 import com.netflix.spinnaker.keel.persistence.KeelRepository
+import com.netflix.spinnaker.keel.telemetry.safeIncrement
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.event.EventListener
+import org.springframework.core.env.Environment
 import org.springframework.stereotype.Component
 
 /**
  * Listens to commit events from applications' main source code branch to import their delivery configs from source.
  */
 @Component
-@ConditionalOnProperty("keel.scm.importDeliveryConfigs", matchIfMissing = true)
 class DeliveryConfigImportListener(
   private val repository: KeelRepository,
   private val deliveryConfigImporter: DeliveryConfigImporter,
   private val front50Cache: Front50Cache,
-  private val scmService: ScmService
+  private val scmService: ScmService,
+  private val springEnv: Environment,
+  private val spectator: Registry
 ) {
   companion object {
     private val log by lazy { LoggerFactory.getLogger(DeliveryConfigImportListener::class.java) }
+    internal const val CODE_EVENT_COUNTER = "importConfig.codeEvent.count"
   }
+
+  private val enabled: Boolean
+    get() = springEnv.getProperty("keel.importDeliveryConfigs.enabled", Boolean::class.java, true)
 
   /**
    * Listens to [CommitCreatedEvent] events to catch those that match the default branch
@@ -38,6 +46,11 @@ class DeliveryConfigImportListener(
    */
   @EventListener(CommitCreatedEvent::class)
   fun handleCommitCreated(event: CommitCreatedEvent) {
+    if (!enabled) {
+      log.debug("Importing delivery config from source disabled by feature flag. Ignoring commit event: $event")
+      return
+    }
+
     val apps = runBlocking {
       try {
         front50Cache.allApplications().also {
@@ -71,10 +84,12 @@ class DeliveryConfigImportListener(
         deliveryConfigImporter.import(
           commitEvent = event,
           manifestPath = DEFAULT_MANIFEST_PATH // TODO: allow location of manifest to be configurable
-        )
+        ).also {
+          event.emitCounterMetric(CODE_EVENT_COUNTER, DELIVERY_CONFIG_RETRIEVAL_SUCCESS, app.name)
+        }
       } catch (e: Exception) {
         log.error("Error retrieving delivery config: $e", e)
-        // TODO: emit event/metric
+        event.emitCounterMetric(CODE_EVENT_COUNTER, DELIVERY_CONFIG_RETRIEVAL_ERROR, app.name)
         return@forEach
       }
 
@@ -91,4 +106,8 @@ class DeliveryConfigImportListener(
         repoSlug = repoSlug ?: error("Missing SCM repository in config for application $name")
       ).name
     }
+
+
+  private fun CodeEvent.emitCounterMetric(metric: String, extraTags: Collection<Pair<String, String>>, application: String? = null) =
+    spectator.counter(metric, metricTags(application, extraTags) ).safeIncrement()
 }

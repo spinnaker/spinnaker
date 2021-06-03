@@ -1,5 +1,7 @@
 package com.netflix.spinnaker.keel.scm
 
+import com.netflix.spectator.api.Registry
+import com.netflix.spectator.api.Tag
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactOriginFilter
 import com.netflix.spinnaker.keel.api.artifacts.branchName
 import com.netflix.spinnaker.keel.api.scm.CommitCreatedEvent
@@ -14,25 +16,32 @@ import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
 import com.netflix.spinnaker.keel.igor.ScmService
 import com.netflix.spinnaker.keel.igor.model.Branch
 import com.netflix.spinnaker.keel.persistence.KeelRepository
+import com.netflix.spinnaker.keel.scm.DeliveryConfigImportListener.Companion.CODE_EVENT_COUNTER
 import com.netflix.spinnaker.keel.test.submittedResource
+import com.netflix.spinnaker.kork.exceptions.SystemException
+import dev.minutest.TestContextBuilder
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.called
+import io.mockk.just
 import io.mockk.coEvery as every
 import io.mockk.mockk
+import io.mockk.runs
+import org.springframework.core.env.Environment
+import strikt.api.expectThat
+import strikt.assertions.contains
+import strikt.assertions.one
 import io.mockk.coVerify as verify
 
 class DeliveryConfigImportListenerTests : JUnit5Minutests {
   class Fixture {
     val repository: KeelRepository = mockk()
-
     val importer: DeliveryConfigImporter = mockk()
-
     val front50Cache: Front50Cache = mockk()
-
     val scmService: ScmService = mockk()
-
-    val subject = DeliveryConfigImportListener(repository, importer, front50Cache, scmService)
+    val springEnv: Environment = mockk()
+    val spectator: Registry = mockk()
+    val subject = DeliveryConfigImportListener(repository, importer, front50Cache, scmService, springEnv, spectator)
 
     val configuredApp = Application(
       name = "fnord",
@@ -88,6 +97,18 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
 
     fun setupMocks() {
       every {
+        springEnv.getProperty("keel.importDeliveryConfigs.enabled", Boolean::class.java, true)
+      } returns true
+
+      every {
+        spectator.counter(any(), any<Iterable<Tag>>())
+      } returns mockk {
+        every {
+          increment()
+        } just runs
+      }
+
+      every {
         front50Cache.allApplications()
       } returns listOf(configuredApp, notConfiguredApp)
 
@@ -132,6 +153,16 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
             repository.upsertDeliveryConfig(deliveryConfig)
           }
         }
+
+        test("a successful delivery config retrieval is counted") {
+          val tags = mutableListOf<Iterable<Tag>>()
+          verify {
+            spectator.counter(CODE_EVENT_COUNTER, capture(tags))
+          }
+          expectThat(tags).one {
+            contains(DELIVERY_CONFIG_RETRIEVAL_SUCCESS.toTags())
+          }
+        }
       }
 
       context("a commit event NOT matching the app repo is received") {
@@ -139,14 +170,7 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
           subject.handleCommitCreated(commitEventForAnotherRepo)
         }
 
-        test("the event is ignored") {
-          verify {
-            importer wasNot called
-          }
-          verify {
-            repository wasNot called
-          }
-        }
+        testEventIgnored()
       }
 
       context("a commit event NOT matching the app default branch is received") {
@@ -154,14 +178,7 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
           subject.handleCommitCreated(commitEventForAnotherBranch)
         }
 
-        test("the event is ignored") {
-          verify {
-            importer wasNot called
-          }
-          verify {
-            repository wasNot called
-          }
-        }
+        testEventIgnored()
       }
     }
 
@@ -175,14 +192,66 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
           subject.handleCommitCreated(commitEventForAnotherRepo)
         }
 
-        test("the event is ignored") {
+        testEventIgnored()
+      }
+    }
+
+    context("feature flag is disabled") {
+      before {
+        setupMocks()
+      }
+
+      context("a commit event matching the repo and branch is received") {
+        modifyFixture {
+          every {
+            springEnv.getProperty("keel.importDeliveryConfigs.enabled", Boolean::class.java, true)
+          } returns false
+        }
+
+        before {
+          subject.handleCommitCreated(commitEventForAnotherRepo)
+        }
+
+        testEventIgnored()
+      }
+    }
+
+    context("error scenarios") {
+      before {
+        setupMocks()
+      }
+
+      context("failure to retrieve delivery config") {
+        modifyFixture {
+          every {
+            importer.import(commitEvent, "spinnaker.yml")
+          } throws SystemException("oh noes!")
+        }
+
+        before {
+          subject.handleCommitCreated(commitEvent)
+        }
+
+        test("a delivery config retrieval error is counted") {
+          val tags = mutableListOf<Iterable<Tag>>()
           verify {
-            importer wasNot called
+            spectator.counter(CODE_EVENT_COUNTER, capture(tags))
           }
-          verify {
-            repository wasNot called
+          expectThat(tags).one {
+            contains(DELIVERY_CONFIG_RETRIEVAL_ERROR.toTags())
           }
         }
+      }
+    }
+  }
+
+  private fun TestContextBuilder<Fixture, Fixture>.testEventIgnored() {
+    test("the event is ignored") {
+      verify {
+        importer wasNot called
+      }
+      verify {
+        repository wasNot called
       }
     }
   }

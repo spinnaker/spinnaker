@@ -1,24 +1,20 @@
 package com.netflix.spinnaker.keel.titus
 
 import com.netflix.spectator.api.BasicTag
-import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
-import com.netflix.spinnaker.keel.api.action.Action
 import com.netflix.spinnaker.keel.api.action.ActionState
 import com.netflix.spinnaker.keel.api.actuation.SubjectType.VERIFICATION
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.titus.TitusServerGroup
-import com.netflix.spinnaker.keel.orca.ExecutionDetailResponse
 import com.netflix.spinnaker.keel.orca.OrcaService
+import com.netflix.spinnaker.keel.telemetry.safeIncrement
 import com.netflix.spinnaker.keel.titus.batch.ContainerJobConfig
 import com.netflix.spinnaker.keel.titus.batch.createRunJobStage
 import com.netflix.spinnaker.keel.titus.verification.LinkStrategy
 import com.netflix.spinnaker.keel.titus.verification.TASKS
 import com.netflix.spinnaker.keel.titus.verification.getLink
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -111,12 +107,5 @@ class ContainerRunner(
         BasicTag("imageId", imageId)
       )
     ).safeIncrement()
-  }
-
-  private fun Counter.safeIncrement() =
-  try {
-    increment()
-  } catch (ex: Exception) {
-    log.error("Exception incrementing {} counter: {}", id().name(), ex.message)
   }
 }

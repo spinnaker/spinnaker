@@ -83,7 +83,7 @@ class EnvironmentPromotionChecker(
                   environment = environment,
                   artifact = artifact,
                   versions = versionsToUse,
-                  vetoedVersions = (vetoedArtifacts[envPinKey(environment.name, artifact)]?.versions)
+                  vetoedVersions = (vetoedArtifacts[envPinKey(environment.name, artifact)]?.versions?.map { it.version })?.toSet()
                     ?: emptySet()
                 )
 
