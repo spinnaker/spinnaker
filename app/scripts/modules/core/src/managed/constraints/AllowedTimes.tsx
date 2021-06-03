@@ -57,7 +57,7 @@ const timeWindowToString = (window: AllowedTimeWindow, timeZone = 'PST') => {
   const hoursString = groupHours(window.hours);
   const daysString = groupDays(window.days);
   // A special treatment for PST as it's the most common timezone
-  const prettyTimezone = timeZone === 'America/Los_Angeles' ? 'PST' : timeZone;
+  const prettyTimezone = timeZone === 'America/Los_Angeles' ? 'PST' : timeZone || 'PST';
 
   return `${hoursString.join(', ')} on ${daysString.join(', ')} (${prettyTimezone})`;
 };
