@@ -1179,6 +1179,8 @@ class SqlArtifactRepository(
             gitMetadata = gitMetadata,
             buildMetadata = buildMetadata,
           )
+        }.filter {
+          artifact.hasMatchingSource(it.gitMetadata)
         }
     }
   }

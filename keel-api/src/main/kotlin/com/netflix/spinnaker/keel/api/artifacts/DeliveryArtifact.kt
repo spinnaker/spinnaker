@@ -85,15 +85,20 @@ data class ArtifactOriginFilter(
 // TODO: rename to `ArtifactSpec`
 abstract class DeliveryArtifact {
   abstract val name: String
-  @Discriminator abstract val type: ArtifactType
+  @Discriminator
+  abstract val type: ArtifactType
   abstract val sortingStrategy: SortingStrategy
+
   /** A friendly reference to use within a delivery config. */
   abstract val reference: String
+
   /** The delivery config this artifact is a part of. */
   @get:ExcludedFromDiff
   abstract val deliveryConfigName: String?
+
   /** A set of release statuses to filter by. Mutually exclusive with [from] filters. */
   open val statuses: Set<ArtifactStatus> = emptySet()
+
   /** Filters for the artifact origin in source control. */
   open val from: ArtifactOriginFilter? = null
 
@@ -112,6 +117,19 @@ abstract class DeliveryArtifact {
   @get:ExcludedFromDiff
   val filteredByReleaseStatus: Boolean
     get() = statuses.isNotEmpty()
+
+  fun hasMatchingSource(gitMetadata: GitMetadata?): Boolean {
+    return when {
+      this.filteredBySource && gitMetadata == null -> false
+      this.filteredByBranch && gitMetadata != null -> if (gitMetadata.branch == null) {
+        false
+      } else {
+        this.from?.branch?.matches(gitMetadata.branch) ?: true
+      }
+      this.filteredByPullRequest && gitMetadata != null -> gitMetadata.pullRequest != null
+      else -> true
+    }
+  }
 
   fun toArtifactVersion(version: String, status: ArtifactStatus? = null, createdAt: Instant? = null) =
     PublishedArtifact(
