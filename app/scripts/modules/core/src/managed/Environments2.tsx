@@ -2,10 +2,9 @@ import { UIView, useCurrentStateAndParams, useSref } from '@uirouter/react';
 import React from 'react';
 
 import { HorizontalTabs } from 'core/presentation/horizontalTabs/HorizontalTabs';
-import { logger } from 'core/utils';
 
 import { Routes } from './managed.states';
-import { MD_CATEGORY } from './utils/defaults';
+import { useLogEvent } from './utils/logging';
 
 import './Environments2.less';
 import './overview/baseStyles.less';
@@ -22,6 +21,7 @@ export const getIsNewUI = () => {
 export const UISwitcher = () => {
   const { state, params } = useCurrentStateAndParams();
   const isNewUI = getIsNewUI();
+  const logEvent = useLogEvent('uiSwitcher');
 
   const newUIstate =
     'home.applications.application.environments' +
@@ -39,7 +39,7 @@ export const UISwitcher = () => {
         } else {
           localStorage.setItem(uiFeatureFlag.key, uiFeatureFlag.value);
         }
-        logger.log({ category: MD_CATEGORY, action: 'ToggleNewUI', data: { mode: isNewUI ? 'old' : 'new' } });
+        logEvent({ action: isNewUI ? 'SwitchToOld' : 'SwitchToNew' });
         onClick(e);
       }}
       className="ui-switcher"
@@ -59,9 +59,16 @@ const tabs = Object.entries(tabsInternal).map(([key, title]) => ({ title, path: 
 
 // TODO: this is a temporary name until we remove the old view
 export const Environments2 = () => {
+  const logEvent = useLogEvent('EnvironmentsTab');
+
   return (
     <div className="vertical Environments2">
-      <HorizontalTabs tabs={tabs} />
+      <HorizontalTabs
+        tabs={tabs}
+        onClick={({ title, path }) => {
+          logEvent({ action: `Open_${title}`, data: { path } });
+        }}
+      />
       <UIView />
       {/* Some padding at the bottom */}
       <div style={{ minHeight: 32, minWidth: 32 }} />

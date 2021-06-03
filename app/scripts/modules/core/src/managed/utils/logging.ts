@@ -6,20 +6,19 @@ interface LogProps {
   action: string;
   application?: string;
   label?: string;
+  data?: Record<string, any>;
 }
 
-export const logEvent = ({ category, action, application, label }: LogProps) => {
-  logger.log({
-    category,
-    action: action,
-    data: { label: (application ? `${application}:` : ``) + label },
-  });
-};
+const CATEGORY_PREFIX = 'MD__';
 
-export const useLogEvent = (category: string) => {
+export const useLogEvent = (category: string, action?: string) => {
   const app = useApplicationContext();
-  return (props: Omit<LogProps, 'application' | 'category'>) => {
-    logEvent({ ...props, category, application: app?.name });
+  return (props?: Omit<Partial<LogProps>, 'application' | 'category'>) => {
+    logger.log({
+      category: `${CATEGORY_PREFIX}${category}`,
+      action: props?.action || action || '',
+      data: { label: props?.label, application: app?.name, ...props?.data },
+    });
   };
 };
 

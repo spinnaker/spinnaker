@@ -1,7 +1,7 @@
 import { groupBy } from 'lodash';
 import { DateTime } from 'luxon';
 
-import { useApplicationContext } from 'core/presentation';
+import { useApplicationContextSafe } from 'core/presentation';
 import { timeDiffToString } from 'core/utils';
 
 import { ACTION_DISPLAY_NAMES, getActionStatusData } from './VersionOperation';
@@ -107,8 +107,7 @@ export const useCreateVersionActions = ({
   isPinned,
   compareLinks,
 }: ICreateVersionActionsProps): VersionAction[] | undefined => {
-  const application = useApplicationContext();
-  if (!application) throw new Error('Application context is empty');
+  const application = useApplicationContextSafe();
 
   const basePayload = { application: application.name, environment, reference, version };
 

@@ -9,6 +9,7 @@ import { showManagedResourceHistoryModal } from '../resourceHistory/ManagedResou
 import { ResourceTitle } from '../resources/ResourceTitle';
 import { IResourceLinkProps, resourceManager } from '../resources/resourceRegistry';
 import { QueryResource } from './types';
+import { useLogEvent } from '../utils/logging';
 
 import './Resource.less';
 
@@ -71,6 +72,7 @@ const Status = ({
 export const Resource = ({ resource, environment }: { resource: QueryResource; environment: string }) => {
   const icon = resourceManager.getIcon(resource.kind);
   const app = useApplicationContextSafe();
+  const logEvent = useLogEvent('Resource');
 
   const account = resource.location?.account;
 
@@ -107,6 +109,7 @@ export const Resource = ({ resource, environment }: { resource: QueryResource; e
             onClick={(e) => {
               e.preventDefault();
               showManagedResourceHistoryModal({ id: resource.id, displayName: resource.displayName || resource.id });
+              logEvent({ action: 'ViewHistory' });
             }}
           >
             View history

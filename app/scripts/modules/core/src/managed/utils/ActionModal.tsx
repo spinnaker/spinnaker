@@ -12,7 +12,7 @@ import {
 } from 'core/presentation';
 
 import { Button } from '../Button';
-import { logEvent } from './logging';
+import { useLogEvent } from './logging';
 
 export interface IArtifactActionModalProps extends IModalComponentProps {
   title: string;
@@ -35,6 +35,7 @@ export const ActionModal: React.FC<IArtifactActionModalProps> = ({
   logCategory,
   children,
 }) => {
+  const logEvent = useLogEvent(logCategory || 'ActionModal', actionName);
   return (
     <>
       <ModalHeader className="truncate">{title}</ModalHeader>
@@ -42,22 +43,13 @@ export const ActionModal: React.FC<IArtifactActionModalProps> = ({
         initialValues={{}}
         onSubmit={async ({ comment }, { setSubmitting, setStatus }) => {
           if (withComment && !comment) return;
+          logEvent();
           try {
             await onAction(comment);
             onSuccess?.();
-            logCategory &&
-              logEvent({
-                category: [logCategory, actionName].join('::'),
-                action: actionName,
-              });
             closeModal?.();
           } catch (error) {
             setStatus({ error });
-            logCategory &&
-              logEvent({
-                category: [logCategory, actionName].join('::'),
-                action: `${actionName} - Failed`,
-              });
           } finally {
             setSubmitting(false);
           }

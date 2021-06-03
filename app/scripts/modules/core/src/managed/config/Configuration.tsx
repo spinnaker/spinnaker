@@ -9,6 +9,7 @@ import { useFetchApplicationManagementStatusQuery, useToggleManagementMutation }
 import spinner from '../overview/loadingIndicator.svg';
 import { ActionModal, IArtifactActionModalProps } from '../utils/ActionModal';
 import { MODAL_MAX_WIDTH, spinnerProps } from '../utils/defaults';
+import { useLogEvent } from '../utils/logging';
 
 const BTN_CLASSNAMES = 'btn md-btn sp-margin-s-top';
 
@@ -27,11 +28,14 @@ const managementStatusToContent = {
 
 export const Configuration = () => {
   const app = useApplicationContextSafe();
+  const logEvent = useLogEvent('Management');
+
   const appName = app.name;
   const { data, loading, refetch } = useFetchApplicationManagementStatusQuery({ variables: { appName } });
   const [toggleManagement, { loading: mutationInFlight }] = useToggleManagementMutation();
 
   const onShowToggleManagementModal = React.useCallback((shouldPause: boolean) => {
+    logEvent({ action: 'OpenModal', data: { shouldPause } });
     showModal(
       shouldPause ? DisableManagementModal : ResumeManagementModal,
       {
@@ -40,7 +44,7 @@ export const Configuration = () => {
           await toggleManagement({ variables: { application: appName, isPaused: shouldPause } });
           refetch();
         },
-        logCategory: 'App::Management',
+        logCategory: 'Management',
         onSuccess: refetch,
         withComment: false,
       },

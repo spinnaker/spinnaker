@@ -10,6 +10,7 @@ import { CopyToClipboard } from 'core/utils';
 import { RelativeTimestamp } from '../RelativeTimestamp';
 import { LifecycleEventSummary } from '../overview/artifact/utils';
 import { TOOLTIP_DELAY_SHOW } from '../utils/defaults';
+import { useLogEvent } from '../utils/logging';
 
 import './VersionMetadata.less';
 
@@ -20,7 +21,7 @@ export const MetadataElement: React.FC<{ className?: string }> = ({ className, c
 export interface VersionAction {
   onClick?: () => void;
   href?: string;
-  content: React.ReactNode;
+  content: string;
   disabled?: boolean;
 }
 
@@ -70,6 +71,7 @@ export interface IVersionMetadataActionsProps {
 }
 
 export const VersionMetadataActions = ({ id, actions }: IVersionMetadataActionsProps) => {
+  const logEvent = useLogEvent('ArtifactActions');
   return (
     <MetadataElement>
       <Dropdown id={id}>
@@ -79,7 +81,10 @@ export const VersionMetadataActions = ({ id, actions }: IVersionMetadataActionsP
             <MenuItem
               key={index}
               disabled={action.disabled}
-              onClick={action.onClick}
+              onClick={() => {
+                action.onClick?.();
+                logEvent({ action: `OpenModal - ${action.content}` });
+              }}
               href={action.href}
               target="_blank"
             >
@@ -197,8 +202,9 @@ interface IVersionBuildProps {
 }
 
 export const VersionBuild = ({ build, withPrefix }: IVersionBuildProps) => {
+  const logEvent = useLogEvent('ArtifactBuild', 'OpenBuild');
   const content = build.buildLink ? (
-    <a href={build.buildLink}>
+    <a href={build.buildLink} onClick={() => logEvent({ data: { build: build.buildNumber } })}>
       {withPrefix ? `Build ` : ''}#{build.buildNumber}
     </a>
   ) : (

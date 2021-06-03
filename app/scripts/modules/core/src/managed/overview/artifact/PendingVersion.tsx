@@ -8,6 +8,7 @@ import { RelativeTimestamp } from '../../RelativeTimestamp';
 import { QueryArtifact, QueryArtifactVersion } from '../types';
 import { useCreateVersionActions } from './utils';
 import { TOOLTIP_DELAY_SHOW } from '../../utils/defaults';
+import { useLogEvent } from '../../utils/logging';
 import { toPinnedMetadata, VersionMessageData } from '../../versionMetadata/MetadataComponents';
 import { getBaseMetadata, VersionMetadata } from '../../versionMetadata/VersionMetadata';
 
@@ -21,6 +22,7 @@ const NUM_VERSIONS_WHEN_COLLAPSED = 2;
 export const PendingVersions = ({ artifact, pendingVersions }: IPendingVersionsProps) => {
   const numVersions = pendingVersions?.length || 0;
   const [isExpanded, setIsExpanded] = React.useState(false);
+  const logEvent = useLogEvent('ArtifactPendingVersion');
 
   if (!pendingVersions || !numVersions) return null;
 
@@ -48,7 +50,10 @@ export const PendingVersions = ({ artifact, pendingVersions }: IPendingVersionsP
             <button
               type="button"
               className="btn btn-link show-more-versions"
-              onClick={() => setIsExpanded((state) => !state)}
+              onClick={() => {
+                setIsExpanded((state) => !state);
+                logEvent({ action: isExpanded ? 'ShowLess' : 'ShowMore' });
+              }}
             >
               {isExpanded ? 'Hide versions...' : 'Show all versions...'}
             </button>
