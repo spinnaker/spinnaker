@@ -85,7 +85,7 @@ class ImageTagger(
       "tags" to mapOf(
         "latest tested" to true,
         env to "environment:passed",
-        verificationId to "passed"
+        verificationId.take(128) to "passed"
       )
     )
 }
