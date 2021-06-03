@@ -9,6 +9,7 @@ import com.netflix.spinnaker.keel.activation.ApplicationUp
 import com.netflix.spinnaker.keel.actuation.ScheduledArtifactCheckStarting
 import com.netflix.spinnaker.keel.actuation.ScheduledEnvironmentCheckStarting
 import com.netflix.spinnaker.keel.actuation.ScheduledEnvironmentVerificationStarting
+import com.netflix.spinnaker.keel.actuation.ScheduledPostDeployActionRunStarting
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceCheckResult
 import com.netflix.spinnaker.keel.events.VerificationBlockedActuation
@@ -198,6 +199,11 @@ class TelemetryListener(
   @EventListener(ScheduledEnvironmentVerificationStarting::class)
   fun onScheduledVerificationCheckStarting(event: ScheduledEnvironmentVerificationStarting) {
     lastVerificationCheck.set(clock.instant())
+  }
+
+  @EventListener(ScheduledPostDeployActionRunStarting::class)
+  fun onScheduledPostDeployActionCheckStarting(event: ScheduledPostDeployActionRunStarting) {
+    lastPostDeployCheck.set(clock.instant())
   }
 
   @EventListener(ArtifactVersionVetoed::class)
