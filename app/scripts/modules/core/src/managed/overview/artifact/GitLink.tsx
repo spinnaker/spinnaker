@@ -24,12 +24,12 @@ export const GitLink = ({ gitMetadata: { commit, commitInfo, pullRequest }, asLi
         placement="top"
         Component={() => (
           <div className="git-commit-tooltip">
-            {commit && (
-              <a href={link} target="_blank" className="">
+            {commit && !asLink && (
+              <a href={link} target="_blank" className="horizontal sp-margin-m-bottom">
                 Open commit {commit}
               </a>
             )}
-            {commitInfo?.message && <Markdown className="sp-margin-m-top" message={commitInfo?.message} />}
+            {commitInfo?.message && <Markdown message={commitInfo?.message} />}
           </div>
         )}
       >
