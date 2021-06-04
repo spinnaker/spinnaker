@@ -31,6 +31,7 @@ import com.netflix.spinnaker.keel.api.ec2.HealthCheckType.ELB
 import com.netflix.spinnaker.keel.api.ec2.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.VirtualMachineImage
+import com.netflix.spinnaker.keel.api.generateId
 import com.netflix.spinnaker.keel.api.scm.CommitCreatedEvent
 import com.netflix.spinnaker.keel.api.titus.TitusClusterSpec
 import com.netflix.spinnaker.keel.api.titus.TitusServerGroupSpec
@@ -74,6 +75,7 @@ import io.mockk.runs
 import io.mockk.slot
 import strikt.api.expectThat
 import strikt.assertions.contains
+import strikt.assertions.endsWith
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.one
@@ -288,10 +290,14 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
           val branchDetail = commitEvent.targetBranch.replace("/", "-")
           val baseEnv = deliveryConfig.environments.first()
           val baseResource = baseEnv.resources.first() as Resource<Monikered>
+          val previewResource = previewEnv.captured.resources.first()
 
-          expectThat(previewEnv.captured.resources.first().spec)
+          expectThat(previewResource.spec)
             .isA<Monikered>()
             .get { moniker.detail }.isEqualTo("${baseResource.spec.moniker.detail}-$branchDetail")
+
+          expectThat(previewResource.id)
+            .endsWith("-$branchDetail")
         }
 
         test("the artifact reference in a resource is updated to match the preview environment branch filter") {

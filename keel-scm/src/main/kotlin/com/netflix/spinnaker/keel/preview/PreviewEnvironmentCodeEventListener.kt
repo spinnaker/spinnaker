@@ -205,12 +205,7 @@ class PreviewEnvironmentCodeEventListener(
     branchDetail: String
   ): Resource<T>? {
     // start by adding the branch detail to the moniker/name/id
-    var previewResource =  withBranchDetail(branchDetail)
-      .copy(metadata = mapOf(
-        // this is so the resource ID is updated with the new name (which is in the spec)
-        "id" to generateId(this.kind, this.spec),
-        "application" to application
-      ))
+    var previewResource = withBranchDetail(branchDetail)
 
     // update artifact reference if applicable to match the branch filter of the preview environment
     if (spec is ArtifactReferenceProvider) {
@@ -227,7 +222,8 @@ class PreviewEnvironmentCodeEventListener(
   }
 
   /**
-   * Adds the specified [branchDetail] to the [Moniker.detail] field of the [ResourceSpec].
+   * Adds the specified [branchDetail] to the [Moniker.detail] field of the [ResourceSpec],
+   * and updates the resource ID to match.
    */
   private fun <T : Monikered> Resource<T>.withBranchDetail(branchDetail: String): Resource<T> =
     copy(spec = objectMapper.convertValue<MutableMap<String, Any?>>(this.spec)
@@ -237,7 +233,17 @@ class PreviewEnvironmentCodeEventListener(
         }
         objectMapper.convertValue(newSpec, spec::class.java)
       }
-    )
+    ).run {
+      val newId = generateId(kind, spec).let {
+        // account for the case where the ID is not synthesized from the moniker
+        if (!it.contains(branchDetail)) "$it-$branchDetail" else it
+      }
+      copy(metadata = mapOf(
+        // this is so the resource ID is updated with the new name (which is in the spec)
+        "id" to newId,
+        "application" to application
+      ))
+    }
 
   /**
    * Replaces the artifact reference in the resource spec with the one matching the [PreviewEnvironmentSpec] branch
