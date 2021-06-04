@@ -2,6 +2,7 @@ package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
+import com.netflix.spinnaker.keel.front50.Front50Cache
 import com.netflix.spinnaker.keel.igor.artifact.ArtifactService
 import com.netflix.spinnaker.keel.igor.BuildService
 import com.netflix.spinnaker.keel.igor.ScmService
@@ -47,8 +48,9 @@ class IgorConfiguration {
   @Bean
   fun deliveryConfigImporter(
     objectMapper: ObjectMapper,
-    scmService: ScmService
-  ) = DeliveryConfigImporter(objectMapper, scmService)
+    scmService: ScmService,
+    front50Cache: Front50Cache
+  ) = DeliveryConfigImporter(objectMapper, scmService, front50Cache)
 
   private inline fun <reified T> buildService(
     objectMapper: ObjectMapper,

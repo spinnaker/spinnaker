@@ -23,7 +23,9 @@ import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.constraints.UpdatedConstraintStatus
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
+import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.events.ApplicationEvent
+import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
 import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.ResourceRepository.Companion.DEFAULT_MAX_EVENTS
 import com.netflix.spinnaker.keel.services.ApplicationService
@@ -51,7 +53,8 @@ import org.springframework.web.bind.annotation.RestController
 class ApplicationController(
   private val actuationPauser: ActuationPauser,
   private val applicationService: ApplicationService,
-  private val artifactConfig: ArtifactConfig
+  private val artifactConfig: ArtifactConfig,
+  private val deliveryConfigImporter: DeliveryConfigImporter
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -102,6 +105,15 @@ class ApplicationController(
   fun getConfigByApplication(
     @PathVariable("application") application: String
   ): DeliveryConfig = applicationService.getDeliveryConfig(application)
+
+  @GetMapping(
+    path = ["/{application}/config/raw"],
+    produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
+  )
+  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('READ', 'APPLICATION', #application)""")
+  fun getRawConfigByApplication(
+    @PathVariable("application") application: String
+  ): SubmittedDeliveryConfig = deliveryConfigImporter.import(application, addMetadata = false)
 
   @DeleteMapping(
     path = ["/{application}/config"]

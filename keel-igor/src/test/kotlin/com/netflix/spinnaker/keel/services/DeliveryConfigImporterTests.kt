@@ -6,7 +6,10 @@ import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.igor.ScmService
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
+import com.netflix.spinnaker.keel.front50.Front50Cache
+import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
+import com.netflix.spinnaker.keel.igor.model.Branch
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.configuredTestObjectMapper
 import com.netflix.spinnaker.keel.test.deliveryConfig
@@ -30,9 +33,17 @@ class DeliveryConfigImporterTests : JUnit5Minutests {
         )
       }
     val scmService: ScmService = mockk()
+    val front50Cache: Front50Cache = mockk()
+    val application = Application(
+      name = "test",
+      email = "keel@keel.io",
+      repoType = "stash",
+      repoProjectKey = "proj",
+      repoSlug = "repo"
+    )
     val deliveryConfig: DeliveryConfig = deliveryConfig()
     val submittedDeliveryConfig: SubmittedDeliveryConfig = jsonMapper.convertValue(deliveryConfig)
-    val importer = DeliveryConfigImporter(jsonMapper, scmService)
+    val importer = DeliveryConfigImporter(jsonMapper, scmService, front50Cache)
   }
 
   fun tests() = rootContext<Fixture> {
@@ -46,7 +57,7 @@ class DeliveryConfigImporterTests : JUnit5Minutests {
           } returns jsonMapper.convertValue(submittedDeliveryConfig)
         }
 
-        test("succeeds and includes import metadata") {
+        test("succeeds with metadata added") {
           val result = importer.import(
             repoType = "stash",
             projectKey = "proj",
@@ -68,6 +79,35 @@ class DeliveryConfigImporterTests : JUnit5Minutests {
               )
             )
           )
+        }
+
+        test("succeeds without metadata added") {
+          val result = importer.import(
+            repoType = "stash",
+            projectKey = "proj",
+            repoSlug = "repo",
+            manifestPath = "spinnaker.yml",
+            ref = "refs/heads/master",
+            addMetadata = false
+          )
+          expectThat(result).isEqualTo(submittedDeliveryConfig)
+        }
+
+        context("from application config") {
+          before {
+            every {
+              front50Cache.applicationByName("test")
+            } returns application
+
+            every {
+              scmService.getDefaultBranch("stash", "proj", "repo")
+            } returns Branch("main", "refs/heads/main", true)
+          }
+
+          test("retrieves the delivery config from the default branch without metadata") {
+            val result = importer.import("test", addMetadata = false)
+            expectThat(result).isEqualTo(submittedDeliveryConfig)
+          }
         }
       }
 
