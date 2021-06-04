@@ -80,12 +80,7 @@ module(MANAGED_STATES, [APPLICATION_STATE_PROVIDER]).config([
         children: [],
         redirectTo: (transition) => {
           if (isNewUI()) {
-            return {
-              state: 'home.applications.application.environments.history',
-              params: {
-                version: transition.params().version,
-              },
-            };
+            return transition.targetState().withState('home.applications.application.environments.history');
           }
           return undefined;
         },
@@ -103,9 +98,9 @@ module(MANAGED_STATES, [APPLICATION_STATE_PROVIDER]).config([
           },
         },
         children: [artifactVersion, ...routes],
-        redirectTo: () => {
+        redirectTo: (transition) => {
           if (isNewUI()) {
-            return 'home.applications.application.environments.overview';
+            return transition.targetState().withState('home.applications.application.environments.overview');
           }
           return undefined;
         },
