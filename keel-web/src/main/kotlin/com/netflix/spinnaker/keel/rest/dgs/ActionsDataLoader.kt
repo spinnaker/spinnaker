@@ -79,12 +79,12 @@ class ActionsDataLoader(
   }
 
   fun List<ActionStateFull>.toDgsList(ctx: ArtifactInEnvironmentContext, actionType: ActionType): List<MdAction> =
-      mapNotNull { it.toMdAction(ctx, actionType) }
+    mapNotNull { it.toMdAction(ctx, actionType) }
 
   fun ActionStateFull.toMdAction(ctx: ArtifactInEnvironmentContext, actionType: ActionType) =
     ctx.action(id)?.id?.let { actionId ->
       MdAction(
-        id = id,
+        id = "${ctx.deliveryConfig.application}-${ctx.environmentName}-${ctx.artifact.reference}-${ctx.version}-${actionType}-${id}",
         type = actionId,
         status = when (state.status) {
           ConstraintStatus.NOT_EVALUATED -> MdActionStatus.NOT_EVALUATED
