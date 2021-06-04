@@ -11,12 +11,21 @@ import './Environments2.less';
 import './overview/baseStyles.less';
 
 export const uiFeatureFlag = {
-  key: 'MD_new_ui',
+  key: 'MD_old_ui',
   value: '1',
 };
 
 export const getIsNewUI = () => {
-  return localStorage.getItem(uiFeatureFlag.key) === uiFeatureFlag.value;
+  return localStorage.getItem(uiFeatureFlag.key) !== uiFeatureFlag.value;
+};
+
+export const toggleIsNewUI = () => {
+  const isNew = getIsNewUI();
+  if (isNew) {
+    localStorage.setItem(uiFeatureFlag.key, uiFeatureFlag.value);
+  } else {
+    localStorage.removeItem(uiFeatureFlag.key);
+  }
 };
 
 export const UISwitcher = () => {
@@ -35,11 +44,7 @@ export const UISwitcher = () => {
     <a
       href={href}
       onClick={(e) => {
-        if (isNewUI) {
-          localStorage.removeItem(uiFeatureFlag.key);
-        } else {
-          localStorage.setItem(uiFeatureFlag.key, uiFeatureFlag.value);
-        }
+        toggleIsNewUI();
         logEvent({ action: isNewUI ? 'SwitchToOld' : 'SwitchToNew' });
         onClick(e);
       }}
