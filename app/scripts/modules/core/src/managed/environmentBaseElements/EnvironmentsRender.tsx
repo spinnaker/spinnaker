@@ -3,7 +3,7 @@ import { reverse } from 'lodash';
 import React from 'react';
 import { atom, useRecoilState } from 'recoil';
 
-import { useElementDimensions } from 'core/presentation/hooks/useDimensions.hook';
+import { useDimensions } from 'core/presentation/hooks/useDimensions.hook';
 import { logger } from 'core/utils';
 
 const STORAGE_KEY = 'MD_environmentsDirection';
@@ -25,7 +25,7 @@ const environmentsDirectionState = atom<Direction>({
 // The goal of this hook is to store the value in an atom to be shared across the app but also update the local storage
 const useEnvironmentDirection = () => {
   const [direction, setDirection] = useRecoilState(environmentsDirectionState);
-  React.useLayoutEffect(() => {
+  React.useEffect(() => {
     localStorage.setItem(STORAGE_KEY, direction);
   }, [direction]);
 
@@ -56,7 +56,7 @@ interface IEnvironmentsRenderProps {
 export const EnvironmentsRender = ({ className, children }: IEnvironmentsRenderProps) => {
   const { direction } = useEnvironmentDirection();
   const ref = React.useRef(null);
-  const { width } = useElementDimensions({ ref, isActive: direction === 'sideBySide' });
+  const { width } = useDimensions(ref, { isActive: direction === 'sideBySide' });
   let numEnvironments = 1;
   if (Array.isArray(children)) {
     numEnvironments = children.length;
