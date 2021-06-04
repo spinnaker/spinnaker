@@ -86,6 +86,10 @@ export class ManagedReader {
     return REST('/managed/application').path(app).query({ entities: 'resources' }).get().then(this.decorateResources);
   }
 
+  public static getDeliveryConfig(app: string): PromiseLike<string> {
+    return REST('/managed/application').path(app).path('config').headers({ Accept: 'application/x-yaml' }).get();
+  }
+
   public static getEnvironmentsSummary(app: string): PromiseLike<IManagedApplicationSummary> {
     return REST('/managed/application')
       .path(app)

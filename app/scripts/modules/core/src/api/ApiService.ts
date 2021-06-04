@@ -8,6 +8,10 @@ import { SETTINGS } from '../config/settings';
 type IPrimitive = string | boolean | number;
 type IParams = Record<string, IPrimitive | IPrimitive[]>;
 
+interface Headers {
+  [headerName: string]: string;
+}
+
 /**
  * A Builder API for making requests to Gate backend service
  */
@@ -17,6 +21,8 @@ export interface IRequestBuilder {
    * Each path segment is uri encoded.
    */
   path(...pathSegments: IPrimitive[]): this;
+
+  headers(headers: Headers): this;
 
   /** Adds query parameters to the URL */
   query(queryParams: IParams): this;
@@ -43,7 +49,7 @@ export interface IRequestBuilder {
 interface IRequestBuilderConfig {
   url: string;
   timeout?: number;
-  headers?: { [headerName: string]: string };
+  headers?: Headers;
   /** @deprecated used for AngularJS backwards compat */
   data?: any;
   params?: object;
@@ -172,6 +178,10 @@ export class RequestBuilder implements IRequestBuilder {
   path(...paths: IPrimitive[]) {
     const url = joinPaths(this.config.url, ...paths.map((path) => encodeURIComponent(path)));
     return this.builder({ ...this.config, url });
+  }
+
+  headers(headers: Headers) {
+    return this.builder({ ...this.config, headers: { ...this.config.headers, ...headers } });
   }
 
   // queryParams argument for backwards compat
