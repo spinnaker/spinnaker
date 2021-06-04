@@ -265,6 +265,10 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
       .versions
   }
 
+  /**
+   * This function creates [versions.size] versions for artifact [debianFilteredByBranchPattern],
+   * where only the first 15 of them have branch names that match the requested pattern
+   */
   private fun Fixture<T>.storeVersionsForDebianFilteredByBranchPattern(versions: List<String>) {
     subject.register(debianFilteredByBranchPattern)
     versions.forEachIndexed { index, version ->
@@ -287,6 +291,10 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
     }
   }
 
+  /**
+   * This function creates [versions.size] versions for artifact [debianFilteredByPullRequest],
+   * where only the first 10 of them have the PR info
+   */
   private fun Fixture<T>.storeVersionsForDebianFilteredByPullRequest(versions: List<String>) {
     subject.register(debianFilteredByPullRequest)
     versions.forEachIndexed { index, version ->
@@ -296,7 +304,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
           createdAt = clock.tickMinutes(10)
         ).copy(
           gitMetadata = artifactMetadata.gitMetadata!!.copy(
-            // half the "versions" don't have pull request info
+            // first 10 "versions" don't have pull request info
             pullRequest = if (index < 10) null else artifactMetadata.gitMetadata!!.pullRequest
           ),
           buildMetadata = artifactMetadata.buildMetadata
