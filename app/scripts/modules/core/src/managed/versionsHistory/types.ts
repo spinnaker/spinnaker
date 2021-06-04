@@ -9,7 +9,7 @@ export type SingleVersionEnvironment = NonNullable<FetchVersionQuery['applicatio
 export type SingleVersionArtifact = NonNullable<SingleVersionEnvironment['state']['artifacts']>[number];
 export type SingleVersionArtifactVersion = NonNullable<SingleVersionArtifact['versions']>[number];
 
-export interface VersionInEnvironment extends HistoryArtifactVersion {
+export interface HistoryArtifactVersionExtended extends HistoryArtifactVersion {
   reference: string;
   type: string;
 }
@@ -21,7 +21,7 @@ export interface VersionData {
   createdAt?: DateTime;
   isBaking?: boolean;
   isFocused?: boolean;
-  environments: { [env: string]: { versions: VersionInEnvironment[]; isPinned?: boolean } };
+  environments: { [env: string]: { versions: HistoryArtifactVersionExtended[]; isPinned?: boolean } };
   gitMetadata?: HistoryArtifactVersion['gitMetadata'];
   key: string;
 }

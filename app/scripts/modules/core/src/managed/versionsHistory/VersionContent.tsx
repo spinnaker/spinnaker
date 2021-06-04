@@ -5,11 +5,12 @@ import { useApplicationContextSafe } from 'core/presentation';
 
 import { BaseEnvironment } from '../environmentBaseElements/BaseEnvironment';
 import { EnvironmentItem } from '../environmentBaseElements/EnvironmentItem';
+import { EnvironmentsRender } from '../environmentBaseElements/EnvironmentsRender';
 import { useFetchVersionQuery } from '../graphql/graphql-sdk';
 import { ArtifactVersionTasks } from '../overview/artifact/ArtifactVersionTasks';
 import { Constraints } from '../overview/artifact/Constraints';
 import { useCreateVersionActions } from '../overview/artifact/utils';
-import { PinnedVersions, VersionData, VersionInEnvironment } from './types';
+import { HistoryArtifactVersionExtended, PinnedVersions, VersionData } from './types';
 import { toPinnedMetadata, VersionMessageData } from '../versionMetadata/MetadataComponents';
 import { getBaseMetadata, VersionMetadata } from '../versionMetadata/VersionMetadata';
 
@@ -17,7 +18,7 @@ import './VersionsHistory.less';
 
 interface IVersionInEnvironmentProps {
   environment: string;
-  version: VersionInEnvironment;
+  version: HistoryArtifactVersionExtended;
   envPinnedVersions?: PinnedVersions[keyof PinnedVersions];
 }
 
@@ -95,7 +96,7 @@ interface IVersionContentProps {
 
 export const VersionContent = ({ versionData, pinnedVersions }: IVersionContentProps) => {
   return (
-    <React.Fragment>
+    <EnvironmentsRender>
       {Object.entries(versionData.environments).map(([env, { versions }]) => {
         return (
           <BaseEnvironment key={env} title={env} size="small">
@@ -110,6 +111,6 @@ export const VersionContent = ({ versionData, pinnedVersions }: IVersionContentP
           </BaseEnvironment>
         );
       })}
-    </React.Fragment>
+    </EnvironmentsRender>
   );
 };

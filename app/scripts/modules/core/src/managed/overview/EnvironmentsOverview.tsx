@@ -7,6 +7,7 @@ import { Resource } from './Resource';
 import { Artifact } from './artifact/Artifact';
 import { ManagementWarning } from '../config/ManagementWarning';
 import { BaseEnvironment } from '../environmentBaseElements/BaseEnvironment';
+import { EnvironmentsRender } from '../environmentBaseElements/EnvironmentsRender';
 import { useFetchApplicationQuery, useFetchResourceStatusQuery } from '../graphql/graphql-sdk';
 import { QueryEnvironment } from './types';
 import { OVERVIEW_VERSION_STATUSES } from './utils';
@@ -40,7 +41,11 @@ export const EnvironmentsOverview = () => {
     <div className="EnvironmentsOverview">
       <ManagementWarning appName={app.name} />
       {environments.length ? (
-        environments.map((env) => <EnvironmentOverview key={env.name} environment={env} appName={app.name} />)
+        <EnvironmentsRender>
+          {environments.map((env) => (
+            <EnvironmentOverview key={env.name} environment={env} appName={app.name} />
+          ))}
+        </EnvironmentsRender>
       ) : (
         <div className="error-message">No environments found</div>
       )}

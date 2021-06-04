@@ -10,16 +10,17 @@ interface ITabProps {
 export interface IHorizontalTabsProps {
   tabs: ITabProps[];
   className?: string;
-  style?: React.CSSProperties;
   onClick?: (props: ITabProps) => void;
+  rightElement?: React.ReactElement;
 }
 
-export const HorizontalTabs = ({ tabs, className, style, onClick }: IHorizontalTabsProps) => {
+export const HorizontalTabs = ({ tabs, className, onClick, rightElement }: IHorizontalTabsProps) => {
   return (
-    <div className={classnames(className, 'HorizontalTabs')} style={style}>
+    <div className={classnames(className, 'HorizontalTabs')}>
       {tabs.map((tab) => (
         <TabTitle key={tab.path} data={tab} onClick={onClick} />
       ))}
+      {rightElement && <div className="right-element">{rightElement}</div>}
     </div>
   );
 };

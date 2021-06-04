@@ -3,6 +3,7 @@ import React from 'react';
 
 import { HorizontalTabs } from 'core/presentation/horizontalTabs/HorizontalTabs';
 
+import { EnvironmentsDirectionController } from './environmentBaseElements/EnvironmentsRender';
 import { Routes } from './managed.states';
 import { useLogEvent } from './utils/logging';
 
@@ -65,6 +66,7 @@ export const Environments2 = () => {
     <div className="vertical Environments2">
       <HorizontalTabs
         tabs={tabs}
+        rightElement={<EnvironmentsDirectionController />}
         onClick={({ title, path }) => {
           logEvent({ action: `Open_${title}`, data: { path } });
         }}
