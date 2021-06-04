@@ -96,7 +96,7 @@
     }
 
     &.vetoed {
-      background-color: var(--color-status-error);
+      background-color: var(--color-status-error-light);
     }
 
     &.current {
@@ -108,8 +108,7 @@
     }
 
     &.deploying {
-      color: var(--color-white);
-      background-color: var(--color-accent);
+      animation: deployingAnimation 2s infinite;
     }
   }
 }
