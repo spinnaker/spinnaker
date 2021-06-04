@@ -206,10 +206,11 @@ class PreviewEnvironmentCodeEventListener(
   ): Resource<T>? {
     // start by adding the branch detail to the moniker/name/id
     var previewResource =  withBranchDetail(branchDetail)
-      .copy(metadata = metadata.toMutableMap().also { metadata ->
+      .copy(metadata = mapOf(
         // this is so the resource ID is updated with the new name (which is in the spec)
-        metadata["id"] = generateId(this.kind, this.spec)
-      })
+        "id" to generateId(this.kind, this.spec),
+        "application" to application
+      ))
 
     // update artifact reference if applicable to match the branch filter of the preview environment
     if (spec is ArtifactReferenceProvider) {
