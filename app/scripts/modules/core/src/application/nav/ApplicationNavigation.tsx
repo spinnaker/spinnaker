@@ -51,11 +51,8 @@ export const ApplicationNavigation = ({ app }: IApplicationNavigationProps) => {
   });
 
   React.useEffect(() => {
-    appRefreshSubscription();
-
-    return () => {
-      appRefreshSubscription();
-    };
+    const unsubscribe = appRefreshSubscription();
+    return unsubscribe;
   }, []);
 
   const pageApplicationOwner = () => {
