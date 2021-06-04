@@ -117,12 +117,17 @@ public class KubernetesManifest extends HashMap<String, Object> {
   }
 
   @JsonIgnore
+  public String getGenerateName() {
+    return (String) getMetadata().get("generateName");
+  }
+
+  @JsonIgnore
   public boolean hasGenerateName() {
     if (!Strings.isNullOrEmpty(this.getName())) {
       // If a name is present, it will be used instead of a generateName
       return false;
     }
-    return !Strings.isNullOrEmpty((String) getMetadata().get("generateName"));
+    return !Strings.isNullOrEmpty(this.getGenerateName());
   }
 
   @JsonIgnore
@@ -133,6 +138,11 @@ public class KubernetesManifest extends HashMap<String, Object> {
   @JsonIgnore
   public void setName(String name) {
     getMetadata().put("name", name);
+  }
+
+  @JsonIgnore
+  public void setGenerateName(String name) {
+    getMetadata().put("generateName", name);
   }
 
   @JsonIgnore
@@ -325,7 +335,11 @@ public class KubernetesManifest extends HashMap<String, Object> {
 
   @JsonIgnore
   public String getFullResourceName() {
-    return getFullResourceName(getKind(), getName());
+    // To try to avoid "null" in the return value, use the generateName field if
+    // there's no name.  With neither name nor generateName, the return value
+    // still contains "null".
+    String name = Strings.isNullOrEmpty(getName()) ? getGenerateName() : getName();
+    return getFullResourceName(getKind(), name);
   }
 
   public static String getFullResourceName(KubernetesKind kind, String name) {
