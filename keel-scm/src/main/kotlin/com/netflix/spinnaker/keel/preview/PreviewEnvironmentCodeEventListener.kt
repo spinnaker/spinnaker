@@ -304,8 +304,13 @@ class PreviewEnvironmentCodeEventListener(
       val renamedDeps = (spec as Dependent).dependsOn.map { dep ->
         val candidate = baseEnvironment.resources.find { it.spec is Monikered && it.named(dep.name) }
         if (candidate != null) {
-          val newName = (candidate as Resource<Monikered>).withBranchDetail(branchDetail).name
-          Dependency(dep.type, dep.region, newName)
+          // special case for security group named after the app which is always included by default :-/
+          if (candidate.kind.kind.contains("security-group") && candidate.named(application)) {
+            dep
+          } else {
+            val newName = (candidate as Resource<Monikered>).withBranchDetail(branchDetail).name
+            Dependency(dep.type, dep.region, newName)
+          }
         } else {
           dep
         }

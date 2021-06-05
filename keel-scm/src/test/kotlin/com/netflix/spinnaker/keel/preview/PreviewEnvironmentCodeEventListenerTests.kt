@@ -6,6 +6,8 @@ import com.netflix.spectator.api.Timer
 import com.netflix.spinnaker.keel.api.ArtifactReferenceProvider
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Dependency
+import com.netflix.spinnaker.keel.api.DependencyType.GENERIC_RESOURCE
+import com.netflix.spinnaker.keel.api.DependencyType.SECURITY_GROUP
 import com.netflix.spinnaker.keel.api.Dependent
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Moniker
@@ -13,33 +15,16 @@ import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.PreviewEnvironmentSpec
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceDependency
-import com.netflix.spinnaker.keel.api.SimpleLocations
-import com.netflix.spinnaker.keel.api.SimpleRegionSpec
-import com.netflix.spinnaker.keel.api.SubnetAwareLocations
-import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactOriginFilter
 import com.netflix.spinnaker.keel.api.artifacts.DOCKER
 import com.netflix.spinnaker.keel.api.artifacts.branchName
 import com.netflix.spinnaker.keel.api.artifacts.branchStartsWith
-import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
-import com.netflix.spinnaker.keel.api.ec2.Capacity
-import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
-import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
-import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.HealthSpec
-import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
-import com.netflix.spinnaker.keel.api.ec2.HealthCheckType.ELB
-import com.netflix.spinnaker.keel.api.ec2.LaunchConfigurationSpec
+import com.netflix.spinnaker.keel.api.ec2.EC2_SECURITY_GROUP_V1
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
-import com.netflix.spinnaker.keel.api.ec2.VirtualMachineImage
-import com.netflix.spinnaker.keel.api.generateId
 import com.netflix.spinnaker.keel.api.scm.CommitCreatedEvent
-import com.netflix.spinnaker.keel.api.titus.TitusClusterSpec
-import com.netflix.spinnaker.keel.api.titus.TitusServerGroupSpec
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.core.api.SubmittedEnvironment
-import com.netflix.spinnaker.keel.docker.DigestProvider
-import com.netflix.spinnaker.keel.docker.ReferenceProvider
 import com.netflix.spinnaker.keel.front50.Front50Cache
 import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.front50.model.DataSources
@@ -132,7 +117,22 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
           region = locatableResource.spec.locations.regions.first().name,
           name = locatableResource.name,
           kind = locatableResource.kind
+        ),
+        Dependency(
+          type = SECURITY_GROUP,
+          region = locatableResource.spec.locations.regions.first().name,
+          name = "fnord"
         )
+      )
+    )
+
+    val defaultSecurityGroup = Resource(
+      kind = EC2_SECURITY_GROUP_V1.kind,
+      metadata = mapOf("id" to "fnord", "application" to "fnord"),
+      spec = SecurityGroupSpec(
+        moniker = Moniker("fnord"),
+        locations = locatableResource.spec.locations,
+        description = "default security group"
       )
     )
 
@@ -144,7 +144,7 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
       environments = setOf(
         Environment(
           name = "test",
-          resources = setOf(locatableResource, artifactReferenceResource, dependentResource)
+          resources = setOf(locatableResource, artifactReferenceResource, dependentResource, defaultSecurityGroup)
         )
       ),
       previewEnvironments = setOf(
@@ -313,12 +313,19 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
 
           expectThat(previewEnv.captured.resources.first { it.spec is DummyDependentResourceSpec }.spec)
             .isA<Dependent>()
-            .get { dependsOn.first().name }
+            .get { dependsOn.first { it.type == GENERIC_RESOURCE }.name }
             .isEqualTo(
               dependency.spec.moniker.let {
                 Moniker(it.app, it.stack, "${it.detail}-$branchDetail").toName()
               }
             )
+        }
+
+        test("the name of the default security group is not changed in the dependencies") {
+          expectThat(previewEnv.captured.resources.first { it.spec is DummyDependentResourceSpec }.spec)
+            .isA<Dependent>()
+            .get { dependsOn.first { it.type == SECURITY_GROUP }.name }
+            .isEqualTo(defaultSecurityGroup.name)
         }
       }
 
