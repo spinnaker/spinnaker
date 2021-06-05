@@ -1,3 +1,4 @@
+const colorMap = require('@spinnaker/styleguide/src/colorMap');
 const { nodeResolve } = require('@rollup/plugin-node-resolve');
 const commonjs = require('@rollup/plugin-commonjs');
 const json = require('@rollup/plugin-json');
@@ -8,6 +9,7 @@ const typescript = require('@rollup/plugin-typescript');
 const url = require('@rollup/plugin-url');
 const svgr = require('@svgr/rollup').default;
 const autoPrefixer = require('autoprefixer');
+const postCssColorFix = require('postcss-colorfix');
 const postCssNested = require('postcss-nested');
 const postCssUrl = require('postcss-url');
 const { visualizer } = require('rollup-plugin-visualizer');
@@ -43,6 +45,9 @@ const plugins = [
   postCss({
     plugins: [
       autoPrefixer(),
+      postCssColorFix({
+        colors: colorMap,
+      }),
       postCssNested(),
       postCssUrl({
         url: 'inline',

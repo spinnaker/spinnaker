@@ -1,6 +1,6 @@
 {
   "name": "@spinnaker/scripts",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "",
   "main": "index.js",
   "bin": {
@@ -18,10 +18,12 @@
     "@rollup/plugin-typescript": "^8.1.0",
     "@rollup/plugin-url": "^6.0.0",
     "@spinnaker/eslint-plugin": "^1.0.13",
+    "@spinnaker/styleguide": "^1.0.24",
     "@svgr/rollup": "^5.5.0",
     "autoprefixer": "^7.1.2",
     "chalk": "^4.1.1",
     "ora": "^5.4.0",
+    "postcss-colorfix": "0.0.4",
     "postcss-nested": "^4.2.1",
     "postcss-url": "9.0.0",
     "rollup": "^2.35.1",
