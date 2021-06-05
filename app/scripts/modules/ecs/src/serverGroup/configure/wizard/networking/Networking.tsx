@@ -19,7 +19,7 @@ interface IEcsNetworkingState {
   associatePublicIpAddress: boolean;
   networkMode: string;
   networkModesAvailable: string[];
-  securityGroups: string[];
+  securityGroupNames: string[];
   securityGroupsAvailable: string[];
   subnetTypes: string[];
   subnetTypesAvailable: ISubnet[];
@@ -46,7 +46,7 @@ export class EcsNetworking extends React.Component<IEcsNetworkingProps, IEcsNetw
       associatePublicIpAddress: cmd.associatePublicIpAddress,
       networkMode: cmd.networkMode,
       networkModesAvailable: cmd.backingData && cmd.backingData.networkModes ? cmd.backingData.networkModes : [],
-      securityGroups: cmd.securityGroups,
+      securityGroupNames: cmd.securityGroupNames,
       securityGroupsAvailable:
         cmd.backingData && cmd.backingData.filtered && cmd.backingData.filtered.securityGroupNames
           ? cmd.backingData.filtered.securityGroupNames
@@ -87,16 +87,24 @@ export class EcsNetworking extends React.Component<IEcsNetworkingProps, IEcsNetw
     const updatedSecurityGroups = Array.isArray(newSecurityGroups)
       ? newSecurityGroups.map((securityGroups) => securityGroups.value)
       : [];
-    this.props.notifyAngular('securityGroups', updatedSecurityGroups);
-    this.setState({ securityGroups: updatedSecurityGroups });
+    this.props.notifyAngular('securityGroupNames', updatedSecurityGroups);
+    this.setState({ securityGroupNames: updatedSecurityGroups });
   };
 
   private updateSubnetTypes = (newSubnetTypes: Option<string>) => {
+    const cmd = this.props.command;
     const updatedSubnetTypes = Array.isArray(newSubnetTypes)
       ? newSubnetTypes.map((subnetType) => subnetType.value)
       : [];
     this.props.notifyAngular('subnetTypes', updatedSubnetTypes);
-    this.setState({ subnetTypes: updatedSubnetTypes });
+    cmd.subnetTypeChanged(cmd);
+    this.setState({
+      subnetTypes: updatedSubnetTypes,
+      securityGroupsAvailable:
+        cmd.backingData && cmd.backingData.filtered && cmd.backingData.filtered.securityGroupNames
+          ? cmd.backingData.filtered.securityGroupNames
+          : [],
+    });
   };
 
   private updateAssociatePublicIpAddress = (usePublicIp: boolean) => {
@@ -139,7 +147,7 @@ export class EcsNetworking extends React.Component<IEcsNetworkingProps, IEcsNetw
       <TetheredSelect
         multi={true}
         options={securityGroupsAvailable}
-        value={this.state.securityGroups}
+        value={this.state.securityGroupNames}
         onChange={(e: Option) => {
           updateSecurityGroups(e as Option<string>);
         }}

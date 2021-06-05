@@ -31,10 +31,10 @@ angular
 
       $scope.$watch('form.$valid', function (newVal) {
         if (newVal) {
-          ModalWizard.markClean('location');
-          ModalWizard.markComplete('location');
+          ModalWizard.markClean('basicSettings');
+          ModalWizard.markComplete('basicSettings');
         } else {
-          ModalWizard.markIncomplete('location');
+          ModalWizard.markIncomplete('basicSettings');
         }
       });
     },
