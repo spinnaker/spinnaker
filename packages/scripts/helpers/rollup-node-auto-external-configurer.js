@@ -1,3 +1,4 @@
+const path = require('path');
 /**
  * `rollup-plugin-auto-external` plugin doesn't handle import statements with paths in them. For example
  * `bootstrap/dist/js/bootstrap` will not be treated as an external. This function is a very simple externals configurer
@@ -19,7 +20,7 @@ module.exports = (externals) => {
     const packageParts = id.split('/');
     if (packageParts.length > 1) {
       // If it is a scoped package, then include the second part of the package name.
-      const packageIdentifier = id.startsWith('@') ? packageParts[0] + packageParts[1] : packageParts[0];
+      const packageIdentifier = id.startsWith('@') ? packageParts[0] + path.sep + packageParts[1] : packageParts[0];
 
       return packageIdentifier in externals;
     }
