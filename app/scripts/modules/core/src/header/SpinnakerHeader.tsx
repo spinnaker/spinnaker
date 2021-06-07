@@ -9,8 +9,11 @@ import { HelpMenu } from 'core/help/HelpMenu';
 import { overridableComponent } from 'core/overrideRegistry';
 import { NgReact } from 'core/reactShims';
 import { GlobalSearch } from 'core/search/global/GlobalSearch';
+import { logger } from 'core/utils';
 
 import './SpinnakerHeader.css';
+
+const LOG_CATEGORY = 'Navbar';
 
 export const SpinnakerHeaderContent = () => {
   const { state: currentState } = useCurrentStateAndParams();
@@ -21,6 +24,7 @@ export const SpinnakerHeaderContent = () => {
   const toggleNav = () => {
     setVerticalNavExpanded(!verticalNavExpanded);
     CollapsibleSectionStateCache.setExpanded('verticalNav', !verticalNavExpanded);
+    logger.log({ category: LOG_CATEGORY, action: !verticalNavExpanded ? 'ExpandVerticalNav' : 'CollapseVerticalNav' });
   };
 
   const isDevicePhoneOrSmaller = () => {
@@ -35,6 +39,29 @@ export const SpinnakerHeaderContent = () => {
   const projectsSref = useSrefActive('home.projects', null, 'active');
   const appsSref = useSrefActive('home.applications', null, 'active');
   const templatesSref = useSrefActive('home.pipeline-templates', null, 'active');
+
+  const navItems = [
+    {
+      key: 'navHome',
+      text: 'Search',
+      srefProps: searchSref,
+    },
+    {
+      key: 'navProjects',
+      text: 'Projects',
+      srefProps: projectsSref,
+    },
+    {
+      key: 'navApplications',
+      text: 'Applications',
+      srefProps: appsSref,
+    },
+    {
+      key: 'navPipelineTemplates',
+      text: 'Pipeline Templates',
+      srefProps: templatesSref,
+    },
+  ];
 
   return (
     <nav className="container spinnaker-header" role="navigation" aria-label="Main Menu">
@@ -56,18 +83,22 @@ export const SpinnakerHeaderContent = () => {
       {navExpanded && (
         <div className="nav-container nav-items">
           <ul className="nav nav-items flex-1 page-nav">
-            <li key="navHome">
-              <a {...searchSref}>Search</a>
-            </li>
-            <li key="navProjects">
-              <a {...projectsSref}>Projects</a>
-            </li>
-            <li key="navApplications">
-              <a {...appsSref}>Applications</a>
-            </li>
-            <li key="navPipelineTemplates">
-              <a {...templatesSref}>Pipeline Templates</a>
-            </li>
+            {navItems.map((item) => {
+              const { onClick, ...restProps } = item.srefProps;
+              return (
+                <li key={item.key}>
+                  <a
+                    {...restProps}
+                    onClick={(e) => {
+                      onClick(e);
+                      logger.log({ category: LOG_CATEGORY, action: item.key });
+                    }}
+                  >
+                    {item.text}
+                  </a>
+                </li>
+              );
+            })}
             <GlobalSearch />
           </ul>
           <ul className="nav nav-items">
