@@ -27,6 +27,7 @@ import com.netflix.spinnaker.keel.persistence.DependentAttachFilter.ATTACH_NONE
 import com.netflix.spinnaker.keel.persistence.NoDeliveryConfigForApplication
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigName
 import com.netflix.spinnaker.keel.persistence.OrphanedResourceException
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ACTIVE_ENVIRONMENT_VERSION
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.CURRENT_CONSTRAINT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_ARTIFACT
@@ -376,6 +377,9 @@ class SqlDeliveryConfigRepository(
         .set(ENVIRONMENT_VERSION.VERSION, newVersion)
         .set(ENVIRONMENT_VERSION.CREATED_AT, clock.instant())
         .execute()
+
+      // make the new environment version 'active'
+      jooq.setActiveEnvironmentVersion(environmentUid, newVersion)
 
       jooq.insertInto(ENVIRONMENT_VERSION_ARTIFACT_VERSION)
         .columns(
@@ -1384,6 +1388,9 @@ class SqlDeliveryConfigRepository(
             .set(ENVIRONMENT_VERSION.CREATED_AT, clock.instant())
             .execute()
 
+          // make the new environment version 'active'
+          setActiveEnvironmentVersion(environmentUid, newVersion)
+
           // copy all existing resource versions to the new environment version
           insertInto(ENVIRONMENT_RESOURCE)
             .columns(
@@ -1437,6 +1444,26 @@ class SqlDeliveryConfigRepository(
         }
       }
     }
+  }
+
+  private fun DSLContext.setActiveEnvironmentVersion(uid: Select<Record1<String>>, version: Int) {
+    insertInto(ACTIVE_ENVIRONMENT_VERSION)
+      .set(ACTIVE_ENVIRONMENT_VERSION.ENVIRONMENT_UID, uid)
+      .set(ACTIVE_ENVIRONMENT_VERSION.ACTIVE_VERSION, version)
+      .onDuplicateKeyUpdate()
+      .set(ACTIVE_ENVIRONMENT_VERSION.ACTIVE_VERSION, version)
+      .where(ACTIVE_ENVIRONMENT_VERSION.ENVIRONMENT_UID.eq(uid))
+      .execute()
+  }
+
+  private fun DSLContext.setActiveEnvironmentVersion(uid: String, version: Int) {
+    insertInto(ACTIVE_ENVIRONMENT_VERSION)
+      .set(ACTIVE_ENVIRONMENT_VERSION.ENVIRONMENT_UID, uid)
+      .set(ACTIVE_ENVIRONMENT_VERSION.ACTIVE_VERSION, version)
+      .onDuplicateKeyUpdate()
+      .set(ACTIVE_ENVIRONMENT_VERSION.ACTIVE_VERSION, version)
+      .where(ACTIVE_ENVIRONMENT_VERSION.ENVIRONMENT_UID.eq(uid))
+      .execute()
   }
 
   private val DeliveryArtifact.uid

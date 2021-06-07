@@ -320,3 +320,6 @@ databaseChangeLog:
   - include:
       file: changelog/20210526-remove-deprecated-verification-fields.yaml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20210604-desired-environment-version.yaml
+      relativeToChangelogFile: true
