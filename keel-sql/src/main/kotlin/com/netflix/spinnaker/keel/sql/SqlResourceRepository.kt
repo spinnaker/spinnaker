@@ -19,12 +19,12 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DIFF_FINGERPRINT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_RESOURCE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.EVENT
-import com.netflix.spinnaker.keel.persistence.metamodel.Tables.LATEST_ENVIRONMENT
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ACTIVE_ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.PAUSED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_LAST_CHECKED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_VERSION
-import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_WITH_METADATA
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ACTIVE_RESOURCE
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.resources.SpecMigrator
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
@@ -92,9 +92,9 @@ open class SqlResourceRepository(
   private fun readResource(id: String, callback: (String, String, String) -> Resource<ResourceSpec>): Resource<ResourceSpec> =
     sqlRetry.withRetry(READ) {
       jooq
-        .select(RESOURCE_WITH_METADATA.KIND, RESOURCE_WITH_METADATA.METADATA, RESOURCE_WITH_METADATA.SPEC)
-        .from(RESOURCE_WITH_METADATA)
-        .where(RESOURCE_WITH_METADATA.ID.eq(id))
+        .select(ACTIVE_RESOURCE.KIND, ACTIVE_RESOURCE.METADATA, ACTIVE_RESOURCE.SPEC)
+        .from(ACTIVE_RESOURCE)
+        .where(ACTIVE_RESOURCE.ID.eq(id))
         .fetchOne()
         ?.let { (kind, metadata, spec) ->
           callback(kind, metadata, spec)
@@ -104,9 +104,9 @@ open class SqlResourceRepository(
   override fun getResourcesByApplication(application: String): List<Resource<*>> {
     return sqlRetry.withRetry(READ) {
       jooq
-        .select(RESOURCE_WITH_METADATA.KIND, RESOURCE_WITH_METADATA.METADATA, RESOURCE_WITH_METADATA.SPEC)
-        .from(RESOURCE_WITH_METADATA)
-        .where(RESOURCE_WITH_METADATA.APPLICATION.eq(application))
+        .select(ACTIVE_RESOURCE.KIND, ACTIVE_RESOURCE.METADATA, ACTIVE_RESOURCE.SPEC)
+        .from(ACTIVE_RESOURCE)
+        .where(ACTIVE_RESOURCE.APPLICATION.eq(application))
         .fetch()
         .map { (kind, metadata, spec) ->
           resourceFactory.invoke(kind, metadata, spec)
@@ -319,15 +319,15 @@ open class SqlResourceRepository(
     return sqlRetry.withRetry(WRITE) {
       jooq.inTransaction {
         select(
-          RESOURCE_WITH_METADATA.UID,
-          RESOURCE_WITH_METADATA.KIND,
-          RESOURCE_WITH_METADATA.METADATA,
-          RESOURCE_WITH_METADATA.SPEC,
-          RESOURCE_WITH_METADATA.APPLICATION,
+          ACTIVE_RESOURCE.UID,
+          ACTIVE_RESOURCE.KIND,
+          ACTIVE_RESOURCE.METADATA,
+          ACTIVE_RESOURCE.SPEC,
+          ACTIVE_RESOURCE.APPLICATION,
           RESOURCE_LAST_CHECKED.AT
         )
-          .from(RESOURCE_WITH_METADATA, RESOURCE_LAST_CHECKED)
-          .where(RESOURCE_WITH_METADATA.UID.eq(RESOURCE_LAST_CHECKED.RESOURCE_UID))
+          .from(ACTIVE_RESOURCE, RESOURCE_LAST_CHECKED)
+          .where(ACTIVE_RESOURCE.UID.eq(RESOURCE_LAST_CHECKED.RESOURCE_UID))
           .and(RESOURCE_LAST_CHECKED.AT.lessOrEqual(cutoff))
           .and(RESOURCE_LAST_CHECKED.IGNORE.notEqual(true))
           .orderBy(RESOURCE_LAST_CHECKED.AT)
@@ -374,11 +374,11 @@ open class SqlResourceRepository(
         val resourceUids =
           txn.select(ENVIRONMENT_RESOURCE.RESOURCE_UID)
             .from(ENVIRONMENT_RESOURCE)
-            .innerJoin(LATEST_ENVIRONMENT)
-            .on(LATEST_ENVIRONMENT.UID.eq(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID))
+            .innerJoin(ACTIVE_ENVIRONMENT)
+            .on(ACTIVE_ENVIRONMENT.UID.eq(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID))
             .innerJoin(DELIVERY_CONFIG)
-            .on(LATEST_ENVIRONMENT.DELIVERY_CONFIG_UID.eq(DELIVERY_CONFIG.UID))
-            .where(LATEST_ENVIRONMENT.NAME.eq(environmentName))
+            .on(ACTIVE_ENVIRONMENT.DELIVERY_CONFIG_UID.eq(DELIVERY_CONFIG.UID))
+            .where(ACTIVE_ENVIRONMENT.NAME.eq(environmentName))
             .and(DELIVERY_CONFIG.APPLICATION.eq(application))
             .fetch()
 

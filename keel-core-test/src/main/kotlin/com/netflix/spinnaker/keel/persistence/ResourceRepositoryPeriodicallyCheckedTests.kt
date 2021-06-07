@@ -6,6 +6,7 @@ import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.deliveryConfig
 import com.netflix.spinnaker.keel.test.resource
+import com.netflix.spinnaker.keel.test.withUpdatedResource
 
 abstract class ResourceRepositoryPeriodicallyCheckedTests<S : ResourceRepository> :
   PeriodicallyCheckedRepositoryTests<Resource<ResourceSpec>, S>() {
@@ -13,6 +14,7 @@ abstract class ResourceRepositoryPeriodicallyCheckedTests<S : ResourceRepository
   override val descriptor = "resource"
 
   abstract val storeDeliveryConfig: (DeliveryConfig) -> Unit
+  abstract fun deliveryConfigFor(resourceId: String): DeliveryConfig
 
   override val createAndStore: Fixture<Resource<ResourceSpec>, S>.(Int) -> Collection<Resource<ResourceSpec>> =
     { count ->
@@ -32,6 +34,12 @@ abstract class ResourceRepositoryPeriodicallyCheckedTests<S : ResourceRepository
       .let {
         it.copy(spec = it.spec.copy(data = randomString()))
       }
-      .also(subject::store)
+      .also {
+        subject.store(it)
+        val deliveryConfig = deliveryConfigFor(it.id)
+        storeDeliveryConfig(
+          deliveryConfig.withUpdatedResource(it)
+        )
+      }
   }
 }

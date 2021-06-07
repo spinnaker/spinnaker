@@ -46,3 +46,18 @@ fun deliveryConfig(
 ): DeliveryConfig {
   return deliveryConfig
 }
+
+/**
+ * @return this delivery config updated to replace an existing resource with a newer version.
+ */
+fun DeliveryConfig.withUpdatedResource(updatedResource: Resource<*>): DeliveryConfig =
+  copy(
+    environments = environments.mapTo(mutableSetOf()) { environment ->
+      if (environment.resources.any { it.id == updatedResource.id }) {
+        val newResources = environment.resources.filter { it.id != updatedResource.id } + updatedResource
+        environment.copy(resources = newResources.toSet())
+      } else {
+        environment
+      }
+    }
+  )

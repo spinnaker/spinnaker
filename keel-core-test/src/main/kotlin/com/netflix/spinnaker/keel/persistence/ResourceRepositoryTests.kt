@@ -189,15 +189,15 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
           }
         }
 
-        test("it replaces the original resource") {
+        test("the resource spec is unchanged until linked to a new environment version") {
           expectThat(subject.get<DummyResourceSpec>(resource.id))
             .get(Resource<*>::spec)
-            .isEqualTo(updatedResource.spec)
+            .isEqualTo(resource.spec)
         }
 
-        test("the resource version is incremented") {
+        test("the existing resource version still active until linked to a new environment version") {
           expectThat(subject.get<DummyResourceSpec>(resource.id))
-            .get(Resource<*>::version) isEqualTo 2
+            .get(Resource<*>::version) isEqualTo 1
         }
 
         test("history includes events for the previous version of the resource") {

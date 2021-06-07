@@ -323,3 +323,6 @@ databaseChangeLog:
   - include:
       file: changelog/20210604-desired-environment-version.yaml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20210607-rename-active-environment-view.yml
+      relativeToChangelogFile: true

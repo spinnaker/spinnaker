@@ -12,7 +12,7 @@ import com.netflix.spinnaker.keel.persistence.EnvironmentLeaseRepository
 import com.netflix.spinnaker.keel.persistence.Lease
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_LEASE
-import com.netflix.spinnaker.keel.persistence.metamodel.Tables.LATEST_ENVIRONMENT
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ACTIVE_ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.tables.records.EnvironmentLeaseRecord
 import org.jooq.DSLContext
 import org.jooq.exception.DataAccessException
@@ -146,12 +146,12 @@ class SqlEnvironmentLeaseRepository(
   }
 
   private fun getEnvironmentUid(deliveryConfig: DeliveryConfig, environment: Environment): String =
-    jooq.select(LATEST_ENVIRONMENT.UID)
+    jooq.select(ACTIVE_ENVIRONMENT.UID)
       .from(DELIVERY_CONFIG)
-      .join(LATEST_ENVIRONMENT)
-      .on(LATEST_ENVIRONMENT.DELIVERY_CONFIG_UID.eq(DELIVERY_CONFIG.UID))
+      .join(ACTIVE_ENVIRONMENT)
+      .on(ACTIVE_ENVIRONMENT.DELIVERY_CONFIG_UID.eq(DELIVERY_CONFIG.UID))
       .where(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
-      .and(LATEST_ENVIRONMENT.NAME.eq(environment.name))
+      .and(ACTIVE_ENVIRONMENT.NAME.eq(environment.name))
       .fetchOneInto<String>()
 
   /**

@@ -21,7 +21,7 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ACTION_STATE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_ARTIFACT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_LAST_VERIFIED
-import com.netflix.spinnaker.keel.persistence.metamodel.Tables.LATEST_ENVIRONMENT
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ACTIVE_ENVIRONMENT
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.resources.SpecMigrator
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
@@ -206,12 +206,12 @@ class SqlActionRepository(
       .from(ACTION_STATE)
       .join(DELIVERY_ARTIFACT)
       .on(DELIVERY_ARTIFACT.UID.eq(ACTION_STATE.ARTIFACT_UID))
-      .join(LATEST_ENVIRONMENT)
-      .on(LATEST_ENVIRONMENT.UID.eq(ACTION_STATE.ENVIRONMENT_UID))
+      .join(ACTIVE_ENVIRONMENT)
+      .on(ACTIVE_ENVIRONMENT.UID.eq(ACTION_STATE.ENVIRONMENT_UID))
       .join(DELIVERY_CONFIG)
-      .on(DELIVERY_CONFIG.UID.eq(LATEST_ENVIRONMENT.DELIVERY_CONFIG_UID))
+      .on(DELIVERY_CONFIG.UID.eq(ACTIVE_ENVIRONMENT.DELIVERY_CONFIG_UID))
       .where(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
-      .and(LATEST_ENVIRONMENT.NAME.eq(environment.name))
+      .and(ACTIVE_ENVIRONMENT.NAME.eq(environment.name))
       .and(ACTION_STATE.STATUS.eq(status))
       .fetch()
       .map { (artifactReference, version) ->
@@ -266,17 +266,17 @@ class SqlActionRepository(
         ACTION_STATE.LINK
       )
         .from(ctxTable)
-        .leftJoin(LATEST_ENVIRONMENT)
-        .on(LATEST_ENVIRONMENT.NAME.eq(contextTable.ENVIRONMENT_NAME))
+        .leftJoin(ACTIVE_ENVIRONMENT)
+        .on(ACTIVE_ENVIRONMENT.NAME.eq(contextTable.ENVIRONMENT_NAME))
         .leftJoin(DELIVERY_CONFIG)
-        .on(DELIVERY_CONFIG.UID.eq(LATEST_ENVIRONMENT.DELIVERY_CONFIG_UID))
+        .on(DELIVERY_CONFIG.UID.eq(ACTIVE_ENVIRONMENT.DELIVERY_CONFIG_UID))
         .leftJoin(DELIVERY_ARTIFACT)
         .on(DELIVERY_ARTIFACT.REFERENCE.eq(contextTable.ARTIFACT_REFERENCE))
         .leftJoin(ACTION_STATE)
         .on(ACTION_STATE.ARTIFACT_UID.eq(DELIVERY_ARTIFACT.UID))
         .and(ACTION_STATE.ARTIFACT_VERSION.eq(contextTable.ARTIFACT_VERSION))
         .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(DELIVERY_CONFIG.NAME))
-        .and(ACTION_STATE.ENVIRONMENT_UID.eq(LATEST_ENVIRONMENT.UID))
+        .and(ACTION_STATE.ENVIRONMENT_UID.eq(ACTIVE_ENVIRONMENT.UID))
         .and(ACTION_STATE.TYPE.eq(type))
         // execute the query
         .fetch()
@@ -341,17 +341,17 @@ class SqlActionRepository(
         ACTION_STATE.TYPE
       )
         .from(ctxTable)
-        .leftJoin(LATEST_ENVIRONMENT)
-        .on(LATEST_ENVIRONMENT.NAME.eq(contextTable.ENVIRONMENT_NAME))
+        .leftJoin(ACTIVE_ENVIRONMENT)
+        .on(ACTIVE_ENVIRONMENT.NAME.eq(contextTable.ENVIRONMENT_NAME))
         .leftJoin(DELIVERY_CONFIG)
-        .on(DELIVERY_CONFIG.UID.eq(LATEST_ENVIRONMENT.DELIVERY_CONFIG_UID))
+        .on(DELIVERY_CONFIG.UID.eq(ACTIVE_ENVIRONMENT.DELIVERY_CONFIG_UID))
         .leftJoin(DELIVERY_ARTIFACT)
         .on(DELIVERY_ARTIFACT.REFERENCE.eq(contextTable.ARTIFACT_REFERENCE))
         .leftJoin(ACTION_STATE)
         .on(ACTION_STATE.ARTIFACT_UID.eq(DELIVERY_ARTIFACT.UID))
         .and(ACTION_STATE.ARTIFACT_VERSION.eq(contextTable.ARTIFACT_VERSION))
         .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(DELIVERY_CONFIG.NAME))
-        .and(ACTION_STATE.ENVIRONMENT_UID.eq(LATEST_ENVIRONMENT.UID))
+        .and(ACTION_STATE.ENVIRONMENT_UID.eq(ACTIVE_ENVIRONMENT.UID))
         // execute the query
         .fetch()
 
@@ -496,11 +496,11 @@ class SqlActionRepository(
   private fun currentTimestamp() = clock.instant()
 
   private val ArtifactInEnvironmentContext.environmentUid: Select<Record1<String>>
-    get() = select(LATEST_ENVIRONMENT.UID)
-      .from(DELIVERY_CONFIG, LATEST_ENVIRONMENT)
+    get() = select(ACTIVE_ENVIRONMENT.UID)
+      .from(DELIVERY_CONFIG, ACTIVE_ENVIRONMENT)
       .where(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
-      .and(LATEST_ENVIRONMENT.NAME.eq(environment.name))
-      .and(LATEST_ENVIRONMENT.DELIVERY_CONFIG_UID.eq(DELIVERY_CONFIG.UID))
+      .and(ACTIVE_ENVIRONMENT.NAME.eq(environment.name))
+      .and(ACTIVE_ENVIRONMENT.DELIVERY_CONFIG_UID.eq(DELIVERY_CONFIG.UID))
 
   private val ArtifactInEnvironmentContext.artifactUid: Select<Record1<String>>
     get() = select(DELIVERY_ARTIFACT.UID)

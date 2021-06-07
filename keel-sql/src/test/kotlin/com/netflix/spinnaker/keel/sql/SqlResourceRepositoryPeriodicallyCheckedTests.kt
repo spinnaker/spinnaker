@@ -48,6 +48,9 @@ internal object SqlResourceRepositoryPeriodicallyCheckedTests :
 
   override val storeDeliveryConfig: (DeliveryConfig) -> Unit = deliveryConfigRepository::store
 
+  override fun deliveryConfigFor(resourceId: String): DeliveryConfig =
+    deliveryConfigRepository.deliveryConfigFor(resourceId)
+
   override fun flush() {
     cleanupDb(jooq)
   }

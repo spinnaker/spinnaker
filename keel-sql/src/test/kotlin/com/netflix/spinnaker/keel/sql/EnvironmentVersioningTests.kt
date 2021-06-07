@@ -17,7 +17,7 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_RESOURCE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_VERSION
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_VERSION_ARTIFACT_VERSION
-import com.netflix.spinnaker.keel.persistence.metamodel.Tables.LATEST_ENVIRONMENT
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ACTIVE_ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
@@ -362,9 +362,9 @@ class EnvironmentVersioningTests {
 
   private fun latestVersion() =
     jooq
-      .select(LATEST_ENVIRONMENT.VERSION)
-      .from(LATEST_ENVIRONMENT)
-      .fetchOne(LATEST_ENVIRONMENT.VERSION)
+      .select(ACTIVE_ENVIRONMENT.VERSION)
+      .from(ACTIVE_ENVIRONMENT)
+      .fetchOne(ACTIVE_ENVIRONMENT.VERSION)
 
   private fun Table<*>.count() =
     jooq.selectCount().from(this).fetchOneInto<Int>()

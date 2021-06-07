@@ -35,6 +35,7 @@ import com.netflix.spinnaker.keel.persistence.DependentAttachFilter.ATTACH_NONE
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.resource
+import com.netflix.spinnaker.keel.test.withUpdatedResource
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -552,7 +553,8 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
                 id = spec.id,
                 application = application
               )
-              resourceRepository.store(newResourceVersion)
+              val updatedResource = resourceRepository.store(newResourceVersion)
+              repository.store(deliveryConfig.withUpdatedResource(updatedResource))
             }
 
             expectThat(repository.get(deliveryConfig.name).resources)
@@ -642,7 +644,8 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
               copy(spec = DummyResourceSpec(id = id, application = application))
             }
 
-          resourceRepository.store(resource)
+          val updatedResource = resourceRepository.store(resource)
+          repository.store(deliveryConfig.withUpdatedResource(updatedResource))
         }
 
         test("retrieving the delivery config includes the new version of the resource") {
@@ -861,7 +864,6 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
           .none { get { artifacts }.isEmpty() }
           .none { get { environments }.isEmpty() }
           .all { get { previewEnvironments }.isEmpty() }
-
       }
     }
   }

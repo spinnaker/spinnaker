@@ -8,7 +8,7 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_ARTIFACT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_LAST_VERIFIED
-import com.netflix.spinnaker.keel.persistence.metamodel.Tables.LATEST_ENVIRONMENT
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ACTIVE_ENVIRONMENT
 import org.jooq.DSLContext
 import org.jooq.Record
 import org.jooq.SelectForUpdateStep
@@ -23,15 +23,15 @@ internal fun DSLContext.nextEnvironmentQuery(
   select(
     DELIVERY_CONFIG.UID,
     DELIVERY_CONFIG.NAME,
-    LATEST_ENVIRONMENT.UID,
-    LATEST_ENVIRONMENT.NAME,
+    ACTIVE_ENVIRONMENT.UID,
+    ACTIVE_ENVIRONMENT.NAME,
     DELIVERY_ARTIFACT.UID,
     DELIVERY_ARTIFACT.REFERENCE,
     ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION
   )
-    .from(LATEST_ENVIRONMENT)
+    .from(ACTIVE_ENVIRONMENT)
     .join(DELIVERY_CONFIG)
-    .on(DELIVERY_CONFIG.UID.eq(LATEST_ENVIRONMENT.DELIVERY_CONFIG_UID))
+    .on(DELIVERY_CONFIG.UID.eq(ACTIVE_ENVIRONMENT.DELIVERY_CONFIG_UID))
     // the application is not paused
     .andNotExists(
       selectOne()
@@ -41,14 +41,14 @@ internal fun DSLContext.nextEnvironmentQuery(
     )
     // join currently deployed artifact version
     .join(ENVIRONMENT_ARTIFACT_VERSIONS)
-    .on(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(LATEST_ENVIRONMENT.UID))
+    .on(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(ACTIVE_ENVIRONMENT.UID))
     .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(CURRENT))
     // join artifact
     .join(DELIVERY_ARTIFACT)
     .on(DELIVERY_ARTIFACT.UID.eq(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID))
     // left join so we get results even if there is no row in ENVIRONMENT_LAST_VERIFIED
     .leftJoin(ENVIRONMENT_LAST_VERIFIED)
-    .on(ENVIRONMENT_LAST_VERIFIED.ENVIRONMENT_UID.eq(LATEST_ENVIRONMENT.UID))
+    .on(ENVIRONMENT_LAST_VERIFIED.ENVIRONMENT_UID.eq(ACTIVE_ENVIRONMENT.UID))
     .and(ENVIRONMENT_LAST_VERIFIED.ARTIFACT_UID.eq(DELIVERY_ARTIFACT.UID))
     .and(ENVIRONMENT_LAST_VERIFIED.ARTIFACT_VERSION.eq(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION))
     // has not been checked recently (or has never been checked)

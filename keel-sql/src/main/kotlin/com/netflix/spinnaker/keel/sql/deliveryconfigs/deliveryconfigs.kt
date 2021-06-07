@@ -16,9 +16,9 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_ARTIFACT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG_ARTIFACT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_RESOURCE
-import com.netflix.spinnaker.keel.persistence.metamodel.Tables.LATEST_ENVIRONMENT
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ACTIVE_ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.PREVIEW_ENVIRONMENT
-import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_WITH_METADATA
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ACTIVE_RESOURCE
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.SqlStorageContext
 import com.netflix.spinnaker.keel.sql.mapToArtifact
@@ -91,17 +91,17 @@ internal fun SqlStorageContext.attachDependents(
     sqlRetry.withRetry(READ) {
       jooq
         .select(
-          LATEST_ENVIRONMENT.UID,
-          LATEST_ENVIRONMENT.NAME,
-          LATEST_ENVIRONMENT.VERSION,
-          LATEST_ENVIRONMENT.IS_PREVIEW,
-          LATEST_ENVIRONMENT.CONSTRAINTS,
-          LATEST_ENVIRONMENT.NOTIFICATIONS,
-          LATEST_ENVIRONMENT.VERIFICATIONS,
-          LATEST_ENVIRONMENT.POST_DEPLOY_ACTIONS
+          ACTIVE_ENVIRONMENT.UID,
+          ACTIVE_ENVIRONMENT.NAME,
+          ACTIVE_ENVIRONMENT.VERSION,
+          ACTIVE_ENVIRONMENT.IS_PREVIEW,
+          ACTIVE_ENVIRONMENT.CONSTRAINTS,
+          ACTIVE_ENVIRONMENT.NOTIFICATIONS,
+          ACTIVE_ENVIRONMENT.VERIFICATIONS,
+          ACTIVE_ENVIRONMENT.POST_DEPLOY_ACTIONS
         )
-        .from(LATEST_ENVIRONMENT)
-        .where(LATEST_ENVIRONMENT.DELIVERY_CONFIG_UID.eq(deliveryConfig.uid))
+        .from(ACTIVE_ENVIRONMENT)
+        .where(ACTIVE_ENVIRONMENT.DELIVERY_CONFIG_UID.eq(deliveryConfig.uid))
         .fetch { (environmentUid, name, _, isPreview, constraintsJson, notificationsJson, verifyWithJson, postDeployActionsJson) ->
           Environment(
             name = name,
@@ -126,15 +126,15 @@ internal fun SqlStorageContext.attachDependents(
     sqlRetry.withRetry(READ) {
       jooq
         .select(
-          LATEST_ENVIRONMENT.NAME,
+          ACTIVE_ENVIRONMENT.NAME,
           PREVIEW_ENVIRONMENT.BRANCH_FILTER,
           PREVIEW_ENVIRONMENT.NOTIFICATIONS,
           PREVIEW_ENVIRONMENT.VERIFICATIONS
         )
         .from(PREVIEW_ENVIRONMENT)
-        .innerJoin(LATEST_ENVIRONMENT)
-        .on(LATEST_ENVIRONMENT.DELIVERY_CONFIG_UID.eq(PREVIEW_ENVIRONMENT.DELIVERY_CONFIG_UID))
-        .and(LATEST_ENVIRONMENT.UID.eq(PREVIEW_ENVIRONMENT.BASE_ENVIRONMENT_UID))
+        .innerJoin(ACTIVE_ENVIRONMENT)
+        .on(ACTIVE_ENVIRONMENT.DELIVERY_CONFIG_UID.eq(PREVIEW_ENVIRONMENT.DELIVERY_CONFIG_UID))
+        .and(ACTIVE_ENVIRONMENT.UID.eq(PREVIEW_ENVIRONMENT.BASE_ENVIRONMENT_UID))
         .where(PREVIEW_ENVIRONMENT.DELIVERY_CONFIG_UID.eq(deliveryConfig.uid))
         .fetch { (baseEnvName, branchFilterJson, notificationsJson, verifyWithJson) ->
           PreviewEnvironmentSpec(
@@ -160,15 +160,15 @@ internal fun SqlStorageContext.resourcesForEnvironment(uid: String) =
   sqlRetry.withRetry(READ) {
     jooq
       .select(
-        RESOURCE_WITH_METADATA.KIND,
-        RESOURCE_WITH_METADATA.METADATA,
-        RESOURCE_WITH_METADATA.SPEC
+        ACTIVE_RESOURCE.KIND,
+        ACTIVE_RESOURCE.METADATA,
+        ACTIVE_RESOURCE.SPEC
       )
-      .from(RESOURCE_WITH_METADATA, ENVIRONMENT_RESOURCE, LATEST_ENVIRONMENT)
-      .where(RESOURCE_WITH_METADATA.UID.eq(ENVIRONMENT_RESOURCE.RESOURCE_UID))
-      .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(LATEST_ENVIRONMENT.UID))
-      .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_VERSION.eq(LATEST_ENVIRONMENT.VERSION))
-      .and(LATEST_ENVIRONMENT.UID.eq(uid))
+      .from(ACTIVE_RESOURCE, ENVIRONMENT_RESOURCE, ACTIVE_ENVIRONMENT)
+      .where(ACTIVE_RESOURCE.UID.eq(ENVIRONMENT_RESOURCE.RESOURCE_UID))
+      .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(ACTIVE_ENVIRONMENT.UID))
+      .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_VERSION.eq(ACTIVE_ENVIRONMENT.VERSION))
+      .and(ACTIVE_ENVIRONMENT.UID.eq(uid))
       .fetch { (kind, metadata, spec) ->
         resourceFactory.invoke(kind, metadata, spec)
       }

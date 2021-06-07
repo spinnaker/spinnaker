@@ -387,12 +387,12 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
               )
             }
 
-            test("stores the updated resource") {
+            test("does not return the updated resource until a new environment version is created") {
               expectThat(subject.getResource(resource.id)) {
-                get(Resource<*>::version) isEqualTo 2
+                get(Resource<*>::version) isEqualTo 1
                 get(Resource<*>::spec)
                 .isA<DummyResourceSpec>()
-                .get(DummyResourceSpec::data) isEqualTo "kthxbye"
+                .get(DummyResourceSpec::data) isEqualTo resource.spec.data
               }
             }
 

@@ -41,12 +41,12 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_RESOU
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_VERSION
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_VERSION_ARTIFACT_VERSION
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.EVENT
-import com.netflix.spinnaker.keel.persistence.metamodel.Tables.LATEST_ENVIRONMENT
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ACTIVE_ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.PAUSED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.PREVIEW_ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_VERSION
-import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_WITH_METADATA
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ACTIVE_RESOURCE
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.resources.SpecMigrator
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
@@ -485,20 +485,20 @@ class SqlDeliveryConfigRepository(
     sqlRetry.withRetry(READ) {
       jooq
         .select(
-          LATEST_ENVIRONMENT.UID,
-          LATEST_ENVIRONMENT.NAME,
-          LATEST_ENVIRONMENT.VERSION,
-          LATEST_ENVIRONMENT.IS_PREVIEW,
-          LATEST_ENVIRONMENT.CONSTRAINTS,
-          LATEST_ENVIRONMENT.NOTIFICATIONS,
-          LATEST_ENVIRONMENT.VERIFICATIONS,
-          LATEST_ENVIRONMENT.POST_DEPLOY_ACTIONS
+          ACTIVE_ENVIRONMENT.UID,
+          ACTIVE_ENVIRONMENT.NAME,
+          ACTIVE_ENVIRONMENT.VERSION,
+          ACTIVE_ENVIRONMENT.IS_PREVIEW,
+          ACTIVE_ENVIRONMENT.CONSTRAINTS,
+          ACTIVE_ENVIRONMENT.NOTIFICATIONS,
+          ACTIVE_ENVIRONMENT.VERIFICATIONS,
+          ACTIVE_ENVIRONMENT.POST_DEPLOY_ACTIONS
         )
-        .from(LATEST_ENVIRONMENT, ENVIRONMENT_RESOURCE, RESOURCE)
+        .from(ACTIVE_ENVIRONMENT, ENVIRONMENT_RESOURCE, RESOURCE)
         .where(RESOURCE.ID.eq(resourceId))
         .and(ENVIRONMENT_RESOURCE.RESOURCE_UID.eq(RESOURCE.UID))
-        .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(LATEST_ENVIRONMENT.UID))
-        .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_VERSION.eq(LATEST_ENVIRONMENT.VERSION))
+        .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(ACTIVE_ENVIRONMENT.UID))
+        .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_VERSION.eq(ACTIVE_ENVIRONMENT.VERSION))
         .fetchOne { (uid, name, _, isPreview, constraintsJson, notificationsJson, verifyWithJson, postDeployActionsJson) ->
           Environment(
             name = name,
@@ -535,12 +535,12 @@ class SqlDeliveryConfigRepository(
     sqlRetry.withRetry(READ) {
       jooq
         .select(DELIVERY_CONFIG.NAME)
-        .from(LATEST_ENVIRONMENT, ENVIRONMENT_RESOURCE, RESOURCE, DELIVERY_CONFIG)
+        .from(ACTIVE_ENVIRONMENT, ENVIRONMENT_RESOURCE, RESOURCE, DELIVERY_CONFIG)
         .where(RESOURCE.ID.eq(resourceId))
         .and(ENVIRONMENT_RESOURCE.RESOURCE_UID.eq(RESOURCE.UID))
-        .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(LATEST_ENVIRONMENT.UID))
-        .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_VERSION.eq(LATEST_ENVIRONMENT.VERSION))
-        .and(LATEST_ENVIRONMENT.DELIVERY_CONFIG_UID.eq(DELIVERY_CONFIG.UID))
+        .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(ACTIVE_ENVIRONMENT.UID))
+        .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_VERSION.eq(ACTIVE_ENVIRONMENT.VERSION))
+        .and(ACTIVE_ENVIRONMENT.DELIVERY_CONFIG_UID.eq(DELIVERY_CONFIG.UID))
         .fetchOne { (name) ->
           get(name)
         }
@@ -1305,12 +1305,12 @@ class SqlDeliveryConfigRepository(
           DELIVERY_CONFIG.APPLICATION,
           DELIVERY_CONFIG.SERVICE_ACCOUNT,
           DELIVERY_CONFIG.API_VERSION,
-          count(RESOURCE_WITH_METADATA.UID),
+          count(ACTIVE_RESOURCE.UID),
           PAUSED.NAME
         )
         .from(DELIVERY_CONFIG)
-        .leftOuterJoin(RESOURCE_WITH_METADATA)
-        .on(RESOURCE_WITH_METADATA.APPLICATION.eq(DELIVERY_CONFIG.APPLICATION))
+        .leftOuterJoin(ACTIVE_RESOURCE)
+        .on(ACTIVE_RESOURCE.APPLICATION.eq(DELIVERY_CONFIG.APPLICATION))
         .leftOuterJoin(PAUSED)
         .on(PAUSED.NAME.eq(DELIVERY_CONFIG.APPLICATION).and(PAUSED.SCOPE.eq(APPLICATION)))
         .groupBy(DELIVERY_CONFIG.APPLICATION)
