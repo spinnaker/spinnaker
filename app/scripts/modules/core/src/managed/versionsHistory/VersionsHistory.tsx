@@ -1,4 +1,4 @@
-import { RawParams, useCurrentStateAndParams } from '@uirouter/react';
+import { RawParams, useCurrentStateAndParams, useRouter } from '@uirouter/react';
 import { sortBy } from 'lodash';
 import { DateTime } from 'luxon';
 import React from 'react';
@@ -140,6 +140,7 @@ interface ISingleVersionProps {
 
 const SingleVersion = ({ versionData, pinnedVersions }: ISingleVersionProps) => {
   const ref = React.useRef<HTMLDivElement>(null);
+  const routerState = useRouter().stateService;
 
   React.useEffect(() => {
     if (versionData.isFocused && ref.current) {
@@ -156,6 +157,10 @@ const SingleVersion = ({ versionData, pinnedVersions }: ISingleVersionProps) => 
         expandIconType="arrowCross"
         defaultExpanded={versionData.isFocused}
         heading={({ chevron }) => <VersionHeading group={versionData} chevron={chevron} />}
+        onToggle={(isExpanded) => {
+          if (!isExpanded) return;
+          routerState.go('.', { sha: versionData.key }, { location: 'replace' });
+        }}
       >
         <VersionContent versionData={versionData} pinnedVersions={pinnedVersions} />
       </CollapsibleSection>

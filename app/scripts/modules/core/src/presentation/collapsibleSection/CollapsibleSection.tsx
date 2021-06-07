@@ -17,6 +17,7 @@ export interface ICollapsibleSectionProps {
   expandIconType?: 'arrow' | 'plus' | 'arrowCross';
   expandIconSize?: string;
   heading: ((props: { chevron: JSX.Element }) => JSX.Element) | string;
+  onToggle?: (isExpanded: boolean) => void;
 }
 
 export interface ICollapsibleSectionState {
@@ -47,6 +48,7 @@ export const CollapsibleSection: React.FC<ICollapsibleSectionProps> = ({
   expandIconPosition = 'left',
   expandIconType = 'arrow',
   expandIconSize,
+  onToggle,
   children,
 }) => {
   const cacheKey = React.useMemo(
@@ -64,6 +66,7 @@ export const CollapsibleSection: React.FC<ICollapsibleSectionProps> = ({
     if (enableCaching) {
       CollapsibleSectionStateCache.setExpanded(cacheKey, !isExpanded);
     }
+    onToggle?.(!isExpanded);
   };
 
   const expandIconProps: Partial<IIconProps> = {

@@ -45,7 +45,7 @@ const routes: Array<INestedState & { name: Routes }> = [
     children: [],
     params: {
       version: { isOptional: true, value: null },
-      sha: { isOptional: true, value: null },
+      sha: { isOptional: true, value: null, dynamic: true },
     },
     data: {
       pageTitleSection: {
