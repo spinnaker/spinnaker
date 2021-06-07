@@ -306,9 +306,11 @@ class PreviewEnvironmentCodeEventListener(
         if (candidate != null) {
           // special case for security group named after the app which is always included by default :-/
           if (candidate.kind.kind.contains("security-group") && candidate.named(application)) {
+            log.debug("Skipping dependency rename for default security group $application")
             dep
           } else {
             val newName = (candidate as Resource<Monikered>).withBranchDetail(branchDetail).name
+            log.debug("Renaming ${dep.type} dependency ${candidate.name} to $newName")
             Dependency(dep.type, dep.region, newName)
           }
         } else {
@@ -328,7 +330,7 @@ class PreviewEnvironmentCodeEventListener(
       ?: error("Environment '${previewEnvSpec.baseEnvironment}' referenced in preview environment spec not found.")
 
   private fun Resource<*>.named(name: String) =
-    (spec as? Monikered)?.moniker?.toString() == name
+    this.name == name
 
   private fun CodeEvent.emitCounterMetric(metric: String, extraTags: Collection<Pair<String, String>>, application: String? = null) =
     spectator.counter(metric, metricTags(application, extraTags) ).safeIncrement()
