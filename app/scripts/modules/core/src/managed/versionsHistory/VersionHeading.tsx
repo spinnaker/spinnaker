@@ -18,6 +18,7 @@ import {
   BaseVersionMetadata,
   MetadataBadge,
   VersionAuthor,
+  VersionBranch,
   VersionBuilds,
   VersionCreatedAt,
 } from '../versionMetadata/MetadataComponents';
@@ -105,6 +106,7 @@ export const VersionHeading = ({ group, chevron }: IVersionHeadingProps) => {
           {group.isBaking && <MetadataBadge type="baking" />}
           <VersionAuthor author={gitMetadata?.author} />
           <VersionBuilds builds={Array.from(group.buildNumbers).map((buildNumber) => ({ buildNumber }))} />
+          <VersionBranch branch={gitMetadata?.branch} />
           <VersionCreatedAt createdAt={group.createdAt} linkProps={{ sha: group.key }} />
         </BaseVersionMetadata>
         {/* Shows a badge for each environment with the status of the artifacts in it */}

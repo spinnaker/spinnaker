@@ -1,5 +1,6 @@
 import { useSref } from '@uirouter/react';
 import classnames from 'classnames';
+import { sortBy } from 'lodash';
 import { DateTime } from 'luxon';
 import React from 'react';
 import { Dropdown, MenuItem } from 'react-bootstrap';
@@ -203,6 +204,19 @@ export const VersionAuthor = ({ author }: IVersionAuthorProps) => {
   return <MetadataElement>By {author}</MetadataElement>;
 };
 
+interface IVersionBranchProps {
+  branch?: string;
+}
+
+export const VersionBranch = ({ branch }: IVersionBranchProps) => {
+  if (!branch) return null;
+  return (
+    <MetadataElement>
+      <Icon name="spCIBranch" size="11px" className="sp-margin-xs-right" color="concrete" /> {branch}
+    </MetadataElement>
+  );
+};
+
 interface IVersionBuildProps {
   build: { buildNumber?: string; buildLink?: string; version?: string };
   withPrefix?: boolean;
@@ -210,12 +224,13 @@ interface IVersionBuildProps {
 
 export const VersionBuild = ({ build, withPrefix }: IVersionBuildProps) => {
   const logEvent = useLogEvent('ArtifactBuild', 'OpenBuild');
+  const text = `${withPrefix ? `Build ` : ''}#${build.buildNumber}`;
   const content = build.buildLink ? (
     <a href={build.buildLink} onClick={() => logEvent({ data: { build: build.buildNumber } })}>
-      {withPrefix ? `Build ` : ''}#{build.buildNumber}
+      {text}
     </a>
   ) : (
-    `Build #${build.buildNumber}`
+    text
   );
 
   return build.version ? (
@@ -241,8 +256,11 @@ export const VersionBuilds = ({ builds }: IVersionBuildsProps) => {
       ) : (
         <>
           Builds{' '}
-          {builds.map((build, index) => (
-            <VersionBuild key={index} build={build} />
+          {sortBy(builds, (build) => build.buildNumber).map((build, index) => (
+            <React.Fragment key={index}>
+              <VersionBuild build={build} withPrefix={false} />
+              {Boolean(index < builds.length - 1) && ', '}
+            </React.Fragment>
           ))}
         </>
       )}
