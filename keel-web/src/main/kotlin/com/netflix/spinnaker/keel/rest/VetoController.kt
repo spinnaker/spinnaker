@@ -19,6 +19,7 @@ package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.veto.Veto
 import com.netflix.spinnaker.keel.veto.exceptions.VetoNotFoundException
+import com.netflix.spinnaker.keel.veto.unhappy.UnhappyVeto
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
@@ -26,15 +27,13 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping(path = ["/vetos"])
 class VetoController(
-  val vetos: List<Veto>
+  val vetos: List<Veto>,
+  val unhappyVeto: UnhappyVeto
 ) {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -46,21 +45,7 @@ class VetoController(
   fun getActiveVetos(): List<String> = vetos.map { it.name() }
 
   @GetMapping(
-    path = ["/{name}/message-format"],
-    produces = [APPLICATION_JSON_VALUE]
-  )
-  // TODO: authorization -- what can we index on here?
-  fun getVetoMessageFormat(@PathVariable name: String): Map<String, Any> {
-    val veto = vetos.find { it.name().equals(name, true) } ?: throw VetoNotFoundException(name)
-    return mapOf(
-      "messageURL" to "POST /vetos/{name}",
-      "name" to name,
-      "messageBodyFormat" to veto.messageFormat()
-    )
-  }
-
-  @GetMapping(
-    path = ["/{name}/rejections"],
+    path = ["/vetos/{name}/rejections"],
     produces = [APPLICATION_JSON_VALUE]
   )
   // TODO: authorization -- what can we index on here?
@@ -70,7 +55,7 @@ class VetoController(
   }
 
   @GetMapping(
-    path = ["/application/{application}/rejections"],
+    path = ["/vetos/application/{application}/rejections"],
     produces = [APPLICATION_JSON_VALUE]
   )
   // TODO: authorization -- what can we index on here?
@@ -80,13 +65,10 @@ class VetoController(
     }.flatten()
 
   @PostMapping(
-    path = ["/{name}"],
-    produces = [APPLICATION_JSON_VALUE]
+    path = ["/recheck/{resourceId}"]
   )
-  // TODO: authorization -- what can we index on here?
-  fun passMessage(@PathVariable name: String, @RequestBody message: Map<String, Any>) {
-    val veto = vetos.find { it.name().equals(name, true) } ?: throw VetoNotFoundException(name)
-    veto.passMessage(message)
+  fun recheckResource(@PathVariable resourceId: String) {
+    unhappyVeto.clearVeto(resourceId)
   }
 
   @ExceptionHandler(VetoNotFoundException::class)

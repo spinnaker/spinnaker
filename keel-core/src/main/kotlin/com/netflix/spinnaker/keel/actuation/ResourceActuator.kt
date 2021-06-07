@@ -131,7 +131,8 @@ class ResourceActuator(
           log.debug("Storing diff fingerprint for resource {} delta: {}", id, diff.toDebug())
           diffFingerprintRepository.store(id, diff)
         } else {
-          log.debug("Clearing diff fingerprint for resource {} (current == desired)", id)
+          val numActionsTaken = diffFingerprintRepository.actionTakenCount(id)
+          log.debug("Clearing diff fingerprint for resource {} (current == desired) - we took $numActionsTaken to try and resolve the diff", id)
           diffFingerprintRepository.clear(id)
         }
 

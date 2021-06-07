@@ -39,18 +39,6 @@ interface Veto {
   suspend fun check(resource: Resource<*>): VetoResponse
 
   /**
-   * The message format a veto accepts.
-   */
-  fun messageFormat(): Map<String, Any> = TODO("not implemented")
-
-  /**
-   * Pass a message to a veto.
-   */
-  fun passMessage(message: Map<String, Any>) {
-    TODO("not implemented")
-  }
-
-  /**
    * What's currently being vetoed.
    */
   fun currentRejections(): List<String> = TODO("not implemented")

@@ -17,11 +17,13 @@
  */
 package com.netflix.spinnaker.keel.veto
 
+import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.config.UnhappyVetoConfig
 import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
+import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.UnhappyVetoRepository
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.keel.veto.unhappy.UnhappyVeto
-import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -29,15 +31,13 @@ import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
-import io.mockk.slot
 import io.mockk.verify
 import kotlinx.coroutines.runBlocking
+import org.springframework.core.env.Environment
 import strikt.api.Assertion
 import strikt.api.expectThat
-import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import java.time.Duration
-import java.time.Instant
 
 class UnhappyVetoTests : JUnit5Minutests {
 
@@ -45,34 +45,43 @@ class UnhappyVetoTests : JUnit5Minutests {
     val clock = MutableClock()
     val unhappyRepository: UnhappyVetoRepository = mockk(relaxUnitFun = true)
     val diffFingerprintRepository: DiffFingerprintRepository = mockk()
-    private val dynamicConfigService: DynamicConfigService = mockk(relaxUnitFun = true) {
+    val resourceRepository: ResourceRepository = mockk()
+    val config = UnhappyVetoConfig()
+    private val springEnv: Environment = mockk(relaxUnitFun = true) {
       every {
-        getConfig(Int::class.java, "veto.unhappy.max-diff-count", any())
-      } returns 5
+        getProperty("keel.unhappy.maxRetries", Int::class.java, any())
+      } returns config.maxRetries
       every {
-        getConfig(String::class.java, "veto.unhappy.waiting-time", any())
-      } returns "PT10M"
+        getProperty("keel.unhappy.timeBetweenRetries", Duration::class.java, any())
+      } returns config.timeBetweenRetries
     }
-    val subject = UnhappyVeto(diffFingerprintRepository, unhappyRepository, dynamicConfigService, "PT10M", clock)
+    val subject = UnhappyVeto(
+      diffFingerprintRepository,
+      unhappyRepository,
+      resourceRepository,
+      springEnv,
+      config,
+      NoopRegistry(),
+      clock
+    )
 
     val r = resource()
     var result: VetoResponse? = null
     fun check() {
       result = runBlocking { subject.check(r) }
     }
-    val recheckTime = slot<Instant>()
   }
 
   fun tests() = rootContext<Fixture> {
     fixture { Fixture() }
 
-    context("number of actions taken on resource diff within allowed limit") {
+    context("number of actions taken on resource diff is 0") {
       before {
-        every { diffFingerprintRepository.actionTakenCount(r.id) } returns 1
+        every { diffFingerprintRepository.actionTakenCount(r.id) } returns 0
         check()
       }
 
-      test("happy resources aren't vetoed") {
+      test("resource is not vetoed") {
         expectThat(result).isNotNull().isAllowed()
       }
 
@@ -81,83 +90,96 @@ class UnhappyVetoTests : JUnit5Minutests {
       }
     }
 
-    context("number or actions taken on resource diff above allowed limit") {
+    context("number of actions taken on resource diff is 1") {
       before {
-        every { diffFingerprintRepository.actionTakenCount(r.id) } returns 11
+        every { diffFingerprintRepository.actionTakenCount(r.id) } returns 1
 
         every {
-          unhappyRepository.markUnhappy(r, capture(recheckTime))
+          unhappyRepository.markUnhappy(r, any())
         } just Runs
 
         every {
           unhappyRepository.getRecheckTime(r)
-        } answers {
-          if (recheckTime.isCaptured) recheckTime.captured else null
-        }
+        } returns null
+
+        clock.reset()
+        check()
       }
 
-      context("recheck time has not yet expired") {
-        before {
-          clock.reset()
-          check()
-        }
 
-        test("unhappy resources are vetoed") {
-          expectThat(result).isNotNull().isNotAllowed()
-        }
-
-        test("veto status is not cleared") {
-          verify(exactly = 0) { unhappyRepository.delete(r) }
-        }
-
-        test("recheck time is set") {
-          expectThat(recheckTime.captured).isEqualTo(clock.instant() + Duration.ofMinutes(10))
-        }
-
-        context("some time elapsed but still before recheck time") {
-          before {
-            clock.tickMinutes(5)
-            check()
-          }
-
-          test("resource still vetoed, but recheck time is untouched") {
-            expectThat(result).isNotNull().isNotAllowed()
-            expectThat(recheckTime.captured).isEqualTo(clock.instant() + Duration.ofMinutes(5))
-          }
-        }
+      test("the resource check is denied") {
+        expectThat(result).isNotNull().isNotAllowed()
       }
 
-      context("recheck time has expired") {
-        before {
-          clock.reset()
-          // first check sets the recheck time
-          check()
-          clock.tickMinutes(11)
-          // second check compares the recheck time
-          check()
-        }
-
-        test("should allow recheck of unhappy resource") {
-          expectThat(result).isNotNull().isAllowed()
-        }
-
-        test("should update recheck time") {
-          verify { unhappyRepository.markUnhappy(r, any()) }
-          expectThat(recheckTime.captured).isEqualTo(clock.instant() + Duration.ofMinutes(10))
-        }
+      test("veto status is not cleared") {
+        verify(exactly = 0) { unhappyRepository.delete(r) }
       }
 
-      context("with a null recheck expiry time") {
-        before {
-          every {
-            unhappyRepository.getRecheckTime(r)
-          } returns null
-          check()
-        }
+      test("resource is marked unhappy") {
+        verify(exactly = 1) { unhappyRepository.markUnhappy(r, clock.instant() + config.timeBetweenRetries) }
+      }
+    }
 
-        test("should veto unhappy resource") {
-          expectThat(result).isNotNull().isNotAllowed()
-        }
+    context("num actions taken is 1, but waiting time is over") {
+      before {
+        every { diffFingerprintRepository.actionTakenCount(r.id) } returns 1
+
+        every {
+          unhappyRepository.markUnhappy(r, any())
+        } just Runs
+
+        every {
+          unhappyRepository.getRecheckTime(r)
+        } returns clock.instant().minusSeconds(60)
+
+        clock.reset()
+        check()
+      }
+
+      test("recheck is allowed after the waiting time") {
+        check()
+        expectThat(result).isNotNull().isAllowed()
+      }
+    }
+
+
+    context("number of actions taken on resource diff is more than max actions") {
+      before {
+        every { diffFingerprintRepository.actionTakenCount(r.id) } returns config.maxRetries
+
+        every {
+          unhappyRepository.markUnhappy(r, any())
+        } just Runs
+
+        clock.reset()
+        check()
+      }
+
+
+      test("the resource is vetoed") {
+        expectThat(result).isNotNull().isNotAllowed()
+      }
+
+      test("veto status is not cleared") {
+        verify(exactly = 0) { unhappyRepository.delete(r) }
+      }
+
+      test("resource is marked unhappy") {
+        verify(exactly = 1) { unhappyRepository.markUnhappy(r, null) }
+      }
+    }
+
+    context("clearing a rejection") {
+      before {
+        every { resourceRepository.get(any()) } returns r
+        every { diffFingerprintRepository.clear(any()) } just Runs
+      }
+
+      test("clears the veto and the diff") {
+        subject.clearVeto(r.id)
+
+        verify(exactly = 1) { unhappyRepository.delete(r) }
+        verify(exactly = 1) { diffFingerprintRepository.clear(r.id) }
       }
     }
   }

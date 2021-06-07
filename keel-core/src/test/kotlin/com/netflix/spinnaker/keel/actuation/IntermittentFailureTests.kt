@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.actuation
 
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.config.UnhappyVetoConfig
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
@@ -61,9 +62,16 @@ class IntermittentFailureTests : JUnit5Minutests {
       every { isPaused(any<String>()) } returns false
       every { isPaused(any<Resource<*>>()) } returns false
     }
+    val config = UnhappyVetoConfig()
     val springEnv: SpringEnvironment = mockk(relaxed = true) {
       every { getProperty("keel.events.diff-not-actionable.enabled", Boolean::class.java, any()) } returns true
       every { getProperty("keel.enforcement.environment-exclusion.enabled", Boolean::class.java, any()) } returns true
+      io.mockk.every {
+        getProperty("keel.unhappy.maxRetries", Int::class.java, any())
+      } returns config.maxRetries
+      io.mockk.every {
+        getProperty("keel.unhappy.timeBetweenRetries", Duration::class.java, any())
+      } returns config.timeBetweenRetries
     }
     val plugin1 = mockk<ResourceHandler<DummyResourceSpec, DummyResourceSpec>>(relaxUnitFun = true) {
       every { name } returns "plugin1"
@@ -83,22 +91,13 @@ class IntermittentFailureTests : JUnit5Minutests {
 
     val environmentExclusionEnforcer = EnvironmentExclusionEnforcer(springEnv, verificationRepository, artifactRepository, environmentLeaseRepository)
 
-    val dynamicConfigService: DynamicConfigService = mockk(relaxUnitFun = true) {
-      every {
-        // mimicking how a cluster is set up
-        getConfig(Int::class.java, "veto.unhappy.max-diff-count", any())
-      } returns 2
-      every {
-        // mimicking how a cluster is set up
-        getConfig(String::class.java, "veto.unhappy.waiting-time", any())
-      } returns "PT0S" // Duration.ZERO
-    }
-
     val veto = UnhappyVeto(
       diffFingerprintRepository,
       vetoRepository,
-      dynamicConfigService,
-      "PT10M",
+      resourceRepository,
+      springEnv,
+      config,
+      NoopRegistry(),
       clock
     )
     val vetoEnforcer = VetoEnforcer(listOf(veto))
@@ -153,20 +152,6 @@ class IntermittentFailureTests : JUnit5Minutests {
         before {
           // diff has happened twice
           every { diffFingerprintRepository.actionTakenCount(resource.id) } returns 2
-          every { plugin1.willTakeAction(resource, any()) } returns ActionDecision()
-
-          runBlocking { subject.checkResource(resource) }
-        }
-
-        test("update happens") {
-          verify { plugin1.update(resource, any()) }
-        }
-      }
-
-      context("diff seen third time") {
-        before {
-          // diff has happened thrice
-          every { diffFingerprintRepository.actionTakenCount(resource.id) } returns 3
         }
 
         context("resource is still in a diff state") {
@@ -176,7 +161,7 @@ class IntermittentFailureTests : JUnit5Minutests {
             runBlocking { subject.checkResource(resource) }
           }
 
-          test("vetoed because diff seen 3 times, so no actuation") {
+          test("vetoed because diff has been seen and waiting time has not expired") {
             verify(exactly = 0) { plugin1.update(resource, any()) }
           }
         }

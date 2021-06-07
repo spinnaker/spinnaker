@@ -82,7 +82,9 @@ internal class ResourceActuatorTests : JUnit5Minutests {
     val resourceRepository = mockk<ResourceRepository>()
     val artifactRepository = mockk<ArtifactRepository>()
     val deliveryConfigRepository = mockk<DeliveryConfigRepository>()
-    val diffFingerprintRepository = mockk<DiffFingerprintRepository>(relaxUnitFun = true)
+    val diffFingerprintRepository = mockk<DiffFingerprintRepository>(relaxUnitFun = true) {
+      every { actionTakenCount(any()) } returns 0
+    }
     val actuationPauser: ActuationPauser = mockk() {
       every { isPaused(any<String>()) } returns false
       every { isPaused(any<Resource<*>>()) } returns false

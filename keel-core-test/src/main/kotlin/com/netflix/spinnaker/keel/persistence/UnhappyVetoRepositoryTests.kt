@@ -65,7 +65,7 @@ abstract class UnhappyVetoRepositoryTests<T : UnhappyVetoRepository> : JUnit5Min
 
     context("basic operations") {
       before {
-        subject.markUnhappy(resource)
+        subject.markUnhappy(resource, clock.instant() + waitDuration)
       }
 
       test("marking unhappy works") {
@@ -84,7 +84,7 @@ abstract class UnhappyVetoRepositoryTests<T : UnhappyVetoRepository> : JUnit5Min
 
     context("filtering") {
       before {
-        subject.markUnhappy(resource)
+        subject.markUnhappy(resource, clock.instant() + waitDuration)
       }
       test("filters out resources that are past the recheck time") {
         clock.incrementBy(Duration.ofMinutes(11))
@@ -103,7 +103,7 @@ abstract class UnhappyVetoRepositoryTests<T : UnhappyVetoRepository> : JUnit5Min
       before {
         resources.forEach {
           store(it)
-          subject.markUnhappy(it)
+          subject.markUnhappy(it, clock.instant() + waitDuration)
         }
       }
 

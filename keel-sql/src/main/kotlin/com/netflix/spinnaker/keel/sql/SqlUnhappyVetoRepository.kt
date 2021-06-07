@@ -81,6 +81,14 @@ class SqlUnhappyVetoRepository(
         .toSet()
     }
 
+  override fun getNumberOfRejections(): Int =
+    sqlRetry.withRetry(READ) {
+      jooq.selectCount()
+        .from(UNHAPPY_VETO)
+        .fetchSingle()
+        .value1()
+    }
+
   override fun getAllForApp(application: String): Set<String> =
     sqlRetry.withRetry(READ) {
       jooq.select(RESOURCE.ID)

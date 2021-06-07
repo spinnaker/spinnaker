@@ -5,7 +5,6 @@ import com.netflix.spinnaker.keel.api.DependencyType.SECURITY_GROUP
 import com.netflix.spinnaker.keel.api.Dependent
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
-import com.netflix.spinnaker.keel.api.UnhappyControl
 import com.netflix.spinnaker.keel.api.ec2.LoadBalancerType.CLASSIC
 import com.netflix.spinnaker.keel.api.schema.Optional
 import java.time.Duration
@@ -19,18 +18,13 @@ data class ClassicLoadBalancerSpec(
   val listeners: Set<ClassicLoadBalancerListener> = emptySet(),
   val healthCheck: ClassicLoadBalancerHealthCheck,
   val overrides: Map<String, ClassicLoadBalancerOverride> = emptyMap()
-) : LoadBalancerSpec, UnhappyControl, Dependent {
+) : LoadBalancerSpec, Dependent {
 
   init {
     require(moniker.toString().length <= 32) {
       "load balancer names have a 32 character limit"
     }
   }
-
-  override val maxDiffCount: Int? = 2
-
-  // Once load balancers go unhappy, only retry when the diff changes, or if manually unvetoed
-  override val unhappyWaitTime: Duration? = null
 
   override val loadBalancerType: LoadBalancerType = CLASSIC
 

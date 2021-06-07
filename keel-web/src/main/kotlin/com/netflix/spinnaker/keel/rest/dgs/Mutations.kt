@@ -16,13 +16,22 @@ import com.netflix.spinnaker.keel.graphql.types.MdMarkArtifactVersionAsGoodPaylo
 import com.netflix.spinnaker.keel.graphql.types.MdUnpinArtifactVersionPayload
 import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.services.ApplicationService
+import com.netflix.spinnaker.keel.veto.unhappy.UnhappyVeto
 import org.springframework.web.bind.annotation.RequestHeader
 
 @DgsComponent
 class Mutations(
   private val applicationService: ApplicationService,
   private val actuationPauser: ActuationPauser,
+  private val unhappyVeto: UnhappyVeto
 ) {
+
+  @DgsData(parentType = "Mutation", field = "recheckUnhappyResource")
+  fun recheckUnhappyResource(
+    @InputArgument resourceId: String
+  ) {
+    unhappyVeto.clearVeto(resourceId)
+  }
 
   @DgsData(parentType = "Mutation", field = "updateConstraintStatus")
   fun updateConstraintStatus(

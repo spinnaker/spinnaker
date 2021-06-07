@@ -5,7 +5,6 @@ import com.netflix.spinnaker.keel.api.DependencyType.SECURITY_GROUP
 import com.netflix.spinnaker.keel.api.Dependent
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
-import com.netflix.spinnaker.keel.api.UnhappyControl
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec.Action.AuthenticateOidcAction
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec.Action.ForwardAction
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec.Action.RedirectAction
@@ -23,18 +22,13 @@ data class ApplicationLoadBalancerSpec(
   val listeners: Set<Listener>,
   val targetGroups: Set<TargetGroup>,
   val overrides: Map<String, ApplicationLoadBalancerOverride> = emptyMap()
-) : LoadBalancerSpec, UnhappyControl, Dependent {
+) : LoadBalancerSpec, Dependent {
 
   init {
     require(moniker.toString().length <= 32) {
       "load balancer names have a 32 character limit"
     }
   }
-
-  override val maxDiffCount: Int? = 2
-
-  // Once load balancers go unhappy, only retry when the diff changes, or if manually unvetoed
-  override val unhappyWaitTime: Duration? = null
 
   override val loadBalancerType: LoadBalancerType = APPLICATION
 

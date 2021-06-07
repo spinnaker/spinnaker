@@ -17,67 +17,108 @@
  */
 package com.netflix.spinnaker.keel.veto.unhappy
 
+import com.netflix.spectator.api.Registry
+import com.netflix.spectator.api.patterns.PolledMeter
+import com.netflix.spinnaker.config.UnhappyVetoConfig
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.UnhappyControl
 import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
+import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.UnhappyVetoRepository
 import com.netflix.spinnaker.keel.veto.Veto
 import com.netflix.spinnaker.keel.veto.VetoResponse
-import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.core.env.Environment
 import org.springframework.stereotype.Component
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
-import java.time.format.DateTimeParseException
 
 /**
- * A veto that stops keel from checking a resource for a configurable
- * amount of time so that we don't flap on a resource forever.
+ * A veto that stops keel from trying to fix the same diff over and over again.
+ *
+ * We try a set number of times to resolve a diff, spaced a configurable time apart.
  */
 @Component
-class UnhappyVeto(
+@EnableConfigurationProperties(UnhappyVetoConfig::class)
+final class UnhappyVeto(
   private val diffFingerprintRepository: DiffFingerprintRepository,
   private val unhappyVetoRepository: UnhappyVetoRepository,
-  private val dynamicConfigService: DynamicConfigService,
-  @Value("\${veto.unhappy.waiting-time:PT10M}")
-  private val configuredWaitingTime: String,
+  private val resourceRepository: ResourceRepository,
+  private val springEnv: Environment,
+  private val config: UnhappyVetoConfig,
+  private val spectator: Registry,
   private val clock: Clock
 ) : Veto {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
+  private val NUM_VETOS_GAUGE = "keel.vetos.unhappy.num"
+
+  init {
+    PolledMeter
+      .using(spectator)
+      .withName(NUM_VETOS_GAUGE)
+      .monitorValue(this) { it.numberRejections().toDouble() }
+  }
+
+  private val maxRetries: Int
+    get() = springEnv.getProperty("keel.unhappy.maxRetries", Int::class.java, config.maxRetries)
+
+  private val timeBetweenRetries: Duration
+    get() = springEnv.getProperty("keel.unhappy.timeBetweenRetries", Duration::class.java, config.timeBetweenRetries)
+
+  fun clearVeto(resourceId: String) {
+    val resource = resourceRepository.get(resourceId)
+    unhappyVetoRepository.delete(resource)
+    diffFingerprintRepository.clear(resourceId)
+  }
+
   override suspend fun check(resource: Resource<*>): VetoResponse {
-    // maxActionCountPerDiff represents the number of times we're allowed to see a diff and take action to try and fix it.
-    if (diffFingerprintRepository.actionTakenCount(resource.id) <= maxActionCountPerDiff(resource)) {
-      unhappyVetoRepository.delete(resource)
-      return allowedResponse()
-    }
-
-    val wait = waitingTime(resource)
-    val recheckTime = unhappyVetoRepository.getRecheckTime(resource)
-
-    /**
-     * We deny the resource check if it's the first time we detected the resource being unhappy with this diff
-     * (there's no record for it in the database), or if the recheck time has not expired yet. In the latter
-     * case, we *don't* update the recheck time so that it will eventually expire and the resource re-checked.
-     *
-     * If the recheck time has expired, the resource remains marked unhappy in the database, but we allow it
-     * to be rechecked and update the recheck time.
-     */
-    return if (recheckTime == null || recheckTime > clock.instant()) {
-      if (recheckTime == null) {
-        unhappyVetoRepository.markUnhappy(resource, calculateRecheckTime(wait))
+    val numActionsTaken = diffFingerprintRepository.actionTakenCount(resource.id)
+    return when {
+      numActionsTaken == 0 -> {
+        // no actions taken, so allow the check
+        unhappyVetoRepository.delete(resource)
+        allowedResponse()
       }
-      log.debug("Resource ${resource.id} is unhappy. Denying resource check.")
-      deniedResponse(unhappyMessage(resource))
-    } else {
-      log.debug("Marking resource ${resource.id} unhappy for $wait, but allowing resource check.")
-      unhappyVetoRepository.markUnhappy(resource, calculateRecheckTime(wait))
-      allowedResponse()
+      numActionsTaken < maxRetries -> {
+        var recheckTime = unhappyVetoRepository.getRecheckTime(resource)
+        when {
+          recheckTime == null -> {
+            // this is the first time we're seeing this resource as unhappy, mark as such and deny
+            recheckTime = clock.instant() + timeBetweenRetries
+            unhappyVetoRepository.markUnhappy(resource, recheckTime)
+            deniedResponse(
+              message = denyWaitingMessage(numActionsTaken, recheckTime),
+              vetoArtifact = false
+            )
+          }
+          recheckTime > clock.instant() -> {
+            // we know this resource is unhappy and we can't recheck it yet
+            deniedResponse(
+              message = denyWaitingMessage(numActionsTaken, recheckTime),
+              vetoArtifact = false
+            )
+          }
+          else -> {
+            // resource is unhappy but we can recheck it
+            // allow one check and update the new recheck time
+            unhappyVetoRepository.markUnhappy(resource, clock.instant() + timeBetweenRetries)
+            allowedResponse()
+          }
+        }
+      }
+      else -> {
+        // more than 0 actions taken, we probably can't fix this diff, deny forever
+        unhappyVetoRepository.markUnhappy(resource, null)
+        deniedResponse(message = denyForeverMessage(), vetoArtifact = false)
+      }
     }
   }
+
+  fun numberRejections(): Int =
+    unhappyVetoRepository.getNumberOfRejections()
 
   override fun currentRejections(): List<String> =
     unhappyVetoRepository.getAll().toList()
@@ -85,50 +126,11 @@ class UnhappyVeto(
   override fun currentRejectionsByApp(application: String) =
     unhappyVetoRepository.getAllForApp(application).toList()
 
-  private fun maxActionCountPerDiff(resource: Resource<*>) =
-    when (resource.spec) {
-      is UnhappyControl -> (resource.spec as UnhappyControl).maxDiffCount ?: maxDiffCount
-      else -> maxDiffCount
-    }
+  private fun denyWaitingMessage(numTries: Int, retryTime: Instant): String =
+    "Resource is unhappy and our $numTries action(s) have not fixed it yet." +
+      " We will try again in ${Duration.between(clock.instant(), retryTime).toMinutes()} minutes."
 
-  private val maxDiffCount: Int
-    get() = dynamicConfigService.getConfig(
-      Int::class.java,
-      "veto.unhappy.max-diff-count",
-      5
-    )
-
-  private fun waitingTime(resource: Resource<*>) =
-    when (resource.spec) {
-      is UnhappyControl -> (resource.spec as UnhappyControl).unhappyWaitTime ?: waitingTime
-      else -> waitingTime
-    }
-
-  private val waitingTime: Duration
-    get() = try {
-      Duration.parse(
-        dynamicConfigService.getConfig(
-          String::class.java,
-          "veto.unhappy.waiting-time",
-          configuredWaitingTime
-        )
-      )
-    } catch (e: DateTimeParseException) {
-      log.error("'{}' is not a valid Duration", e.parsedString)
-      throw e
-    }
-
-  private fun unhappyMessage(resource: Resource<*>): String {
-    val maxDiffs = maxActionCountPerDiff(resource)
-    val waitingTime = waitingTime(resource)
-    if (waitingTime == Duration.ZERO) {
-      return "Resource is unhappy and our $maxDiffs actions have not fixed it. " +
-        "Resource will remain paused until the diff changes or the resource is manually unpaused."
-    }
-    return "Resource is unhappy and our $maxDiffs actions have not fixed it. We will try again after " +
-      "$waitingTime, or if the diff changes."
-  }
-
-  fun calculateRecheckTime(wait: Duration?): Instant? =
-    wait?.let { clock.instant().plus(it) }
+  private fun denyForeverMessage(): String =
+    "Resource is unhappy and our $maxRetries action(s) did not fix it." +
+      " We will not take automatic action until the diff changes."
 }

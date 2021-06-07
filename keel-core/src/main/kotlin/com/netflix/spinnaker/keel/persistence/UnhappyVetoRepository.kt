@@ -25,8 +25,7 @@ import java.time.Duration
 import java.time.Instant
 
 abstract class UnhappyVetoRepository(
-  open val clock: Clock,
-  @Value("veto.unhappy.waiting-time") var waitingTime: String = "PT10M"
+  open val clock: Clock
 ) {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -36,13 +35,13 @@ abstract class UnhappyVetoRepository(
   }
 
   /**
-   * Marks [resource] as unhappy for [waitingTime]
+   * Marks [resource] as unhappy, records the supplied [recheckTime] at which we can re-check the resource
    *
    * @param recheckTime the time to wait before re-checking the resource, `null` means "never re-check".
    */
   abstract fun markUnhappy(
     resource: Resource<*>,
-    recheckTime: Instant? = clock.instant() + Duration.parse(waitingTime)
+    recheckTime: Instant?
   )
 
   /**
@@ -59,6 +58,8 @@ abstract class UnhappyVetoRepository(
    * @return the ids of all currently vetoed resources
    */
   abstract fun getAll(): Set<String>
+
+  abstract fun getNumberOfRejections(): Int
 
   /**
    * @return the ids of all currently vetoed resources for [application]

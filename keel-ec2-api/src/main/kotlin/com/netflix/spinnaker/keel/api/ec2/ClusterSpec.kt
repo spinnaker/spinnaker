@@ -13,7 +13,6 @@ import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.RedBlack
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
-import com.netflix.spinnaker.keel.api.UnhappyControl
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
@@ -129,7 +128,7 @@ data class ClusterSpec(
   override val overrides: Map<String, ServerGroupSpec> = emptyMap(),
   override val artifactName: String? = null,
   override val artifactVersion: String? = null
-) : ComputeResourceSpec<SubnetAwareLocations>, OverrideableClusterDependencyContainer<ServerGroupSpec>, UnhappyControl, Dependent {
+) : ComputeResourceSpec<SubnetAwareLocations>, OverrideableClusterDependencyContainer<ServerGroupSpec>, Dependent {
   @Factory
   constructor(
     moniker: Moniker,
@@ -171,12 +170,7 @@ data class ClusterSpec(
   override val defaults: ServerGroupSpec
     get() = _defaults
 
-  override val artifactType: ArtifactType? = DEBIAN
-
-  override val maxDiffCount: Int? = 2
-
-  // Once clusters go unhappy, only retry when the diff changes, or if manually unvetoed
-  override val unhappyWaitTime: Duration? = null
+  override val artifactType: ArtifactType = DEBIAN
 
   @get:ExcludedFromDiff
   override val dependsOn: Set<Dependency>

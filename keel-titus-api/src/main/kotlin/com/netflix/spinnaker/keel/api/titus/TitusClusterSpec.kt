@@ -28,7 +28,6 @@ import com.netflix.spinnaker.keel.api.ExcludedFromDiff
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.RedBlack
 import com.netflix.spinnaker.keel.api.SimpleLocations
-import com.netflix.spinnaker.keel.api.UnhappyControl
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.DOCKER
 import com.netflix.spinnaker.keel.api.ec2.Capacity
@@ -39,7 +38,6 @@ import com.netflix.spinnaker.keel.docker.ContainerProvider
 import com.netflix.spinnaker.keel.docker.DigestProvider
 import com.netflix.spinnaker.keel.docker.ReferenceProvider
 import com.netflix.spinnaker.keel.docker.VersionedTagProvider
-import java.time.Duration
 
 /**
  * "Simplified" representation of
@@ -55,10 +53,7 @@ data class TitusClusterSpec(
   private val _artifactName: String? = null, // Custom backing field for artifactName, used by resolvers
   override val artifactVersion: String? = null,
   val container: ContainerProvider,
-  override val maxDiffCount: Int? = 2,
-  // Once clusters go unhappy, only retry when the diff changes, or if manually unvetoed
-  override val unhappyWaitTime: Duration? = null
-) : ComputeResourceSpec<SimpleLocations>, UnhappyControl, Dependent {
+) : ComputeResourceSpec<SimpleLocations>, Dependent {
 
   @Factory
   constructor(
