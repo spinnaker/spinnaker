@@ -7,7 +7,7 @@ const getElementDimensions = (ref: React.RefObject<HTMLElement>) =>
 export const useDimensions = (
   ref: React.RefObject<HTMLElement>,
   {
-    delay = 200,
+    delay = 100,
     isActive = true,
   }: {
     delay?: number;
@@ -17,9 +17,13 @@ export const useDimensions = (
   const [dimension, setDimension] = React.useState(getElementDimensions(ref));
 
   React.useLayoutEffect(() => {
-    const debouncedResizeHandler = debounce(() => {
-      setDimension(getElementDimensions(ref));
-    }, delay);
+    const debouncedResizeHandler = debounce(
+      () => {
+        setDimension(getElementDimensions(ref));
+      },
+      delay,
+      { leading: true },
+    );
 
     if (isActive && ref.current) {
       const observer = new ResizeObserver(debouncedResizeHandler);

@@ -5,7 +5,7 @@ import { useApplicationContextSafe } from 'core/presentation';
 
 import { BaseEnvironment } from '../environmentBaseElements/BaseEnvironment';
 import { EnvironmentItem } from '../environmentBaseElements/EnvironmentItem';
-import { EnvironmentsRender } from '../environmentBaseElements/EnvironmentsRender';
+import { EnvironmentsRender, useOrderedEnvironment } from '../environmentBaseElements/EnvironmentsRender';
 import { useFetchVersionQuery } from '../graphql/graphql-sdk';
 import { ArtifactVersionTasks } from '../overview/artifact/ArtifactVersionTasks';
 import { Constraints } from '../overview/artifact/Constraints';
@@ -95,9 +95,11 @@ interface IVersionContentProps {
 }
 
 export const VersionContent = ({ versionData, pinnedVersions }: IVersionContentProps) => {
+  const ref = React.useRef<HTMLDivElement | null>(null);
+  const { environments, ...renderProps } = useOrderedEnvironment(ref, Object.entries(versionData.environments));
   return (
-    <EnvironmentsRender>
-      {Object.entries(versionData.environments).map(([env, { versions }]) => {
+    <EnvironmentsRender {...renderProps} ref={ref}>
+      {environments.map(([env, { versions }]) => {
         return (
           <BaseEnvironment key={env} title={env} size="small">
             {versions.map((version) => (

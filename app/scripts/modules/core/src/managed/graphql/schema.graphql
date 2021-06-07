@@ -17,6 +17,7 @@ type MdEnvironment {
   id: String!
   name: String!
   state: MdEnvironmentState!
+  isPreview: Boolean
 }
 
 type MdEnvironmentState {

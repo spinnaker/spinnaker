@@ -4,11 +4,10 @@ import React from 'react';
 import { atom, useRecoilState } from 'recoil';
 
 import { useDimensions } from 'core/presentation/hooks/useDimensions.hook';
-import { logger } from 'core/utils';
 
 const STORAGE_KEY = 'MD_environmentsDirection';
 
-const DIRECTIONS = ['list', 'sideBySide'] as const;
+const DIRECTIONS = ['listView', 'gridView'] as const;
 type Direction = typeof DIRECTIONS[number];
 
 const isDirection = (value: string | null): value is Direction => {
@@ -19,11 +18,11 @@ const storedDirection = localStorage.getItem(STORAGE_KEY);
 
 const environmentsDirectionState = atom<Direction>({
   key: 'environmentsDisplay',
-  default: isDirection(storedDirection) ? storedDirection : 'list',
+  default: isDirection(storedDirection) ? storedDirection : 'listView',
 });
 
 // The goal of this hook is to store the value in an atom to be shared across the app but also update the local storage
-const useEnvironmentDirection = () => {
+export const useEnvironmentDirectionState = () => {
   const [direction, setDirection] = useRecoilState(environmentsDirectionState);
   React.useEffect(() => {
     localStorage.setItem(STORAGE_KEY, direction);
@@ -32,16 +31,21 @@ const useEnvironmentDirection = () => {
   return { direction, setDirection };
 };
 
+export const useIsGridView = () => {
+  const { direction } = useEnvironmentDirectionState();
+  return direction === 'gridView';
+};
+
 export const EnvironmentsDirectionController = () => {
-  const { direction, setDirection } = useEnvironmentDirection();
+  const { direction, setDirection } = useEnvironmentDirectionState();
   return (
     <button
       type="button"
       className="btn env-direction-btn"
-      onClick={() => setDirection((state) => (state === 'list' ? 'sideBySide' : 'list'))}
+      onClick={() => setDirection((state) => (state === 'listView' ? 'gridView' : 'listView'))}
     >
-      {direction === 'list' ? 'Grid view' : 'List view'}
-      <i className={classnames(direction === 'list' ? 'far fa-list-alt' : 'fas fa-columns', 'sp-margin-xs-left')} />
+      {direction === 'listView' ? 'Grid view' : 'List view'}
+      <i className={classnames(direction === 'listView' ? 'far fa-list-alt' : 'fas fa-columns', 'sp-margin-xs-left')} />
     </button>
   );
 };
@@ -50,34 +54,33 @@ const MIN_WIDTH_PER_COLUMN = 500;
 
 interface IEnvironmentsRenderProps {
   className?: string;
-  children: React.ReactElement[];
+  style?: React.CSSProperties;
+  children?: React.ReactNode;
 }
 
-export const EnvironmentsRender = ({ className, children }: IEnvironmentsRenderProps) => {
-  const { direction } = useEnvironmentDirection();
-  const ref = React.useRef(null);
-  const { width } = useDimensions(ref, { isActive: direction === 'sideBySide' });
-  let numEnvironments = 1;
-  if (Array.isArray(children)) {
-    numEnvironments = children.length;
-  } else {
-    logger.log({
-      level: 'ERROR',
-      error: new Error('Environments children should be an array'),
-      action: 'Environments::Render',
-    });
-  }
+export const useOrderedEnvironment = <T extends object>(
+  ref: React.RefObject<HTMLDivElement>,
+  environments: T[],
+): { className?: string; style?: React.CSSProperties; environments: T[] } => {
+  const { direction } = useEnvironmentDirectionState();
+  const { width } = useDimensions(ref, { isActive: direction === 'gridView' });
 
-  const numColumns = Math.min(Math.round(width / MIN_WIDTH_PER_COLUMN), numEnvironments);
+  const numColumns = Math.min(Math.round(width / MIN_WIDTH_PER_COLUMN), environments.length);
 
-  return (
-    <div
-      ref={ref}
-      className={classnames(className, 'environments-list', { 'side-by-side': direction === 'sideBySide' })}
-      style={direction === 'sideBySide' ? { gridTemplateColumns: `repeat(${numColumns}, 1fr)` } : undefined}
-    >
-      {direction === 'list' && children}
-      {direction === 'sideBySide' && width > 0 ? reverse(React.Children.toArray(children)) : null}
-    </div>
-  );
+  const orderedEnvironments = direction === 'gridView' ? (reverse(environments) as T[]) : environments;
+  const style: React.CSSProperties =
+    direction === 'gridView' ? { gridTemplateColumns: `repeat(${numColumns}, 1fr)` } : {};
+  const className = direction === 'gridView' ? 'grid-view' : undefined;
+
+  return { environments: orderedEnvironments, style, className };
 };
+
+export const EnvironmentsRender = React.forwardRef<HTMLDivElement, IEnvironmentsRenderProps>(
+  ({ className, style, children }, ref) => {
+    return (
+      <div ref={ref} className={classnames(className, 'environments-list')} style={style}>
+        {children}
+      </div>
+    );
+  },
+);

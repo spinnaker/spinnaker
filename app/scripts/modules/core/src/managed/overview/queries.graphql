@@ -84,6 +84,7 @@ query fetchApplication($appName: String!, $statuses: [MdArtifactStatusInEnvironm
     environments {
       id
       name
+      isPreview
       state {
         id
         artifacts {

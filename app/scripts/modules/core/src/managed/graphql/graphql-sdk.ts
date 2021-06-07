@@ -135,6 +135,7 @@ export interface MdEnvironment {
   id: Scalars['String'];
   name: Scalars['String'];
   state: MdEnvironmentState;
+  isPreview?: Maybe<Scalars['Boolean']>;
 }
 
 export interface MdEnvironmentState {
@@ -374,7 +375,7 @@ export type FetchApplicationQuery = { __typename?: 'Query' } & {
   application?: Maybe<
     { __typename?: 'MdApplication' } & Pick<MdApplication, 'id' | 'name' | 'account'> & {
         environments: Array<
-          { __typename?: 'MdEnvironment' } & Pick<MdEnvironment, 'id' | 'name'> & {
+          { __typename?: 'MdEnvironment' } & Pick<MdEnvironment, 'id' | 'name' | 'isPreview'> & {
               state: { __typename?: 'MdEnvironmentState' } & Pick<MdEnvironmentState, 'id'> & {
                   artifacts?: Maybe<
                     Array<
@@ -677,6 +678,7 @@ export const FetchApplicationDocument = gql`
       environments {
         id
         name
+        isPreview
         state {
           id
           artifacts {
