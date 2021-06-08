@@ -1,6 +1,6 @@
 {
   "name": "@spinnaker/scripts",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "",
   "main": "index.js",
   "bin": {
@@ -23,13 +23,14 @@
     "autoprefixer": "^7.1.2",
     "chalk": "^4.1.1",
     "ora": "^5.4.0",
-    "postcss-colorfix": "0.0.4",
+    "postcss-colorfix": "0.0.5",
     "postcss-nested": "^4.2.1",
     "postcss-url": "9.0.0",
     "rollup": "^2.35.1",
     "rollup-plugin-external-globals": "0.6.1",
     "rollup-plugin-less": "1.1.3",
     "rollup-plugin-postcss": "3.1.8",
+    "rollup-plugin-strip-code": "^0.2.7",
     "rollup-plugin-terser": "7.0.2",
     "rollup-plugin-visualizer": "5.4.1",
     "yalc": "^1.0.0-pre.53",
