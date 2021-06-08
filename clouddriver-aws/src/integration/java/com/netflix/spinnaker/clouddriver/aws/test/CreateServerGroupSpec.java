@@ -86,7 +86,7 @@ public class CreateServerGroupSpec extends AwsBaseSpec {
   public void setup() {
     // mock EC2 responses
     when(mockRegionScopedProvider.getAmazonEC2()).thenReturn(mockEc2);
-    when(mockAwsProvider.getAmazonEC2(
+    when(mockAwsClientProvider.getAmazonEC2(
             any(NetflixAmazonCredentials.class), anyString(), anyBoolean()))
         .thenReturn(mockEc2);
 
@@ -127,9 +127,9 @@ public class CreateServerGroupSpec extends AwsBaseSpec {
                     new LaunchTemplate().withLaunchTemplateId("lt-1").withLatestVersionNumber(1L)));
 
     // mock autoscaling response
-    when(mockAwsProvider.getAutoScaling(any(NetflixAmazonCredentials.class), anyString()))
+    when(mockAwsClientProvider.getAutoScaling(any(NetflixAmazonCredentials.class), anyString()))
         .thenReturn(mockAutoScaling);
-    when(mockAwsProvider.getAutoScaling(
+    when(mockAwsClientProvider.getAutoScaling(
             any(NetflixAmazonCredentials.class), anyString(), anyBoolean()))
         .thenReturn(mockAutoScaling);
     when(mockAutoScaling.describeAutoScalingGroups(any(DescribeAutoScalingGroupsRequest.class)))
@@ -139,8 +139,8 @@ public class CreateServerGroupSpec extends AwsBaseSpec {
   @DisplayName("Given invalid requests, successfully validate with error messages")
   @Test
   public void createServerGroup_invalidRequests_expect_validationFailure() {
-    final String invalidReqDir = "/description_validator_test_inputs/";
-    final String pattern = PATH_PREFIX + invalidReqDir + "createServerGroup-*.json";
+    final String invalidReqDir = "/createServerGroup_invalid_requests/";
+    final String pattern = PATH_PREFIX + invalidReqDir + "*.json";
     TestUtils.loadResourcesFromDir(pattern).stream()
         .forEach(
             ti -> {
@@ -151,8 +151,11 @@ public class CreateServerGroupSpec extends AwsBaseSpec {
               Map<String, Object> requestBody = TestUtils.loadJson(ti).asMap();
 
               // when, then
-              final String expectedValidationMsg =
-                  StringUtils.substringAfterLast(testFileName, "-").split(".json")[0];
+              final String expectedValidationError =
+                  (testFileName.contains("-")
+                          ? StringUtils.substringAfterLast(testFileName, "-")
+                          : testFileName)
+                      .split(".json")[0];
 
               given()
                   .contentType(ContentType.JSON)
@@ -165,7 +168,7 @@ public class CreateServerGroupSpec extends AwsBaseSpec {
                   .assertThat()
                   .body("message", Matchers.equalTo("Validation Failed"))
                   .body("errors.size()", Matchers.equalTo(1))
-                  .body("errors[0]", Matchers.containsString(expectedValidationMsg));
+                  .body("errors[0]", Matchers.endsWith(expectedValidationError));
             });
   }
 
@@ -267,9 +270,7 @@ public class CreateServerGroupSpec extends AwsBaseSpec {
     // then
     final String taskHistory = getTaskUpdatesAfterCompletion(taskId);
     assertTrue(taskHistory.contains(EXPECTED_DEPLOY_SUCCESS_MSG));
-    assertTrue(
-        taskHistory.contains(
-            String.format("Deploying to availabilityZones: [us-west-1a, us-west-1c]")));
+    assertTrue(taskHistory.contains("Deploying to availabilityZones: [us-west-1a, us-west-1c]"));
 
     // capture and assert arguments
     ArgumentCaptor<CreateAutoScalingGroupRequest> createAsgArgs =
@@ -312,8 +313,6 @@ public class CreateServerGroupSpec extends AwsBaseSpec {
 
     // then
     String taskHistory1 = getTaskUpdatesAfterCompletion(taskId1);
-    System.out.println(taskHistory1);
-    System.out.println(taskHistory1.contains(EXPECTED_DEPLOY_SUCCESS_MSG));
     assertTrue(taskHistory1.contains(EXPECTED_DEPLOY_SUCCESS_MSG));
 
     // when

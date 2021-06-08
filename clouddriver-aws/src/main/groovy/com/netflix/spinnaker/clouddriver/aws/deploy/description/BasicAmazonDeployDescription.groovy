@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEvent
 import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
+import groovy.transform.builder.Builder
 
 @AutoClone
 @Canonical
@@ -294,6 +295,7 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
    * This class encapsulates configuration mapped to a particular instance type.
    */
   @Canonical
+  @Builder
   static class LaunchTemplateOverridesForInstanceType {
     /**
      * An instance type that is supported in the requested region and availability zone.

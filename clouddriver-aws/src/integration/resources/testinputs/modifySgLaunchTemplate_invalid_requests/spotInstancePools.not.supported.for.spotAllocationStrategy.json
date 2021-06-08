@@ -1,0 +1,15 @@
+{
+  "type":"modifyServerGroupLaunchTemplate",
+  "cloudProvider": "aws",
+  "account": "aws_account",
+  "amiName": "ami-12345",
+  "application": "myAwsApp",
+  "credentials": "aws-account1",
+  "iamRole":"BaseInstanceProfile",
+  "region": "us-west-1",
+  "legacyUdf": false,
+  "asgName": "asg-test-v000",
+  "instanceType":"c3.large",
+  "spotAllocationStrategy": "capacity-optimized",
+  "spotInstancePools": 3
+}

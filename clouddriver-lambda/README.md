@@ -276,7 +276,6 @@ In this case, resourceUri generated for my post request is
 http://localhost:7002/task/4c316ba9-7db8-4675-82d9-5adf118c541c for orchestration details
 ```
 
-<<<<<<< HEAD
 ### Purpose
 
 Invoke a lambda function.

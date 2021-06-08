@@ -20,11 +20,20 @@ package com.netflix.spinnaker.clouddriver.aws;
 import static io.restassured.RestAssured.get;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import com.netflix.spinnaker.cats.agent.DefaultCacheResult;
+import com.netflix.spinnaker.cats.cache.CacheData;
+import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.clouddriver.Main;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory;
+import com.netflix.spinnaker.clouddriver.core.services.Front50Service;
 import io.restassured.http.ContentType;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,8 +57,9 @@ public abstract class AwsBaseSpec {
   @Value("${aws.enabled}")
   protected Boolean AWS_ENABLED;
 
-  @MockBean protected AmazonClientProvider mockAwsProvider;
+  @MockBean protected AmazonClientProvider mockAwsClientProvider;
   @MockBean protected RegionScopedProviderFactory.RegionScopedProvider mockRegionScopedProvider;
+  @MockBean protected Front50Service mockFront50Service;
 
   @LocalServerPort int port;
 
@@ -57,8 +67,10 @@ public abstract class AwsBaseSpec {
 
   protected static final String PATH_PREFIX = "classpath:testinputs/";
   protected static final String GET_TASK_PATH = "/task/";
-  protected static final String CREATE_SERVER_GROUP_OP_PATH = "/aws/ops/createServerGroup";
   protected static final String EXPECTED_DEPLOY_SUCCESS_MSG = "Deployed EC2 server group";
+
+  protected static final String CREATE_SERVER_GROUP_OP_PATH = "/aws/ops/createServerGroup";
+  protected static final String UPDATE_LAUNCH_TEMPLATE_OP_PATH = "/aws/ops/updateLaunchTemplate";
 
   protected String getBaseUrl() {
     return "http://localhost:" + port;
@@ -102,5 +114,16 @@ public abstract class AwsBaseSpec {
         TASK_RETRY_SECONDS);
 
     return taskHistoryToRet.get();
+  }
+
+  protected DefaultCacheResult buildCacheResult(
+      Map<String, Object> attributes, String namespace, String key) {
+    Collection<CacheData> dataPoints = new LinkedList<>();
+    dataPoints.add(new DefaultCacheData(key, attributes, Collections.emptyMap()));
+
+    Map<String, Collection<CacheData>> dataMap = new HashMap<>();
+    dataMap.put(namespace, dataPoints);
+
+    return new DefaultCacheResult(dataMap);
   }
 }

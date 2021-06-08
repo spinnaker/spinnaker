@@ -95,7 +95,7 @@ public class CreateServerGroupMixedInstancesPolicySpec extends AwsBaseSpec {
   public void setup() {
     // mock EC2 responses
     when(mockRegionScopedProvider.getAmazonEC2()).thenReturn(mockEc2);
-    when(mockAwsProvider.getAmazonEC2(
+    when(mockAwsClientProvider.getAmazonEC2(
             any(NetflixAmazonCredentials.class), anyString(), anyBoolean()))
         .thenReturn(mockEc2);
 
@@ -150,9 +150,9 @@ public class CreateServerGroupMixedInstancesPolicySpec extends AwsBaseSpec {
                     new LaunchTemplate().withLaunchTemplateId("lt-1").withLatestVersionNumber(1L)));
 
     // mock autoscaling response
-    when(mockAwsProvider.getAutoScaling(any(NetflixAmazonCredentials.class), anyString()))
+    when(mockAwsClientProvider.getAutoScaling(any(NetflixAmazonCredentials.class), anyString()))
         .thenReturn(mockAutoScaling);
-    when(mockAwsProvider.getAutoScaling(
+    when(mockAwsClientProvider.getAutoScaling(
             any(NetflixAmazonCredentials.class), anyString(), anyBoolean()))
         .thenReturn(mockAutoScaling);
     when(mockAutoScaling.describeAutoScalingGroups(any(DescribeAutoScalingGroupsRequest.class)))

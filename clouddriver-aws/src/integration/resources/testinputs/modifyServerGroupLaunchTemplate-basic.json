@@ -1,0 +1,9 @@
+{
+  "type":"updateLaunchTemplate",
+  "cloudProvider": "aws",
+  "account": "aws_account",
+  "application": "myAwsApp",
+  "credentials": "aws-account1",
+  "region": "us-west-1",
+  "asgName": "myasg"
+}
