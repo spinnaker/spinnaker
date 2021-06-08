@@ -15,6 +15,8 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.services
 
+import com.amazonaws.services.ec2.model.CreateLaunchTemplateRequest
+import com.amazonaws.services.ec2.model.CreateLaunchTemplateResult
 import com.amazonaws.services.ec2.model.CreateLaunchTemplateVersionRequest
 import com.amazonaws.services.ec2.model.CreateLaunchTemplateVersionResult
 import com.amazonaws.services.ec2.model.CreditSpecification
@@ -23,6 +25,7 @@ import com.amazonaws.services.ec2.model.DeleteLaunchTemplateVersionsRequest
 import com.amazonaws.services.ec2.model.DeleteLaunchTemplateVersionsResponseErrorItem
 import com.amazonaws.services.ec2.model.DeleteLaunchTemplateVersionsResponseSuccessItem
 import com.amazonaws.services.ec2.model.DeleteLaunchTemplateVersionsResult
+import com.amazonaws.services.ec2.model.LaunchTemplate
 import com.amazonaws.services.ec2.model.LaunchTemplateBlockDeviceMapping
 import com.amazonaws.services.ec2.model.LaunchTemplateBlockDeviceMappingRequest
 import com.amazonaws.services.ec2.model.LaunchTemplateEbsBlockDevice
@@ -141,6 +144,92 @@ class LaunchTemplateServiceSpec extends Specification {
           ])
       )
     ]
+  }
+
+  @Unroll
+  void 'should create launch template data with expected configuration, for create operation'() {
+    given:
+    def asgConfig = new AutoScalingWorker.AsgConfiguration(
+      setLaunchTemplate: true,
+      credentials: testCredentials,
+      legacyUdf: false,
+      application: "myasg-001",
+      region: "us-east-1",
+      minInstances: 1,
+      maxInstances: 3,
+      desiredInstances: 2,
+      instanceType: "some.type.medium",
+      securityGroups: ["my-sg"],
+      ami: "ami-1",
+      kernelId: "kernel-id-1",
+      ramdiskId: "ramdisk-id-1",
+      ebsOptimized: true,
+      keyPair: "my-key-name",
+      iamRole: "my-iam-role",
+      instanceMonitoring: true,
+      base64UserData: USER_DATA_STR,
+      requireIMDSv2: true,
+      spotMaxPrice: "0.5",
+      unlimitedCpuCredits: true,
+      associatePublicIpAddress: true,
+      associateIPv6Address: true,
+      blockDevices: [new AmazonBlockDevice(deviceName: "/dev/sdb", size: 40, volumeType: "standard")],
+      enableEnclave: true,
+      spotAllocationStrategy: spotAllocationStrategy
+    )
+
+    def expectedLtDataInReq = new RequestLaunchTemplateData(
+      imageId: "ami-1",
+      kernelId: "kernel-id-1",
+      instanceType: "some.type.medium",
+      ramDiskId: "ramdisk-id-1",
+      ebsOptimized: true,
+      keyName: "my-key-name",
+      iamInstanceProfile: new LaunchTemplateIamInstanceProfileSpecificationRequest().withName("my-iam-role"),
+      monitoring: new LaunchTemplatesMonitoringRequest().withEnabled(true),
+      userData: USER_DATA_STR,
+      metadataOptions: new LaunchTemplateInstanceMetadataOptionsRequest().withHttpTokens("required"),
+      instanceMarketOptions:
+        setSpotOptions
+          ? new LaunchTemplateInstanceMarketOptionsRequest().withMarketType("spot").withSpotOptions(new LaunchTemplateSpotMarketOptionsRequest().withMaxPrice("0.5"))
+          : null,
+      creditSpecification: new CreditSpecificationRequest().withCpuCredits("unlimited"),
+      networkInterfaces: [
+        new LaunchTemplateInstanceNetworkInterfaceSpecificationRequest(
+          deviceIndex: 0,
+          groups: ["my-sg"],
+          associatePublicIpAddress: true,
+          ipv6AddressCount: 1
+        )
+      ],
+      blockDeviceMappings: [
+        new LaunchTemplateBlockDeviceMappingRequest(
+          deviceName: "/dev/sdb",
+          ebs: new LaunchTemplateEbsBlockDeviceRequest(volumeSize: 40, volumeType: "standard")
+        )
+      ],
+      enclaveOptions: new LaunchTemplateEnclaveOptionsRequest().withEnabled(true)
+    )
+
+    when:
+    launchTemplateService.createLaunchTemplate(asgConfig, "myasg-001", "my-lt-001")
+
+    then:
+    1 * mockEc2.createLaunchTemplate(_ as CreateLaunchTemplateRequest) >> { arguments ->
+      // assert arguments passed and return dummy result
+      CreateLaunchTemplateRequest reqInArg = arguments[0]
+      assert reqInArg.launchTemplateName == "my-lt-001" && reqInArg.launchTemplateData == expectedLtDataInReq ; new CreateLaunchTemplateResult()
+        .withLaunchTemplate(new LaunchTemplate(
+          launchTemplateId: LT_ID_1,
+          launchTemplateName: "my-lt-001",
+          defaultVersionNumber: 1L,
+          latestVersionNumber: 1L))
+    }
+
+    where:
+    spotAllocationStrategy|| setSpotOptions
+    "capacity-optimized"  ||    false
+            null          ||    true
   }
 
   @Unroll

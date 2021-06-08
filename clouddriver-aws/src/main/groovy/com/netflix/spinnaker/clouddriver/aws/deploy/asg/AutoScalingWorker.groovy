@@ -99,6 +99,7 @@ class AutoScalingWorker {
     Boolean unlimitedCpuCredits
     BasicAmazonDeployDescription.LaunchTemplatePlacement placement
     List<BasicAmazonDeployDescription.LaunchTemplateLicenseSpecification> licenseSpecifications
+    Boolean enableEnclave
 
     /** Mixed Instances Policy properties **/
     String onDemandAllocationStrategy
@@ -121,7 +122,6 @@ class AutoScalingWorker {
       }
       return shouldUseMip
     }
-    Boolean enableEnclave
   }
 
   /**

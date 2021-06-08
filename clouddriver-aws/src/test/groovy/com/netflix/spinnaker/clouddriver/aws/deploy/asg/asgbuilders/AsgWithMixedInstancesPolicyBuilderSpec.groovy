@@ -90,7 +90,6 @@ class AsgWithMixedInstancesPolicyBuilderSpec extends Specification {
       onDemandBaseCapacity: 1,
       onDemandPercentageAboveBaseCapacity: 50,
       spotAllocationStrategy: "capacity-optimized",
-      spotInstancePools: 5,
       launchTemplateOverridesForInstanceType: [override1, override2]
     )
 
@@ -108,7 +107,6 @@ class AsgWithMixedInstancesPolicyBuilderSpec extends Specification {
     instancesDist = new InstancesDistribution(
       onDemandBaseCapacity: 1,
       onDemandPercentageAboveBaseCapacity: 50,
-      spotInstancePools: 5,
       spotMaxPrice: "2",
       spotAllocationStrategy: "capacity-optimized"
     )
@@ -145,7 +143,7 @@ class AsgWithMixedInstancesPolicyBuilderSpec extends Specification {
 
     1 * task.updateStatus(taskPhase, "Deploying ASG $asgName with mixed instances policy " +
       "{LaunchTemplate: {LaunchTemplateSpecification: {LaunchTemplateId: lt-1,Version: \$Latest},Overrides: [{InstanceType: some.type.large,WeightedCapacity: 2,}, {InstanceType: some.type.xlarge,WeightedCapacity: 4,}]}," +
-      "InstancesDistribution: {OnDemandBaseCapacity: 1,OnDemandPercentageAboveBaseCapacity: 50,SpotAllocationStrategy: capacity-optimized,SpotInstancePools: 5,SpotMaxPrice: 2}}")
+      "InstancesDistribution: {OnDemandBaseCapacity: 1,OnDemandPercentageAboveBaseCapacity: 50,SpotAllocationStrategy: capacity-optimized,SpotMaxPrice: 2}}")
     2 * amazonEC2.describeSubnets() >> getDescribeSubnetsResult()
 
     and:
@@ -199,7 +197,7 @@ class AsgWithMixedInstancesPolicyBuilderSpec extends Specification {
 
     1 * task.updateStatus(taskPhase, "Deploying ASG $asgName with mixed instances policy " +
       "{LaunchTemplate: {LaunchTemplateSpecification: {LaunchTemplateId: lt-1,Version: \$Latest},Overrides: [{InstanceType: some.type.large,WeightedCapacity: 2,}, {InstanceType: some.type.xlarge,WeightedCapacity: 4,}]}," +
-      "InstancesDistribution: {OnDemandBaseCapacity: 1,OnDemandPercentageAboveBaseCapacity: 50,SpotAllocationStrategy: capacity-optimized,SpotInstancePools: 5,SpotMaxPrice: 2}}")
+      "InstancesDistribution: {OnDemandBaseCapacity: 1,OnDemandPercentageAboveBaseCapacity: 50,SpotAllocationStrategy: capacity-optimized,SpotMaxPrice: 2}}")
     1 * task.updateStatus(taskPhase, deployMsg)
 
     and:
@@ -233,7 +231,7 @@ class AsgWithMixedInstancesPolicyBuilderSpec extends Specification {
     2 * amazonEC2.describeSubnets() >> getDescribeSubnetsResult()
     1 * task.updateStatus(taskPhase, "Deploying ASG $asgName with mixed instances policy " +
       "{LaunchTemplate: {LaunchTemplateSpecification: {LaunchTemplateId: lt-1,Version: \$Latest},Overrides: [{InstanceType: some.type.large,WeightedCapacity: 2,}, {InstanceType: some.type.xlarge,WeightedCapacity: 4,}]}," +
-      "InstancesDistribution: {OnDemandBaseCapacity: 1,OnDemandPercentageAboveBaseCapacity: 50,SpotAllocationStrategy: capacity-optimized,SpotInstancePools: 5,SpotMaxPrice: 2}}")
+      "InstancesDistribution: {OnDemandBaseCapacity: 1,OnDemandPercentageAboveBaseCapacity: 50,SpotAllocationStrategy: capacity-optimized,SpotMaxPrice: 2}}")
     1 * task.updateStatus(taskPhase, " > Deploying to subnetIds: subnetId1")
 
     and:
@@ -264,7 +262,7 @@ class AsgWithMixedInstancesPolicyBuilderSpec extends Specification {
 
     1 * task.updateStatus(taskPhase, "Deploying ASG $asgName with mixed instances policy " +
       "{LaunchTemplate: {LaunchTemplateSpecification: {LaunchTemplateId: lt-1,Version: \$Latest},Overrides: [{InstanceType: some.type.large,WeightedCapacity: 2,}, {InstanceType: some.type.xlarge,WeightedCapacity: 4,}]}," +
-      "InstancesDistribution: {OnDemandBaseCapacity: 1,OnDemandPercentageAboveBaseCapacity: 50,SpotAllocationStrategy: capacity-optimized,SpotInstancePools: 5,SpotMaxPrice: 2}}")
+      "InstancesDistribution: {OnDemandBaseCapacity: 1,OnDemandPercentageAboveBaseCapacity: 50,SpotAllocationStrategy: capacity-optimized,SpotMaxPrice: 2}}")
 
     and:
     def ex = thrown(IllegalStateException)
@@ -299,7 +297,7 @@ class AsgWithMixedInstancesPolicyBuilderSpec extends Specification {
 
     1 * task.updateStatus(taskPhase, "Deploying ASG $asgName with mixed instances policy " +
       "{LaunchTemplate: {LaunchTemplateSpecification: {LaunchTemplateId: lt-1,Version: \$Latest},Overrides: [{InstanceType: some.type.large,WeightedCapacity: 2,}, {InstanceType: some.type.xlarge,WeightedCapacity: 4,}]}," +
-      "InstancesDistribution: {OnDemandBaseCapacity: 1,OnDemandPercentageAboveBaseCapacity: 50,SpotAllocationStrategy: capacity-optimized,SpotInstancePools: 5,SpotMaxPrice: 2}}")
+      "InstancesDistribution: {OnDemandBaseCapacity: 1,OnDemandPercentageAboveBaseCapacity: 50,SpotAllocationStrategy: capacity-optimized,SpotMaxPrice: 2}}")
     1 * task.updateStatus(taskPhase, deployMsg)
 
     and:
@@ -331,7 +329,7 @@ class AsgWithMixedInstancesPolicyBuilderSpec extends Specification {
 
     1 * task.updateStatus(taskPhase, "Deploying ASG $asgName with mixed instances policy " +
       "{LaunchTemplate: {LaunchTemplateSpecification: {LaunchTemplateId: lt-1,Version: \$Latest},Overrides: [{InstanceType: some.type.large,WeightedCapacity: 2,}, {InstanceType: some.type.xlarge,WeightedCapacity: 4,}]}," +
-      "InstancesDistribution: {OnDemandBaseCapacity: 1,OnDemandPercentageAboveBaseCapacity: 50,SpotAllocationStrategy: capacity-optimized,SpotInstancePools: 5,SpotMaxPrice: 2}}")
+      "InstancesDistribution: {OnDemandBaseCapacity: 1,OnDemandPercentageAboveBaseCapacity: 50,SpotAllocationStrategy: capacity-optimized,SpotMaxPrice: 2}}")
 
     and:
     def ex = thrown(RuntimeException)
@@ -367,7 +365,7 @@ class AsgWithMixedInstancesPolicyBuilderSpec extends Specification {
 
     1 * task.updateStatus(taskPhase, "Deploying ASG $asgName with mixed instances policy " +
       "{LaunchTemplate: {LaunchTemplateSpecification: {LaunchTemplateId: lt-1,Version: \$Latest},Overrides: [{InstanceType: some.type.large,WeightedCapacity: 2,}, {InstanceType: some.type.xlarge,WeightedCapacity: 4,}]}," +
-      "InstancesDistribution: {OnDemandBaseCapacity: 1,OnDemandPercentageAboveBaseCapacity: 50,SpotAllocationStrategy: capacity-optimized,SpotInstancePools: 5,SpotMaxPrice: 2}}")
+      "InstancesDistribution: {OnDemandBaseCapacity: 1,OnDemandPercentageAboveBaseCapacity: 50,SpotAllocationStrategy: capacity-optimized,SpotMaxPrice: 2}}")
     1 * task.updateStatus(taskPhase, ' > Deploying to subnetIds: subnetId1')
     1 * task.updateStatus(taskPhase, 'Setting size of myasg-v000 in foo/us-east-1 to [min=1, max=3, desired=2]')
     1 * task.updateStatus(taskPhase, "Deployed EC2 server group named $asgName")
@@ -458,7 +456,6 @@ class AsgWithMixedInstancesPolicyBuilderSpec extends Specification {
               instancesDistribution: new InstancesDistribution(
                 onDemandBaseCapacity: 1,
                 onDemandPercentageAboveBaseCapacity: 50,
-                spotInstancePools: 5,
                 spotMaxPrice: "2",
                 spotAllocationStrategy: "capacity-optimized"
               ),
@@ -581,26 +578,26 @@ class AsgWithMixedInstancesPolicyBuilderSpec extends Specification {
 
     1 * task.updateStatus(taskPhase, "Deploying ASG $asgName with mixed instances policy " +
       "{LaunchTemplate: {LaunchTemplateSpecification: {LaunchTemplateId: lt-1,Version: \$Latest},Overrides: [{InstanceType: some.type.large,WeightedCapacity: 2,}, {InstanceType: some.type.xlarge,WeightedCapacity: 4,}]}," +
-      "InstancesDistribution: {OnDemandBaseCapacity: 1,OnDemandPercentageAboveBaseCapacity: 50,SpotAllocationStrategy: capacity-optimized,SpotInstancePools: 5,SpotMaxPrice: 2}}")
+      "InstancesDistribution: {OnDemandBaseCapacity: 1,OnDemandPercentageAboveBaseCapacity: 50,SpotAllocationStrategy: capacity-optimized,SpotMaxPrice: 2}}")
     1 * task.updateStatus(taskPhase, "$asgName already exists and does not seem to match desired state on: $failedPredicates")
 
     where:
     ec2LtId  | override1InstType | override1Wgt| spotAllocStrategy  | spotMaxPrice | spotInstancePools |  sb     |     azReq         | lb           | tg           |cd | hcGp |   hc   | tp           || failedPredicates
-      "blah" |        "blah"     |      1      |        "blah"      |     "2"      |          1        |  "blah" |         []        | ["blah"]     |    ["blah"]  | 0 |   0  | "blah" | ["blah"]     || "health check type,target groups,mixed instances policy,health check grace period,cooldown,subnets,termination policies,load balancers"
-      "blah" | "some.type.large" |      2      |"capacity-optimized"|     "2"      |          5        |"sb1,sb2"|       null        |["one","two"] |["tg1", "tg2"]| 5 |   5  | "ec2"  |["tp1", "tp2"]|| "mixed instances policy"
-      "lt-1" |       "blah"      |      2      |"capacity-optimized"|     "2"      |          5        |"sb1,sb2"|       null        |["one","two"] |["tg1", "tg2"]| 5 |   5  | "ec2"  |["tp1", "tp2"]|| "mixed instances policy"
-      "lt-1" | "some.type.large" |      3      |"capacity-optimized"|     "1.5"    |          5        |"sb1,sb2"|       null        |["one","two"] |["tg1", "tg2"]| 5 |   5  | "ec2"  |["tp1", "tp2"]|| "mixed instances policy"
+      "blah" |        "blah"     |      1      |        "blah"      |     "2"      |       null        |  "blah" |         []        | ["blah"]     |    ["blah"]  | 0 |   0  | "blah" | ["blah"]     || "health check type,target groups,mixed instances policy,health check grace period,cooldown,subnets,termination policies,load balancers"
+      "blah" | "some.type.large" |      2      |"capacity-optimized"|     "2"      |       null        |"sb1,sb2"|       null        |["one","two"] |["tg1", "tg2"]| 5 |   5  | "ec2"  |["tp1", "tp2"]|| "mixed instances policy"
+      "lt-1" |       "blah"      |      2      |"capacity-optimized"|     "2"      |       null        |"sb1,sb2"|       null        |["one","two"] |["tg1", "tg2"]| 5 |   5  | "ec2"  |["tp1", "tp2"]|| "mixed instances policy"
+      "lt-1" | "some.type.large" |      3      |"capacity-optimized"|     "1.5"    |       null        |"sb1,sb2"|       null        |["one","two"] |["tg1", "tg2"]| 5 |   5  | "ec2"  |["tp1", "tp2"]|| "mixed instances policy"
       "lt-1" | "some.type.large" |      2      |   "lowest-price"   |     "2"      |          5        |"sb1,sb2"|       null        |["one","two"] |["tg1", "tg2"]| 5 |   5  | "ec2"  |["tp1", "tp2"]|| "mixed instances policy"
-      "lt-1" | "some.type.large" |      2      |        "blah"      |     "2"      |          5        |"sb1,sb2"|       null        |["one","two"] |["tg1", "tg2"]| 5 |   5  | "ec2"  |["tp1", "tp2"]|| "mixed instances policy"
-      "lt-1" | "some.type.large" |      2      |"capacity-optimized"|     "2"      |          1        |"sb1,sb2"|       null        |["one","two"] |["tg1", "tg2"]| 5 |   5  | "ec2"  |["tp1", "tp2"]|| "mixed instances policy"
-      "lt-1" | "some.type.large" |      2      |"capacity-optimized"|     "2"      |          5        |  "blah" |       null        |["one","two"] |["tg1", "tg2"]| 5 |   5  | "ec2"  |["tp1", "tp2"]|| "subnets"
-      "lt-1" | "some.type.large" |      2      |"capacity-optimized"|     "2"      |          5        |   null  |["az3","az2","az1"]|["one", "two"]|["tg1", "tg2"]| 5 |   5  | "ec2"  |["tp1", "tp2"]|| "availability zones"
-      "lt-1" | "some.type.large" |      2      |"capacity-optimized"|     "2"      |          5        |"sb1,sb2"|   ["az2","az1"]   |   ["blah"]   |["tg1", "tg2"]| 5 |   5  | "ec2"  |["tp1", "tp2"]|| "load balancers"
-      "lt-1" | "some.type.large" |      2      |"capacity-optimized"|     "2"      |          5        |"sb1,sb2"|   ["az2","az1"]   |["one", "two"]|    ["blah"]  | 5 |   5  | "ec2"  |["tp1", "tp2"]|| "target groups"
-      "lt-1" | "some.type.large" |      2      |"capacity-optimized"|     "2"      |          5        |"sb1,sb2"|   ["az2","az1"]   |["one", "two"]|["tg1", "tg2"]| 0 |   5  | "ec2"  |["tp1", "tp2"]|| "cooldown"
-      "lt-1" | "some.type.large" |      2      |"capacity-optimized"|     "2"      |          5        |"sb1,sb2"|   ["az2","az1"]   |["one", "two"]|["tg1", "tg2"]| 5 |   0  | "ec2"  |["tp1", "tp2"]|| "health check grace period"
-      "lt-1" | "some.type.large" |      2      |"capacity-optimized"|     "2"      |          5        |"sb1,sb2"|   ["az2","az1"]   |["one", "two"]|["tg1", "tg2"]| 5 |   5  | "blah" |["tp1", "tp2"]|| "health check type"
-      "lt-1" | "some.type.large" |      2      |"capacity-optimized"|     "2"      |          5        |"sb1,sb2"|       null        |["one", "two"]|["tg1", "tg2"]| 5 |   5  | "ec2"  |   ["blah"]   || "termination policies"
+      "lt-1" | "some.type.large" |      2      |        "blah"      |     "2"      |       null        |"sb1,sb2"|       null        |["one","two"] |["tg1", "tg2"]| 5 |   5  | "ec2"  |["tp1", "tp2"]|| "mixed instances policy"
+      "lt-1" | "some.type.large" |      2      |"capacity-optimized"|     "1"      |       null        |"sb1,sb2"|       null        |["one","two"] |["tg1", "tg2"]| 5 |   5  | "ec2"  |["tp1", "tp2"]|| "mixed instances policy"
+      "lt-1" | "some.type.large" |      2      |"capacity-optimized"|     "2"      |       null        |  "blah" |       null        |["one","two"] |["tg1", "tg2"]| 5 |   5  | "ec2"  |["tp1", "tp2"]|| "subnets"
+      "lt-1" | "some.type.large" |      2      |"capacity-optimized"|     "2"      |       null        |   null  |["az3","az2","az1"]|["one", "two"]|["tg1", "tg2"]| 5 |   5  | "ec2"  |["tp1", "tp2"]|| "availability zones"
+      "lt-1" | "some.type.large" |      2      |"capacity-optimized"|     "2"      |       null        |"sb1,sb2"|   ["az2","az1"]   |   ["blah"]   |["tg1", "tg2"]| 5 |   5  | "ec2"  |["tp1", "tp2"]|| "load balancers"
+      "lt-1" | "some.type.large" |      2      |"capacity-optimized"|     "2"      |       null        |"sb1,sb2"|   ["az2","az1"]   |["one", "two"]|    ["blah"]  | 5 |   5  | "ec2"  |["tp1", "tp2"]|| "target groups"
+      "lt-1" | "some.type.large" |      2      |"capacity-optimized"|     "2"      |       null        |"sb1,sb2"|   ["az2","az1"]   |["one", "two"]|["tg1", "tg2"]| 0 |   5  | "ec2"  |["tp1", "tp2"]|| "cooldown"
+      "lt-1" | "some.type.large" |      2      |"capacity-optimized"|     "2"      |       null        |"sb1,sb2"|   ["az2","az1"]   |["one", "two"]|["tg1", "tg2"]| 5 |   0  | "ec2"  |["tp1", "tp2"]|| "health check grace period"
+      "lt-1" | "some.type.large" |      2      |"capacity-optimized"|     "2"      |       null        |"sb1,sb2"|   ["az2","az1"]   |["one", "two"]|["tg1", "tg2"]| 5 |   5  | "blah" |["tp1", "tp2"]|| "health check type"
+      "lt-1" | "some.type.large" |      2      |"capacity-optimized"|     "2"      |       null        |"sb1,sb2"|       null        |["one", "two"]|["tg1", "tg2"]| 5 |   5  | "ec2"  |   ["blah"]   || "termination policies"
   }
 
   void "creates lifecycle hooks before scaling out asg"() {

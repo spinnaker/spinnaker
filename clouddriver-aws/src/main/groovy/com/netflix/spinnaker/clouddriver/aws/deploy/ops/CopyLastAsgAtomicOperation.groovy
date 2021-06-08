@@ -19,13 +19,13 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.autoscaling.model.LaunchTemplateSpecification
-import com.amazonaws.services.ec2.model.CreditSpecification
 import com.amazonaws.services.ec2.model.DescribeSubnetsRequest
 import com.amazonaws.services.ec2.model.LaunchTemplateVersion
 import com.amazonaws.services.ec2.model.ResponseLaunchTemplateData
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest
 import com.netflix.frigga.Names
 import com.netflix.frigga.autoscaling.AutoScalingGroupNameBuilder
+import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AsgConfigHelper
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.BasicAmazonDeployHandler
 import com.netflix.spinnaker.clouddriver.aws.deploy.InstanceTypeUtils
@@ -189,7 +189,7 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
           newDescription.associateIPv6Address = description.associateIPv6Address
           newDescription.unlimitedCpuCredits = description.unlimitedCpuCredits != null
             ? description.unlimitedCpuCredits
-            : getUnlimitedCpuCreditsFromAncestorLt(ancestorLtData.creditSpecification, InstanceTypeUtils.isBurstingSupportedByAllTypes(description.getAllInstanceTypes()))
+            : AsgConfigHelper.getUnlimitedCpuCreditsFromAncestorLt(ancestorLtData.creditSpecification, InstanceTypeUtils.isBurstingSupportedByAllTypes(description.getAllInstanceTypes()))
 
           if (!ancestorLtData.networkInterfaces?.empty && ancestorLtData.networkInterfaces*.associatePublicIpAddress?.any()) {
             associatePublicIpAddress = true
@@ -339,17 +339,5 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
       return data.purpose
     }
     return null
-  }
-
-  private Boolean getUnlimitedCpuCreditsFromAncestorLt(final CreditSpecification ancestorCreditSpec, boolean isBurstingSupportedByAllTypesRequested) {
-    if (ancestorCreditSpec == null) {
-      return null
-    }
-
-    final String anscestorUnlimitedCpuCredits = ancestorCreditSpec.getCpuCredits()
-    // return non-null anscestorUnlimitedCpuCredits iff ALL requested instance types support CPU credits specification to ensure compatibility
-    return isBurstingSupportedByAllTypesRequested
-      ? anscestorUnlimitedCpuCredits.equals("unlimited") ? true : false
-      : null
   }
 }

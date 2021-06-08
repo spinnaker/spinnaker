@@ -29,12 +29,14 @@ import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider
 import com.netflix.spinnaker.clouddriver.core.provider.agent.ExternalHealthProvider
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.ServerGroupProvider
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.*
 
+@Slf4j
 @Component
 class AmazonClusterProvider implements ClusterProvider<AmazonCluster>, ServerGroupProvider {
 
@@ -575,8 +577,13 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster>, ServerGro
   private static void populateServerGroupWithLtOrMip(AmazonServerGroup serverGroup, CacheData launchData) {
 
     // get launch template for version specified
-    def ltVersionStr = serverGroup.getLaunchTemplateSpecification()["version"] as String
-    Map ec2Lt = getLaunchTemplateForVersion(launchData, ltVersionStr)
+    def ltSpec = serverGroup.getLaunchTemplateSpecification()
+    log.debug("Attempting to populate server group $serverGroup.name with launch template $ltSpec.")
+    Map ec2Lt = getLaunchTemplateForVersion(launchData, ltSpec["version"] as String)
+
+    if (!ec2Lt) {
+      return
+    }
 
     if (serverGroup.asg?.launchTemplate) {
       serverGroup.launchTemplate = ec2Lt
