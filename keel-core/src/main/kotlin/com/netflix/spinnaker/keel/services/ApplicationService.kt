@@ -60,6 +60,7 @@ import com.netflix.spinnaker.keel.lifecycle.LifecycleEventRepository
 import com.netflix.spinnaker.keel.logging.TracingSupport.Companion.blankMDC
 import com.netflix.spinnaker.keel.persistence.ArtifactNotFoundException
 import com.netflix.spinnaker.keel.persistence.KeelRepository
+import com.netflix.spinnaker.keel.persistence.NoDeliveryConfigForApplication
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigException
 import com.netflix.spinnaker.keel.telemetry.InvalidVerificationIdSeen
 import kotlinx.coroutines.CoroutineScope
@@ -129,7 +130,11 @@ class ApplicationService(
 
   fun deleteConfigByApp(application: String) {
     launch(blankMDC) {
-      repository.deleteDeliveryConfigByApplication(application)
+      try {
+        repository.deleteDeliveryConfigByApplication(application)
+      } catch(ex: NoDeliveryConfigForApplication) {
+        log.info("attempted to delete delivery config for app that doesn't have a config: $application")
+      }
     }
   }
 
