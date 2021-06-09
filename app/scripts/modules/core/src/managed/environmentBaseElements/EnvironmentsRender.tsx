@@ -4,6 +4,7 @@ import React from 'react';
 import { atom, useRecoilState } from 'recoil';
 
 import { useDimensions } from 'core/presentation/hooks/useDimensions.hook';
+import { useLogEvent } from '../utils/logging';
 
 const STORAGE_KEY = 'MD_environmentsDirection';
 
@@ -38,6 +39,12 @@ export const useIsGridView = () => {
 
 export const EnvironmentsDirectionController = () => {
   const { direction, setDirection } = useEnvironmentDirectionState();
+  const logEvent = useLogEvent('environmentsDirection');
+
+  React.useEffect(() => {
+    logEvent({ action: direction });
+  }, [direction]);
+
   return (
     <button
       type="button"
