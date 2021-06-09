@@ -4,7 +4,7 @@
     "baseUrl": "./src",
     "outDir": "dist",
     "paths": {
-      "core/*": ["../node_modules/@spinnaker/core/lib/*"]
+      "core/*": ["../node_modules/@spinnaker/core/dist/*"]
     },
     "rootDir": "./src"
   },
