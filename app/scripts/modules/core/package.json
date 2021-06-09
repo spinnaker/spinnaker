@@ -18,7 +18,6 @@
     "@spinnaker/mocks": "1.0.7",
     "@spinnaker/presentation": "0.0.8",
     "@spinnaker/styleguide": "1.0.24",
-    "@storybook/react": "6.0.21",
     "@uirouter/angularjs": "1.0.26",
     "@uirouter/core": "6.0.5",
     "@uirouter/react": "1.0.3",
