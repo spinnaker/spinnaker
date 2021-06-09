@@ -7,10 +7,12 @@ plugins {
   id("com.github.ben-manes.versions") version "0.28.0" apply false
   id("com.netflix.dgs.codegen") version "4.3.4" apply false
   id "com.diffplug.spotless" version "5.10.2" apply false
+  id 'io.spinnaker.project' version "$spinnakerGradleVersion" apply false
 }
 
 allprojects {
   group = "io.spinnaker.keel"
+  apply plugin: 'io.spinnaker.project'
 
   repositories {
     if (property("korkVersion").toString().endsWith("-SNAPSHOT")) {
