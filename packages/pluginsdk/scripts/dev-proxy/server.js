@@ -14,6 +14,9 @@ const express = require('express');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 const fs = require('fs');
 const path = require('path');
+const http = require('http');
+const https = require('https');
+const certs = require('./certs');
 
 console.log('dev-proxy: a development proxy for doing local development on a Deck Plugin');
 console.log('This service proxies deck assets from an live deck installation and loads your Deck plugin');
@@ -90,5 +93,14 @@ app.use('/livereload.js', require('./livereload'));
 // Serve all other requests to deck code from an existing spinnaker environment
 app.use('/', createProxyMiddleware({ target: DEV_PROXY_HOST, changeOrigin: true }));
 
-app.listen(9000);
+// http
+http.createServer(app).listen(9000);
+
+// https
+https.createServer({
+  key: certs.key,
+  cert: certs.cert,
+}, app).listen(9443);
+
 console.log(`Server started on http://localhost:9000/`);
+console.log(`Server started on https://localhost:9443/`);
