@@ -18,7 +18,7 @@ import {
 } from '@spinnaker/core';
 import { DockerImageAndTagSelector, DockerImageUtils, IDockerImageAndTagChanges } from '@spinnaker/docker';
 import { IJobDisruptionBudget, ITitusResources } from 'titus/domain';
-import { JobDisruptionBudget } from 'titus/serverGroup/configure/wizard/pages';
+import { IPv6CheckboxInput, JobDisruptionBudget } from 'titus/serverGroup/configure/wizard/pages';
 
 import { TitusSecurityGroupPicker } from './TitusSecurityGroupPicker';
 import { TitusProviderSettings } from '../../../titus.settings';
@@ -128,6 +128,10 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
     this.stageFieldChanged('credentials', account);
     this.setRegistry(account);
     this.updateRegions(account);
+
+    const accountDetails = this.credentialsKeyedByAccount[account];
+    const ipv6Default = accountDetails.environment === 'test' ? 'true' : 'false';
+    this.associateIPv6AddressChanged(ipv6Default);
   };
 
   private dockerChanged = (changes: IDockerImageAndTagChanges) => {
@@ -159,6 +163,14 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
       this.setRegistry(stage.credentials);
       this.updateRegions(stage.credentials);
       this.setState({ credentials, loaded: true });
+
+      const account = this.credentialsKeyedByAccount[stage.credentials];
+      const defaultIPv6Address =
+        account.environment === 'test' &&
+        stage.cluster.containerAttributes['titusParameter.agent.assignIPv6Address'] === undefined
+          ? 'true'
+          : 'false';
+      this.associateIPv6AddressChanged(defaultIPv6Address);
     });
   }
 
@@ -169,6 +181,15 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
   private groupsChanged = (groups: string[]) => {
     this.stageFieldChanged('cluster.securityGroups', groups);
     this.forceUpdate();
+  };
+
+  private associateIPv6AddressChanged = (value: string) => {
+    const oldAttributes = this.props.stage.cluster.containerAttributes || {};
+    const updatedAttributes = {
+      ...oldAttributes,
+      'titusParameter.agent.assignIPv6Address': value,
+    };
+    this.mapChanged('cluster.containerAttributes', updatedAttributes);
   };
 
   public disruptionBudgetChanged = (values: IJobDisruptionBudget) => {
@@ -370,6 +391,13 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
                 onChange={this.groupsChanged}
               />
             )}
+          </StageConfigField>
+
+          <StageConfigField label="Associate IPv6 Address (Recommended)" helpKey="serverGroup.ipv6">
+            <IPv6CheckboxInput
+              value={stage.cluster.containerAttributes['titusParameter.agent.assignIPv6Address']}
+              onChange={(e) => this.associateIPv6AddressChanged(e.target.value)}
+            />
           </StageConfigField>
 
           <StageConfigField label={'Disruption Budget'} helpKey="titus.disruptionbudget.description">

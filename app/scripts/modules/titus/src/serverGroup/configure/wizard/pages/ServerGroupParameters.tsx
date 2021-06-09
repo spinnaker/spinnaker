@@ -61,7 +61,7 @@ function ServiceJobProcessesInput(props: IFormInputProps) {
   return <ChecklistInput {...mappedProps} options={options} />;
 }
 
-function IPv6CheckboxInput(props: IFormInputProps) {
+export function IPv6CheckboxInput(props: IFormInputProps) {
   const mappedProps = useFormInputValueMapper(
     props,
     (val: string) => val === 'true', // formik -> checkbox

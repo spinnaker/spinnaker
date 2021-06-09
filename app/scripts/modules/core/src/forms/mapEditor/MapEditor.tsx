@@ -1,4 +1,4 @@
-import { isString } from 'lodash';
+import { isEqual, isString } from 'lodash';
 import React from 'react';
 
 import { IPipeline } from 'core/domain';
@@ -46,7 +46,7 @@ export class MapEditor extends React.Component<IMapEditorProps, IMapEditorState>
 
   componentDidUpdate(prevProps: IMapEditorProps) {
     const isModelObj = !isString(this.props.model);
-    if (isModelObj && Object.keys(prevProps.model).length !== Object.keys(this.props.model).length) {
+    if (isModelObj && !isEqual(prevProps.model, this.props.model)) {
       this.setState({ backingModel: this.mapModel(this.props.model as { [key: string]: string }) });
     }
   }
