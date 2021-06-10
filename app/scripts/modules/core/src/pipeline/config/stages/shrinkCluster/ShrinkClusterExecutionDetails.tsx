@@ -28,8 +28,7 @@ export function ShrinkClusterExecutionDetails(props: IExecutionDetailsSectionPro
           </dl>
         </div>
       </div>
-      <ServerGroupStageContext serverGroups={stage.context['deploy.server.groups']} />
-
+      <ServerGroupStageContext status="Shrunk" serverGroups={stage.context['deploy.server.groups']} />
       <StageFailureMessage stage={props.stage} message={props.stage.failureMessage} />
       <StageExecutionLogs stage={props.stage} />
     </ExecutionDetailsSection>
