@@ -8,6 +8,7 @@ import com.netflix.spinnaker.gate.model.manageddelivery.ConstraintStatus;
 import com.netflix.spinnaker.gate.model.manageddelivery.DeliveryConfig;
 import com.netflix.spinnaker.gate.model.manageddelivery.EnvironmentArtifactPin;
 import com.netflix.spinnaker.gate.model.manageddelivery.EnvironmentArtifactVeto;
+import com.netflix.spinnaker.gate.model.manageddelivery.GraphQLRequest;
 import com.netflix.spinnaker.gate.model.manageddelivery.OverrideVerificationRequest;
 import com.netflix.spinnaker.gate.model.manageddelivery.Resource;
 import com.netflix.spinnaker.gate.model.manageddelivery.RetryVerificationRequest;
@@ -92,6 +93,15 @@ public class ManagedController {
             .waitDuration(Duration.ofSeconds(30))
             .retryExceptions(RetrofitError.class)
             .build());
+  }
+
+  @ApiOperation(value = "Post a graphql request", response = Map.class)
+  @PostMapping(
+      path = "/graphql",
+      consumes = {APPLICATION_JSON_VALUE},
+      produces = {APPLICATION_JSON_VALUE})
+  Map graphql(@RequestBody GraphQLRequest query) {
+    return keelService.graphql(query);
   }
 
   @ApiOperation(value = "Get a resource", response = Resource.class)

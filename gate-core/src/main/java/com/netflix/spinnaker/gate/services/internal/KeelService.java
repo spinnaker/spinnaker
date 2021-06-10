@@ -22,6 +22,7 @@ import com.netflix.spinnaker.gate.model.manageddelivery.ConstraintStatus;
 import com.netflix.spinnaker.gate.model.manageddelivery.DeliveryConfig;
 import com.netflix.spinnaker.gate.model.manageddelivery.EnvironmentArtifactPin;
 import com.netflix.spinnaker.gate.model.manageddelivery.EnvironmentArtifactVeto;
+import com.netflix.spinnaker.gate.model.manageddelivery.GraphQLRequest;
 import com.netflix.spinnaker.gate.model.manageddelivery.OverrideVerificationRequest;
 import com.netflix.spinnaker.gate.model.manageddelivery.Resource;
 import com.netflix.spinnaker.gate.model.manageddelivery.RetryVerificationRequest;
@@ -40,6 +41,10 @@ import retrofit.http.Query;
 import retrofit.http.QueryMap;
 
 public interface KeelService {
+
+  @POST("/graphql")
+  @Headers("Accept: application/json")
+  Map<String, Object> graphql(@Body GraphQLRequest query);
 
   @GET("/resources/events/{name}")
   List<Map<String, Object>> getResourceEvents(
