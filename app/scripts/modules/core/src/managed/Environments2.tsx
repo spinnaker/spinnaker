@@ -66,12 +66,13 @@ const tabs = Object.entries(tabsInternal).map(([key, title]) => ({ title, path: 
 // TODO: this is a temporary name until we remove the old view
 export const Environments2 = () => {
   const logEvent = useLogEvent('EnvironmentsTab');
+  const { state } = useCurrentStateAndParams();
 
   return (
     <div className="vertical Environments2">
       <HorizontalTabs
         tabs={tabs}
-        rightElement={<EnvironmentsDirectionController />}
+        rightElement={!state.name?.endsWith('.config') ? <EnvironmentsDirectionController /> : undefined}
         onClick={({ title, path }) => {
           logEvent({ action: `Open_${title}`, data: { path } });
         }}

@@ -24,12 +24,12 @@ export const EnvironmentItem: React.FC<IEnvironmentItemProps> = ({
 }) => {
   return (
     <div className={classnames(className, 'environment-row-element')}>
-      <div className="row-icon">
+      <div className={classnames('row-icon', size)}>
         <IconTooltip
           tooltip={iconTooltip}
           name={iconName}
           color="primary-g1"
-          size={size === 'regular' ? '20px' : '18px'}
+          size={size === 'regular' ? '18px' : '16px'}
           delayShow={TOOLTIP_DELAY_SHOW}
         />
       </div>

@@ -1,6 +1,6 @@
 .environment-row-element {
   display: grid;
-  grid-template-columns: [icon] 40px [details] 1fr;
+  grid-template-columns: [icon] var(--row-element-icon-width) [details] 1fr;
   padding: var(--l-spacing) var(--base-horizontal-padding) var(--s-spacing) var(--base-horizontal-padding);
 
   @media (max-width: 768px) {
@@ -27,6 +27,11 @@
     grid-column: icon;
     display: flex;
     align-self: flex-start;
+    padding-top: var(~'--2xs-spacing');
+
+    &.small {
+      padding-top: var(~'--3xs-spacing');
+    }
   }
 
   .row-title {

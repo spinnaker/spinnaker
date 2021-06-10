@@ -19,7 +19,7 @@ const storedDirection = localStorage.getItem(STORAGE_KEY);
 
 const environmentsDirectionState = atom<Direction>({
   key: 'environmentsDisplay',
-  default: isDirection(storedDirection) ? storedDirection : 'listView',
+  default: isDirection(storedDirection) ? storedDirection : 'gridView',
 });
 
 // The goal of this hook is to store the value in an atom to be shared across the app but also update the local storage

@@ -46,6 +46,7 @@ export const DeliveryConfig = () => {
             }}
             style={{ width: 'auto' }}
             className="ace-editor sp-margin-s-top"
+            editorProps={{ $blockScrolling: true }}
           />
         </>
       )}
