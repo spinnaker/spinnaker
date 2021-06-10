@@ -3,6 +3,7 @@ import React from 'react';
 import { useApplicationContextSafe } from 'core/presentation';
 import { Spinner } from 'core/widgets';
 
+import { ApplicationQueryError } from '../ApplicationQueryError';
 import { EnvironmentOverview } from './EnvironmentOverview';
 import { ManagementWarning } from '../config/ManagementWarning';
 import { EnvironmentsRender, useOrderedEnvironment } from '../environmentBaseElements/EnvironmentsRender';
@@ -35,12 +36,7 @@ export const EnvironmentsOverview = () => {
     content = <Spinner {...spinnerProps} message="Loading environments..." />;
   } else if (error) {
     console.error(error);
-    content = (
-      <div style={{ width: '100%' }}>
-        Failed to load environments data, please refresh and try again.
-        <p>{error.message}</p>
-      </div>
-    );
+    content = <ApplicationQueryError hasApplicationData={Boolean(data?.application)} error={error} />;
   } else {
     content = (
       <>

@@ -5,6 +5,7 @@ import { Illustration } from '@spinnaker/presentation';
 import { showModal, useApplicationContextSafe } from 'core/presentation';
 import { Spinner } from 'core/widgets';
 
+import { ApplicationQueryError } from '../ApplicationQueryError';
 import { DeliveryConfig } from './DeliveryConfig';
 import { useFetchApplicationManagementStatusQuery, useToggleManagementMutation } from '../graphql/graphql-sdk';
 import spinner from '../overview/loadingIndicator.svg';
@@ -40,7 +41,7 @@ const ManagementToggle = () => {
   const app = useApplicationContextSafe();
   const appName = app.name;
   const logEvent = useLogEvent('Management');
-  const { data, loading, refetch } = useFetchApplicationManagementStatusQuery({ variables: { appName } });
+  const { data, error, loading, refetch } = useFetchApplicationManagementStatusQuery({ variables: { appName } });
   const [toggleManagement, { loading: mutationInFlight }] = useToggleManagementMutation();
 
   const onShowToggleManagementModal = React.useCallback((shouldPause: boolean) => {
@@ -64,11 +65,12 @@ const ManagementToggle = () => {
   if (loading) {
     return <Spinner {...spinnerProps} message="Loading settings..." />;
   }
-  if (!data) {
-    return <div>Failed to load app config</div>;
+
+  if (error) {
+    return <ApplicationQueryError hasApplicationData={Boolean(data?.application)} error={error} />;
   }
 
-  const isPaused = Boolean(data.application?.isPaused);
+  const isPaused = Boolean(data?.application?.isPaused);
   const state = managementStatusToContent[isPaused ? 'PAUSED' : 'ENABLED'];
 
   return (

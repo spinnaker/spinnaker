@@ -6,6 +6,7 @@ import React from 'react';
 import { CollapsibleSection, useApplicationContextSafe } from 'core/presentation';
 import { Spinner } from 'core/widgets';
 
+import { ApplicationQueryError } from '../ApplicationQueryError';
 import { VersionContent } from './VersionContent';
 import { VersionHeading } from './VersionHeading';
 import { ManagementWarning } from '../config/ManagementWarning';
@@ -116,8 +117,7 @@ export const VersionsHistory = () => {
   }
 
   if (error) {
-    console.warn(error);
-    return <div style={{ width: '100%' }}>Failed to load history, please refresh and try again.</div>;
+    return <ApplicationQueryError hasApplicationData={Boolean(data?.application)} error={error} />;
   }
 
   const groupedVersions = groupVersionsByShaOrBuild(data?.application?.environments || [], params);

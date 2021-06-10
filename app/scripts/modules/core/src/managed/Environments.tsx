@@ -3,13 +3,13 @@ import { isEqual, keyBy, pick } from 'lodash';
 import React, { useMemo } from 'react';
 import { animated, useTransition } from 'react-spring';
 
-import { SETTINGS } from 'core/config/settings';
 import { Spinner } from 'core/widgets';
 
 import { ColumnHeader } from './ColumnHeader';
 import { Environments2, getIsNewUI, UISwitcher } from './Environments2';
 import { EnvironmentsHeader } from './EnvironmentsHeader';
 import { EnvironmentsList } from './EnvironmentsList';
+import { UnmanagedMessage } from './UnmanagedMessage';
 import { Application, ApplicationDataSource } from '../application';
 import { ArtifactDetail } from './artifactDetail/ArtifactDetail';
 import { ArtifactsList } from './artifactsList/ArtifactsList';
@@ -17,8 +17,6 @@ import { IManagedApplicationEnvironmentSummary, IManagedResourceSummary } from '
 import { useDataSource } from '../presentation/hooks';
 
 import './Environments.less';
-
-const defaultGettingStartedUrl = 'https://www.spinnaker.io/guides/user/managed-delivery/getting-started/';
 
 const paneSpring = { mass: 1, tension: 400, friction: 40 };
 
@@ -136,17 +134,8 @@ export const EnvironmentsOld: React.FC<IEnvironmentsProps> = ({ app }) => {
   }
 
   const unmanaged = loaded && artifacts.length == 0 && resources.length == 0;
-  const gettingStartedLink = SETTINGS.managedDelivery?.gettingStartedUrl || defaultGettingStartedUrl;
   if (unmanaged) {
-    return (
-      <div style={{ width: '100%' }}>
-        Welcome! This application does not have any environments or artifacts. Check out the{' '}
-        <a href={gettingStartedLink} target="_blank">
-          getting started guide
-        </a>{' '}
-        to set some up!
-      </div>
-    );
+    return <UnmanagedMessage />;
   }
 
   return (
