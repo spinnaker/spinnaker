@@ -100,12 +100,14 @@ const Constraint = ({ constraint, versionProps }: IConstraintProps) => {
         expandIconPosition="right"
         heading={({ chevron }) => (
           <div className="constraint-title">
-            {title}{' '}
-            {constraint.judgedAt && (
-              <span className="sp-margin-xs-left">
-                (<RelativeTimestamp timestamp={constraint.judgedAt} withSuffix />)
-              </span>
-            )}
+            <div>
+              {title}
+              {constraint.judgedAt && (
+                <span className="sp-margin-xs-left">
+                  (<RelativeTimestamp timestamp={constraint.judgedAt} withSuffix />)
+                </span>
+              )}
+            </div>
             {chevron}
           </div>
         )}
