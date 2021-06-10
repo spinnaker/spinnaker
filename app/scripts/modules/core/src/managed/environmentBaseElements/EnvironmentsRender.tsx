@@ -52,7 +52,7 @@ export const EnvironmentsDirectionController = () => {
       onClick={() => setDirection((state) => (state === 'listView' ? 'gridView' : 'listView'))}
     >
       {direction === 'listView' ? 'Grid view' : 'List view'}
-      <i className={classnames(direction === 'listView' ? 'far fa-list-alt' : 'fas fa-columns', 'sp-margin-xs-left')} />
+      <i className={classnames(direction === 'listView' ? 'fas fa-columns' : 'far fa-list-alt', 'sp-margin-xs-left')} />
     </button>
   );
 };
