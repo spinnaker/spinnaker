@@ -86,7 +86,7 @@ export class PreconfiguredJobExecutionDetails extends React.Component<IExecution
             application={this.props.application}
             location={namespace}
             externalLink={externalLink}
-            podNameProvider={podNameProvider}
+            podNamesProviders={[podNameProvider]}
           />
         </div>
       );

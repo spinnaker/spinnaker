@@ -15,7 +15,7 @@ interface IJobStageExecutionLogsProps {
   account: string;
   application: Application;
   externalLink: string;
-  podNameProvider: IPodNameProvider;
+  podNamesProviders: IPodNameProvider[];
   location: string;
 }
 
@@ -51,8 +51,7 @@ export class JobStageExecutionLogs extends React.Component<IJobStageExecutionLog
 
   public render() {
     const { manifest } = this.state;
-    const { externalLink, podNameProvider, location, account } = this.props;
-
+    const { externalLink, podNamesProviders, location, account } = this.props;
     // prefer links to external logging platforms
     if (!isEmpty(manifest) && externalLink) {
       return (
@@ -68,7 +67,7 @@ export class JobStageExecutionLogs extends React.Component<IJobStageExecutionLog
           <JobManifestPodLogs
             account={account}
             location={location}
-            podNameProvider={podNameProvider}
+            podNamesProviders={podNamesProviders}
             linkName="Console Output"
           />
         )}

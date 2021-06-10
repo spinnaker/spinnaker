@@ -14,7 +14,7 @@ export interface IJobManifestPodLogsProps {
   account: string;
   location: string;
   linkName: string;
-  podNameProvider: IPodNameProvider;
+  podNamesProviders: IPodNameProvider[];
 }
 
 export interface IJobManifestPodLogsState {
@@ -22,6 +22,7 @@ export interface IJobManifestPodLogsState {
   showModal: boolean;
   selectedContainerLog: IInstanceMultiOutputLog;
   errorMessage: string;
+  loadingLogs: boolean;
 }
 
 // JobManifestPodLogs exposes pod logs for Job type manifests in the deploy manifest stage
@@ -35,23 +36,23 @@ export class JobManifestPodLogs extends React.Component<IJobManifestPodLogsProps
       selectedContainerLog: null,
       showModal: false,
       errorMessage: null,
+      loadingLogs: false,
     };
     bindAll(this, ['open', 'close', 'onClick']);
     this.ansiUp = new AnsiUp();
   }
 
   private canShow(): boolean {
-    const { podNameProvider } = this.props;
-    return podNameProvider.getPodName() !== '';
+    const { podNamesProviders } = this.props;
+    return podNamesProviders.every((pod) => pod.getPodName() !== '') && !this.state.loadingLogs;
   }
 
   private resourceRegion(): string {
     return this.props.location;
   }
 
-  private podName(): string {
-    const { podNameProvider } = this.props;
-    return `pod ${podNameProvider.getPodName()}`;
+  private podName(pod?: IPodNameProvider): string {
+    return `pod ${pod.getPodName()}`;
   }
 
   public close() {
@@ -63,18 +64,32 @@ export class JobManifestPodLogs extends React.Component<IJobManifestPodLogsProps
   }
 
   public onClick() {
-    const { account } = this.props;
+    const { account, podNamesProviders } = this.props;
     const region = this.resourceRegion();
-    InstanceReader.getConsoleOutput(account, region, this.podName(), 'kubernetes')
-      .then((response: IInstanceConsoleOutput) => {
-        const containerLogs = response.output as IInstanceMultiOutputLog[];
-        containerLogs.forEach((log: IInstanceMultiOutputLog) => {
-          log.formattedOutput = DOMPurify.sanitize(this.ansiUp.ansi_to_html(log.output));
+
+    this.setState({ loadingLogs: true });
+
+    const promises = podNamesProviders.map((p) => {
+      const podName = this.podName(p);
+      return InstanceReader.getConsoleOutput(account, region, podName, 'kubernetes');
+    });
+
+    Promise.all(promises)
+      .then((response: IInstanceConsoleOutput[]) => {
+        const tempLogs = [] as IInstanceMultiOutputLog[];
+
+        response.forEach((r) => {
+          const containerLogs = r.output as IInstanceMultiOutputLog[];
+          containerLogs.forEach((log: IInstanceMultiOutputLog) => {
+            log.formattedOutput = DOMPurify.sanitize(this.ansiUp.ansi_to_html(log.output));
+          });
+          tempLogs.push(...containerLogs);
         });
 
         this.setState({
-          containerLogs: containerLogs,
-          selectedContainerLog: containerLogs[0],
+          containerLogs: tempLogs,
+          selectedContainerLog: tempLogs[0],
+          loadingLogs: false,
         });
         this.open();
       })
@@ -98,21 +113,21 @@ export class JobManifestPodLogs extends React.Component<IJobManifestPodLogsProps
           </a>
           <Modal show={showModal} onHide={this.close} dialogClassName="modal-lg modal-fullscreen flex-fill">
             <Modal.Header closeButton={true}>
-              <Modal.Title>Console Output: {this.podName()} </Modal.Title>
+              <Modal.Title>Console Output</Modal.Title>
             </Modal.Header>
             <Modal.Body className="flex-fill">
               {containerLogs.length && (
                 <>
                   <ul className="tabs-basic console-output-tabs">
-                    {containerLogs.map((log) => (
+                    {containerLogs.map((log, i) => (
                       <li
-                        key={log.name}
+                        key={`${log.name}-${i + 1}}`}
                         className={classNames('console-output-tab', {
                           selected: log.name === selectedContainerLog.name,
                         })}
                         onClick={() => this.selectLog(log)}
                       >
-                        {log.name}
+                        {`${log.name}-${i + 1}`}
                       </li>
                     ))}
                   </ul>
