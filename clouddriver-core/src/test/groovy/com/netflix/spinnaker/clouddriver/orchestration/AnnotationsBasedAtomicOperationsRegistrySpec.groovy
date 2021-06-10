@@ -76,22 +76,24 @@ class AnnotationsBasedAtomicOperationsRegistrySpec extends Specification {
 
   void 'annotations based registry should return the validator if the specified name matches the component name'() {
     when:
-    def validator = atomicOperationsRegistry.getAtomicOperationDescriptionValidator('operationOldDescriptionValidator', null)
+    def compositeValidator = atomicOperationsRegistry.getAtomicOperationDescriptionValidator('operationOldDescriptionValidator', null)
 
     then:
     noExceptionThrown()
-    validator != null
-    validator instanceof TestValidator
+    compositeValidator != null
+    compositeValidator instanceof CompositeDescriptionValidator
+    compositeValidator.getValidator() instanceof TestValidator
   }
 
-  void 'annotations based registry should return the validator that matches the AtomicOperationDescription name and cloud provider'() {
+  void 'annotations based registry should return a composite validator that contains the validator that matches the AtomicOperationDescription name and cloud provider'() {
     when:
-    def validator = atomicOperationsRegistry.getAtomicOperationDescriptionValidator('operationDescriptionValidator', 'test-provider')
+    def compositeValidator = atomicOperationsRegistry.getAtomicOperationDescriptionValidator('operationDescriptionValidator', 'test-provider')
 
     then:
     noExceptionThrown()
-    validator != null
-    validator instanceof TestValidator
+    compositeValidator != null
+    compositeValidator instanceof CompositeDescriptionValidator
+    compositeValidator.getValidator() instanceof TestValidator
   }
 
   void 'annotations based registry should return a null if no validator found for given name with no cloud provider specified'() {
@@ -103,13 +105,15 @@ class AnnotationsBasedAtomicOperationsRegistrySpec extends Specification {
     validator == null
   }
 
-  void 'annotations based registry should return a null if no validator found for given name with cloud provider specified'() {
+  void 'annotations based registry should return a composite validator with a null validator if no validator found for given name with cloud provider specified'() {
     when:
-    def validator = atomicOperationsRegistry.getAtomicOperationDescriptionValidator('foo', 'test-provider')
+    def compositeValidator = atomicOperationsRegistry.getAtomicOperationDescriptionValidator('foo', 'test-provider')
 
     then:
     noExceptionThrown()
-    validator == null
+    compositeValidator != null
+    compositeValidator instanceof CompositeDescriptionValidator
+    compositeValidator.getValidator() == null
   }
 
   void 'should return matching converter based on description version'() {
