@@ -34,6 +34,7 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.NullOpUserDataProvi
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.UserDataProviderAggregator
 import com.netflix.spinnaker.clouddriver.aws.event.AfterResizeEventHandler
 import com.netflix.spinnaker.clouddriver.aws.event.DefaultAfterResizeEventHandler
+import com.netflix.spinnaker.clouddriver.aws.health.AmazonHealthIndicator
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonServerGroup
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsCleanupProvider
@@ -154,6 +155,14 @@ class AwsConfiguration {
       SpinnakerEvent.class,
       Collections.singletonList("com.netflix.spinnaker.clouddriver.aws")
     );
+  }
+
+  @Bean
+  AmazonHealthIndicator amazonHealthIndicator(
+    Registry registry,
+    CredentialsRepository<NetflixAmazonCredentials> credentialsRepository,
+    AmazonClientProvider amazonClientProvider) {
+    return new AmazonHealthIndicator(registry, credentialsRepository, amazonClientProvider)
   }
 
   public static class DeployDefaults {

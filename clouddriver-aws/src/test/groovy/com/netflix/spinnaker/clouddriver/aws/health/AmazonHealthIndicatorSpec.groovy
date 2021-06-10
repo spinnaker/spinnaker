@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.aws.health
 import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DescribeAccountAttributesResult
-import com.netflix.spectator.api.Counter
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -27,11 +27,11 @@ import com.netflix.spinnaker.credentials.CredentialsRepository
 import org.springframework.boot.actuate.health.Status
 import spock.lang.Specification
 
-import java.util.concurrent.atomic.AtomicLong
-
 class AmazonHealthIndicatorSpec extends Specification {
 
-  def "health fails when amazon appears unreachable"() {
+  private static final Registry REGISTRY = new NoopRegistry();
+
+  def "health details contains warning when amazon appears unreachable"() {
     setup:
     def creds = [TestCredential.named('foo')]
     def credentialsRepository = Stub(CredentialsRepository) {
@@ -43,20 +43,16 @@ class AmazonHealthIndicatorSpec extends Specification {
     def mockAmazonClientProvider = Stub(AmazonClientProvider) {
       getAmazonEC2(*_) >> mockEc2
     }
-    def counter = new AtomicLong(0)
-    def mockRegistry = Stub(Registry) {
-      gauge(_, _) >> counter
-    }
 
-    def indicator = new AmazonHealthIndicator(credentialsRepository, mockAmazonClientProvider, mockRegistry)
+    def indicator = new AmazonHealthIndicator(REGISTRY, credentialsRepository, mockAmazonClientProvider)
 
     when:
     indicator.checkHealth()
-    indicator.health()
+    def health = indicator.health()
 
     then:
-    thrown AmazonHealthIndicator.AmazonUnreachableException
-    counter.get() == 1
+    health.status == Status.UP
+    (health.details['foo'] as String).startsWith("Failed to describe account attributes for 'foo'.")
   }
 
   def "health succeeds when amazon is reachable"() {
@@ -72,12 +68,7 @@ class AmazonHealthIndicatorSpec extends Specification {
       getAmazonEC2(*_) >> mockEc2
     }
 
-    def counter = new AtomicLong(0)
-    def mockRegistry = Stub(Registry) {
-      gauge(_, _) >> counter
-    }
-
-    def indicator = new AmazonHealthIndicator(credentialsRepository, mockAmazonClientProvider, mockRegistry)
+    def indicator = new AmazonHealthIndicator(REGISTRY, credentialsRepository, mockAmazonClientProvider)
 
     when:
     indicator.checkHealth()
@@ -85,6 +76,54 @@ class AmazonHealthIndicatorSpec extends Specification {
 
     then:
     health.status == Status.UP
-    counter.get() == 0
+    health.details.isEmpty()
+  }
+
+  def "health succeeds when no amazon accounts"() {
+    setup:
+    def credentialsRepository = Stub(CredentialsRepository) {
+      getAll() >> []
+    }
+    def mockEc2 = Stub(AmazonEC2) {
+      describeAccountAttributes() >> { Mock(DescribeAccountAttributesResult) }
+    }
+    def mockAmazonClientProvider = Stub(AmazonClientProvider) {
+      getAmazonEC2(*_) >> mockEc2
+    }
+
+    def indicator = new AmazonHealthIndicator(REGISTRY, credentialsRepository, mockAmazonClientProvider)
+
+    when:
+    indicator.checkHealth()
+    def health = indicator.health()
+
+    then:
+    health.status == Status.UP
+    health.details.isEmpty()
+  }
+
+  def "health details contains warnings when there are multiple errors"() {
+    setup:
+    def creds = [TestCredential.named('foo'), TestCredential.named('bar')]
+    def credentialsRepository = Stub(CredentialsRepository) {
+      getAll() >> creds
+    }
+    def mockEc2 = Stub(AmazonEC2) {
+      describeAccountAttributes() >> { throw new AmazonServiceException("fail") }
+    }
+    def mockAmazonClientProvider = Stub(AmazonClientProvider) {
+      getAmazonEC2(*_) >> mockEc2
+    }
+
+    def indicator = new AmazonHealthIndicator(REGISTRY, credentialsRepository, mockAmazonClientProvider)
+
+    when:
+    indicator.checkHealth()
+    def health = indicator.health()
+
+    then:
+    health.status == Status.UP
+    (health.details['foo'] as String).startsWith("Failed to describe account attributes for 'foo'.")
+    (health.details['bar'] as String).startsWith("Failed to describe account attributes for 'bar'.")
   }
 }
