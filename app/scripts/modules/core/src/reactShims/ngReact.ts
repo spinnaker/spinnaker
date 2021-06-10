@@ -27,8 +27,6 @@ import { IAccountRegionClusterSelectorProps } from 'core/widgets/AccountRegionCl
 import { accountRegionClusterSelectorWrapperComponent } from 'core/widgets/accountRegionClusterSelectorWrapper.component';
 import { ButtonBusyIndicator as ButtonBusyIndicatorComponent } from 'core/widgets/spinners/Spinner';
 
-import { IHelpFieldProps } from '../help/HelpField';
-import { helpFieldWrapperComponent } from '../help/helpField.component';
 import { ReactInject } from './react.injector';
 
 import IInjectorService = angular.auto.IInjectorService;
@@ -41,7 +39,6 @@ export class NgReactInjector extends ReactInject {
   public AccountRegionClusterSelector: React.ComponentClass<IAccountRegionClusterSelectorProps> = angular2react('accountRegionClusterSelectorWrapper', accountRegionClusterSelectorWrapperComponent, this.$injectorProxy) as any;
   public ButtonBusyIndicator: React.FunctionComponent<{}>                               = ButtonBusyIndicatorComponent;
   public EntitySource: React.ComponentClass<IEntitySourceProps>                                 = angular2react('entitySource', entitySourceComponent, this.$injectorProxy) as any;
-  public HelpField: React.ComponentClass<IHelpFieldProps>                                       = angular2react('helpFieldWrapper', helpFieldWrapperComponent, this.$injectorProxy) as any;
   public InstanceArchetypeSelector: React.ComponentClass<IInstanceArchetypeSelectorProps>       = angular2react('v2InstanceArchetypeSelector', v2InstanceArchetypeSelector, this.$injectorProxy) as any;
   public InstanceTypeSelector: React.ComponentClass<IInstanceTypeSelectorProps>                 = angular2react('v2InstanceTypeSelector', v2InstanceTypeSelector, this.$injectorProxy);
   public LegacySpinner: React.FunctionComponent<{}>                               = ButtonBusyIndicatorComponent;

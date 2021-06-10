@@ -3,9 +3,9 @@ import React from 'react';
 
 import { IAccount } from 'core/account';
 import { IProject, IProjectCluster } from 'core/domain';
+import { HelpField } from 'core/help';
 import { IWizardPageComponent } from 'core/modal';
 import { FormikFormField, ReactSelectInput, TextInput } from 'core/presentation';
-import { NgReact } from 'core/reactShims';
 
 export interface IClustersProps {
   accounts: IAccount[];
@@ -70,7 +70,6 @@ export class Clusters extends React.Component<IClustersProps> implements IWizard
   }
 
   public render() {
-    const { HelpField } = NgReact;
     const { accounts } = this.props;
 
     const tableHeader = (

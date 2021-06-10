@@ -7,7 +7,8 @@ import { BannerContainer } from 'core/banner';
 import { ILoadBalancerGroup } from 'core/domain';
 import { FilterTags, IFilterTag } from 'core/filterModel/FilterTags';
 import { ISortFilter } from 'core/filterModel/IFilterModel';
-import { NgReact, ReactInjector } from 'core/reactShims';
+import { HelpField } from 'core/help';
+import { ReactInjector } from 'core/reactShims';
 import { LoadBalancerState } from 'core/state';
 import { Spinner } from 'core/widgets/spinners/Spinner';
 
@@ -116,7 +117,6 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
   };
 
   public render(): React.ReactElement<LoadBalancers> {
-    const { HelpField } = NgReact;
     const groupings = this.state.initialized ? (
       <div>
         {this.state.groups.map((group) => (
@@ -174,7 +174,12 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
                       checked={this.state.showInstances}
                       onChange={this.handleInputChange}
                     />{' '}
-                    Instances <HelpField placement="right" id="loadBalancers.filter.instances" />
+                    Instances{' '}
+                    <HelpField
+                      key="loadBalancers.filter.instances"
+                      placement="right"
+                      id="loadBalancers.filter.instances"
+                    />
                   </label>
                 </div>
               </div>

@@ -44,18 +44,6 @@ describe('Directives: stageConfigField', function () {
     expect(field.find('.label-text').html()).toEqual('bar');
   });
 
-  it('includes help text if provided', function () {
-    HelpContentsRegistry.register('foo.bar', 'Some help');
-
-    var field = compile('<stage-config-field label="Label" help-key="foo.bar"></stage-config-field>')(scope);
-    scope.$digest();
-    expect(field.find('.help-field').length).toBe(1);
-
-    field = compile('<stage-config-field label="Label" help-key="foo.bar.baz"></stage-config-field>')(scope);
-    scope.$digest();
-    expect(field.find('.help-field').length).toBe(0);
-  });
-
   it('transcludes content, defaulting to 8-columns', function () {
     var field = compile('<stage-config-field label="Label"><h3>The content</h3></stage-config-field>')(scope);
     scope.$digest();
