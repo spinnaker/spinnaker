@@ -11,8 +11,10 @@ import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
+import com.netflix.spinnaker.keel.api.action.Action
 import com.netflix.spinnaker.keel.api.action.ActionState
 import com.netflix.spinnaker.keel.api.action.ActionStateFull
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.persistence.DependentAttachFilter
 import com.netflix.spinnaker.keel.persistence.DependentAttachFilter.ATTACH_ALL
 import java.time.Duration
@@ -82,6 +84,10 @@ interface KeelReadOnlyRepository {
   fun getVerificationStatesBatch(contexts: List<ArtifactInEnvironmentContext>) : List<Map<String, ActionState>>
 
   fun getAllActionStatesBatch(contexts: List<ArtifactInEnvironmentContext>) : List<List<ActionStateFull>>
+
+  fun getActionState(context: ArtifactInEnvironmentContext, action: Action): ActionState?
+
+  fun updateActionState(context: ArtifactInEnvironmentContext, action: Action, status: ConstraintStatus, metadata: Map<String, Any?> = emptyMap(), link: String? = null)
 
   fun latestVersionApprovedIn(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact, targetEnvironment: String): String?
 

@@ -82,25 +82,19 @@ class ActionsDataLoader(
     mapNotNull { it.toMdAction(ctx, actionType) }
 
   fun ActionStateFull.toMdAction(ctx: ArtifactInEnvironmentContext, actionType: ActionType) =
-    ctx.action(id)?.id?.let { actionId ->
+    ctx.action(actionType, id)?.id?.let { actionId ->
       MdAction(
-        id = "${ctx.deliveryConfig.application}-${ctx.environmentName}-${ctx.artifact.reference}-${ctx.version}-${actionType}-${id}",
-        type = actionId,
-        status = when (state.status) {
-          ConstraintStatus.NOT_EVALUATED -> MdActionStatus.NOT_EVALUATED
-          ConstraintStatus.PENDING -> MdActionStatus.PENDING
-          ConstraintStatus.FAIL -> MdActionStatus.FAIL
-          ConstraintStatus.PASS -> MdActionStatus.PASS
-          ConstraintStatus.OVERRIDE_FAIL -> MdActionStatus.FAIL
-          ConstraintStatus.OVERRIDE_PASS -> MdActionStatus.FORCE_PASS
-        },
+        id = ctx.getMdActionId(actionType, id),
+        type = actionId, // TODO: deprecated - remove after updating the frontend
+        actionId = actionId,
+        status = state.status.toDgsActionStatus(),
         startedAt = state.startedAt,
         completedAt = state.endedAt,
         link = state.link,
         actionType = MdActionType.valueOf(actionType.name)
       )
     }
-      .also { if (ctx.action(id) == null) onInvalidVerificationId(id, ctx) }
+      .also { if (ctx.action(actionType, id) == null) onInvalidVerificationId(id, ctx) }
 
   /**
    * Actions to take when the verification state database table references a verification id that doesn't exist
@@ -119,6 +113,16 @@ class ActionsDataLoader(
   }
 }
 
+fun ConstraintStatus.toDgsActionStatus(): MdActionStatus = when(this) {
+  ConstraintStatus.NOT_EVALUATED -> MdActionStatus.NOT_EVALUATED
+  ConstraintStatus.PENDING -> MdActionStatus.PENDING
+  ConstraintStatus.FAIL -> MdActionStatus.FAIL
+  ConstraintStatus.PASS -> MdActionStatus.PASS
+  ConstraintStatus.OVERRIDE_FAIL -> MdActionStatus.FAIL
+  ConstraintStatus.OVERRIDE_PASS -> MdActionStatus.FORCE_PASS
+}
 
+fun ArtifactInEnvironmentContext.getMdActionId(actionType: ActionType, actionId: String): String =
+  "${deliveryConfig.application}-${environmentName}-${artifact.reference}-${version}-${actionType}-${actionId}"
 
 

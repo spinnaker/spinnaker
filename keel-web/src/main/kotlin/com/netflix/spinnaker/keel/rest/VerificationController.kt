@@ -1,12 +1,13 @@
 package com.netflix.spinnaker.keel.rest
 
-import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
-import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.NOT_EVALUATED
-import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.OVERRIDE_FAIL
-import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.OVERRIDE_PASS
 import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
 import com.netflix.spinnaker.keel.api.action.ActionRepository
+import com.netflix.spinnaker.keel.api.action.ActionType
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.OVERRIDE_FAIL
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.OVERRIDE_PASS
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
+import com.netflix.spinnaker.keel.services.ApplicationService
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import org.springframework.http.HttpStatus.CONFLICT
 import org.springframework.http.HttpStatus.NOT_FOUND
@@ -23,7 +24,8 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 class VerificationController(
   private val verificationRepository: ActionRepository,
-  private val deliveryConfigRepository: DeliveryConfigRepository
+  private val deliveryConfigRepository: DeliveryConfigRepository,
+  private val applicationService: ApplicationService,
 ) {
   @PostMapping(
     path = ["/application/{application}/environment/{environment}/verifications"],
@@ -86,26 +88,13 @@ class VerificationController(
     @PathVariable("environment") environment: String,
     @RequestBody payload: RetryVerificationRequest
   ) {
-    ArtifactInEnvironmentContext(
-      deliveryConfig = deliveryConfigRepository.getByApplication(application),
-      environmentName = environment,
-      artifactReference = payload.artifactReference,
-      version = payload.artifactVersion
-    ).apply {
-      verificationRepository.getState(
-        context = this,
-        action = verification(payload.verificationId) ?: throw InvalidVerificationId(payload.verificationId, this)
-      )?.apply {
-        if (!status.complete) throw VerificationIncomplete()
-      }
-
-      verificationRepository.updateState(
-        context = this,
-        action = verification(payload.verificationId) ?: throw InvalidVerificationId(payload.verificationId, this),
-        status = NOT_EVALUATED,
-        mapOf("retryRequestedBy" to user)
-      )
-    }
+    applicationService.retryArtifactVersionAction(application = application,
+                                                  environment = environment,
+                                                  artifactReference = payload.artifactReference,
+                                                  artifactVersion = payload.artifactVersion,
+                                                  actionType = ActionType.VERIFICATION,
+                                                  actionId = payload.verificationId,
+                                                  user = user)
   }
 
   data class RetryVerificationRequest(

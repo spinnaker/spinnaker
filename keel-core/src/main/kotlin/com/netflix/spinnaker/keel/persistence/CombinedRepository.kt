@@ -16,6 +16,7 @@ import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
+import com.netflix.spinnaker.keel.api.action.Action
 import com.netflix.spinnaker.keel.api.action.ActionRepository
 import com.netflix.spinnaker.keel.api.action.ActionState
 import com.netflix.spinnaker.keel.api.action.ActionStateFull
@@ -528,6 +529,14 @@ class CombinedRepository(
 
   override fun getVerificationStatesBatch(contexts: List<ArtifactInEnvironmentContext>) : List<Map<String, ActionState>> =
     actionRepository.getStatesBatch(contexts, VERIFICATION)
+
+  override fun getActionState(context: ArtifactInEnvironmentContext, action: Action): ActionState? {
+    return actionRepository.getState(context, action)
+  }
+
+  override fun updateActionState(context: ArtifactInEnvironmentContext, action: Action, status: ConstraintStatus, metadata: Map<String, Any?>, link: String?) {
+    return actionRepository.updateState(context, action, status, metadata, link)
+  }
 
   override fun getAllActionStatesBatch(contexts: List<ArtifactInEnvironmentContext>): List<List<ActionStateFull>> =
     actionRepository.getAllStatesBatch(contexts)

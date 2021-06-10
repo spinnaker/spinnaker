@@ -205,7 +205,7 @@ class ApplicationServiceTests : JUnit5Minutests {
     private val lifecycleEventRepository: LifecycleEventRepository = mockk() {
       every { getSteps(any(), any()) } returns emptyList()
     }
-
+    
     private val scmInfo = mockk<ScmInfo>() {
       coEvery {
         getScmInfo()

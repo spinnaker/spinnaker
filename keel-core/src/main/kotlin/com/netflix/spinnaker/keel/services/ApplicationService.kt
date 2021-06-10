@@ -3,7 +3,7 @@ package com.netflix.spinnaker.keel.services
 import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.ArtifactConfig
-import com.netflix.spinnaker.keel.api.Constraint
+import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Locatable
@@ -11,6 +11,8 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ScmInfo
 import com.netflix.spinnaker.keel.api.StatefulConstraint
 import com.netflix.spinnaker.keel.api.Verification
+import com.netflix.spinnaker.keel.api.action.ActionState
+import com.netflix.spinnaker.keel.api.action.ActionType
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
@@ -20,21 +22,17 @@ import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PASS
 import com.netflix.spinnaker.keel.api.constraints.StatefulConstraintEvaluator
 import com.netflix.spinnaker.keel.api.constraints.StatelessConstraintEvaluator
 import com.netflix.spinnaker.keel.api.constraints.UpdatedConstraintStatus
-import com.netflix.spinnaker.keel.api.events.ConstraintStateChanged
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.ConstraintEvaluator
 import com.netflix.spinnaker.keel.api.plugins.supporting
-import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
-import com.netflix.spinnaker.keel.api.action.Action
-import com.netflix.spinnaker.keel.api.action.ActionState
 import com.netflix.spinnaker.keel.artifacts.ArtifactVersionLinks
 import com.netflix.spinnaker.keel.constraints.AllowedTimesConstraintAttributes
 import com.netflix.spinnaker.keel.constraints.AllowedTimesConstraintEvaluator.Companion.toNumericTimeWindows
 import com.netflix.spinnaker.keel.constraints.DependsOnConstraintAttributes
 import com.netflix.spinnaker.keel.core.api.ArtifactSummary
 import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
-import com.netflix.spinnaker.keel.core.api.VerificationSummary
 import com.netflix.spinnaker.keel.core.api.ArtifactVersionSummary
+import com.netflix.spinnaker.keel.core.api.ConstraintSummary
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
@@ -48,8 +46,8 @@ import com.netflix.spinnaker.keel.core.api.PromotionStatus.PREVIOUS
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.SKIPPED
 import com.netflix.spinnaker.keel.core.api.ResourceArtifactSummary
 import com.netflix.spinnaker.keel.core.api.ResourceSummary
-import com.netflix.spinnaker.keel.core.api.ConstraintSummary
 import com.netflix.spinnaker.keel.core.api.TimeWindowConstraint
+import com.netflix.spinnaker.keel.core.api.VerificationSummary
 import com.netflix.spinnaker.keel.events.MarkAsBadNotification
 import com.netflix.spinnaker.keel.events.PinnedNotification
 import com.netflix.spinnaker.keel.events.UnpinnedNotification
@@ -66,16 +64,17 @@ import com.netflix.spinnaker.keel.telemetry.InvalidVerificationIdSeen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.supervisorScope
 import org.slf4j.LoggerFactory
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationEventPublisher
-import org.springframework.core.env.Environment as SpringEnvironment
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
+import org.springframework.web.bind.annotation.ResponseStatus
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
 import kotlin.coroutines.CoroutineContext
+import org.springframework.core.env.Environment as SpringEnvironment
 
 /**
  * Service object that offers high-level APIs for application-related operations.
@@ -701,6 +700,40 @@ class ApplicationService(
     )
     log.error("verification_state table contains invalid verification id: $vId  config: ${deliveryConfig.name} env: ${ctx.environmentName}. Valid ids in this env: ${ctx.environment.verifyWith.map { it.id }}")
   }
+
+  fun retryArtifactVersionAction(application: String, environment: String, artifactReference: String, artifactVersion: String, actionType: ActionType, actionId: String, user: String): ConstraintStatus {
+    ArtifactInEnvironmentContext(
+      deliveryConfig = repository.getDeliveryConfigForApplication(application),
+      environmentName = environment,
+      artifactReference = artifactReference,
+      version = artifactVersion
+    ).run {
+
+      val action = action(actionType, actionId) ?: throw InvalidActionId(actionId, this)
+      repository.getActionState(
+        context = this,
+        action = action
+      )?.run {
+        if (!status.complete) throw ActionIncomplete()
+      }
+
+      repository.updateActionState(
+        context = this,
+        action = action,
+        status = NOT_EVALUATED,
+        mapOf("retryRequestedBy" to user)
+      )
+      return NOT_EVALUATED
+    }
+  }
+
+  @ResponseStatus(HttpStatus.CONFLICT)
+  private class ActionIncomplete :
+    IllegalStateException("Verifications may only be retried once complete.")
+
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  private class InvalidActionId(id: String, context: ArtifactInEnvironmentContext) :
+    IllegalStateException("Unknown verification id: $id. Expecting one of: ${context.verifications.map { it.id }}")
 }
 
 fun List<ConstraintState>.removePrivateConstraintAttrs() =

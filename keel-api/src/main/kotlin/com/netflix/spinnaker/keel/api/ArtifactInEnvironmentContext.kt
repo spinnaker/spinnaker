@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.api
 
 import com.netflix.spinnaker.keel.api.action.Action
+import com.netflix.spinnaker.keel.api.action.ActionType
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.postdeploy.PostDeployAction
@@ -26,7 +27,10 @@ data class ArtifactInEnvironmentContext(
 
   fun verification(id: String): Verification? = verifications.firstOrNull { it.id == id }
 
-  fun action(id: String): Action? = verifications.firstOrNull { it.id == id } ?: postDeployActions.firstOrNull { it.id == id }
+  fun action(type: ActionType, id: String): Action? = when (type) {
+    ActionType.VERIFICATION -> verifications.firstOrNull { it.id == id }
+    ActionType.POST_DEPLOY -> postDeployActions.firstOrNull { it.id == id }
+  }
 
   fun shortName() = "${deliveryConfig.application}:$environmentName:$artifactReference:$version"
 }
