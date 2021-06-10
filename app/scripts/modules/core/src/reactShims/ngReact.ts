@@ -16,10 +16,6 @@ import { IInstanceArchetypeSelectorProps } from 'core/serverGroup/configure/comm
 import { IInstanceTypeSelectorProps } from 'core/serverGroup/configure/common/InstanceTypeSelector';
 import { v2InstanceTypeSelector } from 'core/serverGroup/configure/common/v2InstanceTypeSelector.component';
 import { v2InstanceArchetypeSelector } from 'core/serverGroup/configure/common/v2instanceArchetypeSelector.component';
-import {
-  IViewScalingActivitiesLinkProps,
-  ViewScalingActivitiesLink as ViewScalingActivitiesLinkComponent,
-} from 'core/serverGroup/details/scalingActivities/ViewScalingActivitiesLink';
 
 import { ITaskMonitorProps } from 'core/task/monitor/TaskMonitorWrapper';
 import { TaskMonitorWrapper } from 'core/task/monitor/TaskMonitorWrapper';
@@ -49,7 +45,6 @@ export class NgReactInjector extends ReactInject {
   public TaskMonitorWrapper: React.FunctionComponent<ITaskMonitorProps>                         = TaskMonitorWrapper;
   public UserMenu: React.ComponentClass<{}>                                                     = angular2react('userMenu', {}, this.$injectorProxy) as any;
   public ViewChangesLink: React.ComponentClass<IViewChangesLinkProps>                           = angular2react('viewChangesLinkWrapper', viewChangesLinkWrapper, this.$injectorProxy) as any;
-  public ViewScalingActivitiesLink: React.FunctionComponent<IViewScalingActivitiesLinkProps> = ViewScalingActivitiesLinkComponent;
 
   public initialize($injector: IInjectorService) {
     const realInjector: { [key: string]: Function } = $injector as any;

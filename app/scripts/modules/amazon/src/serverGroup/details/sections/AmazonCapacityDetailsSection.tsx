@@ -1,6 +1,12 @@
 import React from 'react';
 
-import { CapacityDetailsSection, CollapsibleSection, ICapacity, NgReact, Overridable } from '@spinnaker/core';
+import {
+  CapacityDetailsSection,
+  CollapsibleSection,
+  ICapacity,
+  Overridable,
+  ViewScalingActivitiesLink,
+} from '@spinnaker/core';
 
 import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
 import { AmazonResizeServerGroupModal } from '../resize/AmazonResizeServerGroupModal';
@@ -9,7 +15,6 @@ import { AmazonResizeServerGroupModal } from '../resize/AmazonResizeServerGroupM
 export class AmazonCapacityDetailsSection extends React.Component<IAmazonServerGroupDetailsSectionProps> {
   public render(): JSX.Element {
     const { serverGroup, app: application } = this.props;
-    const { ViewScalingActivitiesLink } = NgReact;
 
     const capacity: ICapacity = {
       min: serverGroup.asg.minSize,
