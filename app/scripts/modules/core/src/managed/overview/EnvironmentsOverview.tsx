@@ -35,7 +35,6 @@ export const EnvironmentsOverview = () => {
   if (loading && !data) {
     content = <Spinner {...spinnerProps} message="Loading environments..." />;
   } else if (error) {
-    console.error(error);
     content = <ApplicationQueryError hasApplicationData={Boolean(data?.application)} error={error} />;
   } else {
     content = (

@@ -1,15 +1,12 @@
 import React from 'react';
 
-import { logger } from 'core/utils';
+import { logger, LoggerEvent } from 'core/utils';
 
 import { useApplicationContext } from '../../presentation/hooks/useApplicationContext.hook';
 
-interface LogProps {
-  category: string;
-  action: string;
+interface LogProps extends LoggerEvent {
   application?: string;
   label?: string;
-  data?: Record<string, any>;
 }
 
 const CATEGORY_PREFIX = 'MD__';
@@ -19,6 +16,7 @@ export const useLogEvent = (category: string, action?: string) => {
   const logFn = React.useCallback(
     (props?: Omit<Partial<LogProps>, 'application' | 'category'>) => {
       logger.log({
+        ...props,
         category: `${CATEGORY_PREFIX}${category}`,
         action: props?.action || action || '',
         data: { label: props?.label, application: app?.name, ...props?.data },

@@ -11,7 +11,7 @@ const getLevel = (level?: Level) => {
 
 type Level = keyof typeof LEVELS;
 
-interface Event {
+export interface LoggerEvent {
   level?: Level;
   action: string;
   category?: string;
@@ -22,7 +22,7 @@ interface Event {
 export interface LoggerSubscriber {
   key: string;
   level?: Level;
-  onEvent: (event: Event) => void;
+  onEvent: (event: LoggerEvent) => void;
 }
 
 class Logger {
@@ -37,7 +37,7 @@ class Logger {
     this.loggers.filter((logger) => logger.key !== key);
   }
 
-  log(event: Event) {
+  log(event: LoggerEvent) {
     this.loggers.forEach((logger) => {
       if (getLevel(event.level) >= getLevel(logger.level)) {
         logger.onEvent(event);
