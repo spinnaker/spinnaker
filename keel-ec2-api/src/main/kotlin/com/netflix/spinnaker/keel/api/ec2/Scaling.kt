@@ -38,7 +38,7 @@ data class TargetTrackingPolicy(
   val name: String? = null,
   val warmup: Duration = DEFAULT_AUTOSCALE_INSTANCE_WARMUP,
   val targetValue: Double,
-  val disableScaleIn: Boolean? = null,
+  val disableScaleIn: Boolean = false,
   val predefinedMetricSpec: PredefinedMetricSpecification? = null,
   val customMetricSpec: CustomizedMetricSpecification? = null
 ) : ScalingPolicy() {

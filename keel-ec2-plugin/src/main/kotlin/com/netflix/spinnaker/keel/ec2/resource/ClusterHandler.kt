@@ -1147,7 +1147,7 @@ class ClusterHandler(
           name = it.policyName,
           warmup = Duration.ofSeconds(it.estimatedInstanceWarmup.toLong()),
           targetValue = it.targetTrackingConfiguration!!.targetValue,
-          disableScaleIn = it.targetTrackingConfiguration!!.disableScaleIn,
+          disableScaleIn = it.targetTrackingConfiguration!!.disableScaleIn ?: false,
           predefinedMetricSpec = it.targetTrackingConfiguration!!.predefinedMetricSpecification.toSpec(),
           customMetricSpec = it.targetTrackingConfiguration!!.customizedMetricSpecification.toSpec()
         )
