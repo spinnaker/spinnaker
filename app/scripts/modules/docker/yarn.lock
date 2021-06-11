@@ -1272,15 +1272,15 @@
   dependencies:
     "@types/angular" "*"
 
-"@types/angular@*", "@types/angular@>=1.5", "@types/angular@^1.6.16", "@types/angular@^1.6.34", "@types/angular@^1.6.39":
-  version "1.8.1"
-  resolved "https://registry.yarnpkg.com/@types/angular/-/angular-1.8.1.tgz#940b16476adff7b66608aae778e5e9f1c57ab847"
-  integrity sha512-8zEjTC3gpkva6/dbUkiSxIUGUxYm9HD/pJJ0lbqfEM2TWqi/3vs4VtgoFxVXt5bmuJ+6G2caO2HaMD+NzB1VwA==
-
-"@types/angular@1.6.26":
+"@types/angular@*", "@types/angular@1.6.26", "@types/angular@>=1.5", "@types/angular@^1.6.16":
   version "1.6.26"
   resolved "https://registry.yarnpkg.com/@types/angular/-/angular-1.6.26.tgz#a96cccef648de0bf7435f3b9bad13f2430719305"
   integrity sha512-PdoZ2kKe2AytqVSReTdqYV1Wxqf70zREnys+kCeAh0wUMXOZboA1IFzqcKOxUMRGEL2npbfCCiv2FJBOaOCdNA==
+
+"@types/angular@^1.6.34", "@types/angular@^1.6.39":
+  version "1.6.43"
+  resolved "https://registry.yarnpkg.com/@types/angular/-/angular-1.6.43.tgz#6235ef416053a86302970717510a936d889cbb9a"
+  integrity sha512-3GrHCRZS62ruJjHMtOx3WYsS0I8i0FRcIqOwqIfWXnlR9g2FebEhUNdMk3LZIvfhZ08xe+S1x2iwP1t9vKCHag==
 
 "@types/estree@*":
   version "0.0.47"
