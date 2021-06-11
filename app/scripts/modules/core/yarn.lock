@@ -1077,10 +1077,10 @@
   dependencies:
     formik "^1.4.1"
 
-"@spinnaker/scripts@0.0.13":
-  version "0.0.13"
-  resolved "https://registry.yarnpkg.com/@spinnaker/scripts/-/scripts-0.0.13.tgz#662d91621676061b33277222dc4ee2eb1d36f64c"
-  integrity sha512-xMPQPr6lXCvp5xPlrvv5hAK4VWNm/nYs+Yl+dnIlZjWDONfrWrziWbzErEzs97bCyx4UDDbXYpG0/scYur+8fg==
+"@spinnaker/scripts@0.0.14":
+  version "0.0.14"
+  resolved "https://registry.yarnpkg.com/@spinnaker/scripts/-/scripts-0.0.14.tgz#7bf4e14646f7e2553d5ef96dd24fa31ea68ee6d6"
+  integrity sha512-pqSfELdWg5iZ5FKCleAqNxG5PYho7dcnhQm/ftAKDQ94E1Ji2XJER1GAH7vMbO8unjozMTkpViTD95PtK+1PpA==
   dependencies:
     "@rollup/plugin-commonjs" "^17.0.0"
     "@rollup/plugin-json" "4.1.0"
