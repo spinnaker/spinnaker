@@ -8,12 +8,11 @@ import { Spinner } from 'core/widgets';
 import { ApplicationQueryError } from '../ApplicationQueryError';
 import { DeliveryConfig } from './DeliveryConfig';
 import { useFetchApplicationManagementStatusQuery, useToggleManagementMutation } from '../graphql/graphql-sdk';
-import spinner from '../overview/loadingIndicator.svg';
 import { ActionModal, IArtifactActionModalProps } from '../utils/ActionModal';
 import { MODAL_MAX_WIDTH, spinnerProps } from '../utils/defaults';
 import { useLogEvent } from '../utils/logging';
 
-const BTN_CLASSNAMES = 'btn md-btn sp-margin-s-top';
+const BTN_CLASSNAMES = 'btn md-btn';
 
 const managementStatusToContent = {
   PAUSED: {
@@ -75,16 +74,19 @@ const ManagementToggle = () => {
 
   return (
     <div>
-      <div>
-        {state.title} {mutationInFlight && <img src={spinner} height={14} />}
-      </div>
-      <div>
+      <div>{state.title}</div>
+      <div className="horizontal middle sp-margin-s-top">
         <button
           className={classnames(BTN_CLASSNAMES, state.btnClassName)}
           onClick={() => onShowToggleManagementModal(!isPaused)}
         >
           {state.btnText}
         </button>
+        {mutationInFlight && (
+          <span className="sp-margin-s-left">
+            <Spinner mode="circular" size="nano" color="var(--color-accent)" />
+          </span>
+        )}
       </div>
     </div>
   );

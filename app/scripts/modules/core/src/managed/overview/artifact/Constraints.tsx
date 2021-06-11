@@ -3,13 +3,12 @@ import { isEmpty } from 'lodash';
 import React from 'react';
 
 import { CollapsibleSection, useApplicationContextSafe } from 'core/presentation';
-import { NotifierService } from 'core/widgets';
+import { NotifierService, Spinner } from 'core/widgets';
 
 import { RelativeTimestamp } from '../../RelativeTimestamp';
 import { VersionOperationIcon } from './VersionOperation';
 import { constraintsManager } from '../../constraints/registry';
 import { FetchVersionDocument, useUpdateConstraintMutation } from '../../graphql/graphql-sdk';
-import spinner from '../loadingIndicator.svg';
 import { ArtifactVersionProps, QueryConstraint } from '../types';
 import { getConstraintsStatusSummary } from './utils';
 import { useLogEvent } from '../../utils/logging';
@@ -48,7 +47,7 @@ const ConstraintContent = ({ constraint, versionProps }: IConstraintContentProps
     <dl className="constraint-content">
       {description && <dd>{description}</dd>}
       {!isEmpty(actions) && (
-        <dd className={description ? 'sp-margin-s-top' : undefined}>
+        <dd className={classnames(description ? 'sp-margin-s-top' : undefined, 'horizontal middle')}>
           {actions?.map(({ title, pass }) => (
             <button
               className={classnames('btn md-btn constraint-action-button', pass ? 'md-btn-success' : 'md-btn-danger')}
@@ -73,7 +72,7 @@ const ConstraintContent = ({ constraint, versionProps }: IConstraintContentProps
               {title}
             </button>
           ))}
-          {loading && <img src={spinner} height={14} />}
+          {loading && <Spinner mode="circular" size="nano" color="var(--color-accent)" />}
         </dd>
       )}
     </dl>

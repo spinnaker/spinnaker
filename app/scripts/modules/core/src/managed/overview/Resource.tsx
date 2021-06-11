@@ -1,10 +1,10 @@
 import React from 'react';
 
 import { Icon, useApplicationContextSafe } from 'core/presentation';
+import { Spinner } from 'core/widgets';
 
 import { EnvironmentItem } from '../environmentBaseElements/EnvironmentItem';
 import { MdResourceActuationState, useFetchResourceStatusQuery } from '../graphql/graphql-sdk';
-import spinner from './loadingIndicator.svg';
 import { showManagedResourceHistoryModal } from '../resourceHistory/ManagedResourceHistoryModal';
 import { ResourceTitle } from '../resources/ResourceTitle';
 import { IResourceLinkProps, resourceManager } from '../resources/resourceRegistry';
@@ -66,7 +66,7 @@ const Status = ({
     );
   }
 
-  return <img src={spinner} height={14} />;
+  return <Spinner className="sp-margin-xs-top" mode="circular" size="nano" color="var(--color-accent)" />;
 };
 
 export const Resource = ({ resource, environment }: { resource: QueryResource; environment: string }) => {
