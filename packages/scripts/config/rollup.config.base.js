@@ -29,7 +29,8 @@ const plugins = [
   json(),
   url({
     include: ['**/*.html', '**/*.svg', '**/*.png', '**/*.jp(e)?g', '**/*.gif', '**/*.webp'],
-    fileName: '[dirname][hash][extname]',
+    fileName: '[name][hash][extname]',
+    limit: 24000,
   }),
   // Replace literal string 'process.env.NODE_ENV' with the current NODE_ENV
   replace({
