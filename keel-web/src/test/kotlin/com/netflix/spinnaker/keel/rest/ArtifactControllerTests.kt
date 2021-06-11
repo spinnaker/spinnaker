@@ -72,7 +72,8 @@ internal class ArtifactControllerTests
     val translatedCodeEvent = PrCreatedEvent(
       repoKey = "stash/org/myrepo",
       targetBranch = "master",
-      sourceBranch = "N/A"
+      sourceBranch = "N/A",
+      pullRequestId = "11494"
     )
   }
 

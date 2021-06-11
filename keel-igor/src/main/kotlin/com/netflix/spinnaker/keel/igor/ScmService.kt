@@ -3,7 +3,10 @@ package com.netflix.spinnaker.keel.igor
 import com.netflix.spinnaker.keel.api.ScmInfo
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.igor.model.Branch
+import com.netflix.spinnaker.keel.igor.model.Comment
+import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -47,4 +50,13 @@ interface ScmService: ScmInfo {
     @Path("projectKey") projectKey: String,
     @Path("repoSlug") repoSlug: String
   ): Branch
+
+  @POST("/scm/repos/{scmType}/{projectKey}/{repoSlug}/pull-requests/{pullRequestId}/comments")
+  suspend fun commentOnPullRequest(
+    @Path("scmType") scmType: String,
+    @Path("projectKey") projectKey: String,
+    @Path("repoSlug") repoSlug: String,
+    @Path("pullRequestId") pullRequestId: String,
+    @Body comment: Comment
+  )
 }

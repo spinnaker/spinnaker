@@ -10,6 +10,7 @@ abstract class CodeEvent(
   open val type: String,
   open val repoKey: String,
   open val targetBranch: String,
+  open val pullRequestId: String? = null
 ) {
   private val repoParts: List<String> by lazy { repoKey.split("/") }
 
@@ -37,8 +38,9 @@ data class PrCreatedEvent(
   override val type: String = "pr.created",
   override val repoKey: String,
   override val targetBranch: String,
+  override val pullRequestId: String,
   val sourceBranch: String
-) : CodeEvent(type, repoKey, targetBranch) {
+) : CodeEvent(type, repoKey, targetBranch, pullRequestId) {
   init { validate() }
 }
 
@@ -49,8 +51,9 @@ data class PrMergedEvent(
   override val type: String = "pr.merged",
   override val repoKey: String,
   override val targetBranch: String,
+  override val pullRequestId: String,
   val sourceBranch: String
-) : CodeEvent(type, repoKey, targetBranch) {
+) : CodeEvent(type, repoKey, targetBranch, pullRequestId) {
   init { validate() }
 }
 
@@ -61,8 +64,9 @@ data class CommitCreatedEvent(
   override val type: String = "commit.created",
   override val repoKey: String,
   override val targetBranch: String,
-  val commitHash: String,
-) : CodeEvent(type, repoKey, targetBranch) {
+  override val pullRequestId: String? = null,
+  val commitHash: String
+) : CodeEvent(type, repoKey, targetBranch, pullRequestId) {
   init { validate() }
 }
 
@@ -74,17 +78,20 @@ fun PublishedArtifact.toCodeEvent(): CodeEvent {
     "create_commit" -> CommitCreatedEvent(
       repoKey = metadata["repoKey"] as? String ?: throw MissingCodeEventDetails("repository", this),
       targetBranch = metadata["branch"] as? String ?: throw MissingCodeEventDetails("branch", this),
-      commitHash = metadata["sha"] as? String ?: throw MissingCodeEventDetails("commit hash", this)
+      commitHash = metadata["sha"] as? String ?: throw MissingCodeEventDetails("commit hash", this),
+      pullRequestId = metadata["prId"] as? String
     )
     "pr_opened" -> PrCreatedEvent(
       repoKey = metadata["repoKey"] as? String ?: throw MissingCodeEventDetails("repository", this),
       targetBranch = metadata["branch"] as? String ?: throw MissingCodeEventDetails("branch", this),
-      // TODO: currently Echo does not relay the source branch info
+      pullRequestId = metadata["prId"] as? String ?: throw MissingCodeEventDetails("prId", this),
+        // TODO: currently Echo does not relay the source branch info
       sourceBranch = "N/A"
     )
     "pr_merged" -> PrMergedEvent(
       repoKey = metadata["repoKey"] as? String ?: throw MissingCodeEventDetails("repository", this),
       targetBranch = metadata["branch"] as? String ?: throw MissingCodeEventDetails("branch", this),
+      pullRequestId = metadata["prId"] as? String ?: throw MissingCodeEventDetails("prId", this),
       // TODO: currently Echo does not relay the source branch info
       sourceBranch = "N/A"
     )

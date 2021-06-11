@@ -9,10 +9,17 @@ data class Environment(
   val verifyWith: List<Verification> = emptyList(),
   val notifications: Set<NotificationConfig> = emptySet(), // applies to each resource
   val postDeploy: List<PostDeployAction> = emptyList(),
-  val isPreview: Boolean = false
+  val isPreview: Boolean = false,
+  val metadata: Map<String, Any?> = emptyMap()
 ) {
   val resourceIds: Set<String>
     get() = resources.mapTo(mutableSetOf(), Resource<*>::id)
+
+  val branch: String?
+    get() = metadata["branch"] as? String
+
+  val pullRequestId: String?
+    get() = metadata["pullRequestId"] as? String
 }
 
 val Set<Constraint>.anyStateful: Boolean

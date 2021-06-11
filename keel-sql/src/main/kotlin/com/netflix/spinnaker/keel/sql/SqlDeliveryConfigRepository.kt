@@ -53,7 +53,7 @@ import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
 import com.netflix.spinnaker.keel.sql.deliveryconfigs.attachDependents
 import com.netflix.spinnaker.keel.sql.deliveryconfigs.deliveryConfigByName
-import com.netflix.spinnaker.keel.sql.deliveryconfigs.resourcesForEnvironment
+import com.netflix.spinnaker.keel.sql.deliveryconfigs.makeEnvironment
 import com.netflix.spinnaker.keel.sql.deliveryconfigs.uid
 import com.netflix.spinnaker.keel.telemetry.AboutToBeChecked
 import de.huxhorn.sulky.ulid.ULID
@@ -337,11 +337,13 @@ class SqlDeliveryConfigRepository(
       .set(ENVIRONMENT.NOTIFICATIONS, environment.notifications.toJson())
       .set(ENVIRONMENT.VERIFICATIONS, environment.verifyWith.toJson())
       .set(ENVIRONMENT.POST_DEPLOY_ACTIONS, environment.postDeploy.toJson())
+      .set(ENVIRONMENT.METADATA, environment.metadata.toJson())
       .onDuplicateKeyUpdate()
       .set(ENVIRONMENT.CONSTRAINTS, environment.constraints.toJson())
       .set(ENVIRONMENT.NOTIFICATIONS, environment.notifications.toJson())
       .set(ENVIRONMENT.VERIFICATIONS, environment.verifyWith.toJson())
       .set(ENVIRONMENT.POST_DEPLOY_ACTIONS, environment.postDeploy.toJson())
+      .set(ENVIRONMENT.METADATA, environment.metadata.toJson())
       .execute()
     val currentVersion = jooq
       .select(coalesce(max(ENVIRONMENT_VERSION.VERSION), value(0)))
@@ -492,23 +494,16 @@ class SqlDeliveryConfigRepository(
           ACTIVE_ENVIRONMENT.CONSTRAINTS,
           ACTIVE_ENVIRONMENT.NOTIFICATIONS,
           ACTIVE_ENVIRONMENT.VERIFICATIONS,
-          ACTIVE_ENVIRONMENT.POST_DEPLOY_ACTIONS
+          ACTIVE_ENVIRONMENT.POST_DEPLOY_ACTIONS,
+          ACTIVE_ENVIRONMENT.METADATA
         )
         .from(ACTIVE_ENVIRONMENT, ENVIRONMENT_RESOURCE, RESOURCE)
         .where(RESOURCE.ID.eq(resourceId))
         .and(ENVIRONMENT_RESOURCE.RESOURCE_UID.eq(RESOURCE.UID))
         .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(ACTIVE_ENVIRONMENT.UID))
         .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_VERSION.eq(ACTIVE_ENVIRONMENT.VERSION))
-        .fetchOne { (uid, name, _, isPreview, constraintsJson, notificationsJson, verifyWithJson, postDeployActionsJson) ->
-          Environment(
-            name = name,
-            isPreview = isPreview,
-            resources = resourcesForEnvironment(uid),
-            constraints = objectMapper.readValue(constraintsJson),
-            notifications = notificationsJson?.let { objectMapper.readValue(it) } ?: emptySet(),
-            verifyWith = verifyWithJson?.let { objectMapper.readValue(it) } ?: emptyList(),
-            postDeploy = postDeployActionsJson?.let { objectMapper.readValue(it) } ?: emptyList()
-          )
+        .fetchOne { record ->
+          makeEnvironment(record, objectMapper)
         }
     } ?: throw OrphanedResourceException(resourceId)
 

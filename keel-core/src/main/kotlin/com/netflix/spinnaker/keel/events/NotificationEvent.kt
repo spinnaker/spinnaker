@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.events
 
 import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.events.ConstraintStateChanged
@@ -75,7 +76,7 @@ data class ArtifactDeployedNotification(
   val config: DeliveryConfig,
   val artifactVersion: String,
   val deliveryArtifact: DeliveryArtifact,
-  val targetEnvironment: String
+  val targetEnvironment: Environment
 ) : NotificationEvent() {
   override val type = ARTIFACT_DEPLOYMENT_SUCCEEDED
   override val scope = ARTIFACT

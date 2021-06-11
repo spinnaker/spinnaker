@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.sql.deliveryconfigs
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
@@ -24,6 +25,7 @@ import com.netflix.spinnaker.keel.sql.SqlStorageContext
 import com.netflix.spinnaker.keel.sql.mapToArtifact
 import de.huxhorn.sulky.ulid.ULID
 import org.jooq.Record1
+import org.jooq.Record9
 import org.jooq.Select
 import org.jooq.impl.DSL.select
 
@@ -98,24 +100,13 @@ internal fun SqlStorageContext.attachDependents(
           ACTIVE_ENVIRONMENT.CONSTRAINTS,
           ACTIVE_ENVIRONMENT.NOTIFICATIONS,
           ACTIVE_ENVIRONMENT.VERIFICATIONS,
-          ACTIVE_ENVIRONMENT.POST_DEPLOY_ACTIONS
+          ACTIVE_ENVIRONMENT.POST_DEPLOY_ACTIONS,
+          ACTIVE_ENVIRONMENT.METADATA
         )
         .from(ACTIVE_ENVIRONMENT)
         .where(ACTIVE_ENVIRONMENT.DELIVERY_CONFIG_UID.eq(deliveryConfig.uid))
-        .fetch { (environmentUid, name, _, isPreview, constraintsJson, notificationsJson, verifyWithJson, postDeployActionsJson) ->
-          Environment(
-            name = name,
-            isPreview = isPreview,
-            resources = resourcesForEnvironment(environmentUid),
-            constraints = objectMapper.readValue(constraintsJson),
-            notifications = notificationsJson?.let { objectMapper.readValue(it) } ?: emptySet(),
-            verifyWith = verifyWithJson?.let {
-              objectMapper.readValue(it)
-            } ?: emptyList(),
-            postDeploy = postDeployActionsJson?.let {
-              objectMapper.readValue(it)
-            } ?: emptyList(),
-          )
+        .fetch { record ->
+          makeEnvironment(record, objectMapper)
         }
     }
   } else {
@@ -182,3 +173,20 @@ internal val DeliveryConfig.uid: Select<Record1<String>>
   get() = select(DELIVERY_CONFIG.UID)
     .from(DELIVERY_CONFIG)
     .where(DELIVERY_CONFIG.NAME.eq(name))
+
+internal fun SqlStorageContext.makeEnvironment(
+  record: Record9<String, String, Int, Boolean, String, String, String, String, String>,
+  objectMapper: ObjectMapper
+): Environment {
+  val (environmentUid, name, _, isPreview, constraintsJson, notificationsJson, verifyWithJson, postDeployActionsJson, metadataJson) = record
+  return Environment(
+    name = name,
+    isPreview = isPreview,
+    resources = resourcesForEnvironment(environmentUid),
+    constraints = objectMapper.readValue(constraintsJson),
+    notifications = notificationsJson?.let { objectMapper.readValue(it) } ?: emptySet(),
+    verifyWith = verifyWithJson?.let { objectMapper.readValue(it) } ?: emptyList(),
+    postDeploy = postDeployActionsJson?.let { objectMapper.readValue(it) } ?: emptyList(),
+    metadata = metadataJson?.let { objectMapper.readValue(it) } ?: emptyMap()
+  )
+}

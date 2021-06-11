@@ -60,6 +60,7 @@ import io.mockk.runs
 import io.mockk.slot
 import strikt.api.expectThat
 import strikt.assertions.contains
+import strikt.assertions.containsKeys
 import strikt.assertions.endsWith
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
@@ -158,7 +159,8 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
     val commitEvent = CommitCreatedEvent(
       repoKey = "stash/myorg/myrepo",
       targetBranch = "feature/abc",
-      commitHash = "1d52038730f431be19a8012f6f3f333e95a53772"
+      commitHash = "1d52038730f431be19a8012f6f3f333e95a53772",
+      pullRequestId = "42"
     )
 
     val nonMatchingCommitEvent = commitEvent.copy(targetBranch = "not-a-match")
@@ -284,6 +286,10 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
           expectThat(previewEnv.captured) {
             get { name }.isEqualTo("${baseEnv.name}-$branchDetail")
           }
+        }
+
+        test("the metadata of the preview environment includes the branch and pull request ID") {
+          expectThat(previewEnv.captured.metadata).containsKeys("branch", "pullRequestId")
         }
 
         test("the name of monikered resources is generated correctly") {

@@ -9,6 +9,10 @@ import org.slf4j.LoggerFactory
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 
+/**
+ * Listens to [ArtifactVersionDeployed] events to update the status of the artifact in the database and
+ * relay the event as an [ArtifactDeployedNotification] that can then be sent to end users.
+ */
 @Component
 class ArtifactDeployedListener(
   private val repository: KeelRepository,
@@ -54,7 +58,7 @@ class ArtifactDeployedListener(
               config = deliveryConfig,
               deliveryArtifact = artifact,
               artifactVersion = event.artifactVersion,
-              targetEnvironment = env.name
+              targetEnvironment = env
             )
           )
         }

@@ -46,7 +46,7 @@ include(
   "keel-schema-generator",
   "keel-scm",
   "keel-spring-test-support",
-  "keel-slack",
+  "keel-notifications",
   "keel-sql",
   "keel-test",
   "keel-titus-api",

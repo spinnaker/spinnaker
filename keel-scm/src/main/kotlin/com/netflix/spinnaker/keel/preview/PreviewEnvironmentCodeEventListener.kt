@@ -175,12 +175,17 @@ class PreviewEnvironmentCodeEventListener(
                 log.debug("Ignoring non-monikered resource ${res.id} since it might conflict with the base environment")
               }
             }
-        }.toSet()
+        }.toSet(),
+        metadata = baseEnv.metadata + mapOf(
+          "branch" to commitEvent.targetBranch,
+          "pullRequestId" to commitEvent.pullRequestId
+        )
       )
 
       log.debug("Creating/updating preview environment ${previewEnv.name} for application ${deliveryConfig.application} " +
         "from branch ${commitEvent.targetBranch}")
       try {
+        // TODO: run all these within a single transaction
         previewEnv.resources.forEach { resource ->
           repository.upsertResource(resource, deliveryConfig.name)
         }
@@ -306,11 +311,11 @@ class PreviewEnvironmentCodeEventListener(
         if (candidate != null) {
           // special case for security group named after the app which is always included by default :-/
           if (candidate.kind.kind.contains("security-group") && candidate.named(application)) {
-            log.debug("Skipping dependency rename for default security group $application")
+            log.debug("Skipping dependency rename for default security group $application in resource ${this.name}")
             dep
           } else {
             val newName = (candidate as Resource<Monikered>).withBranchDetail(branchDetail).name
-            log.debug("Renaming ${dep.type} dependency ${candidate.name} to $newName")
+            log.debug("Renaming ${dep.type} dependency ${candidate.name} to $newName in resource ${this.name}")
             Dependency(dep.type, dep.region, newName)
           }
         } else {

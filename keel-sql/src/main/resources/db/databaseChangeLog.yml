@@ -326,3 +326,9 @@ databaseChangeLog:
   - include:
       file: changelog/20210607-rename-active-environment-view.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20210609-add-timestamp-to-active-environment.yml
+      relativeToChangelogFile: true
+  - include:
+      file: changelog/20210609-add-metadata-to-environment.yml
+      relativeToChangelogFile: true

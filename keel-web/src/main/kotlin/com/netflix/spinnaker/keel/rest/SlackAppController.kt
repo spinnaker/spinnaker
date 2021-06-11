@@ -1,8 +1,8 @@
 package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.events.ButtonClickedEvent
-import com.netflix.spinnaker.keel.slack.callbacks.CommitModalCallbackHandler
-import com.netflix.spinnaker.keel.slack.callbacks.ManualJudgmentCallbackHandler
+import com.netflix.spinnaker.keel.notifications.slack.callbacks.CommitModalCallbackHandler
+import com.netflix.spinnaker.keel.notifications.slack.callbacks.ManualJudgmentCallbackHandler
 import com.slack.api.app_backend.interactive_components.payload.BlockActionPayload
 import com.slack.api.bolt.App
 import com.slack.api.bolt.context.builtin.ActionContext
