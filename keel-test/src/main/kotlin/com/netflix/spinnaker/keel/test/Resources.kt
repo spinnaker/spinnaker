@@ -1,7 +1,9 @@
 package com.netflix.spinnaker.keel.test
 
+import com.netflix.spinnaker.keel.api.AccountAwareLocations
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.ArtifactReferenceProvider
+import com.netflix.spinnaker.keel.api.ComputeResourceSpec
 import com.netflix.spinnaker.keel.api.Dependency
 import com.netflix.spinnaker.keel.api.Dependent
 import com.netflix.spinnaker.keel.api.ExcludedFromDiff
@@ -276,3 +278,28 @@ object DummyResourceHandlerV2 : SimpleResourceHandler<DummyResourceSpec>(emptyLi
     TODO("not implemented")
   }
 }
+
+object DummyAccountAwareLocations : AccountAwareLocations<SimpleRegionSpec> {
+  override val account: String = "test"
+  override val regions: Set<SimpleRegionSpec> = setOf(SimpleRegionSpec("us-east-1"))
+}
+
+class DummyComputeResourceSpec(
+  @get:ExcludedFromDiff
+  override val id: String = randomString(),
+  val data: String = randomString(),
+  override val application: String = "fnord",
+  override val artifactType: ArtifactType? = DEBIAN,
+  override val artifactReference: String? = "fnord",
+  override val artifactName: String? = "fnord",
+  override val artifactVersion: String? = "fnord-1.0.0",
+  override val displayName: String = "fnord-dummy-compute-resource",
+  override val moniker: Moniker = Moniker("fnord", "computeResource", "dummy"),
+  override val locations: DummyAccountAwareLocations = DummyAccountAwareLocations
+) : ComputeResourceSpec<DummyAccountAwareLocations>
+
+fun computeResource(
+  kind: ResourceKind = TEST_API_V1.qualify("compute"),
+  spec: DummyComputeResourceSpec = DummyComputeResourceSpec()
+): Resource<DummyComputeResourceSpec> =
+  resource(kind, spec)

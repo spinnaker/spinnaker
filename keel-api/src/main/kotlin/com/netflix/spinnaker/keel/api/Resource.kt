@@ -17,6 +17,8 @@ data class Resource<out T : ResourceSpec>(
   val id: String
     get() = metadata.getValue("id").toString()
 
+  val displayName: String = spec.displayName
+
   @get:ExcludedFromDiff
   val version: Int
     // version is not a mandatory metadata field, so we default to 0 when missing

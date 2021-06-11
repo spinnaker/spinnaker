@@ -28,6 +28,7 @@ import com.netflix.spinnaker.keel.events.UnpinnedNotification
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEvent
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventType
+import com.netflix.spinnaker.keel.network.NetworkEndpointProvider
 import com.netflix.spinnaker.keel.notifications.NotificationType.APPLICATION_PAUSED
 import com.netflix.spinnaker.keel.notifications.NotificationType.APPLICATION_RESUMED
 import com.netflix.spinnaker.keel.notifications.NotificationType.ARTIFACT_DEPLOYMENT_FAILED
@@ -81,9 +82,10 @@ import com.netflix.spinnaker.keel.notifications.NotificationType as Type
 class NotificationEventListener(
   private val repository: KeelRepository,
   private val clock: Clock,
-  private val handlers: List<SlackNotificationHandler<*>>,
+  private val slackHandlers: List<SlackNotificationHandler<*>>,
   private val scmNotifier: ScmNotifier,
-  private val baseUrlConfig: BaseUrlConfig
+  private val baseUrlConfig: BaseUrlConfig,
+  private val networkEndpointProvider: NetworkEndpointProvider
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -262,11 +264,7 @@ class NotificationEventListener(
       )
 
       if (targetEnvironment.isPreview) {
-        // TODO: add endpoint information
-        val environmentsLink = "${baseUrlConfig.baseUrl}/#/applications/${config.application}/environments/overview"
-        scmNotifier.commentOnPullRequest(notification.config, notification.targetEnvironment,
-          "✅  [Preview deployed]($environmentsLink)"
-        )
+        commentOnPullRequest()
       }
     }
   }
@@ -333,7 +331,7 @@ class NotificationEventListener(
     if (environment.isPreview) {
       val environmentsLink = "${baseUrlConfig.baseUrl}/#/applications/${config.application}/environments/overview"
       scmNotifier.commentOnPullRequest(config, environment,
-        "❌  [Preview deployment failed]($environmentsLink)"
+        "❌ &nbsp;[Preview environment deployment failed]($environmentsLink)"
       )
     }
   }
@@ -498,7 +496,7 @@ class NotificationEventListener(
                                                                            type: Type,
                                                                            targetEnvironment: String? = null,
                                                                            artifact: DeliveryArtifact? = null) {
-    val handler: SlackNotificationHandler<T>? = handlers.supporting(type)
+    val handler: SlackNotificationHandler<T>? = slackHandlers.supporting(type)
     if (handler == null) {
       log.debug("no handler was found for notification type ${T::class.java}. Can't send slack notification.")
       return
@@ -590,5 +588,28 @@ class NotificationEventListener(
       } ?: return null
 
     return Pair(deliveryConfig, artifact.copy(reference = deliveryArtifact.reference))
+  }
+
+  /**
+   * Posts a comment on the pull request associated with the preview environment that is the target of the
+   * artifact deployment represented by [ArtifactDeployedNotification]. The comment includes the DNS endpoint
+   * information for the applicable resources.
+   */
+  private fun ArtifactDeployedNotification.commentOnPullRequest() {
+    val environmentsLink = "${baseUrlConfig.baseUrl}/#/applications/${config.application}/environments/overview"
+    val markdownComment = config.resourcesUsing(deliveryArtifact.reference, targetEnvironment.name)
+      .joinToString("\n\n") { resource ->
+        "✅ &nbsp;[${resource.displayName} deployed to preview environment]($environmentsLink)" +
+          "\n\nEndpoints:\n" + networkEndpointProvider.getNetworkEndpoints(resource)
+            .groupBy { it.region }
+            .map { (region, endpoints) ->
+              "- $region:\n" +
+                endpoints.joinToString("\n") { endpoint ->
+                  // TODO: for load balancers infer the protocol from the listeners
+                  "  - [${endpoint.address}](https://${endpoint.address})"
+                }
+            }.joinToString("\n")
+      }
+    scmNotifier.commentOnPullRequest(config, targetEnvironment, markdownComment)
   }
 }

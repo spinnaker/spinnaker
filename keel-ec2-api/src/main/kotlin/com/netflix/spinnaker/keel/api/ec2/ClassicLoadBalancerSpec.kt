@@ -30,6 +30,8 @@ data class ClassicLoadBalancerSpec(
 
   override val id: String = "${locations.account}:$moniker"
 
+  override val displayName = "Classic Load Balancer $moniker"
+
   override val dependsOn: Set<Dependency>
     get() = locations.regions.flatMap { region ->
       dependencies.securityGroupNames.map { Dependency(SECURITY_GROUP, region.name, it) }

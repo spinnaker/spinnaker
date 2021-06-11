@@ -160,6 +160,8 @@ data class ClusterSpec(
 
   override val id = "${locations.account}:$moniker"
 
+  override val displayName = "EC2 Cluster $moniker"
+
   /**
    * I have no idea why, but if I annotate the constructor property with @get:JsonUnwrapped, the
    * @JsonCreator constructor below nulls out everything in the ClusterServerGroupSpec some time

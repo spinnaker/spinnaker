@@ -96,6 +96,8 @@ data class TitusClusterSpec(
 
   override val id = "${locations.account}:$moniker"
 
+  override val displayName = "Titus Cluster $moniker"
+
   val defaults: TitusServerGroupSpec
     get() = _defaults
 

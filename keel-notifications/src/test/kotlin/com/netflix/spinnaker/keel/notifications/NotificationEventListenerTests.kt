@@ -21,6 +21,9 @@ import com.netflix.spinnaker.keel.lifecycle.LifecycleEvent
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventScope
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventType
+import com.netflix.spinnaker.keel.network.NetworkEndpoint
+import com.netflix.spinnaker.keel.network.NetworkEndpointProvider
+import com.netflix.spinnaker.keel.network.NetworkEndpointType.DNS
 import com.netflix.spinnaker.keel.notifications.scm.ScmNotifier
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.notifications.slack.SlackService
@@ -44,7 +47,10 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
+import io.mockk.slot
 import io.mockk.verify
+import strikt.api.expectThat
+import strikt.assertions.contains
 import java.time.Instant
 import java.time.ZoneId
 import com.netflix.spinnaker.keel.notifications.NotificationType as Type
@@ -68,7 +74,6 @@ class NotificationEventListenerTests : JUnit5Minutests {
         artifactReference = releaseArtifact.reference
       )
     )
-
 
     val clock: MutableClock = MutableClock(
       Instant.parse("2020-03-25T00:00:00.00Z"),
@@ -227,11 +232,12 @@ class NotificationEventListenerTests : JUnit5Minutests {
     val pausedNotification = ApplicationActuationPaused(application1, clock.instant(), "user1")
     val scmNotifier: ScmNotifier = mockk()
     private val baseUrlConfig = BaseUrlConfig()
+    val networkEndpointProvider: NetworkEndpointProvider = mockk()
 
     val subject = NotificationEventListener(
       repository = repository,
       clock = clock,
-      handlers = listOf(
+      slackHandlers = listOf(
         pinnedNotificationHandler,
         pausedNotificationHandler,
         unpinnedNotificationHandler,
@@ -240,7 +246,8 @@ class NotificationEventListenerTests : JUnit5Minutests {
         verificationCompletedNotificationHandler
       ),
       scmNotifier = scmNotifier,
-      baseUrlConfig = baseUrlConfig
+      baseUrlConfig = baseUrlConfig,
+      networkEndpointProvider = networkEndpointProvider
     )
 
 
@@ -388,6 +395,10 @@ class NotificationEventListenerTests : JUnit5Minutests {
           every {
             repository.getDeliveryConfigForApplication(application1)
           } returns singleArtifactDeliveryConfig.withPreviewEnvironment()
+
+          every {
+            networkEndpointProvider.getNetworkEndpoints(any())
+          } returns setOf(NetworkEndpoint(DNS, "us-east-1", "fake.acme.net"))
         }
 
         test("posts a comment to the associated PR on artifact deployed") {
@@ -396,6 +407,21 @@ class NotificationEventListenerTests : JUnit5Minutests {
             verify(exactly = 1) {
               scmNotifier.commentOnPullRequest(config, targetEnvironment, any())
             }
+          }
+        }
+
+        test("deployed PR comment includes endpoint information for applicable resources") {
+          val updatedConfig = singleArtifactDeliveryConfig.withPreviewEnvironment()
+          val previewEnv = updatedConfig.environments.first { it.name == "test" }
+          val previewResource = previewEnv.resources.first()
+
+          with(artifactDeployedNotification.withPreviewEnvironment()) {
+            subject.onArtifactVersionDeployed(this)
+            val comment = slot<String>()
+            verify(exactly = 1) {
+              scmNotifier.commentOnPullRequest(config, targetEnvironment, capture(comment))
+            }
+            expectThat(comment.captured).contains("fake.acme.net")
           }
         }
 
