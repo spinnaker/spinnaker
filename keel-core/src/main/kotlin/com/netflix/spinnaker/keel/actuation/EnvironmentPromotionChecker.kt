@@ -35,9 +35,6 @@ class EnvironmentPromotionChecker(
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  private val fetchOnlyPending: Boolean
-    get() = springEnv.getProperty("keel.environment-promotion.fetch-pending", Boolean::class.java, false)
-
   @Trace(dispatcher = true)
   suspend fun checkEnvironments(deliveryConfig: DeliveryConfig) {
     val startTime = clock.instant()
@@ -61,9 +58,7 @@ class EnvironmentPromotionChecker(
               if (artifact.isUsedIn(environment)) {
 
                 val latestVersions = versions.map { it.version }
-                val versionsToUse = if (fetchOnlyPending) {
-                  // get the newest pending versions in the environment and only check them
-                  repository
+                val versionsToUse = repository
                     .getPendingVersionsInEnvironment(
                       deliveryConfig,
                       artifact.reference,
@@ -73,10 +68,6 @@ class EnvironmentPromotionChecker(
                     .map { it.version }
                     .intersect(latestVersions) // only take newest ones so we avoid checking really old versions
                     .toList()
-                } else {
-                  // check all versions
-                  latestVersions
-                }
 
                 val envContext = EnvironmentContext(
                   deliveryConfig = deliveryConfig,

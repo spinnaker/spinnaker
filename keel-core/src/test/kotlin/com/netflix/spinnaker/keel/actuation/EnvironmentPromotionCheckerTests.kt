@@ -41,9 +41,7 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
     val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
 
     val constraint = TimeWindowConstraint(windows = listOf(TimeWindow(days = "Monday-Sunday", hours = "0-23")))
-    val springEnv: SpringEnv = mockk(relaxUnitFun = true) {
-      every { getProperty("keel.environment-promotion.fetch-pending", Boolean::class.java, false) } returns false
-    }
+    val springEnv: SpringEnv = mockk(relaxUnitFun = true)
 
     val environmentConstraintRunner: EnvironmentConstraintRunner = mockk(relaxed = true) {
       every { getStatelessConstraintSnapshots(any(), any(), any(), any(), PASS) } returns
@@ -165,6 +163,10 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
         } returns listOf("2.0", "1.2", "1.1", "1.0").toArtifactVersions()
 
         every {
+          repository.getPendingVersionsInEnvironment(any(), dockerArtifact.reference, any())
+        } returns listOf("2.0", "1.2", "1.1", "1.0").toArtifactVersions()
+
+        every {
           repository.pinnedEnvironments(any())
         } returns emptyList()
 
@@ -252,7 +254,7 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
             }
           }
 
-          test("a recheck is not triggered for the environemtn") {
+          test("a recheck is not triggered for the environment") {
             verify(exactly = 0) {
               repository.triggerResourceRecheck(environment.name, deliveryConfig.application)
             }
@@ -334,6 +336,10 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
           every {
             repository.getArtifactVersionsQueuedForApproval(deliveryConfig.name, environment.name, dockerArtifact)
           } returns setOf("2.0", "1.2", "1.1").toArtifactVersions()
+
+          every {
+            repository.getPendingVersionsInEnvironment(any(), dockerArtifact.reference, any())
+          } returns listOf("2.0", "1.2", "1.1", "1.0").toArtifactVersions()
         }
 
         context("all versions still pass stateless constraints") {
@@ -370,6 +376,10 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
 
         every {
           repository.artifactVersions(dockerArtifact, any())
+        } returns listOf("2.0", "1.2", "1.1", "1.0").toArtifactVersions()
+
+        every {
+          repository.getPendingVersionsInEnvironment(any(), dockerArtifact.reference, any())
         } returns listOf("2.0", "1.2", "1.1", "1.0").toArtifactVersions()
 
         every {
@@ -440,6 +450,10 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
 
     context("config contains multiple types of artifacts") {
       before {
+        every {
+          repository.getPendingVersionsInEnvironment(any(), any(), any())
+        } returns listOf("2.0", "1.2", "1.1", "1.0").toArtifactVersions()
+
         every {
           repository.artifactVersions(dockerArtifact, any())
         } returns listOf("2.0").toArtifactVersions()
