@@ -7,7 +7,7 @@ import { BaseEnvironment } from '../environmentBaseElements/BaseEnvironment';
 import { EnvironmentItem } from '../environmentBaseElements/EnvironmentItem';
 import { EnvironmentsRender, useOrderedEnvironment } from '../environmentBaseElements/EnvironmentsRender';
 import { useFetchVersionQuery } from '../graphql/graphql-sdk';
-import { ArtifactVersionTasks } from '../overview/artifact/ArtifactVersionTasks';
+import { ArtifactVersionTasks, ITaskArtifactVersionProps } from '../overview/artifact/ArtifactVersionTasks';
 import { Constraints } from '../overview/artifact/Constraints';
 import { useCreateVersionActions } from '../overview/artifact/utils';
 import { HistoryArtifactVersionExtended, PinnedVersions, VersionData } from './types';
@@ -61,6 +61,13 @@ const VersionInEnvironment = ({ environment, version, envPinnedVersions }: IVers
     },
   });
 
+  const versionProps: ITaskArtifactVersionProps = {
+    environment,
+    reference: version.reference,
+    version: version.version,
+    status: version.status,
+  };
+
   return (
     <EnvironmentItem
       title={version.reference}
@@ -83,8 +90,8 @@ const VersionInEnvironment = ({ environment, version, envPinnedVersions }: IVers
         versionProps={{ environment, reference: version.reference, version: version.version }}
         expandedByDefault={false}
       />
-      <ArtifactVersionTasks type="Verification" tasks={detailedVersionData?.verifications} />
-      <ArtifactVersionTasks type="Post deploy" tasks={detailedVersionData?.postDeploy} />
+      <ArtifactVersionTasks type="Verification" artifact={versionProps} tasks={detailedVersionData?.verifications} />
+      <ArtifactVersionTasks type="Post deploy" artifact={versionProps} tasks={detailedVersionData?.postDeploy} />
     </EnvironmentItem>
   );
 };

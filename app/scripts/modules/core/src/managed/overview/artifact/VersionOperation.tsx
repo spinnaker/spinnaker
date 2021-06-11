@@ -1,8 +1,8 @@
 import React from 'react';
 
-import { QueryConstraint, QueryVerificationStatus } from '../types';
+import { QueryArtifactVersionTaskStatus, QueryConstraint } from '../types';
 
-type AllStatuses = QueryConstraint['status'] | QueryVerificationStatus;
+type AllStatuses = QueryConstraint['status'] | QueryArtifactVersionTaskStatus;
 export const ACTION_DISPLAY_NAMES = ['passed', 'overridden', 'pending', 'failed'] as const;
 export type ActionDisplayName = typeof ACTION_DISPLAY_NAMES[number];
 

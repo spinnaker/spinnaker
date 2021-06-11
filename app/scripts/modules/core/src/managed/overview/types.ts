@@ -14,7 +14,7 @@ export type QueryConstraint = NonNullable<QueryArtifactVersion['constraints']>[n
 export type QueryArtifactVersionTask =
   | NonNullable<QueryArtifactVersion['verifications']>[number]
   | NonNullable<QueryArtifactVersion['postDeploy']>[number];
-export type QueryVerificationStatus = QueryArtifactVersionTask['status'];
+export type QueryArtifactVersionTaskStatus = QueryArtifactVersionTask['status'];
 
 export interface ArtifactVersionProps {
   environment: string;

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { ArtifactVersionTasks } from './ArtifactVersionTasks';
+import { ArtifactVersionTasks, ITaskArtifactVersionProps } from './ArtifactVersionTasks';
 import { Constraints } from './Constraints';
 import { GitLink } from './GitLink';
 import { QueryArtifactVersion } from '../types';
@@ -30,6 +30,14 @@ export const CurrentVersion = ({ data, environment, reference, numNewerVersions,
       previous: gitMetadata?.comparisonLinks?.toPreviousVersion,
     },
   });
+
+  const versionProps: ITaskArtifactVersionProps = {
+    environment,
+    reference,
+    version: data.version,
+    status: data.status,
+  };
+
   return (
     <div className="artifact-current-version">
       {gitMetadata ? <GitLink gitMetadata={gitMetadata} /> : <div>Build {data?.version}</div>}
@@ -43,8 +51,8 @@ export const CurrentVersion = ({ data, environment, reference, numNewerVersions,
       {constraints && (
         <Constraints constraints={constraints} versionProps={{ environment, reference, version: data.version }} />
       )}
-      {verifications && <ArtifactVersionTasks type="Verification" tasks={verifications} />}
-      {postDeploy && <ArtifactVersionTasks type="Post deploy" tasks={postDeploy} />}
+      {verifications && <ArtifactVersionTasks type="Verification" artifact={versionProps} tasks={verifications} />}
+      {postDeploy && <ArtifactVersionTasks type="Post deploy" artifact={versionProps} tasks={postDeploy} />}
     </div>
   );
 };

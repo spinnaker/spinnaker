@@ -2,8 +2,8 @@ import React from 'react';
 import { toast, ToastOptions } from 'react-toastify';
 export interface INotifier {
   key: string;
-  action: 'create';
-  content?: React.ReactNode;
+  action?: 'create';
+  content: React.ReactNode;
   options?: ToastOptions;
 }
 

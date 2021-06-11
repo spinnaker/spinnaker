@@ -1,3 +1,13 @@
+fragment actionDetails on MdAction {
+  id
+  actionId
+  actionType
+  status
+  startedAt
+  completedAt
+  link
+}
+
 fragment detailedVersionFields on MdArtifactVersionInEnvironment {
   id
   buildNumber
@@ -38,20 +48,10 @@ fragment detailedVersionFields on MdArtifactVersionInEnvironment {
     attributes
   }
   verifications {
-    id
-    type
-    status
-    startedAt
-    completedAt
-    link
+    ...actionDetails
   }
   postDeploy {
-    id
-    type
-    status
-    startedAt
-    completedAt
-    link
+    ...actionDetails
   }
   veto {
     vetoedBy
@@ -266,4 +266,10 @@ mutation MarkVersionAsBad($payload: MdArtifactVersionActionPayload!) {
 
 mutation MarkVersionAsGood($payload: MdMarkArtifactVersionAsGoodPayload!) {
   markArtifactVersionAsGood(payload: $payload)
+}
+
+mutation RetryVersionAction($payload: MdRetryArtifactActionPayload!) {
+  retryArtifactVersionAction(payload: $payload) {
+    ...actionDetails
+  }
 }

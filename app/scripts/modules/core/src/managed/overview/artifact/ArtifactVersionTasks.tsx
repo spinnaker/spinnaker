@@ -1,16 +1,19 @@
 import React from 'react';
 
-import { Tooltip } from 'core/presentation';
+import { Tooltip, useApplicationContextSafe } from 'core/presentation';
+import { NotifierService, Spinner } from 'core/widgets';
 
 import { DurationRender, RelativeTimestamp } from '../../RelativeTimestamp';
 import { VersionOperationIcon } from './VersionOperation';
-import { QueryArtifactVersionTask, QueryVerificationStatus } from '../types';
+import { useRetryVersionActionMutation } from '../../graphql/graphql-sdk';
+import { QueryArtifactVersion, QueryArtifactVersionTask, QueryArtifactVersionTaskStatus } from '../types';
 import { TOOLTIP_DELAY_SHOW } from '../../utils/defaults';
+import { useLogEvent } from '../../utils/logging';
 
 import './ArtifactVersionTasks.less';
 
 const statusToText: {
-  [key in QueryVerificationStatus]: string;
+  [key in QueryArtifactVersionTaskStatus]: string;
 } = {
   FAIL: 'failed',
   FORCE_PASS: 'has been overridden',
@@ -19,19 +22,55 @@ const statusToText: {
   NOT_EVALUATED: 'has not started yet',
 };
 
-interface IArtifactVersionTaskProps {
+export interface ITaskArtifactVersionProps {
+  environment: string;
+  version: string;
+  reference: string;
+  status: QueryArtifactVersion['status'];
+}
+
+interface IBaseTaskProps {
   type: string;
+  artifact: ITaskArtifactVersionProps;
+}
+
+interface IArtifactVersionTaskProps extends IBaseTaskProps {
   task: QueryArtifactVersionTask;
 }
 
-const ArtifactVersionTask = ({ type, task }: IArtifactVersionTaskProps) => {
+const ArtifactVersionTask = ({ type, artifact, task }: IArtifactVersionTaskProps) => {
   const status = task.status || 'PENDING';
   const { link, startedAt, completedAt } = task;
+  const logEvent = useLogEvent('ArtifactVersionTask');
+  const app = useApplicationContextSafe();
+  const [retryTask, { loading: mutationInFlight, error }] = useRetryVersionActionMutation({
+    variables: {
+      payload: {
+        application: app.name,
+        environment: artifact.environment,
+        reference: artifact.reference,
+        version: artifact.version,
+        actionId: task.actionId,
+        actionType: task.actionType,
+      },
+    },
+  });
+
+  React.useEffect(() => {
+    if (error) {
+      NotifierService.publish({
+        key: task.id,
+        content: `Failed to re-run ${type} - ${error.message}`,
+        options: { type: 'error' },
+      });
+    }
+  }, [error]);
+
   return (
     <div className="version-task">
       <VersionOperationIcon status={status} />
       <div className="task-content">
-        {type} {task.id} {statusToText[status]}{' '}
+        {type} {task.actionId} {statusToText[status]}{' '}
         {startedAt && completedAt && (
           <>
             (<RelativeTimestamp timestamp={completedAt} withSuffix />)
@@ -52,22 +91,38 @@ const ArtifactVersionTask = ({ type, task }: IArtifactVersionTaskProps) => {
             </a>
           </span>
         )}
+        {status === 'FAIL' && artifact.status === 'CURRENT' && (
+          <div className="sp-margin-s-top horizontal middle">
+            <button
+              className="btn btn-default btn-sm sp-padding-2xs-yaxis sp-padding-s-xaxis"
+              disabled={mutationInFlight}
+              onClick={() => {
+                retryTask();
+                logEvent({ action: `Retry_${type}` });
+              }}
+            >
+              Retry {type.toLowerCase()}
+            </button>
+            {mutationInFlight && (
+              <Spinner className="sp-margin-s-left" mode="circular" size="nano" color="var(--color-accent)" />
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-interface IVerificationsProps {
-  type: string;
+interface IArtifactVersionTasksProps extends IBaseTaskProps {
   tasks?: QueryArtifactVersionTask[];
 }
 
-export const ArtifactVersionTasks = ({ type, tasks }: IVerificationsProps) => {
+export const ArtifactVersionTasks = ({ tasks, ...restProps }: IArtifactVersionTasksProps) => {
   if (!tasks || !tasks.length) return null;
   return (
     <div className="ArtifactVersionTasks">
       {tasks.map((task) => (
-        <ArtifactVersionTask key={task.id} type={type} task={task} />
+        <ArtifactVersionTask key={task.id} {...restProps} task={task} />
       ))}
     </div>
   );

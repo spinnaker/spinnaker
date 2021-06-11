@@ -229,7 +229,8 @@ enum MdActionType {
 
 type MdAction {
   id: String!
-  type: String!
+  actionId: String!
+  type: String! # Deprecated
   status: MdActionStatus!
   startedAt: InstantTime
   completedAt: InstantTime
@@ -244,6 +245,16 @@ type Mutation {
   markArtifactVersionAsBad(payload: MdArtifactVersionActionPayload!): Boolean
   unpinArtifactVersion(payload: MdUnpinArtifactVersionPayload!): Boolean
   markArtifactVersionAsGood(payload: MdMarkArtifactVersionAsGoodPayload!): Boolean
+  retryArtifactVersionAction(payload: MdRetryArtifactActionPayload): MdAction
+}
+
+input MdRetryArtifactActionPayload {
+  application: String!
+  environment: String!
+  reference: String!
+  version: String!
+  actionId: String!
+  actionType: MdActionType!
 }
 
 input MdConstraintStatusPayload {

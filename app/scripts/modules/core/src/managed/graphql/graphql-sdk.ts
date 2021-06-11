@@ -20,6 +20,7 @@ export interface Scalars {
 export interface MdAction {
   __typename?: 'MdAction';
   id: Scalars['String'];
+  actionId: Scalars['String'];
   type: Scalars['String'];
   status: MdActionStatus;
   startedAt?: Maybe<Scalars['InstantTime']>;
@@ -255,6 +256,15 @@ export interface MdResourceActuationState {
 
 export type MdResourceActuationStatus = 'PROCESSING' | 'UP_TO_DATE' | 'ERROR' | 'WAITING' | 'NOT_MANAGED';
 
+export interface MdRetryArtifactActionPayload {
+  application: Scalars['String'];
+  environment: Scalars['String'];
+  reference: Scalars['String'];
+  version: Scalars['String'];
+  actionId: Scalars['String'];
+  actionType: MdActionType;
+}
+
 export interface MdUnpinArtifactVersionPayload {
   application: Scalars['String'];
   environment: Scalars['String'];
@@ -276,6 +286,7 @@ export interface Mutation {
   markArtifactVersionAsBad?: Maybe<Scalars['Boolean']>;
   unpinArtifactVersion?: Maybe<Scalars['Boolean']>;
   markArtifactVersionAsGood?: Maybe<Scalars['Boolean']>;
+  retryArtifactVersionAction?: Maybe<MdAction>;
 }
 
 export interface MutationUpdateConstraintStatusArgs {
@@ -303,6 +314,10 @@ export interface MutationMarkArtifactVersionAsGoodArgs {
   payload: MdMarkArtifactVersionAsGoodPayload;
 }
 
+export interface MutationRetryArtifactVersionActionArgs {
+  payload?: Maybe<MdRetryArtifactActionPayload>;
+}
+
 export interface Query {
   __typename?: 'Query';
   application?: Maybe<MdApplication>;
@@ -311,6 +326,11 @@ export interface Query {
 export interface QueryApplicationArgs {
   appName: Scalars['String'];
 }
+
+export type ActionDetailsFragment = { __typename?: 'MdAction' } & Pick<
+  MdAction,
+  'id' | 'actionId' | 'actionType' | 'status' | 'startedAt' | 'completedAt' | 'link'
+>;
 
 export type DetailedVersionFieldsFragment = { __typename?: 'MdArtifactVersionInEnvironment' } & Pick<
   MdArtifactVersionInEnvironment,
@@ -338,16 +358,8 @@ export type DetailedVersionFieldsFragment = { __typename?: 'MdArtifactVersionInE
         { __typename?: 'MdConstraint' } & Pick<MdConstraint, 'type' | 'status' | 'judgedBy' | 'judgedAt' | 'attributes'>
       >
     >;
-    verifications?: Maybe<
-      Array<
-        { __typename?: 'MdAction' } & Pick<MdAction, 'id' | 'type' | 'status' | 'startedAt' | 'completedAt' | 'link'>
-      >
-    >;
-    postDeploy?: Maybe<
-      Array<
-        { __typename?: 'MdAction' } & Pick<MdAction, 'id' | 'type' | 'status' | 'startedAt' | 'completedAt' | 'link'>
-      >
-    >;
+    verifications?: Maybe<Array<{ __typename?: 'MdAction' } & ActionDetailsFragment>>;
+    postDeploy?: Maybe<Array<{ __typename?: 'MdAction' } & ActionDetailsFragment>>;
     veto?: Maybe<{ __typename?: 'MdVersionVeto' } & Pick<MdVersionVeto, 'vetoedBy' | 'vetoedAt' | 'comment'>>;
   };
 
@@ -589,6 +601,25 @@ export type MarkVersionAsGoodMutationVariables = Exact<{
 
 export type MarkVersionAsGoodMutation = { __typename?: 'Mutation' } & Pick<Mutation, 'markArtifactVersionAsGood'>;
 
+export type RetryVersionActionMutationVariables = Exact<{
+  payload: MdRetryArtifactActionPayload;
+}>;
+
+export type RetryVersionActionMutation = { __typename?: 'Mutation' } & {
+  retryArtifactVersionAction?: Maybe<{ __typename?: 'MdAction' } & ActionDetailsFragment>;
+};
+
+export const ActionDetailsFragmentDoc = gql`
+  fragment actionDetails on MdAction {
+    id
+    actionId
+    actionType
+    status
+    startedAt
+    completedAt
+    link
+  }
+`;
 export const DetailedVersionFieldsFragmentDoc = gql`
   fragment detailedVersionFields on MdArtifactVersionInEnvironment {
     id
@@ -630,20 +661,10 @@ export const DetailedVersionFieldsFragmentDoc = gql`
       attributes
     }
     verifications {
-      id
-      type
-      status
-      startedAt
-      completedAt
-      link
+      ...actionDetails
     }
     postDeploy {
-      id
-      type
-      status
-      startedAt
-      completedAt
-      link
+      ...actionDetails
     }
     veto {
       vetoedBy
@@ -651,6 +672,7 @@ export const DetailedVersionFieldsFragmentDoc = gql`
       comment
     }
   }
+  ${ActionDetailsFragmentDoc}
 `;
 export const ArtifactPinnedVersionFieldsFragmentDoc = gql`
   fragment artifactPinnedVersionFields on MdArtifact {
@@ -1326,4 +1348,49 @@ export type MarkVersionAsGoodMutationResult = Apollo.MutationResult<MarkVersionA
 export type MarkVersionAsGoodMutationOptions = Apollo.BaseMutationOptions<
   MarkVersionAsGoodMutation,
   MarkVersionAsGoodMutationVariables
+>;
+export const RetryVersionActionDocument = gql`
+  mutation RetryVersionAction($payload: MdRetryArtifactActionPayload!) {
+    retryArtifactVersionAction(payload: $payload) {
+      ...actionDetails
+    }
+  }
+  ${ActionDetailsFragmentDoc}
+`;
+export type RetryVersionActionMutationFn = Apollo.MutationFunction<
+  RetryVersionActionMutation,
+  RetryVersionActionMutationVariables
+>;
+
+/**
+ * __useRetryVersionActionMutation__
+ *
+ * To run a mutation, you first call `useRetryVersionActionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRetryVersionActionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [retryVersionActionMutation, { data, loading, error }] = useRetryVersionActionMutation({
+ *   variables: {
+ *      payload: // value for 'payload'
+ *   },
+ * });
+ */
+export function useRetryVersionActionMutation(
+  baseOptions?: Apollo.MutationHookOptions<RetryVersionActionMutation, RetryVersionActionMutationVariables>,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<RetryVersionActionMutation, RetryVersionActionMutationVariables>(
+    RetryVersionActionDocument,
+    options,
+  );
+}
+export type RetryVersionActionMutationHookResult = ReturnType<typeof useRetryVersionActionMutation>;
+export type RetryVersionActionMutationResult = Apollo.MutationResult<RetryVersionActionMutation>;
+export type RetryVersionActionMutationOptions = Apollo.BaseMutationOptions<
+  RetryVersionActionMutation,
+  RetryVersionActionMutationVariables
 >;
