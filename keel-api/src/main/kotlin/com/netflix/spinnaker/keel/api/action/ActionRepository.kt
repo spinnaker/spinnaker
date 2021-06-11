@@ -1,13 +1,10 @@
 package com.netflix.spinnaker.keel.api.action
 
+import com.netflix.spinnaker.keel.api.ActionStateUpdateContext
 import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
-import com.netflix.spinnaker.keel.api.Verification
-import com.netflix.spinnaker.keel.api.action.ActionType.POST_DEPLOY
-import com.netflix.spinnaker.keel.api.action.ActionType.VERIFICATION
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
-import com.netflix.spinnaker.keel.api.postdeploy.PostDeployAction
 import java.time.Duration
 import java.time.Instant
 
@@ -75,6 +72,12 @@ interface ActionRepository {
     metadata: Map<String, Any?> = emptyMap(),
     link: String? = null
   )
+
+  /**
+   * Update the action status of all artifact versions associated with [context]
+   */
+  fun updateState(context: ActionStateUpdateContext, status: ConstraintStatus)
+
 
   fun nextEnvironmentsForVerification(minTimeSinceLastCheck: Duration, limit: Int) : Collection<ArtifactInEnvironmentContext>
 

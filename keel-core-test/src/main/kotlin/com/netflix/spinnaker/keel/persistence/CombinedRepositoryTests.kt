@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.keel.persistence
 
-import com.fasterxml.jackson.databind.jsontype.NamedType
-import com.netflix.spinnaker.keel.api.Constraint
+import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.NotificationConfig
@@ -9,24 +8,23 @@ import com.netflix.spinnaker.keel.api.NotificationFrequency.normal
 import com.netflix.spinnaker.keel.api.NotificationType.slack
 import com.netflix.spinnaker.keel.api.PreviewEnvironmentSpec
 import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.Verification
+import com.netflix.spinnaker.keel.api.action.ActionRepository
 import com.netflix.spinnaker.keel.api.artifacts.DOCKER
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.BRANCH_JOB_COMMIT_BY_JOB
 import com.netflix.spinnaker.keel.api.artifacts.branchStartsWith
-import com.netflix.spinnaker.keel.api.events.ArtifactRegisteredEvent
-import com.netflix.spinnaker.keel.api.action.ActionRepository
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.api.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.api.events.ConstraintStateChanged
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.core.api.MANUAL_JUDGEMENT_CONSTRAINT_TYPE
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.core.api.SubmittedResource
 import com.netflix.spinnaker.keel.core.api.normalize
-import com.netflix.spinnaker.keel.events.ArtifactDeployedNotification
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceUpdated
 import com.netflix.spinnaker.keel.exceptions.DuplicateManagedResourceException
-import com.netflix.spinnaker.keel.lifecycle.LifecycleEvent
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.TEST_API_V1
@@ -35,12 +33,9 @@ import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import io.mockk.every
 import io.mockk.mockk
-import io.mockk.slot
 import io.mockk.spyk
 import io.mockk.verify
-import org.springframework.context.ApplicationEvent
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expect
 import strikt.api.expectCatching
@@ -52,6 +47,7 @@ import strikt.assertions.isA
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEmpty
+import strikt.assertions.isNotNull
 import strikt.assertions.isSuccess
 import strikt.assertions.isTrue
 import java.time.Duration
@@ -71,6 +67,16 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
 
   open fun flush() {}
 
+  data class DummyVerification(val label: String) : Verification {
+    override val type = TYPE
+    override val id: String
+      get() = label
+
+    companion object {
+      const val TYPE = "dummy"
+    }
+  }
+
   val configName = "my-config"
   val secondConfigName = "my-config-2"
   val application = "fnord"
@@ -79,7 +85,10 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
   val newArtifact = artifact.copy(reference = "myart")
   val firstResource = resource()
   val secondResource = resource()
-  val firstEnv = Environment(name = "env1", resources = setOf(firstResource))
+
+  val verification = DummyVerification("1")
+  val secondVerification = DummyVerification("2")
+  val firstEnv = Environment(name = "env1", resources = setOf(firstResource), verifyWith = listOf(verification))
   val secondEnv = Environment(name = "env2", resources = setOf(secondResource))
   val previewEnv = PreviewEnvironmentSpec(
     branch = branchStartsWith("feature/"),
@@ -93,6 +102,7 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
     environments = setOf(firstEnv),
     previewEnvironments = setOf(previewEnv)
   )
+
   val secondDeliveryConfig = DeliveryConfig(
     name = secondConfigName,
     application = secondApplication,
@@ -115,6 +125,10 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
     serviceAccount = "keel@spinnaker",
     artifacts = setOf(artifact),
     environments = setOf(firstEnv)
+  )
+
+  val deliveryConfigWithVerificationRemoved = deliveryConfig.copy(
+    environments = setOf(firstEnv.copy(verifyWith=emptyList()))
   )
 
   val configWithStatefulConstraint = deliveryConfig.copy(environments = setOf(firstEnv.copy(constraints = setOf(ManualJudgementConstraint()))))
@@ -538,6 +552,40 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
           subject.storeConstraintState(pendingState)
           verify (exactly = 1) { publisher.publishEvent(ofType<ConstraintStateChanged>()) }
         }
+      }
+    }
+
+    context("two verifications in pending state") {
+      val version = "v1"
+      before {
+        subject.upsertDeliveryConfig(deliveryConfig)
+        val context = ArtifactInEnvironmentContext(deliveryConfig, firstEnv.name, artifact.reference, version)
+        subject.updateState(context, verification, ConstraintStatus.PENDING)
+        subject.updateState(context, secondVerification, ConstraintStatus.PENDING)
+      }
+
+      context("verification deleted from delivery config") {
+        val context = ArtifactInEnvironmentContext(deliveryConfigWithVerificationRemoved, firstEnv.name, artifact.reference, version)
+
+        before {
+          subject.upsertDeliveryConfig(deliveryConfigWithVerificationRemoved)
+        }
+
+        test("the pending state associated with the deleted verification has changed to override fail") {
+          val state = subject.getActionState(context, verification)
+          expectThat(state)
+            .isNotNull()
+            .get { status }
+            .isEqualTo(ConstraintStatus.OVERRIDE_FAIL)
+        }
+
+        test("the pending state associated with the remaining verification is still present") {
+          val state = subject.getActionState(context, secondVerification)
+          expectThat(state)
+            .isNotNull()
+            .get { status }
+            .isEqualTo(ConstraintStatus.PENDING)
+          }
       }
     }
   }

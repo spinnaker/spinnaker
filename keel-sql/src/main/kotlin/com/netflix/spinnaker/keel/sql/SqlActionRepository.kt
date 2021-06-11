@@ -1,9 +1,9 @@
 package com.netflix.spinnaker.keel.sql
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.keel.api.ActionStateUpdateContext
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
-import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
@@ -14,7 +14,6 @@ import com.netflix.spinnaker.keel.api.action.ActionStateFull
 import com.netflix.spinnaker.keel.api.action.ActionType
 import com.netflix.spinnaker.keel.api.action.ActionType.POST_DEPLOY
 import com.netflix.spinnaker.keel.api.action.ActionType.VERIFICATION
-import com.netflix.spinnaker.keel.api.postdeploy.PostDeployAction
 import com.netflix.spinnaker.keel.pause.PauseScope.*
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ACTION_STATE
@@ -378,6 +377,24 @@ class SqlActionRepository(
     } ?: emptyList()
   }
 
+  override fun updateState(
+    context: ActionStateUpdateContext,
+    status: ConstraintStatus
+  )  {
+    sqlRetry.withRetry(WRITE) {
+      with(context) {
+        jooq
+          .update(ACTION_STATE)
+          .set(ACTION_STATE.STATUS, status)
+          .where(ACTION_STATE.ENVIRONMENT_UID.eq(environmentUid))
+          .and(ACTION_STATE.TYPE.eq(actionType))
+          .and(ACTION_STATE.ACTION_ID.eq(id))
+          .and(ACTION_STATE.STATUS.eq(ConstraintStatus.PENDING))
+          .execute()
+      }
+    }
+  }
+
   private fun updateState(
     context: ArtifactInEnvironmentContext,
     id: String,
@@ -495,19 +512,24 @@ class SqlActionRepository(
 
   private fun currentTimestamp() = clock.instant()
 
-  private val ArtifactInEnvironmentContext.environmentUid: Select<Record1<String>>
-    get() = select(ACTIVE_ENVIRONMENT.UID)
+  private fun selectEnvironmentUid(deliveryConfig: DeliveryConfig, environment: Environment) =
+    select(ACTIVE_ENVIRONMENT.UID)
       .from(DELIVERY_CONFIG, ACTIVE_ENVIRONMENT)
       .where(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
       .and(ACTIVE_ENVIRONMENT.NAME.eq(environment.name))
       .and(ACTIVE_ENVIRONMENT.DELIVERY_CONFIG_UID.eq(DELIVERY_CONFIG.UID))
+
+  private val ArtifactInEnvironmentContext.environmentUid: Select<Record1<String>>
+    get() = selectEnvironmentUid(deliveryConfig, environment)
+
+  private val ActionStateUpdateContext.environmentUid: Select<Record1<String>>
+    get() = selectEnvironmentUid(deliveryConfig, environment)
 
   private val ArtifactInEnvironmentContext.artifactUid: Select<Record1<String>>
     get() = select(DELIVERY_ARTIFACT.UID)
       .from(DELIVERY_ARTIFACT)
       .where(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(deliveryConfig.name))
       .and(DELIVERY_ARTIFACT.REFERENCE.eq(artifactReference))
-
 
   /**
    * Helper class for [getVerificationStatesBatch]

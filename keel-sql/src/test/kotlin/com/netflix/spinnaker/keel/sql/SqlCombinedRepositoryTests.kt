@@ -18,6 +18,7 @@ internal object SqlCombinedRepositoryTests :
   private val jooq = testDatabase.context
   private val objectMapper = configuredTestObjectMapper().apply {
     registerSubtypes(NamedType(ManualJudgementConstraint::class.java, MANUAL_JUDGEMENT_CONSTRAINT_TYPE))
+    registerSubtypes(NamedType(DummyVerification::class.java, DummyVerification.TYPE))
   }
   private val retryProperties = RetryProperties(1, 0)
   private val sqlRetry = SqlRetry(SqlRetryProperties(retryProperties, retryProperties))

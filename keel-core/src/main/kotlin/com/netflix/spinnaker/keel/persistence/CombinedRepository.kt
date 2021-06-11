@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.persistence
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.keel.api.ActionStateUpdateContext
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.NotificationConfig
@@ -172,7 +173,50 @@ class CombinedRepository(
           deliveryConfigRepository.deletePreviewEnvironment(new.name, previewEnvSpec.baseEnvironment)
         }
       }
+
+    /**
+     * If a verification, V,  has been removed from the delivery config, and there's PENDING state
+     * associated with V, then the EnvironmentExclusionEnforcer will block deployments and other verifications
+     * from running.
+     *
+     * To avoid this problem, we update all PENDING records associated with delete verification V as OVERRIDE_FAIL
+     */
+    markRemovedPendingVerificationStateAsOverrideFail(old, new)
+
   }
+
+  private fun markRemovedPendingVerificationStateAsOverrideFail(old: DeliveryConfig, new: DeliveryConfig) {
+    val contexts = getVerificationRemovalContext(old, new)
+    contexts.forEach {
+      log.debug("Verification ${it.id} removed from ${old.application} ${it.environment.name}. Marking any PENDING state as OVERRIDE_FAIL.")
+      actionRepository.updateState(it, ConstraintStatus.OVERRIDE_FAIL)
+    }
+  }
+  /**
+   * Generate a list of removal contexts that correspond to verifications that were removed from the delivery config
+   */
+  private fun getVerificationRemovalContext(old: DeliveryConfig, new: DeliveryConfig): List<ActionStateUpdateContext> {
+    val deleted = old.verifications() subtract new.verifications()
+    return deleted.mapNotNull { (e, id) ->
+      new.environment(e)
+        ?.let { env -> ActionStateUpdateContext(new, env, VERIFICATION, id) }
+    }
+  }
+
+  /**
+   * Return the set of verifications associated with a delivery config,
+   * represented as pairs: (environment name, verification id)
+   */
+  fun DeliveryConfig.verifications() : Set<Pair<String, String>> =
+    environments.flatMap { e ->
+      e.verifyWith.map {v ->
+        e.name to v.id
+      }
+    }.toSet()
+
+  fun DeliveryConfig.environment(name : String) : Environment? =
+    environments.firstOrNull { it.name == name }
+
 
   // START Delivery config methods
   override fun storeDeliveryConfig(deliveryConfig: DeliveryConfig) =
