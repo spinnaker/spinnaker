@@ -13,9 +13,9 @@
     "lib": "npm run build"
   },
   "dependencies": {
-    "@spinnaker/amazon": "^0.0.316",
-    "@spinnaker/core": "^0.0.595",
-    "@spinnaker/docker": "^0.0.78",
+    "@spinnaker/amazon": "*",
+    "@spinnaker/core": "*",
+    "@spinnaker/docker": "*",
     "@spinnaker/mocks": "1.0.7",
     "@uirouter/angularjs": "1.0.26",
     "@uirouter/react": "1.0.3",
