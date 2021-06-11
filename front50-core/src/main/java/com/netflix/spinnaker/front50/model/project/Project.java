@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.front50.model.project;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.netflix.spinnaker.front50.model.Timestamped;
+import com.netflix.spinnaker.front50.api.model.Timestamped;
 import java.util.Collection;
 
 public class Project implements Timestamped {

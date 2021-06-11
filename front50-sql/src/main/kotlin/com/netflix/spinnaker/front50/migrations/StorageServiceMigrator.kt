@@ -19,7 +19,7 @@ package com.netflix.spinnaker.front50.migrations
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.front50.model.ObjectType
 import com.netflix.spinnaker.front50.model.StorageService
-import com.netflix.spinnaker.front50.model.Timestamped
+import com.netflix.spinnaker.front50.api.model.Timestamped
 import com.netflix.spinnaker.front50.model.tag.EntityTagsDAO
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.web.context.RequestContextProvider

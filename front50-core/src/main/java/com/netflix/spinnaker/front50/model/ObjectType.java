@@ -16,10 +16,11 @@
 
 package com.netflix.spinnaker.front50.model;
 
+import com.netflix.spinnaker.front50.api.model.Timestamped;
+import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.model.application.Application;
 import com.netflix.spinnaker.front50.model.delivery.Delivery;
 import com.netflix.spinnaker.front50.model.notification.Notification;
-import com.netflix.spinnaker.front50.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplate;
 import com.netflix.spinnaker.front50.model.plugins.PluginInfo;
 import com.netflix.spinnaker.front50.model.plugins.ServerGroupPluginVersions;

@@ -2,6 +2,7 @@ apply from: "$rootDir/gradle/kotlin.gradle"
 
 dependencies {
   implementation project(":front50-core")
+  implementation project(":front50-api")
   if (!rootProject.hasProperty("excludeSqlDrivers")) {
     runtimeOnly project(":front50-sql-mysql")
     runtimeOnly project(":front50-sql-postgres")

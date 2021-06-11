@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.front50.model.plugins;
 
-import com.netflix.spinnaker.front50.model.Timestamped;
+import com.netflix.spinnaker.front50.api.model.Timestamped;
 import java.util.Map;
 import javax.annotation.Nonnull;
 import lombok.Data;

@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.front50.model.notification;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.netflix.spinnaker.front50.model.Timestamped;
+import com.netflix.spinnaker.front50.api.model.Timestamped;
 import java.util.HashMap;
 
 public class Notification extends HashMap<String, Object> implements Timestamped {

@@ -17,7 +17,9 @@
 
 package com.netflix.spinnaker.front50.migrations
 
-import com.netflix.spinnaker.front50.model.pipeline.Pipeline
+import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline
+import com.netflix.spinnaker.front50.api.model.pipeline.Trigger
+
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
 import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccount
 import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccountDAO
@@ -40,20 +42,20 @@ class SharedManagedServiceAccountMigrationSpec extends Specification {
       roles: [
         "test-pipeline-role"
       ],
-      triggers: [
-        [
+      triggers:[
+        new Trigger([
           enabled: true,
           job: "org/repo/master",
           master: "travis",
           runAsUser: "some-guid@managed-service-account",
           type: "travis"
-        ], [
+        ]),  new Trigger([
           enabled: true,
           job: "org/repo2/master",
           master: "jenkins",
           runAsUser: "some-guid@managed-service-account",
           type: "jenkins"
-        ]
+        ])
       ]
     ])
 
@@ -89,19 +91,19 @@ class SharedManagedServiceAccountMigrationSpec extends Specification {
         "test-pipeline-role"
       ],
       triggers: [
-        [
+        new Trigger([
           enabled: true,
           job: "org/repo/master",
           master: "travis",
           runAsUser: "some-user@some-org",
           type: "travis"
-        ], [
+        ]), new Trigger([
           enabled: true,
           job: "org/repo2/master",
           master: "jenkins",
           runAsUser: "some-user@some-org",
           type: "jenkins"
-        ]
+        ])
       ]
     ])
 
@@ -136,21 +138,20 @@ class SharedManagedServiceAccountMigrationSpec extends Specification {
       roles: [
         "test-pipeline-role", "test-trigger-role"
       ],
-      "runAsUser": expectedSharedManagedServiceAccountName,
       triggers: [
-        [
+        new Trigger([
           enabled: true,
           job: "org/repo/master",
           master: "travis",
           runAsUser: expectedSharedManagedServiceAccountName,
           type: "travis"
-        ], [
+        ]), new Trigger([
           enabled: true,
           job: "org/repo2/master",
           master: "jenkins",
           runAsUser: expectedSharedManagedServiceAccountName,
           type: "jenkins"
-        ]
+        ])
       ]
     ])
 

@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.front50.migrations;
 
-import com.netflix.spinnaker.front50.model.pipeline.Pipeline;
+import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO;
 import java.util.Collection;
 import java.util.Collections;
@@ -51,20 +51,23 @@ public class SpelLoadBalancersMigration implements Migration {
 
   /** Removes spelLoadBalancers and spelTargetGroups from all deploy stage[].clusters[] */
   private boolean migrate(Pipeline pipeline) {
+    List<Map<String, Object>> stages = pipeline.getStages();
+    if (stages == null) {
+      stages = Collections.emptyList();
+    }
     List<Map<String, Object>> clusters =
-        ((List<Map<String, Object>>) pipeline.getOrDefault("stages", Collections.emptyList()))
-            .stream()
-                .filter(stage -> "deploy".equals(stage.get("type")))
-                .flatMap(
-                    stage ->
-                        ((List<Map<String, Object>>)
-                                stage.getOrDefault("clusters", Collections.emptyList()))
-                            .stream())
-                .filter(
-                    cluster ->
-                        cluster.get("spelLoadBalancers") != null
-                            || cluster.get("spelTargetGroups") != null)
-                .collect(Collectors.toList());
+        stages.stream()
+            .filter(stage -> "deploy".equals(stage.get("type")))
+            .flatMap(
+                stage ->
+                    ((List<Map<String, Object>>)
+                            stage.getOrDefault("clusters", Collections.emptyList()))
+                        .stream())
+            .filter(
+                cluster ->
+                    cluster.get("spelLoadBalancers") != null
+                        || cluster.get("spelTargetGroups") != null)
+            .collect(Collectors.toList());
 
     if (clusters.isEmpty()) {
       return false;

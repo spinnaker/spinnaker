@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.front50.model
 
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.front50.api.model.Timestamped
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import org.slf4j.LoggerFactory

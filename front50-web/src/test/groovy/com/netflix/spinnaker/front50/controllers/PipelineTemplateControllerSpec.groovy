@@ -18,14 +18,15 @@ package com.netflix.spinnaker.front50.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.front50.exceptions.InvalidRequestException
-import com.netflix.spinnaker.front50.model.pipeline.Pipeline
+
+import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
 import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplate
 import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplateDAO
 import spock.lang.Specification
 import spock.lang.Subject
 
-import static com.netflix.spinnaker.front50.model.pipeline.Pipeline.TYPE_TEMPLATED
+import static com.netflix.spinnaker.front50.api.model.pipeline.Pipeline.TYPE_TEMPLATED
 import static com.netflix.spinnaker.front50.model.pipeline.TemplateConfiguration.TemplateSource.SPINNAKER_PREFIX
 
 class PipelineTemplateControllerSpec extends Specification {

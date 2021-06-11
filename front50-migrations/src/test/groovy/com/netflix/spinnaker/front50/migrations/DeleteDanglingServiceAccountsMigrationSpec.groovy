@@ -17,7 +17,8 @@
 
 package com.netflix.spinnaker.front50.migrations
 
-import com.netflix.spinnaker.front50.model.pipeline.Pipeline
+import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline
+import com.netflix.spinnaker.front50.api.model.pipeline.Trigger;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
 import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccount
 import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccountDAO
@@ -38,19 +39,19 @@ class DeleteDanglingServiceAccountsMigrationSpec extends Specification {
       id         : "1",
       name       : "My Pipeline 1",
       triggers   : [
-        [
+        new Trigger([
           enabled  : true,
           job      : "org/repo/master",
           master   : "travis",
           runAsUser: "my-existing-service-user@org.com",
           type     : "travis"
-        ], [
+        ]), new Trigger([
           enabled  : true,
           job      : "org/repo2/master",
           master   : "jenkins",
           runAsUser: "1@managed-service-account",
           type     : "jenkins"
-        ]
+        ]),
       ]
     ])
 
@@ -59,19 +60,19 @@ class DeleteDanglingServiceAccountsMigrationSpec extends Specification {
       id         : "2",
       name       : "My Pipeline 2",
       triggers   : [
-        [
+        new Trigger([
           enabled  : true,
           job      : "org/repo/master",
           master   : "travis",
           runAsUser: "2@managed-service-account",
           type     : "travis"
-        ], [
+        ]), new Trigger([
           enabled  : true,
           job      : "org/repo2/master",
           master   : "jenkins",
           runAsUser: "2@managed-service-account",
           type     : "jenkins"
-        ]
+        ]),
       ]
     ])
 

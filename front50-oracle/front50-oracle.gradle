@@ -1,5 +1,6 @@
 dependencies {
   implementation project(":front50-core")
+  implementation project(":front50-api")
 
   implementation "com.github.ben-manes.caffeine:guava"
   implementation "io.spinnaker.kork:kork-core"

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Netflix, Inc.
+ * Copyright 2021 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,21 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.front50.validator;
+package com.netflix.spinnaker.front50.api.validator;
 
-import com.netflix.spinnaker.front50.model.pipeline.Pipeline;
-import org.springframework.validation.Errors;
+import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
+import com.netflix.spinnaker.kork.annotations.Beta;
+import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint;
 
-/** An extension point wherein custom validation can be applied pre-save/update operations. */
-public interface PipelineValidator {
+/**
+ * A {@link PipelineValidator} provides a hook where custom validation can be applied to pipeline
+ * pre-save/update operations.
+ */
+@Beta
+public interface PipelineValidator extends SpinnakerExtensionPoint {
   /**
-   * @param pipeline the pipeline being modified
+   * @param pipeline the pipeline being created/modified
    * @param errors specific validation errors for @param pipeline
    */
-  void validate(Pipeline pipeline, Errors errors);
+  void validate(Pipeline pipeline, ValidatorErrors errors);
 }

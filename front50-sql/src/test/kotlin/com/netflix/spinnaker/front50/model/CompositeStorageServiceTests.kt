@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.front50.model
 
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.front50.api.model.Timestamped;
 import com.netflix.spinnaker.front50.model.application.Application
 import com.netflix.spinnaker.front50.model.tag.EntityTags
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService

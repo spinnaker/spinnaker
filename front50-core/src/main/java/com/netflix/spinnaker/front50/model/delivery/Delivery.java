@@ -2,7 +2,7 @@ package com.netflix.spinnaker.front50.model.delivery;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
-import com.netflix.spinnaker.front50.model.Timestamped;
+import com.netflix.spinnaker.front50.api.model.Timestamped;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

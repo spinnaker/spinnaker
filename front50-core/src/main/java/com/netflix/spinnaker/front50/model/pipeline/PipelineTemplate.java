@@ -16,7 +16,7 @@
 package com.netflix.spinnaker.front50.model.pipeline;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.netflix.spinnaker.front50.model.Timestamped;
+import com.netflix.spinnaker.front50.api.model.Timestamped;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;

@@ -16,6 +16,7 @@
 
 dependencies {
   implementation project(":front50-core")
+  implementation project(":front50-api")
 
   implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
   implementation "io.spinnaker.kork:kork-core"

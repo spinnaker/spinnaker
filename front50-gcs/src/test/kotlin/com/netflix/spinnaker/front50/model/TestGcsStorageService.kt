@@ -25,11 +25,11 @@ import com.google.cloud.storage.BucketInfo
 import com.google.cloud.storage.Storage
 import com.google.cloud.storage.StorageOptions
 import com.google.common.util.concurrent.MoreExecutors
+import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.model.GcsStorageService
 import com.netflix.spinnaker.front50.model.ObjectType
 import com.netflix.spinnaker.front50.model.application.Application
 import com.netflix.spinnaker.front50.model.delivery.Delivery
-import com.netflix.spinnaker.front50.model.pipeline.Pipeline
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import io.mockk.every
 import io.mockk.mockk

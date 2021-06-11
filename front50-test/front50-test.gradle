@@ -17,6 +17,7 @@
 dependencies {
   implementation("org.codehaus.groovy:groovy-all")
 
+  implementation project(":front50-api")
   implementation project(":front50-core")
   implementation project(":front50-s3")
 

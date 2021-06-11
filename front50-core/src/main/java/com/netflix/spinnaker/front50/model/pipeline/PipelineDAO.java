@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.front50.model.pipeline;
 
+import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.model.ItemDAO;
 import java.util.Collection;
 

@@ -15,9 +15,13 @@
  */
 package com.netflix.spinnaker.front50.config;
 
+import com.fasterxml.jackson.databind.Module;
+import com.netflix.spinnaker.front50.jackson.Front50ApiModule;
 import com.netflix.spinnaker.moniker.Namer;
 import com.netflix.spinnaker.moniker.frigga.FriggaReflectiveNamer;
+import java.util.List;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,5 +41,13 @@ public class Front50CoreConfiguration {
   @ConditionalOnMissingBean(Namer.class)
   public Namer<?> namer() {
     return new FriggaReflectiveNamer();
+  }
+
+  @Bean
+  Jackson2ObjectMapperBuilderCustomizer defaultObjectMapperCustomizer(List<Module> modules) {
+    return jacksonObjectMapperBuilder -> {
+      modules.addAll(List.of(new Front50ApiModule()));
+      jacksonObjectMapperBuilder.modules(modules);
+    };
   }
 }

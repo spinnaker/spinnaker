@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.front50.migrations
 
-import com.netflix.spinnaker.front50.model.pipeline.Pipeline
+import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline
+import com.netflix.spinnaker.front50.api.model.pipeline.Trigger;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
 import spock.lang.Specification
 import spock.lang.Subject
@@ -34,9 +35,9 @@ class EnsureCronTriggerHasIdentifierMigrationSpec extends Specification {
     def pipeline = new Pipeline([
       application: "test",
       triggers   : [
-        [type: "cron", id: "original-id", expression: "1"],
-        [type: "cron", expression: "2"],
-        [type: "cron", id: "", expression: "3"]
+        new Trigger([type: "cron", id: "original-id", expression: "1"]),
+        new Trigger([type: "cron", expression: "2"]),
+        new Trigger([type: "cron", id: "", expression: "3"])
       ]
     ])
 
@@ -47,9 +48,9 @@ class EnsureCronTriggerHasIdentifierMigrationSpec extends Specification {
     migration.run() // subsequent migration run should be a no-op
 
     then:
-    pipeline.get("triggers").find { it.expression == "1" }.id == "original-id"
-    pipeline.get("triggers").find { it.expression == "2" }.id.length() > 1
-    pipeline.get("triggers").find { it.expression == "3" }.id.length() > 1
+    pipeline.getTriggers().find { it.expression == "1" }.id == "original-id"
+    pipeline.getTriggers().find { it.expression == "2" }.id.length() > 1
+    pipeline.getTriggers().find { it.expression == "3" }.id.length() > 1
 
     2 * pipelineDAO.all() >> { return [pipeline] }
     1 * pipelineDAO.update("pipeline-1", _)

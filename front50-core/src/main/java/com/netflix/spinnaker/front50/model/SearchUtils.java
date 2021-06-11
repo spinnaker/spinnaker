@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.front50.model;
 
 import com.netflix.spinnaker.front50.UntypedUtils;
+import com.netflix.spinnaker.front50.api.model.Timestamped;
 import java.util.Map;
 import java.util.TreeMap;
 

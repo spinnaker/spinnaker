@@ -21,8 +21,17 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.front50.config.FiatConfigurationProperties
+import com.netflix.spinnaker.front50.jackson.Front50ApiModule
+import com.netflix.spinnaker.front50.model.DefaultObjectKeyLoader
 import com.netflix.spinnaker.front50.model.SqlStorageService
+import com.netflix.spinnaker.front50.model.application.Application
+import com.netflix.spinnaker.front50.model.application.ApplicationDAO
 import com.netflix.spinnaker.front50.model.application.ApplicationService
+import com.netflix.spinnaker.front50.model.application.DefaultApplicationDAO
+import com.netflix.spinnaker.front50.model.notification.NotificationDAO
+import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
+import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO
+import com.netflix.spinnaker.front50.model.project.ProjectDAO
 import com.netflix.spinnaker.front50.validator.HasEmailValidator
 import com.netflix.spinnaker.front50.validator.HasNameValidator
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
@@ -30,19 +39,15 @@ import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import com.netflix.spinnaker.kork.web.exceptions.ExceptionMessageDecorator
 import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
-import com.netflix.spinnaker.front50.model.DefaultObjectKeyLoader
-import com.netflix.spinnaker.front50.model.application.Application
-import com.netflix.spinnaker.front50.model.application.ApplicationDAO
-import com.netflix.spinnaker.front50.model.application.DefaultApplicationDAO
 import io.github.resilience4j.circuitbreaker.internal.InMemoryCircuitBreakerRegistry
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.context.support.StaticMessageSource
 import org.springframework.http.MediaType
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import rx.schedulers.Schedulers
 import spock.lang.AutoCleanup
-import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -52,10 +57,6 @@ import java.util.concurrent.Executors
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import com.netflix.spinnaker.front50.model.project.ProjectDAO
-import com.netflix.spinnaker.front50.model.notification.NotificationDAO
-import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
-import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO
 
 abstract class ApplicationsControllerTck extends Specification {
   ObjectMapper objectMapper = new ObjectMapper()
@@ -73,6 +74,8 @@ abstract class ApplicationsControllerTck extends Specification {
   ApplicationDAO dao
 
   void setup() {
+    objectMapper.registerModule(new Front50ApiModule())
+
     this.dao = createApplicationDAO()
     this.applicationService = new ApplicationService(
       dao,
@@ -94,8 +97,12 @@ abstract class ApplicationsControllerTck extends Specification {
       applicationService
     )
 
+    MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter = new MappingJackson2HttpMessageConverter();
+    mappingJackson2HttpMessageConverter.setObjectMapper(objectMapper)
+
     this.mockMvc = MockMvcBuilders
       .standaloneSetup(controller)
+      .setMessageConverters(mappingJackson2HttpMessageConverter)
       .setControllerAdvice(
         new GenericExceptionHandlers(
           new ExceptionMessageDecorator(Mock(ObjectProvider))
@@ -115,7 +122,7 @@ abstract class ApplicationsControllerTck extends Specification {
       .perform(
         post("/v2/applications")
           .contentType(MediaType.APPLICATION_JSON)
-          .content(new ObjectMapper().writeValueAsString(sampleApp))
+          .content(objectMapper.writeValueAsString(sampleApp))
       )
 
     then:
@@ -132,7 +139,7 @@ abstract class ApplicationsControllerTck extends Specification {
       .perform(
         post("/v2/applications")
           .contentType(MediaType.APPLICATION_JSON)
-          .content(new ObjectMapper().writeValueAsString(applicationMissingName))
+          .content(objectMapper.writeValueAsString(applicationMissingName))
       )
 
     then:
@@ -163,9 +170,7 @@ abstract class ApplicationsControllerTck extends Specification {
 
     then:
     response.andExpect status().isOk()
-
-    //The results are not in a consistent order from the DAO so sort them
-    response.andExpect content().string(new ObjectMapper().writeValueAsString(dao.all().sort { it.name }))
+    response.andExpect content().string(objectMapper.writeValueAsString(dao.all().sort { it.name }))
   }
 
   def "should update an application"() {
@@ -178,7 +183,7 @@ abstract class ApplicationsControllerTck extends Specification {
       .perform(
         patch("/v2/applications/SAMPLEAPP")
           .contentType(MediaType.APPLICATION_JSON)
-          .content(new ObjectMapper().writeValueAsString(sampleApp))
+          .content(objectMapper.writeValueAsString(sampleApp))
       )
 
     then:
@@ -195,7 +200,7 @@ abstract class ApplicationsControllerTck extends Specification {
       .perform(
         patch("/v2/applications")
           .contentType(MediaType.APPLICATION_JSON)
-          .content(new ObjectMapper().writeValueAsString(sampleApp))
+          .content(objectMapper.writeValueAsString(sampleApp))
       )
 
     then:
@@ -211,7 +216,7 @@ abstract class ApplicationsControllerTck extends Specification {
       .perform(
         patch("/v2/applications/SAMPLEAPPWRONG")
           .contentType(MediaType.APPLICATION_JSON)
-          .content(new ObjectMapper().writeValueAsString(sampleApp))
+          .content(objectMapper.writeValueAsString(sampleApp))
       )
 
     then:
@@ -247,7 +252,7 @@ abstract class ApplicationsControllerTck extends Specification {
     def response = mockMvc.perform(
       patch("/v2/applications/SAMPLEAPP")
         .contentType(MediaType.APPLICATION_JSON)
-        .content(new ObjectMapper().writeValueAsString(updates))
+        .content(objectMapper.writeValueAsString(updates))
     )
 
     then:
@@ -342,7 +347,7 @@ abstract class ApplicationsControllerTck extends Specification {
 
     then:
     response.andExpect status().isOk()
-    response.andExpect content().string(new ObjectMapper().writeValueAsString([dao.findByName("SAMPLEAPP")]))
+    response.andExpect content().string(objectMapper.writeValueAsString([dao.findByName("SAMPLEAPP")]))
 
     when:
     response = mockMvc.perform(
@@ -362,7 +367,7 @@ abstract class ApplicationsControllerTck extends Specification {
 
     then:
     response.andExpect status().isOk()
-    response.andExpect content().string(new ObjectMapper().writeValueAsString([dao.findByName("SAMPLEAPP"), dao.findByName("SAMPLEAPP-2")]))
+    response.andExpect content().string(objectMapper.writeValueAsString([dao.findByName("SAMPLEAPP"), dao.findByName("SAMPLEAPP-2")]))
 
     when:
     response = mockMvc.perform(
@@ -371,7 +376,7 @@ abstract class ApplicationsControllerTck extends Specification {
 
     then:
     response.andExpect status().isOk()
-    response.andExpect content().string(new ObjectMapper().writeValueAsString([dao.findByName("SAMPLEAPP")]))
+    response.andExpect content().string(objectMapper.writeValueAsString([dao.findByName("SAMPLEAPP")]))
   }
 
   private Map toMap(Application application) {
@@ -397,7 +402,7 @@ class SqlApplicationsControllerTck extends ApplicationsControllerTck {
     def registry = new NoopRegistry()
 
     def storageService = new SqlStorageService(
-      new ObjectMapper(),
+      objectMapper,
       registry,
       currentDatabase.context,
       Clock.systemDefaultZone(),

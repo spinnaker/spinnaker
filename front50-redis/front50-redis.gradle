@@ -20,6 +20,7 @@ configurations.all {
 
 dependencies {
   implementation project(":front50-core")
+  implementation project(":front50-api")
   implementation "io.spinnaker.kork:kork-exceptions"
 
   implementation("org.codehaus.groovy:groovy-all")

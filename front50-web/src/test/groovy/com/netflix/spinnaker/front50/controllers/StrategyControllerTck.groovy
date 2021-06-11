@@ -19,10 +19,12 @@ package com.netflix.spinnaker.front50.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline
+import com.netflix.spinnaker.front50.api.model.pipeline.Trigger;
 import com.netflix.spinnaker.front50.model.DefaultObjectKeyLoader
 import com.netflix.spinnaker.front50.model.SqlStorageService
 import com.netflix.spinnaker.front50.model.pipeline.DefaultPipelineStrategyDAO
-import com.netflix.spinnaker.front50.model.pipeline.Pipeline
+
 import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
@@ -33,7 +35,6 @@ import org.springframework.beans.factory.ObjectProvider
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver
 import rx.schedulers.Schedulers
 import spock.lang.*
 
@@ -74,7 +75,7 @@ abstract class StrategyControllerTck extends Specification {
       name       : "My Pipeline",
       application: "test",
       triggers   : [
-        [type: "cron", id: "original-id"]
+        new Trigger([type: "cron", id: "original-id"])
       ]
     ]
     if (lookupPipelineId) {
@@ -99,8 +100,8 @@ abstract class StrategyControllerTck extends Specification {
 
     where:
     lookupPipelineId || expectedTriggerCheck
-    false            || { Map p -> p.triggers*.id != ["original-id"] }
-    true             || { Map p -> p.triggers*.id == ["original-id"] }
+    false            || { Pipeline p -> p.triggers*.id != ["original-id"] }
+    true             || { Pipeline p -> p.triggers*.id == ["original-id"] }
   }
 
   void 'should update a strategy'() {

@@ -16,8 +16,9 @@
 
 package com.netflix.spinnaker.front50.migrations;
 
+import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
+import com.netflix.spinnaker.front50.api.model.pipeline.Trigger;
 import com.netflix.spinnaker.front50.model.ItemDAO;
-import com.netflix.spinnaker.front50.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO;
 import java.time.Clock;
 import java.util.Date;
@@ -58,7 +59,7 @@ public class EnsureCronTriggerHasIdentifierMigration implements Migration {
     log.info("Starting cron trigger identifier migration");
     Predicate<Pipeline> hasCronTrigger =
         p -> {
-          List<Map> triggers = (List<Map>) p.get("triggers");
+          List<Trigger> triggers = p.getTriggers();
           return triggers != null
               && triggers.stream()
                   .anyMatch(
@@ -80,9 +81,9 @@ public class EnsureCronTriggerHasIdentifierMigration implements Migration {
         "Added cron trigger identifier (application: {}, pipelineId: {}, triggers: {})",
         pipeline.getApplication(),
         pipeline.getId(),
-        pipeline.get("triggers"));
+        pipeline.getTriggers());
 
-    List<Map<String, Object>> triggers = (List<Map<String, Object>>) pipeline.get("triggers");
+    List<Trigger> triggers = (List<Trigger>) pipeline.getTriggers();
     for (Map<String, Object> trigger : triggers) {
       String type = (String) trigger.get("type");
       String id = (String) trigger.get("id");
@@ -97,6 +98,6 @@ public class EnsureCronTriggerHasIdentifierMigration implements Migration {
         "Added cron trigger identifier (application: {}, pipelineId: {}, triggers: {})",
         pipeline.getApplication(),
         pipeline.getId(),
-        pipeline.get("triggers"));
+        pipeline.getTriggers());
   }
 }

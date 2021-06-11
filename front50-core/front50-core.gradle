@@ -36,4 +36,6 @@ dependencies {
   implementation "io.spinnaker.kork:kork-security"
   implementation "io.spinnaker.kork:kork-artifacts"
   implementation "io.spinnaker.kork:kork-moniker"
+
+  implementation project(":front50-api")
 }

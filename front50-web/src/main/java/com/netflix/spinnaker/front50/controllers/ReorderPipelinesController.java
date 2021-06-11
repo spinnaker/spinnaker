@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.front50.controllers;
 
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
+import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.exceptions.InvalidRequestException;
 import com.netflix.spinnaker.front50.model.ItemDAO;
 import com.netflix.spinnaker.front50.model.pipeline.*;

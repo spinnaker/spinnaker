@@ -17,7 +17,8 @@
 package com.netflix.spinnaker.front50.redis
 
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
-import com.netflix.spinnaker.front50.model.pipeline.Pipeline
+
+import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO
 import org.springframework.data.redis.core.Cursor
 import org.springframework.data.redis.core.RedisTemplate

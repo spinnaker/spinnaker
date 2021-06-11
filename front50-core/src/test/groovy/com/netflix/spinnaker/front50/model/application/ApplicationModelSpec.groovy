@@ -15,6 +15,9 @@
  */
 package com.netflix.spinnaker.front50.model.application
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.front50.api.model.Timestamped
+import com.netflix.spinnaker.front50.jackson.mixins.TimestampedMixins
 import spock.lang.Specification
 
 class ApplicationModelSpec extends Specification {
@@ -46,5 +49,19 @@ class ApplicationModelSpec extends Specification {
     expect:
     listApp.cloudProviders == 'a,b'
     normalApp.cloudProviders == 'a,b,c'
+  }
+
+  void 'ignores correct timestamped properties when serializing Application to JSON'() {
+
+    given:
+    def application = new Application()
+    application.setCreatedAt(new Long(1))
+    application.setLastModifiedBy("foo")
+
+    ObjectMapper mapper = new ObjectMapper().addMixIn(Timestamped.class, TimestampedMixins.class)
+    String appJSON = mapper.writeValueAsString(application)
+
+    expect:
+    appJSON == '{"name":null,"description":null,"email":null,"updateTs":null,"createTs":"1","lastModifiedBy":"foo","cloudProviders":null,"trafficGuards":[]}'
   }
 }

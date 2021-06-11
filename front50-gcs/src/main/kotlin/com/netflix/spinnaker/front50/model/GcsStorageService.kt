@@ -29,6 +29,7 @@ import com.google.cloud.storage.Storage.BucketGetOption
 import com.google.cloud.storage.StorageException
 import com.google.common.collect.ImmutableMap
 import com.google.common.util.concurrent.Futures
+import com.netflix.spinnaker.front50.api.model.Timestamped
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import java.io.IOException
 import java.time.Duration

@@ -20,12 +20,12 @@ import static com.netflix.spinnaker.front50.events.ApplicationEventListener.Type
 
 import com.google.common.base.Joiner;
 import com.netflix.spinnaker.front50.ServiceAccountsService;
+import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.events.ApplicationEventListener;
 import com.netflix.spinnaker.front50.events.ApplicationEventListener.ApplicationModelEvent;
 import com.netflix.spinnaker.front50.exception.ValidationException;
 import com.netflix.spinnaker.front50.model.notification.HierarchicalLevel;
 import com.netflix.spinnaker.front50.model.notification.NotificationDAO;
-import com.netflix.spinnaker.front50.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO;
 import com.netflix.spinnaker.front50.model.project.ProjectDAO;

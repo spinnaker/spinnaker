@@ -30,6 +30,7 @@ configurations.all {
 }
 
 dependencies {
+  implementation project(":front50-api")
   implementation project(":front50-core")
   implementation project(":front50-migrations")
   implementation "org.springframework.boot:spring-boot-starter-web"
@@ -45,6 +46,7 @@ dependencies {
 
   runtimeOnly "io.spinnaker.kork:kork-runtime"
 
+  testImplementation project(":front50-api")
   testImplementation project(":front50-test")
   testImplementation project(":front50-sql")
   testImplementation "io.spinnaker.kork:kork-sql-test"

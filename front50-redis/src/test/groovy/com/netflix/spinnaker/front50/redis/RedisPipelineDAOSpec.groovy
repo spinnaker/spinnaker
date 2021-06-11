@@ -17,7 +17,8 @@
 package com.netflix.spinnaker.front50.redis
 
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
-import com.netflix.spinnaker.front50.model.pipeline.Pipeline
+
+import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.pipeline.PipelineDAOSpec
 import com.netflix.spinnaker.front50.redis.config.EmbeddedRedisConfig
 import org.springframework.beans.factory.annotation.Autowired
@@ -78,11 +79,11 @@ class RedisPipelineDAOSpec extends PipelineDAOSpec<RedisPipelineDAO> {
 
     when:
     def updatedPipeline = pipelinesByApplication[0]
-    updatedPipeline.foo = "test"
+    updatedPipeline.name = "foo"
     redisPipelineDAO.update(foundPipelineId, updatedPipeline)
 
     then:
-    redisPipelineDAO.findById(foundPipelineId).foo == updatedPipeline.foo
+    redisPipelineDAO.findById(foundPipelineId).name == updatedPipeline.name
 
     when:
     redisPipelineDAO.delete(foundPipelineId)

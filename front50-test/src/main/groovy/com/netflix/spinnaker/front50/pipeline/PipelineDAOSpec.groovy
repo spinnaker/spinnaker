@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.front50.pipeline
 
-import com.netflix.spinnaker.front50.model.pipeline.Pipeline
+
+import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
 import spock.lang.*
 

@@ -17,7 +17,7 @@ package com.netflix.spinnaker.front50.model.plugins;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Splitter;
-import com.netflix.spinnaker.front50.model.Timestamped;
+import com.netflix.spinnaker.front50.api.model.Timestamped;
 import com.netflix.spinnaker.kork.api.plugins.remote.RemoteExtensionConfig;
 import java.time.Instant;
 import java.util.ArrayList;

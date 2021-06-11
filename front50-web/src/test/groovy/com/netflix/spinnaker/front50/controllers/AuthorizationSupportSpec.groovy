@@ -16,8 +16,9 @@
 
 package com.netflix.spinnaker.front50.controllers
 
+import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
-import com.netflix.spinnaker.front50.model.pipeline.Pipeline
+import com.netflix.spinnaker.front50.api.model.pipeline.Trigger
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -37,7 +38,7 @@ class AuthorizationSupportSpec extends Specification {
 
     when:
     Pipeline p = new Pipeline(application: "app",
-                     triggers: [["runAsUser": "service-acct"]])
+                     triggers: [new Trigger(["runAsUser": "service-acct"])])
     def result = authorizationSupport.hasRunAsUserPermission(p)
 
     then:

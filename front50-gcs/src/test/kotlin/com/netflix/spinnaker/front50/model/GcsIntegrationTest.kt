@@ -17,11 +17,11 @@
 
 package com.netflix.spinnnaker.front50.model
 
+import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.config.GcsConfig
 import com.netflix.spinnaker.front50.model.GcsIntegrationTestConfiguration
 import com.netflix.spinnaker.front50.model.GcsStorageService
 import com.netflix.spinnaker.front50.model.ObjectType
-import com.netflix.spinnaker.front50.model.pipeline.Pipeline
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired

@@ -20,14 +20,13 @@ package com.netflix.spinnaker.front50.migrations;
 import static net.logstash.logback.argument.StructuredArguments.value;
 
 import com.google.common.hash.Hashing;
-import com.netflix.spinnaker.front50.model.pipeline.Pipeline;
+import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
+import com.netflix.spinnaker.front50.api.model.pipeline.Trigger;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO;
-import com.netflix.spinnaker.front50.model.pipeline.Trigger;
 import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccount;
 import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccountDAO;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +45,6 @@ public class SharedManagedServiceAccountsMigration implements Migration {
   private static final String SERVICE_ACCOUNT_SUFFIX = "@managed-service-account";
   private static final String SHARED_SERVICE_ACCOUNT_SUFFIX = "@shared-managed-service-account";
   private static final String RUN_AS_USER = "runAsUser";
-  private static final String ROLES = "roles";
 
   private final ServiceAccountDAO serviceAccountDAO;
   private final PipelineDAO pipelineDAO;
@@ -91,12 +89,12 @@ public class SharedManagedServiceAccountsMigration implements Migration {
 
     Set<String> newRoles = new HashSet<>();
 
-    List<String> existingRoles = (List) pipeline.get(ROLES);
+    List<String> existingRoles = (List) pipeline.getRoles();
     if (existingRoles != null) {
       existingRoles.stream().map(String::toLowerCase).forEach(newRoles::add);
     }
 
-    Collection<Trigger> triggers = pipeline.getTriggers();
+    List<Trigger> triggers = pipeline.getTriggers();
 
     triggers.forEach(
         trigger -> {
@@ -132,7 +130,7 @@ public class SharedManagedServiceAccountsMigration implements Migration {
 
     log.info("Creating service user '{}' wih roles {}", sharedManagedServiceAccountName, newRoles);
     sharedManagedServiceAccount.getMemberOf().addAll(newRoles);
-    pipeline.put(ROLES, new ArrayList<>(newRoles));
+    pipeline.setRoles(new ArrayList(newRoles));
     pipeline.setTriggers(triggers);
 
     serviceAccountDAO.create(sharedManagedServiceAccount.getId(), sharedManagedServiceAccount);
