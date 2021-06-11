@@ -858,6 +858,7 @@ class ClusterHandler(
         "moniker" to serverGroup.moniker.orcaClusterMoniker,
         "region" to serverGroup.location.region,
         "estimatedInstanceWarmup" to it.warmup.seconds,
+        "serverGroupName" to serverGroup.moniker.serverGroup,
         "targetTrackingConfiguration" to mapOf(
           "targetValue" to it.targetValue,
           "disableScaleIn" to it.disableScaleIn,
