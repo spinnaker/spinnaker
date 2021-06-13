@@ -113,21 +113,29 @@ export const VersionHeading = ({ group, chevron }: IVersionHeadingProps) => {
         <div className="version-environments">
           {Object.entries(group.environments)
             .reverse()
-            .map(([env, artifacts]) => {
-              const statusSummary = getEnvStatusSummary(artifacts.versions);
-              const statusClassName = statusToClassName[statusSummary];
-              return (
-                <Tooltip key={env} delayShow={TOOLTIP_DELAY_SHOW} value={statusToText[statusSummary]}>
-                  <div className={classnames('chip', statusClassName)}>
-                    {artifacts.isPinned && <Icon name="pin" size="16px" className="environment-pinned" color="black" />}{' '}
-                    {env}
-                  </div>
-                </Tooltip>
-              );
-            })}
+            .map(([env, artifacts]) => (
+              <EnvironmentBadge key={env} env={env} data={artifacts} />
+            ))}
         </div>
       </div>
       <div>{chevron}</div>
     </div>
+  );
+};
+
+interface IEnvironmentBadgeProps {
+  env: string;
+  data: VersionData['environments'][keyof VersionData['environments']];
+}
+
+const EnvironmentBadge = ({ env, data }: IEnvironmentBadgeProps) => {
+  const statusSummary = getEnvStatusSummary(data.versions);
+  const statusClassName = statusToClassName[statusSummary];
+  return (
+    <Tooltip delayShow={TOOLTIP_DELAY_SHOW} value={statusToText[statusSummary]}>
+      <div className={classnames('chip', statusClassName)}>
+        {data.isPinned && <Icon name="pin" size="16px" className="environment-pinned" color="black" />} {env}
+      </div>
+    </Tooltip>
   );
 };
