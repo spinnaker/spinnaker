@@ -22,15 +22,17 @@ import com.amazonaws.services.ec2.model.LaunchTemplateVersion;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType;
+import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AsgConfigHelper;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.ModifyServerGroupLaunchTemplateDescription;
+import com.netflix.spinnaker.clouddriver.aws.deploy.validators.ModifyServerGroupLaunchTemplateValidator;
+import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidationErrors;
+import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidationException;
 import com.netflix.spinnaker.clouddriver.event.EventMetadata;
 import com.netflix.spinnaker.clouddriver.saga.SagaCommand;
 import com.netflix.spinnaker.clouddriver.saga.flow.SagaAction;
 import com.netflix.spinnaker.clouddriver.saga.models.Saga;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.Builder;
@@ -43,6 +45,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class PrepareUpdateAutoScalingGroup
     implements SagaAction<PrepareUpdateAutoScalingGroup.PrepareUpdateAutoScalingGroupCommand> {
+  private final ModifyServerGroupLaunchTemplateValidator validator;
+
+  public PrepareUpdateAutoScalingGroup(ModifyServerGroupLaunchTemplateValidator validator) {
+    this.validator = validator;
+  }
+
   @NotNull
   @Override
   public Result apply(@NotNull PrepareUpdateAutoScalingGroupCommand command, @NotNull Saga saga) {
@@ -51,20 +59,19 @@ public class PrepareUpdateAutoScalingGroup
     saga.log(
         "[SAGA_ACTION] Preparing to update EC2 Auto Scaling Group " + description.getAsgName());
 
-    // transform overrides
-    List<LaunchTemplateOverridesForInstanceType> overridesInReq =
-        description.getLaunchTemplateOverridesForInstanceType();
-    List<LaunchTemplateOverrides> ltOverrides = null;
-    if (overridesInReq != null && !overridesInReq.isEmpty()) {
-      ltOverrides =
-          description.getLaunchTemplateOverridesForInstanceType().stream()
-              .map(
-                  o ->
-                      new LaunchTemplateOverrides()
-                          .withInstanceType(o.getInstanceType())
-                          .withWeightedCapacity(o.getWeightedCapacity()))
-              .collect(Collectors.toList());
+    // validate description before proceeding with the update
+    saga.log("[SAGA_ACTION] Validating configuration for modify");
+    DescriptionValidationErrors validationErrors = new DescriptionValidationErrors(description);
+    validator.validate(Collections.emptyList(), description, validationErrors);
+    if (validationErrors.hasErrors()) {
+      saga.log("[SAGA_ACTION] Validation failed with errors: " + validationErrors.toString());
+      throw new DescriptionValidationException(validationErrors);
     }
+
+    // transform overrides
+    List<LaunchTemplateOverrides> ltOverrides =
+        AsgConfigHelper.getLaunchTemplateOverrides(
+            description.getLaunchTemplateOverridesForInstanceType());
 
     UpdateAutoScalingGroup.UpdateAutoScalingGroupCommand updateCommand =
         UpdateAutoScalingGroup.UpdateAutoScalingGroupCommand.builder()

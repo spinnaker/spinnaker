@@ -5,13 +5,17 @@ import com.amazonaws.services.autoscaling.model.LaunchTemplateSpecification
 import com.amazonaws.services.ec2.model.*
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.ModifyServerGroupLaunchTemplateDescription
+import com.netflix.spinnaker.clouddriver.aws.deploy.validators.ModifyServerGroupLaunchTemplateValidator
 import com.netflix.spinnaker.clouddriver.saga.flow.SagaAction
 import com.netflix.spinnaker.clouddriver.saga.models.Saga
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
 class PrepareUpdateAutoScalingGroupSpec extends Specification {
+  @Shared
+  ModifyServerGroupLaunchTemplateValidator validator
 
   def autoScalingGroupWithLt = new AutoScalingGroup(
     autoScalingGroupName: "test-v001",
@@ -23,9 +27,12 @@ class PrepareUpdateAutoScalingGroupSpec extends Specification {
     asgName: autoScalingGroupWithLt.autoScalingGroupName,
     amiName: "ami-1"
   )
+  void setupSpec() {
+    validator = Stub(ModifyServerGroupLaunchTemplateValidator)
+  }
 
   @Subject
-  def prepareAction = new PrepareUpdateAutoScalingGroup()
+  def prepareAction = new PrepareUpdateAutoScalingGroup(validator)
 
   @Unroll
   def "should prepare for update ASG as expected"() {

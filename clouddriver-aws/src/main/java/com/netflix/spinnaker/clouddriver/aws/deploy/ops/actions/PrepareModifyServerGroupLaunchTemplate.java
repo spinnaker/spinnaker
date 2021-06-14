@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.actions;
 
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup;
+import com.amazonaws.services.autoscaling.model.InstancesDistribution;
 import com.amazonaws.services.autoscaling.model.LaunchTemplateSpecification;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.LaunchTemplateBlockDeviceMapping;
@@ -33,6 +34,7 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.AmiIdResolver;
 import com.netflix.spinnaker.clouddriver.aws.deploy.InstanceTypeUtils.BlockDeviceConfig;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ModifyServerGroupUtils;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ResolvedAmiResult;
+import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AsgConfigHelper;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.ModifyServerGroupLaunchTemplateDescription;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.ModifyServerGroupLaunchTemplateAtomicOperation.LaunchTemplateException;
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice;
@@ -59,8 +61,12 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 /**
- * Action to prepare for the description for launch template changes. This action may be skipped if
- * no launch template changes are requested.
+ * Action to prepare the description of type ModifyServerGroupLaunchTemplateDescription for launch
+ * template and server group configuration changes. Steps: 1. populate description with config from
+ * server group's mixed instances policy 2. populate description with config from current launch
+ * template version, in preparation to create a new version
+ *
+ * <p>Step 2 of this action may be skipped if no launch template changes are requested.
  */
 @Component
 public class PrepareModifyServerGroupLaunchTemplate
@@ -88,8 +94,8 @@ public class PrepareModifyServerGroupLaunchTemplate
         (NetflixAmazonCredentials) credentialsRepository.getOne(description.getAccount());
 
     saga.log(
-        "[SAGA_ACTION] Performing modifyServerGroupLaunchTemplate operation for description "
-            + description);
+        "[SAGA_ACTION] Performing modifyServerGroupLaunchTemplate operation for server group "
+            + description.getAsgName());
 
     RegionScopedProvider regionScopedProvider =
         regionScopedProviderFactory.forRegion(credentials, description.getRegion());
@@ -98,8 +104,15 @@ public class PrepareModifyServerGroupLaunchTemplate
     LaunchTemplateVersion launchTemplateVersion =
         getLaunchTemplateVersion(autoScalingGroup, regionScopedProvider);
     ResponseLaunchTemplateData launchTemplateData = launchTemplateVersion.getLaunchTemplateData();
-
     boolean isAsgBackedByMip = autoScalingGroup.getMixedInstancesPolicy() != null;
+
+    // Step #1: populate description with config from server group's mixed instances policy
+    if (autoScalingGroup.getMixedInstancesPolicy() != null) {
+      populateDescWithMipFields(description, autoScalingGroup);
+    }
+
+    // Determine if step #2(populate description with config from current launch template version)
+    // can be skipped
     boolean asgUsesSpotLt = launchTemplateData.getInstanceMarketOptions() != null;
 
     /**
@@ -142,7 +155,7 @@ public class PrepareModifyServerGroupLaunchTemplate
     }
 
     saga.log("[SAGA_ACTION] Preparing for launch template modification");
-    transformLaunchTemplateVersionToDesc(
+    populateDescWithLaunchTemplateVersion(
         saga,
         description,
         launchTemplateVersion,
@@ -210,7 +223,44 @@ public class PrepareModifyServerGroupLaunchTemplate
                         "Requested launch template %s does not exist.", launchTemplateSpec)));
   }
 
-  private void transformLaunchTemplateVersionToDesc(
+  private void populateDescWithMipFields(
+      ModifyServerGroupLaunchTemplateDescription modifyDesc, AutoScalingGroup autoScalingGroup) {
+    final InstancesDistribution distInAsg =
+        autoScalingGroup.getMixedInstancesPolicy().getInstancesDistribution();
+
+    modifyDesc.setOnDemandAllocationStrategy(
+        Optional.ofNullable(modifyDesc.getOnDemandAllocationStrategy())
+            .orElse(distInAsg.getOnDemandAllocationStrategy()));
+    modifyDesc.setOnDemandBaseCapacity(
+        Optional.ofNullable(modifyDesc.getOnDemandBaseCapacity())
+            .orElse(distInAsg.getOnDemandBaseCapacity()));
+    modifyDesc.setOnDemandPercentageAboveBaseCapacity(
+        Optional.ofNullable(modifyDesc.getOnDemandPercentageAboveBaseCapacity())
+            .orElse(distInAsg.getOnDemandPercentageAboveBaseCapacity()));
+    modifyDesc.setSpotAllocationStrategy(
+        Optional.ofNullable(modifyDesc.getSpotAllocationStrategy())
+            .orElse(distInAsg.getSpotAllocationStrategy()));
+    modifyDesc.setSpotInstancePools(
+        Optional.ofNullable(modifyDesc.getSpotInstancePools())
+            .orElse(
+                // return the spotInstancePools in ASG iff it is compatible with the
+                // spotAllocationStrategy
+                modifyDesc.getSpotAllocationStrategy().equals("lowest-price")
+                    ? distInAsg.getSpotInstancePools()
+                    : null));
+    modifyDesc.setLaunchTemplateOverridesForInstanceType(
+        Optional.ofNullable(modifyDesc.getLaunchTemplateOverridesForInstanceType())
+            .orElse(
+                AsgConfigHelper.getDescriptionOverrides(
+                    autoScalingGroup
+                        .getMixedInstancesPolicy()
+                        .getLaunchTemplate()
+                        .getOverrides())));
+
+    modifyDesc.setSpotPrice(getSpotMaxPrice(modifyDesc.getSpotPrice(), autoScalingGroup, null));
+  }
+
+  private void populateDescWithLaunchTemplateVersion(
       Saga saga,
       ModifyServerGroupLaunchTemplateDescription modifyDesc,
       LaunchTemplateVersion sourceLtVersion,

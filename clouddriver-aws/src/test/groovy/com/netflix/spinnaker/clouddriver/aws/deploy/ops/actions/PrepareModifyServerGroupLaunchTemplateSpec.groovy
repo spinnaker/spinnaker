@@ -108,6 +108,7 @@ class PrepareModifyServerGroupLaunchTemplateSpec extends Specification {
         onDemandBaseCapacity: 2,
         onDemandPercentageAboveBaseCapacity: 50,
         spotAllocationStrategy: "lowest-price",
+        spotInstancePools: 2,
         spotMaxPrice: "1"
       )
     )
@@ -143,13 +144,20 @@ class PrepareModifyServerGroupLaunchTemplateSpec extends Specification {
     nextCommand.isAsgBackedByMixedInstancesPolicy == true
     nextCommand.isReqToUpgradeAsgToMixedInstancesPolicy == false
 
+    // assert description fields
+    nextCommand.description.spotAllocationStrategy == expectedSpotALlocStrategy
+    nextCommand.description.spotInstancePools == expectedSpotInstancePools
+    nextCommand.description.onDemandAllocationStrategy == mixedInstancesPolicy.getInstancesDistribution().getOnDemandAllocationStrategy()
+    nextCommand.description.onDemandBaseCapacity == mixedInstancesPolicy.getInstancesDistribution().getOnDemandBaseCapacity()
+    nextCommand.description.onDemandPercentageAboveBaseCapacity == mixedInstancesPolicy.getInstancesDistribution().getOnDemandPercentageAboveBaseCapacity()
+
     where:
-    spotAllocationStrategy| spotPrice | instanceType|| expectedToSkipStep
-     "capacity-optimized" |    null   |  "c3.large" ||     false         // isReqToModifyMipFieldsOnly is false
-             null         |    "1"    |  "c3.large" ||     false         // isReqToModifyMipFieldsOnly is false
-    "capacity-optimized"  |    "1"    |  "c3.large" ||     false         // isReqToModifyMipFieldsOnly is false
-    "capacity-optimized"  |   null    |      null   ||     true          // isReqToModifyMipFieldsOnly is true
-             null         |    "1"    |      null   ||     true          // isReqToModifyMipFieldsOnly is true
+        spotAllocationStrategy      | spotPrice | instanceType||    expectedSpotALlocStrategy   || expectedSpotInstancePools || expectedToSkipStep
+            "capacity-optimized"    |    null   |  "c3.large" ||     "capacity-optimized"       ||          null             ||     false         // isReqToModifyMipFieldsOnly is false
+                    null            |    "1"    |  "c3.large" ||        "lowest-price"          ||            2              ||     false         // isReqToModifyMipFieldsOnly is false
+              "lowest-price"        |    "1"    |  "c3.large" ||        "lowest-price"          ||            2              ||     false         // isReqToModifyMipFieldsOnly is false
+    "capacity-optimized-prioritized"|   null    |      null   ||"capacity-optimized-prioritized"||          null             ||     true          // isReqToModifyMipFieldsOnly is true
+                    null            |    "1"    |      null   ||         "lowest-price"         ||            2              ||     true          // isReqToModifyMipFieldsOnly is true
   }
 
   @Unroll
@@ -200,6 +208,7 @@ class PrepareModifyServerGroupLaunchTemplateSpec extends Specification {
      "capacity-optimized"  |  null       |    true      ||         "0.5"       ||    false             // modify LT, create a new LT version with new spot max price
                 null       |  "1"        |    false     ||         "1"         ||    true              // skip new LT version, and upgrade to MIP
      "capacity-optimized"  |  null       |    false     ||          null       ||    true              // skip new LT version, and upgrade to MIP
+
   }
 
   @Unroll

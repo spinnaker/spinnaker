@@ -384,15 +384,15 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     def mixedInstancesPolicy = new MixedInstancesPolicy(
       launchTemplate: new LaunchTemplate(
         launchTemplateSpecification: launchTemplateSpec,
-        overrides: [new LaunchTemplateOverrides(instanceType: "c3.large", weightedCapacity: "2"),
-                    new LaunchTemplateOverrides(instanceType: "c3.xlarge", weightedCapacity: "4")]
+        overrides: ancestorOverrides
       ),
       instancesDistribution: new InstancesDistribution(
         onDemandAllocationStrategy: "prioritized",
         onDemandBaseCapacity: 2,
         onDemandPercentageAboveBaseCapacity: 50,
-        spotAllocationStrategy: "capacity-prioritized",
-        spotMaxPrice: ancestorSpotPrice
+        spotAllocationStrategy: ancestorSpotAllocStrategy, // AWS default is lowest-price
+        spotInstancePools: ancestorSpotAllocStrategy == "lowest-price" ? 2 : null, // AWS default is 2
+        spotMaxPrice: ancestorSpotPrice,
       )
     )
 
@@ -406,6 +406,8 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
       securityGroups: ["someGroupName", "sg-12345a"],
       capacity: new BasicAmazonDeployDescription.Capacity(min: 1, max: 3, desired: 5),
       spotPrice: requestSpotPrice,
+      spotAllocationStrategy: requestSpotAllocStrategy,
+      launchTemplateOverridesForInstanceType: requestOverrides
     )
 
     and:
@@ -457,16 +459,39 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
 
     1 * serverGroupNameResolver.resolveLatestServerGroupName("asgard-stack") >> { "asgard-stack-v000" }
     0 * serverGroupNameResolver._
-    1 * deployHandler.handle(expectedDescription(expectedSpotPrice, "us-east-1", null, null, mixedInstancesPolicy), _) >>
-      new DeploymentResult(serverGroupNames: ['asgard-stack-v001'], serverGroupNameByRegion: ['us-east-1': 'asgard-stack-v001'])
+    1 * deployHandler.handle(_ as BasicAmazonDeployDescription, _) >> { arguments ->
+      BasicAmazonDeployDescription actualDesc = arguments[0]
+
+      assert actualDesc.keyPair == "key-pair-name"
+      assert actualDesc.spotPrice == expectedSpotPrice
+      assert actualDesc.onDemandAllocationStrategy == "prioritized"
+      assert actualDesc.onDemandBaseCapacity == 2
+      assert actualDesc.onDemandPercentageAboveBaseCapacity == 50
+      assert actualDesc.spotAllocationStrategy == expectedSpotAllocStrategy
+      assert actualDesc.spotInstancePools == (expectedSpotAllocStrategy == "lowest-price" ? 2 : null)
+      assert actualDesc.launchTemplateOverridesForInstanceType == expectedOverrides; new DeploymentResult(serverGroupNames: ['asgard-stack-v001'], serverGroupNameByRegion: ['us-east-1': 'asgard-stack-v001'])
+    }
 
     where:
-    requestSpotPrice | ancestorSpotPrice || expectedSpotPrice
-    0.25             | null              || 0.25
-    0.25             | 0.5               || 0.25
-    null             | 0.25              || 0.25
-    ""               | 0.25              || null
-    null             | null              || null
+    requestSpotPrice | ancestorSpotPrice || expectedSpotPrice | requestSpotAllocStrategy | ancestorSpotAllocStrategy || expectedSpotAllocStrategy |                                   requestOverrides                        |                           ancestorOverrides                 ||        expectedOverrides
+    "0.25"           | null              || "0.25"            |           null           |     "lowest-price"        ||   "lowest-price"          |                                      null                                 |                             null                            ||              null
+    "0.25"           | "0.5"             || "0.25"            |   "capacity-optimized"   |     "lowest-price"        ||   "capacity-optimized"    |[new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(
+                                                                                                                                                        instanceType: "c5.large", priority: 1),
+                                                                                                                                                    new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(
+                                                                                                                                                        instanceType: "c4.large", priority: 2)]                               |[new LaunchTemplateOverrides().withInstanceType("m5.large")
+                                                                                                                                                                                                                                    .withWeightedCapacity("1")]                             ||[new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(
+                                                                                                                                                                                                                                                                                                   instanceType: "c5.large", priority: 1),
+                                                                                                                                                                                                                                                                                               new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(
+                                                                                                                                                                                                                                                                                                   instanceType: "c4.large", priority: 2)]
+    null             | "0.25"            || "0.25"            |       null               |     "lowest-price"        ||     "lowest-price"        |                                      []                                   |                             null                            ||              null
+    ""               | "0.25"            || null              |   "capacity-optimized"   |     "lowest-price"        ||    "capacity-optimized"   |                                      null                                 |[new LaunchTemplateOverrides().withInstanceType("m5.large")
+                                                                                                                                                                                                                                  .withWeightedCapacity("1"),
+                                                                                                                                                                                                                                new LaunchTemplateOverrides().withInstanceType("m5.xlarge")
+                                                                                                                                                                                                                                  .withWeightedCapacity("2")]                               ||[new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(
+                                                                                                                                                                                                                                                                                                   instanceType: "m5.large", weightedCapacity: "1", priority: 1),
+                                                                                                                                                                                                                                                                                               new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(
+                                                                                                                                                                                                                                                                                                   instanceType: "m5.xlarge", weightedCapacity: "2", priority: 2)]
+    null             | null              || null              |       null               |     "lowest-price"        ||     "lowest-price"         |                                      null                                 |                             null                             ||              null
   }
 
   private static BasicAmazonDeployDescription expectedDescription(

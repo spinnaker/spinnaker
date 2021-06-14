@@ -20,6 +20,7 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.asg;
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup;
 import com.amazonaws.services.autoscaling.model.Ebs;
 import com.amazonaws.services.autoscaling.model.LaunchConfiguration;
+import com.amazonaws.services.autoscaling.model.LaunchTemplateOverrides;
 import com.amazonaws.services.autoscaling.model.LaunchTemplateSpecification;
 import com.amazonaws.services.ec2.model.CreditSpecification;
 import com.amazonaws.services.ec2.model.EbsBlockDevice;
@@ -32,10 +33,13 @@ import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactor
 import com.netflix.spinnaker.clouddriver.aws.services.SecurityGroupService;
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
 import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -430,5 +434,69 @@ public class AsgConfigHelper {
     return isBurstingSupportedByAllTypesRequested
         ? sourceAsgCreditSpec.getCpuCredits().equals("unlimited") ? true : false
         : null;
+  }
+
+  /**
+   * Transform overrides of type BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType
+   * to AWS type LaunchTemplateOverrides.
+   *
+   * @param overridesInReq
+   * @return LaunchTemplateOverrides
+   */
+  public static List<LaunchTemplateOverrides> getLaunchTemplateOverrides(
+      List<BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType> overridesInReq) {
+    if (overridesInReq == null || overridesInReq.isEmpty()) {
+      return null;
+    }
+
+    // sort overrides by priority
+    overridesInReq.sort(
+        Comparator.comparing(
+            BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType::getPriority,
+            Comparator.nullsLast(Comparator.naturalOrder())));
+
+    // transform to LaunchTemplateOverrides
+    List<LaunchTemplateOverrides> ltOverrides =
+        overridesInReq.stream()
+            .map(
+                o ->
+                    new LaunchTemplateOverrides()
+                        .withInstanceType(o.getInstanceType())
+                        .withWeightedCapacity(o.getWeightedCapacity()))
+            .collect(Collectors.toCollection(ArrayList::new));
+
+    return ltOverrides;
+  }
+
+  /**
+   * Transform overrides of AWS type LaunchTemplateOverrides to type
+   * BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType. There is no way to get
+   * priority numbers to match the ones in original description as AWS ASG just uses an ordered list
+   * to maintain order. Hence, priority is just assigned in sequential order.
+   *
+   * @param ltOverrides
+   * @return BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType
+   */
+  public static List<BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType>
+      getDescriptionOverrides(List<LaunchTemplateOverrides> ltOverrides) {
+    if (ltOverrides == null || ltOverrides.isEmpty()) {
+      return null;
+    }
+
+    // transform to BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType
+    AtomicInteger priority = new AtomicInteger(1);
+    List<BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType> descOverrides =
+        ltOverrides.stream()
+            .map(
+                ltOv ->
+                    new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType
+                            .Builder()
+                        .instanceType(ltOv.getInstanceType())
+                        .weightedCapacity(ltOv.getWeightedCapacity())
+                        .priority(priority.getAndIncrement())
+                        .build())
+            .collect(Collectors.toList());
+
+    return descOverrides;
   }
 }

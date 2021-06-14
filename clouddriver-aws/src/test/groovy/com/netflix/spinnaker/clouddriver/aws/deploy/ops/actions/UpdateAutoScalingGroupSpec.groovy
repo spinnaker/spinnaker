@@ -50,22 +50,6 @@ class UpdateAutoScalingGroupSpec extends Specification {
     ),
     versionNumber: 3L
   )
-  def existingMip = new MixedInstancesPolicy(
-    launchTemplate: new com.amazonaws.services.autoscaling.model.LaunchTemplate(
-      launchTemplateSpecification: new LaunchTemplateSpecification(launchTemplateId: ltVersion.launchTemplateId, version: ltVersion.versionNumber),
-      overrides: [
-        new com.amazonaws.services.autoscaling.model.LaunchTemplateOverrides(instanceType: "c3.large", weightedCapacity: "2"),
-        new com.amazonaws.services.autoscaling.model.LaunchTemplateOverrides(instanceType: "c3.xlarge", weightedCapacity: "4")
-      ]
-    ),
-    instancesDistribution: new InstancesDistribution(
-      onDemandAllocationStrategy: "prioritized",
-      onDemandBaseCapacity: 2,
-      onDemandPercentageAboveBaseCapacity: 50,
-      spotAllocationStrategy: "lowest-price",
-      spotMaxPrice: "1"
-    )
-  )
 
   def "should update ASG backed by mixed instances policy correctly"() {
     given:
@@ -74,13 +58,17 @@ class UpdateAutoScalingGroupSpec extends Specification {
       asgName: asgName,
       amiName: "ami-1",
       credentials: credentials,
-      spotAllocationStrategy: "capacity-optimized"
+      spotAllocationStrategy: "capacity-optimized",
+      onDemandAllocationStrategy: "prioritized",
+      onDemandBaseCapacity: 2,
+      onDemandPercentageAboveBaseCapacity: 50,
+      spotPrice: "1"
     )
 
     and:
     def asgWithMip = new AutoScalingGroup(
       autoScalingGroupName: asgName,
-      mixedInstancesPolicy: existingMip
+      mixedInstancesPolicy: new MixedInstancesPolicy() // description is already populated with MIP values from existing ASG at this point, use a dummy MIP here
     )
 
     and:
@@ -101,22 +89,21 @@ class UpdateAutoScalingGroupSpec extends Specification {
       // assert arguments passed and return
       UpdateAutoScalingGroupRequest updateReq = arguments[0]
 
-      assert updateReq.autoScalingGroupName == asgName
-      assert updateReq.launchTemplate == null
+    assert updateReq.autoScalingGroupName == asgName
+    assert updateReq.launchTemplate == null
 
-      assert updateReq.mixedInstancesPolicy.instancesDistribution == new InstancesDistribution(
-        onDemandAllocationStrategy: "prioritized",
-        onDemandBaseCapacity: 2,
-        onDemandPercentageAboveBaseCapacity: 50,
-        spotAllocationStrategy: "capacity-optimized",
-        spotInstancePools: null,
-        spotMaxPrice: "1"
-      )
-      assert updateReq.mixedInstancesPolicy.launchTemplate.launchTemplateSpecification == new LaunchTemplateSpecification(
-        launchTemplateId: ltVersion.launchTemplateId,
-        version: String.valueOf(ltVersion.getVersionNumber())
-      )
-      assert updateReq.mixedInstancesPolicy.launchTemplate.overrides == existingMip.launchTemplate.overrides; new UpdateAutoScalingGroupResult()
+    assert updateReq.mixedInstancesPolicy.instancesDistribution == new InstancesDistribution(
+      onDemandAllocationStrategy: "prioritized",
+      onDemandBaseCapacity: 2,
+      onDemandPercentageAboveBaseCapacity: 50,
+      spotAllocationStrategy: "capacity-optimized",
+      spotInstancePools: null,
+      spotMaxPrice: "1"
+    )
+    assert updateReq.mixedInstancesPolicy.launchTemplate.launchTemplateSpecification == new LaunchTemplateSpecification(
+      launchTemplateId: ltVersion.launchTemplateId,
+      version: String.valueOf(ltVersion.getVersionNumber())
+    )
     }
   }
 

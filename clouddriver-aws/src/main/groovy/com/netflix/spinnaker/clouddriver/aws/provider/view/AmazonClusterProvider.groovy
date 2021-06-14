@@ -599,7 +599,7 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster>, ServerGro
         }
       } else {
         // multiple instance types case
-        def overrides = mip["launchTemplate"]["overrides"]
+        def overrides = new ArrayList<>(mip["launchTemplate"]["overrides"])
         def types = []
         overrides.each {
           types.add(it["instanceType"])

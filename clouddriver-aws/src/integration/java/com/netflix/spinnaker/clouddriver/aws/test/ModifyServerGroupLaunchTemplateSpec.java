@@ -127,12 +127,12 @@ public class ModifyServerGroupLaunchTemplateSpec extends AwsBaseSpec {
 
   // ASG with Mixed Instances Policy
   BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType override1 =
-      BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType.builder()
+      new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType.Builder()
           .instanceType("some.type.large")
           .weightedCapacity("2")
           .build();
   BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType override2 =
-      BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType.builder()
+      new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType.Builder()
           .instanceType("some.type.xlarge")
           .weightedCapacity("4")
           .build();
@@ -629,6 +629,7 @@ public class ModifyServerGroupLaunchTemplateSpec extends AwsBaseSpec {
     assertEquals(
         "capacity-optimized",
         mipInUpdateReq.getInstancesDistribution().getSpotAllocationStrategy());
+    assertEquals(null, mipInUpdateReq.getInstancesDistribution().getSpotInstancePools());
     assertEquals(
         "1.5",
         mipInUpdateReq

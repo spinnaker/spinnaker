@@ -207,20 +207,17 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
 
           if (isMip) {
             def ancestorInstanceDiversification = ancestorAsg.mixedInstancesPolicy.instancesDistribution
-            newDescription.onDemandAllocationStrategy = ancestorInstanceDiversification.onDemandAllocationStrategy
-            newDescription.onDemandBaseCapacity = ancestorInstanceDiversification.onDemandBaseCapacity
-            newDescription.onDemandPercentageAboveBaseCapacity = ancestorInstanceDiversification.onDemandPercentageAboveBaseCapacity
-            newDescription.spotAllocationStrategy = ancestorInstanceDiversification.spotAllocationStrategy
-            newDescription.spotInstancePools = ancestorInstanceDiversification.spotInstancePools
+            newDescription.onDemandAllocationStrategy = description.onDemandAllocationStrategy != null ? description.onDemandAllocationStrategy : ancestorInstanceDiversification.onDemandAllocationStrategy
+            newDescription.onDemandBaseCapacity = description.onDemandBaseCapacity != null ? description.onDemandBaseCapacity : ancestorInstanceDiversification.onDemandBaseCapacity
+            newDescription.onDemandPercentageAboveBaseCapacity = description.onDemandPercentageAboveBaseCapacity != null ? description.onDemandPercentageAboveBaseCapacity : ancestorInstanceDiversification.onDemandPercentageAboveBaseCapacity
+            newDescription.spotAllocationStrategy = description.spotAllocationStrategy != null ? description.spotAllocationStrategy : ancestorInstanceDiversification.spotAllocationStrategy
+            newDescription.spotInstancePools = description.spotInstancePools != null
+              ? description.spotInstancePools
+              : newDescription.spotAllocationStrategy == "lowest-price" ? ancestorInstanceDiversification.spotInstancePools : null // return the spotInstancePools in ASG iff it is compatible with the spotAllocationStrategy
 
-            List<BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType> overrides = []
-            ancestorAsg.mixedInstancesPolicy.launchTemplate.overrides.each {
-              overrides.add(new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(
-                instanceType: it.instanceType,
-                weightedCapacity: it.weightedCapacity
-              ))
-            }
-            newDescription.launchTemplateOverridesForInstanceType = overrides
+            newDescription.launchTemplateOverridesForInstanceType = description.launchTemplateOverridesForInstanceType != null && !description.launchTemplateOverridesForInstanceType.isEmpty()
+              ? description.launchTemplateOverridesForInstanceType
+              : AsgConfigHelper.getDescriptionOverrides(ancestorAsg.mixedInstancesPolicy.launchTemplate.overrides)
           }
         } else {
           def ancestorLaunchConfiguration = sourceRegionScopedProvider

@@ -24,7 +24,6 @@ import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEvent
 import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
-import groovy.transform.builder.Builder
 
 @AutoClone
 @Canonical
@@ -151,9 +150,9 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   List<LaunchTemplateLicenseSpecification> licenseSpecifications
 
   /**
-   * Indicates how to allocate instance types to fulfill On-Demand capacity. The only valid value is prioritized.
-   * This strategy uses the order of instance types in the LaunchTemplateOverrides to define the launch priority of each instance type.
-   * default: prioritized
+   * Indicates how to allocate instance types to fulfill On-Demand capacity.
+   * https://docs.aws.amazon.com/autoscaling/ec2/userguide/asg-purchase-options.html#asg-allocation-strategies
+   * default: prioritized, use LaunchTemplateOverridesForInstanceType#priority to define the launch priority of each instance type.
    */
   String onDemandAllocationStrategy
 
@@ -171,9 +170,9 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   Integer onDemandPercentageAboveBaseCapacity
 
   /**
-   * Indicates how to allocate instances across Spot Instance pools. 2 strategies:
-   * 1) capacity-optimized (recommended): instances launched using Spot pools that are optimally chosen based on the available Spot capacity.
-   * 2) lowest-price: instances launched using Spot pools with the lowest price, and evenly allocated across the number of Spot pools specified in spotInstancePools.
+   * Indicates how to allocate instances across Spot Instance pools.
+   * https://docs.aws.amazon.com/autoscaling/ec2/userguide/asg-purchase-options.html#asg-allocation-strategies
+   * For strategies like '*prioritized', use LaunchTemplateOverridesForInstanceType#priority to define the launch priority of each instance type.
    * default: lowest-price
    */
   String spotAllocationStrategy
@@ -295,7 +294,6 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
    * This class encapsulates configuration mapped to a particular instance type.
    */
   @Canonical
-  @Builder
   static class LaunchTemplateOverridesForInstanceType {
     /**
      * An instance type that is supported in the requested region and availability zone.
@@ -308,5 +306,70 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
      * When an instance of type {@link #instanceType} is provisioned, it's capacity units count toward the desired capacity.
      */
     String weightedCapacity
+
+    /**
+     * Optional priority for instance type.
+     * Valid values: integer > 0. Lower the number, higher the priority. If unset, the launch template override has the lowest priority.
+     * The order of instance types in the list of launch template overrides sent to AWS is set from highest to lowest priority.
+     *
+     * When to use?
+     *    Use when the order of instance types matter with '*prioritized' allocation strategies.
+     *    With OnDemandAllocationStrategy "prioritized", priority is used to determine which launch template override to use first in fulfilling On-Demand capacity.
+     *    With SpotAllocationStrategy "capacity-optimized-prioritized", priority is used on a best-effort basis to determine which launch template override to use first in fulfilling Spot capacity, but AWS optimizes for capacity first.
+     *
+     * Example:
+     * In the example below, the bigger instance type is prioritized over the smaller type. The integer priority is used to transform unordered list to an ordered list.
+     *
+     * LaunchTemplateOverridesForInstanceType[               ------>               LaunchTemplateOverrides[
+     * {                                                                           {
+     *    "instanceType": "c5.large",                                                   "instanceType": "c5.XLARGE",
+     *    "weightedCapacity": 2,                                                        "weightedCapacity": 4,
+     *    "priority": 2                                                            },
+     * },                                                                          {
+     * {                                                                                "instanceType": "c5.large",
+     *    "instanceType": "c5.XLARGE",                                                  "weightedCapacity": 2,
+     *    "weightedCapacity": 4,                                                   }
+     *    "priority": 1                                                            ],
+     * },                                                                          {
+     * {                                                                                "instanceType": "c4.large",
+     *    "instanceType": "c4.large",                                                   "weightedCapacity": 2,
+     *    "weightedCapacity": 2                                                    ]
+     * }
+     * ]
+     */
+    Integer priority
+
+    LaunchTemplateOverridesForInstanceType() {}
+
+    private LaunchTemplateOverridesForInstanceType(Builder builder) {
+      instanceType = builder.instanceType
+      weightedCapacity = builder.weightedCapacity
+      priority = builder.priority
+    }
+
+    static class Builder {
+      String instanceType
+      String weightedCapacity
+      Integer priority
+
+      Builder instanceType(String instanceType) {
+        this.instanceType = instanceType
+        return this
+      }
+
+      Builder weightedCapacity(String weightedCapacity) {
+        this.weightedCapacity = weightedCapacity
+        return this
+      }
+
+      Builder priority(Integer priority) {
+        this.priority = priority
+        return this
+      }
+
+      LaunchTemplateOverridesForInstanceType build() {
+        return new LaunchTemplateOverridesForInstanceType(this)
+      }
+    }
   }
 }

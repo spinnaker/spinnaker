@@ -19,8 +19,10 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.asg
 
 import com.amazonaws.services.autoscaling.model.BlockDeviceMapping
 import com.amazonaws.services.autoscaling.model.Ebs
+import com.amazonaws.services.autoscaling.model.LaunchTemplateOverrides
 import com.amazonaws.services.ec2.model.LaunchTemplateBlockDeviceMapping
 import com.amazonaws.services.ec2.model.LaunchTemplateEbsBlockDevice
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.config.AwsConfiguration
 import com.netflix.spinnaker.clouddriver.aws.services.SecurityGroupService
@@ -260,5 +262,75 @@ class AsgConfigHelperSpec extends Specification {
     new LaunchTemplateBlockDeviceMapping().withDeviceName("Device1").withEbs(new LaunchTemplateEbsBlockDevice().withSnapshotId("snap-123").withEncrypted(null))  || new AmazonBlockDevice("Device1", null, null, null, null, null, "snap-123", null)
     new LaunchTemplateBlockDeviceMapping().withDeviceName("Device1").withEbs(new LaunchTemplateEbsBlockDevice().withSnapshotId("snap-123").withEncrypted(true))  || new AmazonBlockDevice("Device1", null, null, null, null, null, "snap-123", null)
     new LaunchTemplateBlockDeviceMapping().withDeviceName("Device1").withEbs(new LaunchTemplateEbsBlockDevice().withSnapshotId("snap-123").withEncrypted(false)) || new AmazonBlockDevice("Device1", null, null, null, null, null, "snap-123", null)
+  }
+
+  @Unroll
+  void "should transform description overrides to launch template overrides and vice versa with correct priority"() {
+
+    // description overrides to launch template overrides
+    expect:
+    AsgConfigHelper.getLaunchTemplateOverrides(descOverrides) == expectedLtOverrides
+
+    // launch template overrides to description overrides
+    and:
+    AsgConfigHelper.getDescriptionOverrides(expectedLtOverrides) == descOverridesAgain
+
+    where:
+    descOverrides << [
+      // 1
+      [new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(instanceType: "c5.large", weightedCapacity: "1", priority: 1),
+       new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(instanceType: "c4.large", weightedCapacity: "1", priority: 2)],
+      // 2
+      [new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(instanceType: "c5.large", weightedCapacity: "1", priority: 2),
+       new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(instanceType: "c5.xlarge", weightedCapacity: "2", priority: 1)],
+      // 3
+      [new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(instanceType: "c5.large", weightedCapacity: "1", priority: 1),
+       new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(instanceType: "c4.large", weightedCapacity: "1", priority: 1)], // same priority
+      // 4
+      [new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(instanceType: "c5.large", weightedCapacity: "1"),
+       new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(instanceType: "c5.xlarge", weightedCapacity: "2")], // no priority
+      // 5
+      [new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(instanceType: "c5.2xlarge", weightedCapacity: "4"),
+       new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(instanceType: "c5.large", weightedCapacity: "1", priority: 1),
+       new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(instanceType: "c5.xlarge", weightedCapacity: "2", priority: 2)], // mixed, some overrides have priority
+    ]
+
+    expectedLtOverrides << [
+      // 1
+      [new LaunchTemplateOverrides().withInstanceType("c5.large").withWeightedCapacity("1"),
+       new LaunchTemplateOverrides().withInstanceType("c4.large").withWeightedCapacity("1")],
+      // 2
+      [new LaunchTemplateOverrides().withInstanceType("c5.xlarge").withWeightedCapacity("2"),
+       new LaunchTemplateOverrides().withInstanceType("c5.large").withWeightedCapacity("1")],
+      // 3
+      [new LaunchTemplateOverrides().withInstanceType("c5.large").withWeightedCapacity("1"),
+       new LaunchTemplateOverrides().withInstanceType("c4.large").withWeightedCapacity("1")],
+      // 4
+      [new LaunchTemplateOverrides().withInstanceType("c5.large").withWeightedCapacity("1"),
+       new LaunchTemplateOverrides().withInstanceType("c5.xlarge").withWeightedCapacity("2")],
+      // 5
+      [new LaunchTemplateOverrides().withInstanceType("c5.large").withWeightedCapacity("1"),
+       new LaunchTemplateOverrides().withInstanceType("c5.xlarge").withWeightedCapacity("2"),
+       new LaunchTemplateOverrides().withInstanceType("c5.2xlarge").withWeightedCapacity("4")],  // no priority = last priority
+    ]
+
+    descOverridesAgain << [
+      // 1
+      [new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(instanceType: "c5.large", weightedCapacity: "1", priority: 1),
+       new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(instanceType: "c4.large", weightedCapacity: "1", priority: 2)],
+      // 2
+      [new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(instanceType: "c5.xlarge", weightedCapacity: "2", priority: 1),
+       new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(instanceType: "c5.large", weightedCapacity: "1", priority: 2)],
+      // 3
+      [new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(instanceType: "c5.large", weightedCapacity: "1", priority: 1),
+       new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(instanceType: "c4.large", weightedCapacity: "1", priority: 2)], // same priority became sequential
+      // 4
+      [new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(instanceType: "c5.large", weightedCapacity: "1", priority: 1),
+       new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(instanceType: "c5.xlarge", weightedCapacity: "2", priority: 2)], // no priority originally, now sequential
+      // 5
+      [new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(instanceType: "c5.large", weightedCapacity: "1", priority: 1),
+       new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(instanceType: "c5.xlarge", weightedCapacity: "2", priority: 2),
+       new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(instanceType: "c5.2xlarge", weightedCapacity: "4", priority: 3)],
+    ]
   }
 }
