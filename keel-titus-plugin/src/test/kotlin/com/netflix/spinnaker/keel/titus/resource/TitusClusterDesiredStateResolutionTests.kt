@@ -15,6 +15,7 @@ import com.netflix.spinnaker.keel.docker.DigestProvider
 import com.netflix.spinnaker.keel.orca.ClusterExportHelper
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.test.resource
+import com.netflix.spinnaker.keel.titus.NETFLIX_CONTAINER_ENV_VARS
 import com.netflix.spinnaker.keel.titus.TITUS_CLUSTER_V1
 import com.netflix.spinnaker.keel.titus.TitusClusterHandler
 import dev.minutest.junit.JUnit5Minutests
@@ -22,6 +23,8 @@ import dev.minutest.rootContext
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import strikt.api.expectThat
+import strikt.assertions.all
+import strikt.assertions.contains
 import strikt.assertions.getValue
 import strikt.assertions.isEqualTo
 import java.time.Clock
@@ -34,7 +37,6 @@ class TitusClusterDesiredStateResolutionTests : JUnit5Minutests {
     mapOf(
       TitusServerGroupSpec::capacity to TitusServerGroup::capacity,
       TitusServerGroupSpec::containerAttributes to TitusServerGroup::containerAttributes,
-      TitusServerGroupSpec::env to TitusServerGroup::env,
       TitusServerGroupSpec::tags to TitusServerGroup::tags
     )
       .forEach { (specProperty, desiredProperty) ->
@@ -54,6 +56,25 @@ class TitusClusterDesiredStateResolutionTests : JUnit5Minutests {
           }
         }
       }
+
+    context("the `env` property") {
+      test("default value applies in non-overridden region") {
+        expectThat(desired["ca-central-1"]!!.env.entries)
+          .contains(spec.defaults.env!!.entries)
+      }
+
+      test("override value applies in overridden region") {
+        expectThat(desired["af-south-1"]!!.env.entries)
+          .contains(spec.overrides["af-south-1"]!!.env!!.entries)
+      }
+
+      test("automatically includes Netflix default env vars in all regions") {
+        desired.forEach { (region, serverGroup) ->
+          expectThat(serverGroup.env.entries)
+            .contains(NETFLIX_CONTAINER_ENV_VARS.associateWith { region }.entries)
+        }
+      }
+    }
   }
 
   class Fixture(

@@ -34,6 +34,7 @@ import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.keel.titus.CLOUD_PROVIDER
+import com.netflix.spinnaker.keel.titus.NETFLIX_CONTAINER_ENV_VARS
 import com.netflix.spinnaker.keel.titus.TITUS_CLUSTER_V1
 import com.netflix.spinnaker.keel.titus.TitusClusterHandler
 import com.netflix.spinnaker.keel.titus.resolve
@@ -48,6 +49,8 @@ import kotlinx.coroutines.runBlocking
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.api.expectThrows
+import strikt.assertions.all
+import strikt.assertions.containsExactly
 import strikt.assertions.containsKey
 import strikt.assertions.hasSize
 import strikt.assertions.isA
@@ -55,7 +58,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import java.time.Clock
-import java.util.UUID
+import java.util.*
 
 internal class TitusClusterExportTests : JUnit5Minutests {
   val cloudDriverService = mockk<CloudDriverService>()
@@ -217,14 +220,16 @@ internal class TitusClusterExportTests : JUnit5Minutests {
           with(cluster) {
             expect {
               that(locations.regions).hasSize(2)
-              that(overrides).hasSize(0)
+              that(overrides.values).all {
+                // the only overrides added by default are Netflix env vars
+                get { env!!.keys }.containsExactly(*NETFLIX_CONTAINER_ENV_VARS)
+              }
               that(spec.defaults.constraints).isNull()
               that(spec.defaults.entryPoint).isNull()
               that(spec.defaults.migrationPolicy).isNull()
               that(spec.defaults.resources).isNull()
               that(spec.defaults.iamProfile).isNull()
               that(spec.defaults.capacityGroup).isNull()
-              that(spec.defaults.env).isNull()
               that(spec.defaults.containerAttributes).isNull()
               that(spec.defaults.tags).isNull()
               that(container).isA<ReferenceProvider>()

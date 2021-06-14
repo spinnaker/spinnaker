@@ -21,8 +21,12 @@ internal val TitusServerGroup.moniker: Moniker
 internal fun TitusClusterSpec.resolveCapacity(region: String) =
   overrides[region]?.capacity ?: defaults.capacity ?: Capacity(1, 1, 1)
 
+internal val NETFLIX_CONTAINER_ENV_VARS = arrayOf("EC2_REGION", "NETFLIX_REGION", "NETFLIX_HOME_REGION")
+
 internal fun TitusClusterSpec.resolveEnv(region: String) =
-  emptyMap<String, String>() + defaults.env + overrides[region]?.env
+  emptyMap<String, String>() + defaults.env + overrides[region]?.env +
+    // These are Netflix-specific but wouldn't hurt elsewhere
+    NETFLIX_CONTAINER_ENV_VARS.associateWith { region }
 
 internal fun TitusClusterSpec.resolveContainerAttributes(region: String) =
   emptyMap<String, String>() + defaults.containerAttributes + overrides[region]?.containerAttributes
