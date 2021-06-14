@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.services
 
+import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.events.ApplicationActuationPaused
 import com.netflix.spinnaker.keel.events.ApplicationActuationResumed
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
@@ -91,28 +92,23 @@ class ResourceStatusService(
     val history = resourceRepository.eventHistory(id, 10)
       .filterForStatus()
 
-    val firstMessage = history.getFirstMessage()
-
     return when {
-      history.isHappy() -> ResourceStatusUserFriendly.UP_TO_DATE.toActuationState(eventMessage = firstMessage)
-      history.isBlocked() -> ResourceStatusUserFriendly.WAITING.toActuationState(reason = "Resource is locked while verifications are running", eventMessage = firstMessage)
-      history.isEmpty() -> ResourceStatusUserFriendly.PROCESSING.toActuationState(reason = "New resource will be created shortly")
-      history.isDiff() -> ResourceStatusUserFriendly.PROCESSING.toActuationState(reason = "Resource does not match the config and will be updated soon", eventMessage = firstMessage)
-      history.isActuating() -> ResourceStatusUserFriendly.PROCESSING.toActuationState(reason = "Resource is being updated", eventMessage = firstMessage)
-      history.isCreated() -> ResourceStatusUserFriendly.PROCESSING.toActuationState(reason = "New resource will be created shortly", eventMessage = firstMessage)
-      history.isResumed() -> ResourceStatusUserFriendly.PROCESSING.toActuationState(reason = "Resource management will resume shortly", eventMessage = firstMessage)
-      history.isMissingDependency() -> ResourceStatusUserFriendly.ERROR.toActuationState(reason = firstMessage, eventMessage = firstMessage)
-      history.isVetoed() -> ResourceStatusUserFriendly.ERROR.toActuationState(reason = "We failed to update the resource multiple times", eventMessage = firstMessage)
-      history.isDiffNotActionable() -> ResourceStatusUserFriendly.ERROR.toActuationState(reason = "We are unable to update resource to match the config", eventMessage = firstMessage)
-      history.isError() -> ResourceStatusUserFriendly.ERROR.toActuationState(reason = "Unknown reason", eventMessage = firstMessage)
-      history.isCurrentlyUnresolvable() -> ResourceStatusUserFriendly.ERROR.toActuationState(reason = "We are temporarily unable to check resource status", eventMessage = firstMessage)
-      else -> ResourceStatusUserFriendly.ERROR.toActuationState(reason = "Unknown reason", eventMessage = firstMessage)
+      history.isHappy() -> ResourceStatusUserFriendly.UP_TO_DATE.toActuationState(history = history)
+      history.isBlocked() -> ResourceStatusUserFriendly.WAITING.toActuationState(reason = "Resource is locked while verifications are running", history = history)
+      history.isEmpty() -> ResourceStatusUserFriendly.PROCESSING.toActuationState(reason = "New resource will be created shortly", history = history)
+      history.isDiff() -> ResourceStatusUserFriendly.PROCESSING.toActuationState(reason = "Resource does not match the config and will be updated soon", history = history)
+      history.isActuating() -> ResourceStatusUserFriendly.PROCESSING.toActuationState(reason = "Resource is being updated", history = history)
+      history.isCreated() -> ResourceStatusUserFriendly.PROCESSING.toActuationState(reason = "New resource will be created shortly", history = history)
+      history.isResumed() -> ResourceStatusUserFriendly.PROCESSING.toActuationState(reason = "Resource management will resume shortly", history = history)
+      history.isMissingDependency() -> ResourceStatusUserFriendly.ERROR.toActuationState(reason = history.getFirstMessage(), history = history)
+      history.isVetoed() -> ResourceStatusUserFriendly.ERROR.toActuationState(reason = "We failed to update the resource multiple times", history = history)
+      history.isDiffNotActionable() -> ResourceStatusUserFriendly.ERROR.toActuationState(reason = "We are unable to update resource to match the config", history = history)
+      history.isError() -> ResourceStatusUserFriendly.ERROR.toActuationState(reason = "Unknown reason", history = history)
+      history.isCurrentlyUnresolvable() -> ResourceStatusUserFriendly.ERROR.toActuationState(reason = "We are temporarily unable to check resource status", history = history)
+      else -> ResourceStatusUserFriendly.ERROR.toActuationState(reason = "Unknown reason", history = history)
     }
 
   }
-
-  fun List<ResourceHistoryEvent>.getFirstMessage(): String? =
-    filterIsInstance<ResourceEvent>().firstOrNull()?.message
 
   /**
    * Filter out resource events that are not relevant to determine status.
@@ -221,8 +217,23 @@ data class ResourceActuationState(
   /** A user friendly reason based on our understanding of the current state */
   val reason: String? = null,
   /** The content of the last event */
-  val eventMessage: String? = null
+  val eventMessage: String? = null,
+  /** list of tasks associated with the event if eny */
+  val tasks: List<Task>? = emptyList()
 )
+
+fun List<ResourceHistoryEvent>.getFirstMessage(): String? =
+  filterIsInstance<ResourceEvent>().firstOrNull()?.message
+
+fun List<ResourceHistoryEvent>.getLastEventTasks(): List<Task>? {
+  val first = firstOrNull()
+  return when (first) {
+    is ResourceTaskSucceeded -> first.tasks
+    is ResourceTaskFailed -> first.tasks
+    is ResourceActuationLaunched -> first.tasks
+    else -> null
+  }
+}
 
 enum class ResourceStatusUserFriendly {
   PROCESSING,
@@ -231,7 +242,7 @@ enum class ResourceStatusUserFriendly {
   WAITING,
   NOT_MANAGED;
 
-  fun toActuationState(reason: String? = null, eventMessage: String? = null): ResourceActuationState {
-    return ResourceActuationState(status = this, reason = reason, eventMessage = eventMessage)
+  fun toActuationState(reason: String? = null, history: List<ResourceHistoryEvent>): ResourceActuationState {
+    return ResourceActuationState(status = this, reason = reason, eventMessage = history.getFirstMessage(), tasks = history.getLastEventTasks())
   }
 }

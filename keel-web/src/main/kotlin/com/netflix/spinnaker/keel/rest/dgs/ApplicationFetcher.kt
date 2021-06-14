@@ -26,6 +26,7 @@ import com.netflix.spinnaker.keel.graphql.types.MdPinnedVersion
 import com.netflix.spinnaker.keel.graphql.types.MdResource
 import com.netflix.spinnaker.keel.graphql.types.MdResourceActuationState
 import com.netflix.spinnaker.keel.graphql.types.MdResourceActuationStatus
+import com.netflix.spinnaker.keel.graphql.types.MdResourceTask
 import com.netflix.spinnaker.keel.graphql.types.MdVersionVeto
 import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.KeelRepository
@@ -112,7 +113,10 @@ class ApplicationFetcher(
     return MdResourceActuationState(
       status = MdResourceActuationStatus.valueOf(state.status.name),
       reason = state.reason,
-      event = state.eventMessage
+      event = state.eventMessage,
+      tasks = state.tasks?.map {
+        MdResourceTask(id = it.id, name = it.name)
+      }
     )
   }
 
