@@ -70,6 +70,10 @@ public class KubernetesCommandProperties {
       "Number of caching agents for this kubernetes account. Each agent handles a subset of the namespaces available to this account. "
           + "By default, only 1 agent caches all kinds for all namespaces in the account.";
 
+  static final String CACHE_INTERVAL_SECONDS_DESCRIPTION =
+      "How many seconds elapse between polling your kubernetes api. Kubernetes apis are sensitive to over-polling, and "
+          + "larger intervals (e.g. 10 minutes = 600 seconds) are desirable if you're seeing rate limiting.";
+
   static final String CACHE_ALL_APPLICATION_RELATIONSHIPS =
       "If true, will add application relationships in the cache for all types of resources.\n"
           + "This includes CRDs and resources that aren't used in the Clusters, Load Balancers or Firewalls sections.";

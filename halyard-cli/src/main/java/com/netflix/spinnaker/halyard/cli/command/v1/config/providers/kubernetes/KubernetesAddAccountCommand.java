@@ -121,6 +121,12 @@ public class KubernetesAddAccountCommand extends AbstractAddAccountCommand {
   private int cacheThreads = 1;
 
   @Parameter(
+      names = "--cache-interval-seconds",
+      arity = 1,
+      description = KubernetesCommandProperties.CACHE_INTERVAL_SECONDS_DESCRIPTION)
+  private Long cacheIntervalSeconds;
+
+  @Parameter(
       names = "--cache-all-application-relationships",
       arity = 1,
       description = KubernetesCommandProperties.CACHE_ALL_APPLICATION_RELATIONSHIPS)
@@ -167,6 +173,7 @@ public class KubernetesAddAccountCommand extends AbstractAddAccountCommand {
     account.setCheckPermissionsOnStartup(checkPermissionsOnStartup);
     account.setLiveManifestCalls(liveManifestCalls);
     account.setCacheThreads(cacheThreads);
+    account.setCacheIntervalSeconds(cacheIntervalSeconds);
     account.setCacheAllApplicationRelationships(cacheAllApplicationRelationships);
     account.getRawResourcesEndpointConfig().setKindExpressions(rawResourcekindExpressions);
     account.getRawResourcesEndpointConfig().setOmitKindExpressions(rawResourceOmitKindExpressions);

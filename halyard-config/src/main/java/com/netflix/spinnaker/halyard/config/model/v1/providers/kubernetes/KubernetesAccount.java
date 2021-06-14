@@ -53,6 +53,7 @@ public class KubernetesAccount extends ContainerAccount implements Cloneable {
 
   Boolean serviceAccount;
   int cacheThreads = 1;
+  Long cacheIntervalSeconds;
   List<String> namespaces = new ArrayList<>();
   List<String> omitNamespaces = new ArrayList<>();
 

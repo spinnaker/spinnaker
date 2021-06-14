@@ -255,6 +255,12 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
   private Integer cacheThreads;
 
   @Parameter(
+      names = "--cache-interval-seconds",
+      arity = 1,
+      description = KubernetesCommandProperties.CACHE_INTERVAL_SECONDS_DESCRIPTION)
+  private Long cacheIntervalSeconds;
+
+  @Parameter(
       names = "--cache-all-application-relationships",
       arity = 1,
       description = KubernetesCommandProperties.CACHE_ALL_APPLICATION_RELATIONSHIPS)
@@ -384,6 +390,8 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
     account.setLiveManifestCalls(
         isSet(liveManifestCalls) ? liveManifestCalls : account.getLiveManifestCalls());
     account.setCacheThreads(isSet(cacheThreads) ? cacheThreads : account.getCacheThreads());
+    account.setCacheIntervalSeconds(
+        isSet(cacheIntervalSeconds) ? cacheIntervalSeconds : account.getCacheIntervalSeconds());
     account.setCacheAllApplicationRelationships(
         isSet(cacheAllApplicationRelationships)
             ? cacheAllApplicationRelationships
