@@ -1,0 +1,17 @@
+7d881e643 6 days ago [Emily Burns] fix(telementry): actually incriment the drift for actions
+420805806 6 days ago [Rani Horev] Fix pending versions query for multiple artifacts with the same name
+46b7b9069 6 days ago [Luis Pollo] feat(preview-environments): Reconcile preview resource dependency names
+e930fb1b9 6 days ago [Emily Burns] fix(tagging): tag keys can only be 128 chars
+b17083f5c 6 days ago [Luis Pollo] fix(deser): Add missing JsonIgnore for TitusClusterSpec
+8b88c7e9f 6 days ago [Luis Pollo] fix(preview-environments): Use fresh metadata for preview environment resources
+1484c36fa 6 days ago [Rani Horev] fix(dgs): make action ids unique to fix a caching issue on the frontend
+8a20becf4 6 days ago [Rani Horev] Merge pull request #297 in SPKR/keel-nflx from fix/add-comments-to-tests to master
+722388690 5 days ago [Luis Pollo] feat(config): Add API to return raw delivery config from source
+5bb83d8c4 5 days ago [Luis Pollo] fix(preview-environments): Fix resource metadata/id
+6baf04010 5 days ago [Managed Source] Merge pull request #303 in SPKR/keel-nflx from MSRC/keel-nflx:msrc-WRAPPER-RELEASE-for-master to master
+2fb1efd17 5 days ago [Luis Pollo] fix(preview-environments): Do not rename default security group dependency
+0a0acda2b 2 days ago [Emily Burns] fix(unhappy): simplify unhappy veto, recheck only 3 times, expose recheck api
+da9c18dcf 2 days ago [Rob Fletcher] feat(versioning): decouple latest_environment from it actually being the max version
+c3b3b1936 2 days ago [Lorin Hochstein] chore(service): catch delivery config not found
+b91d345de 2 days ago [Luis Pollo] chore(logs): Add debug logs to preview environment dep renaming
+328fc54e6 2 days ago [Rob Fletcher] chore(versioning): rename latest_environment to active_environment and fix resource_with_metadata view
