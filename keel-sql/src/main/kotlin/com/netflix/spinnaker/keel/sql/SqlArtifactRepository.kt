@@ -955,11 +955,32 @@ class SqlArtifactRepository(
         }
       }
 
+      val status: PromotionStatus = jooq
+        .select(
+          ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT,
+          ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_BY
+        )
+        .from(ENVIRONMENT_ARTIFACT_VERSIONS)
+        .where(
+          ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(envId),
+          ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artId),
+          ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(version)
+        )
+        .fetchOne { (deployedAt, replacedBy) ->
+          if (deployedAt != null && replacedBy != null) {
+            PREVIOUS
+          } else if (deployedAt != null) {
+            CURRENT
+          } else {
+            APPROVED
+          }
+        }
+
       jooq.transaction { config ->
         val txn = DSL.using(config)
 
         txn.update(ENVIRONMENT_ARTIFACT_VERSIONS)
-          .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, APPROVED)
+          .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, status)
           .setNull(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_REFERENCE)
           .where(
             ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(envId),
