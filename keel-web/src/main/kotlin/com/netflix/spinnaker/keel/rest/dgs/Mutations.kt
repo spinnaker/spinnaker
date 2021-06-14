@@ -53,7 +53,7 @@ class Mutations(
         user = user,
         application = payload.application,
         environment = payload.environment,
-        status = payload.toUpdatedConstraintStatus()
+        status = payload.toUpdatedConstraintStatus(),
       )
     } catch (e: InvalidConstraintException) {
       throw throw IllegalArgumentException(e.message)
@@ -157,7 +157,7 @@ fun MdConstraintStatusPayload.toUpdatedConstraintStatus(): UpdatedConstraintStat
     type = type,
     artifactReference = reference,
     artifactVersion = version,
-    status = status.toConstraintStatus(type)
+    status = status.toConstraintStatus(),
   )
 
 fun MdArtifactVersionActionPayload.toEnvironmentArtifactPin(): EnvironmentArtifactPin =
@@ -179,14 +179,10 @@ fun MdArtifactVersionActionPayload.toEnvironmentArtifactVeto(): EnvironmentArtif
   )
 
 
-fun MdConstraintStatus.toConstraintStatus(constraintType: String): ConstraintStatus =
+fun MdConstraintStatus.toConstraintStatus(): ConstraintStatus =
   when (this) {
     MdConstraintStatus.FAIL -> ConstraintStatus.FAIL
-    MdConstraintStatus.FORCE_PASS -> if (constraintType == MANUAL_JUDGEMENT_CONSTRAINT_TYPE) {
-      ConstraintStatus.PASS
-    } else {
-      ConstraintStatus.OVERRIDE_PASS
-    }
+    MdConstraintStatus.FORCE_PASS -> ConstraintStatus.OVERRIDE_PASS
     MdConstraintStatus.PASS -> ConstraintStatus.PASS
     MdConstraintStatus.PENDING -> ConstraintStatus.PENDING
     else -> throw IllegalArgumentException("Invalid constraint status")

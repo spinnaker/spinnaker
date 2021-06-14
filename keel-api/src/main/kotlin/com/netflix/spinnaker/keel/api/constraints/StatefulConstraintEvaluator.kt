@@ -68,20 +68,27 @@ interface StatefulConstraintEvaluator<T : Constraint, A : ConstraintStateAttribu
         artifactReference = artifact.reference,
         type = constraint.type,
         status = ConstraintStatus.PENDING
-      ).also {
-        repository.storeConstraintState(it)
-      }
+      )
+      repository.storeConstraintState(state)
     }
 
     return when {
-      state.failed() -> false
-      state.passed() -> true
+      // if a user judged the constraint, take that status
+      state.judgedByUser() && state.failed() -> false
+      state.judgedByUser() && state.passed() -> true
+      // otherwise, ask the constraint to determine the status
       else -> canPromote(artifact, version, deliveryConfig, targetEnvironment, constraint, state)
     }
   }
 
   /**
-   * TODO: Docs.
+   * This function is called if a user has not judged the constraint
+   * (if the state is not OVERRIDE_FAIL or OVERRIDE_PASS) .
+   *
+   * A constraint can change its status between PASS and FAIL by saving the new status during this function
+   * evaluation.
+   *
+   * @return true if the artifact can be promoted, false otherwise
    */
   fun canPromote(
     artifact: DeliveryArtifact,

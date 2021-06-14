@@ -3,19 +3,19 @@ package com.netflix.spinnaker.keel.constraints
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.constraints.ConstraintRepository
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
-import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.FAIL
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PASS
-import com.netflix.spinnaker.keel.api.constraints.StatelessConstraintEvaluator
+import com.netflix.spinnaker.keel.api.constraints.StatefulConstraintEvaluator
 import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintAttributesType
 import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintType
-import com.netflix.spinnaker.keel.api.plugins.ConstraintEvaluator.Companion.getConstraintForEnvironment
 import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.core.api.TimeWindowConstraint
 import com.netflix.spinnaker.keel.core.api.TimeWindowNumeric
 import com.netflix.spinnaker.keel.exceptions.InvalidConstraintException
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import org.springframework.stereotype.Component
 import java.text.ParsePosition
 import java.time.Clock
 import java.time.DayOfWeek
@@ -23,7 +23,6 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
-import org.springframework.stereotype.Component
 
 /**
  * An environment promotion constraint to gate promotions to time windows.
@@ -53,8 +52,9 @@ import org.springframework.stereotype.Component
 class AllowedTimesConstraintEvaluator(
   private val clock: Clock,
   private val dynamicConfigService: DynamicConfigService,
-  override val eventPublisher: EventPublisher
-) : StatelessConstraintEvaluator<TimeWindowConstraint, AllowedTimesConstraintAttributes> {
+  override val eventPublisher: EventPublisher,
+  override val repository: ConstraintRepository
+) : StatefulConstraintEvaluator<TimeWindowConstraint, AllowedTimesConstraintAttributes> {
   override val attributeType = SupportedConstraintAttributesType<AllowedTimesConstraintAttributes>("allowed-times")
 
   companion object {
@@ -221,14 +221,7 @@ class AllowedTimesConstraintEvaluator(
 
   override val supportedType = SupportedConstraintType<TimeWindowConstraint>("allowed-times")
 
-  override fun canPromote(
-    artifact: DeliveryArtifact,
-    version: String,
-    deliveryConfig: DeliveryConfig,
-    targetEnvironment: Environment
-  ): Boolean {
-    val constraint = getConstraintForEnvironment(deliveryConfig, targetEnvironment.name, supportedType.type)
-
+  private fun currentlyPassing(constraint: TimeWindowConstraint, deliveryConfig: DeliveryConfig, targetEnvironment: Environment): Boolean {
     val tz: ZoneId = if (constraint.tz != null) {
       ZoneId.of(constraint.tz)
     } else {
@@ -260,37 +253,49 @@ class AllowedTimesConstraintEvaluator(
     return false
   }
 
-  override fun generateConstraintStateSnapshot(
+  override fun canPromote(
     artifact: DeliveryArtifact,
     version: String,
     deliveryConfig: DeliveryConfig,
     targetEnvironment: Environment,
-    currentStatus: ConstraintStatus?
-  ): ConstraintState {
-    val constraint = getConstraintForEnvironment(deliveryConfig, targetEnvironment.name, supportedType.type)
+    constraint: TimeWindowConstraint,
+    state: ConstraintState
+  ): Boolean {
 
-    val status = currentStatus
-      ?: if (canPromote(artifact, version, deliveryConfig, targetEnvironment)) {
-        PASS
-      } else {
-        FAIL
+    if (state.judgedByUser()) {
+      // if a user has judged this constraint, always take that judgement.
+      if (state.failed()) {
+        return false
+      } else if (state.passed()) {
+        return true
       }
-    val tz: String = constraint.tz ?: dynamicConfigService.getConfig(String::class.java, "default.time-zone", "America/Los_Angeles")
+    }
 
-    return ConstraintState(
-      deliveryConfigName = deliveryConfig.name,
-      environmentName = targetEnvironment.name,
-      artifactVersion = version,
-      artifactReference = artifact.reference,
-      type = CONSTRAINT_NAME,
-      status = status,
-      attributes = AllowedTimesConstraintAttributes(
-        toNumericTimeWindows(constraint),
-        tz
-      ),
-      judgedAt = clock.instant(),
-      judgedBy = "Spinnaker"
-    )
+    val currentlyPassing = currentlyPassing(constraint, deliveryConfig, targetEnvironment)
+    val status = if (currentlyPassing) {
+      PASS
+    } else {
+      FAIL
+    }
+
+    if (status != state.status) {
+      // change the stored state if the current calculated status is different than what's saved.
+      val attributes = AllowedTimesConstraintAttributes(
+        allowedTimes = toNumericTimeWindows(constraint),
+        timezone = constraint.tz ?: dynamicConfigService.getConfig(String::class.java, "default.time-zone", "America/Los_Angeles"),
+        currentlyPassing = currentlyPassing
+      )
+      repository.storeConstraintState(
+        state.copy(
+          attributes = attributes,
+          status = status,
+          judgedAt = clock.instant(),
+          judgedBy = "Spinnaker"
+        )
+      )
+    }
+
+    return currentlyPassing
   }
 
   private fun parseDays(dayConfig: String?, deliveryConfig: DeliveryConfig, envName: String): Set<String> {

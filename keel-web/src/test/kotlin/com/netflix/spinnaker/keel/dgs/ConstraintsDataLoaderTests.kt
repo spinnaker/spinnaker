@@ -41,13 +41,15 @@ class ConstraintsDataLoaderTests: JUnit5Minutests {
 
   class Fixture {
     val keelRepository: KeelRepository = mockk()
+    val constraintRepository: ConstraintRepository = mockk()
 
     val clock = MutableClock()
 
     val twEvaluator = AllowedTimesConstraintEvaluator(
       clock,
       mockk(relaxed = true),
-      mockk(relaxed = true)
+      mockk(relaxed = true),
+      constraintRepository
     )
     val repo: ConstraintRepository = mockk(relaxed = true)
     val mjEvaluator = ManualJudgementConstraintEvaluator(

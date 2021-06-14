@@ -98,7 +98,7 @@ class EnvironmentConstraintRunner(
         /**
          * Only check stateful evaluators if all stateless evaluators pass. We don't
          * want to request judgement or deploy a canary for artifacts that aren't
-         * deployed to a required environment or outside of an allowed time.
+         * deployed to a required environment.
          */
         val passesConstraints =
           checkStatelessConstraints(envContext.artifact, envContext.deliveryConfig, v, envContext.environment) &&
@@ -248,11 +248,20 @@ class EnvironmentConstraintRunner(
     deliveryConfig: DeliveryConfig,
     version: String,
     environment: Environment
-  ): Boolean =
-    evaluators.all { evaluator ->
-      !environment.hasSupportedConstraint(evaluator) ||
+  ): Boolean {
+    var allPass = true
+    // we want to run all stateful evaluators even if some fail
+    evaluators.forEach { evaluator ->
+      val canPromote = !environment.hasSupportedConstraint(evaluator) ||
         evaluator.canPromote(artifact, version, deliveryConfig, environment)
+
+      if (!canPromote) {
+        allPass = false
+      }
     }
+    return allPass
+  }
+
 
   private fun Environment.hasSupportedConstraint(constraintEvaluator: ConstraintEvaluator<*>) =
     constraints.any { it.javaClass.isAssignableFrom(constraintEvaluator.supportedType.type) }

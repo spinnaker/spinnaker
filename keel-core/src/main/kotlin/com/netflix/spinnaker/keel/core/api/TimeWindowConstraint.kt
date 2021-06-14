@@ -1,10 +1,12 @@
 package com.netflix.spinnaker.keel.core.api
 
-import com.netflix.spinnaker.keel.api.Constraint
+import com.netflix.spinnaker.keel.api.StatefulConstraint
 import com.netflix.spinnaker.keel.constraints.AllowedTimesConstraintEvaluator
 import java.time.DateTimeException
 import java.time.ZoneId
 import java.time.zone.ZoneRulesException
+
+const val ALLOWED_TIMES_CONSTRAINT_TYPE = "allowed-times"
 
 /**
  * A constraint that requires the current time to fall within an allowed window
@@ -12,7 +14,7 @@ import java.time.zone.ZoneRulesException
 data class TimeWindowConstraint(
   val windows: List<TimeWindow>,
   val tz: String? = null
-) : Constraint("allowed-times") {
+) : StatefulConstraint(ALLOWED_TIMES_CONSTRAINT_TYPE) {
   init {
     if (tz != null) {
       val zoneId: ZoneId? = try {

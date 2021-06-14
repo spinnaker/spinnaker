@@ -3,8 +3,13 @@ package com.netflix.spinnaker.keel.constraints
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
+import com.netflix.spinnaker.keel.api.constraints.ConstraintRepository
+import com.netflix.spinnaker.keel.api.constraints.ConstraintState
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.FAIL
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PASS
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PENDING
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
+import com.netflix.spinnaker.keel.core.api.ALLOWED_TIMES_CONSTRAINT_TYPE
 import com.netflix.spinnaker.keel.core.api.TimeWindow
 import com.netflix.spinnaker.keel.core.api.TimeWindowConstraint
 import com.netflix.spinnaker.keel.core.api.TimeWindowNumeric
@@ -13,10 +18,9 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
+import io.mockk.verify
 import strikt.api.expect
-import java.time.Clock
-import java.time.Instant
-import java.time.ZoneId
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.containsExactlyInAnyOrder
@@ -24,8 +28,10 @@ import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import strikt.assertions.isFalse
-import strikt.assertions.isNotNull
 import strikt.assertions.isTrue
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneId
 
 internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
   companion object {
@@ -46,6 +52,7 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
       name = "prod",
       constraints = setOf(constraint)
     )
+    val version = "1.1"
     val manifest = DeliveryConfig(
       name = "my-manifest",
       application = "fnord",
@@ -60,7 +67,21 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
       } returns "UTC"
     }
 
-    val subject = AllowedTimesConstraintEvaluator(clock, dynamicConfigService, mockk())
+    val pendingState = ConstraintState(
+      deliveryConfigName = manifest.name,
+      environmentName = environment.name,
+      artifactVersion = version,
+      artifactReference = artifact.reference,
+      type = constraint.type,
+      status = PENDING
+    )
+    val passState = pendingState.copy(status = PASS)
+
+    val repository: ConstraintRepository = mockk(relaxed = true) {
+      every { getConstraintState(manifest.name, environment.name, any(), ALLOWED_TIMES_CONSTRAINT_TYPE, any()) } returns pendingState
+    }
+
+    val subject = AllowedTimesConstraintEvaluator(clock, dynamicConfigService, mockk(), repository)
   }
 
   fun tests() = rootContext<Fixture> {
@@ -82,6 +103,16 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
     test("canPromote when in-window") {
       expectThat(subject.canPromote(artifact, "1.1", manifest, environment))
         .isTrue()
+      val newState = slot<ConstraintState>()
+      verify(exactly = 1) { repository.storeConstraintState(capture(newState)) }
+      expectThat(newState.captured.status).isEqualTo(PASS)
+    }
+
+    test("saved status changes from pending to pass") {
+      subject.canPromote(artifact, "1.1", manifest, environment)
+      val newState = slot<ConstraintState>()
+      verify(exactly = 1) { repository.storeConstraintState(capture(newState)) }
+      expectThat(newState.captured.status).isEqualTo(PASS)
     }
 
     context("multiple time windows") {
@@ -138,9 +169,20 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
         )
       }
 
+      before {
+        every { repository.getConstraintState(manifest.name, environment.name, any(), ALLOWED_TIMES_CONSTRAINT_TYPE, any()) } returns passState
+      }
+
       test("can't promote, out of window") {
         expectThat(subject.canPromote(artifact, "1.1", manifest, environment))
           .isFalse()
+      }
+
+      test("saved status flips from pass to fail") {
+        subject.canPromote(artifact, "1.1", manifest, environment)
+        val newState = slot<ConstraintState>()
+        verify(exactly = 1) { repository.storeConstraintState(capture(newState)) }
+        expectThat(newState.captured.status).isEqualTo(FAIL)
       }
 
       test("ui format is correct") {
@@ -375,32 +417,6 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
         }
           .isFailure()
           .isA<IllegalArgumentException>()
-      }
-    }
-
-    context("generating the pass state") {
-      fixture {
-        Fixture(
-          clock = businessHoursClock,
-          constraint = TimeWindowConstraint(
-            windows = listOf(
-              TimeWindow(
-                days = "Monday-Tuesday,Thursday-Friday",
-                hours = "09-16"
-              )
-            ),
-            tz = "America/Los_Angeles"
-          )
-        )
-      }
-      test("can generate status") {
-        val state = subject.generateConstraintStateSnapshot(artifact = artifact, deliveryConfig = manifest, targetEnvironment = environment, version = "me-123")
-        expectThat(state)
-          .and { get { type }.isEqualTo("allowed-times") }
-          .and { get { status }.isEqualTo(PASS) }
-          .and { get { judgedAt }.isNotNull() }
-          .and { get { judgedBy }.isNotNull() }
-          .and { get { attributes }.isNotNull() }
       }
     }
   }

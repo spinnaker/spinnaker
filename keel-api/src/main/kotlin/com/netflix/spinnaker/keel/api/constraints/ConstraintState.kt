@@ -42,6 +42,8 @@ data class ConstraintState(
 
   fun complete() = status.passes() || status.failed()
 
+  fun judgedByUser() = status.judgedByUser()
+
   fun timedOut(timeout: Duration?, now: Instant) =
     if (timeout == null) {
       false

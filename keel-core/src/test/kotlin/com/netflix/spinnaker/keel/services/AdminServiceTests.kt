@@ -81,7 +81,7 @@ class AdminServiceTests : JUnit5Minutests {
 
         verify(exactly = 1) { repository.deleteConstraintState(deliveryConfig.name, environment.name, "manual-judgement") }
         verify(exactly = 1) { repository.deleteConstraintState(deliveryConfig.name, environment.name, "pipeline") }
-        verify(exactly = 0) { repository.deleteConstraintState(deliveryConfig.name, environment.name, "allowed-times") }
+        verify(exactly = 1) { repository.deleteConstraintState(deliveryConfig.name, environment.name, "allowed-times") }
       }
 
       test("clears a specific constraint type when asked to") {

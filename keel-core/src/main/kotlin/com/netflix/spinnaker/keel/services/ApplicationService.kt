@@ -170,6 +170,7 @@ class ApplicationService(
       judgedBy = user
     )
     repository.storeConstraintState(newState)
+    repository.triggerDeliveryConfigRecheck(application) // recheck environments to fast track a deployment
 
     if (currentState.status != newState.status){
       return true

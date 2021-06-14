@@ -18,16 +18,17 @@ package com.netflix.spinnaker.keel.api.constraints
 /**
  * Current status of a constraint
  */
-enum class ConstraintStatus(private val passed: Boolean, private val failed: Boolean) {
-  NOT_EVALUATED(false, false),
-  PENDING(false, false),
-  PASS(true, false),
-  FAIL(false, true),
-  OVERRIDE_PASS(true, false),
-  OVERRIDE_FAIL(false, true);
+enum class ConstraintStatus(private val passed: Boolean, private val failed: Boolean, private val userJudged: Boolean) {
+  NOT_EVALUATED(false, false, false),
+  PENDING(false, false, false),
+  PASS(true, false, false),
+  FAIL(false, true, false),
+  OVERRIDE_PASS(true, false, true),
+  OVERRIDE_FAIL(false, true, true);
 
   fun passes() = passed
   fun failed() = failed
+  fun judgedByUser() = userJudged
 
   val complete: Boolean = passes() || failed()
 }
