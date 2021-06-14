@@ -9,10 +9,10 @@ Error.stackTraceLimit = Infinity;
 // jquery has to be first or many a test will break
 global.$ = global.jQuery = require('jquery');
 
-import './settings';
-import './app/scripts/modules/app';
+import './app/scripts/modules/app/src/settings';
+import './app/scripts/modules/app/src/app';
 import './test/helpers/customMatchers';
-import { jasmineMockHttpSupport } from 'core/api/mock/jasmine';
+import { jasmineMockHttpSupport } from './app/scripts/modules/core/src/api/mock/jasmine';
 
 // angular 1 test harness
 import 'angular';

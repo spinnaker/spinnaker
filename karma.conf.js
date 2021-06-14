@@ -1,16 +1,63 @@
 'use strict';
 
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+const path = require('path');
 
-const prodWebpackConfig = require('./webpack.config')();
+const prodWebpackConfig = require('./app/scripts/modules/app/webpack.config')();
+const MODULES_ROOT = path.resolve(`${__dirname}/app/scripts/modules`);
+
 const webpackConfig = {
   mode: 'development',
-  module: prodWebpackConfig.module,
-  resolve: prodWebpackConfig.resolve,
+  module: {
+    rules: [
+      ...prodWebpackConfig.module.rules.filter((rule) => {
+        return !(rule.test.source && rule.test.source.includes('html'));
+      }),
+      {
+        test: /\.html$/,
+        use: [{ loader: 'ngtemplate-loader?relativeTo=' + path.resolve(__dirname) + '/' }, { loader: 'html-loader' }],
+      },
+    ],
+  },
+  resolve: {
+    ...prodWebpackConfig.resolve,
+    alias: {
+      ...prodWebpackConfig.resolve.alias,
+      coreImports: path.resolve(`${MODULES_ROOT}/core/src/presentation/less/imports/commonImports.less`),
+      amazon: path.resolve(`${MODULES_ROOT}/amazon/src`),
+      '@spinnaker/amazon': path.resolve(`${MODULES_ROOT}/amazon/src`),
+      appengine: path.resolve(`${MODULES_ROOT}/appengine/src`),
+      '@spinnaker/appengine': path.resolve(`${MODULES_ROOT}/appengine/src`),
+      azure: path.resolve(`${MODULES_ROOT}/azure/src`),
+      '@spinnaker/azure': path.resolve(`${MODULES_ROOT}/azure/src`),
+      cloudfoundry: path.resolve(`${MODULES_ROOT}/cloudfoundry/src`),
+      '@spinnaker/cloudfoundry': path.resolve(`${MODULES_ROOT}/cloudfoundry/src`),
+      core: path.resolve(`${MODULES_ROOT}/core/src`),
+      '@spinnaker/core': path.resolve(`${MODULES_ROOT}/core/src`),
+      dcos: path.resolve(`${MODULES_ROOT}/dcos/src`),
+      '@spinnaker/dcos': path.resolve(`${MODULES_ROOT}/dcos/src`),
+      docker: path.resolve(`${MODULES_ROOT}/docker/src`),
+      '@spinnaker/docker': path.resolve(`${MODULES_ROOT}/docker/src`),
+      ecs: path.resolve(`${MODULES_ROOT}/ecs/src`),
+      '@spinnaker/ecs': path.resolve(`${MODULES_ROOT}/ecs/src`),
+      google: path.resolve(`${MODULES_ROOT}/google/src`),
+      '@spinnaker/google': path.resolve(`${MODULES_ROOT}/google/src`),
+      huaweicloud: path.resolve(`${MODULES_ROOT}/huaweicloud/src`),
+      '@spinnaker/huaweicloud': path.resolve(`${MODULES_ROOT}/huaweicloud/src`),
+      kubernetes: path.resolve(`${MODULES_ROOT}/kubernetes/src`),
+      '@spinnaker/kubernetes': path.resolve(`${MODULES_ROOT}/kubernetes/src`),
+      oracle: path.resolve(`${MODULES_ROOT}/oracle/src`),
+      '@spinnaker/oracle': path.resolve(`${MODULES_ROOT}/oracle/src`),
+      tencentcloud: path.resolve(`${MODULES_ROOT}/tencentcloud/src`),
+      '@spinnaker/tencentcloud': path.resolve(`${MODULES_ROOT}/tencentcloud/src`),
+      titus: path.resolve(`${MODULES_ROOT}/titus/src`),
+      '@spinnaker/titus': path.resolve(`${MODULES_ROOT}/titus/src`),
+    },
+  },
   plugins: [new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true })],
 };
 
-module.exports = function(config) {
+module.exports = function (config) {
   config.set({
     autoWatch: true,
 

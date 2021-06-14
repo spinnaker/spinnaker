@@ -16,13 +16,13 @@
     "yarn": ">=1.21.1"
   },
   "scripts": {
-    "clean": "npx rimraf .awcache .cache-loader build node_modules/.cache transpiled",
-    "build": "NODE_OPTIONS=--max_old_space_size=8192 webpack --bail --mode=production",
+    "clean": "npx rimraf .awcache .cache-loader build node_modules/.cache transpiled && cd app/scripts/modules/app/ && npm run clean",
+    "installDeps": "yarn --cwd app/scripts/modules/app",
+    "build": "npm run installDeps && NODE_OPTIONS=--max_old_space_size=8192 webpack --bail --mode=production --config app/scripts/modules/app/webpack.config.js",
     "lint": "eslint --ext js,jsx,ts,tsx app",
     "start": "sh ./start.sh",
-    "start-dev-server": "webpack-dev-server --mode=development",
+    "start-dev-server": "npm run installDeps && webpack-dev-server --config app/scripts/modules/app/webpack.config.js --mode=development",
     "test": "karma start",
-    "int": "protractor protractor.conf.js",
     "modules": "./gradle/buildModules.sh",
     "prettier": "prettier --write 'app/**/*.{js,jsx,ts,tsx,html,css,less}'",
     "functional": "npm run build && cd test/functional && yarn && npm run test",

@@ -32,8 +32,9 @@ HAS_PURE_PKG_BUMP=false
 for PKGJSON in */package.json ; do
   MODULE=$(basename "$(dirname "$PKGJSON")")
 
+  IS_PRIVATE_PKG=$(jq .private $PKGJSON)
   HAS_PKG_BUMP=$(git diff -U0 "$TARGET_BRANCH" -- "$PKGJSON" | grep -c '"version":')
-  if [ "$HAS_PKG_BUMP" -ne 0 ] ; then
+  if [ $IS_PRIVATE_PKG != "true" ] &&  [ "$HAS_PKG_BUMP" -ne 0 ] ; then
     FROM_VERSION=$(git diff "$TARGET_BRANCH" -- "$PKGJSON" | grep '^-.*"version":' | sed -e 's/^.*version": "//' -e 's/[",]//g')
     TO_VERSION=$(git diff "$TARGET_BRANCH" -- "$PKGJSON" | grep '^\+.*"version":' | sed -e 's/^.*": "//' -e 's/[",]//g')
 

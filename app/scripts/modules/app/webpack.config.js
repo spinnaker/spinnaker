@@ -4,7 +4,6 @@ const md5 = require('md5');
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
-const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 const ESLintPlugin = require('eslint-webpack-plugin');
@@ -12,10 +11,11 @@ const webpack = require('webpack');
 
 const CACHE_INVALIDATE = getCacheInvalidateString();
 const NODE_MODULE_PATH = path.join(__dirname, 'node_modules');
-const SETTINGS_PATH = process.env.SETTINGS_PATH || './settings.js';
+const SETTINGS_PATH = process.env.SETTINGS_PATH || './src/settings.js';
 const THREADS = getThreadLoaderThreads();
 // Used to fail CI for PRs which contain linter errors
 const ESLINT_FAIL_ON_ERROR = process.env.ESLINT_FAIL_ON_ERROR === 'true';
+const DECK_ROOT = path.resolve(`${__dirname}/../../../../`);
 
 function configure(env, webpackOpts) {
   const WEBPACK_MODE = (webpackOpts && webpackOpts.mode) || 'development';
@@ -31,12 +31,12 @@ function configure(env, webpackOpts) {
     new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true }),
     new CopyWebpackPlugin([
       { from: `${NODE_MODULE_PATH}/@spinnaker/styleguide/public/styleguide.html`, to: `./styleguide.html` },
-      { from: `./plugin-manifest.json`, to: `./plugin-manifest.json` },
+      { from: `./src/plugin-manifest.json`, to: `./plugin-manifest.json` },
     ]),
     new HtmlWebpackPlugin({
       title: 'Spinnaker',
-      template: './app/index.deck',
-      favicon: process.env.NODE_ENV === 'production' ? 'app/prod-favicon.ico' : 'app/dev-favicon.ico',
+      template: 'index.deck',
+      favicon: process.env.NODE_ENV === 'production' ? 'icons/prod-favicon.ico' : 'icons/dev-favicon.ico',
       inject: true,
       hash: IS_PRODUCTION,
     }),
@@ -57,8 +57,8 @@ function configure(env, webpackOpts) {
     watch: process.env.WATCH === 'true',
     entry: {
       settings: SETTINGS_PATH,
-      'settings-local': './settings-local.js',
-      app: './app/scripts/modules/app.ts',
+      'settings-local': './src/settings-local.js',
+      app: './src/app.ts',
     },
     output: {
       path: path.join(__dirname, 'build', 'webpack', process.env.SPINNAKER_ENV || ''),
@@ -71,8 +71,8 @@ function configure(env, webpackOpts) {
         maxInitialRequests: 20, // allows up to 10 initial chunks
         cacheGroups: {
           // Put code matching each regexp in a separate chunk
-          core: new RegExp('/app/scripts/modules/core/'),
-          providers: new RegExp('/app/scripts/modules/(?!core)[^/]+/'),
+          core: new RegExp('node_modules/@spinnaker/core/'),
+          providers: new RegExp('node_modules/@spinnaker/(?!core)[^/]+/'),
           vendor_A_F: new RegExp('node_modules/[a-fA-F]'),
           vendor_G_O: new RegExp('node_modules/[g-oG-O]'),
           vendor_P_Q: new RegExp('node_modules/[^a-oA-Or-zR-Z]'),
@@ -86,7 +86,7 @@ function configure(env, webpackOpts) {
               parallel: true,
               sourceMap: true,
               terserOptions: {
-                ecma: 6,
+                ecma: 2017,
                 mangle: false,
                 output: {
                   comments: /webpackIgnore/,
@@ -99,12 +99,9 @@ function configure(env, webpackOpts) {
     resolve: {
       extensions: ['.json', '.ts', '.tsx', '.js', '.jsx', '.css', '.less', '.html'],
       alias: {
-        root: __dirname,
         coreImports: path.resolve(
-          __dirname,
-          'app',
-          'scripts',
-          'modules',
+          NODE_MODULE_PATH,
+          '@spinnaker',
           'core',
           'src',
           'presentation',
@@ -112,8 +109,8 @@ function configure(env, webpackOpts) {
           'imports',
           'commonImports.less',
         ),
+        root: DECK_ROOT,
       },
-      plugins: [new TsconfigPathsPlugin({ logLevel: 'info', extensions: ['.ts', '.tsx', '.js', '.jsx'] })],
     },
     module: {
       rules: [
@@ -151,14 +148,6 @@ function configure(env, webpackOpts) {
         {
           test: /\.css$/,
           use: [{ loader: 'style-loader' }, { loader: 'css-loader' }, { loader: 'postcss-loader' }],
-        },
-        {
-          test: /\.svg$/,
-          issuer: {
-            test: /\.(tsx?|js)$/,
-          },
-          use: [{ loader: '@svgr/webpack' }],
-          exclude: /node_modules/,
         },
         {
           test: /\.html$/,
