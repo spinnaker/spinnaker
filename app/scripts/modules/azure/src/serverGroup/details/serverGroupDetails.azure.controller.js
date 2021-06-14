@@ -12,10 +12,9 @@ import {
   ServerGroupWarningMessageService,
 } from '@spinnaker/core';
 
+import '../configure/serverGroup.configure.azure.module';
 import { AZURE_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE } from '../configure/serverGroupCommandBuilder.service';
 import { AzureRollbackServerGroupModal } from './rollback/RollbackServerGroupModal';
-
-require('../configure/serverGroup.configure.azure.module');
 
 export const AZURE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_AZURE_CONTROLLER =
   'spinnaker.azure.serverGroup.details.controller';

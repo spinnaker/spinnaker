@@ -7,8 +7,7 @@ import { FirewallLabels, ModalWizard, SERVER_GROUP_WRITER, TaskMonitor } from '@
 
 import { AZURE_SERVERGROUP_SERVERGROUP_TRANSFORMER } from '../../serverGroup.transformer';
 import { AZURE_SERVERGROUP_CONFIGURE_SERVERGROUPCONFIGURATION_SERVICE } from '../serverGroupConfiguration.service';
-
-const Utility = require('../../../utility').default;
+import Utility from '../../../utility';
 
 export const AZURE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_AZURE_CONTROLLER =
   'spinnaker.azure.cloneServerGroup.controller';

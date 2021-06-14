@@ -6,6 +6,7 @@ import './help/azure.help';
 import { AZURE_IMAGE_IMAGE_READER } from './image/image.reader';
 import { AZURE_INSTANCE_AZUREINSTANCETYPE_SERVICE } from './instance/azureInstanceType.service';
 import { AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER } from './instance/details/instance.details.controller';
+import { AzureLoadBalancerChoiceModal } from './loadBalancer/configure/AzureLoadBalancerChoiceModal';
 import { AZURE_LOADBALANCER_CONFIGURE_CREATELOADBALANCER_CONTROLLER } from './loadBalancer/configure/createLoadBalancer.controller';
 import { AZURE_LOADBALANCER_DETAILS_LOADBALANCERDETAIL_CONTROLLER } from './loadBalancer/details/loadBalancerDetail.controller';
 import { AZURE_LOADBALANCER_LOADBALANCER_TRANSFORMER } from './loadBalancer/loadBalancer.transformer';
@@ -85,8 +86,7 @@ module(AZURE_MODULE, [
       detailsController: 'azureLoadBalancerDetailsCtrl',
       createLoadBalancerTemplateUrl: require('./loadBalancer/configure/createLoadBalancer.html'),
       createLoadBalancerController: 'azureCreateLoadBalancerCtrl',
-      CreateLoadBalancerModal: require('./loadBalancer/configure/AzureLoadBalancerChoiceModal')
-        .AzureLoadBalancerChoiceModal,
+      CreateLoadBalancerModal: AzureLoadBalancerChoiceModal,
     },
     securityGroup: {
       transformer: 'azureSecurityGroupTransformer',

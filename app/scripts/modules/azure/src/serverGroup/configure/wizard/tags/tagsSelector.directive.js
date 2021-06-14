@@ -1,7 +1,8 @@
 'use strict';
 
 import { module } from 'angular';
-const Utility = require('../../../../utility').default;
+
+import Utility from '../../../../utility';
 
 export const AZURE_SERVERGROUP_CONFIGURE_WIZARD_TAGS_TAGSSELECTOR_DIRECTIVE =
   'spinnaker.azure.serverGroup.configure.wizard.tags.directive';

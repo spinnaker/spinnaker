@@ -1,9 +1,9 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const TENCENTCLOUD_SEARCH_SEARCHRESULTFORMATTER = 'spinnaker.tencentcloud.search.searchResultFormatter';
-angular.module(TENCENTCLOUD_SEARCH_SEARCHRESULTFORMATTER, []).factory('tencentcloudSearchResultFormatter', function () {
+module(TENCENTCLOUD_SEARCH_SEARCHRESULTFORMATTER, []).factory('tencentcloudSearchResultFormatter', function () {
   return {
     securityGroups: function (entry) {},
   };

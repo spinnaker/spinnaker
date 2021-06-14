@@ -1,8 +1,8 @@
 'use strict';
 
-const _ = require('lodash');
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import { module } from 'angular';
+import _ from 'lodash';
 
 import {
   CACHE_INITIALIZER_SERVICE,

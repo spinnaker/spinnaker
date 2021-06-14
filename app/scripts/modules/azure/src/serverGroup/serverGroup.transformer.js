@@ -1,7 +1,7 @@
 'use strict';
 
 import { module } from 'angular';
-const _ = require('lodash');
+import _ from 'lodash';
 
 export const AZURE_SERVERGROUP_SERVERGROUP_TRANSFORMER = 'spinnaker.azure.serverGroup.transformer';
 export const name = AZURE_SERVERGROUP_SERVERGROUP_TRANSFORMER; // for backwards compatibility

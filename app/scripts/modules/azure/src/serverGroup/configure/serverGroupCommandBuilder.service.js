@@ -1,7 +1,7 @@
 'use strict';
 
 import * as angular from 'angular';
-const _ = require('lodash');
+import _ from 'lodash';
 
 import { NameUtils } from '@spinnaker/core';
 import { AZURE_IMAGE_IMAGE_READER } from '../../image/image.reader';
