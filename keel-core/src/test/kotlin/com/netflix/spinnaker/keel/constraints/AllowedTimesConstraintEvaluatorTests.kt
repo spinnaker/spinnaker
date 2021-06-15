@@ -14,6 +14,7 @@ import com.netflix.spinnaker.keel.core.api.TimeWindow
 import com.netflix.spinnaker.keel.core.api.TimeWindowConstraint
 import com.netflix.spinnaker.keel.core.api.TimeWindowNumeric
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
@@ -30,6 +31,7 @@ import strikt.assertions.isFailure
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
 import java.time.Clock
+import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
 
@@ -41,6 +43,8 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
     val weekendClock: Clock = Clock.fixed(Instant.parse("2019-11-02T20:00:00Z"), ZoneId.of("UTC"))
     // In America/Los_Angeles, this was 6am on a Monday
     val mondayClock: Clock = Clock.fixed(Instant.parse("2019-10-28T13:00:00Z"), ZoneId.of("UTC"))
+
+    val mutableClock = MutableClock()
   }
 
   data class Fixture(
@@ -73,9 +77,12 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
       artifactVersion = version,
       artifactReference = artifact.reference,
       type = constraint.type,
-      status = PENDING
+      status = PENDING,
+      judgedBy = "Spinnaker",
+      judgedAt = clock.instant()
     )
     val passState = pendingState.copy(status = PASS)
+    val failState = pendingState.copy(status = FAIL)
 
     val repository: ConstraintRepository = mockk(relaxed = true) {
       every { getConstraintState(manifest.name, environment.name, any(), ALLOWED_TIMES_CONSTRAINT_TYPE, any()) } returns pendingState
@@ -113,6 +120,32 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
       val newState = slot<ConstraintState>()
       verify(exactly = 1) { repository.storeConstraintState(capture(newState)) }
       expectThat(newState.captured.status).isEqualTo(PASS)
+    }
+
+    context("with mutable clock") {
+      fixture {
+        Fixture(
+          clock = mutableClock,
+          constraint = TimeWindowConstraint(
+            windows = listOf(),
+            tz = "America/Los_Angeles"
+          )
+        )
+      }
+
+      before {
+        every { repository.getConstraintState(manifest.name, environment.name, any(), ALLOWED_TIMES_CONSTRAINT_TYPE, any()) } returns failState
+      }
+
+      test("time is updated to last judged time") {
+        mutableClock.incrementBy(Duration.ofMinutes(1))
+        val currentTime = mutableClock.instant()
+        subject.canPromote(artifact, "1.1", manifest, environment)
+        val newState = slot<ConstraintState>()
+        verify(exactly = 1) { repository.storeConstraintState(capture(newState)) }
+        expectThat(newState.captured.status).isEqualTo(FAIL)
+        expectThat(newState.captured.judgedAt).isEqualTo(currentTime)
+      }
     }
 
     context("multiple time windows") {

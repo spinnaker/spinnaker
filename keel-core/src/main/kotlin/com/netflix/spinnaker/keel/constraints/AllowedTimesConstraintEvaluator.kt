@@ -293,6 +293,9 @@ class AllowedTimesConstraintEvaluator(
           judgedBy = "Spinnaker"
         )
       )
+    } else {
+      // update the judged time so it's clear when we last checked
+      repository.storeConstraintState(state.copy(judgedAt = clock.instant(), judgedBy = "Spinnaker"))
     }
 
     return currentlyPassing
