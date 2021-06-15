@@ -20,7 +20,9 @@ export function MultipleInstanceTypesSubSection(props: { instanceTypeOverrides: 
       <table className="table table-condensed packed" id="MultipleInstanceTypes">
         <thead>
           <tr>
-            <th id="instanceType">Type</th>
+            <th id="instanceType">
+              Type <HelpField id="aws.serverGroup.multipleInstanceTypes"></HelpField>
+            </th>
             <th id="weight">
               Weighted Capacity <HelpField id="aws.serverGroup.instanceTypeWeight"></HelpField>
             </th>

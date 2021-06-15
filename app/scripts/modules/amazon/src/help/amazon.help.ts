@@ -72,6 +72,7 @@ const helpContents: { [key: string]: string } = {
   'aws.serverGroup.odPercentAboveBase': `Percentages of On-Demand and Spot instances for additional capacity beyond OnDemandBaseCapacity.`,
   'aws.serverGroup.instanceTypeWeight': `The number of capacity units gives the instance type a proportional weight to other instance types. When specified, weights count towards desired capacity.`,
   'aws.serverGroup.instanceTypes': `Specify up to 20 instance types.`,
+  'aws.serverGroup.multipleInstanceTypes': `Instance types a server group can launch, first (highest priority) to last (lowest priority).`,
   'aws.serverGroup.unlimitedCpuCredits': `<p>CPU credits can be configured with 2 modes:</p><br/>
       <ul>
         <li><b>Unlimited (i.e. Unlimited On)</b>: Can sustain high CPU utilization for any period of time whenever required.<br/>
