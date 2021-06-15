@@ -5,8 +5,8 @@ import { Button, Modal } from 'react-bootstrap';
 import { Application, ApplicationModelBuilder } from 'core/application';
 import { SETTINGS } from 'core/config';
 import { SubmitButton } from 'core/modal';
-import { NgReact, ReactInjector } from 'core/reactShims';
-import { TaskMonitor } from 'core/task';
+import { ReactInjector } from 'core/reactShims';
+import { TaskMonitor, TaskMonitorWrapper } from 'core/task';
 
 import { IPageButtonProps } from './PageButton';
 import { IPagerDutyService } from './pagerDuty.read.service';
@@ -111,8 +111,6 @@ export class PageModal extends React.Component<IPageModalProps, IPageModalState>
 
   public render() {
     const formValid = true;
-
-    const { TaskMonitorWrapper } = NgReact;
     const { services } = this.props;
     const { accountName, details, pageCount, subject, submitting, taskMonitor } = this.state;
 

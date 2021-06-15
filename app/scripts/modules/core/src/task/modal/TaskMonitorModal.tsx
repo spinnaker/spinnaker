@@ -5,9 +5,9 @@ import { Modal } from 'react-bootstrap';
 import { Application } from 'core/application';
 import { ModalClose, SubmitButton } from 'core/modal';
 import { IModalComponentProps, LayoutProvider, ResponsiveFieldLayout, SpinFormik } from 'core/presentation';
-import { NgReact } from 'core/reactShims';
 
 import { TaskMonitor } from '../monitor/TaskMonitor';
+import { TaskMonitorWrapper } from '../monitor/TaskMonitorWrapper';
 import { ITaskCommand, TaskExecutor } from '../taskExecutor';
 
 interface ITaskMonitorModalProps<T> extends IModalComponentProps {
@@ -66,7 +66,6 @@ export class TaskMonitorModal<T> extends React.Component<ITaskMonitorModalProps<
 
   public render() {
     const { isSubmitting } = this.state;
-    const { TaskMonitorWrapper } = NgReact;
 
     return (
       <div>

@@ -4,8 +4,7 @@ import React from 'react';
 import { Modal } from 'react-bootstrap';
 
 import { SpinFormik } from 'core/presentation';
-import { NgReact } from 'core/reactShims';
-import { TaskMonitor } from 'core/task';
+import { TaskMonitor, TaskMonitorWrapper } from 'core/task';
 import { Spinner } from 'core/widgets';
 
 import { WizardPage } from './WizardPage';
@@ -133,7 +132,6 @@ export class WizardModal<T = {}>
       dismissModal,
     } = this.props;
     const { currentPage, initialized, pages } = this.state;
-    const { TaskMonitorWrapper } = NgReact;
 
     const spinner = (
       <div className="row">
