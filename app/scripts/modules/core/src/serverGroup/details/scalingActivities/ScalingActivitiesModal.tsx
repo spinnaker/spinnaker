@@ -104,7 +104,7 @@ export const ScalingActivitiesModal = ({ dismissModal, serverGroup }: IScalingAc
                 <ul>
                   {sortBy(a.events, 'availabilityZone', 'description').map((e) => (
                     <li key={e.description}>
-                      {e.description}
+                      <span className="sp-margin-xs-right">{e.description}</span>
                       {e.availabilityZone && <span>{e.availabilityZone}</span>}
                     </li>
                   ))}
