@@ -1,7 +1,6 @@
 export * from './ApplicationsPickerInput';
 export * from './Keys';
 export * from './ScopeClusterSelector';
-export * from './Spinner';
 export * from './cluster/ClusterMatches';
 export * from './cluster/clusterMatches.component';
 export * from './notifier/notifier.service';

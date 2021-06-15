@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 
-import { IExecution, IExecutionStage } from '@spinnaker/core';
-import { Application } from '@spinnaker/core';
-import { NgReact } from '@spinnaker/core';
+import { Application, IExecution, IExecutionStage, Spinner } from '@spinnaker/core';
 import { AwsReactInjector } from 'amazon/reactShims';
 
 export interface IEvaluateCloudFormationChangeSetExecutionApprovalProps {
@@ -24,7 +22,6 @@ export const EvaluateCloudFormationChangeSetExecutionApproval = (
   const [submitting, setSubmitting] = useState(false);
   const [judgmentDecision, setJudgmentDecision] = useState('');
   const [error, setError] = useState(false);
-  const { ButtonBusyIndicator } = NgReact;
 
   const provideJudgment = (judgmentDecision: string) => {
     setSubmitting(true);
@@ -63,15 +60,15 @@ export const EvaluateCloudFormationChangeSetExecutionApproval = (
         <p>How do you want to proceed?</p>
         <div className="action-buttons">
           <button className="btn btn-danger" onClick={handleExecuteClick} disabled={submitting}>
-            {isSubmitting('Execute') && <ButtonBusyIndicator />}
+            {isSubmitting('Execute') && <Spinner mode="circular" />}
             {stage.context.stopButtonLabel || 'Execute'}
           </button>
           <button className="btn btn-primary" disabled={submitting} onClick={handleContinueClick}>
-            {isSubmitting('Skip') && <ButtonBusyIndicator />}
+            {isSubmitting('Skip') && <Spinner mode="circular" />}
             {stage.context.skipButtonLabel || 'Skip'}
           </button>
           <button className="btn btn-primary" disabled={submitting} onClick={handleFailClick}>
-            {isSubmitting('Fail') && <ButtonBusyIndicator />}
+            {isSubmitting('Fail') && <Spinner mode="circular" />}
             {stage.context.FailButtonLabel || 'Fail'}
           </button>
         </div>

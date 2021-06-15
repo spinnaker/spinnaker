@@ -6,7 +6,8 @@ import { ApplicationReader } from 'core/application/service/ApplicationReader';
 import { AuthenticationService } from 'core/authentication';
 import { IExecution, IExecutionStage } from 'core/domain';
 import { Markdown } from 'core/presentation/Markdown';
-import { NgReact, ReactInjector } from 'core/reactShims';
+import { ReactInjector } from 'core/reactShims';
+import { Spinner } from 'core/widgets/spinners/Spinner';
 
 export interface IManualJudgmentApprovalProps {
   execution: IExecution;
@@ -118,7 +119,6 @@ export class ManualJudgmentApproval extends React.Component<
       !['SKIPPED', 'SUCCEEDED'].includes(status) && (!stage.context.judgmentStatus || status === 'RUNNING');
 
     const hasInstructions = !!stage.context.instructions;
-    const { ButtonBusyIndicator } = NgReact;
 
     return (
       <div>
@@ -156,7 +156,7 @@ export class ManualJudgmentApproval extends React.Component<
                   (options.length && !this.state.judgmentInput.value)
                 }
               >
-                {this.isSubmitting('stop') && <ButtonBusyIndicator />}
+                {this.isSubmitting('stop') && <Spinner mode="circular" />}
                 {stage.context.stopButtonLabel || 'Stop'}
               </button>
               <button
@@ -169,7 +169,7 @@ export class ManualJudgmentApproval extends React.Component<
                 }
                 onClick={this.handleContinueClick}
               >
-                {this.isSubmitting('continue') && <ButtonBusyIndicator />}
+                {this.isSubmitting('continue') && <Spinner mode="circular" />}
                 {stage.context.continueButtonLabel || 'Continue'}
               </button>
             </div>

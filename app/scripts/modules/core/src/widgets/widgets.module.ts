@@ -1,6 +1,5 @@
 import { module } from 'angular';
 
-import { SPINNER_WRAPPER } from './Spinner';
 import { CORE_WIDGETS_ACCOUNTNAMESPACECLUSTERSELECTOR_COMPONENT } from './accountNamespaceClusterSelector.component';
 import { CORE_WIDGETS_ACCOUNTREGIONCLUSTERSELECTOR_COMPONENT } from './accountRegionClusterSelector.component';
 import { ACCOUNT_REGION_CLUSTER_SELECTOR_WRAPPER } from './accountRegionClusterSelectorWrapper.component';
@@ -18,5 +17,4 @@ module(WIDGETS_MODULE, [
   CORE_WIDGETS_SPELTEXT_SPELTEXT_DECORATOR,
   CORE_WIDGETS_SPELTEXT_SPELSELECT_COMPONENT,
   CORE_WIDGETS_ACTIONICONS_ACTIONICONS_COMPONENT,
-  SPINNER_WRAPPER,
 ]);

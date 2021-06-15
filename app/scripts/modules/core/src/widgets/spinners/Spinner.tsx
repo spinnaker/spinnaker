@@ -64,9 +64,3 @@ export const Spinner = ({
     </div>
   );
 };
-
-/**
- * Note: This is a temporary component for backwards compatibility in NgReact.
- * Once core is bumped, the `ButtonBusyIndicator` and `LegacySpinner` from NgReact can be replaced with `Spinner` in the other modules and removed.
- */
-export const ButtonBusyIndicator = () => <Spinner mode="circular" />;

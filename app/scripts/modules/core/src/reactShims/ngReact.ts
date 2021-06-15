@@ -21,7 +21,6 @@ import { ITaskMonitorProps } from 'core/task/monitor/TaskMonitorWrapper';
 import { TaskMonitorWrapper } from 'core/task/monitor/TaskMonitorWrapper';
 import { IAccountRegionClusterSelectorProps } from 'core/widgets/AccountRegionClusterSelector';
 import { accountRegionClusterSelectorWrapperComponent } from 'core/widgets/accountRegionClusterSelectorWrapper.component';
-import { ButtonBusyIndicator as ButtonBusyIndicatorComponent } from 'core/widgets/spinners/Spinner';
 
 import { ReactInject } from './react.injector';
 
@@ -33,11 +32,9 @@ export class NgReactInjector extends ReactInject {
 
   // Reactified components
   public AccountRegionClusterSelector: React.ComponentClass<IAccountRegionClusterSelectorProps> = angular2react('accountRegionClusterSelectorWrapper', accountRegionClusterSelectorWrapperComponent, this.$injectorProxy) as any;
-  public ButtonBusyIndicator: React.FunctionComponent<{}>                               = ButtonBusyIndicatorComponent;
   public EntitySource: React.ComponentClass<IEntitySourceProps>                                 = angular2react('entitySource', entitySourceComponent, this.$injectorProxy) as any;
   public InstanceArchetypeSelector: React.ComponentClass<IInstanceArchetypeSelectorProps>       = angular2react('v2InstanceArchetypeSelector', v2InstanceArchetypeSelector, this.$injectorProxy) as any;
   public InstanceTypeSelector: React.ComponentClass<IInstanceTypeSelectorProps>                 = angular2react('v2InstanceTypeSelector', v2InstanceTypeSelector, this.$injectorProxy);
-  public LegacySpinner: React.FunctionComponent<{}>                               = ButtonBusyIndicatorComponent;
   public NumberList: React.ComponentClass<INumberListProps>                                     = angular2react('numberListWrapper', numberListWrapperComponent, this.$injectorProxy) as any;
   public StageSummaryWrapper: React.ComponentClass<IStageSummaryWrapperProps>                   = angular2react('stageSummary', stageSummaryComponent, this.$injectorProxy) as any;
   public StepExecutionDetailsWrapper: React.ComponentClass<IStepExecutionDetailsWrapperProps>   = angular2react('stepExecutionDetails', stepExecutionDetailsComponent, this.$injectorProxy) as any;

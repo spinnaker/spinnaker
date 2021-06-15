@@ -42,7 +42,7 @@
         ng-click="ctrl.endCanary()"
         ng-disabled="state === 'submitting' || !command.reason"
       >
-        <button-busy-indicator ng-if="state === 'submitting'"></button-busy-indicator>
+        <loading-spinner ng-if="state === 'submitting'"></loading-spinner>
         Submit
       </button>
     </div>
