@@ -109,7 +109,7 @@ class DefaultConfiguration(
     val registration = FilterRegistrationBean<DeliveryConfigYamlParsingFilter>()
     registration.filter = DeliveryConfigYamlParsingFilter()
     registration.setName("deliveryConfigYamlParsingFilter")
-    registration.addUrlPatterns("/delivery-configs")
+    registration.addUrlPatterns("/delivery-configs", "/delivery-configs/validate")
     registration.order = 10
     return registration
   }
