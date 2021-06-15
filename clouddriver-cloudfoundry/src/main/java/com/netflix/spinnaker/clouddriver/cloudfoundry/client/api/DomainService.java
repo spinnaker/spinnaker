@@ -36,4 +36,7 @@ public interface DomainService {
 
   @GET("/v2/shared_domains")
   Call<Page<Domain>> allShared(@Query("page") Integer page);
+
+  @GET("/v2/domains")
+  Call<Page<Domain>> all(@Query("page") Integer page);
 }

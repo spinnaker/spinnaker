@@ -103,4 +103,13 @@ public class Domains {
     }
     return domains;
   }
+
+  public CloudFoundryDomain getDefault() {
+    return map(
+        safelyCall(() -> api.all(null))
+            .orElseThrow(() -> new CloudFoundryApiException("Unable to retrieve default domain"))
+            .getResources()
+            .iterator()
+            .next());
+  }
 }
