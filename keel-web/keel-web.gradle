@@ -44,7 +44,8 @@ dependencies {
   implementation("io.spinnaker.kork:kork-plugins")
   implementation("com.slack.api:bolt-servlet:1.6.0")
   implementation("com.graphql-java:graphql-java-extended-scalars:16.0.1")
-  implementation("com.netflix.graphql.dgs:graphql-dgs-spring-boot-starter:3.9.3")
+  implementation(platform('com.netflix.graphql.dgs:graphql-dgs-platform-dependencies:4.2.1-rc.1'))
+  implementation("com.netflix.graphql.dgs:graphql-dgs-spring-boot-starter")
 
   runtimeOnly("io.spinnaker.kork:kork-runtime")
   runtimeOnly("io.springfox:springfox-boot-starter:3.0.0")

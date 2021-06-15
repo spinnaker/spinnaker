@@ -18,6 +18,7 @@ allprojects {
     if (property("korkVersion").toString().endsWith("-SNAPSHOT")) {
       mavenLocal()
     }
+    maven { url = uri("https://netflixoss.jfrog.io/artifactory/maven-oss-candidates") }
     mavenCentral()
     jcenter() {
       metadataSources {
@@ -75,7 +76,9 @@ allprojects {
         "io.github.resilience4j:resilience4j-retry:$resilience4jVersion",
         "org.testcontainers:mysql:$testContainersVersion",
         "de.huxhorn.sulky:de.huxhorn.sulky.ulid:8.2.0",
-        "io.github.microutils:kotlin-logging:1.4.4"
+        "io.github.microutils:kotlin-logging:1.4.4",
+        // needed due to incompatibility with dgs libs
+        "com.fasterxml.jackson.module:jackson-module-kotlin:2.11.1"
       )
     }
   }
