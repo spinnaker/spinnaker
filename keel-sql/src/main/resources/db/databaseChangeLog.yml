@@ -332,3 +332,6 @@ databaseChangeLog:
   - include:
       file: changelog/20210609-add-metadata-to-environment.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20210614-store-original-artifact.yml
+      relativeToChangelogFile: true

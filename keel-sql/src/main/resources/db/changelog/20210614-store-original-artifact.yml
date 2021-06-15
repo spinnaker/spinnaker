@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: store-original-artifact
+      author: emjburns
+      changes:
+        - addColumn:
+            tableName: artifact_versions
+            columns:
+              - name: original_metadata
+                type: json
+                constraints:
+                  nullable: true

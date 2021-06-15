@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.sql
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactMetadata
@@ -36,6 +37,7 @@ import com.netflix.spinnaker.keel.persistence.ArtifactNotFoundException
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactVersionException
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ACTIVE_ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ARTIFACT_LAST_CHECKED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_ARTIFACT
@@ -44,7 +46,6 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_PIN
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_VETO
-import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ACTIVE_ENVIRONMENT
 import com.netflix.spinnaker.keel.services.StatusInfoForArtifactInEnvironment
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
@@ -255,6 +256,8 @@ class SqlArtifactRepository(
   }
 
   override fun getVersionsWithoutMetadata(limit: Int, maxAge: Duration): List<PublishedArtifact> {
+    val cutoff = clock.instant().minus(maxAge)
+
     return sqlRetry.withRetry(READ) {
       jooq
         .select(
@@ -264,14 +267,25 @@ class SqlArtifactRepository(
           ARTIFACT_VERSIONS.RELEASE_STATUS,
           ARTIFACT_VERSIONS.CREATED_AT,
           ARTIFACT_VERSIONS.GIT_METADATA,
-          ARTIFACT_VERSIONS.BUILD_METADATA
+          ARTIFACT_VERSIONS.BUILD_METADATA,
+          ARTIFACT_VERSIONS.ORIGINAL_METADATA
         )
         .from(ARTIFACT_VERSIONS)
-        .where(ARTIFACT_VERSIONS.GIT_METADATA.isNull)
-        .or(ARTIFACT_VERSIONS.BUILD_METADATA.isNull)
-        .and(ARTIFACT_VERSIONS.CREATED_AT.ge(clock.instant().minus(maxAge)))
+        .where(ARTIFACT_VERSIONS.GIT_METADATA.isNull.or(ARTIFACT_VERSIONS.BUILD_METADATA.isNull))
+        .and(ARTIFACT_VERSIONS.CREATED_AT.greaterOrEqual(cutoff))
         .limit(limit)
-        .fetchArtifactVersions()
+        .fetch { (name, type, version, status, createdAt, gitMetadata, buildMetadata, originalMetadata) ->
+        PublishedArtifact(
+          name = name,
+          type = type,
+          version = version,
+          status = status,
+          createdAt = createdAt,
+          gitMetadata = gitMetadata,
+          buildMetadata = buildMetadata,
+          metadata = objectMapper.readValue(originalMetadata)
+        )
+      }
     }
   }
 
@@ -290,6 +304,7 @@ class SqlArtifactRepository(
           .set(ARTIFACT_VERSIONS.CREATED_AT, createdAt)
           .set(ARTIFACT_VERSIONS.GIT_METADATA, gitMetadata)
           .set(ARTIFACT_VERSIONS.BUILD_METADATA, buildMetadata)
+          .set(ARTIFACT_VERSIONS.ORIGINAL_METADATA, objectMapper.writeValueAsString(artifactVersion.metadata))
           .onDuplicateKeyIgnore()
           .execute()
       } == 1

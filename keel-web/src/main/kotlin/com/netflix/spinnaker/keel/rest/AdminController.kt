@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping(path = ["/admin"])
+@RequestMapping(path = ["/poweruser"])
 class AdminController(
   private val adminService: AdminService
 ) {

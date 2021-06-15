@@ -56,7 +56,7 @@ internal class AdminControllerTests
       }
 
       test("can get basic summary of unpaused application") {
-        val request = get("/admin/applications/")
+        val request = get("/poweruser/applications/")
           .accept(APPLICATION_JSON_VALUE)
         mvc
           .perform(request)
@@ -104,7 +104,7 @@ internal class AdminControllerTests
       }
 
       test("can get basic summary of 2 applications") {
-        val request = get("/admin/applications/")
+        val request = get("/poweruser/applications/")
           .accept(APPLICATION_JSON_VALUE)
         mvc
           .perform(request)
@@ -141,7 +141,7 @@ internal class AdminControllerTests
       }
 
       test("return an empty list") {
-        val request = get("/admin/applications/")
+        val request = get("/poweruser/applications/")
           .accept(APPLICATION_JSON_VALUE)
         mvc
           .perform(request)
