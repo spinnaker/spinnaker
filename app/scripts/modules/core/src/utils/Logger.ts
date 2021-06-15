@@ -28,6 +28,12 @@ export interface LoggerSubscriber {
 class Logger {
   private loggers: LoggerSubscriber[] = [];
 
+  // This allows us to ignore noisy ghost errors - more details: https://stackoverflow.com/a/50387233/5737533
+  private ignoredErrors = [
+    'ResizeObserver loop limit exceeded',
+    'ResizeObserver loop completed with undelivered notifications.',
+  ];
+
   subscribe(newLogger: LoggerSubscriber) {
     this.loggers.push(newLogger);
     return () => this.loggers.filter((logger) => logger !== newLogger);
@@ -38,6 +44,7 @@ class Logger {
   }
 
   log(event: LoggerEvent) {
+    if (event.error?.message && this.ignoredErrors.includes(event.error.message)) return;
     this.loggers.forEach((logger) => {
       if (getLevel(event.level) >= getLevel(logger.level)) {
         logger.onEvent(event);
