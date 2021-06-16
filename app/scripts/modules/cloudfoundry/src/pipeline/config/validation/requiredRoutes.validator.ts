@@ -10,7 +10,10 @@ export class CfRequiredRoutesFieldValidator implements IStageOrTriggerValidator 
         const regex = /^([-\w]+)\.([-.\w]+)(:\d+)?([-/\w]+)?$/gm;
         route = route || '';
         if (regex.exec(route) === null) {
-          return `"${route}" did not match the expected format "host.some.domain[:9999][/some/path]"`;
+          const spelRegex = /^\${.*}$/g;
+          if (spelRegex.exec(route) === null) {
+            return `"${route}" did not match the expected format "host.some.domain[:9999][/some/path]"`;
+          }
         }
         return null;
       })
