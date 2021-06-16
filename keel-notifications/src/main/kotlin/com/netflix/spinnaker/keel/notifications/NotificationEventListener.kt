@@ -190,7 +190,8 @@ class NotificationEventListener(
         SlackPausedNotification(
           user = triggeredBy,
           time = clock.instant(),
-          application = application
+          application = application,
+          comment = comment
         ),
         APPLICATION_PAUSED)
     }

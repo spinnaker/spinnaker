@@ -164,7 +164,7 @@ class ApplicationController(
     @PathVariable("application") application: String,
     @RequestHeader("X-SPINNAKER-USER") user: String
   ) {
-    actuationPauser.pauseApplication(application, user)
+    actuationPauser.pauseApplication(application, user, null)
   }
 
   @DeleteMapping(

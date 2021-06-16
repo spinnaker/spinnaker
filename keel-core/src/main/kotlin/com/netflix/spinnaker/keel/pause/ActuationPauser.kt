@@ -58,13 +58,16 @@ class ActuationPauser(
   fun applicationIsPaused(application: String): Boolean =
     pausedRepository.applicationPaused(application)
 
+  fun getApplicationPauseInfo(application: String): Pause? =
+    pausedRepository.getPause(APPLICATION, application)
+
   fun resourceIsPaused(id: String): Boolean =
     pausedRepository.resourcePaused(id)
 
-  fun pauseApplication(application: String, user: String) {
+  fun pauseApplication(application: String, user: String, comment: String? = null) {
     log.info("Pausing application $application")
-    pausedRepository.pauseApplication(application, user)
-    publisher.publishEvent(ApplicationActuationPaused(application, user, clock))
+    pausedRepository.pauseApplication(application, user, comment)
+    publisher.publishEvent(ApplicationActuationPaused(application, user, comment, clock))
   }
 
   fun resumeApplication(application: String, user: String) {
@@ -73,9 +76,9 @@ class ActuationPauser(
     publisher.publishEvent(ApplicationActuationResumed(application, user, clock))
   }
 
-  fun pauseResource(id: String, user: String) {
+  fun pauseResource(id: String, user: String, comment: String? = null) {
     log.info("Pausing resource $id")
-    pausedRepository.pauseResource(id, user)
+    pausedRepository.pauseResource(id, user, comment)
     publisher.publishEvent(ResourceActuationPaused(resourceRepository.get(id), user, clock))
   }
 

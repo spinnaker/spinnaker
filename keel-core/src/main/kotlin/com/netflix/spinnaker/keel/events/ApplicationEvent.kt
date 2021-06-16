@@ -27,23 +27,23 @@ abstract class ApplicationEvent(
 
 /**
  * Actuation at the application level has been paused.
- *
- * @property reason The reason why actuation was paused.
  */
 data class ApplicationActuationPaused(
   override val application: String,
   override val timestamp: Instant,
   override val triggeredBy: String?,
+  val comment: String? = null,
   override val level: EventLevel = WARNING,
   override val displayName: String = "Application management paused",
 ) : ApplicationEvent(), ResourceHistoryEvent {
   @JsonIgnore
   override val ignoreRepeatedInHistory = true
 
-  constructor(application: String, triggeredBy: String, clock: Clock = Companion.clock) : this(
+  constructor(application: String, triggeredBy: String, comment: String? = null, clock: Clock = Companion.clock) : this(
     application,
     clock.instant(),
-    triggeredBy
+    triggeredBy,
+    comment
   )
 }
 

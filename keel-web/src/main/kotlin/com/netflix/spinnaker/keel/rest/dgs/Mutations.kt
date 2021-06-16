@@ -64,10 +64,11 @@ class Mutations(
   fun toggleManagement(
     @InputArgument application: String,
     @InputArgument isPaused: Boolean,
+    @InputArgument comment: String? = null,
     @RequestHeader("X-SPINNAKER-USER") user: String
   ): Boolean {
     if (isPaused) {
-      actuationPauser.pauseApplication(application, user)
+      actuationPauser.pauseApplication(application, user, comment)
     } else {
       actuationPauser.resumeApplication(application, user)
     }

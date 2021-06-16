@@ -288,9 +288,9 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         context("appending application events that affect resource history") {
           before {
             tick()
-            subject.appendHistory(ApplicationActuationPaused(resource.application, user, clock))
+            subject.appendHistory(ApplicationActuationPaused(resource.application, user, null, clock))
             tick()
-            subject.appendHistory(ApplicationActuationResumed(resource.application, user, clock))
+            subject.appendHistory(ApplicationActuationResumed(resource.application, user,  clock))
           }
 
           test("the events are included in the resource history") {
@@ -306,7 +306,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
             tick()
             subject.appendHistory(ResourceValid(resource, clock))
             tick()
-            subject.appendHistory(ApplicationActuationPaused(resource.application, user, clock))
+            subject.appendHistory(ApplicationActuationPaused(resource.application, user, null, clock))
             tick()
             subject.appendHistory(ApplicationActuationResumed(resource.application, user, clock))
             tick()
@@ -326,7 +326,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
       context("deleting the resource") {
         before {
-          subject.appendHistory(ApplicationActuationPaused(resource.application, user, clock))
+          subject.appendHistory(ApplicationActuationPaused(resource.application, user, null, clock))
           subject.appendHistory(ApplicationActuationResumed(resource.application, user, clock))
           subject.delete(resource.id)
         }
@@ -365,7 +365,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
             subject.appendHistory(ResourceDeltaResolved(resource, clock))
           }
           tick()
-          subject.appendHistory(ApplicationActuationPaused(resource.application, user, clock))
+          subject.appendHistory(ApplicationActuationPaused(resource.application, user, null, clock))
           tick()
           subject.appendHistory(ApplicationActuationResumed(resource.application, user, clock))
         }

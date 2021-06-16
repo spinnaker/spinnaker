@@ -9,7 +9,8 @@ data class Pause(
   val scope: PauseScope,
   val name: String,
   val pausedBy: String,
-  val pausedAt: Instant
+  val pausedAt: Instant,
+  val comment: String?
 )
 
 // todo eb: add environment

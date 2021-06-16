@@ -26,7 +26,7 @@ class ResumedNotificationHandler(
     with(notification) {
       log.debug("Sending resume management notification for application $application")
 
-      val appUrl = "${baseUrlConfig}/#/applications/${application}"
+      val appUrl = "${baseUrlConfig.baseUrl}/#/applications/${application}"
       val username = user?.let { slackService.getUsernameByEmail(it) }
       val headerText = "Management resumed for $application"
 

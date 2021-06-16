@@ -81,7 +81,7 @@ class ResourceController(
     @PathVariable("id") id: String,
     @RequestHeader("X-SPINNAKER-USER") user: String
   ) {
-    actuationPauser.pauseResource(id, user)
+    actuationPauser.pauseResource(id, user, null)
   }
 
   @DeleteMapping(

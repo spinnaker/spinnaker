@@ -10,6 +10,7 @@ type MdApplication {
   name: String!
   account: String!
   isPaused: Boolean
+  pausedInfo: MdPausedInfo
   environments: [MdEnvironment!]!
 }
 
@@ -35,6 +36,13 @@ type MdPinnedVersion {
   buildNumber: String
   pinnedAt: InstantTime
   pinnedBy: String
+  comment: String
+}
+
+type MdPausedInfo {
+  id: String!
+  by: String
+  at: InstantTime
   comment: String
 }
 
@@ -242,7 +250,7 @@ type MdAction {
 
 type Mutation {
   updateConstraintStatus(payload: MdConstraintStatusPayload!): Boolean
-  toggleManagement(application: String!, isPaused: Boolean!): Boolean
+  toggleManagement(application: String!, isPaused: Boolean!, comment: String): Boolean
   pinArtifactVersion(payload: MdArtifactVersionActionPayload!): Boolean
   markArtifactVersionAsBad(payload: MdArtifactVersionActionPayload!): Boolean
   unpinArtifactVersion(payload: MdUnpinArtifactVersionPayload!): Boolean

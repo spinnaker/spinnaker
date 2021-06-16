@@ -37,18 +37,18 @@ class SqlPausedRepository(
   override fun getPause(scope: PauseScope, name: String): Pause? {
     return sqlRetry.withRetry(READ) {
       jooq
-        .select(PAUSED.PAUSED_AT, PAUSED.PAUSED_BY)
+        .select(PAUSED.PAUSED_AT, PAUSED.PAUSED_BY, PAUSED.COMMENT)
         .from(PAUSED)
         .where(PAUSED.SCOPE.eq(scope))
         .and(PAUSED.NAME.eq(name))
-        .fetchOne { (timestamp, user) ->
-          Pause(scope, name, user, timestamp)
+        .fetchOne { (timestamp, user, comment) ->
+          Pause(scope, name, user, timestamp, comment)
         }
     }
   }
 
-  override fun pauseApplication(application: String, user: String) {
-    insert(APPLICATION, application, user)
+  override fun pauseApplication(application: String, user: String, comment: String?) {
+    insert(APPLICATION, application, user, comment)
   }
 
   override fun resumeApplication(application: String) {
@@ -58,8 +58,8 @@ class SqlPausedRepository(
   override fun applicationPaused(application: String): Boolean =
     exists(APPLICATION, application)
 
-  override fun pauseResource(id: String, user: String) {
-    insert(RESOURCE, id, user)
+  override fun pauseResource(id: String, user: String, comment: String?) {
+    insert(RESOURCE, id, user, comment)
   }
 
   override fun resumeResource(id: String) {
@@ -75,7 +75,7 @@ class SqlPausedRepository(
   override fun getPausedResources(): List<String> =
     get(RESOURCE)
 
-  private fun insert(scope: PauseScope, name: String, user: String) {
+  private fun insert(scope: PauseScope, name: String, user: String, comment: String?) {
     sqlRetry.withRetry(WRITE) {
       jooq
         .insertInto(PAUSED)
@@ -83,6 +83,7 @@ class SqlPausedRepository(
         .set(PAUSED.NAME, name)
         .set(PAUSED.PAUSED_AT, clock.instant())
         .set(PAUSED.PAUSED_BY, user)
+        .set(PAUSED.COMMENT, comment)
         .onDuplicateKeyIgnore()
         .execute()
     }

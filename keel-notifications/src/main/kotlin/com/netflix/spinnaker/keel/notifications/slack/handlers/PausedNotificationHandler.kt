@@ -31,13 +31,18 @@ class PausedNotificationHandler(
       val appUrl = "${baseUrlConfig.baseUrl}/#/applications/${application}"
       val headerText = "Management is paused for $application"
 
+      var text = "*$username paused at <!date^${time.epochSecond}^{date_num} {time_secs}|fallback-text-include-PST>*"
+      if (comment != null) {
+        text += " $comment"
+      }
+
       val blocks = withBlocks {
         header {
           text(headerText, emoji = true)
         }
 
         section {
-          markdownText("$username paused at <!date^${time.epochSecond}^{date_num} {time_secs}|fallback-text-include-PST>")
+          markdownText(text)
           accessory {
             image(imageUrl = "https://raw.githubusercontent.com/spinnaker/spinnaker.github.io/master/assets/images/md_icons/md_paused.png", altText = "paused")
           }

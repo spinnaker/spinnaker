@@ -30,11 +30,11 @@ interface PausedRepository {
 
   fun getPause(scope: PauseScope, name: String): Pause?
 
-  fun pauseApplication(application: String, user: String)
+  fun pauseApplication(application: String, user: String, comment: String? = null)
   fun resumeApplication(application: String)
   fun applicationPaused(application: String): Boolean
 
-  fun pauseResource(id: String, user: String)
+  fun pauseResource(id: String, user: String, comment: String? = null)
   fun resumeResource(id: String)
   fun resourcePaused(id: String): Boolean
 

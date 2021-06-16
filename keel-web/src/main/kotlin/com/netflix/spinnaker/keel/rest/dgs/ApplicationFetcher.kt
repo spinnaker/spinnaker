@@ -22,6 +22,7 @@ import com.netflix.spinnaker.keel.graphql.types.MdEnvironment
 import com.netflix.spinnaker.keel.graphql.types.MdEnvironmentState
 import com.netflix.spinnaker.keel.graphql.types.MdLifecycleStep
 import com.netflix.spinnaker.keel.graphql.types.MdPackageDiff
+import com.netflix.spinnaker.keel.graphql.types.MdPausedInfo
 import com.netflix.spinnaker.keel.graphql.types.MdPinnedVersion
 import com.netflix.spinnaker.keel.graphql.types.MdResource
 import com.netflix.spinnaker.keel.graphql.types.MdResourceActuationState
@@ -29,6 +30,7 @@ import com.netflix.spinnaker.keel.graphql.types.MdResourceActuationStatus
 import com.netflix.spinnaker.keel.graphql.types.MdResourceTask
 import com.netflix.spinnaker.keel.graphql.types.MdVersionVeto
 import com.netflix.spinnaker.keel.pause.ActuationPauser
+import com.netflix.spinnaker.keel.pause.Pause
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoDeliveryConfigForApplication
 import com.netflix.spinnaker.keel.services.ResourceStatusService
@@ -104,6 +106,12 @@ class ApplicationFetcher(
   fun isPaused(dfe: DgsDataFetchingEnvironment): Boolean {
     val app: MdApplication = dfe.getSource()
     return actuationPauser.applicationIsPaused(app.name)
+  }
+
+  @DgsData(parentType = DgsConstants.MDAPPLICATION.TYPE_NAME, field = DgsConstants.MDAPPLICATION.PausedInfo)
+  fun pausedInfo(dfe: DgsDataFetchingEnvironment): MdPausedInfo? {
+    val app: MdApplication = dfe.getSource()
+    return actuationPauser.getApplicationPauseInfo(app.name)?.toDgsPaused()
   }
 
   @DgsData(parentType = DgsConstants.MDRESOURCE.TYPE_NAME, field = DgsConstants.MDRESOURCE.State)
@@ -281,9 +289,16 @@ class ApplicationFetcher(
     }
   }
 
-
 //  add function for putting the resources on the artifactVersion
 }
+
+fun Pause.toDgsPaused(): MdPausedInfo =
+  MdPausedInfo(
+    id = "$scope-$name-pause",
+    by = pausedBy,
+    at = pausedAt,
+    comment = comment
+  )
 
 fun Environment.dependsOn(another: Environment) =
   constraints.any { it is DependsOnConstraint && it.environment == another.name }

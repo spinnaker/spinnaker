@@ -335,3 +335,6 @@ databaseChangeLog:
   - include:
       file: changelog/20210614-store-original-artifact.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20210611-give-pause-a-reason.yml
+      relativeToChangelogFile: true
