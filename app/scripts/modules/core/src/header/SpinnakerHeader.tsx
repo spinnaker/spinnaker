@@ -4,10 +4,10 @@ import { useRecoilState } from 'recoil';
 
 import { Icon } from '@spinnaker/presentation';
 import { verticalNavExpandedAtom } from 'core/application/nav/navAtoms';
+import { UserMenu } from 'core/authentication/userMenu/UserMenu';
 import { CollapsibleSectionStateCache } from 'core/cache';
 import { HelpMenu } from 'core/help/HelpMenu';
 import { overridableComponent } from 'core/overrideRegistry';
-import { NgReact } from 'core/reactShims';
 import { GlobalSearch } from 'core/search/global/GlobalSearch';
 import { logger } from 'core/utils';
 
@@ -34,7 +34,6 @@ export const SpinnakerHeaderContent = () => {
   };
   const [navExpanded] = React.useState(!isDevicePhoneOrSmaller());
 
-  const { UserMenu } = NgReact;
   const searchSref = useSrefActive('home.infrastructure', null, 'active');
   const projectsSref = useSrefActive('home.projects', null, 'active');
   const appsSref = useSrefActive('home.applications', null, 'active');

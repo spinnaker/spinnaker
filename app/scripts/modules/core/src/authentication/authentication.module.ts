@@ -4,10 +4,9 @@ import { SchedulerFactory } from 'core/scheduler/SchedulerFactory';
 
 import { AuthenticationInitializer } from './AuthenticationInitializer';
 import { AUTHENTICATION_INTERCEPTOR_SERVICE } from './authentication.interceptor.service';
-import { CORE_AUTHENTICATION_USERMENU_USERMENU_MODULE } from './userMenu/userMenu.module';
 
 export const AUTHENTICATION_MODULE = 'spinnaker.authentication';
-module(AUTHENTICATION_MODULE, [AUTHENTICATION_INTERCEPTOR_SERVICE, CORE_AUTHENTICATION_USERMENU_USERMENU_MODULE])
+module(AUTHENTICATION_MODULE, [AUTHENTICATION_INTERCEPTOR_SERVICE])
   .config([
     '$httpProvider',
     function ($httpProvider: ng.IHttpProvider) {

@@ -1,40 +1,19 @@
 .user-menu {
-  a.dropdown-toggle:hover,
-  a.dropdown-toggle:active,
-  a.dropdown-toggle:focus {
-    background-color: transparent;
+  .dropdown-toggle {
+    background-color: var(--color-primary);
+    border: none;
+    box-shadow: none;
+    color: var(--color-white);
+    font-weight: 200;
+    padding: var(--padd);
   }
 
-  i {
-    font-size: 10px;
-  }
-
-  div[uib-dropdown] {
-    > a {
-      font-weight: 200;
-      position: relative;
-      display: block;
-      text-decoration: none;
-      @media (max-width: 992px) {
-        padding: 10px;
-      }
-      @media (min-width: 992px) {
-        padding: 5px 0;
-      }
-      i.glyphicon {
-        position: relative;
-        top: 1px;
-        left: 2px;
-        font-size: 8px;
-      }
+  .dropdown-menu {
+    top: 80%;
+    min-width: 125px;
+    @media (max-width: 480px) {
+      position: static;
     }
-    .dropdown-menu {
-      top: 80%;
-      min-width: 125px;
-      @media (max-width: 480px) {
-        position: static;
-      }
-      border: 0;
-    }
+    border: 0;
   }
 }
