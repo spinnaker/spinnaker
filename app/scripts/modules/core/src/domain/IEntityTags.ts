@@ -6,6 +6,12 @@ export interface IEntityTagsMetadata {
   lastModifiedBy: string;
 }
 
+export interface ICreationServerGroup {
+  name: string;
+  imageId: string;
+  imageName: string;
+}
+
 export interface ICreationMetadata {
   executionType: 'orchestration' | 'pipeline';
   stageId?: string;
@@ -15,6 +21,7 @@ export interface ICreationMetadata {
   user?: string;
   description?: string;
   comments?: string;
+  previousServerGroup?: ICreationServerGroup;
 }
 
 export interface IEntityTag {
