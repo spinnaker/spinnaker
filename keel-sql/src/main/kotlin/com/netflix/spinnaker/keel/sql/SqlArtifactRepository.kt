@@ -283,7 +283,7 @@ class SqlArtifactRepository(
           createdAt = createdAt,
           gitMetadata = gitMetadata,
           buildMetadata = buildMetadata,
-          metadata = objectMapper.readValue(originalMetadata)
+          metadata = originalMetadata?.let { objectMapper.readValue(it) } ?: emptyMap()
         )
       }
     }
