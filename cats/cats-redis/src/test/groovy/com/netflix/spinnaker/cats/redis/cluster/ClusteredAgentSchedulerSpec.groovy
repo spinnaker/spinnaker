@@ -22,6 +22,7 @@ import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation
 import com.netflix.spinnaker.cats.cluster.DefaultAgentIntervalProvider
 import com.netflix.spinnaker.cats.cluster.DefaultNodeIdentity
 import com.netflix.spinnaker.cats.cluster.DefaultNodeStatusProvider
+import com.netflix.spinnaker.cats.cluster.NoopShardingFilter
 import com.netflix.spinnaker.cats.test.ManualRunnableScheduler
 import com.netflix.spinnaker.cats.test.TestAgent
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
@@ -65,7 +66,8 @@ class ClusteredAgentSchedulerSpec extends Specification {
           agentExecutionScheduler,
           ".*",
           null,
-          dcs
+          dcs,
+          new NoopShardingFilter()
         )
     }
 

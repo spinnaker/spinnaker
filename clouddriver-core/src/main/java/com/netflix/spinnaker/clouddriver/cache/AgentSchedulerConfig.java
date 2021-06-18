@@ -19,6 +19,7 @@ import com.netflix.spinnaker.cats.agent.AgentScheduler;
 import com.netflix.spinnaker.cats.cluster.AgentIntervalProvider;
 import com.netflix.spinnaker.cats.cluster.DefaultNodeIdentity;
 import com.netflix.spinnaker.cats.cluster.NodeStatusProvider;
+import com.netflix.spinnaker.cats.cluster.ShardingFilter;
 import com.netflix.spinnaker.cats.redis.cluster.ClusteredAgentScheduler;
 import com.netflix.spinnaker.cats.redis.cluster.ClusteredSortAgentScheduler;
 import com.netflix.spinnaker.clouddriver.core.RedisConfigurationProperties;
@@ -43,7 +44,8 @@ public class AgentSchedulerConfig {
       JedisPool jedisPool,
       AgentIntervalProvider agentIntervalProvider,
       NodeStatusProvider nodeStatusProvider,
-      DynamicConfigService dynamicConfigService) {
+      DynamicConfigService dynamicConfigService,
+      ShardingFilter shardingFilter) {
     if (redisConfigurationProperties.getScheduler().equalsIgnoreCase("default")) {
       URI redisUri = URI.create(redisConfigurationProperties.getConnection());
       String redisHost = redisUri.getHost();
@@ -58,7 +60,8 @@ public class AgentSchedulerConfig {
           nodeStatusProvider,
           redisConfigurationProperties.getAgent().getEnabledPattern(),
           redisConfigurationProperties.getAgent().getAgentLockAcquisitionIntervalSeconds(),
-          dynamicConfigService);
+          dynamicConfigService,
+          shardingFilter);
     } else if (redisConfigurationProperties.getScheduler().equalsIgnoreCase("sort")) {
       return new ClusteredSortAgentScheduler(
           jedisPool,
