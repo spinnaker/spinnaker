@@ -62,7 +62,9 @@ const timeWindowToString = (window: AllowedTimeWindow, timeZone = 'PST') => {
   return `${hoursString.join(', ')} on ${daysString.join(', ')} (${prettyTimezone})`;
 };
 
-const DeploymentWindow = ({ allowedTimes, timezone }: IAllowedTimesConstraint['attributes']) => {
+const DeploymentWindow = ({ attributes }: { attributes: IAllowedTimesConstraint['attributes'] }) => {
+  if (!attributes) return null;
+  const { allowedTimes, timezone } = attributes;
   return (
     <ul className="sp-margin-xs-top sp-padding-l-left sp-margin-2xs-bottom">
       {allowedTimes.map((window, index) => (
@@ -82,7 +84,7 @@ const getTitle = (constraint: IAllowedTimesConstraint) => {
     case 'FAIL':
     case 'PENDING':
       return `Deployment can only occur during the provided window${
-        constraint.attributes.allowedTimes.length > 1 ? 's' : ''
+        (constraint.attributes?.allowedTimes.length ?? 0) > 1 ? 's' : ''
       }`;
     default:
       return `Allowed times constraint - ${constraint.status}:`;
@@ -94,5 +96,5 @@ export const AllowedTimesTitle = ({ constraint }: { constraint: IAllowedTimesCon
 };
 
 export const AllowedTimesDescription = ({ constraint }: { constraint: IAllowedTimesConstraint }) => {
-  return <DeploymentWindow {...constraint.attributes} />;
+  return <DeploymentWindow attributes={constraint.attributes} />;
 };

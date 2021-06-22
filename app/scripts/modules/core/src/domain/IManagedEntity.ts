@@ -41,7 +41,7 @@ export interface AllowedTimeWindow {
 }
 export interface IAllowedTimesConstraint extends IBaseConstraint {
   type: 'allowed-times';
-  attributes: { allowedTimes: AllowedTimeWindow[]; timezone?: string };
+  attributes: { allowedTimes: AllowedTimeWindow[]; timezone?: string } | null;
 }
 
 export interface IManualJudgementConstraint extends IBaseConstraint {
