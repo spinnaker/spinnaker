@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Armory, Inc.
+ * Copyright 2021 Armory, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
@@ -20,9 +19,8 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.CloudFoundryOperationUtils.describeProcessState;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.CreateServiceBinding;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ProcessStats;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.CreateCloudFoundryServiceBindingDescription;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeleteCloudFoundryServiceBindingDescription;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
@@ -34,11 +32,11 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class CreateCloudFoundryServiceBindingAtomicOperation implements AtomicOperation<Void> {
+public class DeleteCloudFoundryServiceBindingAtomicOperation implements AtomicOperation<Void> {
 
-  private static final String PHASE = "CREATE_SERVICE_BINDINGS";
+  private static final String PHASE = "DELETE_SERVICE_BINDINGS";
   private final OperationPoller operationPoller;
-  private final CreateCloudFoundryServiceBindingDescription description;
+  private final DeleteCloudFoundryServiceBindingDescription description;
 
   private static Task getTask() {
     return TaskRepository.threadLocalTask.get();
@@ -48,14 +46,14 @@ public class CreateCloudFoundryServiceBindingAtomicOperation implements AtomicOp
   public Void operate(List<Void> priorOutputs) {
 
     List<String> serviceInstanceNames =
-        description.getServiceBindingRequests().stream()
+        description.getServiceUnbindingRequests().stream()
             .map(s -> s.getServiceInstanceName())
             .collect(Collectors.toList());
 
     getTask()
         .updateStatus(
             PHASE,
-            "Creating Cloud Foundry service bindings between application '"
+            "Deleting Cloud Foundry service bindings between application '"
                 + description.getServerGroupName()
                 + "' and services: "
                 + serviceInstanceNames);
@@ -64,18 +62,21 @@ public class CreateCloudFoundryServiceBindingAtomicOperation implements AtomicOp
 
     description
         .getClient()
-        .getServiceInstances()
-        .findAllServicesBySpaceAndNames(description.getSpace(), serviceInstanceNames)
+        .getApplications()
+        .getServiceBindingsByApp(description.getServerGroupId())
         .stream()
-        .forEach(s -> serviceInstanceGuids.put(s.getEntity().getName(), s.getMetadata().getGuid()));
+        .forEach(
+            s ->
+                serviceInstanceGuids.put(
+                    s.getEntity().getName(), s.getEntity().getServiceInstanceGuid()));
 
-    if (serviceInstanceNames.size() != description.getServiceBindingRequests().size()) {
+    if (serviceInstanceNames.size() != description.getServiceUnbindingRequests().size()) {
       throw new CloudFoundryApiException(
-          "Number of service instances found does not match the number of service binding requests.");
+          "Number of service instances found does not match the number of service unbinding requests.");
     }
 
-    List<CreateServiceBinding> bindings =
-        description.getServiceBindingRequests().stream()
+    List<String> unbindings =
+        description.getServiceUnbindingRequests().stream()
             .map(
                 s -> {
                   String serviceGuid = serviceInstanceGuids.get(s.getServiceInstanceName());
@@ -85,34 +86,15 @@ public class CreateCloudFoundryServiceBindingAtomicOperation implements AtomicOp
                             + s.getServiceInstanceName()
                             + "'");
                   }
-                  if (s.isUpdatable()) {
-                    removeBindings(serviceGuid, description.getServerGroupId());
-                  }
-                  return new CreateServiceBinding(
-                      serviceGuid, description.getServerGroupId(), s.getParameters());
+                  return serviceGuid;
                 })
             .collect(Collectors.toList());
 
-    bindings.forEach(b -> description.getClient().getServiceInstances().createServiceBinding(b));
+    unbindings.forEach(u -> removeBindings(u, description.getServerGroupId()));
 
-    if (description.isRestageRequired()) {
-      getTask().updateStatus(PHASE, "Restaging application '" + description.getServerGroupName());
-      description.getClient().getApplications().restageApplication(description.getServerGroupId());
-    } else {
-      getTask().updateStatus(PHASE, "Restarting application '" + description.getServerGroupName());
-      description.getClient().getApplications().stopApplication(description.getServerGroupId());
-      operationPoller.waitForOperation(
-          () ->
-              description.getClient().getApplications().getAppState(description.getServerGroupId()),
-          inProgressState ->
-              inProgressState == ProcessStats.State.DOWN
-                  || inProgressState == ProcessStats.State.CRASHED,
-          null,
-          getTask(),
-          description.getServerGroupName(),
-          PHASE);
-      description.getClient().getApplications().startApplication(description.getServerGroupId());
-    }
+    // Restart by default
+    getTask().updateStatus(PHASE, "Restaging application '" + description.getServerGroupName());
+    description.getClient().getApplications().restageApplication(description.getServerGroupId());
 
     ProcessStats.State state =
         operationPoller.waitForOperation(
@@ -133,7 +115,7 @@ public class CreateCloudFoundryServiceBindingAtomicOperation implements AtomicOp
       getTask()
           .updateStatus(
               PHASE,
-              "Failed to create Cloud Foundry service bindings between application '"
+              "Failed to delete Cloud Foundry service bindings between application '"
                   + description.getServerGroupName()
                   + "' and services: "
                   + serviceInstanceNames);
@@ -147,7 +129,7 @@ public class CreateCloudFoundryServiceBindingAtomicOperation implements AtomicOp
     getTask()
         .updateStatus(
             PHASE,
-            "Created Cloud Foundry service bindings between application '"
+            "Deleted Cloud Foundry service from application '"
                 + description.getServerGroupName()
                 + "' and services: "
                 + serviceInstanceNames);

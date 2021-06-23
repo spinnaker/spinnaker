@@ -31,6 +31,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ApplicationServ
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ApplicationEnv;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.MapRoute;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Resource;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ServiceBinding;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Package;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Process;
@@ -669,5 +670,9 @@ public class Applications {
                                 CloudFoundryServerGroup.State.valueOf(application.getState())))
                     .map(appState -> ProcessStats.State.RUNNING)
                     .orElse(ProcessStats.State.DOWN));
+  }
+
+  public List<Resource<ServiceBinding>> getServiceBindingsByApp(String appGuid) {
+    return collectPageResources("service bindings", pg -> api.getServiceBindings(appGuid));
   }
 }

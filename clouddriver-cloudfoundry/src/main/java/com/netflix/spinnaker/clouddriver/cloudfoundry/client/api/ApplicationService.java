@@ -16,11 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client.api;
 
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ApplicationEnv;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.InstanceStatus;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.MapRoute;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Page;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.*;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Application;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Package;
 import java.util.List;
 import java.util.Map;
@@ -107,4 +105,7 @@ public interface ApplicationService {
 
   @POST("/v2/apps/{guid}/restage")
   Call<ResponseBody> restageApplication(@Path("guid") String appGuid, @Body Object dummy);
+
+  @GET("/v2/apps/{guid}/service_bindings")
+  Call<Page<ServiceBinding>> getServiceBindings(@Path("guid") String appGuid);
 }

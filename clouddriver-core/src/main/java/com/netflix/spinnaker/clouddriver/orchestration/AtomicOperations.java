@@ -106,6 +106,7 @@ public final class AtomicOperations {
   public static final String SHARE_SERVICE = "shareService";
   public static final String UNSHARE_SERVICE = "unshareService";
   public static final String CREATE_SERVICE_BINDINGS = "createServiceBindings";
+  public static final String DELETE_SERVICE_BINDINGS = "deleteServiceBindings";
 
   // CloudFormation operations
   public static final String DEPLOY_CLOUDFORMATION_STACK = "deployCloudFormation";
