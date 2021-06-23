@@ -177,6 +177,41 @@ internal class SecurityGroupRuleTests : JUnit5Minutests {
       canDeserialize()
     }
 
+    context("an ingress rule referencing a security group in the same account but specifying the account redundantly") {
+      fixture {
+        Fixture(
+          yaml =
+            """
+            |---
+            |moniker:
+            |  app: "fnord"
+            |  stack: "ext"
+            |locations:
+            |  account: "test"
+            |  vpc: "vpc0"
+            |  regions:
+            |  - name: "ap-south-1"
+            |description: "fnord security group"
+            |inboundRules:
+            |- protocol: "TCP"
+            |  name: "fnord-ext"
+            |  account: "test"
+            |  vpc: "vpc0"
+            |  portRange:
+            |    startPort: 8080
+            |    endPort: 8080
+            |""".trimMargin(),
+          rule = ReferenceRule(
+            protocol = TCP,
+            name = "fnord-ext",
+            portRange = PortRange(8080, 8080)
+          )
+        )
+      }
+
+      canDeserialize()
+    }
+
     context("a CIDR rule") {
       fixture {
         Fixture(

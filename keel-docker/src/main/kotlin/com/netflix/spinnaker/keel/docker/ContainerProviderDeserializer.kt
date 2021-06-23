@@ -17,11 +17,13 @@
  */
 package com.netflix.spinnaker.keel.docker
 
+import com.fasterxml.jackson.databind.DeserializationContext
+import com.fasterxml.jackson.databind.JsonNode
 import com.netflix.spinnaker.keel.jackson.PropertyNamePolymorphicDeserializer
 
 class ContainerProviderDeserializer :
   PropertyNamePolymorphicDeserializer<ContainerProvider>(ContainerProvider::class.java) {
-  override fun identifySubType(fieldNames: Collection<String>): Class<out ContainerProvider> =
+  override fun identifySubType(root: JsonNode, context: DeserializationContext, fieldNames: Collection<String>): Class<out ContainerProvider> =
     when {
       "reference" in fieldNames -> ReferenceProvider::class.java
       "tagVersionStrategy" in fieldNames -> VersionedTagProvider::class.java
