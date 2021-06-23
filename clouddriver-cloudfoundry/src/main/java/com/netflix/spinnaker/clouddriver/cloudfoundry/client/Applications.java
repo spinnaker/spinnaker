@@ -329,13 +329,23 @@ public class Applications {
                     vcap ->
                         vcap.getValue().stream()
                             .map(
-                                instance ->
-                                    CloudFoundryServiceInstance.builder()
-                                        .serviceInstanceName(vcap.getKey())
-                                        .name(instance.getName())
-                                        .plan(instance.getPlan())
-                                        .tags(instance.getTags())
-                                        .build()))
+                                instance -> {
+                                  CloudFoundryServiceInstance.CloudFoundryServiceInstanceBuilder
+                                      cloudFoundryServiceInstanceBuilder =
+                                          CloudFoundryServiceInstance.builder()
+                                              .serviceInstanceName(vcap.getKey())
+                                              .name(instance.getName())
+                                              .plan(instance.getPlan())
+                                              .tags(instance.getTags());
+                                  if (instance.getLastOperation() != null
+                                      && instance.getLastOperation().getState() != null) {
+                                    cloudFoundryServiceInstanceBuilder
+                                        .status(instance.getLastOperation().getState().toString())
+                                        .lastOperationDescription(
+                                            instance.getLastOperation().getDescription());
+                                  }
+                                  return cloudFoundryServiceInstanceBuilder.build();
+                                }))
                 .collect(toList());
 
     Map<String, Object> environmentVars =

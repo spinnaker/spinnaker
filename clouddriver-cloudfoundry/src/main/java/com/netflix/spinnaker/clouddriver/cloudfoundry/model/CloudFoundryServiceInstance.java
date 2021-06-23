@@ -47,6 +47,9 @@ public class CloudFoundryServiceInstance implements ServiceInstance {
   String status;
 
   @JsonView(Views.Cache.class)
+  String lastOperationDescription;
+
+  @JsonView(Views.Cache.class)
   Set<String> tags;
 
   @JsonView(Views.Cache.class)

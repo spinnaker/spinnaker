@@ -359,6 +359,7 @@ public class ServiceInstances {
                     .planId(r.getEntity().getServicePlanGuid())
                     .type(r.getEntity().getType().toString())
                     .status(r.getEntity().getLastOperation().getState().toString())
+                    .lastOperationDescription(r.getEntity().getLastOperation().getDescription())
                     .id(r.getMetadata().getGuid())
                     .build())
         .orElse(null);

@@ -17,8 +17,7 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ConfigFeatureFlag.ConfigFlag.SERVICE_INSTANCE_SHARING;
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.State.IN_PROGRESS;
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.State.SUCCEEDED;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.State.*;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.Type.*;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ServiceInstance.Type.MANAGED_SERVICE_INSTANCE;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ServiceInstance.Type.USER_PROVIDED_SERVICE_INSTANCE;
@@ -1119,6 +1118,26 @@ class ServiceInstancesTest {
   }
 
   @Test
+  void getServiceInstanceShouldReturnAServiceInstanceWithStatusWhenExactlyOneIsReturnedFromApi() {
+    when(serviceInstanceService.all(any(), any()))
+        .thenAnswer(invocation -> Calls.response(Response.success(createServiceInstancePage())));
+
+    CloudFoundryServiceInstance service =
+        serviceInstances.getOsbServiceInstance(cloudFoundrySpace, "up-service-instance-name");
+
+    assertThat(service).isNotNull();
+    CloudFoundryServiceInstance expected =
+        CloudFoundryServiceInstance.builder()
+            .id("up-service-instance-guid")
+            .type(MANAGED_SERVICE_INSTANCE.toString())
+            .serviceInstanceName("up-service-instance-name")
+            .status(FAILED.toString())
+            .lastOperationDescription("Custom description")
+            .build();
+    assertThat(service).isEqualToComparingFieldByFieldRecursively(expected);
+  }
+
+  @Test
   void getOsbServiceInstanceShouldThrowAnExceptionWhenMultipleServicesAreReturnedFromApi() {
     when(serviceInstanceService.all(any(), any()))
         .thenAnswer(
@@ -1389,6 +1408,20 @@ class ServiceInstancesTest {
   private Page<UserProvidedServiceInstance> createUserProvidedServiceInstancePage() {
     UserProvidedServiceInstance serviceInstance = new UserProvidedServiceInstance();
     serviceInstance.setName("up-service-instance-name").setTags(singleton("spinnakerVersion-v000"));
+    return Page.singleton(serviceInstance, "up-service-instance-guid");
+  }
+
+  private Page<ServiceInstance> createServiceInstancePage() {
+    ServiceInstance serviceInstance = new ServiceInstance();
+    serviceInstance.setName("up-service-instance-name").setTags(singleton("spinnakerVersion-v000"));
+
+    LastOperation lastOperation = new LastOperation();
+    lastOperation.setState(FAILED);
+    lastOperation.setDescription("Custom description");
+
+    serviceInstance.setLastOperation(lastOperation);
+    serviceInstance.setType(MANAGED_SERVICE_INSTANCE);
+
     return Page.singleton(serviceInstance, "up-service-instance-guid");
   }
 

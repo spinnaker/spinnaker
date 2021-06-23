@@ -26,6 +26,7 @@ import lombok.Data;
 public class LastOperation {
   private LastOperation.Type type;
   private LastOperation.State state;
+  private String description;
 
   public enum Type {
     CREATE("create"),
