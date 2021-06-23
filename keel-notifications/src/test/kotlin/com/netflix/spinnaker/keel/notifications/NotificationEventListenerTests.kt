@@ -43,7 +43,7 @@ import com.netflix.spinnaker.time.MutableClock
 import com.slack.api.model.kotlin_extension.block.SectionBlockBuilder
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import io.mockk.every
+import io.mockk.coEvery as every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
@@ -290,24 +290,24 @@ class NotificationEventListenerTests : JUnit5Minutests {
       test("the right (pinned) slack notification was sent out just once") {
         subject.onPinnedNotification(pinnedNotification)
         verify(exactly = 1) {
-          pinnedNotificationHandler.sendMessage(any(), any())
+          pinnedNotificationHandler.sendMessage(any(), any(), any())
         }
         verify(exactly = 0) {
-          unpinnedNotificationHandler.sendMessage(any(), any())
+          unpinnedNotificationHandler.sendMessage(any(), any(), any())
         }
       }
 
       test("only slack notifications are sent out") {
         subject.onPinnedNotification(pinnedNotification.copy(pin = pin.copy(targetEnvironment = "production")))
         verify(exactly = 2) {
-          pinnedNotificationHandler.sendMessage(any(), any())
+          pinnedNotificationHandler.sendMessage(any(), any(), any())
         }
       }
 
       test("don't send a notification if an environment was not found") {
         subject.onPinnedNotification(pinnedNotification.copy(pin = pin.copy(targetEnvironment = "test#2")))
         verify(exactly = 0) {
-          pinnedNotificationHandler.sendMessage(any(), any())
+          pinnedNotificationHandler.sendMessage(any(), any(), any())
         }
       }
     }
@@ -321,7 +321,7 @@ class NotificationEventListenerTests : JUnit5Minutests {
       test("sending pause notifications") {
         subject.onApplicationActuationPaused(pausedNotification)
         verify(exactly = 4) {
-          pausedNotificationHandler.sendMessage(any(), any())
+          pausedNotificationHandler.sendMessage(any(), any(), any())
         }
       }
     }
@@ -338,7 +338,7 @@ class NotificationEventListenerTests : JUnit5Minutests {
       test("send notifications to relevant environments only") {
         subject.onLifecycleEvent(lifecycleEvent)
         verify(exactly = 2) {
-          lifecycleEventNotificationHandler.sendMessage(any(), any())
+          lifecycleEventNotificationHandler.sendMessage(any(), any(), any())
         }
       }
     }
@@ -363,14 +363,14 @@ class NotificationEventListenerTests : JUnit5Minutests {
       test("send successful deployment notifications using the right handler to the right env") {
         subject.onArtifactVersionDeployed(artifactDeployedNotification)
         verify(exactly = 1) {
-          artifactDeployedNotificationHandler.sendMessage(any(), any())
+          artifactDeployedNotificationHandler.sendMessage(any(), any(), any())
         }
       }
 
       test("send vetoed deployment notifications using the right handler to the right env") {
         subject.onArtifactVersionVetoed(artifactVersionVetoedNotification)
         verify(exactly = 2) {
-          artifactDeployedNotificationHandler.sendMessage(any(), any())
+          artifactDeployedNotificationHandler.sendMessage(any(), any(), any())
         }
       }
 
@@ -379,14 +379,14 @@ class NotificationEventListenerTests : JUnit5Minutests {
           targetEnvironment = singleArtifactEnvironments.find { it.name == "staging" }!!
         ))
         verify(exactly = 0) {
-          artifactDeployedNotificationHandler.sendMessage(any(), any())
+          artifactDeployedNotificationHandler.sendMessage(any(), any(), any())
         }
       }
 
       test("send failed deployment notifications using right handler to right env") {
         subject.onArtifactVersionDeployFailed(artifactDeploymentFailedNotification)
         verify(exactly = 1) {
-          artifactDeployedNotificationHandler.sendMessage(any(), any())
+          artifactDeployedNotificationHandler.sendMessage(any(), any(), any())
         }
       }
 
@@ -448,7 +448,7 @@ class NotificationEventListenerTests : JUnit5Minutests {
       test("verification failed, send notification with right handler") {
         subject.onVerificationCompletedNotification(verificationCompletedNotification)
         verify(exactly = 1) {
-          verificationCompletedNotificationHandler.sendMessage(any(), any())
+          verificationCompletedNotificationHandler.sendMessage(any(), any(), any())
         }
       }
 
@@ -457,7 +457,7 @@ class NotificationEventListenerTests : JUnit5Minutests {
           status = ConstraintStatus.PASS
         ))
         verify(exactly = 0) {
-          verificationCompletedNotificationHandler.sendMessage(any(), any())
+          verificationCompletedNotificationHandler.sendMessage(any(), any(), any())
         }
       }
 
@@ -467,7 +467,7 @@ class NotificationEventListenerTests : JUnit5Minutests {
           environmentName = "test"
         ))
         verify(exactly = 1) {
-          verificationCompletedNotificationHandler.sendMessage(any(), any())
+          verificationCompletedNotificationHandler.sendMessage(any(), any(), any())
         }
       }
 
@@ -476,7 +476,7 @@ class NotificationEventListenerTests : JUnit5Minutests {
           status = ConstraintStatus.OVERRIDE_FAIL
         ))
         verify(exactly = 0) {
-          verificationCompletedNotificationHandler.sendMessage(any(), any())
+          verificationCompletedNotificationHandler.sendMessage(any(), any(), any())
         }
       }
     }

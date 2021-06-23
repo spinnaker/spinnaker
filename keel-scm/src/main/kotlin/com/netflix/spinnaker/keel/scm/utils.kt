@@ -2,7 +2,11 @@ package com.netflix.spinnaker.keel.scm
 
 import com.netflix.spectator.api.BasicTag
 import com.netflix.spinnaker.keel.api.scm.CodeEvent
+import com.netflix.spinnaker.keel.api.scm.CommitCreatedEvent
 import com.netflix.spinnaker.keel.front50.model.Application
+import com.netflix.spinnaker.keel.notifications.DeliveryConfigImportFailed
+import org.springframework.context.ApplicationEventPublisher
+import java.time.Instant
 
 internal val DELIVERY_CONFIG_RETRIEVAL_ERROR = listOf("type" to "deliveryConfig.retrieval", "status" to "error")
 internal val DELIVERY_CONFIG_RETRIEVAL_SUCCESS = listOf("type" to "deliveryConfig.retrieval", "status" to "success")
@@ -28,3 +32,16 @@ fun CodeEvent.metricTags(application: String? = null, extraTags: Iterable<Pair<S
 fun Iterable<Pair<String, String>>.toTags() = map { it.toTags() }
 
 fun Pair<String, String>.toTags() = BasicTag(first, second)
+
+fun ApplicationEventPublisher.publishDeliveryConfigImportFailed(application: String, event: CommitCreatedEvent, timestamp: Instant) {
+  with(event) {
+    publishEvent(DeliveryConfigImportFailed(
+      triggeredAt = timestamp,
+      application = application,
+      repoType = repoType,
+      projectKey = projectKey,
+      repoSlug = repoSlug,
+      commitHash = commitHash
+    ))
+  }
+}

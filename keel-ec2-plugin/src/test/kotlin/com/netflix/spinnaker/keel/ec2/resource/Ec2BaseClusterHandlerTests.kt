@@ -116,10 +116,10 @@ class Ec2BaseClusterHandlerTests : BaseClusterHandlerTests<ClusterSpec, ServerGr
 
   private fun ServerGroup.withDoubleCapacity(): ServerGroup =
     copy(
-      capacity = Capacity(
+      capacity = Capacity.DefaultCapacity(
         min = capacity.min * 2,
         max = capacity.max * 2,
-        desired = capacity.desired!! * 2
+        desired = capacity.desired * 2
       )
     )
 

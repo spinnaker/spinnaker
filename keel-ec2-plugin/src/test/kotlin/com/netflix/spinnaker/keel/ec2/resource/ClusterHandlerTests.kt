@@ -14,6 +14,7 @@ import com.netflix.spinnaker.keel.api.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.CapacitySpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.CustomizedMetricSpecification
 import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1_1
@@ -153,7 +154,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
           keyPair = "nf-keypair-test-fake",
           instanceMonitoring = false
         ),
-        capacity = Capacity(1, 6),
+        capacity = CapacitySpec(1, 6),
         scaling = Scaling(
           targetTrackingPolicies = setOf(
             TargetTrackingPolicy(
@@ -299,7 +300,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
             resource,
             DefaultResourceDiff(
               serverGroups.map {
-                it.copy(scaling = Scaling(), capacity = Capacity(2, 2, 2))
+                it.copy(scaling = Scaling(), capacity = Capacity.DefaultCapacity(2, 2, 2))
               }.byRegion(),
               emptyMap()
             )
@@ -1047,18 +1048,18 @@ private fun <E, T : Iterable<E>> Assertion.Builder<T>.containsDistinctElements()
 
 private fun ServerGroup.withDoubleCapacity(): ServerGroup =
   copy(
-    capacity = Capacity(
+    capacity = Capacity.DefaultCapacity(
       min = capacity.min * 2,
       max = capacity.max * 2,
-      desired = when (capacity.desired) {
-        null -> null
-        else -> capacity.desired!! * 2
-      }
+      desired = capacity.desired * 2
     )
   )
 
 private fun ServerGroup.withNoScalingPolicies(): ServerGroup =
-  copy(scaling = Scaling(), capacity = capacity.copy(desired = capacity.max))
+  copy(
+    scaling = Scaling(),
+    capacity = Capacity.DefaultCapacity(min = capacity.min, max = capacity.max, desired = capacity.max)
+  )
 
 private fun ServerGroup.withDifferentInstanceType(): ServerGroup =
   copy(

@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.notifications.slack.handlers
 
+import com.netflix.spinnaker.keel.api.NotificationDisplay
 import com.netflix.spinnaker.keel.notifications.NotificationType
 import com.netflix.spinnaker.keel.notifications.slack.SlackNotificationEvent
 
@@ -11,7 +12,7 @@ import com.netflix.spinnaker.keel.notifications.slack.SlackNotificationEvent
 interface SlackNotificationHandler<T : SlackNotificationEvent> {
   val supportedTypes: List<NotificationType>
 
-  fun sendMessage(notification: T, channel: String)
+  fun sendMessage(notification: T, channel: String, notificationDisplay: NotificationDisplay)
 
 }
 

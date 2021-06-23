@@ -10,8 +10,8 @@ import com.netflix.spinnaker.keel.api.artifacts.ArtifactOriginFilter
 import com.netflix.spinnaker.keel.api.artifacts.BranchFilter
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.BRANCH_JOB_COMMIT_BY_JOB
-import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.CapacitySpec
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.api.titus.ResourcesSpec
@@ -99,7 +99,7 @@ internal class TitusClusterExportTests : JUnit5Minutests {
       regions = setOf(SimpleRegionSpec("us-east-1"), SimpleRegionSpec("us-west-2"))
     ),
     _defaults = TitusServerGroupSpec(
-      capacity = Capacity(1, 6, 4),
+      capacity = CapacitySpec(1, 6, 4),
       dependencies = ClusterDependencies(
         loadBalancerNames = setOf("keel-test-frontend"),
         securityGroupNames = setOf(sg1West.name)

@@ -342,6 +342,7 @@ internal class RequiredLoadBalancerVetoTests : JUnit5Minutests {
     moniker = Moniker("fnord", "elb"), // TODO: parse from name
     loadBalancerName = loadBalancerName,
     availabilityZones = setOf("a", "b", "c").map { "$region$it" }.toSet(),
+    dnsName = "internal-$loadBalancerName-1234567890.$region.elb.amazonaws.com",
     vpcId = vpcIds.getValue(account to region),
     subnets = setOf(),
     scheme = "internal",
@@ -365,6 +366,7 @@ internal class RequiredLoadBalancerVetoTests : JUnit5Minutests {
     ApplicationLoadBalancerModel(
       moniker = Moniker(resourceSpec.application, "stub", "alb"),
       loadBalancerName = "${resourceSpec.application}-stub-alb",
+      dnsName = "${resourceSpec.application}-stub-alb-1234567890.$region.elb.amazonaws.com",
       targetGroups = targetGroupNames.map { targetGroupName ->
         TargetGroup(
           targetGroupName = targetGroupName,
@@ -403,6 +405,7 @@ internal class RequiredLoadBalancerVetoTests : JUnit5Minutests {
     NetworkLoadBalancerModel(
       moniker = Moniker(resourceSpec.application, "stub", "nlb"),
       loadBalancerName = "${resourceSpec.application}-stub-nlb",
+      dnsName = "${resourceSpec.application}-stub-nlb-1234567890.$region.elb.amazonaws.com",
       vpcId = vpcIds.getValue(account to region),
       subnets = emptySet(),
       availabilityZones = setOf("a", "b", "c").map { "$region$it" }.toSet(),

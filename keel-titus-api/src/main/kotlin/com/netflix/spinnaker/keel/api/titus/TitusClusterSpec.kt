@@ -30,8 +30,8 @@ import com.netflix.spinnaker.keel.api.RedBlack
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.DOCKER
-import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.CapacitySpec
 import com.netflix.spinnaker.keel.api.schema.Factory
 import com.netflix.spinnaker.keel.api.schema.Optional
 import com.netflix.spinnaker.keel.docker.ContainerProvider
@@ -61,7 +61,7 @@ data class TitusClusterSpec(
     deployWith: ClusterDeployStrategy = RedBlack(),
     @Optional locations: SimpleLocations,
     container: ContainerProvider,
-    capacity: Capacity?,
+    capacity: CapacitySpec?,
     constraints: TitusServerGroup.Constraints?,
     env: Map<String, String>?,
     containerAttributes: Map<String, String>?,
@@ -95,8 +95,6 @@ data class TitusClusterSpec(
   )
 
   override val id = "${locations.account}:$moniker"
-
-  override val displayName = "Titus Cluster $moniker"
 
   val defaults: TitusServerGroupSpec
     get() = _defaults
@@ -145,7 +143,7 @@ data class TitusClusterSpec(
 }
 
 data class TitusServerGroupSpec(
-  val capacity: Capacity? = null,
+  val capacity: CapacitySpec? = null,
   val capacityGroup: String? = null,
   val constraints: TitusServerGroup.Constraints? = null,
   val dependencies: ClusterDependencies? = null,

@@ -42,6 +42,11 @@
           <converter>com.netflix.spinnaker.jooq.JsonToMapConverter</converter>
           <includeExpression>(DELIVERY_CONFIG|ACTION_STATE)\\.METADATA</includeExpression>
         </forcedType>
+        <forcedType>
+          <userType>com.netflix.spinnaker.keel.notifications.DismissibleNotification</userType>
+          <converter>com.netflix.spinnaker.jooq.DismissibleNotificationConverter</converter>
+          <includeExpression>DISMISSIBLE_NOTIFICATION\\.JSON</includeExpression>
+        </forcedType>
         <!-- Automatically convert remaining JSON columns to String -->
         <forcedType>
           <name>LONGVARCHAR</name>

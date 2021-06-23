@@ -1,6 +1,8 @@
 package com.netflix.spinnaker.keel.notifications.slack.handlers
 
 import com.netflix.spinnaker.config.BaseUrlConfig
+import com.netflix.spinnaker.keel.api.NotificationDisplay
+import com.netflix.spinnaker.keel.api.NotificationDisplay.NORMAL
 import com.netflix.spinnaker.keel.api.NotificationFrequency
 import com.netflix.spinnaker.keel.api.ScmInfo
 import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
@@ -89,7 +91,7 @@ class PluginNotificationHandlerTests {
   fun `generates a notification without button`() {
     val blocks = slot<List<LayoutBlock>>()
 
-    subject.sendMessage(slackNotification, "#channel")
+    subject.sendMessage(slackNotification, "#channel", NORMAL)
     verify {
       slackService.sendSlackNotification("#channel", capture(blocks), "myapp", any(), any())
     }
@@ -103,7 +105,7 @@ class PluginNotificationHandlerTests {
   fun `generates a notification with button`() {
     val blocks = slot<List<LayoutBlock>>()
 
-    subject.sendMessage(slackNotification.copy(config = notificationWithButton), "#channel")
+    subject.sendMessage(slackNotification.copy(config = notificationWithButton), "#channel", NORMAL)
     verify {
       slackService.sendSlackNotification("#channel", capture(blocks), "myapp", any(), any())
     }
@@ -117,7 +119,7 @@ class PluginNotificationHandlerTests {
   fun `notifications not sent if disabled`() {
     every { springEnv.getProperty("keel.plugins.notifications.enabled", Boolean::class.java, true) } returns false
 
-    subject.sendMessage(slackNotification.copy(config = notificationWithButton), "#channel")
+    subject.sendMessage(slackNotification.copy(config = notificationWithButton), "#channel", NORMAL)
     verify (exactly = 0) {
       slackService.sendSlackNotification("#channel", any(), "myapp", any(), any())
     }

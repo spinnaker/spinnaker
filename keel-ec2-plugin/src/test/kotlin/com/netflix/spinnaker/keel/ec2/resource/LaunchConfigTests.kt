@@ -7,9 +7,9 @@ import com.netflix.spinnaker.keel.api.StaggeredRegion
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.ec2.CLOUD_PROVIDER
-import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.CapacitySpec
 import com.netflix.spinnaker.keel.api.ec2.CustomizedMetricSpecification
 import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1_1
 import com.netflix.spinnaker.keel.api.ec2.LaunchConfigurationSpec
@@ -93,7 +93,7 @@ internal class LaunchConfigTests {
   fun serverGroupSpec(ramdiskId: String?) =
     ClusterSpec.ServerGroupSpec(
       launchConfiguration = launchConfigurationSpec(ramdiskId=ramdiskId),
-      capacity = Capacity(1, 6),
+      capacity = CapacitySpec(1, 6),
       scaling = Scaling(
         targetTrackingPolicies = setOf(
           TargetTrackingPolicy(

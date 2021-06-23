@@ -57,8 +57,10 @@ internal class MemoryCloudDriverCacheTest {
   )
 
   val certificates = listOf(
-    Certificate("cert-1", "arn:cert-1"),
-    Certificate("cert-2", "arn:cert-2")
+    Certificate("cert-1", "prod", "arn:prod:cert-1"),
+    Certificate("cert-2", "prod", "arn:prod:cert-2"),
+    Certificate("cert-1", "test", "arn:test:cert-1"),
+    Certificate("cert-2", "test", "arn:test:cert-2")
   )
 
   @Test
@@ -224,18 +226,36 @@ internal class MemoryCloudDriverCacheTest {
 
   @ParameterizedTest
   @ValueSource(strings = ["cert-1", "cert-2"])
-  fun `certificates are looked up from CloudDriver when requested by name`(name: String) {
+  fun `certificates are looked up from CloudDriver when requested by account and name`(name: String) {
     every { cloudDriver.getCertificates() } returns certificates
 
-    expectThat(subject.certificateByName(name))
+    expectThat(subject.certificateByAccountAndName("test", name))
       .get { serverCertificateName } isEqualTo name
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = ["prod", "test"])
+  fun `certificates are correctly distinguished by account`(account: String) {
+    every { cloudDriver.getCertificates() } returns certificates
+
+    expectThat(subject.certificateByAccountAndName(account, "cert-1")) {
+      get { serverCertificateName } isEqualTo "cert-1"
+      get { account } isEqualTo account
+    }
   }
 
   @Test
   fun `an unknown certificate name throws an exception`() {
     every { cloudDriver.getCertificates() } returns certificates
 
-    expectThrows<ResourceNotFound> { subject.certificateByName("does-not-exist") }
+    expectThrows<ResourceNotFound> { subject.certificateByAccountAndName("test", "does-not-exist") }
+  }
+
+  @Test
+  fun `an unknown account for a known certificate name throws an exception`() {
+    every { cloudDriver.getCertificates() } returns certificates
+
+    expectThrows<ResourceNotFound> { subject.certificateByAccountAndName("fnord", "cert-1") }
   }
 
   @ParameterizedTest
@@ -243,7 +263,7 @@ internal class MemoryCloudDriverCacheTest {
   fun `subsequent requests for a certificate by name hit the cache`(name: String) {
     every { cloudDriver.getCertificates() } returns certificates
 
-    repeat(4) { subject.certificateByName(name) }
+    repeat(4) { subject.certificateByAccountAndName("test", name) }
 
     verify(exactly = 1) { cloudDriver.getCertificates() }
   }
@@ -256,7 +276,7 @@ internal class MemoryCloudDriverCacheTest {
 
     listOf("cert-1", "cert-2")
       .forEach {
-        subject.certificateByName(it)
+        subject.certificateByAccountAndName("test", it)
         // this test can be vulnerable to an occasional race condition where the 2nd read misses the
         // cache (seemingly due to the way the bulk load works). This seems to be sufficient to
         // prevent it
@@ -267,7 +287,7 @@ internal class MemoryCloudDriverCacheTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = ["arn:cert-1", "arn:cert-2"])
+  @ValueSource(strings = ["arn:prod:cert-1", "arn:prod:cert-2", "arn:test:cert-1", "arn:test:cert-2"])
   fun `certificates are looked up from CloudDriver when requested by ARN`(arn: String) {
     every { cloudDriver.getCertificates() } returns certificates
 
@@ -283,7 +303,7 @@ internal class MemoryCloudDriverCacheTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = ["arn:cert-1", "arn:cert-2"])
+  @ValueSource(strings = ["arn:prod:cert-1", "arn:prod:cert-2", "arn:test:cert-1", "arn:test:cert-2"])
   fun `subsequent requests for a certificate by ARN hit the cache`(arn: String) {
     every { cloudDriver.getCertificates() } returns certificates
 
@@ -298,7 +318,7 @@ internal class MemoryCloudDriverCacheTest {
   fun `all certs are cached at once when requested by ARN`() {
     every { cloudDriver.getCertificates() } returns certificates
 
-    listOf("arn:cert-1", "arn:cert-2")
+    listOf("arn:prod:cert-1", "arn:prod:cert-2")
       .forEach {
         subject.certificateByArn(it)
         // this test can be vulnerable to an occasional race condition where the 2nd read misses the

@@ -37,6 +37,7 @@ import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_JOB_CO
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_TAG
 import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.CapacitySpec
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup.InstanceCounts
 import com.netflix.spinnaker.keel.api.plugins.BaseClusterHandler
 import com.netflix.spinnaker.keel.api.plugins.CurrentImages
@@ -479,7 +480,7 @@ class TitusClusterHandler(
    * @return `true` if the only changes in the diff are to capacity.
    */
   private fun ResourceDiff<TitusServerGroup>.isCapacityOnly(): Boolean =
-    current != null && affectedRootPropertyTypes.all { it == Capacity::class.java }
+    current != null && affectedRootPropertyTypes.all { Capacity::class.java.isAssignableFrom(it) }
 
   /**
    * @return true if the only difference is in the onlyEnabledServerGroup property
@@ -624,7 +625,7 @@ class TitusClusterHandler(
         account = placement.account,
         region = region
       ),
-      capacity = capacity.run { Capacity(min, max, desired) },
+      capacity = capacity.run { Capacity.DefaultCapacity(min, max, checkNotNull(desired)) },
       container = DigestProvider(
         organization = image.dockerImageName.split("/").first(),
         image = image.dockerImageName.split("/").last(),
@@ -676,7 +677,7 @@ class TitusClusterHandler(
 
   private fun TitusServerGroup.exportSpec(application: String): TitusServerGroupSpec {
     val defaults = TitusServerGroupSpec(
-      capacity = Capacity(1, 1, 1),
+      capacity = CapacitySpec(1, 1, 1),
       iamProfile = application + "InstanceProfile",
       resources = mapper.convertValue(Resources()),
       entryPoint = "",
@@ -690,7 +691,7 @@ class TitusClusterHandler(
     )
 
     val thisSpec = TitusServerGroupSpec(
-      capacity = capacity,
+      capacity = capacity.run { CapacitySpec(min, max, desired) },
       capacityGroup = capacityGroup,
       constraints = constraints,
       dependencies = dependencies,

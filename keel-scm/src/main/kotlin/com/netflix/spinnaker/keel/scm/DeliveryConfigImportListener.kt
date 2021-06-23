@@ -8,13 +8,16 @@ import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter.Companion.DEFAULT_MANIFEST_PATH
 import com.netflix.spinnaker.keel.igor.ScmService
+import com.netflix.spinnaker.keel.notifications.DeliveryConfigImportFailed
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.telemetry.safeIncrement
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.event.EventListener
 import org.springframework.core.env.Environment
 import org.springframework.stereotype.Component
+import java.time.Clock
 
 /**
  * Listens to commit events from applications' main source code branch to import their delivery configs from source.
@@ -26,7 +29,9 @@ class DeliveryConfigImportListener(
   private val front50Cache: Front50Cache,
   private val scmService: ScmService,
   private val springEnv: Environment,
-  private val spectator: Registry
+  private val spectator: Registry,
+  private val eventPublisher: ApplicationEventPublisher,
+  private val clock: Clock
 ) {
   companion object {
     private val log by lazy { LoggerFactory.getLogger(DeliveryConfigImportListener::class.java) }
@@ -90,6 +95,7 @@ class DeliveryConfigImportListener(
       } catch (e: Exception) {
         log.error("Error retrieving delivery config: $e", e)
         event.emitCounterMetric(CODE_EVENT_COUNTER, DELIVERY_CONFIG_RETRIEVAL_ERROR, app.name)
+        eventPublisher.publishDeliveryConfigImportFailed(app.name, event, clock.instant())
         return@forEach
       }
 

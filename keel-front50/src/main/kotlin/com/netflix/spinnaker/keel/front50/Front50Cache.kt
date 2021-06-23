@@ -86,14 +86,16 @@ class Front50Cache(
     log.debug("Priming Front50 application caches")
     runBlocking {
       try {
-        front50Service.allApplications(DEFAULT_SERVICE_ACCOUNT).forEach {
+        val apps = front50Service.allApplications(DEFAULT_SERVICE_ACCOUNT)
+        log.debug("Retrieved ${apps.size} applications from Front50")
+        apps.forEach {
           allApplicationsCache.put(it.name.toLowerCase(), CompletableFuture.supplyAsync { it })
           applicationsByNameCache.put(it.name.toLowerCase(), CompletableFuture.supplyAsync { it })
         }
+        log.debug("Added ${apps.size} applications to the caches")
       } catch (e: Exception) {
         log.error("Error priming application caches: $e. Performance will be degraded.")
       }
     }
   }
 }
-

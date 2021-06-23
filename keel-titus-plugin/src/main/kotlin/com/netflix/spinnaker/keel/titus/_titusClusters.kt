@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.titus
 
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.ec2.Capacity
+import com.netflix.spinnaker.keel.api.ec2.Capacity.DefaultCapacity
 import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.titus.TitusClusterSpec
 import com.netflix.spinnaker.keel.api.titus.TitusServerGroup
@@ -18,8 +19,18 @@ internal fun Iterable<TitusServerGroup>.byRegion(): Map<String, TitusServerGroup
 internal val TitusServerGroup.moniker: Moniker
   get() = parseMoniker(name)
 
-internal fun TitusClusterSpec.resolveCapacity(region: String) =
-  overrides[region]?.capacity ?: defaults.capacity ?: Capacity(1, 1, 1)
+internal fun TitusClusterSpec.resolveCapacity(region: String) : Capacity =
+  overrides[region]?.capacity?.run {
+    DefaultCapacity(
+      min,
+      max,
+      checkNotNull(desired) { "desired capacity must be specified if scaling policies are not used" })
+  } ?: defaults.capacity?.run {
+    DefaultCapacity(
+      min,
+      max,
+      checkNotNull(desired) { "desired capacity must be specified if scaling policies are not used" })
+  } ?: DefaultCapacity(1, 1, 1)
 
 internal val NETFLIX_CONTAINER_ENV_VARS = arrayOf("EC2_REGION", "NETFLIX_REGION", "NETFLIX_HOME_REGION")
 

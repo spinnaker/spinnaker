@@ -324,7 +324,7 @@ class ApplicationLoadBalancerHandler(
                 this + mapOf(
                   "certificates" to listOf(
                     mapOf(
-                      "certificateArn" to cloudDriverCache.certificateByName(certificateName).arn
+                      "certificateArn" to cloudDriverCache.certificateByAccountAndName(location.account, certificateName).arn
                     )
                   )
                 )

@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.titus.batch
 
 import com.netflix.spinnaker.keel.api.ec2.Capacity
+import com.netflix.spinnaker.keel.api.ec2.Capacity.DefaultCapacity
 import com.netflix.spinnaker.keel.api.titus.TitusServerGroup
 import java.time.Duration
 
@@ -25,7 +26,7 @@ data class ContainerJobConfig(
     disk = 256,
     networkMbps = 1024
   ),
-  val capacity: Capacity = Capacity(min = 1, max = 1, desired = 1),
+  val capacity: Capacity = DefaultCapacity(min = 1, max = 1, desired = 1),
   val credentials: String,
   val entrypoint: String = "",
   val runtimeLimit: Duration = Duration.ofSeconds(2700),

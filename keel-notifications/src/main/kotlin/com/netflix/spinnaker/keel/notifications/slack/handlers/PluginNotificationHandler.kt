@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.notifications.slack.handlers
 
 import com.netflix.spinnaker.config.BaseUrlConfig
+import com.netflix.spinnaker.keel.api.NotificationDisplay
 import com.netflix.spinnaker.keel.api.plugins.PluginNotificationsStatus.FAILED
 import com.netflix.spinnaker.keel.api.plugins.PluginNotificationsStatus.SUCCEEDED
 import com.netflix.spinnaker.keel.notifications.NotificationType.*
@@ -33,7 +34,11 @@ class PluginNotificationHandler(
   private val pluginNotificationsEnabled: Boolean
     get() = springEnv.getProperty("keel.plugins.notifications.enabled", Boolean::class.java, true)
 
-  override fun sendMessage(notification: SlackPluginNotification, channel: String) {
+  override fun sendMessage(
+    notification: SlackPluginNotification,
+    channel: String,
+    notificationDisplay: NotificationDisplay
+  ) {
     if (!pluginNotificationsEnabled) {
       return
     }

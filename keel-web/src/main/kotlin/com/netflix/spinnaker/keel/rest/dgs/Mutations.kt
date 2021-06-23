@@ -3,37 +3,45 @@ package com.netflix.spinnaker.keel.rest.dgs
 import com.netflix.graphql.dgs.DgsComponent
 import com.netflix.graphql.dgs.DgsData
 import com.netflix.graphql.dgs.InputArgument
-import com.netflix.graphql.dgs.exceptions.DgsEntityNotFoundException
 import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
-import com.netflix.spinnaker.keel.api.action.ActionRepository
 import com.netflix.spinnaker.keel.api.action.ActionType
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.constraints.UpdatedConstraintStatus
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
-import com.netflix.spinnaker.keel.core.api.MANUAL_JUDGEMENT_CONSTRAINT_TYPE
 import com.netflix.spinnaker.keel.exceptions.InvalidConstraintException
 import com.netflix.spinnaker.keel.graphql.types.MdAction
-import com.netflix.spinnaker.keel.graphql.types.MdActionType
 import com.netflix.spinnaker.keel.graphql.types.MdArtifactVersionActionPayload
 import com.netflix.spinnaker.keel.graphql.types.MdConstraintStatus
 import com.netflix.spinnaker.keel.graphql.types.MdConstraintStatusPayload
+import com.netflix.spinnaker.keel.graphql.types.MdDismissNotificationPayload
 import com.netflix.spinnaker.keel.graphql.types.MdMarkArtifactVersionAsGoodPayload
 import com.netflix.spinnaker.keel.graphql.types.MdRetryArtifactActionPayload
 import com.netflix.spinnaker.keel.graphql.types.MdUnpinArtifactVersionPayload
 import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
+import com.netflix.spinnaker.keel.persistence.DismissibleNotificationRepository
 import com.netflix.spinnaker.keel.services.ApplicationService
 import com.netflix.spinnaker.keel.veto.unhappy.UnhappyVeto
+import de.huxhorn.sulky.ulid.ULID
+import org.slf4j.LoggerFactory
 import org.springframework.web.bind.annotation.RequestHeader
 
+/**
+ * Component responsible for encapsulating GraphQL mutations exposed on the API.
+ */
 @DgsComponent
 class Mutations(
   private val applicationService: ApplicationService,
   private val actuationPauser: ActuationPauser,
   private val unhappyVeto: UnhappyVeto,
-  private val deliveryConfigRepository: DeliveryConfigRepository
+  private val deliveryConfigRepository: DeliveryConfigRepository,
+  private val notificationRepository: DismissibleNotificationRepository
 ) {
+
+  companion object {
+    private val log by lazy { LoggerFactory.getLogger(Mutations::class.java) }
+  }
 
   @DgsData(parentType = "Mutation", field = "recheckUnhappyResource")
   fun recheckUnhappyResource(
@@ -151,6 +159,18 @@ class Mutations(
       )
     }
   }
+
+  /**
+   * Dismisses a notification, given it's ID.
+   */
+  @DgsData(parentType = "Mutation", field = "dismissNotification")
+  fun dismissNotification(
+    @InputArgument payload: MdDismissNotificationPayload,
+    @RequestHeader("X-SPINNAKER-USER") user: String
+  ): Boolean {
+    log.debug("Dismissing notification with ID=${payload.id} (by user $user)")
+    return notificationRepository.dismissNotification(ULID.parseULID(payload.id), user)
+  }
 }
 
 fun MdConstraintStatusPayload.toUpdatedConstraintStatus(): UpdatedConstraintStatus =
@@ -178,7 +198,6 @@ fun MdArtifactVersionActionPayload.toEnvironmentArtifactVeto(): EnvironmentArtif
     comment = comment,
     vetoedBy = null
   )
-
 
 fun MdConstraintStatus.toConstraintStatus(): ConstraintStatus =
   when (this) {

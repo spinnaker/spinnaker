@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.notifications
 import com.netflix.spinnaker.config.BaseUrlConfig
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.NotificationConfig
+import com.netflix.spinnaker.keel.api.NotificationDisplay.NORMAL
 import com.netflix.spinnaker.keel.api.NotificationFrequency
 import com.netflix.spinnaker.keel.api.NotificationFrequency.normal
 import com.netflix.spinnaker.keel.api.NotificationFrequency.quiet
@@ -68,6 +69,7 @@ import com.netflix.spinnaker.keel.notifications.slack.handlers.SlackNotification
 import com.netflix.spinnaker.keel.notifications.slack.handlers.supporting
 import com.netflix.spinnaker.keel.telemetry.ArtifactVersionVetoed
 import com.netflix.spinnaker.keel.telemetry.VerificationCompleted
+import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
@@ -144,7 +146,7 @@ class NotificationEventListener(
 
       sendSlackMessage(config,
         SlackUnpinnedNotification(
-          latestArtifact = latestArtifact?.copy(reference = pinnedEnv.artifact.reference),
+          latestApprovedArtifactVersion = latestArtifact?.copy(reference = pinnedEnv.artifact.reference),
           pinnedArtifact = pinnedArtifact,
           application = config.application,
           time = clock.instant(),
@@ -423,6 +425,8 @@ class NotificationEventListener(
                   currentArtifact = currentArtifact,
                   deliveryArtifact = deliveryArtifact,
                   pinnedArtifact = pinnedArtifact,
+                  author = slackDetail.author,
+                  display = slackDetail.display ?: NORMAL
                 ),
                 MANUAL_JUDGMENT_UPDATE,
                 environment.name
@@ -508,8 +512,9 @@ class NotificationEventListener(
     notifications
       .filter { shouldSend(it, type) }
       .groupBy { it.address }
-      .forEach { (channel, _) ->
-        handler.sendMessage(message, channel)
+      .forEach { (channel, notificationConfigs) ->
+        val display = notificationConfigs.mapNotNull { it.display }.toSet().firstOrNull() ?: NORMAL
+        handler.sendMessage(message, channel, display)
       }
   }
 
@@ -600,16 +605,18 @@ class NotificationEventListener(
     val environmentsLink = "${baseUrlConfig.baseUrl}/#/applications/${config.application}/environments/overview"
     val markdownComment = config.resourcesUsing(deliveryArtifact.reference, targetEnvironment.name)
       .joinToString("\n\n") { resource ->
-        "✅ &nbsp;[${resource.displayName} deployed to preview environment]($environmentsLink)" +
-          "\n\nEndpoints:\n" + networkEndpointProvider.getNetworkEndpoints(resource)
-            .groupBy { it.region }
-            .map { (region, endpoints) ->
-              "- $region:\n" +
-                endpoints.joinToString("\n") { endpoint ->
-                  // TODO: for load balancers infer the protocol from the listeners
-                  "  - [${endpoint.address}](https://${endpoint.address})"
-                }
-            }.joinToString("\n")
+        val endpoints = runBlocking {
+          networkEndpointProvider.getNetworkEndpoints(resource)
+        }.groupBy { it.region }
+
+        "✅ &nbsp;[${resource.kind.friendlyName} ${resource.name} deployed to preview environment]($environmentsLink)" +
+          "\n\nEndpoints:\n" + endpoints.map { (region, endpoints) ->
+            "- $region:\n" +
+              endpoints.joinToString("\n") { endpoint ->
+                // TODO: for load balancers infer the protocol from the listeners
+                "  - [${endpoint.address}](https://${endpoint.address})"
+              }
+          }.joinToString("\n")
       }
     scmNotifier.commentOnPullRequest(config, targetEnvironment, markdownComment)
   }

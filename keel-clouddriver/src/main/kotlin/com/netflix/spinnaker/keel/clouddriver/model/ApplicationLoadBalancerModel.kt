@@ -13,6 +13,7 @@ data class ApplicationLoadBalancerModel(
   override val vpcId: String,
   override val subnets: Set<String>,
   override val scheme: String?,
+  override val dnsName: String,
   val idleTimeout: Int,
   val securityGroups: Set<String>,
   val listeners: List<ApplicationLoadBalancerListener>,

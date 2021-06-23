@@ -11,6 +11,9 @@ data class ResourceKind(
     }
   }
 
+  val friendlyName: String
+    get() = "${group.toTitleCase()} ${kind.toTitleCase()}"
+
   override fun toString(): String {
     return "$group/$kind@v$version"
   }
@@ -26,4 +29,7 @@ data class ResourceKind(
         ?.let { (group, kind, version) -> ResourceKind(group, kind, version) }
         ?: error("$value is not a valid resource kind")
   }
+
+  private fun String.toTitleCase() =
+    replace('-', ' ').capitalize()
 }

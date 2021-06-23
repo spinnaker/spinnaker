@@ -30,6 +30,7 @@ import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_JOB_CO
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_TAG
 import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.CapacitySpec
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup.InstanceCounts
 import com.netflix.spinnaker.keel.api.events.ArtifactVersionDeployed
 import com.netflix.spinnaker.keel.api.events.ArtifactVersionDeploying
@@ -129,7 +130,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
       regions = setOf(SimpleRegionSpec("us-east-1"), SimpleRegionSpec("us-west-2"))
     ),
     _defaults = TitusServerGroupSpec(
-      capacity = Capacity(1, 6, 4),
+      capacity = CapacitySpec(1, 6, 4),
       dependencies = ClusterDependencies(
         loadBalancerNames = setOf("keel-test-frontend"),
         securityGroupNames = setOf(sg1West.name)
@@ -711,10 +712,10 @@ class TitusClusterHandlerTests : JUnit5Minutests {
 
 private fun TitusServerGroup.withDoubleCapacity(): TitusServerGroup =
   copy(
-    capacity = Capacity(
+    capacity = Capacity.DefaultCapacity(
       min = capacity.min * 2,
       max = capacity.max * 2,
-      desired = capacity.desired!! * 2
+      desired = capacity.desired * 2
     )
   )
 

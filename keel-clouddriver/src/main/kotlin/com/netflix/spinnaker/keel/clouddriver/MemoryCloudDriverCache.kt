@@ -154,13 +154,20 @@ class MemoryCloudDriverCache(
         .getOrElse { ex -> throw CacheLoadingException("Error loading subnetsByPurpose cache", ex) }
     }
 
-  private val certificatesByName: AsyncLoadingCache<String, Certificate> =
+  private data class CertificateKey(val account: String, val name: String) {
+    constructor(certificate: Certificate) : this(
+      certificate.accountName,
+      certificate.serverCertificateName
+    )
+  }
+
+  private val certificatesByAccountAndName: AsyncLoadingCache<CertificateKey, Certificate> =
     cacheFactory
-      .asyncBulkLoadingCache("certificatesByName") {
+      .asyncBulkLoadingCache("certificatesByAccountAndName") {
         runCatching {
           cloudDriver
             .getCertificates()
-            .associateBy { it.serverCertificateName }
+            .associateBy { CertificateKey(it) }
         }
           .getOrElse { ex -> throw CacheLoadingException("Error loading certificatesByName cache", ex) }
       }
@@ -216,9 +223,9 @@ class MemoryCloudDriverCache(
       subnetsByPurpose.get(Triple(account, region, purpose)).await() ?: notFound("Subnet with purpose \"$purpose\" not found in $account:$region")
     }
 
-  override fun certificateByName(name: String): Certificate =
+  override fun certificateByAccountAndName(account: String, name: String): Certificate =
     runBlocking {
-      certificatesByName.get(name).await() ?: notFound("Certificate with name $name not found")
+      certificatesByAccountAndName.get(CertificateKey(account, name)).await() ?: notFound("Certificate with name $name not found")
     }
 
   override fun certificateByArn(arn: String): Certificate =

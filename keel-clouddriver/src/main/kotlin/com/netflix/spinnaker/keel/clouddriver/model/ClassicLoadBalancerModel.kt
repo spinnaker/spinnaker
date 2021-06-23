@@ -30,6 +30,7 @@ data class ClassicLoadBalancerModel(
 
   override val subnets: Set<String>,
   override val scheme: String?,
+  override val dnsName: String,
   val idleTimeout: Int,
   val securityGroups: Set<String>,
   val listenerDescriptions: List<ClassicLoadBalancerListenerDescription>,

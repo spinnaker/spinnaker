@@ -15,10 +15,12 @@ import com.netflix.spinnaker.keel.front50.model.ManagedDeliveryConfig
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
 import com.netflix.spinnaker.keel.igor.ScmService
 import com.netflix.spinnaker.keel.igor.model.Branch
+import com.netflix.spinnaker.keel.notifications.DeliveryConfigImportFailed
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.scm.DeliveryConfigImportListener.Companion.CODE_EVENT_COUNTER
 import com.netflix.spinnaker.keel.test.submittedResource
 import com.netflix.spinnaker.kork.exceptions.SystemException
+import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.TestContextBuilder
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -27,6 +29,7 @@ import io.mockk.just
 import io.mockk.coEvery as every
 import io.mockk.mockk
 import io.mockk.runs
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.core.env.Environment
 import strikt.api.expectThat
 import strikt.assertions.contains
@@ -41,7 +44,18 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
     val scmService: ScmService = mockk()
     val springEnv: Environment = mockk()
     val spectator: Registry = mockk()
-    val subject = DeliveryConfigImportListener(repository, importer, front50Cache, scmService, springEnv, spectator)
+    val clock = MutableClock()
+    val eventPublisher: ApplicationEventPublisher = mockk()
+    val subject = DeliveryConfigImportListener(
+      repository = repository,
+      deliveryConfigImporter = importer,
+      front50Cache = front50Cache,
+      scmService = scmService,
+      springEnv = springEnv,
+      spectator = spectator,
+      eventPublisher = eventPublisher,
+      clock = clock
+    )
 
     val configuredApp = Application(
       name = "fnord",
@@ -107,6 +121,10 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
           increment()
         } just runs
       }
+
+      every {
+        eventPublisher.publishEvent(any<Object>())
+      } just runs
 
       every {
         front50Cache.allApplications()
@@ -239,6 +257,12 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
           }
           expectThat(tags).one {
             contains(DELIVERY_CONFIG_RETRIEVAL_ERROR.toTags())
+          }
+        }
+
+        test("an event is published") {
+          verify {
+            eventPublisher.publishEvent(any<DeliveryConfigImportFailed>())
           }
         }
       }

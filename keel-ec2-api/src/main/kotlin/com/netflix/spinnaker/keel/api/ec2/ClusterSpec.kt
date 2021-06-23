@@ -1,11 +1,11 @@
 package com.netflix.spinnaker.keel.api.ec2
 
 import com.netflix.spinnaker.keel.api.ClusterDeployStrategy
+import com.netflix.spinnaker.keel.api.ComputeResourceSpec
 import com.netflix.spinnaker.keel.api.Dependency
 import com.netflix.spinnaker.keel.api.DependencyType.LOAD_BALANCER
 import com.netflix.spinnaker.keel.api.DependencyType.SECURITY_GROUP
 import com.netflix.spinnaker.keel.api.DependencyType.TARGET_GROUP
-import com.netflix.spinnaker.keel.api.ComputeResourceSpec
 import com.netflix.spinnaker.keel.api.Dependent
 import com.netflix.spinnaker.keel.api.ExcludedFromDiff
 import com.netflix.spinnaker.keel.api.Locations
@@ -87,8 +87,16 @@ private fun ClusterSpec.resolveLaunchConfiguration(region: SubnetAwareRegionSpec
   )
 }
 
-fun ClusterSpec.resolveCapacity(region: String) =
-  overrides[region]?.capacity ?: defaults.capacity ?: Capacity(1, 1, 1)
+fun ClusterSpec.resolveCapacity(region: String): Capacity =
+  overrides[region]?.resolveCapacity() ?: defaults.resolveCapacity() ?: Capacity.DefaultCapacity(1, 1, 1)
+
+fun ServerGroupSpec.resolveCapacity(): Capacity? =
+  if (capacity == null) {
+    null
+  } else if (scaling.hasScalingPolicies()) {
+    Capacity.AutoScalingCapacity(capacity)
+  } else
+    Capacity.DefaultCapacity(capacity)
 
 private fun ClusterSpec.resolveScaling(region: String): Scaling =
   Scaling(
@@ -136,7 +144,7 @@ data class ClusterSpec(
     deployWith: ClusterDeployStrategy = RedBlack(),
     @Optional locations: SubnetAwareLocations,
     launchConfiguration: LaunchConfigurationSpec? = null,
-    capacity: Capacity? = null,
+    capacity: CapacitySpec? = null,
     dependencies: ClusterDependencies? = null,
     health: HealthSpec? = null,
     scaling: Scaling? = null,
@@ -149,7 +157,7 @@ data class ClusterSpec(
     locations,
     ServerGroupSpec(
       launchConfiguration,
-      capacity,
+      capacity ,
       dependencies,
       health,
       scaling,
@@ -159,8 +167,6 @@ data class ClusterSpec(
   )
 
   override val id = "${locations.account}:$moniker"
-
-  override val displayName = "EC2 Cluster $moniker"
 
   /**
    * I have no idea why, but if I annotate the constructor property with @get:JsonUnwrapped, the
@@ -201,7 +207,7 @@ data class ClusterSpec(
 
   data class ServerGroupSpec(
     val launchConfiguration: LaunchConfigurationSpec? = null,
-    val capacity: Capacity? = null,
+    val capacity: CapacitySpec? = null,
     override val dependencies: ClusterDependencies? = null,
     val health: HealthSpec? = null,
     val scaling: Scaling? = null,
@@ -209,16 +215,20 @@ data class ClusterSpec(
   ) : ClusterDependencyContainer {
     init {
       // Require capacity.desired or scaling policies, or let them both be blank for constructing overrides
-      require(
-        capacity == null ||
-          (capacity.desired == null && scaling != null && scaling.hasScalingPolicies()) ||
-          (capacity.desired != null && (scaling == null || !scaling.hasScalingPolicies())) ||
-          (capacity.desired == null && (scaling == null || !scaling.hasScalingPolicies()))
-      ) {
+      require(!(capacity?.desired != null && scaling.hasScalingPolicies())) {
         "capacity.desired and auto-scaling policies are mutually exclusive: current = $capacity, $scaling"
       }
     }
   }
+
+  /**
+   * Capacity definition with an optional [desired] which _must_ be `null` if the server group has scaling policies.
+   */
+  data class CapacitySpec(
+    val min: Int,
+    val max: Int,
+    val desired: Int? = null
+  )
 
   data class HealthSpec(
     val cooldown: Duration? = null,

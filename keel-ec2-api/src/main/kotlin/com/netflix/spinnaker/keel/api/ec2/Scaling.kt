@@ -26,10 +26,10 @@ data class Scaling(
   val suspendedProcesses: Set<ScalingProcess> = emptySet(),
   val targetTrackingPolicies: Set<TargetTrackingPolicy> = emptySet(),
   val stepScalingPolicies: Set<StepScalingPolicy> = emptySet()
-) {
-  fun hasScalingPolicies(): Boolean =
-    targetTrackingPolicies.isNotEmpty() || stepScalingPolicies.isNotEmpty()
-}
+)
+
+fun Scaling?.hasScalingPolicies(): Boolean =
+  this != null && (targetTrackingPolicies.isNotEmpty() || stepScalingPolicies.isNotEmpty())
 
 sealed class ScalingPolicy
 

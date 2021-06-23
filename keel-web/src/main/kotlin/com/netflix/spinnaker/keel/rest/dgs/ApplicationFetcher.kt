@@ -10,6 +10,8 @@ import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.action.ActionType
 import com.netflix.spinnaker.keel.artifacts.ArtifactVersionLinks
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
+import com.netflix.spinnaker.keel.events.EventLevel.ERROR
+import com.netflix.spinnaker.keel.events.EventLevel.WARNING
 import com.netflix.spinnaker.keel.graphql.DgsConstants
 import com.netflix.spinnaker.keel.graphql.types.MdAction
 import com.netflix.spinnaker.keel.graphql.types.MdApplication
@@ -21,6 +23,7 @@ import com.netflix.spinnaker.keel.graphql.types.MdConstraint
 import com.netflix.spinnaker.keel.graphql.types.MdEnvironment
 import com.netflix.spinnaker.keel.graphql.types.MdEnvironmentState
 import com.netflix.spinnaker.keel.graphql.types.MdLifecycleStep
+import com.netflix.spinnaker.keel.graphql.types.MdNotification
 import com.netflix.spinnaker.keel.graphql.types.MdPackageDiff
 import com.netflix.spinnaker.keel.graphql.types.MdPausedInfo
 import com.netflix.spinnaker.keel.graphql.types.MdPinnedVersion
@@ -30,7 +33,7 @@ import com.netflix.spinnaker.keel.graphql.types.MdResourceActuationStatus
 import com.netflix.spinnaker.keel.graphql.types.MdResourceTask
 import com.netflix.spinnaker.keel.graphql.types.MdVersionVeto
 import com.netflix.spinnaker.keel.pause.ActuationPauser
-import com.netflix.spinnaker.keel.pause.Pause
+import com.netflix.spinnaker.keel.persistence.DismissibleNotificationRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoDeliveryConfigForApplication
 import com.netflix.spinnaker.keel.services.ResourceStatusService
@@ -51,7 +54,8 @@ class ApplicationFetcher(
   private val resourceStatusService: ResourceStatusService,
   private val actuationPauser: ActuationPauser,
   private val artifactVersionLinks: ArtifactVersionLinks,
-  private val applicationFetcherSupport: ApplicationFetcherSupport
+  private val applicationFetcherSupport: ApplicationFetcherSupport,
+  private val notificationRepository: DismissibleNotificationRepository
 ) {
 
   @DgsData(parentType = DgsConstants.QUERY.TYPE_NAME, field = DgsConstants.QUERY.Application)
@@ -289,16 +293,18 @@ class ApplicationFetcher(
     }
   }
 
+  /**
+   * Fetches the list of dismissible notifications for the application in context.
+   */
+  @DgsData(parentType = DgsConstants.MDAPPLICATION.TYPE_NAME, field = DgsConstants.MDAPPLICATION.Notifications)
+  fun applicationNotifications(dfe: DataFetchingEnvironment): List<MdNotification>? {
+    val config = applicationFetcherSupport.getDeliveryConfigFromContext(dfe)
+    return notificationRepository.notificationHistory(config.application, true, setOf(WARNING, ERROR))
+      .map { it.toDgs() }
+  }
+
 //  add function for putting the resources on the artifactVersion
 }
-
-fun Pause.toDgsPaused(): MdPausedInfo =
-  MdPausedInfo(
-    id = "$scope-$name-pause",
-    by = pausedBy,
-    at = pausedAt,
-    comment = comment
-  )
 
 fun Environment.dependsOn(another: Environment) =
   constraints.any { it is DependsOnConstraint && it.environment == another.name }

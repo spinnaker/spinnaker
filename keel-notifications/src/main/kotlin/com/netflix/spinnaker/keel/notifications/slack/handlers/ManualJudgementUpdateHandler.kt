@@ -1,5 +1,7 @@
 package com.netflix.spinnaker.keel.notifications.slack.handlers
 
+import com.netflix.spinnaker.keel.api.NotificationDisplay
+import com.netflix.spinnaker.keel.api.NotificationDisplay.*
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.notifications.NotificationType.MANUAL_JUDGMENT_UPDATE
 import com.netflix.spinnaker.keel.notifications.slack.SlackManualJudgmentUpdateNotification
@@ -22,16 +24,23 @@ class ManualJudgementUpdateHandler(
   override val supportedTypes = listOf(MANUAL_JUDGMENT_UPDATE)
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  override fun sendMessage(notification: SlackManualJudgmentUpdateNotification, channel: String) {
+  override fun sendMessage(
+    notification: SlackManualJudgmentUpdateNotification,
+    channel: String,
+    notificationDisplay: NotificationDisplay
+  ) {
     log.debug("Updating manual judgment await notification for application ${notification.application} sent at ${notification.timestamp}")
 
     with(notification) {
       require(status.complete) { "Manual judgment not in complete state (${status.name}) for application ${notification.application} sent at ${notification.timestamp}"}
 
-      val headerText = when {
-        status.passes() -> "Manual judgement approved"
-        else -> "Manual judgement rejected"
+      val verb = when {
+        status.passes() -> "approved"
+        else -> "rejected"
       }
+
+      val headerText = "Manual judgement $verb"
+
       val imageUrl = when {
         status.passes() -> "https://raw.githubusercontent.com/spinnaker/spinnaker.github.io/master/assets/images/md_icons/mj_was_approved.png"
         else -> "https://raw.githubusercontent.com/spinnaker/spinnaker.github.io/master/assets/images/md_icons/mj_was_rejected.png"
@@ -41,16 +50,30 @@ class ManualJudgementUpdateHandler(
         else -> "mj_rejected"
       }
 
-      val baseBlocks = ManualJudgmentNotificationHandler.constructMessageWithoutButtons(
-        notification.targetEnvironment,
-        notification.application,
-        notification.artifactCandidate,
-        notification.pinnedArtifact,
-        headerText,
-        imageUrl,
-        imageAltText,
-        gitDataGenerator
-      )
+      val baseBlocks = when(notification.display) {
+        NORMAL -> ManualJudgmentNotificationHandler.constructNormalMessageWithoutButtons(
+          notification.targetEnvironment,
+          notification.application,
+          notification.artifactCandidate,
+          notification.pinnedArtifact,
+          headerText,
+          imageUrl,
+          imageAltText,
+          gitDataGenerator,
+          0 // clear the num ahead text on resend
+        )
+        COMPACT -> ManualJudgmentNotificationHandler.constructCompactMessageWithoutButtons(
+          targetEnvironment,
+          application,
+          artifactCandidate,
+          pinnedArtifact,
+          headerText,
+          author,
+          gitDataGenerator,
+          0, // clear the num ahead text on resend
+          verb
+        )
+      }
 
       val backuptext = fallbackText(user, status)
 

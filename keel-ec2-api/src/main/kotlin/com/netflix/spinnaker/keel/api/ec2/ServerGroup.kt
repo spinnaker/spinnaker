@@ -40,7 +40,7 @@ data class ServerGroup(
   val name: String,
   val location: Location,
   val launchConfiguration: LaunchConfiguration,
-  val capacity: Capacity = Capacity(1, 1, 1),
+  val capacity: Capacity = Capacity.DefaultCapacity(1, 1, 1),
   val dependencies: ClusterDependencies = ClusterDependencies(),
   val health: Health = Health(),
   val scaling: Scaling = Scaling(),
@@ -59,14 +59,6 @@ data class ServerGroup(
   @get:ExcludedFromDiff
   val instanceCounts: InstanceCounts? = null
 ) : VersionedArtifactProvider {
-  init {
-    require(
-      capacity.desired != null && !scaling.hasScalingPolicies() ||
-        capacity.desired == null && scaling.hasScalingPolicies()
-    ) {
-      "capacity.desired and auto-scaling policies are mutually exclusive"
-    }
-  }
 
   data class ActiveServerGroupImage(
     @get:ExcludedFromDiff

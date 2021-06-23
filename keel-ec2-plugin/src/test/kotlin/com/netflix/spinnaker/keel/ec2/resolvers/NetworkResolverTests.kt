@@ -10,11 +10,11 @@ import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.CLOUD_PROVIDER
-import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerHealthCheck
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.CapacitySpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.HealthSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.EC2_APPLICATION_LOAD_BALANCER_V1_2
@@ -256,7 +256,7 @@ internal class ClusterNetworkResolverTests : NetworkResolverTests<ClusterSpec>()
             iamRole = "fnordInstanceProfile",
             instanceMonitoring = false
           ),
-          capacity = Capacity(2, 2, 2),
+          capacity = CapacitySpec(2, 2, 2),
           dependencies = ClusterDependencies(
             loadBalancerNames = setOf("fnord-internal"),
             securityGroupNames = setOf("fnord", "fnord-elb")

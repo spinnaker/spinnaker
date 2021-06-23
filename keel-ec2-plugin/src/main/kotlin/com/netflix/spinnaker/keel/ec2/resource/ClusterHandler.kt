@@ -19,8 +19,11 @@ import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.ec2.Capacity
+import com.netflix.spinnaker.keel.api.ec2.Capacity.AutoScalingCapacity
+import com.netflix.spinnaker.keel.api.ec2.Capacity.DefaultCapacity
 import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.CapacitySpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.HealthSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.CustomizedMetricSpecification
@@ -42,6 +45,7 @@ import com.netflix.spinnaker.keel.api.ec2.StepScalingPolicy
 import com.netflix.spinnaker.keel.api.ec2.TargetTrackingPolicy
 import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
 import com.netflix.spinnaker.keel.api.ec2.byRegion
+import com.netflix.spinnaker.keel.api.ec2.hasScalingPolicies
 import com.netflix.spinnaker.keel.api.ec2.resolve
 import com.netflix.spinnaker.keel.api.ec2.resolveCapacity
 import com.netflix.spinnaker.keel.api.plugins.BaseClusterHandler
@@ -687,7 +691,7 @@ class ClusterHandler(
         "capacity" to mapOf(
           "min" to capacity.min,
           "max" to capacity.max,
-          "desired" to capacity.desired
+          "desired" to resolveDesiredCapacity()
         ),
         "targetHealthyDeployPercentage" to 100, // TODO: any reason to do otherwise?
         "cooldown" to health.cooldown.seconds,
@@ -764,6 +768,19 @@ class ClusterHandler(
       "serverGroupName" to current.name
     )
   }
+
+  /**
+   * For server groups with scaling policies, the [ClusterSpec] will not include a desired value. so we use the higher
+   * of the desired value the server group we're replacing uses, or the min. This means we won't catastrophically down-
+   * size a server group by deploying it.
+   */
+  private fun ResourceDiff<ServerGroup>.resolveDesiredCapacity() =
+    when (desired.capacity) {
+      // easy case: spec supplied the desired value as there are no scaling policies in effect
+      is DefaultCapacity -> desired.capacity.desired
+      // scaling policies exist, so use a safe value
+      is AutoScalingCapacity -> maxOf(current?.capacity?.desired ?: 0, desired.capacity.min)
+    }
 
   /**
    * @return list of stages to remove or create scaling policies in-place on the
@@ -1069,8 +1086,11 @@ class ClusterHandler(
       buildInfo = buildInfo?.toEc2Api(),
       capacity = capacity.let {
         when (scalingPolicies.isEmpty()) {
-          true -> Capacity(it.min, it.max, it.desired)
-          false -> Capacity(it.min, it.max)
+          true -> DefaultCapacity(
+            it.min,
+            it.max,
+            checkNotNull(it.desired) { "desired capacity is required unless you specify scaling policies" })
+          false -> AutoScalingCapacity(it.min, it.max, it.desired)
         }
       },
       dependencies = ClusterDependencies(
@@ -1204,7 +1224,7 @@ class ClusterHandler(
    */
   private fun ServerGroup.exportSpec(account: String, application: String): ServerGroupSpec {
     val defaults = ServerGroupSpec(
-      capacity = Capacity(1, 1, 1),
+      capacity = CapacitySpec(1, 1, 1),
       dependencies = ClusterDependencies(),
       health = Health().toSpecWithoutDefaults(),
       scaling = Scaling(),
@@ -1213,14 +1233,10 @@ class ClusterHandler(
 
     val thisSpec = ServerGroupSpec(
       launchConfiguration = launchConfiguration.exportSpec(account, location.region, application),
-      capacity = capacity,
+      capacity = CapacitySpec(capacity.min, capacity.max, if (scaling.hasScalingPolicies()) null else capacity.desired),
       dependencies = dependencies,
       health = health.toSpecWithoutDefaults(),
-      scaling = if (!scaling.hasScalingPolicies()) {
-        null
-      } else {
-        scaling
-      },
+      scaling = if (scaling.hasScalingPolicies()) scaling else null,
       tags = tags
     )
 

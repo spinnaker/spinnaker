@@ -338,3 +338,6 @@ databaseChangeLog:
   - include:
       file: changelog/20210611-give-pause-a-reason.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20210616-create-dismissible-notifications.yml
+      relativeToChangelogFile: true

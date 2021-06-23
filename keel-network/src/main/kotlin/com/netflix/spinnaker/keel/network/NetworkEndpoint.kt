@@ -12,5 +12,5 @@ data class NetworkEndpoint(
 )
 
 enum class NetworkEndpointType {
-  DNS, IPV4, IPV6;
+  EUREKA_VIP_DNS, EUREKA_CLUSTER_DNS, DNS, IPV4, IPV6;
 }

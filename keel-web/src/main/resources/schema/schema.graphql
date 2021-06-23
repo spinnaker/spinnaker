@@ -12,6 +12,7 @@ type MdApplication {
   isPaused: Boolean
   pausedInfo: MdPausedInfo
   environments: [MdEnvironment!]!
+  notifications: [MdNotification!]
 }
 
 type MdEnvironment {
@@ -171,8 +172,8 @@ type MdResourceActuationState {
 }
 
 type MdResourceTask {
-  id: String
-  name: String
+  id: String!
+  name: String!
 }
 
 type MdResource {
@@ -256,6 +257,7 @@ type Mutation {
   unpinArtifactVersion(payload: MdUnpinArtifactVersionPayload!): Boolean
   markArtifactVersionAsGood(payload: MdMarkArtifactVersionAsGoodPayload!): Boolean
   retryArtifactVersionAction(payload: MdRetryArtifactActionPayload): MdAction
+  dismissNotification(payload: MdDismissNotificationPayload!): Boolean
 }
 
 input MdRetryArtifactActionPayload {
@@ -297,3 +299,23 @@ input MdUnpinArtifactVersionPayload {
   reference: String!
 }
 
+type MdNotification {
+  id: String!
+  level: MdEventLevel!
+  message: String!
+  triggeredAt: InstantTime
+  triggeredBy: String
+  environment: String
+  link: String
+  isActive: Boolean
+  dismissedAt: InstantTime
+  dismissedBy: String
+}
+
+enum MdEventLevel {
+  SUCCESS, INFO, WARNING, ERROR
+}
+
+input MdDismissNotificationPayload {
+  id: String!
+}

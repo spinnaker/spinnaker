@@ -9,6 +9,7 @@ data class NetworkLoadBalancerModel(
   override val vpcId: String,
   override val subnets: Set<String>,
   override val scheme: String?,
+  override val dnsName: String,
   override val availabilityZones: Set<String>,
   val targetGroups: List<TargetGroup>
 ) : AmazonLoadBalancer {

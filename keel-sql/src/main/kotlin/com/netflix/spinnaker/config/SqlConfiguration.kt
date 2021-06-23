@@ -23,6 +23,7 @@ import com.netflix.spinnaker.keel.sql.SqlTaskTrackingRepository
 import com.netflix.spinnaker.keel.sql.SqlUnhappyVetoRepository
 import com.netflix.spinnaker.keel.sql.SqlUnhealthyRepository
 import com.netflix.spinnaker.keel.sql.SqlActionRepository
+import com.netflix.spinnaker.keel.sql.SqlDismissibleNotificationRepository
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import com.netflix.spinnaker.kork.sql.config.SqlProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
@@ -211,11 +212,17 @@ class SqlConfiguration
     objectMapper: ObjectMapper
   ) = SqlBakedImageRepository(jooq, clock, objectMapper, SqlRetry(sqlRetryProperties))
 
-
   @Bean
   fun environmentLeaseRepository(
     jooq: DSLContext,
     clock: Clock,
     registry: Registry
   ) = SqlEnvironmentLeaseRepository(jooq, clock, registry, environmentExclusionConfig.leaseDuration)
+
+  @Bean
+  fun dismissibleNotificationRepository(
+    jooq: DSLContext,
+    clock: Clock,
+    objectMapper: ObjectMapper
+  ) = SqlDismissibleNotificationRepository(jooq, SqlRetry(sqlRetryProperties), objectMapper, clock)
 }

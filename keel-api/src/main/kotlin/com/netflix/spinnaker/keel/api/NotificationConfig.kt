@@ -17,11 +17,14 @@
  */
 package com.netflix.spinnaker.keel.api
 
+import com.netflix.spinnaker.keel.api.NotificationDisplay.NORMAL
+
 // todo eb: this does not allow you to customize the notification message, but we can add that later.
 data class NotificationConfig(
   val type: NotificationType,
   val address: String, // either slack channel or email address
-  val frequency: NotificationFrequency
+  val frequency: NotificationFrequency,
+  val display: NotificationDisplay = NORMAL
 )
 
 enum class NotificationFrequency {
@@ -32,4 +35,8 @@ enum class NotificationFrequency {
 
 enum class NotificationType {
   slack, email
+}
+
+enum class NotificationDisplay {
+  COMPACT, NORMAL
 }

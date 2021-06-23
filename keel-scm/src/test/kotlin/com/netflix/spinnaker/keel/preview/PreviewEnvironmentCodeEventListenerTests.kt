@@ -29,6 +29,7 @@ import com.netflix.spinnaker.keel.front50.Front50Cache
 import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.front50.model.DataSources
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
+import com.netflix.spinnaker.keel.notifications.DeliveryConfigImportFailed
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.preview.PreviewEnvironmentCodeEventListener.Companion.APPLICATION_RETRIEVAL_ERROR
 import com.netflix.spinnaker.keel.preview.PreviewEnvironmentCodeEventListener.Companion.CODE_EVENT_COUNTER
@@ -58,6 +59,7 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.slot
+import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.containsKeys
@@ -80,7 +82,17 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
     val front50Cache: Front50Cache = mockk()
     val springEnv: org.springframework.core.env.Environment = mockk()
     val spectator: Registry = mockk()
-    val subject = PreviewEnvironmentCodeEventListener(repository, importer, front50Cache, objectMapper, springEnv, spectator, clock)
+    val eventPublisher: ApplicationEventPublisher = mockk()
+    val subject = PreviewEnvironmentCodeEventListener(
+      repository = repository,
+      deliveryConfigImporter = importer,
+      front50Cache = front50Cache,
+      objectMapper = objectMapper,
+      springEnv = springEnv,
+      spectator = spectator,
+      clock = clock,
+      eventPublisher = eventPublisher
+    )
 
     val appConfig = Application(
       name = "fnord",
@@ -186,6 +198,10 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
 
       every {
         fakeTimer.record(any<Duration>())
+      } just runs
+
+      every {
+        eventPublisher.publishEvent(any<Object>())
       } just runs
 
       every {
@@ -442,6 +458,12 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
           }
           expectThat(tags).one {
             contains(DELIVERY_CONFIG_RETRIEVAL_ERROR.toTags())
+          }
+        }
+
+        test("an event is published") {
+          verify {
+            eventPublisher.publishEvent(any<DeliveryConfigImportFailed>())
           }
         }
       }

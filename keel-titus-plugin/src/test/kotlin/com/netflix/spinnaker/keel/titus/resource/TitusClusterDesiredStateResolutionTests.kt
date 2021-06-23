@@ -5,6 +5,7 @@ import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
 import com.netflix.spinnaker.keel.api.ec2.Capacity
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.CapacitySpec
 import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.api.titus.TitusClusterSpec
 import com.netflix.spinnaker.keel.api.titus.TitusServerGroup
@@ -35,7 +36,6 @@ class TitusClusterDesiredStateResolutionTests : JUnit5Minutests {
     fixture { Fixture() }
 
     mapOf(
-      TitusServerGroupSpec::capacity to TitusServerGroup::capacity,
       TitusServerGroupSpec::containerAttributes to TitusServerGroup::containerAttributes,
       TitusServerGroupSpec::tags to TitusServerGroup::tags
     )
@@ -75,6 +75,22 @@ class TitusClusterDesiredStateResolutionTests : JUnit5Minutests {
         }
       }
     }
+
+    context("the `capacity` property") {
+      test("default value applies in non-overridden region") {
+        expectThat(desired)
+          .getValue("ca-central-1")
+          .get(TitusServerGroup::capacity)
+          .isEqualTo(spec.defaults.capacity?.run { Capacity.DefaultCapacity(min, max, desired!!)})
+      }
+
+      test("override value applies in overridden region") {
+        expectThat(desired)
+          .getValue("af-south-1")
+          .get(TitusServerGroup::capacity)
+          .isEqualTo(spec.overrides.getValue("af-south-1").capacity?.run { Capacity.DefaultCapacity(min, max, desired!!)})
+      }
+    }
   }
 
   class Fixture(
@@ -88,7 +104,7 @@ class TitusClusterDesiredStateResolutionTests : JUnit5Minutests {
         )
       ),
       _defaults = TitusServerGroupSpec(
-        capacity = Capacity(1, 1, 1),
+        capacity = CapacitySpec(1, 1, 1),
         containerAttributes = mapOf(
           "key" to "default value"
         ),
@@ -106,7 +122,7 @@ class TitusClusterDesiredStateResolutionTests : JUnit5Minutests {
       ),
       overrides = mapOf(
         "af-south-1" to TitusServerGroupSpec(
-          capacity = Capacity(2, 2, 2),
+          capacity = CapacitySpec(2, 2, 2),
           containerAttributes = mapOf(
             "key" to "override value"
           ),

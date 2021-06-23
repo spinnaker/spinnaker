@@ -2,20 +2,28 @@ package com.netflix.spinnaker.keel.titus.verification
 
 import com.netflix.spinnaker.config.GitLinkConfig
 import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
-import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
+import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
+import com.netflix.spinnaker.keel.api.artifacts.DOCKER
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
+import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.titus.TestContainerVerification
+import com.netflix.spinnaker.keel.api.titus.TitusClusterSpec
 import com.netflix.spinnaker.keel.api.titus.TitusServerGroup.Location
+import com.netflix.spinnaker.keel.network.NetworkEndpoint
+import com.netflix.spinnaker.keel.network.NetworkEndpointProvider
+import com.netflix.spinnaker.keel.network.NetworkEndpointType.DNS
+import com.netflix.spinnaker.keel.network.NetworkEndpointType.EUREKA_CLUSTER_DNS
+import com.netflix.spinnaker.keel.network.NetworkEndpointType.EUREKA_VIP_DNS
 import com.netflix.spinnaker.keel.persistence.KeelRepository
-import com.netflix.spinnaker.keel.test.deliveryConfig
 import com.netflix.spinnaker.keel.titus.ContainerRunner
+import com.netflix.spinnaker.keel.titus.deliveryConfigWithClusterAndLoadBalancer
+import com.netflix.spinnaker.keel.titus.verification.TestContainerVerificationEvaluator.Companion.ENV_VAR_PREFIX
 import de.huxhorn.sulky.ulid.ULID
-import io.mockk.every
+import io.mockk.coEvery as every
 import io.mockk.mockk
 import io.mockk.slot
 import org.junit.jupiter.api.Test
-import strikt.api.expect
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.containsKeys
@@ -24,21 +32,23 @@ import strikt.assertions.get
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isSuccess
+import java.lang.IllegalStateException
 import io.mockk.coVerify as verify
 
 internal class TestContainerVerificationEvaluatorTests {
 
   private val context = ArtifactInEnvironmentContext(
-    deliveryConfig = deliveryConfig(),
+    deliveryConfig = deliveryConfigWithClusterAndLoadBalancer(),
     environmentName = "test",
     artifactReference = "fnord",
     version = "1.1"
   )
 
   private val app = "fnord-test-app"
+
   private val loc = Location(
     account = "titustestvpc",
-    region = "ap-south-1"
+    region = "us-east-1"
   )
 
   private val verification = TestContainerVerification(
@@ -48,32 +58,54 @@ internal class TestContainerVerificationEvaluatorTests {
   )
 
   private val publishedArtifact = PublishedArtifact(
-    type = "DEB",
-    customKind = false,
+    type = DOCKER,
     name = "fnord",
     version = "0.161.0-h61.116f116",
-    reference = "debian-local:pool/f/fnord/fnord_0.161.0-h61.116f116_all.deb",
-    metadata = mapOf("releaseStatus" to ArtifactStatus.FINAL, "buildNumber" to "61", "commitId" to "116f116"),
+    reference = "my.docker.registry/fnord/fnord_0.161.0-h61.116f116",
+    metadata = mapOf("buildNumber" to "61", "commitId" to "116f116"),
     provenance = "https://my.jenkins.master/jobs/fnord-release/60",
     buildMetadata = BuildMetadata(
-      id = 58,
-      number = "58",
+      id = 61,
+      number = "61",
       status = "BUILDING",
       uid = "just-a-uid-obviously"
     )
   ).normalized()
 
   private val containerRunner: ContainerRunner = mockk()
-  private val keelRepository: KeelRepository = mockk() {
+
+  private val keelRepository: KeelRepository = mockk {
     every { getArtifactVersion(any(), any(), any()) } returns publishedArtifact
   }
+
+  private val eurekaClusterDns = "fnord-test-cluster.cluster.us-east-1.keel.io"
+  private val eurekaVipDns = "fnord-test-cluster.vip.us-east-1.keel.io"
+  private val albDns = "internal-fnord-test-alb-vpc0-1234567890.us-east-1.elb.amazonaws.com"
+
+  private val endpointProvider: NetworkEndpointProvider = mockk {
+    every {
+      getNetworkEndpoints(any())
+    } answers {
+      when (arg<Resource<*>>(0).spec) {
+        is TitusClusterSpec -> setOf(
+          NetworkEndpoint(EUREKA_CLUSTER_DNS, "us-east-1", eurekaClusterDns),
+          NetworkEndpoint(EUREKA_VIP_DNS, "us-east-1", eurekaVipDns),
+        )
+        is ApplicationLoadBalancerSpec -> setOf(
+          NetworkEndpoint(DNS, "us-east-1", albDns)
+        )
+        else -> throw IllegalStateException("this is a bug in the test")
+      }
+    }
+  }
+
   private val subject = TestContainerVerificationEvaluator(
     containerRunner = containerRunner,
     linkStrategy = null,
     gitLinkConfig = GitLinkConfig(),
-    keelRepository = keelRepository
+    keelRepository = keelRepository,
+    networkEndpointProvider = endpointProvider
   )
-
 
   @Test
   fun `starting verification launches a container job via containerRunner`() {
@@ -85,7 +117,7 @@ internal class TestContainerVerificationEvaluatorTests {
       .isA<Iterable<String>>()
       .first() isEqualTo taskId
 
-    val slot = slot<Map<String, String>>()
+    val containerVars = slot<Map<String, String>>()
 
     verify {
       containerRunner.launchContainer(
@@ -97,21 +129,48 @@ internal class TestContainerVerificationEvaluatorTests {
         containerApplication = any(),
         environmentName = context.environmentName,
         location = verification.location,
-        environmentVariables = capture(slot)
+        environmentVariables = capture(containerVars)
       )
     }
-    val PREFIX = "TEST_"
-    expectThat(slot.captured).containsKeys(
-      "${PREFIX}ENV",
-      "${PREFIX}REPO_URL",
-      "${PREFIX}BUILD_NUMBER",
-      "${PREFIX}ARTIFACT_VERSION",
-      "${PREFIX}BRANCH_NAME",
-      "${PREFIX}COMMIT_SHA",
-      "${PREFIX}COMMIT_URL",
-      "${PREFIX}PR_NUMBER",
-      "${PREFIX}PR_URL"
+    expectThat(containerVars.captured).containsKeys(
+      "${ENV_VAR_PREFIX}ENV",
+      "${ENV_VAR_PREFIX}REPO_URL",
+      "${ENV_VAR_PREFIX}BUILD_NUMBER",
+      "${ENV_VAR_PREFIX}ARTIFACT_VERSION",
+      "${ENV_VAR_PREFIX}BRANCH_NAME",
+      "${ENV_VAR_PREFIX}COMMIT_SHA",
+      "${ENV_VAR_PREFIX}COMMIT_URL",
+      "${ENV_VAR_PREFIX}PR_NUMBER",
+      "${ENV_VAR_PREFIX}PR_URL",
+      "${ENV_VAR_PREFIX}EUREKA_VIP",
+      "${ENV_VAR_PREFIX}EUREKA_CLUSTER",
+      "${ENV_VAR_PREFIX}LOAD_BALANCER",
     )
+  }
+
+  @Test
+  fun `endpoint information is correctly passed into the test container`() {
+    stubTaskLaunch()
+    subject.start(context, verification)
+
+    val containerVars = slot<Map<String, String>>()
+    verify {
+      containerRunner.launchContainer(
+        imageId = any(),
+        subjectLine = any(),
+        description = any(),
+        serviceAccount = any(),
+        application = any(),
+        containerApplication = any(),
+        environmentName = any(),
+        location = any(),
+        environmentVariables = capture(containerVars)
+      )
+    }
+
+    expectThat(containerVars.captured["${ENV_VAR_PREFIX}EUREKA_VIP"]).isEqualTo(eurekaVipDns)
+    expectThat(containerVars.captured["${ENV_VAR_PREFIX}EUREKA_CLUSTER"]).isEqualTo(eurekaClusterDns)
+    expectThat(containerVars.captured["${ENV_VAR_PREFIX}LOAD_BALANCER"]).isEqualTo(albDns)
   }
 
   @Suppress("UNCHECKED_CAST")
@@ -184,8 +243,6 @@ internal class TestContainerVerificationEvaluatorTests {
     verifyApplication(context.deliveryConfig.application)
   }
 
-
-
   private fun stubTaskLaunch(): String =
     ULID()
       .nextULID()
@@ -204,6 +261,4 @@ internal class TestContainerVerificationEvaluatorTests {
           )
         } answers { mapOf(TASKS to listOf(taskId)) }
       }
-
-
 }

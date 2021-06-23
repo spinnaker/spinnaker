@@ -5,6 +5,7 @@ import com.netflix.spinnaker.keel.api.ScmInfo
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.artifacts.ArtifactVersionLinks
+import com.netflix.spinnaker.keel.notifications.slack.SlackPausedNotification
 import com.netflix.spinnaker.keel.notifications.slack.SlackService
 import com.slack.api.model.kotlin_extension.block.SectionBlockBuilder
 import com.slack.api.model.kotlin_extension.block.dsl.LayoutBlockDsl
@@ -43,7 +44,7 @@ class GitDataGenerator(
   }
 
   fun generateConfigUrl(application: String): String =
-    "${config.baseApiUrl}/managed/application/$application/config"
+    "${config.baseUrl}/#/applications/$application/environments/config"
 
   /**
    * Builds a modal with the full commit message
@@ -290,4 +291,13 @@ class GitDataGenerator(
 
   fun generateArtifactUrl(application: String, reference: String, version: String) =
     "${config.baseUrl}/#/applications/${application}/environments/${reference}/${version}"
+
+  fun linkedApp(application: String) =
+    "<${envUrl(config, application)}|$application>"
 }
+
+fun envUrl(baseUrlConfig: BaseUrlConfig, application: String) =
+  "${baseUrlConfig.baseUrl}/#/applications/$application/environments/overview"
+
+fun linkedApp(baseUrlConfig: BaseUrlConfig, application: String) =
+  "<${envUrl(baseUrlConfig, application)}|$application>"

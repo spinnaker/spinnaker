@@ -91,6 +91,14 @@ interface CloudDriverService {
     @Path("application") application: String
   ): List<AmazonLoadBalancer>
 
+  @GET("/aws/loadBalancers/{account}/{region}/{name}")
+  suspend fun getAmazonLoadBalancer(
+    @Header("X-SPINNAKER-USER") user: String,
+    @Path("account") account: String,
+    @Path("region") region: String,
+    @Path("name") name: String
+  ): List<AmazonLoadBalancer>
+
   @GET("/{provider}/loadBalancers/{account}/{region}/{name}")
   suspend fun getClassicLoadBalancer(
     @Header("X-SPINNAKER-USER") user: String,

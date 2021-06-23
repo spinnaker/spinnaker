@@ -128,6 +128,7 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
   private val model = ClassicLoadBalancerModel(
     loadBalancerName = spec.moniker.toString(),
     availabilityZones = spec.locations.regions.first().availabilityZones,
+    dnsName = "internal-${spec.moniker}-1234567890.us-east-1.elb.amazonaws.com",
     vpcId = vpc.id,
     subnets = setOf(sub1.id, sub2.id),
     scheme = "internal",

@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.notifications.slack.handlers
 
+import com.netflix.spinnaker.keel.api.NotificationDisplay
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.FAIL
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PASS
 import com.netflix.spinnaker.keel.notifications.NotificationType
@@ -21,7 +22,11 @@ class VerificationCompletedNotificationHandler(
   override val supportedTypes = listOf(NotificationType.TEST_FAILED, NotificationType.TEST_PASSED)
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  override fun sendMessage(notification: SlackVerificationCompletedNotification, channel: String) {
+  override fun sendMessage(
+    notification: SlackVerificationCompletedNotification,
+    channel: String,
+    notificationDisplay: NotificationDisplay
+  ) {
     with(notification) {
       log.debug("Sending verification completed notification with $status for application $application")
 

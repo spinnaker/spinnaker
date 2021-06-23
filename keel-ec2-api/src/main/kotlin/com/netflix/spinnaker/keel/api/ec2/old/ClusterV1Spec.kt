@@ -6,8 +6,8 @@ import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.RedBlack
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
-import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.CapacitySpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.HealthSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.LaunchConfigurationSpec
@@ -31,7 +31,7 @@ data class ClusterV1Spec (
     deployWith: ClusterDeployStrategy = RedBlack(),
     @Optional locations: SubnetAwareLocations,
     launchConfiguration: LaunchConfigurationSpec? = null,
-    capacity: Capacity? = null,
+    capacity: CapacitySpec? = null,
     dependencies: ClusterDependencies? = null,
     health: HealthSpec? = null,
     scaling: Scaling? = null,

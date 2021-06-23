@@ -1,6 +1,8 @@
 package com.netflix.spinnaker.keel.notifications.slack
 
 import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.NotificationDisplay
+import com.netflix.spinnaker.keel.api.NotificationDisplay.*
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
@@ -26,7 +28,7 @@ data class SlackPinnedNotification(
 ) : SlackNotificationEvent(time, application)
 
 data class SlackUnpinnedNotification(
-  val latestArtifact: PublishedArtifact?,
+  val latestApprovedArtifactVersion: PublishedArtifact?,
   val pinnedArtifact: PublishedArtifact?,
   override val time: Instant,
   override val application: String,
@@ -95,6 +97,8 @@ data class SlackManualJudgmentUpdateNotification(
   val pinnedArtifact: PublishedArtifact? = null,
   val targetEnvironment: String,
   val deliveryArtifact: DeliveryArtifact,
+  val author: String? = null,
+  val display: NotificationDisplay = NORMAL,
   override val application: String,
   override val time: Instant,
 ) : SlackNotificationEvent(time, application)

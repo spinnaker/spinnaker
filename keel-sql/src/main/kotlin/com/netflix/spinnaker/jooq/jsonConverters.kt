@@ -4,6 +4,7 @@ import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.events.PersistentEvent
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEvent
+import com.netflix.spinnaker.keel.notifications.DismissibleNotification
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import org.jooq.JSON
 import org.jooq.impl.AbstractConverter
@@ -28,3 +29,4 @@ class GitMetadataConverter : JsonConverter<GitMetadata>(GitMetadata::class.java)
 class BuildMetadataConverter : JsonConverter<BuildMetadata>(BuildMetadata::class.java)
 class LifecycleEventConverter : JsonConverter<LifecycleEvent>(LifecycleEvent::class.java)
 class PersistentEventConverter : JsonConverter<PersistentEvent>(PersistentEvent::class.java)
+class DismissibleNotificationConverter : JsonConverter<DismissibleNotification>(DismissibleNotification::class.java)

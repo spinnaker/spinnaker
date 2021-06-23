@@ -7,6 +7,7 @@ import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
 import com.netflix.spinnaker.keel.api.ec2.Capacity
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.plugins.BaseClusterHandlerTests
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.api.support.EventPublisher
@@ -44,7 +45,7 @@ class TitusBaseClusterHandlerTests : BaseClusterHandlerTests<TitusClusterSpec, T
     ),
     container = DigestProvider(organization = "waffels", image = "butter", digest = "12345"),
     _defaults = TitusServerGroupSpec(
-      capacity = Capacity(1,4,2)
+      capacity = ClusterSpec.CapacitySpec(1, 4, 2)
     )
   )
 
@@ -103,10 +104,10 @@ class TitusBaseClusterHandlerTests : BaseClusterHandlerTests<TitusClusterSpec, T
 
   private fun TitusServerGroup.withDoubleCapacity(): TitusServerGroup =
     copy(
-      capacity = Capacity(
+      capacity = Capacity.DefaultCapacity(
         min = capacity.min * 2,
         max = capacity.max * 2,
-        desired = capacity.desired!! * 2
+        desired = capacity.desired * 2
       )
     )
 

@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.notifications.slack.handlers
 
+import com.netflix.spinnaker.keel.api.NotificationDisplay
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventType
 import com.netflix.spinnaker.keel.notifications.NotificationType
 import com.netflix.spinnaker.keel.notifications.slack.SlackLifecycleNotification
@@ -22,7 +23,11 @@ class LifecycleEventNotificationHandler(
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  override fun sendMessage(notification: SlackLifecycleNotification, channel: String) {
+  override fun sendMessage(
+    notification: SlackLifecycleNotification,
+    channel: String,
+    notificationDisplay: NotificationDisplay
+  ) {
     with(notification) {
       log.debug("Sending lifecycle event $eventType notification for application ${notification.application}")
 

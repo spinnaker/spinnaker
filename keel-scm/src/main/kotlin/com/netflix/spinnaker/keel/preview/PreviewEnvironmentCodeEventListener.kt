@@ -28,10 +28,12 @@ import com.netflix.spinnaker.keel.scm.DELIVERY_CONFIG_RETRIEVAL_ERROR
 import com.netflix.spinnaker.keel.scm.DELIVERY_CONFIG_RETRIEVAL_SUCCESS
 import com.netflix.spinnaker.keel.scm.matchesApplicationConfig
 import com.netflix.spinnaker.keel.scm.metricTags
+import com.netflix.spinnaker.keel.scm.publishDeliveryConfigImportFailed
 import com.netflix.spinnaker.keel.telemetry.recordDuration
 import com.netflix.spinnaker.keel.telemetry.safeIncrement
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.event.EventListener
 import org.springframework.core.env.Environment
 import org.springframework.stereotype.Component
@@ -51,7 +53,8 @@ class PreviewEnvironmentCodeEventListener(
   private val objectMapper: ObjectMapper,
   private val springEnv: Environment,
   private val spectator: Registry,
-  private val clock: Clock
+  private val clock: Clock,
+  private val eventPublisher: ApplicationEventPublisher
 ) {
   companion object {
     private val log by lazy { LoggerFactory.getLogger(PreviewEnvironmentCodeEventListener::class.java) }
@@ -134,6 +137,7 @@ class PreviewEnvironmentCodeEventListener(
       } catch (e: Exception) {
         log.error("Error retrieving delivery config: $e", e)
         event.emitCounterMetric(CODE_EVENT_COUNTER, DELIVERY_CONFIG_RETRIEVAL_ERROR, deliveryConfig.application)
+        eventPublisher.publishDeliveryConfigImportFailed(deliveryConfig.application, event, clock.instant())
         return@forEach
       }
 

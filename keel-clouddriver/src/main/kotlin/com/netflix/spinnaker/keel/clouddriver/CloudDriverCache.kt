@@ -33,7 +33,7 @@ interface CloudDriverCache {
   fun credentialBy(name: String): Credential
   fun defaultKeyPairForAccount(account: String) =
     credentialBy(account).attributes["defaultKeyPair"] as String
-  fun certificateByName(name: String): Certificate
+  fun certificateByAccountAndName(account: String, name: String): Certificate
   fun certificateByArn(arn: String): Certificate
 }
 

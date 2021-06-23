@@ -114,12 +114,13 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
   private val sub1 = Subnet("subnet-1", vpc.id, vpc.account, vpc.region, "${vpc.region}c", "internal (vpc0)")
   private val sub2 = Subnet("subnet-1", vpc.id, vpc.account, vpc.region, "${vpc.region}d", "internal (vpc0)")
   private val sg1 = SecurityGroupSummary("testapp-elb", "sg-55555", "vpc-1")
-  private val cert = Certificate("this-is-my-certificate", "arn:this-is-my-certificate")
+  private val cert = Certificate("this-is-my-certificate", vpc.account, "arn:this-is-my-certificate")
 
   private fun model(port: Int = 7001, healthCheckPort: String = "7001") = ApplicationLoadBalancerModel(
     moniker = null,
     loadBalancerName = "testapp-managedogge-wow",
     availabilityZones = setOf("us-east-1c", "us-east-1d"),
+    dnsName = "internal-testapp-managedogge-wow-1234567890.us-east-1.elb.amazonaws.com",
     vpcId = vpc.id,
     subnets = setOf(sub1.id, sub2.id),
     securityGroups = setOf(sg1.id),
@@ -196,7 +197,7 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
         every { subnetBy(sub2.id) } returns sub2
         every { securityGroupById(vpc.account, vpc.region, sg1.id) } returns sg1
         every { securityGroupByName(vpc.account, vpc.region, sg1.name) } returns sg1
-        every { certificateByName(cert.serverCertificateName) } returns cert
+        every { certificateByAccountAndName(vpc.account, cert.serverCertificateName) } returns cert
         every { certificateByArn(cert.arn) } returns cert
 
         every {

@@ -11,14 +11,19 @@ import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.bakery.diff.PackageDiff
 import com.netflix.spinnaker.keel.graphql.types.MdArtifact
 import com.netflix.spinnaker.keel.graphql.types.MdCommitInfo
+import com.netflix.spinnaker.keel.graphql.types.MdEventLevel
 import com.netflix.spinnaker.keel.graphql.types.MdGitMetadata
 import com.netflix.spinnaker.keel.graphql.types.MdLocation
 import com.netflix.spinnaker.keel.graphql.types.MdMoniker
+import com.netflix.spinnaker.keel.graphql.types.MdNotification
 import com.netflix.spinnaker.keel.graphql.types.MdPackageAndVersion
 import com.netflix.spinnaker.keel.graphql.types.MdPackageAndVersionChange
 import com.netflix.spinnaker.keel.graphql.types.MdPackageDiff
+import com.netflix.spinnaker.keel.graphql.types.MdPausedInfo
 import com.netflix.spinnaker.keel.graphql.types.MdPullRequest
 import com.netflix.spinnaker.keel.graphql.types.MdResource
+import com.netflix.spinnaker.keel.notifications.DismissibleNotification
+import com.netflix.spinnaker.keel.pause.Pause
 
 
 fun GitMetadata.toDgs(): MdGitMetadata =
@@ -89,4 +94,26 @@ fun PackageDiff.toDgs() =
     added = added.map { (pkg, version) -> MdPackageAndVersion(pkg, version) },
     removed = removed.map { (pkg, version) -> MdPackageAndVersion(pkg, version) },
     changed = changed.map { (pkg, versions) -> MdPackageAndVersionChange(pkg, versions.old, versions.new) }
+  )
+
+fun Pause.toDgsPaused(): MdPausedInfo =
+  MdPausedInfo(
+    id = "$scope-$name-pause",
+    by = pausedBy,
+    at = pausedAt,
+    comment = comment
+  )
+
+fun DismissibleNotification.toDgs() =
+  MdNotification(
+    id = uid?.toString() ?: error("Can't convert application event with missing UID: $this"),
+    level = MdEventLevel.valueOf(level.name),
+    message = message,
+    isActive = isActive,
+    triggeredAt = triggeredAt,
+    triggeredBy = triggeredBy,
+    environment = environment,
+    link = link,
+    dismissedAt = dismissedAt,
+    dismissedBy = dismissedBy
   )

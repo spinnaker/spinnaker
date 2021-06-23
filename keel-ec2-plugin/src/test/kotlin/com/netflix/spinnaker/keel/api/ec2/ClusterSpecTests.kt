@@ -157,7 +157,7 @@ data class Fixture(
         iamRole = "fnordInstanceProfile",
         instanceMonitoring = false
       ),
-      capacity = Capacity(2, 2, 2),
+      capacity = ClusterSpec.CapacitySpec(2, 2, 2),
       dependencies = ClusterDependencies(
         loadBalancerNames = setOf("fnord-internal"),
         securityGroupNames = setOf("fnord", "fnord-elb")
@@ -177,7 +177,7 @@ data class Fixture(
           iamRole = "fnordEastInstanceProfile",
           keyPair = "fnord-keypair-325719997469-us-east-1"
         ),
-        capacity = Capacity(5, 5, 5),
+        capacity = ClusterSpec.CapacitySpec(5, 5, 5),
         dependencies = ClusterDependencies(
           loadBalancerNames = setOf("fnord-external"),
           securityGroupNames = setOf("fnord-ext")

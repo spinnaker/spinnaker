@@ -14,9 +14,9 @@ import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.ec2.CLOUD_PROVIDER
-import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.CapacitySpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.CustomizedMetricSpecification
 import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1_1
@@ -136,7 +136,7 @@ internal class ClusterExportTests : JUnit5Minutests {
         keyPair = "nf-keypair-test-fake",
         instanceMonitoring = false
       ),
-      capacity = Capacity(min = 1, max = 6),
+      capacity = CapacitySpec(min = 1, max = 6),
       scaling = Scaling(
         targetTrackingPolicies = setOf(
           TargetTrackingPolicy(
