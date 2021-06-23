@@ -59,7 +59,7 @@ class ConstraintsDataLoader(
         .forEach { envConstraint ->
           // no summary for this constraint
           val newConstraint = if (envConstraint is StatefulConstraint) {
-            ConstraintState(
+            var state = ConstraintState(
               deliveryConfigName = config.name,
               environmentName = key.environmentName,
               artifactVersion = key.version,
@@ -67,6 +67,11 @@ class ConstraintsDataLoader(
               type = envConstraint.type,
               status = ConstraintStatus.NOT_EVALUATED
             )
+            if (envConstraint is TimeWindowConstraint) {
+              // we need to load in allowed time attrs to display in the UI
+              state = state.copy(attributes = AllowedTimesConstraintAttributes(AllowedTimesConstraintEvaluator.toNumericTimeWindows(envConstraint), envConstraint.tz, false))
+            }
+            state
           } else { // Stateless constraint
             val evaluator = statelessEvaluators.find { evaluator ->
               evaluator.supportedType.name == envConstraint.type
@@ -95,8 +100,10 @@ class ConstraintsDataLoader(
     }
   }
 
-  fun getConstraintsState(requestedVersions: MutableSet<EnvironmentArtifactAndVersion>, config: DeliveryConfig):
-    MutableMap<EnvironmentArtifactAndVersion, MutableList<ConstraintState>> {
+  fun getConstraintsState(
+    requestedVersions: MutableSet<EnvironmentArtifactAndVersion>,
+    config: DeliveryConfig
+  ): MutableMap<EnvironmentArtifactAndVersion, MutableList<ConstraintState>> {
     val persistedStates = keelRepository.constraintStateForEnvironments(config.name)
       .removePrivateConstraintAttrs() // remove attributes that should not be exposed
       .groupByTo(mutableMapOf()) {
@@ -106,8 +113,10 @@ class ConstraintsDataLoader(
     return persistedStates
   }
 
-  override fun load(keys: MutableSet<EnvironmentArtifactAndVersion>, environment: BatchLoaderEnvironment):
-    CompletionStage<MutableMap<EnvironmentArtifactAndVersion, List<MdConstraint>>> {
+  override fun load(
+    keys: MutableSet<EnvironmentArtifactAndVersion>,
+    environment: BatchLoaderEnvironment
+  ): CompletionStage<MutableMap<EnvironmentArtifactAndVersion, List<MdConstraint>>> {
     val context: ApplicationContext = DgsContext.getCustomContext(environment)
     return CompletableFuture.supplyAsync {
       // TODO: optimize that by querying only the needed versions
