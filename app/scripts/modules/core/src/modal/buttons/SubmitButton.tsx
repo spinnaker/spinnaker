@@ -28,9 +28,10 @@ export class SubmitButton extends React.Component<ISubmitButtonProps> {
 
     return (
       <button className={className} disabled={isDisabled} onClick={onClick} type={type}>
-        {(!submitting && <i className="far fa-check-circle" />) || <Spinner mode="circular" />}
-        &nbsp;
-        {label || (isNew ? 'Create' : 'Update')}
+        <div className="flex-container-h horizontal middle">
+          {(!submitting && <i className="far fa-check-circle" />) || <Spinner mode="circular" />}
+          <span className="sp-margin-xs-left">{label || (isNew ? 'Create' : 'Update')}</span>
+        </div>
       </button>
     );
   }
