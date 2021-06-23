@@ -58,7 +58,7 @@ class MemoryCloudDriverCache(
             securityGroupsByName.put(Triple(account, region, it.name), completedFuture(it))
           }
       }
-        .handleNotFound()
+        .handleNotFound("securityGroupsById")
     }
 
   private val securityGroupsByName: AsyncLoadingCache<Triple<String, String, String>, SecurityGroupSummary> = cacheFactory
@@ -73,7 +73,7 @@ class MemoryCloudDriverCache(
             securityGroupsById.put(Triple(account, region, it.id), completedFuture(it))
           }
       }
-        .handleNotFound()
+        .handleNotFound("securityGroupsByName")
     }
 
   private val networksById: AsyncLoadingCache<String, Network> = cacheFactory
@@ -131,7 +131,7 @@ class MemoryCloudDriverCache(
       runCatching {
         cloudDriver.getCredential(name, DEFAULT_SERVICE_ACCOUNT)
       }
-        .handleNotFound()
+        .handleNotFound("credentials")
     }
 
   private val subnetsById: AsyncLoadingCache<String, Subnet> = cacheFactory
@@ -238,12 +238,12 @@ class MemoryCloudDriverCache(
  * Translates a 404 from a Retrofit [HttpException] into a `null`. Any other exception is wrapped in
  * [CacheLoadingException].
  */
-private fun <V> Result<V>.handleNotFound(): V? =
+private fun <V> Result<V>.handleNotFound(cacheName: String): V? =
   getOrElse { ex ->
     if (ex.isNotFound) {
       null
     } else {
-      throw CacheLoadingException("Error loading cache", ex)
+      throw CacheLoadingException("Error loading $cacheName cache", ex)
     }
   }
 
