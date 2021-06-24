@@ -9,7 +9,7 @@ dependencies {
   implementation 'com.google.apis:google-api-services-artifactregistry:v1beta1-rev20200903-1.30.10'
   implementation 'com.google.api-client:google-api-client:1.30.10'
   implementation 'org.jetbrains.dokka:dokka-gradle-plugin:0.10.1'
-  implementation 'io.github.gradle-nexus:publish-plugin:1.0.0'
+  implementation 'io.github.gradle-nexus:publish-plugin:1.1.0'
 }
 
 gradlePlugin {
@@ -47,4 +47,3 @@ pluginBundle {
     }
   }
 }
-
