@@ -405,20 +405,6 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
                               String key = entry.getKey();
                               T object = (T) service.loadObject(objectType, key);
 
-                              Long expectedLastModifiedTime = keyUpdateTime.get(key);
-                              Long currentLastModifiedTime = object.getLastModified();
-
-                              if (expectedLastModifiedTime != null
-                                  && currentLastModifiedTime != null) {
-                                if (currentLastModifiedTime < expectedLastModifiedTime) {
-                                  log.warn(
-                                      "Unexpected stale read for {} (current: {}, expected: {})",
-                                      key,
-                                      new Date(currentLastModifiedTime),
-                                      new Date(expectedLastModifiedTime));
-                                }
-                              }
-
                               if (!key.equals(buildObjectKey(object))) {
                                 mismatchedIdCounter.increment();
                                 log.warn(
