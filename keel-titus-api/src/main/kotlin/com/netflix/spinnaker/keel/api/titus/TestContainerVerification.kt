@@ -7,7 +7,8 @@ data class TestContainerVerification(
   val image: String,
   val location: Location,
   val application: String? = null,
-  val entrypoint: String? = null
+  val entrypoint: String? = null,
+  val env: Map<String, String> = emptyMap()
 ) : Verification {
   override val type = TYPE
   override val id by lazy {

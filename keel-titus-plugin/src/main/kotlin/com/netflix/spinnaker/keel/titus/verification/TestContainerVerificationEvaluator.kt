@@ -98,6 +98,7 @@ class TestContainerVerificationEvaluator(
           if (vipDns != null) put("${ENV_VAR_PREFIX}EUREKA_VIP", "${vipDns.address}")
           if (clusterDns != null) put ("${ENV_VAR_PREFIX}EUREKA_CLUSTER", "${clusterDns.address}")
           if (loadBalancerDns != null) put("${ENV_VAR_PREFIX}LOAD_BALANCER", "${loadBalancerDns.address}")
+          putAll(verification.env)
         }
       )
     }

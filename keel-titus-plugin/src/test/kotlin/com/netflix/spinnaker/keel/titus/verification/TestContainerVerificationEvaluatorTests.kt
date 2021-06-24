@@ -20,7 +20,6 @@ import com.netflix.spinnaker.keel.titus.ContainerRunner
 import com.netflix.spinnaker.keel.titus.deliveryConfigWithClusterAndLoadBalancer
 import com.netflix.spinnaker.keel.titus.verification.TestContainerVerificationEvaluator.Companion.ENV_VAR_PREFIX
 import de.huxhorn.sulky.ulid.ULID
-import io.mockk.coEvery as every
 import io.mockk.mockk
 import io.mockk.slot
 import org.junit.jupiter.api.Test
@@ -29,10 +28,12 @@ import strikt.api.expectThat
 import strikt.assertions.containsKeys
 import strikt.assertions.first
 import strikt.assertions.get
+import strikt.assertions.hasEntry
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isSuccess
-import java.lang.IllegalStateException
+import strikt.mockk.captured
+import io.mockk.coEvery as every
 import io.mockk.coVerify as verify
 
 internal class TestContainerVerificationEvaluatorTests {
@@ -241,6 +242,38 @@ internal class TestContainerVerificationEvaluatorTests {
     stubTaskLaunch()
     subject.start(context, verification.copy(application = null))
     verifyApplication(context.deliveryConfig.application)
+  }
+
+  @Test
+  fun `environment variables specified in the config are passed to the container`() {
+    stubTaskLaunch()
+
+    val envVars = mapOf(
+      "SECRET" to "0xACAB",
+      "FNORD" to "Zalgo, he comes"
+    )
+    subject.start(context, verification.copy(env = envVars))
+
+    val containerVars = slot<Map<String, String>>()
+    verify {
+      containerRunner.launchContainer(
+        imageId = any(),
+        subjectLine = any(),
+        description = any(),
+        serviceAccount = any(),
+        application = any(),
+        containerApplication = any(),
+        environmentName = any(),
+        location = any(),
+        environmentVariables = capture(containerVars)
+      )
+    }
+
+    expectThat(containerVars).captured.and {
+      envVars.forEach { (key, value) ->
+        hasEntry(key, value)
+      }
+    }
   }
 
   private fun stubTaskLaunch(): String =
