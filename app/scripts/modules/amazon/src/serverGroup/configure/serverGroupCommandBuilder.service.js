@@ -204,6 +204,7 @@ angular
           healthCheckType: serverGroup.asg.healthCheckType,
           terminationPolicies: angular.copy(serverGroup.asg.terminationPolicies),
           credentials: serverGroup.account,
+          capacityRebalance: serverGroup.asg.capacityRebalance,
         };
         awsServerGroupConfigurationService.configureUpdateCommand(command);
         return command;

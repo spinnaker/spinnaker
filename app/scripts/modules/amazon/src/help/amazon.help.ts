@@ -64,6 +64,7 @@ const helpContents: { [key: string]: string } = {
   'aws.serverGroup.spotAllocationStrategy': `<p>Indicates how to allocate instances across Spot Instance pools.</p>
       <ul>
         <li><b>capacity-optimized (recommended)</b>: Instances launched using Spot pools that are optimally chosen based on the available Spot capacity.</li>
+        <li><b>capacity-optimized-prioritized</b>: Instances launched using the priority on a best-effort basis to determine which launch template override to use first, but AWS optimizes for capacity first.</li>
         <li><b>lowest-price</b>: Instances launched using Spot pools with the lowest price, and evenly allocated across the number of Spot pools specified</li>
       </ul>`,
   'aws.serverGroup.spotInstancePoolCount': `Number of lowest priced Spot Instance pools to diversify across. Only applicable for strategy 'lowest-price'.`,
@@ -80,6 +81,7 @@ const helpContents: { [key: string]: string } = {
         <li><b>Standard (i.e. Unlimited Off)</b>: <b>Default mode in Spinnaker.</b> Suited to workloads with an average CPU utilization that is consistently below the baseline CPU utilization of the instance.<br/>
             To burst above the baseline, the instance spends credits that it has accrued in its CPU credit balance.</li>
       </ul>`,
+  'aws.serverGroup.capacityRebalance': `Enabling <b>Capacity Rebalance</b> allows EC2 Auto Scaling to proactively replace Spot Instances that have received a rebalance recommendation, <b>before</b> it is interrupted by AWS EC2.`,
   'aws.serverGroup.legacyUdf': `<p>(Optional) <b>User Data Format</b> allows overriding of the format used when generating user data during deployment. The default format used is configured
       in the application's attributes, editable via the 'Config' tab.</p>
       <p><b>Default</b> will use the value from the application's configuration.</p>

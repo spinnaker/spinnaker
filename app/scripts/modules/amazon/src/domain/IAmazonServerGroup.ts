@@ -14,6 +14,7 @@ export interface IAmazonAsg extends IAsg {
   enabledMetrics: Array<{ metric: string }>;
   vpczoneIdentifier?: string;
   suspendedProcesses?: ISuspendedProcess[];
+  capacityRebalance?: boolean;
 }
 
 export interface IAmazonServerGroup extends IServerGroup {

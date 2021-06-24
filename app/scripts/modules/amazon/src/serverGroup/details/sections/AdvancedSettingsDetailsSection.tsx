@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { CollapsibleSection, confirmNotManaged, ModalInjector } from '@spinnaker/core';
+import { HelpField } from '@spinnaker/core';
 
 import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
 
@@ -41,6 +42,12 @@ export class AdvancedSettingsDetailsSection extends React.Component<IAmazonServe
           <dd>{asg.healthCheckGracePeriod} seconds</dd>
           <dt>Termination Policies</dt>
           <dd>{asg.terminationPolicies.join(', ')}</dd>
+          {asg.capacityRebalance && [
+            <dt>
+              Capacity Rebalance <HelpField id="aws.serverGroup.capacityRebalance" />
+            </dt>,
+            <dd>{`${asg.capacityRebalance}`}</dd>,
+          ]}
         </dl>
         <a className="clickable" onClick={this.editAdvancedSettings}>
           Edit Advanced Settings

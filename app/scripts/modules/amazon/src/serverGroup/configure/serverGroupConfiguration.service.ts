@@ -100,6 +100,7 @@ export interface IAmazonServerGroupCommand extends IServerGroupCommand {
   targetGroups: string[];
   setLaunchTemplate?: boolean;
   unlimitedCpuCredits?: boolean;
+  capacityRebalance?: boolean;
   viewState: IAmazonServerGroupCommandViewState;
 
   getBlockDeviceMappingsSource: (command: IServerGroupCommand) => IBlockDeviceMappingSource;
