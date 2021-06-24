@@ -6,8 +6,8 @@
   "scripts:comment": "These scripts expect that Deck is built ('yarn build' from the root package)",
   "scripts": {
     "build": "cd ../../ && npm run build",
-    "start": "cypress-runner open --nospa --path ../../app/scripts/modules/app/build/webpack",
-    "test": "cypress-runner run --nospa --path ../../app/scripts/modules/app/build/webpack",
+    "start": "cypress-runner open --nospa --path ../../build/webpack",
+    "test": "cypress-runner run --nospa --path ../../build/webpack",
     "open": "npm run start"
   },
   "keywords": [],

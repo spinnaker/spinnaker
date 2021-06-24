@@ -61,7 +61,7 @@ function configure(env, webpackOpts) {
       app: './src/app.ts',
     },
     output: {
-      path: path.join(__dirname, 'build', 'webpack', process.env.SPINNAKER_ENV || ''),
+      path: path.join(`${__dirname}/../../../../build/webpack`, process.env.SPINNAKER_ENV || ''),
       filename: '[name].js',
     },
     devtool: IS_PRODUCTION ? 'source-map' : 'eval',

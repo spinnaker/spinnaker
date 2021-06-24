@@ -30,10 +30,11 @@ node {
     download = true
 }
 
-task webpack(type: NodeTask) {
-  workingDir file('.')
-  script = file('node_modules/webpack/bin/webpack.js')
-  args = ['--mode=production']
+task webpack(type: YarnTask) {
+  dependsOn "yarn"
+  dependsOn "test"
+
+  yarnCommand = ["build"]
   environment = [
     "NODE_ENV": "production",
     "GATE_HOST": "spinnaker-api-prestaging.prod.netflix.net",
@@ -42,27 +43,28 @@ task webpack(type: NodeTask) {
 }
 
 task copyFavicon(type: Copy) {
-  from "app/prod-favicon.ico"
+  dependsOn "webpack"
+
+  from "app/scripts/modules/app/icons/prod-favicon.ico"
   into "build/webpack"
   rename "prod-favicon.ico", "favicon.ico"
 }
 
-task karma(type: NodeTask) {
-  script = file('node_modules/karma/bin/karma')
-  args = ["start", "--single-run", "--reporters", "dots"]
+task karma(type: YarnTask) {
+  dependsOn "yarn"
+
+  yarnCommand = ["test"]
+  args = ["--single-run", "--reporters", "dots"]
+
   if (project.hasProperty('skipTests')) {
     karma.enabled = false
   }
 }
 
-task functionalTestsChrome(type: NodeTask) {
-  script = file('test/functional/run.js')
-  args = ['--replay-fixtures', '--serve-deck', '--imposter-port=8084', '--browser=chrome', '--headless']
-}
+task functionalTests(type: YarnTask) {
+  dependsOn "yarn"
 
-task functionalTestsFirefox(type: NodeTask) {
-  script = file('test/functional/run.js')
-  args = ['--replay-fixtures', '--serve-deck', '--imposter-port=8084', '--browser=firefox', '--headless']
+  yarnCommand = ["functional"]
 }
 
 task generateVersionFile {
@@ -73,7 +75,7 @@ task generateVersionFile {
       created: new Date().getTime()
     ]
     def buildJson = JsonOutput.prettyPrint(JsonOutput.toJson(buildInfo))
-    new File(Paths.get("build", "webpack").toString()).mkdirs()
+    mkdir "build/webpack"
     new File(Paths.get("build", "webpack", "version.json").toString()).write(buildJson)
     new File("version.json").write(buildJson)
   }
@@ -82,16 +84,11 @@ task generateVersionFile {
 webpack.outputs.dir file('build/webpack')
 
 yarn.dependsOn 'generateVersionFile'
-webpack.dependsOn 'yarn'
-karma.dependsOn 'webpack'
 project.tasks.register('test') {
   dependsOn 'karma'
 }
-copyFavicon.dependsOn 'test'
-buildDeb.dependsOn 'webpack', 'copyFavicon'
+buildDeb.dependsOn 'copyFavicon'
 buildRpm.dependsOn 'webpack'
-functionalTestsChrome.dependsOn 'yarn'
-functionalTestsFirefox.dependsOn 'yarn'
 build.dependsOn 'buildDeb'
 
 String toVers(String v) {
