@@ -76,6 +76,8 @@ public class DeployCloudFoundryServerGroupDescription
 
     private List<ProcessRequest> processes = Collections.emptyList();
 
+    @Nullable private Integer timeout;
+
     @Getter(AccessLevel.NONE)
     @Nullable
     private Boolean randomRoute;

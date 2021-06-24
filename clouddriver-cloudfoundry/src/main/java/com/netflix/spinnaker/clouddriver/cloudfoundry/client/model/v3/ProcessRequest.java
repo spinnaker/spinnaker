@@ -33,4 +33,5 @@ public class ProcessRequest {
   @Nullable private Integer healthCheckInvocationTimeout;
   @Nullable private Integer instances;
   @Nullable private String memory;
+  @Nullable private Integer timeout;
 }
