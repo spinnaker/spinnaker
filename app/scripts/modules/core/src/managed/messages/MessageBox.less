@@ -1,0 +1,44 @@
+.MessageBox {
+  --main-color: var(--color-accent);
+  background-color: var(--color-white);
+  border-left: 4px solid var(--main-color);
+  box-shadow: 2px 2px 5px 0px var(--color-alto);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: var(--xl-spacing);
+
+  &.warning {
+    --main-color: var(--color-status-warning);
+  }
+
+  &.error {
+    --main-color: var(--color-status-error);
+  }
+
+  .message-icon {
+    border-radius: 999px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--main-color);
+    margin-right: var(--m-spacing);
+    color: var(--color-white);
+  }
+}
+
+.MessagesSection {
+  width: 100%;
+  background-color: var(--color-alabaster);
+  border-bottom: 1px solid var(--color-alto);
+  margin-bottom: var(--xl-spacing);
+
+  &.sticky {
+    position: sticky;
+    top: 0;
+    left: 0;
+    z-index: 1;
+  }
+}

@@ -9,8 +9,8 @@ import { Spinner } from 'core/widgets';
 import { ApplicationQueryError } from '../ApplicationQueryError';
 import { VersionContent } from './VersionContent';
 import { VersionHeading } from './VersionHeading';
-import { ManagementWarning } from '../config/ManagementWarning';
 import { useFetchVersionsHistoryQuery } from '../graphql/graphql-sdk';
+import { Messages } from '../messages/Messages';
 import { isBaking } from '../overview/artifact/utils';
 import { HistoryArtifactVersion, HistoryEnvironment, PinnedVersions, VersionData } from './types';
 import { spinnerProps } from '../utils/defaults';
@@ -125,7 +125,7 @@ export const VersionsHistory = () => {
 
   return (
     <main className="VersionsHistory">
-      <ManagementWarning appName={app.name} />
+      <Messages />
       {groupedVersions.map((group) => {
         return <SingleVersion key={group.key} versionData={group} pinnedVersions={pinnedVersions} />;
       })}

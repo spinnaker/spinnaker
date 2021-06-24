@@ -39,7 +39,9 @@ export interface MdApplication {
   name: Scalars['String'];
   account: Scalars['String'];
   isPaused?: Maybe<Scalars['Boolean']>;
+  pausedInfo?: Maybe<MdPausedInfo>;
   environments: Array<MdEnvironment>;
+  notifications?: Maybe<Array<MdNotification>>;
 }
 
 export interface MdArtifact {
@@ -131,6 +133,10 @@ export interface MdConstraintStatusPayload {
   status: MdConstraintStatus;
 }
 
+export interface MdDismissNotificationPayload {
+  id: Scalars['String'];
+}
+
 export interface MdEnvironment {
   __typename?: 'MdEnvironment';
   id: Scalars['String'];
@@ -145,6 +151,8 @@ export interface MdEnvironmentState {
   resources?: Maybe<Array<MdResource>>;
   artifacts?: Maybe<Array<MdArtifact>>;
 }
+
+export type MdEventLevel = 'SUCCESS' | 'INFO' | 'WARNING' | 'ERROR';
 
 export interface MdGitMetadata {
   __typename?: 'MdGitMetadata';
@@ -197,6 +205,20 @@ export interface MdMoniker {
   detail?: Maybe<Scalars['String']>;
 }
 
+export interface MdNotification {
+  __typename?: 'MdNotification';
+  id: Scalars['String'];
+  level: MdEventLevel;
+  message: Scalars['String'];
+  triggeredAt?: Maybe<Scalars['InstantTime']>;
+  triggeredBy?: Maybe<Scalars['String']>;
+  environment?: Maybe<Scalars['String']>;
+  link?: Maybe<Scalars['String']>;
+  isActive?: Maybe<Scalars['Boolean']>;
+  dismissedAt?: Maybe<Scalars['InstantTime']>;
+  dismissedBy?: Maybe<Scalars['String']>;
+}
+
 export interface MdPackageAndVersion {
   __typename?: 'MdPackageAndVersion';
   package: Scalars['String'];
@@ -215,6 +237,14 @@ export interface MdPackageDiff {
   added?: Maybe<Array<MdPackageAndVersion>>;
   removed?: Maybe<Array<MdPackageAndVersion>>;
   changed?: Maybe<Array<MdPackageAndVersionChange>>;
+}
+
+export interface MdPausedInfo {
+  __typename?: 'MdPausedInfo';
+  id: Scalars['String'];
+  by?: Maybe<Scalars['String']>;
+  at?: Maybe<Scalars['InstantTime']>;
+  comment?: Maybe<Scalars['String']>;
 }
 
 export interface MdPinnedVersion {
@@ -294,6 +324,7 @@ export interface Mutation {
   unpinArtifactVersion?: Maybe<Scalars['Boolean']>;
   markArtifactVersionAsGood?: Maybe<Scalars['Boolean']>;
   retryArtifactVersionAction?: Maybe<MdAction>;
+  dismissNotification?: Maybe<Scalars['Boolean']>;
 }
 
 export interface MutationUpdateConstraintStatusArgs {
@@ -303,6 +334,7 @@ export interface MutationUpdateConstraintStatusArgs {
 export interface MutationToggleManagementArgs {
   application: Scalars['String'];
   isPaused: Scalars['Boolean'];
+  comment?: Maybe<Scalars['String']>;
 }
 
 export interface MutationPinArtifactVersionArgs {
@@ -323,6 +355,10 @@ export interface MutationMarkArtifactVersionAsGoodArgs {
 
 export interface MutationRetryArtifactVersionActionArgs {
   payload?: Maybe<MdRetryArtifactActionPayload>;
+}
+
+export interface MutationDismissNotificationArgs {
+  payload: MdDismissNotificationPayload;
 }
 
 export interface Query {
@@ -562,6 +598,25 @@ export type FetchResourceStatusQuery = { __typename?: 'Query' } & {
                   >;
                 };
             }
+        >;
+      }
+  >;
+};
+
+export type FetchNotificationsQueryVariables = Exact<{
+  appName: Scalars['String'];
+}>;
+
+export type FetchNotificationsQuery = { __typename?: 'Query' } & {
+  application?: Maybe<
+    { __typename?: 'MdApplication' } & Pick<MdApplication, 'id' | 'name'> & {
+        notifications?: Maybe<
+          Array<
+            { __typename?: 'MdNotification' } & Pick<
+              MdNotification,
+              'id' | 'level' | 'message' | 'triggeredAt' | 'link'
+            >
+          >
         >;
       }
   >;
@@ -1065,6 +1120,63 @@ export type FetchResourceStatusLazyQueryHookResult = ReturnType<typeof useFetchR
 export type FetchResourceStatusQueryResult = Apollo.QueryResult<
   FetchResourceStatusQuery,
   FetchResourceStatusQueryVariables
+>;
+export const FetchNotificationsDocument = gql`
+  query fetchNotifications($appName: String!) {
+    application(appName: $appName) {
+      id
+      name
+      notifications {
+        id
+        level
+        message
+        triggeredAt
+        link
+        id
+      }
+    }
+  }
+`;
+
+/**
+ * __useFetchNotificationsQuery__
+ *
+ * To run a query within a React component, call `useFetchNotificationsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useFetchNotificationsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useFetchNotificationsQuery({
+ *   variables: {
+ *      appName: // value for 'appName'
+ *   },
+ * });
+ */
+export function useFetchNotificationsQuery(
+  baseOptions: Apollo.QueryHookOptions<FetchNotificationsQuery, FetchNotificationsQueryVariables>,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<FetchNotificationsQuery, FetchNotificationsQueryVariables>(
+    FetchNotificationsDocument,
+    options,
+  );
+}
+export function useFetchNotificationsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<FetchNotificationsQuery, FetchNotificationsQueryVariables>,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<FetchNotificationsQuery, FetchNotificationsQueryVariables>(
+    FetchNotificationsDocument,
+    options,
+  );
+}
+export type FetchNotificationsQueryHookResult = ReturnType<typeof useFetchNotificationsQuery>;
+export type FetchNotificationsLazyQueryHookResult = ReturnType<typeof useFetchNotificationsLazyQuery>;
+export type FetchNotificationsQueryResult = Apollo.QueryResult<
+  FetchNotificationsQuery,
+  FetchNotificationsQueryVariables
 >;
 export const FetchApplicationManagementStatusDocument = gql`
   query fetchApplicationManagementStatus($appName: String!) {

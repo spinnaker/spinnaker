@@ -5,9 +5,9 @@ import { Spinner } from 'core/widgets';
 
 import { ApplicationQueryError } from '../ApplicationQueryError';
 import { EnvironmentOverview } from './EnvironmentOverview';
-import { ManagementWarning } from '../config/ManagementWarning';
 import { EnvironmentsRender, useOrderedEnvironment } from '../environmentBaseElements/EnvironmentsRender';
 import { useFetchApplicationQuery } from '../graphql/graphql-sdk';
+import { Messages } from '../messages/Messages';
 import { OVERVIEW_VERSION_STATUSES } from './utils';
 import { spinnerProps } from '../utils/defaults';
 
@@ -39,7 +39,7 @@ export const EnvironmentsOverview = () => {
   } else {
     content = (
       <>
-        <ManagementWarning appName={app.name} />
+        <Messages />
         {environments.length ? (
           <>
             <EnvironmentsRender {...regularEnvironmentsProps}>

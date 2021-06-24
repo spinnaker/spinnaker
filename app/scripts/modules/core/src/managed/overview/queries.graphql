@@ -240,6 +240,21 @@ query fetchResourceStatus($appName: String!) {
   }
 }
 
+query fetchNotifications($appName: String!) {
+  application(appName: $appName) {
+    id
+    name
+    notifications {
+      id
+      level
+      message
+      triggeredAt
+      link
+      id
+    }
+  }
+}
+
 query fetchApplicationManagementStatus($appName: String!) {
   application(appName: $appName) {
     id

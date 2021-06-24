@@ -4,8 +4,8 @@ import { showModal } from 'core/presentation';
 
 import { ResumeManagementModal } from './Configuration';
 import { useFetchApplicationManagementStatusQuery, useToggleManagementMutation } from '../graphql/graphql-sdk';
+import { MessageBox } from '../messages/MessageBox';
 import { MODAL_MAX_WIDTH } from '../utils/defaults';
-import './ManagementWarning.less';
 
 export const ManagementWarning = ({ appName }: { appName: string }) => {
   const { data, refetch } = useFetchApplicationManagementStatusQuery({ variables: { appName } });
@@ -30,20 +30,18 @@ export const ManagementWarning = ({ appName }: { appName: string }) => {
 
   if (data?.application?.isPaused) {
     return (
-      <div className="ManagementWarning">
-        <div className="content sp-padding-m">
-          Application management is disabled.{' '}
-          <a
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              onClick();
-            }}
-          >
-            Click here to enable
-          </a>
-        </div>
-      </div>
+      <MessageBox type="WARNING">
+        Application management is disabled.{' '}
+        <a
+          href="#"
+          onClick={(e) => {
+            e.preventDefault();
+            onClick();
+          }}
+        >
+          Click here to enable
+        </a>
+      </MessageBox>
     );
   }
   return null;
