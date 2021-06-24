@@ -26,6 +26,7 @@ class ModifyAsgDescription extends AbstractAmazonCredentialsDescription implemen
   String healthCheckType
   List<String> enabledMetrics
   List<String> terminationPolicies
+  Boolean capacityRebalance
 
   @Override
   Collection<String> getServerGroupNames() {

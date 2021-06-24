@@ -21,12 +21,15 @@ import com.amazonaws.services.autoscaling.model.BlockDeviceMapping
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
 import com.amazonaws.services.autoscaling.model.DescribeLaunchConfigurationsRequest
 import com.amazonaws.services.autoscaling.model.DescribeLaunchConfigurationsResult
+import com.amazonaws.services.autoscaling.model.DescribeLifecycleHooksRequest
+import com.amazonaws.services.autoscaling.model.DescribeLifecycleHooksResult
 import com.amazonaws.services.autoscaling.model.Ebs
 import com.amazonaws.services.autoscaling.model.InstancesDistribution
 import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.amazonaws.services.autoscaling.model.LaunchTemplate
 import com.amazonaws.services.autoscaling.model.LaunchTemplateOverrides
 import com.amazonaws.services.autoscaling.model.LaunchTemplateSpecification
+import com.amazonaws.services.autoscaling.model.LifecycleHook
 import com.amazonaws.services.autoscaling.model.MixedInstancesPolicy
 import com.amazonaws.services.autoscaling.model.TagDescription
 import com.amazonaws.services.ec2.AmazonEC2
@@ -40,6 +43,7 @@ import com.amazonaws.services.ec2.model.ResponseLaunchTemplateData
 import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AWSServerGroupNameResolver
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType
 import com.netflix.spinnaker.clouddriver.aws.deploy.validators.BasicAmazonDeployDescriptionValidator
+import com.netflix.spinnaker.clouddriver.aws.model.AmazonAsgLifecycleHook
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.services.AsgService
 import com.netflix.spinnaker.clouddriver.aws.services.LaunchTemplateService
@@ -52,17 +56,57 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeplo
 import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.BasicAmazonDeployHandler
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import spock.lang.Specification
+import spock.lang.Subject
 import spock.lang.Unroll
 
 class CopyLastAsgAtomicOperationUnitSpec extends Specification {
 
-  def setupSpec() {
+  def deployHandler = Mock(BasicAmazonDeployHandler)
+  def mockAutoScaling = Mock(AmazonAutoScaling)
+  def ec2 = Mock(AmazonEC2)
+  def mockProvider = Mock(AmazonClientProvider)
+  def mockAsgReferenceCopier = Mock(AsgReferenceCopier)
+  def asgService = new AsgService(mockAutoScaling)
+  def serverGroupNameResolver = Mock(AWSServerGroupNameResolver)
+  def regionScopedProviderStub = Stub(RegionScopedProviderFactory.RegionScopedProvider)
+
+  def description = new BasicAmazonDeployDescription(
+    application: "asgard",
+    stack: "stack",
+    availabilityZones: [
+      'us-east-1': [],
+      'us-west-1': []
+    ],
+    credentials: TestCredential.named('baz'),
+    securityGroups: ["someGroupName", "sg-12345a"],
+    capacity: new BasicAmazonDeployDescription.Capacity(min: 1, max: 3, desired: 5))
+
+  @Subject def op = new CopyLastAsgAtomicOperation(description)
+
+  def setup() {
     TaskRepository.threadLocalTask.set(Mock(Task))
+
+    mockProvider.getAmazonEC2(_, _, true) >> ec2
+    mockProvider.getAutoScaling(_, _, true) >> mockAutoScaling
+
+    regionScopedProviderStub.getAsgReferenceCopier(_, _) >> mockAsgReferenceCopier
+    regionScopedProviderStub.getAsgService() >> asgService
+    regionScopedProviderStub.getAWSServerGroupNameResolver() >> serverGroupNameResolver
+
+    op.amazonClientProvider = mockProvider
+    op.basicAmazonDeployHandler = deployHandler
+    op.regionScopedProviderFactory = Stub(RegionScopedProviderFactory) {
+      forRegion(_, _) >> regionScopedProviderStub
+    }
+    op.basicAmazonDeployDescriptionValidator = Stub(BasicAmazonDeployDescriptionValidator)
   }
 
   @Unroll
   void "operation builds description based on ancestor asg backed by a launch template"() {
     given:
+    description.spotPrice = requestSpotPrice
+
+    and:
     def launchTemplateVersion = new LaunchTemplateVersion(
       launchTemplateName: "foo",
       launchTemplateId: "foo",
@@ -95,47 +139,10 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
       version: launchTemplateVersion.versionNumber.toString(),
     )
 
-    def description = new BasicAmazonDeployDescription(
-      application: "asgard",
-      stack: "stack",
-      availabilityZones: [
-        'us-east-1': [],
-        'us-west-1': []
-      ],
-      credentials: TestCredential.named('baz'),
-      securityGroups: ["someGroupName", "sg-12345a"],
-      capacity: new BasicAmazonDeployDescription.Capacity(min: 1, max: 3, desired: 5),
-      spotPrice: requestSpotPrice
-    )
-
     and:
-    def deployHandler = Mock(BasicAmazonDeployHandler)
-    def mockAutoScaling = Mock(AmazonAutoScaling)
-    def ec2 = Mock(AmazonEC2)
-    def mockProvider = Mock(AmazonClientProvider)
-    mockProvider.getAmazonEC2(_, _, true) >> ec2
-    mockProvider.getAutoScaling(_, _, true) >> mockAutoScaling
-
-    def op = new CopyLastAsgAtomicOperation(description)
-    op.amazonClientProvider = mockProvider
-    op.basicAmazonDeployHandler = deployHandler
-
-    def mockAsgReferenceCopier = Mock(AsgReferenceCopier)
-    def asgService = new AsgService(mockAutoScaling)
-    def serverGroupNameResolver = Mock(AWSServerGroupNameResolver)
-
-    op.regionScopedProviderFactory = Stub(RegionScopedProviderFactory) {
-      forRegion(_, _) >> Stub(RegionScopedProviderFactory.RegionScopedProvider) {
-        getAsgReferenceCopier(_, _) >> mockAsgReferenceCopier
-        getAsgService() >> asgService
-        getAWSServerGroupNameResolver() >> serverGroupNameResolver
-        getLaunchTemplateService() >> Mock(LaunchTemplateService) {
-          getLaunchTemplateVersion(launchTemplateSpec) >> Optional.of(launchTemplateVersion)
-        }
-      }
+    regionScopedProviderStub.getLaunchTemplateService() >> Mock(LaunchTemplateService) {
+      getLaunchTemplateVersion(launchTemplateSpec) >> Optional.of(launchTemplateVersion)
     }
-
-    op.basicAmazonDeployDescriptionValidator = Stub(BasicAmazonDeployDescriptionValidator)
 
     when:
     def result = op.operate([])
@@ -165,43 +172,17 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
 
     where:
     requestSpotPrice | ancestorSpotPrice || expectedSpotPrice
-    0.25             | null              || 0.25
-    0.25             | 0.5               || 0.25
-    null             | 0.25              || 0.25
-    ""               | 0.25              || null
+    "0.25"           | null              || "0.25"
+    "0.25"           | "0.5"             || "0.25"
+    null             | "0.25"            || "0.25"
+    ""               | "0.25"            || null
     null             | null              || null
   }
 
   @Unroll
   void "operation builds description based on ancestor asg backed by launch configuration"() {
     setup:
-    def deployHandler = Mock(BasicAmazonDeployHandler)
-    def description = new BasicAmazonDeployDescription(application: "asgard", stack: "stack")
-    description.availabilityZones = ['us-east-1': [], 'us-west-1': []]
-    description.credentials = TestCredential.named('baz')
-    description.securityGroups = ['someGroupName', 'sg-12345a']
-    description.capacity = new BasicAmazonDeployDescription.Capacity(min: 1, max: 3, desired: 5)
     description.spotPrice = requestSpotPrice
-    def mockEC2 = Mock(AmazonEC2)
-    def mockAutoScaling = Mock(AmazonAutoScaling)
-    def mockProvider = Mock(AmazonClientProvider)
-    mockProvider.getAmazonEC2(_, _, true) >> mockEC2
-    mockProvider.getAutoScaling(_, _, true) >> mockAutoScaling
-    def op = new CopyLastAsgAtomicOperation(description)
-    op.amazonClientProvider = mockProvider
-    op.basicAmazonDeployHandler = deployHandler
-
-    def mockAsgReferenceCopier = Mock(AsgReferenceCopier)
-    def asgService = new AsgService(mockAutoScaling)
-    def serverGroupNameResolver = Mock(AWSServerGroupNameResolver)
-    op.regionScopedProviderFactory = Stub(RegionScopedProviderFactory) {
-      forRegion(_, _) >> Stub(RegionScopedProviderFactory.RegionScopedProvider) {
-        getAsgReferenceCopier(_, _) >> mockAsgReferenceCopier
-        getAsgService() >> asgService
-        getAWSServerGroupNameResolver() >> serverGroupNameResolver
-      }
-    }
-    op.basicAmazonDeployDescriptionValidator = Stub(BasicAmazonDeployDescriptionValidator)
 
     when:
     def result = op.operate([])
@@ -210,6 +191,7 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     result.serverGroupNameByRegion['us-east-1'] == 'asgard-stack-v001'
     result.serverGroupNameByRegion['us-west-1'] == 'asgard-stack-v001'
     result.serverGroupNames == ['asgard-stack-v001', 'asgard-stack-v001']
+
     2 * mockAutoScaling.describeLaunchConfigurations(_) >> { DescribeLaunchConfigurationsRequest request ->
       assert request.launchConfigurationNames == ['foo']
       def mockLaunch = Mock(LaunchConfiguration)
@@ -229,6 +211,7 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
       mockAsg.getTags() >> [new TagDescription().withKey('Name').withValue('name-tag')]
       new DescribeAutoScalingGroupsResult().withAutoScalingGroups([mockAsg])
     }
+
     2 * serverGroupNameResolver.resolveLatestServerGroupName("asgard-stack") >> { "asgard-stack-v000" }
     0 * serverGroupNameResolver._
     1 * deployHandler.handle(expectedDescription(expectedSpotPrice, 'us-east-1'), _) >>
@@ -238,16 +221,29 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
 
     where:
     requestSpotPrice | ancestorSpotPrice || expectedSpotPrice
-    0.25             | null              || 0.25
-    0.25             | 0.5               || 0.25
-    null             | 0.25              || 0.25
-    ""               | 0.25              || null
+    "0.25"           | null              || "0.25"
+    "0.25"           | "0.5"             || "0.25"
+    null             | "0.25"            || "0.25"
+    ""               | "0.25"            || null
     null             | null              || null
   }
 
   @Unroll
   void "operation builds new description with correct cpu credits based on ancestor asg and request"() {
     given:
+    description.availabilityZones = ['us-east-1': []]
+    description.setLaunchTemplate = true
+    description.unlimitedCpuCredits = unlimitedCpuCreditsInReq
+    description.instanceType = instanceTypeInReq
+
+    def overrides = null
+    if (instanceTypeOverride2InReq) {
+      overrides = [ new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(instanceType: "t3.large", weightedCapacity: "2"),
+                    new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(instanceType: instanceTypeOverride2InReq, weightedCapacity: "4")]
+      description.launchTemplateOverridesForInstanceType = overrides
+    }
+
+    and:
     def launchTemplateVersion = new LaunchTemplateVersion(
       launchTemplateName: "foo",
       launchTemplateId: "foo",
@@ -261,7 +257,6 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
         cpuCredits: ancestorUnlimitedCpuCredits
       )
     }
-
     def launchTemplateSpec = new LaunchTemplateSpecification(
       launchTemplateName: launchTemplateVersion.launchTemplateName,
       launchTemplateId: launchTemplateVersion.launchTemplateId,
@@ -269,54 +264,9 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     )
 
     and:
-    def requestDescription = new BasicAmazonDeployDescription(
-      application: "asgard",
-      stack: "stack",
-      availabilityZones: [
-        'us-east-1': []
-      ],
-      credentials: TestCredential.named('baz'),
-      capacity: new BasicAmazonDeployDescription.Capacity(min: 1, max: 3, desired: 5),
-      securityGroups: ["someGroupName", "sg-12345a"],
-      setLaunchTemplate: true,
-      unlimitedCpuCredits: unlimitedCpuCreditsInReq,
-      instanceType: instanceTypeInReq
-    )
-    def overrides = null
-    if (instanceTypeOverride2InReq) {
-      overrides = [ new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(instanceType: "t3.large", weightedCapacity: "2"),
-                    new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(instanceType: instanceTypeOverride2InReq, weightedCapacity: "4")]
-      requestDescription.launchTemplateOverridesForInstanceType = overrides
+    regionScopedProviderStub.getLaunchTemplateService() >> Mock(LaunchTemplateService) {
+      getLaunchTemplateVersion(launchTemplateSpec) >> Optional.of(launchTemplateVersion)
     }
-
-    and:
-    def deployHandler = Mock(BasicAmazonDeployHandler)
-    def mockAutoScaling = Mock(AmazonAutoScaling)
-    def ec2 = Mock(AmazonEC2)
-    def mockProvider = Mock(AmazonClientProvider)
-    mockProvider.getAmazonEC2(_, _, true) >> ec2
-    mockProvider.getAutoScaling(_, _, true) >> mockAutoScaling
-
-    def op = new CopyLastAsgAtomicOperation(requestDescription)
-    op.amazonClientProvider = mockProvider
-    op.basicAmazonDeployHandler = deployHandler
-
-    def mockAsgReferenceCopier = Mock(AsgReferenceCopier)
-    def asgService = new AsgService(mockAutoScaling)
-    def serverGroupNameResolver = Mock(AWSServerGroupNameResolver)
-
-    op.regionScopedProviderFactory = Stub(RegionScopedProviderFactory) {
-      forRegion(_, _) >> Stub(RegionScopedProviderFactory.RegionScopedProvider) {
-        getAsgReferenceCopier(_, _) >> mockAsgReferenceCopier
-        getAsgService() >> asgService
-        getAWSServerGroupNameResolver() >> serverGroupNameResolver
-        getLaunchTemplateService() >> Mock(LaunchTemplateService) {
-          getLaunchTemplateVersion(launchTemplateSpec) >> Optional.of(launchTemplateVersion)
-        }
-      }
-    }
-
-    op.basicAmazonDeployDescriptionValidator = Stub(BasicAmazonDeployDescriptionValidator)
 
     and:
     def mockAncestorAsg = Mock(AutoScalingGroup)
@@ -329,7 +279,6 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     mockAutoScaling.describeAutoScalingGroups(_) >> {
       new DescribeAutoScalingGroupsResult().withAutoScalingGroups([mockAncestorAsg])
     }
-
     serverGroupNameResolver.resolveLatestServerGroupName("asgard-stack") >> { "asgard-stack-v000" }
 
     when:
@@ -356,6 +305,12 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
   @Unroll
   void "operation builds description based on ancestor asg backed by mixed instances policy with launch template"() {
     given:
+    description.availabilityZones = ['us-east-1': []]
+    description.spotPrice = requestSpotPrice
+    description.spotAllocationStrategy = requestSpotAllocStrategy
+    description.launchTemplateOverridesForInstanceType = requestOverrides
+
+    and:
     def launchTemplateVersion = new LaunchTemplateVersion(
       launchTemplateName: "foo",
       launchTemplateId: "foo",
@@ -381,7 +336,7 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
       launchTemplateId: launchTemplateVersion.launchTemplateId,
       version: launchTemplateVersion.versionNumber.toString(),
     )
-    def mixedInstancesPolicy = new MixedInstancesPolicy(
+    def ancestorMixedInstancesPolicy = new MixedInstancesPolicy(
       launchTemplate: new LaunchTemplate(
         launchTemplateSpecification: launchTemplateSpec,
         overrides: ancestorOverrides
@@ -396,48 +351,10 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
       )
     )
 
-    def description = new BasicAmazonDeployDescription(
-      application: "asgard",
-      stack: "stack",
-      availabilityZones: [
-        'us-east-1': []
-      ],
-      credentials: TestCredential.named('baz'),
-      securityGroups: ["someGroupName", "sg-12345a"],
-      capacity: new BasicAmazonDeployDescription.Capacity(min: 1, max: 3, desired: 5),
-      spotPrice: requestSpotPrice,
-      spotAllocationStrategy: requestSpotAllocStrategy,
-      launchTemplateOverridesForInstanceType: requestOverrides
-    )
-
     and:
-    def deployHandler = Mock(BasicAmazonDeployHandler)
-    def mockAutoScaling = Mock(AmazonAutoScaling)
-    def ec2 = Mock(AmazonEC2)
-    def mockProvider = Mock(AmazonClientProvider)
-    mockProvider.getAmazonEC2(_, _, true) >> ec2
-    mockProvider.getAutoScaling(_, _, true) >> mockAutoScaling
-
-    def op = new CopyLastAsgAtomicOperation(description)
-    op.amazonClientProvider = mockProvider
-    op.basicAmazonDeployHandler = deployHandler
-
-    def mockAsgReferenceCopier = Mock(AsgReferenceCopier)
-    def asgService = new AsgService(mockAutoScaling)
-    def serverGroupNameResolver = Mock(AWSServerGroupNameResolver)
-
-    op.regionScopedProviderFactory = Stub(RegionScopedProviderFactory) {
-      forRegion(_, _) >> Stub(RegionScopedProviderFactory.RegionScopedProvider) {
-        getAsgReferenceCopier(_, _) >> mockAsgReferenceCopier
-        getAsgService() >> asgService
-        getAWSServerGroupNameResolver() >> serverGroupNameResolver
-        getLaunchTemplateService() >> Mock(LaunchTemplateService) {
-          getLaunchTemplateVersion(launchTemplateSpec) >> Optional.of(launchTemplateVersion)
-        }
-      }
+    regionScopedProviderStub.getLaunchTemplateService() >> Mock(LaunchTemplateService) {
+      getLaunchTemplateVersion(launchTemplateSpec) >> Optional.of(launchTemplateVersion)
     }
-
-    op.basicAmazonDeployDescriptionValidator = Stub(BasicAmazonDeployDescriptionValidator)
 
     when:
     def result = op.operate([])
@@ -452,24 +369,25 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
       mockAsg.getMinSize() >> 0
       mockAsg.getMaxSize() >> 2
       mockAsg.getDesiredCapacity() >> 4
-      mockAsg.getMixedInstancesPolicy() >> mixedInstancesPolicy
+      mockAsg.getMixedInstancesPolicy() >> ancestorMixedInstancesPolicy
       mockAsg.getTags() >> [new TagDescription().withKey('Name').withValue('name-tag')]
       new DescribeAutoScalingGroupsResult().withAutoScalingGroups([mockAsg])
     }
 
+    and:
     1 * serverGroupNameResolver.resolveLatestServerGroupName("asgard-stack") >> { "asgard-stack-v000" }
     0 * serverGroupNameResolver._
     1 * deployHandler.handle(_ as BasicAmazonDeployDescription, _) >> { arguments ->
-      BasicAmazonDeployDescription actualDesc = arguments[0]
+      def expectedMip = ancestorMixedInstancesPolicy
+      expectedMip.setInstancesDistribution(ancestorMixedInstancesPolicy.getInstancesDistribution()
+        .withSpotAllocationStrategy(expectedSpotAllocStrategy)
+        .withSpotMaxPrice(expectedSpotPrice)
+        .withSpotInstancePools(expectedSpotAllocStrategy == "lowest-price" ? 2 : null))
+      expectedMip.setLaunchTemplate(ancestorMixedInstancesPolicy.getLaunchTemplate().withOverrides(expectedOverrides))
+      def expectedDesc = expectedDescription(null, "us-east-1", null, null, expectedMip)
+      def actualDesc = arguments[0]
 
-      assert actualDesc.keyPair == "key-pair-name"
-      assert actualDesc.spotPrice == expectedSpotPrice
-      assert actualDesc.onDemandAllocationStrategy == "prioritized"
-      assert actualDesc.onDemandBaseCapacity == 2
-      assert actualDesc.onDemandPercentageAboveBaseCapacity == 50
-      assert actualDesc.spotAllocationStrategy == expectedSpotAllocStrategy
-      assert actualDesc.spotInstancePools == (expectedSpotAllocStrategy == "lowest-price" ? 2 : null)
-      assert actualDesc.launchTemplateOverridesForInstanceType == expectedOverrides; new DeploymentResult(serverGroupNames: ['asgard-stack-v001'], serverGroupNameByRegion: ['us-east-1': 'asgard-stack-v001'])
+      assert actualDesc == expectedDesc; new DeploymentResult(serverGroupNames: ['asgard-stack-v001'], serverGroupNameByRegion: ['us-east-1': 'asgard-stack-v001'])
     }
 
     where:
@@ -494,8 +412,97 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     null             | null              || null              |       null               |     "lowest-price"        ||     "lowest-price"         |                                      null                                 |                             null                             ||              null
   }
 
+  @Unroll
+  void "operation populates ASG lifecycle hooks and capacity rebalance in description as expected"() {
+    given:
+    description.availabilityZones = ['us-east-1': []]
+    description.lifecycleHooks = requestLifecycleHooks
+    description.capacityRebalance = requestCapRebalance
+
+    def launchTemplateVersion = new LaunchTemplateVersion(
+      launchTemplateName: "foo",
+      launchTemplateId: "foo",
+      versionNumber: 0,
+      launchTemplateData: new ResponseLaunchTemplateData(
+        keyName: "key-pair-name",
+        )
+      )
+
+    def launchTemplateSpec = new LaunchTemplateSpecification(
+      launchTemplateName: launchTemplateVersion.launchTemplateName,
+      launchTemplateId: launchTemplateVersion.launchTemplateId,
+      version: launchTemplateVersion.versionNumber.toString(),
+    )
+
+    and:
+    regionScopedProviderStub.getLaunchTemplateService() >> Mock(LaunchTemplateService) {
+      getLaunchTemplateVersion(launchTemplateSpec) >> Optional.of(launchTemplateVersion)
+    }
+
+    when:
+    op.operate([])
+
+    then:
+    1 * mockAutoScaling.describeAutoScalingGroups(_) >> {
+      def mockAsg = Mock(AutoScalingGroup)
+      mockAsg.getAutoScalingGroupName() >> "asgard-stack-v000"
+      mockAsg.getMinSize() >> 0
+      mockAsg.getMaxSize() >> 2
+      mockAsg.getDesiredCapacity() >> 4
+      mockAsg.getLaunchTemplate() >> launchTemplateSpec
+      mockAsg.getCapacityRebalance() >> ancestorCapRebalance
+      new DescribeAutoScalingGroupsResult().withAutoScalingGroups([mockAsg])
+    }
+    (requestLifecycleHooks ? 0 : 1) * mockAutoScaling.describeLifecycleHooks(_ as DescribeLifecycleHooksRequest) >> { arguments ->
+      DescribeLifecycleHooksRequest req = arguments[0]
+      assert req.getAutoScalingGroupName() == "asgard-stack-v000"; new DescribeLifecycleHooksResult().withLifecycleHooks(ancestorLifecycleHooks)
+    }
+
+    and:
+    1 * serverGroupNameResolver.resolveLatestServerGroupName("asgard-stack") >> { "asgard-stack-v000" }
+    0 * serverGroupNameResolver._
+    1 * deployHandler.handle(_ as BasicAmazonDeployDescription, _) >> { arguments ->
+      BasicAmazonDeployDescription actualDesc = arguments[0]
+
+      assert actualDesc.capacityRebalance == expectedCapRebalance
+      assert actualDesc.lifecycleHooks == expectedLifecycleHooks; new DeploymentResult(serverGroupNames: ['asgard-stack-v001'], serverGroupNameByRegion: ['us-east-1': 'asgard-stack-v001'])
+    }
+
+    where:
+    requestCapRebalance | ancestorCapRebalance || expectedCapRebalance | requestLifecycleHooks                                                             | ancestorLifecycleHooks                                        || expectedLifecycleHooks
+          null          |       false          ||       false          | null                                                                              |      null                                                     ||  []
+          null          |       true           ||       true           | null                                                                              | [new LifecycleHook(
+                                                                                                                                                              lifecycleTransition: 'autoscaling:EC2_INSTANCE_TERMINATING',
+                                                                                                                                                              heartbeatTimeout: 1800,
+                                                                                                                                                              defaultResult: 'CONTINUE')]                                  || [new AmazonAsgLifecycleHook(
+                                                                                                                                                                                                                                lifecycleTransition: AmazonAsgLifecycleHook.Transition.EC2InstanceTerminating,
+                                                                                                                                                                                                                                heartbeatTimeout: 1800,
+                                                                                                                                                                                                                                defaultResult: AmazonAsgLifecycleHook.DefaultResult.CONTINUE)]
+          false         |       false          ||       false          |[]                                                                                | [new LifecycleHook(
+                                                                                                                                                              lifecycleTransition: 'autoscaling:EC2_INSTANCE_TERMINATING',
+                                                                                                                                                              heartbeatTimeout: 1800,
+                                                                                                                                                              defaultResult: 'CONTINUE')]                                  || [new AmazonAsgLifecycleHook(
+                                                                                                                                                                                                                                lifecycleTransition: AmazonAsgLifecycleHook.Transition.EC2InstanceTerminating,
+                                                                                                                                                                                                                                heartbeatTimeout: 1800,
+                                                                                                                                                                                                                                defaultResult: AmazonAsgLifecycleHook.DefaultResult.CONTINUE)]
+          true          |       false          ||       true           |[new AmazonAsgLifecycleHook(
+                                                                          roleARN: 'role-arn',
+                                                                          notificationTargetARN: 'target-arn',
+                                                                          notificationMetadata: 'metadata',
+                                                                          lifecycleTransition: AmazonAsgLifecycleHook.Transition.EC2InstanceTerminating,
+                                                                          heartbeatTimeout: 3600,
+                                                                          defaultResult: AmazonAsgLifecycleHook.DefaultResult.ABANDON
+                                                                         )]                                                                                |                            null                                || [new AmazonAsgLifecycleHook(
+                                                                                                                                                            roleARN: 'role-arn',
+                                                                                                                                                            notificationTargetARN: 'target-arn',
+                                                                                                                                                            notificationMetadata: 'metadata',
+                                                                                                                                                            lifecycleTransition: AmazonAsgLifecycleHook.Transition.EC2InstanceTerminating,
+                                                                                                                                                            heartbeatTimeout: 3600,
+                                                                                                                                                            defaultResult: AmazonAsgLifecycleHook.DefaultResult.ABANDON)]
+  }
+
   private static BasicAmazonDeployDescription expectedDescription(
-          Double expectedSpotPrice,
+          String expectedSpotPrice = null,
           String region,
           String instanceType = null,
           Boolean unlimitedCpuCredits = null,
@@ -505,12 +512,14 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     def desc = new BasicAmazonDeployDescription(
       application: 'asgard',
       stack: 'stack',
+      credentials: TestCredential.named('baz'),
       keyPair: 'key-pair-name',
       securityGroups: ['someGroupName', 'sg-12345a'],
       availabilityZones: [(region): null],
       capacity: new BasicAmazonDeployDescription.Capacity(min: 1, max: 3, desired: 5),
       tags: [Name: 'name-tag'],
-      spotPrice: expectedSpotPrice,
+      lifecycleHooks: [],
+      spotPrice: mip ? mip.getInstancesDistribution().getSpotMaxPrice() : expectedSpotPrice,
       source: new BasicAmazonDeployDescription.Source(
         asgName: "asgard-stack-v000",
         account: 'baz',
@@ -526,9 +535,10 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
       desc.onDemandPercentageAboveBaseCapacity = mip.instancesDistribution.onDemandPercentageAboveBaseCapacity
       desc.spotAllocationStrategy = mip.instancesDistribution.spotAllocationStrategy
       desc.spotInstancePools = mip.instancesDistribution.spotInstancePools
-      desc.launchTemplateOverridesForInstanceType = mip.launchTemplate.overrides.collect {
-          new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(instanceType: it.instanceType, weightedCapacity: it.weightedCapacity)
-        }.toList()
+      int priority = 1
+      desc.launchTemplateOverridesForInstanceType = mip.launchTemplate.overrides ? mip.launchTemplate.overrides.collect {
+          new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(instanceType: it.instanceType, weightedCapacity: it.weightedCapacity, priority: priority++)
+        }.toList() : null
     }
     if (overrides) {
       desc.launchTemplateOverridesForInstanceType = overrides
@@ -537,3 +547,4 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     return desc
   }
 }
+

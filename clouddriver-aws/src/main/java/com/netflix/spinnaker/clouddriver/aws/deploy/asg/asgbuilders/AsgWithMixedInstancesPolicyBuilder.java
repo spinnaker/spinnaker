@@ -32,7 +32,10 @@ import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults;
 import lombok.extern.slf4j.Slf4j;
 
-/** A builder used to build an AWS Autoscaling group. */
+/**
+ * A builder used to build an AWS Autoscaling group with mixed instances policy, backed by EC2
+ * launch template. https://docs.aws.amazon.com/autoscaling/ec2/userguide/asg-purchase-options.html
+ */
 @Slf4j
 public class AsgWithMixedInstancesPolicyBuilder extends AsgBuilder {
   private LaunchTemplateService ec2LtService;
@@ -93,7 +96,7 @@ public class AsgWithMixedInstancesPolicyBuilder extends AsgBuilder {
             .withSpotMaxPrice(config.getSpotMaxPrice())
             .withSpotAllocationStrategy(config.getSpotAllocationStrategy());
 
-    // create mixes instances policy with overrides and instance distribution
+    // create mixed instances policy with overrides and instance distribution
     final MixedInstancesPolicy mixedInsPolicy =
         new MixedInstancesPolicy().withLaunchTemplate(asgLt).withInstancesDistribution(dist);
 

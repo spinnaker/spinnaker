@@ -578,4 +578,22 @@ class AsgWithLaunchConfigurationBuilderSpec extends Specification {
     1 * autoScaling.suspendProcesses(_)
     1 * autoScaling.updateAutoScalingGroup(*_)
   }
+
+  @Unroll
+  void "should enable capacity rebalance, if specified"() {
+    given:
+    def asgWithLcBuilder = new AsgWithLaunchConfigurationBuilder(lcBuilder, autoScaling, amazonEC2, asgLifecycleHookWorker)
+    asgConfig.capacityRebalance = capacityRebalance
+    def settings = getLcSettings(asgName, asgConfig)
+
+    when:
+    def request = asgWithLcBuilder.buildRequest(task, taskPhase, asgName, asgConfig)
+
+    then:
+    1 * lcBuilder.buildLaunchConfiguration("myasg", null, settings, null, null) >> launchConfigName
+    request.capacityRebalance == capacityRebalance
+
+    where:
+    capacityRebalance << [true, false, null]
+  }
 }

@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.aws.userdata.UserDataOverride
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import groovy.transform.ToString
 import groovy.util.logging.Slf4j
 
 /**
@@ -48,6 +49,7 @@ class AutoScalingWorker {
     TaskRepository.threadLocalTask.get()
   }
 
+  @ToString
   static class AsgConfiguration {
     String application
     String region
@@ -88,6 +90,7 @@ class AutoScalingWorker {
     Map<String, String> tags
     Map<String, String> blockDeviceTags
     List<AmazonAsgLifecycleHook> lifecycleHooks
+    Boolean capacityRebalance
     int minInstances
     int maxInstances
     int desiredInstances
@@ -111,7 +114,7 @@ class AutoScalingWorker {
 
     /**
      * Helper function to determine if the ASG should be created with mixed instances policy, when launch templates are enabled
-     * @return boolean true if mixed instances policy parameters are found, false otherwise
+     * @return boolean true if mixed instances policy parameters are used, false otherwise
      */
     boolean shouldUseMixedInstancesPolicy() {
       def shouldUseMip = false

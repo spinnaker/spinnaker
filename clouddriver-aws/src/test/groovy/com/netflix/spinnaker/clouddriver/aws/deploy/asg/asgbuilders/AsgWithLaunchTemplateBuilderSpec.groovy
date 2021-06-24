@@ -553,4 +553,22 @@ class AsgWithLaunchTemplateBuilderSpec extends Specification {
     1 * autoScaling.suspendProcesses(_)
     1 * autoScaling.updateAutoScalingGroup(*_)
   }
+
+  @Unroll
+  void "should enable capacity rebalance, if specified"() {
+    given:
+    def asgWithLtBuilder = new AsgWithLaunchTemplateBuilder(ltService, securityGroupService, deployDefaults,  autoScaling, amazonEC2, asgLifecycleHookWorker)
+    asgConfig.capacityRebalance = capacityRebalance
+
+    when:
+    def request = asgWithLtBuilder.buildRequest(task, taskPhase, asgName, asgConfig)
+
+    then:
+    1 * ltService.createLaunchTemplate(asgConfig, asgName, _) >> lt
+    request.capacityRebalance == capacityRebalance
+
+    where:
+    capacityRebalance << [true, false, null]
+  }
+
 }

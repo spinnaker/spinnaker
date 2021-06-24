@@ -80,7 +80,9 @@ class ModifyAsgAtomicOperation implements AtomicOperation<Void> {
           .withHealthCheckGracePeriod(description.healthCheckGracePeriod)
           .withHealthCheckType(description.healthCheckType)
           .withTerminationPolicies(description.terminationPolicies)
+          .withCapacityRebalance(description.capacityRebalance)
 
+      // enable / disable metrics
       def desiredMetrics = description.enabledMetrics ?: []
       def metricsToDisable = []
       asg.enabledMetrics.each {
@@ -109,6 +111,7 @@ class ModifyAsgAtomicOperation implements AtomicOperation<Void> {
           .withMetrics(metricsToEnable))
       }
 
+      // update sever group
       autoScaling.updateAutoScalingGroup(updateRequest)
 
       task.updateStatus BASE_PHASE, "Updated $asgName in $region..."

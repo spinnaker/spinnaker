@@ -100,6 +100,16 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   Map<String, String> tags
   Map<String, String> blockDeviceTags
 
+  /**
+   * Amazon EC2 Auto Scaling attempts to proactively replace Spot Instances in the group
+   * that have received a rebalance recommendation, BEFORE it is interrupted by AWS EC2.
+   * Note: Enabling this feature could exceed the server group's max capacity for a brief period of time, leading to higher costs.
+   *
+   * https://docs.aws.amazon.com/autoscaling/ec2/userguide/capacity-rebalance.html
+   * https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/rebalance-recommendations.html
+   */
+  Boolean capacityRebalance
+
   // Launch Template features:start
   /**
    * When set to true, the created server group will use a launch template instead of a launch configuration.

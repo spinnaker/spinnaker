@@ -16,9 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.aws.model
 
+import groovy.transform.Canonical
 import groovy.transform.CompileStatic
 
 @CompileStatic
+@Canonical
 class AmazonAsgLifecycleHook {
 
   String name

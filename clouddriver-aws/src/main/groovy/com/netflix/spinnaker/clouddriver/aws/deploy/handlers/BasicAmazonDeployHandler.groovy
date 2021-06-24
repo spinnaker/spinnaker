@@ -220,7 +220,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
           task.updateStatus(BASE_PHASE, "Attaching $classicLinkGroupNames as classicLinkVpcSecurityGroups")
         }
       }
-      
+
       ResolvedAmiResult ami = priorOutputs.find({
         it instanceof ResolvedAmiResult && it.region == region && (it.amiName == description.amiName || it.amiId == description.amiName)
       }) ?: AmiIdResolver.resolveAmiIdFromAllSources(amazonEC2, region, description.amiName, description.credentials.accountId)
@@ -313,7 +313,8 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         onDemandPercentageAboveBaseCapacity: description.onDemandPercentageAboveBaseCapacity,
         spotAllocationStrategy: description.spotAllocationStrategy,
         spotInstancePools: description.spotInstancePools,
-        launchTemplateOverridesForInstanceType: description.launchTemplateOverridesForInstanceType
+        launchTemplateOverridesForInstanceType: description.launchTemplateOverridesForInstanceType,
+        capacityRebalance: description.capacityRebalance
       )
 
       def asgName = autoScalingWorker.deploy(asgConfig)

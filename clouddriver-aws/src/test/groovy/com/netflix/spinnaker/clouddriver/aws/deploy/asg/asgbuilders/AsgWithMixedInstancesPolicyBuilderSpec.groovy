@@ -642,4 +642,21 @@ class AsgWithMixedInstancesPolicyBuilderSpec extends Specification {
     1 * autoScaling.suspendProcesses(_)
     1 * autoScaling.updateAutoScalingGroup(*_)
   }
+
+  @Unroll
+  void "should enable capacity rebalance, if specified"() {
+    given:
+    def asgWithMipBuilder = new AsgWithMixedInstancesPolicyBuilder(ec2LtService, securityGroupService, deployDefaults,  autoScaling, amazonEC2, asgLifecycleHookWorker)
+    asgConfig.capacityRebalance = capacityRebalance
+
+    when:
+    def request = asgWithMipBuilder.buildRequest(task, taskPhase, asgName, asgConfig)
+
+    then:
+    1 * ec2LtService.createLaunchTemplate(asgConfig, asgName, _) >> ec2Lt
+    request.capacityRebalance == capacityRebalance
+
+    where:
+    capacityRebalance << [true, false, null]
+  }
 }

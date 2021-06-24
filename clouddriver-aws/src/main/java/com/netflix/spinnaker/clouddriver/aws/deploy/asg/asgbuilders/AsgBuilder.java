@@ -147,6 +147,14 @@ public abstract class AsgBuilder {
       request.withAvailabilityZones(cfg.getAvailabilityZones());
     }
 
+    // configure capacity rebalance
+    if (cfg.getCapacityRebalance() != null) {
+      task.updateStatus(
+          taskPhase,
+          "Setting capacity rebalance to " + cfg.getCapacityRebalance() + " for " + name);
+      request.withCapacityRebalance(cfg.getCapacityRebalance());
+    }
+
     return request;
   }
 
