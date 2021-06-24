@@ -3,6 +3,7 @@ import React from 'react';
 import { Icon, useApplicationContextSafe } from 'core/presentation';
 import { Spinner } from 'core/widgets';
 
+import { ResourceTask } from './ResourceTask';
 import { EnvironmentItem } from '../environmentBaseElements/EnvironmentItem';
 import { MdResourceActuationState, useFetchResourceStatusQuery } from '../graphql/graphql-sdk';
 import { showManagedResourceHistoryModal } from '../resourceHistory/ManagedResourceHistoryModal';
@@ -61,6 +62,13 @@ const Status = ({
         <div>
           <div>{state.reason || statusUtils[state.status].defaultReason}</div>
           {state.event && state.event !== state.reason && <div>{state.event}</div>}
+          {Boolean(state.tasks?.length) && (
+            <ul className="tasks-list">
+              {state.tasks?.map(({ id, name }) => (
+                <ResourceTask key={id} id={id} name={name} />
+              ))}
+            </ul>
+          )}
         </div>
       </div>
     );
@@ -93,7 +101,7 @@ export const Resource = ({ resource, environment }: { resource: QueryResource; e
       className="Resource"
       title={<ResourceTitle props={resourceLinkProps} />}
     >
-      <div className="resource-metadata">
+      <div className="resource-metadata delimited-elements">
         <span>
           {regions.map((region, index) => (
             <span key={region}>

@@ -70,14 +70,16 @@ const ArtifactVersionTask = ({ type, artifact, task }: IArtifactVersionTaskProps
     <div className="version-task">
       <VersionOperationIcon status={status} />
       <div className="task-content">
-        {type} {task.actionId} {statusToText[status]}{' '}
-        {startedAt && completedAt && (
-          <>
-            (<RelativeTimestamp timestamp={completedAt} withSuffix />)
-          </>
-        )}
+        <span className="delimited-element">
+          {type} {task.actionId} {statusToText[status]}{' '}
+          {startedAt && completedAt && (
+            <>
+              (<RelativeTimestamp timestamp={completedAt} withSuffix />)
+            </>
+          )}
+        </span>
         {startedAt && (
-          <span className="task-metadata task-runtime">
+          <span className="delimited-element task-runtime">
             <Tooltip value="Runtime duration" delayShow={TOOLTIP_DELAY_SHOW}>
               <i className="far fa-clock" />
             </Tooltip>
@@ -85,7 +87,7 @@ const ArtifactVersionTask = ({ type, artifact, task }: IArtifactVersionTaskProps
           </span>
         )}
         {link && (
-          <span className="task-metadata">
+          <span className="delimited-element">
             <a href={link} target="_blank" rel="noreferrer">
               View logs
             </a>

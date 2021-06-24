@@ -163,6 +163,12 @@ type MdResourceActuationState {
   status: MdResourceActuationStatus!
   reason: String
   event: String
+  tasks: [MdResourceTask!]
+}
+
+type MdResourceTask {
+  id: String!
+  name: String!
 }
 
 type MdResource {

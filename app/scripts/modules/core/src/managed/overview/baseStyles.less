@@ -50,6 +50,34 @@
   }
 }
 
+.md-icon-success {
+  color: var(--color-status-success);
+}
+
+.md-icon-pending {
+  color: var(--color-titanium);
+}
+
+.md-icon-fail {
+  color: var(--color-status-error);
+}
+
+.delimited-element {
+  &:not(:last-child) {
+    margin-right: 6px;
+  }
+  &:not(:first-child)::before {
+    content: '•';
+    margin-right: 6px;
+  }
+}
+
+.delimited-elements {
+  > * {
+    .delimited-element();
+  }
+}
+
 .truncate {
   white-space: nowrap;
   overflow: hidden;

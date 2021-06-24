@@ -7,10 +7,11 @@ import { robotToHuman } from 'core/presentation/robotToHumanFilter/robotToHuman.
 
 export interface ITaskProgressBarProps {
   task: ITask;
+  className?: string;
 }
 
 export function TaskProgressBar(props: ITaskProgressBarProps) {
-  const { task } = props;
+  const { task, className } = props;
   const { steps, id } = task;
   let tooltip;
 
@@ -57,7 +58,7 @@ export function TaskProgressBar(props: ITaskProgressBarProps) {
     'progress-bar-danger': task.isFailed,
   });
   const progressBar = (
-    <div className="progress">
+    <div className={classNames('progress', className)}>
       <div className={progressBarClassName} style={{ width: `${10 + (stepsComplete.length / steps.length) * 90}%` }} />
     </div>
   );

@@ -252,9 +252,16 @@ export interface MdResourceActuationState {
   status: MdResourceActuationStatus;
   reason?: Maybe<Scalars['String']>;
   event?: Maybe<Scalars['String']>;
+  tasks?: Maybe<Array<MdResourceTask>>;
 }
 
 export type MdResourceActuationStatus = 'PROCESSING' | 'UP_TO_DATE' | 'ERROR' | 'WAITING' | 'NOT_MANAGED';
+
+export interface MdResourceTask {
+  __typename?: 'MdResourceTask';
+  id: Scalars['String'];
+  name: Scalars['String'];
+}
 
 export interface MdRetryArtifactActionPayload {
   application: Scalars['String'];
@@ -544,7 +551,11 @@ export type FetchResourceStatusQuery = { __typename?: 'Query' } & {
                             { __typename?: 'MdResourceActuationState' } & Pick<
                               MdResourceActuationState,
                               'status' | 'reason' | 'event'
-                            >
+                            > & {
+                                tasks?: Maybe<
+                                  Array<{ __typename?: 'MdResourceTask' } & Pick<MdResourceTask, 'id' | 'name'>>
+                                >;
+                              }
                           >;
                         }
                     >
@@ -1003,6 +1014,10 @@ export const FetchResourceStatusDocument = gql`
               status
               reason
               event
+              tasks {
+                id
+                name
+              }
             }
           }
         }

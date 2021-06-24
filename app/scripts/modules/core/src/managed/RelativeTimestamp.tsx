@@ -7,7 +7,7 @@ import { CopyToClipboard, timeDiffToString } from '../utils';
 import { ABSOLUTE_TIME_FORMAT } from './utils/defaults';
 
 export interface IRelativeTimestampProps {
-  timestamp: DateTime | string;
+  timestamp: DateTime | string | number;
   clickToCopy?: boolean;
   removeStyles?: boolean;
   delayShow?: number;
@@ -69,7 +69,11 @@ export const RelativeTimestamp = memo(
     withSuffix = false,
   }: IRelativeTimestampProps) => {
     const dateTimeTimestamp =
-      typeof originalTimestamp === 'string' ? DateTime.fromISO(originalTimestamp) : originalTimestamp;
+      typeof originalTimestamp === 'number'
+        ? DateTime.fromMillis(originalTimestamp)
+        : typeof originalTimestamp === 'string'
+        ? DateTime.fromISO(originalTimestamp)
+        : originalTimestamp;
     const timestamp = TIMEZONE ? dateTimeTimestamp.setZone(TIMEZONE) : dateTimeTimestamp;
     const [formattedTimestamp, setFormattedTimestamp] = useState(formatToRelativeTimestamp(timestamp, withSuffix));
 

@@ -16,7 +16,7 @@ import { useLogEvent } from '../utils/logging';
 import './VersionMetadata.less';
 
 export const MetadataElement: React.FC<{ className?: string }> = ({ className, children }) => {
-  return <span className={classnames('metadata-element', className)}>{children}</span>;
+  return <span className={classnames('delimited-element horizontal middle', className)}>{children}</span>;
 };
 
 export interface VersionAction {
