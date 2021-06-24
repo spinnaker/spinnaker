@@ -216,7 +216,10 @@
         </div>
       </div>
     </collapsible-section>
-    <collapsible-section heading="{{ctrl.firewallsLabel}}" ng-if="ctrl.loadBalancer.loadBalancerType !== 'network'">
+    <collapsible-section
+      heading="{{ctrl.firewallsLabel}}"
+      ng-if="ctrl.loadBalancer.loadBalancerType !== 'network' || (ctrl.loadBalancer.loadBalancerType === 'network' && ctrl.securityGroups && ctrl.securityGroups.length > 0)"
+    >
       <ul>
         <li ng-repeat="securityGroup in ctrl.securityGroups | orderBy:'name'">
           <a
