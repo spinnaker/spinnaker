@@ -20,7 +20,7 @@ plugins {
 }
 
 subprojects {
-  group = "com.netflix.spinnaker.halyard"
+  group = "io.spinnaker.halyard"
   apply plugin: 'io.spinnaker.project'
   apply plugin: 'java-library'
   apply plugin: 'groovy'
