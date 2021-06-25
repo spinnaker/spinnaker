@@ -19,7 +19,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpHeaders.AUTHORIZATION
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
 
 @Configuration
 @ConditionalOnProperty("lemur.base-url")
@@ -68,7 +67,7 @@ class LemurConfiguration {
             if (ex.isNotFound) {
               null
             } else {
-              throw CacheLoadingException("Error loading $cacheName cache", ex)
+              throw CacheLoadingException(cacheName, name, ex)
             }
           }
       }

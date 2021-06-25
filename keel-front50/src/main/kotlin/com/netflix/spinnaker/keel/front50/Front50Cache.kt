@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.front50
 
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache
+import com.netflix.spinnaker.keel.caffeine.BulkCacheLoadingException
 import com.netflix.spinnaker.keel.caffeine.CacheFactory
 import com.netflix.spinnaker.keel.caffeine.CacheLoadingException
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
@@ -33,7 +34,7 @@ class Front50Cache(
       runCatching {
         front50Service.applicationByName(app)
       }.getOrElse { e ->
-        throw CacheLoadingException("Error loading application $app into cache", e)
+        throw CacheLoadingException("applicationsByName", app, e)
       }
     }
 
@@ -47,7 +48,7 @@ class Front50Cache(
             log.debug("Successfully primed application cache with ${it.size} entries")
           }
       }.getOrElse { e ->
-        throw CacheLoadingException("Error loading allApplications cache", e)
+        throw BulkCacheLoadingException("allApplications", e)
       }
     }
 
@@ -56,7 +57,7 @@ class Front50Cache(
       runCatching {
         front50Service.pipelinesByApplication(app)
       }.getOrElse { ex ->
-        throw CacheLoadingException("Error loading pipelines for app $app", ex)
+        throw CacheLoadingException("pipelinesByApplication", app, ex)
       }
     }
 

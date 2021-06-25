@@ -17,6 +17,7 @@ package com.netflix.spinnaker.keel.clouddriver
 
 import com.github.benmanes.caffeine.cache.AsyncCache
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache
+import com.netflix.spinnaker.keel.caffeine.BulkCacheLoadingException
 import com.netflix.spinnaker.keel.caffeine.CacheFactory
 import com.netflix.spinnaker.keel.caffeine.CacheLoadingException
 import com.netflix.spinnaker.keel.clouddriver.model.Certificate
@@ -50,7 +51,8 @@ class MemoryCloudDriverCache(
     .asyncLoadingCache(
       cacheName = "securityGroupsById",
       defaultExpireAfterWrite = Duration.ofMinutes(10)
-    ) { (account, region, id) ->
+    ) { key ->
+      val (account, region, id) = key
       runCatching {
         val credential = credentialBy(account)
         cloudDriver.getSecurityGroupSummaryById(account, credential.type, region, id, DEFAULT_SERVICE_ACCOUNT)
@@ -58,14 +60,15 @@ class MemoryCloudDriverCache(
             securityGroupsByName.put(Triple(account, region, it.name), completedFuture(it))
           }
       }
-        .handleNotFound("securityGroupsById")
+        .handleNotFound("securityGroupsById", key)
     }
 
   private val securityGroupsByName: AsyncLoadingCache<Triple<String, String, String>, SecurityGroupSummary> = cacheFactory
     .asyncLoadingCache(
       cacheName = "securityGroupsByName",
       defaultExpireAfterWrite = Duration.ofMinutes(10)
-    ) { (account, region, name) ->
+    ) { key ->
+      val (account, region, name) = key
       runCatching {
         val credential = credentialBy(account)
         cloudDriver.getSecurityGroupSummaryByName(account, credential.type, region, name, DEFAULT_SERVICE_ACCOUNT)
@@ -73,7 +76,7 @@ class MemoryCloudDriverCache(
             securityGroupsById.put(Triple(account, region, it.id), completedFuture(it))
           }
       }
-        .handleNotFound("securityGroupsByName")
+        .handleNotFound("securityGroupsByName", key)
     }
 
   private val networksById: AsyncLoadingCache<String, Network> = cacheFactory
@@ -83,7 +86,7 @@ class MemoryCloudDriverCache(
           .associateBy { it.id }
       }
         .getOrElse { ex ->
-          throw CacheLoadingException("Error loading networksById cache", ex)
+          throw BulkCacheLoadingException("networksById", ex)
         }
     }
 
@@ -97,7 +100,7 @@ class MemoryCloudDriverCache(
           }
       }
         .getOrElse { ex ->
-          throw CacheLoadingException("Error loading networksByName cache", ex)
+          throw BulkCacheLoadingException("networksByName", ex)
         }
     }
 
@@ -111,7 +114,8 @@ class MemoryCloudDriverCache(
   private val availabilityZones: AsyncLoadingCache<AvailabilityZoneKey, Set<String>> = cacheFactory
     .asyncLoadingCache(
       cacheName = "availabilityZones"
-    ) { (account, region, vpcId, purpose) ->
+    ) { key ->
+      val (account, region, vpcId, purpose) = key
       runCatching {
         cloudDriver
           .listSubnets("aws", DEFAULT_SERVICE_ACCOUNT)
@@ -120,7 +124,7 @@ class MemoryCloudDriverCache(
           .toSet()
       }
         .getOrElse { ex ->
-          throw CacheLoadingException("Error loading availabilityZones cache", ex)
+          throw CacheLoadingException("availabilityZones", key, ex)
         }
     }
 
@@ -131,7 +135,7 @@ class MemoryCloudDriverCache(
       runCatching {
         cloudDriver.getCredential(name, DEFAULT_SERVICE_ACCOUNT)
       }
-        .handleNotFound("credentials")
+        .handleNotFound("credentials", name)
     }
 
   private val subnetsById: AsyncLoadingCache<String, Subnet> = cacheFactory
@@ -141,7 +145,7 @@ class MemoryCloudDriverCache(
           .listSubnets("aws", DEFAULT_SERVICE_ACCOUNT)
           .associateBy { it.id }
       }
-        .getOrElse { ex -> throw CacheLoadingException("Error loading subnetsById cache", ex) }
+        .getOrElse { ex -> throw BulkCacheLoadingException("subnetsById", ex) }
     }
 
   private val subnetsByPurpose: AsyncLoadingCache<Triple<String, String, String?>, Subnet> = cacheFactory
@@ -151,7 +155,7 @@ class MemoryCloudDriverCache(
           .listSubnets("aws", DEFAULT_SERVICE_ACCOUNT)
           .associateBy { Triple(it.account, it.region, it.purpose) }
       }
-        .getOrElse { ex -> throw CacheLoadingException("Error loading subnetsByPurpose cache", ex) }
+        .getOrElse { ex -> throw BulkCacheLoadingException("subnetsByPurpose", ex) }
     }
 
   private data class CertificateKey(val account: String, val name: String) {
@@ -169,7 +173,7 @@ class MemoryCloudDriverCache(
             .getCertificates()
             .associateBy { CertificateKey(it) }
         }
-          .getOrElse { ex -> throw CacheLoadingException("Error loading certificatesByName cache", ex) }
+          .getOrElse { ex -> throw BulkCacheLoadingException("certificatesByName", ex) }
       }
 
   private val certificatesByArn: AsyncLoadingCache<String, Certificate> =
@@ -180,7 +184,7 @@ class MemoryCloudDriverCache(
             .getCertificates()
             .associateBy { it.arn }
         }
-          .getOrElse { ex -> throw CacheLoadingException("Error loading certificatesByArn cache", ex) }
+          .getOrElse { ex -> throw BulkCacheLoadingException("certificatesByArn", ex) }
       }
 
   override fun credentialBy(name: String): Credential =
@@ -238,12 +242,12 @@ class MemoryCloudDriverCache(
  * Translates a 404 from a Retrofit [HttpException] into a `null`. Any other exception is wrapped in
  * [CacheLoadingException].
  */
-private fun <V> Result<V>.handleNotFound(cacheName: String): V? =
+private fun <V> Result<V>.handleNotFound(cacheName: String, key: Any): V? =
   getOrElse { ex ->
     if (ex.isNotFound) {
       null
     } else {
-      throw CacheLoadingException("Error loading $cacheName cache", ex)
+      throw CacheLoadingException(cacheName, key, ex)
     }
   }
 
