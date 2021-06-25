@@ -25,24 +25,28 @@ export const ChangesModal = ({ buildInfo, commits, dismissModal, jarDiffs, nameI
     <>
       <ModalHeader>{`Changes to ${nameItem.name}`}</ModalHeader>
       <ModalBody>
-        <div className="flex-container-v sp-margin-s-top">
+        <div className="flex-container-v flex-1 sp-margin-s-top">
           <div>
-            <div className="col-md-6">
-              <strong>Previous: </strong>
-              {previousBuildLink ? (
-                <a href={previousBuildLink} target="_blank">{`Build: #${buildInfo.ancestor}`}</a>
-              ) : (
-                <span>{`Build: #${buildInfo.ancestor}`}</span>
-              )}
-            </div>
-            <div className="col-md-6">
-              <strong>Current: </strong>
-              {currentBuildLink ? (
-                <a href={currentBuildLink} target="_blank">{`Build: #${buildInfo.target}`}</a>
-              ) : (
-                <span>{`Build: #${buildInfo.target}`}</span>
-              )}
-            </div>
+            {buildInfo?.ancestor && (
+              <div className="col-md-6">
+                <strong>Previous: </strong>
+                {previousBuildLink ? (
+                  <a href={previousBuildLink} target="_blank">{`Build: #${buildInfo.ancestor}`}</a>
+                ) : (
+                  <span>{`Build: #${buildInfo.ancestor}`}</span>
+                )}
+              </div>
+            )}
+            {buildInfo?.target && (
+              <div className="col-md-6">
+                <strong>Current: </strong>
+                {currentBuildLink ? (
+                  <a href={currentBuildLink} target="_blank">{`Build: #${buildInfo.target}`}</a>
+                ) : (
+                  <span>{`Build: #${buildInfo.target}`}</span>
+                )}
+              </div>
+            )}
           </div>
           {Boolean(commits?.length) && (
             <div>

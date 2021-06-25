@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { IBuildDiffInfo, ICreationMetadataTag, IExecution, IExecutionStage } from 'core/domain';
+import { IBuildDiffInfo, ICreationMetadata, ICreationMetadataTag, IExecution, IExecutionStage } from 'core/domain';
 import { LabeledValue, showModal, useData } from 'core/presentation';
 import { ReactInjector } from 'core/reactShims';
 import { ChangesModal } from './ChangesModal';
@@ -21,7 +21,7 @@ export interface IViewChangesLinkProps {
 }
 
 export const ViewChangesLink = ({ changeConfig, linkText, nameItem, viewType }: IViewChangesLinkProps) => {
-  const changeConfigValue = changeConfig.metadata.value;
+  const changeConfigValue = changeConfig?.metadata?.value || ({} as ICreationMetadata);
 
   const fetchExecution = () => {
     const isExecution = changeConfigValue.executionType === 'pipeline';
