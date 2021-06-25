@@ -1030,10 +1030,10 @@
     estree-walker "^2.0.1"
     picomatch "^2.2.2"
 
-"@spinnaker/core@*":
-  version "0.0.598"
-  resolved "https://registry.yarnpkg.com/@spinnaker/core/-/core-0.0.598.tgz#062f1c738924dc21d1c29e83c02de0abb8aee443"
-  integrity sha512-sX9ehodjvMX7aILvWA/gpAEZLpKjWhdiGiy2zwBlMzVbLdqywTHBvvmpv7ApA2ZDLmTjHM82jE358R1H+FPOLg==
+"@spinnaker/core@0.0.604":
+  version "0.0.604"
+  resolved "https://registry.yarnpkg.com/@spinnaker/core/-/core-0.0.604.tgz#6f3873fc7d0a6dbc42b3c7b050bb159adce863a8"
+  integrity sha512-+KJghJwN73kV8123aFt/VN53dz6AtbNIj+lHw0RAzU7E1bo9MqidOe+EGgCXeedNSGk/IPh6yGp/+7Nx3dVp4g==
   dependencies:
     "@apollo/client" "3.3.14"
     "@fortawesome/fontawesome-free" "5.5.0"

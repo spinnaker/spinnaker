@@ -1,7 +1,6 @@
 import { angular2react } from 'angular2react';
 import React from 'react';
 
-import { IViewChangesLinkProps, ViewChangesLink as ViewChangesLinkComponent } from 'core/diffs/ViewChangesLink';
 import { EntitySource as EntitySourceComponent, IEntitySourceProps } from 'core/entityTag/EntitySource';
 import { INumberListProps } from 'core/forms/numberList/NumberList';
 import { numberListWrapperComponent } from 'core/forms/numberList/numberList.component';
@@ -38,7 +37,6 @@ export class NgReactInjector extends ReactInject {
   public StepExecutionDetailsWrapper: React.ComponentClass<IStepExecutionDetailsWrapperProps>   = angular2react('stepExecutionDetails', stepExecutionDetailsComponent, this.$injectorProxy) as any;
   public TargetSelect: React.ComponentClass<ITargetSelectProps>                                 = angular2react('targetSelect', targetSelectComponent, this.$injectorProxy) as any;
   public TaskMonitorWrapper: React.FunctionComponent<ITaskMonitorProps>                         = TaskMonitorWrapper;
-  public ViewChangesLink: React.FunctionComponent<IViewChangesLinkProps>                           = ViewChangesLinkComponent;
 
   public initialize($injector: IInjectorService) {
     const realInjector: { [key: string]: Function } = $injector as any;
