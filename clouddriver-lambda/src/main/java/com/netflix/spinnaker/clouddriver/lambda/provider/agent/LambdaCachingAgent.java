@@ -271,6 +271,9 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
     attributes.put("code", getFunctionResult.getCode());
     attributes.put("tags", getFunctionResult.getTags());
     attributes.put("concurrency", getFunctionResult.getConcurrency());
+    attributes.put("state", getFunctionResult.getConfiguration().getState());
+    attributes.put("stateReason", getFunctionResult.getConfiguration().getStateReason());
+    attributes.put("stateReasonCode", getFunctionResult.getConfiguration().getStateReasonCode());
     return attributes;
   }
 
