@@ -17,10 +17,10 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy;
 
 import com.netflix.frigga.Names;
-import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AutoScalingWorker;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -52,18 +52,14 @@ public class DefaultAmazonResourceTagger implements AmazonResourceTagger {
   @NotNull
   @Override
   public Collection<Tag> volumeTags(
-      @NotNull AutoScalingWorker.AsgConfiguration asgConfiguration,
-      @NotNull String serverGroupName) {
+      @Nullable Map<String, String> blockDeviceTags, @NotNull String serverGroupName) {
     Names names = Names.parseName(serverGroupName);
 
     List<Tag> tags = new ArrayList<>();
     tags.add(Tag.of(applicationTag, names.getApp()));
     tags.add(Tag.of(clusterTag, names.getCluster()));
     tags.addAll(
-        Optional.ofNullable(asgConfiguration.getBlockDeviceTags())
-            .orElse(Collections.emptyMap())
-            .entrySet()
-            .stream()
+        Optional.ofNullable(blockDeviceTags).orElse(Collections.emptyMap()).entrySet().stream()
             .map(e -> Tag.of(e.getKey(), e.getValue()))
             .collect(Collectors.toList()));
 

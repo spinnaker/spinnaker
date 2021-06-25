@@ -113,6 +113,11 @@ class AutoScalingWorker {
     List<BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType> launchTemplateOverridesForInstanceType
 
     /**
+     * AsgConfiguration object makes sense only when created with all or some of the configuration fields.
+     */
+    private AsgConfiguration() {}
+
+    /**
      * Helper function to determine if the ASG should be created with mixed instances policy, when launch templates are enabled
      * @return boolean true if mixed instances policy parameters are used, false otherwise
      */

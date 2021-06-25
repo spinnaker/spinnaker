@@ -119,7 +119,7 @@ class LaunchTemplateServiceSpec extends Specification {
     expect:
     launchTemplateService.tagSpecification(
       amazonResourceTaggers,
-      new AutoScalingWorker.AsgConfiguration(blockDeviceTags: ["blockKey": "blockValue"]),
+      ["blockKey": "blockValue"],
       "application-stack-details-v001"
     ) == result
 

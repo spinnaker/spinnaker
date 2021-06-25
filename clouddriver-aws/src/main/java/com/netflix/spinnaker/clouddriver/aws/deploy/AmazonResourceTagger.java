@@ -16,11 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy;
 
-import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AutoScalingWorker;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Allows for custom tags to be set on resources created as a result of autoscaling activity
@@ -29,8 +30,7 @@ import org.jetbrains.annotations.NotNull;
 public interface AmazonResourceTagger {
   @NotNull
   default Collection<Tag> volumeTags(
-      @NotNull AutoScalingWorker.AsgConfiguration asgConfiguration,
-      @NotNull String serverGroupName) {
+      @Nullable Map<String, String> blockDeviceTags, @NotNull String serverGroupName) {
     return Collections.emptyList();
   }
 
