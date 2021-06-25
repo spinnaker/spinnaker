@@ -30,8 +30,8 @@ function HelpFieldContents(props: Pick<IHelpFieldProps, 'id' | 'fallback' | 'con
 
 export function HelpField(props: IHelpFieldProps) {
   const { content, expand, fallback, id, label, placement } = props;
-
   const [popoverShownStart, setPopoverShownStart] = React.useState<number>();
+
   const onShow = (): void => setPopoverShownStart(Date.now());
   const onHide = (): void => {
     if (Date.now() - popoverShownStart > 500) {
@@ -42,6 +42,10 @@ export function HelpField(props: IHelpFieldProps) {
   const icon = <i className="small glyphicon glyphicon-question-sign" />;
   const shouldExpandFromContext = React.useContext(HelpTextExpandedContext);
   const expandHelpText = isUndefined(expand) ? shouldExpandFromContext : expand;
+
+  if (!id && !content) {
+    return null;
+  }
 
   const contents = <HelpFieldContents content={content} fallback={fallback} id={id} />;
   const popover = (
