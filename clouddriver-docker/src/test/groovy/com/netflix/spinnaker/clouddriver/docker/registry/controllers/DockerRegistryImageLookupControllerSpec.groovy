@@ -117,6 +117,50 @@ class DockerRegistryImageLookupControllerSpec extends Specification {
     result[0].artifact.metadata.labels.jobName == "test-job"
   }
 
+  void "When finding images with filtered repository for an image that exists" () {
+    when:
+    def result = dockerRegistryImageLookupController.find(
+      new DockerRegistryImageLookupController.LookupOptions(repository: "test-repo"))
+
+    then:
+    result.size() == 1
+    result[0].account       == "test-account"
+    result[0].digest        == "test-digest"
+    result[0].artifact.type == "docker"
+    result[0].artifact.metadata.registry == "test-registry"
+  }
+
+  void "When finding images with filtered repository and tag for an image that exists" () {
+    when:
+    def result = dockerRegistryImageLookupController.find(
+      new DockerRegistryImageLookupController.LookupOptions(repository: "test-repo", tag: "1.0"))
+
+    then:
+    result.size() == 1
+    result[0].account       == "test-account"
+    result[0].digest        == "test-digest"
+    result[0].artifact.type == "docker"
+    result[0].artifact.metadata.registry == "test-registry"
+  }
+
+  void "When finding images with filtered repository for an image that does not exist" () {
+    when:
+    def result = dockerRegistryImageLookupController.find(
+      new DockerRegistryImageLookupController.LookupOptions(repository: "wrong-repo"))
+
+    then:
+    result.size() == 0
+  }
+
+  void "When finding images with filtered tag for a tag that does not exist" () {
+    when:
+    def result = dockerRegistryImageLookupController.find(
+      new DockerRegistryImageLookupController.LookupOptions(repository: "wrong-tag"))
+
+    then:
+    result.size() == 0
+  }
+
   void "When finding images with no metadata and includeDetails == true"() {
     setup:
     def noLabelResultData = [

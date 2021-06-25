@@ -106,10 +106,20 @@ class DockerRegistryImageLookupController {
         return null
       } else {
         def parse = Keys.parse(it.getId())
+        def repo  = (String) parse.repository
+        def tag   = (String) parse.tag
+
+        // if the request asks for specific repositories or tags,
+        // do the filtering accordingly
+        if (lookupOptions.repository && !lookupOptions.repository.equals(repo) ||
+            lookupOptions.repository && lookupOptions.tag && !lookupOptions.tag.equals(tag)) {
+          return null
+        }
+
         if (lookupOptions.includeDetails) {
           return [
-            repository : (String) parse.repository,
-            tag        : (String) parse.tag,
+            repository : repo,
+            tag        : tag,
             account    : it.attributes.account,
             registry   : credentials.getRegistry(),
             digest     : it.attributes.digest,
@@ -118,16 +128,17 @@ class DockerRegistryImageLookupController {
             branch     : it.attributes.labels?.branch,
             artifact   : generateArtifact(credentials.getRegistry(), parse.repository, parse.tag, it.attributes.labels)
           ]
-        } else {
-          return [
-            repository: (String) parse.repository,
-            tag       : (String) parse.tag,
-            account   : it.attributes.account,
-            registry  : credentials.getRegistry(),
-            digest    : it.attributes.digest,
-            artifact  : generateArtifact(credentials.getRegistry(), parse.repository, parse.tag)
-          ]
         }
+
+        return [
+          repository: repo,
+          tag       : tag,
+          account   : it.attributes.account,
+          registry  : credentials.getRegistry(),
+          digest    : it.attributes.digest,
+          artifact  : generateArtifact(credentials.getRegistry(), parse.repository, parse.tag)
+        ]
+
       }
     }
   }
@@ -186,6 +197,8 @@ class DockerRegistryImageLookupController {
     String q
     String account
     String region
+    String repository
+    String tag
     Integer count
     Boolean includeDetails
   }
