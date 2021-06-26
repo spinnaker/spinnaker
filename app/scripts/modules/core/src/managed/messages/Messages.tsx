@@ -44,9 +44,7 @@ export const Messages = () => {
   return (
     <>
       <AppNotifications />
-      <MessagesSection sticky>
-        <ManagementWarning appName={app.name} />
-      </MessagesSection>
+      <ManagementWarning appName={app.name} />
     </>
   );
 };
