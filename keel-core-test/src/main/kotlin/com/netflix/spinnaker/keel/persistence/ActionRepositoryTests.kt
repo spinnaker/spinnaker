@@ -13,6 +13,7 @@ import com.netflix.spinnaker.keel.api.action.ActionRepository
 import com.netflix.spinnaker.keel.api.action.ActionState
 import com.netflix.spinnaker.keel.api.action.ActionType
 import com.netflix.spinnaker.keel.api.action.ActionType.VERIFICATION
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.NOT_EVALUATED
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.time.MutableClock
 import de.huxhorn.sulky.ulid.ULID
@@ -58,7 +59,7 @@ abstract class ActionRepositoryTests<IMPLEMENTATION : ActionRepository> {
   }
 
   private val verification = DummyVerification("1")
-  private val environment = Environment(name="test", verifyWith=listOf(verification))
+  private val environment = Environment(name = "test", verifyWith = listOf(verification))
   private val deliveryConfig = DeliveryConfig(
     application = "fnord",
     name = "fnord-manifest",
@@ -83,7 +84,7 @@ abstract class ActionRepositoryTests<IMPLEMENTATION : ActionRepository> {
         branch = "main"
       )
     ),
-    environments = setOf( environment )
+    environments = setOf(environment)
   )
   private val context = ArtifactInEnvironmentContext(
     deliveryConfig = deliveryConfig,
@@ -140,6 +141,25 @@ abstract class ActionRepositoryTests<IMPLEMENTATION : ActionRepository> {
   }
 
   @Test
+  fun `reset the action clears everything`() {
+    context.setup()
+
+    subject.updateState(context, verification, PENDING)
+    subject.updateState(context, verification, PASS)
+    subject.resetState(context, verification, "GreatUser")
+
+    expectCatching {
+      subject.getState(context, verification)
+    }
+      .isSuccess()
+      .isNotNull()
+      .with(ActionState::status) { isEqualTo(NOT_EVALUATED) }
+      .with(ActionState::endedAt) { isNull() }
+      .with(ActionState::link) { isNull() }
+      .with(ActionState::metadata) { isEqualTo(mapOf("retryRequestedBy" to "GreatUser")) }
+  }
+
+  @Test
   fun `successive updates can add and update metadata`() {
     context.setup()
 
@@ -162,7 +182,7 @@ abstract class ActionRepositoryTests<IMPLEMENTATION : ActionRepository> {
   fun `updates set the link`() {
     context.setup()
 
-    subject.updateState(context, verification, PENDING, link="http://www.example.com")
+    subject.updateState(context, verification, PENDING, link = "http://www.example.com")
 
     expectCatching {
       subject.getState(context, verification)
@@ -427,7 +447,7 @@ abstract class ActionRepositoryTests<IMPLEMENTATION : ActionRepository> {
     context.setup()
     val contexts = listOf(context)
 
-    subject.updateState(context, verification, PENDING, link="http://www.example.com")
+    subject.updateState(context, verification, PENDING, link = "http://www.example.com")
 
     val stateMaps = subject.getStatesBatch(contexts, VERIFICATION)
 
@@ -461,11 +481,11 @@ abstract class ActionRepositoryTests<IMPLEMENTATION : ActionRepository> {
     contexts.forEach { it.setup() }
 
     // First context: v1: PASS, v2: FAIL
-    subject.updateState(c1, v1, PASS, link="http://www.example.com/pass")
+    subject.updateState(c1, v1, PASS, link = "http://www.example.com/pass")
     subject.updateState(c1, v2, FAIL)
 
     // Second context: v1: PENDING, v2: PENDING
-    subject.updateState(c2, v1, PENDING, link="http://www.example.com/pending")
+    subject.updateState(c2, v1, PENDING, link = "http://www.example.com/pending")
     subject.updateState(c2, v2, PENDING)
 
 
@@ -478,15 +498,15 @@ abstract class ActionRepositoryTests<IMPLEMENTATION : ActionRepository> {
       that(result[0])
         .and {
           get { get(v1.id) }
-          .isNotNull()
-          .with(ActionState::status) { isEqualTo(PASS) }
-          .with(ActionState::link) { isEqualTo("http://www.example.com/pass") }
+            .isNotNull()
+            .with(ActionState::status) { isEqualTo(PASS) }
+            .with(ActionState::link) { isEqualTo("http://www.example.com/pass") }
         }
         .and {
           get { get(v2.id) }
-          .isNotNull()
-          .with(ActionState::status) { isEqualTo(FAIL) }
-          .with(ActionState::link) { isNull() }
+            .isNotNull()
+            .with(ActionState::status) { isEqualTo(FAIL) }
+            .with(ActionState::link) { isNull() }
         }
 
       that(result[1])
@@ -506,7 +526,7 @@ abstract class ActionRepositoryTests<IMPLEMENTATION : ActionRepository> {
 
   @Test
   fun `environment name and artifact reference name are the same`() {
-    val contexts = listOf(context, context.copy(artifactReference="test"))
+    val contexts = listOf(context, context.copy(artifactReference = "test"))
       .onEach { it.setup() }
 
     // verify it doesn't explode with a SQLSyntaxErrorException
@@ -559,13 +579,13 @@ abstract class ActionRepositoryTests<IMPLEMENTATION : ActionRepository> {
   fun `different delivery config does not interfere with the verification count of each other`() {
     context.setup()
 
-    val otherEnvironment = Environment(name="test", verifyWith=listOf(verification))
+    val otherEnvironment = Environment(name = "test", verifyWith = listOf(verification))
 
     val otherConfig = DeliveryConfig(
       application = "acme",
       name = "acme",
       serviceAccount = "acme@example.com",
-      artifacts = setOf(DockerArtifact(name="acme", deliveryConfigName="acme", reference="acme", branch="main")),
+      artifacts = setOf(DockerArtifact(name = "acme", deliveryConfigName = "acme", reference = "acme", branch = "main")),
       environments = setOf(otherEnvironment)
     )
 

@@ -174,6 +174,6 @@ class AdminService(
       .firstOrNull { it.id == verificationId }
       ?: throw UserException("application $application in environment $environmentName has no verification with ID $verificationId. IDs are: ${environment.verifyWith.map { it.id }}")
 
-    repository.updateState(context, verification, ConstraintStatus.OVERRIDE_FAIL)
+    repository.updateActionState(context, verification, ConstraintStatus.OVERRIDE_FAIL)
   }
 }

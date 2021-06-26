@@ -149,16 +149,19 @@ internal class VerificationControllerTests
       verificationRepository.getState(any(), any())
     } returns currentStatus?.let { ActionState(it, now(), now()) }
 
+    every {
+      verificationRepository.resetState(any(), any(), any())
+    } returns ConstraintStatus.NOT_EVALUATED
+
     mvc.perform(request).andExpect(status().isOk)
 
     verify {
-      verificationRepository.updateState(
+      verificationRepository.resetState(
         match {
           it.deliveryConfig == deliveryConfig
         },
         verification,
-        NOT_EVALUATED,
-        mapOf("retryRequestedBy" to user)
+        user
       )
     }
   }
@@ -185,7 +188,7 @@ internal class VerificationControllerTests
     mvc.perform(request).andExpect(status().isConflict)
 
     verify(exactly = 0) {
-      verificationRepository.updateState(any(), any(), any(), any())
+      verificationRepository.resetState(any(), any(), any())
     }
   }
 }

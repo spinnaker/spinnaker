@@ -709,7 +709,6 @@ class ApplicationService(
       artifactReference = artifactReference,
       version = artifactVersion
     ).run {
-
       val action = action(actionType, actionId) ?: throw InvalidActionId(actionId, this)
       repository.getActionState(
         context = this,
@@ -717,14 +716,7 @@ class ApplicationService(
       )?.run {
         if (!status.complete) throw ActionIncomplete()
       }
-
-      repository.updateActionState(
-        context = this,
-        action = action,
-        status = NOT_EVALUATED,
-        mapOf("retryRequestedBy" to user)
-      )
-      return NOT_EVALUATED
+      return repository.resetActionState(context = this, action = action, user = user)
     }
   }
 

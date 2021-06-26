@@ -87,8 +87,6 @@ interface KeelReadOnlyRepository {
 
   fun getActionState(context: ArtifactInEnvironmentContext, action: Action): ActionState?
 
-  fun updateActionState(context: ArtifactInEnvironmentContext, action: Action, status: ConstraintStatus, metadata: Map<String, Any?> = emptyMap(), link: String? = null)
-
   fun latestVersionApprovedIn(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact, targetEnvironment: String): String?
 
   fun isApprovedFor(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact, version: String, targetEnvironment: String): Boolean

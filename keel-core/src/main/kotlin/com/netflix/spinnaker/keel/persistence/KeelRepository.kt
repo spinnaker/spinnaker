@@ -14,6 +14,7 @@ import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.persistence.KeelReadOnlyRepository
 import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
+import com.netflix.spinnaker.keel.api.action.Action
 import com.netflix.spinnaker.keel.core.api.ApplicationSummary
 import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
@@ -277,18 +278,28 @@ interface KeelRepository : KeelReadOnlyRepository {
     minTimeSinceLastCheck: Duration,
     limit: Int
   ) : Collection<ArtifactInEnvironmentContext>
-
+  
   /**
-   * Updates the state of [verification] as run against [context].
+   * Updates the state of [action] as run against [context].
    *
    * @param metadata if non-empty this will overwrite any existing metadata.
    */
-  fun updateState(
+  fun updateActionState(
     context: ArtifactInEnvironmentContext,
-    verification: Verification,
+    action: Action,
     status: ConstraintStatus,
     metadata: Map<String, Any?> = emptyMap(),
-    link: String? = null,
-    )
+    link: String? = null
+  )
+
+  /**
+   * Resets the state of [action] run against [context]
+   */
+  fun resetActionState(
+    context: ArtifactInEnvironmentContext,
+    action:
+    Action,
+    user: String
+  ): ConstraintStatus
   // END ActionRepository methods
 }

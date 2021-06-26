@@ -70,7 +70,7 @@ interface ActionRepository {
     action: Action,
     status: ConstraintStatus,
     metadata: Map<String, Any?> = emptyMap(),
-    link: String? = null
+    link: String? = null,
   )
 
   /**
@@ -78,6 +78,14 @@ interface ActionRepository {
    */
   fun updateState(context: ActionStateUpdateContext, status: ConstraintStatus)
 
+  /**
+   * Resets the state of [action] run against [context]
+   */
+  fun resetState(
+    context: ArtifactInEnvironmentContext,
+    action: Action,
+    user: String,
+  ): ConstraintStatus
 
   fun nextEnvironmentsForVerification(minTimeSinceLastCheck: Duration, limit: Int) : Collection<ArtifactInEnvironmentContext>
 

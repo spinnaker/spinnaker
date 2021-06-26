@@ -560,8 +560,8 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
       before {
         subject.upsertDeliveryConfig(deliveryConfig)
         val context = ArtifactInEnvironmentContext(deliveryConfig, firstEnv.name, artifact.reference, version)
-        subject.updateState(context, verification, ConstraintStatus.PENDING)
-        subject.updateState(context, secondVerification, ConstraintStatus.PENDING)
+        subject.updateActionState(context, verification, ConstraintStatus.PENDING)
+        subject.updateActionState(context, secondVerification, ConstraintStatus.PENDING)
       }
 
       context("verification deleted from delivery config") {

@@ -401,7 +401,8 @@ class SqlActionRepository(
     status: ConstraintStatus,
     metadata: Map<String, Any?>,
     link: String?,
-    type: ActionType) {
+    type: ActionType
+  ) {
     with(context) {
       jooq
         .insertInto(ACTION_STATE)
@@ -456,6 +457,26 @@ class SqlActionRepository(
     link,
     action.actionType
   )
+
+  override fun resetState(context: ArtifactInEnvironmentContext, action: Action, user: String): ConstraintStatus {
+    sqlRetry.withRetry(WRITE) {
+      with(context) {
+        jooq
+          .update(ACTION_STATE)
+          .set(ACTION_STATE.STATUS, ConstraintStatus.NOT_EVALUATED)
+          .setNull(ACTION_STATE.LINK)
+          .set(ACTION_STATE.STARTED_AT, currentTimestamp())
+          .set(ACTION_STATE.METADATA, mapOf("retryRequestedBy" to user))
+          .setNull(ACTION_STATE.ENDED_AT)
+          .where(ACTION_STATE.ENVIRONMENT_UID.eq(environmentUid))
+          .and(ACTION_STATE.ARTIFACT_UID.eq(artifactUid))
+          .and(ACTION_STATE.ARTIFACT_VERSION.eq(version))
+          .and(ACTION_STATE.ACTION_ID.eq(action.id))
+          .execute()
+      }
+    }
+    return ConstraintStatus.NOT_EVALUATED
+  }
 
   override fun nextEnvironmentsForPostDeployAction(
     minTimeSinceLastCheck: Duration,

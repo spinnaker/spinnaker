@@ -562,15 +562,6 @@ class CombinedRepository(
   ): Collection<ArtifactInEnvironmentContext> =
     actionRepository.nextEnvironmentsForPostDeployAction(minTimeSinceLastCheck, limit)
 
-  override fun updateState(
-    context: ArtifactInEnvironmentContext,
-    verification: Verification,
-    status: ConstraintStatus,
-    metadata: Map<String, Any?>,
-    link: String?
-  ) = actionRepository.updateState(context, verification, status, metadata, link)
-
-
   override fun getVerificationStatesBatch(contexts: List<ArtifactInEnvironmentContext>) : List<Map<String, ActionState>> =
     actionRepository.getStatesBatch(contexts, VERIFICATION)
 
@@ -580,6 +571,10 @@ class CombinedRepository(
 
   override fun updateActionState(context: ArtifactInEnvironmentContext, action: Action, status: ConstraintStatus, metadata: Map<String, Any?>, link: String?) {
     return actionRepository.updateState(context, action, status, metadata, link)
+  }
+
+  override fun resetActionState(context: ArtifactInEnvironmentContext, action: Action, user: String): ConstraintStatus {
+    return actionRepository.resetState(context, action, user)
   }
 
   override fun getAllActionStatesBatch(contexts: List<ArtifactInEnvironmentContext>): List<List<ActionStateFull>> =
