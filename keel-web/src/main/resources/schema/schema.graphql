@@ -260,6 +260,17 @@ type Mutation {
   dismissNotification(payload: MdDismissNotificationPayload!): Boolean
 }
 
+type MdMutation {
+  updateConstraintStatus(payload: MdConstraintStatusPayload!): Boolean
+  toggleManagement(application: String!, isPaused: Boolean!, comment: String): Boolean
+  pinArtifactVersion(payload: MdArtifactVersionActionPayload!): Boolean
+  markArtifactVersionAsBad(payload: MdArtifactVersionActionPayload!): Boolean
+  unpinArtifactVersion(payload: MdUnpinArtifactVersionPayload!): Boolean
+  markArtifactVersionAsGood(payload: MdMarkArtifactVersionAsGoodPayload!): Boolean
+  retryArtifactVersionAction(payload: MdRetryArtifactActionPayload): MdAction
+  dismissNotification(payload: MdDismissNotificationPayload!): Boolean
+}
+
 input MdRetryArtifactActionPayload {
   application: String!
   environment: String!
