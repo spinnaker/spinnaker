@@ -153,7 +153,7 @@ class CombinedRepository(
 
     old.environments
       .forEach { environment ->
-        if (environment.name !in new.environments.map { it.name }) {
+        if (!environment.isPreview && environment.name !in new.environments.map { it.name }) {
           log.debug("Updating config ${new.name}: removing environment ${environment.name}")
           environment.resources.map(Resource<*>::id).forEach {
             // only delete the resource if it's not somewhere else in the delivery config -- e.g.
@@ -169,7 +169,7 @@ class CombinedRepository(
     old.previewEnvironments
       .forEach { previewEnvSpec ->
         if (previewEnvSpec.baseEnvironment !in new.previewEnvironments.map { it.baseEnvironment }) {
-          log.debug("Updating config ${new.name}: removing preview environment $previewEnvSpec")
+          log.debug("Updating config ${new.name}: removing preview environment spec $previewEnvSpec")
           deliveryConfigRepository.deletePreviewEnvironment(new.name, previewEnvSpec.baseEnvironment)
         }
       }
