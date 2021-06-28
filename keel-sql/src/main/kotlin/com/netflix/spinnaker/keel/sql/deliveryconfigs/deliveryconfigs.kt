@@ -24,6 +24,7 @@ import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.SqlStorageContext
 import com.netflix.spinnaker.keel.sql.mapToArtifact
 import de.huxhorn.sulky.ulid.ULID
+import org.jooq.DSLContext
 import org.jooq.Record1
 import org.jooq.Record9
 import org.jooq.Select
@@ -174,6 +175,21 @@ internal val DeliveryConfig.uid: Select<Record1<String>>
     .from(DELIVERY_CONFIG)
     .where(DELIVERY_CONFIG.NAME.eq(name))
 
+/** Helper function to select all required fields to make an environment. Use along with [makeEnvironment] */
+internal fun DSLContext.selectEnvironmentColumns() =
+  select(
+    ACTIVE_ENVIRONMENT.UID,
+    ACTIVE_ENVIRONMENT.NAME,
+    ACTIVE_ENVIRONMENT.VERSION,
+    ACTIVE_ENVIRONMENT.IS_PREVIEW,
+    ACTIVE_ENVIRONMENT.CONSTRAINTS,
+    ACTIVE_ENVIRONMENT.NOTIFICATIONS,
+    ACTIVE_ENVIRONMENT.VERIFICATIONS,
+    ACTIVE_ENVIRONMENT.POST_DEPLOY_ACTIONS,
+    ACTIVE_ENVIRONMENT.METADATA
+  )
+
+/** Helper function to construct an [Environment] off a record from [ACTIVE_ENVIRONMENT]. */
 internal fun SqlStorageContext.makeEnvironment(
   record: Record9<String, String, Int, Boolean, String, String, String, String, String>,
   objectMapper: ObjectMapper
@@ -186,7 +202,8 @@ internal fun SqlStorageContext.makeEnvironment(
     constraints = objectMapper.readValue(constraintsJson),
     notifications = notificationsJson?.let { objectMapper.readValue(it) } ?: emptySet(),
     verifyWith = verifyWithJson?.let { objectMapper.readValue(it) } ?: emptyList(),
-    postDeploy = postDeployActionsJson?.let { objectMapper.readValue(it) } ?: emptyList(),
-    metadata = metadataJson?.let { objectMapper.readValue(it) } ?: emptyMap()
-  )
+    postDeploy = postDeployActionsJson?.let { objectMapper.readValue(it) } ?: emptyList()
+  ).apply {
+    addMetadata(metadataJson?.let { objectMapper.readValue(it) } ?: emptyMap())
+  }
 }

@@ -7,11 +7,12 @@ import com.netflix.spinnaker.kork.exceptions.SystemException
  * An event from an SCM system.
  */
 abstract class CodeEvent(
-  open val type: String,
   open val repoKey: String,
   open val targetBranch: String,
   open val pullRequestId: String? = null
 ) {
+  abstract val type: String
+
   private val repoParts: List<String> by lazy { repoKey.split("/") }
 
   fun validate() {
@@ -32,15 +33,25 @@ abstract class CodeEvent(
 }
 
 /**
- * Event that signals the creation of a PR.
+ * Base class for events that relates to a PR.
  */
-data class PrCreatedEvent(
-  override val type: String = "pr.created",
+abstract class PrEvent(
   override val repoKey: String,
   override val targetBranch: String,
   override val pullRequestId: String,
-  val sourceBranch: String
-) : CodeEvent(type, repoKey, targetBranch, pullRequestId) {
+  open val sourceBranch: String
+) : CodeEvent(repoKey, targetBranch, pullRequestId)
+
+/**
+ * Event that signals the creation of a PR.
+ */
+data class PrCreatedEvent(
+  override val repoKey: String,
+  override val targetBranch: String,
+  override val pullRequestId: String,
+  override val sourceBranch: String
+) : PrEvent(repoKey, targetBranch, pullRequestId, sourceBranch) {
+  override val type: String = "pr.created"
   init { validate() }
 }
 
@@ -48,12 +59,38 @@ data class PrCreatedEvent(
  * Event that signals a PR was merged.
  */
 data class PrMergedEvent(
-  override val type: String = "pr.merged",
   override val repoKey: String,
   override val targetBranch: String,
   override val pullRequestId: String,
-  val sourceBranch: String
-) : CodeEvent(type, repoKey, targetBranch, pullRequestId) {
+  override val sourceBranch: String
+) : PrEvent(repoKey, targetBranch, pullRequestId, sourceBranch) {
+  override val type: String = "pr.merged"
+  init { validate() }
+}
+
+/**
+ * Event that signals a PR was declined.
+ */
+data class PrDeclinedEvent(
+  override val repoKey: String,
+  override val targetBranch: String,
+  override val pullRequestId: String,
+  override val sourceBranch: String
+) : PrEvent(repoKey, targetBranch, pullRequestId, sourceBranch) {
+  override val type: String = "pr.declined"
+  init { validate() }
+}
+
+/**
+ * Event that signals a PR was deleted.
+ */
+data class PrDeletedEvent(
+  override val repoKey: String,
+  override val targetBranch: String,
+  override val pullRequestId: String,
+  override val sourceBranch: String
+) : PrEvent(repoKey, targetBranch, pullRequestId, sourceBranch) {
+  override val type: String = "pr.deleted"
   init { validate() }
 }
 
@@ -61,12 +98,12 @@ data class PrMergedEvent(
  * Event that signals a commit was created (i.e. pushed to a repo).
  */
 data class CommitCreatedEvent(
-  override val type: String = "commit.created",
   override val repoKey: String,
   override val targetBranch: String,
   override val pullRequestId: String? = null,
   val commitHash: String
-) : CodeEvent(type, repoKey, targetBranch, pullRequestId) {
+) : CodeEvent(repoKey, targetBranch, pullRequestId) {
+  override val type: String = "commit.created"
   init { validate() }
 }
 
@@ -76,24 +113,34 @@ data class CommitCreatedEvent(
 fun PublishedArtifact.toCodeEvent(): CodeEvent {
   return when(type) {
     "create_commit" -> CommitCreatedEvent(
-      repoKey = metadata["repoKey"] as? String ?: throw MissingCodeEventDetails("repository", this),
-      targetBranch = metadata["branch"] as? String ?: throw MissingCodeEventDetails("branch", this),
-      commitHash = metadata["sha"] as? String ?: throw MissingCodeEventDetails("commit hash", this),
-      pullRequestId = metadata["prId"] as? String
+      repoKey = repoKey,
+      targetBranch = targetBranch,
+      commitHash = sha,
+      pullRequestId = pullRequestId
     )
     "pr_opened" -> PrCreatedEvent(
-      repoKey = metadata["repoKey"] as? String ?: throw MissingCodeEventDetails("repository", this),
-      targetBranch = metadata["branch"] as? String ?: throw MissingCodeEventDetails("branch", this),
-      pullRequestId = metadata["prId"] as? String ?: throw MissingCodeEventDetails("prId", this),
-        // TODO: currently Echo does not relay the source branch info
-      sourceBranch = "N/A"
+      repoKey = repoKey,
+      targetBranch = targetBranch,
+      pullRequestId = pullRequestId,
+      sourceBranch = sourceBranch
     )
     "pr_merged" -> PrMergedEvent(
-      repoKey = metadata["repoKey"] as? String ?: throw MissingCodeEventDetails("repository", this),
-      targetBranch = metadata["branch"] as? String ?: throw MissingCodeEventDetails("branch", this),
-      pullRequestId = metadata["prId"] as? String ?: throw MissingCodeEventDetails("prId", this),
-      // TODO: currently Echo does not relay the source branch info
-      sourceBranch = "N/A"
+      repoKey = repoKey,
+      targetBranch = targetBranch,
+      pullRequestId = pullRequestId,
+      sourceBranch = sourceBranch
+    )
+    "pr_declined" -> PrDeclinedEvent(
+      repoKey = repoKey,
+      targetBranch = targetBranch,
+      pullRequestId = pullRequestId,
+      sourceBranch = sourceBranch
+    )
+    "pr_deleted" -> PrDeletedEvent(
+      repoKey = repoKey,
+      targetBranch = targetBranch,
+      pullRequestId = pullRequestId,
+      sourceBranch = sourceBranch
     )
     else -> error("Unsupported code event type $type in $this")
   }
@@ -103,6 +150,21 @@ internal val INTERESTING_CODE_EVENTS = setOf("create_commit", "pr_opened", "pr_m
 
 val PublishedArtifact.isCodeEvent: Boolean
   get() = type in INTERESTING_CODE_EVENTS
+
+private val PublishedArtifact.repoKey: String
+  get() = metadata["repoKey"] as? String ?: throw MissingCodeEventDetails("repository", this)
+
+private val PublishedArtifact.sourceBranch: String
+  get() = metadata["sourceBranch"] as? String?: throw MissingCodeEventDetails("source branch", this)
+
+private val PublishedArtifact.targetBranch: String
+  get() = metadata["targetBranch"] as? String ?: throw MissingCodeEventDetails("target branch", this)
+
+private val PublishedArtifact.sha: String
+  get() = metadata["sha"] as? String ?: throw MissingCodeEventDetails("commit hash", this)
+
+private val PublishedArtifact.pullRequestId: String
+  get() = metadata["prId"] as? String?: throw MissingCodeEventDetails("PR ID", this)
 
 class MissingCodeEventDetails(what: String, event: PublishedArtifact) :
   SystemException("Missing $what information in code event: $event")

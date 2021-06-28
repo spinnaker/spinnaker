@@ -14,14 +14,18 @@ class BasicCodeEventTests : JUnit5Minutests {
     context("base class validation") {
       test("passes when repo key is well-formed") {
         expectCatching {
-          val goodCodeEvent = object : CodeEvent("fake","stash/project/repo", "master") {}
+          val goodCodeEvent = object : CodeEvent("stash/project/repo", "master")  {
+            override val type: String = "fake"
+          }
           goodCodeEvent.validate()
         }.isSuccess()
       }
 
       test("throws an exception when the repo key is mal-formed") {
         expectCatching {
-          val badCodeEvent = object : CodeEvent("fake","a-bad-repo-key", "master") {}
+          val badCodeEvent = object : CodeEvent("a-bad-repo-key", "master") {
+            override val type: String = "fake"
+          }
           badCodeEvent.validate()
         }.isFailure()
           .isA<InvalidCodeEvent>()

@@ -49,6 +49,7 @@ import strikt.assertions.all
 import strikt.assertions.contains
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.first
+import strikt.assertions.flatMap
 import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEmpty
@@ -375,6 +376,17 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
             .isSuccess()
             .get { environments }
             .isEqualTo(deliveryConfig.environments)
+        }
+
+        test("environments have default metadata added") {
+          listOf(getByName(), getByApplication()).forEach { configRetrieval ->
+            configRetrieval
+              .isSuccess()
+              .get { environments }
+              .isEqualTo(deliveryConfig.environments)
+              .flatMap { it.metadata.keys }
+              .contains("application", "deliveryConfigName", "uid")
+          }
         }
 
         context("artifact constraint flows") {

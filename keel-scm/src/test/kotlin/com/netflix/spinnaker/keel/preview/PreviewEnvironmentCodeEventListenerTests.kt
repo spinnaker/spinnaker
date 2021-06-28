@@ -22,6 +22,9 @@ import com.netflix.spinnaker.keel.api.artifacts.branchStartsWith
 import com.netflix.spinnaker.keel.api.ec2.EC2_SECURITY_GROUP_V1
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
 import com.netflix.spinnaker.keel.api.scm.CommitCreatedEvent
+import com.netflix.spinnaker.keel.api.scm.PrDeclinedEvent
+import com.netflix.spinnaker.keel.api.scm.PrDeletedEvent
+import com.netflix.spinnaker.keel.api.scm.PrMergedEvent
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.core.api.SubmittedEnvironment
@@ -30,11 +33,13 @@ import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.front50.model.DataSources
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
 import com.netflix.spinnaker.keel.notifications.DeliveryConfigImportFailed
+import com.netflix.spinnaker.keel.persistence.EnvironmentDeletionRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.preview.PreviewEnvironmentCodeEventListener.Companion.APPLICATION_RETRIEVAL_ERROR
 import com.netflix.spinnaker.keel.preview.PreviewEnvironmentCodeEventListener.Companion.CODE_EVENT_COUNTER
 import com.netflix.spinnaker.keel.preview.PreviewEnvironmentCodeEventListener.Companion.COMMIT_HANDLING_DURATION
 import com.netflix.spinnaker.keel.preview.PreviewEnvironmentCodeEventListener.Companion.DELIVERY_CONFIG_NOT_FOUND
+import com.netflix.spinnaker.keel.preview.PreviewEnvironmentCodeEventListener.Companion.PREVIEW_ENVIRONMENT_MARK_FOR_DELETION_SUCCESS
 import com.netflix.spinnaker.keel.preview.PreviewEnvironmentCodeEventListener.Companion.PREVIEW_ENVIRONMENT_UPSERT_ERROR
 import com.netflix.spinnaker.keel.preview.PreviewEnvironmentCodeEventListener.Companion.PREVIEW_ENVIRONMENT_UPSERT_SUCCESS
 import com.netflix.spinnaker.keel.scm.DELIVERY_CONFIG_RETRIEVAL_ERROR
@@ -66,6 +71,7 @@ import strikt.assertions.containsKeys
 import strikt.assertions.endsWith
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import strikt.assertions.isTrue
 import strikt.assertions.one
 import java.time.Clock
 import java.time.Duration
@@ -78,6 +84,7 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
     private val clock: Clock = MutableClock()
     val fakeTimer: Timer = mockk()
     val repository: KeelRepository = mockk()
+    val environmentDeletionRepository: EnvironmentDeletionRepository = mockk()
     val importer: DeliveryConfigImporter = mockk()
     val front50Cache: Front50Cache = mockk()
     val springEnv: org.springframework.core.env.Environment = mockk()
@@ -85,6 +92,7 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
     val eventPublisher: ApplicationEventPublisher = mockk()
     val subject = PreviewEnvironmentCodeEventListener(
       repository = repository,
+      environmentDeletionRepository = environmentDeletionRepository,
       deliveryConfigImporter = importer,
       front50Cache = front50Cache,
       objectMapper = objectMapper,
@@ -236,8 +244,31 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
       every { repository.upsertResource<DummyResourceSpec>(any(), any()) } just runs
 
       every { repository.storeEnvironment(any(), capture(previewEnv)) } just runs
+
+      every { environmentDeletionRepository.markForDeletion(any()) } just runs
     }
   }
+
+  val prMergedEvent = PrMergedEvent(
+    repoKey = "stash/myorg/myrepo",
+    sourceBranch = "feature/abc",
+    targetBranch = "main",
+    pullRequestId = "42"
+  )
+
+  val prDeclinedEvent = PrDeclinedEvent(
+    repoKey = "stash/myorg/myrepo",
+    sourceBranch = "feature/abc",
+    targetBranch = "main",
+    pullRequestId = "42"
+  )
+
+  val prDeletedEvent = PrDeletedEvent(
+    repoKey = "stash/myorg/myrepo",
+    sourceBranch = "feature/abc",
+    targetBranch = "main",
+    pullRequestId = "42"
+  )
 
   fun tests() = rootContext<Fixture> {
     fixture { Fixture() }
@@ -390,6 +421,40 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
         test("duration metric is not recorded") {
           verify {
             fakeTimer wasNot called
+          }
+        }
+      }
+
+      listOf(prMergedEvent, prDeclinedEvent, prDeletedEvent).forEach { prEvent ->
+        context("a ${prEvent::class.simpleName} event matching a preview environment spec is received") {
+          before {
+            // just to trigger saving the preview environment
+            subject.handleCommitCreated(commitEvent)
+
+            every {
+              repository.getDeliveryConfig(deliveryConfig.name)
+            } returns deliveryConfig.copy(
+              environments = deliveryConfig.environments + setOf(previewEnv.captured)
+            )
+
+            subject.handlePrFinished(prEvent)
+          }
+
+          test("the matching preview environment is marked for deletion") {
+            val updatedPreviewEnv = slot<Environment>()
+            verify {
+              environmentDeletionRepository.markForDeletion(previewEnv.captured)
+            }
+          }
+
+          test("a metric is counted for successfully marking for deletion") {
+            val tags = mutableListOf<Iterable<Tag>>()
+            verify {
+              spectator.counter(CODE_EVENT_COUNTER, capture(tags))
+            }
+            expectThat(tags).one {
+              contains(PREVIEW_ENVIRONMENT_MARK_FOR_DELETION_SUCCESS.toTags())
+            }
           }
         }
       }

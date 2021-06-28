@@ -5,6 +5,7 @@ import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.events.ArtifactPublishedEvent
 import com.netflix.spinnaker.keel.api.scm.PrCreatedEvent
 import com.netflix.spinnaker.keel.rest.ArtifactControllerTests.TestConfig
+import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
@@ -24,6 +25,7 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper
 
 @SpringBootTest(webEnvironment = MOCK, classes = [TestConfig::class, KeelApplication::class])
 @AutoConfigureMockMvc
@@ -47,66 +49,43 @@ internal class ArtifactControllerTests
   @Autowired
   lateinit var eventPublisher: ApplicationEventPublisher
 
-  object Fixture {
-    val disguisedCodeEvent = EchoArtifactEvent(
-      eventName = "test",
-      payload = ArtifactPublishedEvent(
-        artifacts = listOf(
-          PublishedArtifact(
-            name = "master:953910b24a776eceab03d4dcae8ac050b2e0b668",
-            type = "pr_opened",
-            reference = "https://stash/projects/ORG/repos/myrepo/commits/953910b24a776eceab03d4dcae8ac050b2e0b668",
-            version = "953910b24a776eceab03d4dcae8ac050b2e0b668",
-            provenance = "https://stash/projects/ORG/repos/myrepo/commits/953910b24a776eceab03d4dcae8ac050b2e0b668",
-            metadata = mapOf(
-              "repoKey" to "stash/org/myrepo",
-              "prId" to "11494",
-              "sha" to  "953910b24a776eceab03d4dcae8ac050b2e0b668",
-              "branch" to "master"
-            )
+  private val objectMapper = configuredObjectMapper()
+
+  private val disguisedCodeEvent = EchoArtifactEvent(
+    eventName = "test",
+    payload = ArtifactPublishedEvent(
+      artifacts = listOf(
+        PublishedArtifact(
+          name = "master:953910b24a776eceab03d4dcae8ac050b2e0b668",
+          type = "pr_opened",
+          reference = "https://stash/projects/ORG/repos/myrepo/commits/953910b24a776eceab03d4dcae8ac050b2e0b668",
+          version = "953910b24a776eceab03d4dcae8ac050b2e0b668",
+          provenance = "https://stash/projects/ORG/repos/myrepo/commits/953910b24a776eceab03d4dcae8ac050b2e0b668",
+          metadata = mapOf(
+            "repoKey" to "stash/org/myrepo",
+            "prId" to "11494",
+            "sha" to  "953910b24a776eceab03d4dcae8ac050b2e0b668",
+            "branch" to "feature/branch",
+            "sourceBranch" to "feature/branch",
+            "targetBranch" to "master"
           )
         )
       )
     )
+  )
 
-    val translatedCodeEvent = PrCreatedEvent(
-      repoKey = "stash/org/myrepo",
-      targetBranch = "master",
-      sourceBranch = "N/A",
-      pullRequestId = "11494"
-    )
-  }
+  private val translatedCodeEvent = PrCreatedEvent(
+    repoKey = "stash/org/myrepo",
+    targetBranch = "master",
+    sourceBranch = "feature/branch",
+    pullRequestId = "11494"
+  )
 
-  fun tests() = rootContext<Fixture> {
-    fixture { Fixture }
-
+  fun tests() = rootContext {
     context("a code event disguised as an artifact event is received") {
       val request = MockMvcRequestBuilders.post("/artifacts/events")
         .contentType(MediaType.APPLICATION_JSON_VALUE)
-        .content(
-          """
-             {
-               "payload": {
-                 "artifacts": [
-                   {
-                      "type": "pr_opened",
-                      "reference": "https://stash/projects/ORG/repos/myrepo/commits/953910b24a776eceab03d4dcae8ac050b2e0b668",
-                      "branch": "master",
-                      "name": "master:953910b24a776eceab03d4dcae8ac050b2e0b668",
-                      "version": "953910b24a776eceab03d4dcae8ac050b2e0b668",
-                      "metadata": {
-                        "repoKey": "stash/org/myrepo",
-                        "prId": "11494",
-                        "sha": "953910b24a776eceab03d4dcae8ac050b2e0b668",
-                        "branch": "master"
-                      }
-                   }
-                 ]
-               },
-               "eventName": "test"
-            }
-            """.trimIndent()
-        )
+        .content(objectMapper.writeValueAsString(disguisedCodeEvent) )
 
       val response = mvc.perform(request)
 

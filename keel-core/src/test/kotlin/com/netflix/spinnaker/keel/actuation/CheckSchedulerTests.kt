@@ -1,15 +1,18 @@
 package com.netflix.spinnaker.keel.actuation
 
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.config.EnvironmentDeletionConfig
 import com.netflix.spinnaker.config.EnvironmentVerificationConfig
 import com.netflix.spinnaker.config.PostDeployActionsConfig
 import com.netflix.spinnaker.config.ResourceCheckConfig
+import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.ResourceKind.Companion.parseKind
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.plugins.UnsupportedKind
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.persistence.AgentLockRepository
+import com.netflix.spinnaker.keel.persistence.EnvironmentDeletionRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.postdeploy.PostDeployActionRunner
 import com.netflix.spinnaker.keel.scheduled.ScheduledAgent
@@ -23,10 +26,12 @@ import io.mockk.Called
 import io.mockk.clearAllMocks
 import io.mockk.coVerify
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
+import io.mockk.runs
 import io.mockk.verify
 import org.springframework.context.ApplicationEventPublisher
-import org.springframework.core.env.Environment
+import org.springframework.core.env.Environment as SpringEnvironment
 import java.time.Duration
 
 internal object CheckSchedulerTests : JUnit5Minutests {
@@ -53,7 +58,7 @@ internal object CheckSchedulerTests : JUnit5Minutests {
     it.batchSize = 2
   }
 
-  private val springEnv: Environment = mockk(relaxed = true) {
+  private val springEnv: SpringEnvironment = mockk(relaxed = true) {
     every {
       getProperty("keel.check.min-age-duration", Duration::class.java, any())
     } returns checkMinAge
@@ -76,6 +81,10 @@ internal object CheckSchedulerTests : JUnit5Minutests {
   }
 
   private val verificationRunner = mockk<VerificationRunner>()
+
+  private val environmentDeletionRepository: EnvironmentDeletionRepository = mockk()
+
+  private val environmentCleaner: EnvironmentCleaner = mockk()
 
   private val resources = listOf(
     resource(
@@ -104,10 +113,16 @@ internal object CheckSchedulerTests : JUnit5Minutests {
     )
   )
 
+  private val environmentsForDeletion = listOf(
+    Environment("my-preview-environment1"),
+    Environment("my-preview-environment2")
+  )
+
   fun tests() = rootContext<CheckScheduler> {
     fixture {
       CheckScheduler(
         repository = repository,
+        environmentDeletionRepository = environmentDeletionRepository,
         resourceActuator = resourceActuator,
         environmentPromotionChecker = environmentPromotionChecker,
         postDeployActionRunner = postDeployActionRunner,
@@ -115,6 +130,8 @@ internal object CheckSchedulerTests : JUnit5Minutests {
         resourceCheckConfig = resourceCheckConfig,
         verificationConfig = verificationConfig,
         postDeployConfig = postDeployConfig,
+        environmentDeletionConfig = EnvironmentDeletionConfig(),
+        environmentCleaner = environmentCleaner,
         publisher = publisher,
         agentLockRepository = agentLockRepository,
         verificationRunner = verificationRunner,
@@ -139,6 +156,10 @@ internal object CheckSchedulerTests : JUnit5Minutests {
 
       test("no artifacts are checked") {
         verify { artifactHandler wasNot Called }
+      }
+
+      test("no environments are checked for deletion") {
+        verify { environmentCleaner wasNot Called }
       }
     }
 
@@ -198,6 +219,28 @@ internal object CheckSchedulerTests : JUnit5Minutests {
           artifacts.forEach { artifact ->
             coVerify(timeout = 500) {
               artifactHandler.handle(artifact)
+            }
+          }
+        }
+      }
+
+      context("checking environments for deletion") {
+        before {
+          every {
+            environmentDeletionRepository.itemsDueForCheck(any(), any())
+          } returns environmentsForDeletion
+
+          every {
+            environmentCleaner.cleanupEnvironment(any())
+          } just runs
+
+          checkEnvironmentsForDeletion()
+        }
+
+        test("all environments marked for deletion are checked for cleanup") {
+          environmentsForDeletion.forEach { environment ->
+            coVerify(timeout = 500) {
+              environmentCleaner.cleanupEnvironment(environment)
             }
           }
         }

@@ -24,6 +24,7 @@ import com.netflix.spinnaker.keel.sql.SqlUnhappyVetoRepository
 import com.netflix.spinnaker.keel.sql.SqlUnhealthyRepository
 import com.netflix.spinnaker.keel.sql.SqlActionRepository
 import com.netflix.spinnaker.keel.sql.SqlDismissibleNotificationRepository
+import com.netflix.spinnaker.keel.sql.SqlEnvironmentDeletionRepository
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import com.netflix.spinnaker.kork.sql.config.SqlProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
@@ -225,4 +226,22 @@ class SqlConfiguration
     clock: Clock,
     objectMapper: ObjectMapper
   ) = SqlDismissibleNotificationRepository(jooq, SqlRetry(sqlRetryProperties), objectMapper, clock)
+
+  @Bean
+  fun environmentDeletionRepository(
+    jooq: DSLContext,
+    clock: Clock,
+    resourceSpecIdentifier: ResourceSpecIdentifier,
+    objectMapper: ObjectMapper,
+    artifactSuppliers: List<ArtifactSupplier<*, *>>,
+    specMigrators: List<SpecMigrator<*, *>>
+  ) = SqlEnvironmentDeletionRepository(
+    jooq,
+    clock,
+    resourceSpecIdentifier,
+    objectMapper,
+    SqlRetry(sqlRetryProperties),
+    artifactSuppliers,
+    specMigrators
+  )
 }

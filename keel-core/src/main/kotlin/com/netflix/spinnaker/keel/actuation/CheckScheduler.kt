@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.actuation
 
 import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.config.EnvironmentDeletionConfig
 import com.netflix.spinnaker.config.EnvironmentVerificationConfig
 import com.netflix.spinnaker.config.PostDeployActionsConfig
 import com.netflix.spinnaker.config.ResourceCheckConfig
@@ -10,6 +11,7 @@ import com.netflix.spinnaker.keel.activation.ApplicationUp
 import com.netflix.spinnaker.keel.exceptions.EnvironmentCurrentlyBeingActedOn
 import com.netflix.spinnaker.keel.logging.TracingSupport.Companion.blankMDC
 import com.netflix.spinnaker.keel.persistence.AgentLockRepository
+import com.netflix.spinnaker.keel.persistence.EnvironmentDeletionRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.postdeploy.PostDeployActionRunner
 import com.netflix.spinnaker.keel.telemetry.AgentInvocationComplete
@@ -48,12 +50,14 @@ import kotlin.math.max
 
 @EnableConfigurationProperties(
   ResourceCheckConfig::class,
+  EnvironmentDeletionConfig::class,
   EnvironmentVerificationConfig::class,
-  PostDeployActionsConfig::class
+  PostDeployActionsConfig::class,
 )
 @Component
 class CheckScheduler(
   private val repository: KeelRepository,
+  private val environmentDeletionRepository: EnvironmentDeletionRepository,
   private val resourceActuator: ResourceActuator,
   private val environmentPromotionChecker: EnvironmentPromotionChecker,
   private val verificationRunner: VerificationRunner,
@@ -62,6 +66,8 @@ class CheckScheduler(
   private val resourceCheckConfig: ResourceCheckConfig,
   private val verificationConfig: EnvironmentVerificationConfig,
   private val postDeployConfig: PostDeployActionsConfig,
+  private val environmentDeletionConfig: EnvironmentDeletionConfig,
+  private val environmentCleaner: EnvironmentCleaner,
   private val publisher: ApplicationEventPublisher,
   private val agentLockRepository: AgentLockRepository,
   private val clock: Clock,
@@ -164,8 +170,31 @@ class CheckScheduler(
     }
   }
 
-  private fun recordDuration(startTime : Instant, type: String) =
-    spectator.recordDurationPercentile("keel.scheduled.method.duration", clock, startTime, setOf(BasicTag("type", type)))
+  @Scheduled(fixedDelayString = "\${keel.environment-deletion.check.frequency:PT1S}")
+  fun checkEnvironmentsForDeletion() {
+    if (enabled.get()) {
+      val startTime = clock.instant()
+
+      val job = launch(blankMDC) {
+        supervisorScope {
+          environmentDeletionRepository
+            .itemsDueForCheck(checkMinAge, resourceCheckConfig.batchSize)
+            .forEach {
+              try {
+                withTimeout(environmentDeletionConfig.check.timeoutDuration.toMillis()) {
+                  launch { environmentCleaner.cleanupEnvironment(it) }
+                }
+              } catch (e: TimeoutCancellationException) {
+                log.error("Timed out checking environment ${it.name} for deletion", e)
+              }
+            }
+        }
+      }
+
+      runBlocking { job.join() }
+      recordDuration(startTime, "environmentDeletion")
+    }
+  }
 
   @Scheduled(fixedDelayString = "\${keel.artifact-check.frequency:PT1S}")
   fun checkArtifacts() {
@@ -282,6 +311,9 @@ class CheckScheduler(
       recordDuration(startTime, "agent")
     }
   }
+
+  private fun recordDuration(startTime : Instant, type: String) =
+    spectator.recordDurationPercentile("keel.scheduled.method.duration", clock, startTime, setOf(BasicTag("type", type)))
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }

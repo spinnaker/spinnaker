@@ -484,17 +484,14 @@ class NotificationEventListenerTests : JUnit5Minutests {
 
   private fun ArtifactDeployedNotification.withPreviewEnvironment() =
     copy(
-      targetEnvironment = targetEnvironment.copy(
-        isPreview = true,
-        metadata = mapOf("pullRequestId" to "42")
-      )
+      targetEnvironment = targetEnvironment.copy(isPreview = true).addMetadata(mapOf("pullRequestId" to "42"))
     )
 
   private fun DeliveryConfig.withPreviewEnvironment() =
     copy(
       environments = environments.map {
         if (it.name == "test") {
-          it.copy(isPreview = true, metadata = mapOf("pullRequestId" to "42"))
+          it.copy(isPreview = true).addMetadata(mapOf("pullRequestId" to "42"))
         } else {
           it
         }

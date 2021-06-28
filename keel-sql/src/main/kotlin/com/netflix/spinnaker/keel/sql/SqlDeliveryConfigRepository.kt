@@ -19,6 +19,7 @@ import com.netflix.spinnaker.keel.core.api.parseUID
 import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.core.api.timestampAsInstant
 import com.netflix.spinnaker.keel.events.PersistentEvent.EventScope
+import com.netflix.spinnaker.keel.exceptions.NoSuchEnvironmentException
 import com.netflix.spinnaker.keel.pause.PauseScope
 import com.netflix.spinnaker.keel.pause.PauseScope.APPLICATION
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
@@ -54,6 +55,7 @@ import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
 import com.netflix.spinnaker.keel.sql.deliveryconfigs.attachDependents
 import com.netflix.spinnaker.keel.sql.deliveryconfigs.deliveryConfigByName
 import com.netflix.spinnaker.keel.sql.deliveryconfigs.makeEnvironment
+import com.netflix.spinnaker.keel.sql.deliveryconfigs.selectEnvironmentColumns
 import com.netflix.spinnaker.keel.sql.deliveryconfigs.uid
 import com.netflix.spinnaker.keel.telemetry.AboutToBeChecked
 import de.huxhorn.sulky.ulid.ULID
@@ -328,6 +330,13 @@ class SqlDeliveryConfigRepository(
         ?: randomUID().toString()
       )
 
+    // Add some default metadata that's useful in a bunch of places
+    environment.addMetadata(mapOf(
+      "uid" to environmentUid,
+      "application" to deliveryConfig.application,
+      "deliveryConfigName" to deliveryConfig.name
+    ))
+
     jooq.insertInto(ENVIRONMENT)
       .set(ENVIRONMENT.UID, environmentUid)
       .set(ENVIRONMENT.DELIVERY_CONFIG_UID, deliveryConfig.uid)
@@ -486,17 +495,7 @@ class SqlDeliveryConfigRepository(
   override fun environmentFor(resourceId: String): Environment =
     sqlRetry.withRetry(READ) {
       jooq
-        .select(
-          ACTIVE_ENVIRONMENT.UID,
-          ACTIVE_ENVIRONMENT.NAME,
-          ACTIVE_ENVIRONMENT.VERSION,
-          ACTIVE_ENVIRONMENT.IS_PREVIEW,
-          ACTIVE_ENVIRONMENT.CONSTRAINTS,
-          ACTIVE_ENVIRONMENT.NOTIFICATIONS,
-          ACTIVE_ENVIRONMENT.VERIFICATIONS,
-          ACTIVE_ENVIRONMENT.POST_DEPLOY_ACTIONS,
-          ACTIVE_ENVIRONMENT.METADATA
-        )
+        .selectEnvironmentColumns()
         .from(ACTIVE_ENVIRONMENT, ENVIRONMENT_RESOURCE, RESOURCE)
         .where(RESOURCE.ID.eq(resourceId))
         .and(ENVIRONMENT_RESOURCE.RESOURCE_UID.eq(RESOURCE.UID))
