@@ -19,9 +19,12 @@ plugins {
   id 'com.google.protobuf' version "0.8.12" apply false
 }
 
+allprojects {
+  apply plugin: "io.spinnaker.project"
+}
+
 subprojects {
   group = "io.spinnaker.halyard"
-  apply plugin: 'io.spinnaker.project'
   apply plugin: 'java-library'
   apply plugin: 'groovy'
 
