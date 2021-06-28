@@ -85,6 +85,7 @@ dependencies {
   implementation "org.springframework.security:spring-security-config"
   implementation "org.springframework.cloud:spring-cloud-context"
   implementation "org.springframework.cloud:spring-cloud-config-server"
+  implementation "io.github.resilience4j:resilience4j-retry"
 
   testImplementation "org.assertj:assertj-core"
   testImplementation "org.junit.jupiter:junit-jupiter-api"

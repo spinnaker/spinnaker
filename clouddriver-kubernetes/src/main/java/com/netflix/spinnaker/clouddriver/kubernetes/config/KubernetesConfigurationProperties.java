@@ -27,6 +27,7 @@ import lombok.Data;
 public class KubernetesConfigurationProperties {
   private static final int DEFAULT_CACHE_THREADS = 1;
   private List<ManagedAccount> accounts = new ArrayList<>();
+  private KubernetesJobExecutorProperties jobExecutor = new KubernetesJobExecutorProperties();
 
   @Data
   public static class ManagedAccount implements CredentialsDefinition {
@@ -75,6 +76,36 @@ public class KubernetesConfigurationProperties {
             "At most one of 'kinds' and 'omitKinds' can be specified");
       }
       rawResourcesEndpointConfig.validate();
+    }
+  }
+
+  @Data
+  public static class KubernetesJobExecutorProperties {
+    private Retries retries = new Retries();
+
+    @Data
+    public static class Retries {
+      // flag to turn on/off kubectl retry on errors capability.
+      private boolean enabled = false;
+
+      // total number of attempts that are made to complete a kubectl call
+      int maxAttempts = 3;
+
+      // time in ms to wait before subsequent retry attempts
+      long backOffInMs = 5000;
+
+      // list of error strings on which to retry since kubectl binary returns textual error messages
+      // back
+      List<String> retryableErrorMessages = List.of("TLS handshake timeout");
+
+      // flag to enable exponential backoff - only applicable when enableRetries: true
+      boolean exponentialBackoffEnabled = false;
+
+      // only applicable when exponentialBackoff = true
+      int exponentialBackoffMultiplier = 2;
+
+      // only applicable when exponentialBackoff = true
+      long exponentialBackOffIntervalMs = 10000;
     }
   }
 }
