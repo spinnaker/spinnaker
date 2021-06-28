@@ -14,7 +14,7 @@ import { IAmazonServerGroup } from './IAmazonServerGroup';
 export type ClassicListenerProtocol = 'HTTP' | 'HTTPS' | 'TCP' | 'SSL';
 export type ALBListenerProtocol = 'HTTP' | 'HTTPS';
 export type IListenerActionType = 'forward' | 'authenticate-oidc' | 'redirect';
-export type NLBListenerProtocol = 'TCP';
+export type NLBListenerProtocol = 'TCP' | 'TLS' | 'UDP';
 
 export interface IAmazonLoadBalancer extends ILoadBalancer {
   availabilityZones?: string[];

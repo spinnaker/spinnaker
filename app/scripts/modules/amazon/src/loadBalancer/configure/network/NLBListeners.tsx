@@ -1,18 +1,52 @@
-import { FormikProps } from 'formik';
-import { difference, flatten, uniq, uniqBy } from 'lodash';
 import React from 'react';
-
-import { IWizardPageComponent, ValidationMessage } from '@spinnaker/core';
-import { IAmazonNetworkLoadBalancerUpsertCommand, IListenerDescription, NLBListenerProtocol } from 'amazon/domain';
+import { difference, flatten, get, uniq, uniqBy } from 'lodash';
+import { ValidationMessage, IWizardPageComponent, Application } from '@spinnaker/core';
+import {
+  NLBListenerProtocol,
+  IListenerDescription,
+  IAmazonNetworkLoadBalancerUpsertCommand,
+  IALBListenerCertificate,
+  IAmazonCertificate,
+  IListenerAction,
+} from 'amazon/domain';
+import { FormikProps } from 'formik';
+import { IAuthenticateOidcActionConfig } from '../../OidcConfigReader';
+import { AmazonCertificateReader, AWSProviderSettings } from 'amazon';
+import { CertificateSelector } from '../network/CertificateSelectors';
 
 export interface INLBListenersProps {
+  app?: Application;
   formik: FormikProps<IAmazonNetworkLoadBalancerUpsertCommand>;
 }
 
+export interface INLBListenersState {
+  certificates: { [accountId: number]: IAmazonCertificate[] };
+  certificateTypes: string[];
+  oidcConfigs: IAuthenticateOidcActionConfig[];
+}
+
+export interface INLBCertificateSelectorProps {
+  availableCertificates: IALBListenerCertificate[];
+  certificates: { [accountId: number]: IAmazonCertificate[] };
+  formik: FormikProps<IAmazonNetworkLoadBalancerUpsertCommand>;
+  app?: Application;
+  certificateTypes: string[];
+}
+
 export class NLBListeners
-  extends React.Component<INLBListenersProps>
+  extends React.Component<INLBListenersProps, INLBListenersState>
   implements IWizardPageComponent<IAmazonNetworkLoadBalancerUpsertCommand> {
-  public protocols = ['TCP'];
+  public protocols = ['TCP', 'UDP', 'TLS'];
+  private removedAuthActions: Map<IListenerDescription, { [key: number]: IListenerAction }> = new Map();
+
+  constructor(props: INLBListenersProps) {
+    super(props);
+    this.state = {
+      certificates: [],
+      certificateTypes: get(AWSProviderSettings, 'loadBalancers.certificateTypes', ['iam', 'acm']),
+      oidcConfigs: undefined,
+    };
+  }
 
   private getAllTargetGroupsFromListeners(listeners: IListenerDescription[]): string[] {
     const actions = flatten(listeners.map((l) => l.defaultActions));
@@ -46,12 +80,55 @@ export class NLBListeners
     this.props.formik.setFieldValue('listeners', this.props.formik.values.listeners);
   }
 
+  public componentDidMount(): void {
+    this.loadCertificates();
+  }
+
+  private addListenerCertificate(listener: IListenerDescription): void {
+    listener.certificates = listener.certificates || [];
+    listener.certificates.push({
+      certificateArn: undefined,
+      type: 'iam',
+      name: undefined,
+    });
+  }
+
+  private loadCertificates(): void {
+    AmazonCertificateReader.listCertificates().then((certificates) => {
+      this.setState({ certificates });
+    });
+  }
+
   private listenerProtocolChanged(listener: IListenerDescription, newProtocol: NLBListenerProtocol): void {
     listener.protocol = newProtocol;
     if (listener.protocol === 'TCP') {
       listener.port = 80;
+    } else if (listener.protocol === 'UDP') {
+      listener.port = 53;
+    } else if (listener.protocol === 'TLS') {
+      listener.port = 443;
+      if (!listener.certificates || listener.certificates.length === 0) {
+        this.addListenerCertificate(listener);
+      }
+      this.reenableAuthActions(listener);
     }
     this.updateListeners();
+  }
+
+  private reenableAuthActions(listener: IListenerDescription): void {
+    const removedAuthActions = this.removedAuthActions.has(listener) ? this.removedAuthActions.get(listener) : [];
+    const existingDefaultAuthAction = removedAuthActions[-1];
+    if (existingDefaultAuthAction) {
+      removedAuthActions[-1] = undefined;
+      listener.defaultActions.unshift({ ...existingDefaultAuthAction });
+    }
+    listener.rules.forEach((rule, ruleIndex) => {
+      const existingAuthAction = removedAuthActions[ruleIndex];
+      removedAuthActions[ruleIndex] = undefined;
+      if (existingAuthAction) {
+        rule.actions.unshift({ ...existingAuthAction });
+      }
+    });
   }
 
   private listenerPortChanged(listener: IListenerDescription, newPort: string): void {
@@ -87,6 +164,7 @@ export class NLBListeners
 
   public render() {
     const { errors, values } = this.props.formik;
+    const { certificates, certificateTypes } = this.state;
     return (
       <div className="container-fluid form-horizontal">
         <div className="form-group">
@@ -132,6 +210,17 @@ export class NLBListeners
                         </a>
                       </div>
                     </div>
+                  </div>
+                  <div>
+                    {listener.protocol === 'TLS' && (
+                      <CertificateSelector
+                        availableCertificates={listener.certificates}
+                        formik={this.props.formik}
+                        app={this.props.app}
+                        certificateTypes={certificateTypes}
+                        certificates={certificates}
+                      ></CertificateSelector>
+                    )}
                   </div>
                   <div className="wizard-pod-row">
                     <div className="wizard-pod-row-title" style={{ height: '30px' }}>
