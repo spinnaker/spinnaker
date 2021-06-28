@@ -39,7 +39,7 @@ abstract class PrEvent(
   override val repoKey: String,
   override val targetBranch: String,
   override val pullRequestId: String,
-  open val sourceBranch: String
+  open val pullRequestBranch: String
 ) : CodeEvent(repoKey, targetBranch, pullRequestId)
 
 /**
@@ -49,8 +49,8 @@ data class PrCreatedEvent(
   override val repoKey: String,
   override val targetBranch: String,
   override val pullRequestId: String,
-  override val sourceBranch: String
-) : PrEvent(repoKey, targetBranch, pullRequestId, sourceBranch) {
+  override val pullRequestBranch: String
+) : PrEvent(repoKey, targetBranch, pullRequestId, pullRequestBranch) {
   override val type: String = "pr.created"
   init { validate() }
 }
@@ -62,8 +62,8 @@ data class PrMergedEvent(
   override val repoKey: String,
   override val targetBranch: String,
   override val pullRequestId: String,
-  override val sourceBranch: String
-) : PrEvent(repoKey, targetBranch, pullRequestId, sourceBranch) {
+  override val pullRequestBranch: String
+) : PrEvent(repoKey, targetBranch, pullRequestId, pullRequestBranch) {
   override val type: String = "pr.merged"
   init { validate() }
 }
@@ -75,8 +75,8 @@ data class PrDeclinedEvent(
   override val repoKey: String,
   override val targetBranch: String,
   override val pullRequestId: String,
-  override val sourceBranch: String
-) : PrEvent(repoKey, targetBranch, pullRequestId, sourceBranch) {
+  override val pullRequestBranch: String
+) : PrEvent(repoKey, targetBranch, pullRequestId, pullRequestBranch) {
   override val type: String = "pr.declined"
   init { validate() }
 }
@@ -88,8 +88,8 @@ data class PrDeletedEvent(
   override val repoKey: String,
   override val targetBranch: String,
   override val pullRequestId: String,
-  override val sourceBranch: String
-) : PrEvent(repoKey, targetBranch, pullRequestId, sourceBranch) {
+  override val pullRequestBranch: String
+) : PrEvent(repoKey, targetBranch, pullRequestId, pullRequestBranch) {
   override val type: String = "pr.deleted"
   init { validate() }
 }
@@ -122,25 +122,25 @@ fun PublishedArtifact.toCodeEvent(): CodeEvent {
       repoKey = repoKey,
       targetBranch = targetBranch,
       pullRequestId = pullRequestId,
-      sourceBranch = sourceBranch
+      pullRequestBranch = pullRequestBranch
     )
     "pr_merged" -> PrMergedEvent(
       repoKey = repoKey,
       targetBranch = targetBranch,
       pullRequestId = pullRequestId,
-      sourceBranch = sourceBranch
+      pullRequestBranch = pullRequestBranch
     )
     "pr_declined" -> PrDeclinedEvent(
       repoKey = repoKey,
       targetBranch = targetBranch,
       pullRequestId = pullRequestId,
-      sourceBranch = sourceBranch
+      pullRequestBranch = pullRequestBranch
     )
     "pr_deleted" -> PrDeletedEvent(
       repoKey = repoKey,
       targetBranch = targetBranch,
       pullRequestId = pullRequestId,
-      sourceBranch = sourceBranch
+      pullRequestBranch = pullRequestBranch
     )
     else -> error("Unsupported code event type $type in $this")
   }
@@ -165,6 +165,9 @@ private val PublishedArtifact.sha: String
 
 private val PublishedArtifact.pullRequestId: String
   get() = metadata["prId"] as? String?: throw MissingCodeEventDetails("PR ID", this)
+
+private val PublishedArtifact.pullRequestBranch: String
+  get() = metadata["prBranch"] as? String?: throw MissingCodeEventDetails("PR branch", this)
 
 class MissingCodeEventDetails(what: String, event: PublishedArtifact) :
   SystemException("Missing $what information in code event: $event")

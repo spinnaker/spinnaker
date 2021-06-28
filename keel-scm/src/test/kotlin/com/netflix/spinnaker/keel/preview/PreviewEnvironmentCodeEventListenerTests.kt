@@ -71,7 +71,6 @@ import strikt.assertions.containsKeys
 import strikt.assertions.endsWith
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
-import strikt.assertions.isTrue
 import strikt.assertions.one
 import java.time.Clock
 import java.time.Duration
@@ -251,21 +250,21 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
 
   val prMergedEvent = PrMergedEvent(
     repoKey = "stash/myorg/myrepo",
-    sourceBranch = "feature/abc",
+    pullRequestBranch = "feature/abc",
     targetBranch = "main",
     pullRequestId = "42"
   )
 
   val prDeclinedEvent = PrDeclinedEvent(
     repoKey = "stash/myorg/myrepo",
-    sourceBranch = "feature/abc",
+    pullRequestBranch = "feature/abc",
     targetBranch = "main",
     pullRequestId = "42"
   )
 
   val prDeletedEvent = PrDeletedEvent(
     repoKey = "stash/myorg/myrepo",
-    sourceBranch = "feature/abc",
+    pullRequestBranch = "feature/abc",
     targetBranch = "main",
     pullRequestId = "42"
   )

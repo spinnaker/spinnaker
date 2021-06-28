@@ -96,7 +96,7 @@ class PreviewEnvironmentCodeEventListener(
         val hydratedDeliveryConfig = repository.getDeliveryConfig(deliveryConfig.name)
 
         hydratedDeliveryConfig.environments.filter {
-          it.isPreview && it.repoKey == event.repoKey && it.branch == event.sourceBranch
+          it.isPreview && it.repoKey == event.repoKey && it.branch == event.pullRequestBranch
         }.forEach { previewEnv ->
           log.debug("Marking preview environment for deletion: ${previewEnv.name} in app ${deliveryConfig.application}, " +
             "branch ${event.targetBranch} of repository ${event.repoKey}")
@@ -164,7 +164,7 @@ class PreviewEnvironmentCodeEventListener(
    * Returns a map of [DeliveryConfig]s to the [PreviewEnvironmentSpec]s that match the code event.
    */
   private fun matchingPreviewEnvironmentSpecs(event: CodeEvent): Map<DeliveryConfig, List<PreviewEnvironmentSpec>> {
-    val branchToMatch = if (event is PrEvent) event.sourceBranch else event.targetBranch
+    val branchToMatch = if (event is PrEvent) event.pullRequestBranch else event.targetBranch
     return repository
       .allDeliveryConfigs(ATTACH_PREVIEW_ENVIRONMENTS)
       .associateWith { deliveryConfig ->

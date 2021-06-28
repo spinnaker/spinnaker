@@ -25,7 +25,6 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper
 
 @SpringBootTest(webEnvironment = MOCK, classes = [TestConfig::class, KeelApplication::class])
 @AutoConfigureMockMvc
@@ -65,8 +64,8 @@ internal class ArtifactControllerTests
             "repoKey" to "stash/org/myrepo",
             "prId" to "11494",
             "sha" to  "953910b24a776eceab03d4dcae8ac050b2e0b668",
-            "branch" to "feature/branch",
-            "sourceBranch" to "feature/branch",
+            "branch" to "master",
+            "prBranch" to "feature/branch",
             "targetBranch" to "master"
           )
         )
@@ -77,7 +76,7 @@ internal class ArtifactControllerTests
   private val translatedCodeEvent = PrCreatedEvent(
     repoKey = "stash/org/myrepo",
     targetBranch = "master",
-    sourceBranch = "feature/branch",
+    pullRequestBranch = "feature/branch",
     pullRequestId = "11494"
   )
 
