@@ -1,15 +1,15 @@
 {
   "extends": "../../../../tsconfig.base.json",
   "compilerOptions": {
-    "baseUrl": "./src",
+    "baseUrl": "../../../../",
     "outDir": "dist",
     "paths": {
-      "core/*": ["../node_modules/@spinnaker/core/dist/*"],
-      "oracle/*": ["*"],
-      "oracle": ["."]
+      "core/*": ["app/scripts/modules/core/dist/*"],
+      "oracle/*": ["app/scripts/modules/oracle/src/*"],
+      "oracle": ["app/scripts/modules/oracle/src"]
     },
     "rootDir": "./src"
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
-  "exclude": ["./dist", "**/*.spec.*"]
+  "exclude": ["**/*.spec.*"]
 }

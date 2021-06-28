@@ -88,6 +88,10 @@ jobs:
         if: steps.purebump.outputs.ispurebump != 'true'
         run: yarn --frozen-lockfile
 
+      - name: Build Modules
+        if: steps.purebump.outputs.ispurebump != 'true'
+        run: yarn buildModules
+
       - name: Functional Tests
         if: steps.purebump.outputs.ispurebump != 'true'
         run: yarn functional
@@ -123,6 +127,10 @@ jobs:
       - name: Install Dependencies
         if: steps.purebump.outputs.ispurebump != 'true'
         run: yarn --frozen-lockfile
+
+      - name: Build Modules
+        if: steps.purebump.outputs.ispurebump != 'true'
+        run: yarn buildModules
 
       - name: Yarn Build
         if: steps.purebump.outputs.ispurebump != 'true'

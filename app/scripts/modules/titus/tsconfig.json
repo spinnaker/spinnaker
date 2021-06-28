@@ -1,15 +1,15 @@
 {
   "extends": "../../../../tsconfig.base.json",
   "compilerOptions": {
-    "baseUrl": "./src",
+    "baseUrl": "../../../../",
     "outDir": "dist",
     "paths": {
-      "core/*": ["../node_modules/@spinnaker/core/dist/*"],
-      "titus/*": ["*"],
-      "titus": ["."]
+      "core/*": ["app/scripts/modules/core/dist/*"],
+      "titus": ["app/scripts/modules/titus/src"],
+      "titus/*": ["app/scripts/modules/titus/src/*"]
     },
     "rootDir": "./src"
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
-  "exclude": ["./dist", "**/*.spec.*"]
+  "exclude": ["**/*.spec.*"]
 }

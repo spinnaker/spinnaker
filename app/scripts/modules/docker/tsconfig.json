@@ -1,13 +1,13 @@
 {
   "extends": "../../../../tsconfig.base.json",
   "compilerOptions": {
-    "baseUrl": "./src",
+    "baseUrl": "../../../../",
     "outDir": "dist",
     "paths": {
-      "core/*": ["../node_modules/@spinnaker/core/dist/*"]
+      "core/*": ["app/scripts/modules/core/dist/*"]
     },
     "rootDir": "./src"
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
-  "exclude": ["./dist", "**/*.spec.*"]
+  "exclude": ["**/*.spec.*"]
 }

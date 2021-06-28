@@ -1,15 +1,15 @@
 {
   "extends": "../../../../tsconfig.base.json",
   "compilerOptions": {
-    "baseUrl": "./src",
+    "baseUrl": "../../../../",
     "outDir": "dist",
     "paths": {
-      "core/*": ["../node_modules/@spinnaker/core/dist/*"],
-      "amazon": ["."],
-      "amazon/*": ["*"]
+      "core/*": ["app/scripts/modules/core/dist/*"],
+      "amazon": ["app/scripts/modules/amazon/src"],
+      "amazon/*": ["app/scripts/modules/amazon/src/*"]
     },
     "rootDir": "./src"
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
-  "exclude": ["./dist", "**/*.spec.*"]
+  "exclude": ["**/*.spec.*"]
 }

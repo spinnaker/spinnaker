@@ -7,7 +7,7 @@ import { CanaryScore } from './CanaryScore';
 
 export class CanaryExecutionLabel extends React.Component<{ stage: IExecutionStageSummary }, any> {
   public render() {
-    const canary = get(this.props, 'stage.masterStage.context.canary', {});
+    const canary: any = get(this.props, 'stage.masterStage.context.canary', {});
     const canaryHealth = canary.health || {};
     const canaryResult = canary.canaryResult || {};
     return (

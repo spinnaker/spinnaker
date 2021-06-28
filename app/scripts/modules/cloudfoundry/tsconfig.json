@@ -1,15 +1,15 @@
 {
   "extends": "../../../../tsconfig.base.json",
   "compilerOptions": {
-    "baseUrl": "./src",
+    "baseUrl": "../../../../",
     "outDir": "dist",
     "paths": {
-      "core/*": ["../node_modules/@spinnaker/core/dist/*"],
-      "cloudfoundry/*": ["*"],
-      "cloudfoundry": ["."]
+      "core/*": ["app/scripts/modules/core/dist/*"],
+      "cloudfoundry/*": ["app/scripts/modules/cloudfoundry/src/*"],
+      "cloudfoundry": ["app/scripts/modules/cloudfoundry/src"]
     },
     "rootDir": "./src"
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
-  "exclude": ["./dist", "**/*.spec.*"]
+  "exclude": ["**/*.spec.*"]
 }

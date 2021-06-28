@@ -33,7 +33,7 @@ export class SpelText extends React.Component<ISpelTextProps, ISpelTextState> {
   private autocompleteService: SpelAutocompleteService;
   private readonly spelInputRef: any;
   private destroy$ = new Subject();
-  private $input: JQLite;
+  private $input: any;
 
   constructor(props: ISpelTextProps) {
     super(props);

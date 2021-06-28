@@ -10,12 +10,12 @@ const ESLintPlugin = require('eslint-webpack-plugin');
 const webpack = require('webpack');
 
 const CACHE_INVALIDATE = getCacheInvalidateString();
-const NODE_MODULE_PATH = path.join(__dirname, 'node_modules');
 const SETTINGS_PATH = process.env.SETTINGS_PATH || './src/settings.js';
 const THREADS = getThreadLoaderThreads();
 // Used to fail CI for PRs which contain linter errors
 const ESLINT_FAIL_ON_ERROR = process.env.ESLINT_FAIL_ON_ERROR === 'true';
 const DECK_ROOT = path.resolve(`${__dirname}/../../../../`);
+const NODE_MODULE_PATH = path.resolve(`${DECK_ROOT}/node_modules`);
 
 function configure(env, webpackOpts) {
   const WEBPACK_MODE = (webpackOpts && webpackOpts.mode) || 'development';

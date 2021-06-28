@@ -13,7 +13,7 @@
     "lib": "npm run build"
   },
   "dependencies": {
-    "@spinnaker/core": "^0.0.599",
+    "@spinnaker/core": "*",
     "@uirouter/angularjs": "1.0.26",
     "@uirouter/react": "1.0.3",
     "angular": "1.6.10",

@@ -1,15 +1,15 @@
 {
   "extends": "../../../../tsconfig.base.json",
   "compilerOptions": {
-    "baseUrl": "./src",
+    "baseUrl": "../../../../",
     "outDir": "dist",
     "paths": {
-      "core/*": ["../node_modules/@spinnaker/core/dist/*"],
-      "tencentcloud/*": ["./*"],
-      "tencentcloud": ["."]
+      "core/*": ["app/scripts/modules/core/dist/*"],
+      "tencentcloud": ["app/scripts/modules/tencentcloud/src"],
+      "tencentcloud/*": ["app/scripts/modules/tencentcloud/src/*"]
     },
     "rootDir": "./src"
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
-  "exclude": ["./dist", "**/*.spec.*"]
+  "exclude": ["**/*.spec.*"]
 }

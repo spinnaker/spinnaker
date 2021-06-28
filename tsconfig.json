@@ -68,6 +68,6 @@
     "target": "es6",
     "typeRoots": ["node_modules/@types"]
   },
-  "exclude": ["build", "node", "node_modules", "transpiled"],
+  "exclude": ["build", "node", "node_modules", "transpiled", "**/*.stories.*"],
   "include": ["test/helpers/custom-matchers.d.ts", "app/scripts/modules/**/*.ts", "app/scripts/modules/**/*.tsx"]
 }
