@@ -5,6 +5,7 @@ on:
     tags:
     - "v[0-9]+.[0-9]+.[0-9]+"
     - "v[0-9]+.[0-9]+.[0-9]+-rc.[0-9]+"
+    - "version-[0-9]+.[0-9]+.[0-9]+"
 
 env:
   GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx2g -Xms2g
