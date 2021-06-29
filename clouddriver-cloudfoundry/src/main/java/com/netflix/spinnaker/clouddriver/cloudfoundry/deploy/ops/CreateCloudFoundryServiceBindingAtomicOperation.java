@@ -66,13 +66,7 @@ public class CreateCloudFoundryServiceBindingAtomicOperation implements AtomicOp
         .getClient()
         .getServiceInstances()
         .findAllServicesBySpaceAndNames(description.getSpace(), serviceInstanceNames)
-        .stream()
         .forEach(s -> serviceInstanceGuids.put(s.getEntity().getName(), s.getMetadata().getGuid()));
-
-    if (serviceInstanceNames.size() != description.getServiceBindingRequests().size()) {
-      throw new CloudFoundryApiException(
-          "Number of service instances found does not match the number of service binding requests.");
-    }
 
     List<CreateServiceBinding> bindings =
         description.getServiceBindingRequests().stream()

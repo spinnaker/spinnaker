@@ -46,6 +46,7 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.io.*;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import lombok.Builder;
 import lombok.Data;
@@ -144,8 +145,10 @@ public class DeployCloudFoundryServerGroupAtomicOperation
 
   private void createServiceBindings(
       CloudFoundryServerGroup serverGroup, DeployCloudFoundryServerGroupDescription description) {
+
     List<String> serviceNames = description.getApplicationAttributes().getServices();
     if (serviceNames == null || serviceNames.isEmpty()) return;
+
     getTask()
         .updateStatus(
             PHASE,
@@ -154,32 +157,44 @@ public class DeployCloudFoundryServerGroupAtomicOperation
                 + "' and services: "
                 + description.getApplicationAttributes().getServices());
 
-    List<CreateServiceBinding> bindings =
-        description
-            .getClient()
-            .getServiceInstances()
-            .findAllServicesBySpaceAndNames(
-                serverGroup.getSpace(), description.getApplicationAttributes().getServices())
-            .stream()
-            .map(
-                s ->
-                    new CreateServiceBinding(
-                        s.getMetadata().getGuid(), serverGroup.getId(), Collections.emptyMap()))
-            .collect(toList());
+    Map<String, String> serviceInstanceGuids = new HashMap<>();
 
-    if (bindings.size() != description.getApplicationAttributes().getServices().size()) {
-      getTask()
-          .updateStatus(
-              PHASE,
-              "Failed to create Cloud Foundry service bindings between application '"
-                  + description.getServerGroupName()
-                  + "' and services: "
-                  + description.getApplicationAttributes().getServices());
-      throw new CloudFoundryApiException(
-          "Number of service instances does not match the number of service names");
-    }
+    // find guids for services
+    description
+        .getClient()
+        .getServiceInstances()
+        .findAllServicesBySpaceAndNames(serverGroup.getSpace(), serviceNames)
+        .forEach(s -> serviceInstanceGuids.put(s.getEntity().getName(), s.getMetadata().getGuid()));
+
+    // try and create service binding request for each service
+    List<CreateServiceBinding> bindings =
+        serviceNames.stream()
+            .map(
+                s -> {
+                  String serviceGuid = serviceInstanceGuids.get(s);
+                  if (serviceGuid == null || serviceGuid.isEmpty()) {
+                    getTask()
+                        .updateStatus(
+                            PHASE,
+                            "Failed to create Cloud Foundry service bindings between application '"
+                                + description.getServerGroupName()
+                                + "' and services: "
+                                + serviceNames);
+
+                    throw new CloudFoundryApiException(
+                        "Unable to find service with the name: '"
+                            + s
+                            + "' in "
+                            + serverGroup.getSpace());
+                  }
+
+                  return new CreateServiceBinding(
+                      serviceGuid, serverGroup.getId(), Collections.emptyMap());
+                })
+            .collect(Collectors.toList());
 
     bindings.forEach(b -> description.getClient().getServiceInstances().createServiceBinding(b));
+
     getTask()
         .updateStatus(
             PHASE,
