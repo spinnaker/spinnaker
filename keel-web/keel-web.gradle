@@ -3,6 +3,7 @@ plugins {
 }
 
 apply(plugin: "com.netflix.dgs.codegen")
+apply(plugin: "io.spinnaker.package")
 
 repositories {
   mavenCentral() // for graphql-java-extended-scalars
@@ -68,4 +69,5 @@ dependencies {
 
 application {
   mainClassName = "com.netflix.spinnaker.keel.MainKt"
+  applicationName("keel")
 }
