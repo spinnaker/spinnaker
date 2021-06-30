@@ -31,17 +31,6 @@ interface ArtifactSupplier<A : DeliveryArtifact, V : SortingStrategy> : Spinnake
   val supportedSortingStrategy: SupportedSortingStrategy<V>
 
   /**
-   * Publishes an [ArtifactPublishedEvent] to core Keel so that the corresponding artifact version can be
-   * persisted and evaluated for promotion into deployment environments.
-   *
-   * The default implementation of [publishArtifact] simply publishes the event via the [EventPublisher],
-   * and should typically *not* be overridden by implementors.
-   */
-  @JvmDefault
-  fun publishArtifact(artifact: PublishedArtifact) =
-    eventPublisher.publishEvent(ArtifactPublishedEvent(listOf(artifact)))
-
-  /**
    * Returns the latest available version for the given [DeliveryArtifact], represented
    * as a [PublishedArtifact].
    *

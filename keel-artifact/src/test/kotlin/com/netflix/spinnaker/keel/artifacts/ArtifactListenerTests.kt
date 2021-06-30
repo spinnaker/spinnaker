@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.artifacts
 
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.ArtifactConfig
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactMetadata
@@ -97,26 +98,26 @@ internal class ArtifactListenerTests : JUnit5Minutests {
     }
     val artifactConfig = ArtifactConfig()
     val refreshConfig = ArtifactRefreshConfig()
+    val registry = NoopRegistry()
     val listener: ArtifactListener = ArtifactListener(
       repository,
       publisher,
       listOf(debianArtifactSupplier, dockerArtifactSupplier),
       artifactConfig,
-      refreshConfig)
+      refreshConfig,
+      registry
+    )
   }
 
   data class ArtifactPublishedFixture(
-    val event: ArtifactPublishedEvent,
+    val version: PublishedArtifact,
     val artifact: DeliveryArtifact
   ) : ArtifactListenerFixture()
 
   fun artifactEventTests() = rootContext<ArtifactPublishedFixture> {
     fixture {
       ArtifactPublishedFixture(
-        event = ArtifactPublishedEvent(
-          artifacts = listOf(publishedDeb),
-          details = emptyMap()
-        ),
+        version = publishedDeb,
         artifact = debianArtifact
       )
     }
@@ -130,7 +131,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
     context("the artifact is not something we're tracking") {
       before {
         every { repository.isRegistered(any(), any()) } returns false
-        listener.onArtifactPublished(event)
+        listener.handlePublishedArtifact(version)
       }
 
       test("the event is ignored") {
@@ -161,7 +162,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
           every { repository.storeArtifactVersion(any()) } returns false
           every { repository.getAllArtifacts(DEBIAN, any()) } returns listOf(debianArtifact)
 
-          listener.onArtifactPublished(event)
+          listener.handlePublishedArtifact(version)
         }
 
         test("only lifecycle event recorded") {
@@ -179,12 +180,11 @@ internal class ArtifactListenerTests : JUnit5Minutests {
           every { repository.storeArtifactVersion(any()) } returns true
           every { repository.getAllArtifacts(DEBIAN, any()) } returns listOf(debianArtifact)
 
-          listener.onArtifactPublished(
-            event.copy(artifacts = listOf(newerPublishedDeb))
-          )
+          listener.handlePublishedArtifact(newerPublishedDeb)
         }
 
         test("a new artifact version is stored") {
+          val slot = slot<PublishedArtifact>()
           verify {repository.storeArtifactVersion(capture(artifactVersion)) }
 
           with(artifactVersion.captured) {
@@ -204,10 +204,6 @@ internal class ArtifactListenerTests : JUnit5Minutests {
             expectThat(gitMetadata).isEqualTo(artifactMetadata.gitMetadata)
             expectThat(buildMetadata).isEqualTo(artifactMetadata.buildMetadata)
           }
-        }
-
-        test("a telemetry event is recorded") {
-          verify { publisher.publishEvent(ofType<ArtifactVersionUpdated>()) }
         }
       }
     }

@@ -138,17 +138,6 @@ class TelemetryListener(
     ).safeIncrement()
   }
 
-  @EventListener(ArtifactVersionUpdated::class)
-  fun onArtifactVersionUpdated(event: ArtifactVersionUpdated) {
-    spectator.counter(
-      ARTIFACT_UPDATED_COUNTER_ID,
-      listOf(
-        BasicTag("artifactName", event.name),
-        BasicTag("artifactType", event.type)
-      )
-    ).safeIncrement()
-  }
-
   @EventListener(ArtifactVersionApproved::class)
   fun onArtifactVersionUpdated(event: ArtifactVersionApproved) {
     spectator.counter(
@@ -326,7 +315,6 @@ class TelemetryListener(
     private const val RESOURCE_ACTUATION_LAUNCHED_COUNTER_ID = "keel.resource.actuation.launched"
     private const val RESOURCE_CHECK_DURATION_ID = "keel.resource.check.duration"
     private const val ARTIFACT_CHECK_DRIFT_GAUGE = "keel.artifact.check.drift"
-    private const val ARTIFACT_UPDATED_COUNTER_ID = "keel.artifact.updated"
     private const val ARTIFACT_APPROVED_COUNTER_ID = "keel.artifact.approved"
     private const val ARTIFACT_CHECK_DURATION_ID = "keel.artifact.check.duration"
     private const val RESOURCE_CHECK_DRIFT_GAUGE = "keel.resource.check.drift"

@@ -1,5 +1,7 @@
 package com.netflix.spinnaker.keel.artifacts
 
+import com.netflix.spectator.api.BasicTag
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.ArtifactConfig
 import com.netflix.spinnaker.keel.activation.ApplicationDown
 import com.netflix.spinnaker.keel.activation.ApplicationUp
@@ -7,7 +9,6 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
-import com.netflix.spinnaker.keel.api.events.ArtifactPublishedEvent
 import com.netflix.spinnaker.keel.api.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.api.events.ArtifactSyncEvent
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
@@ -19,7 +20,7 @@ import com.netflix.spinnaker.keel.lifecycle.LifecycleEventScope.PRE_DEPLOYMENT
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus.RUNNING
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventType.BUILD
 import com.netflix.spinnaker.keel.persistence.KeelRepository
-import com.netflix.spinnaker.keel.telemetry.ArtifactVersionUpdated
+import com.netflix.spinnaker.keel.telemetry.safeIncrement
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
@@ -37,11 +38,16 @@ class ArtifactListener(
   private val publisher: ApplicationEventPublisher,
   private val artifactSuppliers: List<ArtifactSupplier<*, *>>,
   private val artifactConfig: ArtifactConfig,
-  private val artifactRefreshConfig: ArtifactRefreshConfig
+  private val artifactRefreshConfig: ArtifactRefreshConfig,
+  private val spectator: Registry
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   private val enabled = AtomicBoolean(false)
+
+  companion object {
+    private const val ARTIFACT_UPDATED_COUNTER_ID = "keel.artifact.updated"
+  }
 
   @EventListener(ApplicationUp::class)
   fun onApplicationUp() {
@@ -55,32 +61,35 @@ class ArtifactListener(
     enabled.set(false)
   }
 
-  @EventListener(ArtifactPublishedEvent::class)
-  fun onArtifactPublished(event: ArtifactPublishedEvent) {
-    log.debug("Received artifact published event: {}", event)
-    event
-      .artifacts
-      .filter { it.type.toLowerCase() in artifactTypeNames }
-      .forEach { artifact ->
-        if (repository.isRegistered(artifact.name, artifact.artifactType)) {
-          val artifactSupplier = artifactSuppliers.supporting(artifact.artifactType)
-          if (artifactSupplier.shouldProcessArtifact(artifact)) {
-            log.info("Registering version {} (status={}) of {} artifact {}",
-              artifact.version, artifact.status, artifact.type, artifact.name)
+  fun handlePublishedArtifact(artifact: PublishedArtifact) {
+    if (repository.isRegistered(artifact.name, artifact.artifactType)) {
+      val artifactSupplier = artifactSuppliers.supporting(artifact.artifactType)
+      if (artifactSupplier.shouldProcessArtifact(artifact)) {
+        log.info("Registering version {} (status={}) of {} artifact {}",
+          artifact.version, artifact.status, artifact.type, artifact.name)
 
-            enrichAndStore(artifact, artifactSupplier)
-              .also { wasAdded ->
-                if (wasAdded) {
-                  publisher.publishEvent(ArtifactVersionUpdated(artifact.name, artifact.artifactType))
-                }
-              }
-          } else {
-            log.debug("Artifact $artifact shouldn't be processed due to supplier limitations. Ignoring this artifact version.")
+        enrichAndStore(artifact, artifactSupplier)
+          .also { wasAdded ->
+            if (wasAdded) {
+              incrementUpdatedCount(artifact)
+            }
           }
-        } else {
-          log.debug("Artifact $artifact is not registered. Ignoring new artifact version.")
-        }
+      } else {
+        log.debug("Artifact $artifact shouldn't be processed due to supplier limitations. Ignoring this artifact version.")
       }
+    } else {
+      log.debug("Artifact $artifact is not registered. Ignoring new artifact version.")
+    }
+  }
+
+  fun incrementUpdatedCount(artifact: PublishedArtifact) {
+    spectator.counter(
+      ARTIFACT_UPDATED_COUNTER_ID,
+      listOf(
+        BasicTag("artifactName", artifact.name),
+        BasicTag("artifactType", artifact.type)
+      )
+    ).safeIncrement()
   }
 
   /**

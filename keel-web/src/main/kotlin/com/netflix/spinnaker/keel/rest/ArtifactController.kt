@@ -8,8 +8,8 @@ import com.netflix.spinnaker.keel.api.plugins.UnsupportedArtifactException
 import com.netflix.spinnaker.keel.api.plugins.supporting
 import com.netflix.spinnaker.keel.api.scm.isCodeEvent
 import com.netflix.spinnaker.keel.api.scm.toCodeEvent
+import com.netflix.spinnaker.keel.artifacts.ArtifactListener
 import com.netflix.spinnaker.keel.igor.artifact.ArtifactMetadataService
-import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
@@ -28,9 +28,9 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping(path = ["/artifacts"])
 class ArtifactController(
   private val eventPublisher: ApplicationEventPublisher,
-  private val repository: KeelRepository,
   private val artifactSuppliers: List<ArtifactSupplier<*, *>>,
-  private val artifactMetadataService: ArtifactMetadataService
+  private val artifactMetadataService: ArtifactMetadataService,
+  private val artifactListener: ArtifactListener
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -61,7 +61,7 @@ class ArtifactController(
           log.debug("Processing artifact from event: $artifact")
           val artifactSupplier = artifactSuppliers.supporting(artifact.type.toLowerCase())
           log.debug("Publishing artifact ${artifact.name} version ${artifact.version} via ${artifactSupplier::class.simpleName}")
-          artifactSupplier.publishArtifact(artifact)
+          artifactListener.handlePublishedArtifact(artifact)
         } catch (e: UnsupportedArtifactException) {
           log.debug("Ignoring artifact event with unsupported type {}: {}", artifact.type, artifact)
         }
