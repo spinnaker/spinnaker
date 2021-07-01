@@ -392,6 +392,24 @@ open class SqlResourceRepository(
     }
   }
 
+  override fun incrementDeletionAttempts(resource: Resource<*>) {
+    sqlRetry.withRetry(WRITE) {
+      jooq.update(RESOURCE)
+        .set(RESOURCE.ATTEMPTED_DELETIONS, RESOURCE.ATTEMPTED_DELETIONS + 1)
+        .where(RESOURCE.ID.eq(resource.id))
+        .execute()
+    }
+  }
+
+  override fun countDeletionAttempts(resource: Resource<*>): Int {
+    return sqlRetry.withRetry(READ) {
+      jooq.select(RESOURCE.ATTEMPTED_DELETIONS)
+        .from(RESOURCE)
+        .where(RESOURCE.ID.eq(resource.id))
+        .fetchOne(RESOURCE.ATTEMPTED_DELETIONS)
+    }
+  }
+
   fun getResourceUid(id: String) =
     sqlRetry.withRetry(READ) {
       jooq

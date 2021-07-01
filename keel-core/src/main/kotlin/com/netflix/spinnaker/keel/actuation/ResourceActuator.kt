@@ -37,6 +37,7 @@ import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
+import com.netflix.spinnaker.keel.persistence.EnvironmentDeletionRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.plugin.CannotResolveCurrentState
 import com.netflix.spinnaker.keel.plugin.CannotResolveDesiredState
@@ -79,6 +80,7 @@ class ResourceActuator(
   private val artifactRepository: ArtifactRepository,
   private val deliveryConfigRepository: DeliveryConfigRepository,
   private val diffFingerprintRepository: DiffFingerprintRepository,
+  private val environmentDeletionRepository: EnvironmentDeletionRepository,
   private val handlers: List<ResourceHandler<*, *>>,
   private val actuationPauser: ActuationPauser,
   private val vetoEnforcer: VetoEnforcer,
@@ -122,6 +124,11 @@ class ResourceActuator(
         if (deliveryConfig.isPromotionCheckStale()) {
           log.debug("Artifact promotion check for application {} is stale, skipping resource checks", deliveryConfig.application)
           publisher.publishEvent(ResourceCheckSkipped(resource.kind, id, "PromotionCheckStale"))
+          return@withTracingContext
+        }
+
+        if (environmentDeletionRepository.isMarkedForDeletion(environment)) {
+          log.debug("Skipping resource ${resource.id} as the parent environment is marked for deletion")
           return@withTracingContext
         }
 

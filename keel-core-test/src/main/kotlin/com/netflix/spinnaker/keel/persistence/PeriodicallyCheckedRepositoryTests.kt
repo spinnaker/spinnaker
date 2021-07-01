@@ -102,7 +102,7 @@ abstract class PeriodicallyCheckedRepositoryTests<T : Any, S : PeriodicallyCheck
         }
       }
 
-      test("after a $descriptor is updated is it returned") {
+      test("after a $descriptor is updated it is returned") {
         nextResults()
         nextResults()
 

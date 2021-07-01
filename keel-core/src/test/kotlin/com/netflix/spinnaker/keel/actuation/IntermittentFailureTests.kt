@@ -6,11 +6,10 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind.Companion.parseKind
+import com.netflix.spinnaker.keel.api.action.ActionRepository
 import com.netflix.spinnaker.keel.api.actuation.Task
-import com.netflix.spinnaker.keel.api.plugins.ActionDecision
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.SupportedKind
-import com.netflix.spinnaker.keel.api.action.ActionRepository
 import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.enforcers.EnvironmentExclusionEnforcer
 import com.netflix.spinnaker.keel.events.ResourceValid
@@ -18,6 +17,7 @@ import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
+import com.netflix.spinnaker.keel.persistence.EnvironmentDeletionRepository
 import com.netflix.spinnaker.keel.persistence.EnvironmentLeaseRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.UnhappyVetoRepository
@@ -25,7 +25,6 @@ import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.keel.veto.VetoEnforcer
 import com.netflix.spinnaker.keel.veto.unhappy.UnhappyVeto
-import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -85,11 +84,15 @@ class IntermittentFailureTests : JUnit5Minutests {
     val clock = MutableClock()
     val vetoRepository = mockk<UnhappyVetoRepository>(relaxUnitFun = true)
 
-    val verificationRepository = mockk<ActionRepository>() {
+    val verificationRepository = mockk<ActionRepository> {
       every { getVerificationContextsWithStatus(any(), any(), any()) }  returns emptyList()
     }
 
     val environmentExclusionEnforcer = EnvironmentExclusionEnforcer(springEnv, verificationRepository, artifactRepository, environmentLeaseRepository)
+
+    val environmentDeletionRepository: EnvironmentDeletionRepository = mockk {
+      every { isMarkedForDeletion(any()) } returns false
+    }
 
     val veto = UnhappyVeto(
       diffFingerprintRepository,
@@ -106,6 +109,7 @@ class IntermittentFailureTests : JUnit5Minutests {
       artifactRepository,
       deliveryConfigRepository,
       diffFingerprintRepository,
+      environmentDeletionRepository,
       listOf(plugin1, plugin2),
       actuationPauser,
       vetoEnforcer,

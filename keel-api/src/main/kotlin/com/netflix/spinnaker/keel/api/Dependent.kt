@@ -23,6 +23,7 @@ open class Dependency(
   open val region: String,
   open val name: String
 ) {
+
   open fun copy(type: DependencyType = this.type, region: String = this.region, name: String = this.name): Dependency =
     Dependency(type, region, name)
 
@@ -43,11 +44,10 @@ open class Dependency(
  * A resource dependency identified by its [ResourceKind].
  */
 data class ResourceDependency(
-  override val type: DependencyType = GENERIC_RESOURCE,
   override val region: String,
   override val name: String,
   val kind: ResourceKind
-) : Dependency(type, region, name)
+) : Dependency(GENERIC_RESOURCE, region, name)
 
 enum class DependencyType {
   SECURITY_GROUP, LOAD_BALANCER, TARGET_GROUP, GENERIC_RESOURCE

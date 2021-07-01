@@ -46,7 +46,7 @@ class MutableClock(
    *    This is potentially a problem for production as well, but it's much less likely to happen because we don't
    *    truncate to millisecond in that case.
    */
-  private var instant: Instant = Instant.now().truncatedTo(MILLIS).let {
+  private var instant: Instant = systemUTC().instant().truncatedTo(MILLIS).let {
     when(it.nano) {
       0 -> it.plusMillis(1)
       else -> it

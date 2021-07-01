@@ -82,14 +82,11 @@ fun locatableResource(
   ),
   moniker: Moniker = Moniker("fnord", "locatable", "dummy")
 ): Resource<DummyLocatableResourceSpec> =
-  DummyLocatableResourceSpec(id = id, application = application, locations = locations, moniker = moniker)
-    .let { spec ->
-      resource(
-        kind = kind,
-        spec = spec,
-        application = application
-      )
-    }
+  resource(
+    kind = kind,
+    spec = DummyLocatableResourceSpec(id = id, application = application, locations = locations, moniker = moniker),
+    application = application
+  )
 
 fun dependentResource(
   kind: ResourceKind = TEST_API_V1.qualify("dependent"),
@@ -103,14 +100,11 @@ fun dependentResource(
   moniker: Moniker = Moniker("fnord", "dependent", "dummy"),
   dependsOn: Set<Dependency> = emptySet()
 ): Resource<DummyDependentResourceSpec> =
-  DummyDependentResourceSpec(id = id, application = application, locations = locations, moniker = moniker, dependsOn = dependsOn)
-    .let { spec ->
-      resource(
-        kind = kind,
-        spec = spec,
-        application = application
-      )
-    }
+  resource(
+    kind = kind,
+    spec = DummyDependentResourceSpec(id = id, application = application, locations = locations, moniker = moniker, dependsOn = dependsOn),
+    application = application
+  )
 
 fun <T : Monikered> resource(
   kind: ResourceKind = TEST_API_V1.qualify("whatever"),
@@ -210,13 +204,13 @@ data class DummyDependentResourceSpec(
   override val id: String = randomString(),
   val data: String = randomString(),
   override val application: String = "fnord",
-  override val displayName: String = "fnord-locatable-dummy",
+  override val displayName: String = "fnord-dependent-dummy",
   override val locations: SimpleLocations = SimpleLocations(
     account = "test",
     vpc = "vpc0",
     regions = setOf(SimpleRegionSpec("us-west-1"))
   ),
-  override val moniker: Moniker = Moniker("fnord", "locatable", "dummy"),
+  override val moniker: Moniker = Moniker("fnord", "dependent", "dummy"),
   override val dependsOn: Set<Dependency>
 ) : ResourceSpec, Locatable<SimpleLocations>, Monikered, Dependent
 
@@ -277,6 +271,20 @@ object DummyResourceHandlerV2 : SimpleResourceHandler<DummyResourceSpec>(emptyLi
   override suspend fun current(resource: Resource<DummyResourceSpec>): DummyResourceSpec? {
     TODO("not implemented")
   }
+}
+
+object DummyLocatableResourceHandler : SimpleResourceHandler<DummyLocatableResourceSpec>(emptyList()) {
+  override val supportedKind =
+    SupportedKind(TEST_API_V1.qualify("locatable"), DummyLocatableResourceSpec::class.java)
+
+  override val eventPublisher: EventPublisher = mockk(relaxed = true)
+}
+
+object DummyDependentResourceHandler : SimpleResourceHandler<DummyDependentResourceSpec>(emptyList()) {
+  override val supportedKind =
+    SupportedKind(TEST_API_V1.qualify("dependent"), DummyDependentResourceSpec::class.java)
+
+  override val eventPublisher: EventPublisher = mockk(relaxed = true)
 }
 
 object DummyAccountAwareLocations : AccountAwareLocations<SimpleRegionSpec> {

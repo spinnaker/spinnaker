@@ -479,7 +479,6 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
         test("can retrieve the environment for the resources") {
           val environment = deliveryConfig.environments.first { it.name == "test" }
           val resource = environment.resources.random()
-
           getEnvironment(resource)
             .isSuccess()
             .isEqualTo(environment)

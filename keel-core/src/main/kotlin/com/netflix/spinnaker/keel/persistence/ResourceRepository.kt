@@ -147,6 +147,16 @@ interface ResourceRepository : PeriodicallyCheckedRepository<Resource<ResourceSp
    */
   fun triggerResourceRecheck(environmentName: String, application: String)
 
+  /**
+   * Increments the number of attempted deletions of the [resource].
+   */
+  fun incrementDeletionAttempts(resource: Resource<*>)
+
+  /**
+   * @return The current number of attempted deletions of the [resource].
+   */
+  fun countDeletionAttempts(resource: Resource<*>): Int
+
   companion object {
     const val DEFAULT_MAX_EVENTS: Int = 10
   }

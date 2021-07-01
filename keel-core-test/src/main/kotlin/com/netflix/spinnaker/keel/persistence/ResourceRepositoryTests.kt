@@ -405,6 +405,23 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
           }
         }
       }
+
+      context("counting resource deletion attempts") {
+        val resource = resource()
+        before {
+          subject.store(resource)
+        }
+
+        test("initial deletion attempt count is zero") {
+          expectThat(subject.countDeletionAttempts(resource)).isEqualTo(0)
+        }
+
+        test("can increment deletion attempts") {
+          subject.incrementDeletionAttempts(resource)
+          subject.incrementDeletionAttempts(resource)
+          expectThat(subject.countDeletionAttempts(resource)).isEqualTo(2)
+        }
+      }
     }
   }
 

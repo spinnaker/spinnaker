@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.services
 import com.netflix.spinnaker.keel.core.ResourceCurrentlyUnresolvable
 import com.netflix.spinnaker.keel.events.ApplicationActuationPaused
 import com.netflix.spinnaker.keel.events.ApplicationActuationResumed
+import com.netflix.spinnaker.keel.events.MaxResourceDeletionAttemptsReached
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceActuationResumed
 import com.netflix.spinnaker.keel.events.ResourceActuationVetoed
@@ -42,6 +43,7 @@ import strikt.assertions.isEqualTo
 
 class ResourceStatusServiceTests : JUnit5Minutests {
   companion object Fixture {
+    val clock = MutableClock()
     val repository = mockk<ResourceRepository>()
     val actuationPauser = mockk<ActuationPauser>()
     val subject = ResourceStatusService(repository, actuationPauser)
@@ -152,6 +154,16 @@ class ResourceStatusServiceTests : JUnit5Minutests {
           context("when last event is ResourceCheckError") {
             before {
               events.add(ResourceCheckError(resource, object : SpinnakerException() {}))
+            }
+
+            test("returns ERROR") {
+              expectThat(subject.getStatus(resource.id)).isEqualTo(ERROR)
+            }
+          }
+
+          context("when last event is MaxResourceDeletionAttemptsReached") {
+            before {
+              events.add(MaxResourceDeletionAttemptsReached(resource, 5, clock))
             }
 
             test("returns ERROR") {

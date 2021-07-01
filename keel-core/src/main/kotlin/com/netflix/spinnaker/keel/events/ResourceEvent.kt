@@ -551,3 +551,29 @@ data class VerificationBlockedActuation(
     }
   )
 }
+
+/**
+ * A [ResourceEvent] that signals the maximum allowed number of deletion attempts for the resource has been reached.
+ *
+ * @see EnvironmentDeletionConfiguration
+ */
+class MaxResourceDeletionAttemptsReached(
+  override val application: String,
+  override val timestamp: Instant,
+  override val displayName: String,
+  override val kind: ResourceKind,
+  override val id: String,
+  override val version: Int,
+  val attempts: Int
+) : ResourceEvent() {
+  constructor(resource: Resource<*>, attempts: Int, clock: Clock = Companion.clock) : this (
+    resource.application,
+    clock.instant(),
+    resource.displayName,
+    resource.kind,
+    resource.id,
+    resource.version,
+    attempts
+  )
+  override val message: String = "Failed to delete resource after maximum number of attempts ($attempts)"
+}

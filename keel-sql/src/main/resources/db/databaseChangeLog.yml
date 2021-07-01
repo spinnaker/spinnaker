@@ -344,3 +344,6 @@ databaseChangeLog:
   - include:
       file: changelog/20210622-add-environment-deletion-table.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20210628-add-attempted-deletions-to-resource.yml
+      relativeToChangelogFile: true

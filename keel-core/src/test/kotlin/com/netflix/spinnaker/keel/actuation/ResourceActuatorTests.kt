@@ -40,6 +40,7 @@ import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
+import com.netflix.spinnaker.keel.persistence.EnvironmentDeletionRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.plugin.CannotResolveCurrentState
 import com.netflix.spinnaker.keel.plugin.CannotResolveDesiredState
@@ -107,11 +108,15 @@ internal class ResourceActuatorTests : JUnit5Minutests {
         )
       } answers { action.coInvoke() }
     }
+    val environmentDeletionRepository: EnvironmentDeletionRepository = mockk {
+      every { isMarkedForDeletion(any()) } returns false
+    }
     val subject = ResourceActuator(
       resourceRepository,
       artifactRepository,
       deliveryConfigRepository,
       diffFingerprintRepository,
+      environmentDeletionRepository,
       listOf(plugin1, plugin2, javaPlugin),
       actuationPauser,
       vetoEnforcer,
@@ -380,6 +385,24 @@ internal class ResourceActuatorTests : JUnit5Minutests {
                   publisher.publishEvent(ofType<ResourceDeltaDetected>())
                   publisher.publishEvent(ofType<ResourceActuationLaunched>())
                 }
+              }
+            }
+
+            context("the resource's environment is marked for deletion") {
+              before {
+                every { environmentDeletionRepository.isMarkedForDeletion(any()) } returns true
+
+                runBlocking {
+                  subject.checkResource(resource)
+                }
+              }
+
+              test("the resource is skipped") {
+                verify(exactly = 0) { plugin1.desired(any()) }
+                verify(exactly = 0) { plugin1.current(any()) }
+                verify(exactly = 0) { plugin1.create(any(), any()) }
+                verify(exactly = 0) { plugin1.update(any(), any()) }
+                verify(exactly = 0) { plugin1.delete(any()) }
               }
             }
 

@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.services
 import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.events.ApplicationActuationPaused
 import com.netflix.spinnaker.keel.events.ApplicationActuationResumed
+import com.netflix.spinnaker.keel.events.MaxResourceDeletionAttemptsReached
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceActuationResumed
 import com.netflix.spinnaker.keel.events.ResourceActuationVetoed
@@ -136,7 +137,8 @@ class ResourceStatusService(
   }
 
   private fun List<ResourceHistoryEvent>.isError(): Boolean {
-    return first() is ResourceCheckError
+    val first = first()
+    return first is ResourceCheckError || first is MaxResourceDeletionAttemptsReached
   }
 
   private fun List<ResourceHistoryEvent>.isCreated(): Boolean {
