@@ -43,7 +43,6 @@ prebuilt definitions and move changes through environments via a visual interfac
 '''
 
 This repository centralizes issue tracking across Spinnaker for each microservice. The core code making up Spinnaker’s microservices is found in the other https://github.com/spinnaker[Spinnaker repositories].
-The core code making up Spinnaker’s microservices is found in the other https://github.com/spinnaker[Spinnaker repositories].
 
 = Using Spinnaker
 
