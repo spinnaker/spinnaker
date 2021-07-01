@@ -29,7 +29,7 @@ class Logger {
   private loggers: LoggerSubscriber[] = [];
 
   // This allows us to ignore noisy ghost errors - more details: https://stackoverflow.com/a/50387233/5737533
-  private ignoredErrors = [
+  public ignoredErrors = [
     'ResizeObserver loop limit exceeded',
     'ResizeObserver loop completed with undelivered notifications.',
   ];
