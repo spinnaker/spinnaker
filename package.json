@@ -16,7 +16,9 @@
     "yarn": ">=1.21.1"
   },
   "private": true,
-  "workspaces": ["app/scripts/modules/*"],
+  "workspaces": [
+    "app/scripts/modules/*"
+  ],
   "scripts": {
     "clean": "npx rimraf .awcache .cache-loader build node_modules/.cache transpiled && cd app/scripts/modules/app/ && npm run clean",
     "cleanModules": "./scripts/cleanModules.js",
@@ -56,8 +58,12 @@
     "karma-sourcemap-loader": "0.3.8",
     "karma-super-dots-reporter": "0.2.0",
     "karma-webpack": "5.0.0",
+    "kleur": "^4.1.4",
     "prettier": "2.1.2",
-    "rimraf": "2.6.1"
+    "prompts": "^2.4.1",
+    "rimraf": "2.6.1",
+    "sisteransi": "^1.0.5",
+    "yargs": "^17.0.1"
   },
   "optionalDependencies": {
     "fsevents": "1.2.11"
