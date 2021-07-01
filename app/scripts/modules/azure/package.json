@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/azure",
   "license": "Apache-2.0",
-  "version": "0.0.271",
+  "version": "0.0.272",
   "module": "dist/index.js",
   "typings": "dist/index.d.ts",
   "scripts": {
