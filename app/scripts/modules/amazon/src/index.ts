@@ -9,6 +9,7 @@ export * from './loadBalancer';
 export * from './function';
 export * from './reactShims';
 export * from './serverGroup';
+export * from './subnet';
 export * from './vpc';
 export * from './instance';
 export * from './securityGroup';
