@@ -45,13 +45,6 @@ import { ECS_SERVER_GROUP_TRANSFORMER } from './serverGroup/serverGroup.transfor
 
 import './logo/ecs.logo.less';
 
-/* Start - Rollup Remove */
-const templates = (require as any).context('./', true, /\.html$/);
-templates.keys().forEach(function (key: string) {
-  templates(key);
-});
-/* End - Rollup Remove */
-
 export const ECS_MODULE = 'spinnaker.ecs';
 module(ECS_MODULE, [
   ECS_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_ECS_CONTROLLER,

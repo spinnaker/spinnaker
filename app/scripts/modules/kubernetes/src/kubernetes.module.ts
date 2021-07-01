@@ -51,13 +51,6 @@ import './validation/applicationName.validator';
 
 import './logo/kubernetes.logo.less';
 
-/* Start - Rollup Remove */
-const templates = (require as any).context('./', true, /\.html$/);
-templates.keys().forEach(function (key: string) {
-  templates(key);
-});
-/* End - Rollup Remove */
-
 export const KUBERNETES_MODULE = 'spinnaker.kubernetes';
 
 const requires = [

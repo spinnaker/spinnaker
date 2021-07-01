@@ -22,13 +22,6 @@ import './validation/ApplicationNameValidator';
 
 import './logo/appengine.logo.less';
 
-/* Start - Rollup Remove */
-const templates = (require as any).context('./', true, /\.html$/);
-templates.keys().forEach(function (key: string) {
-  templates(key);
-});
-/* End - Rollup Remove */
-
 export const APPENGINE_MODULE = 'spinnaker.appengine';
 
 module(APPENGINE_MODULE, [

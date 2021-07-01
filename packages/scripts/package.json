@@ -30,7 +30,6 @@
     "rollup-plugin-external-globals": "0.6.1",
     "rollup-plugin-less": "1.1.3",
     "rollup-plugin-postcss": "3.1.8",
-    "rollup-plugin-strip-code": "^0.2.7",
     "rollup-plugin-terser": "7.0.2",
     "rollup-plugin-visualizer": "5.4.1",
     "yalc": "^1.0.0-pre.53",

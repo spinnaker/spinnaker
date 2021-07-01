@@ -16,14 +16,6 @@ import { TENCENTCLOUD_REACT_MODULE } from './reactShims/tencentcloud.react.modul
 import { TENCENTCLOUD_SEARCH_SEARCHRESULTFORMATTER } from './search/searchResultFormatter';
 import './validation/ApplicationNameValidator';
 
-/* Start - Rollup Remove */
-// load all templates into the $templateCache
-const templates = (require as any).context('./', true, /\.html$/);
-templates.keys().forEach(function (key: string) {
-  templates(key);
-});
-/* End - Rollup Remove */
-
 export const TENCENTCLOUD_MODULE = 'spinnaker.tencentcloud';
 module(TENCENTCLOUD_MODULE, [TENCENTCLOUD_REACT_MODULE, TENCENTCLOUD_SEARCH_SEARCHRESULTFORMATTER]).config(() => {
   CloudProviderRegistry.registerProvider('tencentcloud', {

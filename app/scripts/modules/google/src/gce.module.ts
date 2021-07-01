@@ -52,13 +52,6 @@ import { GOOGLE_VALIDATION_APPLICATIONNAME_VALIDATOR } from './validation/applic
 
 import './logo/gce.logo.less';
 
-/* Start - Rollup Remove */
-const templates = (require as any).context('./', true, /\.html$/);
-templates.keys().forEach(function (key: string) {
-  templates(key);
-});
-/* End - Rollup Remove */
-
 export const GOOGLE_MODULE = 'spinnaker.gce';
 module(GOOGLE_MODULE, [
   LOAD_BALANCER_SET_TRANSFORMER,
