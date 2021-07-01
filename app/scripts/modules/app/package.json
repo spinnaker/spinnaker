@@ -74,10 +74,5 @@
     "webpack": "4.44.2",
     "webpack-cli": "3.3.12",
     "webpack-dev-server": "3.11.0"
-  },
-  "resolutions": {
-    "@spinnaker/amazon": "0.0.319",
-    "@spinnaker/core": "0.0.600",
-    "@spinnaker/docker": "0.0.81"
   }
 }
