@@ -47,6 +47,11 @@ export const DeliveryConfig = () => {
             style={{ width: 'auto' }}
             className="ace-editor sp-margin-s-top"
             editorProps={{ $blockScrolling: true }}
+            onLoad={(editor) => {
+              // This removes the built-in search box (as it doesn't scroll properly to matches)
+              // commands is missing in the type def and therefore we have to cast as any
+              (editor as any).commands?.removeCommand('find');
+            }}
           />
         </>
       )}
