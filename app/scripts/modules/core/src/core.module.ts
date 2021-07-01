@@ -58,6 +58,8 @@ import { PIPELINE_MODULE } from './pipeline/pipeline.module';
 import { PIPELINE_TEMPLATE_MODULE } from './pipeline/config/templates/pipelineTemplate.module';
 import { PLUGINS_MODULE } from './plugins';
 import { REACT_MODULE } from './reactShims';
+import { initGoogleAnalytics } from './reactShims/react.ga';
+
 import { REGION_MODULE } from './region/region.module';
 import { SERVERGROUP_MODULE } from './serverGroup/serverGroup.module';
 import { SERVER_GROUP_MANAGER_MODULE } from './serverGroupManager/serverGroupManager.module';
@@ -90,6 +92,8 @@ import ANGULAR_SANITIZE from 'angular-sanitize';
 import { angularSpinner } from 'angular-spinner';
 import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 import UI_SELECT from 'ui-select';
+
+initGoogleAnalytics();
 
 const UI_ROUTER_STATE_EVENTS_SHIM = 'ui.router.state.events';
 export const CORE_MODULE = 'spinnaker.core';
