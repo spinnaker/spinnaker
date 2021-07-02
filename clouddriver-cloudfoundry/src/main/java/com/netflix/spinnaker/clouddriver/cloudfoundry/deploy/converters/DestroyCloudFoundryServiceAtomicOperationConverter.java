@@ -48,6 +48,10 @@ public class DestroyCloudFoundryServiceAtomicOperationConverter
                 () ->
                     new IllegalArgumentException(
                         "Unable to find space '" + converted.getRegion() + "'.")));
+    if (converted.getApplication() == null || converted.getApplication().isEmpty()) {
+      throw new IllegalArgumentException(
+          "Application must not be null. Please re-create the destroy service stage in order to automatically add this field.");
+    }
     return converted;
   }
 }

@@ -39,6 +39,7 @@ class DestroyCloudFoundryServiceAtomicOperationTest
 
   {
     desc.setServiceInstanceName("service-instance-name");
+    desc.setApplication("sampleapp");
     desc.setSpace(
         CloudFoundrySpace.builder()
             .name("space-name")
@@ -72,6 +73,48 @@ class DestroyCloudFoundryServiceAtomicOperationTest
         .has(
             status(
                 "Started removing service instance 'service-instance-name' from space space-name"),
+            atIndex(1));
+  }
+
+  @Test
+  void destroyCloudFoundryServiceWithRemoveBindings() {
+    ServiceInstanceResponse serviceInstanceResponse =
+        new ServiceInstanceResponse()
+            .setServiceInstanceName("service-instance-name")
+            .setType(DELETE)
+            .setState(IN_PROGRESS);
+
+    DestroyCloudFoundryServiceDescription newDesc = new DestroyCloudFoundryServiceDescription();
+    newDesc.setRemoveBindings(true);
+    newDesc.setServiceInstanceName("service-instance-name");
+    newDesc.setApplication("sampleapp");
+    newDesc.setSpace(
+        CloudFoundrySpace.builder()
+            .name("space-name")
+            .organization(CloudFoundryOrganization.builder().name("org-name").build())
+            .build());
+    newDesc.setClient(client);
+
+    when(client.getServiceInstances().destroyServiceInstance(any(), any()))
+        .thenReturn(serviceInstanceResponse);
+
+    DestroyCloudFoundryServiceAtomicOperation op =
+        new DestroyCloudFoundryServiceAtomicOperation(newDesc);
+
+    Task task = runOperation(op);
+    List<Object> resultObjects = task.getResultObjects();
+    assertThat(1).isEqualTo(resultObjects.size());
+    Object o = resultObjects.get(0);
+    assertThat(o).isInstanceOf(ServiceInstanceResponse.class);
+    ServiceInstanceResponse response = (ServiceInstanceResponse) o;
+    assertThat(response).isEqualToComparingFieldByFieldRecursively(serviceInstanceResponse);
+    assertThat(task.getHistory())
+        .has(
+            status(
+                "Started removing service bindings for '"
+                    + newDesc.getServiceInstanceName()
+                    + "' from space "
+                    + newDesc.getSpace().getName()),
             atIndex(1));
   }
 

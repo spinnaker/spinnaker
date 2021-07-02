@@ -16,8 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils.collectPageResources;
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils.safelyCall;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils.*;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ConfigFeatureFlag.ConfigFlag.SERVICE_INSTANCE_SHARING;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.State.*;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.Type.*;
@@ -25,6 +24,7 @@ import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Ser
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ServiceInstance.Type.USER_PROVIDED_SERVICE_INSTANCE;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -58,6 +58,15 @@ public class ServiceInstances {
   private final ConfigService configApi;
   private final Spaces spaces;
 
+  public List<Resource<ServiceBinding>> findAllServiceBindingsByServiceName(
+      String region, String serviceName) {
+    CloudFoundryServiceInstance serviceInstance = getServiceInstance(region, serviceName);
+    if (serviceInstance == null) {
+      return emptyList();
+    }
+    return findAllServiceBindingsByService(serviceInstance.getId());
+  }
+
   public void createServiceBinding(CreateServiceBinding createServiceBinding) {
     try {
       safelyCall(() -> api.createServiceBinding(createServiceBinding));
@@ -79,6 +88,12 @@ public class ServiceInstances {
         "service bindings", pg -> api.getAllServiceBindings(singletonList(bindingsQuery)));
   }
 
+  public List<Resource<ServiceBinding>> findAllServiceBindingsByService(String serviceGuid) {
+    String bindingsQuery = "service_instance_guid:" + serviceGuid;
+    return collectPageResources(
+        "service bindings", pg -> api.getAllServiceBindings(singletonList(bindingsQuery)));
+  }
+
   public void deleteServiceBinding(String serviceBindingGuid) {
     safelyCall(() -> api.deleteServiceBinding(serviceBindingGuid));
   }
@@ -87,7 +102,7 @@ public class ServiceInstances {
     List<Resource<Service>> services =
         collectPageResources(
             "services by name", pg -> api.findService(pg, singletonList("label:" + serviceName)));
-    return Optional.ofNullable(services.get(0)).orElse(null);
+    return ofNullable(services.get(0)).orElse(null);
   }
 
   private List<CloudFoundryServicePlan> findAllServicePlansByServiceName(String serviceName) {
@@ -151,7 +166,7 @@ public class ServiceInstances {
         spaces
             .findSpaceByRegion(region)
             .orElseThrow(() -> new CloudFoundryApiException("Cannot find region '" + region + "'"));
-    return Optional.ofNullable(getOsbServiceInstance(space, serviceInstanceName))
+    return ofNullable(getOsbServiceInstance(space, serviceInstanceName))
         .orElseThrow(
             () ->
                 new CloudFoundryApiException(
@@ -171,7 +186,7 @@ public class ServiceInstances {
       throw new CloudFoundryApiException(
           "Please specify a name for the " + gerund + " service instance");
     }
-    sharingRegions = Optional.ofNullable(sharingRegions).orElse(Collections.emptySet());
+    sharingRegions = ofNullable(sharingRegions).orElse(Collections.emptySet());
     if (sharingRegions.size() == 0) {
       throw new CloudFoundryApiException(
           "Please specify a list of regions for " + gerund + " '" + serviceInstanceName + "'");
@@ -241,7 +256,7 @@ public class ServiceInstances {
             .map(Resource::getEntity)
             .map(
                 s ->
-                    Optional.ofNullable(s.getExtra())
+                    ofNullable(s.getExtra())
                         .orElseThrow(
                             () ->
                                 new CloudFoundryApiException(
@@ -317,7 +332,7 @@ public class ServiceInstances {
 
     unshareFromSpaces.forEach(
         space ->
-            Optional.ofNullable(spaces.getServiceInstanceByNameAndSpace(serviceInstanceName, space))
+            ofNullable(spaces.getServiceInstanceByNameAndSpace(serviceInstanceName, space))
                 .map(
                     si ->
                         safelyCall(
@@ -337,21 +352,19 @@ public class ServiceInstances {
             .findSpaceByRegion(region)
             .orElseThrow(() -> new CloudFoundryApiException("Cannot find region '" + region + "'"));
     Supplier<CloudFoundryServiceInstance> si =
-        () -> Optional.ofNullable(getOsbServiceInstance(space, serviceInstanceName)).orElse(null);
+        () -> ofNullable(getOsbServiceInstance(space, serviceInstanceName)).orElse(null);
 
     Supplier<CloudFoundryServiceInstance> up =
-        () ->
-            Optional.ofNullable(getUserProvidedServiceInstance(space, serviceInstanceName))
-                .orElse(null);
+        () -> ofNullable(getUserProvidedServiceInstance(space, serviceInstanceName)).orElse(null);
 
-    return Optional.ofNullable(si.get()).orElseGet(up);
+    return ofNullable(si.get()).orElseGet(up);
   }
 
   @Nullable
   @VisibleForTesting
   CloudFoundryServiceInstance getOsbServiceInstance(
       CloudFoundrySpace space, @Nullable String serviceInstanceName) {
-    return Optional.ofNullable(getServiceInstance(api::all, space, serviceInstanceName))
+    return ofNullable(getServiceInstance(api::all, space, serviceInstanceName))
         .map(
             r ->
                 CloudFoundryServiceInstance.builder()
@@ -369,7 +382,7 @@ public class ServiceInstances {
   @VisibleForTesting
   CloudFoundryServiceInstance getUserProvidedServiceInstance(
       CloudFoundrySpace space, @Nullable String serviceInstanceName) {
-    return Optional.ofNullable(getServiceInstance(api::allUserProvided, space, serviceInstanceName))
+    return ofNullable(getServiceInstance(api::allUserProvided, space, serviceInstanceName))
         .map(
             r ->
                 CloudFoundryServiceInstance.builder()
