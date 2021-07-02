@@ -29,6 +29,7 @@ public class S3BucketProperties {
   private String proxyHost;
   private String proxyPort;
   private String proxyProtocol;
+  private Boolean payloadSigning = false; // disabled by default
   private Boolean versioning = true; // enabled by default
   private Boolean pathStyleAccess = true; // enable by default
   private ServerSideEncryption serverSideEncryption; // options are "AWSKMS" and "AES256"
@@ -95,6 +96,14 @@ public class S3BucketProperties {
 
   public void setProxyProtocol(String proxyProtocol) {
     this.proxyProtocol = proxyProtocol;
+  }
+
+  public Boolean getPayloadSigning() {
+    return payloadSigning;
+  }
+
+  public void setPayloadSigning(Boolean payloadSigning) {
+    this.payloadSigning = payloadSigning;
   }
 
   public Boolean getVersioning() {

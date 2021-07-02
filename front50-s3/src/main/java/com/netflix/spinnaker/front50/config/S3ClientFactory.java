@@ -37,22 +37,30 @@ public class S3ClientFactory {
   public static AmazonS3 create(
       AWSCredentialsProvider awsCredentialsProvider, S3Properties s3Properties) {
     ClientConfiguration clientConfiguration = new ClientConfiguration();
+
     if (s3Properties.getProxyProtocol() != null) {
       if (s3Properties.getProxyProtocol().equalsIgnoreCase("HTTPS")) {
         clientConfiguration.setProtocol(Protocol.HTTPS);
       } else {
         clientConfiguration.setProtocol(Protocol.HTTP);
       }
+
       Optional.ofNullable(s3Properties.getProxyHost()).ifPresent(clientConfiguration::setProxyHost);
       Optional.ofNullable(s3Properties.getProxyPort())
           .map(Integer::parseInt)
           .ifPresent(clientConfiguration::setProxyPort);
     }
+
     if (!StringUtils.isEmpty(s3Properties.getSignerOverride())) {
       clientConfiguration.setSignerOverride(s3Properties.getSignerOverride());
     }
 
     AmazonS3Client client = new AmazonS3Client(awsCredentialsProvider, clientConfiguration);
+
+    S3ClientOptions.Builder clientOptionsBuilder = S3ClientOptions.builder();
+    if (s3Properties.getPayloadSigning() != null) {
+      clientOptionsBuilder.setPayloadSigningEnabled(s3Properties.getPayloadSigning());
+    }
 
     if (!StringUtils.isEmpty(s3Properties.getEndpoint())) {
       client.setEndpoint(s3Properties.getEndpoint());
@@ -61,14 +69,15 @@ public class S3ClientFactory {
         client.setSignerRegionOverride(s3Properties.getRegionOverride());
       }
 
-      client.setS3ClientOptions(
-          S3ClientOptions.builder().setPathStyleAccess(s3Properties.getPathStyleAccess()).build());
+      clientOptionsBuilder.setPathStyleAccess(s3Properties.getPathStyleAccess());
     } else {
       Optional.ofNullable(s3Properties.getRegion())
           .map(Regions::fromName)
           .map(Region::getRegion)
           .ifPresent(client::setRegion);
     }
+
+    client.setS3ClientOptions(clientOptionsBuilder.build());
 
     return client;
   }
