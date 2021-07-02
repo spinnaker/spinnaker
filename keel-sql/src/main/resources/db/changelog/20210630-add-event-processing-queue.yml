@@ -1,0 +1,37 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-event-processing-queue
+      author: emjburns
+      changes:
+        - createTable:
+            tableName: work_queue
+            columns:
+              - column:
+                  name: uid
+                  type: char(26)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: type
+                  type: char(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: first_seen
+                  type: timestamp(3)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: json
+                  type: json
+                  constraints:
+                    nullable: false
+        - createIndex:
+            indexName: work_queue_first_seen_type_idx
+            tableName: work_queue
+            columns:
+              - column:
+                  name: first_seen
+              - column:
+                  name: type

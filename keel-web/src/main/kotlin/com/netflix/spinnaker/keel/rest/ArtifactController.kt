@@ -3,12 +3,10 @@ package com.netflix.spinnaker.keel.rest
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactMetadata
 import com.netflix.spinnaker.keel.api.events.ArtifactPublishedEvent
 import com.netflix.spinnaker.keel.api.events.ArtifactSyncEvent
-import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.UnsupportedArtifactException
-import com.netflix.spinnaker.keel.api.plugins.supporting
 import com.netflix.spinnaker.keel.api.scm.isCodeEvent
 import com.netflix.spinnaker.keel.api.scm.toCodeEvent
-import com.netflix.spinnaker.keel.artifacts.ArtifactListener
+import com.netflix.spinnaker.keel.artifacts.WorkQueueProcessor
 import com.netflix.spinnaker.keel.igor.artifact.ArtifactMetadataService
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import kotlinx.coroutines.runBlocking
@@ -28,9 +26,8 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping(path = ["/artifacts"])
 class ArtifactController(
   private val eventPublisher: ApplicationEventPublisher,
-  private val artifactSuppliers: List<ArtifactSupplier<*, *>>,
   private val artifactMetadataService: ArtifactMetadataService,
-  private val artifactListener: ArtifactListener
+  private val workQueueProcessor: WorkQueueProcessor
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -54,14 +51,12 @@ class ArtifactController(
     echoArtifactEvent.payload.artifacts.forEach { artifact ->
       if (artifact.isCodeEvent) {
         val codeEvent = artifact.toCodeEvent()
-        log.debug("Republishing as code event: $codeEvent")
-        eventPublisher.publishEvent(codeEvent)
+        log.debug("Queueing code event: $codeEvent")
+        workQueueProcessor.queueCodeEventForProcessing(codeEvent)
       } else {
         try {
-          log.debug("Processing artifact from event: $artifact")
-          val artifactSupplier = artifactSuppliers.supporting(artifact.type.toLowerCase())
-          log.debug("Publishing artifact ${artifact.name} version ${artifact.version} via ${artifactSupplier::class.simpleName}")
-          artifactListener.handlePublishedArtifact(artifact)
+          log.debug("Queueing artifact ${artifact.name} version ${artifact.version} from artifact $artifact")
+          workQueueProcessor.queueArtifactForProcessing(artifact)
         } catch (e: UnsupportedArtifactException) {
           log.debug("Ignoring artifact event with unsupported type {}: {}", artifact.type, artifact)
         }
@@ -86,7 +81,6 @@ class ArtifactController(
     @PathVariable buildNumber: String,
     @PathVariable commitId: String
   ): ArtifactMetadata? =
-
      try {
        runBlocking {
          artifactMetadataService.getArtifactMetadata(buildNumber, commitId)

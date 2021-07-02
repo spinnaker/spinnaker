@@ -4,12 +4,15 @@ import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.events.ArtifactPublishedEvent
 import com.netflix.spinnaker.keel.api.scm.PrCreatedEvent
+import com.netflix.spinnaker.keel.artifacts.WorkQueueProcessor
 import com.netflix.spinnaker.keel.rest.ArtifactControllerTests.TestConfig
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
+import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.spyk
 import io.mockk.verify
@@ -43,10 +46,21 @@ internal class ArtifactControllerTests
         every { publishEvent(any()) } just runs
       }
     }
+
+    @Bean
+    @Primary
+    fun workQueueProcessor(): WorkQueueProcessor = mockk() {
+      every { queueCodeEventForProcessing(any()) } just Runs
+      every { queueArtifactForProcessing(any()) } just Runs
+    }
   }
 
   @Autowired
   lateinit var eventPublisher: ApplicationEventPublisher
+
+  @Autowired
+  lateinit var workQueueProcessor: WorkQueueProcessor
+
 
   private val objectMapper = configuredObjectMapper()
 
@@ -84,7 +98,7 @@ internal class ArtifactControllerTests
     context("a code event disguised as an artifact event is received") {
       val request = MockMvcRequestBuilders.post("/artifacts/events")
         .contentType(MediaType.APPLICATION_JSON_VALUE)
-        .content(objectMapper.writeValueAsString(disguisedCodeEvent) )
+        .content(objectMapper.writeValueAsString(disguisedCodeEvent))
 
       val response = mvc.perform(request)
 
@@ -92,15 +106,15 @@ internal class ArtifactControllerTests
         response.andExpect(status().isAccepted)
       }
 
-      test("event is properly translated and published as code event") {
+      test("event is properly translated and queued as code event") {
         verify(exactly = 1) {
-          eventPublisher.publishEvent(translatedCodeEvent)
+          workQueueProcessor.queueCodeEventForProcessing(any())
         }
       }
 
-      test("original artifact event is not propagated") {
+      test("original artifact event is not queued") {
         verify(exactly = 0) {
-          eventPublisher.publishEvent(disguisedCodeEvent)
+          workQueueProcessor.queueArtifactForProcessing(any())
         }
       }
     }

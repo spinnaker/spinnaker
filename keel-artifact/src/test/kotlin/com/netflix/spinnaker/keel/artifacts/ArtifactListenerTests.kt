@@ -1,36 +1,24 @@
 package com.netflix.spinnaker.keel.artifacts
 
-import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.ArtifactConfig
 import com.netflix.spinnaker.keel.api.DeliveryConfig
-import com.netflix.spinnaker.keel.api.artifacts.ArtifactMetadata
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.FINAL
 import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
 import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.api.artifacts.DOCKER
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.BRANCH_JOB_COMMIT_BY_JOB
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
-import com.netflix.spinnaker.keel.api.events.ArtifactPublishedEvent
 import com.netflix.spinnaker.keel.api.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.api.plugins.SupportedArtifact
 import com.netflix.spinnaker.keel.config.ArtifactRefreshConfig
-import com.netflix.spinnaker.keel.lifecycle.LifecycleEvent
-import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus.RUNNING
 import com.netflix.spinnaker.keel.persistence.KeelRepository
-import com.netflix.spinnaker.keel.telemetry.ArtifactVersionUpdated
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import io.mockk.Called
+import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
-import io.mockk.slot
-import org.springframework.context.ApplicationEventPublisher
-import strikt.api.expectThat
-import strikt.assertions.isEqualTo
-import io.mockk.coEvery as every
-import io.mockk.coVerify as verify
 
 internal class ArtifactListenerTests : JUnit5Minutests {
   val publishedDeb = PublishedArtifact(
@@ -79,17 +67,8 @@ internal class ArtifactListenerTests : JUnit5Minutests {
   val dockerArtifact = DockerArtifact(name = "fnord/myimage", tagVersionStrategy = BRANCH_JOB_COMMIT_BY_JOB, deliveryConfigName = "fnord-config")
   val deliveryConfig = DeliveryConfig(name = "fnord-config", application = "fnord", serviceAccount = "keel", artifacts = setOf(debianArtifact, dockerArtifact))
 
-  val artifactMetadata = ArtifactMetadata(
-    gitMetadata = GitMetadata(commit = "f00baah", author = "joesmith", branch = "master"),
-    buildMetadata = BuildMetadata(id = 1, status = "SUCCEEDED")
-  )
-
-  val artifactVersion = slot<PublishedArtifact>()
-
-
   abstract class ArtifactListenerFixture {
     val repository: KeelRepository = mockk(relaxUnitFun = true)
-    val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
     val dockerArtifactSupplier: DockerArtifactSupplier = mockk(relaxUnitFun = true) {
       every { shouldProcessArtifact(any()) } returns true
     }
@@ -98,115 +77,16 @@ internal class ArtifactListenerTests : JUnit5Minutests {
     }
     val artifactConfig = ArtifactConfig()
     val refreshConfig = ArtifactRefreshConfig()
-    val registry = NoopRegistry()
+    val workQueueProcessor: WorkQueueProcessor = mockk() {
+      every { enrichAndStore(any(), any()) } returns false
+    }
     val listener: ArtifactListener = ArtifactListener(
       repository,
-      publisher,
       listOf(debianArtifactSupplier, dockerArtifactSupplier),
       artifactConfig,
       refreshConfig,
-      registry
+      workQueueProcessor
     )
-  }
-
-  data class ArtifactPublishedFixture(
-    val version: PublishedArtifact,
-    val artifact: DeliveryArtifact
-  ) : ArtifactListenerFixture()
-
-  fun artifactEventTests() = rootContext<ArtifactPublishedFixture> {
-    fixture {
-      ArtifactPublishedFixture(
-        version = publishedDeb,
-        artifact = debianArtifact
-      )
-    }
-
-    before {
-      every { repository.getDeliveryConfig(any()) } returns deliveryConfig
-      every { debianArtifactSupplier.supportedArtifact } returns SupportedArtifact(DEBIAN, DebianArtifact::class.java)
-      every { dockerArtifactSupplier.supportedArtifact } returns SupportedArtifact(DOCKER, DockerArtifact::class.java)
-    }
-
-    context("the artifact is not something we're tracking") {
-      before {
-        every { repository.isRegistered(any(), any()) } returns false
-        listener.handlePublishedArtifact(version)
-      }
-
-      test("the event is ignored") {
-        verify(exactly = 0) { repository.storeArtifactVersion(any()) }
-      }
-
-      test("no telemetry is recorded") {
-        verify { publisher wasNot Called }
-      }
-    }
-
-    context("the artifact is registered with versions") {
-      before {
-        every { repository.isRegistered(artifact.name, artifact.type) } returns true
-        every {
-          debianArtifactSupplier.getLatestArtifact(deliveryConfig, artifact)
-        } returns publishedDeb
-        every {
-          debianArtifactSupplier.getArtifactMetadata(publishedDeb)
-        } returns artifactMetadata
-        every {
-          debianArtifactSupplier.shouldProcessArtifact(any())
-        } returns true
-      }
-
-      context("the version was already known") {
-        before {
-          every { repository.storeArtifactVersion(any()) } returns false
-          every { repository.getAllArtifacts(DEBIAN, any()) } returns listOf(debianArtifact)
-
-          listener.handlePublishedArtifact(version)
-        }
-
-        test("only lifecycle event recorded") {
-          verify(exactly = 1) { publisher.publishEvent(ofType<LifecycleEvent>()) }
-          verify(exactly = 0) { publisher.publishEvent(ofType<ArtifactVersionUpdated>())  }
-        }
-      }
-
-      context("the version is new") {
-        before {
-          every {
-            debianArtifactSupplier.getArtifactMetadata(newerPublishedDeb)
-          } returns artifactMetadata
-
-          every { repository.storeArtifactVersion(any()) } returns true
-          every { repository.getAllArtifacts(DEBIAN, any()) } returns listOf(debianArtifact)
-
-          listener.handlePublishedArtifact(newerPublishedDeb)
-        }
-
-        test("a new artifact version is stored") {
-          val slot = slot<PublishedArtifact>()
-          verify {repository.storeArtifactVersion(capture(artifactVersion)) }
-
-          with(artifactVersion.captured) {
-            expectThat(name).isEqualTo(artifact.name)
-            expectThat(type).isEqualTo(artifact.type)
-            expectThat(version).isEqualTo(newerPublishedDeb.version)
-            expectThat(status).isEqualTo(FINAL)
-          }
-        }
-
-        test("artifact metadata is added before storing") {
-          verify(exactly = 1) {
-            debianArtifactSupplier.getArtifactMetadata(newerPublishedDeb)
-          }
-
-          with(artifactVersion.captured) {
-            expectThat(gitMetadata).isEqualTo(artifactMetadata.gitMetadata)
-            expectThat(buildMetadata).isEqualTo(artifactMetadata.buildMetadata)
-          }
-        }
-      }
-    }
   }
 
   data class RegisteredFixture(
@@ -241,7 +121,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
       }
 
       test("nothing is done") {
-        verify(exactly = 0) { repository.storeArtifactVersion(any()) }
+        coVerify(exactly = 0) { workQueueProcessor.enrichAndStore(any(), any()) }
       }
     }
 
@@ -256,9 +136,6 @@ internal class ArtifactListenerTests : JUnit5Minutests {
           every {
             debianArtifactSupplier.getLatestArtifact(deliveryConfig, artifact)
           } returns publishedDeb
-          every {
-            debianArtifactSupplier.getArtifactMetadata(publishedDeb)
-          } returns artifactMetadata
 
           every { repository.getAllArtifacts(DEBIAN, any()) } returns listOf(debianArtifact)
 
@@ -266,25 +143,8 @@ internal class ArtifactListenerTests : JUnit5Minutests {
         }
 
         test("the newest version is saved") {
-          verify(exactly = 1) {
-            repository.storeArtifactVersion(capture(artifactVersion))
-          }
-          with(artifactVersion.captured) {
-            expectThat(name).isEqualTo(artifact.name)
-            expectThat(type).isEqualTo(artifact.type)
-            expectThat(version).isEqualTo(publishedDeb.version)
-            expectThat(status).isEqualTo(FINAL)
-          }
-        }
-
-        test("artifact metadata is added before storing") {
-          verify(exactly = 1) {
-            debianArtifactSupplier.getArtifactMetadata(publishedDeb)
-          }
-
-          with(artifactVersion.captured) {
-            expectThat(gitMetadata).isEqualTo(artifactMetadata.gitMetadata)
-            expectThat(buildMetadata).isEqualTo(artifactMetadata.buildMetadata)
+          coVerify(exactly = 1) {
+            workQueueProcessor.enrichAndStore(publishedDeb, any())
           }
         }
       }
@@ -299,7 +159,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
         }
 
         test("no versions are persisted") {
-          verify(exactly = 0) {
+          coVerify(exactly = 0) {
             repository.storeArtifactVersion(any())
           }
         }
@@ -324,8 +184,6 @@ internal class ArtifactListenerTests : JUnit5Minutests {
       every { repository.getDeliveryConfig(any()) } returns deliveryConfig
       every { debianArtifactSupplier.supportedArtifact } returns SupportedArtifact(DEBIAN, DebianArtifact::class.java)
       every { dockerArtifactSupplier.supportedArtifact } returns SupportedArtifact(DOCKER, DockerArtifact::class.java)
-      every { debianArtifactSupplier.getArtifactMetadata(any()) } returns artifactMetadata
-      every { dockerArtifactSupplier.getArtifactMetadata(any()) } returns artifactMetadata
       every { repository.storeArtifactVersion(any()) } returns true
       listener.onApplicationUp()
     }
@@ -356,25 +214,8 @@ internal class ArtifactListenerTests : JUnit5Minutests {
 
           val artifactVersions = mutableListOf<PublishedArtifact>()
 
-          verify (exactly = 2) {
-            repository.storeArtifactVersion(capture(artifactVersions))
-          }
-
-          with(artifactVersions[0]) {
-            expectThat(name).isEqualTo(dockerArtifact.name)
-            expectThat(type).isEqualTo(dockerArtifact.type)
-            expectThat(version).isEqualTo(publishedDocker.version)
-            expectThat(gitMetadata).isEqualTo(artifactMetadata.gitMetadata)
-            expectThat(buildMetadata).isEqualTo(artifactMetadata.buildMetadata)
-          }
-
-          with(artifactVersions[1]) {
-            expectThat(name).isEqualTo(debArtifact.name)
-            expectThat(type).isEqualTo(debArtifact.type)
-            expectThat(version).isEqualTo(publishedDeb.version)
-            expectThat(status).isEqualTo(FINAL)
-            expectThat(gitMetadata).isEqualTo(artifactMetadata.gitMetadata)
-            expectThat(buildMetadata).isEqualTo(artifactMetadata.buildMetadata)
+          coVerify(exactly = 2) {
+            workQueueProcessor.enrichAndStore(any(), any())
           }
         }
       }
@@ -400,7 +241,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
 
         test("store not called") {
           listener.syncLastLimitArtifactVersions()
-          verify(exactly = 0) { repository.storeArtifactVersion(any()) }
+          coVerify(exactly = 0) { workQueueProcessor.enrichAndStore(any(), any()) }
         }
       }
 
@@ -421,60 +262,9 @@ internal class ArtifactListenerTests : JUnit5Minutests {
         test("new versions are stored") {
           listener.syncLastLimitArtifactVersions()
 
-          val artifactVersions = mutableListOf<PublishedArtifact>()
-
-          verify (exactly = 2) {
-            repository.storeArtifactVersion(capture(artifactVersions))
+          coVerify(exactly = 2) {
+            workQueueProcessor.enrichAndStore(any(), any())
           }
-
-          with(artifactVersions[0]) {
-            expectThat(name).isEqualTo(dockerArtifact.name)
-            expectThat(type).isEqualTo(dockerArtifact.type)
-            expectThat(version).isEqualTo(newerPublishedDocker.version)
-            expectThat(gitMetadata).isEqualTo(artifactMetadata.gitMetadata)
-            expectThat(buildMetadata).isEqualTo(artifactMetadata.buildMetadata)
-          }
-
-          with(artifactVersions[1]) {
-            expectThat(name).isEqualTo(debArtifact.name)
-            expectThat(type).isEqualTo(debArtifact.type)
-            expectThat(version).isEqualTo(newerPublishedDeb.version)
-            expectThat(status).isEqualTo(FINAL)
-            expectThat(gitMetadata).isEqualTo(artifactMetadata.gitMetadata)
-            expectThat(buildMetadata).isEqualTo(artifactMetadata.buildMetadata)
-          }
-        }
-      }
-    }
-
-    context("lifecycle events") {
-      context("multiple artifacts") {
-        before {
-          every { repository.getAllArtifacts(DEBIAN, any())} returns
-            listOf(
-              debianArtifact,
-              debianArtifact.copy(reference = "blah-blay", deliveryConfigName = "another-config")
-            )
-          listener.publishBuildLifecycleEvent(publishedDeb)
-        }
-
-        test("publishes event for each artifact") {
-          verify(exactly = 2) { publisher.publishEvent(ofType<LifecycleEvent>()) }
-        }
-      }
-
-      context("single artifact") {
-        before {
-          every { repository.getAllArtifacts(DEBIAN, any())} returns
-            listOf(debianArtifact)
-          listener.publishBuildLifecycleEvent(publishedDeb)
-        }
-
-        test("publishes event with monitor = true") {
-          val slot = slot<LifecycleEvent>()
-          verify(exactly = 1) { publisher.publishEvent(capture(slot)) }
-          expectThat(slot.captured.status).isEqualTo(RUNNING)
-          expectThat(slot.captured.startMonitoring).isEqualTo(true)
         }
       }
     }

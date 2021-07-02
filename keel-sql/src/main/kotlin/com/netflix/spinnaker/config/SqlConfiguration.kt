@@ -23,6 +23,7 @@ import com.netflix.spinnaker.keel.sql.SqlTaskTrackingRepository
 import com.netflix.spinnaker.keel.sql.SqlUnhappyVetoRepository
 import com.netflix.spinnaker.keel.sql.SqlUnhealthyRepository
 import com.netflix.spinnaker.keel.sql.SqlActionRepository
+import com.netflix.spinnaker.keel.sql.SqlWorkQueueRepository
 import com.netflix.spinnaker.keel.sql.SqlDismissibleNotificationRepository
 import com.netflix.spinnaker.keel.sql.SqlEnvironmentDeletionRepository
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
@@ -244,4 +245,11 @@ class SqlConfiguration
     artifactSuppliers,
     specMigrators
   )
+
+  @Bean
+  fun artifactProcessingRepository(
+    jooq: DSLContext,
+    clock: Clock,
+    objectMapper: ObjectMapper
+  ) = SqlWorkQueueRepository(jooq, clock, objectMapper, SqlRetry(sqlRetryProperties))
 }

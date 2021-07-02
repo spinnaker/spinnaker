@@ -1,11 +1,25 @@
 package com.netflix.spinnaker.keel.api.scm
 
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.kork.exceptions.SystemException
 
 /**
  * An event from an SCM system.
  */
+@JsonTypeInfo(
+  use = JsonTypeInfo.Id.NAME,
+  property = "type",
+  include = JsonTypeInfo.As.PROPERTY
+)
+@JsonSubTypes(
+  JsonSubTypes.Type(value = PrCreatedEvent::class, name = "pr.created"),
+  JsonSubTypes.Type(value = PrMergedEvent::class, name = "pr.merged"),
+  JsonSubTypes.Type(value = PrDeclinedEvent::class, name = "pr.declined"),
+  JsonSubTypes.Type(value = PrDeletedEvent::class, name = "pr.deleted"),
+  JsonSubTypes.Type(value = CommitCreatedEvent::class, name = "commit.created"),
+)
 abstract class CodeEvent(
   open val repoKey: String,
   open val targetBranch: String,
