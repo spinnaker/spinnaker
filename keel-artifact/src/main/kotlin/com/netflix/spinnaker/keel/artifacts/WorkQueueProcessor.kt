@@ -72,7 +72,7 @@ final class WorkQueueProcessor(
     private const val ARTIFACT_PROCESSING_DURATION = "work.processing.artifact.duration"
     private const val CODE_EVENT_PROCESSING_DURATION = "work.processing.code.duration"
     private const val ARTIFACT_UPDATED_COUNTER_ID = "keel.artifact.updated"
-    private const val NUMBER_QUEUED_GAUGE = "keel.event.queued.number"
+    private const val NUMBER_QUEUED_GAUGE = "work.processing.queued.number"
   }
 
   private val artifactBatchSize: Int
