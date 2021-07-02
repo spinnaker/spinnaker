@@ -99,6 +99,8 @@ public class ProcessesTest {
                             .timeout(180)
                             .build())
                     .build()));
+    processes.updateProcess("guid1", "command1", null, null, null, null);
+    verify(processesService).updateProcess("guid1", new UpdateProcess("command1", null));
   }
 
   @Test

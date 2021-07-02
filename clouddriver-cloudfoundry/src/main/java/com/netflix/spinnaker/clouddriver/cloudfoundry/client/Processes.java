@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Optional;
 import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
+import org.springframework.util.StringUtils;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -72,16 +73,18 @@ public class Processes {
       @Nullable Integer healthCheckInvocationTimeout)
       throws CloudFoundryApiException {
 
-    Process.HealthCheck healthCheck =
-        new Process.HealthCheck.HealthCheckBuilder()
-            .type(healthCheckType)
-            .data(
-                new Process.HealthCheckData.HealthCheckDataBuilder()
-                    .endpoint(healthCheckEndpoint)
-                    .timeout(healthCheckTimeout)
-                    .invocationTimeout(healthCheckInvocationTimeout)
-                    .build())
-            .build();
+    final Process.HealthCheck healthCheck =
+        !StringUtils.isEmpty(healthCheckType)
+            ? new Process.HealthCheck.HealthCheckBuilder().type(healthCheckType).build()
+            : null;
+    if (healthCheck != null) {
+      healthCheck.setData(
+          new Process.HealthCheckData.HealthCheckDataBuilder()
+              .endpoint(healthCheckEndpoint)
+              .timeout(healthCheckTimeout)
+              .invocationTimeout(healthCheckInvocationTimeout)
+              .build());
+    }
 
     if (command != null && command.isEmpty()) {
       throw new IllegalArgumentException(
