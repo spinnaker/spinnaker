@@ -1,117 +1,45 @@
+import { FormikErrors } from 'formik';
+import { cloneDeep } from 'lodash';
 import React from 'react';
-import Select, { Option } from 'react-select';
-import { from as observableFrom, Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
 
-import { AccountService, IAccount, IRegion, IStageConfigProps, StageConfigField } from '@spinnaker/core';
+import { FormikStageConfig, FormValidator, IStage, IStageConfigProps } from '@spinnaker/core';
 
-export interface ICloudfoundryDestroyServiceStageConfigState {
-  accounts: IAccount[];
-  regions: IRegion[];
+import { CloudFoundryDestroyServiceStageConfigForm } from './CloudFoundryDestroyServiceStageConfigForm';
+
+export function CloudFoundryDestroyServiceStageConfig({
+  application,
+  pipeline,
+  stage,
+  updateStage,
+}: IStageConfigProps) {
+  const stageWithDefaults = React.useMemo(() => {
+    return {
+      credentials: '',
+      serviceInstanceName: '',
+      removeBindings: false,
+      ...cloneDeep(stage),
+    };
+  }, []);
+
+  return (
+    <FormikStageConfig
+      application={application}
+      onChange={updateStage}
+      pipeline={pipeline}
+      stage={stageWithDefaults}
+      validate={validateCloudFoundryDestroyServiceStage}
+      render={(props) => <CloudFoundryDestroyServiceStageConfigForm {...props} />}
+    />
+  );
 }
 
-export class CloudfoundryDestroyServiceStageConfig extends React.Component<
-  IStageConfigProps,
-  ICloudfoundryDestroyServiceStageConfigState
-> {
-  private destroy$ = new Subject();
-  constructor(props: IStageConfigProps) {
-    super(props);
-    this.props.updateStageField({ cloudProvider: 'cloudfoundry' });
-    this.state = {
-      accounts: [],
-      regions: [],
-    };
-  }
+export function validateCloudFoundryDestroyServiceStage(stage: IStage): FormikErrors<IStage> {
+  const formValidator = new FormValidator(stage);
 
-  public componentDidMount(): void {
-    observableFrom(AccountService.listAccounts('cloudfoundry'))
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((accounts) => {
-        this.setState({ accounts });
-        if (this.props.stage.credentials) {
-          this.clearAndReloadRegions();
-        }
-      });
-  }
+  formValidator.field('credentials', 'Account').required();
+  formValidator.field('region', 'Region').required();
+  formValidator.field('serviceInstanceName', 'Service Instance Name').required();
+  formValidator.field('application', 'Application').required();
 
-  public componentWillUnmount(): void {
-    this.destroy$.next();
-  }
-
-  private clearAndReloadRegions = () => {
-    this.setState({ regions: [] });
-    const { credentials } = this.props.stage;
-    if (credentials) {
-      observableFrom(AccountService.getRegionsForAccount(credentials))
-        .pipe(takeUntil(this.destroy$))
-        .subscribe((regions) => this.setState({ regions }));
-    }
-  };
-
-  private accountUpdated = (option: Option<string>) => {
-    const credentials = option.value;
-    this.props.updateStageField({
-      credentials,
-      region: '',
-    });
-    if (credentials) {
-      this.clearAndReloadRegions();
-    }
-  };
-
-  private regionUpdated = (option: Option<string>) => {
-    this.props.updateStageField({ region: option.value });
-  };
-
-  private serviceInstanceNameUpdated = (event: React.ChangeEvent<HTMLInputElement>) => {
-    this.props.updateStageField({ serviceInstanceName: event.target.value });
-  };
-
-  public render() {
-    const { stage } = this.props;
-    const { credentials, region, serviceInstanceName } = stage;
-    const { accounts, regions } = this.state;
-    return (
-      <div className="form-horizontal">
-        <StageConfigField label="Account">
-          <Select
-            options={
-              accounts &&
-              accounts.map((acc: IAccount) => ({
-                label: acc.name,
-                value: acc.name,
-              }))
-            }
-            clearable={false}
-            value={credentials}
-            onChange={this.accountUpdated}
-          />
-        </StageConfigField>
-        <StageConfigField label="Region">
-          <Select
-            options={
-              regions &&
-              regions.map((r: IRegion) => ({
-                label: r.name,
-                value: r.name,
-              }))
-            }
-            clearable={false}
-            value={region}
-            onChange={this.regionUpdated}
-          />
-        </StageConfigField>
-        <StageConfigField label="Service Instance Name">
-          <input
-            type="text"
-            className="form-control"
-            required={true}
-            onChange={this.serviceInstanceNameUpdated}
-            value={serviceInstanceName}
-          />
-        </StageConfigField>
-      </div>
-    );
-  }
+  return formValidator.validateForm();
 }
