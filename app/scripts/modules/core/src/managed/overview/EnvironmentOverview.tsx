@@ -30,7 +30,7 @@ export const EnvironmentOverview = ({ environment }: IEnvironmentProps) => {
         {state.artifacts?.length ? (
           state.artifacts.map((artifact) => <Artifact key={artifact.reference} artifact={artifact} />)
         ) : (
-          <ErrorMessage>No artifacts found</ErrorMessage>
+          <NoItemsMessage>No artifacts found</NoItemsMessage>
         )}
       </CollapsibleSection>
       <CollapsibleSection
@@ -45,15 +45,15 @@ export const EnvironmentOverview = ({ environment }: IEnvironmentProps) => {
             <Resource key={resource.id} resource={resource} environment={environment.name} />
           ))
         ) : (
-          <ErrorMessage>No resources found</ErrorMessage>
+          <NoItemsMessage>No resources found</NoItemsMessage>
         )}
       </CollapsibleSection>
     </BaseEnvironment>
   );
 };
 
-const ErrorMessage: React.FC = ({ children }) => (
+const NoItemsMessage: React.FC = ({ children }) => (
   <div className="environment-row-element">
-    <div className="error-message">{children}</div>
+    <div className="no-items-message">{children}</div>
   </div>
 );
