@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/cloudfoundry",
   "license": "Apache-2.0",
-  "version": "0.0.121",
+  "version": "0.0.122",
   "module": "dist/index.js",
   "typings": "dist/index.d.ts",
   "scripts": {
