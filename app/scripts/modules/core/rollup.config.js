@@ -19,11 +19,13 @@ const fixTSPathRewrite = () => {
     name: 'fixTSPathRewrite',
     writeBundle: () => {
       const dts = path.join(__dirname, 'dist', 'index.d.ts');
-      const fixed = fs
-        .readFileSync(dts)
-        .toString()
-        .replace(/types="types"/, 'types="./types"');
-      fs.writeFileSync(dts, fixed);
+      if (fs.existsSync(dts)) {
+        const fixed = fs
+          .readFileSync(dts)
+          .toString()
+          .replace(/types="types"/, 'types="./types"');
+        fs.writeFileSync(dts, fixed);
+      }
     },
   };
 };

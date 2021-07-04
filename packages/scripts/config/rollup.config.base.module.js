@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+
 const baseRollupConfig = require('./rollup.config.base');
 const angularJsTemplateLoader = require('../helpers/rollup-plugin-angularjs-template-loader');
 const externalConfigurer = require('../helpers/rollup-node-auto-external-configurer');
@@ -10,6 +11,6 @@ module.exports = {
   ...baseRollupConfig,
   input: 'src/index.ts',
   output: [{ dir: 'dist', format: 'es', sourcemap: true }],
-  plugins: [...baseRollupConfig.plugins, angularJsTemplateLoader({ sourceMap: true })],
+  plugins: [angularJsTemplateLoader({ sourceMap: true }), ...baseRollupConfig.plugins],
   external: externalConfigurer(packageJSON.dependencies),
 };

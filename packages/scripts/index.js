@@ -8,6 +8,9 @@ const ora = require('ora');
 const path = require('path');
 const process = require('process');
 const rollup = require('rollup');
+const util = require('util');
+
+const exec = util.promisify(child_process.exec);
 
 const getRollupConfigPath = (file) => {
   if (file && !fs.existsSync(path.resolve(path.join('.', file)))) {
@@ -30,21 +33,54 @@ const getOutputDir = (output) => {
   return outputDirMatch.length > 1 ? outputDirMatch[1] : output;
 };
 
+// Runs typescript compiler for type checking and emitting declarations in a separate process to run in parallel with
+// the bundler.
+const runTsc = (options, exitOnFailure) => {
+  const tscBin = path.resolve(`./node_modules/.bin/tsc`);
+  return exec(`${tscBin} --emitDeclarationOnly`)
+    .then(() => ora().succeed(chalk.green.bold('type checking done')))
+    .catch(({ stderr, stdout }) => {
+      console.log();
+      if (stdout) {
+        console.log(stdout);
+      }
+      if (stderr) {
+        console.error(stderr);
+      }
+
+      if (exitOnFailure) {
+        process.exit(1);
+      }
+    })
+    .finally(() => {
+      options.forEach((option) => {
+        const fixTSPathRewritePlugin = option.plugins.find((plugin) => plugin.name == 'fixTSPathRewrite');
+        if (fixTSPathRewritePlugin) {
+          fixTSPathRewritePlugin.writeBundle();
+        }
+      });
+    });
+};
+
 const startHandler = async ({ file, push }) => {
   process.env.ROLLUP_WATCH = true;
 
   const { options, warnings } = await loadConfigFile(getRollupConfigPath(file));
-  // A map of `input-output` bundle key to a spinner object. This is used to quickly access a spinner object when
-  // succeeding/failing that object on receiving a `BUNDLE_END`/`ERROR` event.
-  const spinners = {};
+  // A map of `input-output` bundle key to a tracker object. This is used to quickly access a spinner object and
+  // startTime when succeeding/failing that object on receiving a `BUNDLE_END`/`ERROR` event.
+  const buildTracker = {};
   // Kick-starting rollup's bundling process in watch mode.
   const watcher = rollup.watch(options);
+  let startTime;
 
   warnings.flush();
   watcher.on('event', (event) => {
     // Rollup will be emitting lifecycle events for the bundling process such as start, end and error. These events are
     // used to control a spinner in the terminal for each `input-output` bundle.
     switch (event.code) {
+      case 'START':
+        runTsc(options, false);
+        break;
       case 'END':
         if (push) {
           console.log();
@@ -61,26 +97,27 @@ const startHandler = async ({ file, push }) => {
           const spinner = ora({
             text: chalk.blue.bold(`${event.input} -> ${outputDir}`),
           });
-          spinners[`${event.input}-${output}`] = spinner;
+          buildTracker[`${event.input}-${output}`] = { spinner, startTime: Date.now() };
 
           spinner.start();
         });
         break;
       case 'BUNDLE_END':
         event.output.forEach((output) => {
-          const spinner = spinners[`${event.input}-${output}`];
-          if (spinner) {
+          const tracker = buildTracker[`${event.input}-${output}`];
+          if (tracker.spinner) {
             const outputDir = getOutputDir(output);
-            spinner.succeed(chalk.green.bold(`${event.input} -> ${outputDir}`));
-            delete spinners[`${event.input}-${output}`];
+            const completedTimeInS = (Date.now() - tracker.startTime) / 1000;
+            tracker.spinner.succeed(chalk.green.bold(`${event.input} -> ${outputDir} (${completedTimeInS}s)`));
+            delete buildTracker[`${event.input}-${output}`];
           }
         });
         break;
       case 'ERROR':
-        Object.entries(spinners).forEach(([key, spinner]) => {
-          spinner.fail(event.error);
+        Object.entries(buildTracker).forEach(([key, tracker]) => {
+          tracker.spinner.fail(event.error);
           console.error(event.error);
-          delete spinners[key];
+          delete buildTracker[key];
         });
         break;
     }
@@ -109,7 +146,7 @@ const buildHandler = async ({ file }) => {
     printBundleStart(o);
 
     const bundle = await rollup.rollup(o);
-    await Promise.all(o.output.map(bundle.write));
+    await Promise.all([...o.output.map(bundle.write), runTsc(options, true)]);
 
     printBundleComplete(o, Date.now() - start);
   }
