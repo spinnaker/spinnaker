@@ -52,6 +52,10 @@ jobs:
         if: steps.purebump.outputs.ispurebump != 'true'
         run: yarn --frozen-lockfile
 
+      - name: Build Modules
+        if: steps.purebump.outputs.ispurebump != 'true'
+        run: yarn buildModules
+
       - name: Unit Tests
         if: steps.purebump.outputs.ispurebump != 'true'
         run: yarn test --single-run

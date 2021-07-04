@@ -1,32 +1,31 @@
 #!/usr/bin/env node
 
+const fs = require('fs');
 const path = require('path');
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 
 const DECK_ROOT = path.resolve(__dirname, '..');
-const modules = [
-  'amazon',
-  'app',
-  'appengine',
-  'azure',
-  'cloudfoundry',
-  'core',
-  'docker',
-  'ecs',
-  'google',
-  'huaweicloud',
-  'kubernetes',
-  'oracle',
-  'tencentcloud',
-  'titus',
+const readDirsFromPath = (path) =>
+  fs
+    .readdirSync(path, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => `${path}/${entry.name}`);
+
+const ignorePackages = new Set(['mocks', 'pluginsdk-peerdeps', 'dcos']);
+const allPackages = [
+  ...readDirsFromPath(path.resolve(`${DECK_ROOT}/packages`)).filter(
+    (dirName) => !ignorePackages.has(path.basename(dirName)),
+  ),
+  ...readDirsFromPath(path.resolve(`${DECK_ROOT}/app/scripts/modules`)).filter(
+    (dirName) => !ignorePackages.has(path.basename(dirName)),
+  ),
 ];
 
 Promise.all(
-  modules.map((md) => {
-    const pathToModule = path.resolve(`${DECK_ROOT}/app/scripts/modules/${md}`);
-    console.log(`Cleaning ${md}`);
-    return exec(`cd ${pathToModule} && rm -rf node_modules dist`);
+  allPackages.map((pathToPackage) => {
+    console.log(`Cleaning ${pathToPackage}`);
+    return exec(`cd ${pathToPackage} && rm -rf node_modules dist`);
   }),
 ).then(() => {
   console.log('Running yarn');

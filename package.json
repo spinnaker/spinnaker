@@ -17,7 +17,11 @@
   },
   "private": true,
   "workspaces": [
-    "app/scripts/modules/*"
+    "app/scripts/modules/*",
+    "packages/eslint-plugin",
+    "packages/pluginsdk",
+    "packages/presentation",
+    "packages/scripts"
   ],
   "scripts": {
     "clean": "npx rimraf .awcache .cache-loader build node_modules/.cache transpiled && cd app/scripts/modules/app/ && npm run clean",
@@ -78,7 +82,8 @@
     "react-dom": "^16.14.0",
     "rxjs": "6.6.7",
     "angular": "1.6.10",
-    "@types/angular": "1.6.26"
+    "@types/angular": "1.6.26",
+    "typescript": "4.0.2"
   },
   "lint-staged": {
     "app/**/*.{js,jsx,ts,tsx}": "eslint --fix",

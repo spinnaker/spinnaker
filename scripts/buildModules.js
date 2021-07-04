@@ -5,17 +5,19 @@ const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 
 const DECK_ROOT = path.resolve(__dirname, '..');
+const MODULES_ROOT = path.resolve(`${DECK_ROOT}/app/scripts/modules`);
 
-const runYarnBuild = (module) => {
-  const pathToModule = path.resolve(`${DECK_ROOT}/app/scripts/modules/${module}`);
-  const cmd = `yarn --cwd ${pathToModule} build`;
+const runYarnBuild = (pathToPackage) => {
+  const cmd = `yarn --cwd ${pathToPackage} build`;
   console.log(cmd);
   return exec(cmd);
 };
 
-runYarnBuild('core')
-  .then(() =>
-    Promise.all(
+async function buildModules() {
+  try {
+    await runYarnBuild(`${DECK_ROOT}/packages/presentation`);
+    await runYarnBuild(`${MODULES_ROOT}/core`);
+    await Promise.all(
       [
         'amazon',
         'appengine',
@@ -27,7 +29,15 @@ runYarnBuild('core')
         'kubernetes',
         'oracle',
         'tencentcloud',
-      ].map(runYarnBuild),
-    ),
-  )
-  .then(() => Promise.all(['ecs', 'titus'].map(runYarnBuild)));
+      ].map((module) => runYarnBuild(`${MODULES_ROOT}/${module}`)),
+    );
+
+    await Promise.all(['ecs', 'titus'].map((module) => runYarnBuild(`${MODULES_ROOT}/${module}`)));
+  } catch (err) {
+    console.log(err.stdout);
+    console.error(err.stderr);
+    process.exit(255);
+  }
+}
+
+buildModules();
