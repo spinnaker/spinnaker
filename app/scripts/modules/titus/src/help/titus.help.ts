@@ -8,6 +8,10 @@ const helpContents: { [key: string]: string } = {
   'titus.deploy.iamProfile': 'AWS IAM instance profile to assign to this service',
   'titus.deploy.capacityGroup':
     'Used by Titus to ensure capacity guarantees, defaults to the application name if not provided',
+  'titus.deploy.command':
+    '<p>(Optional) Defines one or more custom commands. If multiple commands are defined, they must be comma delimited with no spaces: <b>cmd1,cmd2</b></p>',
+  'titus.deploy.entrypoint':
+    '<p>(Optional) Defines one or more entrypoints. If multiple entrypoints are defined, they must be comma delimited with no spaces: <b>entry1,entry2</b></p>',
   'titus.deploy.migrationPolicy': 'Defines how the tasks for this job will be migrated during an infrastructure change',
   'titus.deploy.network': 'Amount of networking bandwidth to allocate in Mbps',
   'titus.deploy.gpu': 'Number of GPUs to use. WARNING: only use if directed by Titus team, otherwise leave at 0',

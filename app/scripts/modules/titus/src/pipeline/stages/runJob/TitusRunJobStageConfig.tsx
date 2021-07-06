@@ -203,6 +203,11 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
     const { credentials, loaded, regions } = this.state;
     const awsAccount = (this.credentialsKeyedByAccount[stage.credentials] || { awsAccount: '' }).awsAccount;
 
+    const entryPointList = stage.cluster.entryPointList?.length
+      ? stage.cluster.entryPointList.join(',')
+      : stage.cluster.entryPoint;
+    const cmdList = stage.cluster.cmdList?.length ? stage.cluster.cmdList.join(',') : stage.cluster.cmd;
+
     return (
       <div className="form-horizontal">
         <div className="form-group">
@@ -288,12 +293,21 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
           />
         </StageConfigField>
 
-        <StageConfigField label="Entrypoint">
+        <StageConfigField label="Entrypoint(s)" helpKey="titus.deploy.entrypoint">
           <input
             type="text"
             className="form-control input-sm"
-            value={stage.cluster.entryPoint}
-            onChange={(e) => this.stageFieldChanged('cluster.entryPoint', e.target.value)}
+            value={entryPointList}
+            onChange={(e) => this.stageFieldChanged('cluster.entryPointList', e.target.value.split(','))}
+          />
+        </StageConfigField>
+
+        <StageConfigField label="Command(s)" helpKey="titus.deploy.command">
+          <input
+            type="text"
+            className="form-control input-sm"
+            value={cmdList}
+            onChange={(e) => this.stageFieldChanged('cluster.cmdList', e.target.value.split(','))}
           />
         </StageConfigField>
 
