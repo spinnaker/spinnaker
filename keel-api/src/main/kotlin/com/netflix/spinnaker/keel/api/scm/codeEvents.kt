@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.kork.exceptions.SystemException
+import org.slf4j.LoggerFactory
 
 /**
  * An event from an SCM system.
@@ -124,7 +125,8 @@ data class CommitCreatedEvent(
 /**
  * @return a [CodeEvent] based on the properties of this "artifact" definition from an Echo event.
  */
-fun PublishedArtifact.toCodeEvent(): CodeEvent {
+fun PublishedArtifact.toCodeEvent(): CodeEvent? {
+  val log by lazy { LoggerFactory.getLogger(javaClass) }
   return when(type) {
     "create_commit" -> CommitCreatedEvent(
       repoKey = repoKey,
@@ -156,7 +158,11 @@ fun PublishedArtifact.toCodeEvent(): CodeEvent {
       pullRequestId = pullRequestId,
       pullRequestBranch = pullRequestBranch
     )
-    else -> error("Unsupported code event type $type in $this")
+    "pr_updated","create_tag", "pr_relaunched" -> null
+    else -> {
+      log.error("Unsupported code event type $type in $this")
+      null
+    }
   }
 }
 

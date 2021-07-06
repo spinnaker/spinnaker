@@ -50,9 +50,10 @@ class ArtifactController(
     log.debug("Received artifact event: $echoArtifactEvent")
     echoArtifactEvent.payload.artifacts.forEach { artifact ->
       if (artifact.isCodeEvent) {
-        val codeEvent = artifact.toCodeEvent()
-        log.debug("Queueing code event: $codeEvent")
-        workQueueProcessor.queueCodeEventForProcessing(codeEvent)
+        artifact.toCodeEvent()?.let { codeEvent ->
+          log.debug("Queueing code event: $codeEvent")
+          workQueueProcessor.queueCodeEventForProcessing(codeEvent)
+        }
       } else {
         try {
           log.debug("Queueing artifact ${artifact.name} version ${artifact.version} from artifact $artifact")
