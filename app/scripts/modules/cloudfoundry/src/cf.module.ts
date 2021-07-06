@@ -32,6 +32,7 @@ import './pipeline/stages/bakeCloudFoundryManifest/bakeCloudFoundryManifestStage
 import './pipeline/stages/cloneServerGroup/cloudfoundryCloneServerGroupStage.module';
 import './pipeline/stages/createServiceBindings/cloudFoundryCreateServiceBindingsStage';
 import './pipeline/stages/createServiceKey/cloudfoundryCreateServiceKeyStage.module';
+import './pipeline/stages/deleteServiceBindings/cloudFoundryDeleteServiceBindingsStage';
 import './pipeline/stages/deleteServiceKey/cloudfoundryDeleteServiceKeyStage.module';
 import './pipeline/stages/deployService/cloudfoundryDeployServiceStage.module';
 import './pipeline/stages/destroyAsg/cloudfoundryDestroyAsgStage.module';
