@@ -327,7 +327,7 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
 
         test("the name of the preview environment is generated correctly") {
           val baseEnv = deliveryConfig.environments.first()
-          val branchDetail = commitEvent.targetBranch.replace("/", "-")
+          val branchDetail = commitEvent.targetBranch.toPreviewName()
 
           expectThat(previewEnv.captured) {
             get { name }.isEqualTo("${baseEnv.name}-$branchDetail")
@@ -339,7 +339,7 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
         }
 
         test("the name of monikered resources is generated correctly") {
-          val branchDetail = commitEvent.targetBranch.replace("/", "-")
+          val branchDetail = commitEvent.targetBranch.toPreviewName()
           val baseEnv = deliveryConfig.environments.first()
           val baseResource = baseEnv.resources.first() as Resource<Monikered>
           val previewResource = previewEnv.captured.resources.first()
@@ -359,7 +359,7 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
         }
 
         test("the names of resource dependencies present in the preview environment are adjusted to match") {
-          val branchDetail = commitEvent.targetBranch.replace("/", "-")
+          val branchDetail = commitEvent.targetBranch.toPreviewName()
           val baseEnv = deliveryConfig.environments.first()
           val dependency = baseEnv.resources.first { it.spec is DummyLocatableResourceSpec } as Resource<DummyLocatableResourceSpec>
 

@@ -125,7 +125,7 @@ class PreviewEnvironmentCodeEventListener(
    * to start checking/actuating on them.
    */
   @EventListener(CommitCreatedEvent::class)
-  // TODO: replace with PrCreatedEvent
+  // TODO: replace with PrCreatedEvent?
   fun handleCommitCreated(event: CommitCreatedEvent) {
     if (!enabled) {
       log.debug("Preview environments disabled by feature flag. Ignoring commit event: $event")
@@ -202,7 +202,7 @@ class PreviewEnvironmentCodeEventListener(
     deliveryConfig: DeliveryConfig,
     previewEnvSpecs: List<PreviewEnvironmentSpec>
   ) {
-    val branchDetail = commitEvent.targetBranch.replace("/", "-")
+    val branchDetail = commitEvent.targetBranch.toPreviewName()
 
     previewEnvSpecs.forEach { previewEnvSpec ->
       val baseEnv = deliveryConfig.environments.find { it.name == previewEnvSpec.baseEnvironment }

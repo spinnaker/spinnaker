@@ -161,3 +161,8 @@ private fun Collection<Dependency>?.namesForType(type: DependencyType): Set<Stri
   } else {
     filter { it.type == type }.map { it.name }.toSet()
   }
+
+/**
+ * Use with branch names to normalize the branch name for use in environment and resource names.
+ */
+internal fun String.toPreviewName() = substringAfterLast('/')
