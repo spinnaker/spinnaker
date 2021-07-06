@@ -2,13 +2,14 @@ package com.netflix.spinnaker.keel.services
 
 import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
 import com.netflix.spinnaker.keel.api.StatefulConstraint
-import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.OVERRIDE_FAIL
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.supporting
 import com.netflix.spinnaker.keel.core.api.ApplicationSummary
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.CURRENT
 import com.netflix.spinnaker.keel.exceptions.NoSuchEnvironmentException
-import com.netflix.spinnaker.keel.logging.TracingSupport.Companion.blankMDC
+import com.netflix.spinnaker.keel.front50.Front50Cache
+import com.netflix.spinnaker.keel.logging.TracingSupport
 import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
@@ -33,6 +34,7 @@ class AdminService(
   private val actuationPauser: ActuationPauser,
   private val diffFingerprintRepository: DiffFingerprintRepository,
   private val artifactSuppliers: List<ArtifactSupplier<*, *>>,
+  private val front50Cache: Front50Cache,
   private val publisher: ApplicationEventPublisher,
   private val clock: Clock
 ) : CoroutineScope {
@@ -82,7 +84,7 @@ class AdminService(
   @Scheduled(fixedDelayString = "\${keel.artifact-metadata-backfill.frequency:PT1H}")
   fun scheduledBackfillArtifactMetadata() {
     val startTime = clock.instant()
-    val job = launch(blankMDC) {
+    val job = launch(TracingSupport.blankMDC) {
       supervisorScope {
         backfillArtifactMetadata()
       }
@@ -95,7 +97,7 @@ class AdminService(
    * Updates last 10 artifact's versions with the corresponding metadata, if available, by type [deb/docker/npm]
    */
   fun backfillArtifactMetadataAsync() {
-    launch(blankMDC) {
+    launch(TracingSupport.blankMDC) {
       backfillArtifactMetadata()
     }
   }
@@ -174,6 +176,13 @@ class AdminService(
       .firstOrNull { it.id == verificationId }
       ?: throw UserException("application $application in environment $environmentName has no verification with ID $verificationId. IDs are: ${environment.verifyWith.map { it.id }}")
 
-    repository.updateActionState(context, verification, ConstraintStatus.OVERRIDE_FAIL)
+    repository.updateActionState(context, verification, OVERRIDE_FAIL)
+  }
+
+  /**
+   * Force a refresh of the the application cache.
+   */
+  fun refreshApplicationCache() {
+    front50Cache.primeCaches()
   }
 }

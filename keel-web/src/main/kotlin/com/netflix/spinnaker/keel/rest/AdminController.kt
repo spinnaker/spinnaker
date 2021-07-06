@@ -126,4 +126,13 @@ class AdminController(
     adminService.backfillArtifactMetadataAsync()
   }
 
+  /**
+   * Force a refresh of the the application cache.
+   */
+  @PostMapping(
+    path = ["/cache/applications/refresh"]
+  )
+  fun refreshApplicationCache() {
+    adminService.refreshApplicationCache()
+  }
 }

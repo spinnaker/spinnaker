@@ -7,10 +7,10 @@ import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.core.api.PipelineConstraint
-import com.netflix.spinnaker.keel.core.api.PromotionStatus
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.CURRENT
 import com.netflix.spinnaker.keel.core.api.TimeWindow
 import com.netflix.spinnaker.keel.core.api.TimeWindowConstraint
+import com.netflix.spinnaker.keel.front50.Front50Cache
 import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
@@ -20,7 +20,9 @@ import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
+import io.mockk.runs
 import io.mockk.verify
 import org.springframework.context.ApplicationEventPublisher
 
@@ -30,6 +32,7 @@ class AdminServiceTests : JUnit5Minutests {
     val diffFingerprintRepository: DiffFingerprintRepository = mockk()
     val actuationPauser: ActuationPauser = mockk()
     private val artifactSupplier = mockk<ArtifactSupplier<DummyArtifact, DummySortingStrategy>>(relaxUnitFun = true)
+    val front50Cache: Front50Cache = mockk()
     val publisher: ApplicationEventPublisher = mockk(relaxed = true)
     val clock = MutableClock()
 
@@ -61,6 +64,7 @@ class AdminServiceTests : JUnit5Minutests {
       actuationPauser,
       diffFingerprintRepository,
       listOf(artifactSupplier),
+      front50Cache,
       publisher,
       clock
     )
@@ -103,7 +107,18 @@ class AdminServiceTests : JUnit5Minutests {
 
       subject.forceSkipArtifactVersion(application, environment.name, artifact.reference, "v15")
 
-      verify(exactly=1) { repository.markAsSkipped(deliveryConfig, artifact, "v15", environment.name, "v16")}
+      verify(exactly = 1) { repository.markAsSkipped(deliveryConfig, artifact, "v15", environment.name, "v16") }
+    }
+
+    context("refreshing the application cache") {
+      before {
+        every { front50Cache.primeCaches() } just runs
+        subject.refreshApplicationCache()
+      }
+
+      test("delegates to the cache") {
+        verify { front50Cache.primeCaches() }
+      }
     }
   }
 }
