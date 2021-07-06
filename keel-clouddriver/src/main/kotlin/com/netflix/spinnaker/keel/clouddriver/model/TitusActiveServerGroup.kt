@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.keel.clouddriver.model
 
 import com.netflix.spinnaker.keel.api.Moniker
+import com.netflix.spinnaker.keel.api.plugins.ServerGroupIdentity
 
 /**
  * Fields common to classes that model Titus server groups
@@ -69,7 +70,7 @@ data class TitusServerGroup(
   override val disabled: Boolean,
   override val instanceCounts: InstanceCounts,
   override val createdTime: Long
-) : BaseTitusServerGroup
+) : BaseTitusServerGroup, ServerGroupIdentity
 
 fun TitusServerGroup.toActive() =
   TitusActiveServerGroup(

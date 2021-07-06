@@ -6,13 +6,26 @@ import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.PreviewEnvironmentSpec
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceDependency
+import com.netflix.spinnaker.keel.api.TaskExecution
+import com.netflix.spinnaker.keel.api.TaskStatus
+import com.netflix.spinnaker.keel.api.TaskStatus.RUNNING
+import com.netflix.spinnaker.keel.api.TaskStatus.SUCCEEDED
+import com.netflix.spinnaker.keel.api.actuation.Task
+import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
 import com.netflix.spinnaker.keel.api.artifacts.branchStartsWith
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.SupportedKind
 import com.netflix.spinnaker.keel.api.plugins.supporting
 import com.netflix.spinnaker.keel.events.MaxResourceDeletionAttemptsReached
+import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
+import com.netflix.spinnaker.keel.events.ResourceDeletionLaunched
+import com.netflix.spinnaker.keel.events.ResourceValid
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
+import com.netflix.spinnaker.keel.persistence.ResourceStatus.ACTUATING
+import com.netflix.spinnaker.keel.persistence.ResourceStatus.DELETING
+import com.netflix.spinnaker.keel.persistence.ResourceStatus.HAPPY
+import com.netflix.spinnaker.keel.services.ResourceStatusService
 import com.netflix.spinnaker.keel.test.DummyDependentResourceHandler
 import com.netflix.spinnaker.keel.test.DummyDependentResourceSpec
 import com.netflix.spinnaker.keel.test.DummyLocatableResourceHandler
@@ -23,13 +36,17 @@ import com.netflix.spinnaker.keel.test.dependentResource
 import com.netflix.spinnaker.keel.test.locatableResource
 import com.netflix.spinnaker.time.MutableClock
 import io.mockk.called
+import io.mockk.clearMocks
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.spyk
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.context.ApplicationEventPublisher
+import java.time.Instant
 import io.mockk.coEvery as every
 import io.mockk.coVerify as verify
 import org.springframework.core.env.Environment as SpringEnvironment
@@ -44,6 +61,8 @@ class EnvironmentCleanerTests {
   private val dependentResourceHandler = spyk(DummyLocatableResourceHandler)
   private val locatableResourceHandler = spyk(DummyDependentResourceHandler)
   private val resourceHandlers = listOf(locatableResourceHandler, dependentResourceHandler)
+  private val resourceStatusService: ResourceStatusService = mockk()
+  private val taskLauncher: TaskLauncher = mockk()
   private val subject = EnvironmentCleaner(
     deliveryConfigRepository = deliveryConfigRepository,
     resourceRepository = resourceRepository,
@@ -51,7 +70,9 @@ class EnvironmentCleanerTests {
     springEnv = springEnv,
     config = config,
     clock = clock,
-    eventPublisher = eventPublisher
+    eventPublisher = eventPublisher,
+    resourceStatusService = resourceStatusService,
+    taskLauncher = taskLauncher
   )
 
   private val deliveryConfig = deliveryConfig(locatableResource()).copy(
@@ -114,6 +135,10 @@ class EnvironmentCleanerTests {
       resourceRepository.countDeletionAttempts(any())
     } returns 0
 
+    every {
+      resourceRepository.eventHistory(any(), any())
+    } returns listOf(ResourceActuationLaunched(locatableResource, "plugin", emptyList()))
+
     resourceHandlers.forEach { resourceHandler ->
       every {
         resourceHandler.delete(any())
@@ -123,6 +148,21 @@ class EnvironmentCleanerTests {
     every {
       eventPublisher.publishEvent(any<Object>())
     } just runs
+
+    every {
+      resourceStatusService.getStatus(any())
+    } returns HAPPY
+
+    every {
+      taskLauncher.getTaskExecution(any())
+    } returns object : TaskExecution {
+      override val id: String = "1234"
+      override val name: String = "Task 1234"
+      override val application: String = "fnord"
+      override val startTime: Instant? = null
+      override val endTime: Instant? = null
+      override val status: TaskStatus = RUNNING
+    }
   }
 
   @Test
@@ -191,12 +231,10 @@ class EnvironmentCleanerTests {
 
     verify(exactly = 1) {
       firstResourceHandler.delete(firstResource)
-      resourceRepository.delete(firstResource.id)
     }
 
     verify(exactly = 0) {
       secondResourceHandler.delete(secondResource)
-      resourceRepository.delete(secondResource.id)
     }
   }
 
@@ -230,6 +268,78 @@ class EnvironmentCleanerTests {
     subject.cleanupEnvironment(environment)
     verify {
       eventPublisher.publishEvent(any<MaxResourceDeletionAttemptsReached>())
+    }
+  }
+
+  @Test
+  fun `resource deletion is skipped if it's already currently deleting`() {
+    val resource = environment.resourcesSortedByDependencies.first() as Resource<Nothing>
+    val resourceHandler = resourceHandlers.supporting(resource.kind)
+
+    every {
+      resourceStatusService.getStatus(resource.id)
+    } returns DELETING
+
+    subject.cleanupEnvironment(environment)
+
+    verify(exactly = 0) {
+      resourceHandler.delete(resource)
+      resourceRepository.delete(resource.id)
+    }
+  }
+
+  @Test
+  fun `resource deletion is skipped if it's currently actuating`() {
+    val resource = environment.resourcesSortedByDependencies.first() as Resource<Nothing>
+    val resourceHandler = resourceHandlers.supporting(resource.kind)
+
+    every {
+      resourceStatusService.getStatus(resource.id)
+    } returns ACTUATING
+
+    subject.cleanupEnvironment(environment)
+
+    verify(exactly = 0) {
+      resourceHandler.delete(resource)
+      resourceRepository.delete(resource.id)
+    }
+  }
+
+  @ParameterizedTest
+  @EnumSource(TaskStatus::class)
+  fun `resource record is only deleted when all associated deletion tasks succeed`(status: TaskStatus) {
+    val resource = environment.resourcesSortedByDependencies.first() as Resource<Nothing>
+    val resourceHandler = resourceHandlers.supporting(resource.kind)
+    val deletionTask = Task("${resource.id}:delete", "Delete resource ${resource.id}")
+
+    every {
+      resourceStatusService.getStatus(resource.id)
+    } returns DELETING
+
+    every {
+      resourceRepository.eventHistory(any(), any())
+    } returns listOf(ResourceDeletionLaunched(resource, "plugin", listOf(deletionTask)))
+
+    every {
+      resourceHandler.delete(resource)
+    } returns listOf(deletionTask)
+
+    every {
+      taskLauncher.getTaskExecution("${resource.id}:delete")
+    } returns object : TaskExecution {
+      override val id: String = "${resource.id}:delete"
+      override val name: String = "Delete resource ${resource.id}"
+      override val application: String = "fnord"
+      override val startTime: Instant? = null
+      override val endTime: Instant? = null
+      override val status: TaskStatus = status
+    }
+
+    subject.cleanupEnvironment(environment)
+
+    println("Checking deletion for status $status")
+    verify(exactly = if (status == SUCCEEDED) 1 else 0) {
+      resourceRepository.delete(resource.id)
     }
   }
 }

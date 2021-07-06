@@ -40,7 +40,7 @@ class ClassicLoadBalancerHandler(
   private val orcaService: OrcaService,
   private val taskLauncher: TaskLauncher,
   resolvers: List<Resolver<*>>
-) : ResolvableResourceHandler<ClassicLoadBalancerSpec, Map<String, ClassicLoadBalancer>>(resolvers) {
+) : BaseLoadBalancerHandler<ClassicLoadBalancerSpec, ClassicLoadBalancer>(cloudDriverCache, taskLauncher, resolvers) {
 
   override val supportedKind = EC2_CLASSIC_LOAD_BALANCER_V1
 

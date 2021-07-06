@@ -19,12 +19,11 @@ import com.netflix.spinnaker.keel.lifecycle.LifecycleMonitor
 import com.netflix.spinnaker.keel.lifecycle.LifecycleMonitorRepository
 import com.netflix.spinnaker.keel.lifecycle.MonitoredTask
 import com.netflix.spinnaker.keel.orca.ExecutionDetailResponse
-import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus.BUFFERED
-import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus.RUNNING
+import com.netflix.spinnaker.keel.api.TaskStatus.BUFFERED
+import com.netflix.spinnaker.keel.api.TaskStatus.RUNNING
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.persistence.BakedImageRepository
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component

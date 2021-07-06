@@ -37,13 +37,18 @@ import de.danielbechler.diff.path.NodePath
 import de.huxhorn.sulky.ulid.ULID
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.called
+import io.mockk.clearMocks
 import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.runBlocking
 import strikt.api.expectThat
+import strikt.assertions.containsExactly
+import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.first
 import strikt.assertions.get
 import strikt.assertions.getValue
+import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
@@ -355,6 +360,51 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
         expectThat(slot.captured.job.first()) {
           get("type").isEqualTo("upsertLoadBalancer")
         }
+      }
+    }
+
+    context("deleting an existing ALB") {
+      val lbModel = model()
+
+      before {
+        every { cloudDriverService.getApplicationLoadBalancer(any(), any(), any(), any(), any()) } returns listOf(lbModel)
+      }
+
+      test("generates the correct task") {
+        val slot = slot<OrchestrationRequest>()
+        every {
+          orcaService.orchestrate(resource.serviceAccount, capture(slot))
+        } answers { TaskRefResponse(ULID().nextULID()) }
+
+        val expectedJob = mapOf(
+          "type" to "deleteLoadBalancer",
+          "loadBalancerName" to resource.name,
+          "loadBalancerType" to "application",
+          "regions" to resource.spec.locations.regions.map { it.name },
+          "credentials" to resource.spec.locations.account,
+          "vpcId" to lbModel.vpcId,
+          "user" to resource.serviceAccount,
+        )
+
+        runBlocking {
+          delete(resource)
+        }
+
+        expectThat(slot.captured.job)
+          .hasSize(spec.locations.regions.size)
+          .containsExactly(expectedJob)
+      }
+    }
+
+    context("deleting a non-existent ALB") {
+      before {
+        every { cloudDriverService.getApplicationLoadBalancer(any(), any(), any(), any(), any()) } returns emptyList()
+        clearMocks(orcaService, answers = false)
+      }
+
+      test("does not generate any task") {
+        runBlocking { delete(resource) }
+        verify { orcaService wasNot called }
       }
     }
   }

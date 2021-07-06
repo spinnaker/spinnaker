@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.keel.orca
+package com.netflix.spinnaker.keel.api
 
-enum class OrcaExecutionStatus {
+enum class TaskStatus {
   NOT_STARTED,
   RUNNING,
   PAUSED,

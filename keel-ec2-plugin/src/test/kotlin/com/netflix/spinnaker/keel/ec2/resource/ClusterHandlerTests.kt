@@ -53,6 +53,7 @@ import com.netflix.spinnaker.keel.test.resource
 import de.huxhorn.sulky.ulid.ULID
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.called
 import io.mockk.clearAllMocks
 import io.mockk.mockk
 import io.mockk.slot
@@ -61,9 +62,12 @@ import strikt.api.Assertion
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.all
+import strikt.assertions.any
 import strikt.assertions.containsExactly
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.containsKey
+import strikt.assertions.containsSequence
+import strikt.assertions.first
 import strikt.assertions.get
 import strikt.assertions.hasSize
 import strikt.assertions.isA
@@ -187,6 +191,23 @@ internal class ClusterHandlerTests : JUnit5Minutests {
 
   val activeServerGroupResponseEast = serverGroupEast.toCloudDriverResponse(vpcEast, listOf(subnet1East, subnet2East, subnet3East), listOf(sg1East, sg2East))
   val activeServerGroupResponseWest = serverGroupWest.toCloudDriverResponse(vpcWest, listOf(subnet1West, subnet2West, subnet3West), listOf(sg1West, sg2West))
+  val activeServerGroups = listOf(activeServerGroupResponseEast, activeServerGroupResponseWest)
+
+  val allServerGroups = ServerGroupCollection(
+    vpcEast.account,
+    setOf(
+      activeServerGroupResponseEast.toAllServerGroupsResponse(),
+      activeServerGroupResponseEast.run {
+        val oldMoniker = moniker.copy(sequence = moniker.sequence!! - 1)
+        copy(moniker = oldMoniker, name = "$oldMoniker-${oldMoniker.sequence}")
+      }.toAllServerGroupsResponse(disabled = true),
+      activeServerGroupResponseWest.toAllServerGroupsResponse(),
+      activeServerGroupResponseWest.run {
+        val oldMoniker = moniker.copy(sequence = moniker.sequence!! - 1)
+        copy(moniker = oldMoniker, name = "$oldMoniker-${oldMoniker.sequence}")
+      }.toAllServerGroupsResponse(disabled = true)
+    )
+  )
 
   val exportable = Exportable(
     cloudProvider = "aws",
@@ -611,7 +632,6 @@ internal class ClusterHandlerTests : JUnit5Minutests {
       }
     }
 
-
     context("a diff has been detected") {
       context("the diff is only in capacity") {
         val modified = setOf(
@@ -1019,6 +1039,58 @@ internal class ClusterHandlerTests : JUnit5Minutests {
             get("blockDevices").isNull()
           }
         }
+      }
+    }
+
+    context("deleting a cluster with existing server groups") {
+      before {
+        every { cloudDriverService.listServerGroups(any(), any(), any(), any()) } returns allServerGroups
+      }
+
+      test("generates the correct task") {
+        val slot = slot<OrchestrationRequest>()
+        every {
+          orcaService.orchestrate(resource.serviceAccount, capture(slot))
+        } answers { TaskRefResponse(ULID().nextULID()) }
+
+        val expectedJobs = allServerGroups.serverGroups.map {
+          mapOf(
+            "type" to "destroyServerGroup",
+            "asgName" to it.name,
+            "moniker" to it.moniker,
+            "serverGroupName" to it.name,
+            "region" to it.region,
+            "credentials" to allServerGroups.accountName,
+            "cloudProvider" to "aws",
+            "user" to resource.serviceAccount,
+            "completeOtherBranchesThenFail" to false,
+            "continuePipeline" to false,
+            "failPipeline" to false,
+          )
+        }
+
+        expectThat(allServerGroups.serverGroups).any { get { disabled }.isTrue() }
+
+        runBlocking {
+          delete(resource)
+        }
+
+        expectThat(slot.captured.job)
+          .hasSize(allServerGroups.serverGroups.size)
+          .containsExactlyInAnyOrder(*expectedJobs.toTypedArray())
+      }
+    }
+
+    context("deleting a cluster with no server groups left") {
+      before {
+        every {
+          cloudDriverService.listServerGroups(any(), any(), any(), any())
+        } returns ServerGroupCollection(vpcEast.account, emptySet())
+      }
+
+      test("does not generate any task") {
+        runBlocking { delete(resource) }
+        verify { orcaService wasNot called }
       }
     }
   }

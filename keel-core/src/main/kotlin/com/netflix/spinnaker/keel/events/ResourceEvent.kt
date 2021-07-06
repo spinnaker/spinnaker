@@ -67,7 +67,9 @@ import java.time.Instant
   Type(value = ResourceTaskFailed::class, name = "ResourceTaskFailed"),
   Type(value = ResourceTaskSucceeded::class, name = "ResourceTaskSucceeded"),
   Type(value = ResourceDiffNotActionable::class, name = "ResourceDiffNotActionable"),
-  Type(value = VerificationBlockedActuation::class, name = "VerificationBlockedActuation")
+  Type(value = VerificationBlockedActuation::class, name = "VerificationBlockedActuation"),
+  Type(value = MaxResourceDeletionAttemptsReached::class, name = "MaxResourceDeletionAttemptsReached"),
+  Type(value = ResourceDeletionLaunched::class, name = "ResourceDeletionLaunched")
 )
 abstract class ResourceEvent(
   open val message: String? = null,
@@ -576,4 +578,30 @@ class MaxResourceDeletionAttemptsReached(
     attempts
   )
   override val message: String = "Failed to delete resource after maximum number of attempts ($attempts)"
+}
+
+/**
+ * A task or tasks were launched to delete a managed resource. This should be the very last event
+ * ever recorded for a resource before being removed from the database.
+ */
+data class ResourceDeletionLaunched(
+  override val kind: ResourceKind,
+  override val id: String,
+  override val version: Int,
+  override val application: String,
+  val plugin: String,
+  val tasks: List<Task>,
+  override val timestamp: Instant,
+  override val displayName: String = "Deleting resource",
+) : ResourceEvent() {
+  constructor(resource: Resource<*>, plugin: String, tasks: List<Task>, clock: Clock = Companion.clock) :
+    this(
+      resource.kind,
+      resource.id,
+      resource.version,
+      resource.application,
+      plugin,
+      tasks,
+      clock.instant()
+    )
 }

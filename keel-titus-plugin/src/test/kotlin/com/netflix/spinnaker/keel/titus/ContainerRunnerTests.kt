@@ -8,7 +8,7 @@ import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.titus.TitusServerGroup
 import com.netflix.spinnaker.keel.orca.ExecutionDetailResponse
-import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus
+import com.netflix.spinnaker.keel.api.TaskStatus
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.titus.batch.RUN_JOB_TYPE
 import com.netflix.spinnaker.keel.titus.verification.LinkStrategy
@@ -88,10 +88,10 @@ internal class ContainerRunnerTests {
 
   @ParameterizedTest(name = "action is considered still running if orca status is {0}")
   @EnumSource(
-    OrcaExecutionStatus::class,
+    TaskStatus::class,
     names = ["NOT_STARTED", "RUNNING", "PAUSED", "SUSPENDED", "BUFFERED"]
   )
-  fun `action is considered still running if orca task is running`(taskStatus: OrcaExecutionStatus) {
+  fun `action is considered still running if orca task is running`(taskStatus: TaskStatus) {
     val taskId = ULID().nextULID()
     val previousState = runningState(taskId)
 
@@ -114,10 +114,10 @@ internal class ContainerRunnerTests {
 
   @ParameterizedTest(name = "verification is considered successful if orca status is {0}")
   @EnumSource(
-    OrcaExecutionStatus::class,
+    TaskStatus::class,
     names = ["SUCCEEDED"]
   )
-  fun `verification is considered successful if orca task succeeded`(taskStatus: OrcaExecutionStatus) {
+  fun `verification is considered successful if orca task succeeded`(taskStatus: TaskStatus) {
     val taskId = ULID().nextULID()
     val previousState = runningState(taskId)
 
@@ -140,10 +140,10 @@ internal class ContainerRunnerTests {
 
   @ParameterizedTest(name = "verification is considered failed if orca status is {0}")
   @EnumSource(
-    OrcaExecutionStatus::class,
+    TaskStatus::class,
     names = ["TERMINAL", "FAILED_CONTINUE", "STOPPED", "CANCELED"]
   )
-  fun `verification is considered failed if orca task failed`(taskStatus: OrcaExecutionStatus) {
+  fun `verification is considered failed if orca task failed`(taskStatus: TaskStatus) {
     val taskId = ULID().nextULID()
     val previousState = runningState(taskId)
 

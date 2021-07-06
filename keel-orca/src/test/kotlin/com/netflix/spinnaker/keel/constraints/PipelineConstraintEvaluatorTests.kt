@@ -15,10 +15,10 @@ import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.core.api.PipelineConstraint
 import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.orca.ExecutionDetailResponse
-import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus
-import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus.RUNNING
-import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus.SUCCEEDED
-import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus.TERMINAL
+import com.netflix.spinnaker.keel.api.TaskStatus
+import com.netflix.spinnaker.keel.api.TaskStatus.RUNNING
+import com.netflix.spinnaker.keel.api.TaskStatus.SUCCEEDED
+import com.netflix.spinnaker.keel.api.TaskStatus.TERMINAL
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import dev.minutest.junit.JUnit5Minutests
@@ -265,7 +265,7 @@ internal class PipelineConstraintEvaluatorTests : JUnit5Minutests {
     artifactReference = "myartifact"
   )
 
-  private fun Fixture.getExecutionDetailResponse(id: String, status: OrcaExecutionStatus) =
+  private fun Fixture.getExecutionDetailResponse(id: String, status: TaskStatus) =
     ExecutionDetailResponse(
       id = id,
       name = "fnord",

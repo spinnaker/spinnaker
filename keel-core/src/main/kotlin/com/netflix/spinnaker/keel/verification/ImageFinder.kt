@@ -1,8 +1,8 @@
 package com.netflix.spinnaker.keel.verification
 
+import com.netflix.spinnaker.keel.api.ComputeResourceSpec
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.plugins.BaseClusterHandler
 import com.netflix.spinnaker.keel.api.plugins.CurrentImages
 import kotlinx.coroutines.runBlocking
@@ -33,7 +33,7 @@ class ImageFinder(
       ?.getImages(resource)
 
   @Suppress("UNCHECKED_CAST")
-  private suspend fun <S : ResourceSpec, R : Any> BaseClusterHandler<S, R>.getImages(
+  private suspend fun <S : ComputeResourceSpec<*>, R : Any> BaseClusterHandler<S, R>.getImages(
     resource: Resource<*>
   ): CurrentImages =
     getImage(resource as Resource<S>)

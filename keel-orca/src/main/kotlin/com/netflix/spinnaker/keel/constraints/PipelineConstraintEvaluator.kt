@@ -13,7 +13,7 @@ import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintType
 import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.core.api.PipelineConstraint
 import com.netflix.spinnaker.keel.model.toOrcaNotification
-import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus
+import com.netflix.spinnaker.keel.api.TaskStatus
 import com.netflix.spinnaker.keel.orca.OrcaService
 import java.time.Clock
 import java.util.HashMap
@@ -193,7 +193,7 @@ class PipelineConstraintEvaluator(
       .taskId
   }
 
-  private fun pipelineStatus(serviceAccount: String, attributes: PipelineConstraintStateAttributes?): OrcaExecutionStatus? {
+  private fun pipelineStatus(serviceAccount: String, attributes: PipelineConstraintStateAttributes?): TaskStatus? {
     if (attributes?.executionId == null) {
       return null
     }
@@ -210,7 +210,7 @@ class PipelineConstraintEvaluator(
     attributes: PipelineConstraintStateAttributes?
   ): Boolean {
     val status = attributes?.lastExecutionStatus?.let {
-      OrcaExecutionStatus.valueOf(it)
+      TaskStatus.valueOf(it)
     }
 
     return when {
@@ -237,5 +237,5 @@ class PipelineConstraintEvaluator(
       ?: state.createdAt.plus(constraint.timeout).isBefore(now)
   }
 
-  private fun OrcaExecutionStatus?.isFailure() = this != null && this.isFailure()
+  private fun TaskStatus?.isFailure() = this != null && this.isFailure()
 }

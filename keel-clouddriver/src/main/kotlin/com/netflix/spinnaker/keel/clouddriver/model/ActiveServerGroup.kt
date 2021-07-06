@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.clouddriver.model
 import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.netflix.spinnaker.keel.api.Moniker
+import com.netflix.spinnaker.keel.api.plugins.ServerGroupIdentity
 import com.netflix.spinnaker.keel.api.support.Tag
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.kork.exceptions.SystemException
@@ -92,7 +93,7 @@ data class ServerGroup(
   override val disabled: Boolean,
   override val instanceCounts: InstanceCounts,
   override val createdTime: Long
-) : BaseEc2ServerGroup {
+) : BaseEc2ServerGroup, ServerGroupIdentity {
   init {
     ensureLaunchConfigInfoIsPresent(this)
   }

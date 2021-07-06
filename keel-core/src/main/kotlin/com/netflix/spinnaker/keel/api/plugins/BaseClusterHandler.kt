@@ -1,8 +1,11 @@
 package com.netflix.spinnaker.keel.api.plugins
 
+import com.netflix.spinnaker.keel.api.ComputeResourceSpec
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceDiff
 import com.netflix.spinnaker.keel.api.ResourceSpec
+import com.netflix.spinnaker.keel.api.actuation.Task
+import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
 import com.netflix.spinnaker.keel.diff.toIndividualDiffs
 
 /**
@@ -11,8 +14,9 @@ import com.netflix.spinnaker.keel.diff.toIndividualDiffs
  * same decision, or abstracted logic involving coordinating resources or
  * publishing events.
  */
-abstract class BaseClusterHandler<SPEC: ResourceSpec, RESOLVED: Any>(
-  resolvers: List<Resolver<*>>
+abstract class BaseClusterHandler<SPEC: ComputeResourceSpec<*>, RESOLVED: Any>(
+  resolvers: List<Resolver<*>>,
+  protected open val taskLauncher: TaskLauncher
 ) : ResolvableResourceHandler<SPEC, Map<String, RESOLVED>>(resolvers) {
 
   /**
@@ -59,6 +63,46 @@ abstract class BaseClusterHandler<SPEC: ResourceSpec, RESOLVED: Any>(
     }
     return ActionDecision(willAct = true)
   }
+
+  override suspend fun delete(resource: Resource<SPEC>): List<Task> {
+    val serverGroupsByRegion = getExistingServerGroupsByRegion(resource)
+    val regions = serverGroupsByRegion.keys
+    val stages = serverGroupsByRegion.flatMap { (region, serverGroups) ->
+      serverGroups.map { serverGroup ->
+        mapOf(
+          "type" to "destroyServerGroup",
+          "asgName" to serverGroup.name,
+          "moniker" to serverGroup.moniker,
+          "serverGroupName" to serverGroup.name,
+          "region" to region,
+          "credentials" to resource.spec.locations.account,
+          "cloudProvider" to cloudProvider,
+          "user" to resource.serviceAccount,
+          // the following 3 properties just say "halt this branch of the pipeline"
+          "completeOtherBranchesThenFail" to false,
+          "continuePipeline" to false,
+          "failPipeline" to false,
+        )
+      }
+    }
+    return if (stages.isEmpty()) {
+      emptyList()
+    } else {
+      listOf(
+        taskLauncher.submitJob(
+          resource = resource,
+          description = "Delete cluster ${resource.name} in account ${resource.spec.locations.account}" +
+            " (${regions.joinToString()})",
+          correlationId = "${resource.id}:delete",
+          stages = stages
+        )
+      )
+    }
+  }
+
+  protected abstract suspend fun getExistingServerGroupsByRegion(resource: Resource<SPEC>): Map<String, List<ServerGroupIdentity>>
+
+  protected abstract val cloudProvider: String
 
   /**
    * gets current state of the resource and returns the current image, by region.

@@ -96,15 +96,17 @@ class TitusClusterHandler(
   private val cloudDriverCache: CloudDriverCache,
   private val orcaService: OrcaService,
   private val clock: Clock,
-  private val taskLauncher: TaskLauncher,
+  override val taskLauncher: TaskLauncher,
   override val eventPublisher: EventPublisher,
   resolvers: List<Resolver<*>>,
   private val clusterExportHelper: ClusterExportHelper
-) : BaseClusterHandler<TitusClusterSpec, TitusServerGroup>(resolvers) {
+) : BaseClusterHandler<TitusClusterSpec, TitusServerGroup>(resolvers, taskLauncher) {
 
   private val mapper = configuredObjectMapper()
 
   override val supportedKind = TITUS_CLUSTER_V1
+
+  override val cloudProvider = "titus"
 
   override suspend fun toResolvedType(resource: Resource<TitusClusterSpec>): Map<String, TitusServerGroup> =
     with(resource.spec) {
@@ -549,7 +551,7 @@ class TitusClusterHandler(
     return activeServerGroups
   }
 
-  private suspend fun getExistingServerGroupsByRegion(resource: Resource<TitusClusterSpec>): Map<String, List<ClouddriverTitusServerGroup>> {
+  override suspend fun getExistingServerGroupsByRegion(resource: Resource<TitusClusterSpec>): Map<String, List<ClouddriverTitusServerGroup>> {
     val existingServerGroups: MutableMap<String, MutableList<ClouddriverTitusServerGroup>> = mutableMapOf()
 
     try {

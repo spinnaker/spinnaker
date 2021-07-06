@@ -16,12 +16,12 @@ import com.netflix.spinnaker.keel.lifecycle.LifecycleMonitorRepository
 import com.netflix.spinnaker.keel.lifecycle.MonitoredTask
 import com.netflix.spinnaker.keel.orca.ExecutionDetailResponse
 import com.netflix.spinnaker.keel.orca.OrcaExecutionStages
-import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus
-import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus.BUFFERED
-import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus.PAUSED
-import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus.RUNNING
-import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus.SUCCEEDED
-import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus.TERMINAL
+import com.netflix.spinnaker.keel.api.TaskStatus
+import com.netflix.spinnaker.keel.api.TaskStatus.BUFFERED
+import com.netflix.spinnaker.keel.api.TaskStatus.PAUSED
+import com.netflix.spinnaker.keel.api.TaskStatus.RUNNING
+import com.netflix.spinnaker.keel.api.TaskStatus.SUCCEEDED
+import com.netflix.spinnaker.keel.api.TaskStatus.TERMINAL
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.persistence.BakedImageRepository
 import com.netflix.spinnaker.keel.test.configuredTestObjectMapper
@@ -235,7 +235,7 @@ class BakeryLifecycleMonitorTests : JUnit5Minutests {
     }
   }
 
-  private fun getExecution(status: OrcaExecutionStatus) =
+  private fun getExecution(status: TaskStatus) =
     ExecutionDetailResponse(
       id = "12344445565D",
       name = "bake it up",

@@ -46,6 +46,7 @@ import com.netflix.spinnaker.keel.core.name
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.diff.toIndividualDiffs
 import com.netflix.spinnaker.keel.api.actuation.Job
+import com.netflix.spinnaker.keel.filterNotNullValues
 import com.netflix.spinnaker.keel.model.OrcaJob
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.retrofit.isNotFound
@@ -161,6 +162,37 @@ open class SecurityGroupHandler(
     spec.generateOverrides(securityGroups)
 
     return spec
+  }
+
+  override suspend fun delete(resource: Resource<SecurityGroupSpec>): List<Task> {
+    val currentState = current(resource)
+    val regions = currentState.keys
+    with(resource.spec.locations) {
+      val stages = regions.map { region ->
+        val vpc = cloudDriverCache.networkBy(vpc!!, account, region)
+        mapOf(
+          "type" to "deleteSecurityGroup",
+          "securityGroupName" to resource.name,
+          // This is a misnomer: you can only pass a single region since it needs to match the vpcID below.  ¯\_(ツ)_/¯
+          "regions" to listOf(region),
+          "credentials" to account,
+          "vpcId" to vpc.id,
+          "user" to resource.serviceAccount,
+        )
+      }
+      return if (stages.isEmpty()) {
+        emptyList()
+      } else {
+        listOf(
+          taskLauncher.submitJob(
+            resource = resource,
+            description = "Delete security group ${resource.name} in account $account (${regions.joinToString()})",
+            correlationId = "${resource.id}:delete",
+            stages = stages
+          )
+        )
+      }
+    }
   }
 
   private fun SecurityGroupSpec.generateOverrides(

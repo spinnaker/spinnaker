@@ -48,18 +48,7 @@ data class SubmittedDeliveryConfig(
       }
     },
     environments = environments.mapTo(mutableSetOf()) { env ->
-      Environment(
-        name = env.name,
-        resources = env.resources.mapTo(mutableSetOf()) { resource ->
-          resource
-            .copy(metadata = mapOf("serviceAccount" to serviceAccount) + resource.metadata)
-            .normalize()
-        },
-        constraints = env.constraints,
-        verifyWith = env.verifyWith,
-        notifications = env.notifications,
-        postDeploy = env.postDeploy
-      )
+      env.toEnvironment()
     },
     previewEnvironments = previewEnvironments,
     metadata = metadata ?: emptyMap()
@@ -76,4 +65,17 @@ data class SubmittedEnvironment(
   val postDeploy: List<PostDeployAction> = emptyList(),
   @Description("Optional locations that are propagated to any [resources] where they are not specified.")
   val locations: SubnetAwareLocations? = null
-)
+) {
+  fun toEnvironment(serviceAccount: String? = null) = Environment(
+    name = name,
+    resources = resources.mapTo(mutableSetOf()) { resource ->
+      resource
+        .copy(metadata = mapOf("serviceAccount" to serviceAccount) + resource.metadata)
+        .normalize()
+    },
+    constraints = constraints,
+    verifyWith = verifyWith,
+    notifications = notifications,
+    postDeploy = postDeploy
+  )
+}

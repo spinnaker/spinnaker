@@ -1,8 +1,8 @@
 package com.netflix.spinnaker.keel.api.plugins
 
+import com.netflix.spinnaker.keel.api.ComputeResourceSpec
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceDiff
-import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
@@ -17,7 +17,7 @@ import strikt.assertions.isTrue
 import java.time.Clock
 
 abstract class BaseClusterHandlerTests<
-  SPEC: ResourceSpec, // spec type
+  SPEC: ComputeResourceSpec<*>, // spec type
   RESOLVED: Any, // resolved type
   HANDLER : BaseClusterHandler<SPEC, RESOLVED>
   > : JUnit5Minutests {
@@ -36,7 +36,7 @@ abstract class BaseClusterHandlerTests<
   val eventPublisher: EventPublisher = mockk()
   val resolvers: List<Resolver<*>> = emptyList()
 
-  data class Fixture<SPEC: ResourceSpec, RESOLVED: Any, HANDLER : BaseClusterHandler<SPEC, RESOLVED>>(
+  data class Fixture<SPEC: ComputeResourceSpec<*>, RESOLVED: Any, HANDLER : BaseClusterHandler<SPEC, RESOLVED>>(
     val handler: HANDLER
   )
 

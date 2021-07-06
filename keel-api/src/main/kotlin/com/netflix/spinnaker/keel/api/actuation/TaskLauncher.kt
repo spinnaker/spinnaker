@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.api.actuation
 
 import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.TaskExecution
 import java.util.concurrent.CompletableFuture
 
 interface TaskLauncher {
@@ -76,4 +77,9 @@ interface TaskLauncher {
   ): Task
 
   suspend fun correlatedTasksRunning(correlationId: String): Boolean
+
+  /**
+   * @return The [TaskExecution] matching the [taskId].
+   */
+  suspend fun getTaskExecution(taskId: String): TaskExecution
 }

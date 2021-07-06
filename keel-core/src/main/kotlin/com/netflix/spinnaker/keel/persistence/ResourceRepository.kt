@@ -185,5 +185,6 @@ enum class ResourceStatus {
   RESUMED,
   UNKNOWN,
   DIFF_NOT_ACTIONABLE,
-  WAITING
+  WAITING,
+  DELETING
 }

@@ -1,14 +1,15 @@
 package com.netflix.spinnaker.keel.orca
 
 import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.TaskStatus
 import com.netflix.spinnaker.keel.api.actuation.SubjectType
 import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.events.ResourceTaskFailed
 import com.netflix.spinnaker.keel.events.ResourceTaskSucceeded
 import com.netflix.spinnaker.keel.events.TaskCreatedEvent
-import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus.SUCCEEDED
-import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus.TERMINAL
+import com.netflix.spinnaker.keel.api.TaskStatus.SUCCEEDED
+import com.netflix.spinnaker.keel.api.TaskStatus.TERMINAL
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceId
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.TaskRecord
@@ -245,7 +246,7 @@ internal class OrcaTaskMonitorAgentTests : JUnit5Minutests {
 
   private fun executionDetailResponse(
     id: String = randomUID().toString(),
-    status: OrcaExecutionStatus = OrcaExecutionStatus.RUNNING,
+    status: TaskStatus = TaskStatus.RUNNING,
     execution: OrcaExecutionStages = OrcaExecutionStages(emptyList())
   ) =
     ExecutionDetailResponse(

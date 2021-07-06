@@ -106,20 +106,22 @@ class ClusterHandler(
   private val cloudDriverService: CloudDriverService,
   private val cloudDriverCache: CloudDriverCache,
   private val orcaService: OrcaService,
-  private val taskLauncher: TaskLauncher,
+  override val taskLauncher: TaskLauncher,
   private val clock: Clock,
   override val eventPublisher: EventPublisher,
   resolvers: List<Resolver<*>>,
   private val clusterExportHelper: ClusterExportHelper,
   private val blockDeviceConfig: BlockDeviceConfig,
   private val artifactService: ArtifactService,
-) : BaseClusterHandler<ClusterSpec, ServerGroup>(resolvers) {
+) : BaseClusterHandler<ClusterSpec, ServerGroup>(resolvers, taskLauncher) {
 
   private val debianArtifactParser = DebianArtifactParser()
 
   private val mapper = configuredObjectMapper()
 
   override val supportedKind = EC2_CLUSTER_V1_1
+
+  override val cloudProvider = "aws"
 
   override suspend fun toResolvedType(resource: Resource<ClusterSpec>): Map<String, ServerGroup> =
     with(resource.spec) {
@@ -999,7 +1001,7 @@ class ClusterHandler(
     return activeServerGroups
   }
 
-  private suspend fun getExistingServerGroupsByRegion(resource: Resource<ClusterSpec>): Map<String, List<ClouddriverServerGroup>> {
+  override suspend fun getExistingServerGroupsByRegion(resource: Resource<ClusterSpec>): Map<String, List<ClouddriverServerGroup>> {
     val existingServerGroups: MutableMap<String, MutableList<ClouddriverServerGroup>> = mutableMapOf()
 
     try {
@@ -1197,7 +1199,7 @@ class ClusterHandler(
       }
       .toSet()
 
-  private val ServerGroup.moniker: Moniker
+  internal val ServerGroup.moniker: Moniker
     get() = parseMoniker(name)
 
   private val ServerGroup.securityGroupIds: Collection<String>

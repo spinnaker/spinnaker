@@ -10,6 +10,7 @@ import com.netflix.spinnaker.keel.events.ResourceActuationVetoed
 import com.netflix.spinnaker.keel.events.ResourceCheckError
 import com.netflix.spinnaker.keel.events.ResourceCheckUnresolvable
 import com.netflix.spinnaker.keel.events.ResourceCreated
+import com.netflix.spinnaker.keel.events.ResourceDeletionLaunched
 import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
 import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
 import com.netflix.spinnaker.keel.events.ResourceHistoryEvent
@@ -23,6 +24,7 @@ import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.ACTUATING
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.CREATED
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.CURRENTLY_UNRESOLVABLE
+import com.netflix.spinnaker.keel.persistence.ResourceStatus.DELETING
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.DIFF
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.ERROR
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.HAPPY
@@ -30,6 +32,7 @@ import com.netflix.spinnaker.keel.persistence.ResourceStatus.MISSING_DEPENDENCY
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.PAUSED
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.RESUMED
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.UNHAPPY
+import com.netflix.spinnaker.keel.persistence.ResourceStatus.UNKNOWN
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.WAITING
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException
@@ -132,22 +135,60 @@ class ResourceStatusServiceTests : JUnit5Minutests {
           }
 
           context("when last event is ResourceTaskSucceeded") {
-            before {
-              events.add(ResourceTaskSucceeded(resource, emptyList()))
+            context("if the previous event is not ResourceDeletionLaunched") {
+              before {
+                events.add(ResourceTaskSucceeded(resource, emptyList()))
+              }
+
+              test("returns ACTUATING") {
+                expectThat(subject.getStatus(resource.id)).isEqualTo(ACTUATING)
+              }
             }
 
-            test("returns HAPPY") {
-              expectThat(subject.getStatus(resource.id)).isEqualTo(ACTUATING)
+            context("if the previous event is ResourceDeletionLaunched") {
+              before {
+                events.add(ResourceDeletionLaunched(resource, "plugin", emptyList()))
+                events.add(ResourceTaskSucceeded(resource, emptyList()))
+              }
+
+              // hopefully shouldn't happen because deleted resources should be gone from the database
+              test("returns UNKNOWN") {
+                expectThat(subject.getStatus(resource.id)).isEqualTo(UNKNOWN)
+              }
             }
           }
 
           context("when last event is ResourceTaskFailed") {
-            before {
-              events.add(ResourceTaskFailed(resource, "plugin", emptyList()))
+            context("if the previous event is not ResourceDeletionLaunched") {
+              before {
+                events.add(ResourceTaskFailed(resource, "plugin", emptyList()))
+              }
+
+              test("returns ACTUATING") {
+                expectThat(subject.getStatus(resource.id)).isEqualTo(ACTUATING)
+              }
             }
 
-            test("returns ACTUATING") {
-              expectThat(subject.getStatus(resource.id)).isEqualTo(ACTUATING)
+            context("if the previous event is ResourceDeletionLaunched") {
+              before {
+                events.add(ResourceDeletionLaunched(resource, "plugin", emptyList()))
+                events.add(ResourceTaskFailed(resource, "plugin", emptyList()))
+              }
+
+              // hopefully shouldn't happen because deleted resources should be gone from the database
+              test("returns UNKNOWN") {
+                expectThat(subject.getStatus(resource.id)).isEqualTo(UNKNOWN)
+              }
+            }
+          }
+
+          context("when last event is ResourceDeletionLaunched") {
+            before {
+              events.add(ResourceDeletionLaunched(resource, "plugin", emptyList()))
+            }
+
+            test("returns DELETING") {
+              expectThat(subject.getStatus(resource.id)).isEqualTo(DELETING)
             }
           }
 

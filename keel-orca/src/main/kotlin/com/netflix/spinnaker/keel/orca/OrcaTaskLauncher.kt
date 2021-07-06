@@ -19,6 +19,7 @@ package com.netflix.spinnaker.keel.orca
 
 import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.TaskExecution
 import com.netflix.spinnaker.keel.api.actuation.SubjectType
 import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
@@ -136,6 +137,9 @@ class OrcaTaskLauncher(
     orcaService
       .getCorrelatedExecutions(correlationId, DEFAULT_SERVICE_ACCOUNT)
       .isNotEmpty()
+
+  override suspend fun getTaskExecution(taskId: String): TaskExecution =
+    orcaService.getOrchestrationExecution(taskId)
 
   private val Resource<*>.notifications: Set<NotificationConfig>
     get() = repository

@@ -57,15 +57,20 @@ import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.retrofit.RETROFIT_NOT_FOUND
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.test.resource
+import de.huxhorn.sulky.ulid.ULID
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.called
 import io.mockk.clearMocks
 import io.mockk.confirmVerified
 import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.runBlocking
+import retrofit2.HttpException
 import strikt.api.Assertion
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
+import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.first
 import strikt.assertions.get
 import strikt.assertions.hasSize
@@ -451,6 +456,50 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
           .isNotEmpty()
           .get { get(vpcRegion1.region)!!.inboundRules }
           .hasSize(2)
+      }
+    }
+
+    context("deleting an existing security group") {
+      before { cloudDriverSecurityGroupReturns() }
+
+      test("generates the correct task") {
+        val slot = slot<OrchestrationRequest>()
+        every {
+          orcaService.orchestrate(resource.serviceAccount, capture(slot))
+        } answers { TaskRefResponse(ULID().nextULID()) }
+
+        val expectedJobs = listOf(vpcRegion1, vpcRegion2).map { vpc ->
+          mapOf(
+            "type" to "deleteSecurityGroup",
+            "securityGroupName" to resource.name,
+            "regions" to listOf(vpc.region),
+            "credentials" to resource.spec.locations.account,
+            "vpcId" to vpc.id,
+            "user" to resource.serviceAccount,
+          )
+        }
+
+        runBlocking {
+          handler.delete(resource)
+        }
+
+        expectThat(slot.captured.job)
+          .hasSize(2)
+          .containsExactlyInAnyOrder(*expectedJobs.toTypedArray())
+      }
+    }
+
+    context("deleting a non-existent security group") {
+      before {
+        every {
+          cloudDriverService.getSecurityGroup(any(), any(), any(), any(), any(), any())
+        } throws RETROFIT_NOT_FOUND
+        clearMocks(orcaService, answers = false)
+      }
+
+      test("does not generate any task") {
+        runBlocking { handler.delete(resource) }
+        verify { orcaService wasNot called }
       }
     }
   }

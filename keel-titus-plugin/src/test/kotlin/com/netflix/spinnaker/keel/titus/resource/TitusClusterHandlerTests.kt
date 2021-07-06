@@ -63,6 +63,7 @@ import com.netflix.spinnaker.keel.titus.resolveCapacity
 import de.huxhorn.sulky.ulid.ULID
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.called
 import io.mockk.clearAllMocks
 import io.mockk.mockk
 import io.mockk.slot
@@ -73,6 +74,7 @@ import retrofit2.HttpException
 import retrofit2.Response
 import strikt.api.Assertion
 import strikt.api.expectThat
+import strikt.assertions.any
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.containsKey
 import strikt.assertions.get
@@ -146,11 +148,27 @@ class TitusClusterHandlerTests : JUnit5Minutests {
   val activeServerGroupResponseEast = serverGroupEast.toClouddriverResponse(listOf(sg1East, sg2East), awsAccount)
   val activeServerGroupResponseWest = serverGroupWest.toClouddriverResponse(listOf(sg1West, sg2West), awsAccount)
 
-  val allServerGroups = ServerGroupCollection(
+  val allActiveServerGroups = ServerGroupCollection(
     titusAccount,
     setOf(
       activeServerGroupResponseEast.toAllServerGroupsResponse(),
       activeServerGroupResponseWest.toAllServerGroupsResponse()
+    )
+  )
+
+  val allServerGroups = ServerGroupCollection(
+    titusAccount,
+    setOf(
+      activeServerGroupResponseEast.toAllServerGroupsResponse(),
+      activeServerGroupResponseEast.run {
+        val oldMoniker = moniker.copy(sequence = moniker.sequence!! - 1)
+        copy(moniker = oldMoniker, name = "$oldMoniker-${oldMoniker.sequence}")
+      }.toAllServerGroupsResponse(disabled = true),
+      activeServerGroupResponseWest.toAllServerGroupsResponse(),
+      activeServerGroupResponseWest.run {
+        val oldMoniker = moniker.copy(sequence = moniker.sequence!! - 1)
+        copy(moniker = oldMoniker, name = "$oldMoniker-${oldMoniker.sequence}")
+      }.toAllServerGroupsResponse(disabled = true)
     )
   )
 
@@ -269,7 +287,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
         every { cloudDriverService.titusActiveServerGroup(any(), "us-west-2") } returns activeServerGroupResponseWest
         every { cloudDriverService.findDockerImages("testregistry", "spinnaker/keel", any(), any()) } returns
           listOf(DockerImage("testregistry", "spinnaker/keel", "master-h2.blah", "sha:1111"))
-        every { cloudDriverService.listTitusServerGroups(any(), any(), any(), any())} returns allServerGroups
+        every { cloudDriverService.listTitusServerGroups(any(), any(), any(), any())} returns allActiveServerGroups
       }
 
       // TODO: test for multiple server group response
@@ -377,7 +395,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
 
         context("active server group is healthy") {
           before {
-            every { cloudDriverService.listTitusServerGroups(any(), any(), any(), any())} returns allServerGroups
+            every { cloudDriverService.listTitusServerGroups(any(), any(), any(), any())} returns allActiveServerGroups
             every { cloudDriverService.titusActiveServerGroup(any(), "us-east-1") } returns activeServerGroupResponseEast
             every { cloudDriverService.titusActiveServerGroup(any(), "us-west-2") } returns activeServerGroupResponseWest
           }
@@ -696,6 +714,58 @@ class TitusClusterHandlerTests : JUnit5Minutests {
       }
       test("semver-job-commit parses to semver version") {
         expectThat(deriveVersioningStrategy("v1.12.3-rc.1-h1196.49b8dc5")).isEqualTo(SEMVER_JOB_COMMIT_BY_SEMVER)
+      }
+    }
+
+    context("deleting a cluster with existing server groups") {
+      before {
+        every { cloudDriverService.listTitusServerGroups(any(), any(), any(), any())} returns allServerGroups
+      }
+
+      test("generates the correct task") {
+        val slot = slot<OrchestrationRequest>()
+        every {
+          orcaService.orchestrate(resource.serviceAccount, capture(slot))
+        } answers { TaskRefResponse(ULID().nextULID()) }
+
+        val expectedJobs = allServerGroups.serverGroups.map {
+          mapOf(
+            "type" to "destroyServerGroup",
+            "asgName" to it.name,
+            "moniker" to it.moniker,
+            "serverGroupName" to it.name,
+            "region" to it.region,
+            "credentials" to allServerGroups.accountName,
+            "cloudProvider" to "titus",
+            "user" to resource.serviceAccount,
+            "completeOtherBranchesThenFail" to false,
+            "continuePipeline" to false,
+            "failPipeline" to false,
+          )
+        }
+
+        expectThat(allServerGroups.serverGroups).any { get { disabled }.isTrue() }
+
+        runBlocking {
+          delete(resource)
+        }
+
+        expectThat(slot.captured.job)
+          .hasSize(allServerGroups.serverGroups.size)
+          .containsExactlyInAnyOrder(*expectedJobs.toTypedArray())
+      }
+    }
+
+    context("deleting a cluster with no server groups left") {
+      before {
+        every {
+          cloudDriverService.listTitusServerGroups(any(), any(), any(), any())
+        } returns ServerGroupCollection(titusAccount, emptySet())
+      }
+
+      test("does not generate any task") {
+        runBlocking { delete(resource) }
+        verify { orcaService wasNot called }
       }
     }
   }

@@ -16,13 +16,13 @@
 package com.netflix.spinnaker.keel.orca
 
 import com.fasterxml.jackson.annotation.JsonAlias
-import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.deser.std.StdNodeBasedDeserializer
 import com.fasterxml.jackson.module.kotlin.convertValue
+import com.netflix.spinnaker.keel.api.TaskExecution
+import com.netflix.spinnaker.keel.api.TaskStatus
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.serialization.mapper
@@ -100,17 +100,17 @@ data class KeyValuePair(
 
 @JsonDeserialize(using = ExecutionDetailResponseDeserializer::class)
 data class ExecutionDetailResponse(
-  val id: String,
-  val name: String,
-  val application: String,
+  override val id: String,
+  override val name: String,
+  override val application: String,
   val buildTime: Instant,
-  val startTime: Instant?,
-  val endTime: Instant?,
-  val status: OrcaExecutionStatus,
+  override val startTime: Instant?,
+  override val endTime: Instant?,
+  override val status: TaskStatus,
   val execution: OrcaExecutionStages? = OrcaExecutionStages(emptyList()),
   val stages: List<OrcaExecutionStage>? = emptyList(), // for pipelines, stages are not encapsulated in `execution`
   val variables: List<KeyValuePair>? = null
-)
+) : TaskExecution
 
 typealias OrcaExecutionStage = Map<String, Any>
 

@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.keel.actuation
 
 import com.netflix.spinnaker.config.EnvironmentDeletionConfig
-import com.netflix.spinnaker.keel.api.Dependent
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
@@ -9,8 +8,16 @@ import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.supporting
 import com.netflix.spinnaker.keel.events.MaxResourceDeletionAttemptsReached
+import com.netflix.spinnaker.keel.events.ResourceDeletionLaunched
+import com.netflix.spinnaker.keel.api.TaskStatus.SUCCEEDED
+import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
+import com.netflix.spinnaker.keel.persistence.ResourceStatus
+import com.netflix.spinnaker.keel.persistence.ResourceStatus.ACTUATING
+import com.netflix.spinnaker.keel.persistence.ResourceStatus.DELETING
+import com.netflix.spinnaker.keel.services.ResourceStatusService
+import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -31,7 +38,9 @@ class EnvironmentCleaner(
   private val springEnv: SpringEnvironment,
   private val config: EnvironmentDeletionConfig,
   private val clock: Clock,
-  private val eventPublisher: ApplicationEventPublisher
+  private val eventPublisher: ApplicationEventPublisher,
+  private val resourceStatusService: ResourceStatusService,
+  private val taskLauncher: TaskLauncher
 ) {
   companion object {
     private val log by lazy { LoggerFactory.getLogger(EnvironmentCleaner::class.java) }
@@ -75,6 +84,41 @@ class EnvironmentCleaner(
       return
     }
 
+    if (resource.status == ACTUATING) {
+      log.debug("Skipping deletion of resource ${resource.id} as it's currently being actuated on.")
+      return
+    }
+
+    if (resource.status == DELETING) {
+      log.debug("Resource ${resource.id} is currently deleting. Checking status of deletion task(s).")
+      val deletionEvent = resourceRepository.eventHistory(resource.id, 1).firstOrNull()
+
+      if (deletionEvent == null || deletionEvent !is ResourceDeletionLaunched) {
+        log.warn("Expected ResourceDeletionLaunched event but found $deletionEvent")
+        return
+      }
+
+      val allDone = runBlocking {
+        deletionEvent.tasks.isEmpty() || deletionEvent.tasks.map {
+          async { taskLauncher.getTaskExecution(it.id) }
+        }.all {
+          val execution = it.await()
+          log.debug("Status of task ${execution.id} to delete resource ${resource.id} is ${execution.status}")
+          execution.status == SUCCEEDED
+        }
+      }
+
+      if (allDone) {
+        // This will cascade-delete the record in the environment_resource table
+        resourceRepository.delete(resource.id)
+        log.debug("Successfully deleted resource ${resource.name} of kind ${resource.kind}")
+      } else {
+        log.debug("Skipping deletion of resource ${resource.id} as it's currently being deleted or failed to delete.")
+      }
+
+      return
+    }
+
     log.debug("Deleting first candidate resource from environment ${environment.name}: ${resource.id}")
     val attempts = resourceRepository.countDeletionAttempts(resource)
     if (attempts >= config.maxResourceDeletionAttempts) {
@@ -85,12 +129,10 @@ class EnvironmentCleaner(
 
     try {
       val plugin = resourceHandlers.supporting(resource.kind)
-      runBlocking {
+      val tasks = runBlocking {
         plugin.delete(resource)
       }
-      // This will cascade-delete the record in the environment_resource table
-      resourceRepository.delete(resource.id)
-      log.debug("Successfully deleted resource ${resource.name} of kind ${resource.kind}")
+      eventPublisher.publishEvent(ResourceDeletionLaunched(resource, plugin.name, tasks, clock))
     } catch (e: Exception) {
       try {
         resourceRepository.incrementDeletionAttempts(resource)
@@ -99,6 +141,9 @@ class EnvironmentCleaner(
       }
     }
   }
+
+  private val Resource<*>.status: ResourceStatus
+    get() = resourceStatusService.getStatus(id)
 
   @Suppress("UNCHECKED_CAST")
   private suspend fun <S : ResourceSpec, R : Any> ResourceHandler<S, R>.delete(

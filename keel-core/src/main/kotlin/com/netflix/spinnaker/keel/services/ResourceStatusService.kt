@@ -10,6 +10,7 @@ import com.netflix.spinnaker.keel.events.ResourceActuationVetoed
 import com.netflix.spinnaker.keel.events.ResourceCheckError
 import com.netflix.spinnaker.keel.events.ResourceCheckUnresolvable
 import com.netflix.spinnaker.keel.events.ResourceCreated
+import com.netflix.spinnaker.keel.events.ResourceDeletionLaunched
 import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
 import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
 import com.netflix.spinnaker.keel.events.ResourceDiffNotActionable
@@ -27,6 +28,7 @@ import com.netflix.spinnaker.keel.persistence.ResourceStatus
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.ACTUATING
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.CREATED
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.CURRENTLY_UNRESOLVABLE
+import com.netflix.spinnaker.keel.persistence.ResourceStatus.DELETING
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.DIFF
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.DIFF_NOT_ACTIONABLE
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.ERROR
@@ -75,6 +77,7 @@ class ResourceStatusService(
       history.isError() -> ERROR
       history.isCreated() -> CREATED
       history.isResumed() -> RESUMED
+      history.isDeleting() -> DELETING
       history.isWaiting() -> WAITING // must be before CURRENTLY_UNRESOLVABLE because it's a special case of that status
       history.isCurrentlyUnresolvable() -> CURRENTLY_UNRESOLVABLE
       else -> UNKNOWN
@@ -131,9 +134,13 @@ class ResourceStatusService(
 
   private fun List<ResourceHistoryEvent>.isActuating(): Boolean {
     val first = first()
-    return first is ResourceActuationLaunched || first is ResourceTaskSucceeded ||
-      // we might want to move ResourceTaskFailed to isError later on
-      first is ResourceTaskFailed
+    val second = getOrNull(1)
+    return first is ResourceActuationLaunched ||
+      ( // TODO: we might want to move ResourceTaskFailed to isError later on
+        (first is ResourceTaskSucceeded || first is ResourceTaskFailed)
+          // the resource is only actuating if it's not being deleted
+          && second !is ResourceDeletionLaunched
+      )
   }
 
   private fun List<ResourceHistoryEvent>.isError(): Boolean {
@@ -167,6 +174,11 @@ class ResourceStatusService(
 
   private fun List<ResourceHistoryEvent>.isVetoed(): Boolean {
     return first() is ResourceActuationVetoed && (first() as ResourceActuationVetoed).getStatus() == UNHAPPY
+  }
+
+  private fun List<ResourceHistoryEvent>.isDeleting(): Boolean {
+    val first = first()
+    return first is ResourceDeletionLaunched
   }
 
   /**
