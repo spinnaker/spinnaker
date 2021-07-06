@@ -12,6 +12,7 @@ import {
   BakeCloudFoundryManifestConfig,
   validateBakeCloudFoundryManifestStage,
 } from './BakeCloudFoundryManifestConfig';
+import { BakeCloudFoundryManifestDetailsTab } from './BakeCloudFoundryManifestDetailsTab';
 
 export const BAKE_CF_MANIFEST_STAGE_KEY = 'bakeCloudFoundryManifest';
 
@@ -22,7 +23,7 @@ Registry.pipeline.registerStage({
   component: BakeCloudFoundryManifestConfig,
   producesArtifacts: true,
   cloudProvider: 'cloudfoundry',
-  executionDetailsSections: [ExecutionDetailsTasks, ExecutionArtifactTab],
+  executionDetailsSections: [BakeCloudFoundryManifestDetailsTab, ExecutionDetailsTasks, ExecutionArtifactTab],
   artifactExtractor: (fields: string[]) =>
     ExpectedArtifactService.accumulateArtifacts<IArtifact>(['inputArtifacts'])(fields).map((a: IArtifact) => a.id),
   artifactRemover: (stage: IStage, artifactId: string) => {

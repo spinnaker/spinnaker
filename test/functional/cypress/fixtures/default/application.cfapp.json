@@ -1,0 +1,18 @@
+{
+  "attributes": {
+    "accounts": "cloudfoundry",
+    "cloudProviders": "cloudfoundry",
+    "createTs": "1519160914577",
+    "dataSources": { "disabled": [], "enabled": [] },
+    "email": "sbws@google.com",
+    "instancePort": 80,
+    "lastModifiedBy": "anonymous",
+    "name": "cloudfoundryapp",
+    "platformHealthOnly": true,
+    "providerSettings": { "cloudfoundry": { "associatePublicIpAddress": false } },
+    "updateTs": "1544636963981",
+    "user": "[anonymous]"
+  },
+  "clusters": {},
+  "name": "cloudfoundryapp"
+}

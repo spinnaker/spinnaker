@@ -1,0 +1,234 @@
+[
+  {
+      "application": "cloudfoundryapp",
+      "authentication": {
+        "user": "anonymous",
+        "allowedAccounts": [
+          "cristian",
+          "cf-armory-a",
+          "aws-ps-dev"
+        ]
+      },
+      "buildTime": 1621623079321,
+      "canceled": false,
+      "type": "PIPELINE",
+      "id": "01F6848ZR2N8NJAPBVTEP9R8FV",
+      "name": "bake-cf-manifest",
+    
+      "limitConcurrent": true,
+      "keepWaitingPipelines": false,
+      "stages": [
+        {
+          "id": "01F68490CSTK810M72T4KBTZH0",
+          "refId": "1",
+          "type": "bakeCloudFoundryManifest",
+          "name": "Bake CloudFoundry Manifest",
+          "startTime": 1621623079603,
+          "endTime": 1621623080749,
+          "status": "SUCCEEDED",
+          "context": {
+            "expectedArtifacts": [
+              {
+                "usePriorArtifact": false,
+                "displayName": "baked-manifest-name",
+                "useDefaultArtifact": false,
+                "defaultArtifact": {
+                  "customKind": true,
+                  "id": "51f73090-15b6-4046-9846-a327cb72eed5"
+                },
+                "id": "11b9d248-db8c-4a48-9bc8-1b213461f40d",
+                "matchArtifact": {
+                  "name": "baked-manifest-name",
+                  "artifactAccount": "embedded-artifact",
+                  "id": "94cdff29-067e-47c7-b350-231af54c6d80",
+                  "type": "embedded/base64"
+                }
+              }
+            ],
+            "outputName": "baked-manifest-name",
+            "cloudProvider": "cloudfoundry",
+            "resolvedExpectedArtifacts": [
+              {
+                "usePriorArtifact": false,
+                "useDefaultArtifact": false,
+                "defaultArtifact": {
+                  "customKind": true,
+                  "metadata": {
+                    "id": "51f73090-15b6-4046-9846-a327cb72eed5"
+                  }
+                },
+                "id": "11b9d248-db8c-4a48-9bc8-1b213461f40d",
+                "boundArtifact": {
+                  "customKind": false,
+                  "reference": "LS0tCmFwcGxpY2F0aW9uczoKLSBuYW1lOiB0ZXN0LWFwcAogIGluc3RhbmNlczogMgogIG1lbW9yeTogMUcKICBidWlsZHBhY2tzOgogIC0gZ29fYnVpbGRwYWNrCiAgZW52OgogICAgR09QQUNLQUdFTkFNRTogZ29fY2FsbHNfcnVieQogIGNvbW1hbmQ6IGdvX2NhbGxzX3J1Ynk=",
+                  "metadata": {
+                    
+                  },
+                  "name": "baked-manifest-name",
+                  "type": "embedded/base64"
+                },
+                "matchArtifact": {
+                  "customKind": false,
+                  "metadata": {
+                    "id": "94cdff29-067e-47c7-b350-231af54c6d80"
+                  },
+                  "name": "baked-manifest-name",
+                  "artifactAccount": "embedded-artifact",
+                  "type": "embedded/base64"
+                }
+              }
+            ],
+            "inputArtifacts": [
+              {
+                "artifact": {
+                  "reference": "LS0tCmFwcGxpY2F0aW9uczoKLSBuYW1lOiB0ZXN0LWFwcAogIGluc3RhbmNlczogMgogIG1lbW9yeTogKChtZW1vcnkpKQogIGJ1aWxkcGFja3M6CiAgLSBnb19idWlsZHBhY2sKICBlbnY6CiAgICBHT1BBQ0tBR0VOQU1FOiBnb19jYWxsc19ydWJ5CiAgY29tbWFuZDogZ29fY2FsbHNfcnVieQ==",
+                  "name": "manifest",
+                  "artifactAccount": "embedded-artifact",
+                  "id": "dd2aee49-1eac-448d-a0d7-dab29936b17b",
+                  "type": "embedded/base64"
+                },
+                "account": "embedded-artifact"
+              },
+              {
+                "artifact": {
+                  "reference": "bWVtb3J5OiAxRw==",
+                  "name": "variables",
+                  "artifactAccount": "embedded-artifact",
+                  "id": "0a72dc34-bbfa-42cf-b80e-1d75aec7929d",
+                  "type": "embedded/base64"
+                },
+                "account": "embedded-artifact"
+              }
+            ],
+            "artifacts": [
+              {
+                "customKind": false,
+                "reference": "LS0tCmFwcGxpY2F0aW9uczoKLSBuYW1lOiB0ZXN0LWFwcAogIGluc3RhbmNlczogMgogIG1lbW9yeTogMUcKICBidWlsZHBhY2tzOgogIC0gZ29fYnVpbGRwYWNrCiAgZW52OgogICAgR09QQUNLQUdFTkFNRTogZ29fY2FsbHNfcnVieQogIGNvbW1hbmQ6IGdvX2NhbGxzX3J1Ynk=",
+                "metadata": {
+                  
+                },
+                "name": "baked-manifest-name",
+                "type": "embedded/base64"
+              }
+            ]
+          },
+          "outputs": {
+            "cloudProvider": "cloudfoundry",
+            "artifacts": [
+              {
+                "type": "embedded/base64",
+                "customKind": false,
+                "name": "baked-manifest-name",
+                "reference": "LS0tCmFwcGxpY2F0aW9uczoKLSBuYW1lOiB0ZXN0LWFwcAogIGluc3RhbmNlczogMgogIG1lbW9yeTogMUcKICBidWlsZHBhY2tzOgogIC0gZ29fYnVpbGRwYWNrCiAgZW52OgogICAgR09QQUNLQUdFTkFNRTogZ29fY2FsbHNfcnVieQogIGNvbW1hbmQ6IGdvX2NhbGxzX3J1Ynk=",
+                "metadata": {
+                  
+                }
+              }
+            ],
+            "resolvedExpectedArtifacts": [
+              {
+                "matchArtifact": {
+                  "type": "embedded/base64",
+                  "customKind": false,
+                  "name": "baked-manifest-name",
+                  "metadata": {
+                    "id": "94cdff29-067e-47c7-b350-231af54c6d80"
+                  },
+                  "artifactAccount": "embedded-artifact"
+                },
+                "usePriorArtifact": false,
+                "useDefaultArtifact": false,
+                "defaultArtifact": {
+                  "customKind": true,
+                  "metadata": {
+                    "id": "51f73090-15b6-4046-9846-a327cb72eed5"
+                  }
+                },
+                "id": "11b9d248-db8c-4a48-9bc8-1b213461f40d",
+                "boundArtifact": {
+                  "type": "embedded/base64",
+                  "customKind": false,
+                  "name": "baked-manifest-name",
+                  "reference": "LS0tCmFwcGxpY2F0aW9uczoKLSBuYW1lOiB0ZXN0LWFwcAogIGluc3RhbmNlczogMgogIG1lbW9yeTogMUcKICBidWlsZHBhY2tzOgogIC0gZ29fYnVpbGRwYWNrCiAgZW52OgogICAgR09QQUNLQUdFTkFNRTogZ29fY2FsbHNfcnVieQogIGNvbW1hbmQ6IGdvX2NhbGxzX3J1Ynk=",
+                  "metadata": {
+                    
+                  }
+                }
+              }
+            ]
+          },
+          "tasks": [
+            {
+              "id": "1",
+              "implementingClass": "com.netflix.spinnaker.orca.bakery.tasks.manifests.cf.BakeCloudFoundryManifestTask",
+              "name": "bakeCloudFoundryManifest",
+              "startTime": 1621623079656,
+              "endTime": 1621623080522,
+              "status": "SUCCEEDED",
+              "stageStart": true,
+              "stageEnd": false,
+              "loopStart": false,
+              "loopEnd": false
+            },
+            {
+              "id": "2",
+              "implementingClass": "com.netflix.spinnaker.orca.pipeline.tasks.artifacts.BindProducedArtifactsTask",
+              "name": "bindProducedArtifacts",
+              "startTime": 1621623080573,
+              "endTime": 1621623080709,
+              "status": "SUCCEEDED",
+              "stageStart": false,
+              "stageEnd": true,
+              "loopStart": false,
+              "loopEnd": false
+            }
+          ],
+          "requisiteStageRefIds": [
+            
+          ]
+        }
+      ],
+      "startTime": 1621623079516,
+      "endTime": 1621623080872,
+      "status": "SUCCEEDED",
+
+      "origin": "deck",
+      "trigger": {
+        "type": "manual",
+        "user": "[anonymous]",
+        "parameters": {
+          
+        },
+        "artifacts": [
+          
+        ],
+        "notifications": [
+          
+        ],
+        "rebake": false,
+        "dryRun": false,
+        "strategy": false,
+        "resolvedExpectedArtifacts": [
+          
+        ],
+        "expectedArtifacts": [
+          
+        ],
+        "executionId": "01F6848ZR2N8NJAPBVTEP9R8FV",
+        "eventId": "7fb40d1f-2d80-49c3-8e28-0caed78bea57",
+        "enabled": false,
+        "preferred": false
+      },
+      "pipelineConfigId": "871f4f59-0d94-4675-8a54-307d46f085ff",
+      "notifications": [
+        
+      ],
+      "initialConfig": {
+        
+      },
+      "systemNotifications": [
+        
+      ],
+      "spelEvaluator": "v4"
+    }
+]
