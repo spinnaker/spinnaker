@@ -34,8 +34,8 @@ import java.util.function.Function;
 import javax.annotation.Nullable;
 
 class AbstractCloudFoundryWaitForServiceOperationTaskTest<T extends AbstractWaitForServiceTask> {
-  private final String operationType;
-  private final Function<OortService, T> subjectConstructor;
+  protected final String operationType;
+  protected final Function<OortService, T> subjectConstructor;
 
   AbstractCloudFoundryWaitForServiceOperationTaskTest(
       String operationType, Function<OortService, T> subjectConstructor) {

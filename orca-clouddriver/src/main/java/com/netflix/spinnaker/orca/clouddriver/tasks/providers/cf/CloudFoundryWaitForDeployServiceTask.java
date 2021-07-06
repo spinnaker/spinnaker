@@ -16,11 +16,14 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf;
 
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.servicebroker.AbstractWaitForServiceTask;
 import java.util.Map;
 import java.util.Optional;
+import javax.annotation.Nonnull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -31,6 +34,41 @@ public class CloudFoundryWaitForDeployServiceTask extends AbstractWaitForService
     super(oortService);
   }
 
+  @Nonnull
+  @Override
+  public TaskResult execute(@Nonnull StageExecution stage) {
+    String cloudProvider = getCloudProvider(stage);
+    String account = stage.mapTo("/service.account", String.class);
+    String region = stage.mapTo("/service.region", String.class);
+    String serviceInstanceName = stage.mapTo("/service.instance.name", String.class);
+
+    Map<String, Object> serviceInstance =
+        oortService.getServiceInstance(account, cloudProvider, region, serviceInstanceName);
+
+    ExecutionStatus status = oortStatusToTaskStatus(serviceInstance);
+
+    TaskResult.TaskResultBuilder taskResultBuilder = TaskResult.builder(status);
+    Optional.ofNullable(serviceInstance)
+        .ifPresent(
+            (si) -> {
+              String lastOperationDescription =
+                  Optional.ofNullable(serviceInstance.get("lastOperationDescription"))
+                      .orElse("Failed to get last operation description")
+                      .toString();
+              taskResultBuilder
+                  .output(
+                      "lastOperationStatus",
+                      Optional.ofNullable(serviceInstance.get("status")).orElse("").toString())
+                  .output("lastOperationDescription", lastOperationDescription);
+              if (status == ExecutionStatus.TERMINAL) {
+                taskResultBuilder.output("failureMessage", lastOperationDescription);
+              }
+            });
+
+    return taskResultBuilder.build();
+  }
+
+  @Override
   protected ExecutionStatus oortStatusToTaskStatus(Map m) {
     return Optional.ofNullable(m)
         .map(

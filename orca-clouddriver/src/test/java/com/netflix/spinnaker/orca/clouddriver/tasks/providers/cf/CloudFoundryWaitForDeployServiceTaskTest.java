@@ -16,8 +16,20 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf;
 
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.matches;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import com.netflix.spinnaker.orca.clouddriver.OortService;
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class CloudFoundryWaitForDeployServiceTaskTest
@@ -42,6 +54,42 @@ class CloudFoundryWaitForDeployServiceTaskTest
   void isRunningWhenOortResultIsInProgress() {
     testOortServiceStatus(
         ExecutionStatus.RUNNING, Collections.singletonMap("status", "IN_PROGRESS"));
+  }
+
+  @Test
+  void addsLastOperationStatusAndDescriptinoWhenOortResultIsFailed() {
+    OortService oortService = mock(OortService.class);
+    String credentials = "my-account";
+    String cloudProvider = "cloud";
+    String region = "org > space";
+    String serviceInstanceName = "service-instance-name";
+    when(oortService.getServiceInstance(
+            matches(credentials),
+            matches(cloudProvider),
+            matches(region),
+            matches(serviceInstanceName)))
+        .thenReturn(
+            Map.of(
+                "status", "FAILED",
+                "lastOperationDescription", "Custom description"));
+
+    CloudFoundryWaitForDeployServiceTask task = subjectConstructor.apply(oortService);
+
+    Map<String, Object> context = new HashMap<>();
+    context.put("cloudProvider", cloudProvider);
+    context.put("service.account", credentials);
+    context.put("service.region", region);
+    context.put("service.instance.name", serviceInstanceName);
+
+    TaskResult result =
+        task.execute(
+            new StageExecutionImpl(
+                new PipelineExecutionImpl(PIPELINE, "orca"), operationType, context));
+
+    assertThat(result.getStatus().toString()).isEqualTo(ExecutionStatus.TERMINAL.toString());
+    assertThat(result.getOutputs().get("lastOperationStatus")).isEqualTo("FAILED");
+    assertThat(result.getOutputs().get("lastOperationDescription")).isEqualTo("Custom description");
+    assertThat(result.getOutputs().get("failureMessage")).isEqualTo("Custom description");
   }
 
   @Test
