@@ -19,9 +19,9 @@ package googleserviceaccount
 import "golang.org/x/oauth2"
 
 type Config struct {
-	File string `yaml:"file"`
+	File string `json:"file" yaml:"file"`
 
-	CachedToken *oauth2.Token `yaml:"cachedToken,omitempty"`
+	CachedToken *oauth2.Token `json:"cachedToken,omitempty" yaml:"cachedToken,omitempty"`
 }
 
 func (g *Config) IsEnabled() bool {

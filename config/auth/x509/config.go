@@ -17,10 +17,10 @@ package x509
 // Config is the configuration for using X.509 certs to
 // authenticate with Spinnaker.
 type Config struct {
-	CertPath string `yaml:"certPath"`
-	KeyPath  string `yaml:"keyPath"`
-	Cert     string `yaml:"cert"` // Cert is base64 encoded PEM block.
-	Key      string `yaml:"key"`  // Key is base64 encoded PEM block.
+	CertPath string `json:"certPath" yaml:"certPath"`
+	KeyPath  string `json:"keyPath" yaml:"keyPath"`
+	Cert     string `json:"cert" yaml:"cert"` // Cert is base64 encoded PEM block.
+	Key      string `json:"key" yaml:"key"`   // Key is base64 encoded PEM block.
 }
 
 func (x *Config) IsValid() bool {

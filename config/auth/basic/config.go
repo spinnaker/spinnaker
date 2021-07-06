@@ -15,8 +15,8 @@
 package basic
 
 type Config struct {
-	Username string `yaml:"username"`
-	Password string `yaml:"password"`
+	Username string `json:"username" yaml:"username"`
+	Password string `json:"password" yaml:"password"`
 }
 
 func (b *Config) IsValid() bool {
