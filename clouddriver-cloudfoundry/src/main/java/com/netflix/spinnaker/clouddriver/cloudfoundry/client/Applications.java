@@ -637,7 +637,7 @@ public class Applications {
       getTakenSlots(String clusterName, String spaceId) {
     String finalName = buildFinalAsgName(clusterName);
     List<String> filter =
-        asList("name<" + finalName, "name>=" + clusterName, "space_guid:" + spaceId);
+        asList("name<=" + finalName, "name>=" + clusterName, "space_guid:" + spaceId);
     return collectPageResources("applications", page -> api.listAppsFiltered(page, filter, 10))
         .stream()
         .filter(
