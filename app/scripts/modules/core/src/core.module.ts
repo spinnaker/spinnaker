@@ -17,7 +17,7 @@ import '@spinnaker/styleguide/public/styleguide.min.css';
 import 'Select2/select2.css';
 import 'select2-bootstrap-css/select2-bootstrap.css';
 import 'source-sans-pro/source-sans-pro.css';
-import 'root/app/fonts/spinnaker/icons.css';
+import './fonts/icons.css';
 
 import UI_ROUTER from '@uirouter/angularjs';
 import '@uirouter/angularjs/release/stateEvents';

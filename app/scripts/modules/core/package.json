@@ -82,7 +82,6 @@
     "ui-select": "0.19.8"
   },
   "devDependencies": {
-    "@rollup/plugin-alias": "^3.1.2",
     "@spinnaker/eslint-plugin": "1.0.13",
     "@spinnaker/scripts": "0.0.14",
     "@types/angular": "1.6.26",
