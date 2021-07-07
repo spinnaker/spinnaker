@@ -50,7 +50,7 @@ class DebianArtifactSupplier(
       log.info("Fetching latest $limit debian versions for $artifact")
       val versions = artifactService.getVersions(artifact.name, artifact.statusesForQuery, DEBIAN)
 
-      if (forceSortByVersion) {
+      val importantVersions = if (forceSortByVersion) {
         versions.sortedWith(DEBIAN_VERSION_COMPARATOR)
           .take(limit)
           .map {
@@ -68,6 +68,18 @@ class DebianArtifactSupplier(
           }
           .sortedWith(artifact.sortingStrategy.comparator)
           .take(limit) // versioning strategies return descending by default... ¯\_(ツ)_/¯
+      }
+
+      importantVersions.map {
+        // add the correct architecture to the metadata
+        //  given a reference like debian-local:pool/w/my-deb/my-deb_1.0.0~rc.1-h5.23b8241_all.deb
+        //  pull out the arch (the 'all' before the '.deb') and add that to the metadata
+        val arch = it.reference.split("_").lastOrNull()?.split(".")?.firstOrNull()
+        if (arch != null) {
+          it.copy(metadata = it.metadata + mapOf("arch" to arch))
+        } else {
+          it
+        }
       }
   }
 

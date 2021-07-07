@@ -45,10 +45,10 @@ data class PublishedArtifact(
     type = type.toLowerCase(),
     reference = name,
     version = version,
-    metadata = mapOf(
+    metadata = (metadata ?: emptyMap()) + mapOf(
       "releaseStatus" to status?.name,
       "createdAt" to createdAt
-    ) + (metadata ?: emptyMap()),
+    ) ,
     gitMetadata = gitMetadata,
     buildMetadata = buildMetadata
   )

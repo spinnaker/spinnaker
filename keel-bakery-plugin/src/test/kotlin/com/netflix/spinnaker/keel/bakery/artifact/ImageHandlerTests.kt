@@ -7,6 +7,7 @@ import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.BaseLabel.RELEASE
 import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.artifacts.StoreType.EBS
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.events.ArtifactRegisteredEvent
@@ -66,6 +67,8 @@ internal class ImageHandlerTests : JUnit5Minutests {
       artifact = artifact
     )
 
+    val appVersion = "${artifact.name}-0.161.0-h63.24d0843"
+    val baseAmiName = "bionicbase-x86_64-202103092356-ebs"
     val repository = mockk<KeelRepository>(relaxUnitFun = true) {
       every { getDeliveryConfig(any()) } returns deliveryConfig
     }
@@ -92,9 +95,6 @@ internal class ImageHandlerTests : JUnit5Minutests {
       pausedRepository,
       MockEnvironment()
     )
-
-    val appVersion = "${artifact.name}-0.161.0-h63.24d0843"
-    val baseAmiName = "bionicbase-x86_64-202103092356-ebs"
 
     val image = NamedImage(
       imageName = "$appVersion-$baseAmiName",
@@ -342,6 +342,14 @@ internal class ImageHandlerTests : JUnit5Minutests {
                     )
                   } returns null
 
+                  every { repository.getArtifactVersion(artifact, appVersion, null) } returns PublishedArtifact(
+                    name = artifact.name,
+                    reference = artifact.reference,
+                    version = appVersion,
+                    type = DEBIAN,
+                    metadata = emptyMap()
+                  )
+
                   runHandler(artifact)
                 }
 
@@ -372,7 +380,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
                   }
                 }
 
-                test("the artifact details are attached") {
+                test("the artifact details are attached and we default to the '_all' arch") {
                   expectThat(bakeTaskArtifact)
                     .isCaptured()
                     .captured
@@ -381,6 +389,41 @@ internal class ImageHandlerTests : JUnit5Minutests {
                       get("name") isEqualTo artifact.name
                       get("version") isEqualTo appVersion.removePrefix("${artifact.name}-")
                       get("reference") isEqualTo "/${appVersion.replaceFirst('-', '_')}_all.deb"
+                    }
+                }
+              }
+
+              context("ami for the desired version does not exist and we can pick the correct arch") {
+                before {
+                  every {
+                    imageService.getLatestNamedImage(
+                      AppVersion.parseName(appVersion),
+                      "test",
+                      any(),
+                      artifact.vmOptions.baseOs
+                    )
+                  } returns null
+
+                  every { repository.getArtifactVersion(artifact, appVersion, null) } returns PublishedArtifact(
+                    name = artifact.name,
+                    reference = artifact.reference,
+                    version = appVersion,
+                    type = DEBIAN,
+                    metadata = mapOf("arch" to "amd64")
+                  )
+
+                  runHandler(artifact)
+                }
+
+                test("the artifact details are attached with the correct arch") {
+                  expectThat(bakeTask)
+                    .isCaptured()
+                    .captured
+                    .hasSize(1)
+                    .first()
+                    .and {
+                      get("type").isEqualTo("bake")
+                      get("package").isEqualTo("${appVersion.replaceFirst('-', '_')}_amd64.deb")
                     }
                 }
               }
@@ -403,6 +446,14 @@ internal class ImageHandlerTests : JUnit5Minutests {
                       artifact.vmOptions.baseOs
                     )
                   } returns null
+
+                  every { repository.getArtifactVersion(artifact, appVersion, null) } returns PublishedArtifact(
+                    name = artifact.name,
+                    reference = artifact.reference,
+                    version = appVersion,
+                    type = DEBIAN,
+                    metadata = emptyMap()
+                  )
 
                   runHandler(artifact)
                 }
@@ -441,6 +492,14 @@ internal class ImageHandlerTests : JUnit5Minutests {
                   every {
                     imageService.getLatestNamedImage(any(), any(), any(), any())
                   } returns image
+
+                  every { repository.getArtifactVersion(artifact, appVersion, null) } returns PublishedArtifact(
+                    name = artifact.name,
+                    reference = artifact.reference,
+                    version = appVersion,
+                    type = DEBIAN,
+                    metadata = emptyMap()
+                  )
 
                   runHandler(artifact)
                 }

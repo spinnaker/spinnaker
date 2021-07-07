@@ -321,14 +321,15 @@ class SqlArtifactRepository(
           ARTIFACT_VERSIONS.RELEASE_STATUS,
           ARTIFACT_VERSIONS.CREATED_AT,
           ARTIFACT_VERSIONS.GIT_METADATA,
-          ARTIFACT_VERSIONS.BUILD_METADATA
+          ARTIFACT_VERSIONS.BUILD_METADATA,
+          ARTIFACT_VERSIONS.ORIGINAL_METADATA
         )
         .from(ARTIFACT_VERSIONS)
         .where(ARTIFACT_VERSIONS.NAME.eq(artifact.name))
         .and(ARTIFACT_VERSIONS.TYPE.eq(artifact.type))
         .and(ARTIFACT_VERSIONS.VERSION.eq(version))
         .apply { if (status != null) and(ARTIFACT_VERSIONS.RELEASE_STATUS.eq(status)) }
-        .fetchOne { (name, type, version, status, createdAt, gitMetadata, buildMetadata) ->
+        .fetchOne { (name, type, version, status, createdAt, gitMetadata, buildMetadata, originalMetadata) ->
           PublishedArtifact(
             name = name,
             type = type,
@@ -337,6 +338,7 @@ class SqlArtifactRepository(
             createdAt = createdAt,
             gitMetadata = gitMetadata,
             buildMetadata = buildMetadata,
+            metadata = originalMetadata?.let { objectMapper.readValue(it) } ?: emptyMap()
           )
         }
     }

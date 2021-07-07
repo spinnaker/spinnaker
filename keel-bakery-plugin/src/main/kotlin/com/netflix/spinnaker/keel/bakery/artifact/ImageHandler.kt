@@ -18,7 +18,6 @@ import com.netflix.spinnaker.keel.lifecycle.LifecycleEvent
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventScope.PRE_DEPLOYMENT
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus.NOT_STARTED
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventType.BAKE
-import com.netflix.spinnaker.keel.api.actuation.Job
 import com.netflix.spinnaker.keel.model.OrcaJob
 import com.netflix.spinnaker.keel.parseAppVersion
 import com.netflix.spinnaker.keel.persistence.BakedImageRepository
@@ -175,7 +174,13 @@ class ImageHandler(
     val appVersion = desiredVersion.parseAppVersion()
     val packageName = appVersion.packageName
     val version = desiredVersion.substringAfter("$packageName-")
-    val artifactRef = "/${packageName}_${version}_all.deb"
+    val fullArtifact = repository.getArtifactVersion(
+      artifact,
+      desiredVersion,
+      null
+    )
+    val arch = fullArtifact?.metadata?.get("arch") ?: "all"
+    val artifactRef = "/${packageName}_${version}_$arch.deb"
     val artifactPayload = mapOf(
       "type" to "DEB",
       "customKind" to false,
