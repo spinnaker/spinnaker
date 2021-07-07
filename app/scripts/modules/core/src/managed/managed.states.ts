@@ -78,7 +78,7 @@ module(MANAGED_STATES, [APPLICATION_STATE_PROVIDER]).config([
 
       const environments: INestedState = {
         name: 'environments',
-        url: `/environments`,
+        url: `/environments?{md_debug:query}`,
         views: {
           insight: { component: Environments, $type: 'react' },
         },

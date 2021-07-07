@@ -3,11 +3,13 @@ import { DateTime } from 'luxon';
 
 import { useApplicationContextSafe } from 'core/presentation';
 import { timeDiffToString } from 'core/utils';
+import { copyTextToClipboard } from 'core/utils/clipboard/copyTextToClipboard';
 
 import { ACTION_DISPLAY_NAMES, getActionStatusData } from './VersionOperation';
 import { MdArtifactStatusInEnvironment } from '../../graphql/graphql-sdk';
 import { useMarkVersionAsBad, useMarkVersionAsGood, usePinVersion, useUnpinVersion } from './hooks';
 import { QueryArtifactVersion, QueryConstraint, QueryLifecycleStep } from '../types';
+import { getIsDebugMode } from '../../utils/debugMode';
 import { VersionAction } from '../../versionMetadata/MetadataComponents';
 
 export const getConstraintsStatusSummary = (constraints: QueryConstraint[]) => {
@@ -149,6 +151,15 @@ export const useCreateVersionActions = ({
   }
   if (compareLinks?.previous) {
     actions.push({ content: 'Compare to previous version', href: compareLinks.previous });
+  }
+
+  if (getIsDebugMode()) {
+    actions.push({
+      content: 'Copy artifact version [Debug]',
+      onClick: () => {
+        copyTextToClipboard(version);
+      },
+    });
   }
 
   return actions.length ? actions : undefined;

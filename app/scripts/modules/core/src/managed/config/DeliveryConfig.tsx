@@ -4,6 +4,7 @@ import AceEditor from 'react-ace';
 import { useApplicationContextSafe, useData } from 'core/presentation';
 
 import { ManagedReader } from '..';
+import { getIsDebugMode } from '../utils/debugMode';
 import { useLogEvent } from '../utils/logging';
 
 const DeliveryConfigContentRenderer = ({ content }: { content: string }) => {
@@ -40,6 +41,7 @@ export const DeliveryConfig = () => {
   const app = useApplicationContextSafe();
   const { result, error, status } = useData(() => ManagedReader.getRawDeliveryConfig(app.name), undefined, [app]);
   const logError = useLogEvent('DeliveryConfig');
+  const isDebug = getIsDebugMode();
   React.useEffect(() => {
     if (error) {
       logError({ action: 'LoadingFailed', data: { error } });
@@ -57,6 +59,20 @@ export const DeliveryConfig = () => {
           <DeliveryConfigContentRenderer content={result} />
         </>
       )}
+      {isDebug && <ProcessedDeliveryConfig />}
+    </div>
+  );
+};
+
+const ProcessedDeliveryConfig = () => {
+  const app = useApplicationContextSafe();
+  const { result } = useData(() => ManagedReader.getProcessedDeliveryConfig(app.name), undefined, [app]);
+
+  if (!result) return null;
+  return (
+    <div className="sp-margin-l-top">
+      <h4>Debug: Processed delivery config</h4>
+      <DeliveryConfigContentRenderer content={result} />
     </div>
   );
 };
