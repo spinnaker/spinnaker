@@ -166,7 +166,7 @@ fun PublishedArtifact.toCodeEvent(): CodeEvent? {
   }
 }
 
-internal val INTERESTING_CODE_EVENTS = setOf("create_commit", "pr_opened", "pr_merged")
+internal val INTERESTING_CODE_EVENTS = setOf("create_commit", "pr_opened", "pr_merged", "pr_declined", "pr_deleted")
 
 val PublishedArtifact.isCodeEvent: Boolean
   get() = type in INTERESTING_CODE_EVENTS
