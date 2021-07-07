@@ -184,10 +184,11 @@ private val PublishedArtifact.sha: String
   get() = metadata["sha"] as? String ?: throw MissingCodeEventDetails("commit hash", this)
 
 private val PublishedArtifact.pullRequestId: String
-  get() = metadata["prId"] as? String?: throw MissingCodeEventDetails("PR ID", this)
+  get() = metadata["prId"] as? String ?: throw MissingCodeEventDetails("PR ID", this)
 
 private val PublishedArtifact.pullRequestBranch: String
-  get() = metadata["prBranch"] as? String?: throw MissingCodeEventDetails("PR branch", this)
+  get() = (metadata["prBranch"] as? String)?.let { it.replace("refs/heads/", "") }
+    ?: throw MissingCodeEventDetails("PR branch", this)
 
 class MissingCodeEventDetails(what: String, event: PublishedArtifact) :
   SystemException("Missing $what information in code event: $event")
