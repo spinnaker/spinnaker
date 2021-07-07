@@ -2,6 +2,7 @@ import React from 'react';
 import { mock } from 'angular';
 import { mount } from 'enzyme';
 
+import { mockServerGroupDataSourceConfig } from '@spinnaker/mocks';
 import { ApplicationModelBuilder, IStage, REACT_MODULE, SpinFormik, StageConfigField } from '@spinnaker/core';
 import { CloudFoundryDeleteServiceBindingsStageConfigForm } from './CloudFoundryDeleteServiceBindingsStageConfigForm';
 
@@ -11,7 +12,7 @@ describe('<CloudFoundryDeleteServiceBindingsStageConfigForm/>', function () {
 
   const getProps = () => {
     return {
-      application: ApplicationModelBuilder.createApplicationForTests('my-application'),
+      application: ApplicationModelBuilder.createApplicationForTests('my-application', mockServerGroupDataSourceConfig),
       pipeline: {
         application: 'my-application',
         id: 'pipeline-id',
