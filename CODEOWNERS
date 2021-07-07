@@ -1,5 +1,5 @@
-clouddriver-kubernetes/    @maggieneterval @ethanfrogers @german-muzquiz
-clouddriver-google/        @maggieneterval @plumpy
+clouddriver-kubernetes/    @ethanfrogers @german-muzquiz
+clouddriver-google/        @plumpy
 clouddriver-cloudfoundry/  @zachsmith1
 clouddriver-appengine/     @zachsmith1
 clouddriver-lambda/        @zachsmith1
