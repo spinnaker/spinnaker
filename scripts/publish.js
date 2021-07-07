@@ -7,6 +7,8 @@ const ansi = require('sisteransi');
 const yargs = require('yargs');
 const { execSync } = require('child_process');
 
+const MODULES_DIR = 'app/scripts/modules';
+
 yargs.scriptName('publish.js').usage('$0 [args] [explicitPackage1...] [explicitPackage2...]').option('assert-master', {
   type: 'boolean',
   describe: 'turn off with --no-assert-master',
@@ -15,10 +17,20 @@ yargs.scriptName('publish.js').usage('$0 [args] [explicitPackage1...] [explicitP
 
 const explicitPackages = yargs.argv._;
 
-process.cwd(__dirname);
 const p = (str) => process.stdout.write(str);
-const files = fs.readdirSync(process.cwd());
-const pkgs = files.filter((file) => fs.statSync(file).isDirectory() && fs.existsSync(path.join(file, 'package.json')));
+const getPackagePath = (pkg) => path.resolve(`${MODULES_DIR}/${pkg}`);
+const isPackagePrivate = (pkg) => {
+  return !!JSON.parse(fs.readFileSync(`${getPackagePath(pkg)}/package.json`)).private;
+};
+
+process.chdir(`${__dirname}/..`);
+const files = fs.readdirSync(path.resolve(MODULES_DIR));
+const pkgs = files.filter(
+  (file) =>
+    fs.statSync(`${MODULES_DIR}/${file}`).isDirectory() &&
+    fs.existsSync(`${getPackagePath(file)}/package.json`) &&
+    !isPackagePrivate(file),
+);
 
 // Ensure 'gh' is installed
 try {
@@ -49,7 +61,7 @@ const upstream = upstreamRemoteLine ? /^([\w]+)/.exec(upstreamRemoteLine)[1] : n
 // Ensure the working directory is clean and tracks master
 try {
   if (yargs.argv['assert-master']) {
-    execSync('sh -c "./assert_clean_master.sh"');
+    execSync('sh -c "./scripts/assert_clean_master.sh"');
   }
 } catch (error) {
   process.exit(3);
@@ -71,7 +83,7 @@ const changelogs = pkgs.map((pkg, index) => {
   status(`Fetching changelog for ${kleur.bold(pkg)}...`, index, pkgs.length);
   return {
     pkg,
-    lines: execSync(`/bin/sh -c './show_changelog.sh "${pkg}/package.json"'`)
+    lines: execSync(`/bin/sh -c './scripts/show_changelog.sh "${getPackagePath(pkg)}/package.json"'`)
       .toString()
       .split(/[\r\n]/)
       .filter((str) => !!str),
@@ -151,8 +163,8 @@ function bumpPackages(packages = []) {
     const publishes = [];
     // Update package.json and build the branch name
     packages.forEach((pkg) => {
-      execSync(`sh -c "cd ${pkg}; npm version patch --no-git-tag-version"`);
-      const version = JSON.parse(fs.readFileSync(`${pkg}/package.json`).toString()).version;
+      execSync(`sh -c "cd ${getPackagePath(pkg)}; npm version patch --no-git-tag-version"`);
+      const version = JSON.parse(fs.readFileSync(`${getPackagePath(pkg)}/package.json`).toString()).version;
       const changelog = changelogs.find((cl) => cl.pkg === pkg);
       publishes.push({ pkg, version, lines: changelog && changelog.lines });
     });
@@ -167,7 +179,7 @@ function bumpPackages(packages = []) {
       const commitMessageFile = `____commitmessage.${pkg}.tmp`;
       try {
         fs.writeFileSync(commitMessageFile, commitMessage);
-        execSync(`sh -c "git commit ${pkg}/package.json -F ${commitMessageFile}"`);
+        execSync(`sh -c "git commit ${getPackagePath(pkg)}/package.json -F ${commitMessageFile}"`);
       } finally {
         fs.unlinkSync(commitMessageFile);
       }
@@ -185,7 +197,7 @@ function bumpPackages(packages = []) {
 
     // export msg=$(cat msg) ; gh create pr -b "$msg"
     const changes = publishes.map((p) => `## ${p.pkg}@${p.version}\n\n${p.lines.join('\n')}`);
-    fs.writeFileSync(CHANGELOGTEMP, changes.join('\n\n') + '\n\nPR created via `modules/publish.js`\n\n');
+    fs.writeFileSync(CHANGELOGTEMP, changes.join('\n\n') + '\n\nPR created via `scripts/publish.js`\n\n');
     const title = 'chore(package): ' + publishes.map((p) => `${p.pkg}@${p.version}`).join(' ');
     execSync(`sh -c 'export msg=$(cat "${CHANGELOGTEMP}") ; gh pr create --title "${title}" --body "$msg"'`);
   } finally {

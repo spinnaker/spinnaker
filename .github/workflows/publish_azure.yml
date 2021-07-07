@@ -20,7 +20,7 @@ jobs:
       - name: publish azure
         run: |
           npm config set //registry.npmjs.org/:_authToken=$NPM_AUTH_TOKEN
-          app/scripts/modules/github_actions_publish.sh azure
+          scripts/github_actions_publish.sh azure
         env:
           CI: true
           NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}

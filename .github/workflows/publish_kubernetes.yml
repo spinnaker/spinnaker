@@ -20,7 +20,7 @@ jobs:
       - name: publish kubernetes
         run: |
           npm config set //registry.npmjs.org/:_authToken=$NPM_AUTH_TOKEN
-          app/scripts/modules/github_actions_publish.sh kubernetes
+          scripts/github_actions_publish.sh kubernetes
         env:
           CI: true
           NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}

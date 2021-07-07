@@ -1,6 +1,7 @@
 #!/bin/bash
-# Runs this script from the 'deck/app/scripts/modules' directory
+# Runs this script from the 'deck/scripts' directory
 cd "$(dirname "$0")" || exit;
+pushd ../
 
 # Assert that we are on the 'master' branch
 # (a local branch that tracks decks 'master' branch)

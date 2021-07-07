@@ -28,7 +28,7 @@ jobs:
 
       - name: Ensure package bumps are pure
         id: purebump
-        run: app/scripts/modules/assert_package_bumps_standalone.sh
+        run: scripts/assert_package_bumps_standalone.sh
 
       - uses: actions/setup-node@v1
         if: steps.purebump.outputs.ispurebump != 'true'
@@ -54,7 +54,7 @@ jobs:
 
       - name: Build Modules
         if: steps.purebump.outputs.ispurebump != 'true'
-        run: yarn buildModules
+        run: yarn modules
 
       - name: Unit Tests
         if: steps.purebump.outputs.ispurebump != 'true'
@@ -68,7 +68,7 @@ jobs:
 
       - name: Ensure package bumps are pure
         id: purebump
-        run: app/scripts/modules/assert_package_bumps_standalone.sh
+        run: scripts/assert_package_bumps_standalone.sh
 
       - uses: actions/setup-node@v1
         if: steps.purebump.outputs.ispurebump != 'true'
@@ -94,7 +94,7 @@ jobs:
 
       - name: Build Modules
         if: steps.purebump.outputs.ispurebump != 'true'
-        run: yarn buildModules
+        run: yarn modules
 
       - name: Functional Tests
         if: steps.purebump.outputs.ispurebump != 'true'
@@ -108,7 +108,7 @@ jobs:
 
       - name: Ensure package bumps are pure
         id: purebump
-        run: app/scripts/modules/assert_package_bumps_standalone.sh
+        run: scripts/assert_package_bumps_standalone.sh
 
       - uses: actions/setup-node@v1
         if: steps.purebump.outputs.ispurebump != 'true'
@@ -134,7 +134,7 @@ jobs:
 
       - name: Build Modules
         if: steps.purebump.outputs.ispurebump != 'true'
-        run: yarn buildModules
+        run: yarn modules
 
       - name: Yarn Build
         if: steps.purebump.outputs.ispurebump != 'true'

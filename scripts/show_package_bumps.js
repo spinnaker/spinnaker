@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-process.chdir(__dirname);
+process.chdir(`${__dirname}/../`);
 
 const fs = require('fs');
 const child = require('child_process');

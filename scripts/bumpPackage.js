@@ -18,7 +18,6 @@ if (process.argv.length < 3) {
 const packageToUpgrade = process.argv[2];
 
 const packages = [
-  '.',
   'app/scripts/modules/amazon/',
   'app/scripts/modules/appengine/',
   'app/scripts/modules/azure/',
@@ -43,7 +42,7 @@ const packages = [
 ];
 
 packages
-  .map((packagePath) => path.resolve(__dirname, '../../../', packagePath))
+  .map((packagePath) => path.resolve(`${__dirname}/../${packagePath}`))
   .filter((packagePath) => {
     const packageJSON = JSON.parse(readFileSync(path.resolve(packagePath, 'package.json'), 'utf8'));
 
@@ -54,11 +53,6 @@ packages
   .forEach((package) => {
     console.log(`Handling ${package}`);
     console.log();
-
-    const yarnCmd = `yarn --cwd ${package}`;
-    console.log(yarnCmd);
-    console.log();
-    console.log(execSync(yarnCmd).toString());
 
     const yarnUpgradeCmd = `yarn --cwd ${package} upgrade --latest ${packageToUpgrade}`;
     console.log(yarnUpgradeCmd);

@@ -29,7 +29,7 @@ git diff "$TARGET_BRANCH" -- . >/dev/null || exit $?
 # Tests are run against an ephemeral merge commit so we don't have to merge in $TARGET_BRANCH
 
 HAS_PURE_PKG_BUMP=false
-for PKGJSON in */package.json ; do
+for PKGJSON in ../app/scripts/modules/*/package.json ; do
   MODULE=$(basename "$(dirname "$PKGJSON")")
 
   IS_PRIVATE_PKG=$(jq .private $PKGJSON)
@@ -80,9 +80,9 @@ for PKGJSON in */package.json ; do
 
 
     HAS_PURE_PKG_BUMP=true
-    echo "$PKGJSON: Pure package bump. $FROM_VERSION -> $TO_VERSION"
+    echo "$MODULE: Pure package bump. $FROM_VERSION -> $TO_VERSION"
   else
-    echo "$PKGJSON: n/a"
+    echo "$MODULE: n/a"
   fi
 done
 
