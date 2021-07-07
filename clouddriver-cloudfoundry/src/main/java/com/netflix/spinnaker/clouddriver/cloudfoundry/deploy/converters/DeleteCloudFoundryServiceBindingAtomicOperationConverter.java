@@ -20,30 +20,21 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryOperation;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeleteCloudFoundryServiceBindingDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.DeleteCloudFoundryServiceBindingAtomicOperation;
-import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import java.util.Map;
 import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @CloudFoundryOperation(AtomicOperations.DELETE_SERVICE_BINDINGS)
 @Component
 public class DeleteCloudFoundryServiceBindingAtomicOperationConverter
     extends AbstractCloudFoundryServerGroupAtomicOperationConverter {
-  private final OperationPoller operationPoller;
-
-  public DeleteCloudFoundryServiceBindingAtomicOperationConverter(
-      @Qualifier("cloudFoundryOperationPoller") OperationPoller operationPoller) {
-    this.operationPoller = operationPoller;
-  }
 
   @Nullable
   @Override
   public AtomicOperation convertOperation(Map input) {
-    return new DeleteCloudFoundryServiceBindingAtomicOperation(
-        operationPoller, convertDescription(input));
+    return new DeleteCloudFoundryServiceBindingAtomicOperation(convertDescription(input));
   }
 
   @Override

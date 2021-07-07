@@ -27,5 +27,6 @@ import lombok.RequiredArgsConstructor;
 public class CreateServiceBinding {
   private final String serviceInstanceGuid;
   private final String appGuid;
+  private final String name;
   private Map<String, Object> parameters;
 }

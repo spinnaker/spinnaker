@@ -83,7 +83,10 @@ public class CreateCloudFoundryServiceBindingAtomicOperation implements AtomicOp
                     removeBindings(serviceGuid, description.getServerGroupId());
                   }
                   return new CreateServiceBinding(
-                      serviceGuid, description.getServerGroupId(), s.getParameters());
+                      serviceGuid,
+                      description.getServerGroupId(),
+                      s.getServiceInstanceName(),
+                      s.getParameters());
                 })
             .collect(Collectors.toList());
 

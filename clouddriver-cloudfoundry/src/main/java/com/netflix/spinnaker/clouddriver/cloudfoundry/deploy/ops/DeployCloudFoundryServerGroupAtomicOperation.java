@@ -170,8 +170,8 @@ public class DeployCloudFoundryServerGroupAtomicOperation
     List<CreateServiceBinding> bindings =
         serviceNames.stream()
             .map(
-                s -> {
-                  String serviceGuid = serviceInstanceGuids.get(s);
+                name -> {
+                  String serviceGuid = serviceInstanceGuids.get(name);
                   if (serviceGuid == null || serviceGuid.isEmpty()) {
                     getTask()
                         .updateStatus(
@@ -183,13 +183,13 @@ public class DeployCloudFoundryServerGroupAtomicOperation
 
                     throw new CloudFoundryApiException(
                         "Unable to find service with the name: '"
-                            + s
+                            + name
                             + "' in "
                             + serverGroup.getSpace());
                   }
 
                   return new CreateServiceBinding(
-                      serviceGuid, serverGroup.getId(), Collections.emptyMap());
+                      serviceGuid, serverGroup.getId(), name, Collections.emptyMap());
                 })
             .collect(Collectors.toList());
 

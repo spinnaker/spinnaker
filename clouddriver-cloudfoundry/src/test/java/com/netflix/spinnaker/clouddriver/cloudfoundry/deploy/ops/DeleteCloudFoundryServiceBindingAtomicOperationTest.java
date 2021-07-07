@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Netflix, Inc.
+ * Copyright 2021 Armory, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,30 +23,27 @@ import static org.mockito.Mockito.*;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.MockCloudFoundryClient;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.AbstractServiceInstance;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Resource;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ServiceBinding;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ProcessStats;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ServiceInstance;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeleteCloudFoundryServiceBindingDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
-import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Supplier;
 import org.junit.jupiter.api.Test;
 
 public class DeleteCloudFoundryServiceBindingAtomicOperationTest
     extends AbstractCloudFoundryAtomicOperationTest {
-
-  OperationPoller poller = mock(OperationPoller.class);
-  CloudFoundryClient client = new MockCloudFoundryClient();
 
   private final CloudFoundrySpace cloudFoundrySpace =
       CloudFoundrySpace.builder()
           .name("space")
           .organization(CloudFoundryOrganization.builder().name("org").build())
           .build();
+  CloudFoundryClient client = new MockCloudFoundryClient();
 
   @Test
   public void shouldDeleteServiceBinding() {
@@ -63,36 +60,47 @@ public class DeleteCloudFoundryServiceBindingAtomicOperationTest
     desc.setServiceUnbindingRequests(Collections.singletonList(unbinding));
 
     DeleteCloudFoundryServiceBindingAtomicOperation operation =
-        new DeleteCloudFoundryServiceBindingAtomicOperation(poller, desc);
+        new DeleteCloudFoundryServiceBindingAtomicOperation(desc);
+    ServiceBinding appServiceInstance = new ServiceBinding();
+    appServiceInstance.setName("service1");
+    appServiceInstance.setAppGuid("app1");
+    appServiceInstance.setServiceInstanceGuid("service-guid-123");
 
-    ServiceBinding serviceInstance = new ServiceBinding();
+    Resource<ServiceBinding> appResource = new Resource<>();
+    Resource.Metadata appMetadata = new Resource.Metadata();
+    appMetadata.setGuid("service-guid-123");
+    appResource.setEntity(appServiceInstance);
+    appResource.setMetadata(appMetadata);
+
+    List<Resource<ServiceBinding>> appInstances = List.of(appResource);
+    when(desc.getClient().getApplications().getServiceBindingsByApp(any()))
+        .thenReturn(appInstances);
+
+    ServiceInstance serviceInstance = new ServiceInstance();
     serviceInstance.setName("service1");
-    serviceInstance.setAppGuid("app1");
-    serviceInstance.setServiceInstanceGuid("service-guid-123");
 
-    Resource<ServiceBinding> resource = new Resource<>();
+    Resource<ServiceInstance> resource = new Resource<>();
     Resource.Metadata metadata = new Resource.Metadata();
-    metadata.setGuid("123abc");
+    metadata.setGuid("service-guid-123");
     resource.setEntity(serviceInstance);
     resource.setMetadata(metadata);
 
-    List<Resource<ServiceBinding>> instances = List.of(resource);
-    when(desc.getClient().getApplications().getServiceBindingsByApp(any())).thenReturn(instances);
-    when(poller.waitForOperation(any(Supplier.class), any(), any(), any(), any(), any()))
-        .thenReturn(ProcessStats.State.RUNNING);
+    List<Resource<? extends AbstractServiceInstance>> serviceInstances = List.of(resource);
+
+    when(desc.getClient().getServiceInstances().findAllServicesBySpaceAndNames(any(), any()))
+        .thenReturn(serviceInstances);
 
     Task task = runOperation(operation);
 
     verify(client.getServiceInstances()).deleteServiceBinding(any());
     assertThat(task.getHistory())
         .has(
-            status(
-                "Deleting Cloud Foundry service bindings between application 'app1' and services: [service1]"),
+            status("Unbinding Cloud Foundry application 'app1' from services: [service1]"),
             atIndex(1));
     assertThat(task.getHistory())
         .has(
             status(
-                "Deleted Cloud Foundry service from application 'app1' and services: [service1]"),
-            atIndex(3));
+                "Successfully unbound Cloud Foundry application 'app1' from services: [service1]"),
+            atIndex(2));
   }
 }

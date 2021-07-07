@@ -86,7 +86,7 @@ class ServiceInstancesTest {
     Page<ServiceInstance> serviceMappingPageOne = Page.singleton(null, "service-instance-guid");
     CreateServiceBinding binding =
         new CreateServiceBinding(
-            "service-instance-guid", cloudFoundryServerGroup.getId(), emptyMap());
+            "service-instance-guid", cloudFoundryServerGroup.getId(), "service-name", emptyMap());
     serviceMappingPageOne.setTotalResults(0);
     serviceMappingPageOne.setTotalPages(0);
     when(serviceInstanceService.all(eq(null), any()))
@@ -121,7 +121,7 @@ class ServiceInstancesTest {
     Page<ServiceInstance> serviceMappingPageOne = createEmptyOsbServiceInstancePage();
     CreateServiceBinding binding =
         new CreateServiceBinding(
-            "service-instance-guid", cloudFoundryServerGroup.getId(), emptyMap());
+            "service-instance-guid", cloudFoundryServerGroup.getId(), "service-name", emptyMap());
     when(serviceInstanceService.all(eq(null), any()))
         .thenAnswer(invocation -> Calls.response(Response.success(serviceMappingPageOne)));
     when(serviceInstanceService.all(eq(1), any()))
@@ -157,7 +157,7 @@ class ServiceInstancesTest {
     Page<ServiceInstance> serviceMappingPageOne = Page.singleton(null, "service-instance-guid");
     CreateServiceBinding binding =
         new CreateServiceBinding(
-            "service-instance-guid", cloudFoundryServerGroup.getId(), emptyMap());
+            "service-instance-guid", cloudFoundryServerGroup.getId(), "service-name", emptyMap());
     serviceMappingPageOne.setTotalResults(0);
     serviceMappingPageOne.setTotalPages(0);
     when(serviceInstanceService.all(eq(null), any()))
