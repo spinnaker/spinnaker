@@ -6,18 +6,14 @@ import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.api.NotificationFrequency.normal
 import com.netflix.spinnaker.keel.api.NotificationType.slack
 import com.netflix.spinnaker.keel.api.Verification
-import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
-import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.RELEASE
-import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.plugins.kind
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.persistence.CombinedRepository
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ACTIVE_ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_RESOURCE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_VERSION
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_VERSION_ARTIFACT_VERSION
-import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ACTIVE_ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
@@ -43,12 +39,9 @@ import strikt.assertions.hasSize
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isGreaterThan
-import strikt.assertions.isNotEqualTo
-import strikt.assertions.isNull
 import strikt.assertions.isSuccess
 import java.time.Clock.systemUTC
 import java.time.Duration
-import java.time.Instant
 
 class EnvironmentVersioningTests {
   private val jooq = testDatabase.context
@@ -181,12 +174,12 @@ class EnvironmentVersioningTests {
       .selectCount()
       .from(ENVIRONMENT_VERSION_ARTIFACT_VERSION)
       .where(ENVIRONMENT_VERSION_ARTIFACT_VERSION.ENVIRONMENT_VERSION.eq(initialVersion))
-      .fetchOneInto<Int>()
+      .fetchSingleInto<Int>()
     val countForNewVersion = jooq
       .selectCount()
       .from(ENVIRONMENT_VERSION_ARTIFACT_VERSION)
       .where(ENVIRONMENT_VERSION_ARTIFACT_VERSION.ENVIRONMENT_VERSION.eq(updatedVersion))
-      .fetchOneInto<Int>()
+      .fetchSingleInto<Int>()
     expectThat(countForNewVersion)
       .isGreaterThan(0)
       .isEqualTo(countForInitialVersion)
@@ -364,10 +357,10 @@ class EnvironmentVersioningTests {
     jooq
       .select(ACTIVE_ENVIRONMENT.VERSION)
       .from(ACTIVE_ENVIRONMENT)
-      .fetchOne(ACTIVE_ENVIRONMENT.VERSION)
+      .fetchOne(ACTIVE_ENVIRONMENT.VERSION)!!
 
   private fun Table<*>.count() =
-    jooq.selectCount().from(this).fetchOneInto<Int>()
+    jooq.selectCount().from(this).fetchSingleInto<Int>()
 
   private fun <T : Table<*>> Assertion.Builder<T>.count() =
     get("row count") { count() }

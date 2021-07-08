@@ -558,7 +558,7 @@ class SqlArtifactRepository(
       .from(ENVIRONMENT_ARTIFACT_VERSIONS)
       .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(deliveryConfig.getUidFor(targetEnvironment)))
       .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(DEPLOYING))
-      .fetchOneInto(Int::class.java) > 0
+      .fetchSingleInto<Int>() > 0
 
 
   override fun markAsSuccessfullyDeployedTo(
@@ -983,7 +983,7 @@ class SqlArtifactRepository(
           ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artId),
           ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(version)
         )
-        .fetchOne { (deployedAt, replacedBy) ->
+        .fetchSingle { (deployedAt, replacedBy) ->
           if (deployedAt != null && replacedBy != null) {
             PREVIOUS
           } else if (deployedAt != null) {

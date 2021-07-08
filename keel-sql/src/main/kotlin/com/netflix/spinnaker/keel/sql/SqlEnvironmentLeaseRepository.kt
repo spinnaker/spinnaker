@@ -10,9 +10,9 @@ import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.exceptions.ActiveLeaseExists
 import com.netflix.spinnaker.keel.persistence.EnvironmentLeaseRepository
 import com.netflix.spinnaker.keel.persistence.Lease
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ACTIVE_ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_LEASE
-import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ACTIVE_ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.tables.records.EnvironmentLeaseRecord
 import org.jooq.DSLContext
 import org.jooq.exception.DataAccessException
@@ -152,7 +152,7 @@ class SqlEnvironmentLeaseRepository(
       .on(ACTIVE_ENVIRONMENT.DELIVERY_CONFIG_UID.eq(DELIVERY_CONFIG.UID))
       .where(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
       .and(ACTIVE_ENVIRONMENT.NAME.eq(environment.name))
-      .fetchOneInto<String>()
+      .fetchSingleInto<String>()
 
   /**
    * A string that identifies the client who took the lease

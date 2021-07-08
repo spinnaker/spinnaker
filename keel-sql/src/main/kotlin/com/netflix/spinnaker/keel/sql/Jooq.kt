@@ -21,3 +21,6 @@ internal fun Map<String, Any?>.asResourceMetadata(): Map<String, Any?> =
 
 internal inline fun <reified RESULT> ResultQuery<*>.fetchOneInto() =
   fetchOneInto(RESULT::class.java)
+
+internal inline fun <reified RESULT> ResultQuery<*>.fetchSingleInto() =
+  fetchSingleInto(RESULT::class.java)

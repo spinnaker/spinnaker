@@ -15,16 +15,16 @@ import com.netflix.spinnaker.keel.pause.PauseScope
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceId
 import com.netflix.spinnaker.keel.persistence.ResourceHeader
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ACTIVE_ENVIRONMENT
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ACTIVE_RESOURCE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DIFF_FINGERPRINT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_RESOURCE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.EVENT
-import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ACTIVE_ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.PAUSED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_LAST_CHECKED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_VERSION
-import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ACTIVE_RESOURCE
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.resources.SpecMigrator
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
@@ -146,7 +146,7 @@ open class SqlResourceRepository(
       .join(RESOURCE)
       .on(RESOURCE.UID.eq(RESOURCE_VERSION.RESOURCE_UID))
       .where(RESOURCE.ID.eq(resource.id))
-      .fetchOneInto(Int::class.java)
+      .fetchSingleInto<Int>()
 
     val uid = if (version > 0 ) {
       getResourceUid(resource.id)
@@ -406,7 +406,7 @@ open class SqlResourceRepository(
       jooq.select(RESOURCE.ATTEMPTED_DELETIONS)
         .from(RESOURCE)
         .where(RESOURCE.ID.eq(resource.id))
-        .fetchOne(RESOURCE.ATTEMPTED_DELETIONS)
+        .fetchOne(RESOURCE.ATTEMPTED_DELETIONS)!!
     }
   }
 

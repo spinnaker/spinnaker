@@ -19,7 +19,6 @@ import com.netflix.spinnaker.keel.core.api.parseUID
 import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.core.api.timestampAsInstant
 import com.netflix.spinnaker.keel.events.PersistentEvent.EventScope
-import com.netflix.spinnaker.keel.exceptions.NoSuchEnvironmentException
 import com.netflix.spinnaker.keel.pause.PauseScope
 import com.netflix.spinnaker.keel.pause.PauseScope.APPLICATION
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
@@ -28,7 +27,9 @@ import com.netflix.spinnaker.keel.persistence.DependentAttachFilter.ATTACH_NONE
 import com.netflix.spinnaker.keel.persistence.NoDeliveryConfigForApplication
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigName
 import com.netflix.spinnaker.keel.persistence.OrphanedResourceException
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ACTIVE_ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ACTIVE_ENVIRONMENT_VERSION
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ACTIVE_RESOURCE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.CURRENT_CONSTRAINT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_ARTIFACT
@@ -42,12 +43,10 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_RESOU
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_VERSION
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_VERSION_ARTIFACT_VERSION
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.EVENT
-import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ACTIVE_ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.PAUSED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.PREVIEW_ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_VERSION
-import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ACTIVE_RESOURCE
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.resources.SpecMigrator
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
@@ -358,7 +357,7 @@ class SqlDeliveryConfigRepository(
       .select(coalesce(max(ENVIRONMENT_VERSION.VERSION), value(0)))
       .from(ENVIRONMENT_VERSION)
       .where(ENVIRONMENT_VERSION.ENVIRONMENT_UID.eq(environmentUid))
-      .fetchOneInto<Int>()
+      .fetchSingleInto<Int>()
 
     val newVersion = currentVersion + 1
 
@@ -1346,7 +1345,7 @@ class SqlDeliveryConfigRepository(
         .where(ENVIRONMENT_VERSION_ARTIFACT_VERSION.ENVIRONMENT_UID.eq(environmentUid))
         .and(ENVIRONMENT_VERSION_ARTIFACT_VERSION.ARTIFACT_UID.eq(artifact.uid))
         .and(ENVIRONMENT_VERSION_ARTIFACT_VERSION.ARTIFACT_VERSION.eq(version))
-        .fetchOneInto<Int>() > 0
+        .fetchSingleInto<Int>() > 0
 
       if (alreadyExists) {
         // this method should never be called in this case, log it and do nothing
@@ -1362,7 +1361,7 @@ class SqlDeliveryConfigRepository(
           .select(coalesce(max(ENVIRONMENT_VERSION.VERSION), value(0)))
           .from(ENVIRONMENT_VERSION)
           .where(ENVIRONMENT_VERSION.ENVIRONMENT_UID.eq(environmentUid))
-          .fetchOneInto<Int>()
+          .fetchSingleInto<Int>()
         val newVersion = currentVersion + 1
 
         log.debug(
