@@ -27,10 +27,10 @@
 <div class="form-group">
   <div ng-class="$ctrl.labelClass" class="sm-label-right">Organization</div>
   <div ng-class="$ctrl.fieldClass">
-    <input class="form-control input-sm" ng-if="$ctrl.organization.includes('${')" ng-model="$ctrl.organization" />
+    <input class="form-control input-sm" ng-if="$ctrl.hasTag($ctrl.organization)" ng-model="$ctrl.organization" />
     <ui-select
       ng-model="$ctrl.organization"
-      ng-if="!$ctrl.organization.includes('${')"
+      ng-if="!$ctrl.hasTag($ctrl.organization)"
       ng-disabled="$ctrl.viewState.imagesRefreshing"
       ng-change="$ctrl.updateRepositoryList()"
       class="form-control input-sm"
@@ -45,10 +45,10 @@
 <div class="form-group">
   <div ng-class="$ctrl.labelClass" class="sm-label-right">Image</div>
   <div ng-class="$ctrl.fieldClass">
-    <input class="form-control input-sm" ng-if="$ctrl.repository.includes('${')" ng-model="$ctrl.repository" />
+    <input class="form-control input-sm" ng-if="$ctrl.hasTag($ctrl.repository)" ng-model="$ctrl.repository" />
     <ui-select
       ng-model="$ctrl.repository"
-      ng-if="!$ctrl.repository.includes('${')"
+      ng-if="!$ctrl.hasTag($ctrl.repository)"
       ng-disabled="$ctrl.viewState.imagesRefreshing"
       ng-change="$ctrl.updateTag()"
       class="form-control input-sm"
@@ -79,10 +79,10 @@
 <div class="form-group" ng-if="!$ctrl.specifyTagByRegex">
   <div ng-class="$ctrl.labelClass" class="sm-label-right">Tag</div>
   <div ng-class="$ctrl.fieldClass">
-    <input class="form-control input-sm" ng-if="$ctrl.tag.includes('${')" ng-model="$ctrl.tag" />
+    <input class="form-control input-sm" ng-if="$ctrl.hasSpel($ctrl.tag)" ng-model="$ctrl.tag" />
     <ui-select
       ng-model="$ctrl.tag"
-      ng-if="!$ctrl.tag.includes('${')"
+      ng-if="!$ctrl.hasSpel($ctrl.tag)"
       ng-disabled="$ctrl.viewState.imagesRefreshing || !$ctrl.repository"
       ng-change="$ctrl.updateTag()"
       class="form-control input-sm"

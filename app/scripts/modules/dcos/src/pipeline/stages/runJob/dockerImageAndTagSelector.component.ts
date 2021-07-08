@@ -227,6 +227,10 @@ export class DockerImageAndTagSelectorController implements IController {
     this.initializeImages();
   }
 
+  public hasSpel(value: string): boolean {
+    return value.includes('${');
+  }
+
   public $onInit(): void {
     this.labelClass = this.labelClass || 'col-md-3';
     this.fieldClass = this.fieldClass || 'col-md-8';

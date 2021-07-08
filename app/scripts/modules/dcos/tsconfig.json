@@ -1,0 +1,13 @@
+{
+  "extends": "../../../../tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": "../../../../",
+    "outDir": "dist",
+    "paths": {
+      "core/*": ["app/scripts/modules/core/dist/*"]
+    },
+    "rootDir": "./src"
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["**/*.spec.*"]
+}

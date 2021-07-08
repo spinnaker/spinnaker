@@ -1,0 +1,30 @@
+{
+  "name": "@spinnaker/dcos",
+  "license": "Apache-2.0",
+  "version": "0.0.1",
+  "module": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "private": true,
+  "scripts": {
+    "clean": "shx rm -rf dist",
+    "prepublishOnly": "npm run build",
+    "build": "npm run clean && spinnaker-scripts build",
+    "dev": "spinnaker-scripts start",
+    "dev:push": "spinnaker-scripts start --push",
+    "lib": "npm run build"
+  },
+  "dependencies": {
+    "@spinnaker/core": "*",
+    "@spinnaker/docker": "*",
+    "angular": "1.6.10",
+    "lodash": "4.17.21",
+    "ngimport": "0.6.1",
+    "rxjs": "6.6.7"
+  },
+  "devDependencies": {
+    "@spinnaker/eslint-plugin": "1.0.13",
+    "@spinnaker/scripts": "0.0.14",
+    "shx": "0.3.3",
+    "typescript": "4.0.2"
+  }
+}

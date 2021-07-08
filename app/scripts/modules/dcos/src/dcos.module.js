@@ -11,6 +11,7 @@ import { DCOS_INSTANCE_DETAILS_DETAILS_DCOS_MODULE } from './instance/details/de
 import { DCOS_LOADBALANCER_CONFIGURE_CONFIGURE_DCOS_MODULE } from './loadBalancer/configure/configure.dcos.module';
 import { DCOS_LOADBALANCER_DETAILS_DETAILS_DCOS_MODULE } from './loadBalancer/details/details.dcos.module';
 import { DCOS_LOADBALANCER_TRANSFORMER } from './loadBalancer/transformer';
+import logo from './logo/dcos.logo.png';
 import { DCOS_PIPELINE_STAGES_DESTROYASG_DCOSDESTROYASGSTAGE } from './pipeline/stages/destroyAsg/dcosDestroyAsgStage';
 import { DCOS_PIPELINE_STAGES_DISABLEASG_DCOSDISABLEASGSTAGE } from './pipeline/stages/disableAsg/dcosDisableAsgStage';
 import { DCOS_PIPELINE_STAGES_DISABLECLUSTER_DCOSDISABLECLUSTERSTAGE } from './pipeline/stages/disableCluster/dcosDisableClusterStage';
@@ -26,13 +27,7 @@ import { DCOS_SERVERGROUP_DETAILS_DETAILS_DCOS_MODULE } from './serverGroup/deta
 import { DCOS_SERVERGROUP_TRANSFORMER } from './serverGroup/transformer';
 import { DCOS_VALIDATION_APPLICATIONNAME_VALIDATOR } from './validation/applicationName.validator';
 
-require('./logo/dcos.logo.less');
-
-// load all templates into the $templateCache
-const templates = require.context('./', true, /\.html$/);
-templates.keys().forEach(function (key) {
-  templates(key);
-});
+import './logo/dcos.logo.less';
 
 export const DCOS_DCOS_MODULE = 'spinnaker.dcos';
 export const name = DCOS_DCOS_MODULE; // for backwards compatibility
@@ -61,7 +56,7 @@ module(DCOS_DCOS_MODULE, [
   CloudProviderRegistry.registerProvider('dcos', {
     name: 'DC/OS',
     logo: {
-      path: require('./logo/dcos.logo.png'),
+      path: logo,
     },
     instance: {
       detailsTemplateUrl: require('./instance/details/details.html'),
