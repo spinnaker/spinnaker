@@ -54,6 +54,10 @@
           on-change="ctrl.regionUpdated()"
         ></checklist>
         <p class="form-control-static" ng-if="!securityGroup.credentials">(Select an account)</p>
+        <validation-error
+          ng-if="state.regionError"
+          message="A security group cannot be cloned into a region it already exists in. Please deselect '{{state.originRegion}}' to clear this error."
+        ></validation-error>
       </div>
     </div>
     <div class="form-group">

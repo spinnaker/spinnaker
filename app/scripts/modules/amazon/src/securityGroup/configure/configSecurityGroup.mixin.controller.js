@@ -42,6 +42,7 @@ module(AMAZON_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
 
     $scope.state = {
       submitting: false,
+      regionError: undefined,
       refreshingSecurityGroups: false,
       removedRules: [],
       infiniteScroll: {
@@ -157,7 +158,8 @@ module(AMAZON_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
           return vpc.deprecated;
         });
         $scope.vpcs = available;
-
+        $scope.state.regionError =
+          $scope.state.isClone && ($scope.securityGroup.regions || []).includes($scope.state.originRegion);
         ctrl.updateVpcId(available);
       });
     };
@@ -305,6 +307,8 @@ module(AMAZON_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
           ? filterObjectValues(securityGroups, (name) => !securityGroupExclusions.includes(name))
           : securityGroups;
         $scope.allSecurityGroupsUpdated.next();
+        $scope.state.regionError =
+          $scope.state.isClone && ($scope.securityGroup.regions || []).includes($scope.state.originRegion);
       });
     };
 

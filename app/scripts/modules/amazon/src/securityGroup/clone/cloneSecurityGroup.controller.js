@@ -45,6 +45,9 @@ angular
       // We want to let people clone as a means to copy security groups across
       // regions so don't block them because the names already exist.
       $scope.allowDuplicateNames = true;
+      // Used to prevent cloning into an the exiting region
+      $scope.state.isClone = true;
+      $scope.state.originRegion = securityGroup.regions && securityGroup.regions[0];
 
       AccountService.listAccounts('aws').then(function (accounts) {
         $scope.accounts = accounts;
