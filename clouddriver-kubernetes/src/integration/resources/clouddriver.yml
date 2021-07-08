@@ -4,7 +4,7 @@ spring:
 
 kubernetes:
   kubectl:
-    executable: ${KUBECTL_PATH} # Using a wrapper around the kubectl binary provided by the k3s docker container
+    executable: ${IT_BUILD_HOME}/kubectl
   enabled: true
   primaryAccount: account1
   accounts:
@@ -39,7 +39,7 @@ kubernetes:
       oAuthScopes: []
       onlySpinnakerManaged: true
       metrics: false
-      kubeconfigFile: ${KUBECONFIGS_HOME}/kubecfg-${containername}.yml  # File is automatically created during initialization
+      kubeconfigFile: ${IT_BUILD_HOME}/kubecfg.yml  # File is automatically created at runtime
     - name: account2
       cacheIntervalSeconds: 5
       requiredGroupMembership: []
@@ -66,7 +66,7 @@ kubernetes:
       oAuthScopes: []
       onlySpinnakerManaged: true
       metrics: false
-      kubeconfigFile: ${KUBECONFIGS_HOME}/kubecfg-${containername}.yml  # File is automatically created during initialization
+      kubeconfigFile: ${IT_BUILD_HOME}/kubecfg.yml  # File is automatically created at runtime
 
 logging.level.com.netflix.spinnaker.cats.sql.cluster: INFO
 logging.level.com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCacheDataConverter: WARN

@@ -21,7 +21,7 @@ public class PatchManifestIT extends BaseTest {
   }
 
   @BeforeEach
-  private void deployIfMissing() throws InterruptedException, IOException {
+  public void deployIfMissing() throws InterruptedException, IOException {
     KubeTestUtils.deployIfMissing(
         baseUrl(),
         ACCOUNT1_NAME,
@@ -58,7 +58,7 @@ public class PatchManifestIT extends BaseTest {
                 + DEPLOYMENT_1_NAME
                 + " -o=jsonpath='{.spec.template.metadata.labels}'");
     assertTrue(
-        labels.contains("testPatch:success"),
+        labels.contains("\"testPatch\":\"success\""),
         "Expected patch to add label 'testPatch' with value 'success' to "
             + DEPLOYMENT_1_NAME
             + " deployment. Labels:\n"
