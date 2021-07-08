@@ -25,6 +25,7 @@ import com.netflix.spinnaker.keel.api.scm.CommitCreatedEvent
 import com.netflix.spinnaker.keel.api.scm.PrDeclinedEvent
 import com.netflix.spinnaker.keel.api.scm.PrDeletedEvent
 import com.netflix.spinnaker.keel.api.scm.PrMergedEvent
+import com.netflix.spinnaker.keel.api.scm.PrOpenedEvent
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.core.api.SubmittedEnvironment
@@ -64,6 +65,7 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.slot
+import io.mockk.spyk
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectThat
 import strikt.assertions.contains
@@ -89,7 +91,7 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
     val springEnv: org.springframework.core.env.Environment = mockk()
     val spectator: Registry = mockk()
     val eventPublisher: ApplicationEventPublisher = mockk()
-    val subject = PreviewEnvironmentCodeEventListener(
+    val subject = spyk(PreviewEnvironmentCodeEventListener(
       repository = repository,
       environmentDeletionRepository = environmentDeletionRepository,
       deliveryConfigImporter = importer,
@@ -99,7 +101,7 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
       spectator = spectator,
       clock = clock,
       eventPublisher = eventPublisher
-    )
+    ))
 
     val appConfig = Application(
       name = "fnord",
@@ -248,6 +250,13 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
     }
   }
 
+  val prOpenedEvent = PrOpenedEvent(
+    repoKey = "stash/myorg/myrepo",
+    pullRequestBranch = "refs/heads/feature/abc",
+    targetBranch = "main",
+    pullRequestId = "42"
+  )
+
   val prMergedEvent = PrMergedEvent(
     repoKey = "stash/myorg/myrepo",
     pullRequestBranch = "feature/abc",
@@ -275,6 +284,20 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
     context("a delivery config exists in a branch") {
       before {
         setupMocks()
+      }
+
+      context("a PR opened event matching a preview environment spec is received") {
+        before {
+          subject.handlePrOpened(prOpenedEvent)
+        }
+
+        test("processing is delegated to the commit created event handler") {
+          verify(exactly = 1) {
+            with(prOpenedEvent) {
+              subject.handleCommitCreated(CommitCreatedEvent(repoKey, pullRequestBranch, pullRequestId, pullRequestBranch))
+            }
+          }
+        }
       }
 
       context("a commit event matching a preview environment spec is received") {
@@ -422,6 +445,14 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
             fakeTimer wasNot called
           }
         }
+      }
+
+      context("a commit event not associated with a PR is received") {
+        before {
+          subject.handleCommitCreated(commitEvent.copy(pullRequestId = null))
+        }
+
+        testEventIgnored()
       }
 
       listOf(prMergedEvent, prDeclinedEvent, prDeletedEvent).forEach { prEvent ->

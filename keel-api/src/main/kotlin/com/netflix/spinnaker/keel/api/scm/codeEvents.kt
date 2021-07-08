@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory
   include = JsonTypeInfo.As.PROPERTY
 )
 @JsonSubTypes(
-  JsonSubTypes.Type(value = PrCreatedEvent::class, name = "pr.created"),
+  JsonSubTypes.Type(value = PrOpenedEvent::class, name = "pr.created"),
   JsonSubTypes.Type(value = PrMergedEvent::class, name = "pr.merged"),
   JsonSubTypes.Type(value = PrDeclinedEvent::class, name = "pr.declined"),
   JsonSubTypes.Type(value = PrDeletedEvent::class, name = "pr.deleted"),
@@ -60,7 +60,7 @@ abstract class PrEvent(
 /**
  * Event that signals the creation of a PR.
  */
-data class PrCreatedEvent(
+data class PrOpenedEvent(
   override val repoKey: String,
   override val targetBranch: String,
   override val pullRequestId: String,
@@ -134,7 +134,7 @@ fun PublishedArtifact.toCodeEvent(): CodeEvent? {
       commitHash = sha,
       pullRequestId = pullRequestId
     )
-    "pr_opened" -> PrCreatedEvent(
+    "pr_opened" -> PrOpenedEvent(
       repoKey = repoKey,
       targetBranch = targetBranch,
       pullRequestId = pullRequestId,

@@ -15,7 +15,7 @@ import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.generateId
 import com.netflix.spinnaker.keel.api.scm.CodeEvent
 import com.netflix.spinnaker.keel.api.scm.CommitCreatedEvent
-import com.netflix.spinnaker.keel.api.scm.PrCreatedEvent
+import com.netflix.spinnaker.keel.api.scm.PrOpenedEvent
 import com.netflix.spinnaker.keel.api.scm.PrDeclinedEvent
 import com.netflix.spinnaker.keel.api.scm.PrDeletedEvent
 import com.netflix.spinnaker.keel.api.scm.PrEvent
@@ -76,9 +76,17 @@ class PreviewEnvironmentCodeEventListener(
   private val enabled: Boolean
     get() = springEnv.getProperty("keel.previewEnvironments.enabled", Boolean::class.java, true)
 
-  @EventListener(PrCreatedEvent::class)
-  fun handlePrCreated(event: PrCreatedEvent) {
-    // TODO: implement
+  @EventListener(PrOpenedEvent::class)
+  fun handlePrOpened(event: PrOpenedEvent) {
+    if (!enabled) {
+      log.debug("Preview environments disabled by feature flag. Ignoring PR opened event: $event")
+      return
+    }
+
+    log.debug("Processing PR opened event: $event")
+    with(event) {
+      handleCommitCreated(CommitCreatedEvent(repoKey, pullRequestBranch, pullRequestId, pullRequestBranch.headOfBranch))
+    }
   }
 
   @EventListener(PrMergedEvent::class, PrDeclinedEvent::class, PrDeletedEvent::class)
@@ -125,7 +133,6 @@ class PreviewEnvironmentCodeEventListener(
    * to start checking/actuating on them.
    */
   @EventListener(CommitCreatedEvent::class)
-  // TODO: replace with PrCreatedEvent?
   fun handleCommitCreated(event: CommitCreatedEvent) {
     if (!enabled) {
       log.debug("Preview environments disabled by feature flag. Ignoring commit event: $event")
@@ -134,6 +141,11 @@ class PreviewEnvironmentCodeEventListener(
 
     log.debug("Processing commit event: $event")
     val startTime = clock.instant()
+
+    if (event.pullRequestId == null) {
+      log.debug("Ignoring commit event as it's not associated with a PR: $event")
+      return
+    }
 
     matchingPreviewEnvironmentSpecs(event).forEach { (deliveryConfig, previewEnvSpecs) ->
       log.debug("Importing delivery config for app ${deliveryConfig.application} " +
@@ -396,4 +408,7 @@ class PreviewEnvironmentCodeEventListener(
 
   private fun CodeEvent.emitDurationMetric(metric: String, startTime: Instant, application: String? = null) =
     spectator.recordDuration(metric, clock, startTime, metricTags(application))
+
+  private val String.headOfBranch: String
+    get() = if (this.startsWith("refs/heads/")) this else "refs/heads/$this"
 }

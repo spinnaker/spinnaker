@@ -3,7 +3,7 @@ package com.netflix.spinnaker.keel.rest
 import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.events.ArtifactPublishedEvent
-import com.netflix.spinnaker.keel.api.scm.PrCreatedEvent
+import com.netflix.spinnaker.keel.api.scm.PrOpenedEvent
 import com.netflix.spinnaker.keel.artifacts.WorkQueueProcessor
 import com.netflix.spinnaker.keel.rest.ArtifactControllerTests.TestConfig
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
@@ -87,7 +87,7 @@ internal class ArtifactControllerTests
     )
   )
 
-  private val translatedCodeEvent = PrCreatedEvent(
+  private val translatedCodeEvent = PrOpenedEvent(
     repoKey = "stash/org/myrepo",
     targetBranch = "master",
     pullRequestBranch = "feature/branch",
