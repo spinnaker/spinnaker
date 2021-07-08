@@ -1,16 +1,10 @@
 plugins {
-  id("nu.studer.jooq") version "5.2"
+  id("nu.studer.jooq") version "6.0"
   id("org.liquibase.gradle") version "2.0.4"
+  id("io.spring.dependency-management") version "1.0.11.RELEASE"
 }
 
-def buildingInDocker = java.lang.Boolean.parseBoolean(
-        project.properties["buildingInDocker"]?.toString() ?: "false")
-
-afterEvaluate {
-  tasks.getByName("compileKotlin") {
-    dependsOn("jooqGenerate")
-  }
-}
+def buildingInDocker = Boolean.parseBoolean(project.properties["buildingInDocker"]?.toString() ?: "false")
 
 sourceSets {
   main {
@@ -59,13 +53,6 @@ dependencies {
   liquibaseRuntime("mysql:mysql-connector-java")
 }
 
-// expand properties in jooqConfig.xml so it gets a fully-qualified directory to generate into
-tasks.withType(ProcessResources) {
-  filesMatching("jooqConfig.xml") {
-    expand(project.properties)
-  }
-}
-
 liquibaseUpdate {
   inputs.dir("$projectDir/src/main/resources/db")
   outputs.dir("$projectDir/src/generated/java")
@@ -82,30 +69,6 @@ liquibaseUpdate {
   }
 }
 
-// Task used when building in Docker in place of jooqModelator (see Dockerfile.compile)
-tasks.register("jooqGenerate") {
-  group = "Execution"
-  description = "Run the jOOQ code generation tool"
-
-  dependsOn("processResources", "liquibaseUpdate")
-
-  inputs.dir("$projectDir/src/main/resources/db")
-  outputs.dir("$projectDir/src/generated/java")
-
-  doLast {
-    javaexec {
-      classpath = configurations.named("jooqGenerator").get()
-      main = "org.jooq.codegen.GenerationTool"
-      args = ["$buildDir/resources/main/jooqConfig.xml"]
-    }
-    if (!buildingInDocker) {
-      exec {
-        commandLine("sh", "-c", "docker stop mysqlJooq >/dev/null 2>&1 || true")
-      }
-    }
-  }
-}
-
 // Don't enforce spotless for generated code
 afterEvaluate {
   spotless {
@@ -116,26 +79,184 @@ afterEvaluate {
 }
 
 jooq {
-  version.set("3.13.2")
+  // get the version of JOOQ from Spring Boot
+  version = dependencyManagement.importedProperties["jooq.version"]
+
+  configurations {
+    main {
+      generationTool {
+        logging = org.jooq.meta.jaxb.Logging.ERROR
+        jdbc {
+          driver = "com.mysql.cj.jdbc.Driver"
+          url = "jdbc:mysql://127.0.0.1:6603/keel?useSSL=false&useLegacyDatetimeCode=false&serverTimezone=UTC"
+          user = "root"
+          password = "sa"
+        }
+        generator {
+          database {
+            name = "org.jooq.meta.mysql.MySQLDatabase"
+            inputSchema = "keel"
+            excludes = "DATABASECHANGELOG | DATABASECHANGELOGLOCK"
+            forcedTypes {
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.api.artifacts.GitMetadata"
+                converter = "com.netflix.spinnaker.jooq.GitMetadataConverter"
+                includeExpression = "ARTIFACT_VERSIONS.GIT_METADATA"
+              }
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.api.artifacts.BuildMetadata"
+                converter = "com.netflix.spinnaker.jooq.BuildMetadataConverter"
+                includeExpression = "ARTIFACT_VERSIONS.BUILD_METADATA"
+              }
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.lifecycle.LifecycleEvent"
+                converter = "com.netflix.spinnaker.jooq.LifecycleEventConverter"
+                includeExpression = "LIFECYCLE_EVENT.JSON"
+              }
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.events.PersistentEvent"
+                converter = "com.netflix.spinnaker.jooq.PersistentEventConverter"
+                includeExpression = "EVENT.JSON"
+              }
+              forcedType {
+                userType = "java.util.Map<String, ?>"
+                converter = "com.netflix.spinnaker.jooq.JsonToMapConverter"
+                includeExpression = "(DELIVERY_CONFIG|ACTION_STATE).METADATA"
+              }
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.notifications.DismissibleNotification"
+                converter = "com.netflix.spinnaker.jooq.DismissibleNotificationConverter"
+                includeExpression = "DISMISSIBLE_NOTIFICATION.JSON"
+              }
+              // Automatically convert remaining JSON columns to String
+              forcedType {
+                name = "LONGVARCHAR"
+                includeTypes = "JSON"
+              }
+              // Use Instant rather than LocalDateTime for TIMESTAMP columns
+              forcedType {
+                userType = "java.time.Instant"
+                includeTypes = "TIMESTAMP"
+                converter = "com.netflix.spinnaker.jooq.LocalDateTimeToInstantConverter"
+              }
+              forcedType {
+                userType = "java.time.Instant"
+                includeTypes = "DATETIME"
+                converter = "com.netflix.spinnaker.jooq.LocalDateTimeToInstantConverter"
+              }
+              // Enums
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus"
+                enumConverter = true
+                includeExpression = "ARTIFACT_VERSIONS.RELEASE_STATUS"
+              }
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.api.constraints.ConstraintStatus"
+                enumConverter = true
+                includeExpression = "ENVIRONMENT_ARTIFACT_CONSTRAINT.STATUS"
+              }
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.core.api.PromotionStatus"
+                enumConverter = true
+                includeExpression = "ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS"
+              }
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.events.PersistentEvent.EventScope"
+                enumConverter = true
+                includeExpression = "EVENT.SCOPE"
+              }
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.lifecycle.LifecycleEventType"
+                enumConverter = true
+                includeExpression = "(LIFECYCLE_EVENT|LIFECYCLE_MONITOR).TYPE"
+              }
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus"
+                enumConverter = true
+                includeExpression = "LIFECYCLE_EVENT.STATUS"
+              }
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.notifications.NotificationScope"
+                enumConverter = true
+                includeExpression = "NOTIFICATION.SCOPE"
+              }
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.notifications.NotificationType"
+                enumConverter = true
+                includeExpression = "NOTIFICATION.TYPE"
+              }
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.pause.PauseScope"
+                enumConverter = true
+                includeExpression = "PAUSED.SCOPE"
+              }
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.api.constraints.ConstraintStatus"
+                enumConverter = true
+                includeExpression = "ACTION_STATE.STATUS"
+              }
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.api.action.ActionType"
+                enumConverter = true
+                includeExpression = "ACTION_STATE.TYPE"
+              }
+            }
+          }
+          target {
+            packageName = "com.netflix.spinnaker.keel.persistence.metamodel"
+            directory = "$projectDir/src/generated/java"
+          }
+          generate {
+            generatedAnnotation = true
+            nullableAnnotation = true
+            nonnullAnnotation = true
+          }
+        }
+      }
+    }
+  }
+}
+
+tasks.named("generateJooq").configure {
+  // ensure database schema has been prepared by Liquibase before generating the jOOQ sources
+  dependsOn tasks.named("liquibaseUpdate")
+
+  // declare Liquibase migration scripts as inputs on the jOOQ task
+  inputs.files(fileTree("src/main/resources/db"))
+    .withPropertyName("migrations")
+    .withPathSensitivity(PathSensitivity.RELATIVE)
+
+  // make jOOQ task participate in incremental builds and build caching
+  allInputsDeclared = true
+  outputs.cacheIf { true }
+
+  // shut down database container after JOOQ generation completes
+  doLast {
+    if (!buildingInDocker) {
+      exec {
+        commandLine("sh", "-c", "docker stop mysqlJooq >/dev/null 2>&1 || true")
+      }
+    }
+  }
 }
 
 liquibase {
   activities.register("local") {
     arguments = [
-      "logLevel": "severe",
+      "logLevel"     : "severe",
       "changeLogFile": "src/main/resources/db/databaseChangeLog.yml",
-      "url": "jdbc:mysql://localhost:3306/keel?useSSL=false&serverTimezone=UTC",
-      "username": "root",
-      "password": ""
+      "url"          : "jdbc:mysql://localhost:3306/keel?useSSL=false&serverTimezone=UTC",
+      "username"     : "root",
+      "password"     : ""
     ]
   }
   activities.register("docker") {
     arguments = [
-      "logLevel": "severe",
+      "logLevel"     : "severe",
       "changeLogFile": "src/main/resources/db/databaseChangeLog.yml",
-      "url": "jdbc:mysql://127.0.0.1:6603/keel?useSSL=false&serverTimezone=UTC",
-      "username": "root",
-      "password": "sa"
+      "url"          : "jdbc:mysql://127.0.0.1:6603/keel?useSSL=false&serverTimezone=UTC",
+      "username"     : "root",
+      "password"     : "sa"
     ]
   }
   runList = "docker"
