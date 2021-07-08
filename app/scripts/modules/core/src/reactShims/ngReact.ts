@@ -13,8 +13,6 @@ import { IInstanceTypeSelectorProps } from 'core/serverGroup/configure/common/In
 import { v2InstanceTypeSelector } from 'core/serverGroup/configure/common/v2InstanceTypeSelector.component';
 import { v2InstanceArchetypeSelector } from 'core/serverGroup/configure/common/v2instanceArchetypeSelector.component';
 
-import { ITaskMonitorProps } from 'core/task/monitor/TaskMonitorWrapper';
-import { TaskMonitorWrapper } from 'core/task/monitor/TaskMonitorWrapper';
 import { IAccountRegionClusterSelectorProps } from 'core/widgets/AccountRegionClusterSelector';
 import { accountRegionClusterSelectorWrapperComponent } from 'core/widgets/accountRegionClusterSelectorWrapper.component';
 
@@ -34,7 +32,6 @@ export class NgReactInjector extends ReactInject {
   public StageSummaryWrapper: React.ComponentClass<IStageSummaryWrapperProps>                   = angular2react('stageSummary', stageSummaryComponent, this.$injectorProxy) as any;
   public StepExecutionDetailsWrapper: React.ComponentClass<IStepExecutionDetailsWrapperProps>   = angular2react('stepExecutionDetails', stepExecutionDetailsComponent, this.$injectorProxy) as any;
   public TargetSelect: React.ComponentClass<ITargetSelectProps>                                 = angular2react('targetSelect', targetSelectComponent, this.$injectorProxy) as any;
-  public TaskMonitorWrapper: React.FunctionComponent<ITaskMonitorProps>                         = TaskMonitorWrapper;
 
   public initialize($injector: IInjectorService) {
     const realInjector: { [key: string]: Function } = $injector as any;

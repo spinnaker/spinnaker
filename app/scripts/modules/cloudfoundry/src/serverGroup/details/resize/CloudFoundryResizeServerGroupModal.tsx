@@ -9,13 +9,13 @@ import {
   IModalComponentProps,
   IServerGroupJob,
   ModalClose,
-  NgReact,
   noop,
   NumberInput,
   ReactInjector,
   ReactModal,
   SpinFormik,
   TaskMonitor,
+  TaskMonitorWrapper,
   TaskReason,
 } from '@spinnaker/core';
 import { ICloudFoundryServerGroup } from 'cloudfoundry/domain';
@@ -189,7 +189,6 @@ export class CloudFoundryResizeServerGroupModal extends React.Component<
     const { serverGroup } = this.props;
     const { diskQuota, memory } = serverGroup;
     const { initialValues } = this.state;
-    const { TaskMonitorWrapper } = NgReact;
     return (
       <>
         <TaskMonitorWrapper monitor={this.state.taskMonitor} />
