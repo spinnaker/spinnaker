@@ -24,12 +24,11 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.Called
 import io.mockk.clearAllMocks
-import io.mockk.coVerify
-import io.mockk.every
+import io.mockk.coVerify as verify
+import io.mockk.coEvery as every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
-import io.mockk.verify
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.core.env.Environment as SpringEnvironment
 import java.time.Duration
@@ -184,7 +183,7 @@ internal object CheckSchedulerTests : JUnit5Minutests {
 
           test("all resources are checked") {
             resources.forEach { resource ->
-              coVerify(timeout = 500) {
+              verify(timeout = 500) {
                 resourceActuator.checkResource(resource)
               }
             }
@@ -217,7 +216,7 @@ internal object CheckSchedulerTests : JUnit5Minutests {
 
         test("all artifacts are checked") {
           artifacts.forEach { artifact ->
-            coVerify(timeout = 500) {
+            verify(timeout = 500) {
               artifactHandler.handle(artifact)
             }
           }
@@ -239,7 +238,7 @@ internal object CheckSchedulerTests : JUnit5Minutests {
 
         test("all environments marked for deletion are checked for cleanup") {
           environmentsForDeletion.forEach { environment ->
-            coVerify(timeout = 500) {
+            verify(timeout = 500) {
               environmentCleaner.cleanupEnvironment(environment)
             }
           }
@@ -259,7 +258,7 @@ internal object CheckSchedulerTests : JUnit5Minutests {
 
         invokeAgent()
 
-        coVerify {
+        verify {
           dummyAgent.invokeAgent()
         }
       }

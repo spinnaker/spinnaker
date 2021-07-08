@@ -52,7 +52,7 @@ class EnvironmentCleaner(
   private val isDryRun: Boolean
     get() = springEnv.getProperty("keel.environment-deletion.dryRun", Boolean::class.java, false)
 
-  fun cleanupEnvironment(environment: Environment) {
+  suspend fun cleanupEnvironment(environment: Environment) {
     if (!enabled) return
 
     val environmentDetails = with(environment) {
@@ -84,7 +84,8 @@ class EnvironmentCleaner(
       return
     }
 
-    if (resource.status == ACTUATING) {
+    val plugin = resourceHandlers.supporting(resource.kind)
+    if (plugin.actuationInProgress(resource)) {
       log.debug("Skipping deletion of resource ${resource.id} as it's currently being actuated on.")
       return
     }
@@ -128,10 +129,7 @@ class EnvironmentCleaner(
     }
 
     try {
-      val plugin = resourceHandlers.supporting(resource.kind)
-      val tasks = runBlocking {
-        plugin.delete(resource)
-      }
+      val tasks = plugin.delete(resource)
       eventPublisher.publishEvent(ResourceDeletionLaunched(resource, plugin.name, tasks, clock))
     } catch (e: Exception) {
       try {
@@ -150,4 +148,11 @@ class EnvironmentCleaner(
     resource: Resource<*>
   ): List<Task> =
     delete(resource as Resource<S>)
+
+
+  @Suppress("UNCHECKED_CAST")
+  private suspend fun <S : ResourceSpec> ResourceHandler<S, *>.actuationInProgress(
+    resource: Resource<*>
+  ): Boolean =
+    actuationInProgress(resource as Resource<S>)
 }

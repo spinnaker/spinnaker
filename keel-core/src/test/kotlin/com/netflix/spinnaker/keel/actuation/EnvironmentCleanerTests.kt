@@ -41,6 +41,7 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.spyk
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -171,7 +172,7 @@ class EnvironmentCleanerTests {
       springEnv.getProperty("keel.environment-deletion.enabled", Boolean::class.java, any())
     } returns false
 
-    subject.cleanupEnvironment(environment)
+    runBlocking { subject.cleanupEnvironment(environment) }
 
     verify(exactly=0) {
       resourceHandlers.forEach { resourceHandler ->
@@ -188,7 +189,7 @@ class EnvironmentCleanerTests {
       springEnv.getProperty("keel.environment-deletion.dryRun", Boolean::class.java, any())
     } returns true
 
-    subject.cleanupEnvironment(environment)
+    runBlocking { subject.cleanupEnvironment(environment) }
 
     verify(exactly=0) {
       resourceHandlers.forEach { resourceHandler ->
@@ -201,7 +202,7 @@ class EnvironmentCleanerTests {
 
   @Test
   fun `the preview environment is not deleted when it still has resources`() {
-    subject.cleanupEnvironment(environment)
+    runBlocking { subject.cleanupEnvironment(environment) }
 
     verify(exactly=0) {
       deliveryConfigRepository.deleteEnvironment(deliveryConfig.name, environment.name)
@@ -210,7 +211,9 @@ class EnvironmentCleanerTests {
 
   @Test
   fun `the preview environment is deleted when there are no resources left`() {
-    subject.cleanupEnvironment(environment.copy(resources = emptySet()).withMetadata())
+    runBlocking {
+      subject.cleanupEnvironment(environment.copy(resources = emptySet()).withMetadata())
+    }
 
     verify {
       deliveryConfigRepository.deleteEnvironment(deliveryConfig.name, environment.name)
@@ -219,7 +222,7 @@ class EnvironmentCleanerTests {
 
   @Test
   fun `resources are picked for deletion based on dependency sorting`() {
-    subject.cleanupEnvironment(environment)
+    runBlocking { subject.cleanupEnvironment(environment) }
 
     val sorted = environment.resourcesSortedByDependencies
     val firstResource = sorted[0] as Resource<Nothing>
@@ -257,7 +260,7 @@ class EnvironmentCleanerTests {
     } answers { count }
 
     repeat(DEFAULT_MAX_RESOURCE_DELETION_ATTEMPTS) {
-      subject.cleanupEnvironment(environment)
+      runBlocking { subject.cleanupEnvironment(environment) }
       verify {
         resourceHandler.delete(resource)
         resourceRepository.incrementDeletionAttempts(resource)
@@ -265,7 +268,7 @@ class EnvironmentCleanerTests {
       verify { eventPublisher wasNot called }
     }
 
-    subject.cleanupEnvironment(environment)
+    runBlocking { subject.cleanupEnvironment(environment) }
     verify {
       eventPublisher.publishEvent(any<MaxResourceDeletionAttemptsReached>())
     }
@@ -280,7 +283,7 @@ class EnvironmentCleanerTests {
       resourceStatusService.getStatus(resource.id)
     } returns DELETING
 
-    subject.cleanupEnvironment(environment)
+    runBlocking { subject.cleanupEnvironment(environment) }
 
     verify(exactly = 0) {
       resourceHandler.delete(resource)
@@ -294,10 +297,10 @@ class EnvironmentCleanerTests {
     val resourceHandler = resourceHandlers.supporting(resource.kind)
 
     every {
-      resourceStatusService.getStatus(resource.id)
-    } returns ACTUATING
+      resourceHandler.actuationInProgress(resource)
+    } returns true
 
-    subject.cleanupEnvironment(environment)
+    runBlocking { subject.cleanupEnvironment(environment) }
 
     verify(exactly = 0) {
       resourceHandler.delete(resource)
@@ -335,7 +338,7 @@ class EnvironmentCleanerTests {
       override val status: TaskStatus = status
     }
 
-    subject.cleanupEnvironment(environment)
+    runBlocking { subject.cleanupEnvironment(environment) }
 
     println("Checking deletion for status $status")
     verify(exactly = if (status == SUCCEEDED) 1 else 0) {
