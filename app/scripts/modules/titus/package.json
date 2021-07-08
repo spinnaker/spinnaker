@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/titus",
   "license": "Apache-2.0",
-  "version": "0.0.188",
+  "version": "0.0.189",
   "module": "dist/index.js",
   "typings": "dist/index.d.ts",
   "scripts": {
