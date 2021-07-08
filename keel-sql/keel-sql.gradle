@@ -1,7 +1,6 @@
 plugins {
   id("nu.studer.jooq") version "6.0"
   id("org.liquibase.gradle") version "2.0.4"
-  id("io.spring.dependency-management") version "1.0.11.RELEASE"
 }
 
 def buildingInDocker = Boolean.parseBoolean(project.properties["buildingInDocker"]?.toString() ?: "false")
@@ -80,7 +79,7 @@ afterEvaluate {
 
 jooq {
   // get the version of JOOQ from Spring Boot
-  version = dependencyManagement.importedProperties["jooq.version"]
+  version = "3.13.6"
 
   configurations {
     main {
