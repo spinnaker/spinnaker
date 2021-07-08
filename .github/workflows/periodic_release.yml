@@ -57,4 +57,4 @@ jobs:
           release_name: ${{ github.event.repository.name }} ${{ steps.changelog.outputs.tag }}
           body: ${{ steps.changelog.outputs.clean_changelog }}
           draft: false
-          prerelease: true
+          prerelease: false
