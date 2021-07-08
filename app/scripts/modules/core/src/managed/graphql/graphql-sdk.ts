@@ -285,7 +285,7 @@ export interface MdResourceActuationState {
   tasks?: Maybe<Array<MdResourceTask>>;
 }
 
-export type MdResourceActuationStatus = 'PROCESSING' | 'UP_TO_DATE' | 'ERROR' | 'WAITING' | 'NOT_MANAGED';
+export type MdResourceActuationStatus = 'PROCESSING' | 'UP_TO_DATE' | 'ERROR' | 'WAITING' | 'NOT_MANAGED' | 'DELETING';
 
 export interface MdResourceTask {
   __typename?: 'MdResourceTask';

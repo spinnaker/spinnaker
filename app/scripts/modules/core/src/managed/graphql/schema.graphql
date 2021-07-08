@@ -1,7 +1,7 @@
 scalar InstantTime
 scalar JSON
 
-type Query {
+type Query @extends {
   application(appName: String!): MdApplication
 }
 
@@ -53,11 +53,7 @@ type MdArtifact {
   name: String!
   type: String!
   reference: String!
-  versions(
-    statuses: [MdArtifactStatusInEnvironment!]
-    versions: [String!]
-    limit: Int
-  ): [MdArtifactVersionInEnvironment!]
+  versions(statuses: [MdArtifactStatusInEnvironment!], versions: [String!], limit: Int): [MdArtifactVersionInEnvironment!]
   pinnedVersion: MdPinnedVersion
 }
 
@@ -91,16 +87,16 @@ enum MdLifecycleEventScope {
 }
 
 enum MdLifecycleEventType {
-  BAKE
+  BAKE,
   BUILD
 }
 
 enum MdLifecycleEventStatus {
-  NOT_STARTED
-  RUNNING
-  SUCCEEDED
-  FAILED
-  ABORTED
+  NOT_STARTED,
+  RUNNING,
+  SUCCEEDED,
+  FAILED,
+  ABORTED,
   UNKNOWN
 }
 
@@ -166,6 +162,7 @@ enum MdResourceActuationStatus {
   ERROR
   WAITING
   NOT_MANAGED
+  DELETING
 }
 
 type MdResourceActuationState {
@@ -210,12 +207,12 @@ enum MdConstraintStatus {
 }
 
 enum MdArtifactStatusInEnvironment {
-  PENDING
-  APPROVED
-  DEPLOYING
-  CURRENT
+  PENDING,
+  APPROVED,
+  DEPLOYING,
+  CURRENT,
   PREVIOUS
-  VETOED
+  VETOED,
   SKIPPED
 }
 
@@ -253,7 +250,7 @@ type MdAction {
   actionType: MdActionType!
 }
 
-type Mutation {
+type Mutation @extends {
   updateConstraintStatus(payload: MdConstraintStatusPayload!): Boolean
   toggleManagement(application: String!, isPaused: Boolean!, comment: String): Boolean
   pinArtifactVersion(payload: MdArtifactVersionActionPayload!): Boolean
@@ -317,10 +314,7 @@ type MdNotification {
 }
 
 enum MdEventLevel {
-  SUCCESS
-  INFO
-  WARNING
-  ERROR
+  SUCCESS, INFO, WARNING, ERROR
 }
 
 input MdDismissNotificationPayload {
