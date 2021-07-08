@@ -162,6 +162,7 @@ enum MdResourceActuationStatus {
   ERROR
   WAITING
   NOT_MANAGED
+  DELETING
 }
 
 type MdResourceActuationState {

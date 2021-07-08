@@ -104,6 +104,7 @@ class ResourceStatusService(
       history.isActuating() -> ResourceStatusUserFriendly.PROCESSING.toActuationState(reason = "Resource is being updated", history = history)
       history.isCreated() -> ResourceStatusUserFriendly.PROCESSING.toActuationState(reason = "New resource will be created shortly", history = history)
       history.isResumed() -> ResourceStatusUserFriendly.PROCESSING.toActuationState(reason = "Resource management will resume shortly", history = history)
+      history.isDeleting() ->  ResourceStatusUserFriendly.DELETING.toActuationState(reason = "Resource is being deleted", history = history)
       history.isMissingDependency() -> ResourceStatusUserFriendly.ERROR.toActuationState(reason = history.getFirstMessage(), history = history)
       history.isVetoed() -> ResourceStatusUserFriendly.ERROR.toActuationState(reason = "We failed to update the resource multiple times", history = history)
       history.isDiffNotActionable() -> ResourceStatusUserFriendly.ERROR.toActuationState(reason = "We are unable to update resource to match the config", history = history)
@@ -254,7 +255,8 @@ enum class ResourceStatusUserFriendly {
   UP_TO_DATE,
   ERROR,
   WAITING,
-  NOT_MANAGED;
+  NOT_MANAGED,
+  DELETING;
 
   fun toActuationState(reason: String? = null, history: List<ResourceHistoryEvent>): ResourceActuationState {
     return ResourceActuationState(status = this, reason = reason, eventMessage = history.getFirstMessage(), tasks = history.getLastEventTasks())
