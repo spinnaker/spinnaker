@@ -1,8 +1,8 @@
 import { set } from 'lodash';
 import React from 'react';
 
+import { NumberList } from 'core/forms';
 import { HelpField } from 'core/help/HelpField';
-import { NgReact } from 'core/reactShims';
 import { IServerGroupCommand } from 'core/serverGroup';
 
 import { PipelineSelector } from '../PipelineSelector';
@@ -52,7 +52,6 @@ export class AdditionalFields extends React.Component<IRollingRedBlackStrategyAd
   };
 
   public render() {
-    const { NumberList } = NgReact;
     const { command } = this.props;
     const rollbackOnFailure = command.rollback && command.rollback.onFailure;
     return (

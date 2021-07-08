@@ -2,12 +2,12 @@ import { set } from 'lodash';
 import React from 'react';
 import Select, { Option } from 'react-select';
 
+import { NumberList } from 'core/forms';
 import { HelpField } from 'core/help/HelpField';
 import {
   DeploymentMonitorReader,
   IDeploymentMonitorDefinition,
 } from 'core/pipeline/config/stages/monitoreddeploy/DeploymentMonitorReader';
-import { NgReact } from 'core/reactShims';
 import { IServerGroupCommand } from 'core/serverGroup';
 
 import { IDeploymentStrategyAdditionalFieldsProps } from '../../deploymentStrategy.registry';
@@ -95,7 +95,6 @@ export class AdditionalFields extends React.Component<
   };
 
   public render() {
-    const { NumberList } = NgReact;
     const { command } = this.props;
     const rollbackOnFailure = command.failureActions && command.failureActions.rollback === RollbackType.Automatic;
     const destroyFailedAsg = command.failureActions && command.failureActions.destroyInstances;
