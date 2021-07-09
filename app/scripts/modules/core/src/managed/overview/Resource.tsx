@@ -25,7 +25,7 @@ const statusUtils: {
   NOT_MANAGED: { color: 'var(--color-status-warning)', icon: 'fas fa-pause', defaultReason: 'Resource is not managed' },
   WAITING: { icon: 'far fa-hourglass', defaultReason: 'Resource is currently locked and can not be updated' },
   PROCESSING: { icon: 'far fa-hourglass', defaultReason: 'Resource is being updated' },
-  DELETING: { icon: 'far fa-trash-can', defaultReason: 'Resource is being deleted' },
+  DELETING: { icon: 'far fa-trash-alt', defaultReason: 'Resource is being deleted' },
 };
 
 const Status = ({
