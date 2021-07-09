@@ -1,8 +1,7 @@
 import React from 'react';
 
-import { errorMessage, FormikFormField, ReactSelectInput, useLatestPromise } from 'core/presentation';
-
 import { ArtifactoryReaderService } from './artifactoryReader.service';
+import { errorMessage, FormikFormField, ReactSelectInput, useLatestPromise } from '../../../../presentation';
 
 export function ArtifactoryTrigger() {
   const fetchNames = useLatestPromise(() => ArtifactoryReaderService.getArtifactoryNames(), []);

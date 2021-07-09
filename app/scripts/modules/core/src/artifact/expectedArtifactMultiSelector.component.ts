@@ -1,6 +1,7 @@
 import { IComponentOptions, IController, module } from 'angular';
-import { IExpectedArtifact } from 'core/domain';
+
 import { ArtifactIconService } from './ArtifactIconService';
+import { IExpectedArtifact } from '../domain';
 
 import './artifactSelector.less';
 

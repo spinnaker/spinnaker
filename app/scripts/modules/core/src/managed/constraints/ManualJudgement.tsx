@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { IConstraint } from 'core/domain';
+import { IConstraint } from '../../domain';
 
 export const ManualJudgementTitle = ({ constraint }: { constraint: IConstraint }) => {
   switch (constraint.status) {

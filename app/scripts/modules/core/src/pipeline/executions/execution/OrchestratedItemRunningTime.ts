@@ -1,4 +1,4 @@
-import { IOrchestratedItem } from 'core/domain';
+import { IOrchestratedItem } from '../../../domain';
 
 const runningStatuses = ['RUNNING', 'SUSPENDED'];
 

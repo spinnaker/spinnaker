@@ -30,8 +30,8 @@ import {
   setMatchingResourceSummary,
   SubnetReader,
 } from '@spinnaker/core';
-import { IJobDisruptionBudget, ITitusResources } from 'titus/domain';
-import { ITitusServiceJobProcesses } from 'titus/domain/ITitusServiceJobProcesses';
+import { IJobDisruptionBudget, ITitusResources } from '../../domain';
+import { ITitusServiceJobProcesses } from '../../domain/ITitusServiceJobProcesses';
 
 export interface ITitusServerGroupCommandBackingData extends IServerGroupCommandBackingData {
   accounts: string[];

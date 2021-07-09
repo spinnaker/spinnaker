@@ -1,7 +1,7 @@
 import { module } from 'angular';
-import { INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider } from 'core/navigation';
 
 import { Pager } from './Pager';
+import { INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider } from '../navigation';
 
 export const PAGER_STATES = 'spinnaker.core.pager.states';
 

@@ -1,6 +1,6 @@
 import { from as observableFrom, Observable } from 'rxjs';
 
-import { REST } from 'core/api/ApiService';
+import { REST } from '../api/ApiService';
 
 export interface IPagerDutyService {
   id: string;

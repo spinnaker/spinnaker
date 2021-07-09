@@ -2,12 +2,12 @@
 
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import * as angular from 'angular';
-import { PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider/providerService.delegate';
-import { ConfirmationModalService } from 'core/confirmationModal';
-import { ClusterState } from 'core/state';
 
+import { PROVIDER_SERVICE_DELEGATE } from '../../cloudProvider/providerService.delegate';
+import { ConfirmationModalService } from '../../confirmationModal';
 import { CORE_SERVERGROUP_DETAILS_MULTIPLESERVERGROUP_COMPONENT } from './multipleServerGroup.component';
 import { SERVER_GROUP_WRITER } from '../serverGroupWriter.service';
+import { ClusterState } from '../../state';
 
 export const CORE_SERVERGROUP_DETAILS_MULTIPLESERVERGROUPS_CONTROLLER =
   'spinnaker.core.serverGroup.details.multipleServerGroups.controller';

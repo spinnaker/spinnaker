@@ -1,3 +1,8 @@
+import { get } from 'lodash';
+import React from 'react';
+import { Option } from 'react-select';
+
+import { BuildDefinitionSource, TriggerType } from './IGoogleCloudBuildStage';
 import {
   ArtifactTypePatterns,
   excludeAllTypesExcept,
@@ -16,12 +21,7 @@ import {
   useData,
   yamlDocumentsToString,
   YamlEditor,
-} from 'core';
-import { get } from 'lodash';
-import React from 'react';
-import { Option } from 'react-select';
-
-import { BuildDefinitionSource, TriggerType } from './IGoogleCloudBuildStage';
+} from '../../../../index';
 
 const SOURCE_OPTIONS: Array<Option<string>> = [
   { value: BuildDefinitionSource.TEXT, label: 'Text' },

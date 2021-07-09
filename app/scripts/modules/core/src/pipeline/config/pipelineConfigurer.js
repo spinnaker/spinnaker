@@ -3,10 +3,6 @@
 import * as angular from 'angular';
 import _ from 'lodash';
 
-import { ViewStateCache } from 'core/cache';
-import { OVERRIDE_REGISTRY } from 'core/overrideRegistry/override.registry';
-import { ReactModal } from 'core/presentation';
-
 import { DeletePipelineModal } from './actions/delete/DeletePipelineModal';
 import { DisablePipelineModal } from './actions/disable/DisablePipelineModal';
 import { EnablePipelineModal } from './actions/enable/EnablePipelineModal';
@@ -17,8 +13,11 @@ import { EditPipelineJsonModal } from './actions/pipelineJson/EditPipelineJsonMo
 import { RenamePipelineModal } from './actions/rename/RenamePipelineModal';
 import { ShowPipelineTemplateJsonModal } from './actions/templateJson/ShowPipelineTemplateJsonModal';
 import { UnlockPipelineModal } from './actions/unlock/UnlockPipelineModal';
+import { ViewStateCache } from '../../cache';
 import { CopyStageModal } from './copyStage/CopyStageModal';
 import { EXECUTION_BUILD_TITLE } from '../executionBuild/ExecutionBuildTitle';
+import { OVERRIDE_REGISTRY } from '../../overrideRegistry/override.registry';
+import { ReactModal } from '../../presentation';
 import { ExecutionsTransformer } from '../service/ExecutionsTransformer';
 import { PipelineConfigService } from './services/PipelineConfigService';
 import { PipelineTemplateWriter } from './templates/PipelineTemplateWriter';

@@ -1,7 +1,7 @@
 import { ICompileProvider, IHttpProvider, ILocationProvider, ILogProvider } from 'angular';
-import { SETTINGS } from 'core/config';
 
 import { bootstrapModule } from './bootstrap.module';
+import { SETTINGS } from '../config';
 
 bootstrapModule.config([
   '$logProvider',

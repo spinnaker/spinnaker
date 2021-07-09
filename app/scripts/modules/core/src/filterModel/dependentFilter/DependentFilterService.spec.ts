@@ -1,4 +1,4 @@
-import { ISortFilter } from 'core/filterModel';
+import { ISortFilter } from '..';
 
 import { digestDependentFilters } from './DependentFilterService';
 

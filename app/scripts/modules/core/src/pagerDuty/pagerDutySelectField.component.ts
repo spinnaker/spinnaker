@@ -1,9 +1,8 @@
 import { IComponentController, IComponentOptions, module } from 'angular';
 
-import { SETTINGS } from 'core/config/settings';
-import { SchedulerFactory } from 'core/scheduler/SchedulerFactory';
-
+import { SETTINGS } from '../config/settings';
 import { IPagerDutyService, PagerDutyReader } from './pagerDuty.read.service';
+import { SchedulerFactory } from '../scheduler/SchedulerFactory';
 
 export class PagerDutySelectFieldController implements IComponentController {
   public component: any;

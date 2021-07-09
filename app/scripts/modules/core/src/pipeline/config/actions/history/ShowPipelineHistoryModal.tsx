@@ -2,15 +2,14 @@ import { isEmpty } from 'lodash';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 
-import { IPipeline } from 'core/domain';
-import { ModalClose } from 'core/modal';
-import { FormField, IModalComponentProps, ReactSelectInput, useData } from 'core/presentation';
-import { IJsonDiff, JsonUtils, timestamp } from 'core/utils';
-import { Spinner } from 'core/widgets';
-
 import { DiffSummary } from './DiffSummary';
 import { DiffView } from './DiffView';
+import { IPipeline } from '../../../../domain';
+import { ModalClose } from '../../../../modal';
+import { FormField, IModalComponentProps, ReactSelectInput, useData } from '../../../../presentation';
 import { PipelineConfigService } from '../../services/PipelineConfigService';
+import { IJsonDiff, JsonUtils, timestamp } from '../../../../utils';
+import { Spinner } from '../../../../widgets';
 
 import './showHistory.less';
 

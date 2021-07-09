@@ -1,11 +1,11 @@
 import { module } from 'angular';
-import { DELIVERY_KEY } from 'core/application/nav/defaultCategories';
-import { ApplicationDataSourceRegistry } from 'core/application/service/ApplicationDataSourceRegistry';
-import { CLUSTER_SERVICE } from 'core/cluster/cluster.service';
-import { SETTINGS } from 'core/config/settings';
-import { EntityTagsReader } from 'core/entityTag/EntityTagsReader';
 
+import { DELIVERY_KEY } from '../application/nav/defaultCategories';
+import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
+import { CLUSTER_SERVICE } from '../cluster/cluster.service';
 import { PipelineConfigService } from './config/services/PipelineConfigService';
+import { SETTINGS } from '../config/settings';
+import { EntityTagsReader } from '../entityTag/EntityTagsReader';
 import { EXECUTION_SERVICE } from './service/execution.service';
 
 export const CORE_PIPELINE_PIPELINE_DATASOURCE = 'spinnaker.core.pipeline.dataSource';

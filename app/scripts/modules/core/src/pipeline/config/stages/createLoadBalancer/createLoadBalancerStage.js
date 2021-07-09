@@ -1,8 +1,8 @@
 'use strict';
 
 import * as angular from 'angular';
-import { CloudProviderRegistry, ProviderSelectionService } from 'core/cloudProvider';
-import { Registry } from 'core/registry';
+import { CloudProviderRegistry, ProviderSelectionService } from '../../../../cloudProvider';
+import { Registry } from '../../../../registry';
 
 export const CORE_PIPELINE_CONFIG_STAGES_CREATELOADBALANCER_CREATELOADBALANCERSTAGE =
   'spinnaker.core.pipeline.stage.createLoadBalancerStage';

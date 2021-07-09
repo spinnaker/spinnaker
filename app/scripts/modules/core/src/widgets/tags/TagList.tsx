@@ -1,9 +1,8 @@
 import React from 'react';
 
-import { logger } from 'core/utils';
-
 import { Key } from '../Keys';
 import { DeleteType, ITag, Tag } from './Tag';
+import { logger } from '../../utils';
 
 import './taglist.less';
 

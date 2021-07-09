@@ -4,11 +4,11 @@ import { DateTime, Duration } from 'luxon';
 import { $log } from 'ngimport';
 import { Subject } from 'rxjs';
 
-import { Application } from 'core/application/application.model';
-import { IExecution, IExecutionGroup, IPipeline, IPipelineTag } from 'core/domain';
-import { FilterModelService, ISortFilter } from 'core/filterModel';
-import { Registry } from 'core/registry';
-import { ExecutionState } from 'core/state';
+import { Application } from '../../application/application.model';
+import { IExecution, IExecutionGroup, IPipeline, IPipelineTag } from '../../domain';
+import { FilterModelService, ISortFilter } from '../../filterModel';
+import { Registry } from '../../registry';
+import { ExecutionState } from '../../state';
 
 const boundaries = [
   {

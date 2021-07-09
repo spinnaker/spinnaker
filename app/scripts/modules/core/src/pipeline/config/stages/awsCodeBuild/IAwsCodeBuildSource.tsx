@@ -1,4 +1,4 @@
-import { ArtifactTypePatterns, excludeAllTypesExcept, IArtifact } from 'core';
+import { ArtifactTypePatterns, excludeAllTypesExcept, IArtifact } from '../../../../index';
 
 export interface IAwsCodeBuildSource {
   type?: string;

@@ -2,12 +2,11 @@ import { Form, FormikProps } from 'formik';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 
-import { Application } from 'core/application';
-import { ModalClose, SubmitButton } from 'core/modal';
-import { IModalComponentProps, LayoutProvider, ResponsiveFieldLayout, SpinFormik } from 'core/presentation';
-
+import { Application } from '../../application';
+import { ModalClose, SubmitButton } from '../../modal';
 import { TaskMonitor } from '../monitor/TaskMonitor';
 import { TaskMonitorWrapper } from '../monitor/TaskMonitorWrapper';
+import { IModalComponentProps, LayoutProvider, ResponsiveFieldLayout, SpinFormik } from '../../presentation';
 import { ITaskCommand, TaskExecutor } from '../taskExecutor';
 
 interface ITaskMonitorModalProps<T> extends IModalComponentProps {

@@ -3,7 +3,7 @@ import { reverse } from 'lodash';
 import React from 'react';
 import { atom, useRecoilState } from 'recoil';
 
-import { useDimensions } from 'core/presentation/hooks/useDimensions.hook';
+import { useDimensions } from '../../presentation/hooks/useDimensions.hook';
 import { useLogEvent } from '../utils/logging';
 
 const STORAGE_KEY = 'MD_environmentsDirection';

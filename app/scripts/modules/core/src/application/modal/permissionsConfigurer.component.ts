@@ -1,9 +1,8 @@
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
 
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
-
 import { PermissionsConfigurer } from './PermissionsConfigurer';
+import { withErrorBoundary } from '../../presentation/SpinErrorBoundary';
 
 export const PERMISSIONS_CONFIGURER_COMPONENT = 'spinnaker.application.permissionsConfigurer.component';
 module(PERMISSIONS_CONFIGURER_COMPONENT, []).component(

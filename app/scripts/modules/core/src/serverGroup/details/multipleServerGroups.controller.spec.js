@@ -1,6 +1,6 @@
-import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
-import { ClusterState } from 'core/state';
-import * as State from 'core/state';
+import { ApplicationModelBuilder } from '../../application/applicationModel.builder';
+import { ClusterState } from '../../state';
+import * as State from '../../state';
 
 describe('Controller: MultipleServerGroups', function () {
   var controller;

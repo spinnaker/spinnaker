@@ -1,7 +1,7 @@
 import { IRequestConfig, module } from 'angular';
-import { SETTINGS } from 'core/config/settings';
 
 import { AuthenticationService } from './AuthenticationService';
+import { SETTINGS } from '../config/settings';
 
 export class AuthenticationInterceptor implements ng.IHttpInterceptor {
   public static $inject = ['$q'];

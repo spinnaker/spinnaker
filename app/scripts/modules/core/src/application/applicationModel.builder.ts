@@ -1,7 +1,6 @@
-import { IServerGroup } from 'core/domain';
-import { SchedulerFactory } from 'core/scheduler/SchedulerFactory';
-
 import { Application } from './application.model';
+import { IServerGroup } from '../domain';
+import { SchedulerFactory } from '../scheduler/SchedulerFactory';
 import { IDataSourceConfig } from './service/applicationDataSource';
 
 export class ApplicationModelBuilder {

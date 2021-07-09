@@ -1,9 +1,8 @@
 import React from 'react';
 
-import { robotToHuman } from 'core/presentation';
-
 import { SearchResultPodItem } from './SearchResultPodItem';
 import { ISearchResultPodData } from './SearchResultPods';
+import { robotToHuman } from '../../presentation';
 
 export interface ISearchResultPodProps {
   podData: ISearchResultPodData;

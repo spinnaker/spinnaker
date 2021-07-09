@@ -2,18 +2,17 @@ import { Debounce } from 'lodash-decorators';
 import React from 'react';
 import { Subscription } from 'rxjs';
 
-import { Application } from 'core/application/application.model';
-import { BannerContainer } from 'core/banner';
-import { ILoadBalancerGroup } from 'core/domain';
-import { FilterTags, IFilterTag } from 'core/filterModel/FilterTags';
-import { ISortFilter } from 'core/filterModel/IFilterModel';
-import { HelpField } from 'core/help';
-import { ReactInjector } from 'core/reactShims';
-import { LoadBalancerState } from 'core/state';
-import { Spinner } from 'core/widgets/spinners/Spinner';
-
 import { CreateLoadBalancerButton } from './CreateLoadBalancerButton';
 import { LoadBalancerPod } from './LoadBalancerPod';
+import { Application } from '../application/application.model';
+import { BannerContainer } from '../banner';
+import { ILoadBalancerGroup } from '../domain';
+import { FilterTags, IFilterTag } from '../filterModel/FilterTags';
+import { ISortFilter } from '../filterModel/IFilterModel';
+import { HelpField } from '../help';
+import { ReactInjector } from '../reactShims';
+import { LoadBalancerState } from '../state';
+import { Spinner } from '../widgets/spinners/Spinner';
 
 export interface ILoadBalancersProps {
   app: Application;

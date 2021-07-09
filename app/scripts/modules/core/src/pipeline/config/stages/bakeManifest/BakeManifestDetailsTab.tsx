@@ -1,3 +1,5 @@
+import React from 'react';
+
 import {
   decodeUnicodeBase64,
   ExecutionDetailsSection,
@@ -6,8 +8,7 @@ import {
   ManifestYaml,
   Overridable,
   StageFailureMessage,
-} from 'core';
-import React from 'react';
+} from '../../../../index';
 
 @Overridable('bakeManifest.bakeManifestDetailsTab')
 export class BakeManifestDetailsTab extends React.Component<IExecutionDetailsSectionProps> {

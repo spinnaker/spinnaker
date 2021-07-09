@@ -5,30 +5,29 @@ import { $location } from 'ngimport';
 import React from 'react';
 import { Subscription } from 'rxjs';
 
-import { AccountTag } from 'core/account';
-import { Application } from 'core/application/application.model';
-import { CancelModal } from 'core/cancelModal/CancelModal';
-import { SETTINGS } from 'core/config/settings';
-import { ConfirmationModalService } from 'core/confirmationModal';
-import { IExecution, IExecutionStageSummary, IPipeline, IRestartDetails } from 'core/domain';
-import { ISortFilter } from 'core/filterModel';
-import { Overridable } from 'core/overrideRegistry';
-import { Tooltip } from 'core/presentation/Tooltip';
-import { ReactInjector } from 'core/reactShims';
-import { ExecutionState } from 'core/state';
-import { logger } from 'core/utils';
-import { duration, timestamp } from 'core/utils/timeFormatters';
-
 import { ExecutionBreadcrumbs } from './ExecutionBreadcrumbs';
 import { ExecutionMarker } from './ExecutionMarker';
 import { ExecutionPermalink } from './ExecutionPermalink';
 import { OrchestratedItemRunningTime } from './OrchestratedItemRunningTime';
+import { AccountTag } from '../../../account';
+import { Application } from '../../../application/application.model';
+import { CancelModal } from '../../../cancelModal/CancelModal';
 import { PipelineGraph } from '../../config/graph/PipelineGraph';
 import { IExecutionViewState, IPipelineGraphNode } from '../../config/graph/pipelineGraph.service';
+import { SETTINGS } from '../../../config/settings';
+import { ConfirmationModalService } from '../../../confirmationModal';
 import { StageExecutionDetails } from '../../details/StageExecutionDetails';
+import { IExecution, IExecutionStageSummary, IPipeline, IRestartDetails } from '../../../domain';
+import { ISortFilter } from '../../../filterModel';
+import { Overridable } from '../../../overrideRegistry';
+import { Tooltip } from '../../../presentation/Tooltip';
+import { ReactInjector } from '../../../reactShims';
+import { ExecutionState } from '../../../state';
 import { ExecutionCancellationReason } from '../../status/ExecutionCancellationReason';
 import { ExecutionStatus } from '../../status/ExecutionStatus';
 import { ParametersAndArtifacts } from '../../status/ParametersAndArtifacts';
+import { logger } from '../../../utils';
+import { duration, timestamp } from '../../../utils/timeFormatters';
 
 import './execution.less';
 

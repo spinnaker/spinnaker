@@ -1,14 +1,13 @@
 import React from 'react';
 import { Subscription } from 'rxjs';
 
-import { Application } from 'core/application/application.model';
-import { BannerContainer } from 'core/banner';
-import { IExecutionGroup } from 'core/domain';
-import { ReactInjector } from 'core/reactShims';
-import { ExecutionState } from 'core/state';
-
 import { ExecutionGroup } from './ExecutionGroup';
+import { Application } from '../../../application/application.model';
+import { BannerContainer } from '../../../banner';
+import { IExecutionGroup } from '../../../domain';
 import { ExecutionFilterService } from '../../filter/executionFilter.service';
+import { ReactInjector } from '../../../reactShims';
+import { ExecutionState } from '../../../state';
 
 import './executionGroups.less';
 

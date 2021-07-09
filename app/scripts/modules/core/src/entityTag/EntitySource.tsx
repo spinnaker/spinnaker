@@ -2,11 +2,10 @@ import { UISref } from '@uirouter/react';
 import { UIRouterContextComponent } from '@uirouter/react-hybrid';
 import * as React from 'react';
 
-import { ICreationMetadataTag, IExecution } from 'core/domain';
-import { HoverablePopover, useData } from 'core/presentation';
-import { ReactInjector } from 'core/reactShims';
-
 import { EntitySourcePopover } from './EntitySourcePopover';
+import { ICreationMetadataTag, IExecution } from '../domain';
+import { HoverablePopover, useData } from '../presentation';
+import { ReactInjector } from '../reactShims';
 
 export interface IEntitySourceProps {
   metadata: ICreationMetadataTag;

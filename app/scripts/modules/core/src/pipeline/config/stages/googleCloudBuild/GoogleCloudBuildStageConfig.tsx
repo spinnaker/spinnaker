@@ -1,10 +1,10 @@
-import { FormikStageConfig, IFormikStageConfigInjectedProps, IStageConfigProps } from 'core';
 import { cloneDeep } from 'lodash';
 import React from 'react';
 
 import { GoogleCloudBuildStageForm } from './GoogleCloudBuildStageForm';
 import { BuildDefinitionSource, IGoogleCloudBuildStage } from './IGoogleCloudBuildStage';
 import { validate } from './googleCloudBuildValidators';
+import { FormikStageConfig, IFormikStageConfigInjectedProps, IStageConfigProps } from '../../../../index';
 
 export function GoogleCloudBuildStageConfig({ application, pipeline, stage, updateStage }: IStageConfigProps) {
   const stageWithDefaults: IGoogleCloudBuildStage = React.useMemo(() => {

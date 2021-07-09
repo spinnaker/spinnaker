@@ -1,9 +1,9 @@
 import { module } from 'angular';
 
 import { Registry } from '@spinnaker/core';
-import { IAppengineStageScope } from 'appengine/domain';
 
 import { AppengineStageCtrl } from '../appengineStage.controller';
+import { IAppengineStageScope } from '../../../domain';
 
 class AppengineDestroyAsgStageCtrl extends AppengineStageCtrl {
   public static $inject = ['$scope'];

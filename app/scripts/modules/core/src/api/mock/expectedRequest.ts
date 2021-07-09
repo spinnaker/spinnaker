@@ -1,6 +1,6 @@
 import { isEqual, isMatch } from 'lodash';
 
-import { SETTINGS } from 'core/config';
+import { SETTINGS } from '../../config';
 
 import { deferred, isSuccessStatus, UrlArg, Verb } from './mockHttpUtils';
 import { ReceivedRequest } from './receivedRequest';

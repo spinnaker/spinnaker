@@ -1,5 +1,5 @@
-import { IProject, ITask } from 'core/domain';
-import { TaskExecutor } from 'core/task/taskExecutor';
+import { IProject, ITask } from '../../domain';
+import { TaskExecutor } from '../../task/taskExecutor';
 
 export class ProjectWriter {
   public static upsertProject(project: IProject): PromiseLike<ITask> {

@@ -1,8 +1,8 @@
 import { module } from 'angular';
-import { Registry } from 'core/registry';
 
 import { FindAmiExecutionDetails } from './FindAmiExecutionDetails';
 import { ExecutionDetailsTasks } from '../common';
+import { Registry } from '../../../../registry';
 
 export interface IFindAmiStageContext {
   region: string;

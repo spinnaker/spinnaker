@@ -2,7 +2,7 @@
 
 import { module } from 'angular';
 
-import { CollapsibleSectionStateCache } from 'core/cache';
+import { CollapsibleSectionStateCache } from '../../cache';
 
 export const CORE_PRESENTATION_COLLAPSIBLESECTION_COLLAPSIBLESECTION_DIRECTIVE =
   'spinnaker.core.presentation.collapsibleSection.directive';

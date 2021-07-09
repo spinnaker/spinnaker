@@ -1,8 +1,8 @@
 import { module } from 'angular';
-import { withErrorBoundary } from 'core';
 import { react2angular } from 'react2angular';
 
 import { ViewScalingActivitiesLink } from './ViewScalingActivitiesLink';
+import { withErrorBoundary } from '../../../index';
 
 export const VIEW_SCALING_ACTIVITIES_LINK = 'spinnaker.core.serverGroup.details.viewScalingActivities.link';
 

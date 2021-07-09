@@ -1,11 +1,10 @@
 import { UISref } from '@uirouter/react';
 import React from 'react';
 
-import { SETTINGS } from 'core/config';
-import { SortToggle } from 'core/presentation';
-import { timestamp } from 'core/utils';
-
+import { SETTINGS } from '../../config';
+import { SortToggle } from '../../presentation';
 import { IApplicationSummary } from '../service/ApplicationReader';
+import { timestamp } from '../../utils';
 
 export interface IApplicationTableProps {
   applications: IApplicationSummary[];

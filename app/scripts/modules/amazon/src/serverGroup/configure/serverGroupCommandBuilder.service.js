@@ -8,7 +8,7 @@ import {
   NameUtils,
   SubnetReader,
 } from '@spinnaker/core';
-import { AWSProviderSettings } from 'amazon/aws.settings';
+import { AWSProviderSettings } from '../../aws.settings';
 
 import { AWS_SERVER_GROUP_CONFIGURATION_SERVICE } from './serverGroupConfiguration.service';
 

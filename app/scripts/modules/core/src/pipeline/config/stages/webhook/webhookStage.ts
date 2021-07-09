@@ -1,8 +1,8 @@
 import { IController, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
-import { REST } from 'core/api/ApiService';
-import { Registry } from 'core/registry';
-import { JsonUtils } from 'core/utils';
+import { REST } from '../../../../api/ApiService';
+import { Registry } from '../../../../registry';
+import { JsonUtils } from '../../../../utils';
 
 export interface IWebhookStageViewState {
   waitForCompletion?: boolean;

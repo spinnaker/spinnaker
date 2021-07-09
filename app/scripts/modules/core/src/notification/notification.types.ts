@@ -1,8 +1,8 @@
 import { cloneDeep } from 'lodash';
 
-import { INotificationSettings, SETTINGS } from 'core/config';
-import { INotificationTypeConfig } from 'core/domain';
-import { Registry } from 'core/registry';
+import { INotificationSettings, SETTINGS } from '../config';
+import { INotificationTypeConfig } from '../domain';
+import { Registry } from '../registry';
 
 import { bearyChatNotification } from './selector/types/bearychat/beary.notification';
 import { emailNotification } from './selector/types/email/email.notification';

@@ -1,11 +1,10 @@
 import { RawParams } from '@uirouter/core';
 import React from 'react';
 
-import { ITask } from 'core/domain';
-import { Markdown } from 'core/presentation';
-import { ReactInjector } from 'core/reactShims';
-
 import { TrafficGuardHelperLink } from '../TrafficGuardHelperLink';
+import { ITask } from '../../domain';
+import { Markdown } from '../../presentation';
+import { ReactInjector } from '../../reactShims';
 
 export interface ITaskMonitorErrorProps {
   errorMessage: string;

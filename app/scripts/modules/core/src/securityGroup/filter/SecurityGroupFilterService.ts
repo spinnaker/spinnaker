@@ -1,10 +1,10 @@
 import { chain, find, forOwn, groupBy, map, sortBy } from 'lodash';
 import { Subject } from 'rxjs';
 
-import { Application } from 'core/application/application.model';
-import { ISecurityGroup, ISecurityGroupGroup } from 'core/domain';
-import { FilterModelService } from 'core/filterModel';
-import { SecurityGroupState } from 'core/state';
+import { Application } from '../../application/application.model';
+import { ISecurityGroup, ISecurityGroupGroup } from '../../domain';
+import { FilterModelService } from '../../filterModel';
+import { SecurityGroupState } from '../../state';
 
 export class SecurityGroupFilterService {
   public groupsUpdatedStream: Subject<ISecurityGroupGroup[]> = new Subject<ISecurityGroupGroup[]>();

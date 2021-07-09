@@ -1,9 +1,9 @@
 import { $log, $q, $timeout } from 'ngimport';
 import { Subject } from 'rxjs';
 
-import { REST } from 'core/api/ApiService';
-import { ITask } from 'core/domain';
-import { OrchestratedItemTransformer } from 'core/orchestratedItem/orchestratedItem.transformer';
+import { REST } from '../api/ApiService';
+import { ITask } from '../domain';
+import { OrchestratedItemTransformer } from '../orchestratedItem/orchestratedItem.transformer';
 
 export class TaskReader {
   private static activeStatuses: string[] = ['RUNNING', 'SUSPENDED', 'NOT_STARTED'];

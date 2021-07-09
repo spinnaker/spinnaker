@@ -1,6 +1,6 @@
 'use strict';
 
-import { JsonUtils } from 'core/utils';
+import { JsonUtils } from '../../utils';
 
 describe('Controller: SnapshotDiffModalCtrl', function () {
   beforeEach(window.module(require('./snapshotDiff.modal.controller').name));

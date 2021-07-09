@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { INotification, IPipeline } from 'core/domain';
-import { NotificationsList } from 'core/notification';
+import { INotification, IPipeline } from '../../../domain';
+import { NotificationsList } from '../../../notification';
 
 export interface INotificationsPageContentProps {
   pipeline: IPipeline;

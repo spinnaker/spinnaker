@@ -1,10 +1,9 @@
 'use strict';
 
-import { ArtifactTypePatterns } from 'core/artifact';
-import { Registry } from 'core/registry';
-
 import { PipelineTrigger } from './PipelineTrigger';
 import { PipelineTriggerTemplate } from './PipelineTriggerTemplate';
+import { ArtifactTypePatterns } from '../../../../artifact';
+import { Registry } from '../../../../registry';
 import { ExecutionUserStatus } from '../../../status/ExecutionUserStatus';
 
 Registry.pipeline.registerTrigger({

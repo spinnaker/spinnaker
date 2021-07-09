@@ -1,9 +1,5 @@
-import { IGceHealthCheck, IGceHealthCheckKind } from 'google/domain';
-import {
-  parseHealthCheckUrl,
-  getHealthCheckOptions,
-  getDuplicateHealthCheckNames,
-} from 'google/healthCheck/healthCheckUtils';
+import { IGceHealthCheck, IGceHealthCheckKind } from '../domain';
+import { parseHealthCheckUrl, getHealthCheckOptions, getDuplicateHealthCheckNames } from './healthCheckUtils';
 
 describe('Health check display utils', () => {
   let healthChecks: IGceHealthCheck[];

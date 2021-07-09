@@ -12,9 +12,9 @@ import {
   useObservable,
 } from '@spinnaker/core';
 import { withErrorBoundary } from '@spinnaker/core';
-import { IAmazonServerGroup, IScalingPolicyAlarm } from 'amazon/domain';
 
 import { DateLineChart, IDateLine } from './DateLineChart';
+import { IAmazonServerGroup, IScalingPolicyAlarm } from '../../../../domain';
 
 interface IMetricAlarmChartProps {
   serverGroup: IAmazonServerGroup;

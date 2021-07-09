@@ -1,6 +1,6 @@
 import { trim } from 'lodash';
 
-import { IManifest, IManifestEvent } from 'core/domain';
+import { IManifest, IManifestEvent } from '../domain';
 
 // when fetching logs from Pods there are some instances
 // where we know the name of the Pod ahead of time and some

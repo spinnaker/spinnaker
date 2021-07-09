@@ -1,8 +1,8 @@
 import { module } from 'angular';
 
-import { Registry } from 'core/registry';
 import { DisableAsgExecutionDetails } from './DisableAsgExecutionDetails';
 import { ExecutionDetailsTasks } from '../common';
+import { Registry } from '../../../../registry';
 
 export const DISABLE_ASG_STAGE_MODULE = 'spinnaker.core.pipeline.stage.disableAsg';
 

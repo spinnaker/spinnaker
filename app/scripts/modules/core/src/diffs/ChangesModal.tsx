@@ -1,10 +1,9 @@
 import * as React from 'react';
 
-import { IBuildDiffInfo, IJenkinsInfo } from 'core/domain';
-import { IModalComponentProps, ModalBody, ModalFooter, ModalHeader } from 'core/presentation';
-
 import { CommitHistory, ICommit } from './CommitHistory';
 import { IJarDiff, JarDiffs } from './JarDiffs';
+import { IBuildDiffInfo, IJenkinsInfo } from '../domain';
+import { IModalComponentProps, ModalBody, ModalFooter, ModalHeader } from '../presentation';
 
 export interface IChangesModalProps extends IModalComponentProps {
   buildInfo: IBuildDiffInfo;

@@ -1,8 +1,8 @@
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
-import { withErrorBoundary } from 'core/presentation';
 
 import { AddEntityTagLinks } from './AddEntityTagLinks';
+import { withErrorBoundary } from '../presentation';
 
 export const ADD_ENTITY_TAG_LINKS_COMPONENT = 'spinnaker.core.entityTag.details.component';
 

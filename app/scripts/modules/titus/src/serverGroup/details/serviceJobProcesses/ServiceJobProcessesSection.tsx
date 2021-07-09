@@ -13,10 +13,10 @@ import {
   TextAreaInput,
   withErrorBoundary,
 } from '@spinnaker/core';
-import { ITitusServerGroup } from 'titus/domain';
-import { ITitusServiceJobProcesses } from 'titus/domain/ITitusServiceJobProcesses';
 
 import { enabledProcesses } from './ServiceJobProcesses';
+import { ITitusServerGroup } from '../../../domain';
+import { ITitusServiceJobProcesses } from '../../../domain/ITitusServiceJobProcesses';
 import { ITitusServerGroupDetailsSectionProps } from '../sections/ITitusServerGroupDetailsSectionProps';
 
 interface IEditTitusServiceJobProcessesValues {

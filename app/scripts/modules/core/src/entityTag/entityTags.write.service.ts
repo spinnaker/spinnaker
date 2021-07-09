@@ -1,6 +1,6 @@
-import { Application } from 'core/application/application.model';
-import { IEntityRef, IEntityTag, IEntityTags, ITask } from 'core/domain';
-import { TaskExecutor } from 'core/task/taskExecutor';
+import { Application } from '../application/application.model';
+import { IEntityRef, IEntityTag, IEntityTags, ITask } from '../domain';
+import { TaskExecutor } from '../task/taskExecutor';
 
 export class EntityTagWriter {
   public static upsertEntityTag(

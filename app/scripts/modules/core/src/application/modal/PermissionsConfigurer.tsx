@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from 'react-bootstrap';
 import Select, { Creatable, Option } from 'react-select';
 
-import { AuthenticationService } from 'core/authentication';
+import { AuthenticationService } from '../../authentication';
 
 import './PermissionsConfigurer.less';
 

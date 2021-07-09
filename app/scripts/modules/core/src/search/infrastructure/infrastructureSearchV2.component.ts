@@ -1,12 +1,11 @@
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
 
-import { CACHE_INITIALIZER_SERVICE } from 'core/cache/cacheInitializer.service';
-import { OVERRIDE_REGISTRY } from 'core/overrideRegistry/override.registry';
-import { PAGE_TITLE_SERVICE } from 'core/pageTitle/pageTitle.service';
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
-
 import { SearchV2 } from './SearchV2';
+import { CACHE_INITIALIZER_SERVICE } from '../../cache/cacheInitializer.service';
+import { OVERRIDE_REGISTRY } from '../../overrideRegistry/override.registry';
+import { PAGE_TITLE_SERVICE } from '../../pageTitle/pageTitle.service';
+import { withErrorBoundary } from '../../presentation/SpinErrorBoundary';
 
 export const SEARCH_INFRASTRUCTURE_V2_CONTROLLER = 'spinnaker.search.infrastructureNew.controller';
 module(SEARCH_INFRASTRUCTURE_V2_CONTROLLER, [

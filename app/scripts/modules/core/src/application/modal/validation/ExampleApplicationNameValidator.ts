@@ -1,7 +1,6 @@
-import { CloudProviderRegistry } from 'core/cloudProvider';
-import { SETTINGS } from 'core/config/settings';
-
 import { ApplicationNameValidator, IApplicationNameValidator, IValidationResult } from './ApplicationNameValidator';
+import { CloudProviderRegistry } from '../../../cloudProvider';
+import { SETTINGS } from '../../../config/settings';
 
 export class ExampleApplicationNameValidator implements IApplicationNameValidator {
   public get WARNING_MESSAGE() {

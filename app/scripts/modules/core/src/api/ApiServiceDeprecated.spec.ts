@@ -3,7 +3,7 @@ import { mock, noop } from 'angular';
 import { AuthenticationInitializer } from '../authentication/AuthenticationInitializer';
 import { ICache } from '../cache';
 import { API, InvalidAPIResponse, invalidContentMessage } from './ApiService';
-import { SETTINGS } from 'core/config/settings';
+import { SETTINGS } from '../config/settings';
 
 describe('API Service', function () {
   let $httpBackend: ng.IHttpBackendService;

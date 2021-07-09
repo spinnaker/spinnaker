@@ -10,9 +10,9 @@ import {
   noop,
   ReactModal,
 } from '@spinnaker/core';
-import { AWSProviderSettings } from 'amazon/aws.settings';
 
 import { IAmazonLoadBalancerConfig, LoadBalancerTypes } from './LoadBalancerTypes';
+import { AWSProviderSettings } from '../../aws.settings';
 
 export interface IAmazonLoadBalancerChoiceModalState {
   choices: IAmazonLoadBalancerConfig[];

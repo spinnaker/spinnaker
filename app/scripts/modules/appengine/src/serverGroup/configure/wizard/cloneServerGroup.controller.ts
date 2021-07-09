@@ -3,7 +3,7 @@ import { IModalInstanceService } from 'angular-ui-bootstrap';
 import { get, merge } from 'lodash';
 
 import { Application, SERVER_GROUP_WRITER, ServerGroupWriter, TaskMonitor } from '@spinnaker/core';
-import { AppengineHealth } from 'appengine/common/appengineHealth';
+import { AppengineHealth } from '../../../common/appengineHealth';
 
 import { APPENGINE_CONFIG_FILE_CONFIGURER } from './configFiles.component';
 import { APPENGINE_DYNAMIC_BRANCH_LABEL } from './dynamicBranchLabel.component';

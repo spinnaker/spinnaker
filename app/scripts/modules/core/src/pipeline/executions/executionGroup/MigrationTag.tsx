@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { Overridable } from 'core/overrideRegistry';
+import { Overridable } from '../../../overrideRegistry';
 
 @Overridable('core.executions.migrationTag')
 export class MigrationTag extends React.Component<{}, {}> {

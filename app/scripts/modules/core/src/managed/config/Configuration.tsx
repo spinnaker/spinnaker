@@ -2,15 +2,15 @@ import classnames from 'classnames';
 import React from 'react';
 
 import { Illustration } from '@spinnaker/presentation';
-import { showModal, useApplicationContextSafe } from 'core/presentation';
-import { Spinner } from 'core/widgets';
 
 import { ApplicationQueryError } from '../ApplicationQueryError';
 import { DeliveryConfig } from './DeliveryConfig';
 import { useFetchApplicationManagementStatusQuery, useToggleManagementMutation } from '../graphql/graphql-sdk';
+import { showModal, useApplicationContextSafe } from '../../presentation';
 import { ActionModal, IArtifactActionModalProps } from '../utils/ActionModal';
 import { MODAL_MAX_WIDTH, spinnerProps } from '../utils/defaults';
 import { useLogEvent } from '../utils/logging';
+import { Spinner } from '../../widgets';
 
 const BTN_CLASSNAMES = 'btn md-btn';
 

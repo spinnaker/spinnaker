@@ -1,11 +1,11 @@
 import { IQService, module } from 'angular';
 import { flatten, forOwn, groupBy, has, head, keyBy, keys, values } from 'lodash';
 
-import { REST } from 'core/api';
-import { Application } from 'core/application';
-import { ArtifactReferenceService } from 'core/artifact';
-import { ProviderServiceDelegate } from 'core/cloudProvider';
-import { SETTINGS } from 'core/config/settings';
+import { REST } from '../api';
+import { Application } from '../application';
+import { ArtifactReferenceService } from '../artifact';
+import { ProviderServiceDelegate } from '../cloudProvider';
+import { SETTINGS } from '../config/settings';
 import {
   IArtifactExtractor,
   ICluster,
@@ -14,12 +14,11 @@ import {
   IExecutionStage,
   IServerGroup,
   ITask,
-} from 'core/domain';
-import { FilterModelService } from 'core/filterModel';
-import { NameUtils } from 'core/naming';
-import { ClusterState } from 'core/state';
-
+} from '../domain';
+import { FilterModelService } from '../filterModel';
+import { NameUtils } from '../naming';
 import { CORE_SERVERGROUP_SERVERGROUP_TRANSFORMER } from '../serverGroup/serverGroup.transformer';
+import { ClusterState } from '../state';
 import { taskMatcher } from './task.matcher';
 
 export class ClusterService {

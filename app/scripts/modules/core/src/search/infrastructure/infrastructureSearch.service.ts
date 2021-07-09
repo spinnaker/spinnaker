@@ -2,7 +2,7 @@ import { IDeferred, IQService, module } from 'angular';
 import { of as observableOf, Subject } from 'rxjs';
 import { switchMap, toArray } from 'rxjs/operators';
 
-import { PROVIDER_SERVICE_DELEGATE, ProviderServiceDelegate } from 'core/cloudProvider';
+import { PROVIDER_SERVICE_DELEGATE, ProviderServiceDelegate } from '../../cloudProvider';
 
 import { InfrastructureSearchServiceV2 } from './infrastructureSearchV2.service';
 import { ISearchResult } from '../search.service';

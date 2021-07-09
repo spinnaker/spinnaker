@@ -3,17 +3,16 @@ import { sortBy } from 'lodash';
 import { DateTime } from 'luxon';
 import React from 'react';
 
-import { CollapsibleSection, useApplicationContextSafe } from 'core/presentation';
-import { Spinner } from 'core/widgets';
-
 import { ApplicationQueryError } from '../ApplicationQueryError';
 import { VersionContent } from './VersionContent';
 import { VersionHeading } from './VersionHeading';
 import { useFetchVersionsHistoryQuery } from '../graphql/graphql-sdk';
 import { Messages } from '../messages/Messages';
 import { isBaking } from '../overview/artifact/utils';
+import { CollapsibleSection, useApplicationContextSafe } from '../../presentation';
 import { HistoryArtifactVersion, HistoryEnvironment, PinnedVersions, VersionData } from './types';
 import { spinnerProps } from '../utils/defaults';
+import { Spinner } from '../../widgets';
 
 import './VersionsHistory.less';
 

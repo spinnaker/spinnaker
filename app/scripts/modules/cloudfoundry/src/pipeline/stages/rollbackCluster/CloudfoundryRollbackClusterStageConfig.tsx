@@ -3,7 +3,7 @@ import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import { AccountService, IAccount, IPipeline, IStageConfigProps, StageConfigField } from '@spinnaker/core';
-import { AccountRegionClusterSelector } from 'cloudfoundry/presentation';
+import { AccountRegionClusterSelector } from '../../../presentation';
 
 export interface ICloudfoundryRollbackClusterStageProps extends IStageConfigProps {
   pipeline: IPipeline;

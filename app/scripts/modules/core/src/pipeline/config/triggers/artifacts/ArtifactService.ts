@@ -1,4 +1,4 @@
-import { REST } from 'core/api/ApiService';
+import { REST } from '../../../../api/ApiService';
 
 export class ArtifactService {
   public static getArtifactNames(type: string, accountName: string): PromiseLike<string[]> {

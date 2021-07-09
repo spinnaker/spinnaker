@@ -1,9 +1,8 @@
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
 
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
-
 import { YamlEditor } from './YamlEditor';
+import { withErrorBoundary } from '../presentation/SpinErrorBoundary';
 
 export const YAML_EDITOR_COMPONENT = 'spinnaker.core.yamlEditor.component';
 module(YAML_EDITOR_COMPONENT, []).component(

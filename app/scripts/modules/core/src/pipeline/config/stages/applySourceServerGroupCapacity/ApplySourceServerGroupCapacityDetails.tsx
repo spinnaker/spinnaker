@@ -1,11 +1,10 @@
 import { find, get } from 'lodash';
 import React from 'react';
 
-import { IStage } from 'core/domain';
-
 import { IExecutionDetailsSectionProps } from '../common';
 import { ExecutionDetailsSection } from '../common/ExecutionDetailsSection';
 import { StageFailureMessage } from '../../../details/StageFailureMessage';
+import { IStage } from '../../../../domain';
 
 export interface IApplySourceServerGroupCapacityDetailsState {
   parentDeployStage: IStage;

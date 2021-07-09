@@ -2,13 +2,12 @@ import { IQService, module, noop } from 'angular';
 import { cloneDeep, uniq } from 'lodash';
 import { Duration } from 'luxon';
 
-import { AccountService } from 'core/account/AccountService';
-import { CloudProviderRegistry } from 'core/cloudProvider';
-import { SECURITY_GROUP_READER, SecurityGroupReader } from 'core/securityGroup/securityGroupReader.service';
-
+import { AccountService } from '../account/AccountService';
+import { CloudProviderRegistry } from '../cloudProvider';
 import { ICacheConfig } from './deckCacheFactory';
 import { IInfrastructureCacheConfig, INFRASTRUCTURE_CACHE_CONFIG } from './infrastructureCacheConfig';
 import { InfrastructureCaches } from './infrastructureCaches';
+import { SECURITY_GROUP_READER, SecurityGroupReader } from '../securityGroup/securityGroupReader.service';
 
 interface IInitializers {
   [key: string]: any[];

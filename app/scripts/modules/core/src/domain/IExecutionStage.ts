@@ -1,10 +1,9 @@
-import { Application } from 'core/application/application.model';
-
 import { IExecution } from './IExecution';
 import { IOrchestratedItem } from './IOrchestratedItem';
 import { IStage } from './IStage';
 import { IExecutionDetailsSection, IStageTypeConfig } from './IStageTypeConfig';
 import { ITaskStep } from './ITaskStep';
+import { Application } from '../application/application.model';
 
 export interface IRestartDetails {
   restartedBy: string;

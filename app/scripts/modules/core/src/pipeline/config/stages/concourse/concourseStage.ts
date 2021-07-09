@@ -1,7 +1,6 @@
-import { Registry } from 'core/registry';
-
 import { ConcourseExecutionDetails } from './ConcourseExecutionDetails';
 import { ConcourseStageConfig } from './ConcourseStageConfig';
+import { Registry } from '../../../../registry';
 
 Registry.pipeline.registerStage({
   label: 'Concourse',

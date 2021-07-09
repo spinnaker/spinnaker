@@ -1,7 +1,7 @@
 'use strict';
 
 import * as angular from 'angular';
-import { CACHE_INITIALIZER_SERVICE } from 'core/cache/cacheInitializer.service';
+import { CACHE_INITIALIZER_SERVICE } from '../cache/cacheInitializer.service';
 
 describe('Directives: regionSelectField', function () {
   beforeEach(function () {

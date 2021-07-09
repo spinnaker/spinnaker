@@ -1,4 +1,4 @@
-import { ICronTrigger } from 'core/domain';
+import { ICronTrigger } from '../../../../domain';
 
 export interface ICronTriggerConfigProps {
   trigger: ICronTrigger;

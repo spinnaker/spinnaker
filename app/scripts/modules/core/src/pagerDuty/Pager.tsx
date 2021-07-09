@@ -17,15 +17,14 @@ import {
 } from 'react-virtualized';
 import { forkJoin as observableForkJoin, from as observableFrom } from 'rxjs';
 
-import { ApplicationReader, IApplicationSummary } from 'core/application';
-import { SETTINGS } from 'core/config';
-import { Overridable } from 'core/overrideRegistry';
-import { Markdown } from 'core/presentation';
-import { ReactInjector } from 'core/reactShims';
-import { relativeTime } from 'core/utils/timeFormatters';
-
 import { PageButton } from './PageButton';
+import { ApplicationReader, IApplicationSummary } from '../application';
+import { SETTINGS } from '../config';
+import { Overridable } from '../overrideRegistry';
 import { IOnCall, IPagerDutyService, PagerDutyReader } from './pagerDuty.read.service';
+import { Markdown } from '../presentation';
+import { ReactInjector } from '../reactShims';
+import { relativeTime } from '../utils/timeFormatters';
 
 import './pager.less';
 

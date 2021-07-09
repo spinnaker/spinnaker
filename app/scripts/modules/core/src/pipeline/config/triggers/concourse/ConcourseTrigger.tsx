@@ -2,11 +2,10 @@ import { FormikProps } from 'formik';
 import React from 'react';
 import { Option } from 'react-select';
 
-import { BuildServiceType, IgorService } from 'core/ci';
-import { IConcourseTrigger } from 'core/domain';
-import { FormikFormField, ReactSelectInput, useData } from 'core/presentation';
-
+import { BuildServiceType, IgorService } from '../../../../ci';
 import { ConcourseService } from './concourse.service';
+import { IConcourseTrigger } from '../../../../domain';
+import { FormikFormField, ReactSelectInput, useData } from '../../../../presentation';
 
 export interface IConcourseTriggerConfigProps {
   trigger: IConcourseTrigger;

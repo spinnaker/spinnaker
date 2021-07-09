@@ -4,13 +4,12 @@ import { AutoSizer, CellMeasurer, CellMeasurerCache, List, ListRowProps } from '
 import { Subscription } from 'rxjs';
 import { take } from 'rxjs/operators';
 
-import { Application } from 'core/application';
-import { ISortFilter } from 'core/filterModel';
-import { IStateChange, ReactInjector } from 'core/reactShims';
-import { ClusterState } from 'core/state';
-
 import { ClusterPod } from './ClusterPod';
+import { Application } from '../application';
 import { IClusterGroup, IClusterSubgroup } from './filter/ClusterFilterService';
+import { ISortFilter } from '../filterModel';
+import { IStateChange, ReactInjector } from '../reactShims';
+import { ClusterState } from '../state';
 
 export interface IAllClustersGroupingsProps {
   app: Application;

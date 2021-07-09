@@ -1,11 +1,11 @@
 import { FieldArray, FormikErrors, FormikProps, getIn } from 'formik';
 import React from 'react';
 
-import { IAccount } from 'core/account';
-import { IProject, IProjectCluster } from 'core/domain';
-import { HelpField } from 'core/help';
-import { IWizardPageComponent } from 'core/modal';
-import { FormikFormField, ReactSelectInput, TextInput } from 'core/presentation';
+import { IAccount } from '../../account';
+import { IProject, IProjectCluster } from '../../domain';
+import { HelpField } from '../../help';
+import { IWizardPageComponent } from '../../modal';
+import { FormikFormField, ReactSelectInput, TextInput } from '../../presentation';
 
 export interface IClustersProps {
   accounts: IAccount[];

@@ -1,10 +1,10 @@
 import { module } from 'angular';
-import { Application } from 'core/application/application.model';
-import { INFRASTRUCTURE_KEY } from 'core/application/nav/defaultCategories';
-import { ApplicationDataSourceRegistry } from 'core/application/service/ApplicationDataSourceRegistry';
-import { ISecurityGroup } from 'core/domain';
-import { EntityTagsReader } from 'core/entityTag/EntityTagsReader';
-import { addManagedResourceMetadataToSecurityGroups } from 'core/managed';
+import { Application } from '../application/application.model';
+import { INFRASTRUCTURE_KEY } from '../application/nav/defaultCategories';
+import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
+import { ISecurityGroup } from '../domain';
+import { EntityTagsReader } from '../entityTag/EntityTagsReader';
+import { addManagedResourceMetadataToSecurityGroups } from '../managed';
 
 import { SECURITY_GROUP_READER, SecurityGroupReader } from './securityGroupReader.service';
 

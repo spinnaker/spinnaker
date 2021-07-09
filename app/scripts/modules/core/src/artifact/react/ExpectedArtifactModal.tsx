@@ -1,18 +1,17 @@
 import { FormikProps } from 'formik';
 import React from 'react';
 
-import { AccountService, IArtifactAccount } from 'core/account';
-import { IArtifact, IExpectedArtifact, IPipeline } from 'core/domain';
-import { HelpField } from 'core/help';
-import { WizardModal, WizardPage } from 'core/modal/wizard';
-import { IModalComponentProps, ReactModal } from 'core/presentation';
-import { FormikFormField } from 'core/presentation/forms';
-import { CheckboxInput, TextInput } from 'core/presentation/forms/inputs';
-import { TaskMonitor } from 'core/task';
-import { noop } from 'core/utils';
-
 import { ArtifactEditor } from './ArtifactEditor';
+import { AccountService, IArtifactAccount } from '../../account';
+import { IArtifact, IExpectedArtifact, IPipeline } from '../../domain';
 import { ExpectedArtifactService } from '../expectedArtifact.service';
+import { HelpField } from '../../help';
+import { WizardModal, WizardPage } from '../../modal/wizard';
+import { IModalComponentProps, ReactModal } from '../../presentation';
+import { FormikFormField } from '../../presentation/forms';
+import { CheckboxInput, TextInput } from '../../presentation/forms/inputs';
+import { TaskMonitor } from '../../task';
+import { noop } from '../../utils';
 
 export interface IExpectedArtifactModalProps extends IModalComponentProps {
   expectedArtifact?: IExpectedArtifact;

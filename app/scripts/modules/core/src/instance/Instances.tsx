@@ -3,9 +3,8 @@ import { UIViewAddress, useParentView, useRouter } from '@uirouter/react';
 import React from 'react';
 import { Subscription } from 'rxjs';
 
-import { IInstance } from 'core/domain';
-
 import { Instance } from './Instance';
+import { IInstance } from '../domain';
 
 export interface IInstancesProps {
   instances: IInstance[];

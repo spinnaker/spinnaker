@@ -1,7 +1,6 @@
-import { Registry } from 'core/registry';
-
 import { DeployServiceExecutionDetails } from './DeployServiceExecutionDetails';
 import { ExecutionDetailsTasks } from '../common';
+import { Registry } from '../../../../registry';
 
 Registry.pipeline.registerStage({
   executionDetailsSections: [DeployServiceExecutionDetails, ExecutionDetailsTasks],

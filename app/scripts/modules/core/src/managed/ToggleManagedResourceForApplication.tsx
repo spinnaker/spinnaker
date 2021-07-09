@@ -1,7 +1,6 @@
 import React, { memo, useState } from 'react';
 
 import { Illustration, IllustrationName } from '@spinnaker/presentation';
-import { logger } from 'core/utils';
 
 import { Button } from './Button';
 import { ManagedWriter } from './ManagedWriter';
@@ -14,6 +13,7 @@ import {
   showModal,
   ValidationMessage,
 } from '../presentation';
+import { logger } from '../utils';
 
 const logClick = (label: string, application: string) =>
   logger.log({

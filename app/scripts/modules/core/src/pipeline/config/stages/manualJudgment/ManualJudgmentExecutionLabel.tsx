@@ -1,12 +1,11 @@
 import React from 'react';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 
-import { Application } from 'core/application/application.model';
-import { IExecution, IExecutionStageSummary } from 'core/domain';
-import { HoverablePopover } from 'core/presentation/HoverablePopover';
-
 import { ManualJudgmentApproval } from './ManualJudgmentApproval';
+import { Application } from '../../../../application/application.model';
 import { ExecutionBarLabel } from '../common/ExecutionBarLabel';
+import { IExecution, IExecutionStageSummary } from '../../../../domain';
+import { HoverablePopover } from '../../../../presentation/HoverablePopover';
 
 export interface IManualJudgmentExecutionLabelProps {
   stage: IExecutionStageSummary;

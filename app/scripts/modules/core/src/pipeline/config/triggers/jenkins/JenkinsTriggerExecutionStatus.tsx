@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { IBuildTrigger, IExecutionTriggerStatusComponentProps } from 'core/domain';
+import { IBuildTrigger, IExecutionTriggerStatusComponentProps } from '../../../../domain';
 
 export class JenkinsTriggerExecutionStatus extends React.Component<IExecutionTriggerStatusComponentProps> {
   public render() {

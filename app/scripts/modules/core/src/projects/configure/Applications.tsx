@@ -2,10 +2,10 @@ import { FormikErrors, FormikProps, getIn } from 'formik';
 import { isEqual } from 'lodash';
 import React from 'react';
 
-import { IProject, IProjectPipeline } from 'core/domain';
-import { IWizardPageComponent } from 'core/modal';
-import { FormikFormField } from 'core/presentation';
-import { ApplicationsPickerInput } from 'core/widgets';
+import { IProject, IProjectPipeline } from '../../domain';
+import { IWizardPageComponent } from '../../modal';
+import { FormikFormField } from '../../presentation';
+import { ApplicationsPickerInput } from '../../widgets';
 
 export interface IApplicationsProps {
   formik: FormikProps<IProject>;

@@ -1,9 +1,9 @@
 import { IQService, module } from 'angular';
-import { REST } from 'core/api/ApiService';
-import { ILoadBalancer, ILoadBalancerSourceData } from 'core/domain';
-import { IComponentName, NameUtils } from 'core/naming';
 
+import { REST } from '../api/ApiService';
+import { ILoadBalancer, ILoadBalancerSourceData } from '../domain';
 import { CORE_LOADBALANCER_LOADBALANCER_TRANSFORMER } from './loadBalancer.transformer';
+import { IComponentName, NameUtils } from '../naming';
 
 export interface ILoadBalancersByAccount {
   name: string;

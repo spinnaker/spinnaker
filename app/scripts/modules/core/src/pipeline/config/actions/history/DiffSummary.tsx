@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { IDiffSummary } from 'core/utils';
+import { IDiffSummary } from '../../../../utils';
 
 export interface IDiffSummaryProps {
   summary: IDiffSummary;

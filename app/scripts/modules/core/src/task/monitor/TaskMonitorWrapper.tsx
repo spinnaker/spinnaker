@@ -2,11 +2,10 @@ import React, { useEffect } from 'react';
 import { Modal } from 'react-bootstrap';
 import { CSSTransition } from 'react-transition-group';
 
-import { useForceUpdate } from 'core/presentation/hooks';
-
 import { TaskMonitor } from './TaskMonitor';
 import { TaskMonitorError } from './TaskMonitorError';
 import { TaskMonitorStatus } from './TaskMonitorStatus';
+import { useForceUpdate } from '../../presentation/hooks';
 
 export interface ITaskMonitorProps {
   monitor: TaskMonitor;

@@ -9,10 +9,10 @@ import {
   WizardModal,
   WizardPage,
 } from '@spinnaker/core';
-import { IGceServerGroup } from 'google/domain';
-import { GceImageReader, IGceImage, ImageSelect } from 'google/image';
 
 import { StatefulMIGService } from './StatefulMIGService';
+import { IGceServerGroup } from '../../../domain';
+import { GceImageReader, IGceImage, ImageSelect } from '../../../image';
 
 interface IUpdateBootImageButtonProps {
   application: Application;

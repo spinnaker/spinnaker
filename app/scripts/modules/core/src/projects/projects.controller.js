@@ -2,12 +2,11 @@ import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
 
-import { ViewStateCache } from 'core/cache';
-import { InsightMenu as ProjectInsightMenu } from 'core/insight/InsightMenu';
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
-
+import { ViewStateCache } from '../cache';
 import { ConfigureProjectModal } from './configure';
+import { InsightMenu as ProjectInsightMenu } from '../insight/InsightMenu';
 import { INSIGHT_MENU_DIRECTIVE } from '../insight/insightmenu.directive';
+import { withErrorBoundary } from '../presentation/SpinErrorBoundary';
 import { ANY_FIELD_FILTER } from '../presentation/anyFieldFilter/anyField.filter';
 import { CORE_PRESENTATION_SORTTOGGLE_SORTTOGGLE_DIRECTIVE } from '../presentation/sortToggle/sorttoggle.directive';
 import { ProjectReader } from './service/ProjectReader';

@@ -13,14 +13,14 @@ import {
   WizardModal,
   WizardPage,
 } from '@spinnaker/core';
-import { AWSProviderSettings } from 'amazon/aws.settings';
-import { IAmazonApplicationLoadBalancer, IAmazonApplicationLoadBalancerUpsertCommand } from 'amazon/domain';
 
 import { ALBAdvancedSettings } from './ALBAdvancedSettings';
 import { ALBListeners } from './ALBListeners';
 import { TargetGroups } from './TargetGroups';
+import { AWSProviderSettings } from '../../../aws.settings';
 import { LoadBalancerLocation } from '../common/LoadBalancerLocation';
 import { SecurityGroups } from '../common/SecurityGroups';
+import { IAmazonApplicationLoadBalancer, IAmazonApplicationLoadBalancerUpsertCommand } from '../../../domain';
 import { AwsLoadBalancerTransformer } from '../../loadBalancer.transformer';
 
 import '../common/configure.less';

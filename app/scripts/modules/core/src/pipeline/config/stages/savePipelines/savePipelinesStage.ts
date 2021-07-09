@@ -1,10 +1,9 @@
-import { ArtifactReferenceService, ExpectedArtifactService } from 'core/artifact';
-import { ExecutionArtifactTab } from 'core/artifact/react/ExecutionArtifactTab';
-import { Registry } from 'core/registry';
-
 import { SavePipelinesResultsTab } from './SavePipelinesResultsTab';
 import { SavePipelinesStageConfig } from './SavePipelinesStageConfig';
+import { ArtifactReferenceService, ExpectedArtifactService } from '../../../../artifact';
+import { ExecutionArtifactTab } from '../../../../artifact/react/ExecutionArtifactTab';
 import { ExecutionDetailsTasks } from '../common/ExecutionDetailsTasks';
+import { Registry } from '../../../../registry';
 
 Registry.pipeline.registerStage({
   label: 'Save Pipelines',

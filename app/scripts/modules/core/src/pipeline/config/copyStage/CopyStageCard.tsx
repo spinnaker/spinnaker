@@ -1,8 +1,8 @@
 import React from 'react';
 
-import { CloudProviderLogo } from 'core/cloudProvider';
-import { IStage } from 'core/domain';
-import { robotToHuman } from 'core/presentation';
+import { CloudProviderLogo } from '../../../cloudProvider';
+import { IStage } from '../../../domain';
+import { robotToHuman } from '../../../presentation';
 
 import './copyStageCard.less';
 

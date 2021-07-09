@@ -10,7 +10,7 @@ import {
   IWizardPageComponent,
   StageArtifactSelector,
 } from '@spinnaker/core';
-import { FormikConfigField } from 'cloudfoundry/presentation';
+import { FormikConfigField } from '../../../../../presentation';
 
 import { ICloudFoundryCreateServerGroupCommand } from '../../../serverGroupConfigurationModel.cf';
 

@@ -2,11 +2,10 @@ import { module } from 'angular';
 import React from 'react';
 import { react2angular } from 'react2angular';
 
-import { IArtifactAccount } from 'core/account';
-import { TetheredSelect } from 'core/presentation';
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
-
 import { ArtifactIcon } from './ArtifactIcon';
+import { IArtifactAccount } from '../../account';
+import { TetheredSelect } from '../../presentation';
+import { withErrorBoundary } from '../../presentation/SpinErrorBoundary';
 
 export interface IArtifactAccountSelectorProps {
   accounts: IArtifactAccount[];

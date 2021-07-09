@@ -1,4 +1,4 @@
-import { FilterModelService, IFilterConfig, IFilterModel } from 'core/filterModel';
+import { FilterModelService, IFilterConfig, IFilterModel } from '../../filterModel';
 
 export const filterModelConfig: IFilterConfig[] = [
   { model: 'filter', param: 'q', clearValue: '', type: 'string', filterLabel: 'search' },

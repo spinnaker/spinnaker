@@ -13,7 +13,7 @@ import {
   IServerGroupFilter,
   ReactSelectInput,
 } from '@spinnaker/core';
-import { ICloudFoundryCreateServerGroupCommand } from 'cloudfoundry/serverGroup';
+import { ICloudFoundryCreateServerGroupCommand } from '../../../serverGroup';
 
 export interface IFormikAccountRegionClusterSelectorProps {
   accounts: IAccount[];

@@ -1,4 +1,4 @@
-import { RequestBuilder } from 'core/api';
+import { RequestBuilder } from '../../api';
 import { SpelService } from './SpelService';
 
 describe('SpelService', () => {

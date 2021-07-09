@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { IExecutionStageSummary } from 'core/domain';
-import { HoverablePopover } from 'core/presentation/HoverablePopover';
+import { IExecutionStageSummary } from '../../../../domain';
+import { HoverablePopover } from '../../../../presentation/HoverablePopover';
 
 import './groupStage.less';
 

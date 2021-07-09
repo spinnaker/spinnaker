@@ -1,10 +1,10 @@
 import React from 'react';
 
 import { CollapsibleSection, Overridable, Tooltip } from '@spinnaker/core';
-import { IAmazonServerGroupView, IScalingProcess } from 'amazon/domain';
-import { AwsNgReact } from 'amazon/reactShims';
 
-import type { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
+import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
+import { IAmazonServerGroupView, IScalingProcess } from '../../../domain';
+import { AwsNgReact } from '../../../reactShims';
 import { CreateScalingPolicyButton } from '../scalingPolicy/CreateScalingPolicyButton';
 import { AutoScalingProcessService } from '../scalingProcesses/AutoScalingProcessService';
 

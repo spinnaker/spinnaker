@@ -1,11 +1,10 @@
 import React from 'react';
 
-import { useApplicationContextSafe } from 'core/presentation';
-
 import { MessageBox, MessagesSection } from './MessageBox';
 import { RelativeTimestamp } from '../RelativeTimestamp';
 import { ManagementWarning } from '../config/ManagementWarning';
 import { useFetchNotificationsQuery } from '../graphql/graphql-sdk';
+import { useApplicationContextSafe } from '../../presentation';
 import { useLogEvent } from '../utils/logging';
 
 const AppNotifications = () => {

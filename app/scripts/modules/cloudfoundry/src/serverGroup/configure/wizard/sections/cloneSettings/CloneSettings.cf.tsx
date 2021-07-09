@@ -14,11 +14,11 @@ import {
   ReactSelectInput,
   StageConstants,
 } from '@spinnaker/core';
-import { FormikAccountRegionClusterSelector } from 'cloudfoundry/presentation';
+import { FormikAccountRegionClusterSelector } from '../../../../../presentation';
 
 import { ICloudFoundryCreateServerGroupCommand } from '../../../serverGroupConfigurationModel.cf';
 
-import 'cloudfoundry/common/cloudFoundry.less';
+import '../../../../../common/cloudFoundry.less';
 
 export interface ICloudFoundryCloneSettingsProps {
   formik: FormikProps<ICloudFoundryCreateServerGroupCommand>;

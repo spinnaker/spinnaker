@@ -1,8 +1,7 @@
 import { module } from 'angular';
 
-import { Registry } from 'core/registry';
-
 import { DeploymentMonitorExecutionDetails } from './DeploymentMonitorExecutionDetails';
+import { Registry } from '../../../../registry';
 
 export const EVALUATE_HEALTH_STAGE = 'spinnaker.core.pipeline.stage.monitored.evaluatehealthstage';
 

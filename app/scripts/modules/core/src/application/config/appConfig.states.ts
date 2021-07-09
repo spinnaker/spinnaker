@@ -1,8 +1,8 @@
 import { module } from 'angular';
-import { INestedState } from 'core/navigation';
 
 import { ApplicationConfig } from './ApplicationConfig';
 import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from '../application.state.provider';
+import { INestedState } from '../../navigation';
 
 export const APP_CONFIG_STATES = 'spinnaker.core.application.states';
 module(APP_CONFIG_STATES, [APPLICATION_STATE_PROVIDER]).config([

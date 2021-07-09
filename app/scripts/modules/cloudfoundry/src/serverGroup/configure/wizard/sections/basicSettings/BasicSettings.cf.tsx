@@ -15,11 +15,11 @@ import {
   ReactSelectInput,
   TextInput,
 } from '@spinnaker/core';
-import { CloudFoundryDeploymentStrategySelector } from 'cloudfoundry/deploymentStrategy/CloudFoundryDeploymentStrategySelector';
+import { CloudFoundryDeploymentStrategySelector } from '../../../../../deploymentStrategy/CloudFoundryDeploymentStrategySelector';
 
 import { ICloudFoundryCreateServerGroupCommand } from '../../../serverGroupConfigurationModel.cf';
 
-import 'cloudfoundry/common/cloudFoundry.less';
+import '../../../../../common/cloudFoundry.less';
 
 export interface ICloudFoundryServerGroupBasicSettingsProps {
   formik: FormikProps<ICloudFoundryCreateServerGroupCommand>;

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-import { SchedulerFactory } from 'core/scheduler';
+import { SchedulerFactory } from '../../scheduler';
 
 import { useData } from './useData.hook';
 import { useLatestCallback } from './useLatestCallback.hook';

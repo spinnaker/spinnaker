@@ -1,10 +1,9 @@
 import { useCurrentStateAndParams, useSref } from '@uirouter/react';
 import React, { MouseEventHandler } from 'react';
 
-import { IExecution } from 'core/domain';
-import { logger } from 'core/utils';
-
+import { IExecution } from '../../../domain';
 import { ExecutionInformationService } from './executionInformation.service';
+import { logger } from '../../../utils';
 
 export interface IExecutionBreadcrumbsProps {
   execution: IExecution;

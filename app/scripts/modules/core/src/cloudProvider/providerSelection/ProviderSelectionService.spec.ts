@@ -1,12 +1,12 @@
-import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
-import { Application } from 'core/application/application.model';
+import { ApplicationModelBuilder } from '../../application/applicationModel.builder';
+import { Application } from '../../application/application.model';
 import { mock, IQService, IScope, IRootScopeService } from 'angular';
 
-import { AccountService, IAccountDetails } from 'core/account/AccountService';
-import { CloudProviderRegistry } from 'core/cloudProvider';
-import { ProviderSelectionModal } from 'core/cloudProvider/providerSelection/ProviderSelectionModal';
+import { AccountService, IAccountDetails } from '../../account/AccountService';
+import { CloudProviderRegistry } from '..';
+import { ProviderSelectionModal } from './ProviderSelectionModal';
 import { ProviderSelectionService } from './ProviderSelectionService';
-import { SETTINGS } from 'core/config/settings';
+import { SETTINGS } from '../../config/settings';
 
 function fakeAccount(provider: string): IAccountDetails {
   return {

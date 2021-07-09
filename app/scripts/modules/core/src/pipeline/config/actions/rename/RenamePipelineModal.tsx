@@ -3,9 +3,9 @@ import { get, map, without } from 'lodash';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 
-import { Application } from 'core/application';
-import { IPipeline } from 'core/domain';
-import { ModalClose } from 'core/modal';
+import { Application } from '../../../../application';
+import { IPipeline } from '../../../../domain';
+import { ModalClose } from '../../../../modal';
 import {
   FormikFormField,
   IModalComponentProps,
@@ -13,7 +13,7 @@ import {
   SpinFormik,
   TextInput,
   Validators,
-} from 'core/presentation';
+} from '../../../../presentation';
 
 import { PipelineConfigService } from '../../services/PipelineConfigService';
 

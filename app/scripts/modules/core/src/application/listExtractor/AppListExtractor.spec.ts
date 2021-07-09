@@ -1,8 +1,8 @@
-import { IInstance, IServerGroup } from 'core/domain';
+import { IInstance, IServerGroup } from '../../domain';
 import { Application } from '../application.model';
 import { ApplicationModelBuilder } from '../applicationModel.builder';
 import { AppListExtractor } from './AppListExtractor';
-import { IMoniker } from 'core/naming/IMoniker';
+import { IMoniker } from '../../naming/IMoniker';
 
 describe('AppListExtractor', function () {
   const buildApplication = (serverGroups: any[] = []): Application => {

@@ -2,7 +2,7 @@ import { mock } from 'angular';
 import React from 'react';
 import { mount, ReactWrapper } from 'enzyme';
 
-import { REACT_MODULE } from 'core/reactShims/react.module';
+import { REACT_MODULE } from '../../../reactShims/react.module';
 import { PIPELINE_TEMPLATE_MODULE } from './pipelineTemplate.module';
 import { Variable } from './Variable';
 import { IVariableError, IVariableProps } from './inputs/variableInput.service';

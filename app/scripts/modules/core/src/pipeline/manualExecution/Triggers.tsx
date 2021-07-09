@@ -5,11 +5,10 @@ import Select, { Option } from 'react-select';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import { IPipelineCommand, ITrigger } from 'core/domain';
-import { FormField } from 'core/presentation';
-import { Registry } from 'core/registry';
-
 import { ITriggerTemplateComponentProps, TriggerTemplate } from './TriggerTemplate';
+import { IPipelineCommand, ITrigger } from '../../domain';
+import { FormField } from '../../presentation';
+import { Registry } from '../../registry';
 
 export interface ITriggersProps {
   triggerChanged: (t: ITrigger) => void;

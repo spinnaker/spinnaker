@@ -2,7 +2,7 @@
 
 import { AccountService, SubnetReader } from '@spinnaker/core';
 
-import { AWSProviderSettings } from 'amazon/aws.settings';
+import { AWSProviderSettings } from '../../aws.settings';
 
 describe('Service: awsServerGroup', function () {
   beforeEach(window.module(require('./serverGroupCommandBuilder.service').name));

@@ -2,10 +2,9 @@ import { keyBy, truncate } from 'lodash';
 import memoizeOne from 'memoize-one';
 import React from 'react';
 
-import { IExecution, IPipeline } from 'core/domain';
-
 import { ExecutionParameters, IDisplayableParameter } from './ExecutionParameters';
 import { ResolvedArtifactList } from './ResolvedArtifactList';
+import { IExecution, IPipeline } from '../../domain';
 
 export interface IParametersAndArtifactsProps {
   execution: IExecution;

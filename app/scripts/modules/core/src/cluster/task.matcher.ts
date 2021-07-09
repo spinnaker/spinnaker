@@ -1,6 +1,6 @@
 import { intersection, map } from 'lodash';
 
-import { IServerGroup, ITask } from 'core/domain';
+import { IServerGroup, ITask } from '../domain';
 
 export type ITaskMatcher = (task: ITask, serverGroup: IServerGroup) => boolean;
 

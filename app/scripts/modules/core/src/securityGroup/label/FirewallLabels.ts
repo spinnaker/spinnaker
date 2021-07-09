@@ -1,4 +1,4 @@
-import { SETTINGS } from 'core/config/settings';
+import { SETTINGS } from '../../config/settings';
 
 export class FirewallLabels {
   private static labels: Map<string, string> = new Map<string, string>();

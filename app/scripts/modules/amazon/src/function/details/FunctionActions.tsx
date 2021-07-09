@@ -9,10 +9,10 @@ import {
   FunctionWriter,
   SETTINGS,
 } from '@spinnaker/core';
-import { IAmazonFunction, IAmazonFunctionDeleteCommand } from 'amazon/domain';
 
 import { IFunctionFromStateParams } from './AmazonFunctionDetails';
 import { CreateLambdaFunction } from '../CreateLambdaFunction';
+import { IAmazonFunction, IAmazonFunctionDeleteCommand } from '../../domain';
 
 export interface IFunctionActionsProps {
   app: Application;

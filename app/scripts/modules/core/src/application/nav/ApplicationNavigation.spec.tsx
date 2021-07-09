@@ -19,7 +19,7 @@ import { IPipeline } from '../../domain';
 import { ApplicationDataSource } from '../service/applicationDataSource';
 
 import { ApplicationNavigation } from './ApplicationNavigation';
-import { SETTINGS } from 'core/config';
+import { SETTINGS } from '../../config';
 
 describe('ApplicationNavigation', () => {
   let $uiRouter: UIRouterReact;

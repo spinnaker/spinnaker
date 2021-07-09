@@ -3,10 +3,6 @@
   "compilerOptions": {
     "baseUrl": "./src",
     "outDir": "dist",
-    "paths": {
-      "google/*": ["*"],
-      "google": ["."]
-    },
     "rootDir": "./src"
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],

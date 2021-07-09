@@ -5,11 +5,10 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { take } from 'rxjs/operators';
 
-import { AccountService } from 'core/account/AccountService';
-import { SETTINGS } from 'core/config/settings';
-import { Registry } from 'core/registry';
-
 import { StageConfigWrapper } from '../StageConfigWrapper';
+import { AccountService } from '../../../../account/AccountService';
+import { SETTINGS } from '../../../../config/settings';
+import { Registry } from '../../../../registry';
 
 export const CORE_PIPELINE_CONFIG_STAGES_BASEPROVIDERSTAGE_BASEPROVIDERSTAGE =
   'spinnaker.core.pipeline.stage.baseProviderStage';

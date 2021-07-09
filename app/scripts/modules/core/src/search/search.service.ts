@@ -1,8 +1,8 @@
 import { IHttpPromiseCallbackArg } from 'angular';
 import { $log } from 'ngimport';
 
-import { API } from 'core/api/ApiService';
-import { ICache } from 'core/cache';
+import { API } from '../api/ApiService';
+import { ICache } from '../cache';
 
 export interface ISearchParams {
   [key: string]: any;

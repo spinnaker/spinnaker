@@ -3,9 +3,9 @@ import { cloneDeepWith } from 'lodash';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 
-import { IStage } from 'core/domain';
-import { IModalComponentProps, JsonEditor } from 'core/presentation';
-import { JsonUtils, noop } from 'core/utils';
+import { IStage } from '../../../../domain';
+import { IModalComponentProps, JsonEditor } from '../../../../presentation';
+import { JsonUtils, noop } from '../../../../utils';
 
 export interface IEditStageJsonModalProps extends IModalComponentProps {
   stage: IStage;

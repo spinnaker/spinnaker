@@ -13,7 +13,6 @@ import {
   WizardModal,
   WizardPage,
 } from '@spinnaker/core';
-import { AwsReactInjector } from 'amazon/reactShims';
 
 import { ServerGroupTemplateSelection } from './ServerGroupTemplateSelection';
 import {
@@ -25,6 +24,7 @@ import {
   ServerGroupSecurityGroups,
   ServerGroupZones,
 } from './pages';
+import { AwsReactInjector } from '../../../reactShims';
 import { IAmazonServerGroupCommand } from '../serverGroupConfiguration.service';
 
 export interface IAmazonCloneServerGroupModalProps extends IModalComponentProps {

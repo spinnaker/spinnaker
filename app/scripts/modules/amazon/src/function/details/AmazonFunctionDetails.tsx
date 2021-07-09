@@ -12,10 +12,10 @@ import {
   IOverridableProps,
   Overrides,
 } from '@spinnaker/core';
-import { IAmazonFunction, IAmazonFunctionSourceData } from 'amazon/domain';
-import { AwsReactInjector } from 'amazon/reactShims';
 
 import { FunctionActions } from './FunctionActions';
+import { IAmazonFunction, IAmazonFunctionSourceData } from '../../domain';
+import { AwsReactInjector } from '../../reactShims';
 
 export interface IFunctionFromStateParams {
   account: string;

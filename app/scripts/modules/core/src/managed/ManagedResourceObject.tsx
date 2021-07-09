@@ -1,14 +1,14 @@
 import React, { memo } from 'react';
 
 import { Icon } from '@spinnaker/presentation';
-import { Application } from 'core/application';
-import { Tooltip } from 'core/presentation';
 
 import { ManagedResourceStatusPopover } from './ManagedResourceStatusPopover';
 import { StatusBubble } from './StatusBubble';
+import { Application } from '../application';
 import { IManagedResourceSummary } from '../domain/IManagedEntity';
 import { viewConfigurationByStatus } from './managedResourceStatusConfig';
 import { ResourceDeploymentStatus, ResourceDeploymentStatusProps } from './overview/ResourceDeploymentStatus';
+import { Tooltip } from '../presentation';
 import { showManagedResourceHistoryModal } from './resourceHistory/ManagedResourceHistoryModal';
 import { ResourceTitle } from './resources/ResourceTitle';
 import { IResourceLinkProps, resourceManager } from './resources/resourceRegistry';

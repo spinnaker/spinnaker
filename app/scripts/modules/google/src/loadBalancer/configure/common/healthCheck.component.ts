@@ -1,7 +1,7 @@
 import { IController, module } from 'angular';
 import { get } from 'lodash';
 
-import { IGceHealthCheck } from 'google/domain/index';
+import { IGceHealthCheck } from '../../../domain/index';
 
 class HealthCheckCreateCtrl implements IController {
   public healthCheck: IGceHealthCheck;

@@ -1,8 +1,8 @@
 import { cloneDeep } from 'lodash';
 
-import { ITask } from 'core/domain';
-import { RecentHistoryService } from 'core/history/recentHistory.service';
-import { IJob, TaskExecutor } from 'core/task/taskExecutor';
+import { ITask } from '../../domain';
+import { RecentHistoryService } from '../../history/recentHistory.service';
+import { IJob, TaskExecutor } from '../../task/taskExecutor';
 
 export interface IApplicationAttributes {
   name: string;

@@ -1,4 +1,4 @@
-import { REST } from 'core/api';
+import { REST } from '../../../../api';
 
 export interface IPreconfiguredJobParameter {
   name: string;

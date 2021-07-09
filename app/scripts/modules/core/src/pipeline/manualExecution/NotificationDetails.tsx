@@ -2,10 +2,10 @@ import { FormikProps } from 'formik';
 import React from 'react';
 import { Option } from 'react-select';
 
-import { INotification, INotificationTypeConfig, IPipelineCommand } from 'core/domain';
-import { NotificationSelector, NotificationTransformer } from 'core/notification';
-import { CheckboxInput, FormikFormField, HoverablePopover } from 'core/presentation';
-import { Registry } from 'core/registry';
+import { INotification, INotificationTypeConfig, IPipelineCommand } from '../../domain';
+import { NotificationSelector, NotificationTransformer } from '../../notification';
+import { CheckboxInput, FormikFormField, HoverablePopover } from '../../presentation';
+import { Registry } from '../../registry';
 
 export interface INotificationDetailsProps {
   formik: FormikProps<IPipelineCommand>;

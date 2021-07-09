@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { FirewallLabels } from './label';
 import {
   AccountCell,
   BasicCell,
@@ -14,9 +15,7 @@ import {
   SearchTableBody,
   SearchTableHeader,
   SearchTableRow,
-} from 'core/search';
-
-import { FirewallLabels } from './label';
+} from '../search';
 
 export interface ISecurityGroupSearchResult extends ISearchResult {
   account: string;

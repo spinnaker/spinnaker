@@ -1,6 +1,6 @@
 import { IScope } from 'angular';
-import { IArtifactAccount } from 'core/account';
-import { IArtifactKindConfig } from 'core/domain';
+import { IArtifactAccount } from '../account';
+import { IArtifactKindConfig } from '../domain';
 
 export abstract class ExpectedArtifactSelectorViewControllerAngularDelegate<ArtifactSource> {
   protected sources: ArtifactSource[] = [];

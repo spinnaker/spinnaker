@@ -1,6 +1,6 @@
 'use strict';
 
-import { CloudProviderRegistry } from 'core/cloudProvider';
+import { CloudProviderRegistry } from '../../../../cloudProvider';
 
 describe('DeployExecutionDetailsCtrl', function () {
   beforeEach(window.module(require('./deployExecutionDetails.controller').name));

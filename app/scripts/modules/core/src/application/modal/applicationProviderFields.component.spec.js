@@ -2,8 +2,8 @@
 
 import _ from 'lodash';
 
-import { CloudProviderRegistry } from 'core/cloudProvider';
-import { SETTINGS } from 'core/config/settings';
+import { CloudProviderRegistry } from '../../cloudProvider';
+import { SETTINGS } from '../../config/settings';
 
 describe('Controller: ApplicationProviderFieldsCtrl', function () {
   let controller, scope;

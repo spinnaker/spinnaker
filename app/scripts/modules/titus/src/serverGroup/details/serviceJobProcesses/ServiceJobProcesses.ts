@@ -1,4 +1,4 @@
-import { ITitusServiceJobProcesses } from 'titus/domain/ITitusServiceJobProcesses';
+import { ITitusServiceJobProcesses } from '../../../domain/ITitusServiceJobProcesses';
 
 export const processesList = ['disableIncreaseDesired', 'disableDecreaseDesired'];
 

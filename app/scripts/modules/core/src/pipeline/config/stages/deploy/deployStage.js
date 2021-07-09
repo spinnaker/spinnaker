@@ -1,11 +1,11 @@
 'use strict';
 
 import * as angular from 'angular';
-import { CloudProviderRegistry, ProviderSelectionService } from 'core/cloudProvider';
-import { CLUSTER_SERVICE } from 'core/cluster/cluster.service';
-import { NameUtils } from 'core/naming';
-import { Registry } from 'core/registry';
-import { SERVER_GROUP_COMMAND_BUILDER_SERVICE } from 'core/serverGroup/configure/common/serverGroupCommandBuilder.service';
+import { CloudProviderRegistry, ProviderSelectionService } from '../../../../cloudProvider';
+import { CLUSTER_SERVICE } from '../../../../cluster/cluster.service';
+import { NameUtils } from '../../../../naming';
+import { Registry } from '../../../../registry';
+import { SERVER_GROUP_COMMAND_BUILDER_SERVICE } from '../../../../serverGroup/configure/common/serverGroupCommandBuilder.service';
 
 import { StageConstants } from '../stageConstants';
 

@@ -14,14 +14,14 @@ import {
   WizardModal,
   WizardPage,
 } from '@spinnaker/core';
-import { AWSProviderSettings } from 'amazon/aws.settings';
-import { IAmazonClassicLoadBalancer, IAmazonClassicLoadBalancerUpsertCommand } from 'amazon/domain';
 
 import { AdvancedSettings } from './AdvancedSettings';
 import { HealthCheck } from './HealthCheck';
 import { Listeners } from './Listeners';
+import { AWSProviderSettings } from '../../../aws.settings';
 import { LoadBalancerLocation } from '../common/LoadBalancerLocation';
 import { SecurityGroups } from '../common/SecurityGroups';
+import { IAmazonClassicLoadBalancer, IAmazonClassicLoadBalancerUpsertCommand } from '../../../domain';
 import { AwsLoadBalancerTransformer } from '../../loadBalancer.transformer';
 
 import '../common/configure.less';

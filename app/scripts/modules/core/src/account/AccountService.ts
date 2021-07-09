@@ -4,12 +4,11 @@ import { $log, $q } from 'ngimport';
 import { defer as observableDefer, from as observableFrom, Observable } from 'rxjs';
 import { map, publishReplay, refCount } from 'rxjs/operators';
 
-import { REST } from 'core/api/ApiService';
-import { Application } from 'core/application/application.model';
-import { SETTINGS } from 'core/config/settings';
-import { ILoadBalancer, IServerGroup } from 'core/domain';
-
+import { REST } from '../api/ApiService';
+import { Application } from '../application/application.model';
 import { CloudProviderRegistry } from '../cloudProvider/CloudProviderRegistry';
+import { SETTINGS } from '../config/settings';
+import { ILoadBalancer, IServerGroup } from '../domain';
 
 export interface IRegion {
   account?: string;

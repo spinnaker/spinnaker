@@ -1,7 +1,6 @@
-import { ArtifactTypePatterns, excludeAllTypesExcept } from 'core/artifact';
-import { Registry } from 'core/registry';
-
 import { NexusTrigger } from './NexusTrigger';
+import { ArtifactTypePatterns, excludeAllTypesExcept } from '../../../../artifact';
+import { Registry } from '../../../../registry';
 
 Registry.pipeline.registerTrigger({
   label: 'Nexus',

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 
-import { decodeUnicodeBase64 } from 'core/utils/unicodeBase64';
+import { decodeUnicodeBase64 } from '../../utils/unicodeBase64';
 
 export interface IShowUserDataProps {
   serverGroupName: string;

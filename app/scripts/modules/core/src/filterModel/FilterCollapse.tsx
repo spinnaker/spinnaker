@@ -1,8 +1,8 @@
 import { $rootScope } from 'ngimport';
 import React from 'react';
 
-import { Tooltip } from 'core/presentation';
-import { ReactInjector } from 'core/reactShims';
+import { Tooltip } from '../presentation';
+import { ReactInjector } from '../reactShims';
 
 import './FilterCollapse.less';
 

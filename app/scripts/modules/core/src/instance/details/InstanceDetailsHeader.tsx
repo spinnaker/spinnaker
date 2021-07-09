@@ -2,9 +2,9 @@ import { UISref } from '@uirouter/react';
 import { UIRouterContextComponent } from '@uirouter/react-hybrid';
 import React from 'react';
 
-import { CloudProviderLogo } from 'core/cloudProvider/CloudProviderLogo';
-import { CopyToClipboard } from 'core/utils/clipboard/CopyToClipboard';
-import { Spinner } from 'core/widgets/spinners/Spinner';
+import { CloudProviderLogo } from '../../cloudProvider/CloudProviderLogo';
+import { CopyToClipboard } from '../../utils/clipboard/CopyToClipboard';
+import { Spinner } from '../../widgets/spinners/Spinner';
 
 import './InstanceDetailsHeader.less';
 

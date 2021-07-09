@@ -1,8 +1,8 @@
 import { isEqual } from 'lodash';
 import React from 'react';
 
-import { HelpField } from 'core/help/HelpField';
-import { createFakeReactSyntheticEvent, IFormInputProps } from 'core/presentation';
+import { HelpField } from '../../help/HelpField';
+import { createFakeReactSyntheticEvent, IFormInputProps } from '../../presentation';
 
 export interface IPlatformHealthOverrideProps {
   interestingHealthProviderNames: string[];

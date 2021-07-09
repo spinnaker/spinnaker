@@ -10,7 +10,7 @@ import {
   ILoadBalancerDeleteCommand,
   LoadBalancerWriter,
 } from '@spinnaker/core';
-import { IAppengineLoadBalancer } from 'appengine/domain';
+import { IAppengineLoadBalancer } from '../../domain';
 
 interface ILoadBalancerFromStateParams {
   accountId: string;

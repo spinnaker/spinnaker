@@ -1,10 +1,10 @@
 import { toPairs } from 'lodash';
 
-import { IStageTypeConfig } from 'core/domain';
-import { HelpContentsRegistry } from 'core/help';
-import { IManagedDeliveryPlugin, IResourceKindConfig, registerManagedDeliveryPlugin } from 'core/managed';
-import { Registry } from 'core/registry';
-import { SearchResultType, searchResultTypeRegistry } from 'core/search';
+import { IStageTypeConfig } from '../domain';
+import { HelpContentsRegistry } from '../help';
+import { IManagedDeliveryPlugin, IResourceKindConfig, registerManagedDeliveryPlugin } from '../managed';
+import { Registry } from '../registry';
+import { SearchResultType, searchResultTypeRegistry } from '../search';
 
 export interface IDeckPlugin {
   /** Custom Stage UI (configuration and execution details) */

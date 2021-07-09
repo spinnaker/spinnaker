@@ -2,9 +2,6 @@ import { IController, IHttpPromiseCallbackArg, IScope, module } from 'angular';
 import { IModalInstanceService } from 'angular-ui-bootstrap';
 import { chain, has, without } from 'lodash';
 
-import { Application } from 'core/application/application.model';
-import { IPipelineTemplateConfigV2 } from 'core/domain';
-
 import {
   IPipelineTemplate,
   IPipelineTemplatePlanError,
@@ -12,6 +9,8 @@ import {
   IVariableMetadata,
   PipelineTemplateReader,
 } from '../PipelineTemplateReader';
+import { Application } from '../../../../application/application.model';
+import { IPipelineTemplateConfigV2 } from '../../../../domain';
 import { IVariable } from '../inputs/variableInput.service';
 import { PipelineTemplateV2Service } from './pipelineTemplateV2.service';
 import { VariableValidatorService } from '../validators/variableValidator.service';

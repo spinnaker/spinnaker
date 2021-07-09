@@ -1,7 +1,7 @@
 import { module } from 'angular';
 import { uniq } from 'lodash';
 
-import { IGceHttpLoadBalancer, IGceLoadBalancer } from 'google/domain/loadBalancer';
+import { IGceHttpLoadBalancer, IGceLoadBalancer } from '../domain/loadBalancer';
 
 export class GceHttpLoadBalancerUtils {
   public static REGION = 'global';

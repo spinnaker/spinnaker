@@ -1,17 +1,19 @@
-import React from 'react';
+import { FormikProps } from 'formik';
 import { difference, flatten, get, uniq, uniqBy } from 'lodash';
-import { ValidationMessage, IWizardPageComponent, Application } from '@spinnaker/core';
+import React from 'react';
+
+import { Application, IWizardPageComponent, ValidationMessage } from '@spinnaker/core';
+
+import { IAuthenticateOidcActionConfig } from '../../OidcConfigReader';
 import {
-  NLBListenerProtocol,
-  IListenerDescription,
-  IAmazonNetworkLoadBalancerUpsertCommand,
   IALBListenerCertificate,
   IAmazonCertificate,
+  IAmazonNetworkLoadBalancerUpsertCommand,
   IListenerAction,
-} from 'amazon/domain';
-import { FormikProps } from 'formik';
-import { IAuthenticateOidcActionConfig } from '../../OidcConfigReader';
-import { AmazonCertificateReader, AWSProviderSettings } from 'amazon';
+  IListenerDescription,
+  NLBListenerProtocol,
+} from '../../../domain';
+import { AmazonCertificateReader, AWSProviderSettings } from '../../../index';
 import { CertificateSelector } from '../network/CertificateSelectors';
 
 export interface INLBListenersProps {

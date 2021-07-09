@@ -3,14 +3,14 @@ import { ReactWrapper, mount } from 'enzyme';
 import { set } from 'lodash';
 import { IScope, mock, noop } from 'angular';
 
-import { Application } from 'core/application';
-import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
-import { INSIGHT_FILTER_STATE_MODEL } from 'core/insight/insightFilterState.model';
-import { REACT_MODULE } from 'core/reactShims';
-import { OVERRIDE_REGISTRY } from 'core/overrideRegistry';
-import * as State from 'core/state';
+import { Application } from '../../application';
+import { ApplicationModelBuilder } from '../../application/applicationModel.builder';
+import { INSIGHT_FILTER_STATE_MODEL } from '../../insight/insightFilterState.model';
+import { REACT_MODULE } from '../../reactShims';
+import { OVERRIDE_REGISTRY } from '../../overrideRegistry';
+import * as State from '../../state';
 import { IExecutionsProps, IExecutionsState, Executions } from './Executions';
-import { Spinner } from 'core/widgets/spinners/Spinner';
+import { Spinner } from '../../widgets/spinners/Spinner';
 
 describe('<Executions/>', () => {
   let component: ReactWrapper<IExecutionsProps, IExecutionsState>;

@@ -9,7 +9,7 @@ import {
   ISecurityGroupsByAccountSourceData,
   IVpc,
 } from '@spinnaker/core';
-import { AWSProviderSettings } from 'amazon/aws.settings';
+import { AWSProviderSettings } from '../../aws.settings';
 
 interface IInfiniteScroll {
   currentItems: number;

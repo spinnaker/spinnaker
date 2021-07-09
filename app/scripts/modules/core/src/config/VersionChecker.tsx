@@ -1,9 +1,9 @@
 import { $http, $log } from 'ngimport';
 import React from 'react';
 
-import { IScheduler, SchedulerFactory } from 'core/scheduler/SchedulerFactory';
-import { timestamp } from 'core/utils/timeFormatters';
-import { NotifierService } from 'core/widgets/notifier/notifier.service';
+import { IScheduler, SchedulerFactory } from '../scheduler/SchedulerFactory';
+import { timestamp } from '../utils/timeFormatters';
+import { NotifierService } from '../widgets/notifier/notifier.service';
 
 export interface IDeckVersion {
   version: string;

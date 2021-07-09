@@ -1,8 +1,7 @@
-import { IPipeline, IStage, IStageOrTriggerTypeConfig, ITrigger } from 'core/domain';
-
 import { PipelineConfigValidator } from './PipelineConfigValidator';
 import { BaseRequiredFieldValidator, IRequiredField } from './baseRequiredField.validator';
 import { IBaseRequiredFieldValidationConfig } from './baseRequiredField.validator';
+import { IPipeline, IStage, IStageOrTriggerTypeConfig, ITrigger } from '../../../domain';
 
 export type IRequiredFieldValidationConfig = IBaseRequiredFieldValidationConfig & IRequiredField;
 

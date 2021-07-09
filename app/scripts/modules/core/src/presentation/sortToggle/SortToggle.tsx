@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import React from 'react';
 
-import { noop } from 'core/utils';
+import { noop } from '../../utils';
 
 export interface ISortToggleProps {
   sortKey: string;

@@ -3,8 +3,6 @@ import { IModalInstanceService } from 'angular-ui-bootstrap';
 import { dump, load } from 'js-yaml';
 import { chain, has, without } from 'lodash';
 
-import { Application } from 'core/application/application.model';
-
 import {
   IPipelineTemplate,
   IPipelineTemplateConfig,
@@ -13,6 +11,7 @@ import {
   IVariableMetadata,
   PipelineTemplateReader,
 } from './PipelineTemplateReader';
+import { Application } from '../../../application/application.model';
 import { IVariable } from './inputs/variableInput.service';
 import { VariableValidatorService } from './validators/variableValidator.service';
 

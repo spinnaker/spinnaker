@@ -1,6 +1,6 @@
 import Spy = jasmine.Spy;
 
-import { NotifierService } from 'core/widgets/notifier/notifier.service';
+import { NotifierService } from '../../widgets/notifier/notifier.service';
 
 import { InferredApplicationWarningService } from './InferredApplicationWarningService';
 import { Application } from '../application.model';

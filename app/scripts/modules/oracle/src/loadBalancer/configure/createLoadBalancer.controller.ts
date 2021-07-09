@@ -24,7 +24,7 @@ import {
   IOracleLoadBalancer,
   IOracleSubnet,
   LoadBalancingPolicy,
-} from 'oracle/domain/IOracleLoadBalancer';
+} from '../../domain/IOracleLoadBalancer';
 
 import { ORACLE_LOAD_BALANCER_TRANSFORMER, OracleLoadBalancerTransformer } from '../loadBalancer.transformer';
 

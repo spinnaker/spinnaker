@@ -1,5 +1,5 @@
 import { ArtifactReferenceService } from './ArtifactReferenceService';
-import { Registry } from 'core/registry';
+import { Registry } from '../registry';
 
 const stage = (mixin: any) => ({
   name: 'name',

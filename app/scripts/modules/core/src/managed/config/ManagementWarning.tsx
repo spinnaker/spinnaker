@@ -1,10 +1,9 @@
 import React from 'react';
 
-import { showModal } from 'core/presentation';
-
 import { ResumeManagementModal } from './Configuration';
 import { useFetchApplicationManagementStatusQuery, useToggleManagementMutation } from '../graphql/graphql-sdk';
 import { MessageBox, MessagesSection } from '../messages/MessageBox';
+import { showModal } from '../../presentation';
 import { MODAL_MAX_WIDTH } from '../utils/defaults';
 
 export const ManagementWarning = ({ appName }: { appName: string }) => {

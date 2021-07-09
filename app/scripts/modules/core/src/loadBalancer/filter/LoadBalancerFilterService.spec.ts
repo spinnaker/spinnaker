@@ -1,7 +1,7 @@
-import { Application } from 'core/application/application.model';
-import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
-import { ILoadBalancer, IServerGroup, ILoadBalancerGroup, IManagedResourceSummary } from 'core/domain';
-import { LoadBalancerState } from 'core/state';
+import { Application } from '../../application/application.model';
+import { ApplicationModelBuilder } from '../../application/applicationModel.builder';
+import { ILoadBalancer, IServerGroup, ILoadBalancerGroup, IManagedResourceSummary } from '../../domain';
+import { LoadBalancerState } from '../../state';
 
 // Most of this logic has been moved to filter.model.service.js, so these act more as integration tests
 describe('Service: loadBalancerFilterService', function () {

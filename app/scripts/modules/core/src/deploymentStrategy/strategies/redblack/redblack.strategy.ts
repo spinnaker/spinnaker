@@ -1,9 +1,8 @@
 import { defaultsDeep } from 'lodash';
 
-import { IServerGroupCommand } from 'core/serverGroup';
-
 import { AdditionalFields } from './AdditionalFields';
 import { DeploymentStrategyRegistry } from '../../deploymentStrategy.registry';
+import { IServerGroupCommand } from '../../../serverGroup';
 
 export interface IRedBlackCommand extends IServerGroupCommand {
   maxRemainingAsgs: number;

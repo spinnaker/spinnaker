@@ -1,11 +1,10 @@
 import React from 'react';
 
-import { SETTINGS } from 'core/config';
-import { IEntityRef, IEntityTag, IStage } from 'core/domain';
-import { FormField, ReactSelectInput, TextInput } from 'core/presentation';
-
 import { TagEditor } from './TagEditor';
 import { IStageConfigProps, StageConfigField } from '../common';
+import { SETTINGS } from '../../../../config';
+import { IEntityRef, IEntityTag, IStage } from '../../../../domain';
+import { FormField, ReactSelectInput, TextInput } from '../../../../presentation';
 
 export interface IApplyEntityTagsStage extends IStage {
   entityRef: IEntityRef;

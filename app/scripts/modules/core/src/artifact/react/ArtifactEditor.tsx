@@ -1,17 +1,16 @@
 import { cloneDeep, head } from 'lodash';
 import React from 'react';
 
-import { IArtifactAccount } from 'core/account';
-import { IArtifact, IPipeline } from 'core/domain';
-import { StageConfigField } from 'core/pipeline/config/stages/common';
+import { ArtifactAccountSelector } from './ArtifactAccountSelector';
+import { IArtifactAccount } from '../../account';
+import { IArtifact, IPipeline } from '../../domain';
+import { StageConfigField } from '../../pipeline/config/stages/common';
 import {
   CUSTOM_ARTIFACT_ACCOUNT,
   TYPE as CUSTOM_TYPE,
-} from 'core/pipeline/config/triggers/artifacts/custom/CustomArtifactEditor';
-import { Registry } from 'core/registry';
-import { UUIDGenerator } from 'core/utils';
-
-import { ArtifactAccountSelector } from './ArtifactAccountSelector';
+} from '../../pipeline/config/triggers/artifacts/custom/CustomArtifactEditor';
+import { Registry } from '../../registry';
+import { UUIDGenerator } from '../../utils';
 
 export interface IArtifactEditorProps {
   pipeline: IPipeline;

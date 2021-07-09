@@ -1,13 +1,12 @@
 import * as React from 'react';
 
-import { IAccountDetails } from 'core/account';
-import { Application } from 'core/application';
-import { CloudProviderRegistry, ICloudProviderConfig, ProviderSelectionService } from 'core/cloudProvider';
-import { SETTINGS } from 'core/config/settings';
-import { Tooltip } from 'core/presentation';
-import { ModalInjector } from 'core/reactShims';
-
+import { IAccountDetails } from '../account';
+import { Application } from '../application';
+import { CloudProviderRegistry, ICloudProviderConfig, ProviderSelectionService } from '../cloudProvider';
+import { SETTINGS } from '../config/settings';
 import { FirewallLabels } from './label/FirewallLabels';
+import { Tooltip } from '../presentation';
+import { ModalInjector } from '../reactShims';
 
 const providerFilterFn = (_application: Application, _account: IAccountDetails, provider: ICloudProviderConfig) => {
   const sgConfig = provider.securityGroup;

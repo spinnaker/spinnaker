@@ -1,10 +1,10 @@
 'use strict';
 
 import { module } from 'angular';
-import { IFunctionSourceData } from 'core';
 import { chain, flow } from 'lodash';
 
-import { PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider/providerService.delegate';
+import { PROVIDER_SERVICE_DELEGATE } from '../cloudProvider/providerService.delegate';
+import { IFunctionSourceData } from '../index';
 
 export const CORE_FUNCTION_FUNCTION_TRANSFORMER = 'spinnaker.core.function.transformer';
 export const name = CORE_FUNCTION_FUNCTION_TRANSFORMER; // for backwards compatibility

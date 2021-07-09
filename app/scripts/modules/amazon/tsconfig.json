@@ -3,11 +3,6 @@
   "compilerOptions": {
     "baseUrl": "../../../../",
     "outDir": "dist",
-    "paths": {
-      "core/*": ["app/scripts/modules/core/dist/*"],
-      "amazon": ["app/scripts/modules/amazon/src"],
-      "amazon/*": ["app/scripts/modules/amazon/src/*"]
-    },
     "rootDir": "./src"
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],

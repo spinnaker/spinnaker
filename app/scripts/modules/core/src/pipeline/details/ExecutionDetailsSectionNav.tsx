@@ -1,9 +1,9 @@
 import React from 'react';
 import { Subscription } from 'rxjs';
 
-import { robotToHuman } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';
-import { ReactInjector } from 'core/reactShims';
-import { logger } from 'core/utils';
+import { robotToHuman } from '../../presentation/robotToHumanFilter/robotToHuman.filter';
+import { ReactInjector } from '../../reactShims';
+import { logger } from '../../utils';
 
 export interface IExecutionDetailsSectionNavProps {
   sections: string[];

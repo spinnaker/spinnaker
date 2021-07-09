@@ -1,10 +1,10 @@
 import { IController, IScope, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
-import { BuildServiceType, IgorService } from 'core/ci/igor.service';
-import { IJobConfig, IParameterDefinitionList, IStage } from 'core/domain';
-import { Registry } from 'core/registry';
 
 import { TravisExecutionLabel } from './TravisExecutionLabel';
+import { BuildServiceType, IgorService } from '../../../../ci/igor.service';
+import { IJobConfig, IParameterDefinitionList, IStage } from '../../../../domain';
+import { Registry } from '../../../../registry';
 
 export interface ITravisStageViewState {
   mastersLoaded: boolean;

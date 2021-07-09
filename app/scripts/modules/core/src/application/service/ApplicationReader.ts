@@ -1,9 +1,8 @@
-import { REST } from 'core/api';
-import { SchedulerFactory } from 'core/scheduler';
-
 import { ApplicationDataSourceRegistry } from './ApplicationDataSourceRegistry';
 import { InferredApplicationWarningService } from './InferredApplicationWarningService';
+import { REST } from '../../api';
 import { Application } from '../application.model';
+import { SchedulerFactory } from '../../scheduler';
 import { ApplicationDataSource } from '../service/applicationDataSource';
 
 export interface IApplicationDataSourceAttribute {

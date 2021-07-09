@@ -1,6 +1,6 @@
 import { mock } from 'angular';
 
-import { ApplicationWriter } from 'core/application/service/ApplicationWriter';
+import { ApplicationWriter } from '../../service/ApplicationWriter';
 import { CONFIG_SECTION_FOOTER, ConfigSectionFooterController } from './configSectionFooter.component';
 
 describe('Component: ConfigSectionFooter', () => {

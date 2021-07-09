@@ -1,7 +1,6 @@
 import { module } from 'angular';
 
 import { CloudProviderRegistry, DeploymentStrategyRegistry } from '@spinnaker/core';
-import { IAP_INTERCEPTOR } from 'google/interceptors/iap.interceptor';
 
 import { GCE_PREDICTIVE_AUTOSCALING } from './autoscalingPolicy/components/metricSettings/GcePredictiveAutoscaling';
 import { GOOGLE_CACHE_CACHECONFIGURER_SERVICE } from './cache/cacheConfigurer.service';
@@ -12,6 +11,7 @@ import { GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCE_FILTER } from './instance/custom/
 import { GOOGLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER } from './instance/details/instance.details.controller';
 import { GOOGLE_INSTANCE_GCEINSTANCETYPE_SERVICE } from './instance/gceInstanceType.service';
 import { GOOGLE_INSTANCE_GCEMULTIINSTANCETASK_TRANSFORMER } from './instance/gceMultiInstanceTask.transformer';
+import { IAP_INTERCEPTOR } from './interceptors/iap.interceptor';
 import { GCE_LOAD_BALANCER_CHOICE_MODAL } from './loadBalancer/configure/choice/gceLoadBalancerChoice.modal';
 import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_CREATEHTTPLOADBALANCER_CONTROLLER } from './loadBalancer/configure/http/createHttpLoadBalancer.controller';
 import { GCE_INTERNAL_LOAD_BALANCER_CTRL } from './loadBalancer/configure/internal/gceCreateInternalLoadBalancer.controller';

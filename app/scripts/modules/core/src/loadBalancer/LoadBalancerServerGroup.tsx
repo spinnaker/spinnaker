@@ -3,10 +3,10 @@ import classNames from 'classnames';
 import { clone } from 'lodash';
 import React from 'react';
 
-import { CloudProviderLogo } from 'core/cloudProvider/CloudProviderLogo';
-import { IInstance, IServerGroup } from 'core/domain';
-import { HealthCounts } from 'core/healthCounts/HealthCounts';
-import { Instances } from 'core/instance/Instances';
+import { CloudProviderLogo } from '../cloudProvider/CloudProviderLogo';
+import { IInstance, IServerGroup } from '../domain';
+import { HealthCounts } from '../healthCounts/HealthCounts';
+import { Instances } from '../instance/Instances';
 
 export interface ILoadBalancerServerGroupProps {
   region: string;

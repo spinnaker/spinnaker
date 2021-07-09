@@ -6,10 +6,10 @@ import {
   ILoadBalancerUpsertCommand,
   ISubnet,
 } from '@spinnaker/core';
-import { IAuthenticateOidcActionConfig } from 'amazon/loadBalancer/OidcConfigReader';
 
 import { IAmazonLoadBalancerSourceData } from './IAmazonLoadBalancerSourceData';
 import { IAmazonServerGroup } from './IAmazonServerGroup';
+import { IAuthenticateOidcActionConfig } from '../loadBalancer/OidcConfigReader';
 
 export type ClassicListenerProtocol = 'HTTP' | 'HTTPS' | 'TCP' | 'SSL';
 export type ALBListenerProtocol = 'HTTP' | 'HTTPS';

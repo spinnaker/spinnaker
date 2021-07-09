@@ -1,7 +1,7 @@
-import { Application } from 'core/application/application.model';
-import { ITask } from 'core/domain';
-import { IMoniker } from 'core/naming/IMoniker';
-import { IJob, TaskExecutor } from 'core/task/taskExecutor';
+import { Application } from '../application/application.model';
+import { ITask } from '../domain';
+import { IMoniker } from '../naming/IMoniker';
+import { IJob, TaskExecutor } from '../task/taskExecutor';
 
 export interface ILoadBalancerUpsertCommand extends IJob {
   name: string;

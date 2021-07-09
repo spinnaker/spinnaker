@@ -1,16 +1,16 @@
 import { IQService, module } from 'angular';
-import { Application, DELIVERY_KEY } from 'core/application';
-import { ApplicationDataSourceRegistry } from 'core/application/service/ApplicationDataSourceRegistry';
-import { SETTINGS } from 'core/config/settings';
-import { IManagedApplicationSummary } from 'core/domain';
-import { noop } from 'core/utils';
 
 import { ManagedReader } from './ManagedReader';
+import { Application, DELIVERY_KEY } from '../application';
+import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
+import { SETTINGS } from '../config/settings';
+import { IManagedApplicationSummary } from '../domain';
 import {
   addManagedResourceMetadataToLoadBalancers,
   addManagedResourceMetadataToSecurityGroups,
   addManagedResourceMetadataToServerGroups,
 } from './managedResourceDecorators';
+import { noop } from '../utils';
 
 export const MANAGED_RESOURCES_DATA_SOURCE = 'spinnaker.core.managed.dataSource';
 module(MANAGED_RESOURCES_DATA_SOURCE, []).run([

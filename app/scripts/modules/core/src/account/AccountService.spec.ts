@@ -1,8 +1,8 @@
 import { mock } from 'angular';
-import { mockHttpClient } from 'core/api/mock/jasmine';
-import { MockHttpClient } from 'core/api/mock/mockHttpClient';
+import { mockHttpClient } from '../api/mock/jasmine';
+import { MockHttpClient } from '../api/mock/mockHttpClient';
 
-import { SETTINGS } from 'core/config/settings';
+import { SETTINGS } from '../config/settings';
 import { $rootScope } from 'ngimport';
 import { CloudProviderRegistry } from '../cloudProvider';
 

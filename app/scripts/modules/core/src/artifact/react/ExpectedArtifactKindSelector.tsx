@@ -2,11 +2,10 @@ import { module } from 'angular';
 import React from 'react';
 import { react2angular } from 'react2angular';
 
-import { IArtifactKindConfig } from 'core/domain';
-import { TetheredSelect } from 'core/presentation';
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
-
 import { ArtifactIcon } from './ArtifactIcon';
+import { IArtifactKindConfig } from '../../domain';
+import { TetheredSelect } from '../../presentation';
+import { withErrorBoundary } from '../../presentation/SpinErrorBoundary';
 
 export interface IExpectedArtifactKindSelectorProps {
   kinds: IArtifactKindConfig[];

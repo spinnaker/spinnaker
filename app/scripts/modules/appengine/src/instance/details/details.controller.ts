@@ -9,7 +9,7 @@ import {
   InstanceWriter,
   RecentHistoryService,
 } from '@spinnaker/core';
-import { IAppengineInstance } from 'appengine/domain';
+import { IAppengineInstance } from '../../domain';
 
 interface InstanceFromStateParams {
   instanceId: string;

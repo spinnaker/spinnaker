@@ -5,19 +5,18 @@ import React from 'react';
 import { from as observableFrom, Subject } from 'rxjs';
 import { debounceTime, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 
-import { Tooltip } from 'core/presentation/Tooltip';
-import { ReactInjector } from 'core/reactShims';
-import { ClusterState } from 'core/state';
-import { logger } from 'core/utils';
-import { Spinner } from 'core/widgets/spinners/Spinner';
-
 import { GlobalSearchRecentItems } from './GlobalSearchRecentItems';
 import { GlobalSearchResults } from './GlobalSearchResults';
 import { IChildComponentProps, RecentlyViewedItems } from '../infrastructure/RecentlyViewedItems';
 import { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
+import { Tooltip } from '../../presentation/Tooltip';
+import { ReactInjector } from '../../reactShims';
 import { ISearchResult } from '../search.service';
 import { searchRank } from '../searchRank.filter';
+import { ClusterState } from '../../state';
+import { logger } from '../../utils';
 import { findMatchingApplicationResultToQuery, getSearchQuery as getSearchQueryParams } from './utils';
+import { Spinner } from '../../widgets/spinners/Spinner';
 
 const SLASH_KEY = '/';
 const MIN_SEARCH_LENGTH = 3;

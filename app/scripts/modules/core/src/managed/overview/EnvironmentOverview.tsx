@@ -1,11 +1,10 @@
 import React from 'react';
 
-import { CollapsibleSection, ICollapsibleSectionProps, useApplicationContextSafe } from 'core/presentation';
-
 import { Resource } from './Resource';
 import { Artifact } from './artifact/Artifact';
 import { BaseEnvironment } from '../environmentBaseElements/BaseEnvironment';
 import { useFetchResourceStatusQuery } from '../graphql/graphql-sdk';
+import { CollapsibleSection, ICollapsibleSectionProps, useApplicationContextSafe } from '../../presentation';
 import { QueryEnvironment } from './types';
 
 const sectionProps: Partial<ICollapsibleSectionProps> = {

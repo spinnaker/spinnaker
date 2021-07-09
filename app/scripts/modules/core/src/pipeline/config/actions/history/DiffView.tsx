@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { IJsonDiff } from 'core/utils';
+import { IJsonDiff } from '../../../../utils';
 
 export interface IDiffViewProps {
   diff: IJsonDiff;

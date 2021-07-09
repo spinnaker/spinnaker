@@ -1,6 +1,6 @@
-import { UrlBuilderRegistry } from 'core/navigation/UrlBuilderRegistry';
-import { PipelineRegistry } from 'core/pipeline/config/PipelineRegistry';
-import { DebugWindow } from 'core/utils/consoleDebug';
+import { UrlBuilderRegistry } from '../navigation/UrlBuilderRegistry';
+import { PipelineRegistry } from '../pipeline/config/PipelineRegistry';
+import { DebugWindow } from '../utils/consoleDebug';
 
 export class Registry {
   public static pipeline: PipelineRegistry = new PipelineRegistry();

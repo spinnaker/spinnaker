@@ -1,6 +1,6 @@
 'use strict';
 
-import { RecentHistoryService } from 'core/history';
+import { RecentHistoryService } from '../../history';
 import { ProjectReader } from '../service/ProjectReader';
 
 describe('Controller: Project Dashboard', function () {

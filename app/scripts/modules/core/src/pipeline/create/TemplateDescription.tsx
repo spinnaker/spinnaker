@@ -1,11 +1,10 @@
 import classNames from 'classnames';
 import React from 'react';
 
-import { SETTINGS } from 'core/config/settings';
-import { IPipelineTemplateV2 } from 'core/domain/IPipelineTemplateV2';
-import { Spinner } from 'core/widgets/spinners/Spinner';
-
+import { SETTINGS } from '../../config/settings';
 import { IPipelineTemplate } from '../config/templates/PipelineTemplateReader';
+import { IPipelineTemplateV2 } from '../../domain/IPipelineTemplateV2';
+import { Spinner } from '../../widgets/spinners/Spinner';
 
 import './TemplateDescription.less';
 

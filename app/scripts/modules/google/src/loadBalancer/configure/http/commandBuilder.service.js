@@ -4,14 +4,14 @@ import { module } from 'angular';
 import _ from 'lodash';
 
 import { AccountService, LOAD_BALANCER_READ_SERVICE, NetworkReader, SubnetReader } from '@spinnaker/core';
-import { GCE_ADDRESS_READER } from 'google/address/address.reader';
-import { GCE_CERTIFICATE_READER } from 'google/certificate/certificate.reader';
-import { GOOGLE_COMMON_XPNNAMING_GCE_SERVICE } from 'google/common/xpnNaming.gce.service';
-import { GCEProviderSettings } from 'google/gce.settings';
-import { GCE_HEALTH_CHECK_READER } from 'google/healthCheck/healthCheck.read.service';
 
+import { GCE_ADDRESS_READER } from '../../../address/address.reader';
 import { GOOGLE_BACKENDSERVICE_BACKENDSERVICE_READER } from '../../../backendService/backendService.reader';
+import { GCE_CERTIFICATE_READER } from '../../../certificate/certificate.reader';
 import { sessionAffinityModelToViewMap } from '../common/sessionAffinityNameMaps';
+import { GOOGLE_COMMON_XPNNAMING_GCE_SERVICE } from '../../../common/xpnNaming.gce.service';
+import { GCEProviderSettings } from '../../../gce.settings';
+import { GCE_HEALTH_CHECK_READER } from '../../../healthCheck/healthCheck.read.service';
 import { GCE_HTTP_LOAD_BALANCER_UTILS } from '../../httpLoadBalancerUtils.service';
 import { HttpLoadBalancerTemplate, ListenerTemplate } from './templates';
 import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_TRANSFORMER_SERVICE } from './transformer.service';

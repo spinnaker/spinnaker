@@ -1,14 +1,13 @@
 import React from 'react';
 
-import { Application } from 'core/application';
-import { IPipeline } from 'core/domain';
-import { PageNavigator, PageSection } from 'core/presentation';
-
 import { ExecutionOptionsPageContent } from './ExecutionOptionsPageContent';
 import { MetadataPageContent } from './MetadataPageContent';
 import { NotificationsPageContent } from './NotificationsPageContent';
 import { ParametersPageContent } from './ParametersPageContent';
 import { TriggersPageContent } from './TriggersPageContent';
+import { Application } from '../../../application';
+import { IPipeline } from '../../../domain';
+import { PageNavigator, PageSection } from '../../../presentation';
 
 export interface ITriggersProps {
   application: Application;

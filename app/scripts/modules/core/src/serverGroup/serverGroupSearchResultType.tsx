@@ -2,8 +2,8 @@ import React from 'react';
 import { BehaviorSubject, from as observableFrom, Observable, of as observableOf, Subject } from 'rxjs';
 import { bufferCount, catchError, concatMap, filter, mergeMap, takeUntil } from 'rxjs/operators';
 
-import { REST } from 'core/api';
-import { IInstanceCounts, IServerGroup } from 'core/domain';
+import { REST } from '../api';
+import { IInstanceCounts, IServerGroup } from '../domain';
 import {
   AccountCell,
   BasicCell,
@@ -19,7 +19,7 @@ import {
   SearchTableBody,
   SearchTableHeader,
   SearchTableRow,
-} from 'core/search';
+} from '../search';
 
 import './serverGroup.less';
 

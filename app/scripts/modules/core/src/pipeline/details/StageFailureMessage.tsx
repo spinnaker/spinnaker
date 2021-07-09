@@ -3,11 +3,11 @@ import { UIRouterContext } from '@uirouter/react-hybrid';
 import { get } from 'lodash';
 import React from 'react';
 
-import { IExecutionStage, ITaskStep } from 'core/domain';
-import { EventBus } from 'core/event/EventBus';
-import { Markdown, robotToHuman } from 'core/presentation';
-import { ReactInjector } from 'core/reactShims';
-import { TrafficGuardHelperLink } from 'core/task/TrafficGuardHelperLink';
+import { IExecutionStage, ITaskStep } from '../../domain';
+import { EventBus } from '../../event/EventBus';
+import { Markdown, robotToHuman } from '../../presentation';
+import { ReactInjector } from '../../reactShims';
+import { TrafficGuardHelperLink } from '../../task/TrafficGuardHelperLink';
 
 export interface IStageFailureMessageProps {
   message?: string;

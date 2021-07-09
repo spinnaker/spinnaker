@@ -3,8 +3,8 @@
 import { module } from 'angular';
 import _ from 'lodash';
 
-import { AccountService } from 'core/account/AccountService';
-import { AppListExtractor } from 'core/application/listExtractor/AppListExtractor';
+import { AccountService } from '../account/AccountService';
+import { AppListExtractor } from '../application/listExtractor/AppListExtractor';
 
 export const CORE_WIDGETS_ACCOUNTREGIONCLUSTERSELECTOR_COMPONENT =
   'spinnaker.core.accountRegionClusterSelector.directive';

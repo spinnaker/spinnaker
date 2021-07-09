@@ -4,11 +4,11 @@ import { IModalService } from 'angular-ui-bootstrap';
 import React from 'react';
 import { Button } from 'react-bootstrap';
 
-import { Application } from 'core/application';
-import { CacheInitializerService } from 'core/cache';
-import { Overridable, OverrideRegistry } from 'core/overrideRegistry';
-import { ConfigureProjectModal } from 'core/projects';
-import { ModalInjector, ReactInjector } from 'core/reactShims';
+import { Application } from '../application';
+import { CacheInitializerService } from '../cache';
+import { Overridable, OverrideRegistry } from '../overrideRegistry';
+import { ConfigureProjectModal } from '../projects';
+import { ModalInjector, ReactInjector } from '../reactShims';
 
 export interface IInsightMenuProps {
   createApp?: boolean;

@@ -17,9 +17,9 @@ import {
   ReactSelectInput,
   TextInput,
 } from '@spinnaker/core';
-import { s3BucketNameValidator } from 'amazon/aws.validators';
-import { IAmazonFunction } from 'amazon/domain';
-import { IAmazonFunctionUpsertCommand } from 'amazon/index';
+import { s3BucketNameValidator } from '../../aws.validators';
+import { IAmazonFunction } from '../../domain';
+import { IAmazonFunctionUpsertCommand } from '../../index';
 
 const availableRuntimes = [
   'nodejs10.x',

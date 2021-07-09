@@ -1,10 +1,10 @@
-import { mockHttpClient } from 'core/api/mock/jasmine';
+import { mockHttpClient } from '../api/mock/jasmine';
 import { mock } from 'angular';
 
-import { Application } from 'core/application/application.model';
-import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
-import { InfrastructureCaches } from 'core/cache';
-import { ISecurityGroup } from 'core/domain';
+import { Application } from '../application/application.model';
+import { ApplicationModelBuilder } from '../application/applicationModel.builder';
+import { InfrastructureCaches } from '../cache';
+import { ISecurityGroup } from '../domain';
 import {
   ISecurityGroupDetail,
   SECURITY_GROUP_READER,

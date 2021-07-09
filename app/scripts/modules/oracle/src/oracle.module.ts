@@ -1,13 +1,13 @@
 import { module } from 'angular';
 
 import { CloudProviderRegistry, DeploymentStrategyRegistry } from '@spinnaker/core';
-import { ORACLE_LOAD_BALANCER_CREATE_CONTROLLER } from 'oracle/loadBalancer/configure/createLoadBalancer.controller';
-import { ORACLE_LOAD_BALANCER_DETAIL_CONTROLLER } from 'oracle/loadBalancer/details/loadBalancerDetail.controller';
-import { ORACLE_LOAD_BALANCER_TRANSFORMER } from 'oracle/loadBalancer/loadBalancer.transformer';
 
 import './helpContents/oracleHelpContents';
 import { ORACLE_IMAGE_IMAGE_READER } from './image/image.reader';
 import { ORACLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER } from './instance/details/instance.details.controller';
+import { ORACLE_LOAD_BALANCER_CREATE_CONTROLLER } from './loadBalancer/configure/createLoadBalancer.controller';
+import { ORACLE_LOAD_BALANCER_DETAIL_CONTROLLER } from './loadBalancer/details/loadBalancerDetail.controller';
+import { ORACLE_LOAD_BALANCER_TRANSFORMER } from './loadBalancer/loadBalancer.transformer';
 import { ORACLE_PIPELINE_STAGES_BAKE_OCIBAKESTAGE } from './pipeline/stages/bake/ociBakeStage';
 import { ORACLE_PIPELINE_STAGES_DESTROYASG_DESTROYASGSTAGE } from './pipeline/stages/destroyAsg/destroyAsgStage';
 import { ORACLE_PIPELINE_STAGES_DISABLEASG_DISABLEASGSTAGE } from './pipeline/stages/disableAsg/disableAsgStage';

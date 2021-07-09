@@ -1,8 +1,7 @@
 import React from 'react';
 
-import { BuildServiceType } from 'core/ci/igor.service';
-
 import { BaseBuildTrigger, IBaseBuildTriggerConfigProps } from '../baseBuild/BaseBuildTrigger';
+import { BuildServiceType } from '../../../../ci/igor.service';
 
 export class TravisTrigger extends React.Component<IBaseBuildTriggerConfigProps> {
   public render() {

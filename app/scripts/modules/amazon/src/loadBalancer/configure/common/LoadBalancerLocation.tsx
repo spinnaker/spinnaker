@@ -21,10 +21,10 @@ import {
   SubnetReader,
   ValidationMessage,
 } from '@spinnaker/core';
-import { AWSProviderSettings } from 'amazon/aws.settings';
-import { IAmazonLoadBalancer, IAmazonLoadBalancerUpsertCommand } from 'amazon/domain';
-import { AvailabilityZoneSelector } from 'amazon/serverGroup/AvailabilityZoneSelector';
-import { SubnetSelectField } from 'amazon/subnet';
+import { AWSProviderSettings } from '../../../aws.settings';
+import { IAmazonLoadBalancer, IAmazonLoadBalancerUpsertCommand } from '../../../domain';
+import { AvailabilityZoneSelector } from '../../../serverGroup/AvailabilityZoneSelector';
+import { SubnetSelectField } from '../../../subnet';
 
 export interface ISubnetOption {
   availabilityZones: string[];

@@ -1,7 +1,7 @@
 'use strict';
 
 import { IScope, mock } from 'angular';
-import { FindArtifactFromExecutionCtrl } from 'core/pipeline/config/stages/findArtifactFromExecution/findArtifactFromExecution.controller';
+import { FindArtifactFromExecutionCtrl } from './findArtifactFromExecution.controller';
 
 describe('Find Artifact From Execution Controller:', function () {
   let ctrl: FindArtifactFromExecutionCtrl, $scope: IScope, initializeController: (stage: any) => void;

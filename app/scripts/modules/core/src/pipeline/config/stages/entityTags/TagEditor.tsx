@@ -2,10 +2,10 @@ import { set } from 'lodash';
 import React from 'react';
 import { Option } from 'react-select';
 
-import { IEntityTag } from 'core/domain';
-import { HelpField } from 'core/help/HelpField';
-import { FormField, ReactSelectInput, TextInput } from 'core/presentation';
-import { UUIDGenerator } from 'core/utils';
+import { IEntityTag } from '../../../../domain';
+import { HelpField } from '../../../../help/HelpField';
+import { FormField, ReactSelectInput, TextInput } from '../../../../presentation';
+import { UUIDGenerator } from '../../../../utils';
 
 import './TagEditor.less';
 

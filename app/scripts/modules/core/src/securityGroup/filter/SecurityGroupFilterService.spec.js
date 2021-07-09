@@ -1,6 +1,6 @@
 'use strict';
 
-import * as State from 'core/state';
+import * as State from '../../state';
 
 // Most of this logic has been moved to filter.model.service.js, so these act more as integration tests
 describe('Service: securityGroupFilterService', function () {

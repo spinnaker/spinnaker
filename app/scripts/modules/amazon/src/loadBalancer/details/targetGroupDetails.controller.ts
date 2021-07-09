@@ -3,7 +3,7 @@ import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import { IController, IQService, IScope, module } from 'angular';
 
 import { Application, ILoadBalancer, MANAGED_RESOURCE_DETAILS_INDICATOR } from '@spinnaker/core';
-import { IAmazonApplicationLoadBalancer, ITargetGroup } from 'amazon/domain/IAmazonLoadBalancer';
+import { IAmazonApplicationLoadBalancer, ITargetGroup } from '../../domain/IAmazonLoadBalancer';
 
 export interface ITargetGroupFromStateParams {
   accountId: string;

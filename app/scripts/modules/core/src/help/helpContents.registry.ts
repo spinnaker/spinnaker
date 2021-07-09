@@ -1,4 +1,4 @@
-import { FirewallLabels } from 'core/securityGroup/label';
+import { FirewallLabels } from '../securityGroup/label';
 
 export class HelpContentsRegistry {
   private static helpFields: Map<string, string> = new Map<string, string>();

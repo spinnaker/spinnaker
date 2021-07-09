@@ -13,10 +13,10 @@ import {
   TaskMonitor,
   TaskMonitorWrapper,
 } from '@spinnaker/core';
-import { ITitusServerGroup } from 'titus/domain';
 
 import { ITitusServerGroupCommand } from '../../configure/serverGroupConfiguration.service';
 import { JobDisruptionBudget } from '../../configure/wizard/pages/disruptionBudget/JobDisruptionBudget';
+import { ITitusServerGroup } from '../../../domain';
 
 export interface IEditDisruptionBudgetModalProps extends IModalComponentProps {
   application: Application;

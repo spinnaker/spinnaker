@@ -1,20 +1,18 @@
 import { angular2react } from 'angular2react';
 import React from 'react';
 
-import { ITargetSelectProps, targetSelectComponent } from 'core/pipeline/config/targetSelect.component';
-import { IStageSummaryWrapperProps } from 'core/pipeline/details/StageSummaryWrapper';
-import { IStepExecutionDetailsWrapperProps } from 'core/pipeline/details/StepExecutionDetailsWrapper';
-import { stageSummaryComponent } from 'core/pipeline/details/stageSummary.component';
-import { stepExecutionDetailsComponent } from 'core/pipeline/details/stepExecutionDetails.component';
-import { IInstanceArchetypeSelectorProps } from 'core/serverGroup/configure/common/InstanceArchetypeSelector';
-import { IInstanceTypeSelectorProps } from 'core/serverGroup/configure/common/InstanceTypeSelector';
-import { v2InstanceTypeSelector } from 'core/serverGroup/configure/common/v2InstanceTypeSelector.component';
-import { v2InstanceArchetypeSelector } from 'core/serverGroup/configure/common/v2instanceArchetypeSelector.component';
-
-import { IAccountRegionClusterSelectorProps } from 'core/widgets/AccountRegionClusterSelector';
-import { accountRegionClusterSelectorWrapperComponent } from 'core/widgets/accountRegionClusterSelectorWrapper.component';
-
+import { ITargetSelectProps, targetSelectComponent } from '../pipeline/config/targetSelect.component';
+import { IStageSummaryWrapperProps } from '../pipeline/details/StageSummaryWrapper';
+import { IStepExecutionDetailsWrapperProps } from '../pipeline/details/StepExecutionDetailsWrapper';
+import { stageSummaryComponent } from '../pipeline/details/stageSummary.component';
+import { stepExecutionDetailsComponent } from '../pipeline/details/stepExecutionDetails.component';
 import { ReactInject } from './react.injector';
+import { IInstanceArchetypeSelectorProps } from '../serverGroup/configure/common/InstanceArchetypeSelector';
+import { IInstanceTypeSelectorProps } from '../serverGroup/configure/common/InstanceTypeSelector';
+import { v2InstanceTypeSelector } from '../serverGroup/configure/common/v2InstanceTypeSelector.component';
+import { v2InstanceArchetypeSelector } from '../serverGroup/configure/common/v2instanceArchetypeSelector.component';
+import { IAccountRegionClusterSelectorProps } from '../widgets/AccountRegionClusterSelector';
+import { accountRegionClusterSelectorWrapperComponent } from '../widgets/accountRegionClusterSelectorWrapper.component';
 
 import IInjectorService = angular.auto.IInjectorService;
 

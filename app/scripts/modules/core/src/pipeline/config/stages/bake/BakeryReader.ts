@@ -1,9 +1,9 @@
 import { get, has } from 'lodash';
 import { $q } from 'ngimport';
 
-import { AccountService } from 'core/account/AccountService';
-import { REST } from 'core/api/ApiService';
-import { SETTINGS } from 'core/config/settings';
+import { AccountService } from '../../../../account/AccountService';
+import { REST } from '../../../../api/ApiService';
+import { SETTINGS } from '../../../../config/settings';
 
 export interface IBaseImage {
   id: string;

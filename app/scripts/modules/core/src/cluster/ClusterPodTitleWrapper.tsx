@@ -1,10 +1,9 @@
 import React from 'react';
 
-import { Application } from 'core/application/application.model';
-import { ReactInjector } from 'core/reactShims';
-
 import { DefaultClusterPodTitle } from './DefaultClusterPodTitle';
+import { Application } from '../application/application.model';
 import { IClusterSubgroup } from './filter/ClusterFilterService';
+import { ReactInjector } from '../reactShims';
 
 export interface IClusterPodTitleProps {
   grouping: IClusterSubgroup;

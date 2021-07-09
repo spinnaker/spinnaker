@@ -1,10 +1,10 @@
 import { mock } from 'angular';
 
-import { IDeckRootScope } from 'core/domain';
+import { IDeckRootScope } from '../domain';
 import { AuthenticationInitializer } from './AuthenticationInitializer';
 import { AuthenticationService } from './AuthenticationService';
 import { AUTHENTICATION_MODULE } from './authentication.module';
-import { SETTINGS } from 'core/config/settings';
+import { SETTINGS } from '../config/settings';
 
 declare const window: any;
 describe('authenticationProvider: application startup', function () {

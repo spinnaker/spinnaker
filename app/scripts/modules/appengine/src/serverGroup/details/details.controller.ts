@@ -14,10 +14,10 @@ import {
   ServerGroupWarningMessageService,
   ServerGroupWriter,
 } from '@spinnaker/core';
-import { AppengineHealth } from 'appengine/common/appengineHealth';
-import { IAppengineLoadBalancer, IAppengineServerGroup } from 'appengine/domain/index';
 
+import { AppengineHealth } from '../../common/appengineHealth';
 import { AppengineServerGroupCommandBuilder } from '../configure/serverGroupCommandBuilder.service';
+import { IAppengineLoadBalancer, IAppengineServerGroup } from '../../domain/index';
 import { APPENGINE_SERVER_GROUP_WRITER, AppengineServerGroupWriter } from '../writer/serverGroup.write.service';
 
 interface IPrivateScope extends IScope {

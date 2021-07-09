@@ -1,16 +1,16 @@
 import { StateParams, StateService, UIRouter } from '@uirouter/core';
 import { IQService, IRootScopeService, IScope } from 'angular';
-import { ImageReader } from 'core/image/image.reader';
-import { InstanceTypeService, InstanceWriter } from 'core/instance';
-import { PageTitleService } from 'core/pageTitle';
-import { ExecutionDetailsSectionService } from 'core/pipeline/details/executionDetailsSection.service';
 
 import { CacheInitializerService } from '../cache/cacheInitializer.service';
 import { ProviderServiceDelegate } from '../cloudProvider/providerService.delegate';
 import { ClusterService } from '../cluster/cluster.service';
+import { ImageReader } from '../image/image.reader';
 import { InsightFilterStateModel } from '../insight/insightFilterState.model';
+import { InstanceTypeService, InstanceWriter } from '../instance';
 import { OverrideRegistry } from '../overrideRegistry/override.registry';
+import { PageTitleService } from '../pageTitle';
 import { ManualJudgmentService } from '../pipeline/config/stages/manualJudgment/manualJudgment.service';
+import { ExecutionDetailsSectionService } from '../pipeline/details/executionDetailsSection.service';
 import { ExecutionService } from '../pipeline/service/execution.service';
 import { InfrastructureSearchService } from '../search/infrastructure/infrastructureSearch.service';
 import { SecurityGroupReader } from '../securityGroup/securityGroupReader.service';

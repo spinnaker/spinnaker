@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { SETTINGS } from 'core/config/settings';
+import { SETTINGS } from '../config/settings';
 
 export class ChaosMonkeyNewApplicationConfigController {
   public enabled = false;

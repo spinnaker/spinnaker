@@ -10,7 +10,7 @@ import {
   IExpectedArtifact,
   NgAppEngineDeployArtifactDelegate,
 } from '@spinnaker/core';
-import { GitCredentialType, IAppengineAccount } from 'appengine/domain/index';
+import { GitCredentialType, IAppengineAccount } from '../../../domain/index';
 
 import { AppengineSourceType, IAppengineServerGroupCommand } from '../serverGroupCommandBuilder.service';
 

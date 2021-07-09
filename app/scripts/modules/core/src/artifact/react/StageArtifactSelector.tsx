@@ -5,13 +5,12 @@ import { react2angular } from 'react2angular';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import { AccountService, IArtifactAccount } from 'core/account';
-import { IArtifact, IExpectedArtifact, IPipeline, IStage } from 'core/domain';
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
-
 import { ArtifactEditor } from './ArtifactEditor';
 import { ArtifactIcon } from './ArtifactIcon';
+import { AccountService, IArtifactAccount } from '../../account';
+import { IArtifact, IExpectedArtifact, IPipeline, IStage } from '../../domain';
 import { ExpectedArtifactService } from '../expectedArtifact.service';
+import { withErrorBoundary } from '../../presentation/SpinErrorBoundary';
 
 export interface IStageArtifactSelectorProps {
   pipeline: IPipeline;

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { HelpTextExpandedContext } from 'core/help';
+import { HelpTextExpandedContext } from '../../../help';
 
 import { IFormInputValidation } from '../inputs';
 import { ILayoutProps } from './interface';

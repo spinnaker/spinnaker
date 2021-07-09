@@ -1,5 +1,5 @@
-import { REST } from 'core/api/ApiService';
-import { IInstance } from 'core/domain';
+import { REST } from '../api/ApiService';
+import { IInstance } from '../domain';
 
 export interface IInstanceConsoleOutput {
   output: string | IInstanceMultiOutputLog[];

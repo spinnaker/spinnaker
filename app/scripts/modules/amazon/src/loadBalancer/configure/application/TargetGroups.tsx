@@ -15,9 +15,9 @@ import {
   ValidationMessage,
   Validators,
 } from '@spinnaker/core';
-import { IAmazonApplicationLoadBalancer, IAmazonApplicationLoadBalancerUpsertCommand } from 'amazon/domain';
 
 import { isNameInUse, isNameLong, isValidHealthCheckInterval, isValidTimeout } from '../common/targetGroupValidators';
+import { IAmazonApplicationLoadBalancer, IAmazonApplicationLoadBalancerUpsertCommand } from '../../../domain';
 
 export interface ITargetGroupsProps {
   app: Application;

@@ -1,9 +1,8 @@
 import { IController, module } from 'angular';
 
-import { Registry } from 'core/registry';
-
 import { GroupExecutionLabel } from './GroupExecutionLabel';
 import { GroupMarkerIcon } from './GroupMarkerIcon';
+import { Registry } from '../../../../registry';
 
 export const GROUP_STAGE = 'spinnaker.core.pipeline.stage.groupStage';
 

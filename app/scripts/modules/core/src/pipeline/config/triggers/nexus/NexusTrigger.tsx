@@ -1,8 +1,7 @@
 import React from 'react';
 
-import { errorMessage, FormikFormField, ReactSelectInput, useLatestPromise } from 'core/presentation';
-
 import { NexusReaderService } from './nexusReader.service';
+import { errorMessage, FormikFormField, ReactSelectInput, useLatestPromise } from '../../../../presentation';
 
 export function NexusTrigger() {
   const fetchNames = useLatestPromise(() => NexusReaderService.getNexusNames(), []);

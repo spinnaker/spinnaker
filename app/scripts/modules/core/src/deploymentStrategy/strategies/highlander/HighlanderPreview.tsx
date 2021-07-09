@@ -1,13 +1,12 @@
 import * as React from 'react';
 
-import { REST } from 'core/api';
-import { IServerGroup } from 'core/domain';
-import { HealthCounts } from 'core/healthCounts';
-import { NameUtils } from 'core/naming';
-import { useData } from 'core/presentation';
-import { Spinner } from 'core/widgets';
-
+import { REST } from '../../../api';
 import { IDeploymentStrategyAdditionalFieldsProps } from '../../deploymentStrategy.registry';
+import { IServerGroup } from '../../../domain';
+import { HealthCounts } from '../../../healthCounts';
+import { NameUtils } from '../../../naming';
+import { useData } from '../../../presentation';
+import { Spinner } from '../../../widgets';
 
 export function HighlanderPreview(props: IDeploymentStrategyAdditionalFieldsProps) {
   const isPipeline = props.command.viewState.mode === 'editPipeline';

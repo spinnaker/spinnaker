@@ -1,5 +1,5 @@
-import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
-import * as State from 'core/state';
+import { ApplicationModelBuilder } from '../../application/applicationModel.builder';
+import * as State from '../../state';
 
 describe('Controller: MultipleInstances', function () {
   var controller;

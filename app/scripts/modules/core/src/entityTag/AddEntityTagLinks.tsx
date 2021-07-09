@@ -1,9 +1,9 @@
 import * as React from 'react';
 
-import { Application } from 'core/application';
-import { IEntityRef, IEntityTag } from 'core/domain';
-import { HelpField } from 'core/help';
 import { EntityTagEditor, IOwnerOption } from './EntityTagEditor';
+import { Application } from '../application';
+import { IEntityRef, IEntityTag } from '../domain';
+import { HelpField } from '../help';
 
 export interface IAddEntityTagLinksProps {
   application: Application;

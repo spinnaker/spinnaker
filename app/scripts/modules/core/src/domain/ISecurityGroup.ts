@@ -1,9 +1,8 @@
-import { IMoniker } from 'core/naming';
-
 import { IEntityTags } from './IEntityTags';
 import { ILoadBalancer } from './ILoadBalancer';
 import { IManagedResource } from './IManagedEntity';
 import { IServerGroup } from './IServerGroup';
+import { IMoniker } from '../naming';
 
 export interface ILoadBalancerUsage {
   name: string;

@@ -2,11 +2,11 @@ import React from 'react';
 import { Option } from 'react-select';
 import VirtualizedSelect from 'react-virtualized-select';
 
-import { ApplicationReader } from 'core/application/service/ApplicationReader';
-import { IParameter, IPipeline } from 'core/domain';
-import { HelpField } from 'core/help/HelpField';
-import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
-import { Spinner } from 'core/widgets';
+import { ApplicationReader } from '../../application/service/ApplicationReader';
+import { IParameter, IPipeline } from '../../domain';
+import { HelpField } from '../../help/HelpField';
+import { PipelineConfigService } from '../../pipeline/config/services/PipelineConfigService';
+import { Spinner } from '../../widgets';
 
 interface IPipelineSelectorCommand {
   application?: string;

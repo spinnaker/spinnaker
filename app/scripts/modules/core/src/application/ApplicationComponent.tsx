@@ -2,13 +2,12 @@ import { ApolloProvider } from '@apollo/client';
 import { UIView } from '@uirouter/react';
 import React from 'react';
 
-import { RecentHistoryService } from 'core/history';
-import { createApolloClient } from 'core/managed/graphql/client';
-import { DebugWindow } from 'core/utils/consoleDebug';
-
 import { ApplicationContextProvider } from './ApplicationContext';
 import { Application } from './application.model';
+import { RecentHistoryService } from '../history';
+import { createApolloClient } from '../managed/graphql/client';
 import { ApplicationNavigation } from './nav/ApplicationNavigation';
+import { DebugWindow } from '../utils/consoleDebug';
 
 import './application.less';
 

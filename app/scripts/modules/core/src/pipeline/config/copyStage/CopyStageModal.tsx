@@ -4,11 +4,12 @@ import React from 'react';
 import { Modal } from 'react-bootstrap';
 import { Option } from 'react-select';
 
-import { REST } from 'core/api/ApiService';
-import { Application } from 'core/application';
-import { ApplicationReader } from 'core/application/service/ApplicationReader';
-import { IPipeline, IStage, IStrategy } from 'core/domain';
-import { ModalClose } from 'core/modal';
+import { CopyStageCard, ICopyStageCardProps } from './CopyStageCard';
+import { REST } from '../../../api/ApiService';
+import { Application } from '../../../application';
+import { ApplicationReader } from '../../../application/service/ApplicationReader';
+import { IPipeline, IStage, IStrategy } from '../../../domain';
+import { ModalClose } from '../../../modal';
 import {
   FormikFormField,
   IModalComponentProps,
@@ -16,9 +17,7 @@ import {
   SpinFormik,
   useData,
   useLatestPromise,
-} from 'core/presentation';
-
-import { CopyStageCard, ICopyStageCardProps } from './CopyStageCard';
+} from '../../../presentation';
 
 import './copyStageModal.less';
 

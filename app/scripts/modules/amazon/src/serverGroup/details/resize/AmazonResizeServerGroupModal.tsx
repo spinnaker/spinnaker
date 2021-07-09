@@ -25,8 +25,8 @@ import {
   TaskReason,
   ValidationMessage,
 } from '@spinnaker/core';
-import { AwsModalFooter } from 'amazon/common';
-import { IAmazonServerGroup } from 'amazon/domain';
+import { AwsModalFooter } from '../../../common';
+import { IAmazonServerGroup } from '../../../domain';
 
 export interface IAmazonResizeServerGroupModalProps extends IModalComponentProps {
   application: Application;

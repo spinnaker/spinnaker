@@ -1,9 +1,9 @@
 import { mock, IComponentControllerService, IScope, IQService, IRootScopeService } from 'angular';
 
 import { CHAOS_MONKEY_EXCEPTIONS_COMPONENT, ChaosMonkeyExceptionsController } from './chaosMonkeyExceptions.component';
-import { AccountService } from 'core/account/AccountService';
-import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
-import { ChaosMonkeyConfig } from 'core/chaosMonkey/chaosMonkeyConfig.component';
+import { AccountService } from '../account/AccountService';
+import { ApplicationModelBuilder } from '../application/applicationModel.builder';
+import { ChaosMonkeyConfig } from './chaosMonkeyConfig.component';
 
 describe('Controller: ChaosMonkeyExceptions', () => {
   let $componentController: IComponentControllerService,

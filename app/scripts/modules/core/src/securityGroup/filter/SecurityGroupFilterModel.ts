@@ -1,6 +1,6 @@
 import { module } from 'angular';
-import { FilterModelService } from 'core/filterModel';
-import { IFilterConfig, IFilterModel } from 'core/filterModel/IFilterModel';
+import { FilterModelService } from '../../filterModel';
+import { IFilterConfig, IFilterModel } from '../../filterModel/IFilterModel';
 
 export const SECURITY_GROUP_FILTER_MODEL = 'spinnaker.core.securityGroup.filter.model';
 export const filterModelConfig: IFilterConfig[] = [

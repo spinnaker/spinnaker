@@ -1,11 +1,10 @@
 import React from 'react';
 
-import { Application } from 'core/application';
-import { Tooltip } from 'core/presentation/Tooltip';
-import { ReactInjector } from 'core/reactShims';
-import { logger } from 'core/utils';
-
 import { CreatePipelineModal } from './CreatePipelineModal';
+import { Application } from '../../application';
+import { Tooltip } from '../../presentation/Tooltip';
+import { ReactInjector } from '../../reactShims';
+import { logger } from '../../utils';
 
 export interface ICreatePipelineButtonProps {
   application: Application;

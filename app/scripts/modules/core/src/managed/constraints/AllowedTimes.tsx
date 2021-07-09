@@ -1,7 +1,7 @@
 import { padStart, sortBy } from 'lodash';
 import React from 'react';
 
-import { AllowedTimeWindow, IAllowedTimesConstraint } from 'core/domain';
+import { AllowedTimeWindow, IAllowedTimesConstraint } from '../../domain';
 
 export interface GroupRange {
   start: number;

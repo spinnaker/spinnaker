@@ -3,14 +3,20 @@ import { extend, get, isEqual } from 'lodash';
 import React from 'react';
 import { Option } from 'react-select';
 
-import { IStage } from 'core/domain';
-import { CheckboxInput, NumberInput, ReactSelectInput, TextAreaInput, TextInput, Tooltip } from 'core/presentation';
-import { SystemTimezone } from 'core/utils/SystemTimezone';
-import { TimePickerOptions } from 'core/utils/TimePickerOptions';
-
 import { DEFAULT_SKIP_WINDOW_TEXT } from './ExecutionWindowActions';
 import { ExecutionWindowDayPicker } from './ExecutionWindowDayPicker';
+import { IStage } from '../../../../domain';
 import { IJitter, IRestrictedExecutionWindow, ITimelineWindow, IWindow } from './executionWindowsConfig';
+import {
+  CheckboxInput,
+  NumberInput,
+  ReactSelectInput,
+  TextAreaInput,
+  TextInput,
+  Tooltip,
+} from '../../../../presentation';
+import { SystemTimezone } from '../../../../utils/SystemTimezone';
+import { TimePickerOptions } from '../../../../utils/TimePickerOptions';
 
 import './executionWindows.less';
 

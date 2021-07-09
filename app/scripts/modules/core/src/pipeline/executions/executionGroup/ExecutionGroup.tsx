@@ -4,9 +4,11 @@ import React from 'react';
 import { from as observableFrom, Subject, Subscription } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import { AccountTag } from 'core/account';
-import { Application } from 'core/application/application.model';
-import { CollapsibleSectionStateCache } from 'core/cache';
+import { MigrationTag } from './MigrationTag';
+import { AccountTag } from '../../../account';
+import { Application } from '../../../application/application.model';
+import { CollapsibleSectionStateCache } from '../../../cache';
+import { PipelineTemplateReader, PipelineTemplateV2Service } from '../../config/templates';
 import {
   IExecution,
   IExecutionGroup,
@@ -14,25 +16,22 @@ import {
   IPipeline,
   IPipelineCommand,
   IPipelineTemplateConfigV2,
-} from 'core/domain';
-import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';
-import { Overridable } from 'core/overrideRegistry';
-import { Placement } from 'core/presentation/Placement';
-import { Popover } from 'core/presentation/Popover';
-import { ReactInjector } from 'core/reactShims';
-import { ExecutionState } from 'core/state';
-import { logger } from 'core/utils';
-import { RenderWhenVisible } from 'core/utils/RenderWhenVisible';
-import { IRetryablePromise } from 'core/utils/retryablePromise';
-import { Spinner } from 'core/widgets/spinners/Spinner';
-
-import { MigrationTag } from './MigrationTag';
-import { PipelineTemplateReader, PipelineTemplateV2Service } from '../../config/templates';
+} from '../../../domain';
+import { EntityNotifications } from '../../../entityTag/notifications/EntityNotifications';
 import { Execution } from '../execution/Execution';
 import { ExecutionAction } from '../executionAction/ExecutionAction';
 import { ManualExecutionModal } from '../../manualExecution';
+import { Overridable } from '../../../overrideRegistry';
+import { Placement } from '../../../presentation/Placement';
+import { Popover } from '../../../presentation/Popover';
+import { ReactInjector } from '../../../reactShims';
+import { ExecutionState } from '../../../state';
 import { NextRunTag } from '../../triggers/NextRunTag';
 import { TriggersTag } from '../../triggers/TriggersTag';
+import { logger } from '../../../utils';
+import { RenderWhenVisible } from '../../../utils/RenderWhenVisible';
+import { IRetryablePromise } from '../../../utils/retryablePromise';
+import { Spinner } from '../../../widgets/spinners/Spinner';
 
 import './executionGroup.less';
 

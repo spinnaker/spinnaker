@@ -1,9 +1,8 @@
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
 
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
-
 import { Variable } from './Variable';
+import { withErrorBoundary } from '../../../presentation/SpinErrorBoundary';
 
 export const VARIABLE = 'spinnaker.core.pipelineTemplate.variable.component';
 module(VARIABLE, []).component(

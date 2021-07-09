@@ -1,8 +1,9 @@
 import { module } from 'angular';
-import IInjectorService = angular.auto.IInjectorService;
 
-import { Application } from 'core/application';
 import { REST } from '../api';
+import { Application } from '../application';
+
+import IInjectorService = angular.auto.IInjectorService;
 
 declare global {
   // tslint:disable-next-line

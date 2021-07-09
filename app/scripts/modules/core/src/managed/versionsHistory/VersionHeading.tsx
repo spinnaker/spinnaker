@@ -1,10 +1,7 @@
 import { useApolloClient } from '@apollo/client';
-
 import classnames from 'classnames';
 import { sortBy, toNumber } from 'lodash';
 import React from 'react';
-
-import { Icon, Tooltip, useApplicationContextSafe } from 'core/presentation';
 
 import {
   FetchVersionDocument,
@@ -12,6 +9,7 @@ import {
   MdArtifactStatusInEnvironment,
 } from '../graphql/graphql-sdk';
 import { GitLink } from '../overview/artifact/GitLink';
+import { Icon, Tooltip, useApplicationContextSafe } from '../../presentation';
 import { HistoryArtifactVersion, VersionData } from './types';
 import { TOOLTIP_DELAY_SHOW } from '../utils/defaults';
 import {

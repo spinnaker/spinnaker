@@ -10,9 +10,9 @@ import {
   IOracleLoadBalancer,
   IOracleLoadBalancerUpsertCommand,
   LoadBalancingPolicy,
-} from 'oracle/domain/IOracleLoadBalancer';
-import { OracleProviderSettings } from 'oracle/oracle.settings';
-import { OracleDefaultProviderSettings } from 'oracle/oracle.settings';
+} from '../domain/IOracleLoadBalancer';
+import { OracleProviderSettings } from '../oracle.settings';
+import { OracleDefaultProviderSettings } from '../oracle.settings';
 
 export class OracleLoadBalancerTransformer {
   public normalizeLoadBalancer(loadBalancer: IOracleLoadBalancer): PromiseLike<IOracleLoadBalancer> {

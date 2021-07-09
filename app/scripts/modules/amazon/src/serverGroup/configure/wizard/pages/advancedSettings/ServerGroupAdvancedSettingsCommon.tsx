@@ -3,9 +3,9 @@ import React from 'react';
 import Select, { Option } from 'react-select';
 
 import { HelpField, MapEditor, PlatformHealthOverride } from '@spinnaker/core';
-import { AWSProviderSettings } from 'amazon/aws.settings';
 
 import { IServerGroupAdvancedSettingsProps } from './ServerGroupAdvancedSettings';
+import { AWSProviderSettings } from '../../../../../aws.settings';
 import { IAmazonServerGroupCommand } from '../../../serverGroupConfiguration.service';
 
 export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGroupAdvancedSettingsProps> {

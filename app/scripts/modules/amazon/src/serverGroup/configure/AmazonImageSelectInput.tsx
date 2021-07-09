@@ -11,7 +11,7 @@ import {
 import { catchError, debounceTime, distinctUntilChanged, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { Application, HelpField, TetheredSelect, ValidationMessage } from '@spinnaker/core';
-import { AwsImageReader, IAmazonImage } from 'amazon/image';
+import { AwsImageReader, IAmazonImage } from '../../image';
 
 export interface IAmazonImageSelectorProps {
   onChange: (value: IAmazonImage) => void;

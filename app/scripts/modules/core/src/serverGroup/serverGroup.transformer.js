@@ -2,7 +2,7 @@
 
 import { module } from 'angular';
 
-import { PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider/providerService.delegate';
+import { PROVIDER_SERVICE_DELEGATE } from '../cloudProvider/providerService.delegate';
 
 export const CORE_SERVERGROUP_SERVERGROUP_TRANSFORMER = 'spinnaker.core.serverGroup.transformer';
 export const name = CORE_SERVERGROUP_SERVERGROUP_TRANSFORMER; // for backwards compatibility

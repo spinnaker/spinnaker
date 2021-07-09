@@ -1,5 +1,5 @@
-import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
-import { ConfirmationModalService } from 'core/confirmationModal';
+import { ApplicationModelBuilder } from '../application/applicationModel.builder';
+import { ConfirmationModalService } from '../confirmationModal';
 import { TaskWriter } from './task.write.service';
 
 describe('Controller: tasks', function () {

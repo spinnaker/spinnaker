@@ -1,10 +1,9 @@
 import React from 'react';
 
-import { firstDefined } from 'core/utils';
-
 import { FormikFormField, IFormikFormFieldProps } from './FormikFormField';
 import { ExpressionError, ExpressionInput, ExpressionPreview, IExpressionChange, ISpelError } from '../inputs';
 import { ICommonFormFieldProps } from './interface';
+import { firstDefined } from '../../../utils';
 import { useValidationData } from '../validation';
 
 export interface IExpressionFieldProps {

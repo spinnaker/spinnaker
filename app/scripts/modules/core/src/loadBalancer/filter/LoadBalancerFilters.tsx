@@ -3,11 +3,11 @@ import { $rootScope } from 'ngimport';
 import React from 'react';
 import { Subscription } from 'rxjs';
 
-import { Application } from 'core/application';
-import { FilterSearch } from 'core/cluster/filter/FilterSearch';
-import { FilterSection } from 'core/cluster/filter/FilterSection';
-import { digestDependentFilters, FilterCheckbox, ISortFilter } from 'core/filterModel';
-import { LoadBalancerState } from 'core/state';
+import { Application } from '../../application';
+import { FilterSearch } from '../../cluster/filter/FilterSearch';
+import { FilterSection } from '../../cluster/filter/FilterSection';
+import { digestDependentFilters, FilterCheckbox, ISortFilter } from '../../filterModel';
+import { LoadBalancerState } from '../../state';
 
 const poolValueCoordinates = [
   { filterField: 'providerType', on: 'loadBalancer', localField: 'type' },

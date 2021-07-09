@@ -2,9 +2,9 @@ import classNames from 'classnames';
 import React from 'react';
 import { SortableHandle } from 'react-sortable-hoc';
 
-import { IParameter } from 'core/domain';
-import { HelpField } from 'core/help';
-import { Tooltip } from 'core/presentation';
+import { IParameter } from '../../../domain';
+import { HelpField } from '../../../help';
+import { Tooltip } from '../../../presentation';
 
 import { StageConfigField } from '../stages/common';
 

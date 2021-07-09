@@ -3,13 +3,12 @@ import { Debounce } from 'lodash-decorators';
 import { $log } from 'ngimport';
 import { Subject } from 'rxjs';
 
-import { Application } from 'core/application/application.model';
-import { ICluster, IEntityTags, IInstance, IManagedResourceSummary, IServerGroup } from 'core/domain';
-import { FilterModelService, ISortFilter } from 'core/filterModel';
-import { ReactInjector } from 'core/reactShims';
-import { ClusterState } from 'core/state';
-
+import { Application } from '../../application/application.model';
+import { ICluster, IEntityTags, IInstance, IManagedResourceSummary, IServerGroup } from '../../domain';
+import { FilterModelService, ISortFilter } from '../../filterModel';
 import { ILabelFilter, trueKeyObjectToLabelFilters } from './labelFilterUtils';
+import { ReactInjector } from '../../reactShims';
+import { ClusterState } from '../../state';
 
 export interface IParentGrouping {
   subgroups: IClusterSubgroup[] | IServerGroupSubgroup[];

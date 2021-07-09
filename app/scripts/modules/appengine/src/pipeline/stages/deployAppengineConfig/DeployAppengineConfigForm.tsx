@@ -12,7 +12,7 @@ import {
   IFormikStageConfigInjectedProps,
   StageArtifactSelectorDelegate,
 } from '@spinnaker/core';
-import { FormikAccountRegionSelector } from 'appengine/common/FormikAccountRegionSelector';
+import { FormikAccountRegionSelector } from '../../../common/FormikAccountRegionSelector';
 
 export interface IAppEngineDeployConfigSettingsState {
   accounts: IAccount[];

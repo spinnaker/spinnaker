@@ -1,8 +1,7 @@
-import { Registry } from 'core/registry';
-
 import { ExecutionWindowExecutionDetails } from './ExecutionWindowExecutionDetails';
 import { ExecutionDetailsTasks } from '../common';
 import { ExecutionWindowsTransformer } from './executionWindows.transformer';
+import { Registry } from '../../../../registry';
 
 Registry.pipeline.registerStage({
   label: 'Restrict Execution During',

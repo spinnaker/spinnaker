@@ -1,13 +1,13 @@
 import { IQService, module } from 'angular';
-import { Application } from 'core/application/application.model';
-import { INFRASTRUCTURE_KEY } from 'core/application/nav/defaultCategories';
-import { CLUSTER_SERVICE, ClusterService } from 'core/cluster/cluster.service';
-import { IServerGroup } from 'core/domain';
-import { addManagedResourceMetadataToServerGroups } from 'core/managed';
-import { JsonUtils } from 'core/utils';
 
+import { Application } from '../application/application.model';
+import { INFRASTRUCTURE_KEY } from '../application/nav/defaultCategories';
 import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
+import { CLUSTER_SERVICE, ClusterService } from '../cluster/cluster.service';
+import { IServerGroup } from '../domain';
 import { EntityTagsReader } from '../entityTag/EntityTagsReader';
+import { addManagedResourceMetadataToServerGroups } from '../managed';
+import { JsonUtils } from '../utils';
 
 export const SERVER_GROUP_DATA_SOURCE = 'spinnaker.core.serverGroup.dataSource';
 

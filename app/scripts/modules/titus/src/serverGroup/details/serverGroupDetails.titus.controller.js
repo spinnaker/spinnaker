@@ -15,11 +15,11 @@ import {
   ServerGroupWarningMessageService,
   SETTINGS,
 } from '@spinnaker/core';
-import { TitusReactInjector } from 'titus/reactShims';
 
 import { TITUS_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER } from '../configure/ServerGroupCommandBuilder';
 import { TitusCloneServerGroupModal } from '../configure/wizard/TitusCloneServerGroupModal';
 import { DISRUPTION_BUDGET_DETAILS_SECTION } from './disruptionBudget/DisruptionBudgetSection';
+import { TitusReactInjector } from '../../reactShims';
 import { TitusResizeServerGroupModal } from './resize/TitusResizeServerGroupModal';
 import { TITUS_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER } from './rollback/rollbackServerGroup.controller';
 import { SCALING_POLICY_MODULE } from './scalingPolicy/scalingPolicy.module';

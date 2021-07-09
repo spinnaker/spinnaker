@@ -3,10 +3,6 @@
   "compilerOptions": {
     "baseUrl": "./src",
     "outDir": "dist",
-    "paths": {
-      "appengine/*": ["*"],
-      "appengine": ["."]
-    },
     "rootDir": "./src"
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],

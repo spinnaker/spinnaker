@@ -3,8 +3,8 @@ import { module } from 'angular';
 import { find, isUndefined, omit, omitBy, sortBy } from 'lodash';
 import { Duration } from 'luxon';
 
-import { DeckCacheFactory, ICache } from 'core/cache';
-import { UUIDGenerator } from 'core/utils/uuid.service';
+import { DeckCacheFactory, ICache } from '../cache';
+import { UUIDGenerator } from '../utils/uuid.service';
 import IAngularEvent = angular.IAngularEvent;
 
 export interface ICacheEntryStateMigrator {

@@ -1,6 +1,6 @@
 import { module } from 'angular';
-import { Application } from 'core/application';
-import { IExecution, IExecutionStage } from 'core/domain';
+import { Application } from '../../../../application';
+import { IExecution, IExecutionStage } from '../../../../domain';
 
 import { EXECUTION_SERVICE, ExecutionService } from '../../../service/execution.service';
 

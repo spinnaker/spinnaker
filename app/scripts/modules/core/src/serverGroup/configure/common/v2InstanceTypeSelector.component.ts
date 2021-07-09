@@ -1,5 +1,5 @@
 import { IComponentController, IComponentOptions, IScope, module } from 'angular';
-import { InstanceTypeService, IPreferredInstanceType } from 'core/instance';
+import { InstanceTypeService, IPreferredInstanceType } from '../../../instance';
 
 import { IServerGroupCommand } from './serverGroupCommandBuilder.service';
 

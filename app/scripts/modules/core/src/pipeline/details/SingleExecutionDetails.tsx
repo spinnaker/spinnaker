@@ -2,17 +2,16 @@ import { UISref, useCurrentStateAndParams } from '@uirouter/react';
 import { set } from 'lodash';
 import React, { useEffect, useState } from 'react';
 
-import { Application } from 'core/application/application.model';
-import { IExecution, IPipeline } from 'core/domain';
-import { useData, useLatestPromise } from 'core/presentation';
-import { IStateChange, ReactInjector } from 'core/reactShims';
-import { SchedulerFactory } from 'core/scheduler';
-import { ExecutionState } from 'core/state';
-import { logger } from 'core/utils';
-
+import { Application } from '../../application/application.model';
+import { IExecution, IPipeline } from '../../domain';
 import { Execution } from '../executions/execution/Execution';
 import { ManualExecutionModal } from '../manualExecution';
+import { useData, useLatestPromise } from '../../presentation';
+import { IStateChange, ReactInjector } from '../../reactShims';
+import { SchedulerFactory } from '../../scheduler';
 import { ExecutionsTransformer } from '../service/ExecutionsTransformer';
+import { ExecutionState } from '../../state';
+import { logger } from '../../utils';
 
 import './singleExecutionDetails.less';
 

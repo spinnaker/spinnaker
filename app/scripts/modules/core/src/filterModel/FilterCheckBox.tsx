@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { CloudProviderLabel, CloudProviderLogo } from 'core/cloudProvider';
+import { CloudProviderLabel, CloudProviderLogo } from '../cloudProvider';
 
 /** Some filter models need direct control over the change event
  * to propagate the state of the checkbox to the parent component.

@@ -2,7 +2,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 import { mockLaunchTemplate, mockServerGroup } from '@spinnaker/mocks';
 import { IAmazonMixedInstancesPolicy, IAmazonServerGroupView, IScalingPolicy } from '../../../domain';
-import { InstancesDiversificationDetailsSection } from 'amazon';
+import { InstancesDiversificationDetailsSection } from '../../../index';
 import { Application, ApplicationModelBuilder } from '@spinnaker/core';
 
 describe('Instance diversification', () => {

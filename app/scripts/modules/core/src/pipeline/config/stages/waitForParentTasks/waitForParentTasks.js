@@ -2,7 +2,7 @@
 
 import { module } from 'angular';
 
-import { Registry } from 'core/registry';
+import { Registry } from '../../../../registry';
 import { CORE_PIPELINE_CONFIG_STAGES_WAITFORPARENTTASKS_WAITFORPARENTTASKS_TRANSFORMER } from './waitForParentTasks.transformer';
 
 export const CORE_PIPELINE_CONFIG_STAGES_WAITFORPARENTTASKS_WAITFORPARENTTASKS =

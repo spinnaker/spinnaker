@@ -2,8 +2,8 @@ import { formatDistance } from 'date-fns';
 import { get, isNil } from 'lodash';
 import { $log } from 'ngimport';
 
-import { IOrchestratedItem, IOrchestratedItemVariable, ITask, ITaskStep } from 'core/domain';
-import { ReactInjector } from 'core/reactShims';
+import { IOrchestratedItem, IOrchestratedItemVariable, ITask, ITaskStep } from '../domain';
+import { ReactInjector } from '../reactShims';
 
 export class OrchestratedItemTransformer {
   public static addRunningTime(item: any): void {

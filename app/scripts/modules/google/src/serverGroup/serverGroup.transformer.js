@@ -3,7 +3,7 @@
 import { module } from 'angular';
 import { defaults } from 'lodash';
 
-import { GCE_HTTP_LOAD_BALANCER_UTILS } from 'google/loadBalancer/httpLoadBalancerUtils.service';
+import { GCE_HTTP_LOAD_BALANCER_UTILS } from '../loadBalancer/httpLoadBalancerUtils.service';
 
 export const GOOGLE_SERVERGROUP_SERVERGROUP_TRANSFORMER = 'spinnaker.gce.serverGroup.transformer';
 export const name = GOOGLE_SERVERGROUP_SERVERGROUP_TRANSFORMER; // for backwards compatibility

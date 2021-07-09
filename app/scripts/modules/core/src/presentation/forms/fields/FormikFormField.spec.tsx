@@ -11,7 +11,7 @@ import {
   SpinFormik,
   TextAreaInput,
   TextInput,
-} from 'core/presentation';
+} from '../..';
 
 const makeSpy = () => {
   const renderSpy = jasmine.createSpy('render');

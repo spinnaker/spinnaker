@@ -1,4 +1,4 @@
-import { HelpContentsRegistry } from 'core/help/helpContents.registry';
+import { HelpContentsRegistry } from '../help/helpContents.registry';
 
 const helpContents: any[] = [
   {

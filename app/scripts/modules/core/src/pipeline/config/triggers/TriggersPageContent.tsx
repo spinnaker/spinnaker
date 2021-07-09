@@ -1,15 +1,14 @@
 import React from 'react';
 
-import { Application } from 'core/application';
-import { ArtifactReferenceService } from 'core/artifact';
-import { SETTINGS } from 'core/config/settings';
-import { IExpectedArtifact, IPipeline, ITrigger } from 'core/domain';
-import { HelpField } from 'core/help';
-import { CheckboxInput, FormField } from 'core/presentation';
-import { Registry } from 'core/registry';
-
 import { PipelineRoles } from './PipelineRoles';
 import { Trigger } from './Trigger';
+import { Application } from '../../../application';
+import { ArtifactReferenceService } from '../../../artifact';
+import { SETTINGS } from '../../../config/settings';
+import { IExpectedArtifact, IPipeline, ITrigger } from '../../../domain';
+import { HelpField } from '../../../help';
+import { CheckboxInput, FormField } from '../../../presentation';
+import { Registry } from '../../../registry';
 import { PipelineConfigValidator } from '../validation/PipelineConfigValidator';
 
 const { useState } = React;

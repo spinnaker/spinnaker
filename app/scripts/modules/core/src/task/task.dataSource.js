@@ -1,7 +1,7 @@
 import * as angular from 'angular';
-import { CLUSTER_SERVICE } from 'core/cluster/cluster.service';
 
 import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
+import { CLUSTER_SERVICE } from '../cluster/cluster.service';
 import { TaskReader } from './task.read.service';
 
 export const CORE_TASK_TASK_DATASOURCE = 'spinnaker.core.task.dataSource';

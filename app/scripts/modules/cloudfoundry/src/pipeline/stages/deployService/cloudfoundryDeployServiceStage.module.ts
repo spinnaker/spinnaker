@@ -11,10 +11,10 @@ import {
   PipelineConfigValidator,
   Registry,
 } from '@spinnaker/core';
-import { CloudfoundryServiceExecutionDetails } from 'cloudfoundry/presentation';
 
 import { CloudfoundryDeployServiceStageConfig } from './CloudfoundryDeployServiceStageConfig';
 import { ICloudFoundryServiceManifestSource } from './ICloudFoundryServiceManifestSource';
+import { CloudfoundryServiceExecutionDetails } from '../../../presentation';
 
 interface IServiceFieldValidatorConfig extends IValidatorConfig {
   manifestSource: string;

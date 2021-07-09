@@ -6,17 +6,16 @@ import { Debounce, Throttle } from 'lodash-decorators';
 import React from 'react';
 import { Subscription } from 'rxjs';
 
-import type { IExecution, IPipeline } from 'core/domain';
-import { UUIDGenerator } from 'core/utils/uuid.service';
-
 import { PipelineGraphLink } from './PipelineGraphLink';
 import { PipelineGraphNode } from './PipelineGraphNode';
+import { IExecution, IPipeline } from '../../../domain';
 import {
   IExecutionViewState,
   IPipelineGraphLink,
   IPipelineGraphNode,
   PipelineGraphService,
 } from './pipelineGraph.service';
+import { UUIDGenerator } from '../../../utils/uuid.service';
 import { IPipelineValidationResults } from '../validation/PipelineConfigValidator';
 import { PipelineConfigValidator } from '../validation/PipelineConfigValidator';
 

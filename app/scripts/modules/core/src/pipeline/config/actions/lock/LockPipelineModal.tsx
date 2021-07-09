@@ -2,10 +2,10 @@ import { get } from 'lodash';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 
-import { IPipeline, IPipelineLock } from 'core/domain';
-import { HelpField } from 'core/help';
-import { ModalClose } from 'core/modal';
-import { CheckboxInput, FormField, IModalComponentProps, TextInput } from 'core/presentation';
+import { IPipeline, IPipelineLock } from '../../../../domain';
+import { HelpField } from '../../../../help';
+import { ModalClose } from '../../../../modal';
+import { CheckboxInput, FormField, IModalComponentProps, TextInput } from '../../../../presentation';
 
 import { PipelineConfigService } from '../../services/PipelineConfigService';
 

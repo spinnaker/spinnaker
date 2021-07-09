@@ -1,9 +1,4 @@
-import {
-  isNameInUse,
-  isNameLong,
-  isValidHealthCheckInterval,
-  isValidTimeout,
-} from 'amazon/loadBalancer/configure/common/targetGroupValidators';
+import { isNameInUse, isNameLong, isValidHealthCheckInterval, isValidTimeout } from './targetGroupValidators';
 
 const mockTargetGroup = {
   attributes: {

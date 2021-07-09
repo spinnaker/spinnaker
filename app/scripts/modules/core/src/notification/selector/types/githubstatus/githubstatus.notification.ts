@@ -1,6 +1,5 @@
-import { INotificationTypeConfig } from 'core/domain';
-
 import { GithubNotificationType } from './GithubNotificationType';
+import { INotificationTypeConfig } from '../../../../domain';
 
 export const githubstatusNotification: INotificationTypeConfig = {
   component: GithubNotificationType,

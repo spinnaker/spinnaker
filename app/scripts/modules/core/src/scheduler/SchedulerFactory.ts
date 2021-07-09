@@ -1,7 +1,7 @@
 import { $log, $timeout, $window } from 'ngimport';
 import { Subject, Subscription, timer as observableTimer } from 'rxjs';
 
-import { SETTINGS } from 'core/config/settings';
+import { SETTINGS } from '../config/settings';
 
 export interface IScheduler {
   subscribe: (next?: () => void, error?: (error: any) => void, complete?: () => void) => Subscription;

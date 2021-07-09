@@ -1,8 +1,7 @@
-import { Registry } from 'core/registry';
-
 import { HelmManualTriggerConfig } from './HelmManualTriggerConfig';
 import { HelmTriggerConfig } from './HelmTriggerConfig';
 import { HelmTriggerExecutionStatus } from './HelmTriggerExecutionStatus';
+import { Registry } from '../../../../registry';
 
 export const HELM_TRIGGER_TYPE = 'helm';
 

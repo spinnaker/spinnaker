@@ -1,10 +1,9 @@
 import { get } from 'lodash';
 import React from 'react';
 
-import { RenderOutputFile } from 'core/presentation/RenderOutputFile';
-
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
 import { StageFailureMessage } from '../../../details';
+import { RenderOutputFile } from '../../../../presentation/RenderOutputFile';
 
 export function ScriptExecutionDetails(props: IExecutionDetailsSectionProps) {
   const { stage } = props;

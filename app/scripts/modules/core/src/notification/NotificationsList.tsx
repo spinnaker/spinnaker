@@ -4,13 +4,12 @@ import React from 'react';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import { Application } from 'core/application';
-import { INotification, INotificationTypeConfig } from 'core/domain';
-import { Registry } from 'core/registry';
-
 import { AppNotificationsService } from './AppNotificationsService';
+import { Application } from '../application';
+import { INotification, INotificationTypeConfig } from '../domain';
 import { EditNotificationModal } from './modal/EditNotificationModal';
 import { NotificationTransformer } from './notification.transformer';
+import { Registry } from '../registry';
 
 export interface INotificationsListProps {
   application?: Application;

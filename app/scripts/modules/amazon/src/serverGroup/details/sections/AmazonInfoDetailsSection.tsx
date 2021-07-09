@@ -11,10 +11,10 @@ import {
   timestamp,
   ViewChangesLink,
 } from '@spinnaker/core';
-import { IAmazonServerGroupView } from 'amazon/domain';
-import { VpcTag } from 'amazon/vpc/VpcTag';
 
 import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
+import { IAmazonServerGroupView } from '../../../domain';
+import { VpcTag } from '../../../vpc/VpcTag';
 
 export interface IAmazonInfoDetailsSectionState {
   changeConfig: IViewChangesConfig;

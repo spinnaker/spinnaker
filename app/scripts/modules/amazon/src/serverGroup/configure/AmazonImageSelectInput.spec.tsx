@@ -3,7 +3,7 @@ import { mockHttpClient } from 'core/api/mock/jasmine';
 import { mock } from 'angular';
 import { ShallowWrapper, ReactWrapper, shallow, mount } from 'enzyme';
 
-import { IAmazonImage } from 'amazon/image';
+import { IAmazonImage } from '../../image';
 import { Application } from 'core/application';
 import { REACT_MODULE } from 'core/reactShims';
 

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { IPipelineCommand } from 'core/domain';
+import { IPipelineCommand } from '../../domain';
 
 export interface ITriggerTemplateComponentProps {
   command: IPipelineCommand;

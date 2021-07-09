@@ -1,19 +1,18 @@
 import React from 'react';
 
-import { AccountService, IAccount } from 'core/account';
-import { ApplicationReader, IApplicationSummary } from 'core/application';
-import { IProject } from 'core/domain';
-import { WizardModal, WizardPage } from 'core/modal';
-import { IModalComponentProps, ReactModal } from 'core/presentation';
-import { TaskMonitor } from 'core/task';
-import { noop } from 'core/utils';
-
 import { Applications } from './Applications';
 import { Clusters } from './Clusters';
 import { Pipelines } from './Pipelines';
 import { ProjectAttributes } from './ProjectAttributes';
+import { AccountService, IAccount } from '../../account';
+import { ApplicationReader, IApplicationSummary } from '../../application';
+import { IProject } from '../../domain';
+import { WizardModal, WizardPage } from '../../modal';
+import { IModalComponentProps, ReactModal } from '../../presentation';
 import { ProjectReader } from '../service/ProjectReader';
 import { ProjectWriter } from '../service/ProjectWriter';
+import { TaskMonitor } from '../../task';
+import { noop } from '../../utils';
 
 import './ConfigureProjectModal.css';
 

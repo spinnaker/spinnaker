@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { ReactInjector } from 'core/reactShims';
+import { ReactInjector } from '../reactShims';
 
 export interface ITrafficGuardHelperLinkProps {
   errorMessage: string;

@@ -1,9 +1,8 @@
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
 
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
-
 import { CreatePipeline } from './CreatePipeline';
+import { withErrorBoundary } from '../../presentation/SpinErrorBoundary';
 
 export const CREATE_PIPELINE_COMPONENT = 'spinnaker.core.pipeline.config.createNew.component';
 module(CREATE_PIPELINE_COMPONENT, []).component(

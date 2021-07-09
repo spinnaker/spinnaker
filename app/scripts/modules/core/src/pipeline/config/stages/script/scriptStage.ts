@@ -1,10 +1,10 @@
 import { module } from 'angular';
-import { AuthenticationService } from 'core/authentication';
-import { Registry } from 'core/registry';
 
 import { ScriptExecutionDetails } from './ScriptExecutionDetails';
 import { ScriptStageConfig, validate } from './ScriptStageConfig';
+import { AuthenticationService } from '../../../../authentication';
 import { ExecutionDetailsTasks } from '../common';
+import { Registry } from '../../../../registry';
 
 export const SCRIPT_STAGE = 'spinnaker.core.pipeline.stage.scriptStage';
 module(SCRIPT_STAGE, []).config(() => {

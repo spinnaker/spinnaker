@@ -10,7 +10,7 @@ import {
   StageConfigField,
   StageConstants,
 } from '@spinnaker/core';
-import { AccountRegionClusterSelector } from 'cloudfoundry/presentation';
+import { AccountRegionClusterSelector } from '../../../presentation';
 
 export interface ICloudfoundryResizeAsgStageConfigState {
   accounts: IAccount[];

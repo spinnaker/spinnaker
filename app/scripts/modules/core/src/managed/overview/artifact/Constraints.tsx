@@ -2,16 +2,15 @@ import classnames from 'classnames';
 import { isEmpty } from 'lodash';
 import React from 'react';
 
-import { CollapsibleSection, useApplicationContextSafe } from 'core/presentation';
-import { NotifierService, Spinner } from 'core/widgets';
-
 import { RelativeTimestamp } from '../../RelativeTimestamp';
 import { VersionOperationIcon } from './VersionOperation';
 import { constraintsManager } from '../../constraints/registry';
 import { FetchVersionDocument, useUpdateConstraintMutation } from '../../graphql/graphql-sdk';
+import { CollapsibleSection, useApplicationContextSafe } from '../../../presentation';
 import { ArtifactVersionProps, QueryConstraint } from '../types';
 import { getConstraintsStatusSummary } from './utils';
 import { useLogEvent } from '../../utils/logging';
+import { NotifierService, Spinner } from '../../../widgets';
 
 import './Constraints.less';
 

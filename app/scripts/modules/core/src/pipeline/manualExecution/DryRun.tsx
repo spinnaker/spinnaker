@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { HelpField } from 'core/help';
-import { CheckboxInput, FormikFormField } from 'core/presentation';
+import { HelpField } from '../../help';
+import { CheckboxInput, FormikFormField } from '../../presentation';
 
 export const DryRun = () => (
   <FormikFormField

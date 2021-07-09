@@ -2,8 +2,8 @@ import { angular2react } from 'angular2react';
 import React from 'react';
 
 import { ReactInject } from '@spinnaker/core';
-import { IScalingPolicySummaryProps } from 'amazon/serverGroup/details/scalingPolicy/ScalingPolicySummary';
-import { scalingPolicyDetailsSummary } from 'amazon/serverGroup/details/scalingPolicy/detailsSummary.component';
+import { IScalingPolicySummaryProps } from '../serverGroup/details/scalingPolicy/ScalingPolicySummary';
+import { scalingPolicyDetailsSummary } from '../serverGroup/details/scalingPolicy/detailsSummary.component';
 
 import IInjectorService = angular.auto.IInjectorService;
 

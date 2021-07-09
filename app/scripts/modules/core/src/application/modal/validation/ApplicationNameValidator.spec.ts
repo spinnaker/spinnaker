@@ -2,7 +2,7 @@ import { mock } from 'angular';
 
 import { ApplicationNameValidator, IApplicationNameValidationResult } from './ApplicationNameValidator';
 import { ExampleApplicationNameValidator, ExampleApplicationNameValidator2 } from './ExampleApplicationNameValidator';
-import { AccountService } from 'core/account/AccountService';
+import { AccountService } from '../../../account/AccountService';
 
 describe('Validator: applicationName', () => {
   const validator1 = new ExampleApplicationNameValidator();

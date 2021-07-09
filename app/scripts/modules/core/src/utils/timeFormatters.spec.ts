@@ -1,6 +1,6 @@
 import { IFilterService, mock } from 'angular';
 
-import { SETTINGS } from 'core/config/settings';
+import { SETTINGS } from '../config/settings';
 import { duration, timeDiffToString } from './timeFormatters';
 import { DateTime, Settings } from 'luxon';
 

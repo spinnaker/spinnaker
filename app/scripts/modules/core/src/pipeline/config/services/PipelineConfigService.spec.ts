@@ -1,8 +1,8 @@
-import { mockHttpClient } from 'core/api/mock/jasmine';
+import { mockHttpClient } from '../../../api/mock/jasmine';
 import { mock } from 'angular';
-import { IStage } from 'core/domain/IStage';
-import { IPipeline } from 'core/domain/IPipeline';
-import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
+import { IStage } from '../../../domain/IStage';
+import { IPipeline } from '../../../domain/IPipeline';
+import { PipelineConfigService } from './PipelineConfigService';
 
 describe('PipelineConfigService', () => {
   let $scope: ng.IScope;

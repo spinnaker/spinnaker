@@ -1,4 +1,4 @@
-import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
+import { ApplicationModelBuilder } from '../../application/applicationModel.builder';
 
 describe('Controller: PipelineConfigCtrl', function () {
   var controller;

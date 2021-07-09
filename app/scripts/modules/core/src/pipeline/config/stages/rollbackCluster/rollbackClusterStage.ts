@@ -1,9 +1,8 @@
 import { module } from 'angular';
 
-import { Registry } from 'core/registry';
-
 import { RollbackClusterExecutionDetails } from './RollbackClusterExecutionDetails';
 import { ExecutionDetailsTasks } from '../common/ExecutionDetailsTasks';
+import { Registry } from '../../../../registry';
 
 export const ROLLBACK_CLUSTER_STAGE = 'spinnaker.core.pipeline.stage.rollbackClusterStage';
 module(ROLLBACK_CLUSTER_STAGE, []).config(function () {

@@ -2,7 +2,7 @@ import { UISref } from '@uirouter/react';
 import React from 'react';
 import { Dropdown, Glyphicon, MenuItem } from 'react-bootstrap';
 
-import { SETTINGS } from 'core/config';
+import { SETTINGS } from '../config';
 
 import './HelpMenu.less';
 

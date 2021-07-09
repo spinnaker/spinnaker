@@ -12,11 +12,11 @@ import {
   ResponsiveFieldLayout,
   TetheredSelect,
 } from '@spinnaker/core';
-import { IJobDisruptionBudget } from 'titus/domain';
 
 import { policyOptions } from './PolicyOptions';
 import { rateOptions } from './RateOptions';
 import { WindowPicker } from './WindowPicker';
+import { IJobDisruptionBudget } from '../../../../../domain';
 import {
   defaultJobDisruptionBudget,
   getDefaultJobDisruptionBudgetForApp,

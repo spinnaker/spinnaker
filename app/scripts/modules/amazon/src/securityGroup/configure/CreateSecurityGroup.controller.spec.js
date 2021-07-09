@@ -4,8 +4,8 @@ import { map } from 'lodash';
 
 import { AccountService, InfrastructureCaches, ModalWizard } from '@spinnaker/core';
 
-import { AWSProviderSettings } from 'amazon/aws.settings';
-import { VpcReader } from 'amazon/vpc';
+import { AWSProviderSettings } from '../../aws.settings';
+import { VpcReader } from '../../vpc';
 
 describe('Controller: CreateSecurityGroup', function () {
   beforeEach(

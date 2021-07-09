@@ -1,10 +1,10 @@
 import { mock } from 'angular';
 
-import { Application } from 'core/application/application.model';
-import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
+import { Application } from '../../application.model';
+import { ApplicationModelBuilder } from '../../applicationModel.builder';
 import { APPLICATION_DATA_SOURCE_EDITOR, DataSourceEditorController } from './applicationDataSourceEditor.component';
-import { ApplicationWriter } from 'core/application/service/ApplicationWriter';
-import { TaskReader } from 'core';
+import { ApplicationWriter } from '../../service/ApplicationWriter';
+import { TaskReader } from '../../../index';
 
 describe('Component: Application Data Source Editor', () => {
   let application: Application,

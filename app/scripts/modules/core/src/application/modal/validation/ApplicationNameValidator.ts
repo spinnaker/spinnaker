@@ -1,4 +1,4 @@
-import { AccountService } from 'core/account/AccountService';
+import { AccountService } from '../../../account/AccountService';
 
 export interface IApplicationNameValidationMessage {
   cloudProvider?: string;

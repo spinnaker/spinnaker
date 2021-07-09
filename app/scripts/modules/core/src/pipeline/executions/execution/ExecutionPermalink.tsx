@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { ReactInjector } from 'core/reactShims';
-import { CopyToClipboard, logger } from 'core/utils';
+import { ReactInjector } from '../../../reactShims';
+import { CopyToClipboard, logger } from '../../../utils';
 
 export interface IExecutionPermalinkProps {
   standalone: boolean;

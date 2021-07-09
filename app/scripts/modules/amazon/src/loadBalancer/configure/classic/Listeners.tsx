@@ -3,16 +3,16 @@ import { get } from 'lodash';
 import React from 'react';
 
 import { Application } from '@spinnaker/core';
-import { AWSProviderSettings } from 'amazon/aws.settings';
-import { AmazonCertificateReader } from 'amazon/certificates/AmazonCertificateReader';
+
+import { AWSProviderSettings } from '../../../aws.settings';
+import { AmazonCertificateReader } from '../../../certificates/AmazonCertificateReader';
+import { AmazonCertificateSelectField } from '../common/AmazonCertificateSelectField';
 import {
   ClassicListenerProtocol,
   IAmazonCertificate,
   IAmazonClassicLoadBalancerUpsertCommand,
   IClassicListenerDescription,
-} from 'amazon/domain';
-
-import { AmazonCertificateSelectField } from '../common/AmazonCertificateSelectField';
+} from '../../../domain';
 
 import './Listeners.less';
 

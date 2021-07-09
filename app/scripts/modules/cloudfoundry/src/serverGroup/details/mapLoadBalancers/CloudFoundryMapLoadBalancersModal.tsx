@@ -15,8 +15,8 @@ import {
   TaskMonitor,
   TaskMonitorWrapper,
 } from '@spinnaker/core';
-import { ICloudFoundryServerGroup } from 'cloudfoundry/domain';
-import { Routes } from 'cloudfoundry/presentation/forms/serverGroup';
+import { ICloudFoundryServerGroup } from '../../../domain';
+import { Routes } from '../../../presentation/forms/serverGroup';
 
 export interface ICloudFoundryLoadBalancerLinksModalProps extends IModalComponentProps {
   application: Application;

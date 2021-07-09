@@ -1,10 +1,9 @@
 import { isEqual, orderBy } from 'lodash';
 import React from 'react';
 
-import { ILoadBalancer, IServerGroup } from 'core/domain';
-
 import { LoadBalancerInstances } from './LoadBalancerInstances';
 import { LoadBalancerServerGroup } from './LoadBalancerServerGroup';
+import { ILoadBalancer, IServerGroup } from '../domain';
 
 export interface ILoadBalancerClusterContainerProps {
   loadBalancer: ILoadBalancer;

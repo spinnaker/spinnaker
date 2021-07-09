@@ -1,4 +1,4 @@
-import { IArtifact } from 'core/domain';
+import { IArtifact } from '../../../../../domain';
 
 import { setNameAndVersionFromReference } from './DockerArtifactEditor';
 

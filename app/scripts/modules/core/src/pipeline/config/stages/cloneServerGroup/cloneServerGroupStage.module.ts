@@ -1,10 +1,9 @@
 import { module } from 'angular';
 
-import { Registry } from 'core/registry';
-
 import { CloneServerGroupExecutionDetails } from './CloneServerGroupExecutionDetails';
 import { ExecutionDetailsTasks } from '../common';
 import { STAGE_COMMON_MODULE } from '../common/stage.common.module';
+import { Registry } from '../../../../registry';
 import { CORE_PIPELINE_CONFIG_STAGES_STAGE_MODULE } from '../stage.module';
 
 export const CLONE_SERVER_GROUP_STAGE = 'spinnaker.core.pipeline.stage.cloneServerGroup';

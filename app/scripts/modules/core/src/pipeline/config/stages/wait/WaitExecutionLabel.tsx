@@ -1,11 +1,10 @@
 import React from 'react';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 
-import { IExecutionStageLabelProps } from 'core/domain';
-import { HoverablePopover } from 'core/presentation/HoverablePopover';
-
 import { SkipWait } from './SkipWait';
 import { ExecutionBarLabel } from '../common/ExecutionBarLabel';
+import { IExecutionStageLabelProps } from '../../../../domain';
+import { HoverablePopover } from '../../../../presentation/HoverablePopover';
 
 export interface IWaitExecutionLabelState {
   target?: any;

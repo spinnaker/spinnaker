@@ -1,13 +1,13 @@
 import React from 'react';
 import Select, { Option } from 'react-select';
 
-import { Application } from 'core/application/application.model';
-import { ApplicationReader } from 'core/application/service/ApplicationReader';
-import { AuthenticationService } from 'core/authentication';
-import { IExecution, IExecutionStage } from 'core/domain';
-import { Markdown } from 'core/presentation/Markdown';
-import { ReactInjector } from 'core/reactShims';
-import { Spinner } from 'core/widgets/spinners/Spinner';
+import { Application } from '../../../../application/application.model';
+import { ApplicationReader } from '../../../../application/service/ApplicationReader';
+import { AuthenticationService } from '../../../../authentication';
+import { IExecution, IExecutionStage } from '../../../../domain';
+import { Markdown } from '../../../../presentation/Markdown';
+import { ReactInjector } from '../../../../reactShims';
+import { Spinner } from '../../../../widgets/spinners/Spinner';
 
 export interface IManualJudgmentApprovalProps {
   execution: IExecution;

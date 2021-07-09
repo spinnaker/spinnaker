@@ -1,10 +1,9 @@
 import React from 'react';
 
-import { HelpField } from 'core/help';
-import { CheckboxInput, FormikFormField, FormValidator, TextAreaInput, TextInput } from 'core/presentation';
-
 import { FormikStageConfig, IContextualValidator } from '../FormikStageConfig';
 import { IStageConfigProps } from '../common/IStageConfigProps';
+import { HelpField } from '../../../../help';
+import { CheckboxInput, FormikFormField, FormValidator, TextAreaInput, TextInput } from '../../../../presentation';
 
 export const ScriptStageConfig: React.SFC<IStageConfigProps> = (stageConfigProps) => (
   <FormikStageConfig

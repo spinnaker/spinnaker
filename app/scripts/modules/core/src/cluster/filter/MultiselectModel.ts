@@ -1,10 +1,10 @@
 import { Subject } from 'rxjs';
 
-import { IServerGroup } from 'core/domain';
-import { IMultiInstanceGroup } from 'core/instance/instance.write.service';
-import { IMoniker } from 'core/naming';
-import { ReactInjector } from 'core/reactShims';
-import { ClusterState } from 'core/state';
+import { IServerGroup } from '../../domain';
+import { IMultiInstanceGroup } from '../../instance/instance.write.service';
+import { IMoniker } from '../../naming';
+import { ReactInjector } from '../../reactShims';
+import { ClusterState } from '../../state';
 
 export interface IMultiselectServerGroup {
   key: string;

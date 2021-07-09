@@ -1,10 +1,10 @@
 import React from 'react';
 
 import { Icon } from '@spinnaker/presentation';
-import { IManagedArtifactSummary, IManagedEnvironmentSummary } from 'core/domain';
 
 import { AnimatingPill, Pill } from '../Pill';
 import { getArtifactVersionDisplayName } from '../displayNames';
+import { IManagedArtifactSummary, IManagedEnvironmentSummary } from '../../domain';
 
 export interface ResourceDeploymentStatusProps {
   environment?: string;

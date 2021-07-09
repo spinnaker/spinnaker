@@ -23,13 +23,12 @@ import {
   withLatestFrom,
 } from 'rxjs/operators';
 
-import { IEntityTags } from 'core/domain';
-import { IconNames, robotToHuman } from 'core/presentation';
-import { ReactInjector } from 'core/reactShims';
-import { FirewallLabels } from 'core/securityGroup';
-import { toIPromise } from 'core/utils';
-
 import { Application } from '../application.model';
+import { IEntityTags } from '../../domain';
+import { IconNames, robotToHuman } from '../../presentation';
+import { ReactInjector } from '../../reactShims';
+import { FirewallLabels } from '../../securityGroup';
+import { toIPromise } from '../../utils';
 
 export interface IFetchStatus {
   status: 'NOT_INITIALIZED' | 'FETCHING' | 'FETCHED' | 'ERROR';

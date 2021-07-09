@@ -1,16 +1,16 @@
 import React from 'react';
 import { mount } from 'enzyme';
-import { IStage } from 'core/domain';
-import { REACT_MODULE } from 'core/reactShims';
+import { IStage } from '../../../../../domain';
+import { REACT_MODULE } from '../../../../../reactShims';
 import { mock } from 'angular';
 
-import { ApplicationModelBuilder } from 'core/application';
+import { ApplicationModelBuilder } from '../../../../../application';
 
-import { AccountService } from 'core/account';
+import { AccountService } from '../../../../../account';
 
-import { StageConfigField } from 'core/pipeline';
+import { StageConfigField } from '../../../..';
 import { BakeHelmConfigForm } from './BakeHelmConfigForm';
-import { SpinFormik } from 'core/presentation';
+import { SpinFormik } from '../../../../../presentation';
 
 describe('<BakeHelmConfigForm />', () => {
   beforeEach(mock.module(REACT_MODULE));

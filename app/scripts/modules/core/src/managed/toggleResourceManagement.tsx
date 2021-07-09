@@ -1,11 +1,10 @@
 import { $q } from 'ngimport';
 import React from 'react';
 
-import { Application } from 'core/application';
-import { ConfirmationModalService } from 'core/confirmationModal';
-import { IManagedResource, IManagedResourceSummary, ManagedResourceStatus } from 'core/domain';
-
 import { ManagedWriter } from './ManagedWriter';
+import { Application } from '../application';
+import { ConfirmationModalService } from '../confirmationModal';
+import { IManagedResource, IManagedResourceSummary, ManagedResourceStatus } from '../domain';
 
 import './ManagedResourceStatusIndicator.less';
 

@@ -2,13 +2,12 @@ import React from 'react';
 import { forkJoin as observableForkJoin, from as observableFrom, Subject } from 'rxjs';
 import { mergeMap, switchMap, takeUntil, tap } from 'rxjs/operators';
 
-import { AccountService } from 'core/account/AccountService';
-import { Application } from 'core/application';
-import { IMoniker, NameUtils } from 'core/naming';
-import { IOverridableProps, Overridable } from 'core/overrideRegistry';
-import { Spinner } from 'core/widgets';
-
 import { InstanceDetailsPane } from './InstanceDetailsPane';
+import { AccountService } from '../../account/AccountService';
+import { Application } from '../../application';
+import { IMoniker, NameUtils } from '../../naming';
+import { IOverridableProps, Overridable } from '../../overrideRegistry';
+import { Spinner } from '../../widgets';
 
 export interface IInstanceDetailsProps extends IOverridableProps {
   $stateParams: {

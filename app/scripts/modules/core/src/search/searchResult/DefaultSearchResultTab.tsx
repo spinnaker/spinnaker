@@ -1,11 +1,10 @@
 import React from 'react';
 
-import { Tooltip } from 'core/presentation';
-import { Spinner } from 'core/widgets';
-
 import { SearchStatus } from './SearchResults';
+import { Tooltip } from '../../presentation';
 import { SearchService } from '../search.service';
 import { ISearchResultTabProps } from './searchResultType';
+import { Spinner } from '../../widgets';
 
 export class DefaultSearchResultTab extends React.Component<ISearchResultTabProps<any>> {
   public render() {

@@ -1,15 +1,15 @@
-import { mockHttpClient } from 'core/api/mock/jasmine';
+import { mockHttpClient } from '../api/mock/jasmine';
 import { mock, noop } from 'angular';
-import { MockHttpClient } from 'core/api/mock/mockHttpClient';
+import { MockHttpClient } from '../api/mock/mockHttpClient';
 import { SERVER_GROUP_WRITER, ServerGroupWriter } from './serverGroupWriter.service';
 import {
   IServerGroupCommand,
   IServerGroupCommandViewState,
 } from './configure/common/serverGroupCommandBuilder.service';
-import { ITaskCommand } from 'core/task/taskExecutor';
-import { Application } from 'core/application/application.model';
-import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
-import { ApplicationDataSourceRegistry } from 'core/application/service/ApplicationDataSourceRegistry';
+import { ITaskCommand } from '../task/taskExecutor';
+import { Application } from '../application/application.model';
+import { ApplicationModelBuilder } from '../application/applicationModel.builder';
+import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
 
 interface IApplicationTask {
   refresh: () => void;

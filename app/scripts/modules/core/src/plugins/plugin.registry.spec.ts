@@ -1,8 +1,8 @@
-import { IStageTypeConfig } from 'core/domain';
+import { IStageTypeConfig } from '../domain';
 import { IDeckPlugin } from './deck.plugin';
 import { RequestBuilder } from '../api';
 import { IPluginMetaData, PluginRegistry } from './plugin.registry';
-import { Registry } from 'core/registry';
+import { Registry } from '../registry';
 import { mock } from 'angular';
 
 const fakePromise = (result: any = undefined) => () => new Promise((resolve) => resolve(result));

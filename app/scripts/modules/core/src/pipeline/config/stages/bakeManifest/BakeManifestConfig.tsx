@@ -2,13 +2,12 @@ import { FormikErrors } from 'formik';
 import { cloneDeep } from 'lodash';
 import React from 'react';
 
-import { IExpectedArtifact, IStage } from 'core/domain';
-import { FormValidator } from 'core/presentation';
-
 import { BakeManifestStageForm, validateProducedArtifacts } from './BakeManifestStageForm';
 import { FormikStageConfig } from '../FormikStageConfig';
 import { HELM_RENDERERS } from './ManifestRenderers';
 import { IStageConfigProps } from '../common';
+import { IExpectedArtifact, IStage } from '../../../../domain';
+import { FormValidator } from '../../../../presentation';
 
 export function BakeManifestConfig({ application, pipeline, stage, updateStage }: IStageConfigProps) {
   const stageWithDefaults = React.useMemo(() => {

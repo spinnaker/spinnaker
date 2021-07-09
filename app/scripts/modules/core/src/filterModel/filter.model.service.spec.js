@@ -1,7 +1,7 @@
 'use strict';
 import { FilterModelService } from './FilterModelService';
-import { REACT_MODULE, ReactInjector } from 'core/reactShims';
-import { StateConfigProvider } from 'core/navigation';
+import { REACT_MODULE, ReactInjector } from '../reactShims';
+import { StateConfigProvider } from '../navigation';
 
 describe('Service: FilterModelService', function () {
   var filterModel;

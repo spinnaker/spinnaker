@@ -18,12 +18,12 @@ import {
   SETTINGS,
   TaskReason,
 } from '@spinnaker/core';
-import { AWSProviderSettings } from 'amazon/aws.settings';
-import { IAmazonImage } from 'amazon/image';
-import { SubnetSelectField } from 'amazon/subnet';
 
 import { AmazonImageSelectInput } from '../../AmazonImageSelectInput';
+import { AWSProviderSettings } from '../../../../aws.settings';
+import { IAmazonImage } from '../../../../image';
 import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
+import { SubnetSelectField } from '../../../../subnet';
 
 const isExpressionLanguage = (field: string) => field && field.includes('${');
 const isStackPattern = (stack: string) =>

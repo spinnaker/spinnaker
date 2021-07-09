@@ -1,13 +1,13 @@
 'use strict';
 
 import { module } from 'angular';
-import { SETTINGS } from 'core/config/settings';
-import { Registry } from 'core/registry';
 
 import { ManualJudgmentExecutionDetails } from './ManualJudgmentExecutionDetails';
 import { ManualJudgmentExecutionLabel } from './ManualJudgmentExecutionLabel';
 import { ManualJudgmentMarkerIcon } from './ManualJudgmentMarkerIcon';
 import { ExecutionDetailsTasks } from '../common/ExecutionDetailsTasks';
+import { SETTINGS } from '../../../../config/settings';
+import { Registry } from '../../../../registry';
 
 export const CORE_PIPELINE_CONFIG_STAGES_MANUALJUDGMENT_MANUALJUDGMENTSTAGE =
   'spinnaker.core.pipeline.stage.manualJudgmentStage';

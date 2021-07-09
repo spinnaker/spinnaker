@@ -1,8 +1,7 @@
-import { ArtifactTypePatterns } from 'core/artifact';
-import { ICronTrigger } from 'core/domain';
-import { Registry } from 'core/registry';
-
 import { CronTrigger } from './CronTrigger';
+import { ArtifactTypePatterns } from '../../../../artifact';
+import { ICronTrigger } from '../../../../domain';
+import { Registry } from '../../../../registry';
 
 Registry.pipeline.registerTrigger({
   component: CronTrigger,

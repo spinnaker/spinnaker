@@ -3,9 +3,9 @@ import { Dictionary } from 'lodash';
 import { Subject } from 'rxjs';
 
 import { CloudMetricsReader, ICloudMetricDescriptor, IMetricAlarmDimension, IServerGroup } from '@spinnaker/core';
-import { AWSProviderSettings } from 'amazon/aws.settings';
 
 import { IConfigurableMetric } from '../../ScalingPolicyWriter';
+import { AWSProviderSettings } from '../../../../../aws.settings';
 import { NAMESPACES } from './namespaces';
 
 export interface IMetricOption extends ICloudMetricDescriptor {

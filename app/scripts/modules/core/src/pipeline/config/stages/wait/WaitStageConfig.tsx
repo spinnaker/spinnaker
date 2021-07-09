@@ -1,10 +1,9 @@
 import React from 'react';
 
-import { IStage } from 'core/domain';
-import { SpelNumberInput } from 'core/widgets';
-
 import { IStageConfigProps } from '../common';
 import { StageConfigField } from '../common/stageConfigField/StageConfigField';
+import { IStage } from '../../../../domain';
+import { SpelNumberInput } from '../../../../widgets';
 
 export interface IWaitStageConfigState {
   enableCustomSkipWaitText: boolean;

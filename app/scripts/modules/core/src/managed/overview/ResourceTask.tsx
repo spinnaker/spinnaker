@@ -1,14 +1,13 @@
 import { UISref } from '@uirouter/react';
 import React from 'react';
 
-import { IOrchestratedItem } from 'core/domain';
-import { robotToHuman, Tooltip } from 'core/presentation';
-import { LoadingAnimation } from 'core/presentation/LoadingAnimation';
-import { useDataWithRefresh } from 'core/presentation/hooks/useDataWithRefresh.hook';
-import { TaskReader } from 'core/task';
-import { TaskProgressBar } from 'core/task/TaskProgressBar';
-
 import { RelativeTimestamp } from '../RelativeTimestamp';
+import { IOrchestratedItem } from '../../domain';
+import { robotToHuman, Tooltip } from '../../presentation';
+import { LoadingAnimation } from '../../presentation/LoadingAnimation';
+import { useDataWithRefresh } from '../../presentation/hooks/useDataWithRefresh.hook';
+import { TaskReader } from '../../task';
+import { TaskProgressBar } from '../../task/TaskProgressBar';
 import { TOOLTIP_DELAY_SHOW } from '../utils/defaults';
 
 interface IResourceTaskProps {

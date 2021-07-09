@@ -1,5 +1,5 @@
 import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client';
-import { REST } from 'core/api';
+import { REST } from '../../api';
 
 const customFetch: typeof fetch = (uri, options) => {
   return new Promise((resolve, reject) => {

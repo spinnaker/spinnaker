@@ -2,18 +2,17 @@ import classNames from 'classnames';
 import { groupBy, map, orderBy, partition } from 'lodash';
 import React from 'react';
 
-import { Application } from 'core/application';
-import { IServerGroup } from 'core/domain';
-import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';
-import { ISortFilter } from 'core/filterModel';
-import { ManagedResourceStatusIndicator } from 'core/managed';
-import { Tooltip } from 'core/presentation';
-import { ServerGroup } from 'core/serverGroup/ServerGroup';
-import { ServerGroupManager } from 'core/serverGroupManager/ServerGroupManager';
-import { ClusterState } from 'core/state';
-
 import { ClusterPodTitleWrapper } from './ClusterPodTitleWrapper';
+import { Application } from '../application';
+import { IServerGroup } from '../domain';
+import { EntityNotifications } from '../entityTag/notifications/EntityNotifications';
 import { IClusterSubgroup, IServerGroupSubgroup } from './filter/ClusterFilterService';
+import { ISortFilter } from '../filterModel';
+import { ManagedResourceStatusIndicator } from '../managed';
+import { Tooltip } from '../presentation';
+import { ServerGroup } from '../serverGroup/ServerGroup';
+import { ServerGroupManager } from '../serverGroupManager/ServerGroupManager';
+import { ClusterState } from '../state';
 
 export interface IClusterPodProps {
   grouping: IClusterSubgroup;

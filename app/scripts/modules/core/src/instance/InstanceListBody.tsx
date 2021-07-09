@@ -4,11 +4,11 @@ import React from 'react';
 import { Subject } from 'rxjs';
 import { distinctUntilChanged, map, takeUntil } from 'rxjs/operators';
 
-import { IInstance, ILoadBalancerHealth, IServerGroup } from 'core/domain';
-import { Tooltip } from 'core/presentation';
-import { ReactInjector } from 'core/reactShims';
-import { ClusterState } from 'core/state';
-import { timestamp } from 'core/utils/timeFormatters';
+import { IInstance, ILoadBalancerHealth, IServerGroup } from '../domain';
+import { Tooltip } from '../presentation';
+import { ReactInjector } from '../reactShims';
+import { ClusterState } from '../state';
+import { timestamp } from '../utils/timeFormatters';
 
 export interface IInstanceListBodyProps {
   serverGroup: IServerGroup;

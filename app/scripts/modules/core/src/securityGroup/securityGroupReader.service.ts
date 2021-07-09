@@ -2,17 +2,17 @@ import { ILogService, IQService, module } from 'angular';
 import { filter, forOwn, has, uniq } from 'lodash';
 import { cloneDeep } from 'lodash';
 
-import { REST } from 'core/api/ApiService';
-import { Application } from 'core/application/application.model';
-import { InfrastructureCaches } from 'core/cache';
-import { PROVIDER_SERVICE_DELEGATE, ProviderServiceDelegate } from 'core/cloudProvider/providerService.delegate';
-import { SETTINGS } from 'core/config/settings';
-import { ILoadBalancer, ISecurityGroup, IServerGroup, IServerGroupUsage } from 'core/domain';
-import { IEntityTags } from 'core/domain/IEntityTags';
-import { EntityTagsReader } from 'core/entityTag/EntityTagsReader';
-import { IComponentName, NameUtils } from 'core/naming';
-import { IMoniker } from 'core/naming/IMoniker';
-import { ISearchResults, SearchService } from 'core/search/search.service';
+import { REST } from '../api/ApiService';
+import { Application } from '../application/application.model';
+import { InfrastructureCaches } from '../cache';
+import { PROVIDER_SERVICE_DELEGATE, ProviderServiceDelegate } from '../cloudProvider/providerService.delegate';
+import { SETTINGS } from '../config/settings';
+import { ILoadBalancer, ISecurityGroup, IServerGroup, IServerGroupUsage } from '../domain';
+import { IEntityTags } from '../domain/IEntityTags';
+import { EntityTagsReader } from '../entityTag/EntityTagsReader';
+import { IComponentName, NameUtils } from '../naming';
+import { IMoniker } from '../naming/IMoniker';
+import { ISearchResults, SearchService } from '../search/search.service';
 
 import { ISecurityGroupSearchResult } from './securityGroupSearchResultType';
 import {

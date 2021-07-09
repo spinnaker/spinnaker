@@ -1,9 +1,8 @@
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
 
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
-
 import { AllClustersGroupings } from './AllClustersGroupings';
+import { withErrorBoundary } from '../presentation/SpinErrorBoundary';
 
 export const CLUSTER_ALLCLUSTERSGROUPINGS = 'core.cluster.allclustergroupings';
 module(CLUSTER_ALLCLUSTERSGROUPINGS, []).component(

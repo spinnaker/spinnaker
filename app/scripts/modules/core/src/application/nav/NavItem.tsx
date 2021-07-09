@@ -2,10 +2,10 @@ import React from 'react';
 import { useRecoilValue } from 'recoil';
 
 import { Icon } from '@spinnaker/presentation';
-import { DataSourceNotifications } from 'core/entityTag/notifications/DataSourceNotifications';
 
 import { Application } from '../application.model';
 import { IEntityTags } from '../../domain';
+import { DataSourceNotifications } from '../../entityTag/notifications/DataSourceNotifications';
 import { verticalNavExpandedAtom } from './navAtoms';
 import { Tooltip, useDataSource } from '../../presentation';
 import { ApplicationDataSource } from '../service/applicationDataSource';

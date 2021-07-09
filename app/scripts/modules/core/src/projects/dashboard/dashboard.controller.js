@@ -3,15 +3,14 @@
 import { module } from 'angular';
 import _ from 'lodash';
 
-import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
-import { RecentHistoryService } from 'core/history/recentHistory.service';
-import { EXECUTION_SERVICE } from 'core/pipeline/service/execution.service';
-import { SchedulerFactory } from 'core/scheduler/SchedulerFactory';
-
+import { ApplicationModelBuilder } from '../../application/applicationModel.builder';
 import { CORE_PROJECTS_DASHBOARD_CLUSTER_PROJECTCLUSTER_DIRECTIVE } from './cluster/projectCluster.directive';
+import { RecentHistoryService } from '../../history/recentHistory.service';
 import { PROJECT_PIPELINE_COMPONENT } from './pipeline/projectPipeline.component';
+import { EXECUTION_SERVICE } from '../../pipeline/service/execution.service';
 import { CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_COMPONENT } from './regionFilter/regionFilter.component';
 import { CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_SERVICE } from './regionFilter/regionFilter.service';
+import { SchedulerFactory } from '../../scheduler/SchedulerFactory';
 import { ProjectReader } from '../service/ProjectReader';
 
 import './dashboard.less';

@@ -2,10 +2,10 @@ import classNames from 'classnames';
 import React from 'react';
 
 import { Icon } from '@spinnaker/presentation';
-import { Application } from 'core/application';
-import { IManagedResourceSummary } from 'core/domain';
 
 import { ManagedResourceStatusPopover } from './ManagedResourceStatusPopover';
+import { Application } from '../application';
+import { IManagedResourceSummary } from '../domain';
 import { viewConfigurationByStatus } from './managedResourceStatusConfig';
 
 import './ManagedResourceStatusIndicator.less';

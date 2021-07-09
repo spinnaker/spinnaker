@@ -1,4 +1,4 @@
-import { IManagedApplicationEnvironmentSummary, IManagedArtifactVersionEnvironment } from 'core/domain';
+import { IManagedApplicationEnvironmentSummary, IManagedArtifactVersionEnvironment } from '../../domain';
 import { sortEnvironments } from './sortEnvironments';
 
 type Env = 'test' | 'staging' | 'main';

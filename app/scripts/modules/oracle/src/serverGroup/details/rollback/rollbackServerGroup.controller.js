@@ -3,7 +3,7 @@
 import { module } from 'angular';
 
 import { SERVER_GROUP_WRITER, TaskMonitor } from '@spinnaker/core';
-import { ORACLE_COMMON_FOOTER_COMPONENT } from 'oracle/common/footer.component';
+import { ORACLE_COMMON_FOOTER_COMPONENT } from '../../../common/footer.component';
 
 export const ORACLE_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER =
   'spinnaker.oracle.serverGroup.details.rollback.controller';

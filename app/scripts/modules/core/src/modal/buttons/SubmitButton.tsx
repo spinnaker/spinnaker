@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { noop } from 'core/utils';
-import { Spinner } from 'core/widgets/spinners/Spinner';
+import { noop } from '../../utils';
+import { Spinner } from '../../widgets/spinners/Spinner';
 
 export interface ISubmitButtonProps {
   className?: string;

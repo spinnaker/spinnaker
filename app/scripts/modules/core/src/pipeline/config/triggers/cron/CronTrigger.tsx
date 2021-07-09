@@ -1,7 +1,5 @@
 import React from 'react';
 
-import { FormField, ReactSelectInput } from 'core/presentation';
-
 import { CronAdvance } from './CronAdvance';
 import { CronDaily } from './CronDaily';
 import { CronHourly } from './CronHourly';
@@ -9,6 +7,7 @@ import { CronMinutes } from './CronMinutes';
 import { CronMonthly } from './CronMonthly';
 import { CronWeekly } from './CronWeekly';
 import { ICronTriggerConfigProps } from './cronConfig';
+import { FormField, ReactSelectInput } from '../../../../presentation';
 
 import './cronTrigger.less';
 

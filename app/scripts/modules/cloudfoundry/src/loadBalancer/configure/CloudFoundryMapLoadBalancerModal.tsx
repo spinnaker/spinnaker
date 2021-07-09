@@ -22,8 +22,8 @@ import {
   TaskMonitor,
   TaskMonitorWrapper,
 } from '@spinnaker/core';
-import { ICloudFoundryServerGroup } from 'cloudfoundry/domain';
-import { AccountRegionClusterSelector, Routes } from 'cloudfoundry/presentation';
+import { ICloudFoundryServerGroup } from '../../domain';
+import { AccountRegionClusterSelector, Routes } from '../../presentation';
 
 export interface ICreateCloudFoundryMapLoadBalancerState {
   accounts: IAccount[];

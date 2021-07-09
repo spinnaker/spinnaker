@@ -1,19 +1,18 @@
 import { pick, uniq } from 'lodash';
 import React from 'react';
 
-import { Application } from 'core/application';
-import { ConfirmationModalService } from 'core/confirmationModal';
-import { IEntityTag, IEntityTags } from 'core/domain';
-import { HoverablePopover, IHoverablePopoverContentsProps, Placement } from 'core/presentation';
-import { ITaskMonitorConfig } from 'core/task';
-import { logger, noop } from 'core/utils';
-
 import { CategorizedNotifications } from './CategorizedNotifications';
 import { EntityTagEditor, IEntityTagEditorProps } from '../EntityTagEditor';
 import { GroupedNotificationList } from './GroupedNotificationList';
 import { NotificationList } from './NotificationList';
+import { Application } from '../../application';
+import { ConfirmationModalService } from '../../confirmationModal';
+import { IEntityTag, IEntityTags } from '../../domain';
 import { EntityTagWriter } from '../entityTags.write.service';
 import { INotificationCategory, NotificationCategories } from './notificationCategories';
+import { HoverablePopover, IHoverablePopoverContentsProps, Placement } from '../../presentation';
+import { ITaskMonitorConfig } from '../../task';
+import { logger, noop } from '../../utils';
 
 import './notifications.less';
 import './notifications.popover.less';

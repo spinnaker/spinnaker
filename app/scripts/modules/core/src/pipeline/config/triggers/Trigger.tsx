@@ -4,10 +4,12 @@ import { isEqual, pick } from 'lodash';
 import React from 'react';
 import { Option } from 'react-select';
 
-import { Application } from 'core/application';
-import { SETTINGS } from 'core/config/settings';
-import { IExpectedArtifact, IPipeline, ITrigger, ITriggerTypeConfig } from 'core/domain';
-import { HelpField } from 'core/help/HelpField';
+import { RunAsUserInput } from './RunAsUser';
+import { Application } from '../../../application';
+import { TriggerArtifactConstraintSelectorInput } from './artifacts';
+import { SETTINGS } from '../../../config/settings';
+import { IExpectedArtifact, IPipeline, ITrigger, ITriggerTypeConfig } from '../../../domain';
+import { HelpField } from '../../../help/HelpField';
 import {
   CheckboxInput,
   FormField,
@@ -18,11 +20,8 @@ import {
   Tooltip,
   ValidationMessage,
   WatchValue,
-} from 'core/presentation';
-import { Registry } from 'core/registry';
-
-import { RunAsUserInput } from './RunAsUser';
-import { TriggerArtifactConstraintSelectorInput } from './artifacts';
+} from '../../../presentation';
+import { Registry } from '../../../registry';
 
 import './Trigger.less';
 

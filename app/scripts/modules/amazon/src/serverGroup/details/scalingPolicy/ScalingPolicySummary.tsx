@@ -1,5 +1,5 @@
 import { Application, IServerGroup } from '@spinnaker/core';
-import { IScalingPolicy } from 'amazon/domain';
+import { IScalingPolicy } from '../../../domain';
 
 export interface IScalingPolicySummaryProps {
   policy: IScalingPolicy;

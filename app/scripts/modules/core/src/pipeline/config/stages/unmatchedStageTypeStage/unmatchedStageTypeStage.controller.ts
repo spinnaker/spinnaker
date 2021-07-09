@@ -1,8 +1,8 @@
 import { IController, IScope, isDefined, module } from 'angular';
 import { cloneDeep, isEqual } from 'lodash';
 
-import { IStage } from 'core/domain/IStage';
-import { JsonUtils } from 'core/utils';
+import { IStage } from '../../../../domain/IStage';
+import { JsonUtils } from '../../../../utils';
 
 export class UnmatchedStageTypeStageCtrl implements IController {
   public stageJson: string;

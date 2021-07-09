@@ -2,9 +2,9 @@ import { get } from 'lodash';
 import { Duration } from 'luxon';
 import React from 'react';
 
-import { IStage } from 'core/domain';
-import { HelpField } from 'core/help';
-import { CheckboxInput, NumberInput } from 'core/presentation';
+import { IStage } from '../../../../domain';
+import { HelpField } from '../../../../help';
+import { CheckboxInput, NumberInput } from '../../../../presentation';
 
 const { useEffect, useState } = React;
 

@@ -3,7 +3,7 @@ import { Dictionary } from 'lodash';
 import { Subject } from 'rxjs';
 
 import { ICloudMetricStatistics, IServerGroup } from '@spinnaker/core';
-import { IScalingPolicyAlarm, ITargetTrackingConfiguration } from 'amazon/domain';
+import { IScalingPolicyAlarm, ITargetTrackingConfiguration } from '../../../../domain';
 
 import { ITargetTrackingState } from './upsertTargetTracking.controller';
 

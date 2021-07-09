@@ -1,10 +1,10 @@
 import { IQService, module } from 'angular';
-import { Application } from 'core/application/application.model';
-import { INFRASTRUCTURE_KEY } from 'core/application/nav/defaultCategories';
-import { ApplicationDataSourceRegistry } from 'core/application/service/ApplicationDataSourceRegistry';
-import { SETTINGS } from 'core/config/settings';
-import { IFunction } from 'core/domain';
-import { EntityTagsReader } from 'core/entityTag/EntityTagsReader';
+import { Application } from '../application/application.model';
+import { INFRASTRUCTURE_KEY } from '../application/nav/defaultCategories';
+import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
+import { SETTINGS } from '../config/settings';
+import { IFunction } from '../domain';
+import { EntityTagsReader } from '../entityTag/EntityTagsReader';
 
 import { FUNCTION_READ_SERVICE, FunctionReader } from './function.read.service';
 

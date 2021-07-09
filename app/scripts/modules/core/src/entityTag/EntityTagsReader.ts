@@ -1,8 +1,8 @@
 import { $q } from 'ngimport';
 
-import { REST } from 'core/api/ApiService';
-import { Application } from 'core/application/application.model';
-import { SETTINGS } from 'core/config/settings';
+import { REST } from '../api/ApiService';
+import { Application } from '../application/application.model';
+import { SETTINGS } from '../config/settings';
 import {
   IExecution,
   IFunction,
@@ -11,7 +11,7 @@ import {
   ISecurityGroup,
   IServerGroup,
   IServerGroupManager,
-} from 'core/domain';
+} from '../domain';
 
 import { ICreationMetadataTag, IEntityTag, IEntityTags } from '../domain/IEntityTags';
 

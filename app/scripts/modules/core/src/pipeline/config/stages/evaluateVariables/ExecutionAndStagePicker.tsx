@@ -2,12 +2,11 @@ import { isEqual, keyBy } from 'lodash';
 import React from 'react';
 import { Option } from 'react-select';
 
-import { IExecution, IPipeline, IStage } from 'core/domain';
-import { FormField, IStageForSpelPreview, ReactSelectInput, useData } from 'core/presentation';
-import { ReactInjector } from 'core/reactShims';
-import { relativeTime, timestamp } from 'core/utils';
-
+import { IExecution, IPipeline, IStage } from '../../../../domain';
+import { FormField, IStageForSpelPreview, ReactSelectInput, useData } from '../../../../presentation';
+import { ReactInjector } from '../../../../reactShims';
 import { ExecutionStatus } from '../../../status/ExecutionStatus';
+import { relativeTime, timestamp } from '../../../../utils';
 
 export interface IExecutionAndStagePickerProps {
   pipeline: IPipeline;

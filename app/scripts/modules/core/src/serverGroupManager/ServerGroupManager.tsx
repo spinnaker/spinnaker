@@ -1,14 +1,13 @@
 import classNames from 'classnames';
 import React from 'react';
 
-import { Application } from 'core/application';
-import { IClusterSubgroup } from 'core/cluster';
-import { IInstanceCounts, IServerGroup } from 'core/domain';
-import { ISortFilter } from 'core/filterModel';
-import { ReactInjector } from 'core/reactShims';
-import { ServerGroup } from 'core/serverGroup';
-
 import { ServerGroupManagerHeading } from './ServerGroupManagerHeading';
+import { Application } from '../application';
+import { IClusterSubgroup } from '../cluster';
+import { IInstanceCounts, IServerGroup } from '../domain';
+import { ISortFilter } from '../filterModel';
+import { ReactInjector } from '../reactShims';
+import { ServerGroup } from '../serverGroup';
 
 interface IServerGroupManagerProps {
   grouping: IClusterSubgroup;

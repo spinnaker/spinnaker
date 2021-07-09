@@ -1,8 +1,5 @@
 import React from 'react';
 
-import { useApplicationContextSafe } from 'core/presentation';
-import { LoadingAnimation } from 'core/presentation/LoadingAnimation';
-
 import { BaseEnvironment } from '../environmentBaseElements/BaseEnvironment';
 import { EnvironmentItem } from '../environmentBaseElements/EnvironmentItem';
 import { EnvironmentsRender, useOrderedEnvironment } from '../environmentBaseElements/EnvironmentsRender';
@@ -10,6 +7,8 @@ import { useFetchVersionQuery } from '../graphql/graphql-sdk';
 import { ArtifactVersionTasks, ITaskArtifactVersionProps } from '../overview/artifact/ArtifactVersionTasks';
 import { Constraints } from '../overview/artifact/Constraints';
 import { useCreateVersionActions } from '../overview/artifact/utils';
+import { useApplicationContextSafe } from '../../presentation';
+import { LoadingAnimation } from '../../presentation/LoadingAnimation';
 import { HistoryArtifactVersionExtended, PinnedVersions, VersionData } from './types';
 import { toPinnedMetadata, VersionMessageData } from '../versionMetadata/MetadataComponents';
 import { getBaseMetadata, VersionMetadata } from '../versionMetadata/VersionMetadata';

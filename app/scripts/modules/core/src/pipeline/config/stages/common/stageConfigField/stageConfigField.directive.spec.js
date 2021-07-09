@@ -1,6 +1,6 @@
 'use strict';
 
-import { HelpContentsRegistry } from 'core/help';
+import { HelpContentsRegistry } from '../../../../../help';
 
 describe('Directives: stageConfigField', function () {
   var scope, compile;

@@ -5,10 +5,10 @@ import { module } from 'angular';
 import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 
 import { TaskMonitor } from '@spinnaker/core';
-import { GCE_CACHE_REFRESH } from 'google/cache/cacheRefresh.component';
 
 import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_BACKENDSERVICE_BACKENDSERVICE_COMPONENT } from './backendService/backendService.component';
 import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_BASICSETTINGS_BASICSETTINGS_COMPONENT } from './basicSettings/basicSettings.component';
+import { GCE_CACHE_REFRESH } from '../../../cache/cacheRefresh.component';
 import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE } from './commandBuilder.service';
 import { GOOGLE_LOADBALANCER_DETAILS_HOSTANDPATHRULES_HOSTANDPATHRULESBUTTON_COMPONENT } from '../../details/hostAndPathRules/hostAndPathRulesButton.component';
 import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_HEALTHCHECK_HEALTHCHECK_COMPONENT } from './healthCheck/healthCheck.component';

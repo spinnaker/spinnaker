@@ -1,12 +1,11 @@
 import React from 'react';
 
-import { IExecutionStage } from 'core/domain';
-import { robotToHuman } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';
-import { StatusGlyph } from 'core/task/StatusGlyph';
-import { displayableTasks } from 'core/task/displayableTasks.filter';
-import { duration } from 'core/utils/timeFormatters';
-
+import { IExecutionStage } from '../../../../domain';
 import { OrchestratedItemRunningTime } from '../../../executions/execution/OrchestratedItemRunningTime';
+import { robotToHuman } from '../../../../presentation/robotToHumanFilter/robotToHuman.filter';
+import { StatusGlyph } from '../../../../task/StatusGlyph';
+import { displayableTasks } from '../../../../task/displayableTasks.filter';
+import { duration } from '../../../../utils/timeFormatters';
 
 export interface IExecutionStepDetailsProps {
   item: IExecutionStage;

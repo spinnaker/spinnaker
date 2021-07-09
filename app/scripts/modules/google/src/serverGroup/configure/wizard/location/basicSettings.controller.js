@@ -13,10 +13,10 @@ import {
   IMAGE_READER,
   NgGCEImageArtifactDelegate,
 } from '@spinnaker/core';
-import { GceImageReader } from 'google/image';
 
 import { GOOGLE_GCENETWORKSELECTFIELD_DIRECTIVE } from '../../../../gceNetworkSelectField.directive';
 import { GOOGLE_GCEREGIONSELECTFIELD_DIRECTIVE } from '../../../../gceRegionSelectField.directive';
+import { GceImageReader } from '../../../../image';
 import { GOOGLE_SUBNET_SUBNETSELECTFIELD_DIRECTIVE } from '../../../../subnet/subnetSelectField.directive';
 
 export const GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_LOCATION_BASICSETTINGS_CONTROLLER =

@@ -15,10 +15,10 @@ import {
   ServerGroupTemplates,
   ServerGroupWarningMessageService,
 } from '@spinnaker/core';
-import { GOOGLE_COMMON_XPNNAMING_GCE_SERVICE } from 'google/common/xpnNaming.gce.service';
 
 import { GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_ADDAUTOSCALINGPOLICYBUTTON_COMPONENT } from './autoscalingPolicy/addAutoscalingPolicyButton.component';
 import { GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_DIRECTIVE } from './autoscalingPolicy/autoscalingPolicy.directive';
+import { GOOGLE_COMMON_XPNNAMING_GCE_SERVICE } from '../../common/xpnNaming.gce.service';
 import '../configure/serverGroup.configure.gce.module';
 import { GOOGLE_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE } from '../configure/serverGroupCommandBuilder.service';
 import { GOOGLE_SERVERGROUP_DETAILS_RESIZE_RESIZESERVERGROUP_CONTROLLER } from './resize/resizeServerGroup.controller';

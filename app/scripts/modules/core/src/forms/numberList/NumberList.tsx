@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { NumberInput, TextInput, Tooltip } from 'core/presentation';
+import { NumberInput, TextInput, Tooltip } from '../../presentation';
 
 export interface INumberListConstraints {
   min: number;

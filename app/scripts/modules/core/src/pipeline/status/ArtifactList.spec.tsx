@@ -1,9 +1,9 @@
 import React from 'react';
 import { ShallowWrapper, shallow } from 'enzyme';
 import { mock } from 'angular';
-import { REACT_MODULE } from 'core/reactShims';
+import { REACT_MODULE } from '../../reactShims';
 
-import { IArtifact } from 'core/domain';
+import { IArtifact } from '../../domain';
 
 import { Artifact } from './Artifact';
 import { ArtifactList, IArtifactListProps } from './ArtifactList';

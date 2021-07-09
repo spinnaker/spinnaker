@@ -1,8 +1,6 @@
 import classNames from 'classnames';
 import React, { memo, useState } from 'react';
 
-import { logger } from 'core/utils';
-
 import { Button } from '../Button';
 import { IUpdateConstraintStatusRequest, ManagedWriter } from '../ManagedWriter';
 import { IStatusCardProps, StatusCard } from '../StatusCard';
@@ -15,6 +13,7 @@ import {
 } from '../../domain';
 import { IRequestStatus } from '../../presentation';
 import { constraintsManager, hasSkippedConstraint } from './registry';
+import { logger } from '../../utils';
 
 import './ConstraintCard.less';
 

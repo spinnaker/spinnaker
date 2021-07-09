@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { CollapsibleSectionStateCache } from 'core/cache';
-import { logger } from 'core/utils';
+import { CollapsibleSectionStateCache } from '../cache';
+import { logger } from '../utils';
 
 export interface IFilter {
   label: string;

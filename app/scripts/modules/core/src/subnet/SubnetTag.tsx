@@ -1,8 +1,7 @@
 import React from 'react';
 
-import { CopyToClipboard } from 'core/utils';
-
 import { SubnetReader } from './subnet.read.service';
+import { CopyToClipboard } from '../utils';
 
 export interface ISubnetTagProps {
   subnetId?: string;

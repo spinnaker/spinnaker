@@ -6,7 +6,7 @@ import {
   OmitControlledInputPropsFrom,
   orEmptyString,
   validationClassName,
-} from 'core/presentation';
+} from '../../presentation';
 
 const { useEffect } = React;
 

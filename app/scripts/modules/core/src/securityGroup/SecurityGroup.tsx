@@ -2,13 +2,13 @@ import { UISref } from '@uirouter/react';
 import classNames from 'classnames';
 import * as React from 'react';
 
-import { Application } from 'core/application';
-import { CloudProviderLogo } from 'core/cloudProvider';
-import { ILoadBalancerUsage, ISecurityGroup, ISecurityGroupGroup, IServerGroupUsage } from 'core/domain';
-import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';
-import { ManagedResourceStatusIndicator } from 'core/managed';
-import { ReactInjector } from 'core/reactShims';
-import { SecurityGroupState } from 'core/state';
+import { Application } from '../application';
+import { CloudProviderLogo } from '../cloudProvider';
+import { ILoadBalancerUsage, ISecurityGroup, ISecurityGroupGroup, IServerGroupUsage } from '../domain';
+import { EntityNotifications } from '../entityTag/notifications/EntityNotifications';
+import { ManagedResourceStatusIndicator } from '../managed';
+import { ReactInjector } from '../reactShims';
+import { SecurityGroupState } from '../state';
 
 import './securityGroup.less';
 

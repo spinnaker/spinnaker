@@ -1,8 +1,8 @@
 import React from 'react';
 
-import { IEntityTags } from 'core/domain';
-import { HoverablePopover } from 'core/presentation';
-import { relativeTime } from 'core/utils/timeFormatters';
+import { IEntityTags } from '../../domain';
+import { HoverablePopover } from '../../presentation';
+import { relativeTime } from '../../utils/timeFormatters';
 
 export interface IEphemeralPopoverProps {
   entity?: any;

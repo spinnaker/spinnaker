@@ -1,10 +1,9 @@
 import React from 'react';
 
-import { INotificationTypeCustomConfig } from 'core/domain';
-import { HelpField } from 'core/help';
-import { FormikFormField, TextInput } from 'core/presentation';
-
 import { INotificationParameter } from './NotificationService';
+import { INotificationTypeCustomConfig } from '../domain';
+import { HelpField } from '../help';
+import { FormikFormField, TextInput } from '../presentation';
 
 export const extensionNotificationConfig = (parameters: INotificationParameter[]) => {
   return class ExtensionNotificationConfig extends React.Component<INotificationTypeCustomConfig> {

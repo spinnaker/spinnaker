@@ -2,7 +2,7 @@ import React from 'react';
 import Select from 'react-select';
 import { forkJoin as observableForkJoin, from as observableFrom } from 'rxjs';
 
-import { REST } from 'core/api/ApiService';
+import { REST } from '../../../../api/ApiService';
 
 import { IStageConfigProps, StageConfigField } from '../common';
 

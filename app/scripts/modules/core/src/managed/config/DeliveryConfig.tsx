@@ -1,9 +1,8 @@
 import React from 'react';
 import AceEditor from 'react-ace';
 
-import { useApplicationContextSafe, useData } from 'core/presentation';
-
 import { ManagedReader } from '..';
+import { useApplicationContextSafe, useData } from '../../presentation';
 import { getIsDebugMode } from '../utils/debugMode';
 import { useLogEvent } from '../utils/logging';
 

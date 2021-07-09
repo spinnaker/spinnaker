@@ -2,7 +2,10 @@ import { FieldArray } from 'formik';
 import { countBy } from 'lodash';
 import React from 'react';
 
-import { IStage } from 'core/domain';
+import { ExecutionAndStagePicker, IExecutionAndStagePickerProps } from './ExecutionAndStagePicker';
+import { FormikStageConfig, IFormikStageConfigInjectedProps } from '../FormikStageConfig';
+import { IStageConfigProps } from '../common';
+import { IStage } from '../../../../domain';
 import {
   errorMessage,
   FormikFormField,
@@ -19,11 +22,7 @@ import {
   Tooltip,
   useIsMountedRef,
   ValidationMessage,
-} from 'core/presentation';
-
-import { ExecutionAndStagePicker, IExecutionAndStagePickerProps } from './ExecutionAndStagePicker';
-import { FormikStageConfig, IFormikStageConfigInjectedProps } from '../FormikStageConfig';
-import { IStageConfigProps } from '../common';
+} from '../../../../presentation';
 
 import './EvaluateVariablesStageConfig.less';
 

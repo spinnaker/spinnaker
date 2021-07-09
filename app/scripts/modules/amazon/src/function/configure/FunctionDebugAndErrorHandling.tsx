@@ -9,9 +9,9 @@ import {
   ReactSelectInput,
   TextInput,
 } from '@spinnaker/core';
-import { awsArnValidator } from 'amazon/aws.validators';
-import { IAmazonFunction } from 'amazon/domain';
-import { IAmazonFunctionUpsertCommand } from 'amazon/index';
+import { awsArnValidator } from '../../aws.validators';
+import { IAmazonFunction } from '../../domain';
+import { IAmazonFunctionUpsertCommand } from '../../index';
 
 export interface IFunctionDebugAndErrorHandlingProps {
   formik: FormikProps<IAmazonFunctionUpsertCommand>;

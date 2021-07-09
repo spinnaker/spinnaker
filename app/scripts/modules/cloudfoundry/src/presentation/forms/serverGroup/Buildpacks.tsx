@@ -2,7 +2,7 @@ import { FieldArray, getIn } from 'formik';
 import React from 'react';
 
 import { FormikFormField, TextInput } from '@spinnaker/core';
-import { ICloudFoundryCreateServerGroupCommand } from 'cloudfoundry/serverGroup/configure/serverGroupConfigurationModel.cf';
+import { ICloudFoundryCreateServerGroupCommand } from '../../../serverGroup/configure/serverGroupConfigurationModel.cf';
 
 export interface IBuildpacksProps {
   fieldName: string;

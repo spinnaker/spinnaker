@@ -1,7 +1,7 @@
 'use strict';
 
 import { module } from 'angular';
-import { GCE_ADDRESS_READER } from 'google/address/address.reader';
+import { GCE_ADDRESS_READER } from '../address/address.reader';
 
 import { GOOGLE_BACKENDSERVICE_BACKENDSERVICE_READER } from '../backendService/backendService.reader';
 import { GCE_HEALTH_CHECK_READER } from '../healthCheck/healthCheck.read.service';

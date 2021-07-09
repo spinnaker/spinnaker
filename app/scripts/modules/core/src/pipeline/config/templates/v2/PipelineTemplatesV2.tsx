@@ -5,19 +5,18 @@ import React from 'react';
 import { Modal } from 'react-bootstrap';
 import { Subscription } from 'rxjs';
 
-import {
-  IPipelineTemplateV2,
-  IPipelineTemplateV2Collections,
-  IPipelineTemplateV2VersionSelections,
-} from 'core/domain/IPipelineTemplateV2';
-import { ReactSelectInput } from 'core/presentation';
-import { IStateChange, ReactInjector } from 'core/reactShims';
-
 import { DeletePipelineTemplateV2Modal } from './DeletePipelineTemplateV2Modal';
 import { PipelineTemplateReader } from '../PipelineTemplateReader';
 import { ShowPipelineTemplateJsonModal } from '../../actions/templateJson/ShowPipelineTemplateJsonModal';
 import { CreatePipelineFromTemplate } from './createPipelineFromTemplate';
+import {
+  IPipelineTemplateV2,
+  IPipelineTemplateV2Collections,
+  IPipelineTemplateV2VersionSelections,
+} from '../../../../domain/IPipelineTemplateV2';
 import { PipelineTemplateV2Service } from './pipelineTemplateV2.service';
+import { ReactSelectInput } from '../../../../presentation';
+import { IStateChange, ReactInjector } from '../../../../reactShims';
 
 import './PipelineTemplatesV2.less';
 

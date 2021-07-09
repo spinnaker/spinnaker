@@ -7,7 +7,7 @@ import {
   MetricAggregationType,
   ScalingPolicyAdjustmentType,
   StandardUnitType,
-} from 'amazon/domain';
+} from '../../../domain';
 
 export interface IUpsertScalingPolicyCommand extends IJob {
   type?: string; // Orca/Clouddriver operation type

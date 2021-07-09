@@ -12,14 +12,14 @@ import {
   IStage,
   StorageAccountReader,
 } from '@spinnaker/core';
-import { AppengineProviderSettings } from 'appengine/appengine.settings';
+import { AppengineProviderSettings } from '../../appengine.settings';
 import {
   GitCredentialType,
   IAppengineAccount,
   IAppengineGitTrigger,
   IAppengineJenkinsTrigger,
   IAppengineServerGroup,
-} from 'appengine/domain';
+} from '../../domain';
 
 import { AppengineDeployDescription } from '../transformer';
 

@@ -1,9 +1,8 @@
-import { SETTINGS } from 'core/config';
-import { Registry } from 'core/registry';
-
 import { ImportDeliveryConfigExecutionDetails } from './ImportDeliveryConfigExecutionDetails';
 import { ImportDeliveryConfigStageConfig } from './ImportDeliveryConfigStageConfig';
 import { ExecutionDetailsTasks } from '../common';
+import { SETTINGS } from '../../../../config';
+import { Registry } from '../../../../registry';
 import { IUpstreamFlagProvidedValidationConfig } from '../../validation/upstreamHasFlagValidator.builder';
 
 if (SETTINGS.feature.managedDelivery) {

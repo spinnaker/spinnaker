@@ -1,11 +1,4 @@
-import {
-  asyncMessage,
-  errorMessage,
-  infoMessage,
-  messageMessage,
-  successMessage,
-  warningMessage,
-} from 'core/presentation/forms/validation/categories';
+import { asyncMessage, errorMessage, infoMessage, messageMessage, successMessage, warningMessage } from './categories';
 import React from 'react';
 
 import { mount } from 'enzyme';

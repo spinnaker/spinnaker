@@ -4,14 +4,13 @@ import { module } from 'angular';
 import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 import _ from 'lodash';
 
-import { CloudProviderRegistry } from 'core/cloudProvider';
-import { ProviderSelectionService } from 'core/cloudProvider/providerSelection/ProviderSelectionService';
-import { SETTINGS } from 'core/config/settings';
-import { MANAGED_RESOURCE_STATUS_INDICATOR } from 'core/managed';
-import { SecurityGroupState } from 'core/state';
-import { noop } from 'core/utils';
-
+import { CloudProviderRegistry } from '../cloudProvider';
+import { ProviderSelectionService } from '../cloudProvider/providerSelection/ProviderSelectionService';
+import { SETTINGS } from '../config/settings';
 import { FirewallLabels } from './label/FirewallLabels';
+import { MANAGED_RESOURCE_STATUS_INDICATOR } from '../managed';
+import { SecurityGroupState } from '../state';
+import { noop } from '../utils';
 
 export const CORE_SECURITYGROUP_ALLSECURITYGROUPSCTRL = 'spinnaker.core.securityGroup.all.controller';
 export const name = CORE_SECURITYGROUP_ALLSECURITYGROUPSCTRL; // for backwards compatibility

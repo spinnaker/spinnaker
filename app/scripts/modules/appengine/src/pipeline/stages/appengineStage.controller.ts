@@ -1,8 +1,8 @@
 import { IController } from 'angular';
 
 import { AccountService, StageConstants } from '@spinnaker/core';
-import { AppengineHealth } from 'appengine/common/appengineHealth';
-import { IAppengineAccount, IAppengineStageScope } from 'appengine/domain';
+import { AppengineHealth } from '../../common/appengineHealth';
+import { IAppengineAccount, IAppengineStageScope } from '../../domain';
 
 export class AppengineStageCtrl implements IController {
   public static $inject = ['$scope'];

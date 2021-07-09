@@ -3,8 +3,6 @@ import { isEqual, keyBy, pick } from 'lodash';
 import React, { useMemo } from 'react';
 import { animated, useTransition } from 'react-spring';
 
-import { Spinner } from 'core/widgets';
-
 import { ColumnHeader } from './ColumnHeader';
 import { Environments2, getIsNewUI, UISwitcher } from './Environments2';
 import { EnvironmentsHeader } from './EnvironmentsHeader';
@@ -15,6 +13,7 @@ import { ArtifactDetail } from './artifactDetail/ArtifactDetail';
 import { ArtifactsList } from './artifactsList/ArtifactsList';
 import { IManagedApplicationEnvironmentSummary, IManagedResourceSummary } from '../domain';
 import { useDataSource } from '../presentation/hooks';
+import { Spinner } from '../widgets';
 
 import './Environments.less';
 

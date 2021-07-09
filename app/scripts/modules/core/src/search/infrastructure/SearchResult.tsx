@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { AccountTag } from 'core/account';
-import { Markdown } from 'core/presentation';
+import { AccountTag } from '../../account';
+import { Markdown } from '../../presentation';
 
 import './searchResult.less';
 

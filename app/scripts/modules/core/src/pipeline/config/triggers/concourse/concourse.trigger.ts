@@ -1,8 +1,7 @@
-import { ArtifactTypePatterns } from 'core/artifact';
-import { Registry } from 'core/registry';
-
 import { ConcourseTrigger } from './ConcourseTrigger';
 import { ConcourseTriggerTemplate } from './ConcourseTriggerTemplate';
+import { ArtifactTypePatterns } from '../../../../artifact';
+import { Registry } from '../../../../registry';
 
 Registry.pipeline.registerTrigger({
   label: 'Concourse',

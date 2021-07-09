@@ -2,7 +2,7 @@ import { ICompileService, IQService, IRootScopeService, mock } from 'angular';
 
 import { ExampleApplicationNameValidator, ExampleApplicationNameValidator2 } from './ExampleApplicationNameValidator';
 import { VALIDATE_APPLICATION_NAME } from './validateApplicationName.directive';
-import { AccountService } from 'core/account/AccountService';
+import { AccountService } from '../../../account/AccountService';
 
 describe('Validator: validateApplicationName', function () {
   const validator1 = new ExampleApplicationNameValidator();

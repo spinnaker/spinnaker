@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { IExecution } from 'core/domain';
-import { logger } from 'core/utils';
+import { IExecution } from '../../domain';
+import { logger } from '../../utils';
 
 import './ExecutionBuildLink.less';
 

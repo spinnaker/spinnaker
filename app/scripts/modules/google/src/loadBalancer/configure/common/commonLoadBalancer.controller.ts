@@ -4,7 +4,7 @@ import { IModalInstanceService } from 'angular-ui-bootstrap';
 import { trimEnd } from 'lodash';
 
 import { Application, InfrastructureCaches } from '@spinnaker/core';
-import { IGceLoadBalancer } from 'google/domain/loadBalancer';
+import { IGceLoadBalancer } from '../../../domain/loadBalancer';
 
 export class CommonGceLoadBalancerCtrl {
   public static $inject = ['$scope', 'application', '$uibModalInstance', '$state'];

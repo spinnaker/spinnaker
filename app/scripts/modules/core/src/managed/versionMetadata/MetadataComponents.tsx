@@ -6,10 +6,10 @@ import React from 'react';
 import { Dropdown, MenuItem } from 'react-bootstrap';
 
 import { Icon, IconNames } from '@spinnaker/presentation';
-import { Tooltip } from 'core/presentation';
 
 import { RelativeTimestamp } from '../RelativeTimestamp';
 import { LifecycleEventSummary } from '../overview/artifact/utils';
+import { Tooltip } from '../../presentation';
 import { TOOLTIP_DELAY_SHOW } from '../utils/defaults';
 import { useLogEvent } from '../utils/logging';
 

@@ -3,22 +3,21 @@ import { StateService } from '@uirouter/core';
 import { IQService, ITimeoutService, module } from 'angular';
 import { get, identity, pickBy, uniq } from 'lodash';
 
-import { REST } from 'core/api/ApiService';
-import { Application } from 'core/application/application.model';
-import { ApplicationDataSource } from 'core/application/service/applicationDataSource';
-import { SETTINGS } from 'core/config/settings';
-import { IExecution, IExecutionStage, IExecutionStageSummary } from 'core/domain';
-import { IPipeline } from 'core/domain/IPipeline';
-import { FilterModelService, ISortFilter } from 'core/filterModel';
-import { ReactInjector } from 'core/reactShims';
-import { ExecutionState } from 'core/state';
-import { JsonUtils } from 'core/utils';
-import { DebugWindow } from 'core/utils/consoleDebug';
-import { IRetryablePromise, retryablePromise } from 'core/utils/retryablePromise';
-
 import { ExecutionsTransformer } from './ExecutionsTransformer';
+import { REST } from '../../api/ApiService';
+import { Application } from '../../application/application.model';
+import { ApplicationDataSource } from '../../application/service/applicationDataSource';
 import { PipelineConfigService } from '../config/services/PipelineConfigService';
+import { SETTINGS } from '../../config/settings';
+import { IExecution, IExecutionStage, IExecutionStageSummary } from '../../domain';
+import { IPipeline } from '../../domain/IPipeline';
 import { ExecutionFilterService } from '../filter/executionFilter.service';
+import { FilterModelService, ISortFilter } from '../../filterModel';
+import { ReactInjector } from '../../reactShims';
+import { ExecutionState } from '../../state';
+import { JsonUtils } from '../../utils';
+import { DebugWindow } from '../../utils/consoleDebug';
+import { IRetryablePromise, retryablePromise } from '../../utils/retryablePromise';
 
 export class ExecutionService {
   public get activeStatuses(): string[] {

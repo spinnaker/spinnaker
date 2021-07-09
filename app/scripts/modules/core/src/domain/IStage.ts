@@ -1,4 +1,4 @@
-import { IEvaluatedVariable } from 'core/pipeline/config/stages/evaluateVariables/EvaluateVariablesStageConfig';
+import { IEvaluatedVariable } from '../pipeline/config/stages/evaluateVariables/EvaluateVariablesStageConfig';
 
 export interface IStage {
   [k: string]: any;

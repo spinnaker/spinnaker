@@ -9,8 +9,8 @@ import {
   IOracleLoadBalancer,
   IOracleLoadBalancerUpsertCommand,
   LoadBalancingPolicy,
-} from 'oracle/domain/IOracleLoadBalancer';
-import { OracleProviderSettings } from 'oracle/oracle.settings';
+} from '../../domain/IOracleLoadBalancer';
+import { OracleProviderSettings } from '../../oracle.settings';
 
 describe('Controller: oracleCreateLoadBalancerCtrl', function () {
   let controller: OracleLoadBalancerController;

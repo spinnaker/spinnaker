@@ -9,10 +9,10 @@ import {
   IExpectedArtifact,
   IPipeline,
   IStage,
-} from 'core/domain';
-import { PipelineConfigService } from 'core/pipeline';
-import { Registry } from 'core/registry';
-import { UUIDGenerator } from 'core/utils';
+} from '../domain';
+import { PipelineConfigService } from '../pipeline';
+import { Registry } from '../registry';
+import { UUIDGenerator } from '../utils';
 
 export class ExpectedArtifactService {
   public static getExpectedArtifactsAvailableToStage(stage: IStage, pipeline: IPipeline): IExpectedArtifact[] {

@@ -1,9 +1,8 @@
-import { Registry } from 'core/registry';
-
 import { WaitExecutionDetails } from './WaitExecutionDetails';
 import { WaitExecutionLabel } from './WaitExecutionLabel';
 import { WaitStageConfig } from './WaitStageConfig';
 import { ExecutionDetailsTasks } from '../common';
+import { Registry } from '../../../../registry';
 
 Registry.pipeline.registerStage({
   label: 'Wait',

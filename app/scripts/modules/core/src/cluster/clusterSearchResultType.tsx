@@ -3,9 +3,9 @@ import React from 'react';
 import { Observable } from 'rxjs';
 import { filter, first, map } from 'rxjs/operators';
 
-import { IQueryParams } from 'core/navigation';
-import { ReactInjector } from 'core/reactShims';
-import { Registry } from 'core/registry';
+import { IQueryParams } from '../navigation';
+import { ReactInjector } from '../reactShims';
+import { Registry } from '../registry';
 import {
   AccountCell,
   DefaultSearchResultTab,
@@ -21,8 +21,8 @@ import {
   SearchTableBody,
   SearchTableHeader,
   SearchTableRow,
-} from 'core/search';
-import { IServerGroupSearchResult } from 'core/serverGroup/serverGroupSearchResultType';
+} from '../search';
+import { IServerGroupSearchResult } from '../serverGroup/serverGroupSearchResultType';
 
 export interface IClusterSearchResult extends ISearchResult {
   account: string;

@@ -3,10 +3,9 @@
 import { module } from 'angular';
 import { pickBy } from 'lodash';
 
-import { BuildServiceType, IgorService } from 'core/ci/igor.service';
-import { Registry } from 'core/registry';
-
 import { JenkinsExecutionLabel } from './JenkinsExecutionLabel';
+import { BuildServiceType, IgorService } from '../../../../ci/igor.service';
+import { Registry } from '../../../../registry';
 
 export const CORE_PIPELINE_CONFIG_STAGES_JENKINS_JENKINSSTAGE = 'spinnaker.core.pipeline.stage.jenkinsStage';
 export const name = CORE_PIPELINE_CONFIG_STAGES_JENKINS_JENKINSSTAGE; // for backwards compatibility

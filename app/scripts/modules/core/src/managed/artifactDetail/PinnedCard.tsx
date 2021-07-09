@@ -1,12 +1,11 @@
 import { DateTime } from 'luxon';
 import React from 'react';
 
-import { IPinned } from 'core/domain';
-
 import { IArtifactDetailProps } from './ArtifactDetail';
 import { Button } from '../Button';
 import { StatusCard } from '../StatusCard';
 import { showUnpinArtifactModal } from './UnpinArtifactModal';
+import { IPinned } from '../../domain';
 import { Markdown } from '../../presentation';
 import { useApplicationContext } from '../../presentation/hooks/useApplicationContext.hook';
 

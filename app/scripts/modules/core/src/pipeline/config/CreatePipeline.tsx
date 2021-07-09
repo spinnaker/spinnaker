@@ -2,13 +2,12 @@ import { get } from 'lodash';
 import React from 'react';
 import { Dropdown } from 'react-bootstrap';
 
-import { Application } from 'core/application';
-import { IPipeline } from 'core/domain';
-import { Tooltip } from 'core/presentation/Tooltip';
-import { ReactInjector } from 'core/reactShims';
-import { logger } from 'core/utils';
-
+import { Application } from '../../application';
 import { CreatePipelineButton } from '../create/CreatePipelineButton';
+import { IPipeline } from '../../domain';
+import { Tooltip } from '../../presentation/Tooltip';
+import { ReactInjector } from '../../reactShims';
+import { logger } from '../../utils';
 
 export interface ICreatePipelineProps {
   application: Application;

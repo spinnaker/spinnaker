@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { IExecutionTriggerStatusComponentProps } from 'core/domain';
+import { IExecutionTriggerStatusComponentProps } from '../../domain';
 
 export class ExecutionUserStatus extends React.Component<IExecutionTriggerStatusComponentProps> {
   public render() {

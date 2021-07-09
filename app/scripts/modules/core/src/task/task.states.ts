@@ -1,8 +1,8 @@
 import { module } from 'angular';
-import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from 'core/application/application.state.provider';
-import { INestedState, StateConfigProvider } from 'core/navigation/state.provider';
 
 import { TaskNotFound } from './TaskNotFound';
+import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from '../application/application.state.provider';
+import { INestedState, StateConfigProvider } from '../navigation/state.provider';
 import { TaskReader } from './task.read.service';
 
 export const TASK_STATES = 'spinnaker.core.task.states';

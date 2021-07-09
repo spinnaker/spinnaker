@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { AccountTag } from 'core/account';
+import { AccountTag } from '../../../../account';
 
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
 import { ServerGroupStageContext } from '../common/ServerGroupStageContext';

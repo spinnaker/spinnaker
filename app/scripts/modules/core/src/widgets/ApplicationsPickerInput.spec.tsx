@@ -1,5 +1,5 @@
-import { ApplicationReader } from 'core/application';
-import { IValidator } from 'core/presentation';
+import { ApplicationReader } from '../application';
+import { IValidator } from '../presentation';
 import { mount } from 'enzyme';
 import React from 'react';
 import { ApplicationsPickerInput } from './ApplicationsPickerInput';

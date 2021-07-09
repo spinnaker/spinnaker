@@ -1,12 +1,12 @@
 import { StateParams } from '@uirouter/angularjs';
 import { module } from 'angular';
-import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from 'core/application';
-import { INestedState, StateConfigProvider } from 'core/navigation';
 
 import { LoadBalancerDetails } from './LoadBalancerDetails';
 import { LoadBalancers } from './LoadBalancers';
+import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from '../application';
 import { filterModelConfig } from './filter/LoadBalancerFilterModel';
 import { LoadBalancerFilters } from './filter/LoadBalancerFilters';
+import { INestedState, StateConfigProvider } from '../navigation';
 
 export const LOAD_BALANCER_STATES = 'spinnaker.core.loadBalancer.states';
 module(LOAD_BALANCER_STATES, [APPLICATION_STATE_PROVIDER]).config([

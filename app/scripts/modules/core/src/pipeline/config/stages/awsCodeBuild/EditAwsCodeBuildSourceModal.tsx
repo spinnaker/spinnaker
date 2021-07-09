@@ -1,3 +1,14 @@
+import { Form, Formik, FormikProps } from 'formik';
+import { get } from 'lodash';
+import React from 'react';
+import { Modal } from 'react-bootstrap';
+
+import {
+  EXCLUDED_ARTIFACT_TYPES,
+  IAwsCodeBuildSecondarySourcesVersion,
+  IAwsCodeBuildSource,
+  SOURCE_TYPES,
+} from './IAwsCodeBuildSource';
 import {
   FormikFormField,
   FormValidator,
@@ -13,20 +24,8 @@ import {
   SpinFormik,
   StageArtifactSelector,
   TextInput,
-} from 'core';
-import { Form, Formik, FormikProps } from 'formik';
-import { get } from 'lodash';
-import React from 'react';
-import { Modal } from 'react-bootstrap';
-
-import { ModalClose, SubmitButton } from 'core/modal';
-
-import {
-  EXCLUDED_ARTIFACT_TYPES,
-  IAwsCodeBuildSecondarySourcesVersion,
-  IAwsCodeBuildSource,
-  SOURCE_TYPES,
-} from './IAwsCodeBuildSource';
+} from '../../../../index';
+import { ModalClose, SubmitButton } from '../../../../modal';
 
 export interface IEditAwsCodeBuildSourceModalProps extends IModalComponentProps {
   source: IAwsCodeBuildSource;

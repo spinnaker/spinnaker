@@ -2,10 +2,10 @@ import { UIView, useCurrentStateAndParams } from '@uirouter/react';
 import React from 'react';
 import { useRecoilValue } from 'recoil';
 
-import { Application } from 'core/application';
-import { verticalNavExpandedAtom } from 'core/application/nav/navAtoms';
-import { FilterCollapse } from 'core/filterModel/FilterCollapse';
-import { ReactInjector } from 'core/reactShims';
+import { Application } from '../application';
+import { verticalNavExpandedAtom } from '../application/nav/navAtoms';
+import { FilterCollapse } from '../filterModel/FilterCollapse';
+import { ReactInjector } from '../reactShims';
 
 export interface IInsightLayoutProps {
   app: Application;

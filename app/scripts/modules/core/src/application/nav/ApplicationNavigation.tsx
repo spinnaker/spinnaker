@@ -5,15 +5,15 @@ import React from 'react';
 import { useRecoilValue } from 'recoil';
 
 import { Icon } from '@spinnaker/presentation';
-import { SETTINGS } from 'core/config/settings';
-import { PagerDutyWriter } from 'core/pagerDuty';
 
 import { AppRefresher } from './AppRefresher';
 import { BottomSection } from './BottomSection';
 import { NavSection } from './NavSection';
 import { Application } from '../application.model';
+import { SETTINGS } from '../../config/settings';
 import { verticalNavExpandedAtom } from './navAtoms';
 import { navigationCategoryRegistry } from './navigationCategory.registry';
+import { PagerDutyWriter } from '../../pagerDuty';
 import { Tooltip, useIsMobile, usePrevious } from '../../presentation';
 import { ApplicationDataSource } from '../service/applicationDataSource';
 

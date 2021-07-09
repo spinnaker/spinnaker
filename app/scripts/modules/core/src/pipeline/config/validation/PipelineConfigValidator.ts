@@ -10,8 +10,8 @@ import {
   IStageTypeConfig,
   ITrigger,
   ITriggerTypeConfig,
-} from 'core/domain';
-import { Registry } from 'core/registry';
+} from '../../../domain';
+import { Registry } from '../../../registry';
 
 export interface IStageValidationResults {
   stage: IStage;

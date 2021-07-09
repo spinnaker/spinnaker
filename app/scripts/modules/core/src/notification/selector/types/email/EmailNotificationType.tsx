@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { INotificationTypeCustomConfig } from 'core/domain';
-import { FormikFormField, TextInput, Validators } from 'core/presentation';
+import { INotificationTypeCustomConfig } from '../../../../domain';
+import { FormikFormField, TextInput, Validators } from '../../../../presentation';
 
 export class EmailNotificationType extends React.Component<INotificationTypeCustomConfig> {
   public render() {

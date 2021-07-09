@@ -1,7 +1,7 @@
-import { mockHttpClient } from 'core/api/mock/jasmine';
-import { FunctionReader, IFunctionSourceData } from 'core';
-import { MockHttpClient } from 'core/api/mock/mockHttpClient';
-import { IFunctionTransformer } from 'core/function/function.transformer';
+import { mockHttpClient } from '../api/mock/jasmine';
+import { FunctionReader, IFunctionSourceData } from '../index';
+import { MockHttpClient } from '../api/mock/mockHttpClient';
+import { IFunctionTransformer } from './function.transformer';
 
 function flush<T>(http: MockHttpClient, promise: PromiseLike<T>): Promise<T> {
   return http.flush().then(() => promise);

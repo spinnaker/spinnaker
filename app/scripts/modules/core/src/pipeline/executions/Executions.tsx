@@ -3,25 +3,24 @@ import { $q } from 'ngimport';
 import React from 'react';
 import { Subscription } from 'rxjs';
 
-import { Application } from 'core/application';
-import { IExecution, IPipeline, IPipelineCommand } from 'core/domain';
-import { FilterCollapse, FilterTags, IFilterTag, ISortFilter } from 'core/filterModel';
-import { Overridable } from 'core/overrideRegistry';
-import { Tooltip } from 'core/presentation/Tooltip';
-import { ReactInjector } from 'core/reactShims';
-import { SchedulerFactory } from 'core/scheduler';
-import { IScheduler } from 'core/scheduler/SchedulerFactory';
-import { ExecutionState } from 'core/state';
-import { logger } from 'core/utils';
-import { IRetryablePromise } from 'core/utils/retryablePromise';
-import { Spinner } from 'core/widgets/spinners/Spinner';
-
+import { Application } from '../../application';
 import { CreatePipeline } from '../config/CreatePipeline';
 import { CreatePipelineButton } from '../create/CreatePipelineButton';
+import { IExecution, IPipeline, IPipelineCommand } from '../../domain';
 import { ExecutionGroups } from './executionGroup/ExecutionGroups';
 import { ExecutionFilters } from '../filter/ExecutionFilters';
 import { ExecutionFilterService } from '../filter/executionFilter.service';
+import { FilterCollapse, FilterTags, IFilterTag, ISortFilter } from '../../filterModel';
 import { ManualExecutionModal } from '../manualExecution';
+import { Overridable } from '../../overrideRegistry';
+import { Tooltip } from '../../presentation/Tooltip';
+import { ReactInjector } from '../../reactShims';
+import { SchedulerFactory } from '../../scheduler';
+import { IScheduler } from '../../scheduler/SchedulerFactory';
+import { ExecutionState } from '../../state';
+import { logger } from '../../utils';
+import { IRetryablePromise } from '../../utils/retryablePromise';
+import { Spinner } from '../../widgets/spinners/Spinner';
 
 import './executions.less';
 

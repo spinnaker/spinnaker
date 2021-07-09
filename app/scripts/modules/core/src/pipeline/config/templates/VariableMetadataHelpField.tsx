@@ -1,9 +1,8 @@
 import React from 'react';
 
-import { HelpField } from 'core/help/HelpField';
-import { Placement } from 'core/presentation';
-
 import { IVariableMetadata } from './PipelineTemplateReader';
+import { HelpField } from '../../../help/HelpField';
+import { Placement } from '../../../presentation';
 
 export interface IVariableMetadataHelpFieldProps {
   metadata: IVariableMetadata;

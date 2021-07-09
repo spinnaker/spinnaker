@@ -1,12 +1,12 @@
 import { Transition } from '@uirouter/core';
 import { module } from 'angular';
-import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from 'core/application/application.state.provider';
-import { INestedState, StateConfigProvider } from 'core/navigation/state.provider';
 
+import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from '../application/application.state.provider';
 import { SingleExecutionDetails } from './details/SingleExecutionDetails';
 import { ExecutionNotFound } from './executions/ExecutionNotFound';
 import { Executions } from './executions/Executions';
 import { filterModelConfig } from './filter/ExecutionFilterModel';
+import { INestedState, StateConfigProvider } from '../navigation/state.provider';
 import { ExecutionService } from './service/execution.service';
 
 export const PIPELINE_STATES = 'spinnaker.core.pipeline.states';

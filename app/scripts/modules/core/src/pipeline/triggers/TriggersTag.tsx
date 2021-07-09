@@ -1,10 +1,9 @@
 import { filter } from 'lodash';
 import React from 'react';
 
-import { SETTINGS } from 'core/config';
-import { IPipeline } from 'core/domain/IPipeline';
-
 import { QuietPeriodBadge } from './QuietPeriodBadge';
+import { SETTINGS } from '../../config';
+import { IPipeline } from '../../domain/IPipeline';
 
 export interface ITriggersTagProps {
   pipeline: IPipeline;

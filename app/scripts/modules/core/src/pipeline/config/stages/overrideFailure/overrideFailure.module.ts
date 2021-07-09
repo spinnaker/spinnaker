@@ -1,9 +1,8 @@
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
 
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
-
 import { OverrideFailure } from './OverrideFailure';
+import { withErrorBoundary } from '../../../../presentation/SpinErrorBoundary';
 
 export const OVERRRIDE_FAILURE = 'spinnaker.core.pipeline.stage.overrideFailure';
 module(OVERRRIDE_FAILURE, []).component(

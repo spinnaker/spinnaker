@@ -1,14 +1,13 @@
 import { useRouter } from '@uirouter/react';
 import React from 'react';
 
-import { IManagedArtifactVersionEnvironment } from 'core/domain';
-
 import { IArtifactDetailProps } from './ArtifactDetail';
 import { Button } from '../Button';
 import { PinnedCard } from './PinnedCard';
 import { StatusCard } from '../StatusCard';
 import { VersionStateCard } from './VersionStateCard';
 import { ConstraintCard } from '../constraints/ConstraintCard';
+import { IManagedArtifactVersionEnvironment } from '../../domain';
 import { logCategories, useLogEvent } from '../utils/logging';
 import { VerificationCard } from './verifications/VerificationCard';
 

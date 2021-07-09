@@ -1,10 +1,9 @@
 import { isString } from 'lodash';
 import React from 'react';
 
-import { IArtifact } from 'core/domain';
-
 import { ArtifactIconService } from '../ArtifactIconService';
 import { ArtifactTypePatterns } from '../ArtifactTypes';
+import { IArtifact } from '../../domain';
 
 export interface IArtifactIconListProps {
   artifacts: IArtifact[];

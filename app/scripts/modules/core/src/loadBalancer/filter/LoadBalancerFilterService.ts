@@ -3,10 +3,10 @@ import { Debounce } from 'lodash-decorators';
 import { $log } from 'ngimport';
 import { Subject } from 'rxjs';
 
-import { Application } from 'core/application/application.model';
-import { IInstance, ILoadBalancer, ILoadBalancerGroup, IServerGroup } from 'core/domain';
-import { FilterModelService, ISortFilter } from 'core/filterModel';
-import { LoadBalancerState } from 'core/state';
+import { Application } from '../../application/application.model';
+import { IInstance, ILoadBalancer, ILoadBalancerGroup, IServerGroup } from '../../domain';
+import { FilterModelService, ISortFilter } from '../../filterModel';
+import { LoadBalancerState } from '../../state';
 
 export class LoadBalancerFilterService {
   public groupsUpdatedStream: Subject<ILoadBalancerGroup[]> = new Subject<ILoadBalancerGroup[]>();

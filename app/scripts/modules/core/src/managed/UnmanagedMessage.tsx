@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { SETTINGS } from 'core/config';
+import { SETTINGS } from '../config';
 
 const defaultGettingStartedUrl = 'https://www.spinnaker.io/guides/user/managed-delivery/getting-started/';
 

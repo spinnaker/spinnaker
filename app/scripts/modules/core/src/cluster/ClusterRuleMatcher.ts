@@ -1,4 +1,4 @@
-import { NameUtils } from 'core/naming';
+import { NameUtils } from '../naming';
 
 export interface IClusterMatchRule {
   account: string;

@@ -1,10 +1,10 @@
 import { module } from 'angular';
-import { Registry } from 'core/registry';
 
 import { NotificationService } from './NotificationService';
 import { extensionNotificationConfig } from './extensionNotificationConfig';
 import './notification.types';
 import { NOTIFICATION_LIST } from './notificationList.module';
+import { Registry } from '../registry';
 
 export const CORE_NOTIFICATION_NOTIFICATIONS_MODULE = 'spinnaker.core.notifications';
 export const name = CORE_NOTIFICATION_NOTIFICATIONS_MODULE; // for backwards compatibility

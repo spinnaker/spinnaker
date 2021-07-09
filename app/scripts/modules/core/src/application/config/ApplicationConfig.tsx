@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { IOverridableProps, Overridable } from 'core/overrideRegistry';
-import { AngularJSAdapter } from 'core/reactShims';
+import { IOverridableProps, Overridable } from '../../overrideRegistry';
+import { AngularJSAdapter } from '../../reactShims';
 
 export interface IApplicationConfigDetailsProps extends IOverridableProps {}
 

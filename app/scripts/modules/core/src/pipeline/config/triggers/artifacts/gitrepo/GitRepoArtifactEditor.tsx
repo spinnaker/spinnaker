@@ -1,12 +1,11 @@
 import { cloneDeep } from 'lodash';
 import React from 'react';
 
-import { ArtifactTypePatterns } from 'core/artifact';
-import { IArtifactEditorProps, IArtifactKindConfig } from 'core/domain';
-import { CheckboxInput } from 'core/presentation';
-import { SpelText } from 'core/widgets';
-
+import { ArtifactTypePatterns } from '../../../../../artifact';
+import { IArtifactEditorProps, IArtifactKindConfig } from '../../../../../domain';
+import { CheckboxInput } from '../../../../../presentation';
 import { StageConfigField } from '../../../stages/common';
+import { SpelText } from '../../../../../widgets';
 
 const TYPE = 'git/repo';
 

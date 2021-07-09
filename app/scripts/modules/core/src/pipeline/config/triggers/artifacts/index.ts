@@ -1,9 +1,8 @@
-import { IArtifactKindConfig } from 'core/domain';
-
 import { Base64Default, Base64Match } from './base64/Base64ArtifactEditor';
 import { BitbucketDefault, BitbucketMatch } from './bitbucket/BitbucketArtifactEditor';
 import { CustomDefault, CustomMatch } from './custom/CustomArtifactEditor';
 import { DockerDefault, DockerMatch } from './docker/DockerArtifactEditor';
+import { IArtifactKindConfig } from '../../../../domain';
 import { GcsDefault, GcsMatch } from './gcs/GcsArtifactEditor';
 import { GithubDefault, GithubMatch } from './github/GithubArtifactEditor';
 import { GitlabDefault, GitlabMatch } from './gitlab/GitlabArtifactEditor';

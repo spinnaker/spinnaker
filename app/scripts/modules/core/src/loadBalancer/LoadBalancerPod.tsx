@@ -1,11 +1,10 @@
 import React from 'react';
 
-import { AccountTag } from 'core/account';
-import { Application } from 'core/application/application.model';
-import { ILoadBalancerGroup } from 'core/domain';
-import { ManagedResourceStatusIndicator } from 'core/managed';
-
 import { LoadBalancer } from './LoadBalancer';
+import { AccountTag } from '../account';
+import { Application } from '../application/application.model';
+import { ILoadBalancerGroup } from '../domain';
+import { ManagedResourceStatusIndicator } from '../managed';
 
 import './loadBalancerPod.less';
 

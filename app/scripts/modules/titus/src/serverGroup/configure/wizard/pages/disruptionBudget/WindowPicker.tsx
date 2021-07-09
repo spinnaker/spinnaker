@@ -3,7 +3,7 @@ import { get } from 'lodash';
 import React from 'react';
 
 import { ChecklistInput, FormikFormField, HelpField, NumberInput, ReactSelectInput, SpinFormik } from '@spinnaker/core';
-import { IJobTimeWindow } from 'titus/domain';
+import { IJobTimeWindow } from '../../../../../domain';
 
 import { ITitusServerGroupCommand } from '../../../serverGroupConfiguration.service';
 

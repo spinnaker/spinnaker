@@ -3,11 +3,6 @@
   "compilerOptions": {
     "baseUrl": "../../../../",
     "outDir": "dist",
-    "paths": {
-      "core/*": ["app/scripts/modules/core/dist/*"],
-      "cloudfoundry/*": ["app/scripts/modules/cloudfoundry/src/*"],
-      "cloudfoundry": ["app/scripts/modules/cloudfoundry/src"]
-    },
     "rootDir": "./src"
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],

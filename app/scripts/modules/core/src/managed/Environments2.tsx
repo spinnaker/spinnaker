@@ -1,10 +1,9 @@
 import { UIView, useCurrentStateAndParams, useSref } from '@uirouter/react';
 import React from 'react';
 
-import { HorizontalTabs } from 'core/presentation/horizontalTabs/HorizontalTabs';
-
 import { EnvironmentsDirectionController } from './environmentBaseElements/EnvironmentsRender';
 import { Routes } from './managed.states';
+import { HorizontalTabs } from '../presentation/horizontalTabs/HorizontalTabs';
 import { setDebugMode } from './utils/debugMode';
 import { useLogEvent } from './utils/logging';
 

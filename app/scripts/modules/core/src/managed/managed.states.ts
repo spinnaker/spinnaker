@@ -1,12 +1,11 @@
 import { module } from 'angular';
 
-import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from 'core/application/application.state.provider';
-import { SETTINGS } from 'core/config';
-import { INestedState } from 'core/navigation/state.provider';
-
 import { Environments } from './Environments';
 import { getIsNewUI } from './Environments2';
+import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from '../application/application.state.provider';
+import { SETTINGS } from '../config';
 import { Configuration } from './config/Configuration';
+import { INestedState } from '../navigation/state.provider';
 import { EnvironmentsOverview } from './overview/EnvironmentsOverview';
 import { VersionsHistory } from './versionsHistory/VersionsHistory';
 

@@ -2,7 +2,7 @@
 
 import * as angular from 'angular';
 
-import { OVERRIDE_REGISTRY } from 'core/overrideRegistry/override.registry';
+import { OVERRIDE_REGISTRY } from '../../overrideRegistry/override.registry';
 
 export const CORE_APPLICATION_CONFIG_APPLICATIONNOTIFICATIONS_DIRECTIVE =
   'spinnaker.core.application.config.notifications.directive';

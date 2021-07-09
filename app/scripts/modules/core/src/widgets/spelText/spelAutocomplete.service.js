@@ -1,9 +1,9 @@
 'use strict';
 
 import { module } from 'angular';
-import { EXECUTION_SERVICE } from 'core/pipeline/service/execution.service';
 
 import { SpelAutocompleteService } from './SpelAutocompleteService';
+import { EXECUTION_SERVICE } from '../../pipeline/service/execution.service';
 
 export const CORE_WIDGETS_SPELTEXT_SPELAUTOCOMPLETE_SERVICE = 'spinnaker.core.widget.spelAutocomplete';
 export const name = CORE_WIDGETS_SPELTEXT_SPELAUTOCOMPLETE_SERVICE; // for backwards compatibility

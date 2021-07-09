@@ -4,9 +4,9 @@ import { cloneDeep } from 'lodash';
 import { Subject } from 'rxjs';
 
 import { Application, IServerGroup, TaskMonitor } from '@spinnaker/core';
-import { ITargetTrackingConfiguration, ITargetTrackingPolicy } from 'amazon/domain';
 
 import { IUpsertScalingPolicyCommand, ScalingPolicyWriter } from '../ScalingPolicyWriter';
+import { ITargetTrackingConfiguration, ITargetTrackingPolicy } from '../../../../domain';
 
 export type MetricType = 'custom' | 'predefined';
 

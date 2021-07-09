@@ -1,7 +1,7 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 
-import { noop } from 'core/utils';
+import { noop } from '../../utils';
 
 import LabelFilter, { ILabelFilterProps, LabelFilterSelect } from './LabelFilter';
 

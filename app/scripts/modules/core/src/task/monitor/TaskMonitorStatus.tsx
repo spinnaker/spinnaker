@@ -1,13 +1,12 @@
 import React from 'react';
 
-import { robotToHuman, useForceUpdate, useObservable } from 'core/presentation';
-import { ReactInjector } from 'core/reactShims';
-import { duration } from 'core/utils';
-import { Spinner } from 'core/widgets';
-
 import { StatusGlyph } from '../StatusGlyph';
 import { TaskMonitor } from './TaskMonitor';
 import { displayableTasks } from '../displayableTasks.filter';
+import { robotToHuman, useForceUpdate, useObservable } from '../../presentation';
+import { ReactInjector } from '../../reactShims';
+import { duration } from '../../utils';
+import { Spinner } from '../../widgets';
 
 export const TaskMonitorStatus = ({ monitor }: { monitor: TaskMonitor }) => {
   const forceUpdate = useForceUpdate();

@@ -1,12 +1,13 @@
 import * as uiRouterCore from '@uirouter/core';
 import * as uiRouterReact from '@uirouter/react';
 import * as uiRouterRx from '@uirouter/rx';
-import * as spinnakerCore from 'core';
 import * as lodash from 'lodash';
 import * as propTypes from 'prop-types';
 import * as react from 'react';
 import * as reactDOM from 'react-dom';
 import * as rxjs from 'rxjs';
+
+import * as spinnakerCore from '../index';
 
 export const sharedLibraries = {
   // This is the global (window) variable that the shared libs will be exposed on

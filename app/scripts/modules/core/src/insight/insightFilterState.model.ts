@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { CollapsibleSectionStateCache } from 'core/cache';
+import { CollapsibleSectionStateCache } from '../cache';
 
 export class InsightFilterStateModel {
   public filtersExpanded: boolean;

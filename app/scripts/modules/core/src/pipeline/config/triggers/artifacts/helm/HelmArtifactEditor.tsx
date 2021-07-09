@@ -2,13 +2,12 @@ import { cloneDeep } from 'lodash';
 import React from 'react';
 import { Option } from 'react-select';
 
-import { ArtifactTypePatterns } from 'core/artifact';
-import { IArtifact, IArtifactEditorProps, IArtifactKindConfig } from 'core/domain';
-import { TetheredCreatable, TetheredSelect } from 'core/presentation';
-import { Spinner } from 'core/widgets';
-
 import { ArtifactService } from '../ArtifactService';
+import { ArtifactTypePatterns } from '../../../../../artifact';
+import { IArtifact, IArtifactEditorProps, IArtifactKindConfig } from '../../../../../domain';
+import { TetheredCreatable, TetheredSelect } from '../../../../../presentation';
 import { StageConfigField } from '../../../stages/common';
+import { Spinner } from '../../../../../widgets';
 
 const TYPE = 'helm/chart';
 

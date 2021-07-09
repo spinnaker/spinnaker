@@ -11,7 +11,7 @@ import {
   RadioButtonInput,
   StageArtifactSelector,
 } from '@spinnaker/core';
-import { ICloudFoundryEnvVar } from 'cloudfoundry/domain';
+import { ICloudFoundryEnvVar } from '../../../../../domain';
 import {
   Buildpacks,
   EnvironmentVariables,
@@ -20,7 +20,7 @@ import {
   InstanceParameters,
   Routes,
   Services,
-} from 'cloudfoundry/presentation';
+} from '../../../../../presentation';
 
 import {
   ICloudFoundryCreateServerGroupCommand,

@@ -3,11 +3,6 @@ import { cloneDeep } from 'lodash';
 import React from 'react';
 import { react2angular } from 'react2angular';
 
-import { IArtifactAccount } from 'core/account';
-import { IArtifact, IArtifactKindConfig, IExpectedArtifact, IPipeline } from 'core/domain';
-import { StageConfigField } from 'core/pipeline';
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
-
 import { ArtifactAccountSelector } from './ArtifactAccountSelector';
 import {
   EXPECTED_ARTIFACT_KIND_SELECTOR_COMPONENT_REACT,
@@ -18,7 +13,11 @@ import {
   ExpectedArtifactSourceSelector,
   IExpectedArtifactSourceOption,
 } from './ExpectedArtifactSourceSelector';
+import { IArtifactAccount } from '../../account';
+import { IArtifact, IArtifactKindConfig, IExpectedArtifact, IPipeline } from '../../domain';
 import { ExpectedArtifactService } from '../expectedArtifact.service';
+import { StageConfigField } from '../../pipeline';
+import { withErrorBoundary } from '../../presentation/SpinErrorBoundary';
 
 export interface IExpectedArtifactEditorProps {
   default?: IExpectedArtifact;

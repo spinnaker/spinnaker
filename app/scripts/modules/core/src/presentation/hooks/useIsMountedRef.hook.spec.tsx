@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useIsMountedRef } from 'core/presentation';
+import { useIsMountedRef } from '..';
 import { mount } from 'enzyme';
 
 describe('useIsMountedRef hook', () => {

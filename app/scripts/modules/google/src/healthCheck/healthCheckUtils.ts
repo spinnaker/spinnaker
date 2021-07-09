@@ -1,4 +1,4 @@
-import { IGceHealthCheck, IGceHealthCheckKind } from 'google/domain';
+import { IGceHealthCheck, IGceHealthCheckKind } from '../domain';
 
 export interface IGceHealthCheckOption {
   displayName: string;

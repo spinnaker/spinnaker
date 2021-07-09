@@ -1,7 +1,7 @@
 import { noop } from 'lodash';
 import { ExpectedArtifactService } from './expectedArtifact.service';
-import { IArtifact, IArtifactKindConfig } from 'core/domain';
-import { Registry } from 'core/registry';
+import { IArtifact, IArtifactKindConfig } from '../domain';
+import { Registry } from '../registry';
 
 describe('ExpectedArtifactService', () => {
   describe('getKindConfig()', () => {

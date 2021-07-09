@@ -13,10 +13,10 @@ import {
   ServerGroupWarningMessageService,
   SETTINGS,
 } from '@spinnaker/core';
-import { ICloudFoundryServerGroup } from 'cloudfoundry/domain';
 
 import { CloudFoundryServerGroupCommandBuilder } from '../configure';
 import { CloudFoundryCreateServerGroupModal } from '../configure/wizard/CreateServerGroupModal';
+import { ICloudFoundryServerGroup } from '../../domain';
 import { CloudFoundryMapLoadBalancersModal } from './mapLoadBalancers/CloudFoundryMapLoadBalancersModal';
 import { CloudFoundryUnmapLoadBalancersModal } from './mapLoadBalancers/CloudFoundryUnmapLoadBalancersModal';
 import { CloudFoundryResizeServerGroupModal } from './resize/CloudFoundryResizeServerGroupModal';

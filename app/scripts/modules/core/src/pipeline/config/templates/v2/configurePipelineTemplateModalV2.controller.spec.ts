@@ -5,8 +5,8 @@ import {
   ConfigurePipelineTemplateModalV2Controller,
 } from './configurePipelineTemplateModalV2.controller';
 import { IVariable } from '../inputs/variableInput.service';
-import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
-import { Application } from 'core/application/application.model';
+import { ApplicationModelBuilder } from '../../../../application/applicationModel.builder';
+import { Application } from '../../../../application/application.model';
 import { PIPELINE_TEMPLATE_MODULE } from '../pipelineTemplate.module';
 import { PipelineTemplateReader } from '../PipelineTemplateReader';
 

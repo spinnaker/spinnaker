@@ -1,5 +1,5 @@
 import { module } from 'angular';
-import { PROVIDER_SERVICE_DELEGATE, ProviderServiceDelegate } from 'core/cloudProvider/providerService.delegate';
+import { PROVIDER_SERVICE_DELEGATE, ProviderServiceDelegate } from '../cloudProvider/providerService.delegate';
 
 export type IFindImageParams = {
   provider: string;

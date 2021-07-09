@@ -3,10 +3,10 @@ import { IModalServiceInstance } from 'angular-ui-bootstrap';
 import { cloneDeep } from 'lodash';
 
 import { Application, TaskMonitor } from '@spinnaker/core';
-import { GOOGLE_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_WRITE_SERVICE } from 'google/autoscalingPolicy/autoscalingPolicy.write.service';
-import { IGceAutoHealingPolicy, IGceServerGroup } from 'google/domain/index';
-import { GCE_HEALTH_CHECK_READER, GceHealthCheckReader } from 'google/healthCheck/healthCheck.read.service';
-import { getHealthCheckOptions, IGceHealthCheckOption } from 'google/healthCheck/healthCheckUtils';
+import { GOOGLE_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_WRITE_SERVICE } from '../../../../autoscalingPolicy/autoscalingPolicy.write.service';
+import { IGceAutoHealingPolicy, IGceServerGroup } from '../../../../domain/index';
+import { GCE_HEALTH_CHECK_READER, GceHealthCheckReader } from '../../../../healthCheck/healthCheck.read.service';
+import { getHealthCheckOptions, IGceHealthCheckOption } from '../../../../healthCheck/healthCheckUtils';
 
 import './upsertAutoHealingPolicy.modal.less';
 

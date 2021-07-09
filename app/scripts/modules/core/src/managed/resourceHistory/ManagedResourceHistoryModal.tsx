@@ -1,11 +1,9 @@
 import classNames from 'classnames';
 import React from 'react';
 
-import { IManagedResourceSummary } from 'core/domain';
-import { Spinner } from 'core/widgets';
-
 import { HistoryEventRow } from './HistoryEventRow';
 import { ManagedReader } from '../ManagedReader';
+import { IManagedResourceSummary } from '../../domain';
 import {
   IModalComponentProps,
   ModalBody,
@@ -15,6 +13,7 @@ import {
   Table,
   usePollingData,
 } from '../../presentation';
+import { Spinner } from '../../widgets';
 
 import './ManagedResourceHistoryModal.less';
 

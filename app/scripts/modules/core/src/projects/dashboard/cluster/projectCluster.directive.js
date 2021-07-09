@@ -3,13 +3,12 @@
 import { module } from 'angular';
 import _ from 'lodash';
 
-import { CollapsibleSectionStateCache } from 'core/cache';
-import { HEALTH_COUNTS_COMPONENT } from 'core/healthCounts/healthCounts.component';
-import { UrlBuilder } from 'core/navigation';
-import { ClusterState } from 'core/state';
-import { TIME_FORMATTERS } from 'core/utils/timeFormatters';
-
+import { CollapsibleSectionStateCache } from '../../../cache';
+import { HEALTH_COUNTS_COMPONENT } from '../../../healthCounts/healthCounts.component';
+import { UrlBuilder } from '../../../navigation';
 import { CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_SERVICE } from '../regionFilter/regionFilter.service';
+import { ClusterState } from '../../../state';
+import { TIME_FORMATTERS } from '../../../utils/timeFormatters';
 
 import './projectCluster.less';
 

@@ -1,12 +1,12 @@
 import { forOwn, groupBy, sortBy } from 'lodash';
 import * as React from 'react';
 
-import { IServerGroup } from 'core/domain';
-import { IModalComponentProps, ModalBody, ModalFooter, ModalHeader, useData } from 'core/presentation';
-import { timestamp } from 'core/utils';
-import { Spinner } from 'core/widgets';
-
+import { IServerGroup } from '../../../domain';
+import { IModalComponentProps, ModalBody, ModalFooter, ModalHeader, useData } from '../../../presentation';
 import { ServerGroupReader } from '../../serverGroupReader.service';
+import { timestamp } from '../../../utils';
+import { Spinner } from '../../../widgets';
+
 import './ScalingActivitiesModal.less';
 
 export interface IScalingEvent {

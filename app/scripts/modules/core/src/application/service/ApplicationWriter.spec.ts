@@ -1,7 +1,7 @@
 import { mock } from 'angular';
 
 import { ApplicationWriter, IApplicationAttributes } from './ApplicationWriter';
-import { IJob, TaskExecutor } from 'core/task/taskExecutor';
+import { IJob, TaskExecutor } from '../../task/taskExecutor';
 import Spy = jasmine.Spy;
 
 describe('ApplicationWriter', function () {

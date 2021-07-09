@@ -9,7 +9,7 @@ import {
 import { Application, ApplicationModelBuilder } from '@spinnaker/core';
 import { IAmazonServerGroupView, IAmazonMixedInstancesPolicy, IScalingPolicy } from '../../../domain';
 import { LaunchTemplateDetailsSection } from './LaunchTemplateDetailsSection';
-import { MultipleInstanceTypesSubSection } from 'amazon/serverGroup/details/sections/MultipleInstanceTypesSubSection';
+import { MultipleInstanceTypesSubSection } from './MultipleInstanceTypesSubSection';
 
 describe('Launch template details', () => {
   let app: Application;

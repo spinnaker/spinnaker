@@ -2,9 +2,9 @@ import { flatten, map } from 'lodash';
 import React from 'react';
 import { Subscription } from 'rxjs';
 
-import { IInstance, IServerGroup } from 'core/domain';
-import { Instances } from 'core/instance/Instances';
-import { ClusterState } from 'core/state';
+import { IInstance, IServerGroup } from '../domain';
+import { Instances } from '../instance/Instances';
+import { ClusterState } from '../state';
 
 export interface ILoadBalancerInstancesProps {
   serverGroups: IServerGroup[];

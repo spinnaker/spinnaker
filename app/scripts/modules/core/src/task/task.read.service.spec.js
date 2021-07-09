@@ -1,5 +1,5 @@
 'use strict';
-import { mockHttpClient } from 'core/api/mock/jasmine';
+import { mockHttpClient } from '../api/mock/jasmine';
 import { TaskReader } from './task.read.service';
 
 describe('Service: taskReader', function () {

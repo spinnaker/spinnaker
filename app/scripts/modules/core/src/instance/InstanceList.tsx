@@ -3,12 +3,11 @@ import React from 'react';
 import { Subject } from 'rxjs';
 import { distinctUntilChanged, map, takeUntil } from 'rxjs/operators';
 
-import { IInstance, IServerGroup } from 'core/domain';
-import { SortToggle } from 'core/presentation/sortToggle/SortToggle';
-import { ReactInjector } from 'core/reactShims';
-import { ClusterState } from 'core/state';
-
 import { InstanceListBody } from './InstanceListBody';
+import { IInstance, IServerGroup } from '../domain';
+import { SortToggle } from '../presentation/sortToggle/SortToggle';
+import { ReactInjector } from '../reactShims';
+import { ClusterState } from '../state';
 
 export interface IInstanceListProps {
   hasDiscovery: boolean;

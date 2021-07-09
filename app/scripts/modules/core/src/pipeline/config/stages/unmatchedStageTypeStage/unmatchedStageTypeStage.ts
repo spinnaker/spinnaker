@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { Registry } from 'core/registry';
+import { Registry } from '../../../../registry';
 
 import { UNMATCHED_STAGE_TYPE_STAGE_CTRL } from './unmatchedStageTypeStage.controller';
 

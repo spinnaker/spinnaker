@@ -1,13 +1,6 @@
 import { DateTime } from 'luxon';
 import React, { useMemo } from 'react';
 
-import {
-  IManagedArtifactSummary,
-  IManagedArtifactVersion,
-  IManagedEnvironmentSummary,
-  IManagedResourceSummary,
-} from 'core/domain';
-
 import { AbsoluteTimestamp } from '../AbsoluteTimestamp';
 import { ArtifactDetailHeader } from './ArtifactDetailHeader';
 import { Button } from '../Button';
@@ -18,6 +11,12 @@ import { showPinArtifactModal } from './PinArtifactModal';
 import { PreDeploymentRow } from './PreDeploymentRow';
 import { PreDeploymentStepCard } from './PreDeploymentStepCard';
 import { Application } from '../../application';
+import {
+  IManagedArtifactSummary,
+  IManagedArtifactVersion,
+  IManagedEnvironmentSummary,
+  IManagedResourceSummary,
+} from '../../domain';
 import { EnvironmentRow } from '../environment/EnvironmentRow';
 import { CollapsibleElement, Markdown, useEventListener } from '../../presentation';
 import { resourceManager } from '../resources/resourceRegistry';

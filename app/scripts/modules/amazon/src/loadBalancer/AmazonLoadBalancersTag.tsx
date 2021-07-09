@@ -15,9 +15,9 @@ import {
   Spinner,
   Tooltip,
 } from '@spinnaker/core';
-import { IAmazonServerGroup, ITargetGroup } from 'amazon/domain';
 
 import { AmazonLoadBalancerDataUtils } from './amazonLoadBalancerDataUtils';
+import { IAmazonServerGroup, ITargetGroup } from '../domain';
 
 interface ILoadBalancerListItemProps {
   loadBalancer: ILoadBalancer | ITargetGroup;

@@ -12,7 +12,7 @@ import {
   SelectInput,
   SETTINGS,
 } from '@spinnaker/core';
-import { AWSProviderSettings } from 'amazon/aws.settings';
+import { AWSProviderSettings } from '../aws.settings';
 
 export interface ISubnetSelectInputProps extends Omit<ISelectInputProps, 'options'> {
   value: string;

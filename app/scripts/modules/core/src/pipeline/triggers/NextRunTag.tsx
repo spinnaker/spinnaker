@@ -1,12 +1,11 @@
 import { DateTime } from 'luxon';
 import React from 'react';
 
-import { SETTINGS } from 'core/config/settings';
-import { ICronTrigger, IPipeline } from 'core/domain';
-import { Popover } from 'core/presentation/Popover';
-import { relativeTime, timestamp } from 'core/utils/timeFormatters';
-
+import { SETTINGS } from '../../config/settings';
+import { ICronTrigger, IPipeline } from '../../domain';
+import { Popover } from '../../presentation/Popover';
 import { later } from '../../utils/later/later';
+import { relativeTime, timestamp } from '../../utils/timeFormatters';
 
 export interface INextRunTagProps {
   pipeline: IPipeline;

@@ -1,15 +1,14 @@
 import React from 'react';
 
-import { useApplicationContextSafe } from 'core/presentation';
-import { Spinner } from 'core/widgets';
-
 import { ApplicationQueryError } from '../ApplicationQueryError';
 import { EnvironmentOverview } from './EnvironmentOverview';
 import { EnvironmentsRender, useOrderedEnvironment } from '../environmentBaseElements/EnvironmentsRender';
 import { useFetchApplicationQuery } from '../graphql/graphql-sdk';
 import { Messages } from '../messages/Messages';
+import { useApplicationContextSafe } from '../../presentation';
 import { OVERVIEW_VERSION_STATUSES } from './utils';
 import { spinnerProps } from '../utils/defaults';
+import { Spinner } from '../../widgets';
 
 import './EnvironmentsOverview.less';
 

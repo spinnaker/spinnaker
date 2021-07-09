@@ -1,9 +1,9 @@
 import { module } from 'angular';
-import { SETTINGS } from 'core/config/settings';
-import { SchedulerFactory } from 'core/scheduler/SchedulerFactory';
 
 import { AuthenticationInitializer } from './AuthenticationInitializer';
 import { AUTHENTICATION_INTERCEPTOR_SERVICE } from './authentication.interceptor.service';
+import { SETTINGS } from '../config/settings';
+import { SchedulerFactory } from '../scheduler/SchedulerFactory';
 
 export const AUTHENTICATION_MODULE = 'spinnaker.authentication';
 module(AUTHENTICATION_MODULE, [AUTHENTICATION_INTERCEPTOR_SERVICE])

@@ -1,9 +1,9 @@
-import { mockHttpClient } from 'core/api/mock/jasmine';
-import { tick } from 'core/api/mock/mockHttpUtils';
+import { mockHttpClient } from '../../../../api/mock/jasmine';
+import { tick } from '../../../../api/mock/mockHttpUtils';
 import { IDeferred, IQService, IRootScopeService, IScope, mock } from 'angular';
 
 import { MANUAL_JUDGMENT_SERVICE, ManualJudgmentService } from './manualJudgment.service';
-import { ExecutionService } from 'core/pipeline/service/execution.service';
+import { ExecutionService } from '../../../service/execution.service';
 
 describe('Service: manualJudgment', () => {
   let $scope: IScope, service: ManualJudgmentService, $q: IQService, executionService: ExecutionService;

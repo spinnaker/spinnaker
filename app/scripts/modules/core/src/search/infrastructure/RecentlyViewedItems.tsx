@@ -1,11 +1,10 @@
 import React from 'react';
 
-import { IRecentHistoryEntry, RecentHistoryService } from 'core/history';
-import { useData } from 'core/presentation/hooks';
-import { ReactInjector } from 'core/reactShims';
-import { logger } from 'core/utils';
-
 import { ISearchResult, ISearchResultPodData, SearchResultPods } from './SearchResultPods';
+import { IRecentHistoryEntry, RecentHistoryService } from '../../history';
+import { useData } from '../../presentation/hooks';
+import { ReactInjector } from '../../reactShims';
+import { logger } from '../../utils';
 
 export interface IChildComponentProps {
   results: ISearchResultPodData[];

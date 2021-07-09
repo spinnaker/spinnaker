@@ -4,9 +4,9 @@ import { flattenDeep } from 'lodash';
 import React from 'react';
 
 import { Application, ILoadBalancer, InstanceReader, RecentHistoryService, Spinner } from '@spinnaker/core';
-import { ICloudFoundryInstance } from 'cloudfoundry/domain';
 
 import { CloudFoundryInstanceActions } from './CloudFoundryInstanceActions';
+import { ICloudFoundryInstance } from '../../domain';
 import { CloudFoundryInstanceDetailsSection } from './sections';
 
 interface InstanceFromStateParams {

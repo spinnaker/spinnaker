@@ -1,5 +1,5 @@
-import { REST } from 'core/api';
-import { IProject, IProjectCluster } from 'core/domain';
+import { REST } from '../../api';
+import { IProject, IProjectCluster } from '../../domain';
 
 export class ProjectReader {
   public static listProjects(): PromiseLike<IProject[]> {

@@ -1,9 +1,9 @@
 import { module } from 'angular';
 
 import { IArtifact, IArtifactAccountPair, IServerGroup } from '@spinnaker/core';
-import { GitCredentialType, IAppengineGitTrigger, IAppengineJenkinsTrigger } from 'appengine/domain/index';
 
 import { IAppengineServerGroupCommand } from './configure/serverGroupCommandBuilder.service';
+import { GitCredentialType, IAppengineGitTrigger, IAppengineJenkinsTrigger } from '../domain/index';
 
 export class AppengineDeployDescription {
   public cloudProvider = 'appengine';

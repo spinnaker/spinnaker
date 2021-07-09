@@ -2,7 +2,7 @@ import { FormikErrors, FormikProps } from 'formik';
 import React from 'react';
 
 import { IWizardPageComponent, NgReact } from '@spinnaker/core';
-import { AWSProviderSettings } from 'amazon/aws.settings';
+import { AWSProviderSettings } from '../../../../aws.settings';
 
 import { CpuCreditsToggle } from '../instanceType/CpuCreditsToggle';
 import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';

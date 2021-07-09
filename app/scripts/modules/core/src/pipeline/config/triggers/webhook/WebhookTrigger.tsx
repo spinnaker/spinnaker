@@ -1,11 +1,11 @@
 import { FormikProps } from 'formik';
 import React from 'react';
 
-import { SETTINGS } from 'core/config/settings';
-import { IWebhookTrigger } from 'core/domain';
-import { MapEditorInput } from 'core/forms';
-import { HelpField } from 'core/help';
-import { FormikFormField, TextInput } from 'core/presentation';
+import { SETTINGS } from '../../../../config/settings';
+import { IWebhookTrigger } from '../../../../domain';
+import { MapEditorInput } from '../../../../forms';
+import { HelpField } from '../../../../help';
+import { FormikFormField, TextInput } from '../../../../presentation';
 
 export interface IWebhookTriggerProps {
   formik: FormikProps<IWebhookTrigger>;

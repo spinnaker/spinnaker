@@ -1,15 +1,14 @@
 import React from 'react';
 import { Dropdown, MenuItem } from 'react-bootstrap';
 
-import { Application } from 'core/application';
-import { SETTINGS } from 'core/config/settings';
-import { IManagedResourceSummary } from 'core/domain';
-import { HelpField } from 'core/help';
-import { HoverablePopover } from 'core/presentation';
-import { ReactInjector } from 'core/reactShims';
-
 import { logger } from '..';
+import { Application } from '../application';
+import { SETTINGS } from '../config/settings';
+import { IManagedResourceSummary } from '../domain';
+import { HelpField } from '../help';
 import managedDeliveryLogo from './icons/md-logo-color.svg';
+import { HoverablePopover } from '../presentation';
+import { ReactInjector } from '../reactShims';
 import { showManagedResourceHistoryModal } from './resourceHistory/ManagedResourceHistoryModal';
 import { toggleResourcePause } from './toggleResourceManagement';
 

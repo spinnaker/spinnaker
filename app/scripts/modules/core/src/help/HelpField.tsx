@@ -1,11 +1,10 @@
 import { isUndefined } from 'lodash';
 import React from 'react';
 
-import { HoverablePopover, Markdown, Placement } from 'core/presentation';
-import { logger } from 'core/utils';
-
 import { HelpTextExpandedContext } from './HelpTextExpandedContext';
 import { HelpContentsRegistry } from './helpContents.registry';
+import { HoverablePopover, Markdown, Placement } from '../presentation';
+import { logger } from '../utils';
 
 export interface IHelpFieldProps {
   id?: string;

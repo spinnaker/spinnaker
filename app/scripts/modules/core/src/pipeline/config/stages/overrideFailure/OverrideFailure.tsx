@@ -1,10 +1,9 @@
 import React from 'react';
 
-import { IStage } from 'core/domain';
-import { HelpField } from 'core/help';
-import { RadioButtonInput } from 'core/presentation';
-
 import { StageConfigField } from '../common';
+import { IStage } from '../../../../domain';
+import { HelpField } from '../../../../help';
+import { RadioButtonInput } from '../../../../presentation';
 
 import './overrideFailure.less';
 

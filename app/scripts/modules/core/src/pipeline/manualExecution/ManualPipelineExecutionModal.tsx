@@ -5,9 +5,19 @@ import { Modal } from 'react-bootstrap';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import { Application } from 'core/application';
-import { AuthenticationService } from 'core/authentication';
-import { SETTINGS } from 'core/config/settings';
+import { CurrentlyRunningExecutions } from './CurrentlyRunningExecutions';
+import { DryRun } from './DryRun';
+import { NotificationDetails } from './NotificationDetails';
+import { Parameters } from './Parameters';
+import { PipelineOptions } from './PipelineOptions';
+import { StageManualComponents } from './StageManualComponents';
+import { ITriggerTemplateComponentProps } from './TriggerTemplate';
+import { Triggers } from './Triggers';
+import { Application } from '../../application';
+import { AuthenticationService } from '../../authentication';
+import { SETTINGS } from '../../config/settings';
+import { IPipelineTemplateConfig } from '../config/templates';
+import { PipelineTemplateReader } from '../config/templates/PipelineTemplateReader';
 import {
   IExecution,
   IExecutionTrigger,
@@ -18,10 +28,11 @@ import {
   IPipelineTrigger,
   IStage,
   ITrigger,
-} from 'core/domain';
-import { ModalClose, SubmitButton } from 'core/modal';
-import { UrlParser } from 'core/navigation/urlParser';
-import { AppNotificationsService } from 'core/notification/AppNotificationsService';
+} from '../../domain';
+import { ManualExecutionFieldLayout } from './layout/ManualExecutionFieldLayout';
+import { ModalClose, SubmitButton } from '../../modal';
+import { UrlParser } from '../../navigation/urlParser';
+import { AppNotificationsService } from '../../notification/AppNotificationsService';
 import {
   FormValidator,
   IModalComponentProps,
@@ -29,20 +40,8 @@ import {
   Markdown,
   ReactModal,
   SpinFormik,
-} from 'core/presentation';
-import { Registry } from 'core/registry';
-
-import { CurrentlyRunningExecutions } from './CurrentlyRunningExecutions';
-import { DryRun } from './DryRun';
-import { NotificationDetails } from './NotificationDetails';
-import { Parameters } from './Parameters';
-import { PipelineOptions } from './PipelineOptions';
-import { StageManualComponents } from './StageManualComponents';
-import { ITriggerTemplateComponentProps } from './TriggerTemplate';
-import { Triggers } from './Triggers';
-import { IPipelineTemplateConfig } from '../config/templates';
-import { PipelineTemplateReader } from '../config/templates/PipelineTemplateReader';
-import { ManualExecutionFieldLayout } from './layout/ManualExecutionFieldLayout';
+} from '../../presentation';
+import { Registry } from '../../registry';
 import { ArtifactList } from '../status/ArtifactList';
 
 import './manualPipelineExecution.less';

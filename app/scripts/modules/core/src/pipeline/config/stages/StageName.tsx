@@ -18,8 +18,8 @@ import { module } from 'angular';
 import React from 'react';
 import { react2angular } from 'react2angular';
 
-import { IStage } from 'core/domain';
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
+import { IStage } from '../../../domain';
+import { withErrorBoundary } from '../../../presentation/SpinErrorBoundary';
 
 export interface IStageNameProps {
   stages: IStage[];

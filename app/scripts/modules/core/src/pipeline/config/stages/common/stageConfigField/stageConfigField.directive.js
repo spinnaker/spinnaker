@@ -2,7 +2,7 @@
 
 import { module } from 'angular';
 
-import { HELP_FIELD_COMPONENT } from 'core/help/helpField.component';
+import { HELP_FIELD_COMPONENT } from '../../../../../help/helpField.component';
 
 import './stageConfigField.directive.less';
 

@@ -2,7 +2,7 @@ import { UISref } from '@uirouter/react';
 import { UIRouterContext } from '@uirouter/react-hybrid';
 import React from 'react';
 
-import { Tooltip } from 'core/presentation';
+import { Tooltip } from '../../presentation';
 
 import './projectSummaryPod.less';
 

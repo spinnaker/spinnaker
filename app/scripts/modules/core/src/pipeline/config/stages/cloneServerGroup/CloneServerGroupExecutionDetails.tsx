@@ -1,13 +1,12 @@
 import { find, get } from 'lodash';
 import React from 'react';
 
-import { AccountTag } from 'core/account';
-import { UrlBuilder } from 'core/navigation';
-import { ReactInjector } from 'core/reactShims';
-import { ClusterState } from 'core/state';
-
+import { AccountTag } from '../../../../account';
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
 import { StageFailureMessage } from '../../../details';
+import { UrlBuilder } from '../../../../navigation';
+import { ReactInjector } from '../../../../reactShims';
+import { ClusterState } from '../../../../state';
 
 export interface IDeployResult {
   type: string;

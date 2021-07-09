@@ -1,11 +1,10 @@
 import { orderBy } from 'lodash';
 import React from 'react';
 
-import { HoverablePopover, Markdown } from 'core/presentation';
-
 import { CurrentVersion } from './CurrentVersion';
 import { PendingVersions } from './PendingVersion';
 import { EnvironmentItem } from '../../environmentBaseElements/EnvironmentItem';
+import { HoverablePopover, Markdown } from '../../../presentation';
 import { QueryArtifact, QueryArtifactVersion } from '../types';
 import { tooltipShowHideProps } from '../../utils/defaults';
 import { toPinnedMetadata } from '../../versionMetadata/MetadataComponents';

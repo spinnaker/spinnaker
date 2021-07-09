@@ -1,9 +1,9 @@
-import { FormikStageConfig, IFormikStageConfigInjectedProps, IStage, IStageConfigProps } from 'core';
 import { cloneDeep } from 'lodash';
 import React from 'react';
 
 import { AwsCodeBuildStageForm } from './AwsCodeBuildStageForm';
 import { validate } from './AwsCodeBuildValidator';
+import { FormikStageConfig, IFormikStageConfigInjectedProps, IStage, IStageConfigProps } from '../../../../index';
 
 export function AwsCodeBuildStageConfig({ application, pipeline, stage, updateStage }: IStageConfigProps) {
   const stageWithDefaults: IStage = React.useMemo(() => {

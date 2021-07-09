@@ -1,4 +1,4 @@
-import { Application } from 'core/application/application.model';
+import { Application } from '../application/application.model';
 import {
   IEntityRef,
   ILoadBalancer,
@@ -6,7 +6,7 @@ import {
   ISecurityGroup,
   IServerGroup,
   IServerGroupManager,
-} from 'core/domain';
+} from '../domain';
 
 export class EntityRefBuilder {
   public static buildServerGroupRef(serverGroup: IServerGroup): IEntityRef {

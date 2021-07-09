@@ -1,7 +1,7 @@
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 
-import { ReactModal } from 'core/presentation/ReactModal';
+import { ReactModal } from '../presentation/ReactModal';
 
 import './LoggedOutModal.less';
 

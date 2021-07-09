@@ -1,8 +1,8 @@
 import React from 'react';
 import { mount } from 'enzyme';
 
-import { IPipeline, IPipelineTemplateV2 } from 'core/domain';
-import { PipelineTemplateV2Service } from 'core/pipeline/config/templates/v2/pipelineTemplateV2.service';
+import { IPipeline, IPipelineTemplateV2 } from '../../../../domain';
+import { PipelineTemplateV2Service } from '../../templates/v2/pipelineTemplateV2.service';
 import { ShowPipelineTemplateJsonModal } from './ShowPipelineTemplateJsonModal';
 
 describe('<ShowPipelineTemplateJsonModal />', () => {

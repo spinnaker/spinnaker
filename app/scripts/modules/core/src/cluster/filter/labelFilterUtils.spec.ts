@@ -3,8 +3,8 @@ import {
   labelFiltersToTrueKeyObject,
   trueKeyObjectToLabelFilters,
   ILabelFilter,
-} from 'core/cluster/filter/labelFilterUtils';
-import { IServerGroup } from 'core/domain/IServerGroup';
+} from './labelFilterUtils';
+import { IServerGroup } from '../../domain/IServerGroup';
 
 describe('Label filter utils', () => {
   let labelFilters: ILabelFilter[];

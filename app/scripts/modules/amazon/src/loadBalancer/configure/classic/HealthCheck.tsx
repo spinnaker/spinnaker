@@ -2,7 +2,7 @@ import { FormikProps } from 'formik';
 import React from 'react';
 
 import { FormikFormField, NumberInput, SelectInput, TextInput } from '@spinnaker/core';
-import { IAmazonClassicLoadBalancerUpsertCommand } from 'amazon/domain';
+import { IAmazonClassicLoadBalancerUpsertCommand } from '../../../domain';
 
 export interface IHealthCheckProps {
   formik: FormikProps<IAmazonClassicLoadBalancerUpsertCommand>;

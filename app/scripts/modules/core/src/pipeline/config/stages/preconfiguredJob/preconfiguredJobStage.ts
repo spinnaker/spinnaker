@@ -1,11 +1,11 @@
 import { module } from 'angular';
-import { IStageTypeConfig } from 'core/domain';
-import { Registry } from 'core/registry';
 
 import { PreconfiguredJobExecutionDetails } from './PreconfiguredJobExecutionDetails';
 import { PreconfiguredJobStageConfig } from './PreconfiguredJobStageConfig';
 import { ExecutionDetailsTasks } from '../common';
+import { IStageTypeConfig } from '../../../../domain';
 import { PreconfiguredJobReader } from './preconfiguredJob.reader';
+import { Registry } from '../../../../registry';
 
 /**
  * Builds a skeleton preconfigured job stage

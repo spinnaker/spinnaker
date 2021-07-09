@@ -6,7 +6,7 @@ import {
   ITask,
   TaskExecutor,
 } from '@spinnaker/core';
-import { IAmazonInstance } from 'amazon/domain';
+import { IAmazonInstance } from '../domain';
 
 export interface IAmazonMultiInstanceGroup extends IMultiInstanceGroup {
   targetGroups: string[];

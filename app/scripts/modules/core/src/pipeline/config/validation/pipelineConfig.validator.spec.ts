@@ -1,11 +1,11 @@
 import { mock } from 'angular';
 import Spy = jasmine.Spy;
-import { SETTINGS } from 'core/config/settings';
+import { SETTINGS } from '../../../config/settings';
 
-import { IPipeline, IStage, IStageTypeConfig } from 'core/domain';
-import { ServiceAccountReader } from 'core/serviceAccount/ServiceAccountReader';
-import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
-import { Registry } from 'core/registry';
+import { IPipeline, IStage, IStageTypeConfig } from '../../../domain';
+import { ServiceAccountReader } from '../../../serviceAccount/ServiceAccountReader';
+import { PipelineConfigService } from '../services/PipelineConfigService';
+import { Registry } from '../../../registry';
 
 import {
   ICustomValidator,

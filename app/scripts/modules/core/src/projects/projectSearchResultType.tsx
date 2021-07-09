@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { IProjectConfig } from 'core/domain';
+import { IProjectConfig } from '../domain';
 import {
   BasicCell,
   DefaultSearchResultTab,
@@ -14,7 +14,7 @@ import {
   SearchTableBody,
   SearchTableHeader,
   SearchTableRow,
-} from 'core/search';
+} from '../search';
 
 export interface IProjectSearchResult extends ISearchResult {
   applications: string[];

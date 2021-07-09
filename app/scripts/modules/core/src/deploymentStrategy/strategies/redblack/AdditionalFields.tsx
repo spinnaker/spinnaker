@@ -1,8 +1,7 @@
 import React from 'react';
 
-import { HelpField } from 'core/help/HelpField';
-
 import { IDeploymentStrategyAdditionalFieldsProps } from '../../deploymentStrategy.registry';
+import { HelpField } from '../../../help/HelpField';
 import { IRedBlackCommand } from './redblack.strategy';
 
 export interface IRedBlackStrategyAdditionalFieldsProps extends IDeploymentStrategyAdditionalFieldsProps {

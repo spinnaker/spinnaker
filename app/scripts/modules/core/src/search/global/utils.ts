@@ -1,5 +1,5 @@
-import { IApplicationSearchResult } from 'core/application/applicationSearchResultType';
-import { SETTINGS } from 'core/config/settings';
+import { IApplicationSearchResult } from '../../application/applicationSearchResultType';
+import { SETTINGS } from '../../config/settings';
 
 import { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
 

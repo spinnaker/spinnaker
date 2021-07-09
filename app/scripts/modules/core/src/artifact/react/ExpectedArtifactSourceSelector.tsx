@@ -2,10 +2,10 @@ import { module } from 'angular';
 import React from 'react';
 import { react2angular } from 'react2angular';
 
-import { IExpectedArtifact } from 'core/domain';
-import { TetheredSelect } from 'core/presentation';
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
-import { UUIDGenerator } from 'core/utils';
+import { IExpectedArtifact } from '../../domain';
+import { TetheredSelect } from '../../presentation';
+import { withErrorBoundary } from '../../presentation/SpinErrorBoundary';
+import { UUIDGenerator } from '../../utils';
 
 export interface IExpectedArtifactSourceOption {
   source: {

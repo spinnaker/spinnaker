@@ -1,7 +1,6 @@
-import { IPipeline, IStage, IStageOrTriggerTypeConfig } from 'core/domain';
-import { NameUtils } from 'core/naming';
-
 import { IStageOrTriggerValidator, IValidatorConfig, PipelineConfigValidator } from './PipelineConfigValidator';
+import { IPipeline, IStage, IStageOrTriggerTypeConfig } from '../../../domain';
+import { NameUtils } from '../../../naming';
 import { PipelineConfigService } from '../services/PipelineConfigService';
 
 export interface ITargetImpedanceValidationConfig extends IValidatorConfig {

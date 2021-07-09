@@ -1,18 +1,17 @@
 import { has } from 'lodash';
 import React from 'react';
 
-import { IExecution } from 'core/domain';
-import { ISortFilter } from 'core/filterModel';
-import { HoverablePopover } from 'core/presentation';
-import { Registry } from 'core/registry';
-import { SchedulerFactory } from 'core/scheduler';
-import { IScheduler } from 'core/scheduler/SchedulerFactory';
-import { ExecutionState } from 'core/state';
-import { relativeTime, timestamp } from 'core/utils';
-
 import { ExecutionUserStatus } from './ExecutionUserStatus';
+import { IExecution } from '../../domain';
 import { ExecutionBuildLink } from '../executionBuild/ExecutionBuildLink';
 import { buildDisplayName } from '../executionBuild/buildDisplayName.filter';
+import { ISortFilter } from '../../filterModel';
+import { HoverablePopover } from '../../presentation';
+import { Registry } from '../../registry';
+import { SchedulerFactory } from '../../scheduler';
+import { IScheduler } from '../../scheduler/SchedulerFactory';
+import { ExecutionState } from '../../state';
+import { relativeTime, timestamp } from '../../utils';
 
 import './executionStatus.less';
 

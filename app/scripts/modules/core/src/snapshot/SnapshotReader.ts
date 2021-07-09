@@ -1,5 +1,5 @@
-import { REST } from 'core/api';
-import { ISnapshot } from 'core/domain';
+import { REST } from '../api';
+import { ISnapshot } from '../domain';
 
 export class SnapshotReader {
   public static getSnapshotHistory(application: string, account: string, params = {}): PromiseLike<ISnapshot[]> {

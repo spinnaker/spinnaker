@@ -1,7 +1,7 @@
 import { IController, module } from 'angular';
-import { TaskReader } from 'core';
 
 import { Application } from '../../application.model';
+import { TaskReader } from '../../../index';
 import { ApplicationReader } from '../../service/ApplicationReader';
 import { ApplicationWriter } from '../../service/ApplicationWriter';
 import { ApplicationDataSource } from '../../service/applicationDataSource';

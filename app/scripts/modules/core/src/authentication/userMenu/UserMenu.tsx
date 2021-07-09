@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { Dropdown } from 'react-bootstrap';
-import { SETTINGS } from 'core/config/settings';
 
 import { AuthenticationInitializer } from '../AuthenticationInitializer';
 import { AuthenticationService } from '../AuthenticationService';
+import { SETTINGS } from '../../config/settings';
 
 import './userMenu.less';
 

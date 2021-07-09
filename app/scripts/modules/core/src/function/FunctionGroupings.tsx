@@ -1,9 +1,8 @@
-import { Application } from 'core';
 import React from 'react';
 
-import { IFunctionGroup } from 'core/domain';
-
 import { FunctionPod } from './FunctionPod';
+import { IFunctionGroup } from '../domain';
+import { Application } from '../index';
 
 export interface IFunctionGroupingsProps {
   app: Application;

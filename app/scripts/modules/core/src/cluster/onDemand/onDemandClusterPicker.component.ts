@@ -1,7 +1,7 @@
 import { IComponentOptions, IController, IScope, module } from 'angular';
-import { Application } from 'core/application/application.model';
-import { IClusterSummary } from 'core/domain/ICluster';
-import { ClusterState } from 'core/state';
+import { Application } from '../../application/application.model';
+import { IClusterSummary } from '../../domain/ICluster';
+import { ClusterState } from '../../state';
 
 import './onDemandClusterPicker.component.less';
 

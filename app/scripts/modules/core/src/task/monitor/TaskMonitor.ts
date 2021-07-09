@@ -3,8 +3,8 @@ import { IModalServiceInstance } from 'angular-ui-bootstrap';
 import { $q, $timeout } from 'ngimport';
 import { Subject } from 'rxjs';
 
-import { Application } from 'core/application/application.model';
-import { ITask } from 'core/domain';
+import { Application } from '../../application/application.model';
+import { ITask } from '../../domain';
 
 import { TaskReader } from '../task.read.service';
 

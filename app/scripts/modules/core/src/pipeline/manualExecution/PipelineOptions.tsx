@@ -5,10 +5,9 @@ import { Option } from 'react-select';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import { IParameter, IPipeline, IPipelineCommand, ITrigger } from 'core/domain';
-import { FormField, TetheredSelect } from 'core/presentation';
-
 import { IPipelineTemplateConfig, PipelineTemplateReader, PipelineTemplateV2Service } from '../config/templates';
+import { IParameter, IPipeline, IPipelineCommand, ITrigger } from '../../domain';
+import { FormField, TetheredSelect } from '../../presentation';
 
 export interface IPipelineOptionsProps {
   formatParameterConfig: (p: IParameter[]) => { [key: string]: any };

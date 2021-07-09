@@ -1,16 +1,15 @@
 import React from 'react';
 
-import { Icon, useApplicationContextSafe } from 'core/presentation';
-import { Spinner } from 'core/widgets';
-
 import { ResourceTask } from './ResourceTask';
 import { EnvironmentItem } from '../environmentBaseElements/EnvironmentItem';
 import { MdResourceActuationState, useFetchResourceStatusQuery } from '../graphql/graphql-sdk';
+import { Icon, useApplicationContextSafe } from '../../presentation';
 import { showManagedResourceHistoryModal } from '../resourceHistory/ManagedResourceHistoryModal';
 import { ResourceTitle } from '../resources/ResourceTitle';
 import { IResourceLinkProps, resourceManager } from '../resources/resourceRegistry';
 import { QueryResource } from './types';
 import { useLogEvent } from '../utils/logging';
+import { Spinner } from '../../widgets';
 
 import './Resource.less';
 

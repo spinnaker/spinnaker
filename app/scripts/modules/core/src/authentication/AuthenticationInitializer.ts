@@ -2,11 +2,10 @@ import { IHttpPromiseCallbackArg } from 'angular';
 import { $http, $location, $rootScope } from 'ngimport';
 import { fromEvent as observableFromEvent, Subscription } from 'rxjs';
 
-import { SETTINGS } from 'core/config/settings';
-import { ModalInjector } from 'core/reactShims/modal.injector';
-
 import { AuthenticationService } from './AuthenticationService';
 import { LoggedOutModal } from './LoggedOutModal';
+import { SETTINGS } from '../config/settings';
+import { ModalInjector } from '../reactShims/modal.injector';
 
 interface IAuthResponse {
   username: string;

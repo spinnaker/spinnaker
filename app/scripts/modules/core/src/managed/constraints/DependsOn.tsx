@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { IConstraint, IDependsOnConstraint } from 'core/domain';
+import { IConstraint, IDependsOnConstraint } from '../../domain';
 
 export const isDependsOnConstraint = (constraint: IConstraint): constraint is IDependsOnConstraint => {
   return constraint.type === 'depends-on';

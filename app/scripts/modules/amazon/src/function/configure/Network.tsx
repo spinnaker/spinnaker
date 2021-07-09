@@ -20,8 +20,8 @@ import {
   SubnetReader,
   TetheredSelect,
 } from '@spinnaker/core';
-import { IAmazonFunctionUpsertCommand } from 'amazon/index';
-import { VpcReader } from 'amazon/vpc';
+import { IAmazonFunctionUpsertCommand } from '../../index';
+import { VpcReader } from '../../vpc';
 
 export interface ISubnetOption {
   subnetId: string;

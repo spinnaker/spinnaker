@@ -1,9 +1,8 @@
 import { module } from 'angular';
 
-import { Registry } from 'core/registry';
-
 import { ScaleDownClusterExecutionDetails } from './ScaleDownClusterExecutionDetails';
 import { ExecutionDetailsTasks } from '../common/ExecutionDetailsTasks';
+import { Registry } from '../../../../registry';
 
 export const SCALE_DOWN_CLUSTER_STAGE = 'spinnaker.core.pipeline.stage.scaleDownClusterStage';
 module(SCALE_DOWN_CLUSTER_STAGE, []).config(() => {

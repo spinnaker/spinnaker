@@ -4,14 +4,13 @@ import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import _ from 'lodash';
 import { Duration } from 'luxon';
 
-import { CloudProviderRegistry } from 'core/cloudProvider';
-import { HelpContentsRegistry } from 'core/help';
-import { NameUtils } from 'core/naming';
-import { UrlBuilder } from 'core/navigation';
-import { ServerGroupReader } from 'core/serverGroup/serverGroupReader.service';
-import { ClusterState } from 'core/state';
-
+import { CloudProviderRegistry } from '../../../../cloudProvider';
 import { EXECUTION_DETAILS_SECTION_SERVICE } from '../../../details/executionDetailsSection.service';
+import { HelpContentsRegistry } from '../../../../help';
+import { NameUtils } from '../../../../naming';
+import { UrlBuilder } from '../../../../navigation';
+import { ServerGroupReader } from '../../../../serverGroup/serverGroupReader.service';
+import { ClusterState } from '../../../../state';
 
 const angular = require('angular');
 

@@ -1,7 +1,8 @@
 import * as React from 'react';
-import { IServerGroup } from 'core/domain';
-import { showModal } from 'core/presentation';
+
 import { ScalingActivitiesModal } from './ScalingActivitiesModal';
+import { IServerGroup } from '../../../domain';
+import { showModal } from '../../../presentation';
 
 export interface IViewScalingActivitiesLinkProps {
   serverGroup: IServerGroup;

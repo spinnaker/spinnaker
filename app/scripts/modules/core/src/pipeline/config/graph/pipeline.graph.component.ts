@@ -1,9 +1,8 @@
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
 
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
-
 import { PipelineGraph } from './PipelineGraph';
+import { withErrorBoundary } from '../../../presentation/SpinErrorBoundary';
 
 export const PIPELINE_GRAPH_COMPONENT = 'spinnaker.core.pipeline.config.graph.component';
 module(PIPELINE_GRAPH_COMPONENT, []).component(

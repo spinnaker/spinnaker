@@ -14,7 +14,7 @@ import {
   SearchTableBody,
   SearchTableHeader,
   SearchTableRow,
-} from 'core/search';
+} from '../search';
 
 export interface ILoadBalancerSearchResult extends ISearchResult {
   account: string;

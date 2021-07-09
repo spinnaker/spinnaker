@@ -1,10 +1,9 @@
-import { IMoniker } from 'core/naming';
-
 import { IInstance } from './IInstance';
 import { IInstanceCounts } from './IInstanceCounts';
 import { IManagedResource } from './IManagedEntity';
 import { IServerGroup } from './IServerGroup';
 import { ITaggedEntity } from './ITaggedEntity';
+import { IMoniker } from '../naming';
 
 export interface ILoadBalancerSourceData {
   cloudProvider?: string;

@@ -1,8 +1,7 @@
 import { cloneDeep, forOwn, includes, isNil, pick, reduce, size, some } from 'lodash';
 
-import { ReactInjector } from 'core/reactShims';
-
 import { IFilterConfig, IFilterModel, ITrueKeyModel } from './IFilterModel';
+import { ReactInjector } from '../reactShims';
 
 export class FilterModelService {
   public static configureFilterModel(filterModel: IFilterModel, filterModelConfig: IFilterConfig[]) {

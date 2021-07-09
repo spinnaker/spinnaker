@@ -1,5 +1,5 @@
-import { ReactInjector } from 'core/reactShims';
-import * as State from 'core/state';
+import { ReactInjector } from '../../reactShims';
+import * as State from '../../state';
 const { ClusterState } = State;
 
 import { MultiselectModel } from './MultiselectModel';

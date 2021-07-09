@@ -9,7 +9,7 @@ import {
   ILoadBalancerUpsertCommand,
   IServerGroup,
 } from '@spinnaker/core';
-import { IAppengineLoadBalancer, IAppengineTrafficSplit, ShardBy } from 'appengine/domain/index';
+import { IAppengineLoadBalancer, IAppengineTrafficSplit, ShardBy } from '../domain/index';
 
 export interface IAppengineAllocationDescription {
   serverGroupName?: string;

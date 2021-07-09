@@ -5,15 +5,14 @@ import { Option } from 'react-select';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import { BuildServiceType, IgorService } from 'core/ci';
-import { IBuild, IBuildInfo, IBuildTrigger, IPipelineCommand } from 'core/domain';
-import { TextInput } from 'core/presentation';
-import { TetheredSelect } from 'core/presentation/TetheredSelect';
-import { timestamp } from 'core/utils/timeFormatters';
-import { Spinner } from 'core/widgets/spinners/Spinner';
-
+import { BuildServiceType, IgorService } from '../../../../ci';
+import { IBuild, IBuildInfo, IBuildTrigger, IPipelineCommand } from '../../../../domain';
 import { buildDisplayName } from '../../../executionBuild/buildDisplayName.filter';
 import { ITriggerTemplateComponentProps } from '../../../manualExecution/TriggerTemplate';
+import { TextInput } from '../../../../presentation';
+import { TetheredSelect } from '../../../../presentation/TetheredSelect';
+import { timestamp } from '../../../../utils/timeFormatters';
+import { Spinner } from '../../../../widgets/spinners/Spinner';
 
 export interface IBaseBuildTriggerTemplateProps extends ITriggerTemplateComponentProps {
   buildTriggerType: BuildServiceType;

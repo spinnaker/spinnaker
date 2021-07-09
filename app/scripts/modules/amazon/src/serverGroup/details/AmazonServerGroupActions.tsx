@@ -16,11 +16,11 @@ import {
   ServerGroupWarningMessageService,
   SETTINGS,
 } from '@spinnaker/core';
-import { IAmazonServerGroup, IAmazonServerGroupView } from 'amazon/domain';
-import { AwsReactInjector } from 'amazon/reactShims';
 
 import { IAmazonServerGroupCommand } from '../configure';
 import { AmazonCloneServerGroupModal } from '../configure/wizard/AmazonCloneServerGroupModal';
+import { IAmazonServerGroup, IAmazonServerGroupView } from '../../domain';
+import { AwsReactInjector } from '../../reactShims';
 import {
   AmazonResizeServerGroupModal,
   IAmazonResizeServerGroupModalProps,

@@ -3,12 +3,11 @@
 import { module } from 'angular';
 import { pickBy } from 'lodash';
 
-import { ApplicationReader } from 'core/application/service/ApplicationReader';
-import { Registry } from 'core/registry';
-
 import { PipelineParametersExecutionDetails } from './PipelineParametersExecutionDetails';
 import { PipelineStageExecutionDetails } from './PipelineStageExecutionDetails';
+import { ApplicationReader } from '../../../../application/service/ApplicationReader';
 import { ExecutionDetailsTasks } from '../common';
+import { Registry } from '../../../../registry';
 import { PipelineConfigService } from '../../services/PipelineConfigService';
 import { PipelineTemplateReader, PipelineTemplateV2Service } from '../../templates';
 

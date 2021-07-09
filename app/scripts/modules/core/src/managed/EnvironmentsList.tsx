@@ -1,9 +1,8 @@
 import { pickBy, values } from 'lodash';
 import React from 'react';
 
-import { Application } from 'core/application';
-
 import { ManagedResourceObject } from './ManagedResourceObject';
+import { Application } from '../application';
 import { IManagedArtifactSummary, IManagedEnvironmentSummary, IManagedResourceSummary } from '../domain';
 import { EnvironmentRow } from './environment/EnvironmentRow';
 import { resourceManager } from './resources/resourceRegistry';

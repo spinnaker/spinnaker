@@ -1,3 +1,8 @@
+import { get } from 'lodash';
+import React from 'react';
+
+import { AwsCodeBuildSecondarySourcesVersionList, AwsCodeBuildSourceList } from './AwsCodeBuildSourceList';
+import { EXCLUDED_ARTIFACT_TYPES, IAwsCodeBuildSource, SOURCE_TYPES } from './IAwsCodeBuildSource';
 import {
   FormikFormField,
   HelpField,
@@ -12,14 +17,8 @@ import {
   TextInput,
   useData,
   YamlEditor,
-} from 'core';
-import { get } from 'lodash';
-import React from 'react';
-
-import { CheckboxInput } from 'core/presentation';
-
-import { AwsCodeBuildSecondarySourcesVersionList, AwsCodeBuildSourceList } from './AwsCodeBuildSourceList';
-import { EXCLUDED_ARTIFACT_TYPES, IAwsCodeBuildSource, SOURCE_TYPES } from './IAwsCodeBuildSource';
+} from '../../../../index';
+import { CheckboxInput } from '../../../../presentation';
 
 export function AwsCodeBuildStageForm(props: IFormikStageConfigInjectedProps) {
   const stage = props.formik.values;

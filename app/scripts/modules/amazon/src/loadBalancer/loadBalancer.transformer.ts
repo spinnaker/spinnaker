@@ -11,7 +11,7 @@ import {
   NameUtils,
   SETTINGS,
 } from '@spinnaker/core';
-import { AWSProviderSettings } from 'amazon/aws.settings';
+import { AWSProviderSettings } from '../aws.settings';
 import {
   IALBListenerCertificate,
   IAmazonApplicationLoadBalancer,
@@ -26,8 +26,8 @@ import {
   IClassicLoadBalancerSourceData,
   INetworkLoadBalancerSourceData,
   ITargetGroup,
-} from 'amazon/domain';
-import { VpcReader } from 'amazon/vpc/VpcReader';
+} from '../domain';
+import { VpcReader } from '../vpc/VpcReader';
 
 export class AwsLoadBalancerTransformer {
   private updateHealthCounts(container: IServerGroup | ITargetGroup | IAmazonLoadBalancer): void {

@@ -1,12 +1,11 @@
 import React from 'react';
 
-import { Application } from 'core/application';
-import { IExecution, IExecutionDetailsSection, IExecutionStage, IStageTypeConfig } from 'core/domain';
-import { robotToHuman } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';
-import { NgReact } from 'core/reactShims';
-import { StatusGlyph } from 'core/task/StatusGlyph';
-
+import { Application } from '../../application';
 import { StepExecutionDetails } from '../config/stages/common/StepExecutionDetails';
+import { IExecution, IExecutionDetailsSection, IExecutionStage, IStageTypeConfig } from '../../domain';
+import { robotToHuman } from '../../presentation/robotToHumanFilter/robotToHuman.filter';
+import { NgReact } from '../../reactShims';
+import { StatusGlyph } from '../../task/StatusGlyph';
 
 export interface IStepDetailsProps {
   application: Application;

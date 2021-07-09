@@ -1,4 +1,4 @@
-import { mockHttpClient } from 'core/api/mock/jasmine';
+import { mockHttpClient } from '../api/mock/jasmine';
 import { mock } from 'angular';
 import { IPagerDutyService, PagerDutyReader } from './pagerDuty.read.service';
 

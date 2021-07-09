@@ -3,12 +3,11 @@ import { $q } from 'ngimport';
 import React from 'react';
 import { Option } from 'react-select';
 
-import { ReactSelectInput } from 'core/presentation/forms/inputs/ReactSelectInput';
-import { SelectInput } from 'core/presentation/forms/inputs/SelectInput';
-import { createFakeReactSyntheticEvent } from 'core/presentation/forms/inputs/utils';
-
 import { AccountService, IAccount } from './AccountService';
 import { IFormInputProps } from '../presentation/forms/inputs';
+import { ReactSelectInput } from '../presentation/forms/inputs/ReactSelectInput';
+import { SelectInput } from '../presentation/forms/inputs/SelectInput';
+import { createFakeReactSyntheticEvent } from '../presentation/forms/inputs/utils';
 
 export interface IAccountSelectInputProps extends IFormInputProps {
   accounts: IAccount[] | string[];

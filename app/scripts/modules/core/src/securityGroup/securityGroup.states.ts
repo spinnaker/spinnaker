@@ -1,19 +1,19 @@
 import { StateParams } from '@uirouter/angularjs';
 import { module } from 'angular';
+
+import { SecurityGroupDetails } from './SecurityGroupDetails';
+import { SecurityGroups } from './SecurityGroups';
 import {
   Application,
   APPLICATION_STATE_PROVIDER,
   ApplicationModelBuilder,
   ApplicationStateProvider,
-} from 'core/application';
-import { CloudProviderRegistry } from 'core/cloudProvider';
-import { INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider } from 'core/navigation';
-
-import { SecurityGroupDetails } from './SecurityGroupDetails';
-import { SecurityGroups } from './SecurityGroups';
+} from '../application';
+import { CloudProviderRegistry } from '../cloudProvider';
 import { filterModelConfig } from './filter/SecurityGroupFilterModel';
 import { SecurityGroupFilters } from './filter/SecurityGroupFilters';
 import { FirewallLabels } from './label';
+import { INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider } from '../navigation';
 import { SecurityGroupReader } from './securityGroupReader.service';
 
 export const SECURITY_GROUP_STATES = 'spinnaker.core.securityGroup.states';

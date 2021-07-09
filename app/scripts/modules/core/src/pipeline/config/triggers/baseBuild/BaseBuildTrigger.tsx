@@ -1,13 +1,12 @@
 import { FormikProps } from 'formik';
 import React from 'react';
 
-import { BuildServiceType, IgorService } from 'core/ci/igor.service';
-import { IBuildTrigger } from 'core/domain';
-import { HelpField } from 'core/help';
-import { FormikFormField, TextInput, useLatestPromise } from 'core/presentation';
-import { MapEditorInput } from 'core/forms';
-
 import { RefreshableReactSelectInput } from '../RefreshableReactSelectInput';
+import { BuildServiceType, IgorService } from '../../../../ci/igor.service';
+import { IBuildTrigger } from '../../../../domain';
+import { HelpField } from '../../../../help';
+import { FormikFormField, TextInput, useLatestPromise } from '../../../../presentation';
+import { MapEditorInput } from '../../../../forms';
 
 export interface IBaseBuildTriggerConfigProps {
   formik: FormikProps<IBuildTrigger>;

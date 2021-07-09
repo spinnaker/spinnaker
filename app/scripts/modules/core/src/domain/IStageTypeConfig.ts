@@ -1,9 +1,8 @@
-import { IExecutionDetailsSectionProps } from 'core/pipeline/config/stages/common';
-import { IStageSummaryProps } from 'core/pipeline/details/StageSummary';
-
 import { IExecutionContext, IExecutionStageLabelProps, IExecutionStageSummary } from './IExecutionStage';
 import { IStage } from './IStage';
 import { IStageOrTriggerTypeConfig } from './IStageOrTriggerTypeConfig';
+import { IExecutionDetailsSectionProps } from '../pipeline/config/stages/common';
+import { IStageSummaryProps } from '../pipeline/details/StageSummary';
 
 export type IExecutionDetailsSection = React.ComponentType<IExecutionDetailsSectionProps> & { title: string };
 

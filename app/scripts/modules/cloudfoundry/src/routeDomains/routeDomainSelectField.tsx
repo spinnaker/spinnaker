@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { ICloudFoundryDomain } from 'cloudfoundry/domain';
+import { ICloudFoundryDomain } from '../domain';
 
 export interface IRouteDomainSelectFieldProps {
   account: string;

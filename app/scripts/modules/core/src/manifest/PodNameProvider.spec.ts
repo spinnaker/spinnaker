@@ -1,5 +1,5 @@
 import { DefaultPodNameProvider, JobEventBasedPodNameProvider } from './PodNameProvider';
-import { IManifest, IManifestEvent } from 'core/domain';
+import { IManifest, IManifestEvent } from '../domain';
 
 describe('PodNameProvider', function () {
   describe('DefaultPodNameProvider', function () {

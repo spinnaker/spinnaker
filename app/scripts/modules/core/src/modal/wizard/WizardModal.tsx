@@ -3,15 +3,14 @@ import { merge, without } from 'lodash';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 
-import { SpinFormik } from 'core/presentation';
-import { TaskMonitor, TaskMonitorWrapper } from 'core/task';
-import { Spinner } from 'core/widgets';
-
 import { WizardPage } from './WizardPage';
 import { WizardStepLabel } from './WizardStepLabel';
 import { ModalClose } from '../buttons/ModalClose';
 import { SubmitButton } from '../buttons/SubmitButton';
+import { SpinFormik } from '../../presentation';
 import { IModalComponentProps } from '../../presentation';
+import { TaskMonitor, TaskMonitorWrapper } from '../../task';
+import { Spinner } from '../../widgets';
 
 export interface IWizardPageInjectedProps<T> {
   formik: FormikProps<T>;

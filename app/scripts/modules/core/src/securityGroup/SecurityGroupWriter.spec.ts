@@ -1,5 +1,5 @@
 import { SecurityGroupWriter } from './SecurityGroupWriter';
-import { TaskExecutor } from 'core/task';
+import { TaskExecutor } from '../task';
 
 describe('SecurityGroupWriter', () => {
   it('copies the security group name on upsert', () => {

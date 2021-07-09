@@ -1,10 +1,9 @@
 import React from 'react';
 import { arrayMove, SortableContainer, SortableContainerProps, SortableElement, SortEnd } from 'react-sortable-hoc';
 
-import { IParameter } from 'core/domain';
-import { HelpField } from 'core/help';
-
 import { IParameterProps, Parameter } from './Parameter';
+import { IParameter } from '../../../domain';
+import { HelpField } from '../../../help';
 
 export interface IParametersState {
   allParametersPinned: boolean;

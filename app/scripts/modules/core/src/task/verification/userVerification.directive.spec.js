@@ -1,6 +1,6 @@
 'use strict';
 
-import { AccountService } from 'core/account/AccountService';
+import { AccountService } from '../../account/AccountService';
 
 describe('Controller: UserVerification', function () {
   var controller, $scope, $q;

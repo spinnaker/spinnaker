@@ -1,10 +1,9 @@
 import { get, isBoolean, isString } from 'lodash';
 import React from 'react';
 
-import { robotToHuman } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';
-
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
 import { StageFailureMessage } from '../../../details';
+import { robotToHuman } from '../../../../presentation/robotToHumanFilter/robotToHuman.filter';
 
 export function CheckPreconditionsExecutionDetails(props: IExecutionDetailsSectionProps) {
   const context = get(props.stage, 'context.context', {} as any);

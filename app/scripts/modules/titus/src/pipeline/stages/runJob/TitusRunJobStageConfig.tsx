@@ -17,10 +17,10 @@ import {
   StageConfigField,
 } from '@spinnaker/core';
 import { DockerImageAndTagSelector, DockerImageUtils, IDockerImageAndTagChanges } from '@spinnaker/docker';
-import { IJobDisruptionBudget, ITitusResources } from 'titus/domain';
-import { IPv6CheckboxInput, JobDisruptionBudget } from 'titus/serverGroup/configure/wizard/pages';
 
 import { TitusSecurityGroupPicker } from './TitusSecurityGroupPicker';
+import { IJobDisruptionBudget, ITitusResources } from '../../../domain';
+import { IPv6CheckboxInput, JobDisruptionBudget } from '../../../serverGroup/configure/wizard/pages';
 import { TitusProviderSettings } from '../../../titus.settings';
 
 export interface ITitusRunJobStageConfigState {

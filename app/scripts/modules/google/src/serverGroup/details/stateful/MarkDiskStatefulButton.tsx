@@ -1,9 +1,9 @@
 import React from 'react';
 
 import { Application, ConfirmationModalService } from '@spinnaker/core';
-import { IGceServerGroup } from 'google/domain';
 
 import { StatefulMIGService } from './StatefulMIGService';
+import { IGceServerGroup } from '../../../domain';
 
 interface IMarkDiskStatefulButtonProps {
   application: Application;

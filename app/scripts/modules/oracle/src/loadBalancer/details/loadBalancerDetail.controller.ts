@@ -12,9 +12,9 @@ import {
   LoadBalancerWriter,
   SecurityGroupReader,
 } from '@spinnaker/core';
-import { ILoadBalancerDetails, IOracleLoadBalancer } from 'oracle/domain/IOracleLoadBalancer';
 
 import { OracleLoadBalancerController } from '../configure/createLoadBalancer.controller';
+import { ILoadBalancerDetails, IOracleLoadBalancer } from '../../domain/IOracleLoadBalancer';
 
 export class OracleLoadBalancerDetailController implements IController {
   public static $inject = [

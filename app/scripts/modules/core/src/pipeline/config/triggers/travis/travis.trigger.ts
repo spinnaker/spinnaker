@@ -1,8 +1,7 @@
-import { ArtifactTypePatterns } from 'core/artifact';
-import { Registry } from 'core/registry';
-
 import { TravisTrigger } from './TravisTrigger';
 import { TravisTriggerTemplate } from './TravisTriggerTemplate';
+import { ArtifactTypePatterns } from '../../../../artifact';
+import { Registry } from '../../../../registry';
 
 Registry.pipeline.registerTrigger({
   component: TravisTrigger,

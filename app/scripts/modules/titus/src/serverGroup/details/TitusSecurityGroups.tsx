@@ -11,8 +11,8 @@ import {
   ISecurityGroup,
   ReactInjector,
 } from '@spinnaker/core';
-import { ITitusServerGroupView } from 'titus/domain';
-import { TitusReactInjector } from 'titus/reactShims';
+import { ITitusServerGroupView } from '../../domain';
+import { TitusReactInjector } from '../../reactShims';
 
 export interface ITitusServerGroupDetailsSectionProps {
   app: Application;

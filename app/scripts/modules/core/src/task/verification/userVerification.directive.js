@@ -2,7 +2,7 @@
 
 import { module } from 'angular';
 
-import { AccountService } from 'core/account/AccountService';
+import { AccountService } from '../../account/AccountService';
 
 import './userVerification.directive.less';
 

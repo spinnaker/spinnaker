@@ -2,11 +2,10 @@ import { module } from 'angular';
 import React from 'react';
 import { react2angular } from 'react2angular';
 
-import { Application } from 'core/application';
-import { IEntityTag, IEntityTags } from 'core/domain';
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
-
 import { NotificationsPopover } from './NotificationsPopover';
+import { Application } from '../../application';
+import { IEntityTag, IEntityTags } from '../../domain';
+import { withErrorBoundary } from '../../presentation/SpinErrorBoundary';
 
 export interface IDataSourceNotificationsProps {
   tags: IEntityTags[];

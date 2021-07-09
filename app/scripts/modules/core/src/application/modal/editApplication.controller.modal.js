@@ -3,12 +3,11 @@
 import * as angular from 'angular';
 import _ from 'lodash';
 
-import { AccountService } from 'core/account/AccountService';
-import { SETTINGS } from 'core/config/settings';
-import { TaskReader } from 'core/task/task.read.service';
-
+import { AccountService } from '../../account/AccountService';
 import { CORE_APPLICATION_MODAL_APPLICATIONPROVIDERFIELDS_COMPONENT } from './applicationProviderFields.component';
+import { SETTINGS } from '../../config/settings';
 import { ApplicationWriter } from '../service/ApplicationWriter';
+import { TaskReader } from '../../task/task.read.service';
 
 export const CORE_APPLICATION_MODAL_EDITAPPLICATION_CONTROLLER_MODAL = 'spinnaker.editApplication.modal.controller';
 export const name = CORE_APPLICATION_MODAL_EDITAPPLICATION_CONTROLLER_MODAL; // for backwards compatibility

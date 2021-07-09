@@ -3,16 +3,15 @@ import React from 'react';
 import { empty as observableEmpty, Observable, Subject } from 'rxjs';
 import { distinctUntilChanged, map, scan, switchMap, takeUntil, tap } from 'rxjs/operators';
 
-import { InsightMenu } from 'core/insight/InsightMenu';
-import { IQueryParams } from 'core/navigation';
-import { ReactInjector } from 'core/reactShims';
-import { ITag } from 'core/widgets';
-
 import { RecentlyViewedItems } from '../infrastructure/RecentlyViewedItems';
 import { SearchResultPods } from '../infrastructure/SearchResultPods';
 import { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
 import { InfrastructureSearchServiceV2 } from '../infrastructure/infrastructureSearchV2.service';
+import { InsightMenu } from '../../insight/InsightMenu';
+import { IQueryParams } from '../../navigation';
+import { ReactInjector } from '../../reactShims';
 import { SearchResults, searchResultTypeRegistry, SearchStatus } from '../searchResult';
+import { ITag } from '../../widgets';
 import { Search } from '../widgets';
 
 // These state parameters are passed through to Gate's search API

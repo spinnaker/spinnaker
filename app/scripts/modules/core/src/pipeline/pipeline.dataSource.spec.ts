@@ -1,10 +1,10 @@
 import { IQProvider, mock } from 'angular';
 
-import { Application } from 'core/application/application.model';
-import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
+import { Application } from '../application/application.model';
+import { ApplicationModelBuilder } from '../application/applicationModel.builder';
 import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
 import { EXECUTION_SERVICE } from './service/execution.service';
-import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
+import { PipelineConfigService } from './config/services/PipelineConfigService';
 
 describe('Pipeline Data Source', function () {
   let application: Application, executionService: any, $scope: ng.IScope, $q: ng.IQService;

@@ -1,10 +1,10 @@
 import { module } from 'angular';
 
 import { Registry } from '@spinnaker/core';
-import { AppengineHealth } from 'appengine/common/appengineHealth';
-import { IAppengineStageScope } from 'appengine/domain';
 
 import { AppengineStageCtrl } from '../appengineStage.controller';
+import { AppengineHealth } from '../../../common/appengineHealth';
+import { IAppengineStageScope } from '../../../domain';
 
 class AppengineStartServerGroupStageCtrl extends AppengineStageCtrl {
   public static $inject = ['$scope'];

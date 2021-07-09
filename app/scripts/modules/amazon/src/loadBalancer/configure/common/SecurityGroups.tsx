@@ -14,8 +14,8 @@ import {
   Spinner,
   timestamp,
 } from '@spinnaker/core';
-import { AWSProviderSettings } from 'amazon/aws.settings';
-import { IAmazonLoadBalancerUpsertCommand } from 'amazon/domain';
+import { AWSProviderSettings } from '../../../aws.settings';
+import { IAmazonLoadBalancerUpsertCommand } from '../../../domain';
 
 export interface ISecurityGroupsProps {
   formik: FormikProps<IAmazonLoadBalancerUpsertCommand>;

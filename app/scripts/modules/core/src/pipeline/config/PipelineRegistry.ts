@@ -1,10 +1,10 @@
 import { cloneDeep, fromPairs, intersection, isNil, memoize, uniq } from 'lodash';
 import { ComponentType, SFC } from 'react';
 
-import { IAccountDetails } from 'core/account/AccountService';
-import { Application } from 'core/application/application.model';
-import { CloudProviderRegistry, ICloudProviderConfig } from 'core/cloudProvider';
-import { SETTINGS } from 'core/config/settings';
+import { IAccountDetails } from '../../account/AccountService';
+import { Application } from '../../application/application.model';
+import { CloudProviderRegistry, ICloudProviderConfig } from '../../cloudProvider';
+import { SETTINGS } from '../../config/settings';
 import {
   IArtifactEditorProps,
   IArtifactKindConfig,
@@ -14,7 +14,7 @@ import {
   IStageOrTriggerTypeConfig,
   IStageTypeConfig,
   ITriggerTypeConfig,
-} from 'core/domain';
+} from '../../domain';
 
 import { ITriggerTemplateComponentProps } from '../manualExecution/TriggerTemplate';
 import { PreconfiguredJobReader } from './stages/preconfiguredJob';

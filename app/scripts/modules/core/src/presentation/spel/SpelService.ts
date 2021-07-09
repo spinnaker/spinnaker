@@ -1,6 +1,6 @@
 import { isString } from 'lodash';
 
-import { REST } from 'core/api';
+import { REST } from '../../api';
 
 import { parseSpelExpressions } from '../forms/inputs/expression';
 

@@ -3,11 +3,6 @@
   "compilerOptions": {
     "baseUrl": "../../../../",
     "outDir": "dist",
-    "paths": {
-      "core/*": ["app/scripts/modules/core/dist/*"],
-      "titus": ["app/scripts/modules/titus/src"],
-      "titus/*": ["app/scripts/modules/titus/src/*"]
-    },
     "rootDir": "./src"
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],

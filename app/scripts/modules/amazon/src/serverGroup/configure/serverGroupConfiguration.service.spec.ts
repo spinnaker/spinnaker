@@ -9,7 +9,7 @@ import {
   SubnetReader,
 } from '@spinnaker/core';
 
-import { KeyPairsReader } from 'amazon/keyPairs';
+import { KeyPairsReader } from '../../keyPairs';
 import {
   AWS_SERVER_GROUP_CONFIGURATION_SERVICE,
   AwsServerGroupConfigurationService,

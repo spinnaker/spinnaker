@@ -12,9 +12,6 @@ import {
   LoadBalancerWriter,
   TaskMonitor,
 } from '@spinnaker/core';
-import { GOOGLE_COMMON_XPNNAMING_GCE_SERVICE } from 'google/common/xpnNaming.gce.service';
-import { IGceBackendService, IGceHealthCheck, IGceLoadBalancer, IGceNetwork, IGceSubnet } from 'google/domain/index';
-import { GCEProviderSettings } from 'google/gce.settings';
 
 import { CommonGceLoadBalancerCtrl } from '../common/commonLoadBalancer.controller';
 import {
@@ -22,6 +19,9 @@ import {
   GceCommonLoadBalancerCommandBuilder,
 } from '../common/commonLoadBalancerCommandBuilder.service';
 import { GCE_HEALTH_CHECK_SELECTOR_COMPONENT } from '../common/healthCheck.component';
+import { GOOGLE_COMMON_XPNNAMING_GCE_SERVICE } from '../../../common/xpnNaming.gce.service';
+import { IGceBackendService, IGceHealthCheck, IGceLoadBalancer, IGceNetwork, IGceSubnet } from '../../../domain/index';
+import { GCEProviderSettings } from '../../../gce.settings';
 
 class ViewState {
   constructor(public sessionAffinity: string) {}

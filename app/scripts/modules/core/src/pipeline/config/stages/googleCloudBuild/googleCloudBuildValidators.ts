@@ -1,5 +1,5 @@
-import { FormValidator, IContextualValidator, IStage } from 'core';
 import { BuildDefinitionSource } from './IGoogleCloudBuildStage';
+import { FormValidator, IContextualValidator, IStage } from '../../../../index';
 
 export const validate: IContextualValidator = (stage: IStage) => {
   const formValidator = new FormValidator(stage);

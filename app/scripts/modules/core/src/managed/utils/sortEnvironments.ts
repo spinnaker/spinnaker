@@ -1,5 +1,5 @@
-import { IManagedApplicationEnvironmentSummary, IManagedArtifactVersionEnvironment } from 'core/domain';
 import { isDependsOnConstraint } from '../constraints/DependsOn';
+import { IManagedApplicationEnvironmentSummary, IManagedArtifactVersionEnvironment } from '../../domain';
 
 const isEnvDependsOn = (
   env: IManagedArtifactVersionEnvironment,

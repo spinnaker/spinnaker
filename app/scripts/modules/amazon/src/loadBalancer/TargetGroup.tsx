@@ -3,7 +3,7 @@ import { orderBy } from 'lodash';
 import React from 'react';
 
 import { HealthCounts, LoadBalancerInstances, LoadBalancerServerGroup } from '@spinnaker/core';
-import { IAmazonApplicationLoadBalancer, ITargetGroup } from 'amazon/domain/IAmazonLoadBalancer';
+import { IAmazonApplicationLoadBalancer, ITargetGroup } from '../domain/IAmazonLoadBalancer';
 
 import './targetGroup.less';
 

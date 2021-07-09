@@ -6,12 +6,11 @@ import { Dropdown, MenuItem } from 'react-bootstrap';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import { IProject } from 'core/domain';
-import { Overridable } from 'core/overrideRegistry';
-import { SpanDropdownTrigger } from 'core/presentation';
-import { ReactInjector } from 'core/reactShims';
-
 import { ConfigureProjectModal } from './configure/ConfigureProjectModal';
+import { IProject } from '../domain';
+import { Overridable } from '../overrideRegistry';
+import { SpanDropdownTrigger } from '../presentation';
+import { ReactInjector } from '../reactShims';
 
 import './project.less';
 

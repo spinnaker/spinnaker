@@ -2,10 +2,12 @@ import { Form } from 'formik';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 
-import { Application } from 'core/application';
-import { IEntityRef, IEntityTag } from 'core/domain';
-import { HelpField } from 'core/help';
-import { ModalClose, SubmitButton } from 'core/modal';
+import { Application } from '../application';
+import { IEntityRef, IEntityTag } from '../domain';
+import { EntityRefBuilder } from './entityRef.builder';
+import { EntityTagWriter } from './entityTags.write.service';
+import { HelpField } from '../help';
+import { ModalClose, SubmitButton } from '../modal';
 import {
   FormField,
   FormikFormField,
@@ -14,12 +16,9 @@ import {
   ReactModal,
   SpinFormik,
   TextAreaInput,
-} from 'core/presentation';
-import { TaskMonitor, TaskMonitorWrapper } from 'core/task';
-import { noop, UUIDGenerator } from 'core/utils';
-
-import { EntityRefBuilder } from './entityRef.builder';
-import { EntityTagWriter } from './entityTags.write.service';
+} from '../presentation';
+import { TaskMonitor, TaskMonitorWrapper } from '../task';
+import { noop, UUIDGenerator } from '../utils';
 
 import './EntityTagEditor.less';
 

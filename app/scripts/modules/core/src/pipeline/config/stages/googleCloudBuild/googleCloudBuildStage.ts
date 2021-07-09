@@ -1,14 +1,13 @@
+import { GoogleCloudBuildExecutionDetails } from './GoogleCloudBuildExecutionDetails';
+import { GoogleCloudBuildStageConfig } from './GoogleCloudBuildStageConfig';
+import { validate } from './googleCloudBuildValidators';
 import {
   ArtifactReferenceService,
   ExecutionArtifactTab,
   ExecutionDetailsTasks,
   ExpectedArtifactService,
   Registry,
-} from 'core';
-
-import { GoogleCloudBuildExecutionDetails } from './GoogleCloudBuildExecutionDetails';
-import { GoogleCloudBuildStageConfig } from './GoogleCloudBuildStageConfig';
-import { validate } from './googleCloudBuildValidators';
+} from '../../../../index';
 
 Registry.pipeline.registerStage({
   label: 'Google Cloud Build',

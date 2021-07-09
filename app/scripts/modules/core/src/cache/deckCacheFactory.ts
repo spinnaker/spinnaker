@@ -1,7 +1,7 @@
 import { Cache, CacheFactory, CacheOptions, ItemInfo } from 'cachefactory';
 import { Duration } from 'luxon';
 
-import { SETTINGS } from 'core/config/settings';
+import { SETTINGS } from '../config/settings';
 
 export interface ILocalStorage {
   getItem: (key: string) => void;

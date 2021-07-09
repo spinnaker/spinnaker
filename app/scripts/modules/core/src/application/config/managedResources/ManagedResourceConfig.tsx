@@ -3,13 +3,12 @@ import classNames from 'classnames';
 import React from 'react';
 import { react2angular } from 'react2angular';
 
-import { ManagedWriter } from 'core/managed';
-import { useLatestCallback, ValidationMessage } from 'core/presentation';
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
-import { logger } from 'core/utils';
-import { Spinner } from 'core/widgets/spinners/Spinner';
-
 import { Application } from '../../application.model';
+import { ManagedWriter } from '../../../managed';
+import { useLatestCallback, ValidationMessage } from '../../../presentation';
+import { withErrorBoundary } from '../../../presentation/SpinErrorBoundary';
+import { logger } from '../../../utils';
+import { Spinner } from '../../../widgets/spinners/Spinner';
 
 import './ManagedResourceConfig.less';
 

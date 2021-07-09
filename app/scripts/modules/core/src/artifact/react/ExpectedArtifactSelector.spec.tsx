@@ -1,8 +1,8 @@
 import React from 'react';
 import { mount } from 'enzyme';
 
-import { ExpectedArtifactService } from 'core/artifact';
-import { IExpectedArtifact } from 'core/domain';
+import { ExpectedArtifactService } from '..';
+import { IExpectedArtifact } from '../../domain';
 
 import { ExpectedArtifactSelector } from './ExpectedArtifactSelector';
 

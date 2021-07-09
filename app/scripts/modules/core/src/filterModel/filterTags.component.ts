@@ -1,9 +1,8 @@
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
 
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
-
 import { FilterTags } from './FilterTags';
+import { withErrorBoundary } from '../presentation/SpinErrorBoundary';
 
 export const FILTER_TAGS_COMPONENT = 'spinnaker.core.filterModel.filterTags.component';
 module(FILTER_TAGS_COMPONENT, []).component(

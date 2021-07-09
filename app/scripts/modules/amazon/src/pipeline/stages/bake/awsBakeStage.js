@@ -5,7 +5,7 @@ import _ from 'lodash';
 
 import { AuthenticationService } from '@spinnaker/core';
 import { BakeExecutionLabel, BakeryReader, PipelineTemplates, Registry, SETTINGS } from '@spinnaker/core';
-import { AWSProviderSettings } from 'amazon/aws.settings';
+import { AWSProviderSettings } from '../../../aws.settings';
 
 import { AMAZON_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER } from './bakeExecutionDetails.controller';
 

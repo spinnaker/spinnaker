@@ -4,8 +4,8 @@ import { Subject } from 'rxjs';
 
 import { CloudMetricsReader, IMetricAlarmDimension, IServerGroup } from '@spinnaker/core';
 
-import { AlarmComparisonOperator } from 'amazon/domain';
-import { IUpsertAlarmDescription } from 'amazon/serverGroup';
+import { AlarmComparisonOperator } from '../../../../../domain';
+import { IUpsertAlarmDescription } from '../../../..';
 import { METRIC_SELECTOR_COMPONENT, MetricSelectorController } from './metricSelector.component';
 
 describe('Component: metric selector', () => {

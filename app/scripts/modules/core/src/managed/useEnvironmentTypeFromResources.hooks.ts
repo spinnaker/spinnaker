@@ -1,10 +1,9 @@
 import { uniq } from 'lodash';
 import { $q } from 'ngimport';
 
-import { AccountService } from 'core/account';
-import { useData } from 'core/presentation';
-
+import { AccountService } from '../account';
 import { IManagedResourceSummary } from '../domain';
+import { useData } from '../presentation';
 
 export const useEnvironmentTypeFromResources = (resources: IManagedResourceSummary[]): boolean => {
   const accountNames = uniq(resources.map((resource) => resource?.locations?.account).filter(Boolean));

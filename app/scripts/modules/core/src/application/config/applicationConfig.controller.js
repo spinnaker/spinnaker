@@ -2,12 +2,11 @@ import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import { module } from 'angular';
 import { cloneDeep } from 'lodash';
 
-import { CHAOS_MONKEY_CONFIG_COMPONENT } from 'core/chaosMonkey/chaosMonkeyConfig.component';
-import { SETTINGS } from 'core/config/settings';
-
 import { CORE_APPLICATION_CONFIG_APPLICATIONATTRIBUTES_DIRECTIVE } from './applicationAttributes.directive';
 import { CORE_APPLICATION_CONFIG_APPLICATIONNOTIFICATIONS_DIRECTIVE } from './applicationNotifications.directive';
 import { CORE_APPLICATION_CONFIG_APPLICATIONSNAPSHOTSECTION_COMPONENT } from './applicationSnapshotSection.component';
+import { CHAOS_MONKEY_CONFIG_COMPONENT } from '../../chaosMonkey/chaosMonkeyConfig.component';
+import { SETTINGS } from '../../config/settings';
 import { APPLICATION_DATA_SOURCE_EDITOR } from './dataSources/applicationDataSourceEditor.component';
 import { DELETE_APPLICATION_SECTION } from './deleteApplicationSection.module';
 import { CORE_APPLICATION_CONFIG_LINKS_APPLICATIONLINKS_COMPONENT } from './links/applicationLinks.component';

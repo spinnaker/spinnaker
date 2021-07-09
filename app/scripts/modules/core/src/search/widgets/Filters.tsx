@@ -1,10 +1,9 @@
 import classNames from 'classnames';
 import React from 'react';
 
-import { Key } from 'core/widgets/Keys';
-
 import { Filter } from './Filter';
 import { IFilterType } from './SearchFilterTypeRegistry';
+import { Key } from '../../widgets/Keys';
 
 import './filterlist.less';
 

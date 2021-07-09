@@ -2,7 +2,7 @@
 
 import { AccountService, SubnetReader } from '@spinnaker/core';
 
-import { AWSProviderSettings } from 'amazon/aws.settings';
+import { AWSProviderSettings } from '../../aws.settings';
 
 import { createMockAmazonServerGroupWithLt, createCustomMockLaunchTemplate } from '@spinnaker/mocks';
 

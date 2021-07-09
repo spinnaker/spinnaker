@@ -2,10 +2,9 @@ import React from 'react';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import { HelpField } from 'core/help';
-
 import { ICronTriggerConfigProps } from './cronConfig';
 import { CronValidatorService } from './cronValidator.service';
+import { HelpField } from '../../../../help';
 
 export interface ICronAdvanceState {
   description?: string;

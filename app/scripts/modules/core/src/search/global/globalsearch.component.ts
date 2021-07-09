@@ -1,9 +1,8 @@
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
 
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
-
 import { GlobalSearch } from './GlobalSearch';
+import { withErrorBoundary } from '../../presentation/SpinErrorBoundary';
 
 export const GLOBAL_SEARCH_COMPONENT = 'spinnaker.core.search.global.component';
 module(GLOBAL_SEARCH_COMPONENT, []).component(

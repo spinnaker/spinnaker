@@ -1,9 +1,8 @@
 import { module } from 'angular';
 
-import { Registry } from 'core/registry';
-
 import { ShrinkClusterExecutionDetails } from './ShrinkClusterExecutionDetails';
 import { ExecutionDetailsTasks } from '../common/ExecutionDetailsTasks';
+import { Registry } from '../../../../registry';
 
 export const SHRINK_CLUSTER_STAGE = 'spinnaker.core.pipeline.stage.shrinkClusterStage';
 

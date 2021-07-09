@@ -1,6 +1,6 @@
-import { REST } from 'core/api/ApiService';
+import { REST } from '../api/ApiService';
 
-import { IServerGroupManager } from 'core/domain/IServerGroupManager';
+import { IServerGroupManager } from '../domain/IServerGroupManager';
 
 export class ServerGroupManagerReader {
   public static getServerGroupManagersForApplication(application: string): PromiseLike<IServerGroupManager[]> {

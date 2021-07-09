@@ -2,16 +2,15 @@ import { get, has } from 'lodash';
 import React from 'react';
 import { Option } from 'react-select';
 
-import { IExecution, IPipeline, IPipelineTrigger } from 'core/domain';
-import { TetheredSelect } from 'core/presentation/TetheredSelect';
-import { ReactInjector } from 'core/reactShims';
-import { timestamp } from 'core/utils/timeFormatters';
-import { Spinner } from 'core/widgets/spinners/Spinner';
-
+import { IExecution, IPipeline, IPipelineTrigger } from '../../../../domain';
 import { ExecutionBuildTitle } from '../../../executionBuild/ExecutionBuildTitle';
 import { ITriggerTemplateComponentProps } from '../../../manualExecution/TriggerTemplate';
+import { TetheredSelect } from '../../../../presentation/TetheredSelect';
+import { ReactInjector } from '../../../../reactShims';
 import { ExecutionsTransformer } from '../../../service/ExecutionsTransformer';
 import { PipelineConfigService } from '../../services/PipelineConfigService';
+import { timestamp } from '../../../../utils/timeFormatters';
+import { Spinner } from '../../../../widgets/spinners/Spinner';
 
 export interface IPipelineTriggerTemplateState {
   executions: IExecution[];

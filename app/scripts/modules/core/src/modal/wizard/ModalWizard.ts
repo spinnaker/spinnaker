@@ -1,4 +1,4 @@
-import { ScrollToService } from 'core/utils/scrollTo/scrollTo.service';
+import { ScrollToService } from '../../utils/scrollTo/scrollTo.service';
 
 export interface IModalWizardPageState {
   done: boolean;

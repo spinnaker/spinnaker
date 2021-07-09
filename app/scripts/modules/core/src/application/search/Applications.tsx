@@ -5,14 +5,13 @@ import { BehaviorSubject, from as observableFrom, Subject } from 'rxjs';
 import { combineLatest as observableCombineLatest } from 'rxjs';
 import { distinctUntilChanged, map, takeUntil } from 'rxjs/operators';
 
-import { IAccount } from 'core/account';
-import { ICache, ViewStateCache } from 'core/cache';
-import { InsightMenu } from 'core/insight/InsightMenu';
-import { Spinner } from 'core/widgets';
-
 import { ApplicationTable } from './ApplicationsTable';
 import { PaginationControls } from './PaginationControls';
+import { IAccount } from '../../account';
+import { ICache, ViewStateCache } from '../../cache';
+import { InsightMenu } from '../../insight/InsightMenu';
 import { ApplicationReader, IApplicationSummary } from '../service/ApplicationReader';
+import { Spinner } from '../../widgets';
 
 import '../applications.less';
 

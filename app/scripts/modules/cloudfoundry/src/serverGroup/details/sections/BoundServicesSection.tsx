@@ -2,9 +2,9 @@ import { isEmpty } from 'lodash';
 import React from 'react';
 
 import { CollapsibleSection } from '@spinnaker/core';
-import { ICloudFoundryServiceInstance } from 'cloudfoundry/domain';
 
 import { ICloudFoundryServerGroupDetailsSectionProps } from './ICloudFoundryServerGroupDetailsSectionProps';
+import { ICloudFoundryServiceInstance } from '../../../domain';
 
 export class BoundServicesSection extends React.Component<ICloudFoundryServerGroupDetailsSectionProps> {
   constructor(props: ICloudFoundryServerGroupDetailsSectionProps) {

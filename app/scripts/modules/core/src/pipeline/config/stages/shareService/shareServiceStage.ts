@@ -1,7 +1,6 @@
-import { Registry } from 'core/registry';
-
 import { ShareServiceExecutionDetails } from './ShareServiceExecutionDetails';
 import { ExecutionDetailsTasks } from '../common';
+import { Registry } from '../../../../registry';
 
 Registry.pipeline.registerStage({
   executionDetailsSections: [ShareServiceExecutionDetails, ExecutionDetailsTasks],

@@ -1,10 +1,9 @@
 import { isEqual } from 'lodash';
 import React from 'react';
 
-import { IExecutionDetailsProps, IExecutionDetailsState } from 'core/domain';
-import { ReactInjector } from 'core/reactShims';
-
 import { ExecutionDetailsSectionNav } from '../../../details';
+import { IExecutionDetailsProps, IExecutionDetailsState } from '../../../../domain';
+import { ReactInjector } from '../../../../reactShims';
 
 export class StepExecutionDetails extends React.Component<IExecutionDetailsProps, IExecutionDetailsState> {
   constructor(props: IExecutionDetailsProps) {

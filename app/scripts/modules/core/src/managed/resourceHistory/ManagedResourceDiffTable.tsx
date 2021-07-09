@@ -1,7 +1,14 @@
 import React from 'react';
 
-import { IManagedResourceDiff } from 'core/domain';
-import { BreakString, minimalNativeTableLayout, SingleLineString, Table, TableCell, TableRow } from 'core/presentation';
+import { IManagedResourceDiff } from '../../domain';
+import {
+  BreakString,
+  minimalNativeTableLayout,
+  SingleLineString,
+  Table,
+  TableCell,
+  TableRow,
+} from '../../presentation';
 
 const { memo } = React;
 

@@ -1,8 +1,7 @@
 import React from 'react';
 
-import { Application } from 'core/application';
-
 import { PageModal } from './PageModal';
+import { Application } from '../application';
 import { IPagerDutyService } from './pagerDuty.read.service';
 
 export interface IPageButtonProps {

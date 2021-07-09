@@ -1,5 +1,5 @@
-import { IArtifactAccount } from 'core/account';
-import { IArtifactKindConfig, IArtifactSource, IExpectedArtifact } from 'core/domain';
+import { IArtifactAccount } from '../account';
+import { IArtifactKindConfig, IArtifactSource, IExpectedArtifact } from '../domain';
 
 import { ExpectedArtifactService } from './expectedArtifact.service';
 

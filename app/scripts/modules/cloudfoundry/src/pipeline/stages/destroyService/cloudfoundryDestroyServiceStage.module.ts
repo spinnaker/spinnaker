@@ -1,10 +1,10 @@
 import { ExecutionDetailsTasks, IStage, Registry } from '@spinnaker/core';
-import { CloudfoundryServiceExecutionDetails } from 'cloudfoundry/presentation';
 
 import {
   CloudFoundryDestroyServiceStageConfig,
   validateCloudFoundryDestroyServiceStage,
 } from './CloudfoundryDestroyServiceStageConfig';
+import { CloudfoundryServiceExecutionDetails } from '../../../presentation';
 
 Registry.pipeline.registerStage({
   accountExtractor: (stage: IStage) => [stage.context.credentials],

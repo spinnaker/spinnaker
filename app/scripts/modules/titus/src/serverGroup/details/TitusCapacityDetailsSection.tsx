@@ -8,7 +8,7 @@ import {
   Overridable,
   ReactModal,
 } from '@spinnaker/core';
-import { ITitusServerGroup } from 'titus/domain';
+import { ITitusServerGroup } from '../../domain';
 
 import { ITitusResizeServerGroupModalProps, TitusResizeServerGroupModal } from './resize/TitusResizeServerGroupModal';
 

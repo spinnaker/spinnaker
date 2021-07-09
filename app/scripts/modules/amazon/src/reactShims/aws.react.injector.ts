@@ -1,7 +1,7 @@
 import IInjectorService = angular.auto.IInjectorService;
 
 import { FunctionReader, ReactInject } from '@spinnaker/core';
-import { EvaluateCloudFormationChangeSetExecutionService } from 'amazon/pipeline/stages/deployCloudFormation/evaluateCloudFormationChangeSetExecution.service';
+import { EvaluateCloudFormationChangeSetExecutionService } from '../pipeline/stages/deployCloudFormation/evaluateCloudFormationChangeSetExecution.service';
 
 import { AwsServerGroupConfigurationService } from '../serverGroup/configure/serverGroupConfiguration.service';
 import { AwsServerGroupTransformer } from '../serverGroup/serverGroup.transformer';

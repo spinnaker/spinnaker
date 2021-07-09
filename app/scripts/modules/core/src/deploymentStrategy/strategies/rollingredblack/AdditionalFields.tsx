@@ -1,12 +1,11 @@
 import { set } from 'lodash';
 import React from 'react';
 
-import { NumberList } from 'core/forms';
-import { HelpField } from 'core/help/HelpField';
-import { IServerGroupCommand } from 'core/serverGroup';
-
 import { PipelineSelector } from '../PipelineSelector';
 import { IDeploymentStrategyAdditionalFieldsProps } from '../../deploymentStrategy.registry';
+import { NumberList } from '../../../forms';
+import { HelpField } from '../../../help/HelpField';
+import { IServerGroupCommand } from '../../../serverGroup';
 
 export interface IRollingRedBlackCommand extends IServerGroupCommand {
   delayBeforeDisableSec: string;

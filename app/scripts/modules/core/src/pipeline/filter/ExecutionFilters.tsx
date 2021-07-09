@@ -5,17 +5,16 @@ import React from 'react';
 import { arrayMove, SortableContainer, SortableElement, SortableHandle, SortEnd } from 'react-sortable-hoc';
 import { Subscription } from 'rxjs';
 
-import { Application } from 'core/application';
-import { FilterSearch } from 'core/cluster/filter/FilterSearch';
-import { FilterSection } from 'core/cluster/filter/FilterSection';
-import { IExecution, IPipeline, IPipelineTag } from 'core/domain';
-import { IFilterTag } from 'core/filterModel';
-import { ReactInjector } from 'core/reactShims';
-import { ExecutionState } from 'core/state';
-import { logger } from 'core/utils';
-
+import { Application } from '../../application';
+import { FilterSearch } from '../../cluster/filter/FilterSearch';
+import { FilterSection } from '../../cluster/filter/FilterSection';
 import { PipelineConfigService } from '../config/services/PipelineConfigService';
+import { IExecution, IPipeline, IPipelineTag } from '../../domain';
 import { ExecutionFilterService } from './executionFilter.service';
+import { IFilterTag } from '../../filterModel';
+import { ReactInjector } from '../../reactShims';
+import { ExecutionState } from '../../state';
+import { logger } from '../../utils';
 
 import './executionFilters.less';
 

@@ -2,15 +2,14 @@ import { cloneDeep } from 'lodash';
 import React from 'react';
 import { Option } from 'react-select';
 
-import { ArtifactTypePatterns } from 'core/artifact';
-import { IgorService } from 'core/ci';
-import { IArtifactEditorProps, IArtifactKindConfig, IBuild } from 'core/domain';
-import { TetheredSelect } from 'core/presentation';
-import { SpelText } from 'core/widgets';
-
 import { ArtifactEditor } from '../ArtifactEditor';
+import { ArtifactTypePatterns } from '../../../../../artifact';
+import { IgorService } from '../../../../../ci';
+import { IArtifactEditorProps, IArtifactKindConfig, IBuild } from '../../../../../domain';
+import { TetheredSelect } from '../../../../../presentation';
 import { singleFieldArtifactEditor } from '../singleFieldArtifactEditor';
 import { StageConfigField } from '../../../stages/common';
+import { SpelText } from '../../../../../widgets';
 
 const TYPE = 'jenkins/file';
 

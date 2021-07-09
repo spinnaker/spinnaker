@@ -1,12 +1,11 @@
 import classNames from 'classnames';
 import React from 'react';
 
-import { AccountTag } from 'core/account';
-import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';
-import { HealthCounts } from 'core/healthCounts';
-import { ManagedResourceStatusIndicator } from 'core/managed';
-
 import { IClusterPodTitleProps } from './ClusterPodTitleWrapper';
+import { AccountTag } from '../account';
+import { EntityNotifications } from '../entityTag/notifications/EntityNotifications';
+import { HealthCounts } from '../healthCounts';
+import { ManagedResourceStatusIndicator } from '../managed';
 
 export class DefaultClusterPodTitle extends React.Component<IClusterPodTitleProps> {
   public render(): React.ReactElement<DefaultClusterPodTitle> {

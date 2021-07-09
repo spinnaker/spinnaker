@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { Button } from '../Button';
+import { useLogEvent } from './logging';
 import {
   FormikFormField,
   IModalComponentProps,
@@ -9,10 +11,7 @@ import {
   SpinFormik,
   TextAreaInput,
   ValidationMessage,
-} from 'core/presentation';
-
-import { Button } from '../Button';
-import { useLogEvent } from './logging';
+} from '../../presentation';
 
 export interface IArtifactActionModalProps extends IModalComponentProps {
   title: string;

@@ -3,18 +3,17 @@ import React from 'react';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import { CloudProviderLogo } from 'core/cloudProvider/CloudProviderLogo';
-import { SETTINGS } from 'core/config/settings';
-import { IServerGroup } from 'core/domain';
-import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';
-import { ManagedResourceDetailsIndicator } from 'core/managed';
-import { ReactInjector } from 'core/reactShims';
-import { timestamp } from 'core/utils/timeFormatters';
-import { Spinner } from 'core/widgets/spinners/Spinner';
-
 import { RunningTasks } from './RunningTasks';
 import { IServerGroupDetailsProps, IServerGroupDetailsState } from './ServerGroupDetailsWrapper';
 import { ServerGroupInsightActions } from './ServerGroupInsightActions';
+import { CloudProviderLogo } from '../../cloudProvider/CloudProviderLogo';
+import { SETTINGS } from '../../config/settings';
+import { IServerGroup } from '../../domain';
+import { EntityNotifications } from '../../entityTag/notifications/EntityNotifications';
+import { ManagedResourceDetailsIndicator } from '../../managed';
+import { ReactInjector } from '../../reactShims';
+import { timestamp } from '../../utils/timeFormatters';
+import { Spinner } from '../../widgets/spinners/Spinner';
 
 export class ServerGroupDetails extends React.Component<IServerGroupDetailsProps, IServerGroupDetailsState> {
   private destroy$ = new Subject();

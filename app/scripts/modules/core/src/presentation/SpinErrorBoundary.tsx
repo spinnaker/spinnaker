@@ -3,10 +3,9 @@ import { ReactViewDeclaration } from '@uirouter/react';
 import { module } from 'angular';
 import React, { ErrorInfo } from 'react';
 
-import { logger } from 'core/utils/Logger';
-
 import { CollapsibleSection } from './collapsibleSection/CollapsibleSection';
 import { ValidationMessage } from './forms/validation/ValidationMessage';
+import { logger } from '../utils/Logger';
 
 interface ISpinErrorBoundaryState {
   error?: Error;

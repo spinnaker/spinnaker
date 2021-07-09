@@ -1,14 +1,13 @@
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 
-import { PlatformHealthOverride } from 'core/application/modal/PlatformHealthOverride';
-import { ModalClose } from 'core/modal';
-import { IModalComponentProps, Markdown, useEscapeKeyPressed } from 'core/presentation';
-import { TaskMonitor, TaskMonitorWrapper, TaskReason, UserVerification } from 'core/task';
-import { MultiTaskMonitor } from 'core/task/monitor/MultiTaskMonitor';
-import { Spinner } from 'core/widgets/spinners/Spinner';
-
+import { PlatformHealthOverride } from '../application/modal/PlatformHealthOverride';
 import { IConfirmationModalPassthroughProps } from './confirmationModal.service';
+import { ModalClose } from '../modal';
+import { IModalComponentProps, Markdown, useEscapeKeyPressed } from '../presentation';
+import { TaskMonitor, TaskMonitorWrapper, TaskReason, UserVerification } from '../task';
+import { MultiTaskMonitor } from '../task/monitor/MultiTaskMonitor';
+import { Spinner } from '../widgets/spinners/Spinner';
 
 export interface IConfirmModalProps extends IModalComponentProps, IConfirmationModalPassthroughProps {
   taskMonitor?: TaskMonitor;

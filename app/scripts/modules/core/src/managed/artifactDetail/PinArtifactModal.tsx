@@ -2,7 +2,6 @@ import React, { memo, useCallback, useEffect } from 'react';
 import { Option } from 'react-select';
 
 import { Illustration } from '@spinnaker/presentation';
-import { logger } from 'core/utils';
 
 import { Button } from '../Button';
 import { EnvironmentBadge } from '../EnvironmentBadge';
@@ -24,6 +23,7 @@ import {
   ValidationMessage,
 } from '../../presentation';
 import { useEnvironmentTypeFromResources } from '../useEnvironmentTypeFromResources.hooks';
+import { logger } from '../../utils';
 
 const PINNING_DOCS_URL = 'https://www.spinnaker.io/guides/user/managed-delivery/pinning';
 

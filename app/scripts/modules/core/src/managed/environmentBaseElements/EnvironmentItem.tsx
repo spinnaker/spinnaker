@@ -2,7 +2,7 @@ import classnames from 'classnames';
 import React from 'react';
 
 import { IIconProps } from '@spinnaker/presentation';
-import { IconTooltip } from 'core/presentation';
+import { IconTooltip } from '../../presentation';
 
 import { TOOLTIP_DELAY_SHOW } from '../utils/defaults';
 

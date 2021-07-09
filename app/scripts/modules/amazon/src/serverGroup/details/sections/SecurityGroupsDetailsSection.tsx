@@ -10,9 +10,9 @@ import {
   ISecurityGroupsByAccount,
   ModalInjector,
 } from '@spinnaker/core';
-import { AwsSecurityGroupReader } from 'amazon/securityGroup/securityGroup.reader';
 
 import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
+import { AwsSecurityGroupReader } from '../../../securityGroup/securityGroup.reader';
 
 export interface ISecurityGroupsDetailsSectionState {
   securityGroups: ISecurityGroup[];

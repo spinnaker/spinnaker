@@ -1,7 +1,7 @@
 import { IComponentOptions, IController, module } from 'angular';
 import { chain, get, has, intersection, set, without } from 'lodash';
 
-import { IGceBackendService, INamedPort } from 'google/domain';
+import { IGceBackendService, INamedPort } from '../../../../domain';
 
 import './loadBalancingPolicySelector.component.less';
 

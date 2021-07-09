@@ -1,9 +1,9 @@
 import { mock } from 'angular';
-import { REACT_MODULE } from 'core/reactShims';
-import { CLUSTER_SERVICE } from 'core/cluster/cluster.service';
-import { Application } from 'core/application/application.model';
-import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
-import * as State from 'core/state';
+import { REACT_MODULE } from '../../reactShims';
+import { CLUSTER_SERVICE } from '../cluster.service';
+import { Application } from '../../application/application.model';
+import { ApplicationModelBuilder } from '../../application/applicationModel.builder';
+import * as State from '../../state';
 import { cloneDeep, filter } from 'lodash';
 
 const ClusterState = State.ClusterState;

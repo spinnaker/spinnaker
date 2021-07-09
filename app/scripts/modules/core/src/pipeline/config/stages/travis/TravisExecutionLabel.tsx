@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { IExecutionStageSummary } from 'core/domain';
+import { IExecutionStageSummary } from '../../../../domain';
 
 export class TravisExecutionLabel extends React.Component<{ stage: IExecutionStageSummary }, any> {
   public render() {

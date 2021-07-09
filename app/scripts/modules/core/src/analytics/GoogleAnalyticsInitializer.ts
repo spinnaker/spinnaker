@@ -1,6 +1,6 @@
 import 'angulartics';
 import 'angulartics-google-analytics';
-import { SETTINGS } from 'core/config/settings';
+import { SETTINGS } from '../config/settings';
 
 if (SETTINGS.analytics.ga || SETTINGS.analytics.customConfig) {
   window.addEventListener('load', () => {

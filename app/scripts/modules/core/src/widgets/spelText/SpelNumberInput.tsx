@@ -1,7 +1,7 @@
 import { isString } from 'lodash';
 import React from 'react';
 
-import { Tooltip } from 'core/presentation';
+import { Tooltip } from '../../presentation';
 
 export interface INumberInputProps {
   value: number | string;

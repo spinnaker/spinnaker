@@ -1,9 +1,8 @@
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
 
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
-
 import { ExecutionDetailsSectionNav } from './ExecutionDetailsSectionNav';
+import { withErrorBoundary } from '../../presentation/SpinErrorBoundary';
 
 export const EXECUTION_DETAILS_SECTION_NAV = 'spinnaker.core.pipeline.details.executionDetailsSectionNav';
 module(EXECUTION_DETAILS_SECTION_NAV, []).component(

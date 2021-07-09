@@ -1,5 +1,6 @@
-import { AmazonCertificateSelectField, IALBListenerCertificate } from 'amazon';
 import React from 'react';
+
+import { AmazonCertificateSelectField, IALBListenerCertificate } from '../../../index';
 import { INLBCertificateSelectorProps } from '../network/NLBListeners';
 
 export function CertificateSelector({

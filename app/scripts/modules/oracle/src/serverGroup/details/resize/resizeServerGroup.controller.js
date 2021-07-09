@@ -3,7 +3,7 @@
 import { module } from 'angular';
 
 import { TaskMonitor } from '@spinnaker/core';
-import { ORACLE_COMMON_FOOTER_COMPONENT } from 'oracle/common/footer.component';
+import { ORACLE_COMMON_FOOTER_COMPONENT } from '../../../common/footer.component';
 
 import { ORACLE_SERVERGROUP_DETAILS_RESIZE_RESIZECAPACITY_COMPONENT } from './resizeCapacity.component';
 

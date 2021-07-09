@@ -13,7 +13,7 @@ import {
   ICloudFoundryLoadBalancerUpsertCommand,
   ICloudFoundryServerGroup,
   ICloudFoundrySpace,
-} from 'cloudfoundry/domain';
+} from '../domain';
 
 export class CloudFoundryLoadBalancerUpsertDescription
   implements ILoadBalancerUpsertCommand, ICloudFoundryLoadBalancer {

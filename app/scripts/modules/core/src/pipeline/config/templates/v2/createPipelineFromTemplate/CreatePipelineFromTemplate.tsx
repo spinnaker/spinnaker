@@ -4,14 +4,13 @@ import { Option } from 'react-select';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import { Application, ApplicationReader, IApplicationSummary } from 'core/application';
-import { IPipelineTemplateV2 } from 'core/domain/IPipelineTemplateV2';
-import { SubmitButton } from 'core/modal/buttons/SubmitButton';
-import { ReactInjector } from 'core/reactShims';
-import { Spinner } from 'core/widgets/spinners/Spinner';
-
 import ApplicationSelector from '../ApplicationSelector';
+import { Application, ApplicationReader, IApplicationSummary } from '../../../../../application';
 import { CreatePipelineModal } from '../../../../create';
+import { IPipelineTemplateV2 } from '../../../../../domain/IPipelineTemplateV2';
+import { SubmitButton } from '../../../../../modal/buttons/SubmitButton';
+import { ReactInjector } from '../../../../../reactShims';
+import { Spinner } from '../../../../../widgets/spinners/Spinner';
 
 import './createPipelineFromTemplate.less';
 

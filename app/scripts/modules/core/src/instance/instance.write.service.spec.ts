@@ -1,12 +1,12 @@
 import { mock } from 'angular';
 
-import { PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider';
-import { IMultiInstanceGroup, InstanceWriter } from 'core/instance/instance.write.service';
-import { Application } from 'core/application/application.model';
-import { REACT_MODULE } from 'core/reactShims';
+import { PROVIDER_SERVICE_DELEGATE } from '../cloudProvider';
+import { IMultiInstanceGroup, InstanceWriter } from './instance.write.service';
+import { Application } from '../application/application.model';
+import { REACT_MODULE } from '../reactShims';
 import { ApplicationModelBuilder } from '../application/applicationModel.builder';
-import { IInstance, IServerGroup } from 'core/domain';
-import * as State from 'core/state';
+import { IInstance, IServerGroup } from '../domain';
+import * as State from '../state';
 
 import { ServerGroupReader } from '../serverGroup/serverGroupReader.service';
 import { IJob, ITaskCommand, TaskExecutor } from '../task/taskExecutor';

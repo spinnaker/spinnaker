@@ -1,10 +1,10 @@
 import React from 'react';
 import { mount } from 'enzyme';
 
-import { ApplicationModelBuilder } from 'core/application';
-import { ArtifactReferenceService } from 'core/artifact';
-import { IExpectedArtifact, ITrigger } from 'core/domain';
-import { Registry } from 'core/registry';
+import { ApplicationModelBuilder } from '../../../application';
+import { ArtifactReferenceService } from '../../../artifact';
+import { IExpectedArtifact, ITrigger } from '../../../domain';
+import { Registry } from '../../../registry';
 
 import { ITriggersPageContentProps, TriggersPageContent } from './TriggersPageContent';
 

@@ -13,8 +13,13 @@ import {
   Tooltip,
   ValidationMessage,
 } from '@spinnaker/core';
-import { AWSProviderSettings } from 'amazon/aws.settings';
-import { AmazonCertificateReader } from 'amazon/certificates/AmazonCertificateReader';
+
+import { ConfigureOidcConfigModal } from './ConfigureOidcConfigModal';
+import { ConfigureRedirectConfigModal } from './ConfigureRedirectConfigModal';
+import { IAuthenticateOidcActionConfig, OidcConfigReader } from '../../OidcConfigReader';
+import { AWSProviderSettings } from '../../../aws.settings';
+import { AmazonCertificateReader } from '../../../certificates/AmazonCertificateReader';
+import { AmazonCertificateSelectField } from '../common/AmazonCertificateSelectField';
 import {
   ALBListenerProtocol,
   IALBListenerCertificate,
@@ -28,12 +33,7 @@ import {
   IListenerRuleCondition,
   IRedirectActionConfig,
   ListenerRuleConditionField,
-} from 'amazon/domain';
-
-import { ConfigureOidcConfigModal } from './ConfigureOidcConfigModal';
-import { ConfigureRedirectConfigModal } from './ConfigureRedirectConfigModal';
-import { IAuthenticateOidcActionConfig, OidcConfigReader } from '../../OidcConfigReader';
-import { AmazonCertificateSelectField } from '../common/AmazonCertificateSelectField';
+} from '../../../domain';
 
 export interface IALBListenersState {
   certificates: { [accountId: number]: IAmazonCertificate[] };

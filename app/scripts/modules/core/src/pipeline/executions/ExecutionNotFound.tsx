@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { NotFound } from 'core/notfound/NotFound';
-import { ReactInjector } from 'core/reactShims';
+import { NotFound } from '../../notfound/NotFound';
+import { ReactInjector } from '../../reactShims';
 
 export function ExecutionNotFound() {
   const { params } = ReactInjector.$state;

@@ -5,17 +5,16 @@ import React from 'react';
 import { Subscription } from 'rxjs';
 import { merge } from 'rxjs/operators';
 
-import { Application } from 'core/application';
-import { SETTINGS } from 'core/config';
-import { IInstance, IServerGroup } from 'core/domain';
-import { ISortFilter } from 'core/filterModel';
-import { InstanceList } from 'core/instance/InstanceList';
-import { Instances } from 'core/instance/Instances';
-import { ReactInjector } from 'core/reactShims';
-import { ClusterState } from 'core/state';
-import { logger, ScrollToService } from 'core/utils';
-
 import { ServerGroupHeader } from './ServerGroupHeader';
+import { Application } from '../application';
+import { SETTINGS } from '../config';
+import { IInstance, IServerGroup } from '../domain';
+import { ISortFilter } from '../filterModel';
+import { InstanceList } from '../instance/InstanceList';
+import { Instances } from '../instance/Instances';
+import { ReactInjector } from '../reactShims';
+import { ClusterState } from '../state';
+import { logger, ScrollToService } from '../utils';
 
 export interface IJenkinsViewModel {
   number: number;

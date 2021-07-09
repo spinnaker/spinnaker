@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { CollapsibleSection, HealthCounts } from '@spinnaker/core';
-import { ICloudFoundryLoadBalancer } from 'cloudfoundry/domain';
+import { ICloudFoundryLoadBalancer } from '../../../domain';
 
 export interface ICloudFoundryLoadBalancerStatusSectionProps {
   loadBalancer: ICloudFoundryLoadBalancer;

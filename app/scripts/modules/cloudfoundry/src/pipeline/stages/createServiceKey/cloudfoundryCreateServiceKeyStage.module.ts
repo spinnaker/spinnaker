@@ -1,7 +1,7 @@
 import { ExecutionDetailsTasks, IStage, Registry } from '@spinnaker/core';
-import { CloudfoundryServiceKeyExecutionDetails } from 'cloudfoundry/presentation';
 
 import { CloudfoundryCreateServiceKeyStageConfig } from './CloudfoundryCreateServiceKeyStageConfig';
+import { CloudfoundryServiceKeyExecutionDetails } from '../../../presentation';
 
 Registry.pipeline.registerStage({
   accountExtractor: (stage: IStage) => [stage.context.credentials],

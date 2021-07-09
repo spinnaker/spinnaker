@@ -1,16 +1,16 @@
 import { mock } from 'angular';
-import { mockHttpClient } from 'core/api/mock/jasmine';
+import { mockHttpClient } from '../../api/mock/jasmine';
 
 import Spy = jasmine.Spy;
 import { IApplicationDataSourceAttribute, ApplicationReader } from './ApplicationReader';
 import { ApplicationDataSourceRegistry } from './ApplicationDataSourceRegistry';
 import { Application } from '../application.model';
-import { LOAD_BALANCER_DATA_SOURCE } from 'core/loadBalancer/loadBalancer.dataSource';
-import { LOAD_BALANCER_READ_SERVICE, LoadBalancerReader } from 'core/loadBalancer/loadBalancer.read.service';
-import { SECURITY_GROUP_READER, SecurityGroupReader } from 'core/securityGroup/securityGroupReader.service';
-import { CLUSTER_SERVICE, ClusterService } from 'core/cluster/cluster.service';
-import { SERVER_GROUP_DATA_SOURCE } from 'core/serverGroup/serverGroup.dataSource';
-import { SECURITY_GROUP_DATA_SOURCE } from 'core/securityGroup/securityGroup.dataSource';
+import { LOAD_BALANCER_DATA_SOURCE } from '../../loadBalancer/loadBalancer.dataSource';
+import { LOAD_BALANCER_READ_SERVICE, LoadBalancerReader } from '../../loadBalancer/loadBalancer.read.service';
+import { SECURITY_GROUP_READER, SecurityGroupReader } from '../../securityGroup/securityGroupReader.service';
+import { CLUSTER_SERVICE, ClusterService } from '../../cluster/cluster.service';
+import { SERVER_GROUP_DATA_SOURCE } from '../../serverGroup/serverGroup.dataSource';
+import { SECURITY_GROUP_DATA_SOURCE } from '../../securityGroup/securityGroup.dataSource';
 
 describe('ApplicationReader', function () {
   let securityGroupReader: SecurityGroupReader;

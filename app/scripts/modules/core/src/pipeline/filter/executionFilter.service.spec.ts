@@ -1,6 +1,6 @@
 import { ExecutionFilterService } from './executionFilter.service';
-import { ExecutionFilterModel } from 'core/pipeline/filter/ExecutionFilterModel';
-import { ExecutionState } from 'core/state';
+import { ExecutionFilterModel } from './ExecutionFilterModel';
+import { ExecutionState } from '../../state';
 
 describe('ExecutionFilterService', function () {
   let model: ExecutionFilterModel;

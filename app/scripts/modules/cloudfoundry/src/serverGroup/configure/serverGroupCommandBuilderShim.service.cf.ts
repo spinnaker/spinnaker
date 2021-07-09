@@ -1,7 +1,7 @@
 import { IQService } from 'angular';
 
 import { Application, IPipeline, IStage } from '@spinnaker/core';
-import { ICloudFoundryApplication, ICloudFoundryServerGroup } from 'cloudfoundry/domain';
+import { ICloudFoundryApplication, ICloudFoundryServerGroup } from '../../domain';
 
 import { CloudFoundryServerGroupCommandBuilder } from './serverGroupCommandBuilder.service.cf';
 import {

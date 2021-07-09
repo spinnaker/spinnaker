@@ -4,10 +4,9 @@ import isEqual from 'lodash/isEqual';
 import { DateTime } from 'luxon';
 import React from 'react';
 
-import { IManagedResourceDiff, IManagedResourceEvent } from 'core/domain';
-
 import { ManagedResourceDiffTable } from './ManagedResourceDiffTable';
 import { RelativeTimestamp } from '../RelativeTimestamp';
+import { IManagedResourceDiff, IManagedResourceEvent } from '../../domain';
 import { TableCell, TableRow } from '../../presentation';
 
 type LogLevel = IManagedResourceEvent['level'];

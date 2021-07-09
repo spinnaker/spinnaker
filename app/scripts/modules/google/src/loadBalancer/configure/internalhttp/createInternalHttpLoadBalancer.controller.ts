@@ -3,10 +3,10 @@ import { IScope, module } from 'angular';
 import { IModalInstanceService } from 'angular-ui-bootstrap';
 
 import { Application, TaskMonitor } from '@spinnaker/core';
-import { GCE_CACHE_REFRESH } from 'google/cache/cacheRefresh.component';
-import { IGceHttpLoadBalancer } from 'google/domain';
 
+import { GCE_CACHE_REFRESH } from '../../../cache/cacheRefresh.component';
 import { GOOGLE_LOADBALANCER_DETAILS_HOSTANDPATHRULES_HOSTANDPATHRULESBUTTON_COMPONENT } from '../../details/hostAndPathRules/hostAndPathRulesButton.component';
+import { IGceHttpLoadBalancer } from '../../../domain';
 import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_BACKENDSERVICE_BACKENDSERVICE_COMPONENT } from '../http/backendService/backendService.component';
 import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_BASICSETTINGS_BASICSETTINGS_COMPONENT } from '../http/basicSettings/basicSettings.component';
 import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE } from '../http/commandBuilder.service';

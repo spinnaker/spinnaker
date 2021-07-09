@@ -1,10 +1,10 @@
 'use strict';
 
 import { module } from 'angular';
-import { GCE_CACHE_REFRESH } from 'google/cache/cacheRefresh.component';
 
 import { GOOGLE_AUTOSCALINGPOLICY_COMPONENTS_BASICSETTINGS_BASICSETTINGS_COMPONENT } from '../../autoscalingPolicy/components/basicSettings/basicSettings.component';
 import { GOOGLE_AUTOSCALINGPOLICY_COMPONENTS_METRICSETTINGS_METRICSETTINGS_COMPONENT } from '../../autoscalingPolicy/components/metricSettings/metricSettings.component';
+import { GCE_CACHE_REFRESH } from '../../cache/cacheRefresh.component';
 import { GCE_IMAGE_SELECT } from '../../image/ImageSelect';
 import { GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCEBUILDER_GCE_SERVICE } from './../../instance/custom/customInstanceBuilder.gce.service';
 import { GOOGLE_SERVERGROUP_SERVERGROUP_TRANSFORMER } from '../serverGroup.transformer';

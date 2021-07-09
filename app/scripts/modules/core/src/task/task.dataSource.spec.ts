@@ -1,9 +1,9 @@
 import { mock, IQService } from 'angular';
 
-import { Application } from 'core/application/application.model';
-import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
+import { Application } from '../application/application.model';
+import { ApplicationModelBuilder } from '../application/applicationModel.builder';
 import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
-import { TaskReader } from 'core/task/task.read.service';
+import { TaskReader } from './task.read.service';
 
 describe('Task Data Source', function () {
   let application: Application, $scope: any, $q: IQService;

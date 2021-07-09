@@ -1,4 +1,4 @@
-import { REST } from 'core/api/ApiService';
+import { REST } from '../../../../api/ApiService';
 
 export class NexusReaderService {
   public static getNexusNames(): PromiseLike<string[]> {

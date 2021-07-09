@@ -1,9 +1,8 @@
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
 
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
-
 import { ArtifactList } from './ArtifactList';
+import { withErrorBoundary } from '../../presentation/SpinErrorBoundary';
 
 export const ARTIFACT_LIST = 'spinnaker.core.pipeline.status.artifactList';
 module(ARTIFACT_LIST, []).component(

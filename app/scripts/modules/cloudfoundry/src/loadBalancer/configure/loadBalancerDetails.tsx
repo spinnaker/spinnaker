@@ -5,8 +5,8 @@ import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import { AccountService, Application, IAccount, IRegion, IWizardPageComponent } from '@spinnaker/core';
-import { ICloudFoundryAccount, ICloudFoundryDomain, ICloudFoundryLoadBalancerUpsertCommand } from 'cloudfoundry/domain';
-import { RouteDomainSelectField } from 'cloudfoundry/routeDomains';
+import { ICloudFoundryAccount, ICloudFoundryDomain, ICloudFoundryLoadBalancerUpsertCommand } from '../../domain';
+import { RouteDomainSelectField } from '../../routeDomains';
 
 export interface ILoadBalancerDetailsProps {
   app: Application;

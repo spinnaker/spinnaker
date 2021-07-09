@@ -1,11 +1,11 @@
 import { orderBy } from 'lodash';
 import * as React from 'react';
 
-import { IExecution, IExecutionStage, ITask, ITaskStep } from 'core/domain';
-import { robotToHuman } from 'core/presentation';
-import { StatusGlyph } from 'core/task/StatusGlyph';
-import { displayableTasks } from 'core/task/displayableTasks.filter';
-import { duration } from 'core/utils';
+import { IExecution, IExecutionStage, ITask, ITaskStep } from '../../domain';
+import { robotToHuman } from '../../presentation';
+import { StatusGlyph } from '../../task/StatusGlyph';
+import { displayableTasks } from '../../task/displayableTasks.filter';
+import { duration } from '../../utils';
 
 export interface IRunningTasksPopoverContentProps {
   executions: IExecution[];

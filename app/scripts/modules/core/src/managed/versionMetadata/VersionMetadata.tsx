@@ -1,7 +1,5 @@
 import React from 'react';
 
-import { IconTooltip } from 'core/presentation';
-
 import {
   BaseVersionMetadata,
   IVersionMetadataProps,
@@ -17,6 +15,7 @@ import {
 import { formatToRelativeTimestamp, RelativeTimestamp } from '../RelativeTimestamp';
 import { getLifecycleEventDuration, getLifecycleEventLink, getLifecycleEventSummary } from '../overview/artifact/utils';
 import { QueryArtifactVersion } from '../overview/types';
+import { IconTooltip } from '../../presentation';
 import { TOOLTIP_DELAY_SHOW } from '../utils/defaults';
 import { SingleVersionArtifactVersion } from '../versionsHistory/types';
 

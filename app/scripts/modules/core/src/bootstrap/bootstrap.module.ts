@@ -1,6 +1,6 @@
 import { IModule, module } from 'angular';
 
-import { OVERRIDE_REGISTRY } from 'core/overrideRegistry/override.registry';
+import { OVERRIDE_REGISTRY } from '../overrideRegistry/override.registry';
 import { SPINNAKER_CONTAINER_COMPONENT } from './spinnakerContainer.component';
 
 export const APPLICATION_BOOTSTRAP_MODULE = 'spinnaker.core.applicationBootstrap';

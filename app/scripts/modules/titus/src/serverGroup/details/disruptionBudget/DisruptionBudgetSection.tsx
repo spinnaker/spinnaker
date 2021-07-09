@@ -5,7 +5,6 @@ import React from 'react';
 import { react2angular } from 'react2angular';
 
 import { HelpField, IServerGroupDetailsSectionProps, withErrorBoundary } from '@spinnaker/core';
-import { TitusReactInjector } from 'titus/reactShims';
 
 import { EditDisruptionBudgetModal } from './EditDisruptionBudgetModal';
 import {
@@ -19,6 +18,7 @@ import {
 import { policyOptions } from '../../configure/wizard/pages/disruptionBudget/PolicyOptions';
 import { rateOptions } from '../../configure/wizard/pages/disruptionBudget/RateOptions';
 import { IJobDisruptionBudget, ITitusServerGroup } from '../../../domain';
+import { TitusReactInjector } from '../../../reactShims';
 
 interface IDisruptionBudgetSection extends IServerGroupDetailsSectionProps {
   serverGroup: ITitusServerGroup;

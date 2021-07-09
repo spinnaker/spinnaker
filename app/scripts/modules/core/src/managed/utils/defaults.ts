@@ -1,5 +1,5 @@
-import { IHoverablePopoverProps } from 'core/presentation';
-import { ISpinnerProps } from 'core/widgets';
+import { IHoverablePopoverProps } from '../../presentation';
+import { ISpinnerProps } from '../../widgets';
 
 export const TOOLTIP_DELAY_SHOW = 400;
 export const TOOLTIP_DELAY_HIDE = 100;

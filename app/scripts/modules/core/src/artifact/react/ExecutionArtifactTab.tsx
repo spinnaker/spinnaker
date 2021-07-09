@@ -1,11 +1,10 @@
 import { get, has } from 'lodash';
 import React from 'react';
 
-import { IExecution, IExpectedArtifact } from 'core/domain';
-import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from 'core/pipeline';
-import { Registry } from 'core/registry';
-
 import { ArtifactIconList } from './ArtifactIconList';
+import { IExecution, IExpectedArtifact } from '../../domain';
+import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../../pipeline';
+import { Registry } from '../../registry';
 
 import '../artifactTab.less';
 

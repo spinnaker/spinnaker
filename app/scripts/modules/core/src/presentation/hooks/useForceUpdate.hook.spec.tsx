@@ -1,7 +1,7 @@
 import React from 'react';
 import { mount } from 'enzyme';
 import { Subject } from 'rxjs';
-import { useForceUpdate } from 'core/presentation';
+import { useForceUpdate } from '..';
 
 describe('useForceUpdate', () => {
   let renderCounts = 0;

@@ -17,7 +17,7 @@ import {
   UserVerification,
   ValidationMessage,
 } from '@spinnaker/core';
-import { ITitusServerGroup } from 'titus/domain';
+import { ITitusServerGroup } from '../../../domain';
 
 import { useTaskMonitor } from './useTaskMonitor';
 

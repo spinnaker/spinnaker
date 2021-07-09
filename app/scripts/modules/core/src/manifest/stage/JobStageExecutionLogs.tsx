@@ -3,12 +3,11 @@ import React from 'react';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import { Application } from 'core/application';
-import { IManifest } from 'core/domain/IManifest';
-
 import { JobManifestPodLogs } from './JobManifestPodLogs';
 import { ManifestReader } from '../ManifestReader';
 import { IPodNameProvider } from '../PodNameProvider';
+import { Application } from '../../application';
+import { IManifest } from '../../domain/IManifest';
 
 interface IJobStageExecutionLogsProps {
   deployedName: string;

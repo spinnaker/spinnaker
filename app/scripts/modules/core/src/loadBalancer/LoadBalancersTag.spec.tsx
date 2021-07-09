@@ -2,12 +2,12 @@ import { mock, IQService, IScope } from 'angular';
 import React from 'react';
 import { ReactWrapper, mount } from 'enzyme';
 
-import { Application } from 'core/application/application.model';
-import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
+import { Application } from '../application/application.model';
+import { ApplicationModelBuilder } from '../application/applicationModel.builder';
 import { ILoadBalancersTagProps } from './LoadBalancersTagWrapper';
 import { LoadBalancersTag } from './LoadBalancersTag';
-import { IServerGroup } from 'core/domain';
-import { HoverablePopover } from 'core/presentation';
+import { IServerGroup } from '../domain';
+import { HoverablePopover } from '../presentation';
 
 describe('<LoadBalancersTag />', () => {
   const lb1 = { name: 'lb1', account: 'prod', region: 'us-east-1', vpcId: 'vpc-1' };

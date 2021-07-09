@@ -1,8 +1,8 @@
 import { ServerGroupWarningMessageService } from './serverGroupWarningMessage.service';
-import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
-import { IServerGroup } from 'core/domain';
-import { Application } from 'core/application/application.model';
-import { IConfirmationModalParams } from 'core/confirmationModal/confirmationModal.service';
+import { ApplicationModelBuilder } from '../../application/applicationModel.builder';
+import { IServerGroup } from '../../domain';
+import { Application } from '../../application/application.model';
+import { IConfirmationModalParams } from '../../confirmationModal/confirmationModal.service';
 
 describe('ServerGroupWarningMessageService', () => {
   let app: Application, serverGroup: IServerGroup;

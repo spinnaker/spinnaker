@@ -22,7 +22,7 @@ const fixTSPathRewrite = () => {
       const fixed = fs
         .readFileSync(dts)
         .toString()
-        .replace(/types="core\/types"/, 'types="./types"');
+        .replace(/types="types"/, 'types="./types"');
       fs.writeFileSync(dts, fixed);
     },
   };

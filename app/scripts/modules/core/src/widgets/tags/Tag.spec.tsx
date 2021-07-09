@@ -1,7 +1,7 @@
 import React from 'react';
 import { mount, ReactWrapper } from 'enzyme';
 
-import { Key } from 'core/widgets/Keys';
+import { Key } from '../Keys';
 import { DeleteType, ITag, ITagProps, Tag } from './Tag';
 
 describe('<Tag/>', () => {

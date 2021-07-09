@@ -1,10 +1,9 @@
 import React from 'react';
 
-import { AccountTag } from 'core/account';
-import { HelpField } from 'core/help/HelpField';
-
+import { AccountTag } from '../../../../account';
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
 import { StageExecutionLogs, StageFailureMessage } from '../../../details';
+import { HelpField } from '../../../../help/HelpField';
 
 export function RollbackClusterExecutionDetails(props: IExecutionDetailsSectionProps) {
   const { stage } = props;

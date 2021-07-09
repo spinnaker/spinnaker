@@ -1,16 +1,15 @@
 import { sortBy } from 'lodash';
 import React from 'react';
 
-import { ILoadBalancer } from 'core/domain';
-import { HealthCounts } from 'core/healthCounts/HealthCounts';
-import { HoverablePopover } from 'core/presentation';
-import { Tooltip } from 'core/presentation/Tooltip';
-import { ReactInjector } from 'core/reactShims';
-import { logger } from 'core/utils';
-import { Spinner } from 'core/widgets';
-
 import { ILoadBalancersTagProps } from './LoadBalancersTagWrapper';
+import { ILoadBalancer } from '../domain';
+import { HealthCounts } from '../healthCounts/HealthCounts';
 import { LoadBalancerDataUtils } from './loadBalancerDataUtils';
+import { HoverablePopover } from '../presentation';
+import { Tooltip } from '../presentation/Tooltip';
+import { ReactInjector } from '../reactShims';
+import { logger } from '../utils';
+import { Spinner } from '../widgets';
 
 interface ILoadBalancerListItemProps {
   loadBalancer: ILoadBalancer;

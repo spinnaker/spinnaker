@@ -1,9 +1,8 @@
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
 
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
-
 import { HealthCounts } from './HealthCounts';
+import { withErrorBoundary } from '../presentation/SpinErrorBoundary';
 
 export const HEALTH_COUNTS_COMPONENT = 'spinnaker.core.healthCounts.component';
 module(HEALTH_COUNTS_COMPONENT, []).component(

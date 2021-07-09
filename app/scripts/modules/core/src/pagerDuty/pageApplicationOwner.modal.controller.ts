@@ -1,9 +1,9 @@
 import { IController, module } from 'angular';
 import { IModalInstanceService } from 'angular-ui-bootstrap';
-import { Application } from 'core/application';
-import { TaskMonitor } from 'core/task/monitor/TaskMonitor';
 
+import { Application } from '../application';
 import { PagerDutyWriter } from './pagerDuty.write.service';
+import { TaskMonitor } from '../task/monitor/TaskMonitor';
 
 export class PageModalCtrl implements IController {
   public reason: string;

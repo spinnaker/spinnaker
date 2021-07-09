@@ -1,15 +1,15 @@
 import React from 'react';
 
-import { IPipeline, IPipelineTag } from 'core/domain';
-import { HelpField } from 'core/help';
-import { IOverridableProps, overridableComponent } from 'core/overrideRegistry';
+import { IPipeline, IPipelineTag } from '../../../domain';
+import { HelpField } from '../../../help';
+import { IOverridableProps, overridableComponent } from '../../../overrideRegistry';
 import {
   createFakeReactSyntheticEvent,
   FormField,
   IFormInputProps,
   TextAreaInput,
   ValidationMessage,
-} from 'core/presentation';
+} from '../../../presentation';
 
 export interface IMetadataPageContentProps {
   pipeline: IPipeline;

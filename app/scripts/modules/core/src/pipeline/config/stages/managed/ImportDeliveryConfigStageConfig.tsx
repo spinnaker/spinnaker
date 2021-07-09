@@ -1,11 +1,10 @@
 import React from 'react';
 
-import { SETTINGS } from 'core/config/settings';
-import { HelpField } from 'core/help';
-import { FormikFormField, TextInput } from 'core/presentation';
-
 import { FormikStageConfig } from '../FormikStageConfig';
 import { IStageConfigProps } from '../common';
+import { SETTINGS } from '../../../../config/settings';
+import { HelpField } from '../../../../help';
+import { FormikFormField, TextInput } from '../../../../presentation';
 
 export const ImportDeliveryConfigStageConfig: React.ComponentType<IStageConfigProps> = (stageConfigProps) => (
   <FormikStageConfig

@@ -3,9 +3,8 @@ import { uniqBy } from 'lodash';
 import { from as observableFrom, Observable, of as observableOf, Subject } from 'rxjs';
 import { catchError, finalize, map, mergeMap, tap } from 'rxjs/operators';
 
-import { IQueryParams, UrlBuilder } from 'core/navigation';
-
 import { ISearchResultSet } from './infrastructureSearch.service';
+import { IQueryParams, UrlBuilder } from '../../navigation';
 import { ISearchResult, ISearchResults } from '../search.service';
 import { SearchStatus } from '../searchResult/SearchResults';
 import { SearchResultType } from '../searchResult/searchResultType';

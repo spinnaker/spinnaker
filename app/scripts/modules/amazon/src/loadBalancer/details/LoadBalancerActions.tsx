@@ -12,9 +12,9 @@ import {
   ManagedMenuItem,
   SETTINGS,
 } from '@spinnaker/core';
-import { IAmazonLoadBalancer, IAmazonLoadBalancerDeleteCommand } from 'amazon/domain';
 
 import { LoadBalancerTypes } from '../configure/LoadBalancerTypes';
+import { IAmazonLoadBalancer, IAmazonLoadBalancerDeleteCommand } from '../../domain';
 import { ILoadBalancerFromStateParams } from './loadBalancerDetails.controller';
 
 export interface ILoadBalancerActionsProps {

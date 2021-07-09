@@ -1,8 +1,8 @@
-import { mockHttpClient } from 'core/api/mock/jasmine';
+import { mockHttpClient } from '../api/mock/jasmine';
 import { mock, IRootScopeService, IScope } from 'angular';
 
-import { SubnetReader } from 'core/subnet/subnet.read.service';
-import { ISubnet } from 'core/domain';
+import { SubnetReader } from './subnet.read.service';
+import { ISubnet } from '../domain';
 
 describe('SubnetReader', function () {
   let $scope: IScope;

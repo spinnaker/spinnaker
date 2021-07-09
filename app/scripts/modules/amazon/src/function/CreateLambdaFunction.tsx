@@ -11,7 +11,6 @@ import {
   WizardModal,
   WizardPage,
 } from '@spinnaker/core';
-import { IAmazonFunction, IAmazonFunctionUpsertCommand } from 'amazon/domain';
 
 import { ExecutionRole } from './configure/ExecutionRole';
 import { FunctionBasicInformation } from './configure/FunctionBasicInformation';
@@ -20,6 +19,7 @@ import { FunctionEnvironmentVariables } from './configure/FunctionEnvironmentVar
 import { FunctionSettings } from './configure/FunctionSettings';
 import { FunctionTags } from './configure/FunctionTags';
 import { Network } from './configure/Network';
+import { IAmazonFunction, IAmazonFunctionUpsertCommand } from '../domain';
 import { AwsFunctionTransformer } from './function.transformer';
 
 export interface IAmazonCreateFunctionProps extends IFunctionModalProps {

@@ -1,8 +1,8 @@
 import { hri as HumanReadableIds } from 'human-readable-ids';
 
-import { IPipeline, IPipelineTemplateV2 } from 'core/domain';
+import { IPipeline, IPipelineTemplateV2 } from '../../../../domain';
 import { PipelineTemplateV2Service } from './pipelineTemplateV2.service';
-import { UUIDGenerator } from 'core/utils';
+import { UUIDGenerator } from '../../../../utils';
 
 describe('PipelineTemplateV2Service', () => {
   describe('createPipelineTemplate()', () => {

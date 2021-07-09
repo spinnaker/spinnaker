@@ -2,15 +2,14 @@ import { UISref } from '@uirouter/react';
 import { isEmpty } from 'lodash';
 import React from 'react';
 
-import { Application } from 'core/application/application.model';
-import { SETTINGS } from 'core/config/settings';
-import { IExecution, IExecutionStageSummary } from 'core/domain';
-import { logger } from 'core/utils';
-import { duration } from 'core/utils/timeFormatters';
-
 import { ExecutionMarkerInformationModal } from './ExecutionMarkerInformationModal';
 import { OrchestratedItemRunningTime } from './OrchestratedItemRunningTime';
+import { Application } from '../../../application/application.model';
+import { SETTINGS } from '../../../config/settings';
 import { ExecutionBarLabel } from '../../config/stages/common/ExecutionBarLabel';
+import { IExecution, IExecutionStageSummary } from '../../../domain';
+import { logger } from '../../../utils';
+import { duration } from '../../../utils/timeFormatters';
 
 import './executionMarker.less';
 

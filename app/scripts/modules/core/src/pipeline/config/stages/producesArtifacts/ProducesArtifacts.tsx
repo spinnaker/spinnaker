@@ -2,9 +2,9 @@ import { module } from 'angular';
 import React from 'react';
 import { react2angular } from 'react2angular';
 
-import { ArtifactTypePatterns, ExpectedArtifactModal } from 'core/artifact';
-import { IExpectedArtifact, IPipeline, IStage } from 'core/domain';
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
+import { ArtifactTypePatterns, ExpectedArtifactModal } from '../../../../artifact';
+import { IExpectedArtifact, IPipeline, IStage } from '../../../../domain';
+import { withErrorBoundary } from '../../../../presentation/SpinErrorBoundary';
 
 export interface IProducesArtifactsProps {
   pipeline: IPipeline;

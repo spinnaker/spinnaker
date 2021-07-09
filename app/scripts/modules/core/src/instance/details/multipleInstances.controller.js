@@ -2,11 +2,11 @@
 
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import { module } from 'angular';
-import { ConfirmationModalService } from 'core/confirmationModal';
-import { ClusterState } from 'core/state';
 
+import { ConfirmationModalService } from '../../confirmationModal';
 import { InstanceWriter } from '../instance.write.service';
 import { CORE_INSTANCE_DETAILS_MULTIPLEINSTANCESERVERGROUP_DIRECTIVE } from './multipleInstanceServerGroup.directive';
+import { ClusterState } from '../../state';
 
 export const CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER =
   'spinnaker.core.instance.details.multipleInstances.controller';

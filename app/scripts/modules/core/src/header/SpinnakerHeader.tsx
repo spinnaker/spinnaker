@@ -3,13 +3,13 @@ import React from 'react';
 import { useRecoilState } from 'recoil';
 
 import { Icon } from '@spinnaker/presentation';
-import { verticalNavExpandedAtom } from 'core/application/nav/navAtoms';
-import { UserMenu } from 'core/authentication/userMenu/UserMenu';
-import { CollapsibleSectionStateCache } from 'core/cache';
-import { HelpMenu } from 'core/help/HelpMenu';
-import { overridableComponent } from 'core/overrideRegistry';
-import { GlobalSearch } from 'core/search/global/GlobalSearch';
-import { logger } from 'core/utils';
+import { verticalNavExpandedAtom } from '../application/nav/navAtoms';
+import { UserMenu } from '../authentication/userMenu/UserMenu';
+import { CollapsibleSectionStateCache } from '../cache';
+import { HelpMenu } from '../help/HelpMenu';
+import { overridableComponent } from '../overrideRegistry';
+import { GlobalSearch } from '../search/global/GlobalSearch';
+import { logger } from '../utils';
 
 import './SpinnakerHeader.css';
 

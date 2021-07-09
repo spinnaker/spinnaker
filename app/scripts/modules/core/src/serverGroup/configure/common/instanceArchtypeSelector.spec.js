@@ -1,7 +1,7 @@
 'use strict';
 
-import { INSTANCE_TYPE_SERVICE } from 'core/instance/instanceType.service';
-import { SERVER_GROUP_CONFIGURATION_SERVICE } from 'core/serverGroup/configure/common/serverGroupConfiguration.service';
+import { INSTANCE_TYPE_SERVICE } from '../../../instance/instanceType.service';
+import { SERVER_GROUP_CONFIGURATION_SERVICE } from './serverGroupConfiguration.service';
 
 describe('Controller: Instance Archetype Selector', function () {
   var categories = [

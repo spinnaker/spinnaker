@@ -1,13 +1,12 @@
 import { cloneDeep, has } from 'lodash';
 import React from 'react';
 
-import { ArtifactTypePatterns } from 'core/artifact';
-import { IArtifactEditorProps, IArtifactKindConfig } from 'core/domain';
-import { CopyToClipboard } from 'core/utils';
-import { SpelText } from 'core/widgets';
-
+import { ArtifactTypePatterns } from '../../../../../artifact';
+import { IArtifactEditorProps, IArtifactKindConfig } from '../../../../../domain';
 import { singleFieldArtifactEditor } from '../singleFieldArtifactEditor';
 import { StageConfigField } from '../../../stages/common';
+import { CopyToClipboard } from '../../../../../utils';
+import { SpelText } from '../../../../../widgets';
 
 export const BASE_64_ARTIFACT_TYPE = 'embedded/base64';
 export const BASE_64_ARTIFACT_ACCOUNT = 'embedded-artifact';

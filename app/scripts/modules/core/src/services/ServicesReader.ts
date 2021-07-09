@@ -1,5 +1,5 @@
-import { REST } from 'core/api/ApiService';
-import { IService } from 'core/domain';
+import { REST } from '../api/ApiService';
+import { IService } from '../domain';
 
 export class ServicesReader {
   public static getServices(account: string, region: string): PromiseLike<IService[]> {

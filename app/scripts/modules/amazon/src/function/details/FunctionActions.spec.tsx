@@ -2,7 +2,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 
 import { Application } from '@spinnaker/core';
-import { IAmazonFunction, FunctionActions } from 'amazon';
+import { IAmazonFunction, FunctionActions } from '../../index';
 
 describe('FunctionActions', () => {
   it('should render correct state when all attributes exist', () => {

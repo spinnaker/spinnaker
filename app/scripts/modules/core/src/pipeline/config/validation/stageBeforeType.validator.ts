@@ -1,6 +1,5 @@
-import { IPipeline, IStage, IStageOrTriggerTypeConfig } from 'core/domain';
-
 import { IStageOrTriggerValidator, IValidatorConfig, PipelineConfigValidator } from './PipelineConfigValidator';
+import { IPipeline, IStage, IStageOrTriggerTypeConfig } from '../../../domain';
 import { PipelineConfigService } from '../services/PipelineConfigService';
 
 export interface IStageBeforeTypeValidationConfig extends IValidatorConfig {

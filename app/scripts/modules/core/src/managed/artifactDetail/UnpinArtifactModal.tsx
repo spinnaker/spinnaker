@@ -1,7 +1,6 @@
 import React, { memo, useEffect, useState } from 'react';
 
 import { Illustration } from '@spinnaker/presentation';
-import { logger } from 'core/utils';
 
 import { Button } from '../Button';
 import { ManagedWriter } from '../ManagedWriter';
@@ -17,6 +16,7 @@ import {
   showModal,
   ValidationMessage,
 } from '../../presentation';
+import { logger } from '../../utils';
 
 const PINNING_DOCS_URL = 'https://www.spinnaker.io/guides/user/managed-delivery/pinning';
 

@@ -2,14 +2,14 @@
 
 import { module } from 'angular';
 import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
-import { CloudProviderRegistry, ProviderSelectionService } from 'core/cloudProvider';
-import { SERVER_GROUP_COMMAND_BUILDER_SERVICE } from 'core/serverGroup/configure/common/serverGroupCommandBuilder.service';
-import { ClusterState } from 'core/state';
-import { noop } from 'core/utils';
 
 import { CORE_ACCOUNT_ACCOUNT_MODULE } from '../account/account.module';
+import { CloudProviderRegistry, ProviderSelectionService } from '../cloudProvider';
 import { CLUSTER_FILTER } from './filter/clusterFilter.component';
 import { FILTER_TAGS_COMPONENT } from '../filterModel/filterTags.component';
+import { SERVER_GROUP_COMMAND_BUILDER_SERVICE } from '../serverGroup/configure/common/serverGroupCommandBuilder.service';
+import { ClusterState } from '../state';
+import { noop } from '../utils';
 import { CORE_UTILS_WAYPOINTS_WAYPOINTCONTAINER_DIRECTIVE } from '../utils/waypoints/waypointContainer.directive';
 
 import './rollups.less';

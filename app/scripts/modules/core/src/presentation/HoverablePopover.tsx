@@ -5,9 +5,8 @@ import ReactDOM from 'react-dom';
 import { merge as observableMerge, of as observableOf, Subject } from 'rxjs';
 import { delay, filter, map, switchMap, takeUntil } from 'rxjs/operators';
 
-import { UUIDGenerator } from 'core/utils';
-
 import { Placement } from './Placement';
+import { UUIDGenerator } from '../utils';
 
 import './HoverablePopover.css';
 

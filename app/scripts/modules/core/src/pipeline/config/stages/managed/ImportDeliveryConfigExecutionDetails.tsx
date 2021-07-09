@@ -1,11 +1,10 @@
 import React from 'react';
 
-import { SETTINGS } from 'core/config';
-import { IGitTrigger } from 'core/domain';
-import { CollapsibleSection, Markdown } from 'core/presentation';
-
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
+import { SETTINGS } from '../../../../config';
 import { StageFailureMessage } from '../../../details';
+import { IGitTrigger } from '../../../../domain';
+import { CollapsibleSection, Markdown } from '../../../../presentation';
 
 const NOT_FOUND = 'Not found';
 

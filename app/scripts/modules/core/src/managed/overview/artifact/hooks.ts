@@ -1,5 +1,3 @@
-import { showModal } from 'core/presentation';
-
 import { MarkAsBadActionModal, MarkAsGoodActionModal, PinActionModal, UnpinActionModal } from './ArtifactActionModal';
 import {
   FetchPinnedVersionsDocument,
@@ -9,6 +7,7 @@ import {
   usePinVersionMutation,
   useUnpinVersionMutation,
 } from '../../graphql/graphql-sdk';
+import { showModal } from '../../../presentation';
 import { MODAL_MAX_WIDTH } from '../../utils/defaults';
 
 interface ActionBasePayload {

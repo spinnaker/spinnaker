@@ -1,10 +1,9 @@
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
 
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
-
 import { Search } from './Search';
 import { SearchFilterTypeRegistry } from './SearchFilterTypeRegistry';
+import { withErrorBoundary } from '../../presentation/SpinErrorBoundary';
 
 export const SEARCH_COMPONENT = 'spinnaker.core.search.component';
 module(SEARCH_COMPONENT, [])

@@ -1,9 +1,8 @@
 import { module } from 'angular';
 
-import { Registry } from 'core/registry';
-
 import { ApplySourceServerGroupCapacityDetails } from './ApplySourceServerGroupCapacityDetails';
 import { ExecutionDetailsTasks } from '../common';
+import { Registry } from '../../../../registry';
 
 export const APPLY_SOURCE_SERVER_GROUP_CAPACITY_STAGE =
   'spinnaker.core.pipeline.stage.applySourceServerGroupCapacityStage';

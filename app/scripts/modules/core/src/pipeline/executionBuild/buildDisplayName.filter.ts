@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { IBuildInfo } from 'core/domain';
+import { IBuildInfo } from '../../domain';
 
 export function buildDisplayName(input: IBuildInfo): string {
   if (!input) {

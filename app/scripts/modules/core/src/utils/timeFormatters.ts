@@ -3,9 +3,8 @@ import { formatDistanceToNow } from 'date-fns';
 import { DateTime, Duration } from 'luxon';
 import { react2angular } from 'react2angular';
 
-import { SETTINGS } from 'core/config/settings';
-
 import { SystemTimezone } from './SystemTimezone';
+import { SETTINGS } from '../config/settings';
 
 // Luxon supports up to 100 million days after epoch start
 const MAX_VALID_INPUT = 8640000000000000;

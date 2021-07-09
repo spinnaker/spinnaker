@@ -1,10 +1,11 @@
 import * as React from 'react';
-import { IBuildDiffInfo, ICreationMetadata, ICreationMetadataTag, IExecution, IExecutionStage } from 'core/domain';
-import { LabeledValue, showModal, useData } from 'core/presentation';
-import { ReactInjector } from 'core/reactShims';
+
 import { ChangesModal } from './ChangesModal';
 import { ICommit } from './CommitHistory';
 import { IJarDiff } from './JarDiffs';
+import { IBuildDiffInfo, ICreationMetadata, ICreationMetadataTag, IExecution, IExecutionStage } from '../domain';
+import { LabeledValue, showModal, useData } from '../presentation';
+import { ReactInjector } from '../reactShims';
 
 export interface IViewChangesConfig {
   buildInfo?: IBuildDiffInfo;

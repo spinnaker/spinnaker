@@ -2,14 +2,13 @@ import { FastField, Field, FieldProps, FormikConsumer, FormikContext } from 'for
 import { isString, toPath } from 'lodash';
 import React from 'react';
 
-import { firstDefined } from 'core/utils';
-
 import { WatchValue } from '../../WatchValue';
 import { useMountStatusRef } from '../../hooks/useMountStatusRef.hook';
 import { ICommonFormFieldProps, renderContent } from './index';
 import { IFormInputValidation } from '../inputs';
 import { ILayoutProps, LayoutContext } from '../layouts';
 import { FormikSpelContext, SimpleSpelInput, SpelAwareInputMode, SpelService, SpelToggle } from '../../spel';
+import { firstDefined } from '../../../utils';
 import { composeValidators, IValidator, useValidationData, Validators } from '../validation';
 
 export interface IFormikFieldProps<T> {

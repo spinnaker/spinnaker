@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { IReactSelectInputProps, ReactSelectInput, Tooltip } from 'core/presentation';
+import { IReactSelectInputProps, ReactSelectInput, Tooltip } from '../../../presentation';
 
 interface IRefreshableReactSelectInputProps extends IReactSelectInputProps {
   onRefreshClicked: () => void;

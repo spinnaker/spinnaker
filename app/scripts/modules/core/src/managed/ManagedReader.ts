@@ -1,6 +1,6 @@
 import { flatMap, get, set } from 'lodash';
 
-import { REST } from 'core/api';
+import { REST } from '../api';
 import {
   IManagedApplicationSummary,
   IManagedResourceDiff,
@@ -8,7 +8,7 @@ import {
   IManagedResourceEventHistory,
   IManagedResourceEventHistoryResponse,
   ManagedResourceStatus,
-} from 'core/domain';
+} from '../domain';
 
 import { resourceManager } from './resources/resourceRegistry';
 import { sortEnvironments } from './utils/sortEnvironments';

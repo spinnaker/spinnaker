@@ -2,13 +2,12 @@ import classNames from 'classnames';
 import { get } from 'lodash';
 import React from 'react';
 
-import { IExecutionStageSummary } from 'core/domain';
-import { LabelComponent, Markdown } from 'core/presentation';
-import { Popover } from 'core/presentation/Popover';
-import { logger } from 'core/utils';
-
+import { IExecutionStageSummary } from '../../../domain';
 import { IPipelineGraphNode } from './pipelineGraph.service';
+import { LabelComponent, Markdown } from '../../../presentation';
+import { Popover } from '../../../presentation/Popover';
 import { GroupExecutionPopover } from '../stages/group/GroupExecutionPopover';
+import { logger } from '../../../utils';
 
 export interface IPipelineGraphNodeProps {
   isExecution: boolean;

@@ -5,7 +5,7 @@ import { AccountTag, ExecutionDetailsSection, IExecutionDetailsSectionProps } fr
 import {
   CloudFoundryRecentLogs,
   CloudFoundryRecentLogsType,
-} from 'cloudfoundry/presentation/widgets/recentLogs/CloudFoundryRecentLogs';
+} from '../../../presentation/widgets/recentLogs/CloudFoundryRecentLogs';
 
 export class RunJobExecutionDetails extends React.Component<IExecutionDetailsSectionProps> {
   public static title = 'runJobDetails';

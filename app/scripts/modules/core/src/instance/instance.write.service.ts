@@ -1,8 +1,8 @@
-import { Application } from 'core/application/application.model';
-import { IInstance, IServerGroup, ITask } from 'core/domain';
-import { ReactInjector } from 'core/reactShims';
-import { ServerGroupReader } from 'core/serverGroup/serverGroupReader.service';
-import { IJob, TaskExecutor } from 'core/task/taskExecutor';
+import { Application } from '../application/application.model';
+import { IInstance, IServerGroup, ITask } from '../domain';
+import { ReactInjector } from '../reactShims';
+import { ServerGroupReader } from '../serverGroup/serverGroupReader.service';
+import { IJob, TaskExecutor } from '../task/taskExecutor';
 
 export interface IMultiInstanceGroup {
   account: string;

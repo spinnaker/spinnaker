@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 
-import { AccountService } from 'core/account/AccountService';
-import { IHelmTrigger } from 'core/domain/IHelmTrigger';
-import { HelpField } from 'core/help/HelpField';
-import { FormField, ReactSelectInput, TextInput } from 'core/presentation';
+import { AccountService } from '../../../../account/AccountService';
+import { IHelmTrigger } from '../../../../domain/IHelmTrigger';
+import { HelpField } from '../../../../help/HelpField';
+import { FormField, ReactSelectInput, TextInput } from '../../../../presentation';
 
 export interface IHelmTriggerTemplateProps {
   trigger: IHelmTrigger;

@@ -18,7 +18,7 @@ import {
   TaskMonitorWrapper,
   TaskReason,
 } from '@spinnaker/core';
-import { ICloudFoundryServerGroup } from 'cloudfoundry/domain';
+import { ICloudFoundryServerGroup } from '../../../domain';
 
 export interface ICloudFoundryResizeServerGroupModalProps extends IModalComponentProps {
   application: Application;

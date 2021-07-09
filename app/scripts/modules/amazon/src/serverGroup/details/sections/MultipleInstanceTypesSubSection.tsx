@@ -1,7 +1,9 @@
-import { IAmazonLaunchTemplateOverrides } from 'amazon';
 import React from 'react';
 
 import { CollapsibleSection, HelpField } from '@spinnaker/core';
+
+import { IAmazonLaunchTemplateOverrides } from '../../../index';
+
 import './multipleInstanceTypesSubSection.less';
 
 export function MultipleInstanceTypesSubSection(props: { instanceTypeOverrides: IAmazonLaunchTemplateOverrides[] }) {

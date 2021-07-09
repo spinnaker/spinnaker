@@ -1,8 +1,7 @@
 import React from 'react';
 
-import { IPipeline } from 'core/domain';
-
 import { ITriggersProps, Triggers } from './Triggers';
+import { IPipeline } from '../../../domain';
 
 export class TriggersWrapper extends React.Component<ITriggersProps> {
   private updatePipelineConfig = (changes: Partial<IPipeline>): void => {

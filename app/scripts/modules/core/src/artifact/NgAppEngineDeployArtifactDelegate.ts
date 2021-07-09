@@ -1,11 +1,11 @@
 import { IScope } from 'angular';
-import { IArtifactAccount } from 'core/account';
-import { IArtifactKindConfig, IArtifactSource, IExpectedArtifact, IPipeline, IStage } from 'core/domain';
-import { Registry } from 'core/registry';
 
 import { IExpectedArtifactSelectorViewControllerDelegate } from './ExpectedArtifactSelectorViewController';
 import { ExpectedArtifactSelectorViewControllerAngularDelegate } from './ExpectedArtifactSelectorViewControllerAngularDelegate';
+import { IArtifactAccount } from '../account';
+import { IArtifactKindConfig, IArtifactSource, IExpectedArtifact, IPipeline, IStage } from '../domain';
 import { ExpectedArtifactService } from './expectedArtifact.service';
+import { Registry } from '../registry';
 
 export class NgAppEngineDeployArtifactDelegate
   extends ExpectedArtifactSelectorViewControllerAngularDelegate<IArtifactSource<IStage | IPipeline>>

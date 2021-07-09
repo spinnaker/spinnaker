@@ -1,4 +1,4 @@
-import { IArtifact, IStage } from 'core';
+import { IArtifact, IStage } from '../../../../index';
 
 export interface IGoogleCloudBuildStage extends IStage {
   account?: string;

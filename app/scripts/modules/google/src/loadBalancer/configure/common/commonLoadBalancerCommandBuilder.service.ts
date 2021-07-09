@@ -12,9 +12,9 @@ import {
   NetworkReader,
   SubnetReader,
 } from '@spinnaker/core';
-import { GCE_CERTIFICATE_READER, GceCertificateReader, IGceCertificate } from 'google/certificate/certificate.reader';
-import { IGceHealthCheck } from 'google/domain/healthCheck';
-import { GCE_HEALTH_CHECK_READER, GceHealthCheckReader } from 'google/healthCheck/healthCheck.read.service';
+import { GCE_CERTIFICATE_READER, GceCertificateReader, IGceCertificate } from '../../../certificate/certificate.reader';
+import { IGceHealthCheck } from '../../../domain/healthCheck';
+import { GCE_HEALTH_CHECK_READER, GceHealthCheckReader } from '../../../healthCheck/healthCheck.read.service';
 
 export class GceCommonLoadBalancerCommandBuilder {
   private dataFetchers: { [key: string]: Function } = {

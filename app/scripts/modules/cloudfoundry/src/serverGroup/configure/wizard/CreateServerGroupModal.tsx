@@ -13,9 +13,9 @@ import {
   WizardModal,
   WizardPage,
 } from '@spinnaker/core';
-import { ICloudFoundryServerGroup } from 'cloudfoundry/domain';
 
 import { ServerGroupTemplateSelection } from './ServerGroupTemplateSelection';
+import { ICloudFoundryServerGroup } from '../../../domain';
 import { CloudFoundryServerGroupArtifactSettings } from './sections/artifactSettings/ArtifactSettings.cf';
 import { CloudFoundryServerGroupConstantArtifactSettings } from './sections/artifactSettings/ConstantArtifactSettings.cf';
 import { CloudFoundryServerGroupBasicSettings } from './sections/basicSettings/BasicSettings.cf';

@@ -1,13 +1,12 @@
 import { IController, module, toJson } from 'angular';
 import { cloneDeep } from 'lodash';
 
-import { Application, CONFIG_SECTION_FOOTER, IConfigSectionFooterViewState } from 'core/application';
-import { IClusterMatchRule } from 'core/cluster/ClusterRuleMatcher';
-import { SETTINGS } from 'core/config/settings';
-import { CLUSTER_MATCHES_COMPONENT } from 'core/widgets/cluster/clusterMatches.component';
-
+import { Application, CONFIG_SECTION_FOOTER, IConfigSectionFooterViewState } from '../application';
 import './chaosMonkey.help';
 import { CHAOS_MONKEY_EXCEPTIONS_COMPONENT } from './chaosMonkeyExceptions.component';
+import { IClusterMatchRule } from '../cluster/ClusterRuleMatcher';
+import { SETTINGS } from '../config/settings';
+import { CLUSTER_MATCHES_COMPONENT } from '../widgets/cluster/clusterMatches.component';
 
 import './chaosMonkeyConfig.component.less';
 

@@ -1,5 +1,5 @@
-import { Registry } from 'core/registry';
 import { PluginTrigger } from './PluginTrigger';
+import { Registry } from '../../../../registry';
 
 Registry.pipeline.registerTrigger({
   key: 'plugin',

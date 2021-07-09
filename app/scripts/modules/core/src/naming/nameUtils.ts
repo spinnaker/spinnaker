@@ -1,9 +1,8 @@
 import { isNil, padStart, pickBy } from 'lodash';
 
-import { Application } from 'core/application';
-import { ILoadBalancer, IServerGroup } from 'core/domain';
-
 import { IMoniker } from './IMoniker';
+import { Application } from '../application';
+import { ILoadBalancer, IServerGroup } from '../domain';
 
 export interface IComponentName {
   application: string;

@@ -1,6 +1,6 @@
 'use strict';
 
-import { IgorService } from 'core/ci';
+import { IgorService } from '../../../../ci';
 
 describe('Jenkins Stage Controller', function () {
   var scope, $q;

@@ -1,6 +1,6 @@
-import { Application } from 'core/application/application.model';
-import { ITask } from 'core/domain';
-import { IJob, TaskExecutor } from 'core/task/taskExecutor';
+import { Application } from '../application/application.model';
+import { ITask } from '../domain';
+import { IJob, TaskExecutor } from '../task/taskExecutor';
 
 export interface IFunctionUpsertCommand extends IJob {
   functionName: string;

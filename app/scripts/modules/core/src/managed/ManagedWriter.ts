@@ -1,5 +1,5 @@
-import { REST } from 'core/api';
-import { ConstraintStatus } from 'core/domain';
+import { REST } from '../api';
+import { ConstraintStatus } from '../domain';
 
 export interface IArtifactVersionRequest {
   application: string;

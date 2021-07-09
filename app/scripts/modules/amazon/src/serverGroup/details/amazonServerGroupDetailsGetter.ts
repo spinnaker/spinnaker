@@ -2,8 +2,8 @@ import { isEmpty } from 'lodash';
 import { Observable } from 'rxjs';
 
 import { AccountService, IServerGroupDetailsProps, ISubnet, ServerGroupReader, SubnetReader } from '@spinnaker/core';
-import { IAmazonLoadBalancer, IAmazonServerGroup, IAmazonServerGroupView } from 'amazon/domain';
-import { AwsReactInjector } from 'amazon/reactShims';
+import { IAmazonLoadBalancer, IAmazonServerGroup, IAmazonServerGroupView } from '../../domain';
+import { AwsReactInjector } from '../../reactShims';
 
 import { AutoScalingProcessService } from './scalingProcesses/AutoScalingProcessService';
 

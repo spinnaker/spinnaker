@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { FormikFormField, SelectInput, StandardFieldLayout } from 'core/presentation';
-import { LayoutProvider } from 'core/presentation';
+import { FormikFormField, SelectInput, StandardFieldLayout } from '../../../../presentation';
+import { LayoutProvider } from '../../../../presentation';
 
 import { FormikStageConfig } from '../../stages/FormikStageConfig';
 
