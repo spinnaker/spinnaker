@@ -1205,9 +1205,8 @@ class ClusterHandler(
   private val ServerGroup.securityGroupIds: Collection<String>
     get() = dependencies
       .securityGroupNames
-      // no need to specify these as Orca will auto-assign them, also the application security group
-      // gets auto-created so may not exist yet
-      .filter { it !in setOf("nf-infrastructure", "nf-datacenter", moniker.app) }
+      // no need to specify these as Orca will auto-assign them
+      .filter { it !in setOf("nf-infrastructure", "nf-datacenter") }
       .map {
         cloudDriverCache.securityGroupByName(location.account, location.region, it).id
       }
