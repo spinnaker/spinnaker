@@ -29,12 +29,13 @@ git diff "$TARGET_BRANCH" -- . >/dev/null || exit $?
 # Tests are run against an ephemeral merge commit so we don't have to merge in $TARGET_BRANCH
 
 HAS_PURE_PKG_BUMP=false
-for PKGJSON in ../app/scripts/modules/*/package.json ; do
+for PKGJSON in ../packages/*/package.json ; do
   MODULE=$(basename "$(dirname "$PKGJSON")")
 
   IS_PRIVATE_PKG=$(jq .private $PKGJSON)
+  TURN_OFF=true # Temporarily turning it off due to moving packages
   HAS_PKG_BUMP=$(git diff -U0 "$TARGET_BRANCH" -- "$PKGJSON" | grep -c '"version":')
-  if [ $IS_PRIVATE_PKG != "true" ] &&  [ "$HAS_PKG_BUMP" -ne 0 ] ; then
+  if [ $TURN_OFF != "true" ] && [ $IS_PRIVATE_PKG != "true" ] &&  [ "$HAS_PKG_BUMP" -ne 0 ] ; then
     FROM_VERSION=$(git diff "$TARGET_BRANCH" -- "$PKGJSON" | grep '^-.*"version":' | sed -e 's/^.*version": "//' -e 's/[",]//g')
     TO_VERSION=$(git diff "$TARGET_BRANCH" -- "$PKGJSON" | grep '^\+.*"version":' | sed -e 's/^.*": "//' -e 's/[",]//g')
 
@@ -58,8 +59,8 @@ for PKGJSON in ../app/scripts/modules/*/package.json ; do
     fi
 
 
-    # checking that the only files changed are app/scripts/modules/*/package.json
-    OTHER_FILES_CHANGED=$(git diff --name-only "$TARGET_BRANCH" | grep -c -v "app/scripts/modules/.*/package.json")
+    # checking that the only files changed are packages/*/package.json
+    OTHER_FILES_CHANGED=$(git diff --name-only "$TARGET_BRANCH" | grep -c -v "packages/.*/package.json")
     if [ "$OTHER_FILES_CHANGED" -ne 0 ] ; then
       echo "==================================================="
       echo "                Impure package bump"

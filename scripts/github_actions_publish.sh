@@ -24,7 +24,7 @@ if [ "x${GITHUB_ACTIONS}" != "xtrue" ] ; then
   exit 2
 fi
 
-MODULES_DIR="app/scripts/modules"
+MODULES_DIR="packages"
 
 # Check that the module exists and the last commit modifying <module>/package.json contains a version bump ONLY
 echo "Deck package publisher ---> Checking that (${MODULE}) exist..."

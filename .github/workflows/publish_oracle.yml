@@ -5,7 +5,7 @@ on:
     branches:
       - 'master'
     paths:
-      - 'app/scripts/modules/oracle/package.json'
+      - 'packages/oracle/package.json'
 
 jobs:
   build:

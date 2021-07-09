@@ -5,7 +5,7 @@ on:
     branches:
       - 'master'
     paths:
-      - 'app/scripts/modules/amazon/package.json'
+      - 'packages/amazon/package.json'
 
 jobs:
   build:

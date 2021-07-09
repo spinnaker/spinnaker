@@ -5,7 +5,7 @@ on:
     branches:
       - 'master'
     paths:
-      - 'app/scripts/modules/google/package.json'
+      - 'packages/google/package.json'
 
 jobs:
   build:

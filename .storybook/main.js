@@ -5,8 +5,8 @@ const deckWebpackConfigurer = require('../webpack.config');
 module.exports = {
   addons: ['@storybook/preset-typescript', '@storybook/addon-essentials', '@storybook/addon-storysource'],
   stories: [
-    '../app/scripts/modules/core/src/presentation/**/*.stories.[tj]sx',
-    '../app/scripts/modules/core/src/presentation/**/*.stories.mdx',
+    '../packages/core/src/presentation/**/*.stories.[tj]sx',
+    '../packages/core/src/presentation/**/*.stories.mdx',
   ],
   webpackFinal: async (config) => {
     const deckWebpackConfig = deckWebpackConfigurer({}, {});

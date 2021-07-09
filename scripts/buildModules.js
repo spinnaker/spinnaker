@@ -5,7 +5,7 @@ const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 
 const DECK_ROOT = path.resolve(__dirname, '..');
-const MODULES_ROOT = path.resolve(`${DECK_ROOT}/app/scripts/modules`);
+const MODULES_ROOT = path.resolve(`${DECK_ROOT}/packages`);
 
 const runYarnBuild = (pathToPackage) => {
   const cmd = `yarn --cwd ${pathToPackage} build`;

@@ -5,7 +5,7 @@ on:
     branches:
       - 'master'
     paths:
-      - 'app/scripts/modules/appengine/package.json'
+      - 'packages/appengine/package.json'
 
 jobs:
   build:

@@ -5,7 +5,7 @@ on:
     branches:
       - 'master'
     paths:
-      - 'app/scripts/modules/docker/package.json'
+      - 'packages/docker/package.json'
 
 jobs:
   build:

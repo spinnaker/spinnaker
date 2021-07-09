@@ -17,11 +17,25 @@
   },
   "private": true,
   "workspaces": [
-    "app/scripts/modules/*",
+    "app/scripts/modules/app",
+    "packages/amazon",
+    "packages/appengine",
+    "packages/azure",
+    "packages/cloudfoundry",
+    "packages/core",
+    "packages/dcos",
+    "packages/docker",
+    "packages/ecs",
     "packages/eslint-plugin",
+    "packages/google",
+    "packages/huaweicloud",
+    "packages/kubernetes",
+    "packages/oracle",
     "packages/pluginsdk",
     "packages/presentation",
-    "packages/scripts"
+    "packages/scripts",
+    "packages/tencentcloud",
+    "packages/titus"
   ],
   "scripts": {
     "clean": "npx rimraf .awcache .cache-loader build node_modules/.cache transpiled && cd app/scripts/modules/app/ && npm run clean",

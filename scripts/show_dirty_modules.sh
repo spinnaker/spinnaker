@@ -3,7 +3,7 @@
 cd "$(dirname "$0")" || exit 1;
 pushd ../
 
-MODULES_DIR="app/scripts/modules"
+MODULES_DIR="packages"
 
 for PKGJSON in $MODULES_DIR/*/package.json ; do
   MODULE=$(dirname "$PKGJSON");

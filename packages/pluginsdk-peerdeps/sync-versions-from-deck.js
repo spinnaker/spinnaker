@@ -37,7 +37,7 @@ const versionsFromDeck = {
 const getDesiredVersion = (pkgName) => {
   switch (pkgName) {
     case '@spinnaker/core':
-      return parse(getPath('../../app/scripts/modules/core/package.json')).version;
+      return parse(getPath('../core/package.json')).version;
     case '@spinnaker/eslint-plugin':
       return parse(getPath('../eslint-plugin/package.json')).version;
     case '@spinnaker/presentation':

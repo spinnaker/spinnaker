@@ -5,7 +5,7 @@ on:
     branches:
       - 'master'
     paths:
-      - 'app/scripts/modules/azure/package.json'
+      - 'packages/azure/package.json'
 
 jobs:
   build:

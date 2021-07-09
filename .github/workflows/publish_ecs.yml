@@ -5,7 +5,7 @@ on:
     branches:
       - 'master'
     paths:
-      - 'app/scripts/modules/ecs/package.json'
+      - 'packages/ecs/package.json'
 
 jobs:
   build:

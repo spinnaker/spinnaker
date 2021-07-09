@@ -7,7 +7,7 @@ const ansi = require('sisteransi');
 const yargs = require('yargs');
 const { execSync } = require('child_process');
 
-const MODULES_DIR = 'app/scripts/modules';
+const MODULES_DIR = 'packages';
 
 yargs.scriptName('publish.js').usage('$0 [args] [explicitPackage1...] [explicitPackage2...]').option('assert-master', {
   type: 'boolean',
@@ -19,17 +19,30 @@ const explicitPackages = yargs.argv._;
 
 const p = (str) => process.stdout.write(str);
 const getPackagePath = (pkg) => path.resolve(`${MODULES_DIR}/${pkg}`);
-const isPackagePrivate = (pkg) => {
-  return !!JSON.parse(fs.readFileSync(`${getPackagePath(pkg)}/package.json`)).private;
-};
+const supportedPackages = new Set([
+  'amazon',
+  'appengine',
+  'azure',
+  'cloudfoundry',
+  'core',
+  'dcos',
+  'docker',
+  'ecs',
+  'google',
+  'huaweicloud',
+  'kubernetes',
+  'oracle',
+  'tencentcloud',
+  'titus',
+]);
 
 process.chdir(`${__dirname}/..`);
 const files = fs.readdirSync(path.resolve(MODULES_DIR));
 const pkgs = files.filter(
   (file) =>
+    supportedPackages.has(file) &&
     fs.statSync(`${MODULES_DIR}/${file}`).isDirectory() &&
-    fs.existsSync(`${getPackagePath(file)}/package.json`) &&
-    !isPackagePrivate(file),
+    fs.existsSync(`${getPackagePath(file)}/package.json`),
 );
 
 // Ensure 'gh' is installed

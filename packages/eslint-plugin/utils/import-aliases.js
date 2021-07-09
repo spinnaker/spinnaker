@@ -7,23 +7,23 @@ function locateSourceFile(modulesPath, moduleName, importPath = '') {
   const indexFiles = ['', 'index'];
   const extensions = ['.ts', '.tsx', '.js', '.jsx'];
 
-  const paths = srcPrefixes.map(prefix =>
-    extensions.map(extension =>
-      indexFiles.map(indexFile => {
+  const paths = srcPrefixes.map((prefix) =>
+    extensions.map((extension) =>
+      indexFiles.map((indexFile) => {
         return path.join(modulesPath, moduleName, prefix, importPath, indexFile) + extension;
       }),
     ),
   );
 
-  return flattenDeep(paths).find(p => fs.existsSync(p));
+  return flattenDeep(paths).find((p) => fs.existsSync(p));
 }
 
 function _getAllSpinnakerPackages(modulesPath) {
   const paths = fs.readdirSync(modulesPath);
   return paths
-    .map(file => path.join(modulesPath, file))
-    .filter(child => fs.statSync(child).isDirectory())
-    .map(packagePath => packagePath.split('/').pop());
+    .map((file) => path.join(modulesPath, file))
+    .filter((child) => fs.statSync(child).isDirectory())
+    .map((packagePath) => packagePath.split('/').pop());
 }
 
 const getAllSpinnakerPackages = memoize(_getAllSpinnakerPackages);
@@ -59,7 +59,7 @@ function getAliasImport(allSpinnakerPackages, importString) {
 
 /**
  * If code imports from .. relatively, returns the potential alias
- * Assume all examples are from a file /app/scripts/modules/core/subdir/file.ts
+ * Assume all examples are from a file /packages/core/subdir/file.ts
  * Given '../../amazon/loadbalancers/loadbalancer', returns { pkg: 'amazon', path: 'loadbalancers/loadbalancer' };
  * Given '../widgets/button', returns { pkg: 'core', path: 'widgets/button' };
  * Given './file2', returns { pkg: 'core', path: 'subdir/file2' };

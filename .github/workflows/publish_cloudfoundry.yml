@@ -5,7 +5,7 @@ on:
     branches:
       - 'master'
     paths:
-      - 'app/scripts/modules/cloudfoundry/package.json'
+      - 'packages/cloudfoundry/package.json'
 
 jobs:
   build:

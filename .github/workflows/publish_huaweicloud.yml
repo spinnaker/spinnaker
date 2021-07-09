@@ -5,7 +5,7 @@ on:
     branches:
       - 'master'
     paths:
-      - 'app/scripts/modules/huaweicloud/package.json'
+      - 'packages/huaweicloud/package.json'
 
 jobs:
   build:

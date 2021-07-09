@@ -5,7 +5,7 @@ on:
     branches:
       - 'master'
     paths:
-      - 'app/scripts/modules/titus/package.json'
+      - 'packages/titus/package.json'
 
 jobs:
   build:

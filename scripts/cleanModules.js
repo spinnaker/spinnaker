@@ -13,17 +13,12 @@ const readDirsFromPath = (path) =>
     .map((entry) => `${path}/${entry.name}`);
 
 const ignorePackages = new Set(['mocks', 'pluginsdk-peerdeps', 'dcos']);
-const allPackages = [
-  ...readDirsFromPath(path.resolve(`${DECK_ROOT}/packages`)).filter(
-    (dirName) => !ignorePackages.has(path.basename(dirName)),
-  ),
-  ...readDirsFromPath(path.resolve(`${DECK_ROOT}/app/scripts/modules`)).filter(
-    (dirName) => !ignorePackages.has(path.basename(dirName)),
-  ),
-];
+const packages = readDirsFromPath(path.resolve(`${DECK_ROOT}/packages`)).filter(
+  (dirName) => !ignorePackages.has(path.basename(dirName)),
+);
 
 Promise.all(
-  allPackages.map((pathToPackage) => {
+  packages.map((pathToPackage) => {
     console.log(`Cleaning ${pathToPackage}`);
     return exec(`cd ${pathToPackage} && rm -rf node_modules dist`);
   }),

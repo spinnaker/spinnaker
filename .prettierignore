@@ -1,3 +1,3 @@
 package.json
-app/scripts/modules/*/lib
+**/dist/**/*
 **/node_modules/**/*

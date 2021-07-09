@@ -5,7 +5,7 @@ on:
     branches:
       - 'master'
     paths:
-      - 'app/scripts/modules/kubernetes/package.json'
+      - 'packages/kubernetes/package.json'
 
 jobs:
   build:

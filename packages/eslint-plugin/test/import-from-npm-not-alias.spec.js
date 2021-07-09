@@ -9,14 +9,14 @@ const rule = require('../rules/import-from-npm-not-alias');
 ruleTester.run('import-from-npm-not-alias', rule, {
   valid: [
     {
-      filename: '/root/spinnaker/deck/app/scripts/modules/amazon/package/amazon_source_file.ts',
+      filename: '/root/spinnaker/deck/packages/amazon/package/amazon_source_file.ts',
       code: `import { Anything } from 'amazon/otherpackage';`,
     },
   ],
 
   invalid: [
     {
-      filename: '/root/spinnaker/deck/app/scripts/modules/amazon/package/amazon_source_file.ts',
+      filename: '/root/spinnaker/deck/packages/amazon/package/amazon_source_file.ts',
       code: `import { Anything } from 'core/otherpackage';`,
       output: `import { Anything } from '@spinnaker/core';`,
       errors: [
