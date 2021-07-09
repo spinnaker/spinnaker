@@ -582,8 +582,6 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
    * @param newAsgDescription description in request
    * @return a list of {@link AmazonBlockDevice} for the requested configuration
    */
-  @VisibleForTesting
-  @PackageScope
   List<AmazonBlockDevice> buildBlockDeviceMappingsFromSourceAsg(
     RegionScopedProviderFactory.RegionScopedProvider sourceAsgRegionScopedProvider,
     AutoScalingGroup sourceAsg,

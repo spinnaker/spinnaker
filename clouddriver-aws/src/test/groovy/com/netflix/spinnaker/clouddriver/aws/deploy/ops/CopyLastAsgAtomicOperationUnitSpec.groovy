@@ -44,6 +44,7 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AWSServerGroupNameResolv
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType
 import com.netflix.spinnaker.clouddriver.aws.deploy.validators.BasicAmazonDeployDescriptionValidator
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonAsgLifecycleHook
+import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.services.AsgService
 import com.netflix.spinnaker.clouddriver.aws.services.LaunchTemplateService
@@ -104,9 +105,12 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
   @Unroll
   void "operation builds description based on ancestor asg backed by a launch template"() {
     given:
-    description.spotPrice = requestSpotPrice
+    description.availabilityZones = ['us-east-1': []]
+    description.spotPrice = reqSpotPrice
+    description.blockDevices = reqBlockDevices
 
     and:
+    def blockDevicesFromSrcAsg = [new AmazonBlockDevice(deviceName: "/dev/src")]
     def launchTemplateVersion = new LaunchTemplateVersion(
       launchTemplateName: "foo",
       launchTemplateId: "foo",
@@ -118,18 +122,9 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
             maxPrice: ancestorSpotPrice
           )
         ),
-        blockDeviceMappings: [
-          new LaunchTemplateBlockDeviceMapping(
-            deviceName: "/dev/sdb",
-            ebs: new LaunchTemplateEbsBlockDevice(
-              volumeSize: 125
-            )
-          ),
-          new LaunchTemplateBlockDeviceMapping(
-            deviceName: "/dev/sdc",
-            virtualName: "ephemeral1"
-          )
-        ]
+        blockDeviceMappings: blockDevicesFromSrcAsg?.collect {
+          new LaunchTemplateBlockDeviceMapping().withVirtualName(it.virtualName).withDeviceName(it.deviceName)
+        }
       )
     )
 
@@ -143,40 +138,43 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     regionScopedProviderStub.getLaunchTemplateService() >> Mock(LaunchTemplateService) {
       getLaunchTemplateVersion(launchTemplateSpec) >> Optional.of(launchTemplateVersion)
     }
+    def mockAncestorAsg = Mock(AutoScalingGroup)
+    mockAncestorAsg.getAutoScalingGroupName() >> "asgard-stack-v000"
+    mockAncestorAsg.getMinSize() >> 0
+    mockAncestorAsg.getMaxSize() >> 2
+    mockAncestorAsg.getDesiredCapacity() >> 4
+    mockAncestorAsg.getLaunchTemplate() >> launchTemplateSpec
+    mockAncestorAsg.getTags() >> [new TagDescription().withKey('Name').withValue('name-tag')]
+    deployHandler.buildBlockDeviceMappingsFromSourceAsg(regionScopedProviderStub, mockAncestorAsg, description) >> blockDevicesFromSrcAsg
 
     when:
     def result = op.operate([])
 
     then:
     result.serverGroupNameByRegion['us-east-1'] == 'asgard-stack-v001'
-    result.serverGroupNameByRegion['us-west-1'] == 'asgard-stack-v001'
-    result.serverGroupNames == ['asgard-stack-v001', 'asgard-stack-v001']
+    result.serverGroupNames == ['asgard-stack-v001']
 
-    2 * mockAutoScaling.describeAutoScalingGroups(_) >> {
-      def mockAsg = Mock(AutoScalingGroup)
-      mockAsg.getAutoScalingGroupName() >> "asgard-stack-v000"
-      mockAsg.getMinSize() >> 0
-      mockAsg.getMaxSize() >> 2
-      mockAsg.getDesiredCapacity() >> 4
-      mockAsg.getLaunchTemplate() >> launchTemplateSpec
-      mockAsg.getTags() >> [new TagDescription().withKey('Name').withValue('name-tag')]
-      new DescribeAutoScalingGroupsResult().withAutoScalingGroups([mockAsg])
+    1 * mockAutoScaling.describeAutoScalingGroups(_) >> {
+      new DescribeAutoScalingGroupsResult().withAutoScalingGroups([mockAncestorAsg])
     }
 
-    2 * serverGroupNameResolver.resolveLatestServerGroupName("asgard-stack") >> { "asgard-stack-v000" }
+    1 * serverGroupNameResolver.resolveLatestServerGroupName("asgard-stack") >> { "asgard-stack-v000" }
     0 * serverGroupNameResolver._
-    1 * deployHandler.handle(expectedDescription(expectedSpotPrice, "us-east-1"), _) >>
-      new DeploymentResult(serverGroupNames: ['asgard-stack-v001'], serverGroupNameByRegion: ['us-east-1': 'asgard-stack-v001'])
-    1 * deployHandler.handle(expectedDescription(expectedSpotPrice, "us-west-1"), _) >>
-      new DeploymentResult(serverGroupNames: ['asgard-stack-v001'], serverGroupNameByRegion: ['us-west-1': 'asgard-stack-v001'])
+    1 * deployHandler.handle(_ as BasicAmazonDeployDescription, _) >> { arguments ->
+      BasicAmazonDeployDescription actualDesc = arguments[0]
+      def expectedDesc = expectedDescription(expectedSpotPrice, "us-east-1", null,null,null,null, expectedBlockDevices)
+
+      assert actualDesc.blockDevices == expectedDesc.blockDevices
+      assert actualDesc == expectedDesc; new DeploymentResult(serverGroupNames: ['asgard-stack-v001'], serverGroupNameByRegion: ['us-east-1': 'asgard-stack-v001'])
+    }
 
     where:
-    requestSpotPrice | ancestorSpotPrice || expectedSpotPrice
-    "0.25"           | null              || "0.25"
-    "0.25"           | "0.5"             || "0.25"
-    null             | "0.25"            || "0.25"
-    ""               | "0.25"            || null
-    null             | null              || null
+    reqSpotPrice | ancestorSpotPrice || expectedSpotPrice ||              reqBlockDevices                    || expectedBlockDevices
+        "0.25"   | null              || "0.25"            ||                    null                         || [new AmazonBlockDevice(deviceName: "/dev/src")]
+        "0.25"   | "0.5"             || "0.25"            ||                     []                          || []
+        null     | "0.25"            || "0.25"            || [new AmazonBlockDevice(deviceName: "/dev/req")] || [new AmazonBlockDevice(deviceName: "/dev/req")]
+         ""      | "0.25"            || null              || [new AmazonBlockDevice(deviceName: "/dev/req")] || [new AmazonBlockDevice(deviceName: "/dev/req")]
+        null     | null              || null              || [new AmazonBlockDevice(deviceName: "/dev/req")] || [new AmazonBlockDevice(deviceName: "/dev/req")]
   }
 
   @Unroll
@@ -507,7 +505,8 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
           String instanceType = null,
           Boolean unlimitedCpuCredits = null,
           MixedInstancesPolicy mip = null,
-          List<LaunchTemplateOverridesForInstanceType> overrides = null
+          List<LaunchTemplateOverridesForInstanceType> overrides = null,
+          List<AmazonBlockDevice> blockDevices = null
   ) {
     def desc = new BasicAmazonDeployDescription(
       application: 'asgard',
@@ -526,7 +525,8 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
         region: null
       ),
       unlimitedCpuCredits: unlimitedCpuCredits,
-      instanceType: instanceType
+      instanceType: instanceType,
+      blockDevices: blockDevices
     )
 
     if (mip) {

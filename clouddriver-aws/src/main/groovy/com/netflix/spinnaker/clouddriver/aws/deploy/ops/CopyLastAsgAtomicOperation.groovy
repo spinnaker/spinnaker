@@ -280,7 +280,7 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
         newDescription.tags = description.tags != null ? description.tags : ancestorAsg.tags?.collectEntries {
           [(it.getKey()): it.getValue()]
         }
-//        newDescription.blockDevices  // todo(pdk27): FixMe. This seems like an incomplete LOC related to blockDevicesTags https://github.com/spinnaker/clouddriver/pull/5244/files.
+        newDescription.blockDevices = description.blockDevices != null ? description.blockDevices : basicAmazonDeployHandler.buildBlockDeviceMappingsFromSourceAsg(sourceRegionScopedProvider, ancestorAsg, description)
         newDescription.capacityRebalance = description.capacityRebalance != null ? description.capacityRebalance : ancestorAsg.capacityRebalance
         newDescription.lifecycleHooks = description.lifecycleHooks != null && !description.lifecycleHooks.isEmpty()
           ? description.lifecycleHooks
