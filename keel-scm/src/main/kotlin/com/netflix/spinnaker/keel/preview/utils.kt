@@ -103,19 +103,27 @@ fun ClassicLoadBalancerSpec.withDependencies(deps: Set<Dependency>): ClassicLoad
       securityGroupNames = commonDeps.namesForType(SECURITY_GROUP)
     ),
     overrides = overrides.mapValues { (region, override) ->
-      override.copy(
-        dependencies = LoadBalancerDependencies(
-          securityGroupNames = overrideDeps[region].namesForType(SECURITY_GROUP)
+      val secGroupOverrides = overrideDeps[region].namesForType(SECURITY_GROUP)
+      if (secGroupOverrides.isNotEmpty()) {
+        override.copy(
+          dependencies = LoadBalancerDependencies(
+            securityGroupNames = secGroupOverrides
+          )
         )
-      )
+      } else {
+        override
+      }
     }.toMutableMap().apply {
       // for the case where the region was previously not present in the overrides
       overrideDeps.forEach { (region, deps) ->
-        putIfAbsent(region, ClassicLoadBalancerOverride(
-          dependencies = LoadBalancerDependencies(
-            securityGroupNames = overrideDeps[region].namesForType(SECURITY_GROUP)
-          )
-        ))
+        val secGroupOverrides = overrideDeps[region].namesForType(SECURITY_GROUP)
+        if (secGroupOverrides.isNotEmpty()) {
+          putIfAbsent(region, ClassicLoadBalancerOverride(
+            dependencies = LoadBalancerDependencies(
+              securityGroupNames = secGroupOverrides
+            )
+          ))
+        }
       }
     }
   )
@@ -131,19 +139,27 @@ fun ApplicationLoadBalancerSpec.withDependencies(deps: Set<Dependency>): Applica
       securityGroupNames = commonDeps.namesForType(SECURITY_GROUP)
     ),
     overrides = overrides.mapValues { (region, override) ->
-      override.copy(
-        dependencies = LoadBalancerDependencies(
-          securityGroupNames = overrideDeps[region].namesForType(SECURITY_GROUP)
+      val secGroupOverrides = overrideDeps[region].namesForType(SECURITY_GROUP)
+      if (secGroupOverrides.isNotEmpty()) {
+        override.copy(
+          dependencies = LoadBalancerDependencies(
+            securityGroupNames = secGroupOverrides
+          )
         )
-      )
+      } else {
+        override
+      }
     }.toMutableMap().apply {
       // for the case where the region was previously not present in the overrides
       overrideDeps.forEach { (region, deps) ->
-        putIfAbsent(region, ApplicationLoadBalancerOverride(
-          dependencies = LoadBalancerDependencies(
-            securityGroupNames = overrideDeps[region].namesForType(SECURITY_GROUP)
-          )
-        ))
+        val secGroupOverrides = overrideDeps[region].namesForType(SECURITY_GROUP)
+        if (secGroupOverrides.isNotEmpty()) {
+          putIfAbsent(region, ApplicationLoadBalancerOverride(
+            dependencies = LoadBalancerDependencies(
+              securityGroupNames = secGroupOverrides
+            )
+          ))
+        }
       }
     }
   )

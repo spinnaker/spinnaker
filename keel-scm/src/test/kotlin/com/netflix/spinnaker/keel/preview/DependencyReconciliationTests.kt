@@ -127,12 +127,12 @@ class DependencyReconciliationTests {
   )
 
   private val clusterDeps = setOf(
-    Dependency(LOAD_BALANCER, "us-west-2", "fnord-internal"),
-    Dependency(SECURITY_GROUP, "us-west-2","fnord"),
-    Dependency(SECURITY_GROUP, "us-west-2","fnord-elb"),
     Dependency(LOAD_BALANCER, "us-east-1", "fnord-internal"),
+    Dependency(LOAD_BALANCER, "us-west-2", "fnord-internal"),
     Dependency(SECURITY_GROUP, "us-east-1","fnord"),
+    Dependency(SECURITY_GROUP, "us-west-2","fnord"),
     Dependency(SECURITY_GROUP, "us-east-1","fnord-elb"),
+    Dependency(SECURITY_GROUP, "us-west-2","fnord-elb"),
     Dependency(LOAD_BALANCER, "us-east-1", "fnord-external"),
     Dependency(SECURITY_GROUP, "us-east-1","fnord-ext")
   )
@@ -152,8 +152,8 @@ class DependencyReconciliationTests {
 
   private val loadBalancerDeps = setOf(
     Dependency(SECURITY_GROUP, "us-east-1","fnord"),
-    Dependency(SECURITY_GROUP, "us-east-1","fnord-elb"),
     Dependency(SECURITY_GROUP, "us-west-2","fnord"),
+    Dependency(SECURITY_GROUP, "us-east-1","fnord-elb"),
     Dependency(SECURITY_GROUP, "us-west-2","fnord-elb"),
   )
 
@@ -165,6 +165,12 @@ class DependencyReconciliationTests {
   fun `EC2 cluster spec is forward-compatible with Dependent interface`() {
     expectThat(ec2ClusterSpec.dependsOn)
       .isEqualTo(clusterDeps)
+  }
+
+  @Test
+  fun `EC2 cluster spec copy with the same dependencies returns the same spec`() {
+    expectThat(ec2ClusterSpec.withDependencies(ClusterSpec::class, clusterDeps))
+      .isEqualTo(ec2ClusterSpec)
   }
 
   @Test
@@ -180,6 +186,12 @@ class DependencyReconciliationTests {
   }
 
   @Test
+  fun `Titus cluster spec copy with the same dependencies returns the same spec`() {
+    expectThat(titusClusterSpec.withDependencies(TitusClusterSpec::class, clusterDeps))
+      .isEqualTo(titusClusterSpec)
+  }
+
+  @Test
   fun `Titus cluster spec copy with updated dependencies is correct`() {
     expectThat(titusClusterSpec.withDependencies(TitusClusterSpec::class, updatedClusterDeps).dependsOn)
       .isEqualTo(updatedClusterDeps)
@@ -192,6 +204,13 @@ class DependencyReconciliationTests {
   }
 
   @Test
+  fun `ALB spec copy with the same dependencies returns the same spec`() {
+    expectThat(albSpec.withDependencies(ApplicationLoadBalancerSpec::class, loadBalancerDeps))
+      .isEqualTo(albSpec)
+  }
+
+
+  @Test
   fun `ALB spec copy with updated dependencies is correct`() {
     expectThat(albSpec.withDependencies(ApplicationLoadBalancerSpec::class, updatedLoadBalancerDeps).dependsOn)
       .isEqualTo(updatedLoadBalancerDeps)
@@ -201,6 +220,12 @@ class DependencyReconciliationTests {
   fun `CLB spec is forward-compatible with Dependent interface`() {
     expectThat(clbSpec.dependsOn)
       .isEqualTo(loadBalancerDeps)
+  }
+
+  @Test
+  fun `CLB spec copy with the same dependencies returns the same spec`() {
+    expectThat(clbSpec.withDependencies(ClassicLoadBalancerSpec::class, loadBalancerDeps))
+      .isEqualTo(clbSpec)
   }
 
   @Test
