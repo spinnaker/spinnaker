@@ -1,8 +1,6 @@
 package com.netflix.spinnaker.keel.notifications.slack.handlers
 
-import com.netflix.spinnaker.config.BaseUrlConfig
 import com.netflix.spinnaker.keel.api.NotificationDisplay
-import com.netflix.spinnaker.keel.api.NotificationDisplay.*
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.artifacts.ArtifactVersionLinks
@@ -15,7 +13,6 @@ import com.netflix.spinnaker.keel.notifications.slack.SlackService
 import com.slack.api.methods.response.chat.ChatPostMessageResponse
 import com.slack.api.model.block.LayoutBlock
 import com.slack.api.model.kotlin_extension.block.withBlocks
-import org.apache.logging.log4j.util.Strings
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
@@ -32,40 +29,6 @@ class ManualJudgmentNotificationHandler(
   override val supportedTypes = listOf(MANUAL_JUDGMENT_AWAIT)
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  private fun SlackManualJudgmentNotification.headerText(): String {
-    return "Awaiting manual judgement"
-  }
-
-  private fun SlackManualJudgmentNotification.compactMessage(numToBePromoted: Int, author: String?): List<LayoutBlock> {
-    return constructCompactMessageWithoutButtons(
-      targetEnvironment,
-      application,
-      artifactCandidate,
-      pinnedArtifact,
-      headerText(),
-      author,
-      gitDataGenerator,
-      numToBePromoted
-    )
-  }
-
-  private fun SlackManualJudgmentNotification.normalMessage(numToBePromoted: Int): List<LayoutBlock> {
-    val headerText = "Awaiting manual judgement"
-    val imageUrl = "https://raw.githubusercontent.com/spinnaker/spinnaker.github.io/master/assets/images/md_icons/mj_needed.png"
-
-    return constructNormalMessageWithoutButtons(
-      targetEnvironment,
-      application,
-      artifactCandidate,
-      pinnedArtifact,
-      headerText,
-      imageUrl,
-      "mj_needed",
-      gitDataGenerator,
-      numToBePromoted
-    )
-  }
-
   override fun sendMessage(
     notification: SlackManualJudgmentNotification,
     channel: String,
@@ -81,17 +44,8 @@ class ManualJudgmentNotificationHandler(
         version = artifactCandidate.version
       )
       val compareLink = artifactVersionLinks.generateCompareLink(artifactCandidate, currentArtifact, deliveryArtifact)
-      val headerText = "Awaiting manual judgement"
-      val author = if (artifactCandidate.gitMetadata?.commitInfo != null) {
-        artifactCandidate.gitMetadata?.author?.let { slackService.getUsernameByEmailPrefix(it) }
-      } else {
-        null
-      }
 
-      val uniqueBlocks = when(notificationDisplay) {
-        NORMAL -> notification.normalMessage(numVersionsToBePromoted)
-        COMPACT -> notification.compactMessage(numVersionsToBePromoted, author)
-      }
+      val descriptiveBlocks = notification.toBlocks(numVersionsToBePromoted)
 
       val actionBlocks = withBlocks {
         actions {
@@ -134,10 +88,10 @@ class ManualJudgmentNotificationHandler(
       val response: ChatPostMessageResponse? = slackService
         .sendSlackNotification(
           channel,
-          uniqueBlocks + actionBlocks,
+          descriptiveBlocks + actionBlocks,
           application = application,
           type = supportedTypes,
-          fallbackText = headerText
+          fallbackText = ":gavel: $application awaiting manual judgment in ${gitDataGenerator.toCode(targetEnvironment)}"
         )
 
       if (response?.isOk == true) {
@@ -148,107 +102,51 @@ class ManualJudgmentNotificationHandler(
     }
   }
 
+  private fun SlackManualJudgmentNotification.toBlocks(numToBePromoted: Int): List<LayoutBlock> {
+    return constructMessageWithoutButtons(
+      targetEnvironment,
+      application,
+      artifactCandidate,
+      pinnedArtifact,
+      gitDataGenerator,
+      numToBePromoted
+    )
+  }
+
   companion object {
 
     /**
      * Builds most of the normal notification in a way that can be re-used across handles
      * so that we can update the notification if a judgement is approved from the api
      */
-    fun constructCompactMessageWithoutButtons(
+    fun constructMessageWithoutButtons(
       environment: String,
       application: String,
       artifactCandidate: PublishedArtifact,
       pinnedArtifact: PublishedArtifact?,
-      headerText: String,
-      author: String?,
       gitDataGenerator: GitDataGenerator,
       numToBePromoted: Int,
       action: String = "awaiting judgement"
     ): List<LayoutBlock> {
-      val env = Strings.toRootUpperCase(environment)
-      val linkedCandidateVersion = "<${gitDataGenerator.generateArtifactUrl(application, artifactCandidate.reference, artifactCandidate.version)}|#${artifactCandidate.buildNumber ?: artifactCandidate.version}>"
-      var text = "${gitDataGenerator.linkedApp(application)} build $linkedCandidateVersion"
-      if (author != null) {
-        text += " by $author"
-      }
-      text += " $action in $env"
+
+      var text = gitDataGenerator.notificationBodyWithEnv(":gavel:", application, artifactCandidate, action, environment, "in")
+
       if (numToBePromoted > 1) {
         text += "\n(:speaking_head_in_silhouette: _$numToBePromoted ahead of current_)"
       }
+
       if (pinnedArtifact != null) {
         val pinnedUrl = "<${gitDataGenerator.generateArtifactUrl(application, pinnedArtifact.reference, pinnedArtifact.version)}|#${pinnedArtifact.buildNumber ?: pinnedArtifact.version}>"
         text += "\n :warning: Another version ($pinnedUrl) is pinned here. You will need to unpin before this version can be deployed."
       }
+
       return withBlocks {
         section {
-          markdownText(":gavel: *$headerText*\n$text")
+          markdownText(text)
         }
-
-        val gitMetadata = artifactCandidate.gitMetadata
-        if (gitMetadata != null) {
+        artifactCandidate.gitMetadata?.let { gitMetadata ->
           section {
             gitDataGenerator.generateScmInfo(this, application, gitMetadata, artifactCandidate)
-          }
-        }
-      }
-    }
-
-    /**
-     * Builds most of the normal notification in a way that can be re-used across handles
-     * so that we can update the notification if a judgement is approved from the api
-     */
-    fun constructNormalMessageWithoutButtons(
-      environment: String,
-      application: String,
-      artifactCandidate: PublishedArtifact,
-      pinnedArtifact: PublishedArtifact?,
-      headerText: String,
-      imageUrl: String,
-      imageAltText: String,
-      gitDataGenerator: GitDataGenerator,
-      numToBePromoted: Int
-    ): List<LayoutBlock> {
-      val env = Strings.toRootUpperCase(environment)
-      return withBlocks {
-        header {
-          text(headerText, emoji = true)
-        }
-
-        section {
-          gitDataGenerator.generateCommitInfo(
-            this,
-            application,
-            imageUrl,
-            artifactCandidate,
-            imageAltText,
-            env = env,
-          )
-        }
-        val gitMetadata = artifactCandidate.gitMetadata
-        if (gitMetadata != null) {
-          gitDataGenerator.conditionallyAddFullCommitMsgButton(this, gitMetadata)
-          section {
-            gitDataGenerator.generateScmInfo(this, application, gitMetadata, artifactCandidate)
-          }
-        }
-
-        // Add a warning section in case there's a pinned artifact
-        if (pinnedArtifact != null) {
-          section {
-            markdownText(":warning: Another version is pinned here. You will need to unpin it first to promote this version.")
-            accessory {
-              button {
-                text("See pinned version", emoji = true)
-                actionId("button:url:pinned")
-                url(gitDataGenerator.generateArtifactUrl(application, pinnedArtifact.reference, pinnedArtifact.version))
-              }
-            }
-          }
-        }
-        if (numToBePromoted > 1) {
-          // add warning if this will promote more than one artifact
-          section {
-            markdownText(":speaking_head_in_silhouette: _$numToBePromoted versions ahead of current_")
           }
         }
       }

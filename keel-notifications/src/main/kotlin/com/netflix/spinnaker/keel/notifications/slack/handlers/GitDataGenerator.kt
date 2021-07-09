@@ -46,6 +46,41 @@ class GitDataGenerator(
   fun generateConfigUrl(application: String): String =
     "${config.baseUrl}/#/applications/$application/environments/config"
 
+  fun generateArtifactUrl(application: String, reference: String, version: String) =
+    "${config.baseUrl}/#/applications/${application}/environments/${reference}/${version}"
+
+  fun generateShaUrl(application: String, sha: String) =
+    "${config.baseUrl}/#/applications/${application}/environments/history/?sha=$sha"
+
+  fun linkedApp(application: String) =
+    "<${envUrl(config, application)}|$application>"
+
+  fun toCode(env: String) = "`${env.toLowerCase()}`"
+
+  fun linkedTitleSnippet(artifact: PublishedArtifact, application: String): String {
+    var text = "${linkedApp(application)} build <${generateArtifactUrl(application, artifact.reference, artifact.version)}|#${artifact.buildNumber ?: artifact.version}>"
+    artifact.gitMetadata?.let { text += " " + getAuthor(it) }
+    return text
+  }
+
+  fun linkedCommitTitleSnippet(gitMetadata: GitMetadata, application: String): String {
+    var text = "${linkedApp(application)} in commit <${generateShaUrl(application, gitMetadata.commit.take(7))}|#${gitMetadata.commit.take(7)}>"
+    text += getAuthor(gitMetadata)
+    return text
+  }
+
+  fun notificationBodyWithEnv(emoji: String, application: String, artifact: PublishedArtifact, descriptiveText: String, env: String, preposition: String = "to"): String =
+    "$emoji *${linkedTitleSnippet(artifact, application)} $descriptiveText $preposition ${toCode(env)}*" +
+      "\n\n${formatCommitMessage(artifact.gitMetadata)}"
+
+  fun notificationBody(emoji: String, application: String, artifact: PublishedArtifact, descriptiveText: String) =
+    "$emoji *$descriptiveText for ${linkedTitleSnippet(artifact, application)}*" +
+      "\n\n${formatCommitMessage(artifact.gitMetadata)}"
+
+  fun notificationBodyWithCommit(emoji: String, application: String, gitMetadata: GitMetadata, descriptiveText: String) =
+    "$emoji *$descriptiveText for ${linkedCommitTitleSnippet(gitMetadata, application)}*" +
+      "\n\n${formatCommitMessage(gitMetadata)}"
+
   /**
    * Builds a modal with the full commit message
    */
@@ -197,20 +232,29 @@ class GitDataGenerator(
         text += "*Version:* ${artifact.version} for artifact reference ${artifact.reference}"
       }
 
-      if (buildMetadata?.number != null) {
-        text += "*Version:* $details <$url|#${buildMetadata?.number}> "
-      }
+      buildMetadata?.number?.let { number ->
+        text += "*Version:* $details <$url|#${number}> " }
 
-      if (gitMetadata?.commitInfo != null) {
-        val author = gitMetadata?.author
-        if (author != null) {
-          val username = slackService.getUsernameByEmailPrefix(author)
-          text += "by $username"
-        }
-      }
+      gitMetadata?.let { text += getAuthor(it) }
       return text
     }
   }
+
+  fun getAuthor(gitMetadata: GitMetadata): String {
+    with (gitMetadata) {
+      var authorText = ""
+      if (commitInfo != null) {
+        val author = author
+        if (author != null) {
+          val username = slackService.getUsernameByEmailPrefix(author)
+          authorText += "by $username"
+        }
+      }
+      return authorText
+    }
+  }
+
+
 
   /**
    * This is for generating delivery config commit updates.
@@ -289,11 +333,6 @@ class GitDataGenerator(
     }
   }
 
-  fun generateArtifactUrl(application: String, reference: String, version: String) =
-    "${config.baseUrl}/#/applications/${application}/environments/${reference}/${version}"
-
-  fun linkedApp(application: String) =
-    "<${envUrl(config, application)}|$application>"
 }
 
 fun envUrl(baseUrlConfig: BaseUrlConfig, application: String) =

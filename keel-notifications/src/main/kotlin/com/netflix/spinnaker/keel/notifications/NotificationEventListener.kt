@@ -106,11 +106,6 @@ class NotificationEventListener(
 
       val currentArtifact = repository.getArtifactVersionByPromotionStatus(config, pin.targetEnvironment, deliveryArtifact, PromotionStatus.CURRENT)
 
-      if (currentArtifact == null) {
-        log.debug("can't send pinned notification as current artifacts information is missing")
-        return
-      }
-
       sendSlackMessage(
         config,
         SlackPinnedNotification(

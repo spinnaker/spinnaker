@@ -31,24 +31,13 @@ class LifecycleEventNotificationHandler(
     with(notification) {
       log.debug("Sending lifecycle event $eventType notification for application ${notification.application}")
 
-      val imageUrl = when (eventType) {
-        LifecycleEventType.BAKE -> "https://raw.githubusercontent.com/spinnaker/spinnaker.github.io/master/assets/images/md_icons/bake_fail.png"
-        else -> Strings.EMPTY
-      }
-
-      val headerText = "${eventType.name} failed"
+      val headerText = ":x: :cake: Bake failed for ${gitDataGenerator.linkedTitleSnippet(artifact, application)}"
 
       val blocks = withBlocks {
-        header {
-          text(headerText, emoji = true)
-        }
-
         section {
-          gitDataGenerator.generateCommitInfo(this, application, imageUrl, artifact, "lifecycle")
+          markdownText(gitDataGenerator.notificationBody(":x::cake:", application, artifact, "Bake failed"))
         }
-        val gitMetadata = artifact.gitMetadata
-        if (gitMetadata != null) {
-          gitDataGenerator.conditionallyAddFullCommitMsgButton(this, gitMetadata)
+        artifact.gitMetadata?.let { gitMetadata ->
           section {
             gitDataGenerator.generateScmInfo(this, application, gitMetadata, artifact)
           }

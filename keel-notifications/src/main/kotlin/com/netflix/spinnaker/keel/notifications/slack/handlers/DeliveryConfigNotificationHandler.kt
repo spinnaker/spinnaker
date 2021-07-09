@@ -17,7 +17,6 @@ import org.springframework.stereotype.Component
 class DeliveryConfigNotificationHandler(
   private val slackService: SlackService,
   private val gitDataGenerator: GitDataGenerator,
-  private val baseUrlConfig: BaseUrlConfig
 ) : SlackNotificationHandler<SlackConfigNotification> {
   override val supportedTypes = listOf(DELIVERY_CONFIG_CHANGED)
 
@@ -32,74 +31,35 @@ class DeliveryConfigNotificationHandler(
     return ":pencil: $application delivery config $action"
   }
 
-  private fun SlackConfigNotification.compactMessage(): List<LayoutBlock> =
-    withBlocks {
-      val action = if (new) {
-        "created"
-      } else {
-        "updated"
-      }
-      val header = ":pencil: ${linkedApp(baseUrlConfig, application)} delivery config $action"
-      section {
-        markdownText(header)
-      }
-      val gitMetadata = gitMetadata
-      if (gitMetadata != null) {
-        section {
-          gitDataGenerator.generateScmInfo(this, application, gitMetadata, null)
-        }
-      } else {
-        section {
-          markdownText("View the current <${gitDataGenerator.generateConfigUrl(application)}|config>.")
-        }
-      }
-    }
-
-  private fun SlackConfigNotification.normalMessage(): List<LayoutBlock> {
-    val imageUrl = "https://raw.githubusercontent.com/spinnaker/spinnaker.github.io/master/assets/images/md_icons/config_change.png"
-
+  private fun SlackConfigNotification.toBlocks(): List<LayoutBlock> {
     val action = if (new) {
       "created"
     } else {
       "updated"
     }
 
-    val headerText = "Delivery config $action"
-    val altText = "config $action"
+    val headerText = "Managed delivery config $action"
     return withBlocks {
-      header {
-        text(headerText, emoji = true)
-      }
       val gitMetadata = gitMetadata
       if (gitMetadata != null) {
         section {
-          gitDataGenerator.generateCommitInfoNoArtifact(
-            this,
-            application,
-            imageUrl,
-            altText,
-            gitMetadata,
-            gitMetadata.author?.let{ slackService.getUsernameByEmail(it) }
-          )
+          markdownText(gitDataGenerator.notificationBodyWithCommit(":pencil:", application, gitMetadata, headerText))
         }
-        gitDataGenerator.conditionallyAddFullCommitMsgButton(this, gitMetadata)
-        section {
-          gitDataGenerator.generateScmInfo(this, application, gitMetadata, null)
+        gitMetadata?.let { gitMetadata ->
+          section {
+            gitDataGenerator.generateScmInfo(this, application, gitMetadata, null)
+          }
         }
       } else {
         section {
-          markdownText("*App:* $application\n\n" +
-            "No commit info available.\n" +
+          markdownText(":pencil: $headerText for ${gitDataGenerator.linkedApp(application)}\n\n" +
+            "No commit info available. " +
             "View the current <${gitDataGenerator.generateConfigUrl(application)}|config>."
           )
-          accessory {
-            image(imageUrl = imageUrl, altText = altText)
-          }
         }
       }
     }
   }
-
 
   override fun sendMessage(
     notification: SlackConfigNotification,
@@ -109,14 +69,9 @@ class DeliveryConfigNotificationHandler(
     with(notification) {
       log.debug("Sending config changed notification for application ${notification.application}")
 
-      val uniqueBlocks = when(notificationDisplay) {
-        NotificationDisplay.NORMAL -> notification.normalMessage()
-        NotificationDisplay.COMPACT -> notification.compactMessage()
-      }
-
       slackService.sendSlackNotification(
         channel,
-        uniqueBlocks,
+        notification.toBlocks(),
         application = application,
         type = supportedTypes,
         fallbackText = headerText()

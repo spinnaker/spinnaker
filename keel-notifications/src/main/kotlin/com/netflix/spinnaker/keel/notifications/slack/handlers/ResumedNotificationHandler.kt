@@ -4,7 +4,6 @@ import com.netflix.spinnaker.config.BaseUrlConfig
 import com.netflix.spinnaker.keel.api.NotificationDisplay
 import com.netflix.spinnaker.keel.api.NotificationDisplay.*
 import com.netflix.spinnaker.keel.notifications.NotificationType
-import com.netflix.spinnaker.keel.notifications.slack.SlackPausedNotification
 import com.netflix.spinnaker.keel.notifications.slack.SlackResumedNotification
 import com.netflix.spinnaker.keel.notifications.slack.SlackService
 import com.slack.api.model.block.LayoutBlock
@@ -30,38 +29,18 @@ class ResumedNotificationHandler(
     return ":arrow_forward: $application resumed"
   }
 
-  private fun SlackResumedNotification.compactMessage(text: String): List<LayoutBlock> =
-    withBlocks {
-      val header = ":arrow_forward: <${envUrl(baseUrlConfig, application)}|$application> "
-      section {
-        markdownText(header + text)
-      }
-    }
+  private fun SlackResumedNotification.toBlocks(): List<LayoutBlock> {
+    val headerText = ":arrow_forward: Management resumed for ${linkedApp(baseUrlConfig, application)}"
+    val username = user?.let { slackService.getUsernameByEmail(it) }
+    val text = "$username resumed management at <!date^${time.epochSecond}^{date_num} {time_secs}|fallback-text-include-PST>"
 
-  private fun SlackResumedNotification.normalMessage(text: String): List<LayoutBlock> {
-    val appUrl = "${baseUrlConfig.baseUrl}/#/applications/${application}"
-    val headerText = "Management resumed for $application"
     return withBlocks {
-      header {
-        text(headerText, emoji = true)
-      }
-
       section {
-        markdownText(text)
-        accessory {
-          image(imageUrl = "https://raw.githubusercontent.com/spinnaker/spinnaker.github.io/master/assets/images/md_icons/md_resumed.png", altText = "resumed")
-        }
+        markdownText(headerText + "\n" + text)
       }
 
       section {
         markdownText("_This app will now be handled according to your managed delivery config_")
-        accessory {
-          button {
-            text("More...")
-            actionId("button-action")
-            url("$appUrl/environments")
-          }
-        }
       }
     }
   }
@@ -74,16 +53,9 @@ class ResumedNotificationHandler(
     with(notification) {
       log.debug("Sending resume management notification for application $application")
 
-      val username = user?.let { slackService.getUsernameByEmail(it) }
-      val text = "$username resumed management at <!date^${time.epochSecond}^{date_num} {time_secs}|fallback-text-include-PST>"
-      val uniqueBlocks = when(notificationDisplay) {
-        NORMAL -> notification.normalMessage(text)
-        COMPACT -> notification.compactMessage(text)
-      }
-
       slackService.sendSlackNotification(
         channel,
-        uniqueBlocks,
+        notification.toBlocks(),
         application = application,
         type = supportedTypes,
         fallbackText = headerText()

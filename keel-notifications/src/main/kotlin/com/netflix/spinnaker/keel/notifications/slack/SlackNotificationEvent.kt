@@ -21,7 +21,7 @@ abstract class SlackNotificationEvent(
 
 data class SlackPinnedNotification(
   val pin: EnvironmentArtifactPin,
-  val currentArtifact: PublishedArtifact,
+  val currentArtifact: PublishedArtifact?,
   val pinnedArtifact: PublishedArtifact,
   override val time: Instant,
   override val application: String

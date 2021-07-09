@@ -97,7 +97,7 @@ class PluginNotificationHandlerTests {
     }
 
     expect {
-      that(blocks.captured).hasSize(3)
+      that(blocks.captured).hasSize(2)
     }
   }
 
@@ -111,7 +111,7 @@ class PluginNotificationHandlerTests {
     }
 
     expect {
-      that(blocks.captured).hasSize(4)
+      that(blocks.captured).hasSize(3)
     }
   }
 

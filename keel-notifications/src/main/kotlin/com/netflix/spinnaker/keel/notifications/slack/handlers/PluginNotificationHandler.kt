@@ -46,44 +46,26 @@ class PluginNotificationHandler(
     with(notification) {
       log.debug("Sending plugin notification for application ${notification.application} and environment ${notification.targetEnvironment}")
 
-      val imageUrl = when (config.status) {
-        FAILED -> "https://raw.githubusercontent.com/spinnaker/spinnaker.github.io/master/assets/images/md_icons/plugin_fail.png"
-        SUCCEEDED -> "https://raw.githubusercontent.com/spinnaker/spinnaker.github.io/master/assets/images/md_icons/plugin_success.png"
+      val emoji = when(config.status) {
+        FAILED -> ":gear:"
+        SUCCEEDED -> ":x: :gear:"
       }
 
-      val env = Strings.toRootUpperCase(targetEnvironment)
-      val title = config.title
+      var text = gitDataGenerator.notificationBody(emoji, application, artifactVersion, config.title)
+      text += "\n\n_${config.message}_"
 
       val blocks = withBlocks {
-        header {
-          text(title, emoji = true)
-        }
-
-        val versionMarkdown = gitDataGenerator.generateVersionMarkdown(
-          application,
-          artifactVersion.reference,
-          artifactVersion,
-          null
-        )
-
         section {
-          markdownText("*App:* $application\n" +
-            "*Environment:* $env\n" +
-            "$versionMarkdown\n" +
-            config.message
-          )
-          accessory {
-            image(imageUrl = imageUrl, altText = title)
-          }
+          markdownText(text)
         }
 
         val link = config.buttonLink
-        val text = config.buttonText
-        if (text != null && link != null) {
+        val buttonText = config.buttonText
+        if (buttonText != null && link != null) {
           actions {
             elements {
               button {
-                text(text)
+                text(buttonText)
                 // action id will be consisted by 3 sections with ":" between them to keep it consistent
                 actionId("button:${config.provenance}:link")
                 url(link)
@@ -97,9 +79,8 @@ class PluginNotificationHandler(
             gitDataGenerator.generateScmInfo(this, application, gitMetadata, artifactVersion)
           }
         }
-
       }
-      slackService.sendSlackNotification(channel, blocks, application = application, type = supportedTypes, fallbackText = title)
+      slackService.sendSlackNotification(channel, blocks, application = application, type = supportedTypes, fallbackText = "$emoji ${config.title}")
     }
   }
 }

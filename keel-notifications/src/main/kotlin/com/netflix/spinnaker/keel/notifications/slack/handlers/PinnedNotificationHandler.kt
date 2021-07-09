@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.keel.notifications.slack.handlers
 
-import com.netflix.spinnaker.config.BaseUrlConfig
 import com.netflix.spinnaker.keel.api.NotificationDisplay
 import com.netflix.spinnaker.keel.api.NotificationDisplay.*
 import com.netflix.spinnaker.keel.notifications.NotificationType
@@ -25,48 +24,26 @@ class PinnedNotificationHandler(
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   private fun SlackPinnedNotification.headerText(): String {
-    val env = Strings.toRootUpperCase(pin.targetEnvironment)
-    return ":pin: $application ${pinnedArtifact.buildNumber ?: pinnedArtifact.version} is pinned to $env"
+    return ":pin: $application ${pinnedArtifact.buildNumber ?: pinnedArtifact.version} is pinned to ${gitDataGenerator.toCode(pin.targetEnvironment)}"
   }
 
-  private fun SlackPinnedNotification.compactMessage(): List<LayoutBlock> =
-    withBlocks {
-      val env = Strings.toRootUpperCase(pin.targetEnvironment)
-      val pinnedLink = "<${gitDataGenerator.generateArtifactUrl(application, pinnedArtifact.reference, pinnedArtifact.version)}|#${pinnedArtifact.buildNumber ?: pinnedArtifact.version}>"
-      val header = ":pin: *${gitDataGenerator.linkedApp(application)} build $pinnedLink is pinned to $env*"
-
-      section {
-        markdownText(header)
-      }
-    }
-
-  private fun SlackPinnedNotification.normalMessage(): List<LayoutBlock> {
-    val env = Strings.toRootUpperCase(pin.targetEnvironment)
-    val buildNumberText = when (pinnedArtifact.buildNumber) {
-      null -> ""
-      else -> " to #${pinnedArtifact.buildNumber}"
-    }
-    val headerText = "$env is pinned${buildNumberText}"
-    val imageUrl = "https://raw.githubusercontent.com/spinnaker/spinnaker.github.io/master/assets/images/md_icons/pinned.png"
+  private fun SlackPinnedNotification.toBlocks(): List<LayoutBlock> {
     return withBlocks {
-      header {
-        text(headerText, emoji = true)
-      }
-
       section {
-        val olderVersion = "#${currentArtifact.buildMetadata?.number}"
-        gitDataGenerator.generateCommitInfo(this,
-          application,
-          imageUrl,
-          pinnedArtifact,
-          "pinned",
-          olderVersion,
-          env)
+        markdownText(gitDataGenerator.notificationBodyWithEnv(":pin:", application, pinnedArtifact, "pinned", pin.targetEnvironment))
       }
 
-      val gitMetadata = pinnedArtifact.gitMetadata
-      if (gitMetadata != null) {
-        gitDataGenerator.conditionallyAddFullCommitMsgButton(this, gitMetadata)
+      pinnedArtifact.gitMetadata?.let { gitMetadata ->
+        section {
+          gitDataGenerator.generateScmInfo(this, application, gitMetadata, pinnedArtifact)
+        }
+      }
+
+      val username = pin.pinnedBy?.let { slackService.getUsernameByEmail(it) }
+      context {
+        elements {
+          markdownText("$username pinned on <!date^${time.epochSecond}^{date_num} {time_secs}|fallback-text-include-PST>: \"${pin.comment}\"")
+        }
       }
     }
   }
@@ -79,32 +56,9 @@ class PinnedNotificationHandler(
     with(notification) {
       log.debug("Sending pinned artifact notification for application $application")
 
-      val uniqueBlocks = when(notificationDisplay) {
-        NORMAL -> notification.normalMessage()
-        COMPACT -> notification.compactMessage()
-      }
-
-      val username = pin.pinnedBy?.let { slackService.getUsernameByEmail(it) }
-      val commonBlocks = withBlocks {
-        val gitMetadata = pinnedArtifact.gitMetadata
-        if (gitMetadata != null) {
-          section {
-            gitDataGenerator.generateScmInfo(this,
-              application,
-              gitMetadata,
-              pinnedArtifact)
-          }
-        }
-        context {
-          elements {
-            markdownText("$username pinned on <!date^${time.epochSecond}^{date_num} {time_secs}|fallback-text-include-PST>: \"${pin.comment}\"")
-          }
-        }
-
-      }
       slackService.sendSlackNotification(
         channel,
-        uniqueBlocks + commonBlocks,
+        notification.toBlocks(),
         application = application,
         type = supportedTypes,
         fallbackText = headerText()

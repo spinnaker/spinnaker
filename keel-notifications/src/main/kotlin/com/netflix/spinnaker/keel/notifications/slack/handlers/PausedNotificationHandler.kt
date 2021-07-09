@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component
 @EnableConfigurationProperties(BaseUrlConfig::class)
 class PausedNotificationHandler(
   private val slackService: SlackService,
-  private val baseUrlConfig: BaseUrlConfig
+  private val baseUrlConfig: BaseUrlConfig,
 ) : SlackNotificationHandler<SlackPausedNotification> {
 
   override val supportedTypes = listOf(NotificationType.APPLICATION_PAUSED)
@@ -30,39 +30,24 @@ class PausedNotificationHandler(
     return ":double_vertical_bar: $application paused"
   }
 
-  private fun SlackPausedNotification.compactMessage(text: String): List<LayoutBlock> =
-    withBlocks {
-      val header = ":double_vertical_bar: <${envUrl(baseUrlConfig, application)}|$application> paused"
-      section {
-        markdownText(header + "\n" + text)
-      }
+  private fun SlackPausedNotification.toBlocks(): List<LayoutBlock> {
+    val appUrl = "${baseUrlConfig.baseUrl}/#/applications/${application}"
+    val headerText = ":double_vertical_bar: Management paused for ${linkedApp(baseUrlConfig, application)}"
+
+    val username = user?.let { slackService.getUsernameByEmail(it) }
+
+    var text = "*$username paused at <!date^${time.epochSecond}^{date_num} {time_secs}|fallback-text-include-PST>*"
+    if (comment != null) {
+      text += ": \"$comment\""
     }
 
-  private fun SlackPausedNotification.normalMessage(text: String): List<LayoutBlock> {
-    val appUrl = "${baseUrlConfig.baseUrl}/#/applications/${application}"
-    val headerText = "Management is paused for $application"
-
     return withBlocks {
-      header {
-        text(headerText, emoji = true)
-      }
-
       section {
-        markdownText(text)
-        accessory {
-          image(imageUrl = "https://raw.githubusercontent.com/spinnaker/spinnaker.github.io/master/assets/images/md_icons/md_paused.png", altText = "paused")
-        }
+        markdownText(headerText + "\n" + text)
       }
 
       section {
         markdownText("_This app's deployments must be via <$appUrl/executions|pipelines> or tasks until management is resumed_")
-        accessory {
-          button {
-            text("More...")
-            actionId("button-action")
-            url("$appUrl/environments")
-          }
-        }
       }
     }
   }
@@ -75,21 +60,9 @@ class PausedNotificationHandler(
     log.debug("Sending paused notification for application ${notification.application}")
 
     with(notification) {
-      val username = user?.let { slackService.getUsernameByEmail(it) }
-
-      var text = "*$username paused at <!date^${time.epochSecond}^{date_num} {time_secs}|fallback-text-include-PST>*"
-      if (comment != null) {
-        text += ": \"$comment\""
-      }
-
-      val uniqueBlocks = when(notificationDisplay) {
-        NORMAL -> notification.normalMessage(text)
-        COMPACT -> notification.compactMessage(text)
-      }
-
       slackService.sendSlackNotification(
         channel,
-        uniqueBlocks,
+        notification.toBlocks(),
         application = application,
         type = supportedTypes,
         fallbackText = headerText()

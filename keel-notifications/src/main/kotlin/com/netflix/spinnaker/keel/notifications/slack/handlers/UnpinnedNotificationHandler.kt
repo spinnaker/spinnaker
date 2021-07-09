@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.keel.notifications.slack.handlers
 
-import com.netflix.spinnaker.config.BaseUrlConfig
 import com.netflix.spinnaker.keel.api.NotificationDisplay
 import com.netflix.spinnaker.keel.notifications.NotificationType
 import com.netflix.spinnaker.keel.notifications.slack.SlackService
@@ -24,72 +23,49 @@ class UnpinnedNotificationHandler(
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   private fun SlackUnpinnedNotification.headerText(): String {
-    val env = Strings.toRootUpperCase(targetEnvironment)
-    return ":large_blue_circle: :pin: $application ${pinnedArtifact?.buildNumber ?: pinnedArtifact?.version ?: originalPin.version} pin removed from $env"
+    return ":wastebasket: :pin: $application ${pinnedArtifact?.buildNumber ?: pinnedArtifact?.version ?: originalPin.version} pin removed from ${gitDataGenerator.toCode(targetEnvironment)}"
   }
 
-  private fun SlackUnpinnedNotification.compactMessage(unpinner: String): List<LayoutBlock> =
+  private fun SlackUnpinnedNotification.toBlocks(): List<LayoutBlock> =
     withBlocks {
-      val env = Strings.toRootUpperCase(targetEnvironment)
       val previouslyPinned = pinnedArtifact
         ?.let {
           val link = gitDataGenerator.generateArtifactUrl(application, originalPin.artifact.reference, it.version)
           "<$link|#${it.buildNumber ?: it.version}>"
         } ?: originalPin.version
 
-      val header = ":large_blue_circle: :pin: *${gitDataGenerator.linkedApp(application)} pin of build $previouslyPinned removed from $env*"
+      val header = ":wastebasket: :pin: *${gitDataGenerator.linkedApp(application)} pin of build $previouslyPinned removed from ${gitDataGenerator.toCode(targetEnvironment)}*"
 
-      var text = "$unpinner unpinned $env"
+      val unpinner = slackService.getUsernameByEmail(user)
+      var text = "$unpinner unpinned ${gitDataGenerator.toCode(targetEnvironment)}"
       if (latestApprovedArtifactVersion != null) {
         val link = gitDataGenerator.generateArtifactUrl(application, originalPin.artifact.reference, latestApprovedArtifactVersion.version)
-        text += ", <$link|#${latestApprovedArtifactVersion.buildNumber ?: latestApprovedArtifactVersion.version}> will start deploying shortly."
+        text += ", <$link|#${latestApprovedArtifactVersion.buildNumber ?: latestApprovedArtifactVersion.version}> will start deploying shortly" +
+          "\n\n${gitDataGenerator.formatCommitMessage(latestApprovedArtifactVersion.gitMetadata)}"
       }
 
       section {
-        markdownText(header + "\n" + text)
-      }
-    }
-
-  private fun SlackUnpinnedNotification.normalMessage(unpinner: String): List<LayoutBlock> {
-    val env = Strings.toRootUpperCase(targetEnvironment)
-    val buildNumberText = when (pinnedArtifact?.buildNumber) {
-      null -> ""
-      else -> " from #${pinnedArtifact.buildNumber}"
-    }
-    val headerText = "$env was unpinned${buildNumberText}"
-    val imageUrl = "https://raw.githubusercontent.com/spinnaker/spinnaker.github.io/master/assets/images/md_icons/unpinned.png"
-    return withBlocks {
-      header {
-        text(headerText, emoji = true)
+        markdownText(header + "\n\n" + text)
       }
 
-      section {
-        if (pinnedArtifact != null) {
-          gitDataGenerator.generateUnpinCommitInfo(this,
-            application,
-            imageUrl,
-            pinnedArtifact,
-            "unpinned",
-            env)
-        }
-      }
-      val gitMetadata = pinnedArtifact?.gitMetadata
-      if (gitMetadata != null) {
-        gitDataGenerator.conditionallyAddFullCommitMsgButton(this, gitMetadata)
+      pinnedArtifact?.gitMetadata?.let { gitMetadata ->
         section {
-          if (pinnedArtifact != null) {
-            gitDataGenerator.generateScmInfo(this, application, gitMetadata, pinnedArtifact)
-          }
+          gitDataGenerator.generateScmInfo(this, application, gitMetadata, pinnedArtifact)
         }
       }
+
+      val pinner: String = if (originalPin.pinnedBy != null ) {
+        slackService.getUsernameByEmail(originalPin.pinnedBy!!)
+      } else originalPin.pinnedBy!!
 
       context {
         elements {
-          markdownText("$unpinner unpinned on <!date^${time.epochSecond}^{date_num} {time_secs}|fallback-text-include-PST>")
+          markdownText("$pinner originally pinned on " +
+            "<!date^${originalPin.pinnedAt!!.epochSecond}^{date_num} {time_secs}|fallback-text-include-PST>" +
+            ": \"${originalPin.comment}\"")
         }
       }
     }
-  }
 
   override fun sendMessage(
     notification: SlackUnpinnedNotification,
@@ -98,28 +74,10 @@ class UnpinnedNotificationHandler(
   ) {
     with(notification) {
       log.debug("Sending unpinned artifact notification for application $application")
-      val unpinner = slackService.getUsernameByEmail(user)
-      val pinner: String = if (originalPin.pinnedBy != null ) {
-        slackService.getUsernameByEmail(originalPin.pinnedBy!!)
-      } else originalPin.pinnedBy!!
 
-      val uniqueBlocks = when(notificationDisplay) {
-        NotificationDisplay.NORMAL -> notification.normalMessage(unpinner)
-        NotificationDisplay.COMPACT -> notification.compactMessage(unpinner)
-      }
-
-      val commonBlocks = withBlocks {
-        context {
-          elements {
-            markdownText("$pinner originally pinned on " +
-              "<!date^${originalPin.pinnedAt!!.epochSecond}^{date_num} {time_secs}|fallback-text-include-PST>" +
-              ": \"${originalPin.comment}\"")
-          }
-        }
-      }
       slackService.sendSlackNotification(
         channel,
-        uniqueBlocks + commonBlocks,
+        notification.toBlocks(),
         application = application,
         type = supportedTypes,
         fallbackText = headerText()

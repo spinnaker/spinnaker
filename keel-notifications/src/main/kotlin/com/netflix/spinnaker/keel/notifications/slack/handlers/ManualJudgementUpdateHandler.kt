@@ -39,41 +39,15 @@ class ManualJudgementUpdateHandler(
         else -> "rejected"
       }
 
-      val headerText = "Manual judgement $verb"
-
-      val imageUrl = when {
-        status.passes() -> "https://raw.githubusercontent.com/spinnaker/spinnaker.github.io/master/assets/images/md_icons/mj_was_approved.png"
-        else -> "https://raw.githubusercontent.com/spinnaker/spinnaker.github.io/master/assets/images/md_icons/mj_was_rejected.png"
-      }
-      val imageAltText = when {
-        status.passes() -> "mj_approved"
-        else -> "mj_rejected"
-      }
-
-      val baseBlocks = when(notification.display) {
-        NORMAL -> ManualJudgmentNotificationHandler.constructNormalMessageWithoutButtons(
-          notification.targetEnvironment,
-          notification.application,
-          notification.artifactCandidate,
-          notification.pinnedArtifact,
-          headerText,
-          imageUrl,
-          imageAltText,
-          gitDataGenerator,
-          0 // clear the num ahead text on resend
-        )
-        COMPACT -> ManualJudgmentNotificationHandler.constructCompactMessageWithoutButtons(
-          targetEnvironment,
-          application,
-          artifactCandidate,
-          pinnedArtifact,
-          headerText,
-          author,
-          gitDataGenerator,
-          0, // clear the num ahead text on resend
-          verb
-        )
-      }
+      val baseBlocks = ManualJudgmentNotificationHandler.constructMessageWithoutButtons(
+        targetEnvironment,
+        application,
+        artifactCandidate,
+        pinnedArtifact,
+        gitDataGenerator,
+        0, // clear the num ahead text on resend
+        verb
+      )
 
       val backuptext = fallbackText(user, status)
 
@@ -93,17 +67,17 @@ class ManualJudgementUpdateHandler(
 
   fun fallbackText(user: String?, status: ConstraintStatus): String {
     val handle = user?.let { slackService.getUsernameByEmail(user) }
-    val action = if (status.passes()) {
-      "approve"
-    } else {
-      "reject"
-    }
     val emoji = if (status.passes()) {
       ":white_check_mark:"
     } else {
       ":x:"
     }
-    return "$handle hit " +
-      "$emoji $action on <!date^${clock.instant().epochSecond}^{date_num} {time_secs}|fallback-text-include-PST>"
+    val action = if (status.passes()) {
+      "approve"
+    } else {
+      "reject"
+    }
+    return "$emoji $handle hit " +
+      "$action on <!date^${clock.instant().epochSecond}^{date_num} {time_secs}|fallback-text-include-PST>"
   }
 }
