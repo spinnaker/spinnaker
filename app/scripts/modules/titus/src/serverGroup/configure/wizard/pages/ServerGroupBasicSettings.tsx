@@ -1,6 +1,7 @@
 import { Field, FormikErrors, FormikProps } from 'formik';
 import React from 'react';
 
+import { SubnetSelectField } from '@spinnaker/amazon';
 import {
   AccountSelectInput,
   AccountTag,
@@ -174,6 +175,12 @@ export class ServerGroupBasicSettings
     this.props.formik.setFieldValue(key, value);
   };
 
+  private onSubnetChange = () => {
+    const { setFieldValue, values } = this.props.formik;
+    values.subnetChanged(values);
+    setFieldValue('subnetType', values.subnetType);
+  };
+
   public render() {
     const { app, formik } = this.props;
     const { errors, setFieldValue, values } = formik;
@@ -218,6 +225,17 @@ export class ServerGroupBasicSettings
           account={values.credentials}
           regions={values.backingData.filtered.regions}
           onChange={this.regionUpdated}
+        />
+        <SubnetSelectField
+          application={app}
+          component={values}
+          field="subnetType"
+          helpKey="titus.serverGroup.subnet"
+          labelColumns={3}
+          onChange={this.onSubnetChange}
+          region={values.region}
+          subnets={values.backingData.filtered.subnetPurposes}
+          showSubnetWarning={true}
         />
         <div className="form-group">
           <div className="col-md-3 sm-label-right">

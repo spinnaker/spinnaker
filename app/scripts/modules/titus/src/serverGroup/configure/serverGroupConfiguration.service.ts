@@ -28,6 +28,7 @@ import {
   SECURITY_GROUP_READER,
   SecurityGroupReader,
   setMatchingResourceSummary,
+  SubnetReader,
 } from '@spinnaker/core';
 import { IJobDisruptionBudget, ITitusResources } from 'titus/domain';
 import { ITitusServiceJobProcesses } from 'titus/domain/ITitusServiceJobProcesses';
@@ -120,6 +121,31 @@ export class TitusServerGroupConfigurationService {
     command.backingData.filtered.regions = command.backingData.credentialsKeyedByAccount[command.credentials].regions;
   }
 
+  public configureSubnets(command: ITitusServerGroupCommand) {
+    const result = { dirty: {} };
+    const filteredData = command.backingData.filtered;
+    if (command.region === null) {
+      return result;
+    }
+
+    const accountDetails = this.getCredentials(command);
+    filteredData.subnetPurposes = chain(command.backingData.subnets)
+      .filter({ account: accountDetails.awsAccount, region: command.region })
+      .reject({ target: 'elb' })
+      .reject({ purpose: null })
+      .uniqBy('purpose')
+      .value();
+
+    const subnetType = command.subnetType || 'titus (vpc0)';
+    const subnetIds = chain(command.backingData.subnets)
+      .filter({ account: accountDetails.awsAccount, region: command.region, purpose: subnetType })
+      .map((subnet) => subnet.id)
+      .value();
+    command.containerAttributes['titusParameter.agent.subnets'] = subnetIds.join(',');
+
+    return result;
+  }
+
   private attachEventHandlers(cmd: ITitusServerGroupCommand) {
     cmd.credentialsChanged = (command: ITitusServerGroupCommand) => {
       const result = { dirty: {} };
@@ -128,6 +154,9 @@ export class TitusServerGroupConfigurationService {
       if (command.credentials) {
         command.registry = (backingData.credentialsKeyedByAccount[command.credentials] as any).registry;
         backingData.filtered.regions = backingData.credentialsKeyedByAccount[command.credentials].regions;
+
+        const accountId = backingData.credentialsKeyedByAccount[command.credentials].accountId;
+        command.containerAttributes['titusParameter.agent.accountId'] = accountId;
         if (!backingData.filtered.regions.some((r) => r.name === command.region)) {
           command.region = null;
           command.regionChanged(command);
@@ -138,6 +167,7 @@ export class TitusServerGroupConfigurationService {
       command.viewState.dirty = { ...(command.viewState.dirty || {}), ...result.dirty };
       this.configureLoadBalancerOptions(command);
       this.configureSecurityGroupOptions(command);
+      this.configureSubnets(command);
       setMatchingResourceSummary(command);
       return result;
     };
@@ -145,6 +175,7 @@ export class TitusServerGroupConfigurationService {
     cmd.regionChanged = (command: ITitusServerGroupCommand) => {
       this.configureLoadBalancerOptions(command);
       this.configureSecurityGroupOptions(command);
+      this.configureSubnets(command);
       setMatchingResourceSummary(command);
       return {};
     };
@@ -152,6 +183,10 @@ export class TitusServerGroupConfigurationService {
     cmd.clusterChanged = (command: ITitusServerGroupCommand): void => {
       command.moniker = NameUtils.getMoniker(command.application, command.stack, command.freeFormDetails);
       setMatchingResourceSummary(command);
+    };
+
+    cmd.subnetChanged = (command: ITitusServerGroupCommand) => {
+      return this.configureSubnets(command);
     };
   }
 
@@ -172,15 +207,32 @@ export class TitusServerGroupConfigurationService {
         AccountService.getCredentialsKeyedByAccount('titus'),
         this.securityGroupReader.getAllSecurityGroups(),
         VpcReader.listVpcs(),
+        SubnetReader.listSubnets(),
+        AccountService.getCredentialsKeyedByAccount('aws'),
       ])
-      .then(([credentialsKeyedByAccount, securityGroups, vpcs]) => {
+      .then(([credentialsKeyedByAccount, securityGroups, vpcs, subnets, awsCredentials]) => {
         const backingData: any = {
           credentialsKeyedByAccount,
           securityGroups,
           vpcs,
         };
+
+        // add the AWS accountId to the credentialsKeyedByAccount to easily set container attributes
+        Object.keys(credentialsKeyedByAccount).forEach((acc) => {
+          const awsAccount = credentialsKeyedByAccount[acc].awsAccount;
+          const awsAccountId = awsCredentials[awsAccount].accountId;
+          credentialsKeyedByAccount[acc].accountId = awsAccountId;
+        });
+        backingData.credentialsKeyedByAccount = credentialsKeyedByAccount;
+
+        if (cmd.credentials) {
+          cmd.containerAttributes['titusParameter.agent.accountId'] =
+            backingData.credentialsKeyedByAccount[cmd.credentials].accountId;
+        }
+
         backingData.images = [];
         backingData.accounts = Object.keys(credentialsKeyedByAccount);
+        backingData.subnets = subnets;
         backingData.filtered = {};
         if (cmd.credentials.includes('${')) {
           // If our dependency is an expression, the only thing we can really do is to just preserve current selections

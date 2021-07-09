@@ -42,6 +42,13 @@ const helpContents: { [key: string]: string } = {
     '(Optional) Comma separated. By default, the <samp>latest</samp> tag is updated. Adds additional tags to label this image <samp>1.0.0-unstable,1.0.0-rc1</samp>',
   'titus.bake.buildParameters':
     '(Optional) Build time variables to be passed to the Docker image. These are the set of values passed to --build-args in the command line.',
+  'titus.serverGroup.subnet': `The subnet selection determines the VPC in which your container will run. Options vary by account and region. The most common are: 
+    <ul>
+      <li><b>titus</b>: instances will be restricted to internal clients with their own NAT gateways</li>
+      <li><b>internal</b> instances will be restricted to internal clients (i.e. require VPN access)</li>
+      <li><b>external</b> instances will be publicly accessible and running in VPC</li>
+    </ul>
+  `,
   'titus.serverGroup.traffic': `
       <p>Enables the "inService" scaling process, which is used by Spinnaker and discovery services to determine if the server group is enabled.</p>
       <p>Will be automatically enabled when any non "custom" deployment strategy is selected.</p>`,

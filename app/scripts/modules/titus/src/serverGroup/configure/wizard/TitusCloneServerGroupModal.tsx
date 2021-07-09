@@ -121,6 +121,7 @@ export class TitusCloneServerGroupModal extends React.Component<
   private configureCommand = () => {
     const { command } = this.props;
     TitusReactInjector.titusServerGroupConfigurationService.configureCommand(command).then(() => {
+      TitusReactInjector.titusServerGroupConfigurationService.configureSubnets(command);
       if (!command.credentials.includes('${')) {
         // so as to not erase registry when account is a spel expression
         command.registry = ((command.backingData.credentialsKeyedByAccount[command.credentials] as any) || {}).registry;
