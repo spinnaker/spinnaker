@@ -20,6 +20,9 @@ import static net.logstash.logback.argument.StructuredArguments.value;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.front50.api.model.Timestamped;
+import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
+import com.netflix.spinnaker.front50.jackson.mixins.PipelineMixins;
+import com.netflix.spinnaker.front50.jackson.mixins.TimestampedMixins;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -51,7 +54,10 @@ public class SwiftStorageService implements StorageService {
   private static final Logger log = LoggerFactory.getLogger(SwiftStorageService.class);
 
   private final ObjectStorageService swift;
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper =
+      new ObjectMapper()
+          .addMixIn(Timestamped.class, TimestampedMixins.class)
+          .addMixIn(Pipeline.class, PipelineMixins.class);
   private final String containerName;
 
   private Token token = null;
@@ -138,7 +144,7 @@ public class SwiftStorageService implements StorageService {
   @Override
   public <T extends Timestamped> void storeObject(ObjectType objectType, String objectKey, T item) {
     try {
-      byte[] bytes = new ObjectMapper().writeValueAsBytes(item);
+      byte[] bytes = objectMapper.writeValueAsBytes(item);
       InputStream is = new ByteArrayInputStream(bytes);
 
       getSwift()

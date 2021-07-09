@@ -26,6 +26,10 @@ import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.front50.api.model.Timestamped;
+import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
+import com.netflix.spinnaker.front50.jackson.mixins.PipelineMixins;
+import com.netflix.spinnaker.front50.jackson.mixins.TimestampedMixins;
 import com.netflix.spinnaker.front50.model.DefaultObjectKeyLoader;
 import com.netflix.spinnaker.front50.model.GcsStorageService;
 import com.netflix.spinnaker.front50.model.ObjectKeyLoader;
@@ -77,7 +81,9 @@ public class GcsConfig {
             gcsProperties.getBucketLocation(),
             gcsProperties.getRootFolder(),
             dataFilename,
-            new ObjectMapper(),
+            new ObjectMapper()
+                .addMixIn(Timestamped.class, TimestampedMixins.class)
+                .addMixIn(Pipeline.class, PipelineMixins.class),
             executor);
     log.info(
         "Using Google Cloud Storage bucket={} in project={}",

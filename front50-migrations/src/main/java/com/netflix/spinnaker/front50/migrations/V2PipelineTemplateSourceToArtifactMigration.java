@@ -18,7 +18,10 @@
 package com.netflix.spinnaker.front50.migrations;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.front50.api.model.Timestamped;
 import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
+import com.netflix.spinnaker.front50.jackson.mixins.PipelineMixins;
+import com.netflix.spinnaker.front50.jackson.mixins.TimestampedMixins;
 import com.netflix.spinnaker.front50.model.ItemDAO;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO;
 import com.netflix.spinnaker.front50.model.pipeline.TemplateConfiguration.TemplateSource;
@@ -49,7 +52,10 @@ public class V2PipelineTemplateSourceToArtifactMigration implements Migration {
   public V2PipelineTemplateSourceToArtifactMigration(
       PipelineDAO pipelineDAO, ObjectMapper objectMapper) {
     this.pipelineDAO = pipelineDAO;
-    this.objectMapper = objectMapper;
+    this.objectMapper =
+        new ObjectMapper()
+            .addMixIn(Timestamped.class, TimestampedMixins.class)
+            .addMixIn(Pipeline.class, PipelineMixins.class);
   }
 
   @Override

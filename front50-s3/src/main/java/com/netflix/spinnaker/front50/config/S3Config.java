@@ -10,6 +10,10 @@ import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.appinfo.ApplicationInfoManager;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.front50.api.model.Timestamped;
+import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
+import com.netflix.spinnaker.front50.jackson.mixins.PipelineMixins;
+import com.netflix.spinnaker.front50.jackson.mixins.TimestampedMixins;
 import com.netflix.spinnaker.front50.model.*;
 import com.netflix.spinnaker.front50.plugins.PluginBinaryStorageService;
 import com.netflix.spinnaker.front50.plugins.S3PluginBinaryStorageService;
@@ -41,7 +45,10 @@ public class S3Config {
   @ConditionalOnProperty(value = "spinnaker.s3.storage-service.enabled", matchIfMissing = true)
   public S3StorageService s3StorageService(
       AmazonS3 awsS3MetadataClient, S3MetadataStorageProperties s3Properties) {
-    ObjectMapper awsObjectMapper = new ObjectMapper();
+    ObjectMapper awsObjectMapper =
+        new ObjectMapper()
+            .addMixIn(Timestamped.class, TimestampedMixins.class)
+            .addMixIn(Pipeline.class, PipelineMixins.class);
 
     S3StorageService service =
         new S3StorageService(

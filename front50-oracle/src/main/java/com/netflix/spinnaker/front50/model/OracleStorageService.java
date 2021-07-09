@@ -13,7 +13,10 @@ import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.google.common.base.Supplier;
 import com.netflix.spinnaker.front50.api.model.Timestamped;
+import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.config.OracleProperties;
+import com.netflix.spinnaker.front50.jackson.mixins.PipelineMixins;
+import com.netflix.spinnaker.front50.jackson.mixins.TimestampedMixins;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import com.oracle.bmc.auth.AuthenticationDetailsProvider;
 import com.oracle.bmc.auth.SimpleAuthenticationDetailsProvider;
@@ -55,7 +58,10 @@ public class OracleStorageService implements StorageService {
   private final String compartmentId;
   private final String bucketName;
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper =
+      new ObjectMapper()
+          .addMixIn(Timestamped.class, TimestampedMixins.class)
+          .addMixIn(Pipeline.class, PipelineMixins.class);
 
   private class RequestSigningFilter extends ClientFilter {
     private final RequestSigner signer;

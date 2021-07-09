@@ -26,6 +26,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.netflix.spinnaker.front50.api.model.Timestamped;
+import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
+import com.netflix.spinnaker.front50.jackson.mixins.PipelineMixins;
+import com.netflix.spinnaker.front50.jackson.mixins.TimestampedMixins;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -59,7 +62,10 @@ public class S3StorageService implements StorageService {
       Boolean versioning,
       Integer maxKeys,
       ServerSideEncryption serverSideEncryption) {
-    this.objectMapper = objectMapper;
+    this.objectMapper =
+        new ObjectMapper()
+            .addMixIn(Timestamped.class, TimestampedMixins.class)
+            .addMixIn(Pipeline.class, PipelineMixins.class);
     this.amazonS3 = amazonS3;
     this.bucket = bucket;
     this.rootFolder = rootFolder;

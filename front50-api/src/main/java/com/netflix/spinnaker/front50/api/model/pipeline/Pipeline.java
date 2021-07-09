@@ -29,6 +29,7 @@ public class Pipeline implements Timestamped {
   @Setter private String id;
   @Getter @Setter private String name;
   @Getter @Setter private String application;
+  @Getter @Setter private Boolean disabled;
   @Getter @Setter private String email;
   @Getter @Setter private String type;
   @Setter private String schema;
@@ -43,9 +44,15 @@ public class Pipeline implements Timestamped {
   @Getter @Setter private Map<String, Object> template;
   @Getter @Setter private List<String> roles;
   @Getter @Setter private String serviceAccount;
+  @Getter @Setter private String executionEngine;
+  @Getter @Setter private Integer stageCounter;
   @Getter @Setter private List<Map<String, Object>> stages;
   @Getter @Setter private Map<String, Object> constraints;
   @Getter @Setter private Map<String, Object> payloadConstraints;
+  @Getter @Setter private Boolean keepWaitingPipelines;
+  @Getter @Setter private Boolean limitConcurrent;
+  @Getter @Setter private List<Map<String, Object>> parameterConfig;
+  @Getter @Setter private String spelEvaluator;
 
   public void setAny(String key, Object value) {
     anyMap.put(key, value);

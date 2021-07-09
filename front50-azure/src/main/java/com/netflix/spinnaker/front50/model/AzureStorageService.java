@@ -25,6 +25,9 @@ import com.microsoft.azure.storage.ResultSegment;
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.*;
 import com.netflix.spinnaker.front50.api.model.Timestamped;
+import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
+import com.netflix.spinnaker.front50.jackson.mixins.PipelineMixins;
+import com.netflix.spinnaker.front50.jackson.mixins.TimestampedMixins;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.io.IOException;
@@ -41,7 +44,10 @@ public class AzureStorageService implements StorageService {
   private CloudStorageAccount storageAccount = null;
   private CloudBlobClient blobClient = null;
   private CloudBlobContainer blobContainer = null;
-  private ObjectMapper objectMapper = new ObjectMapper();
+  private ObjectMapper objectMapper =
+      new ObjectMapper()
+          .addMixIn(Timestamped.class, TimestampedMixins.class)
+          .addMixIn(Pipeline.class, PipelineMixins.class);
 
   private static final String LAST_MODIFIED_FILENAME = "last_modified";
   private static final String LAST_MODIFIED_METADATA_NAME = "lastmodifydate";
