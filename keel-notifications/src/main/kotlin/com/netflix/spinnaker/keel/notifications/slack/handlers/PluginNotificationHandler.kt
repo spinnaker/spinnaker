@@ -51,12 +51,10 @@ class PluginNotificationHandler(
         SUCCEEDED -> ":x: :gear:"
       }
 
-      var text = gitDataGenerator.notificationBody(emoji, application, artifactVersion, config.title)
-      text += "\n\n_${config.message}_"
-
       val blocks = withBlocks {
+        gitDataGenerator.notificationBody(this, emoji, application, artifactVersion, config.title)
         section {
-          markdownText(text)
+          markdownText("\n\n_${config.message}_")
         }
 
         val link = config.buttonLink

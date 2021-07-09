@@ -44,10 +44,7 @@ class ArtifactDeploymentNotificationHandler(
     }
 
     return withBlocks {
-      section {
-        markdownText(gitDataGenerator.notificationBodyWithEnv(emoji, application, artifact, verb, targetEnvironment))
-        //todo eb: should we add the "show full commit" button??
-      }
+      gitDataGenerator.notificationBodyWithEnv(this, emoji, application, artifact, verb, targetEnvironment)
 
       artifact.gitMetadata?.let { gitMetadata ->
         section {

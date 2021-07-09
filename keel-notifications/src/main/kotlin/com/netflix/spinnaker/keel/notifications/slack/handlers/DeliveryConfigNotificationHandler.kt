@@ -42,13 +42,9 @@ class DeliveryConfigNotificationHandler(
     return withBlocks {
       val gitMetadata = gitMetadata
       if (gitMetadata != null) {
+        gitDataGenerator.notificationBodyWithCommit(this, ":pencil:", application, gitMetadata, headerText)
         section {
-          markdownText(gitDataGenerator.notificationBodyWithCommit(":pencil:", application, gitMetadata, headerText))
-        }
-        gitMetadata?.let { gitMetadata ->
-          section {
-            gitDataGenerator.generateScmInfo(this, application, gitMetadata, null)
-          }
+          gitDataGenerator.generateScmInfo(this, application, gitMetadata, null)
         }
       } else {
         section {

@@ -29,9 +29,7 @@ class PinnedNotificationHandler(
 
   private fun SlackPinnedNotification.toBlocks(): List<LayoutBlock> {
     return withBlocks {
-      section {
-        markdownText(gitDataGenerator.notificationBodyWithEnv(":pin:", application, pinnedArtifact, "pinned", pin.targetEnvironment))
-      }
+      gitDataGenerator.notificationBodyWithEnv(this, ":pin:", application, pinnedArtifact, "pinned", pin.targetEnvironment)
 
       pinnedArtifact.gitMetadata?.let { gitMetadata ->
         section {

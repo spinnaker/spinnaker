@@ -128,21 +128,21 @@ class ManualJudgmentNotificationHandler(
       numToBePromoted: Int,
       action: String = "awaiting judgement"
     ): List<LayoutBlock> {
-
-      var text = gitDataGenerator.notificationBodyWithEnv(":gavel:", application, artifactCandidate, action, environment, "in")
-
-      if (numToBePromoted > 1) {
-        text += "\n(:speaking_head_in_silhouette: _$numToBePromoted ahead of current_)"
-      }
-
-      if (pinnedArtifact != null) {
-        val pinnedUrl = "<${gitDataGenerator.generateArtifactUrl(application, pinnedArtifact.reference, pinnedArtifact.version)}|#${pinnedArtifact.buildNumber ?: pinnedArtifact.version}>"
-        text += "\n :warning: Another version ($pinnedUrl) is pinned here. You will need to unpin before this version can be deployed."
-      }
-
       return withBlocks {
-        section {
-          markdownText(text)
+        gitDataGenerator.notificationBodyWithEnv(this, ":gavel:", application, artifactCandidate, action, environment, "in")
+
+        var text = ""
+        if (numToBePromoted > 1) {
+          text += "\n(:speaking_head_in_silhouette: _$numToBePromoted ahead of current_)"
+        }
+        if (pinnedArtifact != null) {
+          val pinnedUrl = "<${gitDataGenerator.generateArtifactUrl(application, pinnedArtifact.reference, pinnedArtifact.version)}|#${pinnedArtifact.buildNumber ?: pinnedArtifact.version}>"
+          text += "\n :warning: Another version ($pinnedUrl) is pinned here. You will need to unpin before this version can be deployed."
+        }
+        if (text.isNotEmpty()) {
+          section {
+            markdownText(text)
+          }
         }
         artifactCandidate.gitMetadata?.let { gitMetadata ->
           section {

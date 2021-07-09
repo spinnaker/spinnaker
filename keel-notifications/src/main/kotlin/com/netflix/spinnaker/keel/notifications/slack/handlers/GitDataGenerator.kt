@@ -5,7 +5,6 @@ import com.netflix.spinnaker.keel.api.ScmInfo
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.artifacts.ArtifactVersionLinks
-import com.netflix.spinnaker.keel.notifications.slack.SlackPausedNotification
 import com.netflix.spinnaker.keel.notifications.slack.SlackService
 import com.slack.api.model.kotlin_extension.block.SectionBlockBuilder
 import com.slack.api.model.kotlin_extension.block.dsl.LayoutBlockDsl
@@ -69,17 +68,53 @@ class GitDataGenerator(
     return text
   }
 
-  fun notificationBodyWithEnv(emoji: String, application: String, artifact: PublishedArtifact, descriptiveText: String, env: String, preposition: String = "to"): String =
-    "$emoji *${linkedTitleSnippet(artifact, application)} $descriptiveText $preposition ${toCode(env)}*" +
-      "\n\n${formatCommitMessage(artifact.gitMetadata)}"
+  fun notificationBodyWithEnv(layoutBlockDsl: LayoutBlockDsl, emoji: String, application: String, artifact: PublishedArtifact, descriptiveText: String, env: String, preposition: String = "to") {
+    layoutBlockDsl.section {
+        markdownText("$emoji *${linkedTitleSnippet(artifact, application)} $descriptiveText $preposition ${toCode(env)}*")
+      }
+    buildCommitSectionWithButton(layoutBlockDsl, artifact.gitMetadata)
+  }
 
-  fun notificationBody(emoji: String, application: String, artifact: PublishedArtifact, descriptiveText: String) =
-    "$emoji *$descriptiveText for ${linkedTitleSnippet(artifact, application)}*" +
-      "\n\n${formatCommitMessage(artifact.gitMetadata)}"
+  fun notificationBody(layoutBlockDsl: LayoutBlockDsl, emoji: String, application: String, artifact: PublishedArtifact, descriptiveText: String) {
+    layoutBlockDsl.section {
+      markdownText("$emoji *$descriptiveText for ${linkedTitleSnippet(artifact, application)}*")
+    }
+    buildCommitSectionWithButton(layoutBlockDsl, artifact.gitMetadata)
+  }
 
-  fun notificationBodyWithCommit(emoji: String, application: String, gitMetadata: GitMetadata, descriptiveText: String) =
-    "$emoji *$descriptiveText for ${linkedCommitTitleSnippet(gitMetadata, application)}*" +
-      "\n\n${formatCommitMessage(gitMetadata)}"
+  fun notificationBodyWithCommit(layoutBlockDsl: LayoutBlockDsl, emoji: String, application: String, gitMetadata: GitMetadata, descriptiveText: String) {
+    layoutBlockDsl.section {
+       markdownText("$emoji *$descriptiveText for ${linkedCommitTitleSnippet(gitMetadata, application)}*")
+     }
+    buildCommitSectionWithButton(layoutBlockDsl, gitMetadata)
+   }
+
+  /**
+   * Adds the formated commit message and  a "Show full commit" button if the
+   * commit message is > [GIT_COMMIT_MESSAGE_LENGTH].
+   * Doesn't do anything if there is no commit message or the commit message is not too long.
+   */
+  fun buildCommitSectionWithButton(layoutBlockDsl: LayoutBlockDsl, gitMetadata: GitMetadata?) {
+    if (gitMetadata == null) {
+      return
+    }
+    layoutBlockDsl.section {
+      markdownText(formatCommitMessage(gitMetadata))
+      val commitMessage = gitMetadata.commitInfo?.message ?: EMPTY_COMMIT_TEXT
+      val hash = gitMetadata.commitInfo?.sha ?: "no-hash"
+      if (commitMessage.length > GIT_COMMIT_MESSAGE_LENGTH) {
+        accessory {
+          button {
+            text("Show full commit")
+            // action id will be consisted by 3 sections with ":" between them to keep it consistent
+            actionId("button:$hash:FULL_COMMIT_MODAL")
+            // using the value to sneakily pass what we want to display in the modal, limit 2000 chars
+            value(commitMessage.take(2000))
+          }
+        }
+      }
+    }
+  }
 
   /**
    * Builds a modal with the full commit message
@@ -99,29 +134,7 @@ class GitDataGenerator(
       }
     }
   }
-
-  /**
-   * Adds a "Show full commit" button if the commit message is > [GIT_COMMIT_MESSAGE_LENGTH].
-   * Doesn't do anything if there is no commit message or the commit message is not too long.
-   */
-  fun conditionallyAddFullCommitMsgButton(layoutBlockDsl: LayoutBlockDsl, gitMetadata: GitMetadata) {
-    val commitMessage = gitMetadata.commitInfo?.message ?: EMPTY_COMMIT_TEXT
-    val hash = gitMetadata.commitInfo?.sha ?: "no-hash"
-    if (commitMessage.length > GIT_COMMIT_MESSAGE_LENGTH) {
-      layoutBlockDsl.actions {
-        elements {
-          button {
-            text("Show full commit")
-            // action id will be consisted by 3 sections with ":" between them to keep it consistent
-            actionId("button:$hash:FULL_COMMIT_MODAL")
-            // using the value to sneakily pass what we want to display in the modal, limit 2000 chars
-            value(commitMessage.take(2000))
-          }
-        }
-      }
-    }
-  }
-
+  
   fun formatCommitMessage(gitMetadata: GitMetadata?): String {
     val message = gitMetadata?.commitInfo?.message ?: EMPTY_COMMIT_TEXT
     return if (message.length > GIT_COMMIT_MESSAGE_LENGTH) {

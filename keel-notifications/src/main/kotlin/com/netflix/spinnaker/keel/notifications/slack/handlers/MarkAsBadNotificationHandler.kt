@@ -30,10 +30,7 @@ class MarkAsBadNotificationHandler(
     val username = slackService.getUsernameByEmail(user)
 
     return withBlocks {
-      section {
-        markdownText(gitDataGenerator.notificationBodyWithEnv(":broken_heart:", application, vetoedArtifact, "marked as bad", targetEnvironment, preposition = "in"))
-        //todo eb: should we add the "show full commit" button??
-      }
+      gitDataGenerator.notificationBodyWithEnv(this, ":broken_heart:", application, vetoedArtifact, "marked as bad", targetEnvironment, preposition = "in")
 
       vetoedArtifact.gitMetadata?.let { gitMetadata ->
         section {

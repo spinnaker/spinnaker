@@ -34,9 +34,7 @@ class LifecycleEventNotificationHandler(
       val headerText = ":x: :cake: Bake failed for ${gitDataGenerator.linkedTitleSnippet(artifact, application)}"
 
       val blocks = withBlocks {
-        section {
-          markdownText(gitDataGenerator.notificationBody(":x::cake:", application, artifact, "Bake failed"))
-        }
+        gitDataGenerator.notificationBody(this, ":x::cake:", application, artifact, "Bake failed")
         artifact.gitMetadata?.let { gitMetadata ->
           section {
             gitDataGenerator.generateScmInfo(this, application, gitMetadata, artifact)

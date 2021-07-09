@@ -39,9 +39,8 @@ class VerificationCompletedNotificationHandler(
       }
 
       val blocks = withBlocks {
-        section {
-          markdownText(gitDataGenerator.notificationBody(emoji, application, artifact, verb))
-        }
+        gitDataGenerator.notificationBody(this, emoji, application, artifact, verb)
+
         artifact.gitMetadata?.let { gitMetadata ->
           section {
             gitDataGenerator.generateScmInfo(this, application, gitMetadata, artifact)
