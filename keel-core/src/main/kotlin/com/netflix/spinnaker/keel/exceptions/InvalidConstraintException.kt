@@ -4,5 +4,8 @@ import com.netflix.spinnaker.kork.exceptions.ConfigurationException
 
 class InvalidConstraintException(
   constraintName: String,
-  message: String
-) : ConfigurationException("$constraintName: $message")
+  message: String,
+  cause: Throwable?
+) : ConfigurationException("$constraintName: $message", cause) {
+  constructor(constraintName: String, message: String) : this(constraintName, message, null)
+}

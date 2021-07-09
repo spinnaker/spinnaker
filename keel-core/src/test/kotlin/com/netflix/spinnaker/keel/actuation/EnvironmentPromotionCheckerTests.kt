@@ -16,6 +16,7 @@ import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
 import com.netflix.spinnaker.keel.core.api.TimeWindow
 import com.netflix.spinnaker.keel.core.api.TimeWindowConstraint
+import com.netflix.spinnaker.keel.core.api.windowsNumeric
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.telemetry.ArtifactVersionApproved
 import com.netflix.spinnaker.keel.test.DummyArtifactReferenceResourceSpec
@@ -52,10 +53,7 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
           artifactReference = "my-artifact",
           type = AllowedTimesConstraintEvaluator.CONSTRAINT_NAME,
           status = PASS,
-          attributes = AllowedTimesConstraintAttributes(
-            AllowedTimesConstraintEvaluator.toNumericTimeWindows(constraint),
-            null
-          ),
+          attributes = AllowedTimesConstraintAttributes(constraint.windowsNumeric, null),
           judgedAt = null,
           judgedBy = "Spinnaker"
         ))

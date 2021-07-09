@@ -9,11 +9,11 @@ import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.constraints.StatefulConstraintEvaluator
 import com.netflix.spinnaker.keel.api.plugins.ConstraintEvaluator
 import com.netflix.spinnaker.keel.constraints.AllowedTimesConstraintAttributes
-import com.netflix.spinnaker.keel.constraints.AllowedTimesConstraintEvaluator
 import com.netflix.spinnaker.keel.constraints.DependsOnConstraintAttributes
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.core.api.MANUAL_JUDGEMENT_CONSTRAINT_TYPE
 import com.netflix.spinnaker.keel.core.api.TimeWindowConstraint
+import com.netflix.spinnaker.keel.core.api.windowsNumeric
 import com.netflix.spinnaker.keel.graphql.types.MdConstraint
 import com.netflix.spinnaker.keel.graphql.types.MdConstraintStatus
 import com.netflix.spinnaker.keel.persistence.KeelRepository
@@ -69,7 +69,7 @@ class ConstraintsDataLoader(
             )
             if (envConstraint is TimeWindowConstraint) {
               // we need to load in allowed time attrs to display in the UI
-              state = state.copy(attributes = AllowedTimesConstraintAttributes(AllowedTimesConstraintEvaluator.toNumericTimeWindows(envConstraint), envConstraint.tz, false))
+              state = state.copy(attributes = AllowedTimesConstraintAttributes(envConstraint.windowsNumeric, envConstraint.tz, false))
             }
             state
           } else { // Stateless constraint
@@ -90,7 +90,7 @@ class ConstraintsDataLoader(
               status = if (passes) ConstraintStatus.PASS else ConstraintStatus.PENDING,
               attributes = when (envConstraint) {
                 is DependsOnConstraint -> DependsOnConstraintAttributes(envConstraint.environment, passes)
-                is TimeWindowConstraint -> AllowedTimesConstraintAttributes(AllowedTimesConstraintEvaluator.toNumericTimeWindows(envConstraint), envConstraint.tz, passes)
+                is TimeWindowConstraint -> AllowedTimesConstraintAttributes(envConstraint.windowsNumeric, envConstraint.tz, passes)
                 else -> null
               }
             )
@@ -148,5 +148,3 @@ fun ConstraintState.toDgs() =
     attributes = attributes,
     comment = comment
   )
-
-

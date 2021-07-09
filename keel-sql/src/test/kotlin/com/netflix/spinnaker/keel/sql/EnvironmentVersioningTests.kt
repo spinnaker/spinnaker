@@ -16,6 +16,7 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_VERSI
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_VERSION_ARTIFACT_VERSION
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
+import com.netflix.spinnaker.keel.sql.deliveryconfigs.versionsCreatedSince
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.configuredTestObjectMapper
 import com.netflix.spinnaker.keel.test.defaultArtifactSuppliers
@@ -24,6 +25,7 @@ import com.netflix.spinnaker.keel.test.randomString
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
+import com.netflix.spinnaker.time.MutableClock
 import io.mockk.mockk
 import org.jooq.Table
 import org.junit.jupiter.api.AfterEach
@@ -40,14 +42,16 @@ import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isGreaterThan
 import strikt.assertions.isSuccess
-import java.time.Clock.systemUTC
 import java.time.Duration
+import java.time.Instant.EPOCH
+import java.time.temporal.ChronoUnit.DAYS
 
 class EnvironmentVersioningTests {
   private val jooq = testDatabase.context
   private val objectMapper = configuredTestObjectMapper()
   private val retryProperties = RetryProperties(1, 0)
   private val sqlRetry = SqlRetry(SqlRetryProperties(retryProperties, retryProperties))
+  private val clock = MutableClock()
   private val resourceSpecIdentifier =
     ResourceSpecIdentifier(
       kind<DummyResourceSpec>("test/whatever@v1")
@@ -56,7 +60,7 @@ class EnvironmentVersioningTests {
 
   private val deliveryConfigRepository = SqlDeliveryConfigRepository(
     jooq,
-    systemUTC(),
+    clock,
     resourceSpecIdentifier,
     objectMapper,
     sqlRetry,
@@ -66,7 +70,7 @@ class EnvironmentVersioningTests {
 
   private val artifactRepository = SqlArtifactRepository(
     jooq,
-    systemUTC(),
+    clock,
     objectMapper,
     sqlRetry,
     publisher = mockk(relaxed = true)
@@ -74,7 +78,7 @@ class EnvironmentVersioningTests {
 
   private val resourceRepository = SqlResourceRepository(
     jooq,
-    systemUTC(),
+    clock,
     resourceSpecIdentifier,
     emptyList(),
     objectMapper,
@@ -84,7 +88,7 @@ class EnvironmentVersioningTests {
 
   private val verificationRepository = SqlActionRepository(
     jooq = jooq,
-    clock = systemUTC(),
+    clock = clock,
     resourceSpecIdentifier = resourceSpecIdentifier,
     objectMapper = objectMapper,
     sqlRetry = sqlRetry,
@@ -96,7 +100,7 @@ class EnvironmentVersioningTests {
     artifactRepository,
     resourceRepository,
     verificationRepository,
-    systemUTC(),
+    clock,
     { },
     objectMapper
   )
@@ -137,9 +141,13 @@ class EnvironmentVersioningTests {
           copy(
             constraints = setOf(ManualJudgementConstraint()),
             verifyWith = listOf(DummyVerification()),
-            notifications = setOf(NotificationConfig(type = slack,
-              address = "#trashpandas",
-              frequency = normal))
+            notifications = setOf(
+              NotificationConfig(
+                type = slack,
+                address = "#trashpandas",
+                frequency = normal
+              )
+            )
           )
         }
           .let(::setOf)
@@ -160,6 +168,20 @@ class EnvironmentVersioningTests {
 
     val updatedVersion = latestVersion()
     expectThat(updatedVersion).describedAs("updated version") isEqualTo initialVersion + 1
+  }
+
+  @Test
+  fun `we can determine how many versions have been created since a timestamp`() {
+    expectThat(versionsEver()) isEqualTo 2
+
+    clock.incrementBy(Duration.ofDays(1))
+    deliveryConfig.withUpdatedResource()
+      .also(repository::upsertDeliveryConfig)
+
+    expect {
+      that(versionsEver()) isEqualTo 3
+      that(versionsToday()) isEqualTo 1
+    }
   }
 
   @Test
@@ -358,6 +380,20 @@ class EnvironmentVersioningTests {
       .select(ACTIVE_ENVIRONMENT.VERSION)
       .from(ACTIVE_ENVIRONMENT)
       .fetchOne(ACTIVE_ENVIRONMENT.VERSION)!!
+
+  private fun versionsEver() =
+    deliveryConfigRepository.versionsCreatedSince(
+      deliveryConfig,
+      deliveryConfig.environments.first().name,
+      EPOCH
+    )
+
+  private fun versionsToday() =
+    deliveryConfigRepository.versionsCreatedSince(
+      deliveryConfig,
+      deliveryConfig.environments.first().name,
+      clock.instant().truncatedTo(DAYS)
+    )
 
   private fun Table<*>.count() =
     jooq.selectCount().from(this).fetchSingleInto<Int>()

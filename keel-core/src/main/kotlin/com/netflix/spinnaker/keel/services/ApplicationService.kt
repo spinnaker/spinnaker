@@ -27,7 +27,6 @@ import com.netflix.spinnaker.keel.api.plugins.ConstraintEvaluator
 import com.netflix.spinnaker.keel.api.plugins.supporting
 import com.netflix.spinnaker.keel.artifacts.ArtifactVersionLinks
 import com.netflix.spinnaker.keel.constraints.AllowedTimesConstraintAttributes
-import com.netflix.spinnaker.keel.constraints.AllowedTimesConstraintEvaluator.Companion.toNumericTimeWindows
 import com.netflix.spinnaker.keel.constraints.DependsOnConstraintAttributes
 import com.netflix.spinnaker.keel.core.api.ArtifactSummary
 import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
@@ -48,6 +47,7 @@ import com.netflix.spinnaker.keel.core.api.ResourceArtifactSummary
 import com.netflix.spinnaker.keel.core.api.ResourceSummary
 import com.netflix.spinnaker.keel.core.api.TimeWindowConstraint
 import com.netflix.spinnaker.keel.core.api.VerificationSummary
+import com.netflix.spinnaker.keel.core.api.windowsNumeric
 import com.netflix.spinnaker.keel.events.MarkAsBadNotification
 import com.netflix.spinnaker.keel.events.PinnedNotification
 import com.netflix.spinnaker.keel.events.UnpinnedNotification
@@ -609,7 +609,7 @@ class ApplicationService(
           status = if (passes) PASS else ConstraintStatus.PENDING,
           attributes = when (constraint) {
             is DependsOnConstraint -> DependsOnConstraintAttributes(constraint.environment, passes)
-            is TimeWindowConstraint -> AllowedTimesConstraintAttributes(toNumericTimeWindows(constraint), constraint.tz, passes)
+            is TimeWindowConstraint -> AllowedTimesConstraintAttributes(constraint.windowsNumeric, constraint.tz, passes)
             else -> null
           }
         )

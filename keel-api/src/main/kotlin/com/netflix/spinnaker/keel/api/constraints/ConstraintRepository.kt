@@ -17,9 +17,6 @@ package com.netflix.spinnaker.keel.api.constraints
 
 import com.netflix.spinnaker.keel.api.UID
 
-/**
- * TODO: Docs.
- */
 interface ConstraintRepository {
 
   fun storeConstraintState(state: ConstraintState)

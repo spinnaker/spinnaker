@@ -56,6 +56,7 @@ import com.netflix.spinnaker.keel.sql.deliveryconfigs.deliveryConfigByName
 import com.netflix.spinnaker.keel.sql.deliveryconfigs.makeEnvironment
 import com.netflix.spinnaker.keel.sql.deliveryconfigs.selectEnvironmentColumns
 import com.netflix.spinnaker.keel.sql.deliveryconfigs.uid
+import com.netflix.spinnaker.keel.sql.deliveryconfigs.versionsCreatedSince
 import com.netflix.spinnaker.keel.telemetry.AboutToBeChecked
 import de.huxhorn.sulky.ulid.ULID
 import org.jooq.DSLContext
@@ -1442,6 +1443,9 @@ class SqlDeliveryConfigRepository(
       }
     }
   }
+
+  override fun versionsCreatedSince(deliveryConfig: DeliveryConfig, environmentName: String, time: Instant): Int =
+    (this as SqlStorageContext).versionsCreatedSince(deliveryConfig, environmentName, time)
 
   private fun DSLContext.setActiveEnvironmentVersion(uid: Select<Record1<String>>, version: Int) {
     insertInto(ACTIVE_ENVIRONMENT_VERSION)

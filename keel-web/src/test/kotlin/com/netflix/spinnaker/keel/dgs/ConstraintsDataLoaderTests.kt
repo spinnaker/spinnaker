@@ -9,7 +9,6 @@ import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.NOT_EVALUATED
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.OVERRIDE_PASS
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PASS
-import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PENDING
 import com.netflix.spinnaker.keel.api.plugins.ConstraintEvaluator
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.constraints.AllowedTimesConstraintAttributes
@@ -20,6 +19,8 @@ import com.netflix.spinnaker.keel.constraints.OriginalSlackMessageDetail
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.core.api.TimeWindow
 import com.netflix.spinnaker.keel.core.api.TimeWindowConstraint
+import com.netflix.spinnaker.keel.core.api.windowsNumeric
+import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.rest.dgs.ConstraintsDataLoader
 import com.netflix.spinnaker.keel.rest.dgs.EnvironmentArtifactAndVersion
@@ -42,6 +43,7 @@ class ConstraintsDataLoaderTests: JUnit5Minutests {
   class Fixture {
     val keelRepository: KeelRepository = mockk()
     val constraintRepository: ConstraintRepository = mockk()
+    val deliveryConstraintRepository: DeliveryConfigRepository = mockk()
 
     val clock = MutableClock()
 
@@ -49,7 +51,8 @@ class ConstraintsDataLoaderTests: JUnit5Minutests {
       clock,
       mockk(relaxed = true),
       mockk(relaxed = true),
-      constraintRepository
+      constraintRepository,
+      deliveryConstraintRepository
     )
     val repo: ConstraintRepository = mockk(relaxed = true)
     val mjEvaluator = ManualJudgementConstraintEvaluator(
@@ -146,7 +149,7 @@ class ConstraintsDataLoaderTests: JUnit5Minutests {
               judgedBy = "Spinnaker",
               judgedAt = clock.instant(),
               attributes = AllowedTimesConstraintAttributes(
-                AllowedTimesConstraintEvaluator.toNumericTimeWindows(twConstraint),
+                twConstraint.windowsNumeric,
                 twConstraint.tz,
                 true
               )

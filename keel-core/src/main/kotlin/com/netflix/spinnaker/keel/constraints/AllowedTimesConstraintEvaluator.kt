@@ -13,16 +13,16 @@ import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintType
 import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.core.api.TimeWindowConstraint
 import com.netflix.spinnaker.keel.core.api.TimeWindowNumeric
+import com.netflix.spinnaker.keel.core.api.lastWindowStartBefore
+import com.netflix.spinnaker.keel.core.api.windowsNumeric
 import com.netflix.spinnaker.keel.exceptions.InvalidConstraintException
+import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import java.text.ParsePosition
 import java.time.Clock
-import java.time.DayOfWeek
 import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.time.format.TextStyle
-import java.util.Locale
+import java.time.ZonedDateTime
 
 /**
  * An environment promotion constraint to gate promotions to time windows.
@@ -46,6 +46,7 @@ import java.util.Locale
  *      - days: Wed
  *        hours: 12-14
  *    tz: America/Los_Angeles
+ *    maxDeploysPerWindow: 2
  * ```
  */
 @Component
@@ -53,170 +54,13 @@ class AllowedTimesConstraintEvaluator(
   private val clock: Clock,
   private val dynamicConfigService: DynamicConfigService,
   override val eventPublisher: EventPublisher,
-  override val repository: ConstraintRepository
+  override val repository: ConstraintRepository,
+  private val deliveryConfigRepository: DeliveryConfigRepository
 ) : StatefulConstraintEvaluator<TimeWindowConstraint, AllowedTimesConstraintAttributes> {
   override val attributeType = SupportedConstraintAttributesType<AllowedTimesConstraintAttributes>("allowed-times")
 
   companion object {
     const val CONSTRAINT_NAME = "allowed-times"
-
-    val whiteSpace =
-      """\s""".toRegex()
-    val intOnly =
-      """^\d+$""".toRegex()
-    val intRange =
-      """^\d+\-\d+$""".toRegex()
-    val separators =
-      """[\s,\-]""".toRegex()
-    val fullDayFormatter: DateTimeFormatter = DateTimeFormatter
-      .ofPattern("EEEE", Locale.getDefault())
-    val shortDayFormatter: DateTimeFormatter = DateTimeFormatter
-      .ofPattern("EEE", Locale.getDefault())
-
-    val daysOfWeek = DayOfWeek.values()
-      .map {
-        listOf(
-          it.toString().toLowerCase(),
-          it.getDisplayName(TextStyle.SHORT, Locale.getDefault()).toLowerCase()
-        )
-      }
-      .flatten()
-      .toMutableSet()
-
-    val dayAliases = setOf("weekdays", "weekends")
-
-    fun validateHours(hours: String): Boolean {
-      return hours.split(separators).all {
-        it.matches(intOnly) && it.toInt() >= 0 && it.toInt() <= 23
-      }
-    }
-
-    fun validateDays(days: String): Boolean {
-      return days.toLowerCase().split(separators).all {
-        daysOfWeek.contains(it) || dayAliases.contains(it)
-      }
-    }
-
-    fun parseHours(hourConfig: String?): Set<Int> {
-      if (hourConfig == null) {
-        return emptySet()
-      }
-
-      val hours = mutableSetOf<Int>()
-      val trimmed = hourConfig.replace(whiteSpace, "")
-      val elements = trimmed.split(",")
-
-      elements.forEach {
-        when {
-          it.isInt() -> hours.add(it.toInt())
-          it.isIntRange() -> hours.addAll(it.hourRange())
-        }
-      }
-
-      return hours
-    }
-
-    private fun String.isInt(): Boolean = this.matches(intOnly)
-
-    private fun String.isIntRange(): Boolean = this.matches(intRange)
-
-    private fun String.hourRange(): Set<Int> {
-      val hours = this.split("-")
-      return if (hours[1].toInt() > hours[0].toInt()) {
-        // i.e. 10-18
-        IntRange(hours[0].toInt(), hours[1].toInt()).toSet()
-      } else {
-        // i.e. 18-04 == between 18-23 || 0-4
-        IntRange(hours[0].toInt(), 23).toSet() +
-          IntRange(0, hours[1].toInt()).toSet()
-      }
-    }
-
-    /**
-     * Used for converting the day config into a list of numbers for the UI.
-     */
-    private fun parseDays(dayConfig: String?): Set<Int> {
-      if (dayConfig == null) {
-        return emptySet()
-      }
-
-      val days = mutableSetOf<String>()
-      val trimmed = dayConfig.replace(whiteSpace, "")
-        .toLowerCase()
-      val elements = trimmed.split(",")
-
-      elements.forEach {
-        when {
-          it.isDayAlias() -> days.addAll(it.dayAlias())
-          it.isDay() -> days.add(it)
-          it.isDayRange() -> days.addAll(it.dayRange())
-        }
-      }
-
-      return days.map { word ->
-        word.toDayOfWeek()
-      }.toSet()
-    }
-
-    private fun String.isDay(): Boolean = daysOfWeek.contains(this)
-
-    private fun String.isDayAlias(): Boolean = dayAliases.contains(this)
-
-    private fun String.isDayRange(): Boolean {
-      val days = this.split("-")
-      if (days.size != 2) {
-        return false
-      }
-
-      return daysOfWeek.contains(days[0]) && daysOfWeek.contains(days[1])
-    }
-
-    private fun String.dayAlias(): Set<String> =
-      when (this) {
-        "weekdays" -> setOf("monday", "tuesday", "wednesday", "thursday", "friday")
-        "weekends" -> setOf("saturday", "sunday")
-        else -> throw InvalidConstraintException(CONSTRAINT_NAME, "Failed parsing day alias $this")
-      }
-
-    private fun String.toDayOfWeek(): Int =
-      (fullDayFormatter.parseUnresolved(this.capitalize(), ParsePosition(0))
-        ?: shortDayFormatter.parseUnresolved(this.capitalize(), ParsePosition(0)))
-        ?.let { DayOfWeek.from(it).value }
-        ?: throw InvalidConstraintException(CONSTRAINT_NAME, "Failed parsing day '$this'")
-
-    private fun String.dayRange(): Set<String> {
-      /**
-       * Convert Mon-Fri or Monday-Friday to [DayOfWeek] integers to compute
-       * a range, then back to a set of individual days that today can be
-       * matched against.
-       */
-      val days = this.split("-").map { it.capitalize() }
-      val day1 = days[0].toDayOfWeek()
-      val day2 = days[1].toDayOfWeek()
-
-      val intRange = if (day2 > day1) {
-        // Mon - Fri
-        IntRange(day1, day2).toList()
-      } else {
-        // Fri - Mon
-        IntRange(day1, 7).toList() + IntRange(1, day2).toList()
-      }
-
-      return intRange.map {
-        DayOfWeek.of(it)
-          .toString()
-          .toLowerCase()
-      }
-        .toSet()
-    }
-
-    fun toNumericTimeWindows(constraint: TimeWindowConstraint): List<TimeWindowNumeric> =
-      constraint.windows.map {
-        TimeWindowNumeric(
-          days = parseDays(it.days),
-          hours = parseHours(it.hours)
-        )
-      }
   }
 
   override val supportedType = SupportedConstraintType<TimeWindowConstraint>("allowed-times")
@@ -237,26 +81,37 @@ class AllowedTimesConstraintEvaluator(
       .instant()
       .atZone(tz)
 
-    constraint.windows.forEach {
-      val hours = parseHours(it.hours)
-      val hoursMatch = hours.isEmpty() || hours.contains(now.hour)
+    val activeWindow = constraint.windowsNumeric.activeWindowOrNull(now)
 
-      val today = now.dayOfWeek
-        .toString()
-        .toLowerCase()
-      val todayShort = now.dayOfWeek
-        .getDisplayName(TextStyle.SHORT, Locale.getDefault())
+    if (activeWindow != null && constraint.maxDeploysPerWindow != null) {
+      val windowStart = activeWindow.lastWindowStartBefore(now)
 
-      val days = parseDays(it.days, deliveryConfig, targetEnvironment.name)
-      val daysMatch = days.isEmpty() || days.contains(today) || days.contains(todayShort)
+      val count = deliveryConfigRepository.versionsCreatedSince(
+        deliveryConfig,
+        targetEnvironment.name,
+        windowStart.toInstant()
+      )
 
-      if (hoursMatch && daysMatch) {
-        return true
+      if (count >= constraint.maxDeploysPerWindow) {
+        log.info(
+          "{}:{} has already been deployed {} times during the current window, skipping deployment",
+          deliveryConfig.name,
+          targetEnvironment.name,
+          count
+        )
+        return false
       }
     }
 
-    return false
+    return activeWindow != null
   }
+
+  fun Iterable<TimeWindowNumeric>.activeWindowOrNull(time: ZonedDateTime) =
+    find { window ->
+      val hoursMatch = window.hours.isEmpty() || window.hours.contains(time.hour)
+      val daysMatch = window.days.isEmpty() || window.days.contains(time.dayOfWeek.value)
+      daysMatch && hoursMatch
+    }
 
   override fun canPromote(
     artifact: DeliveryArtifact,
@@ -284,10 +139,10 @@ class AllowedTimesConstraintEvaluator(
     }
 
     if (status != state.status) {
-      // change the stored state if the current calculated status is different than what's saved.
+      // change the stored state if the current calculated status is different from what's saved.
       val attributes = AllowedTimesConstraintAttributes(
-        allowedTimes = toNumericTimeWindows(constraint),
-        timezone = constraint.tz ?: dynamicConfigService.getConfig(String::class.java, "default.time-zone", "America/Los_Angeles"),
+        allowedTimes = constraint.windowsNumeric,
+        timezone = constraint.tz ?: defaultTimeZone().id,
         currentlyPassing = currentlyPassing
       )
       repository.storeConstraintState(
@@ -305,35 +160,10 @@ class AllowedTimesConstraintEvaluator(
 
     return currentlyPassing
   }
-
-  private fun parseDays(dayConfig: String?, deliveryConfig: DeliveryConfig, envName: String): Set<String> {
-    if (dayConfig == null) {
-      return emptySet()
-    }
-
-    val days = mutableSetOf<String>()
-    val trimmed = dayConfig.replace(whiteSpace, "")
-      .toLowerCase()
-    val elements = trimmed.split(",")
-
-    elements.forEach {
-      when {
-        it.isDayAlias() -> days.addAll(it.dayAlias())
-        it.isDay() -> days.add(it)
-        it.isDayRange() -> days.addAll(it.dayRange())
-        else -> throw InvalidConstraintException(
-          CONSTRAINT_NAME,
-          "Invalid allowed-times constraint ($it) on deliveryConfig: ${deliveryConfig.name}, " +
-            "application: ${deliveryConfig.application}, environment: $envName"
-        )
-      }
-    }
-
-    return days
-  }
-
   private fun defaultTimeZone(): ZoneId =
     ZoneId.of(
       dynamicConfigService.getConfig(String::class.java, "default.time-zone", "America/Los_Angeles")
     )
+
+  private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }

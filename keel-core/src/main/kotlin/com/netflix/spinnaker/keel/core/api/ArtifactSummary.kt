@@ -6,13 +6,12 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonPropertyOrder
 import com.netflix.spinnaker.keel.api.Verification
+import com.netflix.spinnaker.keel.api.action.ActionState
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStateAttributes
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
-import com.netflix.spinnaker.keel.api.action.ActionState
-import com.netflix.spinnaker.keel.constraints.AllowedTimesConstraintEvaluator
 import com.netflix.spinnaker.keel.lifecycle.LifecycleStep
 import java.time.Instant
 
@@ -95,8 +94,5 @@ data class AllowedTimesConstraintMetadata(
   val windows: List<TimeWindowNumeric>,
   val timezone: String? = null
 ) : ConstraintMetadata() {
-  constructor(constraint: TimeWindowConstraint): this(
-    AllowedTimesConstraintEvaluator.toNumericTimeWindows(constraint),
-    constraint.tz
-  )
+  constructor(constraint: TimeWindowConstraint): this(constraint.windowsNumeric, constraint.tz)
 }
