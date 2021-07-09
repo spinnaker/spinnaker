@@ -239,12 +239,16 @@ const helpContents: { [key: string]: string } = {
     '<p>Configures the cluster upon which this destroy operation will act. The <em>target</em> specifies what server group to resolve for the operation.</p>',
   'pipeline.config.jenkins.trigger.propertyFile':
     '<p>(Optional) Configures the name to the Jenkins artifact file used to pass in properties to later stages in the Spinnaker pipeline. The contents of this file will now be available as a map under the trigger and accessible via <em>trigger.properties</em>. See <a target="_blank" href="https://www.spinnaker.io/guides/user/pipeline-expressions/">Pipeline Expressions docs</a> for more information.</p>',
+  'pipeline.config.jenkins.trigger.payloadConstraints': `<p>(Optional, Requires Property File) When provided, only a build that contains a Property File with correct constraints will trigger this pipeline.  For example, you could restrict the trigger to certain branches by placing the branch name in your Property File and adding a constraint with a key like "branch" and value "master".</p>
+    <p>The constraint values may be supplied as regex.</p>`,
   'pipeline.config.jenkins.propertyFile':
     '<p>(Optional) Configures the name to the Jenkins artifact file used to pass in properties to later stages in the Spinnaker pipeline. The contents of this file will now be available as a map under the stage context. See <a target="_blank" href="https://www.spinnaker.io/guides/user/pipeline-expressions/">Pipeline Expressions docs</a> for more information.</p>',
   'pipeline.config.travis.job.isFiltered':
     '<p>Note that for performance reasons, not all jobs are displayed. Please use the search field to limit the number of jobs.</p>',
   'pipeline.config.travis.trigger.propertyFile':
     '<p>(Optional) Configures the name to the Travis artifact file used to pass in properties to later stages in the Spinnaker pipeline. The contents of this file will now be available as a map under the trigger and accessible via <em>trigger.properties</em>. See <a target="_blank" href="https://www.spinnaker.io/guides/user/pipeline-expressions/">Pipeline Expressions docs</a> for more information.</p>',
+  'pipeline.config.travis.trigger.payloadConstraints': `<p>(Optional, Requires Property File) When provided, only a build that contains a Property File with correct constraints will trigger this pipeline.  For example, you could restrict the trigger to certain branches by placing the branch name in your Property File and adding a constraint with a key like "branch" and value "master".</p>
+    <p>The constraint values may be supplied as regex.</p>`,
   'pipeline.config.travis.propertyFile':
     '<p>(Optional) Configures the name to the Travis artifact file used to pass in properties to later stages in the Spinnaker pipeline. The contents of this file will now be available as a map under the stage context. See <a target="_blank" href="https://www.spinnaker.io/guides/user/pipeline-expressions/">Pipeline Expressions docs</a> for more information.</p>',
   'pipeline.config.bake.skipRegionDetection': `
