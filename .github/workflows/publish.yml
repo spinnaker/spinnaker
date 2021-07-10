@@ -1,11 +1,11 @@
-name: Publish oracle
+name: npm publish
 
 on:
   push:
     branches:
       - 'master'
     paths:
-      - 'packages/oracle/package.json'
+      - 'packages/*/package.json'
 
 jobs:
   build:
@@ -17,10 +17,10 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 12.16.0
-      - name: publish oracle
+      - name: publish packages to npm
         run: |
           npm config set //registry.npmjs.org/:_authToken=$NPM_AUTH_TOKEN
-          scripts/github_actions_publish.sh oracle
+          scripts/publish.sh
         env:
           CI: true
           NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
