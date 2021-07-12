@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.keel.rest
 
-import com.netflix.spinnaker.keel.events.ButtonClickedEvent
 import com.netflix.spinnaker.keel.notifications.slack.callbacks.CommitModalCallbackHandler
 import com.netflix.spinnaker.keel.notifications.slack.callbacks.ManualJudgmentCallbackHandler
 import com.slack.api.app_backend.interactive_components.payload.BlockActionPayload
@@ -8,7 +7,7 @@ import com.slack.api.bolt.App
 import com.slack.api.bolt.context.builtin.ActionContext
 import com.slack.api.bolt.request.builtin.BlockActionRequest
 import com.slack.api.bolt.servlet.SlackAppServlet
-import org.springframework.context.ApplicationEventPublisher
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import javax.servlet.annotation.WebServlet
 
@@ -23,19 +22,23 @@ class SlackAppController(
   slackApp: App,
   private val mjHandler: ManualJudgmentCallbackHandler,
   private val commitModalCallbackHandler: CommitModalCallbackHandler,
-  private val publisher: ApplicationEventPublisher
 ) : SlackAppServlet(slackApp) {
+
+  private val log by lazy { LoggerFactory.getLogger(javaClass) }
+
   init {
     // The pattern here should match the action id field in the actual button.
     // for example, for manual judgment notifications: constraintId:OVERRIDE_PASS:MANUAL_JUDGMENT
     val actionIdPattern = "^(\\w+):(\\w+):(\\w+)".toPattern()
     slackApp.blockAction(actionIdPattern) { req: BlockActionRequest, ctx: ActionContext ->
       if (req.payload.notificationType == "MANUAL_JUDGMENT") {
+        log.info("[slack interaction] 'manual judgment' button clicked by ${req.payload.user}")
         mjHandler.respondToButton(req, ctx)
       } else if (req.payload.notificationType == "FULL_COMMIT_MODAL") {
+        log.info("[slack interaction] 'show full commit' button clicked by ${req.payload.user}")
         commitModalCallbackHandler.openModal(req, ctx)
       } else if (req.payload.actions.first().actionId == "button:url:mj-diff-link") {
-        publisher.publishEvent(ButtonClickedEvent(req.payload.actions.first().actionId))
+        log.info("[slack interaction] 'see changes' button clicked by ${req.payload.user}")
       }
       // we always need to acknowledge the button within 3 seconds
       ctx.ack()
