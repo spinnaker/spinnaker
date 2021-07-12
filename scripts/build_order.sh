@@ -22,8 +22,12 @@ ModuleDeps () {
       titus) echo "amazon docker core" ;;
       tencentcloud) echo "core";;
       *)
-        echo "Unknown module: $1"
-        exit 1
+        if [[ ! -d "../packages/$1" ]] ; then
+          echo "Unknown module: $1"
+          exit 1
+        else
+          echo $1;
+        fi
         ;;
   esac
 }
