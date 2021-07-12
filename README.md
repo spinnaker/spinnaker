@@ -16,6 +16,10 @@ Run the following commands (in the deck directory) to get all dependencies insta
 
 The app will start up on localhost:9000.
 
+When editing `core` or any other cloud provider package, please run the following in that folder
+
+- `yarn dev`
+
 ## Environment variables
 
 Environment variables can be used to configure application behavior. The following lists those variables and their possible values:
