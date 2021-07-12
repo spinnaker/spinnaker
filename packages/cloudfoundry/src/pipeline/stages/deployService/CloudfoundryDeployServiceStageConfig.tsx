@@ -37,7 +37,8 @@ export class CloudfoundryDeployServiceStageConfig extends React.Component<
       service: '',
       serviceInstanceName: '',
       servicePlan: '',
-      updatable: true,
+      updatable: false,
+      versioned: false,
     },
   };
   private destroy$ = new Subject();

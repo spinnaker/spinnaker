@@ -100,6 +100,15 @@ export class CreateServiceInstanceDirectInput extends React.Component<
     this.props.onServiceChanged({
       ...this.props.service,
       updatable: event.target.checked,
+      versioned: false,
+    });
+  };
+
+  private versionedUpdated = (event: React.ChangeEvent<HTMLInputElement>) => {
+    this.props.onServiceChanged({
+      ...this.props.service,
+      versioned: event.target.checked,
+      updatable: false,
     });
   };
 
@@ -140,14 +149,21 @@ export class CreateServiceInstanceDirectInput extends React.Component<
         <StageConfigField label="Parameters">
           <TextAreaInput className="form-control" onChange={this.parametersUpdated} value={service.parameters || ''} />
         </StageConfigField>
-        <StageConfigField label="Updatable">
-          <input type="checkbox" checked={!!service.updatable} onChange={this.updatableUpdated} />
-          {!service.updatable && (
-            <div>
-              If a service instance with the name '{service.serviceInstanceName}' is already present then it will not be
-              updated, and the operation will succeed.
-            </div>
-          )}
+        <StageConfigField label="Updatable" helpKey={'pipeline.config.cf.createservice.updatable'}>
+          <input
+            type="checkbox"
+            disabled={!!service.versioned}
+            checked={!!service.updatable}
+            onChange={this.updatableUpdated}
+          />
+        </StageConfigField>
+        <StageConfigField label="Versioned" helpKey={'pipeline.config.cf.createservice.versioned'}>
+          <input
+            type="checkbox"
+            disabled={!!service.updatable}
+            checked={!!service.versioned}
+            onChange={this.versionedUpdated}
+          />
         </StageConfigField>
       </div>
     );
