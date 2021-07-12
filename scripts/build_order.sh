@@ -11,13 +11,14 @@ ModuleDeps () {
       appengine) echo "core" ;;
       azure) echo "core" ;;
       cloudfoundry) echo "core" ;;
-      core) echo "core";;
+      core) echo "presentation";;
       docker) echo "core" ;;
       ecs) echo "amazon docker core" ;;
       google) echo "core" ;;
       huaweicloud) echo "core" ;;
       kubernetes) echo "core" ;;
       oracle) echo "core" ;;
+      presentation) echo "presentation";;
       titus) echo "amazon docker core" ;;
       tencentcloud) echo "core";;
       *)

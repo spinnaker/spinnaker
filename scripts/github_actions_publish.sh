@@ -69,7 +69,7 @@ for DIR in ${BUILDORDER} ; do
   pushd "${MODULES_DIR}/${DIR}" > /dev/null || exit 5
   if [ "${DIR}" == "${MODULE}" ] ; then
     echo "Deck package publisher ---> Publishing ${MODULE}..."
-    yarn
+    yarn build
     npm publish
   else
     echo "Deck package publisher ---> Building (but not publishing) upstream dependency '${DIR}'..."
