@@ -138,7 +138,13 @@ class GitDataGenerator(
   fun formatCommitMessage(gitMetadata: GitMetadata?): String {
     val message = gitMetadata?.commitInfo?.message ?: EMPTY_COMMIT_TEXT
     return if (message.length > GIT_COMMIT_MESSAGE_LENGTH) {
-      message.take(GIT_COMMIT_MESSAGE_LENGTH) + "..."
+        // sometimes squashed commits have lots irrelevant (for slack) text after words like
+        // "squashed commit of the following". We want to show only the useful part of the message
+        // in slack, and hide the rest in the full commit dialog.
+      message
+        .substringBefore("Squashed commit of the following")
+        .trim()
+        .take(GIT_COMMIT_MESSAGE_LENGTH) + "..."
     } else {
       message
     }
