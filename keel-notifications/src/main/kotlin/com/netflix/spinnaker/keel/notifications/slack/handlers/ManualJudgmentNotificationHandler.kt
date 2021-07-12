@@ -76,7 +76,7 @@ class ManualJudgmentNotificationHandler(
             }
             if (compareLink != null) {
               button {
-                text("See changes", emoji = true)
+                text("See code changes", emoji = true)
                 url(compareLink)
                 // action id will be consisted by 3 sections with ":" between them to keep it consistent
                 actionId("button:url:mj-diff-link")

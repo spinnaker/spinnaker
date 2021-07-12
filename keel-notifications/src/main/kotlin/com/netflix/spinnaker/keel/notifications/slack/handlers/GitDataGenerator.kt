@@ -182,17 +182,6 @@ class GitDataGenerator(
             "<${commitInfo?.link}|${commitInfo?.sha?.substring(0, 7)}>")
         }
       }
-      if (artifact != null) {
-        val artifactUrl = generateArtifactUrl(application, artifact.reference, artifact.version)
-        accessory {
-          button {
-            text("More...")
-            // action id will be consisted by 3 sections with ":" between them to keep it consistent
-            actionId("button:url:more")
-            url(artifactUrl)
-          }
-        }
-      }
       return this
     }
   }
