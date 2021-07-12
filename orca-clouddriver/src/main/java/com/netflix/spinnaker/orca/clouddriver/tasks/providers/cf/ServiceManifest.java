@@ -66,6 +66,7 @@ public class ServiceManifest {
   public static class Direct extends DirectManifest {
     @Nullable private String service;
     private boolean updatable = true;
+    private boolean versioned = false;
 
     @JsonAlias("service_instance_name")
     private String serviceInstanceName;
