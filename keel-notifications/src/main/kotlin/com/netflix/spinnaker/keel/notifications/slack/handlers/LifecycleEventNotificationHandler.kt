@@ -31,7 +31,7 @@ class LifecycleEventNotificationHandler(
     with(notification) {
       log.debug("Sending lifecycle event $eventType notification for application ${notification.application}")
 
-      val headerText = ":x: :cake: Bake failed for ${gitDataGenerator.linkedTitleSnippet(artifact, application)}"
+      val headerText = "[$application] bake failed for ${artifact.version}"
 
       val blocks = withBlocks {
         gitDataGenerator.notificationBody(this, ":x::cake:", application, artifact, "Bake failed")

@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.keel.notifications.slack.handlers
 
 import com.netflix.spinnaker.keel.api.NotificationDisplay
-import com.netflix.spinnaker.keel.api.NotificationDisplay.*
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.notifications.NotificationType.MANUAL_JUDGMENT_UPDATE
 import com.netflix.spinnaker.keel.notifications.slack.SlackManualJudgmentUpdateNotification
@@ -49,23 +48,22 @@ class ManualJudgementUpdateHandler(
         verb
       )
 
-      val backuptext = fallbackText(user, status)
-
       val newFooterBlock = withBlocks {
         context {
           elements {
-            markdownText(backuptext)
+            markdownText(judgedContext(user, status))
           }
         }
       }
 
       val newBlocks = baseBlocks + newFooterBlock
 
-      slackService.updateSlackMessage(notification.channel, timestamp, newBlocks, backuptext, application)
+      val fallbackText = "[$application] manual judgement $verb in ${targetEnvironment.toLowerCase()}"
+      slackService.updateSlackMessage(notification.channel, timestamp, newBlocks, fallbackText, application)
     }
   }
 
-  fun fallbackText(user: String?, status: ConstraintStatus): String {
+  fun judgedContext(user: String?, status: ConstraintStatus): String {
     val handle = user?.let { slackService.getUsernameByEmail(user) }
     val emoji = if (status.passes()) {
       ":white_check_mark:"

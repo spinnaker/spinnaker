@@ -91,7 +91,7 @@ class ManualJudgmentNotificationHandler(
           descriptiveBlocks + actionBlocks,
           application = application,
           type = supportedTypes,
-          fallbackText = ":gavel: $application awaiting manual judgment in ${gitDataGenerator.toCode(targetEnvironment)}"
+          fallbackText = "$application awaiting manual judgment in ${targetEnvironment.toLowerCase()}"
         )
 
       if (response?.isOk == true) {

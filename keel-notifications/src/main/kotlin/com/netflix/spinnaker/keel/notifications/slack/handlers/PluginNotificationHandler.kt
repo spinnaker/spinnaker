@@ -78,7 +78,7 @@ class PluginNotificationHandler(
           }
         }
       }
-      slackService.sendSlackNotification(channel, blocks, application = application, type = supportedTypes, fallbackText = "$emoji ${config.title}")
+      slackService.sendSlackNotification(channel, blocks, application = application, type = supportedTypes, fallbackText = "[$application] ${config.title}")
     }
   }
 }

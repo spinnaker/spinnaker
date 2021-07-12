@@ -26,7 +26,7 @@ class ResumedNotificationHandler(
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   private fun SlackResumedNotification.headerText(): String {
-    return ":arrow_forward: $application resumed"
+    return "[$application] resumed"
   }
 
   private fun SlackResumedNotification.toBlocks(): List<LayoutBlock> {

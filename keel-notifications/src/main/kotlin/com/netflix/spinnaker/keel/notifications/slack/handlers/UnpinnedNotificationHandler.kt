@@ -23,7 +23,7 @@ class UnpinnedNotificationHandler(
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   private fun SlackUnpinnedNotification.headerText(): String {
-    return ":wastebasket: :pin: $application ${pinnedArtifact?.buildNumber ?: pinnedArtifact?.version ?: originalPin.version} pin removed from ${gitDataGenerator.toCode(targetEnvironment)}"
+    return "[$application] pin removed from ${targetEnvironment.toLowerCase()}"
   }
 
   private fun SlackUnpinnedNotification.toBlocks(): List<LayoutBlock> =
@@ -40,12 +40,15 @@ class UnpinnedNotificationHandler(
       var text = "$unpinner unpinned ${gitDataGenerator.toCode(targetEnvironment)}"
       if (latestApprovedArtifactVersion != null) {
         val link = gitDataGenerator.generateArtifactUrl(application, originalPin.artifact.reference, latestApprovedArtifactVersion.version)
-        text += ", <$link|#${latestApprovedArtifactVersion.buildNumber ?: latestApprovedArtifactVersion.version}> will start deploying shortly" +
-          "\n\n${gitDataGenerator.formatCommitMessage(latestApprovedArtifactVersion.gitMetadata)}"
+        text += ", <$link|#${latestApprovedArtifactVersion.buildNumber ?: latestApprovedArtifactVersion.version}> will start deploying shortly"
       }
 
       section {
         markdownText(header + "\n\n" + text)
+      }
+
+      if (latestApprovedArtifactVersion != null) {
+        gitDataGenerator.buildCommitSectionWithButton(this, latestApprovedArtifactVersion.gitMetadata)
       }
 
       pinnedArtifact?.gitMetadata?.let { gitMetadata ->

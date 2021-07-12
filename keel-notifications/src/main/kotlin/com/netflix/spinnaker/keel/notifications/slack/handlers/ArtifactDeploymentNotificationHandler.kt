@@ -22,19 +22,17 @@ import org.springframework.stereotype.Component
 class ArtifactDeploymentNotificationHandler(
   private val slackService: SlackService,
   private val gitDataGenerator: GitDataGenerator,
-  private val baseUrlConfig: BaseUrlConfig
 ) : SlackNotificationHandler<SlackArtifactDeploymentNotification> {
 
   override val supportedTypes = listOf(ARTIFACT_DEPLOYMENT_SUCCEEDED, ARTIFACT_DEPLOYMENT_FAILED)
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   private fun SlackArtifactDeploymentNotification.headerText(): String {
-    val (emoji, verb) =  when (status) {
-      FAILED -> ":x: :ship:" to "failed to deploy"
-      SUCCEEDED ->  ":ship:" to "deployed"
+    val verb =  when (status) {
+      FAILED -> "failed"
+      SUCCEEDED ->  "succeeded"
     }
-    val env = Strings.toRootUpperCase(targetEnvironment)
-    return "$emoji $application ${artifact.buildNumber ?: artifact.version} $verb to ${gitDataGenerator.toCode(env)}"
+    return "[$application] deploy $verb for ${artifact.buildNumber ?: artifact.version} to ${targetEnvironment.toLowerCase()}"
   }
 
   private fun SlackArtifactDeploymentNotification.toBlocks(): List<LayoutBlock> {

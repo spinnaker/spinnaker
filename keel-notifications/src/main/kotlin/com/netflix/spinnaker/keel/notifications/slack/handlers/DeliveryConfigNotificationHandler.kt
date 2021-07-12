@@ -28,7 +28,7 @@ class DeliveryConfigNotificationHandler(
     } else {
       "updated"
     }
-    return ":pencil: $application delivery config $action"
+    return "[$application] delivery config $action"
   }
 
   private fun SlackConfigNotification.toBlocks(): List<LayoutBlock> {

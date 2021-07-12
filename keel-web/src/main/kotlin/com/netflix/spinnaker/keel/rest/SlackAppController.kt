@@ -32,18 +32,22 @@ class SlackAppController(
     val actionIdPattern = "^(\\w+):(\\w+):(\\w+)".toPattern()
     slackApp.blockAction(actionIdPattern) { req: BlockActionRequest, ctx: ActionContext ->
       if (req.payload.notificationType == "MANUAL_JUDGMENT") {
-        log.info("[slack interaction] 'manual judgment' button clicked by ${req.payload.user}")
+        log.info(logMessage("'manual judgment' button clicked", req))
         mjHandler.respondToButton(req, ctx)
       } else if (req.payload.notificationType == "FULL_COMMIT_MODAL") {
-        log.info("[slack interaction] 'show full commit' button clicked by ${req.payload.user}")
+        log.info(logMessage("'show full commit' button clicked", req))
         commitModalCallbackHandler.openModal(req, ctx)
       } else if (req.payload.actions.first().actionId == "button:url:mj-diff-link") {
-        log.info("[slack interaction] 'see changes' button clicked by ${req.payload.user}")
+        log.info(logMessage("'see changes' button clicked", req))
       }
       // we always need to acknowledge the button within 3 seconds
       ctx.ack()
     }
   }
+
+  fun logMessage(what: String, req: BlockActionRequest) =
+    "[slack interaction] $what by ${req.payload.user.username} (${req.payload.user.id}) " +
+      "in channel ${req.payload.channel.name} (${req.payload.channel.id})"
 
   //action id is consistent of 3 parts, where the last part is the type
   val BlockActionPayload.notificationType

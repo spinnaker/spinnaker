@@ -24,7 +24,7 @@ class PinnedNotificationHandler(
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   private fun SlackPinnedNotification.headerText(): String {
-    return ":pin: $application ${pinnedArtifact.buildNumber ?: pinnedArtifact.version} is pinned to ${gitDataGenerator.toCode(pin.targetEnvironment)}"
+    return "[$application] ${pinnedArtifact.buildNumber ?: pinnedArtifact.version} is pinned to ${pin.targetEnvironment.toLowerCase()}"
   }
 
   private fun SlackPinnedNotification.toBlocks(): List<LayoutBlock> {

@@ -27,7 +27,7 @@ class PausedNotificationHandler(
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   private fun SlackPausedNotification.headerText(): String {
-    return ":double_vertical_bar: $application paused"
+    return "[$application] paused"
   }
 
   private fun SlackPausedNotification.toBlocks(): List<LayoutBlock> {
