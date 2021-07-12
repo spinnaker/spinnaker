@@ -24,8 +24,11 @@ import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryOperation;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeployCloudFoundryServiceDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.DeployCloudFoundryServiceAtomicOperation;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
@@ -33,6 +36,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
@@ -46,6 +52,8 @@ public class DeployCloudFoundryServiceAtomicOperationConverter
       new ObjectMapper()
           .setPropertyNamingStrategy(PropertyNamingStrategy.KEBAB_CASE)
           .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+
+  private final Pattern r = Pattern.compile(".*?-v(\\d+)");
 
   public DeployCloudFoundryServiceAtomicOperationConverter() {}
 
@@ -73,10 +81,89 @@ public class DeployCloudFoundryServiceAtomicOperationConverter
     if (converted.isUserProvided()) {
       converted.setUserProvidedServiceAttributes(
           convertUserProvidedServiceManifest(manifest.stream().findFirst().orElse(null)));
+      if (converted.getUserProvidedServiceAttributes() != null
+          && converted.getUserProvidedServiceAttributes().isVersioned()) {
+        DeployCloudFoundryServiceDescription.UserProvidedServiceAttributes attributes =
+            converted.getUserProvidedServiceAttributes();
+        attributes.setPreviousInstanceName(
+            getLatestInstanceName(
+                attributes.getServiceInstanceName(), converted.getClient(), converted.getSpace()));
+        attributes.setServiceInstanceName(
+            getNextInstanceName(
+                attributes.getServiceInstanceName(), attributes.getPreviousInstanceName()));
+        converted.setUserProvidedServiceAttributes(attributes);
+      }
     } else {
       converted.setServiceAttributes(convertManifest(manifest.stream().findFirst().orElse(null)));
+      if (converted.getServiceAttributes() != null
+          && converted.getServiceAttributes().isVersioned()) {
+        DeployCloudFoundryServiceDescription.ServiceAttributes attributes =
+            converted.getServiceAttributes();
+        attributes.setPreviousInstanceName(
+            getLatestInstanceName(
+                attributes.getServiceInstanceName(), converted.getClient(), converted.getSpace()));
+        attributes.setServiceInstanceName(
+            getNextInstanceName(
+                attributes.getServiceInstanceName(), attributes.getPreviousInstanceName()));
+        converted.setServiceAttributes(attributes);
+      }
     }
     return converted;
+  }
+
+  @Nullable
+  private String getLatestInstanceName(
+      String serviceInstanceName, CloudFoundryClient client, CloudFoundrySpace space) {
+    if (serviceInstanceName == null || serviceInstanceName.isEmpty()) {
+      throw new IllegalArgumentException("Service Instance Name must not be null or empty.");
+    }
+    List<String> serviceInstances =
+        client
+            .getServiceInstances()
+            .findAllVersionedServiceInstancesBySpaceAndName(
+                space, String.format("%s-v%03d", serviceInstanceName, 0))
+            .stream()
+            .filter(n -> n.getEntity().getName().startsWith(serviceInstanceName))
+            .map(rs -> rs.getEntity().getName())
+            .filter(n -> isVersioned(n))
+            .collect(Collectors.toList());
+
+    if (serviceInstances.isEmpty()) {
+      return null;
+    }
+
+    Integer latestVersion =
+        serviceInstances.stream()
+            .map(
+                v -> {
+                  Matcher m = r.matcher(v);
+                  m.find();
+                  return Integer.parseInt(m.group(1));
+                })
+            .mapToInt(n -> n)
+            .max()
+            .orElseThrow(
+                () ->
+                    new CloudFoundryApiException(
+                        "Unable to determine latest version for service instance: "
+                            + serviceInstanceName));
+
+    return String.format("%s-v%03d", serviceInstanceName, latestVersion);
+  }
+
+  private String getNextInstanceName(String serviceInstanceName, String latestInstanceName) {
+    if (latestInstanceName == null) {
+      return String.format("%s-v%03d", serviceInstanceName, 0);
+    }
+    Matcher m = r.matcher(latestInstanceName);
+    m.find();
+    int latestVersion = Integer.parseInt(m.group(1));
+    return String.format("%s-v%03d", serviceInstanceName, latestVersion + 1);
+  }
+
+  private boolean isVersioned(String name) {
+    Matcher m = r.matcher(name);
+    return m.find();
   }
 
   // visible for testing
@@ -99,6 +186,7 @@ public class DeployCloudFoundryServiceAtomicOperationConverter
     attrs.setServicePlan(manifest.getServicePlan());
     attrs.setTags(manifest.getTags());
     attrs.setUpdatable(manifest.isUpdatable());
+    attrs.setVersioned(manifest.isVersioned());
     attrs.setParameterMap(manifest.getParameters());
     return attrs;
   }
@@ -121,6 +209,7 @@ public class DeployCloudFoundryServiceAtomicOperationConverter
     attrs.setRouteServiceUrl(manifest.getRouteServiceUrl());
     attrs.setTags(manifest.getTags());
     attrs.setUpdatable(manifest.isUpdatable());
+    attrs.setVersioned(manifest.isVersioned());
     attrs.setCredentials(manifest.getCredentials());
     return attrs;
   }
@@ -129,6 +218,7 @@ public class DeployCloudFoundryServiceAtomicOperationConverter
   private static class ServiceManifest {
     private String service;
     private boolean updatable = true;
+    private boolean versioned = false;
 
     @JsonAlias({"service_instance_name", "serviceInstanceName"})
     private String serviceInstanceName;
@@ -146,6 +236,7 @@ public class DeployCloudFoundryServiceAtomicOperationConverter
   @Data
   private static class UserProvidedServiceManifest {
     private boolean updatable = true;
+    private boolean versioned = false;
 
     @JsonAlias({"service_instance_name", "serviceInstanceName"})
     private String serviceInstanceName;

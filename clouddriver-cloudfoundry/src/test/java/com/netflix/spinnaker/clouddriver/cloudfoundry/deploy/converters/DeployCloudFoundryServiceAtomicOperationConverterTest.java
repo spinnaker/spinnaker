@@ -30,6 +30,9 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.artifacts.ArtifactCredenti
 import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.CacheRepository;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.MockCloudFoundryClient;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.AbstractServiceInstance;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Resource;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ServiceInstance;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.config.CloudFoundryConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeployCloudFoundryServiceDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
@@ -39,10 +42,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCrede
 import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository;
 import com.netflix.spinnaker.credentials.NoopCredentialsLifecycleHandler;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 import javax.annotation.Nullable;
 import okhttp3.OkHttpClient;
@@ -266,6 +266,53 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
                 .setRouteServiceUrl("http://routeServiceUrl.io")
                 .setTags(Collections.singleton("my-tag"))
                 .setUpdatable(true)
+                .setCredentials(Map.of("foo", "bar")));
+  }
+
+  @Test
+  void convertDescriptionWithUserProvidedInputAndVersioned() {
+    final Map input =
+        Map.of(
+            "credentials",
+            "test",
+            "region",
+            "org > space",
+            "userProvided",
+            true,
+            "manifest",
+            Collections.singletonList(
+                Map.of(
+                    "serviceInstanceName", "userProvidedServiceName",
+                    "tags", Collections.singletonList("my-tag"),
+                    "syslogDrainUrl", "http://syslogDrainUrl.io",
+                    "credentials", "{\"foo\": \"bar\"}",
+                    "versioned", "true",
+                    "updatable", "false",
+                    "routeServiceUrl", "http://routeServiceUrl.io")));
+
+    ServiceInstance si = new ServiceInstance();
+    si.setName("userProvidedServiceName-v000");
+    Resource<ServiceInstance> resource = new Resource<>();
+    resource.setEntity(si);
+    List<Resource<? extends AbstractServiceInstance>> serviceInstances = List.of(resource);
+
+    when(cloudFoundryClient
+            .getServiceInstances()
+            .findAllVersionedServiceInstancesBySpaceAndName(any(), any()))
+        .thenReturn(serviceInstances);
+
+    final DeployCloudFoundryServiceDescription result = converter.convertDescription(input);
+    assertThat(result.getServiceAttributes()).isNull();
+    assertThat(result.getUserProvidedServiceAttributes())
+        .isEqualToComparingFieldByFieldRecursively(
+            new DeployCloudFoundryServiceDescription.UserProvidedServiceAttributes()
+                .setServiceInstanceName("userProvidedServiceName-v001")
+                .setPreviousInstanceName("userProvidedServiceName-v000")
+                .setSyslogDrainUrl("http://syslogDrainUrl.io")
+                .setRouteServiceUrl("http://routeServiceUrl.io")
+                .setTags(Collections.singleton("my-tag"))
+                .setUpdatable(false)
+                .setVersioned(true)
                 .setCredentials(Map.of("foo", "bar")));
   }
 

@@ -58,6 +58,7 @@ public class DeployCloudFoundryServiceAtomicOperation
                   serviceAttributes.isUpdatable(),
                   description.getSpace());
       String gerund = serviceInstanceResponse.getType() == UPDATE ? "Updating" : "Creating";
+      serviceInstanceResponse.setPreviousInstanceName(serviceAttributes.getPreviousInstanceName());
       task.updateStatus(
           PHASE,
           gerund
@@ -86,6 +87,8 @@ public class DeployCloudFoundryServiceAtomicOperation
                   userProvidedServiceAttributes.isUpdatable(),
                   description.getSpace());
       String verb = serviceInstanceResponse.getType() == UPDATE ? "Updated" : "Created";
+      serviceInstanceResponse.setPreviousInstanceName(
+          userProvidedServiceAttributes.getPreviousInstanceName());
       task.updateStatus(
           PHASE, verb + " user-provided service instance '" + serviceInstanceName + "'");
     }

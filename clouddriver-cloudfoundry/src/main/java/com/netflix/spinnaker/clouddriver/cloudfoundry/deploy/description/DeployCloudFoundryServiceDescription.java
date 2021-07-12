@@ -41,16 +41,20 @@ public class DeployCloudFoundryServiceDescription extends AbstractCloudFoundrySe
     String serviceInstanceName;
     String servicePlan;
     boolean updatable = true;
+    boolean versioned = false;
 
     @Nullable Set<String> tags;
 
     @Nullable Map<String, Object> parameterMap;
+
+    @JsonIgnore String previousInstanceName;
   }
 
   @Data
   public static class UserProvidedServiceAttributes {
     String serviceInstanceName;
     boolean updatable = true;
+    boolean versioned = false;
 
     @Nullable Set<String> tags;
 
@@ -59,5 +63,7 @@ public class DeployCloudFoundryServiceDescription extends AbstractCloudFoundrySe
     @Nullable Map<String, Object> credentials;
 
     @Nullable String routeServiceUrl;
+
+    @JsonIgnore String previousInstanceName;
   }
 }

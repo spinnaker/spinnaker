@@ -159,6 +159,23 @@ public class ServiceInstances {
     return serviceInstances;
   }
 
+  public List<Resource<? extends AbstractServiceInstance>>
+      findAllVersionedServiceInstancesBySpaceAndName(
+          CloudFoundrySpace space, String serviceInstanceName) {
+    List<String> serviceInstanceQuery =
+        Arrays.asList(
+            "name>=" + serviceInstanceName,
+            "organization_guid:" + space.getOrganization().getId(),
+            "space_guid:" + space.getId());
+    List<Resource<? extends AbstractServiceInstance>> serviceInstances = new ArrayList<>();
+    serviceInstances.addAll(
+        collectPageResources("service instances", pg -> api.all(pg, serviceInstanceQuery)));
+    serviceInstances.addAll(
+        collectPageResources(
+            "service instances", pg -> api.allUserProvided(pg, serviceInstanceQuery)));
+    return serviceInstances;
+  }
+
   // Visible for testing
   CloudFoundryServiceInstance getOsbServiceInstanceByRegion(
       String region, String serviceInstanceName) {

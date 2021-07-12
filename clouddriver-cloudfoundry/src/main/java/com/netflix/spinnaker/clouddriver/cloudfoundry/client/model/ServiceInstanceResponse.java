@@ -24,4 +24,5 @@ public class ServiceInstanceResponse {
   private String serviceInstanceName;
   private LastOperation.Type type;
   private LastOperation.State state;
+  private String previousInstanceName;
 }
