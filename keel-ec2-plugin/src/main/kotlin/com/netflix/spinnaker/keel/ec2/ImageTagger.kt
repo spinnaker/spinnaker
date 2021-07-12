@@ -4,9 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
+import com.netflix.spinnaker.keel.api.action.ActionRepository
+import com.netflix.spinnaker.keel.api.action.ActionType
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
 import com.netflix.spinnaker.keel.api.plugins.CurrentImages
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
+import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.telemetry.VerificationCompleted
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
@@ -28,6 +32,8 @@ import org.springframework.stereotype.Component
 class ImageTagger(
   private val mapper: ObjectMapper,
   private val taskLauncher: TaskLauncher,
+  private val actionRepository: ActionRepository,
+  private val keelRepository: KeelRepository,
   private val springEnv: Environment,
   private val spectator: Registry
 ) {
@@ -41,6 +47,19 @@ class ImageTagger(
   @EventListener(VerificationCompleted::class)
   fun onVerificationCompleted(event: VerificationCompleted) {
     if (event.status.failed() || !shouldTagImages) {
+      return
+    }
+
+    val config = keelRepository.getDeliveryConfigForApplication(event.application)
+    val verificationContext = ArtifactInEnvironmentContext(
+      deliveryConfig = config,
+      environmentName = event.environmentName,
+      artifactReference = event.artifactReference,
+      version = event.artifactVersion
+    )
+
+    if (!actionRepository.allPassed(verificationContext, ActionType.VERIFICATION)) {
+      log.debug("All verifications have not passed for ${verificationContext.shortName()}, waiting to tag image")
       return
     }
 
@@ -84,8 +103,7 @@ class ImageTagger(
       "regions" to images.map { it.region }.toSet(),
       "tags" to mapOf(
         "latest tested" to true,
-        env to "environment:passed",
-        verificationId.take(128) to "passed"
+        env to "environment:passed"
       )
     )
 }
