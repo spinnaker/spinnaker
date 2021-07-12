@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
-import com.netflix.spinnaker.keel.api.scm.CodeEvent
+import com.netflix.spinnaker.keel.scm.CodeEvent
 import com.netflix.spinnaker.keel.artifacts.WorkQueueEventType
 import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.persistence.WorkQueueRepository

@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.sql
 
 import com.fasterxml.jackson.databind.jsontype.NamedType
-import com.netflix.spinnaker.keel.api.scm.CommitCreatedEvent
+import com.netflix.spinnaker.keel.scm.CommitCreatedEvent
 import com.netflix.spinnaker.keel.jackson.registerKeelApiModule
 import com.netflix.spinnaker.keel.persistence.WorkQueueRepositoryTests
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper

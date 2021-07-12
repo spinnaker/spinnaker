@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.keel.api.scm
+package com.netflix.spinnaker.keel.scm
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo

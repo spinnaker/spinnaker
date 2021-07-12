@@ -1,7 +1,5 @@
 package com.netflix.spinnaker.keel.scm
 
-import com.netflix.spinnaker.keel.api.scm.CodeEvent
-import com.netflix.spinnaker.keel.api.scm.InvalidCodeEvent
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectCatching

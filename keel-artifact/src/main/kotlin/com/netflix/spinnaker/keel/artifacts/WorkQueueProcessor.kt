@@ -9,7 +9,7 @@ import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.supporting
-import com.netflix.spinnaker.keel.api.scm.CodeEvent
+import com.netflix.spinnaker.keel.scm.CodeEvent
 import com.netflix.spinnaker.keel.config.WorkProcessingConfig
 import com.netflix.spinnaker.keel.exceptions.InvalidSystemStateException
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEvent

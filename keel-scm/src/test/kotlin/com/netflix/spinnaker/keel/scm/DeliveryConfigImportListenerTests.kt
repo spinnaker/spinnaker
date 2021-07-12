@@ -4,7 +4,6 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.Tag
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactOriginFilter
 import com.netflix.spinnaker.keel.api.artifacts.branchName
-import com.netflix.spinnaker.keel.api.scm.CommitCreatedEvent
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.core.api.SubmittedEnvironment

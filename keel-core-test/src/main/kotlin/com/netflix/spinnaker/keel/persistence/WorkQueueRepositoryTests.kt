@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.persistence
 
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
-import com.netflix.spinnaker.keel.api.scm.CommitCreatedEvent
+import com.netflix.spinnaker.keel.scm.CommitCreatedEvent
 import com.netflix.spinnaker.time.MutableClock
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat

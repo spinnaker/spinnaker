@@ -21,11 +21,11 @@ import com.netflix.spinnaker.keel.api.artifacts.branchName
 import com.netflix.spinnaker.keel.api.artifacts.branchStartsWith
 import com.netflix.spinnaker.keel.api.ec2.EC2_SECURITY_GROUP_V1
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
-import com.netflix.spinnaker.keel.api.scm.CommitCreatedEvent
-import com.netflix.spinnaker.keel.api.scm.PrDeclinedEvent
-import com.netflix.spinnaker.keel.api.scm.PrDeletedEvent
-import com.netflix.spinnaker.keel.api.scm.PrMergedEvent
-import com.netflix.spinnaker.keel.api.scm.PrOpenedEvent
+import com.netflix.spinnaker.keel.scm.CommitCreatedEvent
+import com.netflix.spinnaker.keel.scm.PrDeclinedEvent
+import com.netflix.spinnaker.keel.scm.PrDeletedEvent
+import com.netflix.spinnaker.keel.scm.PrMergedEvent
+import com.netflix.spinnaker.keel.scm.PrOpenedEvent
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.core.api.SubmittedEnvironment

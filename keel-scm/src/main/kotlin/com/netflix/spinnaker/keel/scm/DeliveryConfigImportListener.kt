@@ -1,14 +1,11 @@
 package com.netflix.spinnaker.keel.scm
 
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.keel.api.scm.CodeEvent
-import com.netflix.spinnaker.keel.api.scm.CommitCreatedEvent
 import com.netflix.spinnaker.keel.front50.Front50Cache
 import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter.Companion.DEFAULT_MANIFEST_PATH
 import com.netflix.spinnaker.keel.igor.ScmService
-import com.netflix.spinnaker.keel.notifications.DeliveryConfigImportFailed
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.telemetry.safeIncrement
 import kotlinx.coroutines.runBlocking

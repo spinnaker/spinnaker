@@ -4,8 +4,8 @@ import com.netflix.spinnaker.keel.api.artifacts.ArtifactMetadata
 import com.netflix.spinnaker.keel.api.events.ArtifactPublishedEvent
 import com.netflix.spinnaker.keel.api.events.ArtifactSyncEvent
 import com.netflix.spinnaker.keel.api.plugins.UnsupportedArtifactException
-import com.netflix.spinnaker.keel.api.scm.isCodeEvent
-import com.netflix.spinnaker.keel.api.scm.toCodeEvent
+import com.netflix.spinnaker.keel.scm.isCodeEvent
+import com.netflix.spinnaker.keel.scm.toCodeEvent
 import com.netflix.spinnaker.keel.artifacts.WorkQueueProcessor
 import com.netflix.spinnaker.keel.igor.artifact.ArtifactMetadataService
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE

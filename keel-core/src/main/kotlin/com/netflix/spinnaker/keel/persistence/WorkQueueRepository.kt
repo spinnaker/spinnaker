@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.persistence
 
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
-import com.netflix.spinnaker.keel.api.scm.CodeEvent
+import com.netflix.spinnaker.keel.scm.CodeEvent
 
 /**
  * A shared work queue for processing artifacts to help handle spiky loads of incoming artifacts
