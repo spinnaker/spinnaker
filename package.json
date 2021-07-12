@@ -51,7 +51,6 @@
     "functional": "npm run build && cd test/functional && yarn && npm run test",
     "functional:debug": "npm run build && cd test/functional && yarn && npm run open",
     "storybook": "start-storybook -p 9001",
-    "graphql:generate": "graphql-codegen -r dotenv/config --config codegen.yml ",
     "prepare": "husky install"
   },
   "devDependencies": {

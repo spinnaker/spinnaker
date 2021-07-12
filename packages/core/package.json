@@ -10,6 +10,7 @@
     "build": "npm run clean && spinnaker-scripts build",
     "dev": "spinnaker-scripts start",
     "dev:push": "spinnaker-scripts start --push",
+    "graphql:generate": "graphql-codegen -r dotenv/config --config codegen.yml",
     "lib": "npm run build"
   },
   "dependencies": {
@@ -82,6 +83,11 @@
     "ui-select": "0.19.8"
   },
   "devDependencies": {
+    "@graphql-codegen/add": "^2.0.2",
+    "@graphql-codegen/cli": "^1.21.6",
+    "@graphql-codegen/typescript": "^1.22.4",
+    "@graphql-codegen/typescript-operations": "^1.18.3",
+    "@graphql-codegen/typescript-react-apollo": "^2.3.0",
     "@spinnaker/eslint-plugin": "1.0.13",
     "@spinnaker/scripts": "0.0.14",
     "@types/angular": "1.6.26",
@@ -109,6 +115,7 @@
     "@types/react-virtualized-select": "3.0.8",
     "@types/resize-observer-browser": "0.1.5",
     "@types/tether": "1.4.4",
+    "graphql": "^15.5.1",
     "rollup-plugin-copy": "^3.4.0",
     "shx": "0.3.3",
     "typescript": "4.0.2"

@@ -52,6 +52,11 @@ API_HOST=http://localhost:8084 yarn start
 To build the application, run `yarn build`.
 The built application lives in `build/`.
 
+## Graphql
+
+the `core` package is using graphql queries and mutation to interact with the backend (currently, only the `managed` components). 
+To generate the TS types and the Apollo hooks, run `yarn graphql:generate` from `core`. 
+
 ## Conventions
 
 It's a work in progress, but please try to follow the [conventions here](https://github.com/spinnaker/deck/wiki/Conventions).

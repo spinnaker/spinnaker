@@ -1,9 +1,9 @@
 overwrite: true
 schema:
-  - packages/core/src/managed/graphql/schema.graphql # TODO: move this file to a separate node module
-documents: packages/core/src/**/*.graphql
+  - src/managed/graphql/schema.graphql # TODO: move this file to a separate node module
+documents: src/**/*.graphql
 generates:
-  packages/core/src/managed/graphql/graphql-sdk.ts:
+  src/managed/graphql/graphql-sdk.ts:
     plugins:
       - add:
           content: '/* eslint-disable @typescript-eslint/array-type */'
@@ -16,6 +16,3 @@ generates:
       maybeValue: T | undefined
       scalars:
         InstantTime: string
-  ./graphql.schema.json:
-    plugins:
-      - 'introspection'
