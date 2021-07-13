@@ -22,6 +22,8 @@ import com.netflix.spinnaker.keel.api.schema.Description
 import java.time.Duration
 
 val DEFAULT_AUTOSCALE_INSTANCE_WARMUP: Duration = Duration.ofMinutes(5)
+val DEFAULT_AUTOSCALE_SCALE_IN_COOLDOWN: Duration = Duration.ofMinutes(5)
+val DEFAULT_AUTOSCALE_SCALE_OUT_COOLDOWN: Duration = Duration.ofMinutes(5)
 
 data class Scaling(
   val suspendedProcesses: Set<ScalingProcess> = emptySet(),
@@ -38,11 +40,15 @@ data class TargetTrackingPolicy(
   @get:ExcludedFromDiff
   val name: String? = null,
   @Description("Applies only to EC2 clusters")
-  val warmup: Duration = DEFAULT_AUTOSCALE_INSTANCE_WARMUP,
+  val warmup: Duration? = DEFAULT_AUTOSCALE_INSTANCE_WARMUP,
   val targetValue: Double,
   val disableScaleIn: Boolean = false,
   val predefinedMetricSpec: PredefinedMetricSpecification? = null,
-  val customMetricSpec: CustomizedMetricSpecification? = null
+  val customMetricSpec: CustomizedMetricSpecification? = null,
+  @Description("Applies only to Titus clusters")
+  val scaleOutCooldown: Duration? = null,
+  @Description("Applies only to Titus clusters")
+  val scaleInCooldown: Duration? = null
 ) : ScalingPolicy() {
   init {
     require(customMetricSpec != null || predefinedMetricSpec != null) {
@@ -96,7 +102,7 @@ data class StepScalingPolicy(
   val namespace: String,
   val statistic: String,
   @Description("Applies only to EC2 clusters")
-  val warmup: Duration = DEFAULT_AUTOSCALE_INSTANCE_WARMUP,
+  val warmup: Duration? = DEFAULT_AUTOSCALE_INSTANCE_WARMUP,
   val metricAggregationType: String = "Average",
   val stepAdjustments: Set<StepAdjustment>
 ) : ScalingPolicy() {

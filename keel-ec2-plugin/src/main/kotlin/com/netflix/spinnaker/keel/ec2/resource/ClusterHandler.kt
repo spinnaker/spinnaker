@@ -27,6 +27,7 @@ import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.CapacitySpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.HealthSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.CustomizedMetricSpecification
+import com.netflix.spinnaker.keel.api.ec2.DEFAULT_AUTOSCALE_INSTANCE_WARMUP
 import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1_1
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
 import com.netflix.spinnaker.keel.api.ec2.LaunchConfigurationSpec
@@ -876,7 +877,7 @@ class ClusterHandler(
         "credentials" to serverGroup.location.account,
         "moniker" to serverGroup.moniker.orcaClusterMoniker,
         "region" to serverGroup.location.region,
-        "estimatedInstanceWarmup" to it.warmup.seconds,
+        "estimatedInstanceWarmup" to (it.warmup ?: DEFAULT_AUTOSCALE_INSTANCE_WARMUP).seconds,
         "serverGroupName" to serverGroup.moniker.serverGroup,
         "targetTrackingConfiguration" to mapOf(
           "targetValue" to it.targetValue,
@@ -940,7 +941,7 @@ class ClusterHandler(
           "statistic" to it.statistic
         ),
         "step" to mapOf(
-          "estimatedInstanceWarmup" to it.warmup.seconds,
+          "estimatedInstanceWarmup" to (it.warmup ?: DEFAULT_AUTOSCALE_INSTANCE_WARMUP).seconds,
           "metricAggregationType" to it.metricAggregationType,
           "stepAdjustments" to it.stepAdjustments.map { adjustment ->
             StepAdjustmentModel(

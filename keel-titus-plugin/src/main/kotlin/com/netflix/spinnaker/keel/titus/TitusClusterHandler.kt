@@ -520,7 +520,8 @@ class TitusClusterHandler(
         "credentials" to serverGroup.location.account,
         "moniker" to serverGroup.moniker.orcaClusterMoniker,
         "region" to serverGroup.location.region,
-        "estimatedInstanceWarmup" to it.warmup.seconds,
+        "scaleOutCooldownSec" to it.scaleOutCooldown?.seconds,
+        "scaleInCooldownSec" to it.scaleInCooldown?.seconds,
         "serverGroupName" to serverGroup.moniker.serverGroup,
         "targetTrackingConfiguration" to mapOf(
           "targetValue" to it.targetValue,
@@ -588,7 +589,6 @@ class TitusClusterHandler(
           "statistic" to it.statistic
         ),
         "step" to mapOf(
-          "estimatedInstanceWarmup" to it.warmup.seconds,
           "metricAggregationType" to it.metricAggregationType,
           "stepAdjustments" to it.stepAdjustments.map { adjustment ->
             StepAdjustmentModel(
@@ -885,9 +885,11 @@ class TitusClusterHandler(
           with((policy.policy as TargetPolicy).targetPolicyDescriptor) {
             TargetTrackingPolicy(
               name = policy.id,
-              warmup = Duration.ZERO,
+              warmup = null,
               targetValue = targetValue,
               disableScaleIn = disableScaleIn,
+              scaleInCooldown = Duration.ofSeconds(scaleInCooldownSec.toLong()),
+              scaleOutCooldown = Duration.ofSeconds(scaleOutCooldownSec.toLong()),
               customMetricSpec = customizedMetricSpecification?.let { metric ->
                 CustomizedMetricSpecification(
                   name = metric.metricName,
