@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.keel.api.ec2
 
 import com.netflix.spinnaker.keel.api.ExcludedFromDiff
+import com.netflix.spinnaker.keel.api.schema.Description
 import java.time.Duration
 
 val DEFAULT_AUTOSCALE_INSTANCE_WARMUP: Duration = Duration.ofMinutes(5)
@@ -36,6 +37,7 @@ sealed class ScalingPolicy
 data class TargetTrackingPolicy(
   @get:ExcludedFromDiff
   val name: String? = null,
+  @Description("Applies only to EC2 clusters")
   val warmup: Duration = DEFAULT_AUTOSCALE_INSTANCE_WARMUP,
   val targetValue: Double,
   val disableScaleIn: Boolean = false,
@@ -55,9 +57,7 @@ data class TargetTrackingPolicy(
   // Excluding name, so we can remove policies from current asg when modifying
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
-    if (javaClass != other?.javaClass) return false
-
-    other as TargetTrackingPolicy
+    if (other !is TargetTrackingPolicy) return false
 
     if (warmup != other.warmup) return false
     if (targetValue != other.targetValue) return false
@@ -91,6 +91,7 @@ data class StepScalingPolicy(
   val metricName: String,
   val namespace: String,
   val statistic: String,
+  @Description("Applies only to EC2 clusters")
   val warmup: Duration = DEFAULT_AUTOSCALE_INSTANCE_WARMUP,
   val metricAggregationType: String = "Average",
   val stepAdjustments: Set<StepAdjustment>
@@ -108,9 +109,7 @@ data class StepScalingPolicy(
   // Excluding name, so we can remove policies from current asg when modifying
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
-    if (javaClass != other?.javaClass) return false
-
-    other as StepScalingPolicy
+    if (other !is StepScalingPolicy) return false
 
     if (adjustmentType != other.adjustmentType) return false
     if (actionsEnabled != other.actionsEnabled) return false

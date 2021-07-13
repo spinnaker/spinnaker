@@ -7,10 +7,17 @@ import com.netflix.spinnaker.keel.api.artifacts.DOCKER
 import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
+import com.netflix.spinnaker.keel.api.ec2.Scaling
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup.InstanceCounts
 import com.netflix.spinnaker.keel.docker.DigestProvider
 
 data class TitusServerGroup(
+  /**
+   * Immutable and arbitrary but required for upserting scaling policies on the server group. Nullable because a
+   * resolved desired state model has no sensible way to set this.
+   */
+  @get:ExcludedFromDiff
+  val id: String?,
   /**
    * This field is immutable, so we would never be reacting to a diff on it. If the name differs,
    * it's a different resource. Also, a server group name retrieved from CloudDriver will include
@@ -45,7 +52,8 @@ data class TitusServerGroup(
   @get:ExcludedFromDiff
   override val artifactVersion: String? = null,
   @get:ExcludedFromDiff
-  val instanceCounts: InstanceCounts? = null
+  val instanceCounts: InstanceCounts? = null,
+  val scaling: Scaling = Scaling()
 ) : VersionedArtifactProvider {
 
   // todo eb: should this be more general?

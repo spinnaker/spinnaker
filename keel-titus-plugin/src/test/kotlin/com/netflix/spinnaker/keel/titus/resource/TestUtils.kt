@@ -15,6 +15,7 @@ import com.netflix.spinnaker.keel.core.parseMoniker
 import com.netflix.spinnaker.keel.titus.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.titus.moniker
 import org.apache.commons.lang3.RandomStringUtils
+import java.util.UUID.randomUUID
 import com.netflix.spinnaker.keel.clouddriver.model.InstanceCounts as ClouddriverInstanceCounts
 import com.netflix.spinnaker.keel.clouddriver.model.TitusServerGroup as ClouddriverTitusServerGroup
 
@@ -25,6 +26,7 @@ fun TitusServerGroup.toClouddriverResponse(
 ): TitusActiveServerGroup =
   RandomStringUtils.randomNumeric(3).padStart(3, '0').let { sequence ->
     TitusActiveServerGroup(
+      id = randomUUID().toString(),
       name = "$name-v$sequence",
       awsAccount = awsAccount,
       placement = Placement(location.account, location.region, emptyList()),
@@ -62,6 +64,7 @@ fun TitusServerGroup.toMultiServerGroupResponse(
     val serverGroups = mutableSetOf<ClouddriverTitusServerGroup>()
 
     val first = ClouddriverTitusServerGroup(
+      id = randomUUID().toString(),
       name = "$name-v$sequence1",
       awsAccount = awsAccount,
       placement = Placement(location.account, location.region, emptyList()),
@@ -89,6 +92,7 @@ fun TitusServerGroup.toMultiServerGroupResponse(
     serverGroups.add(first)
 
     val second = ClouddriverTitusServerGroup(
+      id = randomUUID().toString(),
       name = "$name-v$sequence2",
       awsAccount = awsAccount,
       placement = Placement(location.account, location.region, emptyList()),
@@ -123,6 +127,7 @@ fun TitusActiveServerGroup.toAllServerGroupsResponse(
   healthy: Boolean = true
 ): ClouddriverTitusServerGroup =
   ClouddriverTitusServerGroup(
+    id = randomUUID().toString(),
     name = name,
     awsAccount = awsAccount,
     placement = placement,

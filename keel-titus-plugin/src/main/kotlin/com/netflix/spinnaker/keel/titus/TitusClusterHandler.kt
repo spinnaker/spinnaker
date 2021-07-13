@@ -38,7 +38,13 @@ import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_TAG
 import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.CapacitySpec
+import com.netflix.spinnaker.keel.api.ec2.CustomizedMetricSpecification
+import com.netflix.spinnaker.keel.api.ec2.MetricDimension
+import com.netflix.spinnaker.keel.api.ec2.Scaling
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup.InstanceCounts
+import com.netflix.spinnaker.keel.api.ec2.StepAdjustment
+import com.netflix.spinnaker.keel.api.ec2.StepScalingPolicy
+import com.netflix.spinnaker.keel.api.ec2.TargetTrackingPolicy
 import com.netflix.spinnaker.keel.api.plugins.BaseClusterHandler
 import com.netflix.spinnaker.keel.api.plugins.CurrentImages
 import com.netflix.spinnaker.keel.api.plugins.ImageInRegion
@@ -57,8 +63,14 @@ import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ResourceNotFound
+import com.netflix.spinnaker.keel.clouddriver.model.CustomizedMetricSpecificationModel
+import com.netflix.spinnaker.keel.clouddriver.model.MetricDimensionModel
+import com.netflix.spinnaker.keel.clouddriver.model.PredefinedMetricSpecificationModel
 import com.netflix.spinnaker.keel.clouddriver.model.ServerGroup
+import com.netflix.spinnaker.keel.clouddriver.model.StepAdjustmentModel
 import com.netflix.spinnaker.keel.clouddriver.model.TitusActiveServerGroup
+import com.netflix.spinnaker.keel.clouddriver.model.TitusScaling.Policy.StepPolicy
+import com.netflix.spinnaker.keel.clouddriver.model.TitusScaling.Policy.TargetPolicy
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.core.orcaClusterMoniker
 import com.netflix.spinnaker.keel.core.serverGroup
@@ -83,6 +95,7 @@ import kotlinx.coroutines.runBlocking
 import net.swiftzer.semver.SemVer
 import retrofit2.HttpException
 import java.time.Clock
+import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -157,12 +170,12 @@ class TitusClusterHandler(
 
   override suspend fun getImage(resource: Resource<TitusClusterSpec>): CurrentImages =
     current(resource)
-    .map { (region, serverGroup) ->
-      ImageInRegion(region, serverGroup.container.digest, serverGroup.location.account)
-    }
-    .let { images ->
-      CurrentImages(supportedKind.kind, images, resource.id)
-    }
+      .map { (region, serverGroup) ->
+        ImageInRegion(region, serverGroup.container.digest, serverGroup.location.account)
+      }
+      .let { images ->
+        CurrentImages(supportedKind.kind, images, resource.id)
+      }
 
   override suspend fun upsert(
     resource: Resource<TitusClusterSpec>,
@@ -193,27 +206,26 @@ class TitusClusterHandler(
             }
           }
 
-          val job = when {
-            diff.isCapacityOnly() -> diff.resizeServerGroupJob()
-            diff.isEnabledOnly() -> diff.disableOtherServerGroupJob(resource, version.toString())
-            else -> diff.upsertServerGroupJob(tagToUse) +
-              resource.spec.deployWith.toOrcaJobProperties("Titus") +
-              mapOf("metadata" to mapOf("resource" to resource.id))
+          val (description, stages) = when {
+            diff.isCapacityOnly() -> "Resize server group ${desired.moniker} in ${desired.location.account}/${desired.location.region}" to diff.resizeServerGroupJob()
+            diff.isAutoScalingOnly() -> "Modify auto-scaling of server group ${desired.moniker} in ${desired.location.account}/${desired.location.region}" to diff.modifyScalingPolicyJob()
+            diff.isEnabledOnly() -> diff.disableOtherServerGroupJob(resource, version.toString()).let { stages ->
+              "Disable extra active server group ${stages.first()["asgName"]} in ${desired.location.account}/${desired.location.region}" to stages
+            }
+            else -> "Deploy $version to server group ${desired.moniker} in ${desired.location.account}/${desired.location.region}" to diff.upsertServerGroupJob(
+              resource,
+              tagToUse
+            )
           }
 
-          val description = when {
-            diff.isCapacityOnly() -> "Resize server group ${desired.moniker} in ${desired.location.account}/${desired.location.region}"
-            diff.isEnabledOnly() -> "Disable extra active server group ${job["asgName"]} in ${desired.location.account}/${desired.location.region}"
-            else -> "Deploy $version to server group ${desired.moniker} in ${desired.location.account}/${desired.location.region}"
-          }
-          log.info("Upserting server group using task: {}", job)
+          log.info("Upserting server group using task: {}", stages)
 
           val result = async {
             taskLauncher.submitJob(
               resource = resource,
               description = description,
               correlationId = "${resource.id}:${desired.location.region}",
-              job = job
+              stages = stages
             )
           }
 
@@ -345,7 +357,10 @@ class TitusClusterHandler(
       false
     }
 
-  private suspend fun ResourceDiff<TitusServerGroup>.disableOtherServerGroupJob(resource: Resource<TitusClusterSpec>, desiredVersion: String): Job {
+  private suspend fun ResourceDiff<TitusServerGroup>.disableOtherServerGroupJob(
+    resource: Resource<TitusClusterSpec>,
+    desiredVersion: String
+  ): List<Job> {
     val current = requireNotNull(current) {
       "Current server group must not be null when generating a disable job"
     }
@@ -353,8 +368,10 @@ class TitusClusterHandler(
     val sgInRegion = existingServerGroups.getOrDefault(current.location.region, emptyList()).filterNot { it.disabled }
 
     if (sgInRegion.size < 2) {
-      log.error("Diff says this is not the only active server group, but now we say otherwise. " +
-        "What is going on? Existing server groups: {}", existingServerGroups)
+      log.error(
+        "Diff says this is not the only active server group, but now we say otherwise. " +
+          "What is going on? Existing server groups: {}", existingServerGroups
+      )
       throw ActiveServerGroupsException(resource.id, "No other active server group found to disable.")
     }
 
@@ -368,8 +385,10 @@ class TitusClusterHandler(
         wrongImageASGs.first()
       }
       rightImageASGs.size > 1 -> {
-        log.debug("Disabling oldest server group with correct docker image version " +
-          "(because there is more than one active server group with the correct image) for {}", resource.id)
+        log.debug(
+          "Disabling oldest server group with correct docker image version " +
+            "(because there is more than one active server group with the correct image) for {}", resource.id
+        )
         rightImageASGs.first()
       }
       else -> {
@@ -387,10 +406,10 @@ class TitusClusterHandler(
       "region" to sgToDisable.region,
       "serverGroupName" to sgToDisable.name,
       "asgName" to sgToDisable.name
-    )
+    ).let(::listOf)
   }
 
-  private fun ResourceDiff<TitusServerGroup>.resizeServerGroupJob(): Job {
+  private fun ResourceDiff<TitusServerGroup>.resizeServerGroupJob(): List<Job> {
     val current = requireNotNull(current) {
       "Current server group must not be null when generating a resize job"
     }
@@ -406,14 +425,191 @@ class TitusClusterHandler(
       "moniker" to current.moniker.orcaClusterMoniker,
       "region" to current.location.region,
       "serverGroupName" to current.name
+    ).let(::listOf)
+  }
+
+  /**
+   * @return list of stages to remove or create scaling policies in-place on the
+   * current serverGroup.
+   *
+   * Scaling policies are treated as immutable by keel once applied. If an existing
+   * policy is modified, it will be deleted and reapplied via a single task.
+   */
+  private fun ResourceDiff<TitusServerGroup>.modifyScalingPolicyJob(startingRefId: Int = 0): List<Job> {
+    var (refId, stages) = toDeletePolicyJob(startingRefId)
+
+    val newTargetPolicies = current?.run {
+      desired.scaling.targetTrackingPolicies - scaling.targetTrackingPolicies
+    } ?: desired.scaling.targetTrackingPolicies
+
+    val newStepPolicies = current?.run {
+      desired.scaling.stepScalingPolicies - scaling.stepScalingPolicies
+    } ?: desired.scaling.stepScalingPolicies
+
+    if (newTargetPolicies.isNotEmpty()) {
+      val (newRef, jobs) = newTargetPolicies.toCreateTargetTrackingPolicyJob(refId, current ?: desired)
+      refId = newRef
+      stages.addAll(jobs)
+    }
+
+    if (newStepPolicies.isNotEmpty()) {
+      stages.addAll(newStepPolicies.toCreateStepPolicyJob(refId, current ?: desired))
+    }
+
+    return stages
+  }
+
+  private fun ResourceDiff<TitusServerGroup>.toDeletePolicyJob(startingRefId: Int): Pair<Int, MutableList<Job>> {
+    var refId = startingRefId
+    val stages = mutableListOf<Job>()
+    if (current == null) {
+      return Pair(refId, stages)
+    }
+    val current = current!!
+    val targetPoliciesToRemove = current.scaling.targetTrackingPolicies.filterNot {
+      desired.scaling.targetTrackingPolicies.contains(it)
+    }
+    val stepPoliciesToRemove = current.scaling.stepScalingPolicies.filterNot {
+      desired.scaling.stepScalingPolicies.contains(it)
+    }
+    val policyNamesToRemove = targetPoliciesToRemove.mapNotNull { it.name } +
+      stepPoliciesToRemove.mapNotNull { it.name }
+        .toSet()
+
+    stages.addAll(
+      policyNamesToRemove
+        .map {
+          refId++
+          mapOf(
+            "refId" to refId.toString(),
+            "requisiteStageRefIds" to when (refId) {
+              0, 1 -> listOf()
+              else -> listOf((refId - 1).toString())
+            },
+            "type" to "deleteScalingPolicy",
+            "scalingPolicyID" to it,
+            "cloudProvider" to CLOUD_PROVIDER,
+            "credentials" to desired.location.account,
+            "moniker" to current.moniker.orcaClusterMoniker,
+            "region" to current.location.region,
+            "serverGroupName" to current.moniker.serverGroup
+          )
+        }
+        .toMutableList()
     )
+
+    return Pair(refId, stages)
+  }
+
+  private fun Set<TargetTrackingPolicy>.toCreateTargetTrackingPolicyJob(
+    startingRefId: Int,
+    serverGroup: TitusServerGroup
+  ): Pair<Int, List<Job>> {
+    var refId = startingRefId
+    val stages = map {
+      refId++
+      mapOf(
+        "refId" to refId.toString(),
+        "requisiteStageRefIds" to when (refId) {
+          0, 1 -> listOf<String>()
+          else -> listOf((refId - 1).toString())
+        },
+        "type" to "upsertScalingPolicy",
+        "jobId" to serverGroup.id,
+        "cloudProvider" to CLOUD_PROVIDER,
+        "credentials" to serverGroup.location.account,
+        "moniker" to serverGroup.moniker.orcaClusterMoniker,
+        "region" to serverGroup.location.region,
+        "estimatedInstanceWarmup" to it.warmup.seconds,
+        "serverGroupName" to serverGroup.moniker.serverGroup,
+        "targetTrackingConfiguration" to mapOf(
+          "targetValue" to it.targetValue,
+          "disableScaleIn" to it.disableScaleIn,
+          "predefinedMetricSpecification" to when (val metricsSpec = it.predefinedMetricSpec) {
+            null -> null
+            else -> with(metricsSpec) {
+              PredefinedMetricSpecificationModel(
+                predefinedMetricType = type,
+                resourceLabel = label
+              )
+            }
+          },
+          "customizedMetricSpecification" to when (val metricsSpec = it.customMetricSpec) {
+            null -> null
+            else -> with(metricsSpec) {
+              CustomizedMetricSpecificationModel(
+                metricName = name,
+                namespace = namespace,
+                statistic = statistic,
+                unit = unit,
+                dimensions = dimensions?.map { d ->
+                  MetricDimensionModel(name = d.name, value = d.value)
+                }
+              )
+            }
+          }
+        )
+      )
+    }
+
+    return Pair(refId, stages)
+  }
+
+  private fun Set<StepScalingPolicy>.toCreateStepPolicyJob(
+    startingRefId: Int,
+    serverGroup: TitusServerGroup
+  ): List<Job> {
+    var refId = startingRefId
+    return map {
+      refId++
+      mapOf(
+        "refId" to refId.toString(),
+        "requisiteStageRefIds" to when (refId) {
+          0, 1 -> listOf<String>()
+          else -> listOf((refId - 1).toString())
+        },
+        "type" to "upsertScalingPolicy",
+        "jobId" to serverGroup.id,
+        "cloudProvider" to CLOUD_PROVIDER,
+        "credentials" to serverGroup.location.account,
+        "moniker" to serverGroup.moniker.orcaClusterMoniker,
+        "region" to serverGroup.location.region,
+        "adjustmentType" to it.adjustmentType,
+        "alarm" to mapOf(
+          "region" to serverGroup.location.region,
+          "actionsEnabled" to it.actionsEnabled,
+          "comparisonOperator" to it.comparisonOperator,
+          "dimensions" to it.dimensions,
+          "evaluationPeriods" to it.evaluationPeriods,
+          "period" to it.period.seconds,
+          "threshold" to it.threshold,
+          "namespace" to it.namespace,
+          "metricName" to it.metricName,
+          "statistic" to it.statistic
+        ),
+        "step" to mapOf(
+          "estimatedInstanceWarmup" to it.warmup.seconds,
+          "metricAggregationType" to it.metricAggregationType,
+          "stepAdjustments" to it.stepAdjustments.map { adjustment ->
+            StepAdjustmentModel(
+              metricIntervalLowerBound = adjustment.lowerBound,
+              metricIntervalUpperBound = adjustment.upperBound,
+              scalingAdjustment = adjustment.scalingAdjustment
+            )
+          }
+        )
+      )
+    }
   }
 
   /**
    * If a tag is provided, deploys by tag.
    * Otherwise, deploys by digest.
    */
-  private fun ResourceDiff<TitusServerGroup>.upsertServerGroupJob(tag: String?): Job =
+  private fun ResourceDiff<TitusServerGroup>.upsertServerGroupJob(
+    resource: Resource<TitusClusterSpec>,
+    tag: String?
+  ): List<Job> =
     with(desired) {
       val image = if (tag == null) {
         mapOf(
@@ -428,6 +624,7 @@ class TitusClusterHandler(
       }
 
       mapOf(
+        "refId" to "1",
         "application" to moniker.app,
         "credentials" to location.account,
         "region" to location.region,
@@ -474,15 +671,37 @@ class TitusClusterHandler(
           )
         } ?: job
       }
+      .let { job ->
+        job + resource.spec.deployWith.toOrcaJobProperties("Titus") +
+          mapOf("metadata" to mapOf("resource" to resource.id))
+      }
+      .let(::listOf)
+      .let { job ->
+        if (affectedRootPropertyTypes.any { it == Scaling::class.java }) {
+          job + modifyScalingPolicyJob(startingRefId = 2)
+        } else {
+          job
+        }
+      }
 
   private fun ResourceDiff<TitusServerGroup>.willDeployNewVersion(): Boolean =
-    !isCapacityOnly() && !isEnabledOnly()
+    !isCapacityOnly() && !isEnabledOnly() && !isAutoScalingOnly()
 
   /**
    * @return `true` if the only changes in the diff are to capacity.
    */
   private fun ResourceDiff<TitusServerGroup>.isCapacityOnly(): Boolean =
     current != null && affectedRootPropertyTypes.all { Capacity::class.java.isAssignableFrom(it) }
+
+  /**
+   * @return `true` if the only changes in the diff are to scaling.
+   */
+  private fun ResourceDiff<TitusServerGroup>.isAutoScalingOnly(): Boolean =
+    current != null &&
+      affectedRootPropertyTypes.any { it == Scaling::class.java } &&
+      affectedRootPropertyTypes.all { Capacity::class.java.isAssignableFrom(it) || it == Scaling::class.java } &&
+      current!!.capacity.min == desired.capacity.min &&
+      current!!.capacity.max == desired.capacity.max
 
   /**
    * @return true if the only difference is in the onlyEnabledServerGroup property
@@ -529,13 +748,20 @@ class TitusClusterHandler(
     // publish health events
     val sameContainer: Boolean = activeServerGroups.distinctBy { it.container.digest }.size == 1
     val unhealthyRegions = mutableListOf<String>()
-    activeServerGroups.forEach {serverGroup ->
-      if (serverGroup.instanceCounts?.isHealthy(resource.spec.deployWith.health, resource.spec.resolveCapacity(serverGroup.location.region)) == false) {
+    activeServerGroups.forEach { serverGroup ->
+      if (serverGroup.instanceCounts?.isHealthy(resource.spec.deployWith.health, serverGroup.capacity) == false) {
         unhealthyRegions.add(serverGroup.location.region)
       }
     }
     val healthy: Boolean = unhealthyRegions.isEmpty()
-    eventPublisher.publishEvent(ResourceHealthEvent(resource, healthy, unhealthyRegions, resource.spec.locations.regions.size))
+    eventPublisher.publishEvent(
+      ResourceHealthEvent(
+        resource,
+        healthy,
+        unhealthyRegions,
+        resource.spec.locations.regions.size
+      )
+    )
 
     if (sameContainer && healthy) {
       // only publish a successfully deployed event if the server group is healthy
@@ -622,12 +848,19 @@ class TitusClusterHandler(
 
   private fun TitusActiveServerGroup.toTitusServerGroup() =
     TitusServerGroup(
+      id = id,
       name = name,
       location = Location(
         account = placement.account,
         region = region
       ),
-      capacity = capacity.run { Capacity.DefaultCapacity(min, max, checkNotNull(desired)) },
+      capacity = capacity.run {
+        if (scalingPolicies.isEmpty()) {
+          Capacity.DefaultCapacity(min, max, desired)
+        } else {
+          Capacity.AutoScalingCapacity(min, max, desired)
+        }
+      },
       container = DigestProvider(
         organization = image.dockerImageName.split("/").first(),
         image = image.dockerImageName.split("/").last(),
@@ -646,7 +879,59 @@ class TitusClusterHandler(
         securityGroupNames = securityGroupNames,
         targetGroups = targetGroups
       ),
-      instanceCounts = instanceCounts.run { InstanceCounts(total, up, down, unknown, outOfService, starting) }
+      instanceCounts = instanceCounts.run { InstanceCounts(total, up, down, unknown, outOfService, starting) },
+      scaling = Scaling(
+        targetTrackingPolicies = scalingPolicies.filter { it.policy is TargetPolicy }.mapUnique { policy ->
+          with((policy.policy as TargetPolicy).targetPolicyDescriptor) {
+            TargetTrackingPolicy(
+              name = policy.id,
+              warmup = Duration.ZERO,
+              targetValue = targetValue,
+              disableScaleIn = disableScaleIn,
+              customMetricSpec = customizedMetricSpecification?.let {
+                CustomizedMetricSpecification(
+                  name = it.metricName,
+                  namespace = it.namespace,
+                  statistic = it.statistic,
+                  unit = it.unit,
+                  dimensions = it.dimensions?.mapUnique {
+                    MetricDimension(
+                      name = it.name,
+                      value = it.value
+                    )
+                  }
+                )
+              }
+            )
+          }
+        },
+        stepScalingPolicies = scalingPolicies.filter { it.policy is StepPolicy }.mapUnique { policy ->
+          with((policy.policy as StepPolicy).stepPolicyDescriptor) {
+            StepScalingPolicy(
+              name = policy.id,
+              adjustmentType = scalingPolicy.adjustmentType,
+              actionsEnabled = false,
+              comparisonOperator = alarmConfig.comparisonOperator,
+              dimensions = emptySet(), // Titus doesn't support dimensions on step policies yet
+              evaluationPeriods = alarmConfig.evaluationPeriods,
+              period = Duration.ofSeconds(alarmConfig.periodSec.toLong()),
+              threshold = alarmConfig.threshold.toInt(),
+              metricName = alarmConfig.metricName,
+              namespace = alarmConfig.metricNamespace,
+              statistic = alarmConfig.statistic,
+              warmup = Duration.ZERO,
+              metricAggregationType = scalingPolicy.metricAggregationType,
+              stepAdjustments = scalingPolicy.stepAdjustments.mapUnique {
+                StepAdjustment(
+                  lowerBound = it.metricIntervalLowerBound,
+                  upperBound = it.metricIntervalUpperBound,
+                  scalingAdjustment = it.scalingAdjustment
+                )
+              }
+            )
+          }
+        }
+      )
     )
 
   private suspend fun getAwsAccountNameForTitusAccount(titusAccount: String): String =
@@ -717,4 +1002,6 @@ class TitusClusterHandler(
       memory = memory,
       networkMbps = networkMbps
     )
+
+  private inline fun <T, R> Collection<T>.mapUnique(transform: (T) -> R): Set<R> = mapTo(HashSet(size), transform)
 }

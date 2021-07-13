@@ -32,6 +32,8 @@ import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.DOCKER
 import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.CapacitySpec
+import com.netflix.spinnaker.keel.api.ec2.StepScalingPolicy
+import com.netflix.spinnaker.keel.api.ec2.TargetTrackingPolicy
 import com.netflix.spinnaker.keel.api.schema.Factory
 import com.netflix.spinnaker.keel.api.schema.Optional
 import com.netflix.spinnaker.keel.docker.ContainerProvider
@@ -61,17 +63,18 @@ data class TitusClusterSpec(
     deployWith: ClusterDeployStrategy = RedBlack(),
     @Optional locations: SimpleLocations,
     container: ContainerProvider,
-    capacity: CapacitySpec?,
-    constraints: TitusServerGroup.Constraints?,
-    env: Map<String, String>?,
-    containerAttributes: Map<String, String>?,
-    resources: ResourcesSpec?,
-    iamProfile: String?,
-    entryPoint: String?,
-    capacityGroup: String?,
-    migrationPolicy: TitusServerGroup.MigrationPolicy?,
-    dependencies: ClusterDependencies?,
-    tags: Map<String, String>?,
+    capacity: CapacitySpec? = null,
+    constraints: TitusServerGroup.Constraints? = null,
+    env: Map<String, String> = emptyMap(),
+    containerAttributes: Map<String, String> = emptyMap(),
+    resources: ResourcesSpec? = null,
+    iamProfile: String? = null,
+    entryPoint: String? = null,
+    capacityGroup: String? = null,
+    migrationPolicy: TitusServerGroup.MigrationPolicy? = null,
+    dependencies: ClusterDependencies? = null,
+    tags: Map<String, String> = emptyMap(),
+    scaling: TitusScalingSpec? = null,
     overrides: Map<String, TitusServerGroupSpec> = emptyMap()
   ) : this(
     moniker = moniker,
@@ -88,7 +91,8 @@ data class TitusClusterSpec(
       iamProfile = iamProfile,
       migrationPolicy = migrationPolicy,
       resources = resources,
-      tags = tags
+      tags = tags,
+      scaling = scaling
     ),
     overrides = overrides,
     container = container
@@ -153,7 +157,8 @@ data class TitusServerGroupSpec(
   val iamProfile: String? = null,
   val migrationPolicy: TitusServerGroup.MigrationPolicy? = null,
   val resources: ResourcesSpec? = null,
-  val tags: Map<String, String>? = null
+  val tags: Map<String, String>? = null,
+  val scaling: TitusScalingSpec? = null
 )
 
 data class ResourcesSpec(
@@ -173,3 +178,8 @@ data class ResourcesSpec(
     require(networkMbps == null || networkMbps in 128..40000) { "networkMbps not within titus limits of 128 to 40000" }
   }
 }
+
+data class TitusScalingSpec(
+  val targetTrackingPolicies: Set<TargetTrackingPolicy> = emptySet(),
+  val stepScalingPolicies: Set<StepScalingPolicy> = emptySet()
+)

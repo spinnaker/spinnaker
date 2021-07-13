@@ -20,9 +20,10 @@ abstract class PropertyNamePolymorphicDeserializer<T>(clazz: Class<T>) : StdNode
     return context.parser.codec.treeToValue(root, subType)
   }
 
-  protected abstract fun identifySubType(
+  protected open fun identifySubType(
     root: JsonNode,
     context: DeserializationContext,
     fieldNames: Collection<String>
-  ): Class<out T>
+  ): Class<out T> =
+    throw IllegalArgumentException("Cannot identify subtype of ${handledType()} based on these field names: $fieldNames")
 }

@@ -6,5 +6,4 @@ package com.netflix.spinnaker.keel.api.actuation
 typealias Job = Map<String, Any?>
 
 val Job.type: String
-  get() = get("type") as String
-
+  get() = getValue("type") as String

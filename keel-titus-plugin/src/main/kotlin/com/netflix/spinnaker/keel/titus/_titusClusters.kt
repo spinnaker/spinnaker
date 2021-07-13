@@ -2,8 +2,10 @@ package com.netflix.spinnaker.keel.titus
 
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.ec2.Capacity
+import com.netflix.spinnaker.keel.api.ec2.Capacity.AutoScalingCapacity
 import com.netflix.spinnaker.keel.api.ec2.Capacity.DefaultCapacity
 import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
+import com.netflix.spinnaker.keel.api.ec2.Scaling
 import com.netflix.spinnaker.keel.api.titus.TitusClusterSpec
 import com.netflix.spinnaker.keel.api.titus.TitusServerGroup
 import com.netflix.spinnaker.keel.api.titus.TitusServerGroup.Location
@@ -12,6 +14,7 @@ import com.netflix.spinnaker.keel.core.parseMoniker
 import com.netflix.spinnaker.keel.docker.ContainerProvider
 import com.netflix.spinnaker.keel.docker.DigestProvider
 import com.netflix.spinnaker.keel.titus.exceptions.ErrorResolvingContainerException
+import java.time.Duration
 
 internal fun Iterable<TitusServerGroup>.byRegion(): Map<String, TitusServerGroup> =
   associateBy { it.location.region }
@@ -19,18 +22,16 @@ internal fun Iterable<TitusServerGroup>.byRegion(): Map<String, TitusServerGroup
 internal val TitusServerGroup.moniker: Moniker
   get() = parseMoniker(name)
 
-internal fun TitusClusterSpec.resolveCapacity(region: String) : Capacity =
-  overrides[region]?.capacity?.run {
-    DefaultCapacity(
-      min,
-      max,
-      checkNotNull(desired) { "desired capacity must be specified if scaling policies are not used" })
-  } ?: defaults.capacity?.run {
-    DefaultCapacity(
-      min,
-      max,
-      checkNotNull(desired) { "desired capacity must be specified if scaling policies are not used" })
-  } ?: DefaultCapacity(1, 1, 1)
+internal fun TitusClusterSpec.resolveCapacity(region: String): Capacity {
+  val scaling = overrides[region]?.scaling ?: defaults.scaling
+  val capacity = overrides[region]?.capacity ?: defaults.capacity
+  return when {
+    capacity == null && scaling != null -> AutoScalingCapacity(1, 1, 1)
+    capacity == null -> DefaultCapacity(1, 1, 1)
+    scaling != null -> AutoScalingCapacity(capacity)
+    else -> DefaultCapacity(capacity)
+  }
+}
 
 internal val NETFLIX_CONTAINER_ENV_VARS = arrayOf("EC2_REGION", "NETFLIX_REGION", "NETFLIX_HOME_REGION")
 
@@ -87,9 +88,20 @@ internal fun TitusClusterSpec.resolveDependencies(region: String): ClusterDepend
     targetGroups = defaults.dependencies?.targetGroups + overrides[region]?.dependencies?.targetGroups
   )
 
+private fun TitusClusterSpec.resolveScaling(region: String) =
+  // TODO: could be smarter here and merge policies from defaults and override
+  (overrides[region]?.scaling ?: defaults.scaling)?.run {
+    // we set the warmup to ZERO as Titus doesn't use the warmup setting
+    Scaling(
+      targetTrackingPolicies = targetTrackingPolicies.map { it.copy(warmup = Duration.ZERO) }.toSet(),
+      stepScalingPolicies = stepScalingPolicies.map { it.copy(warmup = Duration.ZERO) }.toSet()
+    )
+  } ?: Scaling()
+
 internal fun TitusClusterSpec.resolve(): Set<TitusServerGroup> =
   locations.regions.map {
     TitusServerGroup(
+      id = null,
       name = moniker.toString(),
       location = Location(
         account = locations.account,
@@ -108,7 +120,8 @@ internal fun TitusClusterSpec.resolve(): Set<TitusServerGroup> =
       resources = resolveResources(it.name),
       tags = defaults.tags + overrides[it.name]?.tags,
       artifactName = artifactName,
-      artifactVersion = artifactVersion
+      artifactVersion = artifactVersion,
+      scaling = resolveScaling(it.name)
     )
   }
     .toSet()

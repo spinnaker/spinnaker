@@ -24,6 +24,7 @@ import com.netflix.spinnaker.keel.api.plugins.ServerGroupIdentity
  * Fields common to classes that model Titus server groups
  */
 interface BaseTitusServerGroup : BaseServerGroup {
+  val id: String
   val awsAccount: String
   val placement: Placement
   val image: TitusActiveServerGroupImage
@@ -37,6 +38,7 @@ interface BaseTitusServerGroup : BaseServerGroup {
   val tags: Map<String, String>
   val resources: Resources
   val capacityGroup: String
+  val scalingPolicies: List<TitusScaling>
 }
 
 /**
@@ -46,6 +48,7 @@ interface BaseTitusServerGroup : BaseServerGroup {
  * [disabled] flag.
  */
 data class TitusServerGroup(
+  override val id: String,
   override val name: String,
   override val awsAccount: String,
   override val placement: Placement,
@@ -69,11 +72,13 @@ data class TitusServerGroup(
   override val capacityGroup: String,
   override val disabled: Boolean,
   override val instanceCounts: InstanceCounts,
-  override val createdTime: Long
+  override val createdTime: Long,
+  override val scalingPolicies: List<TitusScaling> = emptyList()
 ) : BaseTitusServerGroup, ServerGroupIdentity
 
 fun TitusServerGroup.toActive() =
   TitusActiveServerGroup(
+    id = id,
     name = name,
     awsAccount = awsAccount,
     placement = placement,
@@ -106,6 +111,7 @@ fun TitusServerGroup.toActive() =
  * [disabled] flag, since the returned object always corresponds to an active server group.
  */
 data class TitusActiveServerGroup(
+  override val id: String,
   override val name: String,
   override val awsAccount: String,
   override val placement: Placement,
@@ -128,7 +134,8 @@ data class TitusActiveServerGroup(
   override val resources: Resources,
   override val capacityGroup: String,
   override val instanceCounts: InstanceCounts,
-  override val createdTime: Long
+  override val createdTime: Long,
+  override val scalingPolicies: List<TitusScaling> = emptyList()
 ) : BaseTitusServerGroup
 
 data class Placement(
@@ -163,4 +170,49 @@ data class Constraints(
 data class ServiceJobProcesses(
   val disableIncreaseDesired: Boolean = false,
   val disableDecreaseDesired: Boolean = false
+)
+
+data class TitusScaling(
+  val id: String,
+  val policy: Policy
+) {
+  sealed class Policy {
+    data class TargetPolicy(
+      val targetPolicyDescriptor: TargetPolicyDescriptor
+    ) : Policy()
+
+    data class StepPolicy (
+      val stepPolicyDescriptor: StepPolicyDescriptor
+    ) : Policy()
+  }
+}
+
+data class TargetPolicyDescriptor(
+  val targetValue: Double,
+  val scaleOutCooldownSec: Int,
+  val scaleInCooldownSec: Int,
+  val disableScaleIn: Boolean,
+  val customizedMetricSpecification: CustomizedMetricSpecificationModel?
+)
+
+data class StepPolicyDescriptor(
+  val alarmConfig: StepScalingAlarm,
+  val scalingPolicy: StepScalingPolicy
+)
+
+data class StepScalingAlarm(
+  val comparisonOperator: String,
+  val evaluationPeriods: Int,
+  val periodSec: Int,
+  val threshold: Double,
+  val metricNamespace: String,
+  val metricName: String,
+  val statistic: String
+)
+
+data class StepScalingPolicy(
+  val adjustmentType: String,
+  val cooldownSec: Int,
+  val metricAggregationType: String,
+  val stepAdjustments: List<StepAdjustmentModel>
 )
