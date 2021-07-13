@@ -12,10 +12,11 @@ data class TestContainerVerification(
 ) : Verification {
   override val type = TYPE
   override val id by lazy {
-    "$image@${location.account}/${location.region}${entrypoint?.let { "[$it]" } ?: ""}"
+    "$image@${location.account}/${location.region}${entrypoint?.let { "#${it.hash}" } ?: "" }"
   }
 
-//  @get:JsonIgnore
+  private val String.hash get() = Integer.toHexString(hashCode())
+
   val imageId: String
     get() =
       if (image.contains(":")) image
