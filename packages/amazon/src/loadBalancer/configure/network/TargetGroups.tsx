@@ -405,7 +405,7 @@ export class TargetGroups
                             />
                             <HelpField id="aws.targetGroup.attributes.deregistrationDelayConnectionTermination" />
                           </span>
-                          <span className="wizard-pod-content">
+                          {targetGroup.targetType !== 'instance' && <span className="wizard-pod-content">
                             <CheckboxInput
                               name="preserveClientIp"
                               text="Preserve Client IP"
@@ -419,7 +419,7 @@ export class TargetGroups
                               }}
                             />
                             <HelpField id="aws.targetGroup.attributes.preserveClientIp" />
-                          </span>
+                          </span>}
                         </div>
                       </div>
                     </div>
