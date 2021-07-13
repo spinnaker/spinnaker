@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/dcos",
   "license": "Apache-2.0",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "module": "dist/index.js",
   "typings": "dist/index.d.ts",
   "private": true,
