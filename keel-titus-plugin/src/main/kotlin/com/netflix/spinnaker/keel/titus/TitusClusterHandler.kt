@@ -888,18 +888,21 @@ class TitusClusterHandler(
               warmup = Duration.ZERO,
               targetValue = targetValue,
               disableScaleIn = disableScaleIn,
-              customMetricSpec = customizedMetricSpecification?.let {
+              customMetricSpec = customizedMetricSpecification?.let { metric ->
                 CustomizedMetricSpecification(
-                  name = it.metricName,
-                  namespace = it.namespace,
-                  statistic = it.statistic,
-                  unit = it.unit,
-                  dimensions = it.dimensions?.mapUnique {
-                    MetricDimension(
-                      name = it.name,
-                      value = it.value
-                    )
-                  }
+                  name = metric.metricName,
+                  namespace = metric.namespace,
+                  statistic = metric.statistic,
+                  unit = metric.unit,
+                  dimensions = metric
+                    .dimensions
+                    ?.filter { it.name !in IGNORED_SCALING_DIMENSIONS }
+                    ?.mapUnique {
+                      MetricDimension(
+                        name = it.name,
+                        value = it.value
+                      )
+                    }
                 )
               }
             )
@@ -1004,4 +1007,8 @@ class TitusClusterHandler(
     )
 
   private inline fun <T, R> Collection<T>.mapUnique(transform: (T) -> R): Set<R> = mapTo(HashSet(size), transform)
+
+  companion object {
+    private val IGNORED_SCALING_DIMENSIONS = listOf("AutoScalingGroupName")
+  }
 }

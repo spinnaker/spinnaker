@@ -48,6 +48,8 @@ import io.mockk.slot
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
+import strikt.assertions.doesNotContain
+import strikt.assertions.first
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEmpty
 import strikt.assertions.isNotNull
@@ -64,10 +66,11 @@ class TitusClusterScalingPolicyTests {
   val account = "titustestvpc"
   val cluster = "$application-test"
   val region = "ap-south-1"
+  val asg = "$cluster-v193"
 
   val actualServerGroup = TitusActiveServerGroup(
     id = randomUUID().toString(),
-    name = cluster,
+    name = asg,
     awsAccount = account,
     placement = Placement(account, region),
     region = region,
@@ -120,7 +123,7 @@ class TitusClusterScalingPolicyTests {
               dimensions = listOf(
                 MetricDimensionModel(
                   name = "AutoScalingGroupName",
-                  value = "$cluster-v193"
+                  value = asg
                 )
               )
             )
@@ -233,13 +236,7 @@ class TitusClusterScalingPolicyTests {
             customMetricSpec = CustomizedMetricSpecification(
               namespace = "NFLX/EPIC",
               name = "AverageCPUUtilization",
-              statistic = "Average",
-              dimensions = setOf(
-                MetricDimension(
-                  name = "AutoScalingGroupName",
-                  value = "$cluster-v193"
-                )
-              )
+              statistic = "Average"
             )
           )
         ),
@@ -308,6 +305,24 @@ class TitusClusterScalingPolicyTests {
       .isNotNull()
       .get { scaling.targetTrackingPolicies }
       .isNotEmpty()
+  }
+
+  @Test
+  fun `the AutoScalingGroupName is removed from any actual scaling policy so we don't diff it`() {
+    cloudDriverService.stubActiveServerGroup(actualServerGroup)
+
+    val current = runBlocking {
+      handler.current(resource)
+    }
+
+    expectThat(current[region])
+      .isNotNull()
+      .get { scaling.targetTrackingPolicies }
+      .isNotEmpty()
+      .first()
+      .get { customMetricSpec?.dimensions }
+      .isNotNull()
+      .doesNotContain(MetricDimension("AutoScalingGroupName", asg))
   }
 
   @Test
