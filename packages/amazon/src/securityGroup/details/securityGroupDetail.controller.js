@@ -156,20 +156,24 @@ angular
 
       this.editInboundRules = function editInboundRules() {
         confirmNotManaged($scope.securityGroup, application).then((notManaged) => {
-          notManaged &&
-            $uibModal.open({
-              templateUrl: require('../configure/editSecurityGroup.html'),
-              controller: 'awsEditSecurityGroupCtrl as ctrl',
-              size: 'lg',
-              resolve: {
-                securityGroup: function () {
-                  return angular.copy($scope.securityGroup);
+          // Wait for the MD confirmation modal to go away first to avoid react/angular bootstrap fighting over the body.modal-open class
+          return new Promise((resolve) => setTimeout(resolve, 500)).then(() => {
+            if (notManaged) {
+              $uibModal.open({
+                templateUrl: require('../configure/editSecurityGroup.html'),
+                controller: 'awsEditSecurityGroupCtrl as ctrl',
+                size: 'lg',
+                resolve: {
+                  securityGroup: function () {
+                    return angular.copy($scope.securityGroup);
+                  },
+                  application: function () {
+                    return application;
+                  },
                 },
-                application: function () {
-                  return application;
-                },
-              },
-            });
+              });
+            }
+          });
         });
       };
 
