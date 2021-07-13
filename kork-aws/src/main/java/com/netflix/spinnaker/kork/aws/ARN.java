@@ -16,16 +16,13 @@
 
 package com.netflix.spinnaker.kork.aws;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import com.amazonaws.arn.Arn;
 
 /**
  * Util for easy parsing of an Amazon Resource Names (ARNS)
  * https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html
  */
 public class ARN {
-
-  static final Pattern PATTERN = Pattern.compile("arn:aws(?:-cn|-us-gov)?:.*:(.*):(\\d+):(.*)");
 
   private String arn;
   private String region;
@@ -35,14 +32,11 @@ public class ARN {
   public ARN(String arn) {
     this.arn = arn;
 
-    Matcher arnMatcher = PATTERN.matcher(arn);
-    if (!arnMatcher.matches()) {
-      throw new IllegalArgumentException(arn + " is not a valid ARN");
-    }
+    Arn awsArn = Arn.fromString(arn);
 
-    this.region = arnMatcher.group(1);
-    this.account = arnMatcher.group(2);
-    this.name = arnMatcher.group(3);
+    this.region = awsArn.getRegion();
+    this.account = awsArn.getAccountId();
+    this.name = awsArn.getResourceAsString();
   }
 
   public String getArn() {
