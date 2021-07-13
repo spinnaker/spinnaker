@@ -45,6 +45,7 @@
     "lint": "eslint --ext js,jsx,ts,tsx app",
     "start": "sh ./start.sh",
     "start-dev-server": "webpack-dev-server --config app/scripts/modules/app/webpack.config.js --mode=development",
+    "dev:experimental": "cd app/scripts/modules/app && npm run dev:experimental",
     "test": "karma start",
     "modules": "./scripts/buildModules.js",
     "prettier": "prettier --write 'app/**/*.{js,jsx,ts,tsx,html,css,less}'",

@@ -116,8 +116,9 @@ function configure(env, webpackOpts) {
       rules: [
         {
           test: /settings\.js/,
-          use: [{ loader: 'envify-loader' }],
+          use: [{ loader: 'envify-loader' }, { loader: path.resolve(__dirname, 'webpackImportMetaLoader.js') }],
         },
+
         {
           test: /\.js$/,
           use: [

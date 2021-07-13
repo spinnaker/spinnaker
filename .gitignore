@@ -49,3 +49,6 @@ selenium-logs
 *.browser.log
 test/functional/cypress/videos/**/*
 test/functional/cypress/screenshots/**/*
+
+# .env.local files
+.env.local

@@ -1,36 +1,64 @@
 'use strict';
 
+// While using vite as dev server, `process` object will not be defined.
+if (typeof process === 'undefined') {
+  window.process = { env: {} };
+} else if (typeof process.env === 'undefined') {
+  process.env = {};
+}
+
 // Use environment variables when developing locally via 'yarn start', i.e.:
 // API_HOST=https://gate.spinnaker.mycompany.com yarn start
-const apiHost = process.env.API_HOST || 'http://localhost:8084';
-const atlasWebComponentsUrl = process.env.ATLAS_WEB_COMPONENTS_URL;
-const authEndpoint = process.env.AUTH_ENDPOINT || apiHost + '/auth/user';
-const authEnabled = process.env.AUTH_ENABLED === 'true';
+const apiHost = import.meta.env.VITE_API_HOST || process.env.API_HOST || 'http://localhost:8084';
+const atlasWebComponentsUrl = import.meta.env.VITE_ATLAS_WEB_COMPONENTS_URL || process.env.ATLAS_WEB_COMPONENTS_URL;
+const authEndpoint = import.meta.env.VITE_AUTH_ENDPOINT || process.env.AUTH_ENDPOINT || apiHost + '/auth/user';
+const authEnabled = import.meta.env.VITE_AUTH_ENABLED === 'true' || process.env.AUTH_ENABLED === 'true';
 const bakeryDetailUrl =
-  process.env.BAKERY_DETAIL_URL || apiHost + '/bakery/logs/{{context.region}}/{{context.status.resourceId}}';
-const canaryAccount = process.env.CANARY_ACCOUNT || '';
-const canaryEnabled = process.env.CANARY_ENABLED === 'true';
-const canaryFeatureDisabled = process.env.CANARY_FEATURE_ENABLED !== 'true';
-const canaryStagesEnabled = process.env.CANARY_STAGES_ENABLED === 'true';
-const chaosEnabled = process.env.CHAOS_ENABLED === 'true' ? true : false;
-const ciEnabled = process.env.CI_ENABLED === 'true';
-const debugEnabled = process.env.DEBUG_ENABLED === 'false' ? false : true;
-const defaultMetricStore = process.env.METRIC_STORE || 'atlas';
-const displayTimestampsInUserLocalTime = process.env.DISPLAY_TIMESTAMPS_IN_USER_LOCAL_TIME === 'true';
-const dryRunEnabled = process.env.DRYRUN_ENABLED === 'true' ? true : false;
-const entityTagsEnabled = process.env.ENTITY_TAGS_ENABLED === 'true' ? true : false;
-const fiatEnabled = process.env.FIAT_ENABLED === 'true' ? true : false;
-const gceScaleDownControlsEnabled = process.env.GCE_SCALE_DOWN_CONTROLS_ENABLED === 'true' ? true : false;
-const iapRefresherEnabled = process.env.IAP_REFRESHER_ENABLED === 'true' ? true : false;
-const managedDeliveryEnabled = process.env.MANAGED_DELIVERY_ENABLED === 'true';
-const managedServiceAccountsEnabled = process.env.MANAGED_SERVICE_ACCOUNTS_ENABLED === 'true';
-const managedResourcesEnabled = process.env.MANAGED_RESOURCES_ENABLED === 'true';
-const onDemandClusterThreshold = process.env.ON_DEMAND_CLUSTER_THRESHOLD || '350';
-const reduxLoggerEnabled = process.env.REDUX_LOGGER === 'true';
-const templatesEnabled = process.env.TEMPLATES_ENABLED === 'true';
-const useClassicFirewallLabels = process.env.USE_CLASSIC_FIREWALL_LABELS === 'true';
-const functionsEnabled = process.env.FUNCTIONS_ENABLED === 'true' ? true : false;
-const k8sRawResourcesEnabled = process.env.K8S_RAW_RESOURCES_ENABLED === 'true' ? true : false;
+  import.meta.env.VITE_BAKERY_DETAIL_URL ||
+  process.env.BAKERY_DETAIL_URL ||
+  apiHost + '/bakery/logs/{{context.region}}/{{context.status.resourceId}}';
+const canaryAccount = import.meta.env.VITE_CANARY_ACCOUNT || process.env.CANARY_ACCOUNT || '';
+const canaryEnabled = import.meta.env.VITE_CANARY_ENABLED === 'true' || process.env.CANARY_ENABLED === 'true';
+const canaryFeatureDisabled =
+  import.meta.env.VITE_CANARY_FEATURE_ENABLED !== 'true' || process.env.CANARY_FEATURE_ENABLED !== 'true';
+const canaryStagesEnabled =
+  import.meta.env.VITE_CANARY_STAGES_ENABLED === 'true' || process.env.CANARY_STAGES_ENABLED === 'true';
+const chaosEnabled = import.meta.env.VITE_CHAOS_ENABLED === 'true' || process.env.CHAOS_ENABLED === 'true' || false;
+const ciEnabled = import.meta.env.VITE_CI_ENABLED === 'true' || process.env.CI_ENABLED === 'true';
+const debugEnabled = import.meta.env.VITE_DEBUG_ENABLED === 'true' || process.env.DEBUG_ENABLED === 'true' || false;
+const defaultMetricStore = import.meta.env.VITE_METRIC_STORE || process.env.METRIC_STORE || 'atlas';
+const displayTimestampsInUserLocalTime =
+  import.meta.env.VITE_DISPLAY_TIMESTAMPS_IN_USER_LOCAL_TIME === 'true' ||
+  process.env.DISPLAY_TIMESTAMPS_IN_USER_LOCAL_TIME === 'true';
+const dryRunEnabled = import.meta.env.VITE_DRYRUN_ENABLED === 'true' || process.env.DRYRUN_ENABLED === 'true' || false;
+const entityTagsEnabled =
+  import.meta.env.VITE_ENTITY_TAGS_ENABLED === 'true' || process.env.ENTITY_TAGS_ENABLED === 'true' || false;
+const fiatEnabled = import.meta.env.VITE_FIAT_ENABLED === 'true' || process.env.FIAT_ENABLED === 'true' || false;
+const gceScaleDownControlsEnabled =
+  import.meta.env.VITE_GCE_SCALE_DOWN_CONTROLS_ENABLED === 'true' ||
+  process.env.GCE_SCALE_DOWN_CONTROLS_ENABLED === 'true' ||
+  false;
+const iapRefresherEnabled =
+  import.meta.env.VITE_IAP_REFRESHER_ENABLED === 'true' || process.env.IAP_REFRESHER_ENABLED === 'true' || false;
+const managedDeliveryEnabled =
+  import.meta.env.VITE_MANAGED_DELIVERY_ENABLED === 'true' || process.env.MANAGED_DELIVERY_ENABLED === 'true';
+const managedServiceAccountsEnabled =
+  import.meta.env.VITE_MANAGED_SERVICE_ACCOUNTS_ENABLED === 'true' ||
+  process.env.MANAGED_SERVICE_ACCOUNTS_ENABLED === 'true';
+const managedResourcesEnabled =
+  import.meta.env.VITE_MANAGED_RESOURCES_ENABLED === 'true' || process.env.MANAGED_RESOURCES_ENABLED === 'true';
+const onDemandClusterThreshold =
+  import.meta.env.VITE_ON_DEMAND_CLUSTER_THRESHOLD || process.env.ON_DEMAND_CLUSTER_THRESHOLD || '350';
+const reduxLoggerEnabled = import.meta.env.VITE_REDUX_LOGGER === 'true' || process.env.REDUX_LOGGER === 'true';
+const templatesEnabled = import.meta.env.VITE_TEMPLATES_ENABLED === 'true' || process.env.TEMPLATES_ENABLED === 'true';
+const useClassicFirewallLabels =
+  import.meta.env.VITE_USE_CLASSIC_FIREWALL_LABELS === 'true' || process.env.USE_CLASSIC_FIREWALL_LABELS === 'true';
+const functionsEnabled =
+  import.meta.env.VITE_FUNCTIONS_ENABLED === 'true' || process.env.FUNCTIONS_ENABLED === 'true' || false;
+const k8sRawResourcesEnabled =
+  import.meta.env.VITE_K8S_RAW_RESOURCES_ENABLED === 'true' ||
+  process.env.K8S_RAW_RESOURCES_ENABLED === 'true' ||
+  false;
 
 window.spinnakerSettings = {
   authEnabled: authEnabled,
