@@ -1443,8 +1443,10 @@ class SqlDeliveryConfigRepository(
     insertInto(ACTIVE_ENVIRONMENT_VERSION)
       .set(ACTIVE_ENVIRONMENT_VERSION.ENVIRONMENT_UID, uid)
       .set(ACTIVE_ENVIRONMENT_VERSION.ACTIVE_VERSION, version)
+      .set(ACTIVE_ENVIRONMENT_VERSION.ACTIVE_SINCE, clock.instant())
       .onDuplicateKeyUpdate()
       .set(ACTIVE_ENVIRONMENT_VERSION.ACTIVE_VERSION, version)
+      .set(ACTIVE_ENVIRONMENT_VERSION.ACTIVE_SINCE, clock.instant())
       .where(ACTIVE_ENVIRONMENT_VERSION.ENVIRONMENT_UID.eq(uid))
       .execute()
   }
@@ -1453,8 +1455,10 @@ class SqlDeliveryConfigRepository(
     insertInto(ACTIVE_ENVIRONMENT_VERSION)
       .set(ACTIVE_ENVIRONMENT_VERSION.ENVIRONMENT_UID, uid)
       .set(ACTIVE_ENVIRONMENT_VERSION.ACTIVE_VERSION, version)
+      .set(ACTIVE_ENVIRONMENT_VERSION.ACTIVE_SINCE, clock.instant())
       .onDuplicateKeyUpdate()
       .set(ACTIVE_ENVIRONMENT_VERSION.ACTIVE_VERSION, version)
+      .set(ACTIVE_ENVIRONMENT_VERSION.ACTIVE_SINCE, clock.instant())
       .where(ACTIVE_ENVIRONMENT_VERSION.ENVIRONMENT_UID.eq(uid))
       .execute()
   }
