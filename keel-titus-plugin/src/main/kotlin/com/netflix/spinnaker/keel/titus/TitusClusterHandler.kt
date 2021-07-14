@@ -520,12 +520,12 @@ class TitusClusterHandler(
         "credentials" to serverGroup.location.account,
         "moniker" to serverGroup.moniker.orcaClusterMoniker,
         "region" to serverGroup.location.region,
-        "scaleOutCooldownSec" to it.scaleOutCooldown?.seconds,
-        "scaleInCooldownSec" to it.scaleInCooldown?.seconds,
         "serverGroupName" to serverGroup.moniker.serverGroup,
         "targetTrackingConfiguration" to mapOf(
           "targetValue" to it.targetValue,
           "disableScaleIn" to it.disableScaleIn,
+          "scaleOutCooldownSec" to it.scaleOutCooldown?.seconds,
+          "scaleInCooldownSec" to it.scaleInCooldown?.seconds,
           "predefinedMetricSpecification" to when (val metricsSpec = it.predefinedMetricSpec) {
             null -> null
             else -> with(metricsSpec) {
