@@ -1,10 +1,7 @@
 package com.netflix.spinnaker.keel.api.plugins
 
 import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
-import com.netflix.spinnaker.keel.api.DeliveryConfig
-import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.action.ActionState
-import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.postdeploy.PostDeployAction
 import com.netflix.spinnaker.keel.api.postdeploy.SupportedPostDeployActionType
 import com.netflix.spinnaker.keel.api.support.EventPublisher
@@ -30,7 +27,7 @@ interface PostDeployActionHandler<T: PostDeployAction> : SpinnakerExtensionPoint
   /**
    * Start running [action]
    *
-   * @return any metadata needed to evaulate the verification in the future
+   * @return any metadata needed to evaulate the action in the future
    */
   suspend fun start(
     context: ArtifactInEnvironmentContext,
@@ -38,8 +35,8 @@ interface PostDeployActionHandler<T: PostDeployAction> : SpinnakerExtensionPoint
   ): Map<String, Any?>
 
   /**
-   * @param oldState previous verification state
-   * @return updated verification state
+   * @param oldState previous action state
+   * @return updated action state
    */
   suspend fun evaluate(
     context: ArtifactInEnvironmentContext,
