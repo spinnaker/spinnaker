@@ -17,7 +17,7 @@ jobs:
           default-branch: 'release-please-app'
           config-file: '.github/release-please-config.app.json'
           manifest-file: '.github/release-please-manifest.app.json'
-          pull-request-title: 'chore${scope}: release${component} app packages ${version}.'
+          pull-request-title-pattern: 'chore${scope}: release${component} app packages ${version}.'
 
   release-please-tools:
     runs-on: ubuntu-latest
@@ -31,4 +31,4 @@ jobs:
           default-branch: 'release-please-tools'
           config-file: '.github/release-please-config.tools.json'
           manifest-file: '.github/release-please-manifest.tools.json'
-          pull-request-title: 'chore${scope}: release${component} deck tooling ${version}.'
+          pull-request-title-pattern: 'chore${scope}: release${component} deck tooling ${version}.'
