@@ -216,7 +216,7 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
                   checked={values.requireIMDSv2 === true}
                   onChange={(e) => setFieldValue('requireIMDSv2', e.target.checked)}
                 />{' '}
-                Enable IMDSv2{' '}
+                Require IMDSv2{' '}
               </label>
             </div>
           </div>
