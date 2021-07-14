@@ -524,8 +524,8 @@ class TitusClusterHandler(
         "targetTrackingConfiguration" to mapOf(
           "targetValue" to it.targetValue,
           "disableScaleIn" to it.disableScaleIn,
-          "scaleOutCooldownSec" to it.scaleOutCooldown?.seconds,
-          "scaleInCooldownSec" to it.scaleInCooldown?.seconds,
+          "scaleOutCooldown" to it.scaleOutCooldown?.seconds,
+          "scaleInCooldown" to it.scaleInCooldown?.seconds,
           "predefinedMetricSpecification" to when (val metricsSpec = it.predefinedMetricSpec) {
             null -> null
             else -> with(metricsSpec) {
