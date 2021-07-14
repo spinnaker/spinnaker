@@ -1206,7 +1206,7 @@ class ClusterHandler(
     get() = dependencies
       .securityGroupNames
       // no need to specify these as Orca will auto-assign them
-      .filter { it !in setOf("nf-infrastructure", "nf-datacenter") }
+      .filter { it !in setOf("nf-datacenter") }
       .map {
         cloudDriverCache.securityGroupByName(location.account, location.region, it).id
       }
