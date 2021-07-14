@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/scripts",
   "version": "0.0.14",
-  "description": "",
+  "description": "Spinnaker scripts",
   "main": "index.js",
   "bin": {
     "spinnaker-scripts": "./index.js"
