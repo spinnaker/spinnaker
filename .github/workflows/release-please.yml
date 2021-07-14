@@ -14,6 +14,7 @@ jobs:
           release-type: node
           monorepo-tags: true
           command: manifest
+          default-branch: 'release-please-app'
           config-file: '.github/release-please-config.app.json'
           manifest-file: '.github/release-please-manifest.app.json'
           pull-request-title: 'chore${scope}: release${component} app packages ${version}.'
@@ -27,6 +28,7 @@ jobs:
           release-type: node
           monorepo-tags: true
           command: manifest
+          default-branch: 'release-please-tools'
           config-file: '.github/release-please-config.tools.json'
           manifest-file: '.github/release-please-manifest.tools.json'
           pull-request-title: 'chore${scope}: release${component} deck tooling ${version}.'
