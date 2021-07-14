@@ -96,20 +96,20 @@ class AdminService(
   /**
    * Updates last 10 artifact's versions with the corresponding metadata, if available, by type [deb/docker/npm]
    */
-  fun backfillArtifactMetadataAsync() {
+  fun backfillArtifactMetadataAsync(age: Duration) {
     launch(TracingSupport.blankMDC) {
-      backfillArtifactMetadata()
+      backfillArtifactMetadata(age)
     }
   }
 
   /**
    * Updates last 10 artifact's versions with the corresponding metadata, if available, by type [deb/docker/npm]
    */
-  suspend fun backfillArtifactMetadata() {
+  suspend fun backfillArtifactMetadata(age: Duration = Duration.ofHours(3)) {
     log.debug("Starting to back-fill old artifacts versions with artifact metadata...")
     val versions = repository
       // only check versions that are < 3 hours old, and probably nothing changes after one hour
-      .getVersionsWithoutMetadata(100, Duration.ofHours(3))
+      .getVersionsWithoutMetadata(100, age)
       versions.forEach { artifactVersion ->
         log.debug("Evaluating version ${artifactVersion.version} as candidate to back-fill metadata")
         try {

@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import java.time.Duration
+import java.time.format.DateTimeParseException
 
 @RestController
 @RequestMapping(path = ["/poweruser"])
@@ -122,8 +124,17 @@ class AdminController(
   @PostMapping(
     path = ["/artifacts/metadata/backfill"]
   )
-  fun backFillAllArtifactMetadata() {
-    adminService.backfillArtifactMetadataAsync()
+  fun backFillAllArtifactMetadata(
+    @RequestParam("age", required = false) age: String?
+  ) {
+    if (age.isNullOrBlank()) {
+      // use default
+      adminService.backfillArtifactMetadataAsync(Duration.ofDays(3))
+    } else {
+      val parsedAge = Duration.parse(age)
+      adminService.backfillArtifactMetadataAsync(parsedAge)
+    }
+
   }
 
   /**
