@@ -37,6 +37,7 @@ export interface IValidatorConfig extends IValidatorField {
   preventSave?: boolean;
   checkParentTriggers?: boolean;
   fields?: IValidatorField[];
+  stageTypes?: string[];
 }
 
 export interface IStageOrTriggerValidator {

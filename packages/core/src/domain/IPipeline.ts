@@ -73,12 +73,12 @@ export interface IParameterOption {
   value: string;
 }
 
-export interface IPipelineCommand {
+export interface IPipelineCommand<T = ITrigger> {
   dryRun?: boolean;
   extraFields?: { [key: string]: any };
   triggerInvalid?: boolean;
   pipeline: IPipeline;
-  trigger: ITrigger;
+  trigger: T;
   notificationEnabled: boolean;
   notification: INotification;
   parameters?: { [key: string]: any };

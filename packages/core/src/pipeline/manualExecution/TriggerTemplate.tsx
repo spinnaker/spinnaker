@@ -1,9 +1,9 @@
 import React from 'react';
 
-import { IPipelineCommand } from '../../domain';
+import { IPipelineCommand, ITrigger } from '../../domain';
 
-export interface ITriggerTemplateComponentProps {
-  command: IPipelineCommand;
+export interface ITriggerTemplateComponentProps<T = ITrigger> {
+  command: IPipelineCommand<T>;
   updateCommand: (path: string, value: any) => void;
 }
 
