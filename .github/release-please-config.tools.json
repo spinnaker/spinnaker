@@ -1,9 +1,0 @@
-{
-  "bootstrap-sha": "dc32d0249bde99a124787baa40740bd78e9de3a3",
-  "packages": {
-    "packages/eslint-plugin": {},
-    "packages/pluginsdk": {},
-    "packages/pluginsdk-peerdeps": {},
-    "packages/scripts": {}
-  }
-}

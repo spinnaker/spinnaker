@@ -4,7 +4,6 @@ on:
       - master
 name: release-please
 jobs:
-
   release-please-app:
     runs-on: ubuntu-latest
     steps:
@@ -14,21 +13,6 @@ jobs:
           release-type: node
           monorepo-tags: true
           command: manifest
-          default-branch: 'release-please-app'
-          config-file: '.github/release-please-config.app.json'
-          manifest-file: '.github/release-please-manifest.app.json'
-          pull-request-title-pattern: 'chore${scope}: release${component} app packages ${version}.'
-
-  release-please-tools:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: GoogleCloudPlatform/release-please-action@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          release-type: node
-          monorepo-tags: true
-          command: manifest
-          default-branch: 'release-please-tools'
-          config-file: '.github/release-please-config.tools.json'
-          manifest-file: '.github/release-please-manifest.tools.json'
-          pull-request-title-pattern: 'chore${scope}: release${component} deck tooling ${version}.'
+          config-file: '.github/release-please-config.json'
+          manifest-file: '.github/release-please-manifest.json'
+          pull-request-title-pattern: 'chore${scope}: release${component} packages ${version}.'

@@ -1,6 +1,0 @@
-{
-  "packages/eslint-plugin": "1.0.13",
-  "packages/pluginsdk": "0.0.32",
-  "packages/pluginsdk-peerdeps": "0.0.16",
-  "packages/scripts": "0.0.14"
-}
