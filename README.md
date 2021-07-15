@@ -20,6 +20,9 @@ When editing `core` or any other cloud provider package, please run the followin
 
 - `yarn dev`
 
+If your local dev setup ends up in a corrupt state with missing npm modules, please run `yarn fixup` from deck and that
+should reset your state.
+
 ## Environment variables
 
 Environment variables can be used to configure application behavior. The following lists those variables and their possible values:
@@ -49,13 +52,13 @@ API_HOST=http://localhost:8084 yarn start
 
 ## Building &amp; Deploying
 
-To build the application, run `yarn build`.
+To build the application, run `yarn modules && yarn build`.
 The built application lives in `build/`.
 
 ## Graphql
 
-the `core` package is using graphql queries and mutation to interact with the backend (currently, only the `managed` components). 
-To generate the TS types and the Apollo hooks, run `yarn graphql:generate` from `core`. 
+the `core` package is using graphql queries and mutation to interact with the backend (currently, only the `managed` components).
+To generate the TS types and the Apollo hooks, run `yarn graphql:generate` from `core`.
 
 ## Conventions
 
