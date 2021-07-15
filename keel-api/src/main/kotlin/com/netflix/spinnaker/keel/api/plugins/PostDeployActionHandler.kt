@@ -27,7 +27,7 @@ interface PostDeployActionHandler<T: PostDeployAction> : SpinnakerExtensionPoint
   /**
    * Start running [action]
    *
-   * @return any metadata needed to evaulate the action in the future
+   * @return any metadata needed to evaluate the action in the future
    */
   suspend fun start(
     context: ArtifactInEnvironmentContext,
