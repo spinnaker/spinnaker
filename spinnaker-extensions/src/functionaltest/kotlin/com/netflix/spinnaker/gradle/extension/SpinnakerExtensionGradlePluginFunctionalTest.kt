@@ -19,6 +19,7 @@ package com.netflix.spinnaker.gradle.extension
 import java.io.File
 import org.gradle.testkit.runner.GradleRunner
 import kotlin.test.BeforeTest
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
@@ -61,6 +62,7 @@ class SpinnakerExtensionGradlePluginFunctionalTest {
   }
 
   @Test
+  @Ignore
   fun `can run an end-to-end build, including compatibility test`() {
     TestPlugin.Builder()
       .withRootDir(TEST_ROOT)
@@ -100,6 +102,7 @@ class SpinnakerExtensionGradlePluginFunctionalTest {
   }
 
   @Test
+  @Ignore
   fun `compatibility test task fails with failing test`() {
     TestPlugin.Builder()
       .withRootDir(TEST_ROOT)
@@ -132,6 +135,7 @@ class SpinnakerExtensionGradlePluginFunctionalTest {
   }
 
   @Test
+  @Ignore
   fun `compatibility test task succeeds if failing test is not required`() {
     TestPlugin.Builder()
       .withService("orca")
