@@ -23,44 +23,44 @@ jasmineMockHttpSupport();
 
 let testContext;
 
-testContext = require.context('./packages/amazon', true, /\.spec\.(js|ts|tsx)$/);
+testContext = require.context('./packages/amazon/src', true, /\.spec\.(js|ts|tsx)$/);
 testContext.keys().forEach(testContext);
 
-testContext = require.context('./packages/appengine', true, /\.spec\.(js|ts|tsx)$/);
+testContext = require.context('./packages/appengine/src', true, /\.spec\.(js|ts|tsx)$/);
 testContext.keys().forEach(testContext);
 
-testContext = require.context('./packages/azure', true, /\.spec\.(js|ts|tsx)$/);
+testContext = require.context('./packages/azure/src', true, /\.spec\.(js|ts|tsx)$/);
 testContext.keys().forEach(testContext);
 
-testContext = require.context('./packages/cloudfoundry', true, /\.spec\.(js|ts|tsx)$/);
+testContext = require.context('./packages/cloudfoundry/src', true, /\.spec\.(js|ts|tsx)$/);
 testContext.keys().forEach(testContext);
 
-testContext = require.context('./packages/core', true, /\.spec\.(js|ts|tsx)$/);
+testContext = require.context('./packages/core/src', true, /\.spec\.(js|ts|tsx)$/);
 testContext.keys().forEach(testContext);
 
-testContext = require.context('./packages/dcos', true, /\.spec\.(js|ts|tsx)$/);
+testContext = require.context('./packages/dcos/src', true, /\.spec\.(js|ts|tsx)$/);
 testContext.keys().forEach(testContext);
 
-testContext = require.context('./packages/docker', true, /\.spec\.(js|ts|tsx)$/);
+testContext = require.context('./packages/docker/src', true, /\.spec\.(js|ts|tsx)$/);
 testContext.keys().forEach(testContext);
 
-testContext = require.context('./packages/ecs', true, /\.spec\.(js|ts|tsx)$/);
+testContext = require.context('./packages/ecs/src', true, /\.spec\.(js|ts|tsx)$/);
 testContext.keys().forEach(testContext);
 
-testContext = require.context('./packages/google', true, /\.spec\.(js|ts|tsx)$/);
+testContext = require.context('./packages/google/src', true, /\.spec\.(js|ts|tsx)$/);
 testContext.keys().forEach(testContext);
 
-testContext = require.context('./packages/huaweicloud', true, /\.spec\.(js|ts|tsx)$/);
+testContext = require.context('./packages/huaweicloud/src', true, /\.spec\.(js|ts|tsx)$/);
 testContext.keys().forEach(testContext);
 
-testContext = require.context('./packages/kubernetes', true, /\.spec\.(js|ts|tsx)$/);
+testContext = require.context('./packages/kubernetes/src', true, /\.spec\.(js|ts|tsx)$/);
 testContext.keys().forEach(testContext);
 
-testContext = require.context('./packages/oracle', true, /\.spec\.(js|ts|tsx)$/);
+testContext = require.context('./packages/oracle/src', true, /\.spec\.(js|ts|tsx)$/);
 testContext.keys().forEach(testContext);
 
-testContext = require.context('./packages/tencentcloud', true, /\.spec\.(js|ts|tsx)$/);
+testContext = require.context('./packages/tencentcloud/src', true, /\.spec\.(js|ts|tsx)$/);
 testContext.keys().forEach(testContext);
 
-testContext = require.context('./packages/titus', true, /\.spec\.(js|ts|tsx)$/);
+testContext = require.context('./packages/titus/src', true, /\.spec\.(js|ts|tsx)$/);
 testContext.keys().forEach(testContext);
