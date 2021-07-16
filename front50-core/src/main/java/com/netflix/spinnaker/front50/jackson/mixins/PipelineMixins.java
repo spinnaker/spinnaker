@@ -18,21 +18,8 @@ package com.netflix.spinnaker.front50.jackson.mixins;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.Map;
 
-@JsonIgnoreProperties(
-    value = {
-      "application",
-      "name",
-      "email",
-      "id",
-      "updateTs",
-      "config",
-      "type",
-      "schema",
-      "index",
-    })
 public abstract class PipelineMixins {
   @JsonAnySetter
   abstract void setAny(String key, Object value);
