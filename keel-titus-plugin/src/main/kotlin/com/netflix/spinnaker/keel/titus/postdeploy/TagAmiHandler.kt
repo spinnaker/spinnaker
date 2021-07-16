@@ -44,10 +44,8 @@ import java.time.Instant
 @Component
 class TagAmiHandler(
   override val eventPublisher: EventPublisher,
-  private val mapper: ObjectMapper,
   private val taskLauncher: TaskLauncher,
   private val orca: OrcaService,
-  private val actionRepository: ActionRepository,
   private val spectator: Registry,
   private val baseUrlConfig: BaseUrlConfig,
   private val imageFinder: ImageFinder
@@ -61,23 +59,11 @@ class TagAmiHandler(
 
   override suspend fun start(context: ArtifactInEnvironmentContext, action: PostDeployAction): Map<String, Any?> {
     log.debug("Starting tag-ami process for ${context.shortName()}")
-    var images = emptyList<CurrentImages>()
 
-    val states = actionRepository.getStates(context, VERIFICATION)
-    if (states.isNotEmpty()) {
-      val imagesRaw = states.values.firstOrNull()?.metadata?.get("images") ?: emptyList<CurrentImages>()
-      images = try {
-        mapper.convertValue(imagesRaw)
-      } catch (e: IllegalArgumentException) {
-        log.error("Malformed metadata in 'images' key: $imagesRaw")
-        emptyList()
-      }
-    }
-
-    if (images.isEmpty()) {
-      log.debug("Empty list of images for ${context.shortName()} tag-ami, they probably wasn't a verification. Fetching images.")
-      images = imageFinder.getImages(context.deliveryConfig, context.environmentName)
-    }
+    /**
+     * The finder retrieves the images that are currently running in the environment
+     */
+    val images =  imageFinder.getImages(context.deliveryConfig, context.environmentName)
 
     val jobs = images
       .filter { it.kind.group == "ec2" } // spinnaker only supports tagging amis

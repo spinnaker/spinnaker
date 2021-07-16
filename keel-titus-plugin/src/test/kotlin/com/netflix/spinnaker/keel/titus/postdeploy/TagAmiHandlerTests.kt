@@ -5,9 +5,7 @@ import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.TaskStatus
-import com.netflix.spinnaker.keel.api.action.ActionRepository
 import com.netflix.spinnaker.keel.api.action.ActionState
-import com.netflix.spinnaker.keel.api.action.ActionType
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.core.api.TagAmiPostDeployAction
@@ -28,7 +26,6 @@ import java.time.Instant.now
 internal class TagAmiHandlerTests {
   private val orca : OrcaService = mockk()
   private val launcher : TaskLauncher = mockk()
-  private val repo : ActionRepository = mockk()
   private val finder : ImageFinder = mockk()
 
   @Test
@@ -37,9 +34,7 @@ internal class TagAmiHandlerTests {
   }
 
   @Test
-  fun `running the action launches a task, no verifications`() {
-
-    every { repo.getStates(context, ActionType.VERIFICATION) } returns emptyMap()
+  fun `running the action launches a task`() {
 
     every { finder.getImages(deliveryConfig, "testing") } returns listOf(
       mockk {
@@ -115,10 +110,8 @@ internal class TagAmiHandlerTests {
 
   private val handler = TagAmiHandler(
     eventPublisher = mockk(),
-    mapper = mockk(),
     taskLauncher = launcher,
     orca = orca,
-    actionRepository = repo,
     spectator = NoopRegistry(),
     baseUrlConfig = mockk() { every { baseUrl } returns "https://spin" },
     imageFinder = finder
