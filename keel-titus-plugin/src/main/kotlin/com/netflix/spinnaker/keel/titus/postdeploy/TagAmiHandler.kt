@@ -109,11 +109,13 @@ class TagAmiHandler(
   }
 
   /**
-   * This method is called to check if the state of the post-deploy action has changed
+   * Checks if the orchestration execution associated with the tag ami  has completed.
    *
-   * Precondition: [oldState] metadata must contain:
-   *   key: "tasks"
-   *   value: list where the last element is a valid orca task id
+   * Precondition: the
+   *
+   *   [oldState] metadata must contain:
+   *     key: "tasks"
+   *     value: list where the last element is a valid orca task id
    *
    */
   override suspend fun evaluate(
