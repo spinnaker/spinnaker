@@ -38,7 +38,7 @@ class ContainerRunner(
     @Suppress("UNCHECKED_CAST")
     val taskId = (oldState.metadata[TASKS] as Iterable<String>?)?.last()
     require(taskId is String) {
-      "No task id found in previous verification state"
+      "No task id found in previous container state"
     }
 
     val response = withContext(Dispatchers.IO) {
