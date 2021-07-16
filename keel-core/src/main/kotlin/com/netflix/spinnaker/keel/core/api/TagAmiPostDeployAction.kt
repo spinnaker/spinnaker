@@ -9,7 +9,7 @@ import com.netflix.spinnaker.keel.api.postdeploy.PostDeployAction
  * Will apply specific tags to all images running.
  */
 class TagAmiPostDeployAction : PostDeployAction() {
-  override val type: String
+  override val type = "tag-ami"
     get() = "tag-ami"
   override val id: String
     get() = type
