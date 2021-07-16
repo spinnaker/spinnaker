@@ -89,7 +89,7 @@
     "@uirouter/react-hybrid": "1.0.2",
     "@uirouter/react": "1.0.3",
     "@uirouter/angularjs": "1.0.26",
-    "@uirouter/core": "6.0.5",
+    "@uirouter/core": "6.0.8",
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
     "rxjs": "6.6.7",
