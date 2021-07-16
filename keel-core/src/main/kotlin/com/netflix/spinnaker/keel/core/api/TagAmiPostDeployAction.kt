@@ -10,7 +10,7 @@ import com.netflix.spinnaker.keel.api.postdeploy.PostDeployAction
  */
 class TagAmiPostDeployAction : PostDeployAction() {
   override val type = "tag-ami"
-    get() = "tag-ami"
+
   override val id: String
     get() = type
 }
