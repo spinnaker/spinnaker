@@ -1,7 +1,7 @@
 'use strict';
 
 import { module } from 'angular';
-const $ = require('jquery');
+import $ from 'jquery';
 
 export const CORE_MODAL_MODALPAGE_DIRECTIVE = 'spinnaker.core.modal.modalPage.directive';
 export const name = CORE_MODAL_MODALPAGE_DIRECTIVE; // for backwards compatibility

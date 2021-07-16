@@ -4,6 +4,8 @@ import React from 'react';
 import { IScheduler, SchedulerFactory } from '../scheduler/SchedulerFactory';
 import { timestamp } from '../utils/timeFormatters';
 import { NotifierService } from '../widgets/notifier/notifier.service';
+// @ts-ignore
+import version from 'root/version.json';
 
 export interface IDeckVersion {
   version: string;
@@ -11,7 +13,7 @@ export interface IDeckVersion {
 }
 
 export class VersionChecker {
-  private static currentVersion: IDeckVersion = require('root/version.json');
+  private static currentVersion: IDeckVersion = version;
   private static newVersionSeenCount = 0;
   private static scheduler: IScheduler;
 

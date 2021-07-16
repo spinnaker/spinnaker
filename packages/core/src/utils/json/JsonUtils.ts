@@ -1,6 +1,6 @@
 import { isArray, isNumber, isPlainObject, isString } from 'lodash';
-
-const DiffMatchPatch = require('expose-loader?diff_match_patch!diff-match-patch');
+// @ts-ignore
+import DiffMatchPatch from 'diff-match-patch';
 
 export interface IDiffDetails {
   type: string;

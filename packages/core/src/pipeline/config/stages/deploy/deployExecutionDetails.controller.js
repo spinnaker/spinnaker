@@ -1,6 +1,7 @@
 'use strict';
 
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
+import angular from 'angular';
 import _ from 'lodash';
 import { Duration } from 'luxon';
 
@@ -11,8 +12,6 @@ import { NameUtils } from '../../../../naming';
 import { UrlBuilder } from '../../../../navigation';
 import { ServerGroupReader } from '../../../../serverGroup/serverGroupReader.service';
 import { ClusterState } from '../../../../state';
-
-const angular = require('angular');
 
 export const CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYEXECUTIONDETAILS_CONTROLLER =
   'spinnaker.core.pipeline.stage.deploy.details.controller';

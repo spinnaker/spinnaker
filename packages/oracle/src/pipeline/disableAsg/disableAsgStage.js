@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import angular from 'angular';
 
 import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 

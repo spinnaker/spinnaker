@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import angular from 'angular';
 
 export const DCOS_SEARCH_RESULTFORMATTER = 'spinnaker.dcos.search.formatter';
 export const name = DCOS_SEARCH_RESULTFORMATTER; // for backwards compatibility

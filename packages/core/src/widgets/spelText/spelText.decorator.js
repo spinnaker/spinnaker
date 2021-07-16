@@ -1,12 +1,11 @@
 'use strict';
 
 import { module } from 'angular';
+import 'jquery-textcomplete';
 
 import { CORE_WIDGETS_SPELTEXT_SPELAUTOCOMPLETE_SERVICE } from './spelAutocomplete.service';
 
 import './spel.less';
-
-require('jquery-textcomplete');
 
 decorateFn.$inject = ['$delegate', 'spelAutocomplete'];
 function decorateFn($delegate, spelAutocomplete) {
