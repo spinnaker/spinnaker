@@ -10,7 +10,6 @@ import com.netflix.spinnaker.keel.api.action.ActionRepository
 import com.netflix.spinnaker.keel.api.action.ActionState
 import com.netflix.spinnaker.keel.api.action.ActionType.VERIFICATION
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
-import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.FAIL
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PASS
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PENDING
@@ -24,13 +23,13 @@ import com.netflix.spinnaker.keel.core.api.TagAmiPostDeployAction
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.titus.verification.OrcaLinkStrategy
 import com.netflix.spinnaker.keel.titus.verification.TASKS
-import com.netflix.spinnaker.keel.titus.verification.getLink
 import com.netflix.spinnaker.keel.verification.ImageFinder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import java.time.Instant
 
 /**
  * This class tags images after they've been verified, if they have the
@@ -109,6 +108,14 @@ class TagAmiHandler(
     return mapOf(TASKS to tasksIds)
   }
 
+  /**
+   * This method is called to check if the state of the post-deploy action has changed
+   *
+   * Precondition: [oldState] metadata must contain:
+   *   key: "tasks"
+   *   value: list where the last element is a valid orca task id
+   *
+   */
   override suspend fun evaluate(
     context: ArtifactInEnvironmentContext,
     action: PostDeployAction,
@@ -117,7 +124,7 @@ class TagAmiHandler(
     @Suppress("UNCHECKED_CAST")
     val taskId = (oldState.metadata[TASKS] as Iterable<String>?)?.last()
     require(taskId is String) {
-      "No task id found in previous verification state"
+      "No task id found in previous tag-ami state"
     }
 
     val response = withContext(Dispatchers.IO) {
@@ -134,7 +141,9 @@ class TagAmiHandler(
 
     return oldState.copy(
       status = status,
-      link = OrcaLinkStrategy(baseUrlConfig.baseUrl).url(response))
+      link = OrcaLinkStrategy(baseUrlConfig.baseUrl).url(response),
+      endedAt = if(status==PENDING) null else Instant.now()
+    )
   }
 
   fun CurrentImages.toJob(env: String): Map<String, Any?> =
