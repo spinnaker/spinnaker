@@ -44,8 +44,8 @@ jobs:
       - name: Get bumped packages
         id: bumps
         run: |
-        .github/gha_output_bumped_packages.sh
-        .github/gha_output_changelog.sh
+          .github/gha_output_bumped_packages.sh
+          .github/gha_output_changelog.sh
 
       - name: Create Pull Request
         id: createpullrequest
