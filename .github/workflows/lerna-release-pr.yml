@@ -38,7 +38,10 @@ jobs:
         run: yarn --frozen-lockfile
 
       - name: Bump packages
-        run: npx lerna version --yes --no-push --conventional-commits
+        run: |
+          npx lerna version --yes --no-push --conventional-commits
+          # Use a conventional commit message for the Publish commit
+          git commit --amend -m "$(git log -1 --pretty=%B | sed -e 's/^Publish/chore(publish): publish packages/')"
 
       - name: Get bumped packages
         id: bumps
@@ -51,6 +54,8 @@ jobs:
         if: ${{ steps.bumps.outputs.bumps != '' }}
         uses: peter-evans/create-pull-request@v3
         with:
+          # TODO: use a spinnakerbot Personal Access Token
+          github-token: '${{ secrets.SPINNAKERBOT_TOKEN }}'
           commit-message: 'chore(package): Publish ${{ steps.bumps.outputs.bumps }}'
           title: 'chore(package): Publish ${{ steps.bumps.outputs.bumps }}'
           body: |
