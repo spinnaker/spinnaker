@@ -6,8 +6,6 @@ concurrency:
 
 on:
   pull_request:
-    branches:
-      - 'lerna'
   push:
     branches:
       - 'master'
@@ -41,7 +39,7 @@ jobs:
         run: yarn --frozen-lockfile
 
       - name: Bump packages
-        run: npx lerna version --conventional-commits --yes
+        run: npx lerna version --yes --no-push --conventional-commits
 
       - name: Get bumped packages
         id: bumps
