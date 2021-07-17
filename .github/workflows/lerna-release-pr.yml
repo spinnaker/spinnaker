@@ -5,6 +5,9 @@ concurrency:
   cancel-in-progress: true
 
 on:
+  pull_request:
+    branches:
+      - 'lerna'
   push:
     branches:
       - 'master'
@@ -14,6 +17,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+
+      - run: |
+          git config user.name spinnakerbot
+          git config user.email spinnakerbot@spinanker.io
 
       - uses: actions/setup-node@v1
         with:
