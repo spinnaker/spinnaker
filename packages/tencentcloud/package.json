@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/tencentcloud",
   "license": "Apache-2.0",
-  "version": "0.0.20",
+  "version": "0.0.21",
   "module": "dist/index.js",
   "typings": "dist/index.d.ts",
   "scripts": {
@@ -13,15 +13,15 @@
     "lib": "npm run build"
   },
   "dependencies": {
-    "@spinnaker/core": "*",
+    "@spinnaker/core": "^0.0.611",
     "angular": "1.6.10",
     "lodash": "^4.17.19",
     "ngimport": "^0.6.0",
     "react": "~16.14.0"
   },
   "devDependencies": {
-    "@spinnaker/eslint-plugin": "1.0.13",
-    "@spinnaker/scripts": "0.0.14",
+    "@spinnaker/eslint-plugin": "^1.0.14",
+    "@spinnaker/scripts": "^0.0.15",
     "@types/angular": "1.6.26",
     "@types/lodash": "4.14.64",
     "@types/node": "7.0.5",

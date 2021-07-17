@@ -1,3 +1,19 @@
+# Change Log
+
+All notable changes to this project will be documented in this file.
+See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
+
+## 0.0.611 (2021-07-17)
+
+
+### Bug Fixes
+
+* **publishing:** Auto approve instead of adding "ready to merge" label ([51f536c](https://github.com/spinnaker/deck/commit/51f536c275e77854d8f173aeec86412ffbd66b6d))
+
+
+
+
+
 
 ## [0.0.608](https://www.github.com/spinnaker/deck/compare/ec8327948590884983967e99c6d6df40e1f76f9c...760d2f3fe4594554803ae28b333dabd379f6623e) (2021-07-09)
 
@@ -8206,6 +8222,4 @@ fix(aws): restore scaling activities link ([4893a0c9](https://github.com/spinnak
 refactor(docker): prepare docker for lib packaging ([b5b2c903](https://github.com/spinnaker/deck/commit/b5b2c903d8b901756b9c887315b2c09d768e4514))  
 refactor(help): split help into provider modules ([76766da2](https://github.com/spinnaker/deck/commit/76766da28c6180c45f6a06e1e7ed9fb836b98818))  
 fix(clusters): fix search result heading for clusters ([6a7c9eef](https://github.com/spinnaker/deck/commit/6a7c9eef5955c6a4e9fbf84ae9c23476208f39bf))  
-fix(deploymentstrategy): include requires for deployment strategies ([ceb81ff3](https://github.com/spinnaker/deck/commit/ceb81ff334c6ffa235be8810eccb3885dbd25e35))  
-
-
+fix(deploymentstrategy): include requires for deployment strategies ([ceb81ff3](https://github.com/spinnaker/deck/commit/ceb81ff334c6ffa235be8810eccb3885dbd25e35))

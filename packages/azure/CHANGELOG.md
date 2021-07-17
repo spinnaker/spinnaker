@@ -1,3 +1,19 @@
+# Change Log
+
+All notable changes to this project will be documented in this file.
+See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
+
+## 0.0.275 (2021-07-17)
+
+
+### Bug Fixes
+
+* **publishing:** Auto approve instead of adding "ready to merge" label ([51f536c](https://github.com/spinnaker/deck/commit/51f536c275e77854d8f173aeec86412ffbd66b6d))
+
+
+
+
+
 
 ## [0.0.273](https://www.github.com/spinnaker/deck/compare/90ef4c83216fd0834f0e22833c7c9642c5744453...7967ddb72c6c3b030d9a654a9b80e9c12698db73) (2021-07-08)
 
@@ -322,6 +338,4 @@ feat(rosco): Allow optional roscoDetailUrl for roscoMode bakes [#7575](https://g
 feat(rosco): Allow roscoMode per stage/execution [#7564](https://github.com/spinnaker/deck/pull/7564) ([c2bbf20d](https://github.com/spinnaker/deck/commit/c2bbf20d83d2c82aa1442379b98d4ed71a3379a2))  
 feat(*/pipeline): Remove the concept of default stage timeouts, rename option [#7286](https://github.com/spinnaker/deck/pull/7286) ([abac63ce](https://github.com/spinnaker/deck/commit/abac63ce5c88b809fcf5ed1509136fe96489a051))  
 chore(package): Just Update Prettier™ ([cdd6f237](https://github.com/spinnaker/deck/commit/cdd6f2379859d3c2b13bac59aa470c08b391a865))  
-feat(provider/azure): Enable data disk for server group [#7116](https://github.com/spinnaker/deck/pull/7116) ([f650ca9d](https://github.com/spinnaker/deck/commit/f650ca9db4abaf648d7003bd109b47d61a1b728d))  
-
-
+feat(provider/azure): Enable data disk for server group [#7116](https://github.com/spinnaker/deck/pull/7116) ([f650ca9d](https://github.com/spinnaker/deck/commit/f650ca9db4abaf648d7003bd109b47d61a1b728d))

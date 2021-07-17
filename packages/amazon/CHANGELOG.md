@@ -1,3 +1,19 @@
+# Change Log
+
+All notable changes to this project will be documented in this file.
+See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
+
+## 0.0.326 (2021-07-17)
+
+
+### Bug Fixes
+
+* **publishing:** Auto approve instead of adding "ready to merge" label ([51f536c](https://github.com/spinnaker/deck/commit/51f536c275e77854d8f173aeec86412ffbd66b6d))
+
+
+
+
+
 
 ## [0.0.324](https://www.github.com/spinnaker/deck/compare/d5ce91559150b054114c8334a7006c46edc88586...86b6dc555637f8e9bfb1b01844e100e8481e394e) (2021-07-08)
 
@@ -3632,6 +3648,4 @@ fix(amazon): fix ng-if in security group refresh dom element ([ee04582b](https:/
 chore(*): convert refresh icons to fa-refresh ([c4ca0c5c](https://github.com/spinnaker/deck/commit/c4ca0c5c111fffbacd333c3dcecf3ff70fdc8631))  
 refactor(*): replace glyphicon-asterisk with fa-cog ([04807cb4](https://github.com/spinnaker/deck/commit/04807cb4a3d3410cbe7c31c2e03d09df30a6c02f))  
 chore(*): replace some glyphicons with font-awesome ([070fb88a](https://github.com/spinnaker/deck/commit/070fb88a8c8f67ac34dbbac8a316cab8ef7bf05a))  
-fix(aws): restore $onInit to ingress security group selector ([bc5da6dd](https://github.com/spinnaker/deck/commit/bc5da6dd9d7e1290e3d06abdfc3187bee031b4ce))  
-
-
+fix(aws): restore $onInit to ingress security group selector ([bc5da6dd](https://github.com/spinnaker/deck/commit/bc5da6dd9d7e1290e3d06abdfc3187bee031b4ce))

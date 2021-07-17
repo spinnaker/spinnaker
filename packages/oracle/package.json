@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/oracle",
   "license": "Apache-2.0",
-  "version": "0.0.26",
+  "version": "0.0.27",
   "module": "dist/index.js",
   "typings": "dist/index.d.ts",
   "scripts": {
@@ -13,7 +13,7 @@
     "lib": "npm run build"
   },
   "dependencies": {
-    "@spinnaker/core": "*",
+    "@spinnaker/core": "^0.0.611",
     "@uirouter/angularjs": "1.0.26",
     "@uirouter/core": "6.0.8",
     "angular": "1.6.10",
@@ -22,8 +22,8 @@
     "ngimport": "0.6.1"
   },
   "devDependencies": {
-    "@spinnaker/eslint-plugin": "1.0.13",
-    "@spinnaker/scripts": "0.0.14",
+    "@spinnaker/eslint-plugin": "^1.0.14",
+    "@spinnaker/scripts": "^0.0.15",
     "@types/angular": "1.6.26",
     "@types/angular-ui-bootstrap": "0.13.41",
     "@types/lodash": "4.14.64",

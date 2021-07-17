@@ -1,6 +1,6 @@
 {
   "name": "@spinnaker/eslint-plugin",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "main": "eslint-plugin.js",
   "license": "Apache-2.0",
   "scripts": {

@@ -1,3 +1,19 @@
+# Change Log
+
+All notable changes to this project will be documented in this file.
+See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
+
+## 0.0.42 (2021-07-17)
+
+
+### Bug Fixes
+
+* **publishing:** Auto approve instead of adding "ready to merge" label ([51f536c](https://github.com/spinnaker/deck/commit/51f536c275e77854d8f173aeec86412ffbd66b6d))
+
+
+
+
+
 
 ## [0.0.40](https://www.github.com/spinnaker/deck/compare/f5349b4308afcc5b74bed0b9a7695a3ea31af401...d5b3de937e0f3a4fdb5d651a231b7585b3fc4a0b) (2021-07-01)
 
@@ -643,6 +659,4 @@ feat(provider/google): Add ILB listeners. [#3832](https://github.com/spinnaker/d
 feat(provider/google): Add support for Shared VPC Networking (XPN). [#3831](https://github.com/spinnaker/deck/pull/3831) ([7d0d532a](https://github.com/spinnaker/deck/commit/7d0d532a9750238ae66726e6bc73f6bbdc37f88b))  
 chore(provider/google): Update auth scopes tooltip. [#3826](https://github.com/spinnaker/deck/pull/3826) ([59854199](https://github.com/spinnaker/deck/commit/598541999a2105db0b50d07352ed9d952814d5d8))  
 refactor(provider/amazon): convert createApplicationLoadBalancer to TS [#3816](https://github.com/spinnaker/deck/pull/3816) ([a2d75789](https://github.com/spinnaker/deck/commit/a2d75789e380c36675cfe3a2a16839af58751d2f))  
-refactor(provider/amazon): Separate load balancer types [#3810](https://github.com/spinnaker/deck/pull/3810) ([b66dc0c3](https://github.com/spinnaker/deck/commit/b66dc0c3766b863ed1422721b872619e6cf5e1c1))  
-
-
+refactor(provider/amazon): Separate load balancer types [#3810](https://github.com/spinnaker/deck/pull/3810) ([b66dc0c3](https://github.com/spinnaker/deck/commit/b66dc0c3766b863ed1422721b872619e6cf5e1c1))

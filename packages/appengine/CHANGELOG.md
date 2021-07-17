@@ -1,3 +1,19 @@
+# Change Log
+
+All notable changes to this project will be documented in this file.
+See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
+
+## 0.0.38 (2021-07-17)
+
+
+### Bug Fixes
+
+* **publishing:** Auto approve instead of adding "ready to merge" label ([51f536c](https://github.com/spinnaker/deck/commit/51f536c275e77854d8f173aeec86412ffbd66b6d))
+
+
+
+
+
 
 ## [0.0.36](https://www.github.com/spinnaker/deck/compare/8a42c7fb4b744738f6f900519fc94774cc394a0d...0a0d3d078d113c5d55b3c681a7d3422e5c483db2) (2021-07-01)
 
@@ -446,6 +462,4 @@ refactor(*): De-angularize cloud provider registry ([5aaf40d8](https://github.co
 refactor(*): de-angularize help contents/registry [#5199](https://github.com/spinnaker/deck/pull/5199) ([d6bfa5c2](https://github.com/spinnaker/deck/commit/d6bfa5c22c2196942230721ecc38ddb68e56874f))  
 refactor(core/naming): Convert angular naming.service to plain NameUtils ([d9f313bd](https://github.com/spinnaker/deck/commit/d9f313bd36508961f2a6be8d32c5155e0b5b893d))  
 chore(tslint): ❯ npx tslint --fix -p tsconfig.json ([b1ddb67c](https://github.com/spinnaker/deck/commit/b1ddb67c2c7a74f451baac070a65c985c2b6fb8e))  
-Just Use Prettier™ ([532ab778](https://github.com/spinnaker/deck/commit/532ab7784ca93569308c8f2ab80a18d313b910f9))  
-
-
+Just Use Prettier™ ([532ab778](https://github.com/spinnaker/deck/commit/532ab7784ca93569308c8f2ab80a18d313b910f9))

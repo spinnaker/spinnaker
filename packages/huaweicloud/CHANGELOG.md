@@ -1,3 +1,19 @@
+# Change Log
+
+All notable changes to this project will be documented in this file.
+See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
+
+## 0.0.15 (2021-07-17)
+
+
+### Bug Fixes
+
+* **publishing:** Auto approve instead of adding "ready to merge" label ([51f536c](https://github.com/spinnaker/deck/commit/51f536c275e77854d8f173aeec86412ffbd66b6d))
+
+
+
+
+
 
 ## [0.0.13](https://www.github.com/spinnaker/deck/compare/05e6d447ec2730daf2cf7e0feb2f6b17d64c6b0a...e31007ac23a51c9afc8de20d593460cb81e153d4) (2021-07-01)
 
@@ -154,6 +170,4 @@ chore(package): publish amazon 0.0.245 appengine 0.0.9 azure 0.0.249 cloudfoundr
 fix(packages): Preserve webpackIgnore comments when bundling for npm packages [#7850](https://github.com/spinnaker/deck/pull/7850) ([8b84eedb](https://github.com/spinnaker/deck/commit/8b84eedb2f2130fab2d261935de81a2157b2b00e))  
 chore(eslint): remove tslint ([9400826b](https://github.com/spinnaker/deck/commit/9400826bcb119cf7681e1ce37092b9fdd8b76b1b))  
 feat(typescript): enable allowJs and allowSyntheticDefaultImports ([7ef58b6c](https://github.com/spinnaker/deck/commit/7ef58b6c122f9ce91eab95d5f444622a710ff968))  
-chore(tsconfig): standardize all tsconfig.json files to es2017 [#7656](https://github.com/spinnaker/deck/pull/7656) ([c1c4d423](https://github.com/spinnaker/deck/commit/c1c4d423a0af57c6a8faf135a7a7ee3eb76d5466))  
-
-
+chore(tsconfig): standardize all tsconfig.json files to es2017 [#7656](https://github.com/spinnaker/deck/pull/7656) ([c1c4d423](https://github.com/spinnaker/deck/commit/c1c4d423a0af57c6a8faf135a7a7ee3eb76d5466))

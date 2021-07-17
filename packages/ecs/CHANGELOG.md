@@ -1,3 +1,19 @@
+# Change Log
+
+All notable changes to this project will be documented in this file.
+See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
+
+## 0.0.293 (2021-07-17)
+
+
+### Bug Fixes
+
+* **publishing:** Auto approve instead of adding "ready to merge" label ([51f536c](https://github.com/spinnaker/deck/commit/51f536c275e77854d8f173aeec86412ffbd66b6d))
+
+
+
+
+
 
 ## [0.0.291](https://www.github.com/spinnaker/deck/compare/99b53f37fa6b2a887686057c3883cf13e0dfb373...27d8d8aa2f348615e8dde7439bc3cd69e6324d59) (2021-07-01)
 
@@ -555,6 +571,4 @@ fix(ecs): Fix core import ([024740e3](https://github.com/spinnaker/deck/commit/0
 fix(ecs/deploy): Clarified binpack strategy as being memory binpack [#5539](https://github.com/spinnaker/deck/pull/5539) ([1a990b56](https://github.com/spinnaker/deck/commit/1a990b5612d8197eaf46af2c15aaf87584d72c8e))  
 feat(provider/ecs): Added support for ENIs in the instance details view [#5626](https://github.com/spinnaker/deck/pull/5626) ([d53073a9](https://github.com/spinnaker/deck/commit/d53073a96e728e6e23e83e059a06afbc1d78c958))  
 feat(provider/ecs): Added support for network mode and health grace period [#5575](https://github.com/spinnaker/deck/pull/5575) ([e0a878f1](https://github.com/spinnaker/deck/commit/e0a878f1f676a9c6e83553583d754ba4589c8ca7))  
-refactor(core): Remove unused addWatches from clone server group ([17af347d](https://github.com/spinnaker/deck/commit/17af347dd5ede045f8ac407540888d57dc774032))  
-
-
+refactor(core): Remove unused addWatches from clone server group ([17af347d](https://github.com/spinnaker/deck/commit/17af347dd5ede045f8ac407540888d57dc774032))

@@ -1,3 +1,19 @@
+# Change Log
+
+All notable changes to this project will be documented in this file.
+See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
+
+## 0.0.21 (2021-07-17)
+
+
+### Bug Fixes
+
+* **publishing:** Auto approve instead of adding "ready to merge" label ([51f536c](https://github.com/spinnaker/deck/commit/51f536c275e77854d8f173aeec86412ffbd66b6d))
+
+
+
+
+
 
 ## [0.0.19](https://www.github.com/spinnaker/deck/compare/d478c23ec6dcd2c56f0fc04283fe548ea5b836dc...e8923ca33c66c03138881c17d66f2955dccbb3f5) (2021-07-01)
 
@@ -219,6 +235,4 @@ fix(tencentcloud): rename tencentCloud to tencentcloud. [#8346](https://github.c
 ### Changes
 
 chore(package): publish core 0.0.478 tencentcloud 0.0.2 [#8308](https://github.com/spinnaker/deck/pull/8308) ([94f977b8](https://github.com/spinnaker/deck/commit/94f977b83063edd6b0fa215cf3e3b1c9c899a1ce))  
-feat(tencentcloud): add help, image, keyPairs, reactShims, search, validation folders and files for tencentcloud [#8296](https://github.com/spinnaker/deck/pull/8296) ([ec08cc50](https://github.com/spinnaker/deck/commit/ec08cc504fce0a7e1e5c58b181ce7076929a9553))  
-
-
+feat(tencentcloud): add help, image, keyPairs, reactShims, search, validation folders and files for tencentcloud [#8296](https://github.com/spinnaker/deck/pull/8296) ([ec08cc50](https://github.com/spinnaker/deck/commit/ec08cc504fce0a7e1e5c58b181ce7076929a9553))

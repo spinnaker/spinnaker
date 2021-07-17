@@ -1,3 +1,19 @@
+# Change Log
+
+All notable changes to this project will be documented in this file.
+See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
+
+## 0.0.84 (2021-07-17)
+
+
+### Bug Fixes
+
+* **publishing:** Auto approve instead of adding "ready to merge" label ([51f536c](https://github.com/spinnaker/deck/commit/51f536c275e77854d8f173aeec86412ffbd66b6d))
+
+
+
+
+
 
 ## [0.0.82](https://www.github.com/spinnaker/deck/compare/c9370fe03fe69070afe6f66b826a9d9c7f7c3621...c563c332636672679dd58e95095c3577d1f728ff) (2021-07-01)
 
@@ -881,6 +897,4 @@ chore(docker): rev package to 0.0.17 ([17fce373](https://github.com/spinnaker/de
 feat(bake/docker) add rebake flag to docker bakes [#3792](https://github.com/spinnaker/deck/pull/3792) ([30ec032f](https://github.com/spinnaker/deck/commit/30ec032f2f561124567c0a618baac1014e3053f7))  
 chore(core): Update to @uirouter/angularjs@1.0.3 ([d6e7e3d8](https://github.com/spinnaker/deck/commit/d6e7e3d86d342f08d186e268713dce3194def491))  
 chore(*): convert refresh icons to fa-refresh ([c4ca0c5c](https://github.com/spinnaker/deck/commit/c4ca0c5c111fffbacd333c3dcecf3ff70fdc8631))  
-refactor(*): replace glyphicon-asterisk with fa-cog ([04807cb4](https://github.com/spinnaker/deck/commit/04807cb4a3d3410cbe7c31c2e03d09df30a6c02f))  
-
-
+refactor(*): replace glyphicon-asterisk with fa-cog ([04807cb4](https://github.com/spinnaker/deck/commit/04807cb4a3d3410cbe7c31c2e03d09df30a6c02f))

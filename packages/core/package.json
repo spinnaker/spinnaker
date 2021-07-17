@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/core",
   "license": "Apache-2.0",
-  "version": "0.0.610",
+  "version": "0.0.611",
   "module": "dist/index.js",
   "typings": "dist/index.d.ts",
   "scripts": {
@@ -17,7 +17,7 @@
     "@apollo/client": "3.3.14",
     "@fortawesome/fontawesome-free": "5.5.0",
     "@spinnaker/mocks": "1.0.7",
-    "@spinnaker/presentation": "0.0.8",
+    "@spinnaker/presentation": "^0.0.9",
     "@spinnaker/styleguide": "1.0.26",
     "@uirouter/angularjs": "1.0.26",
     "@uirouter/core": "6.0.8",
@@ -89,8 +89,8 @@
     "@graphql-codegen/typescript": "^1.22.4",
     "@graphql-codegen/typescript-operations": "^1.18.3",
     "@graphql-codegen/typescript-react-apollo": "^2.3.0",
-    "@spinnaker/eslint-plugin": "1.0.13",
-    "@spinnaker/scripts": "0.0.14",
+    "@spinnaker/eslint-plugin": "^1.0.14",
+    "@spinnaker/scripts": "^0.0.15",
     "@types/angular": "1.6.26",
     "@types/angular-mocks": "1.5.10",
     "@types/angular-ui-bootstrap": "0.13.41",
