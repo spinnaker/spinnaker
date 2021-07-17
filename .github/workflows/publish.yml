@@ -1,4 +1,4 @@
-name: npm publish
+name: Publish packages to NPM
 
 on:
   push:
@@ -20,7 +20,7 @@ jobs:
       - name: publish packages to npm
         run: |
           npm config set //registry.npmjs.org/:_authToken=$NPM_AUTH_TOKEN
-          scripts/publish.sh
+          scripts/gha_publish.sh
         env:
           CI: true
           NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}

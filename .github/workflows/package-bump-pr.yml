@@ -42,16 +42,14 @@ jobs:
       - name: lerna - Bump packages
         run: |
           npx lerna version --yes --no-push --conventional-commits
+          # Fix the lerna commit message to also use conventional commits
+          git commit --amend -m "$(git log -1 --pretty=%B | sed -e 's/^Publish/chore(publish): publish packages/')"
 
       - name: gha - get bumped packages
         id: bumps
         run: |
-          .github/gha_output_bumped_packages.sh
-          .github/gha_output_changelog.sh
-
-      - name: git - use conventional commit
-        run: |
-          git commit --amend -m "$(git log -1 --pretty=%B | sed -e 's/^Publish/chore(publish): publish packages/')"
+          scripts/gha_output_bumped_packages.sh
+          scripts/gha_output_changelog.sh
 
       - name: Create Pull Request
         id: createpullrequest
@@ -63,8 +61,9 @@ jobs:
           commit-message: 'chore(package): Publish ${{ steps.bumps.outputs.bumps }}'
           title: 'Publish packages to NPM'
           body: |
-            This PR will bump any Deck package(s) that have changes to the next semver version.
-            It also updates dependencies in other packages in the monorepo which depend on the bumped package(s).
+            This PR will bump the version of any Deck package(s) that have pending changes.
+            It bumps to the next semver version (patch/minor/major) depending on the pending commit messages according to [Conventional Commits](https://conventionalcommits.org) rules.
+            It also updates dependency versions in other packages in the monorepo which depend on the bumped package(s).
 
             After this PR is merged, Github Actions will publish any bumped packages to the NPM registry.
 

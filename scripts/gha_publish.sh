@@ -41,6 +41,9 @@ for PACKAGE in ${BUILD_ORDER} ; do
   if [[ "${PACKAGES_TO_PUBLISH}" == *" ${PACKAGE} "* ]] ; then
     echo "Deck package publisher ---> Publishing ${PACKAGE}..."
     npm publish
+    TAG=$(jq '.name + "@" + .version' < package.json)
+    git tag $TAG
+    git push origin $TAG
   else
     echo "Deck package publisher ---> Building (but not publishing) upstream dependency '${PACKAGE}'..."
     npm run prepublishOnly
