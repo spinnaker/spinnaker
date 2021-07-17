@@ -72,17 +72,3 @@ jobs:
               issue_number: ${{ steps.createpullrequest.outputs.pull-request-number }},
               labels: ['ready to merge']
             });
-
-            await github.issues.update({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: ${{ steps.createpullrequest.outputs.pull-request-number }},
-              state: 'closed',
-            });
-
-            await github.issues.update({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: ${{ steps.createpullrequest.outputs.pull-request-number }},
-              state: 'open',
-            });
