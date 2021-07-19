@@ -10,16 +10,21 @@ if [ "x${GITHUB_ACTIONS}" != "xtrue" ] ; then
   exit 2
 fi
 
-# Determine what packages were bumped in the pushed commit
+BUMPS=no
+
+# Determine what packages were bumped in the pushed commit and tag them
 for PACKAGEJSON in */package.json ; do
   HAS_PKG_BUMP=$(git diff HEAD^ -- "${PACKAGEJSON}" | grep -c '"version"')
   if [ "$HAS_PKG_BUMP" -ne 0 ] ; then
     echo "Deck package publisher ---> Version bump detected in $PACKAGEJSON"
-    PACKAGES_TO_PUBLISH="$PACKAGES_TO_PUBLISH $(dirname $PACKAGEJSON) "
+    TAG=$(jq -r '.name + "@" + .version' < package.json)
+    git tag -a $TAG -m "Publish $TAG to NPM"
+    git push origin $TAG
+    BUMPS=yes
   fi
 done
 
-if [ "x${PACKAGES_TO_PUBLISH}" == "x" ] ; then
+if [ "${BUMPS}" == "no" ] ; then
   echo "Nothing to publish."
   exit 0
 fi
@@ -27,27 +32,4 @@ fi
 echo "Deck package publisher ---> yarn"
 yarn
 
-# Determine upstream dependencies and proper build order
-BUILD_ORDER=$(../scripts/build_order.sh ${PACKAGES_TO_PUBLISH})
-echo "Deck package publisher ---> Building packages:"
-echo "${BUILD_ORDER}"
-echo
-
-# Loop over packages to build and either a) only build (if package is just a dependency) or b) build and publish
-
-for PACKAGE in ${BUILD_ORDER} ; do
-  pushd "$PACKAGE" > /dev/null || exit 5
-  # Publish package if found in PACKAGES_TO_PUBLISH
-  if [[ "${PACKAGES_TO_PUBLISH}" == *" ${PACKAGE} "* ]] ; then
-    echo "Deck package publisher ---> Publishing ${PACKAGE}..."
-    npm publish
-    TAG=$(jq '.name + "@" + .version' < package.json)
-    git tag $TAG
-    git push origin $TAG
-  else
-    echo "Deck package publisher ---> Building (but not publishing) upstream dependency '${PACKAGE}'..."
-    npm run prepublishOnly
-  fi
-
-  popd > /dev/null || exit 6
-done
+npx lerna publish from-git
