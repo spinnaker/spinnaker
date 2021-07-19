@@ -48,6 +48,7 @@ class ApplicationsTest {
   private final ProcessesService processesService = mock(ProcessesService.class);
   private final Processes processes = mock(Processes.class);
   private final Spaces spaces = mock(Spaces.class);
+  private final int resultsPerPage = 500;
   private final Applications apps =
       new Applications(
           "pws",
@@ -56,7 +57,8 @@ class ApplicationsTest {
           applicationService,
           spaces,
           processes,
-          500,
+          resultsPerPage,
+          true,
           ForkJoinPool.commonPool());
   private final String spaceId = "space-guid";
   private final CloudFoundrySpace cloudFoundrySpace =
@@ -68,8 +70,6 @@ class ApplicationsTest {
 
   @Test
   void errorHandling() {
-    final CloudFoundryConfigurationProperties.ClientConfig retryParameters =
-        new CloudFoundryConfigurationProperties.ClientConfig();
     CloudFoundryClient client =
         new HttpCloudFoundryClient(
             "pws",
@@ -80,7 +80,8 @@ class ApplicationsTest {
             "badpassword",
             false,
             false,
-            500,
+            false,
+            resultsPerPage,
             ForkJoinPool.commonPool(),
             new OkHttpClient().newBuilder(),
             new CloudFoundryConfigurationProperties.ClientConfig());
@@ -190,6 +191,64 @@ class ApplicationsTest {
     verify(applicationService).instances(serverGroupId);
     verify(applicationService).findPackagesByAppId(serverGroupId);
     verify(applicationService).findDropletByApplicationGuid(serverGroupId);
+  }
+
+  @Test
+  void allDoesNotSkipVersionedAppWhenOnlySpinnakerManagedTrue() {
+    Application application =
+        new Application()
+            .setCreatedAt(ZonedDateTime.now())
+            .setUpdatedAt(ZonedDateTime.now())
+            .setGuid("guid")
+            .setName("my-app-v000")
+            .setState("STARTED")
+            .setLinks(
+                HashMap.of("space", new Link().setHref("http://capi.io/space/space-guid"))
+                    .toJavaMap());
+
+    Pagination<Application> applicationPagination =
+        new Pagination<Application>()
+            .setPagination(new Pagination.Details().setTotalPages(1))
+            .setResources(Collections.singletonList(application));
+
+    when(applicationService.all(any(), any(), any(), any()))
+        .thenReturn(Calls.response(Response.success(applicationPagination)));
+    when(applicationService.findById(anyString())).thenReturn(Calls.response(application));
+    mockMap(cloudFoundrySpace, "droplet-guid");
+
+    List<CloudFoundryApplication> result = apps.all(List.of(spaceId));
+    assertThat(result.size()).isEqualTo(1);
+
+    verify(applicationService).all(null, resultsPerPage, null, spaceId);
+  }
+
+  @Test
+  void allSkipsUnversionedAppWhenOnlySpinnakerManagedTrue() {
+    Application application =
+        new Application()
+            .setCreatedAt(ZonedDateTime.now())
+            .setUpdatedAt(ZonedDateTime.now())
+            .setGuid("guid")
+            .setName("my-app")
+            .setState("STARTED")
+            .setLinks(
+                HashMap.of("space", new Link().setHref("http://capi.io/space/space-guid"))
+                    .toJavaMap());
+
+    Pagination<Application> applicationPagination =
+        new Pagination<Application>()
+            .setPagination(new Pagination.Details().setTotalPages(1))
+            .setResources(Collections.singletonList(application));
+
+    when(applicationService.all(any(), any(), any(), any()))
+        .thenReturn(Calls.response(Response.success(applicationPagination)));
+    when(applicationService.findById(anyString())).thenReturn(Calls.response(application));
+    mockMap(cloudFoundrySpace, "droplet-guid");
+
+    List<CloudFoundryApplication> result = apps.all(List.of(spaceId));
+    assertThat(result.size()).isEqualTo(0);
+
+    verify(applicationService).all(null, resultsPerPage, null, spaceId);
   }
 
   @Test

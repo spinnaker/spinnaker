@@ -121,6 +121,7 @@ class CacheRepositoryTest {
         "pwd-" + name,
         null,
         false,
+        false,
         null,
         repo,
         null,

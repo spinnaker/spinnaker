@@ -62,17 +62,16 @@ public class CloudFoundryCredentials extends AbstractAccountCredentials<CloudFou
   private final String apiHost;
   private final String userName;
   private final String password;
+  private final boolean skipSslValidation;
+  private final boolean onlySpinnakerManaged;
 
   @Nullable private final String environment;
+  @Nullable private final Integer resultsPerPage;
 
   private final String accountType = "cloudfoundry";
-
   private final String cloudProvider = "cloudfoundry";
 
   @Deprecated private final List<String> requiredGroupMembership = Collections.emptyList();
-  private final boolean skipSslValidation;
-
-  @Nullable private final Integer resultsPerPage;
 
   private final Supplier<List<CloudFoundrySpace>> spaceSupplier =
       Memoizer.memoizeWithExpiration(this::spaceSupplier, SPACE_EXPIRY_SECONDS, TimeUnit.SECONDS);
@@ -96,6 +95,7 @@ public class CloudFoundryCredentials extends AbstractAccountCredentials<CloudFou
       String password,
       String environment,
       boolean skipSslValidation,
+      boolean onlySpinnakerManaged,
       Integer resultsPerPage,
       CacheRepository cacheRepository,
       Permissions permissions,
@@ -111,6 +111,7 @@ public class CloudFoundryCredentials extends AbstractAccountCredentials<CloudFou
     this.password = password;
     this.environment = Optional.ofNullable(environment).orElse("dev");
     this.skipSslValidation = skipSslValidation;
+    this.onlySpinnakerManaged = onlySpinnakerManaged;
     this.resultsPerPage = Optional.ofNullable(resultsPerPage).orElse(100);
     this.cacheRepository = cacheRepository;
     this.permissions = permissions == null ? Permissions.EMPTY : permissions;
@@ -125,6 +126,7 @@ public class CloudFoundryCredentials extends AbstractAccountCredentials<CloudFou
             password,
             true,
             skipSslValidation,
+            onlySpinnakerManaged,
             resultsPerPage,
             forkJoinPool,
             okHttpClient.newBuilder(),

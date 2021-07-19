@@ -77,17 +77,21 @@ public class CloudFoundryServerGroupCachingAgent extends AbstractCloudFoundryCac
         this.getCredentials().getFilteredSpaces().stream()
             .map(s -> s.getId())
             .collect(Collectors.toList());
+
     List<CloudFoundryApplication> apps = this.getClient().getApplications().all(spaceFilters);
     List<CloudFoundryCluster> clusters =
         apps.stream().flatMap(app -> app.getClusters().stream()).collect(Collectors.toList());
+
     List<CloudFoundryServerGroup> serverGroups =
         clusters.stream()
             .flatMap(cluster -> cluster.getServerGroups().stream())
             .collect(Collectors.toList());
+
     List<CloudFoundryInstance> instances =
         serverGroups.stream()
             .flatMap(serverGroup -> serverGroup.getInstances().stream())
             .collect(Collectors.toList());
+
     Collection<CacheData> onDemandCacheData =
         providerCache.getAll(
             ON_DEMAND.getNs(),

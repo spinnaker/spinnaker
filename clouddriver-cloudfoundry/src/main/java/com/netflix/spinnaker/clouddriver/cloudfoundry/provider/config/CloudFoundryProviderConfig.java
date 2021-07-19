@@ -96,6 +96,7 @@ public class CloudFoundryProviderConfig {
                 a.getPassword(),
                 a.getEnvironment(),
                 a.isSkipSslValidation(),
+                a.isOnlySpinnakerManaged(),
                 a.getResultsPerPage(),
                 cacheRepository,
                 a.getPermissions().build(),

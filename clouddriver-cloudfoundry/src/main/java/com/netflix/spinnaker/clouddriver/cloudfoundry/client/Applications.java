@@ -61,6 +61,7 @@ public class Applications {
   private final Spaces spaces;
   private final Processes processes;
   private final Integer resultsPerPage;
+  private final boolean onlySpinnakerManaged;
   private final ForkJoinPool forkJoinPool;
   private final LoadingCache<String, CloudFoundryServerGroup> serverGroupCache;
 
@@ -72,6 +73,7 @@ public class Applications {
       Spaces spaces,
       Processes processes,
       Integer resultsPerPage,
+      boolean onlySpinnakerManaged,
       ForkJoinPool forkJoinPool) {
     this.account = account;
     this.appsManagerUri = appsManagerUri;
@@ -80,6 +82,7 @@ public class Applications {
     this.spaces = spaces;
     this.processes = processes;
     this.resultsPerPage = resultsPerPage;
+    this.onlySpinnakerManaged = onlySpinnakerManaged;
     this.forkJoinPool = forkJoinPool;
     this.serverGroupCache =
         CacheBuilder.newBuilder()
@@ -190,6 +193,15 @@ public class Applications {
 
     for (CloudFoundryServerGroup serverGroup : serverGroupCache.asMap().values()) {
       Names names = Names.parseName(serverGroup.getName());
+
+      if (onlySpinnakerManaged && names.getSequence() == null) {
+        log.debug(
+            "Skipping app '{}' from foundation '{}' because onlySpinnakerManaged is true and it has no version.",
+            serverGroup.getName(),
+            this.account);
+        continue;
+      }
+
       if (names.getCluster() == null) {
         log.debug(
             "Skipping app '{}' from foundation '{}' because the name isn't following the frigga naming schema.",

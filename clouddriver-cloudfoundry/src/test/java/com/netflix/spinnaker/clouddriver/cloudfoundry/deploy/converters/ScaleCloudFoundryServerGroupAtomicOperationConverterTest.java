@@ -57,6 +57,7 @@ class ScaleCloudFoundryServerGroupAtomicOperationConverterTest {
           "password",
           "environment",
           false,
+          false,
           500,
           cacheRepository,
           null,

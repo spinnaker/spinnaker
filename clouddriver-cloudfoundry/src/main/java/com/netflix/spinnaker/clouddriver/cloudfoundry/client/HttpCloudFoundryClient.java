@@ -75,6 +75,7 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
       String password,
       boolean useHttps,
       boolean skipSslValidation,
+      boolean onlySpinnakerManaged,
       Integer resultsPerPage,
       ForkJoinPool forkJoinPool,
       OkHttpClient.Builder okHttpClientBuilder,
@@ -134,6 +135,7 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
             spaces,
             processes,
             resultsPerPage,
+            onlySpinnakerManaged,
             forkJoinPool);
     this.domains = new Domains(retrofit.create(DomainService.class), organizations);
     this.serviceInstances =
