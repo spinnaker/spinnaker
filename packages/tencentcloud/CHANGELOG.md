@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.25](https://github.com/spinnaker/deck/compare/@spinnaker/tencentcloud@0.0.21...@spinnaker/tencentcloud@0.0.25) (2021-07-19)
+
+**Note:** Version bump only for package @spinnaker/tencentcloud
+
+
+
+
+
 ## [0.0.24](https://github.com/spinnaker/deck/compare/@spinnaker/tencentcloud@0.0.21...@spinnaker/tencentcloud@0.0.24) (2021-07-19)
 
 **Note:** Version bump only for package @spinnaker/tencentcloud

@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.615](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.0.611...@spinnaker/core@0.0.615) (2021-07-19)
+
+**Note:** Version bump only for package @spinnaker/core
+
+
+
+
+
 ## [0.0.614](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.0.611...@spinnaker/core@0.0.614) (2021-07-19)
 
 **Note:** Version bump only for package @spinnaker/core

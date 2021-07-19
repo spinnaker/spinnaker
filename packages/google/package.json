@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/google",
   "license": "Apache-2.0",
-  "version": "0.0.45",
+  "version": "0.0.46",
   "module": "dist/index.js",
   "typings": "dist/index.d.ts",
   "scripts": {
@@ -13,7 +13,7 @@
     "lib": "npm run build"
   },
   "dependencies": {
-    "@spinnaker/core": "^0.0.614",
+    "@spinnaker/core": "^0.0.615",
     "@uirouter/angularjs": "1.0.26",
     "angular": "1.6.10",
     "angular-ui-bootstrap": "2.5.0",
@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "@spinnaker/eslint-plugin": "^1.0.14",
-    "@spinnaker/scripts": "^0.0.18",
+    "@spinnaker/scripts": "^0.0.19",
     "@types/angular": "1.6.26",
     "@types/angular-mocks": "1.5.10",
     "@types/angular-ui-bootstrap": "0.13.41",
