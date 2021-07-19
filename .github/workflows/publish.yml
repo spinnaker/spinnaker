@@ -17,6 +17,12 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 12.16.0
+
+      - name: git - configure commit user
+        run: |
+          git config user.name spinnakerbot
+          git config user.email spinnakerbot@spinanker.io
+
       - name: publish packages to npm
         run: |
           npm config set //registry.npmjs.org/:_authToken=$NPM_AUTH_TOKEN
