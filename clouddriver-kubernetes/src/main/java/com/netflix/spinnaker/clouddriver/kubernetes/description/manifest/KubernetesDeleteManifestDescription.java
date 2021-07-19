@@ -22,9 +22,9 @@ import com.google.common.base.Strings;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesAtomicOperationDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesSelectorList;
-import io.kubernetes.client.openapi.models.V1DeleteOptions;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -32,7 +32,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class KubernetesDeleteManifestDescription extends KubernetesAtomicOperationDescription {
-  private V1DeleteOptions options;
+  private Map<String, String> options;
   private String manifestName;
   private String location;
   private List<String> kinds = new ArrayList<>();
