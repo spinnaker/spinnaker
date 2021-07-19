@@ -408,4 +408,28 @@ class EcsServerGroupNameResolverSpec extends Specification {
     nextServerGroupName.getFamilyName() == "application-stack-details"
   }
 
+  void "should resolve task definition family name from service group name with no sequence"() {
+    given:
+    def resolver = new EcsServerGroupNameResolver(ecsClusterName, ecsClient, region, new EcsDefaultNamer())
+    ecsClient.listServices(_) >> new ListServicesResult().withServiceArns("application-stack-details")
+    ecsClient.describeServices({DescribeServicesRequest request ->
+      request.cluster == ecsClusterName
+      request.services == ["application-stack-details"]
+    }) >> new DescribeServicesResult().withServices(
+      new Service(serviceName: "application-stack-details", createdAt: new Date(1), status: "ACTIVE"))
+    ecsClient.describeServices({DescribeServicesRequest request ->
+      request.cluster == ecsClusterName
+      request.services == ["application-stack-details-v000"]
+    }) >> new DescribeServicesResult().withFailures(
+      new Failure(arn: "application-stack-details-v000", reason: "MISSING")
+    )
+
+    when:
+    def nextServerGroupName = resolver.resolveNextName('application', 'stack', 'details')
+
+    then:
+    nextServerGroupName.getServiceName() == "application-stack-details-v000"
+    nextServerGroupName.getFamilyName() == "application-stack-details"
+  }
+
 }

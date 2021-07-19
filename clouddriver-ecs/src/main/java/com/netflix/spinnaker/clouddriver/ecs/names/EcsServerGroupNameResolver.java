@@ -71,7 +71,8 @@ public class EcsServerGroupNameResolver {
 
         if (isSameName(currentName.getApp(), moniker.getApp())
             && isSameName(currentName.getDetail(), moniker.getDetail())
-            && isSameName(currentName.getStack(), moniker.getStack())) {
+            && isSameName(currentName.getStack(), moniker.getStack())
+            && moniker.getSequence() != null) {
           takenSequences.add(moniker.getSequence());
         }
       }
