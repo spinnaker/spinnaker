@@ -75,7 +75,7 @@ jobs:
       - name: Approve package bump
         if: ${{ steps.createpullrequest.outputs.pull-request-number != '' }}
         # pin to v2.0.0 tag by commit hash
-        uses: hmarr/auto-approve-action@7782c7e2bdf62b4d79bdcded8332808fd2f179cd
+        uses: hmarr/auto-approve-action@v2
         with:
           github-token: '${{ secrets.SPINNAKERBOT_TOKEN }}'
           pull-request-number: ${{ steps.createpullrequest.outputs.pull-request-number }}
