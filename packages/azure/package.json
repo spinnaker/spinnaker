@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/azure",
   "license": "Apache-2.0",
-  "version": "0.0.275",
+  "version": "0.0.276",
   "module": "dist/index.js",
   "typings": "dist/index.d.ts",
   "scripts": {
@@ -13,7 +13,7 @@
     "lib": "npm run build"
   },
   "dependencies": {
-    "@spinnaker/core": "^0.0.611",
+    "@spinnaker/core": "^0.0.612",
     "@uirouter/angularjs": "1.0.26",
     "angular": "1.6.10",
     "angular-ui-bootstrap": "2.5.0",
@@ -24,7 +24,7 @@
   },
   "devDependencies": {
     "@spinnaker/eslint-plugin": "^1.0.14",
-    "@spinnaker/scripts": "^0.0.15",
+    "@spinnaker/scripts": "^0.0.16",
     "@types/angular": "1.6.26",
     "@types/angular-ui-bootstrap": "0.13.41",
     "@types/lodash": "4.14.64",

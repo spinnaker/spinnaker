@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/amazon",
   "license": "Apache-2.0",
-  "version": "0.0.326",
+  "version": "0.1.0",
   "module": "dist/index.js",
   "typings": "dist/index.d.ts",
   "scripts": {
@@ -13,7 +13,7 @@
     "lib": "npm run build"
   },
   "dependencies": {
-    "@spinnaker/core": "^0.0.611",
+    "@spinnaker/core": "^0.0.612",
     "@uirouter/angularjs": "1.0.26",
     "@uirouter/core": "6.0.8",
     "@uirouter/react": "1.0.3",
@@ -41,7 +41,7 @@
   "devDependencies": {
     "@spinnaker/eslint-plugin": "^1.0.14",
     "@spinnaker/mocks": "1.0.7",
-    "@spinnaker/scripts": "^0.0.15",
+    "@spinnaker/scripts": "^0.0.16",
     "@types/angular": "1.6.26",
     "@types/angular-ui-bootstrap": "0.13.41",
     "@types/classnames": "2.2.0",
