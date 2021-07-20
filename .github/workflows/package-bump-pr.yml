@@ -81,11 +81,9 @@ jobs:
         with:
           github-token: '${{ secrets.SPINNAKERBOT_PERSONAL_ACCESS_TOKEN }}'
           script: |
-            await github.issues.close({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: ${{ steps.createpullrequest.outputs.pull-request-number }},
-            });
+            const { owner, repo } = context.repo;
+            const pull_number = ${{ steps.createpullrequest.outputs.pull-request-number }};
+            await github.pulls.update({ owner, repo, pull_number, state: 'closed' });
 
       - name: Approve package bump
         if: ${{ steps.bumps.outputs.bumps != '' }}
