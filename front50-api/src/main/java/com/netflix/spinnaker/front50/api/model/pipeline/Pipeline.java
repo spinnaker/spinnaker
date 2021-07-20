@@ -41,7 +41,6 @@ public class Pipeline implements Timestamped {
   private String lastModifiedBy;
   private String lastModified;
 
-  // Excluded fields with null value: see PipelineMixins in front50-core
   @Getter @Setter private String email;
   @Getter @Setter private Boolean disabled;
   @Getter @Setter private Map<String, Object> template;

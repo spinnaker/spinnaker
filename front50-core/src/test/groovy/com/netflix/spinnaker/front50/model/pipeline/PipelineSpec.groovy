@@ -28,7 +28,7 @@ class PipelineSpec extends Specification {
 
   def 'roundtrip (JSON -> Pipeline -> JSON) retains arbitrary values'() {
     given:
-    String pipelineJSON = '{"id":null,"name":null,"application":null,"type":null,"schema":"1","config":null,"triggers":[],"index":null,"lastModifiedBy":"anonymous","foo":"bar","updateTs":null}'
+    String pipelineJSON = '{"id":"1","name":"sky","application":"almond","schema":"1","triggers":[],"lastModifiedBy":"anonymous","foo":"bar"}'
 
 
     String pipeline = objectMapper.writeValueAsString(objectMapper.readValue(pipelineJSON, Pipeline.class))
@@ -39,7 +39,7 @@ class PipelineSpec extends Specification {
 
   def 'setting lastModified on pipeline sets updateTs'() {
     given:
-    String pipelineJSON = '{"id":null,"name":null,"application":null,"type":null,"schema":"1","config":null,"triggers":[],"index":null,"lastModifiedBy":"anonymous","updateTs":null}'
+    String pipelineJSON = '{"id":"1","name":"sky","application":"almond","schema":"1","triggers":[],"updateTs":"1"}'
     Pipeline pipelineObj = objectMapper.readValue(pipelineJSON, Pipeline.class)
 
     pipelineObj.setLastModified(new Long(1))

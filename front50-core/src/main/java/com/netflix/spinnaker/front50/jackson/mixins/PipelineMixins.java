@@ -21,6 +21,8 @@ import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.netflix.spinnaker.front50.api.model.pipeline.Trigger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import lombok.Getter;
@@ -32,6 +34,53 @@ public abstract class PipelineMixins {
 
   @JsonAnyGetter
   abstract Map<String, Object> getAny();
+
+  @JsonInclude(Include.NON_NULL)
+  @Setter
+  private String id;
+
+  @JsonInclude(Include.NON_NULL)
+  @Getter
+  @Setter
+  private String name;
+
+  @JsonInclude(Include.NON_NULL)
+  @Getter
+  @Setter
+  private String application;
+
+  @JsonInclude(Include.NON_NULL)
+  @Getter
+  @Setter
+  private String type;
+
+  @JsonInclude(Include.NON_NULL)
+  @Setter
+  private String schema;
+
+  @JsonInclude(Include.NON_NULL)
+  @Getter
+  @Setter
+  private Object config;
+
+  @JsonInclude(Include.NON_NULL)
+  @Getter
+  @Setter
+  private List<Trigger> triggers = new ArrayList<>();
+
+  @JsonInclude(Include.NON_NULL)
+  @Getter
+  @Setter
+  private Integer index;
+
+  @JsonInclude(Include.NON_NULL)
+  private String updateTs;
+
+  @JsonInclude(Include.NON_NULL)
+  private String createTs;
+
+  @JsonInclude(Include.NON_NULL)
+  private String lastModifiedBy;
 
   @JsonIgnore private String lastModified;
 
