@@ -1,7 +1,5 @@
 #!/bin/bash
 
-PACKAGES_TO_PUBLISH="";
-
 # Run this script from the 'deck/packages' directory
 cd "$(dirname "$0")/../packages" || exit 255
 
@@ -10,7 +8,7 @@ if [ "x${GITHUB_ACTIONS}" != "xtrue" ] ; then
   exit 2
 fi
 
-BUMPS=no
+TAGGED=false
 
 # Determine what packages were bumped in the pushed commit and tag them
 for PACKAGEJSON in */package.json ; do
@@ -20,16 +18,9 @@ for PACKAGEJSON in */package.json ; do
     TAG=$(jq -r '.name + "@" + .version' < $PACKAGEJSON)
     git tag -a $TAG -m "Publish $TAG to NPM"
     git push origin $TAG
-    BUMPS=yes
+    TAGGED=true
   fi
 done
 
-if [ "${BUMPS}" == "no" ] ; then
-  echo "Nothing to publish."
-  exit 0
-fi
-
-echo "Deck package publisher ---> yarn"
-yarn
-
-npx lerna publish from-git
+## Github Action Step output variable: tagged
+echo ::set-output name=tagged::$TAGGED

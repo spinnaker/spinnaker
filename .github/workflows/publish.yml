@@ -21,15 +21,19 @@ jobs:
         with:
           node-version: 12.16.0
 
-      - name: git - configure commit user
+      - name: git - tag bumped packages
+        id: tag
         run: |
           git config user.name spinnakerbot
           git config user.email spinnakerbot@spinnaker.io
+          scripts/gha_tag_bumped_packages.sh
 
       - name: publish packages to npm
+        if: ${{ steps.tag.outputs.tagged == 'true' }}
         run: |
           npm config set //registry.npmjs.org/:_authToken=$NPM_AUTH_TOKEN
-          scripts/gha_publish.sh
+          yarn --frozen-lockfile
+          npx lerna publish from-git --yes
         env:
           CI: true
           NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
