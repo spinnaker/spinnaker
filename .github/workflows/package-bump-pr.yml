@@ -100,7 +100,7 @@ jobs:
         if: ${{ steps.bumps.outputs.bumps != '' }}
         uses: actions/github-script@0.9.0
         with:
-          github-token: '${{ secrets.SPINNAKERBOT_PERSONAL_ACCESS_TOKEN }}'
+          github-token: '${{ secrets.SPINNAKERBOT_TOKEN }}'
           script: |
             const { owner, repo } = context.repo;
             const pull_number = ${{ steps.createpullrequest.outputs.pull-request-number }};
