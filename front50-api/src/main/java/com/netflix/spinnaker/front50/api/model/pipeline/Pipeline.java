@@ -26,11 +26,10 @@ public class Pipeline implements Timestamped {
   public static final String TYPE_TEMPLATED = "templatedPipeline";
 
   private Map<String, Object> anyMap = new HashMap<>();
+
   @Setter private String id;
   @Getter @Setter private String name;
   @Getter @Setter private String application;
-  @Getter @Setter private Boolean disabled;
-  @Getter @Setter private String email;
   @Getter @Setter private String type;
   @Setter private String schema;
   @Getter @Setter private Object config;
@@ -40,7 +39,11 @@ public class Pipeline implements Timestamped {
   private String updateTs;
   private String createTs;
   private String lastModifiedBy;
+  private String lastModified;
 
+  // Excluded fields with null value: see PipelineMixins in front50-core
+  @Getter @Setter private String email;
+  @Getter @Setter private Boolean disabled;
   @Getter @Setter private Map<String, Object> template;
   @Getter @Setter private List<String> roles;
   @Getter @Setter private String serviceAccount;

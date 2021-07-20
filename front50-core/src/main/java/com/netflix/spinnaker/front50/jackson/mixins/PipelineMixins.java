@@ -18,7 +18,13 @@ package com.netflix.spinnaker.front50.jackson.mixins;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import java.util.List;
 import java.util.Map;
+import lombok.Getter;
+import lombok.Setter;
 
 public abstract class PipelineMixins {
   @JsonAnySetter
@@ -26,4 +32,76 @@ public abstract class PipelineMixins {
 
   @JsonAnyGetter
   abstract Map<String, Object> getAny();
+
+  @JsonIgnore private String lastModified;
+
+  @JsonInclude(Include.NON_NULL)
+  @Getter
+  @Setter
+  private Boolean disabled;
+
+  @JsonInclude(Include.NON_NULL)
+  @Getter
+  @Setter
+  private String email;
+
+  @JsonInclude(Include.NON_NULL)
+  @Getter
+  @Setter
+  private Map<String, Object> template;
+
+  @JsonInclude(Include.NON_NULL)
+  @Getter
+  @Setter
+  private List<String> roles;
+
+  @JsonInclude(Include.NON_NULL)
+  @Getter
+  @Setter
+  private String serviceAccount;
+
+  @JsonInclude(Include.NON_NULL)
+  @Getter
+  @Setter
+  private String executionEngine;
+
+  @JsonInclude(Include.NON_NULL)
+  @Getter
+  @Setter
+  private Integer stageCounter;
+
+  @JsonInclude(Include.NON_NULL)
+  @Getter
+  @Setter
+  private List<Map<String, Object>> stages;
+
+  @JsonInclude(Include.NON_NULL)
+  @Getter
+  @Setter
+  private Map<String, Object> constraints;
+
+  @JsonInclude(Include.NON_NULL)
+  @Getter
+  @Setter
+  private Map<String, Object> payloadConstraints;
+
+  @JsonInclude(Include.NON_NULL)
+  @Getter
+  @Setter
+  private Boolean keepWaitingPipelines;
+
+  @JsonInclude(Include.NON_NULL)
+  @Getter
+  @Setter
+  private Boolean limitConcurrent;
+
+  @JsonInclude(Include.NON_NULL)
+  @Getter
+  @Setter
+  private List<Map<String, Object>> parameterConfig;
+
+  @JsonInclude(Include.NON_NULL)
+  @Getter
+  @Setter
+  private String spelEvaluator;
 }

@@ -57,11 +57,12 @@ class ApplicationModelSpec extends Specification {
     def application = new Application()
     application.setCreatedAt(new Long(1))
     application.setLastModifiedBy("foo")
+    application.setLastModified(new Long(1))
 
     ObjectMapper mapper = new ObjectMapper().addMixIn(Timestamped.class, TimestampedMixins.class)
     String appJSON = mapper.writeValueAsString(application)
 
     expect:
-    appJSON == '{"name":null,"description":null,"email":null,"updateTs":null,"createTs":"1","lastModifiedBy":"foo","cloudProviders":null,"trafficGuards":[]}'
+    appJSON == '{"name":null,"description":null,"email":null,"updateTs":"1","createTs":"1","lastModifiedBy":"foo","cloudProviders":null,"trafficGuards":[]}'
   }
 }
