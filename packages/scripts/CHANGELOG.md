@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.20](https://github.com/spinnaker/deck/compare/@spinnaker/scripts@0.0.15...@spinnaker/scripts@0.0.20) (2021-07-19)
+
+
+### Bug Fixes
+
+* **scripts:** Handle double quotes in require calls ([429bdd9](https://github.com/spinnaker/deck/commit/429bdd9e4d7e12d52044e9a62016feb00e4db719))
+
+
+
+
+
 ## [0.0.19](https://github.com/spinnaker/deck/compare/@spinnaker/scripts@0.0.15...@spinnaker/scripts@0.0.19) (2021-07-19)
 
 
