@@ -8,6 +8,8 @@ on:
   push:
     branches:
       - 'master'
+    tags:
+      - '@spinnaker/*'
 
 jobs:
   build:
