@@ -43,6 +43,12 @@ class SpinnakerUIExtensionPlugin : Plugin<Project> {
       commandLine = listOf("yarn")
     }
 
+    project.tasks.create("yarnModules", Exec::class.java) {
+      group = Plugins.GROUP
+      workingDir = project.projectDir
+      commandLine = listOf("yarn", "modules")
+    }
+
     project.tasks.create("yarnBuild", Exec::class.java) {
       group = Plugins.GROUP
       workingDir = project.projectDir
@@ -50,7 +56,10 @@ class SpinnakerUIExtensionPlugin : Plugin<Project> {
     }
 
     project.afterEvaluate {
-      project.tasks.getByName("build").dependsOn("yarn", "yarnBuild")
+      project.tasks.getByName("build") {
+        dependsOn("yarn", "yarnBuild", "yarnModules")
+        tasks.findByName("yarnBuild")?.mustRunAfter("yarnModules")
+      }
     }
   }
 }
