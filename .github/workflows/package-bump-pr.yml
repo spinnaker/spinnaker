@@ -57,7 +57,7 @@ jobs:
 
       - name: Create Pull Request
         id: createpullrequest
-        if: ${{ steps.bumps.outputs.bumps != '' }}
+#        if: ${{ steps.bumps.outputs.bumps != '' }}
         uses: peter-evans/create-pull-request@v3
         with:
           # TODO: use a spinnakerbot Personal Access Token
