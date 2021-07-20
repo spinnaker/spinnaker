@@ -33,6 +33,7 @@ jobs:
         run: |
           npm config set //registry.npmjs.org/:_authToken=$NPM_AUTH_TOKEN
           yarn --frozen-lockfile
+          npx lerna run build
           npx lerna publish from-git --yes
         env:
           CI: true
