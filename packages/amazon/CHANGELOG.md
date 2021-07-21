@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.7.0](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.6.0...@spinnaker/amazon@0.7.0) (2021-07-21)
+
+
+### Features
+
+* commit to test package bump PR creation ([#9487](https://github.com/spinnaker/deck/issues/9487)) ([554ddc3](https://github.com/spinnaker/deck/commit/554ddc3d0ba9c0db49b4e5451afb22c2af9547cc))
+
+
+
+
+
 # [0.6.0](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.5.0...@spinnaker/amazon@0.6.0) (2021-07-20)
 
 
