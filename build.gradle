@@ -28,10 +28,6 @@ allprojects {
 subprojects {
   group = "io.spinnaker.kork"
 
-  repositories {
-    jcenter()
-  }
-
   if (it.name != "kork-bom" && it.name != "spinnaker-dependencies") {
     apply plugin: 'java-library'
     dependencies {
