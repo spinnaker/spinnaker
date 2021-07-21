@@ -23,6 +23,8 @@ jobs:
 
       - name: git - tag bumped packages
         id: tag
+        with:
+          token: '${{ secrets.SPINNAKERBOT_PERSONAL_ACCESS_TOKEN }}'
         run: |
           git config user.name spinnakerbot
           git config user.email spinnakerbot@spinnaker.io
