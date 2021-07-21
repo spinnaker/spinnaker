@@ -53,12 +53,12 @@ class SpinnakerUIExtensionPlugin : Plugin<Project> {
       group = Plugins.GROUP
       workingDir = project.projectDir
       commandLine = listOf("yarn", "build")
+      dependsOn("yarnModules")
     }
 
     project.afterEvaluate {
       project.tasks.getByName("build") {
-        dependsOn("yarn", "yarnBuild", "yarnModules")
-        tasks.findByName("yarnBuild")?.mustRunAfter("yarnModules")
+        dependsOn("yarn", "yarnBuild")
       }
     }
   }
