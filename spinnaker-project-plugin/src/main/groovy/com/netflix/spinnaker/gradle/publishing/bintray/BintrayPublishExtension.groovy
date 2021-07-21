@@ -29,7 +29,7 @@ class BintrayPublishExtension {
   BintrayPublishExtension(Project project) {
     this.project = project
     ObjectFactory props = project.objects
-    enabled = props.property(Boolean).convention(true)
+    enabled = props.property(Boolean).convention(false)
     jarEnabled = props.property(Boolean).convention(true)
     debEnabled = props.property(Boolean).convention(true)
     bintrayOrg = props.property(String).convention("spinnaker")
