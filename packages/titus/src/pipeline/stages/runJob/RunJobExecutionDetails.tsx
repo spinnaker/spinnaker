@@ -42,6 +42,13 @@ export class RunJobExecutionDetails extends React.Component<
     });
   }
 
+  private formatEntryPoint(entryPointList: string[], entryPoint: string): string {
+    if (entryPointList && Array.isArray(entryPointList) && entryPointList.length > 0) {
+      return entryPointList.length === 1 ? entryPointList[0] : JSON.stringify(entryPointList);
+    }
+    return entryPoint;
+  }
+
   public componentWillUnmount() {
     this.mounted = false;
   }
@@ -55,9 +62,11 @@ export class RunJobExecutionDetails extends React.Component<
     const { titusUiEndpoint } = this.state;
     const { context } = stage;
     const { cluster } = context;
-    const { resources, env } = cluster;
+    const { resources, env, entryPoint, entryPointList } = cluster;
     const jobId = cluster ? get(context['deploy.jobs'], cluster.region, [])[0] : null;
     const taskId = get(context, 'jobStatus.completionDetails.taskId');
+
+    const normalizedEntryPoint = this.formatEntryPoint(entryPointList, entryPoint);
 
     return (
       <ExecutionDetailsSection name={name} current={current}>
@@ -68,7 +77,7 @@ export class RunJobExecutionDetails extends React.Component<
               {cluster && (
                 <>
                   <LabeledValue label="Image" value={cluster.imageId} />
-                  {cluster.entryPoint && <LabeledValue label="Entrypoint" value={cluster.entryPoint} />}
+                  {normalizedEntryPoint && <LabeledValue label="Entrypoint" value={normalizedEntryPoint} />}
                 </>
               )}
               {jobId && (
