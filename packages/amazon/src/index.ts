@@ -1,4 +1,5 @@
 export { AMAZON_MODULE } from './aws.module';
+
 export * from './aws.settings';
 export * from './certificates';
 export * from './common';
