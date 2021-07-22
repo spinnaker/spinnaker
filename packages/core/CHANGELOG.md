@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.619](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.0.618...@spinnaker/core@0.0.619) (2021-07-22)
+
+
+### Bug Fixes
+
+* sample commit to test publishing scripts ([#9509](https://github.com/spinnaker/deck/issues/9509)) ([7438c84](https://github.com/spinnaker/deck/commit/7438c84d75c18cf5c1e7d17d39eef046f8f644dd))
+
+
+
+
+
 ## [0.0.618](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.0.616...@spinnaker/core@0.0.618) (2021-07-22)
 
 
