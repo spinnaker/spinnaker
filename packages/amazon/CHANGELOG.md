@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.7.3](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.7.2...@spinnaker/amazon@0.7.3) (2021-07-22)
+
+
+### Bug Fixes
+
+* sample commit to test publishing scripts ([#9505](https://github.com/spinnaker/deck/issues/9505)) ([5075ee1](https://github.com/spinnaker/deck/commit/5075ee1afe80fff98fa0728a323480b9712d8935))
+
+
+
+
+
 ## [0.7.2](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.7.0...@spinnaker/amazon@0.7.2) (2021-07-22)
 
 **Note:** Version bump only for package @spinnaker/amazon
