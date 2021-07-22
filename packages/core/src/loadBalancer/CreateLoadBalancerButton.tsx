@@ -72,6 +72,7 @@ export class CreateLoadBalancerButton extends React.Component<ICreateLoadBalance
               templateUrl: provider.createLoadBalancerTemplateUrl,
               controller: `${provider.createLoadBalancerController} as ctrl`,
               size: 'lg',
+              windowClass: 'modal-z-index',
               resolve: {
                 application: () => this.props.app,
                 loadBalancer: (): ILoadBalancer => null,
