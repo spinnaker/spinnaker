@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/titus",
   "license": "Apache-2.0",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "module": "dist/index.js",
   "typings": "dist/index.d.ts",
   "scripts": {
@@ -13,9 +13,9 @@
     "lib": "npm run build"
   },
   "dependencies": {
-    "@spinnaker/amazon": "^0.7.0",
-    "@spinnaker/core": "^0.0.616",
-    "@spinnaker/docker": "^0.0.89",
+    "@spinnaker/amazon": "^0.7.1",
+    "@spinnaker/core": "^0.0.617",
+    "@spinnaker/docker": "^0.0.90",
     "@spinnaker/mocks": "1.0.7",
     "@uirouter/angularjs": "1.0.26",
     "@uirouter/react": "1.0.3",

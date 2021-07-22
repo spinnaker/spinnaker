@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.617](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.0.616...@spinnaker/core@0.0.617) (2021-07-22)
+
+
+### Bug Fixes
+
+* **core/loadBalancer:** Pushed modal overlay to the background ([#9466](https://github.com/spinnaker/deck/issues/9466)) ([799250b](https://github.com/spinnaker/deck/commit/799250bde2fdf9ba7d88b1a5adb0c937601b6ae0))
+
+
+
+
+
 ## [0.0.616](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.0.611...@spinnaker/core@0.0.616) (2021-07-19)
 
 **Note:** Version bump only for package @spinnaker/core
