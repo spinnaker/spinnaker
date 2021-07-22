@@ -51,7 +51,7 @@
     "jquery": "3.5.1",
     "jquery-textcomplete": "1.6.1",
     "jquery-ui": "1.12.0",
-    "js-worker-search": "1.2.1",
+    "js-worker-search": "npm:js-worker-search-uuid-fix@^1.4.2",
     "js-yaml": "3.13.1",
     "lodash": "4.17.21",
     "lodash-decorators": "4.5.0",
