@@ -8,7 +8,7 @@ on:
       - 'packages/*/package.json'
 
 jobs:
-  build:
+  publish:
     runs-on: ubuntu-latest
 
     steps:
@@ -30,13 +30,20 @@ jobs:
           git config user.email spinnakerbot@spinnaker.io
           scripts/gha_tag_bumped_packages.sh
 
+      - name: yarn
+        if: ${{ steps.tag.outputs.tagged == 'true' }}
+        run: yarn --frozen-lockfile
+
+      - name: build all packages
+        if: ${{ steps.tag.outputs.tagged == 'true' }}
+        run: npx lerna run build
+
       - name: publish packages to npm
         if: ${{ steps.tag.outputs.tagged == 'true' }}
         run: |
           npm config set //registry.npmjs.org/:_authToken=$NPM_AUTH_TOKEN
-          yarn --frozen-lockfile
-          npx lerna run build
-          npx lerna publish from-git --yes
+          # Publish all changed packages, but do not build a second time
+          npx lerna publish from-git --yes --ignore-scripts
         env:
           CI: true
           NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
