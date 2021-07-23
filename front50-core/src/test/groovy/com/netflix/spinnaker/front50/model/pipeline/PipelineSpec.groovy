@@ -49,6 +49,16 @@ class PipelineSpec extends Specification {
     pipeline == pipelineJSON
   }
 
+  def 'boolean properties should be strings'() {
+    given:
+    String pipelineJSON = '{"id":"1","schema":"1","triggers":[],"disabled":"true","keepWaitingPipelines":"true","limitConcurrent":"true"}'
+    Pipeline pipelineObj = objectMapper.readValue(pipelineJSON, Pipeline.class)
+    String pipeline = objectMapper.writeValueAsString(pipelineObj)
+
+    expect:
+    pipeline == pipelineJSON
+  }
+
   def 'should grab triggers after deserializing JSON into Pipeline'() {
     given:
     String pipelineJSON = '{"triggers": [{"type": "cron", "id": "a"}, {"type": "cron", "id": "b"}]}'
