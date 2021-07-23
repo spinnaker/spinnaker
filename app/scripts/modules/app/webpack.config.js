@@ -31,7 +31,7 @@ function configure(env, webpackOpts) {
     new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true }),
     new CopyWebpackPlugin([
       { from: `${NODE_MODULE_PATH}/@spinnaker/styleguide/public/styleguide.html`, to: `./styleguide.html` },
-      { from: `./src/plugin-manifest.json`, to: `./plugin-manifest.json` },
+      { from: `./public/plugin-manifest.json`, to: `./plugin-manifest.json` },
     ]),
     new HtmlWebpackPlugin({
       title: 'Spinnaker',
