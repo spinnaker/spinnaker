@@ -44,9 +44,6 @@ data class TimeWindowConstraint(
 val TimeWindowConstraint.windowsNumeric: List<TimeWindowNumeric>
   get() = windows.toNumeric()
 
-val TimeWindowConstraint.timeZone: ZoneId
-  get() = ZoneId.of(tz)
-
 /**
  * Numeric day and hour representation of a time window.
  * This format is consistent regardless of how the window is defined in a string.
