@@ -42,7 +42,6 @@ export default defineConfig({
     host: process.env.DECK_HOST,
     // See https://github.com/vitejs/vite/pull/3895 for details on the config.
     https: process.env.DECK_HTTPS === 'true' ? { maxSessionMemory: 100, peerMaxConcurrentStreams: 300 } : false,
-    open: true,
     port: 9000,
   },
 });

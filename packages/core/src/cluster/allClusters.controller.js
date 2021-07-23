@@ -2,6 +2,7 @@
 
 import { module } from 'angular';
 import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
+import _ from 'lodash';
 
 import { CORE_ACCOUNT_ACCOUNT_MODULE } from '../account/account.module';
 import { CloudProviderRegistry, ProviderSelectionService } from '../cloudProvider';

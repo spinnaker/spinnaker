@@ -1,3 +1,5 @@
+import _ from 'lodash';
+
 const poolValueCoordinates = [
   { filterField: 'providerType', on: 'serverGroup', localField: 'type' },
   { filterField: 'account', on: 'serverGroup', localField: 'account' },
