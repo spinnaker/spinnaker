@@ -14,7 +14,7 @@ import com.netflix.spinnaker.keel.core.api.TimeWindow
 import com.netflix.spinnaker.keel.core.api.TimeWindowConstraint
 import com.netflix.spinnaker.keel.core.api.TimeWindowNumeric
 import com.netflix.spinnaker.keel.core.api.windowsNumeric
-import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
+import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
@@ -90,9 +90,9 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
       every { getConstraintState(manifest.name, environment.name, any(), ALLOWED_TIMES_CONSTRAINT_TYPE, any()) } returns pendingState
     }
 
-    val deliveryConfigRepository: DeliveryConfigRepository = mockk()
+    val artifactRepository: ArtifactRepository = mockk()
 
-    val subject = AllowedTimesConstraintEvaluator(clock, dynamicConfigService, mockk(), repository, deliveryConfigRepository)
+    val subject = AllowedTimesConstraintEvaluator(clock, dynamicConfigService, mockk(), repository, artifactRepository)
   }
 
   fun tests() = rootContext<Fixture> {
@@ -134,7 +134,7 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
       context("we have not deployed yet in this window") {
         before {
           every {
-            deliveryConfigRepository.versionsCreatedSince(manifest, environment.name, any())
+            artifactRepository.versionsCreatedSince(manifest, environment.name, any())
           } returns 0
         }
 
@@ -147,7 +147,7 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
       context("we have already deployed several times") {
         before {
           every {
-            deliveryConfigRepository.versionsCreatedSince(manifest, environment.name, any())
+            artifactRepository.versionsCreatedSince(manifest, environment.name, any())
           } returns 2
         }
 

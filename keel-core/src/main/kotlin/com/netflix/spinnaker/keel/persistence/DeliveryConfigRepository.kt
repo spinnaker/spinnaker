@@ -225,15 +225,6 @@ interface DeliveryConfigRepository : PeriodicallyCheckedRepository<DeliveryConfi
     artifact: DeliveryArtifact,
     version: String,
   )
-
-  /**
-   * @return the number of versions of an environment that have been created since [time].
-   */
-  fun versionsCreatedSince(
-    deliveryConfig: DeliveryConfig,
-    environmentName: String,
-    time: Instant
-  ): Int
 }
 
 abstract class NoSuchDeliveryConfigException(message: String) :

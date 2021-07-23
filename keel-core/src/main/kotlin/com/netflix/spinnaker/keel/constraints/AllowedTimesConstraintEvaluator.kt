@@ -15,8 +15,7 @@ import com.netflix.spinnaker.keel.core.api.TimeWindowConstraint
 import com.netflix.spinnaker.keel.core.api.TimeWindowNumeric
 import com.netflix.spinnaker.keel.core.api.lastWindowStartBefore
 import com.netflix.spinnaker.keel.core.api.windowsNumeric
-import com.netflix.spinnaker.keel.exceptions.InvalidConstraintException
-import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
+import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -55,7 +54,7 @@ class AllowedTimesConstraintEvaluator(
   private val dynamicConfigService: DynamicConfigService,
   override val eventPublisher: EventPublisher,
   override val repository: ConstraintRepository,
-  private val deliveryConfigRepository: DeliveryConfigRepository
+  private val artifactRepository: ArtifactRepository
 ) : StatefulConstraintEvaluator<TimeWindowConstraint, AllowedTimesConstraintAttributes> {
   override val attributeType = SupportedConstraintAttributesType<AllowedTimesConstraintAttributes>("allowed-times")
 
@@ -86,7 +85,7 @@ class AllowedTimesConstraintEvaluator(
     if (activeWindow != null && constraint.maxDeploysPerWindow != null) {
       val windowStart = activeWindow.lastWindowStartBefore(now)
 
-      val count = deliveryConfigRepository.versionsCreatedSince(
+      val count = artifactRepository.versionsCreatedSince(
         deliveryConfig,
         targetEnvironment.name,
         windowStart.toInstant()

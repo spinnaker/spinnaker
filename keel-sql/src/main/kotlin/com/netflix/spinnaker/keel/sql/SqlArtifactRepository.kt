@@ -37,6 +37,7 @@ import com.netflix.spinnaker.keel.persistence.ArtifactNotFoundException
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactVersionException
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ACTIVE_ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ARTIFACT_LAST_CHECKED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ARTIFACT_VERSIONS
@@ -66,6 +67,7 @@ import org.springframework.context.ApplicationEventPublisher
 import java.security.MessageDigest
 import java.time.Clock
 import java.time.Duration
+import java.time.Instant
 import java.time.Instant.EPOCH
 import javax.xml.bind.DatatypeConverter
 
@@ -1805,6 +1807,21 @@ class SqlArtifactRepository(
       }
     }
   }
+
+  override fun versionsCreatedSince(
+    deliveryConfig: DeliveryConfig,
+    environmentName: String,
+    time: Instant
+  ): Int =
+    jooq
+      .selectCount()
+      .from(Tables.ENVIRONMENT_VERSION)
+      .join(ENVIRONMENT).on(ENVIRONMENT.UID.eq(Tables.ENVIRONMENT_VERSION.ENVIRONMENT_UID))
+      .join(DELIVERY_CONFIG).on(DELIVERY_CONFIG.UID.eq(ENVIRONMENT.DELIVERY_CONFIG_UID))
+      .where(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
+      .and(ENVIRONMENT.NAME.eq(environmentName))
+      .and(Tables.ENVIRONMENT_VERSION.CREATED_AT.ge(time))
+      .fetchSingleInto<Int>()
 
   private fun priorVersionDeployedIn(
     environmentId: String,

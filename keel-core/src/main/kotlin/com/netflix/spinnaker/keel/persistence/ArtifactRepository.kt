@@ -17,6 +17,7 @@ import com.netflix.spinnaker.keel.core.api.PublishedArtifactInEnvironment
 import com.netflix.spinnaker.keel.services.StatusInfoForArtifactInEnvironment
 import com.netflix.spinnaker.kork.exceptions.UserException
 import java.time.Duration
+import java.time.Instant
 
 interface ArtifactRepository : PeriodicallyCheckedRepository<DeliveryArtifact> {
 
@@ -380,6 +381,15 @@ interface ArtifactRepository : PeriodicallyCheckedRepository<DeliveryArtifact> {
 
     return pending.filter { isOlder(artifact, it, currentVersion) }
   }
+
+  /**
+   * @return the number of versions of an environment that have been created since [time].
+   */
+  fun versionsCreatedSince(
+    deliveryConfig: DeliveryConfig,
+    environmentName: String,
+    time: Instant
+  ): Int
 }
 
 class NoSuchArtifactException(name: String, type: ArtifactType) :
