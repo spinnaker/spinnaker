@@ -12,7 +12,7 @@ import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintAttributesT
 import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintType
 import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.core.api.TimeWindowConstraint
-import com.netflix.spinnaker.keel.core.api.TimeWindowNumeric
+import com.netflix.spinnaker.keel.core.api.activeWindowOrNull
 import com.netflix.spinnaker.keel.core.api.lastWindowStartBefore
 import com.netflix.spinnaker.keel.core.api.windowsNumeric
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.time.Clock
 import java.time.ZoneId
-import java.time.ZonedDateTime
 
 /**
  * An environment promotion constraint to gate promotions to time windows.
@@ -80,7 +79,7 @@ class AllowedTimesConstraintEvaluator(
       .instant()
       .atZone(tz)
 
-    val activeWindow = constraint.windowsNumeric.activeWindowOrNull(now)
+    val activeWindow = constraint.activeWindowOrNull(now)
 
     if (activeWindow != null && constraint.maxDeploysPerWindow != null) {
       val windowStart = activeWindow.lastWindowStartBefore(now)
@@ -104,13 +103,6 @@ class AllowedTimesConstraintEvaluator(
 
     return activeWindow != null
   }
-
-  fun Iterable<TimeWindowNumeric>.activeWindowOrNull(time: ZonedDateTime) =
-    find { window ->
-      val hoursMatch = window.hours.isEmpty() || window.hours.contains(time.hour)
-      val daysMatch = window.days.isEmpty() || window.days.contains(time.dayOfWeek.value)
-      daysMatch && hoursMatch
-    }
 
   override fun canPromote(
     artifact: DeliveryArtifact,
@@ -159,6 +151,7 @@ class AllowedTimesConstraintEvaluator(
 
     return currentlyPassing
   }
+
   private fun defaultTimeZone(): ZoneId =
     ZoneId.of(
       dynamicConfigService.getConfig(String::class.java, "default.time-zone", "America/Los_Angeles")

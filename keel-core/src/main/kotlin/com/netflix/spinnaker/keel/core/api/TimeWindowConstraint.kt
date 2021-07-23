@@ -41,6 +41,16 @@ data class TimeWindowConstraint(
   }
 }
 
+/**
+ * @return the window containing `time` or null if `time` is outside any window.
+ */
+fun TimeWindowConstraint.activeWindowOrNull(time: ZonedDateTime) =
+  windowsNumeric.find { window ->
+    val hoursMatch = window.hours.isEmpty() || window.hours.contains(time.hour)
+    val daysMatch = window.days.isEmpty() || window.days.contains(time.dayOfWeek.value)
+    daysMatch && hoursMatch
+  }
+
 val TimeWindowConstraint.windowsNumeric: List<TimeWindowNumeric>
   get() = windows.toNumeric()
 
