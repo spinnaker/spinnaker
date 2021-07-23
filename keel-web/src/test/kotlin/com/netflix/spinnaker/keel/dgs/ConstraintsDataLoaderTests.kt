@@ -20,7 +20,7 @@ import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.core.api.TimeWindow
 import com.netflix.spinnaker.keel.core.api.TimeWindowConstraint
 import com.netflix.spinnaker.keel.core.api.windowsNumeric
-import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
+import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.rest.dgs.ConstraintsDataLoader
 import com.netflix.spinnaker.keel.rest.dgs.EnvironmentArtifactAndVersion
@@ -43,7 +43,7 @@ class ConstraintsDataLoaderTests: JUnit5Minutests {
   class Fixture {
     val keelRepository: KeelRepository = mockk()
     val constraintRepository: ConstraintRepository = mockk()
-    val deliveryConstraintRepository: DeliveryConfigRepository = mockk()
+    val artifactRepository: ArtifactRepository = mockk()
 
     val clock = MutableClock()
 
@@ -52,7 +52,7 @@ class ConstraintsDataLoaderTests: JUnit5Minutests {
       mockk(relaxed = true),
       mockk(relaxed = true),
       constraintRepository,
-      deliveryConstraintRepository
+      artifactRepository
     )
     val repo: ConstraintRepository = mockk(relaxed = true)
     val mjEvaluator = ManualJudgementConstraintEvaluator(

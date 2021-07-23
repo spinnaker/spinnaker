@@ -13,7 +13,7 @@ import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintType
 import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.core.api.TimeWindowConstraint
 import com.netflix.spinnaker.keel.core.api.activeWindowOrNull
-import com.netflix.spinnaker.keel.core.api.lastWindowStartBefore
+import com.netflix.spinnaker.keel.core.api.windowRange
 import com.netflix.spinnaker.keel.core.api.windowsNumeric
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
@@ -82,12 +82,13 @@ class AllowedTimesConstraintEvaluator(
     val activeWindow = constraint.activeWindowOrNull(now)
 
     if (activeWindow != null && constraint.maxDeploysPerWindow != null) {
-      val windowStart = activeWindow.lastWindowStartBefore(now)
+      val (windowStart, windowEnd) = activeWindow.windowRange(now)
 
-      val count = artifactRepository.versionsCreatedSince(
+      val count = artifactRepository.deploymentsBetween(
         deliveryConfig,
         targetEnvironment.name,
-        windowStart.toInstant()
+        windowStart,
+        windowEnd
       )
 
       if (count >= constraint.maxDeploysPerWindow) {

@@ -9,7 +9,7 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
-import java.time.temporal.ChronoUnit
+import java.time.temporal.ChronoUnit.HOURS
 import java.time.zone.ZoneRulesException
 import java.util.Locale
 
@@ -70,11 +70,17 @@ val TimeWindowNumeric.startHour
   get() = checkNotNull(hours.minOrNull())
 
 /**
+ * The end hour of a time window.
+ */
+val TimeWindowNumeric.endHour
+  get() = checkNotNull(hours.maxOrNull())
+
+/**
  * @param time must be a date/time that is inside the window or result may not be valid.
  * @return the most recent time the window started.
  */
-fun TimeWindowNumeric.lastWindowStartBefore(time: ZonedDateTime): ZonedDateTime =
-  time.withHour(startHour).truncatedTo(ChronoUnit.HOURS)
+fun TimeWindowNumeric.windowRange(time: ZonedDateTime): Pair<ZonedDateTime, ZonedDateTime> =
+  time.withHour(startHour).truncatedTo(HOURS) to time.withHour(endHour).truncatedTo(HOURS)
 
 
 data class TimeWindow(

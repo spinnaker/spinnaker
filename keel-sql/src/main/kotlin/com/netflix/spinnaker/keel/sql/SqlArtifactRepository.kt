@@ -37,7 +37,6 @@ import com.netflix.spinnaker.keel.persistence.ArtifactNotFoundException
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactVersionException
-import com.netflix.spinnaker.keel.persistence.metamodel.Tables
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ACTIVE_ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ARTIFACT_LAST_CHECKED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ARTIFACT_VERSIONS
@@ -47,6 +46,7 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_PIN
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_VETO
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_VERSION
 import com.netflix.spinnaker.keel.services.StatusInfoForArtifactInEnvironment
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
@@ -69,6 +69,7 @@ import java.time.Clock
 import java.time.Duration
 import java.time.Instant
 import java.time.Instant.EPOCH
+import java.time.temporal.TemporalAccessor
 import javax.xml.bind.DatatypeConverter
 
 class SqlArtifactRepository(
@@ -1808,20 +1809,26 @@ class SqlArtifactRepository(
     }
   }
 
-  override fun versionsCreatedSince(
+  override fun deploymentsBetween(
     deliveryConfig: DeliveryConfig,
     environmentName: String,
-    time: Instant
+    startTime: TemporalAccessor,
+    endTime: TemporalAccessor
   ): Int =
-    jooq
-      .selectCount()
-      .from(Tables.ENVIRONMENT_VERSION)
-      .join(ENVIRONMENT).on(ENVIRONMENT.UID.eq(Tables.ENVIRONMENT_VERSION.ENVIRONMENT_UID))
-      .join(DELIVERY_CONFIG).on(DELIVERY_CONFIG.UID.eq(ENVIRONMENT.DELIVERY_CONFIG_UID))
-      .where(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
-      .and(ENVIRONMENT.NAME.eq(environmentName))
-      .and(Tables.ENVIRONMENT_VERSION.CREATED_AT.ge(time))
-      .fetchSingleInto<Int>()
+    (Instant.from(startTime) to Instant.from(endTime)).let { (start, end) ->
+      require(start < end) {
+        "Start time $startTime must be before end time $endTime"
+      }
+      jooq
+        .selectCount()
+        .from(ENVIRONMENT_VERSION)
+        .join(ENVIRONMENT).on(ENVIRONMENT.UID.eq(ENVIRONMENT_VERSION.ENVIRONMENT_UID))
+        .join(DELIVERY_CONFIG).on(DELIVERY_CONFIG.UID.eq(ENVIRONMENT.DELIVERY_CONFIG_UID))
+        .where(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
+        .and(ENVIRONMENT.NAME.eq(environmentName))
+        .and(ENVIRONMENT_VERSION.CREATED_AT.between(start, end))
+        .fetchSingleInto<Int>()
+    }
 
   private fun priorVersionDeployedIn(
     environmentId: String,

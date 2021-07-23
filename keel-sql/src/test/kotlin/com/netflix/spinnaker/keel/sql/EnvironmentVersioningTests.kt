@@ -16,7 +16,6 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_VERSI
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_VERSION_ARTIFACT_VERSION
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
-import com.netflix.spinnaker.keel.sql.deliveryconfigs.versionsCreatedSince
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.configuredTestObjectMapper
 import com.netflix.spinnaker.keel.test.defaultArtifactSuppliers
@@ -382,17 +381,19 @@ class EnvironmentVersioningTests {
       .fetchOne(ACTIVE_ENVIRONMENT.VERSION)!!
 
   private fun versionsEver() =
-    deliveryConfigRepository.versionsCreatedSince(
+    artifactRepository.deploymentsBetween(
       deliveryConfig,
       deliveryConfig.environments.first().name,
-      EPOCH
+      EPOCH,
+      clock.instant().plus(Duration.ofDays(1)).truncatedTo(DAYS)
     )
 
   private fun versionsToday() =
-    deliveryConfigRepository.versionsCreatedSince(
+    artifactRepository.deploymentsBetween(
       deliveryConfig,
       deliveryConfig.environments.first().name,
-      clock.instant().truncatedTo(DAYS)
+      clock.instant().truncatedTo(DAYS),
+      clock.instant().plus(Duration.ofDays(12)).truncatedTo(DAYS)
     )
 
   private fun Table<*>.count() =

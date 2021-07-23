@@ -17,7 +17,7 @@ import com.netflix.spinnaker.keel.core.api.PublishedArtifactInEnvironment
 import com.netflix.spinnaker.keel.services.StatusInfoForArtifactInEnvironment
 import com.netflix.spinnaker.kork.exceptions.UserException
 import java.time.Duration
-import java.time.Instant
+import java.time.temporal.TemporalAccessor
 
 interface ArtifactRepository : PeriodicallyCheckedRepository<DeliveryArtifact> {
 
@@ -383,12 +383,13 @@ interface ArtifactRepository : PeriodicallyCheckedRepository<DeliveryArtifact> {
   }
 
   /**
-   * @return the number of versions of an environment that have been created since [time].
+   * @return the number of times we have deployed to an environment between [startTime] and [endTime].
    */
-  fun versionsCreatedSince(
+  fun deploymentsBetween(
     deliveryConfig: DeliveryConfig,
     environmentName: String,
-    time: Instant
+    startTime: TemporalAccessor,
+    endTime: TemporalAccessor
   ): Int
 }
 

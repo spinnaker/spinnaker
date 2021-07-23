@@ -134,7 +134,7 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
       context("we have not deployed yet in this window") {
         before {
           every {
-            artifactRepository.versionsCreatedSince(manifest, environment.name, any())
+            artifactRepository.deploymentsBetween(manifest, environment.name, any(), any())
           } returns 0
         }
 
@@ -147,7 +147,7 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
       context("we have already deployed several times") {
         before {
           every {
-            artifactRepository.versionsCreatedSince(manifest, environment.name, any())
+            artifactRepository.deploymentsBetween(manifest, environment.name, any(), any())
           } returns 2
         }
 
