@@ -6,7 +6,6 @@ export interface ITitusProviderSettings extends IProviderSettings {
     region?: string;
     iamProfile?: string;
   };
-  bakeWarning?: string;
 }
 
 export const TitusProviderSettings: ITitusProviderSettings = (SETTINGS.providers.titus as ITitusProviderSettings) || {

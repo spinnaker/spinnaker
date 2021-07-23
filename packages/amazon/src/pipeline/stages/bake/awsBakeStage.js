@@ -62,7 +62,10 @@ module(AMAZON_PIPELINE_STAGES_BAKE_AWSBAKESTAGE, [AMAZON_PIPELINE_STAGES_BAKE_BA
         minRootVolumeSize: AWSProviderSettings.minRootVolumeSize,
         showVmTypeSelector: true,
         bakeWarning: AWSProviderSettings.bakeWarning,
+        dockerBakeWarning: AWSProviderSettings.dockerBakeWarning,
+        showDockerPreview: AWSProviderSettings.dockerBakeryDeprecated && $scope.stage.storeType === 'docker',
         showMigrationFields: $scope.pipeline.migrationStatus !== 'Started',
+        showStoreType: !AWSProviderSettings.dockerBakeryDeprecated
       };
 
       function initialize() {
@@ -114,6 +117,9 @@ module(AMAZON_PIPELINE_STAGES_BAKE_AWSBAKESTAGE, [AMAZON_PIPELINE_STAGES_BAKE_BA
 
       function stageUpdated() {
         deleteEmptyProperties();
+        if ($scope.stage.storeType === 'ebs' && $scope.stage.cloudProviderType !== 'aws') {
+          $scope.stage.cloudProviderType = 'aws';
+        }
         // Since the selector computes using stage as an input, it needs to be able to recompute roscoMode on updates
         if (typeof SETTINGS.feature.roscoSelector === 'function') {
           $scope.viewState.roscoMode = SETTINGS.feature.roscoSelector($scope.stage);

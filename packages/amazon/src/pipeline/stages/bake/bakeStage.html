@@ -2,7 +2,38 @@
   <div ng-if="viewState.loading" class="horizontal center middle">
     <loading-spinner size="'small'"></loading-spinner>
   </div>
-  <div ng-if="!viewState.loading">
+  <div ng-if="!viewState.loading && viewState.showDockerPreview">
+    <div ng-if="viewState.dockerBakeWarning" class="alert alert-warning sp-margin-s-top horizontal middle">
+      <i class="fa fa-exclamation-triangle"></i>
+      <div class="sp-margin-s-left">
+        <markdown message="viewState.dockerBakeWarning"></markdown>
+      </div>
+    </div>
+    <div>
+      <div class="alert alert-info horizontal middle">
+          <i class="fa fa-info-circle"></i>
+          <div class="sp-margin-s-left">
+            <markdown message="'To edit bake configuration or view advanced options, migrate to EBS store type.'"></markdown>
+          </div>
+      </div>
+      <stage-config-field label="Store Type" ng-if="!viewState.roscoMode && viewState.showMigrationFields">
+          <label class="radio-inline" ng-repeat="storeType in storeTypes">
+            <input type="radio" ng-model="stage.storeType" ng-value="storeType" />
+            {{storeType | uppercase}}
+          </label>
+        </stage-config-field>
+      <stage-config-field label="Regions">
+          <span class="sp-margin-xs-right" ng-repeat="region in stage.regions">{{region}}</span>
+      </stage-config-field>
+      <stage-config-field label="Skip Region Detection">{{!!stage.skipRegionDetection}}</stage-config-field>
+      <stage-config-field label="Repo Path">{{stage.package}}</stage-config-field>
+      <stage-config-field label="Base OS">{{stage.baseOs}}</stage-config-field>
+      <stage-config-field label="VM Type">{{stage.vmType}}</stage-config-field>
+      <stage-config-field label="Store Type">{{stage.storeType}}</stage-config-field>
+      <stage-config-field label="Base Label">{{stage.baseLabel}}</stage-config-field>
+    </div>
+  </div>
+  <div ng-if="!viewState.loading && !viewState.showDockerPreview">
     <div
       ng-if="pipeline.migrationStatus === 'Started' && viewState.bakeWarning"
       class="alert alert-warning sp-margin-s-top horizontal middle"
@@ -42,11 +73,11 @@
         {{vmType | uppercase}}
       </label>
     </stage-config-field>
-    <stage-config-field label="Store Type" ng-if="!viewState.roscoMode && viewState.showMigrationFields">
-      <label class="radio-inline" ng-repeat="storeType in storeTypes">
-        <input type="radio" ng-model="stage.storeType" ng-value="storeType" />
-        {{storeType | uppercase}}
-      </label>
+    <stage-config-field label="Store Type" ng-if="!viewState.roscoMode && viewState.showMigrationFields && viewState.showStoreType">
+        <label class="radio-inline" ng-repeat="storeType in storeTypes">
+          <input type="radio" ng-model="stage.storeType" ng-value="storeType" />
+          {{storeType | uppercase}}
+        </label>
     </stage-config-field>
     <stage-config-field label="Base Label">
       <label class="radio-inline" ng-repeat="baseLabel in baseLabelOptions">
