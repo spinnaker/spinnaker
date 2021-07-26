@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.2.0](https://github.com/spinnaker/deck/compare/@spinnaker/titus@0.1.4...@spinnaker/titus@0.2.0) (2021-07-26)
+
+
+### Features
+
+* **titus/serverGroup:** View server group scaling activities ([#9444](https://github.com/spinnaker/deck/issues/9444)) ([ade2b6e](https://github.com/spinnaker/deck/commit/ade2b6e808ac393de995675de39d63478abfc6f5))
+
+
+
+
+
 ## [0.1.4](https://github.com/spinnaker/deck/compare/@spinnaker/titus@0.1.3...@spinnaker/titus@0.1.4) (2021-07-22)
 
 **Note:** Version bump only for package @spinnaker/titus
