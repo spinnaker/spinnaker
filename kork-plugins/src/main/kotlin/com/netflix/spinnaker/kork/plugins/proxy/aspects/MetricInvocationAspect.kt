@@ -31,6 +31,7 @@ import java.lang.reflect.Method
 import java.util.concurrent.TimeUnit
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.ObjectProvider
+import java.util.Locale
 
 /**
  * Adds metric instrumentation to extension method invocations.
@@ -160,7 +161,7 @@ class MetricInvocationAspect(
   }
 
   private fun toMetricId(method: Method, metricNamespace: String, annotationMetricId: String?, metricName: String): String? {
-    val methodMetricId = if (method.parameterCount == 0) method.name else String.format("%s%d", method.name, method.parameterCount)
+    val methodMetricId = if (method.parameterCount == 0) method.name else String.format(Locale.US, "%s%d", method.name, method.parameterCount)
     val metricId = if (annotationMetricId.isNullOrEmpty()) methodMetricId else annotationMetricId
     return MethodInstrumentation.toMetricId(metricNamespace, metricId, metricName)
   }

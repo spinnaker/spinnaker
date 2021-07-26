@@ -4,5 +4,5 @@ dependencies {
   api(platform(project(":spinnaker-dependencies")))
 
   api "redis.clients:jedis"
-  api "com.netflix.spinnaker.embedded-redis:embedded-redis"
+  api "io.spinnaker.embedded-redis:embedded-redis"
 }

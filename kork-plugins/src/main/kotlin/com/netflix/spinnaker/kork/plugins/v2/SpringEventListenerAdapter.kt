@@ -49,7 +49,7 @@ class SpringEventListenerAdapter(
    * It's not enough to just look at the immediate interfaces of the type, since it's possible a plugin developer
    * will make an abstract class for all event listeners.
    */
-  @Suppress("TooGenericExceptionCaught")
+  @Suppress("TooGenericExceptionCaught", "SwallowedException")
   private fun findEventType(eventListener: SpinnakerEventListener<*>): Class<*>? {
     return try {
       val eventListenerType = ResolvableType.forInstance(eventListener)

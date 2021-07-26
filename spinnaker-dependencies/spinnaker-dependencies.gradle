@@ -21,7 +21,7 @@ ext {
     retrofit         : "1.9.0",
     retrofit2        : "2.8.1",
     spectator        : "0.103.0",
-    spek             : "1.2.1",
+    spek             : "1.1.5",
     spek2            : "2.0.9",
     spring           : "5.2.9.RELEASE", // this should be kept in sync with spring-boot / removed once the need for a version override is gone
     springBoot       : "2.2.5.RELEASE",
@@ -50,7 +50,7 @@ dependencies {
   api(platform("org.springframework.boot:spring-boot-dependencies:${versions.springBoot}"))
   api(platform("com.amazonaws:aws-java-sdk-bom:${versions.aws}"))
   api(platform("org.springframework.cloud:spring-cloud-dependencies:${versions.springCloud}"))
-  api(platform("io.strikt:strikt-bom:0.29.0"))
+  api(platform("io.strikt:strikt-bom:0.31.0"))
   api(platform("org.spockframework:spock-bom:1.3-groovy-2.5"))
   api(platform("com.oracle.oci.sdk:oci-java-sdk-bom:1.5.17"))
   api(platform("org.testcontainers:testcontainers-bom:1.15.1"))
@@ -90,7 +90,7 @@ dependencies {
     api("com.netflix.spectator:spectator-reg-atlas:${versions.spectator}")
     api("com.netflix.spectator:spectator-web-spring:${versions.spectator}")
     api("com.netflix.spectator:spectator-reg-micrometer:${versions.spectator}")
-    api("com.netflix.spinnaker.embedded-redis:embedded-redis:0.8.0")
+    api("io.spinnaker.embedded-redis:embedded-redis:0.9.0")
     api("com.nhaarman.mockitokotlin2:mockito-kotlin:2.2.0")
     api("com.nhaarman:mockito-kotlin:1.6.0")
     api("com.ninja-squad:springmockk:2.0.3")
@@ -119,7 +119,7 @@ dependencies {
     api("commons-collections:commons-collections:[3.2.2,3.3)")
     api("de.danielbechler:java-object-diff:0.95")
     api("de.huxhorn.sulky:de.huxhorn.sulky.ulid:8.2.0")
-    api("dev.minutest:minutest:1.11.0")
+    api("dev.minutest:minutest:1.13.0")
     api("io.github.resilience4j:resilience4j-annotations:${versions.resilience4j}")
     api("io.github.resilience4j:resilience4j-circuitbreaker:${versions.resilience4j}")
     api("io.github.resilience4j:resilience4j-kotlin:${versions.resilience4j}")

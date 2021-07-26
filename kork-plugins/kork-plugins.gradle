@@ -50,5 +50,13 @@ compileJava {
 }
 
 detekt {
+  // Ignore tests since there are a number of warnings.  As of version 1.17.0,
+  // detekt scans test code (i.e. src/test/java and src/test/kotlin) by default.
+  // See https://detekt.github.io/detekt/changelog.html#notable-changes-2 and
+  // https://github.com/detekt/detekt/pull/3649.
+  input = files(
+    "src/main/java",
+    "src/main/kotlin"
+  )
   ignoreFailures = false
 }
