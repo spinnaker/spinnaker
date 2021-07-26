@@ -16,7 +16,9 @@ dependencies {
   implementation "io.spinnaker.kork:kork-annotations"
   implementation "io.spinnaker.kork:kork-config"
   implementation "io.spinnaker.kork:kork-cloud-config-server"
+  implementation "io.spinnaker.kork:kork-secrets"
   implementation "org.apache.commons:commons-lang3"
   implementation "org.springframework.cloud:spring-cloud-context"
   implementation "org.springframework.cloud:spring-cloud-config-server"
+  implementation "com.github.wnameless.json:json-flattener:0.11.1"
 }

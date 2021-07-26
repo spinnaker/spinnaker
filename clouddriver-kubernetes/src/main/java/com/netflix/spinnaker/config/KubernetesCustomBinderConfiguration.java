@@ -44,6 +44,6 @@ public class KubernetesCustomBinderConfiguration {
   @RefreshScope
   public KubernetesConfigurationProperties kubernetesConfigurationProperties(
       BootstrapKubernetesConfigurationProvider bootstrapKubernetesConfigurationProvider) {
-    return bootstrapKubernetesConfigurationProvider.getKubernetesConfigurationProperties();
+    return bootstrapKubernetesConfigurationProvider.getConfigurationProperties();
   }
 }

@@ -52,6 +52,7 @@ dependencies {
   implementation project(":clouddriver-api")
   implementation project(":clouddriver-artifacts")
   implementation project(":clouddriver-core")
+  implementation project(":clouddriver-configserver")
   implementation project(":cats:cats-core")
   implementation project(":clouddriver-security")
 
