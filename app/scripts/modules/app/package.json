@@ -1,7 +1,7 @@
 {
   "name": "deck-app",
   "private": true,
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -25,7 +25,7 @@
     "@spinnaker/kubernetes": "^0.0.80",
     "@spinnaker/oracle": "^0.0.36",
     "@spinnaker/styleguide": "^1.0.26",
-    "@spinnaker/titus": "^0.2.0",
+    "@spinnaker/titus": "^0.2.1",
     "@uirouter/angularjs": "1.0.26",
     "angular": "1.6.10",
     "graphql": "15.5.0",
