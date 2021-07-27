@@ -47,8 +47,10 @@ jobs:
       - name: lerna - Bump packages
         run: |
           npx lerna version --yes --no-push --conventional-commits
+          if [[ $(git rev-list --count @{u}..HEAD) -ne 0 ]] ; then
           # Fix the lerna commit message to also use conventional commits
-          git commit --amend -m "$(git log -1 --pretty=%B | sed -e 's/^Publish/chore(publish): publish packages/')"
+            git commit --amend -m "$(git log -1 --pretty=%B | sed -e 's/^Publish/chore(publish): publish packages/')"
+          fi
 
       - name: gha - get bumped packages
         id: bumps
