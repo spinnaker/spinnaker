@@ -13,6 +13,7 @@ type MdApplication {
   pausedInfo: MdPausedInfo
   environments: [MdEnvironment!]!
   notifications: [MdNotification!]
+  rawConfig: String
 }
 
 type MdEnvironment {

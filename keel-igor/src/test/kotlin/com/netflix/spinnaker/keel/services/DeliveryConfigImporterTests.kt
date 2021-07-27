@@ -9,9 +9,10 @@ import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.front50.Front50Cache
 import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
+import com.netflix.spinnaker.keel.igor.RawDeliveryConfigResult
 import com.netflix.spinnaker.keel.igor.model.Branch
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
-import com.netflix.spinnaker.keel.test.configuredTestObjectMapper
+import com.netflix.spinnaker.keel.test.configuredTestYamlMapper
 import com.netflix.spinnaker.keel.test.deliveryConfig
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -21,17 +22,15 @@ import retrofit.RetrofitError
 import retrofit.client.Response
 import strikt.api.expectCatching
 import strikt.api.expectThat
+import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
+import strikt.assertions.isNotNull
 
 class DeliveryConfigImporterTests : JUnit5Minutests {
   object Fixture {
-    val jsonMapper: ObjectMapper = configuredTestObjectMapper()
-      .apply {
-        registerSubtypes(
-          NamedType(DummyResourceSpec::class.java, "test/whatever@v1")
-        )
-      }
+    val yamlMapper = configuredTestYamlMapper()
+      .registerDummyResource()
     val scmService: ScmService = mockk()
     val front50Cache: Front50Cache = mockk()
     val application = Application(
@@ -41,9 +40,17 @@ class DeliveryConfigImporterTests : JUnit5Minutests {
       repoProjectKey = "proj",
       repoSlug = "repo"
     )
-    val deliveryConfig: DeliveryConfig = deliveryConfig()
-    val submittedDeliveryConfig: SubmittedDeliveryConfig = jsonMapper.convertValue(deliveryConfig)
-    val importer = DeliveryConfigImporter(jsonMapper, scmService, front50Cache)
+    val deliveryConfig: DeliveryConfig = deliveryConfig().run {
+      copy(rawConfig = yamlMapper.writeValueAsString(this))
+    }
+    val submittedDeliveryConfig: SubmittedDeliveryConfig = yamlMapper.convertValue(deliveryConfig)
+    val importer = DeliveryConfigImporter(scmService, front50Cache, yamlMapper)
+
+    private fun <T : ObjectMapper> T.registerDummyResource() = apply {
+      registerSubtypes(
+        NamedType(DummyResourceSpec::class.java, "test/whatever@v1")
+      )
+    }
   }
 
   fun tests() = rootContext<Fixture> {
@@ -53,8 +60,8 @@ class DeliveryConfigImporterTests : JUnit5Minutests {
       context("with a valid delivery config in source control") {
         before {
           every {
-            scmService.getDeliveryConfigManifest("stash", "proj", "repo", "spinnaker.yml", any())
-          } returns jsonMapper.convertValue(submittedDeliveryConfig)
+            scmService.getDeliveryConfigManifest("stash", "proj", "repo", "spinnaker.yml", any(), true)
+          } returns RawDeliveryConfigResult(manifest = deliveryConfig.rawConfig!!)
         }
 
         test("succeeds with metadata added") {
@@ -120,7 +127,7 @@ class DeliveryConfigImporterTests : JUnit5Minutests {
 
         before {
           every {
-            scmService.getDeliveryConfigManifest("stash", "proj", "repo", "spinnaker.yml", any())
+            scmService.getDeliveryConfigManifest("stash", "proj", "repo", "spinnaker.yml", any(), any())
           } throws retrofitError
         }
 

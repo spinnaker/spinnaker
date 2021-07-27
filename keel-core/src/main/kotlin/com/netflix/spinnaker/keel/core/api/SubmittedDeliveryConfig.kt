@@ -29,11 +29,13 @@ data class SubmittedDeliveryConfig(
   val artifacts: Set<DeliveryArtifact> = emptySet(),
   val environments: Set<SubmittedEnvironment> = emptySet(),
   val previewEnvironments: Set<PreviewEnvironmentSpec> = emptySet(),
-  val metadata: Map<String, Any?>? = emptyMap()
+  val metadata: Map<String, Any?>? = emptyMap(),
+  val rawConfig: String? = null
 ) {
+
   val safeName: String
     @JsonIgnore get() = name ?: "$application-manifest"
-  
+
   fun toDeliveryConfig(): DeliveryConfig = DeliveryConfig(
     name = safeName,
     application = application,
@@ -51,7 +53,8 @@ data class SubmittedDeliveryConfig(
       env.toEnvironment()
     },
     previewEnvironments = previewEnvironments,
-    metadata = metadata ?: emptyMap()
+    metadata = metadata ?: emptyMap(),
+    rawConfig = rawConfig
   )
 }
 

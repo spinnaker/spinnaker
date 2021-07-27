@@ -56,6 +56,7 @@ import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import strikt.assertions.isNotEmpty
+import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.isSuccess
 import strikt.assertions.map
@@ -91,7 +92,15 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
       name = "fnord",
       application = "fnord",
       serviceAccount = "keel@spinnaker",
-      metadata = mapOf("some" to "meta")
+      metadata = mapOf("some" to "meta"),
+      rawConfig = """
+            ---
+            # This can be any string you want
+            name: fnord
+            application: fnord
+            serviceAccount: keel@netlix.com
+            artifacts: []
+            """
     )
   ) {
     private val resourceSpecIdentifier: ResourceSpecIdentifier =
@@ -228,6 +237,7 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
             get { name }.isEqualTo(deliveryConfig.name)
             get { application }.isEqualTo(deliveryConfig.application)
             get { metadata }.isNotEmpty()
+            get { rawConfig }.isNotNull()
           }
       }
 
@@ -238,8 +248,11 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
             get { name }.isEqualTo(deliveryConfig.name)
             get { application }.isEqualTo(deliveryConfig.application)
             get { metadata }.isNotEmpty()
+            get { rawConfig }.isNotNull()
           }
       }
+
+
 
       test("config can be rechecked") {
         val firstCheck = repository.itemsDueForCheck(Duration.ofMinutes(2), 1)
@@ -320,18 +333,20 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
           storeResources()
           store()
 
-          copy(deliveryConfig = deliveryConfig.copy(serviceAccount = "new-service-account@spinnaker.io"))
+          copy(deliveryConfig = deliveryConfig.copy(serviceAccount = "new-service-account@spinnaker.io", rawConfig = "fakeConfig"))
         }
 
         before {
           store()
         }
 
-        test("the service account can be updated") {
+        test("the service account and raw config can be updated") {
           getByName()
             .isSuccess()
-            .get { serviceAccount }
-            .isEqualTo(deliveryConfig.serviceAccount)
+            .and {
+              get { serviceAccount }.isEqualTo(deliveryConfig.serviceAccount)
+              get { rawConfig }.isEqualTo(deliveryConfig.rawConfig)
+            }
         }
       }
 

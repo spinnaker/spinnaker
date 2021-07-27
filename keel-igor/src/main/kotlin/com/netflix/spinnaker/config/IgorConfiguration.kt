@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.keel.front50.Front50Cache
 import com.netflix.spinnaker.keel.igor.artifact.ArtifactService
@@ -15,7 +16,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
 
 @Configuration
 class IgorConfiguration {
@@ -47,10 +47,10 @@ class IgorConfiguration {
 
   @Bean
   fun deliveryConfigImporter(
-    objectMapper: ObjectMapper,
     scmService: ScmService,
-    front50Cache: Front50Cache
-  ) = DeliveryConfigImporter(objectMapper, scmService, front50Cache)
+    front50Cache: Front50Cache,
+    yamlMapper: YAMLMapper
+  ) = DeliveryConfigImporter(scmService, front50Cache, yamlMapper)
 
   private inline fun <reified T> buildService(
     objectMapper: ObjectMapper,

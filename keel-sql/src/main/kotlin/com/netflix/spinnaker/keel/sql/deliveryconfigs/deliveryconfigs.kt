@@ -40,16 +40,18 @@ internal fun SqlStorageContext.deliveryConfigByName(
       DELIVERY_CONFIG.NAME,
       DELIVERY_CONFIG.APPLICATION,
       DELIVERY_CONFIG.SERVICE_ACCOUNT,
-      DELIVERY_CONFIG.METADATA
+      DELIVERY_CONFIG.METADATA,
+      DELIVERY_CONFIG.RAW_CONFIG
     )
       .from(DELIVERY_CONFIG)
       .where(DELIVERY_CONFIG.NAME.eq(name))
-      .fetchOne { (uid, name, application, serviceAccount, metadata) ->
+      .fetchOne { (uid, name, application, serviceAccount, metadata, rawConfig) ->
         uid to DeliveryConfig(
           name = name,
           application = application,
           serviceAccount = serviceAccount,
-          metadata = (metadata ?: emptyMap()) + mapOf("createdAt" to ULID.parseULID(uid).timestampAsInstant())
+          metadata = (metadata ?: emptyMap()) + mapOf("createdAt" to ULID.parseULID(uid).timestampAsInstant()),
+          rawConfig = rawConfig
         )
       }
       ?.let { (_, deliveryConfig) ->

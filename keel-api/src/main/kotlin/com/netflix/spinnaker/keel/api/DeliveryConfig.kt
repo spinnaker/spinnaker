@@ -13,6 +13,7 @@ data class DeliveryConfig(
   val apiVersion: String = "delivery.config.spinnaker.netflix.com/v1",
   @get:ExcludedFromDiff
   val metadata: Map<String, Any?> = emptyMap(),
+  val rawConfig: String? = null
 ) {
   @get:ExcludedFromDiff
   val resources: Set<Resource<*>>

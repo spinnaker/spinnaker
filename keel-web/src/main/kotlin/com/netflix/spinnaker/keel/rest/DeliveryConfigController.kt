@@ -1,7 +1,9 @@
 package com.netflix.spinnaker.keel.rest
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
@@ -36,6 +38,8 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import java.io.BufferedReader
+import javax.servlet.http.HttpServletRequest
 import io.swagger.v3.oas.annotations.parameters.RequestBody as SwaggerRequestBody
 import org.springframework.core.env.Environment as SpringEnvironment
 
@@ -51,6 +55,7 @@ class DeliveryConfigController(
   private val generator: Generator,
   private val publisher: ApplicationEventPublisher,
   private val mapper: ObjectMapper,
+  private val yamlMapper: YAMLMapper,
   private val springEnv: SpringEnvironment
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -65,18 +70,19 @@ class DeliveryConfigController(
     consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
-  @PreAuthorize(
-    """@authorizationSupport.hasApplicationPermission('WRITE', 'APPLICATION', #deliveryConfig.application)
-    and @authorizationSupport.hasServiceAccountAccess(#deliveryConfig.serviceAccount)"""
-  )
   fun upsert(
-    @RequestBody
-    @SwaggerRequestBody(
-      description = "The delivery config. If its `name` matches an existing delivery config the operation is " +
-        "an update, otherwise a new delivery config is created."
-    )
-    deliveryConfig: SubmittedDeliveryConfig
+    req: HttpServletRequest
   ): DeliveryConfig {
+    var rawDeliveryConfig: String
+    BufferedReader(req.inputStream.reader()).use { reader ->
+      rawDeliveryConfig = reader.readText()
+    }
+    val submittedDeliveryConfig = yamlMapper.readValue<SubmittedDeliveryConfig>(rawDeliveryConfig).copy(rawConfig = rawDeliveryConfig)
+    submittedDeliveryConfig.checkPermissions()
+    return upsertConfig(submittedDeliveryConfig)
+  }
+
+  private fun upsertConfig(deliveryConfig: SubmittedDeliveryConfig): DeliveryConfig {
     val metadata: Map<String,Any?> = deliveryConfig.metadata ?: mapOf()
     val gitMetadata: GitMetadata? = try {
       val candidateMetadata = metadata.getOrDefault("gitMetadata", null)
@@ -196,12 +202,16 @@ class DeliveryConfigController(
     val deliveryConfig =
       importer.import(repoType, projectKey, repoSlug, manifestPath, ref ?: "refs/heads/master")
 
-    authorizationSupport.checkApplicationPermission(WRITE, APPLICATION, deliveryConfig.application)
-    deliveryConfig.serviceAccount?.also {
+    deliveryConfig.checkPermissions()
+
+    return upsertConfig(deliveryConfig)
+  }
+
+  private fun SubmittedDeliveryConfig.checkPermissions() {
+    authorizationSupport.checkApplicationPermission(WRITE, APPLICATION, application)
+    serviceAccount?.also {
       authorizationSupport.checkServiceAccountAccess(SERVICE_ACCOUNT, it)
     }
-
-    return upsert(deliveryConfig)
   }
 
   @Operation(

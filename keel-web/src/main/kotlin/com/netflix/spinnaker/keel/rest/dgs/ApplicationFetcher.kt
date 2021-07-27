@@ -32,6 +32,7 @@ import com.netflix.spinnaker.keel.graphql.types.MdResourceActuationState
 import com.netflix.spinnaker.keel.graphql.types.MdResourceActuationStatus
 import com.netflix.spinnaker.keel.graphql.types.MdResourceTask
 import com.netflix.spinnaker.keel.graphql.types.MdVersionVeto
+import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
 import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.DismissibleNotificationRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
@@ -55,7 +56,8 @@ class ApplicationFetcher(
   private val actuationPauser: ActuationPauser,
   private val artifactVersionLinks: ArtifactVersionLinks,
   private val applicationFetcherSupport: ApplicationFetcherSupport,
-  private val notificationRepository: DismissibleNotificationRepository
+  private val notificationRepository: DismissibleNotificationRepository,
+  private val deliveryConfigImporter: DeliveryConfigImporter
 ) {
 
   @DgsData(parentType = DgsConstants.QUERY.TYPE_NAME, field = DgsConstants.QUERY.Application)
@@ -102,7 +104,8 @@ class ApplicationFetcher(
       id = config.application,
       name = config.application,
       account = config.serviceAccount,
-      environments = environments
+      environments = environments,
+      rawConfig = config.rawConfig
     )
   }
 
@@ -110,6 +113,17 @@ class ApplicationFetcher(
   fun isPaused(dfe: DgsDataFetchingEnvironment): Boolean {
     val app: MdApplication = dfe.getSource()
     return actuationPauser.applicationIsPaused(app.name)
+  }
+
+  @DgsData(parentType = DgsConstants.MDAPPLICATION.TYPE_NAME, field = DgsConstants.MDAPPLICATION.RawConfig)
+  fun rawConfig(dfe: DgsDataFetchingEnvironment): String? {
+    val app: MdApplication = dfe.getSource()
+    // Use the raw config from the DB if exists, otherwise fall back to fetching it from source control
+    return if (app.rawConfig.isNullOrBlank()) {
+      deliveryConfigImporter.import(app.name, addMetadata = false).rawConfig
+    } else {
+      app.rawConfig
+    }
   }
 
   @DgsData(parentType = DgsConstants.MDAPPLICATION.TYPE_NAME, field = DgsConstants.MDAPPLICATION.PausedInfo)

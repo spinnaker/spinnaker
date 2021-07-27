@@ -106,6 +106,7 @@ class ApplicationController(
     @PathVariable("application") application: String
   ): DeliveryConfig = applicationService.getDeliveryConfig(application)
 
+  // TODO: remove this function after updating the frontend
   @GetMapping(
     path = ["/{application}/config/raw"],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]

@@ -1,6 +1,8 @@
 package com.netflix.spinnaker.keel.igor
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.scm.CommitCreatedEvent
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.front50.Front50Cache
@@ -12,9 +14,9 @@ import org.slf4j.LoggerFactory
  * Provides functionality to import delivery config manifests from source control repositories (via igor).
  */
 class DeliveryConfigImporter(
-  private val jsonMapper: ObjectMapper,
   private val scmService: ScmService,
-  private val front50Cache: Front50Cache
+  private val front50Cache: Front50Cache,
+  private val yamlMapper: YAMLMapper,
 ) {
   companion object {
     private val log by lazy { LoggerFactory.getLogger(DeliveryConfigImporter::class.java) }
@@ -35,9 +37,10 @@ class DeliveryConfigImporter(
     val manifestLocation = "$repoType://project:$projectKey/repo:$repoSlug/manifest:$manifestPath@$ref"
 
     log.debug("Retrieving delivery config from $manifestLocation")
-    val submittedDeliveryConfig = runBlocking {
-      scmService.getDeliveryConfigManifest(repoType, projectKey, repoSlug, manifestPath, ref)
-    }
+    val rawDeliveryConfig = runBlocking {
+      scmService.getDeliveryConfigManifest(repoType, projectKey, repoSlug, manifestPath, ref, true)
+    }.manifest
+    val submittedDeliveryConfig = yamlMapper.readValue<SubmittedDeliveryConfig>(rawDeliveryConfig).copy(rawConfig = rawDeliveryConfig)
 
     log.debug("Successfully retrieved delivery config from $manifestLocation.")
     return if (addMetadata) {

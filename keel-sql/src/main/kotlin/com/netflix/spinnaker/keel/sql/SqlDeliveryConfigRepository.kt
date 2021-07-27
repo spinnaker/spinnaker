@@ -108,16 +108,18 @@ class SqlDeliveryConfigRepository(
           DELIVERY_CONFIG.NAME,
           DELIVERY_CONFIG.APPLICATION,
           DELIVERY_CONFIG.SERVICE_ACCOUNT,
-          DELIVERY_CONFIG.METADATA
+          DELIVERY_CONFIG.METADATA,
+          DELIVERY_CONFIG.RAW_CONFIG
         )
         .from(DELIVERY_CONFIG)
         .where(DELIVERY_CONFIG.APPLICATION.eq(application))
-        .fetchOne { (uid, name, application, serviceAccount, metadata) ->
+        .fetchOne { (uid, name, application, serviceAccount, metadata, rawConfig) ->
           DeliveryConfig(
             name = name,
             application = application,
             serviceAccount = serviceAccount,
-            metadata = (metadata ?: emptyMap()) + mapOf("createdAt" to ULID.parseULID(uid).timestampAsInstant())
+            metadata = (metadata ?: emptyMap()) + mapOf("createdAt" to ULID.parseULID(uid).timestampAsInstant()),
+            rawConfig = rawConfig
           ).let {
             attachDependents(it)
           }
@@ -267,9 +269,11 @@ class SqlDeliveryConfigRepository(
         .set(DELIVERY_CONFIG.APPLICATION, application)
         .set(DELIVERY_CONFIG.SERVICE_ACCOUNT, serviceAccount)
         .set(DELIVERY_CONFIG.METADATA, metadata)
+        .set(DELIVERY_CONFIG.RAW_CONFIG, rawConfig)
         .onDuplicateKeyUpdate()
         .set(DELIVERY_CONFIG.SERVICE_ACCOUNT, serviceAccount)
         .set(DELIVERY_CONFIG.METADATA, metadata)
+        .set(DELIVERY_CONFIG.RAW_CONFIG, rawConfig)
         .execute()
 
       artifacts.forEach { artifact ->
