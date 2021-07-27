@@ -39,6 +39,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import java.io.BufferedReader
+import java.io.InputStream
 import javax.servlet.http.HttpServletRequest
 import io.swagger.v3.oas.annotations.parameters.RequestBody as SwaggerRequestBody
 import org.springframework.core.env.Environment as SpringEnvironment
@@ -94,16 +95,22 @@ class DeliveryConfigController(
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
   fun upsertRaw(
-    req: HttpServletRequest
+    stream: InputStream
   ): DeliveryConfig {
     var rawDeliveryConfig: String
-    BufferedReader(req.inputStream.reader()).use { reader ->
-      rawDeliveryConfig = reader.readText()
+    BufferedReader(stream.reader()).use { reader ->
+      rawDeliveryConfig = reader.readText().trim('\'')
     }
-    val submittedDeliveryConfig =
-      yamlMapper.readValue<SubmittedDeliveryConfig>(rawDeliveryConfig).copy(rawConfig = rawDeliveryConfig)
-    submittedDeliveryConfig.checkPermissions()
-    return upsertConfig(submittedDeliveryConfig)
+    log.debug(rawDeliveryConfig)
+    try {
+      val submittedDeliveryConfig =
+        yamlMapper.readValue<SubmittedDeliveryConfig>(rawDeliveryConfig).copy(rawConfig = rawDeliveryConfig)
+      submittedDeliveryConfig.checkPermissions()
+      return upsertConfig(submittedDeliveryConfig)
+    } catch (e: Exception) {
+      log.error("Failed to parse yaml", e)
+      throw(e)
+    }
   }
 
   private fun upsertConfig(deliveryConfig: SubmittedDeliveryConfig): DeliveryConfig {

@@ -282,6 +282,33 @@ internal class DeliveryConfigControllerTests
           }
         }
 
+        derivedContext<ResultActions>("raw - persisting a delivery config as $contentType") {
+          fixture {
+            every {
+              repository.upsertDeliveryConfig(ofType<SubmittedDeliveryConfig>())
+            } answers {
+              firstArg<SubmittedDeliveryConfig>().toDeliveryConfig()
+            }
+
+            every { repository.getDeliveryConfigForApplication(deliveryConfig.application) } returns deliveryConfig.toDeliveryConfig()
+
+            val request = post("/delivery-configs/upsert")
+              .accept(contentType)
+              .contentType(contentType)
+              .content(payload)
+
+            mvc.perform(request)
+          }
+
+          test("the request is successful") {
+            andExpect(status().isOk)
+          }
+
+          test("the manifest is persisted") {
+            verify { repository.upsertDeliveryConfig(match<SubmittedDeliveryConfig> { it.application == "keel" }) }
+          }
+        }
+
         derivedContext<ResultActions>("the submitted manifest is missing a required field") {
           fixture {
             val mapper = when (contentType) {
