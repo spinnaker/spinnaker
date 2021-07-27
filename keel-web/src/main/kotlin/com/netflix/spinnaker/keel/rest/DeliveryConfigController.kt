@@ -70,14 +70,38 @@ class DeliveryConfigController(
     consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
+  @PreAuthorize(
+    """@authorizationSupport.hasApplicationPermission('WRITE', 'APPLICATION', #deliveryConfig.application)
+    and @authorizationSupport.hasServiceAccountAccess(#deliveryConfig.serviceAccount)"""
+  )
   fun upsert(
+    @RequestBody
+    @SwaggerRequestBody(
+      description = "The delivery config. If its `name` matches an existing delivery config the operation is " +
+        "an update, otherwise a new delivery config is created."
+    )
+    deliveryConfig: SubmittedDeliveryConfig
+  ): DeliveryConfig {
+    return upsertConfig(deliveryConfig)
+  }
+
+  @Operation(
+    description = "Registers or updates a delivery config manifest."
+  )
+  @PostMapping(
+    path = ["/upsert"],
+    consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE],
+    produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
+  )
+  fun upsertRaw(
     req: HttpServletRequest
   ): DeliveryConfig {
     var rawDeliveryConfig: String
     BufferedReader(req.inputStream.reader()).use { reader ->
       rawDeliveryConfig = reader.readText()
     }
-    val submittedDeliveryConfig = yamlMapper.readValue<SubmittedDeliveryConfig>(rawDeliveryConfig).copy(rawConfig = rawDeliveryConfig)
+    val submittedDeliveryConfig =
+      yamlMapper.readValue<SubmittedDeliveryConfig>(rawDeliveryConfig).copy(rawConfig = rawDeliveryConfig)
     submittedDeliveryConfig.checkPermissions()
     return upsertConfig(submittedDeliveryConfig)
   }
@@ -109,7 +133,13 @@ class DeliveryConfigController(
         log.debug("Upserting delivery config '${processedDeliveryConfig.name}' for app '${processedDeliveryConfig.application}'")
         val config = repository.upsertDeliveryConfig(processedDeliveryConfig)
         if (shouldNotifyOfConfigChange(existing, config)) {
-          publisher.publishEvent(DeliveryConfigChangedNotification(config = config, gitMetadata = gitMetadata, new = existing == null))
+          publisher.publishEvent(
+            DeliveryConfigChangedNotification(
+              config = config,
+              gitMetadata = gitMetadata,
+              new = existing == null
+            )
+          )
         }
         return config
       }
