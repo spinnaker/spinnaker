@@ -53,12 +53,12 @@ export const TitusScalingActivitiesModal = ({ dismissModal, serverGroup }: ITitu
               <h4>{`There was an error loading scaling activities for ${serverGroup.name}. Please try again later.`}</h4>
             </div>
           )}
-          {!loading && !error && !scalingActivities.length && (
+          {!loading && !error && !Boolean(scalingActivities.length) && (
             <div className="horizontal center sp-margin-xl-yaxis">
               <h4>{`No scaling activities found for ${serverGroup.name}.`}</h4>
             </div>
           )}
-          {!loading && !error && scalingActivities.length && (
+          {!loading && !error && Boolean(scalingActivities.length) && (
             <div className="middle sp-margin-xl-yaxis">
               {scalingActivities.map((a: ITitusScalingEvent, i) => (
                 <div key={`${i}-${a.jobId}`} className="sp-margin-xl-yaxis">
