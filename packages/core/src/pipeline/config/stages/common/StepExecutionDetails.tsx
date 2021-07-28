@@ -3,6 +3,7 @@ import React from 'react';
 
 import { ExecutionDetailsSectionNav } from '../../../details';
 import { IExecutionDetailsProps, IExecutionDetailsState } from '../../../../domain';
+import { SpinErrorBoundary } from '../../../../presentation';
 import { ReactInjector } from '../../../../reactShims';
 
 export class StepExecutionDetails extends React.Component<IExecutionDetailsProps, IExecutionDetailsState> {
@@ -45,7 +46,9 @@ export class StepExecutionDetails extends React.Component<IExecutionDetailsProps
       <div>
         <ExecutionDetailsSectionNav sections={configSections} />
         {this.props.detailsSections.map((Section) => (
-          <Section key={Section.title} name={Section.title} current={currentSection} {...this.props} />
+          <SpinErrorBoundary category="StepExecutionDetails.Section" key={Section.title}>
+            <Section name={Section.title} current={currentSection} {...this.props} />
+          </SpinErrorBoundary>
         ))}
       </div>
     );

@@ -6,6 +6,7 @@ import { StepDetails } from './StepDetails';
 import { Application } from '../../application/application.model';
 import { IExecution, IExecutionStage, IExecutionStageSummary, IStageTypeConfig } from '../../domain';
 import { ExecutionFilterService } from '../filter/executionFilter.service';
+import { SpinErrorBoundary } from '../../presentation';
 import { ReactInjector } from '../../reactShims';
 import { Registry } from '../../registry';
 
@@ -221,16 +222,18 @@ export class StageExecutionDetails extends React.Component<IStageExecutionDetail
     const { detailsStageConfig, stage, stageSummary, summaryStageConfig } = this.state;
 
     return (
-      <div className="execution-details">
-        <StageSummary
-          application={application}
-          execution={execution}
-          config={summaryStageConfig}
-          stage={stage}
-          stageSummary={stageSummary}
-        />
-        <StepDetails application={application} execution={execution} stage={stage} config={detailsStageConfig} />
-      </div>
+      <SpinErrorBoundary category="StageExecutionDetails">
+        <div className="execution-details">
+          <StageSummary
+            application={application}
+            execution={execution}
+            config={summaryStageConfig}
+            stage={stage}
+            stageSummary={stageSummary}
+          />
+          <StepDetails application={application} execution={execution} stage={stage} config={detailsStageConfig} />
+        </div>
+      </SpinErrorBoundary>
     );
   }
 }
