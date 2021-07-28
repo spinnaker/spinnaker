@@ -36,6 +36,8 @@ jobs:
       - name: build all packages
         if: ${{ steps.tag.outputs.tagged == 'true' }}
         run: npx lerna run build
+        env:
+          NODE_ENV: production
 
       - name: publish packages to npm
         if: ${{ steps.tag.outputs.tagged == 'true' }}
