@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import strip from 'rollup-plugin-strip-code';
 import { defineConfig } from 'vite';
+import htmlConfigPlugin from 'vite-plugin-html-config';
 
 import angularTemplateLoader from '@spinnaker/scripts/helpers/rollup-plugin-angularjs-template-loader';
 
@@ -16,32 +17,37 @@ if (fs.existsSync(envLocalFilePath)) {
   });
 }
 
-export default defineConfig({
-  clearScreen: false,
-  plugins: [
-    strip({
-      exclude: /node_modules/,
-      pattern: new RegExp(
-        `([\\t ]*\\/\\*! ?Start - Rollup Remove ?\\*\\/)[\\s\\S]*?(\\/\\*! ?End - Rollup Remove ?\\*\\/[\\t ]*\\n?)`,
-        'g',
+export default defineConfig(({ command }) => {
+  return {
+    clearScreen: false,
+    plugins: [
+      htmlConfigPlugin(
+        command === 'build' ? { favicon: 'icons/prod-favicon.ico' } : { favicon: 'icons/dev-favicon.ico' },
       ),
-    }),
-    angularTemplateLoader({ sourceMap: true }),
-  ],
-  resolve: {
-    alias: [
-      { find: 'root', replacement: DECK_ROOT },
-      {
-        find: 'coreImports',
-        replacement: `${NODE_MODULE_PATH}/@spinnaker/core/src/presentation/less/imports/commonImports.less`,
-      },
+      strip({
+        exclude: /node_modules/,
+        pattern: new RegExp(
+          `([\\t ]*\\/\\*! ?Start - Rollup Remove ?\\*\\/)[\\s\\S]*?(\\/\\*! ?End - Rollup Remove ?\\*\\/[\\t ]*\\n?)`,
+          'g',
+        ),
+      }),
+      angularTemplateLoader({ sourceMap: true }),
     ],
-    mainFields: ['module', 'jsnext:main', 'jsnext', 'main:esnext'],
-  },
-  server: {
-    host: process.env.DECK_HOST,
-    // See https://github.com/vitejs/vite/pull/3895 for details on the config.
-    https: process.env.DECK_HTTPS === 'true' ? { maxSessionMemory: 100, peerMaxConcurrentStreams: 300 } : false,
-    port: 9000,
-  },
+    resolve: {
+      alias: [
+        { find: 'root', replacement: DECK_ROOT },
+        {
+          find: 'coreImports',
+          replacement: `${NODE_MODULE_PATH}/@spinnaker/core/src/presentation/less/imports/commonImports.less`,
+        },
+      ],
+      mainFields: ['module', 'jsnext:main', 'jsnext', 'main:esnext'],
+    },
+    server: {
+      host: process.env.DECK_HOST,
+      // See https://github.com/vitejs/vite/pull/3895 for details on the config.
+      https: process.env.DECK_HTTPS === 'true' ? { maxSessionMemory: 100, peerMaxConcurrentStreams: 300 } : false,
+      port: 9000,
+    },
+  };
 });

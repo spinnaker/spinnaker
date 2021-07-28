@@ -18829,6 +18829,11 @@ verror@1.10.0:
     core-util-is "1.0.2"
     extsprintf "^1.2.0"
 
+vite-plugin-html-config@^1.0.5:
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/vite-plugin-html-config/-/vite-plugin-html-config-1.0.5.tgz#1265e2f876941410a204aa15dfaf4fd7d587ee7d"
+  integrity sha512-2v/nLbpFUofCsa19tw/ZcsqautjV2bBpYZH44ysxN2M1QXrnpYLgJhDUE918rKGsN0gTQ0Ej48luTaj5akTM7Q==
+
 vite@2.4.2:
   version "2.4.2"
   resolved "https://registry.yarnpkg.com/vite/-/vite-2.4.2.tgz#07d00615775c808530bc9f65641062b349b67929"
