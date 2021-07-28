@@ -32,7 +32,9 @@ import com.netflix.spinnaker.fiat.permissions.PermissionsRepository
 import com.netflix.spinnaker.fiat.permissions.PermissionsResolver
 import com.netflix.spinnaker.fiat.providers.ResourcePermissionProvider
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
+import org.jooq.Configuration
 import org.jooq.DSLContext
+import org.jooq.TransactionalRunnable
 import org.jooq.impl.DSL
 import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Autowired
@@ -104,7 +106,14 @@ class AuthorizeControllerSpec extends Specification {
       def schema = jooq.select(DSL.currentSchema()).fetchOne(DSL.currentSchema())
       jooq.meta().getTables().each {
         if (it.getSchema().name == schema && !it.name.startsWith("DATABASE")) {
-          jooq.truncate(it).execute()
+          jooq.transaction(new TransactionalRunnable() {
+            @Override
+            void run(Configuration configuration) throws Throwable {
+              jooq.execute("set foreign_key_checks=0")
+              jooq.truncate(it).execute()
+              jooq.execute("set foreign_key_checks=1")
+            }
+          })
         }
       }
     }

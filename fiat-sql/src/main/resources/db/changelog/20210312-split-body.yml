@@ -1,0 +1,75 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-resource-table
+      author: deverton
+      changes:
+        - createTable:
+            tableName: fiat_resource
+            columns:
+              - column:
+                  name: resource_type
+                  type: varchar(255)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: resource_name
+                  type: varchar(255)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: body
+                  type: longtext
+                  constraints:
+                    nullable: false
+        - modifySql:
+            dbms: mysql
+            append:
+              value: " engine innodb DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci"
+      rollback:
+        - dropTable:
+            tableName: fiat_resource
+
+  - changeSet:
+      id: create-foreign-keys
+      author: deverton
+      changes:
+        - addForeignKeyConstraint:
+            constraintName: fk_fiat_permission_resource
+            baseColumnNames: resource_type, resource_name
+            baseTableName: fiat_permission
+            referencedColumnNames: resource_type, resource_name
+            referencedTableName: fiat_resource
+        - addForeignKeyConstraint:
+            constraintName: fk_fiat_permission_user
+            baseColumnNames: fiat_user_id
+            baseTableName: fiat_permission
+            referencedColumnNames: id
+            referencedTableName: fiat_user
+      rollback:
+        - dropForeignKeyConstraint:
+            constraintName: fk_fiat_permission_user
+            baseTableName: fiat_permission
+        - dropForeignKeyConstraint:
+            constraintName: fk_fiat_permission_resource
+            baseTableName: fiat_resource
+
+  - changeSet:
+      id: drop-permission-body-column
+      author: deverton
+      changes:
+        - dropColumn:
+            tableName: fiat_permission
+            columns:
+              - column:
+                  name: body
+      rollback:
+        - addColumn:
+            tableName: fiat_permission
+            columns:
+              - column:
+                name: body
+                type: longtext
+                constraints:
+                  nullable: false

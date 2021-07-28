@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.fiat.model
+package com.netflix.spinnaker.fiat.permissions
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
@@ -78,23 +78,40 @@ internal fun initDatabase(jdbcUrl: String, sqlDialect: SQLDialect): DSLContext  
 internal class DatabaseInitializationFailed(cause: Throwable) : RuntimeException(cause)
 
 internal fun DSLContext.flushAll() {
-    val schema = select(currentSchema())
-        .fetch()
-        .getValue(0, 0)
-    with(LiquibaseConfiguration.getInstance().getConfiguration<GlobalConfiguration>()) {
-        meta()
-            .schemas
-            .filter { it.name == schema }
-            .flatMap(Schema::getTables)
-            .filterNot {
-                it.name in setOf(
-                    databaseChangeLogTableName,
-                    databaseChangeLogLockTableName
-                )
-            }
-            .forEach {
-                truncate(it).execute()
-            }
+    when (configuration().family()) {
+        SQLDialect.MYSQL -> execute("set foreign_key_checks=0")
+        else -> { }
+    }
+    try {
+        val schema = select(currentSchema())
+            .fetch()
+            .getValue(0, 0)
+        with(LiquibaseConfiguration.getInstance().getConfiguration<GlobalConfiguration>()) {
+            meta()
+                .schemas
+                .filter { it.name == schema }
+                .flatMap(Schema::getTables)
+                .filterNot {
+                    it.name in setOf(
+                        databaseChangeLogTableName,
+                        databaseChangeLogLockTableName
+                    )
+                }
+                .forEach {
+                    when (configuration().family()) {
+                        SQLDialect.MYSQL -> truncate(it).execute()
+                        else -> {
+                            truncate(it).cascade().execute()
+                        }
+                    }
+
+                }
+        }
+    } finally {
+        when (configuration().family()) {
+            SQLDialect.MYSQL -> execute("set foreign_key_checks=1")
+            else -> { }
+        }
     }
 }
 
