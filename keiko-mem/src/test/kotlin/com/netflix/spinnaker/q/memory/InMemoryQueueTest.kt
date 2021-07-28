@@ -22,19 +22,23 @@ import com.netflix.spinnaker.q.metrics.EventPublisher
 import com.netflix.spinnaker.q.metrics.MonitorableQueueTest
 import com.netflix.spinnaker.q.metrics.QueueEvent
 import java.time.Clock
-import org.funktionale.partials.invoke
 
-object InMemoryQueueTest : QueueTest<InMemoryQueue>(createQueue(p3 = null))
+object InMemoryQueueTest : QueueTest<InMemoryQueue>(createQueueNoPublisher)
 
 object InMemoryMonitorableQueueTest : MonitorableQueueTest<InMemoryQueue>(
-  createQueue,
+  ::createQueue,
   InMemoryQueue::retry
 )
 
-private val createQueue = { clock: Clock,
-  deadLetterCallback: DeadMessageCallback,
-  publisher: EventPublisher? ->
-  InMemoryQueue(
+private val createQueueNoPublisher = { clock: Clock,
+  deadLetterCallback: DeadMessageCallback ->
+  createQueue(clock, deadLetterCallback, null)
+}
+
+private fun createQueue(clock: Clock,
+                        deadLetterCallback: DeadMessageCallback,
+                        publisher: EventPublisher?): InMemoryQueue {
+  return InMemoryQueue(
     clock = clock,
     deadMessageHandlers = listOf(deadLetterCallback),
     publisher = publisher ?: (

@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.q.redis
 
+import arrow.core.partially1
 import com.fasterxml.jackson.core.JsonParseException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.KotlinOpen
@@ -30,7 +31,6 @@ import java.time.Instant
 import java.time.temporal.TemporalAmount
 import java.util.Locale
 import java.util.Optional
-import org.funktionale.partials.partially1
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled

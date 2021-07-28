@@ -18,12 +18,11 @@ import com.netflix.spinnaker.q.metrics.QueueEvent
 import java.time.Clock
 import java.time.Duration
 import java.util.Optional
-import org.funktionale.partials.invoke
 
-object SqlQueueTest : QueueTest<SqlQueue>(createQueue(p3 = null), ::cleanupCallback)
+object SqlQueueTest : QueueTest<SqlQueue>(createQueueNoPublisher, ::cleanupCallback)
 
 object SqlMonitorableQueueTest : MonitorableQueueTest<SqlQueue>(
-  createQueue,
+  ::createQueue,
   SqlQueue::retry,
   ::cleanupCallback
 )
@@ -31,10 +30,15 @@ object SqlMonitorableQueueTest : MonitorableQueueTest<SqlQueue>(
 private val testDb = SqlTestUtil.initTcMysqlDatabase()
 private val jooq = testDb.context
 
-private val createQueue = { clock: Clock,
-  deadLetterCallback: DeadMessageCallback,
-  publisher: EventPublisher? ->
-  SqlQueue(
+private val createQueueNoPublisher = { clock: Clock,
+  deadLetterCallback: DeadMessageCallback ->
+  createQueue(clock, deadLetterCallback, null)
+}
+
+private fun createQueue(clock: Clock,
+                        deadLetterCallback: DeadMessageCallback,
+                        publisher: EventPublisher?): SqlQueue {
+  return SqlQueue(
     queueName = "test",
     schemaVersion = 1,
     jooq = jooq,

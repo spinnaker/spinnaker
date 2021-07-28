@@ -6,5 +6,4 @@ dependencies {
   api "org.threeten:threeten-extra"
 
   testImplementation project(":keiko-tck")
-  testImplementation "org.funktionale:funktionale-partials"
 }

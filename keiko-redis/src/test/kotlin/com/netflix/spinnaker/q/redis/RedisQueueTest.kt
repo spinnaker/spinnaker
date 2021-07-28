@@ -30,23 +30,27 @@ import com.netflix.spinnaker.q.metrics.MonitorableQueueTest
 import com.netflix.spinnaker.q.metrics.QueueEvent
 import java.time.Clock
 import java.util.Optional
-import org.funktionale.partials.invoke
 
-object RedisQueueTest : QueueTest<RedisQueue>(createQueue(p3 = null), ::shutdownCallback)
+object RedisQueueTest : QueueTest<RedisQueue>(createQueueNoPublisher, ::shutdownCallback)
 
 object RedisMonitorableQueueTest : MonitorableQueueTest<RedisQueue>(
-  createQueue,
+  ::createQueue,
   RedisQueue::retry,
   ::shutdownCallback
 )
 
 private var redis: EmbeddedRedis? = null
 
-private val createQueue = { clock: Clock,
-  deadLetterCallback: DeadMessageCallback,
-  publisher: EventPublisher? ->
+private val createQueueNoPublisher = { clock: Clock,
+  deadLetterCallback: DeadMessageCallback ->
+  createQueue(clock, deadLetterCallback, null)
+}
+
+private fun createQueue(clock: Clock,
+                        deadLetterCallback: DeadMessageCallback,
+                        publisher: EventPublisher?): RedisQueue {
   redis = EmbeddedRedis.embed()
-  RedisQueue(
+  return RedisQueue(
     queueName = "test",
     pool = redis!!.pool,
     clock = clock,

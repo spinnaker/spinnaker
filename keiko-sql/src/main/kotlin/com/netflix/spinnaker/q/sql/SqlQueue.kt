@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.q.sql
 
+import arrow.core.partially1
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -47,7 +48,6 @@ import kotlin.Exception
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.random.Random.Default.nextLong
-import org.funktionale.partials.partially1
 import org.jooq.DSLContext
 import org.jooq.SQLDialect
 import org.jooq.SortOrder

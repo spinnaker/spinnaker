@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.spek
 
-import org.funktionale.partials.partially2
+import arrow.core.partially2
 import org.jetbrains.spek.api.dsl.SpecBody
 
 /**

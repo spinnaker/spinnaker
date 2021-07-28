@@ -19,7 +19,7 @@ apply from: "$rootDir/gradle/kotlin.gradle"
 dependencies {
   api(project(":orca-api-tck"))
   implementation(project(":orca-core"))
-  implementation("org.funktionale:funktionale-partials")
+  implementation("io.arrow-kt:arrow-core:0.13.2")
   implementation("org.jetbrains.spek:spek-api")
   implementation("org.assertj:assertj-core")
 }
