@@ -20,17 +20,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.fiat.model.Authorization;
 import com.netflix.spinnaker.fiat.model.resources.Application;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
-import java.util.List;
+import java.util.Set;
 import javax.annotation.Nonnull;
 
 public class ChaosMonkeyApplicationResourcePermissionSource
     implements ResourcePermissionSource<Application> {
 
-  private final List<String> roles;
+  private final Set<String> roles;
   private final ObjectMapper objectMapper;
 
   public ChaosMonkeyApplicationResourcePermissionSource(
-      List<String> roles, ObjectMapper objectMapper) {
+      Set<String> roles, ObjectMapper objectMapper) {
     this.roles = roles;
     this.objectMapper = objectMapper;
   }

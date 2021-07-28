@@ -26,7 +26,9 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Data
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode(
+    callSuper = false,
+    of = {"resourceType", "name"})
 public class BuildService implements Resource.AccessControlled, Viewable {
 
   private final ResourceType resourceType = ResourceType.BUILD_SERVICE;

@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.fiat.model.resources;
 
 import com.netflix.spinnaker.fiat.model.Authorization;
-import java.util.List;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -31,7 +31,7 @@ public abstract class BaseAccessControlled<R extends BaseAccessControlled>
    * permissions.
    */
   @SuppressWarnings("unchecked")
-  public <T extends BaseAccessControlled> T setRequiredGroupMembership(List<String> membership) {
+  public <T extends BaseAccessControlled> T setRequiredGroupMembership(Set<String> membership) {
     if (membership == null || membership.isEmpty()) {
       return (T) this;
     }

@@ -26,19 +26,19 @@ class ResourcePrefixPermissionSourceSpec extends Specification {
         given:
         def source = new ResourcePrefixPermissionSource<Application>().setPrefixes([
                 new ResourcePrefixPermissionSource.PrefixEntry<Application>().setPrefix('*').setPermissions([
-                        (Authorization.CREATE): ['admins']
+                        (Authorization.CREATE): ['admins'] as Set
                 ]),
                 new ResourcePrefixPermissionSource.PrefixEntry<Application>().setPrefix('gotham*').setPermissions([
-                        (Authorization.CREATE): ['police']
+                        (Authorization.CREATE): ['police'] as Set
                 ]),
                 new ResourcePrefixPermissionSource.PrefixEntry<Application>().setPrefix('gotham-joker').setPermissions([
-                        (Authorization.CREATE): ['batman']
+                        (Authorization.CREATE): ['batman'] as Set
                 ]),
                 new ResourcePrefixPermissionSource.PrefixEntry<Application>().setPrefix('foo*').setPermissions([
-                        (Authorization.CREATE): ['police']
+                        (Authorization.CREATE): ['police'] as Set
                 ]),
                 new ResourcePrefixPermissionSource.PrefixEntry<Application>().setPrefix('foo-joker').setPermissions([
-                        (Authorization.CREATE): ['batman']
+                        (Authorization.CREATE): ['batman'] as Set
                 ]),
         ]).setResolutionStrategy(ResourcePrefixPermissionSource.ResolutionStrategy.AGGREGATE)
 
@@ -61,19 +61,19 @@ class ResourcePrefixPermissionSourceSpec extends Specification {
         given:
         def source = new ResourcePrefixPermissionSource<Application>().setPrefixes([
                 new ResourcePrefixPermissionSource.PrefixEntry<Application>().setPrefix('*').setPermissions([
-                        (Authorization.CREATE): ['admins']
+                        (Authorization.CREATE): ['admins'] as Set
                 ]),
                 new ResourcePrefixPermissionSource.PrefixEntry<Application>().setPrefix('gotham*').setPermissions([
-                        (Authorization.CREATE): ['police']
+                        (Authorization.CREATE): ['police'] as Set
                 ]),
                 new ResourcePrefixPermissionSource.PrefixEntry<Application>().setPrefix('gotham-joker').setPermissions([
-                        (Authorization.CREATE): ['batman']
+                        (Authorization.CREATE): ['batman'] as Set
                 ]),
                 new ResourcePrefixPermissionSource.PrefixEntry<Application>().setPrefix('foo*').setPermissions([
-                        (Authorization.CREATE): ['police']
+                        (Authorization.CREATE): ['police'] as Set
                 ]),
                 new ResourcePrefixPermissionSource.PrefixEntry<Application>().setPrefix('foo-joker').setPermissions([
-                        (Authorization.CREATE): ['batman']
+                        (Authorization.CREATE): ['batman'] as Set
                 ]),
         ]).setResolutionStrategy(ResourcePrefixPermissionSource.ResolutionStrategy.MOST_SPECIFIC)
 

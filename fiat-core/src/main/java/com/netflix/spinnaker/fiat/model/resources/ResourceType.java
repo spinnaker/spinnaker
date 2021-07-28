@@ -21,6 +21,7 @@ import java.util.Objects;
 public class ResourceType {
 
   private final String name;
+  private final int hashCode;
 
   public static ResourceType ACCOUNT = new ResourceType("account");
   public static ResourceType APPLICATION = new ResourceType("application");
@@ -30,7 +31,8 @@ public class ResourceType {
   public static ResourceType BUILD_SERVICE = new ResourceType("build_service");
 
   public ResourceType(String name) {
-    this.name = name;
+    this.name = name.toLowerCase();
+    this.hashCode = Objects.hash(name);
   }
 
   // TODO(ttomsu): This is Redis-specific, so it probably shouldn't go here.
@@ -56,12 +58,12 @@ public class ResourceType {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     ResourceType that = (ResourceType) o;
-    return Objects.equals(name.toLowerCase(), that.name.toLowerCase());
+    return Objects.equals(this.name, that.name);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(name.toLowerCase());
+    return hashCode;
   }
 
   @Override
@@ -70,6 +72,6 @@ public class ResourceType {
   }
 
   public String keySuffix() {
-    return name.toLowerCase() + "s";
+    return name + "s";
   }
 }

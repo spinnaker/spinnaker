@@ -21,6 +21,7 @@ import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.fiat.model.resources.Resource;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.Data;
@@ -56,7 +57,7 @@ public class ResourcePrefixPermissionSource<T extends Resource.AccessControlled>
       return this;
     }
 
-    public PrefixEntry setPermissions(Map<Authorization, List<String>> permissions) {
+    public PrefixEntry setPermissions(Map<Authorization, Set<String>> permissions) {
       this.permissions = Permissions.factory(permissions);
       return this;
     }

@@ -26,7 +26,9 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Data
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode(
+    callSuper = false,
+    of = {"resourceType", "cloudProvider", "name"})
 public class Account extends BaseAccessControlled<Account> implements Viewable {
   final ResourceType resourceType = ResourceType.ACCOUNT;
 

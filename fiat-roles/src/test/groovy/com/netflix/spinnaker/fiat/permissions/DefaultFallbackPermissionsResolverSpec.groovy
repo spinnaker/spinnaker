@@ -11,6 +11,9 @@ class DefaultFallbackPermissionsResolverSpec extends Specification {
     private static final Authorization E = Authorization.EXECUTE
     private static final Authorization C = Authorization.CREATE
 
+    private static final Set<String> READ = ['r'] as Set
+    private static final Set<String> WRITE = ['w'] as Set
+    
     def makePerms(Map<Authorization, List<String>> auths) {
         return Permissions.Builder.factory(auths).build()
     }
@@ -27,10 +30,10 @@ class DefaultFallbackPermissionsResolverSpec extends Specification {
         makePerms(expectedPermissions) == result
 
         where:
-        fallbackFrom  ||  fallbackTo  || givenPermissions         || expectedPermissions
-        E             ||  R           || [:]                      || [:]
-        E             ||  R           || [(R): ['r']]             || [(R): ['r'], (E): ['r']]
-        E             ||  W           || [(R): ['r'], (W): ['w']] || [(R): ['r'], (W): ['w'], (E): ['w']]
-        C             ||  W           || [(R): ['r'], (W): ['w']] || [(R): ['r'], (W): ['w'], (C): ['w']]
+        fallbackFrom  ||  fallbackTo  || givenPermissions        || expectedPermissions
+        E             ||  R           || [:]                     || [:]
+        E             ||  R           || [(R): READ]             || [(R): READ, (E): READ]
+        E             ||  W           || [(R): READ, (W): WRITE] || [(R): READ, (W): WRITE, (E): WRITE]
+        C             ||  W           || [(R): READ, (W): WRITE] || [(R): READ, (W): WRITE, (C): WRITE]
     }
 }

@@ -24,8 +24,6 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import com.netflix.spinnaker.fiat.model.Authorization;
 import java.util.*;
 import java.util.stream.Collectors;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
 import lombok.val;
 
 /**
@@ -33,16 +31,17 @@ import lombok.val;
  * makes it challenging when working with Jackson's {@code ObjectMapper} and Spring's
  * {@code @ConfigurationProperties}. The {@link Builder} is a helper class for the latter use case.
  */
-@ToString
-@EqualsAndHashCode
 public class Permissions {
 
   public static final Permissions EMPTY = Builder.fromMap(Collections.emptyMap());
 
-  private final Map<Authorization, List<String>> permissions;
+  private final Map<Authorization, Set<String>> permissions;
 
-  private Permissions(Map<Authorization, List<String>> p) {
+  private final int hashCode;
+
+  private Permissions(Map<Authorization, Set<String>> p) {
     this.permissions = Collections.unmodifiableMap(p);
+    this.hashCode = Objects.hash(this.permissions);
   }
 
   /**
@@ -50,13 +49,13 @@ public class Permissions {
    * to sanitize the input data (just in case).
    */
   @JsonCreator
-  public static Permissions factory(Map<Authorization, List<String>> data) {
+  public static Permissions factory(Map<Authorization, Set<String>> data) {
     return new Builder().set(data).build();
   }
 
   /** Here specifically for Jackson serialization. */
   @JsonValue
-  private Map<Authorization, List<String>> getPermissions() {
+  private Map<Authorization, Set<String>> getPermissions() {
     return permissions;
   }
 
@@ -84,11 +83,15 @@ public class Permissions {
   }
 
   public Set<Authorization> getAuthorizations(Set<Role> userRoles) {
-    val r = userRoles.stream().map(Role::getName).collect(Collectors.toList());
-    return getAuthorizations(r);
+    val r = userRoles.stream().map(Role::getName).collect(Collectors.toSet());
+    return getAuthorizationsFromRoles(r);
   }
 
   public Set<Authorization> getAuthorizations(List<String> userRoles) {
+    return getAuthorizationsFromRoles(new LinkedHashSet<>(userRoles));
+  }
+
+  private Set<Authorization> getAuthorizationsFromRoles(Set<String> userRoles) {
     if (!isRestricted()) {
       return Authorization.ALL;
     }
@@ -99,12 +102,28 @@ public class Permissions {
         .collect(Collectors.toSet());
   }
 
-  public List<String> get(Authorization a) {
-    return permissions.getOrDefault(a, new ArrayList<>());
+  public Set<String> get(Authorization a) {
+    return permissions.getOrDefault(a, new HashSet<>());
   }
 
-  public Map<Authorization, List<String>> unpack() {
+  public Map<Authorization, Set<String>> unpack() {
     return Arrays.stream(Authorization.values()).collect(toMap(identity(), this::get));
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    Permissions that = (Permissions) o;
+    return Objects.equals(this.permissions, that.permissions);
+  }
+
+  public int hashCode() {
+    return hashCode;
+  }
+
+  public String toString() {
+    return "Permissions(permissions=" + this.getPermissions() + ")";
   }
 
   /**
@@ -117,10 +136,10 @@ public class Permissions {
    *
    * <p>Group/Role names are trimmed of whitespace and lowercased.
    */
-  public static class Builder extends LinkedHashMap<Authorization, List<String>> {
+  public static class Builder extends LinkedHashMap<Authorization, Set<String>> {
 
-    private static Permissions fromMap(Map<Authorization, List<String>> authConfig) {
-      final Map<Authorization, List<String>> perms = new EnumMap<>(Authorization.class);
+    private static Permissions fromMap(Map<Authorization, Set<String>> authConfig) {
+      final Map<Authorization, Set<String>> perms = new EnumMap<>(Authorization.class);
       for (Authorization auth : Authorization.values()) {
         Optional.ofNullable(authConfig.get(auth))
             .map(
@@ -129,31 +148,31 @@ public class Permissions {
                         .map(String::trim)
                         .filter(s -> !s.isEmpty())
                         .map(String::toLowerCase)
-                        .collect(Collectors.toList()))
+                        .collect(Collectors.toSet()))
             .filter(g -> !g.isEmpty())
-            .map(Collections::unmodifiableList)
+            .map(Collections::unmodifiableSet)
             .ifPresent(roles -> perms.put(auth, roles));
       }
       return new Permissions(perms);
     }
 
     @JsonCreator
-    public static Builder factory(Map<Authorization, List<String>> data) {
+    public static Builder factory(Map<Authorization, Set<String>> data) {
       return new Builder().set(data);
     }
 
-    public Builder set(Map<Authorization, List<String>> p) {
+    public Builder set(Map<Authorization, Set<String>> p) {
       this.clear();
       this.putAll(p);
       return this;
     }
 
     public Builder add(Authorization a, String group) {
-      this.computeIfAbsent(a, ignored -> new ArrayList<>()).add(group);
+      this.computeIfAbsent(a, ignored -> new LinkedHashSet<>()).add(group);
       return this;
     }
 
-    public Builder add(Authorization a, List<String> groups) {
+    public Builder add(Authorization a, Set<String> groups) {
       groups.forEach(group -> add(a, group));
       return this;
     }

@@ -29,7 +29,9 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Data
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode(
+    callSuper = false,
+    of = {"resourceType", "name"})
 public class Application extends BaseAccessControlled<Application> implements Viewable {
   final ResourceType resourceType = ResourceType.APPLICATION;
 

@@ -389,7 +389,7 @@ class AuthorizeControllerSpec extends Specification {
     given:
     def applicationResourcePermissionProvider = Mock(ResourcePermissionProvider) {
       getPermissions(_) >> Permissions.factory([
-              (Authorization.CREATE): ['rolea']
+              (Authorization.CREATE): ['rolea'] as Set
       ])
     }
     permissionsRepository.put(roleAUser)

@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.fiat.config;
 
 import com.netflix.spinnaker.fiat.model.Authorization;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
@@ -54,7 +54,7 @@ public class FiatServerConfigurationProperties {
 
   @Data
   static class ChaosMonkeyConfigurationProperties {
-    private List<String> roles = new ArrayList<>();
+    private Set<String> roles = new LinkedHashSet<>();
   }
 
   @Data

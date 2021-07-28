@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.fiat.model.resources;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.Data;
@@ -26,13 +27,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 @Component
-@Data
-@EqualsAndHashCode(of = "name")
-@NoArgsConstructor
 public class Role implements Resource, Viewable {
 
-  private final ResourceType resourceType = ResourceType.ROLE;
   private String name;
+  private int hashCode;
 
   public enum Source {
     EXTERNAL,
@@ -44,8 +42,18 @@ public class Role implements Resource, Viewable {
 
   private Source source;
 
+  public Role() {}
+
   public Role(String name) {
     this.setName(name);
+  }
+
+  public ResourceType getResourceType() {
+    return ResourceType.ROLE;
+  }
+
+  public String getName() {
+    return this.name;
   }
 
   public Role setName(@Nonnull String name) {
@@ -53,7 +61,41 @@ public class Role implements Resource, Viewable {
       throw new IllegalArgumentException("name cannot be empty");
     }
     this.name = name.toLowerCase();
+    this.hashCode = Objects.hash(ResourceType.ROLE, this.name);
     return this;
+  }
+
+  public Source getSource() {
+    return this.source;
+  }
+
+  public Role setSource(Source source) {
+    this.source = source;
+    return this;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    Role that = (Role) o;
+    return Objects.equals(this.name, that.name);
+  }
+
+  @Override
+  public int hashCode() {
+    return hashCode;
+  }
+
+  @Override
+  public String toString() {
+    return "Role(resourceType="
+        + this.getResourceType()
+        + ", name="
+        + this.getName()
+        + ", source="
+        + this.getSource()
+        + ")";
   }
 
   @JsonIgnore

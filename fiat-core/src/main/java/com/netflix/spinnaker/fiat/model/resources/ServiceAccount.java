@@ -18,10 +18,9 @@ package com.netflix.spinnaker.fiat.model.resources;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.fiat.model.UserPermission;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -31,12 +30,14 @@ import org.springframework.util.StringUtils;
 
 @Component
 @Data
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode(
+    callSuper = false,
+    of = {"resourceType", "name"})
 public class ServiceAccount implements Resource, Viewable {
   private final ResourceType resourceType = ResourceType.SERVICE_ACCOUNT;
 
   private String name;
-  private List<String> memberOf = new ArrayList<>();
+  private Set<String> memberOf = new LinkedHashSet<>();
 
   public UserPermission toUserPermission() {
     val roles =
@@ -48,11 +49,13 @@ public class ServiceAccount implements Resource, Viewable {
   }
 
   public ServiceAccount setMemberOf(List<String> membership) {
-    if (membership == null) {
-      membership = new ArrayList<>();
-    }
     memberOf =
-        membership.stream().map(String::trim).map(String::toLowerCase).collect(Collectors.toList());
+        Optional.ofNullable(membership)
+            .map(Collection::stream)
+            .orElseGet(Stream::empty)
+            .map(String::trim)
+            .map(String::toLowerCase)
+            .collect(Collectors.toSet());
     return this;
   }
 
@@ -71,7 +74,7 @@ public class ServiceAccount implements Resource, Viewable {
 
     public View(ServiceAccount serviceAccount) {
       this.name = serviceAccount.name;
-      this.memberOf = serviceAccount.memberOf;
+      this.memberOf = new ArrayList<>(serviceAccount.memberOf);
     }
   }
 }

@@ -2,8 +2,8 @@ package com.netflix.spinnaker.fiat.permissions;
 
 import com.netflix.spinnaker.fiat.model.Authorization;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.annotation.Nonnull;
 
 public class DefaultFallbackPermissionsResolver implements FallbackPermissionsResolver {
@@ -23,7 +23,7 @@ public class DefaultFallbackPermissionsResolver implements FallbackPermissionsRe
 
   @Override
   public Permissions resolve(@Nonnull Permissions permissions) {
-    Map<Authorization, List<String>> authorizations = permissions.unpack();
+    Map<Authorization, Set<String>> authorizations = permissions.unpack();
     authorizations.put(fallbackFrom, authorizations.get(fallbackTo));
     return Permissions.Builder.factory(authorizations).build();
   }

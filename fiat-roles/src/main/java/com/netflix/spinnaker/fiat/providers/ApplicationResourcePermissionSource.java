@@ -23,8 +23,8 @@ import com.netflix.spinnaker.fiat.model.Authorization;
 import com.netflix.spinnaker.fiat.model.resources.Application;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.annotation.Nonnull;
 
 public final class ApplicationResourcePermissionSource
@@ -38,7 +38,7 @@ public final class ApplicationResourcePermissionSource
       return Permissions.EMPTY;
     }
 
-    Map<Authorization, List<String>> authorizations =
+    Map<Authorization, Set<String>> authorizations =
         Arrays.stream(Authorization.values()).collect(toMap(identity(), storedPermissions::get));
 
     // CREATE permissions are not allowed on the resource level.
