@@ -17,12 +17,25 @@
 package com.netflix.spinnaker.clouddriver.lambda.deploy.description;
 
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.AbstractAmazonCredentialsDescription;
+import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-public abstract class AbstractLambdaFunctionDescription
-    extends AbstractAmazonCredentialsDescription {
+public abstract class AbstractLambdaFunctionDescription extends AbstractAmazonCredentialsDescription
+    implements ApplicationNameable {
   String region;
+  String appName;
+
+  @Override
+  public Collection<String> getApplications() {
+    if (appName == null || appName.isEmpty()) {
+      return Collections.emptyList();
+    }
+    return List.of(getAppName());
+  }
 }

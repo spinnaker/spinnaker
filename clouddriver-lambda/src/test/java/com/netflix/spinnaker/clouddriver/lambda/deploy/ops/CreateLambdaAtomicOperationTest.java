@@ -35,9 +35,9 @@ public class CreateLambdaAtomicOperationTest {
         new CreateLambdaFunctionDescription()
             .setS3bucket("s3://bucket")
             .setS3key("key/key/path")
-            .setAppName("appName")
             .setFunctionName("funcName")
             .setDeadLetterConfig(new DeadLetterConfig().withTargetArn(""));
+    b.setAppName("appName");
     CreateLambdaAtomicOperation clao = spy(new CreateLambdaAtomicOperation(b));
     doNothing().when(clao).updateTaskStatus(anyString());
     AWSLambda lambdaClient = mock(AWSLambda.class);
