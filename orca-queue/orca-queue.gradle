@@ -26,7 +26,7 @@ dependencies {
   implementation project(":keiko-spring")
   implementation project(":keiko-core")
   implementation("org.threeten:threeten-extra")
-  implementation("io.arrow-kt:arrow-core:0.13.2")
+  implementation("io.arrow-kt:arrow-core")
   implementation("org.springframework:spring-web")
   implementation("net.logstash.logback:logstash-logback-encoder")
   implementation("javax.ws.rs:jsr311-api:1.1.1")

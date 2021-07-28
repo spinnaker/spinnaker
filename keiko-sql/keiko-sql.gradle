@@ -5,7 +5,7 @@ dependencies {
   api project(":keiko-core")
   api "com.fasterxml.jackson.core:jackson-databind"
   api "com.fasterxml.jackson.module:jackson-module-kotlin"
-  api "io.arrow-kt:arrow-core:0.13.2"
+  api "io.arrow-kt:arrow-core"
   api "com.github.ben-manes.caffeine:guava"
 
   implementation "io.spinnaker.kork:kork-core"
