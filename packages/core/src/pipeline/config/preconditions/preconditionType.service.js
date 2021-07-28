@@ -1,4 +1,5 @@
 import { module } from 'angular';
+import { find } from 'lodash';
 
 import { CORE_PIPELINE_CONFIG_PRECONDITIONS_PRECONDITIONTYPECONFIG_PROVIDER } from './preconditionTypeConfig.provider';
 
@@ -17,7 +18,7 @@ module(CORE_PIPELINE_CONFIG_PRECONDITIONS_PRECONDITIONTYPE_SERVICE, [
     }
 
     function getPreconditionType(key) {
-      return _.find(preconditionTypeConfig.listPreconditionTypes(), { key: key });
+      return find(preconditionTypeConfig.listPreconditionTypes(), { key: key });
     }
 
     return {

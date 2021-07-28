@@ -66,61 +66,59 @@ export function GitTrigger(gitTriggerProps: IGitTriggerConfigProps) {
     }
   }, [trigger.source]);
 
-  return (
-    <>
-      {gitTriggerTypes && gitTriggerTypes.length > 1 && (
-        <FormikFormField
-          name="source"
-          label="Repo Type"
-          input={(props) => (
-            <ReactSelectInput
-              {...props}
-              placeholder="Select Repo Type"
-              stringOptions={gitTriggerTypes}
-              clearable={false}
-            />
-          )}
-        />
-      )}
-      {SETTINGS.stashTriggerInfo && trigger.source === 'stash' && (
-        <div className="flex-container-h center">
-          <a className="sp-margin-m-yaxis" href={SETTINGS.stashTriggerInfo} target="_blank">
-            See how to add a stash trigger to Spinnaker
-          </a>
-        </div>
-      )}
+  return <>
+    {gitTriggerTypes && gitTriggerTypes.length > 1 && (
       <FormikFormField
-        name="project"
-        label={projectLabel}
-        required={true}
-        input={(props) => <TextInput {...props} placeholder={projectPlaceholder} />}
+        name="source"
+        label="Repo Type"
+        input={(props) => (
+          <ReactSelectInput
+            {...props}
+            placeholder="Select Repo Type"
+            stringOptions={gitTriggerTypes}
+            clearable={false}
+          />
+        )}
       />
+    )}
+    {SETTINGS.stashTriggerInfo && trigger.source === 'stash' && (
+      <div className="flex-container-h center">
+        <a className="sp-margin-m-yaxis" href={SETTINGS.stashTriggerInfo} target="_blank">
+          See how to add a stash trigger to Spinnaker
+        </a>
+      </div>
+    )}
+    <FormikFormField
+      name="project"
+      label={projectLabel}
+      required={true}
+      input={(props) => <TextInput {...props} placeholder={projectPlaceholder} />}
+    />
 
-      <FormikFormField
-        name="slug"
-        label={slugLabel}
-        required={true}
-        validate={(value: string, label) =>
-          value && value.match(/:\/\//) && `${label} is a simple name should not contain ://`
-        }
-        input={(props) => <TextInput {...props} placeholder={slugPlaceholder} />}
-      />
+    <FormikFormField
+      name="slug"
+      label={slugLabel}
+      required={true}
+      validate={(value: string, label) =>
+        value && value.match(/:\/\//) && `${label} is a simple name should not contain ://`
+      }
+      input={(props) => <TextInput {...props} placeholder={slugPlaceholder} />}
+    />
 
+    <FormikFormField
+      name="branch"
+      label="Branch"
+      help={<HelpField id="pipeline.config.git.trigger.branch" />}
+      input={(props) => <TextInput {...props} />}
+    />
+
+    {source === 'github' && (
       <FormikFormField
-        name="branch"
-        label="Branch"
-        help={<HelpField id="pipeline.config.git.trigger.branch" />}
+        name="secret"
+        label="Secret"
+        help={<HelpField id="pipeline.config.git.trigger.githubSecret" />}
         input={(props) => <TextInput {...props} />}
       />
-
-      {source === 'github' && (
-        <FormikFormField
-          name="secret"
-          label="Secret"
-          help={<HelpField id="pipeline.config.git.trigger.githubSecret" />}
-          input={(props) => <TextInput {...props} />}
-        />
-      )}
-    </>
-  );
+    )}
+  </>;
 }

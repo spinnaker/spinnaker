@@ -1,6 +1,7 @@
 'use strict';
 
 import { module } from 'angular';
+import { forEach } from 'lodash';
 
 require('./preconditionList.directive.html');
 require('./modal/editPrecondition.html');
@@ -81,7 +82,7 @@ module(CORE_PIPELINE_CONFIG_PRECONDITIONS_PRECONDITIONLIST_DIRECTIVE, [])
 
       vm.renderContext = function (precondition) {
         let renderedContext = '';
-        _.forEach(precondition.context, function (value, key) {
+        forEach(precondition.context, function (value, key) {
           renderedContext += '<strong>' + key + ': </strong>' + value + '<br/>';
         });
         return renderedContext;

@@ -1,6 +1,7 @@
 'use strict';
 
 import { module } from 'angular';
+import { cloneDeep } from 'lodash';
 
 import { TaskMonitor } from '@spinnaker/core';
 import { GOOGLE_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_WRITE_SERVICE } from '../../../../autoscalingPolicy/autoscalingPolicy.write.service';
@@ -25,7 +26,7 @@ module(GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_MODAL_UPSERTAUTOSCALINGPOLIC
   '$scope',
   function (policy, application, serverGroup, $uibModalInstance, gceAutoscalingPolicyWriter, $scope) {
     [this.action, this.isNew] = policy ? ['Edit', false] : ['New', true];
-    this.policy = _.cloneDeep(policy || {});
+    this.policy = cloneDeep(policy || {});
 
     this.cancel = $uibModalInstance.dismiss;
 

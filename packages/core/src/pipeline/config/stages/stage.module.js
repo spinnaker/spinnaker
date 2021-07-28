@@ -1,7 +1,7 @@
 'use strict';
 
 import { module } from 'angular';
-import { defaultsDeep, extend, omit } from 'lodash';
+import { defaultsDeep, extend, omit, union } from 'lodash';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
@@ -142,7 +142,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_STAGE_MODULE, [
             const readArray = appPermissions.READ || [];
             const writeArray = appPermissions.WRITE || [];
             const executeArray = appPermissions.EXECUTE || [];
-            appRoles = _.union(readArray, writeArray, executeArray);
+            appRoles = union(readArray, writeArray, executeArray);
             appRoles = Array.from(new Set(appRoles));
             $scope.updateAvailableStageRoles();
           }

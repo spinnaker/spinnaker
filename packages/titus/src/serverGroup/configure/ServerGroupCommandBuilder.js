@@ -2,7 +2,7 @@
 
 import * as angular from 'angular';
 
-import { set } from 'lodash';
+import { cloneDeep, set } from 'lodash';
 import { NameUtils } from '@spinnaker/core';
 import { TitusProviderSettings } from '../../titus.settings';
 
@@ -193,7 +193,7 @@ angular.module(TITUS_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER, []).factor
     }
 
     function buildServerGroupCommandFromPipeline(application, originalCluster) {
-      const pipelineCluster = _.cloneDeep(originalCluster);
+      const pipelineCluster = cloneDeep(originalCluster);
       const commandOptions = {
         account: pipelineCluster.account,
         imageId: pipelineCluster.imageId,

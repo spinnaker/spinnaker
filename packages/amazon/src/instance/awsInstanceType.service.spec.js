@@ -1,4 +1,5 @@
 'use strict';
+import { map } from 'lodash';
 import { mockHttpClient } from 'core/api/mock/jasmine';
 
 describe('Service: InstanceType', function () {
@@ -41,7 +42,7 @@ describe('Service: InstanceType', function () {
 
       await http.flush();
       expect(results['us-west-2'].length).toBe(2);
-      expect(_.map(results['us-west-2'], 'name').sort()).toEqual(['m1.small', 'm2.xlarge']);
+      expect(map(results['us-west-2'], 'name').sort()).toEqual(['m1.small', 'm2.xlarge']);
     });
   });
 

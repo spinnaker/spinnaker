@@ -1,6 +1,7 @@
 'use strict';
 
 import { module } from 'angular';
+import { cloneDeep } from 'lodash';
 
 import { ScalingPolicyWriter } from '@spinnaker/amazon';
 import { TaskMonitor } from '@spinnaker/core';
@@ -121,7 +122,7 @@ module(TITUS_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_UPSERTSCALINGPOLICY_CONTRO
       this.action = this.viewState.isNew ? 'Create' : 'Edit';
 
       const prepareCommandForSubmit = () => {
-        const command = _.cloneDeep(this.command);
+        const command = cloneDeep(this.command);
 
         if (command.adjustmentType !== 'PercentChangeInCapacity') {
           delete command.minAdjustmentMagnitude;

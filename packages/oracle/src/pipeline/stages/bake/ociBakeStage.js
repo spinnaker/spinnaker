@@ -1,6 +1,7 @@
 'use strict';
 
 import { module } from 'angular';
+import { size } from 'lodash';
 
 import {
   AccountService,
@@ -135,7 +136,7 @@ module(ORACLE_PIPELINE_STAGES_BAKE_OCIBAKESTAGE, [ORACLE_PIPELINE_STAGES_BAKE_BA
 
       this.showExtendedAttributes = function () {
         return (
-          $scope.viewState.roscoMode || ($scope.stage.extendedAttributes && _.size($scope.stage.extendedAttributes) > 0)
+          $scope.viewState.roscoMode || ($scope.stage.extendedAttributes && size($scope.stage.extendedAttributes) > 0)
         );
       };
 

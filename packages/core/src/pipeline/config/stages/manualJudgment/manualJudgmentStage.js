@@ -1,6 +1,7 @@
 'use strict';
 
 import { module } from 'angular';
+import { each } from 'lodash';
 
 import { ManualJudgmentExecutionDetails } from './ManualJudgmentExecutionDetails';
 import { ManualJudgmentExecutionLabel } from './ManualJudgmentExecutionLabel';
@@ -42,7 +43,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_MANUALJUDGMENT_MANUALJUDGMENTSTAGE, [])
       this.transformToNewStyleIfNecessary = function (notifications) {
         // If there is at least one notification, and sendNotifications is not enabled, this must be the old style; transform it.
         if (notifications.length && !$scope.stage.sendNotifications) {
-          _.each(notifications, function (notification) {
+          each(notifications, function (notification) {
             notification.level = 'stage';
             notification.when = ['manualJudgment'];
           });
