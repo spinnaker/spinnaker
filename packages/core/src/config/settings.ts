@@ -74,6 +74,7 @@ export interface ISpinnakerSettings {
     };
     ga?: string;
   };
+  apiTimeoutMs: number;
   authEnabled: boolean;
   authEndpoint: string;
   authTtl: number;
