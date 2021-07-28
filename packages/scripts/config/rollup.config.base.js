@@ -16,9 +16,9 @@ const { visualizer } = require('rollup-plugin-visualizer');
 
 const ROLLUP_STATS = !!process.env.ROLLUP_STATS;
 const ROLLUP_WATCH = !!process.env.ROLLUP_WATCH;
-const NODE_ENV = JSON.stringify(process.env.NODE_ENV || 'development');
+const NODE_ENV = process.env.NODE_ENV || 'development';
 const ENV_MINIFY = process.env.ROLLUP_MINIFY;
-const ROLLUP_MINIFY = ENV_MINIFY === 'true' || (NODE_ENV === '"production"' && ENV_MINIFY !== 'false');
+const ROLLUP_MINIFY = ENV_MINIFY === 'true' || (NODE_ENV === 'production' && ENV_MINIFY !== 'false');
 
 // eslint-disable-next-line no-console
 console.log({ ROLLUP_STATS, ROLLUP_WATCH, ROLLUP_MINIFY, NODE_ENV });
@@ -35,7 +35,7 @@ const plugins = [
   // Replace literal string 'process.env.NODE_ENV' with the current NODE_ENV
   replace({
     preventAssignment: true,
-    values: { 'process.env.NODE_ENV': NODE_ENV },
+    values: { 'process.env.NODE_ENV': `"${NODE_ENV}"` },
   }),
   esbuild({
     sourcemap: true,
