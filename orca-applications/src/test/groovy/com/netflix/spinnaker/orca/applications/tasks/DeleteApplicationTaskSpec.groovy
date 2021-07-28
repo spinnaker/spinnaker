@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.applications.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
@@ -30,7 +31,11 @@ import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class DeleteApplicationTaskSpec extends Specification {
   @Subject
-  def task = new DeleteApplicationTask(mapper: new ObjectMapper())
+  def task = new DeleteApplicationTask(
+      Mock(Front50Service),
+      Mock(KeelService),
+      new ObjectMapper(),
+      Mock(DynamicConfigService))
 
   def config = [
     account    : "test",

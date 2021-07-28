@@ -16,21 +16,52 @@
 
 package com.netflix.spinnaker.orca.applications.tasks
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
 import com.netflix.spinnaker.orca.front50.tasks.AbstractFront50Task
 import com.netflix.spinnaker.orca.KeelService
 import groovy.util.logging.Slf4j
-import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.lang.Nullable
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 
 @Slf4j
 @Component
 class DeleteApplicationTask extends AbstractFront50Task {
-  @Autowired(required = false)
   KeelService keelService
+
+  DeleteApplicationTask(@Nullable Front50Service front50Service,
+                        @Nullable KeelService keelService,
+                        ObjectMapper mapper,
+                        DynamicConfigService configService
+  ) {
+    super(front50Service, mapper, configService)
+    this.keelService = keelService
+  }
+
+  @Override
+  long getBackoffPeriod() {
+    return this.configService
+        .getConfig(
+            Long.class,
+            "tasks.delete-application.backoff-ms",
+            10000L
+        )
+  }
+
+  @Override
+  long getTimeout() {
+    return this.configService
+        .getConfig(
+            Long.class,
+            "tasks.delete-application.timeout-ms",
+            3600000L
+        )
+  }
 
   @Override
   TaskResult performRequest(Application application) {

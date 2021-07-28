@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.orca.applications.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
@@ -29,7 +30,10 @@ import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class UpsertApplicationTaskSpec extends Specification {
   @Subject
-  def task = new UpsertApplicationTask(mapper: new ObjectMapper())
+  def task = new UpsertApplicationTask(
+      Mock(Front50Service),
+      new ObjectMapper(),
+      Mock(DynamicConfigService))
 
   def config = [
     application: [

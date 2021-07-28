@@ -18,25 +18,37 @@
 package com.netflix.spinnaker.orca.front50.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.api.pipeline.Task
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
-import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.lang.Nullable
 import retrofit.RetrofitError
 
 import javax.annotation.Nonnull
+import java.util.concurrent.TimeUnit
 
-abstract class AbstractFront50Task implements Task {
-  @Autowired(required = false)
+abstract class AbstractFront50Task implements RetryableTask {
   Front50Service front50Service
+  final ObjectMapper mapper
+  final DynamicConfigService configService
 
-  @Autowired
-  ObjectMapper mapper
+  AbstractFront50Task(@Nullable Front50Service front50Service,
+                      ObjectMapper mapper,
+                      DynamicConfigService configService) {
+    this.front50Service = front50Service
+    this.mapper = mapper
+    this.configService = configService
+  }
 
   abstract  TaskResult performRequest(Application application)
   abstract String getNotificationType()
+
+  abstract long getBackoffPeriod()
+
+  abstract long getTimeout()
 
   @Nonnull
   @Override
@@ -58,7 +70,6 @@ abstract class AbstractFront50Task implements Task {
     if (missingInputs) {
       throw new IllegalArgumentException("Missing one or more required task parameters (${missingInputs.join(", ")})")
     }
-
 
     def outputs = [
       "notification.type": getNotificationType(),
