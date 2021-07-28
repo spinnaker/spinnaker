@@ -9,6 +9,7 @@ import { logger } from '../utils/Logger';
 
 interface ISpinErrorBoundaryState {
   error?: Error;
+  retrying: boolean;
 }
 
 interface ISpinErrorBoundaryProps {
@@ -28,7 +29,7 @@ export function withErrorBoundary<T>(Component: React.ComponentType<T>, category
 export class SpinErrorBoundary extends React.Component<ISpinErrorBoundaryProps, ISpinErrorBoundaryState> {
   constructor(props: ISpinErrorBoundaryProps) {
     super(props);
-    this.state = { error: null };
+    this.state = { error: null, retrying: false };
   }
 
   static getDerivedStateFromError(error: Error) {
@@ -46,17 +47,28 @@ export class SpinErrorBoundary extends React.Component<ISpinErrorBoundaryProps, 
     });
   }
 
+  retry() {
+    this.setState({ retrying: true });
+    setTimeout(() => this.setState({ retrying: false, error: null }), 250);
+  }
+
   render() {
     if (!this.state?.error) {
       return this.props.children;
     }
 
     const { message, stack } = this.state.error;
+    const { retrying } = this.state;
 
     return (
       <div className="flex-container-v sp-margin-l">
         <h3>Oh dear, something has gone wrong.</h3>
-        <h4>Spinnaker has encountered an unexpected UI error.</h4>
+        <div className="sp-margin-l-bottom">
+          <h4>Spinnaker has encountered an unexpected UI error.</h4>
+          <button disabled={retrying} onClick={() => this.retry()}>
+            {retrying ? 'Retrying...' : 'Try again'}
+          </button>
+        </div>
 
         {message && <ValidationMessage message={message} type="error" />}
 
