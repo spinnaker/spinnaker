@@ -47,6 +47,15 @@ public class ArtifactUtils {
         entry != null;
         entry = tarStream.getNextTarEntry()) {
       File target = new File(baseDirectory, entry.getName());
+
+      String canonicalTargetPath = target.getCanonicalPath();
+      String canonicalBaseDirPath = baseDirectory.getCanonicalPath();
+
+      if (!canonicalTargetPath.startsWith(canonicalBaseDirPath)) {
+        throw new RuntimeException(
+            "Entry is outside of the target directory (" + entry.getName() + ")");
+      }
+
       if (entry.isDirectory()) {
         directoryStack.push(new DirectoryTimestamp(target, entry.getModTime().getTime()));
         continue;
