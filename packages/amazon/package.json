@@ -16,7 +16,7 @@
     "@spinnaker/core": "^0.0.620",
     "@uirouter/angularjs": "1.0.26",
     "@uirouter/core": "6.0.8",
-    "@uirouter/react": "1.0.3",
+    "@uirouter/react": "1.0.7",
     "@uirouter/react-hybrid": "1.0.2",
     "angular": "1.6.10",
     "angular-ui-bootstrap": "2.5.0",

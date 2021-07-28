@@ -4191,7 +4191,7 @@
   dependencies:
     "@uirouter/core" "6.0.5"
 
-"@uirouter/core@6.0.4", "@uirouter/core@6.0.5", "@uirouter/core@6.0.8":
+"@uirouter/core@6.0.4", "@uirouter/core@6.0.5", "@uirouter/core@6.0.7", "@uirouter/core@6.0.8":
   version "6.0.8"
   resolved "https://registry.yarnpkg.com/@uirouter/core/-/core-6.0.8.tgz#a1e919a4743be729751aafc4ce353d0dc0ffd26c"
   integrity sha512-Gc/BAW47i4L54p8dqYCJJZuv2s3tqlXQ0fvl6Zp2xrblELPVfxmjnc0eurx3XwfQdaqm3T6uls6tQKkof/4QMw==
@@ -4205,13 +4205,13 @@
     "@uirouter/core" "6.0.5"
     "@uirouter/react" "1.0.3"
 
-"@uirouter/react@1.0.2", "@uirouter/react@1.0.3":
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/@uirouter/react/-/react-1.0.3.tgz#fbfa63e9aa6ad8444198754ef732e63c187d44ed"
-  integrity sha512-LTZK2BFapYTTjAVOc1mQF1mSeC5v++SNzOizhGNn//0npjzbhzy4qSt0EsFwlDtIkuZscVMsxBVNBRxnuy6G/Q==
+"@uirouter/react@1.0.2", "@uirouter/react@1.0.3", "@uirouter/react@1.0.7":
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/@uirouter/react/-/react-1.0.7.tgz#2ddc3996a011b77f4579a72eebfb3243bf04c909"
+  integrity sha512-CRCEk6fh/Fy/iAUkctPWpgrEC4DR1D/hnrpqyGshDcAuCfRVSYluRPkurzV74p1LG1pksCVlThH/0aJK9+G/MQ==
   dependencies:
-    "@uirouter/core" "6.0.5"
-    classnames "^2.2.5"
+    "@uirouter/core" "6.0.7"
+    classnames "^2.3.1"
     prop-types "^15.6.1"
 
 "@uirouter/rx@0.6.5":
@@ -6106,6 +6106,11 @@ classnames@2.2.6, classnames@^2.2.0, classnames@^2.2.3, classnames@^2.2.4, class
   version "2.2.6"
   resolved "https://registry.yarnpkg.com/classnames/-/classnames-2.2.6.tgz#43935bffdd291f326dad0a205309b38d00f650ce"
   integrity sha512-JR/iSQOSt+LQIWwrwEzJ9uk0xfN3mTVYMwt1Ir5mUcSN6pU+V4zQFFaJsclJbPuAUQH+yfWef6tm7l1quW3C8Q==
+
+classnames@^2.3.1:
+  version "2.3.1"
+  resolved "https://registry.yarnpkg.com/classnames/-/classnames-2.3.1.tgz#dfcfa3891e306ec1dad105d0e88f4417b8535e8e"
+  integrity sha512-OlQdbZ7gLfGarSqxesMesDa5uz7KFbID8Kpq/SxIoNGDqY8lSYs0D+hhtBXhcdB3rcbXArFr7vlHheLk1voeNA==
 
 clean-css@4.0.x:
   version "4.0.13"

@@ -89,7 +89,7 @@
   "resolutionsPurpose": "This temporarily chooses the right versions of these libs, which are specified in both deck AND deck-kayenta",
   "resolutions": {
     "@uirouter/react-hybrid": "1.0.2",
-    "@uirouter/react": "1.0.3",
+    "@uirouter/react": "1.0.7",
     "@uirouter/angularjs": "1.0.26",
     "@uirouter/core": "6.0.8",
     "react": "^16.14.0",

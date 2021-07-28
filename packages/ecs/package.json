@@ -17,7 +17,7 @@
     "@spinnaker/core": "^0.0.620",
     "@spinnaker/docker": "^0.0.93",
     "@uirouter/angularjs": "1.0.26",
-    "@uirouter/react": "1.0.3",
+    "@uirouter/react": "1.0.7",
     "angular": "1.6.10",
     "angular-ui-bootstrap": "2.5.0",
     "lodash": "4.17.21",
