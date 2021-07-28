@@ -163,10 +163,6 @@ function configure(env, webpackOpts) {
           use: [{ loader: 'expose-loader?$' }, { loader: 'expose-loader?jQuery' }],
         },
         {
-          test: /ui-sortable/,
-          use: ['imports-loader?$UI=jquery-ui/ui/widgets/sortable'],
-        },
-        {
           test: /\.js$/,
           enforce: 'pre',
           use: [
