@@ -15,39 +15,31 @@ interface Dependent: ResourceSpec {
 /**
  * Simple representation of a resource dependency.
  *
- * TODO: replace usage of [DependencyType] with [ResourceDependency] for all resource types. This
+ * TODO: replace usage of [DependencyType] with [ResourceKind] for all resource types. This
  *  is currently precluded by modeling load balancer dependencies without a kind (ALB, CLB, etc.).
  */
-open class Dependency(
-  open val type: DependencyType,
-  open val region: String,
-  open val name: String
+data class Dependency(
+  val type: DependencyType,
+  val region: String,
+  val name: String,
+  val kind: ResourceKind? = null
 ) {
 
-  open fun copy(type: DependencyType = this.type, region: String = this.region, name: String = this.name): Dependency =
-    Dependency(type, region, name)
+  fun renamed(newName: String): Dependency =
+    copy(name = newName)
 
-  override fun equals(other: Any?): Boolean =
-    other is Dependency && other.type == type && other.region == region && other.name == name
-
-  override fun hashCode(): Int {
-    var result = type.hashCode()
-    result = 31 * result + region.hashCode()
-    result = 31 * result + name.hashCode()
-    return result
-  }
-
-  override fun toString(): String = "Dependency(type = $type, region = $region, name = $name)"
+  /**
+   * Makes a best guess as to whether this [Dependency] is for a resource of the same kind as [resourceKind],
+   * based on naming conventions we use for kinds.
+   *
+   * TODO: remove if/when all dependencies are implemented as [GENERIC_RESOURCE].
+   */
+  fun matchesKind(resourceKind: ResourceKind): Boolean =
+    when (type) {
+      GENERIC_RESOURCE -> kind == resourceKind
+      else -> resourceKind.kind.contains(type.name.replace('_', '-').toLowerCase())
+    }
 }
-
-/**
- * A resource dependency identified by its [ResourceKind].
- */
-data class ResourceDependency(
-  override val region: String,
-  override val name: String,
-  val kind: ResourceKind
-) : Dependency(GENERIC_RESOURCE, region, name)
 
 enum class DependencyType {
   SECURITY_GROUP, LOAD_BALANCER, TARGET_GROUP, GENERIC_RESOURCE

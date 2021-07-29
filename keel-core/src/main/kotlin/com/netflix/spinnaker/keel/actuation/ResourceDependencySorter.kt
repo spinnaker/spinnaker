@@ -8,7 +8,6 @@ import com.netflix.spinnaker.keel.api.DependencyType.TARGET_GROUP
 import com.netflix.spinnaker.keel.api.Dependent
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceDependency
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.LoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
@@ -60,7 +59,7 @@ class ResourceDependencySorter(private val environment: Environment) {
     //  modeling the link between the two. Under the covers we could still resolve it to the format Orca needs.
     resources.find {
       when (dependency.type) {
-        GENERIC_RESOURCE -> it.name == dependency.name && it.kind == (dependency as ResourceDependency).kind
+        GENERIC_RESOURCE -> it.name == dependency.name && it.kind == dependency.kind
         SECURITY_GROUP -> it.name == dependency.name && it.spec is SecurityGroupSpec
         LOAD_BALANCER -> it.name == dependency.name && it.spec is LoadBalancerSpec
         TARGET_GROUP -> it.spec is ApplicationLoadBalancerSpec

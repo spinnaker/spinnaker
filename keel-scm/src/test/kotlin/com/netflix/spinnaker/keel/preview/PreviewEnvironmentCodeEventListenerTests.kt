@@ -14,7 +14,6 @@ import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.PreviewEnvironmentSpec
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceDependency
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactOriginFilter
 import com.netflix.spinnaker.keel.api.artifacts.DOCKER
 import com.netflix.spinnaker.keel.api.artifacts.branchName
@@ -133,21 +132,6 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
 
     val artifactReferenceResource = artifactReferenceResource(artifactReference = artifactFromMain.reference, artifactType = DOCKER)
 
-    val dependentResource = dependentResource(
-      dependsOn = setOf(
-        ResourceDependency(
-          region = locatableResource.spec.locations.regions.first().name,
-          name = locatableResource.name,
-          kind = locatableResource.kind
-        ),
-        Dependency(
-          type = SECURITY_GROUP,
-          region = locatableResource.spec.locations.regions.first().name,
-          name = "fnord"
-        )
-      )
-    )
-
     val defaultSecurityGroup = Resource(
       kind = EC2_SECURITY_GROUP_V1.kind,
       metadata = mapOf("id" to "fnord", "application" to "fnord"),
@@ -155,6 +139,24 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
         moniker = Moniker("fnord"),
         locations = locatableResource.spec.locations,
         description = "default security group"
+      )
+    )
+
+    val resourceWithSameNameAsDefaultSecurityGroup = locatableResource(moniker = Moniker("fnord"))
+
+    val dependentResource = dependentResource(
+      dependsOn = setOf(
+        Dependency(
+          type = GENERIC_RESOURCE,
+          region = locatableResource.spec.locations.regions.first().name,
+          name = locatableResource.name,
+          kind = locatableResource.kind
+        ),
+        Dependency(
+          type = SECURITY_GROUP,
+          region = defaultSecurityGroup.spec.locations.regions.first().name,
+          name = defaultSecurityGroup.name
+        )
       )
     )
 
@@ -166,7 +168,13 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
       environments = setOf(
         Environment(
           name = "test",
-          resources = setOf(locatableResource, artifactReferenceResource, dependentResource, defaultSecurityGroup)
+          resources = setOf(
+            locatableResource,
+            artifactReferenceResource,
+            resourceWithSameNameAsDefaultSecurityGroup, // name conflict with default sec group, but different kind
+            defaultSecurityGroup,
+            dependentResource
+          )
         )
       ),
       previewEnvironments = setOf(

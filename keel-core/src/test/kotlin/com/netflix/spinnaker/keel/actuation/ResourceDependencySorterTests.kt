@@ -1,9 +1,10 @@
 package com.netflix.spinnaker.keel.actuation
 
+import com.netflix.spinnaker.keel.api.Dependency
+import com.netflix.spinnaker.keel.api.DependencyType.GENERIC_RESOURCE
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceDependency
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
@@ -159,11 +160,11 @@ class ResourceDependencySorterTests {
   fun `throws an exception on cyclic dependencies`() {
     var resource1 = dependentResource()
     val resource2 = dependentResource(
-      dependsOn = setOf(ResourceDependency("us-east-1", resource1.name, resource1.kind))
+      dependsOn = setOf(Dependency(GENERIC_RESOURCE,"us-east-1", resource1.name, resource1.kind))
     )
     resource1 = resource1.copy(
       spec = resource1.spec.copy(
-        dependsOn = setOf(ResourceDependency("us-east-1", resource2.name, resource2.kind))
+        dependsOn = setOf(Dependency(GENERIC_RESOURCE,"us-east-1", resource2.name, resource2.kind))
       )
     )
     val environment = Environment(

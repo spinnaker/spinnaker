@@ -2,10 +2,11 @@ package com.netflix.spinnaker.keel.actuation
 
 import com.netflix.spinnaker.config.EnvironmentDeletionConfig
 import com.netflix.spinnaker.config.EnvironmentDeletionConfig.Companion.DEFAULT_MAX_RESOURCE_DELETION_ATTEMPTS
+import com.netflix.spinnaker.keel.api.Dependency
+import com.netflix.spinnaker.keel.api.DependencyType.GENERIC_RESOURCE
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.PreviewEnvironmentSpec
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceDependency
 import com.netflix.spinnaker.keel.api.TaskExecution
 import com.netflix.spinnaker.keel.api.TaskStatus
 import com.netflix.spinnaker.keel.api.TaskStatus.RUNNING
@@ -88,7 +89,8 @@ class EnvironmentCleanerTests {
   private val locatableResource = locatableResource()
   private val dependentResource = dependentResource(
     dependsOn = setOf(
-      ResourceDependency(
+      Dependency(
+        type = GENERIC_RESOURCE,
         region = locatableResource.spec.locations.regions.first().name,
         name = locatableResource.name,
         kind = locatableResource.kind

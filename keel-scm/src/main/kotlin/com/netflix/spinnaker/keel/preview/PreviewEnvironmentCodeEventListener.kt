@@ -371,7 +371,9 @@ class PreviewEnvironmentCodeEventListener(
 
     val updatedSpec = if (spec is Dependent) {
       val renamedDeps = (spec as Dependent).dependsOn.map { dep ->
-        val candidate = baseEnvironment.resources.find { it.spec is Monikered && it.named(dep.name) }
+        val candidate = baseEnvironment.resources.find {
+          it.spec is Monikered && it.named(dep.name) && dep.matchesKind(it.kind)
+        }
         if (candidate != null) {
           log.debug("Checking if dependency needs renaming: kind '${candidate.kind.kind}', name '${candidate.name}', application '$application'")
           // special case for security group named after the app which is always included by default :-/
@@ -381,9 +383,10 @@ class PreviewEnvironmentCodeEventListener(
           } else {
             val newName = (candidate as Resource<Monikered>).withBranchDetail(branchDetail).name
             log.debug("Renaming ${dep.type} dependency ${candidate.name} to $newName in resource ${this.name}")
-            Dependency(dep.type, dep.region, newName)
+            dep.renamed(newName)
           }
         } else {
+          log.debug("Skipping rename for non-managed dependency $dep")
           dep
         }
       }.toSet()
@@ -392,7 +395,7 @@ class PreviewEnvironmentCodeEventListener(
       spec
     }
 
-    return copy(spec = updatedSpec as T)
+    return copy(spec = updatedSpec)
   }
 
   private fun DeliveryConfig.findBaseEnvironment(previewEnvSpec: PreviewEnvironmentSpec) =
