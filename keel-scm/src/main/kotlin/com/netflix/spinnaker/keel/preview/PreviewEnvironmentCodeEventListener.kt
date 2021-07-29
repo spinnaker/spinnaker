@@ -357,7 +357,8 @@ class PreviewEnvironmentCodeEventListener(
   }
 
   /**
-   * Adds the specified [branchDetail] to the [Moniker.detail] field of the [ResourceSpec].
+   * Adds the specified [branchDetail] to the [Moniker.detail] field of the [ResourceSpec] of each dependency
+   * of this resource that is also managed.
    *
    * Limitation: this method supports renaming only resources whose specs are [Monikered].
    */
@@ -372,6 +373,7 @@ class PreviewEnvironmentCodeEventListener(
       val renamedDeps = (spec as Dependent).dependsOn.map { dep ->
         val candidate = baseEnvironment.resources.find { it.spec is Monikered && it.named(dep.name) }
         if (candidate != null) {
+          log.debug("Checking if dependency needs renaming: kind '${candidate.kind.kind}', name '${candidate.name}', application '$application'")
           // special case for security group named after the app which is always included by default :-/
           if (candidate.kind.kind.contains("security-group") && candidate.named(application)) {
             log.debug("Skipping dependency rename for default security group $application in resource ${this.name}")
