@@ -3,29 +3,31 @@ package com.netflix.spinnaker.keel.services
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.jsontype.NamedType
 import com.fasterxml.jackson.module.kotlin.convertValue
-import com.netflix.spinnaker.keel.igor.ScmService
 import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.front50.Front50Cache
 import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
 import com.netflix.spinnaker.keel.igor.RawDeliveryConfigResult
+import com.netflix.spinnaker.keel.igor.ScmService
 import com.netflix.spinnaker.keel.igor.model.Branch
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.configuredTestYamlMapper
 import com.netflix.spinnaker.keel.test.deliveryConfig
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import io.mockk.coEvery as every
 import io.mockk.mockk
 import retrofit.RetrofitError
 import retrofit.client.Response
 import strikt.api.expectCatching
 import strikt.api.expectThat
-import strikt.assertions.isEmpty
+import strikt.assertions.all
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
-import strikt.assertions.isNotNull
+import strikt.assertions.isSuccess
+import strikt.assertions.map
+import io.mockk.coEvery as every
 
 class DeliveryConfigImporterTests : JUnit5Minutests {
   object Fixture {
@@ -143,6 +145,55 @@ class DeliveryConfigImporterTests : JUnit5Minutests {
           }
             .isFailure()
             .isEqualTo(retrofitError)
+        }
+      }
+
+      context("with YAML containing anchors") {
+        before {
+          every {
+            scmService.getDeliveryConfigManifest("stash", "proj", "repo", "spinnaker.yml", any(), true)
+          } returns RawDeliveryConfigResult(manifest = """
+            |---
+            |name: fnord
+            |application: fnord
+            |artifacts:
+            |- &main-artifact
+            |  name: fnord-server
+            |  type: deb
+            |  from:
+            |    branch:
+            |      name: master
+            |  reference: fnord-server
+            |  vmOptions:
+            |    baseLabel: release
+            |    baseOs: bionic-classic
+            |    regions:
+            |      - eu-west-1
+            |      - us-east-1
+            |      - us-west-2
+            |    storeType: ebs
+            |- << : *main-artifact
+            |  reference: feature-artifact
+            |  from:
+            |    branch:
+            |      startsWith: "feature/"
+          """.trimMargin())
+        }
+
+        test("succeeds") {
+          expectCatching {
+            importer.import(
+              repoType = "stash",
+              projectKey = "proj",
+              repoSlug = "repo",
+              manifestPath = "spinnaker.yml",
+              ref = "refs/heads/master"
+            )
+          }
+            .isSuccess()
+            .get { artifacts }
+            .map { it.type }
+            .all { isEqualTo(DEBIAN) }
         }
       }
     }

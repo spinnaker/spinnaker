@@ -1,6 +1,8 @@
 package com.netflix.spinnaker.keel.rest
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.keel.jackson.writeYamlAsJsonString
+import org.springframework.http.HttpStatus
 import java.io.ByteArrayInputStream
 import javax.servlet.Filter
 import javax.servlet.FilterChain
@@ -10,10 +12,7 @@ import javax.servlet.ServletRequest
 import javax.servlet.ServletResponse
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletRequestWrapper
-import org.yaml.snakeyaml.Yaml
-import java.lang.ClassCastException
 import javax.servlet.http.HttpServletResponse
-import org.springframework.http.HttpStatus
 
 /**
  * A filter for POST /delivery-configs which first parses YAML using snakeyaml, which supports YAML anchors
@@ -35,11 +34,7 @@ class DeliveryConfigYamlParsingFilter : Filter {
 
       val deliveryConfigAsJson: String
       try {
-
-        val yaml = Yaml()
-        val deliveryConfig: Map<String, Any?> = yaml.load(request.inputStream)
-        deliveryConfigAsJson = jsonMapper.writeValueAsString(deliveryConfig)
-
+        deliveryConfigAsJson = jsonMapper.writeYamlAsJsonString(request.inputStream)
       } catch(e: ClassCastException) {
         (response as HttpServletResponse).status = HttpStatus.BAD_REQUEST.value()
         response.writer.print(e.message)
