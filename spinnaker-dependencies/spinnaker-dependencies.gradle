@@ -28,7 +28,13 @@ ext {
     springBoot       : "2.2.5.RELEASE",
     springCloud      : "Hoxton.SR4",
     springfoxSwagger : "2.9.2",
-    swagger          : "1.5.20" //this should stay in sync with what springfoxSwagger expects
+    swagger          : "1.5.20", //this should stay in sync with what springfoxSwagger expects
+    // tomcat (v9.0.31) was included via spring boot and upgrading spring boot
+    // from 2.2.5.RELEASE (tomcat v9.0.31 used here) to 2.5.0 (tomcat v9.0.48)
+    // makes a few breaking changes, requires adding new dependencies, and
+    // changing code. So instead updating tomcat to v9.0.48 as a workaround
+    // until we move spring boot to at least v2.5.0.
+    tomcat           : "9.0.48"
   ]
 }
 
@@ -160,6 +166,9 @@ dependencies {
     api("org.springframework.security.extensions:spring-security-saml-dsl-core:1.0.5.RELEASE")
     api("org.springframework.security.extensions:spring-security-saml2-core:1.0.9.RELEASE")
     api("org.threeten:threeten-extra:1.0")
+    api("org.apache.tomcat.embed:tomcat-embed-core:${versions.tomcat}")
+    api("org.apache.tomcat.embed:tomcat-embed-el:${versions.tomcat}")
+    api("org.apache.tomcat.embed:tomcat-embed-websocket:${versions.tomcat}")
     api("io.zipkin.brave:brave-instrumentation-okhttp3:${versions.brave}")
   }
 }
