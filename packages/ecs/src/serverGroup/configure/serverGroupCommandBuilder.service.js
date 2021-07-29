@@ -138,7 +138,7 @@ angular
               dockerImageCredentialsSecret: defaultImageCredentials,
               availabilityZones: availabilityZones,
               subnetType: '',
-              securityGroups: [],
+              securityGroupNames: [],
               healthCheckGracePeriodSeconds: '',
               placementConstraints: [],
               placementStrategyName: '',
