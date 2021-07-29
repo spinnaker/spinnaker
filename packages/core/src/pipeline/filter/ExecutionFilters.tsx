@@ -164,6 +164,9 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
       newPipelineNames = newPipelineNames.filter((pipelineName) =>
         pipelineName.toLocaleLowerCase().includes(searchString.toLocaleLowerCase()),
       );
+      if (this.state.pipelineReorderEnabled) {
+        this.disablePipelineReorder();
+      }
     }
     const newStrategyNames = this.getPipelineNames(true);
     if (!isEqual(pipelineNames, newPipelineNames) || !isEqual(strategyNames, newStrategyNames)) {
@@ -268,14 +271,22 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
                 {pipelineNames.length > 0 && (
                   <div>
                     {!pipelineReorderEnabled && (
-                      <a className="btn btn-xs btn-default clickable" onClick={this.enablePipelineReorder}>
+                      <button
+                        className="btn btn-xs btn-default"
+                        onClick={this.enablePipelineReorder}
+                        disabled={Boolean(searchString)}
+                      >
                         Reorder Pipelines
-                      </a>
+                      </button>
                     )}
                     {pipelineReorderEnabled && (
-                      <a className="btn btn-xs btn-default clickable" onClick={this.disablePipelineReorder}>
+                      <button
+                        className="btn btn-xs btn-default"
+                        onClick={this.disablePipelineReorder}
+                        disabled={Boolean(searchString)}
+                      >
                         Done
-                      </a>
+                      </button>
                     )}
                   </div>
                 )}
