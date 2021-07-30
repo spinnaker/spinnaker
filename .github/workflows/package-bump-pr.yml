@@ -24,6 +24,7 @@ jobs:
         run: |
           git config user.name spinnakerbot
           git config user.email spinnakerbot@spinnaker.io
+          git checkout master
 
       - uses: actions/setup-node@v1
         name: node - setup
@@ -97,7 +98,7 @@ jobs:
             await github.pulls.update({ owner, repo, pull_number, state: 'closed' });
 
       - name: Approve package bump
-        if: ${{ steps.bumps.outputs.bumps != '' }}
+        if: ${{ steps.bumps.outputs.bumps != '' && steps.createpullrequest.outputs.pull-request-number != '' }}
         uses: actions/github-script@0.9.0
         with:
           github-token: '${{ secrets.SPINNAKERBOT_TOKEN }}'
