@@ -42,8 +42,6 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isGreaterThan
 import strikt.assertions.isSuccess
 import java.time.Duration
-import java.time.Instant.EPOCH
-import java.time.temporal.ChronoUnit.DAYS
 
 class EnvironmentVersioningTests {
   private val jooq = testDatabase.context
@@ -107,6 +105,7 @@ class EnvironmentVersioningTests {
   @BeforeEach
   fun storeDeliveryConfig() {
     repository.upsertDeliveryConfig(deliveryConfig)
+
     deliveryConfigRepository.addArtifactVersionToEnvironment(
       deliveryConfig,
       deliveryConfig.environments.single().name,
@@ -167,20 +166,6 @@ class EnvironmentVersioningTests {
 
     val updatedVersion = latestVersion()
     expectThat(updatedVersion).describedAs("updated version") isEqualTo initialVersion + 1
-  }
-
-  @Test
-  fun `we can determine how many versions have been created since a timestamp`() {
-    expectThat(versionsEver()) isEqualTo 2
-
-    clock.incrementBy(Duration.ofDays(1))
-    deliveryConfig.withUpdatedResource()
-      .also(repository::upsertDeliveryConfig)
-
-    expect {
-      that(versionsEver()) isEqualTo 3
-      that(versionsToday()) isEqualTo 1
-    }
   }
 
   @Test
@@ -379,22 +364,6 @@ class EnvironmentVersioningTests {
       .select(ACTIVE_ENVIRONMENT.VERSION)
       .from(ACTIVE_ENVIRONMENT)
       .fetchOne(ACTIVE_ENVIRONMENT.VERSION)!!
-
-  private fun versionsEver() =
-    artifactRepository.deploymentsBetween(
-      deliveryConfig,
-      deliveryConfig.environments.first().name,
-      EPOCH,
-      clock.instant().plus(Duration.ofDays(1)).truncatedTo(DAYS)
-    )
-
-  private fun versionsToday() =
-    artifactRepository.deploymentsBetween(
-      deliveryConfig,
-      deliveryConfig.environments.first().name,
-      clock.instant().truncatedTo(DAYS),
-      clock.instant().plus(Duration.ofDays(12)).truncatedTo(DAYS)
-    )
 
   private fun Table<*>.count() =
     jooq.selectCount().from(this).fetchSingleInto<Int>()

@@ -383,7 +383,7 @@ interface ArtifactRepository : PeriodicallyCheckedRepository<DeliveryArtifact> {
   }
 
   /**
-   * @return the number of times we have deployed to an environment between [startTime] and [endTime].
+   * @return number of artifact versions deployed to [environmentName] between [startTime] and [endTime].
    */
   fun deploymentsBetween(
     deliveryConfig: DeliveryConfig,

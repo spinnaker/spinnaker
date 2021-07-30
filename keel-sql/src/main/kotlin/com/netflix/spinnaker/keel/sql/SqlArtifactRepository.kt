@@ -46,7 +46,6 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_PIN
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_VETO
-import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_VERSION
 import com.netflix.spinnaker.keel.services.StatusInfoForArtifactInEnvironment
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
@@ -1821,12 +1820,12 @@ class SqlArtifactRepository(
       }
       jooq
         .selectCount()
-        .from(ENVIRONMENT_VERSION)
-        .join(ENVIRONMENT).on(ENVIRONMENT.UID.eq(ENVIRONMENT_VERSION.ENVIRONMENT_UID))
+        .from(ENVIRONMENT_ARTIFACT_VERSIONS)
+        .join(ENVIRONMENT).on(ENVIRONMENT.UID.eq(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID))
         .join(DELIVERY_CONFIG).on(DELIVERY_CONFIG.UID.eq(ENVIRONMENT.DELIVERY_CONFIG_UID))
         .where(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
         .and(ENVIRONMENT.NAME.eq(environmentName))
-        .and(ENVIRONMENT_VERSION.CREATED_AT.between(start, end))
+        .and(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT.between(start, end))
         .fetchSingleInto<Int>()
     }
 
