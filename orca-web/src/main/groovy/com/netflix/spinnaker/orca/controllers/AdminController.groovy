@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.orca.controllers
 
+import com.netflix.spinnaker.kork.discovery.DiscoveryStatusPublisher
 import com.netflix.spinnaker.kork.discovery.NoDiscoveryStatusPublisher
 import com.netflix.spinnaker.kork.exceptions.HasAdditionalAttributes
 import com.netflix.spinnaker.kork.web.exceptions.ValidationException
@@ -26,10 +27,7 @@ import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.ApplicationEventPublisher
-import org.springframework.context.ApplicationListener
-import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -43,8 +41,7 @@ import org.springframework.web.bind.annotation.RestController
 @Slf4j
 class AdminController {
   @Autowired(required = false)
-  @Qualifier("discoveryStatusListener")
-  ApplicationListener<ContextRefreshedEvent> discoveryStatusPoller
+  DiscoveryStatusPublisher discoveryStatusPublisher
 
   @Autowired
   ApplicationEventPublisher applicationEventPublisher
@@ -60,13 +57,13 @@ class AdminController {
 
   @RequestMapping(value = "/instance/enabled", method = RequestMethod.POST)
   void setInstanceStatus(@RequestBody Map<String, Boolean> enabledWrapper) {
-    if (!discoveryStatusPoller) {
+    if (!discoveryStatusPublisher) {
       log.warn("No configured discovery status poller")
       return
     }
 
-    if (!discoveryStatusPoller instanceof NoDiscoveryStatusPublisher) {
-      throw new DiscoveryUnchangeableException("Discovery status cannot be overwritten", discoveryStatusPoller.class)
+    if (!(discoveryStatusPublisher instanceof NoDiscoveryStatusPublisher)) {
+      throw new DiscoveryUnchangeableException("Discovery status cannot be overwritten", DiscoveryStatusPublisher)
     }
 
 
@@ -75,7 +72,7 @@ class AdminController {
       throw new ValidationException("The field \"enabled\" must be set", null)
     }
 
-    NoDiscoveryStatusPublisher noDiscoveryApplicationStatusPublisher = (NoDiscoveryStatusPublisher) discoveryStatusPoller;
+    NoDiscoveryStatusPublisher noDiscoveryApplicationStatusPublisher = (NoDiscoveryStatusPublisher) discoveryStatusPublisher;
     noDiscoveryApplicationStatusPublisher.setInstanceEnabled(enabled)
   }
 
