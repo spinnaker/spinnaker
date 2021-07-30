@@ -4,7 +4,8 @@ import { cloneDeep } from 'lodash';
 
 import { REST } from '../api/ApiService';
 import { Application } from '../application/application.model';
-import { InfrastructureCaches } from '../cache';
+import { InfrastructureCaches } from '../cache/infrastructureCaches';
+
 import { PROVIDER_SERVICE_DELEGATE, ProviderServiceDelegate } from '../cloudProvider/providerService.delegate';
 import { SETTINGS } from '../config/settings';
 import { ILoadBalancer, ISecurityGroup, IServerGroup, IServerGroupUsage } from '../domain';

@@ -4,9 +4,10 @@ import React from 'react';
 
 import { WatchValue } from '../../WatchValue';
 import { useMountStatusRef } from '../../hooks/useMountStatusRef.hook';
-import { ICommonFormFieldProps, renderContent } from './index';
 import { IFormInputValidation } from '../inputs';
+import { ICommonFormFieldProps } from './interface';
 import { ILayoutProps, LayoutContext } from '../layouts';
+import { renderContent } from './renderContent';
 import { FormikSpelContext, SimpleSpelInput, SpelAwareInputMode, SpelService, SpelToggle } from '../../spel';
 import { firstDefined } from '../../../utils';
 import { composeValidators, IValidator, useValidationData, Validators } from '../validation';

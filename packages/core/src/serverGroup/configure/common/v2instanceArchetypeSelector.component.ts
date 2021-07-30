@@ -1,7 +1,7 @@
 import { IComponentController, IComponentOptions, IScope, module } from 'angular';
 import { includes } from 'lodash';
 
-import { CloudProviderRegistry } from '../../../cloudProvider';
+import { CloudProviderRegistry } from '../../../cloudProvider/CloudProviderRegistry';
 import { CORE_SERVERGROUP_CONFIGURE_COMMON_COSTFACTOR } from './costFactor';
 import { IInstanceTypeCategory, InstanceTypeService } from '../../../instance';
 import { ModalWizard } from '../../../modal/wizard/ModalWizard';

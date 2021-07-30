@@ -1,7 +1,6 @@
 import React from 'react';
 import { Dropdown, MenuItem } from 'react-bootstrap';
 
-import { logger } from '..';
 import { Application } from '../application';
 import { SETTINGS } from '../config/settings';
 import { IManagedResourceSummary } from '../domain';
@@ -11,6 +10,7 @@ import { HoverablePopover } from '../presentation';
 import { ReactInjector } from '../reactShims';
 import { showManagedResourceHistoryModal } from './resourceHistory/ManagedResourceHistoryModal';
 import { toggleResourcePause } from './toggleResourceManagement';
+import { logger } from '../utils/Logger';
 
 import './ManagedResourceDetailsIndicator.css';
 

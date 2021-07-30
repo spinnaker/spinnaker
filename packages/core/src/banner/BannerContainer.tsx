@@ -3,8 +3,8 @@ import { UIRouterContextComponent } from '@uirouter/react-hybrid';
 import React from 'react';
 
 import { Application } from '../application';
+import { IBannerSettings, SETTINGS } from '../config/settings';
 import { customBannersByName } from './customBannersByName';
-import { IBannerSettings, SETTINGS } from '../index';
 import { Overridable } from '../overrideRegistry';
 
 export interface IBannerContainerProps {

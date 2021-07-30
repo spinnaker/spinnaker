@@ -2,7 +2,7 @@ import React from 'react';
 
 import { AccountService } from '../../account';
 import { HelpField } from '../../help/HelpField';
-import { Markdown } from '../../presentation';
+import { Markdown } from '../../presentation/Markdown';
 
 const { useEffect, useState } = React;
 

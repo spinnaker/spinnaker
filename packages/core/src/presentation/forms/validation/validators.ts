@@ -1,6 +1,6 @@
 import { isNumber } from 'lodash';
+import { robotToHuman } from '../../robotToHumanFilter/robotToHuman.filter';
 
-import { robotToHuman } from '../../../index';
 import { IValidator } from './validation';
 
 const THIS_FIELD = 'This field';

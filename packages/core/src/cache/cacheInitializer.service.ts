@@ -3,7 +3,7 @@ import { cloneDeep, uniq } from 'lodash';
 import { Duration } from 'luxon';
 
 import { AccountService } from '../account/AccountService';
-import { CloudProviderRegistry } from '../cloudProvider';
+import { CloudProviderRegistry } from '../cloudProvider/CloudProviderRegistry';
 import { ICacheConfig } from './deckCacheFactory';
 import { IInfrastructureCacheConfig, INFRASTRUCTURE_CACHE_CONFIG } from './infrastructureCacheConfig';
 import { InfrastructureCaches } from './infrastructureCaches';
