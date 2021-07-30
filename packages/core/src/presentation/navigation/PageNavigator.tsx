@@ -1,7 +1,7 @@
 import { isFunction, throttle } from 'lodash';
 import React from 'react';
 
-import { ReactInjector } from '../../reactShims';
+import type { CoreReactInject } from '../../reactShims/react.injector';
 import { ScrollToService } from '../../utils/scrollTo/scrollTo.service';
 import { UUIDGenerator } from '../../utils/uuid.service';
 
@@ -16,6 +16,7 @@ export interface IPageNavigatorProps {
   scrollableContainer: string;
   deepLinkParam?: string;
   hideNavigation?: boolean;
+  reactInjector: CoreReactInject;
 }
 
 export interface IPageNavigatorState {
@@ -48,8 +49,8 @@ export class PageNavigator extends React.Component<IPageNavigatorProps, IPageNav
       );
     }
     this.navigator = this.element.find('.page-navigation');
-    if (deepLinkParam && ReactInjector.$stateParams[deepLinkParam]) {
-      this.setCurrentSection(ReactInjector.$stateParams[deepLinkParam]);
+    if (deepLinkParam && this.props.reactInjector.$stateParams[deepLinkParam]) {
+      this.setCurrentSection(this.props.reactInjector.$stateParams[deepLinkParam]);
     }
 
     const pages = React.Children.map(children, (child: any) => {
@@ -123,7 +124,7 @@ export class PageNavigator extends React.Component<IPageNavigatorProps, IPageNav
   private syncLocation(key: string): void {
     const { deepLinkParam } = this.props;
     if (deepLinkParam) {
-      ReactInjector.$state.go('.', { [deepLinkParam]: key }, { notify: false, location: 'replace' });
+      this.props.reactInjector.$state.go('.', { [deepLinkParam]: key }, { notify: false, location: 'replace' });
     }
   }
 

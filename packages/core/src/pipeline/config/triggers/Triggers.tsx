@@ -8,6 +8,7 @@ import { TriggersPageContent } from './TriggersPageContent';
 import { Application } from '../../../application';
 import { IPipeline } from '../../../domain';
 import { PageNavigator, PageSection } from '../../../presentation';
+import { ReactInjector } from '../../../reactShims/react.injector';
 
 export interface ITriggersProps {
   application: Application;
@@ -24,7 +25,7 @@ export function Triggers(props: ITriggersProps) {
   const revertCountKLUDGE = props.revertCount;
 
   return (
-    <PageNavigator scrollableContainer="[ui-view]">
+    <PageNavigator scrollableContainer="[ui-view]" reactInjector={ReactInjector}>
       <PageSection pageKey="concurrent" label="Execution Options" visible={!pipeline.strategy}>
         <ExecutionOptionsPageContent {...props} />
       </PageSection>
