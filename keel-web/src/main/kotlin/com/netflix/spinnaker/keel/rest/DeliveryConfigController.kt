@@ -10,6 +10,7 @@ import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.events.DeliveryConfigChangedNotification
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
+import com.netflix.spinnaker.keel.jackson.readValueInliningAliases
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoDeliveryConfigForApplication
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.WRITE
@@ -61,6 +62,10 @@ class DeliveryConfigController(
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
+  data class GateRawConfig(
+    val content: String
+  )
+
   private val sendConfigChangedNotification: Boolean
     get() = springEnv.getProperty("keel.notifications.send-config-changed", Boolean::class.java, true)
 
@@ -71,49 +76,32 @@ class DeliveryConfigController(
     consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
-  @PreAuthorize(
-    """@authorizationSupport.hasApplicationPermission('WRITE', 'APPLICATION', #deliveryConfig.application)
-    and @authorizationSupport.hasServiceAccountAccess(#deliveryConfig.serviceAccount)"""
-  )
   fun upsert(
-    @RequestBody
-    @SwaggerRequestBody(
-      description = "The delivery config. If its `name` matches an existing delivery config the operation is " +
-        "an update, otherwise a new delivery config is created."
-    )
-    deliveryConfig: SubmittedDeliveryConfig
-  ): DeliveryConfig {
-    return upsertConfig(deliveryConfig)
-  }
-
-  @Operation(
-    description = "Registers or updates a delivery config manifest."
-  )
-  @PostMapping(
-    path = ["/upsert"],
-    consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE],
-    produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
-  )
-  fun upsertRaw(
     stream: InputStream
   ): DeliveryConfig {
     var rawDeliveryConfig: String
     BufferedReader(stream.reader()).use { reader ->
-      rawDeliveryConfig = reader.readText().trim('\'')
+      rawDeliveryConfig = reader.readText()
     }
-    log.debug(rawDeliveryConfig)
-    try {
-      val submittedDeliveryConfig =
-        yamlMapper.readValue<SubmittedDeliveryConfig>(rawDeliveryConfig).copy(rawConfig = rawDeliveryConfig)
-      submittedDeliveryConfig.checkPermissions()
-      return upsertConfig(submittedDeliveryConfig)
-    } catch (e: Exception) {
-      log.error("Failed to parse yaml", e)
-      throw(e)
-    }
+    return upsertConfig(parseRawConfig(rawDeliveryConfig))
   }
 
+  @Operation(
+    description = "Registers or updates a delivery config manifest from Gate"
+  )
+  @PostMapping(
+    path = ["/upsertGate"],
+    consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE],
+    produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
+  )
+  // We had to handle requests from gate separately, because gate was serializing the raw string incorrectly. Therefore, it's wrapped in a simple object
+  fun upsertFromGate(@RequestBody rawConfig: GateRawConfig): DeliveryConfig {
+    return upsertConfig(parseRawConfig(rawConfig.content))
+  }
+
+
   private fun upsertConfig(deliveryConfig: SubmittedDeliveryConfig): DeliveryConfig {
+    deliveryConfig.checkPermissions()
     val metadata: Map<String,Any?> = deliveryConfig.metadata ?: mapOf()
     val gitMetadata: GitMetadata? = try {
       val candidateMetadata = metadata.getOrDefault("gitMetadata", null)
@@ -148,7 +136,7 @@ class DeliveryConfigController(
             )
           )
         }
-        return config
+        return config.copy(rawConfig = null)
       }
   }
 
@@ -239,8 +227,6 @@ class DeliveryConfigController(
     val deliveryConfig =
       importer.import(repoType, projectKey, repoSlug, manifestPath, ref ?: "refs/heads/master")
 
-    deliveryConfig.checkPermissions()
-
     return upsertConfig(deliveryConfig)
   }
 
@@ -248,6 +234,15 @@ class DeliveryConfigController(
     authorizationSupport.checkApplicationPermission(WRITE, APPLICATION, application)
     serviceAccount?.also {
       authorizationSupport.checkServiceAccountAccess(SERVICE_ACCOUNT, it)
+    }
+  }
+
+  private fun parseRawConfig(rawDeliveryConfig: String): SubmittedDeliveryConfig {
+    try {
+      return yamlMapper.readValueInliningAliases<SubmittedDeliveryConfig>(rawDeliveryConfig).copy(rawConfig = rawDeliveryConfig)
+    } catch (e: Exception) {
+      log.error("Failed to parse yaml", e)
+      throw(e)
     }
   }
 

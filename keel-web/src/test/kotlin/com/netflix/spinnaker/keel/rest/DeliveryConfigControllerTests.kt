@@ -13,6 +13,7 @@ import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.core.api.SubmittedEnvironment
 import com.netflix.spinnaker.keel.core.api.SubmittedResource
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
+import com.netflix.spinnaker.keel.jackson.readValueInliningAliases
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigName
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.READ
@@ -164,11 +165,17 @@ internal class DeliveryConfigControllerTests
         |    - ap-south-1
         |environments:
         |- name: test
+        |  locations: &locations
+        |    account: "titustestvpc"
+        |    regions:
+        |      - name: us-west-2
         |  resources:
         |  - kind: test/whatever@v1
         |    spec:
         |      data: resource in test
         |      application: someapp
+        |      locations:
+        |        <<: *locations
         |- name: prod
         |  constraints:
         |  - type: depends-on
@@ -254,58 +261,40 @@ internal class DeliveryConfigControllerTests
       mapOf(
         APPLICATION_YAML to yamlPayload,
         APPLICATION_JSON to jsonPayload
-      ).forEach { (contentType, payload) ->
-        derivedContext<ResultActions>("persisting a delivery config as $contentType") {
-          fixture {
-            every {
-              repository.upsertDeliveryConfig(ofType<SubmittedDeliveryConfig>())
-            } answers {
-              firstArg<SubmittedDeliveryConfig>().toDeliveryConfig()
+      ).forEach { (contentType, configContent) ->
+        listOf(
+          "/delivery-configs" to configContent,
+          "/delivery-configs/upsertGate" to jsonMapper.writeValueAsString(
+            DeliveryConfigController.GateRawConfig(
+              configContent
+            )
+          )
+        ).forEach { (endpoint, configPayload) ->
+          derivedContext<ResultActions>("persisting a delivery config as $contentType") {
+            fixture {
+              every {
+                repository.upsertDeliveryConfig(ofType<SubmittedDeliveryConfig>())
+              } answers {
+                firstArg<SubmittedDeliveryConfig>().toDeliveryConfig()
+              }
+
+              every { repository.getDeliveryConfigForApplication(deliveryConfig.application) } returns deliveryConfig.toDeliveryConfig()
+
+              val request = post(endpoint)
+                .accept(contentType)
+                .contentType(contentType)
+                .content(configPayload)
+
+              mvc.perform(request)
             }
 
-            every { repository.getDeliveryConfigForApplication(deliveryConfig.application) } returns deliveryConfig.toDeliveryConfig()
-
-            val request = post("/delivery-configs")
-              .accept(contentType)
-              .contentType(contentType)
-              .content(payload)
-
-            mvc.perform(request)
-          }
-
-          test("the request is successful") {
-            andExpect(status().isOk)
-          }
-
-          test("the manifest is persisted") {
-            verify { repository.upsertDeliveryConfig(match<SubmittedDeliveryConfig> { it.application == "keel" }) }
-          }
-        }
-
-        derivedContext<ResultActions>("raw - persisting a delivery config as $contentType") {
-          fixture {
-            every {
-              repository.upsertDeliveryConfig(ofType<SubmittedDeliveryConfig>())
-            } answers {
-              firstArg<SubmittedDeliveryConfig>().toDeliveryConfig()
+            test("the request is successful") {
+              andExpect(status().isOk)
             }
 
-            every { repository.getDeliveryConfigForApplication(deliveryConfig.application) } returns deliveryConfig.toDeliveryConfig()
-
-            val request = post("/delivery-configs/upsert")
-              .accept(contentType)
-              .contentType(contentType)
-              .content(payload)
-
-            mvc.perform(request)
-          }
-
-          test("the request is successful") {
-            andExpect(status().isOk)
-          }
-
-          test("the manifest is persisted") {
-            verify { repository.upsertDeliveryConfig(match<SubmittedDeliveryConfig> { it.application == "keel" }) }
+            test("the manifest is persisted") {
+              verify { repository.upsertDeliveryConfig(match<SubmittedDeliveryConfig> { it.application == "keel" }) }
+            }
           }
         }
 
@@ -316,7 +305,13 @@ internal class DeliveryConfigControllerTests
               else -> jsonMapper
             }
             val invalidPayload = mapper
-              .readValue<Map<String, Any?>>(payload)
+              .let {
+                if (it is YAMLMapper) {
+                  it.readValueInliningAliases<Map<String, Any?>>(configContent)
+                } else {
+                  it.readValue(configContent)
+                }
+              }
               .let { it - "application" }
               .let(mapper::writeValueAsString)
 
