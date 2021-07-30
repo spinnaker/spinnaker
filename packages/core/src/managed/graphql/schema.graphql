@@ -13,6 +13,7 @@ type MdApplication {
   pausedInfo: MdPausedInfo
   environments: [MdEnvironment!]!
   notifications: [MdNotification!]
+  rawConfig: String
 }
 
 type MdEnvironment {
@@ -53,7 +54,11 @@ type MdArtifact {
   name: String!
   type: String!
   reference: String!
-  versions(statuses: [MdArtifactStatusInEnvironment!], versions: [String!], limit: Int): [MdArtifactVersionInEnvironment!]
+  versions(
+    statuses: [MdArtifactStatusInEnvironment!]
+    versions: [String!]
+    limit: Int
+  ): [MdArtifactVersionInEnvironment!]
   pinnedVersion: MdPinnedVersion
 }
 
@@ -87,16 +92,16 @@ enum MdLifecycleEventScope {
 }
 
 enum MdLifecycleEventType {
-  BAKE,
+  BAKE
   BUILD
 }
 
 enum MdLifecycleEventStatus {
-  NOT_STARTED,
-  RUNNING,
-  SUCCEEDED,
-  FAILED,
-  ABORTED,
+  NOT_STARTED
+  RUNNING
+  SUCCEEDED
+  FAILED
+  ABORTED
   UNKNOWN
 }
 
@@ -207,12 +212,12 @@ enum MdConstraintStatus {
 }
 
 enum MdArtifactStatusInEnvironment {
-  PENDING,
-  APPROVED,
-  DEPLOYING,
-  CURRENT,
+  PENDING
+  APPROVED
+  DEPLOYING
+  CURRENT
   PREVIOUS
-  VETOED,
+  VETOED
   SKIPPED
 }
 
@@ -314,7 +319,10 @@ type MdNotification {
 }
 
 enum MdEventLevel {
-  SUCCESS, INFO, WARNING, ERROR
+  SUCCESS
+  INFO
+  WARNING
+  ERROR
 }
 
 input MdDismissNotificationPayload {

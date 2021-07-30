@@ -255,6 +255,15 @@ query fetchNotifications($appName: String!) {
   }
 }
 
+query fetchApplicationManagementData($appName: String!) {
+  application(appName: $appName) {
+    id
+    name
+    isPaused
+    rawConfig
+  }
+}
+
 query fetchApplicationManagementStatus($appName: String!) {
   application(appName: $appName) {
     id

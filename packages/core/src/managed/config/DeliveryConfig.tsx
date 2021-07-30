@@ -1,10 +1,8 @@
 import React from 'react';
 import AceEditor from 'react-ace';
-
 import { ManagedReader } from '..';
 import { useApplicationContextSafe, useData } from '../../presentation';
 import { getIsDebugMode } from '../utils/debugMode';
-import { useLogEvent } from '../utils/logging';
 
 const DeliveryConfigContentRenderer = ({ content }: { content: string }) => {
   return (
@@ -36,26 +34,20 @@ const DeliveryConfigContentRenderer = ({ content }: { content: string }) => {
   );
 };
 
-export const DeliveryConfig = () => {
-  const app = useApplicationContextSafe();
-  const { result, error, status } = useData(() => ManagedReader.getRawDeliveryConfig(app.name), undefined, [app]);
-  const logError = useLogEvent('DeliveryConfig');
-  const isDebug = getIsDebugMode();
-  React.useEffect(() => {
-    if (error) {
-      logError({ action: 'LoadingFailed', data: { error } });
-    }
-  }, [error, logError]);
+interface IDeliveryConfigProps {
+  config: string;
+}
 
+export const DeliveryConfig = ({ config }: IDeliveryConfigProps) => {
+  const isDebug = getIsDebugMode();
   return (
     <div className="DeliveryConfig sp-margin-xl-top">
-      {status === 'REJECTED' && <div className="error-message">Failed to load delivery config</div>}
-      {status === 'RESOLVED' && result && (
+      {config && (
         <>
           <div>
             <h4>Delivery Config</h4>
           </div>
-          <DeliveryConfigContentRenderer content={result} />
+          <DeliveryConfigContentRenderer content={config} />
         </>
       )}
       {isDebug && <ProcessedDeliveryConfig />}
