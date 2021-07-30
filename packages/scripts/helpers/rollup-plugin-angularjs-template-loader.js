@@ -10,12 +10,17 @@ module.exports = function angularJsTemplateLoader(options = {}) {
   }
 
   return {
+    name: 'angularJSTemplateLoader',
     transform(originalCode, id) {
       let code = originalCode;
       const templateRegex = /require\(['"]([^'"]+\.html)['"]\)/g;
 
       // look for things like require('./template.html')
-      if ((!code.includes("require('") && !code.includes(`require("`)) || id.includes('node_modules')) {
+      if (
+        (!code.includes("require('") && !code.includes(`require("`)) ||
+        id.includes('node_modules') ||
+        id.includes('react-refresh')
+      ) {
         return;
       }
 
