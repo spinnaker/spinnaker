@@ -482,7 +482,7 @@ describe('Service: FilterModelService', function () {
         filterModel.sortFilter.search = 'deck';
         filterModel.sortFilter.showInstances = true;
         filterModel.applyParamsToUrl();
-        expect(spy).toHaveBeenCalledWith('.', { q: 'deck', showInstances: true });
+        expect(spy).toHaveBeenCalledWith('.', { q: 'deck', showInstances: true }, jasmine.anything());
       });
     });
   });
