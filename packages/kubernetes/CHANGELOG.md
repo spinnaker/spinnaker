@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.81](https://github.com/spinnaker/deck/compare/@spinnaker/kubernetes@0.0.80...@spinnaker/kubernetes@0.0.81) (2021-07-30)
+
+
+### Bug Fixes
+
+* **build:** Upgrade uirouter/react version ([cc5004b](https://github.com/spinnaker/deck/commit/cc5004bfded32642553077346c19e34820d24ae7))
+
+
+
+
+
 ## [0.0.80](https://github.com/spinnaker/deck/compare/@spinnaker/kubernetes@0.0.79...@spinnaker/kubernetes@0.0.80) (2021-07-26)
 
 **Note:** Version bump only for package @spinnaker/kubernetes

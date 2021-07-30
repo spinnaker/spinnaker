@@ -3,6 +3,28 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.1.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.0.620...@spinnaker/core@0.1.0) (2021-07-30)
+
+
+### Bug Fixes
+
+* **all:** Fix lodash global usage ([d048432](https://github.com/spinnaker/deck/commit/d048432978f0aa0bceb2b58f80ea7301de153072))
+* **build:** Upgrade uirouter/react version ([cc5004b](https://github.com/spinnaker/deck/commit/cc5004bfded32642553077346c19e34820d24ae7))
+* **core/pipeline:** Disable pipeline sorting when filtering by name (because some pipelines are hidden) ([1e06186](https://github.com/spinnaker/deck/commit/1e06186dec9fa9b38806f02db17e38c9d89125da))
+* **md:** fetch raw delivery config via graphql ([#9537](https://github.com/spinnaker/deck/issues/9537)) ([1ca3549](https://github.com/spinnaker/deck/commit/1ca354966c1ad7ab07d614db1df56aea67ffef6a))
+* **vite:** Add vite fixes ([8e0840a](https://github.com/spinnaker/deck/commit/8e0840a647944d9f90ad51c6568c320b096730d6))
+
+
+### Features
+
+* **core/pipeline:** Add some SpinErrorBoundaries to pipeline execution details ([14fa364](https://github.com/spinnaker/deck/commit/14fa364905a8bc532e6e28529acacf8a7d0d9e83))
+* **core/presentation:** Add a retry button to SpinErrorBoundary ([9883704](https://github.com/spinnaker/deck/commit/9883704db8f5b770c0793347b85d93bd87626e18))
+* introduce a separate timeout config property for api timeouts ([#9498](https://github.com/spinnaker/deck/issues/9498)) ([678a78a](https://github.com/spinnaker/deck/commit/678a78afa4cb762df01d8c6ed19311fdeeeb86a7))
+
+
+
+
+
 ## [0.0.620](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.0.619...@spinnaker/core@0.0.620) (2021-07-26)
 
 **Note:** Version bump only for package @spinnaker/core

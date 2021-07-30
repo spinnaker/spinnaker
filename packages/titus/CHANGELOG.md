@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.2.2](https://github.com/spinnaker/deck/compare/@spinnaker/titus@0.2.1...@spinnaker/titus@0.2.2) (2021-07-30)
+
+
+### Bug Fixes
+
+* **all:** Fix lodash global usage ([d048432](https://github.com/spinnaker/deck/commit/d048432978f0aa0bceb2b58f80ea7301de153072))
+* **build:** Upgrade uirouter/react version ([cc5004b](https://github.com/spinnaker/deck/commit/cc5004bfded32642553077346c19e34820d24ae7))
+* **titus:** Hide scaling activity length ([#9525](https://github.com/spinnaker/deck/issues/9525)) ([e2003cc](https://github.com/spinnaker/deck/commit/e2003cc1312f2144e041cfcc72bf34435854d780))
+
+
+
+
+
 ## [0.2.1](https://github.com/spinnaker/deck/compare/@spinnaker/titus@0.2.0...@spinnaker/titus@0.2.1) (2021-07-27)
 
 **Note:** Version bump only for package @spinnaker/titus

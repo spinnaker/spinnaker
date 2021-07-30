@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.52](https://github.com/spinnaker/deck/compare/@spinnaker/google@0.0.51...@spinnaker/google@0.0.52) (2021-07-30)
+
+
+### Bug Fixes
+
+* **all:** Fix lodash global usage ([d048432](https://github.com/spinnaker/deck/commit/d048432978f0aa0bceb2b58f80ea7301de153072))
+
+
+
+
+
 ## [0.0.51](https://github.com/spinnaker/deck/compare/@spinnaker/google@0.0.50...@spinnaker/google@0.0.51) (2021-07-26)
 
 **Note:** Version bump only for package @spinnaker/google

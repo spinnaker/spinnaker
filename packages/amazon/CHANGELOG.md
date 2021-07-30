@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.7.6](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.7.5...@spinnaker/amazon@0.7.6) (2021-07-30)
+
+
+### Bug Fixes
+
+* **all:** Fix lodash global usage ([d048432](https://github.com/spinnaker/deck/commit/d048432978f0aa0bceb2b58f80ea7301de153072))
+* **build:** Upgrade uirouter/react version ([cc5004b](https://github.com/spinnaker/deck/commit/cc5004bfded32642553077346c19e34820d24ae7))
+
+
+
+
+
 ## [0.7.5](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.7.4...@spinnaker/amazon@0.7.5) (2021-07-26)
 
 **Note:** Version bump only for package @spinnaker/amazon

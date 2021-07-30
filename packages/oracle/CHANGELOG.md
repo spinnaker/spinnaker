@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.37](https://github.com/spinnaker/deck/compare/@spinnaker/oracle@0.0.36...@spinnaker/oracle@0.0.37) (2021-07-30)
+
+
+### Bug Fixes
+
+* **all:** Fix lodash global usage ([d048432](https://github.com/spinnaker/deck/commit/d048432978f0aa0bceb2b58f80ea7301de153072))
+
+
+
+
+
 ## [0.0.36](https://github.com/spinnaker/deck/compare/@spinnaker/oracle@0.0.35...@spinnaker/oracle@0.0.36) (2021-07-26)
 
 **Note:** Version bump only for package @spinnaker/oracle

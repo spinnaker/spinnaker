@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.21](https://github.com/spinnaker/deck/compare/@spinnaker/scripts@0.0.20...@spinnaker/scripts@0.0.21) (2021-07-30)
+
+
+### Bug Fixes
+
+* **rollup:** do not log quotes around NODE_ENV ([#9533](https://github.com/spinnaker/deck/issues/9533)) ([7bcf7d7](https://github.com/spinnaker/deck/commit/7bcf7d7a404814c6d368bdf7f072cd4674ca018b))
+
+
+
+
+
 ## [0.0.20](https://github.com/spinnaker/deck/compare/@spinnaker/scripts@0.0.15...@spinnaker/scripts@0.0.20) (2021-07-19)
 
 

@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.306](https://github.com/spinnaker/deck/compare/@spinnaker/ecs@0.0.305...@spinnaker/ecs@0.0.306) (2021-07-30)
+
+
+### Bug Fixes
+
+* **build:** Upgrade uirouter/react version ([cc5004b](https://github.com/spinnaker/deck/commit/cc5004bfded32642553077346c19e34820d24ae7))
+* **ecs/securityGroups:** Rename the securityGroups attribute due Clouddriver is expecting securityGroupNames instead. ([#9524](https://github.com/spinnaker/deck/issues/9524)) ([9cc7807](https://github.com/spinnaker/deck/commit/9cc7807baf049823e2120bf1ff05938a8389f508))
+
+
+
+
+
 ## [0.0.305](https://github.com/spinnaker/deck/compare/@spinnaker/ecs@0.0.304...@spinnaker/ecs@0.0.305) (2021-07-26)
 
 **Note:** Version bump only for package @spinnaker/ecs
