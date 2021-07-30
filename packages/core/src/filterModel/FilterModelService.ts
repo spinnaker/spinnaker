@@ -33,7 +33,7 @@ export class FilterModelService {
     // Apply any mutations to the current sortFilter values as ui-router state params
     filterModel.applyParamsToUrl = () => {
       const toParams = FilterModelService.mapSortFilterToRouterParams(filterModel);
-      ReactInjector.$state.go('.', toParams);
+      ReactInjector.$state.go('.', toParams, { location: 'replace' });
     };
 
     return filterModel;
