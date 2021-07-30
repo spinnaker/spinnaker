@@ -20,9 +20,9 @@ import com.netflix.spinnaker.orca.api.preconfigured.jobs.PreconfiguredJobStagePa
 import com.netflix.spinnaker.orca.clouddriver.service.JobService
 import com.netflix.spinnaker.orca.clouddriver.config.KubernetesPreconfiguredJobProperties
 import com.netflix.spinnaker.orca.clouddriver.tasks.job.DestroyJobTask
-import io.kubernetes.client.models.V1Container
-import io.kubernetes.client.models.V1EnvVar
-import io.kubernetes.client.models.V1Job
+import io.kubernetes.client.openapi.models.V1Container
+import io.kubernetes.client.openapi.models.V1EnvVar
+import io.kubernetes.client.openapi.models.V1Job
 import spock.lang.Specification
 
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage

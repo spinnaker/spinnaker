@@ -23,7 +23,7 @@ import com.netflix.spinnaker.orca.clouddriver.model.Manifest;
 import com.netflix.spinnaker.orca.clouddriver.model.ManifestCoordinates;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import retrofit.client.Response;
 
 public class DelegatingOortService extends DelegatingClouddriverService<OortService>
