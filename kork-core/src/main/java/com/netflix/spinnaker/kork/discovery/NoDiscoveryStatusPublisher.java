@@ -45,8 +45,10 @@ public class NoDiscoveryStatusPublisher
   }
 
   private void setInstanceStatus(InstanceStatus instanceStatus) {
+    InstanceStatus previousStatus =
+        instanceStatus == InstanceStatus.UP ? InstanceStatus.UNKNOWN : InstanceStatus.UP;
     eventPublisher.publishEvent(
         new RemoteStatusChangedEvent(
-            new DiscoveryStatusChangeEvent(InstanceStatus.UNKNOWN, instanceStatus)));
+            new DiscoveryStatusChangeEvent(previousStatus, instanceStatus)));
   }
 }
