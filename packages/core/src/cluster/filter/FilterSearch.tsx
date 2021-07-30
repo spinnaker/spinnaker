@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { HelpField } from '../../help/HelpField';
+import { TextInput } from '../../presentation';
 
 import './FilterSearch.less';
 
@@ -12,19 +13,8 @@ export interface IFilterSearchProps {
 }
 
 export const FilterSearch = ({ helpKey, onBlur, onSearchChange, value }: IFilterSearchProps) => (
-  <div className="FilterSearch sp-margin-s-right">
-    <form className="horizontal middle" role="form" onSubmit={(e) => e.preventDefault()}>
-      <div className="form-group nav-search">
-        <input
-          type="search"
-          className="form-control input-med sp-form"
-          value={value}
-          onBlur={onBlur}
-          onChange={onSearchChange}
-          placeholder="Search by field"
-        />
-      </div>
-      {helpKey && <HelpField id={helpKey} placement="right" />}
-    </form>
-  </div>
+  <form className="FilterSearch flex-container-h baseline" role="form" onSubmit={(e) => e.preventDefault()}>
+    <TextInput type="search" value={value} onBlur={onBlur} onChange={onSearchChange} placeholder="Search by field" />
+    {helpKey && <HelpField id={helpKey} placement="right" />}
+  </form>
 );
