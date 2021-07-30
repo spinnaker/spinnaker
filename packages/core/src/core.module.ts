@@ -68,7 +68,6 @@ import { SUBNET_MODULE } from './subnet/subnet.module';
 import { FIREWALL_LABEL_COMPONENT } from './securityGroup/label/firewallLabel.component';
 
 import { LABEL_FILTER_COMPONENT } from './cluster/filter/labelFilter.component';
-import { FILTER_SEARCH_COMPONENT } from './cluster/filter/filterSearch.component';
 
 import { WIDGETS_MODULE } from './widgets/widgets.module';
 
@@ -135,7 +134,6 @@ module(CORE_MODULE, [
   INTERCEPTOR_MODULE,
 
   LABEL_FILTER_COMPONENT,
-  FILTER_SEARCH_COMPONENT,
   LOAD_BALANCER_MODULE,
   FUNCTION_MODULE,
   MANAGED_RESOURCE_CONFIG,
