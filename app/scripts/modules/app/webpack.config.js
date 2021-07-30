@@ -9,13 +9,13 @@ const TerserPlugin = require('terser-webpack-plugin');
 const ESLintPlugin = require('eslint-webpack-plugin');
 const webpack = require('webpack');
 
+const DECK_ROOT = path.resolve(`${__dirname}/../../../../`);
+const NODE_MODULE_PATH = path.resolve(`${DECK_ROOT}/node_modules`);
 const CACHE_INVALIDATE = getCacheInvalidateString();
 const SETTINGS_PATH = process.env.SETTINGS_PATH || './src/settings.js';
 const THREADS = getThreadLoaderThreads();
 // Used to fail CI for PRs which contain linter errors
 const ESLINT_FAIL_ON_ERROR = process.env.ESLINT_FAIL_ON_ERROR === 'true';
-const DECK_ROOT = path.resolve(`${__dirname}/../../../../`);
-const NODE_MODULE_PATH = path.resolve(`${DECK_ROOT}/node_modules`);
 
 function configure(env, webpackOpts) {
   const WEBPACK_MODE = (webpackOpts && webpackOpts.mode) || 'development';
@@ -212,7 +212,7 @@ function configure(env, webpackOpts) {
 // invalidate cache-loader cache when these change
 function getCacheInvalidateString() {
   return JSON.stringify({
-    YARN_LOCK: md5(fs.readFileSync('yarn.lock')),
+    YARN_LOCK: md5(fs.readFileSync(`${DECK_ROOT}/yarn.lock`)),
     WEBPACK_CONFIG: md5(fs.readFileSync(__filename)),
   });
 }
