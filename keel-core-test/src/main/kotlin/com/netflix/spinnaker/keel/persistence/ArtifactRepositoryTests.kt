@@ -52,7 +52,6 @@ import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.isSuccess
 import strikt.assertions.isTrue
-import strikt.assertions.size
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
@@ -86,6 +85,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
       vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2")),
       statuses = setOf(RELEASE)
     )
+
     val versionedDockerArtifact = DockerArtifact(
       name = "docker",
       deliveryConfigName = "my-manifest",
@@ -105,14 +105,14 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
       )
     )
 
-    val debianFilteredByBranchStartingWith = DebianArtifact(
+    val debianFilteredByBranchPrefix = DebianArtifact(
       name = "keeldemo",
       deliveryConfigName = "my-manifest",
       reference = "feature-branch",
       vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2")),
       from = ArtifactOriginFilter(
         branch = BranchFilter(
-          startsWith = "feature-"
+          startsWith = "feature/"
         )
       )
     )
@@ -152,7 +152,8 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
       )
     )
 
-    val featureBranchEnvironment = Environment("feature-branch")
+    val previewEnvironment = Environment("feature-branches", isPreview = true)
+      .addMetadata(mapOf("branch" to "feature/my-cool-feature"))
     val testEnvironment = Environment("test")
     val stagingEnvironment = Environment("staging")
     val manifest = DeliveryConfig(
@@ -168,7 +169,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
         debianFilteredByPullRequest,
         debianFilteredByPullRequestAndBranch
       ),
-      environments = setOf(featureBranchEnvironment, testEnvironment, stagingEnvironment)
+      environments = setOf(previewEnvironment, testEnvironment, stagingEnvironment)
     )
     val version1 = "keeldemo-0.0.1~dev.8-h8.41595c4" // snapshot
     val version2 = "keeldemo-0.0.1~dev.9-h9.3d2c8ff" // snapshot
@@ -265,6 +266,17 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
       .versions
   }
 
+  private fun Fixture<T>.storeArtifactVersionWithBranch(artifact: DeliveryArtifact, version: String, branch: String) =
+    subject.storeArtifactVersion(
+      artifact.toArtifactVersion(
+        version = version,
+        createdAt = clock.tickMinutes(10)
+      ).copy(
+        gitMetadata = artifactMetadata.gitMetadata?.copy(branch = branch),
+        buildMetadata = artifactMetadata.buildMetadata
+      )
+    )
+
   /**
    * This function creates [versions.size] versions for artifact [debianFilteredByBranchPattern],
    * where only the first 15 of them have branch names that match the requested pattern
@@ -272,21 +284,15 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
   private fun Fixture<T>.storeVersionsForDebianFilteredByBranchPattern(versions: List<String>) {
     subject.register(debianFilteredByBranchPattern)
     versions.forEachIndexed { index, version ->
-      subject.storeArtifactVersion(
-        debianFilteredByBranchPattern.toArtifactVersion(
-          version = version,
-          createdAt = clock.tickMinutes(10)
-        ).copy(
-          gitMetadata = artifactMetadata.gitMetadata?.copy(
-            branch = when {
-              index < 5 -> "my-feature-x"
-              index < 10 -> "feature-branch-x"
-              index < 15 -> "myfeature"
-              else -> "a-non-matching-branch"
-            }
-          ),
-          buildMetadata = artifactMetadata.buildMetadata
-        )
+      storeArtifactVersionWithBranch(
+        artifact = debianFilteredByBranchPattern,
+        version = version,
+        branch = when {
+          index < 5 -> "my-feature-x"
+          index < 10 -> "feature-branch-x"
+          index < 15 -> "myfeature"
+          else -> "a-non-matching-branch"
+        }
       )
     }
   }
@@ -549,14 +555,14 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
           }
 
           test("fetch only versions with matching pattern") {
-            storeVersionsForDebianFilteredByBranchPattern((20 downTo 1).map { "keeldemo-not-a-version-$it" })
+            storeVersionsForDebianFilteredByBranchPattern((20 downTo 1).map { "keeldemo-any-string-$it" })
             expectThat(
               subject.getPendingVersionsInEnvironment(manifest, debianFilteredByBranchPattern.reference, testEnvironment.name).size
             ).isEqualTo(15)
           }
 
           test("fetch only versions with matching pattern") {
-            storeVersionsForDebianFilteredByPullRequest((20 downTo 1).map { "keeldemo-not-a-version-$it" })
+            storeVersionsForDebianFilteredByPullRequest((20 downTo 1).map { "keeldemo-any-string-$it" })
             expectThat(
               subject.getPendingVersionsInEnvironment(manifest, debianFilteredByPullRequest.reference, testEnvironment.name).size
             ).isEqualTo(10)
@@ -1088,7 +1094,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
     context("artifact filtered by branch") {
       context("with branch name specified in the artifact spec") {
         // registers versions backwards to check that sorting by timestamp takes precedence
-        val allVersions = (20 downTo 1).map { "keeldemo-not-a-version-$it" }
+        val allVersions = (20 downTo 1).map { "keeldemo-any-string-$it" }
 
         before {
           subject.register(debianFilteredByBranch)
@@ -1123,28 +1129,22 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
 
       context("with branch prefix specified in the artifact spec") {
         // registers versions backwards to check that sorting by timestamp takes precedence
-        val allVersions = (20 downTo 1).map { "keeldemo-not-a-version-$it" }
+        val allVersions = (20 downTo 1).map { "keeldemo-any-string-$it" }
 
         before {
-          val prefix = debianFilteredByBranchStartingWith.from!!.branch!!.startsWith!!
-          subject.register(debianFilteredByBranchStartingWith)
+          val prefix = debianFilteredByBranchPrefix.from!!.branch!!.startsWith!!
+          subject.register(debianFilteredByBranchPrefix)
           allVersions.forEachIndexed { index, version ->
-            subject.storeArtifactVersion(
-              debianFilteredByBranchStartingWith.toArtifactVersion(
-                version = version,
-                createdAt = clock.tickMinutes(10)
-              ).copy(
-                gitMetadata = artifactMetadata.gitMetadata?.copy(
-                  branch = if (index < 10) "not-a-matching-branch" else "$prefix-$index"
-                ),
-                buildMetadata = artifactMetadata.buildMetadata
-              )
+            storeArtifactVersionWithBranch(
+              artifact = debianFilteredByBranchPrefix,
+              version = version,
+              branch = if (index < 10) "not-a-matching-branch" else "${prefix}my-feature-$index"
             )
           }
         }
 
         test("returns \"versions\" with matching branches sorted by timestamp") {
-          val versions = subject.versions(debianFilteredByBranchStartingWith, 20)
+          val versions = subject.versions(debianFilteredByBranchPrefix, 20)
           // only the first 10 versions have matching branches
           expectThat(versions.map { it.version })
             .containsExactly(allVersions.reversed().subList(0, 10))
@@ -1153,7 +1153,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
 
       context("with branch pattern specified in the artifact spec") {
         // registers versions backwards to check that sorting by timestamp takes precedence
-        val allVersions = (20 downTo 1).map { "keeldemo-not-a-version-$it" }
+        val allVersions = (20 downTo 1).map { "keeldemo-any-string-$it" }
 
         before {
           storeVersionsForDebianFilteredByBranchPattern(allVersions)
@@ -1170,7 +1170,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
 
     context("artifact filtered by pull request") {
       // registers versions backwards to check that sorting by timestamp takes precedence
-      val allVersions = (20 downTo 1).map { "keeldemo-not-a-version-$it" }
+      val allVersions = (20 downTo 1).map { "keeldemo-any-string-$it" }
 
       before {
         storeVersionsForDebianFilteredByPullRequest(allVersions)
@@ -1184,10 +1184,9 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
       }
     }
 
-
     context("artifact filtered by pull request and branch") {
       // registers versions backwards to check that sorting by timestamp takes precedence
-      val allVersions = (20 downTo 1).map { "keeldemo-not-a-version-$it" }
+      val allVersions = (20 downTo 1).map { "keeldemo-any-string-$it" }
 
       before {
         subject.register(debianFilteredByPullRequestAndBranch)
@@ -1289,5 +1288,27 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
       }
     }
 
+    context("artifacts in preview environments") {
+      before {
+        persist(manifest)
+        subject.register(debianFilteredByBranchPrefix)
+        (1..10).forEach { num ->
+          val version = "keeldemo-any-string-$num"
+          storeArtifactVersionWithBranch(
+            artifact = debianFilteredByBranchPrefix,
+            version = version,
+            branch = if (num == 5) previewEnvironment.branch!! else "not-a-matching-branch-$num"
+          )
+          subject.approveVersionFor(manifest, debianFilteredByBranchPrefix, version, previewEnvironment.name)
+        }
+      }
+
+      test("the latest approved version is filtered with the preview environment branch") {
+        expectThat(subject.latestVersionApprovedIn(manifest, debianFilteredByBranchPrefix, previewEnvironment.name))
+          .isEqualTo("keeldemo-any-string-5")
+        expectThat(subject.getArtifactVersion(debianFilteredByBranchPrefix, "keeldemo-any-string-5")?.branch)
+          .isEqualTo(previewEnvironment.branch)
+      }
+    }
   }
 }

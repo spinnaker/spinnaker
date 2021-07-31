@@ -80,7 +80,9 @@ interface ArtifactRepository : PeriodicallyCheckedRepository<DeliveryArtifact> {
   fun getReleaseStatus(artifact: DeliveryArtifact, version: String): ArtifactStatus?
 
   /**
-   * @return the latest version of [artifact] approved for use in [targetEnvironment]
+   * @return the latest version of [artifact] approved for use in [targetEnvironment].
+   * If [targetEnvironment] is a preview environment, the version returned should match
+   * the associated source repository branch.
    *
    * Only versions that meet the status requirements for an artifact can be approved
    */
