@@ -3,29 +3,31 @@ import { get } from 'lodash';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 
+import { StageArtifactSelector } from '../../../../artifact';
+import {
+  IArtifact,
+  IExpectedArtifact,
+  IPipeline,
+  IStage
+} from '../../../../domain';
+import { HelpField } from '../../../../help';
+import { ModalClose, SubmitButton } from '../../../../modal';
+import { 
+  FormikFormField,
+  FormValidator,
+  IFormInputProps,
+  IModalComponentProps,
+  ReactModal,
+  ReactSelectInput,
+  SpinFormik,
+  TextInput
+} from '../../../../presentation';
 import {
   EXCLUDED_ARTIFACT_TYPES,
   IAwsCodeBuildSecondarySourcesVersion,
   IAwsCodeBuildSource,
   SOURCE_TYPES,
 } from './IAwsCodeBuildSource';
-import {
-  FormikFormField,
-  FormValidator,
-  HelpField,
-  IArtifact,
-  IExpectedArtifact,
-  IFormInputProps,
-  IModalComponentProps,
-  IPipeline,
-  IStage,
-  ReactModal,
-  ReactSelectInput,
-  SpinFormik,
-  StageArtifactSelector,
-  TextInput,
-} from '../../../../index';
-import { ModalClose, SubmitButton } from '../../../../modal';
 
 export interface IEditAwsCodeBuildSourceModalProps extends IModalComponentProps {
   source: IAwsCodeBuildSource;

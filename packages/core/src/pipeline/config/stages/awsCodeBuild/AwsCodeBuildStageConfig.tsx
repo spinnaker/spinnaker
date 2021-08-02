@@ -1,9 +1,11 @@
 import { cloneDeep } from 'lodash';
 import React from 'react';
 
+import { IStage } from '../../../../domain';
+import { IStageConfigProps } from '../common';
 import { AwsCodeBuildStageForm } from './AwsCodeBuildStageForm';
 import { validate } from './AwsCodeBuildValidator';
-import { FormikStageConfig, IFormikStageConfigInjectedProps, IStage, IStageConfigProps } from '../../../../index';
+import { FormikStageConfig, IFormikStageConfigInjectedProps } from '../FormikStageConfig';
 
 export function AwsCodeBuildStageConfig({ application, pipeline, stage, updateStage }: IStageConfigProps) {
   const stageWithDefaults: IStage = React.useMemo(() => {

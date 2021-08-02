@@ -3,8 +3,8 @@ import { get } from 'lodash';
 import React from 'react';
 import { react2angular } from 'react2angular';
 
-import { FormField, IStage, ReactSelectInput } from '../../../../../index';
-import { withErrorBoundary } from '../../../../../presentation/SpinErrorBoundary';
+import { IStage } from '../../../../../domain';
+import { FormField, ReactSelectInput, withErrorBoundary } from '../../../../../presentation';
 import { STATUS_OPTIONS } from './stageStatusOptions';
 
 interface IStageStatusPreconditionConfigProps {

@@ -1,4 +1,4 @@
-import { REST } from '../index';
+import { REST } from '../api';
 
 export interface ISlackChannel {
   id: string;

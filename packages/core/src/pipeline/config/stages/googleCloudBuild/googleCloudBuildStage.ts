@@ -1,13 +1,9 @@
+import { ArtifactReferenceService, ExecutionArtifactTab, ExpectedArtifactService } from '../../../../artifact';
+import { Registry } from '../../../../registry';
+import { ExecutionDetailsTasks } from '../common';
 import { GoogleCloudBuildExecutionDetails } from './GoogleCloudBuildExecutionDetails';
 import { GoogleCloudBuildStageConfig } from './GoogleCloudBuildStageConfig';
 import { validate } from './googleCloudBuildValidators';
-import {
-  ArtifactReferenceService,
-  ExecutionArtifactTab,
-  ExecutionDetailsTasks,
-  ExpectedArtifactService,
-  Registry,
-} from '../../../../index';
 
 Registry.pipeline.registerStage({
   label: 'Google Cloud Build',
