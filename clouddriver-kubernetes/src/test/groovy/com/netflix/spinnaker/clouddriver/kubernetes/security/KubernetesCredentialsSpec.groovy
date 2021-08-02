@@ -20,7 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.security
 import com.google.common.collect.ImmutableList
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties
+import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesAccountProperties.ManagedAccount
 import com.netflix.spinnaker.clouddriver.kubernetes.description.AccountResourcePropertyRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.description.GlobalResourcePropertyRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesSpinnakerKindMap
@@ -63,7 +63,7 @@ class KubernetesCredentialsSpec extends Specification {
 
   void "Built-in Kubernetes kinds are considered valid by default"() {
     when:
-    KubernetesCredentials credentials = credentialFactory.build(new KubernetesConfigurationProperties.ManagedAccount(
+    KubernetesCredentials credentials = credentialFactory.build(new ManagedAccount(
         name: "k8s",
         namespaces: [NAMESPACE],
         checkPermissionsOnStartup: false,
@@ -76,7 +76,7 @@ class KubernetesCredentialsSpec extends Specification {
 
   void "Built-in Kubernetes kinds are considered valid by default when kinds is empty"() {
     when:
-    KubernetesCredentials credentials = credentialFactory.build(new KubernetesConfigurationProperties.ManagedAccount(
+    KubernetesCredentials credentials = credentialFactory.build(new ManagedAccount(
         name: "k8s",
         namespaces: [NAMESPACE],
         checkPermissionsOnStartup: false,
@@ -90,7 +90,7 @@ class KubernetesCredentialsSpec extends Specification {
 
   void "Only explicitly listed kinds are valid when kinds is not empty"() {
     when:
-    KubernetesCredentials credentials = credentialFactory.build(new KubernetesConfigurationProperties.ManagedAccount(
+    KubernetesCredentials credentials = credentialFactory.build(new ManagedAccount(
         name: "k8s",
         namespaces: [NAMESPACE],
         checkPermissionsOnStartup: false,
@@ -104,7 +104,7 @@ class KubernetesCredentialsSpec extends Specification {
 
   void "Explicitly omitted kinds are not valid"() {
     when:
-    KubernetesCredentials credentials = credentialFactory.build(new KubernetesConfigurationProperties.ManagedAccount(
+    KubernetesCredentials credentials = credentialFactory.build(new ManagedAccount(
         name: "k8s",
         namespaces: [NAMESPACE],
         checkPermissionsOnStartup: false,
@@ -119,7 +119,7 @@ class KubernetesCredentialsSpec extends Specification {
   void "CRDs that are not installed return unknown"() {
     given:
     KubernetesApiGroup customGroup = KubernetesApiGroup.fromString("deployment.stable.example.com")
-    KubernetesCredentials credentials = credentialFactory.build(new KubernetesConfigurationProperties.ManagedAccount(
+    KubernetesCredentials credentials = credentialFactory.build(new ManagedAccount(
       name: "k8s",
       namespaces: [NAMESPACE],
       checkPermissionsOnStartup: true,
@@ -131,7 +131,7 @@ class KubernetesCredentialsSpec extends Specification {
 
   void "Kinds that are not readable are considered invalid"() {
     given:
-    KubernetesCredentials credentials = credentialFactory.build(new KubernetesConfigurationProperties.ManagedAccount(
+    KubernetesCredentials credentials = credentialFactory.build(new ManagedAccount(
         name: "k8s",
         namespaces: [NAMESPACE],
         checkPermissionsOnStartup: true,
@@ -150,7 +150,7 @@ class KubernetesCredentialsSpec extends Specification {
 
   void "Metrics are properly set on the account when not checking permissions"() {
     given:
-    KubernetesCredentials credentials = credentialFactory.build(new KubernetesConfigurationProperties.ManagedAccount(
+    KubernetesCredentials credentials = credentialFactory.build(new ManagedAccount(
         name: "k8s",
         namespaces: [NAMESPACE],
         checkPermissionsOnStartup: false,
@@ -166,7 +166,7 @@ class KubernetesCredentialsSpec extends Specification {
 
   void "Metrics are properly enabled when readable"() {
     given:
-    KubernetesCredentials credentials = credentialFactory.build(new KubernetesConfigurationProperties.ManagedAccount(
+    KubernetesCredentials credentials = credentialFactory.build(new ManagedAccount(
         name: "k8s",
         namespaces: [NAMESPACE],
         checkPermissionsOnStartup: true,
@@ -180,7 +180,7 @@ class KubernetesCredentialsSpec extends Specification {
 
   void "Metrics are properly disabled when not readable"() {
     given:
-    KubernetesCredentials credentials = credentialFactory.build(new KubernetesConfigurationProperties.ManagedAccount(
+    KubernetesCredentials credentials = credentialFactory.build(new ManagedAccount(
         name: "k8s",
         namespaces: [NAMESPACE],
         checkPermissionsOnStartup: true,

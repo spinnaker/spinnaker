@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.security
 
 import com.google.common.collect.ImmutableList
 import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties
+import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesAccountProperties.ManagedAccount
 import com.netflix.spinnaker.clouddriver.kubernetes.description.AccountResourcePropertyRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.description.GlobalResourcePropertyRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesSpinnakerKindMap
@@ -59,7 +59,7 @@ class KubernetesNamedAccountCredentialsSpec extends Specification {
     setup:
       def file1 = Files.createTempFile("test", "")
       file1.append("some content")
-      def account1Def = new KubernetesConfigurationProperties.ManagedAccount()
+      def account1Def = new ManagedAccount()
       account1Def.setName("test")
       account1Def.setCacheThreads(1)
       account1Def.getPermissions().add(Authorization.READ, "test@test.com")
@@ -68,7 +68,7 @@ class KubernetesNamedAccountCredentialsSpec extends Specification {
 
       def file2 = Files.createTempFile("other", "")
       file2.append("some content")
-      def account2Def = new KubernetesConfigurationProperties.ManagedAccount()
+      def account2Def = new ManagedAccount()
       account2Def.setName("test")
       account2Def.setCacheThreads(1)
       account2Def.getPermissions().add(Authorization.READ, "test@test.com")
@@ -90,7 +90,7 @@ class KubernetesNamedAccountCredentialsSpec extends Specification {
 
   void 'getting namespaces makes no calls to kubernetes'() {
     given: 'an account that does not specify namespaces'
-      def account1Def = new KubernetesConfigurationProperties.ManagedAccount()
+      def account1Def = new ManagedAccount()
       account1Def.setName("test")
       account1Def.setCacheThreads(1)
       account1Def.getPermissions().add(Authorization.READ, "test@test.com")

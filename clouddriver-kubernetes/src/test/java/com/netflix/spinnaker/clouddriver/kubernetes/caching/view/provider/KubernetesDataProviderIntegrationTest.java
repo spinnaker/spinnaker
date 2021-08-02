@@ -46,7 +46,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model.Kubernete
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model.KubernetesServerGroupManager;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model.KubernetesServerGroupSummary;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.KubernetesManifestProvider.Sort;
-import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
+import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesAccountProperties.ManagedAccount;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.AccountResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.GlobalResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
@@ -596,8 +596,7 @@ final class KubernetesDataProviderIntegrationTest {
   }
 
   private static KubernetesNamedAccountCredentials getNamedAccountCredentials() {
-    KubernetesConfigurationProperties.ManagedAccount managedAccount =
-        new KubernetesConfigurationProperties.ManagedAccount();
+    ManagedAccount managedAccount = new ManagedAccount();
     managedAccount.setName(ACCOUNT_NAME);
     managedAccount.setNamespaces(manifestsByNamespace.keySet().asList());
     managedAccount.setKinds(ImmutableList.of("deployment", "replicaSet", "service", "pod"));

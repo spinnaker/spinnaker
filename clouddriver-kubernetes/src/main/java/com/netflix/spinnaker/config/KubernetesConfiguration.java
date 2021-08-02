@@ -17,6 +17,8 @@ package com.netflix.spinnaker.config;
 
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.KubernetesProvider;
+import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesAccountProperties;
+import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesAccountProperties.ManagedAccount;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.health.KubernetesHealthIndicator;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
@@ -54,6 +56,13 @@ public class KubernetesConfiguration {
   }
 
   @Bean
+  @RefreshScope
+  @ConfigurationProperties("kubernetes")
+  public KubernetesAccountProperties kubernetesAccountProperties() {
+    return new KubernetesAccountProperties();
+  }
+
+  @Bean
   public KubernetesHealthIndicator kubernetesHealthIndicator(
       Registry registry,
       CredentialsRepository<KubernetesNamedAccountCredentials> credentialsRepository) {
@@ -70,15 +79,13 @@ public class KubernetesConfiguration {
       value = KubernetesNamedAccountCredentials.class,
       parameterizedContainer = AbstractCredentialsLoader.class)
   public AbstractCredentialsLoader<KubernetesNamedAccountCredentials> kubernetesCredentialsLoader(
-      @Nullable
-          CredentialsDefinitionSource<KubernetesConfigurationProperties.ManagedAccount>
-              kubernetesCredentialSource,
-      KubernetesConfigurationProperties configurationProperties,
+      @Nullable CredentialsDefinitionSource<ManagedAccount> kubernetesCredentialSource,
+      KubernetesAccountProperties accountProperties,
       KubernetesCredentials.Factory credentialFactory,
       CredentialsRepository<KubernetesNamedAccountCredentials> kubernetesCredentialsRepository) {
 
     if (kubernetesCredentialSource == null) {
-      kubernetesCredentialSource = configurationProperties::getAccounts;
+      kubernetesCredentialSource = accountProperties::getAccounts;
     }
     return new BasicCredentialsLoader<>(
         kubernetesCredentialSource,
@@ -97,7 +104,7 @@ public class KubernetesConfiguration {
 
   @Bean
   @ConditionalOnMissingBean(
-      value = KubernetesConfigurationProperties.ManagedAccount.class,
+      value = ManagedAccount.class,
       parameterizedContainer = CredentialsDefinitionSource.class)
   public CredentialsInitializerSynchronizable kubernetesCredentialsInitializerSynchronizable(
       AbstractCredentialsLoader<KubernetesNamedAccountCredentials> loader) {

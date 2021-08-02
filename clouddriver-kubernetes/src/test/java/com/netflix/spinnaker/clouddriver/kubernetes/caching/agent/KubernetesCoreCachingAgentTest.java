@@ -40,7 +40,7 @@ import com.netflix.spinnaker.cats.mem.InMemoryCache;
 import com.netflix.spinnaker.cats.provider.DefaultProviderCache;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys;
-import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
+import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesAccountProperties.ManagedAccount;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.GlobalResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.ResourcePropertyRegistry;
@@ -161,8 +161,7 @@ final class KubernetesCoreCachingAgentTest {
    * Returns a KubernetesNamedAccountCredentials that contains a mock KubernetesCredentials object
    */
   private static KubernetesNamedAccountCredentials getNamedAccountCredentials() {
-    KubernetesConfigurationProperties.ManagedAccount managedAccount =
-        new KubernetesConfigurationProperties.ManagedAccount();
+    ManagedAccount managedAccount = new ManagedAccount();
     managedAccount.setName(ACCOUNT);
 
     KubernetesCredentials mockCredentials = mockKubernetesCredentials();

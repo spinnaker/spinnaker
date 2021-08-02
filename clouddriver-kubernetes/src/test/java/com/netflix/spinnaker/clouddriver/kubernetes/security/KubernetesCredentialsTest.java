@@ -33,7 +33,7 @@ import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.Tag;
 import com.netflix.spectator.api.Timer;
-import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties.ManagedAccount;
+import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesAccountProperties.ManagedAccount;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.AccountResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.GlobalResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesSpinnakerKindMap;

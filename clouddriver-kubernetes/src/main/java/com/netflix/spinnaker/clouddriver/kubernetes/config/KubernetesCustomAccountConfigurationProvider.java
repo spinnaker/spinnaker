@@ -28,18 +28,19 @@ import org.springframework.boot.context.properties.bind.BindResult;
 import org.springframework.context.ConfigurableApplicationContext;
 
 /**
- * For larger number of Kubernetes accounts, as-is SpringBoot implementation of properties binding
- * is inefficient, hence a custom logic for KubernetesConfigurationProperties is written but it
- * still uses SpringBoot's Binder class. BootstrapKubernetesConfigurationProvider class fetches the
- * flattened kubernetes properties from Spring Cloud Config's BootstrapPropertySource and creates a
- * KubernetesConfigurationProperties object.
+ * If a configuration properties file has a large number of kubernetes accounts, as-is SpringBoot
+ * implementation of properties binding is inefficient. Hence, a custom logic for binding just the
+ * {@link KubernetesAccountProperties} is written but it still uses SpringBoot's Binder class.
+ * {@link KubernetesCustomAccountConfigurationProvider} class fetches the flattened kubernetes
+ * properties from Spring Cloud Config's BootstrapPropertySource and creates an {@link
+ * KubernetesAccountProperties} object.
  */
 @Slf4j
-public class BootstrapKubernetesConfigurationProvider
-    extends AbstractBootstrapCredentialsConfigurationProvider<KubernetesConfigurationProperties> {
+public class KubernetesCustomAccountConfigurationProvider
+    extends AbstractBootstrapCredentialsConfigurationProvider<KubernetesAccountProperties> {
   private final String FIRST_ACCOUNT_NAME_KEY = "kubernetes.accounts[0].name";
 
-  public BootstrapKubernetesConfigurationProvider(
+  public KubernetesCustomAccountConfigurationProvider(
       ConfigurableApplicationContext applicationContext,
       CloudConfigResourceService configResourceService,
       SecretManager secretManager) {
@@ -47,15 +48,15 @@ public class BootstrapKubernetesConfigurationProvider
   }
 
   @Override
-  public KubernetesConfigurationProperties getConfigurationProperties() {
-    return getKubernetesConfigurationProperties(getPropertiesMap(FIRST_ACCOUNT_NAME_KEY));
+  public KubernetesAccountProperties getConfigurationProperties() {
+    return getKubernetesAccounts(getPropertiesMap(FIRST_ACCOUNT_NAME_KEY));
   }
 
   @SuppressWarnings("unchecked")
-  private KubernetesConfigurationProperties getKubernetesConfigurationProperties(
+  private KubernetesAccountProperties getKubernetesAccounts(
       Map<String, Object> kubernetesPropertiesMap) {
-    log.info("Started loading Kubernetes configuration properties");
-    KubernetesConfigurationProperties k8sConfigProps = new KubernetesConfigurationProperties();
+    log.info("Started loading Kubernetes accounts");
+    KubernetesAccountProperties accounts = new KubernetesAccountProperties();
     BindResult<?> result;
 
     // unflatten
@@ -66,14 +67,10 @@ public class BootstrapKubernetesConfigurationProvider
     // loop through each account and bind
     for (Map<String, Object> unflattendAcc :
         ((List<Map<String, Object>>) propertiesMap.get("accounts"))) {
-      result =
-          bind(getFlatMap(unflattendAcc), KubernetesConfigurationProperties.ManagedAccount.class);
-      k8sConfigProps
-          .getAccounts()
-          .add((KubernetesConfigurationProperties.ManagedAccount) result.get());
+      result = bind(getFlatMap(unflattendAcc), KubernetesAccountProperties.ManagedAccount.class);
+      accounts.getAccounts().add((KubernetesAccountProperties.ManagedAccount) result.get());
     }
-
-    log.info("Finished loading kubernetes configuration properties");
-    return k8sConfigProps;
+    log.info("Finished loading kubernetes accounts");
+    return accounts;
   }
 }

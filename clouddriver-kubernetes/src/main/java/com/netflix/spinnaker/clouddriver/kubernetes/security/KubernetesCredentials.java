@@ -35,8 +35,8 @@ import com.netflix.spectator.api.Clock;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.CustomKubernetesResource;
+import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesAccountProperties.ManagedAccount;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesCachingPolicy;
-import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryConfiguration;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.RawResourcesEndpointConfig;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.AccountResourcePropertyRegistry;
@@ -144,7 +144,7 @@ public class KubernetesCredentials {
   private KubernetesCredentials(
       Registry registry,
       KubectlJobExecutor jobExecutor,
-      KubernetesConfigurationProperties.ManagedAccount managedAccount,
+      ManagedAccount managedAccount,
       AccountResourcePropertyRegistry.Factory resourcePropertyRegistryFactory,
       KubernetesKindRegistry.Factory kindRegistryFactory,
       KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap,
@@ -794,8 +794,7 @@ public class KubernetesCredentials {
     private final KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap;
     private final GlobalResourcePropertyRegistry globalResourcePropertyRegistry;
 
-    public KubernetesCredentials build(
-        KubernetesConfigurationProperties.ManagedAccount managedAccount) {
+    public KubernetesCredentials build(ManagedAccount managedAccount) {
       Namer<KubernetesManifest> manifestNamer =
           kubernetesNamerRegistry.get(managedAccount.getNamingStrategy());
       return new KubernetesCredentials(
@@ -811,8 +810,7 @@ public class KubernetesCredentials {
     }
 
     private String getKubeconfigFile(
-        ConfigFileService configFileService,
-        KubernetesConfigurationProperties.ManagedAccount managedAccount) {
+        ConfigFileService configFileService, ManagedAccount managedAccount) {
       if (StringUtils.isNotEmpty(managedAccount.getKubeconfigFile())) {
         return configFileService.getLocalPath(managedAccount.getKubeconfigFile());
       }

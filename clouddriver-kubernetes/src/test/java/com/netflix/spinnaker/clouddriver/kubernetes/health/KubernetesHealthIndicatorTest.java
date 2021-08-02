@@ -27,7 +27,7 @@ import com.google.common.collect.ImmutableList;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
-import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
+import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesAccountProperties.ManagedAccount;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
@@ -147,9 +147,8 @@ final class KubernetesHealthIndicatorTest {
             entry(UNHEALTHY_ACCOUNT_NAME_SECOND, ERROR_MESSAGE));
   }
 
-  private static KubernetesConfigurationProperties.ManagedAccount getManagedAccount(String name) {
-    KubernetesConfigurationProperties.ManagedAccount managedAccount =
-        new KubernetesConfigurationProperties.ManagedAccount();
+  private static ManagedAccount getManagedAccount(String name) {
+    ManagedAccount managedAccount = new ManagedAccount();
     managedAccount.setName(name);
     return managedAccount;
   }

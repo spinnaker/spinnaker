@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.security;
 
 import static lombok.EqualsAndHashCode.Include;
 
-import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties.ManagedAccount;
+import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesAccountProperties.ManagedAccount;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryConfiguration;
 import com.netflix.spinnaker.clouddriver.security.AbstractAccountCredentials;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
