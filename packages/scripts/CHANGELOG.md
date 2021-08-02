@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.22](https://github.com/spinnaker/deck/compare/@spinnaker/scripts@0.0.21...@spinnaker/scripts@0.0.22) (2021-08-02)
+
+
+### Bug Fixes
+
+* **vite:** Link app to core source files during dev ([37bf5f9](https://github.com/spinnaker/deck/commit/37bf5f9049c6b76f84afcdfc718124cc35d2b932))
+
+
+
+
+
 ## [0.0.21](https://github.com/spinnaker/deck/compare/@spinnaker/scripts@0.0.20...@spinnaker/scripts@0.0.21) (2021-07-30)
 
 

@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.7.7](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.7.6...@spinnaker/amazon@0.7.7) (2021-08-02)
+
+**Note:** Version bump only for package @spinnaker/amazon
+
+
+
+
+
 ## [0.7.6](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.7.5...@spinnaker/amazon@0.7.6) (2021-07-30)
 
 

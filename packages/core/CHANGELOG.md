@@ -3,6 +3,28 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.2.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.1.0...@spinnaker/core@0.2.0) (2021-08-02)
+
+
+### Bug Fixes
+
+* **core/filterModel:** Do not add browser histroy events when changing infrastructure filter queries ([56cc429](https://github.com/spinnaker/deck/commit/56cc429a93d6a980cdce4e52dfb8adbe1d045832))
+* **core:** fixed a bunch of circular deps ([29f2b39](https://github.com/spinnaker/deck/commit/29f2b39fd44b43265124e824cb311ff3f8abbf0a))
+* **core:** Remove circular dependencies - 2 ([ee5f783](https://github.com/spinnaker/deck/commit/ee5f783e213bb175f6f9bd9c85bd42e3d6850d47))
+* **core:** Remove circular dependency of modules ([5c942b1](https://github.com/spinnaker/deck/commit/5c942b15b5f6a257d737a87fc8552dc5e40c8762))
+* **core:** trying to avoid importing ReactInjector in presentation ([4d464ce](https://github.com/spinnaker/deck/commit/4d464cea3a98be1c31484c7ec4123d3ca74c7c21))
+* **md:** text for BLOCKED status in allowed times constraint ([#9550](https://github.com/spinnaker/deck/issues/9550)) ([811e806](https://github.com/spinnaker/deck/commit/811e8065d12d36d114ea9e3af0049d368563a1ff))
+* **md:** the raw delivery config is not showing up properly. Hiding it for now ([#9548](https://github.com/spinnaker/deck/issues/9548)) ([8f7c6ef](https://github.com/spinnaker/deck/commit/8f7c6eff565a7915fbb8fe2607eae742ffc516b1))
+
+
+### Features
+
+* **core/cluster:** Remove unused react2angular <filter-search> component ([7514b0b](https://github.com/spinnaker/deck/commit/7514b0b06e687e3f92548517297365ed4d8137ce))
+
+
+
+
+
 # [0.1.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.0.620...@spinnaker/core@0.1.0) (2021-07-30)
 
 
