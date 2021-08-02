@@ -7,7 +7,7 @@ import { PROVIDER_SERVICE_DELEGATE, ProviderServiceDelegate } from '../../cloudP
 import { InfrastructureSearchServiceV2 } from './infrastructureSearchV2.service';
 import { ISearchResult } from '../search.service';
 import { SearchResultType, searchResultTypeRegistry } from '../searchResult';
-import { SearchStatus } from '../searchResult/SearchResults';
+import { SearchStatus } from '../searchResult/SearchStatus';
 
 export interface ISearchResultSet<T extends ISearchResult = ISearchResult> {
   type: SearchResultType;

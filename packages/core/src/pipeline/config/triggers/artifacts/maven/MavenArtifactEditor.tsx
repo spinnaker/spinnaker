@@ -1,4 +1,4 @@
-import { ArtifactTypePatterns } from '../../../../../artifact';
+import { ArtifactTypePatterns } from '../../../../../artifact/ArtifactTypes';
 import { IArtifactKindConfig } from '../../../../../domain';
 
 import { singleFieldArtifactEditor } from '../singleFieldArtifactEditor';

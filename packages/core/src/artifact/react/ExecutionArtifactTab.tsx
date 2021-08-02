@@ -3,7 +3,10 @@ import React from 'react';
 
 import { ArtifactIconList } from './ArtifactIconList';
 import { IExecution, IExpectedArtifact } from '../../domain';
-import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../../pipeline';
+import {
+  ExecutionDetailsSection,
+  IExecutionDetailsSectionProps,
+} from '../../pipeline/config/stages/common/ExecutionDetailsSection';
 import { Registry } from '../../registry';
 
 import '../artifactTab.less';

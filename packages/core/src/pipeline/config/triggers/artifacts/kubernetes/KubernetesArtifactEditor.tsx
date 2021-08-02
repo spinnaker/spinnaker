@@ -3,10 +3,10 @@ import React from 'react';
 import Select, { Option } from 'react-select';
 
 import { ArtifactEditor } from '../ArtifactEditor';
-import { ArtifactTypePatterns } from '../../../../../artifact';
+import { ArtifactTypePatterns } from '../../../../../artifact/ArtifactTypes';
 import { IArtifactEditorProps, IArtifactKindConfig } from '../../../../../domain';
 import { StageConfigField } from '../../../stages/common';
-import { SpelText } from '../../../../../widgets';
+import { SpelText } from '../../../../../widgets/spelText/SpelText';
 
 class KubernetesArtifactEditor extends ArtifactEditor {
   constructor(props: IArtifactEditorProps) {

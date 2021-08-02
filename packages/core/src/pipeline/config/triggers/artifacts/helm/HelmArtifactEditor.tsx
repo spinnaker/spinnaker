@@ -3,11 +3,11 @@ import React from 'react';
 import { Option } from 'react-select';
 
 import { ArtifactService } from '../ArtifactService';
-import { ArtifactTypePatterns } from '../../../../../artifact';
+import { ArtifactTypePatterns } from '../../../../../artifact/ArtifactTypes';
 import { IArtifact, IArtifactEditorProps, IArtifactKindConfig } from '../../../../../domain';
 import { TetheredCreatable, TetheredSelect } from '../../../../../presentation';
 import { StageConfigField } from '../../../stages/common';
-import { Spinner } from '../../../../../widgets';
+import { Spinner } from '../../../../../widgets/spinners/Spinner';
 
 const TYPE = 'helm/chart';
 

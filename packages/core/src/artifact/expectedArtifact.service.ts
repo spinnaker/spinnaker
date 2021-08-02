@@ -10,7 +10,7 @@ import {
   IPipeline,
   IStage,
 } from '../domain';
-import { PipelineConfigService } from '../pipeline';
+import { PipelineConfigService } from '../pipeline/config/services/PipelineConfigService';
 import { Registry } from '../registry';
 import { UUIDGenerator } from '../utils';
 

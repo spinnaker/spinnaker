@@ -16,7 +16,7 @@ import {
 import { IArtifactAccount } from '../../account';
 import { IArtifact, IArtifactKindConfig, IExpectedArtifact, IPipeline } from '../../domain';
 import { ExpectedArtifactService } from '../expectedArtifact.service';
-import { StageConfigField } from '../../pipeline';
+import { StageConfigField } from '../../pipeline/config/stages/common/stageConfigField/StageConfigField';
 import { withErrorBoundary } from '../../presentation/SpinErrorBoundary';
 
 export interface IExpectedArtifactEditorProps {

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { SearchStatus } from './SearchResults';
+import { SearchStatus } from './SearchStatus';
 import { Tooltip } from '../../presentation';
 import { SearchService } from '../search.service';
 import { ISearchResultTabProps } from './searchResultType';

@@ -3,7 +3,7 @@ import React from 'react';
 import { PipelineRoles } from './PipelineRoles';
 import { Trigger } from './Trigger';
 import { Application } from '../../../application';
-import { ArtifactReferenceService } from '../../../artifact';
+import { ArtifactReferenceService } from '../../../artifact/ArtifactReferenceService';
 import { SETTINGS } from '../../../config/settings';
 import { IExpectedArtifact, IPipeline, ITrigger } from '../../../domain';
 import { HelpField } from '../../../help';

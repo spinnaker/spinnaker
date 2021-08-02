@@ -5,7 +5,7 @@ import { PreconfiguredJobStageConfig } from './PreconfiguredJobStageConfig';
 import { ExecutionDetailsTasks } from '../common';
 import { IStageTypeConfig } from '../../../../domain';
 import { PreconfiguredJobReader } from './preconfiguredJob.reader';
-import { Registry } from '../../../../registry';
+import { Registry } from '../../../../registry/Registry';
 
 /**
  * Builds a skeleton preconfigured job stage

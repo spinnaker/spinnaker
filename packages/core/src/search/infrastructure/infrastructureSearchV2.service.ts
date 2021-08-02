@@ -6,7 +6,7 @@ import { catchError, finalize, map, mergeMap, tap } from 'rxjs/operators';
 import { ISearchResultSet } from './infrastructureSearch.service';
 import { IQueryParams, UrlBuilder } from '../../navigation';
 import { ISearchResult, ISearchResults } from '../search.service';
-import { SearchStatus } from '../searchResult/SearchResults';
+import { SearchStatus } from '../searchResult/SearchStatus';
 import { SearchResultType } from '../searchResult/searchResultType';
 import { searchResultTypeRegistry } from '../searchResult/searchResultType.registry';
 

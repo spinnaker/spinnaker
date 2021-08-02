@@ -2,7 +2,7 @@ import React from 'react';
 import { mount } from 'enzyme';
 
 import { ApplicationModelBuilder } from '../../../application';
-import { ArtifactReferenceService } from '../../../artifact';
+import { ArtifactReferenceService } from '../../../artifact/ArtifactReferenceService';
 import { IExpectedArtifact, ITrigger } from '../../../domain';
 import { Registry } from '../../../registry';
 

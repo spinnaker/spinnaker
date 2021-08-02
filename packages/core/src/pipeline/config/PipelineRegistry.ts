@@ -17,7 +17,7 @@ import {
 } from '../../domain';
 
 import { ITriggerTemplateComponentProps } from '../manualExecution/TriggerTemplate';
-import { PreconfiguredJobReader } from './stages/preconfiguredJob';
+import { PreconfiguredJobReader } from './stages/preconfiguredJob/preconfiguredJob.reader';
 import { artifactKindConfigs } from './triggers/artifacts';
 
 export interface ITransformer {

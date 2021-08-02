@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { IStageArtifactSelectorProps, StageArtifactSelector } from './StageArtifactSelector';
-import { StageConfigField } from '../../pipeline';
+import { StageConfigField } from '../../pipeline/config/stages/common/stageConfigField/StageConfigField';
 
 interface IStageArtifactSelectorDelegateProps {
   helpKey?: string;

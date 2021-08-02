@@ -3,13 +3,13 @@ import React from 'react';
 import { Option } from 'react-select';
 
 import { ArtifactEditor } from '../ArtifactEditor';
-import { ArtifactTypePatterns } from '../../../../../artifact';
+import { ArtifactTypePatterns } from '../../../../../artifact/ArtifactTypes';
 import { IgorService } from '../../../../../ci';
 import { IArtifactEditorProps, IArtifactKindConfig, IBuild } from '../../../../../domain';
 import { TetheredSelect } from '../../../../../presentation';
 import { singleFieldArtifactEditor } from '../singleFieldArtifactEditor';
 import { StageConfigField } from '../../../stages/common';
-import { SpelText } from '../../../../../widgets';
+import { SpelText } from '../../../../../widgets/spelText/SpelText';
 
 const TYPE = 'jenkins/file';
 
