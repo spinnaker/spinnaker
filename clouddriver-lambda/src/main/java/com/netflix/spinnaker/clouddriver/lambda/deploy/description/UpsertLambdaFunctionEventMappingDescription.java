@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.lambda.deploy.description;
 
+import com.amazonaws.services.lambda.model.DestinationConfig;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -25,8 +26,15 @@ public class UpsertLambdaFunctionEventMappingDescription extends AbstractLambdaF
   String functionName;
   String qualifier;
   Integer batchsize = 1;
+  Boolean bisectBatchOnError = null;
+  Integer maxBatchingWindowSecs = null;
+  Integer maxRecordAgeSecs = null;
+  Integer maxRetryAttempts = null;
+  Integer parallelizationFactor = null;
+  Integer tumblingWindowSecs = null;
   Boolean enabled = false;
   String eventSourceArn = null;
   String uuid = null;
   String startingPosition = null;
+  DestinationConfig destinationConfig = null;
 }
