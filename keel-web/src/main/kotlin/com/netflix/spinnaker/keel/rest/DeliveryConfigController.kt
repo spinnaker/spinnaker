@@ -144,7 +144,11 @@ class DeliveryConfigController(
     when {
       !sendConfigChangedNotification -> false
       existing == null -> true
-      DefaultResourceDiff(existing, new).hasChanges() -> true
+      DefaultResourceDiff(existing, new).also {
+        if (it.hasChanges()) {
+          log.debug("Found diffs in delivery config ${it.affectedRootPropertyNames}")
+        }
+      }.hasChanges() -> true
       else -> false
     }
 
