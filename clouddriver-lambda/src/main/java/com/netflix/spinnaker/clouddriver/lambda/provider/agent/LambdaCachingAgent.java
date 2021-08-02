@@ -23,10 +23,7 @@ import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.ON
 import static com.netflix.spinnaker.clouddriver.lambda.cache.Keys.Namespace.LAMBDA_FUNCTIONS;
 import static java.util.stream.Collectors.toSet;
 
-import com.amazonaws.auth.policy.*;
-import com.amazonaws.services.lambda.AWSLambda;
 import com.amazonaws.services.lambda.model.*;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.CaseFormat;
 import com.netflix.frigga.Names;
@@ -42,53 +39,49 @@ import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider;
-import com.netflix.spinnaker.clouddriver.aws.data.ArnUtils;
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent;
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport;
 import com.netflix.spinnaker.clouddriver.cache.OnDemandType;
+import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfiguration;
 import com.netflix.spinnaker.clouddriver.lambda.cache.Keys;
+import com.netflix.spinnaker.clouddriver.lambda.service.LambdaService;
+import com.netflix.spinnaker.clouddriver.lambda.service.config.LambdaServiceConfig;
+import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.function.Predicate;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandAgent {
-  private static final TypeReference<Map<String, Object>> ATTRIBUTES =
-      new TypeReference<Map<String, Object>>() {};
-
   private static final Set<AgentDataType> types =
-      new HashSet<AgentDataType>() {
+      new HashSet<>() {
         {
           add(AUTHORITATIVE.forType(LAMBDA_FUNCTIONS.ns));
           add(INFORMATIVE.forType(APPLICATIONS.ns));
         }
       };
 
-  private final ObjectMapper objectMapper;
-
-  private final AmazonClientProvider amazonClientProvider;
   private final NetflixAmazonCredentials account;
   private final String region;
   private OnDemandMetricsSupport metricsSupport;
   private final Registry registry;
   private final Clock clock = Clock.systemDefaultZone();
+  private LambdaService lambdaService;
 
   LambdaCachingAgent(
       ObjectMapper objectMapper,
       AmazonClientProvider amazonClientProvider,
       NetflixAmazonCredentials account,
-      String region) {
-    this.objectMapper = objectMapper;
-
-    this.amazonClientProvider = amazonClientProvider;
+      String region,
+      LambdaServiceConfig lambdaServiceConfig,
+      ServiceLimitConfiguration serviceLimitConfiguration) {
     this.account = account;
     this.region = region;
     this.registry = new DefaultRegistry();
@@ -97,6 +90,14 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
             registry,
             this,
             AmazonCloudProvider.ID + ":" + AmazonCloudProvider.ID + ":" + OnDemandType.Function);
+    this.lambdaService =
+        new LambdaService(
+            amazonClientProvider,
+            account,
+            region,
+            objectMapper,
+            lambdaServiceConfig,
+            serviceLimitConfiguration);
   }
 
   @Override
@@ -128,51 +129,24 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
     long loadDataStart = clock.instant().toEpochMilli();
     log.info("Describing items in {}", getAgentType());
 
-    AWSLambda lambda = amazonClientProvider.getAmazonLambda(account, region);
+    Map<String, CacheData> lambdaCacheData = new ConcurrentHashMap<>();
+    Map<String, Collection<String>> appLambdaRelationships = new ConcurrentHashMap<>();
 
     // Get All Lambda's
-    List<FunctionConfiguration> lstFunction = getFreshLambdas(lambda);
-
-    Map<String, CacheData> lambdaCacheData = new HashMap<>();
-    Map<String, Collection<String>> appLambdaRelationships = new HashMap<>();
-    for (FunctionConfiguration x : lstFunction) {
-      String functionKey =
-          Keys.getLambdaFunctionKey(getAccountName(), getRegion(), x.getFunctionName());
-
-      // Call AWS with individual lambda and build attributes to obtain LambdaConfiguration.State
-      // See notes for ->
-      // https://docs.aws.amazon.com/cli/latest/reference/lambda/list-functions.html
-      Map<String, Object> lambdaAttributes = buildLambdaAttributes(x.getFunctionName(), lambda);
-      if (lambdaAttributes == null) {
-        // The lambda was deleted between the list call and now
-        continue;
-      }
-
-      /* TODO: If the functionName follows frigga by chance (i.e. somename-someothername), it will try to store the
-         lambda as a relationship with the app name (somename), even if it wasn't deployed by spinnaker!
-      */
-      // Add the spinnaker application relationship and store it
-      Names names = Names.parseName(x.getFunctionName());
-      if (names.getApp() != null) {
-        String appKey =
-            com.netflix.spinnaker.clouddriver.aws.data.Keys.getApplicationKey(names.getApp());
-        Collection<String> functionKeys =
-            appLambdaRelationships.getOrDefault(appKey, new ArrayList<>());
-        functionKeys.add(functionKey);
-        appLambdaRelationships.put(appKey, functionKeys);
-        lambdaCacheData.put(
-            functionKey,
-            new DefaultCacheData(
-                functionKey,
-                lambdaAttributes,
-                Collections.singletonMap(APPLICATIONS.ns, Collections.singletonList(appKey))));
-      } else {
-        // TODO: Do we care about non spinnaker deployed lambdas?
-        lambdaCacheData.put(
-            functionKey,
-            new DefaultCacheData(functionKey, lambdaAttributes, Collections.emptyMap()));
-      }
+    List<Map<String, Object>> allLambdas;
+    try {
+      allLambdas = lambdaService.getAllFunctions();
+    } catch (Exception e) {
+      throw new SpinnakerException(
+          "Failed to populate the lambda cache for account '"
+              + account.getName()
+              + "' and region '"
+              + region
+              + "' because: "
+              + e.getMessage());
     }
+
+    buildCacheData(lambdaCacheData, appLambdaRelationships, allLambdas);
 
     Collection<CacheData> processedOnDemandCache = new ArrayList<>();
 
@@ -252,136 +226,49 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
     return new DefaultCacheResult(cacheResults, evictions);
   }
 
-  List<FunctionConfiguration> getFreshLambdas(AWSLambda lambda) {
-    String nextMarker = null;
-    List<FunctionConfiguration> lstFunction = new ArrayList<>();
-    do {
-      ListFunctionsRequest listFunctionsRequest = new ListFunctionsRequest();
-      if (nextMarker != null) {
-        listFunctionsRequest.setMarker(nextMarker);
-      }
+  private void buildCacheData(
+      Map<String, CacheData> lambdaCacheData,
+      Map<String, Collection<String>> appLambdaRelationships,
+      List<Map<String, Object>> allLambdas) {
+    allLambdas.parallelStream()
+        .forEach(
+            lf -> {
+              String functionName = (String) lf.get("functionName");
+              String functionKey =
+                  Keys.getLambdaFunctionKey(getAccountName(), getRegion(), functionName);
 
-      ListFunctionsResult listFunctionsResult = lambda.listFunctions(listFunctionsRequest);
-
-      lstFunction.addAll(listFunctionsResult.getFunctions());
-      nextMarker = listFunctionsResult.getNextMarker();
-
-    } while (nextMarker != null && nextMarker.length() != 0);
-    return lstFunction;
-  }
-
-  @Nullable
-  Map<String, Object> buildLambdaAttributes(String functionName, AWSLambda lambda) {
-    GetFunctionRequest getFunctionRequest = new GetFunctionRequest().withFunctionName(functionName);
-    GetFunctionResult getFunctionResult;
-    try {
-      getFunctionResult = lambda.getFunction(getFunctionRequest);
-    } catch (ResourceNotFoundException ex) {
-      log.info("Function {} Not exist", functionName);
-      return null;
-    }
-
-    Map<String, Object> attr =
-        objectMapper.convertValue(getFunctionResult.getConfiguration(), ATTRIBUTES);
-    attr.put("account", account.getName());
-    attr.put("region", region);
-    attr.put("vpcConfig", getFunctionResult.getConfiguration().getVpcConfig());
-    attr.put("code", getFunctionResult.getCode());
-    attr.put("tags", getFunctionResult.getTags());
-    attr.put("concurrency", getFunctionResult.getConcurrency());
-    attr.put("state", getFunctionResult.getConfiguration().getState());
-    attr.put("stateReason", getFunctionResult.getConfiguration().getStateReason());
-    attr.put("stateReasonCode", getFunctionResult.getConfiguration().getStateReasonCode());
-    attr.put(
-        "revisions", listFunctionRevisions(getFunctionResult.getConfiguration().getFunctionArn()));
-    List<AliasConfiguration> allAliases =
-        listAliasConfiguration(getFunctionResult.getConfiguration().getFunctionArn());
-    attr.put("aliasConfigurations", allAliases);
-    List<EventSourceMappingConfiguration> eventSourceMappings =
-        listEventSourceMappingConfiguration(getFunctionResult.getConfiguration().getFunctionArn());
-    List<EventSourceMappingConfiguration> aliasEvents = new ArrayList<>();
-    for (AliasConfiguration currAlias : allAliases) {
-      List<EventSourceMappingConfiguration> currAliasEvents =
-          listEventSourceMappingConfiguration(currAlias.getAliasArn());
-      aliasEvents.addAll(currAliasEvents);
-    }
-    eventSourceMappings.addAll(aliasEvents);
-    attr.put("eventSourceMappings", eventSourceMappings);
-    attr.put("targetGroups", getTargetGroupNames(lambda, functionName));
-    return attr;
-  }
-
-  private Map<String, String> listFunctionRevisions(String functionArn) {
-    AWSLambda lambda = amazonClientProvider.getAmazonLambda(account, region);
-    String nextMarker = null;
-    Map<String, String> listRevionIds = new HashMap<String, String>();
-    do {
-      ListVersionsByFunctionRequest listVersionsByFunctionRequest =
-          new ListVersionsByFunctionRequest();
-      listVersionsByFunctionRequest.setFunctionName(functionArn);
-      if (nextMarker != null) {
-        listVersionsByFunctionRequest.setMarker(nextMarker);
-      }
-
-      ListVersionsByFunctionResult listVersionsByFunctionResult =
-          lambda.listVersionsByFunction(listVersionsByFunctionRequest);
-      for (FunctionConfiguration x : listVersionsByFunctionResult.getVersions()) {
-        listRevionIds.put(x.getRevisionId(), x.getVersion());
-      }
-      nextMarker = listVersionsByFunctionResult.getNextMarker();
-
-    } while (nextMarker != null && nextMarker.length() != 0);
-    return listRevionIds;
-  }
-
-  private List<AliasConfiguration> listAliasConfiguration(String functionArn) {
-    AWSLambda lambda = amazonClientProvider.getAmazonLambda(account, region);
-    String nextMarker = null;
-    List<AliasConfiguration> aliasConfigurations = new ArrayList<>();
-    do {
-      ListAliasesRequest listAliasesRequest = new ListAliasesRequest();
-      listAliasesRequest.setFunctionName(functionArn);
-      if (nextMarker != null) {
-        listAliasesRequest.setMarker(nextMarker);
-      }
-
-      ListAliasesResult listAliasesResult = lambda.listAliases(listAliasesRequest);
-      for (AliasConfiguration x : listAliasesResult.getAliases()) {
-        aliasConfigurations.add(x);
-      }
-      nextMarker = listAliasesResult.getNextMarker();
-
-    } while (nextMarker != null && nextMarker.length() != 0);
-    return aliasConfigurations;
-  }
-
-  private final List<EventSourceMappingConfiguration> listEventSourceMappingConfiguration(
-      String functionArn) {
-    List<EventSourceMappingConfiguration> eventSourceMappingConfigurations = new ArrayList<>();
-
-    AWSLambda lambda = amazonClientProvider.getAmazonLambda(account, region);
-    String nextMarker = null;
-    do {
-      ListEventSourceMappingsRequest listEventSourceMappingsRequest =
-          new ListEventSourceMappingsRequest();
-      listEventSourceMappingsRequest.setFunctionName(functionArn);
-
-      if (nextMarker != null) {
-        listEventSourceMappingsRequest.setMarker(nextMarker);
-      }
-
-      ListEventSourceMappingsResult listEventSourceMappingsResult =
-          lambda.listEventSourceMappings(listEventSourceMappingsRequest);
-
-      for (EventSourceMappingConfiguration x :
-          listEventSourceMappingsResult.getEventSourceMappings()) {
-        eventSourceMappingConfigurations.add(x);
-      }
-      nextMarker = listEventSourceMappingsResult.getNextMarker();
-
-    } while (nextMarker != null && nextMarker.length() != 0);
-
-    return eventSourceMappingConfigurations;
+              /* TODO: If the functionName follows frigga by chance (i.e. somename-someothername), it will try to store the
+                 lambda as a relationship with the app name (somename), even if it wasn't deployed by spinnaker!
+              */
+              // Add the spinnaker application relationship and store it
+              Names names = Names.parseName(functionName);
+              if (names.getApp() != null) {
+                String appKey =
+                    com.netflix.spinnaker.clouddriver.aws.data.Keys.getApplicationKey(
+                        names.getApp());
+                appLambdaRelationships.compute(
+                    appKey,
+                    (k, v) -> {
+                      Collection<String> fKeys = v;
+                      if (fKeys == null) fKeys = new ArrayList<>();
+                      fKeys.add(functionKey);
+                      return fKeys;
+                    });
+                // No other thread should be putting the same function in this map. Its safe to use
+                // put
+                lambdaCacheData.put(
+                    functionKey,
+                    new DefaultCacheData(
+                        functionKey,
+                        lf,
+                        Collections.singletonMap(
+                            APPLICATIONS.ns, Collections.singletonList(appKey))));
+              } else {
+                // TODO: Do we care about non spinnaker deployed lambdas?
+                lambdaCacheData.put(
+                    functionKey, new DefaultCacheData(functionKey, lf, Collections.emptyMap()));
+              }
+            });
   }
 
   @Override
@@ -406,14 +293,22 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
 
     String appKey = com.netflix.spinnaker.clouddriver.aws.data.Keys.getApplicationKey(appName);
 
-    AWSLambda lambda = amazonClientProvider.getAmazonLambda(account, region);
-
-    Map<String, Object> lambdaAttributes = buildLambdaAttributes(functionName, lambda);
+    Map<String, Object> lambdaAttributes = null;
+    try {
+      lambdaAttributes = lambdaService.getFunctionByName(functionName);
+    } catch (Exception e) {
+      if (e instanceof ResourceNotFoundException) {
+        // do nothing, the lambda was deleted
+      } else {
+        throw new SpinnakerException(
+            "Failed to populate the onDemandCache for lambda '" + functionName + "'");
+      }
+    }
 
     DefaultCacheResult defaultCacheResult;
     Map<String, Collection<String>> evictions;
 
-    if (lambdaAttributes != null) {
+    if (lambdaAttributes != null && !lambdaAttributes.isEmpty()) {
       lambdaAttributes.put("cacheTime", clock.instant().toEpochMilli());
       lambdaAttributes.put("processedCount", 0);
       DefaultCacheData lambdaCacheData =
@@ -490,47 +385,6 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
       throw new IllegalArgumentException(
           String.format("Function name {%s} contains invlaid charachetrs ", functionName));
     }
-  }
-
-  private List<String> getTargetGroupNames(AWSLambda lambda, String functionName) {
-    List<String> targetGroupNames = new ArrayList<>();
-    Predicate<Statement> isAllowStatement =
-        statement -> statement.getEffect().toString().equals(Statement.Effect.Allow.toString());
-    Predicate<Statement> isLambdaInvokeAction =
-        statement ->
-            statement.getActions().stream()
-                .anyMatch(action -> action.getActionName().equals("lambda:InvokeFunction"));
-    Predicate<Statement> isElbPrincipal =
-        statement ->
-            statement.getPrincipals().stream()
-                .anyMatch(
-                    principal -> principal.getId().equals("elasticloadbalancing.amazonaws.com"));
-
-    try {
-      GetPolicyResult result =
-          lambda.getPolicy(new GetPolicyRequest().withFunctionName(functionName));
-      String json = result.getPolicy();
-      Policy policy = Policy.fromJson(json);
-
-      targetGroupNames =
-          policy.getStatements().stream()
-              .filter(isAllowStatement.and(isLambdaInvokeAction).and(isElbPrincipal))
-              .flatMap(statement -> statement.getConditions().stream())
-              .filter(
-                  condition ->
-                      condition.getType().equals("ArnLike")
-                          && condition.getConditionKey().equals("AWS:SourceArn"))
-              .flatMap(condition -> condition.getValues().stream())
-              .filter(value -> ArnUtils.extractTargetGroupName(value).isPresent())
-              .map(name -> ArnUtils.extractTargetGroupName(name).get())
-              .collect(Collectors.toList());
-
-    } catch (ResourceNotFoundException ex) {
-      // ignore the exception.
-      log.info("No policies exist for {}", functionName);
-    }
-
-    return targetGroupNames;
   }
 
   /**
