@@ -260,7 +260,7 @@ query fetchApplicationManagementData($appName: String!) {
     id
     name
     isPaused
-    rawConfig
+    # rawConfig
   }
 }
 

@@ -669,7 +669,7 @@ export type FetchApplicationManagementDataQuery = (
   { __typename?: 'Query' }
   & { application?: Maybe<(
     { __typename?: 'MdApplication' }
-    & Pick<MdApplication, 'id' | 'name' | 'isPaused' | 'rawConfig'>
+    & Pick<MdApplication, 'id' | 'name' | 'isPaused'>
   )> }
 );
 
@@ -1204,7 +1204,6 @@ export const FetchApplicationManagementDataDocument = gql`
     id
     name
     isPaused
-    rawConfig
   }
 }
     `;

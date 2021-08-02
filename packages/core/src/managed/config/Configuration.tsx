@@ -4,7 +4,7 @@ import React from 'react';
 import { Illustration } from '@spinnaker/presentation';
 
 import { ApplicationQueryError } from '../ApplicationQueryError';
-import { DeliveryConfig } from './DeliveryConfig';
+import { ProcessedDeliveryConfig } from './DeliveryConfig';
 import {
   FetchApplicationManagementDataDocument,
   useFetchApplicationManagementDataQuery,
@@ -53,7 +53,8 @@ export const Configuration = () => {
   return (
     <div className="full-width">
       <ManagementToggle isPaused={data.application?.isPaused} />
-      <DeliveryConfig config={data.application?.rawConfig} />
+      <ProcessedDeliveryConfig />
+      {/* <DeliveryConfig config={data.application?.rawConfig} /> */}
     </div>
   );
 };

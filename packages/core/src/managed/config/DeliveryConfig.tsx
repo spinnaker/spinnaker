@@ -36,7 +36,7 @@ const DeliveryConfigContentRenderer = ({ content }: { content: string }) => {
 };
 
 interface IDeliveryConfigProps {
-  config: string;
+  config?: string;
 }
 
 export const DeliveryConfig = ({ config }: IDeliveryConfigProps) => {
@@ -56,14 +56,14 @@ export const DeliveryConfig = ({ config }: IDeliveryConfigProps) => {
   );
 };
 
-const ProcessedDeliveryConfig = () => {
+export const ProcessedDeliveryConfig = () => {
   const app = useApplicationContextSafe();
   const { result } = useData(() => ManagedReader.getProcessedDeliveryConfig(app.name), undefined, [app]);
 
   if (!result) return null;
   return (
-    <div className="sp-margin-l-top">
-      <h4>Debug: Processed delivery config</h4>
+    <div className="sp-margin-xl-top">
+      <h4>Processed delivery config</h4>
       <DeliveryConfigContentRenderer content={result} />
     </div>
   );
