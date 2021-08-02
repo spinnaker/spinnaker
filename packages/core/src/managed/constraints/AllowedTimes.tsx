@@ -76,6 +76,8 @@ const DeploymentWindow = ({ attributes }: { attributes: IAllowedTimesConstraint[
 
 const getTitle = (constraint: IAllowedTimesConstraint) => {
   switch (constraint.status) {
+    case 'BLOCKED':
+      return 'Deployment window constraint is blocked by other constraints';
     case 'OVERRIDE_PASS':
     case 'FORCE_PASS':
       return 'Deployment window constraint was overridden';
