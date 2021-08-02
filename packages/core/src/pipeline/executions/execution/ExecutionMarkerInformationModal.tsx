@@ -5,7 +5,7 @@ import { Modal } from 'react-bootstrap';
 import { PipelineGraph } from '../../config/graph/PipelineGraph';
 import { IExecution, IExecutionStageSummary } from '../../../domain';
 import { ExecutionInformationService } from './executionInformation.service';
-import { Spinner } from '../../../index';
+import { Spinner } from '../../../widgets/spinners/Spinner';
 import { ParametersAndArtifacts } from '../../status/ParametersAndArtifacts';
 import { duration, relativeTime, timestamp } from '../../../utils';
 

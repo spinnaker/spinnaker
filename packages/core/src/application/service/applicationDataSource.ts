@@ -23,7 +23,7 @@ import {
   withLatestFrom,
 } from 'rxjs/operators';
 
-import { Application } from '../application.model';
+import type { Application } from '../application.model';
 import { IEntityTags } from '../../domain';
 import { IconNames, robotToHuman } from '../../presentation';
 import { ReactInjector } from '../../reactShims';

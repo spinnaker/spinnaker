@@ -2,8 +2,9 @@ import React from 'react';
 import { Modal } from 'react-bootstrap';
 
 import { CloudProviderRegistry } from '../CloudProviderRegistry';
-import { ModalClose } from '../../modal';
-import { IModalComponentProps, ReactModal } from '../../presentation';
+import { ModalClose } from '../../modal/buttons/ModalClose';
+import { ReactModal } from '../../presentation/ReactModal';
+import { IModalComponentProps } from '../../presentation/modal/showModal';
 
 export interface IProviderSelectionModalProps extends IModalComponentProps {
   providerOptions: string[];

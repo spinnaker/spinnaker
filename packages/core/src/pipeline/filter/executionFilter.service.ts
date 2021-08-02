@@ -4,7 +4,7 @@ import { DateTime, Duration } from 'luxon';
 import { $log } from 'ngimport';
 import { Subject } from 'rxjs';
 
-import { Application } from '../../application/application.model';
+import type { Application } from '../../application/application.model';
 import { IExecution, IExecutionGroup, IPipeline, IPipelineTag } from '../../domain';
 import { FilterModelService, ISortFilter } from '../../filterModel';
 import { Registry } from '../../registry';

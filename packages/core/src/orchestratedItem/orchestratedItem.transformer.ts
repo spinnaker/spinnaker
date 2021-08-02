@@ -3,7 +3,7 @@ import { get, isNil } from 'lodash';
 import { $log } from 'ngimport';
 
 import { IOrchestratedItem, IOrchestratedItemVariable, ITask, ITaskStep } from '../domain';
-import { ReactInjector } from '../reactShims';
+import { ReactInjector } from '../reactShims/react.injector';
 
 export class OrchestratedItemTransformer {
   public static addRunningTime(item: any): void {

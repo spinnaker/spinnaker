@@ -9,8 +9,9 @@ import { ModalClose } from '../buttons/ModalClose';
 import { SubmitButton } from '../buttons/SubmitButton';
 import { SpinFormik } from '../../presentation';
 import { IModalComponentProps } from '../../presentation';
-import { TaskMonitor, TaskMonitorWrapper } from '../../task';
-import { Spinner } from '../../widgets';
+import { TaskMonitorWrapper } from '../../task/monitor/TaskMonitorWrapper';
+import { TaskMonitor } from '../../task/monitor/TaskMonitor';
+import { Spinner } from '../../widgets/spinners/Spinner';
 
 export interface IWizardPageInjectedProps<T> {
   formik: FormikProps<T>;

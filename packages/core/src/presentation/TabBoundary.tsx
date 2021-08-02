@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useEventListener } from '../index';
+import { useEventListener } from './hooks/useEventListener.hook';
 
 export const TabBoundary = ({ children }: { children: React.ReactNode }) => {
   const boundaryRef = React.createRef<HTMLDivElement>();

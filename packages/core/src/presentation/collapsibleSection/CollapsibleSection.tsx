@@ -1,9 +1,8 @@
 import classnames from 'classnames';
 import React from 'react';
 
-import { IIconProps } from '@spinnaker/presentation';
-import { CollapsibleSectionStateCache } from '../../cache';
-import { Icon } from '../../index';
+import { Icon, IIconProps } from '@spinnaker/presentation';
+import { CollapsibleSectionStateCache } from '../../cache/collapsibleSectionStateCache';
 
 export interface ICollapsibleSectionProps {
   outerDivClassName?: string;

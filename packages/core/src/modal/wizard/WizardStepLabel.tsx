@@ -2,7 +2,7 @@ import { isArray, isObject, isString } from 'lodash';
 import React from 'react';
 
 import { WizardPage } from './WizardPage';
-import { Tooltip } from '../../presentation';
+import { Tooltip } from '../../presentation/Tooltip';
 
 interface IWizardStepLabelProps {
   current: boolean;

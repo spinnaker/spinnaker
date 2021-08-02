@@ -4,7 +4,7 @@ import React from 'react';
 import { TrafficGuardHelperLink } from '../TrafficGuardHelperLink';
 import { ITask } from '../../domain';
 import { Markdown } from '../../presentation';
-import { ReactInjector } from '../../reactShims';
+import { ReactInjector } from '../../reactShims/react.injector';
 
 export interface ITaskMonitorErrorProps {
   errorMessage: string;

@@ -4,7 +4,7 @@ import React from 'react';
 import { ArtifactEditor } from './ArtifactEditor';
 import { IArtifact, IArtifactEditorProps } from '../../../../domain';
 import { StageConfigField } from '../../stages/common';
-import { SpelText } from '../../../../widgets';
+import { SpelText } from '../../../../widgets/spelText/SpelText';
 
 export const singleFieldArtifactEditor = (
   fieldKey: keyof IArtifact,

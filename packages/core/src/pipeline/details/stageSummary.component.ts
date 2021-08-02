@@ -4,7 +4,7 @@ import { HtmlRenderer, Parser } from 'commonmark';
 import { Application } from '../../application';
 import { ConfirmationModalService } from '../../confirmationModal';
 import { IExecution, IExecutionStage, IExecutionStageSummary, IStage } from '../../domain';
-import { Registry } from '../../registry';
+import { Registry } from '../../registry/Registry';
 
 import { ExecutionService } from '../service/execution.service';
 

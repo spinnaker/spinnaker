@@ -5,7 +5,7 @@ import { ArtifactEditor } from '../ArtifactEditor';
 import { ArtifactTypePatterns } from '../../../../../artifact';
 import { IArtifactEditorProps, IArtifactKindConfig } from '../../../../../domain';
 import { StageConfigField } from '../../../stages/common';
-import { SpelText } from '../../../../../widgets';
+import { SpelText } from '../../../../../widgets/spelText/SpelText';
 
 export const TYPE = 'custom/object';
 export const CUSTOM_ARTIFACT_ACCOUNT = 'custom-artifact';

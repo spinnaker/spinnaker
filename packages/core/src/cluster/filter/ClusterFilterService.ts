@@ -3,7 +3,7 @@ import { Debounce } from 'lodash-decorators';
 import { $log } from 'ngimport';
 import { Subject } from 'rxjs';
 
-import { Application } from '../../application/application.model';
+import type { Application } from '../../application/application.model';
 import { ICluster, IEntityTags, IInstance, IManagedResourceSummary, IServerGroup } from '../../domain';
 import { FilterModelService, ISortFilter } from '../../filterModel';
 import { ILabelFilter, trueKeyObjectToLabelFilters } from './labelFilterUtils';

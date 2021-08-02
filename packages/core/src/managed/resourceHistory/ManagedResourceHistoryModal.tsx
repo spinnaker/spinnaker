@@ -4,16 +4,10 @@ import React from 'react';
 import { HistoryEventRow } from './HistoryEventRow';
 import { ManagedReader } from '../ManagedReader';
 import { IManagedResourceSummary } from '../../domain';
-import {
-  IModalComponentProps,
-  ModalBody,
-  ModalHeader,
-  showModal,
-  standardGridTableLayout,
-  Table,
-  usePollingData,
-} from '../../presentation';
-import { Spinner } from '../../widgets';
+import { usePollingData } from '../../presentation/hooks/usePollingData.hook';
+import { IModalComponentProps, ModalBody, ModalHeader, showModal } from '../../presentation/modal';
+import { standardGridTableLayout, Table } from '../../presentation/tables';
+import { Spinner } from '../../widgets/spinners/Spinner';
 
 import './ManagedResourceHistoryModal.less';
 

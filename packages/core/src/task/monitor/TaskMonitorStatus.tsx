@@ -4,9 +4,9 @@ import { StatusGlyph } from '../StatusGlyph';
 import { TaskMonitor } from './TaskMonitor';
 import { displayableTasks } from '../displayableTasks.filter';
 import { robotToHuman, useForceUpdate, useObservable } from '../../presentation';
-import { ReactInjector } from '../../reactShims';
+import { ReactInjector } from '../../reactShims/react.injector';
 import { duration } from '../../utils';
-import { Spinner } from '../../widgets';
+import { Spinner } from '../../widgets/spinners/Spinner';
 
 export const TaskMonitorStatus = ({ monitor }: { monitor: TaskMonitor }) => {
   const forceUpdate = useForceUpdate();

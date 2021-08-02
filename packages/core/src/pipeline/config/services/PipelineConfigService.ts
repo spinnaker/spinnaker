@@ -3,7 +3,7 @@ import { $q } from 'ngimport';
 
 import { REST } from '../../../api/ApiService';
 import { AuthenticationService } from '../../../authentication/AuthenticationService';
-import { ViewStateCache } from '../../../cache';
+import { ViewStateCache } from '../../../cache/viewStateCache';
 import { IPipeline } from '../../../domain/IPipeline';
 import { IStage } from '../../../domain/IStage';
 

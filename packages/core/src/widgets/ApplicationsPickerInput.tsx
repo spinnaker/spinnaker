@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 
-import { ApplicationReader } from '../application';
+import { ApplicationReader } from '../application/service/ApplicationReader';
 import {
   asyncMessage,
   errorMessage,

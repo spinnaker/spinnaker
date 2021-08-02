@@ -167,6 +167,6 @@ export class PluginRegistry {
   private loadModuleFromUrl(url: string) {
     // This inline comment is used by webpack to emit a native import() (instead of doing a webpack import)
     // See: https://webpack.js.org/api/module-methods/
-    return import(/* webpackIgnore: true */ url);
+    return import(/* webpackIgnore: true */ /* @vite-ignore */ url);
   }
 }

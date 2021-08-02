@@ -2,7 +2,7 @@ import { chain, Dictionary, forOwn, groupBy, intersection, sortBy, values } from
 import { Debounce } from 'lodash-decorators';
 import { Subject } from 'rxjs';
 
-import { Application } from '../../application/application.model';
+import type { Application } from '../../application/application.model';
 import { IFunction, IFunctionGroup } from '../../domain';
 import { FilterModelService } from '../../filterModel';
 import { FunctionState } from '../../state';

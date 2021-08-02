@@ -6,7 +6,7 @@ import { ExecutionWindowActions } from '../executionWindows/ExecutionWindowActio
 import { HoverablePopover } from '../../../../presentation/HoverablePopover';
 import { ReactInjector } from '../../../../reactShims';
 import { SkipConditionWait } from '../waitForCondition/SkipConditionWait';
-import { Spinner } from '../../../../widgets';
+import { Spinner } from '../../../../widgets/spinners/Spinner';
 
 export interface IExecutionBarLabelProps extends IExecutionStageLabelProps {
   tooltip?: JSX.Element;
