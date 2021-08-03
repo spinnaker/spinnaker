@@ -33,7 +33,7 @@ strategies such as canary deployments provide the safety necessary to capture va
  
 = Tech Specs
 
-Spinnaker consists of a number of https://www.spinnaker.io/reference/architecture/[independent microservices], with the https://github.com/spinnaker/halyard[Halyard CLI tool] or the https://docs.armory.io/docs/[Kubernetes Operator] (Beta)
+Spinnaker consists of a number of https://www.spinnaker.io/reference/architecture/[independent microservices], with the https://github.com/spinnaker/halyard[Halyard CLI tool] or the https://www.armory.io/spinnaker-community/spinnaker-operator/[Kubernetes Operator] (Beta)
 managing the lifecycle of the other services. A https://www.spinnaker.io/docs/setup/other_config/[variety of SDLC tools] integrate with Spinnaker, and its plugin framework makes Spinnaker more easily customizable to your needs. Plugins allow us to add system integrations without updating Spinnaker, broadening its potential
 to easily leverage the entire software delivery toolchain. With this in place, Spinnaker is evolving towards a smaller threat surface,
 enabling performance and operational advantages. Meanwhile, managed delivery, a newer Spinnaker featureset, provides declarative definitions of common
