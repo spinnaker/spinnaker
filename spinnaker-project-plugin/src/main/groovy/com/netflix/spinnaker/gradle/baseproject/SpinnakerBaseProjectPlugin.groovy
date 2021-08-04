@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.gradle.baseproject
 
-
 import com.netflix.spinnaker.gradle.codestyle.SpinnakerCodeStylePlugin
 import com.netflix.spinnaker.gradle.idea.SpinnakerIdeaConfigPlugin
 import com.netflix.spinnaker.gradle.idea.SpinnakerNewIdeaProjectPlugin

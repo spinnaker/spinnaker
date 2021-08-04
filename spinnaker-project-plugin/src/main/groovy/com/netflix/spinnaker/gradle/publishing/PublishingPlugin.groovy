@@ -1,10 +1,14 @@
 package com.netflix.spinnaker.gradle.publishing
 
+import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaLibraryPlugin
 import org.gradle.api.plugins.JavaPlatformPlugin
 import org.gradle.api.publish.PublishingExtension
+import org.gradle.api.publish.maven.MavenPom
+import org.gradle.api.publish.maven.MavenPomLicense
+import org.gradle.api.publish.maven.MavenPomLicenseSpec
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.publish.tasks.GenerateModuleMetadata
@@ -24,6 +28,7 @@ class PublishingPlugin implements Plugin<Project> {
           project.tasks.matching { it.name == 'sourceJar' }.configureEach {
             pub.artifact(it)
           }
+          addLicenseMetadata(pub)
         }
         // Presence of a module metadata file causes IntelliJ to not associate -sources jars with libraries.
         //  removing for now, can revisit if there is a good reason to have .modules
@@ -39,6 +44,7 @@ class PublishingPlugin implements Plugin<Project> {
       project.extensions.configure(PublishingExtension) { publishingExtension ->
         publishingExtension.publications.create(PUBLICATION_NAME, MavenPublication) { pub ->
           pub.from(project.components.getByName("javaPlatform"))
+          addLicenseMetadata(pub)
         }
       }
       // Presence of a module metadata file causes some weird failures in kork spinnaker-dependencies and we don't
@@ -61,5 +67,23 @@ class PublishingPlugin implements Plugin<Project> {
         }
       }
     }
+  }
+
+  static void addLicenseMetadata(MavenPublication pub) {
+    pub.pom(new Action<MavenPom>() {
+      void execute(MavenPom mavenPom) {
+        mavenPom.licenses(new Action<MavenPomLicenseSpec>() {
+          void execute(MavenPomLicenseSpec mavenPomLicenseSpec) {
+            mavenPomLicenseSpec.license(new Action<MavenPomLicense>() {
+              void execute(MavenPomLicense mavenPomLicense) {
+                mavenPomLicense.name.set('Apache License, Version 2.0')
+                mavenPomLicense.url.set('http://www.apache.org/licenses/LICENSE-2.0.txt')
+                mavenPomLicense.distribution.set('repo')
+              }
+            })
+          }
+        })
+      }
+    })
   }
 }
