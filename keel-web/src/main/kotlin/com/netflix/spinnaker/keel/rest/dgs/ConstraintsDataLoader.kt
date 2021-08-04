@@ -106,6 +106,11 @@ class ConstraintsDataLoader(
   ): MutableMap<EnvironmentArtifactAndVersion, MutableList<ConstraintState>> {
     val persistedStates = keelRepository.constraintStateForEnvironments(config.name)
       .removePrivateConstraintAttrs() // remove attributes that should not be exposed
+      .filter { constraintState ->
+        // remove old state from any deleted constraints
+        val existingConstraints = config.environments.find { it.name == constraintState.environmentName }?.constraints?.map { it.type } ?: emptyList()
+        existingConstraints.contains(constraintState.type)
+      }
       .groupByTo(mutableMapOf()) {
         EnvironmentArtifactAndVersion(environmentName = it.environmentName, artifactReference = it.artifactReference, version = it.artifactVersion)
       }
