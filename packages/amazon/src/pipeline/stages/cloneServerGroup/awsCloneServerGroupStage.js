@@ -43,6 +43,9 @@ module(AMAZON_PIPELINE_STAGES_CLONESERVERGROUP_AWSCLONESERVERGROUPSTAGE, [])
       stage.application = $scope.application.name;
       stage.cloudProvider = 'aws';
       stage.cloudProviderType = 'aws';
+      stage.viewState = {
+        mode: 'editPipeline'
+      };
 
       if (
         stage.isNew &&

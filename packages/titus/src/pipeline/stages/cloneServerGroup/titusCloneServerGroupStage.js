@@ -46,7 +46,10 @@ module(TITUS_PIPELINE_STAGES_CLONESERVERGROUP_TITUSCLONESERVERGROUPSTAGE, [
       stage.application = $scope.application.name;
       stage.cloudProvider = 'titus';
       stage.cloudProviderType = 'titus';
-
+      stage.viewState = {
+        mode: 'editPipeline'
+      };
+      
       if (
         stage.isNew &&
         $scope.application.attributes.platformHealthOnlyShowOverride &&
