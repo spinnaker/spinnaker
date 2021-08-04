@@ -215,8 +215,8 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
         expect {
           that(windows.size).isEqualTo(2)
           that(windows).containsExactlyInAnyOrder(
-            TimeWindowNumeric(setOf(1), IntRange(11,16).toSet()),
-            TimeWindowNumeric(setOf(3,4,5), setOf(13))
+            TimeWindowNumeric(setOf(1), (11..15).toSet()),
+            TimeWindowNumeric((3..5).toSet(), setOf(13))
           )
         }
       }
@@ -259,7 +259,7 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
         expect {
           that(windows.size).isEqualTo(1)
           that(windows).containsExactlyInAnyOrder(
-            TimeWindowNumeric(IntRange(1,5).toSet(), IntRange(11,16).toSet()),
+            TimeWindowNumeric((1..5).toSet(), (11..15).toSet()),
           )
         }
       }
@@ -290,7 +290,7 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
         expect {
           that(windows.size).isEqualTo(1)
           that(windows).containsExactlyInAnyOrder(
-            TimeWindowNumeric(IntRange(1,5).toSet(), emptySet()),
+            TimeWindowNumeric((1..5).toSet(), emptySet()),
           )
         }
       }
@@ -321,7 +321,7 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
         expect {
           that(windows.size).isEqualTo(1)
           that(windows).containsExactlyInAnyOrder(
-            TimeWindowNumeric(IntRange(6,7).toSet(), emptySet()),
+            TimeWindowNumeric((6..7).toSet(), emptySet()),
           )
         }
       }
@@ -357,8 +357,8 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
         expect {
           that(windows.size).isEqualTo(2)
           that(windows).containsExactlyInAnyOrder(
-            TimeWindowNumeric(setOf(4), IntRange(11,16).toSet()),
-            TimeWindowNumeric(IntRange(1,5).toSet(), IntRange(11,16).toSet())
+            TimeWindowNumeric(setOf(4), (11..15).toSet()),
+            TimeWindowNumeric((1..5).toSet(), (11..15).toSet())
           )
         }
       }
@@ -411,7 +411,7 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
         expect {
           that(windows.size).isEqualTo(1)
           that(windows).containsExactlyInAnyOrder(
-            TimeWindowNumeric(setOf(2,1,7,6), setOf(23) + IntRange(0,10).toSet()),
+            TimeWindowNumeric(setOf(2, 1, 7, 6), setOf(23) + (0..9).toSet()),
           )
         }
       }

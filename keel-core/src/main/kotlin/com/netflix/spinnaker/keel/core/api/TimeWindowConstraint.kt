@@ -5,10 +5,17 @@ import com.netflix.spinnaker.keel.exceptions.InvalidConstraintException
 import java.text.ParsePosition
 import java.time.DateTimeException
 import java.time.DayOfWeek
+import java.time.DayOfWeek.FRIDAY
+import java.time.DayOfWeek.MONDAY
+import java.time.DayOfWeek.SATURDAY
+import java.time.DayOfWeek.SUNDAY
+import java.time.DayOfWeek.THURSDAY
+import java.time.DayOfWeek.TUESDAY
+import java.time.DayOfWeek.WEDNESDAY
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-import java.time.format.TextStyle
+import java.time.format.TextStyle.SHORT
 import java.time.temporal.ChronoUnit.HOURS
 import java.time.zone.ZoneRulesException
 import java.util.Locale
@@ -51,6 +58,9 @@ fun TimeWindowConstraint.activeWindowOrNull(time: ZonedDateTime) =
     daysMatch && hoursMatch
   }
 
+fun TimeWindowConstraint.activeWindowBoundsOrNull(time: ZonedDateTime) : ZonedDateTimeRange? =
+  activeWindowOrNull(time)?.windowRange(time)
+
 val TimeWindowConstraint.windowsNumeric: List<TimeWindowNumeric>
   get() = windows.toNumeric()
 
@@ -79,8 +89,11 @@ val TimeWindowNumeric.endHour
  * @param time must be a date/time that is inside the window or result may not be valid.
  * @return the most recent time the window started.
  */
-fun TimeWindowNumeric.windowRange(time: ZonedDateTime): Pair<ZonedDateTime, ZonedDateTime> =
-  time.withHour(startHour).truncatedTo(HOURS) to time.withHour(endHour).truncatedTo(HOURS)
+fun TimeWindowNumeric.windowRange(time: ZonedDateTime): ZonedDateTimeRange =
+  ZonedDateTimeRange(
+    time.withHour(startHour).truncatedTo(HOURS) ,
+    time.withHour(endHour).truncatedTo(HOURS).plusHours(1).minusSeconds(1)
+  )
 
 
 data class TimeWindow(
@@ -107,7 +120,7 @@ data class TimeWindow(
 
 private val whiteSpace = """\s""".toRegex()
 private val intOnly = """^\d+$""".toRegex()
-private val intRange = """^\d+\-\d+$""".toRegex()
+private val intRange = """^\d+-\d+$""".toRegex()
 private val separators = """[\s,\-]""".toRegex()
 private val fullDayFormatter = DateTimeFormatter.ofPattern("EEEE", Locale.getDefault())
 private val shortDayFormatter = DateTimeFormatter.ofPattern("EEE", Locale.getDefault())
@@ -116,11 +129,11 @@ private val daysOfWeek = DayOfWeek.values()
   .map {
     listOf(
       it.toString().toLowerCase(),
-      it.getDisplayName(TextStyle.SHORT, Locale.getDefault()).toLowerCase()
+      it.getDisplayName(SHORT, Locale.getDefault()).toLowerCase()
     )
   }
   .flatten()
-  .toMutableSet()
+  .toSet()
 
 private val dayAliases = setOf("weekdays", "weekends")
 
@@ -160,14 +173,13 @@ private fun String.isInt(): Boolean = this.matches(intOnly)
 private fun String.isIntRange(): Boolean = this.matches(intRange)
 
 private fun String.hourRange(): Set<Int> {
-  val hours = this.split("-")
-  return if (hours[1].toInt() > hours[0].toInt()) {
+  val hours = split("-").map { it.toInt() }
+  return if (hours[1] > hours[0]) {
     // i.e. 10-18
-    IntRange(hours[0].toInt(), hours[1].toInt()).toSet()
+    (hours[0] until hours[1]).toSet()
   } else {
     // i.e. 18-04 == between 18-23 || 0-4
-    IntRange(hours[0].toInt(), 23).toSet() +
-      IntRange(0, hours[1].toInt()).toSet()
+    (hours[0]..23).toSet() + (0 until hours[1]).toSet()
   }
 }
 
@@ -179,7 +191,7 @@ private fun parseDays(dayConfig: String?): Set<Int> {
     return emptySet()
   }
 
-  val days = mutableSetOf<String>()
+  val days = mutableSetOf<DayOfWeek>()
   val trimmed = dayConfig.replace(whiteSpace, "")
     .toLowerCase()
   val elements = trimmed.split(",")
@@ -187,14 +199,12 @@ private fun parseDays(dayConfig: String?): Set<Int> {
   elements.forEach {
     when {
       it.isDayAlias() -> days.addAll(it.dayAlias())
-      it.isDay() -> days.add(it)
+      it.isDay() -> days.add(it.toDayOfWeek())
       it.isDayRange() -> days.addAll(it.dayRange())
     }
   }
 
-  return days.map { word ->
-    word.toDayOfWeek()
-  }.toSet()
+  return days.map(DayOfWeek::getValue).toSet()
 }
 
 private fun String.isDay(): Boolean = daysOfWeek.contains(this)
@@ -210,20 +220,20 @@ private fun String.isDayRange(): Boolean {
   return daysOfWeek.contains(days[0]) && daysOfWeek.contains(days[1])
 }
 
-private fun String.dayAlias(): Set<String> =
+private fun String.dayAlias(): Set<DayOfWeek> =
   when (this) {
-    "weekdays" -> setOf("monday", "tuesday", "wednesday", "thursday", "friday")
-    "weekends" -> setOf("saturday", "sunday")
+    "weekdays" -> setOf(MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY)
+    "weekends" -> setOf(SATURDAY, SUNDAY)
     else -> throw InvalidConstraintException(ALLOWED_TIMES_CONSTRAINT_TYPE, "Failed parsing day alias $this")
   }
 
-private fun String.toDayOfWeek(): Int =
+private fun String.toDayOfWeek(): DayOfWeek =
   (fullDayFormatter.parseUnresolved(this.capitalize(), ParsePosition(0))
     ?: shortDayFormatter.parseUnresolved(this.capitalize(), ParsePosition(0)))
-    ?.let { DayOfWeek.from(it).value }
+    ?.let { DayOfWeek.from(it) }
     ?: throw InvalidConstraintException(ALLOWED_TIMES_CONSTRAINT_TYPE, "Failed parsing day '$this'")
 
-private fun String.dayRange(): Set<String> {
+private fun String.dayRange(): Set<DayOfWeek> {
   /**
    * Convert Mon-Fri or Monday-Friday to [DayOfWeek] integers to compute
    * a range, then back to a set of individual days that today can be
@@ -233,18 +243,12 @@ private fun String.dayRange(): Set<String> {
   val day1 = days[0].toDayOfWeek()
   val day2 = days[1].toDayOfWeek()
 
-  val intRange = if (day2 > day1) {
+  return if (day2 > day1) {
     // Mon - Fri
-    IntRange(day1, day2).toList()
+    (day1.value..day2.value).map { DayOfWeek.of(it) }
   } else {
     // Fri - Mon
-    IntRange(day1, 7).toList() + IntRange(1, day2).toList()
-  }
-
-  return intRange.map {
-    DayOfWeek.of(it)
-      .toString()
-      .toLowerCase()
+    ((day1.value..7) + (1..day2.value)).map { DayOfWeek.of(it) }
   }
     .toSet()
 }
@@ -256,3 +260,8 @@ private fun List<TimeWindow>.toNumeric(): List<TimeWindowNumeric> =
       hours = parseHours(it.hours)
     )
   }
+
+class ZonedDateTimeRange(
+  override val start: ZonedDateTime,
+  override val endInclusive: ZonedDateTime
+) : ClosedRange<ZonedDateTime>

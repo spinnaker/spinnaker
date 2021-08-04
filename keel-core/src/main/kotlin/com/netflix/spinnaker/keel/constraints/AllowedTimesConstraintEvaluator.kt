@@ -82,23 +82,34 @@ class AllowedTimesConstraintEvaluator(
     val activeWindow = constraint.activeWindowOrNull(now)
 
     if (activeWindow != null && constraint.maxDeploysPerWindow != null) {
-      val (windowStart, windowEnd) = activeWindow.windowRange(now)
+      val windowRange = activeWindow.windowRange(now)
 
       val count = artifactRepository.deploymentsBetween(
         deliveryConfig,
         targetEnvironment.name,
-        windowStart,
-        windowEnd
+        windowRange.start,
+        windowRange.endInclusive
       )
 
       if (count >= constraint.maxDeploysPerWindow) {
         log.info(
-          "{}:{} has already been deployed {} times during the current window, skipping deployment",
+          "{}:{} has already been deployed {} times during the current window ({} to {}), skipping deployment",
           deliveryConfig.name,
           targetEnvironment.name,
-          count
+          count,
+          windowRange.start.toLocalTime(),
+          windowRange.endInclusive.toLocalTime()
         )
         return false
+      } else {
+        log.debug(
+          "{}:{} has only been deployed {} times during the current window ({} to {}), allowing deployment",
+          deliveryConfig.name,
+          targetEnvironment.name,
+          count,
+          windowRange.start.toLocalTime(),
+          windowRange.endInclusive.toLocalTime()
+        )
       }
     }
 
