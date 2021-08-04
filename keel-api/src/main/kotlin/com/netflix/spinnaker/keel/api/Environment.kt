@@ -43,6 +43,13 @@ data class Environment(
     apply {
       this@Environment.metadata.putAll(metadata)
     }
+
+  fun addMetadata(vararg metadata: Pair<String, Any?>) =
+    apply {
+      this@Environment.metadata.putAll(metadata)
+    }
+
+  override fun toString() = "Environment $application/$name"
 }
 
 val Set<Constraint>.anyStateful: Boolean

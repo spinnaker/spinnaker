@@ -174,7 +174,7 @@ interface KeelRepository : KeelReadOnlyRepository {
 
   fun storeArtifactVersion(artifactVersion: PublishedArtifact): Boolean
 
-  fun getArtifactVersion(artifact: DeliveryArtifact, version: String, status: ArtifactStatus?): PublishedArtifact?
+  fun getArtifactVersion(artifact: DeliveryArtifact, version: String, status: ArtifactStatus? = null): PublishedArtifact?
 
   fun updateArtifactMetadata(artifact: PublishedArtifact, artifactMetadata: ArtifactMetadata)
 

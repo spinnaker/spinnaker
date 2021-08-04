@@ -334,11 +334,11 @@ class SqlDeliveryConfigRepository(
       )
 
     // Add some default metadata that's useful in a bunch of places
-    environment.addMetadata(mapOf(
+    environment.addMetadata(
       "uid" to environmentUid,
       "application" to deliveryConfig.application,
       "deliveryConfigName" to deliveryConfig.name
-    ))
+    )
 
     jooq.insertInto(ENVIRONMENT)
       .set(ENVIRONMENT.UID, environmentUid)

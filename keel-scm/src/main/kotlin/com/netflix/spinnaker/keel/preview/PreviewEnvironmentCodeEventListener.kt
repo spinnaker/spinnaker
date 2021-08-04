@@ -235,12 +235,12 @@ class PreviewEnvironmentCodeEventListener(
             }
         }.toSet()
       ).apply {
-        addMetadata(mapOf(
+        addMetadata(
           "basedOn" to baseEnv.name,
           "repoKey" to commitEvent.repoKey,
           "branch" to commitEvent.targetBranch,
           "pullRequestId" to commitEvent.pullRequestId
-        ))
+        )
       }
 
       log.debug("Creating/updating preview environment ${previewEnv.name} for application ${deliveryConfig.application} " +

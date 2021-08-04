@@ -152,8 +152,6 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
       )
     )
 
-    val previewEnvironment = Environment("feature-branches", isPreview = true)
-      .addMetadata(mapOf("branch" to "feature/my-cool-feature"))
     val testEnvironment = Environment("test")
     val stagingEnvironment = Environment("staging")
     val manifest = DeliveryConfig(
@@ -169,7 +167,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
         debianFilteredByPullRequest,
         debianFilteredByPullRequestAndBranch
       ),
-      environments = setOf(previewEnvironment, testEnvironment, stagingEnvironment)
+      environments = setOf(testEnvironment, stagingEnvironment)
     )
     val version1 = "keeldemo-0.0.1~dev.8-h8.41595c4" // snapshot
     val version2 = "keeldemo-0.0.1~dev.9-h9.3d2c8ff" // snapshot
@@ -1285,29 +1283,6 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
         subject.pinEnvironment(manifest, EnvironmentArtifactPin(testEnvironment.name, versionedReleaseDebian.reference, version2, null, null))
         expectThat(subject.getPinnedVersion(manifest, testEnvironment.name, versionedReleaseDebian.reference))
           .isEqualTo(version2)
-      }
-    }
-
-    context("artifacts in preview environments") {
-      before {
-        persist(manifest)
-        subject.register(debianFilteredByBranchPrefix)
-        (1..10).forEach { num ->
-          val version = "keeldemo-any-string-$num"
-          storeArtifactVersionWithBranch(
-            artifact = debianFilteredByBranchPrefix,
-            version = version,
-            branch = if (num == 5) previewEnvironment.branch!! else "not-a-matching-branch-$num"
-          )
-          subject.approveVersionFor(manifest, debianFilteredByBranchPrefix, version, previewEnvironment.name)
-        }
-      }
-
-      test("the latest approved version is filtered with the preview environment branch") {
-        expectThat(subject.latestVersionApprovedIn(manifest, debianFilteredByBranchPrefix, previewEnvironment.name))
-          .isEqualTo("keeldemo-any-string-5")
-        expectThat(subject.getArtifactVersion(debianFilteredByBranchPrefix, "keeldemo-any-string-5")?.branch)
-          .isEqualTo(previewEnvironment.branch)
       }
     }
   }

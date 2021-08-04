@@ -53,7 +53,6 @@ import com.netflix.spinnaker.keel.telemetry.AboutToBeChecked
 import io.github.resilience4j.retry.Retry
 import io.github.resilience4j.retry.RetryConfig
 import org.jooq.DSLContext
-import org.jooq.Field
 import org.jooq.Record1
 import org.jooq.Select
 import org.jooq.SelectConditionStep
@@ -79,10 +78,6 @@ class SqlArtifactRepository(
   private val artifactSuppliers: List<ArtifactSupplier<*, *>> = emptyList(),
   private val publisher: ApplicationEventPublisher
 ) : ArtifactRepository {
-
-  companion object {
-    val ARTIFACT_VERSIONS_GIT_BRANCH = field<String>("artifact_versions.git_metadata->>'$.branch'")
-  }
 
   override fun register(artifact: DeliveryArtifact) {
     val id: String = (
@@ -427,13 +422,6 @@ class SqlArtifactRepository(
         .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifactId))
         .and(ENVIRONMENT_ARTIFACT_VERSIONS.APPROVED_AT.isNotNull)
         .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.ne(VETOED))
-        .apply {
-          if (environment.isPreview) {
-            log.debug("Adding branch=${environment.branch} to query for latest version approved for preview" +
-              " environment ${environment.name} in application ${deliveryConfig.application}")
-            and(ARTIFACT_VERSIONS_GIT_BRANCH.eq(environment.branch))
-          }
-        }
         .orderBy(ENVIRONMENT_ARTIFACT_VERSIONS.APPROVED_AT.desc())
         .limit(20)
         .fetchArtifactVersions()
