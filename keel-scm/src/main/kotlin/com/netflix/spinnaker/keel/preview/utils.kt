@@ -191,16 +191,24 @@ internal const val MAX_RESOURCE_NAME_LENGTH = 32
 /**
  * @return The [Moniker] with an updated [Moniker.detail] field containing as much of the branch name
  * as possible while respecting max length constraints on resource names.
+ *
+ * The algorithm truncates the detail field such that the overall length of the resource name derived
+ * from the [Moniker] is less than or equal to [MAX_RESOURCE_NAME_LENGTH], to accommodate for AWS naming restrictions.
+ *
+ * Example: myapp-test-myelb (16 chars) with branch my-really-cool-feature (20 chars)
+ * would be renamed to something like myapp-test-myelb-my-really--1a2b (32 chars)
  */
-internal fun Moniker.withBranchDetail(branch: String): Moniker {
+fun Moniker.withBranchDetail(branch: String): Moniker {
   val normalizedBranch = branch.toPreviewName()
   val suffix = DigestUtils.sha256Hex(normalizedBranch).takeLast(4)
-  val truncateAt = MAX_RESOURCE_NAME_LENGTH - name.length + (detail?.length ?: -1) - suffix.length - 1
-  val updatedDetail = listOfNotNull(detail, normalizedBranch).joinToString("-").let {
-    // truncate to accommodate AWS naming restrictions
-    // e.g. myapp-test-mycluster (20 chars) with branch my-cool-feature (15 chars)
-    // would be renamed to something like myapp-test-mycluster-my-coo-1a2b
-    it.take(truncateAt) + "-$suffix"
-  }
+  // calculates the truncation point in the detail field based on how many characters are left of the
+  // max name length after removing the current detail and accounting for empty stack and detail (which
+  // cause extra dashes to be added to the name)
+  var truncateAt = (MAX_RESOURCE_NAME_LENGTH - name.length - suffix.length - 1)
+  if (stack == null) --truncateAt
+  if (detail == null) --truncateAt else truncateAt += detail!!.length
+  val updatedDetail = listOfNotNull(detail, normalizedBranch)
+    .joinToString("-")
+    .take(truncateAt) + "-$suffix"
   return copy(detail = updatedDetail)
 }

@@ -382,13 +382,15 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
         }
 
         test("updated resource names respect the max allowed length") {
-          // monikered resources with and without detail
+          // monikered resources with and without stack and detail
           listOf(
             locatableResource(moniker = Moniker(app = "fnord", stack = "stack", detail = "detail")),
             locatableResource(moniker = Moniker(app = "fnord", stack = "stack")),
+            locatableResource(moniker = Moniker(app = "fnord")),
           ).forEach { resource ->
             val updatedName = resource.spec.moniker.withBranchDetail("feature/a-very-long-branch-name").name
             expectThat(updatedName.length)
+              .describedAs("length of preview resource name $updatedName (${updatedName.length})")
               .isLessThanOrEqualTo(MAX_RESOURCE_NAME_LENGTH)
           }
         }

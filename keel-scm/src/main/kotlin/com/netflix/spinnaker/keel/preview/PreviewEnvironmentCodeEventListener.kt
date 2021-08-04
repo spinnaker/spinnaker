@@ -270,6 +270,8 @@ class PreviewEnvironmentCodeEventListener(
     previewEnvSpec: PreviewEnvironmentSpec,
     branch: String
   ): Resource<T>? {
+    log.debug("Copying resource ${this.id} to preview resource")
+
     // start by adding the branch detail to the moniker/name/id
     var previewResource = withBranchDetail(branch)
 
@@ -283,7 +285,7 @@ class PreviewEnvironmentCodeEventListener(
       previewResource = previewResource.withDependenciesRenamed(deliveryConfig, previewEnvSpec, branch)
     }
 
-    log.debug("Renamed resource ${this.id} to ${previewResource.id} for preview environment")
+    log.debug("Copied resource ${this.id} to preview resource ${previewResource.id}")
     return previewResource
   }
 
