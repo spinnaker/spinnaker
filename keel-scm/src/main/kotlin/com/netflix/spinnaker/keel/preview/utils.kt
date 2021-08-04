@@ -195,7 +195,7 @@ internal const val MAX_RESOURCE_NAME_LENGTH = 32
 internal fun Moniker.withBranchDetail(branch: String): Moniker {
   val normalizedBranch = branch.toPreviewName()
   val suffix = DigestUtils.sha256Hex(normalizedBranch).takeLast(4)
-  val truncateAt = MAX_RESOURCE_NAME_LENGTH - name.length + (detail?.length ?: 0) - suffix.length - 1
+  val truncateAt = MAX_RESOURCE_NAME_LENGTH - name.length + (detail?.length ?: -1) - suffix.length - 1
   val updatedDetail = listOfNotNull(detail, normalizedBranch).joinToString("-").let {
     // truncate to accommodate AWS naming restrictions
     // e.g. myapp-test-mycluster (20 chars) with branch my-cool-feature (15 chars)

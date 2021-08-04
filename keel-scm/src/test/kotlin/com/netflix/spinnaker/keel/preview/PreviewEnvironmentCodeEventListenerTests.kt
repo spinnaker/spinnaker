@@ -382,11 +382,15 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
         }
 
         test("updated resource names respect the max allowed length") {
-          val baseEnv = deliveryConfig.environments.first()
-          val baseResource = baseEnv.resources.first() as Resource<Monikered>
-          val updatedName = baseResource.spec.moniker.withBranchDetail("feature/a-very-long-branch-name").name
-          expectThat(updatedName.length)
-            .isLessThanOrEqualTo(MAX_RESOURCE_NAME_LENGTH)
+          // monikered resources with and without detail
+          listOf(
+            locatableResource(moniker = Moniker(app = "fnord", stack = "stack", detail = "detail")),
+            locatableResource(moniker = Moniker(app = "fnord", stack = "stack")),
+          ).forEach { resource ->
+            val updatedName = resource.spec.moniker.withBranchDetail("feature/a-very-long-branch-name").name
+            expectThat(updatedName.length)
+              .isLessThanOrEqualTo(MAX_RESOURCE_NAME_LENGTH)
+          }
         }
 
         test("the artifact reference in a resource is updated to match the preview environment branch filter") {
