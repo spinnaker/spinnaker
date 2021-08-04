@@ -6,6 +6,7 @@ import com.netflix.spinnaker.keel.api.DependencyType.LOAD_BALANCER
 import com.netflix.spinnaker.keel.api.DependencyType.SECURITY_GROUP
 import com.netflix.spinnaker.keel.api.DependencyType.TARGET_GROUP
 import com.netflix.spinnaker.keel.api.Dependent
+import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec.ApplicationLoadBalancerOverride
@@ -15,6 +16,8 @@ import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.LoadBalancerDependencies
 import com.netflix.spinnaker.keel.api.titus.TitusClusterSpec
+import com.netflix.spinnaker.keel.core.name
+import org.apache.commons.codec.digest.DigestUtils
 import kotlin.reflect.KClass
 import kotlin.reflect.full.instanceParameter
 import kotlin.reflect.full.memberFunctions
@@ -179,6 +182,25 @@ private fun Collection<Dependency>?.namesForType(type: DependencyType): Set<Stri
   }
 
 /**
- * Use with branch names to normalize the branch name for use in environment and resource names.
+ * Use with branch names to normalize them for use in environment and resource names.
  */
 internal fun String.toPreviewName() = substringAfterLast('/')
+
+internal const val MAX_RESOURCE_NAME_LENGTH = 32
+
+/**
+ * @return The [Moniker] with an updated [Moniker.detail] field containing as much of the branch name
+ * as possible while respecting max length constraints on resource names.
+ */
+internal fun Moniker.withBranchDetail(branch: String): Moniker {
+  val normalizedBranch = branch.toPreviewName()
+  val suffix = DigestUtils.sha256Hex(normalizedBranch).takeLast(4)
+  val truncateAt = MAX_RESOURCE_NAME_LENGTH - name.length + (detail?.length ?: 0) - suffix.length - 1
+  val updatedDetail = listOfNotNull(detail, normalizedBranch).joinToString("-").let {
+    // truncate to accommodate AWS naming restrictions
+    // e.g. myapp-test-mycluster (20 chars) with branch my-cool-feature (15 chars)
+    // would be renamed to something like myapp-test-mycluster-my-coo-1a2b
+    it.take(truncateAt) + "-$suffix"
+  }
+  return copy(detail = updatedDetail)
+}

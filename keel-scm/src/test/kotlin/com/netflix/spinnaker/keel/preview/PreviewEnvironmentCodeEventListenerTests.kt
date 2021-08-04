@@ -20,14 +20,10 @@ import com.netflix.spinnaker.keel.api.artifacts.branchName
 import com.netflix.spinnaker.keel.api.artifacts.branchStartsWith
 import com.netflix.spinnaker.keel.api.ec2.EC2_SECURITY_GROUP_V1
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
-import com.netflix.spinnaker.keel.scm.CommitCreatedEvent
-import com.netflix.spinnaker.keel.scm.PrDeclinedEvent
-import com.netflix.spinnaker.keel.scm.PrDeletedEvent
-import com.netflix.spinnaker.keel.scm.PrMergedEvent
-import com.netflix.spinnaker.keel.scm.PrOpenedEvent
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.core.api.SubmittedEnvironment
+import com.netflix.spinnaker.keel.core.name
 import com.netflix.spinnaker.keel.front50.Front50Cache
 import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.front50.model.DataSources
@@ -42,8 +38,13 @@ import com.netflix.spinnaker.keel.preview.PreviewEnvironmentCodeEventListener.Co
 import com.netflix.spinnaker.keel.preview.PreviewEnvironmentCodeEventListener.Companion.PREVIEW_ENVIRONMENT_MARK_FOR_DELETION_SUCCESS
 import com.netflix.spinnaker.keel.preview.PreviewEnvironmentCodeEventListener.Companion.PREVIEW_ENVIRONMENT_UPSERT_ERROR
 import com.netflix.spinnaker.keel.preview.PreviewEnvironmentCodeEventListener.Companion.PREVIEW_ENVIRONMENT_UPSERT_SUCCESS
+import com.netflix.spinnaker.keel.scm.CommitCreatedEvent
 import com.netflix.spinnaker.keel.scm.DELIVERY_CONFIG_RETRIEVAL_ERROR
 import com.netflix.spinnaker.keel.scm.DELIVERY_CONFIG_RETRIEVAL_SUCCESS
+import com.netflix.spinnaker.keel.scm.PrDeclinedEvent
+import com.netflix.spinnaker.keel.scm.PrDeletedEvent
+import com.netflix.spinnaker.keel.scm.PrMergedEvent
+import com.netflix.spinnaker.keel.scm.PrOpenedEvent
 import com.netflix.spinnaker.keel.scm.toTags
 import com.netflix.spinnaker.keel.test.DummyArtifactReferenceResourceSpec
 import com.netflix.spinnaker.keel.test.DummyDependentResourceSpec
@@ -69,9 +70,9 @@ import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.containsKeys
-import strikt.assertions.endsWith
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import strikt.assertions.isLessThanOrEqualTo
 import strikt.assertions.one
 import java.time.Clock
 import java.time.Duration
@@ -365,22 +366,27 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
           }
         }
 
-        test("the metadata of the preview environment includes the branch and pull request ID") {
-          expectThat(previewEnv.captured.metadata).containsKeys("branch", "pullRequestId")
+        test("relevant metadata is added to the preview environment") {
+          expectThat(previewEnv.captured.metadata).containsKeys("basedOn", "repoKey", "branch", "pullRequestId")
         }
 
         test("the name of monikered resources is generated correctly") {
-          val branchDetail = commitEvent.targetBranch.toPreviewName()
           val baseEnv = deliveryConfig.environments.first()
           val baseResource = baseEnv.resources.first() as Resource<Monikered>
           val previewResource = previewEnv.captured.resources.first()
 
           expectThat(previewResource.spec)
             .isA<Monikered>()
-            .get { moniker.detail }.isEqualTo("${baseResource.spec.moniker.detail}-$branchDetail")
+            .get { moniker }
+            .isEqualTo(baseResource.spec.moniker.withBranchDetail(commitEvent.targetBranch))
+        }
 
-          expectThat(previewResource.id)
-            .endsWith("-$branchDetail")
+        test("updated resource names respect the max allowed length") {
+          val baseEnv = deliveryConfig.environments.first()
+          val baseResource = baseEnv.resources.first() as Resource<Monikered>
+          val updatedName = baseResource.spec.moniker.withBranchDetail("feature/a-very-long-branch-name").name
+          expectThat(updatedName.length)
+            .isLessThanOrEqualTo(MAX_RESOURCE_NAME_LENGTH)
         }
 
         test("the artifact reference in a resource is updated to match the preview environment branch filter") {
@@ -397,11 +403,7 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
           expectThat(previewEnv.captured.resources.first { it.spec is DummyDependentResourceSpec }.spec)
             .isA<Dependent>()
             .get { dependsOn.first { it.type == GENERIC_RESOURCE }.name }
-            .isEqualTo(
-              dependency.spec.moniker.let {
-                Moniker(it.app, it.stack, "${it.detail}-$branchDetail").toName()
-              }
-            )
+            .isEqualTo(dependency.spec.moniker.withBranchDetail(branchDetail).name)
         }
 
         test("the name of the default security group is not changed in the dependencies") {
@@ -479,7 +481,6 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
           }
 
           test("the matching preview environment is marked for deletion") {
-            val updatedPreviewEnv = slot<Environment>()
             verify {
               environmentDeletionRepository.markForDeletion(previewEnv.captured)
             }

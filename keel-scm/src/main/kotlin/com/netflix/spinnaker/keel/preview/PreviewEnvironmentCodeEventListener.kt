@@ -5,7 +5,6 @@ import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.keel.api.ArtifactReferenceProvider
 import com.netflix.spinnaker.keel.api.DeliveryConfig
-import com.netflix.spinnaker.keel.api.Dependency
 import com.netflix.spinnaker.keel.api.Dependent
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.Monikered
@@ -13,13 +12,6 @@ import com.netflix.spinnaker.keel.api.PreviewEnvironmentSpec
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.generateId
-import com.netflix.spinnaker.keel.scm.CodeEvent
-import com.netflix.spinnaker.keel.scm.CommitCreatedEvent
-import com.netflix.spinnaker.keel.scm.PrOpenedEvent
-import com.netflix.spinnaker.keel.scm.PrDeclinedEvent
-import com.netflix.spinnaker.keel.scm.PrDeletedEvent
-import com.netflix.spinnaker.keel.scm.PrEvent
-import com.netflix.spinnaker.keel.scm.PrMergedEvent
 import com.netflix.spinnaker.keel.api.titus.TitusClusterSpec
 import com.netflix.spinnaker.keel.docker.ReferenceProvider
 import com.netflix.spinnaker.keel.front50.Front50Cache
@@ -28,8 +20,15 @@ import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter.Companion.DEFAULT_
 import com.netflix.spinnaker.keel.persistence.DependentAttachFilter.ATTACH_PREVIEW_ENVIRONMENTS
 import com.netflix.spinnaker.keel.persistence.EnvironmentDeletionRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
+import com.netflix.spinnaker.keel.scm.CodeEvent
+import com.netflix.spinnaker.keel.scm.CommitCreatedEvent
 import com.netflix.spinnaker.keel.scm.DELIVERY_CONFIG_RETRIEVAL_ERROR
 import com.netflix.spinnaker.keel.scm.DELIVERY_CONFIG_RETRIEVAL_SUCCESS
+import com.netflix.spinnaker.keel.scm.PrDeclinedEvent
+import com.netflix.spinnaker.keel.scm.PrDeletedEvent
+import com.netflix.spinnaker.keel.scm.PrEvent
+import com.netflix.spinnaker.keel.scm.PrMergedEvent
+import com.netflix.spinnaker.keel.scm.PrOpenedEvent
 import com.netflix.spinnaker.keel.scm.matchesApplicationConfig
 import com.netflix.spinnaker.keel.scm.metricTags
 import com.netflix.spinnaker.keel.scm.publishDeliveryConfigImportFailed
@@ -214,8 +213,6 @@ class PreviewEnvironmentCodeEventListener(
     deliveryConfig: DeliveryConfig,
     previewEnvSpecs: List<PreviewEnvironmentSpec>
   ) {
-    val branchDetail = commitEvent.targetBranch.toPreviewName()
-
     previewEnvSpecs.forEach { previewEnvSpec ->
       val baseEnv = deliveryConfig.environments.find { it.name == previewEnvSpec.baseEnvironment }
         ?: error("Environment '${previewEnvSpec.baseEnvironment}' referenced in preview environment spec not found.")
@@ -223,14 +220,14 @@ class PreviewEnvironmentCodeEventListener(
       val previewEnv = baseEnv.copy(
         // if the branch is "feature/abc", and the base environment is "test", then the environment
         // would be named "test-feature-abc"
-        name = "${baseEnv.name}-$branchDetail",
+        name = "${baseEnv.name}-${commitEvent.targetBranch.toPreviewName()}",
         isPreview = true,
         constraints = emptySet(),
         verifyWith = previewEnvSpec.verifyWith,
         notifications = previewEnvSpec.notifications,
         resources = baseEnv.resources.mapNotNull { res ->
           (res as? Resource<Monikered>)
-            ?.toPreviewResource(deliveryConfig, previewEnvSpec, branchDetail)
+            ?.toPreviewResource(deliveryConfig, previewEnvSpec, commitEvent.targetBranch)
             .also {
               if (it == null) {
                 log.debug("Ignoring non-monikered resource ${res.id} since it might conflict with the base environment")
@@ -239,6 +236,7 @@ class PreviewEnvironmentCodeEventListener(
         }.toSet()
       ).apply {
         addMetadata(mapOf(
+          "basedOn" to baseEnv.name,
           "repoKey" to commitEvent.repoKey,
           "branch" to commitEvent.targetBranch,
           "pullRequestId" to commitEvent.pullRequestId
@@ -263,17 +261,17 @@ class PreviewEnvironmentCodeEventListener(
 
   /**
    * Converts a [Resource] to its preview environment version, i.e. a resource with the exact same
-   * characteristics but with its name/ID modified to include the specified [branchDetail], and with
+   * characteristics but with its name/ID modified to include the specified [branch], and with
    * its artifact reference (if applicable) updated to use the artifact matching the [PreviewEnvironmentSpec]
    * branch filter, if available.
    */
   private fun <T: Monikered> Resource<T>.toPreviewResource(
     deliveryConfig: DeliveryConfig,
     previewEnvSpec: PreviewEnvironmentSpec,
-    branchDetail: String
+    branch: String
   ): Resource<T>? {
     // start by adding the branch detail to the moniker/name/id
-    var previewResource = withBranchDetail(branchDetail)
+    var previewResource = withBranchDetail(branch)
 
     // update artifact reference if applicable to match the branch filter of the preview environment
     if (spec is ArtifactReferenceProvider) {
@@ -282,7 +280,7 @@ class PreviewEnvironmentCodeEventListener(
 
     // update dependency names that are part of the preview environment and so have new names
     if (spec is Dependent) {
-      previewResource = previewResource.withDependenciesRenamed(deliveryConfig, previewEnvSpec, branchDetail)
+      previewResource = previewResource.withDependenciesRenamed(deliveryConfig, previewEnvSpec, branch)
     }
 
     log.debug("Renamed resource ${this.id} to ${previewResource.id} for preview environment")
@@ -290,21 +288,20 @@ class PreviewEnvironmentCodeEventListener(
   }
 
   /**
-   * Adds the specified [branchDetail] to the [Moniker.detail] field of the [ResourceSpec],
-   * and updates the resource ID to match.
+   * Adds the specified [branch] to the [Moniker.detail] field of the [ResourceSpec] while respecting resource
+   * naming constraints, and updates the resource ID to match.
    */
-  private fun <T : Monikered> Resource<T>.withBranchDetail(branchDetail: String): Resource<T> =
-    copy(spec = objectMapper.convertValue<MutableMap<String, Any?>>(this.spec)
+  private fun <T : Monikered> Resource<T>.withBranchDetail(branch: String): Resource<T> {
+    val updatedMoniker = spec.moniker.withBranchDetail(branch)
+    return copy(spec = objectMapper.convertValue<MutableMap<String, Any?>>(this.spec)
       .let { newSpec ->
-        newSpec["moniker"] = with(spec.moniker) {
-          copy(detail = (if (detail == null) "" else "${detail}-") + branchDetail)
-        }
+        newSpec["moniker"] = updatedMoniker
         objectMapper.convertValue(newSpec, spec::class.java)
       }
     ).run {
       val newId = generateId(kind, spec).let {
         // account for the case where the ID is not synthesized from the moniker
-        if (!it.contains(branchDetail)) "$it-$branchDetail" else it
+        if (!it.contains(updatedMoniker.detail!!)) "$it-${updatedMoniker.detail}" else it
       }
       copy(metadata = mapOf(
         // this is so the resource ID is updated with the new name (which is in the spec)
@@ -312,6 +309,7 @@ class PreviewEnvironmentCodeEventListener(
         "application" to application
       ))
     }
+  }
 
   /**
    * Replaces the artifact reference in the resource spec with the one matching the [PreviewEnvironmentSpec] branch

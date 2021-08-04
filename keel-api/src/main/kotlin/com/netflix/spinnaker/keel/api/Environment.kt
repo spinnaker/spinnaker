@@ -36,6 +36,9 @@ data class Environment(
   val pullRequestId: String?
     get() = metadata["pullRequestId"] as? String
 
+  val basedOn: String?
+    get() = metadata["basedOn"] as? String
+
   fun addMetadata(metadata: Map<String, Any?>) =
     apply {
       this@Environment.metadata.putAll(metadata)
