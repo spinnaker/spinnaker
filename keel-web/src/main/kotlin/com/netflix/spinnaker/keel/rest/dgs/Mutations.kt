@@ -10,6 +10,7 @@ import com.netflix.spinnaker.keel.api.constraints.UpdatedConstraintStatus
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
 import com.netflix.spinnaker.keel.exceptions.InvalidConstraintException
+import com.netflix.spinnaker.keel.graphql.DgsConstants
 import com.netflix.spinnaker.keel.graphql.types.MdAction
 import com.netflix.spinnaker.keel.graphql.types.MdArtifactVersionActionPayload
 import com.netflix.spinnaker.keel.graphql.types.MdConstraintStatus
@@ -43,14 +44,14 @@ class Mutations(
     private val log by lazy { LoggerFactory.getLogger(Mutations::class.java) }
   }
 
-  @DgsData(parentType = "Mutation", field = "recheckUnhappyResource")
+  @DgsData(parentType = DgsConstants.MUTATION.TYPE_NAME, field = "recheckUnhappyResource")
   fun recheckUnhappyResource(
     @InputArgument resourceId: String
   ) {
     unhappyVeto.clearVeto(resourceId)
   }
 
-  @DgsData(parentType = "Mutation", field = "updateConstraintStatus")
+  @DgsData(parentType = DgsConstants.MUTATION.TYPE_NAME, field = DgsConstants.MUTATION.UpdateConstraintStatus)
   fun updateConstraintStatus(
     @InputArgument payload: MdConstraintStatusPayload,
     @RequestHeader("X-SPINNAKER-USER") user: String
@@ -68,7 +69,7 @@ class Mutations(
     }
   }
 
-  @DgsData(parentType = "Mutation", field = "toggleManagement")
+  @DgsData(parentType = DgsConstants.MUTATION.TYPE_NAME, field = DgsConstants.MUTATION.ToggleManagement)
   fun toggleManagement(
     @InputArgument application: String,
     @InputArgument isPaused: Boolean,
@@ -83,7 +84,7 @@ class Mutations(
     return true
   }
 
-  @DgsData(parentType = "Mutation", field = "pinArtifactVersion")
+  @DgsData(parentType = DgsConstants.MUTATION.TYPE_NAME, field = DgsConstants.MUTATION.PinArtifactVersion)
   fun pinArtifactVersion(
     @InputArgument payload: MdArtifactVersionActionPayload,
     @RequestHeader("X-SPINNAKER-USER") user: String
@@ -92,7 +93,7 @@ class Mutations(
     return true
   }
 
-  @DgsData(parentType = "Mutation", field = "unpinArtifactVersion")
+  @DgsData(parentType = DgsConstants.MUTATION.TYPE_NAME, field = DgsConstants.MUTATION.UnpinArtifactVersion)
   fun unpinArtifactVersion(
     @InputArgument payload: MdUnpinArtifactVersionPayload,
     @RequestHeader("X-SPINNAKER-USER") user: String
@@ -106,7 +107,7 @@ class Mutations(
     return true
   }
 
-  @DgsData(parentType = "Mutation", field = "markArtifactVersionAsBad")
+  @DgsData(parentType = DgsConstants.MUTATION.TYPE_NAME, field = DgsConstants.MUTATION.MarkArtifactVersionAsBad)
   fun markArtifactVersionAsBad(
     @InputArgument payload: MdArtifactVersionActionPayload,
     @RequestHeader("X-SPINNAKER-USER") user: String
@@ -115,7 +116,7 @@ class Mutations(
     return true
   }
 
-  @DgsData(parentType = "Mutation", field = "markArtifactVersionAsGood")
+  @DgsData(parentType = DgsConstants.MUTATION.TYPE_NAME, field = DgsConstants.MUTATION.MarkArtifactVersionAsGood)
   fun markArtifactVersionAsGood(
     @InputArgument payload: MdMarkArtifactVersionAsGoodPayload,
     @RequestHeader("X-SPINNAKER-USER") user: String
@@ -129,7 +130,7 @@ class Mutations(
     return true
   }
 
-  @DgsData(parentType = "Mutation", field = "retryArtifactVersionAction")
+  @DgsData(parentType = DgsConstants.MUTATION.TYPE_NAME, field = DgsConstants.MUTATION.RetryArtifactVersionAction)
   fun retryArtifactVersionAction(
     @InputArgument payload: MdRetryArtifactActionPayload,
     @RequestHeader("X-SPINNAKER-USER") user: String
@@ -163,7 +164,7 @@ class Mutations(
   /**
    * Dismisses a notification, given it's ID.
    */
-  @DgsData(parentType = "Mutation", field = "dismissNotification")
+  @DgsData(parentType = DgsConstants.MUTATION.TYPE_NAME, field = DgsConstants.MUTATION.DismissNotification)
   fun dismissNotification(
     @InputArgument payload: MdDismissNotificationPayload,
     @RequestHeader("X-SPINNAKER-USER") user: String
