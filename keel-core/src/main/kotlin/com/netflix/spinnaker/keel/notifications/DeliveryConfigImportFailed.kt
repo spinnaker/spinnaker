@@ -11,6 +11,8 @@ import java.time.Instant
 data class DeliveryConfigImportFailed(
   override val triggeredAt: Instant,
   override val application: String,
+  override val branch: String,
+  override val environment: String? = null,
   val repoType: String,
   val projectKey: String,
   val repoSlug: String,

@@ -23,6 +23,7 @@ import strikt.assertions.isFailure
 import strikt.assertions.isFalse
 import strikt.assertions.isGreaterThan
 import strikt.assertions.isNotNull
+import strikt.assertions.isNull
 import strikt.assertions.isSuccess
 import strikt.assertions.isTrue
 
@@ -40,6 +41,7 @@ class SqlDismissibleNotificationRepositoryTests {
   private val notification = DeliveryConfigImportFailed(
     triggeredAt = clock.instant(),
     application = deliveryConfig.application,
+    branch = "main",
     repoType = "stash",
     projectKey = "proj",
     repoSlug = "repo",
@@ -96,7 +98,7 @@ class SqlDismissibleNotificationRepositoryTests {
   @Test
   fun `correctly dismisses notification`() {
     val uid = notificationRepository.storeNotification(notification)
-    expectThat(notificationRepository.dismissNotification(uid, "keel@keel.io"))
+    expectThat(notificationRepository.dismissNotificationById(uid, "keel@keel.io"))
       .isTrue()
 
     val updatedNotification = notificationRepository.notificationHistory(deliveryConfig.application, limit = 1).first()
@@ -106,6 +108,47 @@ class SqlDismissibleNotificationRepositoryTests {
       get { dismissedAt }.isNotNull()
     }
   }
+
+  @Test
+  fun `correctly dismisses notification by application and branch`() {
+    val notifications = listOf(1,2).map {
+      DeliveryConfigImportFailed(
+        triggeredAt = clock.instant(),
+        application = deliveryConfig.application,
+        branch = "branch-$it",
+        repoType = "stash",
+        projectKey = "proj",
+        repoSlug = "repo",
+        commitHash = "asdf1235",
+        link = "https://some.link1"
+      )
+    }
+    notificationRepository.storeNotification(notification)
+    notifications.forEach {
+      notificationRepository.storeNotification(it)
+    }
+
+    expectThat(notificationRepository.dismissNotification(DeliveryConfigImportFailed::class.java, deliveryConfig.application, notification.branch)).isTrue()
+    expectThat(notificationRepository.dismissNotification(DeliveryConfigImportFailed::class.java, deliveryConfig.application, notifications[0].branch)).isTrue()
+
+    val updatedNotifications = notificationRepository.notificationHistory(deliveryConfig.application)
+    // We dismissed the main branch notification
+    expectThat(updatedNotifications.find { it.branch == notification.branch }).isNotNull().and {
+      get { isActive }.isFalse()
+      get { dismissedAt }.isNotNull()
+    }
+    // We dismissed one environment
+    expectThat(updatedNotifications.find { it.branch == notifications[0].branch }).isNotNull().and {
+      get { isActive }.isFalse()
+      get { dismissedAt }.isNotNull()
+    }
+    // But not the other
+    expectThat(updatedNotifications.find { it.branch == notifications[1].branch }).isNotNull().and {
+      get { isActive }.isTrue()
+      get { dismissedAt }.isNull()
+    }
+  }
+
   @Test
   fun `can filter history by active status`() {
     repeat(10) {
@@ -113,7 +156,7 @@ class SqlDismissibleNotificationRepositoryTests {
         notification.copy(triggeredAt = clock.tickMinutes(1))
       )
       if (it < 5) {
-        notificationRepository.dismissNotification(uid, "keel@keel.io")
+        notificationRepository.dismissNotificationById(uid, "keel@keel.io")
       }
     }
 

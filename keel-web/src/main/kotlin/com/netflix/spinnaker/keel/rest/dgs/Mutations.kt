@@ -170,7 +170,7 @@ class Mutations(
     @RequestHeader("X-SPINNAKER-USER") user: String
   ): Boolean {
     log.debug("Dismissing notification with ID=${payload.id} (by user $user)")
-    return notificationRepository.dismissNotification(ULID.parseULID(payload.id), user)
+    return notificationRepository.dismissNotificationById(ULID.parseULID(payload.id), user)
   }
 }
 

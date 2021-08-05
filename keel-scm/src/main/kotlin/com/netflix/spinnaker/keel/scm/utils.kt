@@ -36,6 +36,7 @@ fun ApplicationEventPublisher.publishDeliveryConfigImportFailed(application: Str
     publishEvent(DeliveryConfigImportFailed(
       triggeredAt = timestamp,
       application = application,
+      branch = targetBranch,
       repoType = repoType,
       projectKey = projectKey,
       repoSlug = repoSlug,

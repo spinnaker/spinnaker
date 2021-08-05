@@ -2,11 +2,12 @@ package com.netflix.spinnaker.keel.scm
 
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.keel.front50.Front50Cache
-import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter.Companion.DEFAULT_MANIFEST_PATH
 import com.netflix.spinnaker.keel.igor.ScmService
 import com.netflix.spinnaker.keel.igor.getDefaultBranch
+import com.netflix.spinnaker.keel.notifications.DeliveryConfigImportFailed
+import com.netflix.spinnaker.keel.persistence.DismissibleNotificationRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.telemetry.safeIncrement
 import kotlinx.coroutines.runBlocking
@@ -24,6 +25,7 @@ import java.time.Clock
 class DeliveryConfigImportListener(
   private val repository: KeelRepository,
   private val deliveryConfigImporter: DeliveryConfigImporter,
+  private val notificationRepository: DismissibleNotificationRepository,
   private val front50Cache: Front50Cache,
   private val scmService: ScmService,
   private val springEnv: Environment,
@@ -99,6 +101,7 @@ class DeliveryConfigImportListener(
 
       log.info("Creating/updating delivery config for application ${app.name} from branch ${event.targetBranch}")
       repository.upsertDeliveryConfig(newDeliveryConfig)
+      notificationRepository.dismissNotification(DeliveryConfigImportFailed::class.java, newDeliveryConfig.application, event.targetBranch)
     }
   }
 

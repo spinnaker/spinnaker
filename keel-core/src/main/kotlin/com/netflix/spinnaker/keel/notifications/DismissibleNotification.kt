@@ -25,6 +25,7 @@ abstract class DismissibleNotification {
   abstract val message: String
   open val isActive: Boolean = true
   open val environment: String? = null
+  open val branch: String? = null
   open val link: String? = null
   open val triggeredBy: String? = null
   open val dismissedBy: String? = null

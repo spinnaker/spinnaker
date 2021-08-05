@@ -14,6 +14,8 @@ import com.netflix.spinnaker.keel.core.api.SubmittedEnvironment
 import com.netflix.spinnaker.keel.core.api.SubmittedResource
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
 import com.netflix.spinnaker.keel.jackson.readValueInliningAliases
+import com.netflix.spinnaker.keel.notifications.DismissibleNotification
+import com.netflix.spinnaker.keel.persistence.DismissibleNotificationRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigName
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.READ
@@ -59,11 +61,14 @@ internal class DeliveryConfigControllerTests
 @Autowired constructor(
   val mvc: MockMvc,
   val jsonMapper: ObjectMapper,
-  val yamlMapper: YAMLMapper
+  val yamlMapper: YAMLMapper,
 ) : JUnit5Minutests {
 
   @MockkBean
   lateinit var repository: KeelRepository
+
+  @MockkBean
+  lateinit var notificationRepository: DismissibleNotificationRepository
 
   @MockkBean
   lateinit var authorizationSupport: AuthorizationSupport
@@ -277,6 +282,10 @@ internal class DeliveryConfigControllerTests
               } answers {
                 firstArg<SubmittedDeliveryConfig>().toDeliveryConfig()
               }
+
+              every {
+                notificationRepository.dismissNotification(any<Class<DismissibleNotification>>(), any(), any(), any())
+              } returns true
 
               every { repository.getDeliveryConfigForApplication(deliveryConfig.application) } returns deliveryConfig.toDeliveryConfig()
 

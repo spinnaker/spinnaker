@@ -4,16 +4,15 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.api.UID
 import com.netflix.spinnaker.keel.events.EventLevel
-import com.netflix.spinnaker.keel.exceptions.NoSuchEnvironmentException
 import com.netflix.spinnaker.keel.notifications.DismissibleNotification
 import com.netflix.spinnaker.keel.persistence.DismissibleNotificationRepository
-import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DISMISSIBLE_NOTIFICATION
-import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
 import de.huxhorn.sulky.ulid.ULID
 import org.jooq.DSLContext
+import org.jooq.Field
+import org.jooq.impl.DSL
 import org.slf4j.LoggerFactory
 import org.springframework.context.event.EventListener
 import java.time.Clock
@@ -39,17 +38,6 @@ class SqlDismissibleNotificationRepository(
   }
 
   override fun storeNotification(notification: DismissibleNotification): UID {
-    notification.environment?.let {
-      jooq
-        .select(ENVIRONMENT.NAME)
-        .from(ENVIRONMENT, DELIVERY_CONFIG)
-        .where(ENVIRONMENT.NAME.eq(it))
-        .and(DELIVERY_CONFIG.APPLICATION.eq(notification.application))
-        .and(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(DELIVERY_CONFIG.UID))
-        .fetchOne(ENVIRONMENT.NAME)
-        ?: throw NoSuchEnvironmentException(it, notification.application)
-    }
-    
     return sqlRetry.withRetry(WRITE) {
       val uid = ULID().nextULID()
       jooq
@@ -89,16 +77,39 @@ class SqlDismissibleNotificationRepository(
     }
   }
 
-  override fun dismissNotification(notificationUid: UID, user: String): Boolean {
+  private fun generateDismissalJson(user: String? = null): Field<DismissibleNotification> {
     val dismissedAt: String = objectMapper.convertValue(clock.instant())
-    val updatedJson = field<DismissibleNotification>(
+    return field<DismissibleNotification>(
       "json_set(json, '$.isActive', 'false', '$.dismissedBy', '$user', '$.dismissedAt', '$dismissedAt')"
     )
+  }
+
+  override fun dismissNotificationById(notificationUid: UID, user: String): Boolean {
+    val updatedJson = generateDismissalJson(user)
     return sqlRetry.withRetry(WRITE) {
       jooq
         .update(DISMISSIBLE_NOTIFICATION)
         .set(DISMISSIBLE_NOTIFICATION.JSON, updatedJson)
         .where(DISMISSIBLE_NOTIFICATION.UID.eq(notificationUid.toString()))
+        .execute()
+    } > 0
+  }
+
+  override fun <T: DismissibleNotification> dismissNotification(type: Class<T>, application: String, branch: String, user: String?): Boolean {
+    val updatedJson = generateDismissalJson(user)
+    return sqlRetry.withRetry(WRITE) {
+      jooq
+        .update(DISMISSIBLE_NOTIFICATION)
+        .set(DISMISSIBLE_NOTIFICATION.JSON, updatedJson)
+        .where(DISMISSIBLE_NOTIFICATION.APPLICATION.eq(application))
+        .and(DISMISSIBLE_NOTIFICATION.TYPE.eq(type.simpleName))
+        .apply {
+          if (branch.isNullOrEmpty()) {
+            and(DISMISSIBLE_NOTIFICATION.BRANCH.isNull)
+          } else {
+            and(DISMISSIBLE_NOTIFICATION.BRANCH.eq(branch))
+          }
+        }
         .execute()
     } > 0
   }

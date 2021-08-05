@@ -15,6 +15,8 @@ import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
 import com.netflix.spinnaker.keel.igor.ScmService
 import com.netflix.spinnaker.keel.igor.model.Branch
 import com.netflix.spinnaker.keel.notifications.DeliveryConfigImportFailed
+import com.netflix.spinnaker.keel.notifications.DismissibleNotification
+import com.netflix.spinnaker.keel.persistence.DismissibleNotificationRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.scm.DeliveryConfigImportListener.Companion.CODE_EVENT_COUNTER
 import com.netflix.spinnaker.keel.test.submittedResource
@@ -42,12 +44,14 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
     val front50Cache: Front50Cache = mockk()
     val scmService: ScmService = mockk()
     val springEnv: Environment = mockk()
+    val notificationRepository: DismissibleNotificationRepository = mockk()
     val spectator: Registry = mockk()
     val clock = MutableClock()
     val eventPublisher: ApplicationEventPublisher = mockk()
     val subject = DeliveryConfigImportListener(
       repository = repository,
       deliveryConfigImporter = importer,
+      notificationRepository = notificationRepository,
       front50Cache = front50Cache,
       scmService = scmService,
       springEnv = springEnv,
@@ -140,6 +144,10 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
       every {
         scmService.getDefaultBranch(configuredApp.repoType!!, configuredApp.repoProjectKey!!, configuredApp.repoSlug!!)
       } returns Branch("main", "refs/heads/main", default = true)
+
+      every {
+        notificationRepository.dismissNotification(any<Class<DeliveryConfigImportFailed>>(), any(), any(), any())
+      } returns true
     }
   }
 
@@ -168,6 +176,12 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
         test("the delivery config is created/updated") {
           verify {
             repository.upsertDeliveryConfig(deliveryConfig)
+          }
+        }
+
+        test("notification was dismissed on successful import") {
+          verify {
+            notificationRepository.dismissNotification(any<Class<DeliveryConfigImportFailed>>(), deliveryConfig.application, commitEvent.targetBranch, any())
           }
         }
 

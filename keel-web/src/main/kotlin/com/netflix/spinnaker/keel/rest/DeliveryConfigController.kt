@@ -3,7 +3,6 @@ package com.netflix.spinnaker.keel.rest
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
@@ -35,6 +34,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
@@ -93,7 +93,7 @@ class DeliveryConfigController(
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
   // We had to handle requests from gate separately, because gate was serializing the raw string incorrectly. Therefore, it's wrapped in a simple object
-  fun upsertFromGate(@RequestBody rawConfig: GateRawConfig): DeliveryConfig {
+  fun upsertFromGate(@RequestBody rawConfig: GateRawConfig, @RequestHeader("X-SPINNAKER-USER", required = false) user: String?): DeliveryConfig {
     return upsertConfig(parseRawConfig(rawConfig.content))
   }
 

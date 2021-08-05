@@ -17,7 +17,9 @@ import com.netflix.spinnaker.keel.docker.ReferenceProvider
 import com.netflix.spinnaker.keel.front50.Front50Cache
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter.Companion.DEFAULT_MANIFEST_PATH
+import com.netflix.spinnaker.keel.notifications.DeliveryConfigImportFailed
 import com.netflix.spinnaker.keel.persistence.DependentAttachFilter.ATTACH_PREVIEW_ENVIRONMENTS
+import com.netflix.spinnaker.keel.persistence.DismissibleNotificationRepository
 import com.netflix.spinnaker.keel.persistence.EnvironmentDeletionRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.scm.CodeEvent
@@ -52,6 +54,7 @@ import java.time.Instant
 class PreviewEnvironmentCodeEventListener(
   private val repository: KeelRepository,
   private val environmentDeletionRepository: EnvironmentDeletionRepository,
+  private val notificationRepository: DismissibleNotificationRepository,
   private val deliveryConfigImporter: DeliveryConfigImporter,
   private val front50Cache: Front50Cache,
   private val objectMapper: ObjectMapper,
@@ -167,6 +170,7 @@ class PreviewEnvironmentCodeEventListener(
       log.info("Creating/updating preview environments for application ${deliveryConfig.application} " +
         "from branch ${event.targetBranch}")
       createPreviewEnvironments(event, newDeliveryConfig, previewEnvSpecs)
+      notificationRepository.dismissNotification(DeliveryConfigImportFailed::class.java, deliveryConfig.application, event.targetBranch)
       event.emitDurationMetric(COMMIT_HANDLING_DURATION, startTime, deliveryConfig.application)
     }
   }
@@ -203,7 +207,7 @@ class PreviewEnvironmentCodeEventListener(
         }
       }
   }
-  
+
   /**
    * Given a list of [PreviewEnvironmentSpec] whose branch filters match the target branch in the
    * [CommitCreatedEvent], create/update the corresponding preview environments in the database.

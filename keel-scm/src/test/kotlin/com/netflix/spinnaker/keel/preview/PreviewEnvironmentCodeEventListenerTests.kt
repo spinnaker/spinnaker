@@ -29,6 +29,8 @@ import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.front50.model.DataSources
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
 import com.netflix.spinnaker.keel.notifications.DeliveryConfigImportFailed
+import com.netflix.spinnaker.keel.notifications.DismissibleNotification
+import com.netflix.spinnaker.keel.persistence.DismissibleNotificationRepository
 import com.netflix.spinnaker.keel.persistence.EnvironmentDeletionRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.preview.PreviewEnvironmentCodeEventListener.Companion.APPLICATION_RETRIEVAL_ERROR
@@ -86,6 +88,7 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
     val fakeTimer: Timer = mockk()
     val repository: KeelRepository = mockk()
     val environmentDeletionRepository: EnvironmentDeletionRepository = mockk()
+    val notificationRepository: DismissibleNotificationRepository = mockk()
     val importer: DeliveryConfigImporter = mockk()
     val front50Cache: Front50Cache = mockk()
     val springEnv: org.springframework.core.env.Environment = mockk()
@@ -94,6 +97,7 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
     val subject = spyk(PreviewEnvironmentCodeEventListener(
       repository = repository,
       environmentDeletionRepository = environmentDeletionRepository,
+      notificationRepository = notificationRepository,
       deliveryConfigImporter = importer,
       front50Cache = front50Cache,
       objectMapper = objectMapper,
@@ -256,6 +260,10 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
       every { repository.storeEnvironment(any(), capture(previewEnv)) } just runs
 
       every { environmentDeletionRepository.markForDeletion(any()) } just runs
+
+      every {
+        notificationRepository.dismissNotification(any<Class<DismissibleNotification>>(), any(), any())
+      } returns true
     }
   }
 
@@ -320,6 +328,12 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
               commitEvent = commitEvent,
               manifestPath = "spinnaker.yml"
             )
+          }
+        }
+
+        test("the notification was dimissed on successful import") {
+          verify {
+            notificationRepository.dismissNotification(any<Class<DismissibleNotification>>(), deliveryConfig.application, commitEvent.targetBranch, any())
           }
         }
 
