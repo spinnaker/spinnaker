@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.2.1](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.2.0...@spinnaker/core@0.2.1) (2021-08-05)
+
+
+### Bug Fixes
+
+* **core:** fix layout, click-to-scroll on diff view ([#9555](https://github.com/spinnaker/deck/issues/9555)) ([bc6ccca](https://github.com/spinnaker/deck/commit/bc6ccca86c6506cfcd243823147c9c9ea95df185))
+* **core:** Format changes timestamps when they are numbers or strings ([#9552](https://github.com/spinnaker/deck/issues/9552)) ([e780285](https://github.com/spinnaker/deck/commit/e780285d8fbdbbef3eba181368c0fe9ac4a4b866))
+
+
+
+
+
 # [0.2.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.1.0...@spinnaker/core@0.2.0) (2021-08-02)
 
 

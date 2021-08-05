@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.7.8](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.7.7...@spinnaker/amazon@0.7.8) (2021-08-05)
+
+
+### Bug Fixes
+
+* **amazon/titus:** Add mode to stage view state ([#9551](https://github.com/spinnaker/deck/issues/9551)) ([a0a4eb5](https://github.com/spinnaker/deck/commit/a0a4eb52b853b510a81b8068548f0198c7c458b4))
+
+
+
+
+
 ## [0.7.7](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.7.6...@spinnaker/amazon@0.7.7) (2021-08-02)
 
 **Note:** Version bump only for package @spinnaker/amazon
