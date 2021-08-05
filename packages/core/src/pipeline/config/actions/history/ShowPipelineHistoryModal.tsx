@@ -3,12 +3,11 @@ import React from 'react';
 import { Modal } from 'react-bootstrap';
 
 import { DiffSummary } from './DiffSummary';
-import { DiffView } from './DiffView';
 import { IPipeline } from '../../../../domain';
 import { ModalClose } from '../../../../modal';
 import { FormField, IModalComponentProps, ReactSelectInput, useData } from '../../../../presentation';
 import { PipelineConfigService } from '../../services/PipelineConfigService';
-import { IJsonDiff, JsonUtils, timestamp } from '../../../../utils';
+import { IJsonDiff, JsonUtils, timestamp, DiffView } from '../../../../utils';
 import { Spinner } from '../../../../widgets';
 
 import './showHistory.less';
@@ -163,13 +162,11 @@ export function ShowPipelineHistoryModal(props: IShowHistoryModalProps) {
                 </div>
               </div>
               <form role="form" className="form-horizontal show-history">
-                <div className="form-group">
-                  {!isEmpty(history) && (
-                    <div className="diff-view flex-fill">
-                      <DiffView diff={diff} />
-                    </div>
-                  )}
-                </div>
+                {!isEmpty(history) && (
+                  <div className="diff-view flex-fill">
+                    <DiffView diff={diff} />
+                  </div>
+                )}
               </form>
             </>
           )}

@@ -8,6 +8,7 @@ export * from './clipboard/CopyToClipboard';
 export * from './debug';
 export * from './firstDefined';
 export * from './json/JsonUtils';
+export * from './json/DiffView';
 export * from './json/traverseObject';
 export * from './noop';
 export * from './q';

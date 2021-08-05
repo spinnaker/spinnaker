@@ -1,6 +1,8 @@
 import React from 'react';
 
-import { IJsonDiff } from '../../../../utils';
+import { IJsonDiff } from './JsonUtils';
+
+import './DiffView.less';
 
 export interface IDiffViewProps {
   diff: IJsonDiff;
@@ -8,22 +10,25 @@ export interface IDiffViewProps {
 
 export function DiffView(props: IDiffViewProps) {
   const { diff } = props;
+  const preRef = React.useRef<HTMLPreElement>();
 
   function scrollBody(e: any): void {
-    let line = 1;
+    let line;
     const target = e.target as HTMLElement;
     const currentTarget = e.currentTarget as HTMLElement;
+    const lineHeight = (preRef.current.firstChild as HTMLElement).clientHeight;
     if (target.getAttribute('data-attr-block-line')) {
-      line = parseInt(target.getAttribute('data-attr-block-line'), 10);
+      line = Number(target.getAttribute('data-attr-block-line'));
     } else {
-      line = (e.offsetY / currentTarget.clientHeight) * this.diff.summary.total;
+      line = (e.nativeEvent?.offsetY / currentTarget.clientHeight) * diff.summary.total;
     }
-    $('pre.history').animate({ scrollTop: (line - 3) * 15 }, 200);
+    // scroll into view, leaving three lines above
+    preRef.current.scroll({ top: (line - 3) * lineHeight, behavior: 'smooth' });
   }
 
   return (
     <>
-      <pre className="form-control flex-fill diff">
+      <pre ref={preRef} className="form-control flex-fill diff">
         {diff.details.map((line, index) => {
           return (
             <div data-attr-line={index} className={line.type} key={index}>

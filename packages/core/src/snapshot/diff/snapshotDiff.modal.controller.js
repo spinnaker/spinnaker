@@ -7,7 +7,7 @@ import { SnapshotReader } from '../SnapshotReader';
 import { SnapshotWriter } from '../SnapshotWriter';
 import { ConfirmationModalService } from '../../confirmationModal';
 import { DIFF_SUMMARY_COMPONENT } from '../../pipeline/config/actions/history/diffSummary.component';
-import { DIFF_VIEW_COMPONENT } from '../../pipeline/config/actions/history/diffView.component';
+import { DIFF_VIEW_COMPONENT } from '../../utils/json/diffView.component';
 import { JsonUtils } from '../../utils/json/JsonUtils';
 
 import './snapshotDiff.modal.less';

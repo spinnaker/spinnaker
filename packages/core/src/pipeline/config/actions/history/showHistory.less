@@ -1,6 +1,3 @@
-@import (reference) '../../../../presentation/less/imports/commonImports.less';
-@import (reference) 'bootstrap/less/variables.less';
-
 .history-header {
   padding-bottom: 10px;
   align-items: stretch;
@@ -9,12 +6,8 @@
 .show-history {
   overflow-x: hidden;
   overflow-y: auto;
-  clear: both;
   max-height: calc(~'100vh - 220px');
-
-  .form-group {
-    margin: 0 -15px;
-  }
+  display: flex;
 }
 
 .diff-section {
@@ -37,84 +30,5 @@
     color: var(--color-danger);
     display: inline-block;
     margin-left: 5px;
-  }
-}
-
-.diff-view {
-  display: block;
-
-  .diff {
-    color: var(--color-black);
-    font-size: 80%;
-    overflow-x: visible;
-    margin: 0;
-    padding-bottom: 0;
-
-    .match,
-    .add,
-    .remove {
-      font-family: @font-family-monospace;
-
-      &::before {
-        position: relative;
-        left: 0;
-      }
-    }
-
-    .match {
-      color: var(--color-dovegray);
-
-      &::before {
-        content: ' ';
-      }
-    }
-
-    .add {
-      background-color: var(--color-github-history-add); // copied from GitHub
-
-      &::before {
-        content: '+';
-      }
-    }
-
-    .remove {
-      background-color: var(--color-github-history-remove); // also copied from GitHub
-
-      &::before {
-        content: '-';
-      }
-    }
-
-    .form-group {
-      margin-bottom: 0;
-    }
-
-    &::-webkit-scrollbar {
-      height: 8px;
-    }
-  }
-
-  .summary-nav {
-    cursor: pointer;
-    z-index: 2;
-    width: 12px;
-    position: absolute;
-    top: 0;
-    right: -7px;
-    height: calc(~'100% - 8px');
-
-    .delta {
-      width: 100%;
-      position: absolute;
-      min-height: 3px;
-
-      &.add {
-        background: var(--color-success);
-      }
-
-      &.remove {
-        background: var(--color-danger);
-      }
-    }
   }
 }

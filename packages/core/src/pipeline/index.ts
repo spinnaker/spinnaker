@@ -1,5 +1,4 @@
 export * from './config/PipelineRegistry';
-export * from './config/actions/history/DiffView';
 export * from './config/services/PipelineConfigService';
 export * from './config/stages/FormikStageConfig';
 export * from './config/stages/FormikStageConfig';
