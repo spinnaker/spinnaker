@@ -1,8 +1,10 @@
 package com.netflix.spinnaker.keel.igor
 
 import com.netflix.spinnaker.keel.api.ScmInfo
+import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.igor.model.Branch
 import com.netflix.spinnaker.keel.igor.model.Comment
+import kotlinx.coroutines.runBlocking
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -64,4 +66,12 @@ interface ScmService: ScmInfo {
     @Path("pullRequestId") pullRequestId: String,
     @Body comment: Comment
   )
+}
+
+fun Application.getDefaultBranch(scmService: ScmService): String = runBlocking {
+  scmService.getDefaultBranch(
+    scmType = repoType ?: error("Missing SCM type in config for application $name"),
+    projectKey = repoProjectKey ?: error("Missing SCM project in config for application $name"),
+    repoSlug = repoSlug ?: error("Missing SCM repository in config for application $name")
+  ).name
 }

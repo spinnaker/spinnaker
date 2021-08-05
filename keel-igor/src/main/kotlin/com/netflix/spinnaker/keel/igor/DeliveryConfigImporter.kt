@@ -85,18 +85,9 @@ class DeliveryConfigImporter(
         projectKey = repoProjectKey ?: error("Missing SCM project in config for application $name"),
         repoSlug = repoSlug ?: error("Missing SCM repository in config for application $name"),
         manifestPath = DEFAULT_MANIFEST_PATH, // TODO: make configurable
-        ref = "refs/heads/${defaultBranch}",
+        ref = "refs/heads/${getDefaultBranch(scmService)}",
         addMetadata = addMetadata
       )
     }
   }
-
-  private val Application.defaultBranch: String
-    get() = runBlocking {
-      scmService.getDefaultBranch(
-        scmType = repoType ?: error("Missing SCM type in config for application $name"),
-        projectKey = repoProjectKey ?: error("Missing SCM project in config for application $name"),
-        repoSlug = repoSlug ?: error("Missing SCM repository in config for application $name")
-      ).name
-    }
 }

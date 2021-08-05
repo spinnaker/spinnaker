@@ -6,6 +6,7 @@ import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter.Companion.DEFAULT_MANIFEST_PATH
 import com.netflix.spinnaker.keel.igor.ScmService
+import com.netflix.spinnaker.keel.igor.getDefaultBranch
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.telemetry.safeIncrement
 import kotlinx.coroutines.runBlocking
@@ -70,7 +71,7 @@ class DeliveryConfigImportListener(
         app != null
           && app.managedDelivery?.importDeliveryConfig == true
           && event.matchesApplicationConfig(app)
-          && event.targetBranch == app.defaultBranch
+          && event.targetBranch == app.getDefaultBranch(scmService)
       }
 
     if (matchingApps.isEmpty()) {
@@ -100,16 +101,6 @@ class DeliveryConfigImportListener(
       repository.upsertDeliveryConfig(newDeliveryConfig)
     }
   }
-
-  private val Application.defaultBranch: String
-    get() = runBlocking {
-      scmService.getDefaultBranch(
-        scmType = repoType ?: error("Missing SCM type in config for application $name"),
-        projectKey = repoProjectKey ?: error("Missing SCM project in config for application $name"),
-        repoSlug = repoSlug ?: error("Missing SCM repository in config for application $name")
-      ).name
-    }
-
 
   private fun CodeEvent.emitCounterMetric(metric: String, extraTags: Collection<Pair<String, String>>, application: String? = null) =
     spectator.counter(metric, metricTags(application, extraTags) ).safeIncrement()
