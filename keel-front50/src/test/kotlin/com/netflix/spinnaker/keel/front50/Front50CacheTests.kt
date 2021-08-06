@@ -4,24 +4,22 @@ import com.netflix.spinnaker.keel.caffeine.CacheFactory
 import com.netflix.spinnaker.keel.caffeine.CacheProperties
 import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.kork.exceptions.SystemException
-import dev.minutest.experimental.SKIP
-import dev.minutest.experimental.minus
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import io.mockk.called
-import io.mockk.clearAllMocks
 import io.mockk.clearMocks
-import io.mockk.coEvery as every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import strikt.api.expectCatching
+import strikt.api.expectThat
+import strikt.assertions.isEmpty
 import strikt.assertions.isFailure
+import io.mockk.coEvery as every
 import io.mockk.coVerify as verify
 
 class Front50CacheTests : JUnit5Minutests {
   class Fixture {
     private val cacheFactory = CacheFactory(mockk(relaxed = true), CacheProperties())
-    private val appsByName = (1..10).associate { "app-$it" to Application("app-$it", "owner-$it@keel.io") }
+    private val appsByName = (1..10).associate { "app-$it" to Application("app-$it", "owner@keel.io") }
     val front50Service: Front50Service = mockk()
     val subject = Front50Cache(front50Service, cacheFactory)
 
@@ -34,6 +32,13 @@ class Front50CacheTests : JUnit5Minutests {
         front50Service.applicationByName(any(), any())
       } answers {
         appsByName[arg(0)] ?: throw SystemException("not found")
+      }
+
+      every {
+        front50Service.searchApplications(any(), any())
+      } answers {
+        val name = arg<Map<String, String>>(0).entries.first().value
+        listOfNotNull(appsByName[name])
       }
     }
   }
@@ -92,44 +97,23 @@ class Front50CacheTests : JUnit5Minutests {
         }
       }
 
-      context("allApplications") {
-        context("after priming") {
-          before {
-            subject.primeCaches()
+      context("applicationsBySearchParams") {
+        test("app is cached by search params") {
+          runBlocking {
+            repeat(3) {
+              subject.searchApplications("name" to "app-1")
+            }
           }
 
-          test("retrieving all applications does not cause additional calls to Front50") {
-            runBlocking {
-              subject.allApplications()
-              subject.allApplications()
-            }
-
-            verify(exactly = 1) {
-              front50Service.allApplications(any())
-            }
+          verify(exactly = 1) {
+            front50Service.searchApplications(mapOf("name" to "app-1"))
           }
         }
 
-        // FIXME: can't figure out how to set up the mock here so that the cache is empty
-        //  and a call to allApplications() triggers loading.
-        SKIP - context("with failure loading cache") {
-          modifyFixture {
-            every {
-              front50Service.allApplications(any())
-            } throws SystemException("oh noes")
-          }
-
-          test("failure is bubbled up") {
-            verify {
-              front50Service.allApplications(any())
-            }
-
-            expectCatching {
-              runBlocking {
-                subject.allApplications()
-              }
-            }.isFailure()
-          }
+        test("non-matching search params returns an empty list") {
+          expectThat(
+            runBlocking { subject.searchApplications("name" to "no-match") }
+          ).isEmpty()
         }
       }
     }

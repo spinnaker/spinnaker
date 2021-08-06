@@ -10,6 +10,7 @@ import retrofit2.http.Header
 import retrofit2.http.PATCH
 import retrofit2.http.Path
 import retrofit2.http.Query
+import retrofit2.http.QueryMap
 
 interface Front50Service {
 
@@ -27,6 +28,12 @@ interface Front50Service {
 
   @GET("/v2/applications")
   suspend fun allApplications(
+    @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
+  ): List<Application>
+
+  @GET("/v2/applications")
+  suspend fun searchApplications(
+    @QueryMap searchParams: Map<String, String>,
     @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
   ): List<Application>
 

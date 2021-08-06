@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.keel.front50
 
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache
-import com.netflix.spinnaker.keel.caffeine.BulkCacheLoadingException
 import com.netflix.spinnaker.keel.caffeine.CacheFactory
 import com.netflix.spinnaker.keel.caffeine.CacheLoadingException
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
@@ -16,9 +15,7 @@ import java.util.concurrent.CompletableFuture
 import javax.annotation.PostConstruct
 
 /**
- * Memory-based cache for Front50 data. Primarily intended to avoid making repeated slow calls to Front50
- * to retrieve application config in bulk (see [allApplicationsCache]), but has the side-benefit that retrieving
- * individual application configs can be powered by the same bulk data.
+ * Memory-based cache for Front50 data.
  */
 @Component
 class Front50Cache(
@@ -30,7 +27,7 @@ class Front50Cache(
   }
 
   private val applicationsByNameCache: AsyncLoadingCache<String, Application> = cacheFactory
-    .asyncLoadingCache<String, Application>(cacheName = "applicationsByName") { app ->
+    .asyncLoadingCache(cacheName = "applicationsByName") { app ->
       runCatching {
         front50Service.applicationByName(app)
       }.getOrElse { e ->
@@ -38,17 +35,12 @@ class Front50Cache(
       }
     }
 
-  private val allApplicationsCache: AsyncLoadingCache<String, Application> = cacheFactory
-    .asyncBulkLoadingCache(cacheName = "allApplications") {
+  private val applicationsBySearchParamsCache: AsyncLoadingCache<Map<String, String>, List<Application>> = cacheFactory
+    .asyncLoadingCache(cacheName = "applicationsBySearchParams") { searchParams ->
       runCatching {
-        log.debug("Retrieving all applications from Front50 to populate cache")
-        front50Service.allApplications(DEFAULT_SERVICE_ACCOUNT)
-          .associateBy { it.name.toLowerCase() }
-          .also {
-            log.debug("Successfully primed application cache with ${it.size} entries")
-          }
+        front50Service.searchApplications(searchParams)
       }.getOrElse { e ->
-        throw BulkCacheLoadingException("allApplications", e)
+        throw CacheLoadingException("applicationsBySearchParams", searchParams, e)
       }
     }
 
@@ -62,22 +54,17 @@ class Front50Cache(
     }
 
   /**
-   * Returns the list of all currently known [Application] configs in Spinnaker from the cache.
-   *
-   * The first call to this method is expected to be as slow as a direct call to [Front50Service], as
-   * the cache needs to be populated with a bulk call. Subsequent calls are expected to return
-   * near-instantaneously until the cache expires.
-   */
-  suspend fun allApplications(): List<Application> =
-    allApplicationsCache.asMap().values.map { it.await() }
-
-  /**
-   * Returns the cached [Application] by name.
-   *
-   * This call is expected to be slow before the cache is populated or refreshed, which should be a sporadic event.
+   * @return the [Application] with the given name from the cache. This cache is primed during app startup using
+   * the bulk API in Front50, and later updated/refreshed on an app-by-app basis.
    */
   suspend fun applicationByName(name: String): Application =
     applicationsByNameCache.get(name.toLowerCase()).await() ?: throw ApplicationNotFound(name)
+
+  /**
+   * @return the [Application]s matching the given search parameters from the cache.
+   */
+  suspend fun searchApplications(vararg searchParams: Pair<String, String>): List<Application> =
+    applicationsBySearchParamsCache.get(searchParams.toMap()).await()
 
   suspend fun pipelinesByApplication(application: String): List<Pipeline> =
     pipelinesByApplication.get(application).await()
@@ -90,10 +77,9 @@ class Front50Cache(
         val apps = front50Service.allApplications(DEFAULT_SERVICE_ACCOUNT)
         log.debug("Retrieved ${apps.size} applications from Front50")
         apps.forEach {
-          allApplicationsCache.put(it.name.toLowerCase(), CompletableFuture.supplyAsync { it })
           applicationsByNameCache.put(it.name.toLowerCase(), CompletableFuture.supplyAsync { it })
         }
-        log.debug("Added ${apps.size} applications to the caches")
+        log.debug("Added ${apps.size} applications to the cache")
       } catch (e: Exception) {
         log.error("Error priming application caches: $e. Performance will be degraded.")
       }

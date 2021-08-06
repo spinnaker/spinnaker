@@ -137,7 +137,7 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
       } just runs
 
       every {
-        front50Cache.allApplications()
+        front50Cache.searchApplications(any(), any(), any())
       } returns listOf(configuredApp, notConfiguredApp)
 
       every {

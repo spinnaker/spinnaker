@@ -60,11 +60,15 @@ class DeliveryConfigImportListener(
 
     val apps = runBlocking {
       try {
-        front50Cache.allApplications().also {
+        front50Cache.searchApplications(
+          "repoType" to event.repoType,
+          "repoProjectKey" to event.projectKey,
+          "repoSlug" to event.repoSlug
+        ).also {
           log.debug("Retrieved ${it.size} applications from Front50")
         }
       } catch (e: Exception) {
-        log.error("Error retrieving applications: $e", e)
+        log.error("Error searching applications: $e", e)
         null
       }
     } ?: return
@@ -79,7 +83,7 @@ class DeliveryConfigImportListener(
       }
 
     if (matchingApps.isEmpty()) {
-      log.debug("No applications with a matching default branch found for event: $event")
+      log.debug("No applications with matching SCM config found for event: $event")
       return
     }
 
