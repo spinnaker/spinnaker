@@ -1,8 +1,9 @@
 package com.netflix.spinnaker.keel.rest
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action
-import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity
+import com.netflix.spinnaker.keel.auth.PermissionLevel
+import com.netflix.spinnaker.keel.auth.AuthorizationSupport
+import com.netflix.spinnaker.keel.auth.AuthorizationSupport.TargetEntity
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
@@ -18,7 +19,7 @@ fun AuthorizationSupport.allowAll() {
     hasApplicationPermission(any<String>(), any(), any())
   } returns true
   every {
-    checkApplicationPermission(any<Action>(), any(), any())
+    checkApplicationPermission(any<PermissionLevel>(), any(), any())
   } just Runs
   every {
     hasServiceAccountAccess(any<String>(), any())
@@ -33,14 +34,14 @@ fun AuthorizationSupport.allowAll() {
     hasCloudAccountPermission(any<String>(), any(), any())
   } returns true
   every {
-    checkCloudAccountPermission(any<Action>(), any(), any())
+    checkCloudAccountPermission(any<PermissionLevel>(), any(), any())
   } just Runs
 }
 
 /**
  * Mocks authorization to pass for [AuthorizationSupport.hasApplicationPermission].
  */
-fun AuthorizationSupport.allowApplicationAccess(action: Action, target: TargetEntity) {
+fun AuthorizationSupport.allowApplicationAccess(action: PermissionLevel, target: TargetEntity) {
   every {
     hasApplicationPermission(action.name, target.name, any())
   } returns true
@@ -52,7 +53,7 @@ fun AuthorizationSupport.allowApplicationAccess(action: Action, target: TargetEn
 /**
  * Mocks authorization to fail for [AuthorizationSupport.hasApplicationPermission].
  */
-fun AuthorizationSupport.denyApplicationAccess(action: Action, target: TargetEntity) {
+fun AuthorizationSupport.denyApplicationAccess(action: PermissionLevel, target: TargetEntity) {
   every {
     hasApplicationPermission(action.name, target.name, any())
   } returns false
@@ -64,7 +65,7 @@ fun AuthorizationSupport.denyApplicationAccess(action: Action, target: TargetEnt
 /**
  * Mocks authorization to pass for [AuthorizationSupport.hasCloudAccountPermission].
  */
-fun AuthorizationSupport.allowCloudAccountAccess(action: Action, target: TargetEntity) {
+fun AuthorizationSupport.allowCloudAccountAccess(action: PermissionLevel, target: TargetEntity) {
   every {
     hasCloudAccountPermission(action.name, target.name, any())
   } returns true
@@ -76,7 +77,7 @@ fun AuthorizationSupport.allowCloudAccountAccess(action: Action, target: TargetE
 /**
  * Mocks authorization to fail for [AuthorizationSupport.hasCloudAccountPermission].
  */
-fun AuthorizationSupport.denyCloudAccountAccess(action: Action, target: TargetEntity) {
+fun AuthorizationSupport.denyCloudAccountAccess(action: PermissionLevel, target: TargetEntity) {
   every {
     hasCloudAccountPermission(action.name, target.name, any())
   } returns false

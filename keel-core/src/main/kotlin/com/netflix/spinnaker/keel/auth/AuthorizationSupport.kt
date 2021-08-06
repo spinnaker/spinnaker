@@ -15,17 +15,17 @@
  * limitations under the License.
  *
  */
-package com.netflix.spinnaker.keel.rest
+package com.netflix.spinnaker.keel.auth
 
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.keel.api.AccountAwareLocations
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchEntityException
-import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.APPLICATION
-import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.DELIVERY_CONFIG
-import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.RESOURCE
-import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.SERVICE_ACCOUNT
+import com.netflix.spinnaker.keel.auth.AuthorizationSupport.TargetEntity.APPLICATION
+import com.netflix.spinnaker.keel.auth.AuthorizationSupport.TargetEntity.DELIVERY_CONFIG
+import com.netflix.spinnaker.keel.auth.AuthorizationSupport.TargetEntity.RESOURCE
+import com.netflix.spinnaker.keel.auth.AuthorizationSupport.TargetEntity.SERVICE_ACCOUNT
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import com.netflix.spinnaker.security.AuthenticatedRequest
@@ -49,11 +49,6 @@ class AuthorizationSupport(
 ) {
   val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
 
-  enum class Action {
-    READ, WRITE;
-    override fun toString() = name.toLowerCase()
-  }
-
   enum class TargetEntity {
     APPLICATION, DELIVERY_CONFIG, RESOURCE, SERVICE_ACCOUNT;
     override fun toString() = name.toLowerCase()
@@ -62,11 +57,21 @@ class AuthorizationSupport(
   private fun enabled() = dynamicConfigService.isEnabled("keel.authorization", true)
 
   /**
+   * @return true if a user has the permission to access the resource at the level requested
+   *
+   * Use this function if you are checking authorization and you have the email instead of grabbing the requester from
+   * the spring auth context.
+   */
+  fun hasPermission(email: String, resourceName: String, resourceType: AuthorizationResourceType, authorization: PermissionLevel): Boolean {
+    return permissionEvaluator.hasPermission(email, resourceName, resourceType.name.toLowerCase(), authorization.name)
+  }
+
+  /**
    * Returns true if the caller has the specified permission (action) to access the application associated with the
    * specified target object.
    */
   fun hasApplicationPermission(action: String, target: String, identifier: String) =
-    passes { checkApplicationPermission(Action.valueOf(action), TargetEntity.valueOf(target), identifier) }
+    passes { checkApplicationPermission(PermissionLevel.valueOf(action), TargetEntity.valueOf(target), identifier) }
 
   /**
    * Returns true if  the caller has access to the specified service account.
@@ -85,7 +90,7 @@ class AuthorizationSupport(
    * specified target object.
    */
   fun hasCloudAccountPermission(action: String, target: String, identifier: String) =
-    passes { checkCloudAccountPermission(Action.valueOf(action), TargetEntity.valueOf(target), identifier) }
+    passes { checkCloudAccountPermission(PermissionLevel.valueOf(action), TargetEntity.valueOf(target), identifier) }
 
   /**
    * Verifies that the caller has the specified permission (action) to access the application associated with the
@@ -93,7 +98,7 @@ class AuthorizationSupport(
    *
    * @throws AccessDeniedException if caller does not have the required permission.
    */
-  fun checkApplicationPermission(action: Action, target: TargetEntity, identifier: String) {
+  fun checkApplicationPermission(action: PermissionLevel, target: TargetEntity, identifier: String) {
     if (!enabled()) return
 
     withAuthentication(target, identifier) { auth ->
@@ -157,7 +162,7 @@ class AuthorizationSupport(
    *
    * @throws AccessDeniedException if caller does not have the required permission.
    */
-  fun checkCloudAccountPermission(action: Action, target: TargetEntity, identifier: String) {
+  fun checkCloudAccountPermission(action: PermissionLevel, target: TargetEntity, identifier: String) {
     if (!enabled()) return
 
     withAuthentication(target, identifier) { auth ->

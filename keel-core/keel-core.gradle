@@ -22,6 +22,9 @@ dependencies {
   implementation("com.newrelic.agent.java:newrelic-api:6.1.0")
   implementation("io.spinnaker.kork:kork-plugins")
   implementation("org.jgrapht:jgrapht-core:1.5.1")
+  implementation("io.spinnaker.kork:kork-web")
+  implementation("io.spinnaker.fiat:fiat-api:${fiatVersion}")
+  implementation("io.spinnaker.fiat:fiat-core:${fiatVersion}")
   implementation(project(":keel-ec2-api"))  // needed for resource dependency logic
 
   testImplementation(project(":keel-test"))

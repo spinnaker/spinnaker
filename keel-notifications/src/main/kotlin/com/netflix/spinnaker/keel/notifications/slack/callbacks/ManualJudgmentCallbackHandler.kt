@@ -1,6 +1,11 @@
 package com.netflix.spinnaker.keel.notifications.slack.callbacks
 
+import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.auth.PermissionLevel.WRITE
+import com.netflix.spinnaker.keel.auth.AuthorizationSupport
+import com.netflix.spinnaker.keel.auth.AuthorizationResourceType.APPLICATION
+import com.netflix.spinnaker.keel.auth.AuthorizationResourceType.SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.core.api.parseUID
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.notifications.slack.SlackService
@@ -28,16 +33,31 @@ import java.time.Instant
 class ManualJudgmentCallbackHandler(
   private val clock: Clock,
   private val repository: KeelRepository,
-  private val slackService: SlackService
+  private val slackService: SlackService,
+  private val authorizationSupport: AuthorizationSupport
 ) {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   fun respondToButton(req: BlockActionRequest, ctx: ActionContext) {
     if (req.payload.responseUrl != null) {
-      updateConstraintState(req.payload)
+      val constraintUid = req.payload.constraintId
+      val currentState = repository.getConstraintStateById(parseUID(constraintUid))
+        ?: throw SystemException("constraint@callbackId=$constraintUid", "constraint not found")
+
+      val authResponse = validateAuth(req, ctx, currentState)
+      val blocks = mutableListOf<LayoutBlock>()
+      log.debug("manual judgment auth check for $constraintUid: {}", authResponse)
+      when (authResponse.authorized) {
+        true -> {
+          updateConstraintState(req.payload, currentState)
+          blocks.addAll(updateMjAuthorized(req.payload))
+        }
+        false -> blocks.addAll(updateMjUnauthorized(req.payload, authResponse.errorMessage))
+      }
+
       val response = ActionResponse.builder()
-        .blocks(updateManualJudgementNotification(req.payload))
+        .blocks(blocks)
         .text(fallbackText(req.payload))
         .replaceOriginal(true)
         .build()
@@ -46,13 +66,43 @@ class ManualJudgmentCallbackHandler(
   }
 
   /**
+   * @return true if the user is able to hit the button, false otherwise, plus a reason if false
+   *
+   * Checks to see if slack user has application access and service account access
+   */
+  fun validateAuth(req: BlockActionRequest, ctx: ActionContext, constraintState: ConstraintState): AuthorizationResponse {
+    val email = slackService.getEmailByUserId(ctx.requestUserId)
+    if (email == ctx.requestUserId) {
+      // unable to find email, not authorized
+      return AuthorizationResponse(false, "Unable to find email address for slack user ${ctx.requestUserId}. They cannot approve or reject this artifact version.")
+    }
+    val config = repository.getDeliveryConfig(constraintState.deliveryConfigName)
+
+    val hasAppPermissions = authorizationSupport.hasPermission(email, config.application, APPLICATION, WRITE)
+    val hasServiceAccountPermissions = authorizationSupport.hasPermission(email, config.serviceAccount, SERVICE_ACCOUNT, WRITE)
+
+    val errors = mutableListOf<String>()
+    if (!hasAppPermissions) {
+      errors.add("doesn't have permission to deploy this app")
+    }
+    if (!hasServiceAccountPermissions) {
+      errors.add("doesn't have permissions to use the service account ${config.serviceAccount}")
+    }
+
+    return AuthorizationResponse(
+      authorized = hasAppPermissions && hasServiceAccountPermissions,
+      errorMessage = if (errors.isNotEmpty()) {
+        "User ($email) " + errors.joinToString(" and ") + ". They cannot approve or reject this artifact version."
+      } else {
+        null
+      }
+    )
+  }
+
+  /**
    * Updating the constraint status based on the user response (either approve/reject)
    */
-  fun updateConstraintState(slackCallbackResponse: BlockActionPayload) {
-    val constraintUid = slackCallbackResponse.constraintId
-    val currentState = repository.getConstraintStateById(parseUID(constraintUid))
-      ?: throw SystemException("constraint@callbackId=$constraintUid", "constraint not found")
-
+  fun updateConstraintState(slackCallbackResponse: BlockActionPayload, currentState: ConstraintState) {
     val user = slackService.getEmailByUserId(slackCallbackResponse.user.id)
     val actionStatus = slackCallbackResponse.actions.first().value
 
@@ -72,11 +122,33 @@ class ManualJudgmentCallbackHandler(
   }
 
   /**
+   * Adds an error context block to the bottom of an existing manual judgement with the auth error,
+   * or replaces that block with the current auth error.
+   */
+  fun updateMjUnauthorized(response: BlockActionPayload, errorMessage: String?): List<LayoutBlock> {
+    val message = errorMessage ?: "User ${response.user} isn't authorized to approve this deployment."
+
+    val originalBlocks = response.message.blocks
+    if (originalBlocks.last().type == "context") {
+      // this means there's already an error context message, which we need to remove
+      originalBlocks.removeLastOrNull()
+    }
+
+    return originalBlocks + withBlocks {
+      context {
+        elements {
+          markdownText(message)
+        }
+      }
+    }
+  }
+
+  /**
    * Update an existing manual judgment notification with the user and the action that was performed.
    * For example, if user gyardeni approved the notification, this function will add:
    * "@Gal Yardeni hit approve on 2021-02-12 11:05:57 AM" and will marked the original text with strikethrough.
    */
-  fun updateManualJudgementNotification(response: BlockActionPayload): List<LayoutBlock> {
+  fun updateMjAuthorized(response: BlockActionPayload): List<LayoutBlock> {
     try {
       val originalCommitText = response.message.blocks[1].getText
       val action = actionsMap[response.actions.first().value]
@@ -111,6 +183,10 @@ class ManualJudgmentCallbackHandler(
       //remove the first two blocks because we're replacing them
       originalBlocks.removeFirstOrNull()
       originalBlocks.removeFirstOrNull()
+      if (originalBlocks.last().type == "context") {
+        // this means there's an error message, which we need to remove since the judgement was completed
+        originalBlocks.removeLastOrNull()
+      }
       originalBlocks.removeLast() // removes mj buttons
       return updatedBlocks + originalBlocks + newFooterBlock
     } catch (ex: Exception) {
@@ -144,3 +220,8 @@ class ManualJudgmentCallbackHandler(
       ConstraintStatus.OVERRIDE_PASS.name to "approve",
       ConstraintStatus.OVERRIDE_FAIL.name to "reject")
 }
+
+data class AuthorizationResponse(
+  val authorized: Boolean,
+  val errorMessage: String?
+)

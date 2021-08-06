@@ -5,6 +5,9 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.actuation.Task
+import com.netflix.spinnaker.keel.auth.PermissionLevel.READ
+import com.netflix.spinnaker.keel.auth.AuthorizationSupport
+import com.netflix.spinnaker.keel.auth.AuthorizationSupport.TargetEntity.RESOURCE
 import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.events.PersistentEvent
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
@@ -14,8 +17,6 @@ import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
 import com.netflix.spinnaker.keel.events.ResourceUpdated
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceId
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
-import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.READ
-import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.RESOURCE
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.test.resource

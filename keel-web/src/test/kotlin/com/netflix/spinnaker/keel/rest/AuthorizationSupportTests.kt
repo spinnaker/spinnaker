@@ -3,9 +3,13 @@ package com.netflix.spinnaker.keel.rest
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.auth.PermissionLevel.READ
+import com.netflix.spinnaker.keel.auth.PermissionLevel.WRITE
+import com.netflix.spinnaker.keel.auth.AuthorizationSupport
+import com.netflix.spinnaker.keel.auth.AuthorizationSupport.TargetEntity.APPLICATION
+import com.netflix.spinnaker.keel.auth.AuthorizationSupport.TargetEntity.DELIVERY_CONFIG
+import com.netflix.spinnaker.keel.auth.AuthorizationSupport.TargetEntity.RESOURCE
 import com.netflix.spinnaker.keel.persistence.CombinedRepository
-import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action
-import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity
 import com.netflix.spinnaker.keel.test.locatableResource
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import dev.minutest.junit.JUnit5Minutests
@@ -72,7 +76,7 @@ internal class AuthorizationSupportTests : JUnit5Minutests {
         } returns deliveryConfig
       }
 
-      listOf(Action.READ, Action.WRITE).forEach { action ->
+      listOf(READ, WRITE).forEach { action ->
         context("user has no ${action.name} access to application") {
           before {
             every {
@@ -82,34 +86,34 @@ internal class AuthorizationSupportTests : JUnit5Minutests {
 
           test("permission check specifying application name fails") {
             expectThrows<AccessDeniedException> {
-              checkApplicationPermission(action, TargetEntity.APPLICATION, application)
+              checkApplicationPermission(action, APPLICATION, application)
             }
             expectThat(
-              hasApplicationPermission(action.name, TargetEntity.APPLICATION.name, application)
+              hasApplicationPermission(action.name, APPLICATION.name, application)
             ).isFalse()
           }
 
           test("permission check specifying resource id fails") {
             expectThrows<AccessDeniedException> {
-              checkApplicationPermission(action, TargetEntity.RESOURCE, resource.id)
+              checkApplicationPermission(action, RESOURCE, resource.id)
             }
             expectThat(
-              hasApplicationPermission(action.name, TargetEntity.RESOURCE.name, resource.id)
+              hasApplicationPermission(action.name, RESOURCE.name, resource.id)
             ).isFalse()
           }
 
           test("permission check specifying delivery config name fails") {
             expectThrows<AccessDeniedException> {
-              checkApplicationPermission(action, TargetEntity.DELIVERY_CONFIG, deliveryConfig.name)
+              checkApplicationPermission(action, DELIVERY_CONFIG, deliveryConfig.name)
             }
             expectThat(
-              hasApplicationPermission(action.name, TargetEntity.DELIVERY_CONFIG.name, deliveryConfig.name)
+              hasApplicationPermission(action.name, DELIVERY_CONFIG.name, deliveryConfig.name)
             ).isFalse()
           }
         }
       }
 
-      listOf(Action.READ, Action.WRITE).forEach { action ->
+      listOf(READ, WRITE).forEach { action ->
         context("user has no ${action.name} access to cloud account") {
           before {
             every {
@@ -119,28 +123,28 @@ internal class AuthorizationSupportTests : JUnit5Minutests {
 
           test("permission check specifying application name fails") {
             expectThrows<AccessDeniedException> {
-              checkCloudAccountPermission(action, TargetEntity.APPLICATION, application)
+              checkCloudAccountPermission(action, APPLICATION, application)
             }
             expectThat(
-              hasCloudAccountPermission(action.name, TargetEntity.APPLICATION.name, application)
+              hasCloudAccountPermission(action.name, APPLICATION.name, application)
             ).isFalse()
           }
 
           test("permission check specifying resource id fails") {
             expectThrows<AccessDeniedException> {
-              checkCloudAccountPermission(action, TargetEntity.RESOURCE, resource.id)
+              checkCloudAccountPermission(action, RESOURCE, resource.id)
             }
             expectThat(
-              hasCloudAccountPermission(action.name, TargetEntity.RESOURCE.name, resource.id)
+              hasCloudAccountPermission(action.name, RESOURCE.name, resource.id)
             ).isFalse()
           }
 
           test("permission check specifying delivery config name fails") {
             expectThrows<AccessDeniedException> {
-              checkCloudAccountPermission(action, TargetEntity.DELIVERY_CONFIG, deliveryConfig.name)
+              checkCloudAccountPermission(action, DELIVERY_CONFIG, deliveryConfig.name)
             }
             expectThat(
-              hasCloudAccountPermission(action.name, TargetEntity.DELIVERY_CONFIG.name, deliveryConfig.name)
+              hasCloudAccountPermission(action.name, DELIVERY_CONFIG.name, deliveryConfig.name)
             ).isFalse()
           }
         }
@@ -155,28 +159,28 @@ internal class AuthorizationSupportTests : JUnit5Minutests {
 
         test("permission check specifying application name fails") {
           expectThrows<AccessDeniedException> {
-            checkServiceAccountAccess(TargetEntity.APPLICATION, application)
+            checkServiceAccountAccess(APPLICATION, application)
           }
           expectThat(
-            hasServiceAccountAccess(TargetEntity.APPLICATION.name, application)
+            hasServiceAccountAccess(APPLICATION.name, application)
           ).isFalse()
         }
 
         test("permission check specifying resource id fails") {
           expectThrows<AccessDeniedException> {
-            checkServiceAccountAccess(TargetEntity.RESOURCE, resource.id)
+            checkServiceAccountAccess(RESOURCE, resource.id)
           }
           expectThat(
-            hasServiceAccountAccess(TargetEntity.RESOURCE.name, resource.id)
+            hasServiceAccountAccess(RESOURCE.name, resource.id)
           ).isFalse()
         }
 
         test("permission check specifying delivery config name fails") {
           expectThrows<AccessDeniedException> {
-            checkServiceAccountAccess(TargetEntity.DELIVERY_CONFIG, deliveryConfig.name)
+            checkServiceAccountAccess(DELIVERY_CONFIG, deliveryConfig.name)
           }
           expectThat(
-            hasServiceAccountAccess(TargetEntity.DELIVERY_CONFIG.name, deliveryConfig.name)
+            hasServiceAccountAccess(DELIVERY_CONFIG.name, deliveryConfig.name)
           ).isFalse()
         }
       }
@@ -191,40 +195,40 @@ internal class AuthorizationSupportTests : JUnit5Minutests {
 
       test("all application access is allowed") {
         expectCatching {
-          checkApplicationPermission(Action.READ, TargetEntity.APPLICATION, application)
-          checkApplicationPermission(Action.WRITE, TargetEntity.APPLICATION, application)
+          checkApplicationPermission(READ, APPLICATION, application)
+          checkApplicationPermission(WRITE, APPLICATION, application)
         }.isSuccess()
         expectThat(
-          hasApplicationPermission(Action.READ.name, TargetEntity.APPLICATION.name, application)
+          hasApplicationPermission(READ.name, APPLICATION.name, application)
         ).isTrue()
         expectThat(
-          hasApplicationPermission(Action.WRITE.name, TargetEntity.APPLICATION.name, application)
+          hasApplicationPermission(WRITE.name, APPLICATION.name, application)
         ).isTrue()
       }
 
       test("all cloud account access is allowed") {
         expectCatching {
-          checkCloudAccountPermission(Action.READ, TargetEntity.APPLICATION, application)
-          checkCloudAccountPermission(Action.WRITE, TargetEntity.APPLICATION, application)
+          checkCloudAccountPermission(READ, APPLICATION, application)
+          checkCloudAccountPermission(WRITE, APPLICATION, application)
         }.isSuccess()
         expectThat(
-          hasCloudAccountPermission(Action.READ.name, TargetEntity.APPLICATION.name, application)
+          hasCloudAccountPermission(READ.name, APPLICATION.name, application)
         ).isTrue()
         expectThat(
-          hasCloudAccountPermission(Action.WRITE.name, TargetEntity.APPLICATION.name, application)
+          hasCloudAccountPermission(WRITE.name, APPLICATION.name, application)
         ).isTrue()
       }
 
       test("all service account access is allowed") {
         expectCatching {
-          checkServiceAccountAccess(TargetEntity.APPLICATION, application)
-          checkServiceAccountAccess(TargetEntity.APPLICATION, application)
+          checkServiceAccountAccess(APPLICATION, application)
+          checkServiceAccountAccess(APPLICATION, application)
         }.isSuccess()
         expectThat(
-          hasServiceAccountAccess(TargetEntity.APPLICATION.name, application)
+          hasServiceAccountAccess(APPLICATION.name, application)
         ).isTrue()
         expectThat(
-          hasServiceAccountAccess(TargetEntity.APPLICATION.name, application)
+          hasServiceAccountAccess(APPLICATION.name, application)
         ).isTrue()
       }
     }

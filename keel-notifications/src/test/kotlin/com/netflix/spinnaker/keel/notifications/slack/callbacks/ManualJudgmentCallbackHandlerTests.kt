@@ -2,11 +2,20 @@ package com.netflix.spinnaker.keel.notifications.slack.callbacks
 
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.auth.AuthorizationResourceType
+import com.netflix.spinnaker.keel.auth.AuthorizationResourceType.APPLICATION
+import com.netflix.spinnaker.keel.auth.AuthorizationResourceType.SERVICE_ACCOUNT
+import com.netflix.spinnaker.keel.auth.AuthorizationSupport
+import com.netflix.spinnaker.keel.auth.PermissionLevel
+import com.netflix.spinnaker.keel.auth.PermissionLevel.WRITE
 import com.netflix.spinnaker.keel.core.api.parseUID
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.notifications.slack.SlackService
+import com.netflix.spinnaker.keel.test.deliveryConfig
 import com.netflix.spinnaker.time.MutableClock
 import com.slack.api.app_backend.interactive_components.payload.BlockActionPayload
+import com.slack.api.bolt.context.builtin.ActionContext
+import com.slack.api.bolt.request.builtin.BlockActionRequest
 import com.slack.api.model.Message
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -18,14 +27,22 @@ import io.mockk.slot
 import io.mockk.verify
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFalse
+import strikt.assertions.isNull
+import strikt.assertions.isTrue
 import java.time.Instant
 import java.time.ZoneId
 
 class ManualJudgmentCallbackHandlerTests : JUnit5Minutests {
 
   class Fixture {
-    val repository: KeelRepository = mockk()
+    val repository: KeelRepository = mockk() {
+      every {getDeliveryConfig(any())} returns deliveryConfig()
+    }
     val slackService: SlackService = mockk()
+    val authorizationSupport: AuthorizationSupport = mockk() {
+      every { hasPermission(any(), any(), any(), any()) } returns true
+    }
 
     val clock: MutableClock = MutableClock(
       Instant.parse("2020-03-25T00:00:00.00Z"),
@@ -52,7 +69,7 @@ class ManualJudgmentCallbackHandlerTests : JUnit5Minutests {
 
 
     val pendingManualJudgement = ConstraintState(
-      "delivery_config",
+      "myconfig",
       "testing",
       "1.0.0",
       "my-debian",
@@ -60,7 +77,7 @@ class ManualJudgmentCallbackHandlerTests : JUnit5Minutests {
       ConstraintStatus.PENDING
     )
 
-    val subject = ManualJudgmentCallbackHandler(clock, repository, slackService)
+    val subject = ManualJudgmentCallbackHandler(clock, repository, slackService, authorizationSupport)
   }
 
   fun tests() = rootContext<Fixture> {
@@ -86,7 +103,7 @@ class ManualJudgmentCallbackHandlerTests : JUnit5Minutests {
 
       test("update status correctly with approval") {
         val slot = slot<ConstraintState>()
-        subject.updateConstraintState(buildPayload("OVERRIDE_PASS"))
+        subject.updateConstraintState(buildPayload("OVERRIDE_PASS"), pendingManualJudgement)
         verify(exactly = 1) {
           repository.storeConstraintState(capture(slot))
         }
@@ -96,12 +113,132 @@ class ManualJudgmentCallbackHandlerTests : JUnit5Minutests {
 
       test("update status correctly with rejection") {
         val slot = slot<ConstraintState>()
-        subject.updateConstraintState(buildPayload("OVERRIDE_FAIL"))
+        subject.updateConstraintState(buildPayload("OVERRIDE_FAIL"), pendingManualJudgement)
         verify(exactly = 1) {
           repository.storeConstraintState(capture(slot))
         }
         expectThat(slot.captured.status).isEqualTo(ConstraintStatus.OVERRIDE_FAIL)
         expectThat(slot.captured.judgedBy).isEqualTo("keel@keel")
+      }
+    }
+
+    context("checking authorization") {
+      context("no email found") {
+        before {
+          every { slackService.getEmailByUserId("01234") } returns "01234"
+        }
+
+        test("unauthorized if no email found") {
+          val req: BlockActionRequest = mockk() {
+            every { payload } returns buildPayload("OVERRIDE_PASS")
+          }
+          val ctx: ActionContext = mockk() {
+            every { requestUserId } returns "01234"
+          }
+          val response = subject.validateAuth(req, ctx, pendingManualJudgement)
+          expectThat(response.authorized).isFalse()
+          expectThat(response.errorMessage?.contains("email address")).isTrue()
+        }
+      }
+
+      context("checking app and service account permissions") {
+        before {
+          every { slackService.getEmailByUserId("01234") } returns "pancake@breakfast.io"
+        }
+
+        test("unauthorized if no service account permissions") {
+          every { authorizationSupport.hasPermission("pancake@breakfast.io", any(), APPLICATION, WRITE) } returns true
+          every {
+            authorizationSupport.hasPermission(
+              "pancake@breakfast.io",
+              any(),
+              SERVICE_ACCOUNT,
+              WRITE
+            )
+          } returns false
+
+          val req: BlockActionRequest = mockk() {
+            every { payload } returns buildPayload("OVERRIDE_PASS")
+          }
+          val ctx: ActionContext = mockk() {
+            every { requestUserId } returns "01234"
+          }
+          val response = subject.validateAuth(req, ctx, pendingManualJudgement)
+          expectThat(response.authorized).isFalse()
+          expectThat(response.errorMessage?.contains("deploy this app")).isFalse()
+          expectThat(response.errorMessage?.contains("service account")).isTrue()
+        }
+
+        test("unauthorized if no app permissions") {
+          every { authorizationSupport.hasPermission("pancake@breakfast.io", any(), APPLICATION, WRITE) } returns false
+          every {
+            authorizationSupport.hasPermission(
+              "pancake@breakfast.io",
+              any(),
+              SERVICE_ACCOUNT,
+              WRITE
+            )
+          } returns true
+          val req: BlockActionRequest = mockk() {
+            every { payload } returns buildPayload("OVERRIDE_PASS")
+          }
+          val ctx: ActionContext = mockk() {
+            every { requestUserId } returns "01234"
+          }
+          val response = subject.validateAuth(req, ctx, pendingManualJudgement)
+          expectThat(response.authorized).isFalse()
+          expectThat(response.errorMessage?.contains("service account")).isFalse()
+          expectThat(response.errorMessage?.contains("deploy this app")).isTrue()
+        }
+
+        test("unauthorized if no app and service account permissions") {
+          every { authorizationSupport.hasPermission("pancake@breakfast.io", any(), APPLICATION, WRITE) } returns false
+          every {
+            authorizationSupport.hasPermission(
+              "pancake@breakfast.io",
+              any(),
+              SERVICE_ACCOUNT,
+              WRITE
+            )
+          } returns false
+          val req: BlockActionRequest = mockk() {
+            every { payload } returns buildPayload("OVERRIDE_PASS")
+          }
+          val ctx: ActionContext = mockk() {
+            every { requestUserId } returns "01234"
+          }
+          val response = subject.validateAuth(req, ctx, pendingManualJudgement)
+          expectThat(response.authorized).isFalse()
+          expectThat(response.errorMessage?.contains("service account")).isTrue()
+          expectThat(response.errorMessage?.contains("deploy this app")).isTrue()
+        }
+      }
+      context("fully authorized") {
+        before {
+          every { slackService.getEmailByUserId("01234") } returns "pancake@breakfast.io"
+        }
+
+        test("no error message is returned") {
+          every { authorizationSupport.hasPermission("pancake@breakfast.io", any(), APPLICATION, WRITE) } returns true
+          every {
+            authorizationSupport.hasPermission(
+              "pancake@breakfast.io",
+              any(),
+              SERVICE_ACCOUNT,
+              WRITE
+            )
+          } returns true
+
+          val req: BlockActionRequest = mockk() {
+            every { payload } returns buildPayload("OVERRIDE_PASS")
+          }
+          val ctx: ActionContext = mockk() {
+            every { requestUserId } returns "01234"
+          }
+          val response = subject.validateAuth(req, ctx, pendingManualJudgement)
+          expectThat(response.authorized).isTrue()
+          expectThat(response.errorMessage).isNull()
+        }
       }
     }
   }
