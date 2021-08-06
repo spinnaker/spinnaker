@@ -11,6 +11,7 @@ jobs:
     - uses: spinnaker/bumpdeps@master
       with:
         ref: ${{ github.event.client_payload.ref }}
+        baseBranch: ${{ github.event.client_payload.branch }}
         key: korkVersion
         repositories: clouddriver,echo,fiat,front50,gate,halyard,igor,keel,orca,rosco,swabbie
         mavenRepositoryUrl: https://repo.maven.apache.org/maven2

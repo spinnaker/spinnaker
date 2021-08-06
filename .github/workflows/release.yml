@@ -15,6 +15,26 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: git fetch --prune --unshallow
+      # Given a tag, determine what branch we are on, so we can bump dependencies in the correct branch
+      - name: Get Branch
+        run: |
+          BRANCHES=$(git branch -r --contains ${{ github.ref }})
+          echo "BRANCHES is '${BRANCHES}'"
+          # Check for no branches explicitly...Otherwise echo adds a newline so wc thinks there's
+          # one branch.  And echo -n makes it appears that there's one less branch than there
+          # actually is.
+          if [ -z "$BRANCHES" ]; then
+            echo "exactly one branch required to release kork, but there are none"
+            exit 1
+          fi
+          NUM_BRANCHES=$(($(echo "$BRANCHES" | wc -l)))
+          echo "NUM_BRANCHES is '${NUM_BRANCHES}'"
+          if [ $NUM_BRANCHES -ne 1 ]; then
+            echo "exactly one branch required to release kork, but there are $NUM_BRANCHES ($BRANCHES)"
+            exit 1
+          fi
+          echo "exactly one branch ($BRANCHES)"
+          echo BRANCH=$BRANCHES >> $GITHUB_ENV
       - uses: actions/setup-java@v1
         with:
           java-version: 11
@@ -63,4 +83,4 @@ jobs:
         with:
           token: ${{ secrets.SPINNAKER_GITHUB_TOKEN }}
           event-type: bump-dependencies
-          client-payload: '{"ref": "${{ github.ref }}"}'
+          client-payload: '{"ref": "${{ github.ref }}", "branch": "${{ env.BRANCH}}"}'
