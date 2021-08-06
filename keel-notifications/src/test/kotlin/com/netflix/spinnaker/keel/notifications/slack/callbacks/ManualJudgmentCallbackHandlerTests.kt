@@ -45,7 +45,7 @@ class ManualJudgmentCallbackHandlerTests : JUnit5Minutests {
 
     val springEnv: Environment = mockk() {
       every {
-        getProperty("slack.authorize-manual-judgement", Boolean::class.java, false)
+        getProperty("slack.authorize-manual-judgement", Boolean::class.java, any())
       } returns true
     }
 
@@ -131,7 +131,7 @@ class ManualJudgmentCallbackHandlerTests : JUnit5Minutests {
       context("authz check disabled") {
         before {
           every {
-            springEnv.getProperty("slack.authorize-manual-judgement", Boolean::class.java, false)
+            springEnv.getProperty("slack.authorize-manual-judgement", Boolean::class.java, any())
           } returns false
         }
 

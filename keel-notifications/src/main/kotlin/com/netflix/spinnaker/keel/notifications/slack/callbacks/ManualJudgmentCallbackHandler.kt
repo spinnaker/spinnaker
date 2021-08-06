@@ -40,7 +40,7 @@ class ManualJudgmentCallbackHandler(
 ) {
 
   private val authorizeManualJudgement: Boolean
-    get() = springEnv.getProperty("slack.authorize-manual-judgement", Boolean::class.java, false)
+    get() = springEnv.getProperty("slack.authorize-manual-judgement", Boolean::class.java, true)
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
