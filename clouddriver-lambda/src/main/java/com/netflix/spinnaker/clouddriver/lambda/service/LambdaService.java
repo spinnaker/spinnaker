@@ -323,8 +323,7 @@ public class LambdaService {
                       condition.getType().equals("ArnLike")
                           && condition.getConditionKey().equals("AWS:SourceArn"))
               .flatMap(condition -> condition.getValues().stream())
-              .filter(value -> ArnUtils.extractTargetGroupName(value).isPresent())
-              .map(name -> ArnUtils.extractTargetGroupName(name).get())
+              .flatMap(value -> ArnUtils.extractTargetGroupName(value).stream())
               .collect(Collectors.toList());
 
     } catch (ResourceNotFoundException e) {
