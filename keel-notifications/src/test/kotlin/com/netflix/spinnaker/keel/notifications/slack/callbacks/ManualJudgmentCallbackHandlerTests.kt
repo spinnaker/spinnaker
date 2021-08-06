@@ -2,11 +2,9 @@ package com.netflix.spinnaker.keel.notifications.slack.callbacks
 
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
-import com.netflix.spinnaker.keel.auth.AuthorizationResourceType
 import com.netflix.spinnaker.keel.auth.AuthorizationResourceType.APPLICATION
 import com.netflix.spinnaker.keel.auth.AuthorizationResourceType.SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.auth.AuthorizationSupport
-import com.netflix.spinnaker.keel.auth.PermissionLevel
 import com.netflix.spinnaker.keel.auth.PermissionLevel.WRITE
 import com.netflix.spinnaker.keel.core.api.parseUID
 import com.netflix.spinnaker.keel.persistence.KeelRepository
@@ -25,6 +23,7 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import org.springframework.core.env.Environment
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
@@ -42,6 +41,12 @@ class ManualJudgmentCallbackHandlerTests : JUnit5Minutests {
     val slackService: SlackService = mockk()
     val authorizationSupport: AuthorizationSupport = mockk() {
       every { hasPermission(any(), any(), any(), any()) } returns true
+    }
+
+    val springEnv: Environment = mockk() {
+      every {
+        getProperty("slack.authorize-manual-judgement", Boolean::class.java, false)
+      } returns true
     }
 
     val clock: MutableClock = MutableClock(
@@ -77,7 +82,7 @@ class ManualJudgmentCallbackHandlerTests : JUnit5Minutests {
       ConstraintStatus.PENDING
     )
 
-    val subject = ManualJudgmentCallbackHandler(clock, repository, slackService, authorizationSupport)
+    val subject = ManualJudgmentCallbackHandler(clock, repository, slackService, authorizationSupport, springEnv)
   }
 
   fun tests() = rootContext<Fixture> {
@@ -123,6 +128,28 @@ class ManualJudgmentCallbackHandlerTests : JUnit5Minutests {
     }
 
     context("checking authorization") {
+      context("authz check disabled") {
+        before {
+          every {
+            springEnv.getProperty("slack.authorize-manual-judgement", Boolean::class.java, false)
+          } returns false
+        }
+
+        test("authz passes") {
+          val req: BlockActionRequest = mockk() {
+            every { payload } returns buildPayload("OVERRIDE_PASS")
+          }
+          val ctx: ActionContext = mockk() {
+            every { requestUserId } returns "01234"
+          }
+          val response = subject.validateAuth(req, ctx, pendingManualJudgement)
+          expectThat(response.authorized).isTrue()
+          expectThat(response.errorMessage).isNull()
+          verify(exactly = 0) { authorizationSupport.hasPermission(any(), any(), any(), any()) }
+        }
+
+      }
+
       context("no email found") {
         before {
           every { slackService.getEmailByUserId("01234") } returns "01234"

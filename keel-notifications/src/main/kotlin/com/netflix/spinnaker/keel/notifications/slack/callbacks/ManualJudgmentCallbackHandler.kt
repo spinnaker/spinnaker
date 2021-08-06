@@ -20,6 +20,7 @@ import com.slack.api.model.block.composition.MarkdownTextObject
 import com.slack.api.model.block.element.ButtonElement
 import com.slack.api.model.kotlin_extension.block.withBlocks
 import org.slf4j.LoggerFactory
+import org.springframework.core.env.Environment
 import org.springframework.stereotype.Component
 import java.time.Clock
 import java.time.Instant
@@ -34,8 +35,12 @@ class ManualJudgmentCallbackHandler(
   private val clock: Clock,
   private val repository: KeelRepository,
   private val slackService: SlackService,
-  private val authorizationSupport: AuthorizationSupport
+  private val authorizationSupport: AuthorizationSupport,
+  private val springEnv: Environment
 ) {
+
+  private val authorizeManualJudgement: Boolean
+    get() = springEnv.getProperty("slack.authorize-manual-judgement", Boolean::class.java, false)
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -71,6 +76,10 @@ class ManualJudgmentCallbackHandler(
    * Checks to see if slack user has application access and service account access
    */
   fun validateAuth(req: BlockActionRequest, ctx: ActionContext, constraintState: ConstraintState): AuthorizationResponse {
+    if (!authorizeManualJudgement) {
+      return AuthorizationResponse(authorized = true, errorMessage = null)
+    }
+
     val email = slackService.getEmailByUserId(ctx.requestUserId)
     if (email == ctx.requestUserId) {
       // unable to find email, not authorized
