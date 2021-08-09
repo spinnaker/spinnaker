@@ -62,6 +62,7 @@ module(TITUS_MODULE, [
       commandBuilder: 'titusServerGroupCommandBuilder',
       configurationService: 'titusServerGroupConfigurationService',
       skipUpstreamStageCheck: true,
+      checkForImageProviders: true,
     },
     securityGroup: {
       reader: 'titusSecurityGroupReader',

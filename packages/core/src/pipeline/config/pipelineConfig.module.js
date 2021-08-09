@@ -22,6 +22,7 @@ import './validation/stageBeforeType.validator';
 import './validation/stageOrTriggerBeforeType.validator';
 import './validation/targetImpedance.validator';
 import './validation/upstreamVersionProvided.validator';
+import './validation/imageProviderBeforeType.validator';
 
 import './pipelineConfig.less';
 

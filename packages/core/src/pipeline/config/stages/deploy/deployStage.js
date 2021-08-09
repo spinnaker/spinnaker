@@ -39,6 +39,16 @@ angular
                   clusterServiceProvider.$get().isDeployingArtifact(cluster),
               ),
           },
+          {
+            type: 'imageProviderBeforeType',
+            message: 'You must have a trigger that provides the image metadata before any deploy stage.',
+            triggerTypes: ['docker', 'jenkins'],
+            skipValidation: (pipeline, stage) => 
+              (stage.clusters || []).every(
+                (cluster) =>
+                  !CloudProviderRegistry.getValue(cluster.provider, 'serverGroup.checkForImageProviders')
+              ),
+          }
         ],
         accountExtractor: (stage) => (stage.context.clusters || []).map((c) => c.account),
         configAccountExtractor: (stage) => (stage.clusters || []).map((c) => c.account),
