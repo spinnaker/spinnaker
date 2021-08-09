@@ -221,6 +221,11 @@ class AllowedTimesConstraintEvaluator(
 
   override val supportedType = SupportedConstraintType<TimeWindowConstraint>("allowed-times")
 
+  /**
+   * We want this constraint to be able to flip the status from pass to fail
+   */
+  override fun shouldAlwaysReevaluate(): Boolean = true
+
   private fun currentlyPassing(constraint: TimeWindowConstraint, deliveryConfig: DeliveryConfig, targetEnvironment: Environment): Boolean {
     val tz: ZoneId = if (constraint.tz != null) {
       ZoneId.of(constraint.tz)

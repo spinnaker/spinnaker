@@ -73,11 +73,16 @@ interface StatefulConstraintEvaluator<T : Constraint, A : ConstraintStateAttribu
     }
 
     return when {
-      // if a user judged the constraint, take that status
-      state.judgedByUser() && state.failed() -> false
-      state.judgedByUser() && state.passed() -> true
-      // otherwise, ask the constraint to determine the status
-      else -> canPromote(artifact, version, deliveryConfig, targetEnvironment, constraint, state)
+      state.judgedByUser() &&  state.failed() -> false
+      state.judgedByUser() &&  state.passed() -> true
+      !state.judgedByUser() &&  shouldAlwaysReevaluate() -> {
+        canPromote(artifact, version, deliveryConfig, targetEnvironment, constraint, state)
+      }
+      !state.judgedByUser() && !shouldAlwaysReevaluate() && state.failed() -> false
+      !state.judgedByUser() && !shouldAlwaysReevaluate() && state.passed() -> false
+      else -> {
+        canPromote(artifact, version, deliveryConfig, targetEnvironment, constraint, state)
+      }
     }
   }
 
@@ -127,4 +132,14 @@ interface StatefulConstraintEvaluator<T : Constraint, A : ConstraintStateAttribu
     // default implementation is a no-op
     return null
   }
+
+  /**
+   * Controls whether we should ask the constraint plugin to decide the result every time, or just when the
+   * status is not a terminal status.
+   *
+   * Return true to allow this constraint to be able to flip from pass to fail.
+   * Otherwise, once the constraint enters a pass/fail state, it stays there forever.
+   */
+  @JvmDefault
+  fun shouldAlwaysReevaluate(): Boolean = false
 }
