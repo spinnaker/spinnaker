@@ -5,6 +5,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
+import com.netflix.spinnaker.keel.auth.PermissionLevel.READ
 import com.netflix.spinnaker.keel.auth.PermissionLevel.WRITE
 import com.netflix.spinnaker.keel.auth.AuthorizationSupport
 import com.netflix.spinnaker.keel.auth.AuthorizationSupport.TargetEntity.APPLICATION
@@ -35,7 +36,6 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
@@ -78,10 +78,7 @@ class DeliveryConfigController(
   fun upsert(
     stream: InputStream
   ): DeliveryConfig {
-    var rawDeliveryConfig: String
-    BufferedReader(stream.reader()).use { reader ->
-      rawDeliveryConfig = reader.readText()
-    }
+    val rawDeliveryConfig = readRawConfigFromStream(stream)
     return upsertConfig(parseRawConfig(rawDeliveryConfig))
   }
 
@@ -94,14 +91,14 @@ class DeliveryConfigController(
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
   // We had to handle requests from gate separately, because gate was serializing the raw string incorrectly. Therefore, it's wrapped in a simple object
-  fun upsertFromGate(@RequestBody rawConfig: GateRawConfig, @RequestHeader("X-SPINNAKER-USER", required = false) user: String?): DeliveryConfig {
+  fun upsertFromGate(@RequestBody rawConfig: GateRawConfig): DeliveryConfig {
     return upsertConfig(parseRawConfig(rawConfig.content))
   }
 
 
   private fun upsertConfig(deliveryConfig: SubmittedDeliveryConfig): DeliveryConfig {
     deliveryConfig.checkPermissions()
-    val metadata: Map<String,Any?> = deliveryConfig.metadata ?: mapOf()
+    val metadata: Map<String, Any?> = deliveryConfig.metadata ?: mapOf()
     val gitMetadata: GitMetadata? = try {
       val candidateMetadata = metadata.getOrDefault("gitMetadata", null)
       if (candidateMetadata != null) {
@@ -208,9 +205,28 @@ class DeliveryConfigController(
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
   @ResponseStatus(value = HttpStatus.NO_CONTENT)
-  @PreAuthorize("@authorizationSupport.hasApplicationPermission('READ', 'APPLICATION', #deliveryConfig.application)")
-  fun validate(@RequestBody deliveryConfig: SubmittedDeliveryConfig) {
-    validator.validate(deliveryConfig)
+  fun validate(stream: InputStream) {
+    val rawDeliveryConfig = readRawConfigFromStream(stream)
+    validateRawConfig(rawDeliveryConfig)
+  }
+
+  @Operation(
+    description = "Validate the provided delivery config"
+  )
+  @PostMapping(
+    path = ["validate/gate"],
+    consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE],
+    produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
+  )
+  // We had to handle requests from gate separately, because gate was serializing the raw string incorrectly. Therefore, it's wrapped in a simple object
+  fun validateFromGate(@RequestBody rawConfig: GateRawConfig) {
+    validateRawConfig(rawConfig.content)
+  }
+
+  private fun validateRawConfig(rawDeliveryConfig: String) {
+    val config = parseRawConfig(rawDeliveryConfig)
+    authorizationSupport.checkApplicationPermission(READ, APPLICATION, config.application)
+    validator.validate(config)
   }
 
   @Operation(
@@ -240,13 +256,17 @@ class DeliveryConfigController(
     }
   }
 
-  private fun parseRawConfig(rawDeliveryConfig: String): SubmittedDeliveryConfig {
-    try {
-      return yamlMapper.readValueInliningAliases<SubmittedDeliveryConfig>(rawDeliveryConfig).copy(rawConfig = rawDeliveryConfig)
-    } catch (e: Exception) {
-      log.error("Failed to parse yaml", e)
-      throw(e)
+  private fun readRawConfigFromStream(stream: InputStream): String {
+    var rawDeliveryConfig: String
+    BufferedReader(stream.reader()).use { reader ->
+      rawDeliveryConfig = reader.readText()
     }
+    return rawDeliveryConfig
+  }
+
+  private fun parseRawConfig(rawDeliveryConfig: String): SubmittedDeliveryConfig {
+    return yamlMapper.readValueInliningAliases<SubmittedDeliveryConfig>(rawDeliveryConfig)
+      .copy(rawConfig = rawDeliveryConfig)
   }
 
   @Operation(

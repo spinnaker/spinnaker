@@ -17,6 +17,7 @@ data class DeliveryConfigImportFailed(
   val projectKey: String,
   val repoSlug: String,
   val commitHash: String,
+  val reason: String,
   override val link: String? = null,
   override var uid: UID? = null
 ) : DismissibleNotification() {
@@ -24,9 +25,7 @@ data class DeliveryConfigImportFailed(
   override val triggeredBy: String = "Managed Delivery"
   override val message: String
     get() {
-      val repo = "repository $repoType/$projectKey/$repoSlug (commit ${commitHash.short})"
-        .let { if (link != null) "[$it]($link)" else it }
-      return "Delivery config for application $application failed to import from $repo"
+      return "Failed to import delivery config from branch $branch (#${commitHash.short}). Reason: $reason"
     }
 
   private val String.short: String

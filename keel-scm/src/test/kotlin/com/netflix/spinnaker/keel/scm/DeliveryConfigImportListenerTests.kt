@@ -20,6 +20,7 @@ import com.netflix.spinnaker.keel.persistence.DismissibleNotificationRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.scm.DeliveryConfigImportListener.Companion.CODE_EVENT_COUNTER
 import com.netflix.spinnaker.keel.test.submittedResource
+import com.netflix.spinnaker.keel.validators.DeliveryConfigValidator
 import com.netflix.spinnaker.kork.exceptions.SystemException
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.TestContextBuilder
@@ -48,9 +49,11 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
     val spectator: Registry = mockk()
     val clock = MutableClock()
     val eventPublisher: ApplicationEventPublisher = mockk()
+    val deliveryConfigValidator: DeliveryConfigValidator = mockk()
     val subject = DeliveryConfigImportListener(
       repository = repository,
       deliveryConfigImporter = importer,
+      deliveryConfigValidator = deliveryConfigValidator,
       notificationRepository = notificationRepository,
       front50Cache = front50Cache,
       scmService = scmService,
@@ -127,6 +130,10 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
 
       every {
         eventPublisher.publishEvent(any<Object>())
+      } just runs
+
+      every {
+        deliveryConfigValidator.validate(any())
       } just runs
 
       every {

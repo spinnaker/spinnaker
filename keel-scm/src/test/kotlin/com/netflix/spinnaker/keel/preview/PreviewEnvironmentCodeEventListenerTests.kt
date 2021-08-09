@@ -57,6 +57,7 @@ import com.netflix.spinnaker.keel.test.configuredTestObjectMapper
 import com.netflix.spinnaker.keel.test.dependentResource
 import com.netflix.spinnaker.keel.test.locatableResource
 import com.netflix.spinnaker.keel.test.submittedResource
+import com.netflix.spinnaker.keel.validators.DeliveryConfigValidator
 import com.netflix.spinnaker.kork.exceptions.SystemException
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.TestContextBuilder
@@ -94,11 +95,13 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
     val springEnv: org.springframework.core.env.Environment = mockk()
     val spectator: Registry = mockk()
     val eventPublisher: ApplicationEventPublisher = mockk()
+    val validator: DeliveryConfigValidator = mockk()
     val subject = spyk(PreviewEnvironmentCodeEventListener(
       repository = repository,
       environmentDeletionRepository = environmentDeletionRepository,
       notificationRepository = notificationRepository,
       deliveryConfigImporter = importer,
+      deliveryConfigValidator = validator,
       front50Cache = front50Cache,
       objectMapper = objectMapper,
       springEnv = springEnv,
@@ -206,6 +209,7 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
         springEnv.getProperty("keel.previewEnvironments.enabled", Boolean::class.java, true)
       } returns true
 
+
       every {
         spectator.counter(any(), any<Iterable<Tag>>())
       } returns mockk {
@@ -213,6 +217,10 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
           increment()
         } just runs
       }
+
+      every {
+        validator.validate(any())
+      } just runs
 
       every {
         spectator.timer(any(), any<Iterable<Tag>>())

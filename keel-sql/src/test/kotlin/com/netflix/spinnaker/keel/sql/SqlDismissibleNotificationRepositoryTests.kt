@@ -46,7 +46,8 @@ class SqlDismissibleNotificationRepositoryTests {
     projectKey = "proj",
     repoSlug = "repo",
     commitHash = "asdf1234",
-    link = "https://some.link"
+    link = "https://some.link",
+    reason = "bad config"
   )
 
   @BeforeEach
@@ -120,7 +121,8 @@ class SqlDismissibleNotificationRepositoryTests {
         projectKey = "proj",
         repoSlug = "repo",
         commitHash = "asdf1235",
-        link = "https://some.link1"
+        link = "https://some.link1",
+        reason = "bad config"
       )
     }
     notificationRepository.storeNotification(notification)

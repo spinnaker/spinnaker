@@ -36,6 +36,7 @@ import com.netflix.spinnaker.keel.scm.metricTags
 import com.netflix.spinnaker.keel.scm.publishDeliveryConfigImportFailed
 import com.netflix.spinnaker.keel.telemetry.recordDuration
 import com.netflix.spinnaker.keel.telemetry.safeIncrement
+import com.netflix.spinnaker.keel.validators.DeliveryConfigValidator
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
@@ -56,6 +57,7 @@ class PreviewEnvironmentCodeEventListener(
   private val environmentDeletionRepository: EnvironmentDeletionRepository,
   private val notificationRepository: DismissibleNotificationRepository,
   private val deliveryConfigImporter: DeliveryConfigImporter,
+  private val deliveryConfigValidator: DeliveryConfigValidator,
   private val front50Cache: Front50Cache,
   private val objectMapper: ObjectMapper,
   private val springEnv: Environment,
@@ -157,13 +159,15 @@ class PreviewEnvironmentCodeEventListener(
         deliveryConfigImporter.import(
           commitEvent = event,
           manifestPath = DEFAULT_MANIFEST_PATH // TODO: allow location of manifest to be configurable
-        ).toDeliveryConfig().also {
+        ).also {
           event.emitCounterMetric(CODE_EVENT_COUNTER, DELIVERY_CONFIG_RETRIEVAL_SUCCESS, deliveryConfig.application)
-        }
+          log.info("Validating config for application ${deliveryConfig.application} from branch ${event.targetBranch}")
+          deliveryConfigValidator.validate(it)
+        }.toDeliveryConfig()
       } catch (e: Exception) {
         log.error("Error retrieving delivery config: $e", e)
         event.emitCounterMetric(CODE_EVENT_COUNTER, DELIVERY_CONFIG_RETRIEVAL_ERROR, deliveryConfig.application)
-        eventPublisher.publishDeliveryConfigImportFailed(deliveryConfig.application, event, clock.instant())
+        eventPublisher.publishDeliveryConfigImportFailed(deliveryConfig.application, event, clock.instant(), e.message ?: "Unknown")
         return@forEach
       }
 
