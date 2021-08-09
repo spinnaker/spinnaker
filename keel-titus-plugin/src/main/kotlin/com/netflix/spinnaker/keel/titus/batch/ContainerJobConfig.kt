@@ -22,7 +22,7 @@ data class ContainerJobConfig(
   val location: TitusServerGroup.Location,
   val resources: TitusServerGroup.Resources = TitusServerGroup.Resources(
     cpu = 2,
-    memory = 2048,
+    memory = 4096,
     disk = 256,
     networkMbps = 1024
   ),
