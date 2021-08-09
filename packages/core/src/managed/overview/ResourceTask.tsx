@@ -39,7 +39,7 @@ export const ResourceTask = ({ id, name }: IResourceTaskProps) => {
         <UISref to="home.applications.application.tasks.taskDetails" params={{ taskId: id }}>
           <a>{name}</a>
         </UISref>
-        {result && <TaskProgressBar task={result} className="task-progress" />}
+        {result && !result.isCompleted && <TaskProgressBar task={result} className="task-progress" />}
         {result && (
           <div className="delimited-elements task-metadata">
             <span>
@@ -48,7 +48,7 @@ export const ResourceTask = ({ id, name }: IResourceTaskProps) => {
               </Tooltip>
               <RelativeTimestamp timestamp={result.startTime} withSuffix removeStyles />
             </span>
-            {currentStage && (
+            {currentStage && !result.isCompleted && (
               <span>
                 Current stage: {robotToHuman(currentStage.name)} (
                 <RelativeTimestamp timestamp={currentStage.startTime} withSuffix />)
