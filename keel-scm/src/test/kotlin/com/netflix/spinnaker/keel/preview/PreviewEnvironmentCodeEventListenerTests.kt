@@ -21,14 +21,17 @@ import com.netflix.spinnaker.keel.api.artifacts.branchStartsWith
 import com.netflix.spinnaker.keel.api.ec2.EC2_SECURITY_GROUP_V1
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
+import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.core.api.SubmittedEnvironment
+import com.netflix.spinnaker.keel.core.api.TagAmiPostDeployAction
 import com.netflix.spinnaker.keel.core.name
 import com.netflix.spinnaker.keel.front50.Front50Cache
 import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.front50.model.DataSources
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
 import com.netflix.spinnaker.keel.notifications.DeliveryConfigImportFailed
+import com.netflix.spinnaker.keel.persistence.ApproveOldVersionTests.DummyImplicitConstraint
 import com.netflix.spinnaker.keel.notifications.DismissibleNotification
 import com.netflix.spinnaker.keel.persistence.DismissibleNotificationRepository
 import com.netflix.spinnaker.keel.persistence.EnvironmentDeletionRepository
@@ -74,6 +77,7 @@ import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.containsKeys
 import strikt.assertions.isA
+import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isLessThanOrEqualTo
 import strikt.assertions.one
@@ -182,7 +186,9 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
             resourceWithSameNameAsDefaultSecurityGroup, // name conflict with default sec group, but different kind
             defaultSecurityGroup,
             dependentResource
-          )
+          ),
+          constraints = setOf(ManualJudgementConstraint()),
+          postDeploy = listOf(TagAmiPostDeployAction())
         )
       ),
       previewEnvironments = setOf(
@@ -257,7 +263,9 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
               name = env.name,
               resources = env.resources.map { res ->
                 submittedResource(res.kind, res.spec)
-              }.toSet()
+              }.toSet(),
+              constraints = env.constraints,
+              postDeploy = env.postDeploy
             )
           }.toSet()
         )
@@ -377,6 +385,11 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
             repository.upsertResource(previewEnv.captured.resources.first(), deliveryConfig.name)
             repository.storeEnvironment(deliveryConfig.name, previewEnv.captured)
           }
+        }
+
+        test("the preview environment has no constraints or post-deploy actions") {
+          expectThat(previewEnv.captured.constraints).isEmpty()
+          expectThat(previewEnv.captured.postDeploy).isEmpty()
         }
 
         test("the name of the preview environment is generated correctly") {

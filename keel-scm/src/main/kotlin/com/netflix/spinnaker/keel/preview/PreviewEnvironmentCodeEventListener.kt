@@ -231,6 +231,7 @@ class PreviewEnvironmentCodeEventListener(
         name = "${baseEnv.name}-${commitEvent.targetBranch.toPreviewName()}",
         isPreview = true,
         constraints = emptySet(),
+        postDeploy = emptyList(),
         verifyWith = previewEnvSpec.verifyWith,
         notifications = previewEnvSpec.notifications,
         resources = baseEnv.resources.mapNotNull { res ->
