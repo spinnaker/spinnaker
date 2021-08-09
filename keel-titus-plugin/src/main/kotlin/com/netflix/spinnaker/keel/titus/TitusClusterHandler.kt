@@ -543,9 +543,11 @@ class TitusClusterHandler(
                 namespace = namespace,
                 statistic = statistic,
                 unit = unit,
-                dimensions = dimensions?.map { d ->
-                  MetricDimensionModel(name = d.name, value = d.value)
-                }
+                dimensions = (
+                  dimensions?.map { d ->
+                    MetricDimensionModel(name = d.name, value = d.value)
+                  } ?: emptyList()
+                ) + MetricDimensionModel("AutoScalingGroupName", serverGroup.name)
               )
             }
           }

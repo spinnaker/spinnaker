@@ -48,8 +48,11 @@ import io.mockk.slot
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
+import strikt.assertions.contains
 import strikt.assertions.doesNotContain
 import strikt.assertions.first
+import strikt.assertions.get
+import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEmpty
 import strikt.assertions.isNotNull
@@ -357,8 +360,8 @@ class TitusClusterScalingPolicyTests {
 
     expectThat(stages)
       .withCaptured {
-        // there are 2 upsertScalingPolicy stages, the first removes the old one, the second creates a new one
-        // deployment is handled separately as createServerGroup does not do anything with scaling policies
+        // there are 2 upsertScalingPolicy stages, one creates the target tracking policy, the other the step scaling
+        // policy deployment is handled separately as createServerGroup does not do anything with scaling policies
         map { it.type } isEqualTo listOf("createServerGroup", "upsertScalingPolicy", "upsertScalingPolicy")
       }
   }
@@ -376,8 +379,33 @@ class TitusClusterScalingPolicyTests {
 
     expectThat(stages)
       .withCaptured {
-        // there are 2 upsertScalingPolicy stages, the first removes the old one, the second creates a new one
+        // there are 2 upsertScalingPolicy stages, one creates the target tracking policy, the other the step scaling
+        // policy
         map { it.type } isEqualTo listOf("upsertScalingPolicy", "upsertScalingPolicy")
+      }
+  }
+
+  @Test
+  fun `default scaling dimension is added to the task`() {
+    cloudDriverService.stubActiveServerGroup(actualServerGroup.copy(scalingPolicies = emptyList()))
+
+    val desired = runBlocking { handler.desired(resource) }
+    val current = runBlocking { handler.current(resource) }
+
+    runBlocking {
+      handler.upsert(resource, DefaultResourceDiff(desired, current))
+    }
+
+    expectThat(stages)
+      .withCaptured {
+        first { it.containsKey("targetTrackingConfiguration") }
+          .get("targetTrackingConfiguration")
+          .isA<Map<String, Any?>>()
+          .get("customizedMetricSpecification")
+          .isA<CustomizedMetricSpecificationModel>()
+          .get { dimensions }
+          .isNotNull()
+          .contains(MetricDimensionModel("AutoScalingGroupName", asg))
       }
   }
 }
