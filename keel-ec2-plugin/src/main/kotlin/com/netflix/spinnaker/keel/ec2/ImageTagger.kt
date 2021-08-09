@@ -92,7 +92,7 @@ class ImageTagger(
       spectator.counter(
         TAG_AMI_JOB_LAUNCHED,
         listOf(BasicTag("application", event.application))
-      )
+      ).increment()
     }
   }
 
