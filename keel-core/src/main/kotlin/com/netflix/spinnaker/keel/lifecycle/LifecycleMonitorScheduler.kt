@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.lifecycle
 
 import com.netflix.spectator.api.Registry
+import com.netflix.spectator.api.Timer
 import com.netflix.spectator.api.histogram.PercentileTimer
 import com.netflix.spinnaker.config.LifecycleConfig
 import com.netflix.spinnaker.keel.activation.ApplicationDown
@@ -35,13 +36,13 @@ class LifecycleMonitorScheduler(
   val publisher: ApplicationEventPublisher,
   val lifecycleConfig: LifecycleConfig,
   private val clock: Clock,
-  private val spectator: Registry
+  val spectator: Registry
 ) : CoroutineScope {
   override val coroutineContext: CoroutineContext = Dispatchers.IO
 
   private val enabled = AtomicBoolean(false)
 
-  private val timerBuilder = PercentileTimer.builder(spectator).withName("keel.scheduled.method.duration")
+  private val timerBuilder = spectator.createId("keel.scheduled.method.duration")
 
 
   @EventListener(ApplicationUp::class)
@@ -115,8 +116,9 @@ class LifecycleMonitorScheduler(
   private fun recordDuration(startTime : Instant, type: String) =
     timerBuilder
       .withTag("type", type)
-      .build()
-      .record(Duration.between(startTime, clock.instant()))
+      .let { id ->
+        spectator.timer(id).record(Duration.between(startTime, clock.instant()))
+    }
 
 
 }
