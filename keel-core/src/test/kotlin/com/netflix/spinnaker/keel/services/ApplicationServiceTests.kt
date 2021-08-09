@@ -2,10 +2,11 @@ package com.netflix.spinnaker.keel.services
 
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.ArtifactConfig
+import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
-import com.netflix.spinnaker.keel.api.ScmInfo
 import com.netflix.spinnaker.keel.api.Verification
+import com.netflix.spinnaker.keel.api.action.ActionState
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.RELEASE
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.SNAPSHOT
 import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
@@ -24,8 +25,6 @@ import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintType
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.ConstraintEvaluator
 import com.netflix.spinnaker.keel.api.plugins.SupportedArtifact
-import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
-import com.netflix.spinnaker.keel.api.action.ActionState
 import com.netflix.spinnaker.keel.artifacts.ArtifactVersionLinks
 import com.netflix.spinnaker.keel.core.api.ArtifactSummary
 import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
@@ -55,7 +54,6 @@ import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.Runs
-import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
@@ -205,14 +203,6 @@ class ApplicationServiceTests : JUnit5Minutests {
     private val lifecycleEventRepository: LifecycleEventRepository = mockk() {
       every { getSteps(any(), any()) } returns emptyList()
     }
-    
-    private val scmInfo = mockk<ScmInfo>() {
-      coEvery {
-        getScmInfo()
-      } answers {
-        mapOf("stash" to "https://stash")
-      }
-    }
 
     val publisher: ApplicationEventPublisher = mockk(relaxed = true)
 
@@ -232,7 +222,6 @@ class ApplicationServiceTests : JUnit5Minutests {
       resourceStatusService,
       listOf(dependsOnEvaluator),
       listOf(artifactSupplier),
-      scmInfo,
       lifecycleEventRepository,
       publisher,
       springEnv,

@@ -42,7 +42,6 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import org.springframework.context.ApplicationEventPublisher
-import org.springframework.core.env.Environment as SpringEnvironment
 import strikt.api.Assertion
 import strikt.api.DescribeableBuilder
 import strikt.api.expectThat
@@ -51,6 +50,7 @@ import strikt.assertions.isEqualTo
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
+import org.springframework.core.env.Environment as SpringEnvironment
 
 class ComparableLinksTests : JUnit5Minutests {
   class Fixture {
@@ -142,7 +142,6 @@ class ComparableLinksTests : JUnit5Minutests {
       resourceStatusService,
       listOf(dependsOnEvaluator),
       listOf(artifactSupplier),
-      scmInfo,
       lifecycleEventRepository,
       publisher,
       springEnv,

@@ -12,9 +12,11 @@ import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintAttributesT
 import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintType
 import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.core.api.TimeWindowConstraint
+import com.netflix.spinnaker.keel.core.api.ZonedDateTimeRange
 import com.netflix.spinnaker.keel.core.api.activeWindowOrNull
 import com.netflix.spinnaker.keel.core.api.windowRange
 import com.netflix.spinnaker.keel.core.api.windowsNumeric
+import com.netflix.spinnaker.keel.core.api.zone
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import org.slf4j.LoggerFactory
@@ -68,52 +70,30 @@ class AllowedTimesConstraintEvaluator(
    */
   override fun shouldAlwaysReevaluate(): Boolean = true
 
-  private fun currentlyPassing(constraint: TimeWindowConstraint, deliveryConfig: DeliveryConfig, targetEnvironment: Environment): Boolean {
-    val tz: ZoneId = if (constraint.tz != null) {
-      ZoneId.of(constraint.tz)
-    } else {
-      defaultTimeZone()
-    }
+  private fun actualVsMaxDeploys(
+    constraint: TimeWindowConstraint,
+    deliveryConfig: DeliveryConfig,
+    targetEnvironment: Environment,
+    windowRange: ZonedDateTimeRange
+  ): Pair<Int, Int>? = if (constraint.maxDeploysPerWindow != null) {
+    artifactRepository.deploymentsBetween(
+      deliveryConfig,
+      targetEnvironment.name,
+      windowRange.start,
+      windowRange.endInclusive
+    ) to constraint.maxDeploysPerWindow
+  } else {
+    null
+  }
+
+  private fun currentWindowOrNull(constraint: TimeWindowConstraint): ZonedDateTimeRange? {
+    val tz = constraint.zone ?: defaultTimeZone()
 
     val now = clock
       .instant()
       .atZone(tz)
 
-    val activeWindow = constraint.activeWindowOrNull(now)
-
-    if (activeWindow != null && constraint.maxDeploysPerWindow != null) {
-      val windowRange = activeWindow.windowRange(now)
-
-      val count = artifactRepository.deploymentsBetween(
-        deliveryConfig,
-        targetEnvironment.name,
-        windowRange.start,
-        windowRange.endInclusive
-      )
-
-      if (count >= constraint.maxDeploysPerWindow) {
-        log.info(
-          "{}:{} has already been deployed {} times during the current window ({} to {}), skipping deployment",
-          deliveryConfig.name,
-          targetEnvironment.name,
-          count,
-          windowRange.start.toLocalTime(),
-          windowRange.endInclusive.toLocalTime()
-        )
-        return false
-      } else {
-        log.debug(
-          "{}:{} has only been deployed {} times during the current window ({} to {}), allowing deployment",
-          deliveryConfig.name,
-          targetEnvironment.name,
-          count,
-          windowRange.start.toLocalTime(),
-          windowRange.endInclusive.toLocalTime()
-        )
-      }
-    }
-
-    return activeWindow != null
+    return constraint.activeWindowOrNull(now)?.windowRange(now)
   }
 
   override fun canPromote(
@@ -134,11 +114,38 @@ class AllowedTimesConstraintEvaluator(
       }
     }
 
-    val currentlyPassing = currentlyPassing(constraint, deliveryConfig, targetEnvironment)
-    val status = if (currentlyPassing) {
-      PASS
+    val windowRange = currentWindowOrNull(constraint)
+    val actualVsMaxDeploys = if (windowRange != null && constraint.maxDeploysPerWindow != null) {
+      actualVsMaxDeploys(constraint, deliveryConfig, targetEnvironment, windowRange)
     } else {
-      FAIL
+      null
+    }
+
+    val status = when {
+      windowRange == null -> FAIL
+      actualVsMaxDeploys == null -> PASS
+      actualVsMaxDeploys.first < actualVsMaxDeploys.second -> {
+        log.debug(
+          "{}:{} has only been deployed {} times during the current window ({} to {}), allowing deployment",
+          deliveryConfig.name,
+          targetEnvironment.name,
+          actualVsMaxDeploys.first,
+          windowRange.start.toLocalTime(),
+          windowRange.endInclusive.toLocalTime()
+        )
+        PASS
+      }
+      else -> {
+        log.info(
+          "{}:{} has already been deployed {} times during the current window ({} to {}), skipping deployment",
+          deliveryConfig.name,
+          targetEnvironment.name,
+          actualVsMaxDeploys.first,
+          windowRange.start.toLocalTime(),
+          windowRange.endInclusive.toLocalTime()
+        )
+        FAIL
+      }
     }
 
     if (status != state.status) {
@@ -146,7 +153,9 @@ class AllowedTimesConstraintEvaluator(
       val attributes = AllowedTimesConstraintAttributes(
         allowedTimes = constraint.windowsNumeric,
         timezone = constraint.tz ?: defaultTimeZone().id,
-        currentlyPassing = currentlyPassing
+        actualDeploys = actualVsMaxDeploys?.first,
+        maxDeploys = actualVsMaxDeploys?.second,
+        currentlyPassing = status == PASS
       )
       repository.storeConstraintState(
         state.copy(
@@ -161,7 +170,7 @@ class AllowedTimesConstraintEvaluator(
       repository.storeConstraintState(state.copy(judgedAt = clock.instant(), judgedBy = "Spinnaker"))
     }
 
-    return currentlyPassing
+    return status == PASS
   }
 
   private fun defaultTimeZone(): ZoneId =

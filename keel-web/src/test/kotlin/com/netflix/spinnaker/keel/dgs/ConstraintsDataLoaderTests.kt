@@ -149,9 +149,9 @@ class ConstraintsDataLoaderTests: JUnit5Minutests {
               judgedBy = "Spinnaker",
               judgedAt = clock.instant(),
               attributes = AllowedTimesConstraintAttributes(
-                twConstraint.windowsNumeric,
-                twConstraint.tz,
-                true
+                allowedTimes = twConstraint.windowsNumeric,
+                timezone = twConstraint.tz,
+                currentlyPassing = true
               )
             )
           )

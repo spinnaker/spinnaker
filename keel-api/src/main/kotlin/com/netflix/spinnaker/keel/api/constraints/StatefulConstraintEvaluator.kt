@@ -30,12 +30,12 @@ import com.netflix.spinnaker.keel.api.plugins.PluginNotificationConfig
  * If the state is 'done' (failed or passed) the specific implementations don't get called.
  * If the state is not 'done', underlying implementations [canPromote] functions get called.
  */
-interface StatefulConstraintEvaluator<T : Constraint, A : ConstraintStateAttributes> : ConstraintEvaluator<T> {
+interface StatefulConstraintEvaluator<CONSTRAINT : Constraint, ATTRIBUTES : ConstraintStateAttributes> : ConstraintEvaluator<CONSTRAINT> {
   /**
    * The type of the metadata saved about the constraint, surfaced here to automatically register it
    * for serialization
    */
-  val attributeType: SupportedConstraintAttributesType<A>
+  val attributeType: SupportedConstraintAttributesType<ATTRIBUTES>
 
   val repository: ConstraintRepository
 
@@ -100,7 +100,7 @@ interface StatefulConstraintEvaluator<T : Constraint, A : ConstraintStateAttribu
     version: String,
     deliveryConfig: DeliveryConfig,
     targetEnvironment: Environment,
-    constraint: T,
+    constraint: CONSTRAINT,
     state: ConstraintState
   ): Boolean
 

@@ -8,7 +8,6 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ScmInfo
 import com.netflix.spinnaker.keel.api.StatefulConstraint
 import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.action.ActionState
@@ -26,7 +25,6 @@ import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.ConstraintEvaluator
 import com.netflix.spinnaker.keel.api.plugins.supporting
 import com.netflix.spinnaker.keel.artifacts.ArtifactVersionLinks
-import com.netflix.spinnaker.keel.constraints.AllowedTimesConstraintAttributes
 import com.netflix.spinnaker.keel.constraints.DependsOnConstraintAttributes
 import com.netflix.spinnaker.keel.core.api.ArtifactSummary
 import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
@@ -45,9 +43,7 @@ import com.netflix.spinnaker.keel.core.api.PromotionStatus.PREVIOUS
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.SKIPPED
 import com.netflix.spinnaker.keel.core.api.ResourceArtifactSummary
 import com.netflix.spinnaker.keel.core.api.ResourceSummary
-import com.netflix.spinnaker.keel.core.api.TimeWindowConstraint
 import com.netflix.spinnaker.keel.core.api.VerificationSummary
-import com.netflix.spinnaker.keel.core.api.windowsNumeric
 import com.netflix.spinnaker.keel.events.MarkAsBadNotification
 import com.netflix.spinnaker.keel.events.PinnedNotification
 import com.netflix.spinnaker.keel.events.UnpinnedNotification
@@ -84,9 +80,8 @@ import org.springframework.core.env.Environment as SpringEnvironment
 class ApplicationService(
   private val repository: KeelRepository,
   private val resourceStatusService: ResourceStatusService,
-  private val constraintEvaluators: List<ConstraintEvaluator<*>>,
+  constraintEvaluators: List<ConstraintEvaluator<*>>,
   private val artifactSuppliers: List<ArtifactSupplier<*, *>>,
-  private val scmInfo: ScmInfo,
   private val lifecycleEventRepository: LifecycleEventRepository,
   private val publisher: ApplicationEventPublisher,
   private val springEnv: SpringEnvironment,
@@ -609,7 +604,6 @@ class ApplicationService(
           status = if (passes) PASS else ConstraintStatus.PENDING,
           attributes = when (constraint) {
             is DependsOnConstraint -> DependsOnConstraintAttributes(constraint.environment, passes)
-            is TimeWindowConstraint -> AllowedTimesConstraintAttributes(constraint.windowsNumeric, constraint.tz, passes)
             else -> null
           }
         )

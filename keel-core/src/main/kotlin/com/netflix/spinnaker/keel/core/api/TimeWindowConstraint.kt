@@ -48,6 +48,9 @@ data class TimeWindowConstraint(
   }
 }
 
+val TimeWindowConstraint.zone: ZoneId?
+  get() = tz?.let { ZoneId.of(it) }
+
 /**
  * @return the window containing `time` or null if `time` is outside any window.
  */
@@ -77,13 +80,13 @@ data class TimeWindowNumeric(
  * The start hour of a time window.
  */
 val TimeWindowNumeric.startHour
-  get() = checkNotNull(hours.minOrNull())
+  get() = hours.minOrNull() ?: 0
 
 /**
  * The end hour of a time window.
  */
 val TimeWindowNumeric.endHour
-  get() = checkNotNull(hours.maxOrNull())
+  get() = hours.maxOrNull() ?: 23
 
 /**
  * @param time must be a date/time that is inside the window or result may not be valid.
@@ -91,7 +94,7 @@ val TimeWindowNumeric.endHour
  */
 fun TimeWindowNumeric.windowRange(time: ZonedDateTime): ZonedDateTimeRange =
   ZonedDateTimeRange(
-    time.withHour(startHour).truncatedTo(HOURS) ,
+    time.withHour(startHour).truncatedTo(HOURS),
     time.withHour(endHour).truncatedTo(HOURS).plusHours(1).minusSeconds(1)
   )
 

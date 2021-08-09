@@ -19,7 +19,6 @@ import com.netflix.spinnaker.keel.api.Constraint
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintType
 import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint
@@ -33,7 +32,8 @@ import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint
  * previous environment in a sequence, or stateful, when the constraint requires storing and checking
  * state, for example a manual approval (where the approver and the time of approval would be recorded).
  */
-interface ConstraintEvaluator<T : Constraint> : SpinnakerExtensionPoint {
+interface ConstraintEvaluator<CONSTRAINT : Constraint> :
+  SpinnakerExtensionPoint {
 
   companion object {
     /**
@@ -59,7 +59,7 @@ interface ConstraintEvaluator<T : Constraint> : SpinnakerExtensionPoint {
   /**
    * The supported constraint type mapping for this evaluator.
    */
-  val supportedType: SupportedConstraintType<T>
+  val supportedType: SupportedConstraintType<CONSTRAINT>
 
   val eventPublisher: EventPublisher
 

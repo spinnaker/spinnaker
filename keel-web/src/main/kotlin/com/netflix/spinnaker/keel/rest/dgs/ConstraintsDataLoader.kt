@@ -29,7 +29,7 @@ import java.util.concurrent.CompletionStage
 @DgsDataLoader(name = ConstraintsDataLoader.Descriptor.name)
 class ConstraintsDataLoader(
   private val keelRepository: KeelRepository,
-  private val constraintEvaluators: List<ConstraintEvaluator<*>>,
+  constraintEvaluators: List<ConstraintEvaluator<*>>,
 ) : MappedBatchLoaderWithContext<EnvironmentArtifactAndVersion, List<MdConstraint>> {
 
   object Descriptor {
@@ -69,7 +69,13 @@ class ConstraintsDataLoader(
             )
             if (envConstraint is TimeWindowConstraint) {
               // we need to load in allowed time attrs to display in the UI
-              state = state.copy(attributes = AllowedTimesConstraintAttributes(envConstraint.windowsNumeric, envConstraint.tz, false))
+              state = state.copy(
+                attributes = AllowedTimesConstraintAttributes(
+                  allowedTimes = envConstraint.windowsNumeric,
+                  timezone = envConstraint.tz,
+                  currentlyPassing = false
+                )
+              )
             }
             state
           } else { // Stateless constraint
@@ -90,7 +96,6 @@ class ConstraintsDataLoader(
               status = if (passes) ConstraintStatus.PASS else ConstraintStatus.PENDING,
               attributes = when (envConstraint) {
                 is DependsOnConstraint -> DependsOnConstraintAttributes(envConstraint.environment, passes)
-                is TimeWindowConstraint -> AllowedTimesConstraintAttributes(envConstraint.windowsNumeric, envConstraint.tz, passes)
                 else -> null
               }
             )
