@@ -4,6 +4,7 @@ import com.netflix.graphql.dgs.DgsComponent
 import com.netflix.graphql.dgs.DgsData
 import com.netflix.graphql.dgs.DgsDataFetchingEnvironment
 import com.netflix.graphql.dgs.InputArgument
+import com.netflix.spinnaker.keel.auth.AuthorizationSupport
 import com.netflix.spinnaker.keel.front50.Front50Service
 import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.front50.model.ManagedDeliveryConfig
@@ -14,6 +15,7 @@ import com.netflix.spinnaker.keel.graphql.types.MdUpdateGitIntegrationPayload
 import com.netflix.spinnaker.keel.igor.ScmService
 import com.netflix.spinnaker.keel.igor.getDefaultBranch
 import kotlinx.coroutines.runBlocking
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.RequestHeader
 
 /**
@@ -23,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestHeader
 class GitIntegration(
   private val front50Service: Front50Service,
   private val scmService: ScmService,
+  private val authorizationSupport: AuthorizationSupport,
 ) {
 
   @DgsData(parentType = DgsConstants.MDAPPLICATION.TYPE_NAME, field = DgsConstants.MDAPPLICATION.GitIntegration)
@@ -34,6 +37,10 @@ class GitIntegration(
   }
 
   @DgsData(parentType = DgsConstants.MUTATION.TYPE_NAME, field = DgsConstants.MUTATION.UpdateGitIntegration)
+  @PreAuthorize(
+    """@authorizationSupport.hasApplicationPermission('WRITE', 'APPLICATION', #payload.application)
+    and @authorizationSupport.hasServiceAccountAccess('APPLICATION', #payload.application)"""
+  )
   fun updateGitIntegration(
     @InputArgument payload: MdUpdateGitIntegrationPayload,
     @RequestHeader("X-SPINNAKER-USER") user: String

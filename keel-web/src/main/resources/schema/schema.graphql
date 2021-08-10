@@ -333,5 +333,6 @@ enum MdEventLevel {
 }
 
 input MdDismissNotificationPayload {
+  application: String!
   id: String!
 }

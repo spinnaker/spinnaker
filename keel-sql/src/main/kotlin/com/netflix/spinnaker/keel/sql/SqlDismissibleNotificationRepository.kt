@@ -84,13 +84,14 @@ class SqlDismissibleNotificationRepository(
     )
   }
 
-  override fun dismissNotificationById(notificationUid: UID, user: String): Boolean {
+  override fun dismissNotificationById(application: String, notificationUid: UID, user: String): Boolean {
     val updatedJson = generateDismissalJson(user)
     return sqlRetry.withRetry(WRITE) {
       jooq
         .update(DISMISSIBLE_NOTIFICATION)
         .set(DISMISSIBLE_NOTIFICATION.JSON, updatedJson)
         .where(DISMISSIBLE_NOTIFICATION.UID.eq(notificationUid.toString()))
+        .and(DISMISSIBLE_NOTIFICATION.APPLICATION.eq(application))
         .execute()
     } > 0
   }

@@ -38,7 +38,7 @@ interface DismissibleNotificationRepository {
   /**
    * Sets [DismissibleNotification.isActive] to false in the corresponding database record.
    */
-  fun dismissNotificationById(notificationUid: UID, user: String): Boolean
+  fun dismissNotificationById(application: String, notificationUid: UID, user: String): Boolean
 
   /**
    * Sets [isActive] of a given [type] of [DismissibleNotification] to false for a given [application].

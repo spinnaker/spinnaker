@@ -9,6 +9,7 @@ import com.netflix.graphql.dgs.exceptions.DgsEntityNotFoundException
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.action.ActionType
 import com.netflix.spinnaker.keel.artifacts.ArtifactVersionLinks
+import com.netflix.spinnaker.keel.auth.AuthorizationSupport
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.events.EventLevel.ERROR
 import com.netflix.spinnaker.keel.events.EventLevel.WARNING
@@ -41,6 +42,7 @@ import com.netflix.spinnaker.keel.services.ResourceStatusService
 import graphql.execution.DataFetcherResult
 import graphql.schema.DataFetchingEnvironment
 import org.dataloader.DataLoader
+import org.springframework.security.access.prepost.PreAuthorize
 import java.util.concurrent.CompletableFuture
 
 /**
@@ -57,10 +59,12 @@ class ApplicationFetcher(
   private val artifactVersionLinks: ArtifactVersionLinks,
   private val applicationFetcherSupport: ApplicationFetcherSupport,
   private val notificationRepository: DismissibleNotificationRepository,
-  private val deliveryConfigImporter: DeliveryConfigImporter
+  private val deliveryConfigImporter: DeliveryConfigImporter,
+  private val authorizationSupport: AuthorizationSupport,
 ) {
 
   @DgsData(parentType = DgsConstants.QUERY.TYPE_NAME, field = DgsConstants.QUERY.Application)
+  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('READ', 'APPLICATION', #appName)""")
   fun application(dfe: DataFetchingEnvironment, @InputArgument("appName") appName: String): MdApplication {
     val config = try {
       keelRepository.getDeliveryConfigForApplication(appName)

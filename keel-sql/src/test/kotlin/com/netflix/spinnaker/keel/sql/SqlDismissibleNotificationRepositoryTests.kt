@@ -99,7 +99,7 @@ class SqlDismissibleNotificationRepositoryTests {
   @Test
   fun `correctly dismisses notification`() {
     val uid = notificationRepository.storeNotification(notification)
-    expectThat(notificationRepository.dismissNotificationById(uid, "keel@keel.io"))
+    expectThat(notificationRepository.dismissNotificationById(deliveryConfig.application, uid, "keel@keel.io"))
       .isTrue()
 
     val updatedNotification = notificationRepository.notificationHistory(deliveryConfig.application, limit = 1).first()
@@ -158,7 +158,7 @@ class SqlDismissibleNotificationRepositoryTests {
         notification.copy(triggeredAt = clock.tickMinutes(1))
       )
       if (it < 5) {
-        notificationRepository.dismissNotificationById(uid, "keel@keel.io")
+        notificationRepository.dismissNotificationById(deliveryConfig.application, uid, "keel@keel.io")
       }
     }
 
