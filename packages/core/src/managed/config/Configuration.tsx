@@ -5,6 +5,8 @@ import { Illustration } from '@spinnaker/presentation';
 
 import { ApplicationQueryError } from '../ApplicationQueryError';
 import { ProcessedDeliveryConfig } from './DeliveryConfig';
+import { GitIntegration } from './GitIntegration';
+import { SETTINGS } from '../../config/settings';
 import {
   FetchApplicationManagementDataDocument,
   useFetchApplicationManagementDataQuery,
@@ -50,9 +52,12 @@ export const Configuration = () => {
     return <ApplicationQueryError hasApplicationData={Boolean(data?.application)} error={error} />;
   }
 
+  const gitIntegration = data.application?.gitIntegration;
+
   return (
     <div className="full-width">
       <ManagementToggle isPaused={data.application?.isPaused} />
+      {SETTINGS.feature.mdGitIntegration && gitIntegration && <GitIntegration {...gitIntegration} />}
       <ProcessedDeliveryConfig />
       {/* <DeliveryConfig config={data.application?.rawConfig} /> */}
     </div>
@@ -90,6 +95,7 @@ const ManagementToggle = ({ isPaused }: IManagementToggleProps) => {
 
   return (
     <div>
+      <h4>Management</h4>
       <div>{state.title}</div>
       <div className="horizontal middle sp-margin-s-top">
         <button

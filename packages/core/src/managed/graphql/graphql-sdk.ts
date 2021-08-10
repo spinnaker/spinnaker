@@ -52,6 +52,7 @@ export interface MdApplication {
   environments: Array<MdEnvironment>;
   notifications?: Maybe<Array<MdNotification>>;
   rawConfig?: Maybe<Scalars['String']>;
+  gitIntegration?: Maybe<MdGitIntegration>;
 }
 
 export interface MdArtifact {
@@ -173,6 +174,14 @@ export type MdEventLevel =
   | 'INFO'
   | 'WARNING'
   | 'ERROR';
+
+export interface MdGitIntegration {
+  __typename?: 'MdGitIntegration';
+  id: Scalars['String'];
+  repository?: Maybe<Scalars['String']>;
+  branch?: Maybe<Scalars['String']>;
+  isEnabled?: Maybe<Scalars['Boolean']>;
+}
 
 export interface MdGitMetadata {
   __typename?: 'MdGitMetadata';
@@ -343,6 +352,11 @@ export interface MdUnpinArtifactVersionPayload {
   reference: Scalars['String'];
 }
 
+export interface MdUpdateGitIntegrationPayload {
+  application: Scalars['String'];
+  isEnabled: Scalars['Boolean'];
+}
+
 export interface MdVersionVeto {
   __typename?: 'MdVersionVeto';
   vetoedBy?: Maybe<Scalars['String']>;
@@ -360,6 +374,7 @@ export interface Mutation {
   markArtifactVersionAsGood?: Maybe<Scalars['Boolean']>;
   retryArtifactVersionAction?: Maybe<MdAction>;
   dismissNotification?: Maybe<Scalars['Boolean']>;
+  updateGitIntegration?: Maybe<MdGitIntegration>;
 }
 
 
@@ -402,6 +417,11 @@ export interface MutationRetryArtifactVersionActionArgs {
 
 export interface MutationDismissNotificationArgs {
   payload: MdDismissNotificationPayload;
+}
+
+
+export interface MutationUpdateGitIntegrationArgs {
+  payload?: Maybe<MdUpdateGitIntegrationPayload>;
 }
 
 export interface Query {
@@ -670,6 +690,10 @@ export type FetchApplicationManagementDataQuery = (
   & { application?: Maybe<(
     { __typename?: 'MdApplication' }
     & Pick<MdApplication, 'id' | 'name' | 'isPaused'>
+    & { gitIntegration?: Maybe<(
+      { __typename?: 'MdGitIntegration' }
+      & Pick<MdGitIntegration, 'id' | 'repository' | 'branch' | 'isEnabled'>
+    )> }
   )> }
 );
 
@@ -757,6 +781,19 @@ export type RetryVersionActionMutation = (
   & { retryArtifactVersionAction?: Maybe<(
     { __typename?: 'MdAction' }
     & ActionDetailsFragment
+  )> }
+);
+
+export type UpdateGitIntegrationMutationVariables = Exact<{
+  payload: MdUpdateGitIntegrationPayload;
+}>;
+
+
+export type UpdateGitIntegrationMutation = (
+  { __typename?: 'Mutation' }
+  & { updateGitIntegration?: Maybe<(
+    { __typename?: 'MdGitIntegration' }
+    & Pick<MdGitIntegration, 'id' | 'isEnabled'>
   )> }
 );
 
@@ -1204,6 +1241,12 @@ export const FetchApplicationManagementDataDocument = gql`
     id
     name
     isPaused
+    gitIntegration {
+      id
+      repository
+      branch
+      isEnabled
+    }
   }
 }
     `;
@@ -1492,3 +1535,37 @@ export function useRetryVersionActionMutation(baseOptions?: Apollo.MutationHookO
 export type RetryVersionActionMutationHookResult = ReturnType<typeof useRetryVersionActionMutation>;
 export type RetryVersionActionMutationResult = Apollo.MutationResult<RetryVersionActionMutation>;
 export type RetryVersionActionMutationOptions = Apollo.BaseMutationOptions<RetryVersionActionMutation, RetryVersionActionMutationVariables>;
+export const UpdateGitIntegrationDocument = gql`
+    mutation UpdateGitIntegration($payload: MdUpdateGitIntegrationPayload!) {
+  updateGitIntegration(payload: $payload) {
+    id
+    isEnabled
+  }
+}
+    `;
+export type UpdateGitIntegrationMutationFn = Apollo.MutationFunction<UpdateGitIntegrationMutation, UpdateGitIntegrationMutationVariables>;
+
+/**
+ * __useUpdateGitIntegrationMutation__
+ *
+ * To run a mutation, you first call `useUpdateGitIntegrationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateGitIntegrationMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateGitIntegrationMutation, { data, loading, error }] = useUpdateGitIntegrationMutation({
+ *   variables: {
+ *      payload: // value for 'payload'
+ *   },
+ * });
+ */
+export function useUpdateGitIntegrationMutation(baseOptions?: Apollo.MutationHookOptions<UpdateGitIntegrationMutation, UpdateGitIntegrationMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateGitIntegrationMutation, UpdateGitIntegrationMutationVariables>(UpdateGitIntegrationDocument, options);
+      }
+export type UpdateGitIntegrationMutationHookResult = ReturnType<typeof useUpdateGitIntegrationMutation>;
+export type UpdateGitIntegrationMutationResult = Apollo.MutationResult<UpdateGitIntegrationMutation>;
+export type UpdateGitIntegrationMutationOptions = Apollo.BaseMutationOptions<UpdateGitIntegrationMutation, UpdateGitIntegrationMutationVariables>;

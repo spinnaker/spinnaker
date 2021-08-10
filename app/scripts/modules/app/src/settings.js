@@ -42,6 +42,8 @@ const iapRefresherEnabled =
   import.meta.env.VITE_IAP_REFRESHER_ENABLED === 'true' || process.env.IAP_REFRESHER_ENABLED === 'true' || false;
 const managedDeliveryEnabled =
   import.meta.env.VITE_MANAGED_DELIVERY_ENABLED === 'true' || process.env.MANAGED_DELIVERY_ENABLED === 'true';
+const mdGitIntegrationEnabled =
+  import.meta.env.VITE_MD_GIT_INTEGRATION_ENABLED === 'true' || process.env.MD_GIT_INTEGRATION_ENABLED === 'true';
 const managedServiceAccountsEnabled =
   import.meta.env.VITE_MANAGED_SERVICE_ACCOUNTS_ENABLED === 'true' ||
   process.env.MANAGED_SERVICE_ACCOUNTS_ENABLED === 'true';
@@ -110,6 +112,7 @@ window.spinnakerSettings = {
     fiatEnabled: fiatEnabled,
     iapRefresherEnabled: iapRefresherEnabled,
     managedDelivery: managedDeliveryEnabled,
+    mdGitIntegration: mdGitIntegrationEnabled,
     managedServiceAccounts: managedServiceAccountsEnabled,
     managedResources: managedResourcesEnabled,
     notifications: false,

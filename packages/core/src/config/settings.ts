@@ -35,6 +35,7 @@ export interface IFeatures {
   fiatEnabled?: boolean;
   iapRefresherEnabled?: boolean;
   managedDelivery?: boolean;
+  mdGitIntegration?: boolean;
   managedServiceAccounts?: boolean;
   managedResources?: boolean;
   notifications?: boolean;

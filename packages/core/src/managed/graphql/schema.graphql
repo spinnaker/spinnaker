@@ -14,6 +14,14 @@ type MdApplication {
   environments: [MdEnvironment!]!
   notifications: [MdNotification!]
   rawConfig: String
+  gitIntegration: MdGitIntegration
+}
+
+type MdGitIntegration {
+  id: String!
+  repository: String
+  branch: String
+  isEnabled: Boolean
 }
 
 type MdEnvironment {
@@ -264,6 +272,12 @@ type Mutation @extends {
   markArtifactVersionAsGood(payload: MdMarkArtifactVersionAsGoodPayload!): Boolean
   retryArtifactVersionAction(payload: MdRetryArtifactActionPayload): MdAction
   dismissNotification(payload: MdDismissNotificationPayload!): Boolean
+  updateGitIntegration(payload: MdUpdateGitIntegrationPayload): MdGitIntegration
+}
+
+input MdUpdateGitIntegrationPayload {
+  application: String!
+  isEnabled: Boolean!
 }
 
 input MdRetryArtifactActionPayload {

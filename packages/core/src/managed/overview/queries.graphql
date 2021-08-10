@@ -260,6 +260,12 @@ query fetchApplicationManagementData($appName: String!) {
     id
     name
     isPaused
+    gitIntegration {
+      id
+      repository
+      branch
+      isEnabled
+    }
     # rawConfig
   }
 }
@@ -299,5 +305,12 @@ mutation MarkVersionAsGood($payload: MdMarkArtifactVersionAsGoodPayload!) {
 mutation RetryVersionAction($payload: MdRetryArtifactActionPayload!) {
   retryArtifactVersionAction(payload: $payload) {
     ...actionDetails
+  }
+}
+
+mutation UpdateGitIntegration($payload: MdUpdateGitIntegrationPayload!) {
+  updateGitIntegration(payload: $payload) {
+    id
+    isEnabled
   }
 }
