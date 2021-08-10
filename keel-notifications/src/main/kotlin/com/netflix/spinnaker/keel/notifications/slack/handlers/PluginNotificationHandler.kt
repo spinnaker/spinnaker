@@ -47,8 +47,8 @@ class PluginNotificationHandler(
       log.debug("Sending plugin notification for application ${notification.application} and environment ${notification.targetEnvironment}")
 
       val emoji = when(config.status) {
-        FAILED -> ":gear:"
-        SUCCEEDED -> ":x: :gear:"
+        FAILED -> ":x: :gear:"
+        SUCCEEDED -> ":white_check_mark: :gear:"
       }
 
       val blocks = withBlocks {
