@@ -20,6 +20,10 @@ ruleTester.run('ng-no-require-angularjs', rule, {
         import angular from 'angular';
         angular.module('foo', []);
       `,
+      output: `
+        import { module } from 'angular'
+        module('foo', []);
+      `,
     },
   ],
 });

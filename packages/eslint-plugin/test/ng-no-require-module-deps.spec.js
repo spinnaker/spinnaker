@@ -25,6 +25,11 @@ ruleTester.run('ng-no-require-module-deps', rule, {
         import angular from 'angular';
         angular.module('foo', [ require('./foo') ]);
       `,
+      output: `
+        import angular from 'angular';
+import __FOO from './foo';
+        angular.module('foo', [ __FOO ]);
+      `,
     },
   ],
 });

@@ -32,6 +32,16 @@ ruleTester.run('ng-no-component-class', rule, {
           template = 'a template';
         }
       `,
+      output: `
+        import angular from 'angular';
+        angular.module('foo', [])
+          .component('componentName', componentClass);
+
+        const componentClass = {
+  controller: function() {},
+  template: 'a template'
+};
+      `,
     },
   ],
 });

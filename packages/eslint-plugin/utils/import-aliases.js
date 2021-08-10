@@ -77,8 +77,7 @@ function getRelativeImport(sourceFileName, modulesPath, importString) {
 }
 
 function _getSourceFileDetails(sourceFile) {
-  const [, modulesPath, ownPackage, filePath] =
-    /^(.*app\/scripts\/modules)\/([^/]+)\/(?:src\/)?(.*)$/.exec(sourceFile) || [];
+  const [, modulesPath, ownPackage, filePath] = /^(.*packages)\/([^/]+)\/(?:src\/)?(.*)$/.exec(sourceFile) || [];
   const ownSubPackage = getSubPackage(ownPackage, filePath);
   const sourceDirectory = path.resolve(sourceFile, '..');
   return { modulesPath, sourceDirectory, ownPackage, ownSubPackage, filePath };

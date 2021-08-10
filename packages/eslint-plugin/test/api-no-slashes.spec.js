@@ -72,12 +72,14 @@ ruleTester.run('api-no-slashes', rule, {
     },
     // Detectable but unfixable
     {
-      code: 'API.one(`foo/${cantfix}`);',
+      code: 'API.one(`foo/${template}`);',
+      output: "API.one(...(`foo/${template}`).split('/'));",
       errors: [errorMessage], // two errors
     },
     // Detectable but unfixable
     {
       code: 'API.one("foo/" + cantfix);',
+      output: 'API.one(...("foo/" + cantfix).split(\'/\'));',
       errors: [errorMessage], // two errors
     },
   ],
