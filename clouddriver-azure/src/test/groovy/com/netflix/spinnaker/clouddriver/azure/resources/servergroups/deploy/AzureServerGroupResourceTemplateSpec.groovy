@@ -3368,7 +3368,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
             "name" : "azureMASM_health_ext",
             "properties" : {
               "publisher" : "Microsoft.ManagedServices",
-              "type" : "ApplicationHealthWindows",
+              "type" : "ApplicationHealthLinux",
               "typeHandlerVersion" : "1.0",
               "autoUpgradeMinorVersion" : true,
               "settings" : {

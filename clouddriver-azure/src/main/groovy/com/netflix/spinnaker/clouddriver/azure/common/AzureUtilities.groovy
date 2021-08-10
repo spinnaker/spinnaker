@@ -46,7 +46,8 @@ class AzureUtilities {
   static final String AZURE_CUSTOM_SCRIPT_EXT_TYPE_WINDOWS="CustomScriptExtension"
   static final String AZURE_CUSTOM_SCRIPT_EXT_PUBLISHER_WINDOWS="Microsoft.Compute"
   static final String AZURE_CUSTOM_SCRIPT_EXT_VERSION_WINDOWS="1.8"
-  static final String AZURE_HEALTH_EXT_TYPE="ApplicationHealthWindows"
+  static final String AZURE_HEALTH_EXT_TYPE_WINDOWS="ApplicationHealthWindows"
+  static final String AZURE_HEALTH_EXT_TYPE_LINUX="ApplicationHealthLinux"
   static final String AZURE_HEALTH_EXT_VERSION="1.0"
   static final String AZURE_HEALTH_EXT_PUBLISHER="Microsoft.ManagedServices"
 

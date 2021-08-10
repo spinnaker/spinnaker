@@ -901,7 +901,7 @@ class AzureServerGroupResourceTemplate {
     HealthExtensionProperty(AzureServerGroupDescription description) {
       settings = new HealthExtensionSettings(description)
       publisher = AzureUtilities.AZURE_HEALTH_EXT_PUBLISHER
-      type = AzureUtilities.AZURE_HEALTH_EXT_TYPE
+      type = description.image?.ostype?.toLowerCase() == "linux" ? AzureUtilities.AZURE_HEALTH_EXT_TYPE_LINUX : AzureUtilities.AZURE_HEALTH_EXT_TYPE_WINDOWS
       typeHandlerVersion = AzureUtilities.AZURE_HEALTH_EXT_VERSION
     }
   }
