@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.3.0](https://github.com/spinnaker/deck/compare/@spinnaker/titus@0.2.4...@spinnaker/titus@0.3.0) (2021-08-10)
+
+
+### Features
+
+* **core/pipeline:** Check if deploy stage has a trigger that provide… ([#9538](https://github.com/spinnaker/deck/issues/9538)) ([287cecb](https://github.com/spinnaker/deck/commit/287cecb5abf0871c1a2429d8c370470d54417cad))
+
+
+
+
+
 ## [0.2.4](https://github.com/spinnaker/deck/compare/@spinnaker/titus@0.2.3...@spinnaker/titus@0.2.4) (2021-08-05)
 
 

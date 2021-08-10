@@ -3,6 +3,23 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.3.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.2.1...@spinnaker/core@0.3.0) (2021-08-10)
+
+
+### Bug Fixes
+
+* **md:** hide completed task status and progress bar if completed ([#9560](https://github.com/spinnaker/deck/issues/9560)) ([6b441b0](https://github.com/spinnaker/deck/commit/6b441b03a45d10930711ab50d86f851afe8cd534))
+
+
+### Features
+
+* **core/pipeline:** Check if deploy stage has a trigger that provide… ([#9538](https://github.com/spinnaker/deck/issues/9538)) ([287cecb](https://github.com/spinnaker/deck/commit/287cecb5abf0871c1a2429d8c370470d54417cad))
+* **md:** an option to enable the auto import delivery config from git  ([#9558](https://github.com/spinnaker/deck/issues/9558)) ([fbcb21a](https://github.com/spinnaker/deck/commit/fbcb21a8ee7e2e431383d5d8b4fa79cf324a6f68))
+
+
+
+
+
 ## [0.2.1](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.2.0...@spinnaker/core@0.2.1) (2021-08-05)
 
 
