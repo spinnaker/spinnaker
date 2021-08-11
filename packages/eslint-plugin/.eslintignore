@@ -1,3 +1,4 @@
 # Built lib files
 /**/modules/*/lib/**
 /**/*.spec.*
+./template/**/*
