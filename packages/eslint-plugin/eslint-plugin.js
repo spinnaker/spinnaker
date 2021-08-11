@@ -1,3 +1,6 @@
+// This registers Typescript compiler instance into node.js's require()
+require('ts-node').register({ transpileOnly: true, skipProject: true });
+
 module.exports = {
   rules: {
     'import-sort': require('./rules/import-sort'),
