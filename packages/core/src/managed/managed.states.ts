@@ -1,7 +1,6 @@
 import { module } from 'angular';
 
 import { Environments } from './Environments';
-import { getIsNewUI } from './Environments2';
 import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from '../application/application.state.provider';
 import { SETTINGS } from '../config';
 import { Configuration } from './config/Configuration';
@@ -68,10 +67,8 @@ module(MANAGED_STATES, [APPLICATION_STATE_PROVIDER]).config([
         },
         children: [],
         redirectTo: (transition) => {
-          if (getIsNewUI()) {
-            return transition.targetState().withState('home.applications.application.environments.history');
-          }
-          return undefined;
+          // This is needed for links to the old UI
+          return transition.targetState().withState('home.applications.application.environments.history');
         },
       };
 
@@ -88,10 +85,8 @@ module(MANAGED_STATES, [APPLICATION_STATE_PROVIDER]).config([
         },
         children: [artifactVersion, ...routes],
         redirectTo: (transition) => {
-          if (getIsNewUI()) {
-            return transition.targetState().withState('home.applications.application.environments.overview');
-          }
-          return undefined;
+          // This is needed for links to the old UI
+          return transition.targetState().withState('home.applications.application.environments.overview');
         },
       };
 

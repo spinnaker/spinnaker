@@ -1,31 +1,79 @@
-.Environments {
-  display: grid;
-  grid-template-columns: minmax(300px, 3fr) 8fr;
-  grid-template-rows: auto;
+.Environments2 {
   width: 100%;
-  overflow: hidden;
+  padding: 0 var(--l-spacing);
+  --base-horizontal-padding: var(--xl-spacing);
 
-  .artifacts-column {
-    padding-right: 16px;
-    overflow: hidden;
+  @media (max-width: 768px) {
+    padding: 0;
+    --base-horizontal-padding: var(--m-spacing);
   }
 
-  .artifacts-column-scroll-container {
-    overflow: scroll;
+  a,
+  .btn-link {
+    color: var(--color-text-link-g1);
+
+    &:focus,
+    &:active {
+      outline: none;
+      box-shadow: none;
+    }
+
+    &:focus {
+      &:active {
+        outline: none;
+        box-shadow: none;
+      }
+    }
   }
 
-  .environments-column {
+  .env-direction-btn {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    line-height: 1;
+    padding: var(--xs-spacing);
+    background-color: transparent;
+    color: var(--color-dovegray);
+
+    > i {
+      margin-top: 1px;
+      font-size: 16px;
+    }
+
+    &:focus,
+    &:active:focus {
+      outline: none;
+    }
+
+    @media (max-width: 768px) {
+      display: none;
+    }
+  }
+
+  .environments-list {
+    width: 100%;
     display: grid;
-    overflow: hidden;
-  }
+    gap: var(--m-spacing);
+    align-items: flex-start;
+    --row-element-icon-width: 40px;
 
-  .environments-column-scroll-container {
-    overflow: scroll;
+    &.grid-view {
+      gap: var(--xl-spacing) var(--m-spacing);
+      --row-element-icon-width: 32px;
+    }
   }
+}
 
-  .environments-pane {
-    grid-column: 1;
-    grid-row: 1;
-    overflow: hidden;
+.ui-switcher {
+  background-color: var(--color-white);
+  padding: var(--xs-spacing) var(--s-spacing);
+  position: absolute;
+  border-radius: 4px;
+  border: 1px solid var(--color-alto);
+  bottom: 4px;
+  right: 30px;
+
+  @media (max-width: 768px) {
+    right: 8px;
   }
 }

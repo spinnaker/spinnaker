@@ -1,18 +1,22 @@
+import { ApolloProvider } from '@apollo/client';
 import { module } from 'angular';
 import classNames from 'classnames';
 import React from 'react';
 import { react2angular } from 'react2angular';
 
 import { Application } from '../../application.model';
-import { ManagedWriter } from '../../../managed';
-import { useLatestCallback, ValidationMessage } from '../../../presentation';
+import { createApolloClient } from '../../../managed/graphql/client';
+import {
+  FetchApplicationManagementDataDocument,
+  useFetchApplicationManagementStatusQuery,
+  useToggleManagementMutation,
+} from '../../../managed/graphql/graphql-sdk';
+import { ValidationMessage } from '../../../presentation';
 import { withErrorBoundary } from '../../../presentation/SpinErrorBoundary';
 import { logger } from '../../../utils';
 import { Spinner } from '../../../widgets/spinners/Spinner';
 
 import './ManagedResourceConfig.less';
-
-const { useState, useEffect } = React;
 
 export interface IManagedResourceConfigProps {
   application: Application;
@@ -54,44 +58,20 @@ const getManagementStatus = (paused: boolean) => {
   }
 };
 
-const ManagedResourceConfig = ({ application }: IManagedResourceConfigProps) => {
-  const [pausePending, setPausePending] = useState(false);
-  const [pauseFailed, setPauseFailed] = useState(false);
-  const [paused, setPaused] = useState(application.isManagementPaused);
-
-  const onRefresh = useLatestCallback(() => {
-    setPaused(application.isManagementPaused);
+const ManagedResourceConfigInternal = ({ application }: IManagedResourceConfigProps) => {
+  const appName = application.name;
+  const { data, loading } = useFetchApplicationManagementStatusQuery({ variables: { appName } });
+  const [toggleManagement, { loading: pausePending, error: pauseFailed }] = useToggleManagementMutation({
+    refetchQueries: [{ query: FetchApplicationManagementDataDocument, variables: { appName } }],
   });
-  useEffect(() => application.managedResources.onRefresh(null, onRefresh), [application]);
 
-  const pauseManagement = () => {
-    setPausePending(true);
-    setPauseFailed(false);
-    logClick('Pause Management', application.name);
+  if (loading) {
+    return <Spinner size="medium" message="Loading management state..." />;
+  }
 
-    ManagedWriter.pauseApplicationManagement(application.name)
-      .then(() => {
-        setPaused(true);
-        application.managedResources.refresh(true);
-      })
-      .catch(() => setPauseFailed(true))
-      .finally(() => setPausePending(false));
-  };
+  if (!data) return null;
 
-  const resumeManagement = () => {
-    setPausePending(true);
-    setPauseFailed(false);
-    logClick('Resume Management', application.name);
-
-    ManagedWriter.resumeApplicationManagement(application.name)
-      .then(() => {
-        setPaused(false);
-        application.managedResources.refresh(true);
-      })
-      .catch(() => setPauseFailed(true))
-      .finally(() => setPausePending(false));
-  };
-
+  const paused = Boolean(data?.application?.isPaused);
   const iconClass = paused ? 'fa-play' : 'fa-pause';
 
   return (
@@ -100,7 +80,7 @@ const ManagedResourceConfig = ({ application }: IManagedResourceConfigProps) => 
       <button
         className="btn btn-primary"
         disabled={pausePending}
-        onClick={paused ? resumeManagement : pauseManagement}
+        onClick={() => toggleManagement({ variables: { isPaused: !paused, application: appName } })}
         type="button"
       >
         {(!pausePending && <i className={classNames('fa sp-margin-xs-right', iconClass)} />) || (
@@ -124,6 +104,16 @@ const ManagedResourceConfig = ({ application }: IManagedResourceConfigProps) => 
         </a>
       </div>
     </div>
+  );
+};
+
+const ManagedResourceConfig = (props: IManagedResourceConfigProps) => {
+  const { client } = React.useMemo(createApolloClient, []);
+
+  return (
+    <ApolloProvider client={client}>
+      <ManagedResourceConfigInternal {...props} />
+    </ApolloProvider>
   );
 };
 
