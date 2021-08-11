@@ -189,10 +189,20 @@ fun PublishedArtifact.toCodeEvent(): CodeEvent? {
   }
 }
 
-internal val INTERESTING_CODE_EVENTS = setOf("create_commit", "pr_opened", "pr_merged", "pr_declined", "pr_deleted")
+internal val KNOWN_ROCKET_CODE_EVENTS = setOf(
+  "branch_launched",
+  "create_commit",
+  "create_tag",
+  "pr_declined",
+  "pr_deleted",
+  "pr_merged",
+  "pr_opened",
+  "pr_relaunched",
+  "pr_updated",
+)
 
 val PublishedArtifact.isCodeEvent: Boolean
-  get() = type in INTERESTING_CODE_EVENTS
+  get() = type in KNOWN_ROCKET_CODE_EVENTS
 
 private val PublishedArtifact.repoKey: String
   get() = metadata["repoKey"] as? String ?: throw MissingCodeEventDetails("repository", this)
