@@ -42,7 +42,7 @@
     "cleanModules": "./scripts/cleanModules.js",
     "fixup": "rm -rf node_modules && npm run cleanModules && npm run modules",
     "build": "NODE_OPTIONS=--max_old_space_size=8192 webpack --bail --mode=production --config app/scripts/modules/app/webpack.config.js",
-    "lint": "eslint --ext js,jsx,ts,tsx app",
+    "lint": "eslint --ext js,jsx,ts,tsx packages app",
     "start": "sh ./start.sh",
     "start-dev-server": "webpack-dev-server --config app/scripts/modules/app/webpack.config.js --mode=development",
     "dev:experimental": "cd app/scripts/modules/app && npm run dev:experimental",

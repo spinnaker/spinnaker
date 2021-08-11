@@ -3,3 +3,5 @@
 /**/modules/*/dist/**
 /**/*.spec.*
 node_modules
+packages/*/dist/**
+packages/*/lib/**
