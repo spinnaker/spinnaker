@@ -726,7 +726,8 @@ class ClusterHandler(
         "cloudProvider" to CLOUD_PROVIDER,
         "loadBalancers" to dependencies.loadBalancerNames,
         "targetGroups" to dependencies.targetGroups,
-        "account" to location.account
+        "account" to location.account,
+        "requireIMDSv2" to launchConfiguration.requireIMDSv2
       )
     }
       .also { job ->
