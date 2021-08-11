@@ -31,5 +31,9 @@ data class DebianArtifact(
       DebianVersionSortingStrategy
     }
 
+  override fun withDeliveryConfigName(deliveryConfigName: String): DeliveryArtifact {
+    return this.copy(deliveryConfigName = deliveryConfigName)
+  }
+
   override fun toString(): String = super.toString()
 }

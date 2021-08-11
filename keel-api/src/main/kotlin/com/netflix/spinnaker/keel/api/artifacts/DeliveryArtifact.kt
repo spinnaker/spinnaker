@@ -96,6 +96,8 @@ abstract class DeliveryArtifact {
   @get:ExcludedFromDiff
   abstract val deliveryConfigName: String?
 
+  abstract fun withDeliveryConfigName(deliveryConfigName: String): DeliveryArtifact
+
   /** A set of release statuses to filter by. Mutually exclusive with [from] filters. */
   open val statuses: Set<ArtifactStatus> = emptySet()
 
