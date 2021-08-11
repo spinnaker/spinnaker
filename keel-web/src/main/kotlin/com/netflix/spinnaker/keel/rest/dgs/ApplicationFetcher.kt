@@ -122,8 +122,10 @@ class ApplicationFetcher(
   @DgsData(parentType = DgsConstants.MDAPPLICATION.TYPE_NAME, field = DgsConstants.MDAPPLICATION.RawConfig)
   fun rawConfig(dfe: DgsDataFetchingEnvironment): String? {
     val app: MdApplication = dfe.getSource()
-    // Use the raw config from the DB if exists, otherwise fall back to fetching it from source control
-    return if (app.rawConfig.isNullOrBlank()) {
+    val config = applicationFetcherSupport.getDeliveryConfigFromContext(dfe)
+    // If the raw config is empty or if it was imported via orca (orca adds the gitMetadata to the metadata) we fetch it again from stash
+    // TODO: remove this once we removed the import pipeline completely
+    return if (app.rawConfig.isNullOrBlank() || config.metadata.containsKey("gitMetadata")) {
       deliveryConfigImporter.import(app.name, addMetadata = false).rawConfig
     } else {
       app.rawConfig
