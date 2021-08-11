@@ -1,10 +1,10 @@
 import { cloneDeep } from 'lodash';
 import React from 'react';
 
-import { IStageConfigProps } from '../common';
 import { FormikStageConfig, IFormikStageConfigInjectedProps } from '../FormikStageConfig';
 import { GoogleCloudBuildStageForm } from './GoogleCloudBuildStageForm';
 import { BuildDefinitionSource, IGoogleCloudBuildStage } from './IGoogleCloudBuildStage';
+import { IStageConfigProps } from '../common';
 import { validate } from './googleCloudBuildValidators';
 
 export function GoogleCloudBuildStageConfig({ application, pipeline, stage, updateStage }: IStageConfigProps) {

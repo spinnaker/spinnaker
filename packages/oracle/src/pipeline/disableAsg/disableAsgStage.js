@@ -1,13 +1,12 @@
 'use strict';
 
-import angular from 'angular';
+import { module } from 'angular'
 
 import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 
 export const ORACLE_PIPELINE_DISABLEASG_DISABLEASGSTAGE = 'spinnaker.oracle.pipeline.stage.disableAsgStage';
 export const name = ORACLE_PIPELINE_DISABLEASG_DISABLEASGSTAGE; // for backwards compatibility
-angular
-  .module(ORACLE_PIPELINE_DISABLEASG_DISABLEASGSTAGE, [])
+module(ORACLE_PIPELINE_DISABLEASG_DISABLEASGSTAGE, [])
   .config(function () {
     Registry.pipeline.registerStage({
       provides: 'disableServerGroup',

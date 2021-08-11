@@ -1,19 +1,11 @@
 import React from 'react';
 
-import {
-  Application,
-  confirmNotManaged,
-  CurrentCapacity,
-  DesiredCapacity,
-  Overridable,
-  ReactModal,
-  showModal
-} from '@spinnaker/core';
-import { ITitusServerGroup } from '../../domain';
-import { TitusProviderSettings } from '../../titus.settings';
-import { TitusScalingActivitiesModal } from './scalingActivity/TitusScalingActivitiesModal';
+import { Application, confirmNotManaged, CurrentCapacity, DesiredCapacity, Overridable, ReactModal, showModal } from '@spinnaker/core';
 
+import { ITitusServerGroup } from '../../domain';
 import { ITitusResizeServerGroupModalProps, TitusResizeServerGroupModal } from './resize/TitusResizeServerGroupModal';
+import { TitusScalingActivitiesModal } from './scalingActivity/TitusScalingActivitiesModal';
+import { TitusProviderSettings } from '../../titus.settings';
 
 interface ICapacityDetailsSectionProps {
   app: Application;

@@ -1,10 +1,10 @@
 'use strict';
 
-import angular from 'angular';
+import { module } from 'angular'
 
 export const DCOS_SEARCH_RESULTFORMATTER = 'spinnaker.dcos.search.formatter';
 export const name = DCOS_SEARCH_RESULTFORMATTER; // for backwards compatibility
-angular.module(DCOS_SEARCH_RESULTFORMATTER, []).factory('dcosSearchResultFormatter', [
+module(DCOS_SEARCH_RESULTFORMATTER, []).factory('dcosSearchResultFormatter', [
   '$q',
   function ($q) {
     return {

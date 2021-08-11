@@ -1,7 +1,7 @@
 'use strict';
 
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
-import angular from 'angular';
+import { module } from 'angular'
 import _ from 'lodash';
 import { Duration } from 'luxon';
 
@@ -16,8 +16,7 @@ import { ClusterState } from '../../../../state';
 export const CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYEXECUTIONDETAILS_CONTROLLER =
   'spinnaker.core.pipeline.stage.deploy.details.controller';
 export const name = CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYEXECUTIONDETAILS_CONTROLLER; // for backwards compatibility
-angular
-  .module(CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYEXECUTIONDETAILS_CONTROLLER, [
+module(CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYEXECUTIONDETAILS_CONTROLLER, [
     UIROUTER_ANGULARJS,
     EXECUTION_DETAILS_SECTION_SERVICE,
   ])

@@ -1,6 +1,7 @@
 import { ILoadBalancer } from '@spinnaker/core';
-import { mockInstanceCounts } from './mockInstanceCounts';
+
 import { mockInstance } from './mockInstance';
+import { mockInstanceCounts } from './mockInstanceCounts';
 import { mockMoniker } from './mockMoniker';
 
 export const mockLoadBalancer: ILoadBalancer = {

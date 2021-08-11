@@ -1,11 +1,11 @@
 import React from 'react';
 
+import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
+import { StageFailureMessage } from '../../../details';
 import { IArtifact } from '../../../../domain';
 import { ManifestYaml } from '../../../../manifest';
 import { Overridable } from '../../../../overrideRegistry';
 import { decodeUnicodeBase64 } from '../../../../utils';
-import { StageFailureMessage } from '../../../details';
-import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
 
 @Overridable('bakeManifest.bakeManifestDetailsTab')
 export class BakeManifestDetailsTab extends React.Component<IExecutionDetailsSectionProps> {

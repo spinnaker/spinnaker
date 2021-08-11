@@ -1,4 +1,4 @@
-import { IEbsBlockDevice, IBlockDeviceMapping } from '@spinnaker/amazon';
+import { IBlockDeviceMapping, IEbsBlockDevice } from '@spinnaker/amazon';
 
 export const createMockEbsBlockDevice = (options?: { size?: number; type?: string }): IEbsBlockDevice => ({
   deleteOnTermination: false,

@@ -1,4 +1,5 @@
-import { IAmazonServerGroup, IAmazonAsg, ISuspendedProcess, IAmazonLaunchTemplate } from '@spinnaker/amazon';
+import { IAmazonAsg, IAmazonLaunchTemplate, IAmazonServerGroup, ISuspendedProcess } from '@spinnaker/amazon';
+
 import { mockLaunchTemplate } from './mockAmazonLaunchTemplate';
 import { mockInstanceCounts } from './../mockInstanceCounts';
 

@@ -2,23 +2,15 @@ import { get } from 'lodash';
 import React from 'react';
 
 import { AwsCodeBuildSecondarySourcesVersionList, AwsCodeBuildSourceList } from './AwsCodeBuildSourceList';
+import { IFormikStageConfigInjectedProps } from '../FormikStageConfig';
 import { EXCLUDED_ARTIFACT_TYPES, IAwsCodeBuildSource, SOURCE_TYPES } from './IAwsCodeBuildSource';
-
-import { StageArtifactSelector } from '../../../../artifact'; 
+import { StageArtifactSelector } from '../../../../artifact';
 import { IgorService } from '../../../../ci';
 import { IArtifact, IExpectedArtifact } from '../../../../domain';
-import { MapEditorInput } from '../../../../forms'; 
+import { MapEditorInput } from '../../../../forms';
 import { HelpField } from '../../../../help';
-import { 
-  CheckboxInput, 
-  FormikFormField,
-  IFormInputProps,
-  ReactSelectInput, 
-  TextInput, 
-  useData 
-} from '../../../../presentation';
-import { YamlEditor } from '../../../../yamlEditor'; 
-import { IFormikStageConfigInjectedProps } from '../FormikStageConfig';
+import { CheckboxInput, FormikFormField, IFormInputProps, ReactSelectInput, TextInput, useData } from '../../../../presentation';
+import { YamlEditor } from '../../../../yamlEditor';
 
 
 export function AwsCodeBuildStageForm(props: IFormikStageConfigInjectedProps) {

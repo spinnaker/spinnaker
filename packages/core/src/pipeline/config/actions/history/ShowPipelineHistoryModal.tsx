@@ -7,7 +7,7 @@ import { IPipeline } from '../../../../domain';
 import { ModalClose } from '../../../../modal';
 import { FormField, IModalComponentProps, ReactSelectInput, useData } from '../../../../presentation';
 import { PipelineConfigService } from '../../services/PipelineConfigService';
-import { IJsonDiff, JsonUtils, timestamp, DiffView } from '../../../../utils';
+import { DiffView, IJsonDiff, JsonUtils, timestamp } from '../../../../utils';
 import { Spinner } from '../../../../widgets';
 
 import './showHistory.less';

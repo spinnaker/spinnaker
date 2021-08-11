@@ -1,8 +1,8 @@
 import React from 'react';
 
-import { SearchStatus } from './SearchStatus';
 import { Searching, SearchResultGrid } from './SearchResultGrid';
 import { SearchResultTabs } from './SearchResultTabs';
+import { SearchStatus } from './SearchStatus';
 import { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
 import { SearchResultType } from './searchResultType';
 

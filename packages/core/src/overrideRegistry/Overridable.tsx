@@ -5,8 +5,8 @@ import { map, switchMap, takeUntil } from 'rxjs/operators';
 
 import { AccountService, IAccountDetails } from '../account/AccountService';
 import { CloudProviderRegistry } from '../cloudProvider/CloudProviderRegistry';
-import { ReactInjector } from '../reactShims/react.injector';
 import { AngularJSAdapter } from '../reactShims/AngularJSAdapter';
+import { ReactInjector } from '../reactShims/react.injector';
 import { Spinner } from '../widgets/spinners/Spinner';
 
 export interface IOverridableProps {

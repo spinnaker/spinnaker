@@ -1,11 +1,11 @@
 import { $http, $log } from 'ngimport';
 import React from 'react';
+// @ts-ignore
+import version from 'root/version.json';
 
 import { IScheduler, SchedulerFactory } from '../scheduler/SchedulerFactory';
 import { timestamp } from '../utils/timeFormatters';
 import { NotifierService } from '../widgets/notifier/notifier.service';
-// @ts-ignore
-import version from 'root/version.json';
 
 export interface IDeckVersion {
   version: string;

@@ -15,6 +15,7 @@ import { TARGET_SELECT_COMPONENT } from './targetSelect.component';
 import './triggers';
 import { TRIGGERS } from './triggers/triggers.module';
 import './validation/anyFieldRequired.validator';
+import './validation/imageProviderBeforeType.validator';
 import './validation/repositoryInformationProvided.validator';
 import './validation/requiredField.validator';
 import './validation/serviceAccountAccess.validator';
@@ -22,7 +23,6 @@ import './validation/stageBeforeType.validator';
 import './validation/stageOrTriggerBeforeType.validator';
 import './validation/targetImpedance.validator';
 import './validation/upstreamVersionProvided.validator';
-import './validation/imageProviderBeforeType.validator';
 
 import './pipelineConfig.less';
 
