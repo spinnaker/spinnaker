@@ -40,10 +40,10 @@ const rule = function (context) {
 
   function compareParamsAndDI(node, name, type, context, params, diStrings) {
     const paramNames = params.map((p) => normalizeParameter(p));
-    const diCount = diStrings ? diStrings.length : 'no';
+    const diCount = diStrings ? diStrings.length : 0;
     const paramCount = paramNames.length;
 
-    if (diCount !== paramCount) {
+    if (diCount === 0 && diCount !== paramCount) {
       const message =
         `The injected function${name ? ` '${name}'` : ''} ` +
         `has ${paramCount} parameter(s): ${JSON.stringify(paramNames)}, ` +
@@ -77,7 +77,7 @@ const rule = function (context) {
       const message =
         `The injected function${name ? ` '${name}'` : ''} ` +
         `has ${paramCount} parameter(s): ${JSON.stringify(paramNames)}, ` +
-        `but there were ${diCount} DI strings${diCount !== 'no' ? `: ${JSON.stringify(diStrings)} ` : ''}`;
+        `but there were ${diCount} DI strings${diCount === 0 ? '' : `: ${JSON.stringify(diStrings)} `}`;
       context.report({ node, message });
     } else if (!isEqual(diStrings, paramNames)) {
       const message =

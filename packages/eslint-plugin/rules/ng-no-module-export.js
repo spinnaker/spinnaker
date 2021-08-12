@@ -7,7 +7,7 @@
  * @category conventions
  * @sinceAngularVersion 1.x
  */
-const rule = function(context) {
+const rule = function (context) {
   function getSuggestedVariableNameForFile() {
     const filename = context.getFilename();
     if (filename.includes('/modules/')) {
@@ -21,7 +21,7 @@ const rule = function(context) {
   }
 
   return {
-    AssignmentExpression: function(node) {
+    AssignmentExpression: function (node) {
       const { left = {}, right = {} } = node;
       const isModuleExports = isModuleExportMemberExpression(left);
       const moduleNameNode = getAngularModuleNameNode(right);
@@ -29,7 +29,7 @@ const rule = function(context) {
         const message = 'Prefer exporting the AngularJS module name instead of the entire module';
         const variableName = getSuggestedVariableNameForFile();
 
-        function fix(fixer) {
+        const fix = (fixer) => {
           const assignmentRange = [left.range[0], right.range[0]];
           const exportModuleVariable = `export const ${variableName} = ${moduleNameNode.raw};\n`;
           const exportNameVariable = `export const name = ${variableName}; // for backwards compatibility\n`;
@@ -41,7 +41,7 @@ const rule = function(context) {
             // Replace 'angular.module("foo"' with 'angular.module(FOO'
             fixer.replaceText(moduleNameNode, variableName),
           ];
-        }
+        };
 
         if (variableName) {
           context.report({ node, message, fix });

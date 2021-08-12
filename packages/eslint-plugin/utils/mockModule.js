@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 function mockModule(moduleName) {
   jest.mock(moduleName);
   const mockedModule = require(moduleName);
