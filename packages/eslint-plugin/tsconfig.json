@@ -12,7 +12,6 @@
   },
   "include": ["rules/**/*.ts", "utils/**/*.ts"],
   "ts-node": {
-    "transpileOnly": true,
-    "transpiler": "ts-node/transpilers/swc-experimental"
+    "transpileOnly": true
   }
 }

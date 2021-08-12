@@ -22,7 +22,12 @@ module.exports = {
 
 ## Creating a custom lint rule
 
-To create a rule, add the rule to `eslint-plugin/rules/my-rule.js` and add a test to `eslint-plugin/test/my-rule.spec.js`.
+This `yarn create-rule` command will:
+
+- Scaffolds a sample rule
+- Scaffolds a test for the sample rule
+- Adds the rule to the plugin (`eslint-plugin.ts`)
+- Adds the rule as an "error" to the plugin's base config `base.config.js`)
 
 The rule should examine AST nodes to detect a lint violation.
 Optionally, it can provide an automatic code fixer.
@@ -37,32 +42,42 @@ Optionally, it can provide an automatic code fixer.
 
 #### Write a rule
 
-A rule file exports a rule metadata using CommonJS.
-See: https://eslint.org/docs/developer-guide/working-with-rules#rule-basics
+A rule file exports a Rule.RuleContext object.
 
-```js
-module.exports = {
+```ts
+import { Rule } from 'eslint';
+const rule: Rule.RuleModule = {
   meta: {
     type: 'problem',
     docs: { description: `Rule Description` },
     fixable: 'code',
   },
-  create: myRuleFunction,
+  create: function myRuleFunction(context: Rule.RuleContext) {
+    return {
+      // rule contents here
+    };
+  },
 };
+export default rule;
 ```
 
-> Export the rule function `myRuleFunction` itself as the `.create` property.
+> See: the [official docs](https://eslint.org/docs/developer-guide/working-with-rules#rule-basics) in a couple ways.
+>
+> Spinnaker rules can be written in Typescript instead of CommonJS
 
-The rule function is a callback that receives a `context` and returns an object containing callbacks for AST node types.
+`myRuleFunction` is a callback that receives an [eslint context](https://eslint.org/docs/developer-guide/working-with-rules#the-context-object) and returns an object containing callbacks for AST node types.
 
 Each callback will be called when the parser encounters a node of that type.
 When a lint violation is detected, the callback should report it to the context object.
 
-```js
-function myRuleFunction(context) {
+```ts
+import { Rule } from 'eslint';
+import { SimpleLiteral } from 'estree';
+//  ...
+function myRuleFunction(context: Rule.RuleContext) {
   return {
     // This callback is called whenever a 'Literal' node is encountered
-    Literal: function (literalNode) {
+    Literal: function (literalNode: SimpleLiteral & Rule.NodeParentExtension) {
       if (literalNode.raw.includes('JenkinsX')) {
         // lint violation encountered; report it
         const message = 'String literals may not include JenkinsX';
@@ -73,25 +88,76 @@ function myRuleFunction(context) {
 }
 ```
 
+> This example explicitly types the `context` and `literalNode` parameters, but these can be automatically inferred by Typescript
+
+In addition to callbacks that trigger on a simple node type (`Literal` in the example above),
+you can also trigger a callback using an [eslint selector](https://eslint.org/docs/developer-guide/selectors).
+
+Think of an eslint selector as a CSS selector, but for an AST.
+Selectors can reduce boilerplate while writing a rule, but more importantly they can potentially improve readability.
+
+```ts
+// Using a selector
+function myRuleFunction(context: Rule.RuleContext) {
+  return {
+    // Find an ExpressionStatement
+    // - that is a CallExpression
+    //   - that has a callee object named 'React'
+    //   - and has a callee property named 'useEffect'
+    "ExpressionStatement > CallExpression[callee.object.name = 'React'][callee.property.name = 'useEffect']"(
+      node: ExpressionStatement,
+    ) {
+      const message = 'Prefer bare useEffect() over React.useEffect()';
+      context.report({ node, message });
+    },
+  };
+}
+
+// Not using a selector
+function myRuleFunction(context: Rule.RuleContext) {
+  return {
+    ExpressionStatement(node) {
+      const expression = node.expression;
+      if (
+        expression?.type === 'CallExpression' &&
+        expression.callee.type === 'MemberExpression' &&
+        expression.callee.object.name === 'React' &&
+        expression.callee.property.name === 'useEffect'
+      ) {
+        const message = 'Prefer bare useEffect() over React.useEffect()';
+        context.report({ node, message });
+      }
+    },
+  };
+}
+```
+
+> One downside of using eslint selectors is the node type is not automatically inferred in the callback.
+> When using selectors, you should explicitly type the node parameter.
+
 #### Test a rule
 
-Create a test file for your rule in `../test` following the naming convention.
-Add some boilerplate:
+We run the tests using [Jest](http://jestjs.io/), but we do not use jest assertions.
+Instead, we use the `RuleTester` API from eslint to define our assertions.
 
-```js
-'use strict';
-const ruleTester = require('../utils/ruleTester');
-const rule = require('../rules/my-rule');
-ruleTester.run('my-rule', rule, {
-  valid: [],
-  invalid: [],
+```ts
+import { ruleTester } from '../utils/ruleTester';
+import { rule } from './my-cool-rule';
+
+ruleTester.run('my-cool-rule', rule, {
+  valid: [
+    /** code that doesn't trigger the rule */
+  ],
+  invalid: [
+    /** code that triggers the rule */
+  ],
 });
 ```
 
-Add at least one valid and one invalid test cases:
+Make sure to add at least one valid and one invalid test cases:
 
-```js
-ruleTester.run('my-rule', rule, {
+```ts
+ruleTester.run('my-cool-rule', rule, {
   valid: [
     {
       code: 'var foo = "bar";',
@@ -116,7 +182,7 @@ Run the tests from `/packages/eslint-plugin`:
 ❯ yarn test
 yarn run v1.22.4
 $ jest
- PASS  test/my-rule.spec.js
+ PASS  test/my-cool-rule.spec.js
 
 Test Suites: 1 passed, 1 total
 Tests:       3 passed, 3 total
@@ -145,8 +211,8 @@ An auto-fixer replaces AST nodes which violate the rule with non-violating code.
 
 When reporting a lint violation for your rule, return a `fix` function.
 
-```js
-Literal: function(literalNode) {
+```ts
+Literal(literalNode) {
   if (literalNode.raw.includes('JenkinsX')) {
     // lint violation encountered; report it
     const message = 'String literals may not include JenkinsX';
@@ -159,8 +225,7 @@ Literal: function(literalNode) {
 }
 ```
 
-See: https://eslint.org/docs/developer-guide/working-with-rules#applying-fixes
-for details on the fixer api.
+Review the [fixer api docs](https://eslint.org/docs/developer-guide/working-with-rules#applying-fixes) for more details.
 
 If you need to fix more than one thing for a given rule, you may return an array of fixes.
 
@@ -189,33 +254,6 @@ invalid: [
 ];
 ```
 
-### Add a rule to the plugin
+### Publishing
 
-Add your rule to the plugin definition in `eslint-plugin.js`:
-
-```js
-module.exports = {
-  rules: {
-    'my-rule': require('./rules/my-rule'),
-  },
-  configs: {
-    base: require('./base.config.js'),
-    none: require('./none.config.js'),
-  },
-};
-```
-
-Then add the rule (via the plugin namespace) to `base.config.js`:
-
-```js
-module.exports = {
-  parser: '@typescript-eslint/parser',
-  parserOptions: { sourceType: 'module' },
-  plugins: ['@typescript-eslint', '@spinnaker/eslint-plugin', 'react-hooks'],
-  extends: ['eslint:recommended', 'prettier', 'prettier/@typescript-eslint', 'plugin:@typescript-eslint/recommended'],
-  rules: {
-    '@spinnaker/my-rule': 2,
-    ... etc
-  }
-  ... etc
-```
+After committing and pushing your new rule, bump the version in package.json (commit and push) and then run `npm publish` manually.
