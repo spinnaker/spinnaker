@@ -20,6 +20,42 @@ jobs:
     steps:
       - run: echo test, build successful
 
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-node@v1
+        with:
+          node-version: ${{ env.NODE_VERSION  }}
+
+      - name: Get yarn cache
+        id: yarn-cache
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+
+      - uses: actions/cache@v1
+        with:
+          path: ${{ steps.yarn-cache.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Install Dependencies
+        run: yarn --frozen-lockfile
+
+      - name: Eslint Plugin Build`
+        run: |
+          cd packages/eslint-plugin
+          yarn tsc
+          yarn test
+
+      - name: Assert - no lint violations
+        run: yarn lint
+
+      - name: Assert - code is formatted
+        run: yarn prettier:check
+
   test:
     name: Unit tests
     runs-on: ubuntu-latest
@@ -53,7 +89,10 @@ jobs:
       - name: Eslint Plugin Tests
         run: |
           cd packages/eslint-plugin
+          yarn tsc
           yarn test
+          cd ../..
+          yarn lint
 
   functional-tests:
     name: Functional tests
