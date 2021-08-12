@@ -37,7 +37,7 @@ import lombok.Getter;
 import org.springframework.stereotype.Component;
 
 @Component
-public class KubernetesPodHandler extends KubernetesHandler {
+public class KubernetesPodHandler extends KubernetesHandler implements CanReceiveTraffic {
   @Nonnull
   @Override
   protected ImmutableList<Replacer> artifactReplacers() {

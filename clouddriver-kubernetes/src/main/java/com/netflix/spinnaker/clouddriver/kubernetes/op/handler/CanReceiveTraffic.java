@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Google, Inc.
+ * Copyright 2021 J.P. Morgan Chase & Co.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,16 +12,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package com.netflix.spinnaker.clouddriver.kubernetes.op.handler;
 
-import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model.KubernetesServerGroup;
-import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.data.KubernetesServerGroupCacheData;
-
-public interface ServerGroupHandler extends CanReceiveTraffic {
-  default KubernetesServerGroup fromCacheData(KubernetesServerGroupCacheData cacheData) {
-    return KubernetesServerGroup.fromCacheData(cacheData);
-  }
-}
+public interface CanReceiveTraffic {}

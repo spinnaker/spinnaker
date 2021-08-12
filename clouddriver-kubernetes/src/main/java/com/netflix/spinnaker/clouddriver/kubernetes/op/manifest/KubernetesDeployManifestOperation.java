@@ -30,9 +30,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesResour
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.*;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifestStrategy.Versioned;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.OperationResult;
-import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.CanLoadBalance;
-import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.CanScale;
-import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesHandler;
+import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.*;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
@@ -124,11 +122,14 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
                     }
                   }
 
-                  setTrafficAnnotation(description.getServices(), manifest);
-                  if (description.isEnableTraffic()) {
-                    KubernetesManifestTraffic traffic =
-                        KubernetesManifestAnnotater.getTraffic(manifest);
-                    applyTraffic(traffic, manifest, inputManifests);
+                  if (deployer instanceof CanReceiveTraffic) {
+                    setTrafficAnnotation(description.getServices(), manifest);
+
+                    if (description.isEnableTraffic()) {
+                      KubernetesManifestTraffic traffic =
+                          KubernetesManifestAnnotater.getTraffic(manifest);
+                      applyTraffic(traffic, manifest, inputManifests);
+                    }
                   }
 
                   credentials.getNamer().applyMoniker(manifest, moniker);

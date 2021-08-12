@@ -133,6 +133,22 @@ final class KubernetesDeployManifestOperationTest {
   }
 
   @Test
+  void doesNotSendTrafficWhenEnableTrafficTrueAndCantHandleTraffic() {
+    KubernetesDeployManifestDescription description =
+        baseDeployDescription("deploy/configmap.yml")
+            .setServices(ImmutableList.of("service my-service"))
+            .setEnableTraffic(true);
+    OperationResult result = deploy(description);
+
+    KubernetesManifest manifest = Iterables.getOnlyElement(result.getManifests());
+    assertThat(manifest.getSpecTemplateLabels().orElse(manifest.getLabels()))
+        .doesNotContain(entry("selector-key", "selector-value"));
+
+    KubernetesManifestTraffic traffic = KubernetesManifestAnnotater.getTraffic(manifest);
+    assertThat(traffic.getLoadBalancers()).doesNotContain("service my-service");
+  }
+
+  @Test
   void failsWhenServiceHasNoSelector() {
     KubernetesDeployManifestDescription description =
         baseDeployDescription("deploy/replicaset.yml")
