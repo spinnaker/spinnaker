@@ -1,4 +1,11 @@
-import { ICreationMetadata, ICreationMetadataTag, IEntityRef, IEntityTag, IEntityTags, IEntityTagsMetadata } from '@spinnaker/core';
+import {
+  ICreationMetadata,
+  ICreationMetadataTag,
+  IEntityRef,
+  IEntityTag,
+  IEntityTags,
+  IEntityTagsMetadata,
+} from '@spinnaker/core';
 
 export const mockEntityTagsMetadata: IEntityTagsMetadata = {
   created: 1580755347841,

@@ -1,6 +1,12 @@
 import React from 'react';
 
-export function ServerGroupStageContext({status = "Disabled", serverGroups}: { status: string, serverGroups: { [region: string]: string[] } }) {
+export function ServerGroupStageContext({
+  status = 'Disabled',
+  serverGroups,
+}: {
+  status: string;
+  serverGroups: { [region: string]: string[] };
+}) {
   if (!serverGroups) {
     return null;
   }

@@ -71,7 +71,7 @@ function checkPlugin(options) {
     }
   }
 
-  linters.forEach(linter => linter(reporter));
+  linters.forEach((linter) => linter(reporter));
 
   const fixingErrors = fix && errorFixers.length;
   const fixingWarnings = fixWarnings && warningFixers.length;
@@ -98,10 +98,10 @@ function checkPlugin(options) {
   console.log();
 
   if (fix) {
-    errorFixers.forEach(fix => fix());
+    errorFixers.forEach((fix) => fix());
   }
 
   if (fixWarnings) {
-    warningFixers.forEach(fix => fix());
+    warningFixers.forEach((fix) => fix());
   }
 }

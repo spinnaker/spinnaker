@@ -25,7 +25,7 @@ export function WidgetizeStageConfig(props: IStageConfigProps) {
         {...props}
         validate={validate}
         onChange={props.updateStage}
-        render={props => <WidgetizeStageForm {...props} />}
+        render={(props) => <WidgetizeStageForm {...props} />}
       />
     </div>
   );
@@ -38,14 +38,14 @@ function WidgetizeStageForm(props: IFormikStageConfigInjectedProps) {
         name="instanceCount"
         label="Instance Count"
         help={<HelpField content="The number of instances to widgetize" />}
-        input={props => <NumberInput {...props} />}
+        input={(props) => <NumberInput {...props} />}
       />
 
       <FormikFormField
         name="user.email"
         label="User Email"
         help={<HelpField content="The email address of the user performing the widgetize operation" />}
-        input={props => <TextInput {...props} />}
+        input={(props) => <TextInput {...props} />}
       />
     </>
   );
@@ -60,10 +60,7 @@ export function validate(stageConfig: IStage) {
     .required()
     .withValidators((value, label) => (value < 10 ? `${label} must be > 10` : undefined));
 
-  validator
-    .field('user.email', 'Email')
-    .required()
-    .withValidators(Validators.emailValue('Invalid email'));
+  validator.field('user.email', 'Email').required().withValidators(Validators.emailValue('Invalid email'));
 
   return validator.validateForm();
 }

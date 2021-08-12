@@ -1,6 +1,6 @@
 'use strict';
 
-import { module } from 'angular'
+import { module } from 'angular';
 
 import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 

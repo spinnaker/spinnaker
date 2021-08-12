@@ -1,7 +1,16 @@
 import { DateTime } from 'luxon';
 import * as React from 'react';
 
-import { ICapacity, IModalComponentProps, ModalBody, ModalFooter, ModalHeader, ServerGroupReader, Spinner, useData } from '@spinnaker/core';
+import {
+  ICapacity,
+  IModalComponentProps,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+  ServerGroupReader,
+  Spinner,
+  useData,
+} from '@spinnaker/core';
 
 import { ITitusServerGroup } from '../../../domain';
 
@@ -17,7 +26,7 @@ interface ITitusScalingEvent {
   jobId: string;
   jobState: JobState;
   reasonCode: string;
-  reasonMessage: string; 
+  reasonMessage: string;
 }
 
 export const TitusScalingActivitiesModal = ({ dismissModal, serverGroup }: ITitusScalingActivitiesProps) => {
@@ -77,4 +86,4 @@ export const TitusScalingActivitiesModal = ({ dismissModal, serverGroup }: ITitu
       />
     </>
   );
-}
+};

@@ -9,9 +9,15 @@ import { IgorService } from '../../../../ci';
 import { IArtifact, IExpectedArtifact } from '../../../../domain';
 import { MapEditorInput } from '../../../../forms';
 import { HelpField } from '../../../../help';
-import { CheckboxInput, FormikFormField, IFormInputProps, ReactSelectInput, TextInput, useData } from '../../../../presentation';
+import {
+  CheckboxInput,
+  FormikFormField,
+  IFormInputProps,
+  ReactSelectInput,
+  TextInput,
+  useData,
+} from '../../../../presentation';
 import { YamlEditor } from '../../../../yamlEditor';
-
 
 export function AwsCodeBuildStageForm(props: IFormikStageConfigInjectedProps) {
   const stage = props.formik.values;

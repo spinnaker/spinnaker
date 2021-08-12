@@ -52,7 +52,7 @@ function getPluginId() {
       .readFileSync(path.resolve('..', 'build.gradle'))
       .toString()
       .split(/\n/)
-      .find(line => line.includes('pluginId'));
+      .find((line) => line.includes('pluginId'));
 
     const [_, pluginId] = /pluginId\s*=\s*"([^"]+)"/.exec(line);
     return pluginId;
@@ -97,10 +97,15 @@ app.use('/', createProxyMiddleware({ target: DEV_PROXY_HOST, changeOrigin: true 
 http.createServer(app).listen(9000);
 
 // https
-https.createServer({
-  key: certs.key,
-  cert: certs.cert,
-}, app).listen(9443);
+https
+  .createServer(
+    {
+      key: certs.key,
+      cert: certs.cert,
+    },
+    app,
+  )
+  .listen(9443);
 
 console.log(`Server started on http://localhost:9000/`);
 console.log(`Server started on https://localhost:9443/`);

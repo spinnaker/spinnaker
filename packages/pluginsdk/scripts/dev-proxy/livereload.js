@@ -9,7 +9,7 @@ const wss = new WebSocket.Server({ port: 8999 });
 wss.on('listening', () => {
   console.log('Websocket (livereload) listening on localhost:8999');
 });
-wss.on('connection', ws => {
+wss.on('connection', (ws) => {
   clients.push(ws);
   ws.on('close', () => {
     const index = clients.indexOf(ws);
@@ -22,9 +22,9 @@ wss.on('connection', ws => {
 const watchPath = path.resolve('build', 'dist', 'index.js');
 const watcher = chokidar.watch(watchPath);
 console.log(`Watching ${watchPath} for changes`);
-watcher.on('change', path => {
+watcher.on('change', (path) => {
   console.log(`${path} changed, reloading ${clients.length} connected browsers`);
-  clients.forEach(ws => {
+  clients.forEach((ws) => {
     try {
       if (ws.readyState === WebSocket.OPEN) {
         ws.send('livereload');

@@ -44,7 +44,7 @@ module(AMAZON_PIPELINE_STAGES_CLONESERVERGROUP_AWSCLONESERVERGROUPSTAGE, [])
       stage.cloudProvider = 'aws';
       stage.cloudProviderType = 'aws';
       stage.viewState = {
-        mode: 'editPipeline'
+        mode: 'editPipeline',
       };
 
       if (

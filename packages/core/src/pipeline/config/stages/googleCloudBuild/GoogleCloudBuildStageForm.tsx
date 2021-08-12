@@ -7,7 +7,16 @@ import { BuildDefinitionSource, TriggerType } from './IGoogleCloudBuildStage';
 import { ArtifactTypePatterns, excludeAllTypesExcept, StageArtifactSelectorDelegate } from '../../../../artifact';
 import { IgorService } from '../../../../ci';
 import { IArtifact, IExpectedArtifact } from '../../../../domain';
-import { FormikFormField, FormikSpelContextProvider, IFormInputProps, RadioButtonInput, ReactSelectInput, SpelService, TextInput, useData } from '../../../../presentation';
+import {
+  FormikFormField,
+  FormikSpelContextProvider,
+  IFormInputProps,
+  RadioButtonInput,
+  ReactSelectInput,
+  SpelService,
+  TextInput,
+  useData,
+} from '../../../../presentation';
 import { yamlDocumentsToString, YamlEditor } from '../../../../yamlEditor';
 
 const SOURCE_OPTIONS: Array<Option<string>> = [

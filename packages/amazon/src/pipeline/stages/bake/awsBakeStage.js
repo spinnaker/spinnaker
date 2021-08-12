@@ -65,7 +65,7 @@ module(AMAZON_PIPELINE_STAGES_BAKE_AWSBAKESTAGE, [AMAZON_PIPELINE_STAGES_BAKE_BA
         dockerBakeWarning: AWSProviderSettings.dockerBakeWarning,
         showDockerPreview: AWSProviderSettings.dockerBakeryDeprecated && $scope.stage.storeType === 'docker',
         showMigrationFields: $scope.pipeline.migrationStatus !== 'Started',
-        showStoreType: !AWSProviderSettings.dockerBakeryDeprecated
+        showStoreType: !AWSProviderSettings.dockerBakeryDeprecated,
       };
 
       function initialize() {

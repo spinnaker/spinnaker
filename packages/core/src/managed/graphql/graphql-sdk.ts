@@ -5,7 +5,7 @@ export type Maybe<T> = T | undefined;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
-const defaultOptions =  {}
+const defaultOptions = {};
 /** All built-in and custom scalars, mapped to their actual values */
 export interface Scalars {
   ID: string;
@@ -16,8 +16,6 @@ export interface Scalars {
   InstantTime: string;
   JSON: any;
 }
-
-
 
 export interface MdAction {
   __typename?: 'MdAction';
@@ -31,16 +29,9 @@ export interface MdAction {
   actionType: MdActionType;
 }
 
-export type MdActionStatus =
-  | 'NOT_EVALUATED'
-  | 'PENDING'
-  | 'PASS'
-  | 'FAIL'
-  | 'FORCE_PASS';
+export type MdActionStatus = 'NOT_EVALUATED' | 'PENDING' | 'PASS' | 'FAIL' | 'FORCE_PASS';
 
-export type MdActionType =
-  | 'VERIFICATION'
-  | 'POST_DEPLOY';
+export type MdActionType = 'VERIFICATION' | 'POST_DEPLOY';
 
 export interface MdApplication {
   __typename?: 'MdApplication';
@@ -65,7 +56,6 @@ export interface MdArtifact {
   versions?: Maybe<Array<MdArtifactVersionInEnvironment>>;
   pinnedVersion?: Maybe<MdPinnedVersion>;
 }
-
 
 export interface MdArtifactVersionsArgs {
   statuses?: Maybe<Array<MdArtifactStatusInEnvironment>>;
@@ -134,12 +124,7 @@ export interface MdConstraint {
   attributes?: Maybe<Scalars['JSON']>;
 }
 
-export type MdConstraintStatus =
-  | 'BLOCKED'
-  | 'PENDING'
-  | 'PASS'
-  | 'FAIL'
-  | 'FORCE_PASS';
+export type MdConstraintStatus = 'BLOCKED' | 'PENDING' | 'PASS' | 'FAIL' | 'FORCE_PASS';
 
 export interface MdConstraintStatusPayload {
   application: Scalars['String'];
@@ -169,11 +154,7 @@ export interface MdEnvironmentState {
   artifacts?: Maybe<Array<MdArtifact>>;
 }
 
-export type MdEventLevel =
-  | 'SUCCESS'
-  | 'INFO'
-  | 'WARNING'
-  | 'ERROR';
+export type MdEventLevel = 'SUCCESS' | 'INFO' | 'WARNING' | 'ERROR';
 
 export interface MdGitIntegration {
   __typename?: 'MdGitIntegration';
@@ -195,20 +176,11 @@ export interface MdGitMetadata {
   comparisonLinks?: Maybe<MdComparisonLinks>;
 }
 
-export type MdLifecycleEventScope =
-  | 'PRE_DEPLOYMENT';
+export type MdLifecycleEventScope = 'PRE_DEPLOYMENT';
 
-export type MdLifecycleEventStatus =
-  | 'NOT_STARTED'
-  | 'RUNNING'
-  | 'SUCCEEDED'
-  | 'FAILED'
-  | 'ABORTED'
-  | 'UNKNOWN';
+export type MdLifecycleEventStatus = 'NOT_STARTED' | 'RUNNING' | 'SUCCEEDED' | 'FAILED' | 'ABORTED' | 'UNKNOWN';
 
-export type MdLifecycleEventType =
-  | 'BAKE'
-  | 'BUILD';
+export type MdLifecycleEventType = 'BAKE' | 'BUILD';
 
 export interface MdLifecycleStep {
   __typename?: 'MdLifecycleStep';
@@ -323,13 +295,7 @@ export interface MdResourceActuationState {
   tasks?: Maybe<Array<MdResourceTask>>;
 }
 
-export type MdResourceActuationStatus =
-  | 'PROCESSING'
-  | 'UP_TO_DATE'
-  | 'ERROR'
-  | 'WAITING'
-  | 'NOT_MANAGED'
-  | 'DELETING';
+export type MdResourceActuationStatus = 'PROCESSING' | 'UP_TO_DATE' | 'ERROR' | 'WAITING' | 'NOT_MANAGED' | 'DELETING';
 
 export interface MdResourceTask {
   __typename?: 'MdResourceTask';
@@ -377,11 +343,9 @@ export interface Mutation {
   updateGitIntegration?: Maybe<MdGitIntegration>;
 }
 
-
 export interface MutationUpdateConstraintStatusArgs {
   payload: MdConstraintStatusPayload;
 }
-
 
 export interface MutationToggleManagementArgs {
   application: Scalars['String'];
@@ -389,36 +353,29 @@ export interface MutationToggleManagementArgs {
   comment?: Maybe<Scalars['String']>;
 }
 
-
 export interface MutationPinArtifactVersionArgs {
   payload: MdArtifactVersionActionPayload;
 }
-
 
 export interface MutationMarkArtifactVersionAsBadArgs {
   payload: MdArtifactVersionActionPayload;
 }
 
-
 export interface MutationUnpinArtifactVersionArgs {
   payload: MdUnpinArtifactVersionPayload;
 }
-
 
 export interface MutationMarkArtifactVersionAsGoodArgs {
   payload: MdMarkArtifactVersionAsGoodPayload;
 }
 
-
 export interface MutationRetryArtifactVersionActionArgs {
   payload?: Maybe<MdRetryArtifactActionPayload>;
 }
 
-
 export interface MutationDismissNotificationArgs {
   payload: MdDismissNotificationPayload;
 }
-
 
 export interface MutationUpdateGitIntegrationArgs {
   payload?: Maybe<MdUpdateGitIntegrationPayload>;
@@ -429,498 +386,463 @@ export interface Query {
   application?: Maybe<MdApplication>;
 }
 
-
 export interface QueryApplicationArgs {
   appName: Scalars['String'];
 }
 
-export type ActionDetailsFragment = (
-  { __typename?: 'MdAction' }
-  & Pick<MdAction, 'id' | 'actionId' | 'actionType' | 'status' | 'startedAt' | 'completedAt' | 'link'>
-);
+export type ActionDetailsFragment = { __typename?: 'MdAction' } & Pick<
+  MdAction,
+  'id' | 'actionId' | 'actionType' | 'status' | 'startedAt' | 'completedAt' | 'link'
+>;
 
-export type DetailedVersionFieldsFragment = (
-  { __typename?: 'MdArtifactVersionInEnvironment' }
-  & Pick<MdArtifactVersionInEnvironment, 'id' | 'buildNumber' | 'version' | 'createdAt' | 'status' | 'deployedAt'>
-  & { gitMetadata?: Maybe<(
-    { __typename?: 'MdGitMetadata' }
-    & Pick<MdGitMetadata, 'commit' | 'author' | 'branch'>
-    & { commitInfo?: Maybe<(
-      { __typename?: 'MdCommitInfo' }
-      & Pick<MdCommitInfo, 'sha' | 'link' | 'message'>
-    )>, pullRequest?: Maybe<(
-      { __typename?: 'MdPullRequest' }
-      & Pick<MdPullRequest, 'number' | 'link'>
-    )>, comparisonLinks?: Maybe<(
-      { __typename?: 'MdComparisonLinks' }
-      & Pick<MdComparisonLinks, 'toPreviousVersion' | 'toCurrentVersion'>
-    )> }
-  )>, lifecycleSteps?: Maybe<Array<(
-    { __typename?: 'MdLifecycleStep' }
-    & Pick<MdLifecycleStep, 'startedAt' | 'completedAt' | 'type' | 'status' | 'link'>
-  )>>, constraints?: Maybe<Array<(
-    { __typename?: 'MdConstraint' }
-    & Pick<MdConstraint, 'type' | 'status' | 'judgedBy' | 'judgedAt' | 'attributes'>
-  )>>, verifications?: Maybe<Array<(
-    { __typename?: 'MdAction' }
-    & ActionDetailsFragment
-  )>>, postDeploy?: Maybe<Array<(
-    { __typename?: 'MdAction' }
-    & ActionDetailsFragment
-  )>>, veto?: Maybe<(
-    { __typename?: 'MdVersionVeto' }
-    & Pick<MdVersionVeto, 'vetoedBy' | 'vetoedAt' | 'comment'>
-  )> }
-);
+export type DetailedVersionFieldsFragment = { __typename?: 'MdArtifactVersionInEnvironment' } & Pick<
+  MdArtifactVersionInEnvironment,
+  'id' | 'buildNumber' | 'version' | 'createdAt' | 'status' | 'deployedAt'
+> & {
+    gitMetadata?: Maybe<
+      { __typename?: 'MdGitMetadata' } & Pick<MdGitMetadata, 'commit' | 'author' | 'branch'> & {
+          commitInfo?: Maybe<{ __typename?: 'MdCommitInfo' } & Pick<MdCommitInfo, 'sha' | 'link' | 'message'>>;
+          pullRequest?: Maybe<{ __typename?: 'MdPullRequest' } & Pick<MdPullRequest, 'number' | 'link'>>;
+          comparisonLinks?: Maybe<
+            { __typename?: 'MdComparisonLinks' } & Pick<MdComparisonLinks, 'toPreviousVersion' | 'toCurrentVersion'>
+          >;
+        }
+    >;
+    lifecycleSteps?: Maybe<
+      Array<
+        { __typename?: 'MdLifecycleStep' } & Pick<
+          MdLifecycleStep,
+          'startedAt' | 'completedAt' | 'type' | 'status' | 'link'
+        >
+      >
+    >;
+    constraints?: Maybe<
+      Array<
+        { __typename?: 'MdConstraint' } & Pick<MdConstraint, 'type' | 'status' | 'judgedBy' | 'judgedAt' | 'attributes'>
+      >
+    >;
+    verifications?: Maybe<Array<{ __typename?: 'MdAction' } & ActionDetailsFragment>>;
+    postDeploy?: Maybe<Array<{ __typename?: 'MdAction' } & ActionDetailsFragment>>;
+    veto?: Maybe<{ __typename?: 'MdVersionVeto' } & Pick<MdVersionVeto, 'vetoedBy' | 'vetoedAt' | 'comment'>>;
+  };
 
-export type ArtifactPinnedVersionFieldsFragment = (
-  { __typename?: 'MdArtifact' }
-  & { pinnedVersion?: Maybe<(
-    { __typename?: 'MdPinnedVersion' }
-    & Pick<MdPinnedVersion, 'id' | 'version' | 'buildNumber' | 'pinnedAt' | 'pinnedBy' | 'comment'>
-    & { gitMetadata?: Maybe<(
-      { __typename?: 'MdGitMetadata' }
-      & { commitInfo?: Maybe<(
-        { __typename?: 'MdCommitInfo' }
-        & Pick<MdCommitInfo, 'message'>
-      )> }
-    )> }
-  )> }
-);
+export type ArtifactPinnedVersionFieldsFragment = { __typename?: 'MdArtifact' } & {
+  pinnedVersion?: Maybe<
+    { __typename?: 'MdPinnedVersion' } & Pick<
+      MdPinnedVersion,
+      'id' | 'version' | 'buildNumber' | 'pinnedAt' | 'pinnedBy' | 'comment'
+    > & {
+        gitMetadata?: Maybe<
+          { __typename?: 'MdGitMetadata' } & {
+            commitInfo?: Maybe<{ __typename?: 'MdCommitInfo' } & Pick<MdCommitInfo, 'message'>>;
+          }
+        >;
+      }
+  >;
+};
 
 export type FetchApplicationQueryVariables = Exact<{
   appName: Scalars['String'];
   statuses?: Maybe<Array<MdArtifactStatusInEnvironment> | MdArtifactStatusInEnvironment>;
 }>;
 
-
-export type FetchApplicationQuery = (
-  { __typename?: 'Query' }
-  & { application?: Maybe<(
-    { __typename?: 'MdApplication' }
-    & Pick<MdApplication, 'id' | 'name' | 'account'>
-    & { environments: Array<(
-      { __typename?: 'MdEnvironment' }
-      & Pick<MdEnvironment, 'id' | 'name' | 'isPreview'>
-      & { state: (
-        { __typename?: 'MdEnvironmentState' }
-        & Pick<MdEnvironmentState, 'id'>
-        & { artifacts?: Maybe<Array<(
-          { __typename?: 'MdArtifact' }
-          & Pick<MdArtifact, 'id' | 'name' | 'environment' | 'type' | 'reference'>
-          & { versions?: Maybe<Array<(
-            { __typename?: 'MdArtifactVersionInEnvironment' }
-            & DetailedVersionFieldsFragment
-          )>> }
-          & ArtifactPinnedVersionFieldsFragment
-        )>>, resources?: Maybe<Array<(
-          { __typename?: 'MdResource' }
-          & Pick<MdResource, 'id' | 'kind' | 'displayName'>
-          & { moniker?: Maybe<(
-            { __typename?: 'MdMoniker' }
-            & Pick<MdMoniker, 'app' | 'stack' | 'detail'>
-          )>, location?: Maybe<(
-            { __typename?: 'MdLocation' }
-            & Pick<MdLocation, 'account' | 'regions'>
-          )> }
-        )>> }
-      ) }
-    )> }
-  )> }
-);
+export type FetchApplicationQuery = { __typename?: 'Query' } & {
+  application?: Maybe<
+    { __typename?: 'MdApplication' } & Pick<MdApplication, 'id' | 'name' | 'account'> & {
+        environments: Array<
+          { __typename?: 'MdEnvironment' } & Pick<MdEnvironment, 'id' | 'name' | 'isPreview'> & {
+              state: { __typename?: 'MdEnvironmentState' } & Pick<MdEnvironmentState, 'id'> & {
+                  artifacts?: Maybe<
+                    Array<
+                      { __typename?: 'MdArtifact' } & Pick<
+                        MdArtifact,
+                        'id' | 'name' | 'environment' | 'type' | 'reference'
+                      > & {
+                          versions?: Maybe<
+                            Array<{ __typename?: 'MdArtifactVersionInEnvironment' } & DetailedVersionFieldsFragment>
+                          >;
+                        } & ArtifactPinnedVersionFieldsFragment
+                    >
+                  >;
+                  resources?: Maybe<
+                    Array<
+                      { __typename?: 'MdResource' } & Pick<MdResource, 'id' | 'kind' | 'displayName'> & {
+                          moniker?: Maybe<{ __typename?: 'MdMoniker' } & Pick<MdMoniker, 'app' | 'stack' | 'detail'>>;
+                          location?: Maybe<{ __typename?: 'MdLocation' } & Pick<MdLocation, 'account' | 'regions'>>;
+                        }
+                    >
+                  >;
+                };
+            }
+        >;
+      }
+  >;
+};
 
 export type FetchVersionsHistoryQueryVariables = Exact<{
   appName: Scalars['String'];
   limit?: Maybe<Scalars['Int']>;
 }>;
 
-
-export type FetchVersionsHistoryQuery = (
-  { __typename?: 'Query' }
-  & { application?: Maybe<(
-    { __typename?: 'MdApplication' }
-    & Pick<MdApplication, 'id' | 'name' | 'account'>
-    & { environments: Array<(
-      { __typename?: 'MdEnvironment' }
-      & Pick<MdEnvironment, 'id' | 'name'>
-      & { state: (
-        { __typename?: 'MdEnvironmentState' }
-        & Pick<MdEnvironmentState, 'id'>
-        & { artifacts?: Maybe<Array<(
-          { __typename?: 'MdArtifact' }
-          & Pick<MdArtifact, 'id' | 'name' | 'environment' | 'type' | 'reference'>
-          & { versions?: Maybe<Array<(
-            { __typename?: 'MdArtifactVersionInEnvironment' }
-            & Pick<MdArtifactVersionInEnvironment, 'id' | 'buildNumber' | 'version' | 'createdAt' | 'status'>
-            & { gitMetadata?: Maybe<(
-              { __typename?: 'MdGitMetadata' }
-              & Pick<MdGitMetadata, 'commit' | 'author' | 'branch'>
-              & { commitInfo?: Maybe<(
-                { __typename?: 'MdCommitInfo' }
-                & Pick<MdCommitInfo, 'sha' | 'link' | 'message'>
-              )>, pullRequest?: Maybe<(
-                { __typename?: 'MdPullRequest' }
-                & Pick<MdPullRequest, 'number' | 'link'>
-              )> }
-            )>, lifecycleSteps?: Maybe<Array<(
-              { __typename?: 'MdLifecycleStep' }
-              & Pick<MdLifecycleStep, 'type' | 'status'>
-            )>> }
-          )>> }
-          & ArtifactPinnedVersionFieldsFragment
-        )>> }
-      ) }
-    )> }
-  )> }
-);
+export type FetchVersionsHistoryQuery = { __typename?: 'Query' } & {
+  application?: Maybe<
+    { __typename?: 'MdApplication' } & Pick<MdApplication, 'id' | 'name' | 'account'> & {
+        environments: Array<
+          { __typename?: 'MdEnvironment' } & Pick<MdEnvironment, 'id' | 'name'> & {
+              state: { __typename?: 'MdEnvironmentState' } & Pick<MdEnvironmentState, 'id'> & {
+                  artifacts?: Maybe<
+                    Array<
+                      { __typename?: 'MdArtifact' } & Pick<
+                        MdArtifact,
+                        'id' | 'name' | 'environment' | 'type' | 'reference'
+                      > & {
+                          versions?: Maybe<
+                            Array<
+                              { __typename?: 'MdArtifactVersionInEnvironment' } & Pick<
+                                MdArtifactVersionInEnvironment,
+                                'id' | 'buildNumber' | 'version' | 'createdAt' | 'status'
+                              > & {
+                                  gitMetadata?: Maybe<
+                                    { __typename?: 'MdGitMetadata' } & Pick<
+                                      MdGitMetadata,
+                                      'commit' | 'author' | 'branch'
+                                    > & {
+                                        commitInfo?: Maybe<
+                                          { __typename?: 'MdCommitInfo' } & Pick<
+                                            MdCommitInfo,
+                                            'sha' | 'link' | 'message'
+                                          >
+                                        >;
+                                        pullRequest?: Maybe<
+                                          { __typename?: 'MdPullRequest' } & Pick<MdPullRequest, 'number' | 'link'>
+                                        >;
+                                      }
+                                  >;
+                                  lifecycleSteps?: Maybe<
+                                    Array<{ __typename?: 'MdLifecycleStep' } & Pick<MdLifecycleStep, 'type' | 'status'>>
+                                  >;
+                                }
+                            >
+                          >;
+                        } & ArtifactPinnedVersionFieldsFragment
+                    >
+                  >;
+                };
+            }
+        >;
+      }
+  >;
+};
 
 export type FetchPinnedVersionsQueryVariables = Exact<{
   appName: Scalars['String'];
 }>;
 
-
-export type FetchPinnedVersionsQuery = (
-  { __typename?: 'Query' }
-  & { application?: Maybe<(
-    { __typename?: 'MdApplication' }
-    & Pick<MdApplication, 'id' | 'name' | 'account'>
-    & { environments: Array<(
-      { __typename?: 'MdEnvironment' }
-      & Pick<MdEnvironment, 'id' | 'name'>
-      & { state: (
-        { __typename?: 'MdEnvironmentState' }
-        & Pick<MdEnvironmentState, 'id'>
-        & { artifacts?: Maybe<Array<(
-          { __typename?: 'MdArtifact' }
-          & Pick<MdArtifact, 'id' | 'name' | 'environment' | 'type' | 'reference'>
-          & ArtifactPinnedVersionFieldsFragment
-        )>> }
-      ) }
-    )> }
-  )> }
-);
+export type FetchPinnedVersionsQuery = { __typename?: 'Query' } & {
+  application?: Maybe<
+    { __typename?: 'MdApplication' } & Pick<MdApplication, 'id' | 'name' | 'account'> & {
+        environments: Array<
+          { __typename?: 'MdEnvironment' } & Pick<MdEnvironment, 'id' | 'name'> & {
+              state: { __typename?: 'MdEnvironmentState' } & Pick<MdEnvironmentState, 'id'> & {
+                  artifacts?: Maybe<
+                    Array<
+                      { __typename?: 'MdArtifact' } & Pick<
+                        MdArtifact,
+                        'id' | 'name' | 'environment' | 'type' | 'reference'
+                      > &
+                        ArtifactPinnedVersionFieldsFragment
+                    >
+                  >;
+                };
+            }
+        >;
+      }
+  >;
+};
 
 export type FetchVersionQueryVariables = Exact<{
   appName: Scalars['String'];
   versions?: Maybe<Array<Scalars['String']> | Scalars['String']>;
 }>;
 
-
-export type FetchVersionQuery = (
-  { __typename?: 'Query' }
-  & { application?: Maybe<(
-    { __typename?: 'MdApplication' }
-    & Pick<MdApplication, 'id' | 'name' | 'account'>
-    & { environments: Array<(
-      { __typename?: 'MdEnvironment' }
-      & Pick<MdEnvironment, 'id' | 'name'>
-      & { state: (
-        { __typename?: 'MdEnvironmentState' }
-        & Pick<MdEnvironmentState, 'id'>
-        & { artifacts?: Maybe<Array<(
-          { __typename?: 'MdArtifact' }
-          & Pick<MdArtifact, 'id' | 'name' | 'environment' | 'type' | 'reference'>
-          & { versions?: Maybe<Array<(
-            { __typename?: 'MdArtifactVersionInEnvironment' }
-            & DetailedVersionFieldsFragment
-          )>> }
-        )>> }
-      ) }
-    )> }
-  )> }
-);
+export type FetchVersionQuery = { __typename?: 'Query' } & {
+  application?: Maybe<
+    { __typename?: 'MdApplication' } & Pick<MdApplication, 'id' | 'name' | 'account'> & {
+        environments: Array<
+          { __typename?: 'MdEnvironment' } & Pick<MdEnvironment, 'id' | 'name'> & {
+              state: { __typename?: 'MdEnvironmentState' } & Pick<MdEnvironmentState, 'id'> & {
+                  artifacts?: Maybe<
+                    Array<
+                      { __typename?: 'MdArtifact' } & Pick<
+                        MdArtifact,
+                        'id' | 'name' | 'environment' | 'type' | 'reference'
+                      > & {
+                          versions?: Maybe<
+                            Array<{ __typename?: 'MdArtifactVersionInEnvironment' } & DetailedVersionFieldsFragment>
+                          >;
+                        }
+                    >
+                  >;
+                };
+            }
+        >;
+      }
+  >;
+};
 
 export type FetchResourceStatusQueryVariables = Exact<{
   appName: Scalars['String'];
 }>;
 
-
-export type FetchResourceStatusQuery = (
-  { __typename?: 'Query' }
-  & { application?: Maybe<(
-    { __typename?: 'MdApplication' }
-    & Pick<MdApplication, 'id' | 'name'>
-    & { environments: Array<(
-      { __typename?: 'MdEnvironment' }
-      & Pick<MdEnvironment, 'id' | 'name'>
-      & { state: (
-        { __typename?: 'MdEnvironmentState' }
-        & Pick<MdEnvironmentState, 'id'>
-        & { resources?: Maybe<Array<(
-          { __typename?: 'MdResource' }
-          & Pick<MdResource, 'id' | 'kind'>
-          & { state?: Maybe<(
-            { __typename?: 'MdResourceActuationState' }
-            & Pick<MdResourceActuationState, 'status' | 'reason' | 'event'>
-            & { tasks?: Maybe<Array<(
-              { __typename?: 'MdResourceTask' }
-              & Pick<MdResourceTask, 'id' | 'name'>
-            )>> }
-          )> }
-        )>> }
-      ) }
-    )> }
-  )> }
-);
+export type FetchResourceStatusQuery = { __typename?: 'Query' } & {
+  application?: Maybe<
+    { __typename?: 'MdApplication' } & Pick<MdApplication, 'id' | 'name'> & {
+        environments: Array<
+          { __typename?: 'MdEnvironment' } & Pick<MdEnvironment, 'id' | 'name'> & {
+              state: { __typename?: 'MdEnvironmentState' } & Pick<MdEnvironmentState, 'id'> & {
+                  resources?: Maybe<
+                    Array<
+                      { __typename?: 'MdResource' } & Pick<MdResource, 'id' | 'kind'> & {
+                          state?: Maybe<
+                            { __typename?: 'MdResourceActuationState' } & Pick<
+                              MdResourceActuationState,
+                              'status' | 'reason' | 'event'
+                            > & {
+                                tasks?: Maybe<
+                                  Array<{ __typename?: 'MdResourceTask' } & Pick<MdResourceTask, 'id' | 'name'>>
+                                >;
+                              }
+                          >;
+                        }
+                    >
+                  >;
+                };
+            }
+        >;
+      }
+  >;
+};
 
 export type FetchNotificationsQueryVariables = Exact<{
   appName: Scalars['String'];
 }>;
 
-
-export type FetchNotificationsQuery = (
-  { __typename?: 'Query' }
-  & { application?: Maybe<(
-    { __typename?: 'MdApplication' }
-    & Pick<MdApplication, 'id' | 'name'>
-    & { notifications?: Maybe<Array<(
-      { __typename?: 'MdNotification' }
-      & Pick<MdNotification, 'id' | 'level' | 'message' | 'triggeredAt' | 'link'>
-    )>> }
-  )> }
-);
+export type FetchNotificationsQuery = { __typename?: 'Query' } & {
+  application?: Maybe<
+    { __typename?: 'MdApplication' } & Pick<MdApplication, 'id' | 'name'> & {
+        notifications?: Maybe<
+          Array<
+            { __typename?: 'MdNotification' } & Pick<
+              MdNotification,
+              'id' | 'level' | 'message' | 'triggeredAt' | 'link'
+            >
+          >
+        >;
+      }
+  >;
+};
 
 export type FetchApplicationManagementDataQueryVariables = Exact<{
   appName: Scalars['String'];
 }>;
 
-
-export type FetchApplicationManagementDataQuery = (
-  { __typename?: 'Query' }
-  & { application?: Maybe<(
-    { __typename?: 'MdApplication' }
-    & Pick<MdApplication, 'id' | 'name' | 'isPaused'>
-    & { gitIntegration?: Maybe<(
-      { __typename?: 'MdGitIntegration' }
-      & Pick<MdGitIntegration, 'id' | 'repository' | 'branch' | 'isEnabled'>
-    )> }
-  )> }
-);
+export type FetchApplicationManagementDataQuery = { __typename?: 'Query' } & {
+  application?: Maybe<
+    { __typename?: 'MdApplication' } & Pick<MdApplication, 'id' | 'name' | 'isPaused'> & {
+        gitIntegration?: Maybe<
+          { __typename?: 'MdGitIntegration' } & Pick<MdGitIntegration, 'id' | 'repository' | 'branch' | 'isEnabled'>
+        >;
+      }
+  >;
+};
 
 export type FetchApplicationManagementStatusQueryVariables = Exact<{
   appName: Scalars['String'];
 }>;
 
-
-export type FetchApplicationManagementStatusQuery = (
-  { __typename?: 'Query' }
-  & { application?: Maybe<(
-    { __typename?: 'MdApplication' }
-    & Pick<MdApplication, 'id' | 'name' | 'isPaused'>
-  )> }
-);
+export type FetchApplicationManagementStatusQuery = { __typename?: 'Query' } & {
+  application?: Maybe<{ __typename?: 'MdApplication' } & Pick<MdApplication, 'id' | 'name' | 'isPaused'>>;
+};
 
 export type UpdateConstraintMutationVariables = Exact<{
   payload: MdConstraintStatusPayload;
 }>;
 
-
-export type UpdateConstraintMutation = (
-  { __typename?: 'Mutation' }
-  & Pick<Mutation, 'updateConstraintStatus'>
-);
+export type UpdateConstraintMutation = { __typename?: 'Mutation' } & Pick<Mutation, 'updateConstraintStatus'>;
 
 export type ToggleManagementMutationVariables = Exact<{
   application: Scalars['String'];
   isPaused: Scalars['Boolean'];
 }>;
 
-
-export type ToggleManagementMutation = (
-  { __typename?: 'Mutation' }
-  & Pick<Mutation, 'toggleManagement'>
-);
+export type ToggleManagementMutation = { __typename?: 'Mutation' } & Pick<Mutation, 'toggleManagement'>;
 
 export type PinVersionMutationVariables = Exact<{
   payload: MdArtifactVersionActionPayload;
 }>;
 
-
-export type PinVersionMutation = (
-  { __typename?: 'Mutation' }
-  & Pick<Mutation, 'pinArtifactVersion'>
-);
+export type PinVersionMutation = { __typename?: 'Mutation' } & Pick<Mutation, 'pinArtifactVersion'>;
 
 export type UnpinVersionMutationVariables = Exact<{
   payload: MdUnpinArtifactVersionPayload;
 }>;
 
-
-export type UnpinVersionMutation = (
-  { __typename?: 'Mutation' }
-  & Pick<Mutation, 'unpinArtifactVersion'>
-);
+export type UnpinVersionMutation = { __typename?: 'Mutation' } & Pick<Mutation, 'unpinArtifactVersion'>;
 
 export type MarkVersionAsBadMutationVariables = Exact<{
   payload: MdArtifactVersionActionPayload;
 }>;
 
-
-export type MarkVersionAsBadMutation = (
-  { __typename?: 'Mutation' }
-  & Pick<Mutation, 'markArtifactVersionAsBad'>
-);
+export type MarkVersionAsBadMutation = { __typename?: 'Mutation' } & Pick<Mutation, 'markArtifactVersionAsBad'>;
 
 export type MarkVersionAsGoodMutationVariables = Exact<{
   payload: MdMarkArtifactVersionAsGoodPayload;
 }>;
 
-
-export type MarkVersionAsGoodMutation = (
-  { __typename?: 'Mutation' }
-  & Pick<Mutation, 'markArtifactVersionAsGood'>
-);
+export type MarkVersionAsGoodMutation = { __typename?: 'Mutation' } & Pick<Mutation, 'markArtifactVersionAsGood'>;
 
 export type RetryVersionActionMutationVariables = Exact<{
   payload: MdRetryArtifactActionPayload;
 }>;
 
-
-export type RetryVersionActionMutation = (
-  { __typename?: 'Mutation' }
-  & { retryArtifactVersionAction?: Maybe<(
-    { __typename?: 'MdAction' }
-    & ActionDetailsFragment
-  )> }
-);
+export type RetryVersionActionMutation = { __typename?: 'Mutation' } & {
+  retryArtifactVersionAction?: Maybe<{ __typename?: 'MdAction' } & ActionDetailsFragment>;
+};
 
 export type UpdateGitIntegrationMutationVariables = Exact<{
   payload: MdUpdateGitIntegrationPayload;
 }>;
 
-
-export type UpdateGitIntegrationMutation = (
-  { __typename?: 'Mutation' }
-  & { updateGitIntegration?: Maybe<(
-    { __typename?: 'MdGitIntegration' }
-    & Pick<MdGitIntegration, 'id' | 'isEnabled'>
-  )> }
-);
+export type UpdateGitIntegrationMutation = { __typename?: 'Mutation' } & {
+  updateGitIntegration?: Maybe<{ __typename?: 'MdGitIntegration' } & Pick<MdGitIntegration, 'id' | 'isEnabled'>>;
+};
 
 export const ActionDetailsFragmentDoc = gql`
-    fragment actionDetails on MdAction {
-  id
-  actionId
-  actionType
-  status
-  startedAt
-  completedAt
-  link
-}
-    `;
-export const DetailedVersionFieldsFragmentDoc = gql`
-    fragment detailedVersionFields on MdArtifactVersionInEnvironment {
-  id
-  buildNumber
-  version
-  createdAt
-  status
-  gitMetadata {
-    commit
-    author
-    branch
-    commitInfo {
-      sha
-      link
-      message
-    }
-    pullRequest {
-      number
-      link
-    }
-    comparisonLinks {
-      toPreviousVersion
-      toCurrentVersion
-    }
-  }
-  deployedAt
-  lifecycleSteps {
+  fragment actionDetails on MdAction {
+    id
+    actionId
+    actionType
+    status
     startedAt
     completedAt
-    type
-    status
     link
   }
-  constraints {
-    type
-    status
-    judgedBy
-    judgedAt
-    attributes
-  }
-  verifications {
-    ...actionDetails
-  }
-  postDeploy {
-    ...actionDetails
-  }
-  veto {
-    vetoedBy
-    vetoedAt
-    comment
-  }
-}
-    ${ActionDetailsFragmentDoc}`;
-export const ArtifactPinnedVersionFieldsFragmentDoc = gql`
-    fragment artifactPinnedVersionFields on MdArtifact {
-  pinnedVersion {
+`;
+export const DetailedVersionFieldsFragmentDoc = gql`
+  fragment detailedVersionFields on MdArtifactVersionInEnvironment {
     id
-    version
     buildNumber
-    pinnedAt
-    pinnedBy
-    comment
+    version
+    createdAt
+    status
     gitMetadata {
+      commit
+      author
+      branch
       commitInfo {
+        sha
+        link
         message
       }
+      pullRequest {
+        number
+        link
+      }
+      comparisonLinks {
+        toPreviousVersion
+        toCurrentVersion
+      }
+    }
+    deployedAt
+    lifecycleSteps {
+      startedAt
+      completedAt
+      type
+      status
+      link
+    }
+    constraints {
+      type
+      status
+      judgedBy
+      judgedAt
+      attributes
+    }
+    verifications {
+      ...actionDetails
+    }
+    postDeploy {
+      ...actionDetails
+    }
+    veto {
+      vetoedBy
+      vetoedAt
+      comment
     }
   }
-}
-    `;
+  ${ActionDetailsFragmentDoc}
+`;
+export const ArtifactPinnedVersionFieldsFragmentDoc = gql`
+  fragment artifactPinnedVersionFields on MdArtifact {
+    pinnedVersion {
+      id
+      version
+      buildNumber
+      pinnedAt
+      pinnedBy
+      comment
+      gitMetadata {
+        commitInfo {
+          message
+        }
+      }
+    }
+  }
+`;
 export const FetchApplicationDocument = gql`
-    query fetchApplication($appName: String!, $statuses: [MdArtifactStatusInEnvironment!]) {
-  application(appName: $appName) {
-    id
-    name
-    account
-    environments {
+  query fetchApplication($appName: String!, $statuses: [MdArtifactStatusInEnvironment!]) {
+    application(appName: $appName) {
       id
       name
-      isPreview
-      state {
+      account
+      environments {
         id
-        artifacts {
+        name
+        isPreview
+        state {
           id
-          name
-          environment
-          type
-          reference
-          versions(statuses: $statuses) {
-            ...detailedVersionFields
+          artifacts {
+            id
+            name
+            environment
+            type
+            reference
+            versions(statuses: $statuses) {
+              ...detailedVersionFields
+            }
+            ...artifactPinnedVersionFields
           }
-          ...artifactPinnedVersionFields
-        }
-        resources {
-          id
-          kind
-          displayName
-          moniker {
-            app
-            stack
-            detail
-          }
-          location {
-            account
-            regions
+          resources {
+            id
+            kind
+            displayName
+            moniker {
+              app
+              stack
+              detail
+            }
+            location {
+              account
+              regions
+            }
           }
         }
       }
     }
   }
-}
-    ${DetailedVersionFieldsFragmentDoc}
-${ArtifactPinnedVersionFieldsFragmentDoc}`;
+  ${DetailedVersionFieldsFragmentDoc}
+  ${ArtifactPinnedVersionFieldsFragmentDoc}
+`;
 
 /**
  * __useFetchApplicationQuery__
@@ -939,66 +861,71 @@ ${ArtifactPinnedVersionFieldsFragmentDoc}`;
  *   },
  * });
  */
-export function useFetchApplicationQuery(baseOptions: Apollo.QueryHookOptions<FetchApplicationQuery, FetchApplicationQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<FetchApplicationQuery, FetchApplicationQueryVariables>(FetchApplicationDocument, options);
-      }
-export function useFetchApplicationLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<FetchApplicationQuery, FetchApplicationQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<FetchApplicationQuery, FetchApplicationQueryVariables>(FetchApplicationDocument, options);
-        }
+export function useFetchApplicationQuery(
+  baseOptions: Apollo.QueryHookOptions<FetchApplicationQuery, FetchApplicationQueryVariables>,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<FetchApplicationQuery, FetchApplicationQueryVariables>(FetchApplicationDocument, options);
+}
+export function useFetchApplicationLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<FetchApplicationQuery, FetchApplicationQueryVariables>,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<FetchApplicationQuery, FetchApplicationQueryVariables>(FetchApplicationDocument, options);
+}
 export type FetchApplicationQueryHookResult = ReturnType<typeof useFetchApplicationQuery>;
 export type FetchApplicationLazyQueryHookResult = ReturnType<typeof useFetchApplicationLazyQuery>;
 export type FetchApplicationQueryResult = Apollo.QueryResult<FetchApplicationQuery, FetchApplicationQueryVariables>;
 export const FetchVersionsHistoryDocument = gql`
-    query fetchVersionsHistory($appName: String!, $limit: Int) {
-  application(appName: $appName) {
-    id
-    name
-    account
-    environments {
+  query fetchVersionsHistory($appName: String!, $limit: Int) {
+    application(appName: $appName) {
       id
       name
-      state {
+      account
+      environments {
         id
-        artifacts {
+        name
+        state {
           id
-          name
-          environment
-          type
-          reference
-          versions(limit: $limit) {
+          artifacts {
             id
-            buildNumber
-            version
-            createdAt
-            status
-            gitMetadata {
-              commit
-              author
-              branch
-              commitInfo {
-                sha
-                link
-                message
-              }
-              pullRequest {
-                number
-                link
-              }
-            }
-            lifecycleSteps {
-              type
+            name
+            environment
+            type
+            reference
+            versions(limit: $limit) {
+              id
+              buildNumber
+              version
+              createdAt
               status
+              gitMetadata {
+                commit
+                author
+                branch
+                commitInfo {
+                  sha
+                  link
+                  message
+                }
+                pullRequest {
+                  number
+                  link
+                }
+              }
+              lifecycleSteps {
+                type
+                status
+              }
             }
+            ...artifactPinnedVersionFields
           }
-          ...artifactPinnedVersionFields
         }
       }
     }
   }
-}
-    ${ArtifactPinnedVersionFieldsFragmentDoc}`;
+  ${ArtifactPinnedVersionFieldsFragmentDoc}
+`;
 
 /**
  * __useFetchVersionsHistoryQuery__
@@ -1017,41 +944,55 @@ export const FetchVersionsHistoryDocument = gql`
  *   },
  * });
  */
-export function useFetchVersionsHistoryQuery(baseOptions: Apollo.QueryHookOptions<FetchVersionsHistoryQuery, FetchVersionsHistoryQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<FetchVersionsHistoryQuery, FetchVersionsHistoryQueryVariables>(FetchVersionsHistoryDocument, options);
-      }
-export function useFetchVersionsHistoryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<FetchVersionsHistoryQuery, FetchVersionsHistoryQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<FetchVersionsHistoryQuery, FetchVersionsHistoryQueryVariables>(FetchVersionsHistoryDocument, options);
-        }
+export function useFetchVersionsHistoryQuery(
+  baseOptions: Apollo.QueryHookOptions<FetchVersionsHistoryQuery, FetchVersionsHistoryQueryVariables>,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<FetchVersionsHistoryQuery, FetchVersionsHistoryQueryVariables>(
+    FetchVersionsHistoryDocument,
+    options,
+  );
+}
+export function useFetchVersionsHistoryLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<FetchVersionsHistoryQuery, FetchVersionsHistoryQueryVariables>,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<FetchVersionsHistoryQuery, FetchVersionsHistoryQueryVariables>(
+    FetchVersionsHistoryDocument,
+    options,
+  );
+}
 export type FetchVersionsHistoryQueryHookResult = ReturnType<typeof useFetchVersionsHistoryQuery>;
 export type FetchVersionsHistoryLazyQueryHookResult = ReturnType<typeof useFetchVersionsHistoryLazyQuery>;
-export type FetchVersionsHistoryQueryResult = Apollo.QueryResult<FetchVersionsHistoryQuery, FetchVersionsHistoryQueryVariables>;
+export type FetchVersionsHistoryQueryResult = Apollo.QueryResult<
+  FetchVersionsHistoryQuery,
+  FetchVersionsHistoryQueryVariables
+>;
 export const FetchPinnedVersionsDocument = gql`
-    query fetchPinnedVersions($appName: String!) {
-  application(appName: $appName) {
-    id
-    name
-    account
-    environments {
+  query fetchPinnedVersions($appName: String!) {
+    application(appName: $appName) {
       id
       name
-      state {
+      account
+      environments {
         id
-        artifacts {
+        name
+        state {
           id
-          name
-          environment
-          type
-          reference
-          ...artifactPinnedVersionFields
+          artifacts {
+            id
+            name
+            environment
+            type
+            reference
+            ...artifactPinnedVersionFields
+          }
         }
       }
     }
   }
-}
-    ${ArtifactPinnedVersionFieldsFragmentDoc}`;
+  ${ArtifactPinnedVersionFieldsFragmentDoc}
+`;
 
 /**
  * __useFetchPinnedVersionsQuery__
@@ -1069,43 +1010,57 @@ export const FetchPinnedVersionsDocument = gql`
  *   },
  * });
  */
-export function useFetchPinnedVersionsQuery(baseOptions: Apollo.QueryHookOptions<FetchPinnedVersionsQuery, FetchPinnedVersionsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<FetchPinnedVersionsQuery, FetchPinnedVersionsQueryVariables>(FetchPinnedVersionsDocument, options);
-      }
-export function useFetchPinnedVersionsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<FetchPinnedVersionsQuery, FetchPinnedVersionsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<FetchPinnedVersionsQuery, FetchPinnedVersionsQueryVariables>(FetchPinnedVersionsDocument, options);
-        }
+export function useFetchPinnedVersionsQuery(
+  baseOptions: Apollo.QueryHookOptions<FetchPinnedVersionsQuery, FetchPinnedVersionsQueryVariables>,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<FetchPinnedVersionsQuery, FetchPinnedVersionsQueryVariables>(
+    FetchPinnedVersionsDocument,
+    options,
+  );
+}
+export function useFetchPinnedVersionsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<FetchPinnedVersionsQuery, FetchPinnedVersionsQueryVariables>,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<FetchPinnedVersionsQuery, FetchPinnedVersionsQueryVariables>(
+    FetchPinnedVersionsDocument,
+    options,
+  );
+}
 export type FetchPinnedVersionsQueryHookResult = ReturnType<typeof useFetchPinnedVersionsQuery>;
 export type FetchPinnedVersionsLazyQueryHookResult = ReturnType<typeof useFetchPinnedVersionsLazyQuery>;
-export type FetchPinnedVersionsQueryResult = Apollo.QueryResult<FetchPinnedVersionsQuery, FetchPinnedVersionsQueryVariables>;
+export type FetchPinnedVersionsQueryResult = Apollo.QueryResult<
+  FetchPinnedVersionsQuery,
+  FetchPinnedVersionsQueryVariables
+>;
 export const FetchVersionDocument = gql`
-    query fetchVersion($appName: String!, $versions: [String!]) {
-  application(appName: $appName) {
-    id
-    name
-    account
-    environments {
+  query fetchVersion($appName: String!, $versions: [String!]) {
+    application(appName: $appName) {
       id
       name
-      state {
+      account
+      environments {
         id
-        artifacts {
+        name
+        state {
           id
-          name
-          environment
-          type
-          reference
-          versions(versions: $versions) {
-            ...detailedVersionFields
+          artifacts {
+            id
+            name
+            environment
+            type
+            reference
+            versions(versions: $versions) {
+              ...detailedVersionFields
+            }
           }
         }
       }
     }
   }
-}
-    ${DetailedVersionFieldsFragmentDoc}`;
+  ${DetailedVersionFieldsFragmentDoc}
+`;
 
 /**
  * __useFetchVersionQuery__
@@ -1124,45 +1079,49 @@ export const FetchVersionDocument = gql`
  *   },
  * });
  */
-export function useFetchVersionQuery(baseOptions: Apollo.QueryHookOptions<FetchVersionQuery, FetchVersionQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<FetchVersionQuery, FetchVersionQueryVariables>(FetchVersionDocument, options);
-      }
-export function useFetchVersionLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<FetchVersionQuery, FetchVersionQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<FetchVersionQuery, FetchVersionQueryVariables>(FetchVersionDocument, options);
-        }
+export function useFetchVersionQuery(
+  baseOptions: Apollo.QueryHookOptions<FetchVersionQuery, FetchVersionQueryVariables>,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<FetchVersionQuery, FetchVersionQueryVariables>(FetchVersionDocument, options);
+}
+export function useFetchVersionLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<FetchVersionQuery, FetchVersionQueryVariables>,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<FetchVersionQuery, FetchVersionQueryVariables>(FetchVersionDocument, options);
+}
 export type FetchVersionQueryHookResult = ReturnType<typeof useFetchVersionQuery>;
 export type FetchVersionLazyQueryHookResult = ReturnType<typeof useFetchVersionLazyQuery>;
 export type FetchVersionQueryResult = Apollo.QueryResult<FetchVersionQuery, FetchVersionQueryVariables>;
 export const FetchResourceStatusDocument = gql`
-    query fetchResourceStatus($appName: String!) {
-  application(appName: $appName) {
-    id
-    name
-    environments {
+  query fetchResourceStatus($appName: String!) {
+    application(appName: $appName) {
       id
       name
-      state {
+      environments {
         id
-        resources {
+        name
+        state {
           id
-          kind
-          state {
-            status
-            reason
-            event
-            tasks {
-              id
-              name
+          resources {
+            id
+            kind
+            state {
+              status
+              reason
+              event
+              tasks {
+                id
+                name
+              }
             }
           }
         }
       }
     }
   }
-}
-    `;
+`;
 
 /**
  * __useFetchResourceStatusQuery__
@@ -1180,33 +1139,46 @@ export const FetchResourceStatusDocument = gql`
  *   },
  * });
  */
-export function useFetchResourceStatusQuery(baseOptions: Apollo.QueryHookOptions<FetchResourceStatusQuery, FetchResourceStatusQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<FetchResourceStatusQuery, FetchResourceStatusQueryVariables>(FetchResourceStatusDocument, options);
-      }
-export function useFetchResourceStatusLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<FetchResourceStatusQuery, FetchResourceStatusQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<FetchResourceStatusQuery, FetchResourceStatusQueryVariables>(FetchResourceStatusDocument, options);
-        }
+export function useFetchResourceStatusQuery(
+  baseOptions: Apollo.QueryHookOptions<FetchResourceStatusQuery, FetchResourceStatusQueryVariables>,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<FetchResourceStatusQuery, FetchResourceStatusQueryVariables>(
+    FetchResourceStatusDocument,
+    options,
+  );
+}
+export function useFetchResourceStatusLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<FetchResourceStatusQuery, FetchResourceStatusQueryVariables>,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<FetchResourceStatusQuery, FetchResourceStatusQueryVariables>(
+    FetchResourceStatusDocument,
+    options,
+  );
+}
 export type FetchResourceStatusQueryHookResult = ReturnType<typeof useFetchResourceStatusQuery>;
 export type FetchResourceStatusLazyQueryHookResult = ReturnType<typeof useFetchResourceStatusLazyQuery>;
-export type FetchResourceStatusQueryResult = Apollo.QueryResult<FetchResourceStatusQuery, FetchResourceStatusQueryVariables>;
+export type FetchResourceStatusQueryResult = Apollo.QueryResult<
+  FetchResourceStatusQuery,
+  FetchResourceStatusQueryVariables
+>;
 export const FetchNotificationsDocument = gql`
-    query fetchNotifications($appName: String!) {
-  application(appName: $appName) {
-    id
-    name
-    notifications {
+  query fetchNotifications($appName: String!) {
+    application(appName: $appName) {
       id
-      level
-      message
-      triggeredAt
-      link
-      id
+      name
+      notifications {
+        id
+        level
+        message
+        triggeredAt
+        link
+        id
+      }
     }
   }
-}
-    `;
+`;
 
 /**
  * __useFetchNotificationsQuery__
@@ -1224,32 +1196,45 @@ export const FetchNotificationsDocument = gql`
  *   },
  * });
  */
-export function useFetchNotificationsQuery(baseOptions: Apollo.QueryHookOptions<FetchNotificationsQuery, FetchNotificationsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<FetchNotificationsQuery, FetchNotificationsQueryVariables>(FetchNotificationsDocument, options);
-      }
-export function useFetchNotificationsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<FetchNotificationsQuery, FetchNotificationsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<FetchNotificationsQuery, FetchNotificationsQueryVariables>(FetchNotificationsDocument, options);
-        }
+export function useFetchNotificationsQuery(
+  baseOptions: Apollo.QueryHookOptions<FetchNotificationsQuery, FetchNotificationsQueryVariables>,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<FetchNotificationsQuery, FetchNotificationsQueryVariables>(
+    FetchNotificationsDocument,
+    options,
+  );
+}
+export function useFetchNotificationsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<FetchNotificationsQuery, FetchNotificationsQueryVariables>,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<FetchNotificationsQuery, FetchNotificationsQueryVariables>(
+    FetchNotificationsDocument,
+    options,
+  );
+}
 export type FetchNotificationsQueryHookResult = ReturnType<typeof useFetchNotificationsQuery>;
 export type FetchNotificationsLazyQueryHookResult = ReturnType<typeof useFetchNotificationsLazyQuery>;
-export type FetchNotificationsQueryResult = Apollo.QueryResult<FetchNotificationsQuery, FetchNotificationsQueryVariables>;
+export type FetchNotificationsQueryResult = Apollo.QueryResult<
+  FetchNotificationsQuery,
+  FetchNotificationsQueryVariables
+>;
 export const FetchApplicationManagementDataDocument = gql`
-    query fetchApplicationManagementData($appName: String!) {
-  application(appName: $appName) {
-    id
-    name
-    isPaused
-    gitIntegration {
+  query fetchApplicationManagementData($appName: String!) {
+    application(appName: $appName) {
       id
-      repository
-      branch
-      isEnabled
+      name
+      isPaused
+      gitIntegration {
+        id
+        repository
+        branch
+        isEnabled
+      }
     }
   }
-}
-    `;
+`;
 
 /**
  * __useFetchApplicationManagementDataQuery__
@@ -1267,26 +1252,47 @@ export const FetchApplicationManagementDataDocument = gql`
  *   },
  * });
  */
-export function useFetchApplicationManagementDataQuery(baseOptions: Apollo.QueryHookOptions<FetchApplicationManagementDataQuery, FetchApplicationManagementDataQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<FetchApplicationManagementDataQuery, FetchApplicationManagementDataQueryVariables>(FetchApplicationManagementDataDocument, options);
-      }
-export function useFetchApplicationManagementDataLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<FetchApplicationManagementDataQuery, FetchApplicationManagementDataQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<FetchApplicationManagementDataQuery, FetchApplicationManagementDataQueryVariables>(FetchApplicationManagementDataDocument, options);
-        }
-export type FetchApplicationManagementDataQueryHookResult = ReturnType<typeof useFetchApplicationManagementDataQuery>;
-export type FetchApplicationManagementDataLazyQueryHookResult = ReturnType<typeof useFetchApplicationManagementDataLazyQuery>;
-export type FetchApplicationManagementDataQueryResult = Apollo.QueryResult<FetchApplicationManagementDataQuery, FetchApplicationManagementDataQueryVariables>;
-export const FetchApplicationManagementStatusDocument = gql`
-    query fetchApplicationManagementStatus($appName: String!) {
-  application(appName: $appName) {
-    id
-    name
-    isPaused
-  }
+export function useFetchApplicationManagementDataQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    FetchApplicationManagementDataQuery,
+    FetchApplicationManagementDataQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<FetchApplicationManagementDataQuery, FetchApplicationManagementDataQueryVariables>(
+    FetchApplicationManagementDataDocument,
+    options,
+  );
 }
-    `;
+export function useFetchApplicationManagementDataLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    FetchApplicationManagementDataQuery,
+    FetchApplicationManagementDataQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<FetchApplicationManagementDataQuery, FetchApplicationManagementDataQueryVariables>(
+    FetchApplicationManagementDataDocument,
+    options,
+  );
+}
+export type FetchApplicationManagementDataQueryHookResult = ReturnType<typeof useFetchApplicationManagementDataQuery>;
+export type FetchApplicationManagementDataLazyQueryHookResult = ReturnType<
+  typeof useFetchApplicationManagementDataLazyQuery
+>;
+export type FetchApplicationManagementDataQueryResult = Apollo.QueryResult<
+  FetchApplicationManagementDataQuery,
+  FetchApplicationManagementDataQueryVariables
+>;
+export const FetchApplicationManagementStatusDocument = gql`
+  query fetchApplicationManagementStatus($appName: String!) {
+    application(appName: $appName) {
+      id
+      name
+      isPaused
+    }
+  }
+`;
 
 /**
  * __useFetchApplicationManagementStatusQuery__
@@ -1304,23 +1310,49 @@ export const FetchApplicationManagementStatusDocument = gql`
  *   },
  * });
  */
-export function useFetchApplicationManagementStatusQuery(baseOptions: Apollo.QueryHookOptions<FetchApplicationManagementStatusQuery, FetchApplicationManagementStatusQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<FetchApplicationManagementStatusQuery, FetchApplicationManagementStatusQueryVariables>(FetchApplicationManagementStatusDocument, options);
-      }
-export function useFetchApplicationManagementStatusLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<FetchApplicationManagementStatusQuery, FetchApplicationManagementStatusQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<FetchApplicationManagementStatusQuery, FetchApplicationManagementStatusQueryVariables>(FetchApplicationManagementStatusDocument, options);
-        }
-export type FetchApplicationManagementStatusQueryHookResult = ReturnType<typeof useFetchApplicationManagementStatusQuery>;
-export type FetchApplicationManagementStatusLazyQueryHookResult = ReturnType<typeof useFetchApplicationManagementStatusLazyQuery>;
-export type FetchApplicationManagementStatusQueryResult = Apollo.QueryResult<FetchApplicationManagementStatusQuery, FetchApplicationManagementStatusQueryVariables>;
-export const UpdateConstraintDocument = gql`
-    mutation UpdateConstraint($payload: MdConstraintStatusPayload!) {
-  updateConstraintStatus(payload: $payload)
+export function useFetchApplicationManagementStatusQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    FetchApplicationManagementStatusQuery,
+    FetchApplicationManagementStatusQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<FetchApplicationManagementStatusQuery, FetchApplicationManagementStatusQueryVariables>(
+    FetchApplicationManagementStatusDocument,
+    options,
+  );
 }
-    `;
-export type UpdateConstraintMutationFn = Apollo.MutationFunction<UpdateConstraintMutation, UpdateConstraintMutationVariables>;
+export function useFetchApplicationManagementStatusLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    FetchApplicationManagementStatusQuery,
+    FetchApplicationManagementStatusQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<FetchApplicationManagementStatusQuery, FetchApplicationManagementStatusQueryVariables>(
+    FetchApplicationManagementStatusDocument,
+    options,
+  );
+}
+export type FetchApplicationManagementStatusQueryHookResult = ReturnType<
+  typeof useFetchApplicationManagementStatusQuery
+>;
+export type FetchApplicationManagementStatusLazyQueryHookResult = ReturnType<
+  typeof useFetchApplicationManagementStatusLazyQuery
+>;
+export type FetchApplicationManagementStatusQueryResult = Apollo.QueryResult<
+  FetchApplicationManagementStatusQuery,
+  FetchApplicationManagementStatusQueryVariables
+>;
+export const UpdateConstraintDocument = gql`
+  mutation UpdateConstraint($payload: MdConstraintStatusPayload!) {
+    updateConstraintStatus(payload: $payload)
+  }
+`;
+export type UpdateConstraintMutationFn = Apollo.MutationFunction<
+  UpdateConstraintMutation,
+  UpdateConstraintMutationVariables
+>;
 
 /**
  * __useUpdateConstraintMutation__
@@ -1339,19 +1371,30 @@ export type UpdateConstraintMutationFn = Apollo.MutationFunction<UpdateConstrain
  *   },
  * });
  */
-export function useUpdateConstraintMutation(baseOptions?: Apollo.MutationHookOptions<UpdateConstraintMutation, UpdateConstraintMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UpdateConstraintMutation, UpdateConstraintMutationVariables>(UpdateConstraintDocument, options);
-      }
+export function useUpdateConstraintMutation(
+  baseOptions?: Apollo.MutationHookOptions<UpdateConstraintMutation, UpdateConstraintMutationVariables>,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<UpdateConstraintMutation, UpdateConstraintMutationVariables>(
+    UpdateConstraintDocument,
+    options,
+  );
+}
 export type UpdateConstraintMutationHookResult = ReturnType<typeof useUpdateConstraintMutation>;
 export type UpdateConstraintMutationResult = Apollo.MutationResult<UpdateConstraintMutation>;
-export type UpdateConstraintMutationOptions = Apollo.BaseMutationOptions<UpdateConstraintMutation, UpdateConstraintMutationVariables>;
+export type UpdateConstraintMutationOptions = Apollo.BaseMutationOptions<
+  UpdateConstraintMutation,
+  UpdateConstraintMutationVariables
+>;
 export const ToggleManagementDocument = gql`
-    mutation ToggleManagement($application: String!, $isPaused: Boolean!) {
-  toggleManagement(application: $application, isPaused: $isPaused)
-}
-    `;
-export type ToggleManagementMutationFn = Apollo.MutationFunction<ToggleManagementMutation, ToggleManagementMutationVariables>;
+  mutation ToggleManagement($application: String!, $isPaused: Boolean!) {
+    toggleManagement(application: $application, isPaused: $isPaused)
+  }
+`;
+export type ToggleManagementMutationFn = Apollo.MutationFunction<
+  ToggleManagementMutation,
+  ToggleManagementMutationVariables
+>;
 
 /**
  * __useToggleManagementMutation__
@@ -1371,18 +1414,26 @@ export type ToggleManagementMutationFn = Apollo.MutationFunction<ToggleManagemen
  *   },
  * });
  */
-export function useToggleManagementMutation(baseOptions?: Apollo.MutationHookOptions<ToggleManagementMutation, ToggleManagementMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<ToggleManagementMutation, ToggleManagementMutationVariables>(ToggleManagementDocument, options);
-      }
+export function useToggleManagementMutation(
+  baseOptions?: Apollo.MutationHookOptions<ToggleManagementMutation, ToggleManagementMutationVariables>,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<ToggleManagementMutation, ToggleManagementMutationVariables>(
+    ToggleManagementDocument,
+    options,
+  );
+}
 export type ToggleManagementMutationHookResult = ReturnType<typeof useToggleManagementMutation>;
 export type ToggleManagementMutationResult = Apollo.MutationResult<ToggleManagementMutation>;
-export type ToggleManagementMutationOptions = Apollo.BaseMutationOptions<ToggleManagementMutation, ToggleManagementMutationVariables>;
+export type ToggleManagementMutationOptions = Apollo.BaseMutationOptions<
+  ToggleManagementMutation,
+  ToggleManagementMutationVariables
+>;
 export const PinVersionDocument = gql`
-    mutation PinVersion($payload: MdArtifactVersionActionPayload!) {
-  pinArtifactVersion(payload: $payload)
-}
-    `;
+  mutation PinVersion($payload: MdArtifactVersionActionPayload!) {
+    pinArtifactVersion(payload: $payload)
+  }
+`;
 export type PinVersionMutationFn = Apollo.MutationFunction<PinVersionMutation, PinVersionMutationVariables>;
 
 /**
@@ -1402,18 +1453,20 @@ export type PinVersionMutationFn = Apollo.MutationFunction<PinVersionMutation, P
  *   },
  * });
  */
-export function usePinVersionMutation(baseOptions?: Apollo.MutationHookOptions<PinVersionMutation, PinVersionMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<PinVersionMutation, PinVersionMutationVariables>(PinVersionDocument, options);
-      }
+export function usePinVersionMutation(
+  baseOptions?: Apollo.MutationHookOptions<PinVersionMutation, PinVersionMutationVariables>,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<PinVersionMutation, PinVersionMutationVariables>(PinVersionDocument, options);
+}
 export type PinVersionMutationHookResult = ReturnType<typeof usePinVersionMutation>;
 export type PinVersionMutationResult = Apollo.MutationResult<PinVersionMutation>;
 export type PinVersionMutationOptions = Apollo.BaseMutationOptions<PinVersionMutation, PinVersionMutationVariables>;
 export const UnpinVersionDocument = gql`
-    mutation UnpinVersion($payload: MdUnpinArtifactVersionPayload!) {
-  unpinArtifactVersion(payload: $payload)
-}
-    `;
+  mutation UnpinVersion($payload: MdUnpinArtifactVersionPayload!) {
+    unpinArtifactVersion(payload: $payload)
+  }
+`;
 export type UnpinVersionMutationFn = Apollo.MutationFunction<UnpinVersionMutation, UnpinVersionMutationVariables>;
 
 /**
@@ -1433,19 +1486,27 @@ export type UnpinVersionMutationFn = Apollo.MutationFunction<UnpinVersionMutatio
  *   },
  * });
  */
-export function useUnpinVersionMutation(baseOptions?: Apollo.MutationHookOptions<UnpinVersionMutation, UnpinVersionMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UnpinVersionMutation, UnpinVersionMutationVariables>(UnpinVersionDocument, options);
-      }
+export function useUnpinVersionMutation(
+  baseOptions?: Apollo.MutationHookOptions<UnpinVersionMutation, UnpinVersionMutationVariables>,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<UnpinVersionMutation, UnpinVersionMutationVariables>(UnpinVersionDocument, options);
+}
 export type UnpinVersionMutationHookResult = ReturnType<typeof useUnpinVersionMutation>;
 export type UnpinVersionMutationResult = Apollo.MutationResult<UnpinVersionMutation>;
-export type UnpinVersionMutationOptions = Apollo.BaseMutationOptions<UnpinVersionMutation, UnpinVersionMutationVariables>;
+export type UnpinVersionMutationOptions = Apollo.BaseMutationOptions<
+  UnpinVersionMutation,
+  UnpinVersionMutationVariables
+>;
 export const MarkVersionAsBadDocument = gql`
-    mutation MarkVersionAsBad($payload: MdArtifactVersionActionPayload!) {
-  markArtifactVersionAsBad(payload: $payload)
-}
-    `;
-export type MarkVersionAsBadMutationFn = Apollo.MutationFunction<MarkVersionAsBadMutation, MarkVersionAsBadMutationVariables>;
+  mutation MarkVersionAsBad($payload: MdArtifactVersionActionPayload!) {
+    markArtifactVersionAsBad(payload: $payload)
+  }
+`;
+export type MarkVersionAsBadMutationFn = Apollo.MutationFunction<
+  MarkVersionAsBadMutation,
+  MarkVersionAsBadMutationVariables
+>;
 
 /**
  * __useMarkVersionAsBadMutation__
@@ -1464,19 +1525,30 @@ export type MarkVersionAsBadMutationFn = Apollo.MutationFunction<MarkVersionAsBa
  *   },
  * });
  */
-export function useMarkVersionAsBadMutation(baseOptions?: Apollo.MutationHookOptions<MarkVersionAsBadMutation, MarkVersionAsBadMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<MarkVersionAsBadMutation, MarkVersionAsBadMutationVariables>(MarkVersionAsBadDocument, options);
-      }
+export function useMarkVersionAsBadMutation(
+  baseOptions?: Apollo.MutationHookOptions<MarkVersionAsBadMutation, MarkVersionAsBadMutationVariables>,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<MarkVersionAsBadMutation, MarkVersionAsBadMutationVariables>(
+    MarkVersionAsBadDocument,
+    options,
+  );
+}
 export type MarkVersionAsBadMutationHookResult = ReturnType<typeof useMarkVersionAsBadMutation>;
 export type MarkVersionAsBadMutationResult = Apollo.MutationResult<MarkVersionAsBadMutation>;
-export type MarkVersionAsBadMutationOptions = Apollo.BaseMutationOptions<MarkVersionAsBadMutation, MarkVersionAsBadMutationVariables>;
+export type MarkVersionAsBadMutationOptions = Apollo.BaseMutationOptions<
+  MarkVersionAsBadMutation,
+  MarkVersionAsBadMutationVariables
+>;
 export const MarkVersionAsGoodDocument = gql`
-    mutation MarkVersionAsGood($payload: MdMarkArtifactVersionAsGoodPayload!) {
-  markArtifactVersionAsGood(payload: $payload)
-}
-    `;
-export type MarkVersionAsGoodMutationFn = Apollo.MutationFunction<MarkVersionAsGoodMutation, MarkVersionAsGoodMutationVariables>;
+  mutation MarkVersionAsGood($payload: MdMarkArtifactVersionAsGoodPayload!) {
+    markArtifactVersionAsGood(payload: $payload)
+  }
+`;
+export type MarkVersionAsGoodMutationFn = Apollo.MutationFunction<
+  MarkVersionAsGoodMutation,
+  MarkVersionAsGoodMutationVariables
+>;
 
 /**
  * __useMarkVersionAsGoodMutation__
@@ -1495,21 +1567,33 @@ export type MarkVersionAsGoodMutationFn = Apollo.MutationFunction<MarkVersionAsG
  *   },
  * });
  */
-export function useMarkVersionAsGoodMutation(baseOptions?: Apollo.MutationHookOptions<MarkVersionAsGoodMutation, MarkVersionAsGoodMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<MarkVersionAsGoodMutation, MarkVersionAsGoodMutationVariables>(MarkVersionAsGoodDocument, options);
-      }
+export function useMarkVersionAsGoodMutation(
+  baseOptions?: Apollo.MutationHookOptions<MarkVersionAsGoodMutation, MarkVersionAsGoodMutationVariables>,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<MarkVersionAsGoodMutation, MarkVersionAsGoodMutationVariables>(
+    MarkVersionAsGoodDocument,
+    options,
+  );
+}
 export type MarkVersionAsGoodMutationHookResult = ReturnType<typeof useMarkVersionAsGoodMutation>;
 export type MarkVersionAsGoodMutationResult = Apollo.MutationResult<MarkVersionAsGoodMutation>;
-export type MarkVersionAsGoodMutationOptions = Apollo.BaseMutationOptions<MarkVersionAsGoodMutation, MarkVersionAsGoodMutationVariables>;
+export type MarkVersionAsGoodMutationOptions = Apollo.BaseMutationOptions<
+  MarkVersionAsGoodMutation,
+  MarkVersionAsGoodMutationVariables
+>;
 export const RetryVersionActionDocument = gql`
-    mutation RetryVersionAction($payload: MdRetryArtifactActionPayload!) {
-  retryArtifactVersionAction(payload: $payload) {
-    ...actionDetails
+  mutation RetryVersionAction($payload: MdRetryArtifactActionPayload!) {
+    retryArtifactVersionAction(payload: $payload) {
+      ...actionDetails
+    }
   }
-}
-    ${ActionDetailsFragmentDoc}`;
-export type RetryVersionActionMutationFn = Apollo.MutationFunction<RetryVersionActionMutation, RetryVersionActionMutationVariables>;
+  ${ActionDetailsFragmentDoc}
+`;
+export type RetryVersionActionMutationFn = Apollo.MutationFunction<
+  RetryVersionActionMutation,
+  RetryVersionActionMutationVariables
+>;
 
 /**
  * __useRetryVersionActionMutation__
@@ -1528,22 +1612,33 @@ export type RetryVersionActionMutationFn = Apollo.MutationFunction<RetryVersionA
  *   },
  * });
  */
-export function useRetryVersionActionMutation(baseOptions?: Apollo.MutationHookOptions<RetryVersionActionMutation, RetryVersionActionMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<RetryVersionActionMutation, RetryVersionActionMutationVariables>(RetryVersionActionDocument, options);
-      }
+export function useRetryVersionActionMutation(
+  baseOptions?: Apollo.MutationHookOptions<RetryVersionActionMutation, RetryVersionActionMutationVariables>,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<RetryVersionActionMutation, RetryVersionActionMutationVariables>(
+    RetryVersionActionDocument,
+    options,
+  );
+}
 export type RetryVersionActionMutationHookResult = ReturnType<typeof useRetryVersionActionMutation>;
 export type RetryVersionActionMutationResult = Apollo.MutationResult<RetryVersionActionMutation>;
-export type RetryVersionActionMutationOptions = Apollo.BaseMutationOptions<RetryVersionActionMutation, RetryVersionActionMutationVariables>;
+export type RetryVersionActionMutationOptions = Apollo.BaseMutationOptions<
+  RetryVersionActionMutation,
+  RetryVersionActionMutationVariables
+>;
 export const UpdateGitIntegrationDocument = gql`
-    mutation UpdateGitIntegration($payload: MdUpdateGitIntegrationPayload!) {
-  updateGitIntegration(payload: $payload) {
-    id
-    isEnabled
+  mutation UpdateGitIntegration($payload: MdUpdateGitIntegrationPayload!) {
+    updateGitIntegration(payload: $payload) {
+      id
+      isEnabled
+    }
   }
-}
-    `;
-export type UpdateGitIntegrationMutationFn = Apollo.MutationFunction<UpdateGitIntegrationMutation, UpdateGitIntegrationMutationVariables>;
+`;
+export type UpdateGitIntegrationMutationFn = Apollo.MutationFunction<
+  UpdateGitIntegrationMutation,
+  UpdateGitIntegrationMutationVariables
+>;
 
 /**
  * __useUpdateGitIntegrationMutation__
@@ -1562,10 +1657,18 @@ export type UpdateGitIntegrationMutationFn = Apollo.MutationFunction<UpdateGitIn
  *   },
  * });
  */
-export function useUpdateGitIntegrationMutation(baseOptions?: Apollo.MutationHookOptions<UpdateGitIntegrationMutation, UpdateGitIntegrationMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UpdateGitIntegrationMutation, UpdateGitIntegrationMutationVariables>(UpdateGitIntegrationDocument, options);
-      }
+export function useUpdateGitIntegrationMutation(
+  baseOptions?: Apollo.MutationHookOptions<UpdateGitIntegrationMutation, UpdateGitIntegrationMutationVariables>,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<UpdateGitIntegrationMutation, UpdateGitIntegrationMutationVariables>(
+    UpdateGitIntegrationDocument,
+    options,
+  );
+}
 export type UpdateGitIntegrationMutationHookResult = ReturnType<typeof useUpdateGitIntegrationMutation>;
 export type UpdateGitIntegrationMutationResult = Apollo.MutationResult<UpdateGitIntegrationMutation>;
-export type UpdateGitIntegrationMutationOptions = Apollo.BaseMutationOptions<UpdateGitIntegrationMutation, UpdateGitIntegrationMutationVariables>;
+export type UpdateGitIntegrationMutationOptions = Apollo.BaseMutationOptions<
+  UpdateGitIntegrationMutation,
+  UpdateGitIntegrationMutationVariables
+>;
