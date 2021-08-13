@@ -52,7 +52,7 @@ export const LaunchTemplateDetailsSection = ({ serverGroup }: IAmazonServerGroup
         {launchTemplateData.userData && (
           <LabeledValue
             label="User Data"
-            value={<ShowUserData serverGroupName={name} userData={launchTemplateData.userData} />}
+            value={<ShowUserData serverGroupName={serverGroup.name} userData={launchTemplateData.userData} />}
           />
         )}
       </LabeledValueList>
