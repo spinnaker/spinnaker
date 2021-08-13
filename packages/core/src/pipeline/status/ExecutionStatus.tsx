@@ -86,7 +86,7 @@ export class ExecutionStatus extends React.Component<IExecutionStatusProps, IExe
     const TriggerExecutionStatus = this.getTriggerExecutionStatus();
     return (
       <div className="execution-status-section">
-        <span className={`trigger-type ${this.state.sortFilter.groupBy !== name ? 'subheading' : ''}`}>
+        <span>
           <h5 className="build-number">
             <ExecutionBuildLink execution={execution} />
           </h5>
