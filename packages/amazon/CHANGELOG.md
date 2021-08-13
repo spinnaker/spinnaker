@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.7.10](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.7.9...@spinnaker/amazon@0.7.10) (2021-08-13)
+
+
+### Bug Fixes
+
+* **amazon/serverGroup:** pass serverGroup name to user data dialog ([af49c35](https://github.com/spinnaker/deck/commit/af49c35c1b0019b082bfdcc3493ef01d73b4f592))
+* **amazon/subnet:** pass input name when creating synthetic event ([ea4050f](https://github.com/spinnaker/deck/commit/ea4050f3a516224947d3fb4eeed3fd03dec94309))
+
+
+
+
+
 ## [0.7.9](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.7.8...@spinnaker/amazon@0.7.9) (2021-08-10)
 
 **Note:** Version bump only for package @spinnaker/amazon

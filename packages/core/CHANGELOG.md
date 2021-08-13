@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.3.1](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.3.0...@spinnaker/core@0.3.1) (2021-08-13)
+
+
+### Bug Fixes
+
+* **core/pipeline:** explicitly type DateTimeFormatOptions ([fcdd803](https://github.com/spinnaker/deck/commit/fcdd803492a50c02876c027480f60d8aa1144e72))
+* **md:** git integration improvements ([#9583](https://github.com/spinnaker/deck/issues/9583)) ([516eb01](https://github.com/spinnaker/deck/commit/516eb018622849a636d16063f5d2ee8a232b1f42))
+
+
+
+
+
 # [0.3.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.2.1...@spinnaker/core@0.3.0) (2021-08-10)
 
 

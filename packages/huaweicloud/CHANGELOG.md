@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.29](https://github.com/spinnaker/deck/compare/@spinnaker/huaweicloud@0.0.28...@spinnaker/huaweicloud@0.0.29) (2021-08-13)
+
+**Note:** Version bump only for package @spinnaker/huaweicloud
+
+
+
+
+
 ## [0.0.28](https://github.com/spinnaker/deck/compare/@spinnaker/huaweicloud@0.0.27...@spinnaker/huaweicloud@0.0.28) (2021-08-10)
 
 **Note:** Version bump only for package @spinnaker/huaweicloud

@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.10](https://github.com/spinnaker/deck/compare/@spinnaker/presentation@0.0.9...@spinnaker/presentation@0.0.10) (2021-08-13)
+
+**Note:** Version bump only for package @spinnaker/presentation
+
+
+
+
+
 ## 0.0.9 (2021-07-17)
 
 
