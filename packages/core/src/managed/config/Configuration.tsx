@@ -4,7 +4,7 @@ import React from 'react';
 import { Illustration } from '@spinnaker/presentation';
 
 import { ApplicationQueryError } from '../ApplicationQueryError';
-import { ProcessedDeliveryConfig } from './DeliveryConfig';
+import { DeliveryConfig } from './DeliveryConfig';
 import { GitIntegration } from './GitIntegration';
 import { SETTINGS } from '../../config/settings';
 import {
@@ -12,11 +12,14 @@ import {
   useFetchApplicationManagementDataQuery,
   useToggleManagementMutation,
 } from '../graphql/graphql-sdk';
+import { Messages } from '../messages/Messages';
 import { showModal, useApplicationContextSafe } from '../../presentation';
 import { ActionModal, IArtifactActionModalProps } from '../utils/ActionModal';
 import { MODAL_MAX_WIDTH, spinnerProps } from '../utils/defaults';
 import { useLogEvent } from '../utils/logging';
 import { Spinner } from '../../widgets';
+import { getIsDebugMode } from '../utils/debugMode';
+import { UnmanagedMessage } from '../UnmanagedMessage';
 
 const BTN_CLASSNAMES = 'btn md-btn';
 
@@ -35,7 +38,10 @@ const managementStatusToContent = {
 
 export const Configuration = () => {
   const appName = useApplicationContextSafe().name;
-  const { data, error, loading } = useFetchApplicationManagementDataQuery({ variables: { appName } });
+  const { data, error, loading } = useFetchApplicationManagementDataQuery({
+    variables: { appName },
+    errorPolicy: 'all',
+  });
   const logError = useLogEvent('DeliveryConfig');
 
   React.useEffect(() => {
@@ -48,18 +54,22 @@ export const Configuration = () => {
     return <Spinner {...spinnerProps} message="Loading configuration..." />;
   }
 
-  if (error) {
-    return <ApplicationQueryError hasApplicationData={Boolean(data?.application)} error={error} />;
+  if (error && !Boolean(data?.application)) {
+    return <UnmanagedMessage />;
   }
 
   const gitIntegration = data.application?.gitIntegration;
+  const isDebug = getIsDebugMode();
+  const config = data.application?.config;
 
   return (
     <div className="full-width">
+      <Messages showManagementWarning={false} />
+      {error && <ApplicationQueryError hasApplicationData={Boolean(data?.application)} error={error} />}
       <ManagementToggle isPaused={data.application?.isPaused} />
       {SETTINGS.feature.mdGitIntegration && gitIntegration && <GitIntegration {...gitIntegration} />}
-      <ProcessedDeliveryConfig />
-      {/* <DeliveryConfig config={data.application?.rawConfig} /> */}
+      <DeliveryConfig config={config?.rawConfig} updatedAt={config?.updatedAt} />
+      {isDebug && <DeliveryConfig config={config?.processedConfig} isProcessed />}
     </div>
   );
 };

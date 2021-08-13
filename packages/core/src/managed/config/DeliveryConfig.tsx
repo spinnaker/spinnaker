@@ -1,9 +1,6 @@
 import React from 'react';
 import AceEditor from 'react-ace';
-
-import { ManagedReader } from '../ManagedReader';
-import { useApplicationContextSafe, useData } from '../../presentation';
-import { getIsDebugMode } from '../utils/debugMode';
+import { RelativeTimestamp } from '../RelativeTimestamp';
 
 const DeliveryConfigContentRenderer = ({ content }: { content: string }) => {
   return (
@@ -37,34 +34,24 @@ const DeliveryConfigContentRenderer = ({ content }: { content: string }) => {
 
 interface IDeliveryConfigProps {
   config?: string;
+  updatedAt?: string;
+  isProcessed?: boolean;
 }
 
-export const DeliveryConfig = ({ config }: IDeliveryConfigProps) => {
-  const isDebug = getIsDebugMode();
-  return (
-    <div className="DeliveryConfig sp-margin-xl-top">
-      {config && (
-        <>
-          <div>
-            <h4>Delivery Config</h4>
-          </div>
-          <DeliveryConfigContentRenderer content={config} />
-        </>
-      )}
-      {isDebug && <ProcessedDeliveryConfig />}
-    </div>
-  );
-};
-
-export const ProcessedDeliveryConfig = () => {
-  const app = useApplicationContextSafe();
-  const { result } = useData(() => ManagedReader.getProcessedDeliveryConfig(app.name), undefined, [app]);
-
-  if (!result) return null;
+export const DeliveryConfig = ({ config, updatedAt, isProcessed }: IDeliveryConfigProps) => {
+  if (!config) return null;
   return (
     <div className="sp-margin-xl-top">
-      <h4>Processed delivery config</h4>
-      <DeliveryConfigContentRenderer content={result} />
+      <div className="sp-margin-m-bottom">
+        <h4 className="sp-margin-3xs-bottom">{isProcessed ? 'Processed Delivery Config' : 'Delivery config'}</h4>
+
+        {updatedAt && (
+          <small>
+            Last update: <RelativeTimestamp timestamp={updatedAt} withSuffix removeStyles />
+          </small>
+        )}
+      </div>
+      <DeliveryConfigContentRenderer content={config} />
     </div>
   );
 };

@@ -29,7 +29,16 @@ const AppNotifications = () => {
           {notification.message}{' '}
           {notification.triggeredAt && (
             <>
-              (<RelativeTimestamp timestamp={notification.triggeredAt} />)
+              (<RelativeTimestamp timestamp={notification.triggeredAt} withSuffix />)
+            </>
+          )}
+          {notification.link && (
+            <>
+              {' '}
+              -{' '}
+              <a href={notification.link} target="_blank">
+                View
+              </a>
             </>
           )}
         </MessageBox>
@@ -38,12 +47,16 @@ const AppNotifications = () => {
   );
 };
 
-export const Messages = () => {
+interface IMessagesProps {
+  showManagementWarning?: boolean;
+}
+
+export const Messages = ({ showManagementWarning = true }: IMessagesProps) => {
   const app = useApplicationContextSafe();
   return (
     <>
       <AppNotifications />
-      <ManagementWarning appName={app.name} />
+      {showManagementWarning && <ManagementWarning appName={app.name} />}
     </>
   );
 };

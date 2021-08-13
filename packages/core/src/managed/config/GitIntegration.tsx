@@ -12,11 +12,13 @@ type IGitIntegrationProps = NonNullable<
   NonNullable<FetchApplicationManagementDataQuery['application']>['gitIntegration']
 >;
 
-export const GitIntegration = ({ isEnabled, branch, repository }: IGitIntegrationProps) => {
+export const GitIntegration = ({ isEnabled, branch, link, repository }: IGitIntegrationProps) => {
   const appName = useApplicationContextSafe().name;
   const [updateIntegration, { loading }] = useUpdateGitIntegrationMutation({
     refetchQueries: [{ query: FetchApplicationManagementDataDocument, variables: { appName } }],
   });
+
+  const repoAndBranch = [repository, branch].join(':');
 
   return (
     <div className="sp-margin-xl-top">
@@ -24,12 +26,25 @@ export const GitIntegration = ({ isEnabled, branch, repository }: IGitIntegratio
       <CheckboxInput
         checked={Boolean(isEnabled)}
         text={
-          <span className="horizontal middle">
-            Auto-import delivery config from {repository}/{branch}
-            {loading && (
-              <Spinner mode="circular" size="nano" color="var(--color-accent)" className="sp-margin-s-left" />
-            )}
-          </span>
+          <div>
+            <span className="horizontal">
+              Auto-import delivery config from&nbsp;
+              {link ? (
+                <a href={link} target="_blank" onClick={(e) => e.stopPropagation()}>
+                  {repoAndBranch}
+                </a>
+              ) : (
+                repoAndBranch
+              )}
+              {loading && (
+                <Spinner mode="circular" size="nano" color="var(--color-accent)" className="sp-margin-s-left" />
+              )}
+            </span>
+            <small>
+              Turning this on will automatically import your config from git when a new commit is made to{' '}
+              {branch || 'your main branch'}
+            </small>
+          </div>
         }
         disabled={loading}
         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {

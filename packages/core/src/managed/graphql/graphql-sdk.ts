@@ -42,8 +42,8 @@ export interface MdApplication {
   pausedInfo?: Maybe<MdPausedInfo>;
   environments: Array<MdEnvironment>;
   notifications?: Maybe<Array<MdNotification>>;
-  rawConfig?: Maybe<Scalars['String']>;
   gitIntegration?: Maybe<MdGitIntegration>;
+  config?: Maybe<MdConfig>;
 }
 
 export interface MdArtifact {
@@ -98,6 +98,7 @@ export interface MdArtifactVersionInEnvironment {
   verifications?: Maybe<Array<MdAction>>;
   postDeploy?: Maybe<Array<MdAction>>;
   veto?: Maybe<MdVersionVeto>;
+  isCurrent?: Maybe<Scalars['Boolean']>;
 }
 
 export interface MdCommitInfo {
@@ -111,6 +112,14 @@ export interface MdComparisonLinks {
   __typename?: 'MdComparisonLinks';
   toPreviousVersion?: Maybe<Scalars['String']>;
   toCurrentVersion?: Maybe<Scalars['String']>;
+}
+
+export interface MdConfig {
+  __typename?: 'MdConfig';
+  id: Scalars['ID'];
+  updatedAt?: Maybe<Scalars['InstantTime']>;
+  rawConfig?: Maybe<Scalars['String']>;
+  processedConfig?: Maybe<Scalars['String']>;
 }
 
 export interface MdConstraint {
@@ -136,6 +145,7 @@ export interface MdConstraintStatusPayload {
 }
 
 export interface MdDismissNotificationPayload {
+  application: Scalars['String'];
   id: Scalars['String'];
 }
 
@@ -145,6 +155,8 @@ export interface MdEnvironment {
   name: Scalars['String'];
   state: MdEnvironmentState;
   isPreview?: Maybe<Scalars['Boolean']>;
+  isDeleting?: Maybe<Scalars['Boolean']>;
+  gitMetadata?: Maybe<MdGitMetadata>;
 }
 
 export interface MdEnvironmentState {
@@ -162,6 +174,7 @@ export interface MdGitIntegration {
   repository?: Maybe<Scalars['String']>;
   branch?: Maybe<Scalars['String']>;
   isEnabled?: Maybe<Scalars['Boolean']>;
+  link?: Maybe<Scalars['String']>;
 }
 
 export interface MdGitMetadata {
@@ -378,7 +391,7 @@ export interface MutationDismissNotificationArgs {
 }
 
 export interface MutationUpdateGitIntegrationArgs {
-  payload?: Maybe<MdUpdateGitIntegrationPayload>;
+  payload: MdUpdateGitIntegrationPayload;
 }
 
 export interface Query {
@@ -649,8 +662,14 @@ export type FetchApplicationManagementDataQueryVariables = Exact<{
 export type FetchApplicationManagementDataQuery = { __typename?: 'Query' } & {
   application?: Maybe<
     { __typename?: 'MdApplication' } & Pick<MdApplication, 'id' | 'name' | 'isPaused'> & {
+        config?: Maybe<
+          { __typename?: 'MdConfig' } & Pick<MdConfig, 'id' | 'updatedAt' | 'rawConfig' | 'processedConfig'>
+        >;
         gitIntegration?: Maybe<
-          { __typename?: 'MdGitIntegration' } & Pick<MdGitIntegration, 'id' | 'repository' | 'branch' | 'isEnabled'>
+          { __typename?: 'MdGitIntegration' } & Pick<
+            MdGitIntegration,
+            'id' | 'repository' | 'branch' | 'isEnabled' | 'link'
+          >
         >;
       }
   >;
@@ -1226,11 +1245,18 @@ export const FetchApplicationManagementDataDocument = gql`
       id
       name
       isPaused
+      config {
+        id
+        updatedAt
+        rawConfig
+        processedConfig
+      }
       gitIntegration {
         id
         repository
         branch
         isEnabled
+        link
       }
     }
   }

@@ -13,8 +13,8 @@ type MdApplication {
   pausedInfo: MdPausedInfo
   environments: [MdEnvironment!]!
   notifications: [MdNotification!]
-  rawConfig: String
   gitIntegration: MdGitIntegration
+  config: MdConfig
 }
 
 type MdGitIntegration {
@@ -22,6 +22,14 @@ type MdGitIntegration {
   repository: String
   branch: String
   isEnabled: Boolean
+  link: String
+}
+
+type MdConfig {
+  id: ID!
+  updatedAt: InstantTime
+  rawConfig: String
+  processedConfig: String
 }
 
 type MdEnvironment {
@@ -29,6 +37,8 @@ type MdEnvironment {
   name: String!
   state: MdEnvironmentState!
   isPreview: Boolean
+  isDeleting: Boolean
+  gitMetadata: MdGitMetadata
 }
 
 type MdEnvironmentState {
@@ -87,6 +97,7 @@ type MdArtifactVersionInEnvironment {
   verifications: [MdAction!]
   postDeploy: [MdAction!]
   veto: MdVersionVeto
+  isCurrent: Boolean
 }
 
 type MdVersionVeto {
@@ -272,7 +283,7 @@ type Mutation @extends {
   markArtifactVersionAsGood(payload: MdMarkArtifactVersionAsGoodPayload!): Boolean
   retryArtifactVersionAction(payload: MdRetryArtifactActionPayload): MdAction
   dismissNotification(payload: MdDismissNotificationPayload!): Boolean
-  updateGitIntegration(payload: MdUpdateGitIntegrationPayload): MdGitIntegration
+  updateGitIntegration(payload: MdUpdateGitIntegrationPayload!): MdGitIntegration
 }
 
 input MdUpdateGitIntegrationPayload {
@@ -340,5 +351,6 @@ enum MdEventLevel {
 }
 
 input MdDismissNotificationPayload {
+  application: String!
   id: String!
 }
