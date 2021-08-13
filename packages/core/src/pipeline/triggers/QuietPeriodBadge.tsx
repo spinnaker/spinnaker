@@ -1,3 +1,4 @@
+import { DateTimeFormatOptions } from 'luxon';
 import React from 'react';
 
 import { Tooltip } from '../../presentation';
@@ -8,7 +9,7 @@ export interface IQuietPeriodBadgeProps {
 }
 
 const locale = 'en-US';
-const dateOptions = {
+const dateOptions: DateTimeFormatOptions = {
   weekday: 'short',
   year: 'numeric',
   month: 'short',
