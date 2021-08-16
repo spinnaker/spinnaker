@@ -121,6 +121,18 @@ module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_UPSERTSCALINGPOLICY_CONTR
       };
     }
 
+    this.scalingAdjustmentChanged = (adjustment) => {
+      this.command.simple.scalingAdjustment = adjustment;
+    };
+
+    this.adjustmentTypeChanged = (action, type) => {
+      this.viewState.operator = action;
+      this.viewState.adjustmentType = type;
+      const newType =
+        type !== 'instances' ? 'PercentChangeInCapacity' : action === 'Set to' ? 'ExactCapacity' : 'ChangeInCapacity';
+      this.command.adjustmentType = newType;
+    };
+
     this.boundsChanged = () => {
       const source = this.viewState.comparatorBound === 'min' ? 'metricIntervalLowerBound' : 'metricIntervalUpperBound';
       const target = source === 'metricIntervalLowerBound' ? 'metricIntervalUpperBound' : 'metricIntervalLowerBound';
