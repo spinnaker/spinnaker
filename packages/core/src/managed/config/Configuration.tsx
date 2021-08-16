@@ -67,8 +67,9 @@ export const Configuration = () => {
       <Messages showManagementWarning={false} />
       {error && <ApplicationQueryError hasApplicationData={Boolean(data?.application)} error={error} />}
       <ManagementToggle isPaused={data.application?.isPaused} />
-      {SETTINGS.feature.mdGitIntegration && gitIntegration && <GitIntegration {...gitIntegration} />}
-      <DeliveryConfig config={config?.rawConfig} updatedAt={config?.updatedAt} />
+      <DeliveryConfig config={config?.rawConfig} updatedAt={config?.updatedAt}>
+        {SETTINGS.feature.mdGitIntegration && gitIntegration && <GitIntegration {...gitIntegration} />}
+      </DeliveryConfig>
       {isDebug && <DeliveryConfig config={config?.processedConfig} isProcessed />}
     </div>
   );

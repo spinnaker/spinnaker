@@ -38,7 +38,7 @@ interface IDeliveryConfigProps {
   isProcessed?: boolean;
 }
 
-export const DeliveryConfig = ({ config, updatedAt, isProcessed }: IDeliveryConfigProps) => {
+export const DeliveryConfig: React.FC<IDeliveryConfigProps> = ({ config, updatedAt, isProcessed, children }) => {
   if (!config) return null;
   return (
     <div className="sp-margin-xl-top">
@@ -51,6 +51,7 @@ export const DeliveryConfig = ({ config, updatedAt, isProcessed }: IDeliveryConf
           </small>
         )}
       </div>
+      {children}
       <DeliveryConfigContentRenderer content={config} />
     </div>
   );

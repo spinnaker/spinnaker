@@ -8,6 +8,8 @@ import {
 import { CheckboxInput, useApplicationContextSafe } from '../../presentation';
 import { Spinner } from '../../widgets/spinners/Spinner';
 
+import './GitIntegration.less';
+
 type IGitIntegrationProps = NonNullable<
   NonNullable<FetchApplicationManagementDataQuery['application']>['gitIntegration']
 >;
@@ -21,13 +23,13 @@ export const GitIntegration = ({ isEnabled, branch, link, repository }: IGitInte
   const repoAndBranch = [repository, branch].join(':');
 
   return (
-    <div className="sp-margin-xl-top">
-      <h4>Git integration</h4>
+    <div className="GitIntegration sp-margin-m-bottom">
       <CheckboxInput
         checked={Boolean(isEnabled)}
+        wrapperClassName="sp-margin-3xs-yaxis"
         text={
           <div>
-            <span className="horizontal">
+            <span className="horizontal middle">
               Auto-import delivery config from&nbsp;
               {link ? (
                 <a href={link} target="_blank" onClick={(e) => e.stopPropagation()}>
@@ -40,10 +42,6 @@ export const GitIntegration = ({ isEnabled, branch, link, repository }: IGitInte
                 <Spinner mode="circular" size="nano" color="var(--color-accent)" className="sp-margin-s-left" />
               )}
             </span>
-            <small>
-              Turning this on will automatically import your config from git when a new commit is made to{' '}
-              {branch || 'your main branch'}
-            </small>
           </div>
         }
         disabled={loading}
@@ -51,6 +49,10 @@ export const GitIntegration = ({ isEnabled, branch, link, repository }: IGitInte
           updateIntegration({ variables: { payload: { application: appName, isEnabled: e.target.checked } } });
         }}
       />
+      <div className="help-text">
+        Turning this on will automatically import your config from git when a new commit is made to{' '}
+        {branch || 'your main branch'}
+      </div>
     </div>
   );
 };
