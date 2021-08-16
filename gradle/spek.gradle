@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 
-repositories {
-  jcenter()
-}
-
 dependencies {
   testImplementation("org.junit.platform:junit-platform-runner")
   testImplementation("org.jetbrains.spek:spek-api")

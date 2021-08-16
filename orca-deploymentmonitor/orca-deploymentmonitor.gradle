@@ -16,10 +16,6 @@
 
 apply from: "$rootDir/gradle/spock.gradle"
 
-repositories {
-  jcenter()
-}
-
 dependencies {
   implementation(project(":orca-core"))
   implementation(project(":orca-retrofit"))
