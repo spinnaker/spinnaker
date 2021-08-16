@@ -38,11 +38,16 @@
           ></aws-simple-policy-action>
         </div>
         <div ng-if="ctrl.command.step">
-          <aws-step-policy-action
-            command="ctrl.command"
-            view-state="ctrl.viewState"
-            bounds-changed="ctrl.boundsChanged()"
-          ></aws-step-policy-action>
+          <step-policy-action
+            adjustment-type="ctrl.viewState.adjustmentType"
+            adjustment-type-changed="ctrl.adjustmentTypeChanged"
+            alarm="ctrl.command.alarm"
+            is-min="ctrl.viewState.comparatorBound === 'min'"
+            operator="ctrl.viewState.operator"
+            step-adjustments="ctrl.command.step.stepAdjustments"
+            steps-changed="ctrl.stepsChanged"
+          >
+          </step-policy-action>
         </div>
       </div>
       <h4 class="section-heading">Additional Settings</h4>
