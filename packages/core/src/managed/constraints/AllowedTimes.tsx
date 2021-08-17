@@ -3,6 +3,8 @@ import React from 'react';
 
 import { AllowedTimeWindow, IAllowedTimesConstraint } from '../../domain';
 
+import './AllowedTimes.less';
+
 export interface GroupRange {
   start: number;
   end: number;
@@ -64,32 +66,44 @@ const timeWindowToString = (window: AllowedTimeWindow, timeZone = 'PST') => {
 
 const DeploymentWindow = ({ attributes }: { attributes: IAllowedTimesConstraint['attributes'] }) => {
   if (!attributes) return null;
-  const { allowedTimes, timezone } = attributes;
+  const { allowedTimes, timezone, actualDeploys, maxDeploys } = attributes;
   return (
-    <ul className="sp-margin-xs-top sp-padding-l-left sp-margin-2xs-bottom">
-      {allowedTimes.map((window, index) => (
-        <li key={index}>{timeWindowToString(window, timezone)}</li>
-      ))}
-    </ul>
+    <div className="DeploymentWindow">
+      <ul className="sp-margin-xs-top sp-padding-l-left sp-margin-2xs-bottom">
+        {allowedTimes.map((window, index) => (
+          <li key={index}>{timeWindowToString(window, timezone)}</li>
+        ))}
+      </ul>
+      {maxDeploys !== null && (
+        <div className="sp-margin-xs-top">
+          Deployed {actualDeploys || 0} out of {maxDeploys} times in the current window
+        </div>
+      )}
+    </div>
   );
 };
 
 const getTitle = (constraint: IAllowedTimesConstraint) => {
+  const maxDeploys = constraint.attributes?.maxDeploys;
+
   switch (constraint.status) {
     case 'BLOCKED':
-      return 'Deployment window constraint is blocked by other constraints';
+      return 'Deployment window is blocked by other constraints';
     case 'OVERRIDE_PASS':
     case 'FORCE_PASS':
-      return 'Deployment window constraint was overridden';
+      return 'Deployment window was overridden';
     case 'PASS':
       return 'Deployed during one of the allowed windows';
     case 'FAIL':
     case 'PENDING':
+      if (maxDeploys !== undefined && (constraint.attributes?.actualDeploys || 0) >= maxDeploys) {
+        return `Deployment reached the maximum allowed times per window`;
+      }
       return `Deployment can only occur during the provided window${
         (constraint.attributes?.allowedTimes.length ?? 0) > 1 ? 's' : ''
       }`;
     default:
-      return `Allowed times constraint - ${constraint.status}:`;
+      return `Deployment window constraint - ${constraint.status}:`;
   }
 };
 
