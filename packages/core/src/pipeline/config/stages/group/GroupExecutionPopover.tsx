@@ -59,7 +59,7 @@ export class GroupExecutionPopover extends React.Component<IGroupExecutionPopove
     const { stage, width, svgMode } = this.props;
 
     const template = (
-      <div style={{ minWidth: width - 30 + 'px' }}>
+      <div style={{ maxWidth: width - 30 + 'px' }}>
         <div className="group-name">{stage.name.toUpperCase()}</div>
         <ul className="group-execution-label-list">
           {stage.groupStages.map((s) => (
