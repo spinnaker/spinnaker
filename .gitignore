@@ -34,7 +34,6 @@ build/
 dist/
 lib/
 transpiled/
-app/scripts/modules/core/src/styleguide/public/
 yarn-error.log
 *.css.d.ts
 

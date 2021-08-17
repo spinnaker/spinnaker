@@ -45,7 +45,7 @@ task webpack(type: YarnTask) {
 task copyFavicon(type: Copy) {
   dependsOn "webpack"
 
-  from "app/scripts/modules/app/icons/prod-favicon.ico"
+  from "packages/app/icons/prod-favicon.ico"
   into "build/webpack"
   rename "prod-favicon.ico", "favicon.ico"
 }

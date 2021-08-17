@@ -1,6 +1,4 @@
 # Built lib files
-/**/modules/*/lib/**
-/**/modules/*/dist/**
 /**/*.spec.*
 node_modules
 packages/*/dist/**

@@ -3,7 +3,7 @@
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const path = require('path');
 
-const prodWebpackConfig = require('./app/scripts/modules/app/webpack.config')();
+const prodWebpackConfig = require('./packages/app/webpack.config')();
 const MODULES_ROOT = path.resolve(`${__dirname}/packages`);
 
 const webpackConfig = {

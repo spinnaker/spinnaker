@@ -9,8 +9,8 @@ configure({ adapter: new Adapter() });
 
 Error.stackTraceLimit = Infinity;
 
-import './app/scripts/modules/app/src/settings';
-import './app/scripts/modules/app/src/app';
+import './packages/app/src/settings';
+import './packages/app/src/app';
 import './test/helpers/customMatchers';
 import { jasmineMockHttpSupport } from './packages/core/src/api/mock/jasmine';
 

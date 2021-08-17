@@ -9,9 +9,9 @@ import { isCallExpression, isIdentifier, isMemberExpression } from '../utils/uti
 const rule = function (context: Rule.RuleContext) {
   function getSuggestedVariableNameForFile() {
     const filename = context.getFilename();
-    if (filename.includes('/modules/')) {
+    if (filename.includes('/packages/')) {
       return filename
-        .replace(/^.*\/modules\//g, '')
+        .replace(/^.*\/packages\//g, '')
         .replace(/\/src\//g, '/')
         .replace(/\.[\w]*$/g, '')
         .replace(/[^\w_]/g, '_')

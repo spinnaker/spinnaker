@@ -7,7 +7,7 @@ import { ApplicationDataSource } from '../service/applicationDataSource';
 
 export interface IApplicationDataSourceAttribute {
   enabled: string[];
-  disabled: string[]; ///./app/scripts/modules/core/src/pipeline/service/execution.service.ts;
+  disabled: string[]; ///  packages/core/src/pipeline/service/execution.service.ts;
 }
 
 export interface IApplicationSummary {

@@ -9,7 +9,7 @@ const TerserPlugin = require('terser-webpack-plugin');
 const ESLintPlugin = require('eslint-webpack-plugin');
 const webpack = require('webpack');
 
-const DECK_ROOT = path.resolve(`${__dirname}/../../../../`);
+const DECK_ROOT = path.resolve(`${__dirname}/../..`);
 const NODE_MODULE_PATH = path.resolve(`${DECK_ROOT}/node_modules`);
 const CACHE_INVALIDATE = getCacheInvalidateString();
 const SETTINGS_PATH = process.env.SETTINGS_PATH || './src/settings.js';
@@ -61,7 +61,7 @@ function configure(env, webpackOpts) {
       app: './src/app.ts',
     },
     output: {
-      path: path.join(`${__dirname}/../../../../build/webpack`, process.env.SPINNAKER_ENV || ''),
+      path: path.join(DECK_ROOT, 'build', 'webpack', process.env.SPINNAKER_ENV || ''),
       filename: '[name].js',
     },
     devtool: IS_PRODUCTION ? 'source-map' : 'eval',
