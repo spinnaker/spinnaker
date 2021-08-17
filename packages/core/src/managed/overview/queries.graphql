@@ -96,6 +96,7 @@ query fetchApplication($appName: String!, $statuses: [MdArtifactStatusInEnvironm
     account
     environments {
       ...baseEnvironmentFields
+      isDeleting
       state {
         id
         artifacts {

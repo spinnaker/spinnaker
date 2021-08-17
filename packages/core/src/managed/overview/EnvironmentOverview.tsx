@@ -29,6 +29,7 @@ export const EnvironmentOverview = ({ environment }: IEnvironmentProps) => {
       basedOn={environment.basedOn}
       gitMetadata={environment.gitMetadata}
       isPreview={environment.isPreview}
+      isDeleting={environment.isDeleting}
     >
       <CollapsibleSection heading="Artifacts" {...sectionProps} defaultExpanded enableCaching={false}>
         {state.artifacts?.length ? (

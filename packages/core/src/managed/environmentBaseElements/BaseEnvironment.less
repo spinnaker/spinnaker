@@ -7,6 +7,7 @@
   background-color: var(--color-white);
 
   .EnvironmentTitle {
+    position: relative;
     width: 100%;
     min-height: 40px;
     display: flex;
@@ -36,6 +37,18 @@
       }
       font-size: 18px;
       font-weight: 700;
+    }
+
+    .env-deleting {
+      position: absolute;
+      right: 8px;
+      font-size: 13px;
+      color: var(--color-white);
+      animation: deletingAnimation 2s infinite;
+      padding: var(~'--3xs-spacing') var(~'--xs-spacing');
+      border-radius: 3px;
+      top: 50%;
+      transform: translateY(-50%);
     }
 
     &.small {

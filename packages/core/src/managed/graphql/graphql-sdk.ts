@@ -475,30 +475,30 @@ export type FetchApplicationQuery = { __typename?: 'Query' } & {
   application?: Maybe<
     { __typename?: 'MdApplication' } & Pick<MdApplication, 'id' | 'name' | 'account'> & {
         environments: Array<
-          { __typename?: 'MdEnvironment' } & {
-            state: { __typename?: 'MdEnvironmentState' } & Pick<MdEnvironmentState, 'id'> & {
-                artifacts?: Maybe<
-                  Array<
-                    { __typename?: 'MdArtifact' } & Pick<
-                      MdArtifact,
-                      'id' | 'name' | 'environment' | 'type' | 'reference'
-                    > & {
-                        versions?: Maybe<
-                          Array<{ __typename?: 'MdArtifactVersionInEnvironment' } & DetailedVersionFieldsFragment>
-                        >;
-                      } & ArtifactPinnedVersionFieldsFragment
-                  >
-                >;
-                resources?: Maybe<
-                  Array<
-                    { __typename?: 'MdResource' } & Pick<MdResource, 'id' | 'kind' | 'displayName'> & {
-                        moniker?: Maybe<{ __typename?: 'MdMoniker' } & Pick<MdMoniker, 'app' | 'stack' | 'detail'>>;
-                        location?: Maybe<{ __typename?: 'MdLocation' } & Pick<MdLocation, 'account' | 'regions'>>;
-                      }
-                  >
-                >;
-              };
-          } & BaseEnvironmentFieldsFragment
+          { __typename?: 'MdEnvironment' } & Pick<MdEnvironment, 'isDeleting'> & {
+              state: { __typename?: 'MdEnvironmentState' } & Pick<MdEnvironmentState, 'id'> & {
+                  artifacts?: Maybe<
+                    Array<
+                      { __typename?: 'MdArtifact' } & Pick<
+                        MdArtifact,
+                        'id' | 'name' | 'environment' | 'type' | 'reference'
+                      > & {
+                          versions?: Maybe<
+                            Array<{ __typename?: 'MdArtifactVersionInEnvironment' } & DetailedVersionFieldsFragment>
+                          >;
+                        } & ArtifactPinnedVersionFieldsFragment
+                    >
+                  >;
+                  resources?: Maybe<
+                    Array<
+                      { __typename?: 'MdResource' } & Pick<MdResource, 'id' | 'kind' | 'displayName'> & {
+                          moniker?: Maybe<{ __typename?: 'MdMoniker' } & Pick<MdMoniker, 'app' | 'stack' | 'detail'>>;
+                          location?: Maybe<{ __typename?: 'MdLocation' } & Pick<MdLocation, 'account' | 'regions'>>;
+                        }
+                    >
+                  >;
+                };
+            } & BaseEnvironmentFieldsFragment
         >;
       }
   >;
@@ -849,6 +849,7 @@ export const FetchApplicationDocument = gql`
       account
       environments {
         ...baseEnvironmentFields
+        isDeleting
         state {
           id
           artifacts {

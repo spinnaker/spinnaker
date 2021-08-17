@@ -3834,7 +3834,12 @@
   resolved "https://registry.yarnpkg.com/@spinnaker/mocks/-/mocks-1.0.7.tgz#3e30fde4d691b310910e7fa5201c7424609042c0"
   integrity sha512-WXoNtZoFZFNDTrckCbbTShxoRN088IN+awWweNNv89EU4GsMX8HnnG/9J6N9rAt0R3ZgzhJmaNG06/JHHBzxEw==
 
-"@spinnaker/styleguide@1.0.26", "@spinnaker/styleguide@^1.0.24", "@spinnaker/styleguide@^1.0.26":
+"@spinnaker/styleguide@1.0.28":
+  version "1.0.28"
+  resolved "https://registry.yarnpkg.com/@spinnaker/styleguide/-/styleguide-1.0.28.tgz#679a153cdc3f1ed0a72d059ebc6142ca9fdf5679"
+  integrity sha512-My+bAw7/vLIz8hkkfofR2mNN6Nf3GFmTHSIGfzEWyihPKW07zUYFpUBmjkN8JvzjKS7LoV7VeAv7AmIUDy2oKg==
+
+"@spinnaker/styleguide@^1.0.24", "@spinnaker/styleguide@^1.0.26":
   version "1.0.26"
   resolved "https://registry.yarnpkg.com/@spinnaker/styleguide/-/styleguide-1.0.26.tgz#a0780c8491406881cc4088b379c06618ca446136"
   integrity sha512-iFUv+qKwiqFYAXi2YRhoyblS4Re+q66ED+slYXMoQzrqLyrp4TV4LqxDgsWdsPi4LbEWOn8JjHbV20KcNFjE4w==

@@ -8,6 +8,7 @@ interface IEnvironmentSectionProps {
   size?: 'regular' | 'small';
   isPreview?: boolean;
   basedOn?: string | null;
+  isDeleting?: boolean;
   gitMetadata?: {
     branch?: string;
     pullRequest?: {
@@ -24,14 +25,14 @@ export const getEnvTitle = ({
   return isPreview ? gitMetadata?.branch || name : name;
 };
 
-export const BaseEnvironment: React.FC<IEnvironmentSectionProps> = ({
+const EnvironmentTitle = ({
   name,
   basedOn,
-  isPreview,
   gitMetadata,
+  isPreview,
+  isDeleting,
   size = 'regular',
-  children,
-}) => {
+}: IEnvironmentSectionProps) => {
   const baseTitle = (
     <div className={classnames('env-name', { 'preview-env': Boolean(isPreview) })}>
       {getEnvTitle({ name, isPreview, gitMetadata })}
@@ -39,21 +40,28 @@ export const BaseEnvironment: React.FC<IEnvironmentSectionProps> = ({
   );
   const link = gitMetadata?.pullRequest?.link;
   return (
+    <div className={classnames('EnvironmentTitle', size)}>
+      {link ? (
+        <a href={link} target="_blank" className="env-link horizontal middle">
+          {baseTitle} <i className="fas fa-external-link-alt sp-margin-s-left" />
+        </a>
+      ) : (
+        baseTitle
+      )}
+      {basedOn && (
+        <div>
+          Based on <span className="uppercase">{basedOn}</span>
+        </div>
+      )}
+      {isDeleting && <div className="env-deleting">Deleting</div>}
+    </div>
+  );
+};
+
+export const BaseEnvironment: React.FC<IEnvironmentSectionProps> = ({ children, ...otherProps }) => {
+  return (
     <section className="BaseEnvironment">
-      <div className={classnames('EnvironmentTitle', size)}>
-        {link ? (
-          <a href={link} target="_blank" className="env-link horizontal middle">
-            {baseTitle} <i className="fas fa-external-link-alt sp-margin-s-left" />
-          </a>
-        ) : (
-          baseTitle
-        )}
-        {basedOn && (
-          <div>
-            Based on <span className="uppercase">{basedOn}</span>
-          </div>
-        )}
-      </div>
+      <EnvironmentTitle {...otherProps} />
       {children}
     </section>
   );
