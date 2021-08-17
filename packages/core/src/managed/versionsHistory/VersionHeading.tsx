@@ -22,6 +22,7 @@ import {
 } from '../versionMetadata/MetadataComponents';
 
 import './VersionsHistory.less';
+import { getEnvTitle } from '../environmentBaseElements/BaseEnvironment';
 
 type VersionStatus = MdArtifactStatusInEnvironment;
 
@@ -112,7 +113,7 @@ export const VersionHeading = ({ group, chevron }: IVersionHeadingProps) => {
           {Object.entries(group.environments)
             .reverse()
             .map(([env, artifacts]) => (
-              <EnvironmentBadge key={env} env={env} data={artifacts} />
+              <EnvironmentBadge key={env} name={env} data={artifacts} />
             ))}
         </div>
       </div>
@@ -122,17 +123,18 @@ export const VersionHeading = ({ group, chevron }: IVersionHeadingProps) => {
 };
 
 interface IEnvironmentBadgeProps {
-  env: string;
+  name: string;
   data: VersionData['environments'][keyof VersionData['environments']];
 }
 
-const EnvironmentBadge = ({ env, data }: IEnvironmentBadgeProps) => {
-  const statusSummary = getEnvStatusSummary(data.versions);
+const EnvironmentBadge = ({ name, data: { isPreview, versions, gitMetadata, isPinned } }: IEnvironmentBadgeProps) => {
+  const statusSummary = getEnvStatusSummary(versions);
   const statusClassName = statusToClassName[statusSummary];
   return (
     <Tooltip delayShow={TOOLTIP_DELAY_SHOW} value={statusToText[statusSummary]}>
-      <div className={classnames('chip', statusClassName)}>
-        {data.isPinned && <Icon name="pin" size="16px" className="environment-pinned" color="black" />} {env}
+      <div className={classnames('chip', { 'preview-env': isPreview }, statusClassName)}>
+        {isPinned && <Icon name="pin" size="16px" className="environment-pinned" color="black" />}{' '}
+        {getEnvTitle({ name, gitMetadata, isPreview })}
       </div>
     </Tooltip>
   );

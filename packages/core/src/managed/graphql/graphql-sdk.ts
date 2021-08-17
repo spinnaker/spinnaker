@@ -151,12 +151,13 @@ export interface MdDismissNotificationPayload {
 
 export interface MdEnvironment {
   __typename?: 'MdEnvironment';
-  id: Scalars['String'];
+  id: Scalars['ID'];
   name: Scalars['String'];
   state: MdEnvironmentState;
   isPreview?: Maybe<Scalars['Boolean']>;
   isDeleting?: Maybe<Scalars['Boolean']>;
   gitMetadata?: Maybe<MdGitMetadata>;
+  basedOn?: Maybe<Scalars['String']>;
 }
 
 export interface MdEnvironmentState {
@@ -391,7 +392,7 @@ export interface MutationDismissNotificationArgs {
 }
 
 export interface MutationUpdateGitIntegrationArgs {
-  payload: MdUpdateGitIntegrationPayload;
+  payload?: Maybe<MdUpdateGitIntegrationPayload>;
 }
 
 export interface Query {
@@ -454,6 +455,17 @@ export type ArtifactPinnedVersionFieldsFragment = { __typename?: 'MdArtifact' } 
   >;
 };
 
+export type BaseEnvironmentFieldsFragment = { __typename?: 'MdEnvironment' } & Pick<
+  MdEnvironment,
+  'id' | 'name' | 'isPreview' | 'basedOn'
+> & {
+    gitMetadata?: Maybe<
+      { __typename?: 'MdGitMetadata' } & Pick<MdGitMetadata, 'branch'> & {
+          pullRequest?: Maybe<{ __typename?: 'MdPullRequest' } & Pick<MdPullRequest, 'link'>>;
+        }
+    >;
+  };
+
 export type FetchApplicationQueryVariables = Exact<{
   appName: Scalars['String'];
   statuses?: Maybe<Array<MdArtifactStatusInEnvironment> | MdArtifactStatusInEnvironment>;
@@ -463,30 +475,30 @@ export type FetchApplicationQuery = { __typename?: 'Query' } & {
   application?: Maybe<
     { __typename?: 'MdApplication' } & Pick<MdApplication, 'id' | 'name' | 'account'> & {
         environments: Array<
-          { __typename?: 'MdEnvironment' } & Pick<MdEnvironment, 'id' | 'name' | 'isPreview'> & {
-              state: { __typename?: 'MdEnvironmentState' } & Pick<MdEnvironmentState, 'id'> & {
-                  artifacts?: Maybe<
-                    Array<
-                      { __typename?: 'MdArtifact' } & Pick<
-                        MdArtifact,
-                        'id' | 'name' | 'environment' | 'type' | 'reference'
-                      > & {
-                          versions?: Maybe<
-                            Array<{ __typename?: 'MdArtifactVersionInEnvironment' } & DetailedVersionFieldsFragment>
-                          >;
-                        } & ArtifactPinnedVersionFieldsFragment
-                    >
-                  >;
-                  resources?: Maybe<
-                    Array<
-                      { __typename?: 'MdResource' } & Pick<MdResource, 'id' | 'kind' | 'displayName'> & {
-                          moniker?: Maybe<{ __typename?: 'MdMoniker' } & Pick<MdMoniker, 'app' | 'stack' | 'detail'>>;
-                          location?: Maybe<{ __typename?: 'MdLocation' } & Pick<MdLocation, 'account' | 'regions'>>;
-                        }
-                    >
-                  >;
-                };
-            }
+          { __typename?: 'MdEnvironment' } & {
+            state: { __typename?: 'MdEnvironmentState' } & Pick<MdEnvironmentState, 'id'> & {
+                artifacts?: Maybe<
+                  Array<
+                    { __typename?: 'MdArtifact' } & Pick<
+                      MdArtifact,
+                      'id' | 'name' | 'environment' | 'type' | 'reference'
+                    > & {
+                        versions?: Maybe<
+                          Array<{ __typename?: 'MdArtifactVersionInEnvironment' } & DetailedVersionFieldsFragment>
+                        >;
+                      } & ArtifactPinnedVersionFieldsFragment
+                  >
+                >;
+                resources?: Maybe<
+                  Array<
+                    { __typename?: 'MdResource' } & Pick<MdResource, 'id' | 'kind' | 'displayName'> & {
+                        moniker?: Maybe<{ __typename?: 'MdMoniker' } & Pick<MdMoniker, 'app' | 'stack' | 'detail'>>;
+                        location?: Maybe<{ __typename?: 'MdLocation' } & Pick<MdLocation, 'account' | 'regions'>>;
+                      }
+                  >
+                >;
+              };
+          } & BaseEnvironmentFieldsFragment
         >;
       }
   >;
@@ -501,47 +513,44 @@ export type FetchVersionsHistoryQuery = { __typename?: 'Query' } & {
   application?: Maybe<
     { __typename?: 'MdApplication' } & Pick<MdApplication, 'id' | 'name' | 'account'> & {
         environments: Array<
-          { __typename?: 'MdEnvironment' } & Pick<MdEnvironment, 'id' | 'name'> & {
-              state: { __typename?: 'MdEnvironmentState' } & Pick<MdEnvironmentState, 'id'> & {
-                  artifacts?: Maybe<
-                    Array<
-                      { __typename?: 'MdArtifact' } & Pick<
-                        MdArtifact,
-                        'id' | 'name' | 'environment' | 'type' | 'reference'
-                      > & {
-                          versions?: Maybe<
-                            Array<
-                              { __typename?: 'MdArtifactVersionInEnvironment' } & Pick<
-                                MdArtifactVersionInEnvironment,
-                                'id' | 'buildNumber' | 'version' | 'createdAt' | 'status'
-                              > & {
-                                  gitMetadata?: Maybe<
-                                    { __typename?: 'MdGitMetadata' } & Pick<
-                                      MdGitMetadata,
-                                      'commit' | 'author' | 'branch'
-                                    > & {
-                                        commitInfo?: Maybe<
-                                          { __typename?: 'MdCommitInfo' } & Pick<
-                                            MdCommitInfo,
-                                            'sha' | 'link' | 'message'
-                                          >
-                                        >;
-                                        pullRequest?: Maybe<
-                                          { __typename?: 'MdPullRequest' } & Pick<MdPullRequest, 'number' | 'link'>
-                                        >;
-                                      }
-                                  >;
-                                  lifecycleSteps?: Maybe<
-                                    Array<{ __typename?: 'MdLifecycleStep' } & Pick<MdLifecycleStep, 'type' | 'status'>>
-                                  >;
-                                }
-                            >
-                          >;
-                        } & ArtifactPinnedVersionFieldsFragment
-                    >
-                  >;
-                };
-            }
+          { __typename?: 'MdEnvironment' } & {
+            state: { __typename?: 'MdEnvironmentState' } & Pick<MdEnvironmentState, 'id'> & {
+                artifacts?: Maybe<
+                  Array<
+                    { __typename?: 'MdArtifact' } & Pick<
+                      MdArtifact,
+                      'id' | 'name' | 'environment' | 'type' | 'reference'
+                    > & {
+                        versions?: Maybe<
+                          Array<
+                            { __typename?: 'MdArtifactVersionInEnvironment' } & Pick<
+                              MdArtifactVersionInEnvironment,
+                              'id' | 'buildNumber' | 'version' | 'createdAt' | 'status'
+                            > & {
+                                gitMetadata?: Maybe<
+                                  { __typename?: 'MdGitMetadata' } & Pick<
+                                    MdGitMetadata,
+                                    'commit' | 'author' | 'branch'
+                                  > & {
+                                      commitInfo?: Maybe<
+                                        { __typename?: 'MdCommitInfo' } & Pick<MdCommitInfo, 'sha' | 'link' | 'message'>
+                                      >;
+                                      pullRequest?: Maybe<
+                                        { __typename?: 'MdPullRequest' } & Pick<MdPullRequest, 'number' | 'link'>
+                                      >;
+                                    }
+                                >;
+                                lifecycleSteps?: Maybe<
+                                  Array<{ __typename?: 'MdLifecycleStep' } & Pick<MdLifecycleStep, 'type' | 'status'>>
+                                >;
+                              }
+                          >
+                        >;
+                      } & ArtifactPinnedVersionFieldsFragment
+                  >
+                >;
+              };
+          } & BaseEnvironmentFieldsFragment
         >;
       }
   >;
@@ -818,6 +827,20 @@ export const ArtifactPinnedVersionFieldsFragmentDoc = gql`
     }
   }
 `;
+export const BaseEnvironmentFieldsFragmentDoc = gql`
+  fragment baseEnvironmentFields on MdEnvironment {
+    id
+    name
+    isPreview
+    gitMetadata {
+      branch
+      pullRequest {
+        link
+      }
+    }
+    basedOn
+  }
+`;
 export const FetchApplicationDocument = gql`
   query fetchApplication($appName: String!, $statuses: [MdArtifactStatusInEnvironment!]) {
     application(appName: $appName) {
@@ -825,9 +848,7 @@ export const FetchApplicationDocument = gql`
       name
       account
       environments {
-        id
-        name
-        isPreview
+        ...baseEnvironmentFields
         state {
           id
           artifacts {
@@ -859,6 +880,7 @@ export const FetchApplicationDocument = gql`
       }
     }
   }
+  ${BaseEnvironmentFieldsFragmentDoc}
   ${DetailedVersionFieldsFragmentDoc}
   ${ArtifactPinnedVersionFieldsFragmentDoc}
 `;
@@ -902,8 +924,7 @@ export const FetchVersionsHistoryDocument = gql`
       name
       account
       environments {
-        id
-        name
+        ...baseEnvironmentFields
         state {
           id
           artifacts {
@@ -943,6 +964,7 @@ export const FetchVersionsHistoryDocument = gql`
       }
     }
   }
+  ${BaseEnvironmentFieldsFragmentDoc}
   ${ArtifactPinnedVersionFieldsFragmentDoc}
 `;
 

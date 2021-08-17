@@ -24,7 +24,12 @@ export const EnvironmentOverview = ({ environment }: IEnvironmentProps) => {
   const hasResourcesWithIssues = resources?.some((resource) => resource.state?.status !== 'UP_TO_DATE');
   const state = environment.state;
   return (
-    <BaseEnvironment title={environment.name}>
+    <BaseEnvironment
+      name={environment.name}
+      basedOn={environment.basedOn}
+      gitMetadata={environment.gitMetadata}
+      isPreview={environment.isPreview}
+    >
       <CollapsibleSection heading="Artifacts" {...sectionProps} defaultExpanded enableCaching={false}>
         {state.artifacts?.length ? (
           state.artifacts.map((artifact) => <Artifact key={artifact.reference} artifact={artifact} />)

@@ -33,12 +33,13 @@ type MdConfig {
 }
 
 type MdEnvironment {
-  id: String!
+  id: ID!
   name: String!
   state: MdEnvironmentState!
   isPreview: Boolean
   isDeleting: Boolean
   gitMetadata: MdGitMetadata
+  basedOn: String
 }
 
 type MdEnvironmentState {
@@ -283,7 +284,7 @@ type Mutation @extends {
   markArtifactVersionAsGood(payload: MdMarkArtifactVersionAsGoodPayload!): Boolean
   retryArtifactVersionAction(payload: MdRetryArtifactActionPayload): MdAction
   dismissNotification(payload: MdDismissNotificationPayload!): Boolean
-  updateGitIntegration(payload: MdUpdateGitIntegrationPayload!): MdGitIntegration
+  updateGitIntegration(payload: MdUpdateGitIntegrationPayload): MdGitIntegration
 }
 
 input MdUpdateGitIntegrationPayload {

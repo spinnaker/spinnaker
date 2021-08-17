@@ -21,7 +21,15 @@ export interface VersionData {
   createdAt?: DateTime;
   isBaking?: boolean;
   isFocused?: boolean;
-  environments: { [env: string]: { versions: HistoryArtifactVersionExtended[]; isPinned?: boolean } };
+  environments: {
+    [env: string]: {
+      versions: HistoryArtifactVersionExtended[];
+      isPinned?: boolean;
+      isPreview?: boolean;
+      basedOn?: HistoryEnvironment['basedOn'];
+      gitMetadata?: HistoryEnvironment['gitMetadata'];
+    };
+  };
   gitMetadata?: HistoryArtifactVersion['gitMetadata'];
   key: string;
 }

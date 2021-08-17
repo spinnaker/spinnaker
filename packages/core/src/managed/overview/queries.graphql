@@ -76,15 +76,26 @@ fragment artifactPinnedVersionFields on MdArtifact {
   }
 }
 
+fragment baseEnvironmentFields on MdEnvironment {
+  id
+  name
+  isPreview
+  gitMetadata {
+    branch
+    pullRequest {
+      link
+    }
+  }
+  basedOn
+}
+
 query fetchApplication($appName: String!, $statuses: [MdArtifactStatusInEnvironment!]) {
   application(appName: $appName) {
     id
     name
     account
     environments {
-      id
-      name
-      isPreview
+      ...baseEnvironmentFields
       state {
         id
         artifacts {
@@ -123,8 +134,7 @@ query fetchVersionsHistory($appName: String!, $limit: Int) {
     name
     account
     environments {
-      id
-      name
+      ...baseEnvironmentFields
       state {
         id
         artifacts {

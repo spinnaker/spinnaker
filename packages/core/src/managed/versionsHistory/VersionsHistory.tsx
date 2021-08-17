@@ -78,7 +78,12 @@ const groupVersionsByShaOrBuild = (environments: HistoryEnvironment[], params: R
 
         const buildEnvironments = groupedVersions[key].environments;
         if (!buildEnvironments[env.name]) {
-          buildEnvironments[env.name] = { versions: [] };
+          buildEnvironments[env.name] = {
+            versions: [],
+            isPreview: env.isPreview,
+            basedOn: env.basedOn,
+            gitMetadata: env.gitMetadata,
+          };
         }
         if (artifact.pinnedVersion?.version === version.version) {
           buildEnvironments[env.name].isPinned = true;

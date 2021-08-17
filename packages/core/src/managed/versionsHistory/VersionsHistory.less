@@ -71,11 +71,14 @@
     color: var(--color-mineshaft);
     font-size: 12px;
     font-weight: 600;
-    text-transform: uppercase;
     min-width: 100px;
     justify-content: center;
     margin-right: var(--m-spacing);
     position: relative;
+
+    &:not(.preview-env) {
+      text-transform: uppercase;
+    }
 
     @media (max-width: 768px) {
       min-width: 60px;
