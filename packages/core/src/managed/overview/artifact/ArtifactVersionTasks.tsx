@@ -4,7 +4,7 @@ import { DurationRender, RelativeTimestamp } from '../../RelativeTimestamp';
 import { VersionOperationIcon } from './VersionOperation';
 import { useRetryVersionActionMutation } from '../../graphql/graphql-sdk';
 import { Tooltip, useApplicationContextSafe } from '../../../presentation';
-import { QueryArtifactVersion, QueryArtifactVersionTask, QueryArtifactVersionTaskStatus } from '../types';
+import { QueryArtifactVersionTask, QueryArtifactVersionTaskStatus } from '../types';
 import { TOOLTIP_DELAY_SHOW } from '../../utils/defaults';
 import { useLogEvent } from '../../utils/logging';
 import { NotifierService, Spinner } from '../../../widgets';
@@ -25,7 +25,7 @@ export interface ITaskArtifactVersionProps {
   environment: string;
   version: string;
   reference: string;
-  status: QueryArtifactVersion['status'];
+  isCurrent?: boolean;
 }
 
 interface IBaseTaskProps {
@@ -92,7 +92,7 @@ const ArtifactVersionTask = ({ type, artifact, task }: IArtifactVersionTaskProps
             </a>
           </span>
         )}
-        {status === 'FAIL' && artifact.status === 'CURRENT' && (
+        {status === 'FAIL' && artifact.isCurrent && (
           <div className="sp-margin-s-top horizontal middle">
             <button
               className="btn btn-default btn-sm sp-padding-2xs-yaxis sp-padding-s-xaxis"

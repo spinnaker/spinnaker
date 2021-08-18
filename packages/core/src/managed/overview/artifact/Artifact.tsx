@@ -63,7 +63,7 @@ interface IArtifactProps {
 }
 
 export const Artifact = ({ artifact }: IArtifactProps) => {
-  const currentVersion = artifact.versions?.find((version) => version.status === 'CURRENT');
+  const currentVersion = artifact.versions?.find((version) => version.isCurrent === true);
   const newerVersions = filterPendingVersions(artifact.versions, currentVersion);
   const { pinnedVersion } = artifact;
 

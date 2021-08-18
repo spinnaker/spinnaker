@@ -45,6 +45,7 @@ const getIsFocused = (version: HistoryArtifactVersion, params: RawParams) => {
   return false;
 };
 
+// TODO: only take the latest build per commit per artifact
 const groupVersionsByShaOrBuild = (environments: HistoryEnvironment[], params: RawParams) => {
   const groupedVersions: GroupedVersions = {};
   for (const env of environments) {

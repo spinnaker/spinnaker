@@ -51,21 +51,12 @@
     flex-direction: row;
     padding-top: var(--m-spacing);
     overflow: auto;
-
-    .environment-pinned {
-      position: absolute;
-      top: -5px;
-      right: -5px;
-      padding: 2px;
-      box-shadow: 1px 1px 1px 0 rgba(0, 0, 0, 0.5);
-      border-radius: 999px;
-      background-color: var(--color-status-warning-light);
-    }
   }
 
-  .chip {
+  .EnvironmentBadge {
+    line-height: 1;
     border-radius: 999px;
-    padding: var(~'--3xs-spacing') var(--l-spacing);
+    padding: var(~'--2xs-spacing') var(--l-spacing);
     display: flex;
     flex-direction: row;
     color: var(--color-mineshaft);
@@ -75,6 +66,45 @@
     justify-content: center;
     margin-right: var(--m-spacing);
     position: relative;
+
+    .marker {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      padding: 2px;
+      box-shadow: 1px 1px 1px 0 rgba(0, 0, 0, 0.5);
+      border-radius: 999px;
+      font-size: 12px;
+      background-color: var(--color-white);
+
+      &.pinned {
+        background-color: var(--color-status-warning-light);
+      }
+
+      &.vetoed {
+        padding-right: 0px;
+        padding-top: 3px;
+        padding-bottom: 1px;
+      }
+    }
+
+    .secondary-status {
+      margin-left: 4px;
+      font-size: 11px;
+      border-radius: 4px;
+      font-weight: 400;
+      line-height: 1;
+      text-transform: none;
+      padding: var(~'--3xs-spacing') var(--xs-spacing);
+
+      &.deploying {
+        animation: deployingAnimation 2s infinite;
+      }
+
+      &.vetoed {
+        background-color: var(--color-status-error-light);
+      }
+    }
 
     &:not(.preview-env) {
       text-transform: uppercase;
@@ -86,7 +116,7 @@
       margin-right: var(--s-spacing);
     }
 
-    &.chip-outlined {
+    &.skipped {
       border: 1px solid var(--color-silver);
     }
 

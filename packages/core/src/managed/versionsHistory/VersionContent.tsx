@@ -57,7 +57,7 @@ const VersionInEnvironment = ({ environment, version, envPinnedVersions }: IVers
     environment,
     reference: version.reference,
     version: version.version,
-    status: version.status,
+    isCurrent: version.isCurrent,
   };
 
   return (

@@ -411,7 +411,7 @@ export type ActionDetailsFragment = { __typename?: 'MdAction' } & Pick<
 
 export type DetailedVersionFieldsFragment = { __typename?: 'MdArtifactVersionInEnvironment' } & Pick<
   MdArtifactVersionInEnvironment,
-  'id' | 'buildNumber' | 'version' | 'createdAt' | 'status' | 'deployedAt'
+  'id' | 'buildNumber' | 'version' | 'createdAt' | 'status' | 'isCurrent' | 'deployedAt'
 > & {
     gitMetadata?: Maybe<
       { __typename?: 'MdGitMetadata' } & Pick<MdGitMetadata, 'commit' | 'author' | 'branch'> & {
@@ -525,7 +525,7 @@ export type FetchVersionsHistoryQuery = { __typename?: 'Query' } & {
                           Array<
                             { __typename?: 'MdArtifactVersionInEnvironment' } & Pick<
                               MdArtifactVersionInEnvironment,
-                              'id' | 'buildNumber' | 'version' | 'createdAt' | 'status'
+                              'id' | 'buildNumber' | 'version' | 'createdAt' | 'status' | 'isCurrent'
                             > & {
                                 gitMetadata?: Maybe<
                                   { __typename?: 'MdGitMetadata' } & Pick<
@@ -539,9 +539,6 @@ export type FetchVersionsHistoryQuery = { __typename?: 'Query' } & {
                                         { __typename?: 'MdPullRequest' } & Pick<MdPullRequest, 'number' | 'link'>
                                       >;
                                     }
-                                >;
-                                lifecycleSteps?: Maybe<
-                                  Array<{ __typename?: 'MdLifecycleStep' } & Pick<MdLifecycleStep, 'type' | 'status'>>
                                 >;
                               }
                           >
@@ -763,6 +760,7 @@ export const DetailedVersionFieldsFragmentDoc = gql`
     version
     createdAt
     status
+    isCurrent
     gitMetadata {
       commit
       author
@@ -940,6 +938,7 @@ export const FetchVersionsHistoryDocument = gql`
               version
               createdAt
               status
+              isCurrent
               gitMetadata {
                 commit
                 author
@@ -953,10 +952,6 @@ export const FetchVersionsHistoryDocument = gql`
                   number
                   link
                 }
-              }
-              lifecycleSteps {
-                type
-                status
               }
             }
             ...artifactPinnedVersionFields

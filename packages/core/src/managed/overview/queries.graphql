@@ -14,6 +14,7 @@ fragment detailedVersionFields on MdArtifactVersionInEnvironment {
   version
   createdAt
   status
+  isCurrent
   gitMetadata {
     commit
     author
@@ -150,6 +151,7 @@ query fetchVersionsHistory($appName: String!, $limit: Int) {
             version
             createdAt
             status
+            isCurrent
             gitMetadata {
               commit
               author
@@ -163,10 +165,6 @@ query fetchVersionsHistory($appName: String!, $limit: Int) {
                 number
                 link
               }
-            }
-            lifecycleSteps {
-              type
-              status
             }
           }
           ...artifactPinnedVersionFields

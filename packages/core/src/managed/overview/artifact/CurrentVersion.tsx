@@ -35,7 +35,7 @@ export const CurrentVersion = ({ data, environment, reference, numNewerVersions,
     environment,
     reference,
     version: data.version,
-    status: data.status,
+    isCurrent: data.isCurrent,
   };
 
   return (
