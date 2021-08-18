@@ -65,7 +65,7 @@ export class MetricSelectorController implements IController {
     this.state.advancedMode = true;
   }
 
-  public updateAvailableMetrics(): void {
+  public updateAvailableMetrics = (): void => {
     const { alarm } = this;
     const dimensions = this.convertDimensionsToObject();
     if (this.state.advancedMode) {
@@ -109,7 +109,7 @@ export class MetricSelectorController implements IController {
         this.state.metricsLoaded = true;
         this.advancedMode();
       });
-  }
+  };
 
   private buildMetricOption(metric: ICloudMetricDescriptor): IMetricOption {
     const option: IMetricOption = {
@@ -229,7 +229,7 @@ const component: IComponentOptions = {
           <dimensions-editor alarm="$ctrl.alarm"
                              server-group="$ctrl.serverGroup"
                              namespace-updated="$ctrl.namespaceUpdated"
-                             update-available-metrics="$ctrl.updateAvailableMetrics()"></dimensions-editor>
+                             update-available-metrics="$ctrl.updateAvailableMetrics"></dimensions-editor>
         </div>
   `,
 };

@@ -8,6 +8,7 @@ export interface IScalingAdjustmentView extends IStepAdjustment {
 export interface IScalingPolicyAlarmView extends IScalingPolicyAlarm {
   name?: string;
   description?: string;
+  disableEditingDimensions?: boolean;
   comparator?: '&lt;' | '&gt;' | '&le;' | '&ge;';
 }
 
