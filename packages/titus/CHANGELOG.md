@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.4.0](https://github.com/spinnaker/deck/compare/@spinnaker/titus@0.3.2...@spinnaker/titus@0.4.0) (2021-08-18)
+
+
+### Features
+
+* **titus:** Remove constraints for scaling activities ([#9597](https://github.com/spinnaker/deck/issues/9597)) ([caab693](https://github.com/spinnaker/deck/commit/caab6939f682e7c6a0d8fa6747f3bc14d452d9a1))
+
+
+
+
+
 ## [0.3.2](https://github.com/spinnaker/deck/compare/@spinnaker/titus@0.3.1...@spinnaker/titus@0.3.2) (2021-08-17)
 
 **Note:** Version bump only for package @spinnaker/titus

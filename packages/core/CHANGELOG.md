@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.5.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.4.0...@spinnaker/core@0.5.0) (2021-08-18)
+
+
+### Bug Fixes
+
+* **core:** Group execution popover too wide ([#9585](https://github.com/spinnaker/deck/issues/9585)) ([3121ffa](https://github.com/spinnaker/deck/commit/3121ffa89295dbb252bf4b1f81ba6f1abc0c7e25))
+
+
+### Features
+
+* **md:** use isCurrent to identify the current version + show secondary status when needed (deploying/vetoed) ([#9594](https://github.com/spinnaker/deck/issues/9594)) ([847905b](https://github.com/spinnaker/deck/commit/847905b44c44fba72009c2f31b288cd0760e5f4b))
+
+
+
+
+
 # [0.4.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.3.1...@spinnaker/core@0.4.0) (2021-08-17)
 
 
