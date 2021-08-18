@@ -9,7 +9,7 @@ import svgr from 'vite-plugin-svgr';
 
 import angularTemplateLoader from '@spinnaker/scripts/helpers/rollup-plugin-angularjs-template-loader';
 
-const DECK_ROOT = path.resolve(`${__dirname}/../../../..`);
+const DECK_ROOT = path.resolve(`${__dirname}/../../`);
 const NODE_MODULE_PATH = path.resolve(`${DECK_ROOT}/node_modules`);
 
 const envLocalFilePath = path.resolve(`${__dirname}/.env.local`);
