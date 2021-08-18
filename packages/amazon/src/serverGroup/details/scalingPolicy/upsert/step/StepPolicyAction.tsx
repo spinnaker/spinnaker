@@ -1,7 +1,8 @@
 import * as React from 'react';
 
-import { ReactSelectInput, NumberInput } from '@spinnaker/core';
-import { IStepAdjustment, IScalingPolicyAlarm } from '../../../../../domain';
+import { NumberInput, ReactSelectInput } from '@spinnaker/core';
+
+import { IScalingPolicyAlarm, IStepAdjustment } from '../../../../../domain';
 
 import './StepPolicyAction.less';
 

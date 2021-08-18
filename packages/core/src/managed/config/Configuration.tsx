@@ -6,6 +6,7 @@ import { Illustration } from '@spinnaker/presentation';
 import { ApplicationQueryError } from '../ApplicationQueryError';
 import { DeliveryConfig } from './DeliveryConfig';
 import { GitIntegration } from './GitIntegration';
+import { UnmanagedMessage } from '../UnmanagedMessage';
 import { SETTINGS } from '../../config/settings';
 import {
   FetchApplicationManagementDataDocument,
@@ -15,11 +16,10 @@ import {
 import { Messages } from '../messages/Messages';
 import { showModal, useApplicationContextSafe } from '../../presentation';
 import { ActionModal, IArtifactActionModalProps } from '../utils/ActionModal';
+import { getIsDebugMode } from '../utils/debugMode';
 import { MODAL_MAX_WIDTH, spinnerProps } from '../utils/defaults';
 import { useLogEvent } from '../utils/logging';
 import { Spinner } from '../../widgets';
-import { getIsDebugMode } from '../utils/debugMode';
-import { UnmanagedMessage } from '../UnmanagedMessage';
 
 const BTN_CLASSNAMES = 'btn md-btn';
 

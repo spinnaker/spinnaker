@@ -3,6 +3,7 @@ import classnames from 'classnames';
 import { sortBy, toNumber } from 'lodash';
 import React from 'react';
 
+import { getEnvTitle } from '../environmentBaseElements/BaseEnvironment';
 import {
   FetchVersionDocument,
   FetchVersionQueryVariables,
@@ -22,7 +23,6 @@ import {
 } from '../versionMetadata/MetadataComponents';
 
 import './VersionsHistory.less';
-import { getEnvTitle } from '../environmentBaseElements/BaseEnvironment';
 
 type VersionStatus = MdArtifactStatusInEnvironment;
 

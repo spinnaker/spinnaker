@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { ReactSelectInput, NumberInput } from '@spinnaker/core';
+
+import { NumberInput, ReactSelectInput } from '@spinnaker/core';
 
 import './SimplePolicyAction.less';
 
