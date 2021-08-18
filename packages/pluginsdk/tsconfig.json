@@ -1,5 +1,5 @@
 {
-  "extends": "../tsconfig.base",
+  "extends": "../tsconfig.tools.base.json",
   "exclude": ["scaffold", "dist"],
   "compilerOptions": {
     "outDir": "dist",
