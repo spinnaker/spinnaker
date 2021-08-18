@@ -13,7 +13,6 @@ import {
 import { ITitusServerGroup } from '../../domain';
 import { ITitusResizeServerGroupModalProps, TitusResizeServerGroupModal } from './resize/TitusResizeServerGroupModal';
 import { TitusScalingActivitiesModal } from './scalingActivity/TitusScalingActivitiesModal';
-import { TitusProviderSettings } from '../../titus.settings';
 
 interface ICapacityDetailsSectionProps {
   app: Application;
@@ -34,7 +33,6 @@ export class TitusCapacityDetailsSection extends React.Component<ICapacityDetail
           ReactModal.show<ITitusResizeServerGroupModalProps>(TitusResizeServerGroupModal, { serverGroup, application });
       });
 
-    const showScalingActivities = (TitusProviderSettings.scalingActivities || []).includes(application.name);
     return (
       <>
         <dl className="dl-horizontal dl-narrow">
@@ -53,16 +51,14 @@ export class TitusCapacityDetailsSection extends React.Component<ICapacityDetail
             Resize Server Group
           </a>
         </div>
-        {showScalingActivities && (
-          <div>
-            <a
-              className="clickable"
-              onClick={() => showModal(TitusScalingActivitiesModal, { serverGroup }, { maxWidth: '1000px' })}
-            >
-              View Scaling Activities
-            </a>
-          </div>
-        )}
+        <div>
+          <a
+            className="clickable"
+            onClick={() => showModal(TitusScalingActivitiesModal, { serverGroup }, { maxWidth: '1000px' })}
+          >
+            View Scaling Activities
+          </a>
+        </div>
       </>
     );
   }
