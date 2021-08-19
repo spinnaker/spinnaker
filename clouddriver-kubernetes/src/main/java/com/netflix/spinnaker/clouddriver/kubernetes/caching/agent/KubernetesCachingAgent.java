@@ -106,7 +106,13 @@ public abstract class KubernetesCachingAgent
   @Nonnull
   private ImmutableList<KubernetesManifest> loadNamespaceScopedResources(
       @Nonnull Iterable<KubernetesKind> kubernetesKinds) {
-    return getNamespaces().parallelStream()
+    return getNamespaces()
+        // Not using parallelStream. In ForkJoin.commonPool, the number of threads == (CPU cores -
+        // 1). Since we're already running in the AgentExecutionAction thread pool and the number of
+        // threads to compute namespaces is already configurable at account level, this is not
+        // needed and most importantly, avoids contention in the common pool, increasing
+        // performance.
+        .stream()
         .map(n -> loadResources(kubernetesKinds, Optional.of(n)))
         .flatMap(Collection::stream)
         .collect(ImmutableList.toImmutableList());
