@@ -5,7 +5,7 @@ dependencies {
   implementation 'org.springframework.boot:spring-boot-starter-actuator'
   implementation 'org.springframework.boot:spring-boot-starter-web'
   implementation 'org.springframework.boot:spring-boot-gradle-plugin:1.4.7.RELEASE'
-  implementation "com.netflix.spinnaker.clouddriver:clouddriver-aws:$clouddriverVersion"
+  implementation "io.spinnaker.clouddriver:clouddriver-aws:$clouddriverVersion"
   implementation 'io.spinnaker.kork:kork-secrets'
   implementation 'io.spinnaker.kork:kork-secrets-aws'
   implementation 'io.spinnaker.kork:kork-secrets-gcp'

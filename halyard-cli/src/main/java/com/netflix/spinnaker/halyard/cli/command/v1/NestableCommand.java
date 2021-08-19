@@ -304,7 +304,8 @@ public abstract class NestableCommand {
       paragraph.addSnippet("PARAMETERS").addStyle(AnsiStyle.BOLD);
       story.addNewline();
 
-      ParameterDescription mainParameter = commander.getMainParameter();
+      ParameterDescription mainParameter =
+          (commander.getMainParameter() != null) ? commander.getMainParameterValue() : null;
       if (mainParameter != null) {
         paragraph = story.addParagraph().setIndentWidth(indentWidth);
         paragraph.addSnippet(getMainParameter().toUpperCase()).addStyle(AnsiStyle.UNDERLINE);
@@ -448,7 +449,8 @@ public abstract class NestableCommand {
         .append("\n```\n")
         .append(fullCommandName);
 
-    ParameterDescription mainParameter = commander.getMainParameter();
+    ParameterDescription mainParameter =
+        (commander.getMainParameter() != null) ? commander.getMainParameterValue() : null;
     if (mainParameter != null) {
       result.append(" ").append(getMainParameter().toUpperCase());
     }

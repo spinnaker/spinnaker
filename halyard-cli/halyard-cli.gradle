@@ -3,7 +3,7 @@ dependencies {
   annotationProcessor 'org.projectlombok:lombok'
 
   implementation 'org.springframework.boot:spring-boot'
-  implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
+  implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
   implementation 'io.spinnaker.kork:kork-secrets'
   implementation 'org.apache.commons:commons-lang3'
   implementation 'org.apache.commons:commons-text:1.6'
@@ -16,12 +16,7 @@ dependencies {
   implementation 'org.aspectj:aspectjweaver'
   implementation 'org.yaml:snakeyaml:1.24'
   implementation 'org.codehaus.groovy:groovy'
-  implementation('com.beust:jcommander:1.71') {
-    // 1.72 made JCommander.getMainParameter() weird
-    // This was reverted in master but not released yet. Sticking with 1.71 instead of catching NPE in
-    // com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand :287 and :414
-    force = true
-  }
+  implementation 'com.beust:jcommander:1.75'
   implementation 'org.nibor.autolink:autolink:0.10.0'
 
   implementation project(':halyard-config')

@@ -30,7 +30,7 @@ dependencies {
   implementation 'org.springframework.boot:spring-boot-starter-web'
   implementation 'org.apache.commons:commons-lang3'
   implementation 'com.squareup.retrofit:retrofit'
-  implementation 'org.lognet:grpc-spring-boot-starter:2.3.2'
+  implementation 'io.github.lognet:grpc-spring-boot-starter:2.4.4'
   implementation 'org.codehaus.groovy:groovy'
   implementation "io.spinnaker.kork:kork-web"
   implementation "io.spinnaker.kork:kork-config"

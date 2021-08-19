@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.jakewharton.retrofit.Ok3Client;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.AuthenticationService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.SpaceService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.Token;
@@ -121,7 +122,7 @@ public class CloudFoundryAccountValidator extends Validator<CloudFoundryAccount>
 
     try {
       SpaceService spaceService = createSpaceService(apiHost, skipSslValidation, user, password);
-      int count = spaceService.all(null, null, null).getResources().size();
+      int count = spaceService.all(null, null, null).execute().body().getResources().size();
       log.info("Retrieved {} spaces using account {}", count, accountName);
     } catch (Exception e) {
       problemSetBuilder.addProblem(
@@ -158,7 +159,13 @@ public class CloudFoundryAccountValidator extends Validator<CloudFoundryAccount>
             .setConverter(jacksonConverter)
             .build()
             .create(AuthenticationService.class);
-    return uaaService.passwordToken("password", user, password, "cf", "");
+    Token token = null;
+    try {
+      token = uaaService.passwordToken("password", user, password, "cf", "").execute().body();
+    } catch (Exception e) {
+      throw new CloudFoundryApiException(e);
+    }
+    return token;
   }
 
   @NotNull

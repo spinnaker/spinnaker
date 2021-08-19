@@ -4,17 +4,17 @@ dependencies {
 
   // TODO(plumpy): remove version once added to kork
   implementation "com.google.cloud:google-cloud-storage:1.108.0"
-  implementation "com.netflix.spinnaker.clouddriver:clouddriver-api:$clouddriverVersion"
-  implementation "com.netflix.spinnaker.clouddriver:clouddriver-docker:$clouddriverVersion"
-  implementation "com.netflix.spinnaker.clouddriver:clouddriver-google:$clouddriverVersion"
-  implementation "com.netflix.spinnaker.clouddriver:clouddriver-appengine:$clouddriverVersion"
-  implementation "com.netflix.spinnaker.clouddriver:clouddriver-azure:$clouddriverVersion"
-  implementation "com.netflix.spinnaker.clouddriver:clouddriver-cloudfoundry:$clouddriverVersion"
-  implementation "com.netflix.spinnaker.clouddriver:clouddriver-security:$clouddriverVersion"
-  implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
-  implementation "com.netflix.spinnaker.front50:front50-core:$front50Version"
-  implementation "com.netflix.spinnaker.front50:front50-gcs:$front50Version"
-  implementation "com.netflix.spinnaker.front50:front50-s3:$front50Version"
+  implementation "io.spinnaker.clouddriver:clouddriver-api:$clouddriverVersion"
+  implementation "io.spinnaker.clouddriver:clouddriver-docker:$clouddriverVersion"
+  implementation "io.spinnaker.clouddriver:clouddriver-google:$clouddriverVersion"
+  implementation "io.spinnaker.clouddriver:clouddriver-appengine:$clouddriverVersion"
+  implementation "io.spinnaker.clouddriver:clouddriver-azure:$clouddriverVersion"
+  implementation "io.spinnaker.clouddriver:clouddriver-cloudfoundry:$clouddriverVersion"
+  implementation "io.spinnaker.clouddriver:clouddriver-security:$clouddriverVersion"
+  implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
+  implementation "io.spinnaker.front50:front50-core:$front50Version"
+  implementation "io.spinnaker.front50:front50-gcs:$front50Version"
+  implementation "io.spinnaker.front50:front50-s3:$front50Version"
   implementation 'io.spinnaker.kork:kork-secrets'
   implementation 'io.spinnaker.kork:kork-secrets-aws'
   implementation 'io.spinnaker.kork:kork-secrets-gcp'
