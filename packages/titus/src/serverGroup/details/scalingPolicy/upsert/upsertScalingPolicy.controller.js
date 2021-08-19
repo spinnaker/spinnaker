@@ -102,6 +102,19 @@ module(TITUS_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_UPSERTSCALINGPOLICY_CONTRO
         });
       }
 
+      this.stepsChanged = (newSteps) => {
+        this.command.step.stepAdjustments = newSteps;
+        this.boundsChanged();
+      };
+
+      this.adjustmentTypeChanged = (action, type) => {
+        this.viewState.operator = action;
+        this.viewState.adjustmentType = type;
+        const newType =
+          type !== 'instances' ? 'PercentChangeInCapacity' : action === 'Set to' ? 'ExactCapacity' : 'ChangeInCapacity';
+        this.command.adjustmentType = newType;
+      };
+
       this.boundsChanged = () => {
         const source =
           this.viewState.comparatorBound === 'min' ? 'metricIntervalLowerBound' : 'metricIntervalUpperBound';
