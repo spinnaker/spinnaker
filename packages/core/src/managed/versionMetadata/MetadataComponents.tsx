@@ -180,7 +180,7 @@ export const VersionMessage = ({ data, type, newRow = true }: IVersionMessage) =
     <>
       {newRow && <div className="flex-break sp-margin-s-top" />}
       <div className={classnames('version-message', typeProps.className)}>
-        <Icon name={typeProps.icon} size="12px" color="black" className="sp-margin-s-right sp-margin-2xs-top" />
+        <Icon name={typeProps.icon} size="18px" color="black" className="sp-margin-s-right sp-margin-2xs-top" />
         <div>
           <div>
             {typeProps.text} {data.by},{' '}
