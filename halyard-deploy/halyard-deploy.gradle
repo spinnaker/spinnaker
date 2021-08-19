@@ -16,7 +16,7 @@ dependencies {
   implementation 'com.amazonaws:aws-java-sdk-core:1.11.534'
   implementation 'org.apache.commons:commons-compress:1.20'
   implementation 'org.apache.commons:commons-lang3'
-  implementation 'commons-io:commons-io:2.6'
+  implementation 'commons-io:commons-io'
   implementation 'com.squareup.retrofit:retrofit'
   implementation 'com.squareup.okhttp:okhttp'
 

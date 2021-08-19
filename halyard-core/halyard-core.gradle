@@ -14,7 +14,7 @@ dependencies {
   implementation 'com.google.auth:google-auth-library-oauth2-http'
   implementation 'org.apache.commons:commons-exec'
   implementation 'org.apache.commons:commons-compress:1.20'
-  implementation 'commons-io:commons-io:2.6'
+  implementation 'commons-io:commons-io'
   implementation 'io.reactivex:rxjava'
   implementation 'com.hubspot.jinjava:jinjava:2.2.3'
   implementation 'org.spockframework:spock-spring:1.1-groovy-2.4'

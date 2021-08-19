@@ -28,7 +28,7 @@ dependencies {
   implementation 'com.microsoft.azure:azure:1.19.0'
   implementation 'commons-collections:commons-collections:3.2.2'
   implementation 'org.apache.commons:commons-lang3'
-  implementation 'commons-io:commons-io:2.6'
+  implementation 'commons-io:commons-io'
   implementation 'io.fabric8:kubernetes-client'
 
   implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0"
