@@ -3,7 +3,6 @@ module github.com/spinnaker/spin
 go 1.15
 
 require (
-	cloud.google.com/go v0.45.1 // indirect
 	github.com/andreyvit/diff v0.0.0-20170406064948-c7f18ee00883
 	github.com/antihax/optional v1.0.0
 	github.com/armon/go-radix v1.0.0 // indirect
@@ -16,11 +15,8 @@ require (
 	github.com/posener/complete v1.2.1 // indirect
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/spf13/cobra v0.0.5
-	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550
-	golang.org/x/net v0.0.0-20200226121028-0de0cce0169b
-	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
-	golang.org/x/sys v0.0.0-20190910064555-bbd175535a8b // indirect
-	google.golang.org/appengine v1.6.2 // indirect
-	k8s.io/client-go v11.0.0+incompatible
+	golang.org/x/crypto v0.0.0-20201002170205-7f63de1d35b0
+	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
+	k8s.io/client-go v0.20.2
 	sigs.k8s.io/yaml v1.2.0
 )
