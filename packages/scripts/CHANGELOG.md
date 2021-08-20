@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.1.0](https://github.com/spinnaker/deck/compare/@spinnaker/scripts@0.0.23...@spinnaker/scripts@0.1.0) (2021-08-20)
+
+
+* remove postcss nested (#9602) ([a20faf1](https://github.com/spinnaker/deck/commit/a20faf1b6020cf7f079b9486e6662530024a4336)), closes [#9602](https://github.com/spinnaker/deck/issues/9602)
+
+
+### BREAKING CHANGES
+
+* removed postcss-nested plugin.  Unlikely that this will break anything, but it's possible.
+
+
+
+
+
 ## [0.0.23](https://github.com/spinnaker/deck/compare/@spinnaker/scripts@0.0.22...@spinnaker/scripts@0.0.23) (2021-08-13)
 
 **Note:** Version bump only for package @spinnaker/scripts

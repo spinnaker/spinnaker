@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.7.13](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.7.12...@spinnaker/amazon@0.7.13) (2021-08-20)
+
+
+### Bug Fixes
+
+* **amazon:** Pass in entire step policy object ([#9604](https://github.com/spinnaker/deck/issues/9604)) ([cc0a0d2](https://github.com/spinnaker/deck/commit/cc0a0d239f38ac15a44eae1df9c67fccec4806e6))
+
+
+
+
+
 ## [0.7.12](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.7.11...@spinnaker/amazon@0.7.12) (2021-08-18)
 
 **Note:** Version bump only for package @spinnaker/amazon

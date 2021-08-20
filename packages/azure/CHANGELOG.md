@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.292](https://github.com/spinnaker/deck/compare/@spinnaker/azure@0.0.291...@spinnaker/azure@0.0.292) (2021-08-20)
+
+**Note:** Version bump only for package @spinnaker/azure
+
+
+
+
+
 ## [0.0.291](https://github.com/spinnaker/deck/compare/@spinnaker/azure@0.0.290...@spinnaker/azure@0.0.291) (2021-08-18)
 
 **Note:** Version bump only for package @spinnaker/azure

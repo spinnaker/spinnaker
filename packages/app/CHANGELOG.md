@@ -3,6 +3,25 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# 2.0.0 (2021-08-20)
+
+
+### Bug Fixes
+
+* **app:** Fix DECK_ROOT in vite config ([bfbf8ec](https://github.com/spinnaker/deck/commit/bfbf8ecd3ee2ae6c984f083fde4f0cdabba255ea))
+
+
+* remove postcss nested (#9602) ([a20faf1](https://github.com/spinnaker/deck/commit/a20faf1b6020cf7f079b9486e6662530024a4336)), closes [#9602](https://github.com/spinnaker/deck/issues/9602)
+
+
+### BREAKING CHANGES
+
+* removed postcss-nested plugin.  Unlikely that this will break anything, but it's possible.
+
+
+
+
+
 # 1.10.0 (2021-08-18)
 
 
