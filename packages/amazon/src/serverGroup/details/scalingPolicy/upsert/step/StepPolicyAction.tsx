@@ -15,8 +15,8 @@ export interface IStepPolicyActionProps {
   alarm: IScalingPolicyAlarm;
   isMin: boolean;
   operator: Operator;
-  step?: { stepAdjustments: IStepAdjustment[] };
-  stepAdjustments: IStepAdjustment[];
+  step: { stepAdjustments: IStepAdjustment[] };
+  stepAdjustments?: IStepAdjustment[];
   stepsChanged: (steps: IStepAdjustment[]) => void;
 }
 
