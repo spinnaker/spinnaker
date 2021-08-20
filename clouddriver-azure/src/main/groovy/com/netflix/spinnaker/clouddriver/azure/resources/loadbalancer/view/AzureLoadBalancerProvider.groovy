@@ -211,7 +211,7 @@ class AzureLoadBalancerProvider implements LoadBalancerProvider<AzureLoadBalance
 
       loadBalancer.serverGroups.add(new LoadBalancerServerGroup (
         name: serverGroup,
-        isDisabled: asg.isDisabled(),
+        isDisabled: asg?.isDisabled(),
         detachedInstances: [],
         instances: [],
         cloudProvider: AzureCloudProvider.ID
