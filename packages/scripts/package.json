@@ -25,7 +25,6 @@
     "esbuild": "^0.12.14",
     "ora": "^5.4.0",
     "postcss-colorfix": "0.0.5",
-    "postcss-nested": "^4.2.1",
     "postcss-url": "9.0.0",
     "rollup": "^2.35.1",
     "rollup-plugin-esbuild": "^4.5.0",

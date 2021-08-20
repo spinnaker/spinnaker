@@ -8,7 +8,6 @@ const url = require('@rollup/plugin-url');
 const svgr = require('@svgr/rollup').default;
 const autoPrefixer = require('autoprefixer');
 const postCssColorFix = require('postcss-colorfix');
-const postCssNested = require('postcss-nested');
 const postCssUrl = require('postcss-url');
 const esbuild = require('rollup-plugin-esbuild');
 const { terser } = require('rollup-plugin-terser');
@@ -49,7 +48,6 @@ const plugins = [
       postCssColorFix({
         colors: colorMap,
       }),
-      postCssNested(),
       postCssUrl({
         url: 'inline',
       }),
