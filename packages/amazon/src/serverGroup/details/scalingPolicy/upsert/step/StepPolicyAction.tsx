@@ -15,6 +15,7 @@ export interface IStepPolicyActionProps {
   alarm: IScalingPolicyAlarm;
   isMin: boolean;
   operator: Operator;
+  step?: { stepAdjustments: IStepAdjustment[] };
   stepAdjustments: IStepAdjustment[];
   stepsChanged: (steps: IStepAdjustment[]) => void;
 }
@@ -25,6 +26,7 @@ export const StepPolicyAction = ({
   alarm,
   isMin,
   operator,
+  step,
   stepAdjustments,
   stepsChanged,
 }: IStepPolicyActionProps) => {
@@ -44,11 +46,10 @@ export const StepPolicyAction = ({
     adjustmentTypeChanged(action, type);
   };
 
-  const [steps, setSteps] = React.useState<IStepAdjustment[]>(stepAdjustments);
+  const [steps, setSteps] = React.useState<IStepAdjustment[]>(step?.stepAdjustments || stepAdjustments);
   const addStep = () => {
     const newStep = { scalingAdjustment: 1 } as IStepAdjustment;
     const newSteps = [...steps, newStep];
-    stepAdjustments = newSteps;
     setSteps(newSteps);
     stepsChanged(newSteps);
   };
@@ -63,6 +64,10 @@ export const StepPolicyAction = ({
     setSteps(newSteps);
     stepsChanged(newSteps);
   };
+
+  React.useEffect(() => {
+    setSteps(step.stepAdjustments);
+  }, [step?.stepAdjustments]);
 
   return (
     <div className="StepPolicyAction row">

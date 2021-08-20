@@ -14,6 +14,7 @@ module(STEP_POLICY_ACTION_COMPONENT, []).component(
     'alarm',
     'isMin',
     'operator',
+    'step',
     'stepAdjustments',
     'stepsChanged',
   ]),
