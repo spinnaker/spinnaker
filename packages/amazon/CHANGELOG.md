@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.7.14](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.7.13...@spinnaker/amazon@0.7.14) (2021-08-20)
+
+
+### Bug Fixes
+
+* **titus:** Update props in StepPolicyAction ([#9605](https://github.com/spinnaker/deck/issues/9605)) ([f1b039c](https://github.com/spinnaker/deck/commit/f1b039cd1b4f2df750b028569b1c3f2f2925897f))
+
+
+
+
+
 ## [0.7.13](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.7.12...@spinnaker/amazon@0.7.13) (2021-08-20)
 
 
