@@ -131,8 +131,8 @@ class ApplicationFetcher(
           number = env.pullRequestId,
           link = scmUtils.getPullRequestLink(
             env.repoType,
-            env.repoKey,
-            env.repoKey,
+            env.projectKey,
+            env.repoSlug,
             env.pullRequestId
           )
         )
