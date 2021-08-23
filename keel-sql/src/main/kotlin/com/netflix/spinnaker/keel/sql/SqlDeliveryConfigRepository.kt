@@ -47,8 +47,7 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.PAUSED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.PREVIEW_ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_VERSION
-import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
-import com.netflix.spinnaker.keel.resources.SpecMigrator
+import com.netflix.spinnaker.keel.resources.ResourceFactory
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
 import com.netflix.spinnaker.keel.sql.deliveryconfigs.attachDependents
@@ -81,20 +80,18 @@ import java.time.Instant.EPOCH
 class SqlDeliveryConfigRepository(
   jooq: DSLContext,
   clock: Clock,
-  resourceSpecIdentifier: ResourceSpecIdentifier,
   objectMapper: ObjectMapper,
+  resourceFactory: ResourceFactory,
   sqlRetry: SqlRetry,
   artifactSuppliers: List<ArtifactSupplier<*, *>> = emptyList(),
-  specMigrators: List<SpecMigrator<*, *>> = emptyList(),
   private val publisher: ApplicationEventPublisher
 ) : SqlStorageContext(
   jooq,
   clock,
   sqlRetry,
   objectMapper,
-  resourceSpecIdentifier,
-  artifactSuppliers,
-  specMigrators
+  resourceFactory,
+  artifactSuppliers
 ), DeliveryConfigRepository {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -109,17 +106,19 @@ class SqlDeliveryConfigRepository(
           DELIVERY_CONFIG.APPLICATION,
           DELIVERY_CONFIG.SERVICE_ACCOUNT,
           DELIVERY_CONFIG.METADATA,
-          DELIVERY_CONFIG.RAW_CONFIG
+          DELIVERY_CONFIG.RAW_CONFIG,
+          DELIVERY_CONFIG.UPDATED_AT,
         )
         .from(DELIVERY_CONFIG)
         .where(DELIVERY_CONFIG.APPLICATION.eq(application))
-        .fetchOne { (uid, name, application, serviceAccount, metadata, rawConfig) ->
+        .fetchOne { (uid, name, application, serviceAccount, metadata, rawConfig, updatedAt) ->
           DeliveryConfig(
             name = name,
             application = application,
             serviceAccount = serviceAccount,
             metadata = (metadata ?: emptyMap()) + mapOf("createdAt" to ULID.parseULID(uid).timestampAsInstant()),
-            rawConfig = rawConfig
+            rawConfig = rawConfig,
+            updatedAt = updatedAt
           ).let {
             attachDependents(it)
           }
@@ -270,10 +269,12 @@ class SqlDeliveryConfigRepository(
         .set(DELIVERY_CONFIG.SERVICE_ACCOUNT, serviceAccount)
         .set(DELIVERY_CONFIG.METADATA, metadata)
         .set(DELIVERY_CONFIG.RAW_CONFIG, rawConfig)
+        .set(DELIVERY_CONFIG.UPDATED_AT, clock.instant())
         .onDuplicateKeyUpdate()
         .set(DELIVERY_CONFIG.SERVICE_ACCOUNT, serviceAccount)
         .set(DELIVERY_CONFIG.METADATA, metadata)
         .set(DELIVERY_CONFIG.RAW_CONFIG, rawConfig)
+        .set(DELIVERY_CONFIG.UPDATED_AT, clock.instant())
         .execute()
 
       artifacts.forEach { artifact ->
@@ -1226,7 +1227,7 @@ class SqlDeliveryConfigRepository(
       }
   }
 
-  override fun markCheckComplete(deliveryConfig: DeliveryConfig) {
+  override fun markCheckComplete(deliveryConfig: DeliveryConfig, status: Any?) {
     sqlRetry.withRetry(WRITE) {
       jooq
         .update(DELIVERY_CONFIG_LAST_CHECKED)

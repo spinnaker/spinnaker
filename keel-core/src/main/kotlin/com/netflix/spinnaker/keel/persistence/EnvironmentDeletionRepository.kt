@@ -15,4 +15,11 @@ interface EnvironmentDeletionRepository : PeriodicallyCheckedRepository<Environm
    * @return true if the [Environment] is currently marked for deletion.
    */
   fun isMarkedForDeletion(environment: Environment): Boolean
+
+  /**
+   * @return a map of the given environments to a boolean indicating whether they're currently marked for deletion.
+   *
+   * Intended for use with GraphQL to optimize data loading.
+   */
+  fun bulkGetMarkedForDeletion(environments: Set<Environment>): Map<Environment, Boolean>
 }

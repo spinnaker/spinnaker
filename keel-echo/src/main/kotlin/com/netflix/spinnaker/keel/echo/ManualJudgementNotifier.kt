@@ -3,18 +3,14 @@ package com.netflix.spinnaker.keel.echo
 import com.netflix.spinnaker.config.BaseUrlConfig
 import com.netflix.spinnaker.config.KeelNotificationConfig
 import com.netflix.spinnaker.keel.api.NotificationConfig
-import com.netflix.spinnaker.keel.api.ScmInfo
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.events.ConstraintStateChanged
 import com.netflix.spinnaker.keel.artifacts.ArtifactVersionLinks
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
-import com.netflix.spinnaker.keel.core.api.PromotionStatus
 import com.netflix.spinnaker.keel.echo.model.EchoNotification
 import com.netflix.spinnaker.keel.persistence.KeelRepository
-import com.netflix.spinnaker.kork.exceptions.SystemException
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.event.EventListener
@@ -77,7 +73,7 @@ class ManualJudgementNotifier(
     val currentDeployableArtifact = repository.getArtifactVersion(artifact, currentState.artifactVersion, null)
     val gitMetadata = currentDeployableArtifact
       ?.gitMetadata
-    val currentArtifactInEnvironment = repository.getArtifactVersionByPromotionStatus(deliveryConfig, currentState.environmentName , artifact, PromotionStatus.CURRENT)
+    val currentArtifactInEnvironment = repository.getCurrentlyDeployedArtifactVersion(deliveryConfig, artifact, currentState.environmentName)
 
     var details = ""
 

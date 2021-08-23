@@ -12,8 +12,7 @@ import com.netflix.spinnaker.keel.graphql.DgsConstants
 import com.netflix.spinnaker.keel.graphql.types.MdApplication
 import com.netflix.spinnaker.keel.graphql.types.MdGitIntegration
 import com.netflix.spinnaker.keel.graphql.types.MdUpdateGitIntegrationPayload
-import com.netflix.spinnaker.keel.igor.ScmService
-import com.netflix.spinnaker.keel.igor.getDefaultBranch
+import com.netflix.spinnaker.keel.scm.ScmUtils
 import kotlinx.coroutines.runBlocking
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.RequestHeader
@@ -24,13 +23,14 @@ import org.springframework.web.bind.annotation.RequestHeader
 @DgsComponent
 class GitIntegration(
   private val front50Service: Front50Service,
-  private val scmService: ScmService,
   private val authorizationSupport: AuthorizationSupport,
+  private val applicationFetcherSupport: ApplicationFetcherSupport,
+  private val scmUtils: ScmUtils,
 ) {
-
   @DgsData(parentType = DgsConstants.MDAPPLICATION.TYPE_NAME, field = DgsConstants.MDAPPLICATION.GitIntegration)
   fun gitIntegration(dfe: DgsDataFetchingEnvironment): MdGitIntegration {
     val app: MdApplication = dfe.getSource()
+    val config = applicationFetcherSupport.getDeliveryConfigFromContext(dfe)
     return runBlocking {
       front50Service.applicationByName(app.name)
     }.toGitIntegration()
@@ -45,7 +45,7 @@ class GitIntegration(
     @InputArgument payload: MdUpdateGitIntegrationPayload,
     @RequestHeader("X-SPINNAKER-USER") user: String
   ): MdGitIntegration {
-    return runBlocking {
+    val front50Application = runBlocking {
       front50Service.updateApplication(
         payload.application,
         user,
@@ -55,13 +55,18 @@ class GitIntegration(
           managedDelivery = ManagedDeliveryConfig(importDeliveryConfig = payload.isEnabled)
         )
       )
-    }.toGitIntegration()
+    }
+    return front50Application.toGitIntegration()
   }
 
-  private fun Application.toGitIntegration() = MdGitIntegration(
-    id = "${name}-git-integration",
-    repository = "${repoProjectKey}/${repoSlug}",
-    branch = getDefaultBranch(scmService),
-    isEnabled = managedDelivery?.importDeliveryConfig
-  )
+  private fun Application.toGitIntegration(): MdGitIntegration {
+    val branch = scmUtils.getDefaultBranch(this)
+    return MdGitIntegration(
+      id = "${name}-git-integration",
+      repository = "${repoProjectKey}/${repoSlug}",
+      branch = branch,
+      isEnabled = managedDelivery?.importDeliveryConfig,
+      link = scmUtils.getBranchLink(repoType, repoProjectKey, repoSlug, branch),
+    )
+  }
 }

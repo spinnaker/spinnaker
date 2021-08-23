@@ -4,14 +4,16 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.events.PersistentEvent.Companion.clock
-import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
-import com.netflix.spinnaker.keel.resources.SpecMigrator
+import com.netflix.spinnaker.keel.resources.ResourceFactory
 import com.netflix.spinnaker.keel.scheduled.ScheduledAgent
+import com.netflix.spinnaker.keel.sql.SqlActionRepository
 import com.netflix.spinnaker.keel.sql.SqlAgentLockRepository
 import com.netflix.spinnaker.keel.sql.SqlArtifactRepository
 import com.netflix.spinnaker.keel.sql.SqlBakedImageRepository
 import com.netflix.spinnaker.keel.sql.SqlDeliveryConfigRepository
 import com.netflix.spinnaker.keel.sql.SqlDiffFingerprintRepository
+import com.netflix.spinnaker.keel.sql.SqlDismissibleNotificationRepository
+import com.netflix.spinnaker.keel.sql.SqlEnvironmentDeletionRepository
 import com.netflix.spinnaker.keel.sql.SqlEnvironmentLeaseRepository
 import com.netflix.spinnaker.keel.sql.SqlLifecycleEventRepository
 import com.netflix.spinnaker.keel.sql.SqlLifecycleMonitorRepository
@@ -22,10 +24,7 @@ import com.netflix.spinnaker.keel.sql.SqlRetry
 import com.netflix.spinnaker.keel.sql.SqlTaskTrackingRepository
 import com.netflix.spinnaker.keel.sql.SqlUnhappyVetoRepository
 import com.netflix.spinnaker.keel.sql.SqlUnhealthyRepository
-import com.netflix.spinnaker.keel.sql.SqlActionRepository
 import com.netflix.spinnaker.keel.sql.SqlWorkQueueRepository
-import com.netflix.spinnaker.keel.sql.SqlDismissibleNotificationRepository
-import com.netflix.spinnaker.keel.sql.SqlEnvironmentDeletionRepository
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import com.netflix.spinnaker.kork.sql.config.SqlProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
@@ -69,19 +68,21 @@ class SqlConfiguration
   fun resourceRepository(
     jooq: DSLContext,
     clock: Clock,
-    resourceSpecIdentifier: ResourceSpecIdentifier,
-    specMigrators: List<SpecMigrator<*, *>>,
+    resourceFactory: ResourceFactory,
     objectMapper: ObjectMapper,
-    publisher: ApplicationEventPublisher
+    publisher: ApplicationEventPublisher,
+    registry: Registry,
+    springEnv: Environment
   ) =
     SqlResourceRepository(
       jooq,
       clock,
-      resourceSpecIdentifier,
-      specMigrators,
       objectMapper,
+      resourceFactory,
       SqlRetry(sqlRetryProperties),
-      publisher
+      publisher,
+      registry,
+      springEnv
     )
 
   @Bean
@@ -105,20 +106,18 @@ class SqlConfiguration
   fun deliveryConfigRepository(
     jooq: DSLContext,
     clock: Clock,
-    resourceSpecIdentifier: ResourceSpecIdentifier,
+    resourceFactory: ResourceFactory,
     objectMapper: ObjectMapper,
     artifactSuppliers: List<ArtifactSupplier<*, *>>,
-    specMigrators: List<SpecMigrator<*, *>>,
     publisher: ApplicationEventPublisher
   ) =
     SqlDeliveryConfigRepository(
       jooq = jooq,
       clock = clock,
-      resourceSpecIdentifier = resourceSpecIdentifier,
+      resourceFactory = resourceFactory,
       objectMapper = objectMapper,
       sqlRetry = SqlRetry(sqlRetryProperties),
       artifactSuppliers = artifactSuppliers,
-      specMigrators = specMigrators,
       publisher = publisher
     )
 
@@ -168,22 +167,20 @@ class SqlConfiguration
   ) = SqlUnhealthyRepository(clock, jooq, SqlRetry(sqlRetryProperties))
 
   @Bean
-  fun verificationRepository(
+  fun actionRepository(
     jooq: DSLContext,
     clock: Clock,
-    resourceSpecIdentifier: ResourceSpecIdentifier,
+    resourceFactory: ResourceFactory,
     objectMapper: ObjectMapper,
     artifactSuppliers: List<ArtifactSupplier<*, *>>,
-    specMigrators: List<SpecMigrator<*, *>>,
     environment: Environment
   ) = SqlActionRepository(
     jooq,
     clock,
-    resourceSpecIdentifier,
     objectMapper,
+    resourceFactory,
     SqlRetry(sqlRetryProperties),
     artifactSuppliers,
-    specMigrators,
     environment
   )
 
@@ -232,18 +229,16 @@ class SqlConfiguration
   fun environmentDeletionRepository(
     jooq: DSLContext,
     clock: Clock,
-    resourceSpecIdentifier: ResourceSpecIdentifier,
+    resourceFactory: ResourceFactory,
     objectMapper: ObjectMapper,
-    artifactSuppliers: List<ArtifactSupplier<*, *>>,
-    specMigrators: List<SpecMigrator<*, *>>
+    artifactSuppliers: List<ArtifactSupplier<*, *>>
   ) = SqlEnvironmentDeletionRepository(
     jooq,
     clock,
-    resourceSpecIdentifier,
     objectMapper,
     SqlRetry(sqlRetryProperties),
-    artifactSuppliers,
-    specMigrators
+    resourceFactory,
+    artifactSuppliers
   )
 
   @Bean

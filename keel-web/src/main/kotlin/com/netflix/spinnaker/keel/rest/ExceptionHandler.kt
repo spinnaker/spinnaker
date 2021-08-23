@@ -24,6 +24,7 @@ import com.netflix.spinnaker.keel.persistence.ArtifactAlreadyRegistered
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigException
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
+import com.netflix.spinnaker.keel.retrofit.UnparseableResponseException
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import java.time.Instant
 import java.time.format.DateTimeParseException
@@ -47,7 +48,12 @@ class ExceptionHandler(
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  @ExceptionHandler(HttpMessageConversionException::class, HttpMessageNotReadableException::class, JsonMappingException::class)
+  @ExceptionHandler(
+    HttpMessageConversionException::class,
+    HttpMessageNotReadableException::class,
+    JsonMappingException::class,
+    UnparseableResponseException::class
+  )
   @ResponseStatus(BAD_REQUEST)
   fun onParseFailure(e: Exception): ApiError {
     log.error(e.message)

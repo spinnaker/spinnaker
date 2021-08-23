@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.keel.artifacts
 
 import com.netflix.frigga.ami.AppVersion
-import com.netflix.spinnaker.keel.igor.artifact.ArtifactService
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactMetadata
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.SNAPSHOT
@@ -18,6 +17,7 @@ import com.netflix.spinnaker.keel.api.plugins.SupportedArtifact
 import com.netflix.spinnaker.keel.api.plugins.SupportedSortingStrategy
 import com.netflix.spinnaker.keel.api.support.SpringEventPublisherBridge
 import com.netflix.spinnaker.keel.igor.artifact.ArtifactMetadataService
+import com.netflix.spinnaker.keel.igor.artifact.ArtifactService
 import com.netflix.spinnaker.keel.test.deliveryConfig
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -48,6 +48,8 @@ internal class DebianArtifactSupplierTests : JUnit5Minutests {
       statuses = setOf(SNAPSHOT)
     )
 
+    val commitId = "a15p0"
+
     val versions = listOf("2.0.0-h120.608bd90", "2.1.0-h130.18ed1dc")
 
     val latestArtifact = PublishedArtifact(
@@ -55,7 +57,7 @@ internal class DebianArtifactSupplierTests : JUnit5Minutests {
       type = debianArtifact.type,
       reference = debianArtifact.reference,
       version = "${debianArtifact.name}-${versions.last()}",
-      metadata = mapOf("releaseStatus" to SNAPSHOT, "buildNumber" to "1", "commitId" to "a15p0")
+      metadata = mapOf("releaseStatus" to SNAPSHOT, "buildNumber" to "1", "commitId" to commitId)
     )
 
     val actualVersionInPublishedArtifact = PublishedArtifact(
@@ -63,7 +65,7 @@ internal class DebianArtifactSupplierTests : JUnit5Minutests {
       type = debianArtifact.type,
       reference = debianArtifact.reference,
       version = "0.72.0-h242.32775e4",
-      metadata = mapOf("releaseStatus" to ArtifactStatus.RELEASE, "buildNumber" to "1", "commitId" to "a15p0")
+      metadata = mapOf("releaseStatus" to ArtifactStatus.RELEASE, "buildNumber" to "1", "commitId" to commitId)
     )
 
     val artifactWithInvalidVersion = PublishedArtifact(
@@ -71,10 +73,10 @@ internal class DebianArtifactSupplierTests : JUnit5Minutests {
       type = debianArtifact.type,
       reference = debianArtifact.reference,
       version = "etcd-3.4.10-hlocal.856d0b1",
-      metadata = mapOf("releaseStatus" to SNAPSHOT, "buildNumber" to "1", "commitId" to "a15p0")
+      metadata = mapOf("releaseStatus" to SNAPSHOT, "buildNumber" to "1", "commitId" to commitId)
     )
 
-    val artifactWithoutStatus = PublishedArtifact (
+    val artifactWithoutStatus = PublishedArtifact(
       name = debianArtifact.name,
       type = debianArtifact.type,
       reference = debianArtifact.reference,
@@ -94,7 +96,7 @@ internal class DebianArtifactSupplierTests : JUnit5Minutests {
         number = "1"
       ),
       GitMetadata(
-        commit = "a15p0",
+        commit = commitId,
         author = "keel-user",
         repo = Repo(
           name = "keel",
@@ -105,7 +107,7 @@ internal class DebianArtifactSupplierTests : JUnit5Minutests {
           url = "www.github.com/pr/111"
         ),
         commitInfo = Commit(
-          sha = "a15p0",
+          sha = commitId,
           message = "this is a commit message",
           link = ""
         ),
@@ -116,7 +118,8 @@ internal class DebianArtifactSupplierTests : JUnit5Minutests {
 
     val springEnv: Environment = mockk(relaxed = true)
 
-    val debianArtifactSupplier = DebianArtifactSupplier(eventBridge, artifactService, artifactMetadataService, springEnv)
+    val debianArtifactSupplier =
+      DebianArtifactSupplier(eventBridge, artifactService, artifactMetadataService, springEnv)
   }
 
   fun tests() = rootContext<Fixture> {
@@ -142,7 +145,7 @@ internal class DebianArtifactSupplierTests : JUnit5Minutests {
         }
 
         every {
-          artifactMetadataService.getArtifactMetadata("1", "a15p0")
+          artifactMetadataService.getArtifactMetadata("1", commitId)
         } returns artifactMetadata
       }
 
@@ -214,34 +217,72 @@ internal class DebianArtifactSupplierTests : JUnit5Minutests {
       }
 
       test("frigga parser can't parse this version") {
-        expectThat(debianArtifactSupplier.parseDefaultBuildMetadata(artifactWithInvalidVersion, debianArtifact.sortingStrategy))
+        expectThat(
+          debianArtifactSupplier.parseDefaultBuildMetadata(
+            artifactWithInvalidVersion,
+            debianArtifact.sortingStrategy
+          )
+        )
           .isNull()
       }
 
-      test("returns artifact metadata based on ci provider") {
-        val results = runBlocking {
-          debianArtifactSupplier.getArtifactMetadata(latestArtifact)
+      context("returns artifact metadata based on ci provider") {
+        test("regular commit") {
+          val results = runBlocking {
+            debianArtifactSupplier.getArtifactMetadata(latestArtifact)
+          }
+          expectThat(results)
+            .isEqualTo(artifactMetadata)
         }
-        expectThat(results)
-          .isEqualTo(artifactMetadata)
+        context("with merge commit") {
+          val prCommitId = "12a45a"
+          before {
+            every {
+              artifactMetadataService.getArtifactMetadata("1", prCommitId)
+            } returns artifactMetadata
+          }
+
+          test("merge commit is used") {
+            val results = runBlocking {
+              debianArtifactSupplier.getArtifactMetadata(
+                latestArtifact.copy(
+                  metadata = latestArtifact.metadata + mapOf(
+                    "prCommitId" to prCommitId
+                  )
+                )
+              )
+            }
+            expectThat(results)
+              .isEqualTo(artifactMetadata)
+
+            verify(exactly = 1) {
+              artifactMetadataService.getArtifactMetadata("1", prCommitId)
+            }
+
+            verify(exactly = 0) {
+              artifactMetadataService.getArtifactMetadata("1", commitId)
+            }
+          }
+        }
+
       }
 
-      test ("should process artifact successfully") {
+      test("should process artifact successfully") {
         expectThat(debianArtifactSupplier.shouldProcessArtifact(latestArtifact))
           .isTrue()
       }
 
-      test ("should process artifact successfully2") {
+      test("should process artifact successfully2") {
         expectThat(debianArtifactSupplier.shouldProcessArtifact(actualVersionInPublishedArtifact))
           .isTrue()
       }
 
-      test ("should not process artifact with local in its version string") {
+      test("should not process artifact with local in its version string") {
         expectThat(debianArtifactSupplier.shouldProcessArtifact(artifactWithInvalidVersion))
           .isFalse()
       }
 
-      test ("should not process artifact without a status") {
+      test("should not process artifact without a status") {
         expectThat(debianArtifactSupplier.shouldProcessArtifact(artifactWithoutStatus))
           .isFalse()
       }

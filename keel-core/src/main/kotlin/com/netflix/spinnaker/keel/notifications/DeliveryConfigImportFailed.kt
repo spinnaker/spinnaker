@@ -16,7 +16,7 @@ data class DeliveryConfigImportFailed(
   val repoType: String,
   val projectKey: String,
   val repoSlug: String,
-  val commitHash: String,
+  val commitHash: String? = null,
   val reason: String,
   override val link: String? = null,
   override var uid: UID? = null
@@ -25,7 +25,12 @@ data class DeliveryConfigImportFailed(
   override val triggeredBy: String = "Managed Delivery"
   override val message: String
     get() {
-      return "Failed to import delivery config from branch $branch (#${commitHash.short}). Reason: $reason"
+      val commitText = if (commitHash != null) {
+        " [${commitHash.short}]"
+      } else {
+        ""
+      }
+      return "Failed to import delivery config from branch $branch$commitText. Reason: $reason"
     }
 
   private val String.short: String

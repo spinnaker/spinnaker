@@ -765,10 +765,16 @@ class TitusClusterHandler(
       )
     )
 
+    log.debug("Checking if artifact should be marked as deployed in Titus cluster ${resource.id}: " +
+      "same container in all ASGs = $sameContainer, unhealthy regions = $unhealthyRegions")
+
     if (sameContainer && healthy) {
       // only publish a successfully deployed event if the server group is healthy
       val container = activeServerGroups.first().container
       getTagsForDigest(container, resource.spec.locations.account)
+        .apply {
+          log.debug("Marking ${this.size} tags for container $container as deployed to Titus cluster ${resource.id}")
+        }
         .forEach { tag ->
           // We publish an event for each tag that matches the digest
           // so that we handle the tags like `latest` where more than one tags have the same digest

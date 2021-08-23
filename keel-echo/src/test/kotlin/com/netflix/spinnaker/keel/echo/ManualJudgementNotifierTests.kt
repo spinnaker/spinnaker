@@ -1,13 +1,11 @@
 package com.netflix.spinnaker.keel.echo
 
-import com.github.benmanes.caffeine.cache.AsyncLoadingCache
 import com.netflix.spinnaker.config.BaseUrlConfig
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.api.NotificationFrequency
 import com.netflix.spinnaker.keel.api.NotificationType
-import com.netflix.spinnaker.keel.api.ScmInfo
 import com.netflix.spinnaker.keel.api.artifacts.BaseLabel.RELEASE
 import com.netflix.spinnaker.keel.api.artifacts.Commit
 import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
@@ -20,9 +18,7 @@ import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.events.ConstraintStateChanged
 import com.netflix.spinnaker.keel.artifacts.ArtifactVersionLinks
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
-import com.netflix.spinnaker.keel.caffeine.CacheFactory
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
-import com.netflix.spinnaker.keel.core.api.PromotionStatus
 import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.echo.model.EchoNotification
 import com.netflix.spinnaker.keel.persistence.KeelRepository
@@ -46,8 +42,6 @@ import strikt.assertions.isFailure
 import strikt.assertions.isFalse
 import strikt.assertions.isGreaterThan
 import strikt.assertions.isNull
-import java.util.concurrent.CompletableFuture
-import java.util.function.Function
 
 internal class ManualJudgementNotifierTests : JUnit5Minutests {
 
@@ -307,7 +301,7 @@ internal class ManualJudgementNotifierTests : JUnit5Minutests {
         context("more artifact in an environment") {
           before {
             every {
-              repository.getArtifactVersionByPromotionStatus(any(), any(), artifact, PromotionStatus.CURRENT)
+              repository.getCurrentlyDeployedArtifactVersion(any(), artifact, any())
             } returns PublishedArtifact(
               name = "mypkg",
               type = DEBIAN,

@@ -11,9 +11,9 @@ import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PENDING
 import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
 import com.netflix.spinnaker.keel.api.action.ActionRepository
 import com.netflix.spinnaker.keel.api.action.ActionState
-import com.netflix.spinnaker.keel.api.action.ActionType
 import com.netflix.spinnaker.keel.api.action.ActionType.VERIFICATION
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.NOT_EVALUATED
+import com.netflix.spinnaker.keel.api.postdeploy.PostDeployAction
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.time.MutableClock
 import de.huxhorn.sulky.ulid.ULID
@@ -55,10 +55,16 @@ abstract class ActionRepositoryTests<IMPLEMENTATION : ActionRepository> {
 
   protected data class DummyVerification(val value: String) : Verification {
     override val type = "dummy"
-    override val id: String = "$type:$value"
+    override val id = "$type:$value"
+  }
+
+  protected data class DummyPostDeployAction(val value: String): PostDeployAction() {
+    override val type = "dummy"
+    override val id = "$type:$value"
   }
 
   private val verification = DummyVerification("1")
+  private val postDeployAction = DummyPostDeployAction("2")
   private val environment = Environment(name = "test", verifyWith = listOf(verification))
   private val deliveryConfig = DeliveryConfig(
     application = "fnord",
@@ -572,6 +578,16 @@ abstract class ActionRepositoryTests<IMPLEMENTATION : ActionRepository> {
     val contexts = subject.getVerificationContextsWithStatus(deliveryConfig, environment, PENDING)
     expectThat(contexts).hasSize(2)
     expectThat(contexts).contains(context)
+  }
+
+  @Test
+  fun `a post-deploy action is not counted as a verification`() {
+    context.setup()
+
+    subject.updateState(context, postDeployAction, PENDING)
+    val contexts = subject.getVerificationContextsWithStatus(deliveryConfig, environment, PENDING)
+
+    expectThat(contexts).isEmpty()
   }
 
 

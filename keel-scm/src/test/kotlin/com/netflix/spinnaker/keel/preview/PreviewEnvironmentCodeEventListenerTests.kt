@@ -31,7 +31,6 @@ import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.front50.model.DataSources
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
 import com.netflix.spinnaker.keel.notifications.DeliveryConfigImportFailed
-import com.netflix.spinnaker.keel.persistence.ApproveOldVersionTests.DummyImplicitConstraint
 import com.netflix.spinnaker.keel.notifications.DismissibleNotification
 import com.netflix.spinnaker.keel.persistence.DismissibleNotificationRepository
 import com.netflix.spinnaker.keel.persistence.EnvironmentDeletionRepository
@@ -43,13 +42,15 @@ import com.netflix.spinnaker.keel.preview.PreviewEnvironmentCodeEventListener.Co
 import com.netflix.spinnaker.keel.preview.PreviewEnvironmentCodeEventListener.Companion.PREVIEW_ENVIRONMENT_MARK_FOR_DELETION_SUCCESS
 import com.netflix.spinnaker.keel.preview.PreviewEnvironmentCodeEventListener.Companion.PREVIEW_ENVIRONMENT_UPSERT_ERROR
 import com.netflix.spinnaker.keel.preview.PreviewEnvironmentCodeEventListener.Companion.PREVIEW_ENVIRONMENT_UPSERT_SUCCESS
-import com.netflix.spinnaker.keel.scm.CommitCreatedEvent
+import com.netflix.spinnaker.keel.resources.ResourceFactory
 import com.netflix.spinnaker.keel.scm.DELIVERY_CONFIG_RETRIEVAL_ERROR
 import com.netflix.spinnaker.keel.scm.DELIVERY_CONFIG_RETRIEVAL_SUCCESS
 import com.netflix.spinnaker.keel.scm.PrDeclinedEvent
 import com.netflix.spinnaker.keel.scm.PrDeletedEvent
 import com.netflix.spinnaker.keel.scm.PrMergedEvent
 import com.netflix.spinnaker.keel.scm.PrOpenedEvent
+import com.netflix.spinnaker.keel.scm.PrUpdatedEvent
+import com.netflix.spinnaker.keel.scm.ScmUtils
 import com.netflix.spinnaker.keel.scm.toTags
 import com.netflix.spinnaker.keel.test.DummyArtifactReferenceResourceSpec
 import com.netflix.spinnaker.keel.test.DummyDependentResourceSpec
@@ -75,6 +76,7 @@ import io.mockk.spyk
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectThat
 import strikt.assertions.contains
+import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.containsKeys
 import strikt.assertions.isA
 import strikt.assertions.isEmpty
@@ -100,19 +102,25 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
     val spectator: Registry = mockk()
     val eventPublisher: ApplicationEventPublisher = mockk()
     val validator: DeliveryConfigValidator = mockk()
-    val subject = spyk(PreviewEnvironmentCodeEventListener(
-      repository = repository,
-      environmentDeletionRepository = environmentDeletionRepository,
-      notificationRepository = notificationRepository,
-      deliveryConfigImporter = importer,
-      deliveryConfigValidator = validator,
-      front50Cache = front50Cache,
-      objectMapper = objectMapper,
-      springEnv = springEnv,
-      spectator = spectator,
-      clock = clock,
-      eventPublisher = eventPublisher
-    ))
+    val scmUtils: ScmUtils = mockk()
+    val resourceFactory: ResourceFactory = mockk()
+    val subject = spyk(
+      PreviewEnvironmentCodeEventListener(
+        repository = repository,
+        environmentDeletionRepository = environmentDeletionRepository,
+        notificationRepository = notificationRepository,
+        deliveryConfigImporter = importer,
+        deliveryConfigValidator = validator,
+        front50Cache = front50Cache,
+        objectMapper = objectMapper,
+        springEnv = springEnv,
+        spectator = spectator,
+        clock = clock,
+        eventPublisher = eventPublisher,
+        scmUtils = scmUtils,
+        resourceFactory = resourceFactory
+      )
+    )
 
     val appConfig = Application(
       name = "fnord",
@@ -142,15 +150,26 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
 
     val locatableResource = locatableResource()
 
-    val artifactReferenceResource = artifactReferenceResource(artifactReference = artifactFromMain.reference, artifactType = DOCKER)
+    val artifactReferenceResource =
+      artifactReferenceResource(artifactReference = artifactFromMain.reference, artifactType = DOCKER)
 
-    val defaultSecurityGroup = Resource(
+    val defaultAppSecurityGroup = Resource(
       kind = EC2_SECURITY_GROUP_V1.kind,
       metadata = mapOf("id" to "fnord", "application" to "fnord"),
       spec = SecurityGroupSpec(
         moniker = Moniker("fnord"),
         locations = locatableResource.spec.locations,
-        description = "default security group"
+        description = "default app security group"
+      )
+    )
+
+    val defaultElbSecurityGroup = Resource(
+      kind = EC2_SECURITY_GROUP_V1.kind,
+      metadata = mapOf("id" to "fnord", "application" to "fnord"),
+      spec = SecurityGroupSpec(
+        moniker = Moniker("fnord", "elb"),
+        locations = locatableResource.spec.locations,
+        description = "default loab balancer security group"
       )
     )
 
@@ -166,8 +185,13 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
         ),
         Dependency(
           type = SECURITY_GROUP,
-          region = defaultSecurityGroup.spec.locations.regions.first().name,
-          name = defaultSecurityGroup.name
+          region = defaultAppSecurityGroup.spec.locations.regions.first().name,
+          name = defaultAppSecurityGroup.name
+        ),
+        Dependency(
+          type = SECURITY_GROUP,
+          region = defaultAppSecurityGroup.spec.locations.regions.first().name,
+          name = defaultElbSecurityGroup.name
         )
       )
     )
@@ -184,7 +208,8 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
             locatableResource,
             artifactReferenceResource,
             resourceWithSameNameAsDefaultSecurityGroup, // name conflict with default sec group, but different kind
-            defaultSecurityGroup,
+            defaultAppSecurityGroup,
+            defaultElbSecurityGroup,
             dependentResource
           ),
           constraints = setOf(ManualJudgementConstraint()),
@@ -199,22 +224,12 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
       )
     )
 
-    val commitEvent = CommitCreatedEvent(
-      repoKey = "stash/myorg/myrepo",
-      targetBranch = "feature/abc",
-      commitHash = "1d52038730f431be19a8012f6f3f333e95a53772",
-      pullRequestId = "42"
-    )
-
-    val nonMatchingCommitEvent = commitEvent.copy(targetBranch = "not-a-match")
-
     val previewEnv = slot<Environment>()
 
     fun setupMocks() {
       every {
         springEnv.getProperty("keel.previewEnvironments.enabled", Boolean::class.java, true)
       } returns true
-
 
       every {
         spectator.counter(any(), any<Iterable<Tag>>())
@@ -249,7 +264,7 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
       } returns appConfig
 
       every {
-        importer.import(commitEvent, "spinnaker.yml")
+        importer.import(any(), "spinnaker.yml")
       } returns with(deliveryConfig) {
         SubmittedDeliveryConfig(
           application = application,
@@ -280,12 +295,29 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
       every {
         notificationRepository.dismissNotification(any<Class<DismissibleNotification>>(), any(), any())
       } returns true
+
+      every {
+        scmUtils.getPullRequestLink(any())
+      } returns "https://commit-link.org"
+
+      every {
+        resourceFactory.migrate(any())
+      } answers {
+        arg(0)
+      }
     }
   }
 
   val prOpenedEvent = PrOpenedEvent(
     repoKey = "stash/myorg/myrepo",
-    pullRequestBranch = "refs/heads/feature/abc",
+    pullRequestBranch = "feature/abc",
+    targetBranch = "main",
+    pullRequestId = "42"
+  )
+
+  val prUpdatedEvent = PrUpdatedEvent(
+    repoKey = "stash/myorg/myrepo",
+    pullRequestBranch = "feature/abc",
     targetBranch = "main",
     pullRequestId = "42"
   )
@@ -319,164 +351,166 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
         setupMocks()
       }
 
-      context("a PR opened event matching a preview environment spec is received") {
-        before {
-          subject.handlePrOpened(prOpenedEvent)
-        }
+      listOf(prOpenedEvent, prUpdatedEvent).forEach { prEvent ->
+        context("a PR event matching a preview environment spec is received") {
+          before {
+            subject.handlePrEvent(prEvent)
+          }
 
-        test("processing is delegated to the commit created event handler") {
-          verify(exactly = 1) {
-            with(prOpenedEvent) {
-              subject.handleCommitCreated(CommitCreatedEvent(repoKey, pullRequestBranch, pullRequestId, pullRequestBranch))
+          test("the delivery config is imported from the branch in the pr event") {
+            verify(exactly = 1) {
+              importer.import(
+                commitEvent = any(),
+                manifestPath = "spinnaker.yml"
+              )
             }
           }
-        }
-      }
 
-      context("a commit event matching a preview environment spec is received") {
-        before {
-          subject.handleCommitCreated(commitEvent)
+          test("delivery config import failure notification is dismissed on successful import") {
+            verify {
+              notificationRepository.dismissNotification(
+                any<Class<DismissibleNotification>>(),
+                deliveryConfig.application,
+                prEvent.pullRequestBranch,
+                any()
+              )
+            }
+          }
+
+          test("a successful delivery config retrieval is counted") {
+            val tags = mutableListOf<Iterable<Tag>>()
+            verify {
+              spectator.counter(CODE_EVENT_COUNTER, capture(tags))
+            }
+            expectThat(tags).one {
+              contains(DELIVERY_CONFIG_RETRIEVAL_SUCCESS.toTags())
+            }
+          }
+
+          test("a successful preview environment upsert is counted") {
+            val tags = mutableListOf<Iterable<Tag>>()
+            verify {
+              spectator.counter(CODE_EVENT_COUNTER, capture(tags))
+            }
+            expectThat(tags).one {
+              contains(PREVIEW_ENVIRONMENT_UPSERT_SUCCESS.toTags())
+            }
+          }
+
+          test("a duration is recorded for successful handling of the PR event") {
+            verify(exactly = 1) {
+              spectator.timer(COMMIT_HANDLING_DURATION, any<Iterable<Tag>>())
+              fakeTimer.record(any<Duration>())
+            }
+          }
+
+          test("a preview environment and associated resources are created/updated") {
+            verify {
+              repository.upsertResource(previewEnv.captured.resources.first(), deliveryConfig.name)
+              repository.storeEnvironment(deliveryConfig.name, previewEnv.captured)
+            }
+          }
+
+          test("the preview environment has no constraints or post-deploy actions") {
+            expectThat(previewEnv.captured.constraints).isEmpty()
+            expectThat(previewEnv.captured.postDeploy).isEmpty()
+          }
+
+          test("the name of the preview environment is generated correctly") {
+            val baseEnv = deliveryConfig.environments.first()
+            val branchDetail = prEvent.pullRequestBranch.toPreviewName()
+
+            expectThat(previewEnv.captured) {
+              get { name }.isEqualTo("${baseEnv.name}-$branchDetail")
+            }
+          }
+
+          test("relevant metadata is added to the preview environment") {
+            expectThat(previewEnv.captured.metadata).containsKeys("basedOn", "repoKey", "branch", "pullRequestId")
+          }
+
+          test("resources are migrated to their latest version before processing") {
+            val baseEnv = deliveryConfig.environments.first()
+            verify(exactly = baseEnv.resources.size) {
+              resourceFactory.migrate(any())
+            }
+          }
+
+          test("the name of monikered resources is generated correctly") {
+            val baseEnv = deliveryConfig.environments.first()
+            val baseResource = baseEnv.resources.first() as Resource<Monikered>
+            val previewResource = previewEnv.captured.resources.first()
+
+            expectThat(previewResource.spec)
+              .isA<Monikered>()
+              .get { moniker }
+              .isEqualTo(baseResource.spec.moniker.withBranchDetail(prEvent.pullRequestBranch))
+          }
+
+          test("updated resource names respect the max allowed length") {
+            // monikered resources with and without stack and detail
+            listOf(
+              locatableResource(moniker = Moniker(app = "fnord", stack = "stack", detail = "detail")),
+              locatableResource(moniker = Moniker(app = "fnord", stack = "stack")),
+              locatableResource(moniker = Moniker(app = "fnord")),
+            ).forEach { resource ->
+              val updatedName = resource.spec.moniker.withBranchDetail("feature/a-very-long-branch-name").name
+              expectThat(updatedName.length)
+                .describedAs("length of preview resource name $updatedName (${updatedName.length})")
+                .isLessThanOrEqualTo(MAX_RESOURCE_NAME_LENGTH)
+            }
+          }
+
+          test("the artifact reference in a resource is updated to match the preview environment branch filter") {
+            expectThat(previewEnv.captured.resources.find { it.spec is ArtifactReferenceProvider }?.spec)
+              .isA<ArtifactReferenceProvider>()
+              .get { artifactReference }.isEqualTo(artifactFromBranch.reference)
+          }
+
+          test("the names of resource dependencies present in the preview environment are adjusted to match") {
+            val branchDetail = prEvent.pullRequestBranch.toPreviewName()
+            val baseEnv = deliveryConfig.environments.first()
+            val dependency =
+              baseEnv.resources.first { it.spec is DummyLocatableResourceSpec } as Resource<DummyLocatableResourceSpec>
+
+            expectThat(previewEnv.captured.resources.first { it.spec is DummyDependentResourceSpec }.spec)
+              .isA<Dependent>()
+              .get { dependsOn.first { it.type == GENERIC_RESOURCE }.name }
+              .isEqualTo(dependency.spec.moniker.withBranchDetail(branchDetail).name)
+          }
+
+          test("the names of the default security groups are not changed in the dependencies") {
+            expectThat(previewEnv.captured.resources.first { it.spec is DummyDependentResourceSpec }.spec)
+              .isA<Dependent>()
+              .get { dependsOn.filter { it.type == SECURITY_GROUP }.map { it.name } }
+              .containsExactlyInAnyOrder(defaultAppSecurityGroup.name, defaultElbSecurityGroup.name)
+          }
         }
 
-        test("the delivery config is imported from the commit in the event") {
-          verify(exactly = 1) {
-            importer.import(
-              commitEvent = commitEvent,
-              manifestPath = "spinnaker.yml"
+        context("without an artifact in the delivery config matching the branch filter") {
+          modifyFixture {
+            deliveryConfig = deliveryConfig.copy(
+              artifacts = setOf(artifactFromMain, artifactWithNonMatchingFilter)
             )
           }
-        }
 
-        test("the notification was dimissed on successful import") {
-          verify {
-            notificationRepository.dismissNotification(any<Class<DismissibleNotification>>(), deliveryConfig.application, commitEvent.targetBranch, any())
+          before {
+            setupMocks() // to pick up the updated delivery config above
+            subject.handlePrEvent(prEvent)
           }
-        }
 
-        test("a successful delivery config retrieval is counted") {
-          val tags = mutableListOf<Iterable<Tag>>()
-          verify {
-            spectator.counter(CODE_EVENT_COUNTER, capture(tags))
+          test("the artifact reference in a resource is not updated") {
+            expectThat(previewEnv.captured.resources.find { it.spec is ArtifactReferenceProvider }?.spec)
+              .isA<ArtifactReferenceProvider>()
+              .get { artifactReference }.isEqualTo(artifactFromMain.reference)
           }
-          expectThat(tags).one {
-            contains(DELIVERY_CONFIG_RETRIEVAL_SUCCESS.toTags())
-          }
-        }
-
-        test("a successful preview environment upsert is counted") {
-          val tags = mutableListOf<Iterable<Tag>>()
-          verify {
-            spectator.counter(CODE_EVENT_COUNTER, capture(tags))
-          }
-          expectThat(tags).one {
-            contains(PREVIEW_ENVIRONMENT_UPSERT_SUCCESS.toTags())
-          }
-        }
-
-        test("a duration is recorded for successful handling of the commit event") {
-          verify(exactly = 1) {
-            spectator.timer(COMMIT_HANDLING_DURATION, any<Iterable<Tag>>())
-            fakeTimer.record(any<Duration>())
-          }
-        }
-
-        test("a preview environment and associated resources are created/updated") {
-          verify {
-            repository.upsertResource(previewEnv.captured.resources.first(), deliveryConfig.name)
-            repository.storeEnvironment(deliveryConfig.name, previewEnv.captured)
-          }
-        }
-
-        test("the preview environment has no constraints or post-deploy actions") {
-          expectThat(previewEnv.captured.constraints).isEmpty()
-          expectThat(previewEnv.captured.postDeploy).isEmpty()
-        }
-
-        test("the name of the preview environment is generated correctly") {
-          val baseEnv = deliveryConfig.environments.first()
-          val branchDetail = commitEvent.targetBranch.toPreviewName()
-
-          expectThat(previewEnv.captured) {
-            get { name }.isEqualTo("${baseEnv.name}-$branchDetail")
-          }
-        }
-
-        test("relevant metadata is added to the preview environment") {
-          expectThat(previewEnv.captured.metadata).containsKeys("basedOn", "repoKey", "branch", "pullRequestId")
-        }
-
-        test("the name of monikered resources is generated correctly") {
-          val baseEnv = deliveryConfig.environments.first()
-          val baseResource = baseEnv.resources.first() as Resource<Monikered>
-          val previewResource = previewEnv.captured.resources.first()
-
-          expectThat(previewResource.spec)
-            .isA<Monikered>()
-            .get { moniker }
-            .isEqualTo(baseResource.spec.moniker.withBranchDetail(commitEvent.targetBranch))
-        }
-
-        test("updated resource names respect the max allowed length") {
-          // monikered resources with and without stack and detail
-          listOf(
-            locatableResource(moniker = Moniker(app = "fnord", stack = "stack", detail = "detail")),
-            locatableResource(moniker = Moniker(app = "fnord", stack = "stack")),
-            locatableResource(moniker = Moniker(app = "fnord")),
-          ).forEach { resource ->
-            val updatedName = resource.spec.moniker.withBranchDetail("feature/a-very-long-branch-name").name
-            expectThat(updatedName.length)
-              .describedAs("length of preview resource name $updatedName (${updatedName.length})")
-              .isLessThanOrEqualTo(MAX_RESOURCE_NAME_LENGTH)
-          }
-        }
-
-        test("the artifact reference in a resource is updated to match the preview environment branch filter") {
-          expectThat(previewEnv.captured.resources.find { it.spec is ArtifactReferenceProvider }?.spec)
-            .isA<ArtifactReferenceProvider>()
-            .get { artifactReference }.isEqualTo(artifactFromBranch.reference)
-        }
-
-        test("the names of resource dependencies present in the preview environment are adjusted to match") {
-          val branchDetail = commitEvent.targetBranch.toPreviewName()
-          val baseEnv = deliveryConfig.environments.first()
-          val dependency = baseEnv.resources.first { it.spec is DummyLocatableResourceSpec } as Resource<DummyLocatableResourceSpec>
-
-          expectThat(previewEnv.captured.resources.first { it.spec is DummyDependentResourceSpec }.spec)
-            .isA<Dependent>()
-            .get { dependsOn.first { it.type == GENERIC_RESOURCE }.name }
-            .isEqualTo(dependency.spec.moniker.withBranchDetail(branchDetail).name)
-        }
-
-        test("the name of the default security group is not changed in the dependencies") {
-          expectThat(previewEnv.captured.resources.first { it.spec is DummyDependentResourceSpec }.spec)
-            .isA<Dependent>()
-            .get { dependsOn.first { it.type == SECURITY_GROUP }.name }
-            .isEqualTo(defaultSecurityGroup.name)
         }
       }
 
-      context("without an artifact in the delivery config matching the branch filter") {
-        modifyFixture {
-          deliveryConfig = deliveryConfig.copy(
-            artifacts = setOf(artifactFromMain, artifactWithNonMatchingFilter)
-          )
-        }
-
+      context("a PR event NOT matching a preview environment spec is received") {
         before {
-          setupMocks() // to pick up the updated delivery config above
-          subject.handleCommitCreated(commitEvent)
-        }
-
-        test("the artifact reference in a resource is not updated") {
-          expectThat(previewEnv.captured.resources.find { it.spec is ArtifactReferenceProvider }?.spec)
-            .isA<ArtifactReferenceProvider>()
-            .get { artifactReference }.isEqualTo(artifactFromMain.reference)
-        }
-      }
-
-      context("a commit event NOT matching a preview environment spec is received") {
-        before {
-          subject.handleCommitCreated(nonMatchingCommitEvent)
+          val nonMatchingPrEvent = prOpenedEvent.copy(pullRequestBranch = "not-a-match")
+          subject.handlePrEvent(nonMatchingPrEvent)
         }
 
         testEventIgnored()
@@ -498,9 +532,9 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
         }
       }
 
-      context("a commit event not associated with a PR is received") {
+      context("a PR event not associated with a PR is received") {
         before {
-          subject.handleCommitCreated(commitEvent.copy(pullRequestId = null))
+          subject.handlePrEvent(prOpenedEvent.copy(pullRequestId = "-1"))
         }
 
         testEventIgnored()
@@ -510,7 +544,7 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
         context("a ${prEvent::class.simpleName} event matching a preview environment spec is received") {
           before {
             // just to trigger saving the preview environment
-            subject.handleCommitCreated(commitEvent)
+            subject.handlePrEvent(prEvent)
 
             every {
               repository.getDeliveryConfig(deliveryConfig.name)
@@ -540,7 +574,7 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
       }
     }
 
-    context("a commit event matching a preview spec branch filter but from a different app's repo") {
+    context("a PR event matching a preview spec branch filter but from a different app's repo") {
       before {
         setupMocks()
 
@@ -551,7 +585,7 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
           repoSlug = "another-repo"
         )
 
-        subject.handleCommitCreated(commitEvent)
+        subject.handlePrEvent(prOpenedEvent)
       }
 
       test("event is ignored") {
@@ -574,7 +608,8 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
       }
 
       before {
-        subject.handleCommitCreated(nonMatchingCommitEvent)
+        val nonMatchingPrEvent = prOpenedEvent.copy(pullRequestBranch = "not-a-match")
+        subject.handlePrEvent(nonMatchingPrEvent)
       }
 
       testEventIgnored()
@@ -588,12 +623,12 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
       context("failure to retrieve delivery config") {
         modifyFixture {
           every {
-            importer.import(commitEvent, "spinnaker.yml")
+            importer.import(any(), "spinnaker.yml")
           } throws SystemException("oh noes!")
         }
 
         before {
-          subject.handleCommitCreated(commitEvent)
+          subject.handlePrEvent(prOpenedEvent)
         }
 
         test("a delivery config retrieval error is counted") {
@@ -621,7 +656,7 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
         }
 
         before {
-          subject.handleCommitCreated(commitEvent)
+          subject.handlePrEvent(prOpenedEvent)
         }
 
         test("an application retrieval error is counted") {
@@ -635,7 +670,7 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
         }
       }
 
-      context("failure to usert preview environment") {
+      context("failure to upsert preview environment") {
         modifyFixture {
           every {
             repository.storeEnvironment(any(), any())
@@ -643,7 +678,7 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
         }
 
         before {
-          subject.handleCommitCreated(commitEvent)
+          subject.handlePrEvent(prOpenedEvent)
         }
 
         test("an upsert error is counted") {

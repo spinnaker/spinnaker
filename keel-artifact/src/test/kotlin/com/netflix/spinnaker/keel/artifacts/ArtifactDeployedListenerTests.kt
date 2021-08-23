@@ -3,6 +3,8 @@ package com.netflix.spinnaker.keel.artifacts
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.events.ArtifactVersionDeployed
 import com.netflix.spinnaker.keel.api.support.EventPublisher
+import com.netflix.spinnaker.keel.core.api.PromotionStatus.CURRENT
+import com.netflix.spinnaker.keel.core.api.PromotionStatus.PENDING
 import com.netflix.spinnaker.keel.events.ArtifactDeployedNotification
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
@@ -41,7 +43,7 @@ class ArtifactDeployedListenerTests : JUnit5Minutests {
       every { repository.getResource(resource.id) } returns resourceSpy
       every { repository.deliveryConfigFor(resource.id) } returns config
       every { repository.environmentFor(resource.id) } returns config.environments.first()
-      every { repository.isCurrentlyDeployedTo(config, any(), event.artifactVersion, any()) } returns false
+      every { repository.getArtifactPromotionStatus(config, any(), event.artifactVersion, any()) } returns PENDING
     }
 
     after {
@@ -67,10 +69,10 @@ class ArtifactDeployedListenerTests : JUnit5Minutests {
 
         context("artifact has been marked currently deployed") {
           before {
-            every { repository.isCurrentlyDeployedTo(any(), any(), event.artifactVersion, any()) } returns true
+            every { repository.getArtifactPromotionStatus(any(), any(), event.artifactVersion, any()) } returns CURRENT
           }
 
-          test("artifact is not marked as deployed") {
+          test("artifact is not marked as deployed again") {
             subject.onArtifactVersionDeployed(event)
             verify(exactly = 0) { repository.markAsSuccessfullyDeployedTo(any(), any(), event.artifactVersion, any()) }
           }
@@ -82,7 +84,7 @@ class ArtifactDeployedListenerTests : JUnit5Minutests {
             verify(exactly = 1) { repository.markAsSuccessfullyDeployedTo(any(), any(), event.artifactVersion, any()) }
           }
 
-          test("an event was sent out") {
+          test("an event is sent out") {
             subject.onArtifactVersionDeployed(event)
             verify { publisher.publishEvent(ofType<ArtifactDeployedNotification>()) }
           }
@@ -97,7 +99,7 @@ class ArtifactDeployedListenerTests : JUnit5Minutests {
           subject.onArtifactVersionDeployed(event)
           verify(exactly = 0) { repository.markAsSuccessfullyDeployedTo(config, any(), event.artifactVersion, any()) }
         }
-        test("an event was not sent out") {
+        test("an event is not sent out") {
           subject.onArtifactVersionDeployed(event)
           verify { publisher wasNot Called }
         }

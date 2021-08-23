@@ -15,7 +15,10 @@ fun CodeEvent.matchesApplicationConfig(app: Application?): Boolean =
     && projectKey.equals(app.repoProjectKey, ignoreCase = true)
     && repoSlug.equals(app.repoSlug, ignoreCase = true)
 
-fun CodeEvent.metricTags(application: String? = null, extraTags: Iterable<Pair<String, String>> = emptySet()): Set<BasicTag>{
+fun CodeEvent.metricTags(
+  application: String? = null,
+  extraTags: Iterable<Pair<String, String>> = emptySet()
+): Set<BasicTag> {
   val tags = mutableSetOf(
     BasicTag("event", type),
     BasicTag("repoKey", repoKey),
@@ -31,17 +34,26 @@ fun Iterable<Pair<String, String>>.toTags() = map { it.toTags() }
 
 fun Pair<String, String>.toTags() = BasicTag(first, second)
 
-fun ApplicationEventPublisher.publishDeliveryConfigImportFailed(application: String, event: CommitCreatedEvent, timestamp: Instant, reason: String) {
+fun ApplicationEventPublisher.publishDeliveryConfigImportFailed(
+  application: String,
+  event: CodeEvent,
+  timestamp: Instant,
+  reason: String,
+  link: String?
+) {
   with(event) {
-    publishEvent(DeliveryConfigImportFailed(
-      triggeredAt = timestamp,
-      application = application,
-      branch = targetBranch,
-      repoType = repoType,
-      projectKey = projectKey,
-      repoSlug = repoSlug,
-      commitHash = commitHash,
-      reason = reason
-    ))
+    publishEvent(
+      DeliveryConfigImportFailed(
+        triggeredAt = timestamp,
+        application = application,
+        branch = targetBranch,
+        repoType = repoType,
+        projectKey = projectKey,
+        repoSlug = repoSlug,
+        commitHash = (this as? CommitCreatedEvent)?.commitHash,
+        link = link,
+        reason = reason
+      )
+    )
   }
 }

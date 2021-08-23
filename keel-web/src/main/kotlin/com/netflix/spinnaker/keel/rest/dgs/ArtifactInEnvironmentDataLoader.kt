@@ -41,12 +41,15 @@ class ArtifactInEnvironmentDataLoader(
       applicationContext.allVersions = allVersions
 
       allVersions.mapValues { (key, versions) ->
-
         versions
           .sortedByDescending { it.publishedArtifact.createdAt }
           .map { it.toDgs() }
           .filter {
-            (requestedStatuses.isNullOrEmpty() || requestedStatuses.contains(it.status)) &&
+            (
+              requestedStatuses.isNullOrEmpty()
+                || requestedStatuses.contains(it.status)
+                || (requestedStatuses.contains(MdArtifactStatusInEnvironment.CURRENT) && it.isCurrent == true)
+              ) &&
               (requestedVersionIds.isNullOrEmpty() || requestedVersionIds.contains(it.version))
           }.let {
             if (requestedLimit != null) {
@@ -80,6 +83,7 @@ fun PublishedArtifactInEnvironment.toDgs() =
     },
     environment = environmentName,
     reference = publishedArtifact.reference,
-    status = MdArtifactStatusInEnvironment.valueOf(status.name)
+    status = MdArtifactStatusInEnvironment.valueOf(status.name),
+    isCurrent = isCurrent
   )
 

@@ -282,6 +282,10 @@ class NotificationEventListenerTests : JUnit5Minutests {
         } returns versions.toArtifactVersions(releaseArtifact).first()
 
         every {
+          repository.getCurrentlyDeployedArtifactVersion(any(), any(), any())
+        } returns versions.toArtifactVersions(releaseArtifact).first()
+
+        every {
           repository.latestVersionApprovedIn(any(), any(), any())
         } returns versions.last()
 
@@ -349,6 +353,10 @@ class NotificationEventListenerTests : JUnit5Minutests {
 
         every {
           repository.getArtifactVersionByPromotionStatus(any(), any(), any(), any())
+        } returns versions.toArtifactVersions(releaseArtifact).first()
+
+        every {
+          repository.getCurrentlyDeployedArtifactVersion(any(), any(), any())
         } returns versions.toArtifactVersions(releaseArtifact).first()
 
         every {

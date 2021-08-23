@@ -892,5 +892,16 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
           .all { get { previewEnvironments }.isEmpty() }
       }
     }
+
+    context("updatedAt updates") {
+      before {
+        store()
+      }
+
+      test("storing the config updates the last modified") {
+        expectThat(deliveryConfig.updatedAt).isNull()
+        expectThat(getByApplication().isSuccess().get { updatedAt }.isNotNull())
+      }
+    }
   }
 }

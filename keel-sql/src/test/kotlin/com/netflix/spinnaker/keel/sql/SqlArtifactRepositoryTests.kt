@@ -1,19 +1,16 @@
 package com.netflix.spinnaker.keel.sql
 
 import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactOriginFilter
 import com.netflix.spinnaker.keel.api.artifacts.BranchFilter
-import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
-import com.netflix.spinnaker.keel.api.artifacts.Commit
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
-import com.netflix.spinnaker.keel.api.artifacts.Repo
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.persistence.ArtifactRepositoryTests
-import com.netflix.spinnaker.keel.persistence.DummyResourceSpecIdentifier
 import com.netflix.spinnaker.keel.test.configuredTestObjectMapper
 import com.netflix.spinnaker.keel.test.defaultArtifactSuppliers
+import com.netflix.spinnaker.keel.test.resourceFactory
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
@@ -38,8 +35,8 @@ class SqlArtifactRepositoryTests : ArtifactRepositoryTests<SqlArtifactRepository
   private val deliveryConfigRepository = SqlDeliveryConfigRepository(
     jooq,
     Clock.systemUTC(),
-    DummyResourceSpecIdentifier,
     objectMapper,
+    resourceFactory(),
     sqlRetry,
     defaultArtifactSuppliers(),
     publisher = mockk(relaxed = true)
@@ -55,7 +52,6 @@ class SqlArtifactRepositoryTests : ArtifactRepositoryTests<SqlArtifactRepository
   override fun persist(manifest: DeliveryConfig) {
     deliveryConfigRepository.store(manifest)
   }
-
 
   @AfterEach
   fun flush() {

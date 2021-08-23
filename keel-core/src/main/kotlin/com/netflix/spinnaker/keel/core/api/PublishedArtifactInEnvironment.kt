@@ -9,4 +9,5 @@ data class PublishedArtifactInEnvironment(
   val environmentName: String?,
   val deployedAt: Instant? = null,
   val replacedBy: String? = null,
+  val isCurrent: Boolean = false,
 )

@@ -95,6 +95,12 @@ interface KeelReadOnlyRepository {
 
   fun isCurrentlyDeployedTo(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact, version: String, targetEnvironment: String): Boolean
 
+  fun getCurrentlyDeployedArtifactVersion(
+    deliveryConfig: DeliveryConfig,
+    artifact: DeliveryArtifact,
+    environmentName: String
+  ): PublishedArtifact?
+
   /**
    * Returns the release status for the specified [version] of the [artifact], if available.
    */

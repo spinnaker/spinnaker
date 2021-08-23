@@ -1,10 +1,9 @@
 package com.netflix.spinnaker.keel.persistence
 
+import com.netflix.spinnaker.keel.events.ResourceState
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import java.time.Clock
-import java.time.Duration
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.all
@@ -15,6 +14,8 @@ import strikt.assertions.hasSize
 import strikt.assertions.isEmpty
 import strikt.assertions.isNotEmpty
 import strikt.assertions.isNotEqualTo
+import java.time.Clock
+import java.time.Duration
 
 abstract class PeriodicallyCheckedRepositoryTests<T : Any, S : PeriodicallyCheckedRepository<T>> : JUnit5Minutests {
   abstract val descriptor: String
@@ -35,9 +36,7 @@ abstract class PeriodicallyCheckedRepositoryTests<T : Any, S : PeriodicallyCheck
 
     fun nextResults(): Collection<T> =
       subject.itemsDueForCheck(ifNotCheckedInLast, limit)
-        .also {
-          it.forEach(subject::markCheckComplete)
-        }
+        .onEach { subject.markCheckComplete(it, ResourceState.Ok) }
   }
 
   fun tests() = rootContext<Fixture<T, S>> {

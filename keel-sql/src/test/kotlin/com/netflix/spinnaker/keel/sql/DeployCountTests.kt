@@ -1,11 +1,13 @@
 package com.netflix.spinnaker.keel.sql
 
 import com.netflix.spinnaker.keel.api.plugins.kind
+import com.netflix.spinnaker.keel.resources.ResourceFactory
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.configuredTestObjectMapper
 import com.netflix.spinnaker.keel.test.defaultArtifactSuppliers
 import com.netflix.spinnaker.keel.test.deliveryConfig
+import com.netflix.spinnaker.keel.test.resourceFactory
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.time.MutableClock
@@ -27,12 +29,13 @@ class DeployCountTests {
   private val objectMapper = configuredTestObjectMapper()
   private val clock = MutableClock()
   private val publisher = mockk<ApplicationEventPublisher>(relaxed = true)
+  private val resourceFactory = resourceFactory()
   private val deliveryConfig = deliveryConfig()
   private val deliveryConfigRepository = SqlDeliveryConfigRepository(
     jooq,
     clock,
-    ResourceSpecIdentifier(kind<DummyResourceSpec>("test/whatever@v1")),
     objectMapper,
+    resourceFactory,
     sqlRetry,
     defaultArtifactSuppliers(),
     publisher = publisher

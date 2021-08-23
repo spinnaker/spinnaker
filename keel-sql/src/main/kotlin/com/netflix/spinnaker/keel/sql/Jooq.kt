@@ -16,9 +16,6 @@ internal inline fun <reified E> Record.into(): E = into(E::class.java)
 
 internal inline fun <reified T> field(sql: String): Field<T> = DSL.field(sql, T::class.java)
 
-internal fun Map<String, Any?>.asResourceMetadata(): Map<String, Any?> =
-  mapValues { if (it.key == "uid") ULID.parseULID(it.value.toString()) else it.value }
-
 internal inline fun <reified RESULT> ResultQuery<*>.fetchOneInto() =
   fetchOneInto(RESULT::class.java)
 

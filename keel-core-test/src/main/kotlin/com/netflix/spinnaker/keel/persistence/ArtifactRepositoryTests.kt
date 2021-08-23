@@ -28,15 +28,16 @@ import com.netflix.spinnaker.keel.core.api.ArtifactVersionVetoData
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
-import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
 import com.netflix.spinnaker.keel.core.api.PromotionStatus
+import com.netflix.spinnaker.keel.core.api.PromotionStatus.CURRENT
+import com.netflix.spinnaker.keel.core.api.PromotionStatus.SKIPPED
+import com.netflix.spinnaker.keel.core.api.PromotionStatus.VETOED
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.mockk
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expect
-import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.containsExactly
@@ -47,13 +48,11 @@ import strikt.assertions.isA
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
-import strikt.assertions.isNotEqualTo
+import strikt.assertions.isNotEmpty
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
-import strikt.assertions.isSuccess
 import strikt.assertions.isTrue
 import java.time.Clock
-import java.time.Duration
 import java.time.Instant
 
 abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests {
@@ -493,447 +492,6 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
       }
     }
 
-    context("artifact promotion") {
-      before {
-        persist()
-      }
-
-      context("no version has been promoted to an environment") {
-        test("the approved version for that environment is null") {
-          expectThat(subject.latestVersionApprovedIn(manifest, versionedSnapshotDebian, testEnvironment.name))
-            .isNull()
-        }
-
-        test("versions are not considered successfully deployed") {
-          setOf(version1, version2, version3).forEach {
-            expectThat(subject.wasSuccessfullyDeployedTo(manifest, versionedSnapshotDebian, it, testEnvironment.name))
-              .isFalse()
-          }
-        }
-
-        test("the artifact version is pending in the environment") {
-          expectThat(versionsIn(testEnvironment)) {
-            get(ArtifactVersionStatus::pending).containsExactlyInAnyOrder(version1, version2, version3)
-            get(ArtifactVersionStatus::current).isNull()
-            get(ArtifactVersionStatus::deploying).isNull()
-            get(ArtifactVersionStatus::previous).isEmpty()
-          }
-
-          expectThat(subject.isDeployingTo(manifest, testEnvironment.name)).isFalse()
-        }
-
-        context("pending versions") {
-          test("can get pending versions") {
-            expectThat(
-              subject.getPendingVersionsInEnvironment(manifest, versionedSnapshotDebian.reference, testEnvironment.name).size
-            ).isEqualTo(3)
-          }
-
-          test("ignore versions if filtered by branch") {
-            expectThat(
-              subject.getPendingVersionsInEnvironment(manifest, debianFilteredByBranch.reference, testEnvironment.name).size
-            ).isEqualTo(0)
-          }
-
-          test("fetch only versions of the given branch") {
-            subject.storeArtifactVersion(
-              debianFilteredByBranch.toArtifactVersion(
-                version = "version-with-branch",
-                createdAt = clock.tickMinutes(10)
-              ).copy(
-                gitMetadata = artifactMetadata.gitMetadata?.copy(
-                  branch = debianFilteredByBranch.from!!.branch!!.name
-                ),
-                buildMetadata = artifactMetadata.buildMetadata
-              )
-            )
-            expectThat(
-              subject.getPendingVersionsInEnvironment(manifest, debianFilteredByBranch.reference, testEnvironment.name).size
-            ).isEqualTo(1)
-          }
-
-          test("fetch only versions with matching pattern") {
-            storeVersionsForDebianFilteredByBranchPattern((20 downTo 1).map { "keeldemo-any-string-$it" })
-            expectThat(
-              subject.getPendingVersionsInEnvironment(manifest, debianFilteredByBranchPattern.reference, testEnvironment.name).size
-            ).isEqualTo(15)
-          }
-
-          test("fetch only versions with matching pattern") {
-            storeVersionsForDebianFilteredByPullRequest((20 downTo 1).map { "keeldemo-any-string-$it" })
-            expectThat(
-              subject.getPendingVersionsInEnvironment(manifest, debianFilteredByPullRequest.reference, testEnvironment.name).size
-            ).isEqualTo(10)
-          }
-        }
-
-        test("an artifact version can be vetoed even if it was not previously deployed") {
-          val veto = EnvironmentArtifactVeto(
-            targetEnvironment = testEnvironment.name,
-            reference = versionedSnapshotDebian.reference,
-            version = version1,
-            vetoedBy = "someone",
-            comment = "testing if mark as bad works"
-          )
-
-          subject.markAsVetoedIn(deliveryConfig = manifest, veto = veto, force = true)
-
-          expectThat(
-            subject.vetoedEnvironmentVersions(manifest).map {
-              it.copy(versions = it.versions.map { v -> v.copy(vetoedAt = null) }.toMutableSet())
-            }
-          )
-            .isEqualTo(
-              listOf(
-                EnvironmentArtifactVetoes(
-                  deliveryConfigName = manifest.name,
-                  targetEnvironment = testEnvironment.name,
-                  artifact = versionedSnapshotDebian,
-                  versions = mutableSetOf(ArtifactVersionVetoData(version = veto.version, vetoedBy = veto.vetoedBy, vetoedAt = null, comment = veto.comment))
-                )
-              )
-            )
-        }
-      }
-
-      context("another version is stuck in deploying") {
-        before {
-          subject.approveVersionFor(manifest, versionedSnapshotDebian, version1, testEnvironment.name)
-          subject.markAsDeployingTo(manifest, versionedSnapshotDebian, version1, testEnvironment.name)
-          subject.approveVersionFor(manifest, versionedSnapshotDebian, version2, testEnvironment.name)
-          subject.markAsDeployingTo(manifest, versionedSnapshotDebian, version2, testEnvironment.name)
-        }
-
-        test("we update the status of the old version when we mark the new one deploying") {
-          val v1summary = subject.getArtifactSummaryInEnvironment(manifest, testEnvironment.name, versionedSnapshotDebian.reference, version1)
-          expectThat(v1summary)
-            .isNotNull()
-            .get { state }
-            .isEqualTo("skipped")
-        }
-      }
-
-      context("we mark old pending versions as skipped") {
-        before {
-          subject.approveVersionFor(manifest, versionedSnapshotDebian, version2, testEnvironment.name)
-          subject.markAsSuccessfullyDeployedTo(manifest, versionedSnapshotDebian, version2, testEnvironment.name)
-        }
-
-        test("we mark version 1 as skipped") {
-          val artifactInEnvSummary = subject.getAllVersionsForEnvironment(versionedSnapshotDebian, manifest, testEnvironment.name)
-          expectThat(artifactInEnvSummary.find { it.publishedArtifact.version == version1 }?.status)
-            .isNotNull()
-            .isEqualTo(PromotionStatus.SKIPPED)
-        }
-      }
-
-      context("a version has been promoted to an environment") {
-        before {
-          clock.incrementBy(Duration.ofHours(1))
-          subject.approveVersionFor(manifest, versionedSnapshotDebian, version1, testEnvironment.name)
-          subject.markAsDeployingTo(manifest, versionedSnapshotDebian, version1, testEnvironment.name)
-          subject.approveVersionFor(manifest, versionedDockerArtifact, version6, stagingEnvironment.name)
-          subject.markAsDeployingTo(manifest, versionedDockerArtifact, version6, stagingEnvironment.name)
-        }
-
-        test("the approved version for that environment matches") {
-          // debian
-          expectThat(subject.latestVersionApprovedIn(manifest, versionedSnapshotDebian, testEnvironment.name))
-            .isEqualTo(version1)
-          // docker
-          expectThat(subject.latestVersionApprovedIn(manifest, versionedDockerArtifact, stagingEnvironment.name))
-            .isEqualTo(version6)
-        }
-
-        test("the version is not considered successfully deployed yet") {
-          expectThat(subject.wasSuccessfullyDeployedTo(manifest, versionedSnapshotDebian, version1, testEnvironment.name))
-            .isFalse()
-          expectThat(subject.wasSuccessfullyDeployedTo(manifest, versionedDockerArtifact, version6, stagingEnvironment.name))
-            .isFalse()
-        }
-
-        test("the version is deploying in the environment") {
-          expectThat(versionsIn(testEnvironment)) {
-            get(ArtifactVersionStatus::pending).containsExactlyInAnyOrder(version2, version3)
-            get(ArtifactVersionStatus::current).isNull()
-            get(ArtifactVersionStatus::deploying).isEqualTo(version1)
-            get(ArtifactVersionStatus::previous).isEmpty()
-          }
-
-          expectThat(subject.isDeployingTo(manifest, testEnvironment.name)).isTrue()
-
-          expectThat(versionsIn(stagingEnvironment, versionedDockerArtifact)) {
-            get(ArtifactVersionStatus::pending).isEmpty()
-            get(ArtifactVersionStatus::current).isNull()
-            get(ArtifactVersionStatus::deploying).isEqualTo(version6)
-            get(ArtifactVersionStatus::previous).isEmpty()
-          }
-
-          expectThat(subject.isDeployingTo(manifest, stagingEnvironment.name)).isTrue()
-        }
-
-        test("promoting the same version again returns false") {
-          expectCatching {
-            clock.incrementBy(Duration.ofHours(1))
-            subject.approveVersionFor(manifest, versionedSnapshotDebian, version1, testEnvironment.name)
-          }
-            .isSuccess()
-            .isFalse()
-        }
-
-        test("promoting a new version returns true") {
-          expectCatching {
-            clock.incrementBy(Duration.ofHours(1))
-            subject.approveVersionFor(manifest, versionedSnapshotDebian, version2, testEnvironment.name)
-          }
-            .isSuccess()
-            .isTrue()
-        }
-
-        context("the version is marked as successfully deployed") {
-          before {
-            subject.markAsSuccessfullyDeployedTo(manifest, versionedSnapshotDebian, version1, testEnvironment.name)
-            subject.markAsSuccessfullyDeployedTo(manifest, versionedDockerArtifact, version6, stagingEnvironment.name)
-          }
-
-          test("the version is now considered successfully deployed") {
-            expectThat(subject.wasSuccessfullyDeployedTo(manifest, versionedSnapshotDebian, version1, testEnvironment.name))
-              .isTrue()
-            expectThat(subject.wasSuccessfullyDeployedTo(manifest, versionedDockerArtifact, version6, stagingEnvironment.name))
-              .isTrue()
-          }
-
-          test("the version is marked as currently deployed") {
-            expectThat(subject.isCurrentlyDeployedTo(manifest, versionedSnapshotDebian, version1, testEnvironment.name))
-              .isTrue()
-            expectThat(subject.isCurrentlyDeployedTo(manifest, versionedDockerArtifact, version6, stagingEnvironment.name))
-              .isTrue()
-          }
-
-          test("the version is current in the environment") {
-            expectThat(versionsIn(testEnvironment)) {
-              get(ArtifactVersionStatus::pending).containsExactlyInAnyOrder(version2, version3)
-              get(ArtifactVersionStatus::current).isEqualTo(version1)
-              get(ArtifactVersionStatus::deploying).isNull()
-              get(ArtifactVersionStatus::previous).isEmpty()
-            }
-
-            expectThat(subject.isDeployingTo(manifest, testEnvironment.name)).isFalse()
-          }
-
-          test("querying for current returns the full artifact") {
-            val artifacts = subject.getArtifactVersionsByStatus(manifest, testEnvironment.name, listOf(PromotionStatus.CURRENT))
-            expect {
-              that(artifacts.size).isEqualTo(1)
-              that(artifacts.first().version).isEqualTo(version1)
-            }
-          }
-
-          context("a new version is promoted to the same environment") {
-            before {
-              clock.incrementBy(Duration.ofHours(1))
-              subject.approveVersionFor(manifest, versionedSnapshotDebian, version2, testEnvironment.name)
-              subject.markAsDeployingTo(manifest, versionedSnapshotDebian, version2, testEnvironment.name)
-            }
-
-            test("the latest approved version changes") {
-              expectThat(subject.latestVersionApprovedIn(manifest, versionedSnapshotDebian, testEnvironment.name))
-                .isEqualTo(version2)
-            }
-
-            test("the version is not considered successfully deployed yet") {
-              expectThat(subject.wasSuccessfullyDeployedTo(manifest, versionedSnapshotDebian, version2, testEnvironment.name))
-                .isFalse()
-            }
-
-            test("the new version is deploying in the environment") {
-              expectThat(versionsIn(testEnvironment)) {
-                get(ArtifactVersionStatus::pending).containsExactly(version3)
-                get(ArtifactVersionStatus::current).isEqualTo(version1)
-                get(ArtifactVersionStatus::deploying).isEqualTo(version2)
-                get(ArtifactVersionStatus::previous).isEmpty()
-              }
-
-              expectThat(subject.isDeployingTo(manifest, testEnvironment.name)).isTrue()
-
-            }
-
-            context("the new version is marked as successfully deployed") {
-              before {
-                subject.markAsSuccessfullyDeployedTo(manifest, versionedSnapshotDebian, version2, testEnvironment.name)
-              }
-
-              test("the old version is still considered successfully deployed") {
-                expectThat(subject.wasSuccessfullyDeployedTo(manifest, versionedSnapshotDebian, version1, testEnvironment.name))
-                  .isTrue()
-              }
-
-              test("the old version is not considered currently deployed") {
-                expectThat(subject.isCurrentlyDeployedTo(manifest, versionedSnapshotDebian, version1, testEnvironment.name))
-                  .isFalse()
-              }
-
-              test("the new version is also considered successfully deployed") {
-                expectThat(subject.wasSuccessfullyDeployedTo(manifest, versionedSnapshotDebian, version2, testEnvironment.name))
-                  .isTrue()
-              }
-
-              test("the new version is current in the environment") {
-                expectThat(versionsIn(testEnvironment)) {
-                  get(ArtifactVersionStatus::pending).containsExactlyInAnyOrder(version3)
-                  get(ArtifactVersionStatus::current).isEqualTo(version2)
-                  get(ArtifactVersionStatus::deploying).isNull()
-                  get(ArtifactVersionStatus::previous).containsExactly(version1)
-                }
-
-                expectThat(subject.isDeployingTo(manifest, testEnvironment.name)).isFalse()
-
-              }
-            }
-          }
-
-          context("there are two approved versions for the environment and the latter was deployed") {
-            before {
-              clock.incrementBy(Duration.ofHours(1))
-              subject.approveVersionFor(manifest, versionedSnapshotDebian, version2, testEnvironment.name)
-              subject.approveVersionFor(manifest, versionedSnapshotDebian, version3, testEnvironment.name)
-              subject.markAsSuccessfullyDeployedTo(manifest, versionedSnapshotDebian, version3, testEnvironment.name)
-            }
-
-            test("the lower version was marked as skipped") {
-              val result = versionsIn(testEnvironment)
-              expectThat(result) {
-                get(ArtifactVersionStatus::pending).isEmpty()
-                get(ArtifactVersionStatus::current).isEqualTo(version3)
-                get(ArtifactVersionStatus::deploying).isNull()
-                get(ArtifactVersionStatus::previous).containsExactly(version1)
-                get(ArtifactVersionStatus::skipped).containsExactly(version2)
-              }
-
-              expectThat(subject.isDeployingTo(manifest, testEnvironment.name)).isFalse()
-            }
-
-            test("can get all information about the versions") {
-              val versions = subject.getAllVersionsForEnvironment(versionedSnapshotDebian, manifest, testEnvironment.name)
-              expectThat(versions.size).isEqualTo(3)
-            }
-          }
-        }
-
-        context("a version of a different artifact is promoted to the environment") {
-          before {
-            clock.incrementBy(Duration.ofHours(1))
-            subject.approveVersionFor(manifest, versionedReleaseDebian, version3, testEnvironment.name)
-          }
-
-          test("the approved version of the original artifact remains the same") {
-            expectThat(subject.latestVersionApprovedIn(manifest, versionedSnapshotDebian, testEnvironment.name))
-              .isEqualTo(version1)
-          }
-
-          test("the approved version of the new artifact matches") {
-            expectThat(subject.latestVersionApprovedIn(manifest, versionedReleaseDebian, testEnvironment.name))
-              .isEqualTo(version3)
-          }
-        }
-
-        context("a different version of the same artifact is promoted to another environment") {
-          before {
-            clock.incrementBy(Duration.ofHours(1))
-            subject.approveVersionFor(manifest, versionedSnapshotDebian, version2, stagingEnvironment.name)
-          }
-
-          test("the approved version in the original environment is unaffected") {
-            expectThat(subject.latestVersionApprovedIn(manifest, versionedSnapshotDebian, testEnvironment.name))
-              .isEqualTo(version1)
-          }
-
-          test("the approved version in the new environment matches") {
-            expectThat(subject.latestVersionApprovedIn(manifest, versionedSnapshotDebian, stagingEnvironment.name))
-              .isEqualTo(version2)
-          }
-        }
-      }
-
-      context("a version has been pinned to an environment") {
-        before {
-          clock.incrementBy(Duration.ofHours(1))
-          subject.approveVersionFor(manifest, versionedReleaseDebian, version4, stagingEnvironment.name)
-          subject.markAsSuccessfullyDeployedTo(manifest, versionedReleaseDebian, version4, stagingEnvironment.name)
-          subject.approveVersionFor(manifest, versionedReleaseDebian, version5, stagingEnvironment.name)
-          subject.markAsSuccessfullyDeployedTo(manifest, versionedReleaseDebian, version5, stagingEnvironment.name)
-        }
-
-        test("without a pin, latestVersionApprovedIn returns the latest approved version") {
-          expectThat(subject.latestVersionApprovedIn(manifest, versionedReleaseDebian, stagingEnvironment.name))
-            .isEqualTo(version5)
-            .isNotEqualTo(pin1.version)
-        }
-
-        test("get env artifact version shows that artifact is not pinned") {
-          val envArtifactSummary = subject.getArtifactSummaryInEnvironment(
-            deliveryConfig = manifest,
-            environmentName = pin1.targetEnvironment,
-            artifactReference = versionedReleaseDebian.reference,
-            version = version4
-          )
-          expectThat(envArtifactSummary)
-            .isNotNull()
-            .get { pinned }
-            .isNull()
-        }
-
-        context("once pinned") {
-          before {
-            subject.pinEnvironment(manifest, pin1)
-          }
-
-          test("latestVersionApprovedIn prefers a pinned version over the latest approved version") {
-            expectThat(subject.latestVersionApprovedIn(manifest, versionedReleaseDebian, stagingEnvironment.name))
-              .isEqualTo(version4)
-              .isEqualTo(pin1.version)
-          }
-
-          test("pinned version cannot be vetoed") {
-            expectThat(subject.markAsVetoedIn(manifest, EnvironmentArtifactVeto(pin1.targetEnvironment, versionedReleaseDebian.reference, pin1.version, "sheepy", "this pin is baaaaaad")))
-              .isFalse()
-          }
-
-          test("getting pinned environments shows the pin") {
-            val pins = subject.getPinnedEnvironments(manifest)
-            expectThat(pins)
-              .hasSize(1)
-              .isEqualTo(
-                listOf(
-                  PinnedEnvironment(
-                    deliveryConfigName = manifest.name,
-                    targetEnvironment = pin1.targetEnvironment,
-                    artifact = versionedReleaseDebian,
-                    version = version4,
-                    pinnedBy = pin1.pinnedBy,
-                    pinnedAt = clock.instant(),
-                    comment = pin1.comment
-                  )
-                )
-              )
-          }
-
-          test("get env artifact version shows that artifact is pinned") {
-            val envArtifactSummary = subject.getArtifactSummaryInEnvironment(
-              deliveryConfig = manifest,
-              environmentName = pin1.targetEnvironment,
-              artifactReference = versionedReleaseDebian.reference,
-              version = version4
-            )
-            expect {
-              that(envArtifactSummary).isNotNull()
-              that(envArtifactSummary?.pinned).isEqualTo(ActionMetadata(by = pin1.pinnedBy, at = clock.instant(), comment = pin1.comment))
-            }
-          }
-        }
-      }
-    }
-
     context("artifact approval querying") {
       before {
         persist()
@@ -973,6 +531,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
         persist()
         subject.approveVersionFor(manifest, versionedReleaseDebian, version4, stagingEnvironment.name)
         subject.approveVersionFor(manifest, versionedReleaseDebian, version5, stagingEnvironment.name)
+        subject.markAsSuccessfullyDeployedTo(manifest, versionedReleaseDebian, version5, stagingEnvironment.name)
         subject.markAsVetoedIn(manifest, EnvironmentArtifactVeto(stagingEnvironment.name, versionedReleaseDebian.reference, version5, "tester", "you bad"))
       }
 
@@ -1000,42 +559,56 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
       test("version status reflects the veto") {
         expectThat(versionsIn(stagingEnvironment, versionedReleaseDebian)) {
           get(ArtifactVersionStatus::vetoed).containsExactly(version5)
-          get(ArtifactVersionStatus::approved).containsExactly(version4)
+          get(ArtifactVersionStatus::current).isEqualTo(version5)
         }
       }
 
+      test("current version is still the vetoed version") {
+        expectThat(subject.getCurrentlyDeployedArtifactVersion(manifest, versionedReleaseDebian, stagingEnvironment.name)?.version).isEqualTo(version5)
+      }
+
+      test("can get all information about the versions") {
+        val versions = subject.getAllVersionsForEnvironment(versionedReleaseDebian, manifest, stagingEnvironment.name)
+        expectThat(versions.size).isEqualTo(2)
+        expectThat(versions.map { it.status }).containsExactlyInAnyOrder(listOf(VETOED, SKIPPED))
+        expectThat(versions.first { it.status == SKIPPED }.publishedArtifact.version).isEqualTo(version4)
+        expectThat(versions.first { it.status == VETOED }.publishedArtifact.version).isEqualTo(version5)
+        expectThat(versions.first { it.status == VETOED }.isCurrent).isEqualTo(true)
+      }
+
       test("get env artifact version shows that artifact is vetoed") {
-        val envArtifactSummary = subject.getArtifactSummaryInEnvironment(
+        val envArtifactSummaries = subject.getArtifactSummariesInEnvironment(
           deliveryConfig = manifest,
           environmentName = stagingEnvironment.name,
           artifactReference = versionedReleaseDebian.reference,
-          version = version5
+          versions = listOf(version5)
         )
         expect {
-          that(envArtifactSummary).isNotNull()
-          that(envArtifactSummary?.vetoed).isEqualTo(ActionMetadata(by = "tester", at = clock.instant(), comment = "you bad"))
+          that(envArtifactSummaries).isNotEmpty()
+          that(envArtifactSummaries.firstOrNull()?.vetoed).isEqualTo(ActionMetadata(by = "tester", at = clock.instant(), comment = "you bad"))
         }
       }
 
       test("unveto the vetoed version") {
         subject.deleteVeto(manifest, versionedReleaseDebian, version5, stagingEnvironment.name)
 
-        val envArtifactSummary = subject.getArtifactSummaryInEnvironment(
+        val envArtifactSummaries = subject.getArtifactSummariesInEnvironment(
           deliveryConfig = manifest,
           environmentName = stagingEnvironment.name,
           artifactReference = versionedReleaseDebian.reference,
-          version = version5
+          versions = listOf(version5)
         )
 
         expectThat(subject.latestVersionApprovedIn(manifest, versionedReleaseDebian, stagingEnvironment.name))
           .isEqualTo(version5)
         expectThat(versionsIn(stagingEnvironment, versionedReleaseDebian)) {
           get(ArtifactVersionStatus::vetoed).isEmpty()
-          get(ArtifactVersionStatus::approved).containsExactlyInAnyOrder(version4, version5)
+          get(ArtifactVersionStatus::approved).isEmpty()
+          get(ArtifactVersionStatus::current).isEqualTo(version5)
         }
         expect {
-          that(envArtifactSummary).isNotNull()
-          that(envArtifactSummary?.vetoed).isNull()
+          that(envArtifactSummaries).isNotEmpty()
+          that(envArtifactSummaries.firstOrNull()?.vetoed).isNull()
         }
       }
     }
@@ -1235,13 +808,13 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
       }
 
       test("get artifact versions for deploying status") {
-        expectThat(subject.getArtifactVersionByPromotionStatus(manifest, testEnvironment.name, versionedReleaseDebian, PromotionStatus.CURRENT)?.gitMetadata)
+        expectThat(subject.getArtifactVersionByPromotionStatus(manifest, testEnvironment.name, versionedReleaseDebian, CURRENT)?.gitMetadata)
           .isEqualTo(artifactMetadata.gitMetadata)
       }
 
       test("get a single results (and newest) data per status") {
         subject.markAsSuccessfullyDeployedTo(manifest, versionedReleaseDebian, version2, testEnvironment.name)
-        expectThat(subject.getArtifactVersionByPromotionStatus(manifest, testEnvironment.name, versionedReleaseDebian, PromotionStatus.CURRENT)?.gitMetadata)
+        expectThat(subject.getArtifactVersionByPromotionStatus(manifest, testEnvironment.name, versionedReleaseDebian, CURRENT)?.gitMetadata)
           .get { this?.commit }.isEqualTo("12345")
       }
 

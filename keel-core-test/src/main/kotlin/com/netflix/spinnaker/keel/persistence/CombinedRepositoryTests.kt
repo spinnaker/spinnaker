@@ -23,13 +23,15 @@ import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.core.api.SubmittedResource
 import com.netflix.spinnaker.keel.core.api.normalize
 import com.netflix.spinnaker.keel.events.ResourceCreated
+import com.netflix.spinnaker.keel.events.ResourceState
 import com.netflix.spinnaker.keel.events.ResourceUpdated
 import com.netflix.spinnaker.keel.exceptions.DuplicateManagedResourceException
-import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
+import com.netflix.spinnaker.keel.resources.ResourceFactory
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.TEST_API_V1
 import com.netflix.spinnaker.keel.test.configuredTestObjectMapper
 import com.netflix.spinnaker.keel.test.resource
+import com.netflix.spinnaker.keel.test.resourceFactory
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -60,10 +62,10 @@ import java.time.Duration
 abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : ResourceRepository, A : ArtifactRepository, V : ActionRepository> :
   JUnit5Minutests {
 
-  abstract fun createDeliveryConfigRepository(resourceSpecIdentifier: ResourceSpecIdentifier): D
-  abstract fun createResourceRepository(resourceSpecIdentifier: ResourceSpecIdentifier): R
+  abstract fun createDeliveryConfigRepository(resourceFactory: ResourceFactory): D
+  abstract fun createResourceRepository(resourceFactory: ResourceFactory): R
   abstract fun createArtifactRepository(): A
-  abstract fun createVerificationRepository(resourceSpecIdentifier: ResourceSpecIdentifier): V
+  abstract fun createVerificationRepository(resourceFactory: ResourceFactory): V
 
   open fun flush() {}
 
@@ -134,20 +136,20 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
   val configWithStatefulConstraint = deliveryConfig.copy(environments = setOf(firstEnv.copy(constraints = setOf(ManualJudgementConstraint()))))
 
   data class Fixture<D : DeliveryConfigRepository, R : ResourceRepository, A : ArtifactRepository, V : ActionRepository>(
-    val deliveryConfigRepositoryProvider: (ResourceSpecIdentifier) -> D,
-    val resourceRepositoryProvider: (ResourceSpecIdentifier) -> R,
+    val deliveryConfigRepositoryProvider: (ResourceFactory) -> D,
+    val resourceRepositoryProvider: (ResourceFactory) -> R,
     val artifactRepositoryProvider: () -> A,
-    val verificationRepositoryProvider: (ResourceSpecIdentifier) -> V
+    val verificationRepositoryProvider: (ResourceFactory) -> V
   ) {
     internal val clock = MutableClock()
     val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
-
+    private val dummyResourceFactory = resourceFactory()
     internal val deliveryConfigRepository: D =
-      deliveryConfigRepositoryProvider(DummyResourceSpecIdentifier)
-    internal val resourceRepository: ResourceRepository = spyk<ResourceRepository>(resourceRepositoryProvider(DummyResourceSpecIdentifier))
+      deliveryConfigRepositoryProvider(dummyResourceFactory)
+    internal val resourceRepository: ResourceRepository = spyk<ResourceRepository>(resourceRepositoryProvider(dummyResourceFactory))
     internal val artifactRepository: A = artifactRepositoryProvider()
     internal val verificationRepository: V =
-      verificationRepositoryProvider(DummyResourceSpecIdentifier)
+      verificationRepositoryProvider(dummyResourceFactory)
 
     val subject = CombinedRepository(
       deliveryConfigRepository,
@@ -161,6 +163,7 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
 
     fun resourcesDueForCheck() =
       subject.resourcesDueForCheck(Duration.ofMinutes(1), Int.MAX_VALUE)
+        .onEach { subject.markResourceCheckComplete(it, ResourceState.Ok) }
 
     fun CombinedRepository.allResourceNames(): List<String> =
       mutableListOf<String>()

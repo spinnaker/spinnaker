@@ -6,6 +6,7 @@ import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.persistence.EnvironmentDeletionRepository
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ACTIVE_ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_DELETION
+import com.netflix.spinnaker.keel.resources.ResourceFactory
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.resources.SpecMigrator
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
@@ -13,6 +14,7 @@ import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
 import com.netflix.spinnaker.keel.sql.deliveryconfigs.makeEnvironment
 import com.netflix.spinnaker.keel.sql.deliveryconfigs.selectEnvironmentColumns
 import org.jooq.DSLContext
+import org.jooq.impl.DSL.inline
 import java.time.Clock
 import java.time.Duration
 
@@ -22,19 +24,17 @@ import java.time.Duration
 class SqlEnvironmentDeletionRepository(
   jooq: DSLContext,
   clock: Clock,
-  resourceSpecIdentifier: ResourceSpecIdentifier,
   objectMapper: ObjectMapper,
   sqlRetry: SqlRetry,
-  artifactSuppliers: List<ArtifactSupplier<*, *>> = emptyList(),
-  specMigrators: List<SpecMigrator<*, *>> = emptyList(),
+  resourceFactory: ResourceFactory,
+  artifactSuppliers: List<ArtifactSupplier<*, *>> = emptyList()
 ) : SqlStorageContext(
   jooq,
   clock,
   sqlRetry,
   objectMapper,
-  resourceSpecIdentifier,
-  artifactSuppliers,
-  specMigrators
+  resourceFactory,
+  artifactSuppliers
 ), EnvironmentDeletionRepository {
 
   override fun markForDeletion(environment: Environment) {
@@ -56,6 +56,18 @@ class SqlEnvironmentDeletionRepository(
         ENVIRONMENT_DELETION,
         ENVIRONMENT_DELETION.ENVIRONMENT_UID.eq(environment.uid)
       )
+    }
+  }
+
+  override fun bulkGetMarkedForDeletion(environments: Set<Environment>): Map<Environment, Boolean> {
+    return sqlRetry.withRetry(READ) {
+      val markedForDeletion = jooq
+        .select(ENVIRONMENT_DELETION.ENVIRONMENT_UID)
+        .from(ENVIRONMENT_DELETION)
+        .where(ENVIRONMENT_DELETION.ENVIRONMENT_UID.`in`(environments.map { it.uid }))
+        .fetch(ENVIRONMENT_DELETION.ENVIRONMENT_UID)
+
+      environments.associateWith { markedForDeletion.contains(it.uid) }
     }
   }
 

@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.api
 
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import java.time.Instant
 
 data class DeliveryConfig(
   val application: String,
@@ -14,7 +15,9 @@ data class DeliveryConfig(
   @get:ExcludedFromDiff
   val metadata: Map<String, Any?> = emptyMap(),
   @get:ExcludedFromDiff
-  val rawConfig: String? = null
+  val rawConfig: String? = null,
+  @get:ExcludedFromDiff
+  val updatedAt: Instant? = null
 ) {
   @get:ExcludedFromDiff
   val resources: Set<Resource<*>>
@@ -53,4 +56,9 @@ data class DeliveryConfig(
     }
     return target.constraints.first { it.type == constraintType }
   }
+
+  fun environmentNamed(name: String): Environment =
+    requireNotNull(environments.firstOrNull { it.name == name }) {
+      "No environment named $name exists in the configuration for application ${this.application}"
+    }
 }

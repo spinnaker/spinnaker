@@ -370,11 +370,10 @@ class NotificationEventListener(
           it.reference == currentState.artifactReference
         } ?: return
 
-        val currentArtifact = repository.getArtifactVersionByPromotionStatus(
+        val currentArtifact = repository.getCurrentlyDeployedArtifactVersion(
           config,
-          currentState.environmentName,
           deliveryArtifact,
-          PromotionStatus.CURRENT
+          currentState.environmentName,
         )
 
         // fetch the pinned artifact, if exists

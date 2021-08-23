@@ -133,7 +133,7 @@ abstract class DeliveryArtifact {
     }
   }
 
-  fun toArtifactVersion(version: String, status: ArtifactStatus? = null, createdAt: Instant? = null) =
+  fun toArtifactVersion(version: String, status: ArtifactStatus? = null, createdAt: Instant? = null, gitMetadata: GitMetadata? = null) =
     PublishedArtifact(
       name = name,
       type = type,
@@ -142,7 +142,8 @@ abstract class DeliveryArtifact {
       metadata = mapOf(
         "releaseStatus" to status,
         "createdAt" to createdAt
-      )
+      ),
+      gitMetadata = gitMetadata
     ).normalized()
 
   /**

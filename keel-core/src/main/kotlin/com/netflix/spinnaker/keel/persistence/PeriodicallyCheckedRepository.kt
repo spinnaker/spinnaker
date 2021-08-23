@@ -16,6 +16,8 @@ interface PeriodicallyCheckedRepository<T : Any> {
   /**
    * Optional operation to mark a check as complete. If this is not implemented it's assumed that
    * [itemsDueForCheck] takes care of that.
+   *
+   * @param status if the check marks any kind of status
    */
-  fun markCheckComplete(deliveryConfig: T) {}
+  fun markCheckComplete(item: T, status: Any?) {}
 }

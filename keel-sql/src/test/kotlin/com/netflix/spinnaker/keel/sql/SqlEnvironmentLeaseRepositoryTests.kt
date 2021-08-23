@@ -6,6 +6,7 @@ import com.netflix.spinnaker.keel.jackson.registerKeelApiModule
 import com.netflix.spinnaker.keel.persistence.EnvironmentLeaseRepositoryTests
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
+import com.netflix.spinnaker.keel.test.resourceFactory
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
@@ -22,11 +23,12 @@ internal class SqlEnvironmentLeaseRepositoryTests :
   private val artifactSuppliers = listOf(DockerArtifactSupplier(mockk(), mockk(), mockk()))
   private val mapper = configuredObjectMapper()
     .registerKeelApiModule()
+  private val resourceFactory = resourceFactory()
 
   private val deliveryConfigRepository = SqlDeliveryConfigRepository(
     jooq = jooq,
     clock = clock,
-    resourceSpecIdentifier = ResourceSpecIdentifier(),
+    resourceFactory = resourceFactory,
     objectMapper = mapper,
     sqlRetry = sqlRetry,
     artifactSuppliers = artifactSuppliers,

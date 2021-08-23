@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory
 )
 @JsonSubTypes(
   JsonSubTypes.Type(value = PrOpenedEvent::class, name = "pr.created"),
+  JsonSubTypes.Type(value = PrUpdatedEvent::class, name = "pr.updated"),
   JsonSubTypes.Type(value = PrMergedEvent::class, name = "pr.merged"),
   JsonSubTypes.Type(value = PrDeclinedEvent::class, name = "pr.declined"),
   JsonSubTypes.Type(value = PrDeletedEvent::class, name = "pr.deleted"),
@@ -59,7 +60,11 @@ abstract class PrEvent(
   open val pullRequestBranch: String,
   override val authorName: String? = null,
   override val authorEmail: String? = null
-) : CodeEvent(repoKey, targetBranch, pullRequestId, authorName, authorEmail)
+) : CodeEvent(repoKey, targetBranch, pullRequestId, authorName, authorEmail) {
+
+  val String.headOfBranch: String
+    get() = if (this.startsWith("refs/heads/")) this else "refs/heads/$this"
+}
 
 /**
  * Event that signals the creation of a PR.
@@ -73,6 +78,21 @@ data class PrOpenedEvent(
   override val authorEmail: String? = null
 ) : PrEvent(repoKey, targetBranch, pullRequestId, pullRequestBranch, authorName, authorEmail) {
   override val type: String = "pr.created"
+  init { validate() }
+}
+
+/**
+ * Event that signals an update of a PR.
+ */
+data class PrUpdatedEvent(
+  override val repoKey: String,
+  override val targetBranch: String,
+  override val pullRequestId: String,
+  override val pullRequestBranch: String,
+  override val authorName: String? = null,
+  override val authorEmail: String? = null
+) : PrEvent(repoKey, targetBranch, pullRequestId, pullRequestBranch, authorName, authorEmail) {
+  override val type: String = "pr.updated"
   init { validate() }
 }
 
@@ -158,6 +178,14 @@ fun PublishedArtifact.toCodeEvent(): CodeEvent? {
       authorName = authorName,
       authorEmail = authorEmail
     )
+    "pr_updated" -> PrUpdatedEvent(
+      repoKey = repoKey,
+      targetBranch = targetBranch,
+      pullRequestId = pullRequestId,
+      pullRequestBranch = pullRequestBranch,
+      authorName = authorName,
+      authorEmail = authorEmail
+    )
     "pr_merged" -> PrMergedEvent(
       repoKey = repoKey,
       targetBranch = targetBranch,
@@ -182,8 +210,9 @@ fun PublishedArtifact.toCodeEvent(): CodeEvent? {
       authorName = authorName,
       authorEmail = authorEmail
     )
+    "create_tag" -> null // we just ignore tag creations
     else -> {
-      log.error("Unsupported code event type $type in $this")
+      log.warn("Unsupported code event type $type in $this")
       null
     }
   }

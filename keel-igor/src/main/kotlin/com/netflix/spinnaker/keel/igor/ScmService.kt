@@ -75,3 +75,4 @@ fun Application.getDefaultBranch(scmService: ScmService): String = runBlocking {
     repoSlug = repoSlug ?: error("Missing SCM repository in config for application $name")
   ).name
 }
+

@@ -1,0 +1,20 @@
+databaseChangeLog:
+- changeSet:
+    id: last-resource-check-status
+    author: fletch
+    changes:
+    - addColumn:
+        tableName: resource_last_checked
+        columns:
+        - column:
+            name: status_determined_at
+            type: datetime(3)
+            afterColumn: at
+        - column:
+            name: status
+            type: varchar(64)
+            afterColumn: at
+    - modifyDataType:
+        tableName: resource_last_checked
+        columnName: at
+        newDataType: datetime(3)

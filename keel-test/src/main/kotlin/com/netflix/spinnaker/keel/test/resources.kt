@@ -22,8 +22,13 @@ import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.api.generateId
 import com.netflix.spinnaker.keel.api.plugins.SimpleResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.SupportedKind
+import com.netflix.spinnaker.keel.api.plugins.kind
 import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.core.api.SubmittedResource
+import com.netflix.spinnaker.keel.resources.ResourceFactory
+import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
+import com.netflix.spinnaker.keel.resources.SpecMigrator
+import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import io.mockk.mockk
 import java.time.Duration
 import java.util.UUID
@@ -311,3 +316,17 @@ fun computeResource(
   spec: DummyComputeResourceSpec = DummyComputeResourceSpec()
 ): Resource<DummyComputeResourceSpec> =
   resource(kind, spec)
+
+object DummyResourceSpecIdentifier : ResourceSpecIdentifier(
+  kind<DummyLocatableResourceSpec>("test/locatable@v1"),
+  kind<DummyResourceSpec>("test/whatever@v1")
+)
+
+fun resourceFactory(
+  resourceSpecIdentifier: ResourceSpecIdentifier = DummyResourceSpecIdentifier,
+  specMigrators: List<SpecMigrator<*, *>> = emptyList()
+) = ResourceFactory(
+  objectMapper = configuredObjectMapper(),
+  resourceSpecIdentifier,
+  specMigrators = specMigrators
+)

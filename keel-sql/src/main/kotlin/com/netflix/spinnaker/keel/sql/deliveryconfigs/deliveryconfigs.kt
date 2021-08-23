@@ -164,7 +164,7 @@ internal fun SqlStorageContext.resourcesForEnvironment(uid: String) =
       .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_VERSION.eq(ACTIVE_ENVIRONMENT.VERSION))
       .and(ACTIVE_ENVIRONMENT.UID.eq(uid))
       .fetch { (kind, metadata, spec) ->
-        resourceFactory.invoke(kind, metadata, spec)
+        resourceFactory.create(kind, metadata, spec)
       }
   }
     .toSet()

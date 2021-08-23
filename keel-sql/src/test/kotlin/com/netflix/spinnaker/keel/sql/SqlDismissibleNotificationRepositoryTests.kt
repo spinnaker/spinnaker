@@ -5,6 +5,7 @@ import com.netflix.spinnaker.keel.events.EventLevel.INFO
 import com.netflix.spinnaker.keel.notifications.DeliveryConfigImportFailed
 import com.netflix.spinnaker.keel.test.configuredTestObjectMapper
 import com.netflix.spinnaker.keel.test.deliveryConfig
+import com.netflix.spinnaker.keel.test.resourceFactory
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
@@ -33,7 +34,7 @@ class SqlDismissibleNotificationRepositoryTests {
   private val sqlRetry = SqlRetry(SqlRetryProperties(retryProperties, retryProperties))
   private val clock = MutableClock()
   private val objectMapper = configuredTestObjectMapper()
-  private val deliveryConfigRepository = SqlDeliveryConfigRepository(jooq, clock, mockk(), objectMapper, sqlRetry, publisher = mockk())
+  private val deliveryConfigRepository = SqlDeliveryConfigRepository(jooq, clock, objectMapper, resourceFactory(), sqlRetry, publisher = mockk())
   private val notificationRepository = SqlDismissibleNotificationRepository(jooq, sqlRetry, objectMapper, clock)
   private val deliveryConfig = deliveryConfig()
 

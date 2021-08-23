@@ -1,16 +1,18 @@
 package com.netflix.spinnaker.keel.sql
 
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.plugins.kind
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepositoryPeriodicallyCheckedTests
-import com.netflix.spinnaker.keel.persistence.DummyResourceSpecIdentifier
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.resources.SpecMigrator
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.configuredTestObjectMapper
 import com.netflix.spinnaker.keel.test.defaultArtifactSuppliers
+import com.netflix.spinnaker.keel.test.mockEnvironment
+import com.netflix.spinnaker.keel.test.resourceFactory
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
@@ -36,7 +38,7 @@ internal class SqlDeliveryConfigRepositoryPeriodicallyCheckedTests :
     SqlDeliveryConfigRepository(
       jooq = jooq,
       clock = clock,
-      resourceSpecIdentifier = DummyResourceSpecIdentifier,
+      resourceFactory = resourceFactory(),
       objectMapper = objectMapper,
       sqlRetry = sqlRetry,
       artifactSuppliers = defaultArtifactSuppliers(),
@@ -113,26 +115,28 @@ internal class SqlDeliveryConfigRepositoryPeriodicallyCheckedTests :
       override fun migrate(spec: DummyResourceSpec): DummyResourceSpec = spec
     }
 
+    val resourceFactory = resourceFactory(multipleVersionsResourceSpecIdentifier, listOf(migrator))
+
     fixture {
       val resourceRepository = SqlResourceRepository(
         jooq = jooq,
         clock = Clock.systemDefaultZone(),
-        resourceSpecIdentifier = multipleVersionsResourceSpecIdentifier,
-        specMigrators = listOf(migrator),
+        resourceFactory = resourceFactory,
         objectMapper = objectMapper,
         sqlRetry = sqlRetry,
-        publisher = mockk(relaxed = true)
+        publisher = mockk(relaxed = true),
+        spectator = NoopRegistry(),
+        springEnv = mockEnvironment()
       )
 
       val factory = { clock: Clock ->
         SqlDeliveryConfigRepository(
           jooq = jooq,
           clock = clock,
-          resourceSpecIdentifier = multipleVersionsResourceSpecIdentifier,
+          resourceFactory = resourceFactory,
           objectMapper = objectMapper,
           sqlRetry = sqlRetry,
           artifactSuppliers = defaultArtifactSuppliers(),
-          specMigrators = listOf(migrator),
           publisher = mockk(relaxed = true)
         )
       }

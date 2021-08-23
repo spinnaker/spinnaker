@@ -29,7 +29,7 @@ data class Environment(
 
   val repoKey: String?
     get() = metadata["repoKey"] as? String
-  
+
   val branch: String?
     get() = metadata["branch"] as? String
 
@@ -48,6 +48,17 @@ data class Environment(
     apply {
       this@Environment.metadata.putAll(metadata)
     }
+
+  private val repoParts: List<String>? by lazy { repoKey?.split("/") }
+
+  val repoType: String?
+    get() = repoParts?.get(0)
+
+  val projectKey: String?
+    get() = repoParts?.get(1)
+
+  val repoSlug: String?
+    get() = repoParts?.get(2)
 
   override fun toString() = "Environment $application/$name"
 }

@@ -40,6 +40,7 @@ import com.netflix.spinnaker.keel.persistence.NoSuchArtifactVersionException
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ACTIVE_ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ARTIFACT_LAST_CHECKED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ARTIFACT_VERSIONS
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.CURRENT_ENVIRONMENT_ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_ARTIFACT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT
@@ -53,9 +54,11 @@ import com.netflix.spinnaker.keel.telemetry.AboutToBeChecked
 import io.github.resilience4j.retry.Retry
 import io.github.resilience4j.retry.RetryConfig
 import org.jooq.DSLContext
+import org.jooq.Record
 import org.jooq.Record1
 import org.jooq.Select
 import org.jooq.SelectConditionStep
+import org.jooq.SelectJoinStep
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.select
 import org.jooq.impl.DSL.selectOne
@@ -202,12 +205,25 @@ class SqlArtifactRepository(
   override fun getAll(type: ArtifactType?, name: String?): List<DeliveryArtifact> =
     sqlRetry.withRetry(READ) {
       jooq
-        .select(DELIVERY_ARTIFACT.NAME, DELIVERY_ARTIFACT.TYPE, DELIVERY_ARTIFACT.DETAILS, DELIVERY_ARTIFACT.REFERENCE, DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME)
+        .select(
+          DELIVERY_ARTIFACT.NAME,
+          DELIVERY_ARTIFACT.TYPE,
+          DELIVERY_ARTIFACT.DETAILS,
+          DELIVERY_ARTIFACT.REFERENCE,
+          DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME
+        )
         .from(DELIVERY_ARTIFACT)
         .apply { if (type != null) where(DELIVERY_ARTIFACT.TYPE.eq(type.toString())) }
         .apply { if (name != null) where(DELIVERY_ARTIFACT.NAME.eq(name)) }
         .fetch { (name, storedType, details, reference, configName) ->
-          mapToArtifact(artifactSuppliers.supporting(storedType), name, storedType.toLowerCase(), details, reference, configName)
+          mapToArtifact(
+            artifactSuppliers.supporting(storedType),
+            name,
+            storedType.toLowerCase(),
+            details,
+            reference,
+            configName
+          )
         }
     }
 
@@ -277,17 +293,17 @@ class SqlArtifactRepository(
         .and(ARTIFACT_VERSIONS.CREATED_AT.greaterOrEqual(cutoff))
         .limit(limit)
         .fetch { (name, type, version, status, createdAt, gitMetadata, buildMetadata, originalMetadata) ->
-        PublishedArtifact(
-          name = name,
-          type = type,
-          version = version,
-          status = status,
-          createdAt = createdAt,
-          gitMetadata = gitMetadata,
-          buildMetadata = buildMetadata,
-          metadata = originalMetadata?.let { objectMapper.readValue(it) } ?: emptyMap()
-        )
-      }
+          PublishedArtifact(
+            name = name,
+            type = type,
+            version = version,
+            status = status,
+            createdAt = createdAt,
+            gitMetadata = gitMetadata,
+            buildMetadata = buildMetadata,
+            metadata = originalMetadata?.let { objectMapper.readValue(it) } ?: emptyMap()
+          )
+        }
     }
   }
 
@@ -313,7 +329,11 @@ class SqlArtifactRepository(
     }
   }
 
-  override fun getArtifactVersion(artifact: DeliveryArtifact, version: String, status: ArtifactStatus?): PublishedArtifact? {
+  override fun getArtifactVersion(
+    artifact: DeliveryArtifact,
+    version: String,
+    status: ArtifactStatus?
+  ): PublishedArtifact? {
     return sqlRetry.withRetry(READ) {
       jooq
         .select(
@@ -359,7 +379,8 @@ class SqlArtifactRepository(
           .where(
             ARTIFACT_VERSIONS.NAME.eq(name),
             ARTIFACT_VERSIONS.TYPE.eq(type),
-            ARTIFACT_VERSIONS.VERSION.eq(version).or(ARTIFACT_VERSIONS.VERSION.eq("$name-$version")))
+            ARTIFACT_VERSIONS.VERSION.eq(version).or(ARTIFACT_VERSIONS.VERSION.eq("$name-$version"))
+          )
           .apply { if (status != null) and(ARTIFACT_VERSIONS.RELEASE_STATUS.eq(status)) }
           .execute()
       }
@@ -460,7 +481,7 @@ class SqlArtifactRepository(
       jooq
         .fetchExists(
           ENVIRONMENT_ARTIFACT_VERSIONS,
-          ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(deliveryConfig.getUidFor(environment))
+          ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(environment.uid)
             .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
             .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(version))
             .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.ne(VETOED))
@@ -478,6 +499,12 @@ class SqlArtifactRepository(
     return sqlRetry.withRetry(READ) {
       jooq
         .fetchExists(
+          CURRENT_ENVIRONMENT_ARTIFACT_VERSIONS,
+          CURRENT_ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(deliveryConfig.getUidFor(environment))
+            .and(CURRENT_ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
+            .and(CURRENT_ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(version))
+        ) || jooq
+        .fetchExists(
           ENVIRONMENT_ARTIFACT_VERSIONS,
           ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(deliveryConfig.getUidFor(environment))
             .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
@@ -493,20 +520,58 @@ class SqlArtifactRepository(
     artifact: DeliveryArtifact,
     version: String,
     targetEnvironment: String
-  ): Boolean {
-    val environment = deliveryConfig.environmentNamed(targetEnvironment)
+  ): Boolean =
+    getCurrentDeployedVersion(deliveryConfig, artifact, targetEnvironment)?.version == version
+
+  /**
+   * @return the most recent version to be marked as current, or null if none exist
+   *
+   * adds deployedAt time to the metadata
+   */
+  override fun getCurrentlyDeployedArtifactVersion(
+    deliveryConfig: DeliveryConfig,
+    artifact: DeliveryArtifact,
+    environmentName: String
+  ): PublishedArtifact? =
+    getCurrentDeployedVersion(deliveryConfig, artifact, environmentName)
+      ?.let { (version, deployedAt) ->
+        val publishedArtifact = getArtifactVersion(artifact, version, null)
+        val originalMetadata = publishedArtifact?.metadata ?: emptyMap()
+        val deployedAtMetadata = mapOf("deployedAt" to deployedAt)
+        return publishedArtifact?.copy(metadata = originalMetadata + deployedAtMetadata, reference = artifact.reference)
+      }
+
+  data class CurrentlyDeployed(
+    val version: String,
+    val deployedAt: Instant
+  )
+
+  /**
+   * @return the version string of the currently deployed artifact in the specified environment,
+   * and the time it was deployed
+   */
+  private fun getCurrentDeployedVersion(
+    deliveryConfig: DeliveryConfig,
+    artifact: DeliveryArtifact,
+    environmentName: String
+  ): CurrentlyDeployed? {
+    val environment = deliveryConfig.environmentNamed(environmentName)
     return sqlRetry.withRetry(READ) {
-      jooq
-        .fetchExists(
-          ENVIRONMENT_ARTIFACT_VERSIONS,
-          ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(deliveryConfig.getUidFor(environment))
-            .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
-            .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(version))
-            .and(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT.isNotNull)
-            .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(CURRENT))
-        )
-    }
+      jooq.select(
+        CURRENT_ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION,
+        CURRENT_ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT
+      )
+        .from(CURRENT_ENVIRONMENT_ARTIFACT_VERSIONS)
+        .where(CURRENT_ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(environment.uid))
+        .and(CURRENT_ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
+        .orderBy(CURRENT_ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT.desc())
+        .limit(1)
+        .fetch { (version, deployedAt) ->
+          CurrentlyDeployed(version, deployedAt)
+        }
+    }.firstOrNull()
   }
+
 
   override fun markAsDeployingTo(
     deliveryConfig: DeliveryConfig,
@@ -562,7 +627,6 @@ class SqlArtifactRepository(
       .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(DEPLOYING))
       .fetchSingleInto<Int>() > 0
 
-
   override fun markAsSuccessfullyDeployedTo(
     deliveryConfig: DeliveryConfig,
     artifact: DeliveryArtifact,
@@ -580,16 +644,40 @@ class SqlArtifactRepository(
       jooq.transaction { config ->
         val txn = DSL.using(config)
         log.debug("markAsSuccessfullyDeployedTo: start transaction. name: ${artifact.name}. version: $version. env: $targetEnvironment")
+
+        //todo eb: remove once migration to new current table is complete
+        // this is to preserve the deplyedAt time
+        val previouslyDeployedTime: Instant? = txn.select(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT)
+          .from(ENVIRONMENT_ARTIFACT_VERSIONS)
+          .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(environmentUid))
+          .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
+          .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(version))
+          .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(CURRENT))
+          .fetch(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT)
+          .firstOrNull()
+
+        val deployedAt = previouslyDeployedTime ?: clock.instant()
+
         val currentUpdates = txn
           .insertInto(ENVIRONMENT_ARTIFACT_VERSIONS)
           .set(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID, environmentUid)
           .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID, artifact.uid)
           .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION, version)
-          .set(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT, clock.instant())
+          .set(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT, deployedAt)
           .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, CURRENT)
           .onDuplicateKeyUpdate()
-          .set(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT, clock.instant())
+          .set(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT, deployedAt)
           .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, CURRENT)
+          .execute()
+
+        // also insert into this table so the record for current doesn't get lost on a redeploy or a veto
+        txn.insertInto(CURRENT_ENVIRONMENT_ARTIFACT_VERSIONS)
+          .set(CURRENT_ENVIRONMENT_ARTIFACT_VERSIONS.UID, randomUID().toString())
+          .set(CURRENT_ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID, environmentUid)
+          .set(CURRENT_ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID, artifactUid)
+          .set(CURRENT_ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION, version)
+          .set(CURRENT_ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT, deployedAt)
+          .set(CURRENT_ENVIRONMENT_ARTIFACT_VERSIONS.JSON, "{}") //todo: add baseimage details here
           .execute()
 
         log.debug("markAsSuccessfullyDeployedTo: # of records marked CURRENT: $currentUpdates. name: ${artifact.name}. version: $version. env: $targetEnvironment")
@@ -599,7 +687,7 @@ class SqlArtifactRepository(
           .update(ENVIRONMENT_ARTIFACT_VERSIONS)
           .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, PREVIOUS)
           .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_BY, version)
-          .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_AT, clock.instant())
+          .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_AT, deployedAt)
           .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(environmentUid))
           .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
           .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(CURRENT))
@@ -1100,7 +1188,7 @@ class SqlArtifactRepository(
     config: DeliveryConfig,
     environmentName: String
   ): List<PublishedArtifactInEnvironment> {
-    val existingVersions: List<PublishedArtifactInEnvironment> = sqlRetry.withRetry(READ) {
+    var existingVersions: List<PublishedArtifactInEnvironment> = sqlRetry.withRetry(READ) {
       jooq
         .select(
           ARTIFACT_VERSIONS.NAME,
@@ -1147,7 +1235,34 @@ class SqlArtifactRepository(
         }
     }
     val pending = getPendingVersions(artifact, config, environmentName)
+    val current = getCurrentPublishedArtifactInEnvironment(config, artifact, environmentName)
+    if (current != null) {
+      existingVersions = existingVersions.map {
+        if (it.publishedArtifact.version == current.publishedArtifact.version && it.publishedArtifact.type == current.publishedArtifact.type) {
+          it.copy(isCurrent = true)
+        } else {
+          it
+        }
+      }
+    }
     return existingVersions + pending
+  }
+
+  private fun getCurrentPublishedArtifactInEnvironment(
+    deliveryConfig: DeliveryConfig,
+    artifact: DeliveryArtifact,
+    environmentName: String
+  ): PublishedArtifactInEnvironment? {
+    getCurrentlyDeployedArtifactVersion(deliveryConfig, artifact, environmentName)?.let { publishedArtifact ->
+      return PublishedArtifactInEnvironment(
+          publishedArtifact,
+          CURRENT,
+          environmentName,
+          publishedArtifact.metadata["deployedAt"] as? Instant,
+          null
+        )
+    }
+    return null
   }
 
   /**
@@ -1167,6 +1282,28 @@ class SqlArtifactRepository(
         )
       }
 
+  /**
+   * Common select criteria for finding artifacts that belong with a delivery config and environment.
+   */
+  private fun <T : Record?> SelectJoinStep<T>.selectMatchingArtifactVersions(deliveryConfig: DeliveryConfig, environment: Environment, artifact: DeliveryArtifact) =
+    where(DELIVERY_ARTIFACT.NAME.eq(artifact.name))
+      .and(DELIVERY_ARTIFACT.TYPE.eq(artifact.type))
+      .and(DELIVERY_ARTIFACT.REFERENCE.eq(artifact.reference))
+      .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(deliveryConfig.name))
+      .and(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
+      .and(ACTIVE_ENVIRONMENT.DELIVERY_CONFIG_UID.eq(DELIVERY_CONFIG.UID))
+      .and(ACTIVE_ENVIRONMENT.NAME.eq(environment.name))
+      .and(ARTIFACT_VERSIONS.NAME.eq(artifact.name))
+      .and(ARTIFACT_VERSIONS.TYPE.eq(artifact.type))
+      .apply {
+        if (artifact.statuses.isNotEmpty()) {
+          and(ARTIFACT_VERSIONS.RELEASE_STATUS.`in`(*artifact.statuses.toTypedArray()))
+        }
+        // For preview environments, select only those artifact versions with a matching branch
+        if (environment.isPreview) {
+          and(ARTIFACT_VERSIONS_BRANCH.eq(ACTIVE_ENVIRONMENT_BRANCH))
+        }
+      }
 
   override fun getPendingVersionsInEnvironment(
     deliveryConfig: DeliveryConfig,
@@ -1175,6 +1312,7 @@ class SqlArtifactRepository(
   ): List<PublishedArtifact> {
     val artifact = deliveryConfig.matchingArtifactByReference(artifactReference)
       ?: throw ArtifactNotFoundException(artifactReference, deliveryConfig.name)
+    val environment = deliveryConfig.environmentNamed(environmentName)
     return sqlRetry.withRetry(READ) {
       jooq
         .select(
@@ -1192,16 +1330,7 @@ class SqlArtifactRepository(
           ACTIVE_ENVIRONMENT,
           DELIVERY_CONFIG
         )
-        .where(DELIVERY_ARTIFACT.NAME.eq(artifact.name))
-        .and(DELIVERY_ARTIFACT.TYPE.eq(artifact.type))
-        .and(DELIVERY_ARTIFACT.REFERENCE.eq(artifact.reference))
-        .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(deliveryConfig.name))
-        .and(ACTIVE_ENVIRONMENT.DELIVERY_CONFIG_UID.eq(DELIVERY_CONFIG.UID))
-        .and(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
-        .and(ACTIVE_ENVIRONMENT.NAME.eq(environmentName))
-        .and(ARTIFACT_VERSIONS.NAME.eq(artifact.name))
-        .and(ARTIFACT_VERSIONS.TYPE.eq(artifact.type))
-        .apply { if (artifact.statuses.isNotEmpty()) and(ARTIFACT_VERSIONS.RELEASE_STATUS.`in`(*artifact.statuses.toTypedArray())) }
+        .selectMatchingArtifactVersions(deliveryConfig, environment, artifact)
         .andNotExists(
           selectOne()
             .from(ENVIRONMENT_ARTIFACT_VERSIONS)
@@ -1235,11 +1364,12 @@ class SqlArtifactRepository(
       ?: throw ArtifactNotFoundException(artifactReference, deliveryConfig.name)
     val pendingVersions = getPendingVersions(artifact, deliveryConfig, environmentName)
       .map { it.publishedArtifact }
-    val currentVersion = getArtifactVersionsByStatus(
+
+    val currentVersion = getCurrentlyDeployedArtifactVersion(
       deliveryConfig,
-      environmentName,
-      listOf(CURRENT)
-    ).firstOrNull { it.reference == artifactReference }
+      artifact,
+      environmentName
+    )
     return removeExtra(pendingVersions, artifact, version, currentVersion).size
   }
 
@@ -1293,23 +1423,10 @@ class SqlArtifactRepository(
             ACTIVE_ENVIRONMENT,
             DELIVERY_CONFIG
           )
-          .where(DELIVERY_ARTIFACT.UID.eq(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID))
-          .and(DELIVERY_ARTIFACT.NAME.eq(artifact.name))
-          .and(DELIVERY_ARTIFACT.TYPE.eq(artifact.type))
-          .and(DELIVERY_ARTIFACT.REFERENCE.eq(artifact.reference))
-          .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(deliveryConfig.name))
+          .selectMatchingArtifactVersions(deliveryConfig, environment, artifact)
+          .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(DELIVERY_ARTIFACT.UID))
+          .and(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(ACTIVE_ENVIRONMENT.UID))
           .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(ARTIFACT_VERSIONS.VERSION))
-          .and(ACTIVE_ENVIRONMENT.UID.eq(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID))
-          .and(ACTIVE_ENVIRONMENT.DELIVERY_CONFIG_UID.eq(DELIVERY_CONFIG.UID))
-          .and(ACTIVE_ENVIRONMENT.NAME.eq(environment.name))
-          .and(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
-          .and(ARTIFACT_VERSIONS.NAME.eq(artifact.name))
-          .and(ARTIFACT_VERSIONS.TYPE.eq(artifact.type))
-          .apply {
-            if (artifact.statuses.isNotEmpty()) {
-              and(ARTIFACT_VERSIONS.RELEASE_STATUS.`in`(*artifact.statuses.toTypedArray()))
-            }
-          }
 
         val pendingVersions = jooq
           .select(
@@ -1328,16 +1445,7 @@ class SqlArtifactRepository(
             ACTIVE_ENVIRONMENT,
             DELIVERY_CONFIG
           )
-          .where(DELIVERY_ARTIFACT.NAME.eq(artifact.name))
-          .and(DELIVERY_ARTIFACT.TYPE.eq(artifact.type))
-          .and(DELIVERY_ARTIFACT.REFERENCE.eq(artifact.reference))
-          .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(deliveryConfig.name))
-          .and(ACTIVE_ENVIRONMENT.DELIVERY_CONFIG_UID.eq(DELIVERY_CONFIG.UID))
-          .and(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
-          .and(ACTIVE_ENVIRONMENT.NAME.eq(environment.name))
-          .and(ARTIFACT_VERSIONS.NAME.eq(artifact.name))
-          .and(ARTIFACT_VERSIONS.TYPE.eq(artifact.type))
-          .apply { if (artifact.statuses.isNotEmpty()) and(ARTIFACT_VERSIONS.RELEASE_STATUS.`in`(*artifact.statuses.toTypedArray())) }
+          .selectMatchingArtifactVersions(deliveryConfig, environment, artifact)
           .andNotExists(
             selectOne()
               .from(ENVIRONMENT_ARTIFACT_VERSIONS)
@@ -1387,7 +1495,7 @@ class SqlArtifactRepository(
             }
           )
 
-        val currentVersion = versions[CURRENT]?.firstOrNull()
+        val currentVersion = getCurrentlyDeployedArtifactVersion(deliveryConfig, artifact, environment.name)
         ArtifactVersions(
           name = artifact.name,
           type = artifact.type,
@@ -1772,22 +1880,20 @@ class SqlArtifactRepository(
           .limit(limit)
           .forUpdate()
           .fetch()
-          .also {
-            it.forEach { (uid, _, _, _, _, deliveryConfigName, lastCheckedAt) ->
-              insertInto(ARTIFACT_LAST_CHECKED)
-                .set(ARTIFACT_LAST_CHECKED.ARTIFACT_UID, uid)
-                .set(ARTIFACT_LAST_CHECKED.AT, now)
-                .onDuplicateKeyUpdate()
-                .set(ARTIFACT_LAST_CHECKED.AT, now)
-                .execute()
-              publisher.publishEvent(
-                AboutToBeChecked(
-                  lastCheckedAt,
-                  "artifact",
-                  "deliveryConfig:$deliveryConfigName"
-                )
+          .onEach { (uid, _, _, _, _, deliveryConfigName, lastCheckedAt) ->
+            insertInto(ARTIFACT_LAST_CHECKED)
+              .set(ARTIFACT_LAST_CHECKED.ARTIFACT_UID, uid)
+              .set(ARTIFACT_LAST_CHECKED.AT, now)
+              .onDuplicateKeyUpdate()
+              .set(ARTIFACT_LAST_CHECKED.AT, now)
+              .execute()
+            publisher.publishEvent(
+              AboutToBeChecked(
+                lastCheckedAt,
+                "artifact",
+                "deliveryConfig:$deliveryConfigName"
               )
-            }
+            )
           }
           .map { (_, name, type, details, reference, deliveryConfigName) ->
             mapToArtifact(artifactSuppliers.supporting(type), name, type, details, reference, deliveryConfigName)
@@ -1846,11 +1952,6 @@ class SqlArtifactRepository(
       )
       .execute()
   }
-
-  private fun DeliveryConfig.environmentNamed(name: String): Environment =
-    requireNotNull(environments.firstOrNull { it.name == name }) {
-      "No environment named $name exists in the configuration ${this.name}"
-    }
 
   private fun DeliveryConfig.getUidFor(environment: Environment): Select<Record1<String>> =
     select(ACTIVE_ENVIRONMENT.UID)

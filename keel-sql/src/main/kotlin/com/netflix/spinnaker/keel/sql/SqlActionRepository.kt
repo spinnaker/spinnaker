@@ -21,6 +21,7 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_ARTIFACT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_LAST_VERIFIED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ACTIVE_ENVIRONMENT
+import com.netflix.spinnaker.keel.resources.ResourceFactory
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.resources.SpecMigrator
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
@@ -40,20 +41,18 @@ import java.time.Duration
 class SqlActionRepository(
   jooq: DSLContext,
   clock: Clock,
-  resourceSpecIdentifier: ResourceSpecIdentifier,
   objectMapper: ObjectMapper,
+  resourceFactory: ResourceFactory,
   sqlRetry: SqlRetry,
   artifactSuppliers: List<ArtifactSupplier<*, *>> = emptyList(),
-  specMigrators: List<SpecMigrator<*, *>> = emptyList(),
   private val environment: SpringEnvironment
 ) : SqlStorageContext(
   jooq,
   clock,
   sqlRetry,
   objectMapper,
-  resourceSpecIdentifier,
-  artifactSuppliers,
-  specMigrators
+  resourceFactory,
+  artifactSuppliers
 ), ActionRepository {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -211,6 +210,7 @@ class SqlActionRepository(
       .on(DELIVERY_CONFIG.UID.eq(ACTIVE_ENVIRONMENT.DELIVERY_CONFIG_UID))
       .where(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
       .and(ACTIVE_ENVIRONMENT.NAME.eq(environment.name))
+      .and(ACTION_STATE.TYPE.eq(VERIFICATION))
       .and(ACTION_STATE.STATUS.eq(status))
       .fetch()
       .map { (artifactReference, version) ->

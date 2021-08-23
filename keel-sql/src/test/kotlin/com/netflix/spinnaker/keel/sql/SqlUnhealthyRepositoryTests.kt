@@ -1,9 +1,11 @@
 package com.netflix.spinnaker.keel.sql
 
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.persistence.DummyResourceSpecIdentifier
 import com.netflix.spinnaker.keel.persistence.UnhealthyRepositoryTests
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
+import com.netflix.spinnaker.keel.test.mockEnvironment
+import com.netflix.spinnaker.keel.test.resourceFactory
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
@@ -14,14 +16,16 @@ internal object SqlUnhealthyRepositoryTests : UnhealthyRepositoryTests<SqlUnheal
   private val jooq = testDatabase.context
   private val retryProperties = RetryProperties(1, 0)
   private val sqlRetry = SqlRetry(SqlRetryProperties(retryProperties, retryProperties))
+  private val resourceFactory = resourceFactory()
   private val resourceRepository = SqlResourceRepository(
     jooq,
     clock,
-    DummyResourceSpecIdentifier,
-    emptyList(),
     configuredObjectMapper(),
+    resourceFactory,
     sqlRetry,
-    publisher = mockk(relaxed = true)
+    publisher = mockk(relaxed = true),
+    spectator = NoopRegistry(),
+    springEnv = mockEnvironment()
   )
 
   override fun factory(clock: Clock): SqlUnhealthyRepository =

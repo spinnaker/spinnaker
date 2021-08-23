@@ -4,8 +4,6 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.keel.front50.Front50Cache
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter.Companion.DEFAULT_MANIFEST_PATH
-import com.netflix.spinnaker.keel.igor.ScmService
-import com.netflix.spinnaker.keel.igor.getDefaultBranch
 import com.netflix.spinnaker.keel.notifications.DeliveryConfigImportFailed
 import com.netflix.spinnaker.keel.persistence.DismissibleNotificationRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
@@ -29,7 +27,7 @@ class DeliveryConfigImportListener(
   private val deliveryConfigValidator: DeliveryConfigValidator,
   private val notificationRepository: DismissibleNotificationRepository,
   private val front50Cache: Front50Cache,
-  private val scmService: ScmService,
+  private val scmUtils: ScmUtils,
   private val springEnv: Environment,
   private val spectator: Registry,
   private val eventPublisher: ApplicationEventPublisher,
@@ -79,7 +77,7 @@ class DeliveryConfigImportListener(
         app != null
           && app.managedDelivery?.importDeliveryConfig == true
           && event.matchesApplicationConfig(app)
-          && event.targetBranch == app.getDefaultBranch(scmService)
+          && event.targetBranch == scmUtils.getDefaultBranch(app)
       }
 
     if (matchingApps.isEmpty()) {
@@ -90,6 +88,9 @@ class DeliveryConfigImportListener(
     log.debug("Processing commit event: $event")
     matchingApps.forEach { app ->
       log.debug("Importing delivery config for app ${app.name} from branch ${event.targetBranch}, commit ${event.commitHash}")
+
+      // We always want to dismiss the previous notifications, and if needed to create a new one
+      notificationRepository.dismissNotification(DeliveryConfigImportFailed::class.java, app.name, event.targetBranch)
 
       val newDeliveryConfig = try {
         deliveryConfigImporter.import(
@@ -103,13 +104,12 @@ class DeliveryConfigImportListener(
       } catch (e: Exception) {
         log.error("Error retrieving delivery config: $e", e)
         event.emitCounterMetric(CODE_EVENT_COUNTER, DELIVERY_CONFIG_RETRIEVAL_ERROR, app.name)
-        eventPublisher.publishDeliveryConfigImportFailed(app.name, event, clock.instant(), e.message ?: "Unknown reason")
+        eventPublisher.publishDeliveryConfigImportFailed(app.name, event, clock.instant(), e.message ?: "Unknown reason", scmUtils.getCommitLink(event))
         return@forEach
       }
 
       log.info("Creating/updating delivery config for application ${app.name} from branch ${event.targetBranch}")
       repository.upsertDeliveryConfig(newDeliveryConfig)
-      notificationRepository.dismissNotification(DeliveryConfigImportFailed::class.java, newDeliveryConfig.application, event.targetBranch)
     }
   }
 

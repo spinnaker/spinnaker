@@ -356,3 +356,12 @@ databaseChangeLog:
   - include:
       file: changelog/20210804-add-branch-to-dismissible-notifications.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20210809-separate-current-version-table.yml
+      relativeToChangelogFile: true
+  - include:
+      file: changelog/20210811-add-updated-at-to-delivery-config.yml
+      relativeToChangelogFile: true
+  - include:
+      file: changelog/20210818-last-resource-check-status.yml
+      relativeToChangelogFile: true

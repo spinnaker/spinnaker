@@ -43,7 +43,7 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
     val repository: KeelRepository = mockk()
     val importer: DeliveryConfigImporter = mockk()
     val front50Cache: Front50Cache = mockk()
-    val scmService: ScmService = mockk()
+    val scmUtils: ScmUtils = mockk()
     val springEnv: Environment = mockk()
     val notificationRepository: DismissibleNotificationRepository = mockk()
     val spectator: Registry = mockk()
@@ -56,7 +56,7 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
       deliveryConfigValidator = deliveryConfigValidator,
       notificationRepository = notificationRepository,
       front50Cache = front50Cache,
-      scmService = scmService,
+      scmUtils = scmUtils,
       springEnv = springEnv,
       spectator = spectator,
       eventPublisher = eventPublisher,
@@ -149,12 +149,16 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
       } returns deliveryConfig.toDeliveryConfig()
 
       every {
-        scmService.getDefaultBranch(configuredApp.repoType!!, configuredApp.repoProjectKey!!, configuredApp.repoSlug!!)
-      } returns Branch("main", "refs/heads/main", default = true)
+        scmUtils.getDefaultBranch(any())
+      } returns "main"
 
       every {
         notificationRepository.dismissNotification(any<Class<DeliveryConfigImportFailed>>(), any(), any(), any())
       } returns true
+
+      every {
+        scmUtils.getCommitLink(any())
+      } returns "https://commit-link.org"
     }
   }
 

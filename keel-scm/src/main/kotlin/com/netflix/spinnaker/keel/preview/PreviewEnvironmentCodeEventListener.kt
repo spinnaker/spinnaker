@@ -22,6 +22,7 @@ import com.netflix.spinnaker.keel.persistence.DependentAttachFilter.ATTACH_PREVI
 import com.netflix.spinnaker.keel.persistence.DismissibleNotificationRepository
 import com.netflix.spinnaker.keel.persistence.EnvironmentDeletionRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
+import com.netflix.spinnaker.keel.resources.ResourceFactory
 import com.netflix.spinnaker.keel.scm.CodeEvent
 import com.netflix.spinnaker.keel.scm.CommitCreatedEvent
 import com.netflix.spinnaker.keel.scm.DELIVERY_CONFIG_RETRIEVAL_ERROR
@@ -31,6 +32,8 @@ import com.netflix.spinnaker.keel.scm.PrDeletedEvent
 import com.netflix.spinnaker.keel.scm.PrEvent
 import com.netflix.spinnaker.keel.scm.PrMergedEvent
 import com.netflix.spinnaker.keel.scm.PrOpenedEvent
+import com.netflix.spinnaker.keel.scm.PrUpdatedEvent
+import com.netflix.spinnaker.keel.scm.ScmUtils
 import com.netflix.spinnaker.keel.scm.matchesApplicationConfig
 import com.netflix.spinnaker.keel.scm.metricTags
 import com.netflix.spinnaker.keel.scm.publishDeliveryConfigImportFailed
@@ -63,7 +66,9 @@ class PreviewEnvironmentCodeEventListener(
   private val springEnv: Environment,
   private val spectator: Registry,
   private val clock: Clock,
-  private val eventPublisher: ApplicationEventPublisher
+  private val eventPublisher: ApplicationEventPublisher,
+  private val scmUtils: ScmUtils,
+  private val resourceFactory: ResourceFactory
 ) {
   companion object {
     private val log by lazy { LoggerFactory.getLogger(PreviewEnvironmentCodeEventListener::class.java) }
@@ -75,23 +80,15 @@ class PreviewEnvironmentCodeEventListener(
     internal val PREVIEW_ENVIRONMENT_MARK_FOR_DELETION_ERROR = listOf("type" to "markForDeletion", "status" to "error")
     internal val PREVIEW_ENVIRONMENT_MARK_FOR_DELETION_SUCCESS = listOf("type" to "markForDeletion", "status" to "success")
     internal const val COMMIT_HANDLING_DURATION = "previewEnvironments.commitHandlingDuration"
+
+    internal fun PrEvent.toCommitEvent(): CommitCreatedEvent {
+      return CommitCreatedEvent(repoKey, pullRequestBranch, pullRequestId, pullRequestBranch.headOfBranch)
+    }
   }
 
   private val enabled: Boolean
     get() = springEnv.getProperty("keel.previewEnvironments.enabled", Boolean::class.java, true)
 
-  @EventListener(PrOpenedEvent::class)
-  fun handlePrOpened(event: PrOpenedEvent) {
-    if (!enabled) {
-      log.debug("Preview environments disabled by feature flag. Ignoring PR opened event: $event")
-      return
-    }
-
-    log.debug("Processing PR opened event: $event")
-    with(event) {
-      handleCommitCreated(CommitCreatedEvent(repoKey, pullRequestBranch, pullRequestId, pullRequestBranch.headOfBranch))
-    }
-  }
 
   @EventListener(PrMergedEvent::class, PrDeclinedEvent::class, PrDeletedEvent::class)
   fun handlePrFinished(event: PrEvent) {
@@ -111,7 +108,7 @@ class PreviewEnvironmentCodeEventListener(
           it.isPreview && it.repoKey == event.repoKey && it.branch == event.pullRequestBranch
         }.forEach { previewEnv ->
           log.debug("Marking preview environment for deletion: ${previewEnv.name} in app ${deliveryConfig.application}, " +
-            "branch ${event.targetBranch} of repository ${event.repoKey}")
+            "branch ${event.pullRequestBranch} of repository ${event.repoKey}")
           // Here we just mark preview environments for deletion. [ResourceActuator] will delete the associated resources
           // and [EnvironmentCleaner] will delete the environments when empty.
           try {
@@ -119,7 +116,7 @@ class PreviewEnvironmentCodeEventListener(
             event.emitCounterMetric(CODE_EVENT_COUNTER, PREVIEW_ENVIRONMENT_MARK_FOR_DELETION_SUCCESS, deliveryConfig.application)
           } catch(e: Exception) {
             log.error("Failed to mark preview environment for deletion:${previewEnv.name} in app ${deliveryConfig.application}, " +
-              "branch ${event.targetBranch} of repository ${event.repoKey}")
+              "branch ${event.pullRequestBranch} of repository ${event.repoKey}")
             event.emitCounterMetric(CODE_EVENT_COUNTER, PREVIEW_ENVIRONMENT_MARK_FOR_DELETION_ERROR, deliveryConfig.application)
           }
         }
@@ -128,53 +125,56 @@ class PreviewEnvironmentCodeEventListener(
   }
 
   /**
-   * Listens to [CommitCreatedEvent] events to catch those that match the branch filter
+   * Handles [PrUpdatedEvent] and [PrOpenedEvent] events that match the branch filter
    * associated with any [PreviewEnvironmentSpec] definitions across all delivery configs.
    *
-   * When a match is found, retrieves the delivery config from the target branch, and generate
+   * When a match is found, retrieves the delivery config from the pull request branch, and generate
    * preview [Environment] definitions matching the spec (including the appropriate name
    * overrides), then store/update the environments in the database, which should cause Keel
    * to start checking/actuating on them.
    */
-  @EventListener(CommitCreatedEvent::class)
-  fun handleCommitCreated(event: CommitCreatedEvent) {
+  @EventListener(PrUpdatedEvent::class, PrOpenedEvent::class)
+  fun handlePrEvent(event: PrEvent) {
     if (!enabled) {
       log.debug("Preview environments disabled by feature flag. Ignoring commit event: $event")
       return
     }
 
-    log.debug("Processing commit event: $event")
+    log.debug("Processing PR event: $event")
     val startTime = clock.instant()
 
-    if (event.pullRequestId == null) {
-      log.debug("Ignoring commit event as it's not associated with a PR: $event")
+    if (event.pullRequestId == null || event.pullRequestId == "-1") {
+      log.debug("Ignoring PR event as it's not associated with a PR: $event")
       return
     }
 
     matchingPreviewEnvironmentSpecs(event).forEach { (deliveryConfig, previewEnvSpecs) ->
       log.debug("Importing delivery config for app ${deliveryConfig.application} " +
-        "from branch ${event.targetBranch}, commit ${event.commitHash}")
+        "from branch ${event.pullRequestBranch}")
 
+      // We always want to dismiss the previous notifications, and if needed to create a new one
+      notificationRepository.dismissNotification(DeliveryConfigImportFailed::class.java, deliveryConfig.application, event.pullRequestBranch)
+
+      val commitEvent = event.toCommitEvent()
       val newDeliveryConfig = try {
         deliveryConfigImporter.import(
-          commitEvent = event,
+          commitEvent = commitEvent,
           manifestPath = DEFAULT_MANIFEST_PATH // TODO: allow location of manifest to be configurable
         ).also {
           event.emitCounterMetric(CODE_EVENT_COUNTER, DELIVERY_CONFIG_RETRIEVAL_SUCCESS, deliveryConfig.application)
-          log.info("Validating config for application ${deliveryConfig.application} from branch ${event.targetBranch}")
+          log.info("Validating config for application ${deliveryConfig.application} from branch ${event.pullRequestBranch}")
           deliveryConfigValidator.validate(it)
         }.toDeliveryConfig()
       } catch (e: Exception) {
         log.error("Error retrieving delivery config: $e", e)
         event.emitCounterMetric(CODE_EVENT_COUNTER, DELIVERY_CONFIG_RETRIEVAL_ERROR, deliveryConfig.application)
-        eventPublisher.publishDeliveryConfigImportFailed(deliveryConfig.application, event, clock.instant(), e.message ?: "Unknown")
+        eventPublisher.publishDeliveryConfigImportFailed(deliveryConfig.application, event, clock.instant(), e.message ?: "Unknown", scmUtils.getPullRequestLink(event))
         return@forEach
       }
 
       log.info("Creating/updating preview environments for application ${deliveryConfig.application} " +
-        "from branch ${event.targetBranch}")
+        "from branch ${event.pullRequestBranch}")
       createPreviewEnvironments(event, newDeliveryConfig, previewEnvSpecs)
-      notificationRepository.dismissNotification(DeliveryConfigImportFailed::class.java, deliveryConfig.application, event.targetBranch)
       event.emitDurationMetric(COMMIT_HANDLING_DURATION, startTime, deliveryConfig.application)
     }
   }
@@ -213,11 +213,11 @@ class PreviewEnvironmentCodeEventListener(
   }
 
   /**
-   * Given a list of [PreviewEnvironmentSpec] whose branch filters match the target branch in the
-   * [CommitCreatedEvent], create/update the corresponding preview environments in the database.
+   * Given a list of [PreviewEnvironmentSpec] whose branch filters match the pull request branch in the
+   * [PrEvent], create/update the corresponding preview environments in the database.
    */
   private fun createPreviewEnvironments(
-    commitEvent: CommitCreatedEvent,
+    prEvent: PrEvent,
     deliveryConfig: DeliveryConfig,
     previewEnvSpecs: List<PreviewEnvironmentSpec>
   ) {
@@ -228,42 +228,36 @@ class PreviewEnvironmentCodeEventListener(
       val previewEnv = baseEnv.copy(
         // if the branch is "feature/abc", and the base environment is "test", then the environment
         // would be named "test-feature-abc"
-        name = "${baseEnv.name}-${commitEvent.targetBranch.toPreviewName()}",
+        name = "${baseEnv.name}-${prEvent.pullRequestBranch.toPreviewName()}",
         isPreview = true,
         constraints = emptySet(),
         postDeploy = emptyList(),
         verifyWith = previewEnvSpec.verifyWith,
         notifications = previewEnvSpec.notifications,
         resources = baseEnv.resources.mapNotNull { res ->
-          (res as? Resource<Monikered>)
-            ?.toPreviewResource(deliveryConfig, previewEnvSpec, commitEvent.targetBranch)
-            .also {
-              if (it == null) {
-                log.debug("Ignoring non-monikered resource ${res.id} since it might conflict with the base environment")
-              }
-            }
+          res.toPreviewResource(deliveryConfig, previewEnvSpec, prEvent.pullRequestBranch)
         }.toSet()
       ).apply {
         addMetadata(
           "basedOn" to baseEnv.name,
-          "repoKey" to commitEvent.repoKey,
-          "branch" to commitEvent.targetBranch,
-          "pullRequestId" to commitEvent.pullRequestId
+          "repoKey" to prEvent.repoKey,
+          "branch" to prEvent.pullRequestBranch,
+          "pullRequestId" to prEvent.pullRequestId
         )
       }
 
       log.debug("Creating/updating preview environment ${previewEnv.name} for application ${deliveryConfig.application} " +
-        "from branch ${commitEvent.targetBranch}")
+        "from branch ${prEvent.pullRequestBranch}")
       try {
         // TODO: run all these within a single transaction
         previewEnv.resources.forEach { resource ->
           repository.upsertResource(resource, deliveryConfig.name)
         }
         repository.storeEnvironment(deliveryConfig.name, previewEnv)
-        commitEvent.emitCounterMetric(CODE_EVENT_COUNTER, PREVIEW_ENVIRONMENT_UPSERT_SUCCESS, deliveryConfig.application)
+        prEvent.emitCounterMetric(CODE_EVENT_COUNTER, PREVIEW_ENVIRONMENT_UPSERT_SUCCESS, deliveryConfig.application)
       } catch (e: Exception) {
         log.error("Error storing/updating preview environment ${deliveryConfig.application}/${previewEnv.name}: $e", e)
-        commitEvent.emitCounterMetric(CODE_EVENT_COUNTER, PREVIEW_ENVIRONMENT_UPSERT_ERROR, deliveryConfig.application)
+        prEvent.emitCounterMetric(CODE_EVENT_COUNTER, PREVIEW_ENVIRONMENT_UPSERT_ERROR, deliveryConfig.application)
       }
     }
   }
@@ -274,15 +268,24 @@ class PreviewEnvironmentCodeEventListener(
    * its artifact reference (if applicable) updated to use the artifact matching the [PreviewEnvironmentSpec]
    * branch filter, if available.
    */
-  private fun <T: Monikered> Resource<T>.toPreviewResource(
+  private fun Resource<*>.toPreviewResource(
     deliveryConfig: DeliveryConfig,
     previewEnvSpec: PreviewEnvironmentSpec,
     branch: String
-  ): Resource<T>? {
-    log.debug("Copying resource ${this.id} to preview resource")
+  ): Resource<*>? {
+    // start by migrating the resource spec so we can rely on the latest implementation
+    var previewResource = resourceFactory.migrate(this)
 
-    // start by adding the branch detail to the moniker/name/id
-    var previewResource = withBranchDetail(branch)
+    if (previewResource.spec !is Monikered) {
+      log.debug("Ignoring non-monikered resource ${this.id} since it might conflict with the base environment")
+      return null
+    }
+
+    log.debug("Copying resource ${this.id} to preview resource")
+    previewResource = previewResource as Resource<Monikered>
+
+    // add the branch detail to the moniker/name/id
+    previewResource = previewResource.withBranchDetail(branch)
 
     // update artifact reference if applicable to match the branch filter of the preview environment
     if (spec is ArtifactReferenceProvider) {
@@ -333,6 +336,7 @@ class PreviewEnvironmentCodeEventListener(
     val specArtifactReference = (spec as? ArtifactReferenceProvider)
       ?.artifactReference
       ?: return this
+        .also { log.debug("Artifact reference in original resource $id is null. Not updating with artifact from branch matching ${previewEnvSpec.branch}") }
 
     val originalArtifact = deliveryConfig.matchingArtifactByReference(specArtifactReference)
       ?: error("Artifact with reference '${specArtifactReference}' not found in delivery config for ${deliveryConfig.application}")
@@ -386,8 +390,9 @@ class PreviewEnvironmentCodeEventListener(
         if (candidate != null) {
           log.debug("Checking if dependency needs renaming: kind '${candidate.kind.kind}', name '${candidate.name}', application '$application'")
           // special case for security group named after the app which is always included by default :-/
-          if (candidate.kind.kind.contains("security-group") && candidate.named(application)) {
-            log.debug("Skipping dependency rename for default security group $application in resource ${this.name}")
+          if (candidate.kind.kind.contains("security-group")
+            && (candidate.named(application) || candidate.named("$application-elb"))) {
+            log.debug("Skipping dependency rename for default security group ${candidate.name} in resource ${this.name}")
             dep
           } else {
             val newName = (candidate as Resource<Monikered>).withBranchDetail(branchDetail).name
@@ -422,7 +427,4 @@ class PreviewEnvironmentCodeEventListener(
 
   private fun CodeEvent.emitDurationMetric(metric: String, startTime: Instant, application: String? = null) =
     spectator.recordDuration(metric, clock, startTime, metricTags(application))
-
-  private val String.headOfBranch: String
-    get() = if (this.startsWith("refs/heads/")) this else "refs/heads/$this"
 }

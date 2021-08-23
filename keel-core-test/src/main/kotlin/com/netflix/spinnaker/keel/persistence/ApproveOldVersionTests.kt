@@ -22,11 +22,13 @@ import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.constraints.ManualJudgementConstraintEvaluator
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
+import com.netflix.spinnaker.keel.resources.ResourceFactory
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.test.DummyArtifactReferenceResourceSpec
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.configuredTestObjectMapper
 import com.netflix.spinnaker.keel.test.resource
+import com.netflix.spinnaker.keel.test.resourceFactory
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -39,14 +41,14 @@ import strikt.assertions.isEqualTo
 
 abstract class ApproveOldVersionTests<T : KeelRepository> : JUnit5Minutests {
 
-  abstract fun createKeelRepository(resourceSpecIdentifier: ResourceSpecIdentifier, mapper: ObjectMapper): T
+  abstract fun createKeelRepository(resourceFactory: ResourceFactory, mapper: ObjectMapper): T
 
   open fun flush() {}
 
   class DummyImplicitConstraint : Constraint("implicit")
 
   class Fixture<T : KeelRepository>(
-    val repositoryProvider: (ResourceSpecIdentifier, ObjectMapper) -> T
+    val repositoryProvider: (ResourceFactory, ObjectMapper) -> T
   ) {
 
     val mapper: ObjectMapper = configuredTestObjectMapper().apply {
@@ -59,7 +61,9 @@ abstract class ApproveOldVersionTests<T : KeelRepository> : JUnit5Minutests {
         kind<DummyResourceSpec>("ec2/cluster@v1")
       )
 
-    internal val repository = repositoryProvider(resourceSpecIdentifier, mapper)
+    private val resourceFactory = resourceFactory(resourceSpecIdentifier)
+
+    internal val repository = repositoryProvider(resourceFactory, mapper)
 
     val environment: Environment = Environment(
       name = "test",

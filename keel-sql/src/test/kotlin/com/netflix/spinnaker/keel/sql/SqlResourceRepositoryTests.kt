@@ -1,9 +1,11 @@
 package com.netflix.spinnaker.keel.sql
 
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.keel.api.DeliveryConfig
-import com.netflix.spinnaker.keel.persistence.DummyResourceSpecIdentifier
 import com.netflix.spinnaker.keel.persistence.ResourceRepositoryTests
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
+import com.netflix.spinnaker.keel.test.mockEnvironment
+import com.netflix.spinnaker.keel.test.resourceFactory
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
@@ -15,11 +17,12 @@ internal class SqlResourceRepositoryTests : ResourceRepositoryTests<SqlResourceR
   private val jooq = testDatabase.context
   private val retryProperties = RetryProperties(5, 100)
   private val sqlRetry = SqlRetry(SqlRetryProperties(retryProperties, retryProperties))
+  private val resourceFactory = resourceFactory()
   private val deliveryConfigRepository = SqlDeliveryConfigRepository(
     jooq,
     clock,
-    DummyResourceSpecIdentifier,
     configuredObjectMapper(),
+    resourceFactory,
     sqlRetry,
     publisher = mockk(relaxed = true)
   )
@@ -28,11 +31,12 @@ internal class SqlResourceRepositoryTests : ResourceRepositoryTests<SqlResourceR
     return SqlResourceRepository(
       jooq,
       clock,
-      DummyResourceSpecIdentifier,
-      emptyList(),
       configuredObjectMapper(),
+      resourceFactory,
       sqlRetry,
-      publisher
+      publisher,
+      NoopRegistry(),
+      springEnv = mockEnvironment()
     )
   }
 

@@ -32,6 +32,7 @@ dependencies {
   implementation(project(":keel-titus-plugin"))
   implementation(project(":keel-schema-generator"))
   implementation(project(":keel-scm"))
+  implementation(project(":keel-retrofit"))
 
   implementation("io.spinnaker.kork:kork-web")
   implementation("io.spinnaker.kork:kork-artifacts")

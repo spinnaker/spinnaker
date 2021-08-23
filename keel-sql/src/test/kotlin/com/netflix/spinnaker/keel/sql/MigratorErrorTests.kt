@@ -1,15 +1,19 @@
 package com.netflix.spinnaker.keel.sql
 
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.ResourceKind.Companion.parseKind
 import com.netflix.spinnaker.keel.api.plugins.kind
+import com.netflix.spinnaker.keel.resources.ResourceFactory
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.resources.SpecMigrator
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.configuredTestObjectMapper
 import com.netflix.spinnaker.keel.test.defaultArtifactSuppliers
+import com.netflix.spinnaker.keel.test.mockEnvironment
 import com.netflix.spinnaker.keel.test.resource
+import com.netflix.spinnaker.keel.test.resourceFactory
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
@@ -49,24 +53,26 @@ class MigratorErrorTests {
       }
     }
 
+  private val resourceFactory = resourceFactory(multiVersionResourceSpecIdentifier, listOf(bedShittingSpecMigrator))
+
   private val resourceRepository = SqlResourceRepository(
     jooq = jooq,
     clock = systemUTC(),
-    resourceSpecIdentifier = multiVersionResourceSpecIdentifier,
-    specMigrators = listOf(bedShittingSpecMigrator),
+    resourceFactory = resourceFactory,
     objectMapper = objectMapper,
     sqlRetry = sqlRetry,
-    publisher = mockk(relaxed = true)
+    publisher = mockk(relaxed = true),
+    spectator = NoopRegistry(),
+    springEnv = mockEnvironment()
   )
 
   private val deliveryConfigRepository = SqlDeliveryConfigRepository(
     jooq = jooq,
     clock = systemUTC(),
-    resourceSpecIdentifier = multiVersionResourceSpecIdentifier,
+    resourceFactory = resourceFactory,
     objectMapper = objectMapper,
     sqlRetry = sqlRetry,
     artifactSuppliers = defaultArtifactSuppliers(),
-    specMigrators = listOf(bedShittingSpecMigrator),
     publisher = mockk(relaxed = true)
   )
 

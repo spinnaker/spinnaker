@@ -14,14 +14,20 @@ abstract class BaseArtifactSupplier<A : DeliveryArtifact, V : SortingStrategy>(
   override suspend fun getArtifactMetadata(artifact: PublishedArtifact): ArtifactMetadata? {
 
     val buildNumber = artifact.metadata["buildNumber"]?.toString()
-    val commitId = artifact.metadata["commitId"]?.toString()
+    // We first try to use the prCommitId (for merge commits) and fall back to the commitId
+    val commitId = (artifact.metadata["prCommitId"] ?: artifact.metadata["commitId"])?.toString()
     if (commitId == null || buildNumber == null) {
       log.debug("either commit id: $commitId or build number $buildNumber is missing, returning null")
       return null
     }
+    if (artifact.metadata["prCommitId"] != artifact.metadata["commitId"]) {
+      log.debug("using prCommitId to fetch the git metadata of artifact $artifact")
+    }
 
-    log.debug("calling to artifact metadata service to get information for artifact: ${artifact.reference}, version: ${artifact.version}, type: ${artifact.type} " +
-      "with build number: $buildNumber and commit id: $commitId")
+    log.debug(
+      "calling to artifact metadata service to get information for artifact: ${artifact.reference}, version: ${artifact.version}, type: ${artifact.type} " +
+        "with build number: $buildNumber and commit id: $commitId"
+    )
     return try {
       val artifactMetadata = artifactMetadataService.getArtifactMetadata(buildNumber, commitId)
       log.debug("received artifact metadata $artifactMetadata for build $buildNumber and commit $commitId")

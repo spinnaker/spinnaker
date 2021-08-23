@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.sql
 
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceSpec
@@ -8,7 +9,9 @@ import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.resources.SpecMigrator
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.test.deliveryConfig
+import com.netflix.spinnaker.keel.test.mockEnvironment
 import com.netflix.spinnaker.keel.test.resource
+import com.netflix.spinnaker.keel.test.resourceFactory
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
@@ -78,22 +81,26 @@ internal class LegacySpecUpgradeTests : JUnit5Minutests {
         SpecV3(spec.name, spec.number, EPOCH)
     }
 
+    val resourceFactory = resourceFactory(resourceTypeIdentifier, listOf(v1to2Migrator, v2to3Migrator))
+
     val deliveryConfigRepository = SqlDeliveryConfigRepository(
       jooq,
       systemUTC(),
-      resourceTypeIdentifier,
       configuredObjectMapper(),
+      resourceFactory,
       sqlRetry,
+      emptyList(),
       publisher = mockk(relaxed = true)
     )
     val resourceRepository = SqlResourceRepository(
       jooq,
       systemUTC(),
-      resourceTypeIdentifier,
-      listOf(v1to2Migrator, v2to3Migrator),
       configuredObjectMapper(),
+      resourceFactory,
       sqlRetry,
-      publisher = mockk(relaxed = true)
+      publisher = mockk(relaxed = true),
+      spectator = NoopRegistry(),
+      springEnv = mockEnvironment()
     )
 
     val ancientResource = resource(v1.kind, SpecV1("whatever"))

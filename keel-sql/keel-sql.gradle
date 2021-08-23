@@ -199,6 +199,11 @@ jooq {
                 enumConverter = true
                 includeExpression = "ACTION_STATE.TYPE"
               }
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.events.ResourceState"
+                enumConverter = true
+                includeExpression = "RESOURCE_LAST_CHECKED.STATUS"
+              }
             }
           }
           target {

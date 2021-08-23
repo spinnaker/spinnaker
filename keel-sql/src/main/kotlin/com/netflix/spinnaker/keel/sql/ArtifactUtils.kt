@@ -48,6 +48,9 @@ internal val ARTIFACT_VERSIONS_BRANCH =
 internal val ARTIFACT_VERSIONS_PR_NUMBER =
   field<String?>("json_unquote(keel.artifact_versions.git_metadata->'$.pullRequest.number')")
 
+internal val ACTIVE_ENVIRONMENT_BRANCH =
+  field<String?>("json_unquote(keel.active_environment.metadata->'$.branch')")
+
 internal const val EMPTY_PR_NUMBER = "\"\""
 
 /**
