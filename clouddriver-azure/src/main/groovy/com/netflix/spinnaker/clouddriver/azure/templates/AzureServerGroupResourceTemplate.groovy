@@ -925,12 +925,17 @@ class AzureServerGroupResourceTemplate {
 
   static class HealthExtensionSettings implements IExtensionSettings {
     String protocol
-    String port
+    int port
     String requestPath
 
     HealthExtensionSettings(AzureServerGroupDescription description) {
       protocol = description.healthSettings.protocol
-      port = description.healthSettings.port
+      try {
+        port = Integer.parseInt(description.healthSettings.port)
+      } catch (NumberFormatException ignored) {
+        port = 0
+        throw new IllegalArgumentException("healthSettings.port \"$description.healthSettings.port\" is not a valid integer")
+      }
       requestPath = description.healthSettings.requestPath
     }
   }

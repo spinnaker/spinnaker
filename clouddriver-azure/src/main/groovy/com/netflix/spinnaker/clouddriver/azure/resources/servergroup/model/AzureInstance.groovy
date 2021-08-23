@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model
 
+import com.microsoft.azure.management.compute.StatusLevelTypes
 import com.microsoft.azure.management.compute.VirtualMachineScaleSetVM
 import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
@@ -25,6 +26,8 @@ import groovy.transform.CompileStatic
 
 @CompileStatic
 class AzureInstance implements Instance, Serializable {
+  public static final String APP_HEALTH_EXT_LINUX = "Microsoft.ManagedServices.ApplicationHealthLinux"
+  public static final String APP_HEALTH_EXT_WINDOWS = "Microsoft.ManagedServices.ApplicationHealthWindows"
   String name
   String resourceId
   String vhd
@@ -62,6 +65,23 @@ class AzureInstance implements Instance, Serializable {
       }
 
     }
+
+    // if health extension exists, read its status and update health state
+    vm?.instanceView()?.extensions()?.each { extension ->
+      if (extension.type() == APP_HEALTH_EXT_LINUX ||
+        extension.type() == APP_HEALTH_EXT_WINDOWS) {
+        def substatuses = extension.substatuses()
+        if (substatuses != null) {
+          def statusLevel = substatuses[0]?.level()
+          if (statusLevel == StatusLevelTypes.ERROR) {
+            instance.healthState = HealthState.Down
+          } else {
+            instance.healthState = HealthState.Up
+          }
+        }
+      }
+    }
+
     instance
   }
 
