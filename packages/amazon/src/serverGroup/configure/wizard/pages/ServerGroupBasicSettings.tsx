@@ -112,6 +112,15 @@ export class ServerGroupBasicSettings
       accountDetails.environment === 'test';
 
     setFieldValue('associateIPv6Address', enableIPv6InTest);
+
+    if (AWSProviderSettings.serverGroups?.enableIMDSv2) {
+      const isIMDSv2AllowedOnAccount = !AWSProviderSettings?.serverGroups?.accountDenyListIMDSv2?.includes(account);
+      const appAgeRequirement = AWSProviderSettings.serverGroups?.defaultIMDSv2AppAgeLimit;
+      const creationDate = this.props.app?.attributes?.createTs;
+      const setIMDSv2 =
+        isIMDSv2AllowedOnAccount && appAgeRequirement && creationDate && Number(creationDate) > appAgeRequirement;
+      setFieldValue('requireIMDSv2', setIMDSv2);
+    }
   };
 
   private regionUpdated = (region: string): void => {

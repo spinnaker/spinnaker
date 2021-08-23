@@ -52,6 +52,7 @@ export interface IAWSProviderSettings extends IProviderSettings {
     setIPv6InTest?: boolean;
     enableIMDSv2?: boolean;
     defaultIMDSv2AppAgeLimit?: number;
+    accountDenyListIMDSv2?: string[];
     enableCpuCredits?: boolean;
     recommendedSubnets?: string[];
     subnetWarning?: string;
