@@ -9,6 +9,8 @@ import com.netflix.spinnaker.keel.core.api.ApplicationSummary
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.CURRENT
 import com.netflix.spinnaker.keel.exceptions.NoSuchEnvironmentException
 import com.netflix.spinnaker.keel.front50.Front50Cache
+import com.netflix.spinnaker.keel.front50.Front50Service
+import com.netflix.spinnaker.keel.front50.model.ManagedDeliveryConfig
 import com.netflix.spinnaker.keel.logging.TracingSupport
 import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
@@ -35,6 +37,7 @@ class AdminService(
   private val diffFingerprintRepository: DiffFingerprintRepository,
   private val artifactSuppliers: List<ArtifactSupplier<*, *>>,
   private val front50Cache: Front50Cache,
+  private val front50Service: Front50Service,
   private val publisher: ApplicationEventPublisher,
   private val clock: Clock
 ) : CoroutineScope {
@@ -110,20 +113,20 @@ class AdminService(
     val versions = repository
       // only check versions that are < 3 hours old, and probably nothing changes after one hour
       .getVersionsWithoutMetadata(100, age)
-      versions.forEach { artifactVersion ->
-        log.debug("Evaluating version ${artifactVersion.version} as candidate to back-fill metadata")
-        try {
-          log.debug("Fetching artifact metadata for version $artifactVersion")
-          val artifactSupplier = artifactSuppliers.supporting(artifactVersion.type)
-          val artifactMetadata = artifactSupplier.getArtifactMetadata(artifactVersion)
-          if (artifactMetadata != null) {
-            log.debug("Storing updated metadata for version $artifactVersion: $artifactMetadata")
-            repository.updateArtifactMetadata(artifactVersion, artifactMetadata)
-          }
-        } catch (ex: Exception) {
-          log.error("error trying to get artifact by version or its metadata for version $artifactVersion", ex)
+    versions.forEach { artifactVersion ->
+      log.debug("Evaluating version ${artifactVersion.version} as candidate to back-fill metadata")
+      try {
+        log.debug("Fetching artifact metadata for version $artifactVersion")
+        val artifactSupplier = artifactSuppliers.supporting(artifactVersion.type)
+        val artifactMetadata = artifactSupplier.getArtifactMetadata(artifactVersion)
+        if (artifactMetadata != null) {
+          log.debug("Storing updated metadata for version $artifactVersion: $artifactMetadata")
+          repository.updateArtifactMetadata(artifactVersion, artifactMetadata)
         }
+      } catch (ex: Exception) {
+        log.error("error trying to get artifact by version or its metadata for version $artifactVersion", ex)
       }
+    }
     delay(Duration.ofSeconds(1).toMillis()) // sleep a little in-between versions to cut the instance where this runs some slack
   }
 
@@ -147,11 +150,11 @@ class AdminService(
     val artifact = deliveryConfig.matchingArtifactByReference(artifactReference)
       ?: throw UserException("application $application contains no artifact ref $artifactReference. Artifact references are: ${deliveryConfig.artifacts.map { it.reference }}")
 
-     // Identify the current version in the environment
+    // Identify the current version in the environment
     val currentVersion = repository.getArtifactVersionsByStatus(deliveryConfig, environment, listOf(CURRENT))
       .firstOrNull { it.reference == artifactReference }
 
-    if(currentVersion == null) {
+    if (currentVersion == null) {
       log.warn("forcing application $application artifact $artifactReference version $version to SKIPPED even though there is no version in CURRENT state")
     }
 
@@ -180,9 +183,77 @@ class AdminService(
   }
 
   /**
-   * Force a refresh of the the application cache.
+   * Force a refresh of the application cache.
    */
   fun refreshApplicationCache() {
     front50Cache.primeCaches()
+  }
+
+  /**
+   * Migrates all currently known managed applications from an import pipeline to the native git integration.
+   */
+  suspend fun migrateImportPipelinesToGitIntegration() {
+    val configs = repository.allDeliveryConfigs()
+    var migrated = 0
+    log.debug("Retrieved ${configs.size} delivery configs for git integration migration")
+
+    configs.forEach { config ->
+      val app = try {
+        front50Cache.applicationByName(config.application)
+      } catch (e: Exception) {
+        null
+      }
+
+      if (app == null) {
+        log.debug("App ${config.application} not found. Skipping git integration migration.")
+        return@forEach
+      }
+
+      if (app.managedDelivery?.importDeliveryConfig == true) {
+        log.debug("App ${app.name} already configured for git integration. Skipping migration.")
+        return@forEach
+      }
+
+      val importPipeline = try {
+        front50Cache.pipelinesByApplication(app.name).find {
+          it.stages.any { stage -> stage.type == "importDeliveryConfig" }
+        }
+      } catch (e: Exception) {
+        log.error("Failed to retrieve pipelines for app ${config.application}. Skipping migration.")
+        return@forEach
+      }
+
+      if (importPipeline == null) {
+        log.debug("No import pipeline found for app ${app.name}. Skipping migration.")
+        return@forEach
+      }
+
+      val disabled = importPipeline.disabled || importPipeline.triggers.none { trigger -> trigger.enabled }
+      if (disabled) {
+        log.debug("Import pipeline [${importPipeline.name}] found for app ${app.name} (${config.serviceAccount}), but already disabled. Skipping migration.")
+        return@forEach
+      }
+
+      log.debug("Enabling git integration for app ${config.application} in Front50.")
+      try {
+        val updatedApp = app.copy(managedDelivery = ManagedDeliveryConfig(importDeliveryConfig = true))
+        front50Service.updateApplication(app.name, config.serviceAccount, updatedApp)
+      } catch (e: Exception) {
+        log.error("Failed to enable git integration for app ${config.application} in Front50. Skipping disabling pipeline.")
+        return@forEach
+      }
+
+      log.debug("Disabling import pipeline [${importPipeline.name}] for app ${config.application} in Front50.")
+      try {
+        val updatedPipeline = importPipeline.copy(disabled = true)
+        front50Service.updatePipeline(importPipeline.id, updatedPipeline, config.serviceAccount)
+      } catch (e: Exception) {
+        log.error("Failed to disable import pipeline [${importPipeline.name}] for app ${config.application} in Front50")
+        return@forEach
+      }
+
+      migrated++
+    }
+    log.debug("Migrated $migrated/${configs.size} apps")
   }
 }

@@ -1,9 +1,8 @@
 package com.netflix.spinnaker.keel.rest
 
-import com.netflix.spinnaker.keel.events.NotificationEvent
 import com.netflix.spinnaker.keel.services.AdminService
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
-import com.netflix.spinnaker.kork.exceptions.UserException
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory.getLogger
 import org.springframework.http.HttpStatus.NO_CONTENT
@@ -19,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import java.time.Duration
-import java.time.format.DateTimeParseException
 
 @RestController
 @RequestMapping(path = ["/poweruser"])
@@ -145,5 +143,14 @@ class AdminController(
   )
   fun refreshApplicationCache() {
     adminService.refreshApplicationCache()
+  }
+
+  @PostMapping(
+    path = ["/git/migrate-pipelines"]
+  )
+  fun runGitIntegrationMigration() {
+    runBlocking {
+      launch { adminService.migrateImportPipelinesToGitIntegration() }
+    }
   }
 }

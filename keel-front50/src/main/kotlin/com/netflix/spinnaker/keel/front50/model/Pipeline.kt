@@ -6,7 +6,7 @@ import java.time.Instant
 /**
  * A Spinnaker pipeline.
  */
-class Pipeline(
+data class Pipeline(
   val name: String,
   val id: String,
   val application: String,

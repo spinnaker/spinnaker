@@ -8,6 +8,7 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.PATCH
+import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 import retrofit2.http.QueryMap
@@ -56,4 +57,11 @@ interface Front50Service {
     @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT,
     @Body app: Application,
   ): Application
+
+  @PUT("/pipelines/{id}")
+  suspend fun updatePipeline(
+    @Path("id") id: String,
+    @Body pipeline: Pipeline,
+    @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
+  )
 }
