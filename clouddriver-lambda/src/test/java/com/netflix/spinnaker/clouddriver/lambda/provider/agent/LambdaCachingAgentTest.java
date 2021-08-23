@@ -121,4 +121,19 @@ public class LambdaCachingAgentTest {
         .isNotEqualTo(
             Keys.getLambdaFunctionKey(netflixAmazonCredentials.getName(), REGION, "function-1"));
   }
+
+  @Test
+  public void buildCacheDataShouldAddInfo() {
+    HashMap<String, CacheData> lambdaCacheData = new HashMap<>();
+    HashMap<String, Collection<String>> appLambdaRelationships = new HashMap<>();
+    List<Map<String, Object>> allLambdas =
+        List.of(
+            Map.of("functionName", "appName-functionName-something"),
+            Map.of("functionName", "appName2-functionName2-something2"));
+
+    lambdaCachingAgent.buildCacheData(lambdaCacheData, appLambdaRelationships, allLambdas);
+
+    assertThat(lambdaCacheData.size()).isEqualTo(2);
+    assertThat(appLambdaRelationships.size()).isEqualTo(2);
+  }
 }

@@ -226,7 +226,7 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
     return new DefaultCacheResult(cacheResults, evictions);
   }
 
-  private void buildCacheData(
+  void buildCacheData(
       Map<String, CacheData> lambdaCacheData,
       Map<String, Collection<String>> appLambdaRelationships,
       List<Map<String, Object>> allLambdas) {
