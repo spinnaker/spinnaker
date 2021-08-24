@@ -68,6 +68,10 @@ export class UpsertTargetTrackingController implements IComponentController {
     }
   }
 
+  public updateUnit = (unit: string) => {
+    this.state.unit = unit;
+  };
+
   public scaleInChanged(): void {
     this.state.scaleInChanged = true;
   }
