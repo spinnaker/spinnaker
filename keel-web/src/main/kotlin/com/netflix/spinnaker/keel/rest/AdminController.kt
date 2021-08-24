@@ -2,8 +2,8 @@ package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.services.AdminService
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory.getLogger
 import org.springframework.http.HttpStatus.NO_CONTENT
 import org.springframework.http.MediaType
@@ -149,8 +149,6 @@ class AdminController(
     path = ["/git/migrate-pipelines"]
   )
   fun runGitIntegrationMigration() {
-    runBlocking {
-      launch { adminService.migrateImportPipelinesToGitIntegration() }
-    }
+    GlobalScope.launch { adminService.migrateImportPipelinesToGitIntegration() }
   }
 }

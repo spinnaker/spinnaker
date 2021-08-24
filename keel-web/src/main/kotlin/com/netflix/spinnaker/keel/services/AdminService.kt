@@ -195,6 +195,7 @@ class AdminService(
   suspend fun migrateImportPipelinesToGitIntegration() {
     val configs = repository.allDeliveryConfigs()
     var migrated = 0
+    val startTime = clock.instant()
     log.debug("Retrieved ${configs.size} delivery configs for git integration migration")
 
     configs.forEach { config ->
@@ -254,6 +255,7 @@ class AdminService(
 
       migrated++
     }
-    log.debug("Migrated $migrated/${configs.size} apps")
+    val duration = Duration.between(startTime, clock.instant())
+    log.debug("Migrated $migrated/${configs.size} apps (${configs.size - migrated} skipped) in ${duration.toSeconds()} seconds")
   }
 }
