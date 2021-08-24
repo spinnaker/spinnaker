@@ -1,5 +1,4 @@
 [![Release](https://github.com/spinnaker/keel/actions/workflows/periodic_release.yml/badge.svg)](https://github.com/spinnaker/keel/actions/workflows/periodic_release.yml)
-![Download](https://api.bintray.com/packages/spinnaker/spinnaker/keel/images/download.svg)
 
 # High Level Project Overview
 For a high level overview of the Managed Delivery project and its goals, [check out our introductory post on the Spinnaker blog](https://blog.spinnaker.io/managed-delivery-evolving-continuous-delivery-at-netflix-eb74877fb33c).
