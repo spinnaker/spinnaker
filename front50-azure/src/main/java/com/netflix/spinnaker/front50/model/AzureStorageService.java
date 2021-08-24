@@ -63,17 +63,24 @@ public class AzureStorageService implements StorageService {
   private CloudBlobContainer getBlobContainer() {
     if (storageAccount != null && blobContainer == null) {
       try {
-        blobContainer = getBlobClient().getContainerReference(this.containerName);
-        blobContainer.createIfNotExists();
-        BlobContainerPermissions permissions = new BlobContainerPermissions();
-        permissions.setPublicAccess(BlobContainerPublicAccessType.CONTAINER);
-        blobContainer.uploadPermissions(permissions);
+        CloudBlobContainer localBlobContainer =
+            getBlobClient().getContainerReference(this.containerName);
+        // Do not modify the blob containers permissions if it already exists.
+        // This should keep things backwards compatible.
+        if (localBlobContainer.createIfNotExists()) {
+          // Default to private access if creating.
+          BlobContainerPermissions permissions = new BlobContainerPermissions();
+          permissions.setPublicAccess(BlobContainerPublicAccessType.OFF);
+          localBlobContainer.uploadPermissions(permissions);
+        }
+        this.blobContainer = localBlobContainer;
       } catch (Exception e) {
-        // log exception
-        blobContainer = null;
+        log.error(
+            "Exception occurred getting/creating the blob container: {} ",
+            value("exception", e.getMessage()));
       }
     }
-    return blobContainer;
+    return this.blobContainer;
   }
 
   public AzureStorageService(String connectionString, String containerName) {
