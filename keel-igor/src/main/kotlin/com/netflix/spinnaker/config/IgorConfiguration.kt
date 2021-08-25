@@ -4,10 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.keel.front50.Front50Cache
-import com.netflix.spinnaker.keel.igor.artifact.ArtifactService
 import com.netflix.spinnaker.keel.igor.BuildService
-import com.netflix.spinnaker.keel.igor.ScmService
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
+import com.netflix.spinnaker.keel.igor.ScmService
+import com.netflix.spinnaker.keel.igor.artifact.ArtifactService
 import com.netflix.spinnaker.keel.retrofit.InstrumentedJacksonConverter
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -49,7 +49,7 @@ class IgorConfiguration {
   fun deliveryConfigImporter(
     scmService: ScmService,
     front50Cache: Front50Cache,
-    yamlMapper: YAMLMapper
+    yamlMapper: YAMLMapper,
   ) = DeliveryConfigImporter(scmService, front50Cache, yamlMapper)
 
   private inline fun <reified T> buildService(

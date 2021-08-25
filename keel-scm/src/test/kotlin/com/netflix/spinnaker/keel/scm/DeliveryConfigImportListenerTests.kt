@@ -12,15 +12,11 @@ import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.front50.model.DataSources
 import com.netflix.spinnaker.keel.front50.model.ManagedDeliveryConfig
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
-import com.netflix.spinnaker.keel.igor.ScmService
-import com.netflix.spinnaker.keel.igor.model.Branch
 import com.netflix.spinnaker.keel.notifications.DeliveryConfigImportFailed
-import com.netflix.spinnaker.keel.notifications.DismissibleNotification
 import com.netflix.spinnaker.keel.persistence.DismissibleNotificationRepository
-import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.scm.DeliveryConfigImportListener.Companion.CODE_EVENT_COUNTER
 import com.netflix.spinnaker.keel.test.submittedResource
-import com.netflix.spinnaker.keel.validators.DeliveryConfigValidator
+import com.netflix.spinnaker.keel.upsert.DeliveryConfigUpserter
 import com.netflix.spinnaker.kork.exceptions.SystemException
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.TestContextBuilder
@@ -28,7 +24,6 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.called
 import io.mockk.just
-import io.mockk.coEvery as every
 import io.mockk.mockk
 import io.mockk.runs
 import org.springframework.context.ApplicationEventPublisher
@@ -36,11 +31,12 @@ import org.springframework.core.env.Environment
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.one
+import io.mockk.coEvery as every
 import io.mockk.coVerify as verify
 
 class DeliveryConfigImportListenerTests : JUnit5Minutests {
   class Fixture {
-    val repository: KeelRepository = mockk()
+    val deliveryConfigUpserter: DeliveryConfigUpserter = mockk()
     val importer: DeliveryConfigImporter = mockk()
     val front50Cache: Front50Cache = mockk()
     val scmUtils: ScmUtils = mockk()
@@ -49,11 +45,9 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
     val spectator: Registry = mockk()
     val clock = MutableClock()
     val eventPublisher: ApplicationEventPublisher = mockk()
-    val deliveryConfigValidator: DeliveryConfigValidator = mockk()
     val subject = DeliveryConfigImportListener(
-      repository = repository,
+      deliveryConfigUpserter = deliveryConfigUpserter,
       deliveryConfigImporter = importer,
-      deliveryConfigValidator = deliveryConfigValidator,
       notificationRepository = notificationRepository,
       front50Cache = front50Cache,
       scmUtils = scmUtils,
@@ -133,10 +127,6 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
       } just runs
 
       every {
-        deliveryConfigValidator.validate(any())
-      } just runs
-
-      every {
         front50Cache.searchApplications(any(), any(), any())
       } returns listOf(configuredApp, notConfiguredApp)
 
@@ -145,7 +135,7 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
       } returns deliveryConfig
 
       every {
-        repository.upsertDeliveryConfig(deliveryConfig)
+        deliveryConfigUpserter.upsertConfig(deliveryConfig)
       } returns deliveryConfig.toDeliveryConfig()
 
       every {
@@ -186,7 +176,7 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
 
         test("the delivery config is created/updated") {
           verify {
-            repository.upsertDeliveryConfig(deliveryConfig)
+            deliveryConfigUpserter.upsertConfig(deliveryConfig)
           }
         }
 
@@ -299,7 +289,7 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
         importer wasNot called
       }
       verify {
-        repository wasNot called
+        deliveryConfigUpserter wasNot called
       }
     }
   }

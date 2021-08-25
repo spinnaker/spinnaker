@@ -6,9 +6,8 @@ import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter.Companion.DEFAULT_MANIFEST_PATH
 import com.netflix.spinnaker.keel.notifications.DeliveryConfigImportFailed
 import com.netflix.spinnaker.keel.persistence.DismissibleNotificationRepository
-import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.telemetry.safeIncrement
-import com.netflix.spinnaker.keel.validators.DeliveryConfigValidator
+import com.netflix.spinnaker.keel.upsert.DeliveryConfigUpserter
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
@@ -22,9 +21,8 @@ import java.time.Clock
  */
 @Component
 class DeliveryConfigImportListener(
-  private val repository: KeelRepository,
+  private val deliveryConfigUpserter: DeliveryConfigUpserter,
   private val deliveryConfigImporter: DeliveryConfigImporter,
-  private val deliveryConfigValidator: DeliveryConfigValidator,
   private val notificationRepository: DismissibleNotificationRepository,
   private val front50Cache: Front50Cache,
   private val scmUtils: ScmUtils,
@@ -92,24 +90,20 @@ class DeliveryConfigImportListener(
       // We always want to dismiss the previous notifications, and if needed to create a new one
       notificationRepository.dismissNotification(DeliveryConfigImportFailed::class.java, app.name, event.targetBranch)
 
-      val newDeliveryConfig = try {
-        deliveryConfigImporter.import(
+      try {
+        val rawDeliveryConfig = deliveryConfigImporter.import(
           commitEvent = event,
           manifestPath = DEFAULT_MANIFEST_PATH // TODO: allow location of manifest to be configurable
-        ).also {
-          event.emitCounterMetric(CODE_EVENT_COUNTER, DELIVERY_CONFIG_RETRIEVAL_SUCCESS, app.name)
-          log.info("Validating config for application ${app.name} from branch ${event.targetBranch}")
-          deliveryConfigValidator.validate(it)
-        }
+        )
+        log.info("Creating/updating delivery config for application ${app.name} from branch ${event.targetBranch}")
+        deliveryConfigUpserter.upsertConfig(rawDeliveryConfig)
+        event.emitCounterMetric(CODE_EVENT_COUNTER, DELIVERY_CONFIG_RETRIEVAL_SUCCESS, app.name)
       } catch (e: Exception) {
         log.error("Error retrieving delivery config: $e", e)
         event.emitCounterMetric(CODE_EVENT_COUNTER, DELIVERY_CONFIG_RETRIEVAL_ERROR, app.name)
         eventPublisher.publishDeliveryConfigImportFailed(app.name, event, clock.instant(), e.message ?: "Unknown reason", scmUtils.getCommitLink(event))
         return@forEach
       }
-
-      log.info("Creating/updating delivery config for application ${app.name} from branch ${event.targetBranch}")
-      repository.upsertDeliveryConfig(newDeliveryConfig)
     }
   }
 

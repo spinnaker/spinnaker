@@ -3,8 +3,7 @@ package com.netflix.spinnaker.keel.igor
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.front50.Front50Cache
-import com.netflix.spinnaker.keel.front50.model.Application
-import com.netflix.spinnaker.keel.jackson.readValueInliningAliases
+import com.netflix.spinnaker.keel.parseDeliveryConfig
 import com.netflix.spinnaker.keel.scm.CommitCreatedEvent
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
@@ -16,6 +15,7 @@ class DeliveryConfigImporter(
   private val scmService: ScmService,
   private val front50Cache: Front50Cache,
   private val yamlMapper: YAMLMapper,
+
 ) {
   companion object {
     private val log by lazy { LoggerFactory.getLogger(DeliveryConfigImporter::class.java) }
@@ -39,9 +39,7 @@ class DeliveryConfigImporter(
     val rawDeliveryConfig = runBlocking {
       scmService.getDeliveryConfigManifest(repoType, projectKey, repoSlug, manifestPath, ref, true)
     }.manifest
-    val submittedDeliveryConfig = yamlMapper
-      .readValueInliningAliases<SubmittedDeliveryConfig>(rawDeliveryConfig)
-      .copy(rawConfig = rawDeliveryConfig)
+    val submittedDeliveryConfig = yamlMapper.parseDeliveryConfig(rawDeliveryConfig)
 
     log.debug("Successfully retrieved delivery config from $manifestLocation.")
     return if (addMetadata) {

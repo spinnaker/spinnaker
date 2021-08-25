@@ -1,25 +1,22 @@
 package com.netflix.spinnaker.keel.rest
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
-import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.api.DeliveryConfig
-import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
-import com.netflix.spinnaker.keel.auth.PermissionLevel.READ
-import com.netflix.spinnaker.keel.auth.PermissionLevel.WRITE
 import com.netflix.spinnaker.keel.auth.AuthorizationSupport
 import com.netflix.spinnaker.keel.auth.AuthorizationSupport.TargetEntity.APPLICATION
 import com.netflix.spinnaker.keel.auth.AuthorizationSupport.TargetEntity.SERVICE_ACCOUNT
+import com.netflix.spinnaker.keel.auth.PermissionLevel.READ
+import com.netflix.spinnaker.keel.auth.PermissionLevel.WRITE
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
-import com.netflix.spinnaker.keel.events.DeliveryConfigChangedNotification
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
-import com.netflix.spinnaker.keel.jackson.readValueInliningAliases
+import com.netflix.spinnaker.keel.parseDeliveryConfig
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoDeliveryConfigForApplication
 import com.netflix.spinnaker.keel.schema.Generator
 import com.netflix.spinnaker.keel.schema.RootSchema
 import com.netflix.spinnaker.keel.schema.generateSchema
+import com.netflix.spinnaker.keel.upsert.DeliveryConfigUpserter
 import com.netflix.spinnaker.keel.validators.DeliveryConfigProcessor
 import com.netflix.spinnaker.keel.validators.DeliveryConfigValidator
 import com.netflix.spinnaker.keel.validators.applyAll
@@ -27,7 +24,6 @@ import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import io.swagger.v3.oas.annotations.Operation
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.security.access.prepost.PreAuthorize
@@ -42,7 +38,6 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import java.io.BufferedReader
 import java.io.InputStream
-import org.springframework.core.env.Environment as SpringEnvironment
 
 
 @RestController
@@ -54,19 +49,14 @@ class DeliveryConfigController(
   private val authorizationSupport: AuthorizationSupport,
   @Autowired(required = false) private val deliveryConfigProcessors: List<DeliveryConfigProcessor> = emptyList(),
   private val generator: Generator,
-  private val publisher: ApplicationEventPublisher,
-  private val mapper: ObjectMapper,
+  private val deliveryConfigUpserter: DeliveryConfigUpserter,
   private val yamlMapper: YAMLMapper,
-  private val springEnv: SpringEnvironment
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   data class GateRawConfig(
     val content: String
   )
-
-  private val sendConfigChangedNotification: Boolean
-    get() = springEnv.getProperty("keel.notifications.send-config-changed", Boolean::class.java, true)
 
   @Operation(
     description = "Registers or updates a delivery config manifest."
@@ -79,7 +69,7 @@ class DeliveryConfigController(
     stream: InputStream
   ): DeliveryConfig {
     val rawDeliveryConfig = readRawConfigFromStream(stream)
-    return upsertConfig(parseRawConfig(rawDeliveryConfig))
+    return upsertConfigIfAuthorized(rawDeliveryConfig)
   }
 
   @Operation(
@@ -92,61 +82,17 @@ class DeliveryConfigController(
   )
   // We had to handle requests from gate separately, because gate was serializing the raw string incorrectly. Therefore, it's wrapped in a simple object
   fun upsertFromGate(@RequestBody rawConfig: GateRawConfig): DeliveryConfig {
-    return upsertConfig(parseRawConfig(rawConfig.content))
+    return upsertConfigIfAuthorized(rawConfig.content)
   }
 
-
-  private fun upsertConfig(deliveryConfig: SubmittedDeliveryConfig): DeliveryConfig {
-    deliveryConfig.checkPermissions()
-    val metadata: Map<String, Any?> = deliveryConfig.metadata ?: mapOf()
-    val gitMetadata: GitMetadata? = try {
-      val candidateMetadata = metadata.getOrDefault("gitMetadata", null)
-      if (candidateMetadata != null) {
-        mapper.convertValue<GitMetadata>(candidateMetadata)
-      } else {
-        null
-      }
-    } catch (e: IllegalArgumentException) {
-      log.debug("Error converting git metadata ${metadata.getOrDefault("gitMetadata", null)}: {}", e)
-      // not properly formed, so ignore the metadata and move on
-      null
+  private fun upsertConfigIfAuthorized(rawDeliveryConfig: String): DeliveryConfig {
+    val submittedDeliveryConfig = yamlMapper.parseDeliveryConfig(rawDeliveryConfig)
+    submittedDeliveryConfig.checkPermissions()
+    deliveryConfigProcessors.applyAll(submittedDeliveryConfig).let {
+      return deliveryConfigUpserter.upsertConfig(it)
     }
-
-    val existing: DeliveryConfig? = try {
-      repository.getDeliveryConfigForApplication(deliveryConfig.application)
-    } catch (e: NoDeliveryConfigForApplication) {
-      null
-    }
-
-    deliveryConfigProcessors.applyAll(deliveryConfig.copy(metadata = metadata))
-      .let { processedDeliveryConfig ->
-        validator.validate(processedDeliveryConfig)
-        log.debug("Upserting delivery config '${processedDeliveryConfig.name}' for app '${processedDeliveryConfig.application}'")
-        val config = repository.upsertDeliveryConfig(processedDeliveryConfig)
-        if (shouldNotifyOfConfigChange(existing, config)) {
-          publisher.publishEvent(
-            DeliveryConfigChangedNotification(
-              config = config,
-              gitMetadata = gitMetadata,
-              new = existing == null
-            )
-          )
-        }
-        return config.copy(rawConfig = null)
-      }
   }
 
-  fun shouldNotifyOfConfigChange(existing: DeliveryConfig?, new: DeliveryConfig) =
-    when {
-      !sendConfigChangedNotification -> false
-      existing == null -> true
-      DefaultResourceDiff(existing, new).also {
-        if (it.hasChanges()) {
-          log.debug("Found diffs in delivery config ${it.affectedRootPropertyNames}")
-        }
-      }.hasChanges() -> true
-      else -> false
-    }
 
   @GetMapping(
     path = ["/{name}"],
@@ -224,7 +170,7 @@ class DeliveryConfigController(
   }
 
   private fun validateRawConfig(rawDeliveryConfig: String) {
-    val config = parseRawConfig(rawDeliveryConfig)
+    val config = yamlMapper.parseDeliveryConfig(rawDeliveryConfig)
     authorizationSupport.checkApplicationPermission(READ, APPLICATION, config.application)
     validator.validate(config)
   }
@@ -245,8 +191,8 @@ class DeliveryConfigController(
   ): DeliveryConfig {
     val deliveryConfig =
       importer.import(repoType, projectKey, repoSlug, manifestPath, ref ?: "refs/heads/master")
-
-    return upsertConfig(deliveryConfig)
+    deliveryConfig.checkPermissions()
+    return deliveryConfigUpserter.upsertConfig(deliveryConfig)
   }
 
   private fun SubmittedDeliveryConfig.checkPermissions() {
@@ -264,10 +210,6 @@ class DeliveryConfigController(
     return rawDeliveryConfig
   }
 
-  private fun parseRawConfig(rawDeliveryConfig: String): SubmittedDeliveryConfig {
-    return yamlMapper.readValueInliningAliases<SubmittedDeliveryConfig>(rawDeliveryConfig)
-      .copy(rawConfig = rawDeliveryConfig)
-  }
 
   @Operation(
     description = "Responds with the JSON schema for POSTing to /delivery-configs"
