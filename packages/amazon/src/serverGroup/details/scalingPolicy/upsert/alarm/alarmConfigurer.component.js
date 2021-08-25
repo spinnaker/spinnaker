@@ -3,6 +3,7 @@
 import { module } from 'angular';
 import { Subject } from 'rxjs';
 
+import { AWS_METRIC_SELECTOR_COMPONENT } from './awsMetricSelector.component';
 import { AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_ALARM_DIMENSIONSEDITOR_COMPONENT } from './dimensionsEditor.component';
 import { METRIC_SELECTOR_COMPONENT } from './metricSelector.component';
 
@@ -12,6 +13,7 @@ export const name = AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_ALARM_ALARMC
 module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_ALARM_ALARMCONFIGURER_COMPONENT, [
   AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_ALARM_DIMENSIONSEDITOR_COMPONENT,
   METRIC_SELECTOR_COMPONENT,
+  AWS_METRIC_SELECTOR_COMPONENT,
 ]).component('awsAlarmConfigurer', {
   bindings: {
     command: '=',
@@ -61,6 +63,11 @@ module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_ALARM_ALARMCONFIGURER_COM
         }
         this.boundsChanged();
         this.alarmUpdated.next();
+      };
+
+      this.alarmChanged = (newAlarm) => {
+        this.command.alarm = newAlarm;
+        this.updateChart();
       };
 
       this.updateChart = () => this.alarmUpdated.next();

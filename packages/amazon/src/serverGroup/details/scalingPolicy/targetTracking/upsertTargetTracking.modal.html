@@ -28,11 +28,11 @@
             </div>
 
             <div ng-if="$ctrl.state.metricType === 'custom'">
-              <aws-metric-selector
-                alarm-updated="$ctrl.alarmUpdated"
+              <metric-selector
                 alarm="$ctrl.command.targetTrackingConfiguration.customizedMetricSpecification"
                 server-group="$ctrl.serverGroup"
-              ></aws-metric-selector>
+                update-alarm="$ctrl.alarmChanged"
+              ></metric-selector>
               <div>
                 <a href ng-click="$ctrl.toggleMetricType()">Use a predefined metric</a>
               </div>

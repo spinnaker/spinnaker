@@ -1,7 +1,7 @@
-import * as React from 'react';
 import { flatMap, uniq } from 'lodash';
+import * as React from 'react';
 import { Subject } from 'rxjs';
-import { IScalingPolicyAlarmView } from '../../../../../domain';
+
 import {
   CloudMetricsReader,
   IMetricAlarmDimension,
@@ -11,13 +11,15 @@ import {
   useData,
 } from '@spinnaker/core';
 
+import { IScalingPolicyAlarmView } from '../../../../../domain';
+
 import './dimensionsEditor.less';
 
 export interface IDimensionsEditorProps {
   alarm: IScalingPolicyAlarmView;
   namespaceUpdated?: Subject<void>;
   serverGroup: IServerGroup;
-  updateAvailableMetrics: () => void;
+  updateAvailableMetrics: (dimensions: IMetricAlarmDimension[]) => void;
 }
 
 export const DimensionsEditor = ({ alarm, serverGroup, updateAvailableMetrics }: IDimensionsEditorProps) => {
@@ -36,22 +38,20 @@ export const DimensionsEditor = ({ alarm, serverGroup, updateAvailableMetrics }:
 
   const addDimension = () => {
     const newDimensions = [...dimensions, {} as IMetricAlarmDimension];
-    alarm.dimensions = newDimensions;
     setDimensions(newDimensions);
+    updateAvailableMetrics(newDimensions);
   };
   const removeDimension = (index: number) => {
     const newDimensions = alarm.dimensions.filter((_d, i) => i !== index);
-    alarm.dimensions = newDimensions;
     setDimensions(newDimensions);
-    updateAvailableMetrics();
+    updateAvailableMetrics(newDimensions);
   };
   const updateDimension = (key: 'name' | 'value', value: string, index: number) => {
     const newDimensions = [...dimensions];
     const updatedDimension = newDimensions[index];
     updatedDimension[key] = value;
-    alarm.dimensions = newDimensions;
     setDimensions(newDimensions);
-    updateAvailableMetrics();
+    updateAvailableMetrics(newDimensions);
   };
 
   return (

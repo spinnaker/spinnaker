@@ -22,7 +22,7 @@
 
 <div class="row">
   <div class="col-md-2 sm-label-right">Whenever</div>
-  <div class="col-md-10 content-fields">
+  <div class="col-md-10 content-fields horizontal">
     <select
       class="form-control input-sm"
       style="vertical-align: top"
@@ -31,12 +31,12 @@
       ng-change="$ctrl.updateChart()"
       ng-options="stat for stat in $ctrl.statistics"
     ></select>
-    <span class="input-label" style="vertical-align: top; margin-top: 7px"> of </span>
-    <aws-metric-selector
-      alarm-updated="$ctrl.alarmUpdated"
+    <span class="input-label sp-margin-xs-right" style="vertical-align: top; margin-top: 7px"> of </span>
+    <metric-selector
+      update-alarm="$ctrl.alarmChanged"
       alarm="$ctrl.command.alarm"
       server-group="$ctrl.serverGroup"
-    ></aws-metric-selector>
+    ></metric-selector>
   </div>
 </div>
 
