@@ -206,6 +206,7 @@ type MdResource {
   artifact: MdArtifact
   displayName: String
   location: MdLocation
+  rawDefinition: String
 }
 
 type MdMoniker {
