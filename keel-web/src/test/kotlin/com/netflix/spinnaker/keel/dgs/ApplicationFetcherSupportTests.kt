@@ -9,9 +9,6 @@ import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.CURRENT
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.PREVIOUS
 import com.netflix.spinnaker.keel.core.api.PublishedArtifactInEnvironment
-import com.netflix.spinnaker.keel.rest.dgs.ApplicationFetcherSupport
-import com.netflix.spinnaker.keel.rest.dgs.ArtifactDiffContext
-import com.netflix.spinnaker.keel.rest.dgs.toDgs
 import com.netflix.spinnaker.keel.test.artifactReferenceResource
 import com.netflix.spinnaker.keel.test.deliveryConfig
 import graphql.schema.DataFetchingEnvironment

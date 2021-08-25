@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.keel.rest.dgs
+package com.netflix.spinnaker.keel.dgs
 
 import com.netflix.graphql.dgs.context.DgsContext
 import com.netflix.graphql.dgs.exceptions.DgsEntityNotFoundException

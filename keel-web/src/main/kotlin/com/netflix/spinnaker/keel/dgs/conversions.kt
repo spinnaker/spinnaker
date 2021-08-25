@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.keel.rest.dgs
+package com.netflix.spinnaker.keel.dgs
 
 import com.netflix.spinnaker.keel.api.AccountAwareLocations
 import com.netflix.spinnaker.keel.api.DeliveryConfig

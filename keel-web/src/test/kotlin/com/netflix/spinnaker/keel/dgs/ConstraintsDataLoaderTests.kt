@@ -22,8 +22,6 @@ import com.netflix.spinnaker.keel.core.api.TimeWindowConstraint
 import com.netflix.spinnaker.keel.core.api.windowsNumeric
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
-import com.netflix.spinnaker.keel.rest.dgs.ConstraintsDataLoader
-import com.netflix.spinnaker.keel.rest.dgs.EnvironmentArtifactAndVersion
 import com.netflix.spinnaker.keel.test.deliveryConfig
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests

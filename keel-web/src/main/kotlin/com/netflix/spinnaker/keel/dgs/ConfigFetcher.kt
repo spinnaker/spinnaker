@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.keel.rest.dgs
+package com.netflix.spinnaker.keel.dgs
 
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.netflix.graphql.dgs.DgsComponent
