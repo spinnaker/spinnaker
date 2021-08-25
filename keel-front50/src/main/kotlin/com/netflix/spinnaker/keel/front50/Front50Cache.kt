@@ -6,6 +6,8 @@ import com.netflix.spinnaker.keel.caffeine.CacheLoadingException
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.exceptions.ApplicationNotFound
 import com.netflix.spinnaker.keel.front50.model.Application
+import com.netflix.spinnaker.keel.front50.model.GitRepository
+import com.netflix.spinnaker.keel.front50.model.ManagedDeliveryConfig
 import com.netflix.spinnaker.keel.front50.model.Pipeline
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
@@ -63,8 +65,11 @@ class Front50Cache(
   /**
    * @return the [Application]s matching the given search parameters from the cache.
    */
-  suspend fun searchApplications(vararg searchParams: Pair<String, String>): List<Application> =
-    applicationsBySearchParamsCache.get(searchParams.toMap()).await()
+  suspend fun searchApplications(searchParams: Map<String, String>): List<Application> =
+    applicationsBySearchParamsCache.get(searchParams).await()
+
+  suspend fun searchApplicationsByRepo(repo: GitRepository): List<Application> =
+    searchApplications(repo.toSearchParams())
 
   suspend fun pipelinesByApplication(application: String): List<Pipeline> =
     pipelinesByApplication.get(application).await()
@@ -85,4 +90,39 @@ class Front50Cache(
       }
     }
   }
+
+  fun updateApplicationByName(app: Application) {
+    applicationsByNameCache.put(app.name.toLowerCase(), CompletableFuture.supplyAsync { app })
+  }
+
+  fun invalidateSearchParamsCache(app: Application) {
+    with(app) {
+      // We invalidate the cache, as it's easier than updating it
+      if (repoType != null && repoProjectKey != null && repoSlug != null) {
+        applicationsBySearchParamsCache.synchronous()
+          .invalidate(GitRepository(repoType, repoProjectKey, repoSlug).toSearchParams())
+      }
+    }
+  }
+
+  suspend fun toggleGitIntegration(application: String, user: String, isEnabled: Boolean): Application {
+    val front50App = front50Service.updateApplication(
+      application,
+      user,
+      Application(
+        name = application,
+        email = user,
+        managedDelivery = ManagedDeliveryConfig(importDeliveryConfig = isEnabled)
+      )
+    )
+    updateApplicationByName(front50App)
+    invalidateSearchParamsCache(front50App)
+    return front50App
+  }
+
+  private fun GitRepository.toSearchParams() = mapOf(
+    "repoType" to type,
+    "repoProjectKey" to project,
+    "repoSlug" to slug
+  )
 }

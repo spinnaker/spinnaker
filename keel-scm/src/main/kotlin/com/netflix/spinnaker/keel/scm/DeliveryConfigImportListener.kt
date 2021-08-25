@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.scm
 
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.keel.front50.Front50Cache
+import com.netflix.spinnaker.keel.front50.model.GitRepository
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter.Companion.DEFAULT_MANIFEST_PATH
 import com.netflix.spinnaker.keel.notifications.DeliveryConfigImportFailed
@@ -56,13 +57,10 @@ class DeliveryConfigImportListener(
 
     val apps = runBlocking {
       try {
-        front50Cache.searchApplications(
-          "repoType" to event.repoType,
-          "repoProjectKey" to event.projectKey,
-          "repoSlug" to event.repoSlug
-        ).also {
-          log.debug("Retrieved ${it.size} applications from Front50")
-        }
+        front50Cache.searchApplicationsByRepo(GitRepository(event.repoType, event.projectKey, event.repoSlug))
+          .also {
+            log.debug("Retrieved ${it.size} applications from Front50")
+          }
       } catch (e: Exception) {
         log.error("Error searching applications: $e", e)
         null
@@ -101,12 +99,22 @@ class DeliveryConfigImportListener(
       } catch (e: Exception) {
         log.error("Error retrieving delivery config: $e", e)
         event.emitCounterMetric(CODE_EVENT_COUNTER, DELIVERY_CONFIG_RETRIEVAL_ERROR, app.name)
-        eventPublisher.publishDeliveryConfigImportFailed(app.name, event, clock.instant(), e.message ?: "Unknown reason", scmUtils.getCommitLink(event))
+        eventPublisher.publishDeliveryConfigImportFailed(
+          app.name,
+          event,
+          clock.instant(),
+          e.message ?: "Unknown reason",
+          scmUtils.getCommitLink(event)
+        )
         return@forEach
       }
     }
   }
 
-  private fun CodeEvent.emitCounterMetric(metric: String, extraTags: Collection<Pair<String, String>>, application: String? = null) =
-    spectator.counter(metric, metricTags(application, extraTags) ).safeIncrement()
+  private fun CodeEvent.emitCounterMetric(
+    metric: String,
+    extraTags: Collection<Pair<String, String>>,
+    application: String? = null
+  ) =
+    spectator.counter(metric, metricTags(application, extraTags)).safeIncrement()
 }

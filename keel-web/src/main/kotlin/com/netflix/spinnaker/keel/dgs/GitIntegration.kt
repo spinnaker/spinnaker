@@ -5,9 +5,9 @@ import com.netflix.graphql.dgs.DgsData
 import com.netflix.graphql.dgs.DgsDataFetchingEnvironment
 import com.netflix.graphql.dgs.InputArgument
 import com.netflix.spinnaker.keel.auth.AuthorizationSupport
+import com.netflix.spinnaker.keel.front50.Front50Cache
 import com.netflix.spinnaker.keel.front50.Front50Service
 import com.netflix.spinnaker.keel.front50.model.Application
-import com.netflix.spinnaker.keel.front50.model.ManagedDeliveryConfig
 import com.netflix.spinnaker.keel.graphql.DgsConstants
 import com.netflix.spinnaker.keel.graphql.types.MdApplication
 import com.netflix.spinnaker.keel.graphql.types.MdGitIntegration
@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestHeader
 @DgsComponent
 class GitIntegration(
   private val front50Service: Front50Service,
+  private val front50Cache: Front50Cache,
   private val authorizationSupport: AuthorizationSupport,
   private val applicationFetcherSupport: ApplicationFetcherSupport,
   private val scmUtils: ScmUtils,
@@ -46,15 +47,7 @@ class GitIntegration(
     @RequestHeader("X-SPINNAKER-USER") user: String
   ): MdGitIntegration {
     val front50Application = runBlocking {
-      front50Service.updateApplication(
-        payload.application,
-        user,
-        Application(
-          name = payload.application,
-          email = user,
-          managedDelivery = ManagedDeliveryConfig(importDeliveryConfig = payload.isEnabled)
-        )
-      )
+      front50Cache.toggleGitIntegration(payload.application, user, payload.isEnabled)
     }
     return front50Application.toGitIntegration()
   }

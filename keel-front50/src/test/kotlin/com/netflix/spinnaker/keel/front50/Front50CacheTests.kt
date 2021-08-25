@@ -3,23 +3,32 @@ package com.netflix.spinnaker.keel.front50
 import com.netflix.spinnaker.keel.caffeine.CacheFactory
 import com.netflix.spinnaker.keel.caffeine.CacheProperties
 import com.netflix.spinnaker.keel.front50.model.Application
+import com.netflix.spinnaker.keel.front50.model.GitRepository
 import com.netflix.spinnaker.kork.exceptions.SystemException
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import io.mockk.clearMocks
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.isEmpty
 import strikt.assertions.isFailure
+import strikt.assertions.isTrue
 import io.mockk.coEvery as every
 import io.mockk.coVerify as verify
 
 class Front50CacheTests : JUnit5Minutests {
   class Fixture {
     private val cacheFactory = CacheFactory(mockk(relaxed = true), CacheProperties())
-    private val appsByName = (1..10).associate { "app-$it" to Application("app-$it", "owner@keel.io") }
+    val appsByName = (1..10).associate {
+      "app-$it" to Application(
+        "app-$it",
+        "owner@keel.io",
+        repoType = "stash",
+        repoProjectKey = "spinnaker",
+        repoSlug = "keel-$it"
+      )
+    }
     val front50Service: Front50Service = mockk()
     val subject = Front50Cache(front50Service, cacheFactory)
 
@@ -39,6 +48,13 @@ class Front50CacheTests : JUnit5Minutests {
       } answers {
         val name = arg<Map<String, String>>(0).entries.first().value
         listOfNotNull(appsByName[name])
+      }
+
+      every {
+        front50Service.updateApplication(any(), any(), any())
+      } answers {
+        val updatedApp = arg<Application>(2)
+        appsByName[arg(0)]?.copy(managedDelivery = updatedApp.managedDelivery) ?: throw SystemException("not found")
       }
     }
   }
@@ -101,7 +117,7 @@ class Front50CacheTests : JUnit5Minutests {
         test("app is cached by search params") {
           runBlocking {
             repeat(3) {
-              subject.searchApplications("name" to "app-1")
+              subject.searchApplications(mapOf("name" to "app-1"))
             }
           }
 
@@ -112,8 +128,46 @@ class Front50CacheTests : JUnit5Minutests {
 
         test("non-matching search params returns an empty list") {
           expectThat(
-            runBlocking { subject.searchApplications("name" to "no-match") }
+            runBlocking { subject.searchApplications(mapOf("name" to "no-match")) }
           ).isEmpty()
+        }
+      }
+
+      context("toggle git integration") {
+        test("Verify that we update the application by name cache") {
+          val app = appsByName.values.first()
+          runBlocking {
+            subject.applicationByName(app.name)
+          }
+          runBlocking {
+            subject.toggleGitIntegration(app.name, "keel", true)
+          }
+          val cachedApp = runBlocking {
+            subject.applicationByName(app.name)
+          }
+          verify(exactly = 1) {
+            front50Service.applicationByName(any())
+          }
+
+          expectThat(cachedApp.managedDelivery?.importDeliveryConfig).isTrue()
+        }
+
+        test("Verify that we clear the cache and fetch again") {
+          val app = appsByName.values.first()
+          runBlocking {
+            subject.searchApplicationsByRepo(GitRepository(app.repoType!!, app.repoProjectKey!!, app.repoSlug!!))
+          }
+          runBlocking {
+            subject.toggleGitIntegration(app.name, "keel", true)
+          }
+          runBlocking {
+            subject.searchApplicationsByRepo(GitRepository(app.repoType!!, app.repoProjectKey!!, app.repoSlug!!))
+          }
+          verify(exactly = 2) {
+            front50Service.searchApplications(any())
+          }
+
+
         }
       }
     }
