@@ -39,7 +39,6 @@ interface IDeliveryConfigProps {
 }
 
 export const DeliveryConfig: React.FC<IDeliveryConfigProps> = ({ config, updatedAt, isProcessed, children }) => {
-  if (!config) return null;
   return (
     <div className="sp-margin-xl-top">
       <div className="sp-margin-m-bottom">
@@ -52,7 +51,7 @@ export const DeliveryConfig: React.FC<IDeliveryConfigProps> = ({ config, updated
         )}
       </div>
       {children}
-      <DeliveryConfigContentRenderer content={config} />
+      {config && <DeliveryConfigContentRenderer content={config} />}
     </div>
   );
 };

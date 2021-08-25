@@ -282,7 +282,6 @@ query fetchApplicationManagementData($appName: String!) {
       isEnabled
       link
     }
-    # rawConfig
   }
 }
 

@@ -23,7 +23,7 @@ export const ApplicationQueryError = ({ hasApplicationData, error }: IApplicatio
 
   return (
     <div style={{ width: '100%' }}>
-      Failed to load environments data, please refresh and try again.
+      Failed to load application data, please refresh and try again.
       <p>{error.message}</p>
     </div>
   );
