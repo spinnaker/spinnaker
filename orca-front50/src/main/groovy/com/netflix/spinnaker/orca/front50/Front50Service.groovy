@@ -86,6 +86,9 @@ interface Front50Service {
   @POST('/actions/pipelines/reorder')
   Response reorderPipelines(@Body ReorderPipelinesCommand reorderPipelinesCommand)
 
+  @DELETE("/pipelines/{applicationName}/{pipelineName}")
+  Response deletePipeline(@Path("applicationName") String applicationName, @Path("pipelineName") String pipelineName)
+  
   @POST('/actions/strategies/reorder')
   Response reorderPipelineStrategies(@Body ReorderPipelinesCommand reorderPipelinesCommand)
 
