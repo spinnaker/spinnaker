@@ -36,7 +36,7 @@ data class SubmittedDeliveryConfig(
     name = safeName,
     application = application,
     serviceAccount = serviceAccount
-      ?: error("No service account specified, and no default applied"),
+      ?: error("No service account specified for app ${application}, and no default applied"),
     artifacts = artifacts.mapTo(mutableSetOf()) { artifact ->
       artifact.withDeliveryConfigName(safeName)
     },
