@@ -124,6 +124,7 @@ query fetchApplication($appName: String!, $statuses: [MdArtifactStatusInEnvironm
             account
             regions
           }
+          rawDefinition
         }
       }
     }

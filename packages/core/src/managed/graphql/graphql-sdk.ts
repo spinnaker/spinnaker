@@ -299,6 +299,7 @@ export interface MdResource {
   artifact?: Maybe<MdArtifact>;
   displayName?: Maybe<Scalars['String']>;
   location?: Maybe<MdLocation>;
+  rawDefinition?: Maybe<Scalars['String']>;
 }
 
 export interface MdResourceActuationState {
@@ -491,7 +492,10 @@ export type FetchApplicationQuery = { __typename?: 'Query' } & {
                   >;
                   resources?: Maybe<
                     Array<
-                      { __typename?: 'MdResource' } & Pick<MdResource, 'id' | 'kind' | 'displayName'> & {
+                      { __typename?: 'MdResource' } & Pick<
+                        MdResource,
+                        'id' | 'kind' | 'displayName' | 'rawDefinition'
+                      > & {
                           moniker?: Maybe<{ __typename?: 'MdMoniker' } & Pick<MdMoniker, 'app' | 'stack' | 'detail'>>;
                           location?: Maybe<{ __typename?: 'MdLocation' } & Pick<MdLocation, 'account' | 'regions'>>;
                         }
@@ -874,6 +878,7 @@ export const FetchApplicationDocument = gql`
               account
               regions
             }
+            rawDefinition
           }
         }
       }
