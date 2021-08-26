@@ -326,7 +326,8 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
     repoKey = "stash/myorg/myrepo",
     pullRequestBranch = "feature/abc",
     targetBranch = "main",
-    pullRequestId = "42"
+    pullRequestId = "42",
+    commitHash = "a34afb13b"
   )
 
   val prDeclinedEvent = PrDeclinedEvent(
@@ -360,7 +361,7 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
           test("the delivery config is imported from the branch in the pr event") {
             verify(exactly = 1) {
               importer.import(
-                commitEvent = any(),
+                codeEvent = any(),
                 manifestPath = "spinnaker.yml"
               )
             }

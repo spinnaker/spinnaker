@@ -4,6 +4,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.front50.Front50Cache
 import com.netflix.spinnaker.keel.parseDeliveryConfig
+import com.netflix.spinnaker.keel.scm.CodeEvent
 import com.netflix.spinnaker.keel.scm.CommitCreatedEvent
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
@@ -16,7 +17,7 @@ class DeliveryConfigImporter(
   private val front50Cache: Front50Cache,
   private val yamlMapper: YAMLMapper,
 
-) {
+  ) {
   companion object {
     private val log by lazy { LoggerFactory.getLogger(DeliveryConfigImporter::class.java) }
     const val DEFAULT_MANIFEST_PATH = "spinnaker.yml"
@@ -63,11 +64,17 @@ class DeliveryConfigImporter(
   /**
    * Imports a delivery config from source control based on the details of the [CommitCreatedEvent].
    */
-  fun import(commitEvent: CommitCreatedEvent, manifestPath: String = DEFAULT_MANIFEST_PATH) =
-    with(commitEvent) {
-      import(repoType, projectKey, repoSlug, manifestPath, commitHash)
+  fun import(codeEvent: CodeEvent, manifestPath: String = DEFAULT_MANIFEST_PATH): SubmittedDeliveryConfig {
+    with(codeEvent) {
+      return import(
+        repoType,
+        projectKey,
+        repoSlug,
+        manifestPath,
+        commitHash ?: error("commit hash is missing in commit event $codeEvent")
+      )
     }
-
+  }
 
   /**
    * Imports a delivery config from source control at refs/heads/{defaultBranch},

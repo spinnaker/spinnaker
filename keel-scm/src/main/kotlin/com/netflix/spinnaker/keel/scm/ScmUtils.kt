@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.keel.scm
 
 import com.netflix.spinnaker.keel.caffeine.CacheFactory
-import com.netflix.spinnaker.keel.exceptions.UnsupportedScmType
 import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.igor.ScmService
 import com.netflix.spinnaker.keel.igor.getDefaultBranch
@@ -32,7 +31,7 @@ class ScmUtils(
     }
   }
 
-  fun getCommitLink(event: CommitCreatedEvent): String? {
+  fun getCommitLink(event: CodeEvent): String? {
     return getCommitLink(event.repoType, event.projectKey, event.repoSlug, event.commitHash)
   }
 

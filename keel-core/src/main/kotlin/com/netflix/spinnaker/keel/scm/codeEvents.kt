@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory
 abstract class CodeEvent(
   open val repoKey: String,
   open val targetBranch: String,
+  open val commitHash: String? = null,
   open val pullRequestId: String? = null,
   open val authorName: String? = null,
   open val authorEmail: String? = null
@@ -104,6 +105,7 @@ data class PrMergedEvent(
   override val targetBranch: String,
   override val pullRequestId: String,
   override val pullRequestBranch: String,
+  override val commitHash: String,
   override val authorName: String? = null,
   override val authorEmail: String? = null
 ) : PrEvent(repoKey, targetBranch, pullRequestId, pullRequestBranch, authorName, authorEmail) {
@@ -148,7 +150,7 @@ data class CommitCreatedEvent(
   override val repoKey: String,
   override val targetBranch: String,
   override val pullRequestId: String? = null,
-  val commitHash: String,
+  override val commitHash: String,
   override val authorName: String? = null,
   override val authorEmail: String? = null
 ) : CodeEvent(repoKey, targetBranch, pullRequestId, authorName, authorEmail) {
@@ -192,7 +194,8 @@ fun PublishedArtifact.toCodeEvent(): CodeEvent? {
       pullRequestId = pullRequestId,
       pullRequestBranch = pullRequestBranch,
       authorName = authorName,
-      authorEmail = authorEmail
+      authorEmail = authorEmail,
+      commitHash = sha,
     )
     "pr_declined" -> PrDeclinedEvent(
       repoKey = repoKey,

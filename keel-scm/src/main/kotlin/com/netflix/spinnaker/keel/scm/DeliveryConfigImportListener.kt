@@ -48,8 +48,8 @@ class DeliveryConfigImportListener(
    * it in the database. This is our main path for supporting SCM integration to monitor
    * delivery config changes in source repos.
    */
-  @EventListener(CommitCreatedEvent::class)
-  fun handleCommitCreated(event: CommitCreatedEvent) {
+  @EventListener(CommitCreatedEvent::class, PrMergedEvent::class)
+  fun handleCodeEvent(event: CodeEvent) {
     if (!enabled) {
       log.debug("Importing delivery config from source disabled by feature flag. Ignoring commit event: $event")
       return
@@ -90,7 +90,7 @@ class DeliveryConfigImportListener(
 
       try {
         val deliveryConfig = deliveryConfigImporter.import(
-          commitEvent = event,
+          codeEvent = event,
           manifestPath = DEFAULT_MANIFEST_PATH // TODO: allow location of manifest to be configurable
         ).let {
           if (it.serviceAccount == null) {

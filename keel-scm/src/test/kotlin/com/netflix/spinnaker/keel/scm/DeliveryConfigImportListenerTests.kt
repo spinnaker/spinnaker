@@ -98,17 +98,6 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
       )
     )
 
-    val commitEvent = CommitCreatedEvent(
-      repoKey = "stash/myorg/myrepo",
-      targetBranch = "main",
-      commitHash = "1d52038730f431be19a8012f6f3f333e95a53772"
-    )
-
-    val commitEventForAnotherBranch = commitEvent.copy(targetBranch = "not-a-match")
-
-    // matches repo for nonConfiguredApp
-    val commitEventForAnotherRepo = commitEvent.copy(repoKey = "stash/myorg/another-repo")
-
     fun setupMocks() {
       every {
         springEnv.getProperty("keel.importDeliveryConfigs.enabled", Boolean::class.java, true)
@@ -131,7 +120,7 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
       } returns listOf(configuredApp, notConfiguredApp)
 
       every {
-        importer.import(commitEvent, any())
+        importer.import(any<CodeEvent>(), any())
       } returns deliveryConfig
 
       every {
@@ -152,6 +141,25 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
     }
   }
 
+  val commitEvent = CommitCreatedEvent(
+    repoKey = "stash/myorg/myrepo",
+    targetBranch = "main",
+    commitHash = "1d52038730f431be19a8012f6f3f333e95a53772"
+  )
+
+  val prMergedEvent = PrMergedEvent(
+    repoKey = "stash/myorg/myrepo",
+    targetBranch = "main",
+    commitHash = "1d52038730f431be19a8012f6f3f333e95a53772",
+    pullRequestBranch = "pr1",
+    pullRequestId = "23"
+  )
+
+  val commitEventForAnotherBranch = commitEvent.copy(targetBranch = "not-a-match")
+
+  // matches repo for nonConfiguredApp
+  val commitEventForAnotherRepo = commitEvent.copy(repoKey = "stash/myorg/another-repo")
+
   fun tests() = rootContext<Fixture> {
     fixture { Fixture() }
 
@@ -160,15 +168,16 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
         setupMocks()
       }
 
-      context("a commit event matching the repo and branch is received") {
+      listOf<CodeEvent>(commitEvent, prMergedEvent).map { event ->
+        context("a commit event matching the repo and branch is received") {
         before {
-          subject.handleCommitCreated(commitEvent)
+          subject.handleCodeEvent(event)
         }
 
         test("the delivery config is imported from the commit in the event") {
           verify(exactly = 1) {
             importer.import(
-              commitEvent = commitEvent,
+              codeEvent = event,
               manifestPath = "spinnaker.yml"
             )
           }
@@ -182,7 +191,7 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
 
         test("notification was dismissed on successful import") {
           verify {
-            notificationRepository.dismissNotification(any<Class<DeliveryConfigImportFailed>>(), deliveryConfig.application, commitEvent.targetBranch, any())
+            notificationRepository.dismissNotification(any<Class<DeliveryConfigImportFailed>>(), deliveryConfig.application, event.targetBranch, any())
           }
         }
 
@@ -196,10 +205,11 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
           }
         }
       }
+      }
 
       context("a commit event NOT matching the app repo is received") {
         before {
-          subject.handleCommitCreated(commitEventForAnotherRepo)
+          subject.handleCodeEvent(commitEventForAnotherRepo)
         }
 
         testEventIgnored()
@@ -207,7 +217,7 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
 
       context("a commit event NOT matching the app default branch is received") {
         before {
-          subject.handleCommitCreated(commitEventForAnotherBranch)
+          subject.handleCodeEvent(commitEventForAnotherBranch)
         }
 
         testEventIgnored()
@@ -221,7 +231,7 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
 
       context("a commit event matching the repo and branch is received") {
         before {
-          subject.handleCommitCreated(commitEventForAnotherRepo)
+          subject.handleCodeEvent(commitEventForAnotherRepo)
         }
 
         testEventIgnored()
@@ -241,7 +251,7 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
         }
 
         before {
-          subject.handleCommitCreated(commitEventForAnotherRepo)
+          subject.handleCodeEvent(commitEventForAnotherRepo)
         }
 
         testEventIgnored()
@@ -261,7 +271,7 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
         }
 
         before {
-          subject.handleCommitCreated(commitEvent)
+          subject.handleCodeEvent(commitEvent)
         }
 
         test("a delivery config retrieval error is counted") {

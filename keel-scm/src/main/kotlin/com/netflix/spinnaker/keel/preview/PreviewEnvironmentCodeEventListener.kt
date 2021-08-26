@@ -158,7 +158,7 @@ class PreviewEnvironmentCodeEventListener(
       val commitEvent = event.toCommitEvent()
       val newDeliveryConfig = try {
         deliveryConfigImporter.import(
-          commitEvent = commitEvent,
+          codeEvent = commitEvent,
           manifestPath = DEFAULT_MANIFEST_PATH // TODO: allow location of manifest to be configurable
         ).also {
           event.emitCounterMetric(CODE_EVENT_COUNTER, DELIVERY_CONFIG_RETRIEVAL_SUCCESS, deliveryConfig.application)
