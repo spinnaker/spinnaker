@@ -289,12 +289,18 @@ class PreviewEnvironmentCodeEventListener(
 
     // update artifact reference if applicable to match the branch filter of the preview environment
     if (spec is ArtifactReferenceProvider) {
+      log.debug("Attempting to replace artifact reference for resource ${this.id}")
       previewResource = previewResource.withBranchArtifact(deliveryConfig, previewEnvSpec)
+    } else {
+      log.debug("Resource ${this.id} (${spec.javaClass.simpleName}) does not provide an artifact reference")
     }
 
     // update dependency names that are part of the preview environment and so have new names
     if (spec is Dependent) {
+      log.debug("Attempting to update dependencies for resource ${this.id}")
       previewResource = previewResource.withDependenciesRenamed(deliveryConfig, previewEnvSpec, branch)
+    } else {
+      log.debug("Resource ${this.id} does not implement the Dependent interface")
     }
 
     log.debug("Copied resource ${this.id} to preview resource ${previewResource.id}")
