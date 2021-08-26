@@ -89,12 +89,18 @@ class DeliveryConfigImportListener(
       notificationRepository.dismissNotification(DeliveryConfigImportFailed::class.java, app.name, event.targetBranch)
 
       try {
-        val rawDeliveryConfig = deliveryConfigImporter.import(
+        val deliveryConfig = deliveryConfigImporter.import(
           commitEvent = event,
           manifestPath = DEFAULT_MANIFEST_PATH // TODO: allow location of manifest to be configurable
-        )
+        ).let {
+          if (it.serviceAccount == null) {
+            it.copy(serviceAccount = app.email)
+          } else {
+            it
+          }
+        }
         log.info("Creating/updating delivery config for application ${app.name} from branch ${event.targetBranch}")
-        deliveryConfigUpserter.upsertConfig(rawDeliveryConfig)
+        deliveryConfigUpserter.upsertConfig(deliveryConfig)
         event.emitCounterMetric(CODE_EVENT_COUNTER, DELIVERY_CONFIG_RETRIEVAL_SUCCESS, app.name)
       } catch (e: Exception) {
         log.error("Error retrieving delivery config: $e", e)
