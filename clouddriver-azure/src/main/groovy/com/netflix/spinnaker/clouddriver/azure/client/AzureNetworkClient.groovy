@@ -18,6 +18,8 @@ package com.netflix.spinnaker.clouddriver.azure.client
 
 import com.microsoft.azure.CloudException
 import com.microsoft.azure.credentials.ApplicationTokenCredentials
+import com.microsoft.azure.management.compute.VirtualMachineScaleSet
+import com.microsoft.azure.management.compute.VirtualMachineScaleSetVMs
 import com.microsoft.azure.management.network.LoadBalancer
 import com.microsoft.azure.management.network.LoadBalancerInboundNatPool
 import com.microsoft.azure.management.network.LoadBalancingRule
@@ -576,7 +578,7 @@ class AzureNetworkClient extends AzureBaseClient {
    * @param serverGroupName name of the server group to be enabled
    * @return a ServiceResponse object
    */
-  void enableServerGroup(String resourceGroupName, String appGatewayName, String serverGroupName) {
+  void enableServerGroupWithAppGateway(String resourceGroupName, String appGatewayName, String serverGroupName) {
     def appGateway = executeOp({
       azure.applicationGateways().getByResourceGroup(resourceGroupName, appGatewayName)
     })
@@ -655,13 +657,30 @@ class AzureNetworkClient extends AzureBaseClient {
   }
 
   /**
+   * Checks if a server group, not associated with a load balancer, is "enabled". Because "enabled" means "can receive traffic",
+   * and there is no concept of shifting traffic in server groups not fronted by load balancers,
+   * we use the instance count of 0 to proxy saying it is disabled.
+   * @param resourceGroupName name of the resource group where the Application Gateway resource was created (see application name and region/location)
+   * @param serverGroupName name of the server group to be disabled
+   * @return true if instance count is 0, false otherwise
+   */
+  Boolean isServerGroupWithoutLoadBalancerDisabled(String resourceGroupName, String serverGroupName) {
+    VirtualMachineScaleSet scaleSet = executeOp({
+      azure.virtualMachineScaleSets().getByResourceGroup(resourceGroupName, serverGroupName)
+    })
+
+    VirtualMachineScaleSetVMs machines = scaleSet.virtualMachines()
+    machines.list().size() == 0
+  }
+
+  /**
    * Checks if a server group that is attached to an Application Gateway resource in Azure is set to receive traffic
    * @param resourceGroupName name of the resource group where the Application Gateway resource was created (see application name and region/location)
    * @param appGatewayName the of the application gateway
    * @param serverGroupName name of the server group to be disabled
    * @return true or false
    */
-  Boolean isServerGroupDisabled(String resourceGroupName, String appGatewayName, String serverGroupName) {
+  Boolean isServerGroupWithAppGatewayDisabled(String resourceGroupName, String appGatewayName, String serverGroupName) {
     def appGateway = executeOp({
       azure.applicationGateways().getByResourceGroup(resourceGroupName, appGatewayName)
     })

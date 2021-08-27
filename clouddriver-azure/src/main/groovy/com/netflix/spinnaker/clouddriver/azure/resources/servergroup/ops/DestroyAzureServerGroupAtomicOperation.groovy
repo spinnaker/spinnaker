@@ -79,7 +79,7 @@ class DestroyAzureServerGroupAtomicOperation implements AtomicOperation<Void> {
 
         // Clean-up the storrage account, load balancer and the subnet that where attached to the server group
         if (errList.isEmpty()) {
-          if(serverGroupDescription.loadBalancerType == AzureLoadBalancer.AzureLoadBalancerType.AZURE_LOAD_BALANCER.toString()) {
+          if (serverGroupDescription.loadBalancerType == AzureLoadBalancer.AzureLoadBalancerType.AZURE_LOAD_BALANCER.toString()) {
             task.updateStatus(BASE_PHASE, "Remove backend address pool in $description.loadBalancerName")
             description
               .credentials
@@ -91,7 +91,7 @@ class DestroyAzureServerGroupAtomicOperation implements AtomicOperation<Void> {
               .credentials
               .networkClient
               .removeLoadBalancerNatPoolPortRangeforServerGroup(resourceGroupName, serverGroupDescription.loadBalancerName, serverGroupDescription.name)
-          }else {
+          } else if (serverGroupDescription.loadBalancerType == AzureLoadBalancer.AzureLoadBalancerType.AZURE_APPLICATION_GATEWAY.toString()) {
             // Remove association between server group and the assigned application gateway backend address pool
             task.updateStatus(BASE_PHASE, "Remove backend address pool in $description.appGatewayName")
             description

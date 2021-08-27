@@ -66,7 +66,7 @@ class EnableAzureServerGroupAtomicOperation implements AtomicOperation<Void> {
         errList.add("could not find server group ${description.name} in ${region}")
       } else {
         try {
-          if(serverGroupDescription.loadBalancerType == AzureLoadBalancer.AzureLoadBalancerType.AZURE_LOAD_BALANCER.toString()) {
+          if (serverGroupDescription.loadBalancerType == AzureLoadBalancer.AzureLoadBalancerType.AZURE_LOAD_BALANCER.toString()) {
             if (description.credentials.networkClient.isServerGroupWithLoadBalancerDisabled(resourceGroupName, serverGroupDescription.loadBalancerName, serverGroupDescription.name)) {
               description
                 .credentials
@@ -76,16 +76,18 @@ class EnableAzureServerGroupAtomicOperation implements AtomicOperation<Void> {
             } else {
               task.updateStatus BASE_PHASE, "Azure server group ${serverGroupDescription.name} in ${region} is already enabled."
             }
-          } else {
-            if (description.credentials.networkClient.isServerGroupDisabled(resourceGroupName, serverGroupDescription.appGatewayName, serverGroupDescription.name)) {
+          } else if (serverGroupDescription.loadBalancerType == AzureLoadBalancer.AzureLoadBalancerType.AZURE_APPLICATION_GATEWAY.toString()) {
+            if (description.credentials.networkClient.isServerGroupWithAppGatewayDisabled(resourceGroupName, serverGroupDescription.appGatewayName, serverGroupDescription.name)) {
               description
                 .credentials
                 .networkClient
-                .enableServerGroup(resourceGroupName, serverGroupDescription.appGatewayName, serverGroupDescription.name)
+                .enableServerGroupWithAppGateway(resourceGroupName, serverGroupDescription.appGatewayName, serverGroupDescription.name)
               task.updateStatus BASE_PHASE, "Done enabling Azure server group ${serverGroupDescription.name} in ${region}."
             } else {
               task.updateStatus BASE_PHASE, "Azure server group ${serverGroupDescription.name} in ${region} is already enabled."
             }
+          } else {
+            throw new RuntimeException("Azure server group with load balancer type $serverGroupDescription.loadBalancerType cannot be enabled.")
           }
 
         } catch (Exception e) {

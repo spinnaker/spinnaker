@@ -228,7 +228,7 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
         description
           .credentials
           .networkClient
-          .enableServerGroup(resourceGroupName, description.appGatewayName, description.name)
+          .enableServerGroupWithAppGateway(resourceGroupName, description.appGatewayName, description.name)
         task.updateStatus BASE_PHASE, "Done enabling Azure server group ${description.name} in ${description.region}."
       } else {
         task.updateStatus BASE_PHASE, "Azure server group ${description.name} in ${description.region} is already enabled."

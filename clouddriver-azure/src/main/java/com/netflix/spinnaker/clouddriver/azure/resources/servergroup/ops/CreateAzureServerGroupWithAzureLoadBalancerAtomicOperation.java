@@ -301,7 +301,7 @@ class CreateAzureServerGroupWithAzureLoadBalancerAtomicOperation implements Atom
       if (description
           .getCredentials()
           .getNetworkClient()
-          .isServerGroupDisabled(
+          .isServerGroupWithAppGatewayDisabled(
               resourceGroupName, description.getLoadBalancerName(), description.getName())) {
         description
             .getCredentials()

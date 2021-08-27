@@ -183,7 +183,13 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
     azureSG.loadBalancerName = scaleSet.tags?.loadBalancerName
     azureSG.enableInboundNAT = scaleSet.tags?.enableInboundNAT
     azureSG.appGatewayName = scaleSet.tags?.appGatewayName
-    azureSG.loadBalancerType = azureSG.appGatewayName != null ? AzureLoadBalancer.AzureLoadBalancerType.AZURE_APPLICATION_GATEWAY.toString() : AzureLoadBalancer.AzureLoadBalancerType.AZURE_LOAD_BALANCER.toString()
+    if (azureSG.appGatewayName == null && azureSG.loadBalancerName == null) {
+      azureSG.loadBalancerType = null
+    } else if (azureSG.appGatewayName == null) {
+      azureSG.loadBalancerType = AzureLoadBalancer.AzureLoadBalancerType.AZURE_LOAD_BALANCER.toString()
+    } else {
+      azureSG.loadBalancerType = AzureLoadBalancer.AzureLoadBalancerType.AZURE_APPLICATION_GATEWAY.toString()
+    }
     azureSG.appGatewayBapId = scaleSet.tags?.appGatewayBapId
 
     def networkInterfaceConfigurations = scaleSet.virtualMachineProfile()?.networkProfile()?.networkInterfaceConfigurations()

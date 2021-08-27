@@ -33,12 +33,12 @@ package com.netflix.spinnaker.clouddriver.azure.templates
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
+import com.microsoft.azure.management.compute.ResourceIdentityType
 import com.microsoft.azure.management.compute.VirtualMachineScaleSetDataDisk
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancer
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription.AzureInboundPortConfig
-import com.microsoft.azure.management.compute.ResourceIdentityType
 import groovy.util.logging.Slf4j
 
 @Slf4j
@@ -185,7 +185,7 @@ class AzureServerGroupResourceTemplate {
   static class ServerGroupTemplateParameters {
     LocationParameter location = new LocationParameter(["description": "Location to deploy"])
     SubnetParameter subnetId = new SubnetParameter(["description": "Subnet Resource ID"], "")
-    AppGatewayAddressPoolParameter appGatewayAddressPoolId = new AppGatewayAddressPoolParameter(["description": "App Gateway backend address pool resource ID"])
+    AppGatewayAddressPoolParameter appGatewayAddressPoolId = new AppGatewayAddressPoolParameter(["description": "App Gateway backend address pool resource ID"], "")
     VMUserNameParameter vmUserName = new VMUserNameParameter(["description": "Admin username on all VMs"], "")
     VMPasswordParameter vmPassword = new VMPasswordParameter(["description": "Admin password on all VMs"], "")
     VMSshPublicKeyParameter vmSshPublicKey = new VMSshPublicKeyParameter(["description": "SSH public key on all VMs"], "")
@@ -212,9 +212,9 @@ class AzureServerGroupResourceTemplate {
   }
 
   static String appGatewayAddressPoolParameterName = "appGatewayAddressPoolId"
-  static class AppGatewayAddressPoolParameter extends StringParameter {
-    AppGatewayAddressPoolParameter(Map<String, String> metadata) {
-      super(metadata)
+  static class AppGatewayAddressPoolParameter extends StringParameterWithDefault {
+    AppGatewayAddressPoolParameter(Map<String, String> metadata, String defaultValue) {
+      super(metadata, defaultValue)
     }
   }
 
@@ -659,13 +659,17 @@ class AzureServerGroupResourceTemplate {
         subnet = new NetworkInterfaceIPConfigurationSubnet()
         loadBalancerBackendAddressPools.add(new ExistLoadBalancerBackendAddressPool())
         loadBalancerInboundNatPools.add(new ExistLoadBalancerInboundNatPoolId())
-      }else {
+      } else if (description.loadBalancerType == AzureLoadBalancer.AzureLoadBalancerType.AZURE_APPLICATION_GATEWAY.toString()) {
         subnet = new NetworkInterfaceIPConfigurationSubnet()
         if(description.enableInboundNAT) {
           loadBalancerBackendAddressPools.add(new LoadBalancerBackendAddressPool())
           loadBalancerInboundNatPools.add(new LoadBalancerInboundNatPoolId())
         }
         ApplicationGatewayBackendAddressPools.add(new AppGatewayBackendAddressPool())
+      } else if (description.loadBalancerType == null) {
+        subnet = new NetworkInterfaceIPConfigurationSubnet()
+      } else {
+        throw new RuntimeException("Load balancer type $description.loadBalancerType is not valid")
       }
     }
   }

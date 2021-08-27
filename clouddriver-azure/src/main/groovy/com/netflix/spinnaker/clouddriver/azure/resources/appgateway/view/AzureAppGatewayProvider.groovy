@@ -100,7 +100,7 @@ class AzureAppGatewayProvider implements LoadBalancerProvider<AzureLoadBalancer>
 
       loadBalancer.serverGroups.add(new LoadBalancerServerGroup (
         name: serverGroup,
-        isDisabled: asg.isDisabled(),
+        isDisabled: asg?.isDisabled(),
         detachedInstances: [],
         instances: [],
         cloudProvider: AzureCloudProvider.ID

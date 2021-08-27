@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.Azur
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.ops.CreateAzureServerGroupAtomicOperation
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.ops.CreateAzureServerGroupWithAzureLoadBalancerAtomicOperation
+import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.ops.CreateAzureServerGroupWithoutLoadBalancersAtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
@@ -35,10 +36,14 @@ class CreateAzureServerGroupAtomicOperationConverter extends AbstractAtomicOpera
 
   AtomicOperation convertOperation(Map input) {
     AzureServerGroupDescription asgd = convertDescription(input)
-    if(asgd.loadBalancerType == AzureLoadBalancer.AzureLoadBalancerType.AZURE_LOAD_BALANCER.toString()) {
+    if (asgd.loadBalancerType == AzureLoadBalancer.AzureLoadBalancerType.AZURE_LOAD_BALANCER.toString()) {
       new CreateAzureServerGroupWithAzureLoadBalancerAtomicOperation(asgd)
-    }else {
+    } else if (asgd.loadBalancerType == AzureLoadBalancer.AzureLoadBalancerType.AZURE_APPLICATION_GATEWAY.toString()) {
       new CreateAzureServerGroupAtomicOperation(asgd)
+    } else if (asgd.loadBalancerType == null) {
+      new CreateAzureServerGroupWithoutLoadBalancersAtomicOperation(asgd)
+    } else {
+      throw new RuntimeException("Cannot create Azure server group with load balancer type $asgd.loadBalancerType")
     }
   }
 
