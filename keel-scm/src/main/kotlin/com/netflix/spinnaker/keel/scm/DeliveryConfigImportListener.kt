@@ -4,7 +4,6 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.keel.front50.Front50Cache
 import com.netflix.spinnaker.keel.front50.model.GitRepository
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
-import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter.Companion.DEFAULT_MANIFEST_PATH
 import com.netflix.spinnaker.keel.notifications.DeliveryConfigImportFailed
 import com.netflix.spinnaker.keel.persistence.DismissibleNotificationRepository
 import com.netflix.spinnaker.keel.telemetry.safeIncrement
@@ -71,7 +70,7 @@ class DeliveryConfigImportListener(
     val matchingApps = apps
       .filter { app ->
         app != null
-          && app.managedDelivery?.importDeliveryConfig == true
+          && app.managedDelivery.importDeliveryConfig == true
           && event.matchesApplicationConfig(app)
           && event.targetBranch == scmUtils.getDefaultBranch(app)
       }
@@ -91,7 +90,7 @@ class DeliveryConfigImportListener(
       try {
         val deliveryConfig = deliveryConfigImporter.import(
           codeEvent = event,
-          manifestPath = DEFAULT_MANIFEST_PATH // TODO: allow location of manifest to be configurable
+          manifestPath = app.managedDelivery.manifestPath
         ).let {
           if (it.serviceAccount == null) {
             it.copy(serviceAccount = app.email)

@@ -170,41 +170,74 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
 
       listOf<CodeEvent>(commitEvent, prMergedEvent).map { event ->
         context("a commit event matching the repo and branch is received") {
+          before {
+            subject.handleCodeEvent(event)
+          }
+
+          test("the delivery config is imported from the commit in the event") {
+            verify(exactly = 1) {
+              importer.import(
+                codeEvent = event,
+                manifestPath = any()
+              )
+            }
+          }
+
+          test("the delivery config is created/updated") {
+            verify {
+              deliveryConfigUpserter.upsertConfig(deliveryConfig)
+            }
+          }
+
+          test("notification was dismissed on successful import") {
+            verify {
+              notificationRepository.dismissNotification(
+                any<Class<DeliveryConfigImportFailed>>(),
+                deliveryConfig.application,
+                event.targetBranch,
+                any()
+              )
+            }
+          }
+
+          test("a successful delivery config retrieval is counted") {
+            val tags = mutableListOf<Iterable<Tag>>()
+            verify {
+              spectator.counter(CODE_EVENT_COUNTER, capture(tags))
+            }
+            expectThat(tags).one {
+              contains(DELIVERY_CONFIG_RETRIEVAL_SUCCESS.toTags())
+            }
+          }
+        }
+      }
+
+      context("apps with custom manifest path") {
+        val manifestPath = "custom/spinnaker.yml"
         before {
-          subject.handleCodeEvent(event)
+          every {
+            front50Cache.searchApplicationsByRepo(any())
+          } returns listOf(
+            configuredApp.copy(
+              managedDelivery = ManagedDeliveryConfig(
+                importDeliveryConfig = true,
+                manifestPath = manifestPath
+              )
+            ),
+            notConfiguredApp
+          )
         }
 
-        test("the delivery config is imported from the commit in the event") {
+        test("importing the manifest from the correct path") {
+          subject.handleCodeEvent(commitEvent)
           verify(exactly = 1) {
             importer.import(
-              codeEvent = event,
-              manifestPath = "spinnaker.yml"
+              codeEvent = commitEvent,
+              manifestPath = manifestPath
             )
           }
         }
 
-        test("the delivery config is created/updated") {
-          verify {
-            deliveryConfigUpserter.upsertConfig(deliveryConfig)
-          }
-        }
-
-        test("notification was dismissed on successful import") {
-          verify {
-            notificationRepository.dismissNotification(any<Class<DeliveryConfigImportFailed>>(), deliveryConfig.application, event.targetBranch, any())
-          }
-        }
-
-        test("a successful delivery config retrieval is counted") {
-          val tags = mutableListOf<Iterable<Tag>>()
-          verify {
-            spectator.counter(CODE_EVENT_COUNTER, capture(tags))
-          }
-          expectThat(tags).one {
-            contains(DELIVERY_CONFIG_RETRIEVAL_SUCCESS.toTags())
-          }
-        }
-      }
       }
 
       context("a commit event NOT matching the app repo is received") {
@@ -266,7 +299,7 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
       context("failure to retrieve delivery config") {
         modifyFixture {
           every {
-            importer.import(commitEvent, "spinnaker.yml")
+            importer.import(commitEvent, manifestPath = any())
           } throws SystemException("oh noes!")
         }
 

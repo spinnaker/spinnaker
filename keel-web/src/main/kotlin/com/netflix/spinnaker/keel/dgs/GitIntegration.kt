@@ -8,6 +8,7 @@ import com.netflix.spinnaker.keel.auth.AuthorizationSupport
 import com.netflix.spinnaker.keel.front50.Front50Cache
 import com.netflix.spinnaker.keel.front50.Front50Service
 import com.netflix.spinnaker.keel.front50.model.Application
+import com.netflix.spinnaker.keel.front50.model.ManagedDeliveryConfig
 import com.netflix.spinnaker.keel.graphql.DgsConstants
 import com.netflix.spinnaker.keel.graphql.types.MdApplication
 import com.netflix.spinnaker.keel.graphql.types.MdGitIntegration
@@ -46,10 +47,20 @@ class GitIntegration(
     @InputArgument payload: MdUpdateGitIntegrationPayload,
     @RequestHeader("X-SPINNAKER-USER") user: String
   ): MdGitIntegration {
-    val front50Application = runBlocking {
-      front50Cache.toggleGitIntegration(payload.application, user, payload.isEnabled)
+    val existingConfig = runBlocking {
+      front50Cache.applicationByName(payload.application)
+    }.managedDelivery
+    val updatedFront50App = runBlocking {
+      front50Cache.updateManagedDeliveryConfig(
+        payload.application,
+        user,
+        ManagedDeliveryConfig(
+          importDeliveryConfig = payload.isEnabled ?: existingConfig.importDeliveryConfig,
+          manifestPath = payload.manifestPath ?: existingConfig.manifestPath
+        )
+      )
     }
-    return front50Application.toGitIntegration()
+    return updatedFront50App.toGitIntegration()
   }
 
   private fun Application.toGitIntegration(): MdGitIntegration {
@@ -58,7 +69,8 @@ class GitIntegration(
       id = "${name}-git-integration",
       repository = "${repoProjectKey}/${repoSlug}",
       branch = branch,
-      isEnabled = managedDelivery?.importDeliveryConfig,
+      isEnabled = managedDelivery.importDeliveryConfig,
+      manifestPath = managedDelivery.manifestPath,
       link = scmUtils.getBranchLink(repoType, repoProjectKey, repoSlug, branch),
     )
   }

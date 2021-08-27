@@ -29,6 +29,7 @@ import com.netflix.spinnaker.keel.core.name
 import com.netflix.spinnaker.keel.front50.Front50Cache
 import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.front50.model.DataSources
+import com.netflix.spinnaker.keel.front50.model.ManagedDeliveryConfig
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
 import com.netflix.spinnaker.keel.notifications.DeliveryConfigImportFailed
 import com.netflix.spinnaker.keel.notifications.DismissibleNotification
@@ -260,11 +261,11 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
       } returns setOf(deliveryConfig)
 
       every {
-        front50Cache.applicationByName("fnord")
+        front50Cache.applicationByName(deliveryConfig.application)
       } returns appConfig
 
       every {
-        importer.import(any(), "spinnaker.yml")
+        importer.import(any(), manifestPath = any())
       } returns with(deliveryConfig) {
         SubmittedDeliveryConfig(
           application = application,
@@ -362,7 +363,7 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
             verify(exactly = 1) {
               importer.import(
                 codeEvent = any(),
-                manifestPath = "spinnaker.yml"
+                manifestPath = any(),
               )
             }
           }
@@ -508,6 +509,27 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
         }
       }
 
+      context("an app with custom manifest path") {
+        val manifestPath = "custom/spinnaker.yml"
+
+        before {
+          every {
+            front50Cache.applicationByName(deliveryConfig.application)
+          } returns appConfig.copy(managedDelivery = ManagedDeliveryConfig(manifestPath = manifestPath))
+
+        }
+
+        test("importing the manifest from the correct path") {
+          subject.handlePrEvent(prOpenedEvent)
+          verify(exactly = 1) {
+            importer.import(
+              codeEvent = any(),
+              manifestPath = manifestPath
+            )
+          }
+        }
+      }
+
       context("a PR event NOT matching a preview environment spec is received") {
         before {
           val nonMatchingPrEvent = prOpenedEvent.copy(pullRequestBranch = "not-a-match")
@@ -624,7 +646,7 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
       context("failure to retrieve delivery config") {
         modifyFixture {
           every {
-            importer.import(any(), "spinnaker.yml")
+            importer.import(any(), manifestPath = any())
           } throws SystemException("oh noes!")
         }
 

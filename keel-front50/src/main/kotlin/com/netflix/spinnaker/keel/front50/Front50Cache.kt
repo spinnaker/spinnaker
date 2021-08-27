@@ -105,14 +105,14 @@ class Front50Cache(
     }
   }
 
-  suspend fun toggleGitIntegration(application: String, user: String, isEnabled: Boolean): Application {
+  suspend fun updateManagedDeliveryConfig(application: String, user: String, settings: ManagedDeliveryConfig): Application {
     val front50App = front50Service.updateApplication(
       application,
       user,
       Application(
         name = application,
         email = user,
-        managedDelivery = ManagedDeliveryConfig(importDeliveryConfig = isEnabled)
+        managedDelivery = settings
       )
     )
     updateApplicationByName(front50App)

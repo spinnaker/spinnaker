@@ -22,6 +22,7 @@ type MdGitIntegration {
   repository: String
   branch: String
   isEnabled: Boolean
+  manifestPath: String
   link: String
 }
 
@@ -286,7 +287,8 @@ type Mutation @extends {
 
 input MdUpdateGitIntegrationPayload {
   application: String!
-  isEnabled: Boolean!
+  isEnabled: Boolean
+  manifestPath: String
 }
 
 input MdRetryArtifactActionPayload {

@@ -30,7 +30,7 @@ class DeliveryConfigImporter(
     repoType: String,
     projectKey: String,
     repoSlug: String,
-    manifestPath: String,
+    manifestPath: String?,
     ref: String,
     addMetadata: Boolean = true
   ): SubmittedDeliveryConfig {
@@ -38,7 +38,7 @@ class DeliveryConfigImporter(
 
     log.debug("Retrieving delivery config from $manifestLocation")
     val rawDeliveryConfig = runBlocking {
-      scmService.getDeliveryConfigManifest(repoType, projectKey, repoSlug, manifestPath, ref, true)
+      scmService.getDeliveryConfigManifest(repoType, projectKey, repoSlug, manifestPath ?: DEFAULT_MANIFEST_PATH, ref, true)
     }.manifest
     val submittedDeliveryConfig = yamlMapper.parseDeliveryConfig(rawDeliveryConfig)
 
@@ -64,7 +64,7 @@ class DeliveryConfigImporter(
   /**
    * Imports a delivery config from source control based on the details of the [CommitCreatedEvent].
    */
-  fun import(codeEvent: CodeEvent, manifestPath: String = DEFAULT_MANIFEST_PATH): SubmittedDeliveryConfig {
+  fun import(codeEvent: CodeEvent, manifestPath: String?): SubmittedDeliveryConfig {
     with(codeEvent) {
       return import(
         repoType,
@@ -89,7 +89,7 @@ class DeliveryConfigImporter(
         repoType = repoType ?: error("Missing SCM type in config for application $name"),
         projectKey = repoProjectKey ?: error("Missing SCM project in config for application $name"),
         repoSlug = repoSlug ?: error("Missing SCM repository in config for application $name"),
-        manifestPath = DEFAULT_MANIFEST_PATH, // TODO: make configurable
+        manifestPath = app.managedDelivery.manifestPath,
         ref = "refs/heads/${getDefaultBranch(scmService)}",
         addMetadata = addMetadata
       )

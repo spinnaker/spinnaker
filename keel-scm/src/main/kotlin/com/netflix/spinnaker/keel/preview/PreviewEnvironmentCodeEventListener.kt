@@ -16,7 +16,6 @@ import com.netflix.spinnaker.keel.api.titus.TitusClusterSpec
 import com.netflix.spinnaker.keel.docker.ReferenceProvider
 import com.netflix.spinnaker.keel.front50.Front50Cache
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
-import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter.Companion.DEFAULT_MANIFEST_PATH
 import com.netflix.spinnaker.keel.notifications.DeliveryConfigImportFailed
 import com.netflix.spinnaker.keel.persistence.DependentAttachFilter.ATTACH_PREVIEW_ENVIRONMENTS
 import com.netflix.spinnaker.keel.persistence.DismissibleNotificationRepository
@@ -154,12 +153,14 @@ class PreviewEnvironmentCodeEventListener(
 
       // We always want to dismiss the previous notifications, and if needed to create a new one
       notificationRepository.dismissNotification(DeliveryConfigImportFailed::class.java, deliveryConfig.application, event.pullRequestBranch)
-
+      val manifestPath = runBlocking {
+        front50Cache.applicationByName(deliveryConfig.application).managedDelivery.manifestPath
+      }
       val commitEvent = event.toCommitEvent()
       val newDeliveryConfig = try {
         deliveryConfigImporter.import(
           codeEvent = commitEvent,
-          manifestPath = DEFAULT_MANIFEST_PATH // TODO: allow location of manifest to be configurable
+          manifestPath = manifestPath
         ).also {
           event.emitCounterMetric(CODE_EVENT_COUNTER, DELIVERY_CONFIG_RETRIEVAL_SUCCESS, deliveryConfig.application)
           log.info("Validating config for application ${deliveryConfig.application} from branch ${event.pullRequestBranch}")

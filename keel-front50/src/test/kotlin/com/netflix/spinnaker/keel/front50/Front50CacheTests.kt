@@ -4,6 +4,7 @@ import com.netflix.spinnaker.keel.caffeine.CacheFactory
 import com.netflix.spinnaker.keel.caffeine.CacheProperties
 import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.front50.model.GitRepository
+import com.netflix.spinnaker.keel.front50.model.ManagedDeliveryConfig
 import com.netflix.spinnaker.kork.exceptions.SystemException
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -140,7 +141,7 @@ class Front50CacheTests : JUnit5Minutests {
             subject.applicationByName(app.name)
           }
           runBlocking {
-            subject.toggleGitIntegration(app.name, "keel", true)
+            subject.updateManagedDeliveryConfig(app.name, "keel", ManagedDeliveryConfig(importDeliveryConfig = true))
           }
           val cachedApp = runBlocking {
             subject.applicationByName(app.name)
@@ -149,7 +150,7 @@ class Front50CacheTests : JUnit5Minutests {
             front50Service.applicationByName(any())
           }
 
-          expectThat(cachedApp.managedDelivery?.importDeliveryConfig).isTrue()
+          expectThat(cachedApp.managedDelivery.importDeliveryConfig).isTrue()
         }
 
         test("Verify that we clear the cache and fetch again") {
@@ -158,7 +159,7 @@ class Front50CacheTests : JUnit5Minutests {
             subject.searchApplicationsByRepo(GitRepository(app.repoType!!, app.repoProjectKey!!, app.repoSlug!!))
           }
           runBlocking {
-            subject.toggleGitIntegration(app.name, "keel", true)
+            subject.updateManagedDeliveryConfig(app.name, "keel", ManagedDeliveryConfig(importDeliveryConfig = true))
           }
           runBlocking {
             subject.searchApplicationsByRepo(GitRepository(app.repoType!!, app.repoProjectKey!!, app.repoSlug!!))
