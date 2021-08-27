@@ -8,6 +8,7 @@ import { Subscription } from 'rxjs';
 
 import { PipelineGraphLink } from './PipelineGraphLink';
 import { PipelineGraphNode } from './PipelineGraphNode';
+import { SETTINGS } from '../../../config/settings';
 import { IExecution, IPipeline } from '../../../domain';
 import {
   IExecutionViewState,
@@ -18,6 +19,7 @@ import {
 import { UUIDGenerator } from '../../../utils/uuid.service';
 import { IPipelineValidationResults } from '../validation/PipelineConfigValidator';
 import { PipelineConfigValidator } from '../validation/PipelineConfigValidator';
+import { Spinner } from '../../../widgets/spinners/Spinner';
 
 import './pipelineGraph.less';
 
@@ -39,6 +41,8 @@ export interface IPipelineGraphState {
   nodeRadius: number;
   phaseCount: number;
   rowHeights: number[];
+  showGraph: boolean;
+  loading: boolean;
 }
 
 export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelineGraphState> {
@@ -53,6 +57,8 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
     nodeRadius: this.defaultNodeRadius,
     phaseCount: 0,
     rowHeights: [],
+    showGraph: true,
+    loading: false,
   };
   private element: JQuery;
   private graphStatusHash: string;
@@ -63,11 +69,13 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
   private rowPadding = 20;
   private validationSubscription: Subscription;
   private windowResize = this.handleWindowResize.bind(this);
+  private expandPipelineStageThreshold = SETTINGS.feature.renderPipelineStageThreshold;
 
   constructor(props: IPipelineGraphProps) {
     super(props);
     const { execution } = props;
     this.state = this.defaultState;
+    this.handleExpandSectionClick = this.handleExpandSectionClick.bind(this);
 
     // HACK: This is needed to update the node states in the graph based on the stage states.
     //       Once the execution itself changes based on stage status, this can be removed.
@@ -359,22 +367,43 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
     newState.graphHeight = Math.max(sum(newState.rowHeights) + this.graphVerticalPadding, this.minExecutionGraphHeight);
   }
 
-  private updateGraph(props: IPipelineGraphProps, statesOnly = false): void {
+  private updateGraph(props: IPipelineGraphProps, expand = false, statesOnly = false): void {
     let newState: IPipelineGraphState;
-    if (!statesOnly) {
+
+    const nodes = this.createNodes(props);
+    const isConfigurePage = props.pipeline;
+    // To minimize the graph on load to save resources
+    if (
+      this.expandPipelineStageThreshold &&
+      nodes.length > this.expandPipelineStageThreshold &&
+      !expand &&
+      !isConfigurePage
+    ) {
       newState = clone(this.defaultState);
-      const groupedNodes = this.applyPhasesAndLink(props, null, newState);
+      newState.showGraph = false;
+    } else if (!statesOnly) {
+      newState = clone(this.defaultState);
+      const groupedNodes = this.applyPhasesAndLink(props, nodes, newState);
       this.applyPhaseWidth(props, newState);
       this.applyNodeHeights(groupedNodes, newState);
       this.establishRowHeights(groupedNodes, newState);
       this.setNodePositions(groupedNodes, newState);
       newState.allNodes = flatten(groupedNodes);
       this.createLinks(newState);
+      newState.showGraph = true;
     } else {
       newState = { allNodes: this.state.allNodes } as IPipelineGraphState;
       newState.allNodes.forEach((node) => this.resetLinks(props, node));
+      newState.showGraph = true;
     }
     this.applyAllNodes(newState);
+  }
+
+  public handleExpandSectionClick() {
+    const newState = clone(this.defaultState);
+    newState.loading = true;
+    newState.showGraph = false;
+    this.setState(newState);
   }
 
   private resetLinks(props: IPipelineGraphProps, node: IPipelineGraphNode): void {
@@ -441,7 +470,22 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
     }
 
     if (updateGraph) {
-      this.updateGraph(nextProps, stateOnly);
+      this.updateGraph(nextProps, this.state.showGraph, stateOnly);
+    }
+  }
+
+  public componentDidUpdate(_prevProps: IPipelineGraphProps, prevState: IPipelineGraphState) {
+    // Pipeline graph was just set to a loading state (Currently Showing Loading)
+    // We will process and show the graph now
+    if (prevState.loading !== this.state.loading && this.state.loading == true) {
+      const showGraph = true;
+      // This setTimeout is necessary because this.updateGraph is getting called immediately
+      // after the component update and overrides the rendering engine's update operation, resulting in
+      // the loading spinner not showing up. Adding the timeout will place the updateGraph function
+      // at the back of the event queue and will be ran AFTER the rendering is finished.
+      setTimeout(() => {
+        this.updateGraph(this.props, showGraph);
+      });
     }
   }
 
@@ -452,53 +496,105 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
 
   public render() {
     const { execution } = this.props;
-    const { allNodes, graphHeight, graphWidth, labelOffsetX, labelOffsetY, maxLabelWidth, nodeRadius } = this.state;
+    const {
+      allNodes,
+      graphHeight,
+      graphWidth,
+      labelOffsetX,
+      labelOffsetY,
+      maxLabelWidth,
+      nodeRadius,
+      showGraph,
+      loading,
+    } = this.state;
 
     return (
       <div className="pipeline-graph" ref={this.refCallback} onWheel={this.handleWheel}>
-        <svg
-          className="pipeline-graph"
-          style={{
-            height: graphHeight,
-            width: graphWidth,
-            padding: this.graphVerticalPadding + 'px ' + nodeRadius * 2 + 'px ' + '0 ' + nodeRadius * 2 + 'px',
-          }}
-        >
-          <g className="placeholder">
-            <foreignObject width={maxLabelWidth > 0 ? maxLabelWidth : 1} height="200">
-              <div className="label-body node active" />
-            </foreignObject>
-          </g>
-          {allNodes.map(
-            (node) =>
-              !node.placeholder && (
-                <g
-                  key={node.id}
-                  className={classNames({
-                    'has-status': !!node.status,
-                    active: node.isActive,
-                    highlighted: node.isHighlighted,
-                    warning: node.hasWarnings,
-                  })}
-                  transform={`translate(${node.x},${node.y})`}
-                >
-                  {node.childLinks.map((link) => (
-                    <PipelineGraphLink key={`${link.child.id}_${link.parent.name}`} link={link} x={node.x} y={node.y} />
-                  ))}
-                  <PipelineGraphNode
-                    isExecution={!!execution}
-                    labelOffsetX={labelOffsetX}
-                    labelOffsetY={labelOffsetY}
-                    maxLabelWidth={maxLabelWidth}
-                    nodeClicked={this.props.onNodeClick}
-                    highlight={this.highlight}
-                    nodeRadius={nodeRadius}
-                    node={node}
-                  />
+        {showGraph && (
+          <svg
+            className="pipeline-graph"
+            style={{
+              height: graphHeight,
+              width: graphWidth,
+              padding: this.graphVerticalPadding + 'px ' + nodeRadius * 2 + 'px ' + '0 ' + nodeRadius * 2 + 'px',
+            }}
+          >
+            <g className="placeholder">
+              <foreignObject width={maxLabelWidth > 0 ? maxLabelWidth : 1} height="200">
+                <div className="label-body node active" />
+              </foreignObject>
+            </g>
+            {allNodes.map(
+              (node) =>
+                !node.placeholder && (
+                  <g
+                    key={node.id}
+                    className={classNames({
+                      'has-status': !!node.status,
+                      active: node.isActive,
+                      highlighted: node.isHighlighted,
+                      warning: node.hasWarnings,
+                    })}
+                    transform={`translate(${node.x},${node.y})`}
+                  >
+                    {node.childLinks.map((link) => (
+                      <PipelineGraphLink
+                        key={`${link.child.id}_${link.parent.name}`}
+                        link={link}
+                        x={node.x}
+                        y={node.y}
+                      />
+                    ))}
+                    <PipelineGraphNode
+                      isExecution={!!execution}
+                      labelOffsetX={labelOffsetX}
+                      labelOffsetY={labelOffsetY}
+                      maxLabelWidth={maxLabelWidth}
+                      nodeClicked={this.props.onNodeClick}
+                      highlight={this.highlight}
+                      nodeRadius={nodeRadius}
+                      node={node}
+                    />
+                  </g>
+                ),
+            )}
+          </svg>
+        )}
+        {this.expandPipelineStageThreshold &&
+          !showGraph &&
+          (() => (
+            <>
+              {loading ? (
+                <div className="pipeline-loading">
+                  <Spinner size="medium" />
+                </div>
+              ) : (
+                <p>
+                  {'Pipeline graph not rendered to save resoures. Pipelines with more than ' +
+                    this.expandPipelineStageThreshold +
+                    ' stages are not rendered initially. '}
+                  <a className="clickable" onClick={this.handleExpandSectionClick}>
+                    {'Expand'}
+                  </a>
+                </p>
+              )}
+              {/* The SVG and Placholder elements need to be in the DOM even 
+              when minimized because applyNodeHeights needs the width values */}
+              <svg
+                className="pipeline-graph"
+                style={{
+                  height: '0',
+                  width: graphWidth,
+                }}
+              >
+                <g className="placeholder">
+                  <foreignObject width={maxLabelWidth > 0 ? maxLabelWidth : 1} height="200">
+                    <div className="label-body node active" />
+                  </foreignObject>
                 </g>
-              ),
-          )}
-        </svg>
+              </svg>
+            </>
+          ))()}
       </div>
     );
   }

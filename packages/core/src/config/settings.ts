@@ -49,6 +49,7 @@ export interface IFeatures {
   savePipelinesStageEnabled?: boolean;
   functions?: boolean;
   kubernetesRawResources?: boolean;
+  renderPipelineStageThreshold?: number;
 }
 
 export interface IDockerInsightSettings {
