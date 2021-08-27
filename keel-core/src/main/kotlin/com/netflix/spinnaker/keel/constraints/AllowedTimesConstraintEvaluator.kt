@@ -79,8 +79,8 @@ class AllowedTimesConstraintEvaluator(
     artifactRepository.deploymentsBetween(
       deliveryConfig,
       targetEnvironment.name,
-      windowRange.start,
-      windowRange.endInclusive
+      windowRange.start.toInstant(),
+      windowRange.endInclusive.toInstant()
     ) to constraint.maxDeploysPerWindow
   } else {
     null
