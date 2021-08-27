@@ -30,10 +30,13 @@ data class Resource<out T : ResourceSpec>(
   val application: String
     get() = metadata.getValue("application").toString()
 
+  val basedOn: String?
+    get() = metadata["basedOn"] as? String
+
   val name: String
     get() = (spec as? Monikered)?.moniker?.toString() ?: metadata["name"] as? String ?: id
 
-  /**
+    /**
    * Attempts to find an artifact in the delivery config based on information in this resource's spec.
    */
   fun findAssociatedArtifact(deliveryConfig: DeliveryConfig) =

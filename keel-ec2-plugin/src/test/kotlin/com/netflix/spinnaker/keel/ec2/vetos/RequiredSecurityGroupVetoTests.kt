@@ -9,7 +9,7 @@ import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
-import com.netflix.spinnaker.keel.api.ec2.CLOUD_PROVIDER
+import com.netflix.spinnaker.keel.api.ec2.EC2_CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerHealthCheck
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
@@ -270,7 +270,7 @@ internal class RequiredSecurityGroupVetoTests : JUnit5Minutests {
               cloudDriver.getSecurityGroup(
                 user = any(),
                 account = resourceSpec.locations.account,
-                type = CLOUD_PROVIDER,
+                type = EC2_CLOUD_PROVIDER,
                 securityGroupName = sgName,
                 region = region,
                 vpcId = vpcId
@@ -285,7 +285,7 @@ internal class RequiredSecurityGroupVetoTests : JUnit5Minutests {
           cloudDriver.getSecurityGroup(
             user = any(),
             account = resourceSpec.locations.account,
-            type = CLOUD_PROVIDER,
+            type = EC2_CLOUD_PROVIDER,
             securityGroupName = "sg-ap-south-1-only",
             region = "ap-south-1",
             vpcId = vpcId
@@ -295,7 +295,7 @@ internal class RequiredSecurityGroupVetoTests : JUnit5Minutests {
           cloudDriver.getSecurityGroup(
             user = any(),
             account = resourceSpec.locations.account,
-            type = CLOUD_PROVIDER,
+            type = EC2_CLOUD_PROVIDER,
             securityGroupName = "sg-af-south-1-only",
             region = "af-south-1",
             vpcId = vpcId
@@ -340,7 +340,7 @@ internal class RequiredSecurityGroupVetoTests : JUnit5Minutests {
       cloudDriver.getSecurityGroup(
         user = DEFAULT_SERVICE_ACCOUNT,
         account = resourceSpec.locations.account,
-        type = CLOUD_PROVIDER,
+        type = EC2_CLOUD_PROVIDER,
         securityGroupName = match { it in securityGroupNames },
         region = match {
           it in resourceSpec.locations.regions.map(SubnetAwareRegionSpec::name)

@@ -12,6 +12,8 @@ import com.netflix.spinnaker.keel.api.ec2.CustomizedMetricSpecification
 import com.netflix.spinnaker.keel.api.ec2.MetricDimension
 import com.netflix.spinnaker.keel.api.ec2.StepAdjustment
 import com.netflix.spinnaker.keel.api.ec2.TargetTrackingPolicy
+import com.netflix.spinnaker.keel.api.titus.TITUS_CLOUD_PROVIDER
+import com.netflix.spinnaker.keel.api.titus.TITUS_CLUSTER_V1
 import com.netflix.spinnaker.keel.api.titus.TitusClusterSpec
 import com.netflix.spinnaker.keel.api.titus.TitusScalingSpec
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
@@ -40,8 +42,6 @@ import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.docker.DigestProvider
 import com.netflix.spinnaker.keel.test.resource
-import com.netflix.spinnaker.keel.titus.CLOUD_PROVIDER
-import com.netflix.spinnaker.keel.titus.TITUS_CLUSTER_V1
 import com.netflix.spinnaker.keel.titus.TitusClusterHandler
 import io.mockk.mockk
 import io.mockk.slot
@@ -88,7 +88,7 @@ class TitusClusterScalingPolicyTests {
     loadBalancers = emptySet(),
     securityGroups = emptySet(),
     capacity = Capacity(min = 1, max = 10, desired = 5),
-    cloudProvider = CLOUD_PROVIDER,
+    cloudProvider = TITUS_CLOUD_PROVIDER,
     moniker = Moniker(app = application, stack = "test"),
     env = mapOf(
       "EC2_REGION" to region,

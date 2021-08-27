@@ -2,11 +2,9 @@ package com.netflix.spinnaker.keel.sql
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.ActionStateUpdateContext
+import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
-import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
-import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
-import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
 import com.netflix.spinnaker.keel.api.action.Action
 import com.netflix.spinnaker.keel.api.action.ActionRepository
 import com.netflix.spinnaker.keel.api.action.ActionState
@@ -14,16 +12,15 @@ import com.netflix.spinnaker.keel.api.action.ActionStateFull
 import com.netflix.spinnaker.keel.api.action.ActionType
 import com.netflix.spinnaker.keel.api.action.ActionType.POST_DEPLOY
 import com.netflix.spinnaker.keel.api.action.ActionType.VERIFICATION
-import com.netflix.spinnaker.keel.pause.PauseScope.*
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ACTION_STATE
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ACTIVE_ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_ARTIFACT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_LAST_VERIFIED
-import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ACTIVE_ENVIRONMENT
 import com.netflix.spinnaker.keel.resources.ResourceFactory
-import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
-import com.netflix.spinnaker.keel.resources.SpecMigrator
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
 import com.netflix.spinnaker.keel.sql.deliveryconfigs.deliveryConfigByName
 import org.jooq.*
@@ -34,9 +31,9 @@ import org.jooq.impl.DSL.name
 import org.jooq.impl.DSL.select
 import org.jooq.impl.DSL.value
 import org.slf4j.LoggerFactory
-import org.springframework.core.env.Environment as SpringEnvironment
 import java.time.Clock
 import java.time.Duration
+import org.springframework.core.env.Environment as SpringEnvironment
 
 class SqlActionRepository(
   jooq: DSLContext,

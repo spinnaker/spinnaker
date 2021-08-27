@@ -22,11 +22,12 @@ import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
+import com.netflix.spinnaker.keel.api.actuation.Job
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
 import com.netflix.spinnaker.keel.api.ec2.AllPorts
-import com.netflix.spinnaker.keel.api.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.ec2.CidrRule
 import com.netflix.spinnaker.keel.api.ec2.CrossAccountReferenceRule
+import com.netflix.spinnaker.keel.api.ec2.EC2_CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.ec2.EC2_SECURITY_GROUP_V1
 import com.netflix.spinnaker.keel.api.ec2.PortRange
 import com.netflix.spinnaker.keel.api.ec2.ReferenceRule
@@ -48,7 +49,6 @@ import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.core.name
 import com.netflix.spinnaker.keel.core.parseMoniker
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
-import com.netflix.spinnaker.keel.api.actuation.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.OrcaTaskLauncher
@@ -66,7 +66,6 @@ import io.mockk.confirmVerified
 import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.runBlocking
-import retrofit2.HttpException
 import strikt.api.Assertion
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
@@ -93,7 +92,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
   private val cloudDriverService: CloudDriverService = mockk()
   private val cloudDriverCache: CloudDriverCache = mockk()
   private val orcaService: OrcaService = mockk()
-  val repository = mockk<KeelRepository>() {
+  val repository = mockk<KeelRepository> {
     // we're just using this to get notifications
     every { environmentFor(any()) } returns Environment("test")
   }
@@ -134,9 +133,9 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
     override val objectMapper: ObjectMapper,
     override val normalizers: List<Resolver<SecurityGroupSpec>>,
     override val vpcRegion1: Network =
-      Network(CLOUD_PROVIDER, randomUUID().toString(), "vpc1", "prod", "us-west-3"),
+      Network(EC2_CLOUD_PROVIDER, randomUUID().toString(), "vpc1", "prod", "us-west-3"),
     override val vpcRegion2: Network =
-      Network(CLOUD_PROVIDER, randomUUID().toString(), "vpc1", "prod", "us-east-17"),
+      Network(EC2_CLOUD_PROVIDER, randomUUID().toString(), "vpc1", "prod", "us-east-17"),
     override val handler: SecurityGroupHandler =
       SecurityGroupHandler(cloudDriverService, cloudDriverCache, orcaService, taskLauncher, normalizers),
 
@@ -185,7 +184,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
       ),
     val cloudDriverResponse1: ClouddriverSecurityGroup =
       ClouddriverSecurityGroup(
-        CLOUD_PROVIDER,
+        EC2_CLOUD_PROVIDER,
         "sg-3a0c495f",
         "keel-fnord",
         "dummy security group",
@@ -197,7 +196,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
       ),
     val cloudDriverResponse2: ClouddriverSecurityGroup =
       ClouddriverSecurityGroup(
-        CLOUD_PROVIDER,
+        EC2_CLOUD_PROVIDER,
         "sg-5a2a497d",
         "keel-fnord",
         "dummy security group",
@@ -211,7 +210,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
       SecurityGroupSummary("keel-fnord", "sg-3a0c495f", vpcRegion1.id),
     val cloudDriverSummaryResponseEast: SecurityGroupSummary =
       SecurityGroupSummary("keel-fnord", "sg-5a2a497d", vpcRegion2.id),
-    val vpcOtherAccount: Network = Network(CLOUD_PROVIDER, randomUUID().toString(), "vpc0", "mgmt", vpcRegion1.region)
+    val vpcOtherAccount: Network = Network(EC2_CLOUD_PROVIDER, randomUUID().toString(), "vpc0", "mgmt", vpcRegion1.region)
   ) : Fixture
 
   data class UpsertFixture(
@@ -222,9 +221,9 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
     override val objectMapper: ObjectMapper,
     override val normalizers: List<Resolver<SecurityGroupSpec>>,
     override val vpcRegion1: Network =
-      Network(CLOUD_PROVIDER, randomUUID().toString(), "vpc1", "prod", "us-west-3"),
+      Network(EC2_CLOUD_PROVIDER, randomUUID().toString(), "vpc1", "prod", "us-west-3"),
     override val vpcRegion2: Network =
-      Network(CLOUD_PROVIDER, randomUUID().toString(), "vpc1", "prod", "us-east-17"),
+      Network(EC2_CLOUD_PROVIDER, randomUUID().toString(), "vpc1", "prod", "us-east-17"),
     override val handler: SecurityGroupHandler =
       SecurityGroupHandler(cloudDriverService, cloudDriverCache, orcaService, taskLauncher, normalizers),
     override val securityGroupSpec: SecurityGroupSpec =
@@ -581,7 +580,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
 
           before {
             securityGroupSpec.locations.regions.forEach { region ->
-              Network(CLOUD_PROVIDER, randomUUID().toString(), "vpc1", "test", region.name)
+              Network(EC2_CLOUD_PROVIDER, randomUUID().toString(), "vpc1", "test", region.name)
                 .also {
                   every { cloudDriverCache.networkBy(it.id) } returns it
                   every { cloudDriverCache.networkBy(it.name, it.account, it.region) } returns it
@@ -1021,7 +1020,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
     for (response in listOf(cloudDriverResponse1, cloudDriverResponse2)) {
       with(response) {
         every {
-          cloudDriverService.getSecurityGroup(any(), accountName, CLOUD_PROVIDER, name, region, vpcId)
+          cloudDriverService.getSecurityGroup(any(), accountName, EC2_CLOUD_PROVIDER, name, region, vpcId)
         } returns this
       }
     }
@@ -1042,7 +1041,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
     for (response in listOf(cloudDriverResponse1, cloudDriverResponse2)) {
       with(response) {
         every {
-          cloudDriverService.getSecurityGroup(any(), accountName, CLOUD_PROVIDER, name, region, vpcId)
+          cloudDriverService.getSecurityGroup(any(), accountName, EC2_CLOUD_PROVIDER, name, region, vpcId)
         } throws RETROFIT_NOT_FOUND
       }
     }

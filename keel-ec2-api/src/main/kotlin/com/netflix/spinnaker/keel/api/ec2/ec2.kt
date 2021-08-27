@@ -20,7 +20,7 @@ import com.netflix.spinnaker.keel.api.ec2.old.ApplicationLoadBalancerV1_1Spec
 import com.netflix.spinnaker.keel.api.ec2.old.ClusterV1Spec
 import com.netflix.spinnaker.keel.api.plugins.kind
 
-const val CLOUD_PROVIDER = "aws"
+const val EC2_CLOUD_PROVIDER = "aws"
 
 val EC2_CLUSTER_V1_1 = kind<ClusterSpec>("ec2/cluster@v1.1")
 

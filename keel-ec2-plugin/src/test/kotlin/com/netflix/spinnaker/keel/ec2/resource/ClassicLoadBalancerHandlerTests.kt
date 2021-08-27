@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Exportable
-import com.netflix.spinnaker.keel.api.ec2.CLOUD_PROVIDER
+import com.netflix.spinnaker.keel.api.ec2.EC2_CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.EC2_CLASSIC_LOAD_BALANCER_V1
 import com.netflix.spinnaker.keel.api.plugins.Resolver
@@ -120,7 +120,7 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
     spec = spec
   )
 
-  private val vpc = Network(CLOUD_PROVIDER, "vpc-23144", "vpc0", "test", "us-east-1")
+  private val vpc = Network(EC2_CLOUD_PROVIDER, "vpc-23144", "vpc0", "test", "us-east-1")
   private val sub1 = Subnet("subnet-1", vpc.id, vpc.account, vpc.region, "${vpc.region}c", "internal (vpc0)")
   private val sub2 = Subnet("subnet-1", vpc.id, vpc.account, vpc.region, "${vpc.region}d", "internal (vpc0)")
   private val sg1 = SecurityGroupSummary("testapp-elb", "sg-55555", "vpc-1")

@@ -6,18 +6,18 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceDiff
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
+import com.netflix.spinnaker.keel.api.actuation.Job
 import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
-import com.netflix.spinnaker.keel.api.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancer
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerHealthCheck
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerListener
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerOverride
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.EC2_CLASSIC_LOAD_BALANCER_V1
+import com.netflix.spinnaker.keel.api.ec2.EC2_CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.ec2.LoadBalancerDependencies
 import com.netflix.spinnaker.keel.api.ec2.Location
-import com.netflix.spinnaker.keel.api.plugins.ResolvableResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
@@ -25,7 +25,6 @@ import com.netflix.spinnaker.keel.clouddriver.ResourceNotFound
 import com.netflix.spinnaker.keel.core.parseMoniker
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.diff.toIndividualDiffs
-import com.netflix.spinnaker.keel.api.actuation.Job
 import com.netflix.spinnaker.keel.model.OrcaJob
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.retrofit.isNotFound
@@ -200,7 +199,7 @@ class ClassicLoadBalancerHandler(
           try {
             getClassicLoadBalancer(
               serviceAccount,
-              CLOUD_PROVIDER,
+              EC2_CLOUD_PROVIDER,
               account,
               region,
               name
@@ -303,7 +302,7 @@ class ClassicLoadBalancerHandler(
         mapOf(
           "application" to moniker.app,
           "credentials" to location.account,
-          "cloudProvider" to CLOUD_PROVIDER,
+          "cloudProvider" to EC2_CLOUD_PROVIDER,
           "name" to moniker.toString(),
           "region" to location.region,
           "availabilityZones" to mapOf(location.region to location.availabilityZones),

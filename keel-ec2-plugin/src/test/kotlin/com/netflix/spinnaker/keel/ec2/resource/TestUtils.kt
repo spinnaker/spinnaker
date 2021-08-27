@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.ec2.resource
 
-import com.netflix.spinnaker.keel.api.ec2.CLOUD_PROVIDER
+import com.netflix.spinnaker.keel.api.ec2.EC2_CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
 import com.netflix.spinnaker.keel.api.ec2.Metric
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup
@@ -143,7 +143,7 @@ fun ServerGroup.toCloudDriverResponse(
       targetGroups = dependencies.targetGroups,
       loadBalancers = dependencies.loadBalancerNames,
       capacity = capacity.let { Capacity(it.min, it.max, it.desired) },
-      cloudProvider = CLOUD_PROVIDER,
+      cloudProvider = EC2_CLOUD_PROVIDER,
       securityGroups = securityGroups.map(SecurityGroupSummary::id).toSet(),
       accountName = location.account,
       moniker = parseMoniker("$name-v$sequence"),
@@ -240,7 +240,7 @@ fun ServerGroup.toMultiServerGroupResponse(
       targetGroups = dependencies.targetGroups,
       loadBalancers = dependencies.loadBalancerNames,
       capacity = capacity.let { Capacity(it.min, it.max, it.desired) },
-      cloudProvider = CLOUD_PROVIDER,
+      cloudProvider = EC2_CLOUD_PROVIDER,
       securityGroups = securityGroups.map(SecurityGroupSummary::id).toSet(),
       moniker = parseMoniker("$name-v$sequence1"),
       instanceCounts = instanceCounts.run { InstanceCounts(total, up, down, unknown, outOfService, starting) },
@@ -323,7 +323,7 @@ fun ServerGroup.toMultiServerGroupResponse(
       targetGroups = dependencies.targetGroups,
       loadBalancers = dependencies.loadBalancerNames,
       capacity = capacity.let { Capacity(it.min, it.max, it.desired) },
-      cloudProvider = CLOUD_PROVIDER,
+      cloudProvider = EC2_CLOUD_PROVIDER,
       securityGroups = securityGroups.map(SecurityGroupSummary::id).toSet(),
       moniker = parseMoniker("$name-v$sequence1"),
       instanceCounts = instanceCounts.run { InstanceCounts(total, up, down, unknown, outOfService, starting) },

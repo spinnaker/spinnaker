@@ -4,12 +4,12 @@ import com.netflix.spinnaker.config.BaseUrlConfig
 import com.netflix.spinnaker.keel.api.NotificationDisplay
 import com.netflix.spinnaker.keel.notifications.NotificationType.ARTIFACT_DEPLOYMENT_FAILED
 import com.netflix.spinnaker.keel.notifications.NotificationType.ARTIFACT_DEPLOYMENT_SUCCEEDED
-import com.netflix.spinnaker.keel.notifications.slack.DeploymentStatus.*
+import com.netflix.spinnaker.keel.notifications.slack.DeploymentStatus.FAILED
+import com.netflix.spinnaker.keel.notifications.slack.DeploymentStatus.SUCCEEDED
 import com.netflix.spinnaker.keel.notifications.slack.SlackArtifactDeploymentNotification
 import com.netflix.spinnaker.keel.notifications.slack.SlackService
 import com.slack.api.model.block.LayoutBlock
 import com.slack.api.model.kotlin_extension.block.withBlocks
-import org.apache.logging.log4j.util.Strings
 import org.slf4j.LoggerFactory
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.stereotype.Component

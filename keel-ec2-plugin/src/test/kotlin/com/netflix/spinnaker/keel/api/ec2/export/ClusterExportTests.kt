@@ -13,7 +13,7 @@ import com.netflix.spinnaker.keel.api.artifacts.BranchFilter
 import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
-import com.netflix.spinnaker.keel.api.ec2.CLOUD_PROVIDER
+import com.netflix.spinnaker.keel.api.ec2.EC2_CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.CapacitySpec
@@ -89,8 +89,8 @@ internal class ClusterExportTests : JUnit5Minutests {
   val blockDeviceConfig = mockk<BlockDeviceConfig>()
   val artifactService = mockk<ArtifactService>()
 
-  val vpcWest = Network(CLOUD_PROVIDER, "vpc-1452353", "vpc0", "test", "us-west-2")
-  val vpcEast = Network(CLOUD_PROVIDER, "vpc-4342589", "vpc0", "test", "us-east-1")
+  val vpcWest = Network(EC2_CLOUD_PROVIDER, "vpc-1452353", "vpc0", "test", "us-west-2")
+  val vpcEast = Network(EC2_CLOUD_PROVIDER, "vpc-4342589", "vpc0", "test", "us-east-1")
   val sg1West = SecurityGroupSummary("keel", "sg-325234532", "vpc-1")
   val sg2West = SecurityGroupSummary("keel-elb", "sg-235425234", "vpc-1")
   val sg1East = SecurityGroupSummary("keel", "sg-279585936", "vpc-1")
@@ -426,7 +426,7 @@ internal class ClusterExportTests : JUnit5Minutests {
     account = spec.locations.account,
     cluster = spec.moniker.toString(),
     region = region,
-    cloudProvider = CLOUD_PROVIDER
+    cloudProvider = EC2_CLOUD_PROVIDER
   )
 }
 

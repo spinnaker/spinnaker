@@ -1,13 +1,11 @@
 package com.netflix.spinnaker.keel.notifications.slack.handlers
 
 import com.netflix.spinnaker.keel.api.NotificationDisplay
-import com.netflix.spinnaker.keel.api.NotificationDisplay.*
 import com.netflix.spinnaker.keel.notifications.NotificationType
 import com.netflix.spinnaker.keel.notifications.slack.SlackPinnedNotification
 import com.netflix.spinnaker.keel.notifications.slack.SlackService
 import com.slack.api.model.block.LayoutBlock
 import com.slack.api.model.kotlin_extension.block.withBlocks
-import org.apache.logging.log4j.util.Strings
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 

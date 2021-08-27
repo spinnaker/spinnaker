@@ -16,22 +16,41 @@ import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
 import com.netflix.spinnaker.keel.api.SimpleRegions
+import com.netflix.spinnaker.keel.api.SubnetAwareLocations
+import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.VersionedArtifactProvider
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
+import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
+import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerHealthCheck
+import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerSpec
+import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
+import com.netflix.spinnaker.keel.api.ec2.EC2_APPLICATION_LOAD_BALANCER_V1_2
+import com.netflix.spinnaker.keel.api.ec2.EC2_CLASSIC_LOAD_BALANCER_V1
+import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1_1
+import com.netflix.spinnaker.keel.api.ec2.LaunchConfigurationSpec
+import com.netflix.spinnaker.keel.api.ec2.LoadBalancerDependencies
 import com.netflix.spinnaker.keel.api.generateId
 import com.netflix.spinnaker.keel.api.plugins.SimpleResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.SupportedKind
 import com.netflix.spinnaker.keel.api.plugins.kind
 import com.netflix.spinnaker.keel.api.support.EventPublisher
+import com.netflix.spinnaker.keel.api.titus.TITUS_CLUSTER_V1
+import com.netflix.spinnaker.keel.api.titus.TitusClusterSpec
+import com.netflix.spinnaker.keel.api.titus.TitusServerGroupSpec
+import com.netflix.spinnaker.keel.artifacts.DebianArtifact
+import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.core.api.SubmittedResource
+import com.netflix.spinnaker.keel.docker.ReferenceProvider
 import com.netflix.spinnaker.keel.resources.ResourceFactory
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.resources.SpecMigrator
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import io.mockk.mockk
 import java.time.Duration
-import java.util.UUID
+import java.util.*
 
 val TEST_API_V1 = ApiVersion("test", "1")
 val TEST_API_V2 = ApiVersion("test", "2")
@@ -329,4 +348,120 @@ fun resourceFactory(
   objectMapper = configuredObjectMapper(),
   resourceSpecIdentifier,
   specMigrators = specMigrators
+)
+
+private val locations = SubnetAwareLocations(
+  account = "test",
+  vpc = "vpc0",
+  subnet = "internal (vpc0)",
+  regions = setOf(
+    SubnetAwareRegionSpec(
+      name = "us-east-1",
+      availabilityZones = setOf("us-east-1c", "us-east-1d", "us-east-1e")
+    ),
+    SubnetAwareRegionSpec(
+      name = "us-west-2",
+      availabilityZones = setOf("us-west-2a", "us-west-2b", "us-west-2c")
+    )
+  )
+)
+
+private val ec2ClusterSpec: ClusterSpec = ClusterSpec(
+  moniker = Moniker(
+    app = "fnord",
+    stack = "test"
+  ),
+  artifactReference = "fnord-deb",
+  locations = locations,
+  _defaults = ServerGroupSpec(
+    launchConfiguration = LaunchConfigurationSpec(
+      instanceType = "m5.large",
+      ebsOptimized = true,
+      iamRole = "fnordInstanceProfile",
+      instanceMonitoring = false
+    ),
+    dependencies = ClusterDependencies(
+      loadBalancerNames = setOf("fnord-internal"),
+      securityGroupNames = setOf("fnord", "fnord-elb")
+    ),
+  )
+)
+
+fun ec2Cluster(
+  moniker: Moniker = Moniker("fnord", "test"),
+  artifact: DebianArtifact = debianArtifact()
+) = resource(
+  kind = EC2_CLUSTER_V1_1.kind,
+  spec = ec2ClusterSpec.copy(
+    moniker = moniker,
+    artifactReference = artifact.reference
+  )
+)
+
+private val titusClusterSpec = TitusClusterSpec(
+  moniker = Moniker(
+    app = "fnord",
+    stack = "test"
+  ),
+  locations = SimpleLocations(
+    account = "account",
+    regions = setOf(
+      SimpleRegionSpec("us-east-1"),
+      SimpleRegionSpec("us-west-2")
+    )
+  ),
+  container = ReferenceProvider(reference = "fnord"),
+  _defaults = TitusServerGroupSpec(
+    dependencies = ClusterDependencies(
+      loadBalancerNames = setOf("fnord-internal"),
+      securityGroupNames = setOf("fnord", "fnord-elb")
+    )
+  )
+)
+
+fun titusCluster(
+  moniker: Moniker = Moniker("fnord", "test"),
+  artifact: DockerArtifact = dockerArtifact()
+) = resource(
+  kind = TITUS_CLUSTER_V1.kind,
+  spec = titusClusterSpec.copy(
+    moniker = moniker,
+    container = ReferenceProvider(reference = artifact.reference)
+  )
+)
+
+private val albSpec = ApplicationLoadBalancerSpec(
+  moniker = Moniker(
+    app = "fnord",
+    stack = "test"
+  ),
+  locations = locations,
+  listeners = emptySet(),
+  targetGroups = emptySet(),
+  dependencies = LoadBalancerDependencies(
+    securityGroupNames = setOf("fnord", "fnord-elb")
+  )
+)
+
+fun applicationLoadBalancer() = resource(
+  kind = EC2_APPLICATION_LOAD_BALANCER_V1_2.kind,
+  spec = albSpec
+)
+
+private val clbSpec = ClassicLoadBalancerSpec(
+  moniker = Moniker(
+    app = "fnord",
+    stack = "test"
+  ),
+  locations = locations,
+  listeners = emptySet(),
+  healthCheck = ClassicLoadBalancerHealthCheck(target = "foo"),
+  dependencies = LoadBalancerDependencies(
+    securityGroupNames = setOf("fnord", "fnord-elb")
+  )
+)
+
+fun classicLoadBalancer() = resource(
+  kind = EC2_CLASSIC_LOAD_BALANCER_V1.kind,
+  spec = clbSpec
 )

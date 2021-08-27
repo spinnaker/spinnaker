@@ -28,4 +28,4 @@ fun <I : ResourceSpec> Collection<SpecMigrator<*, *>>.migrate(
       val result = migrator.migrate(spec)
       migrate(migrator.output.kind, result)
     }
-    ?: kind to spec
+    ?: (kind to spec)

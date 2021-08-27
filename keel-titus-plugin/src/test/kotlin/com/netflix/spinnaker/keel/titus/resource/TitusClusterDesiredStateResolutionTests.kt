@@ -17,7 +17,7 @@ import com.netflix.spinnaker.keel.orca.ClusterExportHelper
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.keel.titus.NETFLIX_CONTAINER_ENV_VARS
-import com.netflix.spinnaker.keel.titus.TITUS_CLUSTER_V1
+import com.netflix.spinnaker.keel.api.titus.TITUS_CLUSTER_V1
 import com.netflix.spinnaker.keel.titus.TitusClusterHandler
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext

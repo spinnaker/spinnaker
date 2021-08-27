@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.keel.titus
 
 import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.titus.TITUS_CLUSTER_V1
 import com.netflix.spinnaker.keel.api.titus.TitusClusterSpec
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache

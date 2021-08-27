@@ -1,14 +1,13 @@
 package com.netflix.spinnaker.keel.sql
 
-import com.netflix.spinnaker.keel.core.api.PromotionStatus
-import com.netflix.spinnaker.keel.core.api.PromotionStatus.*
+import com.netflix.spinnaker.keel.core.api.PromotionStatus.CURRENT
 import com.netflix.spinnaker.keel.pause.PauseScope
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ACTIVE_ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_ARTIFACT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_LAST_VERIFIED
-import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ACTIVE_ENVIRONMENT
 import org.jooq.DSLContext
 import org.jooq.Record
 import org.jooq.SelectForUpdateStep

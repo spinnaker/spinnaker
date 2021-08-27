@@ -10,13 +10,13 @@ import com.netflix.spinnaker.keel.api.RedBlack
 import com.netflix.spinnaker.keel.api.StaggeredRegion
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
-import com.netflix.spinnaker.keel.api.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.CapacitySpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.CustomizedMetricSpecification
+import com.netflix.spinnaker.keel.api.ec2.EC2_CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1_1
 import com.netflix.spinnaker.keel.api.ec2.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.ec2.Scaling
@@ -66,8 +66,6 @@ import strikt.assertions.any
 import strikt.assertions.containsExactly
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.containsKey
-import strikt.assertions.containsSequence
-import strikt.assertions.first
 import strikt.assertions.get
 import strikt.assertions.hasSize
 import strikt.assertions.isA
@@ -108,8 +106,8 @@ internal class ClusterHandlerTests : JUnit5Minutests {
   val blockDeviceConfig = BlockDeviceConfig(VolumeDefaultConfiguration())
   val artifactService = mockk<ArtifactService>()
 
-  val vpcWest = Network(CLOUD_PROVIDER, "vpc-1452353", "vpc0", "test", "us-west-2")
-  val vpcEast = Network(CLOUD_PROVIDER, "vpc-4342589", "vpc0", "test", "us-east-1")
+  val vpcWest = Network(EC2_CLOUD_PROVIDER, "vpc-1452353", "vpc0", "test", "us-west-2")
+  val vpcEast = Network(EC2_CLOUD_PROVIDER, "vpc-4342589", "vpc0", "test", "us-east-1")
   val sg1West = SecurityGroupSummary("keel", "sg-325234532", "vpc-1")
   val sg2West = SecurityGroupSummary("keel-elb", "sg-235425234", "vpc-1")
   val sg1East = SecurityGroupSummary("keel", "sg-279585936", "vpc-1")
@@ -1101,7 +1099,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
     account = spec.locations.account,
     cluster = spec.moniker.toString(),
     region = region,
-    cloudProvider = CLOUD_PROVIDER
+    cloudProvider = EC2_CLOUD_PROVIDER
   )
 }
 

@@ -17,7 +17,7 @@ import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.UNKNOWN
 import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
-import com.netflix.spinnaker.keel.api.ec2.CLOUD_PROVIDER
+import com.netflix.spinnaker.keel.api.ec2.EC2_CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.Capacity.AutoScalingCapacity
 import com.netflix.spinnaker.keel.api.ec2.Capacity.DefaultCapacity
@@ -668,7 +668,7 @@ class ClusterHandler(
 
     return mapOf(
       "type" to "disableServerGroup",
-      "cloudProvider" to CLOUD_PROVIDER,
+      "cloudProvider" to EC2_CLOUD_PROVIDER,
       "credentials" to desired.location.account,
       "moniker" to sgToDisable.moniker.orcaClusterMoniker,
       "region" to sgToDisable.region,
@@ -723,7 +723,7 @@ class ClusterHandler(
         "reason" to "Diff detected at ${clock.instant().iso()}",
         "instanceType" to launchConfiguration.instanceType,
         "type" to "createServerGroup",
-        "cloudProvider" to CLOUD_PROVIDER,
+        "cloudProvider" to EC2_CLOUD_PROVIDER,
         "loadBalancers" to dependencies.loadBalancerNames,
         "targetGroups" to dependencies.targetGroups,
         "account" to location.account,
@@ -765,7 +765,7 @@ class ClusterHandler(
         "max" to desired.capacity.max,
         "desired" to desired.capacity.desired
       ),
-      "cloudProvider" to CLOUD_PROVIDER,
+      "cloudProvider" to EC2_CLOUD_PROVIDER,
       "credentials" to desired.location.account,
       "moniker" to current.moniker.orcaClusterMoniker,
       "region" to current.location.region,
@@ -850,7 +850,7 @@ class ClusterHandler(
             },
             "type" to "deleteScalingPolicy",
             "policyName" to it,
-            "cloudProvider" to CLOUD_PROVIDER,
+            "cloudProvider" to EC2_CLOUD_PROVIDER,
             "credentials" to desired.location.account,
             "moniker" to current.moniker.orcaClusterMoniker,
             "region" to current.location.region,
@@ -874,7 +874,7 @@ class ClusterHandler(
           else -> listOf((refId - 1).toString())
         },
         "type" to "upsertScalingPolicy",
-        "cloudProvider" to CLOUD_PROVIDER,
+        "cloudProvider" to EC2_CLOUD_PROVIDER,
         "credentials" to serverGroup.location.account,
         "moniker" to serverGroup.moniker.orcaClusterMoniker,
         "region" to serverGroup.location.region,
@@ -924,7 +924,7 @@ class ClusterHandler(
           else -> listOf((refId - 1).toString())
         },
         "type" to "upsertScalingPolicy",
-        "cloudProvider" to CLOUD_PROVIDER,
+        "cloudProvider" to EC2_CLOUD_PROVIDER,
         "credentials" to serverGroup.location.account,
         "moniker" to serverGroup.moniker.orcaClusterMoniker,
         "region" to serverGroup.location.region,
@@ -1044,7 +1044,7 @@ class ClusterHandler(
               account = account,
               cluster = moniker.toString(),
               region = it,
-              cloudProvider = CLOUD_PROVIDER
+              cloudProvider = EC2_CLOUD_PROVIDER
             )
               .toServerGroup()
           } catch (e: HttpException) {

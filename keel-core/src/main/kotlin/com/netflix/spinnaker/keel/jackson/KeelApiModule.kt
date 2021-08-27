@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ser.Serializers
 import com.netflix.spinnaker.keel.api.ClusterDeployStrategy
 import com.netflix.spinnaker.keel.api.Constraint
 import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.Dependent
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.PreviewEnvironmentSpec
@@ -43,6 +44,7 @@ import com.netflix.spinnaker.keel.jackson.mixins.CommitMixin
 import com.netflix.spinnaker.keel.jackson.mixins.ConstraintStateMixin
 import com.netflix.spinnaker.keel.jackson.mixins.DeliveryArtifactMixin
 import com.netflix.spinnaker.keel.jackson.mixins.DeliveryConfigMixin
+import com.netflix.spinnaker.keel.jackson.mixins.DependentMixin
 import com.netflix.spinnaker.keel.jackson.mixins.LocatableMixin
 import com.netflix.spinnaker.keel.jackson.mixins.MonikeredMixin
 import com.netflix.spinnaker.keel.jackson.mixins.PreviewEnvironmentSpecMixin
@@ -76,6 +78,7 @@ object KeelApiModule : SimpleModule("Keel API") {
       setMixInAnnotations<Commit, CommitMixin>()
       setMixInAnnotations<Verification, VerificationMixin>()
       setMixInAnnotations<PreviewEnvironmentSpec, PreviewEnvironmentSpecMixin>()
+      setMixInAnnotations<Dependent, DependentMixin>()
       insertAnnotationIntrospector(FactoryAnnotationIntrospector())
     }
   }

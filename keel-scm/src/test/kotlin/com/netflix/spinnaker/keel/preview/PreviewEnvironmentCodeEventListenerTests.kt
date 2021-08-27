@@ -5,8 +5,7 @@ import com.netflix.spectator.api.Tag
 import com.netflix.spectator.api.Timer
 import com.netflix.spinnaker.keel.api.ArtifactReferenceProvider
 import com.netflix.spinnaker.keel.api.DeliveryConfig
-import com.netflix.spinnaker.keel.api.Dependency
-import com.netflix.spinnaker.keel.api.DependencyType.GENERIC_RESOURCE
+import com.netflix.spinnaker.keel.api.DependencyType.LOAD_BALANCER
 import com.netflix.spinnaker.keel.api.DependencyType.SECURITY_GROUP
 import com.netflix.spinnaker.keel.api.Dependent
 import com.netflix.spinnaker.keel.api.Environment
@@ -15,12 +14,16 @@ import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.PreviewEnvironmentSpec
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactOriginFilter
-import com.netflix.spinnaker.keel.api.artifacts.DOCKER
 import com.netflix.spinnaker.keel.api.artifacts.branchName
 import com.netflix.spinnaker.keel.api.artifacts.branchStartsWith
+import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
+import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1
+import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1_1
 import com.netflix.spinnaker.keel.api.ec2.EC2_SECURITY_GROUP_V1
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
-import com.netflix.spinnaker.keel.artifacts.DockerArtifact
+import com.netflix.spinnaker.keel.api.ec2.old.ClusterV1Spec
+import com.netflix.spinnaker.keel.api.ec2.old.ClusterV1Spec.ImageProvider
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.core.api.SubmittedEnvironment
@@ -44,6 +47,8 @@ import com.netflix.spinnaker.keel.preview.PreviewEnvironmentCodeEventListener.Co
 import com.netflix.spinnaker.keel.preview.PreviewEnvironmentCodeEventListener.Companion.PREVIEW_ENVIRONMENT_UPSERT_ERROR
 import com.netflix.spinnaker.keel.preview.PreviewEnvironmentCodeEventListener.Companion.PREVIEW_ENVIRONMENT_UPSERT_SUCCESS
 import com.netflix.spinnaker.keel.resources.ResourceFactory
+import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
+import com.netflix.spinnaker.keel.resources.SpecMigrator
 import com.netflix.spinnaker.keel.scm.DELIVERY_CONFIG_RETRIEVAL_ERROR
 import com.netflix.spinnaker.keel.scm.DELIVERY_CONFIG_RETRIEVAL_SUCCESS
 import com.netflix.spinnaker.keel.scm.PrDeclinedEvent
@@ -54,14 +59,16 @@ import com.netflix.spinnaker.keel.scm.PrUpdatedEvent
 import com.netflix.spinnaker.keel.scm.ScmUtils
 import com.netflix.spinnaker.keel.scm.toTags
 import com.netflix.spinnaker.keel.test.DummyArtifactReferenceResourceSpec
-import com.netflix.spinnaker.keel.test.DummyDependentResourceSpec
 import com.netflix.spinnaker.keel.test.DummyLocatableResourceSpec
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
-import com.netflix.spinnaker.keel.test.artifactReferenceResource
+import com.netflix.spinnaker.keel.test.applicationLoadBalancer
 import com.netflix.spinnaker.keel.test.configuredTestObjectMapper
-import com.netflix.spinnaker.keel.test.dependentResource
+import com.netflix.spinnaker.keel.test.debianArtifact
+import com.netflix.spinnaker.keel.test.dockerArtifact
 import com.netflix.spinnaker.keel.test.locatableResource
+import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.keel.test.submittedResource
+import com.netflix.spinnaker.keel.test.titusCluster
 import com.netflix.spinnaker.keel.validators.DeliveryConfigValidator
 import com.netflix.spinnaker.kork.exceptions.SystemException
 import com.netflix.spinnaker.time.MutableClock
@@ -75,6 +82,7 @@ import io.mockk.runs
 import io.mockk.slot
 import io.mockk.spyk
 import org.springframework.context.ApplicationEventPublisher
+import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.containsExactlyInAnyOrder
@@ -104,7 +112,32 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
     val eventPublisher: ApplicationEventPublisher = mockk()
     val validator: DeliveryConfigValidator = mockk()
     val scmUtils: ScmUtils = mockk()
-    val resourceFactory: ResourceFactory = mockk()
+
+    // need to copy/paste this here because it's in keel-ec2-plugin
+    val ec2ClusterMigrator = object : SpecMigrator<ClusterV1Spec, ClusterSpec> {
+      override val input = EC2_CLUSTER_V1
+      override val output = EC2_CLUSTER_V1_1
+      override fun migrate(spec: ClusterV1Spec): ClusterSpec =
+        with(spec) {
+          ClusterSpec(
+            moniker = moniker,
+            artifactReference = imageProvider?.reference,
+            deployWith = deployWith,
+            locations = locations,
+            _defaults = defaults,
+            overrides = overrides
+          )
+        }
+      }
+
+    val resourceFactory: ResourceFactory = spyk(
+      ResourceFactory(
+        objectMapper = objectMapper,
+        resourceSpecIdentifier = ResourceSpecIdentifier(EC2_CLUSTER_V1, EC2_CLUSTER_V1_1),
+        specMigrators = listOf(ec2ClusterMigrator)
+      )
+    )
+
     val subject = spyk(
       PreviewEnvironmentCodeEventListener(
         repository = repository,
@@ -132,34 +165,28 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
       dataSources = DataSources(enabled = emptyList(), disabled = emptyList())
     )
 
-    val artifactFromMain = DockerArtifact(
-      name = "myorg/myartifact",
-      deliveryConfigName = "myconfig",
-      reference = "myartifact-main",
-      from = ArtifactOriginFilter(branch = branchName("main"))
-    )
+    val dockerFromMain = dockerArtifact()
 
-    val artifactFromBranch = artifactFromMain.copy(
-      reference = "myartifact-branch",
+    val dockerFromBranch = dockerFromMain.copy(
+      reference = "docker-from-branch",
       from = ArtifactOriginFilter(branch = branchStartsWith("feature/"))
     )
 
-    val artifactWithNonMatchingFilter = artifactFromBranch.copy(
-      reference = "myartifact-non-matching",
+    val dockerWithNonMatchingFilter = dockerFromBranch.copy(
+      reference = "fnord-non-matching",
       from = ArtifactOriginFilter(branch = branchName("not-the-right-branch"))
     )
 
-    val locatableResource = locatableResource()
+    val applicationLoadBalancer = applicationLoadBalancer()
 
-    val artifactReferenceResource =
-      artifactReferenceResource(artifactReference = artifactFromMain.reference, artifactType = DOCKER)
+    val cluster = titusCluster(artifact = dockerFromMain)
 
     val defaultAppSecurityGroup = Resource(
       kind = EC2_SECURITY_GROUP_V1.kind,
       metadata = mapOf("id" to "fnord", "application" to "fnord"),
       spec = SecurityGroupSpec(
         moniker = Moniker("fnord"),
-        locations = locatableResource.spec.locations,
+        locations = cluster.spec.locations,
         description = "default app security group"
       )
     )
@@ -169,31 +196,44 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
       metadata = mapOf("id" to "fnord", "application" to "fnord"),
       spec = SecurityGroupSpec(
         moniker = Moniker("fnord", "elb"),
-        locations = locatableResource.spec.locations,
-        description = "default loab balancer security group"
+        locations = cluster.spec.locations,
+        description = "default load balancer security group"
       )
     )
 
-    val resourceWithSameNameAsDefaultSecurityGroup = locatableResource(moniker = Moniker("fnord"))
+    val clusterNamedAfterApp = titusCluster(
+      moniker = Moniker("fnord"),
+      artifact = dockerFromMain
+    )
 
-    val dependentResource = dependentResource(
-      dependsOn = setOf(
-        Dependency(
-          type = GENERIC_RESOURCE,
-          region = locatableResource.spec.locations.regions.first().name,
-          name = locatableResource.name,
-          kind = locatableResource.kind
-        ),
-        Dependency(
-          type = SECURITY_GROUP,
-          region = defaultAppSecurityGroup.spec.locations.regions.first().name,
-          name = defaultAppSecurityGroup.name
-        ),
-        Dependency(
-          type = SECURITY_GROUP,
-          region = defaultAppSecurityGroup.spec.locations.regions.first().name,
-          name = defaultElbSecurityGroup.name
+    val clusterWithDependencies = titusCluster(
+      moniker = Moniker("fnord", "dependent"),
+      artifact = dockerFromMain
+    ).run {
+      copy(
+        spec = spec.copy(
+          _defaults = spec.defaults.copy(
+            dependencies = ClusterDependencies(
+              loadBalancerNames = setOf(applicationLoadBalancer.name),
+              securityGroupNames = setOf(defaultAppSecurityGroup.name, defaultElbSecurityGroup.name)
+            )
+          )
         )
+      )
+    }
+
+    val debianFromMain = debianArtifact()
+    val debianFromBranch = debianFromMain.copy(
+      reference = "debian-from-branch",
+      from = ArtifactOriginFilter(branchStartsWith("feature/"))
+    )
+
+    val clusterWithOldSpecVersion = resource(
+      kind = EC2_CLUSTER_V1.kind,
+      spec = ClusterV1Spec(
+        moniker = Moniker("fnord", "old"),
+        imageProvider = ImageProvider(debianFromMain.reference),
+        locations = applicationLoadBalancer.spec.locations
       )
     )
 
@@ -201,17 +241,18 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
       application = "fnord",
       name = "myconfig",
       serviceAccount = "keel@keel.io",
-      artifacts = setOf(artifactFromMain, artifactFromBranch),
+      artifacts = setOf(dockerFromMain, dockerFromBranch, debianFromMain, debianFromBranch),
       environments = setOf(
         Environment(
           name = "test",
           resources = setOf(
-            locatableResource,
-            artifactReferenceResource,
-            resourceWithSameNameAsDefaultSecurityGroup, // name conflict with default sec group, but different kind
+            applicationLoadBalancer,
+            cluster,
+            clusterNamedAfterApp, // name conflict with default sec group, but different kind
             defaultAppSecurityGroup,
             defaultElbSecurityGroup,
-            dependentResource
+            clusterWithDependencies,
+            clusterWithOldSpecVersion
           ),
           constraints = setOf(ManualJudgementConstraint()),
           postDeploy = listOf(TagAmiPostDeployAction())
@@ -300,12 +341,6 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
       every {
         scmUtils.getPullRequestLink(any())
       } returns "https://commit-link.org"
-
-      every {
-        resourceFactory.migrate(any())
-      } answers {
-        arg(0)
-      }
     }
   }
 
@@ -359,7 +394,7 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
             subject.handlePrEvent(prEvent)
           }
 
-          test("the delivery config is imported from the branch in the pr event") {
+          test("the delivery config is imported from the branch in the PR event") {
             verify(exactly = 1) {
               importer.import(
                 codeEvent = any(),
@@ -407,8 +442,12 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
           }
 
           test("a preview environment and associated resources are created/updated") {
+            previewEnv.captured.resources.forEach { previewResource ->
+              verify {
+                repository.upsertResource(previewResource, deliveryConfig.name)
+              }
+            }
             verify {
-              repository.upsertResource(previewEnv.captured.resources.first(), deliveryConfig.name)
               repository.storeEnvironment(deliveryConfig.name, previewEnv.captured)
             }
           }
@@ -435,6 +474,13 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
             val baseEnv = deliveryConfig.environments.first()
             verify(exactly = baseEnv.resources.size) {
               resourceFactory.migrate(any())
+            }
+            @Suppress("DEPRECATION")
+            expect {
+              that(clusterWithOldSpecVersion.kind)
+                .isEqualTo(EC2_CLUSTER_V1.kind)
+              that(previewEnv.captured.resources.find { it.basedOn == clusterWithOldSpecVersion.id }!!.kind)
+                .isEqualTo(EC2_CLUSTER_V1_1.kind)
             }
           }
 
@@ -464,36 +510,43 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
           }
 
           test("the artifact reference in a resource is updated to match the preview environment branch filter") {
-            expectThat(previewEnv.captured.resources.find { it.spec is ArtifactReferenceProvider }?.spec)
+            expectThat(previewEnv.captured.resources.find { it.basedOn == cluster.id }?.spec)
               .isA<ArtifactReferenceProvider>()
-              .get { artifactReference }.isEqualTo(artifactFromBranch.reference)
+              .get { artifactReference }.isEqualTo(dockerFromBranch.reference)
+
+            expectThat(previewEnv.captured.resources.find { it.basedOn == clusterWithOldSpecVersion.id }?.spec)
+              // this also demonstrates that the old cluster spec gets migrated and now supports the standard artifact reference interface
+              .isA<ArtifactReferenceProvider>()
+              .get { artifactReference }.isEqualTo(debianFromBranch.reference)
           }
 
           test("the names of resource dependencies present in the preview environment are adjusted to match") {
             val branchDetail = prEvent.pullRequestBranch.toPreviewName()
-            val baseEnv = deliveryConfig.environments.first()
-            val dependency =
-              baseEnv.resources.first { it.spec is DummyLocatableResourceSpec } as Resource<DummyLocatableResourceSpec>
+            val dependency = applicationLoadBalancer
 
-            expectThat(previewEnv.captured.resources.first { it.spec is DummyDependentResourceSpec }.spec)
+            expectThat(previewEnv.captured.resources.find { it.basedOn == clusterWithDependencies.id }?.spec)
               .isA<Dependent>()
-              .get { dependsOn.first { it.type == GENERIC_RESOURCE }.name }
+              .get { dependsOn.first { it.type == LOAD_BALANCER }.name }
               .isEqualTo(dependency.spec.moniker.withBranchDetail(branchDetail).name)
           }
 
           test("the names of the default security groups are not changed in the dependencies") {
-            expectThat(previewEnv.captured.resources.first { it.spec is DummyDependentResourceSpec }.spec)
+            expectThat(previewEnv.captured.resources.find { it.basedOn == clusterWithDependencies.id }?.spec)
               .isA<Dependent>()
-              .get { dependsOn.filter { it.type == SECURITY_GROUP }.map { it.name } }
+              .get { dependsOn.filter { it.type == SECURITY_GROUP }.map { it.name }.toSet() }
               .containsExactlyInAnyOrder(defaultAppSecurityGroup.name, defaultElbSecurityGroup.name)
           }
         }
 
         context("without an artifact in the delivery config matching the branch filter") {
           modifyFixture {
-            deliveryConfig = deliveryConfig.copy(
-              artifacts = setOf(artifactFromMain, artifactWithNonMatchingFilter)
-            )
+            deliveryConfig = deliveryConfig.run {
+              copy(
+                artifacts = artifacts.map {
+                  if (it == dockerFromBranch) dockerWithNonMatchingFilter else it
+                }.toSet()
+              )
+            }
           }
 
           before {
@@ -502,9 +555,9 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
           }
 
           test("the artifact reference in a resource is not updated") {
-            expectThat(previewEnv.captured.resources.find { it.spec is ArtifactReferenceProvider }?.spec)
+            expectThat(previewEnv.captured.resources.find { it.basedOn == cluster.id }?.spec)
               .isA<ArtifactReferenceProvider>()
-              .get { artifactReference }.isEqualTo(artifactFromMain.reference)
+              .get { artifactReference }.isEqualTo(dockerFromMain.reference)
           }
         }
       }

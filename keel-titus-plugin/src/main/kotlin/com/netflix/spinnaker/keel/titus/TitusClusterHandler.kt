@@ -50,7 +50,9 @@ import com.netflix.spinnaker.keel.api.plugins.CurrentImages
 import com.netflix.spinnaker.keel.api.plugins.ImageInRegion
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.api.support.EventPublisher
+import com.netflix.spinnaker.keel.api.titus.TITUS_CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.titus.ResourcesSpec
+import com.netflix.spinnaker.keel.api.titus.TITUS_CLUSTER_V1
 import com.netflix.spinnaker.keel.api.titus.TitusClusterSpec
 import com.netflix.spinnaker.keel.api.titus.TitusServerGroup
 import com.netflix.spinnaker.keel.api.titus.TitusServerGroup.Constraints
@@ -400,7 +402,7 @@ class TitusClusterHandler(
 
     return mapOf(
       "type" to "disableServerGroup",
-      "cloudProvider" to CLOUD_PROVIDER,
+      "cloudProvider" to TITUS_CLOUD_PROVIDER,
       "credentials" to desired.location.account,
       "moniker" to sgToDisable.moniker.orcaClusterMoniker,
       "region" to sgToDisable.region,
@@ -420,7 +422,7 @@ class TitusClusterHandler(
         "max" to desired.capacity.max,
         "desired" to desired.capacity.desired
       ),
-      "cloudProvider" to CLOUD_PROVIDER,
+      "cloudProvider" to TITUS_CLOUD_PROVIDER,
       "credentials" to desired.location.account,
       "moniker" to current.moniker.orcaClusterMoniker,
       "region" to current.location.region,
@@ -488,7 +490,7 @@ class TitusClusterHandler(
             },
             "type" to "deleteScalingPolicy",
             "scalingPolicyID" to it,
-            "cloudProvider" to CLOUD_PROVIDER,
+            "cloudProvider" to TITUS_CLOUD_PROVIDER,
             "credentials" to desired.location.account,
             "moniker" to current.moniker.orcaClusterMoniker,
             "region" to current.location.region,
@@ -516,7 +518,7 @@ class TitusClusterHandler(
         },
         "type" to "upsertScalingPolicy",
         "jobId" to serverGroup.id,
-        "cloudProvider" to CLOUD_PROVIDER,
+        "cloudProvider" to TITUS_CLOUD_PROVIDER,
         "credentials" to serverGroup.location.account,
         "moniker" to serverGroup.moniker.orcaClusterMoniker,
         "region" to serverGroup.location.region,
@@ -573,7 +575,7 @@ class TitusClusterHandler(
         },
         "type" to "upsertScalingPolicy",
         "jobId" to serverGroup.id,
-        "cloudProvider" to CLOUD_PROVIDER,
+        "cloudProvider" to TITUS_CLOUD_PROVIDER,
         "credentials" to serverGroup.location.account,
         "moniker" to serverGroup.moniker.orcaClusterMoniker,
         "region" to serverGroup.location.region,
@@ -655,7 +657,7 @@ class TitusClusterHandler(
         "moniker" to moniker.orcaClusterMoniker,
         "reason" to "Diff detected at ${clock.instant().iso()}",
         "type" to "createServerGroup",
-        "cloudProvider" to CLOUD_PROVIDER,
+        "cloudProvider" to TITUS_CLOUD_PROVIDER,
         "securityGroups" to securityGroupIds(),
         "loadBalancers" to dependencies.loadBalancerNames,
         "targetGroups" to dependencies.targetGroups,
@@ -840,7 +842,7 @@ class TitusClusterHandler(
               account,
               moniker.toString(),
               it,
-              CLOUD_PROVIDER
+              TITUS_CLOUD_PROVIDER
             )
               .toTitusServerGroup()
           } catch (e: HttpException) {

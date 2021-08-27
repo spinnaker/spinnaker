@@ -2,7 +2,6 @@ package com.netflix.spinnaker.keel.notifications.slack.handlers
 
 import com.netflix.spinnaker.config.BaseUrlConfig
 import com.netflix.spinnaker.keel.api.NotificationDisplay
-import com.netflix.spinnaker.keel.api.NotificationDisplay.*
 import com.netflix.spinnaker.keel.notifications.NotificationType
 import com.netflix.spinnaker.keel.notifications.slack.SlackResumedNotification
 import com.netflix.spinnaker.keel.notifications.slack.SlackService

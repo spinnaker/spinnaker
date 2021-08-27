@@ -5,8 +5,8 @@ import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancer
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
-import com.netflix.spinnaker.keel.api.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.ec2.EC2_APPLICATION_LOAD_BALANCER_V1_2
+import com.netflix.spinnaker.keel.api.ec2.EC2_CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
@@ -44,7 +44,6 @@ import io.mockk.slot
 import kotlinx.coroutines.runBlocking
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
-import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.first
 import strikt.assertions.get
 import strikt.assertions.getValue
@@ -53,11 +52,10 @@ import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
-import java.util.UUID
 import io.mockk.coEvery as every
 import io.mockk.coVerify as verify
 import org.springframework.core.env.Environment as SpringEnv
-
+import java.util.UUID
 
 @Suppress("UNCHECKED_CAST")
 internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
@@ -115,7 +113,7 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
     spec = spec
   )
 
-  private val vpc = Network(CLOUD_PROVIDER, "vpc-23144", "vpc0", "test", "us-east-1")
+  private val vpc = Network(EC2_CLOUD_PROVIDER, "vpc-23144", "vpc0", "test", "us-east-1")
   private val sub1 = Subnet("subnet-1", vpc.id, vpc.account, vpc.region, "${vpc.region}c", "internal (vpc0)")
   private val sub2 = Subnet("subnet-1", vpc.id, vpc.account, vpc.region, "${vpc.region}d", "internal (vpc0)")
   private val sg1 = SecurityGroupSummary("testapp-elb", "sg-55555", "vpc-1")

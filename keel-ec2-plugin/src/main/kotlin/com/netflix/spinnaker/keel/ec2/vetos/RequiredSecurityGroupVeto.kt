@@ -3,7 +3,7 @@ package com.netflix.spinnaker.keel.ec2.vetos
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
-import com.netflix.spinnaker.keel.api.ec2.CLOUD_PROVIDER
+import com.netflix.spinnaker.keel.api.ec2.EC2_CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.ec2.LoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.OverrideableClusterDependencyContainer
 import com.netflix.spinnaker.keel.api.ec2.RegionalDependency
@@ -78,7 +78,7 @@ class RequiredSecurityGroupVeto(
       cloudDriver.getSecurityGroup(
         user = DEFAULT_SERVICE_ACCOUNT,
         account = account,
-        type = CLOUD_PROVIDER,
+        type = EC2_CLOUD_PROVIDER,
         securityGroupName = name,
         region = region,
         vpcId = if (subnet == null) null else cloudDriverCache.subnetBy(account, region, subnet).vpcId

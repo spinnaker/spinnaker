@@ -9,7 +9,7 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
-import com.netflix.spinnaker.keel.api.ec2.CLOUD_PROVIDER
+import com.netflix.spinnaker.keel.api.ec2.EC2_CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerHealthCheck
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
@@ -81,10 +81,10 @@ internal abstract class NetworkResolverTests<T : Locatable<SubnetAwareLocations>
     val subjectFactory: (CloudDriverCache) -> NetworkResolver<T>,
     val resource: Resource<T>
   ) {
-    private val vpc0East = Network(CLOUD_PROVIDER, "vpc-${randomHex()}", "vpc0", resource.spec.locations.account, "us-east-1")
-    private val vpc0West = Network(CLOUD_PROVIDER, "vpc-${randomHex()}", "vpc0", resource.spec.locations.account, "us-west-2")
-    private val vpc5East = Network(CLOUD_PROVIDER, "vpc-${randomHex()}", "vpc5", resource.spec.locations.account, "us-east-1")
-    private val vpc5West = Network(CLOUD_PROVIDER, "vpc-${randomHex()}", "vpc5", resource.spec.locations.account, "us-west-2")
+    private val vpc0East = Network(EC2_CLOUD_PROVIDER, "vpc-${randomHex()}", "vpc0", resource.spec.locations.account, "us-east-1")
+    private val vpc0West = Network(EC2_CLOUD_PROVIDER, "vpc-${randomHex()}", "vpc0", resource.spec.locations.account, "us-west-2")
+    private val vpc5East = Network(EC2_CLOUD_PROVIDER, "vpc-${randomHex()}", "vpc5", resource.spec.locations.account, "us-east-1")
+    private val vpc5West = Network(EC2_CLOUD_PROVIDER, "vpc-${randomHex()}", "vpc5", resource.spec.locations.account, "us-west-2")
     private val usEastSubnets =
       setOf(vpc0East, vpc5East).flatMap { vpc ->
         setOf("internal", "external").flatMap { purpose ->

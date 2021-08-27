@@ -2,7 +2,7 @@ package com.netflix.spinnaker.keel.notifications.slack
 
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.NotificationDisplay
-import com.netflix.spinnaker.keel.api.NotificationDisplay.*
+import com.netflix.spinnaker.keel.api.NotificationDisplay.NORMAL
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact

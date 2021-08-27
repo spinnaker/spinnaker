@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.titus.resource
 
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup.InstanceCounts
+import com.netflix.spinnaker.keel.api.titus.TITUS_CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.titus.TitusServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.Capacity
 import com.netflix.spinnaker.keel.clouddriver.model.Constraints
@@ -12,7 +13,6 @@ import com.netflix.spinnaker.keel.clouddriver.model.ServiceJobProcesses
 import com.netflix.spinnaker.keel.clouddriver.model.TitusActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.TitusActiveServerGroupImage
 import com.netflix.spinnaker.keel.core.parseMoniker
-import com.netflix.spinnaker.keel.titus.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.titus.moniker
 import org.apache.commons.lang3.RandomStringUtils
 import java.util.UUID.randomUUID
@@ -38,7 +38,7 @@ fun TitusServerGroup.toClouddriverResponse(
       loadBalancers = dependencies.loadBalancerNames,
       securityGroups = securityGroups.map(SecurityGroupSummary::id).toSet(),
       capacity = capacity.run { Capacity(min, max, desired) },
-      cloudProvider = CLOUD_PROVIDER,
+      cloudProvider = TITUS_CLOUD_PROVIDER,
       moniker = parseMoniker("$name-v$sequence"),
       env = env,
       constraints = constraints.run { Constraints(hard, soft) },
@@ -76,7 +76,7 @@ fun TitusServerGroup.toMultiServerGroupResponse(
       loadBalancers = dependencies.loadBalancerNames,
       securityGroups = securityGroups.map(SecurityGroupSummary::id).toSet(),
       capacity = capacity.run { Capacity(min, max, desired) },
-      cloudProvider = CLOUD_PROVIDER,
+      cloudProvider = TITUS_CLOUD_PROVIDER,
       moniker = parseMoniker("$name-v$sequence1"),
       env = env,
       constraints = constraints.run { Constraints(hard, soft) },
@@ -104,7 +104,7 @@ fun TitusServerGroup.toMultiServerGroupResponse(
       loadBalancers = dependencies.loadBalancerNames,
       securityGroups = securityGroups.map(SecurityGroupSummary::id).toSet(),
       capacity = capacity.run { Capacity(min, max, desired) },
-      cloudProvider = CLOUD_PROVIDER,
+      cloudProvider = TITUS_CLOUD_PROVIDER,
       moniker = parseMoniker("$name-v$sequence2"),
       env = env,
       constraints = constraints.run { Constraints(hard, soft) },

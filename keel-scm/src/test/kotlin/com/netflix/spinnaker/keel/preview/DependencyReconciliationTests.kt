@@ -4,127 +4,47 @@ import com.netflix.spinnaker.keel.api.Dependency
 import com.netflix.spinnaker.keel.api.DependencyType.LOAD_BALANCER
 import com.netflix.spinnaker.keel.api.DependencyType.SECURITY_GROUP
 import com.netflix.spinnaker.keel.api.DependencyType.TARGET_GROUP
-import com.netflix.spinnaker.keel.api.Moniker
-import com.netflix.spinnaker.keel.api.SimpleLocations
-import com.netflix.spinnaker.keel.api.SimpleRegionSpec
-import com.netflix.spinnaker.keel.api.SubnetAwareLocations
-import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
-import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerHealthCheck
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
-import com.netflix.spinnaker.keel.api.ec2.LaunchConfigurationSpec
-import com.netflix.spinnaker.keel.api.ec2.LoadBalancerDependencies
 import com.netflix.spinnaker.keel.api.titus.TitusClusterSpec
 import com.netflix.spinnaker.keel.api.titus.TitusServerGroupSpec
-import com.netflix.spinnaker.keel.docker.ReferenceProvider
+import com.netflix.spinnaker.keel.test.applicationLoadBalancer
+import com.netflix.spinnaker.keel.test.classicLoadBalancer
+import com.netflix.spinnaker.keel.test.ec2Cluster
+import com.netflix.spinnaker.keel.test.titusCluster
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
 class DependencyReconciliationTests {
-  private val locations = SubnetAwareLocations(
-    account = "test",
-    vpc = "vpc0",
-    subnet = "internal (vpc0)",
-    regions = setOf(
-      SubnetAwareRegionSpec(
-        name = "us-east-1",
-        availabilityZones = setOf("us-east-1c", "us-east-1d", "us-east-1e")
-      ),
-      SubnetAwareRegionSpec(
-        name = "us-west-2",
-        availabilityZones = setOf("us-west-2a", "us-west-2b", "us-west-2c")
-      )
-    )
-  )
-
-  private val ec2ClusterSpec: ClusterSpec = ClusterSpec(
-    moniker = Moniker(
-      app = "fnord",
-      stack = "test"
-    ),
-    artifactReference = "fnord-deb",
-    locations = locations,
-    _defaults = ServerGroupSpec(
-      launchConfiguration = LaunchConfigurationSpec(
-        instanceType = "m5.large",
-        ebsOptimized = true,
-        iamRole = "fnordInstanceProfile",
-        instanceMonitoring = false
-      ),
-      dependencies = ClusterDependencies(
-        loadBalancerNames = setOf("fnord-internal"),
-        securityGroupNames = setOf("fnord", "fnord-elb")
-      ),
-    ),
+  private val ec2ClusterSpec = ec2Cluster().spec.copy(
     overrides = mapOf(
       "us-east-1" to ServerGroupSpec(
         dependencies = ClusterDependencies(
           loadBalancerNames = setOf("fnord-external"),
           securityGroupNames = setOf("fnord-ext")
-        ),
-      ),
+        )
+      )
     )
   )
 
-  private val titusClusterSpec = TitusClusterSpec(
-    moniker = Moniker(
-      app = "fnord",
-      stack = "test"
-    ),
-    locations = SimpleLocations(
-      account = "account",
-      regions = setOf(
-        SimpleRegionSpec("us-east-1"),
-        SimpleRegionSpec("us-west-2")
-      )
-    ),
-    container = ReferenceProvider(reference = "fnord"),
-    _defaults = TitusServerGroupSpec(
-      dependencies = ClusterDependencies(
-        loadBalancerNames = setOf("fnord-internal"),
-        securityGroupNames = setOf("fnord", "fnord-elb")
-      )
-    ),
+  private val titusClusterSpec = titusCluster().spec.copy(
     overrides = mapOf(
-      // additions for us-east-1
       "us-east-1" to TitusServerGroupSpec(
         dependencies = ClusterDependencies(
           loadBalancerNames = setOf("fnord-external"),
           securityGroupNames = setOf("fnord-ext")
-        ),
+        )
       )
     )
   )
 
-  private val albSpec = ApplicationLoadBalancerSpec(
-    moniker = Moniker(
-      app = "fnord",
-      stack = "test"
-    ),
-    locations = locations,
-    listeners = emptySet(),
-    targetGroups = emptySet(),
-    dependencies = LoadBalancerDependencies(
-      securityGroupNames = setOf("fnord", "fnord-elb")
-    )
-  )
+  private val albSpec = applicationLoadBalancer().spec
 
-  private val clbSpec = ClassicLoadBalancerSpec(
-    moniker = Moniker(
-      app = "fnord",
-      stack = "test"
-    ),
-    locations = locations,
-    listeners = emptySet(),
-    healthCheck = ClassicLoadBalancerHealthCheck(target = "foo"),
-    dependencies = LoadBalancerDependencies(
-      securityGroupNames = setOf("fnord", "fnord-elb")
-    )
-  )
+  private val clbSpec = classicLoadBalancer().spec
 
   private val clusterDeps = setOf(
     Dependency(LOAD_BALANCER, "us-east-1", "fnord-internal"),

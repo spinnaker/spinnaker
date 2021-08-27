@@ -21,12 +21,13 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceDiff
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
+import com.netflix.spinnaker.keel.api.actuation.Job
 import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
 import com.netflix.spinnaker.keel.api.ec2.AllPorts
-import com.netflix.spinnaker.keel.api.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.ec2.CidrRule
 import com.netflix.spinnaker.keel.api.ec2.CrossAccountReferenceRule
+import com.netflix.spinnaker.keel.api.ec2.EC2_CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.ec2.EC2_SECURITY_GROUP_V1
 import com.netflix.spinnaker.keel.api.ec2.IngressPorts
 import com.netflix.spinnaker.keel.api.ec2.PortRange
@@ -45,8 +46,6 @@ import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel
 import com.netflix.spinnaker.keel.core.name
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.diff.toIndividualDiffs
-import com.netflix.spinnaker.keel.api.actuation.Job
-import com.netflix.spinnaker.keel.filterNotNullValues
 import com.netflix.spinnaker.keel.model.OrcaJob
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.retrofit.isNotFound
@@ -250,7 +249,7 @@ open class SecurityGroupHandler(
             cloudDriverService.getSecurityGroup(
               exportable.user,
               exportable.account,
-              CLOUD_PROVIDER,
+              EC2_CLOUD_PROVIDER,
               summary!!.name,
               region,
               summary.vpcId
@@ -281,7 +280,7 @@ open class SecurityGroupHandler(
             getSecurityGroup(
               serviceAccount,
               spec.locations.account,
-              CLOUD_PROVIDER,
+              EC2_CLOUD_PROVIDER,
               spec.moniker.toString(),
               region.name,
               cloudDriverCache.networkBy(spec.locations.vpc, spec.locations.account, region.name).id
@@ -376,7 +375,7 @@ open class SecurityGroupHandler(
         mapOf(
           "application" to moniker.app,
           "credentials" to location.account,
-          "cloudProvider" to CLOUD_PROVIDER,
+          "cloudProvider" to EC2_CLOUD_PROVIDER,
           "name" to moniker.toString(),
           "regions" to listOf(location.region),
           "vpcId" to cloudDriverCache.networkBy(location.vpc, location.account, location.region).id,
@@ -404,7 +403,7 @@ open class SecurityGroupHandler(
         mapOf(
           "application" to moniker.app,
           "credentials" to location.account,
-          "cloudProvider" to CLOUD_PROVIDER,
+          "cloudProvider" to EC2_CLOUD_PROVIDER,
           "name" to moniker.toString(),
           "regions" to listOf(location.region),
           "vpcId" to cloudDriverCache.networkBy(location.vpc, location.account, location.region).id,

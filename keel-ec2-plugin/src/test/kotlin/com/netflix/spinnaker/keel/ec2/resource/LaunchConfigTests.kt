@@ -6,7 +6,7 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.StaggeredRegion
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
-import com.netflix.spinnaker.keel.api.ec2.CLOUD_PROVIDER
+import com.netflix.spinnaker.keel.api.ec2.EC2_CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.CapacitySpec
@@ -132,7 +132,7 @@ internal class LaunchConfigTests {
   val sg1 = SecurityGroupSummary("keel", "sg-325234532", "vpc-1")
   val sg2 = SecurityGroupSummary("keel-elb", "sg-235425234", "vpc-1")
 
-  val vpc = Network(CLOUD_PROVIDER, "vpc-1452353", "vpc0", "test", "us-west-2")
+  val vpc = Network(EC2_CLOUD_PROVIDER, "vpc-1452353", "vpc0", "test", "us-west-2")
   val subnet = Subnet("subnet-1", vpc.id, vpc.account, vpc.region, "${vpc.region}a", "internal (vpc0)")
 
   lateinit var spec : ClusterSpec
@@ -190,6 +190,6 @@ internal class LaunchConfigTests {
     account = spec.locations.account,
     cluster = spec.moniker.toString(),
     region = region,
-    cloudProvider = CLOUD_PROVIDER
+    cloudProvider = EC2_CLOUD_PROVIDER
   )
 }

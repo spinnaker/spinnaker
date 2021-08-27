@@ -3,7 +3,7 @@ package com.netflix.spinnaker.keel.ec2.resolvers
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
-import com.netflix.spinnaker.keel.api.ec2.CLOUD_PROVIDER
+import com.netflix.spinnaker.keel.api.ec2.EC2_CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1_1
 import com.netflix.spinnaker.keel.api.ec2.LaunchConfigurationSpec
@@ -20,8 +20,8 @@ import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 
 internal class KeyPairResolverTests : JUnit5Minutests {
-  val vpcWest = Network(CLOUD_PROVIDER, "vpc-1452353", "vpc0", "test", "us-west-2")
-  val vpcEast = Network(CLOUD_PROVIDER, "vpc-4342589", "vpc0", "test", "us-east-1")
+  val vpcWest = Network(EC2_CLOUD_PROVIDER, "vpc-1452353", "vpc0", "test", "us-west-2")
+  val vpcEast = Network(EC2_CLOUD_PROVIDER, "vpc-4342589", "vpc0", "test", "us-east-1")
   val baseSpec = ClusterSpec(
     moniker = Moniker(app = "keel", stack = "test"),
     locations = SubnetAwareLocations(

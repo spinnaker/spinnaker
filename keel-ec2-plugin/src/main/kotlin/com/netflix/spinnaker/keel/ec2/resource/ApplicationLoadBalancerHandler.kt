@@ -13,7 +13,7 @@ import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancer
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec.Action
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec.ApplicationLoadBalancerOverride
-import com.netflix.spinnaker.keel.api.ec2.CLOUD_PROVIDER
+import com.netflix.spinnaker.keel.api.ec2.EC2_CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.ec2.EC2_APPLICATION_LOAD_BALANCER_V1_2
 import com.netflix.spinnaker.keel.api.ec2.LoadBalancerDependencies
 import com.netflix.spinnaker.keel.api.ec2.Location
@@ -204,7 +204,7 @@ class ApplicationLoadBalancerHandler(
           try {
             getApplicationLoadBalancer(
               serviceAccount,
-              CLOUD_PROVIDER,
+              EC2_CLOUD_PROVIDER,
               account,
               region,
               name
@@ -292,7 +292,7 @@ class ApplicationLoadBalancerHandler(
         mapOf(
           "application" to moniker.app,
           "credentials" to location.account,
-          "cloudProvider" to CLOUD_PROVIDER,
+          "cloudProvider" to EC2_CLOUD_PROVIDER,
           "name" to moniker.toString(),
           "region" to location.region,
           "availabilityZones" to mapOf(location.region to location.availabilityZones),

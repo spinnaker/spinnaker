@@ -289,19 +289,19 @@ class PreviewEnvironmentCodeEventListener(
     previewResource = previewResource.withBranchDetail(branch)
 
     // update artifact reference if applicable to match the branch filter of the preview environment
-    if (spec is ArtifactReferenceProvider) {
+    if (previewResource.spec is ArtifactReferenceProvider) {
       log.debug("Attempting to replace artifact reference for resource ${this.id}")
       previewResource = previewResource.withBranchArtifact(deliveryConfig, previewEnvSpec)
     } else {
-      log.debug("Resource ${this.id} (${spec.javaClass.simpleName}) does not provide an artifact reference")
+      log.debug("Resource ${this.id} (${previewResource.spec::class.simpleName}) does not provide an artifact reference")
     }
 
     // update dependency names that are part of the preview environment and so have new names
-    if (spec is Dependent) {
+    if (previewResource.spec is Dependent) {
       log.debug("Attempting to update dependencies for resource ${this.id}")
       previewResource = previewResource.withDependenciesRenamed(deliveryConfig, previewEnvSpec, branch)
     } else {
-      log.debug("Resource ${this.id} does not implement the Dependent interface")
+      log.debug("Resource ${this.id} (${previewResource.spec::class.simpleName}) does not implement the Dependent interface")
     }
 
     log.debug("Copied resource ${this.id} to preview resource ${previewResource.id}")
@@ -314,8 +314,8 @@ class PreviewEnvironmentCodeEventListener(
    */
   private fun <T : Monikered> Resource<T>.withBranchDetail(branch: String): Resource<T> {
     val updatedMoniker = spec.moniker.withBranchDetail(branch)
-    return copy(spec = objectMapper.convertValue<MutableMap<String, Any?>>(this.spec)
-      .let { newSpec ->
+    return copy(
+      spec = this.spec.toMutableMap().let { newSpec ->
         newSpec["moniker"] = updatedMoniker
         objectMapper.convertValue(newSpec, spec::class.java)
       }
@@ -327,7 +327,8 @@ class PreviewEnvironmentCodeEventListener(
       copy(metadata = mapOf(
         // this is so the resource ID is updated with the new name (which is in the spec)
         "id" to newId,
-        "application" to application
+        "application" to application,
+        "basedOn" to this.id
       ))
     }
   }
@@ -358,7 +359,7 @@ class PreviewEnvironmentCodeEventListener(
       log.debug("Found $artifactFromBranch matching branch filter from preview environment spec ${previewEnvSpec.name}. " +
         "Replacing artifact reference in resource ${this.id}.")
       copy(
-        spec = objectMapper.convertValue<MutableMap<String, Any?>>(spec).let { newSpec ->
+        spec = spec.toMutableMap().let { newSpec ->
           val containerSpec = (spec as? TitusClusterSpec)?.container as? ReferenceProvider
           if (containerSpec != null) {
             // TODO: it'd be nice if the titus spec followed the convention
@@ -418,6 +419,25 @@ class PreviewEnvironmentCodeEventListener(
 
     return copy(spec = updatedSpec)
   }
+
+  /**
+   * Converts a [ResourceSpec] to a [MutableMap] that can be converted back to the same type
+   * as [ResourceSpec::class.java] without loosing any information. Accounts for non-standard serialization
+   * behaviors in our built-in spec models.
+   */
+  private fun ResourceSpec.toMutableMap(): MutableMap<String, Any?> =
+    objectMapper.convertValue<MutableMap<String, Any?>>(this)
+      .let { specMap ->
+        // workaround for specs that expose a `defaults` field but back it with a `_defaults` field containing
+        // the actual properties of the spec
+        if (specMap.contains("defaults") && this::class.java.declaredFields.any { it.name == "_defaults" }) {
+          (specMap["defaults"] as? Map<String, *>)?.let { defaults ->
+            specMap.putAll(defaults)
+            specMap.remove("defaults")
+          }
+        }
+        specMap
+      }
 
   private fun DeliveryConfig.findBaseEnvironment(previewEnvSpec: PreviewEnvironmentSpec) =
     environments.find { it.name == previewEnvSpec.baseEnvironment }
