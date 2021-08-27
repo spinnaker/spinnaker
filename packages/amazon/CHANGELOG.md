@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.8.0](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.7.14...@spinnaker/amazon@0.8.0) (2021-08-25)
+
+
+### Features
+
+* **amazon/serverGroup:** Automatically check IMDSv2 on valid accounts ([#9607](https://github.com/spinnaker/deck/issues/9607)) ([7fcb843](https://github.com/spinnaker/deck/commit/7fcb843d2eefdbe074ce0426913946b651b8f2f3))
+
+
+
+
+
 ## [0.7.14](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.7.13...@spinnaker/amazon@0.7.14) (2021-08-20)
 
 

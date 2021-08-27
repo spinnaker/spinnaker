@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.7.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.6.0...@spinnaker/core@0.7.0) (2021-08-25)
+
+
+### Bug Fixes
+
+* **md:** always show the config component ([#9613](https://github.com/spinnaker/deck/issues/9613)) ([ed35f1c](https://github.com/spinnaker/deck/commit/ed35f1c2ee17636f3090b3269cdb9ef80bd719ff))
+
+
+### Features
+
+* **managed-delivery:** Expose resource definition on the UI ([#9611](https://github.com/spinnaker/deck/issues/9611)) ([d264840](https://github.com/spinnaker/deck/commit/d264840ee86beb3dd5581556d957f468ebb4e4cd))
+
+
+
+
+
 # [0.6.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.5.0...@spinnaker/core@0.6.0) (2021-08-20)
 
 
