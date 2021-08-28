@@ -6,11 +6,20 @@
   <div class="form-group">
     <div class="col-md-3 sm-label-right"><b>Load Balancers</b></div>
     <div class="col-md-7">
+      <label for="useLoadBalancerCheckbox">
+        <input
+          type="checkbox"
+          ng-model="useLoadBalancer"
+          id="useLoadBalancerCheckbox"
+          ng-change="loadBalancerCtrl.loadBalancerChanged(null)"
+        />
+        Use load balancer
+      </label>
       <ui-select
-        required
         ng-model="command.loadBalancerName"
         class="form-control input-sm"
         ng-change="loadBalancerCtrl.loadBalancerChanged($select.selected)"
+        ng-show="useLoadBalancer"
       >
         <ui-select-match placeholder="select a loadBalancer">{{$select.selected}}</ui-select-match>
         <ui-select-choices repeat="loadBalancer in command.loadBalancers | filter: $select.search">
@@ -20,7 +29,7 @@
     </div>
   </div>
 
-  <div class="form-group">
+  <div class="form-group" ng-show="command.loadBalancerName">
     <div class="col-md-12">
       <div class="well-compact" ng-class="well">
         <h5 class="text-center">

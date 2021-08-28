@@ -21,7 +21,43 @@ module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_LOADBALANCERS_SERVERGROUPLOADBALANCERS
       loadBalancerReader
         .getLoadBalancerDetails('azure', $scope.command.credentials, $scope.command.region, item)
         .then(function (LBs) {
-          if (LBs && LBs.length === 1) {
+          if (!LBs || LBs.length === 0) {
+            // load the subnet and vnets without a load balancer
+            const attachedVnet = $scope.command.selectedVnet;
+            const attachedSubnet = $scope.command.selectedSubnet;
+            $scope.command.selectedVnetSubnets = [];
+            $scope.command.allVnets = [];
+            NetworkReader.listNetworks().then(function (vnets) {
+              if (vnets.azure) {
+                vnets.azure.forEach((selectedVnet) => {
+                  if (
+                    selectedVnet.account === $scope.command.credentials &&
+                    selectedVnet.region === $scope.command.region
+                  ) {
+                    $scope.command.allVnets.push(selectedVnet);
+
+                    selectedVnet.subnets.map(function (subnet) {
+                      let addSubnet = true;
+                      if (subnet.devices) {
+                        subnet.devices.map(function (device) {
+                          // only add subnets that are not assigned to an ApplicationGateway
+                          if (device && device.type === 'applicationGateways') {
+                            addSubnet = false;
+                          }
+                        });
+                      }
+                      if (addSubnet) {
+                        $scope.command.selectedVnetSubnets.push(subnet.name);
+                        if (subnet.name === attachedSubnet) {
+                          $scope.command.selectedSubnet = attachedSubnet;
+                        }
+                      }
+                    });
+                  }
+                });
+              }
+            });
+          } else if (LBs && LBs.length === 1) {
             const selectedLoadBalancer = LBs[0];
             const attachedVnet = $scope.command.selectedVnet;
             $scope.command.selectedVnet = null;
@@ -65,9 +101,12 @@ module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_LOADBALANCERS_SERVERGROUPLOADBALANCERS
         });
     }
 
-    if ($scope.command.credentials && $scope.command.region && $scope.command.loadBalancerName) {
+    if ($scope.command.credentials && $scope.command.region) {
       $scope.command.viewState.networkSettingsConfigured = true;
       $scope.command.selectedVnetSubnets = [];
+      if ($scope.command.loadBalancerName !== null && typeof $scope.command.loadBalancerName !== 'undefined') {
+        $scope.useLoadBalancer = true;
+      }
       loadVnetSubnets($scope.command.loadBalancerName, $scope.command.loadBalancerType);
     }
 
@@ -85,8 +124,11 @@ module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_LOADBALANCERS_SERVERGROUPLOADBALANCERS
         }
       }
 
+      if (item === null) {
+        $scope.command.loadBalancerName = null;
+      }
+
       $scope.command.selectedVnetSubnets = [];
-      $scope.command.selectedSubnet = null;
       $scope.command.loadBalancerType = loadBalancerType;
       InfrastructureCaches.clearCache('networks');
       loadVnetSubnets(item, loadBalancerType);

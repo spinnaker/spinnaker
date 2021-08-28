@@ -55,10 +55,10 @@
           <account-tag account="loadBalancer.account" pad="right" provider="loadBalancer.type"></account-tag>
           {{loadBalancer.region}}
         </dd>
-        <dt ng-if="loadBalancer.loadBalancerType !== 'Azure Load Balancer'">VNet</dt>
-        <dd ng-if="loadBalancer.loadBalancerType !== 'Azure Load Balancer'">{{loadBalancer.elb.vnet}}</dd>
-        <dt ng-if="loadBalancer.loadBalancerType !== 'Azure Load Balancer'">Subnet</dt>
-        <dd ng-if="loadBalancer.loadBalancerType !== 'Azure Load Balancer'">{{loadBalancer.elb.subnet}}</dd>
+        <dt ng-if="loadBalancer.loadBalancerType === 'Azure Application Gateway'">VNet</dt>
+        <dd ng-if="loadBalancer.loadBalancerType === 'Azure Application Gateway'">{{loadBalancer.elb.vnet}}</dd>
+        <dt ng-if="loadBalancer.loadBalancerType === 'Azure Application Gateway'">Subnet</dt>
+        <dd ng-if="loadBalancer.loadBalancerType === 'Azure Application Gateway'">{{loadBalancer.elb.subnet}}</dd>
       </dl>
       <dl class="horizontal-when-filters-collapsed">
         <dt ng-if="loadBalancer.serverGroups">Server Groups</dt>
