@@ -70,6 +70,7 @@ module(AZURE_SERVERGROUP_SERVERGROUP_TRANSFORMER, []).factory('azureServerGroupT
       allowScaleDownActive: command.strategy === 'redblack' ? true : null,
       detail: command.freeFormDetails,
       freeFormDetails: command.freeFormDetails,
+      healthSettings: command.healthSettings,
       account: command.credentials,
       selectedProvider: 'azure',
       vnet: command.vnet,
