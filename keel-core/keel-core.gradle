@@ -31,6 +31,7 @@ dependencies {
   testImplementation(project(":keel-core-test"))
   testImplementation(project(":keel-ec2-api"))  // needed for resource dependency logic
   testImplementation("io.strikt:strikt-jackson")
+  testImplementation("io.strikt:strikt-mockk")
   testImplementation("dev.minutest:minutest")
 
   testImplementation("org.assertj:assertj-core")

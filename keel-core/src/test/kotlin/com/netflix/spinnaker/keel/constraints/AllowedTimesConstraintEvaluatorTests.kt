@@ -14,6 +14,7 @@ import com.netflix.spinnaker.keel.core.api.TimeWindow
 import com.netflix.spinnaker.keel.core.api.TimeWindowConstraint
 import com.netflix.spinnaker.keel.core.api.TimeWindowNumeric
 import com.netflix.spinnaker.keel.core.api.windowsNumeric
+import com.netflix.spinnaker.keel.core.api.zone
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.time.MutableClock
@@ -32,9 +33,11 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
+import strikt.mockk.captured
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
+import java.time.LocalTime
 import java.time.ZoneId
 
 internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
@@ -132,15 +135,25 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
       }
 
       context("we have not deployed yet in this window") {
+        val start = slot<Instant>()
+        val end = slot<Instant>()
+
         before {
           every {
-            artifactRepository.deploymentsBetween(manifest, environment.name, any(), any())
+            artifactRepository.deploymentsBetween(manifest, environment.name, capture(start), capture(end))
           } returns 0
         }
 
         test("we can promote") {
           expectThat(subject.canPromote(artifact, "1.1", manifest, environment))
             .isTrue()
+        }
+
+        test("we used the correct boundaries for the time window") {
+          expect {
+            that(start).captured.get { atZone(constraint.zone).toLocalTime() } isEqualTo LocalTime.of(9, 0)
+            that(end).captured.get { atZone(constraint.zone).toLocalTime() } isEqualTo LocalTime.of(15, 59, 59)
+          }
         }
       }
 
