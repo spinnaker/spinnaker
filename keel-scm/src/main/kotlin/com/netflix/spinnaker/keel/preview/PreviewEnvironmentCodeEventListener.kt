@@ -154,7 +154,7 @@ class PreviewEnvironmentCodeEventListener(
       // We always want to dismiss the previous notifications, and if needed to create a new one
       notificationRepository.dismissNotification(DeliveryConfigImportFailed::class.java, deliveryConfig.application, event.pullRequestBranch)
       val manifestPath = runBlocking {
-        front50Cache.applicationByName(deliveryConfig.application).managedDelivery.manifestPath
+        front50Cache.applicationByName(deliveryConfig.application).managedDelivery?.manifestPath
       }
       val commitEvent = event.toCommitEvent()
       val newDeliveryConfig = try {

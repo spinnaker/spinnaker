@@ -210,7 +210,7 @@ class AdminService(
         return@forEach
       }
 
-      if (app.managedDelivery.importDeliveryConfig == true) {
+      if (app.managedDelivery?.importDeliveryConfig == true) {
         log.debug("App ${app.name} already configured for git integration. Skipping migration.")
         return@forEach
       }

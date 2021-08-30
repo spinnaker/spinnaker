@@ -55,8 +55,8 @@ class GitIntegration(
         front50Application,
         user,
         ManagedDeliveryConfig(
-          importDeliveryConfig = payload.isEnabled ?: front50Application.managedDelivery.importDeliveryConfig,
-          manifestPath = payload.manifestPath ?: front50Application.managedDelivery.manifestPath
+          importDeliveryConfig = payload.isEnabled ?: front50Application.managedDelivery?.importDeliveryConfig ?: false,
+          manifestPath = payload.manifestPath ?: front50Application.managedDelivery?.manifestPath
         )
       )
     }
@@ -69,8 +69,8 @@ class GitIntegration(
       id = "${name}-git-integration",
       repository = "${repoProjectKey}/${repoSlug}",
       branch = branch,
-      isEnabled = managedDelivery.importDeliveryConfig,
-      manifestPath = managedDelivery.manifestPath,
+      isEnabled = managedDelivery?.importDeliveryConfig,
+      manifestPath = managedDelivery?.manifestPath,
       link = scmUtils.getBranchLink(repoType, repoProjectKey, repoSlug, branch),
     )
   }

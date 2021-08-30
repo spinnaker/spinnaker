@@ -89,7 +89,7 @@ class DeliveryConfigImporter(
         repoType = repoType ?: error("Missing SCM type in config for application $name"),
         projectKey = repoProjectKey ?: error("Missing SCM project in config for application $name"),
         repoSlug = repoSlug ?: error("Missing SCM repository in config for application $name"),
-        manifestPath = app.managedDelivery.manifestPath,
+        manifestPath = app.managedDelivery?.manifestPath,
         ref = "refs/heads/${getDefaultBranch(scmService)}",
         addMetadata = addMetadata
       )

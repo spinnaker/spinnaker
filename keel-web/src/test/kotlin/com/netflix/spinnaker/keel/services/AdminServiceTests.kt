@@ -184,7 +184,7 @@ class AdminServiceTests : JUnit5Minutests {
         verify {
           front50Service.updatePipeline(importPipeline.id, capture(updatedPipeline), any())
         }
-        expectThat(updatedApp.captured.managedDelivery.importDeliveryConfig).isTrue()
+        expectThat(updatedApp.captured.managedDelivery?.importDeliveryConfig).isTrue()
         expectThat(updatedPipeline.captured.disabled).isTrue()
       }
 

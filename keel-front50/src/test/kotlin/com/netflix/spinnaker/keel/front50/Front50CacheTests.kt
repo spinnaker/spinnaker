@@ -150,7 +150,7 @@ class Front50CacheTests : JUnit5Minutests {
             front50Service.applicationByName(any())
           }
 
-          expectThat(cachedApp.managedDelivery.importDeliveryConfig).isTrue()
+          expectThat(cachedApp.managedDelivery?.importDeliveryConfig).isTrue()
         }
 
         test("Verify that we clear the cache and fetch again") {

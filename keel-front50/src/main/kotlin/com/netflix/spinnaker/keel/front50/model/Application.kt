@@ -17,7 +17,7 @@ data class Application(
   val repoSlug: String? = null,
   val repoType: String? = null,
   val createTs: String? = null,
-  val managedDelivery: ManagedDeliveryConfig = ManagedDeliveryConfig(),
+  val managedDelivery: ManagedDeliveryConfig? = null,
   @get:JsonAnyGetter val details: MutableMap<String, Any?> = mutableMapOf()
 ) {
   @JsonAnySetter
