@@ -553,16 +553,16 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
             expectThat(resourceRepository.applicationEventHistory(deliveryConfig.application)).isEmpty()
           }
 
-          test("deletes related application pause records") {
-            repository.deleteByApplication(deliveryConfig.application)
-            expectThat(pausedRepository.getPause(PauseScope.APPLICATION, deliveryConfig.application)).isNull()
-          }
-
           test("deletes related resource events") {
             repository.deleteByApplication(deliveryConfig.application)
             // FIXME: can't check resource event history because it tries to read the resource record first.
             //  We should break out the event stuff into its own repository.
             // expectThat(resourceRepository.eventHistory(firstResource.id)).isEmpty()
+          }
+
+          test("deletes related application pause records") {
+            repository.deleteByApplication(deliveryConfig.application)
+            expectThat(pausedRepository.getPause(PauseScope.APPLICATION, deliveryConfig.application)).isNull()
           }
 
           test("deletes related resource pause records") {

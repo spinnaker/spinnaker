@@ -192,12 +192,7 @@ class SqlDeliveryConfigRepository(
         val txn = DSL.using(config)
         // delete events
         txn.deleteFrom(EVENT)
-          .where(EVENT.SCOPE.eq(EventScope.RESOURCE))
-          .and(EVENT.REF.`in`(resourceIds))
-          .execute()
-        txn.deleteFrom(EVENT)
-          .where(EVENT.SCOPE.eq(EventScope.APPLICATION))
-          .and(EVENT.REF.eq(application))
+          .where(EVENT.APPLICATION.eq(application))
           .execute()
         // delete pause records
         txn.deleteFrom(PAUSED)
