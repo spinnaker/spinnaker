@@ -7,6 +7,7 @@ import { CORE_MODULE } from '@spinnaker/core';
 import { DOCKER_MODULE } from '@spinnaker/docker';
 import { AMAZON_MODULE } from '@spinnaker/amazon';
 import { APPENGINE_MODULE } from '@spinnaker/appengine';
+import { AZURE_MODULE } from '@spinnaker/azure';
 import { GOOGLE_MODULE } from '@spinnaker/google';
 import { CANARY_MODULE } from './canary/canary.module';
 import { KUBERNETES_MODULE } from '@spinnaker/kubernetes';
@@ -19,6 +20,7 @@ import '@spinnaker/cloudfoundry';
 module('netflix.spinnaker', [
   CORE_MODULE,
   AMAZON_MODULE,
+  AZURE_MODULE,
   GOOGLE_MODULE,
   ECS_MODULE,
   DOCKER_MODULE,
