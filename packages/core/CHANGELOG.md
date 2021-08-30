@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.8.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.7.0...@spinnaker/core@0.8.0) (2021-08-30)
+
+
+### Features
+
+* **core/pipeline:** pipeline graph minimize based on number of stages ([#9562](https://github.com/spinnaker/deck/issues/9562)) ([86c5c7c](https://github.com/spinnaker/deck/commit/86c5c7cde993749384a062e24102675ccb290e92))
+
+
+
+
+
 # [0.7.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.6.0...@spinnaker/core@0.7.0) (2021-08-25)
 
 

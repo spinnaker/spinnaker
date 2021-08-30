@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.1.0](https://github.com/spinnaker/deck/compare/@spinnaker/azure@0.0.293...@spinnaker/azure@0.1.0) (2021-08-30)
+
+
+### Features
+
+* **provider/azure:** Add healthSettings to server groups ([#9622](https://github.com/spinnaker/deck/issues/9622)) ([b98c8f5](https://github.com/spinnaker/deck/commit/b98c8f5b0b3bda953edee16f59a3865b2cc87938))
+* **provider/azure:** Allow empty load balancer for Azure scale sets ([#9620](https://github.com/spinnaker/deck/issues/9620)) ([63c1647](https://github.com/spinnaker/deck/commit/63c1647dce5baa331467d536147166b1f84f7d9f))
+
+
+
+
+
 ## [0.0.293](https://github.com/spinnaker/deck/compare/@spinnaker/azure@0.0.292...@spinnaker/azure@0.0.293) (2021-08-25)
 
 **Note:** Version bump only for package @spinnaker/azure
