@@ -256,7 +256,12 @@ export class TitusCloneServerGroupModal extends React.Component<
               order={nextIdx()}
               note={this.getLoadBalancerNote(formik.values)}
               render={({ innerRef }) => (
-                <ServerGroupLoadBalancers ref={innerRef} formik={formik as any} hideLoadBalancers={true} />
+                <ServerGroupLoadBalancers
+                  ref={innerRef}
+                  formik={formik as any}
+                  hideLoadBalancers={true}
+                  targetGroupTypeHelpText={'ip'}
+                />
               )}
             />
 

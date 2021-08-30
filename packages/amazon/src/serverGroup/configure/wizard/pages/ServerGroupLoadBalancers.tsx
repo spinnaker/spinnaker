@@ -9,6 +9,7 @@ import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.servic
 export interface IServerGroupLoadBalancersProps {
   hideLoadBalancers?: boolean;
   hideTargetGroups?: boolean;
+  targetGroupTypeHelpText?: 'instance' | 'ip';
   formik: FormikProps<IAmazonServerGroupCommand>;
 }
 
@@ -123,7 +124,10 @@ export class ServerGroupLoadBalancers
             </div>
             <div className="col-md-7">
               {targetGroupOptions.length === 0 && (
-                <div className="form-control-static">No target groups found in the selected account/region/VPC</div>
+                <div className="form-control-static">
+                  No <b>{this.props.targetGroupTypeHelpText ?? 'instance'}</b> target groups found in the selected
+                  account/region/VPC
+                </div>
               )}
               {targetGroupOptions.length > 0 && (
                 <TetheredSelect
