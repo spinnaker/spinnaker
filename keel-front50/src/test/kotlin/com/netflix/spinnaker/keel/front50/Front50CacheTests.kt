@@ -141,7 +141,7 @@ class Front50CacheTests : JUnit5Minutests {
             subject.applicationByName(app.name)
           }
           runBlocking {
-            subject.updateManagedDeliveryConfig(app.name, "keel", ManagedDeliveryConfig(importDeliveryConfig = true))
+            subject.updateManagedDeliveryConfig(app, "keel", ManagedDeliveryConfig(importDeliveryConfig = true))
           }
           val cachedApp = runBlocking {
             subject.applicationByName(app.name)
@@ -159,7 +159,7 @@ class Front50CacheTests : JUnit5Minutests {
             subject.searchApplicationsByRepo(GitRepository(app.repoType!!, app.repoProjectKey!!, app.repoSlug!!))
           }
           runBlocking {
-            subject.updateManagedDeliveryConfig(app.name, "keel", ManagedDeliveryConfig(importDeliveryConfig = true))
+            subject.updateManagedDeliveryConfig(app, "keel", ManagedDeliveryConfig(importDeliveryConfig = true))
           }
           runBlocking {
             subject.searchApplicationsByRepo(GitRepository(app.repoType!!, app.repoProjectKey!!, app.repoSlug!!))

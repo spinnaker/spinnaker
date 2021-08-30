@@ -105,13 +105,13 @@ class Front50Cache(
     }
   }
 
-  suspend fun updateManagedDeliveryConfig(application: String, user: String, settings: ManagedDeliveryConfig): Application {
+  suspend fun updateManagedDeliveryConfig(application: Application, user: String, settings: ManagedDeliveryConfig): Application {
     val front50App = front50Service.updateApplication(
-      application,
+      application.name,
       user,
       Application(
-        name = application,
-        email = user,
+        name = application.name,
+        email = application.email,
         managedDelivery = settings
       )
     )

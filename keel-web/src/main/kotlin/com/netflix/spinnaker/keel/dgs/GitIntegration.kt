@@ -47,16 +47,16 @@ class GitIntegration(
     @InputArgument payload: MdUpdateGitIntegrationPayload,
     @RequestHeader("X-SPINNAKER-USER") user: String
   ): MdGitIntegration {
-    val existingConfig = runBlocking {
+    val front50Application = runBlocking {
       front50Cache.applicationByName(payload.application)
-    }.managedDelivery
+    }
     val updatedFront50App = runBlocking {
       front50Cache.updateManagedDeliveryConfig(
-        payload.application,
+        front50Application,
         user,
         ManagedDeliveryConfig(
-          importDeliveryConfig = payload.isEnabled ?: existingConfig.importDeliveryConfig,
-          manifestPath = payload.manifestPath ?: existingConfig.manifestPath
+          importDeliveryConfig = payload.isEnabled ?: front50Application.managedDelivery.importDeliveryConfig,
+          manifestPath = payload.manifestPath ?: front50Application.managedDelivery.manifestPath
         )
       )
     }
