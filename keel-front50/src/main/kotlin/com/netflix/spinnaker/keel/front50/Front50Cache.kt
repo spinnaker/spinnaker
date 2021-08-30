@@ -91,11 +91,11 @@ class Front50Cache(
     }
   }
 
-  fun updateApplicationByName(app: Application) {
+  private fun updateApplicationByName(app: Application) {
     applicationsByNameCache.put(app.name.toLowerCase(), CompletableFuture.supplyAsync { app })
   }
 
-  fun invalidateSearchParamsCache(app: Application) {
+  private fun invalidateSearchParamsCache(app: Application) {
     with(app) {
       // We invalidate the cache, as it's easier than updating it
       if (repoType != null && repoProjectKey != null && repoSlug != null) {
@@ -103,6 +103,11 @@ class Front50Cache(
           .invalidate(GitRepository(repoType, repoProjectKey, repoSlug).toSearchParams())
       }
     }
+  }
+
+  suspend fun updateManagedDeliveryConfig(application: String, user: String, settings: ManagedDeliveryConfig): Application {
+    val front50App = applicationByName(application)
+    return updateManagedDeliveryConfig(front50App, user, settings)
   }
 
   suspend fun updateManagedDeliveryConfig(application: Application, user: String, settings: ManagedDeliveryConfig): Application {

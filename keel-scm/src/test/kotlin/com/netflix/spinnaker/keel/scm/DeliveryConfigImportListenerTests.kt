@@ -125,7 +125,7 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
 
       every {
         deliveryConfigUpserter.upsertConfig(deliveryConfig)
-      } returns deliveryConfig.toDeliveryConfig()
+      } returns Pair(deliveryConfig.toDeliveryConfig(), false)
 
       every {
         scmUtils.getDefaultBranch(any())

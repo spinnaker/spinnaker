@@ -17,7 +17,7 @@ data class DeliveryConfig(
   @get:ExcludedFromDiff
   val rawConfig: String? = null,
   @get:ExcludedFromDiff
-  val updatedAt: Instant? = null
+  val updatedAt: Instant? = null,
 ) {
   @get:ExcludedFromDiff
   val resources: Set<Resource<*>>

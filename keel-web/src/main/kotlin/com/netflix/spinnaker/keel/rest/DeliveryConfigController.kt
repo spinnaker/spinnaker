@@ -9,6 +9,8 @@ import com.netflix.spinnaker.keel.auth.PermissionLevel.READ
 import com.netflix.spinnaker.keel.auth.PermissionLevel.WRITE
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
+import com.netflix.spinnaker.keel.front50.Front50Cache
+import com.netflix.spinnaker.keel.front50.model.ManagedDeliveryConfig
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
 import com.netflix.spinnaker.keel.parseDeliveryConfig
 import com.netflix.spinnaker.keel.persistence.KeelRepository
@@ -22,6 +24,7 @@ import com.netflix.spinnaker.keel.validators.DeliveryConfigValidator
 import com.netflix.spinnaker.keel.validators.applyAll
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import io.swagger.v3.oas.annotations.Operation
+import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -32,6 +35,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
@@ -51,6 +55,7 @@ class DeliveryConfigController(
   private val generator: Generator,
   private val deliveryConfigUpserter: DeliveryConfigUpserter,
   private val yamlMapper: YAMLMapper,
+  private val front50Cache: Front50Cache,
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -66,10 +71,11 @@ class DeliveryConfigController(
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
   fun upsert(
-    stream: InputStream
+    stream: InputStream,
+    @RequestHeader("X-SPINNAKER-USER") user: String
   ): DeliveryConfig {
     val rawDeliveryConfig = readRawConfigFromStream(stream)
-    return upsertConfigIfAuthorized(rawDeliveryConfig)
+    return upsertConfigIfAuthorized(rawDeliveryConfig, user)
   }
 
   @Operation(
@@ -81,15 +87,23 @@ class DeliveryConfigController(
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
   // We had to handle requests from gate separately, because gate was serializing the raw string incorrectly. Therefore, it's wrapped in a simple object
-  fun upsertFromGate(@RequestBody rawConfig: GateRawConfig): DeliveryConfig {
-    return upsertConfigIfAuthorized(rawConfig.content)
+  fun upsertFromGate(@RequestBody rawConfig: GateRawConfig,  @RequestHeader("X-SPINNAKER-USER") user: String): DeliveryConfig {
+    return upsertConfigIfAuthorized(rawConfig.content, user)
   }
 
-  private fun upsertConfigIfAuthorized(rawDeliveryConfig: String): DeliveryConfig {
+  private fun upsertConfigIfAuthorized(rawDeliveryConfig: String, user: String): DeliveryConfig {
     val submittedDeliveryConfig = yamlMapper.parseDeliveryConfig(rawDeliveryConfig)
     submittedDeliveryConfig.checkPermissions()
     deliveryConfigProcessors.applyAll(submittedDeliveryConfig).let {
-      return deliveryConfigUpserter.upsertConfig(it)
+      log.debug("Upserting config of app ${submittedDeliveryConfig.application}")
+      val (deliveryConfig, isNew) = deliveryConfigUpserter.upsertConfig(it)
+      if (isNew) {
+        // We need to update front50 to enable the git integration to import future delivery config changes
+        runBlocking {
+          front50Cache.updateManagedDeliveryConfig(submittedDeliveryConfig.application, user, ManagedDeliveryConfig(importDeliveryConfig = true))
+        }
+      }
+      return deliveryConfig
     }
   }
 
@@ -192,7 +206,7 @@ class DeliveryConfigController(
     val deliveryConfig =
       importer.import(repoType, projectKey, repoSlug, manifestPath, ref ?: "refs/heads/master")
     deliveryConfig.checkPermissions()
-    return deliveryConfigUpserter.upsertConfig(deliveryConfig)
+    return deliveryConfigUpserter.upsertConfig(deliveryConfig).first
   }
 
   private fun SubmittedDeliveryConfig.checkPermissions() {
