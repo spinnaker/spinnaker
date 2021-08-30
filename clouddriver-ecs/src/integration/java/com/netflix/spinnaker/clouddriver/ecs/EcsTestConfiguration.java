@@ -20,7 +20,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
-import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig;
+import com.netflix.spinnaker.clouddriver.aws.security.config.AccountsConfiguration;
 import com.netflix.spinnaker.clouddriver.ecs.security.NetflixAssumeRoleEcsCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.security.NetflixECSCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
@@ -75,8 +75,8 @@ public class EcsTestConfiguration {
         .thenAnswer(
             (Answer<NetflixAmazonCredentials>)
                 invocation -> {
-                  CredentialsConfig.Account account =
-                      invocation.getArgument(0, CredentialsConfig.Account.class);
+                  AccountsConfiguration.Account account =
+                      invocation.getArgument(0, AccountsConfiguration.Account.class);
                   return TestCredential.assumeRoleNamed(account.getName());
                 });
     return parser;

@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.ecs.security;
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAssumeRoleAmazonCredentials;
-import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig;
+import com.netflix.spinnaker.clouddriver.aws.security.config.AccountsConfiguration;
 import com.netflix.spinnaker.clouddriver.ecs.EcsCloudProvider;
 import com.netflix.spinnaker.clouddriver.ecs.names.EcsResource;
 import com.netflix.spinnaker.clouddriver.ecs.provider.EcsProvider;
@@ -41,7 +41,7 @@ public class EcsCredentialsParser<T extends NetflixECSCredentials>
   private final CompositeCredentialsRepository<AccountCredentials> compositeCredentialsRepository;
 
   @Qualifier("amazonCredentialsParser")
-  private final CredentialsParser<CredentialsConfig.Account, NetflixAmazonCredentials>
+  private final CredentialsParser<AccountsConfiguration.Account, NetflixAmazonCredentials>
       amazonCredentialsParser;
 
   private final NamerRegistry namerRegistry;
@@ -53,7 +53,7 @@ public class EcsCredentialsParser<T extends NetflixECSCredentials>
             compositeCredentialsRepository.getCredentials(
                 accountDefinition.getAwsAccount(), AmazonCloudProvider.ID);
 
-    CredentialsConfig.Account account =
+    AccountsConfiguration.Account account =
         EcsAccountBuilder.build(
             netflixAmazonCredentials, accountDefinition.getName(), EcsProvider.NAME);
     NetflixECSCredentials netflixECSCredentials =

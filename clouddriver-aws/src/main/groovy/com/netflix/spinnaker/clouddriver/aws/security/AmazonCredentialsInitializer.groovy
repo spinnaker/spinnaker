@@ -18,9 +18,10 @@ package com.netflix.spinnaker.clouddriver.aws.security
 
 import com.amazonaws.auth.AWSCredentialsProvider
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
+import com.netflix.spinnaker.clouddriver.aws.security.config.AccountsConfiguration
+import com.netflix.spinnaker.clouddriver.aws.security.config.AccountsConfiguration.Account
 import com.netflix.spinnaker.clouddriver.aws.security.config.AmazonCredentialsParser
 import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig
-import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig.Account
 import com.netflix.spinnaker.clouddriver.security.CredentialsInitializerSynchronizable
 import com.netflix.spinnaker.credentials.CredentialsLifecycleHandler
 import com.netflix.spinnaker.credentials.CredentialsRepository
@@ -51,10 +52,17 @@ class AmazonCredentialsInitializer {
   }
 
   @Bean
+  @ConfigurationProperties('aws')
+  AccountsConfiguration accountsConfiguration() {
+    new AccountsConfiguration()
+  }
+
+  @Bean
   Class<? extends NetflixAmazonCredentials> credentialsType(
-    CredentialsConfig credentialsConfig
+    CredentialsConfig credentialsConfig,
+    AccountsConfiguration accountsConfig
   ) {
-    if (!credentialsConfig.accounts && !credentialsConfig.defaultAssumeRole) {
+    if (!accountsConfig.accounts && !credentialsConfig.defaultAssumeRole) {
       NetflixAmazonCredentials
     } else {
       NetflixAssumeRoleAmazonCredentials
@@ -68,9 +76,16 @@ class AmazonCredentialsInitializer {
   CredentialsParser<Account, NetflixAmazonCredentials> amazonCredentialsParser(
     AWSCredentialsProvider awsCredentialsProvider,
     AmazonClientProvider amazonClientProvider,
-    Class<? extends NetflixAmazonCredentials> credentialsType, CredentialsConfig credentialsConfig
+    Class<? extends NetflixAmazonCredentials> credentialsType,
+    CredentialsConfig credentialsConfig,
+    AccountsConfiguration accountsConfig
   ) {
-    new AmazonCredentialsParser<>(awsCredentialsProvider, amazonClientProvider, credentialsType, credentialsConfig)
+    new AmazonCredentialsParser<>(
+      awsCredentialsProvider,
+      amazonClientProvider,
+      credentialsType,
+      credentialsConfig,
+      accountsConfig)
   }
 
   @Bean
@@ -92,17 +107,19 @@ class AmazonCredentialsInitializer {
     CredentialsParser<Account, NetflixAmazonCredentials>  amazonCredentialsParser,
     @Nullable CredentialsDefinitionSource<Account> amazonCredentialsSource,
     CredentialsConfig credentialsConfig,
+    AccountsConfiguration accountsConfig,
     CredentialsRepository<NetflixAmazonCredentials> repository,
     DefaultAccountConfigurationProperties defaultAccountConfigurationProperties
   ) {
     if (amazonCredentialsSource == null) {
-      amazonCredentialsSource = { -> credentialsConfig.getAccounts() } as CredentialsDefinitionSource
+      amazonCredentialsSource = { -> accountsConfig.getAccounts() } as CredentialsDefinitionSource
     }
     return new AmazonBasicCredentialsLoader<Account, NetflixAmazonCredentials>(
       amazonCredentialsSource,
       amazonCredentialsParser,
       repository,
       credentialsConfig,
+      accountsConfig,
       defaultAccountConfigurationProperties
     )
   }

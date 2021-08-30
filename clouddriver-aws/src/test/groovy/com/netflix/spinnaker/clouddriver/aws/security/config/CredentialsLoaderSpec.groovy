@@ -22,7 +22,7 @@ import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAssumeRoleAmazonCredentials
-import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig.Account
+import com.netflix.spinnaker.clouddriver.aws.security.config.AccountsConfiguration.Account
 import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig.LifecycleHook
 import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig.Region
 import spock.lang.Specification
@@ -38,18 +38,19 @@ class CredentialsLoaderSpec extends Specification {
                 defaultEddaTemplate: 'http://edda-main.%s.{{name}}.netflix.net',
                 defaultFront50Template: 'http://front50.prod.netflix.net/{{name}}',
                 defaultDiscoveryTemplate: 'http://%s.discovery{{name}}.netflix.net',
-                defaultAssumeRole: 'role/asgard',
-                accounts: [
-                        new Account(name: 'test', accountId: 12345, regions: [
-                            new Region(name: 'us-west-2', deprecated: true)
-                        ]),
-                        new Account(name: 'prod', accountId: 67890)
-                ]
+                defaultAssumeRole: 'role/asgard'
         )
+        def accountsConfig = new AccountsConfiguration( accounts: [
+          new Account(name: 'test', accountId: 12345, regions: [
+            new Region(name: 'us-west-2', deprecated: true)
+          ]),
+          new Account(name: 'prod', accountId: 67890)
+        ])
+
         AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
         AmazonClientProvider amazonClientProvider = Mock(AmazonClientProvider)
         AmazonCredentialsParser<Account, NetflixAmazonCredentials> ci = new AmazonCredentialsParser<>(
-          provider, amazonClientProvider, NetflixAmazonCredentials.class, config)
+          provider, amazonClientProvider, NetflixAmazonCredentials.class, config, accountsConfig)
 
         when:
         List<NetflixAmazonCredentials> creds = ci.load(config)
@@ -79,11 +80,13 @@ class CredentialsLoaderSpec extends Specification {
 
     def 'account resolves defaults'() {
         setup:
-        def config = new CredentialsConfig(accounts: [new Account(name: 'default')])
+        def config = new CredentialsConfig()
+        def accountsConfig = new AccountsConfiguration(accounts: [new Account(name: 'default')])
+
         AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
         AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
         AmazonCredentialsParser<Account, NetflixAmazonCredentials> ci = new AmazonCredentialsParser<>(
-          provider, lookup, NetflixAmazonCredentials.class, config)
+          provider, lookup, NetflixAmazonCredentials.class, config, accountsConfig)
 
         when:
         List<NetflixAmazonCredentials> creds = ci.load(config)
@@ -106,11 +109,14 @@ class CredentialsLoaderSpec extends Specification {
 //
     def 'availibilityZones are resolved in default regions only once'() {
         setup:
-        def config = new CredentialsConfig(defaultRegions: [new Region(name: 'us-east-1'), new Region(name: 'us-west-2')], accounts: [new Account(name: 'default', accountId: 1), new Account(name: 'other', accountId: 2)])
+        def config = new CredentialsConfig(defaultRegions: [new Region(name: 'us-east-1'), new Region(name: 'us-west-2')])
+        def accountsConfig = new AccountsConfiguration(accounts: [
+          new Account(name: 'default', accountId: 1), new Account(name: 'other', accountId: 2)
+        ])
         AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
         AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
         AmazonCredentialsParser<Account, NetflixAmazonCredentials> ci = new AmazonCredentialsParser<>(
-          provider, lookup, NetflixAmazonCredentials.class, config)
+          provider, lookup, NetflixAmazonCredentials.class, config, accountsConfig)
 
         when:
         List<AmazonCredentials> creds = ci.load(config)
@@ -126,17 +132,18 @@ class CredentialsLoaderSpec extends Specification {
     }
 
     def 'availabilityZones are resolved for account-specific region if not defined in defaults'() {
-        def config = new CredentialsConfig(
-                defaultRegions: [new Region(name: 'us-east-1')],
-                accounts: [
-                        new Account(
-                                name: 'default',
-                                accountId: 1,
-                                regions: [ new Region(name: 'us-west-2')])])
+        def config = new CredentialsConfig(defaultRegions: [new Region(name: 'us-east-1')])
+
+        def accountsConfig = new AccountsConfiguration(accounts: [
+          new Account(
+            name: 'default',
+            accountId: 1,
+            regions: [ new Region(name: 'us-west-2')])]
+        )
         AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
         AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
       AmazonCredentialsParser<Account, NetflixAmazonCredentials> ci = new AmazonCredentialsParser<>(
-        provider, lookup, NetflixAmazonCredentials.class, config)
+        provider, lookup, NetflixAmazonCredentials.class, config, accountsConfig)
 
         when:
         List<AmazonCredentials> creds = ci.load(config)
@@ -163,28 +170,28 @@ class CredentialsLoaderSpec extends Specification {
                 defaultDiscoveryTemplate: 'http://%s.discovery{{name}}.netflix.net',
                 defaultAssumeRole: 'role/asgard',
                 defaultLifecycleHookRoleARNTemplate: 'arn:aws:iam::{{accountId}}:role/my-notification-role',
-                defaultLifecycleHookNotificationTargetARNTemplate: 'arn:aws:sns:{{region}}:{{accountId}}:my-sns-topic',
-                accounts: [
-                        new Account(
-                                name: 'test',
-                                accountId: 12345,
-                                regions: [new Region(name: 'us-west-1', availabilityZones: ['us-west-1a'])],
-                                discovery: 'us-west-1.discoveryqa.netflix.net',
-                                eddaEnabled: false,
-                                defaultKeyPair: 'oss-{{accountId}}-keypair',
-                                lifecycleHooks: [
-                                  new LifecycleHook(
-                                    lifecycleTransition: 'autoscaling:EC2_INSTANCE_TERMINATING',
-                                    heartbeatTimeout: 1800,
-                                    defaultResult: 'CONTINUE'
-                                  )
-                                ])
-                ]
+                defaultLifecycleHookNotificationTargetARNTemplate: 'arn:aws:sns:{{region}}:{{accountId}}:my-sns-topic'
         )
+        def accountsConfig = new AccountsConfiguration(accounts: [
+          new Account(
+            name: 'test',
+            accountId: 12345,
+            regions: [new Region(name: 'us-west-1', availabilityZones: ['us-west-1a'])],
+            discovery: 'us-west-1.discoveryqa.netflix.net',
+            eddaEnabled: false,
+            defaultKeyPair: 'oss-{{accountId}}-keypair',
+            lifecycleHooks: [
+              new LifecycleHook(
+                lifecycleTransition: 'autoscaling:EC2_INSTANCE_TERMINATING',
+                heartbeatTimeout: 1800,
+                defaultResult: 'CONTINUE'
+              )
+            ])
+        ])
         AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
         AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
         AmazonCredentialsParser<Account, NetflixAmazonCredentials> ci = new AmazonCredentialsParser<>(
-          provider, lookup, NetflixAmazonCredentials.class, config)
+          provider, lookup, NetflixAmazonCredentials.class, config, accountsConfig)
 
         when:
         List<NetflixAmazonCredentials> creds = ci.load(config)
@@ -218,12 +225,13 @@ class CredentialsLoaderSpec extends Specification {
     def 'accountId must be provided for assumeRole account types'() {
         setup:
         def config = new CredentialsConfig(
-                defaultRegions: [new Region(name: 'us-east-1', availabilityZones: ['us-east-1a'])],
-                accounts: [new Account(name: 'gonnaFail')])
+                defaultRegions: [new Region(name: 'us-east-1', availabilityZones: ['us-east-1a'])])
+
+        def accountsConfig = new AccountsConfiguration(accounts: [new Account(name: 'gonnaFail')])
         AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
         AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
         AmazonCredentialsParser<Account, NetflixAssumeRoleAmazonCredentials> ci = new AmazonCredentialsParser<>(
-          provider, lookup, NetflixAssumeRoleAmazonCredentials.class, config)
+          provider, lookup, NetflixAssumeRoleAmazonCredentials.class, config, accountsConfig)
 
         when:
         ci.load(config)
@@ -242,30 +250,31 @@ class CredentialsLoaderSpec extends Specification {
       defaultAssumeRole: 'role/asgard',
       defaultSessionName: 'spinnaker',
       defaultLifecycleHookRoleARNTemplate: 'arn:aws:iam::{{accountId}}:role/my-notification-role',
-      defaultLifecycleHookNotificationTargetARNTemplate: 'arn:aws:sns:{{region}}:{{accountId}}:my-sns-topic',
-      accounts: [
-        new Account(
-          name: 'test',
-          accountId: 12345,
-          regions: [new Region(name: 'us-west-1', availabilityZones: ['us-west-1a'])],
-          defaultKeyPair: 'oss-{{accountId}}-keypair',
-          assumeRole: 'role/spinnakerManaged',
-          externalId: '56789',
-          sessionName: 'spinnakerManaged',
-          lifecycleHooks: [
-            new LifecycleHook(
-              lifecycleTransition: 'autoscaling:EC2_INSTANCE_TERMINATING',
-              heartbeatTimeout: 1800,
-              defaultResult: 'CONTINUE'
-            )
-          ])
-      ]
+      defaultLifecycleHookNotificationTargetARNTemplate: 'arn:aws:sns:{{region}}:{{accountId}}:my-sns-topic'
     )
+
+    def accountsConfig = new AccountsConfiguration(accounts: [
+      new Account(
+        name: 'test',
+        accountId: 12345,
+        regions: [new Region(name: 'us-west-1', availabilityZones: ['us-west-1a'])],
+        defaultKeyPair: 'oss-{{accountId}}-keypair',
+        assumeRole: 'role/spinnakerManaged',
+        externalId: '56789',
+        sessionName: 'spinnakerManaged',
+        lifecycleHooks: [
+          new LifecycleHook(
+            lifecycleTransition: 'autoscaling:EC2_INSTANCE_TERMINATING',
+            heartbeatTimeout: 1800,
+            defaultResult: 'CONTINUE'
+          )
+        ])
+    ])
 
     AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
     AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
     AmazonCredentialsParser<Account, NetflixAssumeRoleAmazonCredentials> ci = new AmazonCredentialsParser<>(
-      provider, lookup, NetflixAssumeRoleAmazonCredentials.class, config)
+      provider, lookup, NetflixAssumeRoleAmazonCredentials.class, config, accountsConfig)
 
     when:
     List<NetflixAssumeRoleAmazonCredentials> creds = ci.load(config)
@@ -302,15 +311,16 @@ class CredentialsLoaderSpec extends Specification {
       defaultFront50Template: 'http://front50.prod.netflix.net/{{name}}',
       defaultDiscoveryTemplate: 'http://%s.discovery{{name}}.netflix.net',
       defaultAssumeRole: 'role/asgard',
-      defaultSessionName: 'spinnaker',
-      accounts: [
-        new Account(name: 'prod', accountId: 67890)
-      ]
+      defaultSessionName: 'spinnaker'
     )
+
+    def accountsConfig = new AccountsConfiguration(accounts: [
+      new Account(name: 'prod', accountId: 67890)
+    ])
     AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
     AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
     AmazonCredentialsParser<Account, NetflixAssumeRoleAmazonCredentials> ci = new AmazonCredentialsParser<>(
-      provider, lookup, NetflixAssumeRoleAmazonCredentials.class, config)
+      provider, lookup, NetflixAssumeRoleAmazonCredentials.class, config, accountsConfig)
 
     when:
     List<NetflixAssumeRoleAmazonCredentials> creds = ci.load(config)

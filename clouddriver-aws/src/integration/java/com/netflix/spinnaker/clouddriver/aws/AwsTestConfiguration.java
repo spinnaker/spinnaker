@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.withSettings;
 
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
-import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig;
+import com.netflix.spinnaker.clouddriver.aws.security.config.AccountsConfiguration;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.credentials.CompositeCredentialsRepository;
 import com.netflix.spinnaker.credentials.definition.CredentialsParser;
@@ -61,8 +61,8 @@ public class AwsTestConfiguration {
         .thenAnswer(
             (Answer<NetflixAmazonCredentials>)
                 invocation -> {
-                  CredentialsConfig.Account account =
-                      invocation.getArgument(0, CredentialsConfig.Account.class);
+                  AccountsConfiguration.Account account =
+                      invocation.getArgument(0, AccountsConfiguration.Account.class);
                   return TestCredential.named(account.getName());
                 });
     return parser;

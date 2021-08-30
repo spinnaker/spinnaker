@@ -20,6 +20,7 @@ package com.netflix.spinnaker.clouddriver.aws.security;
 import com.amazonaws.SDKGlobalConfiguration;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.util.CollectionUtils;
+import com.netflix.spinnaker.clouddriver.aws.security.config.AccountsConfiguration;
 import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.credentials.definition.BasicCredentialsLoader;
@@ -30,9 +31,10 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 
 public class AmazonBasicCredentialsLoader<
-        T extends CredentialsConfig.Account, U extends NetflixAmazonCredentials>
+        T extends AccountsConfiguration.Account, U extends NetflixAmazonCredentials>
     extends BasicCredentialsLoader<T, U> {
   protected final CredentialsConfig credentialsConfig;
+  protected final AccountsConfiguration accountsConfig;
   protected final DefaultAccountConfigurationProperties defaultAccountConfigurationProperties;
   protected String defaultEnvironment;
   protected String defaultAccountType;
@@ -42,9 +44,11 @@ public class AmazonBasicCredentialsLoader<
       CredentialsParser<T, U> parser,
       CredentialsRepository<U> credentialsRepository,
       CredentialsConfig credentialsConfig,
+      AccountsConfiguration accountsConfig,
       DefaultAccountConfigurationProperties defaultAccountConfigurationProperties) {
     super(definitionSource, parser, credentialsRepository);
     this.credentialsConfig = credentialsConfig;
+    this.accountsConfig = accountsConfig;
     this.defaultAccountConfigurationProperties = defaultAccountConfigurationProperties;
     this.defaultEnvironment =
         defaultAccountConfigurationProperties.getEnvironment() != null
@@ -67,11 +71,11 @@ public class AmazonBasicCredentialsLoader<
 
   @Override
   public void load() {
-    if (CollectionUtils.isNullOrEmpty(credentialsConfig.getAccounts())
+    if (CollectionUtils.isNullOrEmpty(accountsConfig.getAccounts())
         && (StringUtils.isEmpty(credentialsConfig.getDefaultAssumeRole()))) {
-      credentialsConfig.setAccounts(
+      accountsConfig.setAccounts(
           Collections.singletonList(
-              new CredentialsConfig.Account() {
+              new AccountsConfiguration.Account() {
                 {
                   setName(defaultAccountConfigurationProperties.getEnv());
                   setEnvironment(defaultEnvironment);

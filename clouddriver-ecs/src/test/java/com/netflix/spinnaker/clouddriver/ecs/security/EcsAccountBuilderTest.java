@@ -21,7 +21,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
-import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig;
+import com.netflix.spinnaker.clouddriver.aws.security.config.AccountsConfiguration.Account;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import org.junit.Test;
 
@@ -38,8 +38,7 @@ public class EcsAccountBuilderTest {
     when(netflixAmazonCredentials.getAccountId()).thenReturn("id-1234567890");
 
     // When
-    CredentialsConfig.Account account =
-        EcsAccountBuilder.build(netflixAmazonCredentials, accountName, accountType);
+    Account account = EcsAccountBuilder.build(netflixAmazonCredentials, accountName, accountType);
 
     // Then
     assertTrue(

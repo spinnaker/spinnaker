@@ -21,7 +21,7 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.aws.security.*;
-import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig.Account;
+import com.netflix.spinnaker.clouddriver.aws.security.config.AccountsConfiguration.Account;
 import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig.Region;
 import com.netflix.spinnaker.credentials.definition.CredentialsParser;
 import java.lang.reflect.Constructor;
@@ -34,7 +34,8 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AmazonCredentialsParser<U extends Account, V extends NetflixAmazonCredentials>
+public class AmazonCredentialsParser<
+        U extends AccountsConfiguration.Account, V extends NetflixAmazonCredentials>
     implements CredentialsParser<U, V> {
 
   private final AWSCredentialsProvider credentialsProvider;
@@ -44,12 +45,14 @@ public class AmazonCredentialsParser<U extends Account, V extends NetflixAmazonC
   private final ObjectMapper objectMapper;
   private final CredentialsConfig credentialsConfig;
   private Lazy<List<Region>> defaultRegions;
+  private final AccountsConfiguration accountsConfig;
 
   public AmazonCredentialsParser(
       AWSCredentialsProvider credentialsProvider,
       AmazonClientProvider amazonClientProvider,
       Class<V> credentialsType,
-      CredentialsConfig credentialsConfig) {
+      CredentialsConfig credentialsConfig,
+      AccountsConfiguration accountsConfig) {
     this.credentialsProvider = Objects.requireNonNull(credentialsProvider, "credentialsProvider");
     this.awsAccountInfoLookup =
         new DefaultAWSAccountInfoLookup(credentialsProvider, amazonClientProvider);
@@ -58,13 +61,15 @@ public class AmazonCredentialsParser<U extends Account, V extends NetflixAmazonC
     this.credentialTranslator = findTranslator(credentialsType, this.objectMapper);
     this.credentialsConfig = credentialsConfig;
     this.defaultRegions = createDefaults(credentialsConfig.getDefaultRegions());
+    this.accountsConfig = accountsConfig;
   }
 
   public AmazonCredentialsParser(
       AWSCredentialsProvider credentialsProvider,
       AWSAccountInfoLookup awsAccountInfoLookup,
       Class<V> credentialsType,
-      CredentialsConfig credentialsConfig) {
+      CredentialsConfig credentialsConfig,
+      AccountsConfiguration accountsConfig) {
     this.credentialsProvider = Objects.requireNonNull(credentialsProvider, "credentialsProvider");
     this.awsAccountInfoLookup = awsAccountInfoLookup;
     this.templateValues = Collections.emptyMap();
@@ -72,6 +77,7 @@ public class AmazonCredentialsParser<U extends Account, V extends NetflixAmazonC
     this.credentialTranslator = findTranslator(credentialsType, this.objectMapper);
     this.credentialsConfig = credentialsConfig;
     this.defaultRegions = createDefaults(credentialsConfig.getDefaultRegions());
+    this.accountsConfig = accountsConfig;
   }
 
   private Lazy<List<Region>> createDefaults(final List<Region> defaults) {
@@ -190,11 +196,11 @@ public class AmazonCredentialsParser<U extends Account, V extends NetflixAmazonC
   public List<V> load(CredentialsConfig source) throws Throwable {
     final CredentialsConfig config = objectMapper.convertValue(source, CredentialsConfig.class);
 
-    if (config.getAccounts() == null || config.getAccounts().isEmpty()) {
+    if (accountsConfig.getAccounts() == null || accountsConfig.getAccounts().isEmpty()) {
       return Collections.emptyList();
     }
-    List<V> initializedAccounts = new ArrayList<>(config.getAccounts().size());
-    for (Account account : config.getAccounts()) {
+    List<V> initializedAccounts = new ArrayList<>(accountsConfig.getAccounts().size());
+    for (Account account : accountsConfig.getAccounts()) {
       initializedAccounts.add(parseAccount(config, account));
     }
     return initializedAccounts.stream()

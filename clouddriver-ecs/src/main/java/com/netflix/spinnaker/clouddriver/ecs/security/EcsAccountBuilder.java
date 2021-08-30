@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.ecs.security;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAssumeRoleAmazonCredentials;
+import com.netflix.spinnaker.clouddriver.aws.security.config.AccountsConfiguration.Account;
 import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig;
 import com.netflix.spinnaker.fiat.model.Authorization;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
@@ -27,9 +28,9 @@ import java.util.List;
 
 public class EcsAccountBuilder {
 
-  public static CredentialsConfig.Account build(
+  public static Account build(
       NetflixAmazonCredentials netflixAmazonCredentials, String accountName, String accountType) {
-    CredentialsConfig.Account account = new CredentialsConfig.Account();
+    Account account = new Account();
     account.setName(accountName);
     account.setAccountType(accountType);
     account.setAccountId(netflixAmazonCredentials.getAccountId());

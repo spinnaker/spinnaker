@@ -19,6 +19,8 @@ package com.netflix.spinnaker.clouddriver.aws.security
 
 import com.amazonaws.SDKGlobalConfiguration
 import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig
+import com.netflix.spinnaker.clouddriver.aws.security.config.AccountsConfiguration
+import com.netflix.spinnaker.clouddriver.aws.security.config.AccountsConfiguration.Account
 import com.netflix.spinnaker.credentials.CredentialsRepository
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinitionSource
 import spock.lang.Shared
@@ -41,16 +43,19 @@ class AmazonBasicCredentialsLoaderSpec extends Specification{
     getCredentialsDefinitions() >> []
   }
 
+  @Shared
+  def accountsConfig = new AccountsConfiguration()
+
   def 'should set defaults'() {
-    def loader = new AmazonBasicCredentialsLoader<CredentialsConfig.Account, NetflixAmazonCredentials>(
-      definitionSource, null, credentialsRepository, credentialsConfig, defaultAccountConfigurationProperties
+    def loader = new AmazonBasicCredentialsLoader<Account, NetflixAmazonCredentials>(
+      definitionSource, null, credentialsRepository, credentialsConfig, accountsConfig, defaultAccountConfigurationProperties
     )
 
     when:
     loader.load()
 
     then:
-    credentialsConfig.getAccounts().size() == 1
+    accountsConfig.getAccounts().size() == 1
     credentialsConfig.getDefaultRegions().size() == 4
     System.getProperty(SDKGlobalConfiguration.ACCESS_KEY_SYSTEM_PROPERTY) == "accessKey"
     System.getProperty(SDKGlobalConfiguration.SECRET_KEY_SYSTEM_PROPERTY) == "secret"
