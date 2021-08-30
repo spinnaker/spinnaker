@@ -98,6 +98,7 @@ dependencies {
     api("com.netflix.spectator:spectator-reg-atlas:${versions.spectator}")
     api("com.netflix.spectator:spectator-web-spring:${versions.spectator}")
     api("com.netflix.spectator:spectator-reg-micrometer:${versions.spectator}")
+    api("com.nimbusds:nimbus-jose-jwt:7.9")
     api("io.spinnaker.embedded-redis:embedded-redis:0.9.0")
     api("com.nhaarman.mockitokotlin2:mockito-kotlin:2.2.0")
     api("com.nhaarman:mockito-kotlin:1.6.0")
