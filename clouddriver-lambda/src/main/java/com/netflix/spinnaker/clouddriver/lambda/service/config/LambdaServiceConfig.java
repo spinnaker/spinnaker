@@ -25,8 +25,8 @@ import org.springframework.stereotype.Component;
 @Data
 public class LambdaServiceConfig {
 
-  private Retry retry;
-  private Concurrency concurrency;
+  private Retry retry = new Retry();
+  private Concurrency concurrency = new Concurrency();
 
   @Data
   public static class Retry {
