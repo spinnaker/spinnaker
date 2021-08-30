@@ -286,7 +286,7 @@ class PreviewEnvironmentCodeEventListener(
     previewResource = previewResource as Resource<Monikered>
 
     // add the branch detail to the moniker/name/id
-    previewResource = previewResource.withBranchDetail(branch)
+    previewResource = withBranchDetail(previewResource, branch)
 
     // update artifact reference if applicable to match the branch filter of the preview environment
     if (previewResource.spec is ArtifactReferenceProvider) {
@@ -312,24 +312,26 @@ class PreviewEnvironmentCodeEventListener(
    * Adds the specified [branch] to the [Moniker.detail] field of the [ResourceSpec] while respecting resource
    * naming constraints, and updates the resource ID to match.
    */
-  private fun <T : Monikered> Resource<T>.withBranchDetail(branch: String): Resource<T> {
-    val updatedMoniker = spec.moniker.withBranchDetail(branch)
-    return copy(
-      spec = this.spec.toMutableMap().let { newSpec ->
-        newSpec["moniker"] = updatedMoniker
-        objectMapper.convertValue(newSpec, spec::class.java)
+  internal fun <T : Monikered> withBranchDetail(resource: Resource<T>, branch: String): Resource<T> {
+    with(resource) {
+      val updatedMoniker = spec.moniker.withBranchDetail(branch)
+      return copy(
+        spec = this.spec.toMutableMap().let { newSpec ->
+          newSpec["moniker"] = updatedMoniker
+          objectMapper.convertValue(newSpec, spec::class.java)
+        }
+      ).run {
+        val newId = generateId(this.kind, this.spec).let {
+          // account for the case where the ID is not synthesized from the moniker
+          if (!it.contains(updatedMoniker.detail!!)) "$it-${updatedMoniker.detail}" else it
+        }
+        this.copy(metadata = mapOf(
+          // this is so the resource ID is updated with the new name (which is in the spec)
+          "id" to newId,
+          "application" to this.application,
+          "basedOn" to this.id
+        ))
       }
-    ).run {
-      val newId = generateId(kind, spec).let {
-        // account for the case where the ID is not synthesized from the moniker
-        if (!it.contains(updatedMoniker.detail!!)) "$it-${updatedMoniker.detail}" else it
-      }
-      copy(metadata = mapOf(
-        // this is so the resource ID is updated with the new name (which is in the spec)
-        "id" to newId,
-        "application" to application,
-        "basedOn" to this.id
-      ))
     }
   }
 
@@ -403,7 +405,7 @@ class PreviewEnvironmentCodeEventListener(
             log.debug("Skipping dependency rename for default security group ${candidate.name} in resource ${this.name}")
             dep
           } else {
-            val newName = (candidate as Resource<Monikered>).withBranchDetail(branchDetail).name
+            val newName = withBranchDetail(candidate as Resource<Monikered>, branchDetail).name
             log.debug("Renaming ${dep.type} dependency ${candidate.name} to $newName in resource ${this.name}")
             dep.renamed(newName)
           }

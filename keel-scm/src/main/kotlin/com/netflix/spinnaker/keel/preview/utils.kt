@@ -183,8 +183,11 @@ private fun Collection<Dependency>?.namesForType(type: DependencyType): Set<Stri
 
 /**
  * Use with branch names to normalize them for use in environment and resource names.
+ * This function attempts to generate a DNS-compliant name out of the branch name by
+ * removing any prefixes ending with a forward-slash and replacing underscores with
+ * dashes.
  */
-internal fun String.toPreviewName() = substringAfterLast('/')
+internal fun String.toPreviewName() = substringAfterLast('/').replace('_', '-')
 
 internal const val MAX_RESOURCE_NAME_LENGTH = 32
 

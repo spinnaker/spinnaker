@@ -484,7 +484,7 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
             }
           }
 
-          test("the name of monikered resources is generated correctly") {
+          test("the name of monikered resources is updated with branch detail") {
             val baseEnv = deliveryConfig.environments.first()
             val baseResource = baseEnv.resources.first() as Resource<Monikered>
             val previewResource = previewEnv.captured.resources.first()
@@ -492,7 +492,7 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
             expectThat(previewResource.spec)
               .isA<Monikered>()
               .get { moniker }
-              .isEqualTo(baseResource.spec.moniker.withBranchDetail(prEvent.pullRequestBranch))
+              .isEqualTo(subject.withBranchDetail(baseResource, prEvent.pullRequestBranch).spec.moniker)
           }
 
           test("updated resource names respect the max allowed length") {
@@ -502,11 +502,17 @@ class PreviewEnvironmentCodeEventListenerTests : JUnit5Minutests {
               locatableResource(moniker = Moniker(app = "fnord", stack = "stack")),
               locatableResource(moniker = Moniker(app = "fnord")),
             ).forEach { resource ->
-              val updatedName = resource.spec.moniker.withBranchDetail("feature/a-very-long-branch-name").name
+              val updatedName = subject.withBranchDetail(resource, "feature/a-very-long-branch-name").name
               expectThat(updatedName.length)
                 .describedAs("length of preview resource name $updatedName (${updatedName.length})")
                 .isLessThanOrEqualTo(MAX_RESOURCE_NAME_LENGTH)
             }
+          }
+
+          test("updated resource names are DNS-compatible") {
+            val resource = locatableResource(moniker = Moniker(app = "fnord"))
+            val updatedName = subject.withBranchDetail(resource, "feature/a_branch_name_with_underscores").name
+            expectThat(updatedName).not().contains("_")
           }
 
           test("the artifact reference in a resource is updated to match the preview environment branch filter") {
