@@ -31,6 +31,7 @@ export interface ISimplePolicyDescription {
 export interface IStepPolicyDescription {
   stepAdjustments: IStepAdjustment[];
   estimatedInstanceWarmup: number;
+  cooldown?: number;
   metricAggregationType: MetricAggregationType;
 }
 
@@ -51,6 +52,7 @@ export interface IUpsertAlarmDescription extends IConfigurableMetric {
   threshold: number;
   statistic: AlarmStatisticType;
   unit: StandardUnitType;
+  disableEditingDimensions?: boolean;
   alarmActionArns: string[];
   insufficientDataActionArns: string[];
   okActionArns: string[];
