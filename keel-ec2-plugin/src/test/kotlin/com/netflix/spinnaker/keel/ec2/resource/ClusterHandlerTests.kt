@@ -69,6 +69,7 @@ import strikt.assertions.containsKey
 import strikt.assertions.get
 import strikt.assertions.hasSize
 import strikt.assertions.isA
+import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isNotEmpty
@@ -338,7 +339,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
           get("refId").isEqualTo("2")
           get("requisiteStageRefIds")
             .isA<List<String>>()
-            .isEqualTo(listOf("1"))
+            .containsExactly("1")
           get("availabilityZones")
             .isA<Map<String, Set<String>>>()
             .hasSize(1)
@@ -365,7 +366,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
           get("refId").isEqualTo("2")
           get("requisiteStageRefIds")
             .isA<List<String>>()
-            .isEqualTo(listOf("1"))
+            .containsExactly("1")
           get("availabilityZones")
             .isA<Map<String, Set<String>>>()
             .hasSize(1)
@@ -377,7 +378,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
           get("refId").isEqualTo("3")
           get("requisiteStageRefIds")
             .isA<List<String>>()
-            .isEqualTo(listOf("2"))
+            .containsExactly("2")
           get("restrictExecutionDuringTimeWindow").isNull()
         }
       }
@@ -390,7 +391,11 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         every { cloudDriverService.listServerGroups(any(), any(), any(), any()) } returns
           ServerGroupCollection(
             vpcEast.account,
-            setOf(activeServerGroupResponseEast.toAllServerGroupsResponse(), activeServerGroupResponseWest.toAllServerGroupsResponse()))
+            setOf(
+              activeServerGroupResponseEast.toAllServerGroupsResponse(),
+              activeServerGroupResponseWest.toAllServerGroupsResponse()
+            )
+          )
       }
 
       // TODO: test for multiple server group response
@@ -464,7 +469,8 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         every { cloudDriverService.listServerGroups(any(), any(), any(), any()) } returns
           ServerGroupCollection(
             vpcEast.account,
-            setOf(activeServerGroupResponseEast.toAllServerGroupsResponse(), west.toAllServerGroupsResponse()))
+            setOf(activeServerGroupResponseEast.toAllServerGroupsResponse(), west.toAllServerGroupsResponse())
+          )
 
         runBlocking {
           current(resource)
@@ -484,7 +490,8 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         every { cloudDriverService.listServerGroups(any(), any(), any(), any()) } returns
           ServerGroupCollection(
             vpcEast.account,
-            setOf(activeServerGroupResponseEast.toAllServerGroupsResponse(), west.toAllServerGroupsResponse()))
+            setOf(activeServerGroupResponseEast.toAllServerGroupsResponse(), west.toAllServerGroupsResponse())
+          )
       }
 
       test("app version is null in the region with missing tag") {
@@ -532,8 +539,17 @@ internal class ClusterHandlerTests : JUnit5Minutests {
     }
 
     context("the cluster has too many enabled server groups in one region") {
-      val east = serverGroupEast.toMultiServerGroupResponse(vpc = vpcEast, subnets = listOf(subnet1East, subnet2East, subnet3East), securityGroups = listOf(sg1East, sg2East), allEnabled = true)
-      val west = serverGroupWest.toMultiServerGroupResponse(vpc = vpcWest, subnets = listOf(subnet1West, subnet2West, subnet3West), securityGroups = listOf(sg1West, sg2West))
+      val east = serverGroupEast.toMultiServerGroupResponse(
+        vpc = vpcEast,
+        subnets = listOf(subnet1East, subnet2East, subnet3East),
+        securityGroups = listOf(sg1East, sg2East),
+        allEnabled = true
+      )
+      val west = serverGroupWest.toMultiServerGroupResponse(
+        vpc = vpcWest,
+        subnets = listOf(subnet1West, subnet2West, subnet3West),
+        securityGroups = listOf(sg1West, sg2West)
+      )
 
       before {
         every { cloudDriverService.activeServerGroup(any(), "us-east-1") } returns activeServerGroupResponseEast
@@ -566,8 +582,17 @@ internal class ClusterHandlerTests : JUnit5Minutests {
     }
 
     context("will we take action?") {
-      val east = serverGroupEast.toMultiServerGroupResponse(vpc = vpcEast, subnets = listOf(subnet1East, subnet2East, subnet3East), securityGroups = listOf(sg1East, sg2East), allEnabled = true)
-      val west = serverGroupWest.toMultiServerGroupResponse(vpc = vpcWest, subnets = listOf(subnet1West, subnet2West, subnet3West), securityGroups = listOf(sg1West, sg2West))
+      val east = serverGroupEast.toMultiServerGroupResponse(
+        vpc = vpcEast,
+        subnets = listOf(subnet1East, subnet2East, subnet3East),
+        securityGroups = listOf(sg1East, sg2East),
+        allEnabled = true
+      )
+      val west = serverGroupWest.toMultiServerGroupResponse(
+        vpc = vpcWest,
+        subnets = listOf(subnet1West, subnet2West, subnet3West),
+        securityGroups = listOf(sg1West, sg2West)
+      )
 
 
       before {
@@ -577,7 +602,8 @@ internal class ClusterHandlerTests : JUnit5Minutests {
 
       context("there is a diff in more than just enabled/disabled") {
         val modified = setOf(
-          serverGroupEast.copy(name = activeServerGroupResponseEast.name, onlyEnabledServerGroup = false).withDoubleCapacity(),
+          serverGroupEast.copy(name = activeServerGroupResponseEast.name, onlyEnabledServerGroup = false)
+            .withDoubleCapacity(),
           serverGroupWest.copy(name = activeServerGroupResponseWest.name).withDoubleCapacity()
         )
         val diff = DefaultResourceDiff(
@@ -768,7 +794,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
             get("refId").isEqualTo("1")
             get("requisiteStageRefIds")
               .isA<List<String>>()
-              .isEqualTo(emptyList())
+              .isEmpty()
             get("type").isEqualTo("deleteScalingPolicy")
             get("policyName").isEqualTo(targetTrackingPolicyName)
           }
@@ -776,7 +802,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
             get("refId").isEqualTo("2")
             get("requisiteStageRefIds")
               .isA<List<String>>()
-              .isEqualTo(listOf("1"))
+              .containsExactly("1")
             get("type").isEqualTo("upsertScalingPolicy")
             get("targetTrackingConfiguration")
               .isA<Map<String, Any?>>()["targetValue"]
@@ -807,12 +833,15 @@ internal class ClusterHandlerTests : JUnit5Minutests {
 
           expectThat(slot.captured.job.size).isEqualTo(2)
           expectThat(slot.captured.job.first()) {
-            get("refId").isEqualTo("1")
             get("type").isEqualTo("resizeServerGroup")
+            get("refId").isEqualTo("1")
           }
           expectThat(slot.captured.job[1]) {
-            get("refId").isEqualTo("2")
             get("type").isEqualTo("upsertScalingPolicy")
+            get("refId").isEqualTo("2")
+            get("requisiteStageRefIds")
+              .isA<List<String>>()
+              .containsExactly("1")
             get("targetTrackingConfiguration")
               .isA<Map<String, Any?>>()["targetValue"]
               .isEqualTo(560.0)
@@ -955,6 +984,45 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         }
       }
 
+      context("the diff is in cluster configuration and scaling policies") {
+        val modified = setOf(
+          serverGroupEast.copy(name = activeServerGroupResponseEast.name),
+          serverGroupWest.copy(name = activeServerGroupResponseWest.name)
+            .withDifferentInstanceType()
+            .withNoScalingPolicies()
+        )
+        val diff = DefaultResourceDiff(
+          serverGroups.byRegion(),
+          modified.byRegion()
+        )
+
+        test("scaling policy adjustment follows the deploy task") {
+          val slot = slot<OrchestrationRequest>()
+          every {
+            orcaService.orchestrate(
+              resource.serviceAccount,
+              capture(slot)
+            )
+          } answers { TaskRefResponse(ULID().nextULID()) }
+
+          runBlocking {
+            upsert(resource, diff)
+          }
+
+          expectThat(slot.captured.job.first()) {
+            get("type") isEqualTo "createServerGroup"
+            get("refId") isEqualTo "1"
+          }
+          expectThat(slot.captured.job[1]) {
+            get("type") isEqualTo "upsertScalingPolicy"
+            get("refId") isEqualTo "2"
+            get("requisiteStageRefIds")
+              .isA<List<String>>()
+              .containsExactly("1")
+          }
+        }
+      }
+
       context("multiple server groups have a diff") {
         val modified = setOf(
           serverGroupEast.copy(name = activeServerGroupResponseEast.name).withDifferentInstanceType(),
@@ -997,13 +1065,18 @@ internal class ClusterHandlerTests : JUnit5Minutests {
       context("nothing currently deployed, desired state is single region deployment") {
         fun diff(instanceType: String) =
           DefaultResourceDiff(
-              desired=clusterSpec(instanceType).resolve().filter {it.location.region == "us-west-2"}.byRegion(),
-              current=emptyMap()
-            )
+            desired = clusterSpec(instanceType).resolve().filter { it.location.region == "us-west-2" }.byRegion(),
+            current = emptyMap()
+          )
 
         test("supported instance type for setting EBS volume type") {
           val slot = slot<OrchestrationRequest>()
-          every { orcaService.orchestrate(resource.serviceAccount, capture(slot)) } answers { TaskRefResponse(ULID().nextULID()) }
+          every {
+            orcaService.orchestrate(
+              resource.serviceAccount,
+              capture(slot)
+            )
+          } answers { TaskRefResponse(ULID().nextULID()) }
 
           val instanceType = "m5.large"
           runBlocking {

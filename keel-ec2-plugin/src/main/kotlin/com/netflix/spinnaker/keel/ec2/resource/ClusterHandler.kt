@@ -17,7 +17,6 @@ import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.UNKNOWN
 import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
-import com.netflix.spinnaker.keel.api.ec2.EC2_CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.Capacity.AutoScalingCapacity
 import com.netflix.spinnaker.keel.api.ec2.Capacity.DefaultCapacity
@@ -28,6 +27,7 @@ import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.HealthSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.CustomizedMetricSpecification
 import com.netflix.spinnaker.keel.api.ec2.DEFAULT_AUTOSCALE_INSTANCE_WARMUP
+import com.netflix.spinnaker.keel.api.ec2.EC2_CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1_1
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
 import com.netflix.spinnaker.keel.api.ec2.LaunchConfigurationSpec
@@ -267,9 +267,9 @@ class ClusterHandler(
         }
 
         stages.add(diff.createServerGroupJob(refId, resource))
+        refId++
 
         if (diff.shouldDeployAndModifyScalingPolicies()) {
-          refId++
           stages.addAll(diff.modifyScalingPolicyJob(refId))
         }
 
@@ -825,7 +825,7 @@ class ClusterHandler(
     var refId = startingRefId
     val stages: MutableList<Map<String, Any?>> = mutableListOf()
     if (current == null) {
-      return Pair(refId, stages)
+      return refId to stages
     }
     val current = current!!
     val targetPoliciesToRemove = current.scaling.targetTrackingPolicies.filterNot {
@@ -841,12 +841,11 @@ class ClusterHandler(
     stages.addAll(
       policyNamesToRemove
         .map {
-          refId++
           mapOf(
-            "refId" to refId.toString(),
+            "refId" to "${refId + 1}",
             "requisiteStageRefIds" to when (refId) {
-              0, 1 -> listOf()
-              else -> listOf((refId - 1).toString())
+              0 -> emptyList()
+              else -> listOf("$refId")
             },
             "type" to "deleteScalingPolicy",
             "policyName" to it,
@@ -855,9 +854,10 @@ class ClusterHandler(
             "moniker" to current.moniker.orcaClusterMoniker,
             "region" to current.location.region,
             "serverGroupName" to current.moniker.serverGroup
-          )
+          ).also {
+            refId++
+          }
         }
-        .toMutableList()
     )
 
     return Pair(refId, stages)
@@ -870,7 +870,7 @@ class ClusterHandler(
       mapOf(
         "refId" to refId.toString(),
         "requisiteStageRefIds" to when (refId) {
-          0, 1 -> listOf<String>()
+          0, 1 -> emptyList<String>()
           else -> listOf((refId - 1).toString())
         },
         "type" to "upsertScalingPolicy",
@@ -910,7 +910,7 @@ class ClusterHandler(
       )
     }
 
-    return Pair(refId, stages)
+    return refId to stages
   }
 
   private fun Set<StepScalingPolicy>.toCreateJob(startingRefId: Int, serverGroup: ServerGroup): List<Job> {
