@@ -1,6 +1,6 @@
 dependencies {
   implementation project(":gate-core")
-  implementation 'com.nimbusds:nimbus-jose-jwt:5.2'
+  implementation 'com.nimbusds:nimbus-jose-jwt'
   implementation "com.github.ben-manes.caffeine:guava"
   implementation "io.spinnaker.kork:kork-security"
   implementation "io.spinnaker.fiat:fiat-api:$fiatVersion"
