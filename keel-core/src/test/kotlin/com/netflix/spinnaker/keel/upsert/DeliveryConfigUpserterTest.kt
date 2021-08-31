@@ -1,9 +1,11 @@
 package com.netflix.spinnaker.keel.upsert
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.config.PersistenceRetryConfig
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.exceptions.ValidationException
 import com.netflix.spinnaker.keel.persistence.KeelRepository
+import com.netflix.spinnaker.keel.persistence.PersistenceRetry
 import com.netflix.spinnaker.keel.test.deliveryArtifact
 import com.netflix.spinnaker.keel.test.submittedDeliveryConfig
 import com.netflix.spinnaker.keel.validators.DeliveryConfigValidator
@@ -24,13 +26,15 @@ internal class DeliveryConfigUpserterTest {
   private val validator: DeliveryConfigValidator = mockk()
   private val publisher: ApplicationEventPublisher = mockk()
   private val springEnv: Environment = mockk()
+  private val persistenceRetry = PersistenceRetry(PersistenceRetryConfig())
 
   private val subject = DeliveryConfigUpserter(
     repository = repository,
     mapper = mapper,
     validator = validator,
     publisher = publisher,
-    springEnv = springEnv
+    springEnv = springEnv,
+    persistenceRetry = persistenceRetry
   )
 
   private val submittedDeliveryConfig = submittedDeliveryConfig()

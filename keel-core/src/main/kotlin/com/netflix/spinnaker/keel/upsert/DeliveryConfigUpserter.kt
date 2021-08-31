@@ -9,6 +9,8 @@ import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.events.DeliveryConfigChangedNotification
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoDeliveryConfigForApplication
+import com.netflix.spinnaker.keel.persistence.PersistenceRetry
+import com.netflix.spinnaker.keel.persistence.RetryCategory
 import com.netflix.spinnaker.keel.validators.DeliveryConfigValidator
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
@@ -25,7 +27,8 @@ class DeliveryConfigUpserter(
   private val mapper: ObjectMapper,
   private val validator: DeliveryConfigValidator,
   private val publisher: ApplicationEventPublisher,
-  private val springEnv: SpringEnvironment
+  private val springEnv: SpringEnvironment,
+  private val persistenceRetry: PersistenceRetry
 ) {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -45,7 +48,9 @@ class DeliveryConfigUpserter(
     log.info("Validating config for app ${deliveryConfig.application}")
     validator.validate(deliveryConfig)
     log.debug("Upserting delivery config '${deliveryConfig.name}' for app '${deliveryConfig.application}'")
-    val config = repository.upsertDeliveryConfig(deliveryConfig)
+    val config = persistenceRetry.withRetry(RetryCategory.WRITE) {
+        repository.upsertDeliveryConfig(deliveryConfig)
+      }
     if (shouldNotifyOfConfigChange(existing, config)) {
       log.debug("Publish deliveryConfigChange event for app ${deliveryConfig.application}")
       publisher.publishEvent(
