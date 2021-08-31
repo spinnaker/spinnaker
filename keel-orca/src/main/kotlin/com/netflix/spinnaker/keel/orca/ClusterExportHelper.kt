@@ -5,11 +5,11 @@ import com.netflix.spinnaker.keel.api.Highlander
 import com.netflix.spinnaker.keel.api.RedBlack
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.retrofit.isNotFound
-import java.time.Duration
 import kotlinx.coroutines.async
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import retrofit2.HttpException
+import java.time.Duration
 
 /**
  * Provides common logic for multiple cloud plugins to export aspects of compute clusters.

@@ -151,4 +151,13 @@ class AdminController(
   fun runGitIntegrationMigration() {
     GlobalScope.launch { adminService.migrateImportPipelinesToGitIntegration() }
   }
+
+  @GetMapping(
+    path = ["/taskSummary/{id}"],
+    produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
+  )
+  fun getManagedApplications(
+    @PathVariable("id") id: String
+  ) =
+    adminService.getTaskSummary(id)
 }

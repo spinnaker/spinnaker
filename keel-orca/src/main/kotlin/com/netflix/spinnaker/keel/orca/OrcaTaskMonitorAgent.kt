@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.keel.orca
 
-import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.api.actuation.SubjectType.RESOURCE
 import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
@@ -14,8 +13,6 @@ import com.netflix.spinnaker.keel.persistence.TaskTrackingRepository
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import com.netflix.spinnaker.keel.scheduled.ScheduledAgent
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
-import java.time.Clock
-import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.slf4j.LoggerFactory
@@ -23,6 +20,8 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 import retrofit2.HttpException
+import java.time.Clock
+import java.util.concurrent.TimeUnit
 
 /**
  * This class monitors all tasks in flight.
@@ -96,7 +95,7 @@ class OrcaTaskMonitorAgent(
                   false -> publisher.publishEvent(
                     ResourceTaskFailed(
                       resourceRepository.get(id),
-                      taskDetails.execution?.stages.getFailureMessage()
+                      taskDetails.execution?.stages.getFailureMessage(mapper)
                         ?: "",
                       listOf(Task(taskDetails.id, taskDetails.name)), clock
                     )
@@ -110,25 +109,5 @@ class OrcaTaskMonitorAgent(
           }
         }
     }
-  }
-
-  // get the exception - can be either general orca exception or kato specific
-  private fun List<Map<String, Any>>?.getFailureMessage(): String? {
-
-    this?.forEach { it ->
-      val context: OrcaContext? = it["context"]?.let { mapper.convertValue(it) }
-
-      // find the first exception and return
-      if (context?.exception != null) {
-        return context.exception.details?.errors?.joinToString(",")
-      }
-
-      if (context?.clouddriverException != null) {
-        val clouddriverError: ClouddriverException? = context.clouddriverException.first()["exception"]?.let { mapper.convertValue(it) }
-        return clouddriverError?.message
-      }
-    }
-
-    return null
   }
 }

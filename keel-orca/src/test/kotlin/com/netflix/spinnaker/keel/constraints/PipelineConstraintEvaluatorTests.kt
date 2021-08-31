@@ -2,6 +2,10 @@ package com.netflix.spinnaker.keel.constraints
 
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.TaskStatus
+import com.netflix.spinnaker.keel.api.TaskStatus.RUNNING
+import com.netflix.spinnaker.keel.api.TaskStatus.SUCCEEDED
+import com.netflix.spinnaker.keel.api.TaskStatus.TERMINAL
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.constraints.ConstraintRepository
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
@@ -15,22 +19,15 @@ import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.core.api.PipelineConstraint
 import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.orca.ExecutionDetailResponse
-import com.netflix.spinnaker.keel.api.TaskStatus
-import com.netflix.spinnaker.keel.api.TaskStatus.RUNNING
-import com.netflix.spinnaker.keel.api.TaskStatus.SUCCEEDED
-import com.netflix.spinnaker.keel.api.TaskStatus.TERMINAL
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.MockKAnswerScope
 import io.mockk.Runs
-import io.mockk.coEvery as every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.slot
-import java.time.Clock
-import java.time.Instant
 import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
@@ -39,6 +36,9 @@ import strikt.assertions.isLessThanOrEqualTo
 import strikt.assertions.isNull
 import strikt.assertions.isTrue
 import strikt.mockk.captured
+import java.time.Clock
+import java.time.Instant
+import io.mockk.coEvery as every
 
 internal class PipelineConstraintEvaluatorTests : JUnit5Minutests {
 

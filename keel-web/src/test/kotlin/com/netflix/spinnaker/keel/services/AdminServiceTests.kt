@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.services
 
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.actuation.ExecutionSummaryService
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
@@ -88,6 +89,8 @@ class AdminServiceTests : JUnit5Minutests {
       _stages = listOf(Stage(type = "importDeliveryConfig", name = "Import config", refId = "1"))
     )
 
+    val executionSummaryService: ExecutionSummaryService = mockk()
+
     val subject = AdminService(
       repository,
       actuationPauser,
@@ -95,6 +98,7 @@ class AdminServiceTests : JUnit5Minutests {
       listOf(artifactSupplier),
       front50Cache,
       front50Service,
+      executionSummaryService,
       publisher,
       clock
     )

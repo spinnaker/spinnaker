@@ -52,10 +52,10 @@ import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
+import java.util.UUID
 import io.mockk.coEvery as every
 import io.mockk.coVerify as verify
 import org.springframework.core.env.Environment as SpringEnv
-import java.util.UUID
 
 @Suppress("UNCHECKED_CAST")
 internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {

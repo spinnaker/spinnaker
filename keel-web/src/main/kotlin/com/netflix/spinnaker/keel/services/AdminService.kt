@@ -2,6 +2,8 @@ package com.netflix.spinnaker.keel.services
 
 import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
 import com.netflix.spinnaker.keel.api.StatefulConstraint
+import com.netflix.spinnaker.keel.api.actuation.ExecutionSummary
+import com.netflix.spinnaker.keel.api.actuation.ExecutionSummaryService
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.OVERRIDE_FAIL
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.supporting
@@ -29,7 +31,6 @@ import org.springframework.stereotype.Component
 import java.time.Clock
 import java.time.Duration
 import kotlin.coroutines.CoroutineContext
-
 @Component
 class AdminService(
   private val repository: KeelRepository,
@@ -38,6 +39,7 @@ class AdminService(
   private val artifactSuppliers: List<ArtifactSupplier<*, *>>,
   private val front50Cache: Front50Cache,
   private val front50Service: Front50Service,
+  private val executionSummaryService: ExecutionSummaryService,
   private val publisher: ApplicationEventPublisher,
   private val clock: Clock
 ) : CoroutineScope {
@@ -127,7 +129,9 @@ class AdminService(
         log.error("error trying to get artifact by version or its metadata for version $artifactVersion", ex)
       }
     }
-    delay(Duration.ofSeconds(1).toMillis()) // sleep a little in-between versions to cut the instance where this runs some slack
+    delay(
+      Duration.ofSeconds(1).toMillis()
+    ) // sleep a little in-between versions to cut the instance where this runs some slack
   }
 
   /**
@@ -162,7 +166,13 @@ class AdminService(
     repository.markAsSkipped(deliveryConfig, artifact, version, environment, currentVersion?.version)
   }
 
-  fun forceFailVerifications(application: String, environmentName: String, artifactReference: String, version: String, verificationId: String) {
+  fun forceFailVerifications(
+    application: String,
+    environmentName: String,
+    artifactReference: String,
+    version: String,
+    verificationId: String
+  ) {
     val deliveryConfig = repository.getDeliveryConfigForApplication(application)
     val context = ArtifactInEnvironmentContext(
       deliveryConfig = deliveryConfig,
@@ -258,4 +268,9 @@ class AdminService(
     val duration = Duration.between(startTime, clock.instant())
     log.debug("Migrated $migrated/${configs.size} apps (${configs.size - migrated} skipped) in ${duration.toSeconds()} seconds")
   }
+
+  fun getTaskSummary(id: String): ExecutionSummary =
+    runBlocking {
+      executionSummaryService.getSummary(id)
+    }
 }

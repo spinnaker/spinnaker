@@ -91,7 +91,7 @@ class EnvironmentConstraintRunner(
         "versions=${envContext.versions.joinToString()}, vetoed=${envContext.vetoedVersions.joinToString()}"
     )
 
-    version = envContext.versions //all versions
+    version = envContext.versions // all versions
       .filterNot { vetoedVersions.contains(it) }
       .firstOrNull { v ->
         versionsWithPendingStatefulConstraintStatus.removeIf { it.version == v } // remove to indicate we are rechecking this version

@@ -3,6 +3,12 @@ package com.netflix.spinnaker.keel.bakery.artifact
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.BaseUrlConfig
 import com.netflix.spinnaker.config.LifecycleConfig
+import com.netflix.spinnaker.keel.api.TaskStatus
+import com.netflix.spinnaker.keel.api.TaskStatus.BUFFERED
+import com.netflix.spinnaker.keel.api.TaskStatus.PAUSED
+import com.netflix.spinnaker.keel.api.TaskStatus.RUNNING
+import com.netflix.spinnaker.keel.api.TaskStatus.SUCCEEDED
+import com.netflix.spinnaker.keel.api.TaskStatus.TERMINAL
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEvent
@@ -16,12 +22,6 @@ import com.netflix.spinnaker.keel.lifecycle.LifecycleMonitorRepository
 import com.netflix.spinnaker.keel.lifecycle.MonitoredTask
 import com.netflix.spinnaker.keel.orca.ExecutionDetailResponse
 import com.netflix.spinnaker.keel.orca.OrcaExecutionStages
-import com.netflix.spinnaker.keel.api.TaskStatus
-import com.netflix.spinnaker.keel.api.TaskStatus.BUFFERED
-import com.netflix.spinnaker.keel.api.TaskStatus.PAUSED
-import com.netflix.spinnaker.keel.api.TaskStatus.RUNNING
-import com.netflix.spinnaker.keel.api.TaskStatus.SUCCEEDED
-import com.netflix.spinnaker.keel.api.TaskStatus.TERMINAL
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.persistence.BakedImageRepository
 import com.netflix.spinnaker.keel.test.configuredTestObjectMapper

@@ -1,0 +1,2067 @@
+{
+  "id": "01FEC9J9GJAQFTBEGZQ894X79Q",
+  "name": "Deploy keel-0.1391.0-h2120.3f29b4a to server group keel-prestaging  in mgmt/us-west-2",
+  "application": "keel",
+  "status": "SUCCEEDED",
+  "variables": [
+    {
+      "key": "healthCheckType",
+      "value": "EC2"
+    },
+    {
+      "key": "reason",
+      "value": "Diff detected at 2021-08-30T19:46:18.75663Z[UTC]"
+    },
+    {
+      "key": "deploy.account.name",
+      "value": "mgmt"
+    },
+    {
+      "key": "zeroDesiredCapacityCount",
+      "value": 0
+    },
+    {
+      "key": "stack",
+      "value": "prestaging"
+    },
+    {
+      "key": "metadata",
+      "value": {
+        "resource": "ec2:cluster:mgmt:keel-prestaging"
+      }
+    },
+    {
+      "key": "lastCapacityCheck",
+      "value": {
+        "outOfService": 0,
+        "up": 1,
+        "failed": 0,
+        "starting": 0,
+        "down": 1,
+        "succeeded": 0,
+        "unknown": 0
+      }
+    },
+    {
+      "key": "scaleDown",
+      "value": true
+    },
+    {
+      "key": "terminationPolicies",
+      "value": [
+        "OldestInstance"
+      ]
+    },
+    {
+      "key": "maxRemainingAsgs",
+      "value": 2
+    },
+    {
+      "key": "enabledMetrics",
+      "value": [
+
+      ]
+    },
+    {
+      "key": "availabilityZones",
+      "value": {
+        "us-west-2": [
+          "us-west-2c",
+          "us-west-2b",
+          "us-west-2a"
+        ]
+      }
+    },
+    {
+      "key": "blockDevices",
+      "value": [
+        {
+          "volumeType": "gp2",
+          "size": 80,
+          "deleteOnTermination": true,
+          "deviceName": "/dev/sdb"
+        }
+      ]
+    },
+    {
+      "key": "source",
+      "value": {
+        "asgName": "keel-prestaging-v470",
+        "region": "us-west-2",
+        "account": "mgmt"
+      }
+    },
+    {
+      "key": "currentInstanceCount",
+      "value": 2
+    },
+    {
+      "key": "healthCheckGracePeriod",
+      "value": 600
+    },
+    {
+      "key": "cooldown",
+      "value": 10
+    },
+    {
+      "key": "requireIMDSv2",
+      "value": false
+    },
+    {
+      "key": "useAmiBlockDeviceMappings",
+      "value": false
+    },
+    {
+      "key": "kato.last.task.id",
+      "value": {
+        "id": "01FEC9VVP18E6745W1QJEP5NHA"
+      }
+    },
+    {
+      "key": "copySourceCustomBlockDeviceMappings",
+      "value": true
+    },
+    {
+      "key": "ebsOptimized",
+      "value": true
+    },
+    {
+      "key": "kato.task.terminalRetryCount",
+      "value": 0
+    },
+    {
+      "key": "loadBalancers",
+      "value": [
+        "keel-prestaging-vpc0"
+      ]
+    },
+    {
+      "key": "tags",
+      "value": {
+
+      }
+    },
+    {
+      "key": "kato.task.firstNotFoundRetry",
+      "value": -1
+    },
+    {
+      "key": "capacitySnapshot",
+      "value": {
+        "minSize": 2,
+        "maxSize": 2,
+        "desiredCapacity": 2
+      }
+    },
+    {
+      "key": "commits",
+      "value": [
+        {
+          "commitUrl": "https://stash/.../commits/3f29b4a42c4238faaa30fd0c6cbce1b02ddd37ba",
+          "id": "3f29b4a42c4238faaa30fd0c6cbce1b02ddd37ba",
+          "displayId": "3f29b4a42c4",
+          "authorDisplayName": "Luis Pollo",
+          "message": "fix(sql): Attempt at fixing deletion of event records",
+          "timestamp": 1630347679000
+        }
+      ]
+    },
+    {
+      "key": "keyPair",
+      "value": "nf-keypair-567395257996-us-west-2"
+    },
+    {
+      "key": "kato.tasks",
+      "value": [
+        {
+          "resultObjects": [
+            {
+              "outputType": "voidOperation"
+            },
+            {
+              "outputType": "voidOperation"
+            }
+          ],
+          "history": [
+
+          ],
+          "id": "n/a",
+          "status": {
+
+          }
+        }
+      ]
+    },
+    {
+      "key": "suspendedProcesses",
+      "value": [
+
+      ]
+    },
+    {
+      "key": "amiName",
+      "value": "ami-1"
+    },
+    {
+      "key": "notification.type",
+      "value": "resizeservergroup"
+    },
+    {
+      "key": "virtualizationType",
+      "value": "hvm"
+    },
+    {
+      "key": "jarDiffs",
+      "value": {
+        "totalLibraries": 0,
+        "duplicates": [
+
+        ],
+        "upgraded": [
+
+        ],
+        "downgraded": [
+
+        ],
+        "removed": [
+
+        ],
+        "added": [
+
+        ],
+        "unchanged": [
+
+        ],
+        "hasDiff": false,
+        "unknown": [
+
+        ]
+      }
+    },
+    {
+      "key": "credentials",
+      "value": "mgmt"
+    },
+    {
+      "key": "delayBeforeDisableSec",
+      "value": 0
+    },
+    {
+      "key": "buildInfo",
+      "value": {
+        "ancestor": "2119",
+        "target": "2120"
+      }
+    },
+    {
+      "key": "targetHealthyDeployPercentage",
+      "value": 100
+    },
+    {
+      "key": "capacity",
+      "value": {
+        "min": 2,
+        "desired": 2,
+        "max": 2
+      }
+    },
+    {
+      "key": "targetDesiredSize",
+      "value": 2
+    },
+    {
+      "key": "cloudProvider",
+      "value": "aws"
+    },
+    {
+      "key": "kato.result.expected",
+      "value": true
+    },
+    {
+      "key": "stageTimeoutMs",
+      "value": 1800000
+    },
+    {
+      "key": "deploy.server.groups",
+      "value": {
+        "us-west-2": [
+          "keel-prestaging-v470"
+        ]
+      }
+    },
+    {
+      "key": "rollback",
+      "value": {
+        "onFailure": false
+      }
+    },
+    {
+      "key": "delayBeforeScaleDownSec",
+      "value": 0
+    },
+    {
+      "key": "instanceType",
+      "value": "m5.xlarge"
+    },
+    {
+      "key": "moniker",
+      "value": {
+        "app": "keel",
+        "cluster": "keel-prestaging",
+        "stack": "prestaging"
+      }
+    },
+    {
+      "key": "iamRole",
+      "value": "keelInstanceProfile"
+    },
+    {
+      "key": "application",
+      "value": "keel"
+    },
+    {
+      "key": "targetGroups",
+      "value": [
+
+      ]
+    },
+    {
+      "key": "securityGroups",
+      "value": [
+        "sg-1",
+        "sg-2",
+        "sg-3",
+        "nf-4",
+        "nf-5"
+      ]
+    },
+    {
+      "key": "strategy",
+      "value": "redblack"
+    },
+    {
+      "key": "kato.task.notFoundRetryCount",
+      "value": 0
+    },
+    {
+      "key": "instanceMonitoring",
+      "value": false
+    },
+    {
+      "key": "subnetType",
+      "value": "internal (vpc0)"
+    },
+    {
+      "key": "account",
+      "value": "mgmt"
+    },
+    {
+      "key": "kato.task.lastStatus",
+      "value": "SUCCEEDED"
+    },
+    {
+      "key": "outputs",
+      "value": {
+
+      }
+    },
+    {
+      "key": "cluster",
+      "value": "keel-prestaging"
+    },
+    {
+      "key": "force.cache.refresh.errors",
+      "value": [
+
+      ]
+    },
+    {
+      "key": "workflowExecution",
+      "value": {
+        "namespace": "spinnaker",
+        "workflowType": "WorkflowDispatcher",
+        "runId": "6b0a62f8-6f2b-44b6-b137-ac1e6cd69327",
+        "permalink": "https://temporal/namespaces/spinnaker/workflows/stage:01FEC9J9GJAQFTBEGZQ894X79Q:01FEC9VKY46T6HB9RFPWN7W68T/6b0a62f8-6f2b-44b6-b137-ac1e6cd69327/summary",
+        "workflowId": "stage:01FEC9J9GJAQFTBEGZQ894X79Q:01FEC9VKY46T6HB9RFPWN7W68T",
+        "uiTarget": "https://temporal"
+      }
+    },
+    {
+      "key": "processed.server.groups",
+      "value": [
+
+      ]
+    },
+    {
+      "key": "retainLargerOverNewer",
+      "value": false
+    },
+    {
+      "key": "refreshed.server.groups",
+      "value": [
+
+      ]
+    },
+    {
+      "key": "workflowResult",
+      "value": {
+        "childWorkflowExecutionInfos": {
+          "2f5936d79839e1bac8b94f50985464012865a3511a5f7a7660a1209e2b60059c": {
+            "namespace": "spinnaker",
+            "workflowType": "StageContextCloudOperationRunner",
+            "runId": "d9d84ad4-13d0-4b9e-8756-ed7673205024",
+            "permalink": "https://temporal/namespaces/spinnaker/workflows/2f5936d79839e1bac8b94f50985464012865a3511a5f7a7660a1209e2b60059c/d9d84ad4-13d0-4b9e-8756-ed7673205024/summary",
+            "workflowId": "2f5936d79839e1bac8b94f50985464012865a3511a5f7a7660a1209e2b60059c",
+            "uiTarget": "https://temporal"
+          },
+          "eca722b0303e448629eb721afb940d6fbf346829446c67dac5bd56b9d3f082e7": {
+            "namespace": "spinnaker",
+            "workflowType": "StageContextCloudOperationRunner",
+            "runId": "8ad82c8e-dc33-4af5-b738-51ffbefe7745",
+            "permalink": "https://temporal/namespaces/spinnaker/workflows/eca722b0303e448629eb721afb940d6fbf346829446c67dac5bd56b9d3f082e7/8ad82c8e-dc33-4af5-b738-51ffbefe7745/summary",
+            "workflowId": "eca722b0303e448629eb721afb940d6fbf346829446c67dac5bd56b9d3f082e7",
+            "uiTarget": "https://temporal"
+          }
+        },
+        "childWorkflowExecutionResults": {
+          "2f5936d79839e1bac8b94f50985464012865a3511a5f7a7660a1209e2b60059c": {
+            "output": {
+              "outputType": "voidOperation"
+            },
+            "childWorkflowExecutionInfos": {
+
+            },
+            "childWorkflowExecutionResults": {
+
+            },
+            "logs": [
+
+            ],
+            "status": "WORKFLOW_EXECUTION_STATUS_UNSPECIFIED",
+            "isCompleted": true
+          },
+          "eca722b0303e448629eb721afb940d6fbf346829446c67dac5bd56b9d3f082e7": {
+            "output": {
+              "outputType": "voidOperation"
+            },
+            "childWorkflowExecutionInfos": {
+
+            },
+            "childWorkflowExecutionResults": {
+
+            },
+            "logs": [
+
+            ],
+            "status": "WORKFLOW_EXECUTION_STATUS_UNSPECIFIED",
+            "isCompleted": true
+          }
+        },
+        "logs": [
+          "Resizing server group 'mgmt:us-west-2:keel-prestaging-v470' to Capacity(min=0, max=0, desired=0)",
+          "Resized server group 'mgmt:us-west-2:keel-prestaging-v470' to Capacity(min=0, max=0, desired=0)"
+        ],
+        "status": "WORKFLOW_EXECUTION_STATUS_COMPLETED",
+        "isCompleted": true
+      }
+    },
+    {
+      "key": "zones",
+      "value": [
+
+      ]
+    },
+    {
+      "key": "shrinkToSize",
+      "value": 2
+    },
+    {
+      "key": "allowDeleteActive",
+      "value": false
+    },
+    {
+      "key": "region",
+      "value": "us-west-2"
+    },
+    {
+      "key": "remainingDeployServerGroups",
+      "value": [
+        {
+          "name": "keel-prestaging-v470",
+          "region": "us-west-2"
+        }
+      ]
+    },
+    {
+      "key": "preferLargerOverNewer",
+      "value": false
+    },
+    {
+      "key": "remainingEnabledServerGroups",
+      "value": 1
+    },
+    {
+      "key": "allowScaleDownActive",
+      "value": false
+    },
+    {
+      "key": "remainingFullSizeServerGroups",
+      "value": 1
+    }
+  ],
+  "steps": [
+    {
+      "id": "1",
+      "implementingClass": "com.netflix.spinnaker.orca.kato.pipeline.strategy.DetermineSourceServerGroupTask",
+      "name": "determineSourceServerGroup",
+      "startTime": 1630352779474,
+      "endTime": 1630352779719,
+      "status": "SUCCEEDED",
+      "stageStart": true,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "2",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask",
+      "name": "determineHealthProviders",
+      "startTime": 1630352779768,
+      "endTime": 1630352779859,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "3",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.CaptureSourceServerGroupCapacityTask",
+      "name": "snapshotSourceServerGroup",
+      "startTime": 1630352779904,
+      "endTime": 1630352779955,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "4",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.CreateServerGroupTask",
+      "name": "createServerGroup",
+      "startTime": 1630352780004,
+      "endTime": 1630352781185,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "5",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask",
+      "name": "monitorDeploy",
+      "startTime": 1630352781223,
+      "endTime": 1630352791574,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "6",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.AddServerGroupEntityTagsTask",
+      "name": "tagServerGroup",
+      "startTime": 1630352791617,
+      "endTime": 1630352791856,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "7",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForUpInstancesTask",
+      "name": "waitForUpInstances",
+      "startTime": 1630352791927,
+      "endTime": 1630353075798,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "8",
+      "implementingClass": "com.netflix.spinnaker.orca.kato.tasks.JarDiffsTask",
+      "name": "jarDiffs",
+      "startTime": 1630353075838,
+      "endTime": 1630353083994,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "9",
+      "implementingClass": "com.netflix.spinnaker.orca.igor.tasks.GetCommitsTask",
+      "name": "getCommits",
+      "startTime": 1630353084033,
+      "endTime": 1630353084320,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": true,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "1",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask",
+      "name": "determineHealthProviders",
+      "startTime": 1630353084825,
+      "endTime": 1630353084930,
+      "status": "SUCCEEDED",
+      "stageStart": true,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "2",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.cluster.ShrinkClusterTask",
+      "name": "shrinkCluster",
+      "startTime": 1630353084964,
+      "endTime": 1630353085251,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "3",
+      "implementingClass": "com.netflix.spinnaker.orca.temporal.stage.MonitorTemporalWorkflowTask",
+      "name": "monitorShrinkCluster",
+      "startTime": 1630353085306,
+      "endTime": 1630353090604,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "4",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask",
+      "name": "forceCacheRefresh",
+      "startTime": 1630353090640,
+      "endTime": 1630353090905,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "5",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.cluster.WaitForClusterShrinkTask",
+      "name": "waitForClusterShrink",
+      "startTime": 1630353090961,
+      "endTime": 1630353091137,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "6",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask",
+      "name": "forceCacheRefresh",
+      "startTime": 1630353091217,
+      "endTime": 1630353091524,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": true,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "1",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask",
+      "name": "determineHealthProviders",
+      "startTime": 1630353091948,
+      "endTime": 1630353092047,
+      "status": "SUCCEEDED",
+      "stageStart": true,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "2",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.cluster.DisableClusterTask",
+      "name": "disableCluster",
+      "startTime": 1630353092116,
+      "endTime": 1630353092339,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "3",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask",
+      "name": "monitorDisableCluster",
+      "startTime": 1630353092378,
+      "endTime": 1630353097615,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "4",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask",
+      "name": "forceCacheRefresh",
+      "startTime": 1630353097656,
+      "endTime": 1630353108670,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "5",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.cluster.WaitForClusterDisableTask",
+      "name": "waitForClusterDisable",
+      "startTime": 1630353108700,
+      "endTime": 1630353210074,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "6",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask",
+      "name": "forceCacheRefresh",
+      "startTime": 1630353210114,
+      "endTime": 1630353231506,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": true,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "1",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask",
+      "name": "determineHealthProviders",
+      "startTime": 1630353231817,
+      "endTime": 1630353231926,
+      "status": "SUCCEEDED",
+      "stageStart": true,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "2",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.cluster.ScaleDownClusterTask",
+      "name": "scaleDownCluster",
+      "startTime": 1630353231978,
+      "endTime": 1630353232128,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "3",
+      "implementingClass": "com.netflix.spinnaker.orca.temporal.stage.MonitorTemporalWorkflowTask",
+      "name": "monitorScaleDownCluster",
+      "startTime": 1630353232155,
+      "endTime": 1630353237448,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "4",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.cluster.WaitForScaleDownClusterTask",
+      "name": "waitForScaleDownCluster",
+      "startTime": 1630353237507,
+      "endTime": 1630353328820,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": true,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "1",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.ApplySourceServerGroupCapacityTask",
+      "name": "restoreMinCapacity",
+      "startTime": 1630353329138,
+      "endTime": 1630353329239,
+      "status": "SUCCEEDED",
+      "stageStart": true,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "2",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask",
+      "name": "waitForCapacityMatch",
+      "startTime": 1630353329327,
+      "endTime": 1630353329504,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "3",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask",
+      "name": "forceCacheRefresh",
+      "startTime": 1630353329559,
+      "endTime": 1630353330148,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": true,
+      "loopStart": false,
+      "loopEnd": false
+    }
+  ],
+  "buildTime": 1630352778770,
+  "startTime": 1630352778860,
+  "endTime": 1630353330404,
+  "execution": {
+    "type": "ORCHESTRATION",
+    "id": "01FEC9J9GJAQFTBEGZQ894X79Q",
+    "application": "keel",
+    "buildTime": 1630352778770,
+    "canceled": false,
+    "limitConcurrent": false,
+    "keepWaitingPipelines": false,
+    "stages": [
+      {
+        "id": "01FEC9J9GJDF9D7WW2HFWWCP47",
+        "refId": "1",
+        "type": "createServerGroup",
+        "name": "createServerGroup",
+        "startTime": 1630352778907,
+        "endTime": 1630353330363,
+        "status": "SUCCEEDED",
+        "context": {
+          "healthCheckType": "EC2",
+          "reason": "Diff detected at 2021-08-30T19:46:18.75663Z[UTC]",
+          "deploy.account.name": "mgmt",
+          "zeroDesiredCapacityCount": 0,
+          "stack": "prestaging",
+          "metadata": {
+            "resource": "ec2:cluster:mgmt:keel-prestaging"
+          },
+          "lastCapacityCheck": {
+            "outOfService": 0,
+            "up": 1,
+            "failed": 0,
+            "starting": 0,
+            "down": 1,
+            "succeeded": 0,
+            "unknown": 0
+          },
+          "scaleDown": true,
+          "terminationPolicies": [
+            "OldestInstance"
+          ],
+          "maxRemainingAsgs": 2,
+          "enabledMetrics": [
+
+          ],
+          "availabilityZones": {
+            "us-west-2": [
+              "us-west-2c",
+              "us-west-2b",
+              "us-west-2a"
+            ]
+          },
+          "blockDevices": [
+            {
+              "volumeType": "gp2",
+              "size": 80,
+              "deleteOnTermination": true,
+              "deviceName": "/dev/sdb"
+            }
+          ],
+          "source": {
+            "asgName": "keel-prestaging-v470",
+            "region": "us-west-2",
+            "account": "mgmt"
+          },
+          "currentInstanceCount": 2,
+          "healthCheckGracePeriod": 600,
+          "cooldown": 10,
+          "requireIMDSv2": false,
+          "useAmiBlockDeviceMappings": false,
+          "kato.last.task.id": {
+            "id": "01FEC9JP7J5ZYBRPCHVN3WRXFQ"
+          },
+          "copySourceCustomBlockDeviceMappings": true,
+          "ebsOptimized": true,
+          "kato.task.terminalRetryCount": 0,
+          "loadBalancers": [
+            "keel-prestaging-vpc0"
+          ],
+          "tags": {
+
+          },
+          "kato.task.firstNotFoundRetry": -1,
+          "capacitySnapshot": {
+            "minSize": 2,
+            "maxSize": 2,
+            "desiredCapacity": 2
+          },
+          "commits": [
+            {
+              "commitUrl": "https://stash/projects/SPKR/repos/keel-nflx/commits/3f29b4a42c4238faaa30fd0c6cbce1b02ddd37ba",
+              "id": "3f29b4a42c4238faaa30fd0c6cbce1b02ddd37ba",
+              "displayId": "3f29b4a42c4",
+              "authorDisplayName": "Luis Pollo",
+              "message": "fix(sql): Attempt at fixing deletion of event records",
+              "timestamp": 1630347679000
+            }
+          ],
+          "keyPair": "nf-keypair-567395257996-us-west-2",
+          "kato.tasks": [
+            {
+              "resultObjects": [
+                {
+                  "ancestorServerGroupNameByRegion": {
+                    "us-west-2": "keel-prestaging-v470"
+                  }
+                },
+                {
+                  "amiName": "keel-0.1391.0-h2120.3f29b4a-x86_64-20210830193951-bionic-classic-hvm-sriov-ebs",
+                  "amiId": "ami-1",
+                  "virtualizationType": "hvm",
+                  "blockDeviceMappings": [
+                    {
+                      "ebs": {
+                        "volumeType": "standard",
+                        "snapshotId": "snap-06c98df24de2d805c",
+                        "encrypted": false,
+                        "deleteOnTermination": true,
+                        "volumeSize": 10
+                      },
+                      "deviceName": "/dev/sda1"
+                    },
+                    {
+                      "virtualName": "ephemeral0",
+                      "deviceName": "/dev/sdb"
+                    },
+                    {
+                      "virtualName": "ephemeral1",
+                      "deviceName": "/dev/sdc"
+                    },
+                    {
+                      "virtualName": "ephemeral2",
+                      "deviceName": "/dev/sdd"
+                    },
+                    {
+                      "virtualName": "ephemeral3",
+                      "deviceName": "/dev/sde"
+                    }
+                  ],
+                  "isPublic": false,
+                  "region": "us-west-2",
+                  "ownerId": "179727101194"
+                },
+                {
+                  "deployments": [
+                    {
+                      "serverGroupName": "keel-prestaging-v471",
+                      "metadata": {
+
+                      },
+                      "cloudProvider": "aws",
+                      "location": "us-west-2",
+                      "account": "mgmt",
+                      "capacity": {
+                        "min": 2,
+                        "desired": 2,
+                        "max": 2
+                      }
+                    }
+                  ],
+                  "serverGroupNames": [
+                    "us-west-2:keel-prestaging-v471"
+                  ],
+                  "deployedNamesByLocation": {
+
+                  },
+                  "createdArtifacts": [
+
+                  ],
+                  "messages": [
+
+                  ],
+                  "deployedNames": [
+
+                  ],
+                  "serverGroupNameByRegion": {
+                    "us-west-2": "keel-prestaging-v471"
+                  }
+                }
+              ],
+              "id": "01FEC9JBSWR4WPN75DXXHNA118",
+              "history": [
+                {
+                  "phase": "ORCHESTRATION",
+                  "status": "Initializing Orchestration Task"
+                },
+                {
+                  "phase": "ORCHESTRATION",
+                  "status": "Processing op: AllowLaunchAtomicOperation"
+                },
+                {
+                  "phase": "ALLOW_LAUNCH",
+                  "status": "Initializing Allow Launch Operation..."
+                },
+                {
+                  "phase": "ALLOW_LAUNCH",
+                  "status": "Looking up AMI imageId 'ami-1' in target accountId='1'"
+                },
+                {
+                  "phase": "ALLOW_LAUNCH",
+                  "status": "Looking up AMI imageId 'ami-1' in source accountId='1'"
+                },
+                {
+                  "phase": "ALLOW_LAUNCH",
+                  "status": "Allowing launch of ami-1 from test/us-west-2 to mgmt"
+                },
+                {
+                  "phase": "ALLOW_LAUNCH",
+                  "status": "Creating tags on target AMI (build_host: https://spinnaker/, appversion: keel-0.1391.0-h2120.3f29b4a/SPINNAKER-rocket-package-keel/2120, creation_time: 2021-08-30 19:44:37 UTC, creator: det-orchestration@netflix.com, base_ami_version: nflx-base-5.685.0-h2329.51cc498)."
+                },
+                {
+                  "phase": "ALLOW_LAUNCH",
+                  "status": "Done allowing launch of ami-1 from test/us-west-2 to mgmt."
+                },
+                {
+                  "phase": "ORCHESTRATION",
+                  "status": "Orchestration completed."
+                },
+                {
+                  "phase": "ORCHESTRATION",
+                  "status": "Processing op: DeployAtomicOperation"
+                },
+                {
+                  "phase": "DEPLOY",
+                  "status": "Initializing phase."
+                },
+                {
+                  "phase": "DEPLOY",
+                  "status": "Looking for BasicAmazonDeployDescription handler..."
+                },
+                {
+                  "phase": "DEPLOY",
+                  "status": "Found handler: BasicAmazonDeployHandler"
+                },
+                {
+                  "phase": "DEPLOY",
+                  "status": "Invoking Handler."
+                },
+                {
+                  "phase": "",
+                  "status": "Preparing deployment to [us-west-2:[us-west-2c, us-west-2b, us-west-2a]]..."
+                },
+                {
+                  "phase": "",
+                  "status": "Beginning ASG deployment."
+                },
+                {
+                  "phase": "AWS_DEPLOY",
+                  "status": "Found ancestor server group, parsing details (name: keel-prestaging-v470)"
+                },
+                {
+                  "phase": "",
+                  "status": "Deploying ASG keel-prestaging-v471 with launch template lt-00b05fa9491c9173b"
+                },
+                {
+                  "phase": "",
+                  "status": "Adding tags for keel-prestaging-v471"
+                },
+                {
+                  "phase": "",
+                  "status": "Deploying to subnetIds: subnet-fa5596a3,subnet-fa2a859f,subnet-6c21ec1b"
+                },
+                {
+                  "phase": "",
+                  "status": "Creating lifecycle hooks for: keel-prestaging-v471"
+                },
+                {
+                  "phase": "",
+                  "status": "Creating notification hook ({AutoScalingGroupName: keel-prestaging-v471,TopicARN: arn:aws:sns:us-west-2:1:spinnaker-autoscaling-notifications__LaunchFailure,NotificationTypes: [autoscaling:EC2_INSTANCE_LAUNCH_ERROR]}) on us-west-2/keel-prestaging-v471"
+                },
+                {
+                  "phase": "",
+                  "status": "Setting size of keel-prestaging-v471 in mgmt/us-west-2 to [min=2, max=2, desired=2]"
+                },
+                {
+                  "phase": "",
+                  "status": "Deployed EC2 server group named keel-prestaging-v471"
+                },
+                {
+                  "phase": "",
+                  "status": "Created the following deployments: [us-west-2:keel-prestaging-v471]"
+                },
+                {
+                  "phase": "DEPLOY",
+                  "status": "Server Groups: [us-west-2:keel-prestaging-v471] created."
+                },
+                {
+                  "phase": "ENTITY_TAGS",
+                  "status": "Retrieving aws:servergroup:keel-prestaging-v471:1:us-west-2 from Front50"
+                },
+                {
+                  "phase": "ENTITY_TAGS",
+                  "status": "Did not find aws:servergroup:keel-prestaging-v471:1:us-west-2 in Front50"
+                },
+                {
+                  "phase": "ENTITY_TAGS",
+                  "status": "Deleting aws:servergroup:keel-prestaging-v471:1:us-west-2 from ElasticSearch"
+                },
+                {
+                  "phase": "ENTITY_TAGS",
+                  "status": "Deleted aws:servergroup:keel-prestaging-v471:1:us-west-2 from ElasticSearch"
+                },
+                {
+                  "phase": "ORCHESTRATION",
+                  "status": "Orchestration completed."
+                },
+                {
+                  "phase": "ORCHESTRATION",
+                  "status": "Orchestration completed."
+                }
+              ],
+              "status": {
+                "retryable": false,
+                "completed": true,
+                "failed": false
+              }
+            }
+          ],
+          "suspendedProcesses": [
+
+          ],
+          "amiName": "ami-1",
+          "notification.type": "upsertentitytags",
+          "virtualizationType": "hvm",
+          "jarDiffs": {
+            "totalLibraries": 0,
+            "duplicates": [
+
+            ],
+            "upgraded": [
+
+            ],
+            "downgraded": [
+
+            ],
+            "removed": [
+
+            ],
+            "added": [
+
+            ],
+            "unchanged": [
+
+            ],
+            "hasDiff": false,
+            "unknown": [
+
+            ]
+          },
+          "credentials": "mgmt",
+          "delayBeforeDisableSec": 0,
+          "buildInfo": {
+            "ancestor": "2119",
+            "target": "2120"
+          },
+          "targetHealthyDeployPercentage": 100,
+          "capacity": {
+            "min": 2,
+            "desired": 2,
+            "max": 2
+          },
+          "targetDesiredSize": 2,
+          "cloudProvider": "aws",
+          "kato.result.expected": true,
+          "stageTimeoutMs": 1800000,
+          "deploy.server.groups": {
+            "us-west-2": [
+              "keel-prestaging-v471"
+            ]
+          },
+          "rollback": {
+            "onFailure": false
+          },
+          "delayBeforeScaleDownSec": 0,
+          "instanceType": "m5.xlarge",
+          "moniker": {
+            "app": "keel",
+            "cluster": "keel-prestaging",
+            "stack": "prestaging"
+          },
+          "iamRole": "keelInstanceProfile",
+          "application": "keel",
+          "targetGroups": [
+
+          ],
+          "securityGroups": [
+            "sg-1",
+            "sg-2",
+            "sg-3",
+            "nf-4",
+            "nf-5"
+          ],
+          "strategy": "redblack",
+          "kato.task.notFoundRetryCount": 0,
+          "instanceMonitoring": false,
+          "subnetType": "internal (vpc0)",
+          "account": "mgmt",
+          "kato.task.lastStatus": "SUCCEEDED"
+        },
+        "outputs": {
+
+        },
+        "tasks": [
+          {
+            "id": "1",
+            "implementingClass": "com.netflix.spinnaker.orca.kato.pipeline.strategy.DetermineSourceServerGroupTask",
+            "name": "determineSourceServerGroup",
+            "startTime": 1630352779474,
+            "endTime": 1630352779719,
+            "status": "SUCCEEDED",
+            "stageStart": true,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "2",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask",
+            "name": "determineHealthProviders",
+            "startTime": 1630352779768,
+            "endTime": 1630352779859,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "3",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.CaptureSourceServerGroupCapacityTask",
+            "name": "snapshotSourceServerGroup",
+            "startTime": 1630352779904,
+            "endTime": 1630352779955,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "4",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.CreateServerGroupTask",
+            "name": "createServerGroup",
+            "startTime": 1630352780004,
+            "endTime": 1630352781185,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "5",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask",
+            "name": "monitorDeploy",
+            "startTime": 1630352781223,
+            "endTime": 1630352791574,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "6",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.AddServerGroupEntityTagsTask",
+            "name": "tagServerGroup",
+            "startTime": 1630352791617,
+            "endTime": 1630352791856,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "7",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForUpInstancesTask",
+            "name": "waitForUpInstances",
+            "startTime": 1630352791927,
+            "endTime": 1630353075798,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "8",
+            "implementingClass": "com.netflix.spinnaker.orca.kato.tasks.JarDiffsTask",
+            "name": "jarDiffs",
+            "startTime": 1630353075838,
+            "endTime": 1630353083994,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "9",
+            "implementingClass": "com.netflix.spinnaker.orca.igor.tasks.GetCommitsTask",
+            "name": "getCommits",
+            "startTime": 1630353084033,
+            "endTime": 1630353084320,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": true,
+            "loopStart": false,
+            "loopEnd": false
+          }
+        ],
+        "requisiteStageRefIds": [
+
+        ]
+      },
+      {
+        "id": "01FEC9VKY44MS9C1NT13MVGFP0",
+        "refId": "1>1",
+        "type": "shrinkCluster",
+        "name": "shrinkCluster",
+        "startTime": 1630353084427,
+        "endTime": 1630353091585,
+        "status": "SUCCEEDED",
+        "context": {
+          "outputs": {
+
+          },
+          "cluster": "keel-prestaging",
+          "notification.type": "destroyservergroup",
+          "deploy.account.name": "mgmt",
+          "force.cache.refresh.errors": [
+
+          ],
+          "credentials": "mgmt",
+          "workflowExecution": {
+            "namespace": "spinnaker",
+            "workflowType": "WorkflowDispatcher",
+            "runId": "3f738b29-4ac4-43b2-843c-efeb9739632e",
+            "permalink": "https://temporal/namespaces/spinnaker/workflows/stage:01FEC9J9GJAQFTBEGZQ894X79Q:01FEC9VKY44MS9C1NT13MVGFP0/3f738b29-4ac4-43b2-843c-efeb9739632e/summary",
+            "workflowId": "stage:01FEC9J9GJAQFTBEGZQ894X79Q:01FEC9VKY44MS9C1NT13MVGFP0",
+            "uiTarget": "https://temporal"
+          },
+          "processed.server.groups": [
+
+          ],
+          "retainLargerOverNewer": false,
+          "refreshed.server.groups": [
+
+          ],
+          "moniker": {
+            "app": "keel",
+            "cluster": "keel-prestaging",
+            "stack": "prestaging"
+          },
+          "workflowResult": {
+            "childWorkflowExecutionInfos": {
+              "c425805021ab16ad5f629f170e785333394bf3ff71cf52696833a8d8fee2b757": {
+                "namespace": "spinnaker",
+                "workflowType": "StageContextCloudOperationRunner",
+                "runId": "21acb10a-0d3e-4c84-b89c-2e2e5bf3d293",
+                "permalink": "https://temporal/namespaces/spinnaker/workflows/c425805021ab16ad5f629f170e785333394bf3ff71cf52696833a8d8fee2b757/21acb10a-0d3e-4c84-b89c-2e2e5bf3d293/summary",
+                "workflowId": "c425805021ab16ad5f629f170e785333394bf3ff71cf52696833a8d8fee2b757",
+                "uiTarget": "https://temporal"
+              }
+            },
+            "childWorkflowExecutionResults": {
+              "c425805021ab16ad5f629f170e785333394bf3ff71cf52696833a8d8fee2b757": {
+                "output": {
+                  "outputType": "voidOperation"
+                },
+                "childWorkflowExecutionInfos": {
+
+                },
+                "childWorkflowExecutionResults": {
+
+                },
+                "logs": [
+
+                ],
+                "status": "WORKFLOW_EXECUTION_STATUS_UNSPECIFIED",
+                "isCompleted": true
+              }
+            },
+            "logs": [
+              "Deleting server group 'mgmt:us-west-2:keel-prestaging-v469'",
+              "Deleted server group 'mgmt:us-west-2:keel-prestaging-v469'",
+              "Deleting launch template 'lt-1'",
+              "Deleted launch template 'lt-1'"
+            ],
+            "status": "WORKFLOW_EXECUTION_STATUS_COMPLETED",
+            "isCompleted": true
+          },
+          "zones": [
+
+          ],
+          "cloudProvider": "aws",
+          "shrinkToSize": 2,
+          "allowDeleteActive": false,
+          "deploy.server.groups": {
+            "us-west-2": [
+              "keel-prestaging-v469"
+            ]
+          },
+          "kato.tasks": [
+            {
+              "resultObjects": [
+                {
+                  "outputType": "voidOperation"
+                }
+              ],
+              "history": [
+
+              ],
+              "id": "n/a",
+              "status": {
+
+              }
+            }
+          ],
+          "region": "us-west-2"
+        },
+        "outputs": {
+
+        },
+        "tasks": [
+          {
+            "id": "1",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask",
+            "name": "determineHealthProviders",
+            "startTime": 1630353084825,
+            "endTime": 1630353084930,
+            "status": "SUCCEEDED",
+            "stageStart": true,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "2",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.cluster.ShrinkClusterTask",
+            "name": "shrinkCluster",
+            "startTime": 1630353084964,
+            "endTime": 1630353085251,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "3",
+            "implementingClass": "com.netflix.spinnaker.orca.temporal.stage.MonitorTemporalWorkflowTask",
+            "name": "monitorShrinkCluster",
+            "startTime": 1630353085306,
+            "endTime": 1630353090604,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "4",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask",
+            "name": "forceCacheRefresh",
+            "startTime": 1630353090640,
+            "endTime": 1630353090905,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "5",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.cluster.WaitForClusterShrinkTask",
+            "name": "waitForClusterShrink",
+            "startTime": 1630353090961,
+            "endTime": 1630353091137,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "6",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask",
+            "name": "forceCacheRefresh",
+            "startTime": 1630353091217,
+            "endTime": 1630353091524,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": true,
+            "loopStart": false,
+            "loopEnd": false
+          }
+        ],
+        "syntheticStageOwner": "STAGE_AFTER",
+        "parentStageId": "01FEC9J9GJDF9D7WW2HFWWCP47",
+        "requisiteStageRefIds": [
+
+        ]
+      },
+      {
+        "id": "01FEC9VKY45TDEFWXQMZX8CDS4",
+        "refId": "1>2",
+        "type": "disableCluster",
+        "name": "disableCluster",
+        "startTime": 1630353091633,
+        "endTime": 1630353231549,
+        "status": "SUCCEEDED",
+        "context": {
+          "cluster": "keel-prestaging",
+          "notification.type": "disableservergroup",
+          "deploy.account.name": "mgmt",
+          "force.cache.refresh.errors": [
+
+          ],
+          "credentials": "mgmt",
+          "processed.server.groups": [
+
+          ],
+          "remainingDeployServerGroups": [
+            {
+              "name": "keel-prestaging-v470",
+              "region": "us-west-2"
+            }
+          ],
+          "kato.task.terminalRetryCount": 0,
+          "refreshed.server.groups": [
+
+          ],
+          "moniker": {
+            "app": "keel",
+            "cluster": "keel-prestaging",
+            "stack": "prestaging"
+          },
+          "preferLargerOverNewer": false,
+          "zones": [
+
+          ],
+          "remainingEnabledServerGroups": 1,
+          "kato.task.firstNotFoundRetry": -1,
+          "cloudProvider": "aws",
+          "deploy.server.groups": {
+            "us-west-2": [
+              "keel-prestaging-v470"
+            ]
+          },
+          "kato.tasks": [
+            {
+              "resultObjects": [
+
+              ],
+              "id": "01FEC9VVP18E6745W1QJEP5NHA",
+              "history": [
+                {
+                  "phase": "ORCHESTRATION",
+                  "status": "Initializing Orchestration Task"
+                },
+                {
+                  "phase": "ORCHESTRATION",
+                  "status": "Processing op: DisableAsgAtomicOperation"
+                },
+                {
+                  "phase": "",
+                  "status": "Initializing Disable ASG operation for keel-prestaging-v470..."
+                },
+                {
+                  "phase": "",
+                  "status": "Disabling ASG 'keel-prestaging-v470' in us-west-2"
+                },
+                {
+                  "phase": "",
+                  "status": "Deregistering instances from Load Balancers..."
+                },
+                {
+                  "phase": "",
+                  "status": "Deregistering instances from Target Groups..."
+                },
+                {
+                  "phase": "",
+                  "status": "Marking ASG keel-prestaging-v470 as OUT_OF_SERVICE with Discovery"
+                },
+                {
+                  "phase": "",
+                  "status": "Looking up discovery application name for instance i-w (attempt: 0)"
+                },
+                {
+                  "phase": "",
+                  "status": "Attempting to mark i-w as 'OUT_OF_SERVICE' in discovery (attempt: 0)."
+                },
+                {
+                  "phase": "",
+                  "status": "Attempting to mark i-w as 'OUT_OF_SERVICE' in discovery (attempt: 0)."
+                },
+                {
+                  "phase": "",
+                  "status": "Finished Disabling ASG keel-prestaging-v470"
+                },
+                {
+                  "phase": "DISABLE_ASG",
+                  "status": "Finished Disable ASG operation for [us-west-2:keel-prestaging-v470]."
+                },
+                {
+                  "phase": "ORCHESTRATION",
+                  "status": "Orchestration completed."
+                },
+                {
+                  "phase": "ORCHESTRATION",
+                  "status": "Orchestration completed."
+                }
+              ],
+              "status": {
+                "retryable": false,
+                "completed": true,
+                "failed": false
+              }
+            }
+          ],
+          "region": "us-west-2",
+          "kato.last.task.id": {
+            "id": "01FEC9VVP18E6745W1QJEP5NHA"
+          },
+          "kato.task.notFoundRetryCount": 0,
+          "kato.task.lastStatus": "SUCCEEDED"
+        },
+        "outputs": {
+
+        },
+        "tasks": [
+          {
+            "id": "1",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask",
+            "name": "determineHealthProviders",
+            "startTime": 1630353091948,
+            "endTime": 1630353092047,
+            "status": "SUCCEEDED",
+            "stageStart": true,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "2",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.cluster.DisableClusterTask",
+            "name": "disableCluster",
+            "startTime": 1630353092116,
+            "endTime": 1630353092339,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "3",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask",
+            "name": "monitorDisableCluster",
+            "startTime": 1630353092378,
+            "endTime": 1630353097615,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "4",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask",
+            "name": "forceCacheRefresh",
+            "startTime": 1630353097656,
+            "endTime": 1630353108670,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "5",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.cluster.WaitForClusterDisableTask",
+            "name": "waitForClusterDisable",
+            "startTime": 1630353108700,
+            "endTime": 1630353210074,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "6",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask",
+            "name": "forceCacheRefresh",
+            "startTime": 1630353210114,
+            "endTime": 1630353231506,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": true,
+            "loopStart": false,
+            "loopEnd": false
+          }
+        ],
+        "syntheticStageOwner": "STAGE_AFTER",
+        "parentStageId": "01FEC9J9GJDF9D7WW2HFWWCP47",
+        "requisiteStageRefIds": [
+          "1>1"
+        ]
+      },
+      {
+        "id": "01FEC9VKY46T6HB9RFPWN7W68T",
+        "refId": "1>3",
+        "type": "scaleDownCluster",
+        "name": "scaleDown",
+        "startTime": 1630353231597,
+        "endTime": 1630353328868,
+        "status": "SUCCEEDED",
+        "context": {
+          "outputs": {
+
+          },
+          "cluster": "keel-prestaging",
+          "notification.type": "resizeservergroup",
+          "deploy.account.name": "mgmt",
+          "allowScaleDownActive": false,
+          "credentials": "mgmt",
+          "workflowExecution": {
+            "namespace": "spinnaker",
+            "workflowType": "WorkflowDispatcher",
+            "runId": "6b0a62f8-6f2b-44b6-b137-ac1e6cd69327",
+            "permalink": "https://temporal/namespaces/spinnaker/workflows/stage:01FEC9J9GJAQFTBEGZQ894X79Q:01FEC9VKY46T6HB9RFPWN7W68T/6b0a62f8-6f2b-44b6-b137-ac1e6cd69327/summary",
+            "workflowId": "stage:01FEC9J9GJAQFTBEGZQ894X79Q:01FEC9VKY46T6HB9RFPWN7W68T",
+            "uiTarget": "https://temporal"
+          },
+          "remainingDeployServerGroups": [
+            {
+              "name": "keel-prestaging-v470",
+              "region": "us-west-2"
+            }
+          ],
+          "moniker": {
+            "app": "keel",
+            "cluster": "keel-prestaging",
+            "stack": "prestaging"
+          },
+          "workflowResult": {
+            "childWorkflowExecutionInfos": {
+              "2f5936d79839e1bac8b94f50985464012865a3511a5f7a7660a1209e2b60059c": {
+                "namespace": "spinnaker",
+                "workflowType": "StageContextCloudOperationRunner",
+                "runId": "d9d84ad4-13d0-4b9e-8756-ed7673205024",
+                "permalink": "https://temporal/namespaces/spinnaker/workflows/2f5936d79839e1bac8b94f50985464012865a3511a5f7a7660a1209e2b60059c/d9d84ad4-13d0-4b9e-8756-ed7673205024/summary",
+                "workflowId": "2f5936d79839e1bac8b94f50985464012865a3511a5f7a7660a1209e2b60059c",
+                "uiTarget": "https://temporal"
+              },
+              "eca722b0303e448629eb721afb940d6fbf346829446c67dac5bd56b9d3f082e7": {
+                "namespace": "spinnaker",
+                "workflowType": "StageContextCloudOperationRunner",
+                "runId": "8ad82c8e-dc33-4af5-b738-51ffbefe7745",
+                "permalink": "https://temporal/namespaces/spinnaker/workflows/eca722b0303e448629eb721afb940d6fbf346829446c67dac5bd56b9d3f082e7/8ad82c8e-dc33-4af5-b738-51ffbefe7745/summary",
+                "workflowId": "eca722b0303e448629eb721afb940d6fbf346829446c67dac5bd56b9d3f082e7",
+                "uiTarget": "https://temporal"
+              }
+            },
+            "childWorkflowExecutionResults": {
+              "2f5936d79839e1bac8b94f50985464012865a3511a5f7a7660a1209e2b60059c": {
+                "output": {
+                  "outputType": "voidOperation"
+                },
+                "childWorkflowExecutionInfos": {
+
+                },
+                "childWorkflowExecutionResults": {
+
+                },
+                "logs": [
+
+                ],
+                "status": "WORKFLOW_EXECUTION_STATUS_UNSPECIFIED",
+                "isCompleted": true
+              },
+              "eca722b0303e448629eb721afb940d6fbf346829446c67dac5bd56b9d3f082e7": {
+                "output": {
+                  "outputType": "voidOperation"
+                },
+                "childWorkflowExecutionInfos": {
+
+                },
+                "childWorkflowExecutionResults": {
+
+                },
+                "logs": [
+
+                ],
+                "status": "WORKFLOW_EXECUTION_STATUS_UNSPECIFIED",
+                "isCompleted": true
+              }
+            },
+            "logs": [
+              "Resizing server group 'mgmt:us-west-2:keel-prestaging-v470' to Capacity(min=0, max=0, desired=0)",
+              "Resized server group 'mgmt:us-west-2:keel-prestaging-v470' to Capacity(min=0, max=0, desired=0)"
+            ],
+            "status": "WORKFLOW_EXECUTION_STATUS_COMPLETED",
+            "isCompleted": true
+          },
+          "preferLargerOverNewer": false,
+          "remainingFullSizeServerGroups": 1,
+          "cloudProvider": "aws",
+          "deploy.server.groups": {
+            "us-west-2": [
+              "keel-prestaging-v470"
+            ]
+          },
+          "kato.tasks": [
+            {
+              "resultObjects": [
+                {
+                  "outputType": "voidOperation"
+                },
+                {
+                  "outputType": "voidOperation"
+                }
+              ],
+              "history": [
+
+              ],
+              "id": "n/a",
+              "status": {
+
+              }
+            }
+          ],
+          "region": "us-west-2"
+        },
+        "outputs": {
+
+        },
+        "tasks": [
+          {
+            "id": "1",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask",
+            "name": "determineHealthProviders",
+            "startTime": 1630353231817,
+            "endTime": 1630353231926,
+            "status": "SUCCEEDED",
+            "stageStart": true,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "2",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.cluster.ScaleDownClusterTask",
+            "name": "scaleDownCluster",
+            "startTime": 1630353231978,
+            "endTime": 1630353232128,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "3",
+            "implementingClass": "com.netflix.spinnaker.orca.temporal.stage.MonitorTemporalWorkflowTask",
+            "name": "monitorScaleDownCluster",
+            "startTime": 1630353232155,
+            "endTime": 1630353237448,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "4",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.cluster.WaitForScaleDownClusterTask",
+            "name": "waitForScaleDownCluster",
+            "startTime": 1630353237507,
+            "endTime": 1630353328820,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": true,
+            "loopStart": false,
+            "loopEnd": false
+          }
+        ],
+        "syntheticStageOwner": "STAGE_AFTER",
+        "parentStageId": "01FEC9J9GJDF9D7WW2HFWWCP47",
+        "requisiteStageRefIds": [
+          "1>2"
+        ]
+      },
+      {
+        "id": "01FEC9VKY4D45T0MPZQ3NHT92J",
+        "refId": "1>4",
+        "type": "applySourceServerGroupCapacity",
+        "name": "restoreMinCapacityFromSnapshot",
+        "startTime": 1630353328930,
+        "endTime": 1630353330246,
+        "status": "SUCCEEDED",
+        "context": {
+          "force.cache.refresh.errors": [
+
+          ],
+          "credentials": "mgmt",
+          "processed.server.groups": [
+
+          ],
+          "cloudProvider": "aws",
+          "deploy.server.groups": {
+
+          },
+          "refreshed.server.groups": [
+
+          ],
+          "zones": [
+
+          ]
+        },
+        "outputs": {
+
+        },
+        "tasks": [
+          {
+            "id": "1",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.ApplySourceServerGroupCapacityTask",
+            "name": "restoreMinCapacity",
+            "startTime": 1630353329138,
+            "endTime": 1630353329239,
+            "status": "SUCCEEDED",
+            "stageStart": true,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "2",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask",
+            "name": "waitForCapacityMatch",
+            "startTime": 1630353329327,
+            "endTime": 1630353329504,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "3",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask",
+            "name": "forceCacheRefresh",
+            "startTime": 1630353329559,
+            "endTime": 1630353330148,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": true,
+            "loopStart": false,
+            "loopEnd": false
+          }
+        ],
+        "syntheticStageOwner": "STAGE_AFTER",
+        "parentStageId": "01FEC9J9GJDF9D7WW2HFWWCP47",
+        "requisiteStageRefIds": [
+          "1>3"
+        ]
+      }
+    ],
+    "startTime": 1630352778860,
+    "endTime": 1630353330404,
+    "status": "SUCCEEDED",
+    "authentication": {
+      "user": "w@w.com",
+      "allowedAccounts": [
+
+      ]
+    },
+    "origin": "keel",
+    "trigger": {
+      "type": "keel",
+      "correlationId": "ec2:cluster:mgmt:keel-prestaging:us-west-2",
+      "user": "keel",
+      "parameters": {
+
+      },
+      "artifacts": [
+
+      ],
+      "notifications": [
+
+      ],
+      "rebake": false,
+      "dryRun": false,
+      "strategy": false,
+      "resolvedExpectedArtifacts": [
+
+      ],
+      "expectedArtifacts": [
+
+      ]
+    },
+    "description": "Deploy keel-0.1391.0-h2120.3f29b4a to server group keel-prestaging  in mgmt/us-west-2",
+    "notifications": [
+
+    ],
+    "initialConfig": {
+
+    },
+    "systemNotifications": [
+
+    ],
+    "partition": "us-west-2"
+  }
+}

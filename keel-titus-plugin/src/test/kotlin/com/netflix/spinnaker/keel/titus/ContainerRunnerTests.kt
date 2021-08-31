@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.titus
 
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.keel.api.TaskStatus
 import com.netflix.spinnaker.keel.api.action.ActionState
 import com.netflix.spinnaker.keel.api.actuation.SubjectType
 import com.netflix.spinnaker.keel.api.actuation.Task
@@ -8,7 +9,6 @@ import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.titus.TitusServerGroup
 import com.netflix.spinnaker.keel.orca.ExecutionDetailResponse
-import com.netflix.spinnaker.keel.api.TaskStatus
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.titus.batch.RUN_JOB_TYPE
 import com.netflix.spinnaker.keel.titus.verification.LinkStrategy

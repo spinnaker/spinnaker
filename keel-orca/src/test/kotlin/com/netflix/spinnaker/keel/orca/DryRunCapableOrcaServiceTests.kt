@@ -9,10 +9,10 @@ import io.mockk.clearMocks
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
-import io.mockk.coEvery as every
-import io.mockk.coVerify as verify
 import kotlinx.coroutines.runBlocking
 import org.springframework.core.env.Environment
+import io.mockk.coEvery as every
+import io.mockk.coVerify as verify
 
 class DryRunCapableOrcaServiceTests : JUnit5Minutests {
   object Fixture {
