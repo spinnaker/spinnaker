@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/titus",
   "license": "Apache-2.0",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "module": "dist/index.js",
   "typings": "dist/index.d.ts",
   "scripts": {
@@ -13,7 +13,7 @@
     "lib": "npm run build"
   },
   "dependencies": {
-    "@spinnaker/amazon": "^0.8.1",
+    "@spinnaker/amazon": "^0.8.2",
     "@spinnaker/core": "^0.8.0",
     "@spinnaker/docker": "^0.0.103",
     "@spinnaker/mocks": "1.0.7",

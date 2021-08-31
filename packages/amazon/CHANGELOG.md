@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.8.2](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.8.1...@spinnaker/amazon@0.8.2) (2021-08-30)
+
+
+### Bug Fixes
+
+* **aws:** Clarify compatible target groups ([#9626](https://github.com/spinnaker/deck/issues/9626)) ([a28013b](https://github.com/spinnaker/deck/commit/a28013b8db11ad0ed288104d624cf1ea3ed19d34))
+
+
+
+
+
 ## [0.8.1](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.8.0...@spinnaker/amazon@0.8.1) (2021-08-30)
 
 **Note:** Version bump only for package @spinnaker/amazon

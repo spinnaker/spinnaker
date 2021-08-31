@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.4.5](https://github.com/spinnaker/deck/compare/@spinnaker/titus@0.4.4...@spinnaker/titus@0.4.5) (2021-08-30)
+
+
+### Bug Fixes
+
+* **aws:** Clarify compatible target groups ([#9626](https://github.com/spinnaker/deck/issues/9626)) ([a28013b](https://github.com/spinnaker/deck/commit/a28013b8db11ad0ed288104d624cf1ea3ed19d34))
+
+
+
+
+
 ## [0.4.4](https://github.com/spinnaker/deck/compare/@spinnaker/titus@0.4.3...@spinnaker/titus@0.4.4) (2021-08-30)
 
 **Note:** Version bump only for package @spinnaker/titus
