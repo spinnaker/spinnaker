@@ -18,7 +18,6 @@ import com.netflix.spinnaker.keel.core.api.UID
 import com.netflix.spinnaker.keel.core.api.parseUID
 import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.core.api.timestampAsInstant
-import com.netflix.spinnaker.keel.events.PersistentEvent.EventScope
 import com.netflix.spinnaker.keel.pause.PauseScope
 import com.netflix.spinnaker.keel.pause.PauseScope.APPLICATION
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
@@ -96,6 +95,16 @@ class SqlDeliveryConfigRepository(
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   private val RECHECK_LEASE_NAME = "recheck"
+
+  override fun isApplicationConfigured(application: String): Boolean =
+    sqlRetry.withRetry(READ) {
+      jooq
+        .select(DELIVERY_CONFIG.APPLICATION)
+        .from(DELIVERY_CONFIG)
+        .where(DELIVERY_CONFIG.APPLICATION.eq(application))
+        .fetchOne()
+    } != null
+
 
   override fun getByApplication(application: String): DeliveryConfig =
     sqlRetry.withRetry(READ) {

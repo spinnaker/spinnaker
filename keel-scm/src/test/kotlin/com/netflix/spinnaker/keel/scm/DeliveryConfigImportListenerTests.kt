@@ -4,6 +4,7 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.Tag
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactOriginFilter
 import com.netflix.spinnaker.keel.api.artifacts.branchName
+import com.netflix.spinnaker.keel.api.persistence.KeelReadOnlyRepository
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.core.api.SubmittedEnvironment
@@ -36,6 +37,7 @@ import io.mockk.coVerify as verify
 
 class DeliveryConfigImportListenerTests : JUnit5Minutests {
   class Fixture {
+    val keelReadOnlyRepository: KeelReadOnlyRepository = mockk()
     val deliveryConfigUpserter: DeliveryConfigUpserter = mockk()
     val importer: DeliveryConfigImporter = mockk()
     val front50Cache: Front50Cache = mockk()
@@ -46,6 +48,7 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
     val clock = MutableClock()
     val eventPublisher: ApplicationEventPublisher = mockk()
     val subject = DeliveryConfigImportListener(
+      keelReadOnlyRepository = keelReadOnlyRepository,
       deliveryConfigUpserter = deliveryConfigUpserter,
       deliveryConfigImporter = importer,
       notificationRepository = notificationRepository,
@@ -138,6 +141,12 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
       every {
         scmUtils.getCommitLink(any())
       } returns "https://commit-link.org"
+
+      every {
+        keelReadOnlyRepository.isApplicationConfigured(any())
+      } answers {
+        firstArg<String>() == deliveryConfig.application
+      }
     }
   }
 
@@ -210,6 +219,18 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
             }
           }
         }
+      }
+
+      context("apps that are not on Managed Delivery yet") {
+        before {
+          every {
+            front50Cache.searchApplicationsByRepo(any())
+          } returns listOf(configuredApp.copy(name = "notConfiguredApp"))
+
+          subject.handleCodeEvent(commitEvent)
+        }
+
+        testEventIgnored()
       }
 
       context("apps with custom manifest path") {

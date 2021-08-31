@@ -1,20 +1,19 @@
 package com.netflix.spinnaker.keel.api.persistence
 
+import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
+import com.netflix.spinnaker.keel.api.action.Action
+import com.netflix.spinnaker.keel.api.action.ActionState
+import com.netflix.spinnaker.keel.api.action.ActionStateFull
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
-import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
-import com.netflix.spinnaker.keel.api.action.Action
-import com.netflix.spinnaker.keel.api.action.ActionState
-import com.netflix.spinnaker.keel.api.action.ActionStateFull
-import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.persistence.DependentAttachFilter
 import com.netflix.spinnaker.keel.persistence.DependentAttachFilter.ATTACH_ALL
 import java.time.Duration
@@ -32,6 +31,8 @@ interface KeelReadOnlyRepository {
   fun deliveryConfigFor(resourceId: String): DeliveryConfig
 
   fun getDeliveryConfigForApplication(application: String): DeliveryConfig
+
+  fun isApplicationConfigured(application: String): Boolean
 
   /**
    * Retrieves all available [DeliveryConfig] entries in the database.

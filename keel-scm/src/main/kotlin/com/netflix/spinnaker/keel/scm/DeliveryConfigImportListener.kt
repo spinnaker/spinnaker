@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.scm
 
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.keel.api.persistence.KeelReadOnlyRepository
 import com.netflix.spinnaker.keel.front50.Front50Cache
 import com.netflix.spinnaker.keel.front50.model.GitRepository
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
@@ -21,6 +22,7 @@ import java.time.Clock
  */
 @Component
 class DeliveryConfigImportListener(
+  private val keelReadOnlyRepository: KeelReadOnlyRepository,
   private val deliveryConfigUpserter: DeliveryConfigUpserter,
   private val deliveryConfigImporter: DeliveryConfigImporter,
   private val notificationRepository: DismissibleNotificationRepository,
@@ -73,6 +75,7 @@ class DeliveryConfigImportListener(
           && app.managedDelivery?.importDeliveryConfig == true
           && event.matchesApplicationConfig(app)
           && event.targetBranch == scmUtils.getDefaultBranch(app)
+          && keelReadOnlyRepository.isApplicationConfigured(app.name)
       }
 
     if (matchingApps.isEmpty()) {

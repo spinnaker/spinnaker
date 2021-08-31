@@ -62,6 +62,11 @@ interface DeliveryConfigRepository : PeriodicallyCheckedRepository<DeliveryConfi
   fun getByApplication(application: String): DeliveryConfig
 
   /**
+   * @return true if [application] has a delivery config, otherwise false
+   */
+  fun isApplicationConfigured(application: String): Boolean
+
+  /**
    * Deletes a delivery config and everything in it, based on the application name.
    */
   fun deleteByApplication(application: String)

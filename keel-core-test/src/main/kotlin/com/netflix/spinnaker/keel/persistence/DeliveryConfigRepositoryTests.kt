@@ -30,8 +30,8 @@ import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.pause.PauseScope
 import com.netflix.spinnaker.keel.persistence.DependentAttachFilter.ATTACH_ARTIFACTS
 import com.netflix.spinnaker.keel.persistence.DependentAttachFilter.ATTACH_ENVIRONMENTS
-import com.netflix.spinnaker.keel.persistence.DependentAttachFilter.ATTACH_PREVIEW_ENVIRONMENTS
 import com.netflix.spinnaker.keel.persistence.DependentAttachFilter.ATTACH_NONE
+import com.netflix.spinnaker.keel.persistence.DependentAttachFilter.ATTACH_PREVIEW_ENVIRONMENTS
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.resource
@@ -55,10 +55,12 @@ import strikt.assertions.isA
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
+import strikt.assertions.isFalse
 import strikt.assertions.isNotEmpty
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.isSuccess
+import strikt.assertions.isTrue
 import strikt.assertions.map
 import strikt.assertions.none
 import java.time.Duration
@@ -69,8 +71,16 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
 
   val publisher: ApplicationEventPublisher = mockk(relaxed = true)
 
-  abstract fun createDeliveryConfigRepository(resourceSpecIdentifier: ResourceSpecIdentifier, publisher: ApplicationEventPublisher): T
-  abstract fun createResourceRepository(resourceSpecIdentifier: ResourceSpecIdentifier, publisher: ApplicationEventPublisher): R
+  abstract fun createDeliveryConfigRepository(
+    resourceSpecIdentifier: ResourceSpecIdentifier,
+    publisher: ApplicationEventPublisher
+  ): T
+
+  abstract fun createResourceRepository(
+    resourceSpecIdentifier: ResourceSpecIdentifier,
+    publisher: ApplicationEventPublisher
+  ): R
+
   abstract fun createArtifactRepository(publisher: ApplicationEventPublisher): A
   abstract fun createPausedRepository(): P
 
@@ -155,12 +165,17 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
       storeArtifactVersionsAndJudgements(artifact, 1, 1)
 
     fun storeArtifactVersionsAndJudgements(artifact: DeliveryArtifact, start: Int, end: Int) {
-      val range = if (start < end) { start..end } else { start downTo end }
+      val range = if (start < end) {
+        start..end
+      } else {
+        start downTo end
+      }
       range.forEach { v ->
         clock.tickMinutes(1)
 
         artifactRepository.storeArtifactVersion(
-          PublishedArtifact(artifact.name, artifact.type, "${artifact.name}-1.0.$v", createdAt = clock.instant(),
+          PublishedArtifact(
+            artifact.name, artifact.type, "${artifact.name}-1.0.$v", createdAt = clock.instant(),
             gitMetadata = GitMetadata(commit = "ignored", branch = "main")
           )
         )
@@ -196,7 +211,12 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
   fun tests() = rootContext<Fixture<T, R, A, P>>() {
     fixture {
       Fixture(
-        deliveryConfigRepositoryProvider = { this@DeliveryConfigRepositoryTests.createDeliveryConfigRepository(it, publisher) },
+        deliveryConfigRepositoryProvider = {
+          this@DeliveryConfigRepositoryTests.createDeliveryConfigRepository(
+            it,
+            publisher
+          )
+        },
         resourceRepositoryProvider = { this@DeliveryConfigRepositoryTests.createResourceRepository(it, publisher) },
         artifactRepositoryProvider = { this@DeliveryConfigRepositoryTests.createArtifactRepository(publisher) },
         pausedRepositoryProvider = this@DeliveryConfigRepositoryTests::createPausedRepository
@@ -252,6 +272,21 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
           }
       }
 
+      test("the application has a config") {
+        expectCatching {
+          repository.isApplicationConfigured(deliveryConfig.application)
+        }
+          .isSuccess()
+          .isTrue()
+      }
+
+      test("the application doesn't have a config") {
+        expectCatching {
+          repository.isApplicationConfigured("whateverApp")
+        }
+          .isSuccess()
+          .isFalse()
+      }
 
 
       test("config can be rechecked") {
@@ -333,7 +368,12 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
           storeResources()
           store()
 
-          copy(deliveryConfig = deliveryConfig.copy(serviceAccount = "new-service-account@spinnaker.io", rawConfig = "fakeConfig"))
+          copy(
+            deliveryConfig = deliveryConfig.copy(
+              serviceAccount = "new-service-account@spinnaker.io",
+              rawConfig = "fakeConfig"
+            )
+          )
         }
 
         before {
@@ -433,8 +473,8 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
           test("can queue constraint approvals") {
             queueConstraintApproval()
             expectThat(repository
-              .getArtifactVersionsQueuedForApproval(deliveryConfig.name, "staging", artifact)
-              .map { it.version }
+                         .getArtifactVersionsQueuedForApproval(deliveryConfig.name, "staging", artifact)
+                         .map { it.version }
             ).isEqualTo(listOf("keel-1.0.1"))
           }
 
@@ -454,7 +494,8 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
             test("can retrieve sorted artifact versions queued for approval") {
               (1..5).forEach { v ->
                 repository.queueArtifactVersionForApproval(
-                  deliveryConfig.name, "staging", artifact, "${artifact.name}-1.0.$v")
+                  deliveryConfig.name, "staging", artifact, "${artifact.name}-1.0.$v"
+                )
               }
               expectThat(
                 repository.getArtifactVersionsQueuedForApproval(deliveryConfig.name, "staging", artifact)
@@ -480,7 +521,8 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
             test("can retrieve sorted artifact versions queued for approval") {
               (1..5).forEach { v ->
                 repository.queueArtifactVersionForApproval(
-                  deliveryConfig.name, "staging", artifactFromBranch, "${artifactFromBranch.name}-1.0.$v")
+                  deliveryConfig.name, "staging", artifactFromBranch, "${artifactFromBranch.name}-1.0.$v"
+                )
               }
               expectThat(
                 repository.getArtifactVersionsQueuedForApproval(deliveryConfig.name, "staging", artifactFromBranch)
@@ -685,34 +727,38 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
 
       context("notifications") {
         before {
-          repository.store(deliveryConfig.copy(
-            environments = setOf(
-              Environment(
-                name = "prod",
-                resources = setOf(
-                  resource(kind = parseKind("ec2/cluster@v1")),
-                  resource(kind = parseKind("ec2/security-group@v1"))
+          repository.store(
+            deliveryConfig.copy(
+              environments = setOf(
+                Environment(
+                  name = "prod",
+                  resources = setOf(
+                    resource(kind = parseKind("ec2/cluster@v1")),
+                    resource(kind = parseKind("ec2/security-group@v1"))
+                  ),
+                  notifications = setOf(
+                    NotificationConfig(
+                      type = NotificationType.slack,
+                      address = "test",
+                      frequency = NotificationFrequency.verbose
+                    ),
+                    NotificationConfig(
+                      type = NotificationType.email,
+                      address = "test",
+                      frequency = NotificationFrequency.quiet
+                    )
+                  )
                 ),
-                notifications = setOf(NotificationConfig(
-                  type = NotificationType.slack,
-                  address = "test",
-                  frequency = NotificationFrequency.verbose
-                ),
-                  NotificationConfig(
-                    type = NotificationType.email,
-                    address = "test",
-                    frequency = NotificationFrequency.quiet
-                  ))
-              ),
+              )
             )
-          ))
+          )
         }
-        test ("get stored notifications") {
+        test("get stored notifications") {
           expectThat(repository.environmentNotifications(deliveryConfig.name, "prod").size)
             .isEqualTo(2)
         }
 
-        test ("environment without notifications will return an empty set") {
+        test("environment without notifications will return an empty set") {
           expectThat(repository.environmentNotifications(deliveryConfig.name, "staging"))
             .isEmpty()
         }
@@ -823,23 +869,25 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
           val tmpArtifact = artifact.copy(deliveryConfigName = "config$it")
           artifactRepository.register(tmpArtifact)
 
-          repository.store(deliveryConfig.copy(
-            application = "app$it",
-            name = "config$it",
-            artifacts = setOf(tmpArtifact),
-            environments = setOf(
-              Environment(
-                name = "test",
-                resources = emptySet()
-              )
-            ),
-            previewEnvironments = setOf(
-              PreviewEnvironmentSpec(
-                branch = branchStartsWith("feature/"),
-                baseEnvironment = "test"
+          repository.store(
+            deliveryConfig.copy(
+              application = "app$it",
+              name = "config$it",
+              artifacts = setOf(tmpArtifact),
+              environments = setOf(
+                Environment(
+                  name = "test",
+                  resources = emptySet()
+                )
+              ),
+              previewEnvironments = setOf(
+                PreviewEnvironmentSpec(
+                  branch = branchStartsWith("feature/"),
+                  baseEnvironment = "test"
+                )
               )
             )
-          ))
+          )
         }
       }
 

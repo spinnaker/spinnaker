@@ -237,6 +237,9 @@ class CombinedRepository(
   override fun getDeliveryConfigForApplication(application: String): DeliveryConfig =
     deliveryConfigRepository.getByApplication(application)
 
+  override fun isApplicationConfigured(application: String): Boolean =
+    deliveryConfigRepository.isApplicationConfigured(application)
+
   override fun allDeliveryConfigs(vararg dependentAttachFilter: DependentAttachFilter): Set<DeliveryConfig> =
     deliveryConfigRepository.all(*dependentAttachFilter)
 
