@@ -19,9 +19,13 @@ package com.netflix.spinnaker.keel.titus.exceptions
 
 import com.netflix.spinnaker.keel.core.ResourceCurrentlyUnresolvable
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
+import java.time.Instant
 
 class NoDigestFound(repository: String, tag: String) :
   ResourceCurrentlyUnresolvable("No digest found for docker image $repository:$tag in any registry")
 
 class RegistryNotFound(titusAccount: String) :
-  IntegrationException("Unable to find docker registry for titus account $titusAccount")
+  IntegrationException("Unable to find docker registry for Titus account $titusAccount")
+
+class ImageTooOld(repository: String, tag: String, createdAt: Instant) :
+  ResourceCurrentlyUnresolvable("The docker image $repository:$tag (created at $createdAt) is too old. To fix this, please publish a new image.")

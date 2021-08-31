@@ -37,7 +37,7 @@ import com.netflix.spinnaker.kork.exceptions.ConfigurationException
  * Implement the methods in this interface for each cloud provider.
  */
 abstract class DockerImageResolver<T : ResourceSpec>(
-  val repository: KeelRepository
+  open val repository: KeelRepository
 ) : Resolver<T> {
 
   /**
@@ -68,7 +68,7 @@ abstract class DockerImageResolver<T : ResourceSpec>(
   /**De
    * Get the digest for a specific image
    */
-  abstract fun getDigest(account: String, organization: String, image: String, tag: String): String
+  abstract fun getDigest(account: String, artifact: DockerArtifact, tag: String): String
 
   override fun invoke(resource: Resource<T>): Resource<T> {
     val container = getContainerFromSpec(resource)
@@ -134,7 +134,7 @@ abstract class DockerImageResolver<T : ResourceSpec>(
     artifact: DockerArtifact,
     tag: String
   ): DigestProvider {
-    val digest = getDigest(account, artifact.organization, artifact.image, tag)
+    val digest = getDigest(account, artifact, tag)
     return DigestProvider(
       organization = artifact.organization,
       image = artifact.image,

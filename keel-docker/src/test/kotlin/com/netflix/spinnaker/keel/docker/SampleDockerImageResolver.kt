@@ -51,7 +51,7 @@ class SampleDockerImageResolver(
     listOf("latest", "v0.0.1", "v0.0.2", "v0.0.4", "v0.1.1", "v0.1.0")
 
   // this would normally call out to clouddriver
-  override fun getDigest(account: String, organization: String, image: String, tag: String) =
+  override fun getDigest(account: String, artifact: DockerArtifact, tag: String) =
     when (tag) {
       "v0.0.1" -> "sha256:2763a2b9d53e529c62b326b7331d1b44aae344be0b79ff64c74559c5c96b76b7"
       "v0.0.2" -> "sha256:b4857d7596462aeb1977e6e5d1e31b20a5b5eecf890cd64ac62f145b3839ee97"

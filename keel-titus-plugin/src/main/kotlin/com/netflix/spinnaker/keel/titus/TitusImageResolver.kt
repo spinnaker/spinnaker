@@ -26,18 +26,22 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.docker.ContainerProvider
 import com.netflix.spinnaker.keel.docker.DockerImageResolver
 import com.netflix.spinnaker.keel.persistence.KeelRepository
+import com.netflix.spinnaker.keel.titus.exceptions.ImageTooOld
 import com.netflix.spinnaker.keel.titus.exceptions.NoDigestFound
 import com.netflix.spinnaker.keel.titus.exceptions.RegistryNotFound
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import java.time.Clock
+import java.time.Duration
 
 /**
  * Assumption: docker container digest is the same in all regions
  */
 @Component
 class TitusImageResolver(
-  repository: KeelRepository,
+  override val repository: KeelRepository,
+  private val clock: Clock,
   private val cloudDriverCache: CloudDriverCache,
   private val cloudDriverService: CloudDriverService
 ) : DockerImageResolver<TitusClusterSpec>(
@@ -73,15 +77,28 @@ class TitusImageResolver(
       cloudDriverService.findDockerTagsForImage(account, repository)
     }
 
-  override fun getDigest(account: String, organization: String, image: String, tag: String) =
+  override fun getDigest(account: String, artifact: DockerArtifact, tag: String) =
     runBlocking {
-      val repository = "$organization/$image"
-      val images = cloudDriverService.findDockerImages(account, repository, tag)
-      images.firstOrNull()?.digest
-        ?: throw NoDigestFound(repository, tag) // sha should be the same in all accounts for titus
+      val images = cloudDriverService.findDockerImages(account, artifact.name, tag)
+      val digest = images.firstOrNull()?.digest
+
+      if (digest == null) {
+        val publishedArtifact = repository.getArtifactVersion(artifact, tag)
+        if (publishedArtifact?.createdAt?.isBefore(clock.instant() - TITUS_REGISTRY_IMAGE_TTL) == true) {
+          throw ImageTooOld(artifact.name, tag, publishedArtifact.createdAt!!)
+        } else {
+          throw NoDigestFound(artifact.name, tag) // sha should be the same in all accounts for titus
+        }
+      }
+
+      digest
     }
 
   protected fun TitusClusterSpec.deriveRegistry(): String =
     cloudDriverCache.credentialBy(locations.account).attributes["registry"]?.toString()
       ?: throw RegistryNotFound(locations.account)
+  
+  companion object {
+    val TITUS_REGISTRY_IMAGE_TTL: Duration = Duration.ofDays(60)
+  }
 }
