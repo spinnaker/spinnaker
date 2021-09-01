@@ -134,13 +134,13 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
         copy(constraint = constraint.copy(maxDeploysPerWindow = 2))
       }
 
-      context("we have not deployed yet in this window") {
+      context("we have not approved any versions yet in this window") {
         val start = slot<Instant>()
         val end = slot<Instant>()
 
         before {
           every {
-            artifactRepository.deploymentsBetween(manifest, environment.name, capture(start), capture(end))
+            artifactRepository.versionsApprovedBetween(manifest, environment.name, capture(start), capture(end))
           } returns 0
         }
 
@@ -157,10 +157,10 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
         }
       }
 
-      context("we have already deployed several times") {
+      context("we have already approved several versions") {
         before {
           every {
-            artifactRepository.deploymentsBetween(manifest, environment.name, any(), any())
+            artifactRepository.versionsApprovedBetween(manifest, environment.name, any(), any())
           } returns 2
         }
 

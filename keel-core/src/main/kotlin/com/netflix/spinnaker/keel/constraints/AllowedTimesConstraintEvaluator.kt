@@ -76,7 +76,7 @@ class AllowedTimesConstraintEvaluator(
     targetEnvironment: Environment,
     windowRange: ZonedDateTimeRange
   ): Pair<Int, Int>? = if (constraint.maxDeploysPerWindow != null) {
-    artifactRepository.deploymentsBetween(
+    artifactRepository.versionsApprovedBetween(
       deliveryConfig,
       targetEnvironment.name,
       windowRange.start.toInstant(),

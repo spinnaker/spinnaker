@@ -1901,7 +1901,7 @@ class SqlArtifactRepository(
     }
   }
 
-  override fun deploymentsBetween(
+  override fun versionsApprovedBetween(
     deliveryConfig: DeliveryConfig,
     environmentName: String,
     startTime: Instant,
@@ -1910,7 +1910,13 @@ class SqlArtifactRepository(
     require(startTime < endTime) {
       "Start time $startTime must be before end time $endTime"
     }
-    log.debug("checking for deployments to {}:{} between {} and {}", deliveryConfig.name, environmentName, startTime, endTime)
+    log.debug(
+      "checking for artifact versions approved for {}:{} between {} and {}",
+      deliveryConfig.name,
+      environmentName,
+      startTime,
+      endTime
+    )
     return jooq
       .selectCount()
       .from(ENVIRONMENT_ARTIFACT_VERSIONS)
@@ -1918,7 +1924,7 @@ class SqlArtifactRepository(
       .join(DELIVERY_CONFIG).on(DELIVERY_CONFIG.UID.eq(ENVIRONMENT.DELIVERY_CONFIG_UID))
       .where(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
       .and(ENVIRONMENT.NAME.eq(environmentName))
-      .and(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT.between(startTime, endTime))
+      .and(ENVIRONMENT_ARTIFACT_VERSIONS.APPROVED_AT.between(startTime, endTime))
       .fetchSingleInto<Int>()
   }
 

@@ -1,9 +1,5 @@
 package com.netflix.spinnaker.keel.sql
 
-import com.netflix.spinnaker.keel.api.plugins.kind
-import com.netflix.spinnaker.keel.resources.ResourceFactory
-import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
-import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.configuredTestObjectMapper
 import com.netflix.spinnaker.keel.test.defaultArtifactSuppliers
 import com.netflix.spinnaker.keel.test.deliveryConfig
@@ -21,7 +17,7 @@ import java.time.Instant.EPOCH
 import java.time.Instant.now
 import java.time.temporal.ChronoUnit.DAYS
 
-class DeployCountTests {
+class ArtifactVersionApprovalCountTests {
   private val jooq = testDatabase.context
   private val sqlRetry = RetryProperties(1, 0).let {
     SqlRetry(SqlRetryProperties(it, it))
@@ -49,7 +45,7 @@ class DeployCountTests {
   )
 
   @Test
-  fun `we can determine how many times we have deployed to an environment in a time window`() {
+  fun `we can determine how many times we have approved an artifact version for an environment within a time window`() {
     artifactRepository.register(deliveryConfig.artifacts.single())
     deliveryConfigRepository.store(deliveryConfig)
 
@@ -57,13 +53,29 @@ class DeployCountTests {
     clock.instant(now().truncatedTo(DAYS).plus(Duration.ofHours(10)))
 
     // add an artifact version and mark it as deployed
-    artifactRepository.storeArtifactVersion(deliveryConfig.artifacts.single().toArtifactVersion("fnord-0.1055.0-h1521.ecf8531"))
-    artifactRepository.markAsSuccessfullyDeployedTo(deliveryConfig, deliveryConfig.artifacts.single(), "fnord-0.1055.0-h1521.ecf8531", deliveryConfig.environments.single().name)
+    artifactRepository.storeArtifactVersion(
+      deliveryConfig.artifacts.single()
+        .toArtifactVersion("fnord-0.1055.0-h1521.ecf8531")
+    )
+    artifactRepository.approveVersionFor(
+      deliveryConfig,
+      deliveryConfig.artifacts.single(),
+      "fnord-0.1055.0-h1521.ecf8531",
+      deliveryConfig.environments.single().name
+    )
 
     // a day has passed and another artifact version is deployed
     clock.incrementBy(Duration.ofDays(1))
-    artifactRepository.storeArtifactVersion(deliveryConfig.artifacts.single().toArtifactVersion("fnord-0.1056.0-h1522.ecf8531"))
-    artifactRepository.markAsSuccessfullyDeployedTo(deliveryConfig, deliveryConfig.artifacts.single(), "fnord-0.1056.0-h1522.ecf8531", deliveryConfig.environments.single().name)
+    artifactRepository.storeArtifactVersion(
+      deliveryConfig.artifacts.single()
+        .toArtifactVersion("fnord-0.1056.0-h1522.ecf8531")
+    )
+    artifactRepository.approveVersionFor(
+      deliveryConfig,
+      deliveryConfig.artifacts.single(),
+      "fnord-0.1056.0-h1522.ecf8531",
+      deliveryConfig.environments.single().name
+    )
 
     clock.incrementBy(Duration.ofHours(1))
 
@@ -74,7 +86,7 @@ class DeployCountTests {
   }
 
   private fun versionsEver() =
-    artifactRepository.deploymentsBetween(
+    artifactRepository.versionsApprovedBetween(
       deliveryConfig,
       deliveryConfig.environments.first().name,
       EPOCH,
@@ -82,7 +94,7 @@ class DeployCountTests {
     )
 
   private fun versionsToday() =
-    artifactRepository.deploymentsBetween(
+    artifactRepository.versionsApprovedBetween(
       deliveryConfig,
       deliveryConfig.environments.first().name,
       clock.instant().truncatedTo(DAYS),

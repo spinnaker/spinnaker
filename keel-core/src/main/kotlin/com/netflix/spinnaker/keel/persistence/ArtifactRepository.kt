@@ -392,7 +392,7 @@ interface ArtifactRepository : PeriodicallyCheckedRepository<DeliveryArtifact> {
   /**
    * @return number of artifact versions deployed to [environmentName] between [startTime] and [endTime].
    */
-  fun deploymentsBetween(
+  fun versionsApprovedBetween(
     deliveryConfig: DeliveryConfig,
     environmentName: String,
     startTime: Instant,
