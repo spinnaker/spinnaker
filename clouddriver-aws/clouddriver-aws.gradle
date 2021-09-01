@@ -18,6 +18,7 @@ configurations {
 dependencies {
   implementation project(":cats:cats-core")
   implementation project(":clouddriver-api")
+  implementation project(":clouddriver-configserver")
   implementation project(":clouddriver-core")
   implementation project(":clouddriver-eureka")
   implementation project(":clouddriver-security")
@@ -34,9 +35,11 @@ dependencies {
   implementation "com.netflix.frigga:frigga"
   implementation "io.spinnaker.fiat:fiat-api:$fiatVersion"
   implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
+  implementation "io.spinnaker.kork:kork-cloud-config-server"
   implementation "io.spinnaker.kork:kork-core"
   implementation "io.spinnaker.kork:kork-aws"
   implementation "io.spinnaker.kork:kork-exceptions"
+  implementation "io.spinnaker.kork:kork-secrets"
   implementation "io.spinnaker.kork:kork-security"
   implementation "io.spinnaker.kork:kork-credentials"
   implementation "io.spinnaker.kork:kork-moniker"
@@ -55,6 +58,7 @@ dependencies {
   implementation 'com.aestasit.infrastructure.sshoogr:sshoogr:0.9.25'
   implementation 'com.jcraft:jsch.agentproxy.connector-factory:0.0.9'
   implementation 'com.jcraft:jsch.agentproxy.jsch:0.0.9'
+  implementation "com.github.wnameless.json:json-flattener:0.11.1"
 
   testImplementation "io.spinnaker.kork:kork-exceptions"
   testImplementation "cglib:cglib-nodep"
