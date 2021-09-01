@@ -41,6 +41,7 @@ module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_AZURE_CONTROLLER, [
     $scope.pages = {
       templateSelection: require('./templateSelection.html'),
       basicSettings: require('./basicSettings/basicSettings.html'),
+      imageSettings: require('./image/imageSettings.html'),
       healthSettings: require('./healthSettings/healthSettings.html'),
       loadBalancers: require('./loadBalancers/loadBalancers.html'),
       networkSettings: require('./networkSettings/networkSettings.html'),

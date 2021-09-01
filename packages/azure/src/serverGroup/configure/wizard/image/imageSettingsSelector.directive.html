@@ -1,0 +1,33 @@
+<div class="container-fluid form-horizontal" ng-controller="azureServerGroupImageSettingsCtrl as imageCtrl">
+  <div class="form-group">
+    <div class="col-md-3 sm-label-right">Use custom image?</div>
+    <input type="checkbox" ng-model="command.image.isCustom" ng-change="imageCtrl.clearImage()" />
+  </div>
+
+  <div class="form-group" ng-if="command.image.isCustom === true">
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">Region</div>
+      <div class="col-md-6">
+        <span>{{command.image.region}}</span>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">Image Name</div>
+      <div class="col-md-6">
+        <input type="text" class="input-sm" ng-model="command.image.imageName" required />
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">OS Type</div>
+      <div class="col-md-6">
+        <input type="text" class="input-sm" ng-model="command.image.ostype" required />
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">URI</div>
+      <div class="col-md-6">
+        <input type="text" class="input-sm" ng-model="command.image.uri" required />
+      </div>
+    </div>
+  </div>
+</div>

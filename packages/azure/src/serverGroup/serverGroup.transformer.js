@@ -71,6 +71,7 @@ module(AZURE_SERVERGROUP_SERVERGROUP_TRANSFORMER, []).factory('azureServerGroupT
       detail: command.freeFormDetails,
       freeFormDetails: command.freeFormDetails,
       healthSettings: command.healthSettings,
+      image: command.image,
       account: command.credentials,
       selectedProvider: 'azure',
       vnet: command.vnet,
@@ -89,7 +90,6 @@ module(AZURE_SERVERGROUP_SERVERGROUP_TRANSFORMER, []).factory('azureServerGroupT
       user: '[anonymous]',
       upgradePolicy: 'Manual',
       type: 'createServerGroup',
-      image: tempImage,
       sku: {
         name: 'Standard_DS1_v2',
         tier: 'Standard',
@@ -109,6 +109,10 @@ module(AZURE_SERVERGROUP_SERVERGROUP_TRANSFORMER, []).factory('azureServerGroupT
       zones: command.zonesEnabled ? command.zones : [],
       enableInboundNAT: command.enableInboundNAT,
     };
+
+    if (command.image == null || command.image.isCustom == false) {
+      configuration.image = tempImage;
+    }
 
     if (typeof command.stack !== 'undefined') {
       configuration.name = configuration.name + '-' + command.stack;
