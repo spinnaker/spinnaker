@@ -19,6 +19,7 @@ import com.netflix.spinnaker.keel.graphql.types.MdConstraintStatusPayload
 import com.netflix.spinnaker.keel.graphql.types.MdDismissNotificationPayload
 import com.netflix.spinnaker.keel.graphql.types.MdMarkArtifactVersionAsGoodPayload
 import com.netflix.spinnaker.keel.graphql.types.MdRetryArtifactActionPayload
+import com.netflix.spinnaker.keel.graphql.types.MdToggleResourceManagementPayload
 import com.netflix.spinnaker.keel.graphql.types.MdUnpinArtifactVersionPayload
 import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
@@ -204,6 +205,24 @@ class Mutations(
     log.debug("Dismissing notification with ID=${payload.id} (by user $user)")
     return notificationRepository.dismissNotificationById(payload.application, ULID.parseULID(payload.id), user)
   }
+
+  @DgsData(parentType = DgsConstants.MUTATION.TYPE_NAME, field = DgsConstants.MUTATION.ToggleResourceManagement)
+  @PreAuthorize(
+    """@authorizationSupport.hasApplicationPermission('WRITE', 'RESOURCE', #payload.id)
+    and @authorizationSupport.hasServiceAccountAccess('RESOURCE', #payload.id)"""
+  )
+  fun toggleResourceManagement(
+    @InputArgument payload: MdToggleResourceManagementPayload,
+    @RequestHeader("X-SPINNAKER-USER") user: String
+  ): Boolean {
+    if (payload.isPaused) {
+      actuationPauser.pauseResource(payload.id, user)
+    } else {
+      actuationPauser.resumeResource(payload.id, user)
+    }
+    return true
+  }
+
 }
 
 fun MdConstraintStatusPayload.toUpdatedConstraintStatus(): UpdatedConstraintStatus =
