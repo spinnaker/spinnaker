@@ -41,6 +41,8 @@ const helpContents: { [key: string]: string } = {
     'You can choose between Azure managed disks types to support your workload or scenario.',
   'azure.serverGroup.caching':
     'Changing the default host caching policy can adversely impact the performance of your application. You should run performance tests to measure its impact. To improve the total IOPS/throughput, we recommend striping across multiple disks and using premium (SSD) disks.',
+  'azure.serverGroup.userAssignedIdentities':
+    'Allows your server to access Azure resources. Learn more here: https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview',
   'azure.loadBalancer.dnsName':
     'If there is no custom DNS label specified, a default DNS name will be created. The default value will be "GeneratedText.cloudapp.net" for Azure Application Gateway or "GeneratedText.[region].cloudapp.azure.com" for Azure Load Balancer.',
   'azure.loadBalancer.probes.probeInterval':

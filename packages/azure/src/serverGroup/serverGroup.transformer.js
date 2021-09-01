@@ -97,6 +97,7 @@ module(AZURE_SERVERGROUP_SERVERGROUP_TRANSFORMER, []).factory('azureServerGroupT
       },
       instanceTags: command.instanceTags,
       dataDisks: command.dataDisks,
+      userAssignedIdentities: command.userAssignedIdentities,
       viewState: command.viewState,
       osConfig: {
         customData: command.osConfig ? command.osConfig.customData : null,
