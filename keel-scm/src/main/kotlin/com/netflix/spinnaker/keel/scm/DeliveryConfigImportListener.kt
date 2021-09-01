@@ -1,6 +1,9 @@
 package com.netflix.spinnaker.keel.scm
 
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.keel.api.artifacts.Commit
+import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
+import com.netflix.spinnaker.keel.api.artifacts.Repo
 import com.netflix.spinnaker.keel.api.persistence.KeelReadOnlyRepository
 import com.netflix.spinnaker.keel.front50.Front50Cache
 import com.netflix.spinnaker.keel.front50.model.GitRepository
@@ -101,8 +104,18 @@ class DeliveryConfigImportListener(
             it
           }
         }
+        val gitMetadata = event.commitHash?.let {
+          GitMetadata(
+            commit = it,
+            author = event.authorName,
+            project = event.projectKey,
+            branch = event.targetBranch,
+            repo = Repo(name = event.repoKey),
+            commitInfo = Commit(sha = event.commitHash, link = scmUtils.getCommitLink(event), message = event.message)
+          )
+        }
         log.info("Creating/updating delivery config for application ${app.name} from branch ${event.targetBranch}")
-        deliveryConfigUpserter.upsertConfig(deliveryConfig)
+        deliveryConfigUpserter.upsertConfig(deliveryConfig, gitMetadata)
         event.emitCounterMetric(CODE_EVENT_COUNTER, DELIVERY_CONFIG_RETRIEVAL_SUCCESS, app.name)
       } catch (e: Exception) {
         log.error("Error retrieving delivery config: $e", e)

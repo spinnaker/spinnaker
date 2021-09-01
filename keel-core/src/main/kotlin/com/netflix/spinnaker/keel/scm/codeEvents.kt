@@ -28,7 +28,8 @@ abstract class CodeEvent(
   open val commitHash: String? = null,
   open val pullRequestId: String? = null,
   open val authorName: String? = null,
-  open val authorEmail: String? = null
+  open val authorEmail: String? = null,
+  open val message: String? = null
 ) {
   abstract val type: String
 

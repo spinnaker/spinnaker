@@ -39,7 +39,7 @@ class DeliveryConfigUpserter(
   /**
    * This function returns the upsertted [DeliveryConfig] and a boolean indicating if the config was just inserted for the first time
    */
-  fun upsertConfig(deliveryConfig: SubmittedDeliveryConfig): Pair<DeliveryConfig, Boolean>  {
+  fun upsertConfig(deliveryConfig: SubmittedDeliveryConfig, gitMetadata: GitMetadata? = null): Pair<DeliveryConfig, Boolean>  {
     val existing: DeliveryConfig? = try {
       repository.getDeliveryConfigForApplication(deliveryConfig.application)
     } catch (e: NoDeliveryConfigForApplication) {
@@ -56,7 +56,7 @@ class DeliveryConfigUpserter(
       publisher.publishEvent(
         DeliveryConfigChangedNotification(
           config = config,
-          gitMetadata = getGitMetadata(deliveryConfig),
+          gitMetadata = gitMetadata ?: getGitMetadata(deliveryConfig),
           new = existing == null
         )
       )

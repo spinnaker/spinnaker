@@ -127,7 +127,7 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
       } returns deliveryConfig
 
       every {
-        deliveryConfigUpserter.upsertConfig(deliveryConfig)
+        deliveryConfigUpserter.upsertConfig(deliveryConfig, any())
       } returns Pair(deliveryConfig.toDeliveryConfig(), false)
 
       every {
@@ -194,7 +194,7 @@ class DeliveryConfigImportListenerTests : JUnit5Minutests {
 
           test("the delivery config is created/updated") {
             verify {
-              deliveryConfigUpserter.upsertConfig(deliveryConfig)
+              deliveryConfigUpserter.upsertConfig(deliveryConfig, any())
             }
           }
 
