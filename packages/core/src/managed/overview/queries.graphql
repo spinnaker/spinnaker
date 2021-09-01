@@ -330,3 +330,7 @@ mutation UpdateGitIntegration($payload: MdUpdateGitIntegrationPayload!) {
     isEnabled
   }
 }
+
+mutation DismissNotification($payload: MdDismissNotificationPayload!) {
+  dismissNotification(payload: $payload)
+}

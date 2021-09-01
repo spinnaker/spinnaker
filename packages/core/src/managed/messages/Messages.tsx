@@ -3,14 +3,24 @@ import React from 'react';
 import { MessageBox, MessagesSection } from './MessageBox';
 import { RelativeTimestamp } from '../RelativeTimestamp';
 import { ManagementWarning } from '../config/ManagementWarning';
-import { useFetchNotificationsQuery } from '../graphql/graphql-sdk';
+import {
+  FetchNotificationsDocument,
+  FetchNotificationsQueryVariables,
+  useDismissNotificationMutation,
+  useFetchNotificationsQuery,
+} from '../graphql/graphql-sdk';
 import { useApplicationContextSafe } from '../../presentation';
+import { getIsDebugMode } from '../utils/debugMode';
 import { useLogEvent } from '../utils/logging';
 
 const AppNotifications = () => {
   const app = useApplicationContextSafe();
   const logEvent = useLogEvent('Error', 'AppNotifications');
-  const { data, error } = useFetchNotificationsQuery({ variables: { appName: app.name } });
+  const variables: FetchNotificationsQueryVariables = { appName: app.name };
+  const { data, error } = useFetchNotificationsQuery({ variables });
+  const [onDismiss] = useDismissNotificationMutation({
+    refetchQueries: [{ query: FetchNotificationsDocument, variables }],
+  });
 
   React.useEffect(() => {
     if (error) {
@@ -19,13 +29,22 @@ const AppNotifications = () => {
   }, [error, logEvent]);
 
   const notifications = data?.application?.notifications || [];
+  const isDebug = getIsDebugMode();
 
   if (!notifications.length) return null;
 
   return (
     <MessagesSection>
       {notifications.map((notification) => (
-        <MessageBox key={notification.id} type={notification.level}>
+        <MessageBox
+          key={notification.id}
+          type={notification.level}
+          onDismiss={
+            isDebug
+              ? () => onDismiss({ variables: { payload: { application: app.name, id: notification.id } } })
+              : undefined
+          }
+        >
           {notification.message}{' '}
           {notification.triggeredAt && (
             <>
