@@ -4,6 +4,7 @@ import com.netflix.graphql.dgs.DgsComponent
 import com.netflix.graphql.dgs.DgsData
 import com.netflix.graphql.dgs.DgsDataFetchingEnvironment
 import com.netflix.graphql.dgs.InputArgument
+import com.netflix.graphql.dgs.exceptions.DgsEntityNotFoundException
 import com.netflix.spinnaker.keel.auth.AuthorizationSupport
 import com.netflix.spinnaker.keel.front50.Front50Cache
 import com.netflix.spinnaker.keel.front50.Front50Service
@@ -13,7 +14,9 @@ import com.netflix.spinnaker.keel.graphql.DgsConstants
 import com.netflix.spinnaker.keel.graphql.types.MdApplication
 import com.netflix.spinnaker.keel.graphql.types.MdGitIntegration
 import com.netflix.spinnaker.keel.graphql.types.MdUpdateGitIntegrationPayload
+import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
 import com.netflix.spinnaker.keel.scm.ScmUtils
+import com.netflix.spinnaker.keel.upsert.DeliveryConfigUpserter
 import kotlinx.coroutines.runBlocking
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.RequestHeader
@@ -28,6 +31,8 @@ class GitIntegration(
   private val authorizationSupport: AuthorizationSupport,
   private val applicationFetcherSupport: ApplicationFetcherSupport,
   private val scmUtils: ScmUtils,
+  private val deliveryConfigUpserter: DeliveryConfigUpserter,
+  private val importer: DeliveryConfigImporter,
 ) {
   @DgsData(parentType = DgsConstants.MDAPPLICATION.TYPE_NAME, field = DgsConstants.MDAPPLICATION.GitIntegration)
   fun gitIntegration(dfe: DgsDataFetchingEnvironment): MdGitIntegration {
@@ -61,6 +66,30 @@ class GitIntegration(
       )
     }
     return updatedFront50App.toGitIntegration()
+  }
+
+  @DgsData(parentType = DgsConstants.MUTATION.TYPE_NAME, field = DgsConstants.MUTATION.ImportDeliveryConfig)
+  @PreAuthorize(
+    """@authorizationSupport.hasApplicationPermission('WRITE', 'APPLICATION', #application)
+    and @authorizationSupport.hasServiceAccountAccess('APPLICATION', #application)"""
+  )
+  fun importDeliveryConfig(
+    @InputArgument application: String,
+  ): Boolean {
+    val front50App = runBlocking {
+      front50Cache.applicationByName(application)
+    }
+    val defaultBranch = scmUtils.getDefaultBranch(front50App)
+    val deliveryConfig =
+      importer.import(
+        front50App.repoType ?: throw DgsEntityNotFoundException("Repo type is undefined for application"),
+        front50App.repoProjectKey ?: throw DgsEntityNotFoundException("Repo project is undefined for application"),
+        front50App.repoSlug ?: throw DgsEntityNotFoundException("Repo slug is undefined for application"),
+        front50App.managedDelivery?.manifestPath,
+        "refs/heads/$defaultBranch"
+      )
+    deliveryConfigUpserter.upsertConfig(deliveryConfig)
+    return true
   }
 
   private fun Application.toGitIntegration(): MdGitIntegration {

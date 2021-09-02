@@ -284,6 +284,7 @@ type Mutation @extends {
   dismissNotification(payload: MdDismissNotificationPayload!): Boolean
   updateGitIntegration(payload: MdUpdateGitIntegrationPayload): MdGitIntegration
   toggleResourceManagement(payload: MdToggleResourceManagementPayload): Boolean
+  importDeliveryConfig(application: String!): Boolean
 }
 
 input MdToggleResourceManagementPayload {
