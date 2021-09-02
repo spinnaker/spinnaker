@@ -175,6 +175,7 @@ export interface MdGitIntegration {
   repository?: Maybe<Scalars['String']>;
   branch?: Maybe<Scalars['String']>;
   isEnabled?: Maybe<Scalars['Boolean']>;
+  manifestPath?: Maybe<Scalars['String']>;
   link?: Maybe<Scalars['String']>;
 }
 
@@ -327,6 +328,11 @@ export interface MdRetryArtifactActionPayload {
   actionType: MdActionType;
 }
 
+export interface MdToggleResourceManagementPayload {
+  id: Scalars['ID'];
+  isPaused: Scalars['Boolean'];
+}
+
 export interface MdUnpinArtifactVersionPayload {
   application: Scalars['String'];
   environment: Scalars['String'];
@@ -335,7 +341,8 @@ export interface MdUnpinArtifactVersionPayload {
 
 export interface MdUpdateGitIntegrationPayload {
   application: Scalars['String'];
-  isEnabled: Scalars['Boolean'];
+  isEnabled?: Maybe<Scalars['Boolean']>;
+  manifestPath?: Maybe<Scalars['String']>;
 }
 
 export interface MdVersionVeto {
@@ -356,6 +363,8 @@ export interface Mutation {
   retryArtifactVersionAction?: Maybe<MdAction>;
   dismissNotification?: Maybe<Scalars['Boolean']>;
   updateGitIntegration?: Maybe<MdGitIntegration>;
+  toggleResourceManagement?: Maybe<Scalars['Boolean']>;
+  importDeliveryConfig?: Maybe<Scalars['Boolean']>;
 }
 
 export interface MutationUpdateConstraintStatusArgs {
@@ -363,7 +372,7 @@ export interface MutationUpdateConstraintStatusArgs {
 }
 
 export interface MutationToggleManagementArgs {
-  application: Scalars['String'];
+  application: Scalars['ID'];
   isPaused: Scalars['Boolean'];
   comment?: Maybe<Scalars['String']>;
 }
@@ -394,6 +403,14 @@ export interface MutationDismissNotificationArgs {
 
 export interface MutationUpdateGitIntegrationArgs {
   payload?: Maybe<MdUpdateGitIntegrationPayload>;
+}
+
+export interface MutationToggleResourceManagementArgs {
+  payload?: Maybe<MdToggleResourceManagementPayload>;
+}
+
+export interface MutationImportDeliveryConfigArgs {
+  application: Scalars['String'];
 }
 
 export interface Query {
@@ -700,7 +717,7 @@ export type UpdateConstraintMutationVariables = Exact<{
 export type UpdateConstraintMutation = { __typename?: 'Mutation' } & Pick<Mutation, 'updateConstraintStatus'>;
 
 export type ToggleManagementMutationVariables = Exact<{
-  application: Scalars['String'];
+  application: Scalars['ID'];
   isPaused: Scalars['Boolean'];
 }>;
 
@@ -751,6 +768,12 @@ export type DismissNotificationMutationVariables = Exact<{
 }>;
 
 export type DismissNotificationMutation = { __typename?: 'Mutation' } & Pick<Mutation, 'dismissNotification'>;
+
+export type ImportDeliveryConfigMutationVariables = Exact<{
+  application: Scalars['String'];
+}>;
+
+export type ImportDeliveryConfigMutation = { __typename?: 'Mutation' } & Pick<Mutation, 'importDeliveryConfig'>;
 
 export const ActionDetailsFragmentDoc = gql`
   fragment actionDetails on MdAction {
@@ -1442,7 +1465,7 @@ export type UpdateConstraintMutationOptions = Apollo.BaseMutationOptions<
   UpdateConstraintMutationVariables
 >;
 export const ToggleManagementDocument = gql`
-  mutation ToggleManagement($application: String!, $isPaused: Boolean!) {
+  mutation ToggleManagement($application: ID!, $isPaused: Boolean!) {
     toggleManagement(application: $application, isPaused: $isPaused)
   }
 `;
@@ -1768,4 +1791,46 @@ export type DismissNotificationMutationResult = Apollo.MutationResult<DismissNot
 export type DismissNotificationMutationOptions = Apollo.BaseMutationOptions<
   DismissNotificationMutation,
   DismissNotificationMutationVariables
+>;
+export const ImportDeliveryConfigDocument = gql`
+  mutation ImportDeliveryConfig($application: String!) {
+    importDeliveryConfig(application: $application)
+  }
+`;
+export type ImportDeliveryConfigMutationFn = Apollo.MutationFunction<
+  ImportDeliveryConfigMutation,
+  ImportDeliveryConfigMutationVariables
+>;
+
+/**
+ * __useImportDeliveryConfigMutation__
+ *
+ * To run a mutation, you first call `useImportDeliveryConfigMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useImportDeliveryConfigMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [importDeliveryConfigMutation, { data, loading, error }] = useImportDeliveryConfigMutation({
+ *   variables: {
+ *      application: // value for 'application'
+ *   },
+ * });
+ */
+export function useImportDeliveryConfigMutation(
+  baseOptions?: Apollo.MutationHookOptions<ImportDeliveryConfigMutation, ImportDeliveryConfigMutationVariables>,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<ImportDeliveryConfigMutation, ImportDeliveryConfigMutationVariables>(
+    ImportDeliveryConfigDocument,
+    options,
+  );
+}
+export type ImportDeliveryConfigMutationHookResult = ReturnType<typeof useImportDeliveryConfigMutation>;
+export type ImportDeliveryConfigMutationResult = Apollo.MutationResult<ImportDeliveryConfigMutation>;
+export type ImportDeliveryConfigMutationOptions = Apollo.BaseMutationOptions<
+  ImportDeliveryConfigMutation,
+  ImportDeliveryConfigMutationVariables
 >;

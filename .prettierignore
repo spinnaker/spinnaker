@@ -1,3 +1,4 @@
 package.json
 **/dist/**/*
 **/node_modules/**/*
+**/schema.graphql

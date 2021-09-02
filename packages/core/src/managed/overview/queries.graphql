@@ -298,7 +298,7 @@ mutation UpdateConstraint($payload: MdConstraintStatusPayload!) {
   updateConstraintStatus(payload: $payload)
 }
 
-mutation ToggleManagement($application: String!, $isPaused: Boolean!) {
+mutation ToggleManagement($application: ID!, $isPaused: Boolean!) {
   toggleManagement(application: $application, isPaused: $isPaused)
 }
 
@@ -333,4 +333,8 @@ mutation UpdateGitIntegration($payload: MdUpdateGitIntegrationPayload!) {
 
 mutation DismissNotification($payload: MdDismissNotificationPayload!) {
   dismissNotification(payload: $payload)
+}
+
+mutation ImportDeliveryConfig($application: String!) {
+  importDeliveryConfig(application: $application)
 }

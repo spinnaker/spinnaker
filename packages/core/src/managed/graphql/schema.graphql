@@ -22,6 +22,7 @@ type MdGitIntegration {
   repository: String
   branch: String
   isEnabled: Boolean
+  manifestPath: String
   link: String
 }
 
@@ -274,7 +275,7 @@ type MdAction {
 
 type Mutation @extends {
   updateConstraintStatus(payload: MdConstraintStatusPayload!): Boolean
-  toggleManagement(application: String!, isPaused: Boolean!, comment: String): Boolean
+  toggleManagement(application: ID!, isPaused: Boolean!, comment: String): Boolean
   pinArtifactVersion(payload: MdArtifactVersionActionPayload!): Boolean
   markArtifactVersionAsBad(payload: MdArtifactVersionActionPayload!): Boolean
   unpinArtifactVersion(payload: MdUnpinArtifactVersionPayload!): Boolean
@@ -282,11 +283,19 @@ type Mutation @extends {
   retryArtifactVersionAction(payload: MdRetryArtifactActionPayload): MdAction
   dismissNotification(payload: MdDismissNotificationPayload!): Boolean
   updateGitIntegration(payload: MdUpdateGitIntegrationPayload): MdGitIntegration
+  toggleResourceManagement(payload: MdToggleResourceManagementPayload): Boolean
+  importDeliveryConfig(application: String!): Boolean
+}
+
+input MdToggleResourceManagementPayload {
+  id: ID!
+  isPaused: Boolean!
 }
 
 input MdUpdateGitIntegrationPayload {
   application: String!
-  isEnabled: Boolean!
+  isEnabled: Boolean
+  manifestPath: String
 }
 
 input MdRetryArtifactActionPayload {
