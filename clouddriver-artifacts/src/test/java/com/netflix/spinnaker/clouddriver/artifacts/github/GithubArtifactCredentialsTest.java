@@ -69,6 +69,26 @@ class GithubArtifactCredentialsTest {
   }
 
   @Test
+  void downloadWithTokenFromFileWithReloadHeaders(
+      @TempDirectory.TempDir Path tempDir, @WiremockResolver.Wiremock WireMockServer server)
+      throws IOException {
+    Path authFile = tempDir.resolve("auth-file");
+    Files.write(authFile, "zzz".getBytes());
+
+    GitHubArtifactAccount account =
+        GitHubArtifactAccount.builder()
+            .name("my-github-account")
+            .tokenFile(authFile.toAbsolutePath().toString())
+            .build();
+
+    runTestCase(server, account, m -> m.withHeader("Authorization", equalTo("token zzz")));
+
+    Files.write(authFile, "aaa".getBytes());
+
+    runTestCase(server, account, m -> m.withHeader("Authorization", equalTo("token aaa")));
+  }
+
+  @Test
   void downloadWithBasicAuth(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
     GitHubArtifactAccount account =
         GitHubArtifactAccount.builder()

@@ -24,13 +24,12 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public abstract class BaseHttpArtifactCredentials<T extends ArtifactAccount> {
-  @JsonIgnore private final Headers headers;
-
   @JsonIgnore private final OkHttpClient okHttpClient;
+  @JsonIgnore private final T account;
 
   protected BaseHttpArtifactCredentials(OkHttpClient okHttpClient, T account) {
     this.okHttpClient = okHttpClient;
-    this.headers = getHeaders(account);
+    this.account = account;
   }
 
   private Optional<String> getAuthHeader(ArtifactAccount account) {
@@ -73,8 +72,7 @@ public abstract class BaseHttpArtifactCredentials<T extends ArtifactAccount> {
   }
 
   protected ResponseBody fetchUrl(HttpUrl url) throws IOException {
-    Request request = new Request.Builder().headers(headers).url(url).build();
-
+    Request request = new Request.Builder().headers(getHeaders(account)).url(url).build();
     Response downloadResponse = okHttpClient.newCall(request).execute();
     if (!downloadResponse.isSuccessful()) {
       downloadResponse.body().close();

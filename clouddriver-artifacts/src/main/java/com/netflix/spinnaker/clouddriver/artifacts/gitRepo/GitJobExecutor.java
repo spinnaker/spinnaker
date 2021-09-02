@@ -68,7 +68,8 @@ public class GitJobExecutor {
     if (!StringUtils.isEmpty(account.getUsername())
         && !StringUtils.isEmpty(account.getPassword())) {
       authType = AuthType.USER_PASS;
-    } else if (!StringUtils.isEmpty(account.getToken())) {
+    } else if (account.getTokenAsString().isPresent()
+        && !StringUtils.isEmpty(account.getTokenAsString())) {
       authType = AuthType.TOKEN;
     } else if (!StringUtils.isEmpty(account.getSshPrivateKeyFilePath())) {
       authType = AuthType.SSH;
@@ -346,7 +347,15 @@ public class GitJobExecutor {
         result.put("GIT_PASS", encodeURIComponent(account.getPassword()));
         break;
       case TOKEN:
-        result.put("GIT_TOKEN", encodeURIComponent(account.getToken()));
+        result.put(
+            "GIT_TOKEN",
+            encodeURIComponent(
+                account
+                    .getTokenAsString()
+                    .orElseThrow(
+                        () ->
+                            new IllegalArgumentException(
+                                "Token or TokenFile must be present if using token auth."))));
         break;
       case SSH:
         result.put("GIT_SSH_COMMAND", buildSshCommand());
