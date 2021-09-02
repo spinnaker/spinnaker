@@ -53,6 +53,8 @@ module(AZURE_LOADBALANCER_CONFIGURE_CREATELOADBALANCER_CONTROLLER, [
       submitting: false,
     };
 
+    $scope.validSkus = ['Standard_v2', 'Standard_Small'];
+
     function onApplicationRefresh() {
       // If the user has already closed the modal, do not navigate to the new details view
       if ($scope.$$destroyed) {

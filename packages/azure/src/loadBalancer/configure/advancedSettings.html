@@ -62,6 +62,19 @@
           <input class="form-control input-sm" type="number" min="0" ng-model="loadBalancer.probes[0].timeout" />
         </div>
       </div>
+      <div class="form-group" ng-if="isNew && !isALB">
+        <div class="col-md-4 sm-label-right">
+          <b>SKU</b>
+          <help-field key="azure.loadBalancer.sku"></help-field>
+        </div>
+        <div class="col-md-4">
+          <select
+            class="form-control input-sm"
+            ng-model="loadBalancer.sku"
+            ng-options="sku for sku in validSkus"
+          ></select>
+        </div>
+      </div>
       <div class="form-group" ng-if="isALB">
         <div class="col-md-4 sm-label-right">
           <b>Session persistence</b>

@@ -96,6 +96,7 @@ module(AZURE_LOADBALANCER_LOADBALANCER_TRANSFORMER, []).factory('azureLoadBalanc
             idleTimeout: 4,
           },
         ],
+        sku: 'Standard_v2',
       };
     }
 
