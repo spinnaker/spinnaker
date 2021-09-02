@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.9.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.8.0...@spinnaker/core@0.9.0) (2021-09-02)
+
+
+### Features
+
+* **md:** added "import now" to delivery config ([#9634](https://github.com/spinnaker/deck/issues/9634)) ([9777658](https://github.com/spinnaker/deck/commit/9777658f2d5b090228da8d339f5385f535d4c4b8))
+
+
+
+
+
 # [0.8.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.7.0...@spinnaker/core@0.8.0) (2021-08-30)
 
 

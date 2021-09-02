@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.2.0](https://github.com/spinnaker/deck/compare/@spinnaker/azure@0.1.0...@spinnaker/azure@0.2.0) (2021-09-02)
+
+
+### Features
+
+* **provider/azure:** Add image settings to server group ([#9632](https://github.com/spinnaker/deck/issues/9632)) ([940dd28](https://github.com/spinnaker/deck/commit/940dd28c9184f073c94fdeb01a24227b5bfe2e63))
+* **provider/azure:** Add userAssignedIdentities to azure UI ([#9627](https://github.com/spinnaker/deck/issues/9627)) ([1aaaf03](https://github.com/spinnaker/deck/commit/1aaaf03577396318e6a028178014b5d6931552d3))
+
+
+
+
+
 # [0.1.0](https://github.com/spinnaker/deck/compare/@spinnaker/azure@0.0.293...@spinnaker/azure@0.1.0) (2021-08-30)
 
 

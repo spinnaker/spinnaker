@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.145](https://github.com/spinnaker/deck/compare/@spinnaker/cloudfoundry@0.0.144...@spinnaker/cloudfoundry@0.0.145) (2021-09-02)
+
+**Note:** Version bump only for package @spinnaker/cloudfoundry
+
+
+
+
+
 ## [0.0.144](https://github.com/spinnaker/deck/compare/@spinnaker/cloudfoundry@0.0.143...@spinnaker/cloudfoundry@0.0.144) (2021-08-30)
 
 **Note:** Version bump only for package @spinnaker/cloudfoundry
