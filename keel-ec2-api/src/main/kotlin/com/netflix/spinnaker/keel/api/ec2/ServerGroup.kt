@@ -107,6 +107,12 @@ data class ServerGroup(
     val baseImageName: String?,
     val instanceType: String,
     val ebsOptimized: Boolean = DEFAULT_EBS_OPTIMIZED,
+
+    /**
+     * Clouddriver sometimes chooses a different IAM role than the one that keel suggests,
+     * and we don't want to treat this as a diff if it happens.
+     */
+    @get:ExcludedFromDiff
     val iamRole: String,
     val keyPair: String,
     val instanceMonitoring: Boolean = DEFAULT_INSTANCE_MONITORING,

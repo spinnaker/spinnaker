@@ -33,6 +33,12 @@ data class TitusServerGroup(
   val env: Map<String, String> = emptyMap(),
   val containerAttributes: Map<String, String> = emptyMap(),
   val resources: Resources = Resources(),
+
+  /**
+   * Clouddriver sometimes chooses a different IAM profile than the one that keel suggests,
+   * and we don't want to treat this as a diff if it happens.
+   */
+  @get:ExcludedFromDiff
   val iamProfile: String,
   val entryPoint: String = "",
   val capacityGroup: String,
