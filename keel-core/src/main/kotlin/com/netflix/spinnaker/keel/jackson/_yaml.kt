@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.exceptions.YamlParsingException
+import org.yaml.snakeyaml.LoaderOptions
 import org.yaml.snakeyaml.Yaml
 import java.io.InputStream
 
@@ -15,7 +16,9 @@ import java.io.InputStream
  */
 inline fun <reified T> YAMLMapper.readValueInliningAliases(yaml: String): T {
   try {
-    return convertValue(Yaml().load<Map<String, Any?>>(yaml))
+    val options = LoaderOptions()
+    options.maxAliasesForCollections = 1000
+    return convertValue(Yaml(options).load<Map<String, Any?>>(yaml))
   } catch (ex: Exception) {
     throw YamlParsingException(ex)
   }
