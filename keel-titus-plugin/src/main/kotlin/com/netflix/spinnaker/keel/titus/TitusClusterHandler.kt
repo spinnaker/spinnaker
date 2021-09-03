@@ -640,7 +640,6 @@ class TitusClusterHandler(
           "desired" to capacity.desired
         ),
         "targetHealthyDeployPercentage" to 100, // TODO: any reason to do otherwise?
-        "iamProfile" to iamProfile,
         // <titus things>
         "capacityGroup" to capacityGroup,
         "entryPoint" to entryPoint,
@@ -881,7 +880,6 @@ class TitusClusterHandler(
       env = env,
       containerAttributes = containerAttributes,
       constraints = constraints.run { Constraints(hard, soft) },
-      iamProfile = iamProfile.substringAfterLast("/"),
       capacityGroup = capacityGroup,
       migrationPolicy = migrationPolicy.run { MigrationPolicy(type) },
       dependencies = ClusterDependencies(
@@ -1000,7 +998,6 @@ class TitusClusterHandler(
       entryPoint = entryPoint,
       env = env,
       containerAttributes = containerAttributes,
-      iamProfile = iamProfile,
       migrationPolicy = migrationPolicy,
       resources = resources.toSpec(),
       tags = tags

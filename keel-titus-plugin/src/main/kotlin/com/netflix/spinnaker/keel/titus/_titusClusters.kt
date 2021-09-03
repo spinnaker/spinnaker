@@ -116,7 +116,6 @@ internal fun TitusClusterSpec.resolve(): Set<TitusServerGroup> =
       entryPoint = resolveEntryPoint(it.name),
       env = resolveEnv(it.name),
       containerAttributes = resolveContainerAttributes(it.name),
-      iamProfile = resolveIamProfile(it.name),
       migrationPolicy = resolveMigrationPolicy(it.name),
       resources = resolveResources(it.name),
       tags = defaults.tags + overrides[it.name]?.tags,
