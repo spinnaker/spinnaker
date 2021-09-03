@@ -1,4 +1,3 @@
-export * from './artifactIconList';
 export * from './ArtifactIconService';
 export * from './ArtifactReferenceService';
 export * from './artifactTab';
