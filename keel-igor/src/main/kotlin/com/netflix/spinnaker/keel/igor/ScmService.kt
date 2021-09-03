@@ -3,8 +3,10 @@ package com.netflix.spinnaker.keel.igor
 import com.netflix.spinnaker.keel.api.ScmInfo
 import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.igor.model.Branch
+import com.netflix.spinnaker.keel.igor.model.BuildResult
 import com.netflix.spinnaker.keel.igor.model.Comment
 import kotlinx.coroutines.runBlocking
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -66,6 +68,13 @@ interface ScmService: ScmInfo {
     @Path("pullRequestId") pullRequestId: String,
     @Body comment: Comment
   )
+
+  @POST("/scm/build-results/{scmType}/{commitHash}")
+  suspend fun postBuildResultToCommit(
+    @Path("scmType") scmType: String,
+    @Path("commitHash") commitHash: String,
+    @Body buildResult: BuildResult
+  ): Response<Unit>
 }
 
 fun Application.getDefaultBranch(scmService: ScmService): String = runBlocking {

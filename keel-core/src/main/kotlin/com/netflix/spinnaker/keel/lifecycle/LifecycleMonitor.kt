@@ -45,7 +45,7 @@ abstract class LifecycleMonitor(
    * monitoring the task.
    */
   fun endMonitoringOfTask(task: MonitoredTask) {
-    log.debug("${this.javaClass.simpleName} has completed monitoring for $task")
+    log.debug("Completed monitoring for $task")
     monitorRepository.delete(task)
   }
 

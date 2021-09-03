@@ -72,7 +72,7 @@ class ArtifactListener(
 
   @EventListener(ArtifactSyncEvent::class)
   fun triggerArtifactSync(event: ArtifactSyncEvent) {
-    if (event.controllerTriggered) {
+     if (event.controllerTriggered) {
       log.info("Fetching latest ${artifactRefreshConfig.limit} version(s) of all registered artifacts...")
     }
     syncLastLimitArtifactVersions()

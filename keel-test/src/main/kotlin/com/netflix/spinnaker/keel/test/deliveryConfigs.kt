@@ -61,3 +61,11 @@ fun DeliveryConfig.withUpdatedResource(updatedResource: Resource<*>): DeliveryCo
       }
     }
   )
+
+fun previewEnvironment(resources: Set<Resource<*>> = setOf(resource())) =
+  Environment("test-preview", isPreview = true, resources = resources)
+    .addMetadata(mapOf(
+      "repoKey" to "stash/proj/repo",
+      "branch" to "feature/abc",
+      "deliveryConfigName" to "myconfig"
+    ))

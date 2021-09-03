@@ -60,6 +60,7 @@ internal class DockerArtifactSupplierTests : JUnit5Minutests {
       metadata = mapOf(
         "buildNumber" to "1",
         "commitId" to "a15p0",
+        "prCommitId" to "b26q1",
         "branch" to "master",
         "createdAt" to "1598707355157"
       )
@@ -85,6 +86,7 @@ internal class DockerArtifactSupplierTests : JUnit5Minutests {
       tag = latestArtifact.version,
       digest = "sha123",
       commitId = "a15p0",
+      prCommitId = "b26q1",
       buildNumber = "1",
       branch = "master",
       date = "1598707355157"
@@ -188,14 +190,14 @@ internal class DockerArtifactSupplierTests : JUnit5Minutests {
     context("DockerArtifactSupplier with metadata") {
       before {
         every {
-          artifactMetadataService.getArtifactMetadata("1", "a15p0")
+          artifactMetadataService.getArtifactMetadata("1", any())
         } returns artifactMetadata
         every {
           clouddriverService.findDockerImages(account = "*", repository = dockerArtifact.name, tag = null, includeDetails = true)
         } returns listOf(dockerImageWithMetaData)
       }
 
-       test("returns artifact metadata based on ci provider") {
+       test("returns artifact metadata based on CI provider") {
         val results = runBlocking {
           dockerArtifactSupplier.getArtifactMetadata(latestArtifactWithMetadata)
         }

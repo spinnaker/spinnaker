@@ -25,6 +25,8 @@ import com.netflix.spinnaker.keel.network.NetworkEndpoint
 import com.netflix.spinnaker.keel.network.NetworkEndpointProvider
 import com.netflix.spinnaker.keel.network.NetworkEndpointType.DNS
 import com.netflix.spinnaker.keel.notifications.scm.ScmNotifier
+import com.netflix.spinnaker.keel.notifications.slack.DeploymentStatus.FAILED
+import com.netflix.spinnaker.keel.notifications.slack.DeploymentStatus.SUCCEEDED
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.notifications.slack.SlackService
 import com.netflix.spinnaker.keel.notifications.slack.handlers.ArtifactDeploymentNotificationHandler
@@ -366,6 +368,8 @@ class NotificationEventListenerTests : JUnit5Minutests {
         every { repository.getResource(resourceTest.id) } returns resourceTest
 
         every { scmNotifier.commentOnPullRequest(any(), any(), any()) } just runs
+
+        every { scmNotifier.postDeploymentStatusToCommit(any(), any(), any(), any()) } just runs
       }
 
       test("send successful deployment notifications using the right handler to the right env") {
@@ -410,35 +414,52 @@ class NotificationEventListenerTests : JUnit5Minutests {
         }
 
         test("posts a comment to the associated PR on artifact deployed") {
+          val configUnderTest = singleArtifactDeliveryConfig.withPreviewEnvironment()
           with(artifactDeployedNotification.withPreviewEnvironment()) {
             subject.onArtifactVersionDeployed(this)
             verify(exactly = 1) {
-              scmNotifier.commentOnPullRequest(config, targetEnvironment, any())
+              scmNotifier.commentOnPullRequest(configUnderTest, targetEnvironment, any())
             }
           }
         }
 
-        test("deployed PR comment includes endpoint information for applicable resources") {
-          val updatedConfig = singleArtifactDeliveryConfig.withPreviewEnvironment()
-          val previewEnv = updatedConfig.environments.first { it.name == "test" }
-          val previewResource = previewEnv.resources.first()
-
+        test("PR comment includes endpoint information for applicable resources") {
+          val configUnderTest = singleArtifactDeliveryConfig.withPreviewEnvironment()
           with(artifactDeployedNotification.withPreviewEnvironment()) {
             subject.onArtifactVersionDeployed(this)
             val comment = slot<String>()
             verify(exactly = 1) {
-              scmNotifier.commentOnPullRequest(config, targetEnvironment, capture(comment))
+              scmNotifier.commentOnPullRequest(configUnderTest, targetEnvironment, capture(comment))
             }
             expectThat(comment.captured).contains("fake.acme.net")
           }
         }
 
+        test("posts successful deployment status to SCM on artifact deployed") {
+          val configUnderTest = singleArtifactDeliveryConfig.withPreviewEnvironment()
+          with(artifactDeployedNotification.withPreviewEnvironment()) {
+            subject.onArtifactVersionDeployed(this)
+            verify(exactly = 1) {
+              scmNotifier.postDeploymentStatusToCommit(configUnderTest, targetEnvironment, any(), SUCCEEDED)
+            }
+          }
+        }
+
         test("posts a comment to the associated PR on artifact deployment failed") {
-          val updatedConfig = singleArtifactDeliveryConfig.withPreviewEnvironment()
-          val previewEnv = updatedConfig.environments.first { it.name == "test" }
+          val configUnderTest = singleArtifactDeliveryConfig.withPreviewEnvironment()
+          val previewEnv = configUnderTest.environments.first { it.name == "test" }
           subject.onArtifactVersionDeployFailed(artifactDeploymentFailedNotification)
           verify(exactly = 1) {
-            scmNotifier.commentOnPullRequest(updatedConfig, previewEnv, any())
+            scmNotifier.commentOnPullRequest(configUnderTest, previewEnv, any())
+          }
+        }
+
+        test("posts failed deployment status to SCM on artifact deployment failure") {
+          val configUnderTest = singleArtifactDeliveryConfig.withPreviewEnvironment()
+          val previewEnv = configUnderTest.environments.first { it.name == "test" }
+          subject.onArtifactVersionDeployFailed(artifactDeploymentFailedNotification)
+          verify(exactly = 1) {
+            scmNotifier.postDeploymentStatusToCommit(configUnderTest, previewEnv, any(), FAILED)
           }
         }
       }

@@ -60,7 +60,10 @@ data class Environment(
   val repoSlug: String?
     get() = repoParts?.get(2)
 
-  override fun toString() = "Environment $application/$name"
+  val hasValidPullRequestId: Boolean
+    get() = pullRequestId != null && pullRequestId != "-1"
+
+  override fun toString() = "${if (isPreview) "Preview " else ""}Environment $application/$name"
 }
 
 val Set<Constraint>.anyStateful: Boolean

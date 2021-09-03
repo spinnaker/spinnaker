@@ -65,7 +65,7 @@ class LifecycleMonitorScheduler(
    */
   @EventListener(StartMonitoringEvent::class)
   fun onStartMonitoringEvent(event: StartMonitoringEvent) {
-    log.debug("${this.javaClass.simpleName} saving monitor for event $event")
+    log.debug("Saving monitor for event $event")
     monitorRepository.save(event)
   }
 
@@ -118,7 +118,5 @@ class LifecycleMonitorScheduler(
       .withTag("type", type)
       .let { id ->
         spectator.timer(id).record(Duration.between(startTime, clock.instant()))
-    }
-
-
+      }
 }

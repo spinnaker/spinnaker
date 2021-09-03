@@ -99,7 +99,10 @@ data class PublishedArtifact(
     get() = gitMetadata?.branch ?: metadata["branch"] as? String
 
   val commitHash: String?
-    get() = gitMetadata?.commit ?: metadata["commitId"] as? String
+    get() = gitMetadata?.commitInfo?.sha ?: gitMetadata?.commit ?: metadata["commitId"] as? String
+
+  val prCommitHash: String?
+    get() = metadata["prCommitId"] as? String
 
   val buildNumber: String?
     get() = buildMetadata?.number ?: metadata["buildNumber"] as? String

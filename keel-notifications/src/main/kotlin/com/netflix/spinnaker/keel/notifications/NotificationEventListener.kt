@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.notifications
 
 import com.netflix.spinnaker.config.BaseUrlConfig
 import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.api.NotificationDisplay.NORMAL
 import com.netflix.spinnaker.keel.api.NotificationFrequency
@@ -49,6 +50,7 @@ import com.netflix.spinnaker.keel.notifications.NotificationType.PLUGIN_NOTIFICA
 import com.netflix.spinnaker.keel.notifications.NotificationType.TEST_FAILED
 import com.netflix.spinnaker.keel.notifications.NotificationType.TEST_PASSED
 import com.netflix.spinnaker.keel.notifications.scm.ScmNotifier
+import com.netflix.spinnaker.keel.notifications.slack.DeploymentStatus
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.notifications.slack.DeploymentStatus.FAILED
 import com.netflix.spinnaker.keel.notifications.slack.DeploymentStatus.SUCCEEDED
@@ -240,11 +242,14 @@ class NotificationEventListener(
   @EventListener(ArtifactDeployedNotification::class)
   fun onArtifactVersionDeployed(notification: ArtifactDeployedNotification) {
     with(notification) {
-      val artifact = repository.getArtifactVersion(deliveryArtifact, artifactVersion, null)
-      if (artifact == null) {
-        log.debug("artifact version is null for application ${config.application}. Can't send deployed artifact notification.")
-        return
-      }
+      val (config, artifact) = getConfigAndArtifact(
+        application = config.application,
+        artifactReference = deliveryArtifact.reference,
+        version = artifactVersion
+      ) ?: return
+        .also {
+          log.debug("artifact version is null for application ${config.application}. Can't send deployed artifact notification.")
+        }
 
       val priorVersion = repository.getArtifactVersionByPromotionStatus(config, targetEnvironment.name, deliveryArtifact, PromotionStatus.PREVIOUS)
 
@@ -262,7 +267,7 @@ class NotificationEventListener(
       )
 
       if (targetEnvironment.isPreview) {
-        commentOnPullRequest()
+        reportDeploymentResultToScm(config, targetEnvironment, artifact, SUCCEEDED)
       }
     }
   }
@@ -327,10 +332,7 @@ class NotificationEventListener(
     )
 
     if (environment.isPreview) {
-      val environmentsLink = "${baseUrlConfig.baseUrl}/#/applications/${config.application}/environments/overview"
-      scmNotifier.commentOnPullRequest(config, environment,
-        "❌ &nbsp;[Preview environment deployment failed]($environmentsLink)"
-      )
+      reportDeploymentResultToScm(config, environment, latestArtifact, FAILED)
     }
   }
 
@@ -591,27 +593,40 @@ class NotificationEventListener(
   }
 
   /**
-   * Posts a comment on the pull request associated with the preview environment that is the target of the
-   * artifact deployment represented by [ArtifactDeployedNotification]. The comment includes the DNS endpoint
-   * information for the applicable resources.
+   * Reports the result of a deployment to the SCM system as follows:
+   *  - Posts a comment on the pull request associated with the [environment] and [publishedArtifact].  The comment
+   *    includes the DNS endpoint information for the applicable resources.
+   *  - Posts specified deployment [status] to the commit associated with the [publishedArtifact]. This can be used
+   *    to gate merging of PRs, for example.
    */
-  private fun ArtifactDeployedNotification.commentOnPullRequest() {
+  private fun reportDeploymentResultToScm(
+    config: DeliveryConfig,
+    environment: Environment,
+    publishedArtifact: PublishedArtifact,
+    status: DeploymentStatus
+  ) {
     val environmentsLink = "${baseUrlConfig.baseUrl}/#/applications/${config.application}/environments/overview"
-    val markdownComment = config.resourcesUsing(deliveryArtifact.reference, targetEnvironment.name)
-      .joinToString("\n\n") { resource ->
-        val endpoints = runBlocking {
-          networkEndpointProvider.getNetworkEndpoints(resource)
-        }.groupBy { it.region }
 
-        "✅ &nbsp;[${resource.kind.friendlyName} ${resource.name} deployed to preview environment]($environmentsLink)" +
-          "\n\nEndpoints:\n" + endpoints.map { (region, endpoints) ->
-            "- $region:\n" +
+    val markdownComment = if (status == SUCCEEDED) {
+      config.resourcesUsing(publishedArtifact.reference, environment.name)
+        .joinToString("\n\n") { resource ->
+          val endpoints = runBlocking {
+            networkEndpointProvider.getNetworkEndpoints(resource)
+          }.groupBy { it.region }
+
+          "✅ &nbsp;[${resource.kind.friendlyName} ${resource.name} deployed to preview environment]($environmentsLink)" +
+            "\n\nEndpoints:\n" + endpoints.map { (region, endpoints) ->
               endpoints.joinToString("\n") { endpoint ->
-                // TODO: for load balancers infer the protocol from the listeners
-                "  - [${endpoint.address}](https://${endpoint.address})"
+                // TODO: determine the proper protocol and port for these links
+                "  - [$region] [https://${endpoint.address}](${endpoint.address})"
               }
           }.joinToString("\n")
-      }
-    scmNotifier.commentOnPullRequest(config, targetEnvironment, markdownComment)
+        }
+    } else {
+      "❌ &nbsp;[Preview environment deployment failed]($environmentsLink)"
+    }
+
+    scmNotifier.commentOnPullRequest(config, environment, markdownComment)
+    scmNotifier.postDeploymentStatusToCommit(config, environment, publishedArtifact, status)
   }
 }

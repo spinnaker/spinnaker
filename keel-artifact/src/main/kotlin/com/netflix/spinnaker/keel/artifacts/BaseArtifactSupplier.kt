@@ -13,28 +13,28 @@ abstract class BaseArtifactSupplier<A : DeliveryArtifact, V : SortingStrategy>(
 ) : ArtifactSupplier<A, V> {
   override suspend fun getArtifactMetadata(artifact: PublishedArtifact): ArtifactMetadata? {
 
-    val buildNumber = artifact.metadata["buildNumber"]?.toString()
-    // We first try to use the prCommitId (for merge commits) and fall back to the commitId
-    val commitId = (artifact.metadata["prCommitId"] ?: artifact.metadata["commitId"])?.toString()
+    val buildNumber = artifact.buildNumber
+    // We first try to use the PR commit hash (for merge commits) and fall back to the commit hash
+    val commitId = artifact.prCommitHash ?: artifact.commitHash
     if (commitId == null || buildNumber == null) {
-      log.debug("either commit id: $commitId or build number $buildNumber is missing, returning null")
+      log.debug("Either commit id: $commitId or build number $buildNumber is missing, returning null")
       return null
     }
-    if (artifact.metadata["prCommitId"] != artifact.metadata["commitId"]) {
-      log.debug("using prCommitId to fetch the git metadata of artifact $artifact")
+    if (artifact.prCommitHash != null) {
+      log.debug("Using PR commit hash to fetch git metadata of artifact $artifact")
     }
 
     log.debug(
-      "calling to artifact metadata service to get information for artifact: ${artifact.reference}, version: ${artifact.version}, type: ${artifact.type} " +
+      "Fetching metadata for artifact: ${artifact.reference}, version: ${artifact.version}, type: ${artifact.type} " +
         "with build number: $buildNumber and commit id: $commitId"
     )
     return try {
       val artifactMetadata = artifactMetadataService.getArtifactMetadata(buildNumber, commitId)
-      log.debug("received artifact metadata $artifactMetadata for build $buildNumber and commit $commitId")
+      log.debug("Received artifact metadata $artifactMetadata for build $buildNumber and commit $commitId")
       artifactMetadata
 
     } catch (ex: Exception) {
-      log.error("failed to get artifact metadata for build $buildNumber and commit $commitId", ex)
+      log.error("Failed to fetch artifact metadata for build $buildNumber and commit $commitId", ex)
       null
     }
   }
