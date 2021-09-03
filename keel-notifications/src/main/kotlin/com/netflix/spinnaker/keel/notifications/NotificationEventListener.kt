@@ -618,7 +618,7 @@ class NotificationEventListener(
             "\n\nEndpoints:\n" + endpoints.map { (region, endpoints) ->
               endpoints.joinToString("\n") { endpoint ->
                 // TODO: determine the proper protocol and port for these links
-                "  - [$region] [https://${endpoint.address}](${endpoint.address})"
+                "  - [$region] [${endpoint.address}](https://${endpoint.address})"
               }
           }.joinToString("\n")
         }
