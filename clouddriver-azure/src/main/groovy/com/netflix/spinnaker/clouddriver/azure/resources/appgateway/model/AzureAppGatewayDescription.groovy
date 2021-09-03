@@ -80,6 +80,8 @@ class AzureAppGatewayDescription extends AzureResourceOpsDescription {
     description.detail = appGateway.tags?.detail ?: parsedName.detail
     description.appName = appGateway.tags?.appName ?: parsedName.app
     description.loadBalancerName = appGateway.name()
+    description.sku = appGateway.sku().name().toString()
+    description.tier = appGateway.sku().tier().toString()
 
     // Get current backend address pool id from the application gateway requested routing rules
     def bapActiveRuleId = appGateway.requestRoutingRules()?.first()?.backendAddressPool()?.id()

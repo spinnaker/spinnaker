@@ -46,6 +46,19 @@ class AzureAppGatewayResourceTemplateSpec extends Specification {
     expect: template.replaceAll('"createdTime" : "\\d+"', '"createdTime" : "1234567890"').replace('\r', '') == expectedMinimalTemplate
   }
 
+  def 'generate an Azure Application Gateway resource template with v2 sku'() {
+    description = new AzureAppGatewayDescription()
+    description.name = 'testappgw-lb1-d1'
+    description.vnet = 'vnet-testappgw-westus'
+    description.subnet = 'subnet-testappgw-lb1-d1'
+    description.sku = 'Standard_v2'
+    description.tier = 'Standard_v2'
+
+    String template = AzureAppGatewayResourceTemplate.getTemplate(description)
+
+    expect: template.replaceAll('"createdTime" : "\\d+"', '"createdTime" : "1234567890"').replace('\r', '') == expectedMinimalTemplateV2sku
+  }
+
   def 'should fail to generate an Azure Application Gateway resource template using a description object with no name'() {
     when:
     description = new AzureAppGatewayDescription()
@@ -138,7 +151,7 @@ class AzureAppGatewayResourceTemplateSpec extends Specification {
     }
   },
   "variables" : {
-    "apiVersion" : "2015-06-15",
+    "apiVersion" : "2018-04-01",
     "appGwName" : "testappgw-lb1-d1",
     "publicIPAddressName" : "pip-testappgw-lb1-d1",
     "dnsNameForLBIP" : "[concat('dns-', uniqueString(concat(resourceGroup().id, subscription().id, 'testappgwlb1d1')))]",
@@ -315,7 +328,7 @@ class AzureAppGatewayResourceTemplateSpec extends Specification {
     }
   },
   "variables" : {
-    "apiVersion" : "2015-06-15",
+    "apiVersion" : "2018-04-01",
     "appGwName" : "testappgw-lb1-d1",
     "publicIPAddressName" : "pip-testappgw-lb1-d1",
     "dnsNameForLBIP" : "[concat('dns-', uniqueString(concat(resourceGroup().id, subscription().id, 'testappgwlb1d1')))]",
@@ -353,6 +366,86 @@ class AzureAppGatewayResourceTemplateSpec extends Specification {
       "sku" : {
         "name" : "Standard_Small",
         "tier" : "Standard",
+        "capacity" : "2"
+      },
+      "gatewayIPConfigurations" : [ {
+        "name" : "appGwIpConfig",
+        "properties" : {
+          "subnet" : {
+            "id" : "[variables('appGwSubnetID')]"
+          }
+        }
+      } ],
+      "frontendIPConfigurations" : [ {
+        "name" : "appGwFrontendIP",
+        "properties" : {
+          "publicIPAddress" : {
+            "id" : "[variables('publicIPAddressID')]"
+          }
+        }
+      } ],
+      "frontendPorts" : [ ],
+      "backendAddressPools" : [ {
+        "name" : "default_BAP0"
+      } ],
+      "backendHttpSettingsCollection" : [ ],
+      "httpListeners" : [ ],
+      "requestRoutingRules" : [ ],
+      "probes" : [ ]
+    }
+  } ]
+}'''
+
+  private static String expectedMinimalTemplateV2sku = '''{
+  "$schema" : "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion" : "1.0.0.0",
+  "parameters" : {
+    "location" : {
+      "type" : "string",
+      "metadata" : {
+        "description" : "Location to deploy"
+      }
+    }
+  },
+  "variables" : {
+    "apiVersion" : "2018-04-01",
+    "appGwName" : "testappgw-lb1-d1",
+    "publicIPAddressName" : "pip-testappgw-lb1-d1",
+    "dnsNameForLBIP" : "[concat('dns-', uniqueString(concat(resourceGroup().id, subscription().id, 'testappgwlb1d1')))]",
+    "appGwSubnetID" : null,
+    "publicIPAddressType" : "Dynamic",
+    "publicIPAddressID" : "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]",
+    "appGwID" : "[resourceId('Microsoft.Network/applicationGateways',variables('appGwName'))]",
+    "appGwBeAddrPoolName" : "default_BAP0"
+  },
+  "resources" : [ {
+    "apiVersion" : "[variables('apiVersion')]",
+    "name" : "[variables('publicIPAddressName')]",
+    "type" : "Microsoft.Network/publicIPAddresses",
+    "location" : "[parameters('location')]",
+    "tags" : null,
+    "properties" : {
+      "publicIPAllocationMethod" : "[variables('publicIPAddressType')]"
+    },
+    "sku" : {
+      "name" : "Basic"
+    }
+  }, {
+    "apiVersion" : "[variables('apiVersion')]",
+    "name" : "[variables('appGwName')]",
+    "type" : "Microsoft.Network/applicationGateways",
+    "location" : "[parameters('location')]",
+    "tags" : {
+      "createdTime" : "1234567890",
+      "vnet" : "vnet-testappgw-westus",
+      "subnet" : "subnet-testappgw-lb1-d1",
+      "vnetResourceGroup" : null
+    },
+    "dependsOn" : [ "[concat('Microsoft.Network/publicIPAddresses/',variables('publicIPAddressName'))]" ],
+    "properties" : {
+      "sku" : {
+        "name" : "Standard_v2",
+        "tier" : "Standard_v2",
         "capacity" : "2"
       },
       "gatewayIPConfigurations" : [ {

@@ -29,7 +29,6 @@ class UpsertAzureAppGatewayAtomicOperationConverterSpec extends  Specification{
 
   @Shared
   ObjectMapper mapper = new ObjectMapper()
-
   @Shared UpsertAzureLoadBalancerAtomicOperationConverter converter
 
   def setupSpec() {
@@ -44,48 +43,30 @@ class UpsertAzureAppGatewayAtomicOperationConverterSpec extends  Specification{
     setup:
     mapper.configure(SerializationFeature.INDENT_OUTPUT, true)
     mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
-    def input = [
-      name: "testappgw-lb1-d1",
-      loadBalancerName: "testappgw-lb1-d1",
-      loadBalancerType: "Azure Application Gateway",
-      region: "westus",
-      accountName: "myazure-account",
-      cloudProvider: "azure",
-      appName: "testappgw",
-      stack: "lb1",
-      detail: "d1",
-      probes: [
-        [
-          probeName: "healthcheck1",
-          probeProtocol: "HTTP",
-          probePath: "/healthcheck",
-          probeInterval: 120,
-          timeout: 30,
-          unhealthyThreshold: 8
-        ]
-      ],
-      loadBalancingRules: [
-        [
-          ruleName: "lbRule1",
-          protocol: "HTTP",
-          externalPort: 80,
-          backendPort: 8080,
-        ],
-        [
-          ruleName: "lbRule2",
-          protocol: "HTTP",
-          externalPort: 8080,
-          backendPort: 8080,
-        ]
-      ]
-    ]
 
     when:
-    def description = converter.convertDescription(input)
+    def description = converter.convertDescription(basicGatewayInput)
 
     then:
     description instanceof AzureAppGatewayDescription
     mapper.writeValueAsString(description).replace('\r', '') == expectedFullDescription
+  }
+
+  void "Create an AzureAppGatewayDescription from a given input with v2 sku"() {
+    setup:
+    mapper.configure(SerializationFeature.INDENT_OUTPUT, true)
+    mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
+
+    def input = basicGatewayInput
+    input['sku'] = 'Standard_v2'
+    input['tier'] = 'Standard_v2'
+
+    when:
+    def description = converter.convertDescription(basicGatewayInput)
+
+    then:
+    description instanceof AzureAppGatewayDescription
+    mapper.writeValueAsString(description).replace('\r', '') == expectedFullDescriptionV2sku
   }
 
   private static String expectedFullDescription = '''{
@@ -140,4 +121,93 @@ class UpsertAzureAppGatewayAtomicOperationConverterSpec extends  Specification{
   "tier" : "Standard",
   "capacity" : 2
 }'''
+
+  private static String expectedFullDescriptionV2sku = '''{
+  "name" : "testappgw-lb1-d1",
+  "cloudProvider" : "azure",
+  "accountName" : "myazure-account",
+  "appName" : "testappgw",
+  "stack" : "lb1",
+  "detail" : "d1",
+  "credentials" : null,
+  "region" : "westus",
+  "user" : null,
+  "createdTime" : null,
+  "lastReadTime" : 0,
+  "tags" : { },
+  "loadBalancerName" : "testappgw-lb1-d1",
+  "vnet" : null,
+  "subnet" : null,
+  "subnetResourceId" : null,
+  "vnetResourceGroup" : null,
+  "hasNewSubnet" : null,
+  "useDefaultVnet" : false,
+  "securityGroup" : null,
+  "dnsName" : null,
+  "cluster" : null,
+  "serverGroups" : null,
+  "trafficEnabledSG" : null,
+  "publicIpName" : null,
+  "probes" : [ {
+    "probeName" : "healthcheck1",
+    "probeProtocol" : "HTTP",
+    "probePort" : "localhost",
+    "probePath" : "/healthcheck",
+    "probeInterval" : 120,
+    "timeout" : 30,
+    "unhealthyThreshold" : 8
+  } ],
+  "loadBalancingRules" : [ {
+    "ruleName" : "lbRule1",
+    "protocol" : "HTTP",
+    "externalPort" : 80,
+    "backendPort" : 8080,
+    "sslCertificate" : null
+  }, {
+    "ruleName" : "lbRule2",
+    "protocol" : "HTTP",
+    "externalPort" : 8080,
+    "backendPort" : 8080,
+    "sslCertificate" : null
+  } ],
+  "sku" : "Standard_v2",
+  "tier" : "Standard_v2",
+  "capacity" : 2
+}'''
+
+  private static final basicGatewayInput = [
+    name              : "testappgw-lb1-d1",
+    loadBalancerName  : "testappgw-lb1-d1",
+    loadBalancerType  : "Azure Application Gateway",
+    region            : "westus",
+    accountName       : "myazure-account",
+    cloudProvider     : "azure",
+    appName           : "testappgw",
+    stack             : "lb1",
+    detail            : "d1",
+    probes            : [
+      [
+        probeName         : "healthcheck1",
+        probeProtocol     : "HTTP",
+        probePath         : "/healthcheck",
+        probeInterval     : 120,
+        timeout           : 30,
+        unhealthyThreshold: 8
+      ]
+    ],
+    loadBalancingRules: [
+      [
+        ruleName    : "lbRule1",
+        protocol    : "HTTP",
+        externalPort: 80,
+        backendPort : 8080,
+      ],
+      [
+        ruleName    : "lbRule2",
+        protocol    : "HTTP",
+        externalPort: 8080,
+        backendPort : 8080,
+      ]
+    ]
+  ]
 }

@@ -98,6 +98,8 @@ class UpsertAzureAppGatewayAtomicOperation implements AtomicOperation<Map> {
         description.serverGroups = appGatewayDescription.serverGroups
         description.trafficEnabledSG = appGatewayDescription.trafficEnabledSG
         description.vnetResourceGroup = appGatewayDescription.vnetResourceGroup
+        description.sku = appGatewayDescription.sku
+        description.tier = appGatewayDescription.tier
 
         Deployment deployment = description.credentials.resourceManagerClient.createResourceFromTemplate(
           AzureAppGatewayResourceTemplate.getTemplate(description),
@@ -109,6 +111,10 @@ class UpsertAzureAppGatewayAtomicOperation implements AtomicOperation<Map> {
         errList = AzureDeploymentOperation.checkDeploymentOperationStatus(task, BASE_PHASE, description.credentials, resourceGroupName, deployment.name())
       } else {
         // We are attempting to create a new application gateway
+        if (description.sku == "Standard_v2") {
+          description.tier = "Standard_v2"
+        }
+
         if (!description.useDefaultVnet) {
           task.updateStatus(BASE_PHASE, "Create ApplicationGateway using virtual network $description.vnet and subnet $description.subnet for server group $description.name")
 

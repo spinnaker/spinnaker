@@ -18,9 +18,9 @@ package com.netflix.spinnaker.clouddriver.azure.templates
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
-import groovy.util.logging.Slf4j
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.appgateway.model.AzureAppGatewayDescription
+import groovy.util.logging.Slf4j
 
 @Slf4j
 class AzureAppGatewayResourceTemplate {
@@ -63,6 +63,11 @@ class AzureAppGatewayResourceTemplate {
 
       if(description.dnsName){
         def publicIp = new PublicIpResource(properties: new PublicIPPropertiesWithDns())
+        if (description.sku == "Standard_v2") {
+          // publicIp sku must be Standard for Standard_v2 app gateways
+          publicIp.sku = new Sku("Standard")
+          publicIp.properties.publicIPAllocationMethod = 'Static'
+        }
         resources.add(publicIp)
         appGateway.addDependency(publicIp)
       } else {
@@ -89,7 +94,7 @@ class AzureAppGatewayResourceTemplate {
   static final String defaultAppGatewayBeAddrPoolName = "default_BAP0"
 
   static class AppGatewayTemplateVariables {
-    final String apiVersion = "2015-06-15"
+    final String apiVersion = "2018-04-01"
     String appGwName
     String publicIPAddressName
     String dnsNameForLBIP
