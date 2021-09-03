@@ -8,6 +8,7 @@ import {
 } from '../graphql/graphql-sdk';
 import { useApplicationContextSafe } from '../../presentation/hooks/useApplicationContext.hook';
 import { YamlViewer } from '../utils/YamlViewer';
+import { useLogEvent } from '../utils/logging';
 import { NotifierService, Spinner } from '../../widgets';
 
 interface IDeliveryConfigProps {
@@ -23,6 +24,7 @@ const ReImportConfig = () => {
     variables: { application: appName },
     refetchQueries: [{ query: FetchApplicationManagementDataDocument, variables: refetchVariables }],
   });
+  const logEvent = useLogEvent('GitIntegration', 'ImportNow');
 
   React.useEffect(() => {
     if (!error) return;
@@ -39,7 +41,10 @@ const ReImportConfig = () => {
         (
         <button
           className="btn-link no-padding no-margin no-border"
-          onClick={() => importDeliveryConfig()}
+          onClick={() => {
+            importDeliveryConfig();
+            logEvent();
+          }}
           disabled={loading}
         >
           Import now

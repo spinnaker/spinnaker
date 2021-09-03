@@ -6,6 +6,7 @@ import {
   useUpdateGitIntegrationMutation,
 } from '../graphql/graphql-sdk';
 import { CheckboxInput, useApplicationContextSafe } from '../../presentation';
+import { useLogEvent } from '../utils/logging';
 import { Spinner } from '../../widgets/spinners/Spinner';
 
 import './GitIntegration.less';
@@ -19,6 +20,7 @@ export const GitIntegration = ({ isEnabled, branch, link, repository }: IGitInte
   const [updateIntegration, { loading }] = useUpdateGitIntegrationMutation({
     refetchQueries: [{ query: FetchApplicationManagementDataDocument, variables: { appName } }],
   });
+  const logEvent = useLogEvent('GitIntegration');
 
   const repoAndBranch = [repository, branch].join(':');
 
@@ -47,6 +49,7 @@ export const GitIntegration = ({ isEnabled, branch, link, repository }: IGitInte
         disabled={loading}
         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
           updateIntegration({ variables: { payload: { application: appName, isEnabled: e.target.checked } } });
+          logEvent({ action: e.target.checked ? 'EnableIntegration' : 'DisableIntegration' });
         }}
       />
       <div className="help-text">
