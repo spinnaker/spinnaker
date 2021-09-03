@@ -1,11 +1,11 @@
 import { UISref } from '@uirouter/react';
 import React, { ReactNode } from 'react';
 
-import { Application } from '../application';
-import { IManagedResourceSummary } from '../domain';
+import { Application } from '../../application';
+import { IManagedResourceSummary } from '../../domain';
 import { viewConfigurationByStatus } from './managedResourceStatusConfig';
-import { HoverablePopover, IHoverablePopoverContentsProps } from '../presentation';
-import { showManagedResourceHistoryModal } from './resourceHistory/ManagedResourceHistoryModal';
+import { HoverablePopover, IHoverablePopoverContentsProps } from '../../presentation';
+import { showManagedResourceHistoryModal } from '../resourceHistory/ManagedResourceHistoryModal';
 import { toggleResourcePause } from './toggleResourceManagement';
 
 const PopoverActions = ({

@@ -2,8 +2,8 @@ import { $q } from 'ngimport';
 import React from 'react';
 import { MenuItem } from 'react-bootstrap';
 
-import { Application } from '../application';
-import { IManagedResource } from '../domain';
+import { Application } from '../../application';
+import { IManagedResource } from '../../domain';
 
 import { confirmNotManaged } from './toggleResourceManagement';
 

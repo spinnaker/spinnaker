@@ -1,8 +1,8 @@
 import { FormikProps } from 'formik';
 import React from 'react';
 
-import { Application } from '../application';
-import { IServerGroupCommand } from '../serverGroup';
+import { Application } from '../../application';
+import { IServerGroupCommand } from '../../serverGroup';
 
 import { toggleResourcePause } from './toggleResourceManagement';
 

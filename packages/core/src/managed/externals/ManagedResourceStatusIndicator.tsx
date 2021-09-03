@@ -4,8 +4,8 @@ import React from 'react';
 import { Icon } from '@spinnaker/presentation';
 
 import { ManagedResourceStatusPopover } from './ManagedResourceStatusPopover';
-import { Application } from '../application';
-import { IManagedResourceSummary } from '../domain';
+import { Application } from '../../application';
+import { IManagedResourceSummary } from '../../domain';
 import { viewConfigurationByStatus } from './managedResourceStatusConfig';
 
 import './ManagedResourceStatusIndicator.less';

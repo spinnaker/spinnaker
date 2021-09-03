@@ -1,9 +1,9 @@
 import React from 'react';
 
 import { IconNames } from '@spinnaker/presentation';
-import { Application } from '../application';
-import { IManagedResourceSummary, ManagedResourceStatus } from '../domain';
-import { logger } from '../utils';
+import { Application } from '../../application';
+import { IManagedResourceSummary, ManagedResourceStatus } from '../../domain';
+import { logger } from '../../utils';
 
 interface IViewConfiguration {
   appearance: 'info' | 'warning' | 'error';

@@ -4,17 +4,17 @@ import classNames from 'classnames';
 import React from 'react';
 import { react2angular } from 'react2angular';
 
-import { Application } from '../../application.model';
-import { createApolloClient } from '../../../managed/graphql/client';
+import { Application } from '../../application';
+import { createApolloClient } from '../graphql/client';
 import {
   FetchApplicationManagementDataDocument,
   useFetchApplicationManagementStatusQuery,
   useToggleManagementMutation,
-} from '../../../managed/graphql/graphql-sdk';
-import { ValidationMessage } from '../../../presentation';
-import { withErrorBoundary } from '../../../presentation/SpinErrorBoundary';
-import { logger } from '../../../utils';
-import { Spinner } from '../../../widgets/spinners/Spinner';
+} from '../graphql/graphql-sdk';
+import { withErrorBoundary } from '../../presentation/SpinErrorBoundary';
+import { ValidationMessage } from '../../presentation/forms/validation';
+import { logger } from '../../utils';
+import { Spinner } from '../../widgets/spinners/Spinner';
 
 import './ManagedResourceConfig.less';
 

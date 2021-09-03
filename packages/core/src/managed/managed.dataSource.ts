@@ -9,7 +9,7 @@ import {
   addManagedResourceMetadataToLoadBalancers,
   addManagedResourceMetadataToSecurityGroups,
   addManagedResourceMetadataToServerGroups,
-} from './managedResourceDecorators';
+} from './externals/managedResourceDecorators';
 import { noop } from '../utils';
 
 export const MANAGED_RESOURCES_DATA_SOURCE = 'spinnaker.core.managed.dataSource';

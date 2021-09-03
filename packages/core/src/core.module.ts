@@ -44,7 +44,7 @@ import { HELP_MODULE } from './help/help.module';
 import { INSIGHT_MODULE } from './insight/insight.module';
 import { INTERCEPTOR_MODULE } from './interceptor/interceptor.module';
 import { LOAD_BALANCER_MODULE } from './loadBalancer/loadBalancer.module';
-import { MANAGED_RESOURCE_CONFIG } from './application/config/managedResources/ManagedResourceConfig';
+import { MANAGED_RESOURCE_CONFIG } from './managed/externals/ManagedResourceConfig';
 import { MANAGED_RESOURCES_DATA_SOURCE, CORE_MANAGED_MANAGED_MODULE } from './managed';
 import { FUNCTION_MODULE } from './function/function.module';
 

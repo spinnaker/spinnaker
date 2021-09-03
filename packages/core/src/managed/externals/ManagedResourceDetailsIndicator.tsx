@@ -1,16 +1,16 @@
 import React from 'react';
 import { Dropdown, MenuItem } from 'react-bootstrap';
 
-import { Application } from '../application';
-import { SETTINGS } from '../config/settings';
-import { IManagedResourceSummary } from '../domain';
-import { HelpField } from '../help';
-import managedDeliveryLogo from './icons/md-logo-color.svg';
-import { HoverablePopover } from '../presentation';
-import { ReactInjector } from '../reactShims';
-import { showManagedResourceHistoryModal } from './resourceHistory/ManagedResourceHistoryModal';
+import { Application } from '../../application';
+import { SETTINGS } from '../../config/settings';
+import { IManagedResourceSummary } from '../../domain';
+import { HelpField } from '../../help';
+import managedDeliveryLogo from '../icons/md-logo-color.svg';
+import { HoverablePopover } from '../../presentation';
+import { ReactInjector } from '../../reactShims';
+import { showManagedResourceHistoryModal } from '../resourceHistory/ManagedResourceHistoryModal';
 import { toggleResourcePause } from './toggleResourceManagement';
-import { logger } from '../utils/Logger';
+import { logger } from '../../utils/Logger';
 
 import './ManagedResourceDetailsIndicator.css';
 
