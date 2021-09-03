@@ -61,8 +61,9 @@ abstract class PrEvent(
   override val pullRequestId: String,
   open val pullRequestBranch: String,
   override val authorName: String? = null,
-  override val authorEmail: String? = null
-) : CodeEvent(repoKey, targetBranch, pullRequestId, authorName, authorEmail) {
+  override val authorEmail: String? = null,
+  override val message: String? = null
+) : CodeEvent(repoKey, targetBranch, pullRequestId, authorName, authorEmail, message) {
 
   val String.headOfBranch: String
     get() = if (this.startsWith("refs/heads/")) this else "refs/heads/$this"
@@ -77,8 +78,9 @@ data class PrOpenedEvent(
   override val pullRequestId: String,
   override val pullRequestBranch: String,
   override val authorName: String? = null,
-  override val authorEmail: String? = null
-) : PrEvent(repoKey, targetBranch, pullRequestId, pullRequestBranch, authorName, authorEmail) {
+  override val authorEmail: String? = null,
+  override val message: String? = null
+) : PrEvent(repoKey, targetBranch, pullRequestId, pullRequestBranch, authorName, authorEmail, message) {
   override val type: String = "pr.created"
   init { validate() }
 }
@@ -92,8 +94,9 @@ data class PrUpdatedEvent(
   override val pullRequestId: String,
   override val pullRequestBranch: String,
   override val authorName: String? = null,
-  override val authorEmail: String? = null
-) : PrEvent(repoKey, targetBranch, pullRequestId, pullRequestBranch, authorName, authorEmail) {
+  override val authorEmail: String? = null,
+  override val message: String? = null
+) : PrEvent(repoKey, targetBranch, pullRequestId, pullRequestBranch, authorName, authorEmail, message) {
   override val type: String = "pr.updated"
   init { validate() }
 }
@@ -108,8 +111,9 @@ data class PrMergedEvent(
   override val pullRequestBranch: String,
   override val commitHash: String,
   override val authorName: String? = null,
-  override val authorEmail: String? = null
-) : PrEvent(repoKey, targetBranch, pullRequestId, pullRequestBranch, authorName, authorEmail) {
+  override val authorEmail: String? = null,
+  override val message: String? = null
+) : PrEvent(repoKey, targetBranch, pullRequestId, pullRequestBranch, authorName, authorEmail, message) {
   override val type: String = "pr.merged"
   init { validate() }
 }
@@ -123,8 +127,9 @@ data class PrDeclinedEvent(
   override val pullRequestId: String,
   override val pullRequestBranch: String,
   override val authorName: String? = null,
-  override val authorEmail: String? = null
-) : PrEvent(repoKey, targetBranch, pullRequestId, pullRequestBranch, authorName, authorEmail) {
+  override val authorEmail: String? = null,
+  override val message: String? = null
+) : PrEvent(repoKey, targetBranch, pullRequestId, pullRequestBranch, authorName, authorEmail, message) {
   override val type: String = "pr.declined"
   init { validate() }
 }
@@ -138,8 +143,9 @@ data class PrDeletedEvent(
   override val pullRequestId: String,
   override val pullRequestBranch: String,
   override val authorName: String? = null,
-  override val authorEmail: String? = null
-) : PrEvent(repoKey, targetBranch, pullRequestId, pullRequestBranch, authorName, authorEmail) {
+  override val authorEmail: String? = null,
+  override val message: String? = null
+) : PrEvent(repoKey, targetBranch, pullRequestId, pullRequestBranch, authorName, authorEmail, message) {
   override val type: String = "pr.deleted"
   init { validate() }
 }
@@ -153,8 +159,9 @@ data class CommitCreatedEvent(
   override val pullRequestId: String? = null,
   override val commitHash: String,
   override val authorName: String? = null,
-  override val authorEmail: String? = null
-) : CodeEvent(repoKey, targetBranch, pullRequestId, authorName, authorEmail) {
+  override val authorEmail: String? = null,
+  override val message: String? = null
+) : CodeEvent(repoKey, targetBranch, pullRequestId, authorName, authorEmail, message) {
   override val type: String = "commit.created"
   init { validate() }
 }
@@ -171,7 +178,8 @@ fun PublishedArtifact.toCodeEvent(): CodeEvent? {
       commitHash = sha,
       pullRequestId = pullRequestId,
       authorName = authorName,
-      authorEmail = authorEmail
+      authorEmail = authorEmail,
+      message = message
     )
     "pr_opened" -> PrOpenedEvent(
       repoKey = repoKey,
@@ -179,7 +187,8 @@ fun PublishedArtifact.toCodeEvent(): CodeEvent? {
       pullRequestId = pullRequestId,
       pullRequestBranch = pullRequestBranch,
       authorName = authorName,
-      authorEmail = authorEmail
+      authorEmail = authorEmail,
+      message = message
     )
     "pr_updated" -> PrUpdatedEvent(
       repoKey = repoKey,
@@ -187,7 +196,8 @@ fun PublishedArtifact.toCodeEvent(): CodeEvent? {
       pullRequestId = pullRequestId,
       pullRequestBranch = pullRequestBranch,
       authorName = authorName,
-      authorEmail = authorEmail
+      authorEmail = authorEmail,
+      message = message
     )
     "pr_merged" -> PrMergedEvent(
       repoKey = repoKey,
@@ -197,6 +207,7 @@ fun PublishedArtifact.toCodeEvent(): CodeEvent? {
       authorName = authorName,
       authorEmail = authorEmail,
       commitHash = sha,
+      message = message
     )
     "pr_declined" -> PrDeclinedEvent(
       repoKey = repoKey,
@@ -204,7 +215,8 @@ fun PublishedArtifact.toCodeEvent(): CodeEvent? {
       pullRequestId = pullRequestId,
       pullRequestBranch = pullRequestBranch,
       authorName = authorName,
-      authorEmail = authorEmail
+      authorEmail = authorEmail,
+      message = message
     )
     "pr_deleted" -> PrDeletedEvent(
       repoKey = repoKey,
@@ -212,7 +224,8 @@ fun PublishedArtifact.toCodeEvent(): CodeEvent? {
       pullRequestId = pullRequestId,
       pullRequestBranch = pullRequestBranch,
       authorName = authorName,
-      authorEmail = authorEmail
+      authorEmail = authorEmail,
+      message = message
     )
     "create_tag" -> null // we just ignore tag creations
     else -> {
@@ -258,6 +271,9 @@ private val PublishedArtifact.pullRequestBranch: String
 
 private val PublishedArtifact.authorName: String?
   get() = metadata["authorName"] as? String
+
+private val PublishedArtifact.message: String?
+  get() = metadata["message"] as? String
 
 private val PublishedArtifact.authorEmail: String?
   get() = metadata["authorEmail"] as? String
