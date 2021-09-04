@@ -15,6 +15,7 @@ export interface ISubnetSelectFieldProps {
   labelColumns: number;
   onChange: () => void;
   readOnly?: boolean;
+  provider?: 'aws' | 'titus';
   region: string;
   subnets: ISubnet[];
   showSubnetWarning?: boolean;
@@ -28,7 +29,7 @@ export class SubnetSelectField extends React.Component<ISubnetSelectFieldProps> 
   };
 
   public render() {
-    const { labelColumns, helpKey, component, region, field, showSubnetWarning, ...otherProps } = this.props;
+    const { labelColumns, helpKey, component, provider, region, field, showSubnetWarning, ...otherProps } = this.props;
     const value = component[field];
     const isRecommended = some(
       AWSProviderSettings.serverGroups?.recommendedSubnets || [],
@@ -45,6 +46,7 @@ export class SubnetSelectField extends React.Component<ISubnetSelectFieldProps> 
             <SubnetSelectInput
               {...otherProps}
               inputClassName="form-control input-sm"
+              provider={provider ?? 'aws'}
               credentials={component.credentials}
               region={region}
               value={value}

@@ -233,6 +233,7 @@ export class ServerGroupBasicSettings
           helpKey="titus.serverGroup.subnet"
           labelColumns={3}
           onChange={this.onSubnetChange}
+          provider="titus"
           region={values.region}
           subnets={values.backingData.filtered.subnetPurposes}
           showSubnetWarning={true}

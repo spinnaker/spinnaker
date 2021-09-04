@@ -20,6 +20,7 @@ export interface ISubnetSelectInputProps extends Omit<ISelectInputProps, 'option
   application: Application;
   readOnly?: boolean;
   hideClassic?: boolean;
+  provider: 'aws' | 'titus';
   subnets: ISubnet[];
   region: string;
   credentials: string;
@@ -87,8 +88,8 @@ export class SubnetSelectInput extends React.Component<ISubnetSelectInputProps, 
   }
 
   public applyDefaultSubnet() {
-    const { value, onChange, subnets, name } = this.props;
-    const defaultSubnetType = get(SETTINGS, 'providers.aws.defaults.subnetType');
+    const { value, onChange, provider, subnets, name } = this.props;
+    const defaultSubnetType = get(SETTINGS, `providers.${provider}.defaults.subnetType`);
     const defaultSubnet = subnets.find((subnet) => defaultSubnetType === subnet.purpose) || subnets[0];
     if (!value && defaultSubnet) {
       onChange(createFakeReactSyntheticEvent({ name, value: defaultSubnet.purpose }));

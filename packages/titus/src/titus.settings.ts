@@ -4,6 +4,7 @@ export interface ITitusProviderSettings extends IProviderSettings {
   defaults: {
     account?: string;
     region?: string;
+    subnetType?: string;
     iamProfile?: string;
   };
   scalingActivities?: string[];
