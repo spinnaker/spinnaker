@@ -23,6 +23,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 
 public class InstantiationTypeRestrictor {
@@ -46,7 +47,8 @@ public class InstantiationTypeRestrictor {
                   DayOfWeek.class,
                   Instant.class,
                   ChronoUnit.class,
-                  URLEncoder.class)));
+                  URLEncoder.class,
+                  TemporalAdjusters.class)));
 
   boolean supports(Class<?> type) {
     return allowedTypes.contains(type);
