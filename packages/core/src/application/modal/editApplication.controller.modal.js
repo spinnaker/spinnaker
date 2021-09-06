@@ -119,10 +119,11 @@ angular
       }
 
       vm.handlePermissionsChange = (permissions) => {
-        vm.state.permissionsInvalid = !permissionsAreValid(permissions);
-        vm.applicationAttributes.permissions = permissions;
-        delete vm.applicationAttributes.requiredGroupMembership;
-        $scope.$digest();
+        $scope.$evalAsync(() => {
+          vm.state.permissionsInvalid = !permissionsAreValid(permissions);
+          vm.applicationAttributes.permissions = permissions;
+          delete vm.applicationAttributes.requiredGroupMembership;
+        });
       };
 
       return vm;
