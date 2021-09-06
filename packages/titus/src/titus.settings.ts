@@ -7,6 +7,9 @@ export interface ITitusProviderSettings extends IProviderSettings {
     subnetType?: string;
     iamProfile?: string;
   };
+  serverGroups?: {
+    recommendedSubnets?: string[];
+  };
   scalingActivities?: string[];
 }
 

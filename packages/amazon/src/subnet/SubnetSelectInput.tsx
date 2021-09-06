@@ -4,13 +4,13 @@ import { Option } from 'react-select';
 
 import {
   Application,
-  arePropsEqual,
   createFakeReactSyntheticEvent,
   ISelectInputProps,
   ISubnet,
   Omit,
   SelectInput,
-  SETTINGS,
+  useDeepObjectDiff,
+  useMountStatusRef,
 } from '@spinnaker/core';
 import { AWSProviderSettings } from '../aws.settings';
 
@@ -20,7 +20,9 @@ export interface ISubnetSelectInputProps extends Omit<ISelectInputProps, 'option
   application: Application;
   readOnly?: boolean;
   hideClassic?: boolean;
-  provider: 'aws' | 'titus';
+  // Ordered list of subnet types to default to
+  // higher priority defaults should be ordered first
+  defaultSubnetTypes: string[];
   subnets: ISubnet[];
   region: string;
   credentials: string;
@@ -30,79 +32,88 @@ export interface ISubnetSelectInputState {
   options: Array<Option<string>>;
 }
 
-export class SubnetSelectInput extends React.Component<ISubnetSelectInputProps, ISubnetSelectInputState> {
-  public state: ISubnetSelectInputState = { options: [] };
+function isClassicLockout(region: string, credentials: string, application: Application): boolean {
+  const { classicLaunchLockout, classicLaunchAllowlist: allowlist } = AWSProviderSettings;
 
-  private isClassicLockout(region: string, credentials: string, application: Application): boolean {
-    const { classicLaunchLockout, classicLaunchAllowlist: allowlist } = AWSProviderSettings;
+  const appCreationDate = Number(get(application, 'attributes.createTs', 0));
+  const appCreatedAfterLockout = appCreationDate > (classicLaunchLockout || 0);
+  const isAllowlisted = !!allowlist && allowlist.some((e) => e.region === region && e.credentials === credentials);
+  return appCreatedAfterLockout || !isAllowlisted;
+}
 
-    const appCreationDate = Number(get(application, 'attributes.createTs', 0));
-    const appCreatedAfterLockout = appCreationDate > (classicLaunchLockout || 0);
-    const isAllowlisted = !!allowlist && allowlist.some((e) => e.region === region && e.credentials === credentials);
-    return appCreatedAfterLockout || !isAllowlisted;
+function getOptions(subnets: ISubnet[], isClassicHidden: boolean): Array<Option<string>> {
+  const sortByLabel = (a: ISubnet, b: ISubnet) => a.label.localeCompare(b.label);
+  const asOption = (subnet: ISubnet): Option<string> => ({ value: subnet.purpose, label: subnet.label });
+
+  const classicOption = isClassicHidden ? [] : [{ label: 'None (EC2 Classic)', value: '' } as Option];
+
+  const activeOptions = subnets
+    .filter((x) => !x.deprecated)
+    .sort(sortByLabel)
+    .map(asOption);
+
+  const deprecatedOptions = subnets
+    .filter((x) => x.deprecated)
+    .sort(sortByLabel)
+    .map(asOption);
+
+  if (deprecatedOptions.length) {
+    deprecatedOptions.unshift({ label: '-----------', value: '', disabled: true });
   }
 
-  private getOptions(subnets: ISubnet[], isClassicHidden: boolean): Array<Option<string>> {
-    const sortByLabel = (a: ISubnet, b: ISubnet) => a.label.localeCompare(b.label);
-    const asOption = (subnet: ISubnet): Option<string> => ({ value: subnet.purpose, label: subnet.label });
+  return classicOption.concat(activeOptions).concat(deprecatedOptions) as Array<Option<string>>;
+}
 
-    const classicOption = isClassicHidden ? [] : [{ label: 'None (EC2 Classic)', value: '' } as Option];
-
-    const activeOptions = subnets
-      .filter((x) => !x.deprecated)
-      .sort(sortByLabel)
-      .map(asOption);
-
-    const deprecatedOptions = subnets
-      .filter((x) => x.deprecated)
-      .sort(sortByLabel)
-      .map(asOption);
-
-    if (deprecatedOptions.length) {
-      deprecatedOptions.unshift({ label: '-----------', value: '', disabled: true });
-    }
-
-    return classicOption.concat(activeOptions).concat(deprecatedOptions) as Array<Option<string>>;
-  }
-
-  private updateOptions() {
-    const { value, hideClassic, subnets, region, credentials, application } = this.props;
-    const isClassicHidden = hideClassic || this.isClassicLockout(region, credentials, application);
-    const options = this.getOptions(subnets, isClassicHidden);
-
-    this.setState({ options });
-
-    if (!value) {
-      this.applyDefaultSubnet();
+function getDefaultSubnet(subnets: ISubnet[], defaultSubnetTypes: string[] = []): ISubnet {
+  for (const subnetType of defaultSubnetTypes) {
+    const defaultSubnet = subnets.find((subnet) => subnetType === subnet.purpose);
+    if (defaultSubnet) {
+      return defaultSubnet;
     }
   }
+  return undefined;
+}
 
-  public componentDidMount() {
-    this.updateOptions();
-  }
+export function SubnetSelectInput(props: ISubnetSelectInputProps) {
+  const {
+    application,
+    credentials,
+    defaultSubnetTypes,
+    hideClassic,
+    name,
+    onChange,
+    readOnly,
+    region,
+    subnets,
+    value,
+    ...otherProps
+  } = props;
 
-  public componentDidUpdate(prevProps: ISubnetSelectInputProps): void {
-    if (!arePropsEqual(this.props, prevProps, ['hideClassic', 'subnets', 'region', 'credentials', 'application'])) {
-      this.updateOptions();
-    }
-  }
+  // Allow subnets array reference to change by parent component
+  const subnetsDiff = useDeepObjectDiff(subnets);
 
-  public applyDefaultSubnet() {
-    const { value, onChange, provider, subnets, name } = this.props;
-    const defaultSubnetType = get(SETTINGS, `providers.${provider}.defaults.subnetType`);
-    const defaultSubnet = subnets.find((subnet) => defaultSubnetType === subnet.purpose) || subnets[0];
-    if (!value && defaultSubnet) {
+  const options = React.useMemo(() => {
+    const isClassicHidden = hideClassic || isClassicLockout(region, credentials, application);
+    return getOptions(subnets, isClassicHidden);
+  }, [hideClassic, region, credentials, application, subnetsDiff]);
+
+  const defaultSubnet = getDefaultSubnet(subnets, defaultSubnetTypes) || subnets[0];
+  const mountStatus = useMountStatusRef().current;
+
+  React.useEffect(() => {
+    const isSelectionValid = options.some((o) => o.value === value);
+    // - apply the default value whenever `options` changes and the current
+    // selection is invalid, including on the first pass
+    // - apply the default value on all subsequent renders if `options` changes
+    const applyDefault = !isSelectionValid || mountStatus !== 'FIRST_RENDER';
+    if (defaultSubnet && applyDefault) {
       onChange(createFakeReactSyntheticEvent({ name, value: defaultSubnet.purpose }));
     }
+  }, [options]);
+
+  if (readOnly) {
+    return <p className="form-control-static">{props.value || 'None (EC2 Classic)'}</p>;
   }
 
-  public render() {
-    const { readOnly, ...otherProps } = this.props;
-
-    if (readOnly) {
-      return <p className="form-control-static">{this.props.value || 'None (EC2 Classic)'}</p>;
-    }
-
-    return <SelectInput options={this.state.options} {...otherProps} />;
-  }
+  return <SelectInput options={options} value={value} onChange={onChange} {...otherProps} />;
 }
