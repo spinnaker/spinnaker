@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.8.4](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.8.3...@spinnaker/amazon@0.8.4) (2021-09-06)
+
+
+### Bug Fixes
+
+* **titus/subnet:** Support default titus subnetType in SubnetSelectInput ([#9641](https://github.com/spinnaker/deck/issues/9641)) ([cfde788](https://github.com/spinnaker/deck/commit/cfde7889cf72986e53418b76ff8aa354cc6875a5))
+
+
+
+
+
 ## [0.8.3](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.8.2...@spinnaker/amazon@0.8.3) (2021-09-02)
 
 **Note:** Version bump only for package @spinnaker/amazon

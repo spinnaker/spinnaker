@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.9.1](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.9.0...@spinnaker/core@0.9.1) (2021-09-06)
+
+
+### Bug Fixes
+
+* **core/application:** Fix for `requiredGroupMembership` breaking UI ([#9610](https://github.com/spinnaker/deck/issues/9610)) ([0a1f6ab](https://github.com/spinnaker/deck/commit/0a1f6abc4c912068beee3bb55b4500ef827bd98c))
+
+
+
+
+
 # [0.9.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.8.0...@spinnaker/core@0.9.0) (2021-09-02)
 
 

@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.3.0](https://github.com/spinnaker/deck/compare/@spinnaker/azure@0.2.0...@spinnaker/azure@0.3.0) (2021-09-06)
+
+
+### Features
+
+* **provider/azure:** Allow specifying App Gateway sku ([#9635](https://github.com/spinnaker/deck/issues/9635)) ([7e02b80](https://github.com/spinnaker/deck/commit/7e02b80deec2030178011c710c7a1c3e094cf876))
+
+
+
+
+
 # [0.2.0](https://github.com/spinnaker/deck/compare/@spinnaker/azure@0.1.0...@spinnaker/azure@0.2.0) (2021-09-02)
 
 
