@@ -44,10 +44,11 @@ export class SubnetSelectField extends React.Component<ISubnetSelectFieldProps> 
     } = this.props;
 
     const value = component[field];
-    const recommendedSubnets =
-      this.props.recommendedSubnetTypes ?? AWSProviderSettings.serverGroups?.recommendedSubnets ?? [];
-    const isRecommended = recommendedSubnets.some((subnet) => value && value.includes(subnet));
+    const recommended = recommendedSubnetTypes ?? AWSProviderSettings.serverGroups?.recommendedSubnets ?? [];
+    const defaults = defaultSubnetTypes ?? [AWSProviderSettings.defaults.subnetType];
+    const isRecommended = recommended.some((subnet) => value && value.includes(subnet));
     const subnetWarning = AWSProviderSettings.serverGroups?.subnetWarning;
+
     return (
       <div className="form-group">
         <div className={`col-md-${labelColumns} sm-label-right`}>
@@ -59,7 +60,7 @@ export class SubnetSelectField extends React.Component<ISubnetSelectFieldProps> 
               {...otherProps}
               inputClassName="form-control input-sm"
               credentials={component.credentials}
-              defaultSubnetTypes={defaultSubnetTypes}
+              defaultSubnetTypes={defaults}
               region={region}
               value={value}
               onChange={this.handleChange}
