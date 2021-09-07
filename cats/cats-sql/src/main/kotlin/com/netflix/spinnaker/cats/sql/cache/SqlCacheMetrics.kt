@@ -25,7 +25,8 @@ interface SqlCacheMetrics {
     relationshipsStored: Int,
     selectOperations: Int,
     writeOperations: Int,
-    deleteOperations: Int
+    deleteOperations: Int,
+    duplicates: Int
   ) {}
 
   fun evict(

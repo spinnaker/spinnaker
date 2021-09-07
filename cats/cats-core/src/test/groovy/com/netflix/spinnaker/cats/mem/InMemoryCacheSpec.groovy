@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.cats.mem
 
+import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.WriteableCacheSpec
 
 class InMemoryCacheSpec extends WriteableCacheSpec {
@@ -24,4 +25,28 @@ class InMemoryCacheSpec extends WriteableCacheSpec {
     InMemoryCache getSubject() {
         new InMemoryCache()
     }
+
+  def 'mergeAll with two items that have the same id uses the second item'() {
+      given: 'one item in the cache'
+      String id = 'bar'
+      def itemOneAttributes = [att1: 'val1']
+      CacheData itemOne = createData(id, itemOneAttributes)
+      def itemTwoAttributes = [att2: 'val2']
+      CacheData itemTwo = createData(id, itemTwoAttributes)
+      String type = 'foo'
+      cache.mergeAll(type, [ itemOne ])
+      assert itemOneAttributes.equals(cache.get(type, id).attributes)
+
+      when: 'adding both items'
+      cache.mergeAll(type, [ itemOne, itemTwo ])
+
+      then: 'itemTwo is in the cache'
+      itemTwoAttributes.equals(cache.get(type, id).attributes)
+
+      when: 'storing the items again'
+      cache.mergeAll(type, [ itemOne, itemTwo ])
+
+      then: 'itemTwo is still in the cache'
+      itemTwoAttributes.equals(cache.get(type, id).attributes)
+  }
 }

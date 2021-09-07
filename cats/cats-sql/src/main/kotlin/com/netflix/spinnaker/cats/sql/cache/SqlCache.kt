@@ -172,7 +172,8 @@ class SqlCache(
       relationshipsStored = storeResult.relationshipsStored.get(),
       selectOperations = storeResult.selectQueries.get(),
       writeOperations = storeResult.writeQueries.get(),
-      deleteOperations = storeResult.deleteQueries.get()
+      deleteOperations = storeResult.deleteQueries.get(),
+      duplicates = storeResult.duplicates.get()
     )
   }
 
@@ -552,7 +553,12 @@ class SqlCache(
     items
       .filter { it.id != "_ALL_" && it.id.length <= sqlConstraints.maxIdLength }
       .forEach {
-        currentIds.add(it.id)
+        if (!currentIds.add(it.id)) {
+            log.warn("agent: '${agent}': type: '$type': only one item with id '${it.id}' allowed")
+            result.duplicates.incrementAndGet()
+            // Skip the rest of this iteration
+            return@forEach
+        }
         val nullKeys = it.attributes
           .filter { e -> e.value == null }
           .keys
@@ -1576,6 +1582,7 @@ class SqlCache(
     val selectQueries = AtomicInteger(0)
     val writeQueries = AtomicInteger(0)
     val deleteQueries = AtomicInteger(0)
+    val duplicates = AtomicInteger(0)
   }
 }
 
