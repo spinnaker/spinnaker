@@ -146,23 +146,34 @@ class ImageCachingAgent implements CachingAgent, AccountAware, DriftMetric, Cust
     }
 
     Collection<CacheData> imageCacheData = new ArrayList<>(images.size())
-    Collection<CacheData> namedImageCacheData = new ArrayList<>(images.size())
+    Map<String, CacheData> namedImageCacheDataMap = new HashMap<>(images.size())
 
     for (Image image : images) {
       Map<String, Object> attributes = objectMapper.convertValue(image, ATTRIBUTES)
       def imageId = Keys.getImageKey(image.imageId, account.name, region)
       def namedImageId = Keys.getNamedImageKey(account.name, image.name)
       imageCacheData.add(new DefaultCacheData(imageId, attributes, [(NAMED_IMAGES.ns): [namedImageId]]))
-      namedImageCacheData.add(new DefaultCacheData(namedImageId, [
-        name              : image.name,
-        virtualizationType: image.virtualizationType,
-        creationDate      : image.creationDate
-      ], [(IMAGES.ns): [imageId]]))
+
+      CacheData namedImageCacheData = namedImageCacheDataMap.get(namedImageId);
+      if (namedImageCacheData == null) {
+        namedImageCacheDataMap.put(namedImageId, new DefaultCacheData(namedImageId, [
+          name              : image.name,
+          virtualizationType: image.virtualizationType,
+          creationDate      : image.creationDate
+        ], [(IMAGES.ns): [imageId]]))
+      } else {
+        // There's already a named image with this name, so add the imageId to
+        // the IMAGES.ns relationship.  Note though that there is only one
+        // virtualizationType and one creationDate per named image....so maybe
+        // those attributes don't really belong with named images?
+        Map<String, Collection<String>> relationships = namedImageCacheData.getRelationships();
+        Collection<String> imageRelationships = relationships.get(IMAGES.ns);
+        imageRelationships.add(imageId);
+      }
     }
 
     recordDrift(start)
     log.info("Caching ${imageCacheData.size()} items in ${agentType}")
-    new DefaultCacheResult((IMAGES.ns): imageCacheData, (NAMED_IMAGES.ns): namedImageCacheData)
+    new DefaultCacheResult((IMAGES.ns): imageCacheData, (NAMED_IMAGES.ns): namedImageCacheDataMap.values())
   }
-
 }
