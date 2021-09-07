@@ -1,5 +1,6 @@
 import { IStageOrTriggerValidator, IValidatorConfig, PipelineConfigValidator } from './PipelineConfigValidator';
 import { ICluster, IPipeline, IStage, IStageOrTriggerTypeConfig } from '../../../domain';
+import { PipelineConfigService } from '../services/PipelineConfigService';
 
 export interface IImageProviderBeforeTypeValidationConfig extends IValidatorConfig {
   triggerTypes?: string[];
@@ -25,8 +26,14 @@ export class ImageProviderBeforeTypeValidator implements IStageOrTriggerValidato
       (cluster: ICluster) => cluster.imageId && cluster.imageId !== '${trigger.properties.imageName}',
     );
 
-    if (!hasImageProvider && !hasCustomImage) {
-      return `${validator.message} Add a trigger or manually input the imageId. Suggested triggers: ${(
+    const stageTypes = ['findAmi', 'findImage', 'findImageFromTags'];
+    const stagesToTest = PipelineConfigService.getAllUpstreamDependencies(pipeline, stage);
+    const hasFindImageStage = stagesToTest.some((test) => stageTypes.includes(test.type));
+
+    if (!hasImageProvider && !hasCustomImage && !hasFindImageStage) {
+      return `${
+        validator.message
+      } Update the pipeline with a find image stage or pipeline trigger or update this stage by manually inputting the imageId. Suggested triggers: ${(
         validator.triggerTypes || []
       ).join(', ')}`;
     }

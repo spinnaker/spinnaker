@@ -41,7 +41,7 @@ angular
           },
           {
             type: 'imageProviderBeforeType',
-            message: 'You must have a trigger that provides the image metadata before any deploy stage.',
+            message: 'You must provide the image metadata before any deploy stage.',
             triggerTypes: ['docker', 'jenkins'],
             skipValidation: (pipeline, stage) =>
               (stage.clusters || []).every(
