@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.0.7](https://github.com/spinnaker/deck/compare/deck-app@2.0.6...deck-app@2.0.7) (2021-09-07)
+
+**Note:** Version bump only for package deck-app
+
+
+
+
+
 ## [2.0.6](https://github.com/spinnaker/deck/compare/deck-app@2.0.5...deck-app@2.0.6) (2021-09-06)
 
 **Note:** Version bump only for package deck-app

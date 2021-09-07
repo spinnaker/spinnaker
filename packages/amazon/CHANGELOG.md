@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.8.5](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.8.4...@spinnaker/amazon@0.8.5) (2021-09-07)
+
+
+### Bug Fixes
+
+* **amazon/serverGroup:** SubnetSelectField: Use default subnets from settings if no defaultSubnetTypes prop is passed ([#9643](https://github.com/spinnaker/deck/issues/9643)) ([1141bc5](https://github.com/spinnaker/deck/commit/1141bc569ca6c854614d1d51172c2545047adb5b))
+* **help:** Correct And to Add ([#9617](https://github.com/spinnaker/deck/issues/9617)) ([5f38547](https://github.com/spinnaker/deck/commit/5f38547b1d7ea45337dbbf545677f5f2c1431579))
+
+
+
+
+
 ## [0.8.4](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.8.3...@spinnaker/amazon@0.8.4) (2021-09-06)
 
 
