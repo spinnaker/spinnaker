@@ -54,7 +54,7 @@ const helpContents: { [key: string]: string } = {
   'ecs.logOptions':
     '<p>A map of log options.  This directly maps with the <a href="https://docs.docker.com/config/containers/logging/log_tags/"><b>--log-opt</b> Docker flag  </a></p>',
   'ecs.taskDefinition':
-    '<p>The source of the ECS Task Definition. Task Definition contents can either be entering manually via input fields or from a selected JSON file artifact. Artifact file contents should be structured as an ECS "RegisterTaskDefinition" request.</p>',
+    '<p>The source of the ECS Task Definition. Task Definition contents can either be entered manually via input fields or from a selected JSON file artifact. Artifact file contents should be structured as an ECS "RegisterTaskDefinition" request.</p>',
   'ecs.taskDefinitionArtifact': '<p>The artifact containing the ECS Task Definition.</p>',
   'ecs.containerMappings':
     '<p>The list of expected containers within the Task Definition and which container image they should use. Containers in the Task Definition which are not specified here will be registered as they appear in the artifact.</p>',
