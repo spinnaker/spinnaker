@@ -89,7 +89,7 @@ export const ScalingActivitiesModal = ({ dismissModal, serverGroup }: IScalingAc
             <p>{`No scaling activities found for ${serverGroup.name}.`}</p>
           </div>
         )}
-        {!loading && !error && scalingActivities.length && (
+        {!loading && !error && scalingActivities.length > 0 && (
           <div className="ScalingAcivitiesModalBody middle sp-margin-xl-yaxis">
             {scalingActivities.map((a, i) => (
               <div key={a.cause}>
