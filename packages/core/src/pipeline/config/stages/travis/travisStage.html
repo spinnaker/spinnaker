@@ -70,10 +70,6 @@
       </a>
     </div>
   </div>
-  <stage-config-field label="Property File" help-key="pipeline.config.travis.propertyFile">
-    <input type="text" class="form-control input-sm" ng-model="$ctrl.stage.propertyFile" />
-  </stage-config-field>
-
   <stage-config-field label="Parameters" help-key="pipeline.config.travis.parameters">
     <table class="table table-condensed packed" ng-if="$ctrl.stage.parameters">
       <thead>
@@ -147,4 +143,14 @@
       </div>
     </div>
   </div>
+</div>
+<div class="well alert alert-info" role="alert">
+  <p>You can read properties from Travis builds by logging them in the build log using one of the following formats:</p>
+  <pre>
+echo SPINNAKER_PROPERTY_key1=value1
+echo SPINNAKER_PROPERTY_key2=value2
+echo SPINNAKER_CONFIG_JSON={"key3": "value3", "key4": "value4"}</pre
+  >
+  The properties will be available in the stage context under the key <code>propertyFileContents</code>.<br />Example
+  using SpEL: <code>$&lbrace; #stage('{{ stage.name }}').context.propertyFileContents.key2 &rbrace;</code>
 </div>

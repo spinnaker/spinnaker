@@ -71,12 +71,14 @@ export function BaseBuildTrigger(buildTriggerProps: IBaseBuildTriggerConfigProps
         )}
       />
 
-      <FormikFormField
-        name="propertyFile"
-        label="Property File"
-        help={<HelpField id={`pipeline.config.${type}.trigger.propertyFile`} />}
-        input={(props) => <TextInput {...props} />}
-      />
+      {buildTriggerType !== BuildServiceType.Travis && (
+        <FormikFormField
+          name="propertyFile"
+          label="Property File"
+          help={<HelpField id={`pipeline.config.${type}.trigger.propertyFile`} />}
+          input={(props) => <TextInput {...props} />}
+        />
+      )}
 
       <FormikFormField
         name="payloadConstraints"
