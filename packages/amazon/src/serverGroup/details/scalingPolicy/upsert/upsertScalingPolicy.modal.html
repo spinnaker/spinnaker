@@ -8,12 +8,14 @@
     <form name="form" novalidate>
       <h4 class="section-heading">Conditions</h4>
       <div class="section-body">
-        <aws-alarm-configurer
-          command="ctrl.command"
-          modal-view-state="ctrl.viewState"
+        <alarm-configurer
+          alarm="ctrl.command.alarm"
+          multiple-alarms="ctrl.viewState.multipleAlarms"
           server-group="ctrl.serverGroup"
-          bounds-changed="ctrl.boundsChanged()"
-        ></aws-alarm-configurer>
+          step-adjustments="ctrl.command.step.stepAdjustments"
+          steps-changed="ctrl.stepsChanged"
+          update-alarm="ctrl.alarmChanged"
+        ></alarm-configurer>
       </div>
       <h4 class="section-heading">Actions</h4>
       <div class="section-body" ng-if="!ctrl.command.alarm.metricName">
