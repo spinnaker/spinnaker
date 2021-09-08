@@ -224,7 +224,7 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
       errList.add(e.message)
     }
     if (errList.isEmpty()) {
-      if (description.credentials.networkClient.isServerGroupDisabled(resourceGroupName, description.appGatewayName, description.name)) {
+      if (description.credentials.networkClient.isServerGroupWithAppGatewayDisabled(resourceGroupName, description.appGatewayName, description.name)) {
         description
           .credentials
           .networkClient
