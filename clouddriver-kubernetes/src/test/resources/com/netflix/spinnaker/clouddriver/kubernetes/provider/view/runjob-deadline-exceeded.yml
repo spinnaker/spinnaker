@@ -1,0 +1,9 @@
+status:
+  conditions:
+    - lastProbeTime: "2021-01-29T00:15:20Z"
+      lastTransitionTime: "2021-01-29T00:15:20Z"
+      message: Job was active longer than specified deadline
+      reason: DeadlineExceeded
+      status: "True"
+      type: Failed
+  startTime: "2021-01-29T00:00:20Z"

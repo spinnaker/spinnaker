@@ -1,0 +1,66 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  annotations:
+    artifact.spinnaker.io/location: test
+    artifact.spinnaker.io/name: test-runjob
+    artifact.spinnaker.io/type: kubernetes/job
+    artifact.spinnaker.io/version: ""
+    moniker.spinnaker.io/application: amahajantest
+    moniker.spinnaker.io/cluster: job test-runjob
+    strategy.spinnaker.io/recreate: "true"
+  creationTimestamp: "2021-01-29T00:00:20Z"
+  labels:
+    app.kubernetes.io/managed-by: spinnaker
+    app.kubernetes.io/name: amahajantest
+    job-name: test-runjob
+  name: test-runjob
+  namespace: test
+spec:
+  activeDeadlineSeconds: 900
+  backoffLimit: 0
+  completions: 1
+  parallelism: 1
+  selector:
+    matchLabels:
+      controller-uid: 5e9d1a7c-6a9d-443b-8629-da6dcb73fb7c
+  template:
+    metadata:
+      annotations:
+        artifact.spinnaker.io/location: test
+        artifact.spinnaker.io/name: test-runjob
+        artifact.spinnaker.io/type: kubernetes/job
+        artifact.spinnaker.io/version: ""
+        moniker.spinnaker.io/application: amahajantest
+        moniker.spinnaker.io/cluster: job test-runjob
+      creationTimestamp: null
+      labels:
+        app.kubernetes.io/managed-by: spinnaker
+        app.kubernetes.io/name: amahajantest
+        controller-uid: 5e9d1a7c-6a9d-443b-8629-da6dcb73fb7c
+        job-name: test-runjob
+    spec:
+      containers:
+        - env:
+            - name: LEVEL
+              value: invalid
+          image: image:invalid-tag
+          imagePullPolicy: IfNotPresent
+          name: test-runjob
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: FallbackToLogsOnError
+      dnsPolicy: ClusterFirst
+      restartPolicy: Never
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+status:
+  conditions:
+    - lastProbeTime: "2021-01-29T00:15:20Z"
+      lastTransitionTime: "2021-01-29T00:15:20Z"
+      message: Job was active longer than specified deadline
+      reason: DeadlineExceeded
+      status: "True"
+      type: Failed
+  startTime: "2021-01-29T00:00:20Z"

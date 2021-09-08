@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesJobStatus;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesSelectorList;
 import com.netflix.spinnaker.clouddriver.model.JobProvider;
+import com.netflix.spinnaker.clouddriver.model.JobState;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import io.kubernetes.client.openapi.models.V1Job;
 import io.kubernetes.client.openapi.models.V1Pod;
@@ -98,9 +99,16 @@ public class KubernetesJobProvider implements JobProvider<KubernetesJobStatus> {
     jobStatus.setMostRecentPodName(
         mostRecentPod.getMetadata() != null ? mostRecentPod.getMetadata().getName() : "");
 
-    if (detailedPodStatus) {
-      jobStatus.setPods(
-          typedPods.stream().map(KubernetesJobStatus.PodStatus::new).collect(Collectors.toList()));
+    jobStatus.setPods(
+        typedPods.stream().map(KubernetesJobStatus.PodStatus::new).collect(Collectors.toList()));
+
+    if (jobStatus.getJobState() == JobState.Failed) {
+      jobStatus.captureFailureDetails();
+    }
+
+    // if detailedPodStatus is not needed, then remove all the pod related information
+    if (!detailedPodStatus) {
+      jobStatus.setPods(List.of());
     }
 
     return jobStatus;

@@ -1,0 +1,41 @@
+# Job has failed
+status:
+  conditions:
+    - lastProbeTime: "2020-01-31T19:13:13Z"
+      lastTransitionTime: "2020-01-31T19:13:13Z"
+      message: Job has reached the specified backoff limit
+      reason: BackoffLimitExceeded
+      status: "True"
+      type: Failed
+  failed: 2
+  startTime: "2020-01-31T19:13:02Z"
+  hostIP: "0.0.0.0"
+  containerStatuses:
+    - image: some-image:test2
+      imageID: ""
+      lastState: {}
+      name: some-image-container
+      ready: false
+      restartCount: 0
+      state:
+        waiting:
+          reason: PodInitializing
+  initContainerStatuses:
+    - containerID: "some-init-container-id"
+      image: busybox:1.28
+      imageID: "some-init-container-image-id"
+      lastState: {}
+      name: "init-myservice"
+      ready: true
+      restartCount: 0
+      state:
+        terminated:
+          containerID: "some-init-container-id"
+          exitCode: 1
+          finishedAt: "2020-01-31T13:56:20Z"
+          reason: Error
+          message: foo
+          startedAt: "2020-01-31T23:53:20Z"
+  phase: Failed
+  podIP: "1.1.1.1"
+  qosClass: BestEffort

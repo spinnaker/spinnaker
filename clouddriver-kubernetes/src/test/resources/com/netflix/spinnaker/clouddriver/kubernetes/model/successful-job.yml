@@ -1,0 +1,44 @@
+# Job has succeeded
+status:
+  completionTime: "2020-01-31T19:44:10Z"
+  conditions:
+    - lastProbeTime: "2020-01-31T19:44:10Z"
+      lastTransitionTime: "2020-01-31T19:44:10Z"
+      status: "True"
+      type: Complete
+  startTime: "2020-01-31T19:43:33Z"
+  succeeded: 1
+  containerStatuses:
+    - containerID: "some-container-id"
+      image: "some-image:test"
+      imageID: "some-image-id"
+      lastState: {}
+      name: "some-container-name"
+      ready: false
+      restartCount: 0
+      state:
+        terminated:
+          containerID: "some-container-id"
+          exitCode: 0
+          finishedAt: "2020-01-31T19:14:32Z"
+          reason: Completed
+          startedAt: "2020-01-31T19:14:02Z"
+  hostIP: "0.0.0.0"
+  initContainerStatuses:
+    - containerID: "some-init-container-id"
+      image: busybox:1.28
+      imageID: "some-init-container-image-id"
+      lastState: {}
+      name: "init-myservice"
+      ready: true
+      restartCount: 0
+      state:
+        terminated:
+          containerID: "some-init-container-id"
+          exitCode: 0
+          finishedAt: "2020-01-31T19:12:20Z"
+          reason: Completed
+          startedAt: "2020-01-31T19:12:20Z"
+  phase: Failed
+  podIP: "1.1.1.1"
+  qosClass: BestEffort
