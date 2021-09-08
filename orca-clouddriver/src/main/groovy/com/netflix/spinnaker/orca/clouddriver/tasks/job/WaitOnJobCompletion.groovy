@@ -28,10 +28,11 @@ import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoRestService
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 import com.netflix.spinnaker.orca.front50.Front50Service
+import com.netflix.spinnaker.orca.clouddriver.exception.JobFailedException
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 
@@ -48,19 +49,11 @@ public class WaitOnJobCompletion implements CloudProviderAware, OverridableTimeo
   final long backoffPeriod = TimeUnit.SECONDS.toMillis(10)
   final long timeout = TimeUnit.MINUTES.toMillis(120)
 
-  @Autowired
-  KatoRestService katoRestService
-
-  @Autowired
-  ObjectMapper objectMapper
-
-  @Autowired
-  RetrySupport retrySupport
-
-  @Autowired
-  JobUtils jobUtils
-
-  @Autowired(required = false)
+  private final KatoRestService katoRestService
+  private final ObjectMapper objectMapper
+  private final RetrySupport retrySupport
+  private final JobUtils jobUtils
+  private final ExecutionRepository repository
   Front50Service front50Service
 
   static final String REFRESH_TYPE = "Job"
@@ -70,6 +63,20 @@ public class WaitOnJobCompletion implements CloudProviderAware, OverridableTimeo
    * we should wait a bit longer to allow for any inaccuracies of the clock across the systems
    */
   static final Duration PROVIDER_PADDING = Duration.ofMinutes(5)
+
+  WaitOnJobCompletion(KatoRestService katoRestService,
+                      ObjectMapper objectMapper,
+                      RetrySupport retrySupport,
+                      JobUtils jobUtils,
+                      @Nullable Front50Service front50Service,
+                      ExecutionRepository repository) {
+    this.katoRestService = katoRestService
+    this.objectMapper = objectMapper
+    this.retrySupport = retrySupport
+    this.jobUtils = jobUtils
+    this.front50Service = front50Service
+    this.repository = repository
+  }
 
   @Override
   long getDynamicTimeout(@Nonnull StageExecution stage) {
@@ -139,6 +146,7 @@ public class WaitOnJobCompletion implements CloudProviderAware, OverridableTimeo
       outputs.jobStatus = job
 
       outputs.completionDetails = job.completionDetails
+
       switch ((String) job.jobState) {
         case "Succeeded":
           status = ExecutionStatus.SUCCEEDED
@@ -152,21 +160,35 @@ public class WaitOnJobCompletion implements CloudProviderAware, OverridableTimeo
       if ((status == ExecutionStatus.SUCCEEDED) || (status == ExecutionStatus.TERMINAL)) {
         if (stage.context.propertyFile) {
           Map<String, Object> properties = [:]
-          retrySupport.retry({
-            properties = katoRestService.getFileContents(appName, account, location, name, stage.context.propertyFile)
-            if (properties.size() == 0) {
-              if (status == ExecutionStatus.SUCCEEDED) {
-                throw new ConfigurationException("Expected properties file ${stage.context.propertyFile} but it was either missing, empty or contained invalid syntax")
-              } else {
-                throw new ConfigurationException("Expected properties file ${stage.context.propertyFile} but it was either missing, empty or contained invalid syntax (this may be because the job failed)")
-              }
+          try {
+            retrySupport.retry({
+              properties = katoRestService.getFileContents(appName, account, location, name, stage.context.propertyFile)
+            }, 6, 5000, false) // retry for 30 seconds
+          } catch (Exception e) {
+            if (status == ExecutionStatus.SUCCEEDED) {
+              throw new ConfigurationException("Property File: ${stage.context.propertyFile} contents could not be retrieved. Error: " + e)
             }
-          }, 6, 5000, false) // retry for 30 seconds
-          outputs << properties
-          outputs.propertyFileContents = properties
+            log.warn("failed to get file contents for ${appName}, account: ${account}, namespace: ${location}, " +
+                "manifest: ${name} from propertyFile: ${stage.context.propertyFile}. Error: ", e)
+          }
+
+          if (properties.size() == 0) {
+            if (status == ExecutionStatus.SUCCEEDED) {
+              throw new ConfigurationException("Expected properties file ${stage.context.propertyFile} but it was either missing, empty or contained invalid syntax")
+            }
+          } else if (properties.size() > 0) {
+            outputs << properties
+            outputs.propertyFileContents = properties
+          }
         }
       }
 
+      if (status == ExecutionStatus.TERMINAL) {
+          // bubble up the error, but first save the job result otherwise UI could show
+          // "Collecting Additional Details..." message if the jobStatus isn't present in the stage context
+          updateStageContext(stage, outputs)
+          processFailure(job)
+      }
     }
 
     TaskResult.builder(status).context(outputs).outputs(outputs).build()
@@ -181,5 +203,43 @@ public class WaitOnJobCompletion implements CloudProviderAware, OverridableTimeo
     } catch (RetrofitError e) {
       throw e
     }
+  }
+
+  /**
+   * adds the outputs, provided as an input, to the stage parameter and updates the backend repository with the same
+   *
+   * @param stage - stage execution context that needs to be updated
+   * @param outputs - the values that need to be added to the stage execution context
+   */
+  void updateStageContext(StageExecution stage, Map<String, Object> outputs) {
+    if (stage.context) {
+      stage.context.putAll(outputs)
+      repository.storeStage(stage)
+    }
+  }
+
+  /**
+   * this function is called into action when the job has failed. It throws a {@link JobFailedException} with all the
+   * error details that it computes from the input parameter
+   *
+   * @param job - contains the job status
+   */
+  static void processFailure(Map job) {
+    String jobName = job.getOrDefault("name", "")
+    String message = job.getOrDefault("message", "")
+    String reason = job.getOrDefault("reason", "")
+    String failureDetails = job.getOrDefault("failureDetails", "")
+
+    String errorMessage = "Job: '${jobName}' failed."
+    if (reason) {
+      errorMessage += " Reason: ${reason}."
+    }
+    if (message) {
+      errorMessage += " Details: ${message}."
+    }
+    if (failureDetails) {
+      errorMessage += " Additional Details: ${failureDetails}"
+    }
+    throw new JobFailedException(errorMessage)
   }
 }

@@ -16,15 +16,13 @@
 
 package com.netflix.spinnaker.orca.clouddriver.model;
 
+import static com.netflix.spinnaker.orca.TestUtils.getResource;
 import static org.assertj.core.api.Java6Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.io.Resources;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.runner.JUnitPlatform;
@@ -36,7 +34,7 @@ final class ManifestTest {
 
   @Test
   void deserializesMetadata() throws IOException {
-    String resource = getResource("manifests/stable.json");
+    String resource = getResource("clouddriver/model/manifests/stable.json");
     Manifest manifest = objectMapper.readValue(resource, Manifest.class);
     assertThat(manifest.getManifest()).containsKey("metadata");
     assertThat((Map<String, Object>) manifest.getManifest().get("metadata"))
@@ -45,7 +43,7 @@ final class ManifestTest {
 
   @Test
   void deserializesArtifacts() throws IOException {
-    String resource = getResource("manifests/stable.json");
+    String resource = getResource("clouddriver/model/manifests/stable.json");
     Manifest manifest = objectMapper.readValue(resource, Manifest.class);
     assertThat(manifest.getArtifacts())
         .containsExactly(
@@ -59,21 +57,21 @@ final class ManifestTest {
 
   @Test
   void deserializesName() throws IOException {
-    String resource = getResource("manifests/stable.json");
+    String resource = getResource("clouddriver/model/manifests/stable.json");
     Manifest manifest = objectMapper.readValue(resource, Manifest.class);
     assertThat(manifest.getName()).isEqualTo("replicaSet test-rs-v016");
   }
 
   @Test
   void deserializesWarnings() throws IOException {
-    String resource = getResource("manifests/stable.json");
+    String resource = getResource("clouddriver/model/manifests/stable.json");
     Manifest manifest = objectMapper.readValue(resource, Manifest.class);
     assertThat(manifest.getWarnings()).isEmpty();
   }
 
   @Test
   void defaultsFields() throws IOException {
-    String resource = getResource("manifests/empty.json");
+    String resource = getResource("clouddriver/model/manifests/empty.json");
     Manifest manifest = objectMapper.readValue(resource, Manifest.class);
     assertThat(manifest.getManifest()).isNotNull();
     assertThat(manifest.getArtifacts()).isEmpty();
@@ -84,7 +82,7 @@ final class ManifestTest {
 
   @Test
   public void stableStatus() throws IOException {
-    String resource = getResource("manifests/stable.json");
+    String resource = getResource("clouddriver/model/manifests/stable.json");
     Manifest manifest = objectMapper.readValue(resource, Manifest.class);
     assertThat(manifest.getStatus()).isNotNull();
     assertThat(manifest.getStatus().getStable()).isNotNull();
@@ -95,7 +93,7 @@ final class ManifestTest {
 
   @Test
   public void unstableStatus() throws IOException {
-    String resource = getResource("manifests/unstable.json");
+    String resource = getResource("clouddriver/model/manifests/unstable.json");
     Manifest manifest = objectMapper.readValue(resource, Manifest.class);
     assertThat(manifest.getStatus()).isNotNull();
     assertThat(manifest.getStatus().getStable()).isNotNull();
@@ -107,7 +105,7 @@ final class ManifestTest {
 
   @Test
   public void failedStatus() throws IOException {
-    String resource = getResource("manifests/failed.json");
+    String resource = getResource("clouddriver/model/manifests/failed.json");
     Manifest manifest = objectMapper.readValue(resource, Manifest.class);
     assertThat(manifest.getStatus()).isNotNull();
     assertThat(manifest.getStatus().getStable()).isNotNull();
@@ -119,7 +117,7 @@ final class ManifestTest {
 
   @Test
   public void unknownStatus() throws IOException {
-    String resource = getResource("manifests/unknown.json");
+    String resource = getResource("clouddriver/model/manifests/unknown.json");
     Manifest manifest = objectMapper.readValue(resource, Manifest.class);
     assertThat(manifest.getStatus()).isNotNull();
     assertThat(manifest.getStatus().getStable()).isEqualTo(Manifest.Condition.emptyFalse());
@@ -128,18 +126,10 @@ final class ManifestTest {
 
   @Test
   public void explicitNullStatus() throws IOException {
-    String resource = getResource("manifests/explicit-null.json");
+    String resource = getResource("clouddriver/model/manifests/explicit-null.json");
     Manifest manifest = objectMapper.readValue(resource, Manifest.class);
     assertThat(manifest.getStatus()).isNotNull();
     assertThat(manifest.getStatus().getStable()).isEqualTo(Manifest.Condition.emptyFalse());
     assertThat(manifest.getStatus().getFailed()).isEqualTo(Manifest.Condition.emptyFalse());
-  }
-
-  private static String getResource(String name) {
-    try {
-      return Resources.toString(ManifestTest.class.getResource(name), StandardCharsets.UTF_8);
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
   }
 }

@@ -1,0 +1,8 @@
+{
+  "deploy.jobs": {
+    "test": [
+      "job testrep"
+    ]
+  },
+  "account": "test-account"
+}
