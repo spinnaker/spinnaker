@@ -53,6 +53,7 @@ export interface IUpsertAlarmDescription extends IConfigurableMetric {
   statistic: AlarmStatisticType;
   unit: StandardUnitType;
   disableEditingDimensions?: boolean;
+  actionsEnabled?: boolean;
   alarmActionArns: string[];
   insufficientDataActionArns: string[];
   okActionArns: string[];
