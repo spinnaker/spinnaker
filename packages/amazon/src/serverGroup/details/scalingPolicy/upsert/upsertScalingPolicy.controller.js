@@ -6,6 +6,7 @@ import { cloneDeep } from 'lodash';
 
 import { TaskMonitor } from '@spinnaker/core';
 
+import { AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_ADDITIONAL_SETTINGS_COMPONENT } from './ScalingPolicyAdditionalSettings';
 import { ScalingPolicyWriter } from '../ScalingPolicyWriter';
 import { AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_ALARM_ALARMCONFIGURER_COMPONENT } from './alarm/alarmConfigurer.component';
 import { AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_ALARM_CONFIGURER_COMPONENT } from './alarm/awsAlarmConfigurer.component';
@@ -22,12 +23,14 @@ module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_UPSERTSCALINGPOLICY_CONTR
   STEP_POLICY_ACTION_COMPONENT,
   AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_ALARM_ALARMCONFIGURER_COMPONENT,
   AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_ALARM_CONFIGURER_COMPONENT,
+  AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_ADDITIONAL_SETTINGS_COMPONENT,
 ]).controller('awsUpsertScalingPolicyCtrl', [
   '$uibModalInstance',
   'serverGroup',
   'application',
   'policy',
-  function ($uibModalInstance, serverGroup, application, policy) {
+  '$scope',
+  function ($uibModalInstance, serverGroup, application, policy, $scope) {
     this.serverGroup = serverGroup;
 
     this.viewState = {
@@ -123,6 +126,12 @@ module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_UPSERTSCALINGPOLICY_CONTR
         scalingAdjustment: Math.abs(policy.scalingAdjustment) || 1,
       };
     }
+
+    this.commandChanged = (updatedCommand) => {
+      this.$scope.$applyAsync(() => {
+        this.command = updatedCommand;
+      });
+    };
 
     this.scalingAdjustmentChanged = (adjustment) => {
       this.command.simple.scalingAdjustment = adjustment;

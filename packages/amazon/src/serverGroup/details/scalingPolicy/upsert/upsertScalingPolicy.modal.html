@@ -52,65 +52,13 @@
           </step-policy-action>
         </div>
       </div>
-      <h4 class="section-heading">Additional Settings</h4>
-      <div class="section-body section-additional-settings">
-        <div class="row" ng-if="!ctrl.viewState.isNew">
-          <div class="col-md-2 sm-label-right">Policy Name</div>
-          <div class="col-md-10 content-fields">
-            <span
-              class="form-control-static select-placeholder"
-              ng-if="!ctrl.viewState.isNew"
-              ng-bind="ctrl.command.name"
-            ></span>
-          </div>
-        </div>
-
-        <div class="row" ng-if="ctrl.viewState.adjustmentType !== 'instances'">
-          <div class="col-md-2 sm-label-right">Adjustment Step</div>
-          <div class="col-md-10 content-fields">
-            <span class="form-control-static select-placeholder">
-              <span ng-bind="ctrl.viewState.operator"></span>
-              instances in increments of at least
-            </span>
-            <input
-              type="number"
-              style="width: 60px"
-              class="form-control input-sm"
-              required
-              ng-model="ctrl.command.minAdjustmentMagnitude"
-            />
-            <span class="input-label"> instance(s) </span>
-          </div>
-        </div>
-        <div class="row" ng-if="ctrl.command.simple">
-          <div class="col-md-2 sm-label-right">Cooldown</div>
-          <div class="col-md-10 content-fields">
-            <span class="form-control-static select-placeholder"> Wait at least </span>
-            <input
-              type="number"
-              style="width: 60px"
-              class="form-control input-sm"
-              required
-              ng-model="ctrl.command.simple.cooldown"
-            />
-            <span class="input-label"> seconds before another scaling event </span>
-          </div>
-        </div>
-        <div class="row" ng-if="ctrl.command.step && ctrl.viewState.operator !== 'Remove'">
-          <div class="col-md-2 sm-label-right">Warmup</div>
-          <div class="col-md-10 content-fields">
-            <span class="form-control-static select-placeholder">Instances need</span>
-            <input
-              type="number"
-              style="width: 60px"
-              class="form-control input-sm"
-              required
-              ng-model="ctrl.command.step.estimatedInstanceWarmup"
-            />
-            <span class="input-label"> seconds to warm up after each step </span>
-          </div>
-        </div>
-      </div>
+      <scaling-policy-additional-settings
+        command="ctrl.command"
+        is-instance-type="ctrl.viewState.adjustmentType === 'instances'"
+        is-new="ctrl.viewState.isNew"
+        operator="ctrl.viewState.operator"
+        update-command="ctrl.commandChanged"
+      ></scaling-policy-additional-settings>
     </form>
   </div>
 
