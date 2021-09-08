@@ -1,10 +1,11 @@
-import * as React from 'react';
 import { Dictionary } from 'lodash';
+import * as React from 'react';
 import { Subject } from 'rxjs';
 
 import { ICloudMetricStatistics } from '@spinnaker/core';
-import { IAmazonServerGroup, IScalingPolicyAlarm, ITargetTrackingConfiguration } from '../../../../domain';
+
 import { MetricAlarmChart } from '../chart/MetricAlarmChart';
+import { IAmazonServerGroup, IScalingPolicyAlarm, ITargetTrackingConfiguration } from '../../../../domain';
 
 export interface ITargetTrackingChartProps {
   alarmUpdated?: Subject<void>;
@@ -24,7 +25,6 @@ export const TargetTrackingChart = ({
   alarmUpdated = new Subject<void>(),
   config,
   serverGroup,
-  unit,
   updateUnit,
 }: ITargetTrackingChartProps) => {
   const [alarm, setAlarm] = React.useState<IScalingPolicyAlarm>({
@@ -69,7 +69,7 @@ export const TargetTrackingChart = ({
   }, [config]);
 
   const onChartLoaded = (stats: ICloudMetricStatistics) => {
-    if (unit) {
+    if (updateUnit) {
       updateUnit(stats.unit);
     }
     alarmUpdated?.next();

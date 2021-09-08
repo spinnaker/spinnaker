@@ -4,6 +4,7 @@ import {
   AlarmStatisticType,
   IScalingPolicy,
   IStepAdjustment,
+  ITargetTrackingConfiguration,
   MetricAggregationType,
   ScalingPolicyAdjustmentType,
   StandardUnitType,
@@ -21,6 +22,11 @@ export interface IUpsertScalingPolicyCommand extends IJob {
   alarm?: IUpsertAlarmDescription;
   simple?: ISimplePolicyDescription;
   step?: IStepPolicyDescription;
+}
+
+export interface ITargetTrackingPolicyCommand extends IUpsertScalingPolicyCommand {
+  estimatedInstanceWarmup: number;
+  targetTrackingConfiguration: ITargetTrackingConfiguration;
 }
 
 export interface ISimplePolicyDescription {

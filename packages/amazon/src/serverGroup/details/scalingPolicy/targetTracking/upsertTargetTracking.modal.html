@@ -7,79 +7,17 @@
   <div class="modal-body">
     <form name="form" novalidate>
       <h4 class="section-heading">Target Metric</h4>
-      <div class="section-body">
-        <p>
-          With target tracking policies, Amazon will automatically adjust the size of your ASG to keep the selected
-          metric as close as possible to the selected value.
-        </p>
-        <div class="row" style="margin-bottom: 10px">
-          <div class="col-md-2 sm-label-right">Metric</div>
-          <div class="col-md-10 content-fields">
-            <div ng-if="$ctrl.state.metricType === 'predefined'">
-              <select
-                class="input input-sm"
-                ng-model="$ctrl.command.targetTrackingConfiguration.predefinedMetricSpecification.predefinedMetricType"
-                ng-change="$ctrl.alarmUpdated.next()"
-                ng-options="option for option in $ctrl.predefinedMetrics"
-              ></select>
-              <div>
-                <a href ng-click="$ctrl.toggleMetricType()">Select a custom metric</a>
-              </div>
-            </div>
-
-            <div ng-if="$ctrl.state.metricType === 'custom'">
-              <metric-selector
-                alarm="$ctrl.command.targetTrackingConfiguration.customizedMetricSpecification"
-                server-group="$ctrl.serverGroup"
-                update-alarm="$ctrl.alarmChanged"
-              ></metric-selector>
-              <div>
-                <a href ng-click="$ctrl.toggleMetricType()">Use a predefined metric</a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="row" style="margin-bottom: 10px">
-          <div class="col-md-2 sm-label-right">Target</div>
-          <div class="col-md-10 content-fields">
-            <div ng-if="$ctrl.state.metricType === 'custom'" style="display: inline-block">
-              <select
-                class="form-control input-sm"
-                required
-                ng-model="$ctrl.command.targetTrackingConfiguration.customizedMetricSpecification.statistic"
-                ng-change="$ctrl.alarmUpdated.next()"
-                ng-options="stat for stat in $ctrl.statistics"
-              ></select>
-              <span class="input-label" style="vertical-align: top; margin-top: 7px"> of </span>
-            </div>
-            <div style="display: inline-block">
-              <input
-                type="number"
-                class="form-control input-sm"
-                style="width: 100px"
-                ng-change="$ctrl.alarmUpdated.next()"
-                ng-model="$ctrl.command.targetTrackingConfiguration.targetValue"
-              />
-              <span class="input-label" ng-bind="$ctrl.state.unit"></span>
-            </div>
-          </div>
-        </div>
-
-        <div class="row">
-          <div class="col-md-10 col-md-offset-1">
-            <div>
-              <target-tracking-chart
-                config="$ctrl.command.targetTrackingConfiguration"
-                alarm-updated="$ctrl.alarmUpdated"
-                server-group="$ctrl.serverGroup"
-                unit="$ctrl.state.unit"
-                update-unit="$ctrl.updateUnit"
-              ></target-tracking-chart>
-            </div>
-          </div>
-        </div>
-      </div>
+      <target-metric-fields
+        allow-dual-mode="true"
+        cloudwatch="false"
+        command="$ctrl.command"
+        is-custom-metric="$ctrl.state.metricType === 'custom'"
+        server-group="$ctrl.serverGroup"
+        toggle-metric-type="$ctrl.metricTypeChanged"
+        unit="$ctrl.state.unit"
+        update-command="$ctrl.commandChanged"
+        update-unit="$ctrl.updateUnit"
+      ></target-metric-fields>
       <h4 class="section-heading">Additional Settings</h4>
       <div class="section-body section-additional-settings">
         <div class="row" ng-if="$ctrl.policy.policyName">

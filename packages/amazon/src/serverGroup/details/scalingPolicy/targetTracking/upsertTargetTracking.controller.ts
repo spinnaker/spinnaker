@@ -1,4 +1,4 @@
-import { IComponentController } from 'angular';
+import { IComponentController, IScope } from 'angular';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
 import { cloneDeep } from 'lodash';
 import { Subject } from 'rxjs';
@@ -34,12 +34,13 @@ export class UpsertTargetTrackingController implements IComponentController {
   public state: ITargetTrackingState;
   public command: ITargetTrackingPolicyCommand;
 
-  public static $inject = ['$uibModalInstance', 'policy', 'serverGroup', 'application'];
+  public static $inject = ['$uibModalInstance', 'policy', 'serverGroup', 'application', '$scope'];
   constructor(
     private $uibModalInstance: IModalServiceInstance,
     public policy: ITargetTrackingPolicy,
     public serverGroup: IServerGroup,
     public application: Application,
+    private $scope: IScope,
   ) {}
 
   public $onInit() {
@@ -52,7 +53,11 @@ export class UpsertTargetTrackingController implements IComponentController {
     };
   }
 
-  public toggleMetricType(): void {
+  public metricTypeChanged = (type: MetricType) => {
+    this.state.metricType = type;
+  };
+
+  public toggleMetricType = (): void => {
     const config = this.command.targetTrackingConfiguration;
     if (this.state.metricType === 'predefined') {
       config.predefinedMetricSpecification = null;
@@ -70,7 +75,7 @@ export class UpsertTargetTrackingController implements IComponentController {
       };
       this.state.metricType = 'predefined';
     }
-  }
+  };
 
   public updateUnit = (unit: string) => {
     this.state.unit = unit;
@@ -83,6 +88,12 @@ export class UpsertTargetTrackingController implements IComponentController {
   public alarmChanged = (newAlarm: ICustomizedMetricSpecification) => {
     this.command.targetTrackingConfiguration.customizedMetricSpecification = newAlarm;
     this.alarmUpdated.next();
+  };
+
+  public commandChanged = (updatedCommand: ITargetTrackingPolicyCommand) => {
+    this.$scope.$applyAsync(() => {
+      this.command = updatedCommand;
+    });
   };
 
   public cancel(): void {
