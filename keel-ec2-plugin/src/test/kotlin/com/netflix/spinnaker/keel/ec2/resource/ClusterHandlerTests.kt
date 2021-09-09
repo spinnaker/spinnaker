@@ -104,7 +104,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
   )
 
   val clusterExportHelper = mockk<ClusterExportHelper>(relaxed = true)
-  val blockDeviceConfig = BlockDeviceConfig(VolumeDefaultConfiguration())
+  val blockDeviceConfig = BlockDeviceConfig(springEnv, VolumeDefaultConfiguration())
   val artifactService = mockk<ArtifactService>()
 
   val vpcWest = Network(EC2_CLOUD_PROVIDER, "vpc-1452353", "vpc0", "test", "us-west-2")
@@ -271,6 +271,14 @@ internal class ClusterHandlerTests : JUnit5Minutests {
       every {
         springEnv.getProperty("keel.notifications.slack", Boolean::class.java, true)
       } returns false
+
+      every {
+        springEnv.getProperty("keel.plugins.ec2.volumes.application-overrides.keel.volume-type", String::class.java)
+      } returns null
+
+      every {
+        springEnv.getProperty("keel.plugins.ec2.volumes.account-overrides.test.volume-type", String::class.java)
+      } returns null
     }
 
     after {
@@ -1069,30 +1077,49 @@ internal class ClusterHandlerTests : JUnit5Minutests {
             current = emptyMap()
           )
 
-        test("supported instance type for setting EBS volume type") {
-          val slot = slot<OrchestrationRequest>()
-          every {
-            orcaService.orchestrate(
-              resource.serviceAccount,
-              capture(slot)
-            )
-          } answers { TaskRefResponse(ULID().nextULID()) }
+        listOf(
+          mapOf("applicationOverride" to "gp3", "expectedVolumeType" to "gp3"),
+          mapOf("accountOverride" to "gp3", "expectedVolumeType" to "gp3"),
+          mapOf("applicationOverride" to "gp3", "accountOverride" to "gp1", "expectedVolumeType" to "gp3"),
+          mapOf("expectedVolumeType" to "gp2")
+        ).forEach { input ->
+          test("supported instance type for setting EBS volume type ($input)") {
+            val applicationOverride = input["applicationOverride"]
+            val accountOverride = input["accountOverride"]
+            val expectedVolumeType = input["expectedVolumeType"]
 
-          val instanceType = "m5.large"
-          runBlocking {
-            upsert(resource, diff(instanceType))
-          }
+            val slot = slot<OrchestrationRequest>()
+            every {
+              orcaService.orchestrate(
+                resource.serviceAccount,
+                capture(slot)
+              )
+            } answers { TaskRefResponse(ULID().nextULID()) }
 
-          expectThat(slot.captured.job.first()) {
-            get("type").isEqualTo("createServerGroup")
-            get("blockDevices")
-              .isNotNull()
-              .isA<List<Map<String, Any>>>()
-              .hasSize(1)
-              .all {
-                get("volumeType").isEqualTo("gp2")
-                get("size").isEqualTo(40)
-              }
+            every {
+              springEnv.getProperty("keel.plugins.ec2.volumes.application-overrides.keel.volume-type", String::class.java)
+            } returns applicationOverride
+
+            every {
+              springEnv.getProperty("keel.plugins.ec2.volumes.account-overrides.test.volume-type", String::class.java)
+            } returns accountOverride
+
+            val instanceType = "m5.large"
+            runBlocking {
+              upsert(resource, diff(instanceType))
+            }
+
+            expectThat(slot.captured.job.first()) {
+              get("type").isEqualTo("createServerGroup")
+              get("blockDevices")
+                .isNotNull()
+                .isA<List<Map<String, Any>>>()
+                .hasSize(1)
+                .all {
+                  get("volumeType").isEqualTo(expectedVolumeType)
+                  get("size").isEqualTo(40)
+                }
+            }
           }
         }
 

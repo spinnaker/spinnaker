@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.ec2.resource
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.core.env.Environment
 import org.springframework.stereotype.Component
 
 
@@ -29,19 +30,19 @@ data class BlockDevice(
 @Component
 @EnableConfigurationProperties(VolumeDefaultConfiguration::class)
 class BlockDeviceConfig(
+  private val environment: Environment,
   private val config : VolumeDefaultConfiguration
 )
  {
-
   /**
    * Get the list of block devices for this instance type
    * For instance types unsupported by this class, keel doesn't pass EBS config info, which results in falling back to
    * clouddriver's defaults
    */
-  fun getBlockDevicesFor(instanceType: String): List<BlockDevice>? =
+  fun getBlockDevicesFor(account: String, application: String, instanceType: String): List<BlockDevice>? =
     volumeSizeGb(instanceType)?.let { size ->
       listOf(
-        BlockDevice(volumeType=config.volumeType,
+        BlockDevice(volumeType=getVolumeType(account, application, config.volumeType),
           deviceName=config.deviceName,
           size=size,
           deleteOnTermination=config.deleteOnTermination)
@@ -192,4 +193,21 @@ class BlockDeviceConfig(
 
       else -> null
     }
+
+   /**
+    * Determine an appropriate volume type for the given [account] and [application].
+    *
+    * In terms of precedence, Application > Account > Default.
+    */
+   private fun getVolumeType(account: String, application: String, defaultVolumeType: String): String {
+     val applicationOverride = environment.getProperty(
+       "keel.plugins.ec2.volumes.application-overrides.$application.volume-type", String::class.java
+     )
+
+     val accountOverride = environment.getProperty(
+       "keel.plugins.ec2.volumes.account-overrides.$account.volume-type", String::class.java
+     )
+
+     return applicationOverride ?: accountOverride ?: defaultVolumeType
+   }
 }

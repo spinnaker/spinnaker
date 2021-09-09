@@ -741,7 +741,11 @@ class ClusterHandler(
           }
 
         // pass block device info so that keel can specify the volume type
-        blockDeviceConfig.getBlockDevicesFor(desired.launchConfiguration.instanceType)?.let { blockDevices ->
+        blockDeviceConfig.getBlockDevicesFor(
+          desired.location.account,
+          desired.moniker.app,
+          desired.launchConfiguration.instanceType
+        )?.let { blockDevices ->
           job["blockDevices"] = blockDevices.map {
             mapOf(
               "deviceName" to it.deviceName,
