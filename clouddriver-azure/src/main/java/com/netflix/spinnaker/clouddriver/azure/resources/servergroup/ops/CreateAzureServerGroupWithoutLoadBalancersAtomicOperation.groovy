@@ -71,6 +71,8 @@ class CreateAzureServerGroupWithoutLoadBalancersAtomicOperation implements Atomi
       }
 
       resourceGroupName = AzureUtilities.getResourceGroupName(description.application, description.region)
+      // Create corresponding ResourceGroup if it's not created already
+      description.credentials.resourceManagerClient.initializeResourceGroupAndVNet(resourceGroupName, null, description.region)
 
       virtualNetworkName = description.vnet
 
