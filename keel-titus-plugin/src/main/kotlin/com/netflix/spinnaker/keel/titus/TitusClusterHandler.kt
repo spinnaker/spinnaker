@@ -640,6 +640,7 @@ class TitusClusterHandler(
           "desired" to capacity.desired
         ),
         "targetHealthyDeployPercentage" to 100, // TODO: any reason to do otherwise?
+        "useDefaultIamRole" to true,
         // <titus things>
         "capacityGroup" to capacityGroup,
         "entryPoint" to entryPoint,
