@@ -3,7 +3,6 @@ package com.netflix.spinnaker.config
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.fiat.shared.EnableFiatAutoConfig
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.keel.api.plugins.PostDeployActionHandler
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
@@ -33,7 +32,6 @@ import java.time.Clock
 
 private const val IPC_SERVER_METRIC = "controller.invocations"
 
-@EnableFiatAutoConfig
 @Configuration
 class DefaultConfiguration(
   val spectatorRegistry: Registry
