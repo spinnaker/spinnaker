@@ -59,18 +59,20 @@ const helpContents: { [key: string]: string } = {
     '(Optional) <b>Detail</b> is a string of free-form alphanumeric characters and hyphens to describe any other variables.',
   'aws.serverGroup.imageName':
     '(Required) <b>Image</b> is the deployable Amazon Machine Image. Images are restricted to the account and region selected.',
+  'aws.serverGroup.storageType': `AWS offers various storage options like temporary block-level storage via instance store (SSD, HDD) and Amazon Elastic Block Store (EBS). This column lists the storage type supported for the instance type.`,
+  'aws.serverGroup.instancesDistribution': `Learn more in <a target="_blank" href="https://docs.aws.amazon.com/autoscaling/ec2/userguide/asg-purchase-options.html">AWS docs</a>.`,
   'aws.serverGroup.spotMaxPrice':
-    'The maximum price per unit hour to pay for a Spot instance. By default (empty), Amazon EC2 Auto Scaling uses the On-Demand price as the maximum Spot price',
+    'The maximum price per unit hour to pay for a Spot instance. By <b>default (empty)</b>, Amazon EC2 Auto Scaling uses the On-Demand price as the maximum Spot price.',
   'aws.serverGroup.spotAllocationStrategy': `<p>Indicates how to allocate instances across Spot Instance pools.</p>
       <ul>
         <li><b>capacity-optimized (recommended)</b>: Instances launched using Spot pools that are optimally chosen based on the available Spot capacity.</li>
         <li><b>capacity-optimized-prioritized</b>: Instances launched using the priority on a best-effort basis to determine which launch template override to use first, but AWS optimizes for capacity first.</li>
-        <li><b>lowest-price</b>: Instances launched using Spot pools with the lowest price, and evenly allocated across the number of Spot pools specified</li>
+        <li><b>lowest-price (default)</b>: Instances launched using Spot pools with the lowest price, and evenly allocated across the number of Spot pools specified</li>
       </ul>`,
-  'aws.serverGroup.spotInstancePoolCount': `Number of lowest priced Spot Instance pools to diversify across. Only applicable for strategy 'lowest-price'.`,
-  'aws.serverGroup.odAllocationStrategy': `The only strategy / default is 'prioritized'. The order of instance types in the list of launch template overrides is used to determine which instance type to use first when fulfilling On-Demand capacity.`,
-  'aws.serverGroup.odBase': `Minimum amount of the Auto Scaling Group's capacity that must be fulfilled by On-Demand Instances. This base portion is provisioned first as the group scales.`,
-  'aws.serverGroup.odPercentAboveBase': `Percentages of On-Demand and Spot instances for additional capacity beyond OnDemandBaseCapacity.`,
+  'aws.serverGroup.spotInstancePoolCount': `Number of lowest priced Spot Instance pools to diversify across. Only applicable for strategy 'lowest-price'. <b>Default: 2.</b>`,
+  'aws.serverGroup.odAllocationStrategy': `The only strategy / <b>default is 'prioritized'</b>. The order specified in the list of selected instance types is used to determine which instance type to use first when fulfilling On-Demand capacity.`,
+  'aws.serverGroup.odBase': `Minimum amount of the Auto Scaling Group's capacity that must be fulfilled by On-Demand Instances. This base portion is provisioned first as the group scales. <b>Default: 0.</b>`,
+  'aws.serverGroup.odPercentAboveBase': `Percentages of On-Demand and Spot instances for additional capacity beyond OnDemandBaseCapacity.<b>Default: 100.</b>`,
   'aws.serverGroup.instanceTypeWeight': `The number of capacity units gives the instance type a proportional weight to other instance types. When specified, weights count towards desired capacity.`,
   'aws.serverGroup.instanceTypes': `Specify up to 20 instance types.`,
   'aws.serverGroup.multipleInstanceTypes': `Instance types a server group can launch, first (highest priority) to last (lowest priority).`,
@@ -82,6 +84,7 @@ const helpContents: { [key: string]: string } = {
             To burst above the baseline, the instance spends credits that it has accrued in its CPU credit balance.</li>
       </ul>`,
   'aws.serverGroup.capacityRebalance': `Enabling <b>Capacity Rebalance</b> allows EC2 Auto Scaling to proactively replace Spot Instances that have received a rebalance recommendation, <b>before</b> it is interrupted by AWS EC2.`,
+  'aws.serverGroup.advancedMode': `Advanced mode allows you to configure allocation strategies, multiple instance types with weighting, instance distribution across Spot / On-Demand and their proportions in the server group. Learn more in <a target="_blank" href="https://docs.aws.amazon.com/autoscaling/ec2/userguide/asg-purchase-options.html">AWS docs</a>.`,
   'aws.serverGroup.legacyUdf': `<p>(Optional) <b>User Data Format</b> allows overriding of the format used when generating user data during deployment. The default format used is configured
       in the application's attributes, editable via the 'Config' tab.</p>
       <p><b>Default</b> will use the value from the application's configuration.</p>
