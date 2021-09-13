@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.fiat.permissions;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
@@ -29,6 +29,7 @@ import com.netflix.spinnaker.kork.exceptions.IntegrationException;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import io.github.resilience4j.retry.RetryRegistry;
+import java.io.IOException;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -39,9 +40,8 @@ import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import redis.clients.jedis.Response;
-import redis.clients.jedis.ScanParams;
-import redis.clients.jedis.ScanResult;
+import net.jpountz.lz4.*;
+import redis.clients.jedis.*;
 import redis.clients.jedis.commands.BinaryJedisCommands;
 import redis.clients.jedis.util.SafeEncoder;
 
@@ -64,6 +64,7 @@ public class RedisPermissionsRepository implements PermissionsRepository {
   private static final String REDIS_READ_RETRY = "permissionsRepositoryRedisRead";
 
   private static final String KEY_PERMISSIONS = "permissions";
+  private static final String KEY_PERMISSIONS_V2 = "permissions-v2";
   private static final String KEY_ROLES = "roles";
   private static final String KEY_ALL_USERS = "users";
   private static final String KEY_ADMIN = "admin";
@@ -79,6 +80,8 @@ public class RedisPermissionsRepository implements PermissionsRepository {
   private final RedisPermissionRepositoryConfigProps configProps;
   private final RetryRegistry retryRegistry;
   private final AtomicReference<String> fallbackLastModified = new AtomicReference<>(null);
+  private final LZ4CompressorWithLength lz4Compressor;
+  private final LZ4DecompressorWithLength lz4Decompressor;
 
   private final LoadingCache<String, UserPermission> unrestrictedPermission =
       Caffeine.newBuilder()
@@ -103,6 +106,10 @@ public class RedisPermissionsRepository implements PermissionsRepository {
     this.prefix = configProps.getPrefix();
     this.resources = resources;
     this.retryRegistry = retryRegistry;
+
+    LZ4Factory factory = LZ4Factory.fastestInstance();
+    this.lz4Compressor = new LZ4CompressorWithLength(factory.fastCompressor());
+    this.lz4Decompressor = new LZ4DecompressorWithLength(factory.fastDecompressor());
 
     this.allUsersKey = SafeEncoder.encode(String.format("%s:%s", prefix, KEY_ALL_USERS));
     this.adminKey =
@@ -144,13 +151,12 @@ public class RedisPermissionsRepository implements PermissionsRepository {
   private UserPermission getUnrestrictedUserPermission() {
     String serverLastModified = NO_LAST_MODIFIED;
     byte[] bServerLastModified =
-        (byte[])
-            redisRead(
-                new TimeoutContext(
-                    "checkLastModified",
-                    clock,
-                    configProps.getRepository().getCheckLastModifiedTimeout()),
-                c -> c.get(SafeEncoder.encode(unrestrictedLastModifiedKey())));
+        redisRead(
+            new TimeoutContext(
+                "checkLastModified",
+                clock,
+                configProps.getRepository().getCheckLastModifiedTimeout()),
+            c -> c.get(SafeEncoder.encode(unrestrictedLastModifiedKey())));
     if (bServerLastModified == null || bServerLastModified.length == 0) {
       log.debug(
           "no last modified time available in redis for user {} using default of {}",
@@ -189,78 +195,79 @@ public class RedisPermissionsRepository implements PermissionsRepository {
     }
   }
 
+  private static class PutUpdateData {
+    public byte[] userResourceKey;
+    public byte[] compressedData;
+  }
+
   @Override
   public RedisPermissionsRepository put(@NonNull UserPermission permission) {
-    val resourceTypes =
+    String userId = permission.getId();
+    byte[] bUserId = SafeEncoder.encode(userId);
+    List<ResourceType> resourceTypes =
         resources.stream().map(Resource::getResourceType).collect(Collectors.toList());
-    Map<ResourceType, Map<byte[], byte[]>> resourceTypeToRedisValue =
+    Map<ResourceType, Map<String, Resource>> resourceTypeToRedisValue =
         new HashMap<>(resourceTypes.size());
 
     permission
         .getAllResources()
         .forEach(
             resource -> {
-              try {
-                resourceTypeToRedisValue
-                    .computeIfAbsent(resource.getResourceType(), key -> new HashMap<>())
-                    .put(
-                        SafeEncoder.encode(resource.getName()),
-                        objectMapper.writeValueAsBytes(resource));
-              } catch (JsonProcessingException jpe) {
-                log.error("Serialization exception writing {} entry.", permission.getId(), jpe);
-              }
+              resourceTypeToRedisValue
+                  .computeIfAbsent(resource.getResourceType(), key -> new HashMap<>())
+                  .put(resource.getName(), resource);
             });
 
     try {
-      Set<Role> existingRoles =
-          redisClientDelegate.withCommandsClient(
-              client -> {
-                return client
-                    .hgetAll(userKey(permission.getId(), ResourceType.ROLE))
-                    .values()
-                    .stream()
-                    .map(
-                        (ThrowingFunction<String, Role>)
-                            serialized -> objectMapper.readValue(serialized, Role.class))
-                    .collect(Collectors.toSet());
-              });
+      Set<Role> existingRoles = new HashSet<>(getUserRoleMapFromRedis(userId).values());
+
+      // These updates are pre-prepared to reduce work done during the multi-key pipeline
+      List<PutUpdateData> updateData = new ArrayList<>();
+      for (ResourceType rt : resourceTypes) {
+        Map<String, Resource> redisValue = resourceTypeToRedisValue.get(rt);
+        byte[] userResourceKey = userKey(userId, rt);
+        PutUpdateData pud = new PutUpdateData();
+        pud.userResourceKey = userResourceKey;
+
+        if (redisValue == null || redisValue.size() == 0) {
+          pud.compressedData = null;
+        } else {
+          pud.compressedData = lz4Compressor.compress(objectMapper.writeValueAsBytes(redisValue));
+        }
+
+        updateData.add(pud);
+      }
 
       AtomicReference<Response<List<String>>> serverTime = new AtomicReference<>();
       redisClientDelegate.withMultiKeyPipeline(
           pipeline -> {
-            String userId = permission.getId();
             if (permission.isAdmin()) {
-              pipeline.sadd(adminKey, SafeEncoder.encode(userId));
+              pipeline.sadd(adminKey, bUserId);
             } else {
-              pipeline.srem(adminKey, SafeEncoder.encode(userId));
+              pipeline.srem(adminKey, bUserId);
             }
 
-            permission.getRoles().forEach(role -> pipeline.sadd(roleKey(role), userId));
+            permission.getRoles().forEach(role -> pipeline.sadd(roleKey(role), bUserId));
             existingRoles.stream()
                 .filter(it -> !permission.getRoles().contains(it))
-                .forEach(role -> pipeline.srem(roleKey(role), userId));
+                .forEach(role -> pipeline.srem(roleKey(role), bUserId));
 
-            resources.stream()
-                .map(Resource::getResourceType)
-                .forEach(
-                    r -> {
-                      String userResourceKey = userKey(userId, r);
-                      Map<byte[], byte[]> redisValue = resourceTypeToRedisValue.get(r);
-                      String tempKey = UUID.randomUUID().toString();
-                      if (redisValue != null && !redisValue.isEmpty()) {
-                        pipeline.hmset(SafeEncoder.encode(tempKey), redisValue);
-                        pipeline.rename(tempKey, userResourceKey);
-                      } else {
-                        pipeline.del(userResourceKey);
-                      }
-                    });
+            for (PutUpdateData pud : updateData) {
+              if (pud.compressedData == null) {
+                pipeline.del(pud.userResourceKey);
+              } else {
+                byte[] tempKey = SafeEncoder.encode(UUID.randomUUID().toString());
+                pipeline.set(tempKey, pud.compressedData);
+                pipeline.rename(tempKey, pud.userResourceKey);
+              }
+            }
 
             serverTime.set(pipeline.time());
-            pipeline.sadd(allUsersKey, SafeEncoder.encode(userId));
+            pipeline.sadd(allUsersKey, bUserId);
 
             pipeline.sync();
           });
-      if (UNRESTRICTED.equals(permission.getId())) {
+      if (UNRESTRICTED.equals(userId)) {
         String lastModified = serverTime.get().get().get(0);
         redisClientDelegate.withCommandsClient(
             c -> {
@@ -269,7 +276,7 @@ public class RedisPermissionsRepository implements PermissionsRepository {
             });
       }
     } catch (Exception e) {
-      log.error("Storage exception writing {} entry.", permission.getId(), e);
+      log.error("Storage exception writing {} entry.", userId, e);
     }
     return this;
   }
@@ -293,6 +300,52 @@ public class RedisPermissionsRepository implements PermissionsRepository {
     return getFromRedis(id);
   }
 
+  private byte[] getUserResourceBytesFromRedis(String id, ResourceType resourceType) {
+    TimeoutContext timeoutContext =
+        new TimeoutContext(
+            String.format("get user resource from redis: %s (%s)", id, resourceType),
+            clock,
+            configProps.getRepository().getGetUserResourceTimeout());
+    byte[] key = userKey(id, resourceType);
+
+    byte[] compressedData =
+        redisRead(timeoutContext, (ThrowingFunction<BinaryJedisCommands, byte[]>) c -> c.get(key));
+
+    if (compressedData == null || compressedData.length == 0) {
+      return null;
+    }
+
+    return lz4Decompressor.decompress(compressedData);
+  }
+
+  private Map<String, Resource> getUserResourceMapFromRedis(String id, ResourceType resourceType)
+      throws IOException {
+    byte[] redisData = getUserResourceBytesFromRedis(id, resourceType);
+
+    if (redisData == null) {
+      return new HashMap<>();
+    }
+
+    Class<? extends Resource> modelClazz =
+        resources.stream()
+            .filter(resource -> resource.getResourceType().equals(resourceType))
+            .findFirst()
+            .orElseThrow(IllegalArgumentException::new)
+            .getClass();
+
+    return objectMapper.readerForMapOf(modelClazz).readValue(redisData);
+  }
+
+  private Map<String, Role> getUserRoleMapFromRedis(String id) throws IOException {
+    byte[] redisData = getUserResourceBytesFromRedis(id, ResourceType.ROLE);
+
+    if (redisData == null) {
+      return new HashMap<>();
+    }
+
+    return objectMapper.readValue(redisData, new TypeReference<>() {});
+  }
+
   private Optional<UserPermission> getFromRedis(@NonNull String id) {
     try {
       TimeoutContext timeoutContext =
@@ -308,13 +361,16 @@ public class RedisPermissionsRepository implements PermissionsRepository {
         return Optional.empty();
       }
       UserPermission userPermission = new UserPermission().setId(id);
-      resources.forEach(
-          r -> {
-            ResourceType resourceType = r.getResourceType();
-            String userKey = userKey(id, resourceType);
-            Map<byte[], byte[]> resourcePermissions = hgetall(timeoutContext, userKey);
-            userPermission.addResources(extractResources(resourceType, resourcePermissions));
-          });
+
+      for (Resource r : resources) {
+        ResourceType resourceType = r.getResourceType();
+        Map<String, Resource> resourcePermissions = getUserResourceMapFromRedis(id, resourceType);
+
+        if (resourcePermissions != null && !resourcePermissions.isEmpty()) {
+          userPermission.addResources(resourcePermissions.values());
+        }
+      }
+
       if (!UNRESTRICTED.equals(id)) {
         userPermission.setAdmin(
             redisRead(timeoutContext, c -> c.sismember(adminKey, SafeEncoder.encode(id))));
@@ -334,9 +390,7 @@ public class RedisPermissionsRepository implements PermissionsRepository {
   @Override
   public Map<String, UserPermission> getAllById() {
     Set<String> allUsers =
-        scanSet(SafeEncoder.encode(allUsersKey)).stream()
-            .map(String::toLowerCase)
-            .collect(Collectors.toSet());
+        scanSet(allUsersKey).stream().map(String::toLowerCase).collect(Collectors.toSet());
 
     if (allUsers.isEmpty()) {
       return new HashMap<>(0);
@@ -380,21 +434,16 @@ public class RedisPermissionsRepository implements PermissionsRepository {
   @Override
   public void remove(@NonNull String id) {
     try {
-      Map<String, String> userRolesById =
-          redisClientDelegate.withCommandsClient(
-              jedis -> {
-                return jedis.hgetAll(userKey(id, ResourceType.ROLE));
-              });
+      Map<String, Role> userRolesById = getUserRoleMapFromRedis(id);
+      byte[] bId = SafeEncoder.encode(id);
 
       redisClientDelegate.withMultiKeyPipeline(
           p -> {
-            p.srem(allUsersKey, SafeEncoder.encode(id));
-            for (String roleName : userRolesById.keySet()) {
-              p.srem(roleKey(roleName), id);
-            }
+            p.srem(allUsersKey, bId);
+            userRolesById.keySet().forEach(roleName -> p.srem(roleKey(roleName), bId));
 
             resources.stream().map(Resource::getResourceType).forEach(r -> p.del(userKey(id, r)));
-            p.srem(adminKey, SafeEncoder.encode(id));
+            p.srem(adminKey, bId);
             p.sync();
           });
     } catch (Exception e) {
@@ -402,35 +451,34 @@ public class RedisPermissionsRepository implements PermissionsRepository {
     }
   }
 
-  private Set<String> scanSet(String key) {
+  private Set<String> scanSet(byte[] key) {
     final Set<String> results = new HashSet<>();
-    final AtomicReference<String> cursor = new AtomicReference<>(ScanParams.SCAN_POINTER_START);
+    final AtomicReference<byte[]> cursor =
+        new AtomicReference<>(ScanParams.SCAN_POINTER_START_BINARY);
     do {
-      final ScanResult<String> result =
-          redisClientDelegate.withCommandsClient(
+      final ScanResult<byte[]> result =
+          redisClientDelegate.withBinaryClient(
               jedis -> {
                 return jedis.sscan(key, cursor.get());
               });
-      results.addAll(result.getResult());
-      cursor.set(result.getCursor());
-    } while (!"0".equals(cursor.get()));
+      results.addAll(
+          result.getResult().stream().map(SafeEncoder::encode).collect(Collectors.toList()));
+      cursor.set(result.getCursorAsBytes());
+    } while (!Arrays.equals(cursor.get(), ScanParams.SCAN_POINTER_START_BINARY));
     return results;
   }
 
-  private Set<String> getAllAdmins() {
-    return scanSet(SafeEncoder.encode(adminKey));
+  private byte[] userKey(String userId, ResourceType r) {
+    return SafeEncoder.encode(
+        String.format("%s:%s:%s:%s", prefix, KEY_PERMISSIONS_V2, userId, r.keySuffix()));
   }
 
-  private String userKey(String userId, ResourceType r) {
-    return String.format("%s:%s:%s:%s", prefix, KEY_PERMISSIONS, userId, r.keySuffix());
-  }
-
-  private String roleKey(Role role) {
+  private byte[] roleKey(Role role) {
     return roleKey(role.getName());
   }
 
-  private String roleKey(String role) {
-    return String.format("%s:%s:%s", prefix, KEY_ROLES, role);
+  private byte[] roleKey(String role) {
+    return SafeEncoder.encode(String.format("%s:%s:%s", prefix, KEY_ROLES, role));
   }
 
   private String lastModifiedKey(String userId) {
@@ -439,20 +487,6 @@ public class RedisPermissionsRepository implements PermissionsRepository {
 
   private String unrestrictedLastModifiedKey() {
     return lastModifiedKey(UNRESTRICTED);
-  }
-
-  private Set<Resource> extractResources(ResourceType r, Map<byte[], byte[]> resourceMap) {
-    val modelClazz =
-        resources.stream()
-            .filter(resource -> resource.getResourceType().equals(r))
-            .findFirst()
-            .orElseThrow(IllegalArgumentException::new)
-            .getClass();
-    return resourceMap.values().stream()
-        .map(
-            (ThrowingFunction<byte[], ? extends Resource>)
-                serialized -> objectMapper.readValue(serialized, modelClazz))
-        .collect(Collectors.toSet());
   }
 
   /** Used to swallow checked exceptions from Jackson methods. */
@@ -520,18 +554,5 @@ public class RedisPermissionsRepository implements PermissionsRepository {
               }
               return redisClientDelegate.withBinaryClient(fn);
             });
-  }
-
-  private Map<byte[], byte[]> hgetall(TimeoutContext timeoutContext, String key) {
-    Map<byte[], byte[]> all = new HashMap<>();
-    byte[] cursor = ScanParams.SCAN_POINTER_START_BINARY;
-    do {
-      final byte[] thisCursor = cursor;
-      ScanResult<Map.Entry<byte[], byte[]>> result =
-          redisRead(timeoutContext, c -> c.hscan(SafeEncoder.encode(key), thisCursor));
-      result.getResult().forEach(e -> all.put(e.getKey(), e.getValue()));
-      cursor = result.getCursorAsBytes();
-    } while (!Arrays.equals(ScanParams.SCAN_POINTER_START_BINARY, cursor));
-    return all;
   }
 }
