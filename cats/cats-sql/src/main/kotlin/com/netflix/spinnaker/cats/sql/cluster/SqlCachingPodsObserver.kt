@@ -24,6 +24,7 @@ import com.netflix.spinnaker.cats.cluster.ShardingFilter
 import com.netflix.spinnaker.cats.sql.SqlUtil
 import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider
 import com.netflix.spinnaker.config.ConnectionPools
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.sql.routing.withPool
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
@@ -40,7 +41,7 @@ class SqlCachingPodsObserver (
   private val jooq: DSLContext,
   private val nodeIdentity: NodeIdentity,
   private val tableNamespace: String? = null,
-  private val liveReplicasRecheckIntervalSeconds : Long? = null,
+  private val dynamicConfigService : DynamicConfigService,
   private val liveReplicasScheduler: ScheduledExecutorService = Executors.newSingleThreadScheduledExecutor(
     ThreadFactoryBuilder().setNameFormat(SqlCachingPodsObserver::class.java.simpleName + "-%d").build()
   )
@@ -48,6 +49,8 @@ class SqlCachingPodsObserver (
   private val log = LoggerFactory.getLogger(javaClass)
   private var podCount: Int = 0
   private var podIndex: Int = -1
+  private var ttlSeconds = dynamicConfigService.getConfig(Long::class.java, "cache-sharding.replica-ttl-seconds", 60)
+
   companion object {
     private val POOL_NAME = ConnectionPools.CACHE_WRITER.value
     const val LAST_HEARTBEAT_TIME = "last_heartbeat_time"
@@ -66,8 +69,9 @@ class SqlCachingPodsObserver (
         SqlUtil.createTableLike(jooq, replicasTable, replicasReferenceTable)
       }
     }
-    refreshHeartbeat(TimeUnit.SECONDS.toMillis(60))
-    val recheckInterval = liveReplicasRecheckIntervalSeconds ?: 30L
+    refreshHeartbeat(TimeUnit.SECONDS.toMillis(ttlSeconds))
+    val recheckInterval =
+      dynamicConfigService.getConfig(Long::class.java, "cache-sharding.heartbeat-interval-seconds", 30)
     liveReplicasScheduler.scheduleAtFixedRate(this, 0, recheckInterval, TimeUnit.SECONDS)
     log.info("Account based sharding across caching pods is enabled.")
   }
