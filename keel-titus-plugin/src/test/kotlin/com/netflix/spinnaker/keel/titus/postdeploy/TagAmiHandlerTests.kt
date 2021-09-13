@@ -46,14 +46,16 @@ internal class TagAmiHandlerTests {
     )
 
     coEvery {
-        launcher.submitJob(
-          user=any(),
-          application=any(),
-          notifications = any(),
-          subject=any(),
-          description=any(),
-          correlationId=any(),
-          stages=any())
+      launcher.submitJob(
+        user = any(),
+        application = any(),
+        environmentName = any(),
+        resourceId = any(),
+        notifications = any(),
+        description = any(),
+        correlationId = any(),
+        stages = any()
+      )
     } returns mockk() {
       every { id } returns "01FAP29KG410CVJHKXTEW5CA20"
     }
@@ -64,13 +66,15 @@ internal class TagAmiHandlerTests {
 
     coVerify {
       launcher.submitJob(
-        user=any(),
-        application=any(),
+        user = any(),
+        application = any(),
+        environmentName = any(),
+        resourceId = any(),
         notifications = any(),
-        subject=any(),
-        description=any(),
-        correlationId=any(),
-        stages=any())
+        description = any(),
+        correlationId = any(),
+        stages = any()
+      )
     }
   }
 

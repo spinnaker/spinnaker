@@ -38,7 +38,6 @@ internal class ContainerRunnerTests {
   private val subject = ContainerRunner(taskLauncher, orca, spectator)
 
   private val imageId = "my/image:id"
-  private val subjectLine = "we are launching"
   private val description = "to the moon"
   private val serviceAccount = "me@rocket.launch"
   private val application = "rockettime"
@@ -57,7 +56,6 @@ internal class ContainerRunnerTests {
 
     expectCatching { subject.launchContainer(
       imageId = imageId,
-      subjectLine = subjectLine,
       description = description,
       serviceAccount = serviceAccount,
       application = application,
@@ -75,8 +73,9 @@ internal class ContainerRunnerTests {
         type = SubjectType.VERIFICATION,
         user = any(),
         application = any(),
+        environmentName = any(),
+        resourceId = any(),
         notifications = any(),
-        subject = any(),
         description = any(),
         correlationId = any(),
         stages = match {
@@ -181,8 +180,9 @@ internal class ContainerRunnerTests {
             type = any(),
             user = any(),
             application = any(),
+            environmentName = any(),
+            resourceId = any(),
             notifications = any(),
-            subject = any(),
             description = any(),
             correlationId = any(),
             stages = any()

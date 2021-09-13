@@ -204,6 +204,16 @@ jooq {
                 enumConverter = true
                 includeExpression = "RESOURCE_LAST_CHECKED.STATUS"
               }
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.api.TaskStatus"
+                enumConverter = true
+                includeExpression = "TASK_TRACKING.STATUS"
+              }
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.api.actuation.SubjectType"
+                enumConverter = true
+                includeExpression = "TASK_TRACKING.SUBJECT_TYPE"
+              }
             }
           }
           target {

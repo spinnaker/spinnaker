@@ -1,60 +1,58 @@
 package com.netflix.spinnaker.keel.persistence
 
+import com.netflix.spinnaker.keel.api.TaskStatus.SUCCEEDED
+import com.netflix.spinnaker.keel.api.actuation.SubjectType.RESOURCE
+import com.netflix.spinnaker.keel.test.randomString
 import com.netflix.spinnaker.time.MutableClock
-import dev.minutest.junit.JUnit5Minutests
-import dev.minutest.rootContext
-import java.time.Clock
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.first
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
+import java.time.Clock
 
-abstract class TaskTrackingRepositoryTests <T : TaskTrackingRepository> : JUnit5Minutests {
+abstract class TaskTrackingRepositoryTests<T : TaskTrackingRepository> {
 
   private val clock = MutableClock()
   abstract fun factory(clock: Clock): T
 
   open fun T.flush() {}
 
-  data class Fixture<T : TaskTrackingRepository>(
-    val subject: T
-  )
+  val subject by lazy { factory(clock) }
 
-  fun tests() = rootContext<Fixture<T>> {
-    fixture {
-      Fixture(subject = factory(clock))
-    }
+  val taskRecord1 = TaskRecord("123", "Upsert server group", RESOURCE, randomString(), randomString(), randomString())
+  val taskRecord2 = TaskRecord("456", "Bake", RESOURCE, randomString(), null, null)
 
-    after { subject.flush() }
+  @AfterEach
+  fun cleanup() {
+    subject.flush()
+  }
 
-    val taskRecord1 = TaskRecord("123", "Upsert server group", com.netflix.spinnaker.keel.test.randomString())
-    val taskRecord2 = TaskRecord("456", "Bake", com.netflix.spinnaker.keel.test.randomString())
+  @Test
+  fun `returns nothing if there are no in-progress tasks`() {
+    expectThat(subject.getIncompleteTasks()).isEmpty()
+  }
 
-    context("tasks can be stored and retrieved") {
-      test("store and get a single task") {
-        subject.store(taskRecord1)
-        expectThat(subject.getTasks().size).isEqualTo(1)
-        expectThat(subject.getTasks()).first().get {
-          id == taskRecord1.id
-        }
-      }
+  @Test
+  fun `in-progress tasks are returned`() {
+    subject.store(taskRecord1)
+    expectThat(subject.getIncompleteTasks().size).isEqualTo(1)
+    expectThat(subject.getIncompleteTasks()).first().get(TaskRecord::id).isEqualTo(taskRecord1.id)
+  }
 
-      test("store and get 2 tasks") {
-        subject.store(taskRecord2)
-        subject.store(taskRecord1)
-        expectThat(subject.getTasks().size).isEqualTo(2)
-      }
-    }
+  @Test
+  fun `multiple tasks may be returned`() {
+    subject.store(taskRecord2)
+    subject.store(taskRecord1)
+    expectThat(subject.getIncompleteTasks().size).isEqualTo(2)
+  }
 
-    test("no in-progress tasks") {
-      expectThat(subject.getTasks()).isEmpty()
-    }
-
-    test("store, get and delete task") {
-      subject.store(taskRecord1)
-      expectThat(subject.getTasks().size).isEqualTo(1)
-      subject.delete(taskRecord1.id)
-      expectThat(subject.getTasks()).isEmpty()
-    }
+  @Test
+  fun `completed tasks are not returned`() {
+    subject.store(taskRecord1)
+    expectThat(subject.getIncompleteTasks().size).isEqualTo(1)
+    subject.updateStatus(taskRecord1.id, SUCCEEDED)
+    expectThat(subject.getIncompleteTasks()).isEmpty()
   }
 }

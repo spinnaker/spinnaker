@@ -21,7 +21,7 @@ import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 import retrofit2.HttpException
 import java.time.Clock
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeUnit.MINUTES
 
 /**
  * This class monitors all tasks in flight.
@@ -40,7 +40,7 @@ class OrcaTaskMonitorAgent(
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  override val lockTimeoutSeconds = TimeUnit.MINUTES.toSeconds(1)
+  override val lockTimeoutSeconds = MINUTES.toSeconds(1)
 
   private val mapper = configuredObjectMapper()
 
@@ -54,37 +54,35 @@ class OrcaTaskMonitorAgent(
   // 3. For each completed task, will emit an event for success/failure and delete from the table
   override suspend fun invokeAgent() {
     coroutineScope {
-      taskTrackingRepository.getTasks()
-        .associate {
-          it.subject to
-            async {
-              try {
-                orcaService.getOrchestrationExecution(it.id, DEFAULT_SERVICE_ACCOUNT)
-              } catch (e: HttpException) {
-                when (e.isNotFound) {
-                  true -> {
-                    log.warn(
-                      "Exception ${e.message} has caught while calling orca to fetch status for execution id: ${it.id}" +
-                        " Possible reason: orca is saving info for 2000 tasks/app and this task is older."
-                    )
-                    // when we get not found exception from orca, we shouldn't try to get the status anymore
-                    taskTrackingRepository.delete(it.id)
-                  }
-                  else -> log.warn(
-                    "Exception ${e.message} has caught while calling orca to fetch status for execution id: ${it.id}" ,
-                    e
-                  )
-                }
-                null
+      taskTrackingRepository.getIncompleteTasks().associateWith {
+        async {
+          try {
+            orcaService.getOrchestrationExecution(it.id, DEFAULT_SERVICE_ACCOUNT)
+          } catch (e: HttpException) {
+            when (e.isNotFound) {
+              true -> {
+                log.warn(
+                  "Exception ${e.message} has caught while calling orca to fetch status for execution id: ${it.id}" +
+                    " Possible reason: orca is saving info for 2000 tasks/app and this task is older."
+                )
+                // when we get not found exception from orca, we shouldn't try to get the status anymore
+                taskTrackingRepository.delete(it.id)
               }
-            }.await()
-        }
+              else -> log.warn(
+                "Exception ${e.message} has caught while calling orca to fetch status for execution id: ${it.id}",
+                e
+              )
+            }
+            null
+          }
+        }.await()
+      }
         .filterValues { it != null && it.status.isComplete() }
-        .map { (resourceId, taskDetails) ->
+        .map { (task, taskDetails) ->
           if (taskDetails != null) {
             // only resource events are currently supported
-            if (resourceId.startsWith(RESOURCE.toString())) {
-              val id = resourceId.substringAfter(":")
+            if (task.subjectType == RESOURCE) {
+              val id = checkNotNull(task.resourceId)
               try {
                 when (taskDetails.status.isSuccess()) {
                   true -> publisher.publishEvent(
@@ -102,10 +100,10 @@ class OrcaTaskMonitorAgent(
                   )
                 }
               } catch (e: NoSuchResourceId) {
-                log.warn("No resource found for id $resourceId")
+                log.warn("No resource found for id $task")
               }
             }
-            taskTrackingRepository.delete(taskDetails.id)
+            taskTrackingRepository.updateStatus(task.id, taskDetails.status)
           }
         }
     }

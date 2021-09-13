@@ -2,21 +2,21 @@ package com.netflix.spinnaker.keel.titus.verification
 
 import com.netflix.spinnaker.config.GitLinkConfig
 import com.netflix.spinnaker.config.PromoteJarConfig
-import com.netflix.spinnaker.keel.titus.ContainerRunner
-import com.netflix.spinnaker.keel.api.Verification
-import com.netflix.spinnaker.keel.api.plugins.VerificationEvaluator
-import com.netflix.spinnaker.keel.api.titus.TestContainerVerification
 import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
 import com.netflix.spinnaker.keel.api.ComputeResourceSpec
 import com.netflix.spinnaker.keel.api.DependencyType.LOAD_BALANCER
 import com.netflix.spinnaker.keel.api.Dependent
 import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.action.ActionState
+import com.netflix.spinnaker.keel.api.plugins.VerificationEvaluator
+import com.netflix.spinnaker.keel.api.titus.TestContainerVerification
 import com.netflix.spinnaker.keel.network.NetworkEndpoint
 import com.netflix.spinnaker.keel.network.NetworkEndpointProvider
 import com.netflix.spinnaker.keel.network.NetworkEndpointType.EUREKA_CLUSTER_DNS
 import com.netflix.spinnaker.keel.network.NetworkEndpointType.EUREKA_VIP_DNS
 import com.netflix.spinnaker.keel.persistence.KeelRepository
+import com.netflix.spinnaker.keel.titus.ContainerRunner
 import com.netflix.spinnaker.keel.titus.postdeploy.repoUrl
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
@@ -76,7 +76,6 @@ class TestContainerVerificationEvaluator(
     return runBlocking {
       containerRunner.launchContainer(
         imageId = verification.imageId,
-        subjectLine = "container integration test for ${context.deliveryConfig.application}.${context.environmentName}",
         description = "Verifying ${context.version} in environment ${context.environmentName} with test container ${verification.imageId}",
         serviceAccount = context.deliveryConfig.serviceAccount,
         application = context.deliveryConfig.application,

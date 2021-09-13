@@ -123,14 +123,13 @@ internal class TestContainerVerificationEvaluatorTests {
     verify {
       containerRunner.launchContainer(
         imageId = any(),
-        subjectLine = any(),
         description = any(),
         serviceAccount = context.deliveryConfig.serviceAccount,
         application = any(),
-        containerApplication = any(),
         environmentName = context.environmentName,
         location = verification.location,
-        environmentVariables = capture(containerVars)
+        environmentVariables = capture(containerVars),
+        containerApplication = any()
       )
     }
     expectThat(containerVars.captured).containsKeys(
@@ -158,14 +157,13 @@ internal class TestContainerVerificationEvaluatorTests {
     verify {
       containerRunner.launchContainer(
         imageId = any(),
-        subjectLine = any(),
         description = any(),
         serviceAccount = any(),
         application = any(),
-        containerApplication = any(),
         environmentName = any(),
         location = any(),
-        environmentVariables = capture(containerVars)
+        environmentVariables = capture(containerVars),
+        containerApplication = any()
       )
     }
 
@@ -181,14 +179,13 @@ internal class TestContainerVerificationEvaluatorTests {
         imageId = match {
           it == expectedImageId
         },
-        subjectLine = any(),
         description = any(),
         serviceAccount = any(),
         application = any(),
-        containerApplication = any(),
         environmentName = any(),
         location = any(),
-        environmentVariables = any()
+        environmentVariables = any(),
+        containerApplication = any()
       )
     }
   }
@@ -216,16 +213,15 @@ internal class TestContainerVerificationEvaluatorTests {
     verify {
       containerRunner.launchContainer(
         imageId = any(),
-        subjectLine = any(),
         description = any(),
         serviceAccount = any(),
         application = any(),
-        containerApplication = match {
-          it == expectedApplication
-        },
         environmentName = any(),
         location = any(),
-        environmentVariables = any()
+        environmentVariables = any(),
+        containerApplication = match {
+          it == expectedApplication
+        }
       )
     }
   }
@@ -258,14 +254,13 @@ internal class TestContainerVerificationEvaluatorTests {
     verify {
       containerRunner.launchContainer(
         imageId = any(),
-        subjectLine = any(),
         description = any(),
         serviceAccount = any(),
         application = any(),
-        containerApplication = any(),
         environmentName = any(),
         location = any(),
-        environmentVariables = capture(containerVars)
+        environmentVariables = capture(containerVars),
+        containerApplication = any()
       )
     }
 
@@ -283,7 +278,6 @@ internal class TestContainerVerificationEvaluatorTests {
         io.mockk.coEvery {
           containerRunner.launchContainer(
             imageId = any(),
-            subjectLine = any(),
             description = any(),
             serviceAccount = any(),
             application = any(),

@@ -20,14 +20,14 @@ package com.netflix.spinnaker.keel.orca
 import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.TaskExecution
+import com.netflix.spinnaker.keel.api.actuation.Job
 import com.netflix.spinnaker.keel.api.actuation.SubjectType
 import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
+import com.netflix.spinnaker.keel.api.plugins.JobInterceptor
 import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.events.TaskCreatedEvent
-import com.netflix.spinnaker.keel.api.actuation.Job
-import com.netflix.spinnaker.keel.api.plugins.JobInterceptor
 import com.netflix.spinnaker.keel.model.OrcaNotification
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
@@ -67,7 +67,8 @@ class OrcaTaskLauncher(
       user = resource.serviceAccount,
       application = resource.application,
       notifications = resource.notifications,
-      subject = resource.id,
+      environmentName = repository.environmentFor(resource.id).name,
+      resourceId = resource.id,
       description = description,
       correlationId = correlationId,
       stages = stages,
@@ -87,7 +88,8 @@ class OrcaTaskLauncher(
     user: String,
     application: String,
     notifications: Set<NotificationConfig>,
-    subject: String,
+    environmentName: String?,
+    resourceId: String?,
     description: String,
     correlationId: String?,
     stages: List<Job>,
@@ -114,10 +116,17 @@ class OrcaTaskLauncher(
         )
       )
       .let {
-        log.info("Started task {} to upsert {}", it.ref, subject)
+        log.info("Started task {} to upsert {}", it.ref, resourceId)
         publisher.publishEvent(
           TaskCreatedEvent(
-            TaskRecord(id = it.taskId, name = description, subject = "$type:$subject")
+            TaskRecord(
+              id = it.taskId,
+              name = description,
+              subjectType = type,
+              application = application,
+              environmentName = environmentName,
+              resourceId = resourceId
+            )
           )
         )
         Task(id = it.taskId, name = description)

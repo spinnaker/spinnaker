@@ -129,6 +129,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
             any(),
             any(),
             any(),
+            any(),
             artifact.correlationId(artifactVersion.version),
             capture(bakeTask),
             capture(bakeTaskArtifact),

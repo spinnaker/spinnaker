@@ -39,7 +39,17 @@ class ImageTaggerTests : JUnit5Minutests {
   object Fixture {
     private val mapper = configuredTestObjectMapper()
     val taskLauncher: TaskLauncher = mockk() {
-      coEvery { submitJob(user = any(), application = "waffles", notifications = emptySet(), subject = any(), description = any(), correlationId = any(), stages = any())
+      coEvery {
+        submitJob(
+          user = any(),
+          application = "waffles",
+          environmentName = any(),
+          resourceId = any(),
+          notifications = emptySet(),
+          description = any(),
+          correlationId = any(),
+          stages = any()
+        )
       } returns Task("123", "blah")
     }
     private val springEnv: SpringEnv = mockk {
@@ -151,8 +161,9 @@ class ImageTaggerTests : JUnit5Minutests {
           taskLauncher.submitJob(
             user = any(),
             application = "waffles",
+            environmentName = any(),
+            resourceId = any(),
             notifications = emptySet(),
-            subject = any(),
             description = any(),
             correlationId = any(),
             stages = capture(jobSlot)

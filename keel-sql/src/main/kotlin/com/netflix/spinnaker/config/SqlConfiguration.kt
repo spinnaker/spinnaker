@@ -32,6 +32,7 @@ import org.jooq.DSLContext
 import org.jooq.impl.DefaultConfiguration
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -42,6 +43,7 @@ import javax.annotation.PostConstruct
 
 @Configuration
 @ConditionalOnProperty("sql.enabled")
+@EnableConfigurationProperties(RetentionProperties::class)
 @Import(DefaultSqlConfiguration::class, SqlRetryProperties::class, EnvironmentExclusionConfig::class)
 class SqlConfiguration
 {
@@ -141,8 +143,9 @@ class SqlConfiguration
   @Bean
   fun taskTrackingRepository(
     jooq: DSLContext,
-    clock: Clock
-  ) = SqlTaskTrackingRepository(jooq, clock, SqlRetry(sqlRetryProperties))
+    clock: Clock,
+    retentionProperties: RetentionProperties
+  ) = SqlTaskTrackingRepository(jooq, clock, SqlRetry(sqlRetryProperties), retentionProperties)
 
   @Bean
   fun agentLockRepository(

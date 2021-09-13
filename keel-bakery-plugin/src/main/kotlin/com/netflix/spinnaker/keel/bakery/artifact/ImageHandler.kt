@@ -200,8 +200,9 @@ class ImageHandler(
       val taskRef = taskLauncher.submitJob(
         user = serviceAccount,
         application = application,
+        environmentName = null,
+        resourceId = null,
         notifications = emptySet(),
-        subject = "bakery:image:$artifact.name",
         description = description,
         correlationId = artifact.correlationId(desiredVersion),
         stages = listOf(

@@ -1,14 +1,10 @@
 package com.netflix.spinnaker.keel.titus.postdeploy
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.BaseUrlConfig
 import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
-import com.netflix.spinnaker.keel.api.action.ActionRepository
 import com.netflix.spinnaker.keel.api.action.ActionState
-import com.netflix.spinnaker.keel.api.action.ActionType.VERIFICATION
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.FAIL
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PASS
@@ -76,8 +72,9 @@ class TagAmiHandler(
         taskLauncher.submitJob(
           user = DEFAULT_SERVICE_ACCOUNT,
           application = context.deliveryConfig.application,
+          environmentName = context.environmentName,
+          resourceId = null,
           notifications = emptySet(),
-          subject = names,
           description = "Automatically tagging image(s) as verified $names",
           correlationId = names,
           stages = listOf(job)

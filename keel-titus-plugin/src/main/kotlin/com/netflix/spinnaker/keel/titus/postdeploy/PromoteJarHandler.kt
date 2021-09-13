@@ -5,7 +5,6 @@ import com.netflix.spinnaker.config.PromoteJarConfig
 import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
 import com.netflix.spinnaker.keel.api.action.ActionState
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
-import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.plugins.PostDeployActionHandler
 import com.netflix.spinnaker.keel.api.postdeploy.PostDeployAction
 import com.netflix.spinnaker.keel.api.postdeploy.SupportedPostDeployActionType
@@ -13,17 +12,10 @@ import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.api.titus.TitusServerGroup
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.core.api.PromoteJarPostDeployAction
-import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.titus.ContainerRunner
 import com.netflix.spinnaker.keel.titus.verification.LinkStrategy
-import com.netflix.spinnaker.keel.titus.verification.TASKS
-import com.netflix.spinnaker.keel.titus.verification.getLink
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
-import org.springframework.boot.autoconfigure.info.ProjectInfoProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.stereotype.Component
 
@@ -70,7 +62,6 @@ class PromoteJarHandler(
 
     return containerRunner.launchContainer(
       config.imageId!!,
-      subjectLine = "Running post deploy jar promotion for environment ${context.environmentName} in application ${context.deliveryConfig.application}",
       description = "(${context.deliveryConfig.application}) Promoting jar for ${context.artifact.reference} ${context.version} in env ${context.environmentName}",
       serviceAccount = DEFAULT_SERVICE_ACCOUNT,
       application = "keel", // runs in the keel app always so it's hidden from the user and because it will always have the same permissions

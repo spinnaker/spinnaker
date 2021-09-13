@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.sql
 
+import com.netflix.spinnaker.config.RetentionProperties
 import com.netflix.spinnaker.keel.persistence.TaskTrackingRepositoryTests
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
@@ -16,7 +17,8 @@ internal object SqlTaskTrackingRepositoryTests : TaskTrackingRepositoryTests<Sql
     return SqlTaskTrackingRepository(
       jooq,
       Clock.systemUTC(),
-      sqlRetry
+      sqlRetry,
+      RetentionProperties()
     )
   }
 

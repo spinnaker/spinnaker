@@ -81,8 +81,9 @@ class ImageTagger(
         taskLauncher.submitJob(
           user = DEFAULT_SERVICE_ACCOUNT,
           application = event.application,
+          environmentName = event.environmentName,
+          resourceId = null,
           notifications = emptySet(),
-          subject = names,
           description = "Automatically tagging image(s) as verified $names",
           correlationId = names,
           stages = listOf(job)

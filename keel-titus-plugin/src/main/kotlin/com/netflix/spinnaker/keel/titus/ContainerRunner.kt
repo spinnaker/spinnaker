@@ -61,7 +61,6 @@ class ContainerRunner(
    */
   suspend fun launchContainer(
     imageId: String,
-    subjectLine: String,
     description: String,
     serviceAccount: String,
     application: String,
@@ -74,7 +73,8 @@ class ContainerRunner(
       return withContext(Dispatchers.IO) {
         taskLauncher.submitJob(
           type = VERIFICATION,
-          subject = subjectLine,
+          environmentName = environmentName,
+          resourceId = null,
           description = description,
           user = serviceAccount,
           application = application,

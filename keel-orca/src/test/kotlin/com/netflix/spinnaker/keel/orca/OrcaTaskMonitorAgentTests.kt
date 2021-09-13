@@ -4,7 +4,8 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.TaskStatus
 import com.netflix.spinnaker.keel.api.TaskStatus.SUCCEEDED
 import com.netflix.spinnaker.keel.api.TaskStatus.TERMINAL
-import com.netflix.spinnaker.keel.api.actuation.SubjectType
+import com.netflix.spinnaker.keel.api.actuation.SubjectType.CONSTRAINT
+import com.netflix.spinnaker.keel.api.actuation.SubjectType.RESOURCE
 import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.events.ResourceTaskFailed
@@ -45,13 +46,19 @@ internal class OrcaTaskMonitorAgentTests : JUnit5Minutests {
 
     val taskResourceRecord = TaskRecord(
       id = "123",
-      subject = "${SubjectType.RESOURCE}:${resource.id}",
+      subjectType = RESOURCE,
+      application = "fnord",
+      environmentName = "prod",
+      resourceId = resource.id,
       name = "upsert server group"
     )
 
     val taskConstraintRecord = TaskRecord(
       id = "123",
-      subject = "${SubjectType.CONSTRAINT}:${resource.id}",
+      subjectType = CONSTRAINT,
+      application = "fnord",
+      environmentName = "prod",
+      resourceId = null,
       name = "canary constraint"
     )
 
@@ -62,7 +69,7 @@ internal class OrcaTaskMonitorAgentTests : JUnit5Minutests {
   }
 
   data class OrcaTaskMonitorAgentFixture(
-    var event: TaskCreatedEvent
+    val event: TaskCreatedEvent
   ) {
     val subject: OrcaTaskMonitorAgent = OrcaTaskMonitorAgent(
       taskTrackingRepository,
@@ -83,7 +90,7 @@ internal class OrcaTaskMonitorAgentTests : JUnit5Minutests {
     context("a new orca task is being stored") {
       before {
         every { resourceRepository.get(resource.id) } returns resource
-        every { taskTrackingRepository.getTasks() } returns setOf(event.taskRecord)
+        every { taskTrackingRepository.getIncompleteTasks() } returns setOf(event.taskRecord)
       }
 
       after {
@@ -113,7 +120,7 @@ internal class OrcaTaskMonitorAgentTests : JUnit5Minutests {
         }
 
         verify(exactly = 1) { publisher.publishEvent(ofType<ResourceTaskSucceeded>()) }
-        verify { taskTrackingRepository.delete(event.taskRecord.id) }
+        verify { taskTrackingRepository.updateStatus(event.taskRecord.id, SUCCEEDED) }
       }
 
       test("a task is ended with a failure status with no error") {
@@ -126,7 +133,7 @@ internal class OrcaTaskMonitorAgentTests : JUnit5Minutests {
         }
 
         verify(exactly = 1) { publisher.publishEvent(ofType<ResourceTaskFailed>()) }
-        verify { taskTrackingRepository.delete(event.taskRecord.id) }
+        verify { taskTrackingRepository.updateStatus(event.taskRecord.id, TERMINAL) }
       }
 
       test("a task is ended with a failure status with a general exception") {
@@ -143,7 +150,7 @@ internal class OrcaTaskMonitorAgentTests : JUnit5Minutests {
         }
 
         verify(exactly = 1) { publisher.publishEvent(ofType<ResourceTaskFailed>()) }
-        verify { taskTrackingRepository.delete(event.taskRecord.id) }
+        verify { taskTrackingRepository.updateStatus(event.taskRecord.id, TERMINAL) }
       }
 
       test("a task is ended with a failure status with a kato exception") {
@@ -160,14 +167,14 @@ internal class OrcaTaskMonitorAgentTests : JUnit5Minutests {
         }
 
         verify(exactly = 1) { publisher.publishEvent(ofType<ResourceTaskFailed>()) }
-        verify { taskTrackingRepository.delete(event.taskRecord.id) }
+        verify { taskTrackingRepository.updateStatus(event.taskRecord.id, TERMINAL) }
       }
     }
 
     context("resource not found") {
       before {
         every { resourceRepository.get(resource.id) } throws NoSuchResourceId(resource.id)
-        every { taskTrackingRepository.getTasks() } returns setOf(event.taskRecord)
+        every { taskTrackingRepository.getIncompleteTasks() } returns setOf(event.taskRecord)
         every {
           orcaService.getOrchestrationExecution(event.taskRecord.id)
         } returns executionDetailResponse(event.taskRecord.id, SUCCEEDED)
@@ -178,14 +185,14 @@ internal class OrcaTaskMonitorAgentTests : JUnit5Minutests {
           subject.invokeAgent()
         }
 
-        verify { taskTrackingRepository.delete(event.taskRecord.id) }
+        verify { taskTrackingRepository.updateStatus(event.taskRecord.id, SUCCEEDED) }
       }
     }
 
     context("cannot determinate task status since orca returned a not found exception for the task id") {
       before {
         every { resourceRepository.get(resource.id) } returns resource
-        every { taskTrackingRepository.getTasks() } returns setOf(event.taskRecord)
+        every { taskTrackingRepository.getIncompleteTasks() } returns setOf(event.taskRecord)
         every {
           orcaService.getOrchestrationExecution(event.taskRecord.id)
         } throws RETROFIT_NOT_FOUND
@@ -204,7 +211,7 @@ internal class OrcaTaskMonitorAgentTests : JUnit5Minutests {
     context("cannot determinate task status since orca returned an exception for the task id") {
       before {
         every { resourceRepository.get(resource.id) } returns resource
-        every { taskTrackingRepository.getTasks() } returns setOf(event.taskRecord)
+        every { taskTrackingRepository.getIncompleteTasks() } returns setOf(event.taskRecord)
         every {
           orcaService.getOrchestrationExecution(event.taskRecord.id)
         } throws Exception()
@@ -218,17 +225,17 @@ internal class OrcaTaskMonitorAgentTests : JUnit5Minutests {
         }
 
         verify(exactly = 0) { publisher.publishEvent(any()) }
-        expectThat(taskTrackingRepository.getTasks().contains(event.taskRecord)).isTrue()
+        expectThat(taskTrackingRepository.getIncompleteTasks().contains(event.taskRecord)).isTrue()
       }
     }
 
     context("constraint events") {
-      modifyFixture {
-        event = TaskCreatedEvent(taskConstraintRecord)
+      deriveFixture {
+        copy(event = TaskCreatedEvent(taskConstraintRecord))
       }
 
       before {
-        every { taskTrackingRepository.getTasks() } returns setOf(event.taskRecord)
+        every { taskTrackingRepository.getIncompleteTasks() } returns setOf(event.taskRecord)
         every {
           orcaService.getOrchestrationExecution(event.taskRecord.id)
         } returns executionDetailResponse(event.taskRecord.id, SUCCEEDED)
@@ -239,7 +246,7 @@ internal class OrcaTaskMonitorAgentTests : JUnit5Minutests {
           subject.invokeAgent()
         }
         verify(exactly = 0) { publisher.publishEvent(any()) }
-        verify { taskTrackingRepository.delete(event.taskRecord.id) }
+        verify { taskTrackingRepository.updateStatus(event.taskRecord.id, SUCCEEDED) }
       }
     }
   }
