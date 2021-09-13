@@ -31,6 +31,7 @@ import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfiguration;
 import com.netflix.spinnaker.clouddriver.lambda.cache.Keys;
 import com.netflix.spinnaker.clouddriver.lambda.service.config.LambdaServiceConfig;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -124,8 +125,9 @@ public class LambdaCachingAgentTest {
 
   @Test
   public void buildCacheDataShouldAddInfo() {
-    HashMap<String, CacheData> lambdaCacheData = new HashMap<>();
-    HashMap<String, Collection<String>> appLambdaRelationships = new HashMap<>();
+    ConcurrentHashMap<String, CacheData> lambdaCacheData = new ConcurrentHashMap<>();
+    ConcurrentHashMap<String, Collection<String>> appLambdaRelationships =
+        new ConcurrentHashMap<>();
     List<Map<String, Object>> allLambdas =
         List.of(
             Map.of("functionName", "appName-functionName-something"),
