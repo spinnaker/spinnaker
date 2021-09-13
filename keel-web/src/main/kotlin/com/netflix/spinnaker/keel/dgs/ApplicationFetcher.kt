@@ -8,6 +8,7 @@ import com.netflix.graphql.dgs.context.DgsContext
 import com.netflix.graphql.dgs.exceptions.DgsEntityNotFoundException
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.action.ActionType
+import com.netflix.spinnaker.keel.api.actuation.ExecutionSummaryService
 import com.netflix.spinnaker.keel.artifacts.ArtifactVersionLinks
 import com.netflix.spinnaker.keel.auth.AuthorizationSupport
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
@@ -23,6 +24,7 @@ import com.netflix.spinnaker.keel.graphql.types.MdComparisonLinks
 import com.netflix.spinnaker.keel.graphql.types.MdConstraint
 import com.netflix.spinnaker.keel.graphql.types.MdEnvironment
 import com.netflix.spinnaker.keel.graphql.types.MdEnvironmentState
+import com.netflix.spinnaker.keel.graphql.types.MdExecutionSummary
 import com.netflix.spinnaker.keel.graphql.types.MdGitMetadata
 import com.netflix.spinnaker.keel.graphql.types.MdLifecycleStep
 import com.netflix.spinnaker.keel.graphql.types.MdNotification
@@ -63,6 +65,7 @@ class ApplicationFetcher(
   private val applicationFetcherSupport: ApplicationFetcherSupport,
   private val notificationRepository: DismissibleNotificationRepository,
   private val scmUtils: ScmUtils,
+  private val executionSummaryService: ExecutionSummaryService
 ) {
 
   @DgsData(parentType = DgsConstants.QUERY.TYPE_NAME, field = DgsConstants.QUERY.Application)
@@ -166,6 +169,13 @@ class ApplicationFetcher(
         MdResourceTask(id = it.id, name = it.name)
       }
     )
+  }
+
+  @DgsData(parentType = DgsConstants.MDRESOURCETASK.TYPE_NAME, field = DgsConstants.MDRESOURCETASK.Summary)
+  fun taskSummary(dfe: DgsDataFetchingEnvironment): MdExecutionSummary {
+    val task: MdResourceTask = dfe.getSource()
+    val summary = executionSummaryService.getSummary(task.id)
+    return summary.toDgs()
   }
 
   @DgsData(parentType = DgsConstants.MDARTIFACT.TYPE_NAME, field = DgsConstants.MDARTIFACT.Versions)

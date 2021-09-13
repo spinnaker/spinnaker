@@ -7,12 +7,22 @@ import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
+import com.netflix.spinnaker.keel.api.TaskStatus
+import com.netflix.spinnaker.keel.api.actuation.ExecutionSummary
+import com.netflix.spinnaker.keel.api.actuation.RolloutStatus
+import com.netflix.spinnaker.keel.api.actuation.RolloutTarget
+import com.netflix.spinnaker.keel.api.actuation.RolloutTargetWithStatus
+import com.netflix.spinnaker.keel.api.actuation.Stage
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.bakery.diff.PackageDiff
 import com.netflix.spinnaker.keel.graphql.types.MdArtifact
 import com.netflix.spinnaker.keel.graphql.types.MdCommitInfo
+import com.netflix.spinnaker.keel.graphql.types.MdDeployLocation
+import com.netflix.spinnaker.keel.graphql.types.MdDeployTarget
 import com.netflix.spinnaker.keel.graphql.types.MdEventLevel
+import com.netflix.spinnaker.keel.graphql.types.MdExecutionSummary
 import com.netflix.spinnaker.keel.graphql.types.MdGitMetadata
+import com.netflix.spinnaker.keel.graphql.types.MdLifecycleEventStatus
 import com.netflix.spinnaker.keel.graphql.types.MdLocation
 import com.netflix.spinnaker.keel.graphql.types.MdMoniker
 import com.netflix.spinnaker.keel.graphql.types.MdNotification
@@ -22,6 +32,9 @@ import com.netflix.spinnaker.keel.graphql.types.MdPackageDiff
 import com.netflix.spinnaker.keel.graphql.types.MdPausedInfo
 import com.netflix.spinnaker.keel.graphql.types.MdPullRequest
 import com.netflix.spinnaker.keel.graphql.types.MdResource
+import com.netflix.spinnaker.keel.graphql.types.MdRolloutTargetStatus
+import com.netflix.spinnaker.keel.graphql.types.MdStageDetail
+import com.netflix.spinnaker.keel.graphql.types.MdTaskStatus
 import com.netflix.spinnaker.keel.notifications.DismissibleNotification
 import com.netflix.spinnaker.keel.pause.Pause
 
@@ -117,3 +130,54 @@ fun DismissibleNotification.toDgs() =
     dismissedAt = dismissedAt,
     dismissedBy = dismissedBy
   )
+
+fun ExecutionSummary.toDgs() = MdExecutionSummary(
+  status = status.toDgs(),
+  currentStage = currentStage?.toDgs(),
+  stages = stages.map { it.toDgs() },
+  deployTargets = deployTargets.map { it.toDgs() },
+  error = error
+)
+
+fun RolloutTargetWithStatus.toDgs() =
+  MdDeployTarget(
+    cloudProvider = rolloutTarget.cloudProvider,
+    location = MdDeployLocation(rolloutTarget.location.account, rolloutTarget.location.region, rolloutTarget.location.sublocations),
+    status = status.toDgs()
+  )
+
+fun RolloutStatus.toDgs() =
+  when (this) {
+    RolloutStatus.NOT_STARTED -> MdRolloutTargetStatus.NOT_STARTED
+    RolloutStatus.RUNNING -> MdRolloutTargetStatus.RUNNING
+    RolloutStatus.SUCCEEDED -> MdRolloutTargetStatus.SUCCEEDED
+    RolloutStatus.FAILED ->MdRolloutTargetStatus.FAILED
+  }
+
+fun Stage.toDgs() =
+  MdStageDetail(
+    id = id,
+    type = type,
+    name = name,
+    startTime = startTime,
+    endTime = endTime,
+    status = status.toDgs(),
+    refId = refId,
+    requisiteStageRefIds = requisiteStageRefIds,
+  )
+
+fun TaskStatus.toDgs(): MdTaskStatus =
+  when (this) {
+    TaskStatus.NOT_STARTED -> MdTaskStatus.NOT_STARTED
+    TaskStatus.RUNNING -> MdTaskStatus.RUNNING
+    TaskStatus.PAUSED -> MdTaskStatus.PAUSED
+    TaskStatus.SUSPENDED -> MdTaskStatus.SUSPENDED
+    TaskStatus.SUCCEEDED -> MdTaskStatus.SUCCEEDED
+    TaskStatus.FAILED_CONTINUE -> MdTaskStatus.FAILED_CONTINUE
+    TaskStatus.TERMINAL -> MdTaskStatus.TERMINAL
+    TaskStatus.CANCELED -> MdTaskStatus.CANCELED
+    TaskStatus.REDIRECT -> MdTaskStatus.REDIRECT
+    TaskStatus.STOPPED -> MdTaskStatus.STOPPED
+    TaskStatus.BUFFERED -> MdTaskStatus.BUFFERED
+    TaskStatus.SKIPPED -> MdTaskStatus.SKIPPED
+}

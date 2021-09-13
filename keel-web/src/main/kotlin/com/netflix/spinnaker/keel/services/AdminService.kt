@@ -270,7 +270,5 @@ class AdminService(
   }
 
   fun getTaskSummary(id: String): ExecutionSummary =
-    runBlocking {
       executionSummaryService.getSummary(id)
-    }
 }
