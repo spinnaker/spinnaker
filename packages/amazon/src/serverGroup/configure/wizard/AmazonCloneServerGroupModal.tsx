@@ -207,7 +207,7 @@ export class AmazonCloneServerGroupModal extends React.Component<
             />
 
             <WizardPage
-              label="Instance Type"
+              label={command.viewState.useSimpleInstanceTypeSelector ? 'Instance Type' : 'Instance Types'}
               wizard={wizard}
               order={nextIdx()}
               render={({ innerRef }) => <ServerGroupInstanceType ref={innerRef} formik={formik} />}

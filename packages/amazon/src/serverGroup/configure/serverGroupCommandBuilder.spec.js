@@ -4,7 +4,11 @@ import { AccountService, SubnetReader } from '@spinnaker/core';
 
 import { AWSProviderSettings } from '../../aws.settings';
 
-import { createMockAmazonServerGroupWithLt, createCustomMockLaunchTemplate } from '@spinnaker/mocks';
+import {
+  createMockAmazonServerGroupWithLt,
+  createCustomMockLaunchTemplate,
+  mockLaunchTemplate,
+} from '@spinnaker/mocks';
 
 describe('awsServerGroupCommandBuilder', function () {
   const AccountServiceFixture = require('./AccountServiceFixtures');
@@ -64,7 +68,7 @@ describe('awsServerGroupCommandBuilder', function () {
 
   describe('buildServerGroupCommandFromExisting', function () {
     it('sets usePreferredZones flag based on initial value', function () {
-      spyOn(this.instanceTypeService, 'getCategoryForInstanceType').and.returnValue(this.$q.when('custom'));
+      spyOn(this.instanceTypeService, 'getCategoryForMultipleInstanceTypes').and.returnValue(this.$q.when('custom'));
       const baseServerGroup = {
         account: 'prod',
         region: 'us-west-1',
@@ -72,6 +76,7 @@ describe('awsServerGroupCommandBuilder', function () {
           availabilityZones: ['g', 'h', 'i'],
           vpczoneIdentifier: '',
         },
+        launchTemplate: mockLaunchTemplate,
       };
       let command = null;
 
@@ -101,7 +106,9 @@ describe('awsServerGroupCommandBuilder', function () {
     });
 
     it('sets profile and instance type if available', function () {
-      spyOn(this.instanceTypeService, 'getCategoryForInstanceType').and.returnValue(this.$q.when('selectedProfile'));
+      spyOn(this.instanceTypeService, 'getCategoryForMultipleInstanceTypes').and.returnValue(
+        this.$q.when('selectedProfile'),
+      );
 
       const baseServerGroup = {
         account: 'prod',
@@ -131,7 +138,9 @@ describe('awsServerGroupCommandBuilder', function () {
     });
 
     it('copies suspended processes unless the mode is "editPipeline"', function () {
-      spyOn(this.instanceTypeService, 'getCategoryForInstanceType').and.returnValue(this.$q.when('selectedProfile'));
+      spyOn(this.instanceTypeService, 'getCategoryForMultipleInstanceTypes').and.returnValue(
+        this.$q.when('selectedProfile'),
+      );
 
       const baseServerGroup = {
         account: 'prod',
@@ -167,7 +176,9 @@ describe('awsServerGroupCommandBuilder', function () {
     });
 
     it('copies tags not in the reserved list:', function () {
-      spyOn(this.instanceTypeService, 'getCategoryForInstanceType').and.returnValue(this.$q.when('selectedProfile'));
+      spyOn(this.instanceTypeService, 'getCategoryForMultipleInstanceTypes').and.returnValue(
+        this.$q.when('selectedProfile'),
+      );
 
       const baseServerGroup = {
         account: 'prod',
@@ -208,7 +219,9 @@ describe('awsServerGroupCommandBuilder', function () {
     });
 
     it('sets unlimitedCpuCredits to false when building from source server group with standard credits', function () {
-      spyOn(this.instanceTypeService, 'getCategoryForInstanceType').and.returnValue(this.$q.when('selectedProfile'));
+      spyOn(this.instanceTypeService, 'getCategoryForMultipleInstanceTypes').and.returnValue(
+        this.$q.when('selectedProfile'),
+      );
 
       const baseServerGroup = createMockAmazonServerGroupWithLt(
         createCustomMockLaunchTemplate('testLtCpuCredits', {
@@ -229,7 +242,9 @@ describe('awsServerGroupCommandBuilder', function () {
     });
 
     it('sets unlimitedCpuCredits to true when building from source server group with unlimited credits', function () {
-      spyOn(this.instanceTypeService, 'getCategoryForInstanceType').and.returnValue(this.$q.when('selectedProfile'));
+      spyOn(this.instanceTypeService, 'getCategoryForMultipleInstanceTypes').and.returnValue(
+        this.$q.when('selectedProfile'),
+      );
 
       const baseServerGroup = createMockAmazonServerGroupWithLt(
         createCustomMockLaunchTemplate('testLtCpuCredits', {
@@ -250,7 +265,9 @@ describe('awsServerGroupCommandBuilder', function () {
     });
 
     it('sets unlimitedCpuCredits to undefined when building from source server group with cpu credits unset', function () {
-      spyOn(this.instanceTypeService, 'getCategoryForInstanceType').and.returnValue(this.$q.when('selectedProfile'));
+      spyOn(this.instanceTypeService, 'getCategoryForMultipleInstanceTypes').and.returnValue(
+        this.$q.when('selectedProfile'),
+      );
 
       const baseServerGroup = createMockAmazonServerGroupWithLt();
 

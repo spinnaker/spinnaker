@@ -54,7 +54,6 @@ class V2InstanceArchetypeSelectorController implements IComponentController {
       $scope.selectedInstanceProfile = null;
     }
     this.command.viewState.instanceProfile = type;
-    this.onProfileChanged && this.onProfileChanged(type);
     $scope.instanceProfiles.forEach((profile: IInstanceTypeCategory) => {
       if (profile.type === type) {
         $scope.selectedInstanceProfile = profile;
@@ -69,6 +68,7 @@ class V2InstanceArchetypeSelectorController implements IComponentController {
         }
       }
     });
+    this.onProfileChanged && this.onProfileChanged(type);
   };
 
   private updateInstanceType = () => {
