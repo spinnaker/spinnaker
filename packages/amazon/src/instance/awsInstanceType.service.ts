@@ -1,16 +1,32 @@
-'use strict';
-
+import type { IQService } from 'angular';
 import { module } from 'angular';
 import _ from 'lodash';
 
+import type {
+  IInstanceType,
+  IInstanceTypeCategory,
+  IInstanceTypesByRegion,
+  IPreferredInstanceType,
+} from '@spinnaker/core';
 import { REST } from '@spinnaker/core';
+
 import { AWSProviderSettings } from '../aws.settings';
+
+export interface IAmazonPreferredInstanceType extends IPreferredInstanceType {
+  cpuCreditsPerHour?: number;
+}
+
+export interface IAmazonInstanceTypeCategory extends IInstanceTypeCategory {
+  showCpuCredits?: boolean;
+  descriptionListOverride?: string[];
+}
 
 export const AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE = 'spinnaker.amazon.instanceType.service';
 export const name = AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE; // for backwards compatibility
+
 module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeService', [
   '$q',
-  function ($q) {
+  function ($q: IQService) {
     const m5 = {
       type: 'm5',
       description:
@@ -55,6 +71,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
           memory: 2,
           storage: { type: 'EBS' },
           costFactor: 1,
+          cpuCreditsPerHour: 12,
         },
         {
           name: 't2.medium',
@@ -63,6 +80,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
           memory: 4,
           storage: { type: 'EBS' },
           costFactor: 1,
+          cpuCreditsPerHour: 24,
         },
         {
           name: 't2.large',
@@ -71,6 +89,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
           memory: 8,
           storage: { type: 'EBS' },
           costFactor: 2,
+          cpuCreditsPerHour: 36,
         },
         {
           name: 't2.xlarge',
@@ -79,6 +98,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
           memory: 16,
           storage: { type: 'EBS' },
           costFactor: 3,
+          cpuCreditsPerHour: 54,
         },
         {
           name: 't2.2xlarge',
@@ -87,6 +107,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
           memory: 32,
           storage: { type: 'EBS' },
           costFactor: 4,
+          cpuCreditsPerHour: 81,
         },
       ],
     };
@@ -103,6 +124,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
           memory: 2,
           storage: { type: 'EBS' },
           costFactor: 1,
+          cpuCreditsPerHour: 24,
         },
         {
           name: 't3.medium',
@@ -111,6 +133,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
           memory: 4,
           storage: { type: 'EBS' },
           costFactor: 1,
+          cpuCreditsPerHour: 24,
         },
         {
           name: 't3.large',
@@ -119,6 +142,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
           memory: 8,
           storage: { type: 'EBS' },
           costFactor: 2,
+          cpuCreditsPerHour: 36,
         },
         {
           name: 't3.xlarge',
@@ -127,6 +151,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
           memory: 16,
           storage: { type: 'EBS' },
           costFactor: 3,
+          cpuCreditsPerHour: 96,
         },
         {
           name: 't3.2xlarge',
@@ -135,6 +160,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
           memory: 32,
           storage: { type: 'EBS' },
           costFactor: 4,
+          cpuCreditsPerHour: 192,
         },
       ],
     };
@@ -151,6 +177,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
           memory: 0.5,
           storage: { type: 'EBS' },
           costFactor: 1,
+          cpuCreditsPerHour: 3,
         },
         {
           name: 't2.micro',
@@ -159,6 +186,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
           memory: 1,
           storage: { type: 'EBS' },
           costFactor: 1,
+          cpuCreditsPerHour: 6,
         },
         {
           name: 't2.small',
@@ -167,6 +195,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
           memory: 2,
           storage: { type: 'EBS' },
           costFactor: 1,
+          cpuCreditsPerHour: 12,
         },
       ],
     };
@@ -183,6 +212,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
           memory: 0.5,
           storage: { type: 'EBS' },
           costFactor: 1,
+          cpuCreditsPerHour: 6,
         },
         {
           name: 't3.micro',
@@ -191,6 +221,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
           memory: 1,
           storage: { type: 'EBS' },
           costFactor: 1,
+          cpuCreditsPerHour: 12,
         },
         {
           name: 't3.small',
@@ -199,6 +230,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
           memory: 2,
           storage: { type: 'EBS' },
           costFactor: 1,
+          cpuCreditsPerHour: 24,
         },
       ],
     };
@@ -249,6 +281,11 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
         label: 'General Purpose',
         families: [m5, t2gp, t3gp],
         icon: 'hdd',
+        showCpuCredits: true,
+        descriptionListOverride: [
+          m5.description,
+          't2/t3 instances are a good choice for workloads that don’t use the full CPU often or consistently, but occasionally need to burst (e.g. web servers, developer environments and small databases).',
+        ],
       },
       {
         type: 'memory',
@@ -261,6 +298,10 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
         label: 'Micro Utility',
         families: [t2, t3],
         icon: 'hdd',
+        showCpuCredits: true,
+        descriptionListOverride: [
+          't2/t3 instances are a good choice for workloads that don’t use the full CPU often or consistently, but occasionally need to burst (e.g. web servers, developer environments and small databases).',
+        ],
       },
       {
         type: 'custom',
@@ -284,12 +325,12 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
       return $q.when(categories);
     }
 
-    const getAllTypesByRegion = function getAllTypesByRegion() {
+    const getAllTypesByRegion = function getAllTypesByRegion(): PromiseLike<IInstanceTypesByRegion> {
       return REST('/instanceTypes')
         .get()
         .then(function (types) {
           return _.chain(types)
-            .map(function (type) {
+            .map(function (type: IInstanceType) {
               return {
                 region: type.region,
                 account: type.account,
@@ -305,7 +346,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
 
     const instanceClassOrder = ['xlarge', 'large', 'medium', 'small', 'micro', 'nano'];
 
-    function sortTypesByFamilyAndSize(o1, o2) {
+    function sortTypesByFamilyAndSize(o1: string, o2: string) {
       const type1 = o1.split('.');
       const type2 = o2.split('.');
 
@@ -348,26 +389,26 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
       return 0;
     }
 
-    function getAvailableTypesForRegions(availableRegions, selectedRegions) {
+    function getAvailableTypesForRegions(availableInstanceTypes: IInstanceTypesByRegion, selectedRegions: string[]) {
       selectedRegions = selectedRegions || [];
-      let availableTypes = [];
+      let availableTypes: string[] = [];
 
       // prime the list of available types
       if (selectedRegions && selectedRegions.length) {
-        availableTypes = _.map(availableRegions[selectedRegions[0]], 'name');
+        availableTypes = _.map(availableInstanceTypes[selectedRegions[0]], 'name');
       }
 
       // this will perform an unnecessary intersection with the first region, which is fine
       selectedRegions.forEach(function (selectedRegion) {
-        if (availableRegions[selectedRegion]) {
-          availableTypes = _.intersection(availableTypes, _.map(availableRegions[selectedRegion], 'name'));
+        if (availableInstanceTypes[selectedRegion]) {
+          availableTypes = _.intersection(availableTypes, _.map(availableInstanceTypes[selectedRegion], 'name'));
         }
       });
 
       return availableTypes.sort(sortTypesByFamilyAndSize);
     }
 
-    const families = {
+    const families: { [key: string]: string[] } = {
       paravirtual: ['c1', 'c3', 'hi1', 'hs1', 'm1', 'm2', 'm3', 't1'],
       hvm: ['c3', 'c4', 'd2', 'i2', 'g2', 'm3', 'm4', 'm5', 'p2', 'r3', 'r4', 'r5', 't2', 'x1'],
       vpcOnly: ['c4', 'm4', 'm5', 'r4', 'r5', 't2', 'x1'],
@@ -375,8 +416,8 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
       burstablePerf: ['t2', 't3', 't3a', 't4g'],
     };
 
-    function filterInstanceTypes(instanceTypes, virtualizationType, vpcOnly) {
-      return instanceTypes.filter((instanceType) => {
+    function filterInstanceTypes(instanceTypes: string[], virtualizationType: string, vpcOnly: boolean): string[] {
+      return instanceTypes.filter((instanceType: string) => {
         if (virtualizationType === '*') {
           // show all instance types
           return true;
@@ -392,36 +433,43 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
       });
     }
 
-    function isEbsOptimized(instanceType) {
+    function isEbsOptimized(instanceType: string) {
       if (!instanceType) {
         return false;
       }
-      const [family] = instanceType.split('.');
+      const family = _.split(instanceType, '.', 1)[0];
       return families.ebsOptimized.includes(family);
     }
 
-    function isBurstingSupported(instanceType) {
+    function isBurstingSupportedForAllTypes(instanceTypes: string[]): boolean {
+      if (!instanceTypes || !instanceTypes.length) {
+        return false;
+      }
+      // for multiple instance types case, all instance types must support bursting in order to prevent incompatible configuration.
+      return instanceTypes.every((instanceType) => isBurstingSupported(instanceType));
+    }
+
+    function isBurstingSupported(instanceType: string): boolean {
       if (!instanceType) {
         return false;
       }
-      const [family] = instanceType.split('.');
+      const family = _.split(instanceType, '.', 1)[0];
       return families.burstablePerf.includes(family);
     }
 
-    function isInstanceTypeInCategory(instanceType, category) {
-      if (!instanceType || !category) {
-        return false;
+    function getInstanceTypesInCategory(instanceTypesToFilter: string[], category: string): string[] {
+      if (!instanceTypesToFilter || !instanceTypesToFilter.length || !category) {
+        return [];
       }
 
       if (category === 'custom') {
-        return true;
+        return instanceTypesToFilter;
       }
 
-      const [family] = instanceType.split('.');
-      const instanceCategory = _.find(defaultCategories, { type: category });
-      const familyInCategory = instanceCategory && _.find(instanceCategory.families, { type: family });
-
-      return familyInCategory && familyInCategory.instanceTypes.map((t) => t.name).includes(instanceType);
+      const instanceTypesInCategory: string[] = _.flatten(
+        _.find(defaultCategories, { type: category })?.families.map((f) => f.instanceTypes.map((it) => it.name)),
+      );
+      return _.intersection(instanceTypesToFilter, instanceTypesInCategory);
     }
 
     return {
@@ -430,8 +478,8 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
       getAllTypesByRegion,
       filterInstanceTypes,
       isEbsOptimized,
-      isBurstingSupported,
-      isInstanceTypeInCategory,
+      isBurstingSupportedForAllTypes,
+      getInstanceTypesInCategory,
     };
   },
 ]);

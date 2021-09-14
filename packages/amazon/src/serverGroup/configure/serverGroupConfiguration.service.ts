@@ -83,9 +83,17 @@ export interface IAmazonServerGroupCommandViewState extends IServerGroupCommandV
   dirty: IAmazonServerGroupCommandDirty;
   spelTargetGroups: string[];
   spelLoadBalancers: string[];
+  useSimpleInstanceTypeSelector: boolean;
+}
+
+export interface IAmazonInstanceTypeOverride {
+  instanceType: string;
+  weightedCapacity?: number;
+  priority?: number;
 }
 
 export interface IAmazonServerGroupCommand extends IServerGroupCommand {
+  viewState: IAmazonServerGroupCommandViewState;
   associateIPv6Address?: boolean;
   associatePublicIpAddress: boolean;
   backingData: IAmazonServerGroupCommandBackingData;
@@ -103,12 +111,18 @@ export interface IAmazonServerGroupCommand extends IServerGroupCommand {
   setLaunchTemplate?: boolean;
   unlimitedCpuCredits?: boolean;
   capacityRebalance?: boolean;
-  viewState: IAmazonServerGroupCommandViewState;
+  onDemandAllocationStrategy?: string;
+  onDemandBaseCapacity?: number;
+  onDemandPercentageAboveBaseCapacity?: number;
+  spotAllocationStrategy?: string;
+  spotInstancePools?: number;
+  launchTemplateOverridesForInstanceType?: IAmazonInstanceTypeOverride[];
 
   getBlockDeviceMappingsSource: (command: IServerGroupCommand) => IBlockDeviceMappingSource;
   selectBlockDeviceMappingsSource: (command: IServerGroupCommand, selection: string) => void;
   usePreferredZonesChanged: (command: IServerGroupCommand) => IAmazonServerGroupCommandResult;
   regionIsDeprecated: (command: IServerGroupCommand) => boolean;
+  launchTemplateOverridesChanged: (command: IServerGroupCommand) => void;
 }
 
 export class AwsServerGroupConfigurationService {
@@ -643,8 +657,20 @@ export class AwsServerGroupConfigurationService {
     cmd.imageChanged = (command: IAmazonServerGroupCommand): IServerGroupCommandResult =>
       this.configureInstanceTypes(command);
 
+    // Handles derived values for single instance type case
     cmd.instanceTypeChanged = (command: IAmazonServerGroupCommand): void => {
       command.ebsOptimized = this.awsInstanceTypeService.isEbsOptimized(command.instanceType);
+    };
+
+    // Handles derived values for multiple instance types case
+    cmd.launchTemplateOverridesChanged = (command: IAmazonServerGroupCommand): void => {
+      // set ebsOptimized to true if all instance types in overrides are included in the hard-coded array in awsInstanceTypeService.
+      // this function exists for backwards compatibility with single instance type case, matching behavior in `cmd.instanceTypeChanged`
+      // note: this parameter has no effect on instance types with EBS optimization enabled by default.
+      command.ebsOptimized =
+        command.launchTemplateOverridesForInstanceType?.every(
+          (o) => this.awsInstanceTypeService.isEbsOptimized(o.instanceType),
+        );
     };
 
     this.applyOverrides('attachEventHandlers', cmd);

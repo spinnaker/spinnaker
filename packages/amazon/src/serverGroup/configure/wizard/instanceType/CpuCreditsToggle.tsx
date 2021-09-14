@@ -1,49 +1,49 @@
-import React from 'react';
-
+import React, { useEffect, useState } from 'react';
 import { ToggleButtonGroup, ToggleSize } from '@spinnaker/core';
 import { AwsReactInjector } from '../../../../reactShims';
 
-import type { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
-
 export interface ICpuCreditsToggleProps {
-  command: IAmazonServerGroupCommand;
-  newInstanceType?: string;
-  newProfileType?: string;
+  unlimitedCpuCredits?: boolean;
+  selectedInstanceTypes: string[];
+  currentProfile: string;
   setUnlimitedCpuCredits: (unlimitedCpuCredits: boolean | undefined) => void;
 }
 
 export function CpuCreditsToggle(props: ICpuCreditsToggleProps) {
-  const [showToggle, setShowToggle] = React.useState(false);
-  React.useEffect(() => {
-    if (props.newInstanceType) {
-      const isBurstingSupportedForNewInstance = AwsReactInjector.awsInstanceTypeService.isBurstingSupported(
-        props.newInstanceType,
-      );
-      if (!isBurstingSupportedForNewInstance) {
+  const { selectedInstanceTypes, currentProfile } = props;
+  const isBurstingSupportedForAllTypes = AwsReactInjector.awsInstanceTypeService.isBurstingSupportedForAllTypes(
+    selectedInstanceTypes,
+  );
+  const isAtleastOneTypeInProfile = AwsReactInjector.awsInstanceTypeService.getInstanceTypesInCategory(
+    selectedInstanceTypes,
+    currentProfile,
+  ).length
+    ? true
+    : false;
+
+  const [showToggle, setShowToggle] = useState(false);
+  useEffect(() => {
+    if (selectedInstanceTypes && selectedInstanceTypes.length) {
+      if (!isBurstingSupportedForAllTypes) {
         props.setUnlimitedCpuCredits(undefined);
       }
-      setShowToggle(isBurstingSupportedForNewInstance);
+      setShowToggle(isBurstingSupportedForAllTypes);
     }
 
-    if (props.newProfileType) {
-      const { instanceType } = props.command;
-      const isTypeInProfile = AwsReactInjector.awsInstanceTypeService.isInstanceTypeInCategory(
-        instanceType,
-        props.newProfileType,
+    if (currentProfile) {
+      setShowToggle(
+        selectedInstanceTypes &&
+          selectedInstanceTypes.length > 0 &&
+          isBurstingSupportedForAllTypes &&
+          isAtleastOneTypeInProfile,
       );
-      const isBurstingSupportedForInstance = AwsReactInjector.awsInstanceTypeService.isBurstingSupported(instanceType);
-      setShowToggle(instanceType && isTypeInProfile && isBurstingSupportedForInstance);
     }
-  }, [props.newProfileType, props.newInstanceType]);
-
-  const handleToggleChange = (state: boolean) => {
-    props.setUnlimitedCpuCredits(state);
-  };
+  }, [currentProfile, selectedInstanceTypes]);
 
   return (
-    <div>
+    <div className={'row'} style={{ fontSize: '110%' }}>
       {showToggle && (
-        <div className="row">
+        <div>
           <ToggleButtonGroup
             toggleSize={ToggleSize.XSMALL}
             propLabel={'Unlimited CPU credits '}
@@ -52,8 +52,8 @@ export function CpuCreditsToggle(props: ICpuCreditsToggleProps) {
             displayTextPropOffBtn={'Off'}
             tooltipPropOnBtn={'Toggle to turn ON unlimited CPU credits'}
             displayTextPropOnBtn={'On'}
-            onClick={handleToggleChange}
-            isPropertyActive={props.command.unlimitedCpuCredits}
+            onClick={(b) => props.setUnlimitedCpuCredits(b)}
+            isPropertyActive={props.unlimitedCpuCredits}
           />
         </div>
       )}
