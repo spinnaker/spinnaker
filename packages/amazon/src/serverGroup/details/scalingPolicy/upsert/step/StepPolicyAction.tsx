@@ -68,7 +68,6 @@ export const StepPolicyAction = ({
   React.useEffect(() => {
     setSteps(step.stepAdjustments);
   }, [step?.stepAdjustments]);
-
   return (
     <div className="StepPolicyAction row">
       {steps?.map((step: IStepAdjustment, index: number) => (

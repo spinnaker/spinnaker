@@ -67,14 +67,24 @@ export const MetricSelector = ({ alarm, updateAlarm, serverGroup }: IMetricSelec
 
         const chosenMetric =
           sortedMetrics.find(
-            (m) =>
+            (m: IMetricOption) =>
               m.name === alarm?.metricName &&
               m.namespace === alarm?.namespace &&
               m.dimensionValues === dimensionValuesStr,
           ) ||
-          metrics.find((m) => m.name.match('CPUUtilization')) ||
-          metrics[0];
+          sortedMetrics.find((m) => m.name.match('CPUUtilization')) ||
+          sortedMetrics[0];
         setSelectedMetric(chosenMetric);
+        setMetricName(chosenMetric.name);
+        setNamespace(chosenMetric.namespace);
+
+        const newAlarm = {
+          ...alarm,
+          metricName: chosenMetric.name,
+          namespace: chosenMetric.namespace,
+          dimensions: chosenMetric.dimensions,
+        };
+        updateAlarm(newAlarm);
         return sortedMetrics;
       },
     );
@@ -130,7 +140,6 @@ export const MetricSelector = ({ alarm, updateAlarm, serverGroup }: IMetricSelec
     };
     updateAlarm(newAlarm);
   };
-
   if (!advancedMode) {
     return (
       <div className="MetricSelector horizontal middle">

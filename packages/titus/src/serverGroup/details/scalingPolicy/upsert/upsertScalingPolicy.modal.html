@@ -13,16 +13,18 @@
           see a metric below, click "Configure available metrics" in the server group details to set up forwarding from
           Atlas to CloudWatch.
         </p>
-        <aws-alarm-configurer
-          command="ctrl.command"
-          modal-view-state="ctrl.viewState"
+        <alarm-configurer
+          alarm="ctrl.command.alarm"
+          multiple-alarms="ctrl.viewState.multipleAlarms"
           server-group="ctrl.alarmServerGroup"
-          bounds-changed="ctrl.boundsChanged()"
-        ></aws-alarm-configurer>
+          step-adjustments="ctrl.command.step.stepAdjustments"
+          steps-changed="ctrl.stepsChanged"
+          update-alarm="ctrl.alarmChanged"
+        ></alarm-configurer>
       </div>
 
       <h4 class="section-heading">Actions</h4>
-      <div class="section-body" ng-if="!ctrl.command.alarm.metricName">
+      <div class="section-body" ng-if="!ctrl.command.alarm.metricName && !ctrl.command.alarm.name">
         <h4 class="text-center">Select a metric</h4>
       </div>
       <div class="section-body" ng-if="ctrl.command.alarm.metricName">
