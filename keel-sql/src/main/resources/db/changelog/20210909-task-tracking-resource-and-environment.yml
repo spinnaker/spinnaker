@@ -60,7 +60,17 @@ databaseChangeLog:
     - sql:
         sql: |
           update task_tracking
-          set environment_name = (select environment.name from environment join environment_resource on environment.uid = environment_resource.environment_uid join resource on resource.uid = environment_resource.resource_uid where resource.id = task_tracking.resource_id)
+          set environment_name = (
+            select active_environment.name
+            from active_environment
+            join environment_resource
+            on active_environment.uid = environment_resource.environment_uid
+            and active_environment.version = environment_resource.environment_version
+            join active_resource
+            on active_resource.uid = environment_resource.resource_uid
+            and active_resource.metadata->>'$.version' = environment_resource.resource_version
+            where active_resource.id = task_tracking.resource_id
+          )
           where resource_id is not null;
     - sql:
         sql: |
