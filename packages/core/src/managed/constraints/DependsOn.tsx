@@ -1,27 +1,21 @@
-import React from 'react';
-
 import { IConstraint, IDependsOnConstraint } from '../../domain';
 
 export const isDependsOnConstraint = (constraint: IConstraint): constraint is IDependsOnConstraint => {
   return constraint.type === 'depends-on';
 };
 
-const getTitle = (constraint: IDependsOnConstraint) => {
+export const getDependsOnStatus = ({ constraint }: { constraint: IDependsOnConstraint }): string => {
   const prerequisiteEnv = constraint.attributes.dependsOnEnvironment.toUpperCase();
   switch (constraint.status) {
     case 'PASS':
-      return `Prerequisite deployment to ${prerequisiteEnv} succeeded`;
+      return `deployment to ${prerequisiteEnv} succeeded`;
     case 'FORCE_PASS':
-      return `Prerequisite deployment to ${prerequisiteEnv} was overridden`;
+      return `deployment to ${prerequisiteEnv} was overridden`;
     case 'FAIL':
-      return `Prerequisite deployment to ${prerequisiteEnv} failed`;
+      return `deployment to ${prerequisiteEnv} failed`;
     case 'PENDING':
-      return `Awaiting prerequisite deployment to ${prerequisiteEnv}`;
+      return `awaiting deployment to ${prerequisiteEnv}`;
     default:
-      return `Depends on ${prerequisiteEnv} - ${constraint.status}`;
+      return `Environment: ${prerequisiteEnv}, status: ${constraint.status}`;
   }
-};
-
-export const DependsOnTitle = ({ constraint }: { constraint: IDependsOnConstraint }) => {
-  return <>{getTitle(constraint)}</>;
 };

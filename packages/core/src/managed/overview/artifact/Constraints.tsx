@@ -88,7 +88,7 @@ const Constraint = ({ constraint, versionProps }: IConstraintProps) => {
   const title = constraintsManager.renderTitle(constraint);
   return (
     <div className="version-constraint single-constraint">
-      <VersionOperationIcon status={constraint.status} />
+      <VersionOperationIcon status={constraint.status} size="small" className="constraint-icon" />
       <CollapsibleSection
         outerDivClassName=""
         defaultExpanded
@@ -130,7 +130,7 @@ export const Constraints = ({
   return (
     <div className="Constraints">
       <div className="version-constraint">
-        <VersionOperationIcon status={summary.status} />
+        <VersionOperationIcon status={summary.status} className="constraints-icon" />
         <CollapsibleSection
           heading={({ chevron }) => (
             <div className="horizontal">

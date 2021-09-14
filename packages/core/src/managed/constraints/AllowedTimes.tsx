@@ -83,32 +83,28 @@ const DeploymentWindow = ({ attributes }: { attributes: IAllowedTimesConstraint[
   );
 };
 
-const getTitle = (constraint: IAllowedTimesConstraint) => {
+export const getAllowedTimesStatus = ({ constraint }: { constraint: IAllowedTimesConstraint }): string => {
   const maxDeploys = constraint.attributes?.maxDeploys;
 
   switch (constraint.status) {
     case 'BLOCKED':
-      return 'Deployment window is blocked by other constraints';
+      return 'waiting for other constraints';
     case 'OVERRIDE_PASS':
     case 'FORCE_PASS':
-      return 'Deployment window was overridden';
+      return 'overridden by user';
     case 'PASS':
-      return 'Deployed during one of the allowed windows';
+      return 'Deployed during the allowed windows';
     case 'FAIL':
     case 'PENDING':
       if (maxDeploys !== undefined && (constraint.attributes?.actualDeploys || 0) >= maxDeploys) {
-        return `Deployment reached the maximum allowed times per window`;
+        return `reached the maximum allowed times per window`;
       }
-      return `Deployment can only occur during the provided window${
+      return `can only occur during the allowed window${
         (constraint.attributes?.allowedTimes.length ?? 0) > 1 ? 's' : ''
       }`;
     default:
-      return `Deployment window constraint - ${constraint.status}:`;
+      return constraint.status;
   }
-};
-
-export const AllowedTimesTitle = ({ constraint }: { constraint: IAllowedTimesConstraint }) => {
-  return <>{getTitle(constraint)}</>;
 };
 
 export const AllowedTimesDescription = ({ constraint }: { constraint: IAllowedTimesConstraint }) => {

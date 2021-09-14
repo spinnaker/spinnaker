@@ -1,6 +1,9 @@
+import classNames from 'classnames';
 import React from 'react';
 
 import { QueryArtifactVersionTaskStatus, QueryConstraint } from '../types';
+
+import './VersionOperationIcon.less';
 
 type AllStatuses = QueryConstraint['status'] | QueryArtifactVersionTaskStatus;
 export const ACTION_DISPLAY_NAMES = ['passed', 'overridden', 'pending', 'failed'] as const;
@@ -32,8 +35,19 @@ export const getActionStatusData = (status: AllStatuses): ActionStatusUtils[keyo
 
 interface IVersionOperationIconProps {
   status: AllStatuses;
+  size?: 'small' | 'medium';
+  className?: string;
 }
 
-export const VersionOperationIcon = ({ status }: IVersionOperationIconProps) => {
-  return <i className={getActionStatusData(status)?.className || DEFAULT_ICON_CLASSNAME} />;
+export const VersionOperationIcon = ({ status, className, size = 'medium' }: IVersionOperationIconProps) => {
+  return (
+    <i
+      className={classNames(
+        'VersionOperationIcon',
+        getActionStatusData(status)?.className || DEFAULT_ICON_CLASSNAME,
+        `${size}-icon`,
+        className,
+      )}
+    />
+  );
 };

@@ -4,9 +4,9 @@ import React from 'react';
 
 import { IconNames } from '@spinnaker/presentation';
 
-import { AllowedTimesDescription, AllowedTimesTitle } from './AllowedTimes';
-import { DependsOnTitle } from './DependsOn';
-import { ManualJudgementTitle } from './ManualJudgement';
+import { AllowedTimesDescription, getAllowedTimesStatus } from './AllowedTimes';
+import { getDependsOnStatus } from './DependsOn';
+import { getManualJudgementStatus } from './ManualJudgement';
 import { ConstraintStatus, IBaseConstraint, IConstraint, IManagedArtifactVersionEnvironment } from '../../domain';
 import { BasePluginManager } from '../plugins/BasePluginManager';
 
@@ -29,8 +29,16 @@ export interface IConstraintHandler<K = string> {
   /** The icon can be a string (from IconNames) or a partial map from statuses to IconNames */
   iconName: IconNames | { [status in ConstraintStatus | 'DEFAULT']?: IconNames };
 
-  /** Render function of the constraint title */
-  titleRender: React.ComponentType<{ constraint: RelaxedConstraint }>;
+  displayTitle?: {
+    /** A user friendly name of the constraint */
+    displayName: string;
+
+    /** A user friend text describing the status of the constraint */
+    displayStatus: (props: { constraint: RelaxedConstraint }) => string;
+  };
+
+  /** Render function of the constraint title. If displayTitle exists it takes precedence */
+  titleRender?: React.ComponentType<{ constraint: RelaxedConstraint }>;
 
   /** Optional render function of the constraint description */
   descriptionRender?: React.ComponentType<{ constraint: RelaxedConstraint }>;
@@ -49,11 +57,22 @@ class ConstraintsManager extends BasePluginManager<IConstraintHandler> {
   }
 
   renderTitle(constraint: IConstraint): React.ReactNode {
-    const Component = this.getHandler(constraint.type)?.titleRender;
+    const handler = this.getHandler(constraint.type);
+
+    if (handler?.displayTitle) {
+      return (
+        <>
+          {handler.displayTitle.displayName} - {handler.displayTitle.displayStatus({ constraint })}
+        </>
+      );
+    }
+
+    const Component = handler?.titleRender;
     if (Component) {
       return <Component constraint={constraint} />;
     }
-    return `${constraint.type} constraint - ${constraint.status}`;
+
+    return `${constraint.type} - ${constraint.status}`;
   }
 
   hasContent(constraint: IConstraint): boolean {
@@ -94,7 +113,10 @@ const baseHandlers: Array<IConstraintHandler<IConstraint['type']>> = [
   {
     kind: 'allowed-times',
     iconName: { DEFAULT: 'mdConstraintAllowedTimes' },
-    titleRender: AllowedTimesTitle,
+    displayTitle: {
+      displayName: 'Deployment Window',
+      displayStatus: getAllowedTimesStatus,
+    },
     descriptionRender: AllowedTimesDescription,
     overrideActions: {
       FAIL: [
@@ -108,7 +130,10 @@ const baseHandlers: Array<IConstraintHandler<IConstraint['type']>> = [
   {
     kind: 'depends-on',
     iconName: { DEFAULT: 'mdConstraintDependsOn' },
-    titleRender: DependsOnTitle,
+    displayTitle: {
+      displayName: 'Depends on',
+      displayStatus: getDependsOnStatus,
+    },
   },
   {
     kind: 'manual-judgement',
@@ -119,7 +144,10 @@ const baseHandlers: Array<IConstraintHandler<IConstraint['type']>> = [
       OVERRIDE_FAIL: 'manualJudgementRejected',
       DEFAULT: 'manualJudgement',
     },
-    titleRender: ManualJudgementTitle,
+    displayTitle: {
+      displayName: 'Manual Judgement',
+      displayStatus: getManualJudgementStatus,
+    },
     overrideActions: {
       PENDING: [
         {
