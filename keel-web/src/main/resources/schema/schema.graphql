@@ -23,6 +23,7 @@ type MdGitIntegration {
   branch: String
   isEnabled: Boolean
   manifestPath: String
+  baseManifestPath: String
   link: String
 }
 

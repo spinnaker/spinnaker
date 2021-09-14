@@ -34,6 +34,7 @@ class GitIntegration(
   private val scmUtils: ScmUtils,
   private val deliveryConfigUpserter: DeliveryConfigUpserter,
   private val importer: DeliveryConfigImporter,
+  private val baseManifestPath: BaseManifestPath,
 ) {
   @DgsData(parentType = DgsConstants.MDAPPLICATION.TYPE_NAME, field = DgsConstants.MDAPPLICATION.GitIntegration)
   fun gitIntegration(dfe: DgsDataFetchingEnvironment): MdGitIntegration {
@@ -101,6 +102,7 @@ class GitIntegration(
       branch = branch,
       isEnabled = managedDelivery?.importDeliveryConfig,
       manifestPath = managedDelivery?.manifestPath ?: DEFAULT_MANIFEST_PATH,
+      baseManifestPath = baseManifestPath.baseManifestPath,
       link = scmUtils.getBranchLink(repoType, repoProjectKey, repoSlug, branch),
     )
   }
