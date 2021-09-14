@@ -15,6 +15,7 @@ import com.netflix.spinnaker.keel.graphql.types.MdApplication
 import com.netflix.spinnaker.keel.graphql.types.MdGitIntegration
 import com.netflix.spinnaker.keel.graphql.types.MdUpdateGitIntegrationPayload
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
+import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter.Companion.DEFAULT_MANIFEST_PATH
 import com.netflix.spinnaker.keel.scm.ScmUtils
 import com.netflix.spinnaker.keel.upsert.DeliveryConfigUpserter
 import kotlinx.coroutines.runBlocking
@@ -99,7 +100,7 @@ class GitIntegration(
       repository = "${repoProjectKey}/${repoSlug}",
       branch = branch,
       isEnabled = managedDelivery?.importDeliveryConfig,
-      manifestPath = managedDelivery?.manifestPath,
+      manifestPath = managedDelivery?.manifestPath ?: DEFAULT_MANIFEST_PATH,
       link = scmUtils.getBranchLink(repoType, repoProjectKey, repoSlug, branch),
     )
   }
