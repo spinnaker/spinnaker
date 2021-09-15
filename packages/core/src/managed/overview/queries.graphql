@@ -282,6 +282,7 @@ query fetchApplicationManagementData($appName: String!) {
       branch
       isEnabled
       link
+      manifestPath
     }
   }
 }

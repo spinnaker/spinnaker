@@ -197,6 +197,42 @@ type MdResourceActuationState {
 type MdResourceTask {
   id: String!
   name: String!
+  summary: MdExecutionSummary
+}
+
+type MdExecutionSummary {
+  status: MdTaskStatus!
+  currentStage: MdStageDetail,
+  stages: [MdStageDetail!]
+  deployTargets: [MdDeployTarget!]
+  completedDeployTargets: [MdDeployTarget!]
+  error: String
+}
+
+type MdDeployTarget {
+  cloudProvider: String
+  location: MdDeployLocation
+  status: MdRolloutTargetStatus
+}
+enum MdRolloutTargetStatus {
+  NOT_STARTED, RUNNING, SUCCEEDED, FAILED
+}
+
+type MdDeployLocation {
+  account: String
+  region: String
+  sublocations: [String!]
+}
+
+type MdStageDetail {
+  id: String
+  type: String
+  name: String
+  startTime: InstantTime
+  endTime: InstantTime
+  status: MdTaskStatus
+  refId: String
+  requisiteStageRefIds: [String!]
 }
 
 type MdResource {
@@ -352,6 +388,21 @@ type MdNotification {
 
 enum MdEventLevel {
   SUCCESS, INFO, WARNING, ERROR
+}
+
+enum MdTaskStatus {
+  NOT_STARTED,
+  RUNNING,
+  PAUSED,
+  SUSPENDED,
+  SUCCEEDED,
+  FAILED_CONTINUE,
+  TERMINAL,
+  CANCELED,
+  REDIRECT,
+  STOPPED,
+  BUFFERED,
+  SKIPPED
 }
 
 input MdDismissNotificationPayload {

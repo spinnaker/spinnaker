@@ -144,6 +144,20 @@ export interface MdConstraintStatusPayload {
   status: MdConstraintStatus;
 }
 
+export interface MdDeployLocation {
+  __typename?: 'MdDeployLocation';
+  account?: Maybe<Scalars['String']>;
+  region?: Maybe<Scalars['String']>;
+  sublocations?: Maybe<Array<Scalars['String']>>;
+}
+
+export interface MdDeployTarget {
+  __typename?: 'MdDeployTarget';
+  cloudProvider?: Maybe<Scalars['String']>;
+  location?: Maybe<MdDeployLocation>;
+  status?: Maybe<MdRolloutTargetStatus>;
+}
+
 export interface MdDismissNotificationPayload {
   application: Scalars['String'];
   id: Scalars['String'];
@@ -168,6 +182,16 @@ export interface MdEnvironmentState {
 }
 
 export type MdEventLevel = 'SUCCESS' | 'INFO' | 'WARNING' | 'ERROR';
+
+export interface MdExecutionSummary {
+  __typename?: 'MdExecutionSummary';
+  status: MdTaskStatus;
+  currentStage?: Maybe<MdStageDetail>;
+  stages?: Maybe<Array<MdStageDetail>>;
+  deployTargets?: Maybe<Array<MdDeployTarget>>;
+  completedDeployTargets?: Maybe<Array<MdDeployTarget>>;
+  error?: Maybe<Scalars['String']>;
+}
 
 export interface MdGitIntegration {
   __typename?: 'MdGitIntegration';
@@ -317,6 +341,7 @@ export interface MdResourceTask {
   __typename?: 'MdResourceTask';
   id: Scalars['String'];
   name: Scalars['String'];
+  summary?: Maybe<MdExecutionSummary>;
 }
 
 export interface MdRetryArtifactActionPayload {
@@ -327,6 +352,34 @@ export interface MdRetryArtifactActionPayload {
   actionId: Scalars['String'];
   actionType: MdActionType;
 }
+
+export type MdRolloutTargetStatus = 'NOT_STARTED' | 'RUNNING' | 'SUCCEEDED' | 'FAILED';
+
+export interface MdStageDetail {
+  __typename?: 'MdStageDetail';
+  id?: Maybe<Scalars['String']>;
+  type?: Maybe<Scalars['String']>;
+  name?: Maybe<Scalars['String']>;
+  startTime?: Maybe<Scalars['InstantTime']>;
+  endTime?: Maybe<Scalars['InstantTime']>;
+  status?: Maybe<MdTaskStatus>;
+  refId?: Maybe<Scalars['String']>;
+  requisiteStageRefIds?: Maybe<Array<Scalars['String']>>;
+}
+
+export type MdTaskStatus =
+  | 'NOT_STARTED'
+  | 'RUNNING'
+  | 'PAUSED'
+  | 'SUSPENDED'
+  | 'SUCCEEDED'
+  | 'FAILED_CONTINUE'
+  | 'TERMINAL'
+  | 'CANCELED'
+  | 'REDIRECT'
+  | 'STOPPED'
+  | 'BUFFERED'
+  | 'SKIPPED';
 
 export interface MdToggleResourceManagementPayload {
   id: Scalars['ID'];
@@ -695,7 +748,7 @@ export type FetchApplicationManagementDataQuery = { __typename?: 'Query' } & {
         gitIntegration?: Maybe<
           { __typename?: 'MdGitIntegration' } & Pick<
             MdGitIntegration,
-            'id' | 'repository' | 'branch' | 'isEnabled' | 'link'
+            'id' | 'repository' | 'branch' | 'isEnabled' | 'link' | 'manifestPath'
           >
         >;
       }
@@ -1309,6 +1362,7 @@ export const FetchApplicationManagementDataDocument = gql`
         branch
         isEnabled
         link
+        manifestPath
       }
     }
   }
