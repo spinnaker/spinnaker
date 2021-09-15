@@ -23,6 +23,13 @@ import lombok.Data;
 public class KubernetesConfigurationProperties {
   private KubernetesJobExecutorProperties jobExecutor = new KubernetesJobExecutorProperties();
 
+  /**
+   * flag to toggle loading namespaces for a k8s account. By default, it is enabled, i.e., set to
+   * true. Disabling it is meant primarily for making clouddriver start up faster, since no calls
+   * are made to the k8s cluster to load these namespaces for accounts that are newly added
+   */
+  private boolean loadNamespacesInAccount = true;
+
   /** flag to toggle account health check. Defaults to true. */
   private boolean verifyAccountHealth = true;
 

@@ -19,49 +19,79 @@ package com.netflix.spinnaker.clouddriver.kubernetes.security;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.KubernetesProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCachingAgentDispatcher;
+import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import java.util.Collections;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.platform.runner.JUnitPlatform;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
-import org.mockito.Mockito;
 
 @RunWith(JUnitPlatform.class)
 public class KubernetesCredentialsLifecycleHandlerTest {
+  KubernetesProvider provider;
+  KubernetesCachingAgentDispatcher cachingAgentDispatcher;
+  KubernetesNamedAccountCredentials namedCredentials;
+  KubernetesCredentials kubernetesCredentials;
+  KubernetesConfigurationProperties kubernetesConfigurationProperties;
 
-  @Test
-  public void testAddCredentials() {
-    KubernetesProvider provider = new KubernetesProvider();
-    KubernetesCachingAgentDispatcher cachingAgentDispatcher =
-        mock(KubernetesCachingAgentDispatcher.class);
+  @BeforeEach
+  void setup() {
+    provider = new KubernetesProvider();
+    cachingAgentDispatcher = mock(KubernetesCachingAgentDispatcher.class);
+    namedCredentials = mock(KubernetesNamedAccountCredentials.class);
+    kubernetesCredentials = mock(KubernetesCredentials.class);
+    kubernetesConfigurationProperties = new KubernetesConfigurationProperties();
+
+    when(namedCredentials.getCredentials()).thenReturn(kubernetesCredentials);
+  }
+
+  @DisplayName(
+      "parameterized test to see how loadNamespacesInAccount config property works when adding credentials")
+  @ParameterizedTest(name = "{index} => loadNamespacesInAccount = {0}")
+  @ValueSource(booleans = {true, false})
+  public void testAddCredentials(boolean loadNamespacesInAccount) {
+    // setup:
     when(cachingAgentDispatcher.buildAllCachingAgents(ArgumentMatchers.any()))
         .thenAnswer(d -> Collections.singleton(mock(KubernetesCachingAgent.class)));
+    kubernetesConfigurationProperties.setLoadNamespacesInAccount(loadNamespacesInAccount);
     KubernetesCredentialsLifecycleHandler handler =
-        new KubernetesCredentialsLifecycleHandler(provider, cachingAgentDispatcher);
+        new KubernetesCredentialsLifecycleHandler(
+            provider, cachingAgentDispatcher, kubernetesConfigurationProperties);
 
     // Check we start with no agents
     assertThat(provider.getAgents()).isEmpty();
-
-    KubernetesNamedAccountCredentials namedCredentials =
-        Mockito.mock(KubernetesNamedAccountCredentials.class);
-
-    KubernetesCredentials kubernetesCredentials = mock(KubernetesCredentials.class);
     when(kubernetesCredentials.getDeclaredNamespaces()).thenReturn(ImmutableList.of());
 
-    when(namedCredentials.getCredentials()).thenReturn(kubernetesCredentials);
-
+    // when:
     handler.credentialsAdded(namedCredentials);
+
+    // then:
+    if (loadNamespacesInAccount) {
+      verify(kubernetesCredentials, times(1)).getDeclaredNamespaces();
+    } else {
+      verify(kubernetesCredentials, never()).getDeclaredNamespaces();
+    }
     // We should have added an agent
     assertThat(provider.getAgents()).hasSize(1);
 
+    // when:
     handler.credentialsAdded(namedCredentials);
+
+    // then:
     // We should have yet another one
     assertThat(provider.getAgents()).hasSize(2);
   }
@@ -70,7 +100,6 @@ public class KubernetesCredentialsLifecycleHandlerTest {
   public void testRemoveCredentials() {
     String ACCOUNT1 = "account1";
     String ACCOUNT2 = "account2";
-    KubernetesProvider provider = new KubernetesProvider();
 
     KubernetesCachingAgent agent1 = mock(KubernetesCachingAgent.class);
     when(agent1.handlesAccount(ACCOUNT1)).thenReturn(true);
@@ -81,7 +110,8 @@ public class KubernetesCredentialsLifecycleHandlerTest {
     provider.addAgents(List.of(agent1, agent2));
 
     KubernetesCredentialsLifecycleHandler handler =
-        new KubernetesCredentialsLifecycleHandler(provider, null);
+        new KubernetesCredentialsLifecycleHandler(
+            provider, null, kubernetesConfigurationProperties);
 
     assertThat(provider.getAgents()).hasSize(2);
 

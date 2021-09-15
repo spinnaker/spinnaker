@@ -20,6 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.security;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.KubernetesProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCachingAgentDispatcher;
+import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.credentials.CredentialsLifecycleHandler;
 import java.util.Collection;
 import java.util.Collections;
@@ -37,14 +38,24 @@ public class KubernetesCredentialsLifecycleHandler
       LoggerFactory.getLogger(KubernetesCredentialsLifecycleHandler.class);
   private final KubernetesProvider provider;
   private final KubernetesCachingAgentDispatcher cachingAgentDispatcher;
+  private final KubernetesConfigurationProperties kubernetesConfigurationProperties;
 
   @Override
   public void credentialsAdded(KubernetesNamedAccountCredentials credentials) {
-    // Attempt to get namespaces to resolve any connectivity error without blocking /credentials
-    List<String> namespaces = credentials.getCredentials().getDeclaredNamespaces();
-    if (namespaces.isEmpty()) {
-      log.warn(
-          "New account {} did not return any namespace and could be unreachable or misconfigured",
+    if (kubernetesConfigurationProperties.isLoadNamespacesInAccount()) {
+      // Attempt to get namespaces to resolve any connectivity error without blocking /credentials
+      log.info(
+          "kubernetes.loadNamespacesInAccount flag is set to true - loading all namespaces for new account: {}",
+          credentials.getName());
+      List<String> namespaces = credentials.getCredentials().getDeclaredNamespaces();
+      if (namespaces.isEmpty()) {
+        log.warn(
+            "New account {} did not return any namespace and could be unreachable or misconfigured",
+            credentials.getName());
+      }
+    } else {
+      log.info(
+          "kubernetes.loadNamespacesInAccount flag is disabled - new account: {} is unverified",
           credentials.getName());
     }
 
