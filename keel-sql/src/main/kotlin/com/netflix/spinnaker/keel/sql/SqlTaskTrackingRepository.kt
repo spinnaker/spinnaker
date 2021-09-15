@@ -29,6 +29,7 @@ class SqlTaskTrackingRepository(
         .set(TASK_TRACKING.TASK_NAME, task.name)
         .set(TASK_TRACKING.STARTED_AT, clock.instant())
         .set(TASK_TRACKING.STATUS, RUNNING)
+        .set(TASK_TRACKING.APPLICATION, task.application)
         .set(TASK_TRACKING.ENVIRONMENT_NAME, task.environmentName)
         .set(TASK_TRACKING.RESOURCE_ID, task.resourceId)
         .onDuplicateKeyIgnore()
