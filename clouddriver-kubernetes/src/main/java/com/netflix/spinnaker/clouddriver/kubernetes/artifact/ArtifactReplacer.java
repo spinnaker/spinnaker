@@ -88,6 +88,7 @@ public class ArtifactReplacer {
 
   @Nonnull
   public ReplaceResult replaceAll(
+      String dockerImageBinding,
       KubernetesManifest input,
       List<Artifact> artifacts,
       @Nonnull String namespace,
@@ -104,7 +105,7 @@ public class ArtifactReplacer {
     ImmutableSet.Builder<Artifact> replacedArtifacts = ImmutableSet.builder();
     for (Replacer replacer : replacers) {
       ImmutableCollection<Artifact> replaced =
-          replacer.replaceArtifacts(document, filteredArtifacts);
+          replacer.replaceArtifacts(dockerImageBinding, document, filteredArtifacts);
       replacedArtifacts.addAll(replaced);
     }
 

@@ -39,11 +39,15 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.*;
 import javax.annotation.Nonnull;
 import lombok.Getter;
+import org.springframework.beans.factory.annotation.Value;
 
 public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatch {
   protected static final ObjectMapper objectMapper = new ObjectMapper();
 
   private final ArtifactReplacer artifactReplacer;
+
+  @Value("${kubernetes.artifact-binding.docker-image:match-name-and-tag}")
+  protected String dockerImageBinding;
 
   protected KubernetesHandler() {
     this.artifactReplacer = new ArtifactReplacer(artifactReplacers());
@@ -77,7 +81,8 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatc
 
   public ReplaceResult replaceArtifacts(
       KubernetesManifest manifest, List<Artifact> artifacts, @Nonnull String account) {
-    return artifactReplacer.replaceAll(manifest, artifacts, manifest.getNamespace(), account);
+    return artifactReplacer.replaceAll(
+        this.dockerImageBinding, manifest, artifacts, manifest.getNamespace(), account);
   }
 
   public ReplaceResult replaceArtifacts(
@@ -85,7 +90,8 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatc
       List<Artifact> artifacts,
       @Nonnull String namespace,
       @Nonnull String account) {
-    return artifactReplacer.replaceAll(manifest, artifacts, namespace, account);
+    return artifactReplacer.replaceAll(
+        this.dockerImageBinding, manifest, artifacts, namespace, account);
   }
 
   protected abstract KubernetesCachingAgentFactory cachingAgentFactory();

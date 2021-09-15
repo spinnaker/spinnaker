@@ -64,6 +64,7 @@ final class ArtifactReplacerTest {
 
   private static final String NAMESPACE = "ns";
   private static final String ACCOUNT = "my-account";
+  private static final String DEFAULT_BINDING = "match-name-and-tag";
 
   @Test
   void extractsDeploymentNameFromHpa() {
@@ -156,7 +157,8 @@ final class ArtifactReplacerTest {
     KubernetesManifest deployment = getDeploymentWithContainer(getContainer("nginx:112"));
 
     ReplaceResult result =
-        artifactReplacer.replaceAll(deployment, ImmutableList.of(), NAMESPACE, ACCOUNT);
+        artifactReplacer.replaceAll(
+            DEFAULT_BINDING, deployment, ImmutableList.of(), NAMESPACE, ACCOUNT);
 
     assertThat(result.getManifest()).isEqualTo(deployment);
     assertThat(result.getBoundArtifacts()).isEmpty();
@@ -172,7 +174,7 @@ final class ArtifactReplacerTest {
         Artifact.builder().type("docker/image").name("nginx").reference("nginx:1.19.1").build();
     ReplaceResult result =
         artifactReplacer.replaceAll(
-            deployment, ImmutableList.of(inputArtifact), NAMESPACE, ACCOUNT);
+            DEFAULT_BINDING, deployment, ImmutableList.of(inputArtifact), NAMESPACE, ACCOUNT);
 
     assertThat(extractImage(result.getManifest())).contains("nginx:1.19.1");
     assertThat(result.getBoundArtifacts()).hasSize(1);
@@ -189,11 +191,32 @@ final class ArtifactReplacerTest {
         Artifact.builder().type("docker/image").name("nginx").reference("nginx:1.19.1").build();
     ReplaceResult result =
         artifactReplacer.replaceAll(
-            deployment, ImmutableList.of(inputArtifact), NAMESPACE, ACCOUNT);
+            DEFAULT_BINDING, deployment, ImmutableList.of(inputArtifact), NAMESPACE, ACCOUNT);
 
     assertThat(extractImage(result.getManifest())).contains("nginx:1.19.1");
     assertThat(result.getBoundArtifacts()).hasSize(1);
     assertThat(Iterables.getOnlyElement(result.getBoundArtifacts())).isEqualTo(inputArtifact);
+  }
+
+  /**
+   * This is a support for a legacy behavior, it's disabled by default and enabled by
+   * kubernetes.artifact-binding.docker-image with value 'match-name-only'. If there is already a
+   * tag on the image in the manifest, we are not replacing it.
+   */
+  @Test
+  void doesNotReplaceImageWithTag() {
+    ArtifactReplacer artifactReplacer =
+        new ArtifactReplacer(ImmutableList.of(Replacer.dockerImage()));
+    KubernetesManifest deployment = getDeploymentWithContainer(getContainer("nginx:1.18.0"));
+
+    Artifact inputArtifact =
+        Artifact.builder().type("docker/image").name("nginx").reference("nginx:1.19.1").build();
+    ReplaceResult result =
+        artifactReplacer.replaceAll(
+            "match-name-only", deployment, ImmutableList.of(inputArtifact), NAMESPACE, ACCOUNT);
+
+    assertThat(result.getManifest()).isEqualTo(deployment);
+    assertThat(result.getBoundArtifacts()).isEmpty();
   }
 
   /**
@@ -215,7 +238,7 @@ final class ArtifactReplacerTest {
             .build();
     ReplaceResult result =
         artifactReplacer.replaceAll(
-            deployment, ImmutableList.of(inputArtifact), NAMESPACE, ACCOUNT);
+            DEFAULT_BINDING, deployment, ImmutableList.of(inputArtifact), NAMESPACE, ACCOUNT);
 
     assertThat(extractImage(result.getManifest())).contains("nginx:1.19.1");
     assertThat(result.getBoundArtifacts()).hasSize(1);
@@ -241,7 +264,7 @@ final class ArtifactReplacerTest {
             .build();
     ReplaceResult result =
         artifactReplacer.replaceAll(
-            deployment, ImmutableList.of(inputArtifact), NAMESPACE, ACCOUNT);
+            DEFAULT_BINDING, deployment, ImmutableList.of(inputArtifact), NAMESPACE, ACCOUNT);
 
     assertThat(extractImage(result.getManifest())).contains("nginx:1.19.1");
     assertThat(result.getBoundArtifacts()).hasSize(1);
@@ -265,7 +288,7 @@ final class ArtifactReplacerTest {
             .build();
     ReplaceResult result =
         artifactReplacer.replaceAll(
-            replicaSet, ImmutableList.of(inputArtifact), NAMESPACE, ACCOUNT);
+            DEFAULT_BINDING, replicaSet, ImmutableList.of(inputArtifact), NAMESPACE, ACCOUNT);
 
     assertThat(extractEnvRef(result.getManifest())).contains("my-config-map-v003");
     assertThat(result.getBoundArtifacts()).hasSize(1);
@@ -290,7 +313,7 @@ final class ArtifactReplacerTest {
             .build();
     ReplaceResult result =
         artifactReplacer.replaceAll(
-            replicaSet, ImmutableList.of(inputArtifact), NAMESPACE, ACCOUNT);
+            DEFAULT_BINDING, replicaSet, ImmutableList.of(inputArtifact), NAMESPACE, ACCOUNT);
 
     assertThat(extractEnvRef(result.getManifest())).contains("my-config-map-v003");
     assertThat(result.getBoundArtifacts()).hasSize(1);
@@ -316,7 +339,7 @@ final class ArtifactReplacerTest {
             .build();
     ReplaceResult result =
         artifactReplacer.replaceAll(
-            replicaSet, ImmutableList.of(inputArtifact), NAMESPACE, ACCOUNT);
+            DEFAULT_BINDING, replicaSet, ImmutableList.of(inputArtifact), NAMESPACE, ACCOUNT);
 
     assertThat(extractEnvRef(result.getManifest())).contains("my-config-map");
     assertThat(result.getBoundArtifacts()).hasSize(0);
@@ -339,7 +362,7 @@ final class ArtifactReplacerTest {
             .build();
     ReplaceResult result =
         artifactReplacer.replaceAll(
-            replicaSet, ImmutableList.of(inputArtifact), NAMESPACE, ACCOUNT);
+            DEFAULT_BINDING, replicaSet, ImmutableList.of(inputArtifact), NAMESPACE, ACCOUNT);
 
     assertThat(extractEnvRef(result.getManifest())).contains("my-config-map");
     assertThat(result.getBoundArtifacts()).hasSize(0);
@@ -360,7 +383,8 @@ final class ArtifactReplacerTest {
             .putMetadata("account", ACCOUNT)
             .build();
     ReplaceResult result =
-        artifactReplacer.replaceAll(replicaSet, ImmutableList.of(inputArtifact), "", ACCOUNT);
+        artifactReplacer.replaceAll(
+            DEFAULT_BINDING, replicaSet, ImmutableList.of(inputArtifact), "", ACCOUNT);
 
     assertThat(extractEnvRef(result.getManifest())).contains("my-config-map-v003");
     assertThat(result.getBoundArtifacts()).hasSize(1);
