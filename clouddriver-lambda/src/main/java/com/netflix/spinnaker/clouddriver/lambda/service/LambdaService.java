@@ -148,6 +148,8 @@ public class LambdaService {
       return null;
     }
     Map<String, Object> attr = mapper.convertValue(result.getConfiguration(), Map.class);
+    attr.put("account", account.getName());
+    attr.put("region", region);
     attr.put("code", result.getCode());
     attr.put("tags", result.getTags());
     attr.put("concurrency", result.getConcurrency());
