@@ -39,6 +39,8 @@ class SlackAppController(
         commitModalCallbackHandler.openModal(req, ctx)
       } else if (req.payload.actions.first().actionId == "button:url:mj-diff-link") {
         log.info(logMessage("'see changes' button clicked", req))
+      } else {
+        log.debug(logMessage("Unrecognized action", req))
       }
       // we always need to acknowledge the button within 3 seconds
       ctx.ack()

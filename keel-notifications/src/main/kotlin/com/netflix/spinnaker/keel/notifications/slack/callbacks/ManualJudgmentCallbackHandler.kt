@@ -51,8 +51,9 @@ class ManualJudgmentCallbackHandler(
         ?: throw SystemException("constraint@callbackId=$constraintUid", "constraint not found")
 
       val authResponse = validateAuth(req, ctx, currentState)
+      log.debug("Manual judgment auth check for $constraintUid: $authResponse")
+
       val blocks = mutableListOf<LayoutBlock>()
-      log.debug("manual judgment auth check for $constraintUid: {}", authResponse)
       when (authResponse.authorized) {
         true -> {
           updateConstraintState(req.payload, currentState)
@@ -80,13 +81,14 @@ class ManualJudgmentCallbackHandler(
       return AuthorizationResponse(authorized = true, errorMessage = null)
     }
 
+    log.debug("Checking authorization for manual judgement action: ${req.toLog()}")
     val email = slackService.getEmailByUserId(ctx.requestUserId)
     if (email == ctx.requestUserId) {
       // unable to find email, not authorized
       return AuthorizationResponse(false, "Unable to find email address for slack user ${ctx.requestUserId}. They cannot approve or reject this artifact version.")
     }
-    val config = repository.getDeliveryConfig(constraintState.deliveryConfigName)
 
+    val config = repository.getDeliveryConfig(constraintState.deliveryConfigName)
     val hasAppPermissions = authorizationSupport.hasPermission(email, config.application, APPLICATION, WRITE)
     val hasServiceAccountPermissions = authorizationSupport.hasPermission(email, config.serviceAccount, SERVICE_ACCOUNT, WRITE)
 
@@ -228,6 +230,9 @@ class ManualJudgmentCallbackHandler(
     mapOf(
       ConstraintStatus.OVERRIDE_PASS.name to "approve",
       ConstraintStatus.OVERRIDE_FAIL.name to "reject")
+
+  private fun BlockActionRequest.toLog() =
+    "Slack request by ${payload.user?.username} (${payload.user?.id}) in channel ${payload.channel?.name} (${payload.channel?.id})"
 }
 
 data class AuthorizationResponse(
