@@ -2,10 +2,10 @@ import React from 'react';
 import { shallow } from 'enzyme';
 import { mockLaunchTemplate, mockServerGroup } from '@spinnaker/mocks';
 import { IAmazonMixedInstancesPolicy, IAmazonServerGroupView, IScalingPolicy } from '../../../domain';
-import { InstancesDiversificationDetailsSection } from '../../../index';
+import { InstancesDistributionDetailsSection } from '../../../index';
 import { Application, ApplicationModelBuilder } from '@spinnaker/core';
 
-describe('Instance diversification', () => {
+describe('InstancesDistribution', () => {
   let app: Application;
   beforeEach(() => {
     app = ApplicationModelBuilder.createApplicationForTests('testapp');
@@ -14,7 +14,7 @@ describe('Instance diversification', () => {
   const serverGroupWithMip = {
     ...mockServerGroup,
     mixedInstancesPolicy: {
-      instancesDiversification: {
+      instancesDistribution: {
         onDemandAllocationStrategy: 'prioritized',
         onDemandBaseCapacity: 1,
         onDemandPercentageAboveBaseCapacity: 50,
@@ -31,13 +31,13 @@ describe('Instance diversification', () => {
       ...mockServerGroup,
       launchTemplate: mockLaunchTemplate,
     } as IAmazonServerGroupView;
-    const wrapper = shallow(<InstancesDiversificationDetailsSection serverGroup={serverGroupWithLt} app={app} />);
+    const wrapper = shallow(<InstancesDistributionDetailsSection serverGroup={serverGroupWithLt} app={app} />);
 
     expect(wrapper.isEmptyRender()).toEqual(true);
   });
 
   it('should render for server group with mixed instances policy', () => {
-    const wrapper = shallow(<InstancesDiversificationDetailsSection serverGroup={serverGroupWithMip} app={app} />);
+    const wrapper = shallow(<InstancesDistributionDetailsSection serverGroup={serverGroupWithMip} app={app} />);
     expect(wrapper.isEmptyRender()).toEqual(false);
 
     const actualLabeledValues = wrapper.find('LabeledValue');
@@ -60,10 +60,10 @@ describe('Instance diversification', () => {
     const newServerGroup = {
       ...serverGroupWithMip,
     };
-    newServerGroup.mixedInstancesPolicy.instancesDiversification.spotAllocationStrategy = 'lowest-price';
-    newServerGroup.mixedInstancesPolicy.instancesDiversification.spotInstancePools = 5;
+    newServerGroup.mixedInstancesPolicy.instancesDistribution.spotAllocationStrategy = 'lowest-price';
+    newServerGroup.mixedInstancesPolicy.instancesDistribution.spotInstancePools = 5;
 
-    const wrapper = shallow(<InstancesDiversificationDetailsSection serverGroup={newServerGroup} app={app} />);
+    const wrapper = shallow(<InstancesDistributionDetailsSection serverGroup={newServerGroup} app={app} />);
     expect(wrapper.isEmptyRender()).toEqual(false);
 
     const actualLabeledValues = wrapper.find('LabeledValue');

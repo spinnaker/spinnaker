@@ -32,7 +32,7 @@ export function MultipleInstanceTypesSubSection(props: { instanceTypeOverrides: 
         </thead>
         <tbody>
           {props.instanceTypeOverrides.map((override) => [
-            <tr>
+            <tr key={override.instanceType}>
               <td headers="instanceType">{override.instanceType}</td>
               <td headers="weight">{override.weightedCapacity}</td>
             </tr>,

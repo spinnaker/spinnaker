@@ -18,7 +18,7 @@ export const LaunchTemplateDetailsSection = ({ serverGroup }: IAmazonServerGroup
 
   const { launchTemplateData } = launchTemplate;
   const maxSpotPrice = isMip
-    ? serverGroup.mixedInstancesPolicy.instancesDiversification.spotMaxPrice
+    ? serverGroup.mixedInstancesPolicy.instancesDistribution.spotMaxPrice
     : launchTemplateData?.instanceMarketOptions?.spotOptions?.maxPrice;
   const creditSpecification = launchTemplateData?.creditSpecification?.cpuCredits;
   const launchTemplateOverrides = isMip

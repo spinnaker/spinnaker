@@ -3,7 +3,7 @@ export * from './AmazonInfoDetailsSection';
 export * from './AmazonCapacityDetailsSection';
 export * from './HealthDetailsSection';
 export * from './IAmazonServerGroupDetailsSectionProps';
-export * from './InstancesDiversificationDetailsSection';
+export * from './InstancesDistributionDetailsSection';
 export * from './LaunchConfigDetailsSection';
 export * from './LaunchTemplateDetailsSection';
 export * from './LogsDetailsSection';

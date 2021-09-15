@@ -45,7 +45,7 @@ describe('Launch template details', () => {
     scalingPolicies: [] as IScalingPolicy[],
     mixedInstancesPolicy: {
       allowedInstanceTypes: ['some.type.medium', 'some.type.large'],
-      instancesDiversification: {
+      instancesDistribution: {
         onDemandAllocationStrategy: 'prioritized',
         onDemandBaseCapacity: 1,
         onDemandPercentageAboveBaseCapacity: 50,
