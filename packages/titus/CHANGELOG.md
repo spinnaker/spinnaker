@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.5.0](https://github.com/spinnaker/deck/compare/@spinnaker/titus@0.4.8...@spinnaker/titus@0.5.0) (2021-09-14)
+
+
+### Bug Fixes
+
+* **amazon:** Set default metric for new scaling policy ([#9655](https://github.com/spinnaker/deck/issues/9655)) ([63e55a9](https://github.com/spinnaker/deck/commit/63e55a988f5c8638d95ab324449d04c1cf40aeac))
+
+
+### Features
+
+* **titus:** Titus policy command builder ([#9629](https://github.com/spinnaker/deck/issues/9629)) ([9901867](https://github.com/spinnaker/deck/commit/9901867af636e8ee7408b8ffee7e67d99ea6c969))
+
+
+
+
+
 ## [0.4.8](https://github.com/spinnaker/deck/compare/@spinnaker/titus@0.4.7...@spinnaker/titus@0.4.8) (2021-09-07)
 
 **Note:** Version bump only for package @spinnaker/titus

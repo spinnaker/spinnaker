@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.8.6](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.8.5...@spinnaker/amazon@0.8.6) (2021-09-14)
+
+
+### Bug Fixes
+
+* **amazon:** Set default metric for new scaling policy ([#9655](https://github.com/spinnaker/deck/issues/9655)) ([63e55a9](https://github.com/spinnaker/deck/commit/63e55a988f5c8638d95ab324449d04c1cf40aeac))
+
+
+
+
+
 ## [0.8.5](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.8.4...@spinnaker/amazon@0.8.5) (2021-09-07)
 
 

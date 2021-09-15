@@ -3,6 +3,26 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.10.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.9.1...@spinnaker/core@0.10.0) (2021-09-14)
+
+
+### Bug Fixes
+
+* **core:** do not show "0" when no scaling activities detected ([da063fb](https://github.com/spinnaker/deck/commit/da063fbe1f15638b17c0903703ee9b608f92ea40))
+* **style:** keep submit button status indicator inline with label ([3d2b4cb](https://github.com/spinnaker/deck/commit/3d2b4cbaf3bf35ae170034d3843e75d994a642a3))
+
+
+### Features
+
+* **core:** Allow notification email SpEL ([#9633](https://github.com/spinnaker/deck/issues/9633)) ([05bd71f](https://github.com/spinnaker/deck/commit/05bd71f9870a5a234fe6a4302be0952b305fc2e4))
+* **core:** Expand Image Provider validation to find image stages ([#9647](https://github.com/spinnaker/deck/issues/9647)) ([c6cd62f](https://github.com/spinnaker/deck/commit/c6cd62f5dea233343037e29fdebb978728ff8341))
+* **md:** extended and simplified constraint title rendering ([#9640](https://github.com/spinnaker/deck/issues/9640)) ([b96078e](https://github.com/spinnaker/deck/commit/b96078e304aad10f147bfeb65b91299c9033a6d1))
+* **travis:** Remove Property File field from Travis stages and triggers ([#8990](https://github.com/spinnaker/deck/issues/8990)) ([6aa8e39](https://github.com/spinnaker/deck/commit/6aa8e39cae511bbdf3152be23e12f48a19a25abd))
+
+
+
+
+
 ## [0.9.1](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.9.0...@spinnaker/core@0.9.1) (2021-09-06)
 
 
