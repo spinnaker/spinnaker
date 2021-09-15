@@ -65,8 +65,10 @@ public class KubernetesConfiguration {
   @Bean
   public KubernetesHealthIndicator kubernetesHealthIndicator(
       Registry registry,
-      CredentialsRepository<KubernetesNamedAccountCredentials> credentialsRepository) {
-    return new KubernetesHealthIndicator(registry, credentialsRepository);
+      CredentialsRepository<KubernetesNamedAccountCredentials> credentialsRepository,
+      KubernetesConfigurationProperties kubernetesConfigurationProperties) {
+    return new KubernetesHealthIndicator(
+        registry, credentialsRepository, kubernetesConfigurationProperties);
   }
 
   @Bean

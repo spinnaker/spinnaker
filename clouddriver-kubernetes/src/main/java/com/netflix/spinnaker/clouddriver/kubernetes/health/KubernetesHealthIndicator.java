@@ -20,22 +20,36 @@ package com.netflix.spinnaker.clouddriver.kubernetes.health;
 import com.google.common.collect.ImmutableList;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.core.AccountHealthIndicator;
+import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
+@Slf4j
 public class KubernetesHealthIndicator
     extends AccountHealthIndicator<KubernetesNamedAccountCredentials> {
   private static final String ID = "kubernetes";
   private final CredentialsRepository<KubernetesNamedAccountCredentials> credentialsRepository;
+  private final KubernetesConfigurationProperties kubernetesConfigurationProperties;
 
   @Autowired
   public KubernetesHealthIndicator(
       Registry registry,
-      CredentialsRepository<KubernetesNamedAccountCredentials> credentialsRepository) {
+      CredentialsRepository<KubernetesNamedAccountCredentials> credentialsRepository,
+      KubernetesConfigurationProperties kubernetesConfigurationProperties) {
     super(ID, registry);
     this.credentialsRepository = credentialsRepository;
+    this.kubernetesConfigurationProperties = kubernetesConfigurationProperties;
+
+    if (kubernetesConfigurationProperties.isVerifyAccountHealth()) {
+      log.info(
+          "kubernetes.verifyAccountHealth flag is enabled - declared namespaces will be retrieved for all accounts");
+    } else {
+      log.warn(
+          "kubernetes.verifyAccountHealth flag is disabled - declared namespaces will not be retrieved for any account");
+    }
   }
 
   @Override
@@ -45,11 +59,13 @@ public class KubernetesHealthIndicator
 
   @Override
   protected Optional<String> accountHealth(KubernetesNamedAccountCredentials accountCredentials) {
-    try {
-      accountCredentials.getCredentials().getDeclaredNamespaces();
-      return Optional.empty();
-    } catch (RuntimeException e) {
-      return Optional.of(e.getMessage());
+    if (kubernetesConfigurationProperties.isVerifyAccountHealth()) {
+      try {
+        accountCredentials.getCredentials().getDeclaredNamespaces();
+      } catch (RuntimeException e) {
+        return Optional.of(e.getMessage());
+      }
     }
+    return Optional.empty();
   }
 }
