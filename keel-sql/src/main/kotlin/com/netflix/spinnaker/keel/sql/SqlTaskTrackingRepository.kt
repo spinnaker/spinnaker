@@ -66,6 +66,7 @@ class SqlTaskTrackingRepository(
             set(TASK_TRACKING.ENDED_AT, clock.instant())
           }
         }
+        .where(TASK_TRACKING.TASK_ID.eq(taskId))
         .execute()
     }
   }
