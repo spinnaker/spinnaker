@@ -1,11 +1,10 @@
 import { IComponentController, IComponentOptions, module } from 'angular';
-import { IModalService } from 'angular-ui-bootstrap';
 
-import { Application, ConfirmationModalService, IServerGroup, ITaskMonitorConfig } from '@spinnaker/core';
+import { Application, ConfirmationModalService, IServerGroup, ITaskMonitorConfig, ReactModal } from '@spinnaker/core';
 
 import { ScalingPolicyWriter } from '../ScalingPolicyWriter';
+import { IUpsertTargetTrackingModalProps, UpsertTargetTrackingModal } from './UpsertTargetTrackingModal';
 import { ITargetTrackingConfiguration, ITargetTrackingPolicy } from '../../../../domain/ITargetTrackingPolicy';
-import { UpsertTargetTrackingController } from './upsertTargetTracking.controller';
 
 class TargetTrackingSummaryController implements IComponentController {
   public policy: ITargetTrackingPolicy;
@@ -14,25 +13,20 @@ class TargetTrackingSummaryController implements IComponentController {
   public config: ITargetTrackingConfiguration;
   public popoverTemplate = require('./targetTrackingPopover.html');
 
-  public static $inject = ['$uibModal'];
-  constructor(private $uibModal: IModalService) {}
+  constructor() {}
 
   public $onInit() {
     this.config = this.policy.targetTrackingConfiguration;
   }
 
   public editPolicy(): void {
-    this.$uibModal.open({
-      templateUrl: require('./upsertTargetTracking.modal.html'),
-      controller: UpsertTargetTrackingController,
-      controllerAs: '$ctrl',
-      size: 'lg',
-      resolve: {
-        policy: () => this.policy,
-        serverGroup: () => this.serverGroup,
-        application: () => this.application,
-      },
-    });
+    const upsertProps = {
+      app: this.application,
+      policy: this.policy,
+      serverGroup: this.serverGroup,
+    } as IUpsertTargetTrackingModalProps;
+    const modalProps = { dialogClassName: 'wizard-modal modal-lg' };
+    ReactModal.show(UpsertTargetTrackingModal, upsertProps, modalProps);
   }
 
   public deletePolicy(): void {

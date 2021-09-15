@@ -18,7 +18,7 @@ export interface ITargetMetricFieldsProps {
   isCustomMetric: boolean;
   serverGroup: IAmazonServerGroup;
   toggleMetricType?: (type: MetricType) => void;
-  unit: string;
+  unit?: string;
   updateCommand: (command: ITargetTrackingPolicyCommand) => void;
 }
 
@@ -131,7 +131,7 @@ export const TargetMetricFields = ({
               <span className="sp-margin-xs-xaxis">of</span>
             </div>
           )}
-          <div>
+          <div className="horizontal middle">
             <NumberInput
               value={commandView.targetTrackingConfiguration.targetValue}
               onChange={(e) =>
