@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { ICloudMetricStatistics, NumberInput, ReactSelectInput } from '@spinnaker/core';
+import { ICloudMetricStatistics, NumberInput, ReactSelectInput, usePrevious } from '@spinnaker/core';
 
 import { MetricSelector } from './MetricSelector';
 import { MetricAlarmChart } from '../../chart/MetricAlarmChart';
@@ -46,9 +46,10 @@ export const AlarmConfigurer = ({
   const comparatorBound = alarm.comparisonOperator?.indexOf('Greater') === 0 ? 'max' : 'min';
   const [alarmView, setAlarmView] = React.useState<IScalingPolicyAlarm>(alarm);
   const [unit, setUnit] = React.useState<string>(alarmView?.unit);
+  const prevComparator = usePrevious(comparatorBound);
 
   React.useEffect(() => {
-    if (stepAdjustments) {
+    if (stepAdjustments && prevComparator !== undefined) {
       const source = comparatorBound === 'max' ? 'metricIntervalLowerBound' : 'metricIntervalUpperBound';
       const newStep: IStepAdjustment = {
         scalingAdjustment: 1,
@@ -57,6 +58,16 @@ export const AlarmConfigurer = ({
       stepsChanged([newStep]);
     }
   }, [comparatorBound]);
+
+  React.useEffect(() => {
+    const source = comparatorBound === 'max' ? 'metricIntervalLowerBound' : 'metricIntervalUpperBound';
+    if (stepAdjustments?.length) {
+      const updatedStepAdjustments = [...stepAdjustments];
+      // Always set the first step at the alarm threshold
+      updatedStepAdjustments[0][source] = alarmView.threshold;
+      stepsChanged(updatedStepAdjustments);
+    }
+  }, [alarmView.threshold]);
 
   const onChartLoaded = (stats: ICloudMetricStatistics) => setUnit(stats.unit);
 
@@ -67,23 +78,6 @@ export const AlarmConfigurer = ({
     };
     setAlarmView(newAlarm);
     updateAlarm(newAlarm);
-  };
-
-  const onThresholdChange = (bound: number) => {
-    const newAlarm = {
-      ...alarmView,
-      threshold: bound,
-    };
-    setAlarmView(newAlarm);
-    updateAlarm(newAlarm);
-
-    const source = comparatorBound === 'max' ? 'metricIntervalLowerBound' : 'metricIntervalUpperBound';
-    if (stepAdjustments?.length) {
-      const updatedStepAdjustments = [...stepAdjustments];
-      // Always set the first step at the alarm threshold
-      updatedStepAdjustments[0][source] = bound;
-      stepsChanged(updatedStepAdjustments);
-    }
   };
 
   const onMetricChange = (newAlarm: IScalingPolicyAlarm) => {
@@ -120,7 +114,7 @@ export const AlarmConfigurer = ({
       )}
       <div className="row sp-margin-s-yaxis">
         <div className="col-md-2 sm-label-right">Whenever</div>
-        <div className="col-md-10 horizontal middle">
+        <div className="col-md-10 horizontal">
           <ReactSelectInput
             value={alarmView.statistic}
             onChange={(e) => onAlarmChange('statistic', e.target.value)}
@@ -128,7 +122,7 @@ export const AlarmConfigurer = ({
             clearable={false}
             inputClassName="sp-margin-xs-right configurer-field-lg"
           />
-          <span className="input-label sp-margin-xs-right"> of </span>
+          <span className="input-label sp-margin-xs-right sp-margin-s-top"> of </span>
           <MetricSelector alarm={alarmView} serverGroup={serverGroup} updateAlarm={onMetricChange} />
         </div>
       </div>
@@ -145,7 +139,7 @@ export const AlarmConfigurer = ({
           <div className="sp-margin-xl-left">
             <NumberInput
               value={alarmView.threshold}
-              onChange={(e) => onThresholdChange(Number.parseInt(e.target.value))}
+              onChange={(e) => onAlarmChange('threshold', Number.parseInt(e.target.value))}
               inputClassName="sp-margin-xs-right configurer-field-lg"
             />
           </div>
@@ -170,7 +164,7 @@ export const AlarmConfigurer = ({
           />
         </div>
       </div>
-      <div className="row sp-margin-s-yaxis" ng-if="$ctrl.alarm.metricName">
+      <div className="row sp-margin-s-yaxis">
         <div className="col-md-10 col-md-offset-1">
           {alarm && (
             <div>

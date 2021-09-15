@@ -6,8 +6,8 @@ import { IScalingPolicyAlarm, IStepAdjustment } from '../../../../../domain';
 
 import './StepPolicyAction.less';
 
-type Operator = 'Add' | 'Remove' | 'Set to';
-type AdjustmentTypeView = 'instances' | 'percent of group';
+export type Operator = 'Add' | 'Remove' | 'Set to';
+export type AdjustmentTypeView = 'instances' | 'percent of group';
 
 export interface IStepPolicyActionProps {
   adjustmentType: AdjustmentTypeView;
@@ -97,7 +97,7 @@ export const StepPolicyAction = ({
               stringOptions={adjustmentTypeOptions}
               onChange={(e) => onAdjustmentTypeChange(e.target.value)}
               clearable={false}
-              inputClassName="adjustment-type-input"
+              inputClassName="adjustment-type-input sp-margin-xs-left"
             />
           )}
           <span className="sp-margin-xs-xaxis">
@@ -149,7 +149,7 @@ export const StepPolicyAction = ({
       ))}
       <div className="row sp-margin-s">
         <div className="col-md-10 col-md-offset-1">
-          <button className="btn btn-block btn-sm add-new" onClick={addStep}>
+          <button type="button" className="btn btn-block btn-sm add-new" onClick={addStep}>
             <span className="glyphicon glyphicon-plus-sign"></span>
             Add step
           </button>

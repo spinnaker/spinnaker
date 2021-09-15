@@ -1,11 +1,12 @@
 import React from 'react';
 
-import { Application, ModalInjector } from '@spinnaker/core';
+import { Application, ModalInjector, ReactModal } from '@spinnaker/core';
+
 import { IAmazonServerGroupView } from '../../../domain';
 import { AwsReactInjector } from '../../../reactShims';
-
 import { UpsertTargetTrackingController } from './targetTracking/upsertTargetTracking.controller';
 import { PolicyTypeSelectionModal } from './upsert/PolicyTypeSelectionModal';
+import { IUpsertScalingPolicyModalProps, UpsertScalingPolicyModal } from './upsert/UpsertScalingPolicyModal';
 
 export interface ICreateScalingPolicyButtonProps {
   application: Application;
@@ -38,19 +39,13 @@ export class CreateScalingPolicyButton extends React.Component<
   public createStepPolicy(): void {
     const { serverGroup, application } = this.props;
 
-    ModalInjector.modalService
-      .open({
-        templateUrl: require('./upsert/upsertScalingPolicy.modal.html'),
-        controller: 'awsUpsertScalingPolicyCtrl',
-        controllerAs: 'ctrl',
-        size: 'lg',
-        resolve: {
-          policy: () => AwsReactInjector.awsServerGroupTransformer.constructNewStepScalingPolicyTemplate(serverGroup),
-          serverGroup: () => serverGroup,
-          application: () => application,
-        },
-      })
-      .result.catch(() => {});
+    const upsertProps = {
+      app: application,
+      policy: AwsReactInjector.awsServerGroupTransformer.constructNewStepScalingPolicyTemplate(serverGroup),
+      serverGroup,
+    } as IUpsertScalingPolicyModalProps;
+    const modalProps = { dialogClassName: 'wizard-modal modal-lg' };
+    ReactModal.show(UpsertScalingPolicyModal, upsertProps, modalProps);
   }
 
   public createTargetTrackingPolicy(): void {

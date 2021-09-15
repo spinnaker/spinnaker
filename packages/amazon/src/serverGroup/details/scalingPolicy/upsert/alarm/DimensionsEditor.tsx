@@ -82,8 +82,8 @@ export const DimensionsEditor = ({ alarm, serverGroup, updateAvailableMetrics }:
       ))}
       {!alarm.disableEditingDimensions && (
         <div className="row">
-          <div className="col-md-10">
-            <button className="btn btn-block btn-xs add-new" onClick={addDimension}>
+          <div>
+            <button type="button" className="btn btn-block btn-xs add-new" onClick={addDimension}>
               <span className="glyphicon glyphicon-plus-sign sp-margin-xs-left"></span>
               Add dimension
             </button>
