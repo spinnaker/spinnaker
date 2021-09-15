@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.11.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.10.0...@spinnaker/core@0.11.0) (2021-09-15)
+
+
+### Features
+
+* **md:** display manifest path and make it configurable ([#9657](https://github.com/spinnaker/deck/issues/9657)) ([c7faaef](https://github.com/spinnaker/deck/commit/c7faaef01ae89b6103f37fa0087a94e33c658d8c))
+
+
+
+
+
 # [0.10.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.9.1...@spinnaker/core@0.10.0) (2021-09-14)
 
 
