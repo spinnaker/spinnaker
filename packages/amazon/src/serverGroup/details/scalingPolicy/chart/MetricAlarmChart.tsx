@@ -32,7 +32,7 @@ export function MetricAlarmChart(props: IMetricAlarmChartProps) {
 export function MetricAlarmChartImpl(props: IMetricAlarmChartProps) {
   const alarm = props.alarm ?? ({} as IScalingPolicyAlarm);
   const serverGroup = props.serverGroup ?? ({} as IAmazonServerGroup);
-  const { type, account, region } = serverGroup;
+  const { account, awsAccount, cloudProvider, region, type } = serverGroup;
   const { metricName, namespace, statistic, period } = alarm;
 
   const { status, result } = useData<ICloudMetricStatistics>(
@@ -40,7 +40,8 @@ export function MetricAlarmChartImpl(props: IMetricAlarmChartProps) {
       const parameters: Record<string, string | number> = { namespace, statistics: statistic, period };
       alarm.dimensions.forEach((dimension) => (parameters[dimension.name] = dimension.value));
 
-      const result = await CloudMetricsReader.getMetricStatistics(type, account, region, metricName, parameters);
+      const metricAccount = cloudProvider === 'aws' ? account : awsAccount;
+      const result = await CloudMetricsReader.getMetricStatistics('aws', metricAccount, region, metricName, parameters);
       result.datapoints = result.datapoints || [];
       props.onChartLoaded?.(result);
 

@@ -22,6 +22,7 @@ export interface IAmazonServerGroup extends IServerGroup {
   scalingPolicies?: IScalingPolicy[];
   targetGroups?: string[];
   asg: IAmazonAsg;
+  awsAccount?: string;
   launchTemplate?: IAmazonLaunchTemplate;
   mixedInstancesPolicy?: IAmazonMixedInstancesPolicy;
 }

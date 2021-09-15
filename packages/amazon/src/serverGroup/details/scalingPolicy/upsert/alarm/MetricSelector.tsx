@@ -53,7 +53,8 @@ export const MetricSelector = ({ alarm, updateAlarm, serverGroup }: IMetricSelec
   const dimensionValuesStr = buildDimensionValues(alarm?.dimensions || []);
 
   const fetchCloudMetrics = () => {
-    return CloudMetricsReader.listMetrics('aws', serverGroup.account, serverGroup.region, dimensionsObject).then(
+    const account = serverGroup.cloudProvider === 'aws' ? serverGroup.account : serverGroup?.awsAccount;
+    return CloudMetricsReader.listMetrics('aws', account, serverGroup.region, dimensionsObject).then(
       (metrics: ICloudMetricDescriptor[]) => {
         const sortedMetrics: IMetricOption[] = metrics
           .map((m) => ({
