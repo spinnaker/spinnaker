@@ -171,10 +171,10 @@ public class CreateServerGroupMixedInstancesPolicySpec extends AwsBaseSpec {
   }
 
   @DisplayName(
-      "Given request for server group with instance diversification features, "
+      "Given request for server group with instances distribution features, "
           + "successfully submit createServerGroup operation with mixed instances policy")
   @Test
-  public void createServerGroup_instanceDiversification_used_expect_mixedInstancesPolicy()
+  public void createServerGroup_instancesDistribution_used_expect_mixedInstancesPolicy()
       throws InterruptedException {
     // given
     Map<String, Object> requestBody =

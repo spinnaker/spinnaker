@@ -36,7 +36,7 @@ import org.apache.commons.lang3.StringUtils;
  * (https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/ec2/model/ResponseLaunchTemplateData.html)
  * 2. Launch template overrides
  * (https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/autoscaling/model/LaunchTemplate.html)
- * 3. Instance diversification
+ * 3. Instances distribution
  * (https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/autoscaling/model/InstancesDistribution.html)
  *
  * <p>Used to modify properties associated with the AWS entities listed above. Applicable to AWS

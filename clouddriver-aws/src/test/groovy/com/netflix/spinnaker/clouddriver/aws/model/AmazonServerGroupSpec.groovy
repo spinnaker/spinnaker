@@ -115,7 +115,7 @@ class AmazonServerGroupSpec extends Specification {
   void 'server group instance type is extracted as expected for asg with mixed instances policy'() {
     when:
     serverGroup.mixedInstancesPolicy = new AmazonServerGroup.MixedInstancesPolicySettings().tap {
-      instancesDiversification = [
+      instancesDistribution = [
         onDemandAllocationStrategy: "prioritized",
         onDemandBaseCapacity: 1,
         onDemandPercentageAboveBaseCapacity: 50,
@@ -249,7 +249,7 @@ class AmazonServerGroupSpec extends Specification {
     when:
     serverGroup.mixedInstancesPolicy = new AmazonServerGroup.MixedInstancesPolicySettings().tap {
       allowedInstanceTypes = ["some.type.1"]
-      instancesDiversification = [
+      instancesDistribution = [
         onDemandAllocationStrategy: "prioritized",
         onDemandBaseCapacity: 1,
         onDemandPercentageAboveBaseCapacity: 50,

@@ -393,7 +393,7 @@ class AmazonClusterProviderSpec extends Specification {
     actualServerGroup.launchConfig == null
     actualServerGroup.launchTemplate == null
     actualServerGroup.mixedInstancesPolicy.allowedInstanceTypes == expectedAllowedInstanceTypes
-    actualServerGroup.mixedInstancesPolicy.instancesDiversification == serverGroup.asg["mixedInstancesPolicy"]["instancesDistribution"]
+    actualServerGroup.mixedInstancesPolicy.instancesDistribution == serverGroup.asg["mixedInstancesPolicy"]["instancesDistribution"]
     actualServerGroup.mixedInstancesPolicy.launchTemplates == expectedInstanceTypeInLtData ? latestVersion : {latestVersion.clone(); latestVersion["launchTemplateData"].remove("instanceType")}
     actualServerGroup.mixedInstancesPolicy.launchTemplateOverridesForInstanceType == overrides
 

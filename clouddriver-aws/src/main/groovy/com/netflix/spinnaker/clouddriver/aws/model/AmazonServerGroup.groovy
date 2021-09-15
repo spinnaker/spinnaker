@@ -258,9 +258,9 @@ class AmazonServerGroup implements ServerGroup, Serializable {
     List<String> allowedInstanceTypes
 
     /**
-     * Instance diversification configuration.
+     * Instances distribution configuration.
      */
-    Map instancesDiversification
+    Map instancesDistribution
 
     /**
      * A list of launch template objects configured in the ASG.

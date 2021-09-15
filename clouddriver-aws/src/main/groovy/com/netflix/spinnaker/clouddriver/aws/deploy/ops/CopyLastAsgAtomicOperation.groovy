@@ -208,14 +208,14 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
           }
 
           if (isMip) {
-            def ancestorInstanceDiversification = ancestorAsg.mixedInstancesPolicy.instancesDistribution
-            newDescription.onDemandAllocationStrategy = description.onDemandAllocationStrategy != null ? description.onDemandAllocationStrategy : ancestorInstanceDiversification.onDemandAllocationStrategy
-            newDescription.onDemandBaseCapacity = description.onDemandBaseCapacity != null ? description.onDemandBaseCapacity : ancestorInstanceDiversification.onDemandBaseCapacity
-            newDescription.onDemandPercentageAboveBaseCapacity = description.onDemandPercentageAboveBaseCapacity != null ? description.onDemandPercentageAboveBaseCapacity : ancestorInstanceDiversification.onDemandPercentageAboveBaseCapacity
-            newDescription.spotAllocationStrategy = description.spotAllocationStrategy != null ? description.spotAllocationStrategy : ancestorInstanceDiversification.spotAllocationStrategy
+            def ancestorInstancesDistribution = ancestorAsg.mixedInstancesPolicy.instancesDistribution
+            newDescription.onDemandAllocationStrategy = description.onDemandAllocationStrategy != null ? description.onDemandAllocationStrategy : ancestorInstancesDistribution.onDemandAllocationStrategy
+            newDescription.onDemandBaseCapacity = description.onDemandBaseCapacity != null ? description.onDemandBaseCapacity : ancestorInstancesDistribution.onDemandBaseCapacity
+            newDescription.onDemandPercentageAboveBaseCapacity = description.onDemandPercentageAboveBaseCapacity != null ? description.onDemandPercentageAboveBaseCapacity : ancestorInstancesDistribution.onDemandPercentageAboveBaseCapacity
+            newDescription.spotAllocationStrategy = description.spotAllocationStrategy != null ? description.spotAllocationStrategy : ancestorInstancesDistribution.spotAllocationStrategy
             newDescription.spotInstancePools = description.spotInstancePools != null
               ? description.spotInstancePools
-              : newDescription.spotAllocationStrategy == "lowest-price" ? ancestorInstanceDiversification.spotInstancePools : null // return the spotInstancePools in ASG iff it is compatible with the spotAllocationStrategy
+              : newDescription.spotAllocationStrategy == "lowest-price" ? ancestorInstancesDistribution.spotInstancePools : null // return the spotInstancePools in ASG iff it is compatible with the spotAllocationStrategy
 
             newDescription.launchTemplateOverridesForInstanceType = description.launchTemplateOverridesForInstanceType != null && !description.launchTemplateOverridesForInstanceType.isEmpty()
               ? description.launchTemplateOverridesForInstanceType

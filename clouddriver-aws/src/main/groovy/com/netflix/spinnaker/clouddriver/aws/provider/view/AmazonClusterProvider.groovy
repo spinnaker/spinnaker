@@ -594,7 +594,7 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster>, ServerGro
       if (!mip["launchTemplate"]["overrides"]) {
         serverGroup.mixedInstancesPolicy = new AmazonServerGroup.MixedInstancesPolicySettings().tap {
           allowedInstanceTypes = [ec2Lt["launchTemplateData"]["instanceType"]]
-          instancesDiversification = serverGroup.asg.mixedInstancesPolicy["instancesDistribution"]
+          instancesDistribution = serverGroup.asg.mixedInstancesPolicy["instancesDistribution"]
           launchTemplates = [ec2Lt]
         }
       } else {
@@ -611,7 +611,7 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster>, ServerGro
 
         serverGroup.mixedInstancesPolicy = new AmazonServerGroup.MixedInstancesPolicySettings().tap {
           allowedInstanceTypes = types.sort()
-          instancesDiversification = serverGroup.asg.mixedInstancesPolicy["instancesDistribution"]
+          instancesDistribution = serverGroup.asg.mixedInstancesPolicy["instancesDistribution"]
           launchTemplates = [ ec2Lt ]
           launchTemplateOverridesForInstanceType = overrides
         }
