@@ -15,7 +15,6 @@ import com.netflix.spinnaker.keel.schema.ResourceKindSchemaCustomizer
 import com.netflix.spinnaker.keel.schema.TagVersionStrategySchemaCustomizer
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
-import com.netflix.spinnaker.kork.encryption.EncryptionService
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import de.huxhorn.sulky.ulid.ULID
 import org.springframework.beans.factory.annotation.Value
@@ -92,8 +91,8 @@ class DefaultConfiguration(
   fun noPostDeployActionRunners(): List<PostDeployActionHandler<*>> = emptyList()
 
   @Bean
-  fun authenticatedRequestFilter(encryptionService: EncryptionService): FilterRegistrationBean<AuthenticatedRequestFilter> =
-    FilterRegistrationBean(AuthenticatedRequestFilter(encryptionService))
+  fun authenticatedRequestFilter(): FilterRegistrationBean<AuthenticatedRequestFilter> =
+    FilterRegistrationBean(AuthenticatedRequestFilter(true))
       .apply { order = HIGHEST_PRECEDENCE }
 
   @Bean
