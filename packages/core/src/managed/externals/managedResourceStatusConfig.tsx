@@ -31,6 +31,15 @@ const LearnMoreLink = ({ resourceSummary }: { resourceSummary: IManagedResourceS
 );
 
 export const viewConfigurationByStatus: { [status in ManagedResourceStatus]: IViewConfiguration } = {
+  DELETING: {
+    appearance: 'warning',
+    iconName: 'mdActuating',
+    popoverContents: () => (
+      <p>
+        <b>Spinnaker is deleting this temporary managed resource</b>
+      </p>
+    ),
+  },
   ACTUATING: {
     appearance: 'info',
     iconName: 'mdActuating',
