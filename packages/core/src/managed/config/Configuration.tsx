@@ -17,7 +17,7 @@ import { Messages } from '../messages/Messages';
 import { showModal, useApplicationContextSafe } from '../../presentation';
 import { ActionModal, IArtifactActionModalProps } from '../utils/ActionModal';
 import { getIsDebugMode } from '../utils/debugMode';
-import { MODAL_MAX_WIDTH, spinnerProps } from '../utils/defaults';
+import { getDocsUrl, MODAL_MAX_WIDTH, spinnerProps } from '../utils/defaults';
 import { useLogEvent } from '../utils/logging';
 import { Spinner } from '../../widgets';
 
@@ -158,14 +158,14 @@ export const DisableManagementModal = ({ application, ...props }: InternalModalP
               Careful! You’re about to stop Spinnaker from managing all resources in your application.
             </span>
             This feature should only be used if management is not working properly and manual intervention is required.{' '}
-            <a href="https://www.spinnaker.io/guides/user/managed-delivery" target="_blank">
+            <a href={getDocsUrl('root')} target="_blank">
               Check our documentation for more information
             </a>
             .
           </p>
           <p>
             Need to rollback?{' '}
-            <a href="https://www.spinnaker.io/guides/user/managed-delivery/pinning/" target="_blank">
+            <a href={getDocsUrl('pinning')} target="_blank">
               Try pinning a version instead
             </a>
             .

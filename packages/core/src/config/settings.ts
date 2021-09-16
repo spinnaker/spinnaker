@@ -67,6 +67,14 @@ export interface INewApplicationDefaults {
   chaosMonkey?: boolean;
 }
 
+export interface IManagedDeliveryURLs {
+  gettingStarted: string;
+  root: string;
+  pinning: string;
+  resourceStatus: string;
+  markAsBad: string;
+}
+
 export interface ISpinnakerSettings {
   [key: string]: any;
 
@@ -111,9 +119,9 @@ export interface ISpinnakerSettings {
   gitSources: string[];
   hiddenStages: string[];
   managedDelivery?: {
-    gettingStartedUrl?: string;
     defaultManifest: string;
     manifestBasePath: string;
+    urls?: Partial<IManagedDeliveryURLs>;
   };
   maxPipelineAgeDays: number;
   newApplicationDefaults: INewApplicationDefaults;

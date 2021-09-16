@@ -1,11 +1,8 @@
 import React from 'react';
-
-import { SETTINGS } from '../config';
-
-const defaultGettingStartedUrl = 'https://www.spinnaker.io/guides/user/managed-delivery/getting-started/';
+import { getDocsUrl } from './utils/defaults';
 
 export const UnmanagedMessage = () => {
-  const gettingStartedLink = SETTINGS.managedDelivery?.gettingStartedUrl || defaultGettingStartedUrl;
+  const gettingStartedLink = getDocsUrl('gettingStarted');
   return (
     <div style={{ width: '100%' }}>
       Welcome! This application does not have any environments or artifacts. Check out the{' '}

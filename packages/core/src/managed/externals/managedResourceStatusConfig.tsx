@@ -1,9 +1,11 @@
 import React from 'react';
 
 import { IconNames } from '@spinnaker/presentation';
+
 import { Application } from '../../application';
 import { IManagedResourceSummary, ManagedResourceStatus } from '../../domain';
 import { logger } from '../../utils';
+import { getDocsUrl } from '../utils/defaults';
 
 interface IViewConfiguration {
   appearance: 'info' | 'warning' | 'error';
@@ -22,9 +24,7 @@ const LearnMoreLink = ({ resourceSummary }: { resourceSummary: IManagedResourceS
   <a
     target="_blank"
     onClick={() => logClick('Status docs link', resourceSummary.id, resourceSummary.status)}
-    href={`https://www.spinnaker.io/guides/user/managed-delivery/resource-status/#${resourceSummary.status
-      .toLowerCase()
-      .replace('_', '-')}`}
+    href={`${getDocsUrl('resourceStatus')}#${resourceSummary.status.toLowerCase().replace('_', '-')}`}
   >
     Learn more
   </a>

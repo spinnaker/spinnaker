@@ -11,6 +11,7 @@ import { ReactInjector } from '../../reactShims';
 import { showManagedResourceHistoryModal } from '../resourceHistory/ManagedResourceHistoryModal';
 import { toggleResourcePause } from './toggleResourceManagement';
 import { logger } from '../../utils/Logger';
+import { getDocsUrl } from '../utils/defaults';
 
 import './ManagedResourceDetailsIndicator.css';
 
@@ -43,11 +44,7 @@ export const ManagedResourceDetailsIndicator = ({
       </p>
       <p>
         If a difference from the desired state is detected, Spinnaker will act to correct it.{' '}
-        <a
-          target="_blank"
-          onClick={() => logClick('Learn More', id)}
-          href="https://www.spinnaker.io/guides/user/managed-delivery/"
-        >
+        <a target="_blank" onClick={() => logClick('Learn More', id)} href={getDocsUrl('root')}>
           Learn More
         </a>
       </p>
