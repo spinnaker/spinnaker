@@ -1,5 +1,5 @@
 /* tslint:disable: no-console */
-import { cloneDeep, get, isNil, set, uniq, without } from 'lodash';
+import { cloneDeep, get, isNil, set } from 'lodash';
 
 import { SETTINGS } from '../config/settings';
 
@@ -13,37 +13,11 @@ export interface ICloudProviderConfig {
   [attribute: string]: any;
 }
 
-class Providers {
-  private providers: Array<{ cloudProvider: string; config: ICloudProviderConfig }> = [];
-
-  public set(cloudProvider: string, config: ICloudProviderConfig): void {
-    // The original implementation used a Map, so calling #set could overwrite a config.
-    // The tests depend on this behavior, but maybe something else does as well.
-    this.providers = without(
-      this.providers,
-      this.providers.find((p) => p.cloudProvider === cloudProvider),
-    ).concat([{ cloudProvider, config }]);
-  }
-
-  public get(cloudProvider: string): ICloudProviderConfig {
-    const provider = this.providers.find((p) => p.cloudProvider === cloudProvider);
-    return provider ? provider.config : null;
-  }
-
-  public has(cloudProvider: string): boolean {
-    return !!this.get(cloudProvider);
-  }
-
-  public keys(): string[] {
-    return uniq(this.providers.map((p) => p.cloudProvider));
-  }
-}
-
 export class CloudProviderRegistry {
   /*
   Note: Providers don't get $log, so we stick with console statements here
    */
-  private static providers = new Providers();
+  private static providers = new Map<string, ICloudProviderConfig>();
 
   public static registerProvider(cloudProvider: string, config: ICloudProviderConfig): void {
     if (SETTINGS.providers[cloudProvider]) {
