@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.11.1](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.11.0...@spinnaker/core@0.11.1) (2021-09-16)
+
+
+### Bug Fixes
+
+* **core:** break words in notifications to prevent overflow ([#9665](https://github.com/spinnaker/deck/issues/9665)) ([9e15cc7](https://github.com/spinnaker/deck/commit/9e15cc7aaba7eb88bff64a1d618758de4e6476dd))
+* **md:** Added DELETING state to resource states.  ([#9659](https://github.com/spinnaker/deck/issues/9659)) ([dc36ccd](https://github.com/spinnaker/deck/commit/dc36ccdebdb1c2e20ac1f594f6b8418f470f3076))
+
+
+
+
+
 # [0.11.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.10.0...@spinnaker/core@0.11.0) (2021-09-15)
 
 

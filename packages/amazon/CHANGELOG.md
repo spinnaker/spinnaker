@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.8.8](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.8.7...@spinnaker/amazon@0.8.8) (2021-09-16)
+
+
+### Bug Fixes
+
+* **amazon:** Use account or awsAccount for cloud metrics reader ([#9666](https://github.com/spinnaker/deck/issues/9666)) ([943efd7](https://github.com/spinnaker/deck/commit/943efd73fba2166c445c6a42569f38ec661ffb38))
+
+
+
+
+
 ## [0.8.7](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.8.6...@spinnaker/amazon@0.8.7) (2021-09-15)
 
 **Note:** Version bump only for package @spinnaker/amazon
