@@ -1,5 +1,5 @@
 /* tslint:disable: no-console */
-import { cloneDeep, isNil, uniq, without } from 'lodash';
+import { cloneDeep, get, isNil, set, uniq, without } from 'lodash';
 
 import { SETTINGS } from '../config/settings';
 
@@ -64,19 +64,7 @@ export class CloudProviderRegistry {
       console.warn(`Cannot override "${key}" for provider "${cloudProvider}" (provider not registered)`);
       return;
     }
-    const config = this.providers.get(cloudProvider);
-    const parentKeys = key.split('.');
-    const lastKey = parentKeys.pop();
-    let current = config;
-
-    parentKeys.forEach((parentKey) => {
-      if (!current[parentKey]) {
-        current[parentKey] = {};
-      }
-      current = current[parentKey];
-    });
-
-    current[lastKey] = overrideValue;
+    set(this.providers.get(cloudProvider), key, overrideValue);
   }
 
   public static hasValue(cloudProvider: string, key: string) {
@@ -84,26 +72,7 @@ export class CloudProviderRegistry {
   }
 
   public static getValue(cloudProvider: string, key: string): any {
-    if (!key || !this.providers.has(cloudProvider)) {
-      return null;
-    }
-    const config = this.getProvider(cloudProvider);
-    const keyParts = key.split('.');
-    let current = config;
-    let notFound = false;
-
-    keyParts.forEach((keyPart) => {
-      if (!notFound && current.hasOwnProperty(keyPart)) {
-        current = current[keyPart];
-      } else {
-        notFound = true;
-      }
-    });
-
-    if (notFound) {
-      return null;
-    }
-    return current;
+    return get(this.getProvider(cloudProvider), key) ?? null;
   }
 
   //If the flag kubernetesAdHocInfraWritesEnabled is set to "false" then is disabled
@@ -111,9 +80,7 @@ export class CloudProviderRegistry {
     if (cloudProvider !== 'kubernetes') {
       return false;
     }
-    return (
-      isNil(CloudProviderRegistry.getValue(cloudProvider, 'kubernetesAdHocInfraWritesEnabled')) ||
-      CloudProviderRegistry.getValue(cloudProvider, 'kubernetesAdHocInfraWritesEnabled') === false
-    );
+    const writesEnabled = CloudProviderRegistry.getValue(cloudProvider, 'kubernetesAdHocInfraWritesEnabled');
+    return isNil(writesEnabled) || writesEnabled === false;
   }
 }
