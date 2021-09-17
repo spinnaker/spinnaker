@@ -12,11 +12,6 @@ export interface ICloudProviderLogoProps {
   showTooltip?: boolean;
 }
 
-export interface ICloudProviderLogoState {
-  tooltip?: string;
-  logo: React.ComponentType<React.SVGProps<HTMLOrSVGElement>>;
-}
-
 export const CloudProviderLogo = ({ height, provider, showTooltip, width }: ICloudProviderLogoProps) => {
   const [tooltip, setTooltip] = React.useState<string>(undefined);
   const RegistryLogo = CloudProviderRegistry.getValue(provider, 'cloudProviderLogo');
