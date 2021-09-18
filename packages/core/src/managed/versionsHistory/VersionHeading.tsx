@@ -146,7 +146,7 @@ const EnvironmentBadge = ({ name, data: { isPreview, versions, gitMetadata, isPi
   return (
     <Tooltip
       delayShow={TOOLTIP_DELAY_SHOW}
-      value={isCurrent && status !== 'CURRENT' ? `Current & ${statusText}` : statusText}
+      value={isCurrent && statusSummary !== 'CURRENT' ? `Current & ${statusText}` : statusText}
     >
       <div
         className={classnames(
