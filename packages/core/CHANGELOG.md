@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.11.2](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.11.1...@spinnaker/core@0.11.2) (2021-09-18)
+
+
+### Bug Fixes
+
+* **md:** replaced status with statusSummary ([#9669](https://github.com/spinnaker/deck/issues/9669)) ([4defe7f](https://github.com/spinnaker/deck/commit/4defe7f3df71c201533bda4f103e63b116859a96))
+
+
+
+
+
 ## [0.11.1](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.11.0...@spinnaker/core@0.11.1) (2021-09-16)
 
 
