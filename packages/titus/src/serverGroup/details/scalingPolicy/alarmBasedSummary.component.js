@@ -2,18 +2,16 @@
 
 import { module } from 'angular';
 
-import { AccountService, ConfirmationModalService, TaskExecutor } from '@spinnaker/core';
+import { AccountService, ConfirmationModalService, ReactModal, TaskExecutor } from '@spinnaker/core';
 
-import { TITUS_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_UPSERTSCALINGPOLICY_CONTROLLER } from './upsert/upsertScalingPolicy.controller';
+import { UpsertScalingPolicyModal } from './upsert/UpsertScalingPolicyModal';
 
 import './scalingPolicySummary.component.less';
 
 export const TITUS_SERVERGROUP_DETAILS_SCALINGPOLICY_ALARMBASEDSUMMARY_COMPONENT =
   'spinnaker.titus.serverGroup.details.scalingPolicy.alarmBasedSummary.component';
 export const name = TITUS_SERVERGROUP_DETAILS_SCALINGPOLICY_ALARMBASEDSUMMARY_COMPONENT; // for backwards compatibility
-module(TITUS_SERVERGROUP_DETAILS_SCALINGPOLICY_ALARMBASEDSUMMARY_COMPONENT, [
-  TITUS_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_UPSERTSCALINGPOLICY_CONTROLLER,
-]).component('titusAlarmBasedSummary', {
+module(TITUS_SERVERGROUP_DETAILS_SCALINGPOLICY_ALARMBASEDSUMMARY_COMPONENT, []).component('titusAlarmBasedSummary', {
   bindings: {
     policy: '=',
     serverGroup: '=',
@@ -38,18 +36,13 @@ module(TITUS_SERVERGROUP_DETAILS_SCALINGPOLICY_ALARMBASEDSUMMARY_COMPONENT, [
       this.popoverTemplate = require('./popover/scalingPolicyDetails.popover.html');
 
       this.editPolicy = () => {
-        $uibModal.open({
-          templateUrl: require('./upsert/upsertScalingPolicy.modal.html'),
-          controller: 'titusUpsertScalingPolicyCtrl',
-          controllerAs: 'ctrl',
-          size: 'lg',
-          resolve: {
-            policy: () => this.policy,
-            alarmServerGroup: () => this.alarmServerGroup,
-            serverGroup: () => this.serverGroup,
-            application: () => this.application,
-          },
-        });
+        const upsertProps = {
+          app: this.application,
+          policy: this.policy,
+          serverGroup: this.serverGroup,
+        };
+        const modalProps = { dialogClassName: 'wizard-modal modal-lg' };
+        ReactModal.show(UpsertScalingPolicyModal, upsertProps, modalProps);
       };
 
       this.deletePolicy = () => {
