@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.11.4](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.11.3...@spinnaker/core@0.11.4) (2021-09-21)
+
+
+### Bug Fixes
+
+* **md:** render resource status as markdown ([#9674](https://github.com/spinnaker/deck/issues/9674)) ([9f3d12f](https://github.com/spinnaker/deck/commit/9f3d12f3df97f33723b5287ccac5202cd4e2f8c4))
+
+
+
+
+
 ## [0.11.3](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.11.2...@spinnaker/core@0.11.3) (2021-09-18)
 
 
