@@ -107,7 +107,7 @@ export const TargetTrackingAdditionalSettings = ({
           </div>
           <div className="col-md-9 horizontal middle">
             <NumberInput
-              value={command.targetTrackingConfiguration.scaleInCooldown}
+              value={command.targetTrackingConfiguration.scaleOutCooldown}
               onChange={(e) =>
                 setCommandField('targetTrackingConfiguration.scaleOutCooldown', Number.parseInt(e.target.value))
               }

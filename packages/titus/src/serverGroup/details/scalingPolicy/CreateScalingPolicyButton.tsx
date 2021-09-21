@@ -1,11 +1,11 @@
 import React from 'react';
 
 import { PolicyTypeSelectionModal } from '@spinnaker/amazon';
-import { AccountService, Application, IServerGroup, ModalInjector, ReactModal } from '@spinnaker/core';
+import { AccountService, Application, IServerGroup, ReactModal } from '@spinnaker/core';
 
 import { TitusReactInjector } from '../../../reactShims';
-import { UpsertTargetTrackingController } from './targetTracking/upsertTargetTracking.controller';
 import { IUpsertScalingPolicyModalProps, UpsertScalingPolicyModal } from './upsert/UpsertScalingPolicyModal';
+import { IUpsertTargetTrackingModalProps, UpsertTargetTrackingModal } from './targetTracking/UpsertTargetTrackingModal';
 
 export interface ICreateScalingPolicyButtonProps {
   application: Application;
@@ -54,27 +54,13 @@ export class CreateScalingPolicyButton extends React.Component<
 
   public createTargetTrackingPolicy(): void {
     const { serverGroup, application } = this.props;
-
-    ModalInjector.modalService
-      .open({
-        templateUrl: require('./targetTracking/upsertTargetTracking.modal.html'),
-        controller: UpsertTargetTrackingController,
-        controllerAs: '$ctrl',
-        size: 'lg',
-        resolve: {
-          policy: () =>
-            TitusReactInjector.titusServerGroupTransformer.constructNewTargetTrackingPolicyTemplate(serverGroup),
-          serverGroup: () => serverGroup,
-          alarmServerGroup: () => ({
-            type: 'aws',
-            account: this.state.awsAccount,
-            region: serverGroup.region,
-            name: serverGroup.name,
-          }),
-          application: () => application,
-        },
-      })
-      .result.catch(() => {});
+    const upsertProps = {
+      app: application,
+      policy: TitusReactInjector.titusServerGroupTransformer.constructNewTargetTrackingPolicyTemplate(serverGroup),
+      serverGroup,
+    } as IUpsertTargetTrackingModalProps;
+    const modalProps = { dialogClassName: 'wizard-modal modal-lg' };
+    ReactModal.show(UpsertTargetTrackingModal, upsertProps, modalProps);
   }
 
   public typeSelected = (typeSelection: string): void => {

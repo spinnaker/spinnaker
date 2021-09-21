@@ -1,5 +1,4 @@
 import { IComponentController, IComponentOptions, module } from 'angular';
-import { IModalService } from 'angular-ui-bootstrap';
 
 import { ITargetTrackingConfiguration, ITargetTrackingPolicy } from '@spinnaker/amazon';
 import {
@@ -8,10 +7,11 @@ import {
   ConfirmationModalService,
   IServerGroup,
   ITaskMonitorConfig,
+  ReactModal,
   TaskExecutor,
 } from '@spinnaker/core';
 
-import { UpsertTargetTrackingController } from './upsertTargetTracking.controller';
+import { IUpsertTargetTrackingModalProps, UpsertTargetTrackingModal } from './UpsertTargetTrackingModal';
 
 export interface IAlarmRenderingServerGroup {
   type: string;
@@ -32,8 +32,7 @@ class TargetTrackingSummaryController implements IComponentController {
   public config: ITargetTrackingConfiguration;
   public popoverTemplate = require('./targetTrackingPopover.html');
 
-  public static $inject = ['$uibModal'];
-  constructor(private $uibModal: IModalService) {}
+  constructor() {}
 
   public $onInit() {
     this.config = this.policy.targetTrackingConfiguration;
@@ -49,20 +48,13 @@ class TargetTrackingSummaryController implements IComponentController {
   }
 
   public editPolicy(): void {
-    this.$uibModal
-      .open({
-        templateUrl: require('./upsertTargetTracking.modal.html'),
-        controller: UpsertTargetTrackingController,
-        controllerAs: '$ctrl',
-        size: 'lg',
-        resolve: {
-          policy: () => this.policy,
-          alarmServerGroup: () => this.alarmServerGroup,
-          serverGroup: () => this.serverGroup,
-          application: () => this.application,
-        },
-      })
-      .result.catch(() => {});
+    const upsertProps = {
+      app: this.application,
+      policy: this.policy,
+      serverGroup: this.serverGroup,
+    } as IUpsertTargetTrackingModalProps;
+    const modalProps = { dialogClassName: 'wizard-modal modal-lg' };
+    ReactModal.show(UpsertTargetTrackingModal, upsertProps, modalProps);
   }
 
   public deletePolicy(): void {
