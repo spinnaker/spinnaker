@@ -3,7 +3,7 @@ import React from 'react';
 import { ResourceTask } from './ResourceTask';
 import { EnvironmentItem } from '../environmentBaseElements/EnvironmentItem';
 import { MdResourceActuationState, useFetchResourceStatusQuery } from '../graphql/graphql-sdk';
-import { Icon, useApplicationContextSafe } from '../../presentation';
+import { Icon, Markdown, useApplicationContextSafe } from '../../presentation';
 import { showManagedResourceHistoryModal } from '../resourceHistory/ManagedResourceHistoryModal';
 import { showResourceDefinitionModal } from '../resources/ResourceDefinitionModal';
 import { ResourceTitle } from '../resources/ResourceTitle';
@@ -63,7 +63,7 @@ const Status = ({
         />
         <div>
           <div>{state.reason || statusUtils[state.status].defaultReason}</div>
-          {state.event && state.event !== state.reason && <div>{state.event}</div>}
+          {state.event && state.event !== state.reason && <Markdown className="event" message={state.event} />}
           {Boolean(state.tasks?.length) && (
             <ul className="tasks-list">
               {state.tasks?.map(({ id, name }) => (
