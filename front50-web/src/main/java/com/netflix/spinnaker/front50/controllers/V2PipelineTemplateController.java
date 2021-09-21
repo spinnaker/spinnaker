@@ -260,7 +260,7 @@ public class V2PipelineTemplateController {
     if (!VALID_TEMPLATE_TAGS.contains(tag)) {
       throw new InvalidRequestException(
           String.format(
-              "The provided tag %s is not supported." + " Pipeline template must tag be one of %s",
+              "The provided tag %s is not supported." + " Pipeline template tag must be one of %s",
               tag, VALID_TEMPLATE_TAGS));
     }
   }
