@@ -26,6 +26,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.exec.*;
 
@@ -111,7 +113,7 @@ public class JobExecutorLocal implements JobExecutor {
 
     T result;
     try {
-      result = futureResult.get();
+      result = futureResult.get(timeoutMinutes, TimeUnit.MINUTES);
     } catch (InterruptedException e) {
       executor.getWatchdog().destroyProcess();
       Thread.currentThread().interrupt();
@@ -120,6 +122,12 @@ public class JobExecutorLocal implements JobExecutor {
     } catch (ExecutionException e) {
       throw new JobExecutionException(
           String.format("Error parsing output of job: %s", jobRequest.toString()), e.getCause());
+    } catch (TimeoutException e) {
+      throw new JobExecutionException(
+          String.format(
+              "Timed out reading output of job: %s with exit value: %d. stderr: %s",
+              jobRequest.toString(), exitValue, stdErr.toString()),
+          e);
     }
 
     return JobResult.<T>builder()
