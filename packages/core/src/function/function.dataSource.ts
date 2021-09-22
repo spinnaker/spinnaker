@@ -35,6 +35,7 @@ module(FUNCTION_DATA_SOURCE, [FUNCTION_READ_SERVICE]).run([
       category: INFRASTRUCTURE_KEY,
       optional: true,
       icon: 'fa fa-xs fa-fw fa-asterisk',
+      iconName: 'spMenuFunctions',
       loader: functions,
       onLoad: addFunctions,
       afterLoad: addTags,
