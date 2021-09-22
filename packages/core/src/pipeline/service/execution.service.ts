@@ -97,7 +97,7 @@ export class ExecutionService {
     return this.getFilteredExecutions(applicationName, statuses, limit, null, expand);
   }
 
-  public getExecution(executionId: string): PromiseLike<IExecution> {
+  public getExecution(executionId: string, pipelineConfigs: IPipeline[] = []): PromiseLike<IExecution> {
     return REST('/pipelines')
       .path(executionId)
       .get()
@@ -106,6 +106,11 @@ export class ExecutionService {
         execution.hydrated = true;
         this.cleanExecutionForDiffing(execution);
         if (application && name) {
+          const cached = pipelineConfigs.find((config) => config.id === execution.pipelineConfigId);
+          if (cached) {
+            execution.pipelineConfig = cached;
+            return Promise.resolve(execution);
+          }
           return REST('/applications')
             .path(application, 'pipelineConfigs', name)
             .get()
@@ -402,7 +407,7 @@ export class ExecutionService {
     });
     application.executions.data.forEach((execution: IExecution) => {
       if (execution.isActive && application.runningExecutions.data.every((e: IExecution) => e.id !== execution.id)) {
-        this.getExecution(execution.id).then((updatedExecution) => {
+        this.getExecution(execution.id, application.pipelineConfigs?.data).then((updatedExecution) => {
           this.updateExecution(application, updatedExecution);
         });
       }

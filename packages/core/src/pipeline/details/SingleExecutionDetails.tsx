@@ -30,7 +30,7 @@ export interface ISingleExecutionRouterStateChange extends IStateChange {
 }
 
 export function getAndTransformExecution(id: string, app: Application) {
-  return ReactInjector.executionService.getExecution(id).then((execution) => {
+  return ReactInjector.executionService.getExecution(id, app.pipelineConfigs?.data).then((execution) => {
     ExecutionsTransformer.transformExecution(app, execution);
     return execution;
   });
