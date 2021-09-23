@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.8.13](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.8.12...@spinnaker/amazon@0.8.13) (2021-09-23)
+
+
+### Bug Fixes
+
+* **amazon:** Undefined cloudprovider causing failure for scaling policy data ([#9694](https://github.com/spinnaker/deck/issues/9694)) ([5328de3](https://github.com/spinnaker/deck/commit/5328de3708427559289ce6aa44bf0a94c3c1d506))
+
+
+
+
+
 ## [0.8.12](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.8.11...@spinnaker/amazon@0.8.12) (2021-09-23)
 
 

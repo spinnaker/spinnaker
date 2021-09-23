@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.11.6](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.11.5...@spinnaker/core@0.11.6) (2021-09-23)
+
+
+### Bug Fixes
+
+* **md:** notify users on error in mutation ([#9691](https://github.com/spinnaker/deck/issues/9691)) ([ad99afb](https://github.com/spinnaker/deck/commit/ad99afbef6fa55bb570d8c2530667b24b2d02c79))
+
+
+
+
+
 ## [0.11.5](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.11.4...@spinnaker/core@0.11.5) (2021-09-23)
 
 
