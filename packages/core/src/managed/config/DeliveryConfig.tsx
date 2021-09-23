@@ -9,7 +9,8 @@ import {
 import { useApplicationContextSafe } from '../../presentation/hooks/useApplicationContext.hook';
 import { YamlViewer } from '../utils/YamlViewer';
 import { useLogEvent } from '../utils/logging';
-import { NotifierService, Spinner } from '../../widgets';
+import { useNotifyOnError } from '../utils/useNotifyOnError.hook';
+import { Spinner } from '../../widgets';
 
 interface IDeliveryConfigProps {
   config?: string;
@@ -26,14 +27,7 @@ const ReImportConfig = () => {
   });
   const logEvent = useLogEvent('GitIntegration', 'ImportNow');
 
-  React.useEffect(() => {
-    if (!error) return;
-    NotifierService.publish({
-      key: 'import-error',
-      content: `Failed to import delivery config - ${error.message}`,
-      options: { type: 'error' },
-    });
-  }, [error]);
+  useNotifyOnError({ key: 'import-error', content: `Failed to import delivery config`, error });
 
   return (
     <>

@@ -19,6 +19,7 @@ import { ActionModal, IArtifactActionModalProps } from '../utils/ActionModal';
 import { getIsDebugMode } from '../utils/debugMode';
 import { getDocsUrl, MODAL_MAX_WIDTH, spinnerProps } from '../utils/defaults';
 import { useLogEvent } from '../utils/logging';
+import { useNotifyOnError } from '../utils/useNotifyOnError.hook';
 import { Spinner } from '../../widgets';
 
 const BTN_CLASSNAMES = 'btn md-btn';
@@ -82,8 +83,14 @@ interface IManagementToggleProps {
 const ManagementToggle = ({ isPaused }: IManagementToggleProps) => {
   const appName = useApplicationContextSafe().name;
   const logEvent = useLogEvent('Management');
-  const [toggleManagement, { loading: mutationInFlight }] = useToggleManagementMutation({
+  const [toggleManagement, { loading: mutationInFlight, error }] = useToggleManagementMutation({
     refetchQueries: [{ query: FetchApplicationManagementDataDocument, variables: { appName } }],
+  });
+
+  useNotifyOnError({
+    key: 'toggleManagement',
+    content: `Failed to ${isPaused ? 'enable' : 'disable'} management`,
+    error,
   });
 
   const onShowToggleManagementModal = React.useCallback((shouldPause: boolean) => {

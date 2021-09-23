@@ -10,7 +10,8 @@ import { CollapsibleSection, useApplicationContextSafe } from '../../../presenta
 import { ArtifactVersionProps, QueryConstraint } from '../types';
 import { getConstraintsStatusSummary } from './utils';
 import { useLogEvent } from '../../utils/logging';
-import { NotifierService, Spinner } from '../../../widgets';
+import { useNotifyOnError } from '../../utils/useNotifyOnError.hook';
+import { Spinner } from '../../../widgets';
 
 import './Constraints.less';
 
@@ -31,16 +32,7 @@ const ConstraintContent = ({ constraint, versionProps }: IConstraintContentProps
     ],
   });
 
-  React.useEffect(() => {
-    if (error) {
-      NotifierService.publish({
-        action: 'create',
-        key: 'updateConstraintError',
-        content: `Failed to update constraint - ${error.message}`,
-        options: { type: 'error' },
-      });
-    }
-  }, [error]);
+  useNotifyOnError({ key: 'updateConstraintError', content: `Failed to update constraint`, error });
 
   return (
     <dl className="constraint-content">

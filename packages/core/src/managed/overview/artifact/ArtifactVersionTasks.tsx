@@ -7,7 +7,8 @@ import { Tooltip, useApplicationContextSafe } from '../../../presentation';
 import { QueryArtifactVersionTask, QueryArtifactVersionTaskStatus } from '../types';
 import { TOOLTIP_DELAY_SHOW } from '../../utils/defaults';
 import { useLogEvent } from '../../utils/logging';
-import { NotifierService, Spinner } from '../../../widgets';
+import { useNotifyOnError } from '../../utils/useNotifyOnError.hook';
+import { Spinner } from '../../../widgets';
 
 import './ArtifactVersionTasks.less';
 
@@ -55,15 +56,7 @@ const ArtifactVersionTask = ({ type, artifact, task }: IArtifactVersionTaskProps
     },
   });
 
-  React.useEffect(() => {
-    if (error) {
-      NotifierService.publish({
-        key: task.id,
-        content: `Failed to re-run ${type} - ${error.message}`,
-        options: { type: 'error' },
-      });
-    }
-  }, [error]);
+  useNotifyOnError({ key: task.id, content: `Failed to re-run ${type}`, error });
 
   return (
     <div className="version-task">
