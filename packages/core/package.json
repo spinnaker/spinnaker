@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/core",
   "license": "Apache-2.0",
-  "version": "0.11.4",
+  "version": "0.11.5",
   "module": "dist/index.js",
   "typings": "dist/index.d.ts",
   "scripts": {
@@ -17,7 +17,7 @@
     "@apollo/client": "3.3.14",
     "@fortawesome/fontawesome-free": "5.5.0",
     "@spinnaker/mocks": "1.0.7",
-    "@spinnaker/presentation": "^0.0.11",
+    "@spinnaker/presentation": "^0.0.12",
     "@spinnaker/styleguide": "1.0.28",
     "@uirouter/angularjs": "1.0.26",
     "@uirouter/core": "6.0.8",

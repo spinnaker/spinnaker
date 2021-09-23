@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.11.5](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.11.4...@spinnaker/core@0.11.5) (2021-09-23)
+
+
+### Bug Fixes
+
+* **aws/lambda:** Fix functions icon on menu ([#9686](https://github.com/spinnaker/deck/issues/9686)) ([9e6aae3](https://github.com/spinnaker/deck/commit/9e6aae34af206ea6d280fac1b892d7aba7f38abc))
+* **pipelines:** Reduce pipelineConfig fetches ([#9677](https://github.com/spinnaker/deck/issues/9677)) ([106d00b](https://github.com/spinnaker/deck/commit/106d00b942ce19c5a316a130963c411171893108))
+
+
+
+
+
 ## [0.11.4](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.11.3...@spinnaker/core@0.11.4) (2021-09-21)
 
 

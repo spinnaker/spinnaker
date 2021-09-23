@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.8.12](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.8.11...@spinnaker/amazon@0.8.12) (2021-09-23)
+
+
+### Bug Fixes
+
+* **aws/lambda:** Lists Event Source details for functions ([#9679](https://github.com/spinnaker/deck/issues/9679)) ([c311cd6](https://github.com/spinnaker/deck/commit/c311cd6daea60ac08eb616d8cdbf45c1dd20ff09))
+* **aws/lambda:** Lists Event Source details for functions ([#9683](https://github.com/spinnaker/deck/issues/9683)) ([ead61cd](https://github.com/spinnaker/deck/commit/ead61cde4bce43b77fe69181e763b4cb93f6f4f0))
+* **aws/lambda:** revert for typo and backport for event source ([#9682](https://github.com/spinnaker/deck/issues/9682)) ([e8d533d](https://github.com/spinnaker/deck/commit/e8d533d4fbfcc17365a5885c4536d5bc1f3d6749))
+
+
+
+
+
 ## [0.8.11](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.8.10...@spinnaker/amazon@0.8.11) (2021-09-21)
 
 **Note:** Version bump only for package @spinnaker/amazon
