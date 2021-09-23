@@ -23,8 +23,8 @@
     "@svgr/rollup": "^5.5.0",
     "autoprefixer": "^7.1.2",
     "chalk": "^4.1.1",
+    "comment-json": "^4.1.1",
     "esbuild": "^0.12.14",
-    "hjson": "^3.2.2",
     "ora": "^5.4.0",
     "postcss-colorfix": "0.0.5",
     "postcss-url": "9.0.0",
@@ -39,7 +39,6 @@
     "yargs": "^17.1.1"
   },
   "devDependencies": {
-    "@types/hjson": "^2.4.3",
     "@types/yargs": "^17.0.3"
   }
 }

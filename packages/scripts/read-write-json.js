@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 const fs = require('fs');
-const hjson = require('hjson');
+// JSON parse/stringify with support for comments (tsconfig.json can have comments)
+const commentJson = require('comment-json');
 const { get, set, unset } = require('lodash');
 const yargs = require('yargs');
 
@@ -85,17 +86,11 @@ if (require.main === module) {
 
 function readJson(filename) {
   const string = fs.readFileSync(filename, 'utf-8');
-  return hjson.rt.parse(string);
+  return commentJson.parse(string);
 }
 
 function writeJson(filename, json) {
-  const data = hjson.rt.stringify(json, {
-    bracesSameLine: true,
-    multiline: 'std',
-    quotes: 'all',
-    separator: true,
-    space: 2,
-  });
+  const data = commentJson.stringify(json, null, 2);
   fs.writeFileSync(filename, data, 'utf-8');
 }
 
