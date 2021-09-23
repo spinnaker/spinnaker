@@ -16,8 +16,7 @@
     "dev-proxy": "scripts/dev-proxy/server.js",
     "husky-install": "scripts/husky-install.sh",
     "restore-scaffold-file": "scripts/restore-scaffold-file.js",
-    "scaffold": "scripts/scaffold.js",
-    "write-json": "scripts/write-json.js"
+    "scaffold": "scripts/scaffold.js"
   },
   "dependencies": {
     "@spinnaker/scripts": "^0.1.0",

@@ -2,7 +2,7 @@
 
 const { execSync } = require('child_process');
 const { assertJsonFile } = require('../asserters/assertJsonFile');
-const { readJson } = require('../util/readWriteJson');
+const { readJson } = require('@spinnaker/scripts/read-write-json');
 
 const PLUGIN_SDK = '@spinnaker/pluginsdk';
 const PEER_DEPS = '@spinnaker/pluginsdk-peerdeps';

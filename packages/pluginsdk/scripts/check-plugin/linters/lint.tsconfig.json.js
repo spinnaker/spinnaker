@@ -1,6 +1,6 @@
 const { assertJsonFile } = require('../asserters/assertJsonFile');
 const { assertFileExists } = require('../asserters/assertFileExists');
-const { readJson } = require('../util/readWriteJson');
+const { readJson } = require('@spinnaker/scripts/read-write-json');
 
 function checkTsconfig(report) {
   const exists = assertFileExists(report, 'tsconfig.json');
