@@ -4,7 +4,8 @@
   "description": "Spinnaker scripts",
   "main": "index.js",
   "bin": {
-    "spinnaker-scripts": "./index.js"
+    "spinnaker-scripts": "./index.js",
+    "read-write-json": "./read-write-json.js"
   },
   "scripts": {},
   "keywords": [],
@@ -23,6 +24,7 @@
     "autoprefixer": "^7.1.2",
     "chalk": "^4.1.1",
     "esbuild": "^0.12.14",
+    "hjson": "^3.2.2",
     "ora": "^5.4.0",
     "postcss-colorfix": "0.0.5",
     "postcss-url": "9.0.0",
@@ -34,6 +36,9 @@
     "rollup-plugin-terser": "7.0.2",
     "rollup-plugin-visualizer": "5.4.1",
     "yalc": "^1.0.0-pre.53",
-    "yargs": "^17.0.1"
+    "yargs": "^17.1.1"
+  },
+  "devDependencies": {
+    "@types/hjson": "^2.4.3"
   }
 }
