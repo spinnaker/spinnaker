@@ -14,7 +14,7 @@ import 'ui-select/dist/select.css';
 import '@spinnaker/styleguide/public/styleguide.min.css';
 import 'Select2/select2.css';
 import 'select2-bootstrap-css/select2-bootstrap.css';
-import 'source-sans-pro/source-sans-pro.css';
+import 'source-sans/source-sans-3.css';
 import './fonts/icons.css';
 
 import UI_ROUTER from '@uirouter/angularjs';

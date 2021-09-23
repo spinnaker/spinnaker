@@ -17080,10 +17080,10 @@ source-map@^0.7.3, source-map@~0.7.2:
   resolved "https://registry.yarnpkg.com/source-map/-/source-map-0.7.3.tgz#5302f8169031735226544092e64981f751750383"
   integrity sha512-CkCj6giN3S+n9qrYiBTX5gystlENnRW5jZeNLHpe6aue+SrHcG5VYwujhW9s4dY31mEGsxBDrHR6oI69fTXsaQ==
 
-source-sans-pro@2.0.10:
-  version "2.0.10"
-  resolved "https://registry.yarnpkg.com/source-sans-pro/-/source-sans-pro-2.0.10.tgz#c1ca859cf164a088944c5e83745085e87cd533a9"
-  integrity sha1-wcqFnPFkoIiUTF6DdFCF6HzVM6k=
+source-sans@3.46.0:
+  version "3.46.0"
+  resolved "https://registry.yarnpkg.com/source-sans/-/source-sans-3.46.0.tgz#6af0a47ead682fa8971f0c83e9692e75ef3cbb86"
+  integrity sha512-bVC2YX4VNiv5vMcy77dL0XKsNp794ThfynNsr+FqSAwk8TGG0pZsg7eUQi6yHwaRBMVmZ3Aaf4FY46dxIIGgsg==
 
 sourcemap-codec@^1.4.4:
   version "1.4.8"
