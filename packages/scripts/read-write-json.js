@@ -2,6 +2,7 @@
 const fs = require('fs');
 const hjson = require('hjson');
 const { get, set, unset } = require('lodash');
+const yargs = require('yargs');
 
 const configureCli = () => {
   const yargs = require('yargs');
@@ -21,13 +22,34 @@ const configureCli = () => {
   );
 
   yargs.command(
-    'write <filename> <jsonpath> <newvalue>',
+    'write <filename> <jsonpath> <value>',
     'Writes a value to a JSON file at the given path',
     (_yargs) => {
       addDefaultPositionalArgs(_yargs);
-      _yargs.positional('newvalue', { description: 'The new value to write' });
+      _yargs.positional('value', {
+        type: 'string',
+        description: 'The new value to write',
+      });
+      _yargs.option('type', {
+        description: 'writes the value as a JSON boolean/number/string',
+        type: 'string',
+        choices: ['boolean', 'number', 'string'],
+        default: 'string',
+      });
     },
-    ({ filename, jsonpath, newvalue }) => {
+    ({ filename, jsonpath, value, type }) => {
+      let newvalue = value;
+      if (type === 'boolean') {
+        newvalue = newvalue === 'true' ? true : newvalue === 'false' ? false : newvalue;
+        if (typeof newvalue !== 'boolean') {
+          throw new Error(`Cannot parse ${value} as a boolean`);
+        }
+      } else if (type === 'number') {
+        let newvalue = Number(value);
+        if (isNaN(newvalue)) {
+          throw new Error(`Cannot parse ${value} as a number`);
+        }
+      }
       writeJsonField(filename, jsonpath, newvalue);
     },
   );
@@ -45,13 +67,13 @@ const configureCli = () => {
   yargs.strictCommands();
   yargs.wrap(null);
 
-  yargs.example('json.js read package.json version', 'Outputs the version property from package.json');
+  yargs.example('read-write-json.js read package.json version', 'Outputs the version property from package.json');
   yargs.example(
-    'json.js write package.json devDependencies.husky 6.0.0',
+    'read-write-json.js write package.json devDependencies.husky 6.0.0',
     'Writes "husky": "6.0.0" to the "devDependencies" property of package.json',
   );
   yargs.example(
-    'json.js delete package.json devDependencies.husky',
+    'read-write-json.js delete package.json devDependencies.husky',
     'Deletes the "husky" key  from the "devDependencies" property of package.json',
   );
   yargs.parse();
@@ -69,7 +91,6 @@ function readJson(filename) {
 function writeJson(filename, json) {
   const data = hjson.rt.stringify(json, {
     bracesSameLine: true,
-    condense: 120,
     multiline: 'std',
     quotes: 'all',
     separator: true,

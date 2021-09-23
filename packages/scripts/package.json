@@ -39,6 +39,7 @@
     "yargs": "^17.1.1"
   },
   "devDependencies": {
-    "@types/hjson": "^2.4.3"
+    "@types/hjson": "^2.4.3",
+    "@types/yargs": "^17.0.3"
   }
 }
