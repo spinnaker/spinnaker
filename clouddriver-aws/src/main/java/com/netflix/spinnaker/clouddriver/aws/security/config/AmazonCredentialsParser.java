@@ -31,9 +31,11 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+@Slf4j
 public class AmazonCredentialsParser<
         U extends AccountsConfiguration.Account, V extends NetflixAmazonCredentials>
     implements CredentialsParser<U, V> {
@@ -53,15 +55,12 @@ public class AmazonCredentialsParser<
       Class<V> credentialsType,
       CredentialsConfig credentialsConfig,
       AccountsConfiguration accountsConfig) {
-    this.credentialsProvider = Objects.requireNonNull(credentialsProvider, "credentialsProvider");
-    this.awsAccountInfoLookup =
-        new DefaultAWSAccountInfoLookup(credentialsProvider, amazonClientProvider);
-    this.templateValues = Collections.emptyMap();
-    this.objectMapper = new ObjectMapper();
-    this.credentialTranslator = findTranslator(credentialsType, this.objectMapper);
-    this.credentialsConfig = credentialsConfig;
-    this.defaultRegions = createDefaults(credentialsConfig.getDefaultRegions());
-    this.accountsConfig = accountsConfig;
+    this(
+        credentialsProvider,
+        new DefaultAWSAccountInfoLookup(credentialsProvider, amazonClientProvider),
+        credentialsType,
+        credentialsConfig,
+        accountsConfig);
   }
 
   public AmazonCredentialsParser(
@@ -116,7 +115,16 @@ public class AmazonCredentialsParser<
 
   private List<Region> initRegions(Lazy<List<Region>> defaults, List<Region> toInit) {
     if (toInit == null) {
-      return defaults.get();
+      // when accounts are parsed in a multi-threaded manner, the defaults.get() result could be the
+      // same for multiple
+      // accounts which do not have any regions set. Thus, when the account.setRegion() call is
+      // made, it could end
+      // up throwing a ConcurrentModificationException because at that point, the same object (i.e.
+      // default.get) will be
+      // attempted to be sorted for multiple accounts at a time. Hence, to get around it, we
+      // initialize it in a new
+      // list
+      return new ArrayList<>(defaults.get());
     }
 
     Map<String, Region> toInitByName =
@@ -193,9 +201,9 @@ public class AmazonCredentialsParser<
     return result;
   }
 
+  // TODO: verify if this is safe to be removed if it is not used anywhere else apart from tests
   public List<V> load(CredentialsConfig source) throws Throwable {
     final CredentialsConfig config = objectMapper.convertValue(source, CredentialsConfig.class);
-
     if (accountsConfig.getAccounts() == null || accountsConfig.getAccounts().isEmpty()) {
       return Collections.emptyList();
     }
@@ -212,13 +220,16 @@ public class AmazonCredentialsParser<
   @Override
   public V parse(@NotNull U account) {
     try {
+      log.info("Parsing aws account: {}", account.getName());
       V a = parseAccount(credentialsConfig, account);
       if (a.isEnabled()) {
+        log.info("AWS account: {} is enabled", account.getName());
         return a;
+      } else {
+        log.info("AWS account: {} is disabled", account.getName());
       }
     } catch (Throwable t) {
-      t.printStackTrace();
-      return null;
+      log.warn("Failed to parse aws account: {}. Error: ", account.getName(), t);
     }
     return null;
   }
@@ -240,6 +251,7 @@ public class AmazonCredentialsParser<
       account.setAccountType(account.getName());
     }
 
+    log.info("Initializing regions for aws account: {}", account.getName());
     account.setRegions(initRegions(defaultRegions, account.getRegions()));
     account.setDefaultSecurityGroups(
         account.getDefaultSecurityGroups() != null

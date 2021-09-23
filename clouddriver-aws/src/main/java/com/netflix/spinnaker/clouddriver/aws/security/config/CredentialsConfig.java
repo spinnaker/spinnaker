@@ -19,7 +19,10 @@ package com.netflix.spinnaker.clouddriver.aws.security.config;
 import static lombok.EqualsAndHashCode.Include;
 
 import java.util.List;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * A mutable credentials configurations structure suitable for transformation into concrete
@@ -132,6 +135,30 @@ public class CredentialsConfig {
     public void setDefaultResult(String defaultResult) {
       this.defaultResult = defaultResult;
     }
+  }
+
+  /** LoadAccounts class contains configuration related to loading aws accounts at start up. */
+  @Data
+  public static class LoadAccounts {
+    /**
+     * flag to enable loading aws accounts using multiple threads. This is turned off by default.
+     */
+    private boolean multiThreadingEnabled = false;
+
+    /**
+     * Only applicable when multiThreadingEnabled: true. This specifies the number of threads that
+     * should be used to load the aws accounts.
+     *
+     * <p>Adjust this number appropriately based on: - number of aws many accounts, - number of
+     * clouddriver pods (so that aws api calls are not rate-limited)
+     */
+    private int numberOfThreads = 5;
+
+    /**
+     * Only applicable when multiThreadingEnabled: true. This specifies the max amount of time for
+     * loading an aws account, after which a timeout exception will occur.
+     */
+    private int timeoutInSeconds = 180;
   }
 
   private String accessKeyId;
@@ -262,4 +289,6 @@ public class CredentialsConfig {
   public void setSecretAccessKey(String secretAccessKey) {
     this.secretAccessKey = secretAccessKey;
   }
+
+  @Getter @Setter private LoadAccounts loadAccounts = new LoadAccounts();
 }
