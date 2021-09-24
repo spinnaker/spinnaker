@@ -1,38 +1,9 @@
 {
+  "extends": "../tsconfig.app.base.json",
   "compilerOptions": {
-    // project options
-    "allowJs": true,
     "baseUrl": "./src",
-    "declaration": true,
-    "jsx": "react",
-    "module": "esnext",
     "outDir": "dist",
-    "rootDir": "./src",
-    "sourceMap": true,
-    "target": "es2017",
-
-    // strict checks
-    "noImplicitAny": true,
-    "noImplicitThis": false, // should really get to a place where we can turn this on
-    "strictNullChecks": false, // should really get to a place where we can turn this on
-
-    // module resolution
-    "allowSyntheticDefaultImports": true,
-    "moduleResolution": "node",
-
-    // linter
-    "noImplicitReturns": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-
-    // experimental
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-
-    // advanced
-    "noEmitHelpers": false,
-    "pretty": true,
-    "skipLibCheck": true
+    "rootDir": "./src"
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": ["**/*.spec.*"]
