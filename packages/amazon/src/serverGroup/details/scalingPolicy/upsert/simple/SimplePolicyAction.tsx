@@ -24,17 +24,15 @@ export const SimplePolicyAction = ({
 }: ISimplePolicyActionProps) => {
   const availableActions = ['Add', 'Remove', 'Set to'];
 
-  const [action, setAction] = React.useState<Operator>(operator);
-  const adjustmentTypeOptions = action === 'Set to' ? ['instances'] : ['instances', 'percent of group'];
+  const adjustmentTypeOptions = operator === 'Set to' ? ['instances'] : ['instances', 'percent of group'];
   const onActionChange = (val: Operator) => {
-    setAction(val);
     adjustmentTypeChanged(val, adjustmentType);
   };
 
   const [adjustmentTypeView, setAdjustmentTypeView] = React.useState<AdjustmentTypeView>(adjustmentType);
   const onAdjustmentTypeChange = (type: AdjustmentTypeView) => {
     setAdjustmentTypeView(type);
-    adjustmentTypeChanged(action, type);
+    adjustmentTypeChanged(operator, type);
   };
 
   const [adjustment, setAdjustment] = React.useState<number>(scalingAdjustment);
@@ -47,7 +45,7 @@ export const SimplePolicyAction = ({
     <div className="SimplePolicyAction row">
       <div className="col-md-10 col-md-offset-1 horizontal middle">
         <ReactSelectInput
-          value={action}
+          value={operator}
           stringOptions={availableActions}
           onChange={(e) => onActionChange(e.target.value)}
           clearable={false}

@@ -18,7 +18,6 @@ export interface ITargetMetricFieldsProps {
   isCustomMetric: boolean;
   serverGroup: IAmazonServerGroup;
   toggleMetricType?: (type: MetricType) => void;
-  unit?: string;
   updateCommand: (command: ITargetTrackingPolicyCommand) => void;
 }
 
@@ -29,19 +28,15 @@ export const TargetMetricFields = ({
   isCustomMetric,
   serverGroup,
   toggleMetricType,
-  unit,
   updateCommand,
 }: ITargetMetricFieldsProps) => {
   const predefinedMetrics = ['ASGAverageCPUUtilization', 'ASGAverageNetworkOut', 'ASGAverageNetworkIn'];
   const statistics = ['Average', 'Maximum', 'Minimum', 'SampleCount', 'Sum'];
-  const [commandView, setCommandView] = React.useState<ITargetTrackingPolicyCommand>(command);
-  const [isCustom, setIsCustom] = React.useState<boolean>(isCustomMetric);
-  const [unitView, setUnitView] = React.useState<string>(unit);
+  const [unit, setUnit] = React.useState<string>(null);
 
   const setCommandField = (path: string, value: any) => {
-    const newCommand = cloneDeep(commandView);
+    const newCommand = cloneDeep(command);
     set(newCommand, path, value);
-    setCommandView(newCommand);
     updateCommand(newCommand);
   };
 
@@ -50,8 +45,8 @@ export const TargetMetricFields = ({
   };
 
   const onMetricTypeChange = () => {
-    const newCommand = cloneDeep(commandView);
-    if (isCustom) {
+    const newCommand = cloneDeep(command);
+    if (isCustomMetric) {
       set(newCommand, 'targetTrackingConfiguration.predefinedMetricSpecification', {
         predefinedMetricType: 'ASGAverageCPUUtilization',
       });
@@ -66,10 +61,8 @@ export const TargetMetricFields = ({
       });
     }
 
-    setCommandView(newCommand);
     updateCommand(newCommand);
-    setIsCustom(!isCustom);
-    toggleMetricType(isCustom ? 'predefined' : 'custom');
+    toggleMetricType(isCustomMetric ? 'predefined' : 'custom');
   };
 
   return (
@@ -88,9 +81,9 @@ export const TargetMetricFields = ({
       <div className="row sp-margin-s-yaxis">
         <div className="col-md-2 sm-label-right">Metric</div>
         <div className="col-md-10 content-fields">
-          {!isCustom && (
+          {!isCustomMetric && (
             <ReactSelectInput
-              value={commandView.targetTrackingConfiguration.predefinedMetricSpecification?.predefinedMetricType}
+              value={command.targetTrackingConfiguration.predefinedMetricSpecification?.predefinedMetricType}
               stringOptions={predefinedMetrics}
               onChange={(e) =>
                 setCommandField(
@@ -101,16 +94,16 @@ export const TargetMetricFields = ({
               inputClassName="metric-select-input"
             />
           )}
-          {isCustom && (
+          {isCustomMetric && (
             <MetricSelector
-              alarm={commandView.targetTrackingConfiguration.customizedMetricSpecification as IScalingPolicyAlarmView}
+              alarm={command.targetTrackingConfiguration.customizedMetricSpecification as IScalingPolicyAlarmView}
               serverGroup={serverGroup}
               updateAlarm={updateAlarm}
             />
           )}
           {allowDualMode && (
             <a className="clickable" onClick={onMetricTypeChange}>
-              {isCustom ? 'Use a predefined metric' : 'Select a custom metric'}
+              {isCustomMetric ? 'Use a predefined metric' : 'Select a custom metric'}
             </a>
           )}
         </div>
@@ -118,10 +111,10 @@ export const TargetMetricFields = ({
       <div className="row sp-margin-s-yaxis">
         <div className="col-md-2 sm-label-right">Target</div>
         <div className="col-md-10 content-fields horizontal">
-          {isCustom && (
+          {isCustomMetric && (
             <div className="horizontal middle">
               <ReactSelectInput
-                value={commandView.targetTrackingConfiguration.customizedMetricSpecification?.statistic}
+                value={command.targetTrackingConfiguration.customizedMetricSpecification?.statistic}
                 stringOptions={statistics}
                 onChange={(e) =>
                   setCommandField('targetTrackingConfiguration.customizedMetricSpecification.statistic', e.target.value)
@@ -133,23 +126,23 @@ export const TargetMetricFields = ({
           )}
           <div className="horizontal middle">
             <NumberInput
-              value={commandView.targetTrackingConfiguration.targetValue}
+              value={command.targetTrackingConfiguration.targetValue}
               onChange={(e) =>
                 setCommandField('targetTrackingConfiguration.targetValue', Number.parseInt(e.target.value))
               }
               inputClassName="form-control input-sm sp-margin-xs-right"
             />
-            <span>{unitView}</span>
+            <span>{unit}</span>
           </div>
         </div>
       </div>
       <div className="row">
         <div className="col-md-10 col-md-offset-1">
           <TargetTrackingChart
-            config={commandView.targetTrackingConfiguration}
+            config={command.targetTrackingConfiguration}
             serverGroup={serverGroup}
-            unit={unitView}
-            updateUnit={(u) => setUnitView(u)}
+            unit={unit}
+            updateUnit={(u) => setUnit(u)}
           />
         </div>
       </div>

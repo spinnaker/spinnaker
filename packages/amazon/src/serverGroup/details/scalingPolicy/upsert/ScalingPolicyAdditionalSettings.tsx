@@ -21,11 +21,9 @@ export const ScalingPolicyAdditionalSettings = ({
   operator,
   updateCommand,
 }: IScalingPolicyAdditionalSettingsProps) => {
-  const [commandView, setCommandView] = React.useState<IUpsertScalingPolicyCommand>(command);
   const setCommandField = (path: string, value: number) => {
     const newCommand = { ...command };
     set(newCommand, path, value);
-    setCommandView(newCommand);
     updateCommand(newCommand);
   };
 
@@ -37,7 +35,7 @@ export const ScalingPolicyAdditionalSettings = ({
           <div className="row">
             <div className="col-md-2 sm-label-right">Policy Name</div>
             <div className="col-md-10 horizontal middle">
-              <span className="form-control-static select-placeholder">{commandView.name}</span>
+              <span className="form-control-static select-placeholder">{command.name}</span>
             </div>
           </div>
         )}
@@ -49,7 +47,7 @@ export const ScalingPolicyAdditionalSettings = ({
                 {`${operator} instances in increments of at least `}
               </span>
               <NumberInput
-                value={commandView.minAdjustmentMagnitude}
+                value={command.minAdjustmentMagnitude}
                 onChange={(e) => setCommandField('minAdjustmentMagnitude', Number.parseInt(e.target.value))}
                 inputClassName="sp-margin-xs-xaxis input-sm number-input-sm"
               />
@@ -57,13 +55,13 @@ export const ScalingPolicyAdditionalSettings = ({
             </div>
           </div>
         )}
-        {Boolean(commandView.simple) && (
+        {Boolean(command.simple) && (
           <div className="row">
             <div className="col-md-2 sm-label-right">Cooldown</div>
             <div className="col-md-10 horizontal middle">
               <span className="form-control-static select-placeholder"> Wait at least </span>
               <NumberInput
-                value={commandView.simple?.cooldown}
+                value={command.simple?.cooldown}
                 onChange={(e) => setCommandField('simple.cooldown', Number.parseInt(e.target.value))}
                 inputClassName="sp-margin-xs-xaxis input-sm number-input-sm"
               />
@@ -71,13 +69,13 @@ export const ScalingPolicyAdditionalSettings = ({
             </div>
           </div>
         )}
-        {Boolean(commandView.step?.estimatedInstanceWarmup) && operator !== 'Remove' && (
+        {Boolean(command.step?.estimatedInstanceWarmup) && operator !== 'Remove' && (
           <div className="row">
             <div className="col-md-2 sm-label-right">Warmup</div>
             <div className="col-md-10 horizontal middle">
               <span className="form-control-static select-placeholder">Instances need</span>
               <NumberInput
-                value={commandView.step.estimatedInstanceWarmup}
+                value={command.step.estimatedInstanceWarmup}
                 onChange={(e) => setCommandField('step.estimatedInstanceWarmup', Number.parseInt(e.target.value))}
                 inputClassName="sp-margin-xs-xaxis input-sm number-input-sm"
               />
@@ -85,15 +83,15 @@ export const ScalingPolicyAdditionalSettings = ({
             </div>
           </div>
         )}
-        {Boolean(commandView.step?.cooldown) && operator !== 'Remove' && (
+        {Boolean(command.step?.cooldown) && operator !== 'Remove' && (
           <div className="row">
             <div className="col-md-2 sm-label-right">
               <span className="sp-margin-xs-right">Cooldown</span>
-              <HelpField id={`${commandView.cloudProvider || commandView.provider}.autoscaling.cooldown`} />
+              <HelpField id={`${command.cloudProvider || command.provider}.autoscaling.cooldown`} />
             </div>
             <div className="col-md-10 horizontal middle">
               <NumberInput
-                value={commandView.step?.cooldown}
+                value={command.step?.cooldown}
                 onChange={(e) => setCommandField('step.cooldown', Number.parseInt(e.target.value))}
                 inputClassName="sp-margin-xs-xaxis input-sm number-input-sm"
               />

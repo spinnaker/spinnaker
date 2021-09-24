@@ -23,37 +23,37 @@ export interface IDimensionsEditorProps {
 }
 
 export const DimensionsEditor = ({ alarm, serverGroup, updateAvailableMetrics }: IDimensionsEditorProps) => {
-  const [dimensions, setDimensions] = React.useState(alarm.dimensions || []);
+  const dimensions = alarm.dimensions || [];
 
   const fetchDimensions = () => {
     return CloudMetricsReader.listMetrics('aws', serverGroup.account, serverGroup.region, {
       namespace: alarm.namespace,
-    }).then((results) => {
-      const allDimensions = flatMap(results, (r) => r.dimensions);
-      const sortedDimensions = uniq(allDimensions.map((d) => d.name)).sort();
-      return sortedDimensions;
-    });
+    })
+      .then((results) => {
+        const allDimensions = flatMap(results, (r) => r.dimensions);
+        const sortedDimensions = uniq(allDimensions.filter((d) => d).map((d) => d.name)).sort();
+        return sortedDimensions;
+      })
+      .catch(() => {
+        return [];
+      });
   };
   const { result: dimensionOptions } = useData(fetchDimensions, [], [alarm.namespace, serverGroup.name]);
 
   const addDimension = () => {
     const newDimensions = [...dimensions, {} as IMetricAlarmDimension];
-    setDimensions(newDimensions);
     updateAvailableMetrics(newDimensions);
   };
   const removeDimension = (index: number) => {
     const newDimensions = alarm.dimensions.filter((_d, i) => i !== index);
-    setDimensions(newDimensions);
     updateAvailableMetrics(newDimensions);
   };
   const updateDimension = (key: 'name' | 'value', value: string, index: number) => {
     const newDimensions = [...dimensions];
     const updatedDimension = newDimensions[index];
     updatedDimension[key] = value;
-    setDimensions(newDimensions);
     updateAvailableMetrics(newDimensions);
   };
-
   return (
     <div>
       <div className="row">

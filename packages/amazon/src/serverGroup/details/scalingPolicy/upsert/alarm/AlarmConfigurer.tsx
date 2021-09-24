@@ -44,8 +44,7 @@ export const AlarmConfigurer = ({
   updateAlarm,
 }: IAlarmConfigurerProps) => {
   const comparatorBound = alarm.comparisonOperator?.indexOf('Greater') === 0 ? 'max' : 'min';
-  const [alarmView, setAlarmView] = React.useState<IScalingPolicyAlarm>(alarm);
-  const [unit, setUnit] = React.useState<string>(alarmView?.unit);
+  const [unit, setUnit] = React.useState<string>(alarm?.unit);
   const prevComparator = usePrevious(comparatorBound);
 
   React.useEffect(() => {
@@ -64,24 +63,22 @@ export const AlarmConfigurer = ({
     if (stepAdjustments?.length) {
       const updatedStepAdjustments = [...stepAdjustments];
       // Always set the first step at the alarm threshold
-      updatedStepAdjustments[0][source] = alarmView.threshold;
+      updatedStepAdjustments[0][source] = alarm.threshold;
       stepsChanged(updatedStepAdjustments);
     }
-  }, [alarmView.threshold]);
+  }, [alarm.threshold]);
 
   const onChartLoaded = (stats: ICloudMetricStatistics) => setUnit(stats.unit);
 
   const onAlarmChange = (key: string, value: any) => {
     const newAlarm = {
-      ...alarmView,
+      ...alarm,
       [key]: value,
     };
-    setAlarmView(newAlarm);
     updateAlarm(newAlarm);
   };
 
   const onMetricChange = (newAlarm: IScalingPolicyAlarm) => {
-    setAlarmView(newAlarm);
     updateAlarm(newAlarm);
   };
 
@@ -100,7 +97,7 @@ export const AlarmConfigurer = ({
           </div>
         </div>
       )}
-      {alarmView.alarmActionArns?.length > 1 && (
+      {alarm.alarmActionArns?.length > 1 && (
         <div className="row">
           <div className="col-md-12">
             <div className="alert alert-warning">
@@ -116,21 +113,21 @@ export const AlarmConfigurer = ({
         <div className="col-md-2 sm-label-right">Whenever</div>
         <div className="col-md-10 horizontal">
           <ReactSelectInput
-            value={alarmView.statistic}
+            value={alarm.statistic}
             onChange={(e) => onAlarmChange('statistic', e.target.value)}
             stringOptions={STATISTICS}
             clearable={false}
             inputClassName="sp-margin-xs-right configurer-field-lg"
           />
           <span className="input-label sp-margin-xs-right sp-margin-s-top"> of </span>
-          <MetricSelector alarm={alarmView} serverGroup={serverGroup} updateAlarm={onMetricChange} />
+          <MetricSelector alarm={alarm} serverGroup={serverGroup} updateAlarm={onMetricChange} />
         </div>
       </div>
       <div className="row sp-margin-s-yaxis">
         <div className="col-md-2 sm-label-right">is</div>
         <div className="col-md-10 horizontal middle">
           <ReactSelectInput
-            value={alarmView.comparisonOperator}
+            value={alarm.comparisonOperator}
             onChange={(e) => onAlarmChange('comparisonOperator', e.target.value)}
             options={COMPARATORS}
             clearable={false}
@@ -138,7 +135,7 @@ export const AlarmConfigurer = ({
           />
           <div className="sp-margin-xl-left">
             <NumberInput
-              value={alarmView.threshold}
+              value={alarm.threshold}
               onChange={(e) => onAlarmChange('threshold', Number.parseInt(e.target.value))}
               inputClassName="sp-margin-xs-right configurer-field-lg"
             />
@@ -150,13 +147,13 @@ export const AlarmConfigurer = ({
         <div className="col-md-2 sm-label-right">for at least</div>
         <div className="col-md-10 horizontal middle">
           <NumberInput
-            value={alarmView.evaluationPeriods}
+            value={alarm.evaluationPeriods}
             onChange={(e) => onAlarmChange('evaluationPeriods', Number.parseInt(e.target.value))}
             inputClassName="configurer-field-med number-input-field"
           />
           <span className="input-label sp-margin-s-xaxis"> consecutive period(s) of </span>
           <ReactSelectInput
-            value={alarmView.period}
+            value={alarm.period}
             onChange={(e) => onAlarmChange('period', e.target.value)}
             options={PERIODS}
             clearable={false}
@@ -168,7 +165,7 @@ export const AlarmConfigurer = ({
         <div className="col-md-10 col-md-offset-1">
           {alarm && (
             <div>
-              <MetricAlarmChart alarm={alarmView} serverGroup={serverGroup} onChartLoaded={onChartLoaded} />
+              <MetricAlarmChart alarm={alarm} serverGroup={serverGroup} onChartLoaded={onChartLoaded} />
             </div>
           )}
         </div>

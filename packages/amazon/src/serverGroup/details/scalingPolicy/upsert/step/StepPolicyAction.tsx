@@ -33,50 +33,40 @@ export const StepPolicyAction = ({
   const hasEqualTo = alarm?.comparisonOperator.includes('Equal');
   const availableActions = ['Add', 'Remove', 'Set to'];
 
-  const [action, setAction] = React.useState<Operator>(operator);
-  const adjustmentTypeOptions = action === 'Set to' ? ['instances'] : ['instances', 'percent of group'];
+  const adjustmentTypeOptions = operator === 'Set to' ? ['instances'] : ['instances', 'percent of group'];
   const onActionChange = (val: Operator) => {
-    setAction(val);
     adjustmentTypeChanged(val, adjustmentType);
   };
 
-  const [adjustmentTypeView, setAdjustmentTypeView] = React.useState<AdjustmentTypeView>(adjustmentType);
   const onAdjustmentTypeChange = (type: AdjustmentTypeView) => {
-    setAdjustmentTypeView(type);
-    adjustmentTypeChanged(action, type);
+    adjustmentTypeChanged(operator, type);
   };
 
-  const [steps, setSteps] = React.useState<IStepAdjustment[]>(step?.stepAdjustments || stepAdjustments);
+  const steps = step?.stepAdjustments || stepAdjustments;
   const addStep = () => {
     const newStep = { scalingAdjustment: 1 } as IStepAdjustment;
     const newSteps = [...steps, newStep];
-    setSteps(newSteps);
     stepsChanged(newSteps);
   };
   const removeStep = (index: number) => {
     const newSteps = steps.filter((_s, i) => i !== index);
-    setSteps(newSteps);
     stepsChanged(newSteps);
   };
   const updateStep = (updatedStep: IStepAdjustment, index: number) => {
     const newSteps = [...steps];
     newSteps[index] = updatedStep;
-    setSteps(newSteps);
     stepsChanged(newSteps);
   };
 
-  React.useEffect(() => {
-    setSteps(step.stepAdjustments);
-  }, [step?.stepAdjustments]);
   return (
     <div className="StepPolicyAction row">
       {steps?.map((step: IStepAdjustment, index: number) => (
         <div key={`step-adjustment-${index}`} className="step-policy-row col-md-10 col-md-offset-1 horizontal middle">
           {Boolean(index) ? (
-            <span className="action-input sp-margin-xs-left">{action}</span>
+            <span className="action-input sp-margin-xs-left">{operator}</span>
           ) : (
             <ReactSelectInput
-              value={action}
+              value={operator}
               stringOptions={availableActions}
               onChange={(e) => onActionChange(e.target.value)}
               clearable={false}
@@ -90,10 +80,10 @@ export const StepPolicyAction = ({
             inputClassName="action-input"
           />
           {Boolean(index) ? (
-            <span className="sp-margin-xs-left">{adjustmentTypeView}</span>
+            <span className="sp-margin-xs-left">{adjustmentType}</span>
           ) : (
             <ReactSelectInput
-              value={adjustmentTypeView}
+              value={adjustmentType}
               stringOptions={adjustmentTypeOptions}
               onChange={(e) => onAdjustmentTypeChange(e.target.value)}
               clearable={false}
