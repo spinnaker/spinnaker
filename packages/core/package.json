@@ -18,7 +18,7 @@
     "@fortawesome/fontawesome-free": "5.5.0",
     "@spinnaker/mocks": "1.0.7",
     "@spinnaker/presentation": "^0.0.12",
-    "@spinnaker/styleguide": "1.0.28",
+    "@spinnaker/styleguide": "2.0.0",
     "@uirouter/angularjs": "1.0.26",
     "@uirouter/core": "6.0.8",
     "@uirouter/react": "1.0.7",
