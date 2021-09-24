@@ -1,9 +1,7 @@
-import { module } from 'angular';
 import { set } from 'lodash';
 import * as React from 'react';
-import { react2angular } from 'react2angular';
 
-import { HelpField, NumberInput, withErrorBoundary } from '@spinnaker/core';
+import { HelpField, NumberInput } from '@spinnaker/core';
 
 import { IUpsertScalingPolicyCommand } from '../ScalingPolicyWriter';
 import './ScalingPolicyAdditionalSettings.less';
@@ -107,18 +105,3 @@ export const ScalingPolicyAdditionalSettings = ({
     </div>
   );
 };
-
-export const AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_ADDITIONAL_SETTINGS_COMPONENT =
-  'spinnaker.amazon.serverGroup.details.scalingPolicy.additionalSettings.component';
-export const name = AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_ADDITIONAL_SETTINGS_COMPONENT;
-
-module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_ADDITIONAL_SETTINGS_COMPONENT, []).component(
-  'scalingPolicyAdditionalSettings',
-  react2angular(withErrorBoundary(ScalingPolicyAdditionalSettings, 'scalingPolicyAdditionalSettings'), [
-    'command',
-    'isInstanceType',
-    'isNew',
-    'operator',
-    'updateCommand',
-  ]),
-);
