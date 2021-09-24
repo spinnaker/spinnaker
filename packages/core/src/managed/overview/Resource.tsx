@@ -1,12 +1,19 @@
 import React from 'react';
 
 import { ResourceTask } from './ResourceTask';
+import { ConfirmationModalService } from '../../confirmationModal/confirmationModal.service';
 import { EnvironmentItem } from '../environmentBaseElements/EnvironmentItem';
-import { MdResourceActuationState, useFetchResourceStatusQuery } from '../graphql/graphql-sdk';
+import {
+  FetchResourceStatusDocument,
+  MdResourceActuationState,
+  useFetchResourceStatusQuery,
+  useToggleResourceManagementMutation,
+} from '../graphql/graphql-sdk';
 import { Icon, Markdown, useApplicationContextSafe } from '../../presentation';
 import { showManagedResourceHistoryModal } from '../resourceHistory/ManagedResourceHistoryModal';
 import { showResourceDefinitionModal } from '../resources/ResourceDefinitionModal';
 import { ResourceTitle } from '../resources/ResourceTitle';
+import { ToggleResourceManagement } from '../resources/ToggleResourceManagement';
 import { IResourceLinkProps, resourceManager } from '../resources/resourceRegistry';
 import { QueryResource } from './types';
 import { getIsDebugMode } from '../utils/debugMode';
@@ -23,22 +30,30 @@ const statusUtils: {
   };
 } = {
   ERROR: { color: 'var(--color-status-error)', icon: 'fas fa-times', defaultReason: 'Failed to update resource' },
-  NOT_MANAGED: { color: 'var(--color-status-warning)', icon: 'fas fa-pause', defaultReason: 'Resource is not managed' },
+  NOT_MANAGED: {
+    color: 'var(--color-status-warning)',
+    icon: 'fas fa-pause',
+    defaultReason: 'Resource management is paused',
+  },
   WAITING: { icon: 'far fa-hourglass', defaultReason: 'Resource is currently locked and can not be updated' },
   PROCESSING: { icon: 'far fa-hourglass', defaultReason: 'Resource is being updated' },
   DELETING: { icon: 'far fa-trash-alt', defaultReason: 'Resource is being deleted' },
 };
 
-const Status = ({
-  appName,
-  environmentName,
-  resourceId,
-}: {
+interface IStatusProps {
   appName: string;
   environmentName: string;
   resourceId: string;
-}) => {
+  regions: string[];
+  account?: string;
+}
+
+const Status = ({ appName, environmentName, resourceId, regions, account }: IStatusProps) => {
   const { data: resourceStatuses, error, loading } = useFetchResourceStatusQuery({ variables: { appName } });
+  const [enableResourceManagement] = useToggleResourceManagementMutation({
+    variables: { payload: { id: resourceId, isPaused: false } },
+    refetchQueries: [{ query: FetchResourceStatusDocument, variables: { appName } }],
+  });
   const state = resourceStatuses?.application?.environments
     .find((env) => env.name === environmentName)
     ?.state.resources?.find((resource) => resource.id === resourceId)?.state;
@@ -51,32 +66,53 @@ const Status = ({
       </div>
     );
   }
-
-  if (state) {
-    if (state.status === 'UP_TO_DATE') return null;
-
-    return (
-      <div className="resource-status">
-        <i
-          className={statusUtils[state.status].icon}
-          style={{ color: statusUtils[state.status].color || 'var(--color-titanium)' }}
-        />
-        <div>
-          <div>{state.reason || statusUtils[state.status].defaultReason}</div>
-          {state.event && state.event !== state.reason && <Markdown className="event" message={state.event} />}
-          {Boolean(state.tasks?.length) && (
-            <ul className="tasks-list">
-              {state.tasks?.map(({ id, name }) => (
-                <ResourceTask key={id} id={id} name={name} />
-              ))}
-            </ul>
-          )}
-        </div>
+  if (!state) return <Spinner className="sp-margin-xs-top" mode="circular" size="nano" color="var(--color-accent)" />;
+  if (state.status === 'UP_TO_DATE') return null;
+  const isNotManaged = state.status === 'NOT_MANAGED';
+  const reasonElem = (
+    <div>
+      {state.reason || statusUtils[state.status].defaultReason}
+      {isNotManaged ? ' (click to enable...)' : undefined}
+    </div>
+  );
+  return (
+    <div className="resource-status">
+      <i
+        className={statusUtils[state.status].icon}
+        style={{
+          color: statusUtils[state.status].color || 'var(--color-titanium)',
+        }}
+      />
+      <div>
+        {isNotManaged ? (
+          <button
+            className="as-link"
+            onClick={() => {
+              ConfirmationModalService.confirm({
+                header: `Really resume resource management?`,
+                bodyContent: <ToggleResourceManagement isPaused regions={regions} />,
+                account: account,
+                buttonText: `Resume management`,
+                submitMethod: enableResourceManagement,
+              });
+            }}
+          >
+            {reasonElem}
+          </button>
+        ) : (
+          reasonElem
+        )}
+        {state.event && state.event !== state.reason && <Markdown className="event" message={state.event} />}
+        {Boolean(state.tasks?.length) && (
+          <ul className="tasks-list">
+            {state.tasks?.map(({ id, name }) => (
+              <ResourceTask key={id} id={id} name={name} />
+            ))}
+          </ul>
+        )}
       </div>
-    );
-  }
-
-  return <Spinner className="sp-margin-xs-top" mode="circular" size="nano" color="var(--color-accent)" />;
+    </div>
+  );
 };
 
 export const Resource = ({ resource, environment }: { resource: QueryResource; environment: string }) => {
@@ -142,7 +178,13 @@ export const Resource = ({ resource, environment }: { resource: QueryResource; e
         )}
       </div>
       <div>
-        <Status appName={app.name} environmentName={environment} resourceId={resource.id} />
+        <Status
+          appName={app.name}
+          environmentName={environment}
+          resourceId={resource.id}
+          account={account}
+          regions={regions}
+        />
       </div>
     </EnvironmentItem>
   );

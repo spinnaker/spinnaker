@@ -339,3 +339,7 @@ mutation DismissNotification($payload: MdDismissNotificationPayload!) {
 mutation ImportDeliveryConfig($application: String!) {
   importDeliveryConfig(application: $application)
 }
+
+mutation ToggleResourceManagement($payload: MdToggleResourceManagementPayload) {
+  toggleResourceManagement(payload: $payload)
+}
