@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.11.7](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.11.6...@spinnaker/core@0.11.7) (2021-09-24)
+
+
+### Bug Fixes
+
+* **core/cloudProvider:** remove unused ICloudProviderLogoState interface ([57d606c](https://github.com/spinnaker/deck/commit/57d606cb2442b5eb1e465b3cd5bc9f5235ae9d92))
+* **core:** previous commit updated the font to sans serif 3, but not the styleguide. ([#9700](https://github.com/spinnaker/deck/issues/9700)) ([b01afa9](https://github.com/spinnaker/deck/commit/b01afa95ca19455e7a316844101f080adef99ca9))
+* **md:** allow users to enable resource management ([#9690](https://github.com/spinnaker/deck/issues/9690)) ([455be38](https://github.com/spinnaker/deck/commit/455be38a5fee8fbcb2345b6026844e00923418fb))
+
+
+
+
+
 ## [0.11.6](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.11.5...@spinnaker/core@0.11.6) (2021-09-23)
 
 

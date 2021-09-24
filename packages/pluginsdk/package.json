@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/pluginsdk",
   "description": "Provides blessed opinions (rollup, code format, lint) and packages (react, etc) to plugin developers",
-  "version": "0.0.42",
+  "version": "0.1.0",
   "module": "dist/index.js",
   "typings": "dist/index.d.ts",
   "license": "Apache-2.0",
@@ -19,7 +19,7 @@
     "scaffold": "scripts/scaffold.js"
   },
   "dependencies": {
-    "@spinnaker/scripts": "^0.1.0",
+    "@spinnaker/scripts": "^0.2.0",
     "check-peer-dependencies": "^4.0.0",
     "chokidar": "^3.5.1",
     "express": "^4.17.1",

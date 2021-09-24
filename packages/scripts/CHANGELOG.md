@@ -3,6 +3,23 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.2.0](https://github.com/spinnaker/deck/compare/@spinnaker/scripts@0.1.0...@spinnaker/scripts@0.2.0) (2021-09-24)
+
+
+### Bug Fixes
+
+* **scripts/read-write-json:** use comment-json package instead of hjson ([9311e37](https://github.com/spinnaker/deck/commit/9311e37fcdbfa85c02554a42e5f10f17a1fd810d))
+
+
+### Features
+
+* **packages/scripts:** Add read-write-json helper script ([681b4f8](https://github.com/spinnaker/deck/commit/681b4f8545910ea6f2a06cd33aee7b0f9b9eb469))
+* **scripts/read-write-json:** support boolean and number types ([e713ac4](https://github.com/spinnaker/deck/commit/e713ac4d8e3567c7814ba64089edc58b502c69b5))
+
+
+
+
+
 # [0.1.0](https://github.com/spinnaker/deck/compare/@spinnaker/scripts@0.0.23...@spinnaker/scripts@0.1.0) (2021-08-20)
 
 

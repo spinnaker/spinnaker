@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/huaweicloud",
   "license": "Apache-2.0",
-  "version": "0.0.44",
+  "version": "0.0.45",
   "module": "dist/index.js",
   "typings": "dist/index.d.ts",
   "scripts": {
@@ -13,12 +13,12 @@
     "lib": "npm run build"
   },
   "dependencies": {
-    "@spinnaker/core": "^0.11.6",
+    "@spinnaker/core": "^0.11.7",
     "angular": "1.6.10"
   },
   "devDependencies": {
     "@spinnaker/eslint-plugin": "^1.1.1",
-    "@spinnaker/scripts": "^0.1.0",
+    "@spinnaker/scripts": "^0.2.0",
     "@types/angular": "1.6.26",
     "shx": "0.3.3",
     "typescript": "4.3.5"

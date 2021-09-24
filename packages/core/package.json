@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/core",
   "license": "Apache-2.0",
-  "version": "0.11.6",
+  "version": "0.11.7",
   "module": "dist/index.js",
   "typings": "dist/index.d.ts",
   "scripts": {
@@ -89,7 +89,7 @@
     "@graphql-codegen/typescript-operations": "^1.18.3",
     "@graphql-codegen/typescript-react-apollo": "^2.3.0",
     "@spinnaker/eslint-plugin": "^1.1.1",
-    "@spinnaker/scripts": "^0.1.0",
+    "@spinnaker/scripts": "^0.2.0",
     "@types/angular": "1.6.26",
     "@types/angular-mocks": "1.5.10",
     "@types/angular-ui-bootstrap": "0.13.41",
