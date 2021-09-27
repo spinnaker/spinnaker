@@ -104,7 +104,7 @@ class EchoNotifyingStageListener implements StageListener {
 
   private void recordEvent(String type, String phase, StageExecution stage, Optional<TaskExecution> maybeTask) {
     try {
-      def event = [
+      def event = (LinkedHashMap<String,LinkedHashMap<String,Object>>) [
         details: [
           source     : "orca",
           type       : "orca:${type}:${phase}".toString(),
