@@ -4,6 +4,7 @@ import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.api.BakeRequest.CloudProviderType
 import com.netflix.spinnaker.rosco.jobs.BakeRecipe
+import spock.lang.Shared
 
 trait TestDefaults {
 
@@ -29,8 +30,11 @@ trait TestDefaults {
   static final String SOME_CLOUD_PROVIDER = "aws"
   static final String SOME_REGION = "eu-west-1"
 
+  @Shared
   final Bake SOME_BAKE_DETAILS = new Bake(id: SOME_JOB_ID, ami: SOME_AMI_ID, image_name: SOME_IMAGE_NAME)
+  @Shared
   final BakeRequest SOME_BAKE_REQUEST = new BakeRequest(build_info_url: SOME_BUILD_INFO_URL, build_number: SOME_BUILD_NR)
+  @Shared
   final BakeRecipe SOME_BAKE_RECIPE = new BakeRecipe(name: SOME_BAKE_RECIPE_NAME, version: SOME_APP_VERSION_STR, command: [])
 
   static final BakeRequest.PackageType DEB_PACKAGE_TYPE = BakeRequest.PackageType.DEB
