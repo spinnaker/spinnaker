@@ -18,7 +18,9 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.description
 
 import com.google.common.collect.ImmutableList
+import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesApiGroup
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind
+import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesCustomResourceHandler
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesHandler
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesReplicaSetHandler
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesUnregisteredCustomResourceHandler
@@ -68,5 +70,23 @@ class GlobalResourcePropertyRegistrySpec extends Specification {
     registry.values().size() == 2
     registry.get(KubernetesKind.NONE).getHandler() == unregisteredHandler
     registry.get(KubernetesKind.REPLICA_SET).getHandler() == replicaSetHandler
+  }
+
+  void "is aware of custom resources only after updateCrdProperties has been called"() {
+    given:
+    KubernetesKind customResource = KubernetesKind.from("MyCRD", KubernetesApiGroup.fromString("foo.com")) // arbitrary custom/non-native kind
+    KubernetesHandler customResourceHandler = new KubernetesCustomResourceHandler(customResource)
+
+    when:
+    GlobalResourcePropertyRegistry registry = new GlobalResourcePropertyRegistry([], defaultHandler)
+
+    then:
+    registry.get(customResource).getHandler() == defaultHandler
+
+    when:
+    registry.updateCrdProperties([customResourceHandler])
+
+    then:
+    registry.get(customResource).getHandler() == customResourceHandler
   }
 }

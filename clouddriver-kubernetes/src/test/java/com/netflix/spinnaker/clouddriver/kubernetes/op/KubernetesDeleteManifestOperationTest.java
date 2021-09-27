@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.op;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -34,9 +35,12 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesAccountProperties.ManagedAccount;
 import com.netflix.spinnaker.clouddriver.kubernetes.converter.manifest.KubernetesDeleteManifestConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.GlobalResourcePropertyRegistry;
-import com.netflix.spinnaker.clouddriver.kubernetes.description.ResourcePropertyRegistry;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesApiGroup;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesDeleteManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
+import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesCustomResourceDefinitionHandler;
+import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesCustomResourceHandler;
+import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesReplicaSetHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesServiceHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesUnregisteredCustomResourceHandler;
@@ -51,13 +55,15 @@ import java.util.Map;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.platform.runner.JUnitPlatform;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 /**
- * Testing the orphanDependent and cascading Pipeline Options
+ * Test the deleteManifest stage.
  *
  * <p>Based on DeleteOptions KubectlJobExecutor.delete will determine whether the --cascade flag is
  * set. If deleteOptions.OrphanDependents is false or null -> --cascade is true. If
@@ -66,10 +72,18 @@ import org.mockito.Mockito;
  */
 @RunWith(JUnitPlatform.class)
 public class KubernetesDeleteManifestOperationTest {
-  private static final ResourcePropertyRegistry resourcePropertyRegistry =
+  private static final GlobalResourcePropertyRegistry resourcePropertyRegistry =
       new GlobalResourcePropertyRegistry(
-          ImmutableList.of(new KubernetesReplicaSetHandler(), new KubernetesServiceHandler()),
+          ImmutableList.of(
+              new KubernetesReplicaSetHandler(),
+              new KubernetesServiceHandler(),
+              new KubernetesCustomResourceDefinitionHandler()),
           new KubernetesUnregisteredCustomResourceHandler());
+  private static final KubernetesKind customResource =
+      KubernetesKind.from(
+          "MyCRD", KubernetesApiGroup.fromString("foo.com")); // arbitrary custom/non-native kind
+  private static final KubernetesHandler customResourceHandler =
+      new KubernetesCustomResourceHandler(customResource);
   private static KubernetesDeleteManifestConverter converter;
   private static ObjectMapper mapper;
   private static MapType mapType;
@@ -86,6 +100,9 @@ public class KubernetesDeleteManifestOperationTest {
 
     mapper = converter.getObjectMapper();
     mapType = mapper.getTypeFactory().constructMapType(Map.class, String.class, Object.class);
+
+    // Add a handler for custom resources to demonstrate that it's possible to delete them.
+    resourcePropertyRegistry.updateCrdProperties(ImmutableList.of(customResourceHandler));
   }
 
   @BeforeEach
@@ -93,6 +110,121 @@ public class KubernetesDeleteManifestOperationTest {
     // Store a Mock Task in a thread before each test
     // so TaskRepository will be able to get it during delete to update the Task
     TaskRepository.threadLocalTask.set(new DefaultTask("task-id"));
+  }
+
+  @Test
+  public void deleteUnregisteredCRD() throws IOException {
+    String pipelineJSON =
+        "{ "
+            + " \"account\": \"kubernetes-account\","
+            + " \"manifestName\": \"customResourceDefinition mycrd.foo.com\""
+            + " }";
+    Map<String, Object> pipeline = mapper.readValue(pipelineJSON, mapType);
+
+    KubernetesDeleteManifestDescription description = buildDeleteManifestDescription(pipeline);
+
+    KubernetesCredentials mockKubernetesCreds = description.getCredentials().getCredentials();
+
+    new KubernetesDeleteManifestOperation(description).operate(ImmutableList.of());
+
+    ArgumentCaptor<KubernetesKind> kindCaptor = ArgumentCaptor.forClass(KubernetesKind.class);
+    ArgumentCaptor<String> namespaceCaptor = ArgumentCaptor.forClass(String.class);
+    verify(mockKubernetesCreds)
+        .delete(
+            kindCaptor.capture(),
+            namespaceCaptor.capture(),
+            anyString(),
+            any(KubernetesSelectorList.class),
+            any(V1DeleteOptions.class));
+
+    assertEquals(KubernetesKind.CUSTOM_RESOURCE_DEFINITION, kindCaptor.getValue());
+  }
+
+  @ParameterizedTest(name = "deleteUnregisteredCustomResource useNamespace = {0}")
+  @ValueSource(booleans = {true, false})
+  public void deleteUnregisteredCustomResource(boolean useNamespace) throws IOException {
+    String namespace = "";
+    String namespaceJson = "";
+
+    if (useNamespace) {
+      namespace = "test-namespace";
+      namespaceJson = ", \"location\": \"" + namespace + "\"";
+    }
+
+    String pipelineJSON =
+        "{ "
+            + " \"account\": \"kubernetes-account\","
+            + " \"manifestName\": \""
+            + customResource.toString()
+            + " my-custom-resource\""
+            + namespaceJson
+            + " }";
+
+    Map<String, Object> pipeline = mapper.readValue(pipelineJSON, mapType);
+
+    KubernetesDeleteManifestDescription description = buildDeleteManifestDescription(pipeline);
+
+    KubernetesCredentials mockKubernetesCreds = description.getCredentials().getCredentials();
+
+    new KubernetesDeleteManifestOperation(description).operate(ImmutableList.of());
+
+    ArgumentCaptor<KubernetesKind> kindCaptor = ArgumentCaptor.forClass(KubernetesKind.class);
+    ArgumentCaptor<String> namespaceCaptor = ArgumentCaptor.forClass(String.class);
+    verify(mockKubernetesCreds)
+        .delete(
+            kindCaptor.capture(),
+            namespaceCaptor.capture(),
+            anyString(),
+            any(KubernetesSelectorList.class),
+            any(V1DeleteOptions.class));
+
+    assertEquals(customResource, kindCaptor.getValue());
+    assertEquals(namespace, namespaceCaptor.getValue());
+  }
+
+  @Test
+  public void deleteUnregisteredCustomResourceViaLabelSelector() throws IOException {
+    String pipelineJSON =
+        "{ "
+            + " \"account\": \"kubernetes-account\","
+            + " \"kinds\": [ \""
+            + customResource.toString()
+            + "\" ],"
+            + " \"labelSelectors\": {"
+            + "   \"selectors\": ["
+            + "     {"
+            + "       \"key\": \"foo\","
+            + "       \"kind\": \"EQUALS\","
+            + "       \"values\": ["
+            + "         \"bar\""
+            + "       ]"
+            + "     }"
+            + "   ]"
+            + " }"
+            + "}";
+    Map<String, Object> pipeline = mapper.readValue(pipelineJSON, mapType);
+
+    KubernetesDeleteManifestDescription description = buildDeleteManifestDescription(pipeline);
+
+    KubernetesCredentials mockKubernetesCreds = description.getCredentials().getCredentials();
+
+    new KubernetesDeleteManifestOperation(description).operate(ImmutableList.of());
+
+    ArgumentCaptor<KubernetesKind> kindCaptor = ArgumentCaptor.forClass(KubernetesKind.class);
+    ArgumentCaptor<KubernetesSelectorList> labelSelectorsCaptor =
+        ArgumentCaptor.forClass(KubernetesSelectorList.class);
+    verify(mockKubernetesCreds)
+        .delete(
+            kindCaptor.capture(),
+            anyString(),
+            anyString(),
+            labelSelectorsCaptor.capture(),
+            any(V1DeleteOptions.class));
+
+    assertEquals(customResource, kindCaptor.getValue());
+    assertEquals(
+        KubernetesSelectorList.fromMatchLabels(Map.of("foo", "bar")),
+        labelSelectorsCaptor.getValue());
   }
 
   @Test
