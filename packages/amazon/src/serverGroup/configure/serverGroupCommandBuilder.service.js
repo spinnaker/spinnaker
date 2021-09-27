@@ -369,7 +369,7 @@ angular
                 ebsOptimized: launchTemplateData.ebsOptimized,
                 spotPrice: maxPrice || undefined,
                 requireIMDSv2: Boolean(
-                  launchTemplateData.metadataOptions && launchTemplateData.metadataOptions.httpsTokens === 'required',
+                  launchTemplateData.metadataOptions && launchTemplateData.metadataOptions.httpTokens === 'required',
                 ),
                 unlimitedCpuCredits: launchTemplateData.creditSpecification
                   ? launchTemplateData.creditSpecification.cpuCredits === 'unlimited'
