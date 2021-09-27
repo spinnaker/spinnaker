@@ -24,8 +24,8 @@ ext {
     spectator        : "0.103.0",
     spek             : "1.1.5",
     spek2            : "2.0.9",
-    spring           : "5.2.9.RELEASE", // this should be kept in sync with spring-boot / removed once the need for a version override is gone
-    springBoot       : "2.2.5.RELEASE",
+    spring           : "5.2.12.RELEASE", // this should be kept in sync with spring-boot / removed once the need for a version override is gone
+    springBoot       : "2.2.13.RELEASE",
     springCloud      : "Hoxton.SR4",
     springfoxSwagger : "2.9.2",
     swagger          : "1.5.20", //this should stay in sync with what springfoxSwagger expects
@@ -51,7 +51,7 @@ dependencies {
   //kotlinVersion comes from gradle.properties since we have kotlin code in
   // this project and need to configure gradle plugins etc.
   api(platform("org.jetbrains.kotlin:kotlin-bom:$kotlinVersion"))
-  api(platform("org.junit:junit-bom:5.6.2"))
+  api(platform("org.junit:junit-bom:5.6.3"))
   api(platform("com.fasterxml.jackson:jackson-bom:2.11.1"))
   api(platform("org.springframework:spring-framework-bom:${versions.spring}"))
   api(platform("org.springframework.boot:spring-boot-dependencies:${versions.springBoot}"))
