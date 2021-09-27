@@ -93,7 +93,7 @@ export class CopyToClipboard extends React.Component<ICopyToClipboardProps, ICop
 
     const persistOverlay = Boolean(tooltipCopy);
     const copy = tooltipCopy || toolTip;
-    const id = `clipboardValue-${text.replace(' ', '-')}`;
+    const id = `clipboardValue-${text.toString().replace(' ', '-')}`;
     const tooltipComponent = <Tooltip id={id}>{copy}</Tooltip>;
 
     // Hack - shouldUpdatePosition is a valid prop, just not declared in typings
