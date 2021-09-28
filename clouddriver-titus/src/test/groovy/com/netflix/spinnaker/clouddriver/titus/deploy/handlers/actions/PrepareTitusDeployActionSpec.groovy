@@ -267,7 +267,7 @@ class PrepareTitusDeployActionSpec extends Specification {
   }
 
   private static class Fixture {
-    Moniker moniker = mimicker.moniker().get()
+    Moniker moniker
     // TODO(rz): barf
     String monikerName
     String region
