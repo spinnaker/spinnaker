@@ -6,6 +6,7 @@
           class="btn btn-xs btn-default"
           ng-class="{active: filterModel.sortFilter.multiselect}"
           ng-click="ctrl.toggleMultiselect()"
+          ng-hide="isDisabled"
         >
           <span class="glyphicon glyphicon-list visible-lg-inline"></span>
           <span class="glyphicon glyphicon-list visible-md-inline visible-sm-inline" uib-tooltip="Edit multiple"></span>

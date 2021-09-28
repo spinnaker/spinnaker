@@ -157,6 +157,7 @@ export const SETTINGS: ISpinnakerSettings = (window as any).spinnakerSettings ||
 // Make sure to set up some reasonable default settings fields so we do not have to keep checking if they exist everywhere
 SETTINGS.feature = SETTINGS.feature || {};
 SETTINGS.feature.roscoMode = SETTINGS.feature.roscoMode ?? true;
+SETTINGS.kubernetesAdHocInfraWritesEnabled = SETTINGS.kubernetesAdHocInfraWritesEnabled ?? true;
 SETTINGS.analytics = SETTINGS.analytics || {};
 SETTINGS.providers = SETTINGS.providers || {};
 SETTINGS.defaultTimeZone = SETTINGS.defaultTimeZone || 'America/Los_Angeles';

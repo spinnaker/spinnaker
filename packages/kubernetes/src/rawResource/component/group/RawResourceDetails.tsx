@@ -14,6 +14,7 @@ import {
   logger,
   ManifestWriter,
   Overridable,
+  SETTINGS,
   Spinner,
   timestamp,
 } from '@spinnaker/core';
@@ -175,7 +176,7 @@ export class RawResourceDetails extends React.Component<IRawResourceDetailsProps
               </h3>
             </div>
           )}
-          {!this.state.loading && (
+          {!this.state.loading && SETTINGS.kubernetesAdHocInfraWritesEnabled && (
             <div className="actions">
               <Dropdown className="dropdown" id="resource-actions-dropdown">
                 <Dropdown.Toggle className="btn btn-sm btn-primary dropdown-toggle">

@@ -3,6 +3,7 @@
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import { module } from 'angular';
 
+import { ProviderSelectionService } from '../../cloudProvider/providerSelection/ProviderSelectionService';
 import { ConfirmationModalService } from '../../confirmationModal';
 import { InstanceWriter } from '../instance.write.service';
 import { CORE_INSTANCE_DETAILS_MULTIPLEINSTANCESERVERGROUP_DIRECTIVE } from './multipleInstanceServerGroup.directive';
@@ -20,6 +21,11 @@ module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
   'app',
   function ($scope, $state, app) {
     this.selectedGroups = [];
+    this.$onInit = () => {
+      ProviderSelectionService.isDisabled(app).then((disabled) => {
+        $scope.isDisabled = disabled;
+      });
+    };
 
     /**
      * Actions

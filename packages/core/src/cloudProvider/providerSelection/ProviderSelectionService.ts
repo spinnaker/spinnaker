@@ -53,14 +53,12 @@ export class ProviderSelectionService {
   public static isDisabled(app: Application): PromiseLike<boolean> {
     return AccountService.applicationAccounts(app).then((accounts: IAccountDetails[]) => {
       let isDisable = false;
-      if (accounts.length === 1) {
-        accounts
-          .filter((a) => {
-            return CloudProviderRegistry.hasValue(a.cloudProvider, 'kubernetesAdHocInfraWritesEnabled');
-          })
-          .map((a) => {
-            isDisable = !CloudProviderRegistry.getValue(a.cloudProvider, 'kubernetesAdHocInfraWritesEnabled');
-          });
+      const cloudProvidersEnabled = accounts.filter((a) => {
+        return !CloudProviderRegistry.isDisabled(a.cloudProvider);
+      });
+
+      if (cloudProvidersEnabled.length === 0) {
+        isDisable = true;
       }
       return isDisable;
     });

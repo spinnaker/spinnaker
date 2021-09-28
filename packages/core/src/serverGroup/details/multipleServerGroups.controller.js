@@ -3,6 +3,7 @@
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import * as angular from 'angular';
 
+import { ProviderSelectionService } from '../../cloudProvider/providerSelection/ProviderSelectionService';
 import { PROVIDER_SERVICE_DELEGATE } from '../../cloudProvider/providerService.delegate';
 import { ConfirmationModalService } from '../../confirmationModal';
 import { CORE_SERVERGROUP_DETAILS_MULTIPLESERVERGROUP_COMPONENT } from './multipleServerGroup.component';
@@ -27,6 +28,11 @@ angular
     'app',
     function ($scope, $state, serverGroupWriter, providerServiceDelegate, app) {
       this.serverGroups = [];
+      this.$onInit = () => {
+        ProviderSelectionService.isDisabled(app).then((disabled) => {
+          $scope.isDisabled = disabled;
+        });
+      };
 
       /**
        * Actions
