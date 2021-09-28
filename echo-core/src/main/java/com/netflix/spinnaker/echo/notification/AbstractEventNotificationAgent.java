@@ -126,7 +126,7 @@ public abstract class AbstractEventNotificationAgent implements EventListener {
           try {
             sendNotifications(notification, application, event, config, status);
           } catch (Exception e) {
-            log.error("failed to send {} message", getNotificationType());
+            log.error("failed to send {} message", getNotificationType(), e);
           }
         });
   }
