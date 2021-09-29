@@ -1,15 +1,17 @@
 import { cloneDeep } from 'lodash';
 import * as React from 'react';
 
-import { Application, IModalComponentProps, TaskMonitorModal } from '@spinnaker/core';
+import type { Application, IModalComponentProps } from '@spinnaker/core';
+import { TaskMonitorModal } from '@spinnaker/core';
 
 import { ScalingPolicyAdditionalSettings } from './ScalingPolicyAdditionalSettings';
 import { ScalingPolicyCommandBuilder } from './ScalingPolicyCommandBuilderService';
-import { IStepPolicyDescription, IUpsertScalingPolicyCommand } from '../ScalingPolicyWriter';
+import type { IStepPolicyDescription, IUpsertScalingPolicyCommand } from '../ScalingPolicyWriter';
 import { AlarmConfigurer } from './alarm/AlarmConfigurer';
-import { IAmazonServerGroup, IScalingPolicy, IStepAdjustment, ITargetTrackingPolicy } from '../../../../domain';
+import type { IAmazonServerGroup, IScalingPolicy, IStepAdjustment, ITargetTrackingPolicy } from '../../../../domain';
 import { SimplePolicyAction } from './simple/SimplePolicyAction';
-import { AdjustmentTypeView, Operator, StepPolicyAction } from './step/StepPolicyAction';
+import type { AdjustmentTypeView, Operator } from './step/StepPolicyAction';
+import { StepPolicyAction } from './step/StepPolicyAction';
 
 export interface IUpsertScalingPolicyModalProps extends IModalComponentProps {
   app: Application;

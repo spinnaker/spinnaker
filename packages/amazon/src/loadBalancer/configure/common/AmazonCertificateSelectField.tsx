@@ -1,8 +1,10 @@
 import React from 'react';
-import Select, { Option } from 'react-select';
+import type { Option } from 'react-select';
+import Select from 'react-select';
 
-import { Application, Overridable, relativeTime, timestamp } from '@spinnaker/core';
-import { IAmazonCertificate } from '../../../domain';
+import type { Application } from '@spinnaker/core';
+import { Overridable, relativeTime, timestamp } from '@spinnaker/core';
+import type { IAmazonCertificate } from '../../../domain';
 
 export interface IAmazonCertificateSelectFieldProps {
   certificates: { [accountName: string]: IAmazonCertificate[] };

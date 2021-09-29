@@ -1,25 +1,26 @@
 import { get } from 'lodash';
 import { $q } from 'ngimport';
 import React from 'react';
-import { Subscription } from 'rxjs';
+import type { Subscription } from 'rxjs';
 
-import { Application } from '../../application';
+import type { Application } from '../../application';
 import { CreatePipeline } from '../config/CreatePipeline';
 import { CreatePipelineButton } from '../create/CreatePipelineButton';
-import { IExecution, IPipeline, IPipelineCommand } from '../../domain';
+import type { IExecution, IPipeline, IPipelineCommand } from '../../domain';
 import { ExecutionGroups } from './executionGroup/ExecutionGroups';
 import { ExecutionFilters } from '../filter/ExecutionFilters';
 import { ExecutionFilterService } from '../filter/executionFilter.service';
-import { FilterCollapse, FilterTags, IFilterTag, ISortFilter } from '../../filterModel';
+import type { IFilterTag, ISortFilter } from '../../filterModel';
+import { FilterCollapse, FilterTags } from '../../filterModel';
 import { ManualExecutionModal } from '../manualExecution';
 import { Overridable } from '../../overrideRegistry';
 import { Tooltip } from '../../presentation/Tooltip';
 import { ReactInjector } from '../../reactShims';
 import { SchedulerFactory } from '../../scheduler';
-import { IScheduler } from '../../scheduler/SchedulerFactory';
+import type { IScheduler } from '../../scheduler/SchedulerFactory';
 import { ExecutionState } from '../../state';
 import { logger } from '../../utils';
-import { IRetryablePromise } from '../../utils/retryablePromise';
+import type { IRetryablePromise } from '../../utils/retryablePromise';
 import { Spinner } from '../../widgets/spinners/Spinner';
 
 import './executions.less';

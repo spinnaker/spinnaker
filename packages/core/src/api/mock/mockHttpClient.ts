@@ -1,6 +1,8 @@
-import { IHttpClientImplementation } from '../ApiService';
-import { ExpectedRequest, IExpectBuilder } from './expectedRequest';
-import { flushAngularJS, IDeferred, tick, UrlArg, Verb } from './mockHttpUtils';
+import type { IHttpClientImplementation } from '../ApiService';
+import type { IExpectBuilder } from './expectedRequest';
+import { ExpectedRequest } from './expectedRequest';
+import type { IDeferred, UrlArg, Verb } from './mockHttpUtils';
+import { flushAngularJS, tick } from './mockHttpUtils';
 import { ReceivedRequest } from './receivedRequest';
 
 interface IRequest {

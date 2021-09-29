@@ -7,11 +7,12 @@ import { debounceTime, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { GlobalSearchRecentItems } from './GlobalSearchRecentItems';
 import { GlobalSearchResults } from './GlobalSearchResults';
-import { IChildComponentProps, RecentlyViewedItems } from '../infrastructure/RecentlyViewedItems';
-import { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
+import type { IChildComponentProps } from '../infrastructure/RecentlyViewedItems';
+import { RecentlyViewedItems } from '../infrastructure/RecentlyViewedItems';
+import type { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
 import { Tooltip } from '../../presentation/Tooltip';
 import { ReactInjector } from '../../reactShims';
-import { ISearchResult } from '../search.service';
+import type { ISearchResult } from '../search.service';
 import { searchRank } from '../searchRank.filter';
 import { ClusterState } from '../../state';
 import { logger } from '../../utils';

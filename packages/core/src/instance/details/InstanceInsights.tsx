@@ -1,7 +1,7 @@
 import React from 'react';
 import { Dropdown } from 'react-bootstrap';
 
-import { IInstance } from '../../domain';
+import type { IInstance } from '../../domain';
 import { logger } from '../../utils';
 
 export interface Insight {

@@ -1,12 +1,11 @@
 import { map, uniq } from 'lodash';
 
-import { IValidatorConfig, PipelineConfigValidator } from './PipelineConfigValidator';
-import { IPipeline, IStage, IStageOrTriggerTypeConfig } from '../../../domain';
+import type { IValidatorConfig } from './PipelineConfigValidator';
+import { PipelineConfigValidator } from './PipelineConfigValidator';
+import type { IPipeline, IStage, IStageOrTriggerTypeConfig } from '../../../domain';
 import { Registry } from '../../../registry';
-import {
-  IStageOrTriggerBeforeTypeValidationConfig,
-  StageOrTriggerBeforeTypeValidator,
-} from './stageOrTriggerBeforeType.validator';
+import type { IStageOrTriggerBeforeTypeValidationConfig } from './stageOrTriggerBeforeType.validator';
+import { StageOrTriggerBeforeTypeValidator } from './stageOrTriggerBeforeType.validator';
 
 export interface IUpstreamFlagProvidedValidationConfig extends IValidatorConfig {
   getProviders?: Function;

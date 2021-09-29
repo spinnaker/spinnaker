@@ -1,4 +1,5 @@
-import { IHttpInterceptor, IHttpPromiseCallbackArg, IHttpProvider, module } from 'angular';
+import type { IHttpInterceptor, IHttpPromiseCallbackArg, IHttpProvider } from 'angular';
+import { module } from 'angular';
 import { $http, $q } from 'ngimport';
 import { SETTINGS } from '@spinnaker/core';
 

@@ -1,9 +1,12 @@
 import * as React from 'react';
 
-import { CommitHistory, ICommit } from './CommitHistory';
-import { IJarDiff, JarDiffs } from './JarDiffs';
-import { IBuildDiffInfo, IJenkinsInfo } from '../domain';
-import { IModalComponentProps, ModalBody, ModalFooter, ModalHeader } from '../presentation';
+import type { ICommit } from './CommitHistory';
+import { CommitHistory } from './CommitHistory';
+import type { IJarDiff } from './JarDiffs';
+import { JarDiffs } from './JarDiffs';
+import type { IBuildDiffInfo, IJenkinsInfo } from '../domain';
+import type { IModalComponentProps } from '../presentation';
+import { ModalBody, ModalFooter, ModalHeader } from '../presentation';
 
 export interface IChangesModalProps extends IModalComponentProps {
   buildInfo: IBuildDiffInfo;

@@ -2,8 +2,8 @@ import React from 'react';
 
 import { LoadBalancer } from './LoadBalancer';
 import { AccountTag } from '../account';
-import { Application } from '../application/application.model';
-import { ILoadBalancerGroup } from '../domain';
+import type { Application } from '../application/application.model';
+import type { ILoadBalancerGroup } from '../domain';
 import { ManagedResourceStatusIndicator } from '../managed';
 
 import './loadBalancerPod.less';

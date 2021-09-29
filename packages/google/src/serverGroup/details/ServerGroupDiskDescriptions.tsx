@@ -3,9 +3,10 @@ import { get, last } from 'lodash';
 import React from 'react';
 import { react2angular } from 'react2angular';
 
-import { Application, withErrorBoundary } from '@spinnaker/core';
+import type { Application } from '@spinnaker/core';
+import { withErrorBoundary } from '@spinnaker/core';
 
-import { IGceDisk, IGceServerGroup } from '../../domain';
+import type { IGceDisk, IGceServerGroup } from '../../domain';
 import { MarkDiskStatefulButton } from './stateful/MarkDiskStatefulButton';
 import { StatefulMIGService } from './stateful/StatefulMIGService';
 import { UpdateBootImageButton } from './stateful/UpdateBootImageButton';

@@ -1,7 +1,7 @@
 import { module } from 'angular';
 
 import { REST } from '@spinnaker/core';
-import { IMetricAlarmDescriptor } from './MetricAlarm';
+import type { IMetricAlarmDescriptor } from './MetricAlarm';
 
 export class MetricAlarmReader {
   public listMetricAlarms(): PromiseLike<IMetricAlarmDescriptor[]> {

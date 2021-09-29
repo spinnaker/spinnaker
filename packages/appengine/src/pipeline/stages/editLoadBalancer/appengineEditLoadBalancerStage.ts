@@ -1,8 +1,10 @@
-import { IController, module } from 'angular';
-import { IModalService } from 'angular-ui-bootstrap';
+import type { IController } from 'angular';
+import { module } from 'angular';
+import type { IModalService } from 'angular-ui-bootstrap';
 import { cloneDeep } from 'lodash';
 
-import { CloudProviderRegistry, ILoadBalancer, Registry } from '@spinnaker/core';
+import type { ILoadBalancer } from '@spinnaker/core';
+import { CloudProviderRegistry, Registry } from '@spinnaker/core';
 
 import { APPENGINE_LOAD_BALANCER_CHOICE_MODAL_CTRL } from './loadBalancerChoice.modal.controller';
 

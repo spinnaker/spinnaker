@@ -1,11 +1,11 @@
 import { $q, $templateCache } from 'ngimport';
 import React from 'react';
-import { Observable } from 'rxjs';
+import type { Observable } from 'rxjs';
 
 import { ServerGroupDetails } from './ServerGroupDetails';
-import { Application } from '../../application';
+import type { Application } from '../../application';
 import { CloudProviderRegistry } from '../../cloudProvider';
-import { IServerGroup } from '../../domain';
+import type { IServerGroup } from '../../domain';
 import { AngularJSAdapter, ReactInjector } from '../../reactShims';
 
 export interface IServerGroupDetailsWrapperProps {

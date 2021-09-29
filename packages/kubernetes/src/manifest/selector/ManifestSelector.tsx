@@ -1,17 +1,16 @@
 import { get, isEmpty } from 'lodash';
 import { $q } from 'ngimport';
 import React from 'react';
-import Select, { Creatable, Option } from 'react-select';
+import type { Option } from 'react-select';
+import Select, { Creatable } from 'react-select';
 import { from as observableFrom, Subject } from 'rxjs';
 import { switchMap, takeUntil, tap } from 'rxjs/operators';
 
+import type { Application, IAccountDetails, IServerGroup } from '@spinnaker/core';
 import {
   AccountSelectInput,
   AccountService,
-  Application,
   AppListExtractor,
-  IAccountDetails,
-  IServerGroup,
   NgReact,
   noop,
   ScopeClusterSelector,
@@ -20,8 +19,9 @@ import {
   StageConstants,
 } from '@spinnaker/core';
 
-import { IManifestLabelSelector } from './IManifestLabelSelector';
-import { IManifestSelector, SelectorMode, SelectorModeDataMap } from './IManifestSelector';
+import type { IManifestLabelSelector } from './IManifestLabelSelector';
+import type { IManifestSelector } from './IManifestSelector';
+import { SelectorMode, SelectorModeDataMap } from './IManifestSelector';
 import { ManifestKindSearchService } from '../ManifestKindSearch';
 import LabelEditor from './labelEditor/LabelEditor';
 

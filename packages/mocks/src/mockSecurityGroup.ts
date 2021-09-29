@@ -1,4 +1,4 @@
-import { ILoadBalancerUsage, ISecurityGroup, IServerGroupUsage, IUsages } from '@spinnaker/core';
+import type { ILoadBalancerUsage, ISecurityGroup, IServerGroupUsage, IUsages } from '@spinnaker/core';
 
 export const mockLoadBalancerUsage: ILoadBalancerUsage = {
   name: 'deck-test-lb',

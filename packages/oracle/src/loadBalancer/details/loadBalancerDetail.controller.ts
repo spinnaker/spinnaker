@@ -1,20 +1,16 @@
-import UIROUTER_ANGULARJS, { StateService } from '@uirouter/angularjs';
-import angular, { IController, module } from 'angular';
-import ANGULAR_UI_BOOTSTRAP, { IModalService } from 'angular-ui-bootstrap';
+import type { StateService } from '@uirouter/angularjs';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
+import type { IController } from 'angular';
+import angular, { module } from 'angular';
+import type { IModalService } from 'angular-ui-bootstrap';
+import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 import { sortBy } from 'lodash';
 
-import {
-  Application,
-  ConfirmationModalService,
-  FirewallLabels,
-  ISecurityGroup,
-  LoadBalancerReader,
-  LoadBalancerWriter,
-  SecurityGroupReader,
-} from '@spinnaker/core';
+import type { Application, ISecurityGroup, LoadBalancerReader, SecurityGroupReader } from '@spinnaker/core';
+import { ConfirmationModalService, FirewallLabels, LoadBalancerWriter } from '@spinnaker/core';
 
 import { OracleLoadBalancerController } from '../configure/createLoadBalancer.controller';
-import { ILoadBalancerDetails, IOracleLoadBalancer } from '../../domain/IOracleLoadBalancer';
+import type { ILoadBalancerDetails, IOracleLoadBalancer } from '../../domain/IOracleLoadBalancer';
 
 export class OracleLoadBalancerDetailController implements IController {
   public static $inject = [

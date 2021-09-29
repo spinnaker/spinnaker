@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { IServerGroup } from '@spinnaker/core';
+import type { IServerGroup } from '@spinnaker/core';
 
 export class AwsSubnetRenderer {
   public render(serverGroup: IServerGroup): string {

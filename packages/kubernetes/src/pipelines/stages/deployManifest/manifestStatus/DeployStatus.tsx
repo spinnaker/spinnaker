@@ -1,15 +1,12 @@
 import { get } from 'lodash';
 import React from 'react';
 
-import {
-  ExecutionDetailsSection,
-  IExecutionDetailsSectionProps,
-  IManifest,
-  StageFailureMessage,
-} from '@spinnaker/core';
+import type { IExecutionDetailsSectionProps, IManifest } from '@spinnaker/core';
+import { ExecutionDetailsSection, StageFailureMessage } from '@spinnaker/core';
 
 import { ManifestStatus } from './ManifestStatus';
-import { IStageManifest, KubernetesManifestService } from '../../../../manifest/manifest.service';
+import type { IStageManifest } from '../../../../manifest/manifest.service';
+import { KubernetesManifestService } from '../../../../manifest/manifest.service';
 
 export interface IManifestSubscription {
   id: string;

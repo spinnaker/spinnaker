@@ -1,9 +1,9 @@
 import { $q } from 'ngimport';
 
 import { REST } from '../api/ApiService';
-import { Application } from '../application/application.model';
+import type { Application } from '../application/application.model';
 import { SETTINGS } from '../config/settings';
-import {
+import type {
   IExecution,
   IFunction,
   ILoadBalancer,
@@ -13,7 +13,7 @@ import {
   IServerGroupManager,
 } from '../domain';
 
-import { ICreationMetadataTag, IEntityTag, IEntityTags } from '../domain/IEntityTags';
+import type { ICreationMetadataTag, IEntityTag, IEntityTags } from '../domain/IEntityTags';
 
 export class EntityTagsReader {
   public static getAllEntityTagsForApplication(application: string): PromiseLike<IEntityTags[]> {

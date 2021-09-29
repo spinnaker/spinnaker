@@ -1,10 +1,10 @@
 import React from 'react';
 
-import { Application } from '../application';
+import type { Application } from '../application';
 import { CloudProviderLogo } from '../cloudProvider';
-import { IClusterSubgroup } from '../cluster';
+import type { IClusterSubgroup } from '../cluster';
 import { SETTINGS } from '../config';
-import { IInstanceCounts } from '../domain';
+import type { IInstanceCounts } from '../domain';
 import { EntityNotifications } from '../entityTag/notifications/EntityNotifications';
 import { HealthCounts } from '../healthCounts';
 

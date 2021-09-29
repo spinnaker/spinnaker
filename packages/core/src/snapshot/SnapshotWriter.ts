@@ -1,12 +1,12 @@
 import { isString } from 'lodash';
 import { $q } from 'ngimport';
 
-import { IAccountDetails } from '../account';
+import type { IAccountDetails } from '../account';
 import { AccountService } from '../account/AccountService';
-import { Application } from '../application';
+import type { Application } from '../application';
 import { CloudProviderRegistry } from '../cloudProvider';
-import { ITask } from '../domain';
-import { IJob } from '../task';
+import type { ITask } from '../domain';
+import type { IJob } from '../task';
 import { TaskExecutor } from '../task/taskExecutor';
 
 export class SnapshotWriter {

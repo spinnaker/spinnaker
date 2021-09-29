@@ -2,7 +2,7 @@ import { UIView, useCurrentStateAndParams } from '@uirouter/react';
 import React from 'react';
 
 import { EnvironmentsDirectionController } from './environmentBaseElements/EnvironmentsRender';
-import { Routes } from './managed.states';
+import type { Routes } from './managed.states';
 import { HorizontalTabs } from '../presentation/horizontalTabs/HorizontalTabs';
 import { setDebugMode } from './utils/debugMode';
 import { useLogEvent } from './utils/logging';

@@ -1,20 +1,15 @@
 import { module } from 'angular';
 import * as React from 'react';
 import { react2angular } from 'react2angular';
-import { Observable } from 'rxjs';
+import type { Observable } from 'rxjs';
 
-import {
-  CloudMetricsReader,
-  ICloudMetricStatistics,
-  Spinner,
-  useData,
-  useForceUpdate,
-  useObservable,
-} from '@spinnaker/core';
+import type { ICloudMetricStatistics } from '@spinnaker/core';
+import { CloudMetricsReader, Spinner, useData, useForceUpdate, useObservable } from '@spinnaker/core';
 import { withErrorBoundary } from '@spinnaker/core';
 
-import { DateLineChart, IDateLine } from './DateLineChart';
-import { IAmazonServerGroup, IScalingPolicyAlarm } from '../../../../domain';
+import type { IDateLine } from './DateLineChart';
+import { DateLineChart } from './DateLineChart';
+import type { IAmazonServerGroup, IScalingPolicyAlarm } from '../../../../domain';
 
 interface IMetricAlarmChartProps {
   serverGroup: IAmazonServerGroup;

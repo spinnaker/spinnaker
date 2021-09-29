@@ -2,12 +2,13 @@ import { module } from 'angular';
 import { isEqual, uniqWith } from 'lodash';
 import * as React from 'react';
 import { Alert } from 'react-bootstrap';
-import { Option } from 'react-select';
+import type { Option } from 'react-select';
 import { react2angular } from 'react2angular';
 
-import { HelpField, ISubnet, TetheredSelect, withErrorBoundary } from '@spinnaker/core';
+import type { ISubnet } from '@spinnaker/core';
+import { HelpField, TetheredSelect, withErrorBoundary } from '@spinnaker/core';
 
-import { IEcsServerGroupCommand } from '../../serverGroupConfiguration.service';
+import type { IEcsServerGroupCommand } from '../../serverGroupConfiguration.service';
 
 export interface IEcsNetworkingProps {
   command: IEcsServerGroupCommand;

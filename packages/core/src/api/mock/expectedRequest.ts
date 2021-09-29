@@ -2,8 +2,9 @@ import { isEqual, isMatch } from 'lodash';
 
 import { SETTINGS } from '../../config';
 
-import { deferred, isSuccessStatus, UrlArg, Verb } from './mockHttpUtils';
-import { ReceivedRequest } from './receivedRequest';
+import type { UrlArg, Verb } from './mockHttpUtils';
+import { deferred, isSuccessStatus } from './mockHttpUtils';
+import type { ReceivedRequest } from './receivedRequest';
 
 function parseParams(queryString: string): Record<string, string | string[]> {
   const paramTuples = queryString.split('&').map((param) => param.split('=')) as Array<[string, string]>;

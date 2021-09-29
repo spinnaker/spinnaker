@@ -1,7 +1,7 @@
 import { hri as HumanReadableIds } from 'human-readable-ids';
 import { get } from 'lodash';
 
-import {
+import type {
   IArtifact,
   IArtifactKindConfig,
   IArtifactSource,

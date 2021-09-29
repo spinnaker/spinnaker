@@ -1,4 +1,4 @@
-import { MdArtifactStatusInEnvironment } from '../graphql/graphql-sdk';
+import type { MdArtifactStatusInEnvironment } from '../graphql/graphql-sdk';
 
 export const OVERVIEW_VERSION_STATUSES: MdArtifactStatusInEnvironment[] = [
   'PENDING',

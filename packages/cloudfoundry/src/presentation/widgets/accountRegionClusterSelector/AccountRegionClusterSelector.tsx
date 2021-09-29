@@ -1,18 +1,12 @@
 import { first, isNil, uniq } from 'lodash';
 import React from 'react';
-import Select, { Creatable, Option } from 'react-select';
+import type { Option } from 'react-select';
+import Select, { Creatable } from 'react-select';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import {
-  Application,
-  AppListExtractor,
-  IAccount,
-  IMoniker,
-  IServerGroup,
-  IServerGroupFilter,
-  StageConfigField,
-} from '@spinnaker/core';
+import type { Application, IAccount, IMoniker, IServerGroup, IServerGroupFilter } from '@spinnaker/core';
+import { AppListExtractor, StageConfigField } from '@spinnaker/core';
 
 export interface IAccountRegionClusterSelectorProps {
   accounts: IAccount[];

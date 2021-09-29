@@ -1,7 +1,8 @@
 import { module } from 'angular';
 import { has } from 'lodash';
 
-import { Application, FirewallLabels, IServerGroup } from '@spinnaker/core';
+import type { Application, IServerGroup } from '@spinnaker/core';
+import { FirewallLabels } from '@spinnaker/core';
 
 export class GceSecurityGroupHelpTextService {
   private serverGroupsIndexedByTag: Map<string, Set<string>>;

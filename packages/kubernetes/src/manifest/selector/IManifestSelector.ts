@@ -1,4 +1,4 @@
-import { IManifestLabelSelectors } from './IManifestLabelSelector';
+import type { IManifestLabelSelectors } from './IManifestLabelSelector';
 
 export interface IMultiManifestSelector extends IManifestSelector {
   kinds: string[];

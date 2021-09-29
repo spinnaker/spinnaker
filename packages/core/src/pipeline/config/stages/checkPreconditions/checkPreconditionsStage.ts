@@ -1,4 +1,5 @@
-import { IScope, module } from 'angular';
+import type { IScope } from 'angular';
+import { module } from 'angular';
 
 import { CheckPreconditionsExecutionDetails } from './CheckPreconditionsExecutionDetails';
 import { ExecutionDetailsTasks } from '../common/ExecutionDetailsTasks';

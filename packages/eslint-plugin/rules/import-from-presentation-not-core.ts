@@ -1,5 +1,5 @@
-import { Rule } from 'eslint';
-import { ImportDeclaration, ImportSpecifier } from 'estree';
+import type { Rule } from 'eslint';
+import type { ImportDeclaration, ImportSpecifier } from 'estree';
 
 const migratedPresentationModules = ['Icon', 'IconNames', 'Illustration', 'IllustrationName'];
 

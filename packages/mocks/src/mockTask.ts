@@ -1,4 +1,4 @@
-import { IOrchestratedItem, ITask, ITaskStep, ITaskVariable } from '@spinnaker/core';
+import type { IOrchestratedItem, ITask, ITaskStep, ITaskVariable } from '@spinnaker/core';
 
 export const mockOrchestratedItem: IOrchestratedItem = {
   getValueFor: () => {},

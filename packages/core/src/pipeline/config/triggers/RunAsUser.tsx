@@ -1,6 +1,7 @@
 import React from 'react';
 
-import { IFormInputProps, ReactSelectInput, useLatestPromise } from '../../../presentation';
+import type { IFormInputProps } from '../../../presentation';
+import { ReactSelectInput, useLatestPromise } from '../../../presentation';
 import { ServiceAccountReader } from '../../../serviceAccount';
 
 export interface IRunAsUserInputProps extends IFormInputProps {

@@ -1,11 +1,12 @@
 import { isNil } from 'lodash';
 import React from 'react';
-import Select, { Creatable, Option, OptionValues, ReactSelectProps } from 'react-select';
+import type { Option, OptionValues, ReactSelectProps } from 'react-select';
+import Select, { Creatable } from 'react-select';
 import VirtualizedSelect from 'react-virtualized-select';
 
 import { StringsAsOptions } from './StringsAsOptions';
 import { TetheredSelect } from '../../TetheredSelect';
-import { IFormInputProps, IFormInputValidation, OmitControlledInputPropsFrom } from './interface';
+import type { IFormInputProps, IFormInputValidation, OmitControlledInputPropsFrom } from './interface';
 import { noop } from '../../../utils';
 import { createFakeReactSyntheticEvent, isStringArray, orEmptyString } from './utils';
 import { useValidationData } from '../validation';

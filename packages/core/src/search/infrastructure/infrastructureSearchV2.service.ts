@@ -1,13 +1,15 @@
 import { isEmpty } from 'lodash';
 import { uniqBy } from 'lodash';
-import { from as observableFrom, Observable, of as observableOf, Subject } from 'rxjs';
+import type { Observable } from 'rxjs';
+import { from as observableFrom, of as observableOf, Subject } from 'rxjs';
 import { catchError, finalize, map, mergeMap, tap } from 'rxjs/operators';
 
-import { ISearchResultSet } from './infrastructureSearch.service';
-import { IQueryParams, UrlBuilder } from '../../navigation';
-import { ISearchResult, ISearchResults } from '../search.service';
+import type { ISearchResultSet } from './infrastructureSearch.service';
+import type { IQueryParams } from '../../navigation';
+import { UrlBuilder } from '../../navigation';
+import type { ISearchResult, ISearchResults } from '../search.service';
 import { SearchStatus } from '../searchResult/SearchStatus';
-import { SearchResultType } from '../searchResult/searchResultType';
+import type { SearchResultType } from '../searchResult/searchResultType';
 import { searchResultTypeRegistry } from '../searchResult/searchResultType.registry';
 
 export class InfrastructureSearchServiceV2 {

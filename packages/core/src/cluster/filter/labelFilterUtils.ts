@@ -1,6 +1,6 @@
 import { reduce } from 'lodash';
 
-import { IServerGroup } from '../../domain/IServerGroup';
+import type { IServerGroup } from '../../domain/IServerGroup';
 
 export interface ILabelsMap {
   [key: string]: string[];

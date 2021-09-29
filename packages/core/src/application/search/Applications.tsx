@@ -1,16 +1,18 @@
 import { isEqual } from 'lodash';
 import React from 'react';
-import { SelectCallback } from 'react-bootstrap';
+import type { SelectCallback } from 'react-bootstrap';
 import { BehaviorSubject, from as observableFrom, Subject } from 'rxjs';
 import { combineLatest as observableCombineLatest } from 'rxjs';
 import { distinctUntilChanged, map, takeUntil } from 'rxjs/operators';
 
 import { ApplicationTable } from './ApplicationsTable';
 import { PaginationControls } from './PaginationControls';
-import { IAccount } from '../../account';
-import { ICache, ViewStateCache } from '../../cache';
+import type { IAccount } from '../../account';
+import type { ICache } from '../../cache';
+import { ViewStateCache } from '../../cache';
 import { InsightMenu } from '../../insight/InsightMenu';
-import { ApplicationReader, IApplicationSummary } from '../service/ApplicationReader';
+import type { IApplicationSummary } from '../service/ApplicationReader';
+import { ApplicationReader } from '../service/ApplicationReader';
 import { Spinner } from '../../widgets';
 
 import '../applications.less';

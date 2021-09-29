@@ -1,10 +1,10 @@
 import { isNil } from 'lodash';
 import React, { useEffect, useMemo } from 'react';
-import { Option } from 'react-select';
+import type { Option } from 'react-select';
 
 import { Markdown } from '../../Markdown';
-import { OmitControlledInputPropsFrom } from './interface';
-import { IFormInputProps } from './interface';
+import type { OmitControlledInputPropsFrom } from './interface';
+import type { IFormInputProps } from './interface';
 import { createFakeReactSyntheticEvent, isStringArray, orEmptyString, validationClassName } from './utils';
 
 interface IRadioButtonInputProps

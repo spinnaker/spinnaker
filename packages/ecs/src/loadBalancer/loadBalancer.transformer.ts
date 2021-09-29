@@ -1,6 +1,6 @@
-import { IQService } from 'angular';
+import type { IQService } from 'angular';
 
-import { IEcsLoadBalancer, IEcsLoadBalancerSourceData, IEcsTargetGroup } from '../domain/IEcsLoadBalancer';
+import type { IEcsLoadBalancer, IEcsLoadBalancerSourceData, IEcsTargetGroup } from '../domain/IEcsLoadBalancer';
 
 export class EcsLoadBalancerTransformer {
   public static $inject = ['$q'];

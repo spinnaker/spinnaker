@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { IEntityTags } from '../../domain';
+import type { IEntityTags } from '../../domain';
 import { HoverablePopover } from '../../presentation';
 import { relativeTime } from '../../utils/timeFormatters';
 

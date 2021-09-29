@@ -1,8 +1,8 @@
 import { isUndefined } from 'lodash';
 import React from 'react';
 
-import { IFormInputValidation } from '../inputs';
-import { ILayoutProps } from './interface';
+import type { IFormInputValidation } from '../inputs';
+import type { ILayoutProps } from './interface';
 import { ValidationMessage } from '../validation';
 
 import './StandardFieldLayout.css';

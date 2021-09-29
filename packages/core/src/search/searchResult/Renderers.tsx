@@ -2,7 +2,7 @@ import { kebabCase, startCase } from 'lodash';
 import React from 'react';
 
 import { AccountTag } from '../../account';
-import { IInstanceCounts } from '../../domain';
+import type { IInstanceCounts } from '../../domain';
 import { HealthCounts } from '../../healthCounts';
 import { Spinner } from '../../widgets';
 

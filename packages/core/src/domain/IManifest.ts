@@ -1,5 +1,5 @@
-import { IArtifact } from './IArtifact';
-import { IMoniker } from '../naming/IMoniker';
+import type { IArtifact } from './IArtifact';
+import type { IMoniker } from '../naming/IMoniker';
 
 export interface IManifest {
   name: string;

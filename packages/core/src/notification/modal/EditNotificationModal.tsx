@@ -1,11 +1,13 @@
-import { Form, Formik } from 'formik';
+import type { Formik } from 'formik';
+import { Form } from 'formik';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 
 import { NotificationDetails } from './NotificationDetails';
-import { INotification } from '../../domain';
+import type { INotification } from '../../domain';
 import { ModalClose, SubmitButton } from '../../modal';
-import { FormValidator, IModalComponentProps, ReactModal, SpinFormik } from '../../presentation';
+import type { IModalComponentProps } from '../../presentation';
+import { FormValidator, ReactModal, SpinFormik } from '../../presentation';
 
 export interface IEditNotificationModalProps extends IModalComponentProps {
   level: string;

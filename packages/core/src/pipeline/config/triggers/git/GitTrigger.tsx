@@ -1,9 +1,9 @@
-import { FormikProps } from 'formik';
+import type { FormikProps } from 'formik';
 import React from 'react';
 
-import { Application } from '../../../../application';
+import type { Application } from '../../../../application';
 import { SETTINGS } from '../../../../config/settings';
-import { IGitTrigger } from '../../../../domain';
+import type { IGitTrigger } from '../../../../domain';
 import { HelpField } from '../../../../help';
 import { FormikFormField, ReactSelectInput, TextInput } from '../../../../presentation';
 

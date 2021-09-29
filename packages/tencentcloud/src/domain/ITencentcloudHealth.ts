@@ -1,6 +1,6 @@
-import { IHealth } from '@spinnaker/core';
+import type { IHealth } from '@spinnaker/core';
 
-import { ITargetGroup } from '.';
+import type { ITargetGroup } from '.';
 
 export interface ITencentcloudHealth extends IHealth {
   targetGroups: ITargetGroup[];

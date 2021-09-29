@@ -2,17 +2,8 @@ import React from 'react';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import {
-  AccountService,
-  Application,
-  IAccount,
-  IFormikStageConfigInjectedProps,
-  IRegion,
-  NgReact,
-  StageConfigField,
-  StageConstants,
-  TextInput,
-} from '@spinnaker/core';
+import type { Application, IAccount, IFormikStageConfigInjectedProps, IRegion } from '@spinnaker/core';
+import { AccountService, NgReact, StageConfigField, StageConstants, TextInput } from '@spinnaker/core';
 
 import { AccountRegionClusterSelector } from '../../../presentation/widgets/accountRegionClusterSelector';
 

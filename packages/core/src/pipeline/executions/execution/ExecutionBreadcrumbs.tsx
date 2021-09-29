@@ -1,7 +1,8 @@
 import { useCurrentStateAndParams, useSref } from '@uirouter/react';
-import React, { MouseEventHandler } from 'react';
+import type { MouseEventHandler } from 'react';
+import React from 'react';
 
-import { IExecution } from '../../../domain';
+import type { IExecution } from '../../../domain';
 import { ExecutionInformationService } from './executionInformation.service';
 import { logger } from '../../../utils';
 

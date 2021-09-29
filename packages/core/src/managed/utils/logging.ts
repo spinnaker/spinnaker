@@ -1,7 +1,8 @@
 import React from 'react';
 
 import { useApplicationContext } from '../../presentation/hooks/useApplicationContext.hook';
-import { logger, LoggerEvent } from '../../utils';
+import type { LoggerEvent } from '../../utils';
+import { logger } from '../../utils';
 
 interface LogProps extends LoggerEvent {
   application?: string;

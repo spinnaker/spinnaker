@@ -2,12 +2,13 @@ import { module } from 'angular';
 
 import { get, isEmpty } from 'lodash';
 import React from 'react';
-import Select, { Option } from 'react-select';
+import type { Option } from 'react-select';
+import Select from 'react-select';
 import { react2angular } from 'react2angular';
 
 import { HelpField, withErrorBoundary } from '@spinnaker/core';
 
-import { IGceAcceleratorType } from './gceAccelerator.service';
+import type { IGceAcceleratorType } from './gceAccelerator.service';
 
 interface IGceAcceleratorConfig {
   acceleratorType: string;

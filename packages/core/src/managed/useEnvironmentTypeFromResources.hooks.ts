@@ -2,7 +2,7 @@ import { uniq } from 'lodash';
 import { $q } from 'ngimport';
 
 import { AccountService } from '../account';
-import { IManagedResourceSummary } from '../domain';
+import type { IManagedResourceSummary } from '../domain';
 import { useData } from '../presentation';
 
 export const useEnvironmentTypeFromResources = (resources: IManagedResourceSummary[]): boolean => {

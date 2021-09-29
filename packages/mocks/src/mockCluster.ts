@@ -1,4 +1,4 @@
-import { ICluster } from '@spinnaker/core';
+import type { ICluster } from '@spinnaker/core';
 import { mockServerGroup } from './mockServerGroup';
 
 export const mockAwsCluster: ICluster = {

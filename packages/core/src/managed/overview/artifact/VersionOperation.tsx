@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import React from 'react';
 
-import { QueryArtifactVersionTaskStatus, QueryConstraint } from '../types';
+import type { QueryArtifactVersionTaskStatus, QueryConstraint } from '../types';
 
 import './VersionOperationIcon.less';
 

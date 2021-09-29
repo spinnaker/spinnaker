@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Application } from '../application.model';
+import type { Application } from '../application.model';
 import { ConfirmationModalService } from '../../confirmationModal';
 import { ReactInjector } from '../../reactShims';
 import { FirewallLabel } from '../../securityGroup/label';

@@ -1,5 +1,5 @@
 import { REST } from '../api/ApiService';
-import { IManifest } from '../domain';
+import type { IManifest } from '../domain';
 
 export class ManifestReader {
   public static getManifest(account: string, location: string, name: string): PromiseLike<IManifest> {

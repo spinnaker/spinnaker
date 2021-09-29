@@ -1,19 +1,11 @@
-import { FormikProps } from 'formik';
+import type { FormikProps } from 'formik';
 import { get } from 'lodash';
 import React from 'react';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import {
-  Application,
-  AppListExtractor,
-  FormikFormField,
-  IAccount,
-  IServerGroup,
-  IServerGroupFilter,
-  IStage,
-  ReactSelectInput,
-} from '@spinnaker/core';
+import type { Application, IAccount, IServerGroup, IServerGroupFilter, IStage } from '@spinnaker/core';
+import { AppListExtractor, FormikFormField, ReactSelectInput } from '@spinnaker/core';
 
 export interface IFormikAccountRegionSelectorProps {
   accounts: IAccount[];

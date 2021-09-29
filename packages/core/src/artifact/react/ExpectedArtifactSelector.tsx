@@ -6,7 +6,7 @@ import { ARTIFACT_ACCOUNT_SELECTOR_COMPONENT_REACT } from './ArtifactAccountSele
 import { ArtifactIcon } from './ArtifactIcon';
 import { EXPECTED_ARTIFACT_KIND_SELECTOR_COMPONENT_REACT } from './ExpectedArtifactKindSelector';
 import { EXPECTED_ARTIFACT_SOURCE_SELECTOR_COMPONENT_REACT } from './ExpectedArtifactSourceSelector';
-import { IArtifact, IExpectedArtifact } from '../../domain';
+import type { IArtifact, IExpectedArtifact } from '../../domain';
 import { ExpectedArtifactService } from '../expectedArtifact.service';
 import { TetheredSelect } from '../../presentation';
 import { withErrorBoundary } from '../../presentation/SpinErrorBoundary';

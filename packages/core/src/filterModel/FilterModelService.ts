@@ -1,6 +1,6 @@
 import { cloneDeep, forOwn, includes, isNil, pick, reduce, size, some } from 'lodash';
 
-import { IFilterConfig, IFilterModel, ITrueKeyModel } from './IFilterModel';
+import type { IFilterConfig, IFilterModel, ITrueKeyModel } from './IFilterModel';
 import { ReactInjector } from '../reactShims';
 
 export class FilterModelService {

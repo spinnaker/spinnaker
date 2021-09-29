@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { CreatePipelineModal } from './CreatePipelineModal';
-import { Application } from '../../application';
+import type { Application } from '../../application';
 import { Tooltip } from '../../presentation/Tooltip';
 import { ReactInjector } from '../../reactShims';
 import { logger } from '../../utils';

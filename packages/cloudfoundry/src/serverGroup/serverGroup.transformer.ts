@@ -1,6 +1,6 @@
 import { defaults } from 'lodash';
 
-import { ICloudFoundryEnvVar, ICloudFoundryServerGroup } from '../domain';
+import type { ICloudFoundryEnvVar, ICloudFoundryServerGroup } from '../domain';
 
 export class CloudFoundryServerGroupTransformer {
   public static $inject = ['$q'];

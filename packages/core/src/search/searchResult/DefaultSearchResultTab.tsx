@@ -3,7 +3,7 @@ import React from 'react';
 import { SearchStatus } from './SearchStatus';
 import { Tooltip } from '../../presentation';
 import { SearchService } from '../search.service';
-import { ISearchResultTabProps } from './searchResultType';
+import type { ISearchResultTabProps } from './searchResultType';
 import { Spinner } from '../../widgets';
 
 export class DefaultSearchResultTab extends React.Component<ISearchResultTabProps<any>> {

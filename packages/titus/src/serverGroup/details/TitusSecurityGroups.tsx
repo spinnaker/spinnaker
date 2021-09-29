@@ -3,15 +3,9 @@ import { UIRouterContextComponent } from '@uirouter/react-hybrid';
 import { sortBy } from 'lodash';
 import React from 'react';
 
-import {
-  AccountService,
-  Application,
-  CollapsibleSection,
-  FirewallLabels,
-  ISecurityGroup,
-  ReactInjector,
-} from '@spinnaker/core';
-import { ITitusServerGroupView } from '../../domain';
+import type { Application, ISecurityGroup } from '@spinnaker/core';
+import { AccountService, CollapsibleSection, FirewallLabels, ReactInjector } from '@spinnaker/core';
+import type { ITitusServerGroupView } from '../../domain';
 import { TitusReactInjector } from '../../reactShims';
 
 export interface ITitusServerGroupDetailsSectionProps {

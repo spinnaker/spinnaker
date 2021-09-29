@@ -2,7 +2,7 @@ import React from 'react';
 
 import { CollapsibleSection, HealthCounts } from '@spinnaker/core';
 
-import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
+import type { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
 
 export class HealthDetailsSection extends React.Component<IAmazonServerGroupDetailsSectionProps> {
   public render(): JSX.Element {

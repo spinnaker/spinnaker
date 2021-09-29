@@ -3,10 +3,10 @@ import React from 'react';
 
 import { EditAwsCodeBuildSecondarySourceVersionModal } from './EditAwsCodeBuildSecondarySourceVersionModal';
 import { EditAwsCodeBuildSourceModal } from './EditAwsCodeBuildSourceModal';
-import { IAwsCodeBuildSecondarySourcesVersion, IAwsCodeBuildSource } from './IAwsCodeBuildSource';
+import type { IAwsCodeBuildSecondarySourcesVersion, IAwsCodeBuildSource } from './IAwsCodeBuildSource';
 import { ArtifactIcon } from '../../../../artifact';
-import { IPipeline, IStage } from '../../../../domain';
-import { IFormInputProps } from '../../../../index';
+import type { IPipeline, IStage } from '../../../../domain';
+import type { IFormInputProps } from '../../../../index';
 import { createFakeReactSyntheticEvent } from '../../../../presentation';
 
 export interface IAwsCodeBuildSourceListProps {

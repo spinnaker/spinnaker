@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { CollapsibleSection, LabeledValue, LabeledValueList } from '@spinnaker/core';
-import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
+import type { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
 
 export const InstancesDistributionDetailsSection = ({ serverGroup }: IAmazonServerGroupDetailsSectionProps) => {
   if (!serverGroup.mixedInstancesPolicy) {

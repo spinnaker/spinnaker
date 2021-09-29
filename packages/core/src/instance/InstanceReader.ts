@@ -1,5 +1,5 @@
 import { REST } from '../api/ApiService';
-import { IInstance } from '../domain';
+import type { IInstance } from '../domain';
 
 export interface IInstanceConsoleOutput {
   output: string | IInstanceMultiOutputLog[];

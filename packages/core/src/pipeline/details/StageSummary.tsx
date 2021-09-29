@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { Application } from '../../application';
-import { IExecution, IExecutionStage, IExecutionStageSummary, IStageTypeConfig } from '../../domain';
+import type { Application } from '../../application';
+import type { IExecution, IExecutionStage, IExecutionStageSummary, IStageTypeConfig } from '../../domain';
 import { NgReact } from '../../reactShims';
 
 export interface IStageSummaryProps {

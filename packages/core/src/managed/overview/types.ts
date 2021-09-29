@@ -1,4 +1,4 @@
-import { FetchApplicationQuery } from '../graphql/graphql-sdk';
+import type { FetchApplicationQuery } from '../graphql/graphql-sdk';
 
 export type QueryEnvironment = NonNullable<FetchApplicationQuery['application']>['environments'][number];
 

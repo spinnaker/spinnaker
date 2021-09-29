@@ -1,7 +1,8 @@
 import { cloneDeep, compact, intersection, uniq, without } from 'lodash';
 import React from 'react';
 import { Button } from 'react-bootstrap';
-import Select, { Creatable, Option } from 'react-select';
+import type { Option } from 'react-select';
+import Select, { Creatable } from 'react-select';
 
 import { AuthenticationService } from '../../authentication';
 

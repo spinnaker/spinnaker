@@ -1,15 +1,10 @@
-import { IController, IQService, module } from 'angular';
+import type { IController, IQService } from 'angular';
+import { module } from 'angular';
 import { cloneDeep, flattenDeep } from 'lodash';
 
-import {
-  Application,
-  ConfirmationModalService,
-  ILoadBalancer,
-  InstanceReader,
-  InstanceWriter,
-  RecentHistoryService,
-} from '@spinnaker/core';
-import { IAppengineInstance } from '../../domain';
+import type { Application, ILoadBalancer } from '@spinnaker/core';
+import { ConfirmationModalService, InstanceReader, InstanceWriter, RecentHistoryService } from '@spinnaker/core';
+import type { IAppengineInstance } from '../../domain';
 
 interface InstanceFromStateParams {
   instanceId: string;

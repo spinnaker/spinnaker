@@ -1,16 +1,8 @@
 import { cloneDeep } from 'lodash';
 import React from 'react';
 
-import {
-  FunctionWriter,
-  IFunctionModalProps,
-  noop,
-  ReactInjector,
-  ReactModal,
-  TaskMonitor,
-  WizardModal,
-  WizardPage,
-} from '@spinnaker/core';
+import type { IFunctionModalProps } from '@spinnaker/core';
+import { FunctionWriter, noop, ReactInjector, ReactModal, TaskMonitor, WizardModal, WizardPage } from '@spinnaker/core';
 
 import { ExecutionRole } from './configure/ExecutionRole';
 import { FunctionBasicInformation } from './configure/FunctionBasicInformation';
@@ -19,7 +11,7 @@ import { FunctionEnvironmentVariables } from './configure/FunctionEnvironmentVar
 import { FunctionSettings } from './configure/FunctionSettings';
 import { FunctionTags } from './configure/FunctionTags';
 import { Network } from './configure/Network';
-import { IAmazonFunction, IAmazonFunctionUpsertCommand } from '../domain';
+import type { IAmazonFunction, IAmazonFunctionUpsertCommand } from '../domain';
 import { AwsFunctionTransformer } from './function.transformer';
 
 export interface IAmazonCreateFunctionProps extends IFunctionModalProps {

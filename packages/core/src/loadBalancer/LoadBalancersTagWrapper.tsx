@@ -1,9 +1,9 @@
 import React from 'react';
 
 import { LoadBalancersTag } from './LoadBalancersTag';
-import { Application } from '../application/application.model';
+import type { Application } from '../application/application.model';
 import { CloudProviderRegistry } from '../cloudProvider';
-import { IServerGroup } from '../domain';
+import type { IServerGroup } from '../domain';
 
 export interface ILoadBalancersTagProps {
   application: Application;

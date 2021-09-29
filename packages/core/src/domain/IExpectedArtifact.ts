@@ -1,4 +1,4 @@
-import { IArtifact } from './IArtifact';
+import type { IArtifact } from './IArtifact';
 
 export interface IExpectedArtifact {
   matchArtifact: IArtifact;

@@ -3,9 +3,9 @@ import React from 'react';
 import { ResourceTask } from './ResourceTask';
 import { ConfirmationModalService } from '../../confirmationModal/confirmationModal.service';
 import { EnvironmentItem } from '../environmentBaseElements/EnvironmentItem';
+import type { MdResourceActuationState } from '../graphql/graphql-sdk';
 import {
   FetchResourceStatusDocument,
-  MdResourceActuationState,
   useFetchResourceStatusQuery,
   useToggleResourceManagementMutation,
 } from '../graphql/graphql-sdk';
@@ -14,8 +14,9 @@ import { showManagedResourceHistoryModal } from '../resourceHistory/ManagedResou
 import { showResourceDefinitionModal } from '../resources/ResourceDefinitionModal';
 import { ResourceTitle } from '../resources/ResourceTitle';
 import { ToggleResourceManagement } from '../resources/ToggleResourceManagement';
-import { IResourceLinkProps, resourceManager } from '../resources/resourceRegistry';
-import { QueryResource } from './types';
+import type { IResourceLinkProps } from '../resources/resourceRegistry';
+import { resourceManager } from '../resources/resourceRegistry';
+import type { QueryResource } from './types';
 import { getIsDebugMode } from '../utils/debugMode';
 import { useLogEvent } from '../utils/logging';
 import { Spinner } from '../../widgets';

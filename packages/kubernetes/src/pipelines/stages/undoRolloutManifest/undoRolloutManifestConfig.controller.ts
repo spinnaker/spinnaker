@@ -1,4 +1,4 @@
-import { IController, IScope } from 'angular';
+import type { IController, IScope } from 'angular';
 
 export class KubernetesV2UndoRolloutManifestConfigCtrl implements IController {
   public static $inject = ['$scope'];

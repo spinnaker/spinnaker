@@ -1,12 +1,10 @@
-import { Form, Formik } from 'formik';
+import type { Formik } from 'formik';
+import { Form } from 'formik';
 import React from 'react';
 import { Modal, ModalFooter } from 'react-bootstrap';
 
+import type { Application, IModalComponentProps, IServerGroup, IServerGroupJob } from '@spinnaker/core';
 import {
-  Application,
-  IModalComponentProps,
-  IServerGroup,
-  IServerGroupJob,
   ModalClose,
   noop,
   ReactInjector,
@@ -15,7 +13,7 @@ import {
   TaskMonitor,
   TaskMonitorWrapper,
 } from '@spinnaker/core';
-import { ICloudFoundryServerGroup } from '../../../domain';
+import type { ICloudFoundryServerGroup } from '../../../domain';
 import { Routes } from '../../../presentation/forms/serverGroup';
 
 export interface ICloudFoundryLoadBalancerLinksModalProps extends IModalComponentProps {

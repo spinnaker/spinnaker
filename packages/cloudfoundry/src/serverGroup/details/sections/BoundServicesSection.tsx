@@ -3,8 +3,8 @@ import React from 'react';
 
 import { CollapsibleSection } from '@spinnaker/core';
 
-import { ICloudFoundryServerGroupDetailsSectionProps } from './ICloudFoundryServerGroupDetailsSectionProps';
-import { ICloudFoundryServiceInstance } from '../../../domain';
+import type { ICloudFoundryServerGroupDetailsSectionProps } from './ICloudFoundryServerGroupDetailsSectionProps';
+import type { ICloudFoundryServiceInstance } from '../../../domain';
 
 export class BoundServicesSection extends React.Component<ICloudFoundryServerGroupDetailsSectionProps> {
   constructor(props: ICloudFoundryServerGroupDetailsSectionProps) {

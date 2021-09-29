@@ -1,16 +1,16 @@
 import { module } from 'angular';
 import { $q } from 'ngimport';
 
-import { Application } from '@spinnaker/core';
-import {
+import type { Application } from '@spinnaker/core';
+import type {
   IOracleBackEndSet,
   IOracleListener,
   IOracleListenerCertificate,
   IOracleListenerSSLConfiguration,
   IOracleLoadBalancer,
   IOracleLoadBalancerUpsertCommand,
-  LoadBalancingPolicy,
 } from '../domain/IOracleLoadBalancer';
+import { LoadBalancingPolicy } from '../domain/IOracleLoadBalancer';
 import { OracleProviderSettings } from '../oracle.settings';
 import { OracleDefaultProviderSettings } from '../oracle.settings';
 

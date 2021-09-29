@@ -1,8 +1,8 @@
 import { flatten, map } from 'lodash';
 import React from 'react';
-import { Subscription } from 'rxjs';
+import type { Subscription } from 'rxjs';
 
-import { IInstance, IServerGroup } from '../domain';
+import type { IInstance, IServerGroup } from '../domain';
 import { Instances } from '../instance/Instances';
 import { ClusterState } from '../state';
 

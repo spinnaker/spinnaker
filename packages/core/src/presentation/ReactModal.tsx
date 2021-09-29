@@ -1,8 +1,9 @@
 import React from 'react';
-import { Modal, ModalProps } from 'react-bootstrap';
+import type { ModalProps } from 'react-bootstrap';
+import { Modal } from 'react-bootstrap';
 import ReactDOM from 'react-dom';
 
-import { IModalComponentProps } from './modal';
+import type { IModalComponentProps } from './modal';
 
 /** An imperative service for showing a react component as a modal */
 export class ReactModal {

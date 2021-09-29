@@ -3,7 +3,7 @@ import { UIRouterContextComponent } from '@uirouter/react-hybrid';
 import * as React from 'react';
 
 import { EntitySourcePopover } from './EntitySourcePopover';
-import { ICreationMetadataTag, IExecution } from '../domain';
+import type { ICreationMetadataTag, IExecution } from '../domain';
 import { HoverablePopover, useData } from '../presentation';
 import { ReactInjector } from '../reactShims';
 

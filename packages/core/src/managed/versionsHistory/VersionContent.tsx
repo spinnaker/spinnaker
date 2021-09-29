@@ -4,14 +4,22 @@ import React from 'react';
 import { BaseEnvironment } from '../environmentBaseElements/BaseEnvironment';
 import { EnvironmentItem } from '../environmentBaseElements/EnvironmentItem';
 import { EnvironmentsRender, useOrderedEnvironment } from '../environmentBaseElements/EnvironmentsRender';
-import { FetchVersionQuery, useFetchVersionQuery } from '../graphql/graphql-sdk';
-import { ArtifactVersionTasks, ITaskArtifactVersionProps } from '../overview/artifact/ArtifactVersionTasks';
+import type { FetchVersionQuery } from '../graphql/graphql-sdk';
+import { useFetchVersionQuery } from '../graphql/graphql-sdk';
+import type { ITaskArtifactVersionProps } from '../overview/artifact/ArtifactVersionTasks';
+import { ArtifactVersionTasks } from '../overview/artifact/ArtifactVersionTasks';
 import { Constraints } from '../overview/artifact/Constraints';
 import { useCreateVersionActions } from '../overview/artifact/utils';
 import { useApplicationContextSafe } from '../../presentation';
 import { LoadingAnimation } from '../../presentation/LoadingAnimation';
-import { HistoryArtifactVersionExtended, PinnedVersions, SingleVersionArtifactVersion, VersionData } from './types';
-import { toPinnedMetadata, VersionMessageData } from '../versionMetadata/MetadataComponents';
+import type {
+  HistoryArtifactVersionExtended,
+  PinnedVersions,
+  SingleVersionArtifactVersion,
+  VersionData,
+} from './types';
+import type { VersionMessageData } from '../versionMetadata/MetadataComponents';
+import { toPinnedMetadata } from '../versionMetadata/MetadataComponents';
 import { getBaseMetadata, VersionMetadata } from '../versionMetadata/VersionMetadata';
 
 import './VersionsHistory.less';

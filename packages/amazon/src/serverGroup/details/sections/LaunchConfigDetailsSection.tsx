@@ -2,8 +2,8 @@ import React from 'react';
 
 import { CollapsibleSection, ShowUserData } from '@spinnaker/core';
 
-import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
-import { IAmazonServerGroupView } from '../../../domain';
+import type { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
+import type { IAmazonServerGroupView } from '../../../domain';
 import { getBaseImageName } from '../utils';
 
 export interface ILaunchConfigDetailsSectionState {

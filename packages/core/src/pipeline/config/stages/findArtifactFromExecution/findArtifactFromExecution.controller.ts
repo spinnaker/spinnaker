@@ -1,8 +1,8 @@
-import { IController, IScope } from 'angular';
+import type { IController, IScope } from 'angular';
 
 import { ApplicationReader } from '../../../../application';
 import { ExpectedArtifactService } from '../../../../artifact';
-import { IExpectedArtifact, IPipeline } from '../../../../domain';
+import type { IExpectedArtifact, IPipeline } from '../../../../domain';
 import { PipelineConfigService } from '../../services/PipelineConfigService';
 
 export interface IFindArtifactFromExecutionStage {

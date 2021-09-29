@@ -1,20 +1,16 @@
 import { get } from 'lodash';
 import { $q } from 'ngimport';
 import React from 'react';
-import { Option } from 'react-select';
-import { from as observableFrom, Subject, Subscription } from 'rxjs';
+import type { Option } from 'react-select';
+import type { Subscription } from 'rxjs';
+import { from as observableFrom, Subject } from 'rxjs';
 import { debounceTime, switchMap } from 'rxjs/operators';
 
-import {
-  HelpField,
-  IDockerTrigger,
-  IPipelineCommand,
-  ITriggerTemplateComponentProps,
-  Spinner,
-  TetheredSelect,
-} from '@spinnaker/core';
+import type { IDockerTrigger, IPipelineCommand, ITriggerTemplateComponentProps } from '@spinnaker/core';
+import { HelpField, Spinner, TetheredSelect } from '@spinnaker/core';
 
-import { DockerImageReader, IDockerLookupType } from '../../image';
+import type { IDockerLookupType } from '../../image';
+import { DockerImageReader } from '../../image';
 
 const lookupTypeOptions = [
   { value: 'digest', label: 'Digest' },

@@ -1,4 +1,5 @@
-import { IProviderSettings, SETTINGS } from '@spinnaker/core';
+import type { IProviderSettings } from '@spinnaker/core';
+import { SETTINGS } from '@spinnaker/core';
 
 export interface IOracleProviderSettings extends IProviderSettings {
   defaults: {

@@ -1,5 +1,5 @@
 import { REST } from '../../api';
-import { IProject, IProjectCluster } from '../../domain';
+import type { IProject, IProjectCluster } from '../../domain';
 
 export class ProjectReader {
   public static listProjects(): PromiseLike<IProject[]> {

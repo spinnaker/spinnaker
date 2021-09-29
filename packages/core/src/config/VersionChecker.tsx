@@ -3,7 +3,8 @@ import React from 'react';
 // @ts-ignore
 import version from 'root/version.json';
 
-import { IScheduler, SchedulerFactory } from '../scheduler/SchedulerFactory';
+import type { IScheduler } from '../scheduler/SchedulerFactory';
+import { SchedulerFactory } from '../scheduler/SchedulerFactory';
 import { timestamp } from '../utils/timeFormatters';
 import { NotifierService } from '../widgets/notifier/notifier.service';
 

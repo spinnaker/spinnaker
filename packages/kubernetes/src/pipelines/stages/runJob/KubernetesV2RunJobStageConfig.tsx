@@ -1,14 +1,12 @@
 import { capitalize, map } from 'lodash';
 import React from 'react';
-import Select, { Option } from 'react-select';
+import type { Option } from 'react-select';
+import Select from 'react-select';
 
+import type { IAccount, IArtifact, IExpectedArtifact, IStageConfigProps } from '@spinnaker/core';
 import {
   AccountService,
   ArtifactTypePatterns,
-  IAccount,
-  IArtifact,
-  IExpectedArtifact,
-  IStageConfigProps,
   RadioButtonInput,
   StageArtifactSelector,
   StageArtifactSelectorDelegate,
@@ -18,7 +16,7 @@ import {
 } from '@spinnaker/core';
 
 import { ManifestBindArtifactsSelector } from '../deployManifest/ManifestBindArtifactsSelector';
-import { IManifestBindArtifact } from '../deployManifest/ManifestBindArtifactsSelector';
+import type { IManifestBindArtifact } from '../deployManifest/ManifestBindArtifactsSelector';
 import { ManifestSource } from '../../../manifest/ManifestSource';
 import { ManifestBasicSettings } from '../../../manifest/wizard/BasicSettings';
 

@@ -1,4 +1,5 @@
-import { IHttpInterceptor, IHttpProvider, IRequestConfig, module } from 'angular';
+import type { IHttpInterceptor, IHttpProvider, IRequestConfig } from 'angular';
+import { module } from 'angular';
 import { $location, $log } from 'ngimport';
 
 import { JsonUtils } from '../utils';

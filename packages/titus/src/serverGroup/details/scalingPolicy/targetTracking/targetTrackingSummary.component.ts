@@ -1,17 +1,12 @@
-import { IComponentController, IComponentOptions, module } from 'angular';
+import type { IComponentController, IComponentOptions } from 'angular';
+import { module } from 'angular';
 
-import { ITargetTrackingConfiguration, ITargetTrackingPolicy } from '@spinnaker/amazon';
-import {
-  AccountService,
-  Application,
-  ConfirmationModalService,
-  IServerGroup,
-  ITaskMonitorConfig,
-  ReactModal,
-  TaskExecutor,
-} from '@spinnaker/core';
+import type { ITargetTrackingConfiguration, ITargetTrackingPolicy } from '@spinnaker/amazon';
+import type { Application, IServerGroup, ITaskMonitorConfig } from '@spinnaker/core';
+import { AccountService, ConfirmationModalService, ReactModal, TaskExecutor } from '@spinnaker/core';
 
-import { IUpsertTargetTrackingModalProps, UpsertTargetTrackingModal } from './UpsertTargetTrackingModal';
+import type { IUpsertTargetTrackingModalProps } from './UpsertTargetTrackingModal';
+import { UpsertTargetTrackingModal } from './UpsertTargetTrackingModal';
 
 export interface IAlarmRenderingServerGroup {
   type: string;

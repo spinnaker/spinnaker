@@ -1,13 +1,12 @@
-import { StateParams } from '@uirouter/angularjs';
+import type { StateParams } from '@uirouter/angularjs';
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import { module } from 'angular';
 import { forEach } from 'lodash';
 
-import { BaseExecutionDetailsCtrl, IExecutionDetailsScope } from '../common/baseExecutionDetails.controller';
-import {
-  EXECUTION_DETAILS_SECTION_SERVICE,
-  ExecutionDetailsSectionService,
-} from '../../../details/executionDetailsSection.service';
+import type { IExecutionDetailsScope } from '../common/baseExecutionDetails.controller';
+import { BaseExecutionDetailsCtrl } from '../common/baseExecutionDetails.controller';
+import type { ExecutionDetailsSectionService } from '../../../details/executionDetailsSection.service';
+import { EXECUTION_DETAILS_SECTION_SERVICE } from '../../../details/executionDetailsSection.service';
 
 export class CreateLoadBalancerDetailsCtrl extends BaseExecutionDetailsCtrl {
   public static $inject = ['$scope', '$stateParams', 'executionDetailsSectionService'];

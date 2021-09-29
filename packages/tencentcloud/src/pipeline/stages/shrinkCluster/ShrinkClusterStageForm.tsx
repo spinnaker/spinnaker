@@ -1,11 +1,10 @@
 import React from 'react';
 
+import type { IAccount, IFormikStageConfigInjectedProps } from '@spinnaker/core';
 import {
   AccountService,
   CheckboxInput,
   FormikFormField,
-  IAccount,
-  IFormikStageConfigInjectedProps,
   NgReact,
   NumberInput,
   SelectInput,

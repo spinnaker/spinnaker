@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
 import { AccountService } from '../../../../account/AccountService';
-import { IHelmTrigger } from '../../../../domain/IHelmTrigger';
+import type { IHelmTrigger } from '../../../../domain/IHelmTrigger';
 import { HelpField } from '../../../../help/HelpField';
 import { FormField, ReactSelectInput, TextInput } from '../../../../presentation';
 

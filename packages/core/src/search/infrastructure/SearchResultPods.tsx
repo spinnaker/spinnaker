@@ -3,8 +3,8 @@ import React from 'react';
 
 import { ProjectSummaryPod } from './ProjectSummaryPod';
 import { SearchResultPod } from './SearchResultPod';
-import { IRecentHistoryEntry } from '../../history';
-import { SearchResultType } from '../searchResult/searchResultType';
+import type { IRecentHistoryEntry } from '../../history';
+import type { SearchResultType } from '../searchResult/searchResultType';
 
 export type ISearchResult = IRecentHistoryEntry & { displayName: string; account?: string };
 

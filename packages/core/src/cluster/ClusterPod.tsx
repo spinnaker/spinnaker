@@ -3,11 +3,11 @@ import { groupBy, map, orderBy, partition } from 'lodash';
 import React from 'react';
 
 import { ClusterPodTitleWrapper } from './ClusterPodTitleWrapper';
-import { Application } from '../application';
-import { IServerGroup } from '../domain';
+import type { Application } from '../application';
+import type { IServerGroup } from '../domain';
 import { EntityNotifications } from '../entityTag/notifications/EntityNotifications';
-import { IClusterSubgroup, IServerGroupSubgroup } from './filter/ClusterFilterService';
-import { ISortFilter } from '../filterModel';
+import type { IClusterSubgroup, IServerGroupSubgroup } from './filter/ClusterFilterService';
+import type { ISortFilter } from '../filterModel';
 import { ManagedResourceStatusIndicator } from '../managed';
 import { Tooltip } from '../presentation';
 import { ServerGroup } from '../serverGroup/ServerGroup';

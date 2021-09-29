@@ -1,6 +1,8 @@
-import { IChangesObject, IComponentOptions, IController, IOnChangesObject, module } from 'angular';
+import type { IChangesObject, IComponentOptions, IController, IOnChangesObject } from 'angular';
+import { module } from 'angular';
 
-import { INavigationPage, PageNavigationState } from './PageNavigationState';
+import type { INavigationPage } from './PageNavigationState';
+import { PageNavigationState } from './PageNavigationState';
 
 interface IPageSectionOnChanges extends IOnChangesObject {
   visible: IChangesObject<boolean>;

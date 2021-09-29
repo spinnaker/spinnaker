@@ -1,4 +1,5 @@
-import { from as observableFrom, Observable } from 'rxjs';
+import type { Observable } from 'rxjs';
+import { from as observableFrom } from 'rxjs';
 
 import { REST } from '../api/ApiService';
 

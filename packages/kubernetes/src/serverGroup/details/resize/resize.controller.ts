@@ -1,8 +1,10 @@
-import { copy, equals, IController, module } from 'angular';
-import { IModalServiceInstance } from 'angular-ui-bootstrap';
+import type { IController } from 'angular';
+import { copy, equals, module } from 'angular';
+import type { IModalServiceInstance } from 'angular-ui-bootstrap';
 
-import { Application, ICapacity, SERVER_GROUP_WRITER, ServerGroupWriter, TaskMonitor } from '@spinnaker/core';
-import { IKubernetesServerGroup } from '../../../interfaces';
+import type { Application, ICapacity, ServerGroupWriter } from '@spinnaker/core';
+import { SERVER_GROUP_WRITER, TaskMonitor } from '@spinnaker/core';
+import type { IKubernetesServerGroup } from '../../../interfaces';
 
 interface IResizeCommand {
   capacity: ICapacity;

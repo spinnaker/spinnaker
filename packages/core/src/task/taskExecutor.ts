@@ -1,8 +1,8 @@
-import { IHttpPromiseCallbackArg } from 'angular';
+import type { IHttpPromiseCallbackArg } from 'angular';
 import { $q } from 'ngimport';
 
 import { AuthenticationService } from '../authentication/AuthenticationService';
-import { ITask } from '../domain';
+import type { ITask } from '../domain';
 import { TaskReader } from './task.read.service';
 import { TaskWriter } from './task.write.service';
 

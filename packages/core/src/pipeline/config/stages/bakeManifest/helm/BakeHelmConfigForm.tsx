@@ -1,10 +1,10 @@
 import React from 'react';
 
-import { IFormikStageConfigInjectedProps } from '../../FormikStageConfig';
+import type { IFormikStageConfigInjectedProps } from '../../FormikStageConfig';
 import { AccountService } from '../../../../../account';
 import { ArtifactTypePatterns, excludeAllTypesExcept, StageArtifactSelectorDelegate } from '../../../../../artifact';
 import { StageConfigField } from '../../common/stageConfigField/StageConfigField';
-import { IArtifact, IExpectedArtifact } from '../../../../../domain';
+import type { IArtifact, IExpectedArtifact } from '../../../../../domain';
 import { MapEditor } from '../../../../../forms';
 import { CheckboxInput, TextInput } from '../../../../../presentation';
 

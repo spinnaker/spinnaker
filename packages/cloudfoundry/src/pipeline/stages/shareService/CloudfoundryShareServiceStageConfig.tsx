@@ -1,17 +1,11 @@
 import React from 'react';
-import Select, { Option } from 'react-select';
+import type { Option } from 'react-select';
+import Select from 'react-select';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import {
-  AccountService,
-  IAccount,
-  IRegion,
-  IStageConfigProps,
-  ReactSelectInput,
-  StageConfigField,
-  TextInput,
-} from '@spinnaker/core';
+import type { IAccount, IRegion, IStageConfigProps } from '@spinnaker/core';
+import { AccountService, ReactSelectInput, StageConfigField, TextInput } from '@spinnaker/core';
 
 interface ICloudfoundryShareServiceStageConfigState {
   accounts: IAccount[];

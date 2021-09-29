@@ -1,9 +1,9 @@
 import React from 'react';
 
 import { FormikStageConfig } from '../FormikStageConfig';
-import { IStageConfigProps } from '../common';
+import type { IStageConfigProps } from '../common';
 import { HelpField } from '../../../../help';
-import { IPreconfiguredJobParameter } from './preconfiguredJob.reader';
+import type { IPreconfiguredJobParameter } from './preconfiguredJob.reader';
 import { FormikFormField, TextInput } from '../../../../presentation';
 
 export function PreconfiguredJobStageConfig(props: IStageConfigProps) {

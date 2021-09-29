@@ -1,4 +1,5 @@
-import { Application, IManifest, ManifestReader } from '@spinnaker/core';
+import type { Application, IManifest } from '@spinnaker/core';
+import { ManifestReader } from '@spinnaker/core';
 
 export interface IStageManifest {
   kind: string;

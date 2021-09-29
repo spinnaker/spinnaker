@@ -1,17 +1,11 @@
 import React from 'react';
 import { Button, Modal } from 'react-bootstrap';
 
-import {
-  CloudProviderRegistry,
-  ILoadBalancerIncompatibility,
-  ILoadBalancerModalProps,
-  Markdown,
-  ModalClose,
-  noop,
-  ReactModal,
-} from '@spinnaker/core';
+import type { ILoadBalancerIncompatibility, ILoadBalancerModalProps } from '@spinnaker/core';
+import { CloudProviderRegistry, Markdown, ModalClose, noop, ReactModal } from '@spinnaker/core';
 
-import { IAmazonLoadBalancerConfig, LoadBalancerTypes } from './LoadBalancerTypes';
+import type { IAmazonLoadBalancerConfig } from './LoadBalancerTypes';
+import { LoadBalancerTypes } from './LoadBalancerTypes';
 import { AWSProviderSettings } from '../../aws.settings';
 
 export interface IAmazonLoadBalancerChoiceModalState {

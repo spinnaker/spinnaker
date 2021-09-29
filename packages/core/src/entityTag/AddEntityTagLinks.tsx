@@ -1,8 +1,9 @@
 import * as React from 'react';
 
-import { EntityTagEditor, IOwnerOption } from './EntityTagEditor';
-import { Application } from '../application';
-import { IEntityRef, IEntityTag } from '../domain';
+import type { IOwnerOption } from './EntityTagEditor';
+import { EntityTagEditor } from './EntityTagEditor';
+import type { Application } from '../application';
+import type { IEntityRef, IEntityTag } from '../domain';
 import { HelpField } from '../help';
 
 export interface IAddEntityTagLinksProps {

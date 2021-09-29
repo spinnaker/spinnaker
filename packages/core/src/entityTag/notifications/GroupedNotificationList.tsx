@@ -2,7 +2,7 @@ import { groupBy } from 'lodash';
 import React from 'react';
 
 import { EntityName } from './EntityName';
-import { INotification } from './NotificationsPopover';
+import type { INotification } from './NotificationsPopover';
 import { Markdown } from '../../presentation';
 
 export interface IMessageNotifications {

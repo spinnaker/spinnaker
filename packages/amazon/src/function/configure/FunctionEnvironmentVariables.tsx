@@ -1,17 +1,11 @@
-import { FormikProps } from 'formik';
+import type { FormikProps } from 'formik';
 import React from 'react';
 
-import {
-  FormikFormField,
-  FormValidator,
-  HelpField,
-  IWizardPageComponent,
-  MapEditorInput,
-  TextInput,
-} from '@spinnaker/core';
+import type { IWizardPageComponent } from '@spinnaker/core';
+import { FormikFormField, FormValidator, HelpField, MapEditorInput, TextInput } from '@spinnaker/core';
 import { awsArnValidator } from '../../aws.validators';
-import { IAmazonFunction } from '../../domain';
-import { IAmazonFunctionUpsertCommand } from '../../index';
+import type { IAmazonFunction } from '../../domain';
+import type { IAmazonFunctionUpsertCommand } from '../../index';
 
 export interface IFunctionEnvironmentVariablesProps {
   formik: FormikProps<IAmazonFunctionUpsertCommand>;

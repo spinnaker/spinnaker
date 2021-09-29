@@ -7,7 +7,7 @@
  * @category conventions
  * @sinceAngularVersion 1.x
  */
-import { Rule } from 'eslint';
+import type { Rule } from 'eslint';
 import { isEqual } from 'lodash';
 
 import angularRule from '../utils/angular-rule/angular-rule';

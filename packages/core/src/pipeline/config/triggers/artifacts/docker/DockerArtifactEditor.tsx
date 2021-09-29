@@ -3,7 +3,7 @@ import React from 'react';
 
 import { ArtifactEditor } from '../ArtifactEditor';
 import { ArtifactTypePatterns } from '../../../../../artifact/ArtifactTypes';
-import { IArtifact, IArtifactEditorProps, IArtifactKindConfig } from '../../../../../domain';
+import type { IArtifact, IArtifactEditorProps, IArtifactKindConfig } from '../../../../../domain';
 import { singleFieldArtifactEditor } from '../singleFieldArtifactEditor';
 import { StageConfigField } from '../../../stages/common';
 import { SpelText } from '../../../../../widgets/spelText/SpelText';

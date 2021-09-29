@@ -4,7 +4,7 @@ import { clone } from 'lodash';
 import React from 'react';
 
 import { CloudProviderLogo } from '../cloudProvider/CloudProviderLogo';
-import { IInstance, IServerGroup } from '../domain';
+import type { IInstance, IServerGroup } from '../domain';
 import { HealthCounts } from '../healthCounts/HealthCounts';
 import { Instances } from '../instance/Instances';
 

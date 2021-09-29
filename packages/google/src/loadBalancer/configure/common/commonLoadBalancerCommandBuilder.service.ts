@@ -1,20 +1,13 @@
 import { module } from 'angular';
 import _ from 'lodash';
 
-import {
-  AccountService,
-  IAccount,
-  ILoadBalancersByAccount,
-  INetwork,
-  ISubnet,
-  LOAD_BALANCER_READ_SERVICE,
-  LoadBalancerReader,
-  NetworkReader,
-  SubnetReader,
-} from '@spinnaker/core';
-import { GCE_CERTIFICATE_READER, GceCertificateReader, IGceCertificate } from '../../../certificate/certificate.reader';
-import { IGceHealthCheck } from '../../../domain/healthCheck';
-import { GCE_HEALTH_CHECK_READER, GceHealthCheckReader } from '../../../healthCheck/healthCheck.read.service';
+import type { IAccount, ILoadBalancersByAccount, INetwork, ISubnet, LoadBalancerReader } from '@spinnaker/core';
+import { AccountService, LOAD_BALANCER_READ_SERVICE, NetworkReader, SubnetReader } from '@spinnaker/core';
+import type { GceCertificateReader, IGceCertificate } from '../../../certificate/certificate.reader';
+import { GCE_CERTIFICATE_READER } from '../../../certificate/certificate.reader';
+import type { IGceHealthCheck } from '../../../domain/healthCheck';
+import type { GceHealthCheckReader } from '../../../healthCheck/healthCheck.read.service';
+import { GCE_HEALTH_CHECK_READER } from '../../../healthCheck/healthCheck.read.service';
 
 export class GceCommonLoadBalancerCommandBuilder {
   private dataFetchers: { [key: string]: Function } = {

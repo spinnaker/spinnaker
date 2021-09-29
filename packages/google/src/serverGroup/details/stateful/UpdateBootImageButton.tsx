@@ -1,18 +1,12 @@
 import React from 'react';
 
-import {
-  Application,
-  FormikFormField,
-  IModalComponentProps,
-  ReactModal,
-  TaskMonitor,
-  WizardModal,
-  WizardPage,
-} from '@spinnaker/core';
+import type { Application, IModalComponentProps } from '@spinnaker/core';
+import { FormikFormField, ReactModal, TaskMonitor, WizardModal, WizardPage } from '@spinnaker/core';
 
 import { StatefulMIGService } from './StatefulMIGService';
-import { IGceServerGroup } from '../../../domain';
-import { GceImageReader, IGceImage, ImageSelect } from '../../../image';
+import type { IGceServerGroup } from '../../../domain';
+import type { IGceImage } from '../../../image';
+import { GceImageReader, ImageSelect } from '../../../image';
 
 interface IUpdateBootImageButtonProps {
   application: Application;

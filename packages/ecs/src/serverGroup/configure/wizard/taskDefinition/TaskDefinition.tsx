@@ -2,22 +2,21 @@ import { module } from 'angular';
 import { isEqual, uniqWith } from 'lodash';
 import React from 'react';
 import { Alert } from 'react-bootstrap';
-import { Option } from 'react-select';
+import type { Option } from 'react-select';
 import { react2angular } from 'react2angular';
 
+import type { IArtifact, IExpectedArtifact } from '@spinnaker/core';
 import {
   ArtifactTypePatterns,
   CheckboxInput,
   HelpField,
-  IArtifact,
-  IExpectedArtifact,
   StageArtifactSelectorDelegate,
   StageConfigField,
   TetheredSelect,
   withErrorBoundary,
 } from '@spinnaker/core';
 
-import {
+import type {
   IEcsContainerMapping,
   IEcsDockerImage,
   IEcsServerGroupCommand,

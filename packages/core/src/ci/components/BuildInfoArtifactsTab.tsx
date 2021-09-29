@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { ICiBuild } from '../domain';
+import type { ICiBuild } from '../domain';
 
 interface IBuildInfoArtifactsTabProps {
   build: ICiBuild;

@@ -1,7 +1,8 @@
 import { dump } from 'js-yaml';
 import React from 'react';
 
-import { CopyToClipboard, IManifest, ManifestYaml } from '@spinnaker/core';
+import type { IManifest } from '@spinnaker/core';
+import { CopyToClipboard, ManifestYaml } from '@spinnaker/core';
 
 import { DeployManifestStatusPills } from './DeployStatusPills';
 import { ManifestDetailsLink } from './ManifestDetailsLink';

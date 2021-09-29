@@ -3,10 +3,10 @@ import { $log } from 'ngimport';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 
-import { Application } from '../../../../application';
-import { IPipeline } from '../../../../domain';
+import type { Application } from '../../../../application';
+import type { IPipeline } from '../../../../domain';
 import { ModalClose } from '../../../../modal';
-import { IModalComponentProps } from '../../../../presentation';
+import type { IModalComponentProps } from '../../../../presentation';
 import { ReactInjector } from '../../../../reactShims';
 
 import { PipelineConfigService } from '../../services/PipelineConfigService';

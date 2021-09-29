@@ -3,7 +3,7 @@ import React from 'react';
 
 import { CollapsibleSection } from '@spinnaker/core';
 
-import { ICloudFoundryServerGroupDetailsSectionProps } from './ICloudFoundryServerGroupDetailsSectionProps';
+import type { ICloudFoundryServerGroupDetailsSectionProps } from './ICloudFoundryServerGroupDetailsSectionProps';
 
 export class EnvironmentVariablesSection extends React.Component<ICloudFoundryServerGroupDetailsSectionProps> {
   constructor(props: ICloudFoundryServerGroupDetailsSectionProps) {

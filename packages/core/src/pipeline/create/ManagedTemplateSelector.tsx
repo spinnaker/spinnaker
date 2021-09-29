@@ -1,6 +1,7 @@
 import React from 'react';
-import Select, { Option } from 'react-select';
-import { IPipelineTemplate } from '../config/templates/PipelineTemplateReader';
+import type { Option } from 'react-select';
+import Select from 'react-select';
+import type { IPipelineTemplate } from '../config/templates/PipelineTemplateReader';
 
 export interface IManagedTemplateSelectorProps {
   selectedTemplate: IPipelineTemplate;

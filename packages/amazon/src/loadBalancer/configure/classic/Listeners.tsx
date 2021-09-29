@@ -1,13 +1,13 @@
-import { FormikProps } from 'formik';
+import type { FormikProps } from 'formik';
 import { get } from 'lodash';
 import React from 'react';
 
-import { Application } from '@spinnaker/core';
+import type { Application } from '@spinnaker/core';
 
 import { AWSProviderSettings } from '../../../aws.settings';
 import { AmazonCertificateReader } from '../../../certificates/AmazonCertificateReader';
 import { AmazonCertificateSelectField } from '../common/AmazonCertificateSelectField';
-import {
+import type {
   ClassicListenerProtocol,
   IAmazonCertificate,
   IAmazonClassicLoadBalancerUpsertCommand,

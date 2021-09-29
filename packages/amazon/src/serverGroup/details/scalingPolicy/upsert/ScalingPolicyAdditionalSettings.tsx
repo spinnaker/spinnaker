@@ -3,7 +3,7 @@ import * as React from 'react';
 
 import { HelpField, NumberInput } from '@spinnaker/core';
 
-import { IUpsertScalingPolicyCommand } from '../ScalingPolicyWriter';
+import type { IUpsertScalingPolicyCommand } from '../ScalingPolicyWriter';
 import './ScalingPolicyAdditionalSettings.less';
 
 export interface IScalingPolicyAdditionalSettingsProps {

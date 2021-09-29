@@ -1,6 +1,6 @@
 import { cloneDeep } from 'lodash';
 
-import { IDataSourceConfig } from './applicationDataSource';
+import type { IDataSourceConfig } from './applicationDataSource';
 
 export class ApplicationDataSourceRegistry {
   private static defaultDataSourceOrder: string[] = [

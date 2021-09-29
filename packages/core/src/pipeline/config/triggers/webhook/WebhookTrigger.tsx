@@ -1,8 +1,8 @@
-import { FormikProps } from 'formik';
+import type { FormikProps } from 'formik';
 import React from 'react';
 
 import { SETTINGS } from '../../../../config/settings';
-import { IWebhookTrigger } from '../../../../domain';
+import type { IWebhookTrigger } from '../../../../domain';
 import { MapEditorInput } from '../../../../forms';
 import { HelpField } from '../../../../help';
 import { FormikFormField, TextInput } from '../../../../presentation';

@@ -1,7 +1,7 @@
 import * as React from 'react';
 
-import { IExecutionTriggerStatusComponentProps } from '../../../../domain';
-import { IHelmTrigger } from '../../../../domain/IHelmTrigger';
+import type { IExecutionTriggerStatusComponentProps } from '../../../../domain';
+import type { IHelmTrigger } from '../../../../domain/IHelmTrigger';
 
 export const HelmTriggerExecutionStatus = (props: IExecutionTriggerStatusComponentProps) => {
   const trigger = props.trigger as IHelmTrigger;

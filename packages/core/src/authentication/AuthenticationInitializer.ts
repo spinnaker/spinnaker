@@ -1,6 +1,7 @@
-import { IHttpPromiseCallbackArg } from 'angular';
+import type { IHttpPromiseCallbackArg } from 'angular';
 import { $http, $location, $rootScope } from 'ngimport';
-import { fromEvent as observableFromEvent, Subscription } from 'rxjs';
+import type { Subscription } from 'rxjs';
+import { fromEvent as observableFromEvent } from 'rxjs';
 
 import { AuthenticationService } from './AuthenticationService';
 import { LoggedOutModal } from './LoggedOutModal';

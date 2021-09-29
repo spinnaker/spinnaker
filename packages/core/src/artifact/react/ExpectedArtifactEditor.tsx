@@ -8,13 +8,13 @@ import {
   EXPECTED_ARTIFACT_KIND_SELECTOR_COMPONENT_REACT,
   ExpectedArtifactKindSelector,
 } from './ExpectedArtifactKindSelector';
+import type { IExpectedArtifactSourceOption } from './ExpectedArtifactSourceSelector';
 import {
   EXPECTED_ARTIFACT_SOURCE_SELECTOR_COMPONENT_REACT,
   ExpectedArtifactSourceSelector,
-  IExpectedArtifactSourceOption,
 } from './ExpectedArtifactSourceSelector';
-import { IArtifactAccount } from '../../account';
-import { IArtifact, IArtifactKindConfig, IExpectedArtifact, IPipeline } from '../../domain';
+import type { IArtifactAccount } from '../../account';
+import type { IArtifact, IArtifactKindConfig, IExpectedArtifact, IPipeline } from '../../domain';
 import { ExpectedArtifactService } from '../expectedArtifact.service';
 import { StageConfigField } from '../../pipeline/config/stages/common/stageConfigField/StageConfigField';
 import { withErrorBoundary } from '../../presentation/SpinErrorBoundary';

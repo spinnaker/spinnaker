@@ -1,9 +1,10 @@
 import React from 'react';
 
-import { HelpField, IDeploymentStrategyAdditionalFieldsProps } from '@spinnaker/core';
+import type { IDeploymentStrategyAdditionalFieldsProps } from '@spinnaker/core';
+import { HelpField } from '@spinnaker/core';
 
 import { AWSProviderSettings } from '../aws.settings';
-import { IRollingPushCommand } from './rollingPush.strategy';
+import type { IRollingPushCommand } from './rollingPush.strategy';
 
 export interface IRollingPushStrategyAdditionalFieldsProps extends IDeploymentStrategyAdditionalFieldsProps {
   command: IRollingPushCommand;

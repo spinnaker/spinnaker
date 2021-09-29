@@ -1,17 +1,11 @@
 import { flatMap, uniq } from 'lodash';
 import * as React from 'react';
-import { Subject } from 'rxjs';
+import type { Subject } from 'rxjs';
 
-import {
-  CloudMetricsReader,
-  IMetricAlarmDimension,
-  IServerGroup,
-  ReactSelectInput,
-  TextInput,
-  useData,
-} from '@spinnaker/core';
+import type { IMetricAlarmDimension, IServerGroup } from '@spinnaker/core';
+import { CloudMetricsReader, ReactSelectInput, TextInput, useData } from '@spinnaker/core';
 
-import { IScalingPolicyAlarmView } from '../../../../../domain';
+import type { IScalingPolicyAlarmView } from '../../../../../domain';
 
 import './dimensionsEditor.less';
 

@@ -1,4 +1,4 @@
-import { IStage } from '@spinnaker/core';
+import type { IStage } from '@spinnaker/core';
 import { mockAwsCluster } from './mockCluster';
 
 export const mockImageFindStage: IStage = {

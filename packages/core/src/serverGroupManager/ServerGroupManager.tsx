@@ -2,10 +2,10 @@ import classNames from 'classnames';
 import React from 'react';
 
 import { ServerGroupManagerHeading } from './ServerGroupManagerHeading';
-import { Application } from '../application';
-import { IClusterSubgroup } from '../cluster';
-import { IInstanceCounts, IServerGroup } from '../domain';
-import { ISortFilter } from '../filterModel';
+import type { Application } from '../application';
+import type { IClusterSubgroup } from '../cluster';
+import type { IInstanceCounts, IServerGroup } from '../domain';
+import type { ISortFilter } from '../filterModel';
 import { ReactInjector } from '../reactShims';
 import { ServerGroup } from '../serverGroup';
 

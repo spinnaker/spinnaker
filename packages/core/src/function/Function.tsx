@@ -1,8 +1,8 @@
 import { UISref, UISrefActive } from '@uirouter/react';
 import React from 'react';
 
-import { Application } from '../application/application.model';
-import { IFunction } from '../domain';
+import type { Application } from '../application/application.model';
+import type { IFunction } from '../domain';
 import { EntityNotifications } from '../entityTag/notifications/EntityNotifications';
 
 interface IFunctionProps {

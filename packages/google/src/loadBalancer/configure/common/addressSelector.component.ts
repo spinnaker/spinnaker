@@ -1,5 +1,6 @@
-import { IComponentOptions, IController, module } from 'angular';
-import { IGceAddress } from '../../../address/address.reader';
+import type { IComponentOptions, IController } from 'angular';
+import { module } from 'angular';
+import type { IGceAddress } from '../../../address/address.reader';
 
 class GceAddressSelectorCtrl implements IController {
   public selectedAddress: IGceAddress;

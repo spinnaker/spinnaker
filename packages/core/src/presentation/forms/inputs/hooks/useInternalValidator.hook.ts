@@ -1,8 +1,8 @@
 import React from 'react';
 
 import { useIsMountedRef } from '../../../hooks/useIsMountedRef.hook';
-import { IFormInputValidation } from '../interface';
-import { IValidator } from '../../validation';
+import type { IFormInputValidation } from '../interface';
+import type { IValidator } from '../../validation';
 
 export function useInternalValidator(
   validation: IFormInputValidation,

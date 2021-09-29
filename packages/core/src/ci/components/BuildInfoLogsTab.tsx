@@ -4,7 +4,7 @@ import * as React from 'react';
 
 import { BuildDetailsScrollContainerContext } from './BuildDetailsScrollContainerContext';
 import { CIReader } from '../CIReader';
-import { ICiBuild } from '../domain';
+import type { ICiBuild } from '../domain';
 import { Tooltip, useInterval } from '../../presentation';
 import { Spinner } from '../../widgets';
 

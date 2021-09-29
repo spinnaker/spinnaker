@@ -1,12 +1,15 @@
 import React from 'react';
 
-import { Application, ReactModal } from '@spinnaker/core';
-import { IAmazonServerGroupView } from '../../../domain';
+import type { Application } from '@spinnaker/core';
+import { ReactModal } from '@spinnaker/core';
+import type { IAmazonServerGroupView } from '../../../domain';
 import { AwsReactInjector } from '../../../reactShims';
 
-import { IUpsertTargetTrackingModalProps, UpsertTargetTrackingModal } from './targetTracking/UpsertTargetTrackingModal';
+import type { IUpsertTargetTrackingModalProps } from './targetTracking/UpsertTargetTrackingModal';
+import { UpsertTargetTrackingModal } from './targetTracking/UpsertTargetTrackingModal';
 import { PolicyTypeSelectionModal } from './upsert/PolicyTypeSelectionModal';
-import { IUpsertScalingPolicyModalProps, UpsertScalingPolicyModal } from './upsert/UpsertScalingPolicyModal';
+import type { IUpsertScalingPolicyModalProps } from './upsert/UpsertScalingPolicyModal';
+import { UpsertScalingPolicyModal } from './upsert/UpsertScalingPolicyModal';
 
 export interface ICreateScalingPolicyButtonProps {
   application: Application;

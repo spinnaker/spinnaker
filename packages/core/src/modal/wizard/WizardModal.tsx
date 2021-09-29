@@ -1,15 +1,16 @@
-import { Form, Formik, FormikProps } from 'formik';
+import type { Formik, FormikProps } from 'formik';
+import { Form } from 'formik';
 import { merge, without } from 'lodash';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 
-import { WizardPage } from './WizardPage';
+import type { WizardPage } from './WizardPage';
 import { WizardStepLabel } from './WizardStepLabel';
 import { ModalClose } from '../buttons/ModalClose';
 import { SubmitButton } from '../buttons/SubmitButton';
 import { SpinFormik } from '../../presentation';
-import { IModalComponentProps } from '../../presentation';
-import { TaskMonitor } from '../../task/monitor/TaskMonitor';
+import type { IModalComponentProps } from '../../presentation';
+import type { TaskMonitor } from '../../task/monitor/TaskMonitor';
 import { TaskMonitorWrapper } from '../../task/monitor/TaskMonitorWrapper';
 import { Spinner } from '../../widgets/spinners/Spinner';
 

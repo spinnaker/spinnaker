@@ -1,6 +1,7 @@
-import { IComponentOptions, IController, IScope, module } from 'angular';
-import { Application } from '../../application';
-import { IExecution, IExecutionStage, IStageTypeConfig } from '../../domain';
+import type { IComponentOptions, IController, IScope } from 'angular';
+import { module } from 'angular';
+import type { Application } from '../../application';
+import type { IExecution, IExecutionStage, IStageTypeConfig } from '../../domain';
 
 export class StepExecutionDetailsController implements IController {
   public application: Application;

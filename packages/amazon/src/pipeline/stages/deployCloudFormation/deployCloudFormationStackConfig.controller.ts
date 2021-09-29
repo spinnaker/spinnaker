@@ -1,15 +1,9 @@
-import { IController, IScope } from 'angular';
+import type { IController, IScope } from 'angular';
 import { extend } from 'lodash';
 import { $q } from 'ngimport';
 
-import {
-  AccountService,
-  ExpectedArtifactSelectorViewController,
-  IAccountDetails,
-  IArtifact,
-  IExpectedArtifact,
-  NgGenericArtifactDelegate,
-} from '@spinnaker/core';
+import type { IAccountDetails, IArtifact, IExpectedArtifact } from '@spinnaker/core';
+import { AccountService, ExpectedArtifactSelectorViewController, NgGenericArtifactDelegate } from '@spinnaker/core';
 
 export class DeployCloudFormationStackConfigController implements IController {
   public state = {

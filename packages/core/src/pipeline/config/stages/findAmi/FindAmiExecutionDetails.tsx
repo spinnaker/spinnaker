@@ -2,9 +2,10 @@ import React from 'react';
 
 import { AccountTag } from '../../../../account';
 
-import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
+import type { IExecutionDetailsSectionProps } from '../common';
+import { ExecutionDetailsSection } from '../common';
 import { StageFailureMessage } from '../../../details';
-import { IFindAmiStageContext } from './findAmiStage';
+import type { IFindAmiStageContext } from './findAmiStage';
 
 export function FindAmiExecutionDetails(props: IExecutionDetailsSectionProps) {
   const { stage } = props;

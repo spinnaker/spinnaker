@@ -1,6 +1,6 @@
 import { $q } from 'ngimport';
-import { ILoadBalancer, IPipeline, ISecurityGroup, IServerGroup } from '@spinnaker/core';
-import { Application, IDataSourceConfig, ITask } from '@spinnaker/core';
+import type { ILoadBalancer, IPipeline, ISecurityGroup, IServerGroup } from '@spinnaker/core';
+import type { Application, IDataSourceConfig, ITask } from '@spinnaker/core';
 import { mockLoadBalancer } from './mockLoadBalancer';
 import { mockPipeline } from './mockPipeline';
 import { mockSecurityGroup } from './mockSecurityGroup';

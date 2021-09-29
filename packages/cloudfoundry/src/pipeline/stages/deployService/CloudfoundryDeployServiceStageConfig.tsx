@@ -1,16 +1,12 @@
 import React from 'react';
-import { Option } from 'react-select';
+import type { Option } from 'react-select';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
+import type { IAccount, IArtifact, IExpectedArtifact, IRegion, IStageConfigProps } from '@spinnaker/core';
 import {
   AccountService,
   ArtifactTypePatterns,
-  IAccount,
-  IArtifact,
-  IExpectedArtifact,
-  IRegion,
-  IStageConfigProps,
   ReactSelectInput,
   StageArtifactSelector,
   StageConfigField,
@@ -18,7 +14,7 @@ import {
 
 import { CreateServiceInstanceDirectInput } from './CreateServiceInstanceDirectInput';
 import { CreateUserProvidedInput } from './CreateUserProvidedInput';
-import { ICloudFoundryServiceManifestSource } from './ICloudFoundryServiceManifestSource';
+import type { ICloudFoundryServiceManifestSource } from './ICloudFoundryServiceManifestSource';
 
 import './cloudfoundryDeployServiceStage.less';
 

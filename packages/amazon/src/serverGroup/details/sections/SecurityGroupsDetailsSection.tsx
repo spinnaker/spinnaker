@@ -2,17 +2,10 @@ import { UISref } from '@uirouter/react';
 import { chain, find, sortBy } from 'lodash';
 import React from 'react';
 
-import {
-  CollapsibleSection,
-  confirmNotManaged,
-  FirewallLabels,
-  ISecurityGroup,
-  ISecurityGroupsByAccount,
-  ModalInjector,
-  SETTINGS,
-} from '@spinnaker/core';
+import type { ISecurityGroup, ISecurityGroupsByAccount } from '@spinnaker/core';
+import { CollapsibleSection, confirmNotManaged, FirewallLabels, ModalInjector, SETTINGS } from '@spinnaker/core';
 
-import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
+import type { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
 import { AwsSecurityGroupReader } from '../../../securityGroup/securityGroup.reader';
 
 export interface ISecurityGroupsDetailsSectionState {

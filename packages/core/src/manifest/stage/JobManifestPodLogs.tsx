@@ -5,8 +5,9 @@ import { bindAll } from 'lodash';
 import React from 'react';
 import { Button, Modal } from 'react-bootstrap';
 
-import { IPodNameProvider } from '../PodNameProvider';
-import { IInstanceConsoleOutput, IInstanceMultiOutputLog, InstanceReader } from '../../instance/InstanceReader';
+import type { IPodNameProvider } from '../PodNameProvider';
+import type { IInstanceConsoleOutput, IInstanceMultiOutputLog } from '../../instance/InstanceReader';
+import { InstanceReader } from '../../instance/InstanceReader';
 
 // IJobManifestPodLogs is the data needed to get logs
 export interface IJobManifestPodLogsProps {

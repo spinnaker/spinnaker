@@ -1,4 +1,9 @@
-import { IAmazonLaunchTemplate, IIamInstanceProfile, ILaunchTemplateData, IMetadataOptions } from '@spinnaker/amazon';
+import type {
+  IAmazonLaunchTemplate,
+  IIamInstanceProfile,
+  ILaunchTemplateData,
+  IMetadataOptions,
+} from '@spinnaker/amazon';
 
 import { createMockBlockDeviceMapping } from './mockAmazonBlockDeviceMapping';
 

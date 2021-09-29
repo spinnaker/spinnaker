@@ -1,8 +1,8 @@
 import React from 'react';
 
-import { IStageConfigProps } from '../common';
+import type { IStageConfigProps } from '../common';
 import { StageConfigField } from '../common/stageConfigField/StageConfigField';
-import { IStage } from '../../../../domain';
+import type { IStage } from '../../../../domain';
 import { SpelNumberInput } from '../../../../widgets';
 
 export interface IWaitStageConfigState {

@@ -1,15 +1,12 @@
 import React from 'react';
 
+import type { IFormikStageConfigInjectedProps, IStage, IStageConfigProps, IStageTypeConfig } from '@spinnaker/core';
 import {
   ExecutionDetailsTasks,
   FormikFormField,
   FormikStageConfig,
   FormValidator,
   HelpField,
-  IFormikStageConfigInjectedProps,
-  IStage,
-  IStageConfigProps,
-  IStageTypeConfig,
   NumberInput,
   TextInput,
   Validators,

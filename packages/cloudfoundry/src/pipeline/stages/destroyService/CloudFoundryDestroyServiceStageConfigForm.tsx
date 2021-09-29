@@ -1,16 +1,11 @@
 import React from 'react';
-import Select, { Option } from 'react-select';
+import type { Option } from 'react-select';
+import Select from 'react-select';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import {
-  AccountService,
-  Application,
-  IAccount,
-  IFormikStageConfigInjectedProps,
-  IRegion,
-  StageConfigField,
-} from '@spinnaker/core';
+import type { Application, IAccount, IFormikStageConfigInjectedProps, IRegion } from '@spinnaker/core';
+import { AccountService, StageConfigField } from '@spinnaker/core';
 
 export interface ICloudfoundryDestroyServiceStageConfigState {
   accounts: IAccount[];

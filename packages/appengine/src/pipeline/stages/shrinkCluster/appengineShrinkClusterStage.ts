@@ -3,7 +3,7 @@ import { module } from 'angular';
 import { Registry } from '@spinnaker/core';
 
 import { AppengineStageCtrl } from '../appengineStage.controller';
-import { IAppengineStage, IAppengineStageScope } from '../../../domain/index';
+import type { IAppengineStage, IAppengineStageScope } from '../../../domain/index';
 
 interface IAppengineShrinkClusterStage extends IAppengineStage {
   shrinkToSize: number;

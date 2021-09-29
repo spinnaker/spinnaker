@@ -1,10 +1,10 @@
-import { FormikErrors } from 'formik';
+import type { FormikErrors } from 'formik';
 import { cloneDeep, every, get } from 'lodash';
 import React from 'react';
 
+import type { ILoadBalancerModalProps } from '@spinnaker/core';
 import {
   AccountService,
-  ILoadBalancerModalProps,
   LoadBalancerWriter,
   noop,
   ReactInjector,
@@ -19,7 +19,7 @@ import { NLBListeners } from './NLBListeners';
 import { TargetGroups } from './TargetGroups';
 import { AWSProviderSettings } from '../../../aws.settings';
 import { LoadBalancerLocation } from '../common/LoadBalancerLocation';
-import { IAmazonNetworkLoadBalancer, IAmazonNetworkLoadBalancerUpsertCommand } from '../../../domain';
+import type { IAmazonNetworkLoadBalancer, IAmazonNetworkLoadBalancerUpsertCommand } from '../../../domain';
 import { AwsLoadBalancerTransformer } from '../../loadBalancer.transformer';
 
 import '../common/configure.less';

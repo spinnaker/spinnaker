@@ -1,5 +1,5 @@
 import { REST } from '../../../api/ApiService';
-import { IExecution, IPipeline } from '../../../domain';
+import type { IExecution, IPipeline } from '../../../domain';
 
 import { ExecutionsTransformer } from '../../service/ExecutionsTransformer';
 

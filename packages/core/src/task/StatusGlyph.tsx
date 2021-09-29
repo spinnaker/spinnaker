@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import React from 'react';
 
-import { ITaskStep } from '../domain';
+import type { ITaskStep } from '../domain';
 
 export interface IStatusGlyphProps {
   item: ITaskStep;

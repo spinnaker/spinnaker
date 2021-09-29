@@ -1,7 +1,8 @@
 import { get, trim } from 'lodash';
 import React from 'react';
 
-import { AccountService, IManifest, ReactInjector } from '@spinnaker/core';
+import type { IManifest } from '@spinnaker/core';
+import { AccountService, ReactInjector } from '@spinnaker/core';
 
 const UNMAPPED_K8S_RESOURCE_STATE_KEY = 'kubernetesResource';
 

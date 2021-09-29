@@ -1,4 +1,4 @@
-import { IFormValidatorField, IValidator } from './validation';
+import type { IFormValidatorField, IValidator } from './validation';
 
 /**
  * Encapsulates a form field and the validation rules defined for that field.

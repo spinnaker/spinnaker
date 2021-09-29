@@ -3,7 +3,7 @@ import { module } from 'angular';
 import { Registry } from '@spinnaker/core';
 
 import { AppengineStageCtrl } from '../appengineStage.controller';
-import { IAppengineStageScope } from '../../../domain';
+import type { IAppengineStageScope } from '../../../domain';
 
 class AppengineDestroyAsgStageCtrl extends AppengineStageCtrl {
   public static $inject = ['$scope'];

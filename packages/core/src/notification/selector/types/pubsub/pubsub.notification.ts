@@ -1,5 +1,5 @@
 import { PubsubNotificationType } from './PubsubNotificationType';
-import { INotificationTypeConfig } from '../../../../domain';
+import type { INotificationTypeConfig } from '../../../../domain';
 
 export const pubsubNotification: INotificationTypeConfig = {
   component: PubsubNotificationType,

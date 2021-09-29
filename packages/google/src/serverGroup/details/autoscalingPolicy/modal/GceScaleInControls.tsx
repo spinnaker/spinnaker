@@ -12,7 +12,8 @@ import {
   withErrorBoundary,
 } from '@spinnaker/core';
 
-import { GceAutoScalingFieldLayout, IGceAutoscalingPolicy, IGceScaleInControl } from '../../../../autoscalingPolicy';
+import type { IGceAutoscalingPolicy, IGceScaleInControl } from '../../../../autoscalingPolicy';
+import { GceAutoScalingFieldLayout } from '../../../../autoscalingPolicy';
 
 enum maxReplicasUnit {
   fixed = 'fixed',

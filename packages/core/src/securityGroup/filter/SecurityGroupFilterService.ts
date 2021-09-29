@@ -1,8 +1,8 @@
 import { chain, find, forOwn, groupBy, map, sortBy } from 'lodash';
 import { Subject } from 'rxjs';
 
-import { Application } from '../../application/application.model';
-import { ISecurityGroup, ISecurityGroupGroup } from '../../domain';
+import type { Application } from '../../application/application.model';
+import type { ISecurityGroup, ISecurityGroupGroup } from '../../domain';
 import { FilterModelService } from '../../filterModel';
 import { SecurityGroupState } from '../../state';
 

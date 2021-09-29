@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { INotificationParameter } from './NotificationService';
-import { INotificationTypeCustomConfig } from '../domain';
+import type { INotificationParameter } from './NotificationService';
+import type { INotificationTypeCustomConfig } from '../domain';
 import { HelpField } from '../help';
 import { FormikFormField, TextInput } from '../presentation';
 

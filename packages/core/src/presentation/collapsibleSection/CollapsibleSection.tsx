@@ -1,7 +1,8 @@
 import classnames from 'classnames';
 import React from 'react';
 
-import { Icon, IIconProps } from '@spinnaker/presentation';
+import type { IIconProps } from '@spinnaker/presentation';
+import { Icon } from '@spinnaker/presentation';
 import { CollapsibleSectionStateCache } from '../../cache/collapsibleSectionStateCache';
 
 export interface ICollapsibleSectionProps {

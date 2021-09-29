@@ -1,4 +1,5 @@
-import { IRequestConfig, module } from 'angular';
+import type { IRequestConfig } from 'angular';
+import { module } from 'angular';
 
 import { AuthenticationService } from './AuthenticationService';
 import { SETTINGS } from '../config/settings';

@@ -1,5 +1,5 @@
 import { REST } from '../../api/ApiService';
-import { ICloudMetricDescriptor, ICloudMetricStatistics } from '../../domain';
+import type { ICloudMetricDescriptor, ICloudMetricStatistics } from '../../domain';
 
 export class CloudMetricsReader {
   public static listMetrics(

@@ -1,4 +1,4 @@
-import { IConstraint } from '../../domain';
+import type { IConstraint } from '../../domain';
 
 export const getManualJudgementStatus = ({ constraint }: { constraint: IConstraint }): string => {
   switch (constraint.status) {

@@ -2,17 +2,12 @@ import { module } from 'angular';
 import React from 'react';
 import { react2angular } from 'react2angular';
 
-import {
-  CheckboxInput,
-  FormField,
-  HelpField,
-  IFormInputProps,
-  LayoutProvider,
-  withErrorBoundary,
-} from '@spinnaker/core';
+import type { IFormInputProps } from '@spinnaker/core';
+import { CheckboxInput, FormField, HelpField, LayoutProvider, withErrorBoundary } from '@spinnaker/core';
 
 import { GceAutoScalingFieldLayout } from '../../GceAutoScalingFieldLayout';
-import { GcePredictiveMethod, IGceAutoscalingPolicy } from '../../IGceAutoscalingPolicy';
+import type { IGceAutoscalingPolicy } from '../../IGceAutoscalingPolicy';
+import { GcePredictiveMethod } from '../../IGceAutoscalingPolicy';
 import { GCEProviderSettings } from '../../../gce.settings';
 
 interface IGcePredictiveAutoscalingProps {

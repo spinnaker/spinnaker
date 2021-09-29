@@ -1,8 +1,8 @@
 import { set } from 'lodash';
 import React from 'react';
-import { Option } from 'react-select';
+import type { Option } from 'react-select';
 
-import { IEntityTag } from '../../../../domain';
+import type { IEntityTag } from '../../../../domain';
 import { HelpField } from '../../../../help/HelpField';
 import { FormField, ReactSelectInput, TextInput } from '../../../../presentation';
 import { UUIDGenerator } from '../../../../utils';

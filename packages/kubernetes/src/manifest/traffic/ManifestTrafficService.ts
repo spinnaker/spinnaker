@@ -1,6 +1,7 @@
-import { Application, IManifest, ITask, TaskExecutor } from '@spinnaker/core';
+import type { Application, IManifest, ITask } from '@spinnaker/core';
+import { TaskExecutor } from '@spinnaker/core';
 
-import { IKubernetesServerGroup } from '../../interfaces';
+import type { IKubernetesServerGroup } from '../../interfaces';
 
 export class ManifestTrafficService {
   public static readonly ENABLE_MANIFEST_OPERATION = 'enableManifest';

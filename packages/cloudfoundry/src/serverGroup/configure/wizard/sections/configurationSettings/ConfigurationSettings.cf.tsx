@@ -1,17 +1,9 @@
-import { FormikProps } from 'formik';
+import type { FormikProps } from 'formik';
 import React from 'react';
 
-import {
-  ArtifactTypePatterns,
-  IArtifact,
-  IExpectedArtifact,
-  IPipeline,
-  IStage,
-  IWizardPageComponent,
-  RadioButtonInput,
-  StageArtifactSelector,
-} from '@spinnaker/core';
-import { ICloudFoundryEnvVar } from '../../../../../domain';
+import type { IArtifact, IExpectedArtifact, IPipeline, IStage, IWizardPageComponent } from '@spinnaker/core';
+import { ArtifactTypePatterns, RadioButtonInput, StageArtifactSelector } from '@spinnaker/core';
+import type { ICloudFoundryEnvVar } from '../../../../../domain';
 import {
   Buildpacks,
   EnvironmentVariables,
@@ -22,7 +14,7 @@ import {
   Services,
 } from '../../../../../presentation';
 
-import {
+import type {
   ICloudFoundryCreateServerGroupCommand,
   ICloudFoundryManifest,
 } from '../../../serverGroupConfigurationModel.cf';

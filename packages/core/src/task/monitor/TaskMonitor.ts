@@ -1,10 +1,10 @@
-import { IDeferred } from 'angular';
-import { IModalServiceInstance } from 'angular-ui-bootstrap';
+import type { IDeferred } from 'angular';
+import type { IModalServiceInstance } from 'angular-ui-bootstrap';
 import { $q, $timeout } from 'ngimport';
 import { Subject } from 'rxjs';
 
-import { Application } from '../../application/application.model';
-import { ITask } from '../../domain';
+import type { Application } from '../../application/application.model';
+import type { ITask } from '../../domain';
 
 import { TaskReader } from '../task.read.service';
 

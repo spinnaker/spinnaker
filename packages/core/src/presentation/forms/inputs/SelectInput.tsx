@@ -1,9 +1,9 @@
 import { isNil } from 'lodash';
 import React, { useEffect } from 'react';
-import { Option } from 'react-select';
+import type { Option } from 'react-select';
 
 import { StringsAsOptions } from './StringsAsOptions';
-import { IFormInputProps, OmitControlledInputPropsFrom } from './interface';
+import type { IFormInputProps, OmitControlledInputPropsFrom } from './interface';
 import { createFakeReactSyntheticEvent, isStringArray, orEmptyString, validationClassName } from './utils';
 
 export interface ISelectInputProps

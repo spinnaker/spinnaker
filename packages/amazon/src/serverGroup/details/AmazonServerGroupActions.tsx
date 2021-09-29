@@ -2,13 +2,11 @@ import { filter, find, get, orderBy } from 'lodash';
 import React from 'react';
 import { Dropdown, MenuItem, Tooltip } from 'react-bootstrap';
 
+import type { IOwnerOption, IServerGroupActionsProps, IServerGroupJob } from '@spinnaker/core';
 import {
   AddEntityTagLinks,
   ClusterTargetBuilder,
   ConfirmationModalService,
-  IOwnerOption,
-  IServerGroupActionsProps,
-  IServerGroupJob,
   ManagedMenuItem,
   ModalInjector,
   Overridable,
@@ -17,14 +15,12 @@ import {
   SETTINGS,
 } from '@spinnaker/core';
 
-import { IAmazonServerGroupCommand } from '../configure';
+import type { IAmazonServerGroupCommand } from '../configure';
 import { AmazonCloneServerGroupModal } from '../configure/wizard/AmazonCloneServerGroupModal';
-import { IAmazonServerGroup, IAmazonServerGroupView } from '../../domain';
+import type { IAmazonServerGroup, IAmazonServerGroupView } from '../../domain';
 import { AwsReactInjector } from '../../reactShims';
-import {
-  AmazonResizeServerGroupModal,
-  IAmazonResizeServerGroupModalProps,
-} from './resize/AmazonResizeServerGroupModal';
+import type { IAmazonResizeServerGroupModalProps } from './resize/AmazonResizeServerGroupModal';
+import { AmazonResizeServerGroupModal } from './resize/AmazonResizeServerGroupModal';
 
 export interface IAmazonServerGroupActionsProps extends IServerGroupActionsProps {
   serverGroup: IAmazonServerGroupView;

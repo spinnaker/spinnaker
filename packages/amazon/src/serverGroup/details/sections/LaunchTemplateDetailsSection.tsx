@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { CollapsibleSection, LabeledValue, LabeledValueList, ShowUserData } from '@spinnaker/core';
-import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
+import type { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
 import { MultipleInstanceTypesSubSection } from './MultipleInstanceTypesSubSection';
 import { getBaseImageName } from '../utils';
 

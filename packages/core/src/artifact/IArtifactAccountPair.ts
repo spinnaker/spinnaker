@@ -1,4 +1,4 @@
-import { IArtifact } from '../domain';
+import type { IArtifact } from '../domain';
 
 export interface IArtifactAccountPair {
   id: string;

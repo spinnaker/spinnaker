@@ -5,8 +5,8 @@ import { MetadataPageContent } from './MetadataPageContent';
 import { NotificationsPageContent } from './NotificationsPageContent';
 import { ParametersPageContent } from './ParametersPageContent';
 import { TriggersPageContent } from './TriggersPageContent';
-import { Application } from '../../../application';
-import { IPipeline } from '../../../domain';
+import type { Application } from '../../../application';
+import type { IPipeline } from '../../../domain';
 import { PageNavigator, PageSection } from '../../../presentation';
 import { ReactInjector } from '../../../reactShims/react.injector';
 

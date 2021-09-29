@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { IExecution } from '../../domain';
+import type { IExecution } from '../../domain';
 import { logger } from '../../utils';
 
 import './ExecutionBuildLink.less';

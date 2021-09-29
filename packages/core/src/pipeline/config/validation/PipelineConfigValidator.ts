@@ -1,9 +1,10 @@
-import { FormikErrors } from 'formik';
+import type { FormikErrors } from 'formik';
 import { flatten, isNumber, values } from 'lodash';
 import { $log, $q } from 'ngimport';
-import { Subject, Subscription } from 'rxjs';
+import type { Subscription } from 'rxjs';
+import { Subject } from 'rxjs';
 
-import {
+import type {
   IPipeline,
   IStage,
   IStageOrTriggerTypeConfig,

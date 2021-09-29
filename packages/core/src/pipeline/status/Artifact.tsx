@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { ArtifactIconService } from '../../artifact';
-import { IArtifact } from '../../domain';
+import type { IArtifact } from '../../domain';
 
 import './artifact.less';
 

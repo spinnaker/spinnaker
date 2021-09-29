@@ -2,7 +2,8 @@ import { get } from 'lodash';
 import React from 'react';
 
 import { PipelineRefList } from './PipleineRefList';
-import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
+import type { IExecutionDetailsSectionProps } from '../common';
+import { ExecutionDetailsSection } from '../common';
 
 export class SavePipelinesResultsTab extends React.Component<IExecutionDetailsSectionProps> {
   public static title = 'pipelineUpdates';

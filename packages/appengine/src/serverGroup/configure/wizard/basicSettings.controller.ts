@@ -1,18 +1,19 @@
-import { StateService } from '@uirouter/angularjs';
-import { extend, IController, IControllerService, IScope, module } from 'angular';
+import type { StateService } from '@uirouter/angularjs';
+import type { IController, IControllerService, IScope } from 'angular';
+import { extend, module } from 'angular';
 import { set } from 'lodash';
 
+import type { IArtifact, IExpectedArtifact } from '@spinnaker/core';
 import {
   ArtifactTypePatterns,
   excludeAllTypesExcept,
   ExpectedArtifactSelectorViewController,
-  IArtifact,
-  IExpectedArtifact,
   NgAppEngineDeployArtifactDelegate,
 } from '@spinnaker/core';
-import { GitCredentialType, IAppengineAccount } from '../../../domain/index';
+import type { GitCredentialType, IAppengineAccount } from '../../../domain/index';
 
-import { AppengineSourceType, IAppengineServerGroupCommand } from '../serverGroupCommandBuilder.service';
+import type { IAppengineServerGroupCommand } from '../serverGroupCommandBuilder.service';
+import { AppengineSourceType } from '../serverGroupCommandBuilder.service';
 
 interface IAppengineBasicSettingsScope extends IScope {
   command: IAppengineServerGroupCommand;

@@ -2,7 +2,8 @@ import { UISref } from '@uirouter/react';
 import _ from 'lodash';
 import React from 'react';
 
-import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
+import type { IExecutionDetailsSectionProps } from '../common';
+import { ExecutionDetailsSection } from '../common';
 import { StageFailureMessage } from '../../../details';
 
 export function MonitorPipelineStageExecutionDetails(props: IExecutionDetailsSectionProps) {

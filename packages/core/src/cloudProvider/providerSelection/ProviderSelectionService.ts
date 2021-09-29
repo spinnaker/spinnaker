@@ -1,10 +1,12 @@
 import { uniq } from 'lodash';
 import { $q } from 'ngimport';
 
-import { CloudProviderRegistry, ICloudProviderConfig } from '../CloudProviderRegistry';
+import type { ICloudProviderConfig } from '../CloudProviderRegistry';
+import { CloudProviderRegistry } from '../CloudProviderRegistry';
 import { ProviderSelectionModal } from './ProviderSelectionModal';
-import { AccountService, IAccountDetails } from '../../account';
-import { Application } from '../../application';
+import type { IAccountDetails } from '../../account';
+import { AccountService } from '../../account';
+import type { Application } from '../../application';
 import { SETTINGS } from '../../config';
 
 export type IProviderSelectionFilter = (app: Application, acc: IAccountDetails, prov: ICloudProviderConfig) => boolean;

@@ -1,4 +1,4 @@
-import { IProject, ITask } from '../../domain';
+import type { IProject, ITask } from '../../domain';
 import { TaskExecutor } from '../../task/taskExecutor';
 
 export class ProjectWriter {

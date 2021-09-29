@@ -1,4 +1,4 @@
-import { ApplicationDataSource, IFetchStatus } from '../../application';
+import type { ApplicationDataSource, IFetchStatus } from '../../application';
 import { useLatestCallback } from './useLatestCallback.hook';
 import { useObservableValue } from './useObservableValue.hook';
 

@@ -1,13 +1,8 @@
 import React from 'react';
 
 import { VariableError } from '../VariableError';
-import {
-  IVariable,
-  IVariableInputBuilder,
-  IVariableProps,
-  IVariableState,
-  VariableInputService,
-} from './variableInput.service';
+import type { IVariable, IVariableInputBuilder, IVariableProps, IVariableState } from './variableInput.service';
+import { VariableInputService } from './variableInput.service';
 
 class BooleanInput extends React.Component<IVariableProps, IVariableState> {
   public render() {

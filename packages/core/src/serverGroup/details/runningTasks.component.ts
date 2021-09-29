@@ -1,6 +1,7 @@
-import { IComponentOptions, IController, module } from 'angular';
-import { Application } from '../../application/application.model';
-import { IServerGroup } from '../../domain';
+import type { IComponentOptions, IController } from 'angular';
+import { module } from 'angular';
+import type { Application } from '../../application/application.model';
+import type { IServerGroup } from '../../domain';
 
 class ServerGroupRunningTasksCtrl implements IController {
   public serverGroup: IServerGroup;

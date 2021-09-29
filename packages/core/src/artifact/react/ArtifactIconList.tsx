@@ -3,7 +3,7 @@ import React from 'react';
 
 import { ArtifactIconService } from '../ArtifactIconService';
 import { ArtifactTypePatterns } from '../ArtifactTypes';
-import { IArtifact } from '../../domain';
+import type { IArtifact } from '../../domain';
 
 export interface IArtifactIconListProps {
   artifacts: IArtifact[];

@@ -1,15 +1,9 @@
-import { FormikErrors } from 'formik';
+import type { FormikErrors } from 'formik';
 import { cloneDeep } from 'lodash';
 import React from 'react';
 
-import {
-  FormikStageConfig,
-  FormValidator,
-  IArtifact,
-  IExpectedArtifact,
-  IStage,
-  IStageConfigProps,
-} from '@spinnaker/core';
+import type { IArtifact, IExpectedArtifact, IStage, IStageConfigProps } from '@spinnaker/core';
+import { FormikStageConfig, FormValidator } from '@spinnaker/core';
 
 import { BakeCloudFoundryManifestConfigForm } from './BakeCloudFoundryManifestConfigForm';
 

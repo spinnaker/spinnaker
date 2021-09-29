@@ -1,5 +1,5 @@
 import { REST } from '@spinnaker/core';
-import { IKeyPair } from '../domain';
+import type { IKeyPair } from '../domain';
 
 export class KeyPairsReader {
   public static listKeyPairs(): PromiseLike<IKeyPair[]> {

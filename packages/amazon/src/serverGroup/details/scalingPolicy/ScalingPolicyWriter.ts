@@ -1,5 +1,6 @@
-import { Application, IJob, IMetricAlarmDimension, IServerGroup, ITask, TaskExecutor } from '@spinnaker/core';
-import {
+import type { Application, IJob, IMetricAlarmDimension, IServerGroup, ITask } from '@spinnaker/core';
+import { TaskExecutor } from '@spinnaker/core';
+import type {
   AlarmComparisonOperator,
   AlarmStatisticType,
   IScalingPolicy,

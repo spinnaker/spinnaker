@@ -1,8 +1,9 @@
 import { find, get, map } from 'lodash';
 import React from 'react';
-import Select, { Creatable, Option } from 'react-select';
+import type { Option } from 'react-select';
+import Select, { Creatable } from 'react-select';
 
-import { IAccountDetails } from '@spinnaker/core';
+import type { IAccountDetails } from '@spinnaker/core';
 
 export interface INamespaceSelectorProps {
   onChange: (namespace: string) => void;

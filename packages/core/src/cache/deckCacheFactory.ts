@@ -1,4 +1,5 @@
-import { Cache, CacheFactory, CacheOptions, ItemInfo } from 'cachefactory';
+import type { Cache, CacheOptions, ItemInfo } from 'cachefactory';
+import { CacheFactory } from 'cachefactory';
 import { Duration } from 'luxon';
 
 import { SETTINGS } from '../config/settings';

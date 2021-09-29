@@ -1,5 +1,6 @@
-import { IAttributes, IController, IScope, ITimeoutService, module } from 'angular';
-import { Subject } from 'rxjs';
+import type { IAttributes, IController, IScope, ITimeoutService } from 'angular';
+import { module } from 'angular';
+import type { Subject } from 'rxjs';
 
 export interface IAutoScrollAttrs extends IAttributes {
   autoScrollEnabled: string;

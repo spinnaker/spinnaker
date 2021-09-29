@@ -1,7 +1,8 @@
 import { defaults } from 'lodash';
 import React from 'react';
 
-import { FormikStageConfig, IStage, IStageConfigProps } from '@spinnaker/core';
+import type { IStage, IStageConfigProps } from '@spinnaker/core';
+import { FormikStageConfig } from '@spinnaker/core';
 
 import { PatchManifestStageForm } from './PatchManifestStageForm';
 import { ManifestSource } from '../../../manifest/ManifestSource';

@@ -1,13 +1,11 @@
-import {
+import type {
   IPipeline,
   IStage,
   IStageOrTriggerTypeConfig,
   IStageOrTriggerValidator,
   IValidatorConfig,
-  NameUtils,
-  PipelineConfigService,
-  PipelineConfigValidator,
 } from '@spinnaker/core';
+import { NameUtils, PipelineConfigService, PipelineConfigValidator } from '@spinnaker/core';
 
 export interface ITargetImpedanceValidationConfig extends IValidatorConfig {
   stageTypes?: string[];

@@ -1,7 +1,7 @@
 import { get } from 'lodash';
 import React from 'react';
 
-import { IStage } from '../../domain';
+import type { IStage } from '../../domain';
 
 export interface IStageExecutionLogsProps {
   stage: IStage;

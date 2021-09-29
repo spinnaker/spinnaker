@@ -1,12 +1,11 @@
-import { Form, FormikContext } from 'formik';
+import type { FormikContext } from 'formik';
+import { Form } from 'formik';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 
+import type { Application, ICapacity, IModalComponentProps } from '@spinnaker/core';
 import {
-  Application,
   FormikFormField,
-  ICapacity,
-  IModalComponentProps,
   MinMaxDesiredChanges,
   ModalClose,
   NumberInput,
@@ -17,7 +16,7 @@ import {
   UserVerification,
   ValidationMessage,
 } from '@spinnaker/core';
-import { ITitusServerGroup } from '../../../domain';
+import type { ITitusServerGroup } from '../../../domain';
 
 import { useTaskMonitor } from './useTaskMonitor';
 

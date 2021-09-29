@@ -1,7 +1,8 @@
 import React from 'react';
 
-import { QueryResource } from '../overview/types';
-import { IModalComponentProps, ModalBody, ModalHeader, showModal } from '../../presentation/modal';
+import type { QueryResource } from '../overview/types';
+import type { IModalComponentProps } from '../../presentation/modal';
+import { ModalBody, ModalHeader, showModal } from '../../presentation/modal';
 import { YamlViewer } from '../utils/YamlViewer';
 
 import './ResourceDefinitionModal.less';

@@ -1,4 +1,4 @@
-import { IOrchestratedItem } from './IOrchestratedItem';
+import type { IOrchestratedItem } from './IOrchestratedItem';
 
 export interface ITaskStep extends IOrchestratedItem {
   name: string;

@@ -1,12 +1,7 @@
 import React from 'react';
 
-import {
-  createFakeReactSyntheticEvent,
-  IFormInputProps,
-  OmitControlledInputPropsFrom,
-  orEmptyString,
-  validationClassName,
-} from '../../presentation';
+import type { IFormInputProps, OmitControlledInputPropsFrom } from '../../presentation';
+import { createFakeReactSyntheticEvent, orEmptyString, validationClassName } from '../../presentation';
 
 const { useEffect } = React;
 

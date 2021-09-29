@@ -1,5 +1,6 @@
 import React from 'react';
-import Select, { Option } from 'react-select';
+import type { Option } from 'react-select';
+import Select from 'react-select';
 
 import { AuthenticationService } from '../../../authentication';
 import { HelpField } from '../../../help';

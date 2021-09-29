@@ -1,8 +1,8 @@
 import React from 'react';
 
+import type { IVersionMetadataProps } from './MetadataComponents';
 import {
   BaseVersionMetadata,
-  IVersionMetadataProps,
   LifecycleEventDetails,
   MetadataBadge,
   MetadataElement,
@@ -15,10 +15,10 @@ import {
 } from './MetadataComponents';
 import { formatToRelativeTimestamp, RelativeTimestamp } from '../RelativeTimestamp';
 import { getLifecycleEventSummary } from '../overview/artifact/utils';
-import { QueryArtifactVersion } from '../overview/types';
+import type { QueryArtifactVersion } from '../overview/types';
 import { HoverablePopover, IconTooltip } from '../../presentation';
 import { TOOLTIP_DELAY_SHOW } from '../utils/defaults';
-import { SingleVersionArtifactVersion } from '../versionsHistory/types';
+import type { SingleVersionArtifactVersion } from '../versionsHistory/types';
 
 export const getBaseMetadata = (
   version: QueryArtifactVersion | SingleVersionArtifactVersion,

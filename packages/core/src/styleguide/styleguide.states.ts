@@ -1,5 +1,6 @@
 import { module } from 'angular';
-import { INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider } from '../navigation/state.provider';
+import type { INestedState, StateConfigProvider } from '../navigation/state.provider';
+import { STATE_CONFIG_PROVIDER } from '../navigation/state.provider';
 
 export const STYLEGUIDE_STATES = 'spinnaker.core.styleguide.states';
 

@@ -1,4 +1,4 @@
-import { IUrlBuilder } from './UrlBuilder';
+import type { IUrlBuilder } from './UrlBuilder';
 
 export class UrlBuilderRegistry {
   private builders: { [key: string]: IUrlBuilder } = {};

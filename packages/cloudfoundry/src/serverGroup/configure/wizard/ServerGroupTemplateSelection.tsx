@@ -1,8 +1,9 @@
 import React from 'react';
 
-import { Application, DeployInitializer, ITemplateSelectionText } from '@spinnaker/core';
+import type { Application, ITemplateSelectionText } from '@spinnaker/core';
+import { DeployInitializer } from '@spinnaker/core';
 
-import { ICloudFoundryCreateServerGroupCommand } from '../serverGroupConfigurationModel.cf';
+import type { ICloudFoundryCreateServerGroupCommand } from '../serverGroupConfigurationModel.cf';
 
 export interface IServerGroupTemplateSelectionProps {
   app: Application;

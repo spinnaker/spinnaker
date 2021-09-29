@@ -2,9 +2,10 @@ import React from 'react';
 import { Modal } from 'react-bootstrap';
 
 import { PlatformHealthOverride } from '../application/modal/PlatformHealthOverride';
-import { IConfirmationModalPassthroughProps } from './confirmationModal.service';
+import type { IConfirmationModalPassthroughProps } from './confirmationModal.service';
 import { ModalClose } from '../modal';
-import { IModalComponentProps, Markdown, useEscapeKeyPressed } from '../presentation';
+import type { IModalComponentProps } from '../presentation';
+import { Markdown, useEscapeKeyPressed } from '../presentation';
 import { TaskMonitor, TaskMonitorWrapper, TaskReason, UserVerification } from '../task';
 import { MultiTaskMonitor } from '../task/monitor/MultiTaskMonitor';
 import { Spinner } from '../widgets/spinners/Spinner';

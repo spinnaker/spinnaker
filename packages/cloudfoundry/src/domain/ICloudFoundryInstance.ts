@@ -1,4 +1,4 @@
-import { IInstance } from '@spinnaker/core';
+import type { IInstance } from '@spinnaker/core';
 
 export interface ICloudFoundryInstance extends IInstance {
   details?: string;

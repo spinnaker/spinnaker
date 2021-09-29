@@ -1,9 +1,11 @@
-import { IComponentOptions, IController, module } from 'angular';
+import type { IComponentOptions, IController } from 'angular';
+import { module } from 'angular';
 import { uniq } from 'lodash';
 
-import { Application, AppListExtractor, StageConstants } from '@spinnaker/core';
+import type { Application } from '@spinnaker/core';
+import { AppListExtractor, StageConstants } from '@spinnaker/core';
 
-import { IAppengineAllocationDescription } from '../../transformer';
+import type { IAppengineAllocationDescription } from '../../transformer';
 
 class AppengineStageAllocationLabelCtrl implements IController {
   public inputViewValue: string;

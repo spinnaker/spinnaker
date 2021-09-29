@@ -1,10 +1,12 @@
 import { get, isEmpty } from 'lodash';
 import React from 'react';
 
-import { DeploymentMonitorReader, IDeploymentMonitorDefinition } from './DeploymentMonitorReader';
-import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
+import type { IDeploymentMonitorDefinition } from './DeploymentMonitorReader';
+import { DeploymentMonitorReader } from './DeploymentMonitorReader';
+import type { IExecutionDetailsSectionProps } from '../common';
+import { ExecutionDetailsSection } from '../common';
 import { StageFailureMessage } from '../../../details';
-import { IExecutionStage } from '../../../../domain';
+import type { IExecutionStage } from '../../../../domain';
 
 interface IAdditionalData {
   link: string;

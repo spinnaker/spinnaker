@@ -2,14 +2,8 @@ import React from 'react';
 
 import { Dropdown } from 'react-bootstrap';
 
-import {
-  Application,
-  ConfirmationModalService,
-  ILoadBalancer,
-  ILoadBalancerDeleteCommand,
-  LoadBalancerWriter,
-  ReactInjector,
-} from '@spinnaker/core';
+import type { Application, ILoadBalancer, ILoadBalancerDeleteCommand } from '@spinnaker/core';
+import { ConfirmationModalService, LoadBalancerWriter, ReactInjector } from '@spinnaker/core';
 
 export interface ICloudFoundryLoadBalancerActionsProps {
   application: Application;

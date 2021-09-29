@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 
-import { IExecution, IExecutionStageSummary } from '@spinnaker/core';
-import { Application } from '@spinnaker/core';
+import type { IExecution, IExecutionStageSummary } from '@spinnaker/core';
+import type { Application } from '@spinnaker/core';
 import { ExecutionBarLabel, HoverablePopover } from '@spinnaker/core';
 
 import { EvaluateCloudFormationChangeSetExecutionApproval } from './evaluateCloudFormationChangeSetExecutionApproval';

@@ -1,8 +1,8 @@
 import * as React from 'react';
 
 import { REST } from '../../../api';
-import { IDeploymentStrategyAdditionalFieldsProps } from '../../deploymentStrategy.registry';
-import { IServerGroup } from '../../../domain';
+import type { IDeploymentStrategyAdditionalFieldsProps } from '../../deploymentStrategy.registry';
+import type { IServerGroup } from '../../../domain';
 import { HealthCounts } from '../../../healthCounts';
 import { NameUtils } from '../../../naming';
 import { useData } from '../../../presentation';

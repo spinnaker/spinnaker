@@ -4,11 +4,10 @@
 import { sortBy } from 'lodash';
 import React from 'react';
 
+import type { ILoadBalancer, ILoadBalancersTagProps } from '@spinnaker/core';
 import {
   HealthCounts,
   HoverablePopover,
-  ILoadBalancer,
-  ILoadBalancersTagProps,
   LoadBalancerDataUtils,
   logger,
   ReactInjector,
@@ -17,7 +16,7 @@ import {
 } from '@spinnaker/core';
 
 import { AmazonLoadBalancerDataUtils } from './amazonLoadBalancerDataUtils';
-import { IAmazonServerGroup, ITargetGroup } from '../domain';
+import type { IAmazonServerGroup, ITargetGroup } from '../domain';
 
 interface ILoadBalancerListItemProps {
   loadBalancer: ILoadBalancer | ITargetGroup;

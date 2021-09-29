@@ -1,5 +1,6 @@
 /** based on http://jsfiddle.net/epinapala/WdeTM/4/ */
-import { IController, IScope, module } from 'angular';
+import type { IController, IScope } from 'angular';
+import { module } from 'angular';
 
 class DoubleClickController implements IController {
   public $element: JQuery;

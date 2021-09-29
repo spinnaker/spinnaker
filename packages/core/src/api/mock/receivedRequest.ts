@@ -1,5 +1,6 @@
-import { ExpectedRequest } from './expectedRequest';
-import { deferred, isSuccessStatus, tick, Verb } from './mockHttpUtils';
+import type { ExpectedRequest } from './expectedRequest';
+import type { Verb } from './mockHttpUtils';
+import { deferred, isSuccessStatus, tick } from './mockHttpUtils';
 
 export class ReceivedRequest {
   constructor(

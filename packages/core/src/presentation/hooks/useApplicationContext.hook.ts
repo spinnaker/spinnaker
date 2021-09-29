@@ -1,5 +1,5 @@
 import React from 'react';
-import { Application } from '../../application';
+import type { Application } from '../../application';
 import { ApplicationContext } from '../../application/ApplicationContext';
 
 export const useApplicationContext = (): Application | undefined => {

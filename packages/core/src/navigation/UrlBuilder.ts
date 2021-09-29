@@ -1,7 +1,7 @@
-import { StateService } from '@uirouter/core';
+import type { StateService } from '@uirouter/core';
 import { isDate, isObject, isUndefined } from 'lodash';
 
-import { ITask } from '../domain';
+import type { ITask } from '../domain';
 import { NameUtils } from '../naming';
 import { ReactInjector } from '../reactShims';
 import { Registry } from '../registry';

@@ -3,25 +3,19 @@ import SearchApi from 'js-worker-search';
 import { groupBy } from 'lodash';
 import { Debounce } from 'lodash-decorators';
 import { DateTime } from 'luxon';
-import React, { ReactNode } from 'react';
-import {
-  AutoSizer,
-  CellMeasurer,
-  CellMeasurerCache,
-  Column,
-  RowMouseEventHandlerParams,
-  SortDirection,
-  Table,
-  TableCellProps,
-  TableHeaderProps,
-} from 'react-virtualized';
+import type { ReactNode } from 'react';
+import React from 'react';
+import type { RowMouseEventHandlerParams, TableCellProps, TableHeaderProps } from 'react-virtualized';
+import { AutoSizer, CellMeasurer, CellMeasurerCache, Column, SortDirection, Table } from 'react-virtualized';
 import { forkJoin as observableForkJoin, from as observableFrom } from 'rxjs';
 
 import { PageButton } from './PageButton';
-import { ApplicationReader, IApplicationSummary } from '../application';
+import type { IApplicationSummary } from '../application';
+import { ApplicationReader } from '../application';
 import { SETTINGS } from '../config';
 import { Overridable } from '../overrideRegistry';
-import { IOnCall, IPagerDutyService, PagerDutyReader } from './pagerDuty.read.service';
+import type { IOnCall, IPagerDutyService } from './pagerDuty.read.service';
+import { PagerDutyReader } from './pagerDuty.read.service';
 import { Markdown } from '../presentation';
 import { ReactInjector } from '../reactShims';
 import { relativeTime } from '../utils/timeFormatters';

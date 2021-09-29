@@ -2,7 +2,7 @@ import { get } from 'lodash';
 import { Duration } from 'luxon';
 import React from 'react';
 
-import { IStage } from '../../../../domain';
+import type { IStage } from '../../../../domain';
 import { HelpField } from '../../../../help';
 import { CheckboxInput, NumberInput } from '../../../../presentation';
 

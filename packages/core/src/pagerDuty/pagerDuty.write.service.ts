@@ -1,6 +1,7 @@
-import { Application } from '../application';
+import type { Application } from '../application';
 import { ModalInjector } from '../reactShims';
-import { IJob, ITaskCommand, TaskExecutor } from '../task/taskExecutor';
+import type { IJob, ITaskCommand } from '../task/taskExecutor';
+import { TaskExecutor } from '../task/taskExecutor';
 
 export class PagerDutyWriter {
   public static pageApplicationOwnerModal(app: Application): void {

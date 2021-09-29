@@ -1,9 +1,9 @@
 import React from 'react';
-import { Option } from 'react-select';
+import type { Option } from 'react-select';
 import VirtualizedSelect from 'react-virtualized-select';
 
 import { ApplicationReader } from '../../application/service/ApplicationReader';
-import { IParameter, IPipeline } from '../../domain';
+import type { IParameter, IPipeline } from '../../domain';
 import { HelpField } from '../../help/HelpField';
 import { PipelineConfigService } from '../../pipeline/config/services/PipelineConfigService';
 import { Spinner } from '../../widgets';

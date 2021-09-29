@@ -1,11 +1,15 @@
 import { groupBy, reduce, trim, uniq } from 'lodash';
 import React from 'react';
-import Select, { Option } from 'react-select';
+import type { Option } from 'react-select';
+import Select from 'react-select';
 
-import { AccountService, HelpField, IAccount, IFindImageParams, Tooltip, ValidationMessage } from '@spinnaker/core';
+import type { IAccount, IFindImageParams } from '@spinnaker/core';
+import { AccountService, HelpField, Tooltip, ValidationMessage } from '@spinnaker/core';
 
-import { DockerImageReader, IDockerImage } from './DockerImageReader';
-import { DockerImageUtils, IDockerImageParts } from './DockerImageUtils';
+import type { IDockerImage } from './DockerImageReader';
+import { DockerImageReader } from './DockerImageReader';
+import type { IDockerImageParts } from './DockerImageUtils';
+import { DockerImageUtils } from './DockerImageUtils';
 
 export type IDockerLookupType = 'tag' | 'digest';
 

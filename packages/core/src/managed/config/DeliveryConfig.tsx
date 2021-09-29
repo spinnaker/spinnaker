@@ -1,11 +1,8 @@
 import React from 'react';
 
 import { RelativeTimestamp } from '../RelativeTimestamp';
-import {
-  FetchApplicationManagementDataDocument,
-  FetchApplicationManagementDataQueryVariables,
-  useImportDeliveryConfigMutation,
-} from '../graphql/graphql-sdk';
+import type { FetchApplicationManagementDataQueryVariables } from '../graphql/graphql-sdk';
+import { FetchApplicationManagementDataDocument, useImportDeliveryConfigMutation } from '../graphql/graphql-sdk';
 import { useApplicationContextSafe } from '../../presentation/hooks/useApplicationContext.hook';
 import { YamlViewer } from '../utils/YamlViewer';
 import { useLogEvent } from '../utils/logging';

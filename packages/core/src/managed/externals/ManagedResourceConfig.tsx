@@ -4,7 +4,7 @@ import classNames from 'classnames';
 import React from 'react';
 import { react2angular } from 'react2angular';
 
-import { Application } from '../../application';
+import type { Application } from '../../application';
 import { createApolloClient } from '../graphql/client';
 import {
   FetchApplicationManagementDataDocument,

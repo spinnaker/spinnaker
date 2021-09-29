@@ -1,4 +1,4 @@
-import { IFunctionSourceData } from '@spinnaker/core';
+import type { IFunctionSourceData } from '@spinnaker/core';
 
 export interface IAmazonFunctionSourceData extends IFunctionSourceData {
   account: string;

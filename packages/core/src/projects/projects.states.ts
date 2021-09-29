@@ -1,11 +1,13 @@
-import { StateParams } from '@uirouter/angularjs';
+import type { StateParams } from '@uirouter/angularjs';
 import { module } from 'angular';
 
 import { ProjectHeader } from './ProjectHeader';
-import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from '../application/application.state.provider';
+import type { ApplicationStateProvider } from '../application/application.state.provider';
+import { APPLICATION_STATE_PROVIDER } from '../application/application.state.provider';
 import { CORE_PROJECTS_DASHBOARD_DASHBOARD_CONTROLLER } from './dashboard/dashboard.controller';
-import { IProject } from '../domain/IProject';
-import { INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider } from '../navigation/state.provider';
+import type { IProject } from '../domain/IProject';
+import type { INestedState, StateConfigProvider } from '../navigation/state.provider';
+import { STATE_CONFIG_PROVIDER } from '../navigation/state.provider';
 import { CORE_PROJECTS_PROJECTS_CONTROLLER } from './projects.controller';
 import { ProjectReader } from './service/ProjectReader';
 

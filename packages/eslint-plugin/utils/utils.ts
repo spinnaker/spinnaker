@@ -1,5 +1,5 @@
-import { Rule, Scope } from 'eslint';
-import {
+import type { Rule, Scope } from 'eslint';
+import type {
   CallExpression,
   Expression,
   Identifier,

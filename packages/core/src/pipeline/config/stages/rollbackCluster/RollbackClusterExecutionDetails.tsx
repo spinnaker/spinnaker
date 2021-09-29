@@ -1,7 +1,8 @@
 import React from 'react';
 
 import { AccountTag } from '../../../../account';
-import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
+import type { IExecutionDetailsSectionProps } from '../common';
+import { ExecutionDetailsSection } from '../common';
 import { StageExecutionLogs, StageFailureMessage } from '../../../details';
 import { HelpField } from '../../../../help/HelpField';
 

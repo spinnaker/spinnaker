@@ -1,15 +1,15 @@
 import React from 'react';
 
+import type { ICapacity } from '@spinnaker/core';
 import {
   CapacityDetailsSection,
   CollapsibleSection,
-  ICapacity,
   Overridable,
   SETTINGS,
   ViewScalingActivitiesLink,
 } from '@spinnaker/core';
 
-import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
+import type { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
 import { AmazonResizeServerGroupModal } from '../resize/AmazonResizeServerGroupModal';
 
 @Overridable('amazon.serverGroup.CapacityDetailsSection')

@@ -1,10 +1,12 @@
 import { cloneDeep } from 'lodash';
 import React from 'react';
 
-import { FormikStageConfig, IFormikStageConfigInjectedProps } from '../FormikStageConfig';
+import type { IFormikStageConfigInjectedProps } from '../FormikStageConfig';
+import { FormikStageConfig } from '../FormikStageConfig';
 import { GoogleCloudBuildStageForm } from './GoogleCloudBuildStageForm';
-import { BuildDefinitionSource, IGoogleCloudBuildStage } from './IGoogleCloudBuildStage';
-import { IStageConfigProps } from '../common';
+import type { IGoogleCloudBuildStage } from './IGoogleCloudBuildStage';
+import { BuildDefinitionSource } from './IGoogleCloudBuildStage';
+import type { IStageConfigProps } from '../common';
 import { validate } from './googleCloudBuildValidators';
 
 export function GoogleCloudBuildStageConfig({ application, pipeline, stage, updateStage }: IStageConfigProps) {

@@ -2,14 +2,14 @@ import { has } from 'lodash';
 import React from 'react';
 
 import { ExecutionUserStatus } from './ExecutionUserStatus';
-import { IExecution } from '../../domain';
+import type { IExecution } from '../../domain';
 import { ExecutionBuildLink } from '../executionBuild/ExecutionBuildLink';
 import { buildDisplayName } from '../executionBuild/buildDisplayName.filter';
-import { ISortFilter } from '../../filterModel';
+import type { ISortFilter } from '../../filterModel';
 import { HoverablePopover } from '../../presentation';
 import { Registry } from '../../registry';
 import { SchedulerFactory } from '../../scheduler';
-import { IScheduler } from '../../scheduler/SchedulerFactory';
+import type { IScheduler } from '../../scheduler/SchedulerFactory';
 import { ExecutionState } from '../../state';
 import { relativeTime, timestamp } from '../../utils';
 

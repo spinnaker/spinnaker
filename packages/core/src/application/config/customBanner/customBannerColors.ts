@@ -1,4 +1,4 @@
-import { Option } from 'react-select';
+import type { Option } from 'react-select';
 
 export const bannerBackgroundColorOptions: Array<Option<string>> = [
   {

@@ -1,5 +1,6 @@
-import { IStageOrTriggerValidator, IValidatorConfig, PipelineConfigValidator } from './PipelineConfigValidator';
-import { ICluster, IPipeline, IStage, IStageOrTriggerTypeConfig } from '../../../domain';
+import type { IStageOrTriggerValidator, IValidatorConfig } from './PipelineConfigValidator';
+import { PipelineConfigValidator } from './PipelineConfigValidator';
+import type { ICluster, IPipeline, IStage, IStageOrTriggerTypeConfig } from '../../../domain';
 import { PipelineConfigService } from '../services/PipelineConfigService';
 
 export interface IImageProviderBeforeTypeValidationConfig extends IValidatorConfig {

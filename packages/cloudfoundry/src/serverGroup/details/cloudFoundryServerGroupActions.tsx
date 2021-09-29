@@ -2,13 +2,11 @@ import { filter, find, get, orderBy } from 'lodash';
 import React from 'react';
 import { Dropdown, Tooltip } from 'react-bootstrap';
 
+import type { IOwnerOption, IServerGroupActionsProps, IServerGroupJob } from '@spinnaker/core';
 import {
   AddEntityTagLinks,
   ClusterTargetBuilder,
   ConfirmationModalService,
-  IOwnerOption,
-  IServerGroupActionsProps,
-  IServerGroupJob,
   ReactInjector,
   ServerGroupWarningMessageService,
   SETTINGS,
@@ -16,7 +14,7 @@ import {
 
 import { CloudFoundryServerGroupCommandBuilder } from '../configure';
 import { CloudFoundryCreateServerGroupModal } from '../configure/wizard/CreateServerGroupModal';
-import { ICloudFoundryServerGroup } from '../../domain';
+import type { ICloudFoundryServerGroup } from '../../domain';
 import { CloudFoundryMapLoadBalancersModal } from './mapLoadBalancers/CloudFoundryMapLoadBalancersModal';
 import { CloudFoundryUnmapLoadBalancersModal } from './mapLoadBalancers/CloudFoundryUnmapLoadBalancersModal';
 import { CloudFoundryResizeServerGroupModal } from './resize/CloudFoundryResizeServerGroupModal';

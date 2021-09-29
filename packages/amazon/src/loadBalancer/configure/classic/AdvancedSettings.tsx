@@ -1,8 +1,8 @@
-import { FormikProps } from 'formik';
+import type { FormikProps } from 'formik';
 import React from 'react';
 
 import { FormikFormField, HelpField, NumberInput, Validators } from '@spinnaker/core';
-import { IAmazonClassicLoadBalancerUpsertCommand } from '../../../domain';
+import type { IAmazonClassicLoadBalancerUpsertCommand } from '../../../domain';
 
 import './AdvancedSettings.css';
 

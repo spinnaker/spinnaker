@@ -1,12 +1,15 @@
-import { IDeferred, IQService, module } from 'angular';
+import type { IDeferred, IQService } from 'angular';
+import { module } from 'angular';
 import { of as observableOf, Subject } from 'rxjs';
 import { switchMap, toArray } from 'rxjs/operators';
 
-import { PROVIDER_SERVICE_DELEGATE, ProviderServiceDelegate } from '../../cloudProvider';
+import type { ProviderServiceDelegate } from '../../cloudProvider';
+import { PROVIDER_SERVICE_DELEGATE } from '../../cloudProvider';
 
 import { InfrastructureSearchServiceV2 } from './infrastructureSearchV2.service';
-import { ISearchResult } from '../search.service';
-import { SearchResultType, searchResultTypeRegistry } from '../searchResult';
+import type { ISearchResult } from '../search.service';
+import type { SearchResultType } from '../searchResult';
+import { searchResultTypeRegistry } from '../searchResult';
 import { SearchStatus } from '../searchResult/SearchStatus';
 
 export interface ISearchResultSet<T extends ISearchResult = ISearchResult> {

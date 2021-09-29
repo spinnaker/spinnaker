@@ -1,9 +1,10 @@
 import { isEqual, keyBy } from 'lodash';
 import React from 'react';
-import { Option } from 'react-select';
+import type { Option } from 'react-select';
 
-import { IExecution, IPipeline, IStage } from '../../../../domain';
-import { FormField, IStageForSpelPreview, ReactSelectInput, useData } from '../../../../presentation';
+import type { IExecution, IPipeline, IStage } from '../../../../domain';
+import type { IStageForSpelPreview } from '../../../../presentation';
+import { FormField, ReactSelectInput, useData } from '../../../../presentation';
 import { ReactInjector } from '../../../../reactShims';
 import { ExecutionStatus } from '../../../status/ExecutionStatus';
 import { relativeTime, timestamp } from '../../../../utils';

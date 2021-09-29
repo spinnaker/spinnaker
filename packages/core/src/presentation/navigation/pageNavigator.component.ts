@@ -1,5 +1,6 @@
-import { StateParams, StateService } from '@uirouter/core';
-import { IController, module } from 'angular';
+import type { StateParams, StateService } from '@uirouter/core';
+import type { IController } from 'angular';
+import { module } from 'angular';
 import { isFunction, throttle } from 'lodash';
 
 import { PageNavigationState } from './PageNavigationState';

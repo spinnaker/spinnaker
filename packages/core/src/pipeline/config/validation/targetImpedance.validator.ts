@@ -1,5 +1,6 @@
-import { IStageOrTriggerValidator, IValidatorConfig, PipelineConfigValidator } from './PipelineConfigValidator';
-import { IPipeline, IStage, IStageOrTriggerTypeConfig } from '../../../domain';
+import type { IStageOrTriggerValidator, IValidatorConfig } from './PipelineConfigValidator';
+import { PipelineConfigValidator } from './PipelineConfigValidator';
+import type { IPipeline, IStage, IStageOrTriggerTypeConfig } from '../../../domain';
 import { NameUtils } from '../../../naming';
 import { PipelineConfigService } from '../services/PipelineConfigService';
 

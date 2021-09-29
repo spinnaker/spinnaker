@@ -2,11 +2,10 @@ import { module } from 'angular';
 import React from 'react';
 import { react2angular } from 'react2angular';
 
+import type { Application, IModalComponentProps } from '@spinnaker/core';
 import {
-  Application,
   ChecklistInput,
   FormikFormField,
-  IModalComponentProps,
   ReactModal,
   robotToHuman,
   TaskMonitorModal,
@@ -15,9 +14,9 @@ import {
 } from '@spinnaker/core';
 
 import { enabledProcesses } from './ServiceJobProcesses';
-import { ITitusServerGroup } from '../../../domain';
-import { ITitusServiceJobProcesses } from '../../../domain/ITitusServiceJobProcesses';
-import { ITitusServerGroupDetailsSectionProps } from '../sections/ITitusServerGroupDetailsSectionProps';
+import type { ITitusServerGroup } from '../../../domain';
+import type { ITitusServiceJobProcesses } from '../../../domain/ITitusServiceJobProcesses';
+import type { ITitusServerGroupDetailsSectionProps } from '../sections/ITitusServerGroupDetailsSectionProps';
 
 interface IEditTitusServiceJobProcessesValues {
   serviceJobProcesses: string[];

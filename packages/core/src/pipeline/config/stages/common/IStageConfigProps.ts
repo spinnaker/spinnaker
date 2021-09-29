@@ -1,5 +1,5 @@
-import { Application } from '../../../../application';
-import { IPipeline, IStage } from '../../../../domain';
+import type { Application } from '../../../../application';
+import type { IPipeline, IStage } from '../../../../domain';
 
 export interface IStageConfigProps {
   application: Application;

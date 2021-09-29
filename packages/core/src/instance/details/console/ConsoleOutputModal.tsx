@@ -1,8 +1,10 @@
 import * as React from 'react';
 
-import { IInstanceMultiOutputLog, InstanceReader } from '../../InstanceReader';
-import { IInstance } from '../../../domain';
-import { IModalComponentProps, ModalBody, ModalFooter, ModalHeader, useData } from '../../../presentation';
+import type { IInstanceMultiOutputLog } from '../../InstanceReader';
+import { InstanceReader } from '../../InstanceReader';
+import type { IInstance } from '../../../domain';
+import type { IModalComponentProps } from '../../../presentation';
+import { ModalBody, ModalFooter, ModalHeader, useData } from '../../../presentation';
 import { Spinner } from '../../../widgets';
 
 import './ConsoleOutputModal.less';

@@ -2,11 +2,9 @@ import { get, has } from 'lodash';
 import React from 'react';
 
 import { ArtifactIconList } from './ArtifactIconList';
-import { IExecution, IExpectedArtifact } from '../../domain';
-import {
-  ExecutionDetailsSection,
-  IExecutionDetailsSectionProps,
-} from '../../pipeline/config/stages/common/ExecutionDetailsSection';
+import type { IExecution, IExpectedArtifact } from '../../domain';
+import type { IExecutionDetailsSectionProps } from '../../pipeline/config/stages/common/ExecutionDetailsSection';
+import { ExecutionDetailsSection } from '../../pipeline/config/stages/common/ExecutionDetailsSection';
 import { Registry } from '../../registry';
 
 import '../artifactTab.less';

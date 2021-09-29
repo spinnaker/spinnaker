@@ -1,6 +1,6 @@
 import { cloneDeep } from 'lodash';
 
-import {
+import type {
   IScalingPolicy,
   IScalingPolicyAlarmView,
   IStepAdjustment,
@@ -9,7 +9,7 @@ import {
   IUpsertAlarmDescription,
   IUpsertScalingPolicyCommand,
 } from '@spinnaker/amazon';
-import { ITitusServerGroup } from '../../../../domain';
+import type { ITitusServerGroup } from '../../../../domain';
 
 type PolicyType = 'Step' | 'TargetTracking';
 

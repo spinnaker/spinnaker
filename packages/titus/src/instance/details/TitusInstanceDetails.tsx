@@ -1,22 +1,25 @@
 import * as React from 'react';
 
-import { IAmazonHealth, InstanceStatus } from '@spinnaker/amazon';
-import {
-  AccountService,
+import type { IAmazonHealth } from '@spinnaker/amazon';
+import { InstanceStatus } from '@spinnaker/amazon';
+import type {
   Action,
   Application,
-  CollapsibleSection,
-  ConsoleOutputLink,
   IAccountDetails,
   IInstanceDetailsProps,
   IMoniker,
+  IOverridableProps,
+} from '@spinnaker/core';
+import {
+  AccountService,
+  CollapsibleSection,
+  ConsoleOutputLink,
   InstanceActions,
   InstanceDetailsHeader,
   InstanceDetailsPane,
   InstanceInsights,
   InstanceLinks,
   InstanceReader,
-  IOverridableProps,
   overridableComponent,
   RecentHistoryService,
   SETTINGS,
@@ -26,7 +29,7 @@ import {
 
 import { TitusInstanceDns } from './TitusInstanceDns';
 import { TitusInstanceInformation } from './TitusInstanceInformation';
-import { ITitusInstance, ITitusServerGroup, ITitusServerGroupView } from '../../domain';
+import type { ITitusInstance, ITitusServerGroup, ITitusServerGroupView } from '../../domain';
 import { TitusSecurityGroupsDetailsSection } from '../../serverGroup/details/TitusSecurityGroups';
 import { buildTaskActions, extractHealthMetrics } from './titusInstanceDetailsUtils';
 

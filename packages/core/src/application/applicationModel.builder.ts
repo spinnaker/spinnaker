@@ -1,7 +1,7 @@
 import { Application } from './application.model';
-import { IServerGroup } from '../domain';
+import type { IServerGroup } from '../domain';
 import { SchedulerFactory } from '../scheduler/SchedulerFactory';
-import { IDataSourceConfig } from './service/applicationDataSource';
+import type { IDataSourceConfig } from './service/applicationDataSource';
 
 export class ApplicationModelBuilder {
   /** This is mostly used in tests */

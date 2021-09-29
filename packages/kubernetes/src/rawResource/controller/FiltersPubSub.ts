@@ -1,4 +1,4 @@
-import { IK8sResourcesFiltersState } from '../component/K8sResourcesFilters';
+import type { IK8sResourcesFiltersState } from '../component/K8sResourcesFilters';
 
 type ISubscriber = (message: IK8sResourcesFiltersState) => void;
 

@@ -1,4 +1,4 @@
-import { INotification } from '@spinnaker/core';
+import type { INotification } from '@spinnaker/core';
 
 export const mockPipelineNotification: INotification = {
   level: 'pipline',

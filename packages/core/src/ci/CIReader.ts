@@ -1,5 +1,5 @@
 import { REST } from '../api';
-import { ICiBuild, ICiBuildAPI, ICiBuildOutputConfig } from './domain';
+import type { ICiBuild, ICiBuildAPI, ICiBuildOutputConfig } from './domain';
 import { OrchestratedItemTransformer } from '../orchestratedItem';
 
 function transformResultStatus(result: string): string {

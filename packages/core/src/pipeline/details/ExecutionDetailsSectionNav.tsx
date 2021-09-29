@@ -1,5 +1,5 @@
 import React from 'react';
-import { Subscription } from 'rxjs';
+import type { Subscription } from 'rxjs';
 
 import { robotToHuman } from '../../presentation/robotToHumanFilter/robotToHuman.filter';
 import { ReactInjector } from '../../reactShims';

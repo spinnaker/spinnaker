@@ -2,7 +2,7 @@ import { UISref } from '@uirouter/react';
 import React from 'react';
 
 import { SearchResult } from '../infrastructure/SearchResult';
-import { ISearchResultPodData } from '../infrastructure/SearchResultPods';
+import type { ISearchResultPodData } from '../infrastructure/SearchResultPods';
 
 export interface IGlobalSearchRecentItemsProps {
   categories: ISearchResultPodData[];

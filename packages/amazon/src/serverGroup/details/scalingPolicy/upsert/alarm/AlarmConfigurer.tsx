@@ -1,10 +1,11 @@
 import * as React from 'react';
 
-import { ICloudMetricStatistics, NumberInput, ReactSelectInput, usePrevious } from '@spinnaker/core';
+import type { ICloudMetricStatistics } from '@spinnaker/core';
+import { NumberInput, ReactSelectInput, usePrevious } from '@spinnaker/core';
 
 import { MetricSelector } from './MetricSelector';
 import { MetricAlarmChart } from '../../chart/MetricAlarmChart';
-import { IAmazonServerGroup, IScalingPolicyAlarm, IStepAdjustment } from '../../../../../domain';
+import type { IAmazonServerGroup, IScalingPolicyAlarm, IStepAdjustment } from '../../../../../domain';
 
 import './AlarmConfigurer.less';
 

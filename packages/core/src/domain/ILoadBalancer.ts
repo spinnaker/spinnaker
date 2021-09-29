@@ -1,9 +1,9 @@
-import { IInstance } from './IInstance';
-import { IInstanceCounts } from './IInstanceCounts';
-import { IManagedResource } from './IManagedEntity';
-import { IServerGroup } from './IServerGroup';
-import { ITaggedEntity } from './ITaggedEntity';
-import { IMoniker } from '../naming';
+import type { IInstance } from './IInstance';
+import type { IInstanceCounts } from './IInstanceCounts';
+import type { IManagedResource } from './IManagedEntity';
+import type { IServerGroup } from './IServerGroup';
+import type { ITaggedEntity } from './ITaggedEntity';
+import type { IMoniker } from '../naming';
 
 export interface ILoadBalancerSourceData {
   cloudProvider?: string;

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { IScalingPolicyAlarmView } from '../../../../domain';
+import type { IScalingPolicyAlarmView } from '../../../../domain';
 
 export interface IAlarmSummaryProps {
   alarm: IScalingPolicyAlarmView;

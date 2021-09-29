@@ -2,7 +2,8 @@ import { load } from 'js-yaml';
 import { cloneDeep, has } from 'lodash';
 import { $q } from 'ngimport';
 
-import { AccountService, Application, IAccountDetails, IArtifactAccount, IMoniker } from '@spinnaker/core';
+import type { Application, IAccountDetails, IArtifactAccount, IMoniker } from '@spinnaker/core';
+import { AccountService } from '@spinnaker/core';
 
 import { ManifestSource } from './ManifestSource';
 

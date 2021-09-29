@@ -1,12 +1,13 @@
 import { module } from 'angular';
-import { Application } from '../application/application.model';
+import type { Application } from '../application/application.model';
 import { INFRASTRUCTURE_KEY } from '../application/nav/defaultCategories';
 import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
-import { ISecurityGroup } from '../domain';
+import type { ISecurityGroup } from '../domain';
 import { EntityTagsReader } from '../entityTag/EntityTagsReader';
 import { addManagedResourceMetadataToSecurityGroups } from '../managed';
 
-import { SECURITY_GROUP_READER, SecurityGroupReader } from './securityGroupReader.service';
+import type { SecurityGroupReader } from './securityGroupReader.service';
+import { SECURITY_GROUP_READER } from './securityGroupReader.service';
 
 export const SECURITY_GROUP_DATA_SOURCE = 'spinnaker.core.securityGroup.dataSource';
 module(SECURITY_GROUP_DATA_SOURCE, [SECURITY_GROUP_READER]).run([

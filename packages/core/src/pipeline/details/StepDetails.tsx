@@ -1,8 +1,8 @@
 import React from 'react';
 
-import { Application } from '../../application';
+import type { Application } from '../../application';
 import { StepExecutionDetails } from '../config/stages/common/StepExecutionDetails';
-import { IExecution, IExecutionDetailsSection, IExecutionStage, IStageTypeConfig } from '../../domain';
+import type { IExecution, IExecutionDetailsSection, IExecutionStage, IStageTypeConfig } from '../../domain';
 import { robotToHuman } from '../../presentation/robotToHumanFilter/robotToHuman.filter';
 import { NgReact } from '../../reactShims';
 import { StatusGlyph } from '../../task/StatusGlyph';

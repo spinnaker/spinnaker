@@ -2,15 +2,8 @@ import { module } from 'angular';
 import React, { useState } from 'react';
 import { react2angular } from 'react2angular';
 
-import {
-  CheckboxInput,
-  IStage,
-  IStageConfigProps,
-  ReactSelectInput,
-  StageConfigField,
-  TextInput,
-  withErrorBoundary,
-} from '@spinnaker/core';
+import type { IStage, IStageConfigProps } from '@spinnaker/core';
+import { CheckboxInput, ReactSelectInput, StageConfigField, TextInput, withErrorBoundary } from '@spinnaker/core';
 
 export interface ICloudFormationChangeSetInfoProps {
   stage: IStage[];

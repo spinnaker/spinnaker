@@ -1,6 +1,7 @@
 import { module } from 'angular';
 
-import { IStage, Registry } from '@spinnaker/core';
+import type { IStage } from '@spinnaker/core';
+import { Registry } from '@spinnaker/core';
 
 import { KubernetesV2UndoRolloutManifestConfigCtrl } from './undoRolloutManifestConfig.controller';
 

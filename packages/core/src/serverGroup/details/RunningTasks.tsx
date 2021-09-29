@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { Application } from '../../application/application.model';
-import { IExecution, IServerGroup, ITask } from '../../domain';
+import type { Application } from '../../application/application.model';
+import type { IExecution, IServerGroup, ITask } from '../../domain';
 import { CollapsibleSection, robotToHuman } from '../../presentation';
 import { PlatformHealthOverrideMessage } from '../../task/PlatformHealthOverrideMessage';
 import { StatusGlyph } from '../../task/StatusGlyph';

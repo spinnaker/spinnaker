@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import React from 'react';
 import { SortableHandle } from 'react-sortable-hoc';
 
-import { IParameter } from '../../../domain';
+import type { IParameter } from '../../../domain';
 import { HelpField } from '../../../help';
 import { Tooltip } from '../../../presentation';
 

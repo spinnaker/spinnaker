@@ -1,6 +1,7 @@
-import { IComponentOptions, IController, module } from 'angular';
+import type { IComponentOptions, IController } from 'angular';
+import { module } from 'angular';
 
-import { IDeleteOptions } from './delete.controller';
+import type { IDeleteOptions } from './delete.controller';
 
 class KubernetesDeleteManifestOptionsFormCtrl implements IController {
   public options: IDeleteOptions;

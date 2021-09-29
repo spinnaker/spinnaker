@@ -1,7 +1,7 @@
 import { groupBy, sortBy } from 'lodash';
 
 import { AccountService, CertificateReader } from '@spinnaker/core';
-import { IAmazonCertificate } from '../domain';
+import type { IAmazonCertificate } from '../domain';
 
 export class AmazonCertificateReader {
   public static listCertificates(): PromiseLike<{ [accountId: string]: IAmazonCertificate[] }> {

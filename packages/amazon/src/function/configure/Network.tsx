@@ -1,26 +1,28 @@
-import { FormikErrors, FormikProps } from 'formik';
+import type { FormikErrors, FormikProps } from 'formik';
 import { forOwn, uniqBy } from 'lodash';
 import React from 'react';
-import { Option } from 'react-select';
+import type { Option } from 'react-select';
 import { combineLatest as observableCombineLatest, from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import {
+import type {
   Application,
-  FormikFormField,
-  HelpField,
   IAccount,
   IRegion,
   ISecurityGroupsByAccountSourceData,
   ISubnet,
   IVpc,
   IWizardPageComponent,
+} from '@spinnaker/core';
+import {
+  FormikFormField,
+  HelpField,
   ReactInjector,
   ReactSelectInput,
   SubnetReader,
   TetheredSelect,
 } from '@spinnaker/core';
-import { IAmazonFunctionUpsertCommand } from '../../index';
+import type { IAmazonFunctionUpsertCommand } from '../../index';
 import { VpcReader } from '../../vpc';
 
 export interface ISubnetOption {

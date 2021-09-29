@@ -1,12 +1,16 @@
-import { ILogService, module, toJson } from 'angular';
+import type { ILogService } from 'angular';
+import { module, toJson } from 'angular';
 import { cloneDeep, uniq } from 'lodash';
 
-import { AccountService, IAccountDetails, IAggregatedAccounts, IRegion } from '../../../account/AccountService';
-import { Application } from '../../application.model';
-import { ClusterMatcher, IClusterMatchRule } from '../../../cluster/ClusterRuleMatcher';
-import { IConfigSectionFooterViewState } from '../footer/configSectionFooter.component';
+import type { IAccountDetails, IAggregatedAccounts, IRegion } from '../../../account/AccountService';
+import { AccountService } from '../../../account/AccountService';
+import type { Application } from '../../application.model';
+import type { IClusterMatchRule } from '../../../cluster/ClusterRuleMatcher';
+import { ClusterMatcher } from '../../../cluster/ClusterRuleMatcher';
+import type { IConfigSectionFooterViewState } from '../footer/configSectionFooter.component';
 import './trafficGuardConfig.help';
-import { CLUSTER_MATCHES_COMPONENT, IClusterMatch } from '../../../widgets/cluster/clusterMatches.component';
+import type { IClusterMatch } from '../../../widgets/cluster/clusterMatches.component';
+import { CLUSTER_MATCHES_COMPONENT } from '../../../widgets/cluster/clusterMatches.component';
 
 export interface ITrafficGuardRule extends IClusterMatchRule {
   enabled: boolean;

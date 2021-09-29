@@ -1,7 +1,8 @@
 import { set } from 'lodash';
 import React from 'react';
 
-import { HelpField, IDeploymentStrategyAdditionalFieldsProps, IServerGroupCommand } from '@spinnaker/core';
+import type { IDeploymentStrategyAdditionalFieldsProps, IServerGroupCommand } from '@spinnaker/core';
+import { HelpField } from '@spinnaker/core';
 
 export interface IRollingRedBlackCommand extends IServerGroupCommand {
   targetPercentages: number[];

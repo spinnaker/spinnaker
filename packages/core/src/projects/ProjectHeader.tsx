@@ -1,4 +1,4 @@
-import { Transition } from '@uirouter/core';
+import type { Transition } from '@uirouter/core';
 import { UISref, UIView } from '@uirouter/react';
 import '@uirouter/rx';
 import React from 'react';
@@ -7,7 +7,7 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import { ConfigureProjectModal } from './configure/ConfigureProjectModal';
-import { IProject } from '../domain';
+import type { IProject } from '../domain';
 import { Overridable } from '../overrideRegistry';
 import { SpanDropdownTrigger } from '../presentation';
 import { ReactInjector } from '../reactShims';

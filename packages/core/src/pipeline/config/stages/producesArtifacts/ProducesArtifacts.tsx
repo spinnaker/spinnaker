@@ -3,7 +3,7 @@ import React from 'react';
 import { react2angular } from 'react2angular';
 
 import { ArtifactTypePatterns, ExpectedArtifactModal } from '../../../../artifact';
-import { IExpectedArtifact, IPipeline, IStage } from '../../../../domain';
+import type { IExpectedArtifact, IPipeline, IStage } from '../../../../domain';
 import { withErrorBoundary } from '../../../../presentation/SpinErrorBoundary';
 
 export interface IProducesArtifactsProps {

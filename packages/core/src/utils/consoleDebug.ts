@@ -1,7 +1,7 @@
 import { module } from 'angular';
 
 import { REST } from '../api';
-import { Application } from '../application';
+import type { Application } from '../application';
 
 import IInjectorService = angular.auto.IInjectorService;
 

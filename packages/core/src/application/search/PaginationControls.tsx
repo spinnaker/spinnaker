@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pagination, SelectCallback } from 'react-bootstrap';
+import type { SelectCallback } from 'react-bootstrap';
+import { Pagination } from 'react-bootstrap';
 import { createUltimatePagination, ITEM_TYPES } from 'react-ultimate-pagination';
 export interface IPaginationControlsProps {
   onPageChanged: SelectCallback;

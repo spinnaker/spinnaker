@@ -1,4 +1,4 @@
-import { IPipeline, IPipelineLock } from '@spinnaker/core';
+import type { IPipeline, IPipelineLock } from '@spinnaker/core';
 import { mockPipelineNotification } from './mockNotification';
 import { mockDeployStage, mockImageFindStage, mockWaitStage } from './mockStage';
 import { mockBuildTrigger } from './mockTrigger';

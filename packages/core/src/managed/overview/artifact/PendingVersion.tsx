@@ -3,10 +3,11 @@ import React from 'react';
 
 import { Constraints } from './Constraints';
 import { GitLink } from './GitLink';
-import { QueryArtifact, QueryArtifactVersion } from '../types';
+import type { QueryArtifact, QueryArtifactVersion } from '../types';
 import { useCreateVersionActions } from './utils';
 import { useLogEvent } from '../../utils/logging';
-import { toPinnedMetadata, VersionMessageData } from '../../versionMetadata/MetadataComponents';
+import type { VersionMessageData } from '../../versionMetadata/MetadataComponents';
+import { toPinnedMetadata } from '../../versionMetadata/MetadataComponents';
 import { getBaseMetadata, VersionMetadata } from '../../versionMetadata/VersionMetadata';
 
 export interface IPendingVersionsProps {

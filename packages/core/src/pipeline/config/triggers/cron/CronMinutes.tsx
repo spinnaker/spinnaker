@@ -1,7 +1,8 @@
 import React from 'react';
-import Select, { Option } from 'react-select';
+import type { Option } from 'react-select';
+import Select from 'react-select';
 
-import { ICronTriggerConfigProps } from './cronConfig';
+import type { ICronTriggerConfigProps } from './cronConfig';
 
 export interface ICronMinutesState {
   minutes?: string;

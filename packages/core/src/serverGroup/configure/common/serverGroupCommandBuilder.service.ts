@@ -1,15 +1,23 @@
 import { module } from 'angular';
-import { IAggregatedAccounts, IRegion } from '../../../account/AccountService';
-import { Application } from '../../../application/application.model';
-import { PROVIDER_SERVICE_DELEGATE, ProviderServiceDelegate } from '../../../cloudProvider';
-import { IDeploymentStrategy } from '../../../deploymentStrategy';
-import { ILoadBalancer, IManagedResourceSummary, IPipeline, ISecurityGroup, IStage, ISubnet } from '../../../domain';
-import { IPreferredInstanceType } from '../../../instance';
+import type { IAggregatedAccounts, IRegion } from '../../../account/AccountService';
+import type { Application } from '../../../application/application.model';
+import type { ProviderServiceDelegate } from '../../../cloudProvider';
+import { PROVIDER_SERVICE_DELEGATE } from '../../../cloudProvider';
+import type { IDeploymentStrategy } from '../../../deploymentStrategy';
+import type {
+  ILoadBalancer,
+  IManagedResourceSummary,
+  IPipeline,
+  ISecurityGroup,
+  IStage,
+  ISubnet,
+} from '../../../domain';
+import type { IPreferredInstanceType } from '../../../instance';
 import { getKindName } from '../../../managed';
-import { IMoniker } from '../../../naming/IMoniker';
-import { ISecurityGroupsByAccountSourceData } from '../../../securityGroup/securityGroupReader.service';
+import type { IMoniker } from '../../../naming/IMoniker';
+import type { ISecurityGroupsByAccountSourceData } from '../../../securityGroup/securityGroupReader.service';
 
-import { ICapacity } from '../../serverGroupWriter.service';
+import type { ICapacity } from '../../serverGroupWriter.service';
 
 export interface IServerGroupCommandBuilderOptions {
   account: string;

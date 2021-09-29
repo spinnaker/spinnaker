@@ -1,11 +1,13 @@
-import { StateParams } from '@uirouter/angularjs';
+import type { StateParams } from '@uirouter/angularjs';
 import { module } from 'angular';
 
-import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from '../application/application.state.provider';
+import type { ApplicationStateProvider } from '../application/application.state.provider';
+import { APPLICATION_STATE_PROVIDER } from '../application/application.state.provider';
 import { filterModelConfig } from '../cluster/filter/ClusterFilterModel';
 import { ClusterFilters } from '../cluster/filter/ClusterFilters';
 import { ServerGroupDetailsWrapper } from './details/ServerGroupDetailsWrapper';
-import { INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider } from '../navigation/state.provider';
+import type { INestedState, StateConfigProvider } from '../navigation/state.provider';
+import { STATE_CONFIG_PROVIDER } from '../navigation/state.provider';
 
 export const SERVER_GROUP_STATES = 'spinnaker.core.serverGroup.states';
 module(SERVER_GROUP_STATES, [APPLICATION_STATE_PROVIDER, STATE_CONFIG_PROVIDER]).config([

@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { IPlacementStrategy } from './IPlacementStrategy';
+import type { IPlacementStrategy } from './IPlacementStrategy';
 
 export class PlacementStrategyService {
   public getPredefinedStrategy(strategyName: string): IPlacementStrategy[] {

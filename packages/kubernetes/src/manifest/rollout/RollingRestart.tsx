@@ -2,9 +2,10 @@ import { module } from 'angular';
 import React from 'react';
 import { react2angular } from 'react2angular';
 
-import { Application, ConfirmationModalService, ManifestWriter, withErrorBoundary } from '@spinnaker/core';
+import type { Application } from '@spinnaker/core';
+import { ConfirmationModalService, ManifestWriter, withErrorBoundary } from '@spinnaker/core';
 
-import { IKubernetesServerGroupManager } from '../../interfaces';
+import type { IKubernetesServerGroupManager } from '../../interfaces';
 
 interface IRollingRestartProps {
   application: Application;

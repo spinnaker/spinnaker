@@ -1,16 +1,16 @@
 import { groupBy, sortBy } from 'lodash';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
-import { Option } from 'react-select';
+import type { Option } from 'react-select';
 
 import { AccountTag } from '../../../account';
-import { Application } from '../../../application';
-import { IDeployTemplate, ITemplateSelectionText } from './deployInitializer.component';
-import { IServerGroup } from '../../../domain';
+import type { Application } from '../../../application';
+import type { IDeployTemplate, ITemplateSelectionText } from './deployInitializer.component';
+import type { IServerGroup } from '../../../domain';
 import { ModalClose } from '../../../modal';
 import { TetheredSelect } from '../../../presentation/TetheredSelect';
 import { ReactInjector } from '../../../reactShims';
-import { IServerGroupCommand } from './serverGroupCommandBuilder.service';
+import type { IServerGroupCommand } from './serverGroupCommandBuilder.service';
 import { ServerGroupReader } from '../../serverGroupReader.service';
 
 export interface IDeployInitializerProps {

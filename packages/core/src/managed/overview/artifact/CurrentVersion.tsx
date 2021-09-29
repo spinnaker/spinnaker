@@ -1,11 +1,12 @@
 import React from 'react';
 
-import { ArtifactVersionTasks, ITaskArtifactVersionProps } from './ArtifactVersionTasks';
+import type { ITaskArtifactVersionProps } from './ArtifactVersionTasks';
+import { ArtifactVersionTasks } from './ArtifactVersionTasks';
 import { Constraints } from './Constraints';
 import { GitLink } from './GitLink';
-import { QueryArtifactVersion } from '../types';
+import type { QueryArtifactVersion } from '../types';
 import { useCreateVersionActions } from './utils';
-import { VersionMessageData } from '../../versionMetadata/MetadataComponents';
+import type { VersionMessageData } from '../../versionMetadata/MetadataComponents';
 import { getBaseMetadata, VersionMetadata } from '../../versionMetadata/VersionMetadata';
 
 interface ICurrentVersionProps {

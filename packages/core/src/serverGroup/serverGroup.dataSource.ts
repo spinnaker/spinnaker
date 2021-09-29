@@ -1,10 +1,12 @@
-import { IQService, module } from 'angular';
+import type { IQService } from 'angular';
+import { module } from 'angular';
 
-import { Application } from '../application/application.model';
+import type { Application } from '../application/application.model';
 import { INFRASTRUCTURE_KEY } from '../application/nav/defaultCategories';
 import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
-import { CLUSTER_SERVICE, ClusterService } from '../cluster/cluster.service';
-import { IServerGroup } from '../domain';
+import type { ClusterService } from '../cluster/cluster.service';
+import { CLUSTER_SERVICE } from '../cluster/cluster.service';
+import type { IServerGroup } from '../domain';
 import { EntityTagsReader } from '../entityTag/EntityTagsReader';
 import { addManagedResourceMetadataToServerGroups } from '../managed';
 import { JsonUtils } from '../utils';

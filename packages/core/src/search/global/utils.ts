@@ -1,7 +1,7 @@
-import { IApplicationSearchResult } from '../../application/applicationSearchResultType';
+import type { IApplicationSearchResult } from '../../application/applicationSearchResultType';
 import { SETTINGS } from '../../config/settings';
 
-import { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
+import type { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
 
 export const findMatchingApplicationResultToQuery = (categories: ISearchResultSet[] | undefined, query: string) => {
   if (!categories) {

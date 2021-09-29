@@ -1,7 +1,8 @@
-import { IController, module } from 'angular';
-import { IModalInstanceService } from 'angular-ui-bootstrap';
+import type { IController } from 'angular';
+import { module } from 'angular';
+import type { IModalInstanceService } from 'angular-ui-bootstrap';
 
-import { Application } from '../application';
+import type { Application } from '../application';
 import { PagerDutyWriter } from './pagerDuty.write.service';
 import { TaskMonitor } from '../task/monitor/TaskMonitor';
 

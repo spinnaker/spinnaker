@@ -1,7 +1,8 @@
 import { capitalize, get } from 'lodash';
 import React from 'react';
 
-import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
+import type { IExecutionDetailsSectionProps } from '../common';
+import { ExecutionDetailsSection } from '../common';
 
 export class GoogleCloudBuildExecutionDetails extends React.Component<IExecutionDetailsSectionProps> {
   public static title = 'googleCloudBuildStatus';

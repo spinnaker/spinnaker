@@ -5,7 +5,7 @@ import React from 'react';
 
 import { CollapsibleSection, FirewallLabels } from '@spinnaker/core';
 
-import { IAmazonInstance } from '../../domain';
+import type { IAmazonInstance } from '../../domain';
 
 export interface IInstanceSecurityGroupsProps {
   instance: IAmazonInstance;

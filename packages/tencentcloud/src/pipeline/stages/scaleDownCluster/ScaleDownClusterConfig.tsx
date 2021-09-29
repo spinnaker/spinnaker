@@ -1,7 +1,8 @@
 import { cloneDeep } from 'lodash';
 import React from 'react';
 
-import { FormikStageConfig, IStageConfigProps } from '@spinnaker/core';
+import type { IStageConfigProps } from '@spinnaker/core';
+import { FormikStageConfig } from '@spinnaker/core';
 
 import { ScaleDownClusterStageForm } from './ScaleDownClusterStageForm';
 

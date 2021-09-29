@@ -1,27 +1,17 @@
 import { get } from 'lodash';
 import React from 'react';
 
-import {
-  Application,
-  IModalComponentProps,
-  IPipeline,
-  IStage,
-  noop,
-  ReactInjector,
-  ReactModal,
-  TaskMonitor,
-  WizardModal,
-  WizardPage,
-} from '@spinnaker/core';
+import type { Application, IModalComponentProps, IPipeline, IStage } from '@spinnaker/core';
+import { noop, ReactInjector, ReactModal, TaskMonitor, WizardModal, WizardPage } from '@spinnaker/core';
 
 import { ServerGroupTemplateSelection } from './ServerGroupTemplateSelection';
-import { ICloudFoundryServerGroup } from '../../../domain';
+import type { ICloudFoundryServerGroup } from '../../../domain';
 import { CloudFoundryServerGroupArtifactSettings } from './sections/artifactSettings/ArtifactSettings.cf';
 import { CloudFoundryServerGroupConstantArtifactSettings } from './sections/artifactSettings/ConstantArtifactSettings.cf';
 import { CloudFoundryServerGroupBasicSettings } from './sections/basicSettings/BasicSettings.cf';
 import { CloudFoundryServerGroupCloneSettings } from './sections/cloneSettings/CloneSettings.cf';
 import { CloudFoundryServerGroupConfigurationSettings } from './sections/configurationSettings/ConfigurationSettings.cf';
-import { ICloudFoundryCreateServerGroupCommand } from '../serverGroupConfigurationModel.cf';
+import type { ICloudFoundryCreateServerGroupCommand } from '../serverGroupConfigurationModel.cf';
 
 import './serverGroup.less';
 

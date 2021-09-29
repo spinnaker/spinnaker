@@ -2,9 +2,9 @@ import { get } from 'lodash';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 
-import { IPipeline } from '../../../../domain';
+import type { IPipeline } from '../../../../domain';
 import { ModalClose } from '../../../../modal';
-import { IModalComponentProps } from '../../../../presentation';
+import type { IModalComponentProps } from '../../../../presentation';
 
 import { PipelineConfigService } from '../../services/PipelineConfigService';
 

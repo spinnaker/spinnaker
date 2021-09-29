@@ -2,13 +2,8 @@ import { get, trim } from 'lodash';
 import { DateTime } from 'luxon';
 import React from 'react';
 
-import {
-  IManifest,
-  IManifestEvent,
-  JobEventBasedPodNameProvider,
-  JobManifestPodLogs,
-  relativeTime,
-} from '@spinnaker/core';
+import type { IManifest, IManifestEvent } from '@spinnaker/core';
+import { JobEventBasedPodNameProvider, JobManifestPodLogs, relativeTime } from '@spinnaker/core';
 
 export interface IManifestEventsProps {
   manifest: IManifest;

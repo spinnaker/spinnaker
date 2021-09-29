@@ -1,14 +1,15 @@
 import { capitalize, get } from 'lodash';
 import { $q } from 'ngimport';
 import React from 'react';
-import { Option } from 'react-select';
+import type { Option } from 'react-select';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import { BuildServiceType, IgorService } from '../../../../ci';
-import { IBuild, IBuildInfo, IBuildTrigger, IPipelineCommand } from '../../../../domain';
+import type { BuildServiceType } from '../../../../ci';
+import { IgorService } from '../../../../ci';
+import type { IBuild, IBuildInfo, IBuildTrigger, IPipelineCommand } from '../../../../domain';
 import { buildDisplayName } from '../../../executionBuild/buildDisplayName.filter';
-import { ITriggerTemplateComponentProps } from '../../../manualExecution/TriggerTemplate';
+import type { ITriggerTemplateComponentProps } from '../../../manualExecution/TriggerTemplate';
 import { TextInput } from '../../../../presentation';
 import { TetheredSelect } from '../../../../presentation/TetheredSelect';
 import { timestamp } from '../../../../utils/timeFormatters';

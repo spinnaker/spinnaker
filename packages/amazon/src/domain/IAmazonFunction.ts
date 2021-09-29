@@ -1,4 +1,4 @@
-import { IFunction, IFunctionDeleteCommand, IFunctionUpsertCommand } from '@spinnaker/core';
+import type { IFunction, IFunctionDeleteCommand, IFunctionUpsertCommand } from '@spinnaker/core';
 
 export interface IAmazonFunction extends IFunction {
   credentials?: string;

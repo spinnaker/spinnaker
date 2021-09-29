@@ -1,6 +1,7 @@
 import { module } from 'angular';
 
-import { ArtifactReferenceService, ExpectedArtifactService, IStage, Registry } from '@spinnaker/core';
+import type { IStage } from '@spinnaker/core';
+import { ArtifactReferenceService, ExpectedArtifactService, Registry } from '@spinnaker/core';
 
 import { DeployExecutionDetails } from './deployCloudFormationExecutionDetails';
 import { DeployCloudFormationStackConfigController } from './deployCloudFormationStackConfig.controller';

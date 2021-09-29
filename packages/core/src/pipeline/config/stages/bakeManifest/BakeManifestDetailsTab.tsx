@@ -1,8 +1,9 @@
 import React from 'react';
 
-import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
+import type { IExecutionDetailsSectionProps } from '../common';
+import { ExecutionDetailsSection } from '../common';
 import { StageFailureMessage } from '../../../details';
-import { IArtifact } from '../../../../domain';
+import type { IArtifact } from '../../../../domain';
 import { ManifestYaml } from '../../../../manifest';
 import { Overridable } from '../../../../overrideRegistry';
 import { decodeUnicodeBase64 } from '../../../../utils';

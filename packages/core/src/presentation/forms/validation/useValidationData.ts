@@ -1,7 +1,8 @@
 import { isString } from 'lodash';
 import React from 'react';
 
-import { categorizeValidationMessage, IValidationCategory } from './categories';
+import type { IValidationCategory } from './categories';
+import { categorizeValidationMessage } from './categories';
 
 export interface IValidationData {
   category: IValidationCategory | undefined;

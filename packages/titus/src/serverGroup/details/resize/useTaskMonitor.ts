@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { ITaskMonitorConfig, TaskMonitor } from '@spinnaker/core';
+import type { ITaskMonitorConfig } from '@spinnaker/core';
+import { TaskMonitor } from '@spinnaker/core';
 
 /**
  * React hook that returns a TaskMonitor

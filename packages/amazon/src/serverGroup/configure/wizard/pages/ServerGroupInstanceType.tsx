@@ -1,11 +1,12 @@
-import { FormikErrors, FormikProps } from 'formik';
+import type { FormikErrors, FormikProps } from 'formik';
 import React from 'react';
 
-import { IWizardPageComponent, NgReact } from '@spinnaker/core';
+import type { IWizardPageComponent } from '@spinnaker/core';
+import { NgReact } from '@spinnaker/core';
 import { AWSProviderSettings } from '../../../../aws.settings';
 
 import { CpuCreditsToggle } from '../instanceType/CpuCreditsToggle';
-import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
+import type { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
 
 export interface IServerGroupInstanceTypeProps {
   formik: FormikProps<IAmazonServerGroupCommand>;

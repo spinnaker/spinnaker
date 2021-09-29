@@ -2,7 +2,7 @@ import { kebabCase } from 'lodash';
 import React from 'react';
 
 import { SearchStatus } from './SearchStatus';
-import { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
+import type { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
 import { Spinner } from '../../widgets';
 
 export interface ISearchResultGridProps {

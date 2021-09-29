@@ -1,6 +1,6 @@
 import { cloneDeep } from 'lodash';
 
-import { IconNames } from '../../presentation';
+import type { IconNames } from '../../presentation';
 
 export interface INavigationCategory {
   key: string;

@@ -2,16 +2,8 @@ import React from 'react';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import {
-  AccountService,
-  IAccount,
-  IStageConfigProps,
-  NgReact,
-  SpelText,
-  StageConfigField,
-  StageConstants,
-  TextInput,
-} from '@spinnaker/core';
+import type { IAccount, IStageConfigProps } from '@spinnaker/core';
+import { AccountService, NgReact, SpelText, StageConfigField, StageConstants, TextInput } from '@spinnaker/core';
 import { AccountRegionClusterSelector } from '../../../presentation';
 
 export interface ICloudfoundryRunTaskStageConfigState {

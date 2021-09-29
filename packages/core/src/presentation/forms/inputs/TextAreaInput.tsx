@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { IFormInputProps, OmitControlledInputPropsFrom } from './interface';
+import type { IFormInputProps, OmitControlledInputPropsFrom } from './interface';
 import { orEmptyString, validationClassName } from './utils';
 
 interface ITextAreaInputProps extends IFormInputProps, OmitControlledInputPropsFrom<React.TextareaHTMLAttributes<any>> {

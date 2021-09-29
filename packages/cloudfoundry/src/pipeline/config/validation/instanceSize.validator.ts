@@ -1,13 +1,7 @@
 import { get, has, upperFirst } from 'lodash';
 
-import {
-  IPipeline,
-  IStage,
-  IStageOrTriggerValidator,
-  ITrigger,
-  IValidatorConfig,
-  PipelineConfigValidator,
-} from '@spinnaker/core';
+import type { IPipeline, IStage, IStageOrTriggerValidator, ITrigger, IValidatorConfig } from '@spinnaker/core';
+import { PipelineConfigValidator } from '@spinnaker/core';
 
 export interface IInstanceFieldSizeValidationConfig extends IValidatorConfig {
   fieldName: string;

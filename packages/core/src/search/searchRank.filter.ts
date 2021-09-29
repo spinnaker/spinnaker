@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { ISearchResult } from './search.service';
+import type { ISearchResult } from './search.service';
 
 export const searchRank = (input: ISearchResult[], query = '') => {
   if (!input || !input.length) {

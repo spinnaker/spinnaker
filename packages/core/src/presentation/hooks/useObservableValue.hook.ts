@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Observable } from 'rxjs';
+import type { Observable } from 'rxjs';
 
 import { useObservable } from './useObservable.hook';
 

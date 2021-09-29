@@ -3,7 +3,7 @@ import React from 'react';
 
 import { LoadBalancerInstances } from './LoadBalancerInstances';
 import { LoadBalancerServerGroup } from './LoadBalancerServerGroup';
-import { ILoadBalancer, IServerGroup } from '../domain';
+import type { ILoadBalancer, IServerGroup } from '../domain';
 
 export interface ILoadBalancerClusterContainerProps {
   loadBalancer: ILoadBalancer;

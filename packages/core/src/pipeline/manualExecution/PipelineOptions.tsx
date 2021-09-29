@@ -1,12 +1,13 @@
-import { FormikProps } from 'formik';
+import type { FormikProps } from 'formik';
 import { head } from 'lodash';
 import React from 'react';
-import { Option } from 'react-select';
+import type { Option } from 'react-select';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import { IPipelineTemplateConfig, PipelineTemplateReader, PipelineTemplateV2Service } from '../config/templates';
-import { IParameter, IPipeline, IPipelineCommand, ITrigger } from '../../domain';
+import type { IPipelineTemplateConfig } from '../config/templates';
+import { PipelineTemplateReader, PipelineTemplateV2Service } from '../config/templates';
+import type { IParameter, IPipeline, IPipelineCommand, ITrigger } from '../../domain';
 import { FormField, TetheredSelect } from '../../presentation';
 
 export interface IPipelineOptionsProps {

@@ -1,5 +1,5 @@
-import { Application } from '../application/application.model';
-import {
+import type { Application } from '../application/application.model';
+import type {
   IEntityRef,
   ILoadBalancer,
   IRegionalCluster,

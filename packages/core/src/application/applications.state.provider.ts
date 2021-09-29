@@ -1,7 +1,9 @@
 import { module } from 'angular';
 
-import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from './application.state.provider';
-import { INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider } from '../navigation/state.provider';
+import type { ApplicationStateProvider } from './application.state.provider';
+import { APPLICATION_STATE_PROVIDER } from './application.state.provider';
+import type { INestedState, StateConfigProvider } from '../navigation/state.provider';
+import { STATE_CONFIG_PROVIDER } from '../navigation/state.provider';
 import { Applications } from './search/Applications';
 
 export const APPLICATIONS_STATE_PROVIDER = 'spinnaker.core.application.applications.state';

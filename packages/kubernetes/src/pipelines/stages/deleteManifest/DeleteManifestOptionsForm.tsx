@@ -2,7 +2,7 @@ import React from 'react';
 
 import { noop, StageConfigField } from '@spinnaker/core';
 
-import { IDeleteOptions } from '../../../manifest/delete/delete.controller';
+import type { IDeleteOptions } from '../../../manifest/delete/delete.controller';
 
 import './deleteManifestOptionsForm.less';
 

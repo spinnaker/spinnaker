@@ -1,6 +1,7 @@
 import { isEqual } from 'lodash';
 import React from 'react';
-import Select, { Option } from 'react-select';
+import type { Option } from 'react-select';
+import Select from 'react-select';
 
 import { bannerBackgroundColorOptions, bannerTextColorOptions } from './customBannerColors';
 import { ConfigSectionFooter } from '../footer/ConfigSectionFooter';

@@ -1,25 +1,27 @@
-import { ILogService, IQService, module } from 'angular';
+import type { ILogService, IQService } from 'angular';
+import { module } from 'angular';
 import { filter, forOwn, has, uniq } from 'lodash';
 import { cloneDeep } from 'lodash';
 
 import { REST } from '../api/ApiService';
-import { Application } from '../application/application.model';
+import type { Application } from '../application/application.model';
 import { InfrastructureCaches } from '../cache/infrastructureCaches';
 
-import { PROVIDER_SERVICE_DELEGATE, ProviderServiceDelegate } from '../cloudProvider/providerService.delegate';
+import type { ProviderServiceDelegate } from '../cloudProvider/providerService.delegate';
+import { PROVIDER_SERVICE_DELEGATE } from '../cloudProvider/providerService.delegate';
 import { SETTINGS } from '../config/settings';
-import { ILoadBalancer, ISecurityGroup, IServerGroup, IServerGroupUsage } from '../domain';
-import { IEntityTags } from '../domain/IEntityTags';
+import type { ILoadBalancer, ISecurityGroup, IServerGroup, IServerGroupUsage } from '../domain';
+import type { IEntityTags } from '../domain/IEntityTags';
 import { EntityTagsReader } from '../entityTag/EntityTagsReader';
-import { IComponentName, NameUtils } from '../naming';
-import { IMoniker } from '../naming/IMoniker';
-import { ISearchResults, SearchService } from '../search/search.service';
+import type { IComponentName } from '../naming';
+import { NameUtils } from '../naming';
+import type { IMoniker } from '../naming/IMoniker';
+import type { ISearchResults } from '../search/search.service';
+import { SearchService } from '../search/search.service';
 
-import { ISecurityGroupSearchResult } from './securityGroupSearchResultType';
-import {
-  SECURITY_GROUP_TRANSFORMER_SERVICE,
-  SecurityGroupTransformerService,
-} from './securityGroupTransformer.service';
+import type { ISecurityGroupSearchResult } from './securityGroupSearchResultType';
+import type { SecurityGroupTransformerService } from './securityGroupTransformer.service';
+import { SECURITY_GROUP_TRANSFORMER_SERVICE } from './securityGroupTransformer.service';
 
 export interface ISecurityGroupsByAccount {
   [account: string]: {

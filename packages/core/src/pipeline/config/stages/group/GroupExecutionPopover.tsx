@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { IExecutionStageSummary } from '../../../../domain';
+import type { IExecutionStageSummary } from '../../../../domain';
 import { HoverablePopover } from '../../../../presentation/HoverablePopover';
 
 import './groupStage.less';

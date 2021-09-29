@@ -1,24 +1,19 @@
 import { groupBy, sortBy } from 'lodash';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
-import { Option } from 'react-select';
+import type { Option } from 'react-select';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import {
-  AccountTag,
+import type {
   Application,
   ILoadBalancer,
   IManifest,
   ISecurityGroup,
   IServerGroup,
   IServerGroupManager,
-  ManifestReader,
-  ModalClose,
-  noop,
-  robotToHuman,
-  TetheredSelect,
 } from '@spinnaker/core';
+import { AccountTag, ManifestReader, ModalClose, noop, robotToHuman, TetheredSelect } from '@spinnaker/core';
 
 export interface IManifestCopierProps {
   application: Application;

@@ -1,4 +1,5 @@
-import { RawParams, useCurrentStateAndParams, useRouter } from '@uirouter/react';
+import type { RawParams } from '@uirouter/react';
+import { useCurrentStateAndParams, useRouter } from '@uirouter/react';
 import { sortBy } from 'lodash';
 import { DateTime } from 'luxon';
 import React from 'react';
@@ -10,7 +11,7 @@ import { useFetchVersionsHistoryQuery } from '../graphql/graphql-sdk';
 import { Messages } from '../messages/Messages';
 import { isBaking } from '../overview/artifact/utils';
 import { CollapsibleSection, useApplicationContextSafe } from '../../presentation';
-import { HistoryArtifactVersion, HistoryEnvironment, PinnedVersions, VersionData } from './types';
+import type { HistoryArtifactVersion, HistoryEnvironment, PinnedVersions, VersionData } from './types';
 import { spinnerProps } from '../utils/defaults';
 import { Spinner } from '../../widgets';
 

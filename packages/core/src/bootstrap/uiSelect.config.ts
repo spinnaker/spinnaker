@@ -1,4 +1,4 @@
-import { IScope } from 'angular';
+import type { IScope } from 'angular';
 import { bootstrapModule } from './bootstrap.module';
 
 uiSelectDecorator.$inject = ['$provide'];

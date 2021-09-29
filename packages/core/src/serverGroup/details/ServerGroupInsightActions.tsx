@@ -1,7 +1,7 @@
 import React from 'react';
 import { Dropdown } from 'react-bootstrap';
 
-import { IServerGroup } from '../../domain';
+import type { IServerGroup } from '../../domain';
 import { logger } from '../../utils';
 
 export class ServerGroupInsightActions extends React.Component<{ serverGroup: IServerGroup }> {

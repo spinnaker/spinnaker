@@ -1,13 +1,15 @@
-import { FormikProps } from 'formik';
+import type { FormikProps } from 'formik';
 import React from 'react';
 
 import { ArtifactEditor } from './ArtifactEditor';
-import { AccountService, IArtifactAccount } from '../../account';
-import { IArtifact, IExpectedArtifact, IPipeline } from '../../domain';
+import type { IArtifactAccount } from '../../account';
+import { AccountService } from '../../account';
+import type { IArtifact, IExpectedArtifact, IPipeline } from '../../domain';
 import { ExpectedArtifactService } from '../expectedArtifact.service';
 import { HelpField } from '../../help';
 import { WizardModal, WizardPage } from '../../modal/wizard';
-import { IModalComponentProps, ReactModal } from '../../presentation';
+import type { IModalComponentProps } from '../../presentation';
+import { ReactModal } from '../../presentation';
 import { FormikFormField } from '../../presentation/forms';
 import { CheckboxInput, TextInput } from '../../presentation/forms/inputs';
 import { TaskMonitor } from '../../task';

@@ -1,10 +1,10 @@
 import { get, has } from 'lodash';
 import React from 'react';
-import { Option } from 'react-select';
+import type { Option } from 'react-select';
 
-import { IExecution, IPipeline, IPipelineTrigger } from '../../../../domain';
+import type { IExecution, IPipeline, IPipelineTrigger } from '../../../../domain';
 import { ExecutionBuildTitle } from '../../../executionBuild/ExecutionBuildTitle';
-import { ITriggerTemplateComponentProps } from '../../../manualExecution/TriggerTemplate';
+import type { ITriggerTemplateComponentProps } from '../../../manualExecution/TriggerTemplate';
 import { TetheredSelect } from '../../../../presentation/TetheredSelect';
 import { ReactInjector } from '../../../../reactShims';
 import { ExecutionsTransformer } from '../../../service/ExecutionsTransformer';

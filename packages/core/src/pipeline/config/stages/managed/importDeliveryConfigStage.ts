@@ -3,7 +3,7 @@ import { ImportDeliveryConfigStageConfig } from './ImportDeliveryConfigStageConf
 import { ExecutionDetailsTasks } from '../common';
 import { SETTINGS } from '../../../../config';
 import { Registry } from '../../../../registry';
-import { IUpstreamFlagProvidedValidationConfig } from '../../validation/upstreamHasFlagValidator.builder';
+import type { IUpstreamFlagProvidedValidationConfig } from '../../validation/upstreamHasFlagValidator.builder';
 
 if (SETTINGS.feature.managedDelivery) {
   Registry.pipeline.registerStage({

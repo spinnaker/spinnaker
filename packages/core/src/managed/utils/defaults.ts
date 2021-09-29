@@ -1,6 +1,7 @@
-import { IManagedDeliveryURLs, SETTINGS } from '../../config/settings';
-import { IHoverablePopoverProps } from '../../presentation';
-import { ISpinnerProps } from '../../widgets';
+import type { IManagedDeliveryURLs } from '../../config/settings';
+import { SETTINGS } from '../../config/settings';
+import type { IHoverablePopoverProps } from '../../presentation';
+import type { ISpinnerProps } from '../../widgets';
 
 export const TOOLTIP_DELAY_SHOW = 400;
 export const TOOLTIP_DELAY_HIDE = 100;

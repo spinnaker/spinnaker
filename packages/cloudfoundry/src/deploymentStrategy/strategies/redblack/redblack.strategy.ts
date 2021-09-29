@@ -1,4 +1,4 @@
-import { IServerGroupCommand } from '@spinnaker/core';
+import type { IServerGroupCommand } from '@spinnaker/core';
 
 export interface IRedBlackCommand extends IServerGroupCommand {
   maxRemainingAsgs: number;

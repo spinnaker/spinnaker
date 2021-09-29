@@ -3,9 +3,9 @@ import classNames from 'classnames';
 import React from 'react';
 
 import { LoadBalancerClusterContainer } from './LoadBalancerClusterContainer';
-import { Application } from '../application/application.model';
+import type { Application } from '../application/application.model';
 import { CloudProviderRegistry } from '../cloudProvider';
-import { ILoadBalancer, ILoadBalancerGroup, IServerGroup } from '../domain';
+import type { ILoadBalancer, ILoadBalancerGroup, IServerGroup } from '../domain';
 import { EntityNotifications } from '../entityTag/notifications/EntityNotifications';
 import { HealthCounts } from '../healthCounts/HealthCounts';
 import { ManagedResourceStatusIndicator } from '../managed';

@@ -1,8 +1,9 @@
 import { module } from 'angular';
-import { Application } from '../../../../application';
-import { IExecution, IExecutionStage } from '../../../../domain';
+import type { Application } from '../../../../application';
+import type { IExecution, IExecutionStage } from '../../../../domain';
 
-import { EXECUTION_SERVICE, ExecutionService } from '../../../service/execution.service';
+import type { ExecutionService } from '../../../service/execution.service';
+import { EXECUTION_SERVICE } from '../../../service/execution.service';
 
 export class ManualJudgmentService {
   public static $inject = ['executionService'];

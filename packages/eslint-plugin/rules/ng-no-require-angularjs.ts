@@ -7,8 +7,8 @@
  * import * as angular from 'angular';
  * angular.module('mymodule', [])
  */
-import { Rule, Scope } from 'eslint';
-import { ImportDeclaration, MemberExpression } from 'estree';
+import type { Rule, Scope } from 'eslint';
+import type { ImportDeclaration, MemberExpression } from 'estree';
 import { getProgram, isMemberExpression } from '../utils/utils';
 
 const rule = function (context: Rule.RuleContext) {

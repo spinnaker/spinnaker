@@ -1,5 +1,5 @@
 import { AbstractBaseCache } from './abstractBaseCache';
-import { ICache, ICacheConfig } from './deckCacheFactory';
+import type { ICache, ICacheConfig } from './deckCacheFactory';
 
 export class InfrastructureCachesInternal extends AbstractBaseCache {
   private static NAMESPACE = 'infrastructure';

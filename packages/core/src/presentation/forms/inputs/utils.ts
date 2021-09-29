@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import { isNil, isString } from 'lodash';
 
-import { IFormInputValidation } from './interface';
+import type { IFormInputValidation } from './interface';
 import { noop } from '../../../utils';
 
 export const orEmptyString = (val: any) => (isNil(val) ? '' : val);

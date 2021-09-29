@@ -1,9 +1,11 @@
 import React from 'react';
-import { BehaviorSubject, from as observableFrom, Observable, of as observableOf, Subject } from 'rxjs';
+import type { Observable } from 'rxjs';
+import { BehaviorSubject, from as observableFrom, of as observableOf, Subject } from 'rxjs';
 import { bufferCount, catchError, concatMap, filter, mergeMap, takeUntil } from 'rxjs/operators';
 
 import { REST } from '../api';
-import { IInstanceCounts, IServerGroup } from '../domain';
+import type { IInstanceCounts, IServerGroup } from '../domain';
+import type { ISearchColumn, ISearchResult, ISearchResultSet } from '../search';
 import {
   AccountCell,
   BasicCell,
@@ -11,9 +13,6 @@ import {
   HeaderCell,
   HealthCountsCell,
   HrefCell,
-  ISearchColumn,
-  ISearchResult,
-  ISearchResultSet,
   SearchResultType,
   searchResultTypeRegistry,
   SearchTableBody,

@@ -1,4 +1,5 @@
-import { IStage, Registry } from '@spinnaker/core';
+import type { IStage } from '@spinnaker/core';
+import { Registry } from '@spinnaker/core';
 
 import { CloudfoundryCloneServerGroupStageConfig } from './CloudfoundryCloneServerGroupStageConfig';
 

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { IPipelineCommand, ITrigger } from '../../domain';
+import type { IPipelineCommand, ITrigger } from '../../domain';
 
 export interface ITriggerTemplateComponentProps<T = ITrigger> {
   command: IPipelineCommand<T>;

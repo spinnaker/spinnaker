@@ -1,8 +1,9 @@
 import { module } from 'angular';
 
 import { ServerGroupManagerDetails } from './ServerGroupManagerDetails';
-import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from '../application';
-import { INestedState } from '../navigation';
+import type { ApplicationStateProvider } from '../application';
+import { APPLICATION_STATE_PROVIDER } from '../application';
+import type { INestedState } from '../navigation';
 
 export interface IServerGroupManagerStateParams {
   provider: string;

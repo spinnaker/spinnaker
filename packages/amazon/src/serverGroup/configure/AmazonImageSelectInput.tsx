@@ -1,6 +1,6 @@
 import { $q } from 'ngimport';
 import React from 'react';
-import { HandlerRendererResult, MenuRendererProps, Option, OptionValues, ReactSelectProps } from 'react-select';
+import type { HandlerRendererResult, MenuRendererProps, Option, OptionValues, ReactSelectProps } from 'react-select';
 import {
   BehaviorSubject,
   combineLatest as observableCombineLatest,
@@ -10,8 +10,10 @@ import {
 } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 
-import { Application, HelpField, TetheredSelect, ValidationMessage } from '@spinnaker/core';
-import { AwsImageReader, IAmazonImage } from '../../image';
+import type { Application } from '@spinnaker/core';
+import { HelpField, TetheredSelect, ValidationMessage } from '@spinnaker/core';
+import type { IAmazonImage } from '../../image';
+import { AwsImageReader } from '../../image';
 
 export interface IAmazonImageSelectorProps {
   onChange: (value: IAmazonImage) => void;

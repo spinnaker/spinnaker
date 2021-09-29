@@ -1,12 +1,12 @@
 import { module } from 'angular';
 import React from 'react';
 import { Alert } from 'react-bootstrap';
-import { Option } from 'react-select';
+import type { Option } from 'react-select';
 import { react2angular } from 'react2angular';
 
 import { HelpField, TetheredSelect, withErrorBoundary } from '@spinnaker/core';
 
-import { IEcsCapacityProviderStrategyItem, IEcsServerGroupCommand } from '../../serverGroupConfiguration.service';
+import type { IEcsCapacityProviderStrategyItem, IEcsServerGroupCommand } from '../../serverGroupConfiguration.service';
 
 export interface IEcsCapacityProviderProps {
   command: IEcsServerGroupCommand;

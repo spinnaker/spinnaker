@@ -3,7 +3,8 @@ import 'brace/theme/textmate';
 import { loadAll, YAMLException } from 'js-yaml';
 import { $log } from 'ngimport';
 import React from 'react';
-import AceEditor, { Annotation } from 'react-ace';
+import type { Annotation } from 'react-ace';
+import AceEditor from 'react-ace';
 
 import { yamlStringToDocuments } from './yamlEditorUtils';
 

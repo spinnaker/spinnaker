@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { INotification } from './NotificationsPopover';
+import type { INotification } from './NotificationsPopover';
 import { Markdown } from '../../presentation';
 import { relativeTime, timestamp } from '../../utils';
 

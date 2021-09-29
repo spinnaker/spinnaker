@@ -1,5 +1,5 @@
-import { Application } from '../application/application.model';
-import { IEntityRef, IEntityTag, IEntityTags, ITask } from '../domain';
+import type { Application } from '../application/application.model';
+import type { IEntityRef, IEntityTag, IEntityTags, ITask } from '../domain';
 import { TaskExecutor } from '../task/taskExecutor';
 
 export class EntityTagWriter {

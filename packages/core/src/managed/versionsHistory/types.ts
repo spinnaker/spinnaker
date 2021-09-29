@@ -1,5 +1,5 @@
-import { DateTime } from 'luxon';
-import { FetchVersionQuery, FetchVersionsHistoryQuery } from '../graphql/graphql-sdk';
+import type { DateTime } from 'luxon';
+import type { FetchVersionQuery, FetchVersionsHistoryQuery } from '../graphql/graphql-sdk';
 
 export type HistoryEnvironment = NonNullable<FetchVersionsHistoryQuery['application']>['environments'][number];
 export type HistoryArtifact = NonNullable<HistoryEnvironment['state']['artifacts']>[number];

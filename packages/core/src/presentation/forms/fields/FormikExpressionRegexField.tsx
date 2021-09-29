@@ -1,14 +1,15 @@
 import { getIn } from 'formik';
 import React from 'react';
 
-import { IFormikExpressionFieldProps } from './FormikExpressionField';
+import type { IFormikExpressionFieldProps } from './FormikExpressionField';
 import { FormikForm } from '../FormikForm';
 import { FormikFormField } from './FormikFormField';
 import { CollapsibleSection } from '../../collapsibleSection/CollapsibleSection';
-import { ExpressionInput, ExpressionPreview, ISpelError } from '../inputs';
+import type { ISpelError } from '../inputs';
+import { ExpressionInput, ExpressionPreview } from '../inputs';
 import { TextInput } from '../inputs/TextInput';
 import { ExpressionError } from '../inputs/expression/ExpressionError';
-import { ILayoutProps } from '../layouts';
+import type { ILayoutProps } from '../layouts';
 import { errorMessage, messageMessage } from '../validation/categories';
 
 export interface IRegexpProps {

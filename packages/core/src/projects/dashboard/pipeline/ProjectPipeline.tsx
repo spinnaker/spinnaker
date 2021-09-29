@@ -1,8 +1,8 @@
 import { has } from 'lodash';
 import React from 'react';
 
-import { Application } from '../../../application/application.model';
-import { IExecution } from '../../../domain';
+import type { Application } from '../../../application/application.model';
+import type { IExecution } from '../../../domain';
 import { ExecutionBuildLink } from '../../../pipeline/executionBuild/ExecutionBuildLink';
 import { ExecutionMarker } from '../../../pipeline/executions/execution/ExecutionMarker';
 import { ReactInjector } from '../../../reactShims';

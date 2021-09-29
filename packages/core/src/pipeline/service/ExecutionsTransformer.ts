@@ -1,9 +1,10 @@
-import { Dictionary, find, findLast, get, has, maxBy, sortBy, uniq } from 'lodash';
+import type { Dictionary } from 'lodash';
+import { find, findLast, get, has, maxBy, sortBy, uniq } from 'lodash';
 
-import { Application } from '../../application';
+import type { Application } from '../../application';
 import { ExecutionBarLabel } from '../config/stages/common/ExecutionBarLabel';
 import { ExecutionMarkerIcon } from '../config/stages/common/ExecutionMarkerIcon';
-import { IExecution, IExecutionStage, IExecutionStageSummary, IOrchestratedItem, IStage } from '../../domain';
+import type { IExecution, IExecutionStage, IExecutionStageSummary, IOrchestratedItem, IStage } from '../../domain';
 import { OrchestratedItemTransformer } from '../../orchestratedItem/orchestratedItem.transformer';
 import { Registry } from '../../registry';
 import { duration } from '../../utils/timeFormatters';

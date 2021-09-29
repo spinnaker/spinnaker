@@ -1,20 +1,22 @@
-import {
+import type {
   CartesianScaleOptions,
-  Chart,
   ChartConfiguration,
   ChartDataset,
+  LinearScaleOptions,
+  TimeScaleOptions,
+  TooltipItem,
+} from 'chart.js';
+import {
+  Chart,
   Filler,
   Legend,
   LinearScale,
-  LinearScaleOptions,
   LineController,
   LineElement,
   PointElement,
   TimeScale,
-  TimeScaleOptions,
   Title,
   Tooltip,
-  TooltipItem,
 } from 'chart.js';
 import 'chartjs-adapter-luxon';
 import * as React from 'react';

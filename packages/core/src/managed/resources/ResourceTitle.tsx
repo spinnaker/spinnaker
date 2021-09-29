@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { IResourceLinkProps } from './resourceRegistry';
+import type { IResourceLinkProps } from './resourceRegistry';
 import { useGenerateLink } from './useGetResourceLink.hook';
 import { useLogEvent } from '../utils/logging';
 

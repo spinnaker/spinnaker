@@ -15,7 +15,7 @@ import {
   SubmitButton,
   TextInput,
 } from '@spinnaker/core';
-import { IRedirectActionConfig } from '../../../domain';
+import type { IRedirectActionConfig } from '../../../domain';
 
 import './ConfigureConfigModal.css';
 

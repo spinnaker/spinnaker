@@ -1,4 +1,4 @@
-import { ApolloError } from '@apollo/client';
+import type { ApolloError } from '@apollo/client';
 import React from 'react';
 import { NotifierService } from '../../widgets';
 

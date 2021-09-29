@@ -2,7 +2,7 @@ import { get } from 'lodash';
 import React from 'react';
 
 import { HelpField } from '../../../../help/HelpField';
-import { ITriggerTemplateComponentProps } from '../../../manualExecution/TriggerTemplate';
+import type { ITriggerTemplateComponentProps } from '../../../manualExecution/TriggerTemplate';
 import { CheckboxInput, FormField } from '../../../../presentation';
 
 export class ManualExecutionBake extends React.Component<ITriggerTemplateComponentProps> {

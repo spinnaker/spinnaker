@@ -2,9 +2,9 @@ import { get } from 'lodash';
 import React from 'react';
 import { Dropdown } from 'react-bootstrap';
 
-import { Application } from '../../application';
+import type { Application } from '../../application';
 import { CreatePipelineButton } from '../create/CreatePipelineButton';
-import { IPipeline } from '../../domain';
+import type { IPipeline } from '../../domain';
 import { Tooltip } from '../../presentation/Tooltip';
 import { ReactInjector } from '../../reactShims';
 import { logger } from '../../utils';

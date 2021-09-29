@@ -3,7 +3,7 @@ import React from 'react';
 
 import { SETTINGS } from '../../config';
 import { SortToggle } from '../../presentation';
-import { IApplicationSummary } from '../service/ApplicationReader';
+import type { IApplicationSummary } from '../service/ApplicationReader';
 import { timestamp } from '../../utils';
 
 export interface IApplicationTableProps {

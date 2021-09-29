@@ -1,6 +1,6 @@
-import { Transition, UIRouter } from '@uirouter/core';
+import type { Transition, UIRouter } from '@uirouter/core';
 import '@uirouter/rx';
-import { ILogService } from 'angular';
+import type { ILogService } from 'angular';
 
 import { bootstrapModule } from './bootstrap.module';
 

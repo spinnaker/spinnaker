@@ -1,8 +1,8 @@
-import { ILoadBalancerModalProps } from '@spinnaker/core';
+import type { ILoadBalancerModalProps } from '@spinnaker/core';
 
 import { CreateApplicationLoadBalancer } from './application/CreateApplicationLoadBalancer';
 import { CreateClassicLoadBalancer } from './classic/CreateClassicLoadBalancer';
-import { IAmazonLoadBalancerUpsertCommand } from '../../domain';
+import type { IAmazonLoadBalancerUpsertCommand } from '../../domain';
 import { CreateNetworkLoadBalancer } from './network/CreateNetworkLoadBalancer';
 
 export interface ICloseableLoadBalancerModal extends React.ComponentClass<ILoadBalancerModalProps> {

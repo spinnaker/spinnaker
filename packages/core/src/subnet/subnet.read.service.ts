@@ -1,5 +1,5 @@
 import { REST } from '../api/ApiService';
-import { ISubnet } from '../domain';
+import type { ISubnet } from '../domain';
 
 export class SubnetReader {
   private static cache: PromiseLike<ISubnet[]>;

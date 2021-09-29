@@ -1,7 +1,8 @@
 import { get } from 'lodash';
 import React from 'react';
 
-import { AccountTag, ExecutionDetailsSection, IExecutionDetailsSectionProps } from '@spinnaker/core';
+import type { IExecutionDetailsSectionProps } from '@spinnaker/core';
+import { AccountTag, ExecutionDetailsSection } from '@spinnaker/core';
 import {
   CloudFoundryRecentLogs,
   CloudFoundryRecentLogsType,

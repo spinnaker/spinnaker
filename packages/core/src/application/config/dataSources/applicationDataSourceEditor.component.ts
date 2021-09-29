@@ -1,9 +1,10 @@
-import { IController, module } from 'angular';
+import type { IController } from 'angular';
+import { module } from 'angular';
 
-import { Application } from '../../application.model';
+import type { Application } from '../../application.model';
 import { ApplicationReader } from '../../service/ApplicationReader';
 import { ApplicationWriter } from '../../service/ApplicationWriter';
-import { ApplicationDataSource } from '../../service/applicationDataSource';
+import type { ApplicationDataSource } from '../../service/applicationDataSource';
 import { TaskReader } from '../../../task';
 
 import './applicationDataSourceEditor.component.less';

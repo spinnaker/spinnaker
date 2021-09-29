@@ -1,11 +1,13 @@
-import { IQService, module } from 'angular';
+import type { IQService } from 'angular';
+import { module } from 'angular';
 
-import { Application } from '../application/application.model';
+import type { Application } from '../application/application.model';
 import { INFRASTRUCTURE_KEY } from '../application/nav/defaultCategories';
 import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
-import { ILoadBalancer } from '../domain';
+import type { ILoadBalancer } from '../domain';
 import { EntityTagsReader } from '../entityTag/EntityTagsReader';
-import { LOAD_BALANCER_READ_SERVICE, LoadBalancerReader } from './loadBalancer.read.service';
+import type { LoadBalancerReader } from './loadBalancer.read.service';
+import { LOAD_BALANCER_READ_SERVICE } from './loadBalancer.read.service';
 import { addManagedResourceMetadataToLoadBalancers } from '../managed';
 
 export const LOAD_BALANCER_DATA_SOURCE = 'spinnaker.core.loadBalancer.dataSource';

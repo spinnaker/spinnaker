@@ -1,8 +1,10 @@
-import { IComponentOptions, IController, module } from 'angular';
+import type { IComponentOptions, IController } from 'angular';
+import { module } from 'angular';
 import { set } from 'lodash';
 
-import { IGceAutoHealingPolicy } from '../../../../domain/autoHealingPolicy';
-import { IGceHealthCheckOption, parseHealthCheckUrl } from '../../../../healthCheck/healthCheckUtils';
+import type { IGceAutoHealingPolicy } from '../../../../domain/autoHealingPolicy';
+import type { IGceHealthCheckOption } from '../../../../healthCheck/healthCheckUtils';
+import { parseHealthCheckUrl } from '../../../../healthCheck/healthCheckUtils';
 
 class GceAutoHealingPolicySelector implements IController {
   public healthChecks: string[];

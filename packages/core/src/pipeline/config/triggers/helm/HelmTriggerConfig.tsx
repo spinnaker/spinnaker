@@ -1,7 +1,8 @@
 import React from 'react';
 
-import { HelmTriggerTemplate, IHelmTriggerTemplateState } from './HelmTriggerTemplate';
-import { IHelmTrigger } from '../../../../domain/IHelmTrigger';
+import type { IHelmTriggerTemplateState } from './HelmTriggerTemplate';
+import { HelmTriggerTemplate } from './HelmTriggerTemplate';
+import type { IHelmTrigger } from '../../../../domain/IHelmTrigger';
 
 export interface IHelmConfigProps {
   trigger: IHelmTrigger;

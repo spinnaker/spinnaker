@@ -1,9 +1,9 @@
 import * as React from 'react';
 
 import { ChangesModal } from './ChangesModal';
-import { ICommit } from './CommitHistory';
-import { IJarDiff } from './JarDiffs';
-import { IBuildDiffInfo, ICreationMetadata, ICreationMetadataTag, IExecution, IExecutionStage } from '../domain';
+import type { ICommit } from './CommitHistory';
+import type { IJarDiff } from './JarDiffs';
+import type { IBuildDiffInfo, ICreationMetadata, ICreationMetadataTag, IExecution, IExecutionStage } from '../domain';
 import { LabeledValue, showModal, useData } from '../presentation';
 import { ReactInjector } from '../reactShims';
 

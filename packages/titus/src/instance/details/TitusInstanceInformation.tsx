@@ -3,7 +3,7 @@ import React from 'react';
 import { InstanceInformation } from '@spinnaker/amazon';
 import { CollapsibleSection, LabeledValue, LinkWithClipboard } from '@spinnaker/core';
 
-import { ITitusInstance } from '../../domain';
+import type { ITitusInstance } from '../../domain';
 
 export interface ITitusInstanceInformationProps {
   instance: ITitusInstance;

@@ -1,5 +1,5 @@
-import { IAsg, IServerGroup } from '@spinnaker/core';
-import { ICapacity } from '@spinnaker/core';
+import type { IAsg, IServerGroup } from '@spinnaker/core';
+import type { ICapacity } from '@spinnaker/core';
 import { mockInstance } from './mockInstance';
 import { mockInstanceCounts } from './mockInstanceCounts';
 import { mockMoniker } from './mockMoniker';

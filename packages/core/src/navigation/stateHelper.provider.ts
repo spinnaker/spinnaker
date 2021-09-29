@@ -1,7 +1,7 @@
-import { StateRegistry } from '@uirouter/core';
+import type { StateRegistry } from '@uirouter/core';
 import { copy, module } from 'angular';
 
-import { INestedState } from './state.provider';
+import type { INestedState } from './state.provider';
 
 export class StateHelper implements ng.IServiceProvider {
   private registeredStates: string[] = [];

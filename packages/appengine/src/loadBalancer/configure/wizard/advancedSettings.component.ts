@@ -1,6 +1,7 @@
-import { IComponentOptions, IController, module } from 'angular';
+import type { IComponentOptions, IController } from 'angular';
+import { module } from 'angular';
 
-import { AppengineLoadBalancerUpsertDescription } from '../../transformer';
+import type { AppengineLoadBalancerUpsertDescription } from '../../transformer';
 
 class AppengineLoadBalancerAdvancedSettingsCtrl implements IController {
   public state = { error: false };

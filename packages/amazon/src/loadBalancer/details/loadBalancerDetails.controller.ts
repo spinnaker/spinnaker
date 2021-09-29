@@ -1,24 +1,27 @@
-import { StateService } from '@uirouter/angularjs';
+import type { StateService } from '@uirouter/angularjs';
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
-import { IController, IQService, IScope, module } from 'angular';
+import type { IController, IQService, IScope } from 'angular';
+import { module } from 'angular';
 import { head, sortBy } from 'lodash';
 
-import {
+import type {
   Application,
-  FirewallLabels,
   IApplicationSecurityGroup,
   ILoadBalancer,
   ISecurityGroup,
   ISubnet,
-  LOAD_BALANCER_READ_SERVICE,
   LoadBalancerReader,
+  SecurityGroupReader,
+} from '@spinnaker/core';
+import {
+  FirewallLabels,
+  LOAD_BALANCER_READ_SERVICE,
   MANAGED_RESOURCE_DETAILS_INDICATOR,
   SECURITY_GROUP_READER,
-  SecurityGroupReader,
   SETTINGS,
   SubnetReader,
 } from '@spinnaker/core';
-import {
+import type {
   IAmazonApplicationLoadBalancer,
   IAmazonLoadBalancer,
   IAmazonLoadBalancerSourceData,

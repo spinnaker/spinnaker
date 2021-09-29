@@ -1,6 +1,7 @@
 import { useSref } from '@uirouter/react';
 
-import { IResourceLinkProps, resourceManager } from './resourceRegistry';
+import type { IResourceLinkProps } from './resourceRegistry';
+import { resourceManager } from './resourceRegistry';
 
 export const useGenerateLink = (props: IResourceLinkProps): { href: string; isExternal?: boolean } | undefined => {
   const externalLink = resourceManager.getExperimentalDisplayLink(props);

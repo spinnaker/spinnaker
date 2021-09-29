@@ -2,9 +2,9 @@ import { flatten } from 'lodash';
 import { $q } from 'ngimport';
 
 import { REST } from '../../../api/ApiService';
-import { IPipelineTemplateConfigV2 } from '../../../domain';
-import { IPipeline } from '../../../domain/IPipeline';
-import { IPipelineTemplateV2Collections } from '../../../domain/IPipelineTemplateV2';
+import type { IPipelineTemplateConfigV2 } from '../../../domain';
+import type { IPipeline } from '../../../domain/IPipeline';
+import type { IPipelineTemplateV2Collections } from '../../../domain/IPipelineTemplateV2';
 
 import { PipelineTemplateV2Service } from './v2/pipelineTemplateV2.service';
 

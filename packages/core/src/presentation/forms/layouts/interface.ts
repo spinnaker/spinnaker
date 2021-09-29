@@ -1,6 +1,6 @@
-import React from 'react';
+import type React from 'react';
 
-import { IFormInputValidation } from '../inputs';
+import type { IFormInputValidation } from '../inputs';
 
 /** These props are used by FieldLayout components, such as StandardFieldLayout */
 export interface ILayoutProps {

@@ -1,7 +1,8 @@
 import { get, isBoolean, isString } from 'lodash';
 import React from 'react';
 
-import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
+import type { IExecutionDetailsSectionProps } from '../common';
+import { ExecutionDetailsSection } from '../common';
 import { StageFailureMessage } from '../../../details';
 import { robotToHuman } from '../../../../presentation/robotToHumanFilter/robotToHuman.filter';
 

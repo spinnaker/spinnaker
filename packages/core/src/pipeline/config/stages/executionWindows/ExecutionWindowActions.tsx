@@ -1,10 +1,10 @@
 import { get } from 'lodash';
 import React from 'react';
 
-import { Application } from '../../../../application/application.model';
+import type { Application } from '../../../../application/application.model';
 import { ConfirmationModalService } from '../../../../confirmationModal';
 import { DAYS_OF_WEEK } from './daysOfWeek';
-import { IExecution, IExecutionStage } from '../../../../domain';
+import type { IExecution, IExecutionStage } from '../../../../domain';
 import { ReactInjector } from '../../../../reactShims';
 import { SystemTimezone } from '../../../../utils/SystemTimezone';
 import { timePickerTime } from '../../../../utils/timeFormatters';

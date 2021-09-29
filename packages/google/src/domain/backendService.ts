@@ -1,4 +1,4 @@
-import { IGceHealthCheck } from './healthCheck';
+import type { IGceHealthCheck } from './healthCheck';
 
 export interface IGceBackendService {
   name: string;

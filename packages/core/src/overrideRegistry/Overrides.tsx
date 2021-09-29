@@ -1,8 +1,8 @@
-import React from 'react';
+import type React from 'react';
 
 import { CloudProviderRegistry } from '../cloudProvider/CloudProviderRegistry';
 
-import { OverrideRegistry } from './override.registry';
+import type { OverrideRegistry } from './override.registry';
 
 /**
  * This queues OverrideComponent registration until the registries are ready.

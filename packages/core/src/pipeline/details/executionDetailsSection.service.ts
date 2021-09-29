@@ -1,6 +1,7 @@
-import { StateParams, StateService } from '@uirouter/angularjs';
+import type { StateParams, StateService } from '@uirouter/angularjs';
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
-import { ITimeoutService, module } from 'angular';
+import type { ITimeoutService } from 'angular';
+import { module } from 'angular';
 
 export class ExecutionDetailsSectionService {
   private pendingOnComplete: PromiseLike<any>;

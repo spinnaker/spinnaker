@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { CheckboxInput } from './CheckboxInput';
-import { IFormInputProps, OmitControlledInputPropsFrom } from './interface';
+import type { IFormInputProps, OmitControlledInputPropsFrom } from './interface';
 import { createFakeReactSyntheticEvent, isStringArray, orEmptyString, validationClassName } from './utils';
 
 import './ChecklistInput.less';

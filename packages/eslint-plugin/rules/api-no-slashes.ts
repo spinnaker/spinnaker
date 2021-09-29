@@ -1,5 +1,5 @@
-import { Rule } from 'eslint';
-import { CallExpression, Identifier, Literal } from 'estree';
+import type { Rule } from 'eslint';
+import type { CallExpression, Identifier, Literal } from 'estree';
 import { get } from 'lodash';
 
 import { getCallingIdentifier, getVariableInScope, isMemberExpression } from '../utils/utils';

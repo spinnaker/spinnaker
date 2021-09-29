@@ -1,11 +1,11 @@
-import { Dictionary } from 'lodash';
+import type { Dictionary } from 'lodash';
 import * as React from 'react';
 import { Subject } from 'rxjs';
 
-import { ICloudMetricStatistics } from '@spinnaker/core';
+import type { ICloudMetricStatistics } from '@spinnaker/core';
 
 import { MetricAlarmChart } from '../chart/MetricAlarmChart';
-import { IAmazonServerGroup, IScalingPolicyAlarm, ITargetTrackingConfiguration } from '../../../../domain';
+import type { IAmazonServerGroup, IScalingPolicyAlarm, ITargetTrackingConfiguration } from '../../../../domain';
 
 export interface ITargetTrackingChartProps {
   alarmUpdated?: Subject<void>;

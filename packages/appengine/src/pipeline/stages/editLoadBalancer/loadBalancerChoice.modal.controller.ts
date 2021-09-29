@@ -1,8 +1,10 @@
-import { IController, module } from 'angular';
-import { IModalService, IModalServiceInstance } from 'angular-ui-bootstrap';
+import type { IController } from 'angular';
+import { module } from 'angular';
+import type { IModalService, IModalServiceInstance } from 'angular-ui-bootstrap';
 import { cloneDeep } from 'lodash';
 
-import { Application, CloudProviderRegistry, ILoadBalancer } from '@spinnaker/core';
+import type { Application, ILoadBalancer } from '@spinnaker/core';
+import { CloudProviderRegistry } from '@spinnaker/core';
 
 class AppengineLoadBalancerChoiceModalCtrl implements IController {
   public state = { loading: true };

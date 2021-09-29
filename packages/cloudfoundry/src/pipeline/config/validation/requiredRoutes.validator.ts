@@ -1,6 +1,7 @@
 import { get } from 'lodash';
 
-import { IPipeline, IStage, IStageOrTriggerValidator, ITrigger, PipelineConfigValidator } from '@spinnaker/core';
+import type { IPipeline, IStage, IStageOrTriggerValidator, ITrigger } from '@spinnaker/core';
+import { PipelineConfigValidator } from '@spinnaker/core';
 
 export class CfRequiredRoutesFieldValidator implements IStageOrTriggerValidator {
   public validate(_pipeline: IPipeline, stage: IStage | ITrigger, validationConfig: any): string {

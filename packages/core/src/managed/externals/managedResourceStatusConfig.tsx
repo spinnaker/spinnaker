@@ -1,9 +1,9 @@
 import React from 'react';
 
-import { IconNames } from '@spinnaker/presentation';
+import type { IconNames } from '@spinnaker/presentation';
 
-import { Application } from '../../application';
-import { IManagedResourceSummary, ManagedResourceStatus } from '../../domain';
+import type { Application } from '../../application';
+import type { IManagedResourceSummary, ManagedResourceStatus } from '../../domain';
 import { logger } from '../../utils';
 import { getDocsUrl } from '../utils/defaults';
 

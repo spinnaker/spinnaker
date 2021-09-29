@@ -1,9 +1,9 @@
+import type { IStage } from '@spinnaker/core';
 import {
   ArtifactReferenceService,
   ExecutionArtifactTab,
   ExecutionDetailsTasks,
   ExpectedArtifactService,
-  IStage,
   Registry,
 } from '@spinnaker/core';
 

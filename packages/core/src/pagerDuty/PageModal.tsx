@@ -2,11 +2,12 @@ import { get } from 'lodash';
 import React from 'react';
 import { Button, Modal } from 'react-bootstrap';
 
-import { IPageButtonProps } from './PageButton';
-import { Application, ApplicationModelBuilder } from '../application';
+import type { IPageButtonProps } from './PageButton';
+import type { Application } from '../application';
+import { ApplicationModelBuilder } from '../application';
 import { SETTINGS } from '../config';
 import { SubmitButton } from '../modal';
-import { IPagerDutyService } from './pagerDuty.read.service';
+import type { IPagerDutyService } from './pagerDuty.read.service';
 import { PagerDutyWriter } from './pagerDuty.write.service';
 import { ReactInjector } from '../reactShims';
 import { TaskMonitor, TaskMonitorWrapper } from '../task';

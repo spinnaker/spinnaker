@@ -1,17 +1,15 @@
-import { Form, Formik, FormikErrors, FormikProps } from 'formik';
+import type { Formik, FormikErrors, FormikProps } from 'formik';
+import { Form } from 'formik';
 import { pickBy } from 'lodash';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 
+import type { Application, ICapacity, IModalComponentProps, IServerGroupJob } from '@spinnaker/core';
 import {
-  Application,
   CheckboxInput,
   confirmNotManaged,
   FormikFormField,
   HelpField,
-  ICapacity,
-  IModalComponentProps,
-  IServerGroupJob,
   MinMaxDesiredChanges,
   ModalClose,
   noop,
@@ -26,7 +24,7 @@ import {
   ValidationMessage,
 } from '@spinnaker/core';
 import { AwsModalFooter } from '../../../common';
-import { IAmazonServerGroup } from '../../../domain';
+import type { IAmazonServerGroup } from '../../../domain';
 
 export interface IAmazonResizeServerGroupModalProps extends IModalComponentProps {
   application: Application;

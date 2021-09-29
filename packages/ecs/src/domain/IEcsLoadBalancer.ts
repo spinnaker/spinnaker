@@ -1,4 +1,4 @@
-import { IInstance, IInstanceCounts, ILoadBalancer } from '@spinnaker/core';
+import type { IInstance, IInstanceCounts, ILoadBalancer } from '@spinnaker/core';
 
 export type IListenerActionType =
   | 'forward'

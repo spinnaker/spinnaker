@@ -1,12 +1,6 @@
-import {
-  Application,
-  IMultiInstanceGroup,
-  IMultiInstanceJob,
-  InstanceWriter,
-  ITask,
-  TaskExecutor,
-} from '@spinnaker/core';
-import { IAmazonInstance } from '../domain';
+import type { Application, IMultiInstanceGroup, IMultiInstanceJob, ITask } from '@spinnaker/core';
+import { InstanceWriter, TaskExecutor } from '@spinnaker/core';
+import type { IAmazonInstance } from '../domain';
 
 export interface IAmazonMultiInstanceGroup extends IMultiInstanceGroup {
   targetGroups: string[];

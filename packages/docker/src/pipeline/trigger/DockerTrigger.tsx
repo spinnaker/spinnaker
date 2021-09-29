@@ -1,6 +1,7 @@
 import React from 'react';
 
-import { IDockerTrigger, IExecutionTriggerStatusComponentProps, Registry } from '@spinnaker/core';
+import type { IDockerTrigger, IExecutionTriggerStatusComponentProps } from '@spinnaker/core';
+import { Registry } from '@spinnaker/core';
 
 import { DockerTriggerConfig } from './DockerTriggerConfig';
 import { DockerTriggerTemplate } from './DockerTriggerTemplate';

@@ -3,7 +3,7 @@ import React from 'react';
 import { Modal } from 'react-bootstrap';
 
 import { PipelineTemplateWriter } from '../PipelineTemplateWriter';
-import { IPipelineTemplateV2 } from '../../../../domain/IPipelineTemplateV2';
+import type { IPipelineTemplateV2 } from '../../../../domain/IPipelineTemplateV2';
 import { ModalClose } from '../../../../modal';
 
 import './DeletePipelineTemplateV2Modal.less';

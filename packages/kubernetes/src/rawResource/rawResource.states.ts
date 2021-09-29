@@ -1,7 +1,8 @@
 import { module } from 'angular';
 
 //import { StateParams } from '@uirouter/angularjs';
-import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider, INestedState } from '@spinnaker/core';
+import type { ApplicationStateProvider, INestedState } from '@spinnaker/core';
+import { APPLICATION_STATE_PROVIDER } from '@spinnaker/core';
 
 import { K8sResources } from './component/K8sResources';
 import { K8sResourcesFilters } from './component/K8sResourcesFilters';

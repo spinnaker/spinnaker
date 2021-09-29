@@ -1,20 +1,20 @@
 import classNames from 'classnames';
-import { FormikProps } from 'formik';
+import type { FormikProps } from 'formik';
 import { isEqual, pick } from 'lodash';
 import React from 'react';
-import { Option } from 'react-select';
+import type { Option } from 'react-select';
 
 import { RunAsUserInput } from './RunAsUser';
-import { Application } from '../../../application';
+import type { Application } from '../../../application';
 import { TriggerArtifactConstraintSelectorInput } from './artifacts';
 import { SETTINGS } from '../../../config/settings';
-import { IExpectedArtifact, IPipeline, ITrigger, ITriggerTypeConfig } from '../../../domain';
+import type { IExpectedArtifact, IPipeline, ITrigger, ITriggerTypeConfig } from '../../../domain';
 import { HelpField } from '../../../help/HelpField';
+import type { IFormInputProps } from '../../../presentation';
 import {
   CheckboxInput,
   FormField,
   FormikFormField,
-  IFormInputProps,
   ReactSelectInput,
   SpinFormik,
   Tooltip,

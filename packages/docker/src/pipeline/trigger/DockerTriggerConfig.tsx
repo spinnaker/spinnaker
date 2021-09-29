@@ -1,9 +1,10 @@
-import { FormikProps } from 'formik';
+import type { FormikProps } from 'formik';
 import React from 'react';
 
-import { IDockerTrigger } from '@spinnaker/core';
+import type { IDockerTrigger } from '@spinnaker/core';
 
-import { DockerImageAndTagSelector, IDockerImageAndTagChanges } from '../../image';
+import type { IDockerImageAndTagChanges } from '../../image';
+import { DockerImageAndTagSelector } from '../../image';
 
 export interface IDockerTriggerConfigProps {
   formik: FormikProps<IDockerTrigger>;

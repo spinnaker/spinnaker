@@ -2,8 +2,9 @@ import { useCurrentStateAndParams } from '@uirouter/react';
 import { UIRouterContextComponent } from '@uirouter/react-hybrid';
 import React from 'react';
 
-import { Application } from '../application';
-import { IBannerSettings, SETTINGS } from '../config/settings';
+import type { Application } from '../application';
+import type { IBannerSettings } from '../config/settings';
+import { SETTINGS } from '../config/settings';
 import { customBannersByName } from './customBannersByName';
 import { Overridable } from '../overrideRegistry';
 

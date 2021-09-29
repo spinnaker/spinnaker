@@ -1,11 +1,8 @@
 import React from 'react';
 
 import { SETTINGS } from '../../config';
-import {
-  FetchApplicationManagementDataDocument,
-  FetchApplicationManagementDataQuery,
-  useUpdateGitIntegrationMutation,
-} from '../graphql/graphql-sdk';
+import type { FetchApplicationManagementDataQuery } from '../graphql/graphql-sdk';
+import { FetchApplicationManagementDataDocument, useUpdateGitIntegrationMutation } from '../graphql/graphql-sdk';
 import { CheckboxInput, useApplicationContextSafe } from '../../presentation';
 import { useLogEvent } from '../utils/logging';
 import { useNotifyOnError } from '../utils/useNotifyOnError.hook';

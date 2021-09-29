@@ -1,6 +1,7 @@
 import React from 'react';
 
-import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
+import type { IExecutionDetailsSectionProps } from '../common';
+import { ExecutionDetailsSection } from '../common';
 import { StageExecutionLogs, StageFailureMessage } from '../../../details';
 
 export function ConcourseExecutionDetails(props: IExecutionDetailsSectionProps) {

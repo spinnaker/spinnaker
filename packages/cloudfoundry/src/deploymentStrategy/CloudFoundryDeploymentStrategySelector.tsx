@@ -1,21 +1,18 @@
 import { defaultsDeep, unset } from 'lodash';
 import React from 'react';
-import Select, { Option } from 'react-select';
+import type { Option } from 'react-select';
+import Select from 'react-select';
 
-import {
-  CoreRedBlackAdditionalFields,
-  HelpField,
+import type {
   IDeploymentStrategy,
   IDeploymentStrategyAdditionalFieldsProps,
   IServerGroupCommand,
-  Markdown,
 } from '@spinnaker/core';
+import { CoreRedBlackAdditionalFields, HelpField, Markdown } from '@spinnaker/core';
 
-import { IRedBlackCommand } from './strategies/redblack/redblack.strategy';
-import {
-  AdditionalFields as AdditionalRollingRedBlackFields,
-  IRollingRedBlackCommand,
-} from './strategies/rollingredblack/AdditionalFields';
+import type { IRedBlackCommand } from './strategies/redblack/redblack.strategy';
+import type { IRollingRedBlackCommand } from './strategies/rollingredblack/AdditionalFields';
+import { AdditionalFields as AdditionalRollingRedBlackFields } from './strategies/rollingredblack/AdditionalFields';
 
 export interface ICloudFoundryDeploymentStrategySelectorProps {
   command: IServerGroupCommand;

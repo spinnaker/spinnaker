@@ -1,6 +1,7 @@
 import { module } from 'angular';
 
-import { EXECUTION_ARTIFACT_TAB, ExecutionDetailsTasks, IStage, Registry } from '@spinnaker/core';
+import type { IStage } from '@spinnaker/core';
+import { EXECUTION_ARTIFACT_TAB, ExecutionDetailsTasks, Registry } from '@spinnaker/core';
 
 import { manifestExecutionDetails } from '../ManifestExecutionDetails';
 import { ManifestTrafficStageConfig } from './ManifestTrafficStageConfig';

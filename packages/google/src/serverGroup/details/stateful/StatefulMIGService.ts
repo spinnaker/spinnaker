@@ -1,7 +1,7 @@
 import { has } from 'lodash';
 
 import { TaskExecutor } from '@spinnaker/core';
-import { IGceServerGroup } from '../../../domain';
+import type { IGceServerGroup } from '../../../domain';
 import { GCEProviderSettings } from '../../../gce.settings';
 
 export class StatefulMIGService {

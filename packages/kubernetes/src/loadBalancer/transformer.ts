@@ -1,9 +1,10 @@
-import { IQService, module } from 'angular';
+import type { IQService } from 'angular';
+import { module } from 'angular';
 import { camelCase, chain } from 'lodash';
 
-import { IInstanceCounts, IServerGroup } from '@spinnaker/core';
+import type { IInstanceCounts, IServerGroup } from '@spinnaker/core';
 
-import { IKubernetesLoadBalancer } from '../interfaces';
+import type { IKubernetesLoadBalancer } from '../interfaces';
 
 class KubernetesV2LoadBalancerTransformer {
   public static $inject = ['$q'];

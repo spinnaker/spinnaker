@@ -1,19 +1,12 @@
 import React from 'react';
 
-import {
-  Application,
-  IModalComponentProps,
-  ManifestWriter,
-  noop,
-  ReactModal,
-  TaskMonitor,
-  WizardModal,
-  WizardPage,
-} from '@spinnaker/core';
+import type { Application, IModalComponentProps } from '@spinnaker/core';
+import { ManifestWriter, noop, ReactModal, TaskMonitor, WizardModal, WizardPage } from '@spinnaker/core';
 
 import { WizardManifestBasicSettings } from './BasicSettings';
 import { ManifestEntry } from './ManifestEntry';
-import { IKubernetesManifestCommandData, KubernetesManifestCommandBuilder } from '../manifestCommandBuilder.service';
+import type { IKubernetesManifestCommandData } from '../manifestCommandBuilder.service';
+import { KubernetesManifestCommandBuilder } from '../manifestCommandBuilder.service';
 
 export interface IKubernetesManifestModalProps extends IModalComponentProps {
   title: string;

@@ -1,18 +1,18 @@
 import React from 'react';
 import { Dropdown } from 'react-bootstrap';
 
+import type { Application } from '@spinnaker/core';
 import {
   AddEntityTagLinks,
-  Application,
   ApplicationReader,
   ConfirmationModalService,
   FunctionWriter,
   SETTINGS,
 } from '@spinnaker/core';
 
-import { IFunctionFromStateParams } from './AmazonFunctionDetails';
+import type { IFunctionFromStateParams } from './AmazonFunctionDetails';
 import { CreateLambdaFunction } from '../CreateLambdaFunction';
-import { IAmazonFunction, IAmazonFunctionDeleteCommand } from '../../domain';
+import type { IAmazonFunction, IAmazonFunctionDeleteCommand } from '../../domain';
 
 export interface IFunctionActionsProps {
   app: Application;

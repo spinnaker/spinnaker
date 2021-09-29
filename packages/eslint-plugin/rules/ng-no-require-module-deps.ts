@@ -1,5 +1,5 @@
-import { Rule } from 'eslint';
-import { ArrayExpression, Node } from 'estree';
+import type { Rule } from 'eslint';
+import type { ArrayExpression, Node } from 'estree';
 import fs from 'fs';
 import path from 'path';
 

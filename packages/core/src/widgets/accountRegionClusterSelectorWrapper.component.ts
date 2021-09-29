@@ -1,4 +1,5 @@
-import { IComponentOptions, module } from 'angular';
+import type { IComponentOptions } from 'angular';
+import { module } from 'angular';
 export const accountRegionClusterSelectorWrapperComponent: IComponentOptions = {
   bindings: {
     application: '<',

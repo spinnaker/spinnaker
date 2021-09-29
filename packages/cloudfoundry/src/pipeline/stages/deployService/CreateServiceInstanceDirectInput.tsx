@@ -1,19 +1,12 @@
 import React from 'react';
-import { Option } from 'react-select';
+import type { Option } from 'react-select';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import {
-  IService,
-  IServicePlan,
-  ReactSelectInput,
-  ServicesReader,
-  StageConfigField,
-  TextAreaInput,
-  TextInput,
-} from '@spinnaker/core';
+import type { IService, IServicePlan } from '@spinnaker/core';
+import { ReactSelectInput, ServicesReader, StageConfigField, TextAreaInput, TextInput } from '@spinnaker/core';
 
-import { ICloudfoundryServiceManifestDirectSource } from './ICloudFoundryServiceManifestSource';
+import type { ICloudfoundryServiceManifestDirectSource } from './ICloudFoundryServiceManifestSource';
 import { ServiceTagsInput } from './ServiceTagsInput';
 
 interface ICreateServiceInstanceDirectInputProps {

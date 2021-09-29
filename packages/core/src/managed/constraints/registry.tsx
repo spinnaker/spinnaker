@@ -2,12 +2,12 @@ import { isEmpty } from 'lodash';
 import { DateTime } from 'luxon';
 import React from 'react';
 
-import { IconNames } from '@spinnaker/presentation';
+import type { IconNames } from '@spinnaker/presentation';
 
 import { AllowedTimesDescription, getAllowedTimesStatus } from './AllowedTimes';
 import { getDependsOnStatus } from './DependsOn';
 import { getManualJudgementStatus } from './ManualJudgement';
-import { ConstraintStatus, IBaseConstraint, IConstraint, IManagedArtifactVersionEnvironment } from '../../domain';
+import type { ConstraintStatus, IBaseConstraint, IConstraint, IManagedArtifactVersionEnvironment } from '../../domain';
 import { BasePluginManager } from '../plugins/BasePluginManager';
 
 const UNKNOWN_CONSTRAINT_ICON = 'mdConstraintGeneric';

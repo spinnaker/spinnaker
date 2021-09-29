@@ -1,9 +1,9 @@
 import { module } from 'angular';
 import { defaults } from 'lodash';
 
-import { IVpc } from '@spinnaker/core';
+import type { IVpc } from '@spinnaker/core';
 
-import {
+import type {
   IAmazonServerGroup,
   IAmazonServerGroupView,
   IScalingAdjustmentView,

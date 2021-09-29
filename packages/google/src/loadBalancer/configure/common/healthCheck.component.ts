@@ -1,7 +1,8 @@
-import { IController, module } from 'angular';
+import type { IController } from 'angular';
+import { module } from 'angular';
 import { get } from 'lodash';
 
-import { IGceHealthCheck } from '../../../domain/index';
+import type { IGceHealthCheck } from '../../../domain/index';
 
 class HealthCheckCreateCtrl implements IController {
   public healthCheck: IGceHealthCheck;

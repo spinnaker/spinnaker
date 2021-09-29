@@ -1,5 +1,7 @@
-import { constraintsManager, IConstraintHandler } from '../constraints/registry';
-import { IResourceKindConfig, resourceManager } from '../resources/resourceRegistry';
+import type { IConstraintHandler } from '../constraints/registry';
+import { constraintsManager } from '../constraints/registry';
+import type { IResourceKindConfig } from '../resources/resourceRegistry';
+import { resourceManager } from '../resources/resourceRegistry';
 
 export interface IManagedDeliveryPlugin {
   resources?: IResourceKindConfig[];

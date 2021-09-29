@@ -1,24 +1,28 @@
-import { IController, IScope, module } from 'angular';
-import { IModalService } from 'angular-ui-bootstrap';
+import type { IController, IScope } from 'angular';
+import { module } from 'angular';
+import type { IModalService } from 'angular-ui-bootstrap';
 import { cloneDeep, map, mapValues, reduce } from 'lodash';
 
-import {
+import type {
   Application,
-  ConfirmationModalService,
   IConfirmationModalParams,
   ILoadBalancer,
   IServerGroup,
   ITaskMonitorConfig,
+  ServerGroupWriter,
+} from '@spinnaker/core';
+import {
+  ConfirmationModalService,
   SERVER_GROUP_WRITER,
   ServerGroupReader,
   ServerGroupWarningMessageService,
-  ServerGroupWriter,
 } from '@spinnaker/core';
 
 import { AppengineHealth } from '../../common/appengineHealth';
-import { AppengineServerGroupCommandBuilder } from '../configure/serverGroupCommandBuilder.service';
-import { IAppengineLoadBalancer, IAppengineServerGroup } from '../../domain/index';
-import { APPENGINE_SERVER_GROUP_WRITER, AppengineServerGroupWriter } from '../writer/serverGroup.write.service';
+import type { AppengineServerGroupCommandBuilder } from '../configure/serverGroupCommandBuilder.service';
+import type { IAppengineLoadBalancer, IAppengineServerGroup } from '../../domain/index';
+import type { AppengineServerGroupWriter } from '../writer/serverGroup.write.service';
+import { APPENGINE_SERVER_GROUP_WRITER } from '../writer/serverGroup.write.service';
 
 interface IPrivateScope extends IScope {
   $$destroyed: boolean;

@@ -1,6 +1,7 @@
-import { IComponentOptions, IController, module } from 'angular';
+import type { IComponentOptions, IController } from 'angular';
+import { module } from 'angular';
 
-import { IManifestStatus } from '@spinnaker/core';
+import type { IManifestStatus } from '@spinnaker/core';
 
 class KubernetesManifestStatusCtrl implements IController {
   public status: IManifestStatus;

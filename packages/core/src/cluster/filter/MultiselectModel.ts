@@ -1,8 +1,8 @@
 import { Subject } from 'rxjs';
 
-import { IServerGroup } from '../../domain';
-import { IMultiInstanceGroup } from '../../instance/instance.write.service';
-import { IMoniker } from '../../naming';
+import type { IServerGroup } from '../../domain';
+import type { IMultiInstanceGroup } from '../../instance/instance.write.service';
+import type { IMoniker } from '../../naming';
 import { ReactInjector } from '../../reactShims';
 import { ClusterState } from '../../state';
 

@@ -1,15 +1,16 @@
 import classnames from 'classnames';
 import { flatten, uniq, without } from 'lodash';
 import React from 'react';
-import { from as observableFrom, Subject, Subscription } from 'rxjs';
+import type { Subscription } from 'rxjs';
+import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import { MigrationTag } from './MigrationTag';
 import { AccountTag } from '../../../account';
-import { Application } from '../../../application/application.model';
+import type { Application } from '../../../application/application.model';
 import { CollapsibleSectionStateCache } from '../../../cache';
 import { PipelineTemplateReader, PipelineTemplateV2Service } from '../../config/templates';
-import {
+import type {
   IExecution,
   IExecutionGroup,
   IExecutionTrigger,
@@ -22,7 +23,7 @@ import { Execution } from '../execution/Execution';
 import { ExecutionAction } from '../executionAction/ExecutionAction';
 import { ManualExecutionModal } from '../../manualExecution';
 import { Overridable } from '../../../overrideRegistry';
-import { Placement } from '../../../presentation/Placement';
+import type { Placement } from '../../../presentation/Placement';
 import { Popover } from '../../../presentation/Popover';
 import { ReactInjector } from '../../../reactShims';
 import { ExecutionState } from '../../../state';
@@ -30,7 +31,7 @@ import { NextRunTag } from '../../triggers/NextRunTag';
 import { TriggersTag } from '../../triggers/TriggersTag';
 import { logger } from '../../../utils';
 import { RenderWhenVisible } from '../../../utils/RenderWhenVisible';
-import { IRetryablePromise } from '../../../utils/retryablePromise';
+import type { IRetryablePromise } from '../../../utils/retryablePromise';
 import { Spinner } from '../../../widgets/spinners/Spinner';
 
 import './executionGroup.less';

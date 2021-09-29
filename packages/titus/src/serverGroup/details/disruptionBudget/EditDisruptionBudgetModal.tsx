@@ -1,10 +1,8 @@
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 
+import type { Application, IJob, IModalComponentProps } from '@spinnaker/core';
 import {
-  Application,
-  IJob,
-  IModalComponentProps,
   ModalClose,
   ReactModal,
   SpinFormik,
@@ -14,9 +12,9 @@ import {
   TaskMonitorWrapper,
 } from '@spinnaker/core';
 
-import { ITitusServerGroupCommand } from '../../configure/serverGroupConfiguration.service';
+import type { ITitusServerGroupCommand } from '../../configure/serverGroupConfiguration.service';
 import { JobDisruptionBudget } from '../../configure/wizard/pages/disruptionBudget/JobDisruptionBudget';
-import { ITitusServerGroup } from '../../../domain';
+import type { ITitusServerGroup } from '../../../domain';
 
 export interface IEditDisruptionBudgetModalProps extends IModalComponentProps {
   application: Application;

@@ -1,11 +1,10 @@
-import { IController, IScope, module } from 'angular';
+import type { IController, IScope } from 'angular';
+import { module } from 'angular';
 
+import type { IArtifact, IArtifactAccount, IArtifactAccountPair } from '@spinnaker/core';
 import {
   AccountService,
   ExpectedArtifactSelectorViewController,
-  IArtifact,
-  IArtifactAccount,
-  IArtifactAccountPair,
   NgAppengineConfigArtifactDelegate,
 } from '@spinnaker/core';
 

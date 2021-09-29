@@ -2,8 +2,9 @@ import { cloneDeep } from 'lodash';
 import React from 'react';
 import { Dropdown } from 'react-bootstrap';
 
-import { Application, ConfirmationModalService, InstanceWriter, ReactInjector } from '@spinnaker/core';
-import { ICloudFoundryInstance } from '../../domain';
+import type { Application } from '@spinnaker/core';
+import { ConfirmationModalService, InstanceWriter, ReactInjector } from '@spinnaker/core';
+import type { ICloudFoundryInstance } from '../../domain';
 
 export interface ICloudFoundryInstanceActionsProps {
   application: Application;

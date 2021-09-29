@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Application } from '../application.model';
+import type { Application } from '../application.model';
 import { NotifierService } from '../../widgets/notifier/notifier.service';
 
 export class InferredApplicationWarningService {

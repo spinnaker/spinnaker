@@ -1,8 +1,10 @@
 import React from 'react';
-import Select, { Option } from 'react-select';
+import type { Option } from 'react-select';
+import Select from 'react-select';
 
-import { HelpField, IServerGroupCommand, SpelNumberInput } from '@spinnaker/core';
-import { IMinMaxDesiredProps } from './MinMaxDesired';
+import type { IServerGroupCommand } from '@spinnaker/core';
+import { HelpField, SpelNumberInput } from '@spinnaker/core';
+import type { IMinMaxDesiredProps } from './MinMaxDesired';
 
 export interface ICapacitySelectorProps {
   command: IServerGroupCommand;

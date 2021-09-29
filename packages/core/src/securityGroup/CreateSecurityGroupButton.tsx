@@ -1,8 +1,9 @@
 import * as React from 'react';
 
-import { IAccountDetails } from '../account';
-import { Application } from '../application';
-import { CloudProviderRegistry, ICloudProviderConfig, ProviderSelectionService } from '../cloudProvider';
+import type { IAccountDetails } from '../account';
+import type { Application } from '../application';
+import type { ICloudProviderConfig } from '../cloudProvider';
+import { CloudProviderRegistry, ProviderSelectionService } from '../cloudProvider';
 import { SETTINGS } from '../config/settings';
 import { FirewallLabels } from './label/FirewallLabels';
 import { Tooltip } from '../presentation';

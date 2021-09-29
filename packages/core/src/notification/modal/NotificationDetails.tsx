@@ -1,9 +1,9 @@
-import { FormikProps } from 'formik';
+import type { FormikProps } from 'formik';
 import React from 'react';
-import { Option } from 'react-select';
+import type { Option } from 'react-select';
 
 import { WhenChecklistInput } from './WhenChecklistInput';
-import { INotification, INotificationTypeConfig } from '../../domain';
+import type { INotification, INotificationTypeConfig } from '../../domain';
 import { NotificationTransformer } from '../notification.transformer';
 import { FormikFormField, TextAreaInput } from '../../presentation';
 import { Registry } from '../../registry';

@@ -6,7 +6,7 @@ import React from 'react';
 
 import { ManagedResourceDiffTable } from './ManagedResourceDiffTable';
 import { RelativeTimestamp } from '../RelativeTimestamp';
-import { IManagedResourceDiff, IManagedResourceEvent } from '../../domain';
+import type { IManagedResourceDiff, IManagedResourceEvent } from '../../domain';
 import { TableCell, TableRow } from '../../presentation';
 
 type LogLevel = IManagedResourceEvent['level'];

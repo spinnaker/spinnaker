@@ -1,25 +1,23 @@
 import { UISref } from '@uirouter/react';
-import { IHttpPromiseCallbackArg } from 'angular';
+import type { IHttpPromiseCallbackArg } from 'angular';
 import { cloneDeep, get, uniqBy } from 'lodash';
 import { Debounce } from 'lodash-decorators';
 import { $log } from 'ngimport';
 import React from 'react';
 import { Button, Modal } from 'react-bootstrap';
-import Select, { Option } from 'react-select';
+import type { Option } from 'react-select';
+import Select from 'react-select';
 
 import { ManagedTemplateSelector } from './ManagedTemplateSelector';
 import { TemplateDescription } from './TemplateDescription';
-import { Application } from '../../application/application.model';
+import type { Application } from '../../application/application.model';
 import { PipelineConfigService } from '../config/services/PipelineConfigService';
 import { SETTINGS } from '../../config/settings';
-import {
-  IPipelineTemplate,
-  IPipelineTemplateConfig,
-  PipelineTemplateReader,
-} from '../config/templates/PipelineTemplateReader';
+import type { IPipelineTemplate, IPipelineTemplateConfig } from '../config/templates/PipelineTemplateReader';
+import { PipelineTemplateReader } from '../config/templates/PipelineTemplateReader';
 import { PipelineTemplateV2Service } from '../config/templates/v2/pipelineTemplateV2.service';
-import { IPipeline } from '../../domain/IPipeline';
-import { IPipelineTemplateV2 } from '../../domain/IPipelineTemplateV2';
+import type { IPipeline } from '../../domain/IPipeline';
+import type { IPipelineTemplateV2 } from '../../domain/IPipelineTemplateV2';
 import { SubmitButton } from '../../modal/buttons/SubmitButton';
 import { Overridable } from '../../overrideRegistry';
 import { Spinner } from '../../widgets/spinners/Spinner';

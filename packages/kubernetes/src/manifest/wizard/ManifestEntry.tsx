@@ -1,10 +1,11 @@
-import { FormikProps } from 'formik';
+import type { FormikProps } from 'formik';
 import { dump } from 'js-yaml';
 import React from 'react';
 
-import { Application, YamlEditor } from '@spinnaker/core';
+import type { Application } from '@spinnaker/core';
+import { YamlEditor } from '@spinnaker/core';
 
-import { IKubernetesManifestCommandData } from '../manifestCommandBuilder.service';
+import type { IKubernetesManifestCommandData } from '../manifestCommandBuilder.service';
 
 export interface IManifestBasicSettingsProps {
   app: Application;

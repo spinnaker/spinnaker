@@ -2,8 +2,8 @@ import classNames from 'classnames';
 import { get } from 'lodash';
 import React from 'react';
 
-import { IExecutionStageSummary } from '../../../domain';
-import { IPipelineGraphNode } from './pipelineGraph.service';
+import type { IExecutionStageSummary } from '../../../domain';
+import type { IPipelineGraphNode } from './pipelineGraph.service';
 import { LabelComponent, Markdown } from '../../../presentation';
 import { Popover } from '../../../presentation/Popover';
 import { GroupExecutionPopover } from '../stages/group/GroupExecutionPopover';

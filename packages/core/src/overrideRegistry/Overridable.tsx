@@ -3,7 +3,8 @@ import React from 'react';
 import { of as observableOf, Subject } from 'rxjs';
 import { map, switchMap, takeUntil } from 'rxjs/operators';
 
-import { AccountService, IAccountDetails } from '../account/AccountService';
+import type { IAccountDetails } from '../account/AccountService';
+import { AccountService } from '../account/AccountService';
 import { CloudProviderRegistry } from '../cloudProvider/CloudProviderRegistry';
 import { AngularJSAdapter } from '../reactShims/AngularJSAdapter';
 import { ReactInjector } from '../reactShims/react.injector';

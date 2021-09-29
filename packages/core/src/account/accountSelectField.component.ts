@@ -1,5 +1,6 @@
-import { ITimeoutService, module } from 'angular';
-import React from 'react';
+import type { ITimeoutService } from 'angular';
+import { module } from 'angular';
+import type React from 'react';
 
 export const ACCOUNT_SELECT_COMPONENT = 'spinnaker.core.account.accountSelectField.component';
 

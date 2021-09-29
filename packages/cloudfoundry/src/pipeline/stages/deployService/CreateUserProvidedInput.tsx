@@ -2,7 +2,7 @@ import React from 'react';
 
 import { StageConfigField, TextAreaInput, TextInput } from '@spinnaker/core';
 
-import {
+import type {
   ICloudFoundryServiceManifestSource,
   ICloudFoundryServiceUserProvidedSource,
 } from './ICloudFoundryServiceManifestSource';

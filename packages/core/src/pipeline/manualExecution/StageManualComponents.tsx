@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { ITriggerTemplateComponentProps } from './TriggerTemplate';
-import { IPipelineCommand } from '../../domain';
+import type { ITriggerTemplateComponentProps } from './TriggerTemplate';
+import type { IPipelineCommand } from '../../domain';
 
 /**
  * This is only necessary because manualPipelineExecution is still in angular

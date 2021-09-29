@@ -1,4 +1,5 @@
-import { IComponentController, module } from 'angular';
+import type { IComponentController } from 'angular';
+import { module } from 'angular';
 import { FirewallLabels } from './FirewallLabels';
 
 class LabelCtrl implements IComponentController {

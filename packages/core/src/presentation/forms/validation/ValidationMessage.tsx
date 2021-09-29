@@ -2,7 +2,7 @@ import { isString } from 'lodash';
 import React from 'react';
 
 import { Markdown } from '../../Markdown';
-import { ICategorizedErrors, IValidationCategory } from './categories';
+import type { ICategorizedErrors, IValidationCategory } from './categories';
 
 import './ValidationMessage.less';
 

@@ -4,7 +4,7 @@ import * as React from 'react';
 
 import { BuildInfoArtifactsTab } from './BuildInfoArtifactsTab';
 import { BuildInfoLogsTab } from './BuildInfoLogsTab';
-import { ICiBuild } from '../domain';
+import type { ICiBuild } from '../domain';
 import { duration, relativeTime } from '../../utils';
 
 const infoConfigByBuildStatus: { [key: string]: { statusClass?: string; text: string } } = {

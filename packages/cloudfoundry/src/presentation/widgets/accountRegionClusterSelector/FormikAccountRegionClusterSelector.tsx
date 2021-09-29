@@ -1,19 +1,12 @@
-import { FormikProps } from 'formik';
+import type { FormikProps } from 'formik';
 import { get } from 'lodash';
 import React from 'react';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import {
-  Application,
-  AppListExtractor,
-  FormikFormField,
-  IAccount,
-  IServerGroup,
-  IServerGroupFilter,
-  ReactSelectInput,
-} from '@spinnaker/core';
-import { ICloudFoundryCreateServerGroupCommand } from '../../../serverGroup';
+import type { Application, IAccount, IServerGroup, IServerGroupFilter } from '@spinnaker/core';
+import { AppListExtractor, FormikFormField, ReactSelectInput } from '@spinnaker/core';
+import type { ICloudFoundryCreateServerGroupCommand } from '../../../serverGroup';
 
 export interface IFormikAccountRegionClusterSelectorProps {
   accounts: IAccount[];

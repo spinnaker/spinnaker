@@ -2,14 +2,14 @@ import React from 'react';
 import { Button } from 'react-bootstrap';
 
 import { VariableError } from '../VariableError';
-import {
+import type {
   IVariable,
   IVariableError,
   IVariableInputBuilder,
   IVariableProps,
   IVariableState,
-  VariableInputService,
 } from './variableInput.service';
+import { VariableInputService } from './variableInput.service';
 
 class ListInput extends React.Component<IVariableProps, IVariableState> {
   public render() {

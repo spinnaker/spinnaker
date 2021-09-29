@@ -1,4 +1,4 @@
-import { IServerGroupCommand } from './serverGroupCommandBuilder.service';
+import type { IServerGroupCommand } from './serverGroupCommandBuilder.service';
 
 export interface IInstanceArchetypeSelectorProps {
   command: IServerGroupCommand;

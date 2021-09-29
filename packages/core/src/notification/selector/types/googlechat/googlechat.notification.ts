@@ -1,5 +1,5 @@
 import { GooglechatNotificationType } from './GooglechatNotificationType';
-import { INotificationTypeConfig } from '../../../../domain';
+import type { INotificationTypeConfig } from '../../../../domain';
 
 export const googlechatNotification: INotificationTypeConfig = {
   component: GooglechatNotificationType,

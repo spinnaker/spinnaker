@@ -1,7 +1,7 @@
 import { isEmpty } from 'lodash';
 import React from 'react';
 
-import { ILayoutProps } from '@spinnaker/core';
+import type { ILayoutProps } from '@spinnaker/core';
 
 import './gceAutoscalingFieldLayout.less';
 

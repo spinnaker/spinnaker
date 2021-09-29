@@ -1,10 +1,8 @@
 import { module } from 'angular';
 
-import { Application } from '@spinnaker/core';
-import {
-  IKubernetesManifestCommandData,
-  KubernetesManifestCommandBuilder,
-} from '../manifest/manifestCommandBuilder.service';
+import type { Application } from '@spinnaker/core';
+import type { IKubernetesManifestCommandData } from '../manifest/manifestCommandBuilder.service';
+import { KubernetesManifestCommandBuilder } from '../manifest/manifestCommandBuilder.service';
 
 export class KubernetesV2ServerGroupCommandBuilder {
   public buildNewServerGroupCommand(app: Application): PromiseLike<IKubernetesManifestCommandData> {

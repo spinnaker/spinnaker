@@ -1,5 +1,6 @@
 import React from 'react';
-import { IServerGroupCommand, SpelNumberInput } from '@spinnaker/core';
+import type { IServerGroupCommand } from '@spinnaker/core';
+import { SpelNumberInput } from '@spinnaker/core';
 
 export interface IMinMaxDesiredProps {
   command: IServerGroupCommand;

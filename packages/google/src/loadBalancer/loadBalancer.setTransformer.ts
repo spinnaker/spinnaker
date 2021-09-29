@@ -1,9 +1,10 @@
 import { module } from 'angular';
 import { cloneDeep, groupBy, map, partition } from 'lodash';
 
-import { IGceHttpLoadBalancer, IGceLoadBalancer } from '../domain/loadBalancer';
+import type { IGceHttpLoadBalancer, IGceLoadBalancer } from '../domain/loadBalancer';
 
-import { GCE_HTTP_LOAD_BALANCER_UTILS, GceHttpLoadBalancerUtils } from './httpLoadBalancerUtils.service';
+import type { GceHttpLoadBalancerUtils } from './httpLoadBalancerUtils.service';
+import { GCE_HTTP_LOAD_BALANCER_UTILS } from './httpLoadBalancerUtils.service';
 
 export class GceLoadBalancerSetTransformer {
   private static normalizeHttpLoadBalancerGroup(group: IGceHttpLoadBalancer[]): IGceHttpLoadBalancer {

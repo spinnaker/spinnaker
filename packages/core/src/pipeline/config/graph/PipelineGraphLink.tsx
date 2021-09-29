@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import React from 'react';
 
-import { IPipelineGraphLink } from './pipelineGraph.service';
+import type { IPipelineGraphLink } from './pipelineGraph.service';
 
 export interface IPiplineGraphLinkProps {
   link: IPipelineGraphLink;

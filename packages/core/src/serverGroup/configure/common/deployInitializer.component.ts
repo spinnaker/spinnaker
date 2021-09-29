@@ -1,9 +1,11 @@
-import { IComponentOptions, IController, module } from 'angular';
+import type { IComponentOptions, IController } from 'angular';
+import { module } from 'angular';
 import { groupBy, sortBy } from 'lodash';
 
-import { Application } from '../../../application';
-import { PROVIDER_SERVICE_DELEGATE, ProviderServiceDelegate } from '../../../cloudProvider/providerService.delegate';
-import { IServerGroup } from '../../../domain';
+import type { Application } from '../../../application';
+import type { ProviderServiceDelegate } from '../../../cloudProvider/providerService.delegate';
+import { PROVIDER_SERVICE_DELEGATE } from '../../../cloudProvider/providerService.delegate';
+import type { IServerGroup } from '../../../domain';
 
 import { ServerGroupReader } from '../../serverGroupReader.service';
 

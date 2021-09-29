@@ -1,8 +1,8 @@
-import { IServerGroup } from '@spinnaker/core';
+import type { IServerGroup } from '@spinnaker/core';
 
-import { ICloudFoundryDroplet } from './ICloudFoundryDroplet';
-import { ICloudFoundryInstance } from './ICloudFoundryInstance';
-import { ICloudFoundrySpace } from './ICloudFoundrySpace';
+import type { ICloudFoundryDroplet } from './ICloudFoundryDroplet';
+import type { ICloudFoundryInstance } from './ICloudFoundryInstance';
+import type { ICloudFoundrySpace } from './ICloudFoundrySpace';
 
 export interface ICloudFoundryServerGroup extends IServerGroup {
   appsManagerUri?: string;

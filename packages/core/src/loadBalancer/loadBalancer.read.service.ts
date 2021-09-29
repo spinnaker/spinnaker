@@ -1,9 +1,11 @@
-import { IQService, module } from 'angular';
+import type { IQService } from 'angular';
+import { module } from 'angular';
 
 import { REST } from '../api/ApiService';
-import { ILoadBalancer, ILoadBalancerSourceData } from '../domain';
+import type { ILoadBalancer, ILoadBalancerSourceData } from '../domain';
 import { CORE_LOADBALANCER_LOADBALANCER_TRANSFORMER } from './loadBalancer.transformer';
-import { IComponentName, NameUtils } from '../naming';
+import type { IComponentName } from '../naming';
+import { NameUtils } from '../naming';
 
 export interface ILoadBalancersByAccount {
   name: string;

@@ -2,17 +2,17 @@ import { FieldArray } from 'formik';
 import { countBy } from 'lodash';
 import React from 'react';
 
-import { ExecutionAndStagePicker, IExecutionAndStagePickerProps } from './ExecutionAndStagePicker';
-import { FormikStageConfig, IFormikStageConfigInjectedProps } from '../FormikStageConfig';
-import { IStageConfigProps } from '../common';
-import { IStage } from '../../../../domain';
+import type { IExecutionAndStagePickerProps } from './ExecutionAndStagePicker';
+import { ExecutionAndStagePicker } from './ExecutionAndStagePicker';
+import type { IFormikStageConfigInjectedProps } from '../FormikStageConfig';
+import { FormikStageConfig } from '../FormikStageConfig';
+import type { IStageConfigProps } from '../common';
+import type { IStage } from '../../../../domain';
+import type { ILayoutProps, IStageForSpelPreview, IValidator } from '../../../../presentation';
 import {
   errorMessage,
   FormikFormField,
   FormValidator,
-  ILayoutProps,
-  IStageForSpelPreview,
-  IValidator,
   LayoutContext,
   LayoutProvider,
   Markdown,

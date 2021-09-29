@@ -1,11 +1,12 @@
 import { defaults } from 'lodash';
 import React from 'react';
 
-import { Application, IStage, IStageConfigProps } from '@spinnaker/core';
+import type { Application, IStage, IStageConfigProps } from '@spinnaker/core';
 
 import DeleteManifestOptionsForm from './DeleteManifestOptionsForm';
-import { IDeleteOptions } from '../../../manifest/delete/delete.controller';
-import { IManifestSelector, SelectorMode } from '../../../manifest/selector/IManifestSelector';
+import type { IDeleteOptions } from '../../../manifest/delete/delete.controller';
+import type { IManifestSelector } from '../../../manifest/selector/IManifestSelector';
+import { SelectorMode } from '../../../manifest/selector/IManifestSelector';
 import { ManifestSelector } from '../../../manifest/selector/ManifestSelector';
 
 export interface IKubernetesManifestStageConfigProps extends IStageConfigProps {

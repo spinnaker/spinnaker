@@ -3,7 +3,7 @@ import { UIRouterContext } from '@uirouter/react-hybrid';
 import { get } from 'lodash';
 import React from 'react';
 
-import { IExecutionStage, ITaskStep } from '../../domain';
+import type { IExecutionStage, ITaskStep } from '../../domain';
 import { EventBus } from '../../event/EventBus';
 import { Markdown, robotToHuman } from '../../presentation';
 import { ReactInjector } from '../../reactShims';

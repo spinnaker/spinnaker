@@ -1,17 +1,9 @@
 import { get } from 'lodash';
 import React from 'react';
-import { Option } from 'react-select';
+import type { Option } from 'react-select';
 
-import {
-  Application,
-  createFakeReactSyntheticEvent,
-  ISelectInputProps,
-  ISubnet,
-  Omit,
-  SelectInput,
-  useDeepObjectDiff,
-  useMountStatusRef,
-} from '@spinnaker/core';
+import type { Application, ISelectInputProps, ISubnet, Omit } from '@spinnaker/core';
+import { createFakeReactSyntheticEvent, SelectInput, useDeepObjectDiff, useMountStatusRef } from '@spinnaker/core';
 import { AWSProviderSettings } from '../aws.settings';
 
 export interface ISubnetSelectInputProps extends Omit<ISelectInputProps, 'options'> {

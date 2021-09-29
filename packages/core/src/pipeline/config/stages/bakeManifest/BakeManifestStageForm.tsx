@@ -1,11 +1,11 @@
 import { isNil } from 'lodash';
 import React from 'react';
 
-import { IFormikStageConfigInjectedProps } from '../FormikStageConfig';
+import type { IFormikStageConfigInjectedProps } from '../FormikStageConfig';
 import { HELM_RENDERERS, ManifestRenderers } from './ManifestRenderers';
 import { ExpectedArtifactService } from '../../../../artifact';
 import { StageConfigField } from '../common';
-import { IExpectedArtifact } from '../../../../domain';
+import type { IExpectedArtifact } from '../../../../domain';
 import { BakeHelmConfigForm } from './helm/BakeHelmConfigForm';
 import { BakeKustomizeConfigForm } from './kustomize/BakeKustomizeConfigForm';
 import { ReactSelectInput } from '../../../../presentation';

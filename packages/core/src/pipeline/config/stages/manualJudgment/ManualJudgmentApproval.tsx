@@ -1,10 +1,11 @@
 import React from 'react';
-import Select, { Option } from 'react-select';
+import type { Option } from 'react-select';
+import Select from 'react-select';
 
-import { Application } from '../../../../application/application.model';
+import type { Application } from '../../../../application/application.model';
 import { ApplicationReader } from '../../../../application/service/ApplicationReader';
 import { AuthenticationService } from '../../../../authentication';
-import { IExecution, IExecutionStage } from '../../../../domain';
+import type { IExecution, IExecutionStage } from '../../../../domain';
 import { Markdown } from '../../../../presentation/Markdown';
 import { ReactInjector } from '../../../../reactShims';
 import { Spinner } from '../../../../widgets/spinners/Spinner';

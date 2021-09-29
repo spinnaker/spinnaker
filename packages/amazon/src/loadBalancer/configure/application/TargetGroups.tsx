@@ -1,14 +1,13 @@
-import { FormikErrors, FormikProps } from 'formik';
+import type { FormikErrors, FormikProps } from 'formik';
 import { filter, flatten, groupBy, set, uniq } from 'lodash';
 import React from 'react';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
+import type { Application, IWizardPageComponent } from '@spinnaker/core';
 import {
-  Application,
   FormValidator,
   HelpField,
-  IWizardPageComponent,
   spelNumberCheck,
   SpelNumberInput,
   SpInput,
@@ -17,7 +16,7 @@ import {
 } from '@spinnaker/core';
 
 import { isNameInUse, isNameLong, isValidHealthCheckInterval, isValidTimeout } from '../common/targetGroupValidators';
-import { IAmazonApplicationLoadBalancer, IAmazonApplicationLoadBalancerUpsertCommand } from '../../../domain';
+import type { IAmazonApplicationLoadBalancer, IAmazonApplicationLoadBalancerUpsertCommand } from '../../../domain';
 
 export interface ITargetGroupsProps {
   app: Application;

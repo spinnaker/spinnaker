@@ -2,7 +2,7 @@ import React from 'react';
 
 import { HoverablePopover, Markdown } from '../../../presentation';
 
-import { QueryGitMetadata } from '../types';
+import type { QueryGitMetadata } from '../types';
 import { tooltipShowHideProps } from '../../utils/defaults';
 import { useLogEvent } from '../../utils/logging';
 

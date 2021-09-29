@@ -1,4 +1,4 @@
-import { StateService } from '@uirouter/core';
+import type { StateService } from '@uirouter/core';
 import classNames from 'classnames';
 import $ from 'jquery';
 import 'jquery-textcomplete';
@@ -8,7 +8,7 @@ import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import { SpelAutocompleteService } from './SpelAutocompleteService';
-import { IPipeline } from '../../domain';
+import type { IPipeline } from '../../domain';
 import { ExecutionService } from '../../pipeline/service/execution.service';
 
 import './spel.less';

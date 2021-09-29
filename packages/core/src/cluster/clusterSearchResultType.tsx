@@ -1,20 +1,17 @@
 import { uniqBy } from 'lodash';
 import React from 'react';
-import { Observable } from 'rxjs';
+import type { Observable } from 'rxjs';
 import { filter, first, map } from 'rxjs/operators';
 
-import { IQueryParams } from '../navigation';
+import type { IQueryParams } from '../navigation';
 import { ReactInjector } from '../reactShims';
 import { Registry } from '../registry';
+import type { ISearchColumn, ISearchResult, ISearchResults, ISearchResultSet } from '../search';
 import {
   AccountCell,
   DefaultSearchResultTab,
   HeaderCell,
   HrefCell,
-  ISearchColumn,
-  ISearchResult,
-  ISearchResults,
-  ISearchResultSet,
   SearchResultType,
   searchResultTypeRegistry,
   SearchStatus,
@@ -22,7 +19,7 @@ import {
   SearchTableHeader,
   SearchTableRow,
 } from '../search';
-import { IServerGroupSearchResult } from '../serverGroup/serverGroupSearchResultType';
+import type { IServerGroupSearchResult } from '../serverGroup/serverGroupSearchResultType';
 
 export interface IClusterSearchResult extends ISearchResult {
   account: string;

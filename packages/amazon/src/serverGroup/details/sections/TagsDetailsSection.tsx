@@ -3,7 +3,7 @@ import React from 'react';
 
 import { CollapsibleSection } from '@spinnaker/core';
 
-import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
+import type { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
 
 export class TagsDetailsSection extends React.Component<IAmazonServerGroupDetailsSectionProps> {
   public render(): JSX.Element {

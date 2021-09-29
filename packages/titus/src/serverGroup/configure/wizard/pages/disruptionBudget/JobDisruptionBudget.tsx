@@ -1,10 +1,10 @@
-import { FormikProps } from 'formik';
+import type { FormikProps } from 'formik';
 import { get, isEqual } from 'lodash';
 import React from 'react';
-import { Option } from 'react-select';
+import type { Option } from 'react-select';
 
+import type { Application } from '@spinnaker/core';
 import {
-  Application,
   CheckboxInput,
   FormikFormField,
   HelpField,
@@ -16,11 +16,11 @@ import {
 import { policyOptions } from './PolicyOptions';
 import { rateOptions } from './RateOptions';
 import { WindowPicker } from './WindowPicker';
-import { IJobDisruptionBudget } from '../../../../../domain';
+import type { IJobDisruptionBudget } from '../../../../../domain';
+import type { ITitusServerGroupCommand } from '../../../serverGroupConfiguration.service';
 import {
   defaultJobDisruptionBudget,
   getDefaultJobDisruptionBudgetForApp,
-  ITitusServerGroupCommand,
 } from '../../../serverGroupConfiguration.service';
 
 export interface IJobDisruptionBudgetProps {

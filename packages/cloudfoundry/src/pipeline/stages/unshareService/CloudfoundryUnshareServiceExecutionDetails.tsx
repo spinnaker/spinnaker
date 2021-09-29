@@ -1,13 +1,8 @@
 import { get } from 'lodash';
 import React from 'react';
 
-import {
-  AccountTag,
-  ExecutionDetailsSection,
-  IExecutionDetailsSectionProps,
-  StageExecutionLogs,
-  StageFailureMessage,
-} from '@spinnaker/core';
+import type { IExecutionDetailsSectionProps } from '@spinnaker/core';
+import { AccountTag, ExecutionDetailsSection, StageExecutionLogs, StageFailureMessage } from '@spinnaker/core';
 
 export function CloudfoundryUnshareServiceExecutionDetails(props: IExecutionDetailsSectionProps) {
   const { stage } = props;

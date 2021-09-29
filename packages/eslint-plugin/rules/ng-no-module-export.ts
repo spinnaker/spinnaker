@@ -2,8 +2,8 @@
  * Prefer exporting a module's NAME instead of the entire angular.module()
  */
 
-import { AST, Rule } from 'eslint';
-import { AssignmentExpression, CallExpression, MemberExpression } from 'estree';
+import type { AST, Rule } from 'eslint';
+import type { AssignmentExpression, CallExpression, MemberExpression } from 'estree';
 import { isCallExpression, isIdentifier, isMemberExpression } from '../utils/utils';
 
 const rule = function (context: Rule.RuleContext) {

@@ -1,6 +1,7 @@
-import { IStageOrTriggerValidator, IValidatorConfig, PipelineConfigValidator } from './PipelineConfigValidator';
+import type { IStageOrTriggerValidator, IValidatorConfig } from './PipelineConfigValidator';
+import { PipelineConfigValidator } from './PipelineConfigValidator';
 import { SETTINGS } from '../../../config/settings';
-import { IPipeline, IStage, IStageOrTriggerTypeConfig } from '../../../domain';
+import type { IPipeline, IStage, IStageOrTriggerTypeConfig } from '../../../domain';
 import { ServiceAccountReader } from '../../../serviceAccount/ServiceAccountReader';
 
 export interface ITriggerWithServiceAccount extends IStage {

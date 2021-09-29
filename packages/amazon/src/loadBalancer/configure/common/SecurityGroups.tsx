@@ -1,21 +1,14 @@
-import { FormikErrors, FormikProps } from 'formik';
+import type { FormikErrors, FormikProps } from 'formik';
 import { get, isEqual, partition, uniq } from 'lodash';
 import React from 'react';
 import VirtualizedSelect from 'react-virtualized-select';
 import { combineLatest as observableCombineLatest, Subject } from 'rxjs';
 import { distinctUntilChanged, map, mergeMap, switchMap, takeUntil, tap, withLatestFrom } from 'rxjs/operators';
 
-import {
-  FirewallLabels,
-  InfrastructureCaches,
-  ISecurityGroup,
-  IWizardPageComponent,
-  ReactInjector,
-  Spinner,
-  timestamp,
-} from '@spinnaker/core';
+import type { ISecurityGroup, IWizardPageComponent } from '@spinnaker/core';
+import { FirewallLabels, InfrastructureCaches, ReactInjector, Spinner, timestamp } from '@spinnaker/core';
 import { AWSProviderSettings } from '../../../aws.settings';
-import { IAmazonLoadBalancerUpsertCommand } from '../../../domain';
+import type { IAmazonLoadBalancerUpsertCommand } from '../../../domain';
 
 export interface ISecurityGroupsProps {
   formik: FormikProps<IAmazonLoadBalancerUpsertCommand>;

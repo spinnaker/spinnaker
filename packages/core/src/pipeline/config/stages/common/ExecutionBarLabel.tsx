@@ -1,7 +1,7 @@
 import React from 'react';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 
-import { IExecutionStageLabelProps } from '../../../../domain';
+import type { IExecutionStageLabelProps } from '../../../../domain';
 import { ExecutionWindowActions } from '../executionWindows/ExecutionWindowActions';
 import { HoverablePopover } from '../../../../presentation/HoverablePopover';
 import { ReactInjector } from '../../../../reactShims';

@@ -1,5 +1,6 @@
-import * as React from 'react';
-import { Application, IServerGroup, overridableComponent } from '@spinnaker/core';
+import type * as React from 'react';
+import type { Application, IServerGroup } from '@spinnaker/core';
+import { overridableComponent } from '@spinnaker/core';
 
 export interface ITitusCustomScalingPolicyProps {
   application: Application;

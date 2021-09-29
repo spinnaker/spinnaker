@@ -1,5 +1,5 @@
 import { module } from 'angular';
-import { IModalInstanceService, IModalService } from 'angular-ui-bootstrap';
+import type { IModalInstanceService, IModalService } from 'angular-ui-bootstrap';
 
 export const UIB_MODAL_REJECTIONS = 'spinnaker.core.utils.uibModalRejections';
 

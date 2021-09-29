@@ -1,5 +1,5 @@
 import { REST } from '../api/ApiService';
-import { INotification } from '../domain';
+import type { INotification } from '../domain';
 
 export interface IAppNotifications {
   application: string;

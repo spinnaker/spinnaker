@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { IExecutionStageSummary } from '../../../../domain';
+import type { IExecutionStageSummary } from '../../../../domain';
 
 export class WerckerExecutionLabel extends React.Component<{ stage: IExecutionStageSummary }> {
   public render() {

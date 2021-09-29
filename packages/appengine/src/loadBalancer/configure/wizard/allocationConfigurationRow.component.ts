@@ -1,7 +1,8 @@
-import { IComponentOptions, IController, module } from 'angular';
+import type { IComponentOptions, IController } from 'angular';
+import { module } from 'angular';
 import { uniq } from 'lodash';
 
-import { IAppengineAllocationDescription } from '../../transformer';
+import type { IAppengineAllocationDescription } from '../../transformer';
 
 class AppengineAllocationConfigurationRowCtrl implements IController {
   public allocationDescription: IAppengineAllocationDescription;

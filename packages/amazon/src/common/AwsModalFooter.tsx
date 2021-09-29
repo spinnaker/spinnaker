@@ -2,7 +2,8 @@ import React from 'react';
 import { ModalFooter } from 'react-bootstrap';
 import { map, take } from 'rxjs/operators';
 
-import { AccountService, IAccountDetails, UserVerification } from '@spinnaker/core';
+import type { IAccountDetails } from '@spinnaker/core';
+import { AccountService, UserVerification } from '@spinnaker/core';
 
 export interface IAwsModalFooterProps {
   account: string;

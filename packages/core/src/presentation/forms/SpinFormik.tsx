@@ -1,4 +1,5 @@
-import { Formik, FormikConfig } from 'formik';
+import type { FormikConfig } from 'formik';
+import { Formik } from 'formik';
 import { set } from 'lodash';
 import React from 'react';
 

@@ -1,4 +1,5 @@
-import { Category, UIRouter } from '@uirouter/core';
+import type { UIRouter } from '@uirouter/core';
+import { Category } from '@uirouter/core';
 
 import { bootstrapModule } from './bootstrap.module';
 import { paramChangedHelper } from './paramChangedHelper';

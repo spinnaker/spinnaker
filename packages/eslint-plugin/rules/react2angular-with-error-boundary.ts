@@ -1,5 +1,5 @@
-import { Rule } from 'eslint';
-import { CallExpression, ImportDeclaration } from 'estree';
+import type { Rule } from 'eslint';
+import type { CallExpression, ImportDeclaration } from 'estree';
 import _ from 'lodash';
 import { isLiteral } from '../utils/utils';
 

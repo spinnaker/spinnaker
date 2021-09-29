@@ -1,4 +1,4 @@
-import { ILoadBalancer, ILoadBalancerDeleteCommand, ILoadBalancerUpsertCommand, ISubnet } from '@spinnaker/core';
+import type { ILoadBalancer, ILoadBalancerDeleteCommand, ILoadBalancerUpsertCommand, ISubnet } from '@spinnaker/core';
 
 export type ListenerProtocol = 'HTTP' | 'HTTPS' | 'TCP' | 'SSL';
 export enum LoadBalancingPolicy {

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { IExecutionTriggerStatusComponentProps, IGitTrigger } from '../../../../domain';
+import type { IExecutionTriggerStatusComponentProps, IGitTrigger } from '../../../../domain';
 import { Overridable } from '../../../../overrideRegistry';
 
 @Overridable('git.trigger.executionStatus')

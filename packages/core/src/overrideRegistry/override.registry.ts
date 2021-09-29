@@ -1,5 +1,5 @@
 import { module } from 'angular';
-import React from 'react';
+import type React from 'react';
 
 import { overrideRegistrationQueue } from './Overrides';
 

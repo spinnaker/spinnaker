@@ -1,7 +1,8 @@
-import { IComponentOptions, IController, module } from 'angular';
+import type { IComponentOptions, IController } from 'angular';
+import { module } from 'angular';
 
-import { Application, IServerGroup } from '@spinnaker/core';
-import { ITitusPolicy } from '../../../domain';
+import type { Application, IServerGroup } from '@spinnaker/core';
+import type { ITitusPolicy } from '../../../domain';
 
 class ScalingPolicyDetailsSummaryController implements IController {
   public templateUrl: string;

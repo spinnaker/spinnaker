@@ -1,4 +1,5 @@
-import { DependencyList, useEffect, useRef, useState } from 'react';
+import type { DependencyList } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useIsMountedRef } from './useIsMountedRef.hook';
 
 export type IRequestStatus = 'NONE' | 'PENDING' | 'REJECTED' | 'RESOLVED';

@@ -1,8 +1,8 @@
-import { RawParams } from '@uirouter/core';
+import type { RawParams } from '@uirouter/core';
 import React from 'react';
 
 import { TrafficGuardHelperLink } from '../TrafficGuardHelperLink';
-import { ITask } from '../../domain';
+import type { ITask } from '../../domain';
 import { Markdown } from '../../presentation';
 import { ReactInjector } from '../../reactShims/react.injector';
 

@@ -1,4 +1,4 @@
-import {
+import type {
   IInstance,
   IInstanceCounts,
   ILoadBalancer,
@@ -7,9 +7,9 @@ import {
   ISubnet,
 } from '@spinnaker/core';
 
-import { IAmazonLoadBalancerSourceData } from './IAmazonLoadBalancerSourceData';
-import { IAmazonServerGroup } from './IAmazonServerGroup';
-import { IAuthenticateOidcActionConfig } from '../loadBalancer/OidcConfigReader';
+import type { IAmazonLoadBalancerSourceData } from './IAmazonLoadBalancerSourceData';
+import type { IAmazonServerGroup } from './IAmazonServerGroup';
+import type { IAuthenticateOidcActionConfig } from '../loadBalancer/OidcConfigReader';
 
 export type ClassicListenerProtocol = 'HTTP' | 'HTTPS' | 'TCP' | 'SSL';
 export type ALBListenerProtocol = 'HTTP' | 'HTTPS';

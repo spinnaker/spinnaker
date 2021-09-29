@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Observable } from 'rxjs';
+import type { Observable } from 'rxjs';
 
 /**
  * A react hook that subscribes to an rxjs observable on mount and calls the provided callback when

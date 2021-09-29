@@ -1,10 +1,13 @@
-import { IComponentController, IComponentOptions, module } from 'angular';
+import type { IComponentController, IComponentOptions } from 'angular';
+import { module } from 'angular';
 
-import { Application, ConfirmationModalService, IServerGroup, ITaskMonitorConfig, ReactModal } from '@spinnaker/core';
+import type { Application, IServerGroup, ITaskMonitorConfig } from '@spinnaker/core';
+import { ConfirmationModalService, ReactModal } from '@spinnaker/core';
 
 import { ScalingPolicyWriter } from '../ScalingPolicyWriter';
-import { IUpsertTargetTrackingModalProps, UpsertTargetTrackingModal } from './UpsertTargetTrackingModal';
-import { ITargetTrackingConfiguration, ITargetTrackingPolicy } from '../../../../domain/ITargetTrackingPolicy';
+import type { IUpsertTargetTrackingModalProps } from './UpsertTargetTrackingModal';
+import { UpsertTargetTrackingModal } from './UpsertTargetTrackingModal';
+import type { ITargetTrackingConfiguration, ITargetTrackingPolicy } from '../../../../domain/ITargetTrackingPolicy';
 
 class TargetTrackingSummaryController implements IComponentController {
   public policy: ITargetTrackingPolicy;

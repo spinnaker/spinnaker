@@ -1,25 +1,23 @@
 import classNames from 'classnames';
-import { FormikErrors, FormikProps } from 'formik';
+import type { FormikErrors, FormikProps } from 'formik';
 import React from 'react';
-import { combineLatest as observableCombineLatest, from as observableFrom, Observable, Subject } from 'rxjs';
+import type { Observable } from 'rxjs';
+import { combineLatest as observableCombineLatest, from as observableFrom, Subject } from 'rxjs';
 import { distinctUntilChanged, map, shareReplay, switchMap, takeUntil, withLatestFrom } from 'rxjs/operators';
 
+import type { Application, IAccount, IRegion, IWizardPageComponent } from '@spinnaker/core';
 import {
   AccountService,
-  Application,
   CheckboxInput,
   FormikFormField,
   FormValidator,
   HelpField,
-  IAccount,
-  IRegion,
-  IWizardPageComponent,
   ReactSelectInput,
   TextInput,
 } from '@spinnaker/core';
 import { s3BucketNameValidator } from '../../aws.validators';
-import { IAmazonFunction } from '../../domain';
-import { IAmazonFunctionUpsertCommand } from '../../index';
+import type { IAmazonFunction } from '../../domain';
+import type { IAmazonFunctionUpsertCommand } from '../../index';
 
 const availableRuntimes = [
   'nodejs10.x',

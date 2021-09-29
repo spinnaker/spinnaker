@@ -1,4 +1,5 @@
-import { IComponentOptions, IController, module } from 'angular';
+import type { IComponentOptions, IController } from 'angular';
+import { module } from 'angular';
 
 export class HelpFieldCtrl implements IController {
   public content: string;

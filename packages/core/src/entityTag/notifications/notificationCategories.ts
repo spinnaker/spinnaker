@@ -1,4 +1,5 @@
-import { Dictionary, keyBy } from 'lodash';
+import type { Dictionary } from 'lodash';
+import { keyBy } from 'lodash';
 
 export interface INotificationCategory {
   id: string;

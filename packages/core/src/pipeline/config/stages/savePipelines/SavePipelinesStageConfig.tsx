@@ -1,8 +1,9 @@
 import React from 'react';
 
 import { StageArtifactSelector } from '../../../../artifact';
-import { IStageConfigProps, StageConfigField } from '../common';
-import { IArtifact, IExpectedArtifact } from '../../../../domain';
+import type { IStageConfigProps } from '../common';
+import { StageConfigField } from '../common';
+import type { IArtifact, IExpectedArtifact } from '../../../../domain';
 
 export const SavePipelinesStageConfig: React.SFC<IStageConfigProps> = (props) => {
   const { stage, pipeline } = props;

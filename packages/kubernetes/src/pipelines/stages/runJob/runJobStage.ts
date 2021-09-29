@@ -1,12 +1,5 @@
-import {
-  ExecutionDetailsTasks,
-  ICustomValidator,
-  IPipeline,
-  IStage,
-  IStageOrTriggerTypeConfig,
-  IValidatorConfig,
-  Registry,
-} from '@spinnaker/core';
+import type { ICustomValidator, IPipeline, IStage, IStageOrTriggerTypeConfig, IValidatorConfig } from '@spinnaker/core';
+import { ExecutionDetailsTasks, Registry } from '@spinnaker/core';
 
 import { KubernetesV2RunJobStageConfig } from './KubernetesV2RunJobStageConfig';
 import { RunJobExecutionDetails } from './RunJobExecutionDetails';

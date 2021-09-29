@@ -1,4 +1,4 @@
-import { SearchResultType } from './searchResultType';
+import type { SearchResultType } from './searchResultType';
 
 export class SearchResultTypeRegistry {
   private types: SearchResultType[] = [];

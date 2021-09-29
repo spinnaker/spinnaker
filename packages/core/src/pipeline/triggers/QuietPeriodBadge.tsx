@@ -1,4 +1,4 @@
-import { DateTimeFormatOptions } from 'luxon';
+import type { DateTimeFormatOptions } from 'luxon';
 import React from 'react';
 
 import { Tooltip } from '../../presentation';

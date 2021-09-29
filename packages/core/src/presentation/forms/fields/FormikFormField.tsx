@@ -1,16 +1,19 @@
-import { FastField, Field, FieldProps, FormikConsumer, FormikContext } from 'formik';
+import type { FieldProps, FormikContext } from 'formik';
+import { FastField, Field, FormikConsumer } from 'formik';
 import { isString, toPath } from 'lodash';
 import React from 'react';
 
 import { WatchValue } from '../../WatchValue';
 import { useMountStatusRef } from '../../hooks/useMountStatusRef.hook';
-import { IFormInputValidation } from '../inputs';
-import { ICommonFormFieldProps } from './interface';
-import { ILayoutProps, LayoutContext } from '../layouts';
+import type { IFormInputValidation } from '../inputs';
+import type { ICommonFormFieldProps } from './interface';
+import type { ILayoutProps } from '../layouts';
+import { LayoutContext } from '../layouts';
 import { renderContent } from './renderContent';
 import { FormikSpelContext, SimpleSpelInput, SpelAwareInputMode, SpelService, SpelToggle } from '../../spel';
 import { firstDefined } from '../../../utils';
-import { composeValidators, IValidator, useValidationData, Validators } from '../validation';
+import type { IValidator } from '../validation';
+import { composeValidators, useValidationData, Validators } from '../validation';
 
 export interface IFormikFieldProps<T> {
   /**

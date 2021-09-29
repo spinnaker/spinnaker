@@ -1,8 +1,8 @@
-import { IScope } from 'angular';
+import type { IScope } from 'angular';
 
-import { Application, IStageConstant } from '@spinnaker/core';
+import type { Application, IStageConstant } from '@spinnaker/core';
 
-import { IAppengineAccount } from './IAppengineAccount';
+import type { IAppengineAccount } from './IAppengineAccount';
 
 export interface IAppengineStage {
   credentials: string;

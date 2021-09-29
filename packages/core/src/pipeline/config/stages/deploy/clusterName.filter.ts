@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { IStageContext } from '../../../../domain';
+import type { IStageContext } from '../../../../domain';
 import { NameUtils } from '../../../../naming';
 
 export function clusterNameFilter(): any {

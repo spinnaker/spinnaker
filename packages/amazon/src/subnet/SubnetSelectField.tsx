@@ -1,6 +1,7 @@
 import * as React from 'react';
 
-import { Application, HelpField, ISubnet, Markdown } from '@spinnaker/core';
+import type { Application, ISubnet } from '@spinnaker/core';
+import { HelpField, Markdown } from '@spinnaker/core';
 
 import { SubnetSelectInput } from './SubnetSelectInput';
 import { AWSProviderSettings } from '../aws.settings';

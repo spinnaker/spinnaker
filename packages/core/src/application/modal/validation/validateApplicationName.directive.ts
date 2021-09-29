@@ -1,5 +1,7 @@
-import { IAttributes, IController, IDeferred, INgModelController, IQService, IScope, module } from 'angular';
-import { ApplicationNameValidator, IApplicationNameValidationResult } from './ApplicationNameValidator';
+import type { IAttributes, IController, IDeferred, INgModelController, IQService, IScope } from 'angular';
+import { module } from 'angular';
+import type { IApplicationNameValidationResult } from './ApplicationNameValidator';
+import { ApplicationNameValidator } from './ApplicationNameValidator';
 
 interface IValidateNameAttrs extends IAttributes {
   cloudProviders: string;

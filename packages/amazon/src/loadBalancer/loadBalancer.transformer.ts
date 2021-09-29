@@ -1,18 +1,10 @@
 import { chain, filter, flatten, map } from 'lodash';
 import { $q } from 'ngimport';
 
-import {
-  AccountService,
-  Application,
-  IHealth,
-  IInstance,
-  IServerGroup,
-  IVpc,
-  NameUtils,
-  SETTINGS,
-} from '@spinnaker/core';
+import type { Application, IHealth, IInstance, IServerGroup, IVpc } from '@spinnaker/core';
+import { AccountService, NameUtils, SETTINGS } from '@spinnaker/core';
 import { AWSProviderSettings } from '../aws.settings';
-import {
+import type {
   IALBListenerCertificate,
   IAmazonApplicationLoadBalancer,
   IAmazonApplicationLoadBalancerUpsertCommand,

@@ -1,16 +1,15 @@
-import { Field, FormikErrors, FormikProps } from 'formik';
+import type { FormikErrors, FormikProps } from 'formik';
+import { Field } from 'formik';
 import React from 'react';
 
 import { AWSProviderSettings, SubnetSelectField } from '@spinnaker/amazon';
+import type { Application, IServerGroup, IWizardPageComponent } from '@spinnaker/core';
 import {
   AccountSelectInput,
   AccountTag,
-  Application,
   DeployingIntoManagedClusterWarning,
   DeploymentStrategySelector,
   HelpField,
-  IServerGroup,
-  IWizardPageComponent,
   NameUtils,
   ReactInjector,
   RegionSelectField,
@@ -19,7 +18,7 @@ import {
 } from '@spinnaker/core';
 import { DockerImageAndTagSelector, DockerImageUtils } from '@spinnaker/docker';
 
-import { ITitusServerGroupCommand } from '../../../configure/serverGroupConfiguration.service';
+import type { ITitusServerGroupCommand } from '../../../configure/serverGroupConfiguration.service';
 import { TitusProviderSettings } from '../../../../titus.settings';
 
 const isNotExpressionLanguage = (field: string) => field && !field.includes('${');

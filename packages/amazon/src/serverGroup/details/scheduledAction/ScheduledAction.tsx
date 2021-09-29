@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { IScheduledAction } from '../../../domain';
+import type { IScheduledAction } from '../../../domain';
 
 export interface IScheduledActionProps {
   action: IScheduledAction;

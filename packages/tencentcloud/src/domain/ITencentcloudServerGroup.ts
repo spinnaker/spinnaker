@@ -1,7 +1,7 @@
-import { IAccountDetails, IAsg, IServerGroup } from '@spinnaker/core';
+import type { IAccountDetails, IAsg, IServerGroup } from '@spinnaker/core';
 
-import { IScalingPolicyView, ISuspendedProcess } from '.';
-import { IScalingPolicy } from './IScalingPolicy';
+import type { IScalingPolicyView, ISuspendedProcess } from '.';
+import type { IScalingPolicy } from './IScalingPolicy';
 
 export interface ITencentcloudAsg extends IAsg {
   availabilityZones: string[];

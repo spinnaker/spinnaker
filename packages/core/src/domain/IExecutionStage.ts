@@ -1,9 +1,9 @@
-import { IExecution } from './IExecution';
-import { IOrchestratedItem } from './IOrchestratedItem';
-import { IStage } from './IStage';
-import { IExecutionDetailsSection, IStageTypeConfig } from './IStageTypeConfig';
-import { ITaskStep } from './ITaskStep';
-import { Application } from '../application/application.model';
+import type { IExecution } from './IExecution';
+import type { IOrchestratedItem } from './IOrchestratedItem';
+import type { IStage } from './IStage';
+import type { IExecutionDetailsSection, IStageTypeConfig } from './IStageTypeConfig';
+import type { ITaskStep } from './ITaskStep';
+import type { Application } from '../application/application.model';
 
 export interface IRestartDetails {
   restartedBy: string;

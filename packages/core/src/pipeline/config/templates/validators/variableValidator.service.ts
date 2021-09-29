@@ -1,4 +1,4 @@
-import { IVariable, IVariableError } from '../inputs/variableInput.service';
+import type { IVariable, IVariableError } from '../inputs/variableInput.service';
 
 export interface IVariableValidator {
   handles: (type: string) => boolean;

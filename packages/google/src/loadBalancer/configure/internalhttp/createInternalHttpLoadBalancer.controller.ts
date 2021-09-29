@@ -1,12 +1,15 @@
-import UIROUTER_ANGULARJS, { StateService } from '@uirouter/angularjs';
-import { IScope, module } from 'angular';
-import { IModalInstanceService } from 'angular-ui-bootstrap';
+import type { StateService } from '@uirouter/angularjs';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
+import type { IScope } from 'angular';
+import { module } from 'angular';
+import type { IModalInstanceService } from 'angular-ui-bootstrap';
 
-import { Application, TaskMonitor } from '@spinnaker/core';
+import type { Application } from '@spinnaker/core';
+import { TaskMonitor } from '@spinnaker/core';
 
 import { GCE_CACHE_REFRESH } from '../../../cache/cacheRefresh.component';
 import { GOOGLE_LOADBALANCER_DETAILS_HOSTANDPATHRULES_HOSTANDPATHRULESBUTTON_COMPONENT } from '../../details/hostAndPathRules/hostAndPathRulesButton.component';
-import { IGceHttpLoadBalancer } from '../../../domain';
+import type { IGceHttpLoadBalancer } from '../../../domain';
 import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_BACKENDSERVICE_BACKENDSERVICE_COMPONENT } from '../http/backendService/backendService.component';
 import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_BASICSETTINGS_BASICSETTINGS_COMPONENT } from '../http/basicSettings/basicSettings.component';
 import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE } from '../http/commandBuilder.service';

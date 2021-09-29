@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { CollapsibleSection, LabeledValue, LabeledValueList } from '@spinnaker/core';
-import { ITitusBuildInfo } from '../../domain';
+import type { ITitusBuildInfo } from '../../domain';
 
 export interface ITitusPackageDetailsSectionProps {
   buildInfo: ITitusBuildInfo;

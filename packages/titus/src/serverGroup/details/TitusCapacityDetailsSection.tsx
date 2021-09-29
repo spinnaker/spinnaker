@@ -1,7 +1,7 @@
 import React from 'react';
 
+import type { Application } from '@spinnaker/core';
 import {
-  Application,
   confirmNotManaged,
   CurrentCapacity,
   DesiredCapacity,
@@ -10,8 +10,9 @@ import {
   showModal,
 } from '@spinnaker/core';
 
-import { ITitusServerGroup } from '../../domain';
-import { ITitusResizeServerGroupModalProps, TitusResizeServerGroupModal } from './resize/TitusResizeServerGroupModal';
+import type { ITitusServerGroup } from '../../domain';
+import type { ITitusResizeServerGroupModalProps } from './resize/TitusResizeServerGroupModal';
+import { TitusResizeServerGroupModal } from './resize/TitusResizeServerGroupModal';
 import { TitusScalingActivitiesModal } from './scalingActivity/TitusScalingActivitiesModal';
 
 interface ICapacityDetailsSectionProps {

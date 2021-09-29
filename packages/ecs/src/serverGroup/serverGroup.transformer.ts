@@ -1,7 +1,7 @@
 import { module } from 'angular';
 import { defaults } from 'lodash';
 
-import {
+import type {
   IAmazonServerGroup,
   IAmazonServerGroupView,
   IScalingAdjustmentView,
@@ -9,9 +9,9 @@ import {
   IScalingPolicyView,
   IStepAdjustment,
   IStepAdjustmentView,
-  VpcReader,
 } from '@spinnaker/amazon';
-import { IInstance, IVpc } from '@spinnaker/core';
+import { VpcReader } from '@spinnaker/amazon';
+import type { IInstance, IVpc } from '@spinnaker/core';
 
 export class EcsServerGroupTransformer {
   private addComparator(alarm: IScalingPolicyAlarmView): void {

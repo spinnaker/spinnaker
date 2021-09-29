@@ -1,12 +1,14 @@
-import { Form, Formik } from 'formik';
+import type { Formik } from 'formik';
+import { Form } from 'formik';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 
-import { IEditAwsCodeBuildSourceModalProps } from './EditAwsCodeBuildSourceModal';
-import { IAwsCodeBuildSecondarySourcesVersion } from './IAwsCodeBuildSource';
+import type { IEditAwsCodeBuildSourceModalProps } from './EditAwsCodeBuildSourceModal';
+import type { IAwsCodeBuildSecondarySourcesVersion } from './IAwsCodeBuildSource';
 import { HelpField } from '../../../../help';
 import { ModalClose, SubmitButton } from '../../../../modal';
-import { FormikFormField, IFormInputProps, ReactModal, SpinFormik, TextInput } from '../../../../presentation';
+import type { IFormInputProps } from '../../../../presentation';
+import { FormikFormField, ReactModal, SpinFormik, TextInput } from '../../../../presentation';
 
 export class EditAwsCodeBuildSecondarySourceVersionModal extends React.Component<IEditAwsCodeBuildSourceModalProps> {
   private formikRef = React.createRef<Formik<any>>();

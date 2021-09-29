@@ -3,7 +3,8 @@ import { get } from 'lodash';
 import { DateTime } from 'luxon';
 import React from 'react';
 
-import { AccountTag, CloudProviderLogo, CollapsibleSection, IManifest, Spinner, timestamp } from '@spinnaker/core';
+import type { IManifest } from '@spinnaker/core';
+import { AccountTag, CloudProviderLogo, CollapsibleSection, Spinner, timestamp } from '@spinnaker/core';
 
 import { ManifestLabels } from '../manifest/ManifestLabels';
 import { KubernetesManifestService } from '../manifest/manifest.service';

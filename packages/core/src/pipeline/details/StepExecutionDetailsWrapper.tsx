@@ -1,5 +1,5 @@
-import { Application } from '../../application';
-import { IExecution, IExecutionStage } from '../../domain';
+import type { Application } from '../../application';
+import type { IExecution, IExecutionStage } from '../../domain';
 
 export interface IStepExecutionDetailsWrapperProps {
   application: Application;

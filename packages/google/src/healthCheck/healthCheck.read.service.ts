@@ -1,8 +1,9 @@
 import { module } from 'angular';
 import { uniqWith } from 'lodash';
 
-import { InfrastructureCaches, ISearchResults, SearchService } from '@spinnaker/core';
-import { IGceHealthCheck } from '../domain';
+import type { ISearchResults } from '@spinnaker/core';
+import { InfrastructureCaches, SearchService } from '@spinnaker/core';
+import type { IGceHealthCheck } from '../domain';
 
 interface IHealthCheckSearchResults {
   name: string;

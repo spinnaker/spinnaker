@@ -1,12 +1,11 @@
 import { get, isEmpty, sortBy } from 'lodash';
 import React from 'react';
 
+import type { IExecutionDetailsSectionProps, IJobOwnedPodStatus } from '@spinnaker/core';
 import {
   AccountTag,
   DefaultPodNameProvider,
   ExecutionDetailsSection,
-  IExecutionDetailsSectionProps,
-  IJobOwnedPodStatus,
   JobStageExecutionLogs,
   StageFailureMessage,
 } from '@spinnaker/core';

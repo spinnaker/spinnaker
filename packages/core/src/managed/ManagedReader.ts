@@ -1,14 +1,14 @@
 import { flatMap, get, set } from 'lodash';
 
 import { REST } from '../api';
-import {
+import type {
   IManagedApplicationSummary,
   IManagedResourceDiff,
   IManagedResourceEvent,
   IManagedResourceEventHistory,
   IManagedResourceEventHistoryResponse,
-  ManagedResourceStatus,
 } from '../domain';
+import { ManagedResourceStatus } from '../domain';
 
 import { resourceManager } from './resources/resourceRegistry';
 

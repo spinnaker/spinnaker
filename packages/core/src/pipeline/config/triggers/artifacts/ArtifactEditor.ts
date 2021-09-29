@@ -1,7 +1,7 @@
 import { cloneDeep } from 'lodash';
 import React from 'react';
 
-import { IArtifactEditorProps, IArtifactEditorState } from '../../../../domain';
+import type { IArtifactEditorProps, IArtifactEditorState } from '../../../../domain';
 
 export class ArtifactEditor extends React.Component<IArtifactEditorProps, IArtifactEditorState> {
   protected constructor(props: IArtifactEditorProps, type: string) {

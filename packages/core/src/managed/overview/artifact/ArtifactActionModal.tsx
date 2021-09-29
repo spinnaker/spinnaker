@@ -2,7 +2,8 @@ import React from 'react';
 
 import { Illustration } from '@spinnaker/presentation';
 import { logger } from '../../../utils';
-import { ActionModal, IArtifactActionModalProps } from '../../utils/ActionModal';
+import type { IArtifactActionModalProps } from '../../utils/ActionModal';
+import { ActionModal } from '../../utils/ActionModal';
 import { getDocsUrl } from '../../utils/defaults';
 
 type InternalModalProps = Omit<IArtifactActionModalProps, 'logCategory'> & { application: string };

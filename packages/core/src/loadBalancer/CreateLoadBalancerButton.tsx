@@ -1,11 +1,13 @@
 import React from 'react';
 
-import { IAccountDetails } from '../account';
-import { Application } from '../application';
-import { CloudProviderRegistry, ICloudProviderConfig, ProviderSelectionService } from '../cloudProvider';
-import { ILoadBalancer } from '../domain';
-import { ILoadBalancerUpsertCommand } from './loadBalancer.write.service';
-import { IModalComponentProps, Tooltip } from '../presentation';
+import type { IAccountDetails } from '../account';
+import type { Application } from '../application';
+import type { ICloudProviderConfig } from '../cloudProvider';
+import { CloudProviderRegistry, ProviderSelectionService } from '../cloudProvider';
+import type { ILoadBalancer } from '../domain';
+import type { ILoadBalancerUpsertCommand } from './loadBalancer.write.service';
+import type { IModalComponentProps } from '../presentation';
+import { Tooltip } from '../presentation';
 import { ModalInjector } from '../reactShims';
 
 export interface ILoadBalancerModalProps extends IModalComponentProps {

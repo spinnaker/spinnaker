@@ -3,20 +3,21 @@ import { flatMap, get, memoize } from 'lodash';
 import { DateTime } from 'luxon';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
-import { Subscription } from 'rxjs';
+import type { Subscription } from 'rxjs';
 
 import { DeletePipelineTemplateV2Modal } from './DeletePipelineTemplateV2Modal';
 import { PipelineTemplateReader } from '../PipelineTemplateReader';
 import { ShowPipelineTemplateJsonModal } from '../../actions/templateJson/ShowPipelineTemplateJsonModal';
 import { CreatePipelineFromTemplate } from './createPipelineFromTemplate';
-import {
+import type {
   IPipelineTemplateV2,
   IPipelineTemplateV2Collections,
   IPipelineTemplateV2VersionSelections,
 } from '../../../../domain/IPipelineTemplateV2';
 import { PipelineTemplateV2Service } from './pipelineTemplateV2.service';
 import { ReactSelectInput } from '../../../../presentation';
-import { IStateChange, ReactInjector } from '../../../../reactShims';
+import type { IStateChange } from '../../../../reactShims';
+import { ReactInjector } from '../../../../reactShims';
 
 import './PipelineTemplatesV2.less';
 

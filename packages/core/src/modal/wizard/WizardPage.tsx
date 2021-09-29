@@ -1,7 +1,7 @@
 import { isEqual, isFunction } from 'lodash';
 import React from 'react';
 
-import { IWizardModalApi } from './WizardModal';
+import type { IWizardModalApi } from './WizardModal';
 
 export interface IWizardPageComponent<T> {
   validate(values: T): { [key: string]: any };

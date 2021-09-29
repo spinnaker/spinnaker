@@ -1,16 +1,12 @@
-import { StateService } from '@uirouter/angularjs';
-import { IController, IScope, module } from 'angular';
-import { IModalService } from 'angular-ui-bootstrap';
+import type { StateService } from '@uirouter/angularjs';
+import type { IController, IScope } from 'angular';
+import { module } from 'angular';
+import type { IModalService } from 'angular-ui-bootstrap';
 import { cloneDeep } from 'lodash';
 
-import {
-  Application,
-  ConfirmationModalService,
-  ILoadBalancer,
-  ILoadBalancerDeleteCommand,
-  LoadBalancerWriter,
-} from '@spinnaker/core';
-import { IAppengineLoadBalancer } from '../../domain';
+import type { Application, ILoadBalancer, ILoadBalancerDeleteCommand } from '@spinnaker/core';
+import { ConfirmationModalService, LoadBalancerWriter } from '@spinnaker/core';
+import type { IAppengineLoadBalancer } from '../../domain';
 
 interface ILoadBalancerFromStateParams {
   accountId: string;

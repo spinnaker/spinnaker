@@ -1,10 +1,11 @@
-import { StateService } from '@uirouter/angularjs';
-import { IScope } from 'angular';
-import { IModalInstanceService } from 'angular-ui-bootstrap';
+import type { StateService } from '@uirouter/angularjs';
+import type { IScope } from 'angular';
+import type { IModalInstanceService } from 'angular-ui-bootstrap';
 import { trimEnd } from 'lodash';
 
-import { Application, InfrastructureCaches } from '@spinnaker/core';
-import { IGceLoadBalancer } from '../../../domain/loadBalancer';
+import type { Application } from '@spinnaker/core';
+import { InfrastructureCaches } from '@spinnaker/core';
+import type { IGceLoadBalancer } from '../../../domain/loadBalancer';
 
 export class CommonGceLoadBalancerCtrl {
   public static $inject = ['$scope', 'application', '$uibModalInstance', '$state'];

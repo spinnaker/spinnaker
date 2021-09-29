@@ -1,20 +1,18 @@
-import { StateDeclaration, useOnStateChanged } from '@uirouter/react';
+import type { StateDeclaration } from '@uirouter/react';
+import { useOnStateChanged } from '@uirouter/react';
 import { compact, map, uniq } from 'lodash';
 import React from 'react';
 
 import { FilterSearch } from './FilterSearch';
 import { FilterSection } from './FilterSection';
 import LabelFilter from './LabelFilter';
-import { Application } from '../../application';
+import type { Application } from '../../application';
 import { poolBuilder } from './clusterDependentFilterHelper.service';
-import { IServerGroup } from '../../domain';
-import { digestDependentFilters, FilterCheckbox, ISortFilter } from '../../filterModel';
-import {
-  buildLabelsMap,
-  ILabelFilter,
-  labelFiltersToTrueKeyObject,
-  trueKeyObjectToLabelFilters,
-} from './labelFilterUtils';
+import type { IServerGroup } from '../../domain';
+import type { ISortFilter } from '../../filterModel';
+import { digestDependentFilters, FilterCheckbox } from '../../filterModel';
+import type { ILabelFilter } from './labelFilterUtils';
+import { buildLabelsMap, labelFiltersToTrueKeyObject, trueKeyObjectToLabelFilters } from './labelFilterUtils';
 import { robotToHuman, useDataSource, useObservable } from '../../presentation';
 import { ClusterState } from '../../state';
 

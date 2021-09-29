@@ -1,11 +1,7 @@
 import * as React from 'react';
 
-import {
-  ExecutionDetailsSection,
-  ExecutionStepDetails,
-  IExecutionDetailsSectionProps,
-  StageFailureMessage,
-} from '@spinnaker/core';
+import type { IExecutionDetailsSectionProps } from '@spinnaker/core';
+import { ExecutionDetailsSection, ExecutionStepDetails, StageFailureMessage } from '@spinnaker/core';
 
 export class DeployExecutionDetails extends React.Component<IExecutionDetailsSectionProps> {
   public static title = 'Task Status';

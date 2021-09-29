@@ -1,5 +1,5 @@
 import { ArtifactTypePatterns, excludeAllTypesExcept } from '../../../../artifact';
-import { IArtifact } from '../../../../domain';
+import type { IArtifact } from '../../../../domain';
 
 export interface IAwsCodeBuildSource {
   type?: string;

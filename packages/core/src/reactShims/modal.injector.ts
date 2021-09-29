@@ -1,6 +1,6 @@
 import IInjectorService = angular.auto.IInjectorService;
 
-import { IModalService, IModalStackService } from 'angular-ui-bootstrap';
+import type { IModalService, IModalStackService } from 'angular-ui-bootstrap';
 
 import { ReactInject } from './react.injector';
 

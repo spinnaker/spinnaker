@@ -1,7 +1,7 @@
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 
-import { TaskMonitor } from './TaskMonitor';
+import type { TaskMonitor } from './TaskMonitor';
 import { TaskMonitorError } from './TaskMonitorError';
 import { TaskMonitorStatus } from './TaskMonitorStatus';
 

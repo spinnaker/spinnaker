@@ -1,8 +1,9 @@
 import { isEqual } from 'lodash';
 import React from 'react';
 
-import { IInstanceCounts } from '../domain';
-import { Placement, Tooltip } from '../presentation';
+import type { IInstanceCounts } from '../domain';
+import type { Placement } from '../presentation';
+import { Tooltip } from '../presentation';
 
 import './healthCounts.less';
 

@@ -1,21 +1,20 @@
 import { cloneDeep } from 'lodash';
 import * as React from 'react';
 
-import {
-  AlarmConfigurer,
+import type {
   IScalingPolicy,
   IStepAdjustment,
   IStepPolicyDescription,
   ITargetTrackingPolicy,
   IUpsertScalingPolicyCommand,
-  ScalingPolicyAdditionalSettings,
-  StepPolicyAction,
 } from '@spinnaker/amazon';
-import { IAmazonServerGroup, IScalingPolicyAlarm } from '@spinnaker/amazon/src/domain';
-import { Application, IModalComponentProps, TaskMonitorModal } from '@spinnaker/core';
+import { AlarmConfigurer, ScalingPolicyAdditionalSettings, StepPolicyAction } from '@spinnaker/amazon';
+import type { IAmazonServerGroup, IScalingPolicyAlarm } from '@spinnaker/amazon/src/domain';
+import type { Application, IModalComponentProps } from '@spinnaker/core';
+import { TaskMonitorModal } from '@spinnaker/core';
 
 import { TitusScalingPolicyCommandBuilder } from './TitusScalingPolicyCommandBuilderService';
-import { ITitusServerGroup } from '../../../../domain';
+import type { ITitusServerGroup } from '../../../../domain';
 
 type Operator = 'Add' | 'Remove' | 'Set to';
 type AdjustmentTypeView = 'instances' | 'percent of group';

@@ -1,8 +1,9 @@
 import { forOwn, groupBy, sortBy } from 'lodash';
 import * as React from 'react';
 
-import { IServerGroup } from '../../../domain';
-import { IModalComponentProps, ModalBody, ModalFooter, ModalHeader, useData } from '../../../presentation';
+import type { IServerGroup } from '../../../domain';
+import type { IModalComponentProps } from '../../../presentation';
+import { ModalBody, ModalFooter, ModalHeader, useData } from '../../../presentation';
 import { ServerGroupReader } from '../../serverGroupReader.service';
 import { timestamp } from '../../../utils';
 import { Spinner } from '../../../widgets';

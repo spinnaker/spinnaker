@@ -1,26 +1,21 @@
-import { FormikErrors, FormikProps } from 'formik';
+import type { FormikErrors, FormikProps } from 'formik';
 import { difference, flatten, get, some, uniq, uniqBy } from 'lodash';
 import { $q } from 'ngimport';
 import React from 'react';
-import { arrayMove, SortableContainer, SortableElement, SortableHandle, SortEnd } from 'react-sortable-hoc';
+import type { SortEnd } from 'react-sortable-hoc';
+import { arrayMove, SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc';
 
-import {
-  Application,
-  ConfirmationModalService,
-  CustomLabels,
-  HelpField,
-  IWizardPageComponent,
-  Tooltip,
-  ValidationMessage,
-} from '@spinnaker/core';
+import type { Application, IWizardPageComponent } from '@spinnaker/core';
+import { ConfirmationModalService, CustomLabels, HelpField, Tooltip, ValidationMessage } from '@spinnaker/core';
 
 import { ConfigureOidcConfigModal } from './ConfigureOidcConfigModal';
 import { ConfigureRedirectConfigModal } from './ConfigureRedirectConfigModal';
-import { IAuthenticateOidcActionConfig, OidcConfigReader } from '../../OidcConfigReader';
+import type { IAuthenticateOidcActionConfig } from '../../OidcConfigReader';
+import { OidcConfigReader } from '../../OidcConfigReader';
 import { AWSProviderSettings } from '../../../aws.settings';
 import { AmazonCertificateReader } from '../../../certificates/AmazonCertificateReader';
 import { AmazonCertificateSelectField } from '../common/AmazonCertificateSelectField';
-import {
+import type {
   ALBListenerProtocol,
   IALBListenerCertificate,
   IALBTargetGroupDescription,

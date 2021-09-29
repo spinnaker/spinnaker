@@ -1,4 +1,4 @@
-import { ITaggedEntity } from './ITaggedEntity';
+import type { ITaggedEntity } from './ITaggedEntity';
 
 export interface IFunctionSourceData {
   cloudProvider?: string;

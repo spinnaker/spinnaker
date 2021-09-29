@@ -1,4 +1,4 @@
-import {
+import type {
   IInstance,
   IInstanceCounts,
   ILoadBalancer,
@@ -7,9 +7,9 @@ import {
   ISubnet,
 } from '@spinnaker/core';
 
-import { ITencentcloudHealthCheck } from './ITencentcloudHealth';
-import { ITencentcloudLoadBalancerSourceData } from './ITencentcloudLoadBalancerSourceData';
-import { ITencentcloudServerGroup } from './ITencentcloudServerGroup';
+import type { ITencentcloudHealthCheck } from './ITencentcloudHealth';
+import type { ITencentcloudLoadBalancerSourceData } from './ITencentcloudLoadBalancerSourceData';
+import type { ITencentcloudServerGroup } from './ITencentcloudServerGroup';
 
 export type ClassicListenerProtocol = 'HTTP' | 'HTTPS' | 'TCP' | 'SSL';
 export type ALBListenerProtocol = 'HTTP' | 'HTTPS' | 'TCP' | 'UDP';

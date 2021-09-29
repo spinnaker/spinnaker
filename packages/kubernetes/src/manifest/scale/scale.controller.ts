@@ -1,8 +1,10 @@
-import { copy, IController, module } from 'angular';
-import { IModalServiceInstance } from 'angular-ui-bootstrap';
+import type { IController } from 'angular';
+import { copy, module } from 'angular';
+import type { IModalServiceInstance } from 'angular-ui-bootstrap';
 
-import { Application, ManifestWriter, TaskMonitor } from '@spinnaker/core';
-import { IManifestCoordinates } from '../IManifestCoordinates';
+import type { Application } from '@spinnaker/core';
+import { ManifestWriter, TaskMonitor } from '@spinnaker/core';
+import type { IManifestCoordinates } from '../IManifestCoordinates';
 import { KUBERNETES_SCALE_MANIFEST_SETTINGS_FORM } from './scaleSettingsForm.component';
 
 interface IScaleCommand {

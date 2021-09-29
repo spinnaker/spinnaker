@@ -3,10 +3,11 @@ import { UIRouterContext } from '@uirouter/react-hybrid';
 import { flattenDeep } from 'lodash';
 import React from 'react';
 
-import { Application, ILoadBalancer, InstanceReader, RecentHistoryService, Spinner } from '@spinnaker/core';
+import type { Application, ILoadBalancer } from '@spinnaker/core';
+import { InstanceReader, RecentHistoryService, Spinner } from '@spinnaker/core';
 
 import { CloudFoundryInstanceActions } from './CloudFoundryInstanceActions';
-import { ICloudFoundryInstance } from '../../domain';
+import type { ICloudFoundryInstance } from '../../domain';
 import { CloudFoundryInstanceDetailsSection } from './sections';
 
 interface InstanceFromStateParams {

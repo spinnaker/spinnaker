@@ -2,14 +2,14 @@ import classNames from 'classnames';
 import { has } from 'lodash';
 import { $interpolate } from 'ngimport';
 import React from 'react';
-import { Subscription } from 'rxjs';
+import type { Subscription } from 'rxjs';
 import { merge } from 'rxjs/operators';
 
 import { ServerGroupHeader } from './ServerGroupHeader';
-import { Application } from '../application';
+import type { Application } from '../application';
 import { SETTINGS } from '../config';
-import { IInstance, IServerGroup } from '../domain';
-import { ISortFilter } from '../filterModel';
+import type { IInstance, IServerGroup } from '../domain';
+import type { ISortFilter } from '../filterModel';
 import { InstanceList } from '../instance/InstanceList';
 import { Instances } from '../instance/Instances';
 import { ReactInjector } from '../reactShims';

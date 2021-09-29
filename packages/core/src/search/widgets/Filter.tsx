@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import React from 'react';
 
-import { IFilterType } from './SearchFilterTypeRegistry';
+import type { IFilterType } from './SearchFilterTypeRegistry';
 
 export interface IFilterProps {
   filterType: IFilterType;

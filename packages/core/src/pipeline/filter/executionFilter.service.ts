@@ -5,8 +5,9 @@ import { $log } from 'ngimport';
 import { Subject } from 'rxjs';
 
 import type { Application } from '../../application/application.model';
-import { IExecution, IExecutionGroup, IPipeline, IPipelineTag } from '../../domain';
-import { FilterModelService, ISortFilter } from '../../filterModel';
+import type { IExecution, IExecutionGroup, IPipeline, IPipelineTag } from '../../domain';
+import type { ISortFilter } from '../../filterModel';
+import { FilterModelService } from '../../filterModel';
 import { Registry } from '../../registry';
 import { ExecutionState } from '../../state';
 

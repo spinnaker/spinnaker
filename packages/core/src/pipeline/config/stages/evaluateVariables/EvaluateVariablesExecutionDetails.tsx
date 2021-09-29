@@ -1,7 +1,8 @@
 import React from 'react';
 
-import { IEvaluatedVariable } from './EvaluateVariablesStageConfig';
-import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
+import type { IEvaluatedVariable } from './EvaluateVariablesStageConfig';
+import type { IExecutionDetailsSectionProps } from '../common';
+import { ExecutionDetailsSection } from '../common';
 import { StageExecutionLogs, StageFailureMessage } from '../../../details';
 import { Markdown } from '../../../../presentation';
 

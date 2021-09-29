@@ -1,12 +1,16 @@
-import { IController, module } from 'angular';
-import { IModalServiceInstance } from 'angular-ui-bootstrap';
+import type { IController } from 'angular';
+import { module } from 'angular';
+import type { IModalServiceInstance } from 'angular-ui-bootstrap';
 import { cloneDeep } from 'lodash';
 
-import { Application, TaskMonitor } from '@spinnaker/core';
+import type { Application } from '@spinnaker/core';
+import { TaskMonitor } from '@spinnaker/core';
 import { GOOGLE_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_WRITE_SERVICE } from '../../../../autoscalingPolicy/autoscalingPolicy.write.service';
-import { IGceAutoHealingPolicy, IGceServerGroup } from '../../../../domain/index';
-import { GCE_HEALTH_CHECK_READER, GceHealthCheckReader } from '../../../../healthCheck/healthCheck.read.service';
-import { getHealthCheckOptions, IGceHealthCheckOption } from '../../../../healthCheck/healthCheckUtils';
+import type { IGceAutoHealingPolicy, IGceServerGroup } from '../../../../domain/index';
+import type { GceHealthCheckReader } from '../../../../healthCheck/healthCheck.read.service';
+import { GCE_HEALTH_CHECK_READER } from '../../../../healthCheck/healthCheck.read.service';
+import type { IGceHealthCheckOption } from '../../../../healthCheck/healthCheckUtils';
+import { getHealthCheckOptions } from '../../../../healthCheck/healthCheckUtils';
 
 import './upsertAutoHealingPolicy.modal.less';
 

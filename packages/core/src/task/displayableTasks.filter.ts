@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { ITaskStep } from '../domain';
+import type { ITaskStep } from '../domain';
 
 export function displayableTasks(input: ITaskStep[]): ITaskStep[] {
   const denylist = ['stageStart', 'stageEnd', 'determineTargetServerGroup'];

@@ -1,14 +1,15 @@
-import { IQResolveReject } from 'angular';
+import type { IQResolveReject } from 'angular';
 import { chain, intersection, uniq, zipObject } from 'lodash';
 import { $log, $q } from 'ngimport';
-import { defer as observableDefer, from as observableFrom, Observable } from 'rxjs';
+import type { Observable } from 'rxjs';
+import { defer as observableDefer, from as observableFrom } from 'rxjs';
 import { map, publishReplay, refCount } from 'rxjs/operators';
 
 import { REST } from '../api/ApiService';
-import { Application } from '../application/application.model';
+import type { Application } from '../application/application.model';
 import { CloudProviderRegistry } from '../cloudProvider/CloudProviderRegistry';
 import { SETTINGS } from '../config/settings';
-import { ILoadBalancer, IServerGroup } from '../domain';
+import type { ILoadBalancer, IServerGroup } from '../domain';
 
 export interface IRegion {
   account?: string;

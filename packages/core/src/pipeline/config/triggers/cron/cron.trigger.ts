@@ -1,6 +1,6 @@
 import { CronTrigger } from './CronTrigger';
 import { ArtifactTypePatterns } from '../../../../artifact';
-import { ICronTrigger } from '../../../../domain';
+import type { ICronTrigger } from '../../../../domain';
 import { Registry } from '../../../../registry';
 
 Registry.pipeline.registerTrigger({

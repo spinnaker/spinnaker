@@ -2,7 +2,8 @@ import React from 'react';
 
 import { AccountTag } from '../../../../account';
 
-import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
+import type { IExecutionDetailsSectionProps } from '../common';
+import { ExecutionDetailsSection } from '../common';
 import { StageFailureMessage } from '../../../details';
 
 export function DeployServiceExecutionDetails(props: IExecutionDetailsSectionProps) {

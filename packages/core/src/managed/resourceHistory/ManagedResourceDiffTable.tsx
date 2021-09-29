@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { IManagedResourceDiff } from '../../domain';
+import type { IManagedResourceDiff } from '../../domain';
 import {
   BreakString,
   minimalNativeTableLayout,

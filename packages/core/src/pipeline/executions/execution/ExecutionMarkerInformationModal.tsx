@@ -3,7 +3,7 @@ import React from 'react';
 import { Modal } from 'react-bootstrap';
 
 import { PipelineGraph } from '../../config/graph/PipelineGraph';
-import { IExecution, IExecutionStageSummary } from '../../../domain';
+import type { IExecution, IExecutionStageSummary } from '../../../domain';
 import { ExecutionInformationService } from './executionInformation.service';
 import { ParametersAndArtifacts } from '../../status/ParametersAndArtifacts';
 import { duration, relativeTime, timestamp } from '../../../utils';

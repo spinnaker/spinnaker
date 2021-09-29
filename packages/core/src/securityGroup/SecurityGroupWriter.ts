@@ -1,8 +1,9 @@
-import { Application } from '../application/application.model';
+import type { Application } from '../application/application.model';
 import { InfrastructureCaches } from '../cache/infrastructureCaches';
-import { ISecurityGroup, ITask } from '../domain';
+import type { ISecurityGroup, ITask } from '../domain';
 import { FirewallLabels } from './label';
-import { IJob, TaskExecutor } from '../task/taskExecutor';
+import type { IJob } from '../task/taskExecutor';
+import { TaskExecutor } from '../task/taskExecutor';
 
 export interface ISecurityGroupJob extends IJob {
   credentials: string;

@@ -2,7 +2,7 @@ import { isNil } from 'lodash';
 import { $http } from 'ngimport';
 
 import { AuthenticationInitializer } from '../authentication/AuthenticationInitializer';
-import { ICache } from '../cache/deckCacheFactory';
+import type { ICache } from '../cache/deckCacheFactory';
 import { SETTINGS } from '../config/settings';
 
 type IPrimitive = string | boolean | number;

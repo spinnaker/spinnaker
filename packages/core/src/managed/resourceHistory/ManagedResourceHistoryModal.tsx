@@ -3,9 +3,10 @@ import React from 'react';
 
 import { HistoryEventRow } from './HistoryEventRow';
 import { ManagedReader } from '../ManagedReader';
-import { IManagedResourceSummary } from '../../domain';
+import type { IManagedResourceSummary } from '../../domain';
 import { usePollingData } from '../../presentation/hooks/usePollingData.hook';
-import { IModalComponentProps, ModalBody, ModalHeader, showModal } from '../../presentation/modal';
+import type { IModalComponentProps } from '../../presentation/modal';
+import { ModalBody, ModalHeader, showModal } from '../../presentation/modal';
 import { standardGridTableLayout, Table } from '../../presentation/tables';
 import { Spinner } from '../../widgets/spinners/Spinner';
 

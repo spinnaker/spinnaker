@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { StageConfigField } from '../common';
-import { IStage } from '../../../../domain';
+import type { IStage } from '../../../../domain';
 import { HelpField } from '../../../../help';
 import { RadioButtonInput } from '../../../../presentation';
 

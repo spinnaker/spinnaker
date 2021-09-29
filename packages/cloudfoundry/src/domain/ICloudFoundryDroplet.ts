@@ -1,4 +1,4 @@
-import { ICloudFoundrySpace } from './ICloudFoundrySpace';
+import type { ICloudFoundrySpace } from './ICloudFoundrySpace';
 
 export interface ICloudFoundryDroplet {
   id: string;

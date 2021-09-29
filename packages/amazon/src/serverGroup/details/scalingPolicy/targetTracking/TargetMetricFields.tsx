@@ -3,9 +3,9 @@ import * as React from 'react';
 
 import { NumberInput, ReactSelectInput } from '@spinnaker/core';
 
-import { ITargetTrackingPolicyCommand } from '../ScalingPolicyWriter';
+import type { ITargetTrackingPolicyCommand } from '../ScalingPolicyWriter';
 import { TargetTrackingChart } from './TargetTrackingChart';
-import { IAmazonServerGroup, ICustomizedMetricSpecification, IScalingPolicyAlarmView } from '../../../../domain';
+import type { IAmazonServerGroup, ICustomizedMetricSpecification, IScalingPolicyAlarmView } from '../../../../domain';
 import { MetricSelector } from '../upsert/alarm/MetricSelector';
 
 import './TargetMetricFields.less';

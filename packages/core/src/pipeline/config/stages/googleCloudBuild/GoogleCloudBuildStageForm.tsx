@@ -1,16 +1,16 @@
 import { get } from 'lodash';
 import React from 'react';
-import { Option } from 'react-select';
+import type { Option } from 'react-select';
 
-import { IFormikStageConfigInjectedProps } from '../FormikStageConfig';
+import type { IFormikStageConfigInjectedProps } from '../FormikStageConfig';
 import { BuildDefinitionSource, TriggerType } from './IGoogleCloudBuildStage';
 import { ArtifactTypePatterns, excludeAllTypesExcept, StageArtifactSelectorDelegate } from '../../../../artifact';
 import { IgorService } from '../../../../ci';
-import { IArtifact, IExpectedArtifact } from '../../../../domain';
+import type { IArtifact, IExpectedArtifact } from '../../../../domain';
+import type { IFormInputProps } from '../../../../presentation';
 import {
   FormikFormField,
   FormikSpelContextProvider,
-  IFormInputProps,
   RadioButtonInput,
   ReactSelectInput,
   SpelService,

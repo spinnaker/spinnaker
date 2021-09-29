@@ -2,7 +2,7 @@ import React from 'react';
 
 import { FirewallLabels, noop } from '@spinnaker/core';
 
-import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
+import type { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
 
 export interface IServerGroupSecurityGroupsRemovedProps {
   command?: IAmazonServerGroupCommand;

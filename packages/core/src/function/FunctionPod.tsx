@@ -2,8 +2,8 @@ import React from 'react';
 
 import Function from './Function';
 import { AccountTag } from '../account';
-import { Application } from '../application/application.model';
-import { IFunctionGroup } from '../domain';
+import type { Application } from '../application/application.model';
+import type { IFunctionGroup } from '../domain';
 
 export interface IFunctionPodProps {
   grouping: IFunctionGroup;

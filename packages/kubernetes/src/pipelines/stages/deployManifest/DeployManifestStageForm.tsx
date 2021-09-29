@@ -1,15 +1,17 @@
 import { capitalize, get, isEmpty, map } from 'lodash';
 import React from 'react';
-import { Option } from 'react-select';
+import type { Option } from 'react-select';
 
-import {
-  ArtifactTypePatterns,
-  CheckboxInput,
+import type {
   IAccountDetails,
   IArtifact,
   IExpectedArtifact,
   IFormikStageConfigInjectedProps,
   IManifest,
+} from '@spinnaker/core';
+import {
+  ArtifactTypePatterns,
+  CheckboxInput,
   RadioButtonInput,
   StageArtifactSelectorDelegate,
   StageConfigField,
@@ -18,7 +20,7 @@ import {
 } from '@spinnaker/core';
 
 import { CopyFromTemplateButton } from './CopyFromTemplateButton';
-import { IManifestBindArtifact } from './ManifestBindArtifactsSelector';
+import type { IManifestBindArtifact } from './ManifestBindArtifactsSelector';
 import { ManifestBindArtifactsSelector } from './ManifestBindArtifactsSelector';
 import { ManifestDeploymentOptions } from './ManifestDeploymentOptions';
 import { NamespaceSelector } from './NamespaceSelector';

@@ -1,4 +1,4 @@
-import { IExecution } from '../../../../domain';
+import type { IExecution } from '../../../../domain';
 
 export const applySuspendedStatuses = (execution: IExecution, stageType: string) => {
   const runningStagesOfType = execution.stages.filter(

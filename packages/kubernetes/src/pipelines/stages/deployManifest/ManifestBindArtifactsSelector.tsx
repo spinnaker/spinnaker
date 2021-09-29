@@ -1,13 +1,7 @@
 import React from 'react';
 
-import {
-  ArtifactTypePatterns,
-  IArtifact,
-  IExpectedArtifact,
-  IPipeline,
-  IStage,
-  StageArtifactSelector,
-} from '@spinnaker/core';
+import type { IArtifact, IExpectedArtifact, IPipeline, IStage } from '@spinnaker/core';
+import { ArtifactTypePatterns, StageArtifactSelector } from '@spinnaker/core';
 
 export interface IManifestBindArtifact {
   expectedArtifactId?: string;

@@ -1,12 +1,13 @@
 import { Debounce } from 'lodash-decorators';
 import React from 'react';
-import { Subscription } from 'rxjs';
+import type { Subscription } from 'rxjs';
 
 import { CreateFunctionButton } from './CreateFunctionButton';
 import { FunctionGroupings } from './FunctionGroupings';
-import { Application } from '../application/application.model';
-import { IFunctionGroup } from '../domain';
-import { FilterTags, IFilterTag } from '../filterModel/FilterTags';
+import type { Application } from '../application/application.model';
+import type { IFunctionGroup } from '../domain';
+import type { IFilterTag } from '../filterModel/FilterTags';
+import { FilterTags } from '../filterModel/FilterTags';
 import { FunctionState } from '../state';
 import { Spinner } from '../widgets/spinners/Spinner';
 

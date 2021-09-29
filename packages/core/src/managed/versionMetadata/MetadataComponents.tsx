@@ -1,14 +1,15 @@
 import { useSref } from '@uirouter/react';
 import classnames from 'classnames';
 import { sortBy } from 'lodash';
-import { DateTime } from 'luxon';
+import type { DateTime } from 'luxon';
 import React from 'react';
 import { Dropdown, MenuItem } from 'react-bootstrap';
 
-import { Icon, IconNames } from '@spinnaker/presentation';
+import type { IconNames } from '@spinnaker/presentation';
+import { Icon } from '@spinnaker/presentation';
 
 import { RelativeTimestamp } from '../RelativeTimestamp';
-import { LifecycleEventSummary } from '../overview/artifact/utils';
+import type { LifecycleEventSummary } from '../overview/artifact/utils';
 import { Tooltip } from '../../presentation';
 import { ABSOLUTE_TIME_FORMAT, TOOLTIP_DELAY_SHOW } from '../utils/defaults';
 import { useLogEvent } from '../utils/logging';

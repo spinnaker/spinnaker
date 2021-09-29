@@ -1,5 +1,5 @@
 import { MicrosoftTeamsNotificationType } from './MicrosoftTeamsNotificationType';
-import { INotificationTypeConfig } from '../../../../domain';
+import type { INotificationTypeConfig } from '../../../../domain';
 
 export const microsoftTeamsNotification: INotificationTypeConfig = {
   component: MicrosoftTeamsNotificationType,

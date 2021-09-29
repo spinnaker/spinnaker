@@ -1,22 +1,13 @@
-import { FormikErrors, FormikProps } from 'formik';
+import type { FormikErrors, FormikProps } from 'formik';
 import React from 'react';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import {
-  AccountService,
-  Application,
-  FormikFormField,
-  IAccount,
-  IDeploymentStrategy,
-  IWizardPageComponent,
-  Markdown,
-  ReactSelectInput,
-  StageConstants,
-} from '@spinnaker/core';
+import type { Application, IAccount, IDeploymentStrategy, IWizardPageComponent } from '@spinnaker/core';
+import { AccountService, FormikFormField, Markdown, ReactSelectInput, StageConstants } from '@spinnaker/core';
 import { FormikAccountRegionClusterSelector } from '../../../../../presentation';
 
-import { ICloudFoundryCreateServerGroupCommand } from '../../../serverGroupConfigurationModel.cf';
+import type { ICloudFoundryCreateServerGroupCommand } from '../../../serverGroupConfigurationModel.cf';
 
 import '../../../../../common/cloudFoundry.less';
 

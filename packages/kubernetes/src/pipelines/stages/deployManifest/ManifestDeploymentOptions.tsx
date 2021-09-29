@@ -1,8 +1,10 @@
 import { cloneDeep, map, set, split } from 'lodash';
 import React from 'react';
-import Select, { Creatable, Option } from 'react-select';
+import type { Option } from 'react-select';
+import Select, { Creatable } from 'react-select';
 
-import { IAccountDetails, IDeploymentStrategy, Markdown, StageConfigField } from '@spinnaker/core';
+import type { IAccountDetails, IDeploymentStrategy } from '@spinnaker/core';
+import { Markdown, StageConfigField } from '@spinnaker/core';
 
 import { NamespaceSelector } from './NamespaceSelector';
 import { ManifestKindSearchService } from '../../../manifest/ManifestKindSearch';

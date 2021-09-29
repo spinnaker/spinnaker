@@ -1,10 +1,10 @@
-import { FormikProps } from 'formik';
+import type { FormikProps } from 'formik';
 import React from 'react';
 
-import { Application } from '../../../../../application';
+import type { Application } from '../../../../../application';
 import { HelpField } from '../../../../../help';
 import { Overridable } from '../../../../../overrideRegistry';
-import { IServerGroupCommand } from '../../serverGroupCommandBuilder.service';
+import type { IServerGroupCommand } from '../../serverGroupCommandBuilder.service';
 
 export interface DetailsFieldProps<T extends IServerGroupCommand> {
   app: Application;

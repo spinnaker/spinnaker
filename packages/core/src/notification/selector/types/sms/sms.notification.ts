@@ -1,5 +1,5 @@
 import { SmsNotificationType } from './SmsNotificationType';
-import { INotificationTypeConfig } from '../../../../domain';
+import type { INotificationTypeConfig } from '../../../../domain';
 
 export const smsNotification: INotificationTypeConfig = {
   component: SmsNotificationType,

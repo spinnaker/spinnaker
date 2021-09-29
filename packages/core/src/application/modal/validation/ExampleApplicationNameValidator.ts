@@ -1,4 +1,5 @@
-import { ApplicationNameValidator, IApplicationNameValidator, IValidationResult } from './ApplicationNameValidator';
+import type { IApplicationNameValidator, IValidationResult } from './ApplicationNameValidator';
+import { ApplicationNameValidator } from './ApplicationNameValidator';
 import { CloudProviderRegistry } from '../../../cloudProvider';
 import { SETTINGS } from '../../../config/settings';
 

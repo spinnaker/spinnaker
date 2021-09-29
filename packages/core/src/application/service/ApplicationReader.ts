@@ -3,7 +3,7 @@ import { InferredApplicationWarningService } from './InferredApplicationWarningS
 import { REST } from '../../api';
 import { Application } from '../application.model';
 import { SchedulerFactory } from '../../scheduler';
-import { ApplicationDataSource } from '../service/applicationDataSource';
+import type { ApplicationDataSource } from '../service/applicationDataSource';
 
 export interface IApplicationDataSourceAttribute {
   enabled: string[];

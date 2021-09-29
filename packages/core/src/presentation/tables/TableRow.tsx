@@ -1,7 +1,8 @@
 import * as React from 'react';
 
-import { ITableCellPropsWithInternalFields } from './TableCell';
-import { ITableContext, TableContext } from './TableContext';
+import type { ITableCellPropsWithInternalFields } from './TableCell';
+import type { ITableContext } from './TableContext';
+import { TableContext } from './TableContext';
 
 const { useState, useContext, useEffect } = React;
 

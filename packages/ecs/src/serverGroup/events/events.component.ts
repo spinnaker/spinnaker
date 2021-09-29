@@ -1,5 +1,6 @@
-import { IComponentOptions, IController, module } from 'angular';
-import { IModalService } from 'angular-ui-bootstrap';
+import type { IComponentOptions, IController } from 'angular';
+import { module } from 'angular';
+import type { IModalService } from 'angular-ui-bootstrap';
 
 import { EVENTS_CTRL, EventsController } from './events.controller';
 

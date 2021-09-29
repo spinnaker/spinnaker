@@ -1,11 +1,12 @@
-import { Field, FormikProps } from 'formik';
+import type { FormikProps } from 'formik';
+import { Field } from 'formik';
 import React from 'react';
 
-import { IServerGroupCommand, IWizardPageComponent } from '@spinnaker/core';
+import type { IServerGroupCommand, IWizardPageComponent } from '@spinnaker/core';
 
 import { CapacitySelector } from '../capacity/CapacitySelector';
 import { MinMaxDesired } from '../capacity/MinMaxDesired';
-import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
+import type { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
 
 export interface IServerGroupCapacityProps {
   formik: FormikProps<IServerGroupCommand>;

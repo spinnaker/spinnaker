@@ -1,9 +1,10 @@
-import { FormikProps } from 'formik';
+import type { FormikProps } from 'formik';
 import React from 'react';
 
-import { AccountSelectInput, HelpField, IAccount } from '@spinnaker/core';
+import type { IAccount } from '@spinnaker/core';
+import { AccountSelectInput, HelpField } from '@spinnaker/core';
 
-import { IKubernetesManifestCommandData } from '../manifestCommandBuilder.service';
+import type { IKubernetesManifestCommandData } from '../manifestCommandBuilder.service';
 
 export interface IManifestBasicSettingsProps {
   accounts: IAccount[];

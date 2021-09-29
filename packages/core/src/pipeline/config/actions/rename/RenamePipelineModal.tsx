@@ -3,17 +3,11 @@ import { get, map, without } from 'lodash';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 
-import { Application } from '../../../../application';
-import { IPipeline } from '../../../../domain';
+import type { Application } from '../../../../application';
+import type { IPipeline } from '../../../../domain';
 import { ModalClose } from '../../../../modal';
-import {
-  FormikFormField,
-  IModalComponentProps,
-  IValidator,
-  SpinFormik,
-  TextInput,
-  Validators,
-} from '../../../../presentation';
+import type { IModalComponentProps, IValidator } from '../../../../presentation';
+import { FormikFormField, SpinFormik, TextInput, Validators } from '../../../../presentation';
 
 import { PipelineConfigService } from '../../services/PipelineConfigService';
 

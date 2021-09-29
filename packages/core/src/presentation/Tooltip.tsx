@@ -2,7 +2,7 @@ import React from 'react';
 import { OverlayTrigger, Tooltip as BSTooltip } from 'react-bootstrap';
 
 import { Markdown } from './Markdown';
-import { Placement } from './Placement';
+import type { Placement } from './Placement';
 
 export interface ITooltipProps {
   id?: string;

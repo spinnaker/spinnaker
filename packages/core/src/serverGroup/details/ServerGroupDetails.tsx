@@ -4,11 +4,11 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import { RunningTasks } from './RunningTasks';
-import { IServerGroupDetailsProps, IServerGroupDetailsState } from './ServerGroupDetailsWrapper';
+import type { IServerGroupDetailsProps, IServerGroupDetailsState } from './ServerGroupDetailsWrapper';
 import { ServerGroupInsightActions } from './ServerGroupInsightActions';
 import { CloudProviderLogo } from '../../cloudProvider/CloudProviderLogo';
 import { SETTINGS } from '../../config/settings';
-import { IServerGroup } from '../../domain';
+import type { IServerGroup } from '../../domain';
 import { EntityNotifications } from '../../entityTag/notifications/EntityNotifications';
 import { ManagedResourceDetailsIndicator } from '../../managed';
 import { ReactInjector } from '../../reactShims';

@@ -2,8 +2,8 @@ import { cloneDeep, head } from 'lodash';
 import React from 'react';
 
 import { ArtifactAccountSelector } from './ArtifactAccountSelector';
-import { IArtifactAccount } from '../../account';
-import { IArtifact, IPipeline } from '../../domain';
+import type { IArtifactAccount } from '../../account';
+import type { IArtifact, IPipeline } from '../../domain';
 import { StageConfigField } from '../../pipeline/config/stages/common';
 import {
   CUSTOM_ARTIFACT_ACCOUNT,

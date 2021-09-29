@@ -1,10 +1,10 @@
-import { IScope } from 'angular';
+import type { IScope } from 'angular';
 
 import { ArtifactTypePatterns } from './ArtifactTypes';
-import { IExpectedArtifactSelectorViewControllerDelegate } from './ExpectedArtifactSelectorViewController';
+import type { IExpectedArtifactSelectorViewControllerDelegate } from './ExpectedArtifactSelectorViewController';
 import { ExpectedArtifactSelectorViewControllerAngularDelegate } from './ExpectedArtifactSelectorViewControllerAngularDelegate';
-import { IArtifactAccount } from '../account';
-import { IArtifactKindConfig, IArtifactSource, IExpectedArtifact, IPipeline, IStage } from '../domain';
+import type { IArtifactAccount } from '../account';
+import type { IArtifactKindConfig, IArtifactSource, IExpectedArtifact, IPipeline, IStage } from '../domain';
 import { ExpectedArtifactService } from './expectedArtifact.service';
 import { Registry } from '../registry';
 

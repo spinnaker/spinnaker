@@ -1,10 +1,10 @@
 import { cloneDeep } from 'lodash';
 import React from 'react';
-import { Option } from 'react-select';
+import type { Option } from 'react-select';
 
 import { ArtifactService } from '../ArtifactService';
 import { ArtifactTypePatterns } from '../../../../../artifact/ArtifactTypes';
-import { IArtifact, IArtifactEditorProps, IArtifactKindConfig } from '../../../../../domain';
+import type { IArtifact, IArtifactEditorProps, IArtifactKindConfig } from '../../../../../domain';
 import { TetheredCreatable, TetheredSelect } from '../../../../../presentation';
 import { StageConfigField } from '../../../stages/common';
 import { Spinner } from '../../../../../widgets/spinners/Spinner';

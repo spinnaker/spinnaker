@@ -1,11 +1,11 @@
-import { IScope } from 'angular';
+import type { IScope } from 'angular';
 import { $log, $q } from 'ngimport';
+import type { Observable } from 'rxjs';
 import {
   BehaviorSubject,
   empty as observableEmpty,
   from as observableFrom,
   merge as observableMerge,
-  Observable,
   of as observableOf,
   Subject,
 } from 'rxjs';
@@ -24,8 +24,9 @@ import {
 } from 'rxjs/operators';
 
 import type { Application } from '../application.model';
-import { IEntityTags } from '../../domain';
-import { IconNames, robotToHuman } from '../../presentation';
+import type { IEntityTags } from '../../domain';
+import type { IconNames } from '../../presentation';
+import { robotToHuman } from '../../presentation';
 import { ReactInjector } from '../../reactShims';
 import { FirewallLabels } from '../../securityGroup';
 import { toIPromise } from '../../utils';

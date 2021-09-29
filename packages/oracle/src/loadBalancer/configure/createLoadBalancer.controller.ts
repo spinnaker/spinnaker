@@ -1,32 +1,31 @@
-import UIROUTER_ANGULARJS, { StateService } from '@uirouter/angularjs';
-import { IController, module } from 'angular';
-import ANGULAR_UI_BOOTSTRAP, { IModalServiceInstance } from 'angular-ui-bootstrap';
+import type { StateService } from '@uirouter/angularjs';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
+import type { IController } from 'angular';
+import { module } from 'angular';
+import type { IModalServiceInstance } from 'angular-ui-bootstrap';
+import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 import { cloneDeep, trimEnd } from 'lodash';
 
+import type { Application, IAccountDetails, ILoadBalancer, INetwork, IRegion, ISubnet } from '@spinnaker/core';
 import {
   AccountService,
-  Application,
-  IAccountDetails,
-  ILoadBalancer,
-  INetwork,
-  IRegion,
-  ISubnet,
   LoadBalancerWriter,
   NameUtils,
   NetworkReader,
   SubnetReader,
   TaskMonitor,
 } from '@spinnaker/core';
-import {
+import type {
   IOracleBackEndSet,
   IOracleListener,
   IOracleListenerCertificate,
   IOracleLoadBalancer,
   IOracleSubnet,
-  LoadBalancingPolicy,
 } from '../../domain/IOracleLoadBalancer';
+import { LoadBalancingPolicy } from '../../domain/IOracleLoadBalancer';
 
-import { ORACLE_LOAD_BALANCER_TRANSFORMER, OracleLoadBalancerTransformer } from '../loadBalancer.transformer';
+import type { OracleLoadBalancerTransformer } from '../loadBalancer.transformer';
+import { ORACLE_LOAD_BALANCER_TRANSFORMER } from '../loadBalancer.transformer';
 
 export class OracleLoadBalancerController implements IController {
   public oracle = 'oracle';

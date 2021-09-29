@@ -4,8 +4,9 @@ import { $log } from 'ngimport';
 import { Subject } from 'rxjs';
 
 import type { Application } from '../../application/application.model';
-import { IInstance, ILoadBalancer, ILoadBalancerGroup, IServerGroup } from '../../domain';
-import { FilterModelService, ISortFilter } from '../../filterModel';
+import type { IInstance, ILoadBalancer, ILoadBalancerGroup, IServerGroup } from '../../domain';
+import type { ISortFilter } from '../../filterModel';
+import { FilterModelService } from '../../filterModel';
 import { LoadBalancerState } from '../../state';
 
 export class LoadBalancerFilterService {

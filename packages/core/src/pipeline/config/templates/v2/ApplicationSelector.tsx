@@ -1,7 +1,8 @@
 import React from 'react';
-import Select, { Option } from 'react-select';
+import type { Option } from 'react-select';
+import Select from 'react-select';
 
-import { IApplicationSummary } from '../../../../application';
+import type { IApplicationSummary } from '../../../../application';
 
 interface IApplicatonSelectorProps {
   applications: IApplicationSummary[];

@@ -1,5 +1,5 @@
-import { Rule } from 'eslint';
-import { ImportDeclaration, ImportDefaultSpecifier, ImportNamespaceSpecifier, ImportSpecifier } from 'estree';
+import type { Rule } from 'eslint';
+import type { ImportDeclaration, ImportDefaultSpecifier, ImportNamespaceSpecifier, ImportSpecifier } from 'estree';
 
 const CSS_IMPORT = /\.(css|less|scss|sass)$/;
 const MODULE_PATH_REGEX = /[./]*(.*)$/;

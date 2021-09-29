@@ -1,9 +1,12 @@
-import { IChangesObject, IController, IOnChangesObject, module } from 'angular';
+import type { IChangesObject, IController, IOnChangesObject } from 'angular';
+import { module } from 'angular';
 import { isString, trim, uniq } from 'lodash';
 
-import { AccountService, IAccount, IFindImageParams } from '@spinnaker/core';
+import type { IAccount, IFindImageParams } from '@spinnaker/core';
+import { AccountService } from '@spinnaker/core';
 
-import { DockerImageReader, IDockerImage } from '@spinnaker/docker';
+import type { IDockerImage } from '@spinnaker/docker';
+import { DockerImageReader } from '@spinnaker/docker';
 
 interface IViewState {
   imagesLoading: boolean;

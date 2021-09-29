@@ -1,12 +1,13 @@
-import { IQService, module } from 'angular';
+import type { IQService } from 'angular';
+import { module } from 'angular';
 import { flatten, forOwn, groupBy, has, head, keyBy, keys, values } from 'lodash';
 
 import { REST } from '../api';
-import { Application } from '../application';
+import type { Application } from '../application';
 import { ArtifactReferenceService } from '../artifact';
-import { ProviderServiceDelegate } from '../cloudProvider';
+import type { ProviderServiceDelegate } from '../cloudProvider';
 import { SETTINGS } from '../config/settings';
-import {
+import type {
   IArtifactExtractor,
   ICluster,
   IClusterSummary,

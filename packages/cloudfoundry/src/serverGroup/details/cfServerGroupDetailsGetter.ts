@@ -1,8 +1,9 @@
 import { isEmpty } from 'lodash';
 import { Observable } from 'rxjs';
 
-import { IServerGroupDetailsProps, ServerGroupReader } from '@spinnaker/core';
-import { ICloudFoundryLoadBalancer, ICloudFoundryServerGroup } from '../../domain';
+import type { IServerGroupDetailsProps } from '@spinnaker/core';
+import { ServerGroupReader } from '@spinnaker/core';
+import type { ICloudFoundryLoadBalancer, ICloudFoundryServerGroup } from '../../domain';
 
 function extractServerGroupSummary(props: IServerGroupDetailsProps): PromiseLike<ICloudFoundryServerGroup> {
   const { app, serverGroup } = props;

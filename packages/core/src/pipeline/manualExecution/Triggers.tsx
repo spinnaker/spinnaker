@@ -1,12 +1,14 @@
-import { FormikProps } from 'formik';
+import type { FormikProps } from 'formik';
 import { clone, head } from 'lodash';
 import React from 'react';
-import Select, { Option } from 'react-select';
+import type { Option } from 'react-select';
+import Select from 'react-select';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import { ITriggerTemplateComponentProps, TriggerTemplate } from './TriggerTemplate';
-import { IPipelineCommand, ITrigger } from '../../domain';
+import type { ITriggerTemplateComponentProps } from './TriggerTemplate';
+import { TriggerTemplate } from './TriggerTemplate';
+import type { IPipelineCommand, ITrigger } from '../../domain';
 import { FormField } from '../../presentation';
 import { Registry } from '../../registry';
 

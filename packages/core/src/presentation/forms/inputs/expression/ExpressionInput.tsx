@@ -2,8 +2,9 @@ import { isEqual } from 'lodash';
 import React from 'react';
 
 import { TextInput } from '../TextInput';
-import { evaluateExpression, IExpressionChange } from './evaluateExpression';
-import { IFormInputProps } from '../interface';
+import type { IExpressionChange } from './evaluateExpression';
+import { evaluateExpression } from './evaluateExpression';
+import type { IFormInputProps } from '../interface';
 
 export interface IExpressionInputProps extends IFormInputProps {
   onExpressionChange: (expressionChange: IExpressionChange) => void;

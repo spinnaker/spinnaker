@@ -1,8 +1,9 @@
-import { IComponentOptions, IController, module } from 'angular';
+import type { IComponentOptions, IController } from 'angular';
+import { module } from 'angular';
 import { intersection, uniq } from 'lodash';
-import { Subject, Subscription } from 'rxjs';
+import type { Subject, Subscription } from 'rxjs';
 
-import {
+import type {
   IAccountDetails,
   ISecurityGroup,
   ISecurityGroupRule,

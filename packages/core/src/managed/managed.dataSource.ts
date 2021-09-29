@@ -1,10 +1,12 @@
-import { IQService, module } from 'angular';
+import type { IQService } from 'angular';
+import { module } from 'angular';
 
 import { ManagedReader } from './ManagedReader';
-import { Application, DELIVERY_KEY } from '../application';
+import type { Application } from '../application';
+import { DELIVERY_KEY } from '../application';
 import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
 import { SETTINGS } from '../config/settings';
-import { IManagedApplicationSummary } from '../domain';
+import type { IManagedApplicationSummary } from '../domain';
 import {
   addManagedResourceMetadataToLoadBalancers,
   addManagedResourceMetadataToSecurityGroups,

@@ -1,6 +1,6 @@
 import { module } from 'angular';
-import { Application } from '@spinnaker/core';
-import { IKubernetesServerGroup, IKubernetesServerGroupManager } from '../interfaces';
+import type { Application } from '@spinnaker/core';
+import type { IKubernetesServerGroup, IKubernetesServerGroupManager } from '../interfaces';
 
 export class KubernetesV2ServerGroupTransformer {
   public normalizeServerGroup(

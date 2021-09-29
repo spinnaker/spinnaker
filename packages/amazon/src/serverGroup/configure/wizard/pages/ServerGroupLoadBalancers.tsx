@@ -1,10 +1,11 @@
-import { FormikProps } from 'formik';
+import type { FormikProps } from 'formik';
 import React from 'react';
-import { Option } from 'react-select';
+import type { Option } from 'react-select';
 
-import { HelpField, IWizardPageComponent, ReactInjector, TetheredSelect } from '@spinnaker/core';
+import type { IWizardPageComponent } from '@spinnaker/core';
+import { HelpField, ReactInjector, TetheredSelect } from '@spinnaker/core';
 
-import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
+import type { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
 
 export interface IServerGroupLoadBalancersProps {
   hideLoadBalancers?: boolean;

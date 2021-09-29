@@ -2,8 +2,8 @@ import { UISref } from '@uirouter/react';
 import React from 'react';
 
 import { SearchResult } from '../infrastructure/SearchResult';
-import { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
-import { ISearchResult } from '../search.service';
+import type { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
+import type { ISearchResult } from '../search.service';
 import { findMatchingApplicationResultToQuery, getSearchQuery } from './utils';
 
 export interface IGlobalSearchResultsProps {

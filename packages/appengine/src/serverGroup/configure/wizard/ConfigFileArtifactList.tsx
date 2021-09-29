@@ -1,14 +1,8 @@
 import classNames from 'classnames';
 import React from 'react';
 
-import {
-  IArtifact,
-  IArtifactAccountPair,
-  IExpectedArtifact,
-  IPipeline,
-  IStage,
-  StageArtifactSelector,
-} from '@spinnaker/core';
+import type { IArtifact, IArtifactAccountPair, IExpectedArtifact, IPipeline, IStage } from '@spinnaker/core';
+import { StageArtifactSelector } from '@spinnaker/core';
 
 interface IConfigFileArtifactListProps {
   configArtifacts: IArtifactAccountPair[];

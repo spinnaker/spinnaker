@@ -1,5 +1,5 @@
-import { MdConstraintStatus } from '../managed/graphql/graphql-sdk';
-import { IMoniker } from '../naming';
+import type { MdConstraintStatus } from '../managed/graphql/graphql-sdk';
+import type { IMoniker } from '../naming';
 
 export enum ManagedResourceStatus {
   ACTUATING = 'ACTUATING',

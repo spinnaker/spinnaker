@@ -1,8 +1,8 @@
 import { getKindName, getResourceKindForLoadBalancerType } from '../ManagedReader';
-import { Application } from '../../application';
+import type { Application } from '../../application';
 import { SETTINGS } from '../../config';
-import { ILoadBalancer, IManagedResourceSummary, ISecurityGroup, IServerGroup } from '../../domain';
-import { IMoniker } from '../../naming';
+import type { ILoadBalancer, IManagedResourceSummary, ISecurityGroup, IServerGroup } from '../../domain';
+import type { IMoniker } from '../../naming';
 
 const isMonikerEqual = (a?: IMoniker, b?: IMoniker) =>
   a && b && a.app === b.app && a.stack === b.stack && a.detail === b.detail;

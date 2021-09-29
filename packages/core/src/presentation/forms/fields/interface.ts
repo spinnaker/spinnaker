@@ -1,8 +1,8 @@
-import React from 'react';
+import type React from 'react';
 
-import { IFormInputProps, IFormInputValidation } from '../inputs';
-import { ILayoutProps } from '../layouts';
-import { IValidator } from '../validation';
+import type { IFormInputProps, IFormInputValidation } from '../inputs';
+import type { ILayoutProps } from '../layouts';
+import type { IValidator } from '../validation';
 
 /** These props are used by FormFields such as FormikFormField and FormField */
 export interface ICommonFormFieldProps {

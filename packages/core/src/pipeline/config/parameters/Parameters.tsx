@@ -1,8 +1,10 @@
 import React from 'react';
-import { arrayMove, SortableContainer, SortableContainerProps, SortableElement, SortEnd } from 'react-sortable-hoc';
+import type { SortableContainerProps, SortEnd } from 'react-sortable-hoc';
+import { arrayMove, SortableContainer, SortableElement } from 'react-sortable-hoc';
 
-import { IParameterProps, Parameter } from './Parameter';
-import { IParameter } from '../../../domain';
+import type { IParameterProps } from './Parameter';
+import { Parameter } from './Parameter';
+import type { IParameter } from '../../../domain';
 import { HelpField } from '../../../help';
 
 export interface IParametersState {

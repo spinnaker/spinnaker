@@ -3,7 +3,7 @@ import React from 'react';
 import { CollapsibleSection, confirmNotManaged, ModalInjector, SETTINGS } from '@spinnaker/core';
 import { HelpField } from '@spinnaker/core';
 
-import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
+import type { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
 
 export class AdvancedSettingsDetailsSection extends React.Component<IAmazonServerGroupDetailsSectionProps> {
   private editAdvancedSettings = (): void => {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { IVariableError } from './inputs/variableInput.service';
+import type { IVariableError } from './inputs/variableInput.service';
 
 export interface IVariableErrorProps {
   errors: IVariableError[];

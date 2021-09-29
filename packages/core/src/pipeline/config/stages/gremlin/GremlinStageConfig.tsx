@@ -4,7 +4,8 @@ import { forkJoin as observableForkJoin, from as observableFrom } from 'rxjs';
 
 import { REST } from '../../../../api/ApiService';
 
-import { IStageConfigProps, StageConfigField } from '../common';
+import type { IStageConfigProps } from '../common';
+import { StageConfigField } from '../common';
 
 interface IArgOptions {
   value?: string;

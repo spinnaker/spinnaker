@@ -2,10 +2,10 @@ import _ from 'lodash';
 import { $interpolate } from 'ngimport';
 import React from 'react';
 
-import { Application } from '../../application';
+import type { Application } from '../../application';
 import { SETTINGS } from '../../config/settings';
-import { IInstance } from '../../domain';
-import { IMoniker } from '../../naming';
+import type { IInstance } from '../../domain';
+import type { IMoniker } from '../../naming';
 import { CollapsibleSection } from '../../presentation';
 
 export interface IInstanceLinksProps {

@@ -1,6 +1,7 @@
 import { module } from 'angular';
 import { SETTINGS } from '../../config/settings';
-import { STATE_CONFIG_PROVIDER, StateConfigProvider } from '../../navigation/state.provider';
+import type { StateConfigProvider } from '../../navigation/state.provider';
+import { STATE_CONFIG_PROVIDER } from '../../navigation/state.provider';
 
 export const INFRASTRUCTURE_STATES = 'spinnaker.core.search.states';
 module(INFRASTRUCTURE_STATES, [STATE_CONFIG_PROVIDER]).config([

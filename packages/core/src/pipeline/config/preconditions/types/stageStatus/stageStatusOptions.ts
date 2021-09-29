@@ -1,4 +1,4 @@
-import { Option } from 'react-select';
+import type { Option } from 'react-select';
 
 // From https://github.com/spinnaker/orca/blob/master/orca-core/src/main/java/com/netflix/spinnaker/orca/ExecutionStatus.java
 export const STATUS_OPTIONS: Array<Option<string>> = [

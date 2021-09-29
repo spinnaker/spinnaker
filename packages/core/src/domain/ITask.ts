@@ -1,5 +1,5 @@
-import { IOrchestratedItem } from './IOrchestratedItem';
-import { ITaskStep } from './ITaskStep';
+import type { IOrchestratedItem } from './IOrchestratedItem';
+import type { ITaskStep } from './ITaskStep';
 
 export interface ITask extends IOrchestratedItem {
   application: string;

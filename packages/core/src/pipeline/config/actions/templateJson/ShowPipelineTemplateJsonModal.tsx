@@ -2,9 +2,10 @@ import classNames from 'classnames';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 
-import { IPipelineTemplateV2 } from '../../../../domain';
+import type { IPipelineTemplateV2 } from '../../../../domain';
 import { ModalClose } from '../../../../modal';
-import { IModalComponentProps, JsonEditor } from '../../../../presentation';
+import type { IModalComponentProps } from '../../../../presentation';
+import { JsonEditor } from '../../../../presentation';
 import { CopyToClipboard, JsonUtils, noop } from '../../../../utils';
 import { Spinner } from '../../../../widgets/spinners/Spinner';
 

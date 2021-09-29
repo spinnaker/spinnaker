@@ -3,8 +3,8 @@ import React from 'react';
 import { react2angular } from 'react2angular';
 
 import { NotificationsPopover } from './NotificationsPopover';
-import { Application } from '../../application';
-import { IEntityTag, IEntityTags } from '../../domain';
+import type { Application } from '../../application';
+import type { IEntityTag, IEntityTags } from '../../domain';
 import { withErrorBoundary } from '../../presentation/SpinErrorBoundary';
 
 export interface IDataSourceNotificationsProps {

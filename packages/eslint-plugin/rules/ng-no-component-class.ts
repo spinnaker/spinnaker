@@ -1,4 +1,4 @@
-import { Rule, Scope } from 'eslint';
+import type { Rule, Scope } from 'eslint';
 import camelCase from 'lodash/camelCase';
 
 const findParentNodeByType = (node: Rule.Node, type: string) =>

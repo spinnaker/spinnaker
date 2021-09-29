@@ -1,6 +1,7 @@
 import React from 'react';
 
-import { AsgActionExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
+import type { IExecutionDetailsSectionProps } from '../common';
+import { AsgActionExecutionDetailsSection } from '../common';
 
 export function DisableAsgExecutionDetails(props: IExecutionDetailsSectionProps) {
   return <AsgActionExecutionDetailsSection {...props} action="Disabled" />;

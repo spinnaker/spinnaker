@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { CloudProviderLogo } from '../../../cloudProvider';
-import { IStage } from '../../../domain';
+import type { IStage } from '../../../domain';
 import { robotToHuman } from '../../../presentation';
 
 import './copyStageCard.less';

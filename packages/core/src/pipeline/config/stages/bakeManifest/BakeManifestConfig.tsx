@@ -1,12 +1,12 @@
-import { FormikErrors } from 'formik';
+import type { FormikErrors } from 'formik';
 import { cloneDeep } from 'lodash';
 import React from 'react';
 
 import { BakeManifestStageForm, validateProducedArtifacts } from './BakeManifestStageForm';
 import { FormikStageConfig } from '../FormikStageConfig';
 import { HELM_RENDERERS } from './ManifestRenderers';
-import { IStageConfigProps } from '../common';
-import { IExpectedArtifact, IStage } from '../../../../domain';
+import type { IStageConfigProps } from '../common';
+import type { IExpectedArtifact, IStage } from '../../../../domain';
 import { FormValidator } from '../../../../presentation';
 
 export function BakeManifestConfig({ application, pipeline, stage, updateStage }: IStageConfigProps) {

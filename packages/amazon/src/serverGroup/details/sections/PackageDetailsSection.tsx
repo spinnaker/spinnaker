@@ -2,7 +2,7 @@ import React from 'react';
 
 import { CollapsibleSection } from '@spinnaker/core';
 
-import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
+import type { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
 
 export interface IPackageDetailsSectionState {
   commitHash: string;

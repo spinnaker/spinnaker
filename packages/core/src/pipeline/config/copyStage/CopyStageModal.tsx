@@ -2,22 +2,17 @@ import { Form } from 'formik';
 import { flatten, isEmpty } from 'lodash';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
-import { Option } from 'react-select';
+import type { Option } from 'react-select';
 
-import { CopyStageCard, ICopyStageCardProps } from './CopyStageCard';
+import type { ICopyStageCardProps } from './CopyStageCard';
+import { CopyStageCard } from './CopyStageCard';
 import { REST } from '../../../api/ApiService';
-import { Application } from '../../../application';
+import type { Application } from '../../../application';
 import { ApplicationReader } from '../../../application/service/ApplicationReader';
-import { IPipeline, IStage, IStrategy } from '../../../domain';
+import type { IPipeline, IStage, IStrategy } from '../../../domain';
 import { ModalClose } from '../../../modal';
-import {
-  FormikFormField,
-  IModalComponentProps,
-  ReactSelectInput,
-  SpinFormik,
-  useData,
-  useLatestPromise,
-} from '../../../presentation';
+import type { IModalComponentProps } from '../../../presentation';
+import { FormikFormField, ReactSelectInput, SpinFormik, useData, useLatestPromise } from '../../../presentation';
 
 import './copyStageModal.less';
 

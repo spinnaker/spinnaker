@@ -1,4 +1,4 @@
-import { IInstance } from '@spinnaker/core';
+import type { IInstance } from '@spinnaker/core';
 
 interface ITitusInstancePlacement {
   containerIp: string;

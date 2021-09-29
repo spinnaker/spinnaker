@@ -3,7 +3,7 @@ import { UIRouterContext } from '@uirouter/react-hybrid';
 import React from 'react';
 
 import { SearchResult } from './SearchResult';
-import { ISearchResult } from './SearchResultPods';
+import type { ISearchResult } from './SearchResultPods';
 import { Tooltip } from '../../presentation';
 
 export interface ISearchResultPodItemProps {

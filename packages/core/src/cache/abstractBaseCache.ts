@@ -1,4 +1,5 @@
-import { DeckCacheFactory, ICache, ICacheConfig, ICacheMap } from './deckCacheFactory';
+import type { ICache, ICacheConfig, ICacheMap } from './deckCacheFactory';
+import { DeckCacheFactory } from './deckCacheFactory';
 
 export abstract class AbstractBaseCache {
   protected caches: ICacheMap = Object.create(null);

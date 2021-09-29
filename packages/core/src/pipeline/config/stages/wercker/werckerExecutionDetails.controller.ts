@@ -1,10 +1,9 @@
-import { StateParams } from '@uirouter/angularjs';
-import { IController, IScope, module } from 'angular';
+import type { StateParams } from '@uirouter/angularjs';
+import type { IController, IScope } from 'angular';
+import { module } from 'angular';
 
-import {
-  EXECUTION_DETAILS_SECTION_SERVICE,
-  ExecutionDetailsSectionService,
-} from '../../../details/executionDetailsSection.service';
+import type { ExecutionDetailsSectionService } from '../../../details/executionDetailsSection.service';
+import { EXECUTION_DETAILS_SECTION_SERVICE } from '../../../details/executionDetailsSection.service';
 
 export class WerckerExecutionDetailsCtrl implements IController {
   public configSections = ['werckerConfig', 'taskStatus'];

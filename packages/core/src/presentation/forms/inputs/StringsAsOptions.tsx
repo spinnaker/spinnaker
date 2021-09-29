@@ -1,7 +1,7 @@
 import { isEqual } from 'lodash';
 import memoizeOne from 'memoize-one';
 import React from 'react';
-import { Option } from 'react-select';
+import type { Option } from 'react-select';
 
 interface IStringOptionsProps {
   strings?: string[];

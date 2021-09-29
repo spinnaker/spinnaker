@@ -1,7 +1,7 @@
 import { get } from 'lodash';
 import React from 'react';
 
-import { IExecutionStageSummary } from '@spinnaker/core';
+import type { IExecutionStageSummary } from '@spinnaker/core';
 
 import { CanaryScore } from './CanaryScore';
 

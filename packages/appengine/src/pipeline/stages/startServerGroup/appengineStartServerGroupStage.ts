@@ -4,7 +4,7 @@ import { Registry } from '@spinnaker/core';
 
 import { AppengineStageCtrl } from '../appengineStage.controller';
 import { AppengineHealth } from '../../../common/appengineHealth';
-import { IAppengineStageScope } from '../../../domain';
+import type { IAppengineStageScope } from '../../../domain';
 
 class AppengineStartServerGroupStageCtrl extends AppengineStageCtrl {
   public static $inject = ['$scope'];

@@ -1,9 +1,9 @@
-import { IAuthentication } from './IAuthentication';
-import { IEntityTags } from './IEntityTags';
-import { IExecutionStage, IExecutionStageSummary } from './IExecutionStage';
-import { IExecutionTrigger } from './IExecutionTrigger';
-import { IOrchestratedItem } from './IOrchestratedItem';
-import { IPipeline } from './IPipeline';
+import type { IAuthentication } from './IAuthentication';
+import type { IEntityTags } from './IEntityTags';
+import type { IExecutionStage, IExecutionStageSummary } from './IExecutionStage';
+import type { IExecutionTrigger } from './IExecutionTrigger';
+import type { IOrchestratedItem } from './IOrchestratedItem';
+import type { IPipeline } from './IPipeline';
 
 export interface IExecution extends IOrchestratedItem {
   appConfig?: any;

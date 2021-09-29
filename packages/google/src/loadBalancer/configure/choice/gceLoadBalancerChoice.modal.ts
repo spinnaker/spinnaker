@@ -1,13 +1,12 @@
-import { IController, module } from 'angular';
-import { IModalInstanceService, IModalService } from 'angular-ui-bootstrap';
+import type { IController } from 'angular';
+import { module } from 'angular';
+import type { IModalInstanceService, IModalService } from 'angular-ui-bootstrap';
 import { find, map } from 'lodash';
 
-import { Application } from '@spinnaker/core';
+import type { Application } from '@spinnaker/core';
 
-import {
-  GCE_LOAD_BALANCER_TYPE_TO_WIZARD_CONSTANT,
-  IGceLoadBalancerToWizardMap,
-} from './loadBalancerTypeToWizardMap.constant';
+import type { IGceLoadBalancerToWizardMap } from './loadBalancerTypeToWizardMap.constant';
+import { GCE_LOAD_BALANCER_TYPE_TO_WIZARD_CONSTANT } from './loadBalancerTypeToWizardMap.constant';
 
 class GceLoadBalancerChoiceCtrl implements IController {
   public choices: string[];

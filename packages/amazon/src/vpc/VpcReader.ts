@@ -1,4 +1,5 @@
-import { IVpc, NetworkReader } from '@spinnaker/core';
+import type { IVpc } from '@spinnaker/core';
+import { NetworkReader } from '@spinnaker/core';
 
 export class VpcReader {
   private static cache: PromiseLike<IVpc[]>;

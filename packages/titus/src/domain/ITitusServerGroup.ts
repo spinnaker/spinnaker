@@ -1,9 +1,9 @@
-import { IScalingPolicyView } from '@spinnaker/amazon';
-import { IAccountDetails, IServerGroup } from '@spinnaker/core';
+import type { IScalingPolicyView } from '@spinnaker/amazon';
+import type { IAccountDetails, IServerGroup } from '@spinnaker/core';
 
-import { IJobDisruptionBudget } from './IJobDisruptionBudget';
-import { ITitusPolicy } from './ITitusScalingPolicy';
-import { ITitusServiceJobProcesses } from './ITitusServiceJobProcesses';
+import type { IJobDisruptionBudget } from './IJobDisruptionBudget';
+import type { ITitusPolicy } from './ITitusScalingPolicy';
+import type { ITitusServiceJobProcesses } from './ITitusServiceJobProcesses';
 
 export interface ITitusResources {
   cpu: number;

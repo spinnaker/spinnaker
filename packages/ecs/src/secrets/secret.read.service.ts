@@ -1,7 +1,7 @@
 import { module } from 'angular';
 
 import { REST } from '@spinnaker/core';
-import { ISecretDescriptor } from './ISecret';
+import type { ISecretDescriptor } from './ISecret';
 
 export class SecretReader {
   public listSecrets(): PromiseLike<ISecretDescriptor[]> {

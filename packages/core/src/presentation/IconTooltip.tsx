@@ -1,8 +1,10 @@
 import React from 'react';
 
-import { Icon, IIconProps } from '@spinnaker/presentation';
+import type { IIconProps } from '@spinnaker/presentation';
+import { Icon } from '@spinnaker/presentation';
 
-import { ITooltipProps, Tooltip } from './Tooltip';
+import type { ITooltipProps } from './Tooltip';
+import { Tooltip } from './Tooltip';
 
 export interface IconTooltipProps extends IIconProps {
   tooltip: string;

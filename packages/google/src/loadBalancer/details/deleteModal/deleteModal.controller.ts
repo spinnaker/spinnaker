@@ -1,10 +1,14 @@
-import { IController, module } from 'angular';
-import ANGULAR_UI_BOOTSTRAP, { IModalInstanceService } from 'angular-ui-bootstrap';
+import type { IController } from 'angular';
+import { module } from 'angular';
+import type { IModalInstanceService } from 'angular-ui-bootstrap';
+import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 
-import { Application, ILoadBalancerDeleteCommand, LoadBalancerWriter, TaskMonitor } from '@spinnaker/core';
+import type { Application, ILoadBalancerDeleteCommand } from '@spinnaker/core';
+import { LoadBalancerWriter, TaskMonitor } from '@spinnaker/core';
 
 import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_HTTPLOADBALANCER_WRITE_SERVICE } from '../../configure/http/httpLoadBalancer.write.service';
-import { GCE_HTTP_LOAD_BALANCER_UTILS, GceHttpLoadBalancerUtils } from '../../httpLoadBalancerUtils.service';
+import type { GceHttpLoadBalancerUtils } from '../../httpLoadBalancerUtils.service';
+import { GCE_HTTP_LOAD_BALANCER_UTILS } from '../../httpLoadBalancerUtils.service';
 
 class Verification {
   public verified = false;

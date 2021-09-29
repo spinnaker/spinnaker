@@ -1,6 +1,6 @@
 import { camelCase, chain, cloneDeep, has } from 'lodash';
 
-import {
+import type {
   Application,
   IInstance,
   IInstanceCounts,
@@ -8,7 +8,7 @@ import {
   ILoadBalancerUpsertCommand,
   IServerGroup,
 } from '@spinnaker/core';
-import {
+import type {
   ICloudFoundryLoadBalancer,
   ICloudFoundryLoadBalancerUpsertCommand,
   ICloudFoundryServerGroup,

@@ -1,7 +1,7 @@
 import { cloneDeep } from 'lodash';
-import React from 'react';
+import type React from 'react';
 
-import { IServerGroupCommand } from '../serverGroup';
+import type { IServerGroupCommand } from '../serverGroup';
 
 export interface IDeploymentStrategyAdditionalFieldsProps {
   command: IServerGroupCommand;

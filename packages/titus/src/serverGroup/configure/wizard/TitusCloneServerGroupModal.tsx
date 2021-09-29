@@ -2,13 +2,11 @@ import { get, isEqual } from 'lodash';
 import React from 'react';
 
 import { ServerGroupCapacity, ServerGroupLoadBalancers, ServerGroupSecurityGroups } from '@spinnaker/amazon';
+import type { Application, IModalComponentProps, IStage } from '@spinnaker/core';
 import {
   AccountTag,
-  Application,
   DeployInitializer,
   FirewallLabels,
-  IModalComponentProps,
-  IStage,
   noop,
   ReactInjector,
   ReactModal,
@@ -20,7 +18,8 @@ import {
 import { ServerGroupBasicSettings, ServerGroupParameters, ServerGroupResources } from './pages';
 import { JobDisruptionBudget } from './pages/disruptionBudget/JobDisruptionBudget';
 import { TitusReactInjector } from '../../../reactShims';
-import { getDefaultJobDisruptionBudgetForApp, ITitusServerGroupCommand } from '../serverGroupConfiguration.service';
+import type { ITitusServerGroupCommand } from '../serverGroupConfiguration.service';
+import { getDefaultJobDisruptionBudgetForApp } from '../serverGroupConfiguration.service';
 
 export interface ITitusCloneServerGroupModalProps extends IModalComponentProps {
   title: string;

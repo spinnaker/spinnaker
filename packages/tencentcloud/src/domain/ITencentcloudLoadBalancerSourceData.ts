@@ -1,8 +1,8 @@
-import { ILoadBalancerSourceData } from '@spinnaker/core';
+import type { ILoadBalancerSourceData } from '@spinnaker/core';
 
-import { IListenerAction, NLBListenerProtocol } from './ITencentcloudLoadBalancer';
+import type { IListenerAction, NLBListenerProtocol } from './ITencentcloudLoadBalancer';
 
-import { IListenerRule } from './ITencentcloudLoadBalancer';
+import type { IListenerRule } from './ITencentcloudLoadBalancer';
 
 export interface ITencentcloudContainerServerGroupSourceData {
   detachedInstances: string[];

@@ -1,5 +1,5 @@
 import { BasePluginManager } from '../plugins/BasePluginManager';
-import { IconNames } from '../../presentation';
+import type { IconNames } from '../../presentation';
 
 const UNKNOWN_RESOURCE_ICON = 'placeholder';
 

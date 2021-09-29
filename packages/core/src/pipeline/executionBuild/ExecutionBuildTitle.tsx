@@ -2,7 +2,7 @@ import { module } from 'angular';
 import React from 'react';
 import { react2angular } from 'react2angular';
 
-import { IExecutionBuildLinkProps } from './ExecutionBuildLink';
+import type { IExecutionBuildLinkProps } from './ExecutionBuildLink';
 import { withErrorBoundary } from '../../presentation/SpinErrorBoundary';
 import { timestamp } from '../../utils';
 

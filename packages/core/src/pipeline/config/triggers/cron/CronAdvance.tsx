@@ -2,7 +2,7 @@ import React from 'react';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import { ICronTriggerConfigProps } from './cronConfig';
+import type { ICronTriggerConfigProps } from './cronConfig';
 import { CronValidatorService } from './cronValidator.service';
 import { HelpField } from '../../../../help';
 

@@ -1,4 +1,5 @@
-import { IComponentController, IComponentOptions, IScope, module } from 'angular';
+import type { IComponentController, IComponentOptions, IScope } from 'angular';
+import { module } from 'angular';
 import { without } from 'lodash';
 
 interface IGceDisk {

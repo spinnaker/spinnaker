@@ -1,8 +1,8 @@
 import React from 'react';
 
 import { DefaultClusterPodTitle } from './DefaultClusterPodTitle';
-import { Application } from '../application/application.model';
-import { IClusterSubgroup } from './filter/ClusterFilterService';
+import type { Application } from '../application/application.model';
+import type { IClusterSubgroup } from './filter/ClusterFilterService';
 import { ReactInjector } from '../reactShims';
 
 export interface IClusterPodTitleProps {

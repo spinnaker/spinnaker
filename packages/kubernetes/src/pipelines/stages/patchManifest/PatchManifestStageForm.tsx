@@ -1,12 +1,10 @@
 import { capitalize, get, isEmpty, map } from 'lodash';
 import React from 'react';
-import { Option } from 'react-select';
+import type { Option } from 'react-select';
 
+import type { IArtifact, IExpectedArtifact, IFormikStageConfigInjectedProps } from '@spinnaker/core';
 import {
   ArtifactTypePatterns,
-  IArtifact,
-  IExpectedArtifact,
-  IFormikStageConfigInjectedProps,
   RadioButtonInput,
   StageArtifactSelectorDelegate,
   StageConfigField,
@@ -16,7 +14,7 @@ import {
 
 import { PatchManifestOptionsForm } from './PatchManifestOptionsForm';
 import { ManifestBindArtifactsSelector } from '../deployManifest/ManifestBindArtifactsSelector';
-import { IManifestBindArtifact } from '../deployManifest/ManifestBindArtifactsSelector';
+import type { IManifestBindArtifact } from '../deployManifest/ManifestBindArtifactsSelector';
 import { ManifestSource } from '../../../manifest/ManifestSource';
 import { SelectorMode } from '../../../manifest/selector/IManifestSelector';
 import { ManifestSelector } from '../../../manifest/selector/ManifestSelector';

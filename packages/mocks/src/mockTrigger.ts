@@ -1,4 +1,4 @@
-import { IBuildTrigger } from '@spinnaker/core';
+import type { IBuildTrigger } from '@spinnaker/core';
 
 export const mockBuildTrigger: IBuildTrigger = {
   enabled: true,

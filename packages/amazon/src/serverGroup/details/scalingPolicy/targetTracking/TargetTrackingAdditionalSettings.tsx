@@ -1,7 +1,7 @@
 import { set } from 'lodash';
 import * as React from 'react';
 import { CheckboxInput, HelpField, NumberInput } from '@spinnaker/core';
-import { IUpsertScalingPolicyCommand } from '../ScalingPolicyWriter';
+import type { IUpsertScalingPolicyCommand } from '../ScalingPolicyWriter';
 
 import './TargetTrackingAdditionalSettings.less';
 

@@ -1,9 +1,10 @@
-import { chain, Dictionary, forOwn, groupBy, intersection, sortBy, values } from 'lodash';
+import type { Dictionary } from 'lodash';
+import { chain, forOwn, groupBy, intersection, sortBy, values } from 'lodash';
 import { Debounce } from 'lodash-decorators';
 import { Subject } from 'rxjs';
 
 import type { Application } from '../../application/application.model';
-import { IFunction, IFunctionGroup } from '../../domain';
+import type { IFunction, IFunctionGroup } from '../../domain';
 import { FilterModelService } from '../../filterModel';
 import { FunctionState } from '../../state';
 

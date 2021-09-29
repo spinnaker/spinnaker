@@ -1,7 +1,7 @@
-import { IArtifact } from './IArtifact';
-import { IExecution } from './IExecution';
-import { IExpectedArtifact } from './IExpectedArtifact';
-import { ITrigger } from './ITrigger';
+import type { IArtifact } from './IArtifact';
+import type { IExecution } from './IExecution';
+import type { IExpectedArtifact } from './IExpectedArtifact';
+import type { ITrigger } from './ITrigger';
 
 export interface IExecutionTrigger extends ITrigger {
   buildInfo?: any;

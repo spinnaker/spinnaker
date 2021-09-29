@@ -1,4 +1,4 @@
-import { IMoniker } from '@spinnaker/core';
+import type { IMoniker } from '@spinnaker/core';
 
 export const mockMoniker: IMoniker = {
   app: 'deck',

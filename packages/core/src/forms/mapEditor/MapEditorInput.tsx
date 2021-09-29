@@ -1,9 +1,11 @@
 import { defaults, isFunction, isNil, isString } from 'lodash';
 import React from 'react';
 
-import { IMapPair, MapPair } from './MapPair';
-import { IPipeline } from '../../domain';
-import { createFakeReactSyntheticEvent, IFormInputProps, IValidator, IValidatorResult } from '../../presentation';
+import type { IMapPair } from './MapPair';
+import { MapPair } from './MapPair';
+import type { IPipeline } from '../../domain';
+import type { IFormInputProps, IValidator, IValidatorResult } from '../../presentation';
+import { createFakeReactSyntheticEvent } from '../../presentation';
 
 import './MapEditor.less';
 

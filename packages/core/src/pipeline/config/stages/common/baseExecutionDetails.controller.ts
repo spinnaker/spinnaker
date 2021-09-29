@@ -1,11 +1,10 @@
-import { StateParams } from '@uirouter/angularjs';
+import type { StateParams } from '@uirouter/angularjs';
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
-import { IScope, module } from 'angular';
+import type { IScope } from 'angular';
+import { module } from 'angular';
 
-import {
-  EXECUTION_DETAILS_SECTION_SERVICE,
-  ExecutionDetailsSectionService,
-} from '../../../details/executionDetailsSection.service';
+import type { ExecutionDetailsSectionService } from '../../../details/executionDetailsSection.service';
+import { EXECUTION_DETAILS_SECTION_SERVICE } from '../../../details/executionDetailsSection.service';
 
 export interface IExecutionDetailsScope extends IScope {
   configSections: string[];

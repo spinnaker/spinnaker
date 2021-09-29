@@ -1,11 +1,12 @@
 import classnames from 'classnames';
 import React from 'react';
-import { Overlay, Popover, PopoverProps } from 'react-bootstrap';
+import type { PopoverProps } from 'react-bootstrap';
+import { Overlay, Popover } from 'react-bootstrap';
 import ReactDOM from 'react-dom';
 import { merge as observableMerge, of as observableOf, Subject } from 'rxjs';
 import { delay, filter, map, switchMap, takeUntil } from 'rxjs/operators';
 
-import { Placement } from './Placement';
+import type { Placement } from './Placement';
 import { UUIDGenerator } from '../utils';
 
 import './HoverablePopover.css';

@@ -1,6 +1,7 @@
-import { ICustomValidator, IPipeline, IStage, IValidatorConfig } from '@spinnaker/core';
+import type { ICustomValidator, IPipeline, IStage, IValidatorConfig } from '@spinnaker/core';
 
-import { IManifestSelector, SelectorMode } from '../../../manifest/selector/IManifestSelector';
+import type { IManifestSelector } from '../../../manifest/selector/IManifestSelector';
+import { SelectorMode } from '../../../manifest/selector/IManifestSelector';
 
 export const manifestSelectorValidators = (stageName: string): IValidatorConfig[] => {
   const required = (field: string) => `<strong>${field}</strong> is a required field for ${stageName} stages.`;

@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { StatusGlyph } from '../StatusGlyph';
-import { TaskMonitor } from './TaskMonitor';
+import type { TaskMonitor } from './TaskMonitor';
 import { displayableTasks } from '../displayableTasks.filter';
 import { robotToHuman, useForceUpdate, useObservable } from '../../presentation';
 import { ReactInjector } from '../../reactShims/react.injector';

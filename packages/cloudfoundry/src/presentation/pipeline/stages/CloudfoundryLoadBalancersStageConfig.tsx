@@ -1,19 +1,10 @@
-import { Formik } from 'formik';
+import type { Formik } from 'formik';
 import React from 'react';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import {
-  AccountService,
-  Application,
-  IAccount,
-  IPipeline,
-  IStageConfigProps,
-  NgReact,
-  SpinFormik,
-  StageConfigField,
-  StageConstants,
-} from '@spinnaker/core';
+import type { Application, IAccount, IPipeline, IStageConfigProps } from '@spinnaker/core';
+import { AccountService, NgReact, SpinFormik, StageConfigField, StageConstants } from '@spinnaker/core';
 
 import { Routes } from '../../forms/serverGroup';
 import { AccountRegionClusterSelector } from '../../widgets/accountRegionClusterSelector';

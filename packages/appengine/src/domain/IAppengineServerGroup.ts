@@ -1,4 +1,4 @@
-import { IServerGroup } from '@spinnaker/core';
+import type { IServerGroup } from '@spinnaker/core';
 
 export interface IAppengineServerGroup extends IServerGroup {
   disabled: boolean;

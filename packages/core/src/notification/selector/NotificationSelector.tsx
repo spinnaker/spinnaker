@@ -1,7 +1,7 @@
 import React from 'react';
-import { Option } from 'react-select';
+import type { Option } from 'react-select';
 
-import { INotificationTypeConfig } from '../../domain';
+import type { INotificationTypeConfig } from '../../domain';
 import { FormikFormField, ReactSelectInput } from '../../presentation';
 import { Registry } from '../../registry';
 

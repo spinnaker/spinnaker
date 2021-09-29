@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { IExecutionDetailsSectionProps } from '@spinnaker/core';
+import type { IExecutionDetailsSectionProps } from '@spinnaker/core';
 import { ExecutionDetailsSection } from '@spinnaker/core';
 import { EvaluateCloudFormationChangeSetExecutionApproval } from './evaluateCloudFormationChangeSetExecutionApproval';
 

@@ -1,5 +1,5 @@
-import { IInstance } from '@spinnaker/core';
-import { IAmazonSecurityGroup } from './IAmazonSecurityGroup';
+import type { IInstance } from '@spinnaker/core';
+import type { IAmazonSecurityGroup } from './IAmazonSecurityGroup';
 
 interface IInstancePlacement {
   containerIp: string;

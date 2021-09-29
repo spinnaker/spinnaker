@@ -1,6 +1,6 @@
-import { IFunctionGroup } from '../../domain';
+import type { IFunctionGroup } from '../../domain';
 import { FilterModelService } from '../../filterModel';
-import { IFilterConfig, IFilterModel } from '../../filterModel/IFilterModel';
+import type { IFilterConfig, IFilterModel } from '../../filterModel/IFilterModel';
 
 export const filterModelConfig: IFilterConfig[] = [
   { model: 'account', param: 'acct', type: 'trueKeyObject' },

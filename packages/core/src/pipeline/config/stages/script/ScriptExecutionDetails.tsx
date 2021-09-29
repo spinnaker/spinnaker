@@ -1,7 +1,8 @@
 import { get } from 'lodash';
 import React from 'react';
 
-import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
+import type { IExecutionDetailsSectionProps } from '../common';
+import { ExecutionDetailsSection } from '../common';
 import { StageFailureMessage } from '../../../details';
 import { RenderOutputFile } from '../../../../presentation/RenderOutputFile';
 

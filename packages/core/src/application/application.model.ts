@@ -1,11 +1,13 @@
-import { IScope } from 'angular';
+import type { IScope } from 'angular';
 import { map, union, uniq } from 'lodash';
 import { $log, $q } from 'ngimport';
-import { combineLatest as observableCombineLatest, Observable, ReplaySubject, Subject, Subscription } from 'rxjs';
+import type { Observable, Subscription } from 'rxjs';
+import { combineLatest as observableCombineLatest, ReplaySubject, Subject } from 'rxjs';
 import { map as rxMap } from 'rxjs/operators';
 
-import { ICluster } from '../domain/ICluster';
-import { ApplicationDataSource, IDataSourceConfig, IFetchStatus } from './service/applicationDataSource';
+import type { ICluster } from '../domain/ICluster';
+import type { IDataSourceConfig, IFetchStatus } from './service/applicationDataSource';
+import { ApplicationDataSource } from './service/applicationDataSource';
 
 export class Application {
   [k: string]: any;

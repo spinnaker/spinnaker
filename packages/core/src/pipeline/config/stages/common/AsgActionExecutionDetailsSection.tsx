@@ -1,6 +1,7 @@
 import React from 'react';
 
-import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from './ExecutionDetailsSection';
+import type { IExecutionDetailsSectionProps } from './ExecutionDetailsSection';
+import { ExecutionDetailsSection } from './ExecutionDetailsSection';
 import { AccountTag } from '../../../../account/AccountTag';
 import { StageExecutionLogs } from '../../../details/StageExecutionLogs';
 import { StageFailureMessage } from '../../../details/StageFailureMessage';

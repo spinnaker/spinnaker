@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 
-import { Application, IExecution, IExecutionStage, Spinner } from '@spinnaker/core';
+import type { Application, IExecution, IExecutionStage } from '@spinnaker/core';
+import { Spinner } from '@spinnaker/core';
 import { AwsReactInjector } from '../../../reactShims';
 
 export interface IEvaluateCloudFormationChangeSetExecutionApprovalProps {

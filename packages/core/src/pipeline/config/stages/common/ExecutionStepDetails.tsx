@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { IExecutionStage } from '../../../../domain';
+import type { IExecutionStage } from '../../../../domain';
 import { OrchestratedItemRunningTime } from '../../../executions/execution/OrchestratedItemRunningTime';
 import { robotToHuman } from '../../../../presentation/robotToHumanFilter/robotToHuman.filter';
 import { StatusGlyph } from '../../../../task/StatusGlyph';

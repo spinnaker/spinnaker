@@ -1,17 +1,11 @@
 import React from 'react';
-import { Option } from 'react-select';
+import type { Option } from 'react-select';
 import VirtualizedSelect from 'react-virtualized-select';
 
-import {
-  FirewallLabels,
-  HelpField,
-  InfrastructureCaches,
-  ISecurityGroup,
-  ReactInjector,
-  timestamp,
-} from '@spinnaker/core';
+import type { ISecurityGroup } from '@spinnaker/core';
+import { FirewallLabels, HelpField, InfrastructureCaches, ReactInjector, timestamp } from '@spinnaker/core';
 
-import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
+import type { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
 
 export interface ISecurityGroupSelectorProps {
   command: IAmazonServerGroupCommand;

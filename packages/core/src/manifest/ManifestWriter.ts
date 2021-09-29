@@ -1,5 +1,5 @@
-import { Application } from '../application/application.model';
-import { ITask } from '../domain';
+import type { Application } from '../application/application.model';
+import type { ITask } from '../domain';
 import { TaskExecutor } from '../task/taskExecutor';
 
 export class ManifestWriter {

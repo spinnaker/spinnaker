@@ -1,18 +1,10 @@
 import { DateTime } from 'luxon';
 import * as React from 'react';
 
-import {
-  ICapacity,
-  IModalComponentProps,
-  ModalBody,
-  ModalFooter,
-  ModalHeader,
-  ServerGroupReader,
-  Spinner,
-  useData,
-} from '@spinnaker/core';
+import type { ICapacity, IModalComponentProps } from '@spinnaker/core';
+import { ModalBody, ModalFooter, ModalHeader, ServerGroupReader, Spinner, useData } from '@spinnaker/core';
 
-import { ITitusServerGroup } from '../../../domain';
+import type { ITitusServerGroup } from '../../../domain';
 
 export interface ITitusScalingActivitiesProps extends IModalComponentProps {
   serverGroup: ITitusServerGroup;

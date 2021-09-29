@@ -1,13 +1,9 @@
 import * as React from 'react';
-import { Subject } from 'rxjs';
+import type { Subject } from 'rxjs';
 
-import {
-  IAmazonServerGroup,
-  IScalingPolicyAlarm,
-  ITargetTrackingConfiguration,
-  MetricAlarmChart,
-} from '@spinnaker/amazon';
-import { ICloudMetricStatistics } from '@spinnaker/core';
+import type { IAmazonServerGroup, IScalingPolicyAlarm, ITargetTrackingConfiguration } from '@spinnaker/amazon';
+import { MetricAlarmChart } from '@spinnaker/amazon';
+import type { ICloudMetricStatistics } from '@spinnaker/core';
 
 export interface ITitusTargetTrackingChartProps {
   alarmUpdated?: Subject<void>;

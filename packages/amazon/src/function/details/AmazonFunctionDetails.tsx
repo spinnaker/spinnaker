@@ -3,18 +3,11 @@ import React from 'react';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import {
-  AccountTag,
-  Application,
-  CollapsibleSection,
-  Details,
-  IFunction,
-  IOverridableProps,
-  Overrides,
-} from '@spinnaker/core';
+import type { Application, IFunction, IOverridableProps } from '@spinnaker/core';
+import { AccountTag, CollapsibleSection, Details, Overrides } from '@spinnaker/core';
 
 import { FunctionActions } from './FunctionActions';
-import { IAmazonFunction, IAmazonFunctionSourceData } from '../../domain';
+import type { IAmazonFunction, IAmazonFunctionSourceData } from '../../domain';
 import { AwsReactInjector } from '../../reactShims';
 
 export interface IFunctionFromStateParams {

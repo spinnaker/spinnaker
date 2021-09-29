@@ -1,5 +1,5 @@
-import { Rule } from 'eslint';
-import { ImportDeclaration } from 'estree';
+import type { Rule } from 'eslint';
+import type { ImportDeclaration } from 'estree';
 
 import { getRelativeImport, getSourceFileDetails } from '../utils/import-aliases';
 

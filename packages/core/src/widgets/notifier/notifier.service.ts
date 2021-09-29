@@ -1,5 +1,6 @@
-import React from 'react';
-import { toast, ToastOptions } from 'react-toastify';
+import type React from 'react';
+import type { ToastOptions } from 'react-toastify';
+import { toast } from 'react-toastify';
 export interface INotifier {
   key: string;
   action?: 'create';

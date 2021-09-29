@@ -1,4 +1,5 @@
-import { ApplicationNameValidator, FirewallLabels, IApplicationNameValidator } from '@spinnaker/core';
+import type { IApplicationNameValidator } from '@spinnaker/core';
+import { ApplicationNameValidator, FirewallLabels } from '@spinnaker/core';
 
 class TencentcloudApplicationNameValidator implements IApplicationNameValidator {
   private validateSpecialCharacters(name: string, errors: string[]): void {

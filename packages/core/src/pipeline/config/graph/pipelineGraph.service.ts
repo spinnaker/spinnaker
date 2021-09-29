@@ -1,4 +1,4 @@
-import { IExecution, IExecutionStageSummary, IPipeline, IStage } from '../../../domain';
+import type { IExecution, IExecutionStageSummary, IPipeline, IStage } from '../../../domain';
 
 export interface IExecutionViewState {
   activeStageId: number;

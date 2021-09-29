@@ -1,23 +1,19 @@
-import { Form, Formik, FormikProps } from 'formik';
+import type { Formik, FormikProps } from 'formik';
+import { Form } from 'formik';
 import { get } from 'lodash';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 
-import {
-  EXCLUDED_ARTIFACT_TYPES,
-  IAwsCodeBuildSecondarySourcesVersion,
-  IAwsCodeBuildSource,
-  SOURCE_TYPES,
-} from './IAwsCodeBuildSource';
+import type { IAwsCodeBuildSecondarySourcesVersion, IAwsCodeBuildSource } from './IAwsCodeBuildSource';
+import { EXCLUDED_ARTIFACT_TYPES, SOURCE_TYPES } from './IAwsCodeBuildSource';
 import { StageArtifactSelector } from '../../../../artifact';
-import { IArtifact, IExpectedArtifact, IPipeline, IStage } from '../../../../domain';
+import type { IArtifact, IExpectedArtifact, IPipeline, IStage } from '../../../../domain';
 import { HelpField } from '../../../../help';
 import { ModalClose, SubmitButton } from '../../../../modal';
+import type { IFormInputProps, IModalComponentProps } from '../../../../presentation';
 import {
   FormikFormField,
   FormValidator,
-  IFormInputProps,
-  IModalComponentProps,
   ReactModal,
   ReactSelectInput,
   SpinFormik,

@@ -1,9 +1,9 @@
 import React from 'react';
 
 import { GroupExecutionPopover } from './GroupExecutionPopover';
-import { Application } from '../../../../application/application.model';
+import type { Application } from '../../../../application/application.model';
 import { ExecutionBarLabel } from '../common/ExecutionBarLabel';
-import { IExecution, IExecutionStageSummary } from '../../../../domain';
+import type { IExecution, IExecutionStageSummary } from '../../../../domain';
 import { ReactInjector } from '../../../../reactShims';
 
 import './groupStage.less';

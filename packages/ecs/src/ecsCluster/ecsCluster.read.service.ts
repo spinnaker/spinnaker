@@ -2,8 +2,8 @@ import { module } from 'angular';
 
 import { REST } from '@spinnaker/core';
 
-import { IEcsCapacityProviderDetails } from './IEcsCapacityProviderDetails';
-import { IEcsClusterDescriptor } from './IEcsCluster';
+import type { IEcsCapacityProviderDetails } from './IEcsCapacityProviderDetails';
+import type { IEcsClusterDescriptor } from './IEcsCluster';
 
 export class EcsClusterReader {
   public listClusters(): PromiseLike<IEcsClusterDescriptor[]> {

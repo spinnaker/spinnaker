@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import * as React from 'react';
 
-import { ICiBuild } from '../domain';
+import type { ICiBuild } from '../domain';
 import { relativeTime } from '../../utils';
 
 const configByBuildStatus: { [key: string]: { statusClass: string; text: string } } = {

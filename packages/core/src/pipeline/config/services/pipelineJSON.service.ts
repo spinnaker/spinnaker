@@ -1,6 +1,6 @@
 import { cloneDeepWith } from 'lodash';
 
-import { IPipeline } from '../../../domain';
+import type { IPipeline } from '../../../domain';
 
 export class PipelineJSONService {
   // these fields are not user-editable, so we hide them

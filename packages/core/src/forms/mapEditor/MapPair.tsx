@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { IPipeline } from '../../domain';
+import type { IPipeline } from '../../domain';
 import { ValidationMessage } from '../../presentation';
 import { SpelText } from '../../widgets';
 

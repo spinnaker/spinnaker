@@ -1,11 +1,11 @@
-import { IEntityTags } from './IEntityTags';
-import { IExecution } from './IExecution';
-import { IInstance } from './IInstance';
-import { IInstanceCounts } from './IInstanceCounts';
-import { IManagedResource } from './IManagedEntity';
-import { ITask } from './ITask';
-import { IMoniker } from '../naming';
-import { ICapacity } from '../serverGroup';
+import type { IEntityTags } from './IEntityTags';
+import type { IExecution } from './IExecution';
+import type { IInstance } from './IInstance';
+import type { IInstanceCounts } from './IInstanceCounts';
+import type { IManagedResource } from './IManagedEntity';
+import type { ITask } from './ITask';
+import type { IMoniker } from '../naming';
+import type { ICapacity } from '../serverGroup';
 
 // remnant from legacy code
 export interface IAsg {

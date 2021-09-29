@@ -7,8 +7,9 @@ import { takeUntil } from 'rxjs/operators';
 
 import { ArtifactEditor } from './ArtifactEditor';
 import { ArtifactIcon } from './ArtifactIcon';
-import { AccountService, IArtifactAccount } from '../../account';
-import { IArtifact, IExpectedArtifact, IPipeline, IStage } from '../../domain';
+import type { IArtifactAccount } from '../../account';
+import { AccountService } from '../../account';
+import type { IArtifact, IExpectedArtifact, IPipeline, IStage } from '../../domain';
 import { ExpectedArtifactService } from '../expectedArtifact.service';
 import { withErrorBoundary } from '../../presentation/SpinErrorBoundary';
 

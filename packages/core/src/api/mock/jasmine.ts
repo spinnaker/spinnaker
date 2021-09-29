@@ -1,4 +1,5 @@
-import { IHttpClientImplementation, RequestBuilder } from '../ApiService';
+import type { IHttpClientImplementation } from '../ApiService';
+import { RequestBuilder } from '../ApiService';
 import { MockHttpClient } from './mockHttpClient';
 
 export interface IMockHttpClientConfig {

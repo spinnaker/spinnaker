@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { ICronTriggerConfigProps } from './cronConfig';
+import type { ICronTriggerConfigProps } from './cronConfig';
 
 export interface ICronHourlyState {
   hours?: string;

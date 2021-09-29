@@ -1,7 +1,8 @@
 import React from 'react';
-import { Option } from 'react-select';
+import type { Option } from 'react-select';
 
-import { ISlackChannel, SlackReader } from './SlackReader';
+import type { ISlackChannel } from './SlackReader';
+import { SlackReader } from './SlackReader';
 import { ReactSelectInput, useLatestPromise } from '../presentation';
 
 export interface ISlackChannelSelectorProps {

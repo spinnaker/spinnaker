@@ -4,9 +4,11 @@ import { mergeMap, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { InstanceDetailsPane } from './InstanceDetailsPane';
 import { AccountService } from '../../account/AccountService';
-import { Application } from '../../application';
-import { IMoniker, NameUtils } from '../../naming';
-import { IOverridableProps, Overridable } from '../../overrideRegistry';
+import type { Application } from '../../application';
+import type { IMoniker } from '../../naming';
+import { NameUtils } from '../../naming';
+import type { IOverridableProps } from '../../overrideRegistry';
+import { Overridable } from '../../overrideRegistry';
 import { Spinner } from '../../widgets';
 
 export interface IInstanceDetailsProps extends IOverridableProps {

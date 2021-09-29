@@ -4,7 +4,7 @@ import { Icon } from '@spinnaker/presentation';
 
 import { AnimatingPill, Pill } from '../Pill';
 import { getArtifactVersionDisplayName } from '../displayNames';
-import { IManagedArtifactSummary, IManagedEnvironmentSummary } from '../../domain';
+import type { IManagedArtifactSummary, IManagedEnvironmentSummary } from '../../domain';
 
 export interface ResourceDeploymentStatusProps {
   environment?: string;

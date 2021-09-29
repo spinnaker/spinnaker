@@ -2,8 +2,8 @@
  * Migrate REST().path('foo', 'bar').path('baz').get() to REST('/foo/bar/baz').get()
  */
 
-import { Rule } from 'eslint';
-import { CallExpression, Literal } from 'estree';
+import type { Rule } from 'eslint';
+import type { CallExpression, Literal } from 'estree';
 import * as _ from 'lodash/fp';
 
 import { getCallChain, getCallingIdentifierName, isLiteral } from '../utils/utils';

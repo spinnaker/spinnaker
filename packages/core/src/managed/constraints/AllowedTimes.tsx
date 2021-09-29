@@ -1,7 +1,7 @@
 import { padStart, sortBy } from 'lodash';
 import React from 'react';
 
-import { AllowedTimeWindow, IAllowedTimesConstraint } from '../../domain';
+import type { AllowedTimeWindow, IAllowedTimesConstraint } from '../../domain';
 
 import './AllowedTimes.less';
 

@@ -1,4 +1,4 @@
-import { ITrigger } from './ITrigger';
+import type { ITrigger } from './ITrigger';
 
 export interface IHelmTrigger extends ITrigger {
   account?: string;

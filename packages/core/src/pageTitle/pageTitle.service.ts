@@ -1,6 +1,8 @@
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
-import { Rejection, RejectType, StateParams, TransitionService } from '@uirouter/core';
-import { IScope, module } from 'angular';
+import type { Rejection, StateParams, TransitionService } from '@uirouter/core';
+import { RejectType } from '@uirouter/core';
+import type { IScope } from 'angular';
+import { module } from 'angular';
 
 export interface IMainConfig {
   field: string;

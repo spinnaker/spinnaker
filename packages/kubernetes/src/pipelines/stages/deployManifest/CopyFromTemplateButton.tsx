@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Application, IManifest } from '@spinnaker/core';
+import type { Application, IManifest } from '@spinnaker/core';
 
 import { ManifestCopier } from './ManifestCopier';
 

@@ -2,8 +2,8 @@ import { useIsActive, useSref } from '@uirouter/react';
 import React from 'react';
 
 import { NavItem } from './NavItem';
-import { Application } from '../../application';
-import { ApplicationDataSource } from '../service/applicationDataSource';
+import type { Application } from '../../application';
+import type { ApplicationDataSource } from '../service/applicationDataSource';
 
 export interface INavRouteProps {
   dataSource: ApplicationDataSource;

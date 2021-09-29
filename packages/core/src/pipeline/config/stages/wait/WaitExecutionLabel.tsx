@@ -3,7 +3,7 @@ import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 
 import { SkipWait } from './SkipWait';
 import { ExecutionBarLabel } from '../common/ExecutionBarLabel';
-import { IExecutionStageLabelProps } from '../../../../domain';
+import type { IExecutionStageLabelProps } from '../../../../domain';
 import { HoverablePopover } from '../../../../presentation/HoverablePopover';
 
 export interface IWaitExecutionLabelState {

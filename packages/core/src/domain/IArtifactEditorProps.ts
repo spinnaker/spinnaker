@@ -1,6 +1,6 @@
-import { IArtifact } from './IArtifact';
-import { IPipeline } from './IPipeline';
-import { IArtifactAccount } from '../account';
+import type { IArtifact } from './IArtifact';
+import type { IPipeline } from './IPipeline';
+import type { IArtifactAccount } from '../account';
 
 export interface IArtifactEditorProps {
   account: IArtifactAccount;

@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import React from 'react';
 
-import { IClusterPodTitleProps } from './ClusterPodTitleWrapper';
+import type { IClusterPodTitleProps } from './ClusterPodTitleWrapper';
 import { AccountTag } from '../account';
 import { EntityNotifications } from '../entityTag/notifications/EntityNotifications';
 import { HealthCounts } from '../healthCounts';

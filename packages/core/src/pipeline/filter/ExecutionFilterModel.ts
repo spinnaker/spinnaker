@@ -1,11 +1,12 @@
 import { extend } from 'lodash';
 import { Subject } from 'rxjs';
 
-import { ICache, ViewStateCache } from '../../cache';
+import type { ICache } from '../../cache';
+import { ViewStateCache } from '../../cache';
 import { SETTINGS } from '../../config/settings';
-import { IExecutionGroup } from '../../domain';
+import type { IExecutionGroup } from '../../domain';
 import { FilterModelService } from '../../filterModel';
-import { IFilterConfig, IFilterModel } from '../../filterModel/IFilterModel';
+import type { IFilterConfig, IFilterModel } from '../../filterModel/IFilterModel';
 import { ReactInjector } from '../../reactShims';
 
 export const filterModelConfig: IFilterConfig[] = [

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ICapacity } from '../../serverGroupWriter.service';
+import type { ICapacity } from '../../serverGroupWriter.service';
 
 export function DesiredCapacity(props: { capacity: ICapacity; simpleMode: boolean }) {
   const SimpleCapacity = () => (

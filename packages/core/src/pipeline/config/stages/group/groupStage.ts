@@ -1,4 +1,5 @@
-import { IController, module } from 'angular';
+import type { IController } from 'angular';
+import { module } from 'angular';
 
 import { GroupExecutionLabel } from './GroupExecutionLabel';
 import { GroupMarkerIcon } from './GroupMarkerIcon';

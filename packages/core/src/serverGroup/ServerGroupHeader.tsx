@@ -1,13 +1,13 @@
 import { get } from 'lodash';
 import React from 'react';
 
-import { IDockerViewModel, IJenkinsViewModel } from './ServerGroup';
-import { Application } from '../application';
+import type { IDockerViewModel, IJenkinsViewModel } from './ServerGroup';
+import type { Application } from '../application';
 import { ArtifactIconService } from '../artifact';
 import { CloudProviderLogo } from '../cloudProvider';
-import { IServerGroup } from '../domain';
+import type { IServerGroup } from '../domain';
 import { EntityNotifications } from '../entityTag/notifications/EntityNotifications';
-import { ISortFilter } from '../filterModel';
+import type { ISortFilter } from '../filterModel';
 import { HealthCounts } from '../healthCounts';
 import { LoadBalancersTagWrapper } from '../loadBalancer';
 import { NameUtils } from '../naming';

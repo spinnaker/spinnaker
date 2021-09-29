@@ -4,20 +4,16 @@ import $ from 'jquery';
 import { clone, find, flatten, forOwn, groupBy, max, maxBy, sortBy, sum, sumBy, uniq } from 'lodash';
 import { Debounce, Throttle } from 'lodash-decorators';
 import React from 'react';
-import { Subscription } from 'rxjs';
+import type { Subscription } from 'rxjs';
 
 import { PipelineGraphLink } from './PipelineGraphLink';
 import { PipelineGraphNode } from './PipelineGraphNode';
 import { SETTINGS } from '../../../config/settings';
-import { IExecution, IPipeline } from '../../../domain';
-import {
-  IExecutionViewState,
-  IPipelineGraphLink,
-  IPipelineGraphNode,
-  PipelineGraphService,
-} from './pipelineGraph.service';
+import type { IExecution, IPipeline } from '../../../domain';
+import type { IExecutionViewState, IPipelineGraphLink, IPipelineGraphNode } from './pipelineGraph.service';
+import { PipelineGraphService } from './pipelineGraph.service';
 import { UUIDGenerator } from '../../../utils/uuid.service';
-import { IPipelineValidationResults } from '../validation/PipelineConfigValidator';
+import type { IPipelineValidationResults } from '../validation/PipelineConfigValidator';
 import { PipelineConfigValidator } from '../validation/PipelineConfigValidator';
 import { Spinner } from '../../../widgets/spinners/Spinner';
 

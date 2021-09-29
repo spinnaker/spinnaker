@@ -1,4 +1,4 @@
-import { IHealth } from './IHealth';
+import type { IHealth } from './IHealth';
 
 export interface IInstance {
   account?: string;

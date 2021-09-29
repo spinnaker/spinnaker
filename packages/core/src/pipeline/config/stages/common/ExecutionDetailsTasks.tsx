@@ -1,6 +1,7 @@
 import React from 'react';
 
-import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from './ExecutionDetailsSection';
+import type { IExecutionDetailsSectionProps } from './ExecutionDetailsSection';
+import { ExecutionDetailsSection } from './ExecutionDetailsSection';
 import { ExecutionStepDetails } from './ExecutionStepDetails';
 
 export function ExecutionDetailsTasks(props: IExecutionDetailsSectionProps) {

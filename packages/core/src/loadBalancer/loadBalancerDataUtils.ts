@@ -1,5 +1,5 @@
-import { Application } from '../application';
-import { IHealth, ILoadBalancer, IServerGroup } from '../domain';
+import type { Application } from '../application';
+import type { IHealth, ILoadBalancer, IServerGroup } from '../domain';
 
 export class LoadBalancerDataUtils {
   private static buildLoadBalancer(match: ILoadBalancer, serverGroup: IServerGroup): ILoadBalancer {

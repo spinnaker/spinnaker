@@ -1,10 +1,10 @@
 import React from 'react';
-import { Subscription } from 'rxjs';
+import type { Subscription } from 'rxjs';
 
 import { StageSummary } from './StageSummary';
 import { StepDetails } from './StepDetails';
-import { Application } from '../../application/application.model';
-import { IExecution, IExecutionStage, IExecutionStageSummary, IStageTypeConfig } from '../../domain';
+import type { Application } from '../../application/application.model';
+import type { IExecution, IExecutionStage, IExecutionStageSummary, IStageTypeConfig } from '../../domain';
 import { ExecutionFilterService } from '../filter/executionFilter.service';
 import { SpinErrorBoundary } from '../../presentation';
 import { ReactInjector } from '../../reactShims';

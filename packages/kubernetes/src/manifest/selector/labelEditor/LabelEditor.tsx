@@ -1,9 +1,11 @@
 import React from 'react';
-import Select, { Option } from 'react-select';
+import type { Option } from 'react-select';
+import Select from 'react-select';
 
 import { noop } from '@spinnaker/core';
 
-import { IManifestLabelSelector, LABEL_KINDS } from '../IManifestLabelSelector';
+import type { IManifestLabelSelector } from '../IManifestLabelSelector';
+import { LABEL_KINDS } from '../IManifestLabelSelector';
 
 import './labelEditor.less';
 

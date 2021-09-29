@@ -1,6 +1,7 @@
 import React from 'react';
 
-import { Application, ApplicationDataSource, FilterCheckbox, FilterSection } from '@spinnaker/core';
+import type { Application, ApplicationDataSource } from '@spinnaker/core';
+import { FilterCheckbox, FilterSection } from '@spinnaker/core';
 
 import { RawResourceUtils } from './RawResourceUtils';
 import { FiltersPubSub } from '../controller/FiltersPubSub';

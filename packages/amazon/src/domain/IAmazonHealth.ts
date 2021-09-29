@@ -1,4 +1,4 @@
-import { IHealth, ILoadBalancerHealth } from '@spinnaker/core';
+import type { IHealth, ILoadBalancerHealth } from '@spinnaker/core';
 
 export interface IAmazonHealth extends IHealth {
   targetGroups: IAmazonTargetGroupHealth[];

@@ -3,16 +3,14 @@ import { chain, cloneDeep, flatten, intersection, xor } from 'lodash';
 import { $q } from 'ngimport';
 import { Subject } from 'rxjs';
 
-import {
+import type {
   IAmazonApplicationLoadBalancer,
   IAmazonLoadBalancer,
   IAmazonServerGroupCommandDirty,
-  VpcReader,
 } from '@spinnaker/amazon';
-import {
-  AccountService,
+import { VpcReader } from '@spinnaker/amazon';
+import type {
   Application,
-  CACHE_INITIALIZER_SERVICE,
   CacheInitializerService,
   IAccountDetails,
   ICluster,
@@ -22,16 +20,20 @@ import {
   IServerGroupCommandBackingData,
   IServerGroupCommandViewState,
   IVpc,
-  LOAD_BALANCER_READ_SERVICE,
   LoadBalancerReader,
+  SecurityGroupReader,
+} from '@spinnaker/core';
+import {
+  AccountService,
+  CACHE_INITIALIZER_SERVICE,
+  LOAD_BALANCER_READ_SERVICE,
   NameUtils,
   SECURITY_GROUP_READER,
-  SecurityGroupReader,
   setMatchingResourceSummary,
   SubnetReader,
 } from '@spinnaker/core';
-import { IJobDisruptionBudget, ITitusResources } from '../../domain';
-import { ITitusServiceJobProcesses } from '../../domain/ITitusServiceJobProcesses';
+import type { IJobDisruptionBudget, ITitusResources } from '../../domain';
+import type { ITitusServiceJobProcesses } from '../../domain/ITitusServiceJobProcesses';
 
 export interface ITitusServerGroupCommandBackingData extends IServerGroupCommandBackingData {
   accounts: string[];

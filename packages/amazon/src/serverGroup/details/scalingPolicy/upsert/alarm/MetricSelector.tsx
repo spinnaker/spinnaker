@@ -1,18 +1,12 @@
-import { Dictionary } from 'lodash';
+import type { Dictionary } from 'lodash';
 import * as React from 'react';
 
-import {
-  CloudMetricsReader,
-  HelpField,
-  ICloudMetricDescriptor,
-  IMetricAlarmDimension,
-  ReactSelectInput,
-  useData,
-} from '@spinnaker/core';
+import type { ICloudMetricDescriptor, IMetricAlarmDimension } from '@spinnaker/core';
+import { CloudMetricsReader, HelpField, ReactSelectInput, useData } from '@spinnaker/core';
 
 import { DimensionsEditor } from './DimensionsEditor';
 import { AWSProviderSettings } from '../../../../../aws.settings';
-import { IAmazonServerGroup, IScalingPolicyAlarmView } from '../../../../../domain';
+import type { IAmazonServerGroup, IScalingPolicyAlarmView } from '../../../../../domain';
 import { NAMESPACES } from './namespaces';
 
 import './MetricSelector.less';

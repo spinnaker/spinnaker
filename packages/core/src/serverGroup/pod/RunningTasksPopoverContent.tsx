@@ -1,7 +1,7 @@
 import { orderBy } from 'lodash';
 import * as React from 'react';
 
-import { IExecution, IExecutionStage, ITask, ITaskStep } from '../../domain';
+import type { IExecution, IExecutionStage, ITask, ITaskStep } from '../../domain';
 import { robotToHuman } from '../../presentation';
 import { StatusGlyph } from '../../task/StatusGlyph';
 import { displayableTasks } from '../../task/displayableTasks.filter';

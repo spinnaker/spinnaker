@@ -1,7 +1,8 @@
 import { module } from 'angular';
 
 import { PipelineTemplatesV2 } from './PipelineTemplatesV2';
-import { INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider } from '../../../../navigation';
+import type { INestedState, StateConfigProvider } from '../../../../navigation';
+import { STATE_CONFIG_PROVIDER } from '../../../../navigation';
 
 export const PIPELINE_TEMPLATES_V2_STATES_CONFIG = 'spinnaker.core.pipeline.templates.v2.states.config';
 

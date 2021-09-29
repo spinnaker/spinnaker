@@ -1,14 +1,15 @@
 import { Debounce } from 'lodash-decorators';
 import React from 'react';
-import { Subscription } from 'rxjs';
+import type { Subscription } from 'rxjs';
 
 import { CreateLoadBalancerButton } from './CreateLoadBalancerButton';
 import { LoadBalancerPod } from './LoadBalancerPod';
-import { Application } from '../application/application.model';
+import type { Application } from '../application/application.model';
 import { BannerContainer } from '../banner';
-import { ILoadBalancerGroup } from '../domain';
-import { FilterTags, IFilterTag } from '../filterModel/FilterTags';
-import { ISortFilter } from '../filterModel/IFilterModel';
+import type { ILoadBalancerGroup } from '../domain';
+import type { IFilterTag } from '../filterModel/FilterTags';
+import { FilterTags } from '../filterModel/FilterTags';
+import type { ISortFilter } from '../filterModel/IFilterModel';
 import { HelpField } from '../help';
 import { ReactInjector } from '../reactShims';
 import { LoadBalancerState } from '../state';

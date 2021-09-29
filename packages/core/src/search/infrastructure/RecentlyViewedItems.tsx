@@ -1,7 +1,9 @@
 import React from 'react';
 
-import { ISearchResult, ISearchResultPodData, SearchResultPods } from './SearchResultPods';
-import { IRecentHistoryEntry, RecentHistoryService } from '../../history';
+import type { ISearchResult, ISearchResultPodData } from './SearchResultPods';
+import { SearchResultPods } from './SearchResultPods';
+import type { IRecentHistoryEntry } from '../../history';
+import { RecentHistoryService } from '../../history';
 import { useData } from '../../presentation/hooks';
 import { ReactInjector } from '../../reactShims';
 import { logger } from '../../utils';

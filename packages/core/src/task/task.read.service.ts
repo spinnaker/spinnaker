@@ -1,8 +1,8 @@
 import { $log, $q, $timeout } from 'ngimport';
-import { Subject } from 'rxjs';
+import type { Subject } from 'rxjs';
 
 import { REST } from '../api/ApiService';
-import { ITask } from '../domain';
+import type { ITask } from '../domain';
 import { OrchestratedItemTransformer } from '../orchestratedItem/orchestratedItem.transformer';
 
 export class TaskReader {

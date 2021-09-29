@@ -3,7 +3,7 @@ import { UIView } from '@uirouter/react';
 import React from 'react';
 
 import { ApplicationContextProvider } from './ApplicationContext';
-import { Application } from './application.model';
+import type { Application } from './application.model';
 import { RecentHistoryService } from '../history';
 import { createApolloClient } from '../managed/graphql/client';
 import { ApplicationNavigation } from './nav/ApplicationNavigation';

@@ -2,7 +2,7 @@ import React from 'react';
 import { OverlayTrigger, Popover as BSPopover } from 'react-bootstrap';
 
 import { Markdown } from './Markdown';
-import { Placement } from './Placement';
+import type { Placement } from './Placement';
 
 type onEnterType = (element: HTMLElement) => void;
 export interface IPopoverProps {

@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { CollapsibleSection, InstanceLoadBalancerHealth, robotToHuman, Tooltip } from '@spinnaker/core';
-import { IAmazonHealth } from '../../domain';
+import type { IAmazonHealth } from '../../domain';
 
 export type MetricTypes = 'LoadBalancer' | 'TargetGroup';
 

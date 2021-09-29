@@ -1,6 +1,6 @@
-import { TSESTree } from '@typescript-eslint/types';
-import { Rule } from 'eslint';
-import { ImportDeclaration } from 'estree';
+import type { TSESTree } from '@typescript-eslint/types';
+import type { Rule } from 'eslint';
+import type { ImportDeclaration } from 'estree';
 import _ from 'lodash';
 
 /**

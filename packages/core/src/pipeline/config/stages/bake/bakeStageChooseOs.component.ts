@@ -1,4 +1,5 @@
-import { IComponentOptions, IController, module } from 'angular';
+import type { IComponentOptions, IController } from 'angular';
+import { module } from 'angular';
 import { SETTINGS } from '../../../../config/settings';
 
 export interface IBaseOsOption {

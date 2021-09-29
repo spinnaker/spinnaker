@@ -1,5 +1,5 @@
 import React from 'react';
-import { IManifest } from '@spinnaker/core';
+import type { IManifest } from '@spinnaker/core';
 
 interface IStatusClasses {
   [key: string]: string;

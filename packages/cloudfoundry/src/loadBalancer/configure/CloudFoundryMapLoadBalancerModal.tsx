@@ -1,19 +1,22 @@
-import { IDeferred } from 'angular';
-import { IModalServiceInstance } from 'angular-ui-bootstrap';
-import { Form, Formik } from 'formik';
+import type { IDeferred } from 'angular';
+import type { IModalServiceInstance } from 'angular-ui-bootstrap';
+import type { Formik } from 'formik';
+import { Form } from 'formik';
 import { $q } from 'ngimport';
 import React from 'react';
 import { Modal, ModalFooter } from 'react-bootstrap';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import {
-  AccountService,
+import type {
   Application,
   IAccount,
   ILoadBalancerModalProps,
   IModalComponentProps,
   IServerGroup,
+} from '@spinnaker/core';
+import {
+  AccountService,
   ModalClose,
   noop,
   ReactInjector,
@@ -22,7 +25,7 @@ import {
   TaskMonitor,
   TaskMonitorWrapper,
 } from '@spinnaker/core';
-import { ICloudFoundryServerGroup } from '../../domain';
+import type { ICloudFoundryServerGroup } from '../../domain';
 import { AccountRegionClusterSelector, Routes } from '../../presentation';
 
 export interface ICreateCloudFoundryMapLoadBalancerState {

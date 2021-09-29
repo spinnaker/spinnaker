@@ -1,4 +1,4 @@
-import { Rule } from 'eslint';
+import type { Rule } from 'eslint';
 import type { ImportDeclaration } from 'estree';
 
 import { getImportFromNpm, getSourceFileDetails } from '../utils/import-aliases';

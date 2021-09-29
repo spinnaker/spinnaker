@@ -1,8 +1,9 @@
 import { isUndefined } from 'lodash';
 import React from 'react';
 
-import { IFormInputValidation, ValidationMessage } from '@spinnaker/core';
-import { ILayoutProps } from '@spinnaker/core';
+import type { IFormInputValidation } from '@spinnaker/core';
+import { ValidationMessage } from '@spinnaker/core';
+import type { ILayoutProps } from '@spinnaker/core';
 import './TitusMapLayout.less';
 
 export function TitusMapLayout(props: ILayoutProps) {

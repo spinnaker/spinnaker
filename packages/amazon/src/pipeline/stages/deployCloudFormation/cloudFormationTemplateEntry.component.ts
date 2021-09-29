@@ -1,4 +1,5 @@
-import { IComponentOptions, IController, IScope, module } from 'angular';
+import type { IComponentOptions, IController, IScope } from 'angular';
+import { module } from 'angular';
 import { yamlDocumentsToString } from '@spinnaker/core';
 
 class CloudFormationTemplateController implements IController {

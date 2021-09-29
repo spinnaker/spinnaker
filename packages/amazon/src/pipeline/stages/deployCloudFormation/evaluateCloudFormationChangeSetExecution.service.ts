@@ -1,7 +1,8 @@
 import { module } from 'angular';
-import { EXECUTION_SERVICE, ExecutionService } from '@spinnaker/core';
-import { IExecution, IExecutionStage } from '@spinnaker/core';
-import { Application } from '@spinnaker/core';
+import type { ExecutionService } from '@spinnaker/core';
+import { EXECUTION_SERVICE } from '@spinnaker/core';
+import type { IExecution, IExecutionStage } from '@spinnaker/core';
+import type { Application } from '@spinnaker/core';
 
 export class EvaluateCloudFormationChangeSetExecutionService {
   public static $inject = ['executionService'];

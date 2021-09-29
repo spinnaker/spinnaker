@@ -1,5 +1,5 @@
-import { Rule } from 'eslint';
-import { FunctionExpression, ImportDeclaration, ImportSpecifier } from 'estree';
+import type { Rule } from 'eslint';
+import type { FunctionExpression, ImportDeclaration, ImportSpecifier } from 'estree';
 
 import { getProgram } from '../utils/utils';
 

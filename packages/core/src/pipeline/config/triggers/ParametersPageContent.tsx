@@ -1,7 +1,7 @@
 import { extend } from 'lodash';
 import React from 'react';
 
-import { IParameter, IPipeline } from '../../../domain';
+import type { IParameter, IPipeline } from '../../../domain';
 
 import { Parameters } from '../parameters/Parameters';
 

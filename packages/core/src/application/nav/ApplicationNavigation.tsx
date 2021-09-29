@@ -9,13 +9,13 @@ import { Icon } from '@spinnaker/presentation';
 import { AppRefresher } from './AppRefresher';
 import { BottomSection } from './BottomSection';
 import { NavSection } from './NavSection';
-import { Application } from '../application.model';
+import type { Application } from '../application.model';
 import { SETTINGS } from '../../config/settings';
 import { verticalNavExpandedAtom } from './navAtoms';
 import { navigationCategoryRegistry } from './navigationCategory.registry';
 import { PagerDutyWriter } from '../../pagerDuty';
 import { Tooltip, useIsMobile, usePrevious } from '../../presentation';
-import { ApplicationDataSource } from '../service/applicationDataSource';
+import type { ApplicationDataSource } from '../service/applicationDataSource';
 
 import './verticalNav.less';
 

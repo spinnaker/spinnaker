@@ -1,6 +1,7 @@
 import { $log } from 'ngimport';
 
-import { IServerGroup, REST } from '@spinnaker/core';
+import type { IServerGroup } from '@spinnaker/core';
+import { REST } from '@spinnaker/core';
 
 export interface IEventDescription {
   createdAt: number;

@@ -1,4 +1,4 @@
-import {
+import type {
   IDeferred,
   IHttpInterceptor,
   IHttpPromiseCallbackArg,
@@ -7,9 +7,9 @@ import {
   IRequestConfig,
   ITimeoutService,
   IWindowService,
-  module,
 } from 'angular';
-import { Dictionary } from 'lodash';
+import { module } from 'angular';
+import type { Dictionary } from 'lodash';
 
 /**
  * Handles two scenarios:

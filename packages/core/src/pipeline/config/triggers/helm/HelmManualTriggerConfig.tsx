@@ -1,9 +1,10 @@
 import { $q } from 'ngimport';
 import React from 'react';
 
-import { HelmTriggerTemplate, IHelmTriggerTemplateState } from './HelmTriggerTemplate';
-import { IHelmTrigger } from '../../../../domain/IHelmTrigger';
-import { ITriggerTemplateComponentProps } from '../../../manualExecution/TriggerTemplate';
+import type { IHelmTriggerTemplateState } from './HelmTriggerTemplate';
+import { HelmTriggerTemplate } from './HelmTriggerTemplate';
+import type { IHelmTrigger } from '../../../../domain/IHelmTrigger';
+import type { ITriggerTemplateComponentProps } from '../../../manualExecution/TriggerTemplate';
 
 const HelmManualTriggerConfig = (props: ITriggerTemplateComponentProps) => {
   const onHelmChanged = (changes: IHelmTriggerTemplateState) => {

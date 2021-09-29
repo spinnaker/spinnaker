@@ -1,5 +1,6 @@
-import { UIRouter } from '@uirouter/core';
-import { IRootScopeService, module } from 'angular';
+import type { UIRouter } from '@uirouter/core';
+import type { IRootScopeService } from 'angular';
+import { module } from 'angular';
 
 import { PluginRegistry } from './plugin.registry';
 import { sharedLibraries } from './sharedLibraries';

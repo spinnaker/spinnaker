@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import React from 'react';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 
-import { ITask } from '../domain';
+import type { ITask } from '../domain';
 import { robotToHuman } from '../presentation/robotToHumanFilter/robotToHuman.filter';
 
 export interface ITaskProgressBarProps {

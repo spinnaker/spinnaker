@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Modal } from 'react-bootstrap';
 import { CSSTransition } from 'react-transition-group';
 
-import { TaskMonitor } from './TaskMonitor';
+import type { TaskMonitor } from './TaskMonitor';
 import { TaskMonitorError } from './TaskMonitorError';
 import { TaskMonitorStatus } from './TaskMonitorStatus';
 import { useForceUpdate } from '../../presentation/hooks';

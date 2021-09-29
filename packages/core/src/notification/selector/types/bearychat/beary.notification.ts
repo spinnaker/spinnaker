@@ -1,5 +1,5 @@
 import { BearychatNotificationType } from './BearychatNotificationType';
-import { INotificationTypeConfig } from '../../../../domain';
+import type { INotificationTypeConfig } from '../../../../domain';
 
 export const bearyChatNotification: INotificationTypeConfig = {
   component: BearychatNotificationType,

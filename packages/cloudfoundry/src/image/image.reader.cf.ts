@@ -1,5 +1,5 @@
 import { REST } from '@spinnaker/core';
-import { ICloudFoundryCluster } from '../domain';
+import type { ICloudFoundryCluster } from '../domain';
 
 export class CloudFoundryImageReader {
   public static findImages(account: string): PromiseLike<ICloudFoundryCluster[]> {

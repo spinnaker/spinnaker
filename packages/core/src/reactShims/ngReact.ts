@@ -1,17 +1,18 @@
 import { angular2react } from 'angular2react';
-import React from 'react';
+import type React from 'react';
 
-import { ITargetSelectProps, targetSelectComponent } from '../pipeline/config/targetSelect.component';
-import { IStageSummaryWrapperProps } from '../pipeline/details/StageSummaryWrapper';
-import { IStepExecutionDetailsWrapperProps } from '../pipeline/details/StepExecutionDetailsWrapper';
+import type { ITargetSelectProps } from '../pipeline/config/targetSelect.component';
+import { targetSelectComponent } from '../pipeline/config/targetSelect.component';
+import type { IStageSummaryWrapperProps } from '../pipeline/details/StageSummaryWrapper';
+import type { IStepExecutionDetailsWrapperProps } from '../pipeline/details/StepExecutionDetailsWrapper';
 import { stageSummaryComponent } from '../pipeline/details/stageSummary.component';
 import { stepExecutionDetailsComponent } from '../pipeline/details/stepExecutionDetails.component';
 import { ReactInject } from './react.injector';
-import { IInstanceArchetypeSelectorProps } from '../serverGroup/configure/common/InstanceArchetypeSelector';
-import { IInstanceTypeSelectorProps } from '../serverGroup/configure/common/InstanceTypeSelector';
+import type { IInstanceArchetypeSelectorProps } from '../serverGroup/configure/common/InstanceArchetypeSelector';
+import type { IInstanceTypeSelectorProps } from '../serverGroup/configure/common/InstanceTypeSelector';
 import { v2InstanceTypeSelector } from '../serverGroup/configure/common/v2InstanceTypeSelector.component';
 import { v2InstanceArchetypeSelector } from '../serverGroup/configure/common/v2instanceArchetypeSelector.component';
-import { IAccountRegionClusterSelectorProps } from '../widgets/AccountRegionClusterSelector';
+import type { IAccountRegionClusterSelectorProps } from '../widgets/AccountRegionClusterSelector';
 import { accountRegionClusterSelectorWrapperComponent } from '../widgets/accountRegionClusterSelectorWrapper.component';
 
 import IInjectorService = angular.auto.IInjectorService;

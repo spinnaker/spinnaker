@@ -1,4 +1,4 @@
-import { Application } from '../application';
+import type { Application } from '../application';
 /**
  * Import all custom banner components here.
  * The exported component's key should correlate to the banner key in the config from IBannerSettings.

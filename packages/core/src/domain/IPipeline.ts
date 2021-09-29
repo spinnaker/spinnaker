@@ -1,8 +1,8 @@
-import { IEntityTags } from './IEntityTags';
-import { IExpectedArtifact } from './IExpectedArtifact';
-import { INotification } from './INotification';
-import { IStage } from './IStage';
-import { ITrigger } from './ITrigger';
+import type { IEntityTags } from './IEntityTags';
+import type { IExpectedArtifact } from './IExpectedArtifact';
+import type { INotification } from './INotification';
+import type { IStage } from './IStage';
+import type { ITrigger } from './ITrigger';
 
 export interface IPipeline {
   application: string;

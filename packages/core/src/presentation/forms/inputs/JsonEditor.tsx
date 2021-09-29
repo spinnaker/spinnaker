@@ -1,6 +1,7 @@
 /* eslint-disable @spinnaker/import-sort */
 import React from 'react';
-import AceEditor, { AceEditorProps, Annotation } from 'react-ace';
+import type { AceEditorProps, Annotation } from 'react-ace';
+import AceEditor from 'react-ace';
 
 import 'brace/mode/json';
 import 'brace/ext/searchbox';

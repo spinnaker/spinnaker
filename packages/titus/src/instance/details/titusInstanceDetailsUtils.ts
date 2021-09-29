@@ -1,20 +1,13 @@
-import {
-  getAllTargetGroups,
+import type {
   IAmazonApplicationLoadBalancer,
   IAmazonHealth,
   IAmazonNetworkLoadBalancer,
   IAmazonTargetGroupHealth,
   ITargetGroup,
 } from '@spinnaker/amazon';
-import {
-  Action,
-  Application,
-  ConfirmationModalService,
-  IInstance,
-  IJob,
-  InstanceWriter,
-  ReactInjector,
-} from '@spinnaker/core';
+import { getAllTargetGroups } from '@spinnaker/amazon';
+import type { Action, Application, IInstance, IJob } from '@spinnaker/core';
+import { ConfirmationModalService, InstanceWriter, ReactInjector } from '@spinnaker/core';
 
 export const applyTargetGroupInfoToHealthMetric = (
   metricGroups: IAmazonTargetGroupHealth[],

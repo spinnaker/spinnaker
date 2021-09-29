@@ -1,5 +1,5 @@
-import { IInstanceCounts } from './IInstanceCounts';
-import { IServerGroup } from './IServerGroup';
+import type { IInstanceCounts } from './IInstanceCounts';
+import type { IServerGroup } from './IServerGroup';
 
 export interface IClusterSummary {
   account: string;

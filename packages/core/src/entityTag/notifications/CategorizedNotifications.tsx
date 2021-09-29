@@ -4,8 +4,9 @@ import React from 'react';
 import { GroupedNotificationList } from './GroupedNotificationList';
 import { NotificationCategory } from './NotificationCategory';
 import { NotificationList } from './NotificationList';
-import { INotification } from './NotificationsPopover';
-import { INotificationCategory, NotificationCategories } from './notificationCategories';
+import type { INotification } from './NotificationsPopover';
+import type { INotificationCategory } from './notificationCategories';
+import { NotificationCategories } from './notificationCategories';
 
 export interface ICategoryNotifications {
   category: INotificationCategory;

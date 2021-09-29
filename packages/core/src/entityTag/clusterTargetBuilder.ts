@@ -1,5 +1,5 @@
-import { IOwnerOption } from './EntityTagEditor';
-import { IServerGroup, IServerGroupManager } from '../domain';
+import type { IOwnerOption } from './EntityTagEditor';
+import type { IServerGroup, IServerGroupManager } from '../domain';
 
 export class ClusterTargetBuilder {
   public static buildClusterTargets(serverGroup: IServerGroup): IOwnerOption[] {

@@ -3,7 +3,7 @@ import React from 'react';
 import { ToggleButtonGroup, ToggleSize } from '@spinnaker/core';
 import { AwsReactInjector } from '../../../../reactShims';
 
-import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
+import type { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
 
 export interface ICpuCreditsToggleProps {
   command: IAmazonServerGroupCommand;

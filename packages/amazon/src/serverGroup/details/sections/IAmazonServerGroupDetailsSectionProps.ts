@@ -1,5 +1,5 @@
-import { IServerGroupDetailsSectionProps } from '@spinnaker/core';
-import { IAmazonServerGroupView } from '../../../domain';
+import type { IServerGroupDetailsSectionProps } from '@spinnaker/core';
+import type { IAmazonServerGroupView } from '../../../domain';
 
 export interface IAmazonServerGroupDetailsSectionProps extends IServerGroupDetailsSectionProps {
   serverGroup: IAmazonServerGroupView;

@@ -16,10 +16,8 @@ import {
 } from 'lodash';
 import { $q } from 'ngimport';
 
-import {
-  AccountService,
+import type {
   Application,
-  CACHE_INITIALIZER_SERVICE,
   CacheInitializerService,
   IAccountDetails,
   IDeploymentStrategy,
@@ -32,20 +30,24 @@ import {
   IServerGroupCommandResult,
   IServerGroupCommandViewState,
   ISubnet,
-  LOAD_BALANCER_READ_SERVICE,
   LoadBalancerReader,
+  SecurityGroupReader,
+  ServerGroupCommandRegistry,
+} from '@spinnaker/core';
+import {
+  AccountService,
+  CACHE_INITIALIZER_SERVICE,
+  LOAD_BALANCER_READ_SERVICE,
   NameUtils,
   SECURITY_GROUP_READER,
-  SecurityGroupReader,
   SERVER_GROUP_COMMAND_REGISTRY_PROVIDER,
-  ServerGroupCommandRegistry,
   setMatchingResourceSummary,
   SubnetReader,
 } from '@spinnaker/core';
 
 import { AWSProviderSettings } from '../../aws.settings';
 import { AutoScalingProcessService } from '../details/scalingProcesses/AutoScalingProcessService';
-import {
+import type {
   IAmazonLoadBalancerSourceData,
   IApplicationLoadBalancerSourceData,
   IKeyPair,

@@ -1,8 +1,8 @@
-import { IQService } from 'angular';
+import type { IQService } from 'angular';
 
 import { JsonListBuilder } from './JsonListBuilder';
-import { IExecution, IPipeline, IStage } from '../../domain';
-import { ExecutionService } from '../../pipeline';
+import type { IExecution, IPipeline, IStage } from '../../domain';
+import type { ExecutionService } from '../../pipeline';
 
 interface IBracket {
   open: string;

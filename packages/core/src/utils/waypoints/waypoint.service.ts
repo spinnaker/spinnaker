@@ -1,4 +1,4 @@
-import { IScope } from 'angular';
+import type { IScope } from 'angular';
 import { sortBy, throttle } from 'lodash';
 import { $rootScope, $timeout } from 'ngimport';
 

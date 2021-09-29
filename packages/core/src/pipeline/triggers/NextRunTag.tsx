@@ -2,7 +2,7 @@ import { DateTime } from 'luxon';
 import React from 'react';
 
 import { SETTINGS } from '../../config/settings';
-import { ICronTrigger, IPipeline } from '../../domain';
+import type { ICronTrigger, IPipeline } from '../../domain';
 import { Popover } from '../../presentation/Popover';
 import { later } from '../../utils/later/later';
 import { relativeTime, timestamp } from '../../utils/timeFormatters';

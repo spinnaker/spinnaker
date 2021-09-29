@@ -3,7 +3,7 @@ import { module } from 'angular';
 import { PreconfiguredJobExecutionDetails } from './PreconfiguredJobExecutionDetails';
 import { PreconfiguredJobStageConfig } from './PreconfiguredJobStageConfig';
 import { ExecutionDetailsTasks } from '../common';
-import { IStageTypeConfig } from '../../../../domain';
+import type { IStageTypeConfig } from '../../../../domain';
 import { PreconfiguredJobReader } from './preconfiguredJob.reader';
 import { Registry } from '../../../../registry/Registry';
 

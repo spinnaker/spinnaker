@@ -2,14 +2,11 @@ import React from 'react';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
+import type { IAccount, IArtifact, IExpectedArtifact, IFormikStageConfigInjectedProps } from '@spinnaker/core';
 import {
   AccountService,
   ArtifactTypePatterns,
   excludeAllTypesExcept,
-  IAccount,
-  IArtifact,
-  IExpectedArtifact,
-  IFormikStageConfigInjectedProps,
   StageArtifactSelectorDelegate,
 } from '@spinnaker/core';
 import { FormikAccountRegionSelector } from '../../../common/FormikAccountRegionSelector';

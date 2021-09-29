@@ -1,9 +1,9 @@
 import classNames from 'classnames';
 import * as React from 'react';
 
-import { ITableLayoutProps } from './Table';
-import { ITableCellLayoutProps } from './TableCell';
-import { ITableRowLayoutProps } from './TableRow';
+import type { ITableLayoutProps } from './Table';
+import type { ITableCellLayoutProps } from './TableCell';
+import type { ITableRowLayoutProps } from './TableRow';
 
 import './standardGridTableLayout.less';
 

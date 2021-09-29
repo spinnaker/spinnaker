@@ -2,7 +2,7 @@ import React from 'react';
 
 import { CollapsibleSection, HelpField } from '@spinnaker/core';
 
-import { IAmazonLaunchTemplateOverrides } from '../../../index';
+import type { IAmazonLaunchTemplateOverrides } from '../../../index';
 
 import './multipleInstanceTypesSubSection.less';
 

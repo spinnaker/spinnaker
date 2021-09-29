@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { IEcsListener } from '../domain/IEcsLoadBalancer';
+import type { IEcsListener } from '../domain/IEcsLoadBalancer';
 
 export interface IEcsListenerProps {
   listener: IEcsListener;

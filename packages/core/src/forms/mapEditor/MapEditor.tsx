@@ -1,8 +1,9 @@
 import { isEqual, isString } from 'lodash';
 import React from 'react';
 
-import { IMapPair, MapPair } from './MapPair';
-import { IPipeline } from '../../domain';
+import type { IMapPair } from './MapPair';
+import { MapPair } from './MapPair';
+import type { IPipeline } from '../../domain';
 
 import './MapEditor.less';
 

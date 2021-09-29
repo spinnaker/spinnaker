@@ -1,4 +1,5 @@
-import { IQService, module } from 'angular';
+import type { IQService } from 'angular';
+import { module } from 'angular';
 import { isFunction, isString } from 'lodash';
 
 import { CloudProviderRegistry } from './CloudProviderRegistry';

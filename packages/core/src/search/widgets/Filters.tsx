@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import React from 'react';
 
 import { Filter } from './Filter';
-import { IFilterType } from './SearchFilterTypeRegistry';
+import type { IFilterType } from './SearchFilterTypeRegistry';
 import { Key } from '../../widgets/Keys';
 
 import './filterlist.less';

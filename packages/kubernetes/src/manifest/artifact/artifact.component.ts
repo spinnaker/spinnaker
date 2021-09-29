@@ -1,6 +1,7 @@
-import { IComponentOptions, IController, module } from 'angular';
+import type { IComponentOptions, IController } from 'angular';
+import { module } from 'angular';
 
-import { IArtifact } from '@spinnaker/core';
+import type { IArtifact } from '@spinnaker/core';
 
 class KubernetesManifestArtifactCtrl implements IController {
   public artifact: IArtifact;

@@ -1,5 +1,6 @@
-import { IVariable, IVariableError } from '../inputs/variableInput.service';
-import { IVariableValidator, VariableValidatorService } from './variableValidator.service';
+import type { IVariable, IVariableError } from '../inputs/variableInput.service';
+import type { IVariableValidator } from './variableValidator.service';
+import { VariableValidatorService } from './variableValidator.service';
 
 class ListValidator implements IVariableValidator {
   public handles(type: string) {

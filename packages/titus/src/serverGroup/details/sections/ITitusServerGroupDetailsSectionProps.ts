@@ -1,5 +1,5 @@
-import { IServerGroupDetailsSectionProps } from '@spinnaker/core';
-import { ITitusServerGroup } from '../../../domain';
+import type { IServerGroupDetailsSectionProps } from '@spinnaker/core';
+import type { ITitusServerGroup } from '../../../domain';
 
 export interface ITitusServerGroupDetailsSectionProps extends IServerGroupDetailsSectionProps {
   serverGroup: ITitusServerGroup;

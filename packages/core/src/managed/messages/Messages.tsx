@@ -3,9 +3,9 @@ import React from 'react';
 import { MessageBox, MessagesSection } from './MessageBox';
 import { RelativeTimestamp } from '../RelativeTimestamp';
 import { ManagementWarning } from '../config/ManagementWarning';
+import type { FetchNotificationsQueryVariables } from '../graphql/graphql-sdk';
 import {
   FetchNotificationsDocument,
-  FetchNotificationsQueryVariables,
   useDismissNotificationMutation,
   useFetchNotificationsQuery,
 } from '../graphql/graphql-sdk';

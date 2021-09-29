@@ -1,4 +1,4 @@
-import {
+import type {
   Ng1StateDeclaration,
   Ng1ViewDeclaration,
   ParamDeclaration,
@@ -6,12 +6,14 @@ import {
   UrlService,
 } from '@uirouter/angularjs';
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
-import { ParamTypeDefinition, ReactViewDeclaration } from '@uirouter/react';
-import { IServiceProvider, module } from 'angular';
+import type { ParamTypeDefinition, ReactViewDeclaration } from '@uirouter/react';
+import type { IServiceProvider } from 'angular';
+import { module } from 'angular';
 import { isEqual, isPlainObject } from 'lodash';
 
-import { IFilterConfig } from '../filterModel/IFilterModel';
-import { STATE_HELPER, StateHelper } from './stateHelper.provider';
+import type { IFilterConfig } from '../filterModel/IFilterModel';
+import type { StateHelper } from './stateHelper.provider';
+import { STATE_HELPER } from './stateHelper.provider';
 
 import './navigation.less';
 

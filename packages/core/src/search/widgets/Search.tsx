@@ -1,11 +1,14 @@
 import classNames from 'classnames';
 import React from 'react';
 
-import { Filter } from './Filter';
-import { Filters, IFiltersLayout } from './Filters';
-import { IFilterType, SearchFilterTypeRegistry } from './SearchFilterTypeRegistry';
+import type { Filter } from './Filter';
+import type { IFiltersLayout } from './Filters';
+import { Filters } from './Filters';
+import type { IFilterType } from './SearchFilterTypeRegistry';
+import { SearchFilterTypeRegistry } from './SearchFilterTypeRegistry';
 import { FirewallLabels } from '../../securityGroup';
-import { ITag, Key, TagList } from '../../widgets';
+import type { ITag } from '../../widgets';
+import { Key, TagList } from '../../widgets';
 
 import './search.less';
 

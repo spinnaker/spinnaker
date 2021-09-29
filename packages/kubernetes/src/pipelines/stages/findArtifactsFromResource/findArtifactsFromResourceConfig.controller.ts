@@ -1,8 +1,8 @@
-import { IController, IScope } from 'angular';
+import type { IController, IScope } from 'angular';
 
-import { Application } from '@spinnaker/core';
+import type { Application } from '@spinnaker/core';
 
-import { IManifestSelector } from '../../../manifest/selector/IManifestSelector';
+import type { IManifestSelector } from '../../../manifest/selector/IManifestSelector';
 
 export class KubernetesV2FindArtifactsFromResourceConfigCtrl implements IController {
   public application: Application;

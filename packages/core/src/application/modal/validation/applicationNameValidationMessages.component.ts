@@ -1,5 +1,7 @@
-import { IController, module } from 'angular';
-import { ApplicationNameValidator, IApplicationNameValidationResult } from './ApplicationNameValidator';
+import type { IController } from 'angular';
+import { module } from 'angular';
+import type { IApplicationNameValidationResult } from './ApplicationNameValidator';
+import { ApplicationNameValidator } from './ApplicationNameValidator';
 
 /**
  * This directive is responsible for rendering error and warning messages to the screen when creating a new application.

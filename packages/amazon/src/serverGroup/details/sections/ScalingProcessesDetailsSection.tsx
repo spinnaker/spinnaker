@@ -10,8 +10,8 @@ import {
   Tooltip,
 } from '@spinnaker/core';
 
-import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
-import { IScalingProcess } from '../../../domain';
+import type { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
+import type { IScalingProcess } from '../../../domain';
 import { AutoScalingProcessService } from '../scalingProcesses/AutoScalingProcessService';
 
 export interface IScalingProcessesDetailsSectionState {

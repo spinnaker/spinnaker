@@ -1,5 +1,5 @@
-import { Rule } from 'eslint';
-import { CallExpression, ImportDeclaration, ImportSpecifier, MemberExpression, Node } from 'estree';
+import type { Rule } from 'eslint';
+import type { CallExpression, ImportDeclaration, ImportSpecifier, MemberExpression, Node } from 'estree';
 import * as _ from 'lodash/fp';
 
 import {

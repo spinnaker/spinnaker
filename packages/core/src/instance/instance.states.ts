@@ -1,11 +1,13 @@
-import { StateParams } from '@uirouter/angularjs';
+import type { StateParams } from '@uirouter/angularjs';
 import { module } from 'angular';
 
-import { Application, APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from '../application';
+import type { Application, ApplicationStateProvider } from '../application';
+import { APPLICATION_STATE_PROVIDER } from '../application';
 import { ApplicationModelBuilder } from '../application/applicationModel.builder';
 import { CloudProviderRegistry } from '../cloudProvider';
 import { InstanceDetails } from './details/InstanceDetails';
-import { INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider } from '../navigation';
+import type { INestedState, StateConfigProvider } from '../navigation';
+import { STATE_CONFIG_PROVIDER } from '../navigation';
 
 export const INSTANCE_STATES = 'spinnaker.core.instance.states';
 module(INSTANCE_STATES, [APPLICATION_STATE_PROVIDER, STATE_CONFIG_PROVIDER]).config([

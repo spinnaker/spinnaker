@@ -2,8 +2,8 @@ import React from 'react';
 import { Modal } from 'react-bootstrap';
 import Select from 'react-select';
 
+import type { IModalComponentProps } from '@spinnaker/core';
 import {
-  IModalComponentProps,
   ModalClose,
   noop,
   ReactInjector,

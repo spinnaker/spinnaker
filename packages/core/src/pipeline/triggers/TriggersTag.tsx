@@ -3,7 +3,7 @@ import React from 'react';
 
 import { QuietPeriodBadge } from './QuietPeriodBadge';
 import { SETTINGS } from '../../config';
-import { IPipeline } from '../../domain/IPipeline';
+import type { IPipeline } from '../../domain/IPipeline';
 
 export interface ITriggersTagProps {
   pipeline: IPipeline;

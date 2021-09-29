@@ -1,12 +1,13 @@
 import { Field } from 'formik';
 import React from 'react';
-import Select, { Option } from 'react-select';
+import type { Option } from 'react-select';
+import Select from 'react-select';
 
 import { HelpField, MapEditor, PlatformHealthOverride } from '@spinnaker/core';
 
-import { IServerGroupAdvancedSettingsProps } from './ServerGroupAdvancedSettings';
+import type { IServerGroupAdvancedSettingsProps } from './ServerGroupAdvancedSettings';
 import { AWSProviderSettings } from '../../../../../aws.settings';
-import { IAmazonServerGroupCommand } from '../../../serverGroupConfiguration.service';
+import type { IAmazonServerGroupCommand } from '../../../serverGroupConfiguration.service';
 
 export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGroupAdvancedSettingsProps> {
   private duplicateKeys = false;

@@ -2,9 +2,10 @@ import { $q } from 'ngimport';
 import React from 'react';
 
 import { ManagedWriter } from '../ManagedWriter';
-import { Application } from '../../application';
+import type { Application } from '../../application';
 import { ConfirmationModalService } from '../../confirmationModal';
-import { IManagedResource, IManagedResourceSummary, ManagedResourceStatus } from '../../domain';
+import type { IManagedResource, IManagedResourceSummary } from '../../domain';
+import { ManagedResourceStatus } from '../../domain';
 import { ActuationWarning, MultiRegionWarning, ToggleResourceManagement } from '../resources/ToggleResourceManagement';
 
 import './ManagedResourceStatusIndicator.less';

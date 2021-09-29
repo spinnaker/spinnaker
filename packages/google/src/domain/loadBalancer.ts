@@ -1,6 +1,6 @@
-import { ILoadBalancer } from '@spinnaker/core';
+import type { ILoadBalancer } from '@spinnaker/core';
 
-import { IGceBackendService } from './backendService';
+import type { IGceBackendService } from './backendService';
 
 export interface IGceLoadBalancer extends ILoadBalancer {
   name: string;

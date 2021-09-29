@@ -1,27 +1,24 @@
-import { StateService } from '@uirouter/angularjs';
-import { IController, IScope, module } from 'angular';
-import { IModalInstanceService } from 'angular-ui-bootstrap';
+import type { StateService } from '@uirouter/angularjs';
+import type { IController, IScope } from 'angular';
+import { module } from 'angular';
+import type { IModalInstanceService } from 'angular-ui-bootstrap';
 import _ from 'lodash';
 
-import {
-  AccountService,
+import type {
   Application,
   IAccount,
   ICredentials,
   IInstance,
   ILoadBalancerUpsertCommand,
   IRegion,
-  LoadBalancerWriter,
-  TaskMonitor,
 } from '@spinnaker/core';
+import { AccountService, LoadBalancerWriter, TaskMonitor } from '@spinnaker/core';
 
 import { CommonGceLoadBalancerCtrl } from '../common/commonLoadBalancer.controller';
-import {
-  GCE_COMMON_LOAD_BALANCER_COMMAND_BUILDER,
-  GceCommonLoadBalancerCommandBuilder,
-} from '../common/commonLoadBalancerCommandBuilder.service';
+import type { GceCommonLoadBalancerCommandBuilder } from '../common/commonLoadBalancerCommandBuilder.service';
+import { GCE_COMMON_LOAD_BALANCER_COMMAND_BUILDER } from '../common/commonLoadBalancerCommandBuilder.service';
 import { GCE_HEALTH_CHECK_SELECTOR_COMPONENT } from '../common/healthCheck.component';
-import { IGceBackendService, IGceHealthCheck, IGceLoadBalancer } from '../../../domain/index';
+import type { IGceBackendService, IGceHealthCheck, IGceLoadBalancer } from '../../../domain/index';
 import { GCEProviderSettings } from '../../../gce.settings';
 
 class ViewState {

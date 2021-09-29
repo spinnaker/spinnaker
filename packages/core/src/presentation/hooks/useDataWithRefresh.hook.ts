@@ -3,7 +3,7 @@ import { useApplicationContextSafe } from './useApplicationContext.hook';
 
 import { useData } from './useData.hook';
 import { useLatestCallback } from './useLatestCallback.hook';
-import { IUseLatestPromiseResult } from './useLatestPromise.hook';
+import type { IUseLatestPromiseResult } from './useLatestPromise.hook';
 
 /**
  * A react hook which invokes a promise factory callback whenever any of its dependencies

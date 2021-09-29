@@ -1,4 +1,4 @@
-import { IBlockDeviceMapping } from './IAmazonBlockDeviceMapping';
+import type { IBlockDeviceMapping } from './IAmazonBlockDeviceMapping';
 
 export interface IIamInstanceProfile {
   arn?: string;

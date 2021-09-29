@@ -3,7 +3,8 @@ import React from 'react';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import { AccountService, FormikStageConfig, IAccountDetails, IStage, IStageConfigProps } from '@spinnaker/core';
+import type { IAccountDetails, IStage, IStageConfigProps } from '@spinnaker/core';
+import { AccountService, FormikStageConfig } from '@spinnaker/core';
 
 import { DeployManifestStageForm } from './DeployManifestStageForm';
 import { defaultTrafficManagementConfig } from './ManifestDeploymentOptions';

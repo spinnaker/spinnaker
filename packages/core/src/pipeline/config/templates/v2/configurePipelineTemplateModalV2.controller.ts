@@ -1,17 +1,18 @@
-import { IController, IHttpPromiseCallbackArg, IScope, module } from 'angular';
-import { IModalInstanceService } from 'angular-ui-bootstrap';
+import type { IController, IHttpPromiseCallbackArg, IScope } from 'angular';
+import { module } from 'angular';
+import type { IModalInstanceService } from 'angular-ui-bootstrap';
 import { chain, has, without } from 'lodash';
 
-import {
+import type {
   IPipelineTemplate,
   IPipelineTemplatePlanError,
   IPipelineTemplatePlanResponse,
   IVariableMetadata,
-  PipelineTemplateReader,
 } from '../PipelineTemplateReader';
-import { Application } from '../../../../application/application.model';
-import { IPipelineTemplateConfigV2 } from '../../../../domain';
-import { IVariable } from '../inputs/variableInput.service';
+import { PipelineTemplateReader } from '../PipelineTemplateReader';
+import type { Application } from '../../../../application/application.model';
+import type { IPipelineTemplateConfigV2 } from '../../../../domain';
+import type { IVariable } from '../inputs/variableInput.service';
 import { PipelineTemplateV2Service } from './pipelineTemplateV2.service';
 import { VariableValidatorService } from '../validators/variableValidator.service';
 

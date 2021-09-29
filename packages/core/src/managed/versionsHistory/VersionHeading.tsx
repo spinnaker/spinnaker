@@ -4,14 +4,11 @@ import { sortBy, toNumber } from 'lodash';
 import React from 'react';
 
 import { getEnvTitle } from '../environmentBaseElements/BaseEnvironment';
-import {
-  FetchVersionDocument,
-  FetchVersionQueryVariables,
-  MdArtifactStatusInEnvironment,
-} from '../graphql/graphql-sdk';
+import type { FetchVersionQueryVariables, MdArtifactStatusInEnvironment } from '../graphql/graphql-sdk';
+import { FetchVersionDocument } from '../graphql/graphql-sdk';
 import { GitLink } from '../overview/artifact/GitLink';
 import { Icon, Tooltip, useApplicationContextSafe } from '../../presentation';
-import { HistoryArtifactVersion, VersionData } from './types';
+import type { HistoryArtifactVersion, VersionData } from './types';
 import { TOOLTIP_DELAY_SHOW } from '../utils/defaults';
 import {
   BaseVersionMetadata,

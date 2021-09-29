@@ -1,7 +1,10 @@
-import { FormikProps } from 'formik';
+import type { FormikProps } from 'formik';
 import React from 'react';
 
-import { ICloudFoundryCreateServerGroupCommand, ICloudFoundrySource } from '../../../serverGroupConfigurationModel.cf';
+import type {
+  ICloudFoundryCreateServerGroupCommand,
+  ICloudFoundrySource,
+} from '../../../serverGroupConfigurationModel.cf';
 
 export interface ICloudFoundryCloneServerGroupProps {
   formik: FormikProps<ICloudFoundryCreateServerGroupCommand>;

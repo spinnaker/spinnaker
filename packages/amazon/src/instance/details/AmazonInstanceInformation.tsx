@@ -3,7 +3,7 @@ import React from 'react';
 import { CollapsibleSection, LabeledValue, SubnetTag } from '@spinnaker/core';
 
 import { InstanceInformation } from './InstanceInformation';
-import { IAmazonInstance } from '../../domain';
+import type { IAmazonInstance } from '../../domain';
 import { VpcTag } from '../../vpc/VpcTag';
 
 export interface IAmazonInstanceInformationProps {

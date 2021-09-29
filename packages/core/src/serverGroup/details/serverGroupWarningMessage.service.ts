@@ -1,8 +1,8 @@
 import { has } from 'lodash';
 
-import { Application } from '../../application/application.model';
-import { IConfirmationModalParams } from '../../confirmationModal/confirmationModal.service';
-import { ICluster, IServerGroup } from '../../domain';
+import type { Application } from '../../application/application.model';
+import type { IConfirmationModalParams } from '../../confirmationModal/confirmationModal.service';
+import type { ICluster, IServerGroup } from '../../domain';
 
 export class ServerGroupWarningMessageService {
   public static addDestroyWarningMessage(

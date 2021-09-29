@@ -1,4 +1,4 @@
-import { IArtifact } from '@spinnaker/core';
+import type { IArtifact } from '@spinnaker/core';
 
 export interface ICloudfoundryServiceManifestDirectSource {
   parameters?: string;

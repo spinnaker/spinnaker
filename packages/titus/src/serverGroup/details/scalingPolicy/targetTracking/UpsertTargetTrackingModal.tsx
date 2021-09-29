@@ -1,16 +1,16 @@
 import * as React from 'react';
 
-import {
+import type {
   IAmazonServerGroup,
   ITargetTrackingPolicy,
   ITargetTrackingPolicyCommand,
   IUpsertScalingPolicyCommand,
-  TargetMetricFields,
-  TargetTrackingAdditionalSettings,
 } from '@spinnaker/amazon';
-import { Application, IModalComponentProps, TaskMonitorModal } from '@spinnaker/core';
+import { TargetMetricFields, TargetTrackingAdditionalSettings } from '@spinnaker/amazon';
+import type { Application, IModalComponentProps } from '@spinnaker/core';
+import { TaskMonitorModal } from '@spinnaker/core';
 
-import { ITitusServerGroup } from '../../../../domain';
+import type { ITitusServerGroup } from '../../../../domain';
 import { TitusScalingPolicyCommandBuilder } from '../upsert/TitusScalingPolicyCommandBuilderService';
 
 export interface IUpsertTargetTrackingModalProps extends IModalComponentProps {

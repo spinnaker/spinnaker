@@ -1,4 +1,4 @@
-import { IScalingPolicy, IScalingPolicyAlarm, IStepAdjustment } from './IScalingPolicy';
+import type { IScalingPolicy, IScalingPolicyAlarm, IStepAdjustment } from './IScalingPolicy';
 
 export interface IScalingAdjustmentView extends IStepAdjustment {
   operator: string;

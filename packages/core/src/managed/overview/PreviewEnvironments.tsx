@@ -1,8 +1,9 @@
 import React from 'react';
 
 import { EnvironmentOverview } from './EnvironmentOverview';
-import { EnvironmentsRender, OrderedEnvironments } from '../environmentBaseElements/EnvironmentsRender';
-import { QueryEnvironment } from './types';
+import type { OrderedEnvironments } from '../environmentBaseElements/EnvironmentsRender';
+import { EnvironmentsRender } from '../environmentBaseElements/EnvironmentsRender';
+import type { QueryEnvironment } from './types';
 import { getDocsUrl } from '../utils/defaults';
 import { useLogEvent } from '../utils/logging';
 

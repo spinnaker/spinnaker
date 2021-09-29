@@ -1,4 +1,4 @@
-import { IConstraint, IDependsOnConstraint } from '../../domain';
+import type { IConstraint, IDependsOnConstraint } from '../../domain';
 
 export const isDependsOnConstraint = (constraint: IConstraint): constraint is IDependsOnConstraint => {
   return constraint.type === 'depends-on';

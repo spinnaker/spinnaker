@@ -1,12 +1,14 @@
 import React from 'react';
 
 import { createFieldValidator } from './FormikFormField';
-import { IControlledInputProps, IFormInputProps, IFormInputValidation } from '../inputs';
-import { ICommonFormFieldProps } from './interface';
-import { ILayoutProps, LayoutContext } from '../layouts';
+import type { IControlledInputProps, IFormInputProps, IFormInputValidation } from '../inputs';
+import type { ICommonFormFieldProps } from './interface';
+import type { ILayoutProps } from '../layouts';
+import { LayoutContext } from '../layouts';
 import { renderContent } from './renderContent';
 import { firstDefined, noop } from '../../../utils';
-import { IValidator, useValidationData } from '../validation';
+import type { IValidator } from '../validation';
+import { useValidationData } from '../validation';
 
 import '../forms.less';
 

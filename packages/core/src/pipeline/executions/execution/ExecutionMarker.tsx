@@ -4,10 +4,10 @@ import React from 'react';
 
 import { ExecutionMarkerInformationModal } from './ExecutionMarkerInformationModal';
 import { OrchestratedItemRunningTime } from './OrchestratedItemRunningTime';
-import { Application } from '../../../application/application.model';
+import type { Application } from '../../../application/application.model';
 import { SETTINGS } from '../../../config/settings';
 import { ExecutionBarLabel } from '../../config/stages/common/ExecutionBarLabel';
-import { IExecution, IExecutionStageSummary } from '../../../domain';
+import type { IExecution, IExecutionStageSummary } from '../../../domain';
 import { logger } from '../../../utils';
 import { duration } from '../../../utils/timeFormatters';
 

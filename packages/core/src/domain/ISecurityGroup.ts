@@ -1,8 +1,8 @@
-import { IEntityTags } from './IEntityTags';
-import { ILoadBalancer } from './ILoadBalancer';
-import { IManagedResource } from './IManagedEntity';
-import { IServerGroup } from './IServerGroup';
-import { IMoniker } from '../naming';
+import type { IEntityTags } from './IEntityTags';
+import type { ILoadBalancer } from './ILoadBalancer';
+import type { IManagedResource } from './IManagedEntity';
+import type { IServerGroup } from './IServerGroup';
+import type { IMoniker } from '../naming';
 
 export interface ILoadBalancerUsage {
   name: string;

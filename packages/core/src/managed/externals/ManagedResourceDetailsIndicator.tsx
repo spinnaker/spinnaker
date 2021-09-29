@@ -1,9 +1,9 @@
 import React from 'react';
 import { Dropdown, MenuItem } from 'react-bootstrap';
 
-import { Application } from '../../application';
+import type { Application } from '../../application';
 import { SETTINGS } from '../../config/settings';
-import { IManagedResourceSummary } from '../../domain';
+import type { IManagedResourceSummary } from '../../domain';
 import { HelpField } from '../../help';
 import managedDeliveryLogo from '../icons/md-logo-color.svg';
 import { HoverablePopover } from '../../presentation';

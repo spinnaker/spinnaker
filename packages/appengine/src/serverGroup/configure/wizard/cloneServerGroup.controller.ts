@@ -1,13 +1,18 @@
-import { copy, IController, IScope, module } from 'angular';
-import { IModalInstanceService } from 'angular-ui-bootstrap';
+import type { IController, IScope } from 'angular';
+import { copy, module } from 'angular';
+import type { IModalInstanceService } from 'angular-ui-bootstrap';
 import { get, merge } from 'lodash';
 
-import { Application, SERVER_GROUP_WRITER, ServerGroupWriter, TaskMonitor } from '@spinnaker/core';
+import type { Application, ServerGroupWriter } from '@spinnaker/core';
+import { SERVER_GROUP_WRITER, TaskMonitor } from '@spinnaker/core';
 import { AppengineHealth } from '../../../common/appengineHealth';
 
 import { APPENGINE_CONFIG_FILE_CONFIGURER } from './configFiles.component';
 import { APPENGINE_DYNAMIC_BRANCH_LABEL } from './dynamicBranchLabel.component';
-import { AppengineServerGroupCommandBuilder, IAppengineServerGroupCommand } from '../serverGroupCommandBuilder.service';
+import type {
+  AppengineServerGroupCommandBuilder,
+  IAppengineServerGroupCommand,
+} from '../serverGroupCommandBuilder.service';
 
 import './serverGroupWizard.less';
 

@@ -1,4 +1,4 @@
-import { ApolloError } from '@apollo/client';
+import type { ApolloError } from '@apollo/client';
 import React from 'react';
 import { UnmanagedMessage } from './UnmanagedMessage';
 import { useLogEvent } from './utils/logging';

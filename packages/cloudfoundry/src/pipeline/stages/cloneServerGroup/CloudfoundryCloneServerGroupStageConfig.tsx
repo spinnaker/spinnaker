@@ -1,6 +1,7 @@
 import React from 'react';
 
-import { IStageConfigProps, StageConstants } from '@spinnaker/core';
+import type { IStageConfigProps } from '@spinnaker/core';
+import { StageConstants } from '@spinnaker/core';
 import { CloudFoundryServerGroupCommandBuilder } from '../../../serverGroup/configure';
 import { CloudFoundryCreateServerGroupModal } from '../../../serverGroup/configure/wizard/CreateServerGroupModal';
 

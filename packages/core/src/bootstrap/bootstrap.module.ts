@@ -1,4 +1,5 @@
-import { IModule, module } from 'angular';
+import type { IModule } from 'angular';
+import { module } from 'angular';
 
 import { OVERRIDE_REGISTRY } from '../overrideRegistry/override.registry';
 import { SPINNAKER_CONTAINER_COMPONENT } from './spinnakerContainer.component';

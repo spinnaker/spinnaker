@@ -1,11 +1,12 @@
 import * as React from 'react';
 
-import { Application, IModalComponentProps, TaskMonitorModal } from '@spinnaker/core';
+import type { Application, IModalComponentProps } from '@spinnaker/core';
+import { TaskMonitorModal } from '@spinnaker/core';
 
-import { ITargetTrackingPolicyCommand, IUpsertScalingPolicyCommand } from '../ScalingPolicyWriter';
+import type { ITargetTrackingPolicyCommand, IUpsertScalingPolicyCommand } from '../ScalingPolicyWriter';
 import { TargetMetricFields } from './TargetMetricFields';
 import { TargetTrackingAdditionalSettings } from './TargetTrackingAdditionalSettings';
-import { IAmazonServerGroup, ITargetTrackingPolicy } from '../../../../domain';
+import type { IAmazonServerGroup, ITargetTrackingPolicy } from '../../../../domain';
 import { ScalingPolicyCommandBuilder } from '../upsert/ScalingPolicyCommandBuilderService';
 
 export interface IUpsertTargetTrackingModalProps extends IModalComponentProps {

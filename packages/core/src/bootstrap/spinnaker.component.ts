@@ -1,8 +1,9 @@
-import { IController } from 'angular';
+import type { IController } from 'angular';
 
 import { bootstrapModule } from './bootstrap.module';
-import { IFeatures, SETTINGS } from '../config/settings';
-import { IDeckRootScope } from '../domain';
+import type { IFeatures } from '../config/settings';
+import { SETTINGS } from '../config/settings';
+import type { IDeckRootScope } from '../domain';
 
 const template = `
   <spinnaker-container authenticating="$ctrl.authenticating" routing="$ctrl.routing"></spinnaker-container>

@@ -1,11 +1,11 @@
 import { cloneDeep } from 'lodash';
 import React from 'react';
-import { Option } from 'react-select';
+import type { Option } from 'react-select';
 
 import { ArtifactEditor } from '../ArtifactEditor';
 import { ArtifactTypePatterns } from '../../../../../artifact/ArtifactTypes';
 import { IgorService } from '../../../../../ci';
-import { IArtifactEditorProps, IArtifactKindConfig, IBuild } from '../../../../../domain';
+import type { IArtifactEditorProps, IArtifactKindConfig, IBuild } from '../../../../../domain';
 import { TetheredSelect } from '../../../../../presentation';
 import { singleFieldArtifactEditor } from '../singleFieldArtifactEditor';
 import { StageConfigField } from '../../../stages/common';

@@ -5,7 +5,7 @@ import { HelpTextExpandedContext } from './HelpTextExpandedContext';
 import { HelpContentsRegistry } from './helpContents.registry';
 import { HoverablePopover } from '../presentation/HoverablePopover';
 import { Markdown } from '../presentation/Markdown';
-import { Placement } from '../presentation/Placement';
+import type { Placement } from '../presentation/Placement';
 import { logger } from '../utils';
 
 export interface IHelpFieldProps {

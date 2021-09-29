@@ -1,7 +1,8 @@
 import { module } from 'angular';
-import { PROVIDER_SERVICE_DELEGATE, ProviderServiceDelegate } from '../../../cloudProvider/providerService.delegate';
+import type { ProviderServiceDelegate } from '../../../cloudProvider/providerService.delegate';
+import { PROVIDER_SERVICE_DELEGATE } from '../../../cloudProvider/providerService.delegate';
 
-import { IServerGroupCommand } from './serverGroupCommandBuilder.service';
+import type { IServerGroupCommand } from './serverGroupCommandBuilder.service';
 
 export class ServerGroupConfigurationService {
   public static $inject = ['providerServiceDelegate'];

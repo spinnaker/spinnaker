@@ -4,7 +4,7 @@ import { DurationRender, RelativeTimestamp } from '../../RelativeTimestamp';
 import { VersionOperationIcon } from './VersionOperation';
 import { useRetryVersionActionMutation } from '../../graphql/graphql-sdk';
 import { Tooltip, useApplicationContextSafe } from '../../../presentation';
-import { QueryArtifactVersionTask, QueryArtifactVersionTaskStatus } from '../types';
+import type { QueryArtifactVersionTask, QueryArtifactVersionTaskStatus } from '../types';
 import { TOOLTIP_DELAY_SHOW } from '../../utils/defaults';
 import { useLogEvent } from '../../utils/logging';
 import { useNotifyOnError } from '../../utils/useNotifyOnError.hook';

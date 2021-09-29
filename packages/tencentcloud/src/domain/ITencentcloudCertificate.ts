@@ -1,4 +1,4 @@
-import { ICertificate } from '@spinnaker/core';
+import type { ICertificate } from '@spinnaker/core';
 
 export interface ITencentcloudCertificate extends ICertificate {
   arn: string;

@@ -1,8 +1,8 @@
 import { sortBy } from 'lodash';
 import React from 'react';
 
-import { ILoadBalancersTagProps } from './LoadBalancersTagWrapper';
-import { ILoadBalancer } from '../domain';
+import type { ILoadBalancersTagProps } from './LoadBalancersTagWrapper';
+import type { ILoadBalancer } from '../domain';
 import { HealthCounts } from '../healthCounts/HealthCounts';
 import { LoadBalancerDataUtils } from './loadBalancerDataUtils';
 import { HoverablePopover } from '../presentation';

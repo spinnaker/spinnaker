@@ -1,6 +1,7 @@
 import { defaults } from 'lodash';
 
-import { IInstanceStorage, IProviderSettings, SETTINGS } from '@spinnaker/core';
+import type { IInstanceStorage, IProviderSettings } from '@spinnaker/core';
+import { SETTINGS } from '@spinnaker/core';
 
 export interface IGCEProviderSettings extends IProviderSettings {
   defaults: {

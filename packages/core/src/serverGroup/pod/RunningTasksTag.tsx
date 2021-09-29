@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import { RunningTasksPopoverContent } from './RunningTasksPopoverContent';
-import { IExecution, ITask } from '../../domain';
+import type { IExecution, ITask } from '../../domain';
 import { HoverablePopover } from '../../presentation';
 
 export interface IRunningTasksTagProps {

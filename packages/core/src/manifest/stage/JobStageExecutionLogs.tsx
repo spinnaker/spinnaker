@@ -5,9 +5,9 @@ import { takeUntil } from 'rxjs/operators';
 
 import { JobManifestPodLogs } from './JobManifestPodLogs';
 import { ManifestReader } from '../ManifestReader';
-import { IPodNameProvider } from '../PodNameProvider';
-import { Application } from '../../application';
-import { IManifest } from '../../domain/IManifest';
+import type { IPodNameProvider } from '../PodNameProvider';
+import type { Application } from '../../application';
+import type { IManifest } from '../../domain/IManifest';
 
 interface IJobStageExecutionLogsProps {
   deployedName: string;

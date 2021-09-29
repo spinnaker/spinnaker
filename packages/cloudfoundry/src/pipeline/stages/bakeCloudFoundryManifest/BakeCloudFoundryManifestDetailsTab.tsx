@@ -1,10 +1,9 @@
 import React from 'react';
 
+import type { IArtifact, IExecutionDetailsSectionProps } from '@spinnaker/core';
 import {
   decodeUnicodeBase64,
   ExecutionDetailsSection,
-  IArtifact,
-  IExecutionDetailsSectionProps,
   ManifestYaml,
   Overridable,
   StageFailureMessage,

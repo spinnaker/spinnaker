@@ -1,7 +1,7 @@
 import { capitalize } from 'lodash';
 import * as React from 'react';
 
-import { ICreationMetadata, IExecution } from '../domain';
+import type { ICreationMetadata, IExecution } from '../domain';
 import { LabeledValue, LabeledValueList, Markdown } from '../presentation';
 
 interface IEntitySourcePopoverProps {

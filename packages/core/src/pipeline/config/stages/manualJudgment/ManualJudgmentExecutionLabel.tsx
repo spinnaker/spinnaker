@@ -2,9 +2,9 @@ import React from 'react';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 
 import { ManualJudgmentApproval } from './ManualJudgmentApproval';
-import { Application } from '../../../../application/application.model';
+import type { Application } from '../../../../application/application.model';
 import { ExecutionBarLabel } from '../common/ExecutionBarLabel';
-import { IExecution, IExecutionStageSummary } from '../../../../domain';
+import type { IExecution, IExecutionStageSummary } from '../../../../domain';
 import { HoverablePopover } from '../../../../presentation/HoverablePopover';
 
 export interface IManualJudgmentExecutionLabelProps {

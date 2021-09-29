@@ -1,8 +1,8 @@
-import { FormikProps } from 'formik';
+import type { FormikProps } from 'formik';
 import React from 'react';
-import { Option } from 'react-select';
+import type { Option } from 'react-select';
 
-import { INotification, INotificationTypeConfig, IPipelineCommand } from '../../domain';
+import type { INotification, INotificationTypeConfig, IPipelineCommand } from '../../domain';
 import { NotificationSelector, NotificationTransformer } from '../../notification';
 import { CheckboxInput, FormikFormField, HoverablePopover } from '../../presentation';
 import { Registry } from '../../registry';

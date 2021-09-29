@@ -1,11 +1,14 @@
 import React from 'react';
 
 import { PolicyTypeSelectionModal } from '@spinnaker/amazon';
-import { AccountService, Application, IServerGroup, ReactModal } from '@spinnaker/core';
+import type { Application, IServerGroup } from '@spinnaker/core';
+import { AccountService, ReactModal } from '@spinnaker/core';
 
 import { TitusReactInjector } from '../../../reactShims';
-import { IUpsertTargetTrackingModalProps, UpsertTargetTrackingModal } from './targetTracking/UpsertTargetTrackingModal';
-import { IUpsertScalingPolicyModalProps, UpsertScalingPolicyModal } from './upsert/UpsertScalingPolicyModal';
+import type { IUpsertTargetTrackingModalProps } from './targetTracking/UpsertTargetTrackingModal';
+import { UpsertTargetTrackingModal } from './targetTracking/UpsertTargetTrackingModal';
+import type { IUpsertScalingPolicyModalProps } from './upsert/UpsertScalingPolicyModal';
+import { UpsertScalingPolicyModal } from './upsert/UpsertScalingPolicyModal';
 
 export interface ICreateScalingPolicyButtonProps {
   application: Application;

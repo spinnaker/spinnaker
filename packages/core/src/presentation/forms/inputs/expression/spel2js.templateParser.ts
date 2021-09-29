@@ -1,4 +1,5 @@
-import { SpelExpression, SpelExpressionEvaluator } from 'spel2js';
+import type { SpelExpression } from 'spel2js';
+import { SpelExpressionEvaluator } from 'spel2js';
 
 const literalExpression = (literalString: string) =>
   SpelExpressionEvaluator.compile(`'${literalString.replace(/'/g, "''")}'`);

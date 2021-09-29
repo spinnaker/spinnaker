@@ -1,4 +1,5 @@
-import { ApplicationNameValidator, IApplicationNameValidator, IValidationResult } from '@spinnaker/core';
+import type { IApplicationNameValidator, IValidationResult } from '@spinnaker/core';
+import { ApplicationNameValidator } from '@spinnaker/core';
 
 // See https://cloud.google.com/appengine/docs/admin-api/reference/rest/v1/apps.services.versions#Version
 class AppengineApplicationNameValidator implements IApplicationNameValidator {

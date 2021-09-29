@@ -1,12 +1,14 @@
 import { module } from 'angular';
 
-import { Application } from '../application/application.model';
-import { IServerGroupCommand } from './configure/common/serverGroupCommandBuilder.service';
-import { ISecurityGroup, IServerGroup, ITask } from '../domain';
-import { IMoniker, NameUtils } from '../naming';
+import type { Application } from '../application/application.model';
+import type { IServerGroupCommand } from './configure/common/serverGroupCommandBuilder.service';
+import type { ISecurityGroup, IServerGroup, ITask } from '../domain';
+import type { IMoniker } from '../naming';
+import { NameUtils } from '../naming';
 import { FirewallLabels } from '../securityGroup/label';
 import { CORE_SERVERGROUP_SERVERGROUP_TRANSFORMER } from './serverGroup.transformer';
-import { IJob, TaskExecutor } from '../task/taskExecutor';
+import type { IJob } from '../task/taskExecutor';
+import { TaskExecutor } from '../task/taskExecutor';
 
 export interface ICapacity {
   desired: number | string;

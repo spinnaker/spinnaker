@@ -2,7 +2,7 @@ import { cloneDeep, has } from 'lodash';
 import React from 'react';
 
 import { ArtifactTypePatterns } from '../../../../../artifact/ArtifactTypes';
-import { IArtifactEditorProps, IArtifactKindConfig } from '../../../../../domain';
+import type { IArtifactEditorProps, IArtifactKindConfig } from '../../../../../domain';
 import { singleFieldArtifactEditor } from '../singleFieldArtifactEditor';
 import { StageConfigField } from '../../../stages/common';
 import { CopyToClipboard } from '../../../../../utils';

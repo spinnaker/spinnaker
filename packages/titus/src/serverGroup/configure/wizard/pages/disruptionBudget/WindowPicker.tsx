@@ -1,11 +1,11 @@
-import { FormikProps } from 'formik';
+import type { FormikProps } from 'formik';
 import { get } from 'lodash';
 import React from 'react';
 
 import { ChecklistInput, FormikFormField, HelpField, NumberInput, ReactSelectInput, SpinFormik } from '@spinnaker/core';
-import { IJobTimeWindow } from '../../../../../domain';
+import type { IJobTimeWindow } from '../../../../../domain';
 
-import { ITitusServerGroupCommand } from '../../../serverGroupConfiguration.service';
+import type { ITitusServerGroupCommand } from '../../../serverGroupConfiguration.service';
 
 export interface IWindowPickerProps {
   formik: FormikProps<ITitusServerGroupCommand>;

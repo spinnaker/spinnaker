@@ -1,14 +1,12 @@
 import React from 'react';
 
+import type { ISearchColumn, ISearchResult, ISearchResultSet } from '../search';
 import {
   AccountCell,
   BasicCell,
   DefaultSearchResultTab,
   HeaderCell,
   HrefCell,
-  ISearchColumn,
-  ISearchResult,
-  ISearchResultSet,
   SearchResultType,
   searchResultTypeRegistry,
   SearchTableBody,

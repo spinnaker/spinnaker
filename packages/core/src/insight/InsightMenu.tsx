@@ -1,12 +1,13 @@
-import { StateService } from '@uirouter/core';
-import { IScope } from 'angular';
-import { IModalService } from 'angular-ui-bootstrap';
+import type { StateService } from '@uirouter/core';
+import type { IScope } from 'angular';
+import type { IModalService } from 'angular-ui-bootstrap';
 import React from 'react';
 import { Button } from 'react-bootstrap';
 
-import { Application } from '../application';
-import { CacheInitializerService } from '../cache';
-import { Overridable, OverrideRegistry } from '../overrideRegistry';
+import type { Application } from '../application';
+import type { CacheInitializerService } from '../cache';
+import type { OverrideRegistry } from '../overrideRegistry';
+import { Overridable } from '../overrideRegistry';
 import { ConfigureProjectModal } from '../projects';
 import { ModalInjector, ReactInjector } from '../reactShims';
 

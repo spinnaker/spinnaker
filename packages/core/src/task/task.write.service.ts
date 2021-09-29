@@ -1,7 +1,7 @@
 import { REST } from '../api/ApiService';
-import { ITask } from '../domain';
+import type { ITask } from '../domain';
 import { TaskReader } from './task.read.service';
-import { ITaskCommand } from './taskExecutor';
+import type { ITaskCommand } from './taskExecutor';
 import { DebugWindow } from '../utils/consoleDebug';
 
 export interface ITaskCreateResult {

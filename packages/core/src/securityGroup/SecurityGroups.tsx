@@ -2,13 +2,14 @@ import * as React from 'react';
 
 import { CreateSecurityGroupButton } from './CreateSecurityGroupButton';
 import { SecurityGroupPod } from './SecurityGroupPod';
-import { Application } from '../application/application.model';
+import type { Application } from '../application/application.model';
 import { BannerContainer } from '../banner';
 import { ProviderSelectionService } from '../cloudProvider/providerSelection/ProviderSelectionService';
 import { SETTINGS } from '../config';
-import { ISecurityGroupGroup } from '../domain';
-import { ISortFilter } from '../filterModel';
-import { FilterTags, IFilterTag } from '../filterModel/FilterTags';
+import type { ISecurityGroupGroup } from '../domain';
+import type { ISortFilter } from '../filterModel';
+import type { IFilterTag } from '../filterModel/FilterTags';
+import { FilterTags } from '../filterModel/FilterTags';
 import { FirewallLabels } from './label/FirewallLabels';
 import { SecurityGroupState } from '../state';
 import { noop } from '../utils';

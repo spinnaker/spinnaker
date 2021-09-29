@@ -1,6 +1,7 @@
-import { IQService, module } from 'angular';
+import type { IQService } from 'angular';
+import { module } from 'angular';
 
-import { ISecurityGroup } from '@spinnaker/core';
+import type { ISecurityGroup } from '@spinnaker/core';
 
 class KubernetesV2SecurityGroupTransformer {
   public static $inject = ['$q'];

@@ -1,21 +1,21 @@
-import { StateParams, StateService, UIRouter } from '@uirouter/core';
-import { IQService, IRootScopeService, IScope } from 'angular';
+import type { StateParams, StateService, UIRouter } from '@uirouter/core';
+import type { IQService, IRootScopeService, IScope } from 'angular';
 
-import { CacheInitializerService } from '../cache/cacheInitializer.service';
-import { ProviderServiceDelegate } from '../cloudProvider/providerService.delegate';
-import { ClusterService } from '../cluster/cluster.service';
-import { ImageReader } from '../image/image.reader';
-import { InsightFilterStateModel } from '../insight/insightFilterState.model';
-import { InstanceTypeService, InstanceWriter } from '../instance';
-import { OverrideRegistry } from '../overrideRegistry/override.registry';
-import { PageTitleService } from '../pageTitle';
-import { ManualJudgmentService } from '../pipeline/config/stages/manualJudgment/manualJudgment.service';
-import { ExecutionDetailsSectionService } from '../pipeline/details/executionDetailsSection.service';
-import { ExecutionService } from '../pipeline/service/execution.service';
-import { InfrastructureSearchService } from '../search/infrastructure/infrastructureSearch.service';
-import { SecurityGroupReader } from '../securityGroup/securityGroupReader.service';
-import { ServerGroupWriter } from '../serverGroup/serverGroupWriter.service';
-import { StateEvents } from './state.events';
+import type { CacheInitializerService } from '../cache/cacheInitializer.service';
+import type { ProviderServiceDelegate } from '../cloudProvider/providerService.delegate';
+import type { ClusterService } from '../cluster/cluster.service';
+import type { ImageReader } from '../image/image.reader';
+import type { InsightFilterStateModel } from '../insight/insightFilterState.model';
+import type { InstanceTypeService, InstanceWriter } from '../instance';
+import type { OverrideRegistry } from '../overrideRegistry/override.registry';
+import type { PageTitleService } from '../pageTitle';
+import type { ManualJudgmentService } from '../pipeline/config/stages/manualJudgment/manualJudgment.service';
+import type { ExecutionDetailsSectionService } from '../pipeline/details/executionDetailsSection.service';
+import type { ExecutionService } from '../pipeline/service/execution.service';
+import type { InfrastructureSearchService } from '../search/infrastructure/infrastructureSearch.service';
+import type { SecurityGroupReader } from '../securityGroup/securityGroupReader.service';
+import type { ServerGroupWriter } from '../serverGroup/serverGroupWriter.service';
+import type { StateEvents } from './state.events';
 
 import IInjectorService = angular.auto.IInjectorService;
 

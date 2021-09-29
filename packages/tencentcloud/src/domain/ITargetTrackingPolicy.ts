@@ -1,4 +1,4 @@
-import { AlarmStatisticType, IScalingPolicy } from './IScalingPolicy';
+import type { AlarmStatisticType, IScalingPolicy } from './IScalingPolicy';
 
 export interface ITargetTrackingPolicy extends IScalingPolicy {
   autoScalingGroupName?: string;

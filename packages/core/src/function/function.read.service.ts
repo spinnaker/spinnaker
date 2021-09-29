@@ -1,8 +1,9 @@
 import { module } from 'angular';
 
 import { REST } from '../api/ApiService';
-import { IFunctionSourceData } from '../domain';
-import { CORE_FUNCTION_FUNCTION_TRANSFORMER, IFunctionTransformer } from './function.transformer';
+import type { IFunctionSourceData } from '../domain';
+import type { IFunctionTransformer } from './function.transformer';
+import { CORE_FUNCTION_FUNCTION_TRANSFORMER } from './function.transformer';
 
 export interface IFunctionByAccount {
   name: string;

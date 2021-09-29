@@ -1,11 +1,13 @@
-import { FormikErrors, FormikProps } from 'formik';
+import type { FormikErrors, FormikProps } from 'formik';
 import React from 'react';
-import Select, { Option } from 'react-select';
+import type { Option } from 'react-select';
+import Select from 'react-select';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import { AccountService, Application, IAccount, IRegion, IWizardPageComponent } from '@spinnaker/core';
-import { ICloudFoundryAccount, ICloudFoundryDomain, ICloudFoundryLoadBalancerUpsertCommand } from '../../domain';
+import type { Application, IAccount, IRegion, IWizardPageComponent } from '@spinnaker/core';
+import { AccountService } from '@spinnaker/core';
+import type { ICloudFoundryAccount, ICloudFoundryDomain, ICloudFoundryLoadBalancerUpsertCommand } from '../../domain';
 import { RouteDomainSelectField } from '../../routeDomains';
 
 export interface ILoadBalancerDetailsProps {

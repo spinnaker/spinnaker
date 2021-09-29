@@ -1,9 +1,11 @@
-import { StateService } from '@uirouter/angularjs';
+import type { StateService } from '@uirouter/angularjs';
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
-import { IController, IQService, IScope, module } from 'angular';
+import type { IController, IQService, IScope } from 'angular';
+import { module } from 'angular';
 
-import { Application, ILoadBalancer, MANAGED_RESOURCE_DETAILS_INDICATOR } from '@spinnaker/core';
-import { IAmazonApplicationLoadBalancer, ITargetGroup } from '../../domain/IAmazonLoadBalancer';
+import type { Application, ILoadBalancer } from '@spinnaker/core';
+import { MANAGED_RESOURCE_DETAILS_INDICATOR } from '@spinnaker/core';
+import type { IAmazonApplicationLoadBalancer, ITargetGroup } from '../../domain/IAmazonLoadBalancer';
 
 export interface ITargetGroupFromStateParams {
   accountId: string;

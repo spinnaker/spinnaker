@@ -1,5 +1,5 @@
 import { $q } from 'ngimport';
-import { Observable } from 'rxjs';
+import type { Observable } from 'rxjs';
 
 export function toIPromise<T>(source: Observable<T>): PromiseLike<T> {
   return $q((resolve, reject) => {

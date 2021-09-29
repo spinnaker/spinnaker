@@ -1,6 +1,7 @@
 import * as React from 'react';
 
-import { ITableContext, TableContext } from './TableContext';
+import type { ITableContext } from './TableContext';
+import { TableContext } from './TableContext';
 
 const { useContext } = React;
 

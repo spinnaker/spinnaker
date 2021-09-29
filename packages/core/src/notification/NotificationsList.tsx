@@ -5,8 +5,8 @@ import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import { AppNotificationsService } from './AppNotificationsService';
-import { Application } from '../application';
-import { INotification, INotificationTypeConfig } from '../domain';
+import type { Application } from '../application';
+import type { INotification, INotificationTypeConfig } from '../domain';
 import { EditNotificationModal } from './modal/EditNotificationModal';
 import { NotificationTransformer } from './notification.transformer';
 import { Registry } from '../registry';

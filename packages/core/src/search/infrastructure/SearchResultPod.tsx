@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { SearchResultPodItem } from './SearchResultPodItem';
-import { ISearchResultPodData } from './SearchResultPods';
+import type { ISearchResultPodData } from './SearchResultPods';
 import { robotToHuman } from '../../presentation';
 
 export interface ISearchResultPodProps {

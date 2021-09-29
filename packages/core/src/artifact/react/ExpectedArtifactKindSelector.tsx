@@ -3,7 +3,7 @@ import React from 'react';
 import { react2angular } from 'react2angular';
 
 import { ArtifactIcon } from './ArtifactIcon';
-import { IArtifactKindConfig } from '../../domain';
+import type { IArtifactKindConfig } from '../../domain';
 import { TetheredSelect } from '../../presentation';
 import { withErrorBoundary } from '../../presentation/SpinErrorBoundary';
 

@@ -1,5 +1,5 @@
 import { SlackNotificationType } from './SlackNotificationType';
-import { INotificationTypeConfig } from '../../../../domain';
+import type { INotificationTypeConfig } from '../../../../domain';
 
 export const slackNotification: INotificationTypeConfig = {
   component: SlackNotificationType,

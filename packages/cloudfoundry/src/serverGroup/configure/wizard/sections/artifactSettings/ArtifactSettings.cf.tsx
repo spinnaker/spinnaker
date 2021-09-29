@@ -1,18 +1,11 @@
-import { FormikProps } from 'formik';
+import type { FormikProps } from 'formik';
 import React from 'react';
 
-import {
-  ArtifactTypePatterns,
-  IArtifact,
-  IExpectedArtifact,
-  IPipeline,
-  IStage,
-  IWizardPageComponent,
-  StageArtifactSelector,
-} from '@spinnaker/core';
+import type { IArtifact, IExpectedArtifact, IPipeline, IStage, IWizardPageComponent } from '@spinnaker/core';
+import { ArtifactTypePatterns, StageArtifactSelector } from '@spinnaker/core';
 import { FormikConfigField } from '../../../../../presentation';
 
-import { ICloudFoundryCreateServerGroupCommand } from '../../../serverGroupConfigurationModel.cf';
+import type { ICloudFoundryCreateServerGroupCommand } from '../../../serverGroupConfigurationModel.cf';
 
 export interface ICloudFoundryCreateServerGroupArtifactSettingsProps {
   formik: FormikProps<ICloudFoundryCreateServerGroupCommand>;

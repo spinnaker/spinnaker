@@ -2,9 +2,9 @@ import React from 'react';
 
 import { EphemeralPopover } from './EphemeralPopover';
 import { NotificationsPopover } from './NotificationsPopover';
-import { Application } from '../../application';
-import { IEntityTag, IEntityTags } from '../../domain';
-import { Placement } from '../../presentation';
+import type { Application } from '../../application';
+import type { IEntityTag, IEntityTags } from '../../domain';
+import type { Placement } from '../../presentation';
 import { noop } from '../../utils';
 
 export interface IEntityNotificationsProps {

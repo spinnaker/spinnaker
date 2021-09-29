@@ -1,4 +1,5 @@
-import { Cache, CacheFactory } from 'cachefactory';
+import type { Cache } from 'cachefactory';
+import { CacheFactory } from 'cachefactory';
 
 export class CollapsibleSectionStateCacheInternal {
   private cacheFactory = new CacheFactory();

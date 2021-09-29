@@ -3,7 +3,7 @@ import { BakeManifestDetailsTab } from './BakeManifestDetailsTab';
 import { ManualExecutionBakeManifest } from './ManualExecutionBakeManifest';
 import { ArtifactReferenceService, ExecutionArtifactTab, ExpectedArtifactService } from '../../../../artifact';
 import { ExecutionDetailsTasks } from '../common';
-import { IArtifact, IStage } from '../../../../domain';
+import type { IArtifact, IStage } from '../../../../domain';
 import { Registry } from '../../../../registry';
 
 export const BAKE_MANIFEST_STAGE_KEY = 'bakeManifest';

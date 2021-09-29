@@ -1,7 +1,7 @@
-import { FieldProps } from 'formik';
-import React from 'react';
+import type { FieldProps } from 'formik';
+import type React from 'react';
 
-import { IValidationCategory, IValidator } from '../validation';
+import type { IValidationCategory, IValidator } from '../validation';
 
 /**
  * These props are used by controlled components, such as <input> or Input components like TextInput

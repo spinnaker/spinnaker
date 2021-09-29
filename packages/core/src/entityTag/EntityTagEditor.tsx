@@ -2,8 +2,8 @@ import { Form } from 'formik';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 
-import { Application } from '../application';
-import { IEntityRef, IEntityTag } from '../domain';
+import type { Application } from '../application';
+import type { IEntityRef, IEntityTag } from '../domain';
 import { EntityRefBuilder } from './entityRef.builder';
 import { EntityTagWriter } from './entityTags.write.service';
 import { HelpField } from '../help';

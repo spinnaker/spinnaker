@@ -1,4 +1,4 @@
-import { IModalProvider, ITooltipProvider } from 'angular-ui-bootstrap';
+import type { IModalProvider, ITooltipProvider } from 'angular-ui-bootstrap';
 
 import { bootstrapModule } from './bootstrap.module';
 

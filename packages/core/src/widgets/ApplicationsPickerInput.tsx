@@ -1,10 +1,10 @@
 import React, { useMemo } from 'react';
 
 import { ApplicationReader } from '../application/service/ApplicationReader';
+import type { IFormInputProps } from '../presentation';
 import {
   asyncMessage,
   errorMessage,
-  IFormInputProps,
   ReactSelectInput,
   useData,
   useInternalValidator,

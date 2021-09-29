@@ -1,12 +1,12 @@
 import { format } from 'date-fns';
 import { extend, get, isEqual } from 'lodash';
 import React from 'react';
-import { Option } from 'react-select';
+import type { Option } from 'react-select';
 
 import { DEFAULT_SKIP_WINDOW_TEXT } from './ExecutionWindowActions';
 import { ExecutionWindowDayPicker } from './ExecutionWindowDayPicker';
-import { IStage } from '../../../../domain';
-import { IJitter, IRestrictedExecutionWindow, ITimelineWindow, IWindow } from './executionWindowsConfig';
+import type { IStage } from '../../../../domain';
+import type { IJitter, IRestrictedExecutionWindow, ITimelineWindow, IWindow } from './executionWindowsConfig';
 import {
   CheckboxInput,
   NumberInput,

@@ -1,4 +1,4 @@
-import { ILoadBalancer } from '@spinnaker/core';
+import type { ILoadBalancer } from '@spinnaker/core';
 
 import { mockInstance } from './mockInstance';
 import { mockInstanceCounts } from './mockInstanceCounts';

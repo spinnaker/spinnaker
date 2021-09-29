@@ -1,4 +1,5 @@
-import { Form, Formik } from 'formik';
+import type { Formik } from 'formik';
+import { Form } from 'formik';
 import { assign, clone, compact, extend, get, head, isArray, isEmpty, isEqual, pickBy, uniq } from 'lodash';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
@@ -11,14 +12,14 @@ import { NotificationDetails } from './NotificationDetails';
 import { Parameters } from './Parameters';
 import { PipelineOptions } from './PipelineOptions';
 import { StageManualComponents } from './StageManualComponents';
-import { ITriggerTemplateComponentProps } from './TriggerTemplate';
+import type { ITriggerTemplateComponentProps } from './TriggerTemplate';
 import { Triggers } from './Triggers';
-import { Application } from '../../application';
+import type { Application } from '../../application';
 import { AuthenticationService } from '../../authentication';
 import { SETTINGS } from '../../config/settings';
-import { IPipelineTemplateConfig } from '../config/templates';
+import type { IPipelineTemplateConfig } from '../config/templates';
 import { PipelineTemplateReader } from '../config/templates/PipelineTemplateReader';
-import {
+import type {
   IExecution,
   IExecutionTrigger,
   INotification,
@@ -33,14 +34,8 @@ import { ManualExecutionFieldLayout } from './layout/ManualExecutionFieldLayout'
 import { ModalClose, SubmitButton } from '../../modal';
 import { UrlParser } from '../../navigation/urlParser';
 import { AppNotificationsService } from '../../notification/AppNotificationsService';
-import {
-  FormValidator,
-  IModalComponentProps,
-  LayoutProvider,
-  Markdown,
-  ReactModal,
-  SpinFormik,
-} from '../../presentation';
+import type { IModalComponentProps } from '../../presentation';
+import { FormValidator, LayoutProvider, Markdown, ReactModal, SpinFormik } from '../../presentation';
 import { Registry } from '../../registry';
 import { ArtifactList } from '../status/ArtifactList';
 

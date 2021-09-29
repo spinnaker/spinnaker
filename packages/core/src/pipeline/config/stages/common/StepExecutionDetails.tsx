@@ -2,7 +2,7 @@ import { isEqual } from 'lodash';
 import React from 'react';
 
 import { ExecutionDetailsSectionNav } from '../../../details';
-import { IExecutionDetailsProps, IExecutionDetailsState } from '../../../../domain';
+import type { IExecutionDetailsProps, IExecutionDetailsState } from '../../../../domain';
 import { SpinErrorBoundary } from '../../../../presentation';
 import { ReactInjector } from '../../../../reactShims';
 

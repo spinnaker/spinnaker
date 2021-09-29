@@ -1,9 +1,9 @@
 import React from 'react';
 
-import { IFormikStageConfigInjectedProps } from '../../FormikStageConfig';
+import type { IFormikStageConfigInjectedProps } from '../../FormikStageConfig';
 import { ArtifactTypePatterns, excludeAllTypesExcept, StageArtifactSelectorDelegate } from '../../../../../artifact';
 import { StageConfigField } from '../../common/stageConfigField/StageConfigField';
-import { IArtifact } from '../../../../../domain';
+import type { IArtifact } from '../../../../../domain';
 import { Overridable } from '../../../../../overrideRegistry';
 import { TextInput } from '../../../../../presentation';
 

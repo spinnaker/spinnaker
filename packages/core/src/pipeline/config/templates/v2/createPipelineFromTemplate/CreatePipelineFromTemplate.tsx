@@ -1,13 +1,14 @@
 import React from 'react';
 import { Button, Modal } from 'react-bootstrap';
-import { Option } from 'react-select';
+import type { Option } from 'react-select';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import ApplicationSelector from '../ApplicationSelector';
-import { Application, ApplicationReader, IApplicationSummary } from '../../../../../application';
+import type { Application, IApplicationSummary } from '../../../../../application';
+import { ApplicationReader } from '../../../../../application';
 import { CreatePipelineModal } from '../../../../create';
-import { IPipelineTemplateV2 } from '../../../../../domain/IPipelineTemplateV2';
+import type { IPipelineTemplateV2 } from '../../../../../domain/IPipelineTemplateV2';
 import { SubmitButton } from '../../../../../modal/buttons/SubmitButton';
 import { ReactInjector } from '../../../../../reactShims';
 import { Spinner } from '../../../../../widgets/spinners/Spinner';

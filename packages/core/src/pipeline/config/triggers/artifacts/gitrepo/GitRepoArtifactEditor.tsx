@@ -2,7 +2,7 @@ import { cloneDeep } from 'lodash';
 import React from 'react';
 
 import { ArtifactTypePatterns } from '../../../../../artifact/ArtifactTypes';
-import { IArtifactEditorProps, IArtifactKindConfig } from '../../../../../domain';
+import type { IArtifactEditorProps, IArtifactKindConfig } from '../../../../../domain';
 import { CheckboxInput } from '../../../../../presentation';
 import { StageConfigField } from '../../../stages/common';
 import { SpelText } from '../../../../../widgets/spelText/SpelText';

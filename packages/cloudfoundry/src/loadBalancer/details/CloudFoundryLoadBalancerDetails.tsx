@@ -2,10 +2,11 @@ import { UISref } from '@uirouter/react';
 import { UIRouterContext } from '@uirouter/react-hybrid';
 import React from 'react';
 
-import { Application, LoadBalancerWriter, Spinner } from '@spinnaker/core';
+import type { Application, LoadBalancerWriter } from '@spinnaker/core';
+import { Spinner } from '@spinnaker/core';
 
 import { CloudFoundryLoadBalancerActions } from './CloudFoundryLoadBalancerActions';
-import { ICloudFoundryLoadBalancer } from '../../domain';
+import type { ICloudFoundryLoadBalancer } from '../../domain';
 import { CloudFoundryLoadBalancerDetailsSection } from './sections';
 import { CloudFoundryLoadBalancerLinksSection } from './sections/CloudFoundryLoadBalancerLinksSection';
 import { CloudFoundryLoadBalancerStatusSection } from './sections/CloudFoundryLoadBalancerStatusSection';

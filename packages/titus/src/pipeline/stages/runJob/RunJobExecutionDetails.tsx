@@ -1,11 +1,11 @@
 import { get } from 'lodash';
 import React from 'react';
 
+import type { IExecutionDetailsSectionProps } from '@spinnaker/core';
 import {
   AccountService,
   AccountTag,
   ExecutionDetailsSection,
-  IExecutionDetailsSectionProps,
   LabeledValue,
   LabeledValueList,
   Markdown,

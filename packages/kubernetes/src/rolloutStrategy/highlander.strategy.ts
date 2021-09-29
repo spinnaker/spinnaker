@@ -1,4 +1,4 @@
-import { IDeploymentStrategy } from '@spinnaker/core';
+import type { IDeploymentStrategy } from '@spinnaker/core';
 
 export const strategyHighlander: IDeploymentStrategy = {
   label: 'Highlander',

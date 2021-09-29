@@ -1,9 +1,9 @@
-import { FormikProps } from 'formik';
+import type { FormikProps } from 'formik';
 import React from 'react';
 
 import { RefreshableReactSelectInput } from '../RefreshableReactSelectInput';
 import { BuildServiceType, IgorService } from '../../../../ci/igor.service';
-import { IBuildTrigger } from '../../../../domain';
+import type { IBuildTrigger } from '../../../../domain';
 import { MapEditorInput } from '../../../../forms';
 import { HelpField } from '../../../../help';
 import { FormikFormField, TextInput, useLatestPromise } from '../../../../presentation';

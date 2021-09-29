@@ -7,7 +7,7 @@ import { VersionOperationIcon } from './VersionOperation';
 import { constraintsManager } from '../../constraints/registry';
 import { FetchVersionDocument, useUpdateConstraintMutation } from '../../graphql/graphql-sdk';
 import { CollapsibleSection, useApplicationContextSafe } from '../../../presentation';
-import { ArtifactVersionProps, QueryConstraint } from '../types';
+import type { ArtifactVersionProps, QueryConstraint } from '../types';
 import { getConstraintsStatusSummary } from './utils';
 import { useLogEvent } from '../../utils/logging';
 import { useNotifyOnError } from '../../utils/useNotifyOnError.hook';

@@ -2,12 +2,13 @@ import { UISref, useCurrentStateAndParams } from '@uirouter/react';
 import { set } from 'lodash';
 import React, { useEffect, useState } from 'react';
 
-import { Application } from '../../application/application.model';
-import { IExecution, IPipeline } from '../../domain';
+import type { Application } from '../../application/application.model';
+import type { IExecution, IPipeline } from '../../domain';
 import { Execution } from '../executions/execution/Execution';
 import { ManualExecutionModal } from '../manualExecution';
 import { useData, useLatestPromise } from '../../presentation';
-import { IStateChange, ReactInjector } from '../../reactShims';
+import type { IStateChange } from '../../reactShims';
+import { ReactInjector } from '../../reactShims';
 import { SchedulerFactory } from '../../scheduler';
 import { ExecutionsTransformer } from '../service/ExecutionsTransformer';
 import { ExecutionState } from '../../state';

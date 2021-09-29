@@ -1,6 +1,7 @@
 import { module } from 'angular';
-import { PROVIDER_SERVICE_DELEGATE, ProviderServiceDelegate } from '../cloudProvider/providerService.delegate';
-import { ISecurityGroup } from '../domain';
+import type { ProviderServiceDelegate } from '../cloudProvider/providerService.delegate';
+import { PROVIDER_SERVICE_DELEGATE } from '../cloudProvider/providerService.delegate';
+import type { ISecurityGroup } from '../domain';
 
 export class SecurityGroupTransformerService {
   public static $inject = ['providerServiceDelegate'];

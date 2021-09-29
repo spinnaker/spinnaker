@@ -2,9 +2,9 @@ import { get, values } from 'lodash';
 import React from 'react';
 import { Dropdown } from 'react-bootstrap';
 
+import type { Application } from '@spinnaker/core';
 import {
   AddEntityTagLinks,
-  Application,
   ApplicationReader,
   ConfirmationModalService,
   HelpField,
@@ -14,8 +14,8 @@ import {
 } from '@spinnaker/core';
 
 import { LoadBalancerTypes } from '../configure/LoadBalancerTypes';
-import { IAmazonLoadBalancer, IAmazonLoadBalancerDeleteCommand } from '../../domain';
-import { ILoadBalancerFromStateParams } from './loadBalancerDetails.controller';
+import type { IAmazonLoadBalancer, IAmazonLoadBalancerDeleteCommand } from '../../domain';
+import type { ILoadBalancerFromStateParams } from './loadBalancerDetails.controller';
 
 export interface ILoadBalancerActionsProps {
   app: Application;

@@ -1,11 +1,13 @@
-import { StateParams } from '@uirouter/angularjs';
-import { IServiceProvider, module } from 'angular';
+import type { StateParams } from '@uirouter/angularjs';
+import type { IServiceProvider } from 'angular';
+import { module } from 'angular';
 
 import { ApplicationComponent } from './ApplicationComponent';
-import { Application } from './application.model';
+import type { Application } from './application.model';
 import { ApplicationModelBuilder } from './applicationModel.builder';
 import { InsightLayout } from '../insight/InsightLayout';
-import { INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider } from '../navigation/state.provider';
+import type { INestedState, StateConfigProvider } from '../navigation/state.provider';
+import { STATE_CONFIG_PROVIDER } from '../navigation/state.provider';
 import { ApplicationReader } from './service/ApplicationReader';
 import { InferredApplicationWarningService } from './service/InferredApplicationWarningService';
 

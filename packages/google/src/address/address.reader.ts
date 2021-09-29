@@ -1,6 +1,7 @@
 import { module } from 'angular';
 
-import { InfrastructureCaches, ISearchResults, SearchService } from '@spinnaker/core';
+import type { ISearchResults } from '@spinnaker/core';
+import { InfrastructureCaches, SearchService } from '@spinnaker/core';
 
 interface IAddressSearchResults {
   account: string;

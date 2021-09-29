@@ -1,8 +1,8 @@
 import React from 'react';
 
-import { Application } from '../../../../application/application.model';
+import type { Application } from '../../../../application/application.model';
 import { ConfirmationModalService } from '../../../../confirmationModal';
-import { IExecution, IExecutionStage } from '../../../../domain';
+import type { IExecution, IExecutionStage } from '../../../../domain';
 import { OrchestratedItemRunningTime } from '../../../executions/execution/OrchestratedItemRunningTime';
 import { ReactInjector } from '../../../../reactShims';
 import { duration } from '../../../../utils/timeFormatters';

@@ -2,7 +2,7 @@ import { UISref } from '@uirouter/react';
 import React from 'react';
 
 import { RelativeTimestamp } from '../RelativeTimestamp';
-import { IOrchestratedItem } from '../../domain';
+import type { IOrchestratedItem } from '../../domain';
 import { robotToHuman, Tooltip } from '../../presentation';
 import { LoadingAnimation } from '../../presentation/LoadingAnimation';
 import { useDataWithRefresh } from '../../presentation/hooks/useDataWithRefresh.hook';

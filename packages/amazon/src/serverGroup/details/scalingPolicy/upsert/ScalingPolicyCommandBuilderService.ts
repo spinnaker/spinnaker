@@ -1,12 +1,12 @@
 import { cloneDeep } from 'lodash';
 
-import {
+import type {
   ISimplePolicyDescription,
   IStepPolicyDescription,
   IUpsertAlarmDescription,
   IUpsertScalingPolicyCommand,
 } from '../ScalingPolicyWriter';
-import {
+import type {
   IAmazonServerGroup,
   IScalingPolicy,
   IScalingPolicyAlarm,

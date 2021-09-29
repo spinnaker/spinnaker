@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import React from 'react';
 
-import { IInstance } from '../domain';
+import type { IInstance } from '../domain';
 
 import { Tooltip } from '../presentation';
 

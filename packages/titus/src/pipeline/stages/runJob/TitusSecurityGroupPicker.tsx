@@ -3,16 +3,8 @@ import { $q } from 'ngimport';
 import React from 'react';
 
 import { SecurityGroupSelector, ServerGroupSecurityGroupsRemoved, VpcReader } from '@spinnaker/amazon';
-import {
-  AccountService,
-  AccountTag,
-  FirewallLabels,
-  IAccountDetails,
-  IAggregatedAccounts,
-  ISecurityGroup,
-  IVpc,
-  ReactInjector,
-} from '@spinnaker/core';
+import type { IAccountDetails, IAggregatedAccounts, ISecurityGroup, IVpc } from '@spinnaker/core';
+import { AccountService, AccountTag, FirewallLabels, ReactInjector } from '@spinnaker/core';
 
 export interface ITitusSecurityGroupPickerProps {
   account: string;

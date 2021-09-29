@@ -1,4 +1,5 @@
-import { IComponentOptions, IController, IInterpolateService, ISCEService, module } from 'angular';
+import type { IComponentOptions, IController, IInterpolateService, ISCEService } from 'angular';
+import { module } from 'angular';
 import DOMPurify from 'dompurify';
 import { get, partition } from 'lodash';
 

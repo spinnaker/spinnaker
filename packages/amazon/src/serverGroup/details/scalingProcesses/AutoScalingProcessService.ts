@@ -1,4 +1,4 @@
-import { IAmazonServerGroup, IScalingProcess } from '../../../domain';
+import type { IAmazonServerGroup, IScalingProcess } from '../../../domain';
 
 export class AutoScalingProcessService {
   public static getDisabledDate(serverGroup: IAmazonServerGroup): number {

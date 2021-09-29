@@ -1,7 +1,7 @@
 import { get, has, upperFirst } from 'lodash';
 
-import { IStageOrTriggerValidator, IValidatorConfig } from './PipelineConfigValidator';
-import { IPipeline, IStage, IStageOrTriggerTypeConfig, ITrigger } from '../../../domain';
+import type { IStageOrTriggerValidator, IValidatorConfig } from './PipelineConfigValidator';
+import type { IPipeline, IStage, IStageOrTriggerTypeConfig, ITrigger } from '../../../domain';
 
 export interface IRequiredField {
   fieldName: string;

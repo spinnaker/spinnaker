@@ -1,15 +1,14 @@
-import { StateService } from '@uirouter/angularjs';
-import { IController, module } from 'angular';
-import { IModalServiceInstance } from 'angular-ui-bootstrap';
+import type { StateService } from '@uirouter/angularjs';
+import type { IController } from 'angular';
+import { module } from 'angular';
+import type { IModalServiceInstance } from 'angular-ui-bootstrap';
 import { cloneDeep } from 'lodash';
 
-import { Application, LoadBalancerWriter, TaskMonitor } from '@spinnaker/core';
+import type { Application } from '@spinnaker/core';
+import { LoadBalancerWriter, TaskMonitor } from '@spinnaker/core';
 
-import {
-  AppengineLoadBalancerTransformer,
-  AppengineLoadBalancerUpsertDescription,
-  IAppengineTrafficSplitDescription,
-} from '../../transformer';
+import type { AppengineLoadBalancerTransformer, IAppengineTrafficSplitDescription } from '../../transformer';
+import { AppengineLoadBalancerUpsertDescription } from '../../transformer';
 
 import './wizard.less';
 

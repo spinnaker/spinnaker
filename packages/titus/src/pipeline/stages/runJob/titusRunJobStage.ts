@@ -1,4 +1,5 @@
-import { ExecutionDetailsTasks, IStage, Registry } from '@spinnaker/core';
+import type { IStage } from '@spinnaker/core';
+import { ExecutionDetailsTasks, Registry } from '@spinnaker/core';
 
 import { RunJobExecutionDetails } from './RunJobExecutionDetails';
 import { TitusRunJobStageConfig } from './TitusRunJobStageConfig';

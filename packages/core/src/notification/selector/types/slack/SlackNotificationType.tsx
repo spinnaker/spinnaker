@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { INotificationTypeCustomConfig } from '../../../../domain';
+import type { INotificationTypeCustomConfig } from '../../../../domain';
 import { FormikFormField, TextInput } from '../../../../presentation';
 
 export class SlackNotificationType extends React.Component<INotificationTypeCustomConfig> {

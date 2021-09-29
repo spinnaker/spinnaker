@@ -1,13 +1,13 @@
 import { get, isBoolean, set, startCase } from 'lodash';
 import { FormValidatorField } from './FormValidatorField';
-import {
-  FORM_VALIDATION_VALIDATABLE_FIELD_IS_VALID_SHORT_CIRCUIT,
+import type {
   IArrayItemValidationBuilder,
   IArrayItemValidator,
   IFormValidator,
   IFormValidatorField,
   IValidator,
 } from './validation';
+import { FORM_VALIDATION_VALIDATABLE_FIELD_IS_VALID_SHORT_CIRCUIT } from './validation';
 import { Validators } from './validators';
 
 interface INamedValidatorResult {

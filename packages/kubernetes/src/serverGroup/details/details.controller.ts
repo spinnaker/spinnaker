@@ -1,21 +1,19 @@
-import { StateService } from '@uirouter/angularjs';
-import { IController, IQService, IScope, module } from 'angular';
-import { IModalService } from 'angular-ui-bootstrap';
+import type { StateService } from '@uirouter/angularjs';
+import type { IController, IQService, IScope } from 'angular';
+import { module } from 'angular';
+import type { IModalService } from 'angular-ui-bootstrap';
 
+import type { Application, IManifest, IOwnerOption, IServerGroup } from '@spinnaker/core';
 import {
-  Application,
   ClusterTargetBuilder,
   ConfirmationModalService,
-  IManifest,
-  IOwnerOption,
-  IServerGroup,
   ManifestReader,
   SERVER_GROUP_WRITER,
   ServerGroupReader,
   SETTINGS,
 } from '@spinnaker/core';
 
-import { IKubernetesServerGroup } from '../../interfaces';
+import type { IKubernetesServerGroup } from '../../interfaces';
 import { KubernetesManifestCommandBuilder } from '../../manifest/manifestCommandBuilder.service';
 import { ManifestTrafficService } from '../../manifest/traffic/ManifestTrafficService';
 import { ManifestWizard } from '../../manifest/wizard/ManifestWizard';

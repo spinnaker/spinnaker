@@ -1,17 +1,15 @@
-import { FormikProps } from 'formik';
+import type { FormikProps } from 'formik';
 import { intersection, set, union } from 'lodash';
 import React from 'react';
 
+import type { Application, IFormInputProps, IWizardPageComponent } from '@spinnaker/core';
 import {
   AccountTag,
-  Application,
   CheckboxInput,
   ChecklistInput,
   FormikFormField,
   FormValidator,
   HelpField,
-  IFormInputProps,
-  IWizardPageComponent,
   LayoutProvider,
   MapEditorInput,
   PlatformHealthOverrideInput,
@@ -22,7 +20,7 @@ import {
 } from '@spinnaker/core';
 
 import { TitusMapLayout } from './TitusMapLayout';
-import { ITitusServerGroupCommand } from '../../../configure/serverGroupConfiguration.service';
+import type { ITitusServerGroupCommand } from '../../../configure/serverGroupConfiguration.service';
 import { processesList } from '../../../details/serviceJobProcesses/ServiceJobProcesses';
 
 import './ServerGroupParameters.less';

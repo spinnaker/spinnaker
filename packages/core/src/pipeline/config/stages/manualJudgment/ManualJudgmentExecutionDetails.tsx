@@ -1,10 +1,10 @@
 import React from 'react';
 
 import { ManualJudgmentApproval } from './ManualJudgmentApproval';
-import { IExecutionDetailsSectionProps } from '../common';
+import type { IExecutionDetailsSectionProps } from '../common';
 import { ExecutionDetailsSection } from '../common';
 import { StageFailureMessage } from '../../../details';
-import { IStage } from '../../../../domain';
+import type { IStage } from '../../../../domain';
 import { robotToHuman } from '../../../../presentation/robotToHumanFilter/robotToHuman.filter';
 import { timestamp } from '../../../../utils/timeFormatters';
 

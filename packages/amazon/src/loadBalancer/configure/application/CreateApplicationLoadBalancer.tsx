@@ -1,10 +1,10 @@
 import { cloneDeep, get } from 'lodash';
 import React from 'react';
 
+import type { ILoadBalancerModalProps } from '@spinnaker/core';
 import {
   AccountService,
   FirewallLabels,
-  ILoadBalancerModalProps,
   LoadBalancerWriter,
   noop,
   ReactInjector,
@@ -20,7 +20,7 @@ import { TargetGroups } from './TargetGroups';
 import { AWSProviderSettings } from '../../../aws.settings';
 import { LoadBalancerLocation } from '../common/LoadBalancerLocation';
 import { SecurityGroups } from '../common/SecurityGroups';
-import { IAmazonApplicationLoadBalancer, IAmazonApplicationLoadBalancerUpsertCommand } from '../../../domain';
+import type { IAmazonApplicationLoadBalancer, IAmazonApplicationLoadBalancerUpsertCommand } from '../../../domain';
 import { AwsLoadBalancerTransformer } from '../../loadBalancer.transformer';
 
 import '../common/configure.less';

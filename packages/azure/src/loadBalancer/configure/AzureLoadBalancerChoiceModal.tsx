@@ -1,16 +1,11 @@
 import React from 'react';
 import { Button, Modal } from 'react-bootstrap';
 
-import {
-  CloudProviderRegistry,
-  ILoadBalancerModalProps,
-  ModalClose,
-  ModalInjector,
-  noop,
-  ReactModal,
-} from '@spinnaker/core';
+import type { ILoadBalancerModalProps } from '@spinnaker/core';
+import { CloudProviderRegistry, ModalClose, ModalInjector, noop, ReactModal } from '@spinnaker/core';
 
-import { AzureLoadBalancerTypes, IAzureLoadBalancer } from '../../utility';
+import type { IAzureLoadBalancer } from '../../utility';
+import { AzureLoadBalancerTypes } from '../../utility';
 
 export interface IAzureLoadBalancerChoiceModalState {
   choices: IAzureLoadBalancer[];

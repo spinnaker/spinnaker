@@ -2,7 +2,7 @@ import React from 'react';
 
 import { CollapsibleSection, ViewScalingActivitiesLink } from '@spinnaker/core';
 
-import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
+import type { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
 
 export class LogsDetailsSection extends React.Component<IAmazonServerGroupDetailsSectionProps> {
   public render(): JSX.Element {

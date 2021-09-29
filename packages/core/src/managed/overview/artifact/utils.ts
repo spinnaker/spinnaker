@@ -2,14 +2,14 @@ import { groupBy } from 'lodash';
 import { DateTime } from 'luxon';
 
 import { ACTION_DISPLAY_NAMES, getActionStatusData } from './VersionOperation';
-import { MdArtifactStatusInEnvironment } from '../../graphql/graphql-sdk';
+import type { MdArtifactStatusInEnvironment } from '../../graphql/graphql-sdk';
 import { useMarkVersionAsBad, useMarkVersionAsGood, usePinVersion, useUnpinVersion } from './hooks';
 import { useApplicationContextSafe } from '../../../presentation';
-import { QueryArtifactVersion, QueryConstraint, QueryLifecycleStep } from '../types';
+import type { QueryArtifactVersion, QueryConstraint, QueryLifecycleStep } from '../types';
 import { timeDiffToString } from '../../../utils';
 import { copyTextToClipboard } from '../../../utils/clipboard/copyTextToClipboard';
 import { getIsDebugMode } from '../../utils/debugMode';
-import { VersionAction } from '../../versionMetadata/MetadataComponents';
+import type { VersionAction } from '../../versionMetadata/MetadataComponents';
 
 export const getConstraintsStatusSummary = (constraints: QueryConstraint[]) => {
   let finalStatus: QueryConstraint['status'] = 'PASS';

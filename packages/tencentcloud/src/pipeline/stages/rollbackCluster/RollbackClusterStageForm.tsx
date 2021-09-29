@@ -1,14 +1,7 @@
 import React from 'react';
 
-import {
-  AccountService,
-  FormikFormField,
-  IAccount,
-  IFormikStageConfigInjectedProps,
-  NgReact,
-  NumberInput,
-  StageConfigField,
-} from '@spinnaker/core';
+import type { IAccount, IFormikStageConfigInjectedProps } from '@spinnaker/core';
+import { AccountService, FormikFormField, NgReact, NumberInput, StageConfigField } from '@spinnaker/core';
 
 const { useEffect, useState } = React;
 const { AccountRegionClusterSelector } = NgReact;

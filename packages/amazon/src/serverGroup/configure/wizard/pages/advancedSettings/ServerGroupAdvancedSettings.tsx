@@ -1,10 +1,10 @@
-import { FormikProps } from 'formik';
+import type { FormikProps } from 'formik';
 import React from 'react';
 
-import { Application, IWizardPageComponent } from '@spinnaker/core';
+import type { Application, IWizardPageComponent } from '@spinnaker/core';
 
 import { ServerGroupAdvancedSettingsInner } from './ServerGroupAdvancedSettingsInner';
-import { IAmazonServerGroupCommand } from '../../../serverGroupConfiguration.service';
+import type { IAmazonServerGroupCommand } from '../../../serverGroupConfiguration.service';
 
 export interface IServerGroupAdvancedSettingsProps {
   app: Application;

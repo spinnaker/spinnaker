@@ -1,4 +1,5 @@
-import { DeploymentStrategyRegistry, IServerGroupCommand } from '@spinnaker/core';
+import type { IServerGroupCommand } from '@spinnaker/core';
+import { DeploymentStrategyRegistry } from '@spinnaker/core';
 
 import { AdditionalFields } from './AdditionalFields';
 import { AWSProviderSettings } from '../aws.settings';

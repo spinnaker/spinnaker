@@ -1,7 +1,7 @@
-import { IAccountDetails } from '@spinnaker/core';
+import type { IAccountDetails } from '@spinnaker/core';
 
-import { ICloudFoundryDomain } from './ICloudFoundryLoadBalancer';
-import { ICloudFoundrySpace } from './ICloudFoundrySpace';
+import type { ICloudFoundryDomain } from './ICloudFoundryLoadBalancer';
+import type { ICloudFoundrySpace } from './ICloudFoundrySpace';
 
 export interface ICloudFoundryAccount extends IAccountDetails {
   domains?: ICloudFoundryDomain[];

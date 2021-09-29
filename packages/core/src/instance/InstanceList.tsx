@@ -4,7 +4,7 @@ import { Subject } from 'rxjs';
 import { distinctUntilChanged, map, takeUntil } from 'rxjs/operators';
 
 import { InstanceListBody } from './InstanceListBody';
-import { IInstance, IServerGroup } from '../domain';
+import type { IInstance, IServerGroup } from '../domain';
 import { SortToggle } from '../presentation/sortToggle/SortToggle';
 import { ReactInjector } from '../reactShims';
 import { ClusterState } from '../state';

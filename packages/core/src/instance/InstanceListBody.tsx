@@ -4,7 +4,7 @@ import React from 'react';
 import { Subject } from 'rxjs';
 import { distinctUntilChanged, map, takeUntil } from 'rxjs/operators';
 
-import { IInstance, ILoadBalancerHealth, IServerGroup } from '../domain';
+import type { IInstance, ILoadBalancerHealth, IServerGroup } from '../domain';
 import { Tooltip } from '../presentation';
 import { ReactInjector } from '../reactShims';
 import { ClusterState } from '../state';

@@ -15,7 +15,8 @@ import {
 } from '../graphql/graphql-sdk';
 import { Messages } from '../messages/Messages';
 import { showModal, useApplicationContextSafe } from '../../presentation';
-import { ActionModal, IArtifactActionModalProps } from '../utils/ActionModal';
+import type { IArtifactActionModalProps } from '../utils/ActionModal';
+import { ActionModal } from '../utils/ActionModal';
 import { getIsDebugMode } from '../utils/debugMode';
 import { getDocsUrl, MODAL_MAX_WIDTH, spinnerProps } from '../utils/defaults';
 import { useLogEvent } from '../utils/logging';

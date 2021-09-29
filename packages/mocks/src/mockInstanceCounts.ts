@@ -1,4 +1,4 @@
-import { IInstanceCounts } from '@spinnaker/core';
+import type { IInstanceCounts } from '@spinnaker/core';
 
 export const mockInstanceCounts: IInstanceCounts = {
   total: 1,

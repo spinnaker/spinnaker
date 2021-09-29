@@ -1,6 +1,7 @@
 import { module } from 'angular';
 
-import { ExecutionDetailsTasks, IStage, Registry } from '@spinnaker/core';
+import type { IStage } from '@spinnaker/core';
+import { ExecutionDetailsTasks, Registry } from '@spinnaker/core';
 
 import { manifestExecutionDetails } from '../ManifestExecutionDetails';
 import { KUBERNETES_SCALE_MANIFEST_SETTINGS_FORM } from '../../../manifest/scale/scaleSettingsForm.component';

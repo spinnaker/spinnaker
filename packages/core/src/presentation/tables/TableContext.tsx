@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { ITableColumn, ITableLayout } from './Table';
+import type { ITableColumn, ITableLayout } from './Table';
 
 export interface ITableContext {
   layout: ITableLayout;

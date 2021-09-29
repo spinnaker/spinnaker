@@ -1,6 +1,7 @@
 import React from 'react';
 
-import { Icon, IconNames } from '@spinnaker/presentation';
+import type { IconNames } from '@spinnaker/presentation';
+import { Icon } from '@spinnaker/presentation';
 
 import './Button.less';
 

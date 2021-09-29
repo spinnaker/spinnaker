@@ -1,10 +1,11 @@
-import { IQService, module } from 'angular';
+import type { IQService } from 'angular';
+import { module } from 'angular';
 
 import { EntityTagsReader } from './EntityTagsReader';
 import { ApplicationDataSourceRegistry } from '../application';
-import { Application } from '../application/application.model';
+import type { Application } from '../application/application.model';
 import { SETTINGS } from '../config/settings';
-import { IEntityTags } from '../domain/IEntityTags';
+import type { IEntityTags } from '../domain/IEntityTags';
 import { LOAD_BALANCER_READ_SERVICE } from '../loadBalancer/loadBalancer.read.service';
 import { noop } from '../utils';
 

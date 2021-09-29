@@ -1,8 +1,9 @@
 import React from 'react';
 
-import { Application, ApplicationDataSource, FormField, ReactSelectInput } from '@spinnaker/core';
+import type { Application, ApplicationDataSource } from '@spinnaker/core';
+import { FormField, ReactSelectInput } from '@spinnaker/core';
 
-import { IK8sResourcesFiltersState } from './K8sResourcesFilters';
+import type { IK8sResourcesFiltersState } from './K8sResourcesFilters';
 import { RawResourceUtils } from './RawResourceUtils';
 import { FiltersPubSub } from '../controller/FiltersPubSub';
 import { RawResource } from './group/RawResource';

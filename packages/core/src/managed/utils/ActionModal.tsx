@@ -2,9 +2,9 @@ import React from 'react';
 
 import { Button } from './Button';
 import { useLogEvent } from './logging';
+import type { IModalComponentProps } from '../../presentation';
 import {
   FormikFormField,
-  IModalComponentProps,
   ModalBody,
   ModalFooter,
   ModalHeader,

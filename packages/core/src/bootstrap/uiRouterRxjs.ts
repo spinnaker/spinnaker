@@ -1,4 +1,4 @@
-import { UIRouter } from '@uirouter/core';
+import type { UIRouter } from '@uirouter/core';
 import { UIRouterRxPlugin } from '@uirouter/rx';
 
 import { bootstrapModule } from './bootstrap.module';

@@ -1,4 +1,5 @@
-import { IComponentOptions, IController, IFilterService, module } from 'angular';
+import type { IComponentOptions, IController, IFilterService } from 'angular';
+import { module } from 'angular';
 
 class AppengineConditionalDescriptionListItemCtrl implements IController {
   public label: string;

@@ -5,8 +5,8 @@ import * as React from 'react';
 import { BuildDetailsScrollContainerContext } from './BuildDetailsScrollContainerContext';
 import { BuildInfoDetails } from './BuildInfoDetails';
 import { BuildInfoSummaryCard } from './BuildInfoSummaryCard';
-import { Application } from '../../application';
-import { ICiBuild } from '../domain';
+import type { Application } from '../../application';
+import type { ICiBuild } from '../domain';
 import { useDataSource } from '../../presentation';
 import { Spinner } from '../../widgets';
 

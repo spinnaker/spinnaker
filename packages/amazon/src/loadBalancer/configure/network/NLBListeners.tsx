@@ -1,11 +1,12 @@
-import { FormikProps } from 'formik';
+import type { FormikProps } from 'formik';
 import { difference, flatten, get, uniq, uniqBy } from 'lodash';
 import React from 'react';
 
-import { Application, IWizardPageComponent, ValidationMessage } from '@spinnaker/core';
+import type { Application, IWizardPageComponent } from '@spinnaker/core';
+import { ValidationMessage } from '@spinnaker/core';
 
-import { IAuthenticateOidcActionConfig } from '../../OidcConfigReader';
-import {
+import type { IAuthenticateOidcActionConfig } from '../../OidcConfigReader';
+import type {
   IALBListenerCertificate,
   IAmazonCertificate,
   IAmazonNetworkLoadBalancerUpsertCommand,

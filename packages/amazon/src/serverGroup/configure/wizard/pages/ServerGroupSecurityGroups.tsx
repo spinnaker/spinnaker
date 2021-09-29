@@ -1,11 +1,11 @@
-import { FormikProps } from 'formik';
+import type { FormikProps } from 'formik';
 import React from 'react';
 
-import { IWizardPageComponent } from '@spinnaker/core';
+import type { IWizardPageComponent } from '@spinnaker/core';
 
 import { SecurityGroupSelector } from '../securityGroups/SecurityGroupSelector';
 import { ServerGroupSecurityGroupsRemoved } from '../securityGroups/ServerGroupSecurityGroupsRemoved';
-import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
+import type { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
 
 export interface IServerGroupSecurityGroupsProps {
   formik: FormikProps<IAmazonServerGroupCommand>;

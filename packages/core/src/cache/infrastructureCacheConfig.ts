@@ -1,4 +1,4 @@
-import { ICacheConfig } from './deckCacheFactory';
+import type { ICacheConfig } from './deckCacheFactory';
 
 export interface IInfrastructureCacheConfig {
   [key: string]: any;

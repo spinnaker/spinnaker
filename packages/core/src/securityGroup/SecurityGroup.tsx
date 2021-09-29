@@ -2,9 +2,9 @@ import { UISref } from '@uirouter/react';
 import classNames from 'classnames';
 import * as React from 'react';
 
-import { Application } from '../application';
+import type { Application } from '../application';
 import { CloudProviderLogo } from '../cloudProvider';
-import { ILoadBalancerUsage, ISecurityGroup, ISecurityGroupGroup, IServerGroupUsage } from '../domain';
+import type { ILoadBalancerUsage, ISecurityGroup, ISecurityGroupGroup, IServerGroupUsage } from '../domain';
 import { EntityNotifications } from '../entityTag/notifications/EntityNotifications';
 import { ManagedResourceStatusIndicator } from '../managed';
 import { ReactInjector } from '../reactShims';

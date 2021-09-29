@@ -1,19 +1,11 @@
 import { get, has } from 'lodash';
 import React from 'react';
 
-import {
-  AccountTag,
-  CollapsibleSection,
-  EntitySource,
-  IEntityTags,
-  IViewChangesConfig,
-  SETTINGS,
-  timestamp,
-  ViewChangesLink,
-} from '@spinnaker/core';
+import type { IEntityTags, IViewChangesConfig } from '@spinnaker/core';
+import { AccountTag, CollapsibleSection, EntitySource, SETTINGS, timestamp, ViewChangesLink } from '@spinnaker/core';
 
-import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
-import { IAmazonServerGroupView } from '../../../domain';
+import type { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
+import type { IAmazonServerGroupView } from '../../../domain';
 import { VpcTag } from '../../../vpc/VpcTag';
 
 export interface IAmazonInfoDetailsSectionState {

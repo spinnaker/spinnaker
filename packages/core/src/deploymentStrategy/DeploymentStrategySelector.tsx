@@ -1,15 +1,13 @@
 import { unset } from 'lodash';
 import React from 'react';
-import Select, { Option } from 'react-select';
+import type { Option } from 'react-select';
+import Select from 'react-select';
 
-import {
-  DeploymentStrategyRegistry,
-  IDeploymentStrategy,
-  IDeploymentStrategyAdditionalFieldsProps,
-} from './deploymentStrategy.registry';
+import type { IDeploymentStrategy, IDeploymentStrategyAdditionalFieldsProps } from './deploymentStrategy.registry';
+import { DeploymentStrategyRegistry } from './deploymentStrategy.registry';
 import { HelpField } from '../help/HelpField';
 import { Markdown } from '../presentation';
-import { IServerGroupCommand } from '../serverGroup';
+import type { IServerGroupCommand } from '../serverGroup';
 
 export interface IDeploymentStrategySelectorProps {
   command: IServerGroupCommand;

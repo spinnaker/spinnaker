@@ -1,12 +1,7 @@
 import React from 'react';
 
-import {
-  Application,
-  DeployInitializer,
-  FirewallLabels,
-  IServerGroupCommand,
-  ITemplateSelectionText,
-} from '@spinnaker/core';
+import type { Application, IServerGroupCommand, ITemplateSelectionText } from '@spinnaker/core';
+import { DeployInitializer, FirewallLabels } from '@spinnaker/core';
 
 export interface IServerGroupTemplateSelectionProps {
   app: Application;

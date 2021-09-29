@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { INavigationPage } from './PageNavigator';
+import type { INavigationPage } from './PageNavigator';
 
 interface IPageSectionProps {
   pageKey: string;

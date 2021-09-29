@@ -3,8 +3,9 @@ import React from 'react';
 import Select from 'react-select';
 
 import { ArtifactTypePatterns, ExpectedArtifactModal, ExpectedArtifactService } from '../../../../artifact';
-import { IExpectedArtifact, IPipeline } from '../../../../domain';
-import { createFakeReactSyntheticEvent, IFormInputProps } from '../../../../presentation';
+import type { IExpectedArtifact, IPipeline } from '../../../../domain';
+import type { IFormInputProps } from '../../../../presentation';
+import { createFakeReactSyntheticEvent } from '../../../../presentation';
 import { Registry } from '../../../../registry';
 
 import './triggerArtifactConstraintSelectorInput.less';

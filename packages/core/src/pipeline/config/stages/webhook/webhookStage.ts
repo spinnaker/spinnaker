@@ -1,5 +1,6 @@
-import { IController, module } from 'angular';
-import { IModalService } from 'angular-ui-bootstrap';
+import type { IController } from 'angular';
+import { module } from 'angular';
+import type { IModalService } from 'angular-ui-bootstrap';
 import { REST } from '../../../../api/ApiService';
 import { Registry } from '../../../../registry';
 import { JsonUtils } from '../../../../utils';

@@ -1,11 +1,11 @@
-import {
+import type {
   IPipeline,
   IStage,
   IStageOrTriggerTypeConfig,
   IStageOrTriggerValidator,
   IValidatorConfig,
-  PipelineConfigValidator,
 } from '@spinnaker/core';
+import { PipelineConfigValidator } from '@spinnaker/core';
 
 export interface IStageWithManifestSelector extends IStage {
   manifestName: string;

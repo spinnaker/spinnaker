@@ -2,7 +2,8 @@ import React from 'react';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import { AccountService, IAccount, IPipeline, IStageConfigProps, StageConfigField } from '@spinnaker/core';
+import type { IAccount, IPipeline, IStageConfigProps } from '@spinnaker/core';
+import { AccountService, StageConfigField } from '@spinnaker/core';
 import { AccountRegionClusterSelector } from '../../../presentation';
 
 export interface ICloudfoundryRollbackClusterStageProps extends IStageConfigProps {

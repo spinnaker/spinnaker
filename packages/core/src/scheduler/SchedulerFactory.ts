@@ -1,5 +1,6 @@
 import { $log, $timeout, $window } from 'ngimport';
-import { Subject, Subscription, timer as observableTimer } from 'rxjs';
+import type { Subscription } from 'rxjs';
+import { Subject, timer as observableTimer } from 'rxjs';
 
 import { SETTINGS } from '../config/settings';
 

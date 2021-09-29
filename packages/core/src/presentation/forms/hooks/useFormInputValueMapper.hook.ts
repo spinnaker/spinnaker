@@ -1,6 +1,7 @@
 import * as React from 'react';
 
-import { createFakeReactSyntheticEvent, IFormInputProps } from '../inputs';
+import type { IFormInputProps } from '../inputs';
+import { createFakeReactSyntheticEvent } from '../inputs';
 
 /**
  * This hook can be used to create a FormInput wrapper that maps/transforms the data as needed by the caller's model.

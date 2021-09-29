@@ -1,6 +1,6 @@
 import { get, isEmpty } from 'lodash';
 
-import { ICustomValidator, IPipeline, IStage, IValidatorConfig } from '@spinnaker/core';
+import type { ICustomValidator, IPipeline, IStage, IValidatorConfig } from '@spinnaker/core';
 
 import { ManifestSource } from '../../../manifest/ManifestSource';
 import { strategyRedBlack } from '../../../rolloutStrategy/redblack.strategy';

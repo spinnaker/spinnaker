@@ -1,15 +1,14 @@
 import { set } from 'lodash';
 import React from 'react';
-import Select, { Option } from 'react-select';
+import type { Option } from 'react-select';
+import Select from 'react-select';
 
-import { IDeploymentStrategyAdditionalFieldsProps } from '../../deploymentStrategy.registry';
+import type { IDeploymentStrategyAdditionalFieldsProps } from '../../deploymentStrategy.registry';
 import { NumberList } from '../../../forms';
 import { HelpField } from '../../../help/HelpField';
-import {
-  DeploymentMonitorReader,
-  IDeploymentMonitorDefinition,
-} from '../../../pipeline/config/stages/monitoreddeploy/DeploymentMonitorReader';
-import { IServerGroupCommand } from '../../../serverGroup';
+import type { IDeploymentMonitorDefinition } from '../../../pipeline/config/stages/monitoreddeploy/DeploymentMonitorReader';
+import { DeploymentMonitorReader } from '../../../pipeline/config/stages/monitoreddeploy/DeploymentMonitorReader';
+import type { IServerGroupCommand } from '../../../serverGroup';
 
 export interface IMonitoredDeployCommand extends IServerGroupCommand {
   delayBeforeScaleDownSec: string;

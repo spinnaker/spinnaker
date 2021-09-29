@@ -2,15 +2,11 @@ import React from 'react';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
+import type { Application, IAccount, IArtifact, IFormikStageConfigInjectedProps, IRegion } from '@spinnaker/core';
 import {
   AccountService,
-  Application,
   ArtifactTypePatterns,
   excludeAllTypesExcept,
-  IAccount,
-  IArtifact,
-  IFormikStageConfigInjectedProps,
-  IRegion,
   NgReact,
   StageArtifactSelectorDelegate,
   StageConfigField,

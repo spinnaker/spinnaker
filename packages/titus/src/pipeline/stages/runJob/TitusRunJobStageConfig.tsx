@@ -1,25 +1,24 @@
 import { defaultsDeep, set } from 'lodash';
 import React from 'react';
 
+import type { IAggregatedAccounts, IRegion, IStageConfigProps } from '@spinnaker/core';
 import {
   AccountSelectInput,
   AccountService,
   AccountTag,
   FirewallLabels,
   HelpField,
-  IAggregatedAccounts,
-  IRegion,
-  IStageConfigProps,
   MapEditor,
   RegionSelectField,
   SpelNumberInput,
   SpinFormik,
   StageConfigField,
 } from '@spinnaker/core';
-import { DockerImageAndTagSelector, DockerImageUtils, IDockerImageAndTagChanges } from '@spinnaker/docker';
+import type { IDockerImageAndTagChanges } from '@spinnaker/docker';
+import { DockerImageAndTagSelector, DockerImageUtils } from '@spinnaker/docker';
 
 import { TitusSecurityGroupPicker } from './TitusSecurityGroupPicker';
-import { IJobDisruptionBudget, ITitusResources } from '../../../domain';
+import type { IJobDisruptionBudget, ITitusResources } from '../../../domain';
 import { IPv6CheckboxInput, JobDisruptionBudget } from '../../../serverGroup/configure/wizard/pages';
 import { TitusProviderSettings } from '../../../titus.settings';
 

@@ -2,7 +2,8 @@ import { find, get } from 'lodash';
 import React from 'react';
 
 import { AccountTag } from '../../../../account';
-import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
+import type { IExecutionDetailsSectionProps } from '../common';
+import { ExecutionDetailsSection } from '../common';
 import { StageFailureMessage } from '../../../details';
 import { UrlBuilder } from '../../../../navigation';
 import { ReactInjector } from '../../../../reactShims';

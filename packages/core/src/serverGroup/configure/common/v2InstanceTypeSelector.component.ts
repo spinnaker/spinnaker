@@ -1,7 +1,8 @@
-import { IComponentController, IComponentOptions, IScope, module } from 'angular';
-import { InstanceTypeService, IPreferredInstanceType } from '../../../instance';
+import type { IComponentController, IComponentOptions, IScope } from 'angular';
+import { module } from 'angular';
+import type { InstanceTypeService, IPreferredInstanceType } from '../../../instance';
 
-import { IServerGroupCommand } from './serverGroupCommandBuilder.service';
+import type { IServerGroupCommand } from './serverGroupCommandBuilder.service';
 
 import './instanceTypeSelector.directive.less';
 

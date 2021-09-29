@@ -1,10 +1,12 @@
-import { FormikProps } from 'formik';
+import type { FormikProps } from 'formik';
 import React from 'react';
-import Select, { Option } from 'react-select';
+import type { Option } from 'react-select';
+import Select from 'react-select';
 
-import { HelpField, IWizardPageComponent, SpelNumberInput } from '@spinnaker/core';
+import type { IWizardPageComponent } from '@spinnaker/core';
+import { HelpField, SpelNumberInput } from '@spinnaker/core';
 
-import { ITitusServerGroupCommand } from '../../../configure/serverGroupConfiguration.service';
+import type { ITitusServerGroupCommand } from '../../../configure/serverGroupConfiguration.service';
 
 const mountPermOptions = [
   { label: 'Read and Write', value: 'RW' },

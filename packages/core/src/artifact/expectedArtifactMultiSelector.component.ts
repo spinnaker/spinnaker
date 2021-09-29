@@ -1,7 +1,8 @@
-import { IComponentOptions, IController, module } from 'angular';
+import type { IComponentOptions, IController } from 'angular';
+import { module } from 'angular';
 
 import { ArtifactIconService } from './ArtifactIconService';
-import { IExpectedArtifact } from '../domain';
+import type { IExpectedArtifact } from '../domain';
 
 import './artifactSelector.less';
 

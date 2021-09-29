@@ -1,7 +1,7 @@
 import { startCase } from 'lodash';
 import React from 'react';
 
-import { ICapacity } from '../../index';
+import type { ICapacity } from '../../index';
 
 export interface IMinMaxDesiredChangesProps {
   current: ICapacity;

@@ -1,6 +1,6 @@
-import { IArtifact } from './IArtifact';
-import { IExecution } from './IExecution';
-import { ITemplateInheritable } from './IPipeline';
+import type { IArtifact } from './IArtifact';
+import type { IExecution } from './IExecution';
+import type { ITemplateInheritable } from './IPipeline';
 
 export interface ITrigger extends ITemplateInheritable {
   artifacts?: IArtifact[];

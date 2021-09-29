@@ -1,7 +1,8 @@
-import { StateObject, UIRouter } from '@uirouter/core';
-import { ReactViewDeclaration } from '@uirouter/react';
+import type { StateObject, UIRouter } from '@uirouter/core';
+import type { ReactViewDeclaration } from '@uirouter/react';
 import { module } from 'angular';
-import React, { ErrorInfo } from 'react';
+import type { ErrorInfo } from 'react';
+import React from 'react';
 
 import { CollapsibleSection } from './collapsibleSection/CollapsibleSection';
 import { ValidationMessage } from './forms/validation/ValidationMessage';
