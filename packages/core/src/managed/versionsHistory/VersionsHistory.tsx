@@ -45,7 +45,6 @@ const getIsFocused = (version: HistoryArtifactVersion, params: RawParams) => {
   return false;
 };
 
-// TODO: only take the latest build per commit per artifact
 const groupVersionsByShaOrBuild = (environments: HistoryEnvironment[], params: RawParams) => {
   const groupedVersions: GroupedVersions = {};
   for (const env of environments) {
@@ -114,7 +113,7 @@ export const VersionsHistory = () => {
   const { params } = useCurrentStateAndParams();
 
   const { data, error, loading } = useFetchVersionsHistoryQuery({
-    variables: { appName: app.name, limit: 100 }, // Fetch the last 100 versions
+    variables: { appName: app.name, limit: 50 }, // Fetch the last 50 versions
   });
 
   if (loading && !data) {
@@ -131,6 +130,7 @@ export const VersionsHistory = () => {
   return (
     <main className="VersionsHistory">
       <Messages />
+      {/* Usually, each version is correlated with a single commit  */}
       {groupedVersions.map((group) => {
         return <SingleVersion key={group.key} versionData={group} pinnedVersions={pinnedVersions} />;
       })}

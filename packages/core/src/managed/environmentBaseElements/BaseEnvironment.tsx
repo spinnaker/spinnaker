@@ -58,9 +58,13 @@ const EnvironmentTitle = ({
   );
 };
 
-export const BaseEnvironment: React.FC<IEnvironmentSectionProps> = ({ children, ...otherProps }) => {
+interface IBaseEnvironmentProps extends IEnvironmentSectionProps {
+  className?: string;
+}
+
+export const BaseEnvironment: React.FC<IBaseEnvironmentProps> = ({ children, className, ...otherProps }) => {
   return (
-    <section className="BaseEnvironment">
+    <section className={classnames('BaseEnvironment', className)}>
       <EnvironmentTitle {...otherProps} />
       {children}
     </section>

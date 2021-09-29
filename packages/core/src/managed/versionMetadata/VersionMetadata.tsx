@@ -3,6 +3,7 @@ import React from 'react';
 import {
   BaseVersionMetadata,
   IVersionMetadataProps,
+  LifecycleEventDetails,
   MetadataBadge,
   MetadataElement,
   toVetoedMetadata,
@@ -13,9 +14,9 @@ import {
   VersionMetadataActions,
 } from './MetadataComponents';
 import { formatToRelativeTimestamp, RelativeTimestamp } from '../RelativeTimestamp';
-import { getLifecycleEventDuration, getLifecycleEventLink, getLifecycleEventSummary } from '../overview/artifact/utils';
+import { getLifecycleEventSummary } from '../overview/artifact/utils';
 import { QueryArtifactVersion } from '../overview/types';
-import { IconTooltip } from '../../presentation';
+import { HoverablePopover, IconTooltip } from '../../presentation';
 import { TOOLTIP_DELAY_SHOW } from '../utils/defaults';
 import { SingleVersionArtifactVersion } from '../versionsHistory/types';
 
@@ -27,14 +28,13 @@ export const getBaseMetadata = (
     sha: version.gitMetadata?.commit,
     build: {
       buildNumber: version.buildNumber,
-      buildLink: getLifecycleEventLink(version, 'BUILD'),
       version: version.version,
+      ...getLifecycleEventSummary(version, 'BUILD'),
     },
     author: version.gitMetadata?.author,
     deployedAt: version.deployedAt,
-    buildDuration: getLifecycleEventDuration(version, 'BUILD'),
     isDeploying: version.status === 'DEPLOYING',
-    baking: getLifecycleEventSummary(version, 'BAKE'),
+    bake: getLifecycleEventSummary(version, 'BAKE'),
     vetoed: version.veto ? toVetoedMetadata(version.veto) : undefined,
   };
 };
@@ -46,9 +46,8 @@ export const VersionMetadata = ({
   author,
   deployedAt,
   createdAt,
-  buildDuration,
   buildsBehind,
-  baking,
+  bake,
   isDeploying,
   pinned,
   vetoed,
@@ -57,16 +56,16 @@ export const VersionMetadata = ({
   return (
     <BaseVersionMetadata>
       {isDeploying && <MetadataBadge type="deploying" />}
-      {baking?.isRunning && (
+      {bake?.isRunning && (
         <MetadataBadge
           type="baking"
-          link={baking.link}
-          tooltip={`${baking.startedAt ? formatToRelativeTimestamp(baking.startedAt, true) : ''} (Click to view task)`}
+          link={bake.link}
+          tooltip={`${bake.startedAt ? formatToRelativeTimestamp(bake.startedAt, true) : ''} (Click to view task)`}
         />
       )}
       {build?.buildNumber && <VersionBuilds builds={[build]} />}
-      <VersionCreatedAt createdAt={createdAt} linkProps={sha ? { sha } : { version }} />
       <VersionAuthor author={author} />
+      <VersionCreatedAt createdAt={createdAt} linkProps={sha ? { sha } : { version }} />
       {deployedAt && (
         <MetadataElement>
           <IconTooltip
@@ -79,16 +78,20 @@ export const VersionMetadata = ({
           <RelativeTimestamp timestamp={deployedAt} delayShow={TOOLTIP_DELAY_SHOW} removeStyles withSuffix />
         </MetadataElement>
       )}
-      {buildDuration && (
+      {(build?.duration || bake?.duration) && (
         <MetadataElement>
-          <IconTooltip
-            tooltip="Build duration"
-            name="build"
-            size="12px"
-            wrapperClassName="metadata-icon"
-            delayShow={TOOLTIP_DELAY_SHOW}
-          />
-          {buildDuration}
+          <HoverablePopover
+            delayShow={200}
+            wrapperClassName="vertical"
+            Component={() => (
+              <>
+                <LifecycleEventDetails title="Bake" {...bake} />
+                <LifecycleEventDetails title="Build" {...build} />
+              </>
+            )}
+          >
+            <i className="fas fa-info-circle " />
+          </HoverablePopover>
         </MetadataElement>
       )}
       {buildsBehind ? (
