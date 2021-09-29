@@ -52,6 +52,7 @@ class AmazonCredentialsInitializer {
   }
 
   @Bean
+  @ConditionalOnMissingBean(AccountsConfiguration.class)
   @ConfigurationProperties('aws')
   AccountsConfiguration accountsConfiguration() {
     new AccountsConfiguration()
