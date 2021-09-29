@@ -10,7 +10,7 @@
       loading="state.loading"
       standalone="state.standalone"
     ></instance-details-header>
-    <div ng-if="!state.loading">
+    <div ng-if="!state.loading" ng-hide="isDisabled">
       <div class="actions" ng-class="{ insights: instance.insightActions.length > 0 }" ng-if="instance.placement">
         <instance-actions actions="instanceActions"></instance-actions>
         <instance-insights insights="instance.insightActions" instance="instance"></instance-insights>

@@ -83,7 +83,8 @@ const Filters = () => {
 export const SecurityGroups = ({ app }: ISecurityGroupsProps) => {
   const [filterModel, setFilterModel] = useState<IFilterModel>({ groups: [], tags: [] });
   const [initialized, setInitialized] = useState(false);
-  const [buttonDisable, setButtonDisable] = useState(false);
+  // The default state for buttonDisable is true because we do not want the UI to show the button then hide it
+  const [buttonDisable, setButtonDisable] = useState(true);
   const groupsUpdated = () => {
     setFilterModel({
       groups: SecurityGroupState.filterModel.asFilterModel.groups,

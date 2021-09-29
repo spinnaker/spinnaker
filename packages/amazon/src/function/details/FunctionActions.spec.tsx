@@ -1,7 +1,7 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 
-import { Application } from '@spinnaker/core';
+import { Application, SETTINGS } from '@spinnaker/core';
 import { IAmazonFunction, FunctionActions } from '../../index';
 
 describe('FunctionActions', () => {
@@ -9,6 +9,7 @@ describe('FunctionActions', () => {
     let app = { name: 'app' } as Application;
 
     let functionDef = { functionName: 'app-function' } as IAmazonFunction;
+    SETTINGS.awsAdHocInfraWritesEnabled = true;
 
     const wrapper = shallow(
       <FunctionActions
@@ -25,5 +26,27 @@ describe('FunctionActions', () => {
     let dropDown = wrapper.find('DropdownToggle');
 
     expect(dropDown.childAt(0).text()).toEqual('Function Actions');
+  });
+
+  it('should not render DropdownToggle if awsAdHocInfraWritesEnabled is false', () => {
+    let app = { name: 'app' } as Application;
+
+    let functionDef = { functionName: 'app-function' } as IAmazonFunction;
+    SETTINGS.awsAdHocInfraWritesEnabled = false;
+
+    const wrapper = shallow(
+      <FunctionActions
+        app={app}
+        functionDef={functionDef}
+        functionFromParams={{
+          account: 'test-account',
+          region: 'us-east-1',
+          functionName: 'function-name',
+        }}
+      />,
+    );
+
+    let dropDown = wrapper.find('div');
+    expect(dropDown.children().length).toEqual(0);
   });
 });

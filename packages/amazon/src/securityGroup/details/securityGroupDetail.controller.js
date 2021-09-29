@@ -14,6 +14,7 @@ import {
   RecentHistoryService,
   SECURITY_GROUP_READER,
   SecurityGroupWriter,
+  SETTINGS,
 } from '@spinnaker/core';
 
 import { AMAZON_SECURITYGROUP_CLONE_CLONESECURITYGROUP_CONTROLLER } from '../clone/cloneSecurityGroup.controller';
@@ -44,6 +45,8 @@ angular
 
       // needed for standalone instances
       $scope.detailsTemplateUrl = CloudProviderRegistry.getValue('aws', 'securityGroup.detailsTemplateUrl');
+
+      $scope.isDisabled = !SETTINGS.awsAdHocInfraWritesEnabled;
 
       $scope.state = {
         loading: true,

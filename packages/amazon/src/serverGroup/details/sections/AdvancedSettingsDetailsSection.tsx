@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { CollapsibleSection, confirmNotManaged, ModalInjector } from '@spinnaker/core';
+import { CollapsibleSection, confirmNotManaged, ModalInjector, SETTINGS } from '@spinnaker/core';
 import { HelpField } from '@spinnaker/core';
 
 import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
@@ -49,9 +49,11 @@ export class AdvancedSettingsDetailsSection extends React.Component<IAmazonServe
             <dd>{`${asg.capacityRebalance}`}</dd>,
           ]}
         </dl>
-        <a className="clickable" onClick={this.editAdvancedSettings}>
-          Edit Advanced Settings
-        </a>
+        {SETTINGS.awsAdHocInfraWritesEnabled && (
+          <a className="clickable" onClick={this.editAdvancedSettings}>
+            Edit Advanced Settings
+          </a>
+        )}
       </CollapsibleSection>
     );
   }

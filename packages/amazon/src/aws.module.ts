@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { CloudProviderRegistry, DeploymentStrategyRegistry } from '@spinnaker/core';
+import { CloudProviderRegistry, DeploymentStrategyRegistry, SETTINGS } from '@spinnaker/core';
 
 import { COMMON_MODULE } from './common/common.module';
 import './deploymentStrategy/rollingPush.strategy';
@@ -111,6 +111,7 @@ module(AMAZON_MODULE, [
 ]).config(() => {
   CloudProviderRegistry.registerProvider('aws', {
     name: 'Amazon',
+    adHocInfrastructureWritesEnabled: SETTINGS.awsAdHocInfraWritesEnabled,
     logo: {
       path: amazonLogo,
     },

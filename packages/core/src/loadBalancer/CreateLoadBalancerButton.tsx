@@ -26,11 +26,9 @@ export interface ICreateLoadBalancerButtonProps {
 export class CreateLoadBalancerButton extends React.Component<ICreateLoadBalancerButtonProps, { isDisabled: boolean }> {
   constructor(props: ICreateLoadBalancerButtonProps) {
     super(props);
-    this.state = { isDisabled: false };
-  }
 
-  componentDidMount() {
     const { app } = this.props;
+    this.state = { isDisabled: true };
     ProviderSelectionService.isDisabled(app).then((val) => {
       this.setState({
         isDisabled: val,

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { CollapsibleSection, ModalInjector, Tooltip } from '@spinnaker/core';
+import { CollapsibleSection, ModalInjector, SETTINGS, Tooltip } from '@spinnaker/core';
 
 import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
 import { IScalingProcess } from '../../../domain';
@@ -80,9 +80,11 @@ export class ScheduledActionsDetailsSection extends React.Component<
           </p>
         )}
         {serverGroup.scheduledActions.length === 0 && <p>No Scheduled Actions are configured for this server group.</p>}
-        <a className="clickable" onClick={this.editScheduledActions}>
-          Edit Scheduled Actions
-        </a>
+        {SETTINGS.awsAdHocInfraWritesEnabled && (
+          <a className="clickable" onClick={this.editScheduledActions}>
+            Edit Scheduled Actions
+          </a>
+        )}
       </CollapsibleSection>
     );
   }

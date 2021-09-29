@@ -114,49 +114,51 @@ export class LoadBalancerActions extends React.Component<ILoadBalancerActionsPro
 
     return (
       <div style={{ display: 'inline-block' }}>
-        <Dropdown className="dropdown" id="load-balancer-actions-dropdown">
-          <Dropdown.Toggle className="btn btn-sm btn-primary dropdown-toggle">
-            <span>Load Balancer Actions</span>
-          </Dropdown.Toggle>
-          <Dropdown.Menu className="dropdown-menu">
-            {application && (
-              <ManagedMenuItem resource={loadBalancer} application={app} onClick={this.editLoadBalancer}>
-                Edit Load Balancer
-              </ManagedMenuItem>
-            )}
-            {!application && (
-              <li className="disabled">
-                <a>
-                  Edit Load Balancer{' '}
-                  <HelpField
-                    content={`The application <b>${loadBalancerAppName}</b> must be configured before this load balancer can be edited.`}
-                  />
-                </a>
-              </li>
-            )}
-            {allowDeletion && (
-              <ManagedMenuItem resource={loadBalancer} application={app} onClick={this.deleteLoadBalancer}>
-                Delete Load Balancer
-              </ManagedMenuItem>
-            )}
-            {!allowDeletion && (
-              <li className="disabled">
-                <a>
-                  Delete Load Balancer{' '}
-                  <HelpField content="You must detach all instances before you can delete this load balancer." />
-                </a>
-              </li>
-            )}
-            {SETTINGS && SETTINGS.feature.entityTags && (
-              <AddEntityTagLinks
-                component={loadBalancer}
-                application={app}
-                entityType="loadBalancer"
-                onUpdate={this.entityTagUpdate}
-              />
-            )}
-          </Dropdown.Menu>
-        </Dropdown>
+        {SETTINGS.awsAdHocInfraWritesEnabled && (
+          <Dropdown className="dropdown" id="load-balancer-actions-dropdown">
+            <Dropdown.Toggle className="btn btn-sm btn-primary dropdown-toggle">
+              <span>Load Balancer Actions</span>
+            </Dropdown.Toggle>
+            <Dropdown.Menu className="dropdown-menu">
+              {application && (
+                <ManagedMenuItem resource={loadBalancer} application={app} onClick={this.editLoadBalancer}>
+                  Edit Load Balancer
+                </ManagedMenuItem>
+              )}
+              {!application && (
+                <li className="disabled">
+                  <a>
+                    Edit Load Balancer{' '}
+                    <HelpField
+                      content={`The application <b>${loadBalancerAppName}</b> must be configured before this load balancer can be edited.`}
+                    />
+                  </a>
+                </li>
+              )}
+              {allowDeletion && (
+                <ManagedMenuItem resource={loadBalancer} application={app} onClick={this.deleteLoadBalancer}>
+                  Delete Load Balancer
+                </ManagedMenuItem>
+              )}
+              {!allowDeletion && (
+                <li className="disabled">
+                  <a>
+                    Delete Load Balancer{' '}
+                    <HelpField content="You must detach all instances before you can delete this load balancer." />
+                  </a>
+                </li>
+              )}
+              {SETTINGS && SETTINGS.feature.entityTags && (
+                <AddEntityTagLinks
+                  component={loadBalancer}
+                  application={app}
+                  entityType="loadBalancer"
+                  onUpdate={this.entityTagUpdate}
+                />
+              )}
+            </Dropdown.Menu>
+          </Dropdown>
+        )}
       </div>
     );
   }

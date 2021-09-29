@@ -1,6 +1,14 @@
 import React from 'react';
 
-import { CollapsibleSection, confirmNotManaged, HelpField, ModalInjector, timestamp, Tooltip } from '@spinnaker/core';
+import {
+  CollapsibleSection,
+  confirmNotManaged,
+  HelpField,
+  ModalInjector,
+  SETTINGS,
+  timestamp,
+  Tooltip,
+} from '@spinnaker/core';
 
 import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
 import { IScalingProcess } from '../../../domain';
@@ -101,9 +109,11 @@ export class ScalingProcessesDetailsSection extends React.Component<
             </li>
           ))}
         </ul>
-        <a className="clickable" onClick={this.toggleScalingProcesses}>
-          Edit Scaling Processes
-        </a>
+        {SETTINGS.awsAdHocInfraWritesEnabled && (
+          <a className="clickable" onClick={this.toggleScalingProcesses}>
+            Edit Scaling Processes
+          </a>
+        )}
       </CollapsibleSection>
     );
   }

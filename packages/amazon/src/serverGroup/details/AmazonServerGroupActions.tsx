@@ -289,54 +289,58 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
     const entityTagTargets: IOwnerOption[] = ClusterTargetBuilder.buildClusterTargets(serverGroup);
 
     return (
-      <Dropdown className="dropdown" id="server-group-actions-dropdown">
-        <Dropdown.Toggle className="btn btn-sm btn-primary dropdown-toggle">Server Group Actions</Dropdown.Toggle>
-        <Dropdown.Menu className="dropdown-menu">
-          {this.isRollbackEnabled() && (
-            <ManagedMenuItem resource={serverGroup} application={app} onClick={this.rollbackServerGroup}>
-              Rollback
-            </ManagedMenuItem>
-          )}
-          {this.isRollbackEnabled() && <li role="presentation" className="divider" />}
-          <AmazonServerGroupActionsResize application={app} serverGroup={serverGroup} />
-          {!serverGroup.isDisabled && (
-            <ManagedMenuItem resource={serverGroup} application={app} onClick={this.disableServerGroup}>
-              Disable
-            </ManagedMenuItem>
-          )}
-          {this.hasDisabledInstances() && !this.isEnableLocked() && (
-            <ManagedMenuItem resource={serverGroup} application={app} onClick={this.enableServerGroup}>
-              Enable
-            </ManagedMenuItem>
-          )}
-          {this.isEnableLocked() && (
-            <li className="disabled">
-              <Tooltip value="Cannot enable this server group until resize operation completes" placement="left">
-                <a>
-                  <span className="small glyphicon glyphicon-lock" /> Enable
+      <>
+        {SETTINGS.awsAdHocInfraWritesEnabled && (
+          <Dropdown className="dropdown" id="server-group-actions-dropdown">
+            <Dropdown.Toggle className="btn btn-sm btn-primary dropdown-toggle">Server Group Actions</Dropdown.Toggle>
+            <Dropdown.Menu className="dropdown-menu">
+              {this.isRollbackEnabled() && (
+                <ManagedMenuItem resource={serverGroup} application={app} onClick={this.rollbackServerGroup}>
+                  Rollback
+                </ManagedMenuItem>
+              )}
+              {this.isRollbackEnabled() && <li role="presentation" className="divider" />}
+              <AmazonServerGroupActionsResize application={app} serverGroup={serverGroup} />
+              {!serverGroup.isDisabled && (
+                <ManagedMenuItem resource={serverGroup} application={app} onClick={this.disableServerGroup}>
+                  Disable
+                </ManagedMenuItem>
+              )}
+              {this.hasDisabledInstances() && !this.isEnableLocked() && (
+                <ManagedMenuItem resource={serverGroup} application={app} onClick={this.enableServerGroup}>
+                  Enable
+                </ManagedMenuItem>
+              )}
+              {this.isEnableLocked() && (
+                <li className="disabled">
+                  <Tooltip value="Cannot enable this server group until resize operation completes" placement="left">
+                    <a>
+                      <span className="small glyphicon glyphicon-lock" /> Enable
+                    </a>
+                  </Tooltip>
+                </li>
+              )}
+              <ManagedMenuItem resource={serverGroup} application={app} onClick={this.destroyServerGroup}>
+                Destroy
+              </ManagedMenuItem>
+              <li>
+                <a className="clickable" onClick={this.cloneServerGroup}>
+                  Clone
                 </a>
-              </Tooltip>
-            </li>
-          )}
-          <ManagedMenuItem resource={serverGroup} application={app} onClick={this.destroyServerGroup}>
-            Destroy
-          </ManagedMenuItem>
-          <li>
-            <a className="clickable" onClick={this.cloneServerGroup}>
-              Clone
-            </a>
-          </li>
-          {showEntityTags && (
-            <AddEntityTagLinks
-              component={serverGroup}
-              application={app}
-              entityType="serverGroup"
-              ownerOptions={entityTagTargets}
-              onUpdate={() => app.serverGroups.refresh()}
-            />
-          )}
-        </Dropdown.Menu>
-      </Dropdown>
+              </li>
+              {showEntityTags && (
+                <AddEntityTagLinks
+                  component={serverGroup}
+                  application={app}
+                  entityType="serverGroup"
+                  ownerOptions={entityTagTargets}
+                  onUpdate={() => app.serverGroups.refresh()}
+                />
+              )}
+            </Dropdown.Menu>
+          </Dropdown>
+        )}
+      </>
     );
   }
 }

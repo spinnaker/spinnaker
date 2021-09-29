@@ -34,6 +34,8 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
   '$q',
   'overrides',
   function ($scope, $state, instance, app, moniker, environment, $q, overrides) {
+    $scope.isDisabled = !SETTINGS.awsAdHocInfraWritesEnabled;
+
     // needed for standalone instances
     $scope.detailsTemplateUrl = CloudProviderRegistry.getValue('aws', 'instance.detailsTemplateUrl');
 

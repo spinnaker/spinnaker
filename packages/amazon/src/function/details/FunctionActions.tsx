@@ -96,33 +96,35 @@ export class FunctionActions extends React.Component<IFunctionActionsProps, IFun
 
     return (
       <div style={{ display: 'inline-block' }}>
-        <Dropdown className="dropdown" id="function-actions-dropdown">
-          <Dropdown.Toggle className="btn btn-sm btn-primary dropdown-toggle">
-            <span>Function Actions</span>
-          </Dropdown.Toggle>
-          <Dropdown.Menu className="dropdown-menu">
-            <li className={!application ? 'disabled' : ''}>
-              <a className="clickable" onClick={this.editFunction}>
-                Edit Function
-              </a>
-            </li>
-            {functionDef.functionName && (
-              <li>
-                <a className="clickable" onClick={this.deleteFunction}>
-                  Delete Function
+        {SETTINGS.awsAdHocInfraWritesEnabled && (
+          <Dropdown className="dropdown" id="function-actions-dropdown">
+            <Dropdown.Toggle className="btn btn-sm btn-primary dropdown-toggle">
+              <span>Function Actions</span>
+            </Dropdown.Toggle>
+            <Dropdown.Menu className="dropdown-menu">
+              <li className={!application ? 'disabled' : ''}>
+                <a className="clickable" onClick={this.editFunction}>
+                  Edit Function
                 </a>
               </li>
-            )}
-            {SETTINGS && SETTINGS.feature.entityTags && (
-              <AddEntityTagLinks
-                component={functionDef}
-                application={app}
-                entityType="function"
-                onUpdate={this.entityTagUpdate}
-              />
-            )}
-          </Dropdown.Menu>
-        </Dropdown>
+              {functionDef.functionName && (
+                <li>
+                  <a className="clickable" onClick={this.deleteFunction}>
+                    Delete Function
+                  </a>
+                </li>
+              )}
+              {SETTINGS && SETTINGS.feature.entityTags && (
+                <AddEntityTagLinks
+                  component={functionDef}
+                  application={app}
+                  entityType="function"
+                  onUpdate={this.entityTagUpdate}
+                />
+              )}
+            </Dropdown.Menu>
+          </Dropdown>
+        )}
       </div>
     );
   }

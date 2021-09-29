@@ -49,12 +49,12 @@ export class CloudProviderRegistry {
     return get(this.getProvider(cloudProvider), key) ?? null;
   }
 
-  //If the flag kubernetesAdHocInfraWritesEnabled is set to "false" then is disabled
   public static isDisabled(cloudProvider: string) {
-    if (cloudProvider !== 'kubernetes') {
+    // If the adHocInfrastructureWritesEnabled flag when registering provider is not set
+    // Infrastructure writes will be enabled (Action buttons will not be disabled)
+    if (isNil(CloudProviderRegistry.getValue(cloudProvider, 'adHocInfrastructureWritesEnabled'))) {
       return false;
     }
-    const writesEnabled = CloudProviderRegistry.getValue(cloudProvider, 'kubernetesAdHocInfraWritesEnabled');
-    return isNil(writesEnabled) || writesEnabled === false;
+    return CloudProviderRegistry.getValue(cloudProvider, 'adHocInfrastructureWritesEnabled') === false;
   }
 }

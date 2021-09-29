@@ -9,6 +9,7 @@ import {
   ISecurityGroup,
   ISecurityGroupsByAccount,
   ModalInjector,
+  SETTINGS,
 } from '@spinnaker/core';
 
 import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
@@ -113,7 +114,7 @@ export class SecurityGroupsDetailsSection extends React.Component<
             </li>
           ))}
         </ul>
-        {serverGroup.vpcId && (
+        {SETTINGS.awsAdHocInfraWritesEnabled && serverGroup.vpcId && (
           <a className="clickable" onClick={this.updateSecurityGroups}>
             Edit {FirewallLabels.get('Firewalls')}
           </a>

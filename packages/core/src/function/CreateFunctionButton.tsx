@@ -21,7 +21,23 @@ export interface ICreateFunctionButtonProps {
   app: Application;
 }
 
-export class CreateFunctionButton extends React.Component<ICreateFunctionButtonProps> {
+export interface ICreateFunctionButtonState {
+  isDisabled: boolean;
+}
+
+export class CreateFunctionButton extends React.Component<ICreateFunctionButtonProps, ICreateFunctionButtonState> {
+  constructor(props: ICreateFunctionButtonProps) {
+    super(props);
+
+    const { app } = this.props;
+    this.state = { isDisabled: true };
+    ProviderSelectionService.isDisabled(app).then((val) => {
+      this.setState({
+        isDisabled: val,
+      });
+    });
+  }
+
   private createFunction = (): void => {
     const { app } = this.props;
 
@@ -38,15 +54,19 @@ export class CreateFunctionButton extends React.Component<ICreateFunctionButtonP
   };
 
   public render() {
+    const { isDisabled } = this.state;
+
     return (
       <div>
-        <button className="btn btn-sm btn-default" onClick={this.createFunction}>
-          <span className="glyphicon glyphicon-plus-sign visible-lg-inline" />
-          <Tooltip value="Create Function">
-            <span className="glyphicon glyphicon-plus-sign visible-md-inline visible-sm-inline" />
-          </Tooltip>
-          <span className="visible-lg-inline"> Create Function </span>
-        </button>
+        {!isDisabled && (
+          <button className="btn btn-sm btn-default" onClick={this.createFunction}>
+            <span className="glyphicon glyphicon-plus-sign visible-lg-inline" />
+            <Tooltip value="Create Function">
+              <span className="glyphicon glyphicon-plus-sign visible-md-inline visible-sm-inline" />
+            </Tooltip>
+            <span className="visible-lg-inline"> Create Function </span>
+          </button>
+        )}
       </div>
     );
   }
