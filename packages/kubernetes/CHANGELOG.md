@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.102](https://github.com/spinnaker/deck/compare/@spinnaker/kubernetes@0.0.101...@spinnaker/kubernetes@0.0.102) (2021-09-29)
+
+
+### Bug Fixes
+
+* **kubernetes:** hide ad-hoc infrastructure action buttons when spinnaker has multiple accounts ([#9707](https://github.com/spinnaker/deck/issues/9707)) ([337ec29](https://github.com/spinnaker/deck/commit/337ec291494bc8d7ff863cd2a44ce38ab98229c1))
+
+
+
+
+
 ## [0.0.101](https://github.com/spinnaker/deck/compare/@spinnaker/kubernetes@0.0.100...@spinnaker/kubernetes@0.0.101) (2021-09-24)
 
 **Note:** Version bump only for package @spinnaker/kubernetes

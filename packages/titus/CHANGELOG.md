@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.5.10](https://github.com/spinnaker/deck/compare/@spinnaker/titus@0.5.9...@spinnaker/titus@0.5.10) (2021-09-29)
+
+
+### Bug Fixes
+
+* **titus:** Deal with absence of non-required fields ([#9711](https://github.com/spinnaker/deck/issues/9711)) ([4602446](https://github.com/spinnaker/deck/commit/460244626f2e2892dcbe5163d788bedf93c01a64))
+
+
+
+
+
 ## [0.5.9](https://github.com/spinnaker/deck/compare/@spinnaker/titus@0.5.8...@spinnaker/titus@0.5.9) (2021-09-24)
 
 **Note:** Version bump only for package @spinnaker/titus

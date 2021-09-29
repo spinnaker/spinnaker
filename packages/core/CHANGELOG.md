@@ -3,6 +3,23 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.12.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.11.7...@spinnaker/core@0.12.0) (2021-09-29)
+
+
+### Bug Fixes
+
+* **core:** Ensure text is stringin CopyToClipboard ([#9704](https://github.com/spinnaker/deck/issues/9704)) ([78da1d8](https://github.com/spinnaker/deck/commit/78da1d8fd2a98533fd202506369d320207e45fc8))
+* **kubernetes:** hide ad-hoc infrastructure action buttons when spinnaker has multiple accounts ([#9707](https://github.com/spinnaker/deck/issues/9707)) ([337ec29](https://github.com/spinnaker/deck/commit/337ec291494bc8d7ff863cd2a44ce38ab98229c1))
+
+
+### Features
+
+* **md:** added a default component if preview environments configured but don't exist ([#9713](https://github.com/spinnaker/deck/issues/9713)) ([9432fd0](https://github.com/spinnaker/deck/commit/9432fd0e5419b0c2015f1b968b95c305acb928e1))
+
+
+
+
+
 ## [0.11.7](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.11.6...@spinnaker/core@0.11.7) (2021-09-24)
 
 

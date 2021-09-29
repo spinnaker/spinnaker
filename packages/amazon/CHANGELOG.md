@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.8.16](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.8.15...@spinnaker/amazon@0.8.16) (2021-09-29)
+
+
+### Bug Fixes
+
+* **amazon:** Typo in command builder ([#9706](https://github.com/spinnaker/deck/issues/9706)) ([fd93d75](https://github.com/spinnaker/deck/commit/fd93d75984d33d5c67cdcf593bd2a0061e35970c))
+
+
+
+
+
 ## [0.8.15](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.8.14...@spinnaker/amazon@0.8.15) (2021-09-24)
 
 **Note:** Version bump only for package @spinnaker/amazon
