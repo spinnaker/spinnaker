@@ -26,6 +26,6 @@ const DOCS_URLS: IManagedDeliveryURLs = {
   resourceStatus: 'https://www.spinnaker.io/guides/user/managed-delivery/resource-status/',
 };
 
-export const getDocsUrl = (doc: keyof IManagedDeliveryURLs): string => {
+export const getDocsUrl = (doc: keyof IManagedDeliveryURLs): string | undefined => {
   return SETTINGS.managedDelivery?.urls?.[doc] || DOCS_URLS[doc];
 };

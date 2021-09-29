@@ -65,10 +65,16 @@ interface IEnvironmentsRenderProps {
   children?: React.ReactNode;
 }
 
+export interface OrderedEnvironments<T> {
+  className?: string;
+  style?: React.CSSProperties;
+  environments: T[];
+}
+
 export const useOrderedEnvironment = <T extends object>(
   ref: React.RefObject<HTMLDivElement>,
   environments: T[],
-): { className?: string; style?: React.CSSProperties; environments: T[] } => {
+): OrderedEnvironments<T> => {
   const { direction } = useEnvironmentDirectionState();
   const { width } = useDimensions(ref, { isActive: direction === 'gridView' });
 
