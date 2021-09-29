@@ -4,7 +4,7 @@ Edit pipelines, applications & intents.
 
 # Installation & Configuration
 
-Follow the instructions at [spinnaker.io](https://www.spinnaker.io/guides/spin/cli/#install-and-configure-spin-cli).
+Follow the instructions at [spinnaker.io](https://spinnaker.io/docs/setup/other_config/spin/).
 
 # Development
 
