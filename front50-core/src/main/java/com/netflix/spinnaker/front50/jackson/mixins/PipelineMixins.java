@@ -87,7 +87,7 @@ public abstract class PipelineMixins {
   @JsonInclude(Include.NON_NULL)
   @Getter
   @Setter
-  private String disabled;
+  private Boolean disabled;
 
   @JsonInclude(Include.NON_NULL)
   @Getter
@@ -137,12 +137,12 @@ public abstract class PipelineMixins {
   @JsonInclude(Include.NON_NULL)
   @Getter
   @Setter
-  private String keepWaitingPipelines;
+  private Boolean keepWaitingPipelines;
 
   @JsonInclude(Include.NON_NULL)
   @Getter
   @Setter
-  private String limitConcurrent;
+  private Boolean limitConcurrent;
 
   @JsonInclude(Include.NON_NULL)
   @Getter

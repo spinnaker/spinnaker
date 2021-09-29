@@ -42,7 +42,7 @@ public class Pipeline implements Timestamped {
   private String lastModified;
 
   @Getter @Setter private String email;
-  @Getter @Setter private String disabled;
+  @Getter @Setter private Boolean disabled;
   @Getter @Setter private Map<String, Object> template;
   @Getter @Setter private List<String> roles;
   @Getter @Setter private String serviceAccount;
@@ -51,8 +51,8 @@ public class Pipeline implements Timestamped {
   @Getter @Setter private List<Map<String, Object>> stages;
   @Getter @Setter private Map<String, Object> constraints;
   @Getter @Setter private Map<String, Object> payloadConstraints;
-  @Getter @Setter private String keepWaitingPipelines;
-  @Getter @Setter private String limitConcurrent;
+  @Getter @Setter private Boolean keepWaitingPipelines;
+  @Getter @Setter private Boolean limitConcurrent;
   @Getter @Setter private List<Map<String, Object>> parameterConfig;
   @Getter @Setter private String spelEvaluator;
 
