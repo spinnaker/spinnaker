@@ -155,11 +155,11 @@ export class JobDisruptionBudget extends React.Component<IJobDisruptionBudgetPro
     const PolicyFields = policyType.fieldComponent;
 
     const rateType = this.getSelectionFromFields(rateOptions);
-    const RateFields = rateType.fieldComponent;
+    const RateFields = rateType?.fieldComponent;
 
     const windowType = this.getTimeWindowSelection();
 
-    const selectedProviders = budget.containerHealthProviders.map((p) => p.name);
+    const selectedProviders = (budget.containerHealthProviders ?? []).map((p) => p.name);
 
     const isSelfManaged = !!budget.selfManaged;
     const showConfig = !runJobView || (runJobView && !usingDefault);
