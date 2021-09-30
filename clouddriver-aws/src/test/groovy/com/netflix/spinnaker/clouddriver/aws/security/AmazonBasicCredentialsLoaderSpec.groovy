@@ -156,14 +156,36 @@ class AmazonBasicCredentialsLoaderSpec extends Specification{
         new AmazonCredentials.AWSRegion('us-east-1', ['us-east-1a', 'us-east-1b']),
         new AmazonCredentials.AWSRegion('us-west-2', ['us-west-2a']),
       ]
+      if (multiThreadingEnabled) {
+        // in a multi-threaded setup, it may so happen that the thread processing account200 may end up
+        // running before the thread processing account100. At that point, it may not find
+        // 'ap-southeast-1' in the cache, so it could make a list regions call to look up both
+        // 'ap-southeast-1' and 'ap-southeast-2'. This will, in turn, determine if a list regions call
+        // with just 'ap-southeast-1' or 'ap-southeast-2' gets invoked or not. Hence, we have the
+        // cardinality of these calls specified in a range.
+        (0..1) * lookup.listRegions(['ap-southeast-1', 'ap-southeast-2']) >> [
+          new AmazonCredentials.AWSRegion('ap-southeast-1', ['ap-southeast-1a', 'ap-southeast-1b']),
+          new AmazonCredentials.AWSRegion('ap-southeast-2', ['ap-southeast-2a', 'ap-southeast-2b'])
+        ]
 
-      1 * lookup.listRegions(['ap-southeast-1']) >> [
-        new AmazonCredentials.AWSRegion('ap-southeast-1', ['ap-southeast-1a', 'ap-southeast-1b'])
-      ]
+        (0..1) * lookup.listRegions(['ap-southeast-1']) >> [
+          new AmazonCredentials.AWSRegion('ap-southeast-1', ['ap-southeast-1a', 'ap-southeast-1b'])
+        ]
 
-      1 * lookup.listRegions(['ap-southeast-2']) >> [
-        new AmazonCredentials.AWSRegion('ap-southeast-2', ['ap-southeast-2a', 'ap-southeast-2b'])
-      ]
+        (0..1) * lookup.listRegions(['ap-southeast-2']) >> [
+          new AmazonCredentials.AWSRegion('ap-southeast-2', ['ap-southeast-2a', 'ap-southeast-2b'])
+        ]
+      } else {
+        // in a non-multi-threaded setup, we are sure that these calls should only be invoked once.
+        1 * lookup.listRegions(['ap-southeast-1']) >> [
+          new AmazonCredentials.AWSRegion('ap-southeast-1', ['ap-southeast-1a', 'ap-southeast-1b'])
+        ]
+
+        1 * lookup.listRegions(['ap-southeast-2']) >> [
+          new AmazonCredentials.AWSRegion('ap-southeast-2', ['ap-southeast-2a', 'ap-southeast-2b'])
+        ]
+      }
+
     }
 
     0 * lookup.listRegions
