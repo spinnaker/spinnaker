@@ -149,10 +149,13 @@ public class CredentialsConfig {
      * Only applicable when multiThreadingEnabled: true. This specifies the number of threads that
      * should be used to load the aws accounts.
      *
-     * <p>Adjust this number appropriately based on: - number of aws many accounts, - number of
-     * clouddriver pods (so that aws api calls are not rate-limited)
+     * <p>Adjust this number appropriately based on:
+     *
+     * <p>- number of aws many accounts
+     *
+     * <p>- number of clouddriver pods (so that aws api calls are not rate-limited)
      */
-    private int numberOfThreads = 5;
+    private int numberOfThreads = 15;
 
     /**
      * Only applicable when multiThreadingEnabled: true. This specifies the max amount of time for
