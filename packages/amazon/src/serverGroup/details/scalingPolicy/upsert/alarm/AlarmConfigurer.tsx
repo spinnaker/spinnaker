@@ -20,7 +20,7 @@ export interface IAlarmConfigurerProps {
 
 const STATISTICS = ['Average', 'Maximum', 'Minimum', 'SampleCount', 'Sum'];
 
-const COMPARATORS = [
+export const COMPARATORS = [
   { label: '>=', value: 'GreaterThanOrEqualToThreshold' },
   { label: '>', value: 'GreaterThanThreshold' },
   { label: '<=', value: 'LessThanOrEqualToThreshold' },

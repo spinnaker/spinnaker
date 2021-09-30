@@ -47,6 +47,7 @@ import { AWS_SECURITY_GROUP_MODULE } from './securityGroup/securityGroup.module'
 import { AmazonCloneServerGroupModal } from './serverGroup/configure/wizard/AmazonCloneServerGroupModal';
 import { AmazonServerGroupActions } from './serverGroup/details/AmazonServerGroupActions';
 import { amazonServerGroupDetailsGetter } from './serverGroup/details/amazonServerGroupDetailsGetter';
+import { AmazonUpsertScalingPolicyModal, AmazonUpsertTargetTrackingModal } from './serverGroup/details/scalingPolicy';
 import {
   AdvancedSettingsDetailsSection,
   AmazonCapacityDetailsSection,
@@ -142,6 +143,8 @@ module(AMAZON_MODULE, [
       commandBuilder: 'awsServerGroupCommandBuilder',
       configurationService: 'awsServerGroupConfigurationService',
       scalingActivitiesEnabled: true,
+      UpsertStepPolicyModal: AmazonUpsertScalingPolicyModal,
+      UpsertTargetTrackingModal: AmazonUpsertTargetTrackingModal,
     },
     instance: {
       instanceTypeService: 'awsInstanceTypeService',
