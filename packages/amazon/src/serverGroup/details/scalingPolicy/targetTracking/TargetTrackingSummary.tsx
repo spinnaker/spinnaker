@@ -93,7 +93,7 @@ export const TargetTrackingSummary = ({ application, policy, serverGroup }: ITar
           <div className="label label-default">{robotToHuman(policy.policyType).toUpperCase()}</div>
           <div>
             <b>Target</b>
-            <span className="sp-margin-xs-right">
+            <span className="sp-margin-xs-left">
               {config.predefinedMetricSpecification?.predefinedMetricType ||
                 config.customizedMetricSpecification?.metricName}
             </span>

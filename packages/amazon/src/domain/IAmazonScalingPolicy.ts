@@ -1,4 +1,5 @@
 import type { IScalingPolicy, IScalingPolicyAlarm, IStepAdjustment } from './IScalingPolicy';
+import type { ITargetTrackingConfiguration } from './ITargetTrackingPolicy';
 
 export interface IScalingAdjustmentView extends IStepAdjustment {
   operator: string;
@@ -16,6 +17,7 @@ export interface IScalingPolicyView extends IScalingPolicy, IScalingAdjustmentVi
   alarms: IScalingPolicyAlarmView[];
   stepAdjustments: IStepAdjustmentView[];
   operator: string;
+  targetTrackingConfiguration?: ITargetTrackingConfiguration;
 }
 
 export interface IStepAdjustmentView extends IScalingAdjustmentView, IStepAdjustment {

@@ -4,8 +4,9 @@ import { CollapsibleSection, Overridable, SETTINGS, Tooltip } from '@spinnaker/c
 
 import type { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
 import type { IAmazonServerGroupView, IScalingProcess } from '../../../domain';
-import { AwsNgReact } from '../../../reactShims';
+
 import { CreateScalingPolicyButton } from '../scalingPolicy/CreateScalingPolicyButton';
+import { ScalingPolicySummary } from '../scalingPolicy/ScalingPolicySummary';
 import { AutoScalingProcessService } from '../scalingProcesses/AutoScalingProcessService';
 
 @Overridable('aws.serverGroup.ScalingPoliciesDetailsSection')
@@ -27,8 +28,6 @@ export class ScalingPoliciesDetailsSection extends React.Component<IAmazonServer
   public render(): JSX.Element {
     const { app, serverGroup } = this.props;
     const scalingPoliciesDisabled = ScalingPoliciesDetailsSection.arePoliciesDisabled(serverGroup);
-
-    const { ScalingPolicySummary } = AwsNgReact;
 
     return (
       <CollapsibleSection

@@ -4,6 +4,7 @@ export * from './ScalingPolicyTypeRegistry';
 export * from './CreateScalingPolicyButton';
 export * from './ScalingPolicyWriter';
 export * from './StepPolicySummary';
+export * from './ScalingPolicySummary';
 export * from './targetTracking/TargetTrackingAdditionalSettings';
 export * from './targetTracking/TargetMetricFields';
 export * from './targetTracking/TargetTrackingChart';

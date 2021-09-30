@@ -89,7 +89,6 @@ export const StepPolicySummary = ({ application, policy, serverGroup }: IStepPol
 
   return (
     <div className="StepPolicySummary">
-      <span className="label label-default">{robotToHuman(policy.policyType).toUpperCase()}</span>
       <div>
         {policy.alarms.map((a) => (
           <div key={`step-summary-${policy.policyName}`}>
@@ -100,7 +99,10 @@ export const StepPolicySummary = ({ application, policy, serverGroup }: IStepPol
               placement="left"
               title={policy.policyName}
             >
-              <AlarmSummary alarm={a} />
+              <div>
+                <div className="label label-default">{robotToHuman(policy.policyType).toUpperCase()}</div>
+                <AlarmSummary alarm={a} />
+              </div>
             </HoverablePopover>
             <div className="actions">
               <button className="btn btn-xs btn-link" onClick={editPolicy}>
