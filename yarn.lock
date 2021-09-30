@@ -2760,6 +2760,14 @@
   resolved "https://registry.yarnpkg.com/@spinnaker/core/-/core-0.0.549.tgz#e7246140825705e6d295c30010de4f71a78d1670"
   integrity sha512-8EDwICoaqOtWFYQHvSNrTNh0ksIEVp9i/GueClvHbrcSRxYOqPDxQcSs3RGihxahjlfXIi7zjqvK0aDvSYBo0w==
 
+"@spinnaker/eslint-plugin@^1.0.13":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@spinnaker/eslint-plugin/-/eslint-plugin-1.1.1.tgz#d07fc8cc201bbcf255fc82d5c93c12ea0b2718fa"
+  integrity sha512-qZbDc8O33rPaUhrz37mIOA+0uTYI1Kg1RMFyLSmwAQ4B90xsh1JlGz4n+oiAqDASzUXZTN+lAo58/MQFg1dWiw==
+  dependencies:
+    lodash "^4.17.20"
+    ts-node "*"
+
 "@spinnaker/kayenta@2.0.0":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-2.0.0.tgz#0fc18a641ee2577c21c0bdf5eb24ac1a5ab1caf5"

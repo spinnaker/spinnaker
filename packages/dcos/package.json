@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/dcos",
   "license": "Apache-2.0",
-  "version": "0.0.34",
+  "version": "0.0.35",
   "module": "dist/index.js",
   "typings": "dist/index.d.ts",
   "private": true,
@@ -14,16 +14,16 @@
     "lib": "npm run build"
   },
   "dependencies": {
-    "@spinnaker/core": "^0.12.0",
-    "@spinnaker/docker": "^0.0.115",
+    "@spinnaker/core": "^0.13.0",
+    "@spinnaker/docker": "^0.0.116",
     "angular": "1.6.10",
     "lodash": "4.17.21",
     "ngimport": "0.6.1",
     "rxjs": "6.6.7"
   },
   "devDependencies": {
-    "@spinnaker/eslint-plugin": "^1.1.1",
-    "@spinnaker/scripts": "^0.2.0",
+    "@spinnaker/eslint-plugin": "^2.0.0",
+    "@spinnaker/scripts": "^0.2.1",
     "shx": "0.3.3",
     "typescript": "4.3.5"
   }

@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.0.19](https://github.com/spinnaker/deck/compare/deck-app@2.0.18...deck-app@2.0.19) (2021-09-30)
+
+
+### Bug Fixes
+
+* bump @types/react to 16.14.10 ([bb62b99](https://github.com/spinnaker/deck/commit/bb62b991514c2a81fbdf467c01f3ce7467f71718))
+
+
+
+
+
 ## [2.0.18](https://github.com/spinnaker/deck/compare/deck-app@2.0.17...deck-app@2.0.18) (2021-09-29)
 
 **Note:** Version bump only for package deck-app

@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.1.0](https://github.com/spinnaker/deck/compare/@spinnaker/kubernetes@0.0.102...@spinnaker/kubernetes@0.1.0) (2021-09-30)
+
+
+### Bug Fixes
+
+* bump @types/react to 16.14.10 ([bb62b99](https://github.com/spinnaker/deck/commit/bb62b991514c2a81fbdf467c01f3ce7467f71718))
+
+
+### Features
+
+* **aws/infrastructure:** Hide aws ad hoc infrastructure action buttons ([#9712](https://github.com/spinnaker/deck/issues/9712)) ([7202efd](https://github.com/spinnaker/deck/commit/7202efd54ad0b048d5c1f45c24162619b25be844))
+
+
+
+
+
 ## [0.0.102](https://github.com/spinnaker/deck/compare/@spinnaker/kubernetes@0.0.101...@spinnaker/kubernetes@0.0.102) (2021-09-29)
 
 

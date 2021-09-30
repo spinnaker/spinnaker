@@ -3,6 +3,24 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.0.0](https://github.com/spinnaker/deck/compare/@spinnaker/eslint-plugin@1.1.1...@spinnaker/eslint-plugin@2.0.0) (2021-09-30)
+
+
+### Features
+
+* **eslint-plugin:** prefer type imports ([d46bd74](https://github.com/spinnaker/deck/commit/d46bd748375e549eb5e0ccacdfe20c3192a2c2a5))
+
+
+### BREAKING CHANGES
+
+* **eslint-plugin:** Added consistent-type-imports rule as an 'error'.  Run: eslint --fix
+
+prefer: import type { IType } from 'somepackage';
+
+
+
+
+
 ## [1.1.1](https://github.com/spinnaker/deck/compare/@spinnaker/eslint-plugin@1.1.0...@spinnaker/eslint-plugin@1.1.1) (2021-08-20)
 
 **Note:** Version bump only for package @spinnaker/eslint-plugin

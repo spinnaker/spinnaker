@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.332](https://github.com/spinnaker/deck/compare/@spinnaker/ecs@0.0.331...@spinnaker/ecs@0.0.332) (2021-09-30)
+
+
+### Bug Fixes
+
+* bump @types/react to 16.14.10 ([bb62b99](https://github.com/spinnaker/deck/commit/bb62b991514c2a81fbdf467c01f3ce7467f71718))
+
+
+
+
+
 ## [0.0.331](https://github.com/spinnaker/deck/compare/@spinnaker/ecs@0.0.330...@spinnaker/ecs@0.0.331) (2021-09-29)
 
 **Note:** Version bump only for package @spinnaker/ecs
