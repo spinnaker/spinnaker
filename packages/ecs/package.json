@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/ecs",
   "license": "Apache-2.0",
-  "version": "0.0.332",
+  "version": "0.0.333",
   "module": "dist/index.js",
   "typings": "dist/index.d.ts",
   "scripts": {
@@ -13,9 +13,9 @@
     "lib": "npm run build"
   },
   "dependencies": {
-    "@spinnaker/amazon": "^0.9.0",
-    "@spinnaker/core": "^0.13.0",
-    "@spinnaker/docker": "^0.0.116",
+    "@spinnaker/amazon": "^0.10.0",
+    "@spinnaker/core": "^0.14.0",
+    "@spinnaker/docker": "^0.0.117",
     "@uirouter/angularjs": "1.0.26",
     "@uirouter/react": "1.0.7",
     "angular": "1.6.10",
@@ -28,8 +28,8 @@
     "react2angular": "3.2.1"
   },
   "devDependencies": {
-    "@spinnaker/eslint-plugin": "^2.0.0",
-    "@spinnaker/scripts": "^0.2.1",
+    "@spinnaker/eslint-plugin": "^3.0.0",
+    "@spinnaker/scripts": "^0.2.2",
     "@types/angular": "1.6.26",
     "@types/angular-ui-bootstrap": "0.13.41",
     "@types/lodash": "4.14.64",
