@@ -47,7 +47,7 @@ jobs:
 
       - name: lerna - Bump packages
         run: |
-          npx lerna version --yes --no-push --no-git-tag-version --conventional-commits
+          npx lerna version --yes --no-push --conventional-commits
           if [[ $(git rev-list --count @{u}..HEAD) -ne 0 ]] ; then
             yarn
             git add yarn.lock
