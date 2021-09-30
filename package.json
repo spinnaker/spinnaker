@@ -38,7 +38,7 @@
     "packages/titus"
   ],
   "scripts": {
-    "clean": "npx rimraf .awcache .cache-loader build node_modules/.cache transpiled packages/*/dist packages/*/tsconfig.tsbuildinfo",
+    "clean": "lerna run clean --parallel",
     "cleanModules": "./scripts/cleanModules.js",
     "fixup": "rm -rf node_modules && npm run cleanModules && npm run modules",
     "build": "NODE_OPTIONS=--max_old_space_size=8192 webpack --bail --mode=production --config packages/app/webpack.config.js",

@@ -20,34 +20,24 @@ Thumbs.db
 
 # Node Files #
 npm-debug.log
-node_modules/
-test/google/node_modules/
+**/node_modules
 
 # Build Files
-.awcache/
 .gradle/
-.happypack/
-**/.cache-loader
-.yalc
-yalc.lock
-build/
-dist/
-lib/
-transpiled/
-yarn-error.log
-*.css.d.ts
+.cache-loader
+**/.yalc
+**/yalc.lock
+**/build/
+**/dist/
+**/yarn-error.log
 
 # Test Results
 test-results.xml
-/bin/
 
 # Functional Test Artifacts
-mb.pid
-mb*.log
-selenium-logs
 *.browser.log
 test/functional/cypress/videos/**/*
 test/functional/cypress/screenshots/**/*
 
-# .env.local files
-.env.local
+# vite local files
+**/.env.local

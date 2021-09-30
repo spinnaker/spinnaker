@@ -5,7 +5,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "clean": "npx rimraf .awcache .cache-loader build node_modules/.cache transpiled",
+    "clean": "shx rm -rf ../../.cache-loader ../../build",
     "build": "NODE_OPTIONS=--max_old_space_size=8192 webpack --bail --mode=production",
     "start-dev-server": "webpack-dev-server --mode=development",
     "dev:experimental": "vite"

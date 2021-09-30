@@ -7,7 +7,7 @@
   "license": "Apache-2.0",
   "scripts": {
     "build": "rollup -c",
-    "clean": "npx shx rm -rf dist",
+    "clean": "shx rm -rf dist",
     "prepublishOnly": "npm run build",
     "watch": "rollup -c -w"
   },
