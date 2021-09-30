@@ -15,7 +15,7 @@ export function locateSourceFile(modulesPath: string, moduleName: string, import
     ),
   );
 
-  return flattenDeep(paths).find((p) => fs.existsSync(p));
+  return flattenDeep<string>(paths).find((p) => fs.existsSync(p));
 }
 
 function _getAllSpinnakerPackages(modulesPath: string) {
