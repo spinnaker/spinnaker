@@ -8,4 +8,5 @@ export * from './targetTracking/TargetTrackingAdditionalSettings';
 export * from './targetTracking/TargetMetricFields';
 export * from './targetTracking/TargetTrackingChart';
 export { UpsertTargetTrackingModal as AmazonUpsertTargetTrackingModal } from './targetTracking/UpsertTargetTrackingModal';
+export * from './targetTracking/TargetTrackingSummary';
 export * from './upsert';
