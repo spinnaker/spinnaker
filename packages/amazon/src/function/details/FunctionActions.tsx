@@ -12,6 +12,7 @@ import {
 
 import type { IFunctionFromStateParams } from './AmazonFunctionDetails';
 import { CreateLambdaFunction } from '../CreateLambdaFunction';
+import { AWSProviderSettings } from '../../aws.settings';
 import type { IAmazonFunction, IAmazonFunctionDeleteCommand } from '../../domain';
 
 export interface IFunctionActionsProps {
@@ -96,7 +97,7 @@ export class FunctionActions extends React.Component<IFunctionActionsProps, IFun
 
     return (
       <div style={{ display: 'inline-block' }}>
-        {SETTINGS.awsAdHocInfraWritesEnabled && (
+        {AWSProviderSettings.adHocInfraWritesEnabled && (
           <Dropdown className="dropdown" id="function-actions-dropdown">
             <Dropdown.Toggle className="btn btn-sm btn-primary dropdown-toggle">
               <span>Function Actions</span>

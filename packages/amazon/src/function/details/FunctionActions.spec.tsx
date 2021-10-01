@@ -1,15 +1,17 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 
-import { Application, SETTINGS } from '@spinnaker/core';
+import { Application } from '@spinnaker/core';
+
 import { IAmazonFunction, FunctionActions } from '../../index';
+import { AWSProviderSettings } from '../../aws.settings';
 
 describe('FunctionActions', () => {
   it('should render correct state when all attributes exist', () => {
     let app = { name: 'app' } as Application;
 
     let functionDef = { functionName: 'app-function' } as IAmazonFunction;
-    SETTINGS.awsAdHocInfraWritesEnabled = true;
+    AWSProviderSettings.adHocInfraWritesEnabled = true;
 
     const wrapper = shallow(
       <FunctionActions
@@ -28,11 +30,11 @@ describe('FunctionActions', () => {
     expect(dropDown.childAt(0).text()).toEqual('Function Actions');
   });
 
-  it('should not render DropdownToggle if awsAdHocInfraWritesEnabled is false', () => {
+  it('should not render DropdownToggle if aws.adHocInfraWritesEnabled is false', () => {
     let app = { name: 'app' } as Application;
 
     let functionDef = { functionName: 'app-function' } as IAmazonFunction;
-    SETTINGS.awsAdHocInfraWritesEnabled = false;
+    AWSProviderSettings.adHocInfraWritesEnabled = false;
 
     const wrapper = shallow(
       <FunctionActions

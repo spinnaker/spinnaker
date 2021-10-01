@@ -17,6 +17,7 @@ import {
   SETTINGS,
 } from '@spinnaker/core';
 
+import { AWSProviderSettings } from '../../aws.settings';
 import { AMAZON_SECURITYGROUP_CLONE_CLONESECURITYGROUP_CONTROLLER } from '../clone/cloneSecurityGroup.controller';
 import { VpcReader } from '../../vpc/VpcReader';
 
@@ -46,7 +47,7 @@ angular
       // needed for standalone instances
       $scope.detailsTemplateUrl = CloudProviderRegistry.getValue('aws', 'securityGroup.detailsTemplateUrl');
 
-      $scope.isDisabled = !SETTINGS.awsAdHocInfraWritesEnabled;
+      $scope.isDisabled = !AWSProviderSettings.adHocInfraWritesEnabled;
 
       $scope.state = {
         loading: true,

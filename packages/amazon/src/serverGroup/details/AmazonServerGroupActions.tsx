@@ -15,6 +15,7 @@ import {
   SETTINGS,
 } from '@spinnaker/core';
 
+import { AWSProviderSettings } from '../../aws.settings';
 import type { IAmazonServerGroupCommand } from '../configure';
 import { AmazonCloneServerGroupModal } from '../configure/wizard/AmazonCloneServerGroupModal';
 import type { IAmazonServerGroup, IAmazonServerGroupView } from '../../domain';
@@ -286,7 +287,7 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
 
     return (
       <>
-        {SETTINGS.awsAdHocInfraWritesEnabled && (
+        {AWSProviderSettings.adHocInfraWritesEnabled && (
           <Dropdown className="dropdown" id="server-group-actions-dropdown">
             <Dropdown.Toggle className="btn btn-sm btn-primary dropdown-toggle">Server Group Actions</Dropdown.Toggle>
             <Dropdown.Menu className="dropdown-menu">

@@ -1,8 +1,9 @@
 import React from 'react';
 
-import { CollapsibleSection, ModalInjector, SETTINGS, Tooltip } from '@spinnaker/core';
+import { CollapsibleSection, ModalInjector, Tooltip } from '@spinnaker/core';
 
 import type { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
+import { AWSProviderSettings } from '../../../aws.settings';
 import type { IScalingProcess } from '../../../domain';
 import { AutoScalingProcessService } from '../scalingProcesses/AutoScalingProcessService';
 import { ScheduledAction } from '../scheduledAction/ScheduledAction';
@@ -80,7 +81,7 @@ export class ScheduledActionsDetailsSection extends React.Component<
           </p>
         )}
         {serverGroup.scheduledActions.length === 0 && <p>No Scheduled Actions are configured for this server group.</p>}
-        {SETTINGS.awsAdHocInfraWritesEnabled && (
+        {AWSProviderSettings.adHocInfraWritesEnabled && (
           <a className="clickable" onClick={this.editScheduledActions}>
             Edit Scheduled Actions
           </a>

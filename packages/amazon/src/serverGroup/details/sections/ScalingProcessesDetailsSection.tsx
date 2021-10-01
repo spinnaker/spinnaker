@@ -1,16 +1,9 @@
 import React from 'react';
 
-import {
-  CollapsibleSection,
-  confirmNotManaged,
-  HelpField,
-  ModalInjector,
-  SETTINGS,
-  timestamp,
-  Tooltip,
-} from '@spinnaker/core';
+import { CollapsibleSection, confirmNotManaged, HelpField, ModalInjector, timestamp, Tooltip } from '@spinnaker/core';
 
 import type { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
+import { AWSProviderSettings } from '../../../aws.settings';
 import type { IScalingProcess } from '../../../domain';
 import { AutoScalingProcessService } from '../scalingProcesses/AutoScalingProcessService';
 
@@ -109,7 +102,7 @@ export class ScalingProcessesDetailsSection extends React.Component<
             </li>
           ))}
         </ul>
-        {SETTINGS.awsAdHocInfraWritesEnabled && (
+        {AWSProviderSettings.adHocInfraWritesEnabled && (
           <a className="clickable" onClick={this.toggleScalingProcesses}>
             Edit Scaling Processes
           </a>

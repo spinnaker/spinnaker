@@ -7,6 +7,7 @@ export interface IClassicLaunchAllowlist {
 }
 
 export interface IAWSProviderSettings extends IProviderSettings {
+  adHocInfraWritesEnabled?: boolean;
   bakeWarning?: string;
   classicLaunchLockout?: number;
   classicLaunchAllowlist?: IClassicLaunchAllowlist[];
@@ -65,5 +66,6 @@ export const AWSProviderSettings: IAWSProviderSettings = (SETTINGS.providers.aws
   defaults: {},
 };
 if (AWSProviderSettings) {
+  AWSProviderSettings.adHocInfraWritesEnabled = AWSProviderSettings.adHocInfraWritesEnabled ?? true;
   AWSProviderSettings.resetToOriginal = SETTINGS.resetProvider('aws');
 }

@@ -13,6 +13,7 @@ import {
   SETTINGS,
 } from '@spinnaker/core';
 
+import { AWSProviderSettings } from '../../aws.settings';
 import { LoadBalancerTypes } from '../configure/LoadBalancerTypes';
 import type { IAmazonLoadBalancer, IAmazonLoadBalancerDeleteCommand } from '../../domain';
 import type { ILoadBalancerFromStateParams } from './loadBalancerDetails.controller';
@@ -114,7 +115,7 @@ export class LoadBalancerActions extends React.Component<ILoadBalancerActionsPro
 
     return (
       <div style={{ display: 'inline-block' }}>
-        {SETTINGS.awsAdHocInfraWritesEnabled && (
+        {AWSProviderSettings.adHocInfraWritesEnabled && (
           <Dropdown className="dropdown" id="load-balancer-actions-dropdown">
             <Dropdown.Toggle className="btn btn-sm btn-primary dropdown-toggle">
               <span>Load Balancer Actions</span>

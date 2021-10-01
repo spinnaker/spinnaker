@@ -150,7 +150,6 @@ export interface ISpinnakerSettings {
   triggerTypes: string[];
   useClassicFirewallLabels: boolean;
   kubernetesAdHocInfraWritesEnabled: boolean;
-  awsAdHocInfraWritesEnabled: boolean;
   changelogUrl: string;
 }
 
@@ -160,7 +159,6 @@ export const SETTINGS: ISpinnakerSettings = (window as any).spinnakerSettings ||
 SETTINGS.feature = SETTINGS.feature || {};
 SETTINGS.feature.roscoMode = SETTINGS.feature.roscoMode ?? true;
 SETTINGS.kubernetesAdHocInfraWritesEnabled = SETTINGS.kubernetesAdHocInfraWritesEnabled ?? true;
-SETTINGS.awsAdHocInfraWritesEnabled = SETTINGS.awsAdHocInfraWritesEnabled ?? true;
 SETTINGS.analytics = SETTINGS.analytics || {};
 SETTINGS.providers = SETTINGS.providers || {};
 SETTINGS.defaultTimeZone = SETTINGS.defaultTimeZone || 'America/Los_Angeles';

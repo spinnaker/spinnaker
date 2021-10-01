@@ -3,9 +3,10 @@ import { chain, find, sortBy } from 'lodash';
 import React from 'react';
 
 import type { ISecurityGroup, ISecurityGroupsByAccount } from '@spinnaker/core';
-import { CollapsibleSection, confirmNotManaged, FirewallLabels, ModalInjector, SETTINGS } from '@spinnaker/core';
+import { CollapsibleSection, confirmNotManaged, FirewallLabels, ModalInjector } from '@spinnaker/core';
 
 import type { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
+import { AWSProviderSettings } from '../../../aws.settings';
 import { AwsSecurityGroupReader } from '../../../securityGroup/securityGroup.reader';
 
 export interface ISecurityGroupsDetailsSectionState {
@@ -107,7 +108,7 @@ export class SecurityGroupsDetailsSection extends React.Component<
             </li>
           ))}
         </ul>
-        {SETTINGS.awsAdHocInfraWritesEnabled && serverGroup.vpcId && (
+        {AWSProviderSettings.adHocInfraWritesEnabled && serverGroup.vpcId && (
           <a className="clickable" onClick={this.updateSecurityGroups}>
             Edit {FirewallLabels.get('Firewalls')}
           </a>

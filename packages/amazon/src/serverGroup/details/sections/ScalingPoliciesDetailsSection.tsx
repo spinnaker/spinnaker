@@ -1,10 +1,10 @@
 import React from 'react';
 
-import { CollapsibleSection, Overridable, SETTINGS, Tooltip } from '@spinnaker/core';
+import { CollapsibleSection, Overridable, Tooltip } from '@spinnaker/core';
 
 import type { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
+import { AWSProviderSettings } from '../../../aws.settings';
 import type { IAmazonServerGroupView, IScalingProcess } from '../../../domain';
-
 import { CreateScalingPolicyButton } from '../scalingPolicy/CreateScalingPolicyButton';
 import { ScalingPolicySummary } from '../scalingPolicy/ScalingPolicySummary';
 import { AutoScalingProcessService } from '../scalingProcesses/AutoScalingProcessService';
@@ -54,7 +54,7 @@ export class ScalingPoliciesDetailsSection extends React.Component<IAmazonServer
         {serverGroup.scalingPolicies.map((policy) => (
           <ScalingPolicySummary key={policy.policyARN} policy={policy} serverGroup={serverGroup} application={app} />
         ))}
-        {SETTINGS.awsAdHocInfraWritesEnabled ? (
+        {AWSProviderSettings.adHocInfraWritesEnabled ? (
           <CreateScalingPolicyButton serverGroup={serverGroup} application={app} />
         ) : (
           <p>Can not create scaling policy, because ad-hoc operations are disabled for AWS providers.</p>

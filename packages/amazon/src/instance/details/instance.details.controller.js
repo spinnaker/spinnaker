@@ -15,6 +15,7 @@ import {
 } from '@spinnaker/core';
 
 import { AmazonInstanceWriter } from '../amazon.instance.write.service';
+import { AWSProviderSettings } from '../../aws.settings';
 import { applyHealthCheckInfoToTargetGroups, getAllTargetGroups } from './utils';
 import { AMAZON_VPC_VPCTAG_DIRECTIVE } from '../../vpc/vpcTag.directive';
 
@@ -34,7 +35,7 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
   '$q',
   'overrides',
   function ($scope, $state, instance, app, moniker, environment, $q, overrides) {
-    $scope.isDisabled = !SETTINGS.awsAdHocInfraWritesEnabled;
+    $scope.isDisabled = !AWSProviderSettings.adHocInfraWritesEnabled;
 
     // needed for standalone instances
     $scope.detailsTemplateUrl = CloudProviderRegistry.getValue('aws', 'instance.detailsTemplateUrl');
