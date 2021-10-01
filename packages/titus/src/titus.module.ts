@@ -21,6 +21,11 @@ import { TITUS_SECURITYGROUP_SECURITYGROUP_READ_SERVICE } from './securityGroup/
 import { TITUS_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER } from './serverGroup/configure/ServerGroupCommandBuilder';
 import { TITUS_SERVERGROUP_CONFIGURE_SERVERGROUP_CONFIGURE_TITUS_MODULE } from './serverGroup/configure/serverGroup.configure.titus.module';
 import { TitusCloneServerGroupModal } from './serverGroup/configure/wizard/TitusCloneServerGroupModal';
+import {
+  TitusTargetTrackingChart,
+  TitusUpsertScalingPolicyModal,
+  TitusUpsertTargetTrackingModal,
+} from './serverGroup/details';
 import { TITUS_SERVERGROUP_DETAILS_CAPACITYDETAILSSECTION } from './serverGroup/details/capacityDetailsSection.component';
 import { TITUS_SERVERGROUP_DETAILS_LAUNCHCONFIGSECTION } from './serverGroup/details/launchConfigSection.component';
 import { TITUS_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_TITUS_CONTROLLER } from './serverGroup/details/serverGroupDetails.titus.controller';
@@ -63,6 +68,9 @@ module(TITUS_MODULE, [
       configurationService: 'titusServerGroupConfigurationService',
       skipUpstreamStageCheck: true,
       checkForImageProviders: true,
+      TargetTrackingChart: TitusTargetTrackingChart,
+      UpsertStepPolicyModal: TitusUpsertScalingPolicyModal,
+      UpsertTargetTrackingModal: TitusUpsertTargetTrackingModal,
     },
     securityGroup: {
       reader: 'titusSecurityGroupReader',
