@@ -134,12 +134,12 @@
     </collapsible-section>
 
     <collapsible-section heading="Scaling Policies">
-      <titus-scaling-policy-summary
+      <scaling-policy-summary
         ng-repeat="policy in serverGroup.scalingPolicies"
         policy="policy"
         server-group="serverGroup"
         application="ctrl.application"
-      ></titus-scaling-policy-summary>
+      ></scaling-policy-summary>
       <titus-create-scaling-policy-button
         server-group="serverGroup"
         application="ctrl.application"

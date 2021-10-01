@@ -15,7 +15,13 @@ export interface IScalingPolicySummaryProps {
 }
 
 export const ScalingPolicySummary = ({ application, policy, serverGroup }: IScalingPolicySummaryProps) => {
-  if (policy.policyType === 'TargetTrackingScaling') {
+  const scalingPolicyType = policy.policyType
+    ? policy.policyType
+    : policy.targetTrackingConfiguration
+    ? 'TargetTrackingScaling'
+    : 'StepScaling';
+
+  if (scalingPolicyType === 'TargetTrackingScaling') {
     return (
       <TargetTrackingSummary
         application={application}
