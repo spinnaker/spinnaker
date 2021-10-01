@@ -6,8 +6,6 @@ import { StepPolicySummary } from './StepPolicySummary';
 import type { IScalingPolicyView, ITargetTrackingPolicy } from '../../../domain';
 import { TargetTrackingSummary } from './targetTracking/TargetTrackingSummary';
 
-import './scalingPolicySummary.component.less';
-
 export interface IScalingPolicySummaryProps {
   application: Application;
   policy: IScalingPolicyView;
