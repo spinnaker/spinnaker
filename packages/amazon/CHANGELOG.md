@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.11.0](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.10.0...@spinnaker/amazon@0.11.0) (2021-10-01)
+
+
+### Features
+
+* **lambda:** add alias details to infra view ([#9730](https://github.com/spinnaker/deck/issues/9730)) ([d46a635](https://github.com/spinnaker/deck/commit/d46a635db529bf2adde4b92307ad15bf19bc3e86))
+
+
+
+
+
 # [0.10.0](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.8.16...@spinnaker/amazon@0.10.0) (2021-09-30)
 
 

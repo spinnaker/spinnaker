@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.1.0](https://github.com/spinnaker/deck/compare/@spinnaker/presentation@0.0.14...@spinnaker/presentation@0.1.0) (2021-10-01)
+
+
+### Features
+
+* **scripts:** make yarn clean delegate to all lerna packages ([3793778](https://github.com/spinnaker/deck/commit/3793778dfefdefd496cf3a9f6032d5c7ff210da9))
+
+
+
+
+
 ## [0.0.14](https://github.com/spinnaker/deck/compare/@spinnaker/presentation@0.0.12...@spinnaker/presentation@0.0.14) (2021-09-30)
 
 **Note:** Version bump only for package @spinnaker/presentation
