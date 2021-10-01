@@ -131,12 +131,36 @@ export class AmazonFunctionDetails extends React.Component<IAmazonFunctionDetail
       </dl>
     );
 
+    const aliasConfigurationDetails = (
+      <dl className="horizontal-when-filters-collapsed dl-horizontal dl-narrow">
+        {functionDef.aliasConfigurations && functionDef.aliasConfigurations.length !== 0
+          ? functionDef.aliasConfigurations.map((value: any) => (
+              <>
+                <h5>
+                  <strong>Alias Details</strong>
+                </h5>
+                <dl>
+                  <dt>Name</dt>
+                  <dd>{value.name}</dd>
+                  <dt>ARN</dt>
+                  <dd>{value.aliasArn}</dd>
+                </dl>
+              </>
+            ))
+          : 'None'}
+      </dl>
+    );
+
     const functionDetailsSection = (
       <CollapsibleSection heading="Function Details">{functionDetails}</CollapsibleSection>
     );
 
     const eventSourceDetailsSection = (
       <CollapsibleSection heading="Event Source Details">{eventSourceDetails}</CollapsibleSection>
+    );
+
+    const aliasConfigurationDetailsSection = (
+      <CollapsibleSection heading="Alias Configuration Details">{aliasConfigurationDetails}</CollapsibleSection>
     );
 
     return (
@@ -164,6 +188,9 @@ export class AmazonFunctionDetails extends React.Component<IAmazonFunctionDetail
         {!isEmpty(this.state.functionDef) ? functionDetailsSection : ''}
         {!isEmpty(this.state.functionDef) && !isEmpty(this.state.functionDef.eventSourceMappings)
           ? eventSourceDetailsSection
+          : ''}
+        {!isEmpty(this.state.functionDef) && !isEmpty(this.state.functionDef.aliasConfigurations)
+          ? aliasConfigurationDetailsSection
           : ''}
       </Details>
     );

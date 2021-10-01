@@ -10,6 +10,7 @@ export interface IAmazonFunctionSourceData extends IFunctionSourceData {
   publish: boolean;
   description: string;
   eventSourceMappings: string[];
+  aliasConfigurations: string[];
   functionArn: string;
   handler: string;
   layers: string;
