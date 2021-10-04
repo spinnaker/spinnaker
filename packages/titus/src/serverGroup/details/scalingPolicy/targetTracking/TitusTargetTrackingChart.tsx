@@ -1,25 +1,17 @@
 import * as React from 'react';
-import type { Subject } from 'rxjs';
 
 import type { IAmazonServerGroup, IScalingPolicyAlarm, ITargetTrackingConfiguration } from '@spinnaker/amazon';
 import { MetricAlarmChart } from '@spinnaker/amazon';
 import type { ICloudMetricStatistics } from '@spinnaker/core';
 
 export interface ITitusTargetTrackingChartProps {
-  alarmUpdated?: Subject<void>;
   config: ITargetTrackingConfiguration;
   serverGroup: IAmazonServerGroup;
   unit?: string;
   updateUnit?: (unit: string) => void;
 }
 
-export const TitusTargetTrackingChart = ({
-  alarmUpdated,
-  config,
-  serverGroup,
-  unit,
-  updateUnit,
-}: ITitusTargetTrackingChartProps) => {
+export const TitusTargetTrackingChart = ({ config, serverGroup, unit, updateUnit }: ITitusTargetTrackingChartProps) => {
   const [alarm, setAlarm] = React.useState<IScalingPolicyAlarm>({
     alarmName: null,
     alarmArn: null,
@@ -59,15 +51,7 @@ export const TitusTargetTrackingChart = ({
     if (unit) {
       updateUnit(stats.unit);
     }
-    alarmUpdated?.next();
   };
 
-  return (
-    <MetricAlarmChart
-      alarm={alarm}
-      alarmUpdated={alarmUpdated}
-      onChartLoaded={onChartLoaded}
-      serverGroup={serverGroup}
-    />
-  );
+  return <MetricAlarmChart alarm={alarm} onChartLoaded={onChartLoaded} serverGroup={serverGroup} />;
 };

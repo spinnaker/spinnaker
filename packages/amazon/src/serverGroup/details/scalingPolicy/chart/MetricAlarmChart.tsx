@@ -1,11 +1,7 @@
-import { module } from 'angular';
 import * as React from 'react';
-import { react2angular } from 'react2angular';
-import type { Observable } from 'rxjs';
 
 import type { ICloudMetricStatistics } from '@spinnaker/core';
-import { CloudMetricsReader, Spinner, useData, useForceUpdate, useObservable } from '@spinnaker/core';
-import { withErrorBoundary } from '@spinnaker/core';
+import { CloudMetricsReader, Spinner, useData } from '@spinnaker/core';
 
 import type { IDateLine } from './DateLineChart';
 import { DateLineChart } from './DateLineChart';
@@ -14,9 +10,6 @@ import type { IAmazonServerGroup, IScalingPolicyAlarm } from '../../../../domain
 interface IMetricAlarmChartProps {
   serverGroup: IAmazonServerGroup;
   alarm: IScalingPolicyAlarm;
-  // Allows AngularJS to tell the chart to update
-  alarmUpdated?: Observable<any>;
-  // Allows the chart data to inform the parent component of the fetched metric units
   onChartLoaded?: (stats: ICloudMetricStatistics) => void;
 }
 
@@ -45,10 +38,6 @@ export function MetricAlarmChartImpl(props: IMetricAlarmChartProps) {
     { datapoints: [], unit: '' },
     [namespace, statistic, period, type, account, region, metricName],
   );
-
-  // Used by AngularJS to tell the chart to refresh, delete when all callers are reactified
-  const forceUpdate = useForceUpdate();
-  useObservable(props.alarmUpdated, () => forceUpdate());
 
   if (status === 'PENDING') {
     return (
@@ -91,16 +80,3 @@ export function MetricAlarmChartImpl(props: IMetricAlarmChartProps) {
   };
   return <DateLineChart lines={[line, setline]} />;
 }
-
-export const AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_CHART_METRICALARMCHART_COMPONENT =
-  'spinnaker.amazon.serverGroup.details.scalingPolicy.metricAlarmChart.component';
-export const name = AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_CHART_METRICALARMCHART_COMPONENT; // for backwards compatibility
-module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_CHART_METRICALARMCHART_COMPONENT, []).component(
-  'metricAlarmChart',
-  react2angular(withErrorBoundary(MetricAlarmChart, 'metricAlarmChart'), [
-    'alarm',
-    'serverGroup',
-    'alarmUpdated',
-    'onChartLoaded',
-  ]),
-);

@@ -1,6 +1,5 @@
 import type { Dictionary } from 'lodash';
 import * as React from 'react';
-import { Subject } from 'rxjs';
 
 import type { ICloudMetricStatistics } from '@spinnaker/core';
 
@@ -8,7 +7,6 @@ import { MetricAlarmChart } from '../chart/MetricAlarmChart';
 import type { IAmazonServerGroup, IScalingPolicyAlarm, ITargetTrackingConfiguration } from '../../../../domain';
 
 export interface ITargetTrackingChartProps {
-  alarmUpdated?: Subject<void>;
   config: ITargetTrackingConfiguration;
   serverGroup: IAmazonServerGroup;
   unit?: string;
@@ -21,12 +19,7 @@ const predefinedMetricTypeMapping: Dictionary<string> = {
   ASGAverageNetworkOut: 'NetworkOut',
 };
 
-export const TargetTrackingChart = ({
-  alarmUpdated = new Subject<void>(),
-  config,
-  serverGroup,
-  updateUnit,
-}: ITargetTrackingChartProps) => {
+export const TargetTrackingChart = ({ config, serverGroup, updateUnit }: ITargetTrackingChartProps) => {
   const [alarm, setAlarm] = React.useState<IScalingPolicyAlarm>({
     alarmName: null,
     alarmArn: null,
@@ -72,15 +65,7 @@ export const TargetTrackingChart = ({
     if (updateUnit) {
       updateUnit(stats.unit);
     }
-    alarmUpdated?.next();
   };
 
-  return (
-    <MetricAlarmChart
-      alarm={alarm}
-      alarmUpdated={alarmUpdated}
-      onChartLoaded={onChartLoaded}
-      serverGroup={serverGroup}
-    />
-  );
+  return <MetricAlarmChart alarm={alarm} onChartLoaded={onChartLoaded} serverGroup={serverGroup} />;
 };
