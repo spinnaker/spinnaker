@@ -11,7 +11,6 @@ Error.stackTraceLimit = Infinity;
 
 import './packages/app/src/settings';
 import './packages/app/src/app';
-import './test/helpers/customMatchers';
 import { jasmineMockHttpSupport } from './packages/core/src/api/mock/jasmine';
 
 // angular 1 test harness

@@ -46,8 +46,8 @@ describe('Component: Page Navigator', () => {
       ];
       initialize(pages);
       expect(elem.find('h4').length).toBe(2);
-      expect(elem.find('h4:eq(0)')).textMatch('Page 1');
-      expect(elem.find('h4:eq(1)')).textMatch('Page 2');
+      expect(elem.find('h4:eq(0)').text()).toContain('Page 1');
+      expect(elem.find('h4:eq(1)').text()).toContain('Page 2');
     });
 
     it('renders pages conditionally based on visible flag', () => {
@@ -57,7 +57,7 @@ describe('Component: Page Navigator', () => {
       ];
       initialize(pages);
       expect(elem.find('h4').length).toBe(1);
-      expect(elem.find('h4:eq(0)')).textMatch('Page 1');
+      expect(elem.find('h4:eq(0)').text()).toContain('Page 1');
 
       pages[1].visible = true;
       $scope.$digest();
