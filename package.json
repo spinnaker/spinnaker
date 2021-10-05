@@ -34,7 +34,7 @@
     "prepare": "husky install"
   },
   "devDependencies": {
-    "@spinnaker/eslint-plugin": "^1.0.13",
+    "@spinnaker/eslint-plugin": "^3.0.0",
     "@types/jasmine": "3.6.9",
     "angular-mocks": "1.6.10",
     "babel-loader": "8.1.0",
