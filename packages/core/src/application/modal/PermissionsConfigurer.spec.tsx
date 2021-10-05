@@ -4,7 +4,8 @@ import { mount } from 'enzyme';
 
 import { AuthenticationService } from '../../authentication';
 import { REACT_MODULE } from '../../reactShims';
-import { IPermissions, IPermissionsConfigurerProps, PermissionsConfigurer } from './PermissionsConfigurer';
+import type { IPermissions, IPermissionsConfigurerProps } from './PermissionsConfigurer';
+import { PermissionsConfigurer } from './PermissionsConfigurer';
 
 describe('PermissionsConfigurer', () => {
   const createComponent = (props: IPermissionsConfigurerProps) => {

@@ -1,6 +1,8 @@
-import { IQService, IScope, mock } from 'angular';
+import type { IQService, IScope } from 'angular';
+import { mock } from 'angular';
 
-import { ApplicationModelBuilder, Application, noop } from '@spinnaker/core';
+import type { Application } from '@spinnaker/core';
+import { ApplicationModelBuilder, noop } from '@spinnaker/core';
 import { ManifestCopier } from './ManifestCopier';
 
 describe('<ManifestCopier />', () => {

@@ -1,5 +1,5 @@
 import { ApplicationReader } from '../application';
-import { IValidator } from '../presentation';
+import type { IValidator } from '../presentation';
 import { mount } from 'enzyme';
 import React from 'react';
 import { ApplicationsPickerInput } from './ApplicationsPickerInput';

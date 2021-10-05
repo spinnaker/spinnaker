@@ -1,12 +1,13 @@
 import { mockHttpClient } from '../api/mock/jasmine';
 import { mock, noop } from 'angular';
-import { MockHttpClient } from '../api/mock/mockHttpClient';
-import { SERVER_GROUP_WRITER, ServerGroupWriter } from './serverGroupWriter.service';
-import {
+import type { MockHttpClient } from '../api/mock/mockHttpClient';
+import type { ServerGroupWriter } from './serverGroupWriter.service';
+import { SERVER_GROUP_WRITER } from './serverGroupWriter.service';
+import type {
   IServerGroupCommand,
   IServerGroupCommandViewState,
 } from './configure/common/serverGroupCommandBuilder.service';
-import { ITaskCommand } from '../task/taskExecutor';
+import type { ITaskCommand } from '../task/taskExecutor';
 import { Application } from '../application/application.model';
 import { ApplicationModelBuilder } from '../application/applicationModel.builder';
 import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';

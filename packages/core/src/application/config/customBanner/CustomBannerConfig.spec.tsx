@@ -3,7 +3,8 @@ import { shallow } from 'enzyme';
 
 import { noop } from '../../../utils';
 
-import { CustomBannerConfig, ICustomBannerConfig } from './CustomBannerConfig';
+import type { ICustomBannerConfig } from './CustomBannerConfig';
+import { CustomBannerConfig } from './CustomBannerConfig';
 
 describe('<CustomBannerConfig />', () => {
   let bannerConfigs: ICustomBannerConfig[];

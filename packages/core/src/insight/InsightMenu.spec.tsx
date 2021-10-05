@@ -1,10 +1,12 @@
 import React from 'react';
 import { mock } from 'angular';
-import { ReactWrapper, mount } from 'enzyme';
-import { IInsightMenuProps, IInsightMenuState, InsightMenu } from './InsightMenu';
-import { IModalService } from 'angular-ui-bootstrap';
+import type { ReactWrapper } from 'enzyme';
+import { mount } from 'enzyme';
+import type { IInsightMenuProps, IInsightMenuState } from './InsightMenu';
+import { InsightMenu } from './InsightMenu';
+import type { IModalService } from 'angular-ui-bootstrap';
 import { OverrideRegistry } from '../overrideRegistry/override.registry';
-import { CacheInitializerService } from '../cache/cacheInitializer.service';
+import type { CacheInitializerService } from '../cache/cacheInitializer.service';
 import { Button } from 'react-bootstrap';
 
 beforeEach(() => {

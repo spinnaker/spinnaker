@@ -1,4 +1,5 @@
-import { DefaultClusterMatcher, IClusterMatcher, IClusterMatchRule } from './ClusterRuleMatcher';
+import type { IClusterMatcher, IClusterMatchRule } from './ClusterRuleMatcher';
+import { DefaultClusterMatcher } from './ClusterRuleMatcher';
 
 describe('CustomRuleMatcher', () => {
   let matcher: IClusterMatcher;

@@ -1,19 +1,12 @@
-import { mock, IQService, IScope, IRootScopeService } from 'angular';
+import type { IQService, IScope, IRootScopeService } from 'angular';
+import { mock } from 'angular';
 
-import {
-  AccountService,
-  ApplicationModelBuilder,
-  CacheInitializerService,
-  LoadBalancerReader,
-  SecurityGroupReader,
-  SubnetReader,
-} from '@spinnaker/core';
+import type { CacheInitializerService, LoadBalancerReader, SecurityGroupReader } from '@spinnaker/core';
+import { AccountService, ApplicationModelBuilder, SubnetReader } from '@spinnaker/core';
 
 import { KeyPairsReader } from '../../keyPairs';
-import {
-  AWS_SERVER_GROUP_CONFIGURATION_SERVICE,
-  AwsServerGroupConfigurationService,
-} from './serverGroupConfiguration.service';
+import type { AwsServerGroupConfigurationService } from './serverGroupConfiguration.service';
+import { AWS_SERVER_GROUP_CONFIGURATION_SERVICE } from './serverGroupConfiguration.service';
 
 describe('Service: awsServerGroupConfiguration', function () {
   let service: AwsServerGroupConfigurationService,

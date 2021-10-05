@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { mount } from 'enzyme';
-import { IUseLatestPromiseResult } from './useLatestPromise.hook';
+import type { IUseLatestPromiseResult } from './useLatestPromise.hook';
 import { usePollingData } from './usePollingData.hook';
 
 describe('usePollingData hook', () => {

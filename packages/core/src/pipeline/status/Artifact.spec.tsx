@@ -1,11 +1,13 @@
 import React from 'react';
-import { ShallowWrapper, shallow } from 'enzyme';
+import type { ShallowWrapper } from 'enzyme';
+import { shallow } from 'enzyme';
 import { mock } from 'angular';
 import { REACT_MODULE } from '../../reactShims';
 
-import { IArtifact } from '../../domain';
+import type { IArtifact } from '../../domain';
 
-import { Artifact, IArtifactProps } from './Artifact';
+import type { IArtifactProps } from './Artifact';
+import { Artifact } from './Artifact';
 
 const ARTIFACT_TYPE = 'docker/image';
 const ARTIFACT_NAME = 'example.com/container';

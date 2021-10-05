@@ -2,22 +2,21 @@ import { mock } from 'angular';
 import Spy = jasmine.Spy;
 import { SETTINGS } from '../../../config/settings';
 
-import { IPipeline, IStage, IStageTypeConfig } from '../../../domain';
+import type { IPipeline, IStage, IStageTypeConfig } from '../../../domain';
 import { ServiceAccountReader } from '../../../serviceAccount/ServiceAccountReader';
 import { PipelineConfigService } from '../services/PipelineConfigService';
 import { Registry } from '../../../registry';
 
-import {
-  ICustomValidator,
-  IPipelineValidationResults,
-  IValidatorConfig,
-  PipelineConfigValidator,
-} from './PipelineConfigValidator';
-import { IRequiredFieldValidationConfig } from './requiredField.validator';
-import { IServiceAccountAccessValidationConfig, ITriggerWithServiceAccount } from './serviceAccountAccess.validator';
-import { IStageBeforeTypeValidationConfig } from './stageBeforeType.validator';
-import { IStageOrTriggerBeforeTypeValidationConfig } from './stageOrTriggerBeforeType.validator';
-import { ITargetImpedanceValidationConfig } from './targetImpedance.validator';
+import type { ICustomValidator, IPipelineValidationResults, IValidatorConfig } from './PipelineConfigValidator';
+import { PipelineConfigValidator } from './PipelineConfigValidator';
+import type { IRequiredFieldValidationConfig } from './requiredField.validator';
+import type {
+  IServiceAccountAccessValidationConfig,
+  ITriggerWithServiceAccount,
+} from './serviceAccountAccess.validator';
+import type { IStageBeforeTypeValidationConfig } from './stageBeforeType.validator';
+import type { IStageOrTriggerBeforeTypeValidationConfig } from './stageOrTriggerBeforeType.validator';
+import type { ITargetImpedanceValidationConfig } from './targetImpedance.validator';
 
 describe('pipelineConfigValidator', () => {
   let pipeline: IPipeline, validate: () => void, validationResults: IPipelineValidationResults, $q: ng.IQService;

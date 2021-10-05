@@ -1,15 +1,17 @@
 import { mock } from 'angular';
 
 import { PROVIDER_SERVICE_DELEGATE } from '../cloudProvider';
-import { IMultiInstanceGroup, InstanceWriter } from './instance.write.service';
-import { Application } from '../application/application.model';
+import type { IMultiInstanceGroup } from './instance.write.service';
+import { InstanceWriter } from './instance.write.service';
+import type { Application } from '../application/application.model';
 import { REACT_MODULE } from '../reactShims';
 import { ApplicationModelBuilder } from '../application/applicationModel.builder';
-import { IInstance, IServerGroup } from '../domain';
+import type { IInstance, IServerGroup } from '../domain';
 import * as State from '../state';
 
 import { ServerGroupReader } from '../serverGroup/serverGroupReader.service';
-import { IJob, ITaskCommand, TaskExecutor } from '../task/taskExecutor';
+import type { IJob, ITaskCommand } from '../task/taskExecutor';
+import { TaskExecutor } from '../task/taskExecutor';
 
 describe('Service: instance writer', function () {
   let $q: ng.IQService;

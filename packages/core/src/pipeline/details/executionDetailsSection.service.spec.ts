@@ -1,7 +1,8 @@
 import { mock, noop } from 'angular';
-import { StateParams, StateService } from '@uirouter/angularjs';
+import type { StateParams, StateService } from '@uirouter/angularjs';
 
-import { EXECUTION_DETAILS_SECTION_SERVICE, ExecutionDetailsSectionService } from './executionDetailsSection.service';
+import type { ExecutionDetailsSectionService } from './executionDetailsSection.service';
+import { EXECUTION_DETAILS_SECTION_SERVICE } from './executionDetailsSection.service';
 
 describe('executionDetailsSectionService', function () {
   let $state: StateService,

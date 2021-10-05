@@ -1,4 +1,4 @@
-import { IAmazonAsg, IAmazonServerGroup } from '../../../domain';
+import type { IAmazonAsg, IAmazonServerGroup } from '../../../domain';
 
 import { AutoScalingProcessService } from './AutoScalingProcessService';
 

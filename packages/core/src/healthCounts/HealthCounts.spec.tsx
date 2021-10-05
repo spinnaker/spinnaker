@@ -2,7 +2,7 @@ import React from 'react';
 import { mount, shallow } from 'enzyme';
 
 import { HealthCounts } from './HealthCounts';
-import { IInstanceCounts } from '../domain';
+import type { IInstanceCounts } from '../domain';
 
 describe('<HealthCounts />', () => {
   it('displays nothing when container has no health info', () => {

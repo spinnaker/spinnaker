@@ -1,4 +1,5 @@
-import { IGceHealthCheck, IGceHealthCheckKind } from '../domain';
+import type { IGceHealthCheck } from '../domain';
+import { IGceHealthCheckKind } from '../domain';
 import { parseHealthCheckUrl, getHealthCheckOptions, getDuplicateHealthCheckNames } from './healthCheckUtils';
 
 describe('Health check display utils', () => {

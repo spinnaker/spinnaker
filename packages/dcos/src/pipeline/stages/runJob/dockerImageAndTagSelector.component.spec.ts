@@ -1,13 +1,14 @@
-import { IComponentControllerService, mock } from 'angular';
+import type { IComponentControllerService } from 'angular';
+import { mock } from 'angular';
 import { $q } from 'ngimport';
 
-import { AccountService, IAccount } from '@spinnaker/core';
+import type { IAccount } from '@spinnaker/core';
+import { AccountService } from '@spinnaker/core';
 
-import { DockerImageReader, IDockerImage } from '@spinnaker/docker';
-import {
-  DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT,
-  DockerImageAndTagSelectorController,
-} from './dockerImageAndTagSelector.component';
+import type { IDockerImage } from '@spinnaker/docker';
+import { DockerImageReader } from '@spinnaker/docker';
+import type { DockerImageAndTagSelectorController } from './dockerImageAndTagSelector.component';
+import { DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT } from './dockerImageAndTagSelector.component';
 
 describe('dockerImageAndTagSelector controller', () => {
   let $ctrl: DockerImageAndTagSelectorController, $componentController: IComponentControllerService, $scope: ng.IScope;

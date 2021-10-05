@@ -3,11 +3,8 @@ import { shallow } from 'enzyme';
 
 import { StageConfigField } from '@spinnaker/core';
 
-import {
-  IManifestDeploymentOptionsProps,
-  ManifestDeploymentOptions,
-  defaultTrafficManagementConfig,
-} from './ManifestDeploymentOptions';
+import type { IManifestDeploymentOptionsProps } from './ManifestDeploymentOptions';
+import { ManifestDeploymentOptions, defaultTrafficManagementConfig } from './ManifestDeploymentOptions';
 
 describe('<ManifestDeploymentOptions />', () => {
   const onConfigChangeSpy = jasmine.createSpy('onConfigChangeSpy');

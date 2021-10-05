@@ -1,6 +1,7 @@
 'use strict';
 
-import { IScope, mock } from 'angular';
+import type { IScope } from 'angular';
+import { mock } from 'angular';
 import { FindArtifactFromExecutionCtrl } from './findArtifactFromExecution.controller';
 
 describe('Find Artifact From Execution Controller:', function () {

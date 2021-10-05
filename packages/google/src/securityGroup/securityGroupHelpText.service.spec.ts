@@ -1,5 +1,6 @@
 import { mock } from 'angular';
-import { GCE_SECURITY_GROUP_HELP_TEXT_SERVICE, GceSecurityGroupHelpTextService } from './securityGroupHelpText.service';
+import type { GceSecurityGroupHelpTextService } from './securityGroupHelpText.service';
+import { GCE_SECURITY_GROUP_HELP_TEXT_SERVICE } from './securityGroupHelpText.service';
 
 describe('Service: gceSecurityGroupHelpTextService', () => {
   let $q: ng.IQService;

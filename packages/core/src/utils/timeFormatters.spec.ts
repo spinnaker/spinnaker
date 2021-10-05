@@ -1,4 +1,5 @@
-import { IFilterService, mock } from 'angular';
+import type { IFilterService } from 'angular';
+import { mock } from 'angular';
 
 import { SETTINGS } from '../config/settings';
 import { duration, timeDiffToString } from './timeFormatters';

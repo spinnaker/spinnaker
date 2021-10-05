@@ -1,7 +1,9 @@
-import { IControllerService, IRootScopeService, mock } from 'angular';
-import { StateService } from '@uirouter/core';
+import type { IControllerService, IRootScopeService } from 'angular';
+import { mock } from 'angular';
+import type { StateService } from '@uirouter/core';
 
-import { ApplicationModelBuilder, ISubnet } from '@spinnaker/core';
+import type { ISubnet } from '@spinnaker/core';
+import { ApplicationModelBuilder } from '@spinnaker/core';
 
 import { AWS_LOAD_BALANCER_DETAILS_CTRL, AwsLoadBalancerDetailsController } from './loadBalancerDetails.controller';
 

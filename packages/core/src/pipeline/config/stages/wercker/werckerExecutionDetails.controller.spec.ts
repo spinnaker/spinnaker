@@ -1,4 +1,5 @@
-import { IScope, IControllerService, IRootScopeService, mock } from 'angular';
+import type { IScope, IControllerService, IRootScopeService } from 'angular';
+import { mock } from 'angular';
 
 import {
   WERCKER_EXECUTION_DETAILS_CONTROLLER,

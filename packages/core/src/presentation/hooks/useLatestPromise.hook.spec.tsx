@@ -1,6 +1,7 @@
 import React from 'react';
 import { mount } from 'enzyme';
-import { IUseLatestPromiseResult, useLatestPromise } from './useLatestPromise.hook';
+import type { IUseLatestPromiseResult } from './useLatestPromise.hook';
+import { useLatestPromise } from './useLatestPromise.hook';
 
 describe('useLatestPromise hook', () => {
   // Remove the the refresh function for .isEqual assertions

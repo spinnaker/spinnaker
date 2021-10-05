@@ -3,12 +3,13 @@ import { map } from 'lodash';
 import React from 'react';
 
 import { SETTINGS } from '../../config';
-import { IStage, ITriggerTypeConfig, IStageTypeConfig } from '../../domain';
-import { IRegion } from '../../account/AccountService';
+import type { IStage, ITriggerTypeConfig, IStageTypeConfig } from '../../domain';
+import type { IRegion } from '../../account/AccountService';
 import { Registry } from '../../registry';
-import { ITriggerTemplateComponentProps } from '../manualExecution/TriggerTemplate';
+import type { ITriggerTemplateComponentProps } from '../manualExecution/TriggerTemplate';
 import { PipelineRegistry } from './PipelineRegistry';
-import { IPreconfiguredJob, makePreconfiguredJobStage, PreconfiguredJobReader } from './stages/preconfiguredJob';
+import type { IPreconfiguredJob } from './stages/preconfiguredJob';
+import { makePreconfiguredJobStage, PreconfiguredJobReader } from './stages/preconfiguredJob';
 
 const mockProviderAccount = {
   accountId: 'abc',

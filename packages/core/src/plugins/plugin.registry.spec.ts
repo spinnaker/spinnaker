@@ -1,7 +1,8 @@
-import { IStageTypeConfig } from '../domain';
-import { IDeckPlugin } from './deck.plugin';
+import type { IStageTypeConfig } from '../domain';
+import type { IDeckPlugin } from './deck.plugin';
 import { RequestBuilder } from '../api';
-import { IPluginMetaData, PluginRegistry } from './plugin.registry';
+import type { IPluginMetaData } from './plugin.registry';
+import { PluginRegistry } from './plugin.registry';
 import { Registry } from '../registry';
 import { mock } from 'angular';
 

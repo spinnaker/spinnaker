@@ -1,7 +1,7 @@
 /* eslint-disable @spinnaker/migrate-to-mock-http-client */
 import { mock } from 'angular';
 
-import { IDeckRootScope } from '../domain';
+import type { IDeckRootScope } from '../domain';
 import { AuthenticationInitializer } from './AuthenticationInitializer';
 import { AuthenticationService } from './AuthenticationService';
 import { AUTHENTICATION_MODULE } from './authentication.module';

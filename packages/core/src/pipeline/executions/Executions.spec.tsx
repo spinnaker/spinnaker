@@ -1,15 +1,18 @@
 import React from 'react';
-import { ReactWrapper, mount } from 'enzyme';
+import type { ReactWrapper } from 'enzyme';
+import { mount } from 'enzyme';
 import { set } from 'lodash';
-import { IScope, mock, noop } from 'angular';
+import type { IScope } from 'angular';
+import { mock, noop } from 'angular';
 
-import { Application } from '../../application';
+import type { Application } from '../../application';
 import { ApplicationModelBuilder } from '../../application/applicationModel.builder';
 import { INSIGHT_FILTER_STATE_MODEL } from '../../insight/insightFilterState.model';
 import { REACT_MODULE } from '../../reactShims';
 import { OVERRIDE_REGISTRY } from '../../overrideRegistry';
 import * as State from '../../state';
-import { IExecutionsProps, IExecutionsState, Executions } from './Executions';
+import type { IExecutionsProps, IExecutionsState } from './Executions';
+import { Executions } from './Executions';
 import { Spinner } from '../../widgets/spinners/Spinner';
 
 describe('<Executions/>', () => {

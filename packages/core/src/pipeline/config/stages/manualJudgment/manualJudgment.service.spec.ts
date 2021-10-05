@@ -1,9 +1,11 @@
 import { mockHttpClient } from '../../../../api/mock/jasmine';
 import { tick } from '../../../../api/mock/mockHttpUtils';
-import { IDeferred, IQService, IRootScopeService, IScope, mock } from 'angular';
+import type { IDeferred, IQService, IRootScopeService, IScope } from 'angular';
+import { mock } from 'angular';
 
-import { MANUAL_JUDGMENT_SERVICE, ManualJudgmentService } from './manualJudgment.service';
-import { ExecutionService } from '../../../service/execution.service';
+import type { ManualJudgmentService } from './manualJudgment.service';
+import { MANUAL_JUDGMENT_SERVICE } from './manualJudgment.service';
+import type { ExecutionService } from '../../../service/execution.service';
 
 describe('Service: manualJudgment', () => {
   let $scope: IScope, service: ManualJudgmentService, $q: IQService, executionService: ExecutionService;

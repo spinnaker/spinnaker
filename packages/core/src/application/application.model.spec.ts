@@ -1,14 +1,14 @@
 import { mock } from 'angular';
 
-import { Application } from './application.model';
+import type { Application } from './application.model';
 import { ApplicationModelBuilder } from './applicationModel.builder';
 import { ApplicationDataSourceRegistry } from './service/ApplicationDataSourceRegistry';
 import { LOAD_BALANCER_DATA_SOURCE } from '../loadBalancer/loadBalancer.dataSource';
-import { SecurityGroupReader } from '../securityGroup/securityGroupReader.service';
+import type { SecurityGroupReader } from '../securityGroup/securityGroupReader.service';
 import { SERVER_GROUP_DATA_SOURCE } from '../serverGroup/serverGroup.dataSource';
 import { SECURITY_GROUP_DATA_SOURCE } from '../securityGroup/securityGroup.dataSource';
 
-import { IEntityTag, IEntityTags, IServerGroup, IInstanceCounts, ILoadBalancer } from '../domain';
+import type { IEntityTag, IEntityTags, IServerGroup, IInstanceCounts, ILoadBalancer } from '../domain';
 
 describe('Application Model', function () {
   let application: Application,

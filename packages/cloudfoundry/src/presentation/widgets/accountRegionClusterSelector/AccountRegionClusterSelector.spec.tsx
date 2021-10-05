@@ -1,17 +1,13 @@
 import React from 'react';
-import { mock, noop, IScope } from 'angular';
+import type { IScope } from 'angular';
+import { mock, noop } from 'angular';
 import { mount, shallow } from 'enzyme';
 
-import {
-  Application,
-  ApplicationModelBuilder,
-  ApplicationDataSource,
-  IMoniker,
-  IServerGroup,
-  REACT_MODULE,
-} from '@spinnaker/core';
+import type { Application, ApplicationDataSource, IMoniker, IServerGroup } from '@spinnaker/core';
+import { ApplicationModelBuilder, REACT_MODULE } from '@spinnaker/core';
 
-import { AccountRegionClusterSelector, IAccountRegionClusterSelectorProps } from './AccountRegionClusterSelector';
+import type { IAccountRegionClusterSelectorProps } from './AccountRegionClusterSelector';
+import { AccountRegionClusterSelector } from './AccountRegionClusterSelector';
 
 describe('<AccountRegionClusterSelector />', () => {
   let $scope: IScope;

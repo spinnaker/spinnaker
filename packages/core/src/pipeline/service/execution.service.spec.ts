@@ -1,10 +1,12 @@
 import { mockHttpClient } from '../../api/mock/jasmine';
-import { IQProvider, IQService, ITimeoutService, mock, noop } from 'angular';
+import type { IQProvider, IQService, ITimeoutService } from 'angular';
+import { mock, noop } from 'angular';
 import { REACT_MODULE } from '../../reactShims';
 
-import { EXECUTION_SERVICE, ExecutionService } from './execution.service';
-import { IExecution } from '../../domain';
-import { Application } from '../../application';
+import type { ExecutionService } from './execution.service';
+import { EXECUTION_SERVICE } from './execution.service';
+import type { IExecution } from '../../domain';
+import type { Application } from '../../application';
 import * as State from '../../state';
 
 describe('Service: executionService', () => {

@@ -3,7 +3,8 @@ import { shallow } from 'enzyme';
 
 import { noop } from '../../utils';
 
-import LabelFilter, { ILabelFilterProps, LabelFilterSelect } from './LabelFilter';
+import type { ILabelFilterProps } from './LabelFilter';
+import LabelFilter, { LabelFilterSelect } from './LabelFilter';
 
 describe('<LabelFilter />', () => {
   let props: ILabelFilterProps;

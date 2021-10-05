@@ -1,5 +1,6 @@
 import * as angular from 'angular';
-import { ITimeoutService, mock } from 'angular';
+import type { ITimeoutService } from 'angular';
+import { mock } from 'angular';
 import { SchedulerFactory } from './SchedulerFactory';
 
 describe('scheduler', function () {

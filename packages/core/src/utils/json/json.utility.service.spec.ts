@@ -1,4 +1,5 @@
-import { JsonUtils, IJsonDiff } from './JsonUtils';
+import type { IJsonDiff } from './JsonUtils';
+import { JsonUtils } from './JsonUtils';
 
 describe('JsonUtilityService', () => {
   it('generates a nice alphabetized diff', () => {

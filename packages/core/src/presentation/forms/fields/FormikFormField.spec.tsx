@@ -1,11 +1,11 @@
-import { FormikProps } from 'formik/dist/types';
+import type { FormikProps } from 'formik/dist/types';
 import React from 'react';
 import { mount } from 'enzyme';
 
+import type { IFormInputProps } from '../..';
 import {
   FormikFormField,
   FormikSpelContextProvider,
-  IFormInputProps,
   ReactSelectInput,
   SpelToggle,
   SpinFormik,

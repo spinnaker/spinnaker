@@ -1,12 +1,14 @@
-import { mock, IQService, IScope } from 'angular';
+import type { IQService, IScope } from 'angular';
+import { mock } from 'angular';
 import React from 'react';
-import { ReactWrapper, mount } from 'enzyme';
+import type { ReactWrapper } from 'enzyme';
+import { mount } from 'enzyme';
 
-import { Application } from '../application/application.model';
+import type { Application } from '../application/application.model';
 import { ApplicationModelBuilder } from '../application/applicationModel.builder';
-import { ILoadBalancersTagProps } from './LoadBalancersTagWrapper';
+import type { ILoadBalancersTagProps } from './LoadBalancersTagWrapper';
 import { LoadBalancersTag } from './LoadBalancersTag';
-import { IServerGroup } from '../domain';
+import type { IServerGroup } from '../domain';
 import { HoverablePopover } from '../presentation';
 
 describe('<LoadBalancersTag />', () => {

@@ -1,4 +1,5 @@
-import { groupScalingActivities, IScalingEventSummary } from './ScalingActivitiesModal';
+import type { IScalingEventSummary } from './ScalingActivitiesModal';
+import { groupScalingActivities } from './ScalingActivitiesModal';
 
 describe('Group Scaling Activities', () => {
   it('groups activities by cause, parsing availability zone from details, sorted by start date, newest first', () => {

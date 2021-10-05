@@ -6,8 +6,9 @@ import {
   mockLaunchTemplateData,
   mockServerGroup,
 } from '@spinnaker/mocks';
-import { Application, ApplicationModelBuilder } from '@spinnaker/core';
-import { IAmazonServerGroupView, IAmazonMixedInstancesPolicy, IScalingPolicy } from '../../../domain';
+import type { Application } from '@spinnaker/core';
+import { ApplicationModelBuilder } from '@spinnaker/core';
+import type { IAmazonServerGroupView, IAmazonMixedInstancesPolicy, IScalingPolicy } from '../../../domain';
 import { LaunchTemplateDetailsSection } from './LaunchTemplateDetailsSection';
 import { MultipleInstanceTypesSubSection } from './MultipleInstanceTypesSubSection';
 

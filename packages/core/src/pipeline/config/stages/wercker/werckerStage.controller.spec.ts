@@ -1,8 +1,9 @@
 import Spy = jasmine.Spy;
-import { mock, IScope, IQService, IControllerService, IRootScopeService } from 'angular';
+import type { IScope, IQService, IControllerService, IRootScopeService } from 'angular';
+import { mock } from 'angular';
 
 import { IgorService } from '../../../../ci/igor.service';
-import { IJobConfig, IParameterDefinitionList } from '../../../../domain';
+import type { IJobConfig, IParameterDefinitionList } from '../../../../domain';
 import { WERCKER_STAGE, WerckerStage } from './werckerStage';
 
 describe('Wercker Stage Controller', () => {

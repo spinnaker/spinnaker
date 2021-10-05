@@ -1,9 +1,10 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 
-import { Application } from '@spinnaker/core';
+import type { Application } from '@spinnaker/core';
 
-import { IAmazonFunction, FunctionActions } from '../../index';
+import type { IAmazonFunction } from '../../index';
+import { FunctionActions } from '../../index';
 import { AWSProviderSettings } from '../../aws.settings';
 
 describe('FunctionActions', () => {

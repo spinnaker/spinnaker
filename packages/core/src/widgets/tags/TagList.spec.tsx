@@ -1,8 +1,10 @@
 import React from 'react';
-import { ReactWrapper, mount } from 'enzyme';
+import type { ReactWrapper } from 'enzyme';
+import { mount } from 'enzyme';
 
-import { ITag } from './Tag';
-import { ITagListProps, TagList } from './TagList';
+import type { ITag } from './Tag';
+import type { ITagListProps } from './TagList';
+import { TagList } from './TagList';
 
 describe('<TagList/>', () => {
   let component: ReactWrapper<ITagListProps, any>;

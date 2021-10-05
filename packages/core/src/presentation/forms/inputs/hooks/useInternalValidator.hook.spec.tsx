@@ -1,7 +1,7 @@
 import React from 'react';
 import { mount } from 'enzyme';
-import { IValidator } from '../../../forms/validation';
-import { IFormInputProps, IFormInputValidation } from '../interface';
+import type { IValidator } from '../../../forms/validation';
+import type { IFormInputProps, IFormInputValidation } from '../interface';
 import { useInternalValidator } from './useInternalValidator.hook';
 
 function TestInputComponent(props: IFormInputProps & { validator?: IValidator; revalidateDeps?: any[] }) {

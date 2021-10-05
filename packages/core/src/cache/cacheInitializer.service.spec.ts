@@ -1,10 +1,13 @@
 import { flatten } from 'lodash';
 
-import { mock, IQService, IRootScopeService } from 'angular';
-import { CACHE_INITIALIZER_SERVICE, CacheInitializerService } from './cacheInitializer.service';
+import type { IQService, IRootScopeService } from 'angular';
+import { mock } from 'angular';
+import type { CacheInitializerService } from './cacheInitializer.service';
+import { CACHE_INITIALIZER_SERVICE } from './cacheInitializer.service';
 import { AccountService } from '../account/AccountService';
 import { InfrastructureCaches } from './';
-import { SECURITY_GROUP_READER, SecurityGroupReader } from '../securityGroup/securityGroupReader.service';
+import type { SecurityGroupReader } from '../securityGroup/securityGroupReader.service';
+import { SECURITY_GROUP_READER } from '../securityGroup/securityGroupReader.service';
 
 interface IKeys {
   [key: string]: string[];

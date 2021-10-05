@@ -1,4 +1,5 @@
-import { validateServiceBindingRequests, ServiceBindingRequests } from './CloudFoundryCreateServiceBindingsConfig';
+import type { ServiceBindingRequests } from './CloudFoundryCreateServiceBindingsConfig';
+import { validateServiceBindingRequests } from './CloudFoundryCreateServiceBindingsConfig';
 
 describe('Cloud Foundry Create Service Bindings Config', () => {
   describe('validate Service Binding Requests', () => {

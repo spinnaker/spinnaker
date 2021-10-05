@@ -1,6 +1,6 @@
 import { hri as HumanReadableIds } from 'human-readable-ids';
 
-import { IPipeline, IPipelineTemplateV2 } from '../../../../domain';
+import type { IPipeline, IPipelineTemplateV2 } from '../../../../domain';
 import { PipelineTemplateV2Service } from './pipelineTemplateV2.service';
 import { UUIDGenerator } from '../../../../utils';
 

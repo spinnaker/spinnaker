@@ -1,4 +1,4 @@
-import { QueryConstraint } from '../types';
+import type { QueryConstraint } from '../types';
 import { getConstraintsStatusSummary } from './utils';
 
 describe('Constraints status summary', () => {

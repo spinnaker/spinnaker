@@ -1,4 +1,5 @@
-import { AuthenticationService, IUser } from './AuthenticationService';
+import type { IUser } from './AuthenticationService';
+import { AuthenticationService } from './AuthenticationService';
 
 describe('AuthenticationService', function () {
   beforeEach(() => AuthenticationService.reset());

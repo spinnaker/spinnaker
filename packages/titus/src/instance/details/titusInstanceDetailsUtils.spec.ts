@@ -1,10 +1,10 @@
-import {
+import type {
   IAmazonApplicationLoadBalancer,
   IAmazonHealth,
   IAmazonTargetGroupHealth,
   ITargetGroup,
 } from '@spinnaker/amazon';
-import { Application } from '@spinnaker/core';
+import type { Application } from '@spinnaker/core';
 import { mockHealth, mockInstance, mockLoadBalancer, mockLoadBalancerHealth } from '@spinnaker/mocks';
 import {
   applyTargetGroupInfoToHealthMetric,

@@ -1,6 +1,7 @@
 import { mock } from 'angular';
 
-import { UNMATCHED_STAGE_TYPE_STAGE_CTRL, UnmatchedStageTypeStageCtrl } from './unmatchedStageTypeStage.controller';
+import type { UnmatchedStageTypeStageCtrl } from './unmatchedStageTypeStage.controller';
+import { UNMATCHED_STAGE_TYPE_STAGE_CTRL } from './unmatchedStageTypeStage.controller';
 
 describe('Controller: UnmatchedStageTypeStageCtrl', () => {
   let ctrl: UnmatchedStageTypeStageCtrl;

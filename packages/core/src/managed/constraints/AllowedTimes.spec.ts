@@ -1,4 +1,5 @@
-import { groupConsecutiveNumbers, groupDays, groupHours, GroupRange } from './AllowedTimes';
+import type { GroupRange } from './AllowedTimes';
+import { groupConsecutiveNumbers, groupDays, groupHours } from './AllowedTimes';
 
 describe('days and hours grouping', () => {
   it('test grouping', () => {

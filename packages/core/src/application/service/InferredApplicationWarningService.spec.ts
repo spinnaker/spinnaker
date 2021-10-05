@@ -3,7 +3,7 @@ import Spy = jasmine.Spy;
 import { NotifierService } from '../../widgets/notifier/notifier.service';
 
 import { InferredApplicationWarningService } from './InferredApplicationWarningService';
-import { Application } from '../application.model';
+import type { Application } from '../application.model';
 import { ApplicationModelBuilder } from '../applicationModel.builder';
 
 describe('Service: inferredApplicationWarning', () => {

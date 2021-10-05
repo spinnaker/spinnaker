@@ -2,7 +2,7 @@ import React from 'react';
 import { mount } from 'enzyme';
 
 import { ExpectedArtifactService } from '..';
-import { IExpectedArtifact } from '../../domain';
+import type { IExpectedArtifact } from '../../domain';
 
 import { ExpectedArtifactSelector } from './ExpectedArtifactSelector';
 

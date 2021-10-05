@@ -3,7 +3,8 @@ import { mock } from 'angular';
 import { mount } from 'enzyme';
 
 import { mockServerGroupDataSourceConfig } from '@spinnaker/mocks';
-import { ApplicationModelBuilder, IStage, REACT_MODULE, SpinFormik, StageConfigField } from 'core';
+import type { IStage } from 'core';
+import { ApplicationModelBuilder, REACT_MODULE, SpinFormik, StageConfigField } from 'core';
 import { CloudFoundryCreateServiceBindingsStageConfigForm } from './CloudFoundryCreateServiceBindingsStageConfigForm';
 
 describe('<CloudFoundryCreateServiceBindingsStageConfigForm/>', function () {

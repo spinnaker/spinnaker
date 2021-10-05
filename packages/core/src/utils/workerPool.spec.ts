@@ -1,4 +1,5 @@
-import { Task, WorkerPool } from './workerPool';
+import type { Task } from './workerPool';
+import { WorkerPool } from './workerPool';
 
 const delay = (millis = 0) => new Promise<void>((resolve) => setTimeout(resolve, millis));
 

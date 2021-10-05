@@ -1,6 +1,7 @@
-import { mock, IQService } from 'angular';
+import type { IQService } from 'angular';
+import { mock } from 'angular';
 
-import { Application } from '../application/application.model';
+import type { Application } from '../application/application.model';
 import { ApplicationModelBuilder } from '../application/applicationModel.builder';
 import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
 import { TaskReader } from './task.read.service';

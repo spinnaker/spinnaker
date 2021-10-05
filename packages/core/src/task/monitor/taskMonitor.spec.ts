@@ -1,10 +1,10 @@
 import { mockHttpClient } from '../../api/mock/jasmine';
 import { mock } from 'angular';
-import { IModalServiceInstance } from 'angular-ui-bootstrap';
+import type { IModalServiceInstance } from 'angular-ui-bootstrap';
 import { $q, $timeout } from 'ngimport';
 import Spy = jasmine.Spy;
 
-import { ITask } from '../../domain';
+import type { ITask } from '../../domain';
 import { TaskMonitor } from './TaskMonitor';
 import { OrchestratedItemTransformer } from '../../orchestratedItem/orchestratedItem.transformer';
 import { ApplicationModelBuilder } from '../../application/applicationModel.builder';

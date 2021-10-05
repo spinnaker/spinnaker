@@ -1,6 +1,7 @@
 import { mock } from 'angular';
 
-import { INSTANCE_TYPE_SERVICE, InstanceTypeService, IInstanceTypeCategory } from './instanceType.service';
+import type { InstanceTypeService, IInstanceTypeCategory } from './instanceType.service';
+import { INSTANCE_TYPE_SERVICE } from './instanceType.service';
 
 describe('Service: instanceTypeService', function () {
   let instanceTypeService: InstanceTypeService, $q: ng.IQService, $scope: ng.IScope;

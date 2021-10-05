@@ -1,9 +1,11 @@
 import React from 'react';
-import { shallow, ShallowWrapper } from 'enzyme';
+import type { ShallowWrapper } from 'enzyme';
+import { shallow } from 'enzyme';
 
 import { StageConfigField } from '@spinnaker/core';
 
-import DeleteManifestOptionsForm, { IDeleteManifestOptionsFormProps } from './DeleteManifestOptionsForm';
+import type { IDeleteManifestOptionsFormProps } from './DeleteManifestOptionsForm';
+import DeleteManifestOptionsForm from './DeleteManifestOptionsForm';
 
 describe('<DeleteManifestOptionsForm />', () => {
   let onChangeSpy: jasmine.Spy;

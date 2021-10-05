@@ -1,6 +1,7 @@
 import React from 'react';
 import { mount } from 'enzyme';
-import Select, { Creatable, Option } from 'react-select';
+import type { Option } from 'react-select';
+import Select, { Creatable } from 'react-select';
 import { $q } from 'ngimport';
 import Spy = jasmine.Spy;
 
@@ -13,10 +14,11 @@ import {
 } from '@spinnaker/core';
 
 import { ManifestKindSearchService } from '../ManifestKindSearch';
-import { ManifestSelector, IManifestSelectorState } from './ManifestSelector';
+import type { IManifestSelectorState } from './ManifestSelector';
+import { ManifestSelector } from './ManifestSelector';
 import { SelectorMode } from './IManifestSelector';
 import LabelEditor from './labelEditor/LabelEditor';
-import { IManifestLabelSelector } from './IManifestLabelSelector';
+import type { IManifestLabelSelector } from './IManifestLabelSelector';
 
 describe('<ManifestSelector />', () => {
   let searchService: Spy;

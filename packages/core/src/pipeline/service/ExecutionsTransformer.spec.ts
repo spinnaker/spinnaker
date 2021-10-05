@@ -1,8 +1,8 @@
 import { map } from 'lodash';
 
-import { Application } from '../../application';
+import type { Application } from '../../application';
 import { ExecutionsTransformer } from './ExecutionsTransformer';
-import { IExecution } from '../../domain';
+import type { IExecution } from '../../domain';
 
 describe('ExecutionTransformerService', function () {
   describe('transformExecution', () => {

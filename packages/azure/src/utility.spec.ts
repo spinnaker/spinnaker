@@ -1,4 +1,5 @@
-import Utility, { ITagResult, TagError } from './utility';
+import type { ITagResult } from './utility';
+import Utility, { TagError } from './utility';
 
 describe('Azure Utility', function () {
   it('returns tag error when null object passed', function () {

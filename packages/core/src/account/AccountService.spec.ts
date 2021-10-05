@@ -1,12 +1,13 @@
 import { mock } from 'angular';
 import { mockHttpClient } from '../api/mock/jasmine';
-import { MockHttpClient } from '../api/mock/mockHttpClient';
+import type { MockHttpClient } from '../api/mock/mockHttpClient';
 
 import { SETTINGS } from '../config/settings';
 import { $rootScope } from 'ngimport';
 import { CloudProviderRegistry } from '../cloudProvider';
 
-import { AccountService, IAccount } from './AccountService';
+import type { IAccount } from './AccountService';
+import { AccountService } from './AccountService';
 
 function flush<T>(http: MockHttpClient, promise: PromiseLike<T>): Promise<T> {
   return http

@@ -1,7 +1,7 @@
 import { mock } from 'angular';
 import { REACT_MODULE } from '../../reactShims';
 import { CLUSTER_SERVICE } from '../cluster.service';
-import { Application } from '../../application/application.model';
+import type { Application } from '../../application/application.model';
 import { ApplicationModelBuilder } from '../../application/applicationModel.builder';
 import * as State from '../../state';
 import { cloneDeep, filter } from 'lodash';

@@ -1,6 +1,7 @@
 import { mock } from 'angular';
 
-import { ApplicationNameValidator, IApplicationNameValidationResult } from './ApplicationNameValidator';
+import type { IApplicationNameValidationResult } from './ApplicationNameValidator';
+import { ApplicationNameValidator } from './ApplicationNameValidator';
 import { ExampleApplicationNameValidator, ExampleApplicationNameValidator2 } from './ExampleApplicationNameValidator';
 import { AccountService } from '../../../account/AccountService';
 

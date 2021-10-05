@@ -1,4 +1,4 @@
-import { IHttpClientImplementation } from './ApiService';
+import type { IHttpClientImplementation } from './ApiService';
 import { SETTINGS } from '../config/settings';
 import { makeRequestBuilderConfig, RequestBuilder } from './ApiService';
 

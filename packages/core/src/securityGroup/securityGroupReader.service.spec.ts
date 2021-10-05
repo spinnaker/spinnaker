@@ -1,20 +1,18 @@
 import { mockHttpClient } from '../api/mock/jasmine';
 import { mock } from 'angular';
 
-import { Application } from '../application/application.model';
+import type { Application } from '../application/application.model';
 import { ApplicationModelBuilder } from '../application/applicationModel.builder';
 import { InfrastructureCaches } from '../cache';
-import { ISecurityGroup } from '../domain';
-import {
+import type { ISecurityGroup } from '../domain';
+import type {
   ISecurityGroupDetail,
-  SECURITY_GROUP_READER,
   SecurityGroupReader,
   ISecurityGroupsByAccountSourceData,
 } from './securityGroupReader.service';
-import {
-  SECURITY_GROUP_TRANSFORMER_SERVICE,
-  SecurityGroupTransformerService,
-} from './securityGroupTransformer.service';
+import { SECURITY_GROUP_READER } from './securityGroupReader.service';
+import type { SecurityGroupTransformerService } from './securityGroupTransformer.service';
+import { SECURITY_GROUP_TRANSFORMER_SERVICE } from './securityGroupTransformer.service';
 
 describe('Service: securityGroupReader', function () {
   let $q: ng.IQService, $scope: ng.IRootScopeService, reader: SecurityGroupReader;

@@ -1,7 +1,7 @@
 import { mockHttpClient } from '../../../api/mock/jasmine';
 import { mock } from 'angular';
-import { IStage } from '../../../domain/IStage';
-import { IPipeline } from '../../../domain/IPipeline';
+import type { IStage } from '../../../domain/IStage';
+import type { IPipeline } from '../../../domain/IPipeline';
 import { PipelineConfigService } from './PipelineConfigService';
 
 describe('PipelineConfigService', () => {

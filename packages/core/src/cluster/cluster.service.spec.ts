@@ -5,10 +5,11 @@ import { find } from 'lodash';
 import { REACT_MODULE } from '../reactShims';
 import * as State from '../state';
 import { ApplicationModelBuilder } from '../application/applicationModel.builder';
-import { IInstanceCounts, IServerGroup } from '../domain';
-import { Application } from '../application/application.model';
+import type { IInstanceCounts, IServerGroup } from '../domain';
+import type { Application } from '../application/application.model';
 
-import { CLUSTER_SERVICE, ClusterService } from './cluster.service';
+import type { ClusterService } from './cluster.service';
+import { CLUSTER_SERVICE } from './cluster.service';
 import { SETTINGS } from '../config/settings';
 
 const ClusterState = State.ClusterState;

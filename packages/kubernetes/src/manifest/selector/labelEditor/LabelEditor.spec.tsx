@@ -1,7 +1,9 @@
 import React from 'react';
-import { shallow, ShallowWrapper } from 'enzyme';
+import type { ShallowWrapper } from 'enzyme';
+import { shallow } from 'enzyme';
 
-import LabelEditor, { ILabelEditorProps } from './LabelEditor';
+import type { ILabelEditorProps } from './LabelEditor';
+import LabelEditor from './LabelEditor';
 
 describe('<LabelEditor />', () => {
   let onChangeSpy: jasmine.Spy;

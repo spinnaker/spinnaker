@@ -1,6 +1,6 @@
 import React from 'react';
 import { mount } from 'enzyme';
-import { IStage } from '../../../../../domain';
+import type { IStage } from '../../../../../domain';
 import { REACT_MODULE } from '../../../../../reactShims';
 import { mock } from 'angular';
 

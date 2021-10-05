@@ -1,13 +1,15 @@
 import React from 'react';
 import { mockHttpClient } from 'core/api/mock/jasmine';
 import { mock } from 'angular';
-import { ShallowWrapper, ReactWrapper, shallow, mount } from 'enzyme';
+import type { ShallowWrapper, ReactWrapper } from 'enzyme';
+import { shallow, mount } from 'enzyme';
 
-import { IAmazonImage } from '../../image';
+import type { IAmazonImage } from '../../image';
 import { Application } from 'core/application';
 import { REACT_MODULE } from 'core/reactShims';
 
-import { AmazonImageSelectInput, IAmazonImageSelectorProps, IAmazonImageSelectorState } from './AmazonImageSelectInput';
+import type { IAmazonImageSelectorProps, IAmazonImageSelectorState } from './AmazonImageSelectInput';
+import { AmazonImageSelectInput } from './AmazonImageSelectInput';
 const application = new Application('testapp', null, []);
 const region = 'us-region-1';
 const credentials = 'prodaccount';

@@ -1,12 +1,14 @@
-import { mock, IQService, IScope } from 'angular';
+import type { IQService, IScope } from 'angular';
+import { mock } from 'angular';
 import React from 'react';
 import { shallow } from 'enzyme';
 
-import { CreatePipelineModal, ICreatePipelineModalProps } from './CreatePipelineModal';
+import type { ICreatePipelineModalProps } from './CreatePipelineModal';
+import { CreatePipelineModal } from './CreatePipelineModal';
 import { PipelineTemplateReader } from '../config/templates/PipelineTemplateReader';
-import { Application } from '../../application/application.model';
+import type { Application } from '../../application/application.model';
 import { ApplicationModelBuilder } from '../../application/applicationModel.builder';
-import { IPipeline } from '../../domain';
+import type { IPipeline } from '../../domain';
 import { SETTINGS } from '../../config/settings';
 import { PipelineConfigService } from '../config/services/PipelineConfigService';
 

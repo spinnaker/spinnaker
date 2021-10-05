@@ -2,7 +2,8 @@ import React from 'react';
 import { RecoilRoot } from 'recoil';
 import { mount } from 'enzyme';
 import { mock } from 'angular';
-import { UIRouterReact, UIRouterContext } from '@uirouter/react';
+import type { UIRouterReact } from '@uirouter/react';
+import { UIRouterContext } from '@uirouter/react';
 import { StateMatcher } from '@uirouter/core';
 
 import { REACT_MODULE } from '../../reactShims';
@@ -15,8 +16,8 @@ import {
   mockPipelineDataSourceConfig,
 } from '@spinnaker/mocks';
 import { ApplicationModelBuilder } from '../../application';
-import { IPipeline } from '../../domain';
-import { ApplicationDataSource } from '../service/applicationDataSource';
+import type { IPipeline } from '../../domain';
+import type { ApplicationDataSource } from '../service/applicationDataSource';
 
 import { ApplicationNavigation } from './ApplicationNavigation';
 import { SETTINGS } from '../../config';

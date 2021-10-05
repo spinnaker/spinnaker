@@ -1,8 +1,8 @@
-import { IController, IControllerService, IQService, IRootScopeService, IScope, IWindowService } from 'angular';
+import type { IController, IControllerService, IQService, IRootScopeService, IScope, IWindowService } from 'angular';
 
 import { ApplicationModelBuilder } from '../../application/applicationModel.builder';
 import { PipelineConfigService } from './services/PipelineConfigService';
-import {
+import type {
   IDockerTrigger,
   IGitTrigger,
   INotification,

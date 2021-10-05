@@ -1,8 +1,10 @@
 import React from 'react';
-import { ReactWrapper, mount } from 'enzyme';
+import type { ReactWrapper } from 'enzyme';
+import { mount } from 'enzyme';
 
-import { IFilterProps, Filter } from './Filter';
-import { IFilterType } from './SearchFilterTypeRegistry';
+import type { IFilterProps } from './Filter';
+import { Filter } from './Filter';
+import type { IFilterType } from './SearchFilterTypeRegistry';
 
 describe('<Filter/>', () => {
   let component: ReactWrapper<IFilterProps, any>;

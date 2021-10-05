@@ -4,9 +4,10 @@ import { mount } from 'enzyme';
 import { BehaviorSubject } from 'rxjs';
 
 import { mockEntityTags, mockServerGroupDataSourceConfig, mockPipelineDataSourceConfig } from '@spinnaker/mocks';
-import { Application, ApplicationModelBuilder } from '../../application';
-import { ApplicationDataSource, IDataSourceConfig } from '../service/applicationDataSource';
-import { IEntityTags, IServerGroup, IPipeline } from '../../domain';
+import type { Application } from '../../application';
+import { ApplicationModelBuilder } from '../../application';
+import type { ApplicationDataSource, IDataSourceConfig } from '../service/applicationDataSource';
+import type { IEntityTags, IServerGroup, IPipeline } from '../../domain';
 import { NavItem } from './NavItem';
 
 describe('NavItem', () => {

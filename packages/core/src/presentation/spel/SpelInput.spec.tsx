@@ -1,6 +1,6 @@
 import React from 'react';
 import { mount } from 'enzyme';
-import { IFormInputProps, IStageForSpelPreview, IValidator } from '..';
+import type { IFormInputProps, IStageForSpelPreview, IValidator } from '..';
 import { SpelService } from './SpelService';
 import { SpelInput } from './SpelInput';
 

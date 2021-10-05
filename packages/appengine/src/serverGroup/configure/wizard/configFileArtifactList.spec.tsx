@@ -2,7 +2,8 @@ import React from 'react';
 import { mockHttpClient } from 'core/api/mock/jasmine';
 import { mount } from 'enzyme';
 
-import { IArtifactAccount, IArtifactAccountPair, StageArtifactSelector } from '@spinnaker/core';
+import type { IArtifactAccount, IArtifactAccountPair } from '@spinnaker/core';
+import { StageArtifactSelector } from '@spinnaker/core';
 import { mockDeployStage, mockPipeline } from '@spinnaker/mocks';
 import { ConfigFileArtifactList } from './ConfigFileArtifactList';
 

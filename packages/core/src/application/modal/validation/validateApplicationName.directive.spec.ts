@@ -1,4 +1,5 @@
-import { ICompileService, IQService, IRootScopeService, mock } from 'angular';
+import type { ICompileService, IQService, IRootScopeService } from 'angular';
+import { mock } from 'angular';
 
 import { ExampleApplicationNameValidator, ExampleApplicationNameValidator2 } from './ExampleApplicationNameValidator';
 import { VALIDATE_APPLICATION_NAME } from './validateApplicationName.directive';

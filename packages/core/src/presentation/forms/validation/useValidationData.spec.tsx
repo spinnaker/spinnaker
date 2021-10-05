@@ -2,7 +2,8 @@ import { asyncMessage, errorMessage, infoMessage, messageMessage, successMessage
 import React from 'react';
 
 import { mount } from 'enzyme';
-import { IValidationData, useValidationData } from './useValidationData';
+import type { IValidationData } from './useValidationData';
+import { useValidationData } from './useValidationData';
 
 interface IComponentProps {
   validationMessage: React.ReactNode;

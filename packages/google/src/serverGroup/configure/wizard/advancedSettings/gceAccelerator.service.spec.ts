@@ -1,4 +1,5 @@
-import { GceAcceleratorService, IGceAcceleratorCommand, IGceAcceleratorTypeRaw } from './gceAccelerator.service';
+import type { IGceAcceleratorCommand, IGceAcceleratorTypeRaw } from './gceAccelerator.service';
+import { GceAcceleratorService } from './gceAccelerator.service';
 
 describe('GceAcceleratorService', () => {
   const acceleratorA: IGceAcceleratorTypeRaw = {

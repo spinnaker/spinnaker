@@ -1,8 +1,10 @@
 import { ApplicationModelBuilder } from '../../application/applicationModel.builder';
-import { Application } from '../../application/application.model';
-import { mock, IQService, IScope, IRootScopeService } from 'angular';
+import type { Application } from '../../application/application.model';
+import type { IQService, IScope, IRootScopeService } from 'angular';
+import { mock } from 'angular';
 
-import { AccountService, IAccountDetails } from '../../account/AccountService';
+import type { IAccountDetails } from '../../account/AccountService';
+import { AccountService } from '../../account/AccountService';
 import { CloudProviderRegistry } from '..';
 import { ProviderSelectionModal } from './ProviderSelectionModal';
 import { ProviderSelectionService } from './ProviderSelectionService';

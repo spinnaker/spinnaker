@@ -1,10 +1,6 @@
-import {
-  buildLabelsMap,
-  labelFiltersToTrueKeyObject,
-  trueKeyObjectToLabelFilters,
-  ILabelFilter,
-} from './labelFilterUtils';
-import { IServerGroup } from '../../domain/IServerGroup';
+import type { ILabelFilter } from './labelFilterUtils';
+import { buildLabelsMap, labelFiltersToTrueKeyObject, trueKeyObjectToLabelFilters } from './labelFilterUtils';
+import type { IServerGroup } from '../../domain/IServerGroup';
 
 describe('Label filter utils', () => {
   let labelFilters: ILabelFilter[];
