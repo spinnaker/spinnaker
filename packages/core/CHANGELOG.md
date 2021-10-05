@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.14.2](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.14.1...@spinnaker/core@0.14.2) (2021-10-05)
+
+
+### Bug Fixes
+
+* **md:** build links ([#9743](https://github.com/spinnaker/deck/issues/9743)) ([b7397f1](https://github.com/spinnaker/deck/commit/b7397f1b5a7e7b175fc601ba6a8512bfd9fd9361))
+
+
+
+
+
 ## [0.14.1](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.14.0...@spinnaker/core@0.14.1) (2021-10-01)
 
 **Note:** Version bump only for package @spinnaker/core

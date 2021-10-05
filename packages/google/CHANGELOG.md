@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.77](https://github.com/spinnaker/deck/compare/@spinnaker/google@0.0.76...@spinnaker/google@0.0.77) (2021-10-05)
+
+**Note:** Version bump only for package @spinnaker/google
+
+
+
+
+
 ## [0.0.76](https://github.com/spinnaker/deck/compare/@spinnaker/google@0.0.75...@spinnaker/google@0.0.76) (2021-10-01)
 
 **Note:** Version bump only for package @spinnaker/google
