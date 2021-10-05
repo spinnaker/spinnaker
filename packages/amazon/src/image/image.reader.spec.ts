@@ -1,123 +1,75 @@
-'use strict';
-import { mockHttpClient } from 'core/api/mock/jasmine';
+import { mock } from 'angular';
+import { $rootScope } from 'ngimport';
+// eslint-disable-next-line @spinnaker/import-from-npm-not-relative
+import { mockHttpClient } from '../../../core/src/api/mock/jasmine';
 import { AwsImageReader } from './image.reader';
 
 describe('Service: aws Image Reader', function () {
-  var service, scope;
+  let service: AwsImageReader;
 
-  beforeEach(
-    window.inject(function ($rootScope) {
-      service = new AwsImageReader();
-      scope = $rootScope.$new();
-    }),
-  );
+  beforeEach(() => (service = new AwsImageReader()));
+  beforeEach(mock.inject());
 
   describe('findImages', function () {
-    var query = 'abc',
-      region = 'us-west-1';
-
-    const buildQueryString = () => `/images/find?provider=aws&q=${query}&region=${region}`;
+    const region = 'us-west-2';
+    const buildQueryString = (query: string, region: string) => `/images/find?q=${query}&region=${region}`;
 
     it('queries gate when 3 characters are supplied', async function () {
-      const http = mockHttpClient();
-      var result = null;
-
-      http.expectGET(buildQueryString()).respond(200, [{ success: true }]);
-
-      service.findImages({ provider: 'aws', q: query, region: region }).then(function (results) {
-        result = results;
-      });
-
-      await http.flush();
+      const q = 'que';
+      const http = mockHttpClient({ autoFlush: true });
+      http.expectGET(buildQueryString(q, region)).respond(200, [{ success: true }]);
+      const result = await service.findImages({ q, region });
 
       expect(result.length).toBe(1);
-      expect(result[0].success).toBe(true);
+      expect((result[0] as any).success).toBe(true);
     });
 
     it('queries gate when more than 3 characters are supplied', async function () {
-      const http = mockHttpClient();
-      var result = null;
-
-      query = 'abcd';
-
-      http.expectGET(buildQueryString()).respond(200, [{ success: true }]);
-
-      var promise = service.findImages({ provider: 'aws', q: query, region: region });
-
-      promise.then(function (results) {
-        result = results;
-      });
-
-      await http.flush();
-
+      const q = 'abcd';
+      const http = mockHttpClient({ autoFlush: true });
+      http.expectGET(buildQueryString(q, region)).respond(200, [{ success: true }]);
+      const result = await service.findImages({ q, region });
       expect(result.length).toBe(1);
-      expect(result[0].success).toBe(true);
+      expect((result[0] as any).success).toBe(true);
     });
 
-    it('returns a message prompting user to enter more characters when less than 3 are supplied', function () {
-      query = 'ab';
-
-      var result = null;
-
-      service.findImages({ provider: 'aws', q: query, region: region }).then(function (results) {
-        result = results;
-      });
-
-      scope.$digest();
-
+    it('returns a message prompting user to enter more characters when less than 3 are supplied', async function () {
+      const q = 'ab';
+      let result: any;
+      service.findImages({ q, region }).then((response) => (result = response));
+      $rootScope.$digest();
       expect(result.length).toBe(1);
-      expect(result[0].message).toBe('Please enter at least 3 characters...');
+      expect((result[0] as any).message).toBe('Please enter at least 3 characters...');
     });
 
     it('returns an empty array when server errors', async function () {
-      const http = mockHttpClient();
-      query = 'abc';
-      var result = null;
-
-      http.expectGET(buildQueryString()).respond(404, {});
-
-      service.findImages({ provider: 'aws', q: query, region: region }).then(function (results) {
-        result = results;
-      });
-
-      await http.flush();
-
+      const q = 'abc';
+      const http = mockHttpClient({ autoFlush: true });
+      http.expectGET(buildQueryString(q, region)).respond(404, {});
+      const result = await service.findImages({ q, region });
       expect(result.length).toBe(0);
     });
   });
 
   describe('getImage', function () {
-    var imageName = 'abc',
-      region = 'us-west-1',
-      credentials = 'test';
+    const imageName = 'abc';
+    const region = 'us-west-1';
+    const credentials = 'test';
 
     const buildQueryString = () => `/images/${credentials}/${region}/${imageName}?provider=aws`;
 
-    it('returns null if server returns 404 or an empty list', async function () {
-      const http = mockHttpClient();
-      var result = 'not null';
-
+    it('returns null if server returns 404', async function () {
+      const http = mockHttpClient({ autoFlush: true });
       http.expectGET(buildQueryString()).respond(404, {});
-
-      service.getImage(imageName, region, credentials).then(function (results) {
-        result = results;
-      });
-
-      await http.flush();
-
+      const result = await service.getImage(imageName, region, credentials);
       expect(result).toBe(null);
+    });
 
-      result = 'not null';
-
+    it('returns null if server returns an empty list', async function () {
+      const http = mockHttpClient({ autoFlush: true });
       http.expectGET(buildQueryString()).respond(200, []);
-
-      service.getImage(imageName, region, credentials).then(function (results) {
-        result = results;
-      });
-
-      await http.flush();
-
-      expect(result).toBe(null);
+      const result2 = await service.getImage(imageName, region, credentials);
+      expect(result2).toBe(null);
     });
   });
 });
