@@ -218,15 +218,15 @@ export const VersionBranch = ({ branch }: IVersionBranchProps) => {
 };
 
 interface IVersionBuildProps {
-  build: { buildNumber?: string; buildLink?: string; version?: string };
+  build: { buildNumber?: string; link?: string; version?: string };
   withPrefix?: boolean;
 }
 
 export const VersionBuild = ({ build, withPrefix }: IVersionBuildProps) => {
   const logEvent = useLogEvent('ArtifactBuild', 'OpenBuild');
   const text = `${withPrefix ? `Build ` : ''}#${build.buildNumber}`;
-  const content = build.buildLink ? (
-    <a href={build.buildLink} onClick={() => logEvent({ data: { build: build.buildNumber } })}>
+  const content = build.link ? (
+    <a href={build.link} onClick={() => logEvent({ data: { build: build.buildNumber } })}>
       {text}
     </a>
   ) : (
