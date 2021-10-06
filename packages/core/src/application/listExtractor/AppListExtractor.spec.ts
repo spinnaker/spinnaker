@@ -1,7 +1,7 @@
-import type { IInstance, IServerGroup } from '../../domain';
+import { AppListExtractor } from './AppListExtractor';
 import type { Application } from '../application.model';
 import { ApplicationModelBuilder } from '../applicationModel.builder';
-import { AppListExtractor } from './AppListExtractor';
+import type { IInstance, IServerGroup } from '../../domain';
 import type { IMoniker } from '../../naming/IMoniker';
 
 describe('AppListExtractor', function () {

@@ -1,5 +1,6 @@
-import React from 'react';
 import { shallow } from 'enzyme';
+import React from 'react';
+
 import { mockInstance } from '@spinnaker/mocks';
 
 import { InstanceInformation } from './InstanceInformation';

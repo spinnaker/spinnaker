@@ -1,8 +1,8 @@
+import { MultiselectModel } from './MultiselectModel';
 import { ReactInjector } from '../../reactShims';
 import * as State from '../../state';
-const { ClusterState } = State;
 
-import { MultiselectModel } from './MultiselectModel';
+const { ClusterState } = State;
 
 describe('Multiselect Model', () => {
   let multiselectModel: MultiselectModel;

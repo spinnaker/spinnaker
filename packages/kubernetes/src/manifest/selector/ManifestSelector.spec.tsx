@@ -1,24 +1,25 @@
-import React from 'react';
 import { mount } from 'enzyme';
+import { $q } from 'ngimport';
+import React from 'react';
 import type { Option } from 'react-select';
 import Select, { Creatable } from 'react-select';
-import { $q } from 'ngimport';
-import Spy = jasmine.Spy;
 
 import {
   AccountSelectInput,
   AccountService,
-  ScopeClusterSelector,
   createFakeReactSyntheticEvent,
   noop,
+  ScopeClusterSelector,
 } from '@spinnaker/core';
 
+import type { IManifestLabelSelector } from './IManifestLabelSelector';
+import { SelectorMode } from './IManifestSelector';
 import { ManifestKindSearchService } from '../ManifestKindSearch';
 import type { IManifestSelectorState } from './ManifestSelector';
 import { ManifestSelector } from './ManifestSelector';
-import { SelectorMode } from './IManifestSelector';
 import LabelEditor from './labelEditor/LabelEditor';
-import type { IManifestLabelSelector } from './IManifestLabelSelector';
+
+import Spy = jasmine.Spy;
 
 describe('<ManifestSelector />', () => {
   let searchService: Spy;

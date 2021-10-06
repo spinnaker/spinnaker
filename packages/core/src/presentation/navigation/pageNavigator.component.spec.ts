@@ -1,10 +1,10 @@
-import $ from 'jquery';
-import { mock } from 'angular';
-
-import { PAGE_NAVIGATOR_COMPONENT } from './pageNavigator.component';
-import type { INavigationPage } from './PageNavigationState';
-import { ScrollToService } from '../../utils/scrollTo/scrollTo.service';
 import UI_ROUTER from '@uirouter/angularjs';
+import { mock } from 'angular';
+import $ from 'jquery';
+
+import type { INavigationPage } from './PageNavigationState';
+import { PAGE_NAVIGATOR_COMPONENT } from './pageNavigator.component';
+import { ScrollToService } from '../../utils/scrollTo/scrollTo.service';
 
 describe('Component: Page Navigator', () => {
   let $compile: ng.ICompileService, $scope: ng.IScope, $timeout: ng.ITimeoutService, elem: JQuery;

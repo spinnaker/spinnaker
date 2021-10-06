@@ -1,6 +1,5 @@
-import type { IArtifact } from '../../../../../domain';
-
 import { setNameAndVersionFromReference } from './DockerArtifactEditor';
+import type { IArtifact } from '../../../../../domain';
 
 describe('defaultDocker.artifact', () => {
   it('parses Docker image references correctly', () => {

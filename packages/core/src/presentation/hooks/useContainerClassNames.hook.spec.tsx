@@ -1,5 +1,6 @@
-import React from 'react';
 import { mount } from 'enzyme';
+import React from 'react';
+
 import { useContainerClassNames } from './useContainerClassNames.hook';
 
 const TestComponent = ({ classNames }: { classNames: string[] }) => {

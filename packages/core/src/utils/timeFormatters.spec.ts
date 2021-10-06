@@ -1,9 +1,9 @@
 import type { IFilterService } from 'angular';
 import { mock } from 'angular';
+import { DateTime, Settings } from 'luxon';
 
 import { SETTINGS } from '../config/settings';
 import { duration, timeDiffToString } from './timeFormatters';
-import { DateTime, Settings } from 'luxon';
 
 describe('Filter: timeFormatters', function () {
   beforeEach(function () {

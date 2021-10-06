@@ -1,7 +1,8 @@
 import { mount } from 'enzyme';
 import React from 'react';
-import { VpcReader } from '../vpc/VpcReader';
+
 import { VpcTag } from './VpcTag';
+import { VpcReader } from '../vpc/VpcReader';
 
 const tick = () => new Promise((resolve) => setTimeout(resolve));
 

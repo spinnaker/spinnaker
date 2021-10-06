@@ -1,11 +1,11 @@
-import React from 'react';
 import { mock } from 'angular';
 import { mount } from 'enzyme';
+import React from 'react';
 
-import { AuthenticationService } from '../../authentication';
-import { REACT_MODULE } from '../../reactShims';
 import type { IPermissions, IPermissionsConfigurerProps } from './PermissionsConfigurer';
 import { PermissionsConfigurer } from './PermissionsConfigurer';
+import { AuthenticationService } from '../../authentication';
+import { REACT_MODULE } from '../../reactShims';
 
 describe('PermissionsConfigurer', () => {
   const createComponent = (props: IPermissionsConfigurerProps) => {

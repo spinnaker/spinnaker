@@ -1,5 +1,5 @@
-import ruleTester from '../utils/ruleTester';
 import rule from './ng-no-component-class';
+import ruleTester from '../utils/ruleTester';
 
 ruleTester.run('ng-no-component-class', rule, {
   valid: [

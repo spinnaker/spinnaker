@@ -1,6 +1,7 @@
-import { mockHttpClient } from '../api/mock/jasmine';
 import type { ITimeoutService } from 'angular';
 import { mock } from 'angular';
+
+import { mockHttpClient } from '../api/mock/jasmine';
 import { TaskWriter } from './task.write.service';
 
 describe('Service: TaskWriter', () => {

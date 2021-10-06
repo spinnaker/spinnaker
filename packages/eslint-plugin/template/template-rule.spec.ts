@@ -1,5 +1,5 @@
-import ruleTester from '../utils/ruleTester';
 import rule from './RULENAME';
+import ruleTester from '../utils/ruleTester';
 
 ruleTester.run('RULENAME', rule, {
   valid: [

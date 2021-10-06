@@ -1,7 +1,8 @@
-import { SpelAutocompleteService } from './SpelAutocompleteService';
 import { $q } from 'ngimport';
-import type { ExecutionService } from '../../pipeline';
+
+import { SpelAutocompleteService } from './SpelAutocompleteService';
 import type { IExecution, IPipeline, IStage } from '../../domain';
+import type { ExecutionService } from '../../pipeline';
 
 describe('SpelAutocompleteService', () => {
   describe('addPipelineInfo', () => {

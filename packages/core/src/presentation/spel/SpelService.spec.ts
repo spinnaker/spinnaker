@@ -1,5 +1,5 @@
-import { RequestBuilder } from '../../api';
 import { SpelService } from './SpelService';
+import { RequestBuilder } from '../../api';
 
 describe('SpelService', () => {
   it('extracts "result" from the payload', async () => {

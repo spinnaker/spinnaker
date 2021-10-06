@@ -1,6 +1,6 @@
-import React from 'react';
 import type { ReactWrapper } from 'enzyme';
 import { mount } from 'enzyme';
+import React from 'react';
 
 import type { IFilterProps } from './Filter';
 import { Filter } from './Filter';

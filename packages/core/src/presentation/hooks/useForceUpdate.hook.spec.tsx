@@ -1,6 +1,7 @@
-import React from 'react';
 import { mount } from 'enzyme';
+import React from 'react';
 import { Subject } from 'rxjs';
+
 import { useForceUpdate } from '..';
 
 describe('useForceUpdate', () => {

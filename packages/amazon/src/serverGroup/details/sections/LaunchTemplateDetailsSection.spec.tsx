@@ -1,16 +1,18 @@
-import React from 'react';
 import { shallow } from 'enzyme';
+import React from 'react';
+
+import type { Application } from '@spinnaker/core';
+import { ApplicationModelBuilder } from '@spinnaker/core';
 import {
   createCustomMockLaunchTemplate,
   mockLaunchTemplate,
   mockLaunchTemplateData,
   mockServerGroup,
 } from '@spinnaker/mocks';
-import type { Application } from '@spinnaker/core';
-import { ApplicationModelBuilder } from '@spinnaker/core';
-import type { IAmazonServerGroupView, IAmazonMixedInstancesPolicy, IScalingPolicy } from '../../../domain';
+
 import { LaunchTemplateDetailsSection } from './LaunchTemplateDetailsSection';
 import { MultipleInstanceTypesSubSection } from './MultipleInstanceTypesSubSection';
+import type { IAmazonMixedInstancesPolicy, IAmazonServerGroupView, IScalingPolicy } from '../../../domain';
 
 describe('Launch template details', () => {
   let app: Application;

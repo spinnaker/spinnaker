@@ -2,12 +2,12 @@ import { mock } from 'angular';
 import { map } from 'lodash';
 import React from 'react';
 
-import { SETTINGS } from '../../config';
-import type { IStage, ITriggerTypeConfig, IStageTypeConfig } from '../../domain';
-import type { IRegion } from '../../account/AccountService';
-import { Registry } from '../../registry';
-import type { ITriggerTemplateComponentProps } from '../manualExecution/TriggerTemplate';
 import { PipelineRegistry } from './PipelineRegistry';
+import type { IRegion } from '../../account/AccountService';
+import { SETTINGS } from '../../config';
+import type { IStage, IStageTypeConfig, ITriggerTypeConfig } from '../../domain';
+import { ITriggerTemplateComponentProps } from '../manualExecution/TriggerTemplate';
+import { Registry } from '../../registry';
 import type { IPreconfiguredJob } from './stages/preconfiguredJob';
 import { makePreconfiguredJobStage, PreconfiguredJobReader } from './stages/preconfiguredJob';
 

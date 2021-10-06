@@ -1,6 +1,6 @@
 import type { Application } from '../../application/application.model';
 import { ApplicationModelBuilder } from '../../application/applicationModel.builder';
-import type { ILoadBalancer, IServerGroup, ILoadBalancerGroup, IManagedResourceSummary } from '../../domain';
+import type { ILoadBalancer, ILoadBalancerGroup, IManagedResourceSummary, IServerGroup } from '../../domain';
 import { LoadBalancerState } from '../../state';
 
 // Most of this logic has been moved to filter.model.service.js, so these act more as integration tests

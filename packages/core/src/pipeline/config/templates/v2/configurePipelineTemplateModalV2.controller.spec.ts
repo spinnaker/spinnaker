@@ -1,13 +1,13 @@
-import type { IScope, IQService } from 'angular';
+import type { IQService, IScope } from 'angular';
 import { mock } from 'angular';
 
+import { PipelineTemplateReader } from '../PipelineTemplateReader';
+import type { Application } from '../../../../application/application.model';
+import { ApplicationModelBuilder } from '../../../../application/applicationModel.builder';
 import type { ConfigurePipelineTemplateModalV2Controller } from './configurePipelineTemplateModalV2.controller';
 import { CONFIGURE_PIPELINE_TEMPLATE_MODAL_V2_CTRL } from './configurePipelineTemplateModalV2.controller';
 import type { IVariable } from '../inputs/variableInput.service';
-import { ApplicationModelBuilder } from '../../../../application/applicationModel.builder';
-import type { Application } from '../../../../application/application.model';
 import { PIPELINE_TEMPLATE_MODULE } from '../pipelineTemplate.module';
-import { PipelineTemplateReader } from '../PipelineTemplateReader';
 
 describe('Controller: ConfigurePipelineTemplateModalV2Ctrl', () => {
   let ctrl: ConfigurePipelineTemplateModalV2Controller, $scope: IScope, $q: IQService, application: Application;

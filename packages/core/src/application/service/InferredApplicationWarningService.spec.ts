@@ -1,10 +1,9 @@
 import Spy = jasmine.Spy;
 
-import { NotifierService } from '../../widgets/notifier/notifier.service';
-
 import { InferredApplicationWarningService } from './InferredApplicationWarningService';
 import type { Application } from '../application.model';
 import { ApplicationModelBuilder } from '../applicationModel.builder';
+import { NotifierService } from '../../widgets/notifier/notifier.service';
 
 describe('Service: inferredApplicationWarning', () => {
   describe('checkIfInferredAndWarn', () => {

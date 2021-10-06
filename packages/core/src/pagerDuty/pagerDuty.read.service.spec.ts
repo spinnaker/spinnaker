@@ -1,5 +1,6 @@
-import { mockHttpClient } from '../api/mock/jasmine';
 import { mock } from 'angular';
+
+import { mockHttpClient } from '../api/mock/jasmine';
 import type { IPagerDutyService } from './pagerDuty.read.service';
 import { PagerDutyReader } from './pagerDuty.read.service';
 

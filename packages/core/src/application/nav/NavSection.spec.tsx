@@ -1,13 +1,14 @@
-import React from 'react';
 import { shallow } from 'enzyme';
+import React from 'react';
 
 import {
   mockLoadBalancerDataSourceConfig,
   mockPipelineDataSourceConfig,
   mockServerGroupDataSourceConfig,
 } from '@spinnaker/mocks';
-import { ApplicationModelBuilder } from '../../application';
+
 import { NavSection } from './NavSection';
+import { ApplicationModelBuilder } from '../../application';
 
 describe('NavItem', () => {
   it('should render multiple categories', () => {

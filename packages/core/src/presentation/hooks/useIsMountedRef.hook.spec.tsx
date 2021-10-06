@@ -1,7 +1,7 @@
+import { mount } from 'enzyme';
 import React from 'react';
 
 import { useIsMountedRef } from '..';
-import { mount } from 'enzyme';
 
 describe('useIsMountedRef hook', () => {
   let useIsMountedRefSpy: jasmine.Spy;

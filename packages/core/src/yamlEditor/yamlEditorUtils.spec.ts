@@ -1,4 +1,4 @@
-import { yamlStringToDocuments, yamlDocumentsToString } from './yamlEditorUtils';
+import { yamlDocumentsToString, yamlStringToDocuments } from './yamlEditorUtils';
 
 describe('YAML editor utils', () => {
   describe('yamlStringToDocuments', () => {

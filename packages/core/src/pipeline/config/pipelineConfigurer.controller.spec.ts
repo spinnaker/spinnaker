@@ -1,7 +1,6 @@
 import type { IController, IControllerService, IQService, IRootScopeService, IScope, IWindowService } from 'angular';
 
 import { ApplicationModelBuilder } from '../../application/applicationModel.builder';
-import { PipelineConfigService } from './services/PipelineConfigService';
 import type {
   IDockerTrigger,
   IGitTrigger,
@@ -10,6 +9,7 @@ import type {
   IPipelineTemplateConfigV2,
   IPipelineTemplatePlanV2,
 } from '../../domain';
+import { PipelineConfigService } from './services/PipelineConfigService';
 
 const githubTrigger: IGitTrigger = {
   branch: 'master',

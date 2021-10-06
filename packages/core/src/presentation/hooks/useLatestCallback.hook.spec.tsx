@@ -1,5 +1,6 @@
-import React from 'react';
 import { mount } from 'enzyme';
+import React from 'react';
+
 import { useLatestCallback } from './useLatestCallback.hook';
 
 const TestComponent = ({

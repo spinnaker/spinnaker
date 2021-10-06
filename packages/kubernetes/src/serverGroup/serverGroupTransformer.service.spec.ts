@@ -1,6 +1,7 @@
-import { KubernetesV2ServerGroupTransformer } from './serverGroupTransformer.service';
 import { Application } from '@spinnaker/core';
+
 import type { IKubernetesServerGroup } from '../interfaces';
+import { KubernetesV2ServerGroupTransformer } from './serverGroupTransformer.service';
 
 describe('KubernetesV2ServerGroupTransformer', function () {
   it('normalizes server group name', async () => {

@@ -1,5 +1,5 @@
-import ruleTester from '../utils/ruleTester';
 import rule from './rest-prefer-static-strings-in-initializer';
+import ruleTester from '../utils/ruleTester';
 
 ruleTester.run('rest-prefer-static-strings-in-initializer', rule, {
   valid: [

@@ -1,5 +1,5 @@
 import Spy = jasmine.Spy;
-import type { IScope, IQService, IControllerService, IRootScopeService } from 'angular';
+import type { IControllerService, IQService, IRootScopeService, IScope } from 'angular';
 import { mock } from 'angular';
 
 import { IgorService } from '../../../../ci/igor.service';

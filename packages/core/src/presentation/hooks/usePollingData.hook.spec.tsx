@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react';
 import { mount } from 'enzyme';
+import React, { useEffect } from 'react';
+
 import type { IUseLatestPromiseResult } from './useLatestPromise.hook';
 import { usePollingData } from './usePollingData.hook';
 

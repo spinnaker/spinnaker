@@ -1,15 +1,14 @@
 import { mock } from 'angular';
 
+import type { Application } from '../application/application.model';
+import { ApplicationModelBuilder } from '../application/applicationModel.builder';
 import { PROVIDER_SERVICE_DELEGATE } from '../cloudProvider';
+import type { IInstance, IServerGroup } from '../domain';
 import type { IMultiInstanceGroup } from './instance.write.service';
 import { InstanceWriter } from './instance.write.service';
-import type { Application } from '../application/application.model';
 import { REACT_MODULE } from '../reactShims';
-import { ApplicationModelBuilder } from '../application/applicationModel.builder';
-import type { IInstance, IServerGroup } from '../domain';
-import * as State from '../state';
-
 import { ServerGroupReader } from '../serverGroup/serverGroupReader.service';
+import * as State from '../state';
 import type { IJob, ITaskCommand } from '../task/taskExecutor';
 import { TaskExecutor } from '../task/taskExecutor';
 

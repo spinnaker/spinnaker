@@ -1,5 +1,5 @@
-import ruleTester from '../utils/ruleTester';
 import rule from './import-from-npm-not-relative';
+import ruleTester from '../utils/ruleTester';
 
 ruleTester.run('import-from-npm-not-relative', rule, {
   valid: [

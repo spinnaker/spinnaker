@@ -1,10 +1,12 @@
-import React from 'react';
 import { shallow } from 'enzyme';
-import { mockLaunchTemplate, mockServerGroup } from '@spinnaker/mocks';
-import type { IAmazonMixedInstancesPolicy, IAmazonServerGroupView, IScalingPolicy } from '../../../domain';
-import { InstancesDistributionDetailsSection } from '../../../index';
+import React from 'react';
+
 import type { Application } from '@spinnaker/core';
 import { ApplicationModelBuilder } from '@spinnaker/core';
+import { mockLaunchTemplate, mockServerGroup } from '@spinnaker/mocks';
+
+import type { IAmazonMixedInstancesPolicy, IAmazonServerGroupView, IScalingPolicy } from '../../../domain';
+import { InstancesDistributionDetailsSection } from '../../../index';
 
 describe('InstancesDistribution', () => {
   let app: Application;

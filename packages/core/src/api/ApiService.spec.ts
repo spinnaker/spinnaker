@@ -1,6 +1,6 @@
 import type { IHttpClientImplementation } from './ApiService';
-import { SETTINGS } from '../config/settings';
 import { makeRequestBuilderConfig, RequestBuilder } from './ApiService';
+import { SETTINGS } from '../config/settings';
 
 describe('RequestBuilder backend', () => {
   const createBackend = (): IHttpClientImplementation => jasmine.createSpyObj(['get', 'post', 'put', 'delete']);

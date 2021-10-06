@@ -1,5 +1,5 @@
-import ruleTester from '../utils/ruleTester';
 import rule from './prefer-promise-like';
+import ruleTester from '../utils/ruleTester';
 const errorMessage = `Prefer using PromiseLike type instead of AngularJS IPromise.`;
 const unusedImportErrorMessage = `Unused IPromise import`;
 

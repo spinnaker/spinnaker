@@ -1,4 +1,4 @@
-import type { IScope, IControllerService, IRootScopeService } from 'angular';
+import type { IControllerService, IRootScopeService, IScope } from 'angular';
 import { mock } from 'angular';
 
 import { TRAVIS_EXECUTION_DETAILS_CONTROLLER, TravisExecutionDetailsCtrl } from './travisExecutionDetails.controller';

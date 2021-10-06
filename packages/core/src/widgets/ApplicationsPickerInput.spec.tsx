@@ -1,8 +1,9 @@
-import { ApplicationReader } from '../application';
-import type { IValidator } from '../presentation';
 import { mount } from 'enzyme';
 import React from 'react';
+
 import { ApplicationsPickerInput } from './ApplicationsPickerInput';
+import { ApplicationReader } from '../application';
+import type { IValidator } from '../presentation';
 
 describe('ApplicationsPickerInput', () => {
   function listApplicationsSpy() {

@@ -1,10 +1,10 @@
-import React from 'react';
 import { shallow } from 'enzyme';
+import React from 'react';
 
 import { StageConfigField } from '@spinnaker/core';
 
 import type { IManifestDeploymentOptionsProps } from './ManifestDeploymentOptions';
-import { ManifestDeploymentOptions, defaultTrafficManagementConfig } from './ManifestDeploymentOptions';
+import { defaultTrafficManagementConfig, ManifestDeploymentOptions } from './ManifestDeploymentOptions';
 
 describe('<ManifestDeploymentOptions />', () => {
   const onConfigChangeSpy = jasmine.createSpy('onConfigChangeSpy');

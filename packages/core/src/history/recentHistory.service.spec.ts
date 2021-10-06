@@ -1,8 +1,8 @@
 import { range, some } from 'lodash';
 
-import { RecentHistoryService } from '../history/recentHistory.service';
 import type { ICache } from '../cache/deckCacheFactory';
 import { DeckCacheFactory } from '../cache/deckCacheFactory';
+import { RecentHistoryService } from '../history/recentHistory.service';
 
 describe('recent history service', () => {
   let backingCache: ICache;

@@ -1,7 +1,7 @@
-import { asyncMessage, errorMessage, infoMessage, messageMessage, successMessage, warningMessage } from './categories';
+import { mount } from 'enzyme';
 import React from 'react';
 
-import { mount } from 'enzyme';
+import { asyncMessage, errorMessage, infoMessage, messageMessage, successMessage, warningMessage } from './categories';
 import type { IValidationData } from './useValidationData';
 import { useValidationData } from './useValidationData';
 

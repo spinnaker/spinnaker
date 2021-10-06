@@ -2,9 +2,10 @@
 
 import Spy = jasmine.Spy;
 import { mock, noop } from 'angular';
+
+import { API, InvalidAPIResponse, invalidContentMessage } from './ApiService';
 import { AuthenticationInitializer } from '../authentication/AuthenticationInitializer';
 import type { ICache } from '../cache';
-import { API, InvalidAPIResponse, invalidContentMessage } from './ApiService';
 import { SETTINGS } from '../config/settings';
 
 describe('API Service', function () {

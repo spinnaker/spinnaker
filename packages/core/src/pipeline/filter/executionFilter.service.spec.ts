@@ -1,5 +1,5 @@
-import { ExecutionFilterService } from './executionFilter.service';
 import type { ExecutionFilterModel } from './ExecutionFilterModel';
+import { ExecutionFilterService } from './executionFilter.service';
 import { ExecutionState } from '../../state';
 
 describe('ExecutionFilterService', function () {

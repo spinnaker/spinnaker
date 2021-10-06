@@ -1,16 +1,16 @@
-import React from 'react';
-// eslint-disable-next-line @spinnaker/import-from-npm-not-relative
-import { mockHttpClient } from '../../../../core/src/api/mock/jasmine';
 import { mock } from 'angular';
-import type { ShallowWrapper, ReactWrapper } from 'enzyme';
-import { shallow, mount } from 'enzyme';
+import type { ReactWrapper, ShallowWrapper } from 'enzyme';
+import { mount, shallow } from 'enzyme';
+import React from 'react';
 
-import type { IAmazonImage } from '../../image';
 import { Application } from '@spinnaker/core';
 import { REACT_MODULE } from '@spinnaker/core';
 
 import type { IAmazonImageSelectorProps, IAmazonImageSelectorState } from './AmazonImageSelectInput';
 import { AmazonImageSelectInput } from './AmazonImageSelectInput';
+// eslint-disable-next-line @spinnaker/import-from-npm-not-relative
+import { mockHttpClient } from '../../../../core/src/api/mock/jasmine';
+import type { IAmazonImage } from '../../image';
 const application = new Application('testapp', null, []);
 const region = 'us-region-1';
 const credentials = 'prodaccount';

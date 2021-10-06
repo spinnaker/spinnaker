@@ -1,5 +1,5 @@
-import ruleTester from '../utils/ruleTester';
 import rule from './import-from-presentation-not-core';
+import ruleTester from '../utils/ruleTester';
 const errorMessage = (moduleName) => `${moduleName} must be imported from @spinnaker/presentation`;
 
 ruleTester.run('import-from-presentation-not-core', rule, {

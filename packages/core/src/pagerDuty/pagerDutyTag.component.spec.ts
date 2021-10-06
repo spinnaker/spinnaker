@@ -1,6 +1,7 @@
-import { of as observableOf } from 'rxjs';
 import type { IComponentControllerService } from 'angular';
 import { mock } from 'angular';
+import { of as observableOf } from 'rxjs';
+
 import type { IPagerDutyService } from './pagerDuty.read.service';
 import { PagerDutyReader } from './pagerDuty.read.service';
 import type { PagerDutyTagComponentController } from './pagerDutyTag.component';

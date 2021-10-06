@@ -1,8 +1,9 @@
-import React from 'react';
 import { mount } from 'enzyme';
+import React from 'react';
+
 import type { IFormInputProps, IStageForSpelPreview, IValidator } from '..';
-import { SpelService } from './SpelService';
 import { SpelInput } from './SpelInput';
+import { SpelService } from './SpelService';
 
 function defer() {
   let resolve: Function, reject: Function;

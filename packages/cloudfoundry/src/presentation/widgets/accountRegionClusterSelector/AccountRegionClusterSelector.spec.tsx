@@ -1,7 +1,7 @@
-import React from 'react';
 import type { IScope } from 'angular';
 import { mock, noop } from 'angular';
 import { mount, shallow } from 'enzyme';
+import React from 'react';
 
 import type { Application, ApplicationDataSource, IMoniker, IServerGroup } from '@spinnaker/core';
 import { ApplicationModelBuilder, REACT_MODULE } from '@spinnaker/core';

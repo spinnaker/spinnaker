@@ -1,5 +1,5 @@
-import ruleTester from '../utils/ruleTester';
 import rule from './react2angular-with-error-boundary';
+import ruleTester from '../utils/ruleTester';
 const errorMessage = `Wrap react2angular components in an error boundary using 'withErrorBoundary()'`;
 
 ruleTester.run('api-no-slashes', rule, {

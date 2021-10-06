@@ -1,22 +1,22 @@
 import { mock } from 'angular';
-import Spy = jasmine.Spy;
-import { SETTINGS } from '../../../config/settings';
-
-import type { IPipeline, IStage, IStageTypeConfig } from '../../../domain';
-import { ServiceAccountReader } from '../../../serviceAccount/ServiceAccountReader';
-import { PipelineConfigService } from '../services/PipelineConfigService';
-import { Registry } from '../../../registry';
 
 import type { ICustomValidator, IPipelineValidationResults, IValidatorConfig } from './PipelineConfigValidator';
 import { PipelineConfigValidator } from './PipelineConfigValidator';
+import { SETTINGS } from '../../../config/settings';
+import type { IPipeline, IStage, IStageTypeConfig } from '../../../domain';
+import { Registry } from '../../../registry';
 import type { IRequiredFieldValidationConfig } from './requiredField.validator';
+import { ServiceAccountReader } from '../../../serviceAccount/ServiceAccountReader';
 import type {
   IServiceAccountAccessValidationConfig,
   ITriggerWithServiceAccount,
 } from './serviceAccountAccess.validator';
+import { PipelineConfigService } from '../services/PipelineConfigService';
 import type { IStageBeforeTypeValidationConfig } from './stageBeforeType.validator';
 import type { IStageOrTriggerBeforeTypeValidationConfig } from './stageOrTriggerBeforeType.validator';
 import type { ITargetImpedanceValidationConfig } from './targetImpedance.validator';
+
+import Spy = jasmine.Spy;
 
 describe('pipelineConfigValidator', () => {
   let pipeline: IPipeline, validate: () => void, validationResults: IPipelineValidationResults, $q: ng.IQService;

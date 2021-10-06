@@ -1,11 +1,11 @@
-import type { IComponentControllerService, IScope, IQService, IRootScopeService } from 'angular';
+import type { IComponentControllerService, IQService, IRootScopeService, IScope } from 'angular';
 import { mock } from 'angular';
 
-import type { ChaosMonkeyExceptionsController } from './chaosMonkeyExceptions.component';
-import { CHAOS_MONKEY_EXCEPTIONS_COMPONENT } from './chaosMonkeyExceptions.component';
 import { AccountService } from '../account/AccountService';
 import { ApplicationModelBuilder } from '../application/applicationModel.builder';
 import { ChaosMonkeyConfig } from './chaosMonkeyConfig.component';
+import type { ChaosMonkeyExceptionsController } from './chaosMonkeyExceptions.component';
+import { CHAOS_MONKEY_EXCEPTIONS_COMPONENT } from './chaosMonkeyExceptions.component';
 
 describe('Controller: ChaosMonkeyExceptions', () => {
   let $componentController: IComponentControllerService,

@@ -1,10 +1,9 @@
-import React from 'react';
 import { mount } from 'enzyme';
+import React from 'react';
 
 import { ExpectedArtifactService } from '..';
-import type { IExpectedArtifact } from '../../domain';
-
 import { ExpectedArtifactSelector } from './ExpectedArtifactSelector';
+import type { IExpectedArtifact } from '../../domain';
 
 const artifact = (type: string): IExpectedArtifact => {
   const ea = ExpectedArtifactService.createEmptyArtifact();

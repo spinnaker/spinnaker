@@ -1,13 +1,14 @@
-import React from 'react';
 import { mock } from 'angular';
+import type { IModalService } from 'angular-ui-bootstrap';
 import type { ReactWrapper } from 'enzyme';
 import { mount } from 'enzyme';
+import React from 'react';
+import { Button } from 'react-bootstrap';
+
 import type { IInsightMenuProps, IInsightMenuState } from './InsightMenu';
 import { InsightMenu } from './InsightMenu';
-import type { IModalService } from 'angular-ui-bootstrap';
-import { OverrideRegistry } from '../overrideRegistry/override.registry';
 import type { CacheInitializerService } from '../cache/cacheInitializer.service';
-import { Button } from 'react-bootstrap';
+import { OverrideRegistry } from '../overrideRegistry/override.registry';
 
 beforeEach(() => {
   mock.module(($provide: any) => {

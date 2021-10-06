@@ -1,5 +1,5 @@
-import ruleTester from '../utils/ruleTester';
 import rule from './ng-no-module-export';
+import ruleTester from '../utils/ruleTester';
 
 ruleTester.run('ng-no-module-export', rule, {
   valid: [

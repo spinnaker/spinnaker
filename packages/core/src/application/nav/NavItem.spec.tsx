@@ -1,14 +1,15 @@
+import { mount } from 'enzyme';
 import React from 'react';
 import { RecoilRoot } from 'recoil';
-import { mount } from 'enzyme';
 import { BehaviorSubject } from 'rxjs';
 
-import { mockEntityTags, mockServerGroupDataSourceConfig, mockPipelineDataSourceConfig } from '@spinnaker/mocks';
+import { mockEntityTags, mockPipelineDataSourceConfig, mockServerGroupDataSourceConfig } from '@spinnaker/mocks';
+
+import { NavItem } from './NavItem';
 import type { Application } from '../../application';
 import { ApplicationModelBuilder } from '../../application';
+import type { IEntityTags, IPipeline, IServerGroup } from '../../domain';
 import type { ApplicationDataSource, IDataSourceConfig } from '../service/applicationDataSource';
-import type { IEntityTags, IServerGroup, IPipeline } from '../../domain';
-import { NavItem } from './NavItem';
 
 describe('NavItem', () => {
   const buildApp = <T,>(config: IDataSourceConfig<T>): Application =>

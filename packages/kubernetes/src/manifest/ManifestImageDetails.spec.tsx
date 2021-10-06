@@ -1,6 +1,7 @@
-import React from 'react';
 import { mount } from 'enzyme';
 import { load } from 'js-yaml';
+import React from 'react';
+
 import { ManifestImageDetails } from '../manifest/ManifestImageDetails';
 
 describe('<ManifestImageDetails />', () => {

@@ -1,7 +1,8 @@
-import React from 'react';
 import { mount } from 'enzyme';
-import type { IUseLatestPromiseResult } from './useLatestPromise.hook';
+import React from 'react';
+
 import { useData } from './useData.hook';
+import type { IUseLatestPromiseResult } from './useLatestPromise.hook';
 
 describe('useData hook', () => {
   function TestComponent(props: any) {

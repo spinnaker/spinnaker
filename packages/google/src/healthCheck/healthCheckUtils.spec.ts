@@ -1,6 +1,6 @@
 import type { IGceHealthCheck } from '../domain';
 import { IGceHealthCheckKind } from '../domain';
-import { parseHealthCheckUrl, getHealthCheckOptions, getDuplicateHealthCheckNames } from './healthCheckUtils';
+import { getDuplicateHealthCheckNames, getHealthCheckOptions, parseHealthCheckUrl } from './healthCheckUtils';
 
 describe('Health check display utils', () => {
   let healthChecks: IGceHealthCheck[];

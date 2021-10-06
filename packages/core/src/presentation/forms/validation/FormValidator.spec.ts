@@ -1,6 +1,6 @@
-import { Validators } from './validators';
 import { FormValidator } from './FormValidator';
-import type { IValidator, IArrayItemValidator } from './validation';
+import type { IArrayItemValidator, IValidator } from './validation';
+import { Validators } from './validators';
 
 const { maxValue, arrayNotEmpty } = Validators;
 

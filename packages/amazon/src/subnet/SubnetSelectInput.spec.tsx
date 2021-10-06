@@ -1,10 +1,12 @@
-import React from 'react';
-import { shallow, render } from 'enzyme';
 import { mock } from 'angular';
-import { SubnetSelectInput } from './SubnetSelectInput';
+import { render, shallow } from 'enzyme';
+import React from 'react';
+
 import type { Application } from '@spinnaker/core';
 import { ApplicationModelBuilder } from '@spinnaker/core';
 import { mockServerGroupDataSourceConfig, mockSubnet } from '@spinnaker/mocks';
+
+import { SubnetSelectInput } from './SubnetSelectInput';
 
 describe('SubnetSelectInput', () => {
   let application: Application;

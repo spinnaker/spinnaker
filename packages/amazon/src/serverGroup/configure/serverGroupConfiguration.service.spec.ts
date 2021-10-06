@@ -1,4 +1,4 @@
-import type { IQService, IScope, IRootScopeService } from 'angular';
+import type { IQService, IRootScopeService, IScope } from 'angular';
 import { mock } from 'angular';
 
 import type { CacheInitializerService, LoadBalancerReader, SecurityGroupReader } from '@spinnaker/core';

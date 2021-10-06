@@ -1,5 +1,5 @@
-import ruleTester from '../utils/ruleTester';
 import rule from './api-deprecation';
+import ruleTester from '../utils/ruleTester';
 
 ruleTester.run('api-deprecation', rule, {
   valid: [

@@ -1,11 +1,11 @@
-import React from 'react';
 import { shallow } from 'enzyme';
+import React from 'react';
 
 import type { Application } from '@spinnaker/core';
 
+import { AWSProviderSettings } from '../../aws.settings';
 import type { IAmazonFunction } from '../../index';
 import { FunctionActions } from '../../index';
-import { AWSProviderSettings } from '../../aws.settings';
 
 describe('FunctionActions', () => {
   it('should render correct state when all attributes exist', () => {

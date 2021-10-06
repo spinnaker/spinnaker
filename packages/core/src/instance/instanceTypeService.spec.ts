@@ -1,6 +1,6 @@
 import { mock } from 'angular';
 
-import type { InstanceTypeService, IInstanceTypeCategory } from './instanceType.service';
+import type { IInstanceTypeCategory, InstanceTypeService } from './instanceType.service';
 import { INSTANCE_TYPE_SERVICE } from './instanceType.service';
 
 describe('Service: instanceTypeService', function () {

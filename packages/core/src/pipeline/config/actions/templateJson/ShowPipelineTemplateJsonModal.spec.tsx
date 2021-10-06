@@ -1,9 +1,9 @@
-import React from 'react';
 import { mount } from 'enzyme';
+import React from 'react';
 
+import { ShowPipelineTemplateJsonModal } from './ShowPipelineTemplateJsonModal';
 import type { IPipeline, IPipelineTemplateV2 } from '../../../../domain';
 import { PipelineTemplateV2Service } from '../../templates/v2/pipelineTemplateV2.service';
-import { ShowPipelineTemplateJsonModal } from './ShowPipelineTemplateJsonModal';
 
 describe('<ShowPipelineTemplateJsonModal />', () => {
   const mockPipeline: Partial<IPipeline> = {

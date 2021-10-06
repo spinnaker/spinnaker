@@ -1,11 +1,10 @@
-import React from 'react';
 import { shallow } from 'enzyme';
+import React from 'react';
 
+import { CustomBanner } from './CustomBanner';
 import { Application } from '../../application/application.model';
 import type { ICustomBannerConfig } from '../../application/config/customBanner/CustomBannerConfig';
 import { getTestBannerConfigs } from '../../application/config/customBanner/CustomBannerConfig.spec';
-
-import { CustomBanner } from './CustomBanner';
 
 describe('<CustomBanner />', () => {
   let application: Application;

@@ -1,9 +1,10 @@
-import type { Application } from '../../application/application.model';
-import { ApplicationModelBuilder } from '../../application/applicationModel.builder';
-import { FunctionState } from '../../state';
 import type { Dictionary } from 'lodash';
 import { groupBy } from 'lodash';
+
+import type { Application } from '../../application/application.model';
+import { ApplicationModelBuilder } from '../../application/applicationModel.builder';
 import type { IFunction } from '../../domain';
+import { FunctionState } from '../../state';
 // Most of this logic has been moved to filter.model.service.js, so these act more as integration tests
 describe('Service: functionFilterService', function () {
   const debounceTimeout = 30;

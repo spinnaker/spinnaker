@@ -1,5 +1,5 @@
-import ruleTester from '../utils/ruleTester';
 import rule from './ng-no-require-module-deps';
+import ruleTester from '../utils/ruleTester';
 
 ruleTester.run('ng-no-require-module-deps', rule, {
   valid: [

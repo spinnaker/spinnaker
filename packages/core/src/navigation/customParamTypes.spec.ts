@@ -1,4 +1,4 @@
-import { trueKeyObjectParamType, booleanParamType, inverseBooleanParamType, sortKeyParamType } from './state.provider';
+import { booleanParamType, inverseBooleanParamType, sortKeyParamType, trueKeyObjectParamType } from './state.provider';
 
 describe('custom param types', () => {
   describe('trueKeyObject', () => {

@@ -1,26 +1,26 @@
-import React from 'react';
-import { RecoilRoot } from 'recoil';
-import { mount } from 'enzyme';
-import { mock } from 'angular';
+import { StateMatcher } from '@uirouter/core';
 import type { UIRouterReact } from '@uirouter/react';
 import { UIRouterContext } from '@uirouter/react';
-import { StateMatcher } from '@uirouter/core';
+import { mock } from 'angular';
+import { mount } from 'enzyme';
+import React from 'react';
+import { RecoilRoot } from 'recoil';
 
-import { REACT_MODULE } from '../../reactShims';
-import { OVERRIDE_REGISTRY } from '../../overrideRegistry';
 import {
   mockAppConfigDataSourceConfig,
-  mockServerGroupDataSourceConfig,
   mockLoadBalancerDataSourceConfig,
-  mockTaskDataSourceConfig,
   mockPipelineDataSourceConfig,
+  mockServerGroupDataSourceConfig,
+  mockTaskDataSourceConfig,
 } from '@spinnaker/mocks';
-import { ApplicationModelBuilder } from '../../application';
-import type { IPipeline } from '../../domain';
-import type { ApplicationDataSource } from '../service/applicationDataSource';
 
 import { ApplicationNavigation } from './ApplicationNavigation';
+import { ApplicationModelBuilder } from '../../application';
 import { SETTINGS } from '../../config';
+import type { IPipeline } from '../../domain';
+import { OVERRIDE_REGISTRY } from '../../overrideRegistry';
+import { REACT_MODULE } from '../../reactShims';
+import type { ApplicationDataSource } from '../service/applicationDataSource';
 
 describe('ApplicationNavigation', () => {
   let $uiRouter: UIRouterReact;

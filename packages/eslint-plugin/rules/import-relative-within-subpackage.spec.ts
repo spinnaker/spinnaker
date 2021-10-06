@@ -1,6 +1,6 @@
+import rule from './import-relative-within-subpackage';
 import '../utils/import-aliases.mock';
 import ruleTester from '../utils/ruleTester';
-import rule from './import-relative-within-subpackage';
 
 ruleTester.run('import-relative-within-subpackage', rule, {
   valid: [

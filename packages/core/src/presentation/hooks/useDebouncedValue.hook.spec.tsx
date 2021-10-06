@@ -1,7 +1,7 @@
+import { mount } from 'enzyme';
 import React from 'react';
 
 import { useDebouncedValue } from './useDebouncedValue.hook';
-import { mount } from 'enzyme';
 
 describe('useDebouncedValue hook', () => {
   beforeEach(() => jasmine.clock().install());

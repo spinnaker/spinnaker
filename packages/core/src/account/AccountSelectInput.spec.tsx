@@ -1,12 +1,13 @@
-import React from 'react';
-import type { ShallowWrapper } from 'enzyme';
-import { shallow } from 'enzyme';
 import type { IScope } from 'angular';
 import { mock } from 'angular';
-import type { IAccountDetails } from './AccountService';
-import { AccountService } from './AccountService';
+import type { ShallowWrapper } from 'enzyme';
+import { shallow } from 'enzyme';
+import React from 'react';
+
 import type { IAccountSelectInputProps, IAccountSelectInputState } from './AccountSelectInput';
 import { AccountSelectInput } from './AccountSelectInput';
+import type { IAccountDetails } from './AccountService';
+import { AccountService } from './AccountService';
 import Spy = jasmine.Spy;
 
 const makeAccount = (name: string, cloudProvider: string, primaryAccount: boolean): IAccountDetails => {

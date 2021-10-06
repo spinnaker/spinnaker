@@ -1,11 +1,11 @@
-import { flatten } from 'lodash';
-
 import type { IQService, IRootScopeService } from 'angular';
 import { mock } from 'angular';
+import { flatten } from 'lodash';
+
+import { InfrastructureCaches } from './';
+import { AccountService } from '../account/AccountService';
 import type { CacheInitializerService } from './cacheInitializer.service';
 import { CACHE_INITIALIZER_SERVICE } from './cacheInitializer.service';
-import { AccountService } from '../account/AccountService';
-import { InfrastructureCaches } from './';
 import type { SecurityGroupReader } from '../securityGroup/securityGroupReader.service';
 import { SECURITY_GROUP_READER } from '../securityGroup/securityGroupReader.service';
 

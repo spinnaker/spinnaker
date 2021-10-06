@@ -1,8 +1,8 @@
-import { mockHttpClient } from '../../../../api/mock/jasmine';
-import { tick } from '../../../../api/mock/mockHttpUtils';
 import type { IDeferred, IQService, IRootScopeService, IScope } from 'angular';
 import { mock } from 'angular';
 
+import { mockHttpClient } from '../../../../api/mock/jasmine';
+import { tick } from '../../../../api/mock/mockHttpUtils';
 import type { ManualJudgmentService } from './manualJudgment.service';
 import { MANUAL_JUDGMENT_SERVICE } from './manualJudgment.service';
 import type { ExecutionService } from '../../../service/execution.service';

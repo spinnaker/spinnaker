@@ -1,6 +1,6 @@
-import React from 'react';
 import type { ReactWrapper } from 'enzyme';
 import { mount } from 'enzyme';
+import React from 'react';
 
 import { Key } from '../Keys';
 import type { ITag, ITagProps } from './Tag';

@@ -1,10 +1,9 @@
-import React from 'react';
 import { shallow } from 'enzyme';
-
-import { noop } from '../../utils';
+import React from 'react';
 
 import type { ILabelFilterProps } from './LabelFilter';
 import LabelFilter, { LabelFilterSelect } from './LabelFilter';
+import { noop } from '../../utils';
 
 describe('<LabelFilter />', () => {
   let props: ILabelFilterProps;

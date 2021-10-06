@@ -1,5 +1,5 @@
-import ruleTester from '../utils/ruleTester';
 import rule from './migrate-to-mock-http-client';
+import ruleTester from '../utils/ruleTester';
 
 ruleTester.run('migrate-to-mock-http-client', rule, {
   valid: [

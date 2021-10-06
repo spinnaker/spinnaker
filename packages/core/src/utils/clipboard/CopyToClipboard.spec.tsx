@@ -1,7 +1,8 @@
 import { mount } from 'enzyme';
 import React from 'react';
-import { logger } from '../Logger';
+
 import { CopyToClipboard } from './CopyToClipboard';
+import { logger } from '../Logger';
 
 describe('<CopyToClipboard />', () => {
   beforeEach(() => spyOn(logger, 'log'));

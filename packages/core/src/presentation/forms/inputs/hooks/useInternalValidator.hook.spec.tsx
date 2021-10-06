@@ -1,5 +1,6 @@
-import React from 'react';
 import { mount } from 'enzyme';
+import React from 'react';
+
 import type { IValidator } from '../../../forms/validation';
 import type { IFormInputProps, IFormInputValidation } from '../interface';
 import { useInternalValidator } from './useInternalValidator.hook';

@@ -1,5 +1,5 @@
-import ruleTester from '../utils/ruleTester';
 import rule from './import-sort';
+import ruleTester from '../utils/ruleTester';
 
 ruleTester.run('import-sort', rule, {
   valid: [

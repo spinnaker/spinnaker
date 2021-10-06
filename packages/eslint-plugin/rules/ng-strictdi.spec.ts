@@ -1,5 +1,5 @@
-import ruleTester from '../utils/ruleTester';
 import rule from './ng-strictdi';
+import ruleTester from '../utils/ruleTester';
 ruleTester.run('ng-strictdi', rule, {
   valid: [
     {

@@ -1,6 +1,5 @@
-import type { IAmazonAsg, IAmazonServerGroup } from '../../../domain';
-
 import { AutoScalingProcessService } from './AutoScalingProcessService';
+import type { IAmazonAsg, IAmazonServerGroup } from '../../../domain';
 
 describe('AutoScalingProcessService', () => {
   describe('normalizeScalingProcesses', () => {

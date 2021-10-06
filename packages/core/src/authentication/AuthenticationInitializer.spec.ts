@@ -1,11 +1,11 @@
 /* eslint-disable @spinnaker/migrate-to-mock-http-client */
 import { mock } from 'angular';
 
-import type { IDeckRootScope } from '../domain';
 import { AuthenticationInitializer } from './AuthenticationInitializer';
 import { AuthenticationService } from './AuthenticationService';
 import { AUTHENTICATION_MODULE } from './authentication.module';
 import { SETTINGS } from '../config/settings';
+import type { IDeckRootScope } from '../domain';
 
 declare const window: any;
 describe('authenticationProvider: application startup', function () {

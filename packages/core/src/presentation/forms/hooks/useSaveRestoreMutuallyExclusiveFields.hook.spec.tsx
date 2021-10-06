@@ -1,10 +1,11 @@
 import { mount } from 'enzyme';
-import { useSaveRestoreMutuallyExclusiveFields } from './useSaveRestoreMutuallyExclusiveFields.hook';
 import type { Formik, FormikProps } from 'formik';
 import React from 'react';
+
+import { SpinFormik } from '../SpinFormik';
 import { FormikFormField } from '../fields';
 import { SelectInput } from '../inputs';
-import { SpinFormik } from '../SpinFormik';
+import { useSaveRestoreMutuallyExclusiveFields } from './useSaveRestoreMutuallyExclusiveFields.hook';
 
 function PizzaComponent() {
   return (

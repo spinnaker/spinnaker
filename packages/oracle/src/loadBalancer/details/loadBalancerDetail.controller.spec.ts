@@ -1,10 +1,12 @@
-import type { OracleLoadBalancerDetailController } from './loadBalancerDetail.controller';
-import { ORACLE_LOAD_BALANCER_DETAIL_CONTROLLER } from './loadBalancerDetail.controller';
+import type { StateService } from '@uirouter/angularjs';
 import type { IControllerService, IRootScopeService, IScope } from 'angular';
 import { mock } from 'angular';
-import type { StateService } from '@uirouter/angularjs';
-import type { SecurityGroupReader, LoadBalancerReader } from '@spinnaker/core';
-import { ApplicationModelBuilder, SECURITY_GROUP_READER, LOAD_BALANCER_READ_SERVICE } from '@spinnaker/core';
+
+import type { LoadBalancerReader, SecurityGroupReader } from '@spinnaker/core';
+import { ApplicationModelBuilder, LOAD_BALANCER_READ_SERVICE, SECURITY_GROUP_READER } from '@spinnaker/core';
+
+import type { OracleLoadBalancerDetailController } from './loadBalancerDetail.controller';
+import { ORACLE_LOAD_BALANCER_DETAIL_CONTROLLER } from './loadBalancerDetail.controller';
 
 describe('Controller: oracleLoadBalancerDetailCtrl', function () {
   let controller: OracleLoadBalancerDetailController;

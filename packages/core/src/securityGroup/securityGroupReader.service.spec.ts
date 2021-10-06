@@ -1,14 +1,14 @@
-import { mockHttpClient } from '../api/mock/jasmine';
 import { mock } from 'angular';
 
+import { mockHttpClient } from '../api/mock/jasmine';
 import type { Application } from '../application/application.model';
 import { ApplicationModelBuilder } from '../application/applicationModel.builder';
 import { InfrastructureCaches } from '../cache';
 import type { ISecurityGroup } from '../domain';
 import type {
   ISecurityGroupDetail,
-  SecurityGroupReader,
   ISecurityGroupsByAccountSourceData,
+  SecurityGroupReader,
 } from './securityGroupReader.service';
 import { SECURITY_GROUP_READER } from './securityGroupReader.service';
 import type { SecurityGroupTransformerService } from './securityGroupTransformer.service';

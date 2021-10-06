@@ -1,11 +1,11 @@
 // eslint-disable-next-line @spinnaker/import-from-npm-not-relative
-import { mockHttpClient } from '../../../../core/src/api/mock/jasmine';
+import type { StateService } from '@uirouter/core';
 import type { IControllerService, IRootScopeService, IScope } from 'angular';
 import { mock, noop } from 'angular';
-import type { StateService } from '@uirouter/core';
 
 import { ApplicationModelBuilder } from '@spinnaker/core';
 
+import { mockHttpClient } from '@spinnaker/core';
 import { ORACLE_LOAD_BALANCER_CREATE_CONTROLLER, OracleLoadBalancerController } from './createLoadBalancer.controller';
 import type { IOracleLoadBalancer, IOracleLoadBalancerUpsertCommand } from '../../domain/IOracleLoadBalancer';
 import { LoadBalancingPolicy } from '../../domain/IOracleLoadBalancer';

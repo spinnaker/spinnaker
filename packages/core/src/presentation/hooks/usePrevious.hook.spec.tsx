@@ -1,5 +1,6 @@
-import React from 'react';
 import { mount } from 'enzyme';
+import React from 'react';
+
 import { usePrevious } from './usePrevious.hook';
 
 const TestComponent = ({ value, valueCallback }: { value: any; valueCallback: (value: any) => any }) => {
