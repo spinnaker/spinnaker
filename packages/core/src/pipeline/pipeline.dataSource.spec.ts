@@ -93,8 +93,8 @@ describe('Pipeline Data Source', function () {
 
     it('sets appropriate flags when executions reload fails; subscriber is responsible for error checking', function () {
       spyOn(executionService, 'getExecutions').and.returnValue($q.reject(null));
-      let errorsHandled = 0,
-        successesHandled = 0;
+      let errorsHandled = 0;
+      let successesHandled = 0;
       configureApplication();
       application.getDataSource('executions').activate();
 
@@ -141,8 +141,8 @@ describe('Pipeline Data Source', function () {
     it('sets appropriate flags when pipeline config reload fails; subscriber is responsible for error checking', function () {
       spyOn(PipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.when([]));
       spyOn(PipelineConfigService, 'getStrategiesForApplication').and.returnValue($q.reject([]));
-      let errorsHandled = 0,
-        successesHandled = 0;
+      let errorsHandled = 0;
+      let successesHandled = 0;
       configureApplication();
       application.getDataSource('pipelineConfigs').activate();
 

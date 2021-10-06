@@ -14,8 +14,8 @@ describe('dockerImageAndTagSelector controller', () => {
 
   let organization: string, registry: string, repository: string, showRegistry: boolean;
 
-  const tag: string = undefined,
-    account: string = undefined;
+  const tag: string = undefined;
+  const account: string = undefined;
 
   beforeEach(mock.module(DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT));
 

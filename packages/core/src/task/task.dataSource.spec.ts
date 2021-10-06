@@ -79,8 +79,8 @@ describe('Task Data Source', function () {
 
     it('sets appropriate flags when task reload fails; subscriber is responsible for error checking', function () {
       spyOn(TaskReader, 'getTasks').and.callFake(() => $q.reject(null));
-      let errorsHandled = 0,
-        successesHandled = 0;
+      let errorsHandled = 0;
+      let successesHandled = 0;
       configureApplication();
       application.getDataSource('tasks').onRefresh(
         $scope,
