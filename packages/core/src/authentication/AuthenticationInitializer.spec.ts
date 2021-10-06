@@ -1,3 +1,4 @@
+/* eslint-disable @spinnaker/migrate-to-mock-http-client */
 import { mock } from 'angular';
 
 import { IDeckRootScope } from '../domain';

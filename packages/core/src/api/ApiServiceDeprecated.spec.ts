@@ -1,3 +1,5 @@
+/* eslint-disable @spinnaker/api-deprecation, @spinnaker/api-no-slashes, @spinnaker/migrate-to-mock-http-client */
+
 import Spy = jasmine.Spy;
 import { mock, noop } from 'angular';
 import { AuthenticationInitializer } from '../authentication/AuthenticationInitializer';
