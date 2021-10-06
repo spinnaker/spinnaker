@@ -12,7 +12,7 @@ module.exports = function angularJsTemplateLoader(options = {}) {
   return {
     name: 'angularJSTemplateLoader',
     transform(originalCode, id) {
-      let code = originalCode;
+      const code = originalCode;
       const templateRegex = /require\(['"]([^'"]+\.html)['"]\)/g;
 
       // look for things like require('./template.html')
@@ -38,7 +38,7 @@ module.exports = function angularJsTemplateLoader(options = {}) {
         return;
       }
 
-      let magicString = new MagicString(code);
+      const magicString = new MagicString(code);
 
       while (match) {
         // i.e., './template.html'

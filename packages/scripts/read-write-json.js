@@ -46,7 +46,7 @@ const configureCli = () => {
           throw new Error(`Cannot parse ${value} as a boolean`);
         }
       } else if (type === 'number') {
-        let newvalue = Number(value);
+        const newvalue = Number(value);
         if (isNaN(newvalue)) {
           throw new Error(`Cannot parse ${value} as a number`);
         }

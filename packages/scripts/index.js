@@ -127,7 +127,7 @@ const startHandler = async ({ file, push }) => {
 };
 
 const printBundleStart = (option) => {
-  let message = option.output.map((output) => `${option.input} -> ${output.dir}...`).join('\n');
+  const message = option.output.map((output) => `${option.input} -> ${output.dir}...`).join('\n');
   console.log(chalk.blue.bold(message));
 };
 const printBundleComplete = (option, completedTimeInMS) => {
