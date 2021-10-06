@@ -86,14 +86,6 @@ jobs:
       - name: Unit Tests
         run: yarn test --single-run
 
-      - name: Eslint Plugin Tests
-        run: |
-          cd packages/eslint-plugin
-          yarn tsc
-          yarn test
-          cd ../..
-          yarn lint
-
   functional-tests:
     name: Functional tests
     runs-on: ubuntu-latest
