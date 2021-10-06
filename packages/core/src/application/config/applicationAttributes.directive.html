@@ -1,4 +1,4 @@
-<dl class="dl-horizontal">
+<dl class="dl-horizontal" ng-if="(config.application.attributes && config.application.attributes.email)">
   <dt>Owner</dt>
   <dd>{{vm.application.attributes.email}}</dd>
   <dt ng-if="vm.application.attributes.appGroup">App Group <help-field key="application.group"></help-field></dt>
@@ -55,7 +55,11 @@
     <dd>{{vm.permissions}}</dd>
   </render-if-feature>
 </dl>
+<p ng-if="(!config.application.attributes || !config.application.attributes.email)">
+  This application has not been configured.
+</p>
 <button class="btn btn-link" ng-click="vm.editApplication()">
   <span class="glyphicon glyphicon-cog"></span>
-  Edit Application Attributes
+  {{ (!config.application.attributes || !config.application.attributes.email) ? "Create Application" : "Edit Application
+  Attributes"}}
 </button>

@@ -1,7 +1,7 @@
 <div class="modal-page">
   <modal-close dismiss="$dismiss()"></modal-close>
   <div class="modal-header">
-    <h4 class="modal-title">Edit Application</h4>
+    <h4 class="modal-title">{{editApp.isNew ? "Create" : "Edit"}} Application</h4>
   </div>
 
   <form role="form" class="container-fluid" novalidate name="editApplicationForm">
@@ -252,7 +252,7 @@
     <div class="modal-footer">
       <a href class="btn btn-default" ng-click="$dismiss()">Cancel</a>
       <submit-button
-        is-new="false"
+        is-new="editApp.isNew"
         is-disabled="!editApplicationForm.$valid || editApp.state.submitting || editApp.data.showOverrideWarning || editApp.state.permissionsInvalid"
         submitting="editApp.state.submitting"
         on-click="editApp.submit()"

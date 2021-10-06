@@ -1,5 +1,18 @@
 <div style="overflow-y: auto" sticky-headers>
-  <page-navigator scrollable-container="[sticky-headers]" deep-link-param="section">
+  <page-navigator
+    scrollable-container="[sticky-headers]"
+    deep-link-param="section"
+    ng-if="(!config.application.attributes || !config.application.attributes.email)"
+  >
+    <page-section key="location" label="Application Attributes">
+      <application-attributes application="config.application"></application-attributes>
+    </page-section>
+  </page-navigator>
+  <page-navigator
+    scrollable-container="[sticky-headers]"
+    deep-link-param="section"
+    ng-if="(config.application.attributes && config.application.attributes.email)"
+  >
     <page-section key="location" label="Application Attributes">
       <application-attributes application="config.application"></application-attributes>
     </page-section>

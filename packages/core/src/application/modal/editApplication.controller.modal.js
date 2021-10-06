@@ -32,6 +32,7 @@ angular
       };
       vm.errorMsgs = [];
       vm.application = application;
+      vm.isNew = !application.attributes || !application.attributes.email;
       vm.applicationAttributes = _.cloneDeep(application.attributes);
 
       AccountService.listProviders().then((providers) => (vm.data.cloudProviders = providers));

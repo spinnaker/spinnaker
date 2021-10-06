@@ -110,6 +110,10 @@ module(CORE_APPLICATION_CONFIG_APPLICATIONATTRIBUTES_DIRECTIVE, [
           .catch(() => {});
       };
 
+      if (this.application && (!this.application.attributes || !this.application.attributes.email)) {
+        this.editApplication();
+      }
+
       this.slackBaseUrl = get(SETTINGS, 'slack.baseUrl', '');
     },
   ]);
