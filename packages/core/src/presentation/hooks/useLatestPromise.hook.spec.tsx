@@ -68,9 +68,13 @@ describe('useLatestPromise hook', () => {
     expect(spy).toHaveBeenCalledTimes(2);
 
     deferred.reject('error');
+    let caught = false;
     try {
       await deferred.promise;
-    } catch (error) {}
+    } catch (error) {
+      caught = true;
+    }
+    expect(caught).toBe(true);
     component.setProps({});
 
     expect(spy).toHaveBeenCalledTimes(3);

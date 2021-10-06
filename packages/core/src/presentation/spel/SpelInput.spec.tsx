@@ -208,10 +208,14 @@ describe('<SpelInput/>', () => {
       expect(mockValidate).toHaveBeenCalledTimes(1);
       expect(mockValidate.calls.mostRecent().returnValue).toMatch('Async: ');
 
+      let caught = false;
       deferred.reject('something bad happened');
       try {
         await deferred.promise;
-      } catch (error) {}
+      } catch (error) {
+        caught = true;
+      }
+      expect(caught).toBe(true);
       component.setProps({});
 
       expect(mockValidate).toHaveBeenCalledTimes(2);
