@@ -38,6 +38,7 @@ interface IArtifactVersionTaskProps extends IBaseTaskProps {
   task: QueryArtifactVersionTask;
 }
 
+// Example of a task: postDeploy and verification
 const ArtifactVersionTask = ({ type, artifact, task }: IArtifactVersionTaskProps) => {
   const status = task.status || 'PENDING';
   const { link, startedAt, completedAt } = task;
@@ -111,6 +112,7 @@ interface IArtifactVersionTasksProps extends IBaseTaskProps {
   tasks?: QueryArtifactVersionTask[];
 }
 
+// Example of tasks: postDeploys and verifications
 export const ArtifactVersionTasks = ({ tasks, ...restProps }: IArtifactVersionTasksProps) => {
   if (!tasks || !tasks.length) return null;
   return (

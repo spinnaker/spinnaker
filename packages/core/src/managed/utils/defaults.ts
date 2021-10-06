@@ -10,6 +10,9 @@ export const tooltipShowHideProps: Partial<IHoverablePopoverProps> = {
   delayHide: TOOLTIP_DELAY_HIDE,
 };
 export const MODAL_MAX_WIDTH = 750;
+
+export const ACTION_BUTTON_CLASS_NAME = 'btn btn-default md-btn md-action-button';
+
 export const spinnerProps: ISpinnerProps = {
   size: 'medium',
   fullWidth: true,

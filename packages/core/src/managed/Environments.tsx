@@ -31,7 +31,7 @@ export const Environments = () => {
   }, [params]);
 
   return (
-    <div className="vertical Environments2">
+    <div className="vertical Environments">
       <HorizontalTabs
         tabs={tabs}
         rightElement={!state.name?.endsWith('.config') ? <EnvironmentsDirectionController /> : undefined}

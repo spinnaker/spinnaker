@@ -2,20 +2,21 @@ import { isEmpty } from 'lodash';
 import React from 'react';
 
 import { Constraints } from './Constraints';
-import { GitLink } from './GitLink';
+import { VersionTitle } from './VersionTitle';
+import { ArtifactActions } from '../../artifactActions/ArtifactActions';
 import type { QueryArtifact, QueryArtifactVersion } from '../types';
-import { useCreateVersionActions } from './utils';
+import { isVersionVetoed, useCreateVersionRollbackActions } from './utils';
 import { useLogEvent } from '../../utils/logging';
 import type { VersionMessageData } from '../../versionMetadata/MetadataComponents';
 import { toPinnedMetadata } from '../../versionMetadata/MetadataComponents';
-import { getBaseMetadata, VersionMetadata } from '../../versionMetadata/VersionMetadata';
+import { getBaseMetadata, getVersionCompareLinks, VersionMetadata } from '../../versionMetadata/VersionMetadata';
 
 export interface IPendingVersionsProps {
   artifact: QueryArtifact;
   pendingVersions?: QueryArtifactVersion[];
 }
 
-const NUM_VERSIONS_WHEN_COLLAPSED = 2;
+const NUM_VERSIONS_WHEN_COLLAPSED = 1;
 
 export const PendingVersions = ({ artifact, pendingVersions }: IPendingVersionsProps) => {
   const numVersions = pendingVersions?.length || 0;
@@ -71,26 +72,34 @@ interface IPendingVersionProps {
 }
 
 const PendingVersion = ({ data, reference, environment, pinned, index }: IPendingVersionProps) => {
-  const { buildNumber, version, gitMetadata, constraints, status } = data;
-  const actions = useCreateVersionActions({
+  const { buildNumber, version, gitMetadata, constraints, isCurrent } = data;
+  const actions = useCreateVersionRollbackActions({
     environment,
     reference,
-    buildNumber,
     version,
-    status,
-    commitMessage: gitMetadata?.commitInfo?.message,
+    isVetoed: isVersionVetoed(data),
     isPinned: Boolean(pinned),
-    compareLinks: {
-      current: gitMetadata?.comparisonLinks?.toCurrentVersion,
+    isCurrent,
+    selectedVersion: {
+      buildNumber,
+      commitMessage: gitMetadata?.commitInfo?.message,
+      commitSha: gitMetadata?.commit,
     },
   });
 
   return (
     <div className="artifact-pending-version">
       <div className="artifact-pending-version-commit">
-        {gitMetadata ? <GitLink gitMetadata={gitMetadata} /> : `Build ${buildNumber}`}
+        <VersionTitle gitMetadata={gitMetadata} buildNumber={data?.buildNumber} version={data.version} />
       </div>
-      <VersionMetadata {...getBaseMetadata(data)} pinned={pinned} createdAt={data.createdAt} actions={actions} />
+      <VersionMetadata {...getBaseMetadata(data)} pinned={pinned} />
+      <ArtifactActions
+        buildNumber={data?.buildNumber}
+        version={data.version}
+        actions={actions}
+        compareLinks={getVersionCompareLinks(data)}
+        className="sp-margin-s-yaxis"
+      />
       {constraints && !isEmpty(constraints) && (
         <Constraints
           key={index} // This is needed on refresh if a new version was added

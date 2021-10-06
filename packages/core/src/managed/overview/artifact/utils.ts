@@ -1,15 +1,14 @@
 import { groupBy } from 'lodash';
 import { DateTime } from 'luxon';
 
+import type { IVersionActionsProps } from './ArtifactActionModal';
 import { ACTION_DISPLAY_NAMES, getActionStatusData } from './VersionOperation';
-import type { MdArtifactStatusInEnvironment } from '../../graphql/graphql-sdk';
+import type { VersionAction } from '../../artifactActions/ArtifactActions';
 import { useMarkVersionAsBad, useMarkVersionAsGood, usePinVersion, useUnpinVersion } from './hooks';
 import { useApplicationContextSafe } from '../../../presentation';
 import type { QueryArtifactVersion, QueryConstraint, QueryLifecycleStep } from '../types';
 import { timeDiffToString } from '../../../utils';
-import { copyTextToClipboard } from '../../../utils/clipboard/copyTextToClipboard';
-import { getIsDebugMode } from '../../utils/debugMode';
-import type { VersionAction } from '../../versionMetadata/MetadataComponents';
+import type { SingleVersionArtifactVersion } from '../../versionsHistory/types';
 
 export const getConstraintsStatusSummary = (constraints: QueryConstraint[]) => {
   let finalStatus: QueryConstraint['status'] = 'PASS';
@@ -84,82 +83,50 @@ export const getLifecycleEventSummary = (
   };
 };
 
-interface ICreateVersionActionsProps {
-  environment: string;
-  reference: string;
-  version: string;
-  buildNumber?: string;
-  commitMessage?: string;
-  isPinned: boolean;
-  status?: MdArtifactStatusInEnvironment;
-  compareLinks?: {
-    previous?: string;
-    current?: string;
-  };
-}
-
-export const useCreateVersionActions = ({
-  environment,
-  reference,
-  version,
-  status,
-  buildNumber,
-  commitMessage,
-  isPinned,
-  compareLinks,
-}: ICreateVersionActionsProps): VersionAction[] | undefined => {
+export const useCreateVersionRollbackActions = (
+  props: Omit<IVersionActionsProps, 'application'>,
+): VersionAction[] | undefined => {
   const application = useApplicationContextSafe();
+  const { isPinned, isVetoed, isCurrent } = props;
 
-  const basePayload = { application: application.name, environment, reference, version };
+  const basePayload: IVersionActionsProps = { application: application.name, ...props };
 
-  const onUnpin = useUnpinVersion(basePayload, [`Unpin #${buildNumber}`, commitMessage].filter(Boolean).join(' - '));
-  const onPin = usePinVersion(basePayload, [`Pin #${buildNumber}`, commitMessage].filter(Boolean).join(' - '));
+  const onUnpin = useUnpinVersion(basePayload);
 
-  const onMarkAsBad = useMarkVersionAsBad(
-    basePayload,
-    [`Mark #${buildNumber} as Bad`, commitMessage].filter(Boolean).join(' - '),
-  );
+  const onPin = usePinVersion(basePayload);
 
-  const onMarkAsGood = useMarkVersionAsGood(
-    basePayload,
-    [`Mark #${buildNumber} as Good`, commitMessage].filter(Boolean).join(' - '),
-  );
+  const onMarkAsBad = useMarkVersionAsBad(basePayload);
+
+  const onMarkAsGood = useMarkVersionAsGood(basePayload);
 
   const actions: VersionAction[] = [
     isPinned
       ? {
-          content: 'Unpin version',
+          content: 'Unpin version...',
           onClick: onUnpin,
         }
       : {
-          content: 'Pin version',
+          content: isCurrent ? 'Pin version...' : 'Rollback to here...',
           onClick: onPin,
         },
-    status === 'VETOED'
-      ? {
-          content: 'Mark as good',
-          onClick: onMarkAsGood,
-        }
-      : {
-          content: 'Mark as bad',
-          onClick: onMarkAsBad,
-        },
   ];
-  if (compareLinks?.current) {
-    actions.push({ content: 'Compare to current version', href: compareLinks.current });
-  }
-  if (compareLinks?.previous) {
-    actions.push({ content: 'Compare to previous version', href: compareLinks.previous });
-  }
 
-  if (getIsDebugMode()) {
+  if (isVetoed) {
     actions.push({
-      content: 'Copy artifact version [Debug]',
-      onClick: () => {
-        copyTextToClipboard(version);
-      },
+      content: 'Allow deploying...',
+      onClick: onMarkAsGood,
     });
+  } else {
+    if (!isCurrent) {
+      actions.push({
+        content: isCurrent ? 'Rollback...' : 'Reject...',
+        onClick: onMarkAsBad,
+      });
+    }
   }
 
-  return actions.length ? actions : undefined;
+  return actions;
 };
+
+export const isVersionVetoed = (version?: QueryArtifactVersion | SingleVersionArtifactVersion) =>
+  version?.status === 'VETOED';

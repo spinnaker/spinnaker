@@ -1,3 +1,4 @@
+import classnames from 'classnames';
 import React from 'react';
 
 import { Button } from './Button';
@@ -21,6 +22,7 @@ export interface IArtifactActionModalProps extends IModalComponentProps {
   onAction: (comment?: string) => Promise<void> | PromiseLike<void>;
   onSuccess?: () => void;
   error?: string;
+  className?: string;
 }
 
 export const ActionModal: React.FC<IArtifactActionModalProps> = ({
@@ -32,6 +34,7 @@ export const ActionModal: React.FC<IArtifactActionModalProps> = ({
   actionName,
   withComment = true,
   logCategory,
+  className,
   children,
 }) => {
   const logEvent = useLogEvent(logCategory || 'ActionModal', actionName);
@@ -57,7 +60,7 @@ export const ActionModal: React.FC<IArtifactActionModalProps> = ({
           return (
             <>
               <ModalBody>
-                <div className="flex-container-v middle sp-padding-xl-yaxis">
+                <div className={classnames('flex-container-v middle sp-padding-xl-yaxis ActionModal', className)}>
                   {children}
                   {withComment && (
                     <FormikFormField

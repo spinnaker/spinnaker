@@ -24,6 +24,7 @@ export const EnvironmentOverview = ({ environment }: IEnvironmentProps) => {
   const resources = data?.application?.environments.find((env) => env.name === environment.name)?.state.resources;
   const hasResourcesWithIssues = resources?.some((resource) => resource.state?.status !== 'UP_TO_DATE');
   const state = environment.state;
+
   return (
     <BaseEnvironment
       name={environment.name}
@@ -34,7 +35,9 @@ export const EnvironmentOverview = ({ environment }: IEnvironmentProps) => {
     >
       <CollapsibleSection heading="Artifacts" {...sectionProps} defaultExpanded enableCaching={false}>
         {state.artifacts?.length ? (
-          state.artifacts.map((artifact) => <Artifact key={artifact.reference} artifact={artifact} />)
+          state.artifacts.map((artifact) => (
+            <Artifact key={artifact.reference} artifact={artifact} isPreview={environment.isPreview} />
+          ))
         ) : (
           <NoItemsMessage>No artifacts found</NoItemsMessage>
         )}

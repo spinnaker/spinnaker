@@ -1,6 +1,7 @@
 import { flatten, omit, uniq } from 'lodash';
 import React from 'react';
 
+import { ArtifactActions } from '../artifactActions/ArtifactActions';
 import { BaseEnvironment } from '../environmentBaseElements/BaseEnvironment';
 import { EnvironmentItem } from '../environmentBaseElements/EnvironmentItem';
 import { EnvironmentsRender, useOrderedEnvironment } from '../environmentBaseElements/EnvironmentsRender';
@@ -9,7 +10,7 @@ import { useFetchVersionQuery } from '../graphql/graphql-sdk';
 import type { ITaskArtifactVersionProps } from '../overview/artifact/ArtifactVersionTasks';
 import { ArtifactVersionTasks } from '../overview/artifact/ArtifactVersionTasks';
 import { Constraints } from '../overview/artifact/Constraints';
-import { useCreateVersionActions } from '../overview/artifact/utils';
+import { isVersionVetoed, useCreateVersionRollbackActions } from '../overview/artifact/utils';
 import { useApplicationContextSafe } from '../../presentation';
 import { LoadingAnimation } from '../../presentation/LoadingAnimation';
 import type {
@@ -20,12 +21,13 @@ import type {
 } from './types';
 import type { VersionMessageData } from '../versionMetadata/MetadataComponents';
 import { toPinnedMetadata } from '../versionMetadata/MetadataComponents';
-import { getBaseMetadata, VersionMetadata } from '../versionMetadata/VersionMetadata';
+import { getBaseMetadata, getVersionCompareLinks, VersionMetadata } from '../versionMetadata/VersionMetadata';
 
 import './VersionsHistory.less';
 
 interface IVersionInEnvironmentProps {
   environment: string;
+  isPreview?: boolean;
   version: HistoryArtifactVersionExtended;
   envPinnedVersions?: PinnedVersions[keyof PinnedVersions];
   loading: boolean;
@@ -35,6 +37,7 @@ interface IVersionInEnvironmentProps {
 const VersionInEnvironment = ({
   environment,
   version,
+  isPreview,
   envPinnedVersions,
   detailedVersionData,
   loading,
@@ -45,17 +48,17 @@ const VersionInEnvironment = ({
     pinnedData = toPinnedMetadata(currentPinnedVersion);
   }
 
-  const actions = useCreateVersionActions({
+  const actions = useCreateVersionRollbackActions({
     environment,
     reference: version.reference,
     version: version.version,
-    buildNumber: version.buildNumber,
-    status: version.status,
-    commitMessage: version.gitMetadata?.commitInfo?.message,
+    isVetoed: isVersionVetoed(version),
     isPinned: Boolean(pinnedData),
-    compareLinks: {
-      previous: detailedVersionData?.gitMetadata?.comparisonLinks?.toPreviousVersion,
-      current: detailedVersionData?.gitMetadata?.comparisonLinks?.toCurrentVersion,
+    isCurrent: version.isCurrent,
+    selectedVersion: {
+      buildNumber: version.buildNumber,
+      commitMessage: version.gitMetadata?.commitInfo?.message,
+      commitSha: version.gitMetadata?.commit,
     },
   });
 
@@ -75,12 +78,18 @@ const VersionInEnvironment = ({
     >
       <VersionMetadata
         key={version.id}
-        version={version.version}
         {...(detailedVersionData ? omit(getBaseMetadata(detailedVersionData), 'author', 'buildDuration') : undefined)}
-        actions={actions}
         pinned={pinnedData}
       />
-
+      {!isPreview && (
+        <ArtifactActions
+          buildNumber={version.buildNumber}
+          version={version.version}
+          actions={actions}
+          compareLinks={detailedVersionData ? getVersionCompareLinks(detailedVersionData) : undefined}
+          className="sp-margin-s-yaxis"
+        />
+      )}
       {loading && <LoadingAnimation />}
       <Constraints
         constraints={detailedVersionData?.constraints}
@@ -144,6 +153,7 @@ export const VersionContent = ({ versionData, pinnedVersions }: IVersionContentP
                 environment={env}
                 key={version.id}
                 version={version}
+                isPreview={isPreview}
                 envPinnedVersions={pinnedVersions?.[env]}
                 loading={loading}
                 detailedVersionData={getDetailedVersionData({ environment: env, version, versionsDetails })}

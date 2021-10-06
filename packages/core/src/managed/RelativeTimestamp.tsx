@@ -31,6 +31,13 @@ export const DurationRender: React.FC<{ startedAt: string; completedAt?: string 
   return <>{timeDiffToString(startAtDateTime, endTime)}</>;
 };
 
+const toDateTime = (timestamp: DateTime | string | number) =>
+  typeof timestamp === 'number'
+    ? DateTime.fromMillis(timestamp)
+    : typeof timestamp === 'string'
+    ? DateTime.fromISO(timestamp)
+    : timestamp;
+
 export const formatToRelativeTimestamp = (timestamp: DateTime, withSuffix: boolean) => {
   const distance = getDistanceFromNow(timestamp);
   const suffix = withSuffix ? ' ago' : '';
@@ -68,12 +75,7 @@ export const RelativeTimestamp = memo(
     removeStyles,
     withSuffix = false,
   }: IRelativeTimestampProps) => {
-    const dateTimeTimestamp =
-      typeof originalTimestamp === 'number'
-        ? DateTime.fromMillis(originalTimestamp)
-        : typeof originalTimestamp === 'string'
-        ? DateTime.fromISO(originalTimestamp)
-        : originalTimestamp;
+    const dateTimeTimestamp = toDateTime(originalTimestamp);
     const timestamp = TIMEZONE ? dateTimeTimestamp.setZone(TIMEZONE) : dateTimeTimestamp;
     const [formattedTimestamp, setFormattedTimestamp] = useState(formatToRelativeTimestamp(timestamp, withSuffix));
 

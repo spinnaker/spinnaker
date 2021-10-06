@@ -2,11 +2,12 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  margin-top: var(--xs-spacing);
+  margin-top: 6px;
   color: var(--color-concrete);
   white-space: pre-wrap;
   font-size: 13px;
   flex-wrap: wrap;
+  line-height: 1.6;
 
   i {
     color: var(--color-concrete);
@@ -29,25 +30,17 @@
     font-size: 12px;
   }
 
-  .element-actions-menu-toggle {
-    padding: 0 var(--xs-spacing);
-    border: none;
-    font-size: inherit;
-    &:not(:hover) {
-      background-color: transparent;
-    }
-  }
-
   .version-badge {
     border-radius: 3px;
-    padding: 0 var(--s-spacing);
+    padding: 1px var(--s-spacing) 0;
     display: flex;
-    min-width: 60px;
+    min-width: 50px;
     justify-content: center;
     flex-direction: row;
-    & > svg {
-      margin-right: 4px;
-    }
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.4px;
   }
 
   .version-deploying {
@@ -58,6 +51,11 @@
   .version-baking {
     background-color: var(--color-accent-g1);
     color: var(--color-black);
+  }
+
+  .version-deployed {
+    background-color: var(--color-status-success);
+    color: var(--color-white);
   }
 
   .version-pinned {
@@ -99,7 +97,6 @@
     align-items: baseline;
 
     dt {
-      font-weight: normal;
       text-transform: uppercase;
       font-size: 13px;
       color: var(--color-concrete);

@@ -4,9 +4,11 @@ import React from 'react';
 import { CurrentVersion } from './CurrentVersion';
 import { PendingVersions } from './PendingVersion';
 import { EnvironmentItem } from '../../environmentBaseElements/EnvironmentItem';
-import { HoverablePopover, Markdown } from '../../../presentation';
+import { useMarkVersionAsBad } from './hooks';
+import { HoverablePopover, Markdown, useApplicationContextSafe } from '../../../presentation';
 import type { QueryArtifact, QueryArtifactVersion } from '../types';
-import { tooltipShowHideProps } from '../../utils/defaults';
+import { isVersionVetoed } from './utils';
+import { ACTION_BUTTON_CLASS_NAME, tooltipShowHideProps } from '../../utils/defaults';
 import { toPinnedMetadata } from '../../versionMetadata/MetadataComponents';
 
 import './Artifact.less';
@@ -57,35 +59,71 @@ export const PinnedVersion = ({ version }: { version: NonNullable<QueryArtifact[
     </div>
   );
 };
+interface IRollbackActionProps {
+  currentVersion: QueryArtifactVersion;
+  environment: string;
+  reference: string;
+  isPinned: boolean;
+}
+
+const RollbackAction = ({ currentVersion, environment, reference, isPinned }: IRollbackActionProps) => {
+  const appName = useApplicationContextSafe().name;
+  const onMarkAsBad = useMarkVersionAsBad({
+    application: appName,
+    environment,
+    reference,
+    version: currentVersion.version,
+    isVetoed: isVersionVetoed(currentVersion),
+    isPinned,
+    isCurrent: true,
+    selectedVersion: {
+      buildNumber: currentVersion.buildNumber,
+      commitMessage: currentVersion.gitMetadata?.commitInfo?.message,
+      commitSha: currentVersion.gitMetadata?.commit,
+    },
+  });
+  return (
+    <button className={ACTION_BUTTON_CLASS_NAME} onClick={onMarkAsBad}>
+      Rollback...
+    </button>
+  );
+};
 
 interface IArtifactProps {
   artifact: QueryArtifact;
+  isPreview?: boolean;
 }
 
-export const Artifact = ({ artifact }: IArtifactProps) => {
-  const currentVersion = artifact.versions?.find((version) => version.isCurrent === true);
-  const newerVersions = filterPendingVersions(artifact.versions, currentVersion);
-  const { pinnedVersion } = artifact;
-
+export const Artifact = ({ artifact, isPreview }: IArtifactProps) => {
+  const { environment, type, reference, versions, pinnedVersion } = artifact;
+  const currentVersion = versions?.find((version) => version.isCurrent === true);
+  const newerVersions = filterPendingVersions(versions, currentVersion);
   return (
     <EnvironmentItem
       iconName="artifact"
-      iconTooltip={`Artifact - ${artifact.type}`}
+      iconTooltip={`Artifact - ${type}`}
       className="Artifact"
-      title={artifact.reference}
+      title={reference}
+      rightElement={
+        currentVersion && !isPreview ? (
+          <RollbackAction {...{ environment, currentVersion, reference }} isPinned={Boolean(pinnedVersion)} />
+        ) : undefined
+      }
     >
-      <div className="artifact-versions-title sp-margin-m-top">Current version</div>
-      {currentVersion ? (
-        <CurrentVersion
-          data={currentVersion}
-          environment={artifact.environment}
-          reference={artifact.reference}
-          numNewerVersions={newerVersions?.length}
-          pinned={pinnedVersion?.version === currentVersion.version ? toPinnedMetadata(pinnedVersion) : undefined}
-        />
-      ) : (
-        <div>No version is deployed</div>
-      )}
+      <div className="sp-margin-m-top">
+        {currentVersion ? (
+          <CurrentVersion
+            data={currentVersion}
+            environment={environment}
+            reference={reference}
+            numNewerVersions={newerVersions?.length}
+            pinned={pinnedVersion?.version === currentVersion.version ? toPinnedMetadata(pinnedVersion) : undefined}
+            isPreview={isPreview}
+          />
+        ) : (
+          <div>No version is deployed</div>
+        )}
+      </div>
       {pinnedVersion && pinnedVersion.buildNumber !== currentVersion?.buildNumber && (
         <PinnedVersion version={pinnedVersion} />
       )}

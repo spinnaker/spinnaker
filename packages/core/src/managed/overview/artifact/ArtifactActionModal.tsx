@@ -1,19 +1,69 @@
 import React from 'react';
 
 import { Illustration } from '@spinnaker/presentation';
+
+import { GitLink } from './GitLink';
+import { LabeledValue } from '../../../presentation';
 import { logger } from '../../../utils';
 import type { IArtifactActionModalProps } from '../../utils/ActionModal';
 import { ActionModal } from '../../utils/ActionModal';
 import { getDocsUrl } from '../../utils/defaults';
 
-type InternalModalProps = Omit<IArtifactActionModalProps, 'logCategory'> & { application: string };
+import './ArtifactActionModal.less';
 
 const MARK_BAD_DOCS_URL = getDocsUrl('markAsBad');
 const PINNING_DOCS_URL = getDocsUrl('pinning');
 
-export const PinActionModal = ({ application, ...props }: InternalModalProps) => {
+const CLASS_NAME = 'ArtifactActionModal';
+
+interface IVersionDetails {
+  buildNumber?: string;
+  commitMessage?: string;
+  commitSha?: string;
+}
+
+export interface IVersionActionsProps {
+  application: string;
+  environment: string;
+  reference: string;
+  version: string;
+  selectedVersion: IVersionDetails;
+  isPinned: boolean;
+  isVetoed?: boolean;
+  isCurrent?: boolean;
+}
+
+const VersionDetails = ({ buildNumber, commitMessage, commitSha, title }: IVersionDetails & { title: string }) => {
   return (
-    <ActionModal logCategory="Environments::Artifact" {...props}>
+    <div className="sp-margin-xl-top">
+      <div className="uppercase bold">{title}</div>
+      <dl className="details sp-margin-s-top">
+        {commitMessage && (
+          <LabeledValue
+            label="Commit"
+            value={
+              <GitLink gitMetadata={{ commitInfo: { message: commitMessage }, commit: commitSha }} asLink={false} />
+            }
+          />
+        )}
+        {buildNumber && <LabeledValue label="Build #" value={buildNumber} />}
+      </dl>
+    </div>
+  );
+};
+
+type InternalModalProps = Omit<IArtifactActionModalProps, 'logCategory'> & {
+  actionProps: IVersionActionsProps;
+};
+
+export const PinActionModal = ({ actionProps, ...props }: InternalModalProps) => {
+  const {
+    application,
+    selectedVersion: { buildNumber },
+    isCurrent,
+  } = actionProps;
+  return (
+    <ActionModal logCategory="Environments::Artifact" className={CLASS_NAME} {...props}>
       <div className="flex-container-h middle sp-margin-xl-bottom">
         <span className="sp-margin-m-right" style={{ minWidth: 145 }}>
           <Illustration name="pinArtifactVersion" />
@@ -21,35 +71,37 @@ export const PinActionModal = ({ application, ...props }: InternalModalProps) =>
         <span>
           <p>
             Pinning ensures an environment uses a specific version, even if Spinnaker would've normally deployed a
-            different one. If you pin a version, it'll remain pinned until you manually unpin it.
-          </p>{' '}
-          <a
-            target="_blank"
-            onClick={() =>
-              logger.log({
-                category: 'Environments - pin version modal',
-                action: 'Pinning docs link clicked',
-                data: { label: application, application },
-              })
-            }
-            href={PINNING_DOCS_URL}
-          >
-            Check out our documentation
-          </a>{' '}
-          for more information.
+            different one. New versions won't be deployed until you unpin this version. For more information{' '}
+            <a
+              target="_blank"
+              onClick={() =>
+                logger.log({
+                  category: 'Environments - pin version modal',
+                  action: 'Pinning docs link clicked',
+                  data: { label: application, application },
+                })
+              }
+              href={PINNING_DOCS_URL}
+            >
+              check out our documentation
+            </a>
+            .
+          </p>
+          {isCurrent ? (
+            <p>Version #{buildNumber} is already live and no actions will be take immediately</p>
+          ) : (
+            <VersionDetails title="Deployed Version" {...actionProps.selectedVersion} />
+          )}
         </span>
       </div>
     </ActionModal>
   );
 };
 
-export const UnpinActionModal = ({
-  application,
-  environment,
-  ...props
-}: InternalModalProps & { environment: string }) => {
+export const UnpinActionModal = ({ actionProps, ...props }: InternalModalProps) => {
+  const { application, environment, isCurrent } = actionProps;
   return (
-    <ActionModal logCategory="Environments::Artifact" {...props}>
+    <ActionModal logCategory="Environments::Artifact" className={CLASS_NAME} {...props}>
       <div className="flex-container-h middle sp-margin-xl-bottom">
         <span className="sp-margin-m-right" style={{ minWidth: 145 }}>
           <Illustration name="unpinArtifactVersion" />
@@ -57,79 +109,85 @@ export const UnpinActionModal = ({
         <span>
           <p>
             When you unpin this version from {environment.toUpperCase()}, Spinnaker will use the latest version that's
-            approved for deployment.
-          </p>{' '}
-          <a
-            target="_blank"
-            onClick={() =>
-              logger.log({
-                category: 'Environments - unpin version modal',
-                action: 'Pinning docs link clicked',
-                data: { label: application, application },
-              })
-            }
-            href={PINNING_DOCS_URL}
-          >
-            Check out our documentation
-          </a>{' '}
-          for more information.
+            approved for deployment. For more information,{' '}
+            <a
+              target="_blank"
+              onClick={() =>
+                logger.log({
+                  category: 'Environments - unpin version modal',
+                  action: 'Pinning docs link clicked',
+                  data: { label: application, application },
+                })
+              }
+              href={PINNING_DOCS_URL}
+            >
+              Check out our documentation
+            </a>
+            .
+          </p>
+          <VersionDetails title={isCurrent ? 'Current version' : 'Unpinned version'} {...actionProps.selectedVersion} />
         </span>
       </div>
     </ActionModal>
   );
 };
 
-export const MarkAsBadActionModal = ({ application, ...props }: InternalModalProps) => {
+export const MarkAsBadActionModal = ({ actionProps, ...props }: InternalModalProps) => {
+  const {
+    application,
+    isCurrent,
+    selectedVersion: { buildNumber },
+  } = actionProps;
+  const environment = actionProps.environment.toUpperCase();
   return (
-    <ActionModal logCategory="Environments::Artifact" {...props}>
+    <ActionModal logCategory="Environments::Artifact" className={CLASS_NAME} {...props}>
       <div className="flex-container-h middle sp-margin-xl-bottom">
         <span className="sp-margin-m-right" style={{ minWidth: 145 }}>
           <Illustration name="markArtifactVersionAsBad" />
         </span>
         <span>
           <p>
-            If you mark a version as bad in an environment, Spinnaker will never deploy it there. If the version is
-            already deployed there, Spinnaker will immediately replace it with the latest good version approved for
-            deployment.
-          </p>{' '}
-          <a
-            target="_blank"
-            onClick={() =>
-              logger.log({
-                category: 'Environments - mark version as bad modal',
-                action: 'Mark as bad docs link clicked',
-                data: { label: application, application },
-              })
-            }
-            href={MARK_BAD_DOCS_URL}
-          >
-            Check out our documentation
-          </a>{' '}
-          for more information.
+            {isCurrent
+              ? `Spinnaker will immediately deploy the latest version approved for deployment to ${environment}. Version #${buildNumber} will be rejected and will not be deployed again`
+              : `This action will reject version ${buildNumber} and Spinnaker will not be deploy it to ${environment}. This will not affect the live version`}
+            . For more information,{' '}
+            <a
+              target="_blank"
+              onClick={() =>
+                logger.log({
+                  category: 'Environments - mark version as bad modal',
+                  action: 'Mark as bad docs link clicked',
+                  data: { label: application, application },
+                })
+              }
+              href={MARK_BAD_DOCS_URL}
+            >
+              Check out our documentation
+            </a>
+            .
+          </p>
+          <VersionDetails title="Rejected version" {...actionProps.selectedVersion} />
         </span>
       </div>
     </ActionModal>
   );
 };
 
-const MarkAsGoodIntro = () => (
-  <div className="flex-container-h middle sp-margin-xl-bottom">
-    <span className="sp-margin-m-right" style={{ minWidth: 145 }}>
-      <Illustration name="markArtifactVersionAsGood" />
-    </span>
-    <span>
-      <p>
-        By marking this version as good, Spinnaker will be able to deploy it again. If this is the latest version, it
-        will be deployed immediately.
-      </p>
-    </span>
-  </div>
-);
-
-export const MarkAsGoodActionModal = ({ application, ...props }: InternalModalProps) => {
+export const MarkAsGoodActionModal = ({ actionProps, ...props }: InternalModalProps) => {
   return (
-    <ActionModal logCategory="Environments::Artifact" {...props}>
-      <MarkAsGoodIntro />
+    <ActionModal logCategory="Environments::Artifact" className={CLASS_NAME} {...props}>
+      <div className="flex-container-h middle sp-margin-xl-bottom">
+        <span className="sp-margin-m-right" style={{ minWidth: 145 }}>
+          <Illustration name="markArtifactVersionAsGood" />
+        </span>
+        <span>
+          <p>
+            This action will allow Spinnaker to deploy this version again. If this is the latest version, it will be
+            deployed immediately.
+          </p>
+          <VersionDetails title="Allowed Version" {...actionProps.selectedVersion} />
+        </span>
+      </div>
     </ActionModal>
   );
 };

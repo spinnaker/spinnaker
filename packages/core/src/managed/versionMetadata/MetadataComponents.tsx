@@ -3,14 +3,14 @@ import classnames from 'classnames';
 import { sortBy } from 'lodash';
 import type { DateTime } from 'luxon';
 import React from 'react';
-import { Dropdown, MenuItem } from 'react-bootstrap';
 
 import type { IconNames } from '@spinnaker/presentation';
 import { Icon } from '@spinnaker/presentation';
 
-import { RelativeTimestamp } from '../RelativeTimestamp';
+import { formatToRelativeTimestamp, RelativeTimestamp } from '../RelativeTimestamp';
 import type { LifecycleEventSummary } from '../overview/artifact/utils';
-import { Tooltip } from '../../presentation';
+import { HoverablePopover, LabeledValue, Tooltip } from '../../presentation';
+import { copyTextToClipboard } from '../../utils/clipboard/copyTextToClipboard';
 import { ABSOLUTE_TIME_FORMAT, TOOLTIP_DELAY_SHOW } from '../utils/defaults';
 import { useLogEvent } from '../utils/logging';
 
@@ -20,17 +20,15 @@ export const MetadataElement: React.FC<{ className?: string }> = ({ className, c
   return <span className={classnames('delimited-element horizontal middle', className)}>{children}</span>;
 };
 
-export interface VersionAction {
-  onClick?: () => void;
-  href?: string;
-  content: string;
-  disabled?: boolean;
-}
-
 export interface VersionMessageData {
   by?: string;
   at?: string;
   comment?: string;
+}
+
+export interface ICompareLinks {
+  previous?: string;
+  current?: string;
 }
 
 export const toPinnedMetadata = (data: {
@@ -54,59 +52,27 @@ export const toVetoedMetadata = (data: {
 });
 
 export interface IVersionMetadataProps {
-  build?: IVersionBuildProps['build'] & Partial<LifecycleEventSummary>;
-  version: string;
-  sha?: string;
+  build?: IVersionBuildProps['build'];
   author?: string;
   deployedAt?: string;
-  createdAt?: IVersionCreatedAtProps['createdAt'];
   buildsBehind?: number;
   isDeploying?: boolean;
   bake?: LifecycleEventSummary;
   pinned?: VersionMessageData;
   vetoed?: VersionMessageData;
-  actions?: VersionAction[];
+  isCurrent?: boolean;
 }
 
-export interface IVersionMetadataActionsProps {
-  id: string;
-  actions: VersionAction[];
-}
-
-export const VersionMetadataActions = ({ id, actions }: IVersionMetadataActionsProps) => {
-  const logEvent = useLogEvent('ArtifactActions');
-  return (
-    <MetadataElement>
-      <Dropdown id={id}>
-        <Dropdown.Toggle className="element-actions-menu-toggle">Actions</Dropdown.Toggle>
-        <Dropdown.Menu>
-          {actions.map((action, index) => (
-            <MenuItem
-              key={index}
-              disabled={action.disabled}
-              onClick={() => {
-                action.onClick?.();
-                logEvent({ action: `OpenModal - ${action.content}` });
-              }}
-              href={action.href}
-              target="_blank"
-            >
-              {action.content}
-            </MenuItem>
-          ))}
-        </Dropdown.Menu>
-      </Dropdown>
-    </MetadataElement>
-  );
+const useCreateVersionLink = (linkProps: IVersionCreatedAtProps['linkProps']) => {
+  return useSref('home.applications.application.environments.history', linkProps);
 };
-
 interface IVersionCreatedAtProps {
   createdAt?: string | DateTime;
   linkProps: Record<string, string>;
 }
 
 export const VersionCreatedAt = ({ createdAt, linkProps }: IVersionCreatedAtProps) => {
-  const { href, onClick } = useSref('home.applications.application.environments.history', linkProps);
+  const { href } = useCreateVersionLink(linkProps);
   if (!createdAt) return null;
 
   return (
@@ -114,7 +80,13 @@ export const VersionCreatedAt = ({ createdAt, linkProps }: IVersionCreatedAtProp
       <Tooltip delayShow={TOOLTIP_DELAY_SHOW} value="Created at">
         <i className="far fa-calendar-alt metadata-icon" />
       </Tooltip>
-      <a href={href} onClick={onClick}>
+      <a
+        href={href}
+        onClick={(e) => {
+          href && copyTextToClipboard([window.location.origin, href].join('/'));
+          e.stopPropagation();
+        }}
+      >
         <RelativeTimestamp timestamp={createdAt} delayShow={TOOLTIP_DELAY_SHOW} removeStyles withSuffix />
       </a>
     </MetadataElement>
@@ -124,6 +96,7 @@ export const VersionCreatedAt = ({ createdAt, linkProps }: IVersionCreatedAtProp
 const badgeTypeToDetails = {
   deploying: { className: 'version-deploying', text: 'Deploying' },
   baking: { className: 'version-baking', text: 'Baking' },
+  deployed: { className: 'version-deployed', text: 'Live' },
 };
 
 interface IMetadataBadgeProps {
@@ -168,7 +141,7 @@ const versionTypeProps: { [key in IVersionMessage['type']]: { text: string; clas
     icon: 'pin',
   },
   vetoed: {
-    text: 'Marked as bad by',
+    text: 'Rejected by',
     className: 'version-vetoed',
     icon: 'artifactBad',
   },
@@ -218,7 +191,7 @@ export const VersionBranch = ({ branch }: IVersionBranchProps) => {
 };
 
 interface IVersionBuildProps {
-  build: { buildNumber?: string; link?: string; version?: string };
+  build: { buildNumber?: string; version?: string } & Partial<LifecycleEventSummary>;
   withPrefix?: boolean;
 }
 
@@ -234,9 +207,12 @@ export const VersionBuild = ({ build, withPrefix }: IVersionBuildProps) => {
   );
 
   return build.version ? (
-    <Tooltip value={build.version} delayShow={TOOLTIP_DELAY_SHOW}>
+    <HoverablePopover
+      Component={() => <LifecycleEventDetails {...build} title="Build" showLink={false} />}
+      delayShow={TOOLTIP_DELAY_SHOW}
+    >
       <span>{content}</span>
-    </Tooltip>
+    </HoverablePopover>
   ) : (
     <>{content}</>
   );
@@ -274,28 +250,34 @@ export const BaseVersionMetadata: React.FC = ({ children }) => {
 
 interface ILifecycleEventDetailsProps extends Partial<LifecycleEventSummary> {
   title: string;
+  showLink?: boolean;
+  version?: string;
 }
 
-export const LifecycleEventDetails = ({ duration, link, startedAt, title }: ILifecycleEventDetailsProps) => {
+export const LifecycleEventDetails = ({
+  version,
+  duration,
+  link,
+  startedAt,
+  title,
+  showLink = true,
+}: ILifecycleEventDetailsProps) => {
   return (
     <div className="LifecycleEventDetails">
       <div>
         <div className="title sp-margin-xs-bottom">{title}</div>
         <dl className="details sp-margin-s-bottom">
-          <dt>Started at</dt>
-          <dd>{startedAt?.toFormat(ABSOLUTE_TIME_FORMAT) || 'N/A'}</dd>
-
-          <dt>Duration</dt>
-          <dd>{duration || 'N/A'}</dd>
-
-          {link && (
-            <>
-              <dt>Link</dt>
-              <dd>
-                <a href={link}>Open</a>
-              </dd>
-            </>
-          )}
+          {version && <LabeledValue label="Version" value={version} />}
+          <LabeledValue
+            label="Started at"
+            value={
+              `${startedAt?.toFormat(ABSOLUTE_TIME_FORMAT) || 'N/A'}` +
+              ` ` +
+              `${startedAt ? ` (${formatToRelativeTimestamp(startedAt, true)})` : ''}`
+            }
+          />
+          <LabeledValue label="Duration" value={duration || 'N/A'} />
+          {showLink && link && <LabeledValue label="Link" value={<a href={link}>Open</a>} />}
         </dl>
       </div>
     </div>
