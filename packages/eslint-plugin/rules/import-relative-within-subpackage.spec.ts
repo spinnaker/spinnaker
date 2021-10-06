@@ -1,5 +1,6 @@
-import rule from './import-relative-within-subpackage';
+/* eslint-disable @spinnaker/import-sort */
 import '../utils/import-aliases.mock';
+import rule from './import-relative-within-subpackage';
 import ruleTester from '../utils/ruleTester';
 
 ruleTester.run('import-relative-within-subpackage', rule, {
