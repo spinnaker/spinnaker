@@ -78,7 +78,7 @@ export interface IManagedDeliveryURLs {
 
 export interface ISpinnakerSettings {
   [key: string]: any;
-
+  accountTagLimit?: number;
   analytics: {
     customConfig?: {
       siteSpeedSampleRate?: number;

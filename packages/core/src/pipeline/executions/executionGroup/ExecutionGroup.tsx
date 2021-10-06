@@ -9,6 +9,7 @@ import { MigrationTag } from './MigrationTag';
 import { AccountTag } from '../../../account';
 import type { Application } from '../../../application/application.model';
 import { CollapsibleSectionStateCache } from '../../../cache';
+import { SETTINGS } from '../../../config/settings';
 import { PipelineTemplateReader, PipelineTemplateV2Service } from '../../config/templates';
 import type {
   IExecution,
@@ -36,7 +37,7 @@ import { Spinner } from '../../../widgets/spinners/Spinner';
 
 import './executionGroup.less';
 
-const ACCOUNT_TAG_OVERFLOW_LIMIT = 1;
+const ACCOUNT_TAG_OVERFLOW_LIMIT = SETTINGS.accountTagLimit ?? 1;
 
 export interface IExecutionGroupProps {
   group: IExecutionGroup;
