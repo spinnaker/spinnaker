@@ -21,7 +21,9 @@ describe('Wercker Execution Details Controller:', () => {
     $scope.stage = stage;
     return $ctrl(WerckerExecutionDetailsCtrl, {
       $scope,
-      executionDetailsSectionService: { synchronizeSection: ({}, fn: () => any) => fn() },
+      executionDetailsSectionService: {
+        synchronizeSection: (_availableSections: string[], fn: () => any) => fn(),
+      },
     });
   };
 

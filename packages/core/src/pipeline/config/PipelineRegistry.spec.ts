@@ -111,7 +111,7 @@ describe('PipelineRegistry: API', function () {
     it(
       'augments provider stages with parent keys, labels, manualExecutionComponents, and descriptions',
       mock.inject(function () {
-        const CompA = ({}: ITriggerTemplateComponentProps) => React.createElement('a');
+        const CompA = () => React.createElement('a');
         const baseStage = {
           key: 'c',
           useBaseProvider: true,
@@ -153,8 +153,8 @@ describe('PipelineRegistry: API', function () {
     it(
       'allows provider stages to override of label, description, manualExecutionComponent',
       mock.inject(function () {
-        const CompA = ({}: ITriggerTemplateComponentProps) => React.createElement('a');
-        const CompB = ({}: ITriggerTemplateComponentProps) => React.createElement('b');
+        const CompA = () => React.createElement('a');
+        const CompB = () => React.createElement('b');
         Registry.pipeline.registerStage({
           key: 'a',
           useBaseProvider: true,
@@ -467,7 +467,7 @@ describe('PipelineRegistry: API', function () {
     });
 
     it('hasManualExecutionComponentForTriggerType returns true if declared and available', function () {
-      const CompA = ({}: ITriggerTemplateComponentProps) => React.createElement('a');
+      const CompA = () => React.createElement('a');
       Registry.pipeline.registerTrigger({ key: 'cron', manualExecutionComponent: CompA } as ITriggerTypeConfig);
       expect(Registry.pipeline.hasManualExecutionComponentForTriggerType('cron')).toBe(true);
     });
@@ -479,7 +479,7 @@ describe('PipelineRegistry: API', function () {
     });
 
     it('hasManualExecutionComponentForTriggerType returns handler if declared and available', function () {
-      const CompA = ({}: ITriggerTemplateComponentProps) => React.createElement('a');
+      const CompA = () => React.createElement('a');
       Registry.pipeline.registerTrigger({ key: 'cron', manualExecutionComponent: CompA } as ITriggerTypeConfig);
       expect(Registry.pipeline.getManualExecutionComponentForTriggerType('cron')).toEqual(CompA);
     });

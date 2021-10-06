@@ -18,7 +18,9 @@ describe('Travis Execution Details Controller:', () => {
     $scope.stage = stage;
     return $ctrl(TravisExecutionDetailsCtrl, {
       $scope,
-      executionDetailsSectionService: { synchronizeSection: ({}, fn: () => any) => fn() },
+      executionDetailsSectionService: {
+        synchronizeSection: (_availableSections: string[], fn: () => any) => fn(),
+      },
     });
   };
 
