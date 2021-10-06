@@ -50,7 +50,7 @@ describe('InstancesDistribution', () => {
     ]);
     let index = 0;
     expectedLabels.forEach((value, key) => {
-      let labeledValue = actualLabeledValues.at(index++);
+      const labeledValue = actualLabeledValues.at(index++);
       expect(labeledValue.prop('label')).toEqual(key);
       expect(labeledValue.prop('value')).toEqual(value);
     });
@@ -77,7 +77,7 @@ describe('InstancesDistribution', () => {
     ]);
     let index = 0;
     expectedLabels.forEach((value, key) => {
-      let labeledValue = actualLabeledValues.at(index++);
+      const labeledValue = actualLabeledValues.at(index++);
       expect(labeledValue.prop('label')).toEqual(key);
       expect(labeledValue.prop('value')).toEqual(value);
     });

@@ -31,7 +31,7 @@ describe('command transforms', () => {
       application: 'dockerImageApp',
     };
 
-    let transformed = transformer.convertServerGroupCommandToDeployConfiguration(command);
+    const transformed = transformer.convertServerGroupCommandToDeployConfiguration(command);
     expect(transformed.cloudProvider).toBe('appengine');
     expect(transformed.provider).toBe('appengine');
     expect(transformed.application).toBe('dockerImageApp');

@@ -8,9 +8,9 @@ import { AWSProviderSettings } from '../../aws.settings';
 
 describe('FunctionActions', () => {
   it('should render correct state when all attributes exist', () => {
-    let app = { name: 'app' } as Application;
+    const app = { name: 'app' } as Application;
 
-    let functionDef = { functionName: 'app-function' } as IAmazonFunction;
+    const functionDef = { functionName: 'app-function' } as IAmazonFunction;
     AWSProviderSettings.adHocInfraWritesEnabled = true;
 
     const wrapper = shallow(
@@ -25,15 +25,15 @@ describe('FunctionActions', () => {
       />,
     );
 
-    let dropDown = wrapper.find('DropdownToggle');
+    const dropDown = wrapper.find('DropdownToggle');
 
     expect(dropDown.childAt(0).text()).toEqual('Function Actions');
   });
 
   it('should not render DropdownToggle if aws.adHocInfraWritesEnabled is false', () => {
-    let app = { name: 'app' } as Application;
+    const app = { name: 'app' } as Application;
 
-    let functionDef = { functionName: 'app-function' } as IAmazonFunction;
+    const functionDef = { functionName: 'app-function' } as IAmazonFunction;
     AWSProviderSettings.adHocInfraWritesEnabled = false;
 
     const wrapper = shallow(
@@ -48,7 +48,7 @@ describe('FunctionActions', () => {
       />,
     );
 
-    let dropDown = wrapper.find('div');
+    const dropDown = wrapper.find('div');
     expect(dropDown.children().length).toEqual(0);
   });
 });

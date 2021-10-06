@@ -182,7 +182,7 @@ describe('ProviderSelectionService: API', () => {
     const k8s = fakeAccount('kubernetes');
     k8s.type = 'kubernetes';
     accounts = [k8s];
-    let configuration = {
+    const configuration = {
       name: 'Kubernetes',
       adHocInfrastructureWritesEnabled: true,
     };
@@ -200,7 +200,7 @@ describe('ProviderSelectionService: API', () => {
     const k8s = fakeAccount('kubernetes');
     k8s.type = 'kubernetes';
     accounts = [k8s];
-    let configuration = {
+    const configuration = {
       name: 'Kubernetes',
       adHocInfrastructureWritesEnabled: false,
     };
@@ -218,7 +218,7 @@ describe('ProviderSelectionService: API', () => {
     const k8s = fakeAccount('gce');
     k8s.type = 'gce';
     accounts = [k8s];
-    let configuration = {
+    const configuration = {
       name: 'Kubernetes',
     };
     CloudProviderRegistry.registerProvider('gce', configuration);
@@ -235,7 +235,7 @@ describe('ProviderSelectionService: API', () => {
     const k8s = fakeAccount('kubernetes');
     k8s.type = 'kubernetes';
     accounts = [k8s, fakeAccount('gce')];
-    let configuration = {
+    const configuration = {
       name: 'Kubernetes',
       adHocInfrastructureWritesEnabled: false,
     };
@@ -254,7 +254,7 @@ describe('ProviderSelectionService: API', () => {
     const k8s = fakeAccount('kubernetes');
     k8s.type = 'kubernetes';
     accounts = [k8s, fakeAccount('gce')];
-    let configuration = {
+    const configuration = {
       name: 'Kubernetes',
       adHocInfrastructureWritesEnabled: true,
     };
@@ -279,7 +279,7 @@ describe('ProviderSelectionService: API', () => {
       k8s_account.type = 'kubernetes';
 
       accounts = [k8s_account];
-      let configuration = {
+      const configuration = {
         name: 'kubernetes',
         adHocInfrastructureWritesEnabled: true,
       };
@@ -300,7 +300,7 @@ describe('ProviderSelectionService: API', () => {
       k8s_account.type = 'kubernetes';
 
       accounts = [k8s_account];
-      let configuration = {
+      const configuration = {
         name: 'kubernetes',
         adHocInfrastructureWritesEnabled: false,
       };
@@ -322,7 +322,7 @@ describe('ProviderSelectionService: API', () => {
       const k8s_account = fakeAccount('kubernetes');
       k8s_account.type = 'kubernetes';
       accounts = [k8s_account, fakeAccount('gce')];
-      let kubernetes_configuration = {
+      const kubernetes_configuration = {
         name: 'Kubernetes',
         adHocInfrastructureWritesEnabled: false,
       };
@@ -350,7 +350,7 @@ describe('ProviderSelectionService: API', () => {
       k8s_account_2.type = 'kubernetes';
 
       accounts = [k8s_account_1, k8s_account_2];
-      let configuration = {
+      const configuration = {
         name: 'kubernetes',
         adHocInfrastructureWritesEnabled: false,
       };
@@ -371,7 +371,7 @@ describe('ProviderSelectionService: API', () => {
       aws_account.type = 'aws';
 
       accounts = [aws_account];
-      let configuration = {
+      const configuration = {
         name: 'aws',
         adHocInfrastructureWritesEnabled: false,
       };
@@ -392,7 +392,7 @@ describe('ProviderSelectionService: API', () => {
       aws_account.type = 'aws';
 
       accounts = [aws_account];
-      let configuration = {
+      const configuration = {
         name: 'aws',
         adHocInfrastructureWritesEnabled: false,
       };
@@ -415,11 +415,11 @@ describe('ProviderSelectionService: API', () => {
       aws_account.type = 'aws';
 
       accounts = [k8s_account, aws_account];
-      let k8s_configuration = {
+      const k8s_configuration = {
         name: 'kubernetes',
         adHocInfrastructureWritesEnabled: false,
       };
-      let aws_configuration = {
+      const aws_configuration = {
         name: 'aws',
         adHocInfrastructureWritesEnabled: false,
       };
@@ -445,11 +445,11 @@ describe('ProviderSelectionService: API', () => {
       aws_account.type = 'aws';
 
       accounts = [k8s_account, aws_account];
-      let k8s_configuration = {
+      const k8s_configuration = {
         name: 'kubernetes',
         adHocInfrastructureWritesEnabled: true,
       };
-      let aws_configuration = {
+      const aws_configuration = {
         name: 'aws',
         adHocInfrastructureWritesEnabled: true,
       };
@@ -480,11 +480,11 @@ describe('ProviderSelectionService: API', () => {
       aws_account.type = 'aws';
 
       accounts = [k8s_account, aws_account];
-      let k8s_configuration = {
+      const k8s_configuration = {
         name: 'kubernetes',
         adHocInfrastructureWritesEnabled: false,
       };
-      let aws_configuration = {
+      const aws_configuration = {
         name: 'aws',
         adHocInfrastructureWritesEnabled: true,
       };
