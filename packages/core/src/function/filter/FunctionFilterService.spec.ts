@@ -3,7 +3,7 @@ import { ApplicationModelBuilder } from '../../application/applicationModel.buil
 import { FunctionState } from '../../state';
 import type { Dictionary } from 'lodash';
 import { groupBy } from 'lodash';
-import type { IFunction } from '@spinnaker/core';
+import type { IFunction } from '../../domain';
 // Most of this logic has been moved to filter.model.service.js, so these act more as integration tests
 describe('Service: functionFilterService', function () {
   const debounceTimeout = 30;

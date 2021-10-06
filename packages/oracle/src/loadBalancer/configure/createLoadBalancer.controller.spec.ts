@@ -1,4 +1,5 @@
-import { mockHttpClient } from 'core/api/mock/jasmine';
+// eslint-disable-next-line @spinnaker/import-from-npm-not-relative
+import { mockHttpClient } from '../../../../core/src/api/mock/jasmine';
 import type { IControllerService, IRootScopeService, IScope } from 'angular';
 import { mock, noop } from 'angular';
 import type { StateService } from '@uirouter/core';
