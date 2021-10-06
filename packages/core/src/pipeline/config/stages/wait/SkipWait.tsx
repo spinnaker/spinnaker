@@ -66,11 +66,13 @@ export class SkipWait extends React.Component<ISkipWaitProps, ISkipWaitState> {
 
   public render() {
     const stage = this.props.stage;
+    const waitMs = stage.context.waitTime * 1000;
+
     return (
       <div>
         <div>
           <b>Wait time: </b>
-          {stage.context.waitTime} seconds
+          {stage.context.waitTime > 3600 ? duration(waitMs) : `${stage.context.waitTime} seconds`}
           {stage.context.skipRemainingWait && <span>(skipped after {duration(stage.runningTimeInMs)})</span>}
         </div>
         {stage.isRunning && (
