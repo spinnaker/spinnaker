@@ -164,8 +164,7 @@ export function TriggersPageContent(props: ITriggersPageContentProps) {
                               {...inputProps}
                               text={
                                 <>
-                                  Disable automated triggers during quiet period (
-                                  <strong>does not affect Pipeline triggers</strong>).
+                                  Disable automated triggers during quiet period.
                                   <HelpField id="pipeline.config.triggers.respectQuietPeriod" />
                                 </>
                               }
