@@ -9,7 +9,7 @@ import { Icon } from '@spinnaker/presentation';
 
 import { formatToRelativeTimestamp, RelativeTimestamp } from '../RelativeTimestamp';
 import type { LifecycleEventSummary } from '../overview/artifact/utils';
-import { HoverablePopover, LabeledValue, Tooltip } from '../../presentation';
+import { HoverablePopover, IconTooltip, LabeledValue, Tooltip } from '../../presentation';
 import { copyTextToClipboard } from '../../utils/clipboard/copyTextToClipboard';
 import { ABSOLUTE_TIME_FORMAT, TOOLTIP_DELAY_SHOW } from '../utils/defaults';
 import { useLogEvent } from '../utils/logging';
@@ -19,6 +19,8 @@ import './VersionMetadata.less';
 export const MetadataElement: React.FC<{ className?: string }> = ({ className, children }) => {
   return <span className={classnames('delimited-element horizontal middle', className)}>{children}</span>;
 };
+
+export const METADATA_TEXT_COLOR = 'nobel';
 
 export interface VersionMessageData {
   by?: string;
@@ -57,6 +59,7 @@ export interface IVersionMetadataProps {
   deployedAt?: string;
   buildsBehind?: number;
   isDeploying?: boolean;
+  isPending?: boolean;
   bake?: LifecycleEventSummary;
   pinned?: VersionMessageData;
   vetoed?: VersionMessageData;
@@ -153,7 +156,7 @@ export const VersionMessage = ({ data, type, newRow = true }: IVersionMessage) =
     <>
       {newRow && <div className="flex-break sp-margin-s-top" />}
       <div className={classnames('version-message', typeProps.className)}>
-        <Icon name={typeProps.icon} size="14px" color="black" className="sp-margin-2xs-top" />
+        <Icon name={typeProps.icon} size="14px" color={METADATA_TEXT_COLOR} className="sp-margin-2xs-top" />
         <div>
           <div>
             {typeProps.text} {data.by},{' '}
@@ -185,7 +188,7 @@ export const VersionBranch = ({ branch }: IVersionBranchProps) => {
   if (!branch) return null;
   return (
     <MetadataElement>
-      <Icon name="spCIBranch" size="11px" className="sp-margin-xs-right" color="concrete" /> {branch}
+      <Icon name="spCIBranch" size="11px" className="sp-margin-xs-right" color={METADATA_TEXT_COLOR} /> {branch}
     </MetadataElement>
   );
 };
@@ -281,5 +284,51 @@ export const LifecycleEventDetails = ({
         </dl>
       </div>
     </div>
+  );
+};
+
+type IDeploymentStatusProps = Pick<IVersionMetadataProps, 'deployedAt' | 'isPending' | 'isCurrent'>;
+
+const statusToProps = {
+  CURRENT: {
+    icon: 'cloudDeployed',
+    tooltip: 'Deployed at',
+  },
+  PENDING: {
+    icon: 'cloudWaiting',
+    tooltip: 'Deployment pending',
+  },
+  PREVIOUS: {
+    icon: 'cloudDecommissioned',
+    tooltip: 'Replaced by another version',
+  },
+  SKIPPED: {
+    icon: 'artifactSkipped',
+    tooltip: 'Deployment skipped',
+  },
+} as const;
+
+export const DeploymentStatus = ({ deployedAt, isCurrent, isPending }: IDeploymentStatusProps) => {
+  const props = statusToProps[deployedAt ? (isCurrent ? 'CURRENT' : 'PREVIOUS') : isPending ? 'PENDING' : 'SKIPPED'];
+  return (
+    <MetadataElement>
+      <IconTooltip
+        tooltip={props.tooltip}
+        name={props.icon}
+        size="14px"
+        wrapperClassName="metadata-icon"
+        delayShow={TOOLTIP_DELAY_SHOW}
+        color={METADATA_TEXT_COLOR}
+      />
+      {deployedAt ? (
+        <>
+          Deployed <RelativeTimestamp timestamp={deployedAt} delayShow={TOOLTIP_DELAY_SHOW} removeStyles withSuffix />
+        </>
+      ) : isPending ? (
+        'Pending'
+      ) : (
+        'Not deployed'
+      )}
+    </MetadataElement>
   );
 };

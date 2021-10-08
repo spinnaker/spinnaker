@@ -1,8 +1,10 @@
 import React from 'react';
 
 import type { IVersionMetadataProps } from './MetadataComponents';
+import { METADATA_TEXT_COLOR } from './MetadataComponents';
 import {
   BaseVersionMetadata,
+  DeploymentStatus,
   LifecycleEventDetails,
   MetadataBadge,
   MetadataElement,
@@ -11,11 +13,10 @@ import {
   VersionBuilds,
   VersionMessage,
 } from './MetadataComponents';
-import { formatToRelativeTimestamp, RelativeTimestamp } from '../RelativeTimestamp';
-import { getLifecycleEventSummary } from '../overview/artifact/utils';
+import { formatToRelativeTimestamp } from '../RelativeTimestamp';
+import { getLifecycleEventSummary, isVersionPending } from '../overview/artifact/utils';
 import type { QueryArtifactVersion } from '../overview/types';
-import { HoverablePopover, Icon, IconTooltip } from '../../presentation';
-import { TOOLTIP_DELAY_SHOW } from '../utils/defaults';
+import { HoverablePopover, Icon } from '../../presentation';
 import type { SingleVersionArtifactVersion } from '../versionsHistory/types';
 
 export const getVersionCompareLinks = (version: QueryArtifactVersion | SingleVersionArtifactVersion) => {
@@ -36,6 +37,7 @@ export const getBaseMetadata = (
       ...getLifecycleEventSummary(version, 'BUILD'),
     },
     author: version.gitMetadata?.author,
+    isPending: isVersionPending(version),
     deployedAt: version.deployedAt,
     isCurrent: version.isCurrent,
     isDeploying: version.status === 'DEPLOYING',
@@ -48,6 +50,7 @@ export const VersionMetadata = ({
   build,
   author,
   deployedAt,
+  isPending,
   isCurrent,
   isDeploying,
   buildsBehind,
@@ -68,18 +71,7 @@ export const VersionMetadata = ({
       )}
       {build?.buildNumber && <VersionBuilds builds={[build]} />}
       <VersionAuthor author={author} />
-      {deployedAt && (
-        <MetadataElement>
-          <IconTooltip
-            tooltip="Deployed at"
-            name="cloudDeployed"
-            size="12px"
-            wrapperClassName="metadata-icon"
-            delayShow={TOOLTIP_DELAY_SHOW}
-          />
-          <RelativeTimestamp timestamp={deployedAt} delayShow={TOOLTIP_DELAY_SHOW} removeStyles withSuffix />
-        </MetadataElement>
-      )}
+      <DeploymentStatus {...{ deployedAt, isCurrent, isPending }} />
       {bake?.duration && (
         <MetadataElement>
           <HoverablePopover
@@ -91,7 +83,7 @@ export const VersionMetadata = ({
               </>
             )}
           >
-            <Icon name="bake" size="13px" />
+            <Icon name="bake" size="13px" color={METADATA_TEXT_COLOR} />
           </HoverablePopover>
         </MetadataElement>
       )}

@@ -130,3 +130,6 @@ export const useCreateVersionRollbackActions = (
 
 export const isVersionVetoed = (version?: QueryArtifactVersion | SingleVersionArtifactVersion) =>
   version?.status === 'VETOED';
+
+export const isVersionPending = (version?: QueryArtifactVersion | SingleVersionArtifactVersion) =>
+  version?.status === 'APPROVED' || version?.status === 'PENDING';

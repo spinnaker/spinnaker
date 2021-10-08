@@ -73,7 +73,7 @@ const statusToText: { [key in VersionStatus]: string } = {
   VETOED: `Marked as bad`,
   PREVIOUS: `Previously deployed`,
   DEPLOYING: `Deploying`,
-  SKIPPED: 'Skipped',
+  SKIPPED: 'Not deployed',
 };
 
 const secondaryStatusToIcon: { [key in VersionStatus]?: string } = {
@@ -137,6 +137,7 @@ const EnvironmentBadge = ({ name, data: { isPreview, versions, gitMetadata, isPi
   const isCurrent = getIsCurrent(versions);
   const statusClassName = statusToClassName[isCurrent ? 'CURRENT' : statusSummary];
   const statusText = statusToText[statusSummary];
+
   // In case that the status is different than CURRENT (e.g. when you veto the CURRENT version), we want to show that as well
   const hasSecondaryStatus = Boolean(isCurrent && statusSummary !== 'CURRENT');
   const secondaryIcon = hasSecondaryStatus ? secondaryStatusToIcon[statusSummary] : undefined;

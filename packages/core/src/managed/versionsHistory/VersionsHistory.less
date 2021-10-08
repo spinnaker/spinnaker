@@ -117,15 +117,23 @@
     }
 
     &.skipped {
+      @stripesColor: var(--color-silver);
+      @baseColor: var(--color-white);
       border: 1px solid var(--color-silver);
+      background-image: linear-gradient(
+        to top right,
+        @baseColor calc(50% - 1px),
+        @stripesColor,
+        @baseColor calc(50% + 1px)
+      );
     }
 
     &.approved {
-      background-color: var(--color-status-progress);
+      background-color: var(--color-status-progress-light);
     }
 
     &.pending {
-      background-color: var(--color-status-progress);
+      background-color: var(--color-status-progress-light);
     }
 
     &.vetoed {
@@ -137,7 +145,7 @@
     }
 
     &.previous {
-      background-color: var(--color-status-neutral);
+      background-color: rgba(43%, 84%, 43%, 0.2);
     }
 
     &.deploying {
