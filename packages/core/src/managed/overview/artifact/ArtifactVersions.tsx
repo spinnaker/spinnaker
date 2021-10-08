@@ -13,26 +13,24 @@ import { getBaseMetadata, getVersionCompareLinks, VersionMetadata } from '../../
 
 export interface IPendingVersionsProps {
   artifact: QueryArtifact;
-  pendingVersions?: QueryArtifactVersion[];
+  title: string;
+  versions?: QueryArtifactVersion[];
 }
 
 const NUM_VERSIONS_WHEN_COLLAPSED = 1;
 
-export const PendingVersions = ({ artifact, pendingVersions }: IPendingVersionsProps) => {
-  const numVersions = pendingVersions?.length || 0;
+export const ArtifactVersions = ({ artifact, versions, title }: IPendingVersionsProps) => {
+  const numVersions = versions?.length || 0;
   const [isExpanded, setIsExpanded] = React.useState(false);
   const logEvent = useLogEvent('ArtifactPendingVersion');
 
-  if (!pendingVersions || !numVersions) return null;
+  if (!versions || !numVersions) return null;
 
-  const versionsToShow = isExpanded ? pendingVersions : pendingVersions.slice(0, NUM_VERSIONS_WHEN_COLLAPSED);
-  const numDeploying = pendingVersions.filter((version) => version.status === 'DEPLOYING').length;
+  const versionsToShow = isExpanded ? versions : versions.slice(0, NUM_VERSIONS_WHEN_COLLAPSED);
   const { pinnedVersion } = artifact;
   return (
     <section className="artifact-pending-versions">
-      <div className="artifact-versions-title">
-        {numVersions} Pending Versions {numDeploying > 0 ? `(${numDeploying} deploying)` : ''}
-      </div>
+      <div className="artifact-versions-title">{title}</div>
       <div className="artifact-pending-versions-list">
         {versionsToShow.map((version, index) => (
           <PendingVersion

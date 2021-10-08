@@ -1,8 +1,8 @@
 import { orderBy } from 'lodash';
 import React from 'react';
 
+import { ArtifactVersions } from './ArtifactVersions';
 import { CurrentVersion } from './CurrentVersion';
-import { PendingVersions } from './PendingVersion';
 import { EnvironmentItem } from '../../environmentBaseElements/EnvironmentItem';
 import { useMarkVersionAsBad } from './hooks';
 import { HoverablePopover, Markdown, useApplicationContextSafe } from '../../../presentation';
@@ -98,6 +98,8 @@ export const Artifact = ({ artifact, isPreview }: IArtifactProps) => {
   const { environment, type, reference, versions, pinnedVersion } = artifact;
   const currentVersion = versions?.find((version) => version.isCurrent === true);
   const newerVersions = filterPendingVersions(versions, currentVersion);
+  const deployingVersion = newerVersions.filter((version) => version.status === 'DEPLOYING');
+  const pendingVersions = newerVersions.filter((version) => version.status !== 'DEPLOYING');
   return (
     <EnvironmentItem
       iconName="artifact"
@@ -124,10 +126,17 @@ export const Artifact = ({ artifact, isPreview }: IArtifactProps) => {
           <div>No version is deployed</div>
         )}
       </div>
-      {pinnedVersion && pinnedVersion.buildNumber !== currentVersion?.buildNumber && (
-        <PinnedVersion version={pinnedVersion} />
-      )}
-      <PendingVersions artifact={artifact} pendingVersions={newerVersions} />
+      {pinnedVersion &&
+        pinnedVersion.buildNumber !== currentVersion?.buildNumber && // The current version is not the pinned one
+        !deployingVersion.some((v) => v.buildNumber === pinnedVersion.buildNumber) && ( // we are not already deploy this version
+          <PinnedVersion version={pinnedVersion} />
+        )}
+      <ArtifactVersions title="Now deploying" artifact={artifact} versions={deployingVersion} />
+      <ArtifactVersions
+        title={`${pendingVersions.length} pending version` + (pendingVersions.length > 1 ? 's' : '')}
+        artifact={artifact}
+        versions={pendingVersions}
+      />
     </EnvironmentItem>
   );
 };
