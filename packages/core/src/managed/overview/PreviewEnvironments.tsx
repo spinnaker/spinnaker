@@ -28,9 +28,6 @@ export const PreviewEnvironments = ({ orderedEnvironments, isConfigured }: IPrev
       {isConfigured && !hasActivePreviewEnvironments && (
         <div className="self-left">
           No PRs matching your branch filter were found.
-          <br />
-          Your preview environments will automatically appear here once you create a PR from a branch matching your
-          config definition.{' '}
           {docsLink && (
             <a target="_blank" onClick={() => logClick({ action: 'Learn More' })} href={docsLink}>
               Learn More
