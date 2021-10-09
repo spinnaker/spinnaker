@@ -5,6 +5,8 @@ import { Illustration } from '@spinnaker/presentation';
 import { GitLink } from './GitLink';
 import { LabeledValue } from '../../../presentation';
 import { logger } from '../../../utils';
+import type { ICurrentVersion, IVersionDetails, IVersionRelativeAgeToCurrent } from './utils';
+import { extractVersionRollbackDetails } from './utils';
 import type { IArtifactActionModalProps } from '../../utils/ActionModal';
 import { ActionModal } from '../../utils/ActionModal';
 import { getDocsUrl } from '../../utils/defaults';
@@ -15,12 +17,6 @@ const MARK_BAD_DOCS_URL = getDocsUrl('markAsBad');
 const PINNING_DOCS_URL = getDocsUrl('pinning');
 
 const CLASS_NAME = 'ArtifactActionModal';
-
-interface IVersionDetails {
-  buildNumber?: string;
-  commitMessage?: string;
-  commitSha?: string;
-}
 
 export interface IVersionActionsProps {
   application: string;
@@ -52,16 +48,25 @@ const VersionDetails = ({ buildNumber, commitMessage, commitSha, title }: IVersi
   );
 };
 
-type InternalModalProps = Omit<IArtifactActionModalProps, 'logCategory'> & {
-  actionProps: IVersionActionsProps;
+type InternalModalProps<T = any> = Omit<IArtifactActionModalProps, 'logCategory'> & {
+  actionProps: IVersionActionsProps & T;
 };
 
-export const PinActionModal = ({ actionProps, ...props }: InternalModalProps) => {
+export const PinActionModal = ({
+  actionProps,
+  ...props
+}: InternalModalProps<
+  IVersionActionsProps & { ageRelativeToCurrent: IVersionRelativeAgeToCurrent; currentVersion?: ICurrentVersion }
+>) => {
   const {
     application,
     selectedVersion: { buildNumber },
     isCurrent,
+    environment,
+    ageRelativeToCurrent,
+    currentVersion,
   } = actionProps;
+  const rollingType = ageRelativeToCurrent === 'NEWER' ? 'forward' : 'back';
   return (
     <ActionModal logCategory="Environments::Artifact" className={CLASS_NAME} {...props}>
       <div className="flex-container-h middle sp-margin-xl-bottom">
@@ -70,27 +75,46 @@ export const PinActionModal = ({ actionProps, ...props }: InternalModalProps) =>
         </span>
         <span>
           <p>
-            Pinning ensures an environment uses a specific version, even if Spinnaker would've normally deployed a
-            different one. New versions won't be deployed until you unpin this version. For more information{' '}
-            <a
-              target="_blank"
-              onClick={() =>
-                logger.log({
-                  category: 'Environments - pin version modal',
-                  action: 'Pinning docs link clicked',
-                  data: { label: application, application },
-                })
-              }
-              href={PINNING_DOCS_URL}
-            >
-              check out our documentation
-            </a>
-            .
+            {isCurrent ? (
+              `Pinning ensures an environment uses a specific version, even if Spinnaker would've normally deployed a
+  different one. New versions won't be deployed until you unpin this version.`
+            ) : (
+              <>
+                Rolling {rollingType} will:
+                <ul className="sp-margin-xs-top">
+                  <li>Ignore any constraints on this version</li>
+                  <li>Deploy this version immediately</li>
+                  <li>
+                    Pin this version to {environment.toLocaleUpperCase()} so no other versions deploy until you unpin
+                  </li>
+                </ul>
+              </>
+            )}
           </p>
+          For more information{' '}
+          <a
+            target="_blank"
+            onClick={() =>
+              logger.log({
+                category: 'Environments - pin version modal',
+                action: 'Pinning docs link clicked',
+                data: { label: application, application },
+              })
+            }
+            href={PINNING_DOCS_URL}
+          >
+            check out our documentation
+          </a>
+          .<p></p>
           {isCurrent ? (
             <p>Version #{buildNumber} is already live and no actions will be take immediately</p>
           ) : (
-            <VersionDetails title="Deployed Version" {...actionProps.selectedVersion} />
+            <div>
+              {currentVersion && (
+                <VersionDetails title="Live Version" {...extractVersionRollbackDetails(currentVersion)} />
+              )}
+              <VersionDetails title={`Rolling ${rollingType} to`} {...actionProps.selectedVersion} />
+            </div>
           )}
         </span>
       </div>

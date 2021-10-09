@@ -1,14 +1,11 @@
 import { groupBy } from 'lodash';
 import { DateTime } from 'luxon';
 
-import type { IVersionActionsProps } from './ArtifactActionModal';
 import { ACTION_DISPLAY_NAMES, getActionStatusData } from './VersionOperation';
-import type { VersionAction } from '../../artifactActions/ArtifactActions';
-import { useMarkVersionAsBad, useMarkVersionAsGood, usePinVersion, useUnpinVersion } from './hooks';
-import { useApplicationContextSafe } from '../../../presentation';
+import type { FetchCurrentVersionQuery } from '../../graphql/graphql-sdk';
 import type { QueryArtifactVersion, QueryConstraint, QueryLifecycleStep } from '../types';
 import { timeDiffToString } from '../../../utils';
-import type { SingleVersionArtifactVersion } from '../../versionsHistory/types';
+import type { HistoryArtifactVersionExtended, SingleVersionArtifactVersion } from '../../versionsHistory/types';
 
 export const getConstraintsStatusSummary = (constraints: QueryConstraint[]) => {
   let finalStatus: QueryConstraint['status'] = 'PASS';
@@ -83,53 +80,53 @@ export const getLifecycleEventSummary = (
   };
 };
 
-export const useCreateVersionRollbackActions = (
-  props: Omit<IVersionActionsProps, 'application'>,
-): VersionAction[] | undefined => {
-  const application = useApplicationContextSafe();
-  const { isPinned, isVetoed, isCurrent } = props;
-
-  const basePayload: IVersionActionsProps = { application: application.name, ...props };
-
-  const onUnpin = useUnpinVersion(basePayload);
-
-  const onPin = usePinVersion(basePayload);
-
-  const onMarkAsBad = useMarkVersionAsBad(basePayload);
-
-  const onMarkAsGood = useMarkVersionAsGood(basePayload);
-
-  const actions: VersionAction[] = [
-    isPinned
-      ? {
-          content: 'Unpin version...',
-          onClick: onUnpin,
-        }
-      : {
-          content: isCurrent ? 'Pin version...' : 'Rollback to here...',
-          onClick: onPin,
-        },
-  ];
-
-  if (isVetoed) {
-    actions.push({
-      content: 'Allow deploying...',
-      onClick: onMarkAsGood,
-    });
-  } else {
-    if (!isCurrent) {
-      actions.push({
-        content: isCurrent ? 'Rollback...' : 'Reject...',
-        onClick: onMarkAsBad,
-      });
-    }
-  }
-
-  return actions;
-};
-
 export const isVersionVetoed = (version?: QueryArtifactVersion | SingleVersionArtifactVersion) =>
   version?.status === 'VETOED';
 
 export const isVersionPending = (version?: QueryArtifactVersion | SingleVersionArtifactVersion) =>
   version?.status === 'APPROVED' || version?.status === 'PENDING';
+
+export type ICurrentVersion = NonNullable<
+  NonNullable<
+    NonNullable<FetchCurrentVersionQuery['application']>['environments'][number]['state']['artifacts']
+  >[number]['versions']
+>[number];
+
+export type IVersionRelativeAgeToCurrent = 'CURRENT' | 'NEWER' | 'OLDER';
+
+export const getRelativeAgeToCurrent = ({
+  isCurrent,
+  createdAt,
+  currentVersion,
+}: {
+  isCurrent?: boolean;
+  createdAt?: string;
+  currentVersion?: ICurrentVersion;
+}): IVersionRelativeAgeToCurrent => {
+  if (isCurrent) return 'CURRENT';
+  if (
+    !createdAt ||
+    !currentVersion?.createdAt ||
+    new Date(createdAt).getTime() < new Date(currentVersion.createdAt).getTime()
+  )
+    return 'OLDER';
+  return 'NEWER';
+};
+
+export interface IVersionDetails {
+  buildNumber?: string;
+  commitMessage?: string;
+  commitSha?: string;
+  createdAt?: string;
+}
+
+export const extractVersionRollbackDetails = (
+  version: QueryArtifactVersion | HistoryArtifactVersionExtended | ICurrentVersion,
+): IVersionDetails => {
+  return {
+    buildNumber: version.buildNumber,
+    commitMessage: version.gitMetadata?.commitInfo?.message,
+    commitSha: version.gitMetadata?.commit,
+    createdAt: version.createdAt,
+  };
+};

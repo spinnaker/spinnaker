@@ -9,6 +9,7 @@ import {
   useUnpinVersionMutation,
 } from '../../graphql/graphql-sdk';
 import { showModal } from '../../../presentation';
+import type { ICurrentVersion, IVersionRelativeAgeToCurrent } from './utils';
 import { MODAL_MAX_WIDTH } from '../../utils/defaults';
 
 export const useUnpinVersion = (payload: IVersionActionsProps) => {
@@ -40,11 +41,20 @@ export const useUnpinVersion = (payload: IVersionActionsProps) => {
   };
 };
 
-export const usePinVersion = (payload: IVersionActionsProps) => {
+const pinAction: { [key in IVersionRelativeAgeToCurrent]: string } = {
+  CURRENT: 'Pin',
+  NEWER: 'Roll forward',
+  OLDER: 'Roll back',
+};
+
+export const usePinVersion = (
+  payload: IVersionActionsProps,
+  currentVersion: ICurrentVersion | undefined,
+  ageRelativeToCurrent: IVersionRelativeAgeToCurrent,
+) => {
   const {
     application,
     environment,
-    isCurrent,
     version,
     reference,
     selectedVersion: { buildNumber },
@@ -53,19 +63,23 @@ export const usePinVersion = (payload: IVersionActionsProps) => {
     refetchQueries: [{ query: FetchPinnedVersionsDocument, variables: { appName: payload.application } }],
   });
 
+  const titleOptions: { [key in IVersionRelativeAgeToCurrent]: string } = {
+    CURRENT: `Pin #${buildNumber}`,
+    NEWER: `Roll forward to #${buildNumber} and pin to ${environment.toUpperCase()}`,
+    OLDER: `Roll back to #${buildNumber} and pin to ${environment.toUpperCase()}`,
+  };
+
   return () => {
     showModal(
       PinActionModal,
       {
-        title: isCurrent
-          ? `Pin #${buildNumber}`
-          : `Roll back to #${buildNumber} and pin to ${environment.toUpperCase()}`,
-        actionName: isCurrent ? 'Pin' : 'Roll back',
+        title: titleOptions[ageRelativeToCurrent],
+        actionName: pinAction[ageRelativeToCurrent],
         onAction: async (comment) => {
           if (!comment) throw new Error('Comment is required');
           await onPin({ variables: { payload: { application, environment, reference, version, comment } } });
         },
-        actionProps: payload,
+        actionProps: { ...payload, ageRelativeToCurrent, currentVersion },
       },
 
       { maxWidth: MODAL_MAX_WIDTH },

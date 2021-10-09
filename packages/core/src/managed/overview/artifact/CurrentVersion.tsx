@@ -6,7 +6,8 @@ import { Constraints } from './Constraints';
 import { VersionTitle } from './VersionTitle';
 import { ArtifactActions } from '../../artifactActions/ArtifactActions';
 import type { QueryArtifactVersion } from '../types';
-import { isVersionVetoed, useCreateVersionRollbackActions } from './utils';
+import { useCreateVersionRollbackActions } from './useCreateRollbackActions.hook';
+import { extractVersionRollbackDetails, isVersionVetoed } from './utils';
 import type { VersionMessageData } from '../../versionMetadata/MetadataComponents';
 import { getBaseMetadata, getVersionCompareLinks, VersionMetadata } from '../../versionMetadata/VersionMetadata';
 
@@ -35,11 +36,7 @@ export const CurrentVersion = ({
     isVetoed: isVersionVetoed(data),
     isPinned: Boolean(pinned),
     isCurrent,
-    selectedVersion: {
-      buildNumber: data.buildNumber,
-      commitMessage: gitMetadata?.commitInfo?.message,
-      commitSha: gitMetadata?.commit,
-    },
+    selectedVersion: extractVersionRollbackDetails(data),
   });
 
   const versionProps: ITaskArtifactVersionProps = {

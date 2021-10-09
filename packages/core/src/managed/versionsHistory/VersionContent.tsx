@@ -10,7 +10,8 @@ import { useFetchVersionQuery } from '../graphql/graphql-sdk';
 import type { ITaskArtifactVersionProps } from '../overview/artifact/ArtifactVersionTasks';
 import { ArtifactVersionTasks } from '../overview/artifact/ArtifactVersionTasks';
 import { Constraints } from '../overview/artifact/Constraints';
-import { isVersionVetoed, useCreateVersionRollbackActions } from '../overview/artifact/utils';
+import { useCreateVersionRollbackActions } from '../overview/artifact/useCreateRollbackActions.hook';
+import { extractVersionRollbackDetails, isVersionVetoed } from '../overview/artifact/utils';
 import { useApplicationContextSafe } from '../../presentation';
 import { LoadingAnimation } from '../../presentation/LoadingAnimation';
 import type {
@@ -55,11 +56,7 @@ const VersionInEnvironment = ({
     isVetoed: isVersionVetoed(version),
     isPinned: Boolean(pinnedData),
     isCurrent: version.isCurrent,
-    selectedVersion: {
-      buildNumber: version.buildNumber,
-      commitMessage: version.gitMetadata?.commitInfo?.message,
-      commitSha: version.gitMetadata?.commit,
-    },
+    selectedVersion: extractVersionRollbackDetails(version),
   });
 
   const versionProps: ITaskArtifactVersionProps = {
