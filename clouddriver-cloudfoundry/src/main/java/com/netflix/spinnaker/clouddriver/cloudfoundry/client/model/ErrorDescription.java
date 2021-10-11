@@ -97,7 +97,8 @@ public class ErrorDescription {
     ROUTE_PORT_TAKEN("CF-RoutePortTaken"),
     RESOURCE_NOT_FOUND("CF-ResourceNotFound"),
     SERVICE_ALREADY_EXISTS("60002"),
-    SERVICE_INSTANCE_ALREADY_BOUND("CF-ServiceBindingAppServiceTaken");
+    SERVICE_INSTANCE_ALREADY_BOUND("CF-ServiceBindingAppServiceTaken"),
+    NOT_AUTHORIZED("CF-NotAuthorized");
 
     private final String code;
 

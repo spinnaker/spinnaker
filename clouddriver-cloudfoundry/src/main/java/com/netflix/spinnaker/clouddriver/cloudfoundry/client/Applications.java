@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils.*;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ErrorDescription.Code.NOT_AUTHORIZED;
 import static java.util.Arrays.asList;
 import static java.util.Collections.*;
 import static java.util.Optional.ofNullable;
@@ -50,6 +51,7 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
 import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
@@ -87,12 +89,13 @@ public class Applications {
     this.serverGroupCache =
         CacheBuilder.newBuilder()
             .build(
-                new CacheLoader<String, CloudFoundryServerGroup>() {
+                new CacheLoader<>() {
                   @Override
                   public CloudFoundryServerGroup load(@Nonnull String guid)
                       throws ResourceNotFoundException {
                     return safelyCall(() -> api.findById(guid))
                         .map(Applications.this::map)
+                        .flatMap(sg -> sg)
                         .orElseThrow(ResourceNotFoundException::new);
                   }
                 });
@@ -170,6 +173,8 @@ public class Applications {
                             }
                           })
                       .map(this::map)
+                      .filter(Optional::isPresent)
+                      .map(Optional::get)
                       .forEach(sg -> serverGroupCache.put(sg.getId(), sg)))
           .get();
 
@@ -240,7 +245,15 @@ public class Applications {
   public CloudFoundryServerGroup findServerGroupByNameAndSpaceId(String name, String spaceId) {
     Optional<CloudFoundryServerGroup> result =
         safelyCall(() -> api.all(null, 1, singletonList(name), spaceId))
-            .flatMap(page -> page.getResources().stream().findFirst().map(this::map));
+            .flatMap(
+                page ->
+                    page.getResources().stream()
+                        .findFirst()
+                        .map(this::map)
+                        .orElseThrow(
+                            () ->
+                                new CloudFoundryApiException(
+                                    "Not authorized error retrieving details for this Server Group")));
     result.ifPresent(sg -> serverGroupCache.put(sg.getId(), sg));
     return result.orElse(null);
   }
@@ -262,6 +275,8 @@ public class Applications {
                             page.getResources().stream()
                                 .findFirst()
                                 .map(this::map)
+                                .filter(Optional::isPresent)
+                                .map(Optional::get)
                                 .map(
                                     serverGroup -> {
                                       serverGroupCache.put(serverGroup.getId(), serverGroup);
@@ -271,14 +286,28 @@ public class Applications {
                     .orElse(null));
   }
 
-  private CloudFoundryServerGroup map(Application application) {
+  private Optional<CloudFoundryServerGroup> map(Application application) {
     CloudFoundryServerGroup.State state =
         CloudFoundryServerGroup.State.valueOf(application.getState());
 
     CloudFoundrySpace space = spaces.findById(application.getLinks().get("space").getGuid());
     String appId = application.getGuid();
-    ApplicationEnv applicationEnv =
-        safelyCall(() -> api.findApplicationEnvById(appId)).orElse(null);
+
+    ApplicationEnv applicationEnv;
+    try {
+      applicationEnv = safelyCall(() -> api.findApplicationEnvById(appId)).orElse(null);
+    } catch (CloudFoundryApiException e) {
+      // this happens when an account has access to a space but only has read only permissions
+      // catching this here to prevent all() from completely failing and breaking caching
+      // agents if one space in an account has permissions issues
+      if (e.getErrorCode() == NOT_AUTHORIZED) {
+        return Optional.empty();
+      }
+
+      // null is a valid value and is handled properly in this method
+      applicationEnv = null;
+    }
+
     Process process = processes.findProcessById(appId).orElse(null);
 
     CloudFoundryDroplet droplet = null;
@@ -426,7 +455,7 @@ public class Applications {
             .updatedTime(application.getUpdatedAt().toInstant().toEpochMilli())
             .build();
 
-    return checkHealthStatus(cloudFoundryServerGroup, application);
+    return Optional.of(checkHealthStatus(cloudFoundryServerGroup, application));
   }
 
   private CloudFoundryServerGroup checkHealthStatus(
@@ -547,6 +576,7 @@ public class Applications {
                 api.createApplication(
                     new CreateApplication(appName, relationships, environmentVariables, lifecycle)))
         .map(this::map)
+        .flatMap(sg -> sg)
         .orElseThrow(
             () ->
                 new CloudFoundryApiException(
@@ -574,11 +604,9 @@ public class Applications {
   @Nonnull
   public InputStream downloadPackageBits(String packageGuid) throws CloudFoundryApiException {
     Optional<InputStream> optionalPackageInput =
-        safelyCall(() -> api.downloadPackage(packageGuid)).map(r -> r.byteStream());
-    InputStream packageInput =
-        optionalPackageInput.orElseThrow(
-            () -> new CloudFoundryApiException("Failed to retrieve input stream of package bits."));
-    return packageInput;
+        safelyCall(() -> api.downloadPackage(packageGuid)).map(ResponseBody::byteStream);
+    return optionalPackageInput.orElseThrow(
+        () -> new CloudFoundryApiException("Failed to retrieve input stream of package bits."));
   }
 
   public void uploadPackageBits(String packageGuid, File file) throws CloudFoundryApiException {
