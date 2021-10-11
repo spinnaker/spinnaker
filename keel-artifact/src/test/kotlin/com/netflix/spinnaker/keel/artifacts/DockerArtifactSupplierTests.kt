@@ -16,6 +16,7 @@ import com.netflix.spinnaker.keel.api.plugins.SupportedArtifact
 import com.netflix.spinnaker.keel.api.plugins.SupportedSortingStrategy
 import com.netflix.spinnaker.keel.api.support.SpringEventPublisherBridge
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
+import com.netflix.spinnaker.keel.clouddriver.model.ArtifactProperty
 import com.netflix.spinnaker.keel.clouddriver.model.DockerImage
 import com.netflix.spinnaker.keel.igor.artifact.ArtifactMetadataService
 import com.netflix.spinnaker.keel.test.deliveryConfig
@@ -44,12 +45,29 @@ internal class DockerArtifactSupplierTests : JUnit5Minutests {
       tagVersionStrategy = SEMVER_TAG
     )
     val versions = listOf("v1.12.1-h1188.35b8b29", "v1.12.2-h1182.8a5b962")
+    val artifactProperty = ArtifactProperty(
+      metadata = mapOf(
+        "labels" to mapOf("purpose" to "test"),
+        "registry" to "index.docker.io"
+      ),
+      name = dockerArtifact.name,
+      reference = "index.docker.io/${dockerArtifact.name}:${versions.last()}",
+      type = "docker",
+      version = "1"
+    )
+
+    private val metadata = mapOf(
+      "fullImagePath" to artifactProperty.reference,
+      "clouddriverAccount" to "test",
+      "registry" to "index.docker.io"
+    )
+
     val latestArtifact = PublishedArtifact(
       name = dockerArtifact.name,
       type = dockerArtifact.type,
       reference = dockerArtifact.reference,
       version = versions.last(),
-      metadata = emptyMap()
+      metadata = metadata
     )
 
     val latestArtifactWithMetadata = PublishedArtifact(
@@ -63,7 +81,7 @@ internal class DockerArtifactSupplierTests : JUnit5Minutests {
         "prCommitId" to "b26q1",
         "branch" to "master",
         "createdAt" to "1598707355157"
-      )
+      ) + metadata
     )
 
     val latestArtifactWithBadVersion = PublishedArtifact(
@@ -77,7 +95,9 @@ internal class DockerArtifactSupplierTests : JUnit5Minutests {
       account = "test",
       repository = latestArtifact.name,
       tag = latestArtifact.version,
-      digest = "sha123"
+      digest = "sha123",
+      artifact = artifactProperty,
+      registry = "index.docker.io"
     )
 
     val dockerImageWithMetaData = DockerImage(
@@ -89,7 +109,9 @@ internal class DockerArtifactSupplierTests : JUnit5Minutests {
       prCommitId = "b26q1",
       buildNumber = "1",
       branch = "master",
-      date = "1598707355157"
+      date = "1598707355157",
+      artifact = artifactProperty,
+      registry = "index.docker.io"
     )
 
     val artifactMetadata = ArtifactMetadata(

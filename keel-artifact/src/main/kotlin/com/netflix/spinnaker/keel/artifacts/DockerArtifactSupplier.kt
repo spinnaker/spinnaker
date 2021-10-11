@@ -45,17 +45,21 @@ class DockerArtifactSupplier(
             reference = dockerImage.repository.substringAfter(':', dockerImage.repository),
             version = dockerImage.tag,
             metadata = let {
+              val metadata = mutableMapOf<String, Any?>(
+                "fullImagePath" to dockerImage.artifact?.reference,
+                "clouddriverAccount" to dockerImage.account,
+                "registry" to dockerImage.registry,
+              )
               if (dockerImage.commitId != null && dockerImage.buildNumber != null) {
-                mapOf(
+                metadata.putAll(mapOf(
                   "commitId" to dockerImage.commitId,
                   "prCommitId" to dockerImage.prCommitId,
                   "buildNumber" to dockerImage.buildNumber,
                   "branch" to dockerImage.branch,
                   "createdAt" to dockerImage.date
-                )
-              } else {
-                emptyMap()
+                ))
               }
+              metadata
             }
           )
         }
