@@ -128,7 +128,8 @@ class CacheRepositoryTest {
         ForkJoinPool.commonPool(),
         emptyMap(),
         new OkHttpClient(),
-        new CloudFoundryConfigurationProperties.ClientConfig());
+        new CloudFoundryConfigurationProperties.ClientConfig(),
+        new CloudFoundryConfigurationProperties.LocalCacheConfig());
   }
 
   @Test

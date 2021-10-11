@@ -79,7 +79,8 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
       Integer resultsPerPage,
       ForkJoinPool forkJoinPool,
       OkHttpClient.Builder okHttpClientBuilder,
-      CloudFoundryConfigurationProperties.ClientConfig clientConfig) {
+      CloudFoundryConfigurationProperties.ClientConfig clientConfig,
+      CloudFoundryConfigurationProperties.LocalCacheConfig localCacheConfig) {
 
     this.apiHost = apiHost;
     this.user = user;
@@ -136,7 +137,8 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
             processes,
             resultsPerPage,
             onlySpinnakerManaged,
-            forkJoinPool);
+            forkJoinPool,
+            localCacheConfig);
     this.domains = new Domains(retrofit.create(DomainService.class), organizations);
     this.serviceInstances =
         new ServiceInstances(
@@ -151,7 +153,8 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
             domains,
             spaces,
             resultsPerPage,
-            forkJoinPool);
+            forkJoinPool,
+            localCacheConfig);
     this.serviceKeys = new ServiceKeys(retrofit.create(ServiceKeyService.class), spaces);
     this.tasks = new Tasks(retrofit.create(TaskService.class));
 

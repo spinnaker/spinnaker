@@ -106,7 +106,8 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
         ForkJoinPool.commonPool(),
         emptyMap(),
         new OkHttpClient(),
-        new CloudFoundryConfigurationProperties.ClientConfig()) {
+        new CloudFoundryConfigurationProperties.ClientConfig(),
+        new CloudFoundryConfigurationProperties.LocalCacheConfig()) {
       public CloudFoundryClient getClient() {
         return cloudFoundryClient;
       }

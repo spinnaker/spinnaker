@@ -247,6 +247,7 @@ class HttpCloudFoundryClientTest {
         500,
         ForkJoinPool.commonPool(),
         new OkHttpClient.Builder(),
-        clientConfig);
+        clientConfig,
+        new CloudFoundryConfigurationProperties.LocalCacheConfig());
   }
 }

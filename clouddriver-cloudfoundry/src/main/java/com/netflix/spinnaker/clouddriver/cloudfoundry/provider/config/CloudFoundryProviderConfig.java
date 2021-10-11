@@ -103,7 +103,8 @@ public class CloudFoundryProviderConfig {
                 cloudFoundryThreadPool,
                 a.getSpaceFilter(),
                 okHttpClient,
-                configurationProperties.getClient()),
+                configurationProperties.getClient(),
+                configurationProperties.getLocalCacheConfig()),
         cloudFoundryCredentialsRepository);
   }
 

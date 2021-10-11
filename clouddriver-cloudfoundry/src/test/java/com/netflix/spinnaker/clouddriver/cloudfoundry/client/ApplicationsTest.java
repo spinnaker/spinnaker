@@ -59,7 +59,8 @@ class ApplicationsTest {
           processes,
           resultsPerPage,
           true,
-          ForkJoinPool.commonPool());
+          ForkJoinPool.commonPool(),
+          new CloudFoundryConfigurationProperties.LocalCacheConfig());
   private final String spaceId = "space-guid";
   private final CloudFoundrySpace cloudFoundrySpace =
       CloudFoundrySpace.builder()
@@ -84,7 +85,8 @@ class ApplicationsTest {
             resultsPerPage,
             ForkJoinPool.commonPool(),
             new OkHttpClient().newBuilder(),
-            new CloudFoundryConfigurationProperties.ClientConfig());
+            new CloudFoundryConfigurationProperties.ClientConfig(),
+            new CloudFoundryConfigurationProperties.LocalCacheConfig());
 
     assertThatThrownBy(() -> client.getApplications().all(emptyList()))
         .isInstanceOf(CloudFoundryApiException.class);

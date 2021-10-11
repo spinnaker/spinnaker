@@ -76,14 +76,10 @@ public class CloudFoundryCredentials extends AbstractAccountCredentials<CloudFou
   private final Supplier<List<CloudFoundrySpace>> spaceSupplier =
       Memoizer.memoizeWithExpiration(this::spaceSupplier, SPACE_EXPIRY_SECONDS, TimeUnit.SECONDS);
 
-  private CacheRepository cacheRepository;
-
-  private Permissions permissions;
-
+  private final CacheRepository cacheRepository;
+  private final Permissions permissions;
   private final ForkJoinPool forkJoinPool;
-
   private final List<CloudFoundrySpace> filteredSpaces;
-
   private final CloudFoundryClient cloudFoundryClient;
 
   public CloudFoundryCredentials(
@@ -102,7 +98,8 @@ public class CloudFoundryCredentials extends AbstractAccountCredentials<CloudFou
       ForkJoinPool forkJoinPool,
       Map<String, Set<String>> spaceFilter,
       OkHttpClient okHttpClient,
-      CloudFoundryConfigurationProperties.ClientConfig clientConfig) {
+      CloudFoundryConfigurationProperties.ClientConfig clientConfig,
+      CloudFoundryConfigurationProperties.LocalCacheConfig localCacheConfig) {
     this.name = name;
     this.appsManagerUri = appsManagerUri;
     this.metricsUri = metricsUri;
@@ -130,7 +127,8 @@ public class CloudFoundryCredentials extends AbstractAccountCredentials<CloudFou
             resultsPerPage,
             forkJoinPool,
             okHttpClient.newBuilder(),
-            clientConfig);
+            clientConfig,
+            localCacheConfig);
     this.filteredSpaces = createFilteredSpaces(spaceFilter);
   }
 
@@ -148,7 +146,7 @@ public class CloudFoundryCredentials extends AbstractAccountCredentials<CloudFou
             s -> {
               if (!filteredSpaces.isEmpty()) {
                 List<String> filteredRegions =
-                    filteredSpaces.stream().map(fs -> fs.getRegion()).collect(toList());
+                    filteredSpaces.stream().map(CloudFoundrySpace::getRegion).collect(toList());
                 return filteredRegions.contains(s.getRegion());
               }
               return true;
@@ -206,7 +204,7 @@ public class CloudFoundryCredentials extends AbstractAccountCredentials<CloudFou
 
   protected List<CloudFoundrySpace> createFilteredSpaces(Map<String, Set<String>> spaceFilter) {
     List<CloudFoundrySpace> spaces = new ArrayList<>();
-    if (spaceFilter.isEmpty() || spaceFilter == null) {
+    if (spaceFilter.isEmpty()) {
       return emptyList();
     }
 
@@ -230,11 +228,11 @@ public class CloudFoundryCredentials extends AbstractAccountCredentials<CloudFou
         this.getClient()
             .getSpaces()
             .findAllBySpaceNamesAndOrgNames(
-                spaceFilter.values().stream().flatMap(l -> l.stream()).collect(Collectors.toList()),
+                spaceFilter.values().stream()
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toList()),
                 List.copyOf(spaceFilter.keySet()));
-    allSpaces.stream()
-        .filter(s -> filteredRegions.contains(s.getRegion()))
-        .forEach(s -> spaces.add(s));
+    allSpaces.stream().filter(s -> filteredRegions.contains(s.getRegion())).forEach(spaces::add);
 
     if (spaces.isEmpty())
       throw new IllegalArgumentException(

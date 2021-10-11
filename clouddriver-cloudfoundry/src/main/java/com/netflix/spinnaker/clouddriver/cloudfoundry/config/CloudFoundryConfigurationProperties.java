@@ -46,6 +46,8 @@ public class CloudFoundryConfigurationProperties implements DisposableBean {
 
   @NestedConfigurationProperty private ClientConfig client = new ClientConfig();
 
+  @NestedConfigurationProperty private LocalCacheConfig localCacheConfig = new LocalCacheConfig();
+
   @Override
   public void destroy() {
     this.accounts = new ArrayList<>();
@@ -81,5 +83,13 @@ public class CloudFoundryConfigurationProperties implements DisposableBean {
     private int writeTimeout = 10000;
     private int readTimeout = 10000;
     private int maxRetries = 3;
+  }
+
+  @Data
+  public static class LocalCacheConfig {
+    private long applicationsAccessExpirySeconds = -1;
+    private long applicationsWriteExpirySeconds = 600;
+    private long routesAccessExpirySeconds = -1;
+    private long routesWriteExpirySeconds = 180;
   }
 }

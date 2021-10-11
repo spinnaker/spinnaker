@@ -18,8 +18,8 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -29,6 +29,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Page;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Resource;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Route;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.RouteMapping;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.config.CloudFoundryConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryDomain;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryLoadBalancer;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
@@ -66,7 +67,15 @@ class RoutesTest {
         .thenAnswer(invocation -> Calls.response(Response.success(new Page<>())));
 
     Routes routes =
-        new Routes("pws", routeService, null, domains, spaces, 500, ForkJoinPool.commonPool());
+        new Routes(
+            "pws",
+            routeService,
+            null,
+            domains,
+            spaces,
+            500,
+            ForkJoinPool.commonPool(),
+            new CloudFoundryConfigurationProperties.LocalCacheConfig());
     RouteId routeId = routes.toRouteId("demo1-prod.apps.calabasas.cf-app.com/path/v1.0");
     assertThat(routeId).isNotNull();
     assertThat(routeId.getHost()).isEqualTo("demo1-prod");
@@ -76,7 +85,16 @@ class RoutesTest {
 
   @Test
   void toRouteIdReturnsNullForInvalidRoute() {
-    Routes routes = new Routes(null, null, null, null, null, 500, ForkJoinPool.commonPool());
+    Routes routes =
+        new Routes(
+            null,
+            null,
+            null,
+            null,
+            null,
+            500,
+            ForkJoinPool.commonPool(),
+            new CloudFoundryConfigurationProperties.LocalCacheConfig());
     assertNull(routes.toRouteId("demo1-pro cf-app.com/path"));
   }
 
@@ -139,7 +157,15 @@ class RoutesTest {
         .thenAnswer(invocation -> Calls.response(Response.success(routeMappingPage)));
 
     Routes routes =
-        new Routes("pws", routeService, null, domains, spaces, 500, ForkJoinPool.commonPool());
+        new Routes(
+            "pws",
+            routeService,
+            null,
+            domains,
+            spaces,
+            500,
+            ForkJoinPool.commonPool(),
+            new CloudFoundryConfigurationProperties.LocalCacheConfig());
 
     CloudFoundryLoadBalancer loadBalancer =
         routes.find(new RouteId().setHost("somehost").setDomainGuid("domain-guid"), "space-guid");
