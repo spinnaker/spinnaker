@@ -110,6 +110,12 @@ public class AwsAddAccountCommand extends AbstractAddAccountCommand {
       description = AwsCommandProperties.HOOK_ROLE_ARN_DESCRIPTION)
   private String terminatingHookRoleArn;
 
+  @Parameter(
+      names = "--lambda-enabled",
+      description = AwsCommandProperties.LAMBDA_ENABLED,
+      arity = 1)
+  private Boolean lambdaEnabled;
+
   @Override
   protected Account buildAccount(String accountName) {
     AwsAccount account = (AwsAccount) new AwsAccount().setName(accountName);
@@ -124,6 +130,7 @@ public class AwsAddAccountCommand extends AbstractAddAccountCommand {
                 .collect(Collectors.toList()))
         .setAssumeRole(assumeRole)
         .setExternalId(externalId)
+        .setLambdaEnabled(lambdaEnabled)
         .setLifecycleHooks(getLifecycleHooks());
 
     return account;

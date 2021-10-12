@@ -38,6 +38,7 @@ public class AwsProvider extends HasImageProvider<AwsAccount, AwsBakeryDefaults>
       Collections.singletonList(new AwsRegion().setName("us-west-2"));
   private AwsDefaults defaults = new AwsDefaults();
   private Features features;
+  private Lambda lambda;
 
   @Data
   public static class AwsRegion {
@@ -59,21 +60,46 @@ public class AwsProvider extends HasImageProvider<AwsAccount, AwsBakeryDefaults>
   }
 
   @Data
+  public static class Lambda {
+
+    public Lambda() {}
+
+    public Lambda(boolean enable) {
+      this.enabled = enable;
+    }
+
+    Boolean enabled;
+  }
+
+  @Data
   public static class Features {
 
     public Features() {}
 
-    public Features(CloudFormation cloudFormation) {
+    public Features(CloudFormation cloudFormation, Lambda lambda) {
       this.cloudFormation = cloudFormation;
+      this.lambda = lambda;
     }
 
     CloudFormation cloudFormation;
+    Lambda lambda;
 
     @Data
     public static class CloudFormation {
       public CloudFormation() {}
 
       public CloudFormation(Boolean enabled) {
+        this.enabled = enabled;
+      }
+
+      Boolean enabled;
+    }
+
+    @Data
+    public static class Lambda {
+      public Lambda() {}
+
+      public Lambda(Boolean enabled) {
         this.enabled = enabled;
       }
 

@@ -41,17 +41,32 @@ public class AwsEditFeaturesCommand
       required = true)
   private Boolean cloudFormation;
 
+  @Parameter(
+      names = "--lambda",
+      description = "Enable Lambda support for AWS.",
+      arity = 1,
+      required = true)
+  private Boolean lambda;
+
   protected String getProviderName() {
     return Provider.ProviderType.AWS.getName();
   }
 
   @Override
   protected Provider editProvider(AwsProvider provider) {
+    if (provider.getLambda() != null) {
+      provider.getLambda().setEnabled(lambda);
+    } else {
+      provider.setLambda(new AwsProvider.Lambda(lambda));
+    }
     if (provider.getFeatures() != null) {
       provider.getFeatures().getCloudFormation().setEnabled(cloudFormation);
+      provider.getFeatures().getLambda().setEnabled(lambda);
     } else {
       provider.setFeatures(
-          new AwsProvider.Features(new AwsProvider.Features.CloudFormation(cloudFormation)));
+          new AwsProvider.Features(
+              new AwsProvider.Features.CloudFormation(cloudFormation),
+              new AwsProvider.Features.Lambda(lambda)));
     }
     System.out.println(provider);
     return provider;

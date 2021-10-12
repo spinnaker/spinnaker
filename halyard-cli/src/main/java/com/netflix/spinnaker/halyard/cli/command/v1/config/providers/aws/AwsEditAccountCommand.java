@@ -113,6 +113,12 @@ public class AwsEditAccountCommand extends AbstractEditAccountCommand<AwsAccount
       description = AwsCommandProperties.HOOK_ROLE_ARN_DESCRIPTION)
   private String terminatingHookRoleArn;
 
+  @Parameter(
+      names = "--lambda-enabled",
+      description = AwsCommandProperties.LAMBDA_ENABLED,
+      arity = 1)
+  private Boolean lambdaEnabled;
+
   @Override
   protected Account editAccount(AwsAccount account) {
     account.setDefaultKeyPair(isSet(defaultKeyPair) ? defaultKeyPair : account.getDefaultKeyPair());
@@ -121,6 +127,7 @@ public class AwsEditAccountCommand extends AbstractEditAccountCommand<AwsAccount
     account.setAccountId(isSet(accountId) ? accountId : account.getAccountId());
     account.setAssumeRole(isSet(assumeRole) ? assumeRole : account.getAssumeRole());
     account.setExternalId(isSet(externalId) ? externalId : account.getExternalId());
+    account.setLambdaEnabled(isSet(lambdaEnabled) ? lambdaEnabled : account.getLambdaEnabled());
 
     List<AwsLifecycleHook> hooks = getLifecycleHooks();
     account.setLifecycleHooks(!hooks.isEmpty() ? hooks : account.getLifecycleHooks());

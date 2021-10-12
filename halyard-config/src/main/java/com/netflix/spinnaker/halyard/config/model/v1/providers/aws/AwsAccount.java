@@ -37,4 +37,5 @@ public class AwsAccount extends Account {
   private String externalId;
   private String sessionName;
   private List<AwsProvider.AwsLifecycleHook> lifecycleHooks = new ArrayList<>();
+  private Boolean lambdaEnabled;
 }

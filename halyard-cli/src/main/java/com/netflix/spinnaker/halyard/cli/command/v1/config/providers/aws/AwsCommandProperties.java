@@ -72,4 +72,6 @@ public class AwsCommandProperties {
   public static final String HOOK_ROLE_ARN_DESCRIPTION =
       "The ARN of the IAM role that allows the Auto Scaling group "
           + "to publish to the specified notification target, for example, an Amazon SNS topic or an Amazon SQS queue.";
+
+  public static final String LAMBDA_ENABLED = "Enables Lambda Functions in the account";
 }
