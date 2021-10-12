@@ -5,6 +5,7 @@ import com.netflix.spinnaker.keel.api.ScmInfo
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.artifacts.ArtifactVersionLinks
+import com.netflix.spinnaker.keel.exceptions.UnsupportedScmType
 import com.netflix.spinnaker.keel.notifications.slack.SlackService
 import com.slack.api.model.kotlin_extension.block.SectionBlockBuilder
 import com.slack.api.model.kotlin_extension.block.dsl.LayoutBlockDsl
@@ -37,9 +38,15 @@ class GitDataGenerator(
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  private fun generateStashRepoLink(gitMetadata: GitMetadata): String {
-      val baseScmUrl = gitMetadata.commitInfo?.link?.let { artifactVersionLinks.getScmBaseLink(it) }
-      return "$baseScmUrl/projects/${gitMetadata.project}/repos/${gitMetadata.repo?.name}"
+  private fun generateRepoLink(gitMetadata: GitMetadata): String {
+    val baseScmUrl = gitMetadata.commitInfo?.link?.let { artifactVersionLinks.getScmBaseLink(it) }
+    return if (baseScmUrl != null) {
+      when {
+        "stash" in baseScmUrl -> "$baseScmUrl/projects/${gitMetadata.project}/repos/${gitMetadata.repo?.name}"
+        "github" in baseScmUrl -> "$baseScmUrl/${gitMetadata.project}/${gitMetadata.repo?.name}"
+        else -> throw UnsupportedScmType(message = "Stash and GitHub are currently the only supported SCM types.")
+      }
+    } else ""
   }
 
   fun generateConfigUrl(application: String): String =
@@ -134,7 +141,7 @@ class GitDataGenerator(
       }
     }
   }
-  
+
   fun formatCommitMessage(gitMetadata: GitMetadata?): String {
     val message = gitMetadata?.commitInfo?.message ?: EMPTY_COMMIT_TEXT
     return if (message.length > GIT_COMMIT_MESSAGE_LENGTH) {
@@ -165,7 +172,7 @@ class GitDataGenerator(
     with(sectionBlockBuilder) {
       var details = ""
       with(gitMetadata) {
-        val repoLink = generateStashRepoLink(this)
+        val repoLink = generateRepoLink(this)
 
         if (project != null && repo != null && branch != null) {
           details += "<$repoLink|$project/" +

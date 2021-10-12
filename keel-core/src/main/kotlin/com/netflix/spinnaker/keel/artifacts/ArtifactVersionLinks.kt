@@ -6,9 +6,9 @@ import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.caffeine.CacheFactory
 import com.netflix.spinnaker.keel.exceptions.UnsupportedScmType
-import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Component
+import java.net.URL
 
 @Component
 class ArtifactVersionLinks(private val scmInfo: ScmInfo, private val cacheFactory: CacheFactory) {
@@ -35,17 +35,20 @@ class ArtifactVersionLinks(private val scmInfo: ScmInfo, private val cacheFactor
   //Generating a SCM compare link between source (new version) and target (old version) versions (the order matter!)
   private fun generateCompareLink(newerGitMetadata: GitMetadata?, olderGitMetadata: GitMetadata?): String? {
     val commitLink = newerGitMetadata?.commitInfo?.link ?: return null
-    return when {
-      "stash" in commitLink -> {
-        val baseScmUrl = getScmBaseLink(commitLink)
-        if (baseScmUrl != null && olderGitMetadata != null && !(olderGitMetadata.commitInfo?.sha.isNullOrEmpty())) {
+    val baseScmUrl = getScmBaseLink(commitLink)
+    return if (baseScmUrl != null && olderGitMetadata != null && !(olderGitMetadata.commitInfo?.sha.isNullOrEmpty())) {
+      when {
+        "stash" in commitLink -> {
           "$baseScmUrl/projects/${newerGitMetadata.project}/repos/${newerGitMetadata.repo?.name}/compare/commits?" +
             "targetBranch=${olderGitMetadata.commitInfo?.sha}&sourceBranch=${newerGitMetadata.commitInfo?.sha}"
-        } else null
+        }
+        "github" in commitLink -> {
+          "$baseScmUrl/${newerGitMetadata.project}/${newerGitMetadata.repo?.name}/compare/" +
+            "${olderGitMetadata.commitInfo?.sha}...${newerGitMetadata.commitInfo?.sha}"
+        }
+        else -> throw UnsupportedScmType(message = "Stash & GitHub are currently the only supported SCM types.")
       }
-      "github" in commitLink -> commitLink
-      else -> throw UnsupportedScmType(message = "Stash & GitHub are currently the only supported SCM types.")
-    }
+    } else null
   }
 
   //Calling igor to fetch all base urls by SCM type, and returning the right one based on current commit link
@@ -55,12 +58,15 @@ class ArtifactVersionLinks(private val scmInfo: ScmInfo, private val cacheFactor
       val cachedValue = cache[cacheName].get()
       cachedValue ?: scmInfo.getScmInfo()
     }
-    when {
+    return when {
       "stash" in commitLink ->
-        return scmBaseURLs["stash"]
+        scmBaseURLs["stash"]
+      "github" in commitLink -> {
+        val url = URL(scmBaseURLs["gitHub"])
+        "${url.protocol}://${url.host}"
+      }
       else ->
         throw UnsupportedScmType(message = "Stash and GitHub are currently the only supported SCM types.")
     }
   }
 }
-

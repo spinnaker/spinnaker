@@ -10,7 +10,9 @@ import io.mockk.mockk
 import java.util.concurrent.CompletableFuture
 import java.util.function.Function
 
-val scmData = mapOf("stash" to "https://stash")
+val scmData = mapOf(
+  "stash" to "https://stash",
+  "gitHub" to "https://github.com")
 
 fun mockScmInfo(): ScmInfo {
   return mockk() {

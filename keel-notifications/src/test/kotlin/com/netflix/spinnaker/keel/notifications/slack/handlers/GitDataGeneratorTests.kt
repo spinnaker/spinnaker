@@ -2,9 +2,7 @@ package com.netflix.spinnaker.keel.notifications.slack.handlers
 
 import com.netflix.spinnaker.config.BaseUrlConfig
 import com.netflix.spinnaker.keel.api.ScmInfo
-import com.netflix.spinnaker.keel.api.artifacts.Commit
-import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
-import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
+import com.netflix.spinnaker.keel.api.artifacts.*
 import com.netflix.spinnaker.keel.artifacts.ArtifactVersionLinks
 import com.netflix.spinnaker.keel.services.mockCacheFactory
 import com.netflix.spinnaker.keel.services.mockScmInfo
@@ -19,11 +17,7 @@ import io.mockk.every
 import io.mockk.mockk
 import strikt.api.expect
 import strikt.api.expectThat
-import strikt.assertions.contains
-import strikt.assertions.isA
-import strikt.assertions.isEqualTo
-import strikt.assertions.isNotNull
-import strikt.assertions.isTrue
+import strikt.assertions.*
 
 class GitDataGeneratorTests : JUnit5Minutests {
 
@@ -60,6 +54,45 @@ class GitDataGeneratorTests : JUnit5Minutests {
       } returns "@keel"
     }
 
+    context("generating scm info") {
+      test("generates scm links block") {
+        val blocks = withBlocks {
+          section {
+            subject.generateScmInfo(
+              sectionBlockBuilder =  this,
+              application = application,
+              artifact = artifactNoMetadata,
+              gitMetadata = GitMetadata(
+                commit = "676fea96a33cbc774685ff8b511092d9a3809f90",
+                project = "spkr",
+                repo = Repo("keel", null),
+                branch = "main",
+                pullRequest = PullRequest("1", "stash/pr/1"),
+                commitInfo = Commit(
+                  link = "stash",
+                  sha = "676fea96a33cbc774685ff8b511092d9a3809f90",
+                  message = null
+                )
+              )
+            )
+          }
+        }
+
+        expectThat(blocks.first())
+          .isA<SectionBlock>()
+          .get { text }.isNotNull()
+
+        val text: TextObject = (blocks.first() as SectionBlock).text
+
+        expect {
+          that(text.toString().contains("text=<https://stash/projects/spkr/repos/keel|spkr/keel>")).isTrue()
+          that(text.toString().contains("<https://stash/projects/spkr/repos/keel/branches|main>")).isTrue()
+          that(text.toString().contains("<stash/pr/1|PR#1>")).isTrue()
+          that(text.toString().contains("<stash|676fea9>")).isTrue()
+        }
+      }
+    }
+
     context("generating commit info") {
       test("generates something even if there is no commit info") {
         val blocks = withBlocks {
@@ -87,8 +120,8 @@ class GitDataGeneratorTests : JUnit5Minutests {
       }
     }
     context("commit message display") {
-      test("hides stash generated message portion behind the buttong") {
-        val commitMetadat = GitMetadata(
+      test("hides stash generated message portion behind the button") {
+        val commitMetadata = GitMetadata(
           commit = "abc123",
           commitInfo = Commit(
             sha = "abc123",
@@ -104,7 +137,7 @@ class GitDataGeneratorTests : JUnit5Minutests {
           )
         )
 
-        val displayMessage = subject.formatCommitMessage(commitMetadat)
+        val displayMessage = subject.formatCommitMessage(commitMetadata)
         expectThat(displayMessage).isEqualTo("fix(notifications): put back the 'show full commit' modal...")
       }
     }
