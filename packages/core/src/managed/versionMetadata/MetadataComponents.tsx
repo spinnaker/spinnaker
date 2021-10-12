@@ -287,7 +287,7 @@ export const LifecycleEventDetails = ({
   );
 };
 
-type IDeploymentStatusProps = Pick<IVersionMetadataProps, 'deployedAt' | 'isPending' | 'isCurrent'>;
+type IDeploymentStatusProps = Pick<IVersionMetadataProps, 'deployedAt' | 'isPending' | 'isCurrent' | 'isDeploying'>;
 
 const statusToProps = {
   CURRENT: {
@@ -308,7 +308,8 @@ const statusToProps = {
   },
 } as const;
 
-export const DeploymentStatus = ({ deployedAt, isCurrent, isPending }: IDeploymentStatusProps) => {
+export const DeploymentStatus = ({ deployedAt, isCurrent, isPending, isDeploying }: IDeploymentStatusProps) => {
+  if (!deployedAt && isDeploying) return null; // We'll show the deploying badge so no reason to show this component if this version is being deployed for the first time
   const props = statusToProps[deployedAt ? (isCurrent ? 'CURRENT' : 'PREVIOUS') : isPending ? 'PENDING' : 'SKIPPED'];
   return (
     <MetadataElement>

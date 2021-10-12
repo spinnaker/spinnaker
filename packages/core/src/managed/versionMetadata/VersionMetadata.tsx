@@ -71,7 +71,7 @@ export const VersionMetadata = ({
       )}
       {build?.buildNumber && <VersionBuilds builds={[build]} />}
       <VersionAuthor author={author} />
-      <DeploymentStatus {...{ deployedAt, isCurrent, isPending }} />
+      <DeploymentStatus {...{ deployedAt, isCurrent, isPending, isDeploying }} />
       {bake?.duration && (
         <MetadataElement>
           <HoverablePopover
