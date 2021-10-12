@@ -15,7 +15,7 @@ export const useNotifyOnError = ({
     if (!error) return;
     NotifierService.publish({
       key,
-      content: content ? `${content} - ` : '' + error.message,
+      content: (content ? `${content} - ` : '') + error.message,
       options: { type: 'error' },
     });
   }, [error]);

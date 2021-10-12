@@ -55,6 +55,8 @@ export interface MdArtifact {
   reference: Scalars['String'];
   versions?: Maybe<Array<MdArtifactVersionInEnvironment>>;
   pinnedVersion?: Maybe<MdPinnedVersion>;
+  latestApprovedVersion?: Maybe<MdArtifactVersionInEnvironment>;
+  resources?: Maybe<Array<MdResource>>;
 }
 
 export interface MdArtifactVersionsArgs {
@@ -87,7 +89,6 @@ export interface MdArtifactVersionInEnvironment {
   buildNumber?: Maybe<Scalars['String']>;
   createdAt?: Maybe<Scalars['InstantTime']>;
   deployedAt?: Maybe<Scalars['InstantTime']>;
-  resources?: Maybe<Array<MdResource>>;
   gitMetadata?: Maybe<MdGitMetadata>;
   packageDiff?: Maybe<MdPackageDiff>;
   environment?: Maybe<Scalars['String']>;
@@ -330,6 +331,7 @@ export interface MdResource {
 
 export interface MdResourceActuationState {
   __typename?: 'MdResourceActuationState';
+  resourceId: Scalars['String'];
   status: MdResourceActuationStatus;
   reason?: Maybe<Scalars['String']>;
   event?: Maybe<Scalars['String']>;
@@ -342,7 +344,16 @@ export interface MdResourceTask {
   __typename?: 'MdResourceTask';
   id: Scalars['String'];
   name: Scalars['String'];
+  running: Scalars['Boolean'];
   summary?: Maybe<MdExecutionSummary>;
+}
+
+export interface MdRestartConstraintEvaluationPayload {
+  application: Scalars['String'];
+  environment: Scalars['String'];
+  type: Scalars['String'];
+  reference: Scalars['String'];
+  version: Scalars['String'];
 }
 
 export interface MdRetryArtifactActionPayload {
@@ -409,6 +420,7 @@ export interface MdVersionVeto {
 export interface Mutation {
   __typename?: 'Mutation';
   updateConstraintStatus?: Maybe<Scalars['Boolean']>;
+  restartConstraintEvaluation?: Maybe<Scalars['Boolean']>;
   toggleManagement?: Maybe<Scalars['Boolean']>;
   pinArtifactVersion?: Maybe<Scalars['Boolean']>;
   markArtifactVersionAsBad?: Maybe<Scalars['Boolean']>;
@@ -423,6 +435,10 @@ export interface Mutation {
 
 export interface MutationUpdateConstraintStatusArgs {
   payload: MdConstraintStatusPayload;
+}
+
+export interface MutationRestartConstraintEvaluationArgs {
+  payload: MdRestartConstraintEvaluationPayload;
 }
 
 export interface MutationToggleManagementArgs {
@@ -874,6 +890,15 @@ export type ToggleResourceManagementMutationVariables = Exact<{
 }>;
 
 export type ToggleResourceManagementMutation = { __typename?: 'Mutation' } & Pick<Mutation, 'toggleResourceManagement'>;
+
+export type RestartConstraintEvaluationMutationVariables = Exact<{
+  payload: MdRestartConstraintEvaluationPayload;
+}>;
+
+export type RestartConstraintEvaluationMutation = { __typename?: 'Mutation' } & Pick<
+  Mutation,
+  'restartConstraintEvaluation'
+>;
 
 export const ActionDetailsFragmentDoc = gql`
   fragment actionDetails on MdAction {
@@ -2052,4 +2077,49 @@ export type ToggleResourceManagementMutationResult = Apollo.MutationResult<Toggl
 export type ToggleResourceManagementMutationOptions = Apollo.BaseMutationOptions<
   ToggleResourceManagementMutation,
   ToggleResourceManagementMutationVariables
+>;
+export const RestartConstraintEvaluationDocument = gql`
+  mutation RestartConstraintEvaluation($payload: MdRestartConstraintEvaluationPayload!) {
+    restartConstraintEvaluation(payload: $payload)
+  }
+`;
+export type RestartConstraintEvaluationMutationFn = Apollo.MutationFunction<
+  RestartConstraintEvaluationMutation,
+  RestartConstraintEvaluationMutationVariables
+>;
+
+/**
+ * __useRestartConstraintEvaluationMutation__
+ *
+ * To run a mutation, you first call `useRestartConstraintEvaluationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRestartConstraintEvaluationMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [restartConstraintEvaluationMutation, { data, loading, error }] = useRestartConstraintEvaluationMutation({
+ *   variables: {
+ *      payload: // value for 'payload'
+ *   },
+ * });
+ */
+export function useRestartConstraintEvaluationMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    RestartConstraintEvaluationMutation,
+    RestartConstraintEvaluationMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<RestartConstraintEvaluationMutation, RestartConstraintEvaluationMutationVariables>(
+    RestartConstraintEvaluationDocument,
+    options,
+  );
+}
+export type RestartConstraintEvaluationMutationHookResult = ReturnType<typeof useRestartConstraintEvaluationMutation>;
+export type RestartConstraintEvaluationMutationResult = Apollo.MutationResult<RestartConstraintEvaluationMutation>;
+export type RestartConstraintEvaluationMutationOptions = Apollo.BaseMutationOptions<
+  RestartConstraintEvaluationMutation,
+  RestartConstraintEvaluationMutationVariables
 >;

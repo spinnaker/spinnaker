@@ -377,3 +377,7 @@ mutation ImportDeliveryConfig($application: String!) {
 mutation ToggleResourceManagement($payload: MdToggleResourceManagementPayload) {
   toggleResourceManagement(payload: $payload)
 }
+
+mutation RestartConstraintEvaluation($payload: MdRestartConstraintEvaluationPayload!) {
+  restartConstraintEvaluation(payload: $payload)
+}

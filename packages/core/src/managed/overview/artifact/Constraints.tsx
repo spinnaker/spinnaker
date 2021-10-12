@@ -5,7 +5,12 @@ import React from 'react';
 import { RelativeTimestamp } from '../../RelativeTimestamp';
 import { VersionOperationIcon } from './VersionOperation';
 import { constraintsManager } from '../../constraints/registry';
-import { FetchVersionDocument, useUpdateConstraintMutation } from '../../graphql/graphql-sdk';
+import type { FetchVersionQueryVariables } from '../../graphql/graphql-sdk';
+import {
+  FetchVersionDocument,
+  useRestartConstraintEvaluationMutation,
+  useUpdateConstraintMutation,
+} from '../../graphql/graphql-sdk';
 import { CollapsibleSection, useApplicationContextSafe } from '../../../presentation';
 import type { ArtifactVersionProps, QueryConstraint } from '../types';
 import { getConstraintsStatusSummary } from './utils';
@@ -26,44 +31,77 @@ const ConstraintContent = ({ constraint, versionProps }: IConstraintContentProps
   const application = useApplicationContextSafe();
   const logEvent = useLogEvent('ArtifactConstraints', 'UpdateStatus');
 
-  const [updateConstraint, { loading, error }] = useUpdateConstraintMutation({
-    refetchQueries: [
-      { query: FetchVersionDocument, variables: { appName: application?.name, versions: [versionProps.version] } },
-    ],
+  const refetchVariables: FetchVersionQueryVariables = { appName: application.name, versions: [versionProps.version] };
+  const refetchQueries = [{ query: FetchVersionDocument, variables: refetchVariables }];
+
+  const showRestartButton = constraintsManager.isRestartVisible(constraint);
+
+  const baseRequestProps = {
+    application: application.name,
+    environment: versionProps.environment,
+    version: versionProps.version,
+    reference: versionProps.reference,
+    type: constraint.type,
+  };
+
+  const [
+    updateConstraint,
+    { loading: isUpdatingConstraint, error: updateConstraintError },
+  ] = useUpdateConstraintMutation({ refetchQueries });
+
+  const [
+    restartConstraint,
+    { loading: isRestartingConstraint, error: restartConstraintError },
+  ] = useRestartConstraintEvaluationMutation({
+    variables: { payload: baseRequestProps },
+    refetchQueries,
   });
 
-  useNotifyOnError({ key: 'updateConstraintError', content: `Failed to update constraint`, error });
+  useNotifyOnError({
+    key: 'updateConstraintError',
+    content: `Failed to update constraint`,
+    error: updateConstraintError,
+  });
+
+  useNotifyOnError({
+    key: 'restartConstraintError',
+    content: `Failed to restart constraint`,
+    error: restartConstraintError,
+  });
 
   return (
     <dl className="constraint-content">
       {description && <dd>{description}</dd>}
-      {!isEmpty(actions) && (
+      {(!isEmpty(actions) || showRestartButton) && (
         <dd className={classnames(description ? 'sp-margin-s-top' : undefined, 'horizontal middle')}>
           {actions?.map(({ title, pass }) => (
             <button
               className={classnames('btn md-btn constraint-action-button', pass ? 'md-btn-success' : 'md-btn-danger')}
               key={title}
-              disabled={loading}
+              disabled={isUpdatingConstraint}
               onClick={() => {
                 logEvent({ data: { newStatus: pass } });
                 updateConstraint({
-                  variables: {
-                    payload: {
-                      application: application.name,
-                      environment: versionProps.environment,
-                      version: versionProps.version,
-                      type: constraint.type,
-                      reference: versionProps.reference,
-                      status: pass ? 'FORCE_PASS' : 'FAIL',
-                    },
-                  },
+                  variables: { payload: { ...baseRequestProps, status: pass ? 'FORCE_PASS' : 'FAIL' } },
                 });
               }}
             >
               {title}
             </button>
           ))}
-          {loading && <Spinner mode="circular" size="nano" color="var(--color-accent)" />}
+          {showRestartButton && (
+            <button
+              className="btn md-btn constraint-action-button md-btn-accent"
+              disabled={isUpdatingConstraint}
+              onClick={() => {
+                restartConstraint();
+              }}
+            >
+              {constraintsManager.getRestartDisplayName(constraint)}
+            </button>
+          )}
+          {isUpdatingConstraint ||
+            (isRestartingConstraint && <Spinner mode="circular" size="nano" color="var(--color-accent)" />)}
         </dd>
       )}
     </dl>
@@ -102,7 +140,9 @@ const Constraint = ({ constraint, versionProps }: IConstraintProps) => {
           </div>
         )}
       >
-        {hasContent ? <ConstraintContent constraint={constraint} versionProps={versionProps} /> : undefined}
+        {hasContent || constraintsManager.isRestartVisible(constraint) ? (
+          <ConstraintContent constraint={constraint} versionProps={versionProps} />
+        ) : undefined}
       </CollapsibleSection>
     </div>
   );

@@ -77,6 +77,8 @@ type MdArtifact {
   reference: String!
   versions(statuses: [MdArtifactStatusInEnvironment!], versions: [String!], limit: Int): [MdArtifactVersionInEnvironment!]
   pinnedVersion: MdPinnedVersion
+  latestApprovedVersion: MdArtifactVersionInEnvironment
+  resources: [MdResource!]
 }
 
 type MdArtifactVersionInEnvironment {
@@ -85,7 +87,6 @@ type MdArtifactVersionInEnvironment {
   buildNumber: String
   createdAt: InstantTime
   deployedAt: InstantTime
-  resources: [MdResource!]
   gitMetadata: MdGitMetadata
   packageDiff: MdPackageDiff
   environment: String
@@ -189,6 +190,7 @@ enum MdResourceActuationStatus {
 }
 
 type MdResourceActuationState {
+  resourceId: String!
   status: MdResourceActuationStatus!
   reason: String
   event: String
@@ -198,6 +200,7 @@ type MdResourceActuationState {
 type MdResourceTask {
   id: String!
   name: String!
+  running: Boolean!
   summary: MdExecutionSummary
 }
 
@@ -312,6 +315,7 @@ type MdAction {
 
 type Mutation @extends {
   updateConstraintStatus(payload: MdConstraintStatusPayload!): Boolean
+  restartConstraintEvaluation(payload: MdRestartConstraintEvaluationPayload!): Boolean
   toggleManagement(application: ID!, isPaused: Boolean!, comment: String): Boolean
   pinArtifactVersion(payload: MdArtifactVersionActionPayload!): Boolean
   markArtifactVersionAsBad(payload: MdArtifactVersionActionPayload!): Boolean
@@ -323,6 +327,15 @@ type Mutation @extends {
   toggleResourceManagement(payload: MdToggleResourceManagementPayload): Boolean
   importDeliveryConfig(application: String!): Boolean
 }
+
+input MdRestartConstraintEvaluationPayload {
+  application: String!
+  environment: String!
+  type: String!
+  reference: String!
+  version: String!
+}
+
 
 input MdToggleResourceManagementPayload {
   id: ID!
