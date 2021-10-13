@@ -48,6 +48,15 @@ internal class SecurityGroupDiffTests : JUnit5Minutests {
     )
   )
 
+  private val prefixListRule: PrefixListRule = PrefixListRule(
+    protocol = TCP,
+    prefixListId = "pl-54fe2493db96cd54c",
+    portRange = PortRange(
+      startPort = 443,
+      endPort = 443
+    )
+  )
+
   private val Fixture.diff: DefaultResourceDiff<Map<String, SecurityGroup>>
     get() = DefaultResourceDiff(desired, current)
 
@@ -99,7 +108,7 @@ internal class SecurityGroupDiffTests : JUnit5Minutests {
                   vpc = "vpc0",
                   region = "us-west-2"
                 ),
-                inboundRules = setOf(referenceRule, crossAccountReferenceRule, cidrRule)
+                inboundRules = setOf(referenceRule, crossAccountReferenceRule, cidrRule, prefixListRule)
               )
           )
         )

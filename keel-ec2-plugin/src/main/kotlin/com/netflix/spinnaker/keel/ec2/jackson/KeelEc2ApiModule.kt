@@ -14,6 +14,7 @@ import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.CrossAccountReferenceRule
 import com.netflix.spinnaker.keel.api.ec2.CustomizedMetricSpecification
 import com.netflix.spinnaker.keel.api.ec2.InstanceProvider
+import com.netflix.spinnaker.keel.api.ec2.PrefixListRule
 import com.netflix.spinnaker.keel.api.ec2.ReferenceRule
 import com.netflix.spinnaker.keel.api.ec2.Scaling
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule
@@ -51,7 +52,8 @@ import com.netflix.spinnaker.keel.ec2.jackson.mixins.TargetTrackingPolicyMixin
 val SECURITY_GROUP_RULE_SUBTYPES = mapOf(
   ReferenceRule::class.java to "reference",
   CrossAccountReferenceRule::class.java to "cross-account",
-  CidrRule::class.java to "cidr"
+  CidrRule::class.java to "cidr",
+  PrefixListRule::class.java to "prefix-list"
 )
 
 fun ObjectMapper.registerKeelEc2ApiModule(): ObjectMapper {

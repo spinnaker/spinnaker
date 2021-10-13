@@ -35,6 +35,7 @@ data class SecurityGroupModel(
     val portRanges: List<SecurityGroupRulePortRange>?,
     val securityGroup: SecurityGroupRuleReference?,
     val range: SecurityGroupRuleCidr?,
+    val prefixList: SecurityGroupRulePrefixList?,
     val description: String? = null
   )
 
@@ -54,5 +55,9 @@ data class SecurityGroupModel(
   data class SecurityGroupRuleCidr(
     val ip: String,
     val cidr: String
+  )
+
+  data class SecurityGroupRulePrefixList(
+    val prefixListId: String
   )
 }

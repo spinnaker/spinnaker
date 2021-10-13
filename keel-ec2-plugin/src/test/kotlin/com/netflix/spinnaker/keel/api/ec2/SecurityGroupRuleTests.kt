@@ -245,6 +245,7 @@ internal class SecurityGroupRuleTests : JUnit5Minutests {
       canSerialize()
       canDeserialize()
     }
+
     context("an open CIDR rule") {
       fixture {
         Fixture(
@@ -269,6 +270,40 @@ internal class SecurityGroupRuleTests : JUnit5Minutests {
             protocol = ALL,
             blockRange = "172.16.0.0/24",
             portRange = AllPorts
+          )
+        )
+      }
+
+      canSerialize()
+      canDeserialize()
+    }
+
+    context("a prefix list rule") {
+      fixture {
+        Fixture(
+          yaml =
+          """
+            |---
+            |moniker:
+            |  app: "fnord"
+            |  stack: "ext"
+            |locations:
+            |  account: "test"
+            |  vpc: "vpc0"
+            |  regions:
+            |  - name: "ap-south-1"
+            |description: "fnord security group"
+            |inboundRules:
+            |- protocol: "TCP"
+            |  portRange:
+            |    startPort: 8080
+            |    endPort: 8080
+            |  prefixListId: "pl-54fe2493db96cd54c"
+            |""".trimMargin(),
+          rule = PrefixListRule(
+            protocol = TCP,
+            prefixListId = "pl-54fe2493db96cd54c",
+            portRange = PortRange(8080, 8080)
           )
         )
       }

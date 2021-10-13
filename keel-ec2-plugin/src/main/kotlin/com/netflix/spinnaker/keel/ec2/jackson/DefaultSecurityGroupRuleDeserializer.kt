@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.ec2.CidrRule
 import com.netflix.spinnaker.keel.api.ec2.CrossAccountReferenceRule
+import com.netflix.spinnaker.keel.api.ec2.PrefixListRule
 import com.netflix.spinnaker.keel.api.ec2.ReferenceRule
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
@@ -20,6 +21,7 @@ class DefaultSecurityGroupRuleDeserializer : SecurityGroupRuleDeserializer() {
   ): Class<out SecurityGroupRule> =
     when {
       "blockRange" in fieldNames -> CidrRule::class.java
+      "prefixListId" in fieldNames -> PrefixListRule::class.java
       "account" in fieldNames -> {
         val account = root.get("account").textValue()
         val locations : SimpleLocations = context.findInjectableValue("locations")

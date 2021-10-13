@@ -30,6 +30,7 @@ import com.netflix.spinnaker.keel.api.ec2.CrossAccountReferenceRule
 import com.netflix.spinnaker.keel.api.ec2.EC2_CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.ec2.EC2_SECURITY_GROUP_V1
 import com.netflix.spinnaker.keel.api.ec2.PortRange
+import com.netflix.spinnaker.keel.api.ec2.PrefixListRule
 import com.netflix.spinnaker.keel.api.ec2.ReferenceRule
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroup
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupOverride
@@ -44,6 +45,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel.SecurityGroupRule
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel.SecurityGroupRuleCidr
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel.SecurityGroupRulePortRange
+import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel.SecurityGroupRulePrefixList
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel.SecurityGroupRuleReference
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.core.name
@@ -347,7 +349,8 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
                 protocol = "tcp",
                 portRanges = listOf(SecurityGroupRulePortRange(443, 443)),
                 securityGroup = SecurityGroupRuleReference(id="sg-12345", name="otherapp", accountName=vpcOtherAccount.account, region=vpcOtherAccount.region, vpcId=vpcOtherAccount.id),
-                range = null
+                range = null,
+                prefixList = null
               ),
               // multi-port range self-referencing ingress
               SecurityGroupRule(
@@ -363,7 +366,8 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
                   cloudDriverResponse1.region,
                   vpcRegion1.id
                 ),
-                range = null
+                range = null,
+                prefixList = null
               ),
               // CIDR ingress
               SecurityGroupRule(
@@ -372,14 +376,24 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
                   SecurityGroupRulePortRange(443, 443)
                 ),
                 securityGroup = null,
-                range = SecurityGroupRuleCidr("10.0.0.0", "/16")
+                range = SecurityGroupRuleCidr("10.0.0.0", "/16"),
+                prefixList = null
               ),
               // CIDR ingress on all protocols and ports
               SecurityGroupRule(
                 protocol = "-1",
                 portRanges = listOf(SecurityGroupRulePortRange(null, null)),
                 securityGroup = null,
-                range = SecurityGroupRuleCidr("100.64.0.0", "/10")
+                range = SecurityGroupRuleCidr("100.64.0.0", "/10"),
+                prefixList = null
+              ),
+              // managed prefix list ingress rule
+              SecurityGroupRule(
+                protocol = "tcp",
+                portRanges = listOf(SecurityGroupRulePortRange(443, 443)),
+                securityGroup = null,
+                range = null,
+                prefixList = SecurityGroupRulePrefixList("pl-04be1492db92ca54f")
               )
             )
           )
@@ -417,21 +431,24 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
                 protocol = "tcp",
                 portRanges = listOf(SecurityGroupRulePortRange(443, 443)),
                 securityGroup = SecurityGroupRuleReference(id="sg-12345", name="otherapp", accountName=vpcOtherAccount.account, region=vpcOtherAccount.region, vpcId=vpcOtherAccount.id),
-                range = null
+                range = null,
+                prefixList = null
               ),
               // Rule to a non-exist group, note the name is null
               SecurityGroupRule(
                 protocol = "tcp",
                 portRanges = listOf(SecurityGroupRulePortRange(443, 443)),
                 securityGroup = SecurityGroupRuleReference(id="sg-ffffff", name=null, accountName=vpcOtherAccount.account, region=vpcOtherAccount.region, vpcId=vpcOtherAccount.id),
-                range = null
+                range = null,
+                prefixList = null
               ),
               // cross account ingress rule from yet another app
               SecurityGroupRule(
                 protocol = "tcp",
                 portRanges = listOf(SecurityGroupRulePortRange(443, 443)),
                 securityGroup = SecurityGroupRuleReference(id="sg-12346", name="yetotherapp", accountName=vpcOtherAccount.account, region=vpcOtherAccount.region, vpcId=vpcOtherAccount.id),
-                range = null
+                range = null,
+                prefixList = null
               )
             )
           )
@@ -691,6 +708,70 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
                     securityGroupSpec.inboundRules.first().also { rule ->
                       get("type").isEqualTo(rule.protocol.name.toLowerCase())
                       get("cidr").isEqualTo((rule as CidrRule).blockRange)
+                      get("startPort").isEqualTo((rule.portRange as? PortRange)?.startPort)
+                      get("endPort").isEqualTo((rule.portRange as? PortRange)?.endPort)
+                    }
+                  }
+              }
+            }
+          }
+        }
+
+        context("$methodName a security group with a managed prefix list ingress rule") {
+          deriveFixture {
+            copy(
+              securityGroupSpec = securityGroupSpec.copy(
+                inboundRules = setOf(
+                  PrefixListRule(
+                    protocol = TCP,
+                    prefixListId = "pl-04be1492db92ca54f",
+                    portRange = PortRange(startPort = 443, endPort = 443)
+                  )
+                )
+              )
+            )
+          }
+
+          before {
+            clearMocks(orcaService)
+            every { orcaService.orchestrate("keel@spinnaker", any()) } answers {
+              TaskRefResponse("/tasks/${randomUUID()}")
+            }
+
+            runBlocking {
+              handlerMethod.invoke(
+                handler,
+                resource,
+                DefaultResourceDiff(handler.desired(resource), null)
+              )
+            }
+          }
+
+          after {
+            confirmVerified(orcaService)
+          }
+
+          test("it upserts the security group via Orca") {
+            val tasks = mutableListOf<OrchestrationRequest>()
+            verify { orcaService.orchestrate("keel@spinnaker", capture(tasks)) }
+
+            expectThat(tasks)
+              .hasSize(2)
+            expectThat(tasks.flatMap { it.job.first()["regions"] as List<String> })
+              .hasSize(2)
+              .containsExactly(regions)
+
+            tasks.forEach { task ->
+              expectThat(task) {
+                application.isEqualTo(securityGroupSpec.moniker.app)
+                job.hasSize(1)
+                job[0].prefixListIngress
+                  .hasSize(1)
+                  .first()
+                  .and {
+                    securityGroupSpec.inboundRules.first().also { rule ->
+                      get("type").isEqualTo(rule.protocol.name.toLowerCase())
+                      get("prefixListId").isEqualTo((rule as PrefixListRule).prefixListId)
                       get("startPort").isEqualTo((rule.portRange as? PortRange)?.startPort)
                       get("endPort").isEqualTo((rule.portRange as? PortRange)?.endPort)
                     }
@@ -1077,3 +1158,6 @@ private val Assertion.Builder<Job>.securityGroupIngress: Assertion.Builder<List<
 
 private val Assertion.Builder<Job>.ipIngress: Assertion.Builder<List<Map<String, *>>>
   get() = get { getValue("ipIngress") }.isA()
+
+private val Assertion.Builder<Job>.prefixListIngress: Assertion.Builder<List<Map<String, *>>>
+  get() = get { getValue("prefixListIngress") }.isA()

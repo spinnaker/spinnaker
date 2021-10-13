@@ -31,6 +31,7 @@ import com.netflix.spinnaker.keel.api.ec2.EC2_CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.ec2.EC2_SECURITY_GROUP_V1
 import com.netflix.spinnaker.keel.api.ec2.IngressPorts
 import com.netflix.spinnaker.keel.api.ec2.PortRange
+import com.netflix.spinnaker.keel.api.ec2.PrefixListRule
 import com.netflix.spinnaker.keel.api.ec2.ReferenceRule
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroup
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupOverride
@@ -313,6 +314,7 @@ open class SecurityGroupHandler(
       inboundRules = inboundRules.flatMap { rule ->
         val ingressGroup = rule.securityGroup
         val ingressRange = rule.range
+        val ingressPrefixList = rule.prefixList
         val protocol = rule.protocol!!.clouddriverProtocolToKeel()
         when {
           ingressGroup?.name != null ->
@@ -342,6 +344,17 @@ open class SecurityGroupHandler(
                   protocol,
                   portRange,
                   ingressRange.ip + ingressRange.cidr,
+                  rule.description
+                )
+              } ?: emptyList()
+          ingressPrefixList != null ->
+            rule.portRanges
+              ?.map { it.toPortRange() }
+              ?.map { portRange ->
+                PrefixListRule(
+                  protocol,
+                  portRange,
+                  ingressPrefixList.prefixListId,
                   rule.description
                 )
               } ?: emptyList()
@@ -382,7 +395,7 @@ open class SecurityGroupHandler(
           "description" to description,
           "securityGroupIngress" to inboundRules
             // we have to do a 2-phase create for self-referencing ingress rules as the referenced
-            // security group must exist prior to the rule being applied. We filter then out here and
+            // security group must exist prior to the rule being applied. We filter them out here and
             // the subsequent diff will apply the additional group(s).
             .filterNot { it is ReferenceRule && it.name == moniker.name }
             .mapNotNull {
@@ -390,6 +403,9 @@ open class SecurityGroupHandler(
             },
           "ipIngress" to inboundRules.mapNotNull {
             it.cidrRuleToJob()
+          },
+          "prefixListIngress" to inboundRules.mapNotNull {
+            it.prefixListRuleToJob()
           },
           "accountName" to location.account
         )
@@ -451,6 +467,18 @@ open class SecurityGroupHandler(
           "startPort" to (portRange as? PortRange)?.startPort,
           "endPort" to (portRange as? PortRange)?.endPort,
           "cidr" to blockRange
+        )
+      else -> null
+    }
+
+  private fun SecurityGroupRule.prefixListRuleToJob(): Map<String, Any?>? =
+    when (this) {
+      is PrefixListRule ->
+        mapOf<String, Any?>(
+          "type" to protocol.type,
+          "startPort" to (portRange as? PortRange)?.startPort,
+          "endPort" to (portRange as? PortRange)?.endPort,
+          "prefixListId" to prefixListId
         )
       else -> null
     }

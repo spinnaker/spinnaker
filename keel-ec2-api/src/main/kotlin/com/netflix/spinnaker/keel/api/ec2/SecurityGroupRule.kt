@@ -69,6 +69,14 @@ data class CidrRule(
   }
 }
 
+data class PrefixListRule(
+  override val protocol: Protocol,
+  override val portRange: IngressPorts,
+  val prefixListId: String,
+  @get:ExcludedFromDiff
+  val description: String? = null
+) : SecurityGroupRule()
+
 sealed class IngressPorts
 
 @Literal(value = "ALL")
