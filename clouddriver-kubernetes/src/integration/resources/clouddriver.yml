@@ -32,6 +32,7 @@ kubernetes:
         - configmap
         - secret
         - networkpolicy
+        - cronjob
       omitKinds: []
       customResources: []
       cachingPolicies: []
@@ -59,6 +60,7 @@ kubernetes:
         - configmap
         - secret
         - networkpolicy
+        - cronjob
       omitKinds: []
       customResources: []
       cachingPolicies: []

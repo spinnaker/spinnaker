@@ -41,7 +41,7 @@ public class KubernetesCronJobHandler extends KubernetesHandler
   @Override
   protected ImmutableList<Replacer> artifactReplacers() {
     return ImmutableList.of(
-        Replacer.dockerImage(),
+        Replacer.cronJobDockerImage(),
         Replacer.configMapVolume(),
         Replacer.secretVolume(),
         Replacer.configMapProjectedVolume(),

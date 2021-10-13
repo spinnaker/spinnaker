@@ -278,6 +278,14 @@ public final class Replacer {
           .type(KubernetesArtifactType.ReplicaSet)
           .build();
 
+  private static final Replacer CRON_JOB_DOCKER_IMAGE =
+      builder()
+          .path("$.spec.jobTemplate.spec.template.spec.containers.[?].image")
+          .legacyReplaceFilter(a -> filter(where("image").is(a.getName())))
+          .replacePathFromPlaceholder("image")
+          .type(KubernetesArtifactType.DockerImage)
+          .build();
+
   public static Replacer dockerImage() {
     return DOCKER_IMAGE;
   }
@@ -324,5 +332,9 @@ public final class Replacer {
 
   public static Replacer hpaReplicaSet() {
     return HPA_REPLICA_SET;
+  }
+
+  public static Replacer cronJobDockerImage() {
+    return CRON_JOB_DOCKER_IMAGE;
   }
 }
