@@ -1,30 +1,32 @@
 .Artifact {
-  --version-left-padding: 0px;
-
-  @media (max-width: 768px) {
-    --version-left-padding: 14px;
-  }
-
   .artifact-current-version {
     display: flex;
     flex-direction: column;
-    border-radius: 5px;
-    padding-left: var(--version-left-padding);
   }
 
-  .artifact-versions-title {
-    margin-bottom: var(--s-spacing);
+  .artifact-section {
+    margin-left: -16px;
+  }
+
+  .artifact-section-title {
     text-transform: uppercase;
-    color: var(--color-titanium);
+    color: rgb(45%, 45%, 45%);
     font-size: 15px;
     font-weight: 700;
     letter-spacing: 0.2px;
+
+    .section-heading-chevron {
+      margin-top: -1px;
+    }
+
+    .in-progress-dot {
+      margin-left: 6px;
+      margin-top: -1px;
+    }
   }
 
-  .artifact-pending-versions {
-    margin-top: var(~'--2xl-spacing');
+  .artifact-versions {
     position: relative;
-    --circle-shift: 6px;
 
     .artifact-pending-versions-list {
       .show-more-versions {
@@ -38,7 +40,6 @@
         display: flex;
         flex-direction: column;
         position: relative;
-        padding-left: var(--version-left-padding);
 
         &:not(:last-of-type) {
           padding-bottom: 32px;

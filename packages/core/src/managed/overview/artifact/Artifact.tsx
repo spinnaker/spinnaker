@@ -1,15 +1,17 @@
 import { orderBy } from 'lodash';
 import React from 'react';
 
+import { ArtifactCollapsibleSection } from './ArtifactCollapsibleSection';
 import { ArtifactVersions } from './ArtifactVersions';
 import { CurrentVersion } from './CurrentVersion';
+import { Resource } from '../Resource';
 import { EnvironmentItem } from '../../environmentBaseElements/EnvironmentItem';
 import { useMarkVersionAsBad } from './hooks';
 import { HoverablePopover, Markdown, useApplicationContextSafe } from '../../../presentation';
 import type { QueryArtifact, QueryArtifactVersion } from '../types';
+import { useIsUpdatingResources } from '../useIsUpdatingResources.hook';
 import { isVersionVetoed } from './utils';
 import { ACTION_BUTTON_CLASS_NAME, tooltipShowHideProps } from '../../utils/defaults';
-import { toPinnedMetadata } from '../../versionMetadata/MetadataComponents';
 
 import './Artifact.less';
 
@@ -94,8 +96,26 @@ interface IArtifactProps {
   isPreview?: boolean;
 }
 
+const ArtifactResources = ({ environment, resources }: Pick<QueryArtifact, 'environment' | 'resources'>) => {
+  const isUpdatingResources = useIsUpdatingResources(environment);
+  return (
+    <ArtifactCollapsibleSection heading="DEPLOYED TO" isUpdating={isUpdatingResources}>
+      {resources?.map((resource) => (
+        <Resource
+          key={resource.id}
+          resource={resource}
+          environment={environment}
+          size="small"
+          className="sp-margin-m-top"
+          withPadding={false}
+        />
+      ))}
+    </ArtifactCollapsibleSection>
+  );
+};
+
 export const Artifact = ({ artifact, isPreview }: IArtifactProps) => {
-  const { environment, type, reference, versions, pinnedVersion } = artifact;
+  const { environment, type, reference, versions, pinnedVersion, resources } = artifact;
   const currentVersion = versions?.find((version) => version.isCurrent === true);
   const newerVersions = filterPendingVersions(versions, currentVersion);
   const deployingVersion = newerVersions.filter((version) => version.status === 'DEPLOYING');
@@ -112,26 +132,23 @@ export const Artifact = ({ artifact, isPreview }: IArtifactProps) => {
         ) : undefined
       }
     >
-      <div className="sp-margin-m-top">
-        {currentVersion ? (
-          <CurrentVersion
-            data={currentVersion}
-            environment={environment}
-            reference={reference}
-            numNewerVersions={newerVersions?.length}
-            pinned={pinnedVersion?.version === currentVersion.version ? toPinnedMetadata(pinnedVersion) : undefined}
-            isPreview={isPreview}
-          />
-        ) : (
-          <div>No version is deployed</div>
-        )}
+      <div className="sp-margin-m-top sp-margin-xl-bottom">
+        <CurrentVersion
+          data={currentVersion}
+          environment={environment}
+          reference={reference}
+          numNewerVersions={newerVersions?.length}
+          pinnedVersion={pinnedVersion}
+          isPreview={isPreview}
+        />
+        {pinnedVersion &&
+          pinnedVersion.buildNumber !== currentVersion?.buildNumber && // The current version is not the pinned one
+          !deployingVersion.some((v) => v.buildNumber === pinnedVersion.buildNumber) && ( // we are not already deploy this version
+            <PinnedVersion version={pinnedVersion} />
+          )}
       </div>
-      {pinnedVersion &&
-        pinnedVersion.buildNumber !== currentVersion?.buildNumber && // The current version is not the pinned one
-        !deployingVersion.some((v) => v.buildNumber === pinnedVersion.buildNumber) && ( // we are not already deploy this version
-          <PinnedVersion version={pinnedVersion} />
-        )}
-      <ArtifactVersions title="Now deploying" artifact={artifact} versions={deployingVersion} />
+      <ArtifactVersions title="Now deploying" artifact={artifact} versions={deployingVersion} isDeploying={true} />
+      <ArtifactResources {...{ environment, resources }} />
       <ArtifactVersions
         title={`${pendingVersions.length} pending version` + (pendingVersions.length > 1 ? 's' : '')}
         artifact={artifact}
