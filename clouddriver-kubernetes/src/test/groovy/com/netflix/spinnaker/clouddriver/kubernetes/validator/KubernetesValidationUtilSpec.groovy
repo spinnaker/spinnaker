@@ -51,7 +51,7 @@ class KubernetesValidationUtilSpec extends Specification {
     accountCredentialsProvider.getCredentials(kubernetesAccount) >> accountCredentials
     accountCredentials.getCredentials() >> credentials
     credentials.getOmitNamespaces() >> omitNamespaces
-    credentials.getDeclaredNamespaces() >> namespaces
+    credentials.namespaces >> namespaces
     manifest.getNamespace() >> testNamespace
     manifest.getKind() >> kind
     credentials.isValidKind(kind) >> true
@@ -79,7 +79,7 @@ class KubernetesValidationUtilSpec extends Specification {
 
     then:
     credentials.getOmitNamespaces() >> toImmutableList(omitNamespaces)
-    credentials.getDeclaredNamespaces() >> toImmutableList(namespaces)
+    credentials.namespaces >> toImmutableList(namespaces)
     judgement == allowedNamespace
 
     where:

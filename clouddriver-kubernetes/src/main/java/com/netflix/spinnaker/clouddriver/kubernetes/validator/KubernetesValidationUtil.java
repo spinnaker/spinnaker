@@ -124,7 +124,7 @@ public class KubernetesValidationUtil {
   }
 
   protected boolean validateNamespace(String namespace, KubernetesCredentials credentials) {
-    final List<String> configuredNamespaces = credentials.getDeclaredNamespaces();
+    final List<String> configuredNamespaces = credentials.getNamespaces();
     if (configuredNamespaces != null
         && !configuredNamespaces.isEmpty()
         && !configuredNamespaces.contains(namespace)) {
