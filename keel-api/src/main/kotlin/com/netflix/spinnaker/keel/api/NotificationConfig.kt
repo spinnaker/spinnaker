@@ -30,7 +30,8 @@ data class NotificationConfig(
 enum class NotificationFrequency {
   verbose, // notification on task starting, completing, failing
   normal, // notification on task completing or failing
-  quiet // notification only for failure
+  quiet, // notification only for failure
+  notice // notification on successful completion
 }
 
 enum class NotificationType {

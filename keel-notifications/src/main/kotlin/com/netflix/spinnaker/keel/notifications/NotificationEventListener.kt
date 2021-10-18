@@ -7,6 +7,7 @@ import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.api.NotificationDisplay.NORMAL
 import com.netflix.spinnaker.keel.api.NotificationFrequency
 import com.netflix.spinnaker.keel.api.NotificationFrequency.normal
+import com.netflix.spinnaker.keel.api.NotificationFrequency.notice
 import com.netflix.spinnaker.keel.api.NotificationFrequency.quiet
 import com.netflix.spinnaker.keel.api.NotificationFrequency.verbose
 import com.netflix.spinnaker.keel.api.NotificationType
@@ -287,6 +288,7 @@ class NotificationEventListener(
       val level = when (notification.pluginNotificationConfig.notificationLevel) {
         verbose -> PLUGIN_NOTIFICATION_VERBOSE
           normal -> PLUGIN_NOTIFICATION_NORMAL
+          notice -> PLUGIN_NOTIFICATION_NORMAL
           quiet ->PLUGIN_NOTIFICATION_QUIET
       }
 
@@ -556,10 +558,15 @@ class NotificationEventListener(
       PLUGIN_NOTIFICATION_VERBOSE
     )
 
+    val noticeNotifications = listOf(
+      ARTIFACT_DEPLOYMENT_SUCCEEDED
+    )
+
     return when (frequency) {
       verbose -> verboseNotifications
       normal -> normalNotifications
       quiet -> quietNotifications
+      notice -> noticeNotifications
     }
   }
 

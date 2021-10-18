@@ -121,6 +121,11 @@ class NotificationEventListenerTests : JUnit5Minutests {
             frequency = NotificationFrequency.quiet
           ),
           NotificationConfig(
+            type = NotificationType.slack,
+            address = "prod-notice",
+            frequency = NotificationFrequency.notice
+          ),
+          NotificationConfig(
             type = NotificationType.email,
             address = "@prod",
             frequency = NotificationFrequency.verbose
@@ -391,6 +396,15 @@ class NotificationEventListenerTests : JUnit5Minutests {
           targetEnvironment = singleArtifactEnvironments.find { it.name == "staging" }!!
         ))
         verify(exactly = 0) {
+          artifactDeployedNotificationHandler.sendMessage(any(), any(), any())
+        }
+      }
+
+      test("for verbose and notice frequencies, send artifact deployed successfully notification") {
+        subject.onArtifactVersionDeployed(artifactDeployedNotification.copy(
+          targetEnvironment = singleArtifactEnvironments.find { it.name == "production" }!!
+        ))
+        verify(exactly = 2) {
           artifactDeployedNotificationHandler.sendMessage(any(), any(), any())
         }
       }
