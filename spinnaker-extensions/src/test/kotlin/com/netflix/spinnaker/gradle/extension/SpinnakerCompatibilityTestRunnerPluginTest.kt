@@ -163,7 +163,7 @@ class SpinnakerCompatibilityTestRunnerPluginTest {
       assertNotNull(runtime)
 
       val bom = runtime.dependencies.find { dependency ->
-        dependency.group == "com.netflix.spinnaker.${service}" && dependency.name == "$service-bom"
+        dependency.group == "io.spinnaker.${service}" && dependency.name == "$service-bom"
       }
       assertNotNull(bom)
       assertEquals("google-service-version-${version}", bom.version)

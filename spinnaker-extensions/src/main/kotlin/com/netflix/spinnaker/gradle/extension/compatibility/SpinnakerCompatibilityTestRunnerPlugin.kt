@@ -85,7 +85,7 @@ class SpinnakerCompatibilityTestRunnerPlugin : Plugin<Project> {
           it.services[plugin.serviceName]?.version ?: throw IllegalStateException("Could not find version for service ${plugin.serviceName}")
         }
 
-        project.dependencies.platform("com.netflix.spinnaker.${plugin.serviceName}:${plugin.serviceName}-bom:$resolvedServiceVersion").apply {
+        project.dependencies.platform("io.spinnaker.${plugin.serviceName}:${plugin.serviceName}-bom:$resolvedServiceVersion").apply {
           force = true
         }.also {
           project.dependencies.add(runtimeConfiguration, it)
