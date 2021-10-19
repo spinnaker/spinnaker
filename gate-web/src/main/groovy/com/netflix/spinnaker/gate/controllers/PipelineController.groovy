@@ -60,10 +60,39 @@ class PipelineController {
   @Autowired
   ObjectMapper objectMapper
 
+  @CompileDynamic
   @ApiOperation(value = "Delete a pipeline definition")
   @DeleteMapping("/{application}/{pipelineName:.+}")
   void deletePipeline(@PathVariable String application, @PathVariable String pipelineName) {
-    pipelineService.deleteForApplication(application, pipelineName)
+    List<Map> pipelineConfigs = front50Service.getPipelineConfigsForApplication(application, true)
+    if (pipelineConfigs!=null && !pipelineConfigs.isEmpty()){
+      Optional<Map> filterResult = pipelineConfigs.stream().filter({ pipeline -> ((String) pipeline.get("name")) != null && ((String) pipeline.get("name")).trim().equalsIgnoreCase(pipelineName) }).findFirst()
+      if (filterResult.isPresent()){
+        Map pipeline = filterResult.get()
+
+        def operation = [
+          description: (String) "Delete pipeline '${pipeline.get("name") ?: 'Unknown'}'",
+          application: (String) pipeline.get('application'),
+          job        : [
+            [
+              type    : 'deletePipeline',
+              pipeline: (String) Base64.encoder.encodeToString(objectMapper.writeValueAsString(pipeline).bytes),
+              user    : AuthenticatedRequest.spinnakerUser.orElse("anonymous")
+            ]
+          ]
+        ]
+
+        def result = taskService.createAndWaitForCompletion(operation)
+        String resultStatus = result.get("status")
+
+        if (!"SUCCEEDED".equalsIgnoreCase(resultStatus)) {
+          String exception = result.variables.find { it.key == "exception" }?.value?.details?.errors?.getAt(0)
+          throw new PipelineException(
+            exception ?: "Pipeline delete operation did not succeed: ${result.get("id", "unknown task id")} (status: ${resultStatus})"
+          )
+        }
+      }
+    }
   }
 
   @CompileDynamic
