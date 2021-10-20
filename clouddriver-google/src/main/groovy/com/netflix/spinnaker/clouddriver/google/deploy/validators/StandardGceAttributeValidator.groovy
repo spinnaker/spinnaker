@@ -295,16 +295,20 @@ class StandardGceAttributeValidator {
   def validateInstanceType(String instanceType, String location, GoogleNamedAccountCredentials credentials) {
     validateNotEmpty(instanceType, "instanceType")
     if (instanceType?.contains('custom')) {
-      validateCustomInstanceType(instanceType, location, credentials)
+      boolean extendMemory = false;
+      if(instanceType?.contains('ext')){
+        extendMemory = true;
+      }
+      validateCustomInstanceType(instanceType, location, credentials, extendMemory)
     }
   }
 
-  def customInstanceRegExp = /(.*)-?custom-(\d{1,2})-(\d{3,6})/
+  def customInstanceRegExp = /(.*)-?custom-(\d{1,2})-(\d{3,6})(-ext)?/
 
-  def validateCustomInstanceType(String instanceType, String location, GoogleNamedAccountCredentials credentials) {
+  def validateCustomInstanceType(String instanceType, String location, GoogleNamedAccountCredentials credentials,boolean extendMemory) {
     def customTypeMatcher = instanceType =~ customInstanceRegExp
     if (!customTypeMatcher.matches()) {
-      errors.rejectValue("instanceType", "${context}.instanceType.invalid", "Custom instance string must match pattern /(.*)-?custom-(\\d{1,2})-(\\d{3,6})/.")
+      errors.rejectValue("instanceType", "${context}.instanceType.invalid", "Custom instance string must match pattern /(.*)-?custom-(\\d{1,2})-(\\d{3,6})(-ext)?/.")
       return false
     }
 
@@ -325,12 +329,16 @@ class StandardGceAttributeValidator {
       errors.rejectValue("instanceType", "${context}.instanceType.invalid", "Above 1, vCPU count must be even.")
     }
 
-    if (memoryInGbs > maxMemory) {
-      errors.rejectValue("instanceType", "${context}.instanceType.invalid", "Memory per vCPU must be less than 8GB.")
-    }
+    if(!extendMemory) {
 
-    if (memoryInGbs < minMemory) {
-      errors.rejectValue("instanceType", "${context}.instanceType.invalid", "Memory per vCPU must be greater than 0.5GB.")
+      if (memoryInGbs > maxMemory) {
+        errors.rejectValue("instanceType", "${context}.instanceType.invalid", "Memory per vCPU must be less than 8GB.")
+      }
+
+      if (memoryInGbs < minMemory) {
+        errors.rejectValue("instanceType", "${context}.instanceType.invalid", "Memory per vCPU must be greater than 0.5GB.")
+      }
+
     }
 
     if (memory % 256 != 0) {

@@ -568,7 +568,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
       validator.validateInstanceType("custom--1234", ZONE, credentials)
       validator.validateInstanceType("custom-1-2345678", ZONE, credentials)
     then:
-      4 * errors.rejectValue("instanceType", "${DECORATOR}.instanceType.invalid", "Custom instance string must match pattern /(.*)-?custom-(\\d{1,2})-(\\d{3,6})/.")
+      4 * errors.rejectValue("instanceType", "${DECORATOR}.instanceType.invalid", "Custom instance string must match pattern /(.*)-?custom-(\\d{1,2})-(\\d{3,6})(-ext)?/.")
 
     when:
       validator.validateInstanceType("custom-1-8448", ZONE, credentials)
