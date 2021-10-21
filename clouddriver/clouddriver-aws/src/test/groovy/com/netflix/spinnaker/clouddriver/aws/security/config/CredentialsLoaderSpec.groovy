@@ -18,6 +18,9 @@ package com.netflix.spinnaker.clouddriver.aws.security.config
 
 import com.amazonaws.auth.AWSCredentialsProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AWSAccountInfoLookup
+import com.netflix.spinnaker.clouddriver.aws.security.AWSAccountInfoLookupFactory
+import com.netflix.spinnaker.clouddriver.aws.security.AWSCredentialsProviderFactory
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAssumeRoleAmazonCredentials
@@ -48,8 +51,18 @@ class CredentialsLoaderSpec extends Specification {
 
         AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
         AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
+        AmazonClientProvider amazonClientProvider = Mock(AmazonClientProvider)
+        AWSAccountInfoLookupFactory lookupFactory = Mock(AWSAccountInfoLookupFactory)
+        AWSCredentialsProviderFactory credentialsProviderFactory = Mock(AWSCredentialsProviderFactory)
         AmazonCredentialsParser<Account, NetflixAmazonCredentials> ci = new AmazonCredentialsParser<>(
-          provider, lookup, NetflixAmazonCredentials.class, config, accountsConfig)
+          provider,
+          amazonClientProvider,
+          lookup,
+          lookupFactory,
+          credentialsProviderFactory,
+          NetflixAmazonCredentials.class,
+          config,
+          accountsConfig)
 
         when:
         List<NetflixAmazonCredentials> creds = ci.load(config)
@@ -84,8 +97,18 @@ class CredentialsLoaderSpec extends Specification {
 
         AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
         AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
+        AmazonClientProvider amazonClientProvider = Mock(AmazonClientProvider)
+        AWSAccountInfoLookupFactory lookupFactory = Mock(AWSAccountInfoLookupFactory)
+        AWSCredentialsProviderFactory credentialsProviderFactory = Mock(AWSCredentialsProviderFactory)
         AmazonCredentialsParser<Account, NetflixAmazonCredentials> ci = new AmazonCredentialsParser<>(
-          provider, lookup, NetflixAmazonCredentials.class, config, accountsConfig)
+          provider,
+          amazonClientProvider,
+          lookup,
+          lookupFactory,
+          credentialsProviderFactory,
+          NetflixAmazonCredentials.class,
+          config,
+          accountsConfig)
 
         when:
         List<NetflixAmazonCredentials> creds = ci.load(config)
@@ -112,7 +135,18 @@ class CredentialsLoaderSpec extends Specification {
         def accountsConfig = new AccountsConfiguration(accounts: [new Account(name: 'default')])
         AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
         AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
-        AmazonCredentialsParser<Account, NetflixAmazonCredentials> ci = new AmazonCredentialsParser<>(provider, lookup, NetflixAmazonCredentials.class, config, accountsConfig)
+        AmazonClientProvider amazonClientProvider = Mock(AmazonClientProvider)
+        AWSAccountInfoLookupFactory lookupFactory = Mock(AWSAccountInfoLookupFactory)
+        AWSCredentialsProviderFactory credentialsProviderFactory = Mock(AWSCredentialsProviderFactory)
+        AmazonCredentialsParser<Account, NetflixAmazonCredentials> ci = new AmazonCredentialsParser<>(
+          provider,
+          amazonClientProvider,
+          lookup,
+          lookupFactory,
+          credentialsProviderFactory,
+          NetflixAmazonCredentials.class,
+          config,
+          accountsConfig)
 
         when:
         List<AmazonCredentials> creds = ci.load(config)
@@ -142,8 +176,18 @@ class CredentialsLoaderSpec extends Specification {
         ])
         AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
         AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
+        AmazonClientProvider amazonClientProvider = Mock(AmazonClientProvider)
+        AWSAccountInfoLookupFactory lookupFactory = Mock(AWSAccountInfoLookupFactory)
+        AWSCredentialsProviderFactory credentialsProviderFactory = Mock(AWSCredentialsProviderFactory)
         AmazonCredentialsParser<Account, NetflixAmazonCredentials> ci = new AmazonCredentialsParser<>(
-          provider, lookup, NetflixAmazonCredentials.class, config, accountsConfig)
+          provider,
+          amazonClientProvider,
+          lookup,
+          lookupFactory,
+          credentialsProviderFactory,
+          NetflixAmazonCredentials.class,
+          config,
+          accountsConfig)
 
         when:
         List<AmazonCredentials> creds = ci.load(config)
@@ -169,8 +213,18 @@ class CredentialsLoaderSpec extends Specification {
         )
         AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
         AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
-      AmazonCredentialsParser<Account, NetflixAmazonCredentials> ci = new AmazonCredentialsParser<>(
-        provider, lookup, NetflixAmazonCredentials.class, config, accountsConfig)
+        AmazonClientProvider amazonClientProvider = Mock(AmazonClientProvider)
+        AWSAccountInfoLookupFactory lookupFactory = Mock(AWSAccountInfoLookupFactory)
+        AWSCredentialsProviderFactory credentialsProviderFactory = Mock(AWSCredentialsProviderFactory)
+        AmazonCredentialsParser<Account, NetflixAmazonCredentials> ci = new AmazonCredentialsParser<>(
+          provider,
+          amazonClientProvider,
+          lookup,
+          lookupFactory,
+          credentialsProviderFactory,
+          NetflixAmazonCredentials.class,
+          config,
+          accountsConfig)
 
         when:
         List<AmazonCredentials> creds = ci.load(config)
@@ -217,8 +271,18 @@ class CredentialsLoaderSpec extends Specification {
         ])
         AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
         AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
+        AmazonClientProvider amazonClientProvider = Mock(AmazonClientProvider)
+        AWSAccountInfoLookupFactory lookupFactory = Mock(AWSAccountInfoLookupFactory)
+        AWSCredentialsProviderFactory credentialsProviderFactory = Mock(AWSCredentialsProviderFactory)
         AmazonCredentialsParser<Account, NetflixAmazonCredentials> ci = new AmazonCredentialsParser<>(
-          provider, lookup, NetflixAmazonCredentials.class, config, accountsConfig)
+          provider,
+          amazonClientProvider,
+          lookup,
+          lookupFactory,
+          credentialsProviderFactory,
+          NetflixAmazonCredentials.class,
+          config,
+          accountsConfig)
 
         when:
         List<NetflixAmazonCredentials> creds = ci.load(config)
@@ -257,8 +321,18 @@ class CredentialsLoaderSpec extends Specification {
         def accountsConfig = new AccountsConfiguration(accounts: [new Account(name: 'gonnaFail')])
         AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
         AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
+        AmazonClientProvider amazonClientProvider = Mock(AmazonClientProvider)
+        AWSAccountInfoLookupFactory lookupFactory = Mock(AWSAccountInfoLookupFactory)
+        AWSCredentialsProviderFactory credentialsProviderFactory = Mock(AWSCredentialsProviderFactory)
         AmazonCredentialsParser<Account, NetflixAssumeRoleAmazonCredentials> ci = new AmazonCredentialsParser<>(
-          provider, lookup, NetflixAssumeRoleAmazonCredentials.class, config, accountsConfig)
+          provider,
+          amazonClientProvider,
+          lookup,
+          lookupFactory,
+          credentialsProviderFactory,
+          NetflixAssumeRoleAmazonCredentials.class,
+          config,
+          accountsConfig)
 
         when:
         ci.load(config)
@@ -302,8 +376,18 @@ class CredentialsLoaderSpec extends Specification {
 
     AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
     AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
+    AmazonClientProvider amazonClientProvider = Mock(AmazonClientProvider)
+    AWSAccountInfoLookupFactory lookupFactory = Mock(AWSAccountInfoLookupFactory)
+    AWSCredentialsProviderFactory credentialsProviderFactory = Mock(AWSCredentialsProviderFactory)
     AmazonCredentialsParser<Account, NetflixAssumeRoleAmazonCredentials> ci = new AmazonCredentialsParser<>(
-      provider, lookup, NetflixAssumeRoleAmazonCredentials.class, config, accountsConfig)
+      provider,
+      amazonClientProvider,
+      lookup,
+      lookupFactory,
+      credentialsProviderFactory,
+      NetflixAssumeRoleAmazonCredentials.class,
+      config,
+      accountsConfig)
 
     when:
     List<NetflixAssumeRoleAmazonCredentials> creds = ci.load(config)
@@ -349,8 +433,18 @@ class CredentialsLoaderSpec extends Specification {
     ])
     AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
     AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
+    AmazonClientProvider amazonClientProvider = Mock(AmazonClientProvider)
+    AWSAccountInfoLookupFactory lookupFactory = Mock(AWSAccountInfoLookupFactory)
+    AWSCredentialsProviderFactory credentialsProviderFactory = Mock(AWSCredentialsProviderFactory)
     AmazonCredentialsParser<Account, NetflixAssumeRoleAmazonCredentials> ci = new AmazonCredentialsParser<>(
-      provider, lookup, NetflixAssumeRoleAmazonCredentials.class, config, accountsConfig)
+      provider,
+      amazonClientProvider,
+      lookup,
+      lookupFactory,
+      credentialsProviderFactory,
+      NetflixAssumeRoleAmazonCredentials.class,
+      config,
+      accountsConfig)
 
     when:
     List<NetflixAssumeRoleAmazonCredentials> creds = ci.load(config)

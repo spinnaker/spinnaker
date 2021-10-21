@@ -74,13 +74,19 @@ public class AmazonCredentialsInitializer {
   @ConditionalOnMissingBean(name = "amazonCredentialsParser")
   CredentialsParser<Account, ? extends NetflixAmazonCredentials> amazonCredentialsParser(
       AWSCredentialsProvider awsCredentialsProvider,
+      AmazonClientProvider amazonClientProvider,
       AWSAccountInfoLookup awsAccountInfoLookup,
+      AWSAccountInfoLookupFactory awsAccountInfoLookupFactory,
+      AWSCredentialsProviderFactory awsCredentialsProviderFactory,
       Class<? extends NetflixAmazonCredentials> credentialsType,
       CredentialsConfig credentialsConfig,
       AccountsConfiguration accountsConfig) {
     return new AmazonCredentialsParser<>(
         awsCredentialsProvider,
+        amazonClientProvider,
         awsAccountInfoLookup,
+        awsAccountInfoLookupFactory,
+        awsCredentialsProviderFactory,
         credentialsType,
         credentialsConfig,
         accountsConfig);
