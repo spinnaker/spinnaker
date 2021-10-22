@@ -334,7 +334,7 @@ class InfoControllerSpec extends Specification {
         then:
         def output = new JsonSlurper().parseText(response.contentAsString)
         output.name == 'My-Build'
-        output.description == null
+        output.description == ""
         output.url == 'http://jenkins.builds.net/job/My-Build/'
         output.downstreamProjectList[0].name == 'First-Downstream-Build'
         output.firstBuild == null

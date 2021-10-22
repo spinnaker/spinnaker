@@ -165,15 +165,15 @@ class JenkinsClientSpec extends Specification {
         jobConfig.buildable == true
         jobConfig.color == "red"
         jobConfig.concurrentBuild == false
-        jobConfig.description == null
+        jobConfig.description == ""
         jobConfig.displayName == "My-Build"
         jobConfig.parameterDefinitionList?.size() == 2
         jobConfig.parameterDefinitionList.get(0).name == "pullRequestSourceBranch"
-        jobConfig.parameterDefinitionList.get(0).description == null
+        jobConfig.parameterDefinitionList.get(0).description == ""
         jobConfig.parameterDefinitionList.get(0).defaultName == "pullRequestSourceBranch"
         jobConfig.parameterDefinitionList.get(0).defaultValue == "master"
         jobConfig.parameterDefinitionList.get(1).name == "generation"
-        jobConfig.parameterDefinitionList.get(1).description == null
+        jobConfig.parameterDefinitionList.get(1).description == ""
         jobConfig.parameterDefinitionList.get(1).defaultName == "generation"
         jobConfig.parameterDefinitionList.get(1).defaultValue == "4"
 
