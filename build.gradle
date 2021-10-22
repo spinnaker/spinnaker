@@ -44,14 +44,6 @@ allprojects {
 subprojects {
   group = "io.spinnaker.clouddriver"
 
-  configurations.all {
-    resolutionStrategy {
-      eachDependency {
-        if (it.requested.group.startsWith("com.fasterxml.jackson")) it.useVersion "2.11.1"
-      }
-    }
-  }
-
   if (name != "clouddriver-bom" && name != "clouddriver-api") {
     apply plugin: 'java-library'
     apply plugin: 'groovy'
