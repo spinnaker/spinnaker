@@ -667,10 +667,9 @@ export class AwsServerGroupConfigurationService {
       // set ebsOptimized to true if all instance types in overrides are included in the hard-coded array in awsInstanceTypeService.
       // this function exists for backwards compatibility with single instance type case, matching behavior in `cmd.instanceTypeChanged`
       // note: this parameter has no effect on instance types with EBS optimization enabled by default.
-      command.ebsOptimized =
-        command.launchTemplateOverridesForInstanceType?.every(
-          (o) => this.awsInstanceTypeService.isEbsOptimized(o.instanceType),
-        );
+      command.ebsOptimized = command.launchTemplateOverridesForInstanceType?.every((o) =>
+        this.awsInstanceTypeService.isEbsOptimized(o.instanceType),
+      );
     };
 
     this.applyOverrides('attachEventHandlers', cmd);

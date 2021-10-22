@@ -1,12 +1,13 @@
 import { difference, flatten, keyBy } from 'lodash';
 import React from 'react';
-import { SortableContainer, SortableElement, SortEnd } from 'react-sortable-hoc';
+import type { SortEnd } from 'react-sortable-hoc';
+import { SortableContainer, SortableElement } from 'react-sortable-hoc';
 
-import { IInstanceTypeFamily } from '@spinnaker/core';
+import type { IInstanceTypeFamily } from '@spinnaker/core';
 
 import { InstanceTypeRow } from './InstanceTypeRow';
-import { IAmazonPreferredInstanceType } from '../../../../../instance/awsInstanceType.service';
-import { IAmazonInstanceTypeOverride } from '../../../serverGroupConfiguration.service';
+import type { IAmazonPreferredInstanceType } from '../../../../../instance/awsInstanceType.service';
+import type { IAmazonInstanceTypeOverride } from '../../../serverGroupConfiguration.service';
 
 export function InstanceTypeTableBody(props: {
   isCustom: boolean;

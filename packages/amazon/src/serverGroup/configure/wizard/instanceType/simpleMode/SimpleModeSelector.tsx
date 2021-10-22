@@ -4,7 +4,7 @@ import { NgReact } from '@spinnaker/core';
 
 import { CpuCreditsToggle } from '../CpuCreditsToggle';
 import { AWSProviderSettings } from '../../../../../aws.settings';
-import { IAmazonServerGroupCommand } from '../../../serverGroupConfiguration.service';
+import type { IAmazonServerGroupCommand } from '../../../serverGroupConfiguration.service';
 
 export interface ISimpleModeSelectorProps {
   command: IAmazonServerGroupCommand;

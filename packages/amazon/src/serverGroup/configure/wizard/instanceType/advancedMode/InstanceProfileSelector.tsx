@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { IAmazonInstanceTypeCategory } from '../../../../../instance/awsInstanceType.service';
+import type { IAmazonInstanceTypeCategory } from '../../../../../instance/awsInstanceType.service';
 
 import './advancedMode.less';
 

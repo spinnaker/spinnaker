@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { Checkbox } from 'react-bootstrap';
 import { SortableHandle } from 'react-sortable-hoc';
 import { TextInput, Tooltip } from '@spinnaker/core';
-import { IAmazonPreferredInstanceType } from '../../../../../instance/awsInstanceType.service';
+import type { IAmazonPreferredInstanceType } from '../../../../../instance/awsInstanceType.service';
 import { CostFactor } from '../../../../../instance/details/CostFactor';
-import { IAmazonInstanceTypeOverride } from '../../../serverGroupConfiguration.service';
+import type { IAmazonInstanceTypeOverride } from '../../../serverGroupConfiguration.service';
 
 export interface IRowProps {
   isCustom: boolean;

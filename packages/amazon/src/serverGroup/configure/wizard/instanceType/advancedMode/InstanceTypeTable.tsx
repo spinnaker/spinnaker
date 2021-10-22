@@ -1,13 +1,14 @@
 import React from 'react';
-import { arrayMove, SortEnd } from 'react-sortable-hoc';
+import type { SortEnd } from 'react-sortable-hoc';
+import { arrayMove } from 'react-sortable-hoc';
 
 import { CpuCreditsToggle } from '../CpuCreditsToggle';
 import { InstanceTypeTableBody } from './InstanceTypeTableBody';
 import { Header, Heading } from './InstanceTypeTableParts';
 import { Footer } from './InstanceTypeTableParts';
 import { AWSProviderSettings } from '../../../../../aws.settings';
-import { IAmazonInstanceTypeCategory } from '../../../../../instance/awsInstanceType.service';
-import { IAmazonInstanceTypeOverride } from '../../../serverGroupConfiguration.service';
+import type { IAmazonInstanceTypeCategory } from '../../../../../instance/awsInstanceType.service';
+import type { IAmazonInstanceTypeOverride } from '../../../serverGroupConfiguration.service';
 
 import './advancedMode.less';
 
