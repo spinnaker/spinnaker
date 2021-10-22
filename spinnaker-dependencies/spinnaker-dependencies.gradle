@@ -52,7 +52,7 @@ dependencies {
   // this project and need to configure gradle plugins etc.
   api(platform("org.jetbrains.kotlin:kotlin-bom:$kotlinVersion"))
   api(platform("org.junit:junit-bom:5.6.3"))
-  api(platform("com.fasterxml.jackson:jackson-bom:2.11.1"))
+  api(platform("com.fasterxml.jackson:jackson-bom:2.12.3"))
   api(platform("org.springframework:spring-framework-bom:${versions.spring}"))
   api(platform("org.springframework.boot:spring-boot-dependencies:${versions.springBoot}"))
   api(platform("com.amazonaws:aws-java-sdk-bom:${versions.aws}"))
