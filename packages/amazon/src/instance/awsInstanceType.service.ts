@@ -5,6 +5,7 @@ import _ from 'lodash';
 import type {
   IInstanceType,
   IInstanceTypeCategory,
+  IInstanceTypeFamily,
   IInstanceTypesByRegion,
   IPreferredInstanceType,
 } from '@spinnaker/core';
@@ -24,10 +25,23 @@ export interface IAmazonInstanceTypeCategory extends IInstanceTypeCategory {
 export const AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE = 'spinnaker.amazon.instanceType.service';
 export const name = AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE; // for backwards compatibility
 
+interface IAwsInstanceTypeFamily extends IInstanceTypeFamily {
+  instanceTypes: IAwsPreferredInstanceType[];
+}
+
+interface IAwsPreferredInstanceType extends IPreferredInstanceType {
+  cpuCreditsPerHour?: number;
+}
+
+interface IAwsInstanceTypeCategory extends IInstanceTypeCategory {
+  showCpuCredits?: boolean;
+  descriptionListOverride?: string[];
+}
+
 module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeService', [
   '$q',
   function ($q: IQService) {
-    const m5 = {
+    const m5: IAwsInstanceTypeFamily = {
       type: 'm5',
       description:
         'm5 instances provide a balance of compute, memory, and network resources. They are a good choice for most applications.',
@@ -59,7 +73,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
       ],
     };
 
-    const t2gp = {
+    const t2gp: IAwsInstanceTypeFamily = {
       type: 't2',
       description:
         't2 instances are a good choice for workloads that don’t use the full CPU often or consistently, but occasionally need to burst (e.g. web servers, developer environments and small databases).',
@@ -112,7 +126,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
       ],
     };
 
-    const t3gp = {
+    const t3gp: IAwsInstanceTypeFamily = {
       type: 't3',
       description:
         't3 instances are a good choice for workloads that don’t use the full CPU often or consistently, but occasionally need to burst (e.g. web servers, developer environments and small databases).',
@@ -165,7 +179,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
       ],
     };
 
-    const t2 = {
+    const t2: IAwsInstanceTypeFamily = {
       type: 't2',
       description:
         't2 instances are a good choice for workloads that don’t use the full CPU often or consistently, but occasionally need to burst (e.g. web servers, developer environments and small databases).',
@@ -200,7 +214,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
       ],
     };
 
-    const t3 = {
+    const t3: IAwsInstanceTypeFamily = {
       type: 't3',
       description:
         't3 instances are a good choice for workloads that don’t use the full CPU often or consistently, but occasionally need to burst (e.g. web servers, developer environments and small databases).',
@@ -235,7 +249,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
       ],
     };
 
-    const r5 = {
+    const r5: IAwsInstanceTypeFamily = {
       type: 'r5',
       description:
         'r5 instances are optimized for memory-intensive applications and have the lowest cost per GiB of RAM among Amazon EC2 instance types.',
@@ -275,7 +289,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
       ],
     };
 
-    const defaultCategories = [
+    const defaultCategories: IAwsInstanceTypeCategory[] = [
       {
         type: 'general',
         label: 'General Purpose',

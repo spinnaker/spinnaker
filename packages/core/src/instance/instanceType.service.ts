@@ -16,8 +16,8 @@ export interface IInstanceTypesByRegion {
 
 export interface IInstanceStorage {
   type: string;
-  size: number;
-  count: number;
+  size?: number;
+  count?: number;
   isDefault?: boolean;
 }
 
