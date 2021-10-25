@@ -1,16 +1,8 @@
-'use strict';
-import { mockHttpClient } from '@spinnaker/core';
+// eslint-disable-next-line @spinnaker/import-from-npm-not-relative
+import { mockHttpClient } from '../../../core/src/api/mock/jasmine';
 import { VpcReader } from '../vpc/VpcReader';
 
 describe('VpcReader', function () {
-  let $scope;
-
-  beforeEach(
-    window.inject(function ($rootScope) {
-      $scope = $rootScope.$new();
-    }),
-  );
-
   afterEach(function () {
     VpcReader.resetCache();
   });
