@@ -72,7 +72,7 @@ class ImageHandler(
             log.info("No AMI found for {}", desiredAppVersion)
             launchBake(artifact, desiredAppVersion)
           }
-          imagesWithOlderBaseImages.isNotEmpty() -> {
+          imagesWithOlderBaseImages.isNotEmpty() && !artifact.vmOptions.ignoreBaseUpdates -> {
             log.info("AMIs for {} are outdated, rebaking…", desiredAppVersion)
             launchBake(
               artifact,

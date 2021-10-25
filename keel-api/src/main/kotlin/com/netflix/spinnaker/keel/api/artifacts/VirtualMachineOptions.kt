@@ -7,5 +7,6 @@ data class VirtualMachineOptions(
   val baseLabel: BaseLabel = RELEASE,
   val baseOs: String,
   val regions: Set<String>,
-  val storeType: StoreType = EBS
+  val storeType: StoreType = EBS,
+  val ignoreBaseUpdates: Boolean = false
 )

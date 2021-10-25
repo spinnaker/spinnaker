@@ -62,6 +62,17 @@ internal class ImageHandlerTests : JUnit5Minutests {
         storeType = EBS
       )
     )
+    val artifactIgnoreBaseUpdates = DebianArtifact(
+      name = "keel",
+      deliveryConfigName = "delivery-config",
+      vmOptions = VirtualMachineOptions(
+        baseLabel = RELEASE,
+        baseOs = "xenial",
+        regions = setOf("us-west-2", "us-east-1"),
+        storeType = EBS,
+        ignoreBaseUpdates = true,
+      )
+    )
     val deliveryConfig = deliveryConfig(
       configName = artifact.deliveryConfigName!!,
       artifact = artifact
@@ -516,6 +527,40 @@ internal class ImageHandlerTests : JUnit5Minutests {
                       get("baseLabel") isEqualTo artifact.vmOptions.baseLabel.toString()
                         .toLowerCase()
                     }
+                }
+              }
+
+              context("newer base exists, but artifact ignores new bases") {
+                before {
+                  val newerBaseAmiVersion = "nflx-base-5.380.0-h1234.8808866"
+                  every {
+                    baseImageCache.getBaseAmiName(
+                      artifactIgnoreBaseUpdates.vmOptions.baseOs,
+                      artifactIgnoreBaseUpdates.vmOptions.baseLabel,
+                    )
+                  } returns newerBaseAmiVersion
+
+                  every { repository.artifactVersions(artifactIgnoreBaseUpdates, any()) } returns listOf(
+                    artifactVersion
+                  )
+
+                  every {
+                    imageService.getLatestNamedImage(any(), any(), any(), any())
+                  } returns image
+
+                  every { repository.getArtifactVersion(artifactIgnoreBaseUpdates, appVersion, null) } returns PublishedArtifact(
+                    name = artifact.name,
+                    reference = artifact.reference,
+                    version = appVersion,
+                    type = DEBIAN,
+                    metadata = emptyMap()
+                  )
+
+                  runHandler(artifactIgnoreBaseUpdates)
+                }
+
+                test("a bake is not launched") {
+                  expectThat(bakeTask).isNotCaptured()
                 }
               }
             }
