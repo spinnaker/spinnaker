@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.config
 
+import com.amazonaws.auth.AWSCredentialsProvider
 import com.amazonaws.retry.RetryPolicy.BackoffStrategy
 import com.amazonaws.retry.RetryPolicy.RetryCondition
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -40,9 +41,11 @@ import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonServerGroup
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsCleanupProvider
 import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonClusterProvider
+import com.netflix.spinnaker.clouddriver.aws.security.AWSAccountInfoLookup
 import com.netflix.spinnaker.clouddriver.aws.security.AWSProxy
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentialsInitializer
+import com.netflix.spinnaker.clouddriver.aws.security.DefaultAWSAccountInfoLookup
 import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig
 import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig.Builder
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
@@ -108,6 +111,11 @@ class AwsConfiguration {
       .registry(registry)
       .addSpinnakerUserToUserAgent(awsConfigurationProperties.client.addSpinnakerUserToUserAgent)
       .build()
+  }
+
+  @Bean
+  AWSAccountInfoLookup awsAccountInfoLookup(AWSCredentialsProvider awsCredentialsProvider, AmazonClientProvider amazonClientProvider) {
+    return new DefaultAWSAccountInfoLookup(awsCredentialsProvider, amazonClientProvider)
   }
 
   @Bean

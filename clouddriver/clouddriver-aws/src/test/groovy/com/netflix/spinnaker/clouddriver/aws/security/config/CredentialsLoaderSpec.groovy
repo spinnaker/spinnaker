@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.aws.security.config
 
 import com.amazonaws.auth.AWSCredentialsProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AWSAccountInfoLookup
-import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAssumeRoleAmazonCredentials
@@ -48,9 +47,9 @@ class CredentialsLoaderSpec extends Specification {
         ])
 
         AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
-        AmazonClientProvider amazonClientProvider = Mock(AmazonClientProvider)
+        AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
         AmazonCredentialsParser<Account, NetflixAmazonCredentials> ci = new AmazonCredentialsParser<>(
-          provider, amazonClientProvider, NetflixAmazonCredentials.class, config, accountsConfig)
+          provider, lookup, NetflixAmazonCredentials.class, config, accountsConfig)
 
         when:
         List<NetflixAmazonCredentials> creds = ci.load(config)

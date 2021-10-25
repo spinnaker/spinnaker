@@ -66,20 +66,6 @@ public class AmazonCredentialsParser<
 
   public AmazonCredentialsParser(
       AWSCredentialsProvider credentialsProvider,
-      AmazonClientProvider amazonClientProvider,
-      Class<V> credentialsType,
-      CredentialsConfig credentialsConfig,
-      AccountsConfiguration accountsConfig) {
-    this(
-        credentialsProvider,
-        new DefaultAWSAccountInfoLookup(credentialsProvider, amazonClientProvider),
-        credentialsType,
-        credentialsConfig,
-        accountsConfig);
-  }
-
-  public AmazonCredentialsParser(
-      AWSCredentialsProvider credentialsProvider,
       AWSAccountInfoLookup awsAccountInfoLookup,
       Class<V> credentialsType,
       CredentialsConfig credentialsConfig,
