@@ -1,9 +1,9 @@
 'use strict';
-import { mockHttpClient } from 'core/api/mock/jasmine';
+import { mockHttpClient } from '@spinnaker/core';
 import { VpcReader } from '../vpc/VpcReader';
 
 describe('VpcReader', function () {
-  var $scope;
+  let $scope;
 
   beforeEach(
     window.inject(function ($rootScope) {
