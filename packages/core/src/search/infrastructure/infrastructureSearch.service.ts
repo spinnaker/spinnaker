@@ -20,8 +20,9 @@ export interface ISearchResultSet<T extends ISearchResult = ISearchResult> {
   query?: string;
 }
 
+export type ISearchResultFormatter = (entry: ISearchResult, fromRoute?: boolean) => string | PromiseLike<string>;
 export interface IProviderResultFormatter {
-  [category: string]: (entry: ISearchResult, fromRoute?: boolean) => string;
+  [category: string]: ISearchResultFormatter;
 }
 
 export class InfrastructureSearcher {
@@ -65,7 +66,7 @@ export class InfrastructureSearcher {
     if (!type) {
       return this.$q.when('');
     }
-    let formatter = type.displayFormatter;
+    let formatter: ISearchResultFormatter = type.displayFormatter;
 
     if (this.providerServiceDelegate.hasDelegate(entry.provider, 'search.resultFormatter')) {
       const providerFormatter: IProviderResultFormatter = this.providerServiceDelegate.getDelegate<
