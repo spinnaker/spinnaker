@@ -1,8 +1,8 @@
 import { module } from 'angular';
-import { defaults } from 'lodash';
 
 import type { IVpc } from '@spinnaker/core';
 
+import type { IAmazonServerGroupCommand, IAmazonServerGroupDeployConfiguration } from './configure';
 import type {
   IAmazonServerGroup,
   IAmazonServerGroupView,
@@ -13,6 +13,7 @@ import type {
   IStepAdjustmentView,
   ITargetTrackingPolicy,
 } from '../domain';
+
 import { VpcReader } from '../vpc/VpcReader';
 
 export class AwsServerGroupTransformer {
@@ -84,31 +85,32 @@ export class AwsServerGroupTransformer {
     };
   }
 
-  public convertServerGroupCommandToDeployConfiguration(base: any): any {
-    // use _.defaults to avoid copying the backingData, which is huge and expensive to copy over
-    const command = defaults({ backingData: [], viewState: [] }, base);
-    command.cloudProvider = 'aws';
-    command.availabilityZones = {};
-    command.availabilityZones[command.region] = base.availabilityZones;
-    command.loadBalancers = (base.loadBalancers || []).concat(base.vpcLoadBalancers || []);
-    command.targetGroups = base.targetGroups || [];
-    command.account = command.credentials;
-    command.subnetType = command.subnetType || '';
+  public convertServerGroupCommandToDeployConfiguration(
+    base: IAmazonServerGroupCommand,
+  ): IAmazonServerGroupDeployConfiguration {
+    const deployConfig = ({ ...base } as any) as IAmazonServerGroupDeployConfiguration;
+
+    deployConfig.cloudProvider = 'aws';
+    deployConfig.availabilityZones = { [deployConfig.region]: base.availabilityZones };
+    deployConfig.loadBalancers = (base.loadBalancers || []).concat(base.vpcLoadBalancers || []);
+    deployConfig.targetGroups = base.targetGroups || [];
+    deployConfig.account = deployConfig.credentials;
+    deployConfig.subnetType = deployConfig.subnetType || '';
 
     if (base.viewState.mode !== 'clone') {
-      delete command.source;
+      delete deployConfig.source;
     }
-    if (!command.ramdiskId) {
-      delete command.ramdiskId; // TODO: clean up in kato? - should ignore if empty string
-    }
-    delete command.region;
-    delete command.viewState;
-    delete command.backingData;
-    delete command.selectedProvider;
-    delete command.instanceProfile;
-    delete command.vpcId;
 
-    return command;
+    if (!deployConfig.ramdiskId) {
+      delete deployConfig.ramdiskId; // TODO: clean up in kato? - should ignore if empty string
+    }
+
+    const deleteFields = ['region', 'viewState', 'backingData', 'selectedProvider', 'instanceProfile', 'vpcId'];
+    deleteFields.forEach((key: keyof typeof deployConfig) => {
+      delete deployConfig[key];
+    });
+
+    return deployConfig;
   }
 
   public constructNewStepScalingPolicyTemplate(serverGroup: IAmazonServerGroup): IScalingPolicy {

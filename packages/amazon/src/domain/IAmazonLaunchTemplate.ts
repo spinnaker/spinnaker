@@ -39,7 +39,7 @@ export interface ILicenseConfig {
 export interface IMetadataOptions {
   httpEndpoint?: 'disabled' | 'enabled';
   httpPutResponseHopLimit?: number;
-  httpsTokens?: 'required' | 'optional';
+  httpTokens?: 'required' | 'optional';
   state?: 'pending' | 'applied';
 }
 

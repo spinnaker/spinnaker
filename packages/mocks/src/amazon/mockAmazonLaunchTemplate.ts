@@ -13,7 +13,7 @@ export const mockIamInstanceProfile: IIamInstanceProfile = {
 
 export const mockMetadataOptions: IMetadataOptions = {
   httpEndpoint: 'enabled',
-  httpsTokens: 'required',
+  httpTokens: 'required',
 };
 
 export const mockLaunchTemplateData: ILaunchTemplateData = {

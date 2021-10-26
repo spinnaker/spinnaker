@@ -80,6 +80,7 @@ export interface IAmazonServerGroupCommandBackingData extends IServerGroupComman
 }
 
 export interface IAmazonServerGroupCommandViewState extends IServerGroupCommandViewState {
+  isNew: boolean;
   dirty: IAmazonServerGroupCommandDirty;
   spelTargetGroups: string[];
   spelLoadBalancers: string[];
@@ -88,15 +89,35 @@ export interface IAmazonServerGroupCommandViewState extends IServerGroupCommandV
 
 export interface IAmazonInstanceTypeOverride {
   instanceType: string;
-  weightedCapacity?: number;
+  weightedCapacity?: string;
   priority?: number;
 }
 
+/**
+ * We model server group commands in two subtly different ways.
+ * It's unclear what the intention is, but we should converge on a single model eventually.
+ *
+ * This model is stored in a Aws Deploy Stage under `clusters[]`.
+ * It is also sent across the wire during a deploy task from infrastructure view
+ * (i.e., "clone server group", "create server group")
+ */
+export interface IAmazonServerGroupDeployConfiguration extends IAmazonServerGroupCommand_Internal {
+  account: string;
+  availabilityZones: {
+    [region: string]: string[];
+  };
+}
+
+interface IAmazonServerGroupCommand_Internal extends IAmazonServerGroupCommand {
+  // widen 'string[]' to 'any' so we can narrow it to an incompatible type in IAmazonServerGroupDeployConfiguration
+  availabilityZones: any;
+}
+
 export interface IAmazonServerGroupCommand extends IServerGroupCommand {
-  viewState: IAmazonServerGroupCommandViewState;
   associateIPv6Address?: boolean;
   associatePublicIpAddress: boolean;
   backingData: IAmazonServerGroupCommandBackingData;
+  base64UserData: string;
   copySourceCustomBlockDeviceMappings: boolean;
   ebsOptimized: boolean;
   healthCheckGracePeriod: number;
@@ -111,6 +132,13 @@ export interface IAmazonServerGroupCommand extends IServerGroupCommand {
   setLaunchTemplate?: boolean;
   unlimitedCpuCredits?: boolean;
   capacityRebalance?: boolean;
+  ramdiskId?: string;
+  viewState: IAmazonServerGroupCommandViewState;
+  source: {
+    account: string;
+    region: string;
+    asgName: string;
+  };
   onDemandAllocationStrategy?: string;
   onDemandBaseCapacity?: number;
   onDemandPercentageAboveBaseCapacity?: number;

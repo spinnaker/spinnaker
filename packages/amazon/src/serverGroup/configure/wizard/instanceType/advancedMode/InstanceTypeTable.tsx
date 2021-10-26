@@ -52,14 +52,15 @@ export function InstanceTypeTable(props: IInstanceTypeTableProps) {
 
   const addOrUpdateInstanceType = (type: string, weight: string) => {
     const weightNum = Number(weight);
+    const weightedCapacity = isNaN(weightNum) || weightNum === 0 ? undefined : weightNum.toString();
     const itemToUpdate = selectedInstanceTypesMap.has(type)
       ? {
           ...selectedInstanceTypesMap.get(type), // update existing item
-          weightedCapacity: !isNaN(weightNum) && weightNum !== 0 ? weightNum : undefined,
+          weightedCapacity,
         }
       : {
           instanceType: type, // new item
-          weightedCapacity: !isNaN(weightNum) && weightNum !== 0 ? weightNum : undefined,
+          weightedCapacity,
           priority:
             1 +
             Array.from(selectedInstanceTypesMap.values()).reduce(

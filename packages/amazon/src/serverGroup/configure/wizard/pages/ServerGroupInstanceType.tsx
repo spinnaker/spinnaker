@@ -65,7 +65,8 @@ export class ServerGroupInstanceType
     }
     if (
       some(weightsSpecified, function (instanceType) {
-        return instanceType.weightedCapacity < 1 || instanceType.weightedCapacity > 999;
+        const weightedCapacity = Number(instanceType.weightedCapacity);
+        return weightedCapacity < 1 || weightedCapacity > 999;
       })
     ) {
       errors.instanceType = 'Weighted capacity must be a number between 1 and 999.';

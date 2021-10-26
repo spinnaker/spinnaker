@@ -5,16 +5,27 @@ import type { IScalingPolicyView } from './IAmazonScalingPolicy';
 import type { IScalingPolicy } from './IScalingPolicy';
 import type { ISuspendedProcess } from './IScalingProcess';
 
+export interface IAmazonAsgTag {
+  key: string;
+  value: string;
+  propagateAtLaunch: boolean;
+  resourceId: string;
+  resourceType: string;
+}
+
 export interface IAmazonAsg extends IAsg {
   availabilityZones: string[];
+  autoScalingGroupName: string;
   defaultCooldown: number;
   healthCheckType: string;
   healthCheckGracePeriod: number;
+  loadBalancerNames: string[];
   terminationPolicies: string[];
   enabledMetrics: Array<{ metric: string }>;
   vpczoneIdentifier?: string;
   suspendedProcesses?: ISuspendedProcess[];
   capacityRebalance?: boolean;
+  tags: IAmazonAsgTag[];
 }
 
 export interface IAmazonServerGroup extends IServerGroup {

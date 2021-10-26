@@ -1,6 +1,8 @@
+import type { IQService } from 'angular';
 import * as angular from 'angular';
 import _ from 'lodash';
 
+import type { Application, InstanceTypeService } from '@spinnaker/core';
 import {
   AccountService,
   DeploymentStrategyRegistry,
@@ -8,13 +10,45 @@ import {
   NameUtils,
   SubnetReader,
 } from '@spinnaker/core';
-import { AWSProviderSettings } from '../../aws.settings';
 
+import { AWSProviderSettings } from '../../aws.settings';
+import type { IAmazonLaunchTemplateOverrides, ILaunchTemplateData } from '../../domain';
+import type { IAmazonServerGroup, IAmazonServerGroupView, INetworkInterface } from '../../domain';
+import type {
+  AwsServerGroupConfigurationService,
+  IAmazonInstanceTypeOverride,
+  IAmazonServerGroupCommand,
+  IAmazonServerGroupCommandViewState,
+  IAmazonServerGroupDeployConfiguration,
+} from './serverGroupConfiguration.service';
 import { AWS_SERVER_GROUP_CONFIGURATION_SERVICE } from './serverGroupConfiguration.service';
 
 export const AMAZON_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE =
   'spinnaker.amazon.serverGroupCommandBuilder.service';
 export const name = AMAZON_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE; // for backwards compatibility
+
+export interface AwsServerGroupCommandBuilder {
+  buildNewServerGroupCommand(
+    application: Application,
+    defaults?: { account?: string; region?: string; subnet?: string; mode?: string },
+  ): PromiseLike<Partial<IAmazonServerGroupCommand>>;
+
+  buildServerGroupCommandFromExisting(
+    application: Application,
+    serverGroup: IAmazonServerGroupView,
+    mode?: string,
+  ): PromiseLike<Partial<IAmazonServerGroupCommand>>;
+
+  buildNewServerGroupCommandForPipeline(): PromiseLike<Partial<IAmazonServerGroupCommand>>;
+
+  buildServerGroupCommandFromPipeline(
+    application: Application,
+    originalCluster: IAmazonServerGroupDeployConfiguration,
+  ): PromiseLike<Partial<IAmazonServerGroupCommand>>;
+
+  buildUpdateServerGroupCommand(serverGroup: IAmazonServerGroup): Partial<IAmazonServerGroupCommand>;
+}
+
 angular
   .module(AMAZON_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE, [
     INSTANCE_TYPE_SERVICE,
@@ -24,9 +58,15 @@ angular
     '$q',
     'instanceTypeService',
     'awsServerGroupConfigurationService',
-    function ($q, instanceTypeService, awsServerGroupConfigurationService) {
-      function buildNewServerGroupCommand(application, defaults) {
-        defaults = defaults || {};
+    function (
+      $q: IQService,
+      instanceTypeService: InstanceTypeService,
+      awsServerGroupConfigurationService: AwsServerGroupConfigurationService,
+    ) {
+      function buildNewServerGroupCommand(
+        application: Application,
+        defaults: { account?: string; region?: string; subnet?: string; mode?: string } = {},
+      ) {
         const credentialsLoader = AccountService.getCredentialsKeyedByAccount('aws');
 
         const defaultCredentials =
@@ -45,14 +85,14 @@ angular
           .then(function ([preferredZones, credentialsKeyedByAccount]) {
             const credentials = credentialsKeyedByAccount[defaultCredentials];
             const keyPair = credentials ? credentials.defaultKeyPair : null;
-            const applicationAwsSettings = _.get(application, 'attributes.providerSettings.aws', {});
+            const applicationAwsSettings = application.attributes?.providerSettings?.aws ?? {};
 
             let defaultIamRole = AWSProviderSettings.defaults.iamRole || 'BaseIAMRole';
             defaultIamRole = defaultIamRole.replace('{{application}}', application.name);
 
             const useAmiBlockDeviceMappings = applicationAwsSettings.useAmiBlockDeviceMappings || false;
 
-            const command = {
+            const command: Partial<IAmazonServerGroupCommand> = {
               application: application.name,
               credentials: defaultCredentials,
               region: defaultRegion,
@@ -94,45 +134,39 @@ angular
                 disableStrategySelection: true,
                 dirty: {},
                 submitButtonLabel: getSubmitButtonLabel(defaults.mode || 'create'),
-              },
+              } as IAmazonServerGroupCommandViewState,
             };
 
-            if (
-              application.attributes &&
-              application.attributes.platformHealthOnlyShowOverride &&
-              application.attributes.platformHealthOnly
-            ) {
+            if (application.attributes?.platformHealthOnlyShowOverride && application.attributes?.platformHealthOnly) {
               command.interestingHealthProviderNames = ['Amazon'];
             }
 
-            if (
-              defaultCredentials === 'test' &&
-              AWSProviderSettings.serverGroups &&
-              AWSProviderSettings.serverGroups.enableIPv6
-            ) {
+            if (defaultCredentials === 'test' && AWSProviderSettings.serverGroups?.enableIPv6) {
               command.associateIPv6Address = true;
             }
 
-            if (AWSProviderSettings.serverGroups && AWSProviderSettings.serverGroups.enableIMDSv2) {
+            if (AWSProviderSettings.serverGroups?.enableIMDSv2) {
               /**
                * Older SDKs do not support IMDSv2. A timestamp can be optionally configured at which any apps created after can safely default to using IMDSv2.
                */
               const appAgeRequirement = AWSProviderSettings.serverGroups.defaultIMDSv2AppAgeLimit;
-              const creationDate = application.attributes && application.attributes.createTs;
+              const creationDate = application.attributes?.createTs;
 
-              command.requireIMDSv2 =
-                appAgeRequirement && creationDate && Number(creationDate) > appAgeRequirement ? true : false;
+              command.requireIMDSv2 = appAgeRequirement && creationDate && Number(creationDate) > appAgeRequirement;
             }
 
             return command;
           });
       }
 
-      function buildServerGroupCommandFromPipeline(application, originalCluster) {
+      function buildServerGroupCommandFromPipeline(
+        application: Application,
+        originalCluster: IAmazonServerGroupDeployConfiguration,
+      ) {
         const pipelineCluster = _.cloneDeep(originalCluster);
         const region = Object.keys(pipelineCluster.availabilityZones)[0];
 
-        let instanceTypes = pipelineCluster.launchTemplateOverridesForInstanceType
+        const instanceTypes = pipelineCluster.launchTemplateOverridesForInstanceType
           ? pipelineCluster.launchTemplateOverridesForInstanceType.map((o) => o.instanceType)
           : [pipelineCluster.instanceType];
         const instanceTypeCategoryLoader = instanceTypeService.getCategoryForMultipleInstanceTypes(
@@ -184,11 +218,11 @@ angular
         return $q.when({
           viewState: {
             requiresTemplateSelection: true,
-          },
+          } as IAmazonServerGroupCommandViewState,
         });
       }
 
-      function getSubmitButtonLabel(mode) {
+      function getSubmitButtonLabel(mode: string) {
         switch (mode) {
           case 'createPipeline':
             return 'Add';
@@ -201,33 +235,39 @@ angular
         }
       }
 
-      function buildUpdateServerGroupCommand(serverGroup) {
-        const command = {
+      function buildUpdateServerGroupCommand(serverGroup: IAmazonServerGroup) {
+        const command = ({
           type: 'modifyAsg',
           asgs: [{ asgName: serverGroup.name, region: serverGroup.region }],
           cooldown: serverGroup.asg.defaultCooldown,
-          enabledMetrics: _.get(serverGroup, 'asg.enabledMetrics', []).map((m) => m.metric),
+          enabledMetrics: (serverGroup.asg?.enabledMetrics ?? []).map((m) => m.metric),
           healthCheckGracePeriod: serverGroup.asg.healthCheckGracePeriod,
           healthCheckType: serverGroup.asg.healthCheckType,
           terminationPolicies: angular.copy(serverGroup.asg.terminationPolicies),
           credentials: serverGroup.account,
           capacityRebalance: serverGroup.asg.capacityRebalance,
-        };
+        } as Partial<IAmazonServerGroupCommand>) as IAmazonServerGroupCommand;
         awsServerGroupConfigurationService.configureUpdateCommand(command);
         return command;
       }
 
-      function buildServerGroupCommandFromExisting(application, serverGroup, mode = 'clone') {
+      function buildServerGroupCommandFromExisting(
+        application: Application,
+        serverGroup: IAmazonServerGroupView,
+        mode = 'clone',
+      ) {
         const preferredZonesLoader = AccountService.getPreferredZonesByAccount('aws');
         const subnetsLoader = SubnetReader.listSubnets();
+
         const serverGroupName = NameUtils.parseServerGroupName(serverGroup.asg.autoScalingGroupName);
 
         let instanceTypes;
         if (serverGroup.mixedInstancesPolicy) {
-          const ltOverrides = _.get(serverGroup, 'mixedInstancesPolicy.launchTemplateOverridesForInstanceType');
+          const ltOverrides = serverGroup.mixedInstancesPolicy?.launchTemplateOverridesForInstanceType;
+          // note: single launch template case is currently the only supported case for mixed instances policy
           instanceTypes = ltOverrides
             ? ltOverrides.map((o) => o.instanceType)
-            : [_.get(serverGroup, 'mixedInstancesPolicy.launchTemplates[0].launchTemplateData.instanceType')]; // note: single launch template case is currently the only supported case for mixed instances policy
+            : [serverGroup.mixedInstancesPolicy?.launchTemplates[0]?.launchTemplateData?.instanceType];
         } else if (serverGroup.launchTemplate) {
           instanceTypes = [_.get(serverGroup, 'launchTemplate.launchTemplateData.instanceType')];
         } else if (serverGroup.launchConfig) {
@@ -240,7 +280,7 @@ angular
 
         return $q
           .all([preferredZonesLoader, subnetsLoader, instanceTypeCategoryLoader])
-          .then(function ([preferredZones, subnets, instanceProfile]) {
+          .then(([preferredZones, subnets, instanceProfile]) => {
             const zones = serverGroup.asg.availabilityZones.sort();
             let usePreferredZones = false;
             const preferredZonesForAccount = preferredZones[serverGroup.account];
@@ -252,10 +292,10 @@ angular
             // These processes should never be copied over, as the affect launching instances and enabling traffic
             const enabledProcesses = ['Launch', 'Terminate', 'AddToLoadBalancer'];
 
-            const applicationAwsSettings = _.get(application, 'attributes.providerSettings.aws', {});
+            const applicationAwsSettings = application.attributes?.providerSettings?.aws ?? {};
             const useAmiBlockDeviceMappings = applicationAwsSettings.useAmiBlockDeviceMappings || false;
 
-            const existingTags = {};
+            const existingTags: { [key: string]: string } = {};
             // These tags are applied by Clouddriver (if configured to do so), regardless of what the user might enter
             // Might be worth feature flagging this if it turns out other folks are hard-coding these values
             const reservedTags = ['spinnaker:application', 'spinnaker:stack', 'spinnaker:details'];
@@ -267,7 +307,7 @@ angular
                 });
             }
 
-            const command = {
+            const command: Partial<IAmazonServerGroupCommand> = {
               application: application.name,
               strategy: '',
               stack: serverGroupName.stack,
@@ -310,14 +350,10 @@ angular
                 submitButtonLabel: getSubmitButtonLabel(mode),
                 isNew: false,
                 dirty: {},
-              },
+              } as IAmazonServerGroupCommandViewState,
             };
 
-            if (
-              application.attributes &&
-              application.attributes.platformHealthOnlyShowOverride &&
-              application.attributes.platformHealthOnly
-            ) {
+            if (application.attributes?.platformHealthOnlyShowOverride && application.attributes?.platformHealthOnly) {
               command.interestingHealthProviderNames = ['Amazon'];
             }
 
@@ -333,7 +369,7 @@ angular
             const vpcZoneIdentifier = serverGroup.asg.vpczoneIdentifier;
             if (vpcZoneIdentifier !== '') {
               const subnetId = vpcZoneIdentifier.split(',')[0];
-              const subnet = _.chain(subnets).find({ id: subnetId }).value();
+              const subnet = subnets.find((x) => x.id === subnetId);
               command.subnetType = subnet.purpose;
               command.vpcId = subnet.vpcId;
             } else {
@@ -361,23 +397,22 @@ angular
             }
 
             if (serverGroup.launchTemplate || serverGroup.mixedInstancesPolicy) {
-              let launchTemplateData, spotMaxPrice;
+              let launchTemplateData: ILaunchTemplateData, spotMaxPrice: string;
               if (serverGroup.launchTemplate) {
                 launchTemplateData = serverGroup.launchTemplate.launchTemplateData;
-                spotMaxPrice = _.get(launchTemplateData, 'instanceMarketOptions.spotOptions.maxPrice');
-
+                spotMaxPrice = launchTemplateData.instanceMarketOptions?.spotOptions?.maxPrice;
                 command.instanceType = launchTemplateData.instanceType;
                 command.viewState.useSimpleInstanceTypeSelector = true;
               }
 
               if (serverGroup.mixedInstancesPolicy) {
                 const mip = serverGroup.mixedInstancesPolicy;
-                launchTemplateData = _.get(mip, 'launchTemplates[0].launchTemplateData'); // note: single launch template case is currently the only supported case for mixed instances policy
-                spotMaxPrice = _.get(mip, 'instancesDistribution.spotMaxPrice');
-
+                // note: single launch template case is currently the only supported case for mixed instances policy
+                launchTemplateData = mip?.launchTemplates?.[0]?.launchTemplateData;
+                spotMaxPrice = mip?.instancesDistribution?.spotMaxPrice;
                 command.securityGroups = launchTemplateData.networkInterfaces
-                  ? (launchTemplateData.networkInterfaces.find((ni) => ni.deviceIndex === 0) || {}).groups
-                  : _.get(launchTemplateData, 'securityGroups');
+                  ? (launchTemplateData.networkInterfaces.find((ni) => ni.deviceIndex === 0) ?? {}).groups
+                  : launchTemplateData.securityGroups;
                 command.onDemandAllocationStrategy = mip.instancesDistribution.onDemandAllocationStrategy;
                 command.onDemandBaseCapacity = mip.instancesDistribution.onDemandBaseCapacity;
                 command.onDemandPercentageAboveBaseCapacity =
@@ -412,9 +447,7 @@ angular
                 instanceMonitoring: launchTemplateData.monitoring && launchTemplateData.monitoring.enabled,
                 ebsOptimized: launchTemplateData.ebsOptimized,
                 spotPrice: spotMaxPrice || undefined,
-                requireIMDSv2: Boolean(
-                  launchTemplateData.metadataOptions && launchTemplateData.metadataOptions.httpsTokens === 'required',
-                ),
+                requireIMDSv2: Boolean(launchTemplateData.metadataOptions?.httpTokens === 'required'),
                 unlimitedCpuCredits: launchTemplateData.creditSpecification
                   ? launchTemplateData.creditSpecification.cpuCredits === 'unlimited'
                   : undefined,
@@ -437,8 +470,8 @@ angular
 
             if (serverGroup.launchTemplate && serverGroup.launchTemplate.launchTemplateData.networkInterfaces) {
               const networkInterface =
-                serverGroup.launchTemplate.launchTemplateData.networkInterfaces.find((ni) => ni.deviceIndex === 0) ||
-                {};
+                serverGroup.launchTemplate.launchTemplateData.networkInterfaces.find((ni) => ni.deviceIndex === 0) ??
+                ({} as INetworkInterface);
               command.securityGroups = networkInterface.groups;
             }
 
@@ -447,7 +480,9 @@ angular
       }
 
       // Since Deck allows changing priority of instance types via drag handle, fill priority field explicitly if empty
-      function getInstanceTypesWithPriority(instanceTypeOverrides) {
+      function getInstanceTypesWithPriority(
+        instanceTypeOverrides: IAmazonLaunchTemplateOverrides[],
+      ): IAmazonInstanceTypeOverride[] {
         let explicitPriority = 1;
         return _.sortBy(instanceTypeOverrides, ['priority']).map((override) => {
           const { instanceType, weightedCapacity } = override;
@@ -462,7 +497,9 @@ angular
         });
       }
 
-      function isSimpleModeEnabled(command) {
+      function isSimpleModeEnabled(
+        command: IAmazonServerGroupDeployConfiguration | Partial<IAmazonServerGroupCommand>,
+      ) {
         const isAdvancedModeEnabledInCommand =
           command.onDemandAllocationStrategy ||
           command.onDemandBaseCapacity ||
@@ -475,11 +512,11 @@ angular
       }
 
       return {
-        buildNewServerGroupCommand: buildNewServerGroupCommand,
-        buildServerGroupCommandFromExisting: buildServerGroupCommandFromExisting,
-        buildNewServerGroupCommandForPipeline: buildNewServerGroupCommandForPipeline,
-        buildServerGroupCommandFromPipeline: buildServerGroupCommandFromPipeline,
-        buildUpdateServerGroupCommand: buildUpdateServerGroupCommand,
-      };
+        buildNewServerGroupCommand,
+        buildServerGroupCommandFromExisting,
+        buildNewServerGroupCommandForPipeline,
+        buildServerGroupCommandFromPipeline,
+        buildUpdateServerGroupCommand,
+      } as AwsServerGroupCommandBuilder;
     },
   ]);
