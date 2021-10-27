@@ -25,7 +25,7 @@
     "@uirouter/react-hybrid": "1.0.2",
     "@uirouter/rx": "0.6.5",
     "@uirouter/visualizer": "7.2.1",
-    "Select2": "git://github.com/select2/select2.git#3.4.8",
+    "select2": "3.5.1",
     "angular": "1.6.10",
     "angular-messages": "1.6.10",
     "angular-sanitize": "1.6.10",
@@ -77,7 +77,7 @@
     "react2angular": "3.2.1",
     "recoil": "0.0.10",
     "rxjs": "6.6.7",
-    "select2-bootstrap-css": "git://github.com/t0m/select2-bootstrap-css.git#v1.3.1",
+    "select2-bootstrap-css": "1.4.6",
     "source-sans": "3.46.0",
     "spel2js": "0.2.6",
     "ui-select": "0.19.8"
