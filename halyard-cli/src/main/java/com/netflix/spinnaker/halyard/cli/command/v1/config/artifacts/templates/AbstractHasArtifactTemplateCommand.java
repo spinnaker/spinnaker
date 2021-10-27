@@ -19,14 +19,12 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.templates;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
-import java.util.ArrayList;
-import java.util.List;
 
 /** An abstract definition for commands that accept TEMPLATE as a main parameter */
 @Parameters(separators = "=")
 public abstract class AbstractHasArtifactTemplateCommand extends AbstractConfigCommand {
-  @Parameter(description = "The name of the artifact template to operate on.", arity = 1)
-  List<String> templates = new ArrayList<>();
+  @Parameter(description = "The name of the artifact template to operate on.")
+  String template = null;
 
   @Override
   public String getMainParameter() {
@@ -42,13 +40,9 @@ public abstract class AbstractHasArtifactTemplateCommand extends AbstractConfigC
   }
 
   public String getArtifactTemplate() {
-    switch (templates.size()) {
-      case 0:
-        throw new IllegalArgumentException("No template supplied");
-      case 1:
-        return templates.get(0);
-      default:
-        throw new IllegalArgumentException("More than one template supplied");
+    if (template == null) {
+      throw new IllegalArgumentException("No template supplied");
     }
+    return template;
   }
 }

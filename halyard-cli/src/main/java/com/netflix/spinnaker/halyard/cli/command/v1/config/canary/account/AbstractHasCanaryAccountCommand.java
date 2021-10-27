@@ -18,16 +18,14 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.canary.account;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import java.util.ArrayList;
-import java.util.List;
 
 /** An abstract definition for canary commands that accept ACCOUNT as a main parameter */
 @Parameters(separators = "=")
 public abstract class AbstractHasCanaryAccountCommand
     extends AbstractCanaryServiceIntegrationCommand {
 
-  @Parameter(description = "The name of the canary account to operate on.", arity = 1)
-  List<String> accounts = new ArrayList<>();
+  @Parameter(description = "The name of the canary account to operate on.")
+  String account;
 
   @Override
   public String getMainParameter() {
@@ -43,13 +41,9 @@ public abstract class AbstractHasCanaryAccountCommand
   }
 
   public String getAccountName() {
-    switch (accounts.size()) {
-      case 0:
-        throw new IllegalArgumentException("No canary account name supplied");
-      case 1:
-        return accounts.get(0);
-      default:
-        throw new IllegalArgumentException("More than one canary account supplied");
+    if (account == null) {
+      throw new IllegalArgumentException("No canary account name supplied");
     }
+    return account;
   }
 }

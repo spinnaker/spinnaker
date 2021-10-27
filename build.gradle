@@ -29,6 +29,7 @@ subprojects {
   apply plugin: 'groovy'
 
   test {
+    useJUnitPlatform()
     testLogging {
       showStandardStreams = false
       exceptionFormat = 'full'

@@ -22,14 +22,12 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.config.model.v1.plugins.Plugin;
-import java.util.ArrayList;
-import java.util.List;
 
-/** An abstract definition for commands that accept plugins as a main parameter */
+/** An abstract definition for commands that accept PLUGIN as a main parameter */
 @Parameters(separators = "=")
 public abstract class AbstractHasPluginCommand extends AbstractConfigCommand {
-  @Parameter(description = "The name of the plugin to operate on.", arity = 1)
-  private List<String> plugins = new ArrayList<>();
+  @Parameter(description = "The name of the plugin to operate on.")
+  private String plugin;
 
   @Override
   public String getMainParameter() {
@@ -39,18 +37,14 @@ public abstract class AbstractHasPluginCommand extends AbstractConfigCommand {
   public Plugin getPlugin() {
     return new OperationHandler<Plugin>()
         .setFailureMesssage("Failed to get plugin")
-        .setOperation(Daemon.getPlugin(getCurrentDeployment(), plugins.get(0), false))
+        .setOperation(Daemon.getPlugin(getCurrentDeployment(), getPluginName(), false))
         .get();
   }
 
   public String getPluginName() {
-    switch (plugins.size()) {
-      case 0:
-        throw new IllegalArgumentException("No plugin supplied");
-      case 1:
-        return plugins.get(0);
-      default:
-        throw new IllegalArgumentException("More than one plugin supplied");
+    if (plugin == null) {
+      throw new IllegalArgumentException("No plugin supplied");
     }
+    return plugin;
   }
 }

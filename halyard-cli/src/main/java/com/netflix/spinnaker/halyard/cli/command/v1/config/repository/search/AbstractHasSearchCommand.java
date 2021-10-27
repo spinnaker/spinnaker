@@ -19,14 +19,12 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.repository.search;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.repository.AbstractRepositoryCommand;
-import java.util.ArrayList;
-import java.util.List;
 
 /** An abstract definition for commands that accept SEARCH as a main parameter */
 @Parameters(separators = "=")
 public abstract class AbstractHasSearchCommand extends AbstractRepositoryCommand {
-  @Parameter(description = "The name of the search to operate on.", arity = 1)
-  List<String> searches = new ArrayList<>();
+  @Parameter(description = "The name of the search to operate on.")
+  String search;
 
   @Override
   public String getMainParameter() {
@@ -34,13 +32,9 @@ public abstract class AbstractHasSearchCommand extends AbstractRepositoryCommand
   }
 
   public String getSearchName() {
-    switch (searches.size()) {
-      case 0:
-        throw new IllegalArgumentException("No search name supplied");
-      case 1:
-        return searches.get(0);
-      default:
-        throw new IllegalArgumentException("More than one search supplied");
+    if (search == null) {
+      throw new IllegalArgumentException("No search name supplied");
     }
+    return search;
   }
 }

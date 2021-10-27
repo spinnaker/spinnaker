@@ -23,8 +23,6 @@ import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -52,9 +50,8 @@ public class PublishProfileCommand extends NestableCommand {
   private String profilePath;
 
   @Parameter(
-      description = "The name of the artifact whose profile is being published (e.g. clouddriver).",
-      arity = 1)
-  List<String> artifacts = new ArrayList<>();
+      description = "The name of the artifact whose profile is being published (e.g. clouddriver).")
+  String artifact;
 
   @Override
   public String getMainParameter() {
@@ -62,14 +59,10 @@ public class PublishProfileCommand extends NestableCommand {
   }
 
   public String getArtifactName() {
-    switch (artifacts.size()) {
-      case 0:
-        throw new IllegalArgumentException("No artifact name supplied");
-      case 1:
-        return artifacts.get(0);
-      default:
-        throw new IllegalArgumentException("More than one artifact supplied");
+    if (artifact == null) {
+      throw new IllegalArgumentException("No artifact name supplied");
     }
+    return artifact;
   }
 
   @Override

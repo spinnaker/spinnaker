@@ -20,13 +20,11 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.notifications.pubsub
 
 import com.beust.jcommander.Parameter;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.pubsubs.AbstractPubsubCommand;
-import java.util.ArrayList;
-import java.util.List;
 
 public abstract class AbstractHasPublisherCommand extends AbstractPubsubCommand {
 
-  @Parameter(description = "The name of the publishers to operate on.", arity = 1)
-  List<String> publishers = new ArrayList<>();
+  @Parameter(description = "The name of the publishers to operate on.")
+  String publisher;
 
   @Override
   public String getMainParameter() {
@@ -42,13 +40,9 @@ public abstract class AbstractHasPublisherCommand extends AbstractPubsubCommand 
   }
 
   public String getPublisherName() {
-    switch (publishers.size()) {
-      case 0:
-        throw new IllegalArgumentException("No topic name supplied");
-      case 1:
-        return publishers.get(0);
-      default:
-        throw new IllegalArgumentException("More than one topic supplied");
+    if (publisher == null) {
+      throw new IllegalArgumentException("No topic name supplied");
     }
+    return publisher;
   }
 }

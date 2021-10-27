@@ -21,8 +21,6 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -39,18 +37,14 @@ public class InterruptTaskCommand extends NestableCommand {
     return "uuid";
   }
 
-  @Parameter(description = "The UUID of the task to interrupt", arity = 1)
-  List<String> uuids = new ArrayList<>();
+  @Parameter(description = "The UUID of the task to interrupt")
+  String uuid;
 
   private String getUuid() {
-    switch (uuids.size()) {
-      case 0:
-        throw new IllegalArgumentException("No UUID supplied.");
-      case 1:
-        return uuids.get(0);
-      default:
-        throw new IllegalArgumentException("More than one UUID supplied");
+    if (uuid == null) {
+      throw new IllegalArgumentException("No UUID supplied.");
     }
+    return uuid;
   }
 
   @Override

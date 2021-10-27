@@ -22,14 +22,12 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.config.model.v1.plugins.PluginRepository;
-import java.util.ArrayList;
-import java.util.List;
 
-/** An abstract definition for commands that accept plugins as a main parameter */
+/** An abstract definition for commands that accept REPOSITORY as a main parameter */
 @Parameters(separators = "=")
 public abstract class AbstractHasPluginRepositoryCommand extends AbstractConfigCommand {
-  @Parameter(description = "The name of the plugin repository to operate on.", arity = 1)
-  private List<String> repositories = new ArrayList<>();
+  @Parameter(description = "The name of the plugin repository to operate on.")
+  private String repository;
 
   @Override
   public String getMainParameter() {
@@ -40,18 +38,14 @@ public abstract class AbstractHasPluginRepositoryCommand extends AbstractConfigC
     return new OperationHandler<PluginRepository>()
         .setFailureMesssage("Failed to get repository")
         .setOperation(
-            Daemon.getPluginRepository(getCurrentDeployment(), repositories.get(0), false))
+            Daemon.getPluginRepository(getCurrentDeployment(), getPluginRepositoryId(), false))
         .get();
   }
 
   public String getPluginRepositoryId() {
-    switch (repositories.size()) {
-      case 0:
-        throw new IllegalArgumentException("No plugin repository supplied");
-      case 1:
-        return repositories.get(0);
-      default:
-        throw new IllegalArgumentException("More than one plugin repository supplied");
+    if (repository == null) {
+      throw new IllegalArgumentException("No plugin repository supplied");
     }
+    return repository;
   }
 }

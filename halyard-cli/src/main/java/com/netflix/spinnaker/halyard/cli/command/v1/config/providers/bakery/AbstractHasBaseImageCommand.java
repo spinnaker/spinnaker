@@ -20,14 +20,12 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.bakery;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractProviderCommand;
-import java.util.ArrayList;
-import java.util.List;
 
-/** An abstract definition for commands that accept ACCOUNT as a main parameter */
+/** An abstract definition for commands that accept BASE-IMAGE as a main parameter */
 @Parameters(separators = "=")
 public abstract class AbstractHasBaseImageCommand extends AbstractProviderCommand {
-  @Parameter(description = "The name of the base image to operate on.", arity = 1)
-  List<String> baseImages = new ArrayList<>();
+  @Parameter(description = "The name of the base image to operate on.")
+  String baseImage;
 
   @Override
   public String getMainParameter() {
@@ -35,13 +33,9 @@ public abstract class AbstractHasBaseImageCommand extends AbstractProviderComman
   }
 
   public String getBaseImageId() {
-    switch (baseImages.size()) {
-      case 0:
-        throw new IllegalArgumentException("No base image name supplied");
-      case 1:
-        return baseImages.get(0);
-      default:
-        throw new IllegalArgumentException("More than one base image supplied");
+    if (baseImage == null) {
+      throw new IllegalArgumentException("No base image name supplied");
     }
+    return baseImage;
   }
 }

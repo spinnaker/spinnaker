@@ -23,8 +23,6 @@ import com.netflix.spinnaker.halyard.cli.command.v1.DeprecatedCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -45,18 +43,14 @@ public class PublishLatestCommand extends NestableCommand implements DeprecatedC
     return "version";
   }
 
-  @Parameter(description = "The latest version of Spinnaker to record.", arity = 1)
-  List<String> versions = new ArrayList<>();
+  @Parameter(description = "The latest version of Spinnaker to record.")
+  String version;
 
   public String getVersion() {
-    switch (versions.size()) {
-      case 0:
-        throw new IllegalArgumentException("No version supplied.");
-      case 1:
-        return versions.get(0);
-      default:
-        throw new IllegalArgumentException("More than one version supplied");
+    if (version == null) {
+      throw new IllegalArgumentException("No version supplied.");
     }
+    return version;
   }
 
   @Override

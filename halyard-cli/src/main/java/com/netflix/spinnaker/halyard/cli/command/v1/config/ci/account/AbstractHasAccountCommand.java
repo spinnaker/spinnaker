@@ -19,14 +19,12 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.ci.account;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.AbstractCiCommand;
-import java.util.ArrayList;
-import java.util.List;
 
 /** An abstract definition for commands that accept 'account' as a main parameter */
 @Parameters(separators = "=")
 public abstract class AbstractHasAccountCommand extends AbstractCiCommand {
-  @Parameter(description = "The name of the account to operate on.", arity = 1)
-  List<String> accounts = new ArrayList<>();
+  @Parameter(description = "The name of the account to operate on.")
+  String account;
 
   @Override
   public String getMainParameter() {
@@ -34,13 +32,9 @@ public abstract class AbstractHasAccountCommand extends AbstractCiCommand {
   }
 
   public String getAccountName() {
-    switch (accounts.size()) {
-      case 0:
-        throw new IllegalArgumentException("No account name supplied");
-      case 1:
-        return accounts.get(0);
-      default:
-        throw new IllegalArgumentException("More than one account supplied");
+    if (account == null) {
+      throw new IllegalArgumentException("No account name supplied");
     }
+    return account;
   }
 }

@@ -26,15 +26,13 @@ import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiPrinter;
 import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 
 @Parameters(separators = "=")
 public class BomVersionCommand extends AbstractConfigCommand {
-  @Parameter(description = "The version whose Bill of Materials (BOM) to lookup.", arity = 1)
-  List<String> versions = new ArrayList<>();
+  @Parameter(description = "The version whose Bill of Materials (BOM) to lookup.")
+  String version;
 
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "bom";
@@ -63,17 +61,13 @@ public class BomVersionCommand extends AbstractConfigCommand {
   }
 
   public String getVersion() {
-    switch (versions.size()) {
-      case 0:
-        return new OperationHandler<String>()
-            .setOperation(Daemon.getVersion(getCurrentDeployment(), false))
-            .setFailureMesssage("Failed to get version of Spinnaker configured in your halconfig.")
-            .get();
-      case 1:
-        return versions.get(0);
-      default:
-        throw new IllegalArgumentException("More than one version supplied");
+    if (version == null) {
+      return new OperationHandler<String>()
+          .setOperation(Daemon.getVersion(getCurrentDeployment(), false))
+          .setFailureMesssage("Failed to get version of Spinnaker configured in your halconfig.")
+          .get();
     }
+    return version;
   }
 
   @Override

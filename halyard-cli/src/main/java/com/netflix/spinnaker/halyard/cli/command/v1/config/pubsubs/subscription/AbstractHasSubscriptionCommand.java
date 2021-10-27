@@ -21,14 +21,12 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.pubsubs.subscription
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.pubsubs.AbstractPubsubCommand;
-import java.util.ArrayList;
-import java.util.List;
 
-/** An abstract definition for commands that accept ACCOUNT as a main parameter */
+/** An abstract definition for commands that accept SUBSCRIPTION as a main parameter */
 @Parameters(separators = "=")
 public abstract class AbstractHasSubscriptionCommand extends AbstractPubsubCommand {
-  @Parameter(description = "The name of the subscription to operate on.", arity = 1)
-  List<String> subscriptions = new ArrayList<>();
+  @Parameter(description = "The name of the subscription to operate on.")
+  String subscription;
 
   @Override
   public String getMainParameter() {
@@ -44,13 +42,9 @@ public abstract class AbstractHasSubscriptionCommand extends AbstractPubsubComma
   }
 
   public String getSubscriptionName() {
-    switch (subscriptions.size()) {
-      case 0:
-        throw new IllegalArgumentException("No subscription name supplied");
-      case 1:
-        return subscriptions.get(0);
-      default:
-        throw new IllegalArgumentException("More than one subscription supplied");
+    if (subscription == null) {
+      throw new IllegalArgumentException("No subscription name supplied");
     }
+    return subscription;
   }
 }
