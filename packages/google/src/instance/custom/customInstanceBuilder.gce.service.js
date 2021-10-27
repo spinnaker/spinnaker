@@ -88,9 +88,9 @@ module(GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCEBUILDER_GCE_SERVICE, []).factory(
       return [..._.range(min, max, 0.25), max];
     }
 
-    function memoryIsValid(instanceFamily, totalMemory, vCpuCount) {
+    function memoryIsValid(instanceFamily, totalMemory, vCpuCount, extendedMemory) {
       const min = minMemoryForVCpuCount(instanceFamily, vCpuCount);
-      const max = maxMemoryForVCpuCount(instanceFamily, vCpuCount);
+      const max = extendedMemory ? 800 : maxMemoryForVCpuCount(instanceFamily, vCpuCount);
       return _.inRange(totalMemory, min, max) || totalMemory === max;
     }
 
@@ -98,13 +98,14 @@ module(GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCEBUILDER_GCE_SERVICE, []).factory(
      * In the API, you must always provide memory in MB units.
      * Format: custom-NUMBER_OF_CPUS-AMOUNT_OF_MEMORY
      * */
-    function generateInstanceTypeString(instanceFamily, vCpuCount, totalMemory) {
+    function generateInstanceTypeString(instanceFamily, vCpuCount, totalMemory, extendedMemory) {
+      const extendedFlag = extendedMemory ? '-ext' : '';
       const memoryInMbs = Number(totalMemory) * 1024;
       instanceFamily = instanceFamily.toLowerCase();
       if (instanceFamily === 'n1') {
-        return `custom-${vCpuCount}-${memoryInMbs}`;
+        return `custom-${vCpuCount}-${memoryInMbs}${extendedFlag}`;
       }
-      return `${instanceFamily}-custom-${vCpuCount}-${memoryInMbs}`;
+      return `${instanceFamily}-custom-${vCpuCount}-${memoryInMbs}${extendedFlag}`;
     }
 
     function parseInstanceTypeString(instanceTypeString) {
@@ -129,10 +130,11 @@ module(GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCEBUILDER_GCE_SERVICE, []).factory(
       totalMemory,
       location,
       locationToInstanceTypesMap,
+      extendedMemory,
     ) {
       return _.every([
         numberOfVCpusIsValid(instanceFamily, vCpuCount),
-        memoryIsValid(instanceFamily, totalMemory, vCpuCount),
+        memoryIsValid(instanceFamily, totalMemory, vCpuCount, extendedMemory),
         vCpuCountForLocationIsValid(instanceFamily, vCpuCount, location, locationToInstanceTypesMap),
       ]);
     }

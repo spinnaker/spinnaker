@@ -30,7 +30,9 @@ const helpContents: { [key: string]: string } = {
   'gce.instance.customInstance.cores':
     '<ul><li>Above 1, vCPU count must be even.</li><li>Zones that support Haswell and Ivy Bridge processors can support custom machine types up to 32 vCPUs.</li><li>Zones that support Sandy Bridge processors can support up to 16 vCPUs.</li></ul>',
   'gce.instance.customInstance.memory':
-    '<ul><li>Memory per vCPU must be between .9 GB and 6.5 GB.</li><li>Total memory must be a multiple of 256 MB.</li></ul>',
+    '<ul><li>Memory per vCPU must be between .9 GB and 6.5 GB.</li><li>Total memory must be a multiple of 256 MB.</li><li>Memory per vCPU must be between .9 GB and 800 GB if selected extended memory feature.</li></ul>',
+  'gce.instance.customInstance.extendedmemory':
+    'Add more memory per vCPU to your VM instance. <a href="https://cloud.google.com/compute/docs/instances/creating-instance-with-custom-machine-type#extendedmemory">Click here </a>for more information regarding extended memory',
   'gce.instance.customMetadata.instance-template': 'The instance template used to configure this instance.',
   'gce.instance.customMetadata.load-balancer-names':
     'This field is used to "remember" what load balancers this instance is associated with, even if it is deregistered.',

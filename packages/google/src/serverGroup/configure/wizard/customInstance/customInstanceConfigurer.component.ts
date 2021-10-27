@@ -15,6 +15,7 @@ module(GCE_CUSTOM_INSTANCE_CONFIGURER, []).component(
     'selectedVCpuCount',
     'selectedMemory',
     'selectedInstanceFamily',
+    'selectedExtendedMemory',
     'onChange',
   ]),
 );

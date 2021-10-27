@@ -254,6 +254,7 @@ angular
         let vCpuCount = _.get(c, 'viewState.customInstance.vCpuCount');
         const instanceFamily = _.get(c, 'viewState.customInstance.instanceFamily');
         const memory = _.get(c, 'viewState.customInstance.memory');
+        const extendedMemory = _.get(c, 'viewState.customInstance.extendedMemory');
         const { zone, regional, region } = c;
         const { locationToInstanceTypesMap } = c.backingData.credentialsKeyedByAccount[c.credentials];
         const location = regional ? region : zone;
@@ -294,7 +295,7 @@ angular
           _.every([
             memory,
             vCpuCount,
-            !gceCustomInstanceBuilderService.memoryIsValid(instanceFamily, memory, vCpuCount),
+            !gceCustomInstanceBuilderService.memoryIsValid(instanceFamily, memory, vCpuCount, extendedMemory),
           ])
         ) {
           _.set(c, 'viewState.customInstance.memory', undefined);

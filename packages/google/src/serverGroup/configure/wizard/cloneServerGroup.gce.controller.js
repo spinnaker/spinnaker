@@ -216,7 +216,7 @@ angular
         const c = $scope.command;
         const location = c.regional ? c.region : c.zone;
         const { locationToInstanceTypesMap } = c.backingData.credentialsKeyedByAccount[c.credentials];
-
+        const extendedMemory = _.get(c, 'viewState.customInstance.extendedMemory');
         const customInstanceChoices = [
           _.get(c, 'viewState.customInstance.instanceFamily'),
           _.get(c, 'viewState.customInstance.vCpuCount'),
@@ -230,10 +230,14 @@ angular
               ...customInstanceChoices,
               location,
               locationToInstanceTypesMap,
+              extendedMemory,
             ),
           ])
         ) {
-          c.instanceType = gceCustomInstanceBuilderService.generateInstanceTypeString(...customInstanceChoices);
+          c.instanceType = gceCustomInstanceBuilderService.generateInstanceTypeString(
+            ...customInstanceChoices,
+            extendedMemory,
+          );
 
           instanceTypeService.getInstanceTypeDetails(c.selectedProvider, 'buildCustom').then((instanceTypeDetails) => {
             c.viewState.instanceTypeDetails = instanceTypeDetails;
