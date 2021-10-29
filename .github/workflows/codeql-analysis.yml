@@ -13,7 +13,7 @@ name: "CodeQL"
 
 on:
   schedule:
-    - cron: '22 20 * * 5'
+    - cron: '22 20 * * *'
 
 jobs:
   analyze:
