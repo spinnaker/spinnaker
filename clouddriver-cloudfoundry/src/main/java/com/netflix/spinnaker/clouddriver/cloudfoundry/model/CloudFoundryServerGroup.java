@@ -45,7 +45,7 @@ import lombok.experimental.Wither;
 @EqualsAndHashCode(of = "id", callSuper = false)
 @Builder(toBuilder = true)
 @JsonDeserialize(builder = CloudFoundryServerGroup.CloudFoundryServerGroupBuilder.class)
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties("loadBalancerNames")
 public class CloudFoundryServerGroup extends CloudFoundryModel implements ServerGroup {
   private static final ObjectMapper IMAGE_MAPPER = new ObjectMapper();
@@ -99,6 +99,7 @@ public class CloudFoundryServerGroup extends CloudFoundryModel implements Server
   Map<String, Object> env;
 
   @Wither
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
   @JsonView(Views.Cache.class)
   List<CloudFoundryServiceInstance> serviceInstances;
 
@@ -116,12 +117,18 @@ public class CloudFoundryServerGroup extends CloudFoundryModel implements Server
   Set<CloudFoundryInstance> instances;
 
   @Wither
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
   @JsonView(Views.Relationship.class)
   Set<String> loadBalancerNames;
 
   @Override
   public Set<String> getLoadBalancers() {
     return loadBalancerNames == null ? emptySet() : loadBalancerNames;
+  }
+
+  @Override
+  public Set<CloudFoundryInstance> getInstances() {
+    return instances == null ? emptySet() : instances;
   }
 
   @Override
