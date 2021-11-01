@@ -230,7 +230,7 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
       Map<String, CacheData> lambdaCacheData,
       Map<String, Collection<String>> appLambdaRelationships,
       List<Map<String, Object>> allLambdas) {
-    allLambdas.parallelStream()
+    allLambdas.stream()
         .forEach(
             lf -> {
               String functionName = (String) lf.get("functionName");

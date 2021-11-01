@@ -72,7 +72,7 @@ public class LambdaService {
     List<Callable<Void>> functionTasks = Collections.synchronizedList(new ArrayList<>());
     List<Map<String, Object>> hydratedFunctionList =
         Collections.synchronizedList(new ArrayList<>());
-    functions.parallelStream()
+    functions.stream()
         .forEach(
             f -> {
               Map<String, Object> functionAttributes = new ConcurrentHashMap<>();
