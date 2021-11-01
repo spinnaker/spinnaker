@@ -16,8 +16,12 @@
 
 package com.netflix.spinnaker.rosco.manifests.helm;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -25,6 +29,7 @@ import static org.mockito.Mockito.when;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.rosco.jobs.BakeRecipe;
 import com.netflix.spinnaker.rosco.manifests.ArtifactDownloader;
 import com.netflix.spinnaker.rosco.manifests.BakeManifestEnvironment;
@@ -70,6 +75,36 @@ final class HelmTemplateUtilsTest {
 
     try (BakeManifestEnvironment env = BakeManifestEnvironment.create()) {
       BakeRecipe recipe = helmTemplateUtils.buildBakeRecipe(env, bakeManifestRequest);
+    }
+  }
+
+  public void exceptionDownloading() throws IOException {
+    // When artifactDownloader throws an exception, make sure we wrap it and get
+    // a chance to include our own message, so the exception that goes up the
+    // chain includes something about helm charts.
+    SpinnakerException spinnakerException = new SpinnakerException("error from ArtifactDownloader");
+    ArtifactDownloader artifactDownloader = mock(ArtifactDownloader.class);
+    doThrow(spinnakerException)
+        .when(artifactDownloader)
+        .downloadArtifactToFile(any(Artifact.class), any(Path.class));
+
+    RoscoHelmConfigurationProperties helmConfigurationProperties =
+        mock(RoscoHelmConfigurationProperties.class);
+    HelmTemplateUtils helmTemplateUtils =
+        new HelmTemplateUtils(artifactDownloader, helmConfigurationProperties);
+    Artifact chartArtifact = Artifact.builder().name("test-artifact").version("3").build();
+
+    HelmBakeManifestRequest bakeManifestRequest = new HelmBakeManifestRequest();
+    bakeManifestRequest.setInputArtifacts(ImmutableList.of(chartArtifact));
+
+    try (BakeManifestEnvironment env = BakeManifestEnvironment.create()) {
+      IllegalStateException thrown =
+          assertThrows(
+              IllegalStateException.class,
+              () -> helmTemplateUtils.buildBakeRecipe(env, bakeManifestRequest));
+
+      assertThat(thrown.getMessage()).contains("Failed to fetch helm template");
+      assertThat(thrown.getCause()).isEqualTo(spinnakerException);
     }
   }
 

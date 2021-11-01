@@ -16,16 +16,18 @@
 
 package com.netflix.spinnaker.rosco.manifests;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.rosco.services.ClouddriverService;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.runner.JUnitPlatform;
 import org.junit.runner.RunWith;
@@ -36,7 +38,7 @@ import retrofit.mime.TypedByteArray;
 
 @RunWith(JUnitPlatform.class)
 final class ArtifactDownloaderImplTest {
-  private static final ClouddriverService clouddriverService = mock(ClouddriverService.class);
+  private final ClouddriverService clouddriverService = mock(ClouddriverService.class);
   private static final Artifact testArtifact =
       Artifact.builder().name("test-artifact").version("3").build();
 
@@ -50,7 +52,7 @@ final class ArtifactDownloaderImplTest {
           .thenReturn(successfulResponse(testContent));
       artifactDownloader.downloadArtifactToFile(testArtifact, file.path);
 
-      Assertions.assertThat(file.path).hasContent(testContent);
+      assertThat(file.path).hasContent(testContent);
     }
   }
 
@@ -65,7 +67,26 @@ final class ArtifactDownloaderImplTest {
           .thenReturn(successfulResponse(testContent));
       artifactDownloader.downloadArtifactToFile(testArtifact, file.path);
 
-      Assertions.assertThat(file.path).hasContent(testContent);
+      assertThat(file.path).hasContent(testContent);
+    }
+  }
+
+  @Test
+  public void exceptionDownloadingArtifactContent() throws IOException {
+    ArtifactDownloaderImpl artifactDownloader = new ArtifactDownloaderImpl(clouddriverService);
+    SpinnakerException spinnakerException = new SpinnakerException("error from clouddriver");
+    try (ArtifactDownloaderImplTest.AutoDeletingFile file = new AutoDeletingFile()) {
+      when(clouddriverService.fetchArtifact(testArtifact)).thenThrow(spinnakerException);
+
+      SpinnakerException thrown =
+          assertThrows(
+              SpinnakerException.class,
+              () -> artifactDownloader.downloadArtifactToFile(testArtifact, file.path));
+
+      // Make sure we have the message we expect, and that we wrapped the
+      // underlying exception to not lose any info.
+      assertThat(thrown.getMessage()).contains("Failed to download artifact");
+      assertThat(thrown.getCause()).isEqualTo(spinnakerException);
     }
   }
 

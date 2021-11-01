@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.rosco.manifests.helm;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.rosco.jobs.BakeRecipe;
 import com.netflix.spinnaker.rosco.manifests.ArtifactDownloader;
 import com.netflix.spinnaker.rosco.manifests.BakeManifestEnvironment;
@@ -62,7 +63,7 @@ public class HelmTemplateUtils {
     } else {
       try {
         templatePath = downloadArtifactToTmpFile(env, helmTemplateArtifact);
-      } catch (IOException e) {
+      } catch (IOException | SpinnakerException e) {
         throw new IllegalStateException("Failed to fetch helm template: " + e.getMessage(), e);
       }
     }
@@ -74,7 +75,7 @@ public class HelmTemplateUtils {
       for (Artifact valueArtifact : inputArtifacts.subList(1, inputArtifacts.size())) {
         valuePaths.add(downloadArtifactToTmpFile(env, valueArtifact));
       }
-    } catch (IOException e) {
+    } catch (IOException | SpinnakerException e) {
       throw new IllegalStateException("Failed to fetch helm values file: " + e.getMessage(), e);
     }
 

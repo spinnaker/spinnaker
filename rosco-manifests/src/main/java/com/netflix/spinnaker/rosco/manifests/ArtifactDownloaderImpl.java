@@ -2,6 +2,7 @@ package com.netflix.spinnaker.rosco.manifests;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.rosco.services.ClouddriverService;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.io.IOException;
@@ -12,7 +13,6 @@ import java.nio.file.Path;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Component;
-import retrofit.RetrofitError;
 import retrofit.client.Response;
 
 @Component
@@ -51,8 +51,8 @@ public final class ArtifactDownloaderImpl implements ArtifactDownloader {
                 artifact, e.getMessage()),
             e);
       }
-    } catch (RetrofitError e) {
-      throw new IOException(
+    } catch (SpinnakerException e) {
+      throw new SpinnakerException(
           String.format("Failed to download artifact: %s. Error: %s", artifact, e.getMessage()), e);
     }
   }
