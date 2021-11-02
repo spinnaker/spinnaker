@@ -213,6 +213,7 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter
               attrs.setCommand(app.getCommand());
               attrs.setProcesses(app.getProcesses());
               attrs.setRandomRoute(app.getRandomRoute());
+              attrs.setTimeout(app.getTimeout());
               return attrs;
             })
         .get();
@@ -247,6 +248,8 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter
     @Nullable private String command;
 
     @Nullable private Boolean randomRoute;
+
+    @Nullable private Integer timeout;
 
     private List<ProcessRequest> processes = Collections.emptyList();
   }

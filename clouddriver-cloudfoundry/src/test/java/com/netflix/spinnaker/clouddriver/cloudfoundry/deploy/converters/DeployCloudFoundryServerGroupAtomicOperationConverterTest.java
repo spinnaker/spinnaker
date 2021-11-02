@@ -296,4 +296,12 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
 
     assertThat(applicationAttributes.getRandomRoute()).isTrue();
   }
+
+  @Test
+  void convertTimeout() {
+    DeployCloudFoundryServerGroupDescription.ApplicationAttributes applicationAttributes =
+        converter.convertManifest(ImmutableMap.of("applications", List.of(Map.of("timeout", 60))));
+
+    assertThat(applicationAttributes.getTimeout() == 60);
+  }
 }
