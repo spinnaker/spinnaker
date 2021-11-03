@@ -179,7 +179,7 @@ public class ExpressionsSupport {
         registerFunction(
             evaluationContext,
             namespacedFunctionName,
-            p.getClass(),
+            p.getExtensionClass(),
             function.getName(),
             functionTypes);
       }
