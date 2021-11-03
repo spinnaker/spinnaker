@@ -525,7 +525,7 @@ public class DeployCloudFoundryServerGroupAtomicOperation
             description.getApplicationAttributes().getHealthCheckType(),
             description.getApplicationAttributes().getHealthCheckHttpEndpoint(),
             description.getApplicationAttributes().getTimeout(),
-            description.getApplicationAttributes().getTimeout());
+            null);
 
     if (!description.getApplicationAttributes().getProcesses().isEmpty()) {
       List<Process> processes = client.getProcesses().getAllProcessesByAppId(serverGroupId);

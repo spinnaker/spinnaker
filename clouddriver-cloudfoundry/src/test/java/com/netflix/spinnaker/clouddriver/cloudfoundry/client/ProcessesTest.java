@@ -99,8 +99,20 @@ public class ProcessesTest {
                             .timeout(180)
                             .build())
                     .build()));
-    processes.updateProcess("guid1", "command1", null, null, null, null);
-    verify(processesService).updateProcess("guid1", new UpdateProcess("command1", null));
+    processes.updateProcess("guid1", "command1", "http", "/endpoint", null, 180);
+    verify(processesService)
+        .updateProcess(
+            "guid1",
+            new UpdateProcess(
+                "command1",
+                new Process.HealthCheck.HealthCheckBuilder()
+                    .type("http")
+                    .data(
+                        new Process.HealthCheckData.HealthCheckDataBuilder()
+                            .endpoint("/endpoint")
+                            .invocationTimeout(180)
+                            .build())
+                    .build()));
   }
 
   @Test
@@ -112,5 +124,27 @@ public class ProcessesTest {
         .thenReturn(Calls.response(Response.success(processResources)));
     ProcessStats.State result = processes.getProcessState("some-app-guid").get();
     assertThat(result).isEqualTo(ProcessStats.State.RUNNING);
+  }
+
+  @Test
+  void updateProcessHealthCheck1() {
+    when(processesService.updateProcess(any(), any()))
+        .thenAnswer(invocation -> Calls.response(Response.success(new Process())));
+
+    processes.updateProcess("guid1", null, null, null, 90, null);
+    verify(processesService)
+        .updateProcess(
+            "guid1",
+            new UpdateProcess(
+                null,
+                new Process.HealthCheck.HealthCheckBuilder()
+                    .type(null)
+                    .data(
+                        new Process.HealthCheckData.HealthCheckDataBuilder()
+                            .endpoint(null)
+                            .invocationTimeout(null)
+                            .timeout(90)
+                            .build())
+                    .build()));
   }
 }

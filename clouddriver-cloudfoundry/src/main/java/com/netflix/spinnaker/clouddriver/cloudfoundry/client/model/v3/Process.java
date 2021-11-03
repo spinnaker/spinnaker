@@ -16,10 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import javax.annotation.Nullable;
 import lombok.*;
 
 @Data
+@JsonInclude(value = JsonInclude.Include.NON_NULL)
 public class Process {
   private String type;
   private String guid;
@@ -27,14 +29,18 @@ public class Process {
   private int memoryInMb;
   private int diskInMb;
 
-  @Nullable private HealthCheck healthCheck;
+  @Nullable
+  @JsonInclude(value = JsonInclude.Include.CUSTOM, valueFilter = HealthCheck.class)
+  private HealthCheck healthCheck;
 
   @Data
+  @JsonInclude(value = JsonInclude.Include.NON_NULL)
   public static class HealthCheck {
 
     private HealthCheck() {}
 
     @Nullable private String type;
+
     @Nullable private HealthCheckData data;
 
     public static class HealthCheckBuilder {
@@ -61,6 +67,7 @@ public class Process {
   }
 
   @Data
+  @JsonInclude(value = JsonInclude.Include.NON_NULL)
   public static class HealthCheckData {
 
     private HealthCheckData() {}
