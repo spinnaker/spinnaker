@@ -3,6 +3,32 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.15.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.14.2...@spinnaker/core@0.15.0) (2021-11-03)
+
+
+### Bug Fixes
+
+* **core/pipeline:** Make wait time readable if over 1 hour ([#9749](https://github.com/spinnaker/deck/issues/9749)) ([5848b4d](https://github.com/spinnaker/deck/commit/5848b4dcc1797865cb93b90090284be10497329f))
+* **core:** Auto-open edit modal for inferred app ([#9722](https://github.com/spinnaker/deck/issues/9722)) ([f539145](https://github.com/spinnaker/deck/commit/f5391457aca7741999398648c70b347c41e85e55))
+* **md:** hide deployment status if currently deploying ([#9757](https://github.com/spinnaker/deck/issues/9757)) ([3ca2d55](https://github.com/spinnaker/deck/commit/3ca2d551c511bd47709670e140af696d57cde0b0))
+* **md:** short preview env intro text ([#9754](https://github.com/spinnaker/deck/issues/9754)) ([a4a361b](https://github.com/spinnaker/deck/commit/a4a361b44b801b8e6ed9e80ed7625e9b1bfb84b6))
+
+
+### Features
+
+* **amazon/instance:** Add typing to instance types ([35be23d](https://github.com/spinnaker/deck/commit/35be23d3c6112aab148b53e09983f37ed03b3b1e))
+* **aws:** Adding support for multiple instance types and EC2 ASG MixedInstancePolicy - part 3 - parent components for Instance Type wizard and related ([44ab1ab](https://github.com/spinnaker/deck/commit/44ab1abdb1dd25f05b2305b65eb97eed09c8bac7))
+* **core:** Configurable account tag limit for executions ([#9750](https://github.com/spinnaker/deck/issues/9750)) ([55cd7fc](https://github.com/spinnaker/deck/commit/55cd7fc3f65c3fdef2f22bba0a192143af87d7e5))
+* **md:** added a section for "Now deploying" ([#9752](https://github.com/spinnaker/deck/issues/9752)) ([39aa27d](https://github.com/spinnaker/deck/commit/39aa27d6d525acb80d9cfeb8927f654198ca7c2a))
+* **md:** added deployed infrastructure section to artifacts + bunch of style updates ([#9759](https://github.com/spinnaker/deck/issues/9759)) ([a8ce521](https://github.com/spinnaker/deck/commit/a8ce521981e70fe046aa72ef43fbb10d09903498))
+* **md:** allow users to reset a constraint if it failed ([#9755](https://github.com/spinnaker/deck/issues/9755)) ([c1ac25a](https://github.com/spinnaker/deck/commit/c1ac25a5aba6ffbebe822a4e13f291013092833d))
+* **md:** Handle rolling forward properly ([#9753](https://github.com/spinnaker/deck/issues/9753)) ([4a6dd5c](https://github.com/spinnaker/deck/commit/4a6dd5c8876babc28570a8cda281dd57ee886292))
+* **md:** redesign of artifacts - metadata + rollback and compare to UX ([#9738](https://github.com/spinnaker/deck/issues/9738)) ([ae940a0](https://github.com/spinnaker/deck/commit/ae940a0b098eb22cd270df33729c5c75564ece76))
+
+
+
+
+
 ## [0.14.2](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.14.1...@spinnaker/core@0.14.2) (2021-10-05)
 
 

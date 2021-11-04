@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.2.1](https://github.com/spinnaker/deck/compare/@spinnaker/pluginsdk@0.2.0...@spinnaker/pluginsdk@0.2.1) (2021-11-03)
+
+**Note:** Version bump only for package @spinnaker/pluginsdk
+
+
+
+
+
 # [0.2.0](https://github.com/spinnaker/deck/compare/@spinnaker/pluginsdk@0.1.2...@spinnaker/pluginsdk@0.2.0) (2021-10-01)
 
 

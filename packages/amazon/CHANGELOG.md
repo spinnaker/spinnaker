@@ -3,6 +3,25 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.12.0](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.11.1...@spinnaker/amazon@0.12.0) (2021-11-03)
+
+
+### Bug Fixes
+
+* **aws:** StepSummary incorrectly rendering ([#9756](https://github.com/spinnaker/deck/issues/9756)) ([91ab3d5](https://github.com/spinnaker/deck/commit/91ab3d52be4dd9b05125c3949129de09a2cbdb9e))
+
+
+### Features
+
+* **amazon/instance:** Add typing to instance types ([35be23d](https://github.com/spinnaker/deck/commit/35be23d3c6112aab148b53e09983f37ed03b3b1e))
+* **aws:** Adding support for multiple instance types and EC2 ASG MixedInstancePolicy - part 2 - child components for Instance Type wizard ([249dc62](https://github.com/spinnaker/deck/commit/249dc6293e3c9addf6c6fe968d2c03716527b92e))
+* **aws:** Adding support for multiple instance types and EC2 ASG MixedInstancePolicy - part 3 - parent components for Instance Type wizard and related ([44ab1ab](https://github.com/spinnaker/deck/commit/44ab1abdb1dd25f05b2305b65eb97eed09c8bac7))
+* **aws:** Adding support for multiple instance types and EC2 ASG MixedInstancePolicy - part1 - types and hard-coded values ([b43506a](https://github.com/spinnaker/deck/commit/b43506ac27259fb2c11ffe44df1a1418d7804be3))
+
+
+
+
+
 ## [0.11.1](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.11.0...@spinnaker/amazon@0.11.1) (2021-10-05)
 
 **Note:** Version bump only for package @spinnaker/amazon
