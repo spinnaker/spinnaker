@@ -21,6 +21,7 @@ import com.netflix.spinnaker.gradle.extension.PluginObjectMapper
 import com.netflix.spinnaker.gradle.extension.extensions.SpinnakerBundleExtension
 import com.netflix.spinnaker.gradle.extension.extensions.SpinnakerPluginExtension
 import com.netflix.spinnaker.gradle.extension.extensions.VersionTestConfig
+import com.netflix.spinnaker.gradle.extension.getParent
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -45,7 +46,7 @@ class SpinnakerCompatibilityTestRunnerPlugin : Plugin<Project> {
     project.plugins.apply(JavaPlugin::class.java)
     project.plugins.apply(KotlinPluginWrapper::class.java)
 
-    val bundle = project.rootProject.extensions.getByType(SpinnakerBundleExtension::class)
+    val bundle = getParent(project).extensions.getByType(SpinnakerBundleExtension::class)
     val spinnakerVersionsClient = DefaultSpinnakerVersionsClient(bundle.compatibility.halconfigBaseURL)
 
     val versionTestConfigs = spinnakerVersionsClient.resolveVersionAliases(bundle.compatibility.versionTestConfigs)
@@ -116,12 +117,12 @@ class SpinnakerCompatibilityTestRunnerPlugin : Plugin<Project> {
       }
     }
 
-    project.rootProject.tasks.maybeCreate(TASK_NAME).apply {
+    getParent(project).tasks.maybeCreate(TASK_NAME).apply {
       description = "Runs Spinnaker compatibility tests"
       group = GROUP
       dependsOn(versionTestConfigs.map { ":${project.name}:compatibilityTest-${project.name}-${it.version}" })
       doLast {
-        val failedTests = project.rootProject.subprojects
+        val failedTests = getParent(project).subprojects
           .flatMap { it.tasks.withType(CompatibilityTestTask::class.java) }
           .map { PluginObjectMapper.mapper.readValue<CompatibilityTestResult>(it.result.asFile.get()) }
           .filter { it.result == TestResult.ResultType.FAILURE  }

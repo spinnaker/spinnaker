@@ -28,5 +28,5 @@ object Plugins {
   const val ADD_PLUGIN_DATA_TO_MANIFEST = "addPluginDataToManifest"
 
   internal fun hasDeckPlugin(project: Project): Boolean =
-    project.rootProject.subprojects.any { it.plugins.hasPlugin(SpinnakerUIExtensionPlugin::class.java) }
+    getParent(project).subprojects.any { it.plugins.hasPlugin(SpinnakerUIExtensionPlugin::class.java) }
 }

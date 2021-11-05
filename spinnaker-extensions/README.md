@@ -1,71 +1,164 @@
-## Gradle plugin for supporting spinnaker plugin implementations.
+# Spinnaker Extensions
 
-This **gradle** plugin allows Spinnaker developers to bundle, publish and register **_"spinnaker plugins"_** with spinnaker.
+This project provides a set of Gradle plugins to support developers in bundling, publishing, and registering **_
+Spinnaker Plugins_** with Spinnaker.
 
-### Usage
+## Table of Contents
 
-```groovy
-buildscript {
-  repositories {
-    maven { url "https://dl.bintray.com/spinnaker/gradle/" }
-  }
-  dependencies {
-    classpath("com.netflix.spinnaker.gradle:spinnaker-extensions:$spinnakerGradleVersion")
-  }
-}
-```
+- [Plugins](#plugins)
+  - [Bundler](#bundler-plugin)
+  - [UI Extension](#ui-extension-plugin)
+  - [Service Extension](#service-extension-plugin)
+  - [Compatibility Test Runner](#compatibility-test-runner)
+- [Project Structure](#project-structure)
+- [TODOS](#todos)
 
-* Root project must `apply plugin: "io.spinnaker.plugin.bundler`
-* Deck extension module must `apply plugin: "io.spinnaker.plugin.ui-extension`
-* Backend extension modules must `apply plugin: "io.spinnaker.plugin.service-extension`
+## <a name="plugins"></a>Plugins
 
-#### Root Module
+### <a name="bundler-plugin"></a>Bundler
+
+The bundler plugin defines a **_Spinnaker Plugin_** and registers tasks to group and bundle related extensions.
+
+The bundle artifact can be stored wherever Spinnaker can access it for initiation. E.g. S3, GCS, artifactory, etc.
+
+#### Tasks
+
+| Task                | Description                                                                                                         | Dependencies                   |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| `collectPluginZips` | Copies the assembled extension zips into `build/distributions` directory of the bundle                              | `:<subProj(s)>:assemblePlugin` |
+| `bundlePlugins`     | Zips all the extension zips together into one zip.                                                                  | `collectPluginZips`            |
+| `checksumBundle`    | Produces a checksum for the bundle                                                                                  | `bundlePlugins`                |
+| `releaseBundle`     | Makes sure that the bundle has been assembled and zipped and creates the `plugin-info.json` to describe the plugin. | `checksumBundle`               |
+
+#### Project Extensions
+
+| Extension         | Class                                                                                                                                                                                                                                              |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `spinnakerBundle` | [SpinnakerBundleExtension](https://github.com/spinnaker/spinnaker-gradle-project/blob/68fd1accc037270e387fa889c394c32c90192289/spinnaker-extensions/src/main/kotlin/com/netflix/spinnaker/gradle/extension/extensions/SpinnakerBundleExtension.kt) |
+
+#### How to apply
+
+`apply plugin: "io.spinnaker.plugin.bundler"`
+
+#### Example
 
 ```groovy
 apply plugin: "io.spinnaker.plugin.bundler"
 
 spinnakerBundle {
-  pluginId    = "com.netflix.streaming.platform.cde.aws-rds"
-  description = "AWS RDS infrastructure management"
-  version     = "1.0.0" // Will be inferred from git tags if undefined
-  provider    = "https://github.com/Netflix"
+  pluginId = "Example.Plugin"
+  description = "An example plugin description."
+  provider = "https://github.com/some-example-repo"
+  version = rootProject.version
 }
 ```
 
-#### Service Modules
+### <a name="ui-extension-plugin"></a>UI Extension
+
+The UI extension plugin registers tasks that will assemble a [Deck](https://github.com/spinnaker/deck) extension
+
+#### Tasks
+
+| Task             | Description                          | Dependencies  |
+| ---------------- | ------------------------------------ | ------------- |
+| `yarn`           | Installs package dependencies        |               |
+| `yarnModules`    | Runs the command `yarn modules`      |               |
+| `yarnBuild`      | Runs the command `yarn build`        | `yarnModules` |
+| `assemblePlugin` | Zips the distribution files together | `build`       |
+
+_Note_: Adds a dependency to the built in `build` task of `yarnBuild`
+
+#### How to apply
+
+`apply plugin: "io.spinnaker.plugin.ui-extension"`
+
+#### Example
+
+```groovy
+apply plugin: "io.spinnaker.plugin.ui-extension"
+```
+
+### <a name="service-extension-plugin"></a>Service Extension
+
+The Service extension plugin registers tasks that assemble a backend service extension
+
+#### Tasks
+
+| Task                      | Description                                                               | Dependencies |
+| ------------------------- | ------------------------------------------------------------------------- | ------------ |
+| `assemblePlugin`          | Zips plugin related files (dependency jars, class files, etc)             | `jar`        |
+| `addPluginDataToManifest` | Gathers plugin details from extensions and adds them to the manifest file |              |
+
+#### Project Extensions
+
+| Extension         | Class                                                                                                                                                                                                                                              |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `spinnakerPlugin` | [SpinnakerPluginExtension](https://github.com/spinnaker/spinnaker-gradle-project/blob/68fd1accc037270e387fa889c394c32c90192289/spinnaker-extensions/src/main/kotlin/com/netflix/spinnaker/gradle/extension/extensions/SpinnakerPluginExtension.kt) |
+
+#### How to apply
+
+`apply plugin: "io.spinnaker.plugin.service-extension"`
+
+#### Example
 
 ```groovy
 apply plugin: "java"
 apply plugin: "io.spinnaker.plugin.service-extension"
 
 repositories {
-  jcenter()
-  maven { url "http://dl.bintray.com/spinnaker/spinnaker/" }
+  mavenCentral()
 }
 
 dependencies {
   annotationProcessor "org.pf4j:pf4j:3.2.0"
-  compileOnly("com.netflix.spinnaker.kork:kork-plugins-api:$korkVersion")
+  compileOnly("io.spinnaker.kork:kork-plugins-api:$korkVersion")
 }
 
 spinnakerPlugin {
-  serviceName        = "orca"
-  pluginClassName    = "com.netflix.streaming.platform.cde.AwsRdsPlugin"
-  requires           = "orca>=7.0.0" // Will default to `serviceName>=0.0.0` if undefined
+  serviceName = "orca"
+  pluginClassName = "com.example.service.ExamplePlugin"
+  requires = "orca>=7.0.0" // Will default to `serviceName>=0.0.0` if undefined
 }
 ```
 
-#### Deck Module
+### <a name="compatibility-test-runner"></a>Compatibility Test Runner
+
+The Compatibility Test Runner plugin accompanies the Service Extension plugin to create tasks for easily testing your
+plugins inside a set of top-level Spinnaker versions (e.g., `1.21.1`).
+
+The test runner dynamically creates Gradle source sets for each top-level Spinnaker version you declare and re-writes
+your test dependencies to depend on the service Gradle platform version (e.g., `io.spinnaker.orca:orca-bom`)
+that corresponds to those Spinnaker versions. It does _not_ alter your plugin's compile or runtime classpaths. Your
+plugin compiles against version `X`; the test runner runs your plugin inside Spinnaker `Y` and `Z`.
+
+#### Tasks
+
+| Task                                                  | Description                                                                    | Dependencies                                          |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------- |
+| `compatibilityTest-${project.name}-${config.version}` | Tasks are created for each version specified in the bundle compatibility block |                                                       |
+| `compatibilityTest`                                   | Created in the bundle project to run all extension compatibility tests         | `compatibilityTest-${project.name}-${config.version}` |
+
+#### Project Extensions
+
+| Extension       | Class                                                                                                                                                                                                                                                            |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `compatibility` | [SpinnakerCompatibilityExtension](https://github.com/spinnaker/spinnaker-gradle-project/blob/68fd1accc037270e387fa889c394c32c90192289/spinnaker-extensions/src/main/kotlin/com/netflix/spinnaker/gradle/extension/extensions/SpinnakerCompatibilityExtension.kt) |
+
+#### How to apply
+
+- In the bundle project, add a `compatibility` block to the `spinnakerBundle` extension.
+- In a service extension subproject, `apply plugin: "io.spinnaker.plugin.compatibility-test-runner"`
+
+_Note_: Instead of providing an explicit version, you can also supply any of the following aliases:
+
+- `latest`: the most recent Spinnaker release
+- `supported`: the last three Spinnaker releases
+- `nightly`: Spinnaker's nightly build
+
+#### Example
 
 ```groovy
-apply plugin: "io.spinnaker.plugin.ui-extension"
-```
-
-
-#### Compatibility Test Runner
-
-```groovy
-// Inside root project
+// bundle project
 spinnakerBundle {
   // ...
   compatibility {
@@ -73,47 +166,50 @@ spinnakerBundle {
   }
 }
 
-// Inside service extension subproject
+// service extension subproject
 apply plugin: "io.spinnaker.plugin.compatibility-test-runner"
 ```
 
-The compatibility test runner allows plugin developers to easily test their plugins inside a set of top-level Spinnaker versions (e.g., `1.21.1`).
+#### Writing Tests
 
-The development flow looks something like this:
-- Develop a plugin.
-- Write tests, preferably Spring Boot-style integration tests using [service test fixtures](https://github.com/spinnaker/orca/blob/master/orca-api-tck/src/main/kotlin/com/netflix/spinnaker/orca/api/test/OrcaFixture.kt).
-  You can find an example of this kind of test in our [Spinnaker plugin example repositories](https://github.com/spinnaker-plugin-examples/pf4jStagePlugin/blob/master/random-wait-orca/src/test/kotlin/io/armory/plugin/stage/wait/random/RandomWaitStageIntegrationTest.kt).
-- Your integration tests should depend on Spinnaker's exported Gradle platforms, which take the form `<service>-bom`. For example, if your test relies on the Orca test fixture, your subproject build file should look something like this:
+Tests should rely on Spinnaker's exported Gradle platforms (`<service>-bom`). This allows the `compatibility-test-runner`
+to orchestrate tests against multiple versions of Spinnaker.
+
+**_Example_**
+
 ```groovy
-  dependencies {
-    // ...
-    testImplementation("com.netflix.spinnaker.orca:orca-bom:<orca-version>")
-    testImplementation("com.netflix.spinnaker.orca:orca-api-tck")
-  }
+dependencies {
+  testImplementation(platform("io.spinnaker.orca:orca-bom:${orcaVersion}"))
+  // ...
+  testImplementation("io.spinnaker.orca:orca-api-tck")
+}
 ```
 
-- Install this Gradle plugin, and configure it to run tests against a set of top-level Spinnaker versions.
-  The plugin will create a set of tasks: a set of `compatibilityTest-<project>-<spinnaker-version>` tasks, and a top-level
-  `compatibilityTest` task that will run all of the compatibility test subtasks.
+**_Recommendations_**:
 
-The test runner dynamically creates Gradle source sets for each top-level Spinnaker version you declare and re-writes your test dependencies to
-depend on the service Gradle platform version (e.g., `com.spinnaker.netflix.orca:orca-bom`) that corresponds to those Spinnaker versions.
-It does _not_ alter your plugin's compile or runtime classpaths. Your plugin compiles against version `X`; the test runner runs your plugin inside Spinnaker `Y` and `Z`.
+- It is recommended to write tests in a Spring Boot - style integration test using [service test fixtures](https://github.com/spinnaker/orca/blob/master/orca-api-tck/src/main/kotlin/com/netflix/spinnaker/orca/api/test/OrcaFixture.kt).
+  An example of this can be seen in [spinnaker-plugin-examples: RandomWaitStageIntegrationTest](https://github.com/spinnaker-plugin-examples/pf4jStagePlugin/blob/master/random-wait-orca/src/test/kotlin/io/armory/plugin/stage/wait/random/RandomWaitStageIntegrationTest.kt)
 
-Instead of providing an explicit version, you can also supply any of the following aliases:
+## <a name="project-structure"></a>Project structure
 
-- `latest`: the most recent Spinnaker release
-- `supported`: the last three Spinnaker releases
-- `nightly`: Spinnaker's nightly build
+Although the gradle plugins are applied to individual projects they do require a particular project structure.
 
-### Notes
+### Definitions
 
-* Expects multi-project gradle builds where each sub project implements extensions targeting a single spinnaker service.
-* Storage for plugin artifacts(bundled zip) can be like S3, GCS, jCenter or artifactory etc. ????
+- **_bundle project_**, a project with the [bundle plugin](#bundler-plugin) applied
+- **_extension project_**, a project with either the [UI extension](#ui-extension-plugin) or [Service extension](#service-extension-plugin) plugin applied.
 
+### Rules
 
-- [x] Compute Checksum for each artifact
-- [x] Bundle up plugin artifacts into a single ZIP
+1. A parent **_bundle project_** is created with a `spinnakerBundle` extension applied
+2. One or more **_extension projects_** are direct subprojects of the parent **_bundle project_**
+3. Only one [UI extension](#ui-extension-plugin) can be under a **_bundle project_**
+4. Only one [Service extension](#service-extension-plugin) can exist per service name
+5. A **_bundle project_** can _NOT_ be nested under another **_bundle project_**
+6. Multiple **_bundle projects_** are supported (Monorepo) as long as they don't break rule 3.
+
+### <a name="todos"></a>TODOs
+
 - [ ] Deck artifacts zip with in the module and collect the same in the plugin bundle ?
 - [ ] Publish bundle to ??
 - [ ] How to register it with spinnaker ??

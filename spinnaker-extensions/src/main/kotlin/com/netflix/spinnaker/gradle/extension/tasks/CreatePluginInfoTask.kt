@@ -23,6 +23,7 @@ import com.netflix.spinnaker.gradle.extension.compatibility.CompatibilityTestRes
 import com.netflix.spinnaker.gradle.extension.compatibility.CompatibilityTestTask
 import com.netflix.spinnaker.gradle.extension.extensions.SpinnakerBundleExtension
 import com.netflix.spinnaker.gradle.extension.extensions.SpinnakerPluginExtension
+import com.netflix.spinnaker.gradle.extension.getParent
 import groovy.json.JsonOutput
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
@@ -41,16 +42,16 @@ open class CreatePluginInfoTask : DefaultTask() {
   override fun getGroup(): String = Plugins.GROUP
 
   @Internal
-  val rootProjectVersion: String = project.rootProject.version.toString()
+  val rootProjectVersion: String = project.version.toString()
 
   @TaskAction
   fun doAction() {
-    val allPluginExts = project.rootProject
+    val allPluginExts = project
       .subprojects
       .mapNotNull { it.extensions.findByType(SpinnakerPluginExtension::class.java) }
       .toMutableList()
 
-    val bundleExt = project.rootProject.extensions.findByType(SpinnakerBundleExtension::class.java)
+    val bundleExt = project.extensions.findByType(SpinnakerBundleExtension::class.java)
       ?: throw IllegalStateException("A 'spinnakerBundle' configuration block is required")
 
     val requires = allPluginExts.map { it.requires ?: "${it.serviceName}>=0.0.0" }
@@ -63,7 +64,7 @@ open class CreatePluginInfoTask : DefaultTask() {
       }
       .joinToString(",")
 
-    val compatibility = project.rootProject
+    val compatibility = project
       .subprojects
       .flatMap { it.tasks.withType(CompatibilityTestTask::class.java) }
       .map { it.result.get().asFile }
@@ -97,7 +98,7 @@ open class CreatePluginInfoTask : DefaultTask() {
   }
 
   private fun getChecksum(): String {
-    return project.rootProject.tasks
+    return project.tasks
       .getByName(CHECKSUM_BUNDLE_TASK_NAME)
       .outputs
       .files

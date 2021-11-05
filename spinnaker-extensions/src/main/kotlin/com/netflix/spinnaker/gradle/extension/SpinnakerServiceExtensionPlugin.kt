@@ -55,7 +55,7 @@ class SpinnakerServiceExtensionPlugin : Plugin<Project> {
     val pluginExt = project.extensions.findByType(SpinnakerPluginExtension::class.java)
       ?: throw IllegalStateException("A 'spinnakerPlugin' configuration block is required")
 
-    val bundleExt = project.rootProject.extensions.findByType(SpinnakerBundleExtension::class.java)
+    val bundleExt = getParent(project).extensions.findByType(SpinnakerBundleExtension::class.java)
       ?: throw IllegalStateException("A 'spinnakerBundle' configuration block is required")
 
     val attributes = mutableMapOf<String, String>()
@@ -107,7 +107,7 @@ class SpinnakerServiceExtensionPlugin : Plugin<Project> {
 
   //the plugin version is supplied with a v from tag, but fails when update manager compares versions
   private fun removeTagPrefix(bundleVersion: String, project: Project): String {
-    val version = if (isVersionSpecified(bundleVersion)) bundleVersion else project.rootProject.version.toString()
+    val version = if (isVersionSpecified(bundleVersion)) bundleVersion else getParent(project).version.toString()
     return version.removePrefix("v")
   }
 
