@@ -7,7 +7,7 @@ javaPlatform {
 ext {
   versions = [
     arrow            : "0.13.2",
-    aws              : "1.12.84",
+    aws              : "1.12.100",
     bouncycastle     : "1.64", // 1.64 removes CVE-2019-17359
     brave            : "5.12.3",
     groovy           : "2.5.11", //this needs to keep in sync with the version from boot... if we could get rid of groovy-all we'd no longer need this
