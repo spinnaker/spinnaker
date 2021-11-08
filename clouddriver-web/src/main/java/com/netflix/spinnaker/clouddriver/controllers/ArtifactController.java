@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.artifacts.ArtifactDownloader;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.exceptions.MissingCredentialsException;
+import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -64,7 +65,11 @@ public class ArtifactController {
           "Artifacts have not been enabled. Enable them using 'artifacts.enabled' in clouddriver");
     }
 
-    return outputStream -> IOUtils.copy(artifactDownloader.download(artifact), outputStream);
+    return outputStream -> {
+      try (InputStream artifactStream = artifactDownloader.download(artifact)) {
+        IOUtils.copy(artifactStream, outputStream);
+      }
+    };
   }
 
   @RequestMapping(method = RequestMethod.GET, value = "/account/{accountName}/names")
