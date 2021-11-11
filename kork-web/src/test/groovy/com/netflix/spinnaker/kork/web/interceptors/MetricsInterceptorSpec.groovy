@@ -114,7 +114,7 @@ class MetricsInterceptorSpec extends Specification {
     Id id = null
     Timer timer = null
 
-    @Delegate
+    @Delegate(deprecated = true)
     DefaultRegistry defaultRegistry = new DefaultRegistry()
 
     @Override

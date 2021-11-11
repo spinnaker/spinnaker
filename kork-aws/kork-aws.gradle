@@ -29,7 +29,13 @@ dependencies {
   api "com.jcraft:jsch.agentproxy.jsch"
   api "com.jcraft:jsch.agentproxy.connector-factory"
 
-  implementation "com.netflix.spectator:spectator-ext-aws"
+  implementation("com.netflix.spectator:spectator-ext-aws") {
+    // exclude transitives to keep spectator's version of the aws sdk from
+    // overriding what we specify elsewhere.  It's not so much the aws sdk that
+    // causes problems, but its transitive dependencies -- jackson and then
+    // kotlin.
+    transitive = false
+  }
 
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation "org.junit.jupiter:junit-jupiter-params"

@@ -19,10 +19,6 @@ dependencies {
   api "org.springframework.boot:spring-boot-starter-security"
   api "org.springframework.security:spring-security-core"
   api "com.netflix.spectator:spectator-api"
-  api("com.netflix.spectator:spectator-web-spring") {
-    // IMPORTANT: spectator-web-spring is Spring Boot 1.x; but is code compat with Boot 2. Exclude the transitives
-    transitive = false
-  }
   api "com.fasterxml.jackson.core:jackson-annotations"
   api "com.squareup.okhttp:okhttp"
   api "com.squareup.okhttp3:okhttp"
@@ -30,7 +26,12 @@ dependencies {
 
   implementation "com.google.guava:guava"
   implementation "javax.inject:javax.inject:1"
-
+  implementation("com.netflix.spectator:spectator-web-spring") {
+    // exclude transitives since this brings in a newer version of spring (boot)
+    // dependencies than we're compatible with (2.2.x for spring boot and 5.2.x
+    // for spring as of version 1.0.5 of spectator).
+    transitive = false
+  }
   implementation "io.zipkin.brave:brave-instrumentation-okhttp3"
 
   compileOnly "org.springframework.boot:spring-boot-starter-actuator"
@@ -41,4 +42,8 @@ dependencies {
   testImplementation "com.netflix.spectator:spectator-reg-micrometer"
   testRuntimeOnly "cglib:cglib-nodep"
   testRuntimeOnly "org.objenesis:objenesis"
+}
+
+test {
+  useJUnitPlatform()
 }

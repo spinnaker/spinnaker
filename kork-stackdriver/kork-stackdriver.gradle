@@ -20,9 +20,14 @@ dependencies {
 
   api "io.reactivex:rxjava"
   api "com.netflix.spectator:spectator-api"
-  api "com.netflix.spectator:spectator-web-spring"
   api "com.google.apis:google-api-services-monitoring"
 
+  implementation("com.netflix.spectator:spectator-web-spring") {
+    // exclude transitives since this brings in a newer version of spring (boot)
+    // dependencies than we're compatible with (2.2.x for spring boot and 5.2.x
+    // for spring as of version 1.0.5 of spectator).
+    transitive = false
+  }
   implementation "org.slf4j:slf4j-api"
 
   // Force component bringing this in to already support spring boot configure.

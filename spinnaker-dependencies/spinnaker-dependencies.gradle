@@ -21,7 +21,7 @@ ext {
     resilience4j     : "1.0.0",
     retrofit         : "1.9.0",
     retrofit2        : "2.8.1",
-    spectator        : "0.103.0",
+    spectator        : "1.0.6",
     spek             : "1.1.5",
     spek2            : "2.0.9",
     spring           : "5.2.12.RELEASE", // this should be kept in sync with spring-boot / removed once the need for a version override is gone
