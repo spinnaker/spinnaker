@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.75](https://github.com/spinnaker/deck/compare/@spinnaker/appengine@0.0.74...@spinnaker/appengine@0.0.75) (2021-11-12)
+
+**Note:** Version bump only for package @spinnaker/appengine
+
+
+
+
+
 ## [0.0.74](https://github.com/spinnaker/deck/compare/@spinnaker/appengine@0.0.73...@spinnaker/appengine@0.0.74) (2021-11-03)
 
 **Note:** Version bump only for package @spinnaker/appengine

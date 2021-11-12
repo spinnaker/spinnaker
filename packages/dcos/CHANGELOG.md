@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.40](https://github.com/spinnaker/deck/compare/@spinnaker/dcos@0.0.39...@spinnaker/dcos@0.0.40) (2021-11-12)
+
+**Note:** Version bump only for package @spinnaker/dcos
+
+
+
+
+
 ## [0.0.39](https://github.com/spinnaker/deck/compare/@spinnaker/dcos@0.0.38...@spinnaker/dcos@0.0.39) (2021-11-03)
 
 **Note:** Version bump only for package @spinnaker/dcos

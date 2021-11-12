@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.15.1](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.15.0...@spinnaker/core@0.15.1) (2021-11-12)
+
+
+### Bug Fixes
+
+* **bake:** make helm chart path visible for git/repo artifact ([#9768](https://github.com/spinnaker/deck/issues/9768)) ([9c4e438](https://github.com/spinnaker/deck/commit/9c4e438d4f8fd6c9b72f6648347bb68b93dd8139))
+
+
+
+
+
 # [0.15.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.14.2...@spinnaker/core@0.15.0) (2021-11-03)
 
 
