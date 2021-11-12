@@ -45,5 +45,6 @@ func NewAccountCmd(rootOptions *cmd.RootOptions) *cobra.Command {
 	// create subcommands
 	cmd.AddCommand(NewGetCmd(options))
 	cmd.AddCommand(NewListCmd(options))
+	cmd.AddCommand(NewWhoamiCmd(options))
 	return cmd
 }
