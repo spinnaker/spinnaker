@@ -6,7 +6,8 @@ import { StageConfigField } from '../../../..';
 import { BakeHelmConfigForm } from './BakeHelmConfigForm';
 import { AccountService } from '../../../../../account';
 import { ApplicationModelBuilder } from '../../../../../application';
-import type { IStage } from '../../../../../domain';
+import { ExpectedArtifactService } from '../../../../../artifact';
+import type { IExpectedArtifact, IStage } from '../../../../../domain';
 import { SpinFormik } from '../../../../../presentation';
 import { REACT_MODULE } from '../../../../../reactShims';
 
@@ -83,5 +84,49 @@ describe('<BakeHelmConfigForm />', () => {
     component.setProps({}); // force a re-render
 
     expect(component.find(StageConfigField).findWhere((x) => x.text() === helmChartFilePathFieldName).length).toBe(0);
+  });
+
+  it('render the helm chart file path if the id of the git artifact is given but the account value does not exist', async () => {
+    const expectedArtifactDisplayName = 'test-artifact';
+    const expectedArtifactId = 'test-artifact-id';
+    const expectedGitArtifact: IExpectedArtifact = {
+      defaultArtifact: {
+        customKind: true,
+        id: 'defaultArtifact-id',
+      },
+      displayName: expectedArtifactDisplayName,
+      id: expectedArtifactId,
+      matchArtifact: {
+        artifactAccount: 'gitrepo',
+        id: expectedArtifactId,
+        reference: 'git repo',
+        type: 'git/repo',
+        version: 'master',
+      },
+      useDefaultArtifact: false,
+      usePriorArtifact: false,
+    };
+    const stage = ({
+      inputArtifacts: [{ id: expectedArtifactId }],
+    } as unknown) as IStage;
+
+    spyOn(ExpectedArtifactService, 'getExpectedArtifactsAvailableToStage').and.returnValue([expectedGitArtifact]);
+
+    const props = getProps();
+
+    const component = mount(
+      <SpinFormik
+        initialValues={stage}
+        onSubmit={() => null}
+        validate={() => null}
+        render={(formik) => <BakeHelmConfigForm {...props} formik={formik} />}
+      />,
+    );
+
+    await new Promise((resolve) => setTimeout(resolve)); // wait one js tick for promise to resolve
+    component.setProps({}); // force a re-render
+
+    expect(component.find('.Select-value-label > span').text().includes(expectedArtifactDisplayName)).toBe(true);
+    expect(component.find(StageConfigField).findWhere((x) => x.text() === helmChartFilePathFieldName).length).toBe(1);
   });
 });
