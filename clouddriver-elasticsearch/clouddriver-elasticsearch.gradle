@@ -10,7 +10,7 @@ dependencies {
   implementation "org.codehaus.groovy:groovy-all"
   implementation "org.springframework.boot:spring-boot-starter-web"
 
-  testImplementation "org.testcontainers:elasticsearch:1.12.5"
+  testImplementation "org.testcontainers:elasticsearch"
   testImplementation "cglib:cglib-nodep"
   testImplementation "org.objenesis:objenesis"
   testImplementation "org.spockframework:spock-core"
