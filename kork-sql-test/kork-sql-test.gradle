@@ -7,5 +7,16 @@ dependencies {
   api("org.testcontainers:mysql")
   api("org.testcontainers:postgresql")
 
+  testImplementation "org.junit.jupiter:junit-jupiter-api"
+  testImplementation "org.junit.platform:junit-platform-runner"
+
   runtimeOnly "com.h2database:h2"
+
+  testRuntimeOnly "mysql:mysql-connector-java"
+  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+  testRuntimeOnly "org.postgresql:postgresql"
+}
+
+test {
+  useJUnitPlatform()
 }
