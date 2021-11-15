@@ -27,10 +27,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import javax.annotation.Nonnull;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
+@Slf4j
 public class ShrinkClusterStage extends AbstractClusterWideClouddriverOperationStage {
 
   public static final String STAGE_TYPE = "shrinkCluster";
@@ -74,12 +76,33 @@ public class ShrinkClusterStage extends AbstractClusterWideClouddriverOperationS
             parent.getContext().get("interestingHealthProviderNames"));
       }
 
-      graph.add(
-          (it) -> {
-            it.setType(disableClusterStage.getType());
-            it.setName("disableCluster");
-            it.setContext(context);
-          });
+      // this flag controls if the "disableCluster" step needs to be added to the ShrinkCluster
+      // stage or not.
+      // This is to allow a user the option to bypass disabling the cluster before shrinking it.
+      // Note that the user has
+      // to explicitly opt-in by setting the below-mentioned property in the context to bypass it.
+      boolean runDisableClusterStep = true;
+      try {
+        runDisableClusterStep =
+            (boolean) parent.getContext().getOrDefault("runDisableClusterStep", true);
+      } catch (Exception e) {
+        log.error(
+            "error reading 'runDisableClusterStep' property from the stage manifest. "
+                + "DisableCluster stage will be added to the {} stage",
+            STAGE_TYPE);
+      }
+
+      if (runDisableClusterStep) {
+        graph.add(
+            (it) -> {
+              it.setType(disableClusterStage.getType());
+              it.setName("disableCluster");
+              it.setContext(context);
+            });
+      } else {
+        log.info(
+            "not adding 'disableCluster' step to the {} stage as it has been disabled", STAGE_TYPE);
+      }
     }
   }
 }
