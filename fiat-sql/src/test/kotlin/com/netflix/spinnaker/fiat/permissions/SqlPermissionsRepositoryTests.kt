@@ -27,6 +27,7 @@ import com.netflix.spinnaker.fiat.permissions.sql.tables.references.PERMISSION
 import com.netflix.spinnaker.fiat.permissions.sql.tables.references.RESOURCE
 import com.netflix.spinnaker.fiat.permissions.sql.tables.references.USER
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import dev.minutest.ContextBuilder
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -696,18 +697,18 @@ internal object SqlPermissionsRepositoryTests : JUnit5Minutests {
     fun tests() = rootContext<JooqConfig> {
 
         fixture {
-            JooqConfig(SQLDialect.MYSQL, "jdbc:tc:mysql:5.7.22://somehostname:someport/databasename")
+           JooqConfig(SQLDialect.MYSQL, SqlTestUtil.tcJdbcUrl)
         }
 
         context("mysql CRUD operations") {
-            crudOperations(JooqConfig(SQLDialect.MYSQL, "jdbc:tc:mysql:5.7.22://somehostname:someport/databasename"))
+            crudOperations(JooqConfig(SQLDialect.MYSQL, SqlTestUtil.tcJdbcUrl))
         }
 
         context("postgresql CRUD operations") {
             crudOperations(
                 JooqConfig(
                     SQLDialect.POSTGRES,
-                    "jdbc:tc:postgresql:12-alpine://somehostname:someport/databasename"
+                    "jdbc:tc:postgresql:12-alpine:///databasename"
                 )
             )
         }

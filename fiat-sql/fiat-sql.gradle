@@ -36,6 +36,8 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j"
 
+    testImplementation "io.spinnaker.kork:kork-sql-test"
+
     testImplementation "io.mockk:mockk"
     testImplementation "dev.minutest:minutest"
     testImplementation "org.junit.jupiter:junit-jupiter-api"
