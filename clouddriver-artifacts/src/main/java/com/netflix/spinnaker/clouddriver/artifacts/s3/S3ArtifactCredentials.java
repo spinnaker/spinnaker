@@ -28,12 +28,12 @@ import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import groovy.util.logging.Slf4j;
 import java.io.InputStream;
+import java.util.Optional;
+import javax.annotation.Nullable;
 import lombok.Getter;
 
 @NonnullByDefault
-@Slf4j
 public class S3ArtifactCredentials implements ArtifactCredentials {
   public static final String CREDENTIALS_TYPE = "artifacts-s3";
   @Getter private final String name;
@@ -45,8 +45,23 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
   private final String awsAccessKeyId;
   private final String awsSecretAccessKey;
   private final String signerOverride;
+  private final Optional<S3ArtifactValidator> s3ArtifactValidator;
 
-  S3ArtifactCredentials(S3ArtifactAccount account) throws IllegalArgumentException {
+  private AmazonS3 amazonS3;
+
+  S3ArtifactCredentials(
+      S3ArtifactAccount account, Optional<S3ArtifactValidator> s3ArtifactValidator) {
+    this(account, s3ArtifactValidator, null);
+  }
+
+  S3ArtifactCredentials(S3ArtifactAccount account, @Nullable AmazonS3 amazonS3) {
+    this(account, Optional.empty(), amazonS3);
+  }
+
+  S3ArtifactCredentials(
+      S3ArtifactAccount account,
+      Optional<S3ArtifactValidator> s3ArtifactValidator,
+      @Nullable AmazonS3 amazonS3) {
     name = account.getName();
     apiEndpoint = account.getApiEndpoint();
     apiRegion = account.getApiRegion();
@@ -54,9 +69,15 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
     awsAccessKeyId = account.getAwsAccessKeyId();
     awsSecretAccessKey = account.getAwsSecretAccessKey();
     signerOverride = account.getSignerOverride();
+    this.s3ArtifactValidator = s3ArtifactValidator;
+    this.amazonS3 = amazonS3;
   }
 
   private AmazonS3 getS3Client() {
+    if (amazonS3 != null) {
+      return amazonS3;
+    }
+
     AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard();
     if (!signerOverride.isEmpty()) {
       ClientConfiguration configuration = PredefinedClientConfigurations.defaultConfig();
@@ -78,7 +99,8 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
       builder.withCredentials(new AWSStaticCredentialsProvider(awsStaticCreds));
     }
 
-    return builder.build();
+    amazonS3 = builder.build();
+    return amazonS3;
   }
 
   @Override
@@ -96,7 +118,10 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
     String bucketName = reference.substring(0, slash);
     String path = reference.substring(slash + 1);
     S3Object s3obj = getS3Client().getObject(bucketName, path);
-    return s3obj.getObjectContent();
+    if (s3ArtifactValidator.isEmpty()) {
+      return s3obj.getObjectContent();
+    }
+    return s3ArtifactValidator.get().validate(getS3Client(), s3obj);
   }
 
   @Override

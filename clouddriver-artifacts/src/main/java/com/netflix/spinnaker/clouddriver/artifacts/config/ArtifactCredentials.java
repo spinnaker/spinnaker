@@ -38,6 +38,12 @@ public interface ArtifactCredentials extends Credentials {
    */
   List<String> getTypes();
 
+  /**
+   * Download the specified artifact
+   *
+   * @return a stream containing the contents of artifact. It is the caller's responsibility to
+   *     close this stream as soon as possible.
+   */
   InputStream download(Artifact artifact) throws IOException;
 
   default Optional<String> resolveArtifactName(Artifact artifact) {
