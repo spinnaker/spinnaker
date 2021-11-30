@@ -19,7 +19,7 @@ plugins {
   id "org.jetbrains.kotlin.jvm" version "$kotlinVersion" apply false
   id "org.jetbrains.kotlin.plugin.allopen" version "$kotlinVersion" apply false
   id "io.gitlab.arturbosch.detekt" version "1.17.1" apply false
-  id "org.jetbrains.dokka" version "1.4.10" apply false
+  id "org.jetbrains.dokka" version "1.4.32" apply false
 }
 
 allprojects {
