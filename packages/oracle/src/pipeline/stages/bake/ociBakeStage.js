@@ -66,12 +66,12 @@ module(ORACLE_PIPELINE_STAGES_BAKE_OCIBAKESTAGE, [ORACLE_PIPELINE_STAGES_BAKE_BA
           ([baseOsOptions, accounts]) => {
             if (baseOsOptions.baseImages.length > 0) {
               $scope.baseOsOptions = baseOsOptions;
+              if (!$scope.stage.baseOs) {
+                $scope.stage.baseOs = $scope.baseOsOptions.baseImages[0].id;
+              }
             }
             if (!$scope.stage.user) {
               $scope.stage.user = AuthenticationService.getAuthenticatedUser().name;
-            }
-            if (!$scope.stage.baseOs) {
-              $scope.stage.baseOs = $scope.baseOsOptions.baseImages[0].id;
             }
             if (!$scope.stage.upgrade) {
               $scope.stage.upgrade = true;
