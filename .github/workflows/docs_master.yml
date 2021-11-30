@@ -22,7 +22,7 @@ jobs:
       - name: Checkout docs repo
         uses: actions/checkout@v2
         with:
-          repository: spinnaker/spinnaker.github.io
+          repository: spinnaker/spinnaker.io
           path: docs
 
       - uses: actions/setup-java@v1
@@ -43,7 +43,7 @@ jobs:
       - name: Copy docs
         run: |
           SOURCE_DIR=service/orca-api/build/dokka/html/
-          TARGET_DIR=docs/reference/api/service-plugin-apis/orca-api/master/
+          TARGET_DIR=content/en/docs/reference/api/service-plugin-apis/orca-api/master/
 
           mkdir -p $TARGET_DIR
           cp -R $SOURCE_DIR $TARGET_DIR
