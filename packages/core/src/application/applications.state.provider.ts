@@ -13,7 +13,7 @@ module(APPLICATIONS_STATE_PROVIDER, [STATE_CONFIG_PROVIDER, APPLICATION_STATE_PR
   (stateConfigProvider: StateConfigProvider, applicationStateProvider: ApplicationStateProvider) => {
     const applicationsState: INestedState = {
       name: 'applications',
-      url: '/applications',
+      url: '/applications?create',
       views: {
         'main@': {
           component: Applications,

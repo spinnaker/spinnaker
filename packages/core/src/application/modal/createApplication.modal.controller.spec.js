@@ -14,6 +14,7 @@ describe('Controller: CreateApplicationModalCtrl', function () {
       controller = $controller('CreateApplicationModalCtrl', {
         $scope: scope,
         $uibModalInstance: {},
+        name: 'deck',
       });
     }),
   );

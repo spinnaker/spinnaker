@@ -136,6 +136,9 @@ angular
               'createApplicationModal',
               require('../../application/modal/newapplication.html'),
             ),
+            resolve: {
+              name: () => '',
+            },
             controller: overrideRegistry.getController('CreateApplicationModalCtrl'),
             controllerAs: 'newAppModal',
           })

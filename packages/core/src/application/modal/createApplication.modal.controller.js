@@ -30,7 +30,8 @@ module(CORE_APPLICATION_MODAL_CREATEAPPLICATION_MODAL_CONTROLLER, [
   '$state',
   '$uibModalInstance',
   '$timeout',
-  function ($scope, $q, $log, $state, $uibModalInstance, $timeout) {
+  'name',
+  function ($scope, $q, $log, $state, $uibModalInstance, $timeout, name) {
     const applicationLoader = ApplicationReader.listApplications();
     applicationLoader.then((applications) => (this.data.appNameList = _.map(applications, 'name')));
 
@@ -59,6 +60,10 @@ module(CORE_APPLICATION_MODAL_CREATEAPPLICATION_MODAL_CONTROLLER, [
       instancePort: SETTINGS.defaultInstancePort || null,
     };
 
+    if (name) {
+      this.application.name = name;
+    }
+
     const submitting = () => {
       this.state.errorMessages = [];
       this.state.submitting = true;
@@ -71,11 +76,7 @@ module(CORE_APPLICATION_MODAL_CREATEAPPLICATION_MODAL_CONTROLLER, [
     let navigateTimeout = null;
 
     const routeToApplication = () => {
-      navigateTimeout = $timeout(() => {
-        $state.go('home.applications.application', {
-          application: this.application.name,
-        });
-      }, 1000);
+      $uibModalInstance.close(this.application);
     };
 
     $scope.$on('$destroy', () => $timeout.cancel(navigateTimeout));
