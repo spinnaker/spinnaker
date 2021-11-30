@@ -56,6 +56,11 @@ public class AzureBakeHandler extends CloudProviderBakeHandler{
   }
 
   @Override
+  String produceProviderSpecificBakeKeyComponent(String region, BakeRequest bakeRequest) {
+    return resolveAccount(bakeRequest).name
+  }
+
+  @Override
   Bake scrapeCompletedBakeResults(String region, String bakeId, String logsContent) {
     String imageName
     String ami
@@ -90,8 +95,7 @@ public class AzureBakeHandler extends CloudProviderBakeHandler{
 
     def selectedImage = azureBakeryDefaults?.baseImages?.find { it.baseImage.id == bakeRequest.base_os }
 
-    // TODO(larrygug): Presently rosco is only supporting a single account. Need to update to support a named account
-    def selectedAccount = azureConfigurationProperties?.accounts?.get(0)
+    RoscoAzureConfiguration.ManagedAzureAccount selectedAccount = resolveAccount(bakeRequest)
 
     def parameterMap = [
       azure_client_id: selectedAccount?.clientId,
@@ -111,7 +115,7 @@ public class AzureBakeHandler extends CloudProviderBakeHandler{
     } else if (imageName) {
       parameterMap.azure_managed_image_name = imageName
     } else {
-      parameterMap.azure_managed_image_name = Clock.systemUTC.millis().toString()
+      parameterMap.azure_managed_image_name = System.currentTimeMillis().toString()
     }
 
     // Ensure 'azure_managed_image_name' conforms to CaptureNamePrefix regex in packer.
@@ -139,5 +143,18 @@ public class AzureBakeHandler extends CloudProviderBakeHandler{
   @Override
   String getTemplateFileName(BakeOptions.BaseImage baseImage) {
     return baseImage.templateFile ?: azureBakeryDefaults.templateFile
+  }
+
+  private RoscoAzureConfiguration.ManagedAzureAccount resolveAccount(BakeRequest bakeRequest) {
+    RoscoAzureConfiguration.ManagedAzureAccount managedAzureAccount =
+      bakeRequest.account_name
+      ? azureConfigurationProperties?.accounts?.find { it.name == bakeRequest.account_name }
+      : azureConfigurationProperties?.accounts?.getAt(0)
+
+    if (!managedAzureAccount) {
+      throw new IllegalArgumentException("Could not resolve Azure account: (account_name=$bakeRequest.account_name).")
+    }
+
+    return managedAzureAccount
   }
 }

@@ -113,6 +113,16 @@ class AzureBakeHandlerSpec extends Specification implements TestDefaults{
           subscriptionId: SUBSCRIPTION_ID,
           packerResourceGroup: RESOURCE_GROUP,
           packerStorageAccount: STORAGE_ACCOUNT
+        ],
+        [
+          name: "azure-2",
+          clientId: "456DEF-123ABC",
+          appKey: "foobar",
+          tenantId: "ABC123",
+          objectId: "62884a22-8e1d-4c93-ad4f-2121ce3feba6",
+          subscriptionId: "456DEF",
+          packerResourceGroup: RESOURCE_GROUP,
+          packerStorageAccount: STORAGE_ACCOUNT
         ]
       ]
     ]
@@ -403,7 +413,7 @@ class AzureBakeHandlerSpec extends Specification implements TestDefaults{
 
   void 'Create proper azure_image_name'() {
     setup:
-    def azureBakeHandler = new AzureBakeHandler(azureBakeryDefaults: azureBakeryDefaults)
+    def azureBakeHandler = new AzureBakeHandler(azureBakeryDefaults: azureBakeryDefaults, azureConfigurationProperties: azureConfigurationProperties)
 
     when:
     def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
@@ -429,5 +439,32 @@ class AzureBakeHandlerSpec extends Specification implements TestDefaults{
     null          | null        | "test-with!>#characters.morethanmorethanmorethanmorethanmorethanmorethan.75characters"      || "test-withcharacters.morethanmorethanmorethanmorethanmorethanmorethan.75char"
     null          | null        | "test-with!>#characters..-."                        || "test-withcharacters"
     BUILD_NUMBER  | BUILD_NAME  | "this-is-a--test-withnamethatexceeds.75characters"  || IMAGE_NAME
+  }
+
+  void 'account selection is reflected in bake key'() {
+    setup:
+    def imageNameFactoryMock = Mock(ImageNameFactory)
+    def packerCommandFactoryMock = Mock(PackerCommandFactory)
+    def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+                                      package_name: NUPKG_PACKAGES_NAME,
+                                      base_os: "windows-2012-r2",
+                                      cloud_provider_type: BakeRequest.CloudProviderType.azure,
+                                      account_name: "azure-2")
+
+    @Subject
+    AzureBakeHandler azureBakeHandler = new AzureBakeHandler(configDir: configDir,
+      azureBakeryDefaults: azureBakeryDefaults,
+      imageNameFactory: imageNameFactoryMock,
+      packerCommandFactory: packerCommandFactoryMock,
+      chocolateyRepository: CHOCOLATEY_REPOSITORY,
+      azureConfigurationProperties: azureConfigurationProperties)
+
+    when:
+    def parameterMap = azureBakeHandler.buildParameterMap(REGION, null, null, bakeRequest, null)
+    String bakeKey = azureBakeHandler.produceBakeKey(REGION, bakeRequest)
+
+    then:
+    bakeKey == "bake:azure:windows-2012-r2:googlechrome|javaruntime:azure-2"
+    parameterMap.azure_client_id == azureConfigurationProperties?.accounts?.find { it.name == "azure-2" }?.clientId
   }
 }
