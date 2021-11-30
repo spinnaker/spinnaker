@@ -5,10 +5,6 @@ ext {
   grpcVersion = '1.37.1'
 }
 
-repositories {
-  maven { url 'https://dl.bintray.com/netflixoss' }
-}
-
 dependencies {
   protobuf 'com.netflix.titus:titus-api-definitions:0.0.1-rc71'
 
