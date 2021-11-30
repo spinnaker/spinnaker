@@ -78,11 +78,6 @@ class OAuth2SsoConfig extends WebSecurityConfigurerAdapter {
     new SpinnakerUserInfoTokenServices()
   }
 
-  @Bean
-  ExternalAuthTokenFilter externalAuthTokenFilter() {
-    new ExternalAuthTokenFilter()
-  }
-
   @Override
   void configure(HttpSecurity http) throws Exception {
     defaultCookieSerializer.setSameSite(null)

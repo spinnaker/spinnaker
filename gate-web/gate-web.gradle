@@ -64,6 +64,7 @@ dependencies {
 
   testImplementation project(":gate-ldap") // TODO: Move system tests to own module
   testImplementation project(":gate-basic")
+  testImplementation project(":gate-oauth2")
   testImplementation "com.squareup.okhttp:mockwebserver"
 
   testImplementation "com.squareup.retrofit:retrofit-mock"

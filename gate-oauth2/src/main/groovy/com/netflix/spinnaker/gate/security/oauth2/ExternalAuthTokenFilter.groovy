@@ -23,6 +23,7 @@ import org.springframework.security.core.Authentication
 import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken
 import org.springframework.security.oauth2.common.OAuth2AccessToken
 import org.springframework.security.oauth2.provider.authentication.BearerTokenExtractor
+import org.springframework.stereotype.Component
 
 import javax.servlet.Filter
 import javax.servlet.FilterChain
@@ -37,9 +38,12 @@ import javax.servlet.http.HttpServletRequest
  * Github-issued personal access token.
  */
 @Slf4j
+@Component
 class ExternalAuthTokenFilter implements Filter {
 
-  @Autowired
+  // UserInfoRestTemplateFactory can't be Autowired if no oauth2 configurations are set.
+  // In this case, userInfoRestTemplateFactory will be null
+  @Autowired(required = false)
   UserInfoRestTemplateFactory userInfoRestTemplateFactory
 
   BearerTokenExtractor extractor = new BearerTokenExtractor()
@@ -53,9 +57,10 @@ class ExternalAuthTokenFilter implements Filter {
       // Reassign token type to be capitalized "Bearer",
       // see https://github.com/spinnaker/spinnaker/issues/2074
       token.tokenType = OAuth2AccessToken.BEARER_TYPE
-
-      def ctx = userInfoRestTemplateFactory.getUserInfoRestTemplate().getOAuth2ClientContext()
-      ctx.accessToken = token
+      if (userInfoRestTemplateFactory != null) {
+        def ctx = userInfoRestTemplateFactory.getUserInfoRestTemplate().getOAuth2ClientContext()
+        ctx.accessToken = token
+      }
     }
     chain.doFilter(request, response)
   }
