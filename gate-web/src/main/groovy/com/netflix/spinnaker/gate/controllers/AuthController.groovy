@@ -42,13 +42,13 @@ class AuthController {
 
   static List LOGOUT_MESSAGES = [
       "Hasta la vista, baby.",
-      "Frankly my dear, I don't give a damn.",
+      "Frankly, my dear, I don't give a damn.",
       "For the Watch.",
       "Go ahead, make my day.",
-      "Louis, I think this is a start of a beautiful friendship!",
+      "Louis, I think this is the beginning of a beautiful friendship.",
       "Roads? Where we're going we don't need roads!",
       "Say hello to my little friend!",
-      "I wish we could chat longer, but I'm having an old friend for dinner. Bye!",
+      "I do wish we could chat longer, but... I'm having an old friend for dinner. Bye.",
       "Hodor. :(",
   ]
   private final Random r = new Random()
