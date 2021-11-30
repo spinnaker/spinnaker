@@ -4,8 +4,8 @@ clouddriver-cloudfoundry/  @zachsmith1
 clouddriver-appengine/     @zachsmith1
 clouddriver-lambda/        @zachsmith1
 
-clouddriver-saga/          @robzienert @cfieber
-clouddriver-core/          @robzienert @cfieber
+clouddriver-saga/          @cfieber
+clouddriver-core/          @cfieber
 
 clouddriver-aws/           @jeyrschabu @aravindmd @ajordens
 clouddriver-titus/         @jeyrschabu @aravindmd @ajordens
