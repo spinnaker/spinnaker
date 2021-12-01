@@ -49,7 +49,7 @@ public class EmbeddedGraphiteBootstrapConfiguration {
     GenericContainer container =
         new GenericContainer("graphiteapp/graphite-statsd:1.1.5-12")
             .withLogConsumer(containerLogsConsumer(log))
-            .withExposedPorts(PICKLE_RECEIVER_PORT)
+            .withExposedPorts(PICKLE_RECEIVER_PORT, HTTP_PORT)
             .waitingFor(graphiteWaitStrategy)
             .withClasspathResourceMapping(
                 "/external/graphite/storage-schemas.conf",
