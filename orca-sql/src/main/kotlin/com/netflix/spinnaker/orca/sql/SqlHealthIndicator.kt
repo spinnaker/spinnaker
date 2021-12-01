@@ -21,7 +21,7 @@ import org.springframework.boot.actuate.health.AbstractHealthIndicator
 import org.springframework.boot.actuate.health.Health
 
 /**
- * Overrides the default Spring DataSourceHealthIndicator, which perfroms
+ * Overrides the default Spring DataSourceHealthIndicator, which performs
  * queries at request-time (bad). Uses the background agent of
  * [SqlHealthcheckActivator] to determine if SQL connections are healthy.
  */
