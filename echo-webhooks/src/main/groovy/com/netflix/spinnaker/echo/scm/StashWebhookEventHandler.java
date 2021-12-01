@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.echo.scm;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.echo.api.events.Event;
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
@@ -54,7 +55,9 @@ public class StashWebhookEventHandler implements GitWebhookHandler {
 
   @Data
   private static class StashWebhookEvent {
+    @JsonAlias("changes")
     List<StashRefChanges> refChanges;
+
     StashRepository repository;
   }
 
