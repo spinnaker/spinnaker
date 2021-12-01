@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/pluginsdk-peerdeps",
   "description": "Provides package dependencies to plugin developers",
-  "version": "0.0.17",
+  "version": "0.0.18",
   "license": "Apache-2.0",
   "scripts": {
     "temp": "./convert-peerdeps.js --from-peerdeps --input package.json --output package.temp.json",
@@ -18,7 +18,7 @@
     "@rollup/plugin-replace": "2.4.2",
     "@rollup/plugin-typescript": "8.2.1",
     "@rollup/plugin-url": "6.0.0",
-    "@spinnaker/core": "0.15.0",
+    "@spinnaker/core": "0.16.0",
     "@spinnaker/eslint-plugin": "1.0.13",
     "@spinnaker/pluginsdk": "*",
     "@spinnaker/presentation": "0.1.0",

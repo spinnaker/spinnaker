@@ -94,6 +94,7 @@
     "packages/kubernetes",
     "packages/oracle",
     "packages/pluginsdk",
+    "packages/pluginsdk-peerdeps",
     "packages/presentation",
     "packages/scripts",
     "packages/tencentcloud",
