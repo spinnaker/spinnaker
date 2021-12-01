@@ -4,10 +4,12 @@ dependencies {
   implementation project(":clouddriver-security")
 
   implementation "com.netflix.frigga:frigga"
+  implementation "io.searchbox:jest:6.3.1"
   implementation "io.spinnaker.kork:kork-exceptions"
   implementation "io.spinnaker.kork:kork-security"
   implementation "com.squareup.retrofit:retrofit"
   implementation "org.codehaus.groovy:groovy-all"
+  implementation "org.elasticsearch:elasticsearch"
   implementation "org.springframework.boot:spring-boot-starter-web"
 
   testImplementation "org.testcontainers:elasticsearch"
@@ -17,13 +19,4 @@ dependencies {
   testImplementation "org.spockframework:spock-spring"
   testImplementation "org.springframework:spring-test"
 
-  //TODO(jonsie): Determine why this is necessary to extend and build clouddriver so we can
-  // use the version constraints that were introduced in this PR:
-  // https://github.com/spinnaker/clouddriver/pull/4826
-  implementation("org.elasticsearch:elasticsearch:6.8.6") {
-    force = true
-  }
-  implementation("io.searchbox:jest:6.3.1") {
-    force = true
-  }
 }
