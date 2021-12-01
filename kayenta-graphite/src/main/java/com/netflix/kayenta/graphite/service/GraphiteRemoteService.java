@@ -27,7 +27,7 @@ public interface GraphiteRemoteService {
   // From https://graphite.readthedocs.io/en/1.1.2/render_api.html#
   @GET("/render")
   List<GraphiteResults> rangeQuery(
-      @Query(value = "target", encodeValue = false) String target,
+      @Query(value = "target", encodeValue = true) String target,
       @Query("from") long from,
       @Query("until") long until,
       @Query("format") String format);
