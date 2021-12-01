@@ -19,7 +19,7 @@
     "@rollup/plugin-typescript": "^8.1.0",
     "@rollup/plugin-url": "^6.0.0",
     "@spinnaker/eslint-plugin": "^3.0.1",
-    "@spinnaker/styleguide": "^1.0.24",
+    "@spinnaker/styleguide": "^2.0.0",
     "@svgr/rollup": "^5.5.0",
     "autoprefixer": "^7.1.2",
     "chalk": "^4.1.1",
