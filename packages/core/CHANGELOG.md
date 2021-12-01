@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.16.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.15.1...@spinnaker/core@0.16.0) (2021-12-01)
+
+
+### Features
+
+* **core:** Prepopulate name for app creation ([#9718](https://github.com/spinnaker/deck/issues/9718)) ([7460fe6](https://github.com/spinnaker/deck/commit/7460fe67c3a5caa755f19d0c674efdf0bcd28141))
+
+
+
+
+
 ## [0.15.1](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.15.0...@spinnaker/core@0.15.1) (2021-11-12)
 
 
