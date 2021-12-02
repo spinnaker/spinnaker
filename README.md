@@ -12,6 +12,7 @@ The minimum versions for each are listed in package.json.
 Run the following commands (in the deck directory) to get all dependencies installed in deck and to start the server:
 
 - `yarn`
+- `yarn modules`
 - `yarn start`
 
 The app will start up on localhost:9000.
