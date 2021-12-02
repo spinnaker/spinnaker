@@ -68,11 +68,6 @@ subprojects { project ->
     exclude "**/*.yml"
   }
 
-  repositories {
-    jcenter()
-    maven { url "https://dl.bintray.com/spinnaker/spinnaker"}
-  }
-
   if (name != "kayenta-bom") {
     dependencies {
       constraints {

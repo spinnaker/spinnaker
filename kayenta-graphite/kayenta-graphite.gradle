@@ -1,6 +1,6 @@
 buildscript {
     repositories {
-        jcenter()
+        mavenCentral()
     }
     dependencies {
         // Apache 2.0, https://github.com/ozimov/embedded-redis#license
