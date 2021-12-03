@@ -29,6 +29,8 @@ dependencies {
   implementation "de.huxhorn.sulky:de.huxhorn.sulky.ulid"
   implementation "org.jooq:jooq"
   implementation "org.hibernate.validator:hibernate-validator"
+  implementation "com.fasterxml.jackson.core:jackson-annotations"
+  implementation "com.fasterxml.jackson.core:jackson-databind"
 
   testImplementation project(":clouddriver-core-tck")
 
