@@ -140,8 +140,13 @@ public class Applications {
         newCloudFoundryAppList.size(),
         this.account);
 
+    List<Application> cacheableApplications =
+        newCloudFoundryAppList.stream()
+            .filter(this::shouldCacheApplication)
+            .collect(Collectors.toUnmodifiableList());
+
     List<String> availableAppIds =
-        newCloudFoundryAppList.stream().map(Application::getGuid).collect(toList());
+        cacheableApplications.stream().map(Application::getGuid).collect(toList());
 
     long invalidatedServerGroups =
         serverGroupCache.asMap().keySet().parallelStream()
@@ -161,7 +166,7 @@ public class Applications {
       forkJoinPool
           .submit(
               () ->
-                  newCloudFoundryAppList.parallelStream()
+                  cacheableApplications.parallelStream()
                       .filter(
                           app -> {
                             CloudFoundryServerGroup cachedApp = findById(app.getGuid());
@@ -196,7 +201,7 @@ public class Applications {
               () ->
                   // execute health check on instances, set number of available instances and health
                   // status
-                  newCloudFoundryAppList.parallelStream()
+                  cacheableApplications.parallelStream()
                       .forEach(
                           a ->
                               serverGroupCache.put(
@@ -212,24 +217,10 @@ public class Applications {
     for (CloudFoundryServerGroup serverGroup : serverGroupCache.asMap().values()) {
       Names names = Names.parseName(serverGroup.getName());
 
-      if (onlySpinnakerManaged && names.getSequence() == null) {
-        log.debug(
-            "Skipping app '{}' from foundation '{}' because onlySpinnakerManaged is true and it has no version.",
-            serverGroup.getName(),
-            this.account);
-        continue;
-      }
-
-      if (names.getCluster() == null) {
-        log.debug(
-            "Skipping app '{}' from foundation '{}' because the name isn't following the frigga naming schema.",
-            serverGroup.getName(),
-            this.account);
-        continue;
-      }
       serverGroupsByClusters
           .computeIfAbsent(names.getCluster(), clusterName -> new HashSet<>())
           .add(serverGroup);
+
       clustersByApps
           .computeIfAbsent(names.getApp(), appName -> new HashSet<>())
           .add(names.getCluster());
@@ -297,6 +288,28 @@ public class Applications {
                                     })
                                 .map(CloudFoundryServerGroup::getId))
                     .orElse(null));
+  }
+
+  private boolean shouldCacheApplication(Application application) {
+    Names names = Names.parseName(application.getName());
+
+    if (names.getCluster() == null) {
+      log.debug(
+          "Skipping app '{}' from foundation '{}' because the name isn't following the frigga naming schema.",
+          application.getName(),
+          this.account);
+      return false;
+    }
+
+    if (onlySpinnakerManaged && names.getSequence() == null) {
+      log.debug(
+          "Skipping app '{}' from foundation '{}' because onlySpinnakerManaged is true and it has no version.",
+          application.getName(),
+          this.account);
+      return false;
+    }
+
+    return true;
   }
 
   private Optional<CloudFoundryServerGroup> map(Application application) {
