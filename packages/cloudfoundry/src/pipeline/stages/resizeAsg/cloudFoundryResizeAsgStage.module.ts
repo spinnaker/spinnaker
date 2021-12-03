@@ -1,7 +1,7 @@
 import type { IStage } from '@spinnaker/core';
 import { Registry } from '@spinnaker/core';
 
-import { CloudfoundryResizeAsgStageConfig } from './CloudfoundryResizeAsgStageConfig';
+import { CloudFoundryResizeAsgStageConfig } from './CloudFoundryResizeAsgStageConfig';
 import type { IInstanceFieldSizeValidationConfig } from '../../config/validation/instanceSize.validator';
 
 const diskValidator: IInstanceFieldSizeValidationConfig = {
@@ -31,7 +31,7 @@ const memoryValidator: IInstanceFieldSizeValidationConfig = {
 Registry.pipeline.registerStage({
   accountExtractor: (stage: IStage) => [stage.context.credentials],
   cloudProvider: 'cloudfoundry',
-  component: CloudfoundryResizeAsgStageConfig,
+  component: CloudFoundryResizeAsgStageConfig,
   configAccountExtractor: (stage: IStage) => [stage.credentials],
   key: 'resizeServerGroup',
   provides: 'resizeServerGroup',

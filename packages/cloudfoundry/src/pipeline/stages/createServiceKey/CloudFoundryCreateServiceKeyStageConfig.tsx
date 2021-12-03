@@ -1,20 +1,19 @@
 import React from 'react';
 import type { Option } from 'react-select';
-import Select from 'react-select';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import type { IAccount, IRegion, IStageConfigProps } from '@spinnaker/core';
 import { AccountService, ReactSelectInput, StageConfigField, TextInput } from '@spinnaker/core';
 
-interface ICloudfoundryShareServiceStageConfigState {
-  accounts: IAccount[];
+interface ICloudFoundryCreateServiceKeyStageConfigState {
+  accounts: string[];
   regions: string[];
 }
 
-export class CloudfoundryUnshareServiceStageConfig extends React.Component<
+export class CloudFoundryCreateServiceKeyStageConfig extends React.Component<
   IStageConfigProps,
-  ICloudfoundryShareServiceStageConfigState
+  ICloudFoundryCreateServiceKeyStageConfigState
 > {
   private destroy$ = new Subject();
 
@@ -30,7 +29,7 @@ export class CloudfoundryUnshareServiceStageConfig extends React.Component<
   public componentDidMount(): void {
     observableFrom(AccountService.listAccounts('cloudfoundry'))
       .pipe(takeUntil(this.destroy$))
-      .subscribe((accounts) => this.setState({ accounts }));
+      .subscribe((rawAccounts: IAccount[]) => this.setState({ accounts: rawAccounts.map((it) => it.name) }));
     if (this.props.stage.credentials) {
       this.clearAndReloadRegions();
     }
@@ -55,24 +54,31 @@ export class CloudfoundryUnshareServiceStageConfig extends React.Component<
     this.props.updateStageField({ serviceInstanceName: event.target.value });
   };
 
-  private accountUpdated = (option: Option<string>) => {
-    const credentials = option.target.value;
-    this.setState({ regions: [] });
-    this.props.updateStageField({
-      credentials,
-      unshareFromRegions: [],
-    });
-    if (credentials) {
-      this.clearAndReloadRegions();
-    }
+  private serviceKeyNameUpdated = (event: React.ChangeEvent<HTMLInputElement>) => {
+    this.props.updateStageField({ serviceKeyName: event.target.value });
   };
 
-  private unshareFromRegionsUpdated = (option: Option<string>) => {
-    this.props.updateStageField({ unshareFromRegions: option.map((o: Option) => o.value) });
+  private accountUpdated = (option: Option<string>) => {
+    const credentials = option.target.value;
+    this.setState({
+      regions: [],
+    });
+    this.props.updateStageField({
+      credentials,
+      region: '',
+    });
+    this.clearAndReloadRegions();
+  };
+
+  private regionUpdated = (option: Option<string>) => {
+    const region = option.target.value;
+    this.props.updateStageField({
+      region,
+    });
   };
 
   public render() {
-    const { credentials, serviceInstanceName, unshareFromRegions } = this.props.stage;
+    const { credentials, region, serviceInstanceName, serviceKeyName } = this.props.stage;
     const { accounts, regions } = this.state;
 
     return (
@@ -82,8 +88,11 @@ export class CloudfoundryUnshareServiceStageConfig extends React.Component<
             clearable={false}
             onChange={this.accountUpdated}
             value={credentials}
-            stringOptions={accounts.map((it) => it.name)}
+            stringOptions={accounts}
           />
+        </StageConfigField>
+        <StageConfigField label="Region">
+          <ReactSelectInput clearable={false} onChange={this.regionUpdated} value={region} stringOptions={regions} />
         </StageConfigField>
         <StageConfigField label="Service Instance Name">
           <TextInput
@@ -93,19 +102,12 @@ export class CloudfoundryUnshareServiceStageConfig extends React.Component<
             value={serviceInstanceName}
           />
         </StageConfigField>
-        <StageConfigField label="Unshare From Regions">
-          <Select
-            options={
-              regions &&
-              regions.map((r: string) => ({
-                label: r,
-                value: r,
-              }))
-            }
-            multi={true}
-            clearable={false}
-            value={unshareFromRegions}
-            onChange={this.unshareFromRegionsUpdated}
+        <StageConfigField label="Service Key Name">
+          <TextInput
+            type="text"
+            className="form-control"
+            onChange={this.serviceKeyNameUpdated}
+            value={serviceKeyName}
           />
         </StageConfigField>
       </div>

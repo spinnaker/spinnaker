@@ -6,14 +6,14 @@ import type { IAccount, IStageConfigProps } from '@spinnaker/core';
 import { AccountService, NgReact, SpelText, StageConfigField, StageConstants, TextInput } from '@spinnaker/core';
 import { AccountRegionClusterSelector } from '../../../presentation';
 
-export interface ICloudfoundryRunTaskStageConfigState {
+export interface ICloudFoundryRunTaskStageConfigState {
   accounts: IAccount[];
   region: string;
 }
 
-export class CloudfoundryRunJobStageConfig extends React.Component<
+export class CloudFoundryRunJobStageConfig extends React.Component<
   IStageConfigProps,
-  ICloudfoundryRunTaskStageConfigState
+  ICloudFoundryRunTaskStageConfigState
 > {
   private destroy$ = new Subject();
 

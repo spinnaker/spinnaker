@@ -6,13 +6,13 @@ import type { IAccount, IStageConfigProps } from '@spinnaker/core';
 import { AccountService, NgReact, StageConfigField, StageConstants } from '@spinnaker/core';
 import { AccountRegionClusterSelector } from '../../../presentation';
 
-export interface ICloudfoundryResizeAsgStageConfigState {
+export interface ICloudFoundryResizeAsgStageConfigState {
   accounts: IAccount[];
 }
 
-export class CloudfoundryResizeAsgStageConfig extends React.Component<
+export class CloudFoundryResizeAsgStageConfig extends React.Component<
   IStageConfigProps,
-  ICloudfoundryResizeAsgStageConfigState
+  ICloudFoundryResizeAsgStageConfigState
 > {
   private destroy$ = new Subject();
 

@@ -16,7 +16,7 @@ import {
 
 import { AccountRegionClusterSelector } from '../../../presentation/widgets/accountRegionClusterSelector';
 
-interface ICloudfoundryCreateServiceBindingsStageConfigState {
+interface ICloudFoundryCreateServiceBindingsStageConfigState {
   accounts: IAccount[];
   regions: string[];
   application: Application;
@@ -24,7 +24,7 @@ interface ICloudfoundryCreateServiceBindingsStageConfigState {
 
 export class CloudFoundryCreateServiceBindingsStageConfigForm extends React.Component<
   IFormikStageConfigInjectedProps,
-  ICloudfoundryCreateServiceBindingsStageConfigState
+  ICloudFoundryCreateServiceBindingsStageConfigState
 > {
   private static readonly excludedArtifactTypes = excludeAllTypesExcept(
     ArtifactTypePatterns.BITBUCKET_FILE,

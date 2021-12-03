@@ -9,7 +9,7 @@ import { AccountService, NgReact, SpinFormik, StageConfigField, StageConstants }
 import { Routes } from '../../forms/serverGroup';
 import { AccountRegionClusterSelector } from '../../widgets/accountRegionClusterSelector';
 
-interface ICloudfoundryLoadBalancerStageConfigProps extends IStageConfigProps {
+interface ICloudFoundryLoadBalancerStageConfigProps extends IStageConfigProps {
   pipeline: IPipeline;
 }
 
@@ -17,21 +17,21 @@ interface ICloudFoundryLoadBalancersValues {
   routes: string[];
 }
 
-interface ICloudfoundryLoadBalancersStageConfigState {
+interface ICloudFoundryLoadBalancersStageConfigState {
   accounts: IAccount[];
   application: Application;
   initialValues: ICloudFoundryLoadBalancersValues;
   pipeline: IPipeline;
 }
 
-export class CloudfoundryLoadBalancersStageConfig extends React.Component<
-  ICloudfoundryLoadBalancerStageConfigProps,
-  ICloudfoundryLoadBalancersStageConfigState
+export class CloudFoundryLoadBalancersStageConfig extends React.Component<
+  ICloudFoundryLoadBalancerStageConfigProps,
+  ICloudFoundryLoadBalancersStageConfigState
 > {
   private destroy$ = new Subject();
   private formikRef = React.createRef<Formik<ICloudFoundryLoadBalancersValues>>();
 
-  constructor(props: ICloudfoundryLoadBalancerStageConfigProps) {
+  constructor(props: ICloudFoundryLoadBalancerStageConfigProps) {
     super(props);
     const { loadBalancerNames } = props.stage;
     const routes = loadBalancerNames && loadBalancerNames.length ? loadBalancerNames : [''];

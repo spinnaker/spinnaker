@@ -1,11 +1,11 @@
 import type { IStage } from '@spinnaker/core';
 import { Registry } from '@spinnaker/core';
-import { CloudfoundryAsgStageConfig } from '../../../presentation';
+import { CloudFoundryAsgStageConfig } from '../../../presentation';
 
 Registry.pipeline.registerStage({
   accountExtractor: (stage: IStage) => [stage.context.credentials],
   cloudProvider: 'cloudfoundry',
-  component: CloudfoundryAsgStageConfig,
+  component: CloudFoundryAsgStageConfig,
   configAccountExtractor: (stage: IStage) => [stage.credentials],
   key: 'enableServerGroup',
   provides: 'enableServerGroup',

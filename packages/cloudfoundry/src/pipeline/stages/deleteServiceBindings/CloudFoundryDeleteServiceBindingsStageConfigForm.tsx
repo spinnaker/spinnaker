@@ -7,7 +7,7 @@ import { AccountService, NgReact, StageConfigField, StageConstants, TextInput } 
 
 import { AccountRegionClusterSelector } from '../../../presentation/widgets/accountRegionClusterSelector';
 
-interface ICloudfoundryDeleteServiceBindingsStageConfigState {
+interface ICloudFoundryDeleteServiceBindingsStageConfigState {
   accounts: IAccount[];
   regions: string[];
   application: Application;
@@ -15,7 +15,7 @@ interface ICloudfoundryDeleteServiceBindingsStageConfigState {
 
 export class CloudFoundryDeleteServiceBindingsStageConfigForm extends React.Component<
   IFormikStageConfigInjectedProps,
-  ICloudfoundryDeleteServiceBindingsStageConfigState
+  ICloudFoundryDeleteServiceBindingsStageConfigState
 > {
   private destroy$ = new Subject();
 

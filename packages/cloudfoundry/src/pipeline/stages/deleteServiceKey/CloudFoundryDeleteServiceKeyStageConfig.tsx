@@ -6,14 +6,14 @@ import { takeUntil } from 'rxjs/operators';
 import type { IAccount, IRegion, IStageConfigProps } from '@spinnaker/core';
 import { AccountService, ReactSelectInput, StageConfigField, TextInput } from '@spinnaker/core';
 
-interface ICloudfoundryDeleteServiceKeyStageConfigState {
+interface ICloudFoundryDeleteServiceKeyStageConfigState {
   accounts: string[];
   regions: string[];
 }
 
-export class CloudfoundryDeleteServiceKeyStageConfig extends React.Component<
+export class CloudFoundryDeleteServiceKeyStageConfig extends React.Component<
   IStageConfigProps,
-  ICloudfoundryDeleteServiceKeyStageConfigState
+  ICloudFoundryDeleteServiceKeyStageConfigState
 > {
   private destroy$ = new Subject();
 

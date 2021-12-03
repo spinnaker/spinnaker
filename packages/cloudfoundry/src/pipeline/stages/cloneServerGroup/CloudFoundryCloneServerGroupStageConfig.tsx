@@ -5,13 +5,13 @@ import { StageConstants } from '@spinnaker/core';
 import { CloudFoundryServerGroupCommandBuilder } from '../../../serverGroup/configure';
 import { CloudFoundryCreateServerGroupModal } from '../../../serverGroup/configure/wizard/CreateServerGroupModal';
 
-export interface ICloudfoundryCloneServerGroupStageConfigState {
+export interface ICloudFoundryCloneServerGroupStageConfigState {
   buttonText: string;
 }
 
-export class CloudfoundryCloneServerGroupStageConfig extends React.Component<
+export class CloudFoundryCloneServerGroupStageConfig extends React.Component<
   IStageConfigProps,
-  ICloudfoundryCloneServerGroupStageConfigState
+  ICloudFoundryCloneServerGroupStageConfigState
 > {
   constructor(props: IStageConfigProps) {
     super(props);

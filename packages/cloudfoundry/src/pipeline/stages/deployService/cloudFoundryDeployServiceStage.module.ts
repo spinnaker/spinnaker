@@ -4,9 +4,9 @@ import { get, upperFirst } from 'lodash';
 import type { IPipeline, IStage, IStageOrTriggerValidator, ITrigger, IValidatorConfig } from '@spinnaker/core';
 import { ExecutionDetailsTasks, PipelineConfigValidator, Registry } from '@spinnaker/core';
 
-import { CloudfoundryDeployServiceStageConfig } from './CloudfoundryDeployServiceStageConfig';
+import { CloudFoundryDeployServiceStageConfig } from './CloudFoundryDeployServiceStageConfig';
 import type { ICloudFoundryServiceManifestSource } from './ICloudFoundryServiceManifestSource';
-import { CloudfoundryServiceExecutionDetails } from '../../../presentation';
+import { CloudFoundryServiceExecutionDetails } from '../../../presentation';
 
 interface IServiceFieldValidatorConfig extends IValidatorConfig {
   manifestSource: string;
@@ -91,11 +91,11 @@ PipelineConfigValidator.registerValidator(
 Registry.pipeline.registerStage({
   accountExtractor: (stage: IStage) => [stage.context.credentials],
   cloudProvider: 'cloudfoundry',
-  component: CloudfoundryDeployServiceStageConfig,
+  component: CloudFoundryDeployServiceStageConfig,
   configAccountExtractor: (stage: IStage) => [stage.credentials],
   supportsCustomTimeout: true,
   description: 'Deploys services using Open Service Broker and deploys user-provided services',
-  executionDetailsSections: [CloudfoundryServiceExecutionDetails, ExecutionDetailsTasks],
+  executionDetailsSections: [CloudFoundryServiceExecutionDetails, ExecutionDetailsTasks],
   key: 'deployService',
   label: 'Deploy Service',
   validators: [

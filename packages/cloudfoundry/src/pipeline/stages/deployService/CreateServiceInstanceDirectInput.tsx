@@ -6,14 +6,14 @@ import { takeUntil } from 'rxjs/operators';
 import type { IService, IServicePlan } from '@spinnaker/core';
 import { ReactSelectInput, ServicesReader, StageConfigField, TextAreaInput, TextInput } from '@spinnaker/core';
 
-import type { ICloudfoundryServiceManifestDirectSource } from './ICloudFoundryServiceManifestSource';
+import type { ICloudFoundryServiceManifestDirectSource } from './ICloudFoundryServiceManifestSource';
 import { ServiceTagsInput } from './ServiceTagsInput';
 
 interface ICreateServiceInstanceDirectInputProps {
   credentials: string;
   region: string;
-  service: ICloudfoundryServiceManifestDirectSource;
-  onServiceChanged: (_: ICloudfoundryServiceManifestDirectSource) => void;
+  service: ICloudFoundryServiceManifestDirectSource;
+  onServiceChanged: (_: ICloudFoundryServiceManifestDirectSource) => void;
 }
 
 interface ICreateServiceInstanceDirectInputState {

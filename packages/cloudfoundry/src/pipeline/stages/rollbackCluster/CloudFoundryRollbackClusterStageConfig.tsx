@@ -6,21 +6,21 @@ import type { IAccount, IPipeline, IStageConfigProps } from '@spinnaker/core';
 import { AccountService, StageConfigField } from '@spinnaker/core';
 import { AccountRegionClusterSelector } from '../../../presentation';
 
-export interface ICloudfoundryRollbackClusterStageProps extends IStageConfigProps {
+export interface ICloudFoundryRollbackClusterStageProps extends IStageConfigProps {
   pipeline: IPipeline;
 }
 
-export interface ICloudfoundryRollbackClusterStageConfigState {
+export interface ICloudFoundryRollbackClusterStageConfigState {
   accounts: IAccount[];
 }
 
-export class CloudfoundryRollbackClusterStageConfig extends React.Component<
-  ICloudfoundryRollbackClusterStageProps,
-  ICloudfoundryRollbackClusterStageConfigState
+export class CloudFoundryRollbackClusterStageConfig extends React.Component<
+  ICloudFoundryRollbackClusterStageProps,
+  ICloudFoundryRollbackClusterStageConfigState
 > {
   private destroy$ = new Subject();
 
-  constructor(props: ICloudfoundryRollbackClusterStageProps) {
+  constructor(props: ICloudFoundryRollbackClusterStageProps) {
     super(props);
 
     this.props.updateStageField({

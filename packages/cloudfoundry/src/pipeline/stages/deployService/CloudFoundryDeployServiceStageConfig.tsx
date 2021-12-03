@@ -18,14 +18,14 @@ import type { ICloudFoundryServiceManifestSource } from './ICloudFoundryServiceM
 
 import './cloudfoundryDeployServiceStage.less';
 
-interface ICloudfoundryDeployServiceStageConfigState {
+interface ICloudFoundryDeployServiceStageConfigState {
   regions: IRegion[];
   accounts: IAccount[];
 }
 
-export class CloudfoundryDeployServiceStageConfig extends React.Component<
+export class CloudFoundryDeployServiceStageConfig extends React.Component<
   IStageConfigProps,
-  ICloudfoundryDeployServiceStageConfigState
+  ICloudFoundryDeployServiceStageConfigState
 > {
   private defaultDirectManifest = {
     direct: {

@@ -1,21 +1,21 @@
 import type { IStage } from '@spinnaker/core';
 import { ExecutionDetailsTasks, Registry } from '@spinnaker/core';
 
-import { CloudfoundryUnshareServiceExecutionDetails } from './CloudfoundryUnshareServiceExecutionDetails';
-import { CloudfoundryUnshareServiceStageConfig } from './CloudfoundryUnshareServiceStageConfig';
+import { CloudFoundryShareServiceExecutionDetails } from './CloudFoundryShareServiceExecutionDetails';
+import { CloudFoundryShareServiceStageConfig } from './CloudFoundryShareServiceStageConfig';
 
 Registry.pipeline.registerStage({
   accountExtractor: (stage: IStage) => [stage.context.credentials],
   configAccountExtractor: (stage: IStage) => [stage.credentials],
-  provides: 'unshareService',
-  key: 'unshareService',
+  provides: 'shareService',
+  key: 'shareService',
   cloudProvider: 'cloudfoundry',
-  component: CloudfoundryUnshareServiceStageConfig,
-  controller: 'cfUnshareServiceStageCtrl',
-  executionDetailsSections: [CloudfoundryUnshareServiceExecutionDetails, ExecutionDetailsTasks],
+  component: CloudFoundryShareServiceStageConfig,
+  executionDetailsSections: [CloudFoundryShareServiceExecutionDetails, ExecutionDetailsTasks],
   supportsCustomTimeout: true,
   validators: [
     { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
+    { type: 'requiredField', fieldName: 'region' },
     { type: 'requiredField', fieldName: 'serviceInstanceName', preventSave: true },
   ],
 });

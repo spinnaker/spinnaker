@@ -1,12 +1,12 @@
 import type { IStage } from '@spinnaker/core';
 import { ExecutionDetailsTasks, Registry } from '@spinnaker/core';
 
-import { CloudfoundryRunJobStageConfig } from './CloudfoundryRunJobStageConfig';
+import { CloudFoundryRunJobStageConfig } from './CloudFoundryRunJobStageConfig';
 import { RunJobExecutionDetails } from './RunJobExecutionDetails';
 
 Registry.pipeline.registerStage({
   accountExtractor: (stage: IStage) => stage.context.credentials,
-  component: CloudfoundryRunJobStageConfig,
+  component: CloudFoundryRunJobStageConfig,
   configAccountExtractor: (stage: IStage) => [stage.credentials],
   cloudProvider: 'cloudfoundry',
   key: 'runJob',

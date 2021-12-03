@@ -4,8 +4,8 @@ import { ExecutionDetailsTasks, Registry } from '@spinnaker/core';
 import {
   CloudFoundryDestroyServiceStageConfig,
   validateCloudFoundryDestroyServiceStage,
-} from './CloudfoundryDestroyServiceStageConfig';
-import { CloudfoundryServiceExecutionDetails } from '../../../presentation';
+} from './CloudFoundryDestroyServiceStageConfig';
+import { CloudFoundryServiceExecutionDetails } from '../../../presentation';
 
 Registry.pipeline.registerStage({
   accountExtractor: (stage: IStage) => [stage.context.credentials],
@@ -13,7 +13,7 @@ Registry.pipeline.registerStage({
   cloudProvider: 'cloudfoundry',
   component: CloudFoundryDestroyServiceStageConfig,
   supportsCustomTimeout: true,
-  executionDetailsSections: [CloudfoundryServiceExecutionDetails, ExecutionDetailsTasks],
+  executionDetailsSections: [CloudFoundryServiceExecutionDetails, ExecutionDetailsTasks],
   key: 'destroyService',
   provides: 'destroyService',
   validateFn: validateCloudFoundryDestroyServiceStage,

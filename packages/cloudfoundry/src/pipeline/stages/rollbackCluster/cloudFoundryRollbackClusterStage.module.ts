@@ -1,7 +1,7 @@
 import type { IStage } from '@spinnaker/core';
 import { Registry } from '@spinnaker/core';
 
-import { CloudfoundryRollbackClusterStageConfig } from './CloudfoundryRollbackClusterStageConfig';
+import { CloudFoundryRollbackClusterStageConfig } from './CloudFoundryRollbackClusterStageConfig';
 
 Registry.pipeline.registerStage({
   accountExtractor: (stage: IStage) => [stage.context.credentials],
@@ -9,7 +9,7 @@ Registry.pipeline.registerStage({
   provides: 'rollbackCluster',
   key: 'rollbackCluster',
   cloudProvider: 'cloudfoundry',
-  component: CloudfoundryRollbackClusterStageConfig,
+  component: CloudFoundryRollbackClusterStageConfig,
   controller: 'cfRollbackClusterStageCtrl',
   validators: [
     { type: 'requiredField', preventSave: true, fieldName: 'cluster' },

@@ -1,19 +1,21 @@
 import React from 'react';
 import type { Option } from 'react-select';
+import Select from 'react-select';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import type { IAccount, IRegion, IStageConfigProps } from '@spinnaker/core';
 import { AccountService, ReactSelectInput, StageConfigField, TextInput } from '@spinnaker/core';
 
-interface ICloudfoundryCreateServiceKeyStageConfigState {
-  accounts: string[];
+interface ICloudFoundryShareServiceStageConfigState {
+  accounts: IAccount[];
   regions: string[];
+  shareToRegionsList: string[];
 }
 
-export class CloudfoundryCreateServiceKeyStageConfig extends React.Component<
+export class CloudFoundryShareServiceStageConfig extends React.Component<
   IStageConfigProps,
-  ICloudfoundryCreateServiceKeyStageConfigState
+  ICloudFoundryShareServiceStageConfigState
 > {
   private destroy$ = new Subject();
 
@@ -23,13 +25,14 @@ export class CloudfoundryCreateServiceKeyStageConfig extends React.Component<
     this.state = {
       accounts: [],
       regions: [],
+      shareToRegionsList: [],
     };
   }
 
   public componentDidMount(): void {
     observableFrom(AccountService.listAccounts('cloudfoundry'))
       .pipe(takeUntil(this.destroy$))
-      .subscribe((rawAccounts: IAccount[]) => this.setState({ accounts: rawAccounts.map((it) => it.name) }));
+      .subscribe((accounts) => this.setState({ accounts }));
     if (this.props.stage.credentials) {
       this.clearAndReloadRegions();
     }
@@ -44,9 +47,13 @@ export class CloudfoundryCreateServiceKeyStageConfig extends React.Component<
     observableFrom(AccountService.getRegionsForAccount(this.props.stage.credentials))
       .pipe(takeUntil(this.destroy$))
       .subscribe((regionList: IRegion[]) => {
+        const { region } = this.props.stage;
         const regions = regionList.map((r) => r.name);
         regions.sort((a, b) => a.localeCompare(b));
         this.setState({ regions });
+        if (region) {
+          this.clearAndResetShareToRegionList(region, regions);
+        }
       });
   };
 
@@ -54,32 +61,43 @@ export class CloudfoundryCreateServiceKeyStageConfig extends React.Component<
     this.props.updateStageField({ serviceInstanceName: event.target.value });
   };
 
-  private serviceKeyNameUpdated = (event: React.ChangeEvent<HTMLInputElement>) => {
-    this.props.updateStageField({ serviceKeyName: event.target.value });
+  private clearAndResetShareToRegionList = (region: string, regions: string[]) => {
+    this.setState({ shareToRegionsList: regions.filter((r) => r !== region) });
   };
 
   private accountUpdated = (option: Option<string>) => {
     const credentials = option.target.value;
     this.setState({
       regions: [],
+      shareToRegionsList: [],
     });
     this.props.updateStageField({
       credentials,
       region: '',
+      shareToRegions: [],
     });
-    this.clearAndReloadRegions();
+    if (credentials) {
+      this.clearAndReloadRegions();
+    }
   };
 
   private regionUpdated = (option: Option<string>) => {
     const region = option.target.value;
+    this.setState({ shareToRegionsList: [] });
     this.props.updateStageField({
       region,
+      shareToRegions: [],
     });
+    this.clearAndResetShareToRegionList(region, this.state.regions);
+  };
+
+  private shareToRegionsUpdated = (option: Option<string>) => {
+    this.props.updateStageField({ shareToRegions: option.map((o: Option) => o.value) });
   };
 
   public render() {
-    const { credentials, region, serviceInstanceName, serviceKeyName } = this.props.stage;
-    const { accounts, regions } = this.state;
+    const { credentials, region, serviceInstanceName, shareToRegions } = this.props.stage;
+    const { accounts, regions, shareToRegionsList } = this.state;
 
     return (
       <div className="form-horizontal">
@@ -88,7 +106,7 @@ export class CloudfoundryCreateServiceKeyStageConfig extends React.Component<
             clearable={false}
             onChange={this.accountUpdated}
             value={credentials}
-            stringOptions={accounts}
+            stringOptions={accounts.map((it) => it.name)}
           />
         </StageConfigField>
         <StageConfigField label="Region">
@@ -102,12 +120,19 @@ export class CloudfoundryCreateServiceKeyStageConfig extends React.Component<
             value={serviceInstanceName}
           />
         </StageConfigField>
-        <StageConfigField label="Service Key Name">
-          <TextInput
-            type="text"
-            className="form-control"
-            onChange={this.serviceKeyNameUpdated}
-            value={serviceKeyName}
+        <StageConfigField label="Share To Regions">
+          <Select
+            options={
+              shareToRegionsList &&
+              shareToRegionsList.map((r: string) => ({
+                label: r,
+                value: r,
+              }))
+            }
+            multi={true}
+            clearable={false}
+            value={shareToRegions}
+            onChange={this.shareToRegionsUpdated}
           />
         </StageConfigField>
       </div>

@@ -7,7 +7,7 @@ import { takeUntil } from 'rxjs/operators';
 import type { Application, IAccount, IFormikStageConfigInjectedProps, IRegion } from '@spinnaker/core';
 import { AccountService, StageConfigField } from '@spinnaker/core';
 
-export interface ICloudfoundryDestroyServiceStageConfigState {
+export interface ICloudFoundryDestroyServiceStageConfigState {
   accounts: IAccount[];
   regions: string[];
   application: Application;
@@ -15,7 +15,7 @@ export interface ICloudfoundryDestroyServiceStageConfigState {
 
 export class CloudFoundryDestroyServiceStageConfigForm extends React.Component<
   IFormikStageConfigInjectedProps,
-  ICloudfoundryDestroyServiceStageConfigState
+  ICloudFoundryDestroyServiceStageConfigState
 > {
   private destroy$ = new Subject();
 

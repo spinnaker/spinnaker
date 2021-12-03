@@ -4,12 +4,13 @@ import React from 'react';
 import type { IExecutionDetailsSectionProps } from '@spinnaker/core';
 import { AccountTag, ExecutionDetailsSection, StageExecutionLogs, StageFailureMessage } from '@spinnaker/core';
 
-export function CloudfoundryUnshareServiceExecutionDetails(props: IExecutionDetailsSectionProps) {
+export function CloudFoundryShareServiceExecutionDetails(props: IExecutionDetailsSectionProps) {
   const { stage } = props;
   const { context } = stage;
   const account = get(context, 'service.account', undefined);
+  const region = get(context, 'service.region', undefined);
   const serviceInstanceName = get(context, 'serviceInstanceName', undefined);
-  const unshareFromRegions = get(context, 'unshareFromRegions', undefined);
+  const shareToRegions = get(context, 'shareToRegions', undefined);
   return (
     <ExecutionDetailsSection name={props.name} current={props.current}>
       <div className="step-section-details">
@@ -20,14 +21,19 @@ export function CloudfoundryUnshareServiceExecutionDetails(props: IExecutionDeta
               <dd>
                 <AccountTag account={account} />
               </dd>
+              <dt>Region</dt>
+              <dd>
+                {region}
+                <br />
+              </dd>
               <dt>Service Instance Name</dt>
               <dd>
                 {serviceInstanceName}
                 <br />
               </dd>
-              <dt>Unsharing Regions</dt>
+              <dt>Sharing Regions</dt>
               <dd>
-                {unshareFromRegions.join(', ')}
+                {shareToRegions.join(', ')}
                 <br />
               </dd>
             </dl>
@@ -41,6 +47,6 @@ export function CloudfoundryUnshareServiceExecutionDetails(props: IExecutionDeta
 }
 
 // eslint-disable-next-line
-export namespace CloudfoundryUnshareServiceExecutionDetails {
-  export const title = 'cloudfoundryUnshareServiceConfig';
+export namespace CloudFoundryShareServiceExecutionDetails {
+  export const title = 'cloudfoundryShareServiceConfig';
 }

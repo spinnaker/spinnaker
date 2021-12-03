@@ -7,11 +7,11 @@ import { AccountService, NgReact, StageConfigField, StageConstants } from '@spin
 
 import { AccountRegionClusterSelector } from '../../widgets/accountRegionClusterSelector';
 
-export interface ICloudfoundryAsgStageConfigState {
+export interface ICloudFoundryAsgStageConfigState {
   accounts: IAccount[];
 }
 
-export class CloudfoundryAsgStageConfig extends React.Component<IStageConfigProps, ICloudfoundryAsgStageConfigState> {
+export class CloudFoundryAsgStageConfig extends React.Component<IStageConfigProps, ICloudFoundryAsgStageConfigState> {
   private destroy$ = new Subject();
 
   constructor(props: IStageConfigProps) {

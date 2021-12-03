@@ -1,6 +1,6 @@
 import type { IArtifact } from '@spinnaker/core';
 
-export interface ICloudfoundryServiceManifestDirectSource {
+export interface ICloudFoundryServiceManifestDirectSource {
   parameters?: string;
   service: string;
   serviceInstanceName: string;
@@ -23,5 +23,5 @@ export interface ICloudFoundryServiceUserProvidedSource {
 export interface ICloudFoundryServiceManifestSource {
   artifact?: IArtifact;
   artifactId?: string;
-  direct?: ICloudfoundryServiceManifestDirectSource | ICloudFoundryServiceUserProvidedSource;
+  direct?: ICloudFoundryServiceManifestDirectSource | ICloudFoundryServiceUserProvidedSource;
 }

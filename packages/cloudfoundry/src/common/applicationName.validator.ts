@@ -19,7 +19,7 @@ class CloudFoundryApplicationNameValidator {
   private static validateLength(name: string, errors: string[]): void {
     if (name.length > CloudFoundryApplicationNameValidator.MAX_RESOURCE_NAME_LENGTH) {
       errors.push(
-        `The maximum length for an application in Cloudfoundry is ${CloudFoundryApplicationNameValidator.MAX_RESOURCE_NAME_LENGTH} characters.`,
+        `The maximum length for an application in Cloud Foundry is ${CloudFoundryApplicationNameValidator.MAX_RESOURCE_NAME_LENGTH} characters.`,
       );
     }
   }

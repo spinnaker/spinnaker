@@ -4,7 +4,7 @@ import React from 'react';
 import type { IExecutionDetailsSectionProps } from '@spinnaker/core';
 import { AccountTag, ExecutionDetailsSection, StageExecutionLogs, StageFailureMessage } from '@spinnaker/core';
 
-export function CloudfoundryServiceExecutionDetails(props: IExecutionDetailsSectionProps) {
+export function CloudFoundryServiceExecutionDetails(props: IExecutionDetailsSectionProps) {
   const { stage } = props;
   const { context } = stage;
   const account = get(context, 'service.account', undefined);
@@ -41,6 +41,6 @@ export function CloudfoundryServiceExecutionDetails(props: IExecutionDetailsSect
 }
 
 // eslint-disable-next-line
-export namespace CloudfoundryServiceExecutionDetails {
+export namespace CloudFoundryServiceExecutionDetails {
   export const title = 'cloudfoundryServiceConfig';
 }
