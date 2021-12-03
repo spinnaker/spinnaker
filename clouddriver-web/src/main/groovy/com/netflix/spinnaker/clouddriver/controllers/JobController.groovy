@@ -58,13 +58,13 @@ class JobController {
     jobMatches.first()
   }
 
-  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'EXECUTE') and hasPermission(#account, 'ACCOUNT', 'EXECUTE')")
-  @ApiOperation(value = "Collect a JobStatus", notes = "Cancels the job.")
+  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'EXECUTE') and hasPermission(#account, 'ACCOUNT', 'WRITE')")
+  @ApiOperation(value = "Cancel a Job", notes = "Cancels the job.")
   @RequestMapping(value = "/{account}/{location}/{id:.+}", method = RequestMethod.DELETE)
   void cancelJob(@ApiParam(value = "Application name", required = true) @PathVariable String application,
-                 @ApiParam(value = "Account job was created by", required = true) @PathVariable String account,
+                 @ApiParam(value = "Account job is running in", required = true) @PathVariable String account,
                  @ApiParam(value = "Namespace, region, or zone job is running in", required = true) @PathVariable String location,
-                 @ApiParam(value = "Unique identifier of job being looked up", required = true) @PathVariable String id) {
+                 @ApiParam(value = "Unique identifier of job to be canceled", required = true) @PathVariable String id) {
     jobProviders.forEach {
       it.cancelJob(account, location, id)
     }
