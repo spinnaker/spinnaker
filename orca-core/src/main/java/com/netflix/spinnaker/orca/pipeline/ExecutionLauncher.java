@@ -25,8 +25,8 @@ import static java.util.Collections.emptyMap;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.kork.exceptions.HasAdditionalAttributes;
 import com.netflix.spinnaker.kork.exceptions.UserException;
-import com.netflix.spinnaker.kork.web.exceptions.ValidationException;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.Trigger;
@@ -162,12 +162,12 @@ public class ExecutionLauncher {
     final String canceledBy = "system";
     String reason = "Failed on startup: " + failure.getMessage();
 
-    if (failure instanceof ValidationException) {
-      ValidationException validationException = (ValidationException) failure;
-      if (validationException.getAdditionalAttributes().containsKey("errors")) {
+    if (failure instanceof HasAdditionalAttributes) {
+      HasAdditionalAttributes exceptionWithAttributes = (HasAdditionalAttributes) failure;
+      if (exceptionWithAttributes.getAdditionalAttributes().containsKey("errors")) {
         List<Map<String, Object>> errors =
             ((List<Map<String, Object>>)
-                validationException.getAdditionalAttributes().get("errors"));
+                exceptionWithAttributes.getAdditionalAttributes().get("errors"));
         reason +=
             errors.stream()
                 .flatMap(
