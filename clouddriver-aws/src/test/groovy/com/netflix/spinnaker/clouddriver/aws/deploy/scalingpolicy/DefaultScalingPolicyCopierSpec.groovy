@@ -143,6 +143,50 @@ class DefaultScalingPolicyCopierSpec extends Specification {
     ])
   }
 
+  void 'generates a valid Scaling Policy Name'() {
+    given:
+    ScalingPolicy policy = new ScalingPolicy(
+      policyARN: 'oldPolicyARN1',
+      autoScalingGroupName: 'asgard-v000',
+      policyName: 'policy1',
+      scalingAdjustment: 5,
+      adjustmentType: 'ChangeInCapacity',
+      cooldown: 100,
+      minAdjustmentStep: 2,
+      alarms: [new Alarm(alarmName: 'alarm1')]
+    )
+    MetricAlarm alarm = new MetricAlarm(
+        alarmName: 'alarm1',
+        alarmDescription: 'alarm 1 description',
+        actionsEnabled: true,
+        oKActions: [],
+        alarmActions: ['oldPolicyARN1'],
+        insufficientDataActions: [],
+        metricName: 'Metric1.with-all_acceptable/special#chars:defined',
+        namespace: 'Namespace1.with-all_acceptable/special#chars:defined',
+        statistic: 'statistic1',
+        dimensions: [
+          new Dimension(name: AsgReferenceCopier.DIMENSION_NAME_FOR_ASG, value: 'asgard-v000')
+        ],
+        period: 1,
+        unit: 'unit1',
+        evaluationPeriods: 2,
+        threshold: 4.2,
+        comparisonOperator: 'GreaterThanOrEqualToThreshold'
+      )
+
+    DefaultScalingPolicyCopier.PolicyNameGenerator generator = new DefaultScalingPolicyCopier.PolicyNameGenerator(idGenerator, amazonClientProvider)
+
+    when:
+    String result = generator.generateScalingPolicyName(sourceCredentials, 'us-east-1', 'asgard-v010', 'asgard-v011', policy)
+
+    then:
+    result.startsWith('asgard-v011-Namespace1.with-all_acceptable/special#chars-defined-Metric1.with-all_acceptable/special#chars-defined-GreaterThanOrEqualToThreshold-4.2-2-1-')
+    1 * sourceCloudWatch.describeAlarms(new DescribeAlarmsRequest(alarmNames: ['alarm1'])) >> new DescribeAlarmsResult(metricAlarms: [
+      alarm
+    ])
+  }
+
   void 'falls back to asg name replacement when no alarms found'() {
     given:
     ScalingPolicy policy = new ScalingPolicy(

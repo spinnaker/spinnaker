@@ -100,11 +100,11 @@ class DefaultScalingPolicyCopier implements ScalingPolicyCopier {
         // the same thing with simple and step policies and have not had any issues thus far
         sourceAsgScalingPolicy.targetTrackingConfiguration.customizedMetricSpecification.dimensions
           .findAll { d ->
-          d.name == DIMENSION_NAME_FOR_ASG
-        }
-        .each { d ->
-          d.value = targetAsgName
-        }
+            d.name == DIMENSION_NAME_FOR_ASG
+          }
+          .each { d ->
+            d.value = targetAsgName
+          }
       }
     }
     return new PutScalingPolicyRequest(
@@ -156,8 +156,8 @@ class DefaultScalingPolicyCopier implements ScalingPolicyCopier {
     List<MetricAlarm> sourceAlarms = new AlarmRetriever(sourceCloudWatch).retrieve(new DescribeAlarmsRequest(alarmNames: sourceAlarmNames))
 
     log.info("Copying scaling policy alarms for $newAutoScalingGroupName: $sourceAlarms")
-    
-    sourceAlarms.findAll{ shouldCopySourceAlarm(it) }.each { alarm ->
+
+    sourceAlarms.findAll { shouldCopySourceAlarm(it) }.each { alarm ->
       List<Dimension> newDimensions = Lists.newArrayList(alarm.dimensions)
       Dimension asgDimension = newDimensions.find { it.name == DIMENSION_NAME_FOR_ASG }
       if (asgDimension) {
@@ -247,7 +247,17 @@ class DefaultScalingPolicyCopier implements ScalingPolicyCopier {
         return fallback
       }
       MetricAlarm alarm = sourceAlarms[0]
-      return [targetAsgName, alarm.namespace, alarm.metricName, alarm.comparisonOperator, alarm.threshold, alarm.evaluationPeriods, alarm.period, new Date().getTime()].join('-')
+      // 'PolicyName' cannot contain a ':' character but it is a valid character in Cloudwatch Namespace and Metric names.
+      return [
+        targetAsgName,
+        alarm.namespace,
+        alarm.metricName,
+        alarm.comparisonOperator,
+        alarm.threshold,
+        alarm.evaluationPeriods,
+        alarm.period,
+        new Date().getTime()
+      ].join('-').replace(':', '-')
     }
   }
 }
