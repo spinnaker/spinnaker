@@ -158,7 +158,7 @@ public class PackageInfo {
           && (trigger.get("buildInfo") != null || parentBuildInfo.isPresent())
           && artifacts.isEmpty()) {
         throw new IllegalStateException(
-            "Jenkins job detected but no artifacts found, please archive the packages in your job and try again.");
+            "CI job detected, but no artifacts found. Please archive the packages in your job and try again.");
       }
     }
 
