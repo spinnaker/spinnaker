@@ -409,7 +409,7 @@ class RedisPermissionsRepositorySpec extends Specification {
                                         .setServiceAccounts([serviceAccount2] as Set)
     def testUser3 = new UserPermission().setId("testUser3")
                                         .setAdmin(true)
-    result == ["testuser1": testUser1, "testuser2": testUser2, "testuser3": testUser3]
+    result == ["testuser1": testUser1.getRoles(), "testuser2": testUser2.getRoles(), "testuser3": testUser3.getRoles()]
   }
 
   def "should delete the specified user"() {
@@ -475,40 +475,40 @@ class RedisPermissionsRepositorySpec extends Specification {
     def result = repo.getAllByRoles(["role1"])
 
     then:
-    result == ["user1"       : user1.merge(unrestricted),
-               "user2"       : user2.merge(unrestricted),
-               (UNRESTRICTED): unrestricted]
+    result == ["user1"       : user1.getRoles() + unrestricted.getRoles(),
+               "user2"       : user2.getRoles() + unrestricted.getRoles(),
+               (UNRESTRICTED): unrestricted.getRoles()]
 
     when:
     result = repo.getAllByRoles(["role3", "role4"])
 
     then:
-    result == ["user2"       : user2.merge(unrestricted),
-               "user4"       : user4.merge(unrestricted),
-               (UNRESTRICTED): unrestricted]
+    result == ["user2"       : user2.getRoles() + unrestricted.getRoles(),
+               "user4"       : user4.getRoles() + unrestricted.getRoles(),
+               (UNRESTRICTED): unrestricted.getRoles()]
 
     when:
     result = repo.getAllByRoles(null)
 
     then:
-    result == ["user1"       : user1.merge(unrestricted),
-               "user2"       : user2.merge(unrestricted),
-               "user3"       : user3.merge(unrestricted),
-               "user4"       : user4.merge(unrestricted),
-               "user5"       : user5.merge(unrestricted),
-               (UNRESTRICTED): unrestricted]
+    result == ["user1"       : user1.getRoles() + unrestricted.getRoles(),
+               "user2"       : user2.getRoles() + unrestricted.getRoles(),
+               "user3"       : user3.getRoles() + unrestricted.getRoles(),
+               "user4"       : user4.getRoles() + unrestricted.getRoles(),
+               "user5"       : user5.getRoles() + unrestricted.getRoles(),
+               (UNRESTRICTED): unrestricted.getRoles()]
 
     when:
     result = repo.getAllByRoles([])
 
     then:
-    result == [(UNRESTRICTED): unrestricted]
+    result == [(UNRESTRICTED): unrestricted.getRoles()]
 
     when:
     result = repo.getAllByRoles(["role5"])
 
     then:
-    result == ["user5"       : user5.merge(unrestricted),
-               (UNRESTRICTED): unrestricted]
+    result == ["user5"       : user5.getRoles() + unrestricted.getRoles(),
+               (UNRESTRICTED): unrestricted.getRoles()]
   }
 }

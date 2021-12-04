@@ -164,10 +164,10 @@ class UserRolesSyncerSpec extends Specification {
 
     expect:
     repo.getAllById() == [
-        "user1"       : user1.merge(unrestrictedUser),
-        "user2"       : user2.merge(unrestrictedUser),
-        "user3"       : user3.merge(unrestrictedUser),
-        (UNRESTRICTED): unrestrictedUser
+        "user1"       : user1.getRoles() + unrestrictedUser.getRoles(),
+        "user2"       : user2.getRoles() + unrestrictedUser.getRoles(),
+        "user3"       : user3.getRoles() + unrestrictedUser.getRoles(),
+        (UNRESTRICTED): unrestrictedUser.getRoles()
     ]
 
     when:
@@ -192,20 +192,20 @@ class UserRolesSyncerSpec extends Specification {
     def expectedResult
     if (fullsync) {
       expectedResult = [
-              "user1"         : user1.merge(unrestrictedUser),
-              "user2"         : newUser2.merge(unrestrictedUser),
-              "user3"         : newUser3.merge(unrestrictedUser),
-              "abc"           : abcServiceAcct.merge(unrestrictedUser),
-              "xyz@domain.com": xyzServiceAcct.merge(unrestrictedUser),
-              (UNRESTRICTED)  : unrestrictedUser
+              "user1"         : user1.getRoles() + unrestrictedUser.getRoles(),
+              "user2"         : newUser2.getRoles() + unrestrictedUser.getRoles(),
+              "user3"         : newUser3.getRoles() + unrestrictedUser.getRoles(),
+              "abc"           : abcServiceAcct.getRoles() + unrestrictedUser.getRoles(),
+              "xyz@domain.com": xyzServiceAcct.getRoles() + unrestrictedUser.getRoles(),
+              (UNRESTRICTED)  : unrestrictedUser.getRoles()
       ]
     } else {
       expectedResult = [
-              "user1"         : user1.merge(unrestrictedUser),
-              "user2"         : user2.merge(unrestrictedUser),
-              "user3"         : newUser3.merge(unrestrictedUser),
-              "abc"           : abcServiceAcct.merge(unrestrictedUser),
-              (UNRESTRICTED)  : unrestrictedUser
+              "user1"         : user1.getRoles() + unrestrictedUser.getRoles(),
+              "user2"         : user2.getRoles() + unrestrictedUser.getRoles(),
+              "user3"         : newUser3.getRoles() + unrestrictedUser.getRoles(),
+              "abc"           : abcServiceAcct.getRoles() + unrestrictedUser.getRoles(),
+              (UNRESTRICTED)  : unrestrictedUser.getRoles()
       ]
     }
     repo.getAllById() == expectedResult

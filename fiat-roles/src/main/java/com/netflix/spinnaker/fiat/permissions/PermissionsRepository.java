@@ -17,9 +17,11 @@
 package com.netflix.spinnaker.fiat.permissions;
 
 import com.netflix.spinnaker.fiat.model.UserPermission;
+import com.netflix.spinnaker.fiat.model.resources.Role;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * A PermissionsRepository is responsible for persisting UserPermission objects under a user ID key.
@@ -54,21 +56,22 @@ public interface PermissionsRepository {
    */
   Optional<UserPermission> get(String id);
 
-  /** Gets all UserPermissions in the repository keyed by user ID. */
-  Map<String, UserPermission> getAllById();
+  /** Gets all Roles in the repository keyed by user ID. */
+  Map<String, Set<Role>> getAllById();
 
   /**
-   * Gets all UserPermissions in the repository that has at least 1 of the specified roles, keyed by
-   * user ID. Because this method is usually used in conjuction with updating/syncing the users in
-   * question, the returned map will also contain the unrestricted user. If anyRoles is null,
-   * returns the same result as getAllById() (which includes the unrestricted user). If anyRoles is
-   * empty, this is an indication to sync only the anonymous/unrestricted user. When this is the
-   * case, this method returns a map with a single entry for the unrestricted user.
+   * Gets a map of all users and their Roles from the repository where the user has at least one of
+   * the specified named roles. Because this method is usually used in conjunction with
+   * updating/syncing the users in question, the returned map will also contain the unrestricted
+   * user. If anyRoles is null, returns the same result as getAllById() (which includes the
+   * unrestricted user). If anyRoles is empty, this is an indication to sync only the
+   * anonymous/unrestricted user. When this is the case, this method returns a map with a single
+   * entry for the unrestricted user.
    *
    * @param anyRoles
    * @return
    */
-  Map<String, UserPermission> getAllByRoles(List<String> anyRoles);
+  Map<String, Set<Role>> getAllByRoles(List<String> anyRoles);
 
   /**
    * Delete the specified user permission.

@@ -89,7 +89,10 @@ public class AuthorizeController {
     }
 
     log.debug("UserPermissions requested for all users");
-    return permissionsRepository.getAllById().values().stream()
+    return permissionsRepository.getAllById().keySet().stream()
+        .map(permissionsRepository::get)
+        .filter(Optional::isPresent)
+        .map(Optional::get)
         .map(UserPermission::getView)
         .map(
             u ->

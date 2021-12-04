@@ -419,9 +419,9 @@ internal object SqlPermissionsRepositoryTests : JUnit5Minutests {
 
                 expectThat(result).isEqualTo(
                     mapOf(
-                        "testuser1" to testUser1,
-                        "testuser2" to testUser2,
-                        "testuser3" to testUser3
+                        "testuser1" to testUser1.roles,
+                        "testuser2" to testUser2.roles,
+                        "testuser3" to testUser3.roles
                     )
                 )
             }
@@ -489,9 +489,9 @@ internal object SqlPermissionsRepositoryTests : JUnit5Minutests {
 
                 expectThat(result).isEqualTo(
                     mapOf(
-                        "user1" to user1.merge(unrestricted),
-                        "user2" to user2.merge(unrestricted),
-                        UNRESTRICTED_USERNAME to unrestricted
+                        "user1" to user1.roles.plus(unrestricted.roles),
+                        "user2" to user2.roles.plus(unrestricted.roles),
+                        UNRESTRICTED_USERNAME to unrestricted.roles
                     )
                 )
 
@@ -499,9 +499,9 @@ internal object SqlPermissionsRepositoryTests : JUnit5Minutests {
 
                 expectThat(result).isEqualTo(
                     mapOf(
-                        "user2" to user2.merge(unrestricted),
-                        "user4" to user4.merge(unrestricted),
-                        UNRESTRICTED_USERNAME to unrestricted
+                        "user2" to user2.roles.plus(unrestricted.roles),
+                        "user4" to user4.roles.plus(unrestricted.roles),
+                        UNRESTRICTED_USERNAME to unrestricted.roles
                     )
                 )
 
@@ -509,12 +509,12 @@ internal object SqlPermissionsRepositoryTests : JUnit5Minutests {
 
                 expectThat(result).isEqualTo(
                     mapOf(
-                        "user1" to user1.merge(unrestricted),
-                        "user2" to user2.merge(unrestricted),
-                        "user3" to user3.merge(unrestricted),
-                        "user4" to user4.merge(unrestricted),
-                        "user5" to user5.merge(unrestricted),
-                        UNRESTRICTED_USERNAME to unrestricted
+                        "user1" to user1.roles.plus(unrestricted.roles),
+                        "user2" to user2.roles.plus(unrestricted.roles),
+                        "user3" to user3.roles.plus(unrestricted.roles),
+                        "user4" to user4.roles.plus(unrestricted.roles),
+                        "user5" to user5.roles.plus(unrestricted.roles),
+                        UNRESTRICTED_USERNAME to unrestricted.roles
                     )
                 )
 
@@ -522,7 +522,7 @@ internal object SqlPermissionsRepositoryTests : JUnit5Minutests {
 
                 expectThat(result).isEqualTo(
                     mapOf(
-                        UNRESTRICTED_USERNAME to unrestricted
+                        UNRESTRICTED_USERNAME to unrestricted.roles
                     )
                 )
 
@@ -530,8 +530,8 @@ internal object SqlPermissionsRepositoryTests : JUnit5Minutests {
 
                 expectThat(result).isEqualTo(
                     mapOf(
-                        "user5" to user5.merge(unrestricted),
-                        UNRESTRICTED_USERNAME to unrestricted
+                        "user5" to user5.roles.plus(unrestricted.roles),
+                        UNRESTRICTED_USERNAME to unrestricted.roles
                     )
                 )
             }
@@ -682,7 +682,6 @@ internal object SqlPermissionsRepositoryTests : JUnit5Minutests {
                     executor.shutdownNow()
                 }
             }
-
         }
 
         after {

@@ -33,13 +33,9 @@ import com.netflix.spinnaker.fiat.providers.ResourceProvider;
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.lock.LockManager;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -156,10 +152,10 @@ public class UserRolesSyncer {
 
     while (true) {
       try {
-        Map<String, UserPermission> combo = new HashMap<>();
+        Map<String, Set<Role>> combo = new HashMap<>();
         // force a refresh of the unrestricted user in case the backing repository is empty:
-        combo.put(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME, new UserPermission());
-        Map<String, UserPermission> temp;
+        combo.put(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME, new HashSet<>());
+        Map<String, Set<Role>> temp;
         if (!(temp = getUserPermissions(roles)).isEmpty()) {
           combo.putAll(temp);
         }
@@ -209,22 +205,22 @@ public class UserRolesSyncer {
     return healthIndicator.health().getStatus() == Status.UP;
   }
 
-  private Map<String, UserPermission> getServiceAccountsAsMap(List<String> roles) {
+  private Map<String, Set<Role>> getServiceAccountsAsMap(List<String> roles) {
     List<UserPermission> allServiceAccounts =
         serviceAccountProvider.getAll().stream()
             .map(ServiceAccount::toUserPermission)
             .collect(Collectors.toList());
     if (roles == null || roles.isEmpty()) {
       return allServiceAccounts.stream()
-          .collect(Collectors.toMap(UserPermission::getId, Function.identity()));
+          .collect(Collectors.toMap(UserPermission::getId, UserPermission::getRoles));
     } else {
       return allServiceAccounts.stream()
           .filter(p -> p.getRoles().stream().map(Role::getName).anyMatch(roles::contains))
-          .collect(Collectors.toMap(UserPermission::getId, Function.identity()));
+          .collect(Collectors.toMap(UserPermission::getId, UserPermission::getRoles));
     }
   }
 
-  private Map<String, UserPermission> getUserPermissions(List<String> roles) {
+  private Map<String, Set<Role>> getUserPermissions(List<String> roles) {
     if (roles == null || roles.isEmpty()) {
       return permissionsRepository.getAllById();
     } else {
@@ -232,8 +228,8 @@ public class UserRolesSyncer {
     }
   }
 
-  public long updateUserPermissions(Map<String, UserPermission> permissionsById) {
-    if (permissionsById.remove(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME) != null) {
+  public long updateUserPermissions(Map<String, Set<Role>> rolesById) {
+    if (rolesById.remove(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME) != null) {
       timeIt(
           "syncAnonymous",
           () -> {
@@ -243,13 +239,13 @@ public class UserRolesSyncer {
     }
 
     List<ExternalUser> extUsers =
-        permissionsById.values().stream()
+        rolesById.entrySet().stream()
             .map(
-                permission ->
+                entry ->
                     new ExternalUser()
-                        .setId(permission.getId())
+                        .setId(entry.getKey())
                         .setExternalRoles(
-                            permission.getRoles().stream()
+                            entry.getValue().stream()
                                 .filter(role -> role.getSource() == Role.Source.EXTERNAL)
                                 .collect(Collectors.toList())))
             .collect(Collectors.toList());
