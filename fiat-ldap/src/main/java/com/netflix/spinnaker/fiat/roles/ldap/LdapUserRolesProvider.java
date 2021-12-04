@@ -166,7 +166,7 @@ public class LdapUserRolesProvider implements UserRolesProvider {
                 configProps.getUserSearchBase(), configProps.getUserSearchFilter(), formatArgs);
         partialUserDn = res.getDn().toString();
       } catch (IncorrectResultSizeDataAccessException e) {
-        log.error("Unable to find a single user entry", e);
+        log.error("Unable to find a single user entry for {}", userId, e);
         return null;
       }
     } else {
