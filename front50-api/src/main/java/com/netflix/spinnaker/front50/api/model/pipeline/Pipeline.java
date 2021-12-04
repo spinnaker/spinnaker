@@ -53,6 +53,7 @@ public class Pipeline implements Timestamped {
   @Getter @Setter private Map<String, Object> payloadConstraints;
   @Getter @Setter private Boolean keepWaitingPipelines;
   @Getter @Setter private Boolean limitConcurrent;
+  @Getter @Setter private Integer maxConcurrentExecutions;
   @Getter @Setter private List<Map<String, Object>> parameterConfig;
   @Getter @Setter private String spelEvaluator;
 

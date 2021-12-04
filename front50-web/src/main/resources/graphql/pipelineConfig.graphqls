@@ -20,6 +20,7 @@ type Pipeline {
   keepWaitingPipelines: Boolean!
   lastModifiedBy: String!
   limitConcurrent: Boolean!
+  maxConcurrentExecutions: Int
   parameterConfig: [ParameterConfig]!
   spelEvaluator: String!
   stageCounter: Int

@@ -147,6 +147,11 @@ public abstract class PipelineMixins {
   @JsonInclude(Include.NON_NULL)
   @Getter
   @Setter
+  private Integer maxConcurrentExecutions;
+
+  @JsonInclude(Include.NON_NULL)
+  @Getter
+  @Setter
   private List<Map<String, Object>> parameterConfig;
 
   @JsonInclude(Include.NON_NULL)

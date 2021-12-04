@@ -33,6 +33,7 @@ import org.springframework.beans.factory.ObjectProvider
 import java.time.Clock
 import java.util.concurrent.Executors
 import com.fasterxml.jackson.databind.ObjectMapper
+import groovy.json.JsonSlurper
 
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
 import org.springframework.http.MediaType
@@ -292,6 +293,59 @@ abstract class PipelineControllerTck extends Specification {
     then:
     response.status == BAD_REQUEST
     response.errorMessage == "A pipeline with name pipeline1 already exists in application test"
+  }
+
+  @Unroll
+  void "pipeline with limitConcurrent = #limitConcurrent and maxConcurrentExecutions = #maxConcurrentExecutions"() {
+    def appName = "test"
+    def pipelineName = "a_pipeline"
+    def Map pipelineData
+    given:
+    if (type == "max") {
+      pipelineData = [
+        name: pipelineName,
+        application: appName,
+        limitConcurrent: limitConcurrent,
+        maxConcurrentExecutions: maxConcurrentExecutions
+      ]
+    } else {
+      pipelineData = [
+        name: pipelineName,
+        application: appName,
+        limitConcurrent: limitConcurrent
+      ]
+    }
+
+    when:
+    def postResponse = mockMvc.perform(
+      post("/pipelines")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(new ObjectMapper().writeValueAsString(pipelineData))
+      )
+      .andReturn()
+      .response
+    def postContent = new JsonSlurper().parseText(postResponse.contentAsString)
+    def id_from_db = pipelineDAO.getPipelineId(appName, pipelineName)
+    def getResponse = mockMvc.perform(
+      get("/pipelines/"+id_from_db+"/get"))
+      .andReturn()
+      .response
+    def getContent = new JsonSlurper().parseText(getResponse.contentAsString)
+
+    then:
+    postResponse.status == OK
+    postContent.id == id_from_db
+
+    getResponse.status == OK
+    getContent.limitConcurrent == expectedLimitConcurrent
+    getContent.maxConcurrentExecutions == expectedMaxConcurrentExecutions
+
+    where:
+      type | limitConcurrent | maxConcurrentExecutions || expectedLimitConcurrent || expectedMaxConcurrentExecutions
+      "limit" | false | "not_set" || false || null
+      "limit" | true | "not_set" || true || null
+      "max" | true | 0 || true || 0
+      "max" | true | 5 || true || 5
   }
 }
 
