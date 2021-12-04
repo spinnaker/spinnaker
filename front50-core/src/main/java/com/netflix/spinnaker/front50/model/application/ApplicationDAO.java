@@ -32,15 +32,13 @@ public interface ApplicationDAO extends ItemDAO<Application> {
   class Searcher {
     public static Collection<Application> search(
         Collection<Application> searchableApplications, Map<String, String> attributes) {
-      Map<String, String> normalizedAttributes = new HashMap<>();
-      attributes.forEach((key, value) -> normalizedAttributes.put(key.toLowerCase(), value));
 
       // filtering vs. querying to achieve case-insensitivity without using an additional column
       // (small data set)
       return searchableApplications.stream()
           .filter(
               it -> {
-                for (Map.Entry<String, String> e : normalizedAttributes.entrySet()) {
+                for (Map.Entry<String, String> e : attributes.entrySet()) {
                   if (Strings.isNullOrEmpty(e.getValue())) {
                     continue;
                   }
@@ -63,10 +61,7 @@ public interface ApplicationDAO extends ItemDAO<Application> {
                 return true;
               })
           .distinct()
-          .sorted(
-              (a, b) ->
-                  SearchUtils.score(b, normalizedAttributes)
-                      - SearchUtils.score(a, normalizedAttributes))
+          .sorted((a, b) -> SearchUtils.score(b, attributes) - SearchUtils.score(a, attributes))
           .collect(Collectors.toList());
     }
   }

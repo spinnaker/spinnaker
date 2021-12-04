@@ -82,4 +82,24 @@ class ApplicationDAOSpec extends Specification {
     ["name": "Netflix", description: "Spinnaker"] | ["name": "flix", description: "ker"]  || 93
     ["name": "Netflix", description: "Spinnaker"] | ["name": "flix", owner: "netflix"]    || 59
   }
+
+
+  @Unroll
+  def "should be able to search applications"() {
+    given:
+    def apps = applications
+
+    expect:
+    ApplicationDAO.Searcher.search(apps, search)*.name == app
+
+    where:
+    applications                                                                                | search                                    | app
+    [new Application(name: "APP1", details: [repoSlug: "app1"]), new Application(name: "APP2")] | [repoSlug: "app1"]                        | ["APP1"]
+    [new Application(name: "APP1", details: [repoSlug: "app1"]), new Application(name: "APP2")] | [repoSlug: "APP1"]                        | ["APP1"]
+    [new Application(name: "APP1", details: [repoSlug: "app1"]), new Application(name: "APP2")] | [repoSlug: "app2"]                        | []
+    [new Application(name: "APP1", details: [repoSlug: "app1"]), new Application(name: "APP2")] | [name: "app2"]                            | ["APP2"]
+    [new Application(name: "APP1", details: [repoSlug: "app1"]), new Application(name: "APP2")] | [:]                                       | ["APP1", "APP2"]
+    [new Application(name: "APP1", details: [repoSlug: "app1", repoProjectKey: "org"])]         | [repoSlug: "app1", repoProjectKey: "org"] | ["APP1"]
+    [new Application(name: "APP1", details: [repoSlug: "app1"])]                                | [reposlug: "app1"]                        | []
+  }
 }
