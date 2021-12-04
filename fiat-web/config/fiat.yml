@@ -8,10 +8,6 @@ okHttpClient:
   retries:
     maxElapsedBackoffMs: 5000
 
-endpoints:
-  health:
-    sensitive: false
-
 # For options, see com.netflix.spinnaker.fiat.config.FiatServerConfigurationProperties
 
 logging:
