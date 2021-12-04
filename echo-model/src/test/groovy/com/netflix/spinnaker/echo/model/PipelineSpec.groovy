@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class PipelineSpec extends Specification {
 
@@ -310,5 +311,69 @@ class PipelineSpec extends Specification {
     then:
     noExceptionThrown()
     pipeline == pipelineRoundTrip
+  }
+
+  @Unroll
+  void 'pipeline config deserialization for pipelines with limitConcurrent = #limitConcurrent'() {
+    given:
+    def testId = "68a14710-1ade-11e5-89a8-65c9c75401223f"
+    def testAppName = "Testing limitConcurrent"
+    def testPipelineName = "a_pipeline"
+    def pipelineJson = """{
+            "name": "${testPipelineName}",
+            "limitConcurrent": ${limitConcurrent},
+            "application": "${testAppName}",
+            "id": "${testId}"
+        }
+        """
+
+    when:
+    Pipeline pipeline = objectMapper.readValue(pipelineJson, Pipeline)
+
+    then:
+    noExceptionThrown()
+    pipeline != null
+    pipeline.id == testId
+    pipeline.name == testPipelineName
+    pipeline.application == testAppName
+    pipeline.limitConcurrent == limitConcurrent
+
+    where:
+    limitConcurrent | _
+    true | _
+    false | _
+  }
+
+  @Unroll
+  void 'pipeline config deserialization for pipelines with maxConcurrentExecutions = #maxConcurrentExecutions'() {
+    given:
+    def testId = "68a14710-1ade-11e5-89a8-65c9c754999923f"
+    def testAppName = "Testing limitConcurrent"
+    def testPipelineName = "a_pipeline"
+    def pipelineJson = """{
+            "name": "${testPipelineName}",
+            "limitConcurrent": true,
+            "maxConcurrentExecutions": ${maxConcurrentExecutions},
+            "application": "${testAppName}",
+            "id": "${testId}"
+        }
+        """
+
+    when:
+    Pipeline pipeline = objectMapper.readValue(pipelineJson, Pipeline)
+
+    then:
+    noExceptionThrown()
+    pipeline != null
+    pipeline.id == testId
+    pipeline.name == testPipelineName
+    pipeline.application == testAppName
+    pipeline.maxConcurrentExecutions == maxConcurrentExecutions
+    pipeline.limitConcurrent == true
+
+    where:
+    maxConcurrentExecutions || _
+    2 | _
+    0 | _
   }
 }

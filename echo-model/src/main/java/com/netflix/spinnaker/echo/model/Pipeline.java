@@ -57,6 +57,8 @@ public class Pipeline {
 
   @JsonProperty boolean limitConcurrent;
 
+  @JsonProperty int maxConcurrentExecutions;
+
   @JsonProperty boolean keepWaitingPipelines;
 
   @JsonProperty boolean plan;
