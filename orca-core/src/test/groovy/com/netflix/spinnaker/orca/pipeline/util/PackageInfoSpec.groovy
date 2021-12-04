@@ -27,6 +27,7 @@ import java.util.regex.Pattern
 
 import static com.netflix.spinnaker.orca.pipeline.util.PackageType.DEB
 import static com.netflix.spinnaker.orca.pipeline.util.PackageType.RPM
+import static com.netflix.spinnaker.orca.pipeline.util.PackageType.NUPKG
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
@@ -206,6 +207,7 @@ class PackageInfoSpec extends Specification {
     [["fileName": "package_4.11.4-h02.deb"], ["fileName": "package-something_4.11.4-h02.deb"]]               | "package"           | DEB         || "package_4.11.4-h02"
     [["fileName": "package_4.11.4-h02.sha123.deb"], ["fileName": "package-something_4.11.4-h02.deb"]]        | "package-something" | DEB         || "package-something_4.11.4-h02"
     [["fileName": "package_4.11.4-h02.sha123.deb"], ["fileName": "package-something_4.11.4-h02.sha123.deb"]] | "package"           | DEB         || "package_4.11.4-h02.sha123"
+    [["fileName": "Package.1.3.3.7.nupkg"]]                                                                  | "Package"           | NUPKG       || "Package.1.3.3.7"
   }
 
   def "findTargetPackage: bake execution with only a package set and jenkins stage artifacts"() {
