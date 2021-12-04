@@ -89,6 +89,11 @@ public class V2PipelineTemplateController {
   void save(
       @RequestParam(value = "tag", required = false) String tag,
       @RequestBody PipelineTemplate pipelineTemplate) {
+
+    if (StringUtils.isEmpty(tag)) {
+      tag = pipelineTemplate.getTag();
+    }
+
     if (StringUtils.isNotEmpty(tag)) {
       validatePipelineTemplateTag(tag);
     }
@@ -118,6 +123,11 @@ public class V2PipelineTemplateController {
       @PathVariable String id,
       @RequestParam(value = "tag", required = false) String tag,
       @RequestBody PipelineTemplate pipelineTemplate) {
+
+    if (StringUtils.isEmpty(tag)) {
+      tag = pipelineTemplate.getTag();
+    }
+
     boolean nonEmptyTag = StringUtils.isNotEmpty(tag);
     if (nonEmptyTag) {
       validatePipelineTemplateTag(tag);
