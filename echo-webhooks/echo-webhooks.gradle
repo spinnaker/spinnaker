@@ -19,6 +19,7 @@ dependencies {
   implementation project(':echo-model')
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "io.spinnaker.kork:kork-artifacts"
+  implementation "javax.validation:validation-api"
 
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation "org.assertj:assertj-core"
