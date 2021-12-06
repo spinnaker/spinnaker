@@ -163,6 +163,9 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T>, Kubernete
       case configMap:
         volume = new JinjaJarResource("/kubernetes/manifests/configMapVolume.yml");
         break;
+      case persistentVolumeClaim:
+        volume = new JinjaJarResource("/kubernetes/manifests/persistentVolumeClaimVolume.yml");
+        break;
       default:
         throw new IllegalStateException("Unknown volume type: " + configSource.getType());
     }

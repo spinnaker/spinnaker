@@ -31,6 +31,7 @@ public class ConfigSource {
   public enum Type {
     emptyDir,
     configMap,
-    secret
+    secret,
+    persistentVolumeClaim
   }
 }
