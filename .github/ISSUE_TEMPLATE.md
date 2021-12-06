@@ -32,9 +32,9 @@ Instructions:
 Descriptions:
 
 * Issue Summary: A brief description of what you're seeing.
-* Cloud Provider: AWS, GCP, Kubernetes, Azure, Cloud Foundry, etc. Please assign a label from the right so your issue can be properly sorted.
+* Cloud Provider: AWS, GCP, Kubernetes, Azure, Cloud Foundry, etc.
 * Environment: As much information about your Spinnaker environment and configuration that might be relevant to the issue. For example: "I am running Spinnaker using the Amazon images to deploy into AWS and GCP."
-* Feature Area: Notifications, Pipelines, UI, Jenkins, etc. Please assign a label from the right so your issue can be properly sorted.
+* Feature Area: Notifications, Pipelines, UI, Jenkins, etc.
 * Description: The behavior you expect to see, and the actual behavior.
 * Steps to reproduce: Ideally, an isolated way to reproduce the behavior (example: GitHub repository with code isolated to the issue that anyone can clone to observe the problem). If not possible, as much information as possible to see this behavior.
 * Additional Details: Additional information such as screenshots and exception logs.
