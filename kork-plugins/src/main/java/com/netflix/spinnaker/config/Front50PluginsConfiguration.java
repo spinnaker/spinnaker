@@ -95,9 +95,11 @@ public class Front50PluginsConfiguration {
 
     URL front50Url = getFront50Url(environment, front50RepositoryProps);
 
+    KotlinModule kotlinModule = new KotlinModule.Builder().build();
+
     ObjectMapper objectMapper =
         new ObjectMapper()
-            .registerModule(new KotlinModule())
+            .registerModule(kotlinModule)
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             .configure(SerializationFeature.INDENT_OUTPUT, true)
             .setSerializationInclusion(JsonInclude.Include.NON_NULL);

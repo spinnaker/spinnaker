@@ -17,7 +17,7 @@ package com.netflix.spinnaker.kork.plugins.sdk.httpclient
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.configureFor
@@ -85,7 +85,7 @@ class Ok3HttpClientIntegrationTest : JUnit5Minutests {
         wiremock.url(""),
         OkHttpClient(),
         ObjectMapper().apply {
-          registerModule(KotlinModule())
+          registerKotlinModule()
         }
       )
     }

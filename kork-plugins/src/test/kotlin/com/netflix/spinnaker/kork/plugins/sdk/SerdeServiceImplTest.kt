@@ -16,7 +16,7 @@
 package com.netflix.spinnaker.kork.plugins.sdk
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.netflix.spinnaker.kork.plugins.sdk.serde.SerdeServiceImpl
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -27,7 +27,7 @@ class SerdeServiceImplTest : JUnit5Minutests {
 
   fun tests() = rootContext<SerdeServiceImpl> {
     fixture {
-      SerdeServiceImpl(ObjectMapper().registerModule(KotlinModule()))
+      SerdeServiceImpl(ObjectMapper().registerKotlinModule())
     }
     test("map to converts a hashmap to target type") {
       val o = mapOf(

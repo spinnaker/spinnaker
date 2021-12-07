@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.node.MissingNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.databind.node.TreeTraversingParser
 import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.netflix.spinnaker.kork.annotations.Beta
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import com.netflix.spinnaker.kork.exceptions.SystemException
@@ -58,7 +58,7 @@ class SpringEnvironmentConfigResolver(
   private val mapper = ObjectMapper()
     .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
     .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
-    .registerModules(KotlinModule())
+    .registerKotlinModule()
 
   override fun <T> resolve(coordinates: ConfigCoordinates, expectedType: Class<T>): T =
     resolveInternal(coordinates, { mapper.convertValue(emptyMap<Any, Any>(), expectedType) }) {

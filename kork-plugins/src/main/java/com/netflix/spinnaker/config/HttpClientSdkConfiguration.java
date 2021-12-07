@@ -70,12 +70,14 @@ public class HttpClientSdkConfiguration {
     OkHttp3ClientConfiguration config =
         new OkHttp3ClientConfiguration(okHttpClientProperties, okHttp3MetricsInterceptor);
 
+    KotlinModule kotlinModule = new KotlinModule.Builder().build();
+
     // TODO(rz): It'd be nice to make this customizable, but I'm not sure how to do that without
     //  bringing Jackson into the Plugin SDK (quite undesirable).
     ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.registerModule(new Jdk8Module());
     objectMapper.registerModule(new JavaTimeModule());
-    objectMapper.registerModule(new KotlinModule());
+    objectMapper.registerModule(kotlinModule);
     objectMapper.disable(READ_DATE_TIMESTAMPS_AS_NANOSECONDS);
     objectMapper.disable(WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS);
     objectMapper.disable(FAIL_ON_UNKNOWN_PROPERTIES);
