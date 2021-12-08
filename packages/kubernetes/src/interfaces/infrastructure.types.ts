@@ -18,6 +18,7 @@ export interface IKubernetesResource {
 export interface IKubernetesInstance extends IInstance, IKubernetesResource {
   humanReadableName: string;
   moniker: IMoniker;
+  publicDnsName?: string;
 }
 
 export interface IKubernetesLoadBalancer extends ILoadBalancer, IKubernetesResource {}
