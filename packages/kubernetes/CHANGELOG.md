@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.2.6](https://github.com/spinnaker/deck/compare/@spinnaker/kubernetes@0.2.5...@spinnaker/kubernetes@0.2.6) (2021-12-08)
+
+
+### Bug Fixes
+
+* **kubernetes:** add custom links to instance details ([#9702](https://github.com/spinnaker/deck/issues/9702)) ([e68b59c](https://github.com/spinnaker/deck/commit/e68b59c9a771401a235eb55d23e7408c3e6e6537))
+
+
+
+
+
 ## [0.2.5](https://github.com/spinnaker/deck/compare/@spinnaker/kubernetes@0.2.4...@spinnaker/kubernetes@0.2.5) (2021-12-01)
 
 **Note:** Version bump only for package @spinnaker/kubernetes

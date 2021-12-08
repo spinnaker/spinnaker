@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.16.1](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.16.0...@spinnaker/core@0.16.1) (2021-12-08)
+
+
+### Bug Fixes
+
+* **core:** conditionally hide expression evaluation warning messages ([#9771](https://github.com/spinnaker/deck/issues/9771)) ([7e3dd50](https://github.com/spinnaker/deck/commit/7e3dd5053ccdb06ce067303062f90ae82b56bfc8))
+
+
+
+
+
 # [0.16.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.15.1...@spinnaker/core@0.16.0) (2021-12-01)
 
 
