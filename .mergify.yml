@@ -1,11 +1,6 @@
 queue_rules:
   - name: default
     conditions:
-      - base=master
-      - status-success=Deck CI
-  - name: backport
-    conditions:
-      - base~=^release-
       - status-success=Deck CI
 
 pull_request_rules:
@@ -13,6 +8,8 @@ pull_request_rules:
     conditions:
       - 'label=ready to merge'
       - 'approved-reviews-by=@oss-approvers'
+      - base=master
+      - status-success=Deck CI
     actions:
       queue:
         method: squash
@@ -21,6 +18,8 @@ pull_request_rules:
     conditions:
       - 'label=ready to merge'
       - 'label=self merge'
+      - base=master
+      - status-success=Deck CI
     actions:
       queue:
         method: squash
@@ -29,6 +28,8 @@ pull_request_rules:
     conditions:
       - 'label=ready to rebase'
       - 'approved-reviews-by=@oss-approvers'
+      - base=master
+      - status-success=Deck CI
     actions:
       queue:
         method: rebase
@@ -37,15 +38,19 @@ pull_request_rules:
     conditions:
       - 'label=ready to rebase'
       - 'label=self merge'
+      - base=master
+      - status-success=Deck CI
     actions:
       queue:
         method: rebase
         name: default
-  - name: Automatically merge release branch changes on Travis CI success and release manager review
+  - name: Automatically merge release branch changes on CI success and release manager review
     conditions:
       - 'label=ready to merge'
       - 'approved-reviews-by=@release-managers'
+      - base~=^release-
+      - status-success=Deck CI
     actions:
       queue:
         method: squash
-        name: backport
+        name: default
