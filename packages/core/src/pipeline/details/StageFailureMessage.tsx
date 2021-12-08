@@ -71,18 +71,33 @@ export class StageFailureMessage extends React.Component<IStageFailureMessagePro
   }
 
   public render() {
-    const { message, messages } = this.props;
+    const { message, messages, stage } = this.props;
     const { isFailed, failedTask, failedExecutionId, failedStageName, failedStageId } = this.state;
-    if (isFailed || failedTask || message || messages.length) {
+
+    let stageMessages = message || !messages.length ? [message] : messages;
+    if (stageMessages.length > 0) {
       const exceptionTitle = isFailed ? (messages.length ? 'Exceptions' : 'Exception') : 'Warning';
-      const displayMessages =
-        message || !messages.length ? (
-          <Markdown message={message || StageFailureMessages.NO_REASON_PROVIDED} className="break-word" />
-        ) : (
-          messages.map((m, i) => (
-            <Markdown key={i} message={m || StageFailureMessages.NO_REASON_PROVIDED} className="break-word" />
-          ))
-        );
+
+      // expression evaluation warnings can get really long and hide actual failure messages, source
+      // filter out expression evaluation failure messages if either:
+      // - there was a stage failure (and failed expressions don't fail the stage)
+      // - expression evaluation was explicitly disabled for the stage(as Orca still processes expressions and populates
+      //   warnings when evaluation is disabled disabled)
+      const shouldFilterExpressionFailures =
+        (isFailed && !stage.context?.failOnFailedExpressions) || stage.context?.skipExpressionEvaluation;
+
+      if (shouldFilterExpressionFailures) {
+        stageMessages = stageMessages.filter((m) => !m.startsWith('Failed to evaluate'));
+
+        if (stageMessages.length === 0) {
+          // no messages to be displayed after filtering
+          return null;
+        }
+      }
+
+      const displayMessages = stageMessages.map((m, i) => (
+        <Markdown key={i} message={m || StageFailureMessages.NO_REASON_PROVIDED} className="break-word" />
+      ));
 
       if (displayMessages) {
         return (
