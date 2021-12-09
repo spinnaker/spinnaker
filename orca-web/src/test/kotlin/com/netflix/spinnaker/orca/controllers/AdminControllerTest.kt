@@ -40,6 +40,16 @@ class AdminControllerTest : JUnit5Minutests {
     }
 
     test("/admin/instance/enabled endpoint can disable queue Activator") {
+      // wait up to 5 seconds for discoveryActivator to initialize
+      for (i in 1..5) {
+         if (discoveryActivator.enabled){
+            println("discoveryActivator.enabled = true. Start")
+            break
+         }
+         println("discoveryActivator.enabled = false. Sleep 1sec")
+         Thread.sleep(1000L)
+      }
+
       expectThat(discoveryActivator.enabled).isTrue()
 
       val response = mockMvc.post("/admin/instance/enabled") {
