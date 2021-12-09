@@ -26,9 +26,8 @@ Facilitate GitOps, and grant developers control of provisioning infrastructure f
 = Why Do I Need Spinnaker?
 
 Use Spinnaker to create a “paved road” for application delivery, with guardrails that ensure only valid infrastructure and configuration reach production.
-Free development teams from burdensome ops provisioning while automating reinforcement of business and regulatory requirements. Delivery automation
-strategies such as canary deployments provide the safety necessary to capture value from quick innovation, while protecting against business and end-user
- impact.
+
+Free development teams from burdensome ops provisioning while automating reinforcement of business and regulatory requirements. Delivery automation strategies such as canary deployments provide the safety necessary to capture value from quick innovation, while protecting against business and end-user impact.
  
 = Tech Specs
 
@@ -41,16 +40,17 @@ prebuilt definitions and move changes through environments via a visual interfac
 
 '''
 
-This repository centralizes issue tracking across Spinnaker for each microservice. The core code making up Spinnaker’s microservices is found in the other https://github.com/spinnaker[Spinnaker repositories].
+This repository centralizes issue tracking across Spinnaker for each microservice. 
+The core code making up Spinnaker’s microservices is found in the other https://github.com/spinnaker[Spinnaker repositories].
 
 = Using Spinnaker
 
 Spinnaker users should refer to the main
 https://www.spinnaker.io/[Spinnaker site] and https://www.spinnaker.io/docs/setup/[Installation] guide.
 
-For more information on how Spinnaker is designed, see the https://www.spinnaker.io/docs/concepts/[Documentation Overview].
+For more information on how Spinnaker is designed, see the https://www.spinnaker.io/docs/concepts/[Concepts] topic in the documentation Overview.
 
-If you're interested in a detailed walkthrough of the Spinnaker systems, check the https://www.spinnaker.io/reference/[Reference Material].
+If you're interested in a detailed walkthrough of the Spinnaker systems, check the https://spinnaker.io/guides/[Spinnaker How-to guides, videos, and codelabs].
 
 = Setting Up Spinnaker For Development
 
