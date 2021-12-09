@@ -9,7 +9,7 @@ Spinnaker is an open-source continuous delivery platform for releasing software 
 Through a powerful abstraction layer, Spinnaker provides compelling tooling that empowers developers to own their application code from commit to delivery. As the most mature and widely productionalized continuous delivery platform, Spinnaker can apply the expertise of Netflix, Google, Microsoft,
  and Amazon to your SDLC. User companies include Target, Salesforce, Airbnb, Cerner, Adobe, and JPMorgan Chase.
 
-Manage your SDLC in Spinnaker using the GUI (graphical user interface), or config-as-code. View, manage, and construct https://www.spinnaker.io/docs/concepts/#application[application] workflows involving one or all of these resources: 
+Manage your SDLC in Spinnaker using the GUI (graphical user interface), or config-as-code. View, manage, and construct https://www.spinnaker.io/docs/concepts/#application[application] workflows involving one or all of these resources:
 
 - https://www.spinnaker.io/reference/pipeline/stages/#bake[Virtual machine (VM) deployments to a public cloud provider], "baked" as immutable infrastructure
 - https://www.spinnaker.io/reference/providers/[Container deployments to a cloud]
@@ -21,8 +21,7 @@ Manage your SDLC in Spinnaker using the GUI (graphical user interface), or confi
 - https://www.spinnaker.io/docs/concepts/#firewall[Firewalls]
 - Functions
 
-
-Facilitate GitOps, and grant developers control of provisioning infrastructure for apps. Use Spinnaker’s Clouddriver to deploy to all of the major public cloud providers and Kubernetes. You may even orchestrate configuration and firmware changes as part of Spinnaker delivery https://www.spinnaker.io/docs/concepts/#firewall[pipelines].
+Facilitate GitOps, and grant developers control of provisioning infrastructure for apps. Use Spinnaker’s Clouddriver to deploy to all of the major public cloud providers and Kubernetes. You may even orchestrate configuration and firmware changes as part of Spinnaker delivery https://www.spinnaker.io/docs/concepts/#pipeline[pipelines].
 
 = Why Do I Need Spinnaker?
 
@@ -55,4 +54,4 @@ If you're interested in a detailed walkthrough of the Spinnaker systems, check t
 
 = Setting Up Spinnaker For Development
 
-To pull Spinnaker from source and set it up to run locally against any of the https://www.spinnaker.io/docs/setup/install/providers/#supported-providers[Cloud Providers], follow the https://spinnaker.io/docs/guides/developer[Development Guides]
+To pull Spinnaker from source and set it up to run locally against any of the https://www.spinnaker.io/setup/install/providers/#supported-providers[Cloud Providers], follow the https://spinnaker.io/docs/community/contributing/code/developer-guides/dev-env/getting-set-up/[Developer Setup Guide]
