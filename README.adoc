@@ -21,12 +21,11 @@ Manage your SDLC in Spinnaker using the GUI (graphical user interface), or confi
 - https://www.spinnaker.io/docs/concepts/#firewall[Firewalls]
 - Functions
 
-
 Facilitate GitOps, and grant developers control of provisioning infrastructure for apps. Use Spinnaker’s Clouddriver to deploy to all of the major public cloud providers and Kubernetes. You may even orchestrate configuration and firmware changes as part of Spinnaker delivery https://www.spinnaker.io/docs/concepts/#pipeline[pipelines].
 
 = Why Do I Need Spinnaker?
 
-With Spinnaker, create a “paved road” for application delivery, with guardrails that ensure only valid infrastructure and configuration reach production.
+Use Spinnaker to create a “paved road” for application delivery, with guardrails that ensure only valid infrastructure and configuration reach production.
 Free development teams from burdensome ops provisioning while automating reinforcement of business and regulatory requirements. Delivery automation
 strategies such as canary deployments provide the safety necessary to capture value from quick innovation, while protecting against business and end-user
  impact.
@@ -43,7 +42,6 @@ prebuilt definitions and move changes through environments via a visual interfac
 '''
 
 This repository centralizes issue tracking across Spinnaker for each microservice. The core code making up Spinnaker’s microservices is found in the other https://github.com/spinnaker[Spinnaker repositories].
-The core code making up Spinnaker’s microservices is found in the other https://github.com/spinnaker[Spinnaker repositories].
 
 = Using Spinnaker
 
