@@ -111,7 +111,6 @@ class AmazonServerGroupCreator implements ServerGroupCreator, DeploymentDetailsA
     if (context.account && !operation.credentials) {
       operation.credentials = context.account
     }
-    operation.keyPair = (operation.keyPair ?: "nf-${operation.credentials}-keypair-a").toString()
 
     operation.securityGroups = operation.securityGroups ?: []
 

@@ -56,7 +56,6 @@ class AmazonServerGroupCreatorSpec extends Specification {
     given:
     def expected = Maps.newHashMap(deployConfig)
     expected.with {
-      keyPair = 'nf-fzlem-keypair-a'
       securityGroups = securityGroups + ['nf-infrastructure', 'nf-datacenter']
     }
 
@@ -103,6 +102,7 @@ class AmazonServerGroupCreatorSpec extends Specification {
     given:
     stage.context.stack = stackValue
     stage.context.subnetType = subnetTypeValue
+    stage.context.keyPair = keyPairValue
 
     when:
     def operations = creator.getOperations(stage)
@@ -118,7 +118,7 @@ class AmazonServerGroupCreatorSpec extends Specification {
       capacity         : [min: 1, max: 20, desired: 5],
       credentials      : 'fzlem',
       instanceType     : 'large',
-      keyPair          : 'nf-fzlem-keypair-a',
+      keyPair          : 'the-key-pair-value',
       securityGroups   : ['a', 'b', 'c', 'nf-infrastructure', 'nf-datacenter'],
       stack            : 'the-stack-value',
       subnetType       : 'the-subnet-type-value'
@@ -127,6 +127,7 @@ class AmazonServerGroupCreatorSpec extends Specification {
     where:
     stackValue = "the-stack-value"
     subnetTypeValue = "the-subnet-type-value"
+    keyPairValue = "the-key-pair-value"
   }
 
   def "can use the AMI supplied by deployment details"() {
