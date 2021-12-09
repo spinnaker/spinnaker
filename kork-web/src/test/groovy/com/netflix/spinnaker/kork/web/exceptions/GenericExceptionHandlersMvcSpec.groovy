@@ -1,6 +1,12 @@
 package com.netflix.spinnaker.kork.web.exceptions
 
+import ch.qos.logback.classic.spi.ILoggingEvent
 import com.netflix.spinnaker.config.ErrorConfiguration
+import org.slf4j.LoggerFactory;
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.core.read.ListAppender;
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
@@ -27,6 +33,16 @@ class GenericExceptionHandlersMvcSpec extends Specification {
 
   @Autowired
   TestRestTemplate restTemplate
+
+  private ListAppender<ILoggingEvent> listAppender;
+
+  def setup() {
+    Logger logger = (Logger) LoggerFactory.getLogger(GenericExceptionHandlers);
+    listAppender = new ListAppender<>();
+    listAppender.setContext((LoggerContext) LoggerFactory.getILoggerFactory());
+    logger.addAppender(listAppender);
+    listAppender.start();
+  }
 
   def "ok request"() {
     when:
@@ -66,6 +82,24 @@ class GenericExceptionHandlersMvcSpec extends Specification {
 
     then: "status is 400"
     entity.statusCode == HttpStatus.BAD_REQUEST
+  }
+
+  def "should handle IllegalStateException"() {
+    when:
+    def entity = restTemplate.getForEntity("http://localhost:$port/test-controller/illegalStateException", HashMap.class)
+
+    then: "status is 500"
+    entity.statusCode == HttpStatus.INTERNAL_SERVER_ERROR
+
+    and: "should log an error, but no warnings"
+    countLogEventsForLevel(Level.ERROR) == 1
+    countLogEventsForLevel(Level.WARN) == 0
+  }
+
+  private int countLogEventsForLevel(Level level) {
+    return listAppender.list.findAll { event ->
+      event.getLevel() == level
+      }.size();
   }
 
   @Import(ErrorConfiguration)
@@ -108,5 +142,9 @@ class GenericExceptionHandlersMvcSpec extends Specification {
       throw new IllegalArgumentException()
     }
 
+    @GetMapping("/illegalStateException")
+    void illegalStateException() {
+      throw new IllegalStateException()
+    }
   }
 }

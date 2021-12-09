@@ -84,6 +84,17 @@ public class GenericExceptionHandlers extends ResponseEntityExceptionHandler {
         HttpStatus.BAD_REQUEST.value(), exceptionMessageDecorator.decorate(e, e.getMessage()));
   }
 
+  @ExceptionHandler({IllegalStateException.class})
+  public void handleIllegalStateException(
+      Exception e, HttpServletResponse response, HttpServletRequest request) throws IOException {
+    storeException(request, response, e);
+    // A subclass of IllegalStateException may have a ResponseStatus annotation
+    // (and as of 30-oct-21, AdminController.DiscoveryUnchangeableException in
+    // orca does), so handle it, as opposed to calling response.sendError
+    // directly.
+    handleResponseStatusAnnotatedException(e, response);
+  }
+
   @ExceptionHandler(RetrofitError.class)
   public void handleRetrofitError(
       RetrofitError e, HttpServletResponse response, HttpServletRequest request)
@@ -125,7 +136,18 @@ public class GenericExceptionHandlers extends ResponseEntityExceptionHandler {
       throws IOException {
     logger.warn("Handled error in generic exception handler", e);
     storeException(request, response, e);
+    handleResponseStatusAnnotatedException(e, response);
+  }
 
+  /**
+   * If a ResponseStatus annotation is present on the exception, send the appropriate error message
+   * to the response. Otherwise send an internal server error.
+   *
+   * @param e the exception to process
+   * @param response a response
+   */
+  private void handleResponseStatusAnnotatedException(Exception e, HttpServletResponse response)
+      throws IOException {
     ResponseStatus responseStatus =
         AnnotationUtils.findAnnotation(e.getClass(), ResponseStatus.class);
 
