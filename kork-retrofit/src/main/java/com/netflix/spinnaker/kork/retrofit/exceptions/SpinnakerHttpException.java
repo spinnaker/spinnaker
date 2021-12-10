@@ -27,7 +27,7 @@ import retrofit.client.Response;
  */
 @Getter
 @NonnullByDefault
-public final class SpinnakerHttpException extends SpinnakerServerException {
+public class SpinnakerHttpException extends SpinnakerServerException {
   private final Response response;
 
   public SpinnakerHttpException(RetrofitError e) {
@@ -35,8 +35,32 @@ public final class SpinnakerHttpException extends SpinnakerServerException {
     this.response = e.getResponse();
   }
 
+  /**
+   * Construct a SpinnakerHttpException with a specified message. This allows code to catch a
+   * SpinnakerHttpException and throw a new one with a custom message, while still allowing
+   * SpinnakerRetrofitExceptionHandlers to handle the exception and respond with the appropriate
+   * http status code.
+   *
+   * @param message the message
+   * @param cause the cause. Note that this is required (i.e. can't be null) since in the absence of
+   *     a cause or a RetrofitError that provides the cause, SpinnakerHttpException is likely not
+   *     the appropriate exception class to use.
+   */
+  public SpinnakerHttpException(String message, SpinnakerHttpException cause) {
+    super(message, cause);
+    // Note that getRawMessage() is null in this case.
+    this.response = cause.getResponse();
+  }
+
   @Override
   public String getMessage() {
+    // If there's no message derived from a response, get the specified message.
+    // It feels a little backwards to do it this way, but super.getMessage()
+    // always returns something whether there's a specified message or not, so
+    // look at getRawMessage instead.
+    if (getRawMessage() == null) {
+      return super.getMessage();
+    }
     return String.format(
         "Status: %s, URL: %s, Message: %s",
         response.getStatus(), response.getUrl(), getRawMessage());

@@ -29,27 +29,21 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import retrofit.RetrofitError;
 import retrofit.client.Header;
 
 @ControllerAdvice
-public class GenericExceptionHandlers extends ResponseEntityExceptionHandler {
+public class GenericExceptionHandlers extends BaseExceptionHandlers {
   private static final Logger logger = LoggerFactory.getLogger(GenericExceptionHandlers.class);
 
-  private final DefaultErrorAttributes defaultErrorAttributes = new DefaultErrorAttributes();
-
-  private final ExceptionMessageDecorator exceptionMessageDecorator;
-
   public GenericExceptionHandlers(ExceptionMessageDecorator exceptionMessageDecorator) {
-    this.exceptionMessageDecorator = exceptionMessageDecorator;
+    super(exceptionMessageDecorator);
   }
 
   @ExceptionHandler(AccessDeniedException.class)
@@ -170,13 +164,6 @@ public class GenericExceptionHandlers extends ResponseEntityExceptionHandler {
           HttpStatus.INTERNAL_SERVER_ERROR.value(),
           exceptionMessageDecorator.decorate(e, e.getMessage()));
     }
-  }
-
-  private void storeException(
-      HttpServletRequest request, HttpServletResponse response, Exception ex) {
-    // store exception as an attribute of HttpServletRequest such that it can be referenced by
-    // GenericErrorController
-    defaultErrorAttributes.resolveException(request, response, null, ex);
   }
 
   private static class RetrofitErrorWrapper extends RuntimeException

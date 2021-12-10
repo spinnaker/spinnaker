@@ -24,9 +24,14 @@ import java.util.Optional;
 import lombok.Getter;
 import retrofit.RetrofitError;
 
-/** An exception that exposes the message of a {@link RetrofitError}. */
+/** An exception that exposes the message of a {@link RetrofitError}, or a custom message. */
 @NonnullByDefault
 public class SpinnakerServerException extends SpinnakerException {
+
+  /**
+   * A message derived from a RetrofitError's response body, or null if a custom message has been
+   * provided.
+   */
   private final String rawMessage;
 
   /**
@@ -42,8 +47,25 @@ public class SpinnakerServerException extends SpinnakerException {
         Optional.ofNullable(body).map(RetrofitErrorResponseBody::getMessage).orElse("");
   }
 
+  /**
+   * Construct a SpinnakerServerException with a specified message, instead of deriving one from a
+   * response body.
+   *
+   * @param message the message
+   * @param cause the cause. Note that this is required (i.e. can't be null) since in the absence of
+   *     a cause or a RetrofitError that provides the cause, SpinnakerServerException is likely not
+   *     the appropriate exception class to use.
+   */
+  public SpinnakerServerException(String message, Throwable cause) {
+    super(message, cause);
+    rawMessage = null;
+  }
+
   @Override
   public String getMessage() {
+    if (rawMessage == null) {
+      return super.getMessage();
+    }
     return rawMessage;
   }
 
