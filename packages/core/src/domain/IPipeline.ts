@@ -16,6 +16,7 @@ export interface IPipeline {
   locked?: IPipelineLock;
   limitConcurrent: boolean;
   manualStartAlert?: IPipelineManualStartAlert;
+  maxConcurrentExecutions?: number;
   migrationStatus?: string;
   name: string;
   notifications?: INotification[];

@@ -21,4 +21,12 @@ describe('Help contents registry', () => {
       expect(HelpContentsRegistry.getHelpField('a')).toBe('b');
     });
   });
+
+  describe('max concurrent definition', () => {
+    it('provides the expected definition for max concurrent', () => {
+      const definition =
+        '<p>If concurrent pipeline execution is enabled, this variable sets the maximum number of concurrent pipelines executing. <br><br>If set to 0, then max is unlimited.</p>';
+      expect(HelpContentsRegistry.getHelpField('pipeline.config.parallel.max.concurrent')).toEqual(definition);
+    });
+  });
 });

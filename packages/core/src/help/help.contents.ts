@@ -364,6 +364,8 @@ const helpContents: { [key: string]: string } = {
   'pipeline.config.dependsOn': 'Declares which stages must be run <em>before</em> this stage begins.',
   'pipeline.config.parallel.cancel.queue':
     '<p>If concurrent pipeline execution is disabled, then the pipelines that are in the waiting queue will get canceled when the next execution starts. <br><br>Check this box if you want to keep them in the queue.</p>',
+  'pipeline.config.parallel.max.concurrent':
+    '<p>If concurrent pipeline execution is enabled, this variable sets the maximum number of concurrent pipelines executing. <br><br>If set to 0, then max is unlimited.</p>',
   'pipeline.config.timeout': `
       <p>Allows you to force the stage to fail if its running time exceeds a specific length.</p>
       <p><b>Note:</b> By default, Spinnaker will use sensible timeouts that depend on the stage type and the operations the stage needs to perform at runtime. These defaults can vary based on chosen configuration and other external factors.
