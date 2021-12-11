@@ -1,6 +1,7 @@
 {
   "id": "unknown",
   "keepWaitingPipelines": false,
+  "maxConcurrentExecutions": 0,
   "limitConcurrent": true,
   "application": "orca",
   "name": "Unnamed Execution",

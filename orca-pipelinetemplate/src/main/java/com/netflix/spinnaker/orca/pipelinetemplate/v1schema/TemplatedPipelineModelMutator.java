@@ -174,6 +174,9 @@ public class TemplatedPipelineModelMutator implements PipelineModelMutator {
     if (concurrentExecutions.containsKey("limitConcurrent")) {
       pipeline.put("limitConcurrent", concurrentExecutions.get("limitConcurrent"));
     }
+    if (concurrentExecutions.containsKey("maxConcurrentExecutions")) {
+      pipeline.put("maxConcurrentExecutions", concurrentExecutions.get("maxConcurrentExecutions"));
+    }
     if (concurrentExecutions.containsKey("keepWaitingPipelines")) {
       pipeline.put("keepWaitingPipelines", concurrentExecutions.get("keepWaitingPipelines"));
     }

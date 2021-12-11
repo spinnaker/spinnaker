@@ -55,11 +55,16 @@ public class V1SchemaExecutionGenerator implements ExecutionGenerator {
     Configuration c = template.getConfiguration();
     if (c.getConcurrentExecutions().isEmpty()) {
       pipeline.put("limitConcurrent", request.isLimitConcurrent());
+      pipeline.put("maxConcurrentExecutions", request.getMaxConcurrentExecutions());
       pipeline.put("keepWaitingPipelines", request.isKeepWaitingPipelines());
     } else {
       pipeline.put(
           "limitConcurrent",
           c.getConcurrentExecutions().getOrDefault("limitConcurrent", request.isLimitConcurrent()));
+      pipeline.put(
+          "maxConcurrentExecutions",
+          c.getConcurrentExecutions()
+              .getOrDefault("maxConcurrentExecutions", request.getMaxConcurrentExecutions()));
       pipeline.put(
           "keepWaitingPipelines",
           c.getConcurrentExecutions()

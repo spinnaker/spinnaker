@@ -2,6 +2,7 @@
   "description": "This is my favorite pipeline!",
   "lastModifiedBy": "example@example.com",
   "limitConcurrent": true,
+  "maxConcurrentExecutions": 0,
   "notifications": [
     {
       "address": "example@example.com",

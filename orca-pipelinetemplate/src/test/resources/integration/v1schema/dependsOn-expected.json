@@ -50,6 +50,7 @@
   ],
   "keepWaitingPipelines": false,
   "limitConcurrent": true,
+  "maxConcurrentExecutions": 0,
   "notifications": [],
   "parameterConfig": [],
   "id": "unknown",

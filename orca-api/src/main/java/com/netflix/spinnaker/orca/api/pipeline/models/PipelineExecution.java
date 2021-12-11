@@ -65,6 +65,10 @@ public interface PipelineExecution {
 
   void setLimitConcurrent(boolean limitConcurrent);
 
+  int getMaxConcurrentExecutions();
+
+  void setMaxConcurrentExecutions(int maxConcurrentExecutions);
+
   boolean isKeepWaitingPipelines();
 
   void setKeepWaitingPipelines(boolean keepWaitingPipelines);

@@ -2,6 +2,7 @@
   "id": "unknown",
   "keepWaitingPipelines": false,
   "limitConcurrent": true,
+  "maxConcurrentExecutions": 0,
   "application": "orca",
   "name": "MPT Stage Replacement Test",
   "notifications": [],

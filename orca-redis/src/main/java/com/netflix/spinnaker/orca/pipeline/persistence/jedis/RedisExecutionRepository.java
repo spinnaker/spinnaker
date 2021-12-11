@@ -858,6 +858,10 @@ public class RedisExecutionRepository implements ExecutionRepository {
       execution.setCanceledBy(map.get("canceledBy"));
       execution.setCancellationReason(map.get("cancellationReason"));
       execution.setLimitConcurrent(Boolean.parseBoolean(map.get("limitConcurrent")));
+      execution.setMaxConcurrentExecutions(
+          (map.containsKey("maxConcurrentExecutions"))
+              ? Integer.parseInt(map.get("maxConcurrentExecutions"))
+              : 0);
       execution.setBuildTime(NumberUtils.createLong(map.get("buildTime")));
       execution.setStartTime(NumberUtils.createLong(map.get("startTime")));
       if (map.get("startTimeExpiry") != null) {
@@ -990,6 +994,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
       map.put("application", execution.getApplication());
       map.put("canceled", String.valueOf(execution.isCanceled()));
       map.put("limitConcurrent", String.valueOf(execution.isLimitConcurrent()));
+      map.put("maxConcurrentExecutions", String.valueOf(execution.getMaxConcurrentExecutions()));
       map.put(
           "buildTime",
           String.valueOf(execution.getBuildTime() != null ? execution.getBuildTime() : 0L));

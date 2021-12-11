@@ -1,6 +1,7 @@
 {
   "keepWaitingPipelines": false,
   "limitConcurrent": true,
+  "maxConcurrentExecutions": 0,
   "application": "myApp",
   "name": "My super awesome pipeline",
   "source": {

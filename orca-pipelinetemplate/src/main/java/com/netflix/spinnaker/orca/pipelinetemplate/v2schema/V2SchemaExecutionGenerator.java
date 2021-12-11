@@ -45,6 +45,9 @@ public class V2SchemaExecutionGenerator implements V2ExecutionGenerator {
     if (!pipeline.containsKey("limitConcurrent")) {
       pipeline.put("limitConcurrent", request.isLimitConcurrent());
     }
+    if (!pipeline.containsKey("maxConcurrentExecutions")) {
+      pipeline.put("maxConcurrentExecutions", request.getMaxConcurrentExecutions());
+    }
     if (!pipeline.containsKey("keepWaitingPipelines")) {
       pipeline.put("keepWaitingPipelines", request.isKeepWaitingPipelines());
     }

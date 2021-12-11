@@ -27,6 +27,7 @@ protect: false
 configuration:
   concurrentExecutions:
     limitConcurrent: true
+    maxConcurrentExecutions: 0
   triggers:
   - enabled: false
     job: ZZ-demo

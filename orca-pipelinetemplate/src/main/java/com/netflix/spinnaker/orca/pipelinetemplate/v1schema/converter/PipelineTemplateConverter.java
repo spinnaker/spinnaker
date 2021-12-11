@@ -77,6 +77,7 @@ public class PipelineTemplateConverter {
     Map<String, Object> m = new LinkedHashMap<>();
     Map<String, Object> cm = new LinkedHashMap<>();
     cm.put("limitConcurrent", true);
+    cm.put("maxConcurrentExecutions", 0);
     m.put("concurrentExecutions", cm);
     m.put("triggers", convertTriggers((List) pipeline.get("triggers")));
     m.put("parameters", pipeline.getOrDefault("parameterConfig", new ArrayList<>()));

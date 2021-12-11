@@ -34,6 +34,7 @@ public class TemplatedPipelineRequest {
   String executionId;
   Boolean plan = false;
   boolean limitConcurrent = true;
+  int maxConcurrentExecutions = 0;
   boolean keepWaitingPipelines = false;
 
   @JsonProperty("config")
@@ -123,6 +124,10 @@ public class TemplatedPipelineRequest {
 
   public boolean isLimitConcurrent() {
     return limitConcurrent;
+  }
+
+  public int getMaxConcurrentExecutions() {
+    return maxConcurrentExecutions;
   }
 
   public boolean isKeepWaitingPipelines() {

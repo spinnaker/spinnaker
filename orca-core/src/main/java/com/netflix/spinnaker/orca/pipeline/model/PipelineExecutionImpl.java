@@ -152,6 +152,16 @@ public class PipelineExecutionImpl implements PipelineExecution, Serializable {
     this.limitConcurrent = limitConcurrent;
   }
 
+  private int maxConcurrentExecutions = 0;
+
+  public int getMaxConcurrentExecutions() {
+    return maxConcurrentExecutions;
+  }
+
+  public void setMaxConcurrentExecutions(int maxConcurrentExecutions) {
+    this.maxConcurrentExecutions = maxConcurrentExecutions;
+  }
+
   private boolean keepWaitingPipelines = false;
 
   public boolean isKeepWaitingPipelines() {

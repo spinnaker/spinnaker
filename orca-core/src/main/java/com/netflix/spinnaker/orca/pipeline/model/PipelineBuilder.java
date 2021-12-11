@@ -114,6 +114,11 @@ public class PipelineBuilder {
     return this;
   }
 
+  public PipelineBuilder withMaxConcurrentExecutions(int maxConcurrentExecutions) {
+    pipeline.setMaxConcurrentExecutions(maxConcurrentExecutions);
+    return this;
+  }
+
   public PipelineBuilder withKeepWaitingPipelines(boolean waiting) {
     pipeline.setKeepWaitingPipelines(waiting);
     return this;

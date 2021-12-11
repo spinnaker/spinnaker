@@ -124,6 +124,7 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
       name: 'Unnamed Execution',
       keepWaitingPipelines: false,
       limitConcurrent: true,
+      maxConcurrentExecutions: 0,
       notifications: [],
       source: [
         id: source("simple-001.yml"),
@@ -322,7 +323,8 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
         stages: []
       ],
       plan: true,
-      limitConcurrent: false
+      limitConcurrent: false,
+      maxConcurrentExecutions: 0
     ]
 
     when:

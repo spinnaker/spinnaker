@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.pipeline;
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.TERMINAL;
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE;
 import static java.lang.Boolean.parseBoolean;
+import static java.lang.Integer.parseInt;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
@@ -214,6 +215,7 @@ public class ExecutionLauncher {
         .withTrigger(objectMapper.convertValue(config.get("trigger"), Trigger.class))
         .withStages((List<Map<String, Object>>) config.get("stages"))
         .withLimitConcurrent(getBoolean(config, "limitConcurrent"))
+        .withMaxConcurrentExecutions(getInt(config, "maxConcurrentExecutions"))
         .withKeepWaitingPipelines(getBoolean(config, "keepWaitingPipelines"))
         .withNotifications((List<Map<String, Object>>) config.get("notifications"))
         .withInitialConfig((Map<String, Object>) config.get("initialConfig"))
@@ -281,6 +283,10 @@ public class ExecutionLauncher {
 
   private final boolean getBoolean(Map<String, ?> map, String key) {
     return parseBoolean(getString(map, key));
+  }
+
+  private final int getInt(Map<String, ?> map, String key) {
+    return map.containsKey(key) ? parseInt(getString(map, key)) : 0;
   }
 
   private final String getString(Map<String, ?> map, String key) {
