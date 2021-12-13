@@ -1,79 +1,49 @@
-import { filter } from 'lodash';
-import React from 'react';
+import * as React from 'react';
 
 import { QuietPeriodBadge } from './QuietPeriodBadge';
-import { SETTINGS } from '../../config';
+import type { ITrigger } from '../../domain';
 import type { IPipeline } from '../../domain/IPipeline';
+import { useQuietPeriod } from './useQuietPeriod.hook';
 
 export interface ITriggersTagProps {
   pipeline: IPipeline;
 }
 
-export interface ITriggersTagState {
-  triggerCount: number;
-  activeTriggerCount: number;
+function getTriggerLabel(totalTriggers: number, activeTriggers: number) {
+  if (totalTriggers === 1) {
+    return `Trigger: ${activeTriggers ? 'enabled' : 'disabled'}`;
+  } else if (totalTriggers === activeTriggers) {
+    return `All triggers: enabled`;
+  } else if (activeTriggers === 0) {
+    return `All triggers: disabled`;
+  } else {
+    return `Some triggers: enabled`;
+  }
 }
 
-export class TriggersTag extends React.Component<ITriggersTagProps, ITriggersTagState> {
-  private quietPeriodStart: Date;
-  private quietPeriodEnd: Date;
+export function TriggersTag(props: ITriggersTagProps) {
+  const quietPeriod = useQuietPeriod();
 
-  constructor(props: ITriggersTagProps) {
-    super(props);
+  const { pipeline } = props;
+  const triggers = pipeline?.triggers ?? [];
+  const isTriggerDisabled = (t: ITrigger) =>
+    !t.enabled ||
+    (pipeline.respectQuietPeriod && quietPeriod.currentStatus === 'DURING_QUIET_PERIOD' && t.type !== 'pipeline');
+  const activeTriggers = triggers.filter((t: ITrigger) => !isTriggerDisabled(t));
 
-    let triggerCount = 0;
-    let activeTriggerCount = 0;
-    let quietPeriodEnabled = false;
-
-    const pipeline = this.props.pipeline;
-    if (pipeline && pipeline.triggers && pipeline.triggers.length) {
-      triggerCount = pipeline.triggers.length;
-      activeTriggerCount = filter(pipeline.triggers, { enabled: true }).length;
-      quietPeriodEnabled = Boolean(pipeline.respectQuietPeriod);
-    }
-
-    const hasQuietPeriod = SETTINGS.feature.quietPeriod && SETTINGS.quietPeriod && SETTINGS.quietPeriod.length === 2;
-
-    if (hasQuietPeriod && quietPeriodEnabled) {
-      this.quietPeriodStart = new Date(SETTINGS.quietPeriod[0]);
-      this.quietPeriodEnd = new Date(SETTINGS.quietPeriod[1]);
-    }
-
-    this.state = {
-      triggerCount,
-      activeTriggerCount,
-    };
-  }
-
-  public render(): React.ReactElement<TriggersTag> {
-    const { pipeline } = this.props;
-    const { triggerCount, activeTriggerCount } = this.state;
-
-    if (triggerCount > 0) {
-      const now = new Date();
-      const inQuietPeriod = this.quietPeriodStart < now && now < this.quietPeriodEnd;
-
-      const triggers =
-        triggerCount === 1
-          ? 'Trigger'
-          : activeTriggerCount === triggerCount || inQuietPeriod
-          ? 'All triggers'
-          : 'Some triggers';
-      const displayTriggers = `${triggers}: ${activeTriggerCount === 0 || inQuietPeriod ? 'disabled' : 'enabled'}`;
-
-      return (
-        <div
-          className={`triggers-toggle ${activeTriggerCount ? '' : 'disabled'}`}
-          style={{ visibility: pipeline.disabled ? 'hidden' : 'visible' }}
-        >
-          <span>
-            <span>
-              <QuietPeriodBadge start={this.quietPeriodStart} end={this.quietPeriodEnd} /> {displayTriggers}
-            </span>
-          </span>
-        </div>
-      );
-    }
+  if (triggers.length === 0) {
     return <div />;
   }
+
+  return (
+    <div
+      className={`triggers-toggle ${activeTriggers.length > 0 ? '' : 'disabled'}`}
+      style={{ visibility: pipeline.disabled ? 'hidden' : 'visible' }}
+    >
+      <span className="flex-container-h margin-between-sm baseline">
+        {pipeline.respectQuietPeriod && <QuietPeriodBadge />}
+        <span>{getTriggerLabel(triggers.length, activeTriggers.length)}</span>
+      </span>
+    </div>
+  );
 }

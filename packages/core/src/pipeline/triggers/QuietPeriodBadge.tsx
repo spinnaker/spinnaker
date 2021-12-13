@@ -2,11 +2,7 @@ import type { DateTimeFormatOptions } from 'luxon';
 import React from 'react';
 
 import { Tooltip } from '../../presentation';
-
-export interface IQuietPeriodBadgeProps {
-  start: Date;
-  end: Date;
-}
+import { useQuietPeriod } from './useQuietPeriod.hook';
 
 const locale = 'en-US';
 const dateOptions: DateTimeFormatOptions = {
@@ -18,37 +14,30 @@ const dateOptions: DateTimeFormatOptions = {
   minute: '2-digit',
 };
 
-export class QuietPeriodBadge extends React.Component<IQuietPeriodBadgeProps> {
-  public render() {
-    const { start, end } = this.props;
-
-    if (!start || !end) {
-      return null;
-    }
-
-    const now = new Date();
-    const afterQuietPeriod = now > end;
-    if (afterQuietPeriod) {
-      return null;
-    }
-
-    const inQuietPeriod = start < now && !afterQuietPeriod;
-
-    const quietPeriodRange = (
-      <span>{`(${start.toLocaleString(locale, dateOptions)} - ${end.toLocaleString(locale, dateOptions)})`}</span>
-    );
-    const tooltipTemplate = inQuietPeriod ? (
-      <span>
-        This pipeline will not be automatically triggered until the end of the quiet period. {quietPeriodRange}
-      </span>
-    ) : (
-      <span>This pipeline will not be automatically triggered during the quiet period. {quietPeriodRange}</span>
-    );
-
-    return (
-      <Tooltip template={tooltipTemplate}>
-        <i className="fa icon-calendar-warning" style={{ color: 'red' }} />
-      </Tooltip>
-    );
+export function QuietPeriodBadge() {
+  const quietPeriod = useQuietPeriod();
+  if (quietPeriod.currentStatus === 'NO_QUIET_PERIOD' || quietPeriod.currentStatus === 'UNKNOWN') {
+    return null;
   }
+
+  const start = new Date(quietPeriod.startTime);
+  const end = new Date(quietPeriod.endTime);
+
+  const message =
+    quietPeriod.currentStatus === 'DURING_QUIET_PERIOD'
+      ? 'This pipeline will not be automatically triggered until the end of the quiet period. '
+      : 'This pipeline will not be automatically triggered during the quiet period. ';
+
+  const template = (
+    <span>
+      {message}
+      <span>{`(${start.toLocaleString(locale, dateOptions)} - ${end.toLocaleString(locale, dateOptions)})`}</span>
+    </span>
+  );
+
+  return (
+    <Tooltip template={template}>
+      <i className="fa icon-calendar-warning" style={{ color: 'red' }} />
+    </Tooltip>
+  );
 }
