@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.17.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.16.1...@spinnaker/core@0.17.0) (2021-12-11)
+
+
+### Features
+
+* **pipeline executions/deck:** Add support for max concurrent pipeli… ([#9777](https://github.com/spinnaker/deck/issues/9777)) ([525dc78](https://github.com/spinnaker/deck/commit/525dc788f8fb6508a404023d816df4d01e4de0c2))
+
+
+
+
+
 ## [0.16.1](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.16.0...@spinnaker/core@0.16.1) (2021-12-08)
 
 

@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/ecs",
   "license": "Apache-2.0",
-  "version": "0.0.339",
+  "version": "0.0.340",
   "module": "dist/index.js",
   "typings": "dist/index.d.ts",
   "scripts": {
@@ -13,9 +13,9 @@
     "lib": "npm run build"
   },
   "dependencies": {
-    "@spinnaker/amazon": "^0.12.3",
-    "@spinnaker/core": "^0.16.1",
-    "@spinnaker/docker": "^0.0.123",
+    "@spinnaker/amazon": "^0.12.4",
+    "@spinnaker/core": "^0.17.0",
+    "@spinnaker/docker": "^0.0.124",
     "@uirouter/angularjs": "1.0.26",
     "@uirouter/react": "1.0.7",
     "angular": "1.6.10",
