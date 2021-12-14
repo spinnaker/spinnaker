@@ -17,15 +17,14 @@
 package com.netflix.spinnaker.kork.retrofit.exceptions;
 
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
-import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import org.springframework.http.HttpStatus;
 import retrofit.ErrorHandler;
 import retrofit.RetrofitError;
 
 /**
- * An error handler to be registered with a {@link retrofit.RestAdapter}. Allows clients to catch
- * more specific {@link NotFoundException}, {@link SpinnakerHttpException}, or {@link
- * SpinnakerNetworkException} depending on the properties of the {@link RetrofitError}.
+ * An error handler to be registered with a {@link retrofit.RestAdapter}. Allows clients to catch a
+ * SpinnakerServerException or something more specific (e.g. {@link SpinnakerHttpException}, or
+ * {@link SpinnakerNetworkException}) depending on the properties of the {@link RetrofitError}.
  */
 @NonnullByDefault
 public final class SpinnakerRetrofitErrorHandler implements ErrorHandler {
@@ -51,11 +50,9 @@ public final class SpinnakerRetrofitErrorHandler implements ErrorHandler {
   public Throwable handleError(RetrofitError e) {
     switch (e.getKind()) {
       case HTTP:
-        if (e.getResponse().getStatus() == HttpStatus.NOT_FOUND.value()) {
-          return new NotFoundException(e).setRetryable(false);
-        }
         SpinnakerHttpException retval = new SpinnakerHttpException(e);
-        if (e.getResponse().getStatus() == HttpStatus.BAD_REQUEST.value()) {
+        if ((e.getResponse().getStatus() == HttpStatus.NOT_FOUND.value())
+            || (e.getResponse().getStatus() == HttpStatus.BAD_REQUEST.value())) {
           retval.setRetryable(false);
         }
         return retval;

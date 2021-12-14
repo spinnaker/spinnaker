@@ -23,7 +23,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.util.HashMap;
 import java.util.Map;
 import okhttp3.mockwebserver.MockResponse;
@@ -64,8 +63,8 @@ public class SpinnakerRetrofitErrorHandlerTest {
   @Test
   public void testNotFoundIsNotRetryable() {
     mockWebServer.enqueue(new MockResponse().setResponseCode(HttpStatus.NOT_FOUND.value()));
-    NotFoundException notFoundException =
-        assertThrows(NotFoundException.class, () -> retrofitService.getFoo());
+    SpinnakerHttpException notFoundException =
+        assertThrows(SpinnakerHttpException.class, () -> retrofitService.getFoo());
     assertNotNull(notFoundException.getRetryable());
     assertFalse(notFoundException.getRetryable());
   }
