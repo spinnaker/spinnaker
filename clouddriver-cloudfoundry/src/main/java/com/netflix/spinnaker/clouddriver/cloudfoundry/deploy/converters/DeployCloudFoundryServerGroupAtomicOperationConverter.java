@@ -42,6 +42,7 @@ import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistry
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
+import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.Collections;
 import java.util.List;
@@ -57,16 +58,17 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter
     extends AbstractCloudFoundryServerGroupAtomicOperationConverter {
   private final OperationPoller operationPoller;
   private final ArtifactCredentialsRepository credentialsRepository;
-  private final List<? extends DockerRegistryNamedAccountCredentials>
-      dockerRegistryNamedAccountCredentials;
+  private final CredentialsRepository<DockerRegistryNamedAccountCredentials>
+      dockerRegistryCredentialsRepository;
 
   public DeployCloudFoundryServerGroupAtomicOperationConverter(
       @Qualifier("cloudFoundryOperationPoller") OperationPoller operationPoller,
       ArtifactCredentialsRepository credentialsRepository,
-      List<? extends DockerRegistryNamedAccountCredentials> dockerRegistryNamedAccountCredentials) {
+      CredentialsRepository<DockerRegistryNamedAccountCredentials>
+          dockerRegistryCredentialsRepository) {
     this.operationPoller = operationPoller;
     this.credentialsRepository = credentialsRepository;
-    this.dockerRegistryNamedAccountCredentials = dockerRegistryNamedAccountCredentials;
+    this.dockerRegistryCredentialsRepository = dockerRegistryCredentialsRepository;
   }
 
   @Override
@@ -131,7 +133,7 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter
 
   private Docker resolveDockerAccount(Artifact artifact) {
     DockerRegistryNamedAccountCredentials dockerCreds =
-        dockerRegistryNamedAccountCredentials.stream()
+        dockerRegistryCredentialsRepository.getAll().stream()
             .filter(reg -> reg.getRegistry().equals(artifact.getReference().split("/")[0]))
             .filter(reg -> reg.getRepositories().contains(artifact.getName().split("/", 2)[1]))
             .findFirst()

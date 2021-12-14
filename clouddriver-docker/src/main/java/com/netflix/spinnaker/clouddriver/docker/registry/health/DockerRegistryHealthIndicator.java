@@ -16,32 +16,28 @@
 
 package com.netflix.spinnaker.clouddriver.docker.registry.health;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
-
 import com.google.common.collect.ImmutableList;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.core.AccountHealthIndicator;
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryNamedAccountCredentials;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
+import com.netflix.spinnaker.credentials.CredentialsRepository;
 import java.util.Optional;
 
 public class DockerRegistryHealthIndicator
     extends AccountHealthIndicator<DockerRegistryNamedAccountCredentials> {
   private static final String ID = "docker";
-  private AccountCredentialsProvider accountCredentialsProvider;
+  private final CredentialsRepository<DockerRegistryNamedAccountCredentials> credentialsRepository;
 
   public DockerRegistryHealthIndicator(
-      Registry registry, AccountCredentialsProvider accountCredentialsProvider) {
+      Registry registry,
+      CredentialsRepository<DockerRegistryNamedAccountCredentials> credentialsRepository) {
     super(ID, registry);
-    this.accountCredentialsProvider = accountCredentialsProvider;
+    this.credentialsRepository = credentialsRepository;
   }
 
   @Override
   protected ImmutableList<DockerRegistryNamedAccountCredentials> getAccounts() {
-    return accountCredentialsProvider.getAll().stream()
-        .filter(a -> a instanceof DockerRegistryNamedAccountCredentials)
-        .map(a -> (DockerRegistryNamedAccountCredentials) a)
-        .collect(toImmutableList());
+    return ImmutableList.copyOf(credentialsRepository.getAll());
   }
 
   @Override

@@ -16,12 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.docker.registry.security
 
-import com.netflix.spinnaker.cats.module.CatsModule
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DefaultDockerOkClientProvider
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DockerOkClientProvider
-import com.netflix.spinnaker.clouddriver.docker.registry.config.DockerRegistryConfigurationProperties
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
-import com.netflix.spinnaker.clouddriver.security.ProviderUtils
 import groovy.util.logging.Slf4j
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
@@ -34,66 +30,9 @@ import org.springframework.stereotype.Component
 class DockerRegistryCredentialsInitializer {
 
   @Bean
-  List<? extends DockerRegistryNamedAccountCredentials> dockerRegistryNamedAccountCredentials(DockerRegistryConfigurationProperties dockerRegistryConfigurationProperties,
-                                                                                              AccountCredentialsRepository accountCredentialsRepository,
-                                                                                              DockerOkClientProvider dockerOkClientProvider) {
-    synchronizeDockerRegistryAccounts(dockerRegistryConfigurationProperties, accountCredentialsRepository, null, dockerOkClientProvider)
-  }
-
-  @Bean
   @ConditionalOnMissingBean(DockerOkClientProvider)
   DockerOkClientProvider defaultDockerOkClientProvider() {
     new DefaultDockerOkClientProvider()
   }
 
-  private List<? extends DockerRegistryNamedAccountCredentials> synchronizeDockerRegistryAccounts(
-    DockerRegistryConfigurationProperties dockerRegistryConfigurationProperties,
-    AccountCredentialsRepository accountCredentialsRepository,
-    CatsModule catsModule,
-    DockerOkClientProvider dockerOkClientProvider) {
-
-    def (ArrayList<DockerRegistryConfigurationProperties.ManagedAccount> accountsToAdd, List<String> namesOfDeletedAccounts) =
-    ProviderUtils.calculateAccountDeltas(accountCredentialsRepository, DockerRegistryNamedAccountCredentials,
-      dockerRegistryConfigurationProperties.accounts)
-
-    accountsToAdd.each { DockerRegistryConfigurationProperties.ManagedAccount managedAccount ->
-      try {
-        def dockerRegistryAccount = (new DockerRegistryNamedAccountCredentials.Builder())
-          .accountName(managedAccount.name)
-          .environment(managedAccount.environment ?: managedAccount.name)
-          .accountType(managedAccount.accountType ?: managedAccount.name)
-          .address(managedAccount.address)
-          .password(managedAccount.password)
-          .passwordCommand(managedAccount.passwordCommand)
-          .username(managedAccount.username)
-          .email(managedAccount.email)
-          .passwordFile(managedAccount.passwordFile)
-          .catalogFile(managedAccount.catalogFile)
-          .repositoriesRegex(managedAccount.repositoriesRegex)
-          .dockerconfigFile(managedAccount.dockerconfigFile)
-          .cacheThreads(managedAccount.cacheThreads)
-          .cacheIntervalSeconds(managedAccount.cacheIntervalSeconds)
-          .clientTimeoutMillis(managedAccount.clientTimeoutMillis)
-          .paginateSize(managedAccount.paginateSize)
-          .trackDigests(managedAccount.trackDigests)
-          .inspectDigests(managedAccount.inspectDigests)
-          .sortTagsByDate(managedAccount.sortTagsByDate)
-          .insecureRegistry(managedAccount.insecureRegistry)
-          .repositories(managedAccount.repositories)
-          .skip(managedAccount.skip)
-          .dockerOkClientProvider(dockerOkClientProvider)
-          .build()
-
-        accountCredentialsRepository.save(managedAccount.name, dockerRegistryAccount)
-      } catch (e) {
-        log.info "Could not load account ${managedAccount.name} for DockerRegistry.", e
-      }
-    }
-
-    ProviderUtils.unscheduleAndDeregisterAgents(namesOfDeletedAccounts, catsModule)
-
-    accountCredentialsRepository.all.findAll {
-      it instanceof DockerRegistryNamedAccountCredentials
-    } as List<DockerRegistryNamedAccountCredentials>
-  }
 }

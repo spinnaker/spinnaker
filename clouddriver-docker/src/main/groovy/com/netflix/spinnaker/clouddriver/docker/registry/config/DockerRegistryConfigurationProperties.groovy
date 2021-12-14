@@ -16,12 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.docker.registry.config
 
+import com.netflix.spinnaker.credentials.definition.CredentialsDefinition
 import groovy.transform.ToString
 
 @ToString(includeNames = true)
 class DockerRegistryConfigurationProperties {
+
   @ToString(includeNames = true)
-  static class ManagedAccount {
+  static class ManagedAccount implements CredentialsDefinition {
     String name
     String environment
     String accountType

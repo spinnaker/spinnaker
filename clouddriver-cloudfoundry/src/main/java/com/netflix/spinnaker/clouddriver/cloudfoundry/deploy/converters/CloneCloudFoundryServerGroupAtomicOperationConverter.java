@@ -21,7 +21,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryOperation;
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
-import java.util.List;
+import com.netflix.spinnaker.credentials.CredentialsRepository;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -32,7 +32,8 @@ public class CloneCloudFoundryServerGroupAtomicOperationConverter
   public CloneCloudFoundryServerGroupAtomicOperationConverter(
       @Qualifier("cloudFoundryOperationPoller") OperationPoller operationPoller,
       ArtifactCredentialsRepository credentialsRepository,
-      List<? extends DockerRegistryNamedAccountCredentials> dockerRegistryNamedAccountCredentials) {
-    super(operationPoller, credentialsRepository, dockerRegistryNamedAccountCredentials);
+      CredentialsRepository<DockerRegistryNamedAccountCredentials>
+          dockerRegistryCredentialsRepository) {
+    super(operationPoller, credentialsRepository, dockerRegistryCredentialsRepository);
   }
 }

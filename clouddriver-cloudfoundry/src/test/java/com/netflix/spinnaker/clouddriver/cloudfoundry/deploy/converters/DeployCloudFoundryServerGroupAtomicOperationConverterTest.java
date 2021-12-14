@@ -140,7 +140,7 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
 
   private final DeployCloudFoundryServerGroupAtomicOperationConverter converter =
       new DeployCloudFoundryServerGroupAtomicOperationConverter(
-          null, artifactCredentialsRepository, emptyList());
+          null, artifactCredentialsRepository, null);
 
   @BeforeEach
   void initializeClassUnderTest() {

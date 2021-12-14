@@ -9,6 +9,7 @@ dependencies {
 
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "org.springframework.cloud:spring-cloud-context"
   implementation "org.codehaus.groovy:groovy-all"
   implementation "com.google.guava:guava"
   implementation "com.netflix.spectator:spectator-api"
@@ -18,6 +19,7 @@ dependencies {
   implementation "commons-io:commons-io"
   implementation "io.spinnaker.fiat:fiat-api:$fiatVersion"
   implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
+  implementation "io.spinnaker.kork:kork-credentials"
 
   testImplementation "cglib:cglib-nodep"
   testImplementation "org.objenesis:objenesis"
@@ -26,6 +28,7 @@ dependencies {
   testImplementation "org.junit.jupiter:junit-jupiter-params"
   testImplementation "org.junit.platform:junit-platform-runner"
   testImplementation "org.mockito:mockito-core"
+  testImplementation "org.mockito:mockito-junit-jupiter"
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.spockframework:spock-spring"
   testImplementation "org.springframework:spring-test"
