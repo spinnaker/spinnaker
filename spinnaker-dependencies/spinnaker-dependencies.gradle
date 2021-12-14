@@ -47,6 +47,11 @@ dependencies {
    * For example, `junit-bom` and `jackson-bom` will win out over the versions of JUnit and Jackson
    * specified by `spring-boot-dependencies`.
    */
+   // Log4shell safeguard.  Per analysis, log4j-core is not included in dependencies, but this would prevent transitive inclusion of it by extension
+   // platforms.   Doing 2.16.0 which completely removes message lookups AND sets jndi to disabled by default
+
+  api(platform("org.apache.logging.log4j:log4j-bom:2.16.0"))
+
   api(platform("org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.4.3"))
   //kotlinVersion comes from gradle.properties since we have kotlin code in
   // this project and need to configure gradle plugins etc.
