@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.kork.retrofit.exceptions;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
@@ -74,6 +75,12 @@ public class SpinnakerServerException extends SpinnakerException {
   }
 
   @Getter
+  // Use JsonIgnoreProperties because some responses contain properties that
+  // cannot be mapped to the RetrofitErrorResponseBody class.  If the default
+  // JacksonConverter (with no extra configurations) is used to deserialize the
+  // response body and properties other than "message" exist in the JSON
+  // response, there will be an UnrecognizedPropertyException.
+  @JsonIgnoreProperties(ignoreUnknown = true)
   private static final class RetrofitErrorResponseBody {
     private final String message;
 
