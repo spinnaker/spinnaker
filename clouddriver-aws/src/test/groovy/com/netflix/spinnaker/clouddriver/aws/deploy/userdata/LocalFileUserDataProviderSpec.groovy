@@ -17,10 +17,13 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.userdata
 
-import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.aws.deploy.asg.LaunchConfigurationBuilder.LaunchConfigurationSettings
 import com.netflix.spinnaker.clouddriver.aws.userdata.UserDataInput
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import org.springframework.http.HttpStatus
+import retrofit.RetrofitError
+import retrofit.client.Response
 import spock.lang.Specification
 
 class LocalFileUserDataProviderSpec extends Specification {
@@ -78,6 +81,23 @@ class LocalFileUserDataProviderSpec extends Specification {
     legacyUdf | expectedEnvironment
     true      | ACCOUNT
     false     | ENVIRONMENT
+  }
+
+  void "return defaultLegacyUdf if front50.getApplication throws SpinnakerHttpException with NOT_FOUND status"() {
+    given:
+    RetrofitError notFoundRetrofitError = RetrofitError.httpError("url",
+      new Response("url", HttpStatus.NOT_FOUND.value(), "Application Not Found", [], null),
+      null, null)
+    LocalFileUserDataProvider localFileUserDataProvider = new LocalFileUserDataProvider()
+    localFileUserDataProvider.localFileUserDataProperties = new LocalFileUserDataProperties()
+    localFileUserDataProvider.front50Service = Mock(Front50Service)
+    localFileUserDataProvider.front50Service.getApplication(_) >> {throw new SpinnakerHttpException(notFoundRetrofitError)}
+
+    when:
+    def useLegacyUdf = localFileUserDataProvider.isLegacyUdf("test_account", "unknown_application")
+
+    then:
+    useLegacyUdf == localFileUserDataProvider.localFileUserDataProperties.defaultLegacyUdf
   }
 
   static String getRawUserData() {

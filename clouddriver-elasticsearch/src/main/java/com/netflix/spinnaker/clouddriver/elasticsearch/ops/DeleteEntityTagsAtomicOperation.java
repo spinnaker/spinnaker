@@ -25,11 +25,11 @@ import com.netflix.spinnaker.clouddriver.elasticsearch.descriptions.DeleteEntity
 import com.netflix.spinnaker.clouddriver.elasticsearch.model.ElasticSearchEntityTagsProvider;
 import com.netflix.spinnaker.clouddriver.model.EntityTags;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
-import retrofit.RetrofitError;
+import org.springframework.http.HttpStatus;
 
 public class DeleteEntityTagsAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "ENTITY_TAGS";
@@ -55,20 +55,24 @@ public class DeleteEntityTagsAtomicOperation implements AtomicOperation<Void> {
     EntityTags currentTags;
     try {
       currentTags = front50Service.getEntityTags(entityTagsDescription.getId());
-    } catch (RetrofitError | NotFoundException e) {
-      getTask()
-          .updateStatus(
-              BASE_PHASE, format("Did not find %s in Front50", entityTagsDescription.getId()));
+    } catch (SpinnakerHttpException e) {
+      if (e.getResponse().getStatus() == HttpStatus.NOT_FOUND.value()) {
+        getTask()
+            .updateStatus(
+                BASE_PHASE, format("Did not find %s in Front50", entityTagsDescription.getId()));
 
-      getTask()
-          .updateStatus(
-              BASE_PHASE, format("Deleting %s from ElasticSearch", entityTagsDescription.getId()));
-      entityTagsProvider.delete(entityTagsDescription.getId());
-      getTask()
-          .updateStatus(
-              BASE_PHASE, format("Deleted %s from ElasticSearch", entityTagsDescription.getId()));
+        getTask()
+            .updateStatus(
+                BASE_PHASE,
+                format("Deleting %s from ElasticSearch", entityTagsDescription.getId()));
+        entityTagsProvider.delete(entityTagsDescription.getId());
+        getTask()
+            .updateStatus(
+                BASE_PHASE, format("Deleted %s from ElasticSearch", entityTagsDescription.getId()));
 
-      return null;
+        return null;
+      }
+      throw e;
     }
 
     Collection<String> currentTagNames =

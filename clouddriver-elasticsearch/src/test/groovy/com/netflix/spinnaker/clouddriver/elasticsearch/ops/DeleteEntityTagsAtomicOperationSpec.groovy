@@ -22,7 +22,10 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.elasticsearch.descriptions.DeleteEntityTagsDescription
 import com.netflix.spinnaker.clouddriver.elasticsearch.model.ElasticSearchEntityTagsProvider
 import com.netflix.spinnaker.clouddriver.model.EntityTags
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import org.springframework.http.HttpStatus
 import retrofit.RetrofitError
+import retrofit.client.Response
 import spock.lang.Specification
 
 class DeleteEntityTagsAtomicOperationSpec extends Specification {
@@ -44,12 +47,17 @@ class DeleteEntityTagsAtomicOperationSpec extends Specification {
   }
 
   void 'should remove entityTag from ElasticSearch if not found in Front50'() {
+    given:
+    RetrofitError notFoundRetrofitError = RetrofitError.httpError("url",
+      new Response("url", HttpStatus.NOT_FOUND.value(), "Application Not Found", [], null),
+      null, null)
+    SpinnakerHttpException spinnakerHttpException = new SpinnakerHttpException(notFoundRetrofitError)
     when:
     description.id = 'abc'
     operation.operate([])
 
     then:
-    1 * front50Service.getEntityTags('abc') >> { throw new RetrofitError("a", null, null, null, null, null, null) }
+    1 * front50Service.getEntityTags('abc') >> { throw spinnakerHttpException }
     1 * entityTagsProvider.delete('abc')
     0 * _
   }
