@@ -28,6 +28,7 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.S3Object;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -119,7 +120,7 @@ class S3ArtifactCredentialsTest {
   }
 
   @Test
-  void artifactDoesNotExist() {
+  void bucketDoesNotExist() {
     Artifact otherArtifact =
         Artifact.builder()
             .name("does-not-exist-artifact")
@@ -129,6 +130,17 @@ class S3ArtifactCredentialsTest {
     assertThatThrownBy(() -> s3ArtifactCredentials.download(otherArtifact))
         .isInstanceOf(AmazonS3Exception.class)
         .hasMessageContaining("The specified bucket does not exist");
+  }
+
+  @Test
+  void fileNotFound() {
+    String bucketName = "s3://" + BUCKET_NAME + "/does-not-exist";
+    Artifact otherArtifact =
+        Artifact.builder().name("file-not-found-artifact").reference(bucketName).build();
+    S3ArtifactCredentials s3ArtifactCredentials = new S3ArtifactCredentials(account, amazonS3);
+    assertThatThrownBy(() -> s3ArtifactCredentials.download(otherArtifact))
+        .isInstanceOf(NotFoundException.class)
+        .hasMessageContaining(bucketName + " not found");
   }
 
   static class DummyS3ArtifactValidator implements S3ArtifactValidator {

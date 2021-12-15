@@ -23,16 +23,20 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.S3Object;
 import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.io.InputStream;
 import java.util.Optional;
 import javax.annotation.Nullable;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @NonnullByDefault
 public class S3ArtifactCredentials implements ArtifactCredentials {
   public static final String CREDENTIALS_TYPE = "artifacts-s3";
@@ -117,7 +121,27 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
     }
     String bucketName = reference.substring(0, slash);
     String path = reference.substring(slash + 1);
-    S3Object s3obj = getS3Client().getObject(bucketName, path);
+    S3Object s3obj;
+    try {
+      s3obj = getS3Client().getObject(bucketName, path);
+    } catch (AmazonS3Exception e) {
+      // An out-of-the-box AmazonS3Exception doesn't include the bucket/key
+      // name so it's hard to know what's actually failing.
+      log.error("exception getting object: s3://{}/{}: '{}'", bucketName, path, e.getMessage());
+
+      // In case this is a "file not found" error, throw a more specific
+      // exception, to get more info to the caller, and such that the resulting
+      // http response code isn't 500 since that this isn't a server error, nor
+      // is retryable.
+      //
+      // See
+      // https://docs.aws.amazon.com/AmazonS3/latest/API/ErrorResponses.html#ErrorCodeList
+      // for the list of error codes.
+      if ("NoSuchKey".equals(e.getErrorCode())) {
+        throw new NotFoundException("s3://" + bucketName + "/" + path + " not found", e);
+      }
+      throw e;
+    }
     if (s3ArtifactValidator.isEmpty()) {
       return s3obj.getObjectContent();
     }
