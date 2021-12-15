@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.rosco.manifests;
 
+import static com.netflix.spinnaker.rosco.manifests.ManifestTestUtils.makeSpinnakerHttpException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
@@ -24,6 +25,7 @@ import static org.mockito.Mockito.when;
 import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.rosco.services.ClouddriverService;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -87,6 +89,35 @@ final class ArtifactDownloaderImplTest {
       // underlying exception to not lose any info.
       assertThat(thrown.getMessage()).contains("Failed to download artifact");
       assertThat(thrown.getCause()).isEqualTo(spinnakerException);
+    }
+  }
+
+  @Test
+  public void artifactNotFound() throws IOException {
+    // When clouddriver responds with a 404, SpinnakerRetrofitErrorHandler
+    // generates a SpinnakerHttpException, so test that case.
+    ArtifactDownloaderImpl artifactDownloader = new ArtifactDownloaderImpl(clouddriverService);
+    SpinnakerHttpException spinnakerHttpException = makeSpinnakerHttpException(404);
+    try (ArtifactDownloaderImplTest.AutoDeletingFile file = new AutoDeletingFile()) {
+      when(clouddriverService.fetchArtifact(testArtifact)).thenThrow(spinnakerHttpException);
+
+      // Make sure that the exception from artifactDownloader is also a
+      // SpinnakerHttpException with 404 status since that'll make rosco
+      // eventually respond with a 404 itself, and not log an error/stack trace,
+      // as rosco hasn't done anything wrong.  For this to all work, the code
+      // that calls ArtifactDownloader (e.g. HelmTemplateUtils) has to handle
+      // SpinnakerHttpException properly, but at least this gives a chance for
+      // success.
+      SpinnakerHttpException thrown =
+          assertThrows(
+              SpinnakerHttpException.class,
+              () -> artifactDownloader.downloadArtifactToFile(testArtifact, file.path));
+
+      // Make sure we have the message we expect, and that we wrapped the
+      // underlying exception to not lose any info.
+      assertThat(thrown.getMessage()).contains("Failed to download artifact");
+      assertThat(thrown.getResponse().getStatus()).isEqualTo(404);
+      assertThat(thrown.getCause()).isEqualTo(spinnakerHttpException);
     }
   }
 

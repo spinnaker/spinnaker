@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.rosco.manifests.helm;
 
+import static com.netflix.spinnaker.rosco.manifests.ManifestTestUtils.makeSpinnakerHttpException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -30,6 +31,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.rosco.jobs.BakeRecipe;
 import com.netflix.spinnaker.rosco.manifests.ArtifactDownloader;
 import com.netflix.spinnaker.rosco.manifests.BakeManifestEnvironment;
@@ -50,27 +52,42 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.compress.utils.IOUtils;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.platform.runner.JUnitPlatform;
 import org.junit.runner.RunWith;
+import org.springframework.http.HttpStatus;
 
 @RunWith(JUnitPlatform.class)
 final class HelmTemplateUtilsTest {
-  @Test
-  public void nullReferenceTest() throws IOException {
-    ArtifactDownloader artifactDownloader = mock(ArtifactDownloader.class);
+
+  private ArtifactDownloader artifactDownloader;
+
+  private HelmTemplateUtils helmTemplateUtils;
+
+  private HelmBakeManifestRequest bakeManifestRequest;
+
+  @BeforeEach
+  private void init(TestInfo testInfo) {
+    System.out.println("--------------- Test " + testInfo.getDisplayName());
+
+    artifactDownloader = mock(ArtifactDownloader.class);
     RoscoHelmConfigurationProperties helmConfigurationProperties =
         new RoscoHelmConfigurationProperties();
-    HelmTemplateUtils helmTemplateUtils =
-        new HelmTemplateUtils(artifactDownloader, helmConfigurationProperties);
+    helmTemplateUtils = new HelmTemplateUtils(artifactDownloader, helmConfigurationProperties);
     Artifact chartArtifact = Artifact.builder().name("test-artifact").version("3").build();
 
-    HelmBakeManifestRequest bakeManifestRequest = new HelmBakeManifestRequest();
+    bakeManifestRequest = new HelmBakeManifestRequest();
     bakeManifestRequest.setInputArtifacts(ImmutableList.of(chartArtifact));
+  }
+
+  @Test
+  public void nullReferenceTest() throws IOException {
     bakeManifestRequest.setOverrides(ImmutableMap.of());
 
     try (BakeManifestEnvironment env = BakeManifestEnvironment.create()) {
@@ -83,19 +100,9 @@ final class HelmTemplateUtilsTest {
     // a chance to include our own message, so the exception that goes up the
     // chain includes something about helm charts.
     SpinnakerException spinnakerException = new SpinnakerException("error from ArtifactDownloader");
-    ArtifactDownloader artifactDownloader = mock(ArtifactDownloader.class);
     doThrow(spinnakerException)
         .when(artifactDownloader)
         .downloadArtifactToFile(any(Artifact.class), any(Path.class));
-
-    RoscoHelmConfigurationProperties helmConfigurationProperties =
-        mock(RoscoHelmConfigurationProperties.class);
-    HelmTemplateUtils helmTemplateUtils =
-        new HelmTemplateUtils(artifactDownloader, helmConfigurationProperties);
-    Artifact chartArtifact = Artifact.builder().name("test-artifact").version("3").build();
-
-    HelmBakeManifestRequest bakeManifestRequest = new HelmBakeManifestRequest();
-    bakeManifestRequest.setInputArtifacts(ImmutableList.of(chartArtifact));
 
     try (BakeManifestEnvironment env = BakeManifestEnvironment.create()) {
       IllegalStateException thrown =
@@ -332,6 +339,35 @@ final class HelmTemplateUtilsTest {
       // 1 - template
       // 2 - the path to Chart.yaml
       assertEquals(env.resolvePath(subDirName).toString(), recipe.getCommand().get(2));
+    }
+  }
+
+  @Test
+  public void httpExceptionDownloading() throws IOException {
+    // When artifactDownloader throws a SpinnakerHttpException, make sure we
+    // wrap it and get a chance to include our own message, so the exception
+    // that goes up the chain includes something about helm charts.  It's
+    // important that HelmTemplateUtils also throws a SpinnakerHttpException so
+    // it's eventually handled properly...meaning the status code in the http
+    // response and the logging correspond to what happened.  For example, if
+    // there's a 404 from clouddriver, rosco also responds with 404, and doesn't
+    // log an error.
+
+    SpinnakerHttpException spinnakerHttpException =
+        makeSpinnakerHttpException(HttpStatus.NOT_FOUND.value());
+    doThrow(spinnakerHttpException)
+        .when(artifactDownloader)
+        .downloadArtifactToFile(any(Artifact.class), any(Path.class));
+
+    try (BakeManifestEnvironment env = BakeManifestEnvironment.create()) {
+      SpinnakerHttpException thrown =
+          assertThrows(
+              SpinnakerHttpException.class,
+              () -> helmTemplateUtils.buildBakeRecipe(env, bakeManifestRequest));
+
+      assertThat(thrown.getMessage()).contains("Failed to fetch helm template");
+      assertThat(thrown.getResponse().getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
+      assertThat(thrown.getCause()).isEqualTo(spinnakerHttpException);
     }
   }
 

@@ -27,8 +27,14 @@ dependencies {
 
   runtimeOnly "io.spinnaker.kork:kork-runtime"
 
+  testImplementation "io.spinnaker.kork:kork-retrofit"
   testImplementation "org.spockframework:spock-core"
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
   testImplementation "org.objenesis:objenesis"
+}
+
+test {
+  useJUnitPlatform()
 }
 
 ospackage {
