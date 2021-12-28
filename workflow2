@@ -1,0 +1,37 @@
+server:
+  port: 8064
+
+grpc:
+  enabled: false
+
+halconfig:
+  filesystem:
+    path: ~/.hal/config
+
+spinnaker:
+  artifacts:
+    debian: https://dl.bintray.com/spinnaker-releases/debians
+    docker: us-docker.pkg.dev/spinnaker-community/docker
+  config:
+    input:
+      gcs:
+        enabled: true
+      writerEnabled: false
+      bucket: halconfig
+
+management:
+  endpoint:
+    shutdown:
+      enabled: true
+
+  endpoints:
+    web:
+      exposure:
+        include: shutdown, env, conditions, resolvedEnv, beans, health
+
+backup:
+  google:
+    enabled: false
+
+retrofit:
+  logLevel: BASIC
