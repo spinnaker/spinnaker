@@ -27,7 +27,7 @@ public class StatsValidator extends Validator<Stats> {
     }
 
     msg.append("To learn more about what and how stats data is used, please see ");
-    msg.append("https://www.spinnaker.io/community/stats.");
+    msg.append("https://spinnaker.io/docs/community/stay-informed/stats.");
     p.addProblem(Severity.INFO, msg.toString());
   }
 }
