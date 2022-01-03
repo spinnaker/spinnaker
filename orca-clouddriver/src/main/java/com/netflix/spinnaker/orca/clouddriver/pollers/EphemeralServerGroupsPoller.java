@@ -172,10 +172,7 @@ public class EphemeralServerGroupsPoller extends AbstractPollingNotificationAgen
         AuthenticatedRequest.runAs(
                 taskUser,
                 Collections.singletonList(ephemeralServerGroupTag.account),
-                () ->
-                    executionLauncher.start(
-                        ExecutionType.ORCHESTRATION,
-                        objectMapper.writeValueAsString(cleanupOperation)))
+                () -> executionLauncher.start(ExecutionType.ORCHESTRATION, cleanupOperation))
             .call();
 
         // if a server group still exists >= 30 minutes past it's TTL, flag it as stale.

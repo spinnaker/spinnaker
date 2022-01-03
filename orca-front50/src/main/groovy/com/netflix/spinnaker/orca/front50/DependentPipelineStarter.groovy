@@ -70,13 +70,14 @@ class DependentPipelineStarter implements ApplicationContextAware {
                             Map suppliedParameters,
                             String parentPipelineStageId,
                             PipelineExecution.AuthenticationDetails authenticationDetails) {
-    def json = objectMapper.writeValueAsString(pipelineConfig)
-
     if (pipelineConfig.disabled) {
       throw new ConfigurationException("Pipeline '${pipelineConfig.name}' is disabled and cannot be triggered")
     }
 
-    log.info('triggering dependent pipeline {}:{}', pipelineConfig.id, json)
+    if (log.isInfoEnabled()) {
+      log.info('triggering dependent pipeline {}:{}', pipelineConfig.id,
+          objectMapper.writeValueAsString(pipelineConfig))
+    }
 
     pipelineConfig.trigger = [
       type                 : "pipeline",
@@ -138,8 +139,11 @@ class DependentPipelineStarter implements ApplicationContextAware {
 
     // Process the raw trigger to resolve any expressions before converting it to a Trigger object, which will not be
     // processed by the contextParameterProcessor (it only handles Maps, Lists, and Strings)
-    Map processedTrigger = contextParameterProcessor.process([trigger: pipelineConfig.trigger], [trigger: pipelineConfig.trigger], false).trigger
-    pipelineConfig.trigger = objectMapper.readValue(objectMapper.writeValueAsString(processedTrigger), Trigger.class)
+    Map processedTrigger = contextParameterProcessor.process(
+        [trigger: pipelineConfig.trigger],
+        [trigger: pipelineConfig.trigger],
+        false).trigger
+    pipelineConfig.trigger = objectMapper.convertValue(processedTrigger, Trigger.class)
     if (parentPipeline.trigger.dryRun) {
       pipelineConfig.trigger.dryRun = true
     }
@@ -147,18 +151,14 @@ class DependentPipelineStarter implements ApplicationContextAware {
     def augmentedContext = [trigger: pipelineConfig.trigger]
     def processedPipeline = contextParameterProcessor.processPipeline(pipelineConfig, augmentedContext, false)
 
-    json = objectMapper.writeValueAsString(processedPipeline)
-
-    log.info('running pipeline {}:{}', pipelineConfig.id, json)
-
-    log.debug("Source thread: MDC user: " + AuthenticatedRequest.getAuthenticationHeaders() +
-      ", principal: " + authenticationDetails?.toString())
+    if (log.isInfoEnabled()) {
+      log.info('running pipeline {}:{}', pipelineConfig.id, objectMapper.writeValueAsString(processedPipeline))
+    }
 
     Callable<PipelineExecution> callable
     if (artifactError == null) {
       callable = {
-        log.debug("Destination thread user: " + AuthenticatedRequest.getAuthenticationHeaders())
-        return executionLauncher().start(PIPELINE, json).with {
+        return executionLauncher().start(PIPELINE, processedPipeline).with {
           Id id = registry.createId("pipelines.triggered")
               .withTag("application", Optional.ofNullable(it.getApplication()).orElse("null"))
               .withTag("monitor", "DependentPipelineStarter")
@@ -168,8 +168,7 @@ class DependentPipelineStarter implements ApplicationContextAware {
       } as Callable<PipelineExecution>
     } else {
       callable = {
-        log.debug("Destination thread user: " + AuthenticatedRequest.getAuthenticationHeaders())
-        return executionLauncher().fail(PIPELINE, json, artifactError)
+        return executionLauncher().fail(PIPELINE, processedPipeline, artifactError)
       } as Callable<PipelineExecution>
     }
 

@@ -67,12 +67,11 @@ class DependentPipelineStarterSpec extends Specification {
     }
     def gotMDC = [:]
     def executionLauncher = Stub(ExecutionLauncher) {
-      start(*_) >> {
+      start(*_) >> { _, p ->
         gotMDC.putAll([
           "X-SPINNAKER-USER": MDC.get("X-SPINNAKER-USER"),
           "X-SPINNAKER-ACCOUNTS": MDC.get("X-SPINNAKER-ACCOUNTS"),
         ])
-        def p = mapper.readValue(it[1], Map)
         return pipeline {
           name = p.name
           id = p.name
@@ -145,8 +144,7 @@ class DependentPipelineStarterSpec extends Specification {
     )
 
     and:
-    executionLauncher.start(*_) >> {
-      def p = mapper.readValue(it[1], Map)
+    executionLauncher.start(*_) >> { _, p ->
       return pipeline {
         name = p.name
         id = p.name
@@ -201,8 +199,7 @@ class DependentPipelineStarterSpec extends Specification {
     )
 
     and:
-    executionLauncher.start(*_) >> {
-      def p = mapper.readValue(it[1], Map)
+    executionLauncher.start(*_) >> { _, p ->
       return pipeline {
         name = p.name
         id = p.name
@@ -210,7 +207,7 @@ class DependentPipelineStarterSpec extends Specification {
       }
     }
     artifactUtils.getArtifactsForPipelineId(*_) >> {
-      return new ArrayList<Artifact>();
+      return new ArrayList<Artifact>()
     }
 
     when:
@@ -271,8 +268,7 @@ class DependentPipelineStarterSpec extends Specification {
     )
 
     and:
-    executionLauncher.start(*_) >> {
-      def p = mapper.readValue(it[1], Map)
+    executionLauncher.start(*_) >> { _, p ->
       return pipeline {
         name = p.name
         id = p.name
@@ -332,8 +328,7 @@ class DependentPipelineStarterSpec extends Specification {
     )
 
     and:
-    executionLauncher.start(*_) >> {
-      def p = mapper.readValue(it[1], Map)
+    executionLauncher.start(*_) >> { _, p ->
       return pipeline {
         name = p.name
         id = p.name
@@ -383,8 +378,7 @@ class DependentPipelineStarterSpec extends Specification {
     )
 
     and:
-    executionLauncher.start(*_) >> {
-      def p = mapper.readValue(it[1], Map)
+    executionLauncher.start(*_) >> { _, p ->
       return pipeline {
         trigger = mapper.convertValue(p.trigger, Trigger)
       }
@@ -431,8 +425,7 @@ class DependentPipelineStarterSpec extends Specification {
     )
 
     and:
-    executionLauncher.start(*_) >> {
-      def p = mapper.readValue(it[1], Map)
+    executionLauncher.start(*_) >> { _, p ->
       return pipeline {
         trigger = mapper.convertValue(p.trigger, Trigger)
       }
@@ -542,8 +535,7 @@ class DependentPipelineStarterSpec extends Specification {
     )
 
     and:
-    1 * executionLauncher.start(*_) >> {
-      def p = mapper.readValue(it[1], Map)
+    1 * executionLauncher.start(*_) >> { _, p ->
       return pipeline {
         JavaType type = mapper.getTypeFactory().constructCollectionType(List, StageExecution)
         trigger = mapper.convertValue(p.trigger, Trigger)
@@ -675,9 +667,8 @@ class DependentPipelineStarterSpec extends Specification {
 
     and:
     def execution
-    1 * executionLauncher.start(*_) >> {
-      execution = it[0]
-      execution = mapper.readValue(it[1], Map)
+    1 * executionLauncher.start(*_) >> { _, config ->
+      execution = config
       return pipeline {
         JavaType type = mapper.getTypeFactory().constructCollectionType(List, StageExecution)
         trigger = mapper.convertValue(execution.trigger, Trigger)

@@ -167,7 +167,6 @@ class OperationsController {
 
   private Map<String, Object> orchestratePipeline(Map pipeline) {
     long startTime = System.currentTimeMillis()
-    def request = objectMapper.writeValueAsString(pipeline)
 
     Exception pipelineError = null
     try {
@@ -188,13 +187,13 @@ class OperationsController {
       log.info(
           "Started pipeline {} based on request body {} (took: {}ms)",
           id,
-          request,
+          renderForLogs(pipeline),
           System.currentTimeMillis() - startTime
       )
       return [ref: "/pipelines/" + id]
     } else {
       def id = markPipelineFailed(processedPipeline, pipelineError)
-      log.info("Failed to start pipeline {} based on request body {}", id, request)
+      log.info("Failed to start pipeline {} based on request body {}", id, renderForLogs(pipeline))
       throw pipelineError
     }
   }
@@ -228,12 +227,12 @@ class OperationsController {
     markPipelineFailed(processedPipeline, pipelineError)
   }
 
-  public Map parseAndValidatePipeline(Map pipeline) {
+  Map parseAndValidatePipeline(Map pipeline) {
     return parseAndValidatePipeline(pipeline, true)
   }
 
-  public Map parseAndValidatePipeline(Map pipeline, boolean resolveArtifacts) {
-    parsePipelineTrigger(executionRepository, buildService, pipeline, resolveArtifacts)
+  Map parseAndValidatePipeline(Map pipeline, boolean resolveArtifacts) {
+    parsePipelineTrigger(pipeline, resolveArtifacts)
 
     for (ExecutionPreprocessor preprocessor : executionPreprocessors.findAll {
       it.supports(pipeline, ExecutionPreprocessor.Type.PIPELINE)
@@ -256,7 +255,7 @@ class OperationsController {
     return pipeline
   }
 
-  private void parsePipelineTrigger(ExecutionRepository executionRepository, BuildService buildService, Map pipeline, boolean resolveArtifacts) {
+  private void parsePipelineTrigger(Map pipeline, boolean resolveArtifacts) {
     if (!(pipeline.trigger instanceof Map)) {
       pipeline.trigger = [:]
       if (pipeline.plan && pipeline.type == "templatedPipeline" && pipelineTemplateService != null) {
@@ -363,14 +362,14 @@ class OperationsController {
   @RequestMapping(value = "/ops", method = RequestMethod.POST)
   Map<String, String> ops(@RequestBody List<Map> input) {
     def execution = [application: null, name: null, stages: input]
-    parsePipelineTrigger(executionRepository, buildService, execution, true)
+    parsePipelineTrigger(execution, true)
     startTask(execution)
   }
 
   @RequestMapping(value = "/ops", consumes = "application/context+json", method = RequestMethod.POST)
   Map<String, String> ops(@RequestBody Map input) {
     def execution = [application: input.application, name: input.description, stages: input.job, trigger: input.trigger ?: [:]]
-    parsePipelineTrigger(executionRepository, buildService, execution, true)
+    parsePipelineTrigger(execution, true)
     startTask(execution)
   }
 
@@ -442,15 +441,13 @@ class OperationsController {
 
   private String startPipeline(Map config) {
     injectPipelineOrigin(config)
-    def json = objectMapper.writeValueAsString(config)
-    def pipeline = executionLauncher.start(PIPELINE, json)
+    def pipeline = executionLauncher.start(PIPELINE, config)
     return pipeline.id
   }
 
   private String markPipelineFailed(Map config, Exception e) {
     injectPipelineOrigin(config)
-    def json = objectMapper.writeValueAsString(config)
-    def pipeline = executionLauncher.fail(PIPELINE, json, e)
+    def pipeline = executionLauncher.fail(PIPELINE, config, e)
     return pipeline.id
   }
 
@@ -467,26 +464,26 @@ class OperationsController {
       config = preprocessor.process(config)
     }
 
-    def json = objectMapper.writeValueAsString(config)
     def pipeline = null
     try {
-      pipeline = executionLauncher.start(ORCHESTRATION, json)
+      pipeline = executionLauncher.start(ORCHESTRATION, config)
     } finally {
-      log.info('started execution {} from requested task: {}', pipeline?.id, renderForLogs(json))
+      log.info('started execution {} from requested task: {}', pipeline?.id, renderForLogs(config))
     }
     [ref: "/tasks/${pipeline.id}".toString()]
   }
 
-  private String renderForLogs(String json) {
+  private String renderForLogs(Map config) {
     if (!log.isInfoEnabled()) {
       return
     }
 
-    if (json.length() < 1_000_000) {
+    def json = objectMapper.writeValueAsString(config)
+    if (json.length() < 20_000) {
       return "(length: ${json.length()}) " + json
     }
 
-    return "(original length: ${json.length()}, truncated to first and last 50k) " +json[0..50_000] + " (...) " + json[-50_000..-1]
+    return "(original length: ${json.length()}, truncated to first and last 10k) " +json[0..10_000] + " (...) " + json[-10_000..-1]
   }
 
   private void injectPipelineOrigin(Map pipeline) {

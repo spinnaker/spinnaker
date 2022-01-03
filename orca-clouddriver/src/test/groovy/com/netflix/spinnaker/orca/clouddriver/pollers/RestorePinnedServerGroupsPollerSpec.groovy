@@ -114,10 +114,8 @@ class RestorePinnedServerGroupsPollerSpec extends Specification {
         )
       )
     }
-    1 * executionLauncher.start(ExecutionType.ORCHESTRATION, { String configJson ->
-      def config = objectMapper.readValue(configJson, Map)
+    1 * executionLauncher.start(ExecutionType.ORCHESTRATION, { Map config ->
       assert config.stages*.type == ["resizeServerGroup", "deleteEntityTags"]
-
       return true
     })
   }
@@ -143,12 +141,9 @@ class RestorePinnedServerGroupsPollerSpec extends Specification {
         )
       )
     }
-    1 * executionLauncher.start(ExecutionType.ORCHESTRATION, { String configJson ->
-      def config = objectMapper.readValue(configJson, Map)
-
+    1 * executionLauncher.start(ExecutionType.ORCHESTRATION, { Map config ->
       // no resize necessary!
       assert config.stages*.type == ["deleteEntityTags"]
-
       return true
     })
   }

@@ -27,6 +27,7 @@ import static java.util.Collections.emptyMap;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.exceptions.HasAdditionalAttributes;
+import com.netflix.spinnaker.kork.exceptions.SystemException;
 import com.netflix.spinnaker.kork.exceptions.UserException;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
@@ -37,8 +38,6 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
-import java.io.IOException;
-import java.io.Serializable;
 import java.time.Clock;
 import java.util.List;
 import java.util.Map;
@@ -82,9 +81,8 @@ public class ExecutionLauncher {
     this.registry = registry;
   }
 
-  public PipelineExecution start(ExecutionType type, String configJson) throws Exception {
-    final PipelineExecution execution = parse(type, configJson);
-
+  public PipelineExecution start(ExecutionType type, Map<String, Object> config) {
+    final PipelineExecution execution = parse(type, config);
     final PipelineExecution existingExecution = checkForCorrelatedExecution(execution);
     if (existingExecution != null) {
       return existingExecution;
@@ -109,9 +107,8 @@ public class ExecutionLauncher {
    *
    * @param e the exception that was thrown during pipeline validation
    */
-  public PipelineExecution fail(ExecutionType type, String configJson, Exception e)
-      throws Exception {
-    final PipelineExecution execution = parse(type, configJson);
+  public PipelineExecution fail(ExecutionType type, Map<String, Object> config, Exception e) {
+    final PipelineExecution execution = parse(type, config);
 
     persistExecution(execution);
 
@@ -126,7 +123,7 @@ public class ExecutionLauncher {
     }
   }
 
-  public PipelineExecution start(PipelineExecution execution) throws Exception {
+  public PipelineExecution start(PipelineExecution execution) {
     executionRunner.start(execution);
     return execution;
   }
@@ -143,13 +140,10 @@ public class ExecutionLauncher {
           executionRepository.retrieveByCorrelationId(
               execution.getType(), trigger.getCorrelationId());
       log.info(
-          "Found pre-existing "
-              + execution.getType()
-              + " by correlation id (id: "
-              + o.getId()
-              + ", correlationId: "
-              + trigger.getCorrelationId()
-              + ")");
+          "Found pre-existing {} by correlation id (id: {}, correlationId: {})",
+          execution.getType(),
+          o.getId(),
+          trigger.getCorrelationId());
       return o;
     } catch (ExecutionNotFoundException e) {
       // Swallow
@@ -159,7 +153,7 @@ public class ExecutionLauncher {
   }
 
   @SuppressWarnings("unchecked")
-  private PipelineExecution handleStartupFailure(PipelineExecution execution, Throwable failure) {
+  private void handleStartupFailure(PipelineExecution execution, Throwable failure) {
     final String canceledBy = "system";
     String reason = "Failed on startup: " + failure.getMessage();
 
@@ -194,31 +188,32 @@ public class ExecutionLauncher {
     execution.updateStatus(TERMINAL);
     executionRepository.updateStatus(execution);
     executionRepository.cancel(execution.getType(), execution.getId(), canceledBy, reason);
-    return executionRepository.retrieve(execution.getType(), execution.getId());
   }
 
-  private PipelineExecution parse(ExecutionType type, String configJson) throws IOException {
-    if (type == PIPELINE) {
-      return parsePipeline(configJson);
-    } else {
-      return parseOrchestration(configJson);
+  private PipelineExecution parse(ExecutionType type, Map<String, Object> config) {
+    switch (type) {
+      case PIPELINE:
+        return parsePipeline(config);
+      case ORCHESTRATION:
+        return parseOrchestration(config);
+      default:
+        throw new SystemException("Unexpected execution type " + type.toString());
     }
   }
 
-  private PipelineExecution parsePipeline(String configJson) throws IOException {
+  private PipelineExecution parsePipeline(Map<String, Object> config) {
     // TODO: can we not just annotate the class properly to avoid all this?
-    Map<String, Serializable> config = objectMapper.readValue(configJson, Map.class);
     return new PipelineBuilder(getString(config, "application"))
         .withId(getString(config, "executionId"))
         .withName(getString(config, "name"))
         .withPipelineConfigId(getString(config, "id"))
         .withTrigger(objectMapper.convertValue(config.get("trigger"), Trigger.class))
-        .withStages((List<Map<String, Object>>) config.get("stages"))
+        .withStages(getList(config, "stages"))
         .withLimitConcurrent(getBoolean(config, "limitConcurrent"))
         .withMaxConcurrentExecutions(getInt(config, "maxConcurrentExecutions"))
         .withKeepWaitingPipelines(getBoolean(config, "keepWaitingPipelines"))
-        .withNotifications((List<Map<String, Object>>) config.get("notifications"))
-        .withInitialConfig((Map<String, Object>) config.get("initialConfig"))
+        .withNotifications(getList(config, "notifications"))
+        .withInitialConfig(getMap(config, "initialConfig"))
         .withOrigin(getString(config, "origin"))
         .withStartTimeExpiry(getString(config, "startTimeExpiry"))
         .withSource(
@@ -227,13 +222,11 @@ public class ExecutionLauncher {
                 : objectMapper.convertValue(
                     config.get("source"), PipelineExecution.PipelineSource.class))
         .withSpelEvaluator(getString(config, "spelEvaluator"))
-        .withTemplateVariables((Map<String, Object>) config.get("templateVariables"))
+        .withTemplateVariables(getMap(config, "templateVariables"))
         .build();
   }
 
-  private PipelineExecution parseOrchestration(String configJson) throws IOException {
-    @SuppressWarnings("unchecked")
-    Map<String, Serializable> config = objectMapper.readValue(configJson, Map.class);
+  private PipelineExecution parseOrchestration(Map<String, Object> config) {
     PipelineExecution orchestration =
         PipelineExecutionImpl.newOrchestration(getString(config, "application"));
     if (config.containsKey("name")) {
@@ -281,29 +274,29 @@ public class ExecutionLauncher {
     executionRepository.store(execution);
   }
 
-  private final boolean getBoolean(Map<String, ?> map, String key) {
+  private static boolean getBoolean(Map<String, ?> map, String key) {
     return parseBoolean(getString(map, key));
   }
 
-  private final int getInt(Map<String, ?> map, String key) {
+  private static int getInt(Map<String, ?> map, String key) {
     return map.containsKey(key) ? parseInt(getString(map, key)) : 0;
   }
 
-  private final String getString(Map<String, ?> map, String key) {
+  private static String getString(Map<String, ?> map, String key) {
     return map.containsKey(key) ? map.get(key).toString() : null;
   }
 
-  private final <K, V> Map<K, V> getMap(Map<String, ?> map, String key) {
+  private static <K, V> Map<K, V> getMap(Map<String, ?> map, String key) {
     Map<K, V> result = (Map<K, V>) map.get(key);
     return result == null ? emptyMap() : result;
   }
 
-  private final List<Map<String, Object>> getList(Map<String, ?> map, String key) {
+  private static List<Map<String, Object>> getList(Map<String, ?> map, String key) {
     List<Map<String, Object>> result = (List<Map<String, Object>>) map.get(key);
     return result == null ? emptyList() : result;
   }
 
-  private final <E extends Enum<E>> E getEnum(Map<String, ?> map, String key, Class<E> type) {
+  private static <E extends Enum<E>> E getEnum(Map<String, ?> map, String key, Class<E> type) {
     String value = (String) map.get(key);
     return value != null ? Enum.valueOf(type, value) : null;
   }

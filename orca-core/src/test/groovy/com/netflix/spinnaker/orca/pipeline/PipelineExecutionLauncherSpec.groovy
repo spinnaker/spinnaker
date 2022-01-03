@@ -109,7 +109,7 @@ class PipelineExecutionLauncherSpec extends Specification {
     @Subject def launcher = create()
 
     when:
-    launcher.start(PIPELINE, json)
+    launcher.start(PIPELINE, config)
 
     then:
     1 * applicationEventPublisher.publishEvent(_ as BeforeInitialExecutionPersist)
@@ -117,6 +117,5 @@ class PipelineExecutionLauncherSpec extends Specification {
 
     where:
     config = [id: "whatever", stages: []]
-    json = objectMapper.writeValueAsString(config)
   }
 }
