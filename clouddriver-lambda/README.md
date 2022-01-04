@@ -171,11 +171,9 @@ curl -X POST \
     "role": "arn:aws:iam::<acctno.>:role/service-role/test",
     "runtime": "python3.6",
     "timeout": "60",
-    "tags": [{
+    "tags": {
         "key":"value"
     }
-
-    ]
 }'
 ```
 
@@ -216,11 +214,9 @@ curl -X POST \
     "role": "arn:aws:iam::<acctno>:role/service-role/test",
     "runtime": "python3.6",
     "timeout": "68",
-    "tags": [{
+    "tags": {
         "key":"value"
     }
-
-    ]
 }'
 ```
 Note: I've changed the timeout from 60 to 68. Naviagate to the aws console to see
