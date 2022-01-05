@@ -29,10 +29,7 @@ import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -51,6 +48,7 @@ import org.springframework.stereotype.Component;
 public class PipelineCache implements MonitoredPoller {
   private final int pollingIntervalMs;
   private final int pollingSleepMs;
+  private final int planParallelism;
   private final Front50Service front50;
   private final OrcaService orca;
   private final Registry registry;
@@ -68,6 +66,9 @@ public class PipelineCache implements MonitoredPoller {
   public PipelineCache(
       @Value("${front50.polling-interval-ms:30000}") int pollingIntervalMs,
       @Value("${front50.polling-sleep-ms:100}") int pollingSleepMs,
+      @Value(
+              "${pipelineCache.parallelism:#{T(java.lang.Runtime).getRuntime().availableProcessors()}}")
+          int planParallelism,
       ObjectMapper objectMapper,
       @NonNull Front50Service front50,
       @NonNull OrcaService orca,
@@ -76,6 +77,7 @@ public class PipelineCache implements MonitoredPoller {
         Executors.newSingleThreadScheduledExecutor(),
         pollingIntervalMs,
         pollingSleepMs,
+        planParallelism,
         objectMapper,
         front50,
         orca,
@@ -87,6 +89,7 @@ public class PipelineCache implements MonitoredPoller {
       ScheduledExecutorService executorService,
       int pollingIntervalMs,
       int pollingSleepMs,
+      int planParallelism,
       ObjectMapper objectMapper,
       @NonNull Front50Service front50,
       @NonNull OrcaService orca,
@@ -95,6 +98,7 @@ public class PipelineCache implements MonitoredPoller {
     this.executorService = executorService;
     this.pollingIntervalMs = pollingIntervalMs;
     this.pollingSleepMs = pollingSleepMs;
+    this.planParallelism = planParallelism;
     this.front50 = front50;
     this.orca = orca;
     this.registry = registry;
@@ -190,12 +194,23 @@ public class PipelineCache implements MonitoredPoller {
 
   private List<Pipeline> fetchHydratedPipelines() {
     List<Map<String, Object>> rawPipelines = fetchRawPipelines();
-
-    return rawPipelines.stream()
-        .map(this::process)
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .collect(Collectors.toList());
+    ForkJoinPool forkJoinPool = new ForkJoinPool(this.planParallelism);
+    try {
+      return forkJoinPool
+          .submit(
+              () ->
+                  rawPipelines.parallelStream()
+                      .map(this::process)
+                      .filter(Optional::isPresent)
+                      .map(Optional::get)
+                      .collect(Collectors.toList()))
+          .get();
+    } catch (InterruptedException | ExecutionException e) {
+      log.error("Error hydrating pipelines", e);
+      return Collections.emptyList();
+    } finally {
+      forkJoinPool.shutdown();
+    }
   }
 
   @Nonnull
