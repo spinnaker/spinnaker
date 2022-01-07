@@ -97,7 +97,7 @@ class ArtifactListener(
             log.debug("Latest available versions of $artifact: ${latestAvailableVersions.map { it.version }}")
 
             val newVersions = latestAvailableVersions
-              .filterNot { currentVersions.contains(it.version) }
+              .filterNot { currentVersions.contains(it.normalized().version) }
               .filter { artifactSupplier.shouldProcessArtifact(it) }
             if (newVersions.isNotEmpty()) {
               log.debug("$artifact has a missing version(s) ${newVersions.map { it.version }}, persisting.")
