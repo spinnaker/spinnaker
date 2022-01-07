@@ -44,7 +44,7 @@ class CredentialsControllerSpec extends Specification {
     def credsRepo = new MapBackedAccountCredentialsRepository()
     def credsProvider = new DefaultAccountCredentialsProvider(credsRepo)
     credsRepo.save("test", new TestNamedAccountCredentials())
-    def mvc = MockMvcBuilders.standaloneSetup(new CredentialsController(accountCredentialsProvider: credsProvider, objectMapper: objectMapper, credentialsConfiguration: new CredentialsConfiguration())).build()
+    def mvc = MockMvcBuilders.standaloneSetup(new CredentialsController(Optional.empty(), new CredentialsConfiguration(), objectMapper, credsProvider)).build()
 
     when:
     def result = mvc.perform(MockMvcRequestBuilders.get("/credentials").accept(MediaType.APPLICATION_JSON)).andReturn()

@@ -31,6 +31,7 @@ dependencies {
   implementation "io.spinnaker.kork:kork-web"
   implementation "io.spinnaker.kork:kork-annotations"
   implementation "io.spinnaker.kork:kork-moniker"
+  implementation "io.spinnaker.kork:kork-secrets"
   implementation "com.squareup.okhttp:okhttp"
   implementation "com.squareup.okhttp:okhttp-apache"
   implementation "com.squareup.okhttp:okhttp-urlconnection"
@@ -58,4 +59,5 @@ dependencies {
   testImplementation "org.junit.jupiter:junit-jupiter-engine"
   testImplementation "org.junit.jupiter:junit-jupiter-params"
   testImplementation "org.mockito:mockito-core"
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
 }

@@ -24,6 +24,7 @@ dependencies {
   implementation project(":clouddriver-event")
 
   implementation "io.spinnaker.kork:kork-core"
+  implementation "io.spinnaker.kork:kork-secrets"
   implementation "io.spinnaker.kork:kork-sql"
   implementation "io.spinnaker.kork:kork-telemetry"
   implementation "de.huxhorn.sulky:de.huxhorn.sulky.ulid"

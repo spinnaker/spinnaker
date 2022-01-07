@@ -1,0 +1,132 @@
+databaseChangeLog:
+- changeSet:
+    id: create-accounts-table
+    author: msicker
+    changes:
+    - createTable:
+        tableName: accounts
+        columns:
+        - column:
+            name: id
+            type: varchar(255)
+            constraints:
+              primaryKey: true
+              nullable: false
+        - column:
+            name: type
+            type: varchar(50)
+            constraints:
+              nullable: false
+        - column:
+            name: body
+            type: json
+            constraints:
+              nullable: false
+        - column:
+            name: created_at
+            type: bigint
+            constraints:
+              nullable: false
+        - column:
+            name: last_modified_at
+            type: bigint
+            constraints:
+              nullable: false
+        - column:
+            name: last_modified_by
+            type: varchar(255)
+            constraints:
+              nullable: false
+    - modifySql:
+        dbms: mysql
+        append:
+          value: " engine innodb DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci"
+    - modifySql:
+        dbms: postgresql
+        replace:
+          replace: json
+          with: jsonb
+    rollback:
+      - dropTable:
+          tableName: accounts
+
+- changeSet:
+    id: create-accounts-table-index
+    author: jcavanagh
+    changes:
+    - createIndex:
+        indexName: accounts_type_index
+        tableName: accounts
+        columns:
+        - column:
+            name: id
+        - column:
+            name: type
+    - createIndex:
+        indexName: accounts_timestamp_index
+        tableName: accounts
+        columns:
+        - column:
+            name: id
+        - column:
+            name: type
+        - column:
+            name: created_at
+        - column:
+            name: last_modified_at
+    rollback:
+    - dropTable:
+        tableName: accounts
+- changeSet:
+    id: create-accounts-history-table
+    author: msicker
+    changes:
+    - createTable:
+        tableName: accounts_history
+        columns:
+        - column:
+            name: id
+            type: varchar(255)
+            constraints:
+              primaryKey: true
+              nullable: false
+        - column:
+            name: type
+            type: varchar(50)
+            constraints:
+              nullable: true
+        - column:
+            name: body
+            type: json
+            constraints:
+              nullable: true
+        - column:
+            name: last_modified_at
+            type: bigint
+            constraints:
+              nullable: false
+        - column:
+            name: version
+            type: int
+            constraints:
+              primaryKey: true
+              nullable: false
+              descending: true
+        - column:
+            name: is_deleted
+            type: boolean
+            defaultValueBoolean: false
+            constraints:
+              nullable: false
+    - modifySql:
+        dbms: mysql
+        append:
+          value: " engine innodb DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci"
+    - modifySql:
+        dbms: postgresql
+        replace:
+          replace: json
+          with: jsonb
+    rollback:
+    - dropTable:
+        tableName: accounts_history

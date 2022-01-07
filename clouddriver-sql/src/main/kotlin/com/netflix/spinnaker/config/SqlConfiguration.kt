@@ -19,11 +19,14 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.event.persistence.EventRepository
+import com.netflix.spinnaker.clouddriver.security.AccountDefinitionMapper
+import com.netflix.spinnaker.clouddriver.security.AccountDefinitionRepository
 import com.netflix.spinnaker.clouddriver.sql.SqlProvider
 import com.netflix.spinnaker.clouddriver.sql.SqlTaskCleanupAgent
 import com.netflix.spinnaker.clouddriver.sql.SqlTaskRepository
 import com.netflix.spinnaker.clouddriver.sql.event.SqlEventCleanupAgent
 import com.netflix.spinnaker.clouddriver.sql.event.SqlEventRepository
+import com.netflix.spinnaker.clouddriver.sql.security.SqlAccountDefinitionRepository
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer
 import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer.SubtypeLocator
@@ -31,7 +34,6 @@ import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import com.netflix.spinnaker.kork.sql.config.SqlProperties
 import com.netflix.spinnaker.kork.telemetry.InstrumentedProxy
 import com.netflix.spinnaker.kork.version.ServiceVersion
-import java.time.Clock
 import org.jooq.DSLContext
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
@@ -41,6 +43,7 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
+import java.time.Clock
 
 @Configuration
 @ConditionalOnProperty("sql.enabled")
@@ -123,4 +126,13 @@ class SqlConfiguration {
   ): SqlEventCleanupAgent {
     return SqlEventCleanupAgent(jooq, registry, properties, dynamicConfigService)
   }
+
+  @Bean
+  @ConditionalOnProperty("account.storage.enabled")
+  fun sqlAccountDefinitionRepository(
+    jooq: DSLContext,
+    clock: Clock,
+    mapper: AccountDefinitionMapper
+  ): AccountDefinitionRepository = SqlAccountDefinitionRepository(jooq, mapper, clock, ConnectionPools.ACCOUNTS.value)
+
 }
