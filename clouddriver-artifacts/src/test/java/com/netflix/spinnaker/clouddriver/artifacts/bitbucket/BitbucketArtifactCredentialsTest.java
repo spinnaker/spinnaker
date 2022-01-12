@@ -18,18 +18,18 @@ package com.netflix.spinnaker.clouddriver.artifacts.bitbucket;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.squareup.okhttp.OkHttpClient;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.Function;
-import org.apache.commons.io.Charsets;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junitpioneer.jupiter.TempDirectory;
@@ -37,11 +37,54 @@ import ru.lanwen.wiremock.ext.WiremockResolver;
 
 @ExtendWith({WiremockResolver.class, TempDirectory.class})
 class BitbucketArtifactCredentialsTest {
-  private final ObjectMapper objectMapper = new ObjectMapper();
   private final OkHttpClient okHttpClient = new OkHttpClient();
 
   private final String DOWNLOAD_PATH = "/repos/spinnaker/testing/manifest.yml";
   private final String FILE_CONTENTS = "file contents";
+
+  @Test
+  void downloadWithToken(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
+    BitbucketArtifactAccount account =
+        BitbucketArtifactAccount.builder().name("my-bitbucket-account").token("abc").build();
+
+    runTestCase(server, account, m -> m.withHeader(AUTHORIZATION, equalTo("Bearer abc")));
+  }
+
+  @Test
+  void downloadWithTokenFromFile(
+      @TempDirectory.TempDir Path tempDir, @WiremockResolver.Wiremock WireMockServer server)
+      throws IOException {
+    Path authFile = tempDir.resolve("auth-file");
+    Files.write(authFile, "zzz".getBytes());
+
+    BitbucketArtifactAccount account =
+        BitbucketArtifactAccount.builder()
+            .name("my-bitbucket-account")
+            .tokenFile(authFile.toAbsolutePath().toString())
+            .build();
+
+    runTestCase(server, account, m -> m.withHeader(AUTHORIZATION, equalTo("Bearer zzz")));
+  }
+
+  @Test
+  void downloadWithTokenFromFileWithReloadHeaders(
+      @TempDirectory.TempDir Path tempDir, @WiremockResolver.Wiremock WireMockServer server)
+      throws IOException {
+    Path authFile = tempDir.resolve("auth-file");
+    Files.write(authFile, "zzz".getBytes());
+
+    BitbucketArtifactAccount account =
+        BitbucketArtifactAccount.builder()
+            .name("my-bitbucket-account")
+            .tokenFile(authFile.toAbsolutePath().toString())
+            .build();
+
+    runTestCase(server, account, m -> m.withHeader(AUTHORIZATION, equalTo("Bearer zzz")));
+
+    Files.write(authFile, "aaa".getBytes());
+
+    runTestCase(server, account, m -> m.withHeader(AUTHORIZATION, equalTo("Bearer aaa")));
+  }
 
   @Test
   void downloadWithBasicAuth(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
@@ -76,7 +119,7 @@ class BitbucketArtifactCredentialsTest {
     BitbucketArtifactAccount account =
         BitbucketArtifactAccount.builder().name("my-bitbucket-account").build();
 
-    runTestCase(server, account, m -> m.withHeader("Authorization", absent()));
+    runTestCase(server, account, m -> m.withHeader(AUTHORIZATION, absent()));
   }
 
   private void runTestCase(
@@ -97,7 +140,7 @@ class BitbucketArtifactCredentialsTest {
     prepareServer(server, expectedAuth);
 
     assertThat(credentials.download(artifact))
-        .hasSameContentAs(new ByteArrayInputStream(FILE_CONTENTS.getBytes(Charsets.UTF_8)));
+        .hasSameContentAs(new ByteArrayInputStream(FILE_CONTENTS.getBytes(StandardCharsets.UTF_8)));
     assertThat(server.findUnmatchedRequests().getRequests()).isEmpty();
   }
 
