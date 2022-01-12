@@ -74,7 +74,7 @@ export class StageFailureMessage extends React.Component<IStageFailureMessagePro
     const { message, messages, stage } = this.props;
     const { isFailed, failedTask, failedExecutionId, failedStageName, failedStageId } = this.state;
 
-    let stageMessages = message || !messages.length ? [message] : messages;
+    let stageMessages = message && !messages.length ? [message] : messages;
     if (stageMessages.length > 0) {
       const exceptionTitle = isFailed ? (messages.length ? 'Exceptions' : 'Exception') : 'Warning';
 
