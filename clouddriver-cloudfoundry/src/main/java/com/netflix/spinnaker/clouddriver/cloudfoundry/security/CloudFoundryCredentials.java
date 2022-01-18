@@ -37,6 +37,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
@@ -80,6 +81,8 @@ public class CloudFoundryCredentials extends AbstractAccountCredentials<CloudFou
   private final Permissions permissions;
   private final ForkJoinPool forkJoinPool;
   private final List<CloudFoundrySpace> filteredSpaces;
+
+  @Getter(AccessLevel.NONE)
   private final CloudFoundryClient cloudFoundryClient;
 
   public CloudFoundryCredentials(
