@@ -1,3 +1,8 @@
+queue_rules:
+  - name: default
+    conditions:
+      - status-success=build
+
 pull_request_rules:
   - name: Automatically merge on CI success and review
     conditions:
@@ -6,9 +11,9 @@ pull_request_rules:
       - "label=ready to merge"
       - "approved-reviews-by=@oss-approvers"
     actions:
-      merge:
+      queue:
         method: squash
-        strict: smart
+        name: default
       label:
         add: ["auto merged"]
   - name: Automatically merge release branch changes on CI success and release manager review
@@ -18,9 +23,9 @@ pull_request_rules:
       - "label=ready to merge"
       - "approved-reviews-by=@release-managers"
     actions:
-      merge:
+      queue:
         method: squash
-        strict: smart
+        name: default
       label:
         add: ["auto merged"]
   # This rule exists to handle release branches that are still building using Travis CI instead of
@@ -32,9 +37,9 @@ pull_request_rules:
       - "label=ready to merge"
       - "approved-reviews-by=@release-managers"
     actions:
-      merge:
+      queue:
         method: squash
-        strict: smart
+        name: default
       label:
         add: ["auto merged"]
   - name: Automatically merge PRs from maintainers on CI success and review
@@ -44,9 +49,9 @@ pull_request_rules:
       - "label=ready to merge"
       - "author=@oss-approvers"
     actions:
-      merge:
+      queue:
         method: squash
-        strict: smart
+        name: default
       label:
         add: ["auto merged"]
   - name: Automatically merge autobump PRs on CI success
@@ -56,9 +61,9 @@ pull_request_rules:
       - "label~=autobump-*"
       - "author:spinnakerbot"
     actions:
-      merge:
+      queue:
         method: squash
-        strict: smart
+        name: default
       label:
         add: ["auto merged"]
   - name: Request reviews for autobump PRs on CI failure
