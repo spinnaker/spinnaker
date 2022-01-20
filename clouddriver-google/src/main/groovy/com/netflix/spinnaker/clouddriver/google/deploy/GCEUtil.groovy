@@ -61,7 +61,7 @@ class GCEUtil {
   private static final String DISK_TYPE_PERSISTENT = "PERSISTENT"
   private static final String DISK_TYPE_SCRATCH = "SCRATCH"
   private static final String GCE_API_PREFIX = "https://compute.googleapis.com/compute/v1/projects/"
-  private static final List<Integer> RETRY_ERROR_CODES = [400, 403, 412]
+  private static final List<Integer> RETRY_ERROR_CODES = [400, 403, 412, 429, 503]
 
   public static final String TARGET_POOL_NAME_PREFIX = "tp"
   public static final String REGIONAL_LOAD_BALANCER_NAMES = "load-balancer-names"
