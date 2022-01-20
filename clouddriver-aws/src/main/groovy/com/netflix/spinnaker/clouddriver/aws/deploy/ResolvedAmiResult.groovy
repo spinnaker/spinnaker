@@ -31,4 +31,5 @@ class ResolvedAmiResult {
   String ownerId
   List<BlockDeviceMapping> blockDeviceMappings
   Boolean isPublic
+  String architecture
 }

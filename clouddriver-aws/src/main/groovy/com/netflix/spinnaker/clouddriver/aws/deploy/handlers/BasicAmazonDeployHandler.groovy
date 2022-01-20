@@ -228,7 +228,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       if (!ami) {
         throw new IllegalArgumentException("unable to resolve AMI imageId from $description.amiName in $region")
       }
-      InstanceTypeUtils.validateCompatibility(ami.virtualizationType, description.getAllInstanceTypes())
+      InstanceTypeUtils.validateCompatibilityWithAmi(amazonEC2, ami, description.getAllInstanceTypes())
 
       def account = accountCredentialsRepository.getOne(description.credentials.name)
       if (account == null) {

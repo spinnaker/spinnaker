@@ -43,6 +43,8 @@ import com.amazonaws.services.ec2.model.CreateLaunchTemplateResult;
 import com.amazonaws.services.ec2.model.DescribeAddressesResult;
 import com.amazonaws.services.ec2.model.DescribeImagesRequest;
 import com.amazonaws.services.ec2.model.DescribeImagesResult;
+import com.amazonaws.services.ec2.model.DescribeInstanceTypesRequest;
+import com.amazonaws.services.ec2.model.DescribeInstanceTypesResult;
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
 import com.amazonaws.services.ec2.model.DescribeInstancesResult;
 import com.amazonaws.services.ec2.model.DescribeKeyPairsResult;
@@ -52,7 +54,9 @@ import com.amazonaws.services.ec2.model.DescribeSubnetsResult;
 import com.amazonaws.services.ec2.model.DescribeVpcClassicLinkResult;
 import com.amazonaws.services.ec2.model.DescribeVpcsResult;
 import com.amazonaws.services.ec2.model.Image;
+import com.amazonaws.services.ec2.model.InstanceTypeInfo;
 import com.amazonaws.services.ec2.model.LaunchTemplate;
+import com.amazonaws.services.ec2.model.ProcessorInfo;
 import com.amazonaws.services.ec2.model.SecurityGroup;
 import com.amazonaws.services.ec2.model.Subnet;
 import com.amazonaws.services.ec2.model.Tag;
@@ -102,7 +106,22 @@ public class CreateServerGroupSpec extends AwsBaseSpec {
     when(mockEc2.describeInstances(any(DescribeInstancesRequest.class)))
         .thenReturn(new DescribeInstancesResult());
     when(mockEc2.describeImages(any(DescribeImagesRequest.class)))
-        .thenReturn(new DescribeImagesResult().withImages(new Image().withImageId("ami-12345")));
+        .thenReturn(
+            new DescribeImagesResult()
+                .withImages(
+                    new Image()
+                        .withImageId("ami-12345")
+                        .withVirtualizationType("hvm")
+                        .withArchitecture("x86_64")));
+    when(mockEc2.describeInstanceTypes(any(DescribeInstanceTypesRequest.class)))
+        .thenReturn(
+            new DescribeInstanceTypesResult()
+                .withInstanceTypes(
+                    new InstanceTypeInfo()
+                        .withInstanceType("c3.large")
+                        .withProcessorInfo(
+                            new ProcessorInfo().withSupportedArchitectures("i386", "x86_64"))
+                        .withSupportedVirtualizationTypes(Arrays.asList("hvm", "paravirtual"))));
     when(mockEc2.describeSubnets())
         .thenReturn(
             new DescribeSubnetsResult()

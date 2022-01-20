@@ -42,6 +42,8 @@ import com.amazonaws.services.ec2.model.CreateLaunchTemplateResult;
 import com.amazonaws.services.ec2.model.DescribeAddressesResult;
 import com.amazonaws.services.ec2.model.DescribeImagesRequest;
 import com.amazonaws.services.ec2.model.DescribeImagesResult;
+import com.amazonaws.services.ec2.model.DescribeInstanceTypesRequest;
+import com.amazonaws.services.ec2.model.DescribeInstanceTypesResult;
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
 import com.amazonaws.services.ec2.model.DescribeInstancesResult;
 import com.amazonaws.services.ec2.model.DescribeKeyPairsResult;
@@ -53,7 +55,9 @@ import com.amazonaws.services.ec2.model.DescribeSubnetsResult;
 import com.amazonaws.services.ec2.model.DescribeVpcClassicLinkResult;
 import com.amazonaws.services.ec2.model.DescribeVpcsResult;
 import com.amazonaws.services.ec2.model.Image;
+import com.amazonaws.services.ec2.model.InstanceTypeInfo;
 import com.amazonaws.services.ec2.model.LaunchTemplate;
+import com.amazonaws.services.ec2.model.ProcessorInfo;
 import com.amazonaws.services.ec2.model.SecurityGroup;
 import com.amazonaws.services.ec2.model.Subnet;
 import com.amazonaws.services.ec2.model.Tag;
@@ -120,7 +124,26 @@ public class CreateServerGroupLaunchTemplatesEnabledSpec extends AwsBaseSpec {
     when(mockEc2.describeInstances(any(DescribeInstancesRequest.class)))
         .thenReturn(new DescribeInstancesResult());
     when(mockEc2.describeImages(any(DescribeImagesRequest.class)))
-        .thenReturn(new DescribeImagesResult().withImages(new Image().withImageId("ami-12345")));
+        .thenReturn(
+            new DescribeImagesResult()
+                .withImages(
+                    new Image()
+                        .withImageId("ami-12345")
+                        .withVirtualizationType("hvm")
+                        .withArchitecture("x86_64")));
+    when(mockEc2.describeInstanceTypes(any(DescribeInstanceTypesRequest.class)))
+        .thenReturn(
+            new DescribeInstanceTypesResult()
+                .withInstanceTypes(
+                    new InstanceTypeInfo()
+                        .withInstanceType("t3.medium")
+                        .withProcessorInfo(new ProcessorInfo().withSupportedArchitectures("x86_64"))
+                        .withSupportedVirtualizationTypes(Arrays.asList("hvm")),
+                    new InstanceTypeInfo()
+                        .withInstanceType("c3.large")
+                        .withProcessorInfo(
+                            new ProcessorInfo().withSupportedArchitectures("i386", "x86_64"))
+                        .withSupportedVirtualizationTypes(Arrays.asList("hvm", "paravirtual"))));
     when(mockEc2.describeSubnets())
         .thenReturn(
             new DescribeSubnetsResult()
@@ -446,7 +469,7 @@ public class CreateServerGroupLaunchTemplatesEnabledSpec extends AwsBaseSpec {
     Map<String, Object> requestBody =
         TestUtils.loadJson(PATH_PREFIX + "createServerGroup-basic.json")
             .withValue("application", "myExcludedApp")
-            .withValue("instanceType", "c3.small")
+            .withValue("instanceType", "c3.large")
             .withValue("setLaunchTemplate", false)
             .asMap();
     when(mockEc2.describeSecurityGroups(any(DescribeSecurityGroupsRequest.class)))
@@ -490,7 +513,7 @@ public class CreateServerGroupLaunchTemplatesEnabledSpec extends AwsBaseSpec {
     assertEquals(1, createLcReq.getSecurityGroups().size());
     assertEquals("sg-123", createLcReq.getSecurityGroups().get(0));
     assertEquals("ami-12345", createLcReq.getImageId());
-    assertEquals("c3.small", createLcReq.getInstanceType());
+    assertEquals("c3.large", createLcReq.getInstanceType());
 
     ArgumentCaptor<CreateAutoScalingGroupRequest> createAsgArgs =
         ArgumentCaptor.forClass(CreateAutoScalingGroupRequest.class);
