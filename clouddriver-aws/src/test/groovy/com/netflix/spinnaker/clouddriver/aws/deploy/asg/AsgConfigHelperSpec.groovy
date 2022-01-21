@@ -26,9 +26,12 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeplo
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.config.AwsConfiguration
 import com.netflix.spinnaker.clouddriver.aws.services.SecurityGroupService
-import org.joda.time.LocalDateTime
 import spock.lang.Specification
 import spock.lang.Unroll
+
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneId
 
 class AsgConfigHelperSpec extends Specification {
   def securityGroupServiceMock = Mock(SecurityGroupService)
@@ -36,6 +39,15 @@ class AsgConfigHelperSpec extends Specification {
   def asgConfig = new AutoScalingWorker.AsgConfiguration(
       application: "fooTest",
       stack: "stack")
+
+  void setup() {
+    // test code shouldn't assume it will run in less than one second, so let's control the clock
+    AsgConfigHelper.clock = Clock.fixed(Instant.now(), ZoneId.systemDefault())
+  }
+
+  void cleanup() {
+    AsgConfigHelper.clock = Clock.systemDefaultZone()
+  }
 
   void "should return name correctly"() {
     when:
@@ -47,8 +59,8 @@ class AsgConfigHelperSpec extends Specification {
     where:
     baseName | suffix   || expectedName
     "base"   | "suffix" || "base-suffix"
-    "base"   | null     || "base-${new LocalDateTime().toString("MMddYYYYHHmm")}"
-    "base"   | ""       || "base-${new LocalDateTime().toString("MMddYYYYHHmm")}"
+    "base"   | null     || "base-${AsgConfigHelper.createDefaultSuffix()}"
+    "base"   | ""       || "base-${AsgConfigHelper.createDefaultSuffix()}"
   }
 
   void "should lookup security groups when provided by name"() {

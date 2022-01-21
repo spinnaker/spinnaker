@@ -33,6 +33,12 @@ import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactor
 import com.netflix.spinnaker.clouddriver.aws.services.SecurityGroupService;
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
 import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults;
+import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
+import java.time.Clock;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -40,10 +46,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDateTime;
 
 /**
  * A helper class for utility methods related to {@link AutoScalingWorker.AsgConfiguration} and
@@ -298,8 +304,27 @@ public class AsgConfigHelper {
     return applicationSecurityGroupId;
   }
 
-  private static String createDefaultSuffix() {
-    return new LocalDateTime().toString("MMddYYYYHHmmss");
+  private static final AtomicReference<Clock> CLOCK_REF =
+      new AtomicReference<>(Clock.systemDefaultZone());
+
+  @VisibleForTesting
+  static void setClock(Clock clock) {
+    CLOCK_REF.setOpaque(clock);
+  }
+
+  private static final DateTimeFormatter SUFFIX_DATE_FORMATTER =
+      new DateTimeFormatterBuilder()
+          .appendValue(ChronoField.MONTH_OF_YEAR, 2)
+          .appendValue(ChronoField.DAY_OF_MONTH, 2)
+          .appendValue(ChronoField.YEAR)
+          .appendValue(ChronoField.HOUR_OF_DAY, 2)
+          .appendValue(ChronoField.MINUTE_OF_HOUR, 2)
+          .appendValue(ChronoField.SECOND_OF_MINUTE, 2)
+          .toFormatter();
+
+  @VisibleForTesting
+  static String createDefaultSuffix() {
+    return LocalDateTime.now(CLOCK_REF.getOpaque()).format(SUFFIX_DATE_FORMATTER);
   }
 
   /**
