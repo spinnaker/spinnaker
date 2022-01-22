@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.2.0](https://github.com/spinnaker/deck/compare/deck-app@2.1.8...deck-app@2.2.0) (2022-01-22)
+
+
+### Features
+
+* **core:** HTML5 Routing ([#9802](https://github.com/spinnaker/deck/issues/9802)) ([d5a077a](https://github.com/spinnaker/deck/commit/d5a077a4b3765ba3e45ec53242bfac187cc96712))
+
+
+
+
+
 ## [2.1.8](https://github.com/spinnaker/deck/compare/deck-app@2.1.7...deck-app@2.1.8) (2022-01-12)
 
 **Note:** Version bump only for package deck-app
