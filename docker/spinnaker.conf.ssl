@@ -2,8 +2,9 @@
   SSLEngine on
   SSLCertificateFile "{%DECK_CERT_PATH%}"
   SSLCertificateKeyFile "{%DECK_KEY_PATH%}"
-  
+
   DocumentRoot /opt/deck/html
+  FallbackResource /index.html
 
   ProxyPass "/gate" "{%API_HOST%}" retry=0
   ProxyPassReverse "/gate" "{%API_HOST%}"

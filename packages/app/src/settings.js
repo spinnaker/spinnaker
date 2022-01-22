@@ -38,6 +38,7 @@ const gceScaleDownControlsEnabled =
   import.meta.env.VITE_GCE_SCALE_DOWN_CONTROLS_ENABLED === 'true' ||
   process.env.GCE_SCALE_DOWN_CONTROLS_ENABLED === 'true' ||
   false;
+const html5Routing = import.meta.env.VITE_HTML5_ROUTING === 'true' || process.env.HTML5_ROUTING === 'true' || false;
 const iapRefresherEnabled =
   import.meta.env.VITE_IAP_REFRESHER_ENABLED === 'true' || process.env.IAP_REFRESHER_ENABLED === 'true' || false;
 const managedDeliveryEnabled =
@@ -110,6 +111,7 @@ window.spinnakerSettings = {
     entityTags: entityTagsEnabled,
     executionMarkerInformationModal: false,
     fiatEnabled: fiatEnabled,
+    html5Routing: html5Routing,
     iapRefresherEnabled: iapRefresherEnabled,
     managedDelivery: managedDeliveryEnabled,
     mdGitIntegration: mdGitIntegrationEnabled,

@@ -1,5 +1,6 @@
 <VirtualHost {%DECK_HOST%}:{%DECK_PORT%}>
   DocumentRoot /opt/deck/html
+  FallbackResource /index.html
 
   ProxyPass "/gate" "{%API_HOST%}" retry=0
   ProxyPassReverse "/gate" "{%API_HOST%}"
