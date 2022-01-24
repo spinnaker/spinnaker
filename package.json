@@ -33,7 +33,7 @@
     "@uirouter/react": "1.0.2",
     "@uirouter/react-hybrid": "1.0.2",
     "angular-ui-bootstrap": "^2.5.0",
-    "ansi_up": "^4.0.4",
+    "ansi_up": "^5.0.0",
     "bootstrap": "3.4.1",
     "class-autobind-decorator": "^2.2.1",
     "human-readable-ids": "^1.0.4",
