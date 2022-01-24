@@ -32,4 +32,6 @@ public class BitbucketArtifactAccount extends ArtifactAccount {
   String username;
   @Secret String password;
   @LocalFile @SecretFile String usernamePasswordFile;
+  @Secret String token;
+  @LocalFile @SecretFile String tokenFile;
 }

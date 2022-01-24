@@ -39,13 +39,24 @@ public class BitbucketAddArtifactAccountCommand extends AbstractAddArtifactAccou
       description = "File containing \"username:password\" to use for Bitbucket authentication")
   private String usernamePasswordFile;
 
+  @Parameter(names = "--token", password = true, description = "Bitbucket Server token")
+  private String token;
+
+  @Parameter(
+      names = "--token-file",
+      converter = LocalFileConverter.class,
+      description = "File containing a Bitbucket Server authentication token")
+  private String tokenFile;
+
   @Override
   protected ArtifactAccount buildArtifactAccount(String accountName) {
     BitbucketArtifactAccount artifactAccount = new BitbucketArtifactAccount().setName(accountName);
     artifactAccount
         .setUsername(username)
         .setPassword(password)
-        .setUsernamePasswordFile(usernamePasswordFile);
+        .setUsernamePasswordFile(usernamePasswordFile)
+        .setToken(token)
+        .setTokenFile(tokenFile);
     return artifactAccount;
   }
 
