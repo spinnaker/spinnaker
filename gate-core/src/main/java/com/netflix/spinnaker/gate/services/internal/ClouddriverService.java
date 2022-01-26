@@ -46,7 +46,7 @@ public interface ClouddriverService {
   AccountDefinition updateAccountDefinition(@Body AccountDefinition accountDefinition);
 
   @DELETE("/credentials/{account}")
-  void deleteAccountDefinition(@Path("account") String account);
+  Response deleteAccountDefinition(@Path("account") String account);
 
   @GET("/task/{taskDetailsId}")
   Map getTaskDetails(@Path("taskDetailsId") String taskDetailsId);

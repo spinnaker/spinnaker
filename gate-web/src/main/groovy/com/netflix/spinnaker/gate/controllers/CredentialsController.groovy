@@ -120,7 +120,7 @@ class CredentialsController {
 
   @PutMapping
   @ApiOperation('Updates an existing account definition.')
-  @PreAuthorize("hasPermission(#definition.name, 'ACCOUNT', 'WRITE')")
+  @PreAuthorize("hasPermission(#accountDefinition.name, 'ACCOUNT', 'WRITE')")
   @Alpha
   ClouddriverService.AccountDefinition updateAccount(
     @ApiParam('Account definition body including a discriminator field named "@type" with the account type.')
@@ -132,7 +132,7 @@ class CredentialsController {
   @DeleteMapping('/{accountName}')
   @ApiOperation(value = 'Deletes an account definition by name.',
     notes = 'Deleted accounts can be restored via the update API. Previously deleted accounts cannot be "created" again to avoid conflicts with existing pipelines.')
-  @PreAuthorize("hasPermission(#definition.name, 'ACCOUNT', 'WRITE')")
+  @PreAuthorize("hasPermission(#accountName, 'ACCOUNT', 'WRITE')")
   @Alpha
   void deleteAccount(
     @ApiParam('Name of account definition to delete.')
