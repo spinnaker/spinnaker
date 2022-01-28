@@ -23,6 +23,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AsgConfigHelper
+import com.netflix.spinnaker.clouddriver.aws.deploy.asg.LaunchTemplateRollOutConfig
 import com.netflix.spinnaker.config.AwsConfiguration
 import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults
 import com.netflix.spinnaker.clouddriver.aws.deploy.AmiIdResolver
@@ -46,7 +47,6 @@ import com.netflix.spinnaker.clouddriver.deploy.DeployHandler
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.orchestration.events.CreateServerGroupEvent
 import com.netflix.spinnaker.credentials.CredentialsRepository
-import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import groovy.transform.PackageScope
 import groovy.util.logging.Slf4j
 
@@ -67,7 +67,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
   private final AwsConfiguration.DeployDefaults deployDefaults
   private final ScalingPolicyCopier scalingPolicyCopier
   private final BlockDeviceConfig blockDeviceConfig
-  private final DynamicConfigService dynamicConfigService
+  private final LaunchTemplateRollOutConfig launchTemplateRollOutConfig
 
   private List<CreateServerGroupEvent> deployEvents = []
 
@@ -77,14 +77,14 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
                            AwsConfiguration.DeployDefaults deployDefaults,
                            ScalingPolicyCopier scalingPolicyCopier,
                            BlockDeviceConfig blockDeviceConfig,
-                           DynamicConfigService dynamicConfigService) {
+                           LaunchTemplateRollOutConfig launchTemplateRollOutConfig) {
     this.regionScopedProviderFactory = regionScopedProviderFactory
     this.accountCredentialsRepository = accountCredentialsRepository
     this.amazonServerGroupProvider = amazonServerGroupProvider
     this.deployDefaults = deployDefaults
     this.scalingPolicyCopier = scalingPolicyCopier
     this.blockDeviceConfig = blockDeviceConfig
-    this.dynamicConfigService = dynamicConfigService
+    this.launchTemplateRollOutConfig = launchTemplateRollOutConfig
   }
 
   @Override
@@ -253,7 +253,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
           desired: description.capacity.desired ?: 0
       )
 
-      def autoScalingWorker = new AutoScalingWorker(regionScopedProvider, dynamicConfigService)
+      def autoScalingWorker = new AutoScalingWorker(regionScopedProvider, launchTemplateRollOutConfig)
 
       // build AsgWorker configuration and then call deploy
       def asgConfig = AutoScalingWorker.AsgConfiguration.builder()

@@ -25,7 +25,6 @@ import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactor
 import com.netflix.spinnaker.clouddriver.aws.userdata.UserDataOverride
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTask
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import org.springframework.beans.factory.annotation.Autowired
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -39,7 +38,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
   def regionScopedProvider = Stub(RegionScopedProviderFactory.RegionScopedProvider) {
     getAWSServerGroupNameResolver() >> awsServerGroupNameResolver
   }
-  def dynamicConfigService = Mock(DynamicConfigService)
+  def launchTemplateRollOutConfig = Mock(LaunchTemplateRollOutConfig)
 
   def userDataOverride = new UserDataOverride()
   def credential = TestCredential.named('foo')
@@ -53,7 +52,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
   @Unroll
   void "deploy workflow creates asg backed by launch config"() {
     setup:
-    def autoScalingWorker = new AutoScalingWorker(regionScopedProvider, dynamicConfigService)
+    def autoScalingWorker = new AutoScalingWorker(regionScopedProvider, launchTemplateRollOutConfig)
     def asgConfig = AutoScalingWorker.AsgConfiguration.builder()
       .application("myasg")
       .stack("stack")
@@ -95,7 +94,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
   @Unroll
   void "deploy workflow creates asg backed by launch template if enabled"() {
     setup:
-    def autoScalingWorker = new AutoScalingWorker(regionScopedProvider, dynamicConfigService)
+    def autoScalingWorker = new AutoScalingWorker(regionScopedProvider, launchTemplateRollOutConfig)
     def asgConfig = AutoScalingWorker.AsgConfiguration.builder()
       .application("myasg")
       .stack("stack")
@@ -115,14 +114,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
     autoScalingWorker.deploy(asgConfig)
 
     then:
-    1 * dynamicConfigService.isEnabled('aws.features.launch-templates', false) >> true
-    1 * dynamicConfigService.isEnabled('aws.features.launch-templates.all-applications', false) >> false
-    1 * dynamicConfigService.getConfig(String.class, "aws.features.launch-templates.excluded-accounts", "") >> ""
-    0 * dynamicConfigService.getConfig(String.class, "aws.features.launch-templates.allowed-accounts", "") >> ""
-    1 * dynamicConfigService.getConfig(String.class,"aws.features.launch-templates.excluded-applications", "") >> ""
-    1 * dynamicConfigService.getConfig(String.class,"aws.features.launch-templates.allowed-applications", "") >> { "myasg:foo:us-east-1" }
-    1 * dynamicConfigService.getConfig(Boolean.class, 'aws.features.launch-templates.ipv6.foo', false) >> false
-    0 * dynamicConfigService._
+    1 * launchTemplateRollOutConfig.shouldUseLaunchTemplateForReq("myasg", credential, "us-east-1") >> true
 
     and:
     if (sequence) {
@@ -149,7 +141,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
   @Unroll
   void "deploy workflow creates asg backed by mixed instances policy if certain fields are set"() {
     setup:
-    def autoScalingWorker = new AutoScalingWorker(regionScopedProvider, dynamicConfigService)
+    def autoScalingWorker = new AutoScalingWorker(regionScopedProvider, launchTemplateRollOutConfig)
     def asgConfig = AutoScalingWorker.AsgConfiguration.builder()
       .application("myasg")
       .stack("stack")
@@ -170,14 +162,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
     autoScalingWorker.deploy(asgConfig)
 
     then:
-    1 * dynamicConfigService.isEnabled('aws.features.launch-templates', false) >> true
-    1 * dynamicConfigService.isEnabled('aws.features.launch-templates.all-applications', false) >> false
-    1 * dynamicConfigService.getConfig(String.class, "aws.features.launch-templates.excluded-accounts", "") >> ""
-    0 * dynamicConfigService.getConfig(String.class, "aws.features.launch-templates.allowed-accounts", "") >> ""
-    1 * dynamicConfigService.getConfig(String.class,"aws.features.launch-templates.excluded-applications", "") >> ""
-    1 * dynamicConfigService.getConfig(String.class,"aws.features.launch-templates.allowed-applications", "") >> { "myasg:foo:us-east-1" }
-    1 * dynamicConfigService.getConfig(Boolean.class, 'aws.features.launch-templates.ipv6.foo', false) >> false
-    0 * dynamicConfigService._
+    1 * launchTemplateRollOutConfig.shouldUseLaunchTemplateForReq('myasg', credential, 'us-east-1') >> true
 
     and:
     awsServerGroupNameResolver.generateServerGroupName('myasg', 'stack', 'details', 1, false) >> "myasg-stack-details-v001"
@@ -194,20 +179,5 @@ class AutoScalingWorkerUnitSpec extends Specification {
     "spotAllocationStrategy"                 |"capacity-optimized"
     "spotInstancePools"                      |      3
     "launchTemplateOverridesForInstanceType" |[new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(instanceType: "t.test", weightedCapacity: 2)]
-  }
-
-  @Unroll
-  void "should check if current app, account and region match launch template flag"() {
-    when:
-    def result = AutoScalingWorker.matchesAppAccountAndRegion(application, accountName, region, applicationAccountRegions)
-
-    then:
-    result == matches
-
-    where:
-    applicationAccountRegions           | application   | accountName | region      || matches
-    "foo:test:us-east-1"                | "foo"         | "test"      | "us-east-1" || true
-    "foo:test:us-east-1,us-west-2"      | "foo"         | "test"      | "eu-west-1" || false
-    "foo:prod:us-east-1"                | "foo"         | "test"      | "us-east-1" || false
   }
 }

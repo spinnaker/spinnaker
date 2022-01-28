@@ -23,6 +23,7 @@ import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties
 import com.netflix.spinnaker.clouddriver.aws.deploy.InstanceTypeUtils.BlockDeviceConfig
+import com.netflix.spinnaker.clouddriver.aws.deploy.asg.LaunchTemplateRollOutConfig
 import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.BasicAmazonDeployHandler
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory
 import com.netflix.spinnaker.clouddriver.aws.deploy.scalingpolicy.DefaultScalingPolicyCopier
@@ -220,7 +221,7 @@ class AwsConfiguration {
     DeployDefaults deployDefaults,
     ScalingPolicyCopier scalingPolicyCopier,
     BlockDeviceConfig blockDeviceConfig,
-    DynamicConfigService dynamicConfigService,
+    LaunchTemplateRollOutConfig launchTemplateRollOutConfig,
     AmazonServerGroupProvider amazonServerGroupProvider
   ) {
     new BasicAmazonDeployHandler(
@@ -230,8 +231,14 @@ class AwsConfiguration {
       deployDefaults,
       scalingPolicyCopier,
       blockDeviceConfig,
-      dynamicConfigService
+      launchTemplateRollOutConfig
     )
+  }
+
+  @Bean
+  LaunchTemplateRollOutConfig launchTemplateRollOutConfig(
+    DynamicConfigService dynamicConfigService) {
+    new LaunchTemplateRollOutConfig(dynamicConfigService)
   }
 
   @Bean
@@ -262,7 +269,7 @@ class AwsConfiguration {
   @Bean
   @ConditionalOnMissingBean(AfterResizeEventHandler)
   DefaultAfterResizeEventHandler defaultAfterResizeEventHandler() {
-    return new DefaultAfterResizeEventHandler();
+    return new DefaultAfterResizeEventHandler()
   }
 
   class AmazonServerGroupProvider {

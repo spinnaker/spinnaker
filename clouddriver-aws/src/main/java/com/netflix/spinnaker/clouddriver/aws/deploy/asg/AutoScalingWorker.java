@@ -27,8 +27,6 @@ import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactor
 import com.netflix.spinnaker.clouddriver.aws.userdata.UserDataOverride;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
-import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +36,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * A worker class dedicated to the deployment of "applications", following many of Netflix's common
@@ -48,13 +45,13 @@ import org.apache.commons.lang3.StringUtils;
 public class AutoScalingWorker {
   private static final String AWS_PHASE = "AWS_DEPLOY";
   private RegionScopedProviderFactory.RegionScopedProvider regionScopedProvider;
-  private DynamicConfigService dynamicConfigService;
+  private LaunchTemplateRollOutConfig launchTemplateRollOutConfig;
 
   AutoScalingWorker(
       RegionScopedProviderFactory.RegionScopedProvider regionScopedProvider,
-      DynamicConfigService dynamicConfigService) {
+      LaunchTemplateRollOutConfig launchTemplateRollOutConfig) {
     this.regionScopedProvider = regionScopedProvider;
-    this.dynamicConfigService = dynamicConfigService;
+    this.launchTemplateRollOutConfig = launchTemplateRollOutConfig;
   }
 
   private static Task getTask() {
@@ -116,9 +113,7 @@ public class AutoScalingWorker {
       // process the IPv6 setting conditionally
       if (asgConfig.getAssociateIPv6Address() == null) {
         String asgConfigEnv = asgConfig.getCredentials().getEnvironment();
-        Boolean autoEnableIPv6 =
-            dynamicConfigService.getConfig(
-                Boolean.class, "aws.features.launch-templates.ipv6." + asgConfigEnv, false);
+        Boolean autoEnableIPv6 = launchTemplateRollOutConfig.isIpv6EnabledForEnv(asgConfigEnv);
         asgConfig.setAssociateIPv6Address(autoEnableIPv6);
       }
 
@@ -133,6 +128,7 @@ public class AutoScalingWorker {
 
     return asgBuilder.build(getTask(), AWS_PHASE, asgName, asgConfig);
   }
+
   /** This is used to gradually roll out launch template. */
   private boolean shouldSetLaunchTemplate(final AsgConfiguration asgConfig) {
     // Request level flag that forces launch configurations.
@@ -140,113 +136,8 @@ public class AutoScalingWorker {
       return false;
     }
 
-    // Property flag to turn off launch template feature. Caching agent might require bouncing the
-    // java process
-    if (!dynamicConfigService.isEnabled("aws.features.launch-templates", false)) {
-      log.debug("Launch Template feature disabled via configuration.");
-      return false;
-    }
-
-    // This is a comma separated list of applications to exclude
-    String excludedApps =
-        dynamicConfigService.getConfig(
-            String.class, "aws.features.launch-templates.excluded-applications", "");
-    for (String excludedApp : excludedApps.split(",")) {
-      if (excludedApp.trim().equals(asgConfig.getApplication())) {
-        return false;
-      }
-    }
-
-    // This is a comma separated list of accounts to exclude
-    String excludedAccounts =
-        dynamicConfigService.getConfig(
-            String.class, "aws.features.launch-templates.excluded-accounts", "");
-    for (String excludedAccount : excludedAccounts.split(",")) {
-      if (excludedAccount.trim().equals(asgConfig.getCredentials().getName())) {
-        return false;
-      }
-    }
-
-    // Allows everything that is not excluded
-    if (dynamicConfigService.isEnabled("aws.features.launch-templates.all-applications", false)) {
-      return true;
-    }
-
-    // Application allow list with the following format:
-    // app1:account:region1,app2:account:region1
-    // This allows more control over what account and region pairs to enable for this deployment.
-    String allowedApps =
-        dynamicConfigService.getConfig(
-            String.class, "aws.features.launch-templates.allowed-applications", "");
-    if (matchesAppAccountAndRegion(
-        asgConfig.getApplication(),
-        asgConfig.getCredentials().getName(),
-        asgConfig.getRegion(),
-        allowedApps.split(","))) {
-      return true;
-    }
-
-    // An allow list for account/region pairs with the following format:
-    // account:region
-    String allowedAccountsAndRegions =
-        dynamicConfigService.getConfig(
-            String.class, "aws.features.launch-templates.allowed-accounts-regions", "");
-    for (String accountRegion : allowedAccountsAndRegions.split(",")) {
-      if (StringUtils.isNotBlank(accountRegion) && accountRegion.contains(":")) {
-        String[] parts = accountRegion.split(":");
-        String account = parts[0];
-        String region = parts[1];
-        if (account.trim().equals(asgConfig.getCredentials().getName())
-            && region.trim().equals(asgConfig.getRegion())) {
-          return true;
-        }
-      }
-    }
-    // This is a comma separated list of accounts to allow
-    String allowedAccounts =
-        dynamicConfigService.getConfig(
-            String.class, "aws.features.launch-templates.allowed-accounts", "");
-    for (String allowedAccount : allowedAccounts.split(",")) {
-      if (allowedAccount.trim().equals(asgConfig.getCredentials().getName())) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  /**
-   * Helper function to parse and match an array of app:account:region1,...,app:account,region to
-   * the specified application, account and region. Used to flag launch template feature and rollout
-   */
-  static boolean matchesAppAccountAndRegion(
-      String application, String accountName, String region, String... applicationAccountRegions) {
-    if (applicationAccountRegions != null && applicationAccountRegions.length <= 0) {
-      return false;
-    }
-
-    for (String appAccountRegion : applicationAccountRegions) {
-      if (StringUtils.isNotBlank(appAccountRegion) && appAccountRegion.contains(":")) {
-        try {
-          String[] parts = appAccountRegion.split(":");
-          String app = parts[0];
-          String account = parts[1];
-          String regions = parts[2];
-          if (app.equals(application)
-              && account.equals(accountName)
-              && Arrays.asList(regions.split(",")).contains(region)) {
-            return true;
-          }
-        } catch (Exception e) {
-          log.error(
-              "Unable to verify if application is allowed in shouldSetLaunchTemplate: {}",
-              appAccountRegion);
-          return false;
-        }
-      }
-    }
-
-    return false;
+    return launchTemplateRollOutConfig.shouldUseLaunchTemplateForReq(
+        asgConfig.application, asgConfig.credentials, asgConfig.region);
   }
 
   @Data
