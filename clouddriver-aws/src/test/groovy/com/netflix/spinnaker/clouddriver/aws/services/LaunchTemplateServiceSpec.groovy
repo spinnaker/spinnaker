@@ -149,34 +149,34 @@ class LaunchTemplateServiceSpec extends Specification {
   @Unroll
   void 'should create launch template data with expected configuration, for create operation'() {
     given:
-    def asgConfig = new AutoScalingWorker.AsgConfiguration(
-      setLaunchTemplate: true,
-      credentials: testCredentials,
-      legacyUdf: false,
-      application: "myasg-001",
-      region: "us-east-1",
-      minInstances: 1,
-      maxInstances: 3,
-      desiredInstances: 2,
-      instanceType: "some.type.medium",
-      securityGroups: ["my-sg"],
-      ami: "ami-1",
-      kernelId: "kernel-id-1",
-      ramdiskId: "ramdisk-id-1",
-      ebsOptimized: true,
-      keyPair: "my-key-name",
-      iamRole: "my-iam-role",
-      instanceMonitoring: true,
-      base64UserData: USER_DATA_STR,
-      requireIMDSv2: true,
-      spotMaxPrice: "0.5",
-      unlimitedCpuCredits: true,
-      associatePublicIpAddress: true,
-      associateIPv6Address: true,
-      blockDevices: [new AmazonBlockDevice(deviceName: "/dev/sdb", size: 40, volumeType: "standard")],
-      enableEnclave: true,
-      spotAllocationStrategy: spotAllocationStrategy
-    )
+    def asgConfig = AutoScalingWorker.AsgConfiguration.builder()
+      .setLaunchTemplate(true)
+      .credentials(testCredentials)
+      .legacyUdf(false)
+      .application("myasg-001")
+      .region("us-east-1")
+      .minInstances(1)
+      .maxInstances(3)
+      .desiredInstances(2)
+      .instanceType("some.type.medium")
+      .securityGroups(["my-sg"])
+      .ami("ami-1")
+      .kernelId("kernel-id-1")
+      .ramdiskId("ramdisk-id-1")
+      .ebsOptimized(true)
+      .keyPair("my-key-name")
+      .iamRole("my-iam-role")
+      .instanceMonitoring(true)
+      .base64UserData(USER_DATA_STR)
+      .requireIMDSv2(true)
+      .spotMaxPrice("0.5")
+      .unlimitedCpuCredits(true)
+      .associatePublicIpAddress(true)
+      .associateIPv6Address(true)
+      .blockDevices([new AmazonBlockDevice(deviceName: "/dev/sdb", size: 40, volumeType: "standard")])
+      .enableEnclave(true)
+      .spotAllocationStrategy(spotAllocationStrategy)
+      .build()
 
     def expectedLtDataInReq = new RequestLaunchTemplateData(
       imageId: "ami-1",

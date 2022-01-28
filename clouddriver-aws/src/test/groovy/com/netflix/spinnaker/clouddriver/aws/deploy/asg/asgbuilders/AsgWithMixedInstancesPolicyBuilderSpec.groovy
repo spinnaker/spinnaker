@@ -75,23 +75,23 @@ class AsgWithMixedInstancesPolicyBuilderSpec extends Specification {
     override2 = new BasicAmazonDeployDescription.LaunchTemplateOverridesForInstanceType(
       instanceType: "some.type.xlarge",
       weightedCapacity: 4)
-    asgConfig = new AutoScalingWorker.AsgConfiguration(
-      setLaunchTemplate: true,
-      credentials: credential,
-      legacyUdf: false,
-      application: "myasg",
-      region: "us-east-1",
-      minInstances: 1,
-      maxInstances: 3,
-      desiredInstances: 2,
-      instanceType: "some.type.medium",
-      securityGroups: ["my-sg"],
-      spotMaxPrice: "2",
-      onDemandBaseCapacity: 1,
-      onDemandPercentageAboveBaseCapacity: 50,
-      spotAllocationStrategy: "capacity-optimized",
-      launchTemplateOverridesForInstanceType: [override1, override2]
-    )
+    asgConfig = AutoScalingWorker.AsgConfiguration.builder()
+      .setLaunchTemplate(true)
+      .credentials(credential)
+      .legacyUdf(false)
+      .application("myasg")
+      .region("us-east-1")
+      .minInstances(1)
+      .maxInstances(3)
+      .desiredInstances(2)
+      .instanceType("some.type.medium")
+      .securityGroups(["my-sg"])
+      .spotMaxPrice("2")
+      .onDemandBaseCapacity(1)
+      .onDemandPercentageAboveBaseCapacity(50)
+      .spotAllocationStrategy("capacity-optimized")
+      .launchTemplateOverridesForInstanceType([override1, override2])
+      .build()
 
     asgName = "myasg-v000"
     securityGroupService.resolveSecurityGroupIdsWithSubnetType(_,_) >> ["sg-1"]

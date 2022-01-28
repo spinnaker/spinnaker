@@ -54,14 +54,15 @@ class AutoScalingWorkerUnitSpec extends Specification {
   void "deploy workflow creates asg backed by launch config"() {
     setup:
     def autoScalingWorker = new AutoScalingWorker(regionScopedProvider, dynamicConfigService)
-    def asgConfig = new AutoScalingWorker.AsgConfiguration(
-            application: "myasg",
-            stack: "stack",
-            freeFormDetails: "details",
-            credentials: credential,
-            sequence: sequence,
-            userDataOverride: userDataOverride,
-            ignoreSequence: ignoreSequence)
+    def asgConfig = AutoScalingWorker.AsgConfiguration.builder()
+      .application("myasg")
+      .stack("stack")
+      .freeFormDetails("details")
+      .credentials(credential)
+      .sequence(sequence)
+      .userDataOverride(userDataOverride)
+      .ignoreSequence(ignoreSequence)
+      .build()
     and:
     def asgBuilder = Mock(AsgWithLaunchConfigurationBuilder)
     regionScopedProvider.getAsgBuilderForLaunchConfiguration() >> asgBuilder
@@ -95,15 +96,16 @@ class AutoScalingWorkerUnitSpec extends Specification {
   void "deploy workflow creates asg backed by launch template if enabled"() {
     setup:
     def autoScalingWorker = new AutoScalingWorker(regionScopedProvider, dynamicConfigService)
-    def asgConfig = new AutoScalingWorker.AsgConfiguration(
-            application: "myasg",
-            stack: "stack",
-            region: "us-east-1",
-            freeFormDetails: "details",
-            credentials: credential,
-            sequence: sequence,
-            setLaunchTemplate: true,
-            ignoreSequence: ignoreSequence)
+    def asgConfig = AutoScalingWorker.AsgConfiguration.builder()
+      .application("myasg")
+      .stack("stack")
+      .region("us-east-1")
+      .freeFormDetails("details")
+      .credentials(credential)
+      .sequence(sequence)
+      .setLaunchTemplate(true)
+      .ignoreSequence(ignoreSequence)
+      .build()
 
     and:
     def asgBuilder = Mock(AsgWithLaunchTemplateBuilder)
@@ -148,15 +150,16 @@ class AutoScalingWorkerUnitSpec extends Specification {
   void "deploy workflow creates asg backed by mixed instances policy if certain fields are set"() {
     setup:
     def autoScalingWorker = new AutoScalingWorker(regionScopedProvider, dynamicConfigService)
-    def asgConfig = new AutoScalingWorker.AsgConfiguration(
-      application: "myasg",
-      stack: "stack",
-      region: "us-east-1",
-      freeFormDetails: "details",
-      credentials: credential,
-      sequence: 1,
-      setLaunchTemplate: true,
-      ignoreSequence: false)
+    def asgConfig = AutoScalingWorker.AsgConfiguration.builder()
+      .application("myasg")
+      .stack("stack")
+      .region("us-east-1")
+      .freeFormDetails("details")
+      .credentials(credential)
+      .sequence(1)
+      .setLaunchTemplate(true)
+      .ignoreSequence(false)
+      .build()
     asgConfig."$mipFieldName" = mipFieldValue
 
     and:

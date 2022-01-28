@@ -56,15 +56,15 @@ class AsgWithLaunchConfigurationBuilderSpec extends Specification {
   def asgConfig, asgName, launchConfigName
 
   def setup() {
-    asgConfig = new AsgConfiguration(
-      credentials: credential,
-      application: "myasg",
-      region: "us-east-1",
-      minInstances: 1,
-      maxInstances: 3,
-      desiredInstances: 2,
-      instanceType: "t1.test"
-    )
+    asgConfig = AsgConfiguration.builder()
+      .credentials(credential)
+      .application("myasg")
+      .region("us-east-1")
+      .minInstances(1)
+      .maxInstances(3)
+      .desiredInstances(2)
+      .instanceType("t1.test")
+      .build()
     asgName = "myasg-v000"
     launchConfigName = "$asgName-20210119"
   }

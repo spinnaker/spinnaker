@@ -65,18 +65,18 @@ class AsgWithLaunchTemplateBuilderSpec extends Specification {
 
   def setup() {
     asgConfigHelper = Spy(AsgConfigHelper)
-    asgConfig = new AutoScalingWorker.AsgConfiguration(
-      setLaunchTemplate: true,
-      credentials: credential,
-      legacyUdf: false,
-      application: "myasg",
-      region: "us-east-1",
-      minInstances: 1,
-      maxInstances: 3,
-      desiredInstances: 2,
-      instanceType: "t1.test",
-      securityGroups: ["my-sg"]
-    )
+    asgConfig = AutoScalingWorker.AsgConfiguration.builder()
+      .setLaunchTemplate(true)
+      .credentials(credential)
+      .legacyUdf(false)
+      .application("myasg")
+      .region("us-east-1")
+      .minInstances(1)
+      .maxInstances(3)
+      .desiredInstances(2)
+      .instanceType("t1.test")
+      .securityGroups(["my-sg"])
+      .build()
 
     asgName = "myasg-v000"
     lt = new LaunchTemplate(launchTemplateName: "lt-1", launchTemplateId: "lt-1", latestVersionNumber: 1, defaultVersionNumber: 0)
