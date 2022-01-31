@@ -314,7 +314,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
     def amiName = 'myAmi'
     def accountOne = 'accountOne'
     def accountTwo = 'accountTwo'
-    def region = 'region'
+    def region = 'myRegion'
     def imageOneTags = [att1: 'value1']
     def imageTwoTags = []
     def query = amiName
@@ -389,7 +389,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
       // return value of render to something more descriptive.
       //accounts == [accountOne] as Set
       accounts == [accountOne, accountTwo] as Set
-      amis == [region: [amiIdOne] as Set]
+      amis == [myRegion: [amiIdOne] as Set]
       // When there's a named image that matches the given query, render doesn't
       // currently populate tags, only tagsByImageId, as tags is deprecated.
       tags == [:]
@@ -411,7 +411,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
     def amiName = 'myAmi'
     def accountOne = 'accountOne'
     def accountTwo = 'accountTwo'
-    def region = 'region'
+    def region = 'myRegion'
     def imageOneTags = [att1: 'value1']
     def imageTwoTags = []
     def query = amiName
@@ -488,7 +488,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
       // return value of render to something more descriptive.
       //accounts == [accountOne] as Set
       accounts == [accountOne, accountTwo] as Set
-      amis == [region: [amiId] as Set]
+      amis == [myRegion: [amiId] as Set]
       // When there's a named image that matches the given query, render doesn't
       // currently populate tags, only tagsByImageId, as tags is deprecated.
       tags == [:]
