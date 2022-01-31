@@ -114,6 +114,46 @@ class AmazonNamedImageLookupController {
     }
   }
 
+  /**
+   * Logic to reconcile tags for a named image.
+   * When multiple sets of tags are available, attempts to pick the best set based on input tag filter criteria.
+   *
+   * @param amiId AMI ID for which to reconcile tags.
+   * @param tagFilters Set of tags by which to filter.
+   * @param namedImage Named image for which to update tags for the given AMI ID.
+   * @param cacheData Source of new tags to use for reconciliation.
+   */
+  private static void reconcileTagsForNamedImage(
+    final String amiId,
+    final Map<String, String> tagFilters,
+    final NamedImage namedImage,
+    final CacheData cacheData
+  ) {
+    final Map<String, String> newTagsForImageId =
+      (cacheData.attributes.tags as List<Map.Entry<String, String>>)?.collectEntries {
+        [it.key.toLowerCase(), it.value]
+      }
+
+    final Map<String, String> existingTagsForImageId = namedImage.tagsByImageId[amiId]
+
+    if(!existingTagsForImageId) {
+      // No tags set yet for this AMI ID so use the new tags.
+      // NOTE: Check against tagFilters is done only if more than one set of tags present.
+      namedImage.tagsByImageId[amiId] = newTagsForImageId
+    } else {
+      // Existing tags. If tag filtering is enabled, handle collisions to preserve relevant tags.
+      // If more than one set of matching tags, then first to set wins.
+      // If tag filtering is not enabled, then leave existing tags.
+      if (tagFilters) {
+        // If the existing tags are not a match but the new tags are, then use them.
+        // Else, either existing tags are a match or new tags are not a match. Keep existing tags.
+        if(!checkTagsForImageId(existingTagsForImageId, tagFilters) && checkTagsForImageId(newTagsForImageId, tagFilters)) {
+          namedImage.tagsByImageId[amiId] = newTagsForImageId
+        }
+      }
+    }
+  }
+
   private List<NamedImage> render(
     Collection<CacheData> namedImages,
     Collection<CacheData> images,
@@ -131,61 +171,45 @@ class AmazonNamedImageLookupController {
 
     // Populate the tags for each NamedImage. Metadata from the IDs search is the source of truth for tags metadata.
     cacheView.getAll(IMAGES.ns, identifiers).each { CacheData cacheData ->
-      final Map<String, Object> newTagsForImageId =
-        (cacheData.attributes.tags as List<Map.Entry<String, Object>>)?.collectEntries {
-          [it.key.toLowerCase(), it.value]
-        }
+      final String amiId = cacheData.attributes.imageId
+      final String amiName = cacheData.attributes.name
+      final NamedImage namedImage = byImageName[amiName]
 
-      final String amiId = cacheData.attributes.imageId;
-      final String amiName = cacheData.attributes.name;
-      final NamedImage myNamedImage = byImageName[amiName]
-      final Map<String, String> existingTagsForImageId = myNamedImage.tagsByImageId[amiId]
-
-      if(!existingTagsForImageId) {
-        // No tags set yet for this AMI ID so use the new tags.
-        // NOTE: Check against tagFilters is done only if more than one set of tags present.
-        myNamedImage.tagsByImageId[amiId] = newTagsForImageId
-      } else {
-        // Existing tags. If tag filtering is enabled, handle collisions to preserve relevant tags.
-        // If more than one set of matching tags, then first to set wins.
-        // If tag filtering is not enabled, then leave existing tags.
-        if (tagFilters) {
-          // If the existing tags are not a match but the new tags are, then use them.
-          // Else, either existing tags are a match or new tags are not a match. Keep existing tags.
-          if(!checkTagsForImageId(existingTagsForImageId, tagFilters) && checkTagsForImageId(newTagsForImageId, tagFilters)) {
-            myNamedImage.tagsByImageId[amiId] = newTagsForImageId
-          }
-        }
-      }
+      reconcileTagsForNamedImage(amiId, tagFilters, namedImage, cacheData)
     }
 
     // Populate metadata for AMI NAME drive searches.
-    for (CacheData data : namedImages) {
-      Map<String, String> keyParts = Keys.parse(data.id)
-      NamedImage thisImage = byImageName[keyParts.imageName]
+    for (final CacheData data : namedImages) {
+      final Map<String, String> keyParts = Keys.parse(data.id)
+      final NamedImage thisImage = byImageName[keyParts.imageName]
+
       thisImage.attributes.putAll(data.attributes - [name: keyParts.imageName])
       thisImage.accounts.add(keyParts.account)
 
       for (String imageKey : data.relationships[IMAGES.ns] ?: []) {
-        Map<String, String> imageParts = Keys.parse(imageKey)
+        final Map<String, String> imageParts = Keys.parse(imageKey)
         thisImage.amis[imageParts.region].add(imageParts.imageId)
       }
     }
 
     // Populate metadata for AMI ID driven searches.
-    for (CacheData data : images) {
-      Map<String, String> amiKeyParts = Keys.parse(data.id)
-      Map<String, String> namedImageKeyParts = Keys.parse(data.relationships[NAMED_IMAGES.ns][0])
-      NamedImage thisImage = byImageName[namedImageKeyParts.imageName]
-      thisImage.attributes.virtualizationType = data.attributes.virtualizationType
-      thisImage.attributes.architecture = data.attributes.architecture
-      thisImage.attributes.creationDate = data.attributes.creationDate
+    for (final CacheData cacheData : images) {
+      final Map<String, String> amiKeyParts = Keys.parse(cacheData.id)
+      final Map<String, String> namedImageKeyParts = Keys.parse(cacheData.relationships[NAMED_IMAGES.ns][0])
+      final NamedImage thisImage = byImageName[namedImageKeyParts.imageName]
+
+      thisImage.attributes.virtualizationType = cacheData.attributes.virtualizationType
+      thisImage.attributes.architecture = cacheData.attributes.architecture
+      thisImage.attributes.creationDate = cacheData.attributes.creationDate
       thisImage.accounts.add(namedImageKeyParts.account)
       thisImage.amis[amiKeyParts.region].add(amiKeyParts.imageId)
+
+      final String amiId = cacheData.attributes.imageId
+      reconcileTagsForNamedImage(amiId, tagFilters, thisImage, cacheData)
+
       // Deprecated tags field is only set if the query is for an AMI ID.
-      // For this case, tags and tagsByImageId should be one to one.
-      thisImage.tags.putAll((data.attributes.tags as List<Map.Entry<String, Object>>)?.collectEntries { [it.key.toLowerCase(), it.value] })
-      thisImage.tagsByImageId[data.attributes.imageId as String] = thisImage.tags
+      // Rely on tag reconciliation to set tagsByImageId and share the result with the deprecated tags field.
+      thisImage.tags = thisImage.tagsByImageId[amiId]
     }
 
     // NOTE: Ensure a list is explicitly used to enable in place sorting below.
