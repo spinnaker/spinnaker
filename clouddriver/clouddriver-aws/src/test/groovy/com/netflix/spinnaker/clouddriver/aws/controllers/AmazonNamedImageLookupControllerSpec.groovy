@@ -396,13 +396,6 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
     }
   }
 
-  // Fixing this requires a change to the render function, and potentially the
-  // structure of the byImageName variable.  It's using the image name as the
-  // key, which may be OK.  But the value only has tagsByImageId, which has a
-  // key of ami id...so if one AMI has tags and the other doesn't...there isn't
-  // a way to store both...and depending on the order the cache returns them,
-  // byImageName either has tags or it doesn't....so we need a way to add
-  // account as a key.
   void "find by name and tags when two amis in different accounts have the same name, same ami id and only one has tags"() {
     given:
     Cache cacheView = Mock(Cache)

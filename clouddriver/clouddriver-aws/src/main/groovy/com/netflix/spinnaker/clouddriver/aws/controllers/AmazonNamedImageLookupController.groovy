@@ -64,7 +64,7 @@ class AmazonNamedImageLookupController {
       throw new NotFoundException("Name not found on image ${imageId} in ${account}/${region}")
     }
 
-    render(null, [cd], null, region, null)
+    render(null, [cd], null, null, region)
   }
 
   @RequestMapping(value = '/find', method = RequestMethod.GET)
@@ -90,7 +90,7 @@ class AmazonNamedImageLookupController {
     Map<String, String> tagFilters = extractTagFilters(request)
 
     List<NamedImage> allFilteredImages = filter(
-      render(matchesByName, matchesByImageId, lookupOptions.q, lookupOptions.region, tagFilters),
+      render(matchesByName, matchesByImageId, tagFilters, lookupOptions.q, lookupOptions.region),
       tagFilters
     )
 
@@ -117,9 +117,9 @@ class AmazonNamedImageLookupController {
   private List<NamedImage> render(
     Collection<CacheData> namedImages,
     Collection<CacheData> images,
-    String requestedName = null,
-    String requiredRegion = null,
-    Map<String, String> tagFilters = null
+    Map<String, String> tagFilters,
+    String requestedName,
+    String requiredRegion
   ) {
     // Map of AMI Image Name to AMI metadata.
     final Map<String, NamedImage> byImageName = [:].withDefault { String it -> new NamedImage(imageName: it) }
@@ -150,14 +150,10 @@ class AmazonNamedImageLookupController {
         // If more than one set of matching tags, then first to set wins.
         // If tag filtering is not enabled, then leave existing tags.
         if (tagFilters) {
-          if(!checkTagsForImageId(existingTagsForImageId, tagFilters)) {
-            // No match. Update with new tags and test for match.
+          // If the existing tags are not a match but the new tags are, then use them.
+          // Else, either existing tags are a match or new tags are not a match. Keep existing tags.
+          if(!checkTagsForImageId(existingTagsForImageId, tagFilters) && checkTagsForImageId(newTagsForImageId, tagFilters)) {
             myNamedImage.tagsByImageId[amiId] = newTagsForImageId
-
-            if(!checkTagsForImageId(newTagsForImageId, tagFilters)) {
-              // New tags also not a match, so preserve original set.
-              myNamedImage.tagsByImageId[amiId] = existingTagsForImageId
-            }
           }
         }
       }
