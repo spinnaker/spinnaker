@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.config
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module
+import com.fasterxml.jackson.datatype.joda.JodaModule
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.databind.Module
@@ -147,6 +148,7 @@ class CloudDriverConfig {
         modules.addAll(List.of(
           new Jdk8Module(),
           new JavaTimeModule(),
+          new JodaModule(),
           new KotlinModule(),
           new ClouddriverApiModule()))
         jacksonObjectMapperBuilder.serializationInclusion(JsonInclude.Include.NON_NULL)

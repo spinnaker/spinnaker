@@ -19,6 +19,7 @@ dependencies {
   implementation "javax.inject:javax.inject:1"
   implementation "net.logstash.logback:logstash-logback-encoder"
   implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
+  implementation "com.fasterxml.jackson.datatype:jackson-datatype-joda"
   implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
   implementation "com.netflix.frigga:frigga"
   implementation "io.spinnaker.fiat:fiat-api:$fiatVersion"
