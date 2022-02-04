@@ -33,9 +33,9 @@ import com.netflix.spinnaker.orca.plugins.PreconfiguredJobConfigurationProviderE
 import com.netflix.spinnaker.orca.plugins.StageDefinitionBuilderExtension
 import com.netflix.spinnaker.orca.plugins.TaskExtension1
 import com.netflix.spinnaker.orca.plugins.TaskExtension2
-import com.netflix.spinnaker.q.Queue
 import com.netflix.spinnaker.q.memory.InMemoryQueue
 import com.netflix.spinnaker.q.metrics.EventPublisher
+import com.netflix.spinnaker.q.metrics.MonitorableQueue
 import java.io.File
 import java.time.Clock
 import java.time.Duration
@@ -111,7 +111,7 @@ internal class PluginTestConfiguration {
 
   @Bean
   @Primary
-  fun queue(clock: Clock?, publisher: EventPublisher?): Queue {
+  fun queue(clock: Clock?, publisher: EventPublisher?): MonitorableQueue {
     return InMemoryQueue(
       clock!!, Duration.ofMinutes(1), emptyList(), false, publisher!!
     )

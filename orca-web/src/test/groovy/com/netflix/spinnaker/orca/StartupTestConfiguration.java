@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.orca;
 
-import com.netflix.spinnaker.q.Queue;
 import com.netflix.spinnaker.q.memory.InMemoryQueue;
 import com.netflix.spinnaker.q.metrics.EventPublisher;
+import com.netflix.spinnaker.q.metrics.MonitorableQueue;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.Collections;
@@ -30,7 +30,7 @@ import org.springframework.context.annotation.Primary;
 class StartupTestConfiguration {
   @Bean
   @Primary
-  Queue queue(Clock clock, EventPublisher publisher) {
+  MonitorableQueue queue(Clock clock, EventPublisher publisher) {
     return new InMemoryQueue(
         clock, Duration.ofMinutes(1), Collections.emptyList(), false, publisher);
   }
