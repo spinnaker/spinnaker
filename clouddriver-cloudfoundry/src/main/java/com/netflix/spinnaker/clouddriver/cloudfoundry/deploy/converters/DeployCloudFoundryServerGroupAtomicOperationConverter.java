@@ -23,7 +23,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.google.common.collect.Lists;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
@@ -153,6 +153,10 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter
   private ArtifactCredentials getArtifactCredentials(
       DeployCloudFoundryServerGroupDescription converted) {
     Artifact artifact = converted.getApplicationArtifact();
+    if (artifact == null) {
+      throw new IllegalArgumentException("No artifact definition in stage configuration");
+    }
+
     String artifactAccount = artifact.getArtifactAccount();
     if (CloudFoundryArtifactCredentials.TYPE.equals(artifact.getType())) {
       CloudFoundryCredentials credentials = getCredentialsObject(artifactAccount);
@@ -176,11 +180,9 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter
       Map<Object, Object> manifestMap) {
     List<CloudFoundryManifest> manifestApps =
         new ObjectMapper()
-            .setPropertyNamingStrategy(PropertyNamingStrategy.KEBAB_CASE)
+            .setPropertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE)
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-            .convertValue(
-                manifestMap.get("applications"),
-                new TypeReference<List<CloudFoundryManifest>>() {});
+            .convertValue(manifestMap.get("applications"), new TypeReference<>() {});
 
     return manifestApps.stream()
         .findFirst()
@@ -218,7 +220,10 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter
               attrs.setTimeout(app.getTimeout());
               return attrs;
             })
-        .get();
+        .orElseThrow(
+            () ->
+                new IllegalArgumentException(
+                    "No app manifest found in Cloud Foundry manifest file"));
   }
 
   @Data
