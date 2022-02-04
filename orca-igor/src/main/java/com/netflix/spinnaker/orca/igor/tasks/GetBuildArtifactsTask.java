@@ -22,9 +22,11 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.igor.BuildService;
 import com.netflix.spinnaker.orca.igor.model.CIStageDefinition;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +46,17 @@ public class GetBuildArtifactsTask extends RetryableIgorTask<CIStageDefinition> 
             stageDefinition.getPropertyFile(),
             stageDefinition.getMaster(),
             stageDefinition.getJob());
+    if (artifacts == null) {
+      artifacts = new ArrayList<>();
+    }
+    stageDefinition.getBuildInfo().getArtifacts().stream()
+        .filter(
+            artifact ->
+                (boolean)
+                    Optional.ofNullable(artifact.getMetadata())
+                        .orElse(Collections.emptyMap())
+                        .getOrDefault("decorated", false))
+        .forEach(artifacts::add);
     Map<String, List<Artifact>> outputs = Collections.singletonMap("artifacts", artifacts);
     return TaskResult.builder(ExecutionStatus.SUCCEEDED)
         .context(Collections.emptyMap())

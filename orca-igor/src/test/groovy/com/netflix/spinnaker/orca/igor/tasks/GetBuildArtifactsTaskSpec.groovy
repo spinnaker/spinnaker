@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class GetBuildArtifactsTaskSpec extends Specification {
   def buildService = Mock(BuildService)
@@ -92,7 +93,8 @@ class GetBuildArtifactsTaskSpec extends Specification {
     artifacts.get(0).getName() == "my-artifact"
   }
 
-  def "adds artifacts found in buildInfo to the output"() {
+  @Unroll
+  def "adds artifacts found in buildInfo to the output if they are tagged as decorated"() {
     given:
     def stage = createStage(null)
     stage.context.buildInfo = [
@@ -104,7 +106,7 @@ class GetBuildArtifactsTaskSpec extends Specification {
             displayPath: "another-artifact_0.0.1553618414_amd64.deb",
             type: "deb",
             version: "0.0.1553618414",
-            decorated: true
+            decorated: decorated
         ]]
     ]
 
@@ -114,9 +116,13 @@ class GetBuildArtifactsTaskSpec extends Specification {
 
     then:
     1 * buildService.getArtifacts(BUILD_NUMBER, null, MASTER, JOB)  >> [testArtifact]
-    // Modified to reflect a fix to avoid mixing build and kork artifacts in outputs.artifacts.
-    artifacts.size() == 1
-    artifacts*.name == ["my-artifact"]
+    artifacts.size() == expectedArtifacts.size()
+    artifacts*.name == expectedArtifacts
+
+    where:
+    decorated || expectedArtifacts
+    true      || ["my-artifact", "another-artifact"]
+    false     || ["my-artifact"]
   }
 
   def createStage(String propertyFile) {
