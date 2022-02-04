@@ -53,6 +53,7 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 @RequiredArgsConstructor
 public class DeployCloudFoundryServerGroupAtomicOperation
@@ -390,7 +391,7 @@ public class DeployCloudFoundryServerGroupAtomicOperation
     @Builder.Default private Optional<String> url = Optional.empty();
   }
 
-  @Nullable
+  @NotNull
   private File downloadPackageArtifact(DeployCloudFoundryServerGroupDescription description) {
     File file = null;
     try {
@@ -555,23 +556,26 @@ public class DeployCloudFoundryServerGroupAtomicOperation
       return null;
     } else if (StringUtils.isNumeric(size)) {
       return Integer.parseInt(size);
-    } else if (size.toLowerCase().endsWith("g")) {
-      String value = size.substring(0, size.length() - 1);
-      if (StringUtils.isNumeric(value)) return Integer.parseInt(value) * 1024;
-    } else if (size.toLowerCase().endsWith("m")) {
-      String value = size.substring(0, size.length() - 1);
-      if (StringUtils.isNumeric(value)) return Integer.parseInt(value);
+    } else {
+      size = size.toLowerCase();
+      if (size.endsWith("g") || size.endsWith("gb")) {
+        String value = size.substring(0, size.indexOf("g"));
+        if (StringUtils.isNumeric(value)) return Integer.parseInt(value) * 1024;
+      } else if (size.endsWith("m") || size.endsWith("mb")) {
+        String value = size.substring(0, size.indexOf("m"));
+        if (StringUtils.isNumeric(value)) return Integer.parseInt(value);
+      }
     }
 
     throw new IllegalArgumentException(
-        "Invalid size for application " + field + " = '" + size + "'");
+        String.format("Invalid size for application %s = '%s'", field, size));
   }
 
   // Helper method for filtering and returning a process guid by type
   private String getProcessGuidByType(List<Process> processes, String type) {
     return processes.stream()
         .filter(p -> p.getType().equalsIgnoreCase(type))
-        .map(p -> p.getGuid())
+        .map(Process::getGuid)
         .findFirst()
         .orElseThrow(
             () -> new CloudFoundryApiException("Unable to find a process with type: " + type));

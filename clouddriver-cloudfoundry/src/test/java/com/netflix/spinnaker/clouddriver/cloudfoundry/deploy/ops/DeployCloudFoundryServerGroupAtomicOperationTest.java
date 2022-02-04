@@ -55,7 +55,7 @@ class DeployCloudFoundryServerGroupAtomicOperationTest
 
   private final CloudFoundryClient cloudFoundryClient = new MockCloudFoundryClient();
 
-  private DefaultTask testTask = new DefaultTask("testTask");
+  private final DefaultTask testTask = new DefaultTask("testTask");
 
   {
     TaskRepository.threadLocalTask.set(testTask);
@@ -65,7 +65,9 @@ class DeployCloudFoundryServerGroupAtomicOperationTest
   void convertToMbHandling() {
     assertThat(convertToMb("memory", "123")).isEqualTo(123);
     assertThat(convertToMb("memory", "1G")).isEqualTo(1024);
+    assertThat(convertToMb("memory", "1GB")).isEqualTo(1024);
     assertThat(convertToMb("memory", "1M")).isEqualTo(1);
+    assertThat(convertToMb("memory", "1MB")).isEqualTo(1);
 
     assertThatThrownBy(() -> convertToMb("memory", "abc"))
         .isInstanceOf(IllegalArgumentException.class);
@@ -90,7 +92,7 @@ class DeployCloudFoundryServerGroupAtomicOperationTest
     final DeploymentResult result = operation.operate(Lists.emptyList());
 
     // Then
-    verifyInOrder(apps, serviceInstances, processes, () -> atLeastOnce());
+    verifyInOrder(apps, serviceInstances, processes, Mockito::atLeastOnce);
 
     assertThat(testTask.getStatus().isFailed()).isFalse();
     assertThat(result.getServerGroupNames())
@@ -114,7 +116,7 @@ class DeployCloudFoundryServerGroupAtomicOperationTest
     final DeploymentResult result = operation.operate(Lists.emptyList());
 
     // Then
-    verifyInOrderDockerDeploy(apps, serviceInstances, processes, () -> atLeastOnce());
+    verifyInOrderDockerDeploy(apps, serviceInstances, processes, Mockito::atLeastOnce);
 
     assertThat(testTask.getStatus().isFailed()).isFalse();
     assertThat(result.getServerGroupNames())
@@ -169,7 +171,7 @@ class DeployCloudFoundryServerGroupAtomicOperationTest
     final DeploymentResult result = operation.operate(Lists.emptyList());
 
     // Then
-    verifyInOrder(apps, serviceInstances, processes, () -> never());
+    verifyInOrder(apps, serviceInstances, processes, Mockito::never);
 
     assertThat(testTask.getStatus().isFailed()).isFalse();
     assertThat(result.getServerGroupNames())
@@ -220,8 +222,7 @@ class DeployCloudFoundryServerGroupAtomicOperationTest
   }
 
   private Processes getProcesses() {
-    final Processes processes = cloudFoundryClient.getProcesses();
-    return processes;
+    return cloudFoundryClient.getProcesses();
   }
 
   private List<Resource<? extends AbstractServiceInstance>> createServiceInstanceResource() {
