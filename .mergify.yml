@@ -2,8 +2,6 @@ queue_rules:
   - name: default
     conditions:
       - status-success=build
-      - status-success=continuous-integration/travis-ci/pr
-      - status-failure=build
 
 pull_request_rules:
   - name: Automatically merge on CI success and review
