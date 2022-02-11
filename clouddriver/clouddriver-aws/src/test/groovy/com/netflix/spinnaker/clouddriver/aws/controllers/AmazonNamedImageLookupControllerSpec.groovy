@@ -383,8 +383,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
       attributes == namedImageCacheAttributes - [name: amiName]
       tagsByImageId == [(amiIdOne): imageOneTags]
 
-      //FIX ME: accounts == [accountOne] as Set
-      accounts == [accountOne, accountTwo] as Set
+      accounts == [accountOne] as Set
       amis == [myRegion: [amiIdOne] as Set]
       // When there's a named image that matches the given query, render doesn't
       // currently populate tags, only tagsByImageId, as tags is deprecated.
@@ -471,8 +470,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
       attributes == namedImageCacheAttributes - [name: amiName]
       tagsByImageId == [(amiId): imageOneTags]
 
-      //FIX ME: accounts == [accountOne] as Set
-      accounts == [accountOne, accountTwo] as Set
+      accounts == [accountOne] as Set
       amis == [myRegion: [amiId] as Set]
       // When there's a named image that matches the given query, render doesn't
       // currently populate tags, only tagsByImageId, as tags is deprecated.
@@ -562,8 +560,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
       attributes == namedImageCacheAttributes - [name: amiName]
       tagsByImageId == [(amiId): imageOneTags]
 
-      //FIX ME: accounts == [accountOne] as Set
-      accounts == [accountOne, accountTwo] as Set
+      accounts == [accountOne] as Set
       amis == [myRegion: [amiId] as Set]
       // render() only populates this field when query by id.
       tags == imageOneTags

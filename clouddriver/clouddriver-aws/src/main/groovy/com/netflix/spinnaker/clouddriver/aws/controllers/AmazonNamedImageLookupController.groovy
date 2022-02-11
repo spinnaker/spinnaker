@@ -98,6 +98,21 @@ class AmazonNamedImageLookupController {
   }
 
   /**
+   * Generates the existing tag mapping for a CacheData.
+   * NOTE: This method only works with CacheData of type Namespace.IMAGES.ns as that is the source of tags metadata.
+   *
+   * @param cacheData Source of tags metadata.
+   * @return Map of tag name to tag value.
+   */
+  private static Map<String, String> generateTagsFromCacheData(final CacheData cacheData) {
+    final Map<String, String> newTagsForImageId =
+      (cacheData.attributes.tags as List<Map.Entry<String, String>>)?.collectEntries {
+        [it.key.toLowerCase(), it.value]
+      }
+    return newTagsForImageId
+  }
+
+  /**
    * For the passed in set of tags verifies that all searched for tags are present.
    *
    * @param existingTagsForImageId Set of tags to check.
@@ -127,13 +142,8 @@ class AmazonNamedImageLookupController {
     final String amiId,
     final Map<String, String> tagFilters,
     final NamedImage namedImage,
-    final CacheData cacheData
+    final Map<String, String> newTagsForImageId
   ) {
-    final Map<String, String> newTagsForImageId =
-      (cacheData.attributes.tags as List<Map.Entry<String, String>>)?.collectEntries {
-        [it.key.toLowerCase(), it.value]
-      }
-
     final Map<String, String> existingTagsForImageId = namedImage.tagsByImageId[amiId]
 
     if(!existingTagsForImageId) {
@@ -170,23 +180,38 @@ class AmazonNamedImageLookupController {
     }.flatten() as List<String>
 
     // Populate the tags for each NamedImage. Metadata from the IDs search is the source of truth for tags metadata.
-    cacheView.getAll(IMAGES.ns, identifiers).each { CacheData cacheData ->
+    // Track named image ids which should not be used to populate NamedImage objects due to tag filtering.
+    final Set<String> namedImageIdsToSkip = new HashSet<>();
+
+    for(final CacheData cacheData : cacheView.getAll(IMAGES.ns, identifiers)) {
+      final Map<String, String> newTagsForImageId = generateTagsFromCacheData(cacheData)
+
+      // Avoid generating any metadata for a non-relevant image.
+      if(tagFilters && !checkTagsForImageId(newTagsForImageId, tagFilters)) {
+        namedImageIdsToSkip.addAll(cacheData.relationships[NAMED_IMAGES.ns])
+        continue
+      }
+
       final String amiId = cacheData.attributes.imageId
       final String amiName = cacheData.attributes.name
       final NamedImage namedImage = byImageName[amiName]
 
-      reconcileTagsForNamedImage(amiId, tagFilters, namedImage, cacheData)
+      reconcileTagsForNamedImage(amiId, tagFilters, namedImage, newTagsForImageId)
     }
 
-    // Populate metadata for AMI NAME drive searches.
-    for (final CacheData data : namedImages) {
-      final Map<String, String> keyParts = Keys.parse(data.id)
-      final NamedImage thisImage = byImageName[keyParts.imageName]
+    // Populate metadata for AMI NAME driven searches.
+    for (final CacheData cacheData : namedImages) {
+      // Avoid generating any metadata for a non-relevant image.
+      if(namedImageIdsToSkip.contains(cacheData.id)) {
+        continue;
+      }
 
-      thisImage.attributes.putAll(data.attributes - [name: keyParts.imageName])
+      final Map<String, String> keyParts = Keys.parse(cacheData.id)
+      final NamedImage thisImage = byImageName[keyParts.imageName]
+      thisImage.attributes.putAll(cacheData.attributes - [name: keyParts.imageName])
       thisImage.accounts.add(keyParts.account)
 
-      for (String imageKey : data.relationships[IMAGES.ns] ?: []) {
+      for (final String imageKey : cacheData.relationships[IMAGES.ns] ?: []) {
         final Map<String, String> imageParts = Keys.parse(imageKey)
         thisImage.amis[imageParts.region].add(imageParts.imageId)
       }
@@ -194,6 +219,13 @@ class AmazonNamedImageLookupController {
 
     // Populate metadata for AMI ID driven searches.
     for (final CacheData cacheData : images) {
+      final Map<String, String> newTagsForImageId = generateTagsFromCacheData(cacheData)
+
+      // Avoid generating any metadata for a non-relevant image.
+      if(tagFilters && !checkTagsForImageId(newTagsForImageId, tagFilters)) {
+        continue
+      }
+
       final Map<String, String> amiKeyParts = Keys.parse(cacheData.id)
       final Map<String, String> namedImageKeyParts = Keys.parse(cacheData.relationships[NAMED_IMAGES.ns][0])
       final NamedImage thisImage = byImageName[namedImageKeyParts.imageName]
@@ -205,7 +237,7 @@ class AmazonNamedImageLookupController {
       thisImage.amis[amiKeyParts.region].add(amiKeyParts.imageId)
 
       final String amiId = cacheData.attributes.imageId
-      reconcileTagsForNamedImage(amiId, tagFilters, thisImage, cacheData)
+      reconcileTagsForNamedImage(amiId, tagFilters, thisImage, newTagsForImageId)
 
       // Deprecated tags field is only set if the query is for an AMI ID.
       // Rely on tag reconciliation to set tagsByImageId and share the result with the deprecated tags field.
