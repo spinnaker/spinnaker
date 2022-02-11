@@ -537,7 +537,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
 
     then:
     // list() - Expect no identifier lookup by name.
-    0 * cacheView.filterIdentifiers(NAMED_IMAGES.ns, _) >> []
+    0 * cacheView.filterIdentifiers(NAMED_IMAGES.ns, _)
 
     // list() - Expect image identifiers since query is by image ID.
     1 * cacheView.filterIdentifiers(IMAGES.ns, _) >> [amiId]
@@ -548,7 +548,8 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
     // list() - Expect a lookup by queried image id.
     1 * cacheView.getAll(IMAGES.ns, [amiId]) >> imageCacheData
 
-    // render() - Expect no look up by image id since the data is already passed in by list().
+    // render() - Expect a look up by image id but with an empty set of ids.
+    // images has been passed in but not namedImages, and ids are stripped from namedImages.
     1 * cacheView.getAll(IMAGES.ns, []) >> []
 
     and:
@@ -626,7 +627,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
 
     then:
     // list() - Expect no identifier lookup by name.
-    0 * cacheView.filterIdentifiers(NAMED_IMAGES.ns, _) >> []
+    0 * cacheView.filterIdentifiers(NAMED_IMAGES.ns, _)
 
     // list() - Expect image identifiers since query is by image ID.
     1 * cacheView.filterIdentifiers(IMAGES.ns, _) >> [amiId]
@@ -637,7 +638,8 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
     // list() - Expect a lookup by queried image id.
     1 * cacheView.getAll(IMAGES.ns, [amiId]) >> imageCacheData
 
-    // render() - Expect no look up by image id since the data is already passed in by list().
+    // render() - Expect a look up by image id but with an empty set of ids.
+    // images has been passed in but not namedImages, and ids are stripped from namedImages.
     1 * cacheView.getAll(IMAGES.ns, []) >> []
 
     and:
