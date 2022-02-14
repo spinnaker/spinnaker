@@ -46,7 +46,7 @@ import static java.time.temporal.ChronoUnit.DAYS
 abstract class OldPipelineCleanupPollingNotificationAgentSpec extends Specification {
   @Shared
   ObjectMapper mapper = OrcaObjectMapper.newInstance().with {
-    registerModule(new KotlinModule())
+    registerModule(new KotlinModule.Builder().build())
     it
   }
 

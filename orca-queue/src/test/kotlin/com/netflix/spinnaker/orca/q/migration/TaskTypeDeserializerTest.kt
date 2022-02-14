@@ -32,7 +32,7 @@ object TaskTypeDeserializerTest : Spek({
   val taskResolver = TaskResolver(TasksProvider(listOf(DummyTask())), false)
 
   val objectMapper = ObjectMapper().apply {
-    registerModule(KotlinModule())
+    registerModule(KotlinModule.Builder().build())
     registerModule(
       SimpleModule()
         .addDeserializer(Class::class.java, TaskTypeDeserializer(taskResolver))

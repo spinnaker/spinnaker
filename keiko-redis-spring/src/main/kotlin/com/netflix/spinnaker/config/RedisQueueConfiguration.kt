@@ -194,7 +194,7 @@ class RedisQueueConfiguration {
   @ConditionalOnMissingBean
   fun redisQueueObjectMapper(properties: Optional<ObjectMapperSubtypeProperties>): ObjectMapper =
     ObjectMapper().apply {
-      registerModule(KotlinModule())
+      registerModule(KotlinModule.Builder().build())
       disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
 
       SpringObjectMapperConfigurer(

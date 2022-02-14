@@ -16,7 +16,7 @@ class RedisClusterDeadMessageHandler(
 
   private val dlqKey = "{$deadLetterQueueName}.messages"
 
-  private val mapper = ObjectMapper().registerModule(KotlinModule())
+  private val mapper = ObjectMapper().registerModule(KotlinModule.Builder().build())
 
   override fun invoke(queue: Queue, message: Message) {
     jedisCluster.use { cluster ->

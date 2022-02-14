@@ -61,7 +61,7 @@ private fun createQueue(clock: Clock,
       }
       ),
     mapper = ObjectMapper().apply {
-      registerModule(KotlinModule())
+      registerModule(KotlinModule.Builder().build())
       disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
 
       registerSubtypes(TestMessage::class.java)

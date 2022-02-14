@@ -15,7 +15,7 @@ internal object RedisPendingExecutionServiceTest : SubjectSpek<RedisPendingExecu
 
   val redis = EmbeddedRedis.embed()
   val mapper = ObjectMapper().apply {
-    registerModule(KotlinModule())
+    registerModule(KotlinModule.Builder().build())
     registerSubtypes(StartExecution::class.java, RestartStage::class.java)
   }
 

@@ -44,7 +44,7 @@ internal object SqlPendingExecutionServiceTest : SubjectSpek<SqlPendingExecution
   val maxDepth = 4
 
   val mapper = ObjectMapper().apply {
-    registerModule(KotlinModule())
+    registerModule(KotlinModule.Builder().build())
     registerSubtypes(StartExecution::class.java, RestartStage::class.java)
   }
 

@@ -36,7 +36,7 @@ class RedisDeadMessageHandler(
 
   private val dlqKey = "$deadLetterQueueName.messages"
 
-  private val mapper = ObjectMapper().registerModule(KotlinModule())
+  private val mapper = ObjectMapper().registerModule(KotlinModule.Builder().build())
 
   override fun invoke(queue: Queue, message: Message) {
     pool.resource.use { redis ->

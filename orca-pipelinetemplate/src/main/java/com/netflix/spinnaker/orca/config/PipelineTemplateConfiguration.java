@@ -56,7 +56,7 @@ public class PipelineTemplateConfiguration {
     return new ObjectMapper()
         .enable(SerializationFeature.INDENT_OUTPUT)
         .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-        .registerModule(new KotlinModule());
+        .registerModule(new KotlinModule.Builder().build());
   }
 
   @Bean

@@ -74,7 +74,7 @@ class SqlTestConfig {
     taskResolver: TaskResolver
   ) {
     mapper.apply {
-      registerModule(KotlinModule())
+      registerModule(KotlinModule.Builder().build())
       registerModule(
         SimpleModule()
           .addDeserializer(ExecutionType::class.java, ExecutionTypeDeserializer())

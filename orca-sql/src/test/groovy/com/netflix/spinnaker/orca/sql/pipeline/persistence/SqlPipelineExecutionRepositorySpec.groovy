@@ -55,7 +55,7 @@ abstract class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepos
 
   @Shared
   ObjectMapper mapper = OrcaObjectMapper.newInstance().with {
-    registerModule(new KotlinModule())
+    registerModule(new KotlinModule.Builder().build())
     it
   }
 

@@ -30,7 +30,7 @@ internal object DualPendingExecutionServiceTest : SubjectSpek<DualPendingExecuti
   val primaryRedis = EmbeddedRedis.embed()
   val previousRedis = EmbeddedRedis.embed()
   val mapper = ObjectMapper().apply {
-    registerModule(KotlinModule())
+    registerModule(KotlinModule.Builder().build())
     registerSubtypes(StartExecution::class.java, RestartStage::class.java)
   }
 

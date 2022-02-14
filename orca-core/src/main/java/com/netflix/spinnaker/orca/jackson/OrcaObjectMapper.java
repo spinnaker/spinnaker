@@ -50,7 +50,7 @@ public class OrcaObjectMapper {
     instance.registerModule(new Jdk8Module());
     instance.registerModule(new GuavaModule());
     instance.registerModule(new JavaTimeModule());
-    instance.registerModule(new KotlinModule());
+    instance.registerModule(new KotlinModule.Builder().build());
     instance.disable(READ_DATE_TIMESTAMPS_AS_NANOSECONDS);
     instance.disable(WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS);
     instance.disable(FAIL_ON_UNKNOWN_PROPERTIES);
