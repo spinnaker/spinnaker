@@ -11,7 +11,7 @@ Through a powerful abstraction layer, Spinnaker provides compelling tooling that
 
 Manage your SDLC in Spinnaker using the GUI (graphical user interface), or config-as-code. View, manage, and construct https://www.spinnaker.io/docs/concepts/#application[application] workflows involving one or all of these resources:
 
-- <a href="https://www.spinnaker.io/reference/pipeline/stages/#bake" target="_blank">Virtual machine (VM) deployments to a public cloud provider, "baked" as immutable infrastructure</a>
+- https://www.spinnaker.io/reference/pipeline/stages/#bake[Virtual machine (VM) deployments to a public cloud provider], "baked" as immutable infrastructure
 - https://www.spinnaker.io/reference/providers/[Container deployments to a cloud]
 - https://www.spinnaker.io/guides/user/kubernetes-v2/deploy-manifest/[Container deployments to Kubernetes]
 - https://www.spinnaker.io/docs/concepts/#load-balancer[Load balancers]
