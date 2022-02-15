@@ -81,6 +81,7 @@ class AuthConfig {
     http
       .requestMatcher(requestMatcherProvider.requestMatcher())
       .authorizeRequests()
+        .antMatchers("/error").permitAll()
         .antMatchers('/favicon.ico').permitAll()
         .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
         .antMatchers(PermissionRevokingLogoutSuccessHandler.LOGGED_OUT_URL).permitAll()
