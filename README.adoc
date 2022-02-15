@@ -15,11 +15,11 @@ Manage your SDLC in Spinnaker using the GUI (graphical user interface), or confi
 - https://www.spinnaker.io/reference/providers/[Container deployments to a cloud]
 - https://www.spinnaker.io/guides/user/kubernetes-v2/deploy-manifest/[Container deployments to Kubernetes]
 - https://www.spinnaker.io/docs/concepts/#load-balancer[Load balancers]
-- Security groups
+- https://spinnaker.io/docs/setup/other_config/security/[Security groups]
 - https://www.spinnaker.io/docs/concepts/#server-group[Server groups]
 - https://www.spinnaker.io/docs/concepts/#cluster[Clusters]
 - https://www.spinnaker.io/docs/concepts/#firewall[Firewalls]
-- Functions
+- https://spinnaker.io/docs/setup/other_config/features/[Functions]
 
 Facilitate GitOps, and grant developers control of provisioning infrastructure for apps. Use Spinnaker’s Clouddriver to deploy to all of the major public cloud providers and Kubernetes. You may even orchestrate configuration and firmware changes as part of Spinnaker delivery https://www.spinnaker.io/docs/concepts/#pipeline[pipelines].
 
