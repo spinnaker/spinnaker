@@ -205,6 +205,7 @@ public class TaskCachingAgent extends AbstractEcsOnDemandAgent<Task> {
       attributes.put("startedAt", task.getStartedAt().getTime());
     }
     attributes.put("attachments", task.getAttachments());
+    attributes.put("availabilityZone", task.getAvailabilityZone());
 
     return attributes;
   }

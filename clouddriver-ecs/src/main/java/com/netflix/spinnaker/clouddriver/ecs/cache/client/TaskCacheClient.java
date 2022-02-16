@@ -52,6 +52,7 @@ public class TaskCacheClient extends AbstractCacheClient<Task> {
     task.setLastStatus((String) attributes.get("lastStatus"));
     task.setDesiredStatus((String) attributes.get("desiredStatus"));
     task.setHealthStatus((String) attributes.get("healthStatus"));
+    task.setAvailabilityZone((String) attributes.get("availabilityZone"));
     if (attributes.containsKey("startedAt")) {
       task.setStartedAt((Long) attributes.get("startedAt"));
     }

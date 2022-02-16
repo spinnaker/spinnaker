@@ -30,6 +30,7 @@ public class Task {
   String lastStatus;
   String desiredStatus;
   String healthStatus;
+  String availabilityZone;
   long startedAt;
   List<Container> containers;
 }

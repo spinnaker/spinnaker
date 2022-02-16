@@ -63,6 +63,7 @@ public class TaskCacheTest extends CommonCachingAgent {
     task.setLastStatus(STATUS);
     task.setDesiredStatus(STATUS);
     task.setStartedAt(new Date());
+    task.setAvailabilityZone(REGION + "a");
 
     when(ecs.listClusters(any(ListClustersRequest.class)))
         .thenReturn(new ListClustersResult().withClusterArns(CLUSTER_ARN_1));
@@ -127,6 +128,13 @@ public class TaskCacheTest extends CommonCachingAgent {
             + " but got "
             + ecsTask.getStartedAt(),
         task.getStartedAt().getTime() == ecsTask.getStartedAt());
+
+    assertTrue(
+        "Expected the availability zone to be "
+            + task.getAvailabilityZone()
+            + " but got "
+            + ecsTask.getAvailabilityZone(),
+        task.getAvailabilityZone() == ecsTask.getAvailabilityZone());
 
     assertTrue(
         "Expected the task to have 0 containers but got " + task.getContainers().size(),
