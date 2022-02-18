@@ -72,7 +72,7 @@ public class KubectlJobExecutor {
   private final Optional<RetryRegistry> retryRegistry;
 
   @Autowired
-  KubectlJobExecutor(
+  public KubectlJobExecutor(
       JobExecutor jobExecutor,
       @Value("${kubernetes.kubectl.executable:kubectl}") String executable,
       @Value("${kubernetes.o-auth.executable:oauth2l}") String oAuthExecutable,
