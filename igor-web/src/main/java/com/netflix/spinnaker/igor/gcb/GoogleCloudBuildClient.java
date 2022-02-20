@@ -18,6 +18,7 @@ package com.netflix.spinnaker.igor.gcb;
 
 import com.google.api.services.cloudbuild.v1.CloudBuild;
 import com.google.api.services.cloudbuild.v1.model.Build;
+import com.google.api.services.cloudbuild.v1.model.CancelBuildRequest;
 import com.google.api.services.cloudbuild.v1.model.ListBuildTriggersResponse;
 import com.google.api.services.cloudbuild.v1.model.Operation;
 import com.google.api.services.cloudbuild.v1.model.RepoSource;
@@ -59,6 +60,11 @@ class GoogleCloudBuildClient {
 
   Build getBuild(String buildId) {
     return executor.execute(() -> cloudBuild.projects().builds().get(projectId, buildId));
+  }
+
+  Build stopBuild(String buildId) {
+    return executor.execute(
+        () -> cloudBuild.projects().builds().cancel(projectId, buildId, new CancelBuildRequest()));
   }
 
   ListBuildTriggersResponse listTriggers() {

@@ -199,6 +199,30 @@ public class GoogleCloudBuildTest {
   }
 
   @Test
+  public void stopBuildTest() throws Exception {
+    String buildId = "f0fc7c14-6035-4e5c-bda1-4848a73af5b4";
+    String cancelled = "CANCELLED";
+    Build cancelledBuild = buildRequest().setId(buildId).setStatus(cancelled);
+    String buildResponse = objectMapper.writeValueAsString(cancelledBuild);
+    stubCloudBuildService.stubFor(
+        WireMock.post(
+                urlEqualTo(
+                    String.format("/v1/projects/spinnaker-gcb-test/builds/%s:cancel", buildId)))
+            .withHeader("Authorization", equalTo("Bearer test-token"))
+            .willReturn(aResponse().withStatus(200).withBody(buildResponse)));
+
+    mockMvc
+        .perform(
+            post(String.format("/gcb/builds/stop/gcb-account/%s", buildId))
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().is(200))
+        .andExpect(content().json(buildResponse));
+
+    assertThat(stubCloudBuildService.findUnmatchedRequests().getRequests()).isEmpty();
+  }
+
+  @Test
   public void listAccountTest() throws Exception {
     List<String> expectedAccounts = Collections.singletonList("gcb-account");
     String expectedResponse = objectMapper.writeValueAsString(expectedAccounts);

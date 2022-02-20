@@ -113,4 +113,9 @@ public class GoogleCloudBuildController {
         .getGoogleCloudBuild(account)
         .runTrigger(triggerId, repoSource);
   }
+
+  @RequestMapping(value = "/builds/stop/{account}/{buildId}", method = RequestMethod.POST)
+  Build stopBuild(@PathVariable String account, @PathVariable String buildId) {
+    return googleCloudBuildAccountRepository.getGoogleCloudBuild(account).stopBuild(buildId);
+  }
 }
