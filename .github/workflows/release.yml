@@ -15,15 +15,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: git fetch --prune --unshallow
-      - uses: actions/setup-java@v1
+      - uses: actions/setup-java@v2
         with:
           java-version: 11
-      - uses: actions/cache@v1
-        with:
-          path: ~/.gradle
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
+          distribution: 'zulu'
+          cache: 'gradle'
       - name: Assemble release info
         id: release_info
         env:
