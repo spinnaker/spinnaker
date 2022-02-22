@@ -13,15 +13,11 @@ jobs:
     - uses: actions/checkout@v2
     - name: Gradle validation step
       uses: gradle/wrapper-validation-action@v1
-    - uses: actions/setup-java@v1
+    - uses: actions/setup-java@v2
       with:
         java-version: 11
-    - uses: actions/cache@v1
-      with:
-        path: ~/.gradle
-        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-        restore-keys: |
-          ${{ runner.os }}-gradle-
+        distribution: 'zulu'
+        cache: 'gradle'
     - name: Build and Functional tests
       run: ./gradlew build $GRADLE_ARGS
 
@@ -43,16 +39,11 @@ jobs:
         uses: gradle/wrapper-validation-action@v1
 
       - name: Set up JDK 11
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v2
         with:
           java-version: 11
-
-      - uses: actions/cache@v1
-        with:
-          path: ~/.gradle
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
+          distribution: 'zulu'
+          cache: 'gradle'
 
       - name: Run Integration Test
         run: |
@@ -76,16 +67,11 @@ jobs:
         uses: gradle/wrapper-validation-action@v1
 
       - name: Set up JDK 11
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v2
         with:
           java-version: 11
-
-      - uses: actions/cache@v1
-        with:
-          path: ~/.gradle
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
+          distribution: 'zulu'
+          cache: 'gradle'
 
       - name: Run Provider Integration Test
         run: |
