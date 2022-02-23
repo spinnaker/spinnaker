@@ -47,6 +47,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model.Kubernete
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model.KubernetesServerGroupSummary;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.KubernetesManifestProvider.Sort;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesAccountProperties.ManagedAccount;
+import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.AccountResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.GlobalResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
@@ -99,8 +100,6 @@ final class KubernetesDataProviderIntegrationTest {
   private static final Registry registry = new NoopRegistry();
   private static final ObjectMapper objectMapper = new ObjectMapper();
   private static final KubernetesProvider kubernetesProvider = new KubernetesProvider();
-  private static final KubernetesCachingAgentDispatcher dispatcher =
-      new KubernetesCachingAgentDispatcher(objectMapper, registry);
   private static final ImmutableList<KubernetesHandler> handlers =
       ImmutableList.of(
           new KubernetesDeploymentHandler(),
@@ -109,6 +108,9 @@ final class KubernetesDataProviderIntegrationTest {
           new KubernetesPodHandler());
   private static final KubernetesSpinnakerKindMap kindMap =
       new KubernetesSpinnakerKindMap(handlers);
+  private static final KubernetesCachingAgentDispatcher dispatcher =
+      new KubernetesCachingAgentDispatcher(
+          objectMapper, registry, new KubernetesConfigurationProperties(), kindMap);
   private static final GlobalResourcePropertyRegistry resourcePropertyRegistry =
       new GlobalResourcePropertyRegistry(
           handlers, new KubernetesUnregisteredCustomResourceHandler());

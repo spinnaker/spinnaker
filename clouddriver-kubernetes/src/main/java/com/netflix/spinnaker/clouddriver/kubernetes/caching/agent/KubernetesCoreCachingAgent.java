@@ -24,21 +24,43 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys;
+import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesSpinnakerKindMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKindProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
 
+/**
+ * Instances of this class cache kubernetes core kinds for one particular account at regular
+ * intervals.
+ *
+ * <p>Core kinds is a hardcoded, immutable list defined in {@link
+ * KubernetesKindProperties#getGlobalKindProperties()}. From this list, only the kinds to which
+ * clouddriver has access (kubectl get {kind}) and are allowed by configuration are cached.
+ */
 public class KubernetesCoreCachingAgent extends KubernetesCachingAgent {
+
   public KubernetesCoreCachingAgent(
       KubernetesNamedAccountCredentials namedAccountCredentials,
       ObjectMapper objectMapper,
       Registry registry,
       int agentIndex,
       int agentCount,
-      Long agentInterval) {
-    super(namedAccountCredentials, objectMapper, registry, agentIndex, agentCount, agentInterval);
+      Long agentInterval,
+      KubernetesConfigurationProperties configurationProperties,
+      KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap) {
+    super(
+        namedAccountCredentials,
+        objectMapper,
+        registry,
+        agentIndex,
+        agentCount,
+        agentInterval,
+        configurationProperties,
+        kubernetesSpinnakerKindMap);
   }
 
   @Override
@@ -49,7 +71,7 @@ public class KubernetesCoreCachingAgent extends KubernetesCachingAgent {
     Stream<String> logicalTypes =
         Stream.of(Keys.LogicalKind.APPLICATIONS, Keys.LogicalKind.CLUSTERS, Keys.Kind.ARTIFACT)
             .map(Enum::toString);
-    Stream<String> kubernetesTypes = primaryKinds().stream().map(KubernetesKind::toString);
+    Stream<String> kubernetesTypes = filteredPrimaryKinds().stream().map(KubernetesKind::toString);
 
     return Stream.concat(logicalTypes, kubernetesTypes)
         .map(AUTHORITATIVE::forType)

@@ -22,6 +22,8 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.CustomKubernetesCachingAgentFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCachingAgentFactory;
+import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesSpinnakerKindMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
@@ -94,7 +96,9 @@ public class CustomKubernetesHandlerFactory {
         Registry registry,
         int agentIndex,
         int agentCount,
-        Long agentInterval) {
+        Long agentInterval,
+        KubernetesConfigurationProperties configurationProperties,
+        KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap) {
       return CustomKubernetesCachingAgentFactory.create(
           kubernetesKind,
           namedAccountCredentials,
@@ -102,7 +106,9 @@ public class CustomKubernetesHandlerFactory {
           registry,
           agentIndex,
           agentCount,
-          agentInterval);
+          agentInterval,
+          configurationProperties,
+          kubernetesSpinnakerKindMap);
     }
   }
 }

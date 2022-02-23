@@ -260,7 +260,7 @@ public class KubernetesCredentials {
     }
   }
 
-  private boolean isValidKind(@Nonnull KubernetesKind kind) {
+  public boolean isValidKind(@Nonnull KubernetesKind kind) {
     return getKindStatus(kind) == KubernetesKindStatus.VALID;
   }
 

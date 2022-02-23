@@ -19,34 +19,48 @@ package com.netflix.spinnaker.clouddriver.kubernetes.caching.agent;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesResourceProperties;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesSpinnakerKindMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.ResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
+@Slf4j
 public class KubernetesCachingAgentDispatcher {
   private final ObjectMapper objectMapper;
   private final Registry registry;
+  private final KubernetesConfigurationProperties configurationProperties;
+  private final KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap;
 
   @Autowired
-  public KubernetesCachingAgentDispatcher(ObjectMapper objectMapper, Registry registry) {
+  public KubernetesCachingAgentDispatcher(
+      ObjectMapper objectMapper,
+      Registry registry,
+      KubernetesConfigurationProperties configurationProperties,
+      KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap) {
     this.objectMapper = objectMapper;
     this.registry = registry;
+    this.configurationProperties = configurationProperties;
+    this.kubernetesSpinnakerKindMap = kubernetesSpinnakerKindMap;
   }
 
   public Collection<KubernetesCachingAgent> buildAllCachingAgents(
       KubernetesNamedAccountCredentials credentials) {
+
+    if (!configurationProperties.getCache().isEnabled()) {
+      log.info("Caching is disabled by configuration ('kubernetes.cache.enabled')");
+      return Collections.emptyList();
+    }
+
     KubernetesCredentials kubernetesCredentials = credentials.getCredentials();
     List<KubernetesCachingAgent> result = new ArrayList<>();
     Long agentInterval =
@@ -69,7 +83,9 @@ public class KubernetesCachingAgentDispatcher {
                                 registry,
                                 i,
                                 credentials.getCacheThreads(),
-                                agentInterval))
+                                agentInterval,
+                                configurationProperties,
+                                kubernetesSpinnakerKindMap))
                     .filter(Objects::nonNull)
                     .forEach(result::add));
 

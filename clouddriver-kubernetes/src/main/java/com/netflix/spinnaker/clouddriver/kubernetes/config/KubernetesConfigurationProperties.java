@@ -33,6 +33,8 @@ public class KubernetesConfigurationProperties {
   /** flag to toggle account health check. Defaults to true. */
   private boolean verifyAccountHealth = true;
 
+  private Cache cache = new Cache();
+
   @Data
   public static class KubernetesJobExecutorProperties {
     private Retries retries = new Retries();
@@ -61,5 +63,46 @@ public class KubernetesConfigurationProperties {
       // only applicable when exponentialBackoff = true
       long exponentialBackOffIntervalMs = 10000;
     }
+  }
+
+  @Data
+  public static class Cache {
+
+    /** Whether caching is enabled in the kubernetes provider. */
+    private boolean enabled = true;
+
+    /**
+     * Whether to cache all kubernetes kinds or not. If this value is "true", the setting
+     * "cacheKinds" is ignored.
+     */
+    private boolean cacheAll = false;
+
+    /**
+     * Only cache the kubernetes kinds in this list. If not configured, only the kinds that show in
+     * Spinnaker's classic infrastructure screens are cached, which are the ones mapped to the
+     * following Spinnaker's kinds: <br>
+     * - SERVER_GROUP_MANAGERS <br>
+     * - SERVER_GROUPS <br>
+     * - INSTANCES <br>
+     * - LOAD_BALANCERS <br>
+     * - SECURITY_GROUPS
+     *
+     * <p>Names are in {kind.group} format, where the group is optional for core kinds. Example:
+     * <br>
+     * cacheKinds: <br>
+     * - deployment.apps <br>
+     * - replicaSet <br>
+     * - pod <br>
+     * - myCustomKind.my.group
+     *
+     * <p>If the setting {@link Cache#cacheAll} is true, this setting is ignored.
+     */
+    private List<String> cacheKinds = null;
+
+    /**
+     * Do not cache the kinds in this list. The format of the list is the same as {@link
+     * Cache#cacheKinds}
+     */
+    private List<String> cacheOmitKinds = null;
   }
 }

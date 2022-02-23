@@ -29,6 +29,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys.InfrastructureC
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCachingAgentFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.KubernetesManifestProvider;
+import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesSpinnakerKindMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
@@ -106,10 +108,19 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatc
       Registry registry,
       int agentIndex,
       int agentCount,
-      Long agentInterval) {
+      Long agentInterval,
+      KubernetesConfigurationProperties configurationProperties,
+      KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap) {
     return cachingAgentFactory()
         .buildCachingAgent(
-            namedAccountCredentials, objectMapper, registry, agentIndex, agentCount, agentInterval);
+            namedAccountCredentials,
+            objectMapper,
+            registry,
+            agentIndex,
+            agentCount,
+            agentInterval,
+            configurationProperties,
+            kubernetesSpinnakerKindMap);
   }
 
   // used for stripping sensitive values
