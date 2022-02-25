@@ -51,7 +51,7 @@ class WebhookServiceSpec extends Specification {
   def webhookConfiguration = new WebhookConfiguration(webhookProperties)
 
   @Shared
-  def userConfiguredUrlRestrictions = new UserConfiguredUrlRestrictions.Builder().withRejectLocalhost(false).build()
+  def userConfiguredUrlRestrictions = new UserConfiguredUrlRestrictions.Builder().withRejectLocalhost(false).withAllowedHostnamesRegex(".*").build()
 
   @Shared
   def requestFactory = webhookConfiguration.webhookRequestFactory(

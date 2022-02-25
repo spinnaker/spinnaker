@@ -63,7 +63,9 @@ public class ContextParameterProcessor {
             new DeployedServerGroupsExpressionFunctionProvider(),
             new ManifestLabelValueExpressionFunctionProvider(),
             new StageExpressionFunctionProvider(),
-            new UrlExpressionFunctionProvider(new UserConfiguredUrlRestrictions.Builder().build())),
+            new UrlExpressionFunctionProvider(
+                new UserConfiguredUrlRestrictions.Builder().build(),
+                new HttpClientUtils(new UserConfiguredUrlRestrictions.Builder().build()))),
         new DefaultPluginManager(),
         DynamicConfigService.NOOP);
   }

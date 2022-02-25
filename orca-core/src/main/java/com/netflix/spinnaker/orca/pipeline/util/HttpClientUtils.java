@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.pipeline.util;
 
 import com.google.common.io.CharStreams;
 import com.google.common.util.concurrent.Uninterruptibles;
+import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -39,12 +40,13 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpCoreContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
+@Component
 public class HttpClientUtils {
+
+  private CloseableHttpClient httpClient;
   private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientUtils.class);
-  private static final int MAX_RETRIES = 5;
-  private static final int RETRY_INTERVAL = 5000;
-  private static final int TIMEOUT_MILLIS = 30000;
   private static final String JVM_HTTP_PROXY_HOST = "http.proxyHost";
   private static final String JVM_HTTP_PROXY_PORT = "http.proxyPort";
   private static List<Integer> RETRYABLE_500_HTTP_STATUS_CODES =
@@ -53,68 +55,78 @@ public class HttpClientUtils {
           HttpStatus.SC_INTERNAL_SERVER_ERROR,
           HttpStatus.SC_GATEWAY_TIMEOUT);
 
-  private static CloseableHttpClient httpClient = httpClientWithServiceUnavailableRetryStrategy();
+  public HttpClientUtils(UserConfiguredUrlRestrictions userConfiguredUrlRestrictions) {
+    this.httpClient = create(userConfiguredUrlRestrictions.getHttpClientProperties());
+  }
 
-  private static CloseableHttpClient httpClientWithServiceUnavailableRetryStrategy() {
-    HttpClientBuilder httpClientBuilder =
-        HttpClients.custom()
-            .setServiceUnavailableRetryStrategy(
-                new ServiceUnavailableRetryStrategy() {
-                  @Override
-                  public boolean retryRequest(
-                      HttpResponse response, int executionCount, HttpContext context) {
-                    int statusCode = response.getStatusLine().getStatusCode();
-                    HttpUriRequest currentReq =
-                        (HttpUriRequest) context.getAttribute(HttpCoreContext.HTTP_REQUEST);
-                    LOGGER.info("Response code {} for {}", statusCode, currentReq.getURI());
+  private CloseableHttpClient create(
+      UserConfiguredUrlRestrictions.HttpClientProperties httpClientProperties) {
+    HttpClientBuilder httpClientBuilder = HttpClients.custom();
 
-                    if (statusCode >= HttpStatus.SC_OK && statusCode <= 299) {
-                      return false;
-                    }
+    if (httpClientProperties.isEnableRetry()) {
+      httpClientBuilder.setServiceUnavailableRetryStrategy(
+          new ServiceUnavailableRetryStrategy() {
+            @Override
+            public boolean retryRequest(
+                HttpResponse response, int executionCount, HttpContext context) {
+              int statusCode = response.getStatusLine().getStatusCode();
+              HttpUriRequest currentReq =
+                  (HttpUriRequest) context.getAttribute(HttpCoreContext.HTTP_REQUEST);
+              LOGGER.info("Response code {} for {}", statusCode, currentReq.getURI());
 
-                    boolean shouldRetry =
-                        (statusCode == 429 || RETRYABLE_500_HTTP_STATUS_CODES.contains(statusCode))
-                            && executionCount <= MAX_RETRIES;
+              if (statusCode >= HttpStatus.SC_OK && statusCode <= 299) {
+                return false;
+              }
 
-                    if ((statusCode >= 300) && (statusCode <= 399)) {
-                      throw new RetryRequestException(
-                          String.format(
-                              "Attempted redirect from %s to %s which is not supported",
-                              currentReq.getURI(), response.getFirstHeader("LOCATION").getValue()));
-                    }
-                    if (!shouldRetry) {
-                      throw new RetryRequestException(
-                          String.format(
-                              "Not retrying %s. Count %d, Max %d",
-                              currentReq.getURI(), executionCount, MAX_RETRIES));
-                    }
+              boolean shouldRetry =
+                  (statusCode == 429 || RETRYABLE_500_HTTP_STATUS_CODES.contains(statusCode))
+                      && executionCount <= httpClientProperties.getMaxRetryAttempts();
 
-                    LOGGER.error(
-                        "Retrying request on response status {}. Count {} Max is {}",
-                        statusCode,
+              if ((statusCode >= 300) && (statusCode <= 399)) {
+                throw new RetryRequestException(
+                    String.format(
+                        "Attempted redirect from %s to %s which is not supported",
+                        currentReq.getURI(), response.getFirstHeader("LOCATION").getValue()));
+              }
+              if (!shouldRetry) {
+                throw new RetryRequestException(
+                    String.format(
+                        "Not retrying %s. Count %d, Max %d",
+                        currentReq.getURI(),
                         executionCount,
-                        MAX_RETRIES);
-                    return true;
-                  }
+                        httpClientProperties.getMaxRetryAttempts()));
+              }
 
-                  @Override
-                  public long getRetryInterval() {
-                    return RETRY_INTERVAL;
-                  }
-                });
+              LOGGER.error(
+                  "Retrying request on response status {}. Count {} Max is {}",
+                  statusCode,
+                  executionCount,
+                  httpClientProperties.getMaxRetryAttempts());
+              return true;
+            }
 
-    httpClientBuilder.setRetryHandler(
-        (exception, executionCount, context) -> {
-          HttpUriRequest currentReq =
-              (HttpUriRequest) context.getAttribute(HttpCoreContext.HTTP_REQUEST);
-          Uninterruptibles.sleepUninterruptibly(RETRY_INTERVAL, TimeUnit.MILLISECONDS);
-          LOGGER.info(
-              "Encountered network error. Retrying request {},  Count {} Max is {}",
-              currentReq.getURI(),
-              executionCount,
-              MAX_RETRIES);
-          return executionCount <= MAX_RETRIES;
-        });
+            @Override
+            public long getRetryInterval() {
+              return httpClientProperties.getRetryInterval();
+            }
+          });
+
+      httpClientBuilder.setRetryHandler(
+          (exception, executionCount, context) -> {
+            HttpUriRequest currentReq =
+                (HttpUriRequest) context.getAttribute(HttpCoreContext.HTTP_REQUEST);
+            Uninterruptibles.sleepUninterruptibly(
+                httpClientProperties.getRetryInterval(), TimeUnit.MILLISECONDS);
+            LOGGER.info(
+                "Encountered network error. Retrying request {},  Count {} Max is {}",
+                currentReq.getURI(),
+                executionCount,
+                httpClientProperties.getMaxRetryAttempts());
+            return executionCount <= httpClientProperties.getMaxRetryAttempts();
+          });
+    } else {
+      httpClientBuilder.disableAutomaticRetries();
+    }
 
     String proxyHostname = System.getProperty(JVM_HTTP_PROXY_HOST);
     if (proxyHostname != null) {
@@ -132,15 +144,15 @@ public class HttpClientUtils {
 
     httpClientBuilder.setDefaultRequestConfig(
         RequestConfig.custom()
-            .setConnectionRequestTimeout(TIMEOUT_MILLIS)
-            .setConnectTimeout(TIMEOUT_MILLIS)
-            .setSocketTimeout(TIMEOUT_MILLIS)
+            .setConnectionRequestTimeout(httpClientProperties.getTimeoutMillis())
+            .setConnectTimeout(httpClientProperties.getTimeoutMillis())
+            .setSocketTimeout(httpClientProperties.getTimeoutMillis())
             .build());
 
     return httpClientBuilder.build();
   }
 
-  public static String httpGetAsString(String url) throws IOException {
+  public String httpGetAsString(String url) throws IOException {
     try (CloseableHttpResponse response = httpClient.execute(new HttpGet(url))) {
       try (final Reader reader = new InputStreamReader(response.getEntity().getContent())) {
         return CharStreams.toString(reader);
@@ -148,7 +160,7 @@ public class HttpClientUtils {
     }
   }
 
-  static class RetryRequestException extends RuntimeException {
+  class RetryRequestException extends RuntimeException {
     RetryRequestException(String cause) {
       super(cause);
     }

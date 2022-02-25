@@ -27,4 +27,25 @@ class UserConfiguredUrlRestrictionsSpec extends Specification {
     uri << ['https://www.test.com', 'https://201.152.178.212', 'https://www.test_underscore.com']
   }
 
+  @Unroll
+  def 'should verify allowedHostnamesRegex is set'() {
+    given:
+    UserConfiguredUrlRestrictions config = new UserConfiguredUrlRestrictions.Builder()
+        .withAllowedHostnamesRegex("")
+        .withRejectedIps([])
+        .withAllowedSchemes(['https'])
+        .withRejectLocalhost(false)
+        .withRejectLinkLocal(false)
+        .build()
+
+    when:
+    config.validateURI(uri)
+
+    then:
+    thrown(IllegalArgumentException.class)
+
+    where:
+    uri << ['https://www.test.com', 'https://201.152.178.212', 'https://www.test_underscore.com']
+  }
+
 }

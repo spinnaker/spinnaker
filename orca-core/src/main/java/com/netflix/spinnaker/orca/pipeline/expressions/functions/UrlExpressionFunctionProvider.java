@@ -38,12 +38,15 @@ import org.yaml.snakeyaml.constructor.SafeConstructor;
 @SuppressWarnings("unused")
 @Component
 public class UrlExpressionFunctionProvider implements ExpressionFunctionProvider {
+  private static AtomicReference<HttpClientUtils> httpClientUtils = new AtomicReference<>();
   private static AtomicReference<UserConfiguredUrlRestrictions> helperFunctionUrlRestrictions =
       new AtomicReference<>();
   private static final ObjectMapper mapper = OrcaObjectMapper.getInstance();
 
-  public UrlExpressionFunctionProvider(UserConfiguredUrlRestrictions urlRestrictions) {
+  public UrlExpressionFunctionProvider(
+      UserConfiguredUrlRestrictions urlRestrictions, HttpClientUtils httpClient) {
     helperFunctionUrlRestrictions.set(urlRestrictions);
+    httpClientUtils.set(httpClient);
   }
 
   @Nullable
@@ -195,7 +198,7 @@ public class UrlExpressionFunctionProvider implements ExpressionFunctionProvider
   public static String fromUrl(String url) {
     try {
       URL u = helperFunctionUrlRestrictions.get().validateURI(url).toURL();
-      return HttpClientUtils.httpGetAsString(u.toString());
+      return httpClientUtils.get().httpGetAsString(u.toString());
     } catch (Exception e) {
       throw new SpelHelperFunctionException(format("#from(%s) failed", url), e);
     }
