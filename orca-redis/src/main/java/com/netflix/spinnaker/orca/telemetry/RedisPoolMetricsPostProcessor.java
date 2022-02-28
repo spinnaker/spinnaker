@@ -20,6 +20,7 @@ import com.netflix.spectator.api.Registry;
 import java.lang.reflect.Field;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -29,6 +30,7 @@ import redis.clients.jedis.util.Pool;
 public class RedisPoolMetricsPostProcessor extends AbstractMetricsPostProcessor<JedisPool> {
 
   @Autowired
+  @Lazy
   public RedisPoolMetricsPostProcessor(Registry registry) {
     super(JedisPool.class, registry);
   }

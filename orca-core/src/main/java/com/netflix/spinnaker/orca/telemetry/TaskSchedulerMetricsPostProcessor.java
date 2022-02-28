@@ -23,6 +23,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
 
@@ -31,6 +32,7 @@ public class TaskSchedulerMetricsPostProcessor
     extends AbstractMetricsPostProcessor<ThreadPoolTaskScheduler> {
 
   @Autowired
+  @Lazy
   public TaskSchedulerMetricsPostProcessor(Registry registry) {
     super(ThreadPoolTaskScheduler.class, registry);
   }
