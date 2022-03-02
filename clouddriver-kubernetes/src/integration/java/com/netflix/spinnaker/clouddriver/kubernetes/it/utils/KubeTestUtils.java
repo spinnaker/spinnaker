@@ -213,7 +213,7 @@ public abstract class KubeTestUtils {
     sendOperation(baseUrl, reqBody, targetNs);
   }
 
-  private static List<String> sendOperation(
+  public static List<String> sendOperation(
       String baseUrl, List<Map<String, Object>> reqBody, String targetNs)
       throws InterruptedException {
 

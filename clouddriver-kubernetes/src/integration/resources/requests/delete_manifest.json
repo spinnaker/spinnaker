@@ -1,0 +1,15 @@
+[
+  {
+    "deleteManifest": {
+      "app": "app",
+      "mode": "mode",
+      "cloudProvider": "kubernetes",
+      "manifestName": "kind name",
+      "options": {
+        "cascading": true
+      },
+      "location": "namespace",
+      "account": "account"
+    }
+  }
+]
