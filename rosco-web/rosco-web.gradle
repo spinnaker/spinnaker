@@ -1,4 +1,5 @@
 apply plugin: 'io.spinnaker.package'
+apply plugin: 'io.spinnaker.artifactregistry-publish'
 
 ext {
   springConfigLocation = System.getProperty('spring.config.additional-location', "${System.getProperty('user.home')}/.spinnaker/".toString())
