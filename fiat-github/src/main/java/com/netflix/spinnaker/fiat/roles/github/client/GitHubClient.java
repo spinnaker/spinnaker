@@ -34,10 +34,10 @@ public interface GitHubClient {
   List<Member> getOrgMembers(
       @Path("org") String org, @Query("page") int page, @Query("per_page") int paginationValue);
 
-  @GET("/orgs/{org}/teams/{idTeam}/members")
+  @GET("/orgs/{org}/teams/{teamSlug}/members")
   List<Member> getMembersOfTeam(
       @Path("org") String org,
-      @Path("idTeam") Long idTeam,
+      @Path("teamSlug") String teamSlug,
       @Query("page") int page,
       @Query("per_page") int paginationValue);
 }
