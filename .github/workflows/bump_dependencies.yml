@@ -13,5 +13,8 @@ jobs:
         ref: ${{ github.event.client_payload.ref }}
         key: orcaVersion
         repositories: kayenta
+        mavenRepositoryUrl: https://repo.maven.apache.org/maven2
+        groupId: io.spinnaker.orca
+        artifactId: orca-bom
       env:
         GITHUB_OAUTH: ${{ secrets.SPINNAKER_GITHUB_TOKEN }}
