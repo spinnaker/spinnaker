@@ -154,7 +154,7 @@ public class PipelineController {
   private String startPipeline(Map config) throws Exception {
     String json = kayentaObjectMapper.writeValueAsString(config);
     log.info("Requested pipeline: {}", json);
-    PipelineExecution pipeline = executionLauncher.start(PIPELINE, json);
+    PipelineExecution pipeline = executionLauncher.start(PIPELINE, config);
     return pipeline.getId();
   }
 }
