@@ -55,7 +55,7 @@ class ArtifactRegistryPublishPlugin implements Plugin<Project> {
           it.repoProject = extension.aptProject()
           it.location = extension.aptLocation()
           it.repository = extension.aptRepository()
-          it.aptImportTimeoutSeconds = extension.aptImportTimeoutSeconds
+          it.aptImportTimeoutSeconds = extension.aptImportTimeoutSeconds()
           it.dependsOn(debTask)
           it.onlyIf { extension.enabled().get() }
           it.onlyIf { extension.aptEnabled().get() }

@@ -3,22 +3,15 @@ package com.netflix.spinnaker.gradle.publishing.artifactregistry;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.artifactregistry.v1beta1.model.Operation;
+import com.google.auth.Credentials;
 import com.google.auth.http.HttpCredentialsAdapter;
+import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.artifactregistry.auth.DefaultCredentialProvider;
-import com.google.cloud.storage.BlobId;
-import com.google.cloud.storage.BlobInfo;
-import com.google.cloud.storage.Storage;
-import com.google.cloud.storage.StorageException;
-import com.google.cloud.storage.StorageOptions;
+import com.google.cloud.storage.*;
 import com.google.common.base.Stopwatch;
+import com.google.common.base.Strings;
 import com.google.common.io.ByteStreams;
-import java.io.IOException;
-import java.nio.channels.ByteChannel;
-import java.nio.channels.WritableByteChannel;
-import java.nio.file.Files;
-import java.security.GeneralSecurityException;
-import java.util.concurrent.TimeUnit;
-import javax.inject.Inject;
+import org.apache.tools.ant.filters.StringInputStream;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
@@ -26,7 +19,17 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.TaskAction;
 
+import javax.inject.Inject;
+import java.io.IOException;
+import java.nio.channels.ByteChannel;
+import java.nio.channels.WritableByteChannel;
+import java.nio.file.Files;
+import java.security.GeneralSecurityException;
+import java.util.concurrent.TimeUnit;
+
 class ArtifactRegistryDebPublishTask extends DefaultTask {
+
+  private static final String GOOGLE_SERVICE_ACCT_JSON_ENV_VAR = "GAR_JSON_KEY";
 
   private Provider<String> uploadBucket;
   private Provider<String> repoProject;
@@ -116,6 +119,16 @@ class ArtifactRegistryDebPublishTask extends DefaultTask {
     }
   }
 
+  private Credentials resolveCredentials() throws IOException {
+    String fromEnvironmentVar = System.getenv(GOOGLE_SERVICE_ACCT_JSON_ENV_VAR);
+
+    if (!Strings.isNullOrEmpty(fromEnvironmentVar)) {
+      return GoogleCredentials.fromStream(new StringInputStream(fromEnvironmentVar));
+    }
+
+    return new DefaultCredentialProvider().getCredential();
+  }
+
   /**
    * Import the blob into Artifact Registry and return an Operation representing the import.
    *
@@ -128,7 +141,7 @@ class ArtifactRegistryDebPublishTask extends DefaultTask {
 
     ArtifactRegistryAlphaClient artifactRegistryClient = new ArtifactRegistryAlphaClient(
       GoogleNetHttpTransport.newTrustedTransport(), JacksonFactory.getDefaultInstance(), new HttpCredentialsAdapter(
-        new DefaultCredentialProvider().getCredential()
+        resolveCredentials()
       )
     );
 

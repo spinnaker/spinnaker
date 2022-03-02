@@ -26,6 +26,10 @@ gradlePlugin {
       id = 'io.spinnaker.bintray-publish'
       implementationClass = 'com.netflix.spinnaker.gradle.publishing.bintray.BintrayPublishPlugin'
     }
+    spinnakerArtifactRegistryPublish {
+      id = 'io.spinnaker.artifactregistry-publish'
+      implementationClass = 'com.netflix.spinnaker.gradle.publishing.artifactregistry.ArtifactRegistryPublishPlugin'
+    }
   }
 }
 
@@ -44,6 +48,9 @@ pluginBundle {
     }
     spinnakerBintrayPublish {
       displayName = 'Bintray publishing for spinnaker jars and debs'
+    }
+    spinnakerArtifactRegistryPublish {
+      displayName = 'Google Artifact Registry publishing for spinnaker packages'
     }
   }
 }
