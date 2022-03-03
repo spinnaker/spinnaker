@@ -48,7 +48,7 @@ jobs:
           ORG_GRADLE_PROJECT_artifactRegistryPublishAptEnabled: true
           GAR_JSON_KEY: ${{ secrets.GAR_JSON_KEY }}
         run: |
-          ./gradlew --debug --stacktrace rosco-web:publish
+          ./gradlew --info --stacktrace rosco-web:publish
       - name: Create release
         if: steps.release_info.outputs.SKIP_RELEASE == 'false'
         uses: actions/create-release@v1
