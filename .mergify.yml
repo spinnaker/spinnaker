@@ -57,7 +57,7 @@ pull_request_rules:
   - name: Automatically merge autobump PRs on CI success
     conditions:
       - base=master
-      - status-success=build
+      - status-success=Deck CI
       - "label~=autobump-*"
       - "author:spinnakerbot"
     actions:
@@ -69,7 +69,7 @@ pull_request_rules:
   - name: Request reviews for autobump PRs on CI failure
     conditions:
       - base=master
-      - status-failure=build
+      - status-failure=Deck CI
       - "label~=autobump-*"
       - base=master
     actions:
