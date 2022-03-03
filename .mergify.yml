@@ -54,3 +54,24 @@ pull_request_rules:
       queue:
         method: squash
         name: default
+  - name: Automatically merge autobump PRs on CI success
+    conditions:
+      - base=master
+      - status-success=build
+      - "label~=autobump-*"
+      - "author:spinnakerbot"
+    actions:
+      queue:
+        method: squash
+        name: default
+      label:
+        add: ["auto merged"]
+  - name: Request reviews for autobump PRs on CI failure
+    conditions:
+      - base=master
+      - status-failure=build
+      - "label~=autobump-*"
+      - base=master
+    actions:
+      request_reviews:
+        teams: ["oss-approvers"]
