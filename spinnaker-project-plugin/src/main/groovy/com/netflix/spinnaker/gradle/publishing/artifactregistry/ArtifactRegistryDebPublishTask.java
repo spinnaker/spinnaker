@@ -96,7 +96,7 @@ class ArtifactRegistryDebPublishTask extends DefaultTask {
 
   @TaskAction
   void publishDeb() throws GeneralSecurityException, InterruptedException, IOException {
-    Storage storage = StorageOptions.getDefaultInstance().getService();
+    Storage storage = StorageOptions.newBuilder().setCredentials(resolveCredentials()).build().getService();
     BlobId blobId = uploadDebToGcs(storage);
     Operation importOperation = importDebToArtifactRegistry(blobId);
 
