@@ -2,8 +2,11 @@ package com.netflix.spinnaker.gradle.publishing.artifactregistry;
 
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.services.artifactregistry.v1beta1.ArtifactRegistryScopes;
-import com.google.api.services.artifactregistry.v1beta1.model.Operation;
+import com.google.api.services.artifactregistry.v1beta2.ArtifactRegistryScopes;
+import com.google.api.services.artifactregistry.v1beta2.model.ImportAptArtifactsGcsSource;
+import com.google.api.services.artifactregistry.v1beta2.model.ImportAptArtifactsRequest;
+import com.google.api.services.artifactregistry.v1beta2.model.Operation;
+import com.google.api.services.artifactregistry.v1beta2.ArtifactRegistry;
 import com.google.auth.Credentials;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.GoogleCredentials;
@@ -26,6 +29,7 @@ import java.nio.channels.ByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.nio.file.Files;
 import java.security.GeneralSecurityException;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 class ArtifactRegistryDebPublishTask extends DefaultTask {
@@ -142,18 +146,31 @@ class ArtifactRegistryDebPublishTask extends DefaultTask {
   private Operation importDebToArtifactRegistry(BlobId blobId) throws GeneralSecurityException, IOException,
     InterruptedException {
 
-    ArtifactRegistryAlphaClient artifactRegistryClient = new ArtifactRegistryAlphaClient(
+    ArtifactRegistry artifactRegistryClient = new ArtifactRegistry(
       GoogleNetHttpTransport.newTrustedTransport(), JacksonFactory.getDefaultInstance(), new HttpCredentialsAdapter(
         resolveCredentials()
       )
     );
 
-    Operation operation = artifactRegistryClient.importArtifacts(
+    String parent = String.format(
+      "projects/%s/locations/%s/repositories/%s",
       repoProject.get(),
       location.get(),
-      repository.get(),
-      String.format("gs://%s/%s", blobId.getBucket(), blobId.getName())
-    ).execute();
+      repository.get()
+    );
+    ImportAptArtifactsGcsSource gcsSource = new ImportAptArtifactsGcsSource();
+    gcsSource.setUris(List.of(String.format("gs://%s/%s", blobId.getBucket(), blobId.getName())));
+
+    ImportAptArtifactsRequest content = new ImportAptArtifactsRequest();
+    content.setGcsSource(gcsSource);
+
+    ArtifactRegistry.Projects.Locations.Repositories.AptArtifacts.ArtifactRegistryImport request =
+      artifactRegistryClient.projects().locations().repositories().aptArtifacts().artifactregistryImport(
+        parent,
+        content
+      );
+
+    Operation operation = request.execute();
 
     Stopwatch timer = Stopwatch.createStarted();
     while (!operationIsDone(operation) && !operationTimedOut(timer)) {
