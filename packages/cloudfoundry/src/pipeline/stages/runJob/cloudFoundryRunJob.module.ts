@@ -5,7 +5,7 @@ import { CloudFoundryRunJobStageConfig } from './CloudFoundryRunJobStageConfig';
 import { RunJobExecutionDetails } from './RunJobExecutionDetails';
 
 Registry.pipeline.registerStage({
-  accountExtractor: (stage: IStage) => stage.context.credentials,
+  accountExtractor: (stage: IStage) => [stage.context.credentials],
   component: CloudFoundryRunJobStageConfig,
   configAccountExtractor: (stage: IStage) => [stage.credentials],
   cloudProvider: 'cloudfoundry',
