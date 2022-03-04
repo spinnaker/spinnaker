@@ -2,6 +2,7 @@ package com.netflix.spinnaker.gradle.publishing.artifactregistry;
 
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.services.artifactregistry.v1beta1.ArtifactRegistryScopes;
 import com.google.api.services.artifactregistry.v1beta1.model.Operation;
 import com.google.auth.Credentials;
 import com.google.auth.http.HttpCredentialsAdapter;
@@ -123,7 +124,9 @@ class ArtifactRegistryDebPublishTask extends DefaultTask {
     String fromEnvironmentVar = System.getenv(GOOGLE_SERVICE_ACCT_JSON_ENV_VAR);
 
     if (!Strings.isNullOrEmpty(fromEnvironmentVar)) {
-      return GoogleCredentials.fromStream(new StringInputStream(fromEnvironmentVar));
+      return GoogleCredentials.fromStream(new StringInputStream(fromEnvironmentVar)).createScoped(
+        ArtifactRegistryScopes.CLOUD_PLATFORM
+      );
     }
 
     return new DefaultCredentialProvider().getCredential();
