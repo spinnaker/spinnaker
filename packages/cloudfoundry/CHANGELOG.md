@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.168](https://github.com/spinnaker/deck/compare/@spinnaker/cloudfoundry@0.0.167...@spinnaker/cloudfoundry@0.0.168) (2022-03-04)
+
+
+### Bug Fixes
+
+* **cf:** return credentials in an array ([#9812](https://github.com/spinnaker/deck/issues/9812)) ([c96faa5](https://github.com/spinnaker/deck/commit/c96faa581482d251c07132bdcc023e04fc8e869b))
+
+
+
+
+
 ## [0.0.167](https://github.com/spinnaker/deck/compare/@spinnaker/cloudfoundry@0.0.166...@spinnaker/cloudfoundry@0.0.167) (2022-01-22)
 
 **Note:** Version bump only for package @spinnaker/cloudfoundry
