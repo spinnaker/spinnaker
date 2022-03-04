@@ -30,7 +30,7 @@ class ArtifactRegistryPublishExtension {
     this.project = project
     ObjectFactory props = project.objects
     enabled = props.property(Boolean).convention(false)
-    mavenEnabled = props.property(Boolean).convention(true)
+    mavenEnabled = props.property(Boolean).convention(false)
     aptEnabled = props.property(Boolean).convention(true)
     mavenProject = props.property(String).convention("spinnaker-community")
     mavenLocation = props.property(String).convention("us")
