@@ -1,3 +1,8 @@
+queue_rules:
+  - name: default
+    conditions:
+      - status-success=build
+
 pull_request_rules:
   - name: Automatically merge on CI success and review
     conditions:
@@ -6,19 +11,23 @@ pull_request_rules:
       - 'label=ready to merge'
       - 'approved-reviews-by=@oss-approvers'
     actions:
-      merge:
+      queue:
         method: squash
-        strict: smart
-  - name: Automatically self merge on CI success
+        name: default
+      label:
+        add: ['auto merged']
+  - name: Automatically merge release branch changes on CI success and release manager review
     conditions:
       - base=master
       - status-success=build
       - 'label=ready to merge'
       - 'label=self merge'
     actions:
-      merge:
+      queue:
         method: squash
-        strict: smart
+        name: default
+      label:
+        add: ['auto merged']
   - name: Automatically rebase and merge on CI success and review
     conditions:
       - base=master
@@ -26,9 +35,11 @@ pull_request_rules:
       - 'label=ready to rebase'
       - 'approved-reviews-by=@oss-approvers'
     actions:
-      merge:
+      queue:
         method: rebase
-        strict: smart
+        name: default
+      label:
+        add: ['auto merged']
   - name: Automatically rebase and self merge on CI success
     conditions:
       - base=master
@@ -36,9 +47,11 @@ pull_request_rules:
       - 'label=ready to rebase'
       - 'label=self merge'
     actions:
-      merge:
+      queue:
         method: rebase
-        strict: smart
+        name: default
+      label:
+        add: ['auto merged']
   - name: Automatically merge release branch changes on Travis CI success and release manager review
     conditions:
       - base~=^release-
@@ -46,6 +59,8 @@ pull_request_rules:
       - 'label=ready to merge'
       - 'approved-reviews-by=@release-managers'
     actions:
-      merge:
+      queue:
         method: squash
-        strict: smart
+        name: default
+      label:
+        add: ['auto merged']
