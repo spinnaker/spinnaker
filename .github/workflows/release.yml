@@ -44,7 +44,6 @@ jobs:
         env:
           ORG_GRADLE_PROJECT_version: ${{ steps.release_info.outputs.RELEASE_VERSION }}
           ORG_GRADLE_PROJECT_artifactRegistryPublishEnabled: true
-          ORG_GRADLE_PROJECT_artifactRegistryPublishMavenEnabled: false
           GAR_JSON_KEY: ${{ secrets.GAR_JSON_KEY }}
         run: |
           ./gradlew --info publish
