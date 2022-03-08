@@ -16,17 +16,33 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2;
 
-import java.util.Map;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils.convertToValidServiceBindingName;
 
-@RequiredArgsConstructor
-@AllArgsConstructor
+import java.util.Map;
+import lombok.Getter;
+
 @Getter
 public class CreateServiceBinding {
   private final String serviceInstanceGuid;
   private final String appGuid;
   private final String name;
   private Map<String, Object> parameters;
+
+  public CreateServiceBinding(
+      final String serviceInstanceGuid,
+      final String appGuid,
+      final String name,
+      final Map<String, Object> parameters) {
+    this.serviceInstanceGuid = serviceInstanceGuid;
+    this.appGuid = appGuid;
+    this.name = convertToValidServiceBindingName(name);
+    this.parameters = parameters;
+  }
+
+  public CreateServiceBinding(
+      final String serviceInstanceGuid, final String appGuid, final String name) {
+    this.serviceInstanceGuid = serviceInstanceGuid;
+    this.appGuid = appGuid;
+    this.name = convertToValidServiceBindingName(name);
+  }
 }

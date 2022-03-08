@@ -34,6 +34,8 @@ import retrofit2.Call;
 import retrofit2.Response;
 
 public final class CloudFoundryClientUtils {
+  private static final String VALID_BINDING_NAME_PATTERN = "[^A-Za-z0-9-]+";
+
   private static final ObjectMapper mapper =
       new ObjectMapper()
           .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
@@ -111,5 +113,9 @@ public final class CloudFoundryClientUtils {
 
   public static ObjectMapper getMapper() {
     return mapper;
+  }
+
+  public static String convertToValidServiceBindingName(final String name) {
+    return name.replaceAll(VALID_BINDING_NAME_PATTERN, "-");
   }
 }

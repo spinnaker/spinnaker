@@ -25,9 +25,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.matching.UrlPattern;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.CreateServiceBinding;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.config.CloudFoundryConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ForkJoinPool;
 import okhttp3.OkHttpClient;
 import org.jetbrains.annotations.NotNull;
@@ -192,6 +194,17 @@ class HttpCloudFoundryClientTest {
     assertThat(cloudFoundryOrganization.get())
         .extracting(CloudFoundryOrganization::getId, CloudFoundryOrganization::getName)
         .containsExactly("orgId", "orgName");
+  }
+
+  @Test
+  void shouldReplaceInvalidNameCharacters() {
+    String invalidBindingName = "test-service-binding~123#test";
+    String sanitisedBindingName = "test-service-binding-123-test";
+
+    CreateServiceBinding binding =
+        new CreateServiceBinding(
+            UUID.randomUUID().toString(), UUID.randomUUID().toString(), invalidBindingName);
+    assertThat(binding.getName()).isEqualTo(sanitisedBindingName);
   }
 
   private void stubServer(

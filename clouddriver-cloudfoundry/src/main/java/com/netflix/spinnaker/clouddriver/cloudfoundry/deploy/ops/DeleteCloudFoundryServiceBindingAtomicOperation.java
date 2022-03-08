@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Resource;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ServiceBinding;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeleteCloudFoundryServiceBindingDescription;
@@ -38,10 +39,16 @@ public class DeleteCloudFoundryServiceBindingAtomicOperation implements AtomicOp
 
   @Override
   public Void operate(List<Void> priorOutputs) {
-
     List<String> unbindingServiceInstanceNames =
         description.getServiceUnbindingRequests().stream()
-            .map(s -> s.getServiceInstanceName())
+            .map(
+                DeleteCloudFoundryServiceBindingDescription.ServiceUnbindingRequest
+                    ::getServiceInstanceName)
+            .collect(Collectors.toList());
+
+    List<String> unbindingServiceBindingNames =
+        unbindingServiceInstanceNames.stream()
+            .map(CloudFoundryClientUtils::convertToValidServiceBindingName)
             .collect(Collectors.toList());
 
     getTask()
@@ -58,7 +65,7 @@ public class DeleteCloudFoundryServiceBindingAtomicOperation implements AtomicOp
             .getApplications()
             .getServiceBindingsByApp(description.getServerGroupId());
 
-    removeBindings(bindings, unbindingServiceInstanceNames);
+    removeBindings(bindings, unbindingServiceBindingNames);
 
     getTask()
         .updateStatus(
@@ -72,15 +79,14 @@ public class DeleteCloudFoundryServiceBindingAtomicOperation implements AtomicOp
   }
 
   private void removeBindings(
-      List<Resource<ServiceBinding>> bindings, List<String> unbindingServiceInstanceNames) {
+      List<Resource<ServiceBinding>> bindings, List<String> unbindingServiceBindingNames) {
     bindings.stream()
-        .filter(b -> unbindingServiceInstanceNames.contains(b.getEntity().getName()))
+        .filter(b -> unbindingServiceBindingNames.contains(b.getEntity().getName()))
         .forEach(
-            b -> {
-              description
-                  .getClient()
-                  .getServiceInstances()
-                  .deleteServiceBinding(b.getMetadata().getGuid());
-            });
+            b ->
+                description
+                    .getClient()
+                    .getServiceInstances()
+                    .deleteServiceBinding(b.getMetadata().getGuid()));
   }
 }
