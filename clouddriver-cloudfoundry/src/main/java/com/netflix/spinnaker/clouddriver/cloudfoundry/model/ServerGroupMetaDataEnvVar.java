@@ -31,4 +31,13 @@ public enum ServerGroupMetaDataEnvVar {
   ServerGroupMetaDataEnvVar(String envVarName) {
     this.envVarName = envVarName;
   }
+
+  public static boolean contains(String envVar) {
+    for (ServerGroupMetaDataEnvVar v : values()) {
+      if (v.envVarName.equals(envVar)) {
+        return true;
+      }
+    }
+    return false;
+  }
 }

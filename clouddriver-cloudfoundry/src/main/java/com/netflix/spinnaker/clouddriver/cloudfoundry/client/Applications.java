@@ -421,6 +421,13 @@ public class Applications {
             ? emptyMap()
             : applicationEnv.getEnvironmentJson();
 
+    // filter out environment variables that aren't Spinnaker metadata
+    // as these could contain secrets
+    environmentVars =
+        environmentVars.entrySet().stream()
+            .filter(e -> ServerGroupMetaDataEnvVar.contains(e.getKey()))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
     final CloudFoundryBuildInfo buildInfo = getBuildInfoFromEnvVars(environmentVars);
     final ArtifactInfo artifactInfo = getArtifactInfoFromEnvVars(environmentVars);
     final String pipelineId =

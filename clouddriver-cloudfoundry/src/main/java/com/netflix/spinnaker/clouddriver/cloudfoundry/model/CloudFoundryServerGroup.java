@@ -39,7 +39,7 @@ import javax.annotation.Nullable;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
-import lombok.experimental.Wither;
+import lombok.With;
 
 @Value
 @EqualsAndHashCode(of = "id", callSuper = false)
@@ -77,11 +77,11 @@ public class CloudFoundryServerGroup extends CloudFoundryModel implements Server
 
   @JsonView(Views.Cache.class)
   @Nullable
-  private String healthCheckType;
+  String healthCheckType;
 
   @JsonView(Views.Cache.class)
   @Nullable
-  private String healthCheckHttpEndpoint;
+  String healthCheckHttpEndpoint;
 
   @JsonView(Views.Cache.class)
   State state;
@@ -98,7 +98,7 @@ public class CloudFoundryServerGroup extends CloudFoundryModel implements Server
   @JsonView(Views.Cache.class)
   Map<String, Object> env;
 
-  @Wither
+  @With
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
   @JsonView(Views.Cache.class)
   List<CloudFoundryServiceInstance> serviceInstances;
@@ -112,11 +112,11 @@ public class CloudFoundryServerGroup extends CloudFoundryModel implements Server
   @JsonView(Views.Cache.class)
   String pipelineId;
 
-  @Wither
+  @With
   @JsonView(Views.Relationship.class)
   Set<CloudFoundryInstance> instances;
 
-  @Wither
+  @With
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
   @JsonView(Views.Relationship.class)
   Set<String> loadBalancerNames;
@@ -155,7 +155,7 @@ public class CloudFoundryServerGroup extends CloudFoundryModel implements Server
 
               @Override
               public Map<String, Object> getImage() {
-                return IMAGE_MAPPER.convertValue(this, new TypeReference<Map<String, Object>>() {});
+                return IMAGE_MAPPER.convertValue(this, new TypeReference<>() {});
               }
 
               @Override
@@ -242,7 +242,6 @@ public class CloudFoundryServerGroup extends CloudFoundryModel implements Server
     return Names.parseName(name).getDetail();
   }
 
-  @SuppressWarnings("unchecked")
   public Moniker getMoniker() {
     Moniker moniker = NamerRegistry.getDefaultNamer().deriveMoniker(this);
     return new Moniker(

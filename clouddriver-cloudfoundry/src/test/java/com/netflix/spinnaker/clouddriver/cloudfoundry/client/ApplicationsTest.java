@@ -124,7 +124,7 @@ class ApplicationsTest {
     Process process =
         new Process().setDiskInMb(1024).setGuid("process-guid").setInstances(1).setMemoryInMb(1024);
 
-    Package applicationPacakage =
+    Package applicationPackage =
         new Package()
             .setData(
                 new PackageData()
@@ -138,7 +138,7 @@ class ApplicationsTest {
     Pagination<Package> packagePagination =
         new Pagination<Package>()
             .setPagination(new Pagination.Details().setTotalPages(1))
-            .setResources(Collections.singletonList(applicationPacakage));
+            .setResources(Collections.singletonList(applicationPackage));
 
     Droplet droplet =
         new Droplet()
@@ -193,6 +193,101 @@ class ApplicationsTest {
     verify(applicationService).instances(serverGroupId);
     verify(applicationService).findPackagesByAppId(serverGroupId);
     verify(applicationService).findDropletByApplicationGuid(serverGroupId);
+  }
+
+  @Test
+  void nonSpinnakerEnvironmentVarsAreRemoved() {
+    String serverGroupId = "some-app-guid";
+    String serverGroupName = "some-app-name";
+    Application application =
+        new Application()
+            .setCreatedAt(ZonedDateTime.now())
+            .setUpdatedAt(ZonedDateTime.now())
+            .setGuid(serverGroupId)
+            .setName(serverGroupName)
+            .setState("STARTED")
+            .setLinks(
+                HashMap.of("space", new Link().setHref("http://capi.io/space/space-guid"))
+                    .toJavaMap());
+
+    ServiceInstance serviceInstance = new ServiceInstance();
+    serviceInstance
+        .setPlan("service-plan")
+        .setServicePlanGuid("service-plan-guid")
+        .setTags(new HashSet<>(Arrays.asList("tag1", "tag2")))
+        .setName("service-instance");
+
+    ApplicationEnv.SystemEnv systemEnv =
+        new ApplicationEnv.SystemEnv()
+            .setVcapServices(
+                HashMap.of("service-name-1", Collections.singletonList(serviceInstance))
+                    .toJavaMap());
+    Map<String, Object> environment =
+        Map.of(
+            ServerGroupMetaDataEnvVar.PipelineId.envVarName,
+            "ABCDEF",
+            "super-secret-key",
+            "super-secret-value");
+    ApplicationEnv applicationEnv =
+        new ApplicationEnv().setSystemEnvJson(systemEnv).setEnvironmentJson(environment);
+
+    Package applicationPackage =
+        new Package()
+            .setData(
+                new PackageData()
+                    .setChecksum(
+                        new PackageChecksum()
+                            .setType("package-checksum-type")
+                            .setValue("package-check-sum-value")))
+            .setLinks(
+                HashMap.of("download", new Link().setHref("http://capi.io/download/space-guid"))
+                    .toJavaMap());
+    Pagination<Package> packagePagination =
+        new Pagination<Package>()
+            .setPagination(new Pagination.Details().setTotalPages(1))
+            .setResources(Collections.singletonList(applicationPackage));
+
+    Droplet droplet =
+        new Droplet()
+            .setGuid("droplet-guid")
+            .setStack("droplet-stack")
+            .setBuildpacks(
+                Collections.singletonList(new Buildpack().setBuildpackName("build-pack-name")));
+
+    CloudFoundryOrganization cloudFoundryOrganization =
+        CloudFoundryOrganization.builder().id("org-id").name("org-name").build();
+    CloudFoundrySpace cloudFoundrySpace =
+        CloudFoundrySpace.builder()
+            .id("space-id")
+            .name("space-name")
+            .organization(cloudFoundryOrganization)
+            .build();
+
+    when(applicationService.findById(anyString())).thenReturn(Calls.response(application));
+    when(applicationService.findApplicationEnvById(anyString()))
+        .thenReturn(Calls.response(applicationEnv));
+    when(spaces.findById(any())).thenReturn(cloudFoundrySpace);
+    when(processes.findProcessById(any())).thenReturn(Optional.empty());
+    when(applicationService.instances(anyString()))
+        .thenReturn(
+            Calls.response(
+                HashMap.of(
+                        "0",
+                        new InstanceStatus()
+                            .setState(InstanceStatus.State.RUNNING)
+                            .setUptime(2405L))
+                    .toJavaMap()));
+    when(applicationService.findPackagesByAppId(anyString()))
+        .thenReturn(Calls.response(packagePagination));
+    when(applicationService.findDropletByApplicationGuid(anyString()))
+        .thenReturn(Calls.response(droplet));
+
+    CloudFoundryServerGroup cloudFoundryServerGroup = apps.findById(serverGroupId);
+    assertThat(cloudFoundryServerGroup).isNotNull();
+    assertThat(cloudFoundryServerGroup.getEnv()).isNotNull();
+    assertThat(cloudFoundryServerGroup.getEnv())
+        .containsKey(ServerGroupMetaDataEnvVar.PipelineId.envVarName);
+    assertThat(cloudFoundryServerGroup.getEnv()).doesNotContainKey("super-secret-key");
   }
 
   @Test
@@ -320,7 +415,6 @@ class ApplicationsTest {
   @ParameterizedTest
   @ValueSource(strings = {"myapp-v999", "myapp"})
   void getTakenServerGroups(String existingApp) {
-
     when(applicationService.listAppsFiltered(isNull(), any(), any()))
         .thenReturn(
             Calls.response(Response.success(Page.singleton(getApplication(existingApp), "123"))));
