@@ -9,7 +9,7 @@ const svgr = require('@svgr/rollup').default;
 const autoPrefixer = require('autoprefixer');
 const postCssColorFix = require('postcss-colorfix');
 const postCssUrl = require('postcss-url');
-const esbuild = require('rollup-plugin-esbuild');
+const esbuild = require('rollup-plugin-esbuild').default;
 const { terser } = require('rollup-plugin-terser');
 const { visualizer } = require('rollup-plugin-visualizer');
 
