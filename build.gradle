@@ -55,7 +55,7 @@ subprojects {
     }
 
     dependencies {
-      implementation platform("io.spinnaker.kork:kork-bom:$korkVersion")
+      implementation enforcedPlatform("io.spinnaker.kork:kork-bom:$korkVersion")
       compileOnly "org.projectlombok:lombok"
       annotationProcessor platform("io.spinnaker.kork:kork-bom:$korkVersion")
       annotationProcessor "org.projectlombok:lombok"
