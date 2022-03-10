@@ -47,7 +47,7 @@ subprojects {
     apply plugin: "java-library"
 
     dependencies {
-      implementation(platform("io.spinnaker.kork:kork-bom:$korkVersion"))
+      implementation(enforcedPlatform("io.spinnaker.kork:kork-bom:$korkVersion"))
       annotationProcessor(platform("io.spinnaker.kork:kork-bom:$korkVersion"))
       testAnnotationProcessor(platform("io.spinnaker.kork:kork-bom:$korkVersion"))
       implementation("org.slf4j:slf4j-api")
