@@ -152,12 +152,12 @@ class InfoControllerSpec extends Specification {
         JenkinsService jenkinsService1 = new JenkinsService('jenkins-foo', null, false, Permissions.EMPTY, circuitBreakerRegistry)
         JenkinsService jenkinsService2 = new JenkinsService('jenkins-bar', null, false,
             new Permissions.Builder()
-                .add(Authorization.READ, ['group-1', 'group-2'])
+                .add(Authorization.READ, ['group-1', 'group-2'] as Set)
                 .add(Authorization.WRITE, 'group-2').build(),
           circuitBreakerRegistry)
         TravisService travisService = new TravisService('travis-baz', null, null, 100, 10, emptyList(), null, null, Optional.empty(), [], null,
             new Permissions.Builder()
-                .add(Authorization.READ, ['group-3', 'group-4'])
+                .add(Authorization.READ, ['group-3', 'group-4'] as Set)
                 .add(Authorization.WRITE, 'group-3').build(), false, CircuitBreakerRegistry.ofDefaults())
 
         GoogleCloudBuildProperties.Account gcbAccount = GoogleCloudBuildProperties.Account.builder()
@@ -165,8 +165,8 @@ class InfoControllerSpec extends Specification {
           .project('blah')
           .permissions(
             new Permissions.Builder()
-              .add(Authorization.READ, ['group-5', 'group-6'])
-              .add(Authorization.WRITE, ['group-5'])
+              .add(Authorization.READ, ['group-5', 'group-6'] as Set)
+              .add(Authorization.WRITE, ['group-5'] as Set)
           ).build()
 
         createMocks([
@@ -196,8 +196,8 @@ class InfoControllerSpec extends Specification {
                     "buildServiceProvider": "JENKINS",
                     "permissions": {
                         "READ": [
-                            "group-1",
-                            "group-2"
+                            "group-2",
+                            "group-1"
                         ],
                         "WRITE": [
                             "group-2"
@@ -221,8 +221,8 @@ class InfoControllerSpec extends Specification {
                     "buildServiceProvider": "GCB",
                     "permissions": {
                         "READ": [
-                            "group-5",
-                            "group-6"
+                            "group-6",
+                            "group-5"
                         ],
                         "WRITE": [
                             "group-5"
