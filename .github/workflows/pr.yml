@@ -4,6 +4,7 @@ on: [ pull_request ]
 
 env:
   GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx2g -Xms2g
+  CONTAINER_REGISTRY: us-docker.pkg.dev/spinnaker-community/docker
 
 jobs:
   build:
@@ -15,5 +16,29 @@ jobs:
         java-version: 11
         distribution: 'zulu'
         cache: 'gradle'
+    - name: Extract repository name
+      id: extract_repo_name
+      run: echo ::set-output name=REPO::${GITHUB_REPOSITORY##*/}
     - name: Build
-      run: ./gradlew build
+      run: ./gradlew build ${{ steps.extract_repo_name.outputs.REPO }}-web:installDist
+    - name: Get date
+      id: get_date
+      run: echo ::set-output name=DATETIME::$(date --utc +'%Y%m%d%H%M')
+    - name: Build slim container image
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        file: Dockerfile.slim
+        tags: |
+          "${{ env.CONTAINER_REGISTRY }}/${{ steps.extract_repo_name.outputs.REPO }}:latest"
+          "${{ env.CONTAINER_REGISTRY }}/${{ steps.extract_repo_name.outputs.REPO }}:${{ github.sha }}-${{ steps.get_date.outputs.DATETIME }}"
+          "${{ env.CONTAINER_REGISTRY }}/${{ steps.extract_repo_name.outputs.REPO }}:latest-slim"
+          "${{ env.CONTAINER_REGISTRY }}/${{ steps.extract_repo_name.outputs.REPO }}:${{ github.sha }}-${{ steps.get_date.outputs.DATETIME }}-slim"
+    - name: Build ubuntu container image
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        file: Dockerfile.ubuntu
+        tags: |
+          "${{ env.CONTAINER_REGISTRY }}/${{ steps.extract_repo_name.outputs.REPO }}:latest-ubuntu"
+          "${{ env.CONTAINER_REGISTRY }}/${{ steps.extract_repo_name.outputs.REPO }}:${{ github.sha }}-${{ steps.get_date.outputs.DATETIME }}-ubuntu"
