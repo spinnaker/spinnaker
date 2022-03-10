@@ -14,7 +14,7 @@ subprojects {
     apply plugin: "groovy"
 
     dependencies {
-      implementation platform("io.spinnaker.kork:kork-bom:$korkVersion")
+      implementation enforcedPlatform("io.spinnaker.kork:kork-bom:$korkVersion")
 
       annotationProcessor platform("io.spinnaker.kork:kork-bom:$korkVersion")
       annotationProcessor "org.projectlombok:lombok"
