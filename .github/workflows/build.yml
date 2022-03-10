@@ -4,10 +4,11 @@ on:
   push:
     branches:
     - master
-    - version-*
+    - release-*
 
 env:
   GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx2g -Xms2g
+  CONTAINER_REGISTRY: us-docker.pkg.dev/spinnaker-community/docker
 
 jobs:
   branch-build:
@@ -21,5 +22,31 @@ jobs:
           java-version: 11
           distribution: 'zulu'
           cache: 'gradle'
+      - name: Extract repository name
+        id: extract_repo_name
+        run: echo ::set-output name=REPO::${GITHUB_REPOSITORY##*/}
       - name: Build
-        run: ./gradlew build --stacktrace
+        run: ./gradlew build --stacktrace ${{ steps.extract_repo_name.outputs.REPO }}-web:installDist"
+      - name: Get date
+        id: get_date
+        run: echo ::set-output name=DATETIME::$(date --utc +'%Y%m%d%H%M')
+      - name: Build and publish slim container image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: Dockerfile.slim
+          push: true
+          tags: |
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.extract_repo_name.outputs.REPO }}:${{ env.GITHUB_REF_NAME }}-latest-unvalidated"
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.extract_repo_name.outputs.REPO }}:${{ env.GITHUB_REF_NAME }}-${{ github.sha }}-${{ steps.get_date.outputs.DATETIME }}-unvalidated"
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.extract_repo_name.outputs.REPO }}:${{ env.GITHUB_REF_NAME }}-latest-unvalidated-slim"
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.extract_repo_name.outputs.REPO }}:${{ env.GITHUB_REF_NAME }}-${{ github.sha }}-${{ steps.get_date.outputs.DATETIME }}-unvalidated-slim"
+      - name: Build and publish ubuntu container image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: Dockerfile.ubuntu
+          push: true
+          tags: |
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.extract_repo_name.outputs.REPO }}:${{ env.GITHUB_REF_NAME }}-latest-unvalidated-ubuntu"
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.extract_repo_name.outputs.REPO }}:${{ env.GITHUB_REF_NAME }}-${{ github.sha }}-${{ steps.get_date.outputs.DATETIME }}-unvalidated-ubuntu"
