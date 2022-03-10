@@ -37,10 +37,10 @@ jobs:
           file: Dockerfile.slim
           push: true
           tags: |
-            "${{ env.CONTAINER_REGISTRY }}/${{ steps.extract_repo_name.outputs.REPO }}:${{ env.GITHUB_REF_NAME }}-latest-unvalidated"
-            "${{ env.CONTAINER_REGISTRY }}/${{ steps.extract_repo_name.outputs.REPO }}:${{ env.GITHUB_REF_NAME }}-${{ github.sha }}-${{ steps.get_date.outputs.DATETIME }}-unvalidated"
-            "${{ env.CONTAINER_REGISTRY }}/${{ steps.extract_repo_name.outputs.REPO }}:${{ env.GITHUB_REF_NAME }}-latest-unvalidated-slim"
-            "${{ env.CONTAINER_REGISTRY }}/${{ steps.extract_repo_name.outputs.REPO }}:${{ env.GITHUB_REF_NAME }}-${{ github.sha }}-${{ steps.get_date.outputs.DATETIME }}-unvalidated-slim"
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.extract_repo_name.outputs.REPO }}:${{ github.ref_name }}-latest-unvalidated"
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.extract_repo_name.outputs.REPO }}:${{ github.ref_name }}-${{ github.sha }}-${{ steps.get_date.outputs.DATETIME }}-unvalidated"
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.extract_repo_name.outputs.REPO }}:${{ github.ref_name }}-latest-unvalidated-slim"
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.extract_repo_name.outputs.REPO }}:${{ github.ref_name }}-${{ github.sha }}-${{ steps.get_date.outputs.DATETIME }}-unvalidated-slim"
       - name: Build and publish ubuntu container image
         uses: docker/build-push-action@v2
         with:
@@ -48,5 +48,5 @@ jobs:
           file: Dockerfile.ubuntu
           push: true
           tags: |
-            "${{ env.CONTAINER_REGISTRY }}/${{ steps.extract_repo_name.outputs.REPO }}:${{ env.GITHUB_REF_NAME }}-latest-unvalidated-ubuntu"
-            "${{ env.CONTAINER_REGISTRY }}/${{ steps.extract_repo_name.outputs.REPO }}:${{ env.GITHUB_REF_NAME }}-${{ github.sha }}-${{ steps.get_date.outputs.DATETIME }}-unvalidated-ubuntu"
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.extract_repo_name.outputs.REPO }}:${{ github.ref_name }}-latest-unvalidated-ubuntu"
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.extract_repo_name.outputs.REPO }}:${{ github.ref_name }}-${{ github.sha }}-${{ steps.get_date.outputs.DATETIME }}-unvalidated-ubuntu"
