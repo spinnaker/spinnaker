@@ -20,7 +20,7 @@ jobs:
       id: extract_repo_name
       run: echo ::set-output name=REPO::${GITHUB_REPOSITORY##*/}
     - name: Build
-      run: "./gradlew build ${{ steps.extract_repo_name.outputs.REPO }}-web:installDist"
+      run: ./gradlew build ${{ steps.extract_repo_name.outputs.REPO }}-web:installDist
     - name: Get date
       id: get_date
       run: echo ::set-output name=DATETIME::$(date --utc +'%Y%m%d%H%M')
