@@ -25,7 +25,7 @@ import com.netflix.spinnaker.clouddriver.config.AccountDefinitionConfiguration;
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinition;
 import com.netflix.spinnaker.fiat.model.Authorization;
 import io.spinnaker.test.security.TestAccount;
-import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -47,7 +47,7 @@ class AccountDefinitionMapperTest {
   void canConvertAdditionalAccountTypes() throws JsonProcessingException {
     var account = new TestAccount();
     account.setData("name", "foo");
-    account.getPermissions().add(Authorization.READ, List.of("dev", "sre"));
+    account.getPermissions().add(Authorization.READ, Set.of("dev", "sre"));
     account.getPermissions().add(Authorization.WRITE, "sre");
     account.setData("password", "hunter2");
     assertEquals(account, mapper.convertFromString(mapper.convertToString(account), "test"));
