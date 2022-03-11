@@ -57,8 +57,12 @@ public class StageExecutionImpl implements StageExecution, Serializable {
 
   private static final ULID ID_GENERATOR = new ULID();
 
-  /** Sorts stages into order according to their refIds / requisiteStageRefIds. */
-  public static Stream<StageExecution> topologicalSort(Collection<StageExecution> stages) {
+  /**
+   * Sorts stages into order according to their refIds / requisiteStageRefIds and returns the result
+   * as an ImmutableList.
+   */
+  public static ImmutableList<StageExecution> topologicalSortAsImmutableList(
+      Collection<StageExecution> stages) {
     List<StageExecution> unsorted =
         stages.stream().filter(it -> it.getParentStageId() == null).collect(toList());
     ImmutableList.Builder<StageExecution> sorted = ImmutableList.builder();
@@ -85,7 +89,12 @@ public class StageExecutionImpl implements StageExecution, Serializable {
             sorted.add(it);
           });
     }
-    return sorted.build().stream();
+    return sorted.build();
+  }
+
+  /** Sorts stages into order according to their refIds / requisiteStageRefIds. */
+  public static Stream<StageExecution> topologicalSort(Collection<StageExecution> stages) {
+    return topologicalSortAsImmutableList(stages).stream();
   }
 
   public StageExecutionImpl() {}
