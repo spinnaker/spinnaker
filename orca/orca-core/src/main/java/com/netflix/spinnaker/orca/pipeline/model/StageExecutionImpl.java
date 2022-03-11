@@ -46,6 +46,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -59,12 +60,36 @@ public class StageExecutionImpl implements StageExecution, Serializable {
 
   /**
    * Sorts stages into order according to their refIds / requisiteStageRefIds and returns the result
-   * as an ImmutableList.
+   * as an ImmutableList. This method does not exclude synthetic stages, i.e., stages having a
+   * non-null parent.
+   */
+  public static ImmutableList<StageExecution> topologicalSortAsImmutableListAllStages(
+      Collection<StageExecution> stages) {
+    return topologicalSort(stages, stage -> true);
+  }
+
+  /**
+   * Sorts stages into order according to their refIds / requisiteStageRefIds and returns the result
+   * as an ImmutableList.This excludes synthetic stages.
    */
   public static ImmutableList<StageExecution> topologicalSortAsImmutableList(
       Collection<StageExecution> stages) {
+    return topologicalSort(stages, it -> it.getParentStageId() == null);
+  }
+
+  /**
+   * Sorts the given stages into a topological order according to their refIds /
+   * requisiteStageRefIds and returns the result as an ImmutableList.
+   *
+   * @param stages the collection of StageExecution objects to be sorted
+   * @param stageFilter a predicate to filter the initial stages for sorting
+   * @return an ImmutableList of StageExecution objects sorted in topological order
+   * @throws IllegalStateException if there are invalid stage relationships
+   */
+  private static ImmutableList<StageExecution> topologicalSort(
+      Collection<StageExecution> stages, Predicate<StageExecution> stageFilter) {
     List<StageExecution> unsorted =
-        stages.stream().filter(it -> it.getParentStageId() == null).collect(toList());
+        stages.stream().filter(stageFilter).collect(Collectors.toList());
     ImmutableList.Builder<StageExecution> sorted = ImmutableList.builder();
     Set<String> refIds = new HashSet<>();
     while (!unsorted.isEmpty()) {
