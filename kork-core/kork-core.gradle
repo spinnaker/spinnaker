@@ -12,6 +12,7 @@ dependencies {
   api "org.springframework.boot:spring-boot-autoconfigure"
   api "org.springframework.boot:spring-boot-starter-aop"
   api "org.springframework.boot:spring-boot-starter-actuator"
+  api 'org.springframework.boot:spring-boot-starter-json'
   api "com.netflix.spectator:spectator-api"
   api "com.google.code.findbugs:jsr305"
   api "io.github.resilience4j:resilience4j-annotations"
