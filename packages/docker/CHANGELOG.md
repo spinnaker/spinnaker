@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.127](https://github.com/spinnaker/deck/compare/@spinnaker/docker@0.0.126...@spinnaker/docker@0.0.127) (2022-03-08)
+
+**Note:** Version bump only for package @spinnaker/docker
+
+
+
+
+
 ## [0.0.126](https://github.com/spinnaker/deck/compare/@spinnaker/docker@0.0.125...@spinnaker/docker@0.0.126) (2022-01-22)
 
 **Note:** Version bump only for package @spinnaker/docker

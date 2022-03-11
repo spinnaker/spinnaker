@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.343](https://github.com/spinnaker/deck/compare/@spinnaker/ecs@0.0.342...@spinnaker/ecs@0.0.343) (2022-03-08)
+
+**Note:** Version bump only for package @spinnaker/ecs
+
+
+
+
+
 ## [0.0.342](https://github.com/spinnaker/deck/compare/@spinnaker/ecs@0.0.341...@spinnaker/ecs@0.0.342) (2022-01-22)
 
 **Note:** Version bump only for package @spinnaker/ecs

@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.2.5](https://github.com/spinnaker/deck/compare/@spinnaker/scripts@0.2.4...@spinnaker/scripts@0.2.5) (2022-03-08)
+
+
+### Bug Fixes
+
+* **scripts:** update rollup-plugin-esbuild ([#9807](https://github.com/spinnaker/deck/issues/9807)) ([45ebc45](https://github.com/spinnaker/deck/commit/45ebc457fa4dbbad93cd9567fe31bd7d8cb2743b))
+
+
+
+
+
 ## [0.2.4](https://github.com/spinnaker/deck/compare/@spinnaker/scripts@0.2.3...@spinnaker/scripts@0.2.4) (2021-12-01)
 
 **Note:** Version bump only for package @spinnaker/scripts
