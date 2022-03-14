@@ -23,10 +23,10 @@ import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Search;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -42,13 +42,13 @@ public abstract class AbstractAddSearchCommand extends AbstractHasSearchCommand 
       variableArity = true,
       names = "--read-permissions",
       description = SearchCommandProperties.READ_PERMISSION_DESCRIPTION)
-  private List<String> readPermissions = new ArrayList<>();
+  private Set<String> readPermissions = new HashSet<>();
 
   @Parameter(
       variableArity = true,
       names = "--write-permissions",
       description = SearchCommandProperties.WRITE_PERMISSION_DESCRIPTION)
-  private List<String> writePermissions = new ArrayList<>();
+  private Set<String> writePermissions = new HashSet<>();
 
   protected abstract Search buildSearch(String searchName);
 

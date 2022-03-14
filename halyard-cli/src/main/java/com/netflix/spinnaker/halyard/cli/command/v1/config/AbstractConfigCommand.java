@@ -25,7 +25,9 @@ import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 
 @Parameters(separators = "=")
@@ -101,22 +103,63 @@ public abstract class AbstractConfigCommand extends NestableCommand {
     }
   }
 
+  /**
+   * Provides consistent update semantics for updating a set of entries given a new set, entries to
+   * remove, and entries to add.
+   *
+   * @param old is the prior set of entries - these are modified to addTo and removeFrom.
+   * @param setTo is a new set of entries. If provided, the old ones are discarded.
+   * @param addTo is a single entry to add to old.
+   * @param removeFrom is a single entry to remove from old.
+   * @return the updated set of entries.
+   * @throws IllegalArgumentException when setTo and (addTo or removeFrom) are provided.
+   */
+  private static Set<String> updateStringSet(
+      Set<String> old, Set<String> setTo, String addTo, String removeFrom) {
+    if (old == null) {
+      old = new HashSet<>();
+    }
+
+    boolean set = setTo != null && !setTo.isEmpty();
+    boolean add = addTo != null && !addTo.isEmpty();
+    boolean remove = removeFrom != null && !removeFrom.isEmpty();
+
+    if (set && (add || remove)) {
+      throw new IllegalArgumentException(
+          "If set is specified, neither addTo nor removeFrom can be specified");
+    }
+
+    if (set) {
+      return setTo;
+    } else {
+      if (add) {
+        old.add(addTo);
+      }
+
+      if (remove) {
+        old.remove(removeFrom);
+      }
+
+      return old;
+    }
+  }
+
   protected static void updatePermissions(
       Permissions.Builder permissions,
-      List<String> readPermissions,
+      Set<String> readPermissions,
       String addReadPermission,
       String removeReadPermission,
-      List<String> writePermissions,
+      Set<String> writePermissions,
       String addWritePermission,
       String removeWritePermission) {
-    List<String> resolvedReadPermissions =
-        updateStringList(
+    Set<String> resolvedReadPermissions =
+        updateStringSet(
             permissions.get(Authorization.READ),
             readPermissions,
             addReadPermission,
             removeReadPermission);
-    List<String> resolvedWritePermissions =
-        updateStringList(
+    Set<String> resolvedWritePermissions =
+        updateStringSet(
             permissions.get(Authorization.WRITE),
             writePermissions,
             addWritePermission,

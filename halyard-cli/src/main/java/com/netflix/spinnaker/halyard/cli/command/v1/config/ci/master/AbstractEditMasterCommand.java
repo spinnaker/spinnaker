@@ -25,8 +25,8 @@ import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.CIAccount;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -53,7 +53,7 @@ public abstract class AbstractEditMasterCommand<T extends CIAccount>
       variableArity = true,
       names = "--read-permissions",
       description = MasterCommandProperties.READ_PERMISSION_DESCRIPTION)
-  private List<String> readPermissions;
+  private Set<String> readPermissions;
 
   @Parameter(
       names = "--add-write-permission",
@@ -69,7 +69,7 @@ public abstract class AbstractEditMasterCommand<T extends CIAccount>
       variableArity = true,
       names = "--write-permissions",
       description = MasterCommandProperties.WRITE_PERMISSION_DESCRIPTION)
-  private List<String> writePermissions;
+  private Set<String> writePermissions;
 
   protected abstract CIAccount editMaster(T master);
 

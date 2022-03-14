@@ -24,10 +24,10 @@ import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.config.model.v1.node.CIAccount;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -43,13 +43,13 @@ public abstract class AbstractAddMasterCommand extends AbstractHasMasterCommand 
       variableArity = true,
       names = "--read-permissions",
       description = MasterCommandProperties.READ_PERMISSION_DESCRIPTION)
-  private List<String> readPermissions = new ArrayList<>();
+  private Set<String> readPermissions = new HashSet<>();
 
   @Parameter(
       variableArity = true,
       names = "--write-permissions",
       description = MasterCommandProperties.WRITE_PERMISSION_DESCRIPTION)
-  private List<String> writePermissions = new ArrayList<>();
+  private Set<String> writePermissions = new HashSet<>();
 
   protected abstract CIAccount buildMaster(String masterName);
 

@@ -24,8 +24,8 @@ import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Search;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -51,7 +51,7 @@ public abstract class AbstractEditSearchCommand<T extends Search> extends Abstra
       variableArity = true,
       names = "--read-permissions",
       description = SearchCommandProperties.READ_PERMISSION_DESCRIPTION)
-  private List<String> readPermissions;
+  private Set<String> readPermissions;
 
   @Parameter(
       names = "--add-write-permission",
@@ -67,7 +67,7 @@ public abstract class AbstractEditSearchCommand<T extends Search> extends Abstra
       variableArity = true,
       names = "--write-permissions",
       description = SearchCommandProperties.WRITE_PERMISSION_DESCRIPTION)
-  private List<String> writePermissions;
+  private Set<String> writePermissions;
 
   protected abstract Search editSearch(T search);
 
