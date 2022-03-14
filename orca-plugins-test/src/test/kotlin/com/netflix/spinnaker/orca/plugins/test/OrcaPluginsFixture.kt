@@ -97,7 +97,8 @@ class OrcaPluginsFixture : PluginsTckFixture, OrcaTestService() {
     plugins.mkdir()
     enabledPlugin = buildPlugin("com.netflix.orca.enabled.plugin", ">=1.0.0")
     disabledPlugin = buildPlugin("com.netflix.orca.disabled.plugin", ">=1.0.0")
-    versionNotSupportedPlugin = buildPlugin("com.netflix.orca.version.not.supported.plugin", ">=2.0.0")
+    // Make it very unlikely that the version of orca satisfies this requirement
+    versionNotSupportedPlugin = buildPlugin("com.netflix.orca.version.not.supported.plugin", "=0.0.9")
   }
 }
 
