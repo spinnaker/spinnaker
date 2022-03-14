@@ -65,7 +65,8 @@ class EchoPluginsFixture : PluginsTckFixture, EchoTestService() {
     plugins.mkdir()
     enabledPlugin = buildPlugin("com.netflix.echo.enabled.plugin", ">=1.0.0")
     disabledPlugin = buildPlugin("com.netflix.echo.disabled.plugin", ">=1.0.0")
-    versionNotSupportedPlugin = buildPlugin("com.netflix.echo.version.not.supported.plugin", ">=2.0.0")
+    // Make it very unlikely that the version of echo satisfies this requirement
+    versionNotSupportedPlugin = buildPlugin("com.netflix.echo.version.not.supported.plugin", "=0.0.9")
   }
 }
 
