@@ -49,14 +49,7 @@ import kotlinx.coroutines.runBlocking
 import strikt.api.Assertion
 import strikt.api.DescribeableBuilder
 import strikt.api.expectThat
-import strikt.assertions.containsExactly
-import strikt.assertions.get
-import strikt.assertions.hasSize
-import strikt.assertions.isEmpty
-import strikt.assertions.isEqualTo
-import strikt.assertions.isFalse
-import strikt.assertions.isNotNull
-import strikt.assertions.isTrue
+import strikt.assertions.*
 import java.util.UUID
 import io.mockk.coEvery as every
 import io.mockk.coVerify as verify
@@ -368,8 +361,12 @@ fun Assertion.Builder<DiffNode>.getChild(propertyName: String): Assertion.Builde
   }
 
 fun Assertion.Builder<DiffNode>.getChild(vararg selectors: ElementSelector): Assertion.Builder<DiffNode?> =
-  get("child node with path $path") {
-    getChild(selectors.toList())
+  runBlocking {
+    val pathBuilder = path
+    pathBuilder.isNotEqualTo(null)
+    get("child node with path $pathBuilder") {
+      getChild(selectors.toList())
+   }
   }
 
 val Assertion.Builder<DiffNode>.path: Assertion.Builder<NodePath>

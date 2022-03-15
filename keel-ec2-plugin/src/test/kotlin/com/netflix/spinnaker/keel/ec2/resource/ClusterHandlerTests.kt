@@ -61,23 +61,7 @@ import kotlinx.coroutines.runBlocking
 import strikt.api.Assertion
 import strikt.api.expectCatching
 import strikt.api.expectThat
-import strikt.assertions.all
-import strikt.assertions.any
-import strikt.assertions.containsExactly
-import strikt.assertions.containsExactlyInAnyOrder
-import strikt.assertions.containsKey
-import strikt.assertions.get
-import strikt.assertions.hasSize
-import strikt.assertions.isA
-import strikt.assertions.isEmpty
-import strikt.assertions.isEqualTo
-import strikt.assertions.isFalse
-import strikt.assertions.isNotEmpty
-import strikt.assertions.isNotNull
-import strikt.assertions.isNull
-import strikt.assertions.isSuccess
-import strikt.assertions.isTrue
-import strikt.assertions.map
+import strikt.assertions.*
 import java.time.Clock
 import java.time.Duration
 import java.util.UUID.randomUUID
@@ -739,7 +723,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
                       statistic = metricSpec.statistic
                     )
                   )
-              }
+              }.isNotEqualTo(null)
           }
         }
       }
