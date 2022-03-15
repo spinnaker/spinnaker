@@ -20,12 +20,6 @@ allprojects {
     }
     maven { url = uri("https://netflixoss.jfrog.io/artifactory/maven-oss-candidates") }
     mavenCentral()
-    jcenter() {
-      metadataSources {
-        artifact()
-        mavenPom()
-      }
-    }
   }
 
   if (name != "keel-bom") {
