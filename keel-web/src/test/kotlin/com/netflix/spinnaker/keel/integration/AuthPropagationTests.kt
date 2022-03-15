@@ -54,7 +54,7 @@ internal class AuthPropagationTests
     init {
       mockAccount.cloudProvider = "aws"
       mockAccount.name = "test"
-      mockAccount.permissions = Permissions.factory(mapOf(Authorization.READ to listOf("role")))
+      mockAccount.permissions = Permissions.factory(mapOf(Authorization.READ to setOf("role")))
       mockPermission.accounts = setOf(mockAccount)
     }
 
