@@ -63,7 +63,8 @@ class GatePluginsFixture : PluginsTckFixture, GateTestService() {
     plugins.mkdir()
     enabledPlugin = buildPlugin("com.netflix.gate.enabled.plugin", ">=1.0.0")
     disabledPlugin = buildPlugin("com.netflix.gate.disabled.plugin", ">=1.0.0")
-    versionNotSupportedPlugin = buildPlugin("com.netflix.gate.version.not.supported.plugin", ">=2.0.0")
+    // Make it very unlikely that the version of gate satisfies this requirement
+    versionNotSupportedPlugin = buildPlugin("com.netflix.gate.version.not.supported.plugin", "=0.0.9")
   }
 }
 
