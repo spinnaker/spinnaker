@@ -10,35 +10,34 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-java@v2
-      with:
-        java-version: 11
-        distribution: 'zulu'
-        cache: 'gradle'
-    - name: Extract repository name
-      id: extract_repo_name
-      run: echo ::set-output name=REPO::${GITHUB_REPOSITORY##*/}
-    - name: Build
-      run: ./gradlew build ${{ steps.extract_repo_name.outputs.REPO }}-web:installDist
-    - name: Get date
-      id: get_date
-      run: echo ::set-output name=DATETIME::$(date --utc +'%Y%m%d%H%M')
-    - name: Build slim container image
-      uses: docker/build-push-action@v2
-      with:
-        context: .
-        file: Dockerfile.slim
-        tags: |
-          "${{ env.CONTAINER_REGISTRY }}/${{ steps.extract_repo_name.outputs.REPO }}:latest"
-          "${{ env.CONTAINER_REGISTRY }}/${{ steps.extract_repo_name.outputs.REPO }}:${{ github.sha }}-${{ steps.get_date.outputs.DATETIME }}"
-          "${{ env.CONTAINER_REGISTRY }}/${{ steps.extract_repo_name.outputs.REPO }}:latest-slim"
-          "${{ env.CONTAINER_REGISTRY }}/${{ steps.extract_repo_name.outputs.REPO }}:${{ github.sha }}-${{ steps.get_date.outputs.DATETIME }}-slim"
-    - name: Build ubuntu container image
-      uses: docker/build-push-action@v2
-      with:
-        context: .
-        file: Dockerfile.ubuntu
-        tags: |
-          "${{ env.CONTAINER_REGISTRY }}/${{ steps.extract_repo_name.outputs.REPO }}:latest-ubuntu"
-          "${{ env.CONTAINER_REGISTRY }}/${{ steps.extract_repo_name.outputs.REPO }}:${{ github.sha }}-${{ steps.get_date.outputs.DATETIME }}-ubuntu"
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v2
+        with:
+          java-version: 11
+          distribution: 'zulu'
+          cache: 'gradle'
+      - name: Prepare build variables
+        id: build_variables
+        run: |
+          echo ::set-output name=REPO::${GITHUB_REPOSITORY##*/}
+          echo ::set-output name=VERSION::"$(git rev-parse --short HEAD)-$(date --utc +'%Y%m%d%H%M')"
+      - name: Build
+        run: ./gradlew build ${{ steps.build_variables.outputs.REPO }}-web:installDist
+      - name: Build slim container image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: Dockerfile.slim
+          tags: |
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:latest"
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.build_variables.outputs.VERSION }}"
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:latest-slim"
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.build_variables.outputs.VERSION }}-slim"
+      - name: Build ubuntu container image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: Dockerfile.ubuntu
+          tags: |
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:latest-ubuntu"
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.build_variables.outputs.VERSION }}-ubuntu"
