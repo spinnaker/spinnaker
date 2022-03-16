@@ -22,14 +22,15 @@ jobs:
           java-version: 11
           distribution: 'zulu'
           cache: 'gradle'
-      - name: Extract repository name
-        id: extract_repo_name
-        run: echo ::set-output name=REPO::${GITHUB_REPOSITORY##*/}
+      - name: Prepare build variables
+        id: build_variables
+        run: |
+          echo ::set-output name=REPO::${GITHUB_REPOSITORY##*/}
+          echo ::set-output name=VERSION::"${GITHUB_REF_NAME}-$(git rev-parse --short HEAD)-$(date --utc +'%Y%m%d%H%M')"
       - name: Build
-        run: ./gradlew build --stacktrace ${{ steps.extract_repo_name.outputs.REPO }}-web:installDist
-      - name: Get date
-        id: get_date
-        run: echo ::set-output name=DATETIME::$(date --utc +'%Y%m%d%H%M')
+        env:
+          ORG_GRADLE_PROJECT_version: ${{ steps.build_variables.outputs.VERSION }}
+        run: ./gradlew build --stacktrace ${{ steps.build_variables.outputs.REPO }}-web:installDist
       - name: Login to GAR
         # Only run this on repositories in the 'spinnaker' org, not on forks.
         if: startsWith(github.repository, 'spinnaker/')
@@ -48,10 +49,10 @@ jobs:
           file: Dockerfile.slim
           push: true
           tags: |
-            "${{ env.CONTAINER_REGISTRY }}/${{ steps.extract_repo_name.outputs.REPO }}:${{ github.ref_name }}-latest-unvalidated"
-            "${{ env.CONTAINER_REGISTRY }}/${{ steps.extract_repo_name.outputs.REPO }}:${{ github.ref_name }}-${{ github.sha }}-${{ steps.get_date.outputs.DATETIME }}-unvalidated"
-            "${{ env.CONTAINER_REGISTRY }}/${{ steps.extract_repo_name.outputs.REPO }}:${{ github.ref_name }}-latest-unvalidated-slim"
-            "${{ env.CONTAINER_REGISTRY }}/${{ steps.extract_repo_name.outputs.REPO }}:${{ github.ref_name }}-${{ github.sha }}-${{ steps.get_date.outputs.DATETIME }}-unvalidated-slim"
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ github.ref_name }}-latest-unvalidated"
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.build_variables.outputs.VERSION }}-unvalidated"
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ github.ref_name }}-latest-unvalidated-slim"
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.build_variables.outputs.VERSION }}-unvalidated-slim"
       - name: Build and publish ubuntu container image
         # Only run this on repositories in the 'spinnaker' org, not on forks.
         if: startsWith(github.repository, 'spinnaker/')
@@ -61,5 +62,5 @@ jobs:
           file: Dockerfile.ubuntu
           push: true
           tags: |
-            "${{ env.CONTAINER_REGISTRY }}/${{ steps.extract_repo_name.outputs.REPO }}:${{ github.ref_name }}-latest-unvalidated-ubuntu"
-            "${{ env.CONTAINER_REGISTRY }}/${{ steps.extract_repo_name.outputs.REPO }}:${{ github.ref_name }}-${{ github.sha }}-${{ steps.get_date.outputs.DATETIME }}-unvalidated-ubuntu"
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ github.ref_name }}-latest-unvalidated-ubuntu"
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.build_variables.outputs.VERSION }}-unvalidated-ubuntu"
