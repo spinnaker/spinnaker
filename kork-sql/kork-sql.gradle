@@ -12,6 +12,8 @@ dependencies {
   api "org.liquibase:liquibase-core"
   api "com.zaxxer:HikariCP"
 
+  implementation 'com.github.blagerweij:liquibase-sessionlock:1.5.0'
+
   testImplementation "org.springframework.boot:spring-boot-starter-actuator"
   testImplementation "org.springframework.boot:spring-boot-starter-web"
   testImplementation "org.springframework.boot:spring-boot-starter-test"
