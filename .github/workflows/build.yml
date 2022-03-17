@@ -17,6 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - uses: actions/setup-java@v2
         with:
           java-version: 11
@@ -26,7 +28,7 @@ jobs:
         id: build_variables
         run: |
           echo ::set-output name=REPO::${GITHUB_REPOSITORY##*/}
-          echo ::set-output name=VERSION::"${GITHUB_REF_NAME}-$(git rev-parse --short HEAD)-$(date --utc +'%Y%m%d%H%M')"
+          echo ::set-output name=VERSION::"$(git describe --tags --abbrev=0 --match="v[0-9]*" | cut -c2-)-dev-${GITHUB_REF_NAME}-$(git rev-parse --short HEAD)-$(date --utc +'%Y%m%d%H%M')"
       - name: Build
         env:
           ORG_GRADLE_PROJECT_version: ${{ steps.build_variables.outputs.VERSION }}
