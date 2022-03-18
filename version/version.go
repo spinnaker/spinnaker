@@ -14,25 +14,13 @@
 
 package version
 
-import (
-	"fmt"
-)
-
 // Main version number being run right now.
-var Version = ""
-
-// A pre-release marker for the version. If this is an empty string,
-// then the release is a final release. Otherwise this is a pre-release
-// version e.g. "dev", "alpha", etc.
-var ReleasePhase = "dev"
+var Version = "dev"
 
 // User Agent name set in requests.
 const UserAgent = "Spin-CLI"
 
 // String prints the version of the Spin CLI.
 func String() string {
-	if ReleasePhase != "" {
-		return fmt.Sprintf("%s-%s", Version, ReleasePhase)
-	}
 	return Version
 }
