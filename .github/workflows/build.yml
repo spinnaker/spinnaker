@@ -88,5 +88,6 @@ jobs:
           build-args: |
             "VERSION=${{ steps.build_variables.outputs.VERSION }}"
           tags: |
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:latest"
             "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ github.ref_name }}-latest"
             "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.build_variables.outputs.VERSION }}"

@@ -1,5 +1,5 @@
 FROM golang:1.15 as build
-ARG VERSION
+ARG VERSION=dev
 
 WORKDIR /app
 COPY ./ ./
@@ -17,4 +17,8 @@ RUN apk update \
 
 COPY --from=build /app/spin /usr/local/bin
 
-CMD ["/bin/sh"]
+RUN addgroup -S -g 10111 spinnaker
+RUN adduser -S -G spinnaker -u 10111 spinnaker
+USER spinnaker
+
+ENTRYPOINT ["spin"]
