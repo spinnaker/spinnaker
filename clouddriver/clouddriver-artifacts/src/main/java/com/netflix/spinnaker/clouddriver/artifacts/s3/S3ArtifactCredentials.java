@@ -34,7 +34,10 @@ import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.io.InputStream;
+import java.net.URI;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 import javax.annotation.Nullable;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -88,7 +91,8 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
     this.s3ArtifactValidator = s3ArtifactValidator;
     this.amazonS3 = amazonS3;
     this.s3ArtifactProviderProperties = s3ArtifactProviderProperties;
-    s3ArtifactRequestHandler = new S3ArtifactRequestHandler(name);
+    s3ArtifactRequestHandler =
+        new S3ArtifactRequestHandler(name, this.s3ArtifactProviderProperties);
   }
 
   private AmazonS3 getS3Client() {
@@ -206,10 +210,18 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
   @NonnullByDefault
   static class S3ArtifactRequestHandler extends RequestHandler2 {
 
-    private final String value;
+    /** The artifact account name */
+    private final String name;
 
-    S3ArtifactRequestHandler(String value) {
-      this.value = value;
+    private final S3ArtifactProviderProperties s3ArtifactProviderProperties;
+
+    /** To prevent logging the same endpoint multiple times */
+    private final Set<URI> endpoints = new HashSet();
+
+    S3ArtifactRequestHandler(
+        String name, S3ArtifactProviderProperties s3ArtifactProviderProperties) {
+      this.name = name;
+      this.s3ArtifactProviderProperties = s3ArtifactProviderProperties;
     }
 
     @Override
@@ -220,7 +232,16 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
       // https://github.com/Netflix/spectator/blob/v1.0.6/spectator-ext-aws/src/main/java/com/netflix/spectator/aws/SpectatorRequestMetricCollector.java#L108
       // and
       // https://github.com/Netflix/spectator/blob/v1.0.6/spectator-ext-aws/src/main/java/com/netflix/spectator/aws/SpectatorRequestMetricCollector.java#L177-L186.
-      request.addHandlerContext(SpectatorRequestMetricCollector.DEFAULT_HANDLER_CONTEXT_KEY, value);
+      request.addHandlerContext(SpectatorRequestMetricCollector.DEFAULT_HANDLER_CONTEXT_KEY, name);
+
+      if (s3ArtifactProviderProperties.isLogEndpoints()
+          && !endpoints.contains(request.getEndpoint())) {
+        log.info(
+            "S3ArtifactRequestHandler::beforeRequest: name: {}, endpoint: '{}'",
+            name,
+            request.getEndpoint().toString());
+        endpoints.add(request.getEndpoint());
+      }
     }
   }
 }

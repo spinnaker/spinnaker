@@ -108,7 +108,8 @@ class S3ArtifactCredentialsTest {
                 new AWSStaticCredentialsProvider(
                     new BasicAWSCredentials(localstack.getAccessKey(), localstack.getSecretKey())))
             .withRequestHandlers(
-                new S3ArtifactCredentials.S3ArtifactRequestHandler(account.getName()))
+                new S3ArtifactCredentials.S3ArtifactRequestHandler(
+                    account.getName(), new S3ArtifactProviderProperties()))
             .build();
 
     // Create a bucket so there's a place to retrieve from
