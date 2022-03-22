@@ -30,8 +30,14 @@ node {
     download = true
 }
 
+task modules(type: YarnTask) {
+  dependsOn "yarn"
+  yarnCommand = ["modules"]
+}
+
 task webpack(type: YarnTask) {
   dependsOn "yarn"
+  dependsOn "modules"
   dependsOn "test"
 
   yarnCommand = ["build"]
@@ -52,6 +58,7 @@ task copyFavicon(type: Copy) {
 
 task karma(type: YarnTask) {
   dependsOn "yarn"
+  dependsOn "modules"
 
   yarnCommand = ["test"]
   args = ["--single-run", "--reporters", "dots"]
@@ -63,6 +70,7 @@ task karma(type: YarnTask) {
 
 task functionalTests(type: YarnTask) {
   dependsOn "yarn"
+  dependsOn "modules"
 
   yarnCommand = ["functional"]
 }
@@ -76,8 +84,8 @@ task generateVersionFile {
     ]
     def buildJson = JsonOutput.prettyPrint(JsonOutput.toJson(buildInfo))
     mkdir "build/webpack"
-    new File(Paths.get("build", "webpack", "version.json").toString()).write(buildJson)
-    new File("version.json").write(buildJson)
+    file(Paths.get("build", "webpack", "version.json")).write(buildJson)
+    file("version.json").write(buildJson)
   }
 }
 
