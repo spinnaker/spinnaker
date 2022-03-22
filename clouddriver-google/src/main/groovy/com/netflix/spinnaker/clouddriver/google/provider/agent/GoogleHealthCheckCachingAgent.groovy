@@ -148,7 +148,7 @@ class GoogleHealthCheckCachingAgent extends AbstractGoogleCachingAgent {
       { HealthCheckList list -> list.getItems() },
       "compute.healthChecks.list", TAG_SCOPE, SCOPE_GLOBAL
     )
-    ret.addAll(healthChecks.collect { toGoogleHealthCheck(it, "global") })
+    ret.addAll(healthChecks.findResults { toGoogleHealthCheck(it, "global") })
     def cachingAgent = this
     credentials.regions.collect { it.name }.each { String region ->
       List<HealthCheck> regionHealthChecks = new PaginatedRequest<HealthCheckList>(cachingAgent) {
@@ -166,7 +166,7 @@ class GoogleHealthCheckCachingAgent extends AbstractGoogleCachingAgent {
           { HealthCheckList list -> list.getItems() },
           "compute.regionHealthChecks.list", TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region
         )
-      ret.addAll(regionHealthChecks.collect { toGoogleHealthCheck(it, region) })
+      ret.addAll(regionHealthChecks.findResults { toGoogleHealthCheck(it, region) })
     }
     ret
   }
@@ -186,32 +186,63 @@ class GoogleHealthCheckCachingAgent extends AbstractGoogleCachingAgent {
     // Health checks of kind 'healthCheck' are all nested -- the actual health check is contained
     // in a field inside a wrapper HealthCheck object. The wrapper object specifies the type of nested
     // health check as a string, and the proper field is populated based on the type.
+    Integer port
     switch(hc.getType()) {
       case 'HTTP':
+        port = hc.getHttpHealthCheck().getPort()
+        if (port == null) {
+          log.warn("HTTP health check ${hc.getName()} has a null port, ignoring.")
+          return null
+        }
+
         newHC.healthCheckType = GoogleHealthCheck.HealthCheckType.HTTP
-        newHC.port = hc.getHttpHealthCheck().getPort()
+        newHC.port = port
         newHC.requestPath = hc.getHttpHealthCheck().getRequestPath()
         break
       case 'HTTPS':
+        port = hc.getHttpsHealthCheck().getPort()
+        if (port == null) {
+          log.warn("HTTPS health check ${hc.getName()} has a null port, ignoring.")
+          return null
+        }
+
         newHC.healthCheckType = GoogleHealthCheck.HealthCheckType.HTTPS
-        newHC.port = hc.getHttpsHealthCheck().getPort()
+        newHC.port = port
         newHC.requestPath = hc.getHttpsHealthCheck().getRequestPath()
         break
       case 'TCP':
+        port = hc.getTcpHealthCheck().getPort()
+        if (port == null) {
+          log.warn("TCP health check ${hc.getName()} has a null port, ignoring.")
+          return null
+        }
+
         newHC.healthCheckType = GoogleHealthCheck.HealthCheckType.TCP
-        newHC.port = hc.getTcpHealthCheck().getPort()
+        newHC.port = port
         break
       case 'SSL':
+        port = hc.getSslHealthCheck().getPort()
+        if (port == null) {
+          log.warn("SSL health check ${hc.getName()} has a null port, ignoring.")
+          return null
+        }
+
         newHC.healthCheckType = GoogleHealthCheck.HealthCheckType.SSL
-        newHC.port = hc.getSslHealthCheck().getPort()
+        newHC.port = port
         break
       case 'UDP':
+        port = hc.getUdpHealthCheck().getPort()
+        if (port == null) {
+          log.warn("UDP health check ${hc.getName()} has a null port, ignoring.")
+          return null
+        }
+
         newHC.healthCheckType = GoogleHealthCheck.HealthCheckType.UDP
-        newHC.port = hc.getUdpHealthCheck().getPort()
+        newHC.port = port
         break
       default:
         log.warn("Health check ${hc.getName()} has unknown type ${hc.getType()}.")
-        return
+        return null
         break
     }
     return newHC
