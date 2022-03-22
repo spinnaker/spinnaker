@@ -1,0 +1,100 @@
+name: Release
+
+on:
+  push:
+    tags:
+    - "v[0-9]+.[0-9]+.[0-9]+"
+    - "v[0-9]+.[0-9]+.[0-9]+-rc.[0-9]+"
+
+env:
+  GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx2g -Xms2g
+  CONTAINER_REGISTRY: us-docker.pkg.dev/spinnaker-community/docker
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v2
+        with:
+          java-version: 11
+          distribution: 'zulu'
+          cache: 'gradle'
+      - name: Assemble release info
+        id: release_info
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          . .github/workflows/release_info.sh ${{ github.event.repository.full_name }}
+          echo ::set-output name=CHANGELOG::$(echo -e "${CHANGELOG}")
+          echo ::set-output name=SKIP_RELEASE::${SKIP_RELEASE}
+          echo ::set-output name=IS_CANDIDATE::${IS_CANDIDATE}
+          echo ::set-output name=RELEASE_VERSION::${RELEASE_VERSION}
+      - name: Prepare build variables
+        id: build_variables
+        run: |
+          echo ::set-output name=REPO::${GITHUB_REPOSITORY##*/}
+          echo ::set-output name=VERSION::"$(git rev-parse --short HEAD)-$(date --utc +'%Y%m%d%H%M')"
+      - name: Release build
+        env:
+          ORG_GRADLE_PROJECT_version: ${{ steps.release_info.outputs.RELEASE_VERSION }}
+          ORG_GRADLE_PROJECT_nexusPublishEnabled: true
+          ORG_GRADLE_PROJECT_nexusUsername: ${{ secrets.NEXUS_USERNAME }}
+          ORG_GRADLE_PROJECT_nexusPassword: ${{ secrets.NEXUS_PASSWORD }}
+          ORG_GRADLE_PROJECT_nexusPgpSigningKey: ${{ secrets.NEXUS_PGP_SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_nexusPgpSigningPassword: ${{ secrets.NEXUS_PGP_SIGNING_PASSWORD }}
+        run: |
+          ./gradlew --info build
+      - name: Publish apt packages to Google Artifact Registry
+        env:
+          ORG_GRADLE_PROJECT_version: ${{ steps.release_info.outputs.RELEASE_VERSION }}
+          ORG_GRADLE_PROJECT_artifactRegistryPublishEnabled: true
+          GAR_JSON_KEY: ${{ secrets.GAR_JSON_KEY }}
+        run: |
+          ./gradlew --info publishDebToArtifactRegistry
+      - name: Login to GAR
+        # Only run this on repositories in the 'spinnaker' org, not on forks.
+        if: startsWith(github.repository, 'spinnaker/')
+        uses: docker/login-action@v1
+        # use service account flow defined at: https://github.com/docker/login-action#service-account-based-authentication-1
+        with:
+          registry: us-docker.pkg.dev
+          username: _json_key
+          password: ${{ secrets.GAR_JSON_KEY }}
+      - name: Build and publish slim container image
+        # Only run this on repositories in the 'spinnaker' org, not on forks.
+        if: startsWith(github.repository, 'spinnaker/')
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: Dockerfile.slim
+          push: true
+          tags: |
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.release_info.outputs.RELEASE_VERSION }}-unvalidated"
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.release_info.outputs.RELEASE_VERSION }}-unvalidated-slim"
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.release_info.outputs.RELEASE_VERSION }}-${{ steps.build_variables.outputs.VERSION }}-unvalidated-slim"
+      - name: Build and publish ubuntu container image
+        # Only run this on repositories in the 'spinnaker' org, not on forks.
+        if: startsWith(github.repository, 'spinnaker/')
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: Dockerfile.ubuntu
+          push: true
+          tags: |
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.release_info.outputs.RELEASE_VERSION }}-unvalidated-ubuntu"
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.release_info.outputs.RELEASE_VERSION }}-${{ steps.build_variables.outputs.VERSION }}-unvalidated-ubuntu"
+      - name: Create release
+        if: steps.release_info.outputs.SKIP_RELEASE == 'false'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.event.repository.name }} ${{ github.ref }}
+          body: |
+            ${{ steps.release_info.outputs.CHANGELOG }}
+          draft: false
+          prerelease: ${{ steps.release_info.outputs.IS_CANDIDATE }}

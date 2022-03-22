@@ -1,63 +1,73 @@
 queue_rules:
   - name: default
     conditions:
-      - status-success=Deck CI
+      - status-success=build
 
 pull_request_rules:
   - name: Automatically merge on CI success and review
     conditions:
-      - 'label=ready to merge'
-      - 'approved-reviews-by=@oss-approvers'
       - base=master
-      - status-success=Deck CI
+      - status-success=build
+      - "label=ready to merge"
+      - "approved-reviews-by=@oss-approvers"
     actions:
       queue:
         method: squash
         name: default
-  - name: Automatically self merge on CI success
-    conditions:
-      - 'label=ready to merge'
-      - 'label=self merge'
-      - base=master
-      - status-success=Deck CI
-    actions:
-      queue:
-        method: squash
-        name: default
-  - name: Automatically rebase and merge on CI success and review
-    conditions:
-      - 'label=ready to rebase'
-      - 'approved-reviews-by=@oss-approvers'
-      - base=master
-      - status-success=Deck CI
-    actions:
-      queue:
-        method: rebase
-        name: default
-  - name: Automatically rebase and self merge on CI success
-    conditions:
-      - 'label=ready to rebase'
-      - 'label=self merge'
-      - base=master
-      - status-success=Deck CI
-    actions:
-      queue:
-        method: rebase
-        name: default
+      label:
+        add: ["auto merged"]
   - name: Automatically merge release branch changes on CI success and release manager review
     conditions:
-      - 'label=ready to merge'
-      - 'approved-reviews-by=@release-managers'
       - base~=^release-
-      - status-success=Deck CI
+      - status-success=build
+      - "label=ready to merge"
+      - "approved-reviews-by=@release-managers"
     actions:
       queue:
         method: squash
         name: default
+      label:
+        add: ["auto merged"]
+  - name: Automatically self merge on CI success
+    conditions:
+      - base=master
+      - status-success=build
+      - "label=ready to merge"
+      - "label=self merge"
+    actions:
+      queue:
+        method: squash
+        name: default
+      label:
+        add: ["auto merged"]
+  - name: Automatically rebase and merge on CI success and review
+    conditions:
+      - base=master
+      - status-success=build
+      - "label=ready to rebase"
+      - "approved-reviews-by=@oss-approvers"
+    actions:
+      queue:
+        method: rebase
+        name: default
+      label:
+        add: ["auto merged"]
+  - name: Automatically rebase and self merge on CI success
+    conditions:
+      - "label=ready to rebase"
+      - "label=self merge"
+      - base=master
+      - status-success=build
+    actions:
+      queue:
+        method: rebase
+        name: default
+      label:
+        add: ["auto merged"]
   - name: Automatically merge autobump PRs on CI success
     conditions:
       - base=master
-      - status-success=Deck CI
+      - status-success=build
       - "label~=autobump-*"
       - "author:spinnakerbot"
     actions:
@@ -69,7 +79,7 @@ pull_request_rules:
   - name: Request reviews for autobump PRs on CI failure
     conditions:
       - base=master
-      - status-failure=Deck CI
+      - status-failure=build
       - "label~=autobump-*"
       - base=master
     actions:
