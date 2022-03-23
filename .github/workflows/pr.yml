@@ -5,6 +5,7 @@ on: [ pull_request ]
 env:
   GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx2g -Xms2g
   CONTAINER_REGISTRY: us-docker.pkg.dev/spinnaker-community/docker
+  NODE_VERSION: 12.16.0
 
 jobs:
   build:

@@ -11,6 +11,9 @@ on:
     tags:
       - '@spinnaker/*'
 
+env:
+  NODE_VERSION: 12.16.0
+
 jobs:
   build:
     # Only run this on repositories in the 'spinnaker' org, not on forks.
@@ -29,7 +32,6 @@ jobs:
           git checkout master
 
       - uses: actions/setup-node@v1
-        name: node - setup
         with:
           node-version: ${{ env.NODE_VERSION  }}
 
