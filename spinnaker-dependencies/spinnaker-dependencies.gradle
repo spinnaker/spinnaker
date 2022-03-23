@@ -58,6 +58,7 @@ dependencies {
   api(platform("org.jetbrains.kotlin:kotlin-bom:$kotlinVersion"))
   api(platform("org.junit:junit-bom:5.6.3"))
   api(platform("com.fasterxml.jackson:jackson-bom:2.12.3"))
+  api(platform("io.zipkin.brave:brave-bom:${versions.brave}"))
   api(platform("org.springframework:spring-framework-bom:${versions.spring}"))
   api(platform("org.springframework.boot:spring-boot-dependencies:${versions.springBoot}"))
   api(platform("com.amazonaws:aws-java-sdk-bom:${versions.aws}"))
@@ -178,6 +179,5 @@ dependencies {
     api("org.apache.tomcat.embed:tomcat-embed-core:${versions.tomcat}")
     api("org.apache.tomcat.embed:tomcat-embed-el:${versions.tomcat}")
     api("org.apache.tomcat.embed:tomcat-embed-websocket:${versions.tomcat}")
-    api("io.zipkin.brave:brave-instrumentation-okhttp3:${versions.brave}")
   }
 }
