@@ -29,8 +29,6 @@ import com.netflix.spinnaker.security.User
 import io.swagger.annotations.ApiOperation
 import io.swagger.annotations.ApiParam
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.security.access.prepost.PostFilter
-import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -94,7 +92,6 @@ class CredentialsController {
 
   @GetMapping('/type/{accountType}')
   @ApiOperation('Looks up account definitions by type.')
-  @PostFilter("hasPermission(filterObject.name, 'ACCOUNT', 'WRITE')")
   @Alpha
   List<ClouddriverService.AccountDefinition> getAccountsByType(
     @ApiParam(value = 'Value of the "@type" key for accounts to search for.', example = 'kubernetes')
@@ -109,10 +106,9 @@ class CredentialsController {
 
   @PostMapping
   @ApiOperation('Creates a new account definition.')
-  @PreAuthorize('isAuthenticated()')
   @Alpha
   ClouddriverService.AccountDefinition createAccount(
-    @ApiParam('Account definition body including a discriminator field named "@type" with the account type.')
+    @ApiParam('Account definition body including a discriminator field named "type" with the account type.')
     @RequestBody ClouddriverService.AccountDefinition accountDefinition
   ) {
     clouddriverService.createAccountDefinition(accountDefinition)
@@ -120,19 +116,16 @@ class CredentialsController {
 
   @PutMapping
   @ApiOperation('Updates an existing account definition.')
-  @PreAuthorize("hasPermission(#accountDefinition.name, 'ACCOUNT', 'WRITE')")
   @Alpha
   ClouddriverService.AccountDefinition updateAccount(
-    @ApiParam('Account definition body including a discriminator field named "@type" with the account type.')
+    @ApiParam('Account definition body including a discriminator field named "type" with the account type.')
     @RequestBody ClouddriverService.AccountDefinition accountDefinition
   ) {
     clouddriverService.updateAccountDefinition(accountDefinition)
   }
 
   @DeleteMapping('/{accountName}')
-  @ApiOperation(value = 'Deletes an account definition by name.',
-    notes = 'Deleted accounts can be restored via the update API. Previously deleted accounts cannot be "created" again to avoid conflicts with existing pipelines.')
-  @PreAuthorize("hasPermission(#accountName, 'ACCOUNT', 'WRITE')")
+  @ApiOperation('Deletes an account definition by name.')
   @Alpha
   void deleteAccount(
     @ApiParam('Name of account definition to delete.')
