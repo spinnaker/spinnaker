@@ -79,7 +79,7 @@ jobs:
 
             ---
 
-            This Pr bumps each package to the next semver version (patch/minor/major) based on the commit messages of unpublished changes using [Conventional Commits](https://conventionalcommits.org).
+            This PR bumps each package to the next semver version (patch/minor/major) based on the commit messages of unpublished changes using [Conventional Commits](https://conventionalcommits.org).
 
               - fix: patch release
               - feat: minor release

@@ -1,13 +1,12 @@
-plugins {
-  id "io.spinnaker.artifactregistry-publish" version "$spinnakerGradleVersion"
-  id "nebula.node" version "1.3.1"
-}
-
 import java.nio.file.Paths
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import org.redline_rpm.header.Flags
 
+plugins {
+  id "io.spinnaker.artifactregistry-publish" version "$spinnakerGradleVersion"
+  id "nebula.node" version "1.3.1"
+}
 
 group = "com.netflix.spinnaker.deck"
 apply plugin: "nebula.ospackage"
@@ -27,32 +26,48 @@ node {
 
 task modules(type: YarnTask) {
   dependsOn "yarn"
+
   yarnCommand = ["modules"]
 }
 
-task webpack(type: YarnTask) {
-  dependsOn "yarn"
+task eslintPluginCompile(type: YarnTask) {
   dependsOn "modules"
-  dependsOn "test"
 
-  yarnCommand = ["build"]
-  environment = [
-    "NODE_ENV": "production",
-    "GATE_HOST": "spinnaker-api-prestaging.prod.netflix.net",
-    "NODE_OPTIONS": "--max_old_space_size=8192",
-  ]
+  workingDir = file(Paths.get("packages", "eslint-plugin"))
+  yarnCommand = ["tsc"]
 }
 
-task copyFavicon(type: Copy) {
-  dependsOn "webpack"
+task eslintPluginTest(type: YarnTask) {
+  dependsOn "eslintPluginCompile"
 
-  from "packages/app/icons/prod-favicon.ico"
-  into "build/webpack"
-  rename "prod-favicon.ico", "favicon.ico"
+  workingDir = file(Paths.get("packages", "eslint-plugin"))
+  yarnCommand = ["test"]
+}
+
+project.tasks.register('eslintPlugin') {
+  dependsOn 'eslintPluginCompile'
+  dependsOn 'eslintPluginTest'
+}
+
+task lint(type: YarnTask) {
+  dependsOn "eslintPlugin"
+
+  yarnCommand = ["lint"]
+}
+
+task prettier(type: YarnTask) {
+  dependsOn "eslintPlugin"
+  dependsOn "lint"
+
+  yarnCommand = ["prettier:check"]
+}
+
+project.tasks.register('runLinters') {
+  dependsOn "lint"
+  dependsOn "prettier"
 }
 
 task karma(type: YarnTask) {
-  dependsOn "yarn"
   dependsOn "modules"
 
   yarnCommand = ["test"]
@@ -64,10 +79,42 @@ task karma(type: YarnTask) {
 }
 
 task functionalTests(type: YarnTask) {
-  dependsOn "yarn"
   dependsOn "modules"
+  dependsOn "karma"
 
   yarnCommand = ["functional"]
+
+  if (project.hasProperty('skipTests')) {
+    functionalTests.enabled = false
+  }
+}
+
+project.tasks.register('test') {
+  dependsOn 'karma'
+  dependsOn 'functionalTests'
+}
+
+task webpack(type: YarnTask) {
+  dependsOn "yarn"
+  dependsOn "modules"
+  dependsOn "runLinters"
+  dependsOn "test"
+
+  yarnCommand = ["build"]
+  environment = [
+    "NODE_ENV": "production",
+    "GATE_HOST": "spinnaker-api-prestaging.prod.netflix.net",
+    "NODE_OPTIONS": "--max_old_space_size=8192",
+  ]
+}
+webpack.outputs.dir file('build/webpack')
+
+task copyFavicon(type: Copy) {
+  dependsOn "webpack"
+
+  from "packages/app/icons/prod-favicon.ico"
+  into "build/webpack"
+  rename "prod-favicon.ico", "favicon.ico"
 }
 
 task generateVersionFile {
@@ -83,13 +130,8 @@ task generateVersionFile {
     file("version.json").write(buildJson)
   }
 }
-
-webpack.outputs.dir file('build/webpack')
-
 yarn.dependsOn 'generateVersionFile'
-project.tasks.register('test') {
-  dependsOn 'karma'
-}
+
 buildDeb.dependsOn 'copyFavicon'
 buildRpm.dependsOn 'webpack'
 build.dependsOn 'buildDeb'

@@ -24,49 +24,35 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ env.NODE_VERSION  }}
+
       - name: Get yarn cache
         id: yarn-cache
         run: echo "::set-output name=dir::$(yarn cache dir)"
+
       - uses: actions/cache@v1
         with:
           path: ${{ steps.yarn-cache.outputs.dir }}
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
-      - name: Install Dependencies
-        run: yarn --frozen-lockfile
-      - name: Eslint Plugin Build
-        run: |
-          cd packages/eslint-plugin
-          yarn tsc
-          yarn test
-      - name: Assert - no lint violations
-        run: yarn lint
-      - name: Assert - code is formatted
-        run: yarn prettier:check
-      - name: Build Modules
-        run: yarn modules
-      - name: Unit Tests
-        run: yarn test --single-run
-      - name: Functional Tests
-        run: yarn functional
-      - name: Yarn Build
-        run: yarn build
 
       - uses: actions/setup-java@v2
         with:
           java-version: 11
           distribution: 'zulu'
           cache: 'gradle'
+
       - name: Prepare build variables
         id: build_variables
         run: |
           echo ::set-output name=REPO::${GITHUB_REPOSITORY##*/}
           echo ::set-output name=VERSION::"$(git describe --tags --abbrev=0 --match="v[0-9]*" | cut -c2-)-dev-${GITHUB_REF_NAME}-$(git rev-parse --short HEAD)-$(date --utc +'%Y%m%d%H%M')"
+
       - name: Build
         env:
           ORG_GRADLE_PROJECT_version: ${{ steps.build_variables.outputs.VERSION }}
         run: ./gradlew build --stacktrace
+
       - name: Login to GAR
         # Only run this on repositories in the 'spinnaker' org, not on forks.
         if: startsWith(github.repository, 'spinnaker/')
@@ -76,6 +62,7 @@ jobs:
           registry: us-docker.pkg.dev
           username: _json_key
           password: ${{ secrets.GAR_JSON_KEY }}
+
       - name: Build and publish slim container image
         # Only run this on repositories in the 'spinnaker' org, not on forks.
         if: startsWith(github.repository, 'spinnaker/')
@@ -89,6 +76,7 @@ jobs:
             "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.build_variables.outputs.VERSION }}-unvalidated"
             "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ github.ref_name }}-latest-unvalidated-slim"
             "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.build_variables.outputs.VERSION }}-unvalidated-slim"
+
       - name: Build and publish ubuntu container image
         # Only run this on repositories in the 'spinnaker' org, not on forks.
         if: startsWith(github.repository, 'spinnaker/')
