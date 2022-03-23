@@ -22,6 +22,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.Exec
+import org.gradle.internal.os.OperatingSystem;
 
 /**
  * Gradle plugin to support spinnaker UI plugin bundling aspects.
@@ -37,22 +38,25 @@ class SpinnakerUIExtensionPlugin : Plugin<Project> {
 
     project.tasks.create(ASSEMBLE_PLUGIN_TASK_NAME, AssembleUIPluginTask::class.java)
 
+    // Calling "yarn" on Windows doesn't work, need to use "yarn.cmd"
+    val yarnCmd = if (OperatingSystem.current().isWindows) "yarn.cmd" else "yarn"
+
     project.tasks.create("yarn", Exec::class.java) {
       group = Plugins.GROUP
       workingDir = project.projectDir
-      commandLine = listOf("yarn")
+      commandLine = listOf(yarnCmd)
     }
 
     project.tasks.create("yarnModules", Exec::class.java) {
       group = Plugins.GROUP
       workingDir = project.projectDir
-      commandLine = listOf("yarn", "modules")
+      commandLine = listOf(yarnCmd, "modules")
     }
 
     project.tasks.create("yarnBuild", Exec::class.java) {
       group = Plugins.GROUP
       workingDir = project.projectDir
-      commandLine = listOf("yarn", "build")
+      commandLine = listOf(yarnCmd, "build")
       dependsOn("yarnModules")
     }
 
