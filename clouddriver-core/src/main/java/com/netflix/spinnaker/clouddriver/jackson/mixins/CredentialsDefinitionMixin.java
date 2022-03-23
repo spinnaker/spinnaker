@@ -17,14 +17,17 @@
 package com.netflix.spinnaker.clouddriver.jackson.mixins;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 
 /**
  * Jackson mixin to add a polymorphic type name value. When a {@link
  * com.netflix.spinnaker.credentials.definition.CredentialsDefinition} implementation class is
  * annotated with {@link com.fasterxml.jackson.annotation.JsonTypeName}, then the value of that
- * annotation is used as the {@code @type} property value when marshalling and unmarshalling
+ * annotation is used as the {@code type} property value when marshalling and unmarshalling
  * CredentialsDefinition classes. It is recommended that the corresponding cloud provider name for
  * the credentials be used here.
+ *
+ * @see AccountCredentials#getCloudProvider()
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 public interface CredentialsDefinitionMixin {}

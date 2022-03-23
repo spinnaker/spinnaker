@@ -50,14 +50,13 @@ class AccountDefinitionMapperTest {
     account.getPermissions().add(Authorization.READ, Set.of("dev", "sre"));
     account.getPermissions().add(Authorization.WRITE, "sre");
     account.setData("password", "hunter2");
-    assertEquals(account, mapper.convertFromString(mapper.convertToString(account), "test"));
+    assertEquals(account, mapper.deserialize(mapper.serialize(account)));
   }
 
   @Test
   void canDecryptSecretUris() {
-    var data = "{\"@type\":\"test\",\"name\":\"bar\",\"password\":\"encrypted:noop!v:hunter2\"}";
-    CredentialsDefinition account =
-        assertDoesNotThrow(() -> mapper.convertFromString(data, "test"));
+    var data = "{\"type\":\"test\",\"name\":\"bar\",\"password\":\"encrypted:noop!v:hunter2\"}";
+    CredentialsDefinition account = assertDoesNotThrow(() -> mapper.deserialize(data));
     assertThat(account).isInstanceOf(TestAccount.class);
     assertThat(account.getName()).isEqualTo("bar");
     TestAccount testAccount = (TestAccount) account;

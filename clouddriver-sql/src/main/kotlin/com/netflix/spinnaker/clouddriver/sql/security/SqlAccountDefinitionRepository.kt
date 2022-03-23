@@ -21,14 +21,15 @@ import com.netflix.spinnaker.clouddriver.security.AccountDefinitionRepository
 import com.netflix.spinnaker.clouddriver.sql.read
 import com.netflix.spinnaker.clouddriver.sql.transactional
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinition
+import com.netflix.spinnaker.kork.secrets.SecretException
 import com.netflix.spinnaker.kork.sql.routing.withPool
 import com.netflix.spinnaker.security.AuthenticatedRequest
+import org.apache.logging.log4j.LogManager
 import org.jooq.DSLContext
 import org.jooq.JSON
 import org.jooq.Record1
 import org.jooq.Select
-import org.jooq.impl.DSL.field
-import org.jooq.impl.DSL.table
+import org.jooq.impl.DSL.*
 import java.time.Clock
 
 class SqlAccountDefinitionRepository(
@@ -41,11 +42,11 @@ class SqlAccountDefinitionRepository(
   override fun getByName(name: String): CredentialsDefinition? =
     withPool(poolName) {
       jooq.read { ctx ->
-        ctx.select(bodyColumn, typeColumn)
+        ctx.select(bodyColumn)
           .from(accountsTable)
           .where(idColumn.eq(name))
-          .fetchOne { (json, type) ->
-            mapper.convertFromString(json.data(), type)
+          .fetchOne { (json) ->
+            mapper.deserialize(json.data())
           }
       }
     }
@@ -65,8 +66,9 @@ class SqlAccountDefinitionRepository(
           .orderBy(idColumn)
           .limit(limit)
           .fetch { (json) ->
-            mapper.convertFromString(json.data(), typeName)
+            deserializeAccountData(json.data())
           }
+          .filterNotNullTo(mutableListOf())
       }
     }
 
@@ -77,9 +79,22 @@ class SqlAccountDefinitionRepository(
           .from(accountsTable)
           .where(typeColumn.eq(typeName))
           .fetch { (json) ->
-            mapper.convertFromString(json.data(), typeName)
+            deserializeAccountData(json.data())
           }
+          .filterNotNullTo(mutableListOf())
       }
+    }
+
+  private fun deserializeAccountData(accountData: String): CredentialsDefinition? =
+    try {
+      mapper.deserialize(accountData)
+    } catch (e: SecretException) {
+      LOGGER.warn("Unable to decrypt secret in account data ($accountData). Skipping this account.", e)
+      null
+    } catch (e: Exception) {
+      // invalid data usually isn't stored in the database, hence an error rather than warning
+      LOGGER.error("Invalid account data loaded ($accountData). Skipping this account; consider deleting or fixing it.", e)
+      null
     }
 
   override fun create(definition: CredentialsDefinition) {
@@ -87,7 +102,7 @@ class SqlAccountDefinitionRepository(
       jooq.transactional { ctx ->
         val timestamp = clock.millis()
         val user = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous")
-        val body = JSON.valueOf(mapper.convertToString(definition))
+        val body = JSON.valueOf(mapper.serialize(definition))
         val typeName = AccountDefinitionMapper.getJsonTypeName(definition.javaClass)
         ctx.insertInto(accountsTable)
           .set(idColumn, definition.name)
@@ -102,7 +117,7 @@ class SqlAccountDefinitionRepository(
           .set(typeColumn, typeName)
           .set(bodyColumn, body)
           .set(lastModifiedColumn, timestamp)
-          .set(versionColumn, 1)
+          .set(versionColumn, findLatestVersion(definition.name))
           .execute()
       }
     }
@@ -113,7 +128,7 @@ class SqlAccountDefinitionRepository(
       jooq.transactional { ctx ->
         val timestamp = clock.millis()
         val user = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous")
-        val body = JSON.valueOf(mapper.convertToString(definition))
+        val body = JSON.valueOf(mapper.serialize(definition))
         ctx.update(accountsTable)
           .set(bodyColumn, body)
           .set(lastModifiedColumn, timestamp)
@@ -150,25 +165,23 @@ class SqlAccountDefinitionRepository(
   private fun findLatestVersion(name: String): Select<Record1<Int>> =
     withPool(poolName) {
       jooq.read { ctx ->
-        ctx.select(versionColumn + 1)
+        ctx.select(count(versionColumn) + 1)
           .from(accountHistoryTable)
           .where(idColumn.eq(name))
-          .orderBy(versionColumn.desc())
-          .limit(1)
       }
     }
 
   override fun revisionHistory(name: String): MutableList<AccountDefinitionRepository.Revision> =
     withPool(poolName) {
       jooq.read { ctx ->
-        ctx.select(bodyColumn, typeColumn, versionColumn, lastModifiedColumn)
+        ctx.select(bodyColumn, versionColumn, lastModifiedColumn)
           .from(accountHistoryTable)
           .where(idColumn.eq(name))
           .orderBy(versionColumn.desc())
-          .fetch { (body, type, version, timestamp) -> AccountDefinitionRepository.Revision(
+          .fetch { (body, version, timestamp) -> AccountDefinitionRepository.Revision(
             version,
             timestamp,
-            body?.let { mapper.convertFromString(it.data(), type) }
+            body?.let { mapper.deserialize(it.data()) }
           ) }
       }
     }
@@ -184,5 +197,6 @@ class SqlAccountDefinitionRepository(
     private val lastModifiedColumn = field("last_modified_at", Long::class.java)
     private val modifiedByColumn = field("last_modified_by", String::class.java)
     private val versionColumn = field("version", Int::class.java)
+    private val LOGGER = LogManager.getLogger(SqlAccountDefinitionRepository::class.java)
   }
 }

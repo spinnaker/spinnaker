@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.security.AbstractAccountCredentials
 
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
+import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import groovy.json.JsonSlurper
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc

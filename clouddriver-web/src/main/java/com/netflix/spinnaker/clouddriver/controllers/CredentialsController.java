@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.configuration.CredentialsConfiguration;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.clouddriver.security.AccountDefinitionRepository;
+import com.netflix.spinnaker.clouddriver.security.AccountDefinitionService;
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinition;
 import com.netflix.spinnaker.kork.annotations.Alpha;
 import com.netflix.spinnaker.kork.exceptions.ConfigurationException;
@@ -33,8 +34,6 @@ import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
-import org.springframework.security.access.prepost.PostFilter;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -48,17 +47,17 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/credentials")
 public class CredentialsController {
-  private final AccountDefinitionRepository repository;
+  private final AccountDefinitionService accountDefinitionService;
   private final CredentialsConfiguration credentialsConfiguration;
   private final ObjectMapper objectMapper;
   private final AccountCredentialsProvider accountCredentialsProvider;
 
   public CredentialsController(
-      Optional<AccountDefinitionRepository> repository,
+      Optional<AccountDefinitionService> service,
       CredentialsConfiguration credentialsConfiguration,
       ObjectMapper objectMapper,
       AccountCredentialsProvider accountCredentialsProvider) {
-    this.repository = repository.orElse(null);
+    this.accountDefinitionService = service.orElse(null);
     this.credentialsConfiguration = credentialsConfiguration;
     this.objectMapper = objectMapper;
     this.accountCredentialsProvider = accountCredentialsProvider;
@@ -115,61 +114,49 @@ public class CredentialsController {
   }
 
   @GetMapping("/type/{accountType}")
-  // ACCOUNT/WRITE permissions are required to view details of an account;
-  // ACCOUNT/READ permissions are only sufficient to view resources that use that account
-  // such as load balancers, security groups, clusters, etc.
-  @PostFilter("hasPermission(filterObject.name, 'ACCOUNT', 'WRITE')")
   @Alpha
   public List<? extends CredentialsDefinition> listAccountsByType(
       @PathVariable String accountType,
       @RequestParam OptionalInt limit,
       @RequestParam Optional<String> startingAccountName) {
     validateAccountStorageEnabled();
-    return repository.listByType(accountType, limit.orElse(100), startingAccountName.orElse(null));
+    return accountDefinitionService.listAccountDefinitionsByType(
+        accountType, limit.orElse(100), startingAccountName.orElse(null));
   }
 
   @PostMapping
-  @PreAuthorize("isAuthenticated()")
   @Alpha
   public CredentialsDefinition createAccount(@RequestBody CredentialsDefinition definition) {
     validateAccountStorageEnabled();
-    repository.create(definition);
-    return definition;
+    return accountDefinitionService.createAccount(definition);
   }
 
   @PutMapping
-  @PreAuthorize("hasPermission(#definition.name, 'ACCOUNT', 'WRITE')")
   @Alpha
   public CredentialsDefinition updateAccount(@RequestBody CredentialsDefinition definition) {
     validateAccountStorageEnabled();
-    repository.update(definition);
-    return definition;
+    return accountDefinitionService.updateAccount(definition);
   }
 
   @DeleteMapping("/{accountName}")
-  @PreAuthorize("hasPermission(#accountName, 'ACCOUNT', 'WRITE')")
   @Alpha
   public void deleteAccount(@PathVariable String accountName) {
     validateAccountStorageEnabled();
-    repository.delete(accountName);
+    accountDefinitionService.deleteAccount(accountName);
   }
 
   @GetMapping("/{accountName}/history")
-  // as with listing accounts, details of the history of an account are restricted to users
-  // with ACCOUNT/WRITE permissions; ACCOUNT/READ permissions are related to viewing resources
-  // that use that account such as clusters, server groups, load balancers, and server groups
-  @PreAuthorize("hasPermission(#accountName, 'ACCOUNT', 'WRITE')")
   @Alpha
   public List<AccountDefinitionRepository.Revision> getAccountHistory(
       @PathVariable String accountName) {
     validateAccountStorageEnabled();
-    return repository.revisionHistory(accountName);
+    return accountDefinitionService.getAccountHistory(accountName);
   }
 
   private void validateAccountStorageEnabled() {
-    if (repository == null) {
+    if (accountDefinitionService == null) {
       throw new ConfigurationException(
-          "Cannot use AccountDefinitionRepository endpoints without enabling an AccountDefinitionRepository bean");
+          "Cannot use AccountDefinitionService endpoints without enabling AccountDefinitionService bean");
     }
   }
 }

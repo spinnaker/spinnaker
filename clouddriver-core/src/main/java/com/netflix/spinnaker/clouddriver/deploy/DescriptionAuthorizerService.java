@@ -4,6 +4,7 @@ import static java.lang.String.format;
 
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.clouddriver.security.AccountDefinitionSecretManager;
 import com.netflix.spinnaker.clouddriver.security.config.SecurityConfig;
 import com.netflix.spinnaker.clouddriver.security.resources.AccountNameable;
 import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable;
@@ -30,6 +31,7 @@ public class DescriptionAuthorizerService {
   private final Registry registry;
   private final FiatPermissionEvaluator fiatPermissionEvaluator;
   private final SecurityConfig.OperationsSecurityConfigurationProperties opsSecurityConfigProps;
+  private final AccountDefinitionSecretManager secretManager;
 
   private final Id skipAuthorizationId;
   private final Id missingApplicationId;
@@ -38,10 +40,12 @@ public class DescriptionAuthorizerService {
   public DescriptionAuthorizerService(
       Registry registry,
       Optional<FiatPermissionEvaluator> fiatPermissionEvaluator,
-      SecurityConfig.OperationsSecurityConfigurationProperties opsSecurityConfigProps) {
+      SecurityConfig.OperationsSecurityConfigurationProperties opsSecurityConfigProps,
+      AccountDefinitionSecretManager secretManager) {
     this.registry = registry;
     this.fiatPermissionEvaluator = fiatPermissionEvaluator.orElse(null);
     this.opsSecurityConfigProps = opsSecurityConfigProps;
+    this.secretManager = secretManager;
 
     this.skipAuthorizationId = registry.createId("authorization.skipped");
     this.missingApplicationId = registry.createId("authorization.missingApplication");
@@ -108,7 +112,7 @@ public class DescriptionAuthorizerService {
     boolean hasPermission = true;
     if (resourceTypes.contains(ResourceType.ACCOUNT)
         && account != null
-        && !fiatPermissionEvaluator.hasPermission(auth, account, "ACCOUNT", "WRITE")) {
+        && !secretManager.canAccessAccountWithSecrets(account)) {
       hasPermission = false;
       errors.reject("authorization.account", format("Access denied to account %s", account));
     }

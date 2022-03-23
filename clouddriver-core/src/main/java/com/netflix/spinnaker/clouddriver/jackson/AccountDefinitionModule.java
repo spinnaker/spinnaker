@@ -18,10 +18,7 @@ package com.netflix.spinnaker.clouddriver.jackson;
 
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.netflix.spinnaker.clouddriver.jackson.mixins.CredentialsDefinitionMixin;
-import com.netflix.spinnaker.clouddriver.security.AccountDefinitionMapper;
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinition;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Jackson module to register {@link CredentialsDefinition} type discriminators for the provided
@@ -41,14 +38,5 @@ public class AccountDefinitionModule extends SimpleModule {
     super.setupModule(context);
     context.setMixInAnnotations(CredentialsDefinition.class, CredentialsDefinitionMixin.class);
     context.registerSubtypes(accountDefinitionTypes);
-  }
-
-  public Map<String, Class<? extends CredentialsDefinition>> getTypeMap() {
-    var typeMap =
-        new HashMap<String, Class<? extends CredentialsDefinition>>(accountDefinitionTypes.length);
-    for (Class<? extends CredentialsDefinition> type : accountDefinitionTypes) {
-      typeMap.put(AccountDefinitionMapper.getJsonTypeName(type), type);
-    }
-    return typeMap;
   }
 }

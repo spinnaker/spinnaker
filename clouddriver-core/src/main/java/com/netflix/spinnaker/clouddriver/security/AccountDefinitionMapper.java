@@ -21,14 +21,17 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinition;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
-import java.util.Map;
 import java.util.Objects;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Maps account definitions to and from strings. Only {@link CredentialsDefinition} classes
- * annotated with a {@link JsonTypeName} will be considered.
+ * annotated with a {@link JsonTypeName} will be considered. {@code secret://} URIs may be used for
+ * credentials values which will be replaced with an appropriate string for the secret along with
+ * recording an associated account name for time of use permission checks on the user secret.
  */
 @NonnullByDefault
+@RequiredArgsConstructor
 public class AccountDefinitionMapper {
 
   /**
@@ -41,20 +44,12 @@ public class AccountDefinitionMapper {
   }
 
   private final ObjectMapper objectMapper;
-  private final Map<String, Class<? extends CredentialsDefinition>> typeMap;
 
-  public AccountDefinitionMapper(
-      ObjectMapper objectMapper, Map<String, Class<? extends CredentialsDefinition>> typeMap) {
-    this.objectMapper = objectMapper;
-    this.typeMap = typeMap;
-  }
-
-  public String convertToString(CredentialsDefinition definition) throws JsonProcessingException {
+  public String serialize(CredentialsDefinition definition) throws JsonProcessingException {
     return objectMapper.writeValueAsString(definition);
   }
 
-  public CredentialsDefinition convertFromString(String string, String type)
-      throws JsonProcessingException {
-    return objectMapper.readValue(string, typeMap.get(type));
+  public CredentialsDefinition deserialize(String string) throws JsonProcessingException {
+    return objectMapper.readValue(string, CredentialsDefinition.class);
   }
 }

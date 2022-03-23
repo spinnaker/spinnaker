@@ -18,12 +18,15 @@ package com.netflix.spinnaker.clouddriver.deploy
 
 
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.clouddriver.security.AccountDefinitionAuthorizer
+import com.netflix.spinnaker.clouddriver.security.AccountDefinitionSecretManager
 import com.netflix.spinnaker.clouddriver.security.config.SecurityConfig
 import com.netflix.spinnaker.clouddriver.security.resources.AccountNameable
 import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable
 import com.netflix.spinnaker.clouddriver.security.resources.ResourcesNameable
 import com.netflix.spinnaker.fiat.model.resources.ResourceType
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
+import com.netflix.spinnaker.kork.secrets.SecretManager
 import org.springframework.security.authentication.TestingAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
 import spock.lang.Specification
@@ -33,6 +36,7 @@ import spock.lang.Unroll
 class DescriptionAuthorizerServiceSpec extends Specification {
   def registry = new NoopRegistry()
   def evaluator = Mock(FiatPermissionEvaluator)
+  def secretManager = Mock(SecretManager)
   def opsSecurityConfigProps
 
   @Subject
@@ -40,7 +44,7 @@ class DescriptionAuthorizerServiceSpec extends Specification {
 
   def setup() {
     opsSecurityConfigProps = new SecurityConfig.OperationsSecurityConfigurationProperties()
-    service = new DescriptionAuthorizerService(registry, Optional.of(evaluator), opsSecurityConfigProps)
+    service = new DescriptionAuthorizerService(registry, Optional.of(evaluator), opsSecurityConfigProps, new AccountDefinitionSecretManager(secretManager, new AccountDefinitionAuthorizer(evaluator)))
   }
 
   def "should authorize passed description"() {
@@ -61,7 +65,7 @@ class DescriptionAuthorizerServiceSpec extends Specification {
     service.authorize(description, errors)
 
     then:
-    4 * evaluator.hasPermission(*_) >> false
+    3 * evaluator.hasPermission(*_) >> false
     1 * evaluator.storeWholePermission()
     errors.allErrors.size() == 4
   }
@@ -79,15 +83,15 @@ class DescriptionAuthorizerServiceSpec extends Specification {
     service.authorize(description, errors)
 
     then:
-    expectedNumberOfInvocations * evaluator.hasPermission(*_) >> false
+    0 * evaluator.hasPermission(*_) >> false
     0 * evaluator.storeWholePermission()
     errors.allErrors.size() == expectedNumberOfErrors
 
     where:
-    allowUnauthenticatedImageTaggingInAccounts || expectedNumberOfInvocations | expectedNumberOfErrors
-    ["testAccount"]                            || 0                           | 0
-    ["anotherAccount"]                         || 1                           | 1
-    []                                         || 1                           | 1
+    allowUnauthenticatedImageTaggingInAccounts || expectedNumberOfErrors
+    ["testAccount"]                            || 0
+    ["anotherAccount"]                         || 1
+    []                                         || 1
   }
 
   @Unroll
@@ -115,7 +119,7 @@ class DescriptionAuthorizerServiceSpec extends Specification {
     where:
     resourceType              || expectedNumberOfAuthChecks | expectedNumberOfErrors
     ResourceType.APPLICATION  || 3                          | 3
-    ResourceType.ACCOUNT      || 1                          | 1
+    ResourceType.ACCOUNT      || 0                          | 1
   }
 
   class TestDescription implements AccountNameable, ApplicationNameable, ResourcesNameable {

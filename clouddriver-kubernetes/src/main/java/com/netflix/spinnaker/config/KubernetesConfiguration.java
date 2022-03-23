@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesAccountProp
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.health.KubernetesHealthIndicator;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentialsParser;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.CredentialsInitializerSynchronizable;
 import com.netflix.spinnaker.credentials.CredentialsLifecycleHandler;
@@ -30,6 +31,7 @@ import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository;
 import com.netflix.spinnaker.credentials.definition.AbstractCredentialsLoader;
 import com.netflix.spinnaker.credentials.definition.BasicCredentialsLoader;
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinitionSource;
+import com.netflix.spinnaker.credentials.definition.CredentialsParser;
 import com.netflix.spinnaker.credentials.poller.Poller;
 import javax.annotation.Nullable;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -77,22 +79,26 @@ public class KubernetesConfiguration {
   }
 
   @Bean
+  public CredentialsParser<ManagedAccount, KubernetesNamedAccountCredentials>
+      kubernetesCredentialsParser(KubernetesCredentials.Factory credentialFactory) {
+    return new KubernetesCredentialsParser(credentialFactory);
+  }
+
+  @Bean
   @ConditionalOnMissingBean(
       value = KubernetesNamedAccountCredentials.class,
       parameterizedContainer = AbstractCredentialsLoader.class)
   public AbstractCredentialsLoader<KubernetesNamedAccountCredentials> kubernetesCredentialsLoader(
       @Nullable CredentialsDefinitionSource<ManagedAccount> kubernetesCredentialSource,
       KubernetesAccountProperties accountProperties,
-      KubernetesCredentials.Factory credentialFactory,
+      CredentialsParser<ManagedAccount, KubernetesNamedAccountCredentials> credentialsParser,
       CredentialsRepository<KubernetesNamedAccountCredentials> kubernetesCredentialsRepository) {
 
     if (kubernetesCredentialSource == null) {
       kubernetesCredentialSource = accountProperties::getAccounts;
     }
     return new BasicCredentialsLoader<>(
-        kubernetesCredentialSource,
-        a -> new KubernetesNamedAccountCredentials(a, credentialFactory),
-        kubernetesCredentialsRepository);
+        kubernetesCredentialSource, credentialsParser, kubernetesCredentialsRepository);
   }
 
   @Bean

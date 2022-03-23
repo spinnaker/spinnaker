@@ -88,6 +88,7 @@ import com.netflix.spinnaker.clouddriver.search.executor.SearchExecutorConfig
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
+import com.netflix.spinnaker.clouddriver.security.AccountDefinitionSecretManager
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.config.SecurityConfig
@@ -381,11 +382,13 @@ class CloudDriverConfig {
   @Bean
   DescriptionAuthorizerService descriptionAuthorizerService(Registry registry,
                                                             Optional<FiatPermissionEvaluator> fiatPermissionEvaluator,
-                                                            SecurityConfig.OperationsSecurityConfigurationProperties opsSecurityConfigProps) {
+                                                            SecurityConfig.OperationsSecurityConfigurationProperties opsSecurityConfigProps,
+                                                            AccountDefinitionSecretManager secretManager) {
     return new DescriptionAuthorizerService(
-      registry,
-      fiatPermissionEvaluator,
-      opsSecurityConfigProps
+            registry,
+            fiatPermissionEvaluator,
+            opsSecurityConfigProps,
+            secretManager
     )
   }
 
