@@ -72,6 +72,8 @@ import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
+import org.springframework.test.web.client.ExpectedCount.once
+import rx.Observable
 
 object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
 
@@ -104,7 +106,7 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
 
   ExecutionStatus
     .values()
-    .filter { !it.isComplete }
+    .filter { !it.isComplete && it != NOT_STARTED }
     .forEach { incompleteStatus ->
       describe("trying to restart a $incompleteStatus stage") {
         val pipeline = pipeline {
@@ -448,6 +450,95 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
           assertThat(it.application).isEqualTo(message.application)
         }
       )
+    }
+  }
+
+  describe("restarting a SUCCEEDED stage that should queue") {
+    val pipeline = pipeline {
+      pipelineConfigId = "bar"
+      application = "foo"
+      status = SUCCEEDED
+      isLimitConcurrent = true
+      startTime = clock.instant().minus(1, HOURS).toEpochMilli()
+      endTime = clock.instant().minus(30, MINUTES).toEpochMilli()
+      stage {
+        refId = "1"
+        singleTaskStage.plan(this)
+        status = SUCCEEDED
+        startTime = clock.instant().minus(1, HOURS).toEpochMilli()
+        endTime = clock.instant().minus(59, MINUTES).toEpochMilli()
+      }
+    }
+    val message = RestartStage(pipeline.type, pipeline.id, "foo", pipeline.stageByRef("1").id, "fzlem@netflix.com")
+
+    beforeGroup {
+      val runningPipeline = pipeline {
+        pipelineConfigId = pipeline.pipelineConfigId
+        application = "foo"
+        status = RUNNING
+      }
+      whenever(repository.retrieve(message.executionType, message.executionId)) doReturn pipeline
+      whenever(repository.retrievePipelinesForPipelineConfigId(
+        pipeline.pipelineConfigId,
+        ExecutionRepository.ExecutionCriteria().setPageSize(2).setStatuses(RUNNING))) doReturn Observable.from(listOf(runningPipeline))
+    }
+
+    afterGroup(::resetMocks)
+
+    action("the handler receives a message") {
+      subject.handle(message)
+    }
+
+    it("queues restart message") {
+      verify(pendingExecutionService).enqueue(pipeline.pipelineConfigId, message)
+      verify(queue, never()).push(any<StartStage>())
+    }
+
+    it("updates the pieline status to NOT_STARTED") {
+      assertThat(pipeline.status).isEqualTo(NOT_STARTED)
+      verify(repository).updateStatus(pipeline)
+    }
+  }
+
+  describe("restarting a NOT_STARTED execution does not queue") {
+    val pipeline = pipeline {
+      pipelineConfigId = "bar"
+      application = "foo"
+      status = NOT_STARTED
+      isLimitConcurrent = true
+      startTime = clock.instant().minus(1, HOURS).toEpochMilli()
+      endTime = clock.instant().minus(30, MINUTES).toEpochMilli()
+      stage {
+        refId = "1"
+        singleTaskStage.plan(this)
+        status = NOT_STARTED
+        startTime = clock.instant().minus(1, HOURS).toEpochMilli()
+        endTime = clock.instant().minus(59, MINUTES).toEpochMilli()
+      }
+    }
+    val message = RestartStage(pipeline.type, pipeline.id, "foo", pipeline.stageByRef("1").id, "fzlem@netflix.com")
+
+    beforeGroup {
+      val runningPipeline = pipeline {
+        pipelineConfigId = pipeline.pipelineConfigId
+        application = "foo"
+        status = RUNNING
+      }
+      whenever(repository.retrieve(message.executionType, message.executionId)) doReturn pipeline
+      whenever(repository.retrievePipelinesForPipelineConfigId(
+        pipeline.pipelineConfigId,
+        ExecutionRepository.ExecutionCriteria().setPageSize(2).setStatuses(RUNNING))) doReturn Observable.from(listOf(runningPipeline))
+    }
+
+    afterGroup(::resetMocks)
+
+    action("the handler receives a message") {
+      subject.handle(message)
+    }
+
+    it("does not queue any messages") {
+      verify(pendingExecutionService, never()).enqueue(pipeline.pipelineConfigId, message)
+      verify(queue, never()).push(any<StartStage>())
     }
   }
 })

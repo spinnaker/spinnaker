@@ -46,19 +46,25 @@ class RestartStageHandler(
 
   override fun handle(message: RestartStage) {
     message.withStage { stage ->
-      if (stage.execution.shouldQueue()) {
-        // this pipeline is already running and has limitConcurrent = true
-        stage.execution.pipelineConfigId?.let {
-          log.info("Queueing restart of {} {} {}", stage.execution.application, stage.execution.name, stage.execution.id)
-          pendingExecutionService.enqueue(it, message)
-        }
-      } else {
-        // If RestartStage is requested for a synthetic stage, operate on its parent
-        val topStage = stage.topLevelStage
-        val startMessage = StartStage(message.executionType, message.executionId, message.application, topStage.id)
-        if (topStage.status.isComplete) {
-          topStage.addRestartDetails(message.user)
-          topStage.reset()
+      // If RestartStage is requested for a synthetic stage, operate on its parent
+      val topStage = stage.topLevelStage
+      val startMessage = StartStage(message.executionType, message.executionId, message.application, topStage.id)
+      if (topStage.status.isComplete || topStage.status == NOT_STARTED) {
+        topStage.addRestartDetails(message.user)
+        topStage.reset()
+        if (stage.execution.shouldQueue()) {
+          // this pipeline is already running and has limitConcurrent = true
+          if (topStage.execution.status == NOT_STARTED) {
+            log.info("Skipping queueing restart of {} {} {}", stage.execution.application, stage.execution.name, stage.execution.id)
+            return@withStage
+          }
+          topStage.execution.updateStatus(NOT_STARTED)
+          repository.updateStatus(topStage.execution)
+          stage.execution.pipelineConfigId?.let {
+            log.info("Queueing restart of {} {} {}", stage.execution.application, stage.execution.name, stage.execution.id)
+            pendingExecutionService.enqueue(it, message)
+          }
+        } else {
           restartParentPipelineIfNeeded(message, topStage)
           topStage.execution.updateStatus(RUNNING)
           repository.updateStatus(topStage.execution)
