@@ -13,7 +13,7 @@ jobs:
       with:
         ref: ${{ github.event.client_payload.ref }}
         key: spinnakerGradleVersion
-        repositories: clouddriver,deck,echo,fiat,front50,gate,halyard,igor,kayenta,keel,kork,orca,rosco,spinnaker-monitoring,swabbie
+        repositories: clouddriver,deck,echo,fiat,front50,gate,halyard,igor,kayenta,keel,kork,orca,rosco,swabbie
         mavenRepositoryUrl: https://plugins.gradle.org/m2
         groupId: io.spinnaker.project
         artifactId: io.spinnaker.project.gradle.plugin
