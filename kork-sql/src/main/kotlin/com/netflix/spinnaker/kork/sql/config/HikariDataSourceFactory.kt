@@ -49,6 +49,7 @@ class HikariDataSourceFactory(
       if (connectionPool.driver != null) {
         driverClassName = connectionPool.driver
       }
+      isRegisterMbeans = connectionPool.registerMBeans
       setMetricsTrackerFactory(metricsTrackerFactory)
     }
 }
