@@ -35,9 +35,9 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Nullable;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -216,7 +216,7 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
     private final S3ArtifactProviderProperties s3ArtifactProviderProperties;
 
     /** To prevent logging the same endpoint multiple times */
-    private final Set<URI> endpoints = new HashSet();
+    private final Set<URI> endpoints = ConcurrentHashMap.newKeySet();
 
     S3ArtifactRequestHandler(
         String name, S3ArtifactProviderProperties s3ArtifactProviderProperties) {
@@ -234,13 +234,11 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
       // https://github.com/Netflix/spectator/blob/v1.0.6/spectator-ext-aws/src/main/java/com/netflix/spectator/aws/SpectatorRequestMetricCollector.java#L177-L186.
       request.addHandlerContext(SpectatorRequestMetricCollector.DEFAULT_HANDLER_CONTEXT_KEY, name);
 
-      if (s3ArtifactProviderProperties.isLogEndpoints()
-          && !endpoints.contains(request.getEndpoint())) {
+      if (s3ArtifactProviderProperties.isLogEndpoints() && endpoints.add(request.getEndpoint())) {
         log.info(
             "S3ArtifactRequestHandler::beforeRequest: name: {}, endpoint: '{}'",
             name,
             request.getEndpoint().toString());
-        endpoints.add(request.getEndpoint());
       }
     }
   }

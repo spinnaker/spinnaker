@@ -19,12 +19,20 @@ package com.netflix.spinnaker.clouddriver.artifacts.s3;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+import com.amazonaws.Request;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder;
@@ -44,12 +52,20 @@ import com.netflix.spinnaker.kork.aws.AwsComponents;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ContextConfiguration;
@@ -63,6 +79,9 @@ import org.testcontainers.utility.DockerImageName;
 @ContextConfiguration(
     classes = {AwsComponents.class, S3ArtifactCredentialsTest.TestConfiguration.class})
 class S3ArtifactCredentialsTest {
+
+  private static final org.slf4j.Logger log =
+      LoggerFactory.getLogger(S3ArtifactCredentialsTest.class);
 
   private static DockerImageName localstackImage =
       DockerImageName.parse(
@@ -203,6 +222,59 @@ class S3ArtifactCredentialsTest {
     assertThatThrownBy(() -> s3ArtifactCredentials.download(otherArtifact))
         .isInstanceOf(NotFoundException.class)
         .hasMessageContaining(bucketName + " not found");
+  }
+
+  // If S3ArtifactCredentials.S3ArtifactRequestHandler uses, say a HashSet
+  // instead of ConcurrentHashMap.newKeySet(), this test only fails sometimes,
+  // even with 1000 repetitions.  Each iteration takes less than 100 msec on my
+  // machine, but leaving with 10 iterations to keep from increasing test times
+  // unnecessarily.
+  @RepeatedTest(10)
+  void endpointLoggingIsThreadSafe() throws Exception {
+
+    // Capture the log messages that S3ArtifactCredentials generates
+    Logger logger = (Logger) LoggerFactory.getLogger(S3ArtifactCredentials.class);
+    ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+    listAppender.setContext((LoggerContext) LoggerFactory.getILoggerFactory());
+    logger.addAppender(listAppender);
+    listAppender.start();
+
+    s3ArtifactProviderProperties.setLogEndpoints(true);
+    S3ArtifactCredentials.S3ArtifactRequestHandler s3ArtifactRequestHandler =
+        new S3ArtifactCredentials.S3ArtifactRequestHandler("test", s3ArtifactProviderProperties);
+
+    // Use the same endpoint in all the threads to exercise both the map-level
+    // operations, as well as the set operations.
+    Request request = mock(Request.class);
+    URI uri = new URI("https://example.com");
+    when(request.getEndpoint()).thenReturn(uri);
+
+    int numberOfThreads = 100; // arbitrary
+    ExecutorService executor = Executors.newFixedThreadPool(numberOfThreads);
+    final ArrayList<Future<Exception>> futures = new ArrayList<>(numberOfThreads);
+    for (int i = 0; i < numberOfThreads; i++) {
+      futures.add(
+          executor.submit(
+              () -> {
+                try {
+                  s3ArtifactRequestHandler.beforeRequest(request);
+                  return null;
+                } catch (Exception e) {
+                  log.error("exception in logEndpointRequestHandler.beforeRequest", e);
+                  // Return the exception as a way to communicate it to the caller
+                  // since throwing, by itself, doesn't.
+                  return e;
+                }
+              }));
+    }
+
+    // Make sure none of the threads returned an exception
+    for (Future<Exception> future : futures)
+      assertNull(future.get(5, TimeUnit.SECONDS)); // arbitrary timeout
+
+    // No matter how many threads there are, since there's one endpoint, expect
+    // one log message.
+    assertEquals(1, listAppender.list.size());
   }
 
   static class DummyS3ArtifactValidator implements S3ArtifactValidator {
