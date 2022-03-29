@@ -19,10 +19,9 @@ package com.netflix.spinnaker.clouddriver.aws.security;
 import com.amazonaws.Request;
 import com.amazonaws.handlers.RequestHandler2;
 import java.net.URI;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -39,7 +38,7 @@ public class LogEndpointRequestHandler extends RequestHandler2 {
    * A map from service name to endpoints to track which endpoints we've seen/logged, so we only log
    * once.
    */
-  private final Map<String, Set<URI>> endpoints = new HashMap<>();
+  private final Map<String, Set<URI>> endpoints = new ConcurrentHashMap<>();
 
   @Override
   public void beforeRequest(Request<?> request) {
@@ -47,13 +46,12 @@ public class LogEndpointRequestHandler extends RequestHandler2 {
     URI endpoint = request.getEndpoint();
 
     Set<URI> endpointsForThisService =
-        endpoints.computeIfAbsent(serviceName, ignored -> new HashSet<>());
-    if (!endpointsForThisService.contains(endpoint)) {
+        endpoints.computeIfAbsent(serviceName, ignored -> ConcurrentHashMap.newKeySet());
+    if (endpointsForThisService.add(endpoint)) {
       log.info(
           "LogEndpointRequestHandler::beforeRequest: service name: '{}', endpoint: '{}'",
           serviceName,
           endpoint.toString());
-      endpointsForThisService.add(endpoint);
     }
   }
 }
