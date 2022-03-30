@@ -22,6 +22,7 @@ import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.security.AbstractAccountCredentials;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import java.util.ArrayList;
@@ -82,7 +83,10 @@ public class AmazonCredentials extends AbstractAccountCredentials<AWSCredentials
         null);
   }
 
-  public AmazonCredentials(AmazonCredentials source, AWSCredentialsProvider credentialsProvider) {
+  public AmazonCredentials(
+      AmazonCredentials source,
+      AWSCredentialsProvider credentialsProvider,
+      AwsConfigurationProperties awsConfigurationProperties) {
     this(
         source.getName(),
         source.getEnvironment(),
