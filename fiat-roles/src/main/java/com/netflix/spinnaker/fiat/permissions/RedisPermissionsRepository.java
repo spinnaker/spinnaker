@@ -34,6 +34,8 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -91,6 +93,8 @@ public class RedisPermissionsRepository implements PermissionsRepository {
   private final byte[] allUsersKey;
   private final byte[] adminKey;
 
+  private final ForkJoinPool syncThreadPool;
+
   RedisPermissionsRepository(
       Clock clock,
       ObjectMapper objectMapper,
@@ -113,6 +117,8 @@ public class RedisPermissionsRepository implements PermissionsRepository {
     this.allUsersKey = SafeEncoder.encode(String.format("%s:%s", prefix, KEY_ALL_USERS));
     this.adminKey =
         SafeEncoder.encode(String.format("%s:%s:%s", prefix, KEY_PERMISSIONS, KEY_ADMIN));
+
+    this.syncThreadPool = new ForkJoinPool(configProps.getRepository().getSyncThreads());
   }
 
   public RedisPermissionsRepository(
@@ -402,11 +408,25 @@ public class RedisPermissionsRepository implements PermissionsRepository {
       return getRolesOf(Set.of(UNRESTRICTED));
     }
 
-    final Set<String> uniqueUsernames = new HashSet<>();
-    for (String role : new HashSet<>(anyRoles)) {
-      uniqueUsernames.addAll(
-          scanSet(roleKey(role)).stream().map(String::toLowerCase).collect(Collectors.toSet()));
+    Set<String> uniqueUsernames = new HashSet<>();
+
+    try {
+      uniqueUsernames =
+          syncThreadPool
+              .submit(
+                  () ->
+                      new HashSet<>(anyRoles)
+                          .parallelStream()
+                              .flatMap(
+                                  role -> scanSet(roleKey(role)).stream().map(String::toLowerCase))
+                              .collect(Collectors.toSet()))
+              .get();
+    } catch (ExecutionException e) {
+      log.error("Execution exception reading usernames for roles", e);
+    } catch (InterruptedException e) {
+      log.error("Interrupted exception reading usernames for roles", e);
     }
+
     uniqueUsernames.add(UNRESTRICTED);
 
     return getRolesOf(uniqueUsernames);

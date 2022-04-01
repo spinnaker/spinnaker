@@ -31,6 +31,7 @@ public class RedisPermissionRepositoryConfigProps {
     private Duration getPermissionTimeout = Duration.ofSeconds(1);
     private Duration checkLastModifiedTimeout = Duration.ofMillis(50);
     private Duration getUserResourceTimeout = Duration.ofSeconds(1);
+    private int syncThreads = Runtime.getRuntime().availableProcessors();
 
     public Duration getGetPermissionTimeout() {
       return getPermissionTimeout;
@@ -54,6 +55,14 @@ public class RedisPermissionRepositoryConfigProps {
 
     public void setGetUserResourceTimeout(Duration getUserResourceTimeout) {
       this.getUserResourceTimeout = getUserResourceTimeout;
+    }
+
+    public int getSyncThreads() {
+      return syncThreads;
+    }
+
+    public void setSyncThreads(int threads) {
+      this.syncThreads = threads;
     }
   }
 }
