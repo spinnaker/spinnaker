@@ -11,6 +11,7 @@ jobs:
     - uses: spinnaker/bumpdeps@master
       with:
         ref: ${{ github.event.client_payload.ref }}
+        baseBranch: ${{ github.event.client_payload.branch }}
         key: orcaVersion
         repositories: kayenta
         mavenRepositoryUrl: https://repo.maven.apache.org/maven2
