@@ -37,6 +37,7 @@ public class UserPermission {
   private Set<BuildService> buildServices = new LinkedHashSet<>();
   private Set<Resource> extensionResources = new LinkedHashSet<>();
   private boolean admin = false;
+  private boolean accountManager;
 
   /**
    * Custom setter to normalize the input. lombok.accessors.chain is enabled, so setters must return
@@ -118,6 +119,7 @@ public class UserPermission {
     Set<BuildService.View> buildServices;
     HashMap<ResourceType, Set<Authorizable>> extensionResources;
     boolean admin;
+    boolean accountManager;
     boolean legacyFallback = false;
     boolean allowAccessToUnknownApplications = false;
 
@@ -149,6 +151,7 @@ public class UserPermission {
       }
 
       this.admin = permission.isAdmin();
+      this.accountManager = permission.isAccountManager();
     }
   }
 }

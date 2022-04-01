@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.fiat.permissions
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.fiat.config.AccountManagerConfig
 import com.netflix.spinnaker.fiat.config.FiatAdminConfig
 import com.netflix.spinnaker.fiat.config.FiatRoleConfig
 import com.netflix.spinnaker.fiat.model.Authorization
@@ -105,7 +106,7 @@ class DefaultPermissionsResolverSpec extends Specification {
   def "should resolve the anonymous user permission, when enabled"() {
     setup:
     @Subject DefaultPermissionsResolver resolver = new DefaultPermissionsResolver(
-            userRolesProvider, serviceAccountProvider, resourceProviders, new FiatAdminConfig(), new ObjectMapper())
+            userRolesProvider, serviceAccountProvider, resourceProviders, new FiatAdminConfig(), new AccountManagerConfig(), new ObjectMapper())
 
     when:
     def result = resolver.resolveUnrestrictedUser()
@@ -124,7 +125,7 @@ class DefaultPermissionsResolverSpec extends Specification {
     def testUserId = "testUserId"
     UserRolesProvider userRolesProvider = Mock(UserRolesProvider)
     @Subject DefaultPermissionsResolver resolver = new DefaultPermissionsResolver(
-            userRolesProvider, serviceAccountProvider, resourceProviders, new FiatAdminConfig(), new ObjectMapper())
+            userRolesProvider, serviceAccountProvider, resourceProviders, new FiatAdminConfig(), new AccountManagerConfig(), new ObjectMapper())
 
     def role1 = new Role("group1")
     def role2 = new Role("gRoUP2") // to test case insensitivity.
@@ -182,7 +183,7 @@ class DefaultPermissionsResolverSpec extends Specification {
     UserRolesProvider userRolesProvider = Mock(UserRolesProvider)
 
     @Subject DefaultPermissionsResolver resolver = new DefaultPermissionsResolver(
-            userRolesProvider, serviceAccountProvider, resourceProviders, fiatAdminConfig, new ObjectMapper())
+            userRolesProvider, serviceAccountProvider, resourceProviders, fiatAdminConfig, new AccountManagerConfig(), new ObjectMapper())
 
     def role1 = new Role("delivery-team")
     def testUser = new ExternalUser().setId(testUserId).setExternalRoles([role1])
@@ -204,7 +205,7 @@ class DefaultPermissionsResolverSpec extends Specification {
     setup:
     UserRolesProvider userRolesProvider = Mock(UserRolesProvider)
     @Subject DefaultPermissionsResolver resolver = new DefaultPermissionsResolver(
-            userRolesProvider, serviceAccountProvider, resourceProviders, new FiatAdminConfig(), new ObjectMapper())
+            userRolesProvider, serviceAccountProvider, resourceProviders, new FiatAdminConfig(), new AccountManagerConfig(), new ObjectMapper())
 
     def role1 = new Role("group1")
     def role2 = new Role("group2")
@@ -258,7 +259,7 @@ class DefaultPermissionsResolverSpec extends Specification {
     setup:
     UserRolesProvider userRolesProvider = Mock(UserRolesProvider)
     @Subject DefaultPermissionsResolver resolver = new DefaultPermissionsResolver(
-            userRolesProvider, serviceAccountProvider, resourceProviders, new FiatAdminConfig(), new ObjectMapper())
+            userRolesProvider, serviceAccountProvider, resourceProviders, new FiatAdminConfig(), new AccountManagerConfig(), new ObjectMapper())
 
     def role1 = new Role(group1SvcAcct.memberOf[0])
     def svc1 = new ExternalUser().setId(group1SvcAcct.name).setExternalRoles([role1])
@@ -292,5 +293,25 @@ class DefaultPermissionsResolverSpec extends Specification {
     result.remove("group1") == expectedServiceAcct
     result.remove("user1") == expectedUser1
     result.isEmpty()
+  }
+
+  def "should resolve account manager permissions"() {
+    setup:
+    def accountManagerConfig = new AccountManagerConfig()
+    accountManagerConfig.roles = ['sre']
+
+    def testUsername = 'ron'
+    def userRolesProvider = Mock(UserRolesProvider)
+    @Subject def resolver = new DefaultPermissionsResolver(userRolesProvider, serviceAccountProvider, resourceProviders, new FiatAdminConfig(), accountManagerConfig, new ObjectMapper())
+    def role = new Role('sre')
+    def user = new ExternalUser().setId(testUsername).setExternalRoles([role])
+
+    when:
+    def result = resolver.resolveAndMerge(user)
+
+    then:
+    1 * userRolesProvider.loadRoles({ u -> u.id == testUsername }) >> [role]
+    def expected = new UserPermission().setId(testUsername).setRoles(Set.of(role)).setAccountManager(true)
+    result == expected
   }
 }
