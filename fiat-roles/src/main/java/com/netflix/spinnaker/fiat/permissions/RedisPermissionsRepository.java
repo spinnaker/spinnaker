@@ -480,20 +480,14 @@ public class RedisPermissionsRepository implements PermissionsRepository {
   }
 
   private Set<String> scanSet(byte[] key) {
-    final Set<String> results = new HashSet<>();
-    final AtomicReference<byte[]> cursor =
-        new AtomicReference<>(ScanParams.SCAN_POINTER_START_BINARY);
-    do {
-      final ScanResult<byte[]> result =
-          redisClientDelegate.withBinaryClient(
-              jedis -> {
-                return jedis.sscan(key, cursor.get());
-              });
-      results.addAll(
-          result.getResult().stream().map(SafeEncoder::encode).collect(Collectors.toList()));
-      cursor.set(result.getCursorAsBytes());
-    } while (!Arrays.equals(cursor.get(), ScanParams.SCAN_POINTER_START_BINARY));
-    return results;
+    return redisClientDelegate
+        .withBinaryClient(
+            jedis -> {
+              return jedis.smembers(key);
+            })
+        .stream()
+        .map(SafeEncoder::encode)
+        .collect(Collectors.toSet());
   }
 
   private byte[] userKey(String userId, ResourceType r) {
