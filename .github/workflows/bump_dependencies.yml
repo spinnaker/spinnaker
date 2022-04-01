@@ -12,6 +12,7 @@ jobs:
     - uses: spinnaker/bumpdeps@master
       with:
         ref: ${{ github.event.client_payload.ref }}
+        baseBranch: ${{ github.event.client_payload.branch }}
         key: fiatVersion
         repositories: clouddriver,echo,front50,gate,halyard,igor,keel,orca
         mavenRepositoryUrl: https://repo.maven.apache.org/maven2
