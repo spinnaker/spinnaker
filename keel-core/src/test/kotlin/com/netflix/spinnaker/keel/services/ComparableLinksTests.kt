@@ -304,7 +304,7 @@ class ComparableLinksTests : JUnit5Minutests {
         before {
           every { repository.artifactVersions(releaseArtifact, limit) } returns versions.toArtifactVersions(
             releaseArtifact,
-            "stash"
+            "https://stash"
           )
         }
 
