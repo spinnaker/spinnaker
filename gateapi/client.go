@@ -101,6 +101,8 @@ type APIClient struct {
 
 	PubsubSubscriptionControllerApi *PubsubSubscriptionControllerApiService
 
+	RawResourceControllerApi *RawResourceControllerApiService
+
 	ReorderPipelinesControllerApi *ReorderPipelinesControllerApiService
 
 	SearchControllerApi *SearchControllerApiService
@@ -172,6 +174,7 @@ func NewAPIClient(cfg *Configuration) *APIClient {
 	c.PluginsInstalledControllerApi = (*PluginsInstalledControllerApiService)(&c.common)
 	c.ProjectControllerApi = (*ProjectControllerApiService)(&c.common)
 	c.PubsubSubscriptionControllerApi = (*PubsubSubscriptionControllerApiService)(&c.common)
+	c.RawResourceControllerApi = (*RawResourceControllerApiService)(&c.common)
 	c.ReorderPipelinesControllerApi = (*ReorderPipelinesControllerApiService)(&c.common)
 	c.SearchControllerApi = (*SearchControllerApiService)(&c.common)
 	c.SecurityGroupControllerApi = (*SecurityGroupControllerApiService)(&c.common)

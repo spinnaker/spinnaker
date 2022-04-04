@@ -9,8 +9,8 @@
 
 package swagger
 
-type PluginDependency struct {
-	Optional bool `json:"optional,omitempty"`
-	PluginId string `json:"pluginId,omitempty"`
-	PluginVersionSupport string `json:"pluginVersionSupport,omitempty"`
+type GraphQlRequest struct {
+	OperationName string `json:"operationName,omitempty"`
+	Query string `json:"query,omitempty"`
+	Variables *interface{} `json:"variables,omitempty"`
 }

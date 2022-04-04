@@ -10,6 +10,6 @@
 package swagger
 
 type ReorderPipelinesCommand struct {
-	IdsToIndices map[string]int32 `json:"idsToIndices,omitempty"`
 	Application string `json:"application,omitempty"`
+	IdsToIndices map[string]int32 `json:"idsToIndices,omitempty"`
 }

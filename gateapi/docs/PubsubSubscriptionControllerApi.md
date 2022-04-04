@@ -16,7 +16,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-[**[]Mapstringstring**](Map«string,string».md)
+[**[]Mapstringstring**](MapÂ«string,stringÂ».md)
 
 ### Authorization
 

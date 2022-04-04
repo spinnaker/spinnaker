@@ -9,8 +9,9 @@
 
 package swagger
 
-type PluginDependency struct {
-	Optional bool `json:"optional,omitempty"`
-	PluginId string `json:"pluginId,omitempty"`
-	PluginVersionSupport string `json:"pluginVersionSupport,omitempty"`
+type RemoteExtensionConfig struct {
+	Config *interface{} `json:"config,omitempty"`
+	Id string `json:"id,omitempty"`
+	Transport *RemoteExtensionTransportConfig `json:"transport,omitempty"`
+	Type_ string `json:"type,omitempty"`
 }

@@ -231,6 +231,7 @@ V2CanaryControllerApiService Retrieve a list of an application&#39;s canary resu
  * @param application application
  * @param limit limit
  * @param optional nil or *V2CanaryControllerApiGetCanaryResultsByApplicationUsingGETOpts - Optional Parameters:
+     * @param "Page" (optional.Int32) -  page
      * @param "Statuses" (optional.String) -  Comma-separated list of statuses, e.g.: RUNNING, SUCCEEDED, TERMINAL
      * @param "StorageAccountName" (optional.String) -  storageAccountName
 
@@ -238,6 +239,7 @@ V2CanaryControllerApiService Retrieve a list of an application&#39;s canary resu
 */
 
 type V2CanaryControllerApiGetCanaryResultsByApplicationUsingGETOpts struct { 
+	Page optional.Int32
 	Statuses optional.String
 	StorageAccountName optional.String
 }
@@ -260,6 +262,9 @@ func (a *V2CanaryControllerApiService) GetCanaryResultsByApplicationUsingGET(ctx
 	localVarFormParams := url.Values{}
 
 	localVarQueryParams.Add("limit", parameterToString(limit, ""))
+	if localVarOptionals != nil && localVarOptionals.Page.IsSet() {
+		localVarQueryParams.Add("page", parameterToString(localVarOptionals.Page.Value(), ""))
+	}
 	if localVarOptionals != nil && localVarOptionals.Statuses.IsSet() {
 		localVarQueryParams.Add("statuses", parameterToString(localVarOptionals.Statuses.Value(), ""))
 	}

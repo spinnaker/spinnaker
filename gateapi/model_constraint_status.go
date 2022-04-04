@@ -10,9 +10,9 @@
 package swagger
 
 type ConstraintStatus struct {
+	ArtifactReference string `json:"artifactReference,omitempty"`
 	ArtifactVersion string `json:"artifactVersion,omitempty"`
-	Type_ string `json:"type,omitempty"`
 	Comment string `json:"comment,omitempty"`
 	Status string `json:"status,omitempty"`
-	ArtifactReference string `json:"artifactReference,omitempty"`
+	Type_ string `json:"type,omitempty"`
 }

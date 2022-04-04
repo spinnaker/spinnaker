@@ -9,9 +9,8 @@
 
 package swagger
 
-type RemoteExtension struct {
-	Transport *RemoteExtensionTransport `json:"transport,omitempty"`
-	Type_ string `json:"type,omitempty"`
-	Config *interface{} `json:"config,omitempty"`
-	Id string `json:"id,omitempty"`
+type RetryVerificationRequest struct {
+	ArtifactReference string `json:"artifactReference,omitempty"`
+	ArtifactVersion string `json:"artifactVersion,omitempty"`
+	VerificationId string `json:"verificationId,omitempty"`
 }

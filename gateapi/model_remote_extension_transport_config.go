@@ -9,6 +9,6 @@
 
 package swagger
 
-type RemoteExtensionTransport struct {
+type RemoteExtensionTransportConfig struct {
 	Http *Http `json:"http,omitempty"`
 }

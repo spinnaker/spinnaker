@@ -13,18 +13,29 @@ Method | HTTP request | Description
 [**DiffResourceUsingPOST**](ManagedControllerApi.md#DiffResourceUsingPOST) | **Post** /managed/resources/diff | Ad-hoc validate and diff a resource
 [**ExportResourceUsingGET**](ManagedControllerApi.md#ExportResourceUsingGET) | **Get** /managed/resources/export/artifact/{cloudProvider}/{account}/{clusterName} | Generates an artifact definition based on the artifact used in a running cluster
 [**ExportResourceUsingGET1**](ManagedControllerApi.md#ExportResourceUsingGET1) | **Get** /managed/resources/export/{cloudProvider}/{account}/{type}/{name} | Generate a keel resource definition for a deployed cloud resource
-[**GetApiDocsUsingGET**](ManagedControllerApi.md#GetApiDocsUsingGET) | **Get** /managed/api-docs | getApiDocs
+[**GetAdoptionReportUsingGET**](ManagedControllerApi.md#GetAdoptionReportUsingGET) | **Get** /managed/reports/adoption | Get a report of Managed Delivery adoption
 [**GetApplicationDetailsUsingGET**](ManagedControllerApi.md#GetApplicationDetailsUsingGET) | **Get** /managed/application/{application} | Get managed details about an application
 [**GetConfigByUsingGET**](ManagedControllerApi.md#GetConfigByUsingGET) | **Get** /managed/application/{application}/config | Get the delivery config associated with an application
 [**GetConstraintStateUsingGET**](ManagedControllerApi.md#GetConstraintStateUsingGET) | **Get** /managed/application/{application}/environment/{environment}/constraints | List up-to {limit} current constraint states for an environment
+[**GetEnvironmentsUsingGET**](ManagedControllerApi.md#GetEnvironmentsUsingGET) | **Get** /managed/environments/{application} | Get current environment details
 [**GetManifestArtifactsUsingGET**](ManagedControllerApi.md#GetManifestArtifactsUsingGET) | **Get** /managed/delivery-configs/{name}/artifacts | Get the status of each version of each artifact in each environment
 [**GetManifestUsingGET**](ManagedControllerApi.md#GetManifestUsingGET) | **Get** /managed/delivery-configs/{name} | Get a delivery config manifest
+[**GetManifestYamlUsingGET**](ManagedControllerApi.md#GetManifestYamlUsingGET) | **Get** /managed/delivery-configs/{name}.yml | Get a delivery config manifest
+[**GetOnboardingReportUsingGET**](ManagedControllerApi.md#GetOnboardingReportUsingGET) | **Get** /managed/reports/onboarding | Get a report of application onboarding
 [**GetResourceStatusUsingGET**](ManagedControllerApi.md#GetResourceStatusUsingGET) | **Get** /managed/resources/{resourceId}/status | Get status of a resource
 [**GetResourceUsingGET**](ManagedControllerApi.md#GetResourceUsingGET) | **Get** /managed/resources/{resourceId} | Get a resource
+[**GetResourceYamlUsingGET**](ManagedControllerApi.md#GetResourceYamlUsingGET) | **Get** /managed/resources/{resourceId}.yml | Get a resource
+[**GraphqlUsingPOST**](ManagedControllerApi.md#GraphqlUsingPOST) | **Post** /managed/graphql | Post a graphql request
+[**MarkBadUsingPOST**](ManagedControllerApi.md#MarkBadUsingPOST) | **Post** /managed/application/{application}/mark/bad | Veto an artifact version in an environment
+[**MarkGoodUsingPOST**](ManagedControllerApi.md#MarkGoodUsingPOST) | **Post** /managed/application/{application}/mark/good | Delete veto of an artifact version in an environment
+[**OverrideVerificationUsingPOST**](ManagedControllerApi.md#OverrideVerificationUsingPOST) | **Post** /managed/{application}/environment/{environment}/verifications | Override the status of a verification
 [**PauseApplicationUsingPOST**](ManagedControllerApi.md#PauseApplicationUsingPOST) | **Post** /managed/application/{application}/pause | Pause management of an entire application
 [**PauseResourceUsingPOST**](ManagedControllerApi.md#PauseResourceUsingPOST) | **Post** /managed/resources/{resourceId}/pause | Pause management of a resource
+[**ProcessNotificationCallbackUsingPOST**](ManagedControllerApi.md#ProcessNotificationCallbackUsingPOST) | **Post** /managed/notifications/callbacks/{source} | processNotificationCallback
 [**ResumeApplicationUsingDELETE**](ManagedControllerApi.md#ResumeApplicationUsingDELETE) | **Delete** /managed/application/{application}/pause | Resume management of an entire application
 [**ResumeResourceUsingDELETE**](ManagedControllerApi.md#ResumeResourceUsingDELETE) | **Delete** /managed/resources/{resourceId}/pause | Resume management of a resource
+[**RetryVerificationUsingPOST**](ManagedControllerApi.md#RetryVerificationUsingPOST) | **Post** /managed/{application}/environment/{environment}/verifications/retry | Retry a verification
+[**SchemaUsingGET**](ManagedControllerApi.md#SchemaUsingGET) | **Get** /managed/delivery-configs/schema | Ad-hoc validate and diff a config manifest
 [**UpdateConstraintStatusUsingPOST**](ManagedControllerApi.md#UpdateConstraintStatusUsingPOST) | **Post** /managed/application/{application}/environment/{environment}/constraint | Update the status of an environment constraint
 [**UpsertManifestUsingPOST**](ManagedControllerApi.md#UpsertManifestUsingPOST) | **Post** /managed/delivery-configs | Create or update a delivery config manifest
 [**ValidateManifestUsingPOST**](ManagedControllerApi.md#ValidateManifestUsingPOST) | **Post** /managed/delivery-configs/validate | Validate a delivery config manifest
@@ -286,16 +297,20 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **GetApiDocsUsingGET**
-> interface{} GetApiDocsUsingGET(ctx, )
-getApiDocs
+# **GetAdoptionReportUsingGET**
+> string GetAdoptionReportUsingGET(ctx, params)
+Get a report of Managed Delivery adoption
 
 ### Required Parameters
-This endpoint does not need any parameter.
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+  **params** | [**interface{}**](.md)| params | 
 
 ### Return type
 
-[**interface{}**](interface{}.md)
+**string**
 
 ### Authorization
 
@@ -304,7 +319,7 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: Not defined
- - **Accept**: */*
+ - **Accept**: text/html
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -328,6 +343,7 @@ Name | Type | Description  | Notes
 
  **entities** | [**optional.Interface of []string**](string.md)| entities | 
  **includeDetails** | **optional.Bool**| includeDetails | [default to false]
+ **maxArtifactVersions** | **optional.Int32**| maxArtifactVersions | 
 
 ### Return type
 
@@ -407,6 +423,32 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **GetEnvironmentsUsingGET**
+> []Mapstringobject GetEnvironmentsUsingGET(ctx, application)
+Get current environment details
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+  **application** | **string**| application | 
+
+### Return type
+
+[**[]Mapstringobject**](MapÂ«string,objectÂ».md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **GetManifestArtifactsUsingGET**
 > []interface{} GetManifestArtifactsUsingGET(ctx, name)
 Get the status of each version of each artifact in each environment
@@ -447,6 +489,59 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**DeliveryConfig**](DeliveryConfig.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: */*
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **GetManifestYamlUsingGET**
+> DeliveryConfig GetManifestYamlUsingGET(ctx, name)
+Get a delivery config manifest
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+  **name** | **string**| name | 
+
+### Return type
+
+[**DeliveryConfig**](DeliveryConfig.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/x-yaml
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **GetOnboardingReportUsingGET**
+> string GetOnboardingReportUsingGET(ctx, accept, params)
+Get a report of application onboarding
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+  **accept** | **string**| Accept | [default to text/html]
+  **params** | [**interface{}**](.md)| params | 
+
+### Return type
+
+**string**
 
 ### Authorization
 
@@ -511,6 +606,140 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **GetResourceYamlUsingGET**
+> Resource GetResourceYamlUsingGET(ctx, resourceId)
+Get a resource
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+  **resourceId** | **string**| resourceId | 
+
+### Return type
+
+[**Resource**](Resource.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/x-yaml
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **GraphqlUsingPOST**
+> interface{} GraphqlUsingPOST(ctx, query)
+Post a graphql request
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+  **query** | [**GraphQlRequest**](GraphQlRequest.md)| query | 
+
+### Return type
+
+[**interface{}**](interface{}.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **MarkBadUsingPOST**
+> MarkBadUsingPOST(ctx, application, veto)
+Veto an artifact version in an environment
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+  **application** | **string**| application | 
+  **veto** | [**EnvironmentArtifactVeto**](EnvironmentArtifactVeto.md)| veto | 
+
+### Return type
+
+ (empty response body)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: */*
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **MarkGoodUsingPOST**
+> MarkGoodUsingPOST(ctx, application, veto)
+Delete veto of an artifact version in an environment
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+  **application** | **string**| application | 
+  **veto** | [**EnvironmentArtifactVeto**](EnvironmentArtifactVeto.md)| veto | 
+
+### Return type
+
+ (empty response body)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: */*
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **OverrideVerificationUsingPOST**
+> OverrideVerificationUsingPOST(ctx, application, environment, payload)
+Override the status of a verification
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+  **application** | **string**| application | 
+  **environment** | **string**| environment | 
+  **payload** | [**OverrideVerificationRequest**](OverrideVerificationRequest.md)| payload | 
+
+### Return type
+
+ (empty response body)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: */*
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **PauseApplicationUsingPOST**
 > PauseApplicationUsingPOST(ctx, application)
 Pause management of an entire application
@@ -563,6 +792,170 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **ProcessNotificationCallbackUsingPOST**
+> string ProcessNotificationCallbackUsingPOST(ctx, source, optional)
+processNotificationCallback
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+  **source** | **string**| source | 
+ **optional** | ***ManagedControllerApiProcessNotificationCallbackUsingPOSTOpts** | optional parameters | nil if no parameters
+
+### Optional Parameters
+Optional parameters are passed through a pointer to a ManagedControllerApiProcessNotificationCallbackUsingPOSTOpts struct
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+
+ **body** | **optional.String**|  | 
+ **headersETag** | **optional.String**|  | 
+ **headersAcceptCharset0Registered** | **optional.Bool**|  | 
+ **headersAcceptLanguageAsLocales0ISO3Country** | **optional.String**|  | 
+ **headersAcceptLanguageAsLocales0ISO3Language** | **optional.String**|  | 
+ **headersAcceptLanguageAsLocales0Country** | **optional.String**|  | 
+ **headersAcceptLanguageAsLocales0DisplayCountry** | **optional.String**|  | 
+ **headersAcceptLanguageAsLocales0DisplayLanguage** | **optional.String**|  | 
+ **headersAcceptLanguageAsLocales0DisplayName** | **optional.String**|  | 
+ **headersAcceptLanguageAsLocales0DisplayScript** | **optional.String**|  | 
+ **headersAcceptLanguageAsLocales0DisplayVariant** | **optional.String**|  | 
+ **headersAcceptLanguageAsLocales0Language** | **optional.String**|  | 
+ **headersAcceptLanguageAsLocales0Script** | **optional.String**|  | 
+ **headersAcceptLanguageAsLocales0UnicodeLocaleAttributes** | [**optional.Interface of []string**](string.md)|  | 
+ **headersAcceptLanguageAsLocales0UnicodeLocaleKeys** | [**optional.Interface of []string**](string.md)|  | 
+ **headersAcceptLanguageAsLocales0Variant** | **optional.String**|  | 
+ **headersAcceptLanguage0Range** | **optional.String**|  | 
+ **headersAcceptLanguage0Weight** | **optional.Float64**|  | 
+ **headersAccept0CharsetRegistered** | **optional.Bool**|  | 
+ **headersAccept0Concrete** | **optional.Bool**|  | 
+ **headersAccept0QualityValue** | **optional.Float64**|  | 
+ **headersAccept0Subtype** | **optional.String**|  | 
+ **headersAccept0Type** | **optional.String**|  | 
+ **headersAccept0WildcardSubtype** | **optional.Bool**|  | 
+ **headersAccept0WildcardType** | **optional.Bool**|  | 
+ **headersAccessControlAllowCredentials** | **optional.Bool**|  | 
+ **headersAccessControlAllowHeaders** | [**optional.Interface of []string**](string.md)|  | 
+ **headersAccessControlAllowMethods** | [**optional.Interface of []string**](string.md)|  | 
+ **headersAccessControlAllowOrigin** | **optional.String**|  | 
+ **headersAccessControlExposeHeaders** | [**optional.Interface of []string**](string.md)|  | 
+ **headersAccessControlMaxAge** | **optional.Int64**|  | 
+ **headersAccessControlRequestHeaders** | [**optional.Interface of []string**](string.md)|  | 
+ **headersAccessControlRequestMethod** | **optional.String**|  | 
+ **headersAllow** | [**optional.Interface of []string**](string.md)|  | 
+ **headersCacheControl** | **optional.String**|  | 
+ **headersConnection** | [**optional.Interface of []string**](string.md)|  | 
+ **headersContentDispositionCharsetRegistered** | **optional.Bool**|  | 
+ **headersContentDispositionCreationDate** | **optional.Time**|  | 
+ **headersContentDispositionFilename** | **optional.String**|  | 
+ **headersContentDispositionModificationDate** | **optional.Time**|  | 
+ **headersContentDispositionName** | **optional.String**|  | 
+ **headersContentDispositionReadDate** | **optional.Time**|  | 
+ **headersContentDispositionSize** | **optional.Int64**|  | 
+ **headersContentDispositionType** | **optional.String**|  | 
+ **headersContentLanguageISO3Country** | **optional.String**|  | 
+ **headersContentLanguageISO3Language** | **optional.String**|  | 
+ **headersContentLanguageCountry** | **optional.String**|  | 
+ **headersContentLanguageDisplayCountry** | **optional.String**|  | 
+ **headersContentLanguageDisplayLanguage** | **optional.String**|  | 
+ **headersContentLanguageDisplayName** | **optional.String**|  | 
+ **headersContentLanguageDisplayScript** | **optional.String**|  | 
+ **headersContentLanguageDisplayVariant** | **optional.String**|  | 
+ **headersContentLanguageLanguage** | **optional.String**|  | 
+ **headersContentLanguageScript** | **optional.String**|  | 
+ **headersContentLanguageUnicodeLocaleAttributes** | [**optional.Interface of []string**](string.md)|  | 
+ **headersContentLanguageUnicodeLocaleKeys** | [**optional.Interface of []string**](string.md)|  | 
+ **headersContentLanguageVariant** | **optional.String**|  | 
+ **headersContentLength** | **optional.Int64**|  | 
+ **headersContentTypeCharsetRegistered** | **optional.Bool**|  | 
+ **headersContentTypeConcrete** | **optional.Bool**|  | 
+ **headersContentTypeQualityValue** | **optional.Float64**|  | 
+ **headersContentTypeSubtype** | **optional.String**|  | 
+ **headersContentTypeType** | **optional.String**|  | 
+ **headersContentTypeWildcardSubtype** | **optional.Bool**|  | 
+ **headersContentTypeWildcardType** | **optional.Bool**|  | 
+ **headersDate** | **optional.Int64**|  | 
+ **headersExpires** | **optional.Int64**|  | 
+ **headersHostAddressMCGlobal** | **optional.Bool**|  | 
+ **headersHostAddressMCLinkLocal** | **optional.Bool**|  | 
+ **headersHostAddressMCNodeLocal** | **optional.Bool**|  | 
+ **headersHostAddressMCOrgLocal** | **optional.Bool**|  | 
+ **headersHostAddressMCSiteLocal** | **optional.Bool**|  | 
+ **headersHostAddressAddress** | **optional.String**|  | 
+ **headersHostAddressAnyLocalAddress** | **optional.Bool**|  | 
+ **headersHostAddressCanonicalHostName** | **optional.String**|  | 
+ **headersHostAddressHostAddress** | **optional.String**|  | 
+ **headersHostAddressHostName** | **optional.String**|  | 
+ **headersHostAddressLinkLocalAddress** | **optional.Bool**|  | 
+ **headersHostAddressLoopbackAddress** | **optional.Bool**|  | 
+ **headersHostAddressMulticastAddress** | **optional.Bool**|  | 
+ **headersHostAddressSiteLocalAddress** | **optional.Bool**|  | 
+ **headersHostHostName** | **optional.String**|  | 
+ **headersHostHostString** | **optional.String**|  | 
+ **headersHostPort** | **optional.Int32**|  | 
+ **headersHostUnresolved** | **optional.Bool**|  | 
+ **headersIfMatch** | [**optional.Interface of []string**](string.md)|  | 
+ **headersIfModifiedSince** | **optional.Int64**|  | 
+ **headersIfNoneMatch** | [**optional.Interface of []string**](string.md)|  | 
+ **headersIfUnmodifiedSince** | **optional.Int64**|  | 
+ **headersLastModified** | **optional.Int64**|  | 
+ **headersLocationAbsolute** | **optional.Bool**|  | 
+ **headersLocationAuthority** | **optional.String**|  | 
+ **headersLocationFragment** | **optional.String**|  | 
+ **headersLocationHost** | **optional.String**|  | 
+ **headersLocationOpaque** | **optional.Bool**|  | 
+ **headersLocationPath** | **optional.String**|  | 
+ **headersLocationPort** | **optional.Int32**|  | 
+ **headersLocationQuery** | **optional.String**|  | 
+ **headersLocationRawAuthority** | **optional.String**|  | 
+ **headersLocationRawFragment** | **optional.String**|  | 
+ **headersLocationRawPath** | **optional.String**|  | 
+ **headersLocationRawQuery** | **optional.String**|  | 
+ **headersLocationRawSchemeSpecificPart** | **optional.String**|  | 
+ **headersLocationRawUserInfo** | **optional.String**|  | 
+ **headersLocationScheme** | **optional.String**|  | 
+ **headersLocationSchemeSpecificPart** | **optional.String**|  | 
+ **headersLocationUserInfo** | **optional.String**|  | 
+ **headersOrigin** | **optional.String**|  | 
+ **headersPragma** | **optional.String**|  | 
+ **headersUpgrade** | **optional.String**|  | 
+ **headersVary** | [**optional.Interface of []string**](string.md)|  | 
+ **method** | **optional.String**|  | 
+ **type_** | [**optional.Interface of Object**](.md)|  | 
+ **urlAbsolute** | **optional.Bool**|  | 
+ **urlAuthority** | **optional.String**|  | 
+ **urlFragment** | **optional.String**|  | 
+ **urlHost** | **optional.String**|  | 
+ **urlOpaque** | **optional.Bool**|  | 
+ **urlPath** | **optional.String**|  | 
+ **urlPort** | **optional.Int32**|  | 
+ **urlQuery** | **optional.String**|  | 
+ **urlRawAuthority** | **optional.String**|  | 
+ **urlRawFragment** | **optional.String**|  | 
+ **urlRawPath** | **optional.String**|  | 
+ **urlRawQuery** | **optional.String**|  | 
+ **urlRawSchemeSpecificPart** | **optional.String**|  | 
+ **urlRawUserInfo** | **optional.String**|  | 
+ **urlScheme** | **optional.String**|  | 
+ **urlSchemeSpecificPart** | **optional.String**|  | 
+ **urlUserInfo** | **optional.String**|  | 
+
+### Return type
+
+**string**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/x-www-form-urlencoded
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **ResumeApplicationUsingDELETE**
 > ResumeApplicationUsingDELETE(ctx, application)
 Resume management of an entire application
@@ -612,6 +1005,57 @@ No authorization required
 
  - **Content-Type**: Not defined
  - **Accept**: */*
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **RetryVerificationUsingPOST**
+> RetryVerificationUsingPOST(ctx, application, environment, payload, verificationId)
+Retry a verification
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+  **application** | **string**| application | 
+  **environment** | **string**| environment | 
+  **payload** | [**RetryVerificationRequest**](RetryVerificationRequest.md)| payload | 
+  **verificationId** | **string**| verificationId | 
+
+### Return type
+
+ (empty response body)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: */*
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **SchemaUsingGET**
+> interface{} SchemaUsingGET(ctx, )
+Ad-hoc validate and diff a config manifest
+
+### Required Parameters
+This endpoint does not need any parameter.
+
+### Return type
+
+[**interface{}**](interface{}.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json, application/x-yaml
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

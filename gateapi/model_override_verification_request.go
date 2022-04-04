@@ -9,9 +9,10 @@
 
 package swagger
 
-type EnvironmentArtifactVeto struct {
+type OverrideVerificationRequest struct {
+	ArtifactReference string `json:"artifactReference,omitempty"`
+	ArtifactVersion string `json:"artifactVersion,omitempty"`
 	Comment string `json:"comment,omitempty"`
-	Reference string `json:"reference,omitempty"`
-	TargetEnvironment string `json:"targetEnvironment,omitempty"`
-	Version string `json:"version,omitempty"`
+	Status string `json:"status,omitempty"`
+	VerificationId string `json:"verificationId,omitempty"`
 }

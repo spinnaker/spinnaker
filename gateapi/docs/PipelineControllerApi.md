@@ -205,7 +205,7 @@ Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **executionId** | **string**| Execution id to run against | 
-  **expressions** | [**[]Mapstringstring**](Map«string,string».md)| List of variables/expressions to evaluate | 
+  **expressions** | [**[]Mapstringstring**](MapÂ«string,stringÂ».md)| List of variables/expressions to evaluate | 
  **optional** | ***PipelineControllerApiEvaluateVariablesUsingPOSTOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
