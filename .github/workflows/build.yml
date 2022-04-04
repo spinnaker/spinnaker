@@ -55,6 +55,7 @@ jobs:
           GOARCH=amd64 GOOS=darwin go build -ldflags "${LDFLAGS}" -o dist/${{ github.ref_name }}/${{ steps.build_variables.outputs.VERSION_WITHOUT_BRANCH }}/darwin/amd64/spin .
           GOARCH=amd64 GOOS=linux go build -ldflags "${LDFLAGS}" -o dist/${{ github.ref_name }}/${{ steps.build_variables.outputs.VERSION_WITHOUT_BRANCH }}/linux/amd64/spin .
           GOARCH=amd64 GOOS=windows go build -ldflags "${LDFLAGS}" -o dist/${{ github.ref_name }}/${{ steps.build_variables.outputs.VERSION_WITHOUT_BRANCH }}/windows/amd64/spin.exe .
+          GOARCH=arm64 GOOS=darwin go build -ldflags "${LDFLAGS}" -o dist/${{ github.ref_name }}/${{ steps.build_variables.outputs.VERSION_WITHOUT_BRANCH }}/darwin/arm64/spin .
           dist/${{ github.ref_name }}/${{ steps.build_variables.outputs.VERSION_WITHOUT_BRANCH }}/linux/amd64/spin --version
       - name: Login to Google Cloud
         uses: 'google-github-actions/auth@v0'

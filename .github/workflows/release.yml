@@ -62,6 +62,7 @@ jobs:
           GOARCH=amd64 GOOS=darwin go build -ldflags "${LDFLAGS}" -o dist/${{ steps.release_info.outputs.RELEASE_VERSION }}/darwin/amd64/spin .
           GOARCH=amd64 GOOS=linux go build -ldflags "${LDFLAGS}" -o dist/${{ steps.release_info.outputs.RELEASE_VERSION }}/linux/amd64/spin .
           GOARCH=amd64 GOOS=windows go build -ldflags "${LDFLAGS}" -o dist/${{ steps.release_info.outputs.RELEASE_VERSION }}/windows/amd64/spin.exe .
+          GOARCH=arm64 GOOS=darwin go build -ldflags "${LDFLAGS}" -o dist/${{ steps.release_info.outputs.RELEASE_VERSION }}/darwin/arm64/spin .
           dist/${{ steps.release_info.outputs.RELEASE_VERSION }}/linux/amd64/spin --version
       - name: Login to Google Cloud
         # Only run this on repositories in the 'spinnaker' org, not on forks.
