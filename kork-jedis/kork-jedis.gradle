@@ -9,6 +9,8 @@ dependencies {
   api project(":kork-core")
   api "com.netflix.spectator:spectator-api"
 
+  implementation "com.fasterxml.jackson.core:jackson-databind"
+
   testImplementation "com.hubspot.jinjava:jinjava"
   testImplementation project(":kork-core-tck")
   testImplementation project(":kork-jedis-test")

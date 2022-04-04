@@ -18,6 +18,8 @@ dependencies {
   api "io.github.resilience4j:resilience4j-retry"
   api "io.github.resilience4j:resilience4j-spring-boot2"
 
+  implementation "com.fasterxml.jackson.core:jackson-annotations"
+  implementation "com.fasterxml.jackson.core:jackson-databind"
   implementation "com.netflix.spectator:spectator-ext-gc"
   implementation "com.netflix.spectator:spectator-ext-jvm"
   implementation "com.netflix.spectator:spectator-reg-micrometer"
