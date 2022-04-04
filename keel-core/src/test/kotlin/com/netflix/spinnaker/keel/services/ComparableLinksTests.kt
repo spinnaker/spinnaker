@@ -465,6 +465,171 @@ class ComparableLinksTests : JUnit5Minutests {
         }
       }
 
+      context("github enterprise") {
+        before {
+          every { repository.artifactVersions(releaseArtifact, limit) } returns versions.toArtifactVersions(
+            releaseArtifact,
+            "https://git.foo.com"
+          )
+        }
+
+        test("compare links for previous-->current are generated as expected, in the correct env") {
+          // current is compared against what it replaced
+          val summaries = applicationService.getArtifactSummariesFor(application1, limit)
+          expectThat(summaries.first())
+            .withVersionInEnvironment(version2, "test") {
+              state.isEqualTo(CURRENT.name.toLowerCase())
+              compareLink
+                .isEqualTo("https://git.foo.com/spkr/keel/compare/${version1}...${version2}")
+            }
+            .withVersionInEnvironment(version1, "staging") {
+              state.isEqualTo(CURRENT.name.toLowerCase())
+              compareLink.isEqualTo("https://git.foo.com/spkr/keel/compare/${version0}...${version1}")
+            }
+        }
+
+        test("compare links for current --> deploying are generated as expected, in the correct env") {
+          // deploying is compared against the current version
+          val summaries = applicationService.getArtifactSummariesFor(application1, limit)
+          expectThat(summaries.first())
+            .withVersionInEnvironment(version3, "test") {
+              state.isEqualTo(DEPLOYING.name.toLowerCase())
+              compareLink
+                .isEqualTo("https://git.foo.com/spkr/keel/compare/${version2}...${version3}")
+            }
+        }
+
+        test("compare links for previous --> current  are generated as expected, in the correct env") {
+          // previous is compared to what replaced it, which we know.
+          val summaries = applicationService.getArtifactSummariesFor(application1, limit)
+          expectThat(summaries.first())
+            .withVersionInEnvironment(version0, "staging") {
+              state.isEqualTo(PREVIOUS.name.toLowerCase())
+              compareLink.isEqualTo("https://git.foo.com/spkr/keel/compare/${version0}...${version1}")
+            }
+        }
+
+        test("compare links for pending --> current  are generated as expected, in the correct env") {
+          // pending is compared to current
+          val summaries = applicationService.getArtifactSummariesFor(application1, limit)
+          expectThat(summaries.first())
+            .withVersionInEnvironment(version2, "staging") {
+              state.isEqualTo(PENDING.name.toLowerCase())
+              compareLink.isEqualTo("https://git.foo.com/spkr/keel/compare/${version1}...${version2}")
+            }
+        }
+
+        context("pinned") {
+          before {
+            every {
+              repository.getVersionInfoInEnvironment(any(), "test", any())
+            } returns listOf(
+              StatusInfoForArtifactInEnvironment(version0, CURRENT, null, clock.instant().minus(Duration.ofHours(2))),
+            )
+
+            every {
+              repository.getVersionInfoInEnvironment(any(), "staging", any())
+            } returns listOf(
+              StatusInfoForArtifactInEnvironment(
+                version0,
+                PREVIOUS,
+                version1,
+                clock.instant().minus(Duration.ofHours(4))
+              ),
+              StatusInfoForArtifactInEnvironment(version1, CURRENT, null, clock.instant()),
+            )
+
+            // for statuses other than PENDING, we go look for the artifact summary in environment
+            every { repository.getArtifactSummariesInEnvironment(
+              singleArtifactDeliveryConfig,
+              "test",
+              any(),
+              versions
+            ) } returns testSummaryInEnv.map { versionSummary ->
+              if (versionSummary.version == version0) {
+                // version 0 is pinned
+                ArtifactSummaryInEnvironment("test", version0, "previous", replacedBy = version1, pinned = ActionMetadata(clock.instant(), "me", "because I said so"))
+              } else {
+                versionSummary
+              }
+            }
+
+            every { repository.getArtifactSummariesInEnvironment(
+              singleArtifactDeliveryConfig,
+              "staging",
+              any(),
+              versions
+            ) } returns stagingSummaryInEnv.map { versionSummary ->
+              if (versionSummary.version == version3) {
+                // version 3 is pinned
+                ArtifactSummaryInEnvironment("staging", version3, "pending", pinned = ActionMetadata(clock.instant(), "me", "because I said so"))
+              } else {
+                versionSummary
+              }
+            }
+          }
+
+          test("get the correct compare link when pinning forward (current)") {
+            // pinning to version 3 here
+            val summaries = applicationService.getArtifactSummariesFor(application1, limit)
+            expectThat(summaries.first())
+              .withVersionInEnvironment(version1, "staging") {
+                compareLink.isEqualTo("https://git.foo.com/spkr/keel/compare/${version1}...${version3}")
+              }
+          }
+
+          test("get the correct compare link when pinning forward (pending)") {
+            val summaries = applicationService.getArtifactSummariesFor(application1, limit)
+            expectThat(summaries.first())
+              .withVersionInEnvironment(version4, "test") {
+                compareLink.isEqualTo("https://git.foo.com/spkr/keel/compare/${version0}...${version4}")
+              }
+          }
+
+          test("get the correct compare link when pinning forward (prev)") {
+            val summaries = applicationService.getArtifactSummariesFor(application1, limit)
+            expectThat(summaries.first())
+              .withVersionInEnvironment(version1, "test") {
+                compareLink.isEqualTo("https://git.foo.com/spkr/keel/compare/${version1}...${version2}")
+              }
+          }
+
+          test("get the correct compare link when pinning backwards") {
+            val summaries = applicationService.getArtifactSummariesFor(application1, limit)
+            expectThat(summaries.first())
+              .withVersionInEnvironment(version2, "test") {
+                compareLink.isEqualTo("https://git.foo.com/spkr/keel/compare/${version0}...${version2}")
+              }
+          }
+
+          context("pin version == current version") {
+            before {
+              every { repository.getArtifactSummariesInEnvironment(
+                singleArtifactDeliveryConfig,
+                "staging",
+                any(),
+                versions
+              ) } returns stagingSummaryInEnv.map { versionSummary ->
+                if (versionSummary.version == version1) {
+                  // version 1 is pinned
+                  ArtifactSummaryInEnvironment("staging", version1, "current", pinned = ActionMetadata(clock.instant(), "me", "because I said so"))
+                } else {
+                  versionSummary
+                }
+              }
+            }
+
+            test("generate the right compare link") {
+              val summaries = applicationService.getArtifactSummariesFor(application1, limit)
+              expectThat(summaries.first())
+                .withVersionInEnvironment(version1, "staging") {
+                  compareLink.isEqualTo("https://git.foo.com/spkr/keel/compare/${version0}...${version1}")
+                }
+            }
+          }
+        }
+      }
+
       context("github") {
         before {
           every { repository.artifactVersions(releaseArtifact, limit) } returns versions.toArtifactVersions(

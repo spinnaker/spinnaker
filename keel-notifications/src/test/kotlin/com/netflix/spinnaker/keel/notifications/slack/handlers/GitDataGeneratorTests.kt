@@ -67,9 +67,9 @@ class GitDataGeneratorTests : JUnit5Minutests {
                 project = "spkr",
                 repo = Repo("keel", null),
                 branch = "main",
-                pullRequest = PullRequest("1", "stash/pr/1"),
+                pullRequest = PullRequest("1", "https://stash/pr/1"),
                 commitInfo = Commit(
-                  link = "stash",
+                  link = "https://stash",
                   sha = "676fea96a33cbc774685ff8b511092d9a3809f90",
                   message = null
                 )
@@ -87,8 +87,8 @@ class GitDataGeneratorTests : JUnit5Minutests {
         expect {
           that(text.toString().contains("text=<https://stash/projects/spkr/repos/keel|spkr/keel>")).isTrue()
           that(text.toString().contains("<https://stash/projects/spkr/repos/keel/branches|main>")).isTrue()
-          that(text.toString().contains("<stash/pr/1|PR#1>")).isTrue()
-          that(text.toString().contains("<stash|676fea9>")).isTrue()
+          that(text.toString().contains("<https://stash/pr/1|PR#1>")).isTrue()
+          that(text.toString().contains("<https://stash|676fea9>")).isTrue()
         }
       }
     }

@@ -12,7 +12,8 @@ import java.util.function.Function
 
 val scmData = mapOf(
   "stash" to "https://stash",
-  "gitHub" to "https://github.com")
+  "gitHub" to "https://github.com",
+  "gitHubEnterprise" to "https://git.foo.com")
 
 fun mockScmInfo(): ScmInfo {
   return mockk() {

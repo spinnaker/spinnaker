@@ -35,14 +35,15 @@ class ArtifactVersionLinks(private val scmInfo: ScmInfo, private val cacheFactor
   //Generating a SCM compare link between source (new version) and target (old version) versions (the order matter!)
   private fun generateCompareLink(newerGitMetadata: GitMetadata?, olderGitMetadata: GitMetadata?): String? {
     val commitLink = newerGitMetadata?.commitInfo?.link ?: return null
+    val normScmType = getNormalizedScmType(commitLink)
     val baseScmUrl = getScmBaseLink(commitLink)
-    return if (baseScmUrl != null && olderGitMetadata != null && !(olderGitMetadata.commitInfo?.sha.isNullOrEmpty())) {
+    return if (normScmType != null && baseScmUrl != null && olderGitMetadata != null && !(olderGitMetadata.commitInfo?.sha.isNullOrEmpty())) {
       when {
-        "stash" in commitLink -> {
+        "stash" in normScmType -> {
           "$baseScmUrl/projects/${newerGitMetadata.project}/repos/${newerGitMetadata.repo?.name}/compare/commits?" +
             "targetBranch=${olderGitMetadata.commitInfo?.sha}&sourceBranch=${newerGitMetadata.commitInfo?.sha}"
         }
-        "github" in commitLink -> {
+        "github" in normScmType -> {
           "$baseScmUrl/${newerGitMetadata.project}/${newerGitMetadata.repo?.name}/compare/" +
             "${olderGitMetadata.commitInfo?.sha}...${newerGitMetadata.commitInfo?.sha}"
         }
@@ -51,22 +52,46 @@ class ArtifactVersionLinks(private val scmInfo: ScmInfo, private val cacheFactor
     } else null
   }
 
-  //Calling igor to fetch all base urls by SCM type, and returning the right one based on current commit link
-  fun getScmBaseLink(commitLink: String): String? {
+  fun getNormalizedScmType(commitLink: String): String? {
+    val scmType = getScmType(commitLink)
+    return scmType?.toLowerCase()
+  }
+
+  fun getScmType(commitLink: String): String? {
+    val commitURL = URL(commitLink)
 
     val scmBaseURLs = runBlocking {
       val cachedValue = cache[cacheName].get()
       cachedValue ?: scmInfo.getScmInfo()
     }
-    return when {
-      "stash" in commitLink ->
-        scmBaseURLs["stash"]
-      "github" in commitLink -> {
-        val url = URL(scmBaseURLs["gitHub"])
-        "${url.protocol}://${url.host}"
-      }
-      else ->
-        throw UnsupportedScmType(message = "Stash and GitHub are currently the only supported SCM types.")
+
+    val base = scmBaseURLs.filter { (_,baseUrl) ->
+      commitURL.host == URL(baseUrl).host
     }
+
+    return base.keys.toList().firstOrNull()
+  }
+
+  //Calling igor to fetch all base urls by SCM type, and returning the right one based on current commit link
+  fun getScmBaseLink(commitLink: String): String? {
+    val normScmType = getNormalizedScmType(commitLink)
+    val scmType = getScmType(commitLink)
+    val scmBaseURLs = runBlocking {
+      val cachedValue = cache[cacheName].get()
+      cachedValue ?: scmInfo.getScmInfo()
+    }
+
+    return if (normScmType != null) {
+      when {
+        "stash" in normScmType ->
+          scmBaseURLs["stash"]
+        "github" in normScmType -> {
+          val url = URL(scmBaseURLs[scmType])
+          "${url.protocol}://${url.host}"
+        }
+        else ->
+          throw UnsupportedScmType(message = "Stash and GitHub are currently the only supported SCM types.")
+      }
+    } else null
   }
 }

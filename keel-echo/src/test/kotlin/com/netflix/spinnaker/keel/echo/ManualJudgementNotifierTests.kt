@@ -279,7 +279,7 @@ internal class ManualJudgementNotifierTests : JUnit5Minutests {
               project = "myproj",
               branch = "master",
               repo = Repo("myapp"),
-              commitInfo = Commit(message = "A test commit #2", link = "stash", sha = "v2.0.0")
+              commitInfo = Commit(message = "A test commit #2", link = "https://stash", sha = "v2.0.0")
             )
           )
         }
@@ -312,7 +312,7 @@ internal class ManualJudgementNotifierTests : JUnit5Minutests {
                 project = "myproj",
                 branch = "master",
                 repo = Repo("myapp"),
-                commitInfo = Commit(message = "A test commit", link = "stash", sha = "v1.0.0")
+                commitInfo = Commit(message = "A test commit", link = "https://stash", sha = "v1.0.0")
               )
             )
           }
