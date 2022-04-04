@@ -369,6 +369,71 @@ public class DeleteManifestIT extends BaseTest {
     assertEquals(HttpStatus.NOT_FOUND.value(), response.statusCode());
   }
 
+  @DisplayName(
+      ".\n===\n"
+          + "Given a CRD deployed outside of Spinnaker\n"
+          + "When sending a delete manifest operation with CRD static target\n"
+          + "Then the CRD is deleted\n===")
+  @Test
+  public void shouldDeleteCrd() throws IOException, InterruptedException {
+    // ------------------------- given --------------------------
+    final String kind = "customResourceDefinition";
+    final String crdName = "crontabs.stable.example.com";
+    final Map<String, Object> crdManifest =
+        KubeTestUtils.loadYaml("classpath:manifests/crd_v1.yml")
+            .withValue("metadata.name", crdName)
+            .withValue("spec.scope", "Namespaced")
+            .asMap();
+    kubeCluster.execKubectl(" apply -f -", crdManifest);
+    // ------------------------- when ---------------------------
+    List<Map<String, Object>> request =
+        buildStaticRequestBody(String.format("%s %s", kind, crdName), true);
+    List<String> deletions = KubeTestUtils.sendOperation(baseUrl(), request, account1Ns);
+    // ------------------------- then ---------------------------
+    String exists =
+        kubeCluster.execKubectl(String.format("get %s %s --ignore-not-found", kind, crdName));
+    assertTrue(
+        exists.isBlank()
+            && deletions.size() == 1
+            && deletions.get(0).equals(String.format("%s %s", kind, crdName)));
+  }
+
+  @DisplayName(
+      ".\n===\n"
+          + "Given a CR deployed outside of Spinnaker\n"
+          + "When sending a delete manifest operation with CR static target\n"
+          + "Then the CR is deleted\n===")
+  @Test
+  public void shouldDeleteCr() throws IOException, InterruptedException {
+    // ------------------------- given --------------------------
+    final String kind = "crontab.stable.example.com";
+    final String crdName = "crontabs.stable.example.com";
+    final String crName = "my-new-cron-object";
+    final Map<String, Object> crdManifest =
+        KubeTestUtils.loadYaml("classpath:manifests/crd_v1.yml")
+            .withValue("metadata.name", crdName)
+            .withValue("spec.scope", "Namespaced")
+            .asMap();
+    final Map<String, Object> crManifest =
+        KubeTestUtils.loadYaml("classpath:manifests/cr_v1.yml")
+            .withValue("metadata.name", crName)
+            .asMap();
+    kubeCluster.execKubectl(" apply -f -", crdManifest);
+    kubeCluster.execKubectl("-n " + account1Ns + " apply -f -", crManifest);
+    // ------------------------- when ---------------------------
+    List<Map<String, Object>> request =
+        buildStaticRequestBody(String.format("%s %s", kind, crName), true);
+    List<String> deletions = KubeTestUtils.sendOperation(baseUrl(), request, account1Ns);
+    // ------------------------- then ---------------------------
+    String exists =
+        kubeCluster.execKubectl(
+            String.format("-n %s get %s %s --ignore-not-found", account1Ns, kind, crName));
+    assertTrue(
+        exists.isBlank()
+            && deletions.size() == 1
+            && deletions.get(0).equals(String.format("%s %s", kind, crName)));
+  }
+
   private List<Map<String, Object>> buildStaticRequestBody(String manifestName, Boolean cascading) {
     return KubeTestUtils.loadJson("classpath:requests/delete_manifest.json")
         .withValue("deleteManifest.app", APP1_NAME)

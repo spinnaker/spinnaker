@@ -168,6 +168,111 @@ public class PatchManifestIT extends BaseTest {
     expectedImageIsDeployed(imageWithTag);
   }
 
+  @DisplayName(
+      ".\n===\n"
+          + "Given a CRD with \"ct\" shortName deployed outside of Spinnaker\n"
+          + "When sending a patch shortName to \"cntb\" manifest operation\n"
+          + "Then the CRD shortName is change to \"cntb\"\n===")
+  @Test
+  public void shouldPatchCrd() throws IOException, InterruptedException {
+    // ------------------------- given --------------------------
+    final String kind = "customResourceDefinition";
+    final String crdName = "crontabs.stable.example.com";
+    final String shortName = "cntb";
+    Map<String, Object> crdManifest =
+        KubeTestUtils.loadYaml("classpath:manifests/crd_v1.yml")
+            .withValue("metadata.name", crdName)
+            .withValue("spec.scope", "Namespaced")
+            .withValue("spec.names.shortNames", new String[] {"ct"})
+            .asMap();
+    kubeCluster.execKubectl(" apply -f -", crdManifest);
+    // ------------------------- when ---------------------------
+    crdManifest =
+        KubeTestUtils.loadYaml("classpath:manifests/crd_v1.yml")
+            .withValue("metadata.name", crdName)
+            .withValue("spec.scope", "Namespaced")
+            .withValue("spec.names.shortNames", new String[] {shortName})
+            .asMap();
+    List<Map<String, Object>> request =
+        KubeTestUtils.loadJson("classpath:requests/patch_manifest.json")
+            .withValue("patchManifest.app", APP1_NAME)
+            .withValue("patchManifest.manifestName", String.format("%s %s", kind, crdName))
+            .withValue("patchManifest.patchBody", crdManifest)
+            .withValue("patchManifest.allArtifacts", new Object[] {})
+            .withValue("patchManifest.manifests", Arrays.asList(crdManifest))
+            .withValue("patchManifest.trafficManagement", null)
+            .withValue("patchManifest.moniker", null)
+            .withValue("patchManifest.enableTraffic", null)
+            .withValue("patchManifest.location", account1Ns)
+            .withValue("patchManifest.account", ACCOUNT1_NAME)
+            .withValue("patchManifest.skipExpressionEvaluation", null)
+            .withValue("patchManifest.requiredArtifacts", new Object[] {})
+            .asList();
+    KubeTestUtils.deployAndWaitStable(
+        baseUrl(), request, account1Ns, String.format("%s %s", kind, crdName));
+    // ------------------------- then ---------------------------
+    String patched =
+        kubeCluster.execKubectl(
+            String.format("get %s %s -o jsonpath=\"{.spec.names.shortNames}\"", kind, crdName));
+    assertTrue(patched.contains(shortName));
+  }
+
+  @DisplayName(
+      ".\n===\n"
+          + "Given a CR with \"my-awesome-cron-image\" spec.image deployed outside of Spinnaker\n"
+          + "When sending a patch spec.image to \"cron-image\" manifest operation\n"
+          + "Then the CR spec.image is change to \"cron-image\"\n===")
+  @Test
+  public void shouldPatchCr() throws IOException, InterruptedException {
+    // ------------------------- given --------------------------
+    final String kind = "crontab.stable.example.com";
+    final String crdName = "crontabs.stable.example.com";
+    final String crName = "my-new-cron-object";
+    final String crImage = "cron-image";
+    final Map<String, Object> crdManifest =
+        KubeTestUtils.loadYaml("classpath:manifests/crd_v1.yml")
+            .withValue("metadata.name", crdName)
+            .withValue("spec.scope", "Namespaced")
+            .asMap();
+    Map<String, Object> crManifest =
+        KubeTestUtils.loadYaml("classpath:manifests/cr_v1.yml")
+            .withValue("metadata.name", crName)
+            .withValue("spec.image", "my-awesome-cron-image")
+            .asMap();
+    kubeCluster.execKubectl(" apply -f -", crdManifest);
+    kubeCluster.execKubectl("-n " + account1Ns + " apply -f -", crManifest);
+    // ------------------------- when ---------------------------
+    crManifest =
+        KubeTestUtils.loadYaml("classpath:manifests/cr_v1.yml")
+            .withValue("metadata.name", crName)
+            .withValue("spec.image", crImage)
+            .asMap();
+    List<Map<String, Object>> request =
+        KubeTestUtils.loadJson("classpath:requests/patch_manifest.json")
+            .withValue("patchManifest.app", APP1_NAME)
+            .withValue("patchManifest.manifestName", String.format("%s %s", kind, crName))
+            .withValue("patchManifest.patchBody", crManifest)
+            .withValue("patchManifest.allArtifacts", new Object[] {})
+            .withValue("patchManifest.options.mergeStrategy", "merge")
+            .withValue("patchManifest.manifests", Arrays.asList(crManifest))
+            .withValue("patchManifest.trafficManagement", null)
+            .withValue("patchManifest.moniker", null)
+            .withValue("patchManifest.enableTraffic", null)
+            .withValue("patchManifest.location", account1Ns)
+            .withValue("patchManifest.account", ACCOUNT1_NAME)
+            .withValue("patchManifest.skipExpressionEvaluation", null)
+            .withValue("patchManifest.requiredArtifacts", new Object[] {})
+            .asList();
+    KubeTestUtils.deployAndWaitStable(
+        baseUrl(), request, account1Ns, String.format("%s %s", kind, crName));
+    // ------------------------- then ---------------------------
+    String patched =
+        kubeCluster.execKubectl(
+            String.format(
+                "-n %s get %s %s -o jsonpath=\"{.spec.image}\"", account1Ns, kind, crName));
+    assertTrue(patched.contains(crImage));
+  }
+
   private List<Map<String, Object>> createPatchBody(
       Map<String, Object> patchManifest,
       List<Map<String, Object>> allArtifacts,
