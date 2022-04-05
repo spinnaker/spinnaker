@@ -28,6 +28,7 @@ import com.netflix.spinnaker.keel.core.api.EnvironmentSummary
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.CURRENT
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.DEPLOYING
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.PREVIOUS
+import com.netflix.spinnaker.keel.exceptions.UnsupportedScmType
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.test.DummyArtifact
@@ -47,6 +48,8 @@ import strikt.api.DescribeableBuilder
 import strikt.api.expectThat
 import strikt.assertions.first
 import strikt.assertions.isEqualTo
+import java.net.URL
+import java.net.MalformedURLException
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
@@ -148,19 +151,33 @@ class ComparableLinksTests : JUnit5Minutests {
       number = "1",
     )
 
-    fun git(version: String, source: String) =
-      GitMetadata(
+    fun git(version: String, source: String): GitMetadata {
+      val link = when {
+        "://" in source ->
+          source
+        else ->
+          "https://${source}"
+      }
+
+      try {
+        val url = URL(link);
+      } catch (e: MalformedURLException) {
+        throw UnsupportedScmType(message = "Source must be valid github or stash source.")
+      }
+
+      return GitMetadata(
         author = "keel user",
         commit = version,
         commitInfo = Commit(
           sha = version,
-          link = source
+          link = link
         ),
         repo = Repo(
           name = "keel"
         ),
         project = "spkr"
       )
+    }
 
     fun Collection<String>.toArtifactVersions(artifact: DeliveryArtifact, source: String) =
       map { version ->
