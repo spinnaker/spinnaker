@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.manifest;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
+import static java.util.Collections.emptyMap;
 
 import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.kork.expressions.ExpressionEvaluationSummary;
@@ -82,6 +83,9 @@ public class DeployManifestStage extends ExpressionAwareStageDefinitionBuilder {
         case NONE:
           // do nothing
       }
+    }
+    if (stage.getContext().getOrDefault("noOutput", "false").toString().equals("true")) {
+      stage.setOutputs(emptyMap());
     }
   }
 
