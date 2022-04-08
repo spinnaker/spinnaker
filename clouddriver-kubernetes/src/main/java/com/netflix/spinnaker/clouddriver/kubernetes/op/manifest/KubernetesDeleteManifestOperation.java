@@ -61,17 +61,40 @@ public class KubernetesDeleteManifestOperation implements AtomicOperation<Operat
     }
 
     // If "orphanDependents" is strictly defined by the stage then the cascade flag of kubectl
-    // delete will honor the setting
-    // If orphanDependents isn't set, then look at the value of the "Cascading" delete checkbox in
-    // the UI
+    // delete will honor the setting.
+    //
+    // If orphanDependents isn't set, then look at the value of the delete
+    // option.  The "Cascading" delete checkbox in the UI sets it to true/false,
+    // but support other values (e.g. foreground/background/orphan) if set
+    // directly in the pipeline json.
     V1DeleteOptions deleteOptions = new V1DeleteOptions();
     Map<String, String> options =
         description.getOptions() == null ? new HashMap<>() : description.getOptions();
     if (options.containsKey("orphanDependents")) {
-      deleteOptions.setOrphanDependents(options.get("orphanDependents").equalsIgnoreCase("true"));
+      deleteOptions.setPropagationPolicy(
+          options.get("orphanDependents").equalsIgnoreCase("true") ? "orphan" : "background");
     } else if (options.containsKey("cascading")) {
-      deleteOptions.setOrphanDependents(options.get("cascading").equalsIgnoreCase("false"));
+      // For compatibility with pipelines that specify cascading as true/false,
+      // map to the appropriate propagation policy.  Clouddriver currently uses
+      // kubectl 1.20.6, where --cascade=true/false works, but generates a
+      // warning.
+      //
+      // See
+      // https://github.com/kubernetes/kubernetes/blob/v1.20.6/staging/src/k8s.io/kubectl/pkg/cmd/delete/delete_flags.go#L243-L249
+      //
+      // --cascade=false --> orphan
+      // --cascade=true --> background
+      String propagationPolicy = null;
+      if (options.get("cascading").equalsIgnoreCase("false")) {
+        propagationPolicy = "orphan";
+      } else if (options.get("cascading").equalsIgnoreCase("true")) {
+        propagationPolicy = "background";
+      } else {
+        propagationPolicy = options.get("cascading");
+      }
+      deleteOptions.setPropagationPolicy(propagationPolicy);
     }
+
     if (options.containsKey("gracePeriodSeconds")) {
       try {
         deleteOptions.setGracePeriodSeconds(Long.parseLong(options.get("gracePeriodSeconds")));

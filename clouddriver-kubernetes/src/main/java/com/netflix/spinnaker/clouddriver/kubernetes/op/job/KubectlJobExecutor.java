@@ -150,17 +150,12 @@ public class KubectlJobExecutor {
     // spinnaker generally accepts deletes of resources that don't exist
     command.add("--ignore-not-found=true");
 
-    if (deleteOptions.getOrphanDependents() != null) {
-      command.add("--cascade=" + !deleteOptions.getOrphanDependents());
+    if (deleteOptions.getPropagationPolicy() != null) {
+      command.add("--cascade=" + deleteOptions.getPropagationPolicy());
     }
 
     if (deleteOptions.getGracePeriodSeconds() != null) {
       command.add("--grace-period=" + deleteOptions.getGracePeriodSeconds());
-    }
-
-    if (!Strings.isNullOrEmpty(deleteOptions.getPropagationPolicy())) {
-      throw new IllegalArgumentException(
-          "Propagation policy is not yet supported as a delete option");
     }
 
     String id;

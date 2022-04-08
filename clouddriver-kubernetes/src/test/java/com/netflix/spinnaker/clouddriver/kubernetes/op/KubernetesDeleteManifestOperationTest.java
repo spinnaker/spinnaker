@@ -18,9 +18,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.op;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -62,14 +60,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
-/**
- * Test the deleteManifest stage.
- *
- * <p>Based on DeleteOptions KubectlJobExecutor.delete will determine whether the --cascade flag is
- * set. If deleteOptions.OrphanDependents is false or null -> --cascade is true. If
- * deleteOptions.OrphanDependents is true -> --cascade is false. (Ex. kubectl delete replicaset
- * my-repset --cascade=false)
- */
+/** Test the deleteManifest stage. */
 @RunWith(JUnitPlatform.class)
 public class KubernetesDeleteManifestOperationTest {
   private static final GlobalResourcePropertyRegistry resourcePropertyRegistry =
@@ -228,7 +219,7 @@ public class KubernetesDeleteManifestOperationTest {
   }
 
   @Test
-  public void orphanDependentsTrueTest() throws IOException {
+  public void orphanDependentsTrue() throws IOException {
     String pipelineJSON =
         "{ "
             + " \"account\": \"kubernetes-account\","
@@ -244,11 +235,11 @@ public class KubernetesDeleteManifestOperationTest {
     KubernetesDeleteManifestDescription description = buildDeleteManifestDescription(pipeline);
 
     V1DeleteOptions deleteOptions = deleteAndCaptureDeleteOptions(description);
-    assertTrue(deleteOptions.getOrphanDependents());
+    assertEquals("orphan", deleteOptions.getPropagationPolicy());
   }
 
   @Test
-  public void orphanDependentsFalseTest() throws IOException {
+  public void orphanDependentsFalse() throws IOException {
     String pipelineJSON =
         "{ "
             + " \"account\": \"kubernetes-account\","
@@ -262,11 +253,11 @@ public class KubernetesDeleteManifestOperationTest {
     KubernetesDeleteManifestDescription description = buildDeleteManifestDescription(pipeline);
 
     V1DeleteOptions deleteOptions = deleteAndCaptureDeleteOptions(description);
-    assertFalse(deleteOptions.getOrphanDependents());
+    assertEquals("background", deleteOptions.getPropagationPolicy());
   }
 
   @Test
-  public void noOptionsDefaultTest() throws IOException {
+  public void noOptionsDefault() throws IOException {
     String pipelineJSON =
         "{ \"account\": \"kubernetes-account\"," + "  \"kinds\": [ \"deployment\" ]" + "}";
     Map<String, Object> pipeline = mapper.readValue(pipelineJSON, mapType);
@@ -277,8 +268,8 @@ public class KubernetesDeleteManifestOperationTest {
     assertNull(deleteOptions.getOrphanDependents());
   }
 
-  @Test()
-  public void cascadingTrueSetOrphanDependentsFalseTest() throws IOException {
+  @Test
+  public void cascadingTrue() throws IOException {
     String pipelineJSON =
         "{ "
             + " \"account\": \"kubernetes-account\","
@@ -292,11 +283,11 @@ public class KubernetesDeleteManifestOperationTest {
     KubernetesDeleteManifestDescription description = buildDeleteManifestDescription(pipeline);
 
     V1DeleteOptions deleteOptions = deleteAndCaptureDeleteOptions(description);
-    assertFalse(deleteOptions.getOrphanDependents());
+    assertEquals("background", deleteOptions.getPropagationPolicy());
   }
 
-  @Test()
-  public void cascadingFalseSetOrphanDependentsTrueTest() throws IOException {
+  @Test
+  public void cascadingFalse() throws IOException {
     String pipelineJSON =
         "{ "
             + " \"account\": \"kubernetes-account\","
@@ -310,13 +301,34 @@ public class KubernetesDeleteManifestOperationTest {
     KubernetesDeleteManifestDescription description = buildDeleteManifestDescription(pipeline);
 
     V1DeleteOptions deleteOptions = deleteAndCaptureDeleteOptions(description);
-    assertTrue(deleteOptions.getOrphanDependents());
+    assertEquals("orphan", deleteOptions.getPropagationPolicy());
   }
 
-  @Test()
+  @ParameterizedTest(name = "cascadingLiteralValues {0}")
+  @ValueSource(strings = {"foregound", "background", "orphan", "bogus"})
+  public void cascadingStringValues(String cascadingValue) throws IOException {
+    String pipelineJSON =
+        "{ "
+            + " \"account\": \"kubernetes-account\","
+            + "  \"kinds\": [ \"deployment\" ],"
+            + "  \"options\": {"
+            + "    \"cascading\": \""
+            + cascadingValue
+            + "\""
+            + "  }"
+            + "}";
+    Map<String, Object> pipeline = mapper.readValue(pipelineJSON, mapType);
+
+    KubernetesDeleteManifestDescription description = buildDeleteManifestDescription(pipeline);
+
+    V1DeleteOptions deleteOptions = deleteAndCaptureDeleteOptions(description);
+    assertEquals(cascadingValue, deleteOptions.getPropagationPolicy());
+  }
+
+  @Test
   // Set both orphanDependents and cascading options and show that
   // the orphanDependents options has precedence
-  public void showTrueOrphanDependentsPrecedenceTest() throws IOException {
+  public void cascadingTrueOrphanDependentsPrecedenceTest() throws IOException {
     String pipelineJSON =
         "{ "
             + " \"account\": \"kubernetes-account\","
@@ -331,11 +343,11 @@ public class KubernetesDeleteManifestOperationTest {
     KubernetesDeleteManifestDescription description = buildDeleteManifestDescription(pipeline);
 
     V1DeleteOptions deleteOptions = deleteAndCaptureDeleteOptions(description);
-    assertTrue(deleteOptions.getOrphanDependents());
+    assertEquals("orphan", deleteOptions.getPropagationPolicy());
   }
 
-  @Test()
-  public void showFalseOrphanDependentsPrecedenceTest() throws IOException {
+  @Test
+  public void cascadingFalseOrphanDependentsPrecedenceTest() throws IOException {
     String pipelineJSON =
         "{ "
             + " \"account\": \"kubernetes-account\","
@@ -350,7 +362,7 @@ public class KubernetesDeleteManifestOperationTest {
     KubernetesDeleteManifestDescription description = buildDeleteManifestDescription(pipeline);
 
     V1DeleteOptions deleteOptions = deleteAndCaptureDeleteOptions(description);
-    assertFalse(deleteOptions.getOrphanDependents());
+    assertEquals("background", deleteOptions.getPropagationPolicy());
   }
 
   private static V1DeleteOptions deleteAndCaptureDeleteOptions(
