@@ -22,21 +22,25 @@ angular
       '$scope',
       'serverGroupWriter',
       function ($scope, serverGroupWriter) {
-        this.command.newSize = null;
+        // In Angular 1.7 Directive bindings were removed in the constructor, default values now must be instantiated within $onInit
+        // See https://docs.angularjs.org/guide/migration#-compile- and https://docs.angularjs.org/guide/migration#migrate1.5to1.6-ng-services-$compile
+        this.$onInit = () => {
+          this.command.newSize = null;
 
-        angular.extend(this.formMethods, {
-          formIsValid: () => _.every([this.command.newSize !== null, $scope.resizeCapacityForm.$valid]),
-          submitMethod: () => {
-            return serverGroupWriter.resizeServerGroup(this.serverGroup, this.application, {
-              capacity: { min: this.command.newSize, max: this.command.newSize, desired: this.command.newSize },
-              serverGroupName: this.serverGroup.name,
-              targetSize: this.command.newSize,
-              region: this.serverGroup.region,
-              interestingHealthProviderNames: this.command.interestingHealthProviderNames,
-              reason: this.command.reason,
-            });
-          },
-        });
+          angular.extend(this.formMethods, {
+            formIsValid: () => _.every([this.command.newSize !== null, $scope.resizeCapacityForm.$valid]),
+            submitMethod: () => {
+              return serverGroupWriter.resizeServerGroup(this.serverGroup, this.application, {
+                capacity: { min: this.command.newSize, max: this.command.newSize, desired: this.command.newSize },
+                serverGroupName: this.serverGroup.name,
+                targetSize: this.command.newSize,
+                region: this.serverGroup.region,
+                interestingHealthProviderNames: this.command.interestingHealthProviderNames,
+                reason: this.command.reason,
+              });
+            },
+          });
+        };
       },
     ],
   });

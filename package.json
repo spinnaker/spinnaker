@@ -36,7 +36,7 @@
   "devDependencies": {
     "@spinnaker/eslint-plugin": "^3.0.0",
     "@types/jasmine": "3.6.9",
-    "angular-mocks": "1.6.10",
+    "angular-mocks": "1.8.0",
     "babel-loader": "8.1.0",
     "enzyme-adapter-react-16": "1.15.1",
     "eslint": "7.27.0",
@@ -74,7 +74,7 @@
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
     "rxjs": "6.6.7",
-    "angular": "1.6.10",
+    "angular": "1.8.0",
     "@types/angular": "1.6.26",
     "typescript": "4.3.5"
   },

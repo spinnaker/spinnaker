@@ -24,33 +24,37 @@ angular
       '$scope',
       'gceAutoscalingPolicyWriter',
       function ($scope, gceAutoscalingPolicyWriter) {
-        const newPolicyBounds = ['newMinNumReplicas', 'newMaxNumReplicas'];
-        newPolicyBounds.forEach((prop) => (this.command[prop] = null));
+        // In Angular 1.7 Directive bindings were removed in the constructor, default values now must be instantiated within $onInit
+        // See https://docs.angularjs.org/guide/migration#-compile- and https://docs.angularjs.org/guide/migration#migrate1.5to1.6-ng-services-$compile
+        this.$onInit = () => {
+          const newPolicyBounds = ['newMinNumReplicas', 'newMaxNumReplicas'];
+          newPolicyBounds.forEach((prop) => (this.command[prop] = null));
 
-        angular.extend(this.formMethods, {
-          formIsValid: () =>
-            _.every([
-              _.chain(newPolicyBounds)
-                .map((bound) => this.command[bound] !== null)
-                .every()
-                .value(),
-              $scope.resizeAutoscalingPolicyForm.$valid,
-            ]),
-          submitMethod: () => {
-            return gceAutoscalingPolicyWriter.upsertAutoscalingPolicy(
-              this.application,
-              this.serverGroup,
-              {
-                minNumReplicas: this.command.newMinNumReplicas,
-                maxNumReplicas: this.command.newMaxNumReplicas,
-              },
-              {
-                reason: this.command.reason,
-                interestingHealthProviderNames: this.command.interestingHealthProviderNames,
-              },
-            );
-          },
-        });
+          angular.extend(this.formMethods, {
+            formIsValid: () =>
+              _.every([
+                _.chain(newPolicyBounds)
+                  .map((bound) => this.command[bound] !== null)
+                  .every()
+                  .value(),
+                $scope.resizeAutoscalingPolicyForm.$valid,
+              ]),
+            submitMethod: () => {
+              return gceAutoscalingPolicyWriter.upsertAutoscalingPolicy(
+                this.application,
+                this.serverGroup,
+                {
+                  minNumReplicas: this.command.newMinNumReplicas,
+                  maxNumReplicas: this.command.newMaxNumReplicas,
+                },
+                {
+                  reason: this.command.reason,
+                  interestingHealthProviderNames: this.command.interestingHealthProviderNames,
+                },
+              );
+            },
+          });
+        };
       },
     ],
   });

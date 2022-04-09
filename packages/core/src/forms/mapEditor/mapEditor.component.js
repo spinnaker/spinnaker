@@ -28,19 +28,6 @@ angular
       function ($scope) {
         this.backingModel = [];
 
-        // Set default values for optional fields
-        this.onChange = this.onChange || angular.noop;
-        this.keyLabel = this.keyLabel || 'Key';
-        this.valueLabel = this.valueLabel || 'Value';
-        this.addButtonLabel = this.addButtonLabel || 'Add Field';
-        this.allowEmpty = this.allowEmpty || false;
-        this.labelsLeft = this.labelsLeft || false;
-        this.tableClass = this.label ? '' : 'no-border-top';
-        this.columnCount = this.labelsLeft ? 5 : 3;
-        this.model = this.model || {};
-        this.isParameterized = isString(this.model);
-        this.hiddenKeys = this.hiddenKeys || [];
-
         const modelKeys = () => Object.keys(this.model);
 
         this.addField = () => {
@@ -74,7 +61,22 @@ angular
           }
         };
 
+        // In Angular 1.7 Directive bindings were removed in the constructor, default values now must be instantiated within $onInit
+        // See https://docs.angularjs.org/guide/migration#-compile- and https://docs.angularjs.org/guide/migration#migrate1.5to1.6-ng-services-$compile
         this.$onInit = () => {
+          // Set default values for optional fields
+          this.onChange = this.onChange || angular.noop;
+          this.keyLabel = this.keyLabel || 'Key';
+          this.valueLabel = this.valueLabel || 'Value';
+          this.addButtonLabel = this.addButtonLabel || 'Add Field';
+          this.allowEmpty = this.allowEmpty || false;
+          this.labelsLeft = this.labelsLeft || false;
+          this.tableClass = this.label ? '' : 'no-border-top';
+          this.columnCount = this.labelsLeft ? 5 : 3;
+          this.model = this.model || {};
+          this.isParameterized = isString(this.model);
+          this.hiddenKeys = this.hiddenKeys || [];
+
           if (this.model && !this.isParameterized) {
             modelKeys().forEach((key) => {
               this.backingModel.push({ key: key, value: this.model[key] });

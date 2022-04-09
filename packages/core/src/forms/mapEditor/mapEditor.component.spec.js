@@ -5,13 +5,6 @@ describe('Component: mapEditor', function () {
 
   beforeEach(window.module(require('./mapEditor.component').name));
 
-  // https://docs.angularjs.org/guide/migration#migrate1.5to1.6-ng-services-$compile
-  beforeEach(
-    window.module(($compileProvider) => {
-      $compileProvider.preAssignBindingsEnabled(true);
-    }),
-  );
-
   beforeEach(
     window.inject(function ($rootScope, $compile) {
       scope = $rootScope.$new();

@@ -7,13 +7,6 @@ describe('Directives: projectCluster', function () {
 
   var $compile, $scope;
 
-  // https://docs.angularjs.org/guide/migration#migrate1.5to1.6-ng-services-$compile
-  beforeEach(
-    window.module(($compileProvider) => {
-      $compileProvider.preAssignBindingsEnabled(true);
-    }),
-  );
-
   beforeEach(
     window.inject(function ($rootScope, _$compile_) {
       $scope = $rootScope.$new();

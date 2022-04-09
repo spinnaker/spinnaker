@@ -19,13 +19,10 @@ bootstrapModule.config([
   },
 ]);
 
-// Angular 1.6 defaults preAssignBindingsEnabled to false, reset to true to mimic 1.5 behavior.
-// See https://docs.angularjs.org/guide/migration#migrate1.5to1.6-ng-services-$compile
 bootstrapModule.config([
   '$compileProvider',
   ($compileProvider: ICompileProvider) => {
     $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|mailto|slack|ssh):/);
-    $compileProvider.preAssignBindingsEnabled(true);
   },
 ]);
 

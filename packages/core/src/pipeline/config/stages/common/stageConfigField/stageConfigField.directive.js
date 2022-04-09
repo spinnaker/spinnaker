@@ -25,7 +25,11 @@ module(CORE_PIPELINE_CONFIG_STAGES_COMMON_STAGECONFIGFIELD_STAGECONFIGFIELD_DIRE
       fieldColumns: '@',
     },
     controller: function () {
-      this.fieldColumns = this.fieldColumns || 8;
+      // In Angular 1.7 Directive bindings were removed in the constructor, default values now must be instantiated within $onInit
+      // See https://docs.angularjs.org/guide/migration#-compile- and https://docs.angularjs.org/guide/migration#migrate1.5to1.6-ng-services-$compile
+      this.$onInit = () => {
+        this.fieldColumns = this.fieldColumns || 8;
+      };
     },
   };
 });

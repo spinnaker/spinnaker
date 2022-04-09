@@ -18,13 +18,6 @@ describe('Controller: gceResizeServerGroupCtrl', function () {
     ),
   );
 
-  // https://docs.angularjs.org/guide/migration#migrate1.5to1.6-ng-services-$compile
-  beforeEach(
-    window.module(($compileProvider) => {
-      $compileProvider.preAssignBindingsEnabled(true);
-    }),
-  );
-
   beforeEach(
     window.inject(function (
       _$controller_,
