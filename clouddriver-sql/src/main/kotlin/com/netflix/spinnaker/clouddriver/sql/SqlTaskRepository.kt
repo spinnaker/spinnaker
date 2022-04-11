@@ -284,7 +284,7 @@ class SqlTaskRepository(
    */
   private fun runningTaskIds(ctx: DSLContext, thisInstance: Boolean): Array<String> {
     return withPool(poolName) {
-      val baseQuery = ctx.select()
+      val baseQuery = ctx.select(field("a.task_id"))
         .from(taskStatesTable.`as`("a"))
         .innerJoin(
           ctx.select(field("task_id"), DSL.max(field("created_at")).`as`("created"))
@@ -295,7 +295,7 @@ class SqlTaskRepository(
 
       val select = if (thisInstance) {
         baseQuery
-          .innerJoin(tasksTable.`as`("t")).on(field("a.task_id").eq("t.id"))
+          .innerJoin(tasksTable.`as`("t")).on(sql("a.task_id = t.id"))
           .where(
             field("t.owner_id").eq(ClouddriverHostname.ID)
               .and(field("a.state").eq(TaskState.STARTED.toString()))
@@ -305,7 +305,7 @@ class SqlTaskRepository(
       }
 
       select
-        .fetch("t.task_id", String::class.java)
+        .fetch("a.task_id", String::class.java)
         .toTypedArray()
     }
   }
