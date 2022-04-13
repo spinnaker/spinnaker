@@ -17,6 +17,7 @@ dependencies {
   api "org.codehaus.groovy:groovy"
 
   implementation "javax.inject:javax.inject:1"
+  implementation "javax.validation:validation-api"
   implementation "net.logstash.logback:logstash-logback-encoder"
   implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
   implementation "com.fasterxml.jackson.datatype:jackson-datatype-joda"
