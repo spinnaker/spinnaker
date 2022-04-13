@@ -88,6 +88,7 @@ dependencies {
     implementation "com.google.code.gson:gson"
     implementation "com.google.guava:guava"
     implementation "javax.inject:javax.inject:1"
+    implementation "javax.validation:validation-api"
 
     runtimeOnly "io.spinnaker.kork:kork-runtime"
 
