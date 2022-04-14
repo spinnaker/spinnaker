@@ -37,6 +37,7 @@ dependencies {
   implementation 'com.jcraft:jsch'
   implementation 'de.huxhorn.sulky:de.huxhorn.sulky.ulid'
   implementation "net.logstash.logback:logstash-logback-encoder"
+  implementation "javax.validation:validation-api"
 
 //  TODO: add clouddriverDCOS once that's merged
   implementation project(':halyard-core')
