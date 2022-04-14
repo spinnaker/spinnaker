@@ -50,6 +50,7 @@ dependencies {
   implementation("org.apache.commons:commons-lang3")
   implementation("org.apache.httpcomponents:httpclient")
   implementation("javax.servlet:javax.servlet-api:4.0.1")
+  implementation("javax.validation:validation-api")
   implementation("com.jayway.jsonpath:json-path:2.2.0")
   implementation("org.yaml:snakeyaml")
   implementation("org.codehaus.groovy:groovy")

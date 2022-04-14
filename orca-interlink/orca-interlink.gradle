@@ -25,6 +25,7 @@ dependencies {
 
   implementation(project(":orca-core"))
   implementation("com.amazonaws:aws-java-sdk-sqs")
+  implementation("javax.validation:validation-api")
 
   compileOnly("org.projectlombok:lombok")
   annotationProcessor("org.projectlombok:lombok")
