@@ -49,6 +49,7 @@ dependencies {
     implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0"
     implementation "com.fasterxml.jackson.core:jackson-databind"
     implementation "com.netflix.spectator:spectator-api"
+    implementation "javax.validation:validation-api"
     implementation 'net.redhogs.cronparser:cron-parser-core:2.8'
     implementation "org.springframework.data:spring-data-rest-webmvc"
     implementation "org.springframework:spring-context-support"
