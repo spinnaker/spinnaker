@@ -26,6 +26,8 @@ dependencies {
   implementation "io.reactivex:rxjava"
   implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client"
   implementation "com.squareup.retrofit:converter-jackson"
+  implementation "javax.validation:validation-api"
+  implementation "org.hibernate.validator:hibernate-validator"
   api "com.github.ben-manes.caffeine:guava"
 
   api "io.spinnaker.kork:kork-plugins"

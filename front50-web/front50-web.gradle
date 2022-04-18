@@ -43,6 +43,7 @@ dependencies {
   implementation "com.squareup.retrofit:converter-jackson"
   implementation "io.swagger:swagger-annotations"
   implementation "commons-codec:commons-codec"
+  implementation "javax.validation:validation-api"
 
   runtimeOnly "io.spinnaker.kork:kork-runtime"
 
