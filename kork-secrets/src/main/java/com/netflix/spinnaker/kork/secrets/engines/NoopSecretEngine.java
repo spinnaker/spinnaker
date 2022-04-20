@@ -18,6 +18,11 @@ package com.netflix.spinnaker.kork.secrets.engines;
 
 import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import com.netflix.spinnaker.kork.secrets.SecretEngine;
+import com.netflix.spinnaker.kork.secrets.user.OpaqueUserSecret;
+import com.netflix.spinnaker.kork.secrets.user.UserSecret;
+import com.netflix.spinnaker.kork.secrets.user.UserSecretReference;
+import java.util.Map;
+import javax.annotation.Nonnull;
 import org.springframework.stereotype.Component;
 
 /**
@@ -40,7 +45,16 @@ public class NoopSecretEngine implements SecretEngine {
   }
 
   @Override
+  @Nonnull
+  public UserSecret decrypt(@Nonnull UserSecretReference reference) {
+    return OpaqueUserSecret.builder().stringData(Map.copyOf(reference.getParameters())).build();
+  }
+
+  @Override
   public void validate(EncryptedSecret encryptedSecret) {}
+
+  @Override
+  public void validate(@Nonnull UserSecretReference reference) {}
 
   @Override
   public void clearCache() {}

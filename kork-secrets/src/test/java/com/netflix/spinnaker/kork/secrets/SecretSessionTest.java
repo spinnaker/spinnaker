@@ -35,7 +35,7 @@ public class SecretSessionTest {
     doCallRealMethod().when(secretManager).decrypt(any());
 
     secretEngine = spy(new NoopSecretEngine());
-    doCallRealMethod().when(secretEngine).decrypt(any());
+    doCallRealMethod().when(secretEngine).decrypt(any(EncryptedSecret.class));
 
     secretEngineList.add(secretEngine);
     secretSession = new SecretSession(secretManager);

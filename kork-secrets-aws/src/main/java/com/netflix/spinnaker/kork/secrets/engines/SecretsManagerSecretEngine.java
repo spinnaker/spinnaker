@@ -27,22 +27,36 @@ import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import com.netflix.spinnaker.kork.secrets.InvalidSecretFormatException;
 import com.netflix.spinnaker.kork.secrets.SecretEngine;
 import com.netflix.spinnaker.kork.secrets.SecretException;
+import com.netflix.spinnaker.kork.secrets.StandardSecretParameter;
+import com.netflix.spinnaker.kork.secrets.user.UserSecret;
+import com.netflix.spinnaker.kork.secrets.user.UserSecretMapper;
+import com.netflix.spinnaker.kork.secrets.user.UserSecretReference;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 @Component
 public class SecretsManagerSecretEngine implements SecretEngine {
   protected static final String SECRET_NAME = "s";
   protected static final String SECRET_REGION = "r";
-  protected static final String SECRET_KEY = "k";
+  protected static final String SECRET_KEY = StandardSecretParameter.KEY.getParameterName();
 
   private static String IDENTIFIER = "secrets-manager";
 
   private Map<String, Map<String, String>> cache = new HashMap<>();
+  private UserSecretMapper userSecretMapper;
   private static final ObjectMapper mapper = new ObjectMapper();
+
+  @Autowired
+  void setUserSecretMapper(UserSecretMapper userSecretMapper) {
+    this.userSecretMapper = userSecretMapper;
+  }
 
   @Override
   public String identifier() {
@@ -70,6 +84,23 @@ public class SecretsManagerSecretEngine implements SecretEngine {
   }
 
   @Override
+  @NonNull
+  public UserSecret decrypt(@NonNull UserSecretReference reference) {
+    validate(reference);
+    Map<String, String> parameters = reference.getParameters();
+    String secretRegion = parameters.get(SECRET_REGION);
+    String secretName = parameters.get(SECRET_NAME);
+    String encoding = parameters.get(StandardSecretParameter.ENCODING.getParameterName());
+    GetSecretValueResult secretValue = getSecretValue(secretRegion, secretName);
+    ByteBuffer secretBinary = secretValue.getSecretBinary();
+    if (secretBinary != null) {
+      return userSecretMapper.deserialize(secretBinary.array(), encoding);
+    }
+    return userSecretMapper.deserialize(
+        secretValue.getSecretString().getBytes(StandardCharsets.UTF_8), encoding);
+  }
+
+  @Override
   public void validate(EncryptedSecret encryptedSecret) {
     Set<String> paramNames = encryptedSecret.getParams().keySet();
     if (!paramNames.contains(SECRET_NAME)) {
@@ -82,6 +113,20 @@ public class SecretsManagerSecretEngine implements SecretEngine {
     }
     if (encryptedSecret.isEncryptedFile() && paramNames.contains(SECRET_KEY)) {
       throw new InvalidSecretFormatException("Encrypted file should not specify key");
+    }
+  }
+
+  @Override
+  public void validate(@NonNull UserSecretReference reference) {
+    SecretEngine.super.validate(reference);
+    Set<String> paramNames = reference.getParameters().keySet();
+    if (!paramNames.contains(SECRET_NAME)) {
+      throw new InvalidSecretFormatException(
+          "Secret name parameter is missing (" + SECRET_NAME + "=...)");
+    }
+    if (!paramNames.contains(SECRET_REGION)) {
+      throw new InvalidSecretFormatException(
+          "Secret region parameter is missing (" + SECRET_REGION + "=...)");
     }
   }
 

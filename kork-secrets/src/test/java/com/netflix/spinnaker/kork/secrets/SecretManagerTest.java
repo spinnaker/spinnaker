@@ -54,7 +54,7 @@ public class SecretManagerTest {
   @Test
   public void decryptTest() throws SecretDecryptionException {
     var secretConfig = "encrypted:s3!paramName:paramValue";
-    when(secretEngine.decrypt(any())).thenReturn("test".getBytes());
+    when(secretEngine.decrypt(any(EncryptedSecret.class))).thenReturn("test".getBytes());
     assertEquals("test", secretManager.decrypt(secretConfig));
   }
 
@@ -69,7 +69,9 @@ public class SecretManagerTest {
 
   @Test
   public void decryptInvalidParams() throws SecretDecryptionException {
-    doThrow(InvalidSecretFormatException.class).when(secretEngine).validate(any());
+    doThrow(InvalidSecretFormatException.class)
+        .when(secretEngine)
+        .validate(any(EncryptedSecret.class));
     String secretConfig = "encrypted:s3!paramName:paramValue";
     exceptionRule.expect(InvalidSecretFormatException.class);
     secretManager.decrypt(secretConfig);
@@ -78,7 +80,7 @@ public class SecretManagerTest {
   @Test
   public void decryptFile() throws SecretDecryptionException, IOException {
     String secretConfig = "encrypted:s3!paramName:paramValue";
-    when(secretEngine.decrypt(any())).thenReturn("test".getBytes());
+    when(secretEngine.decrypt(any(EncryptedSecret.class))).thenReturn("test".getBytes());
     Path path = secretManager.decryptAsFile(secretConfig);
     assertTrue(path.toAbsolutePath().toString().matches(".*.secret$"));
     BufferedReader reader = new BufferedReader(new FileReader(path.toFile()));
@@ -97,7 +99,9 @@ public class SecretManagerTest {
 
   @Test
   public void decryptFileInvalidParams() throws SecretDecryptionException {
-    doThrow(InvalidSecretFormatException.class).when(secretEngine).validate(any());
+    doThrow(InvalidSecretFormatException.class)
+        .when(secretEngine)
+        .validate(any(EncryptedSecret.class));
     String secretConfig = "encrypted:s3!paramName:paramValue";
     exceptionRule.expect(InvalidSecretFormatException.class);
     secretManager.decryptAsFile(secretConfig);

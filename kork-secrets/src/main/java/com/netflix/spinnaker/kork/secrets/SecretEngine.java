@@ -16,6 +16,10 @@
 
 package com.netflix.spinnaker.kork.secrets;
 
+import com.netflix.spinnaker.kork.secrets.user.UserSecret;
+import com.netflix.spinnaker.kork.secrets.user.UserSecretReference;
+import javax.annotation.Nonnull;
+
 /**
  * SecretEngines contain service specific functionality in order to decrypt EncryptedSecrets.
  * Identifiers are used in order to identify which SecretEngine an EncryptedSecret refers to.
@@ -25,6 +29,11 @@ public interface SecretEngine {
   String identifier();
 
   byte[] decrypt(EncryptedSecret encryptedSecret);
+
+  @Nonnull
+  default UserSecret decrypt(@Nonnull UserSecretReference reference) {
+    throw new UnsupportedOperationException("This operation is not supported");
+  }
 
   /**
    * In order for a secretEngine to decrypt an EncryptedSecret, it may require extra information
@@ -39,6 +48,17 @@ public interface SecretEngine {
 
   default EncryptedSecret encrypt(String secretToEncrypt) {
     throw new UnsupportedOperationException("This operation is not supported");
+  }
+
+  default void validate(@Nonnull UserSecretReference reference) {
+    if (!reference
+        .getParameters()
+        .containsKey(StandardSecretParameter.ENCODING.getParameterName())) {
+      throw new InvalidSecretFormatException(
+          String.format(
+              "No encoding parameter specified (%s=...) in %s",
+              StandardSecretParameter.ENCODING.getParameterName(), reference));
+    }
   }
 
   void clearCache();
