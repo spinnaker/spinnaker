@@ -54,10 +54,12 @@ jobs:
           GAR_JSON_KEY: ${{ secrets.GAR_JSON_KEY }}
         run: |
           ./gradlew --info publish
-      - name: Tar and gzip Packer templates for upload to GCS
+      - name: Tar Packer templates for upload to GCS
+        # Note, Halyard expects packer.tar.gz but doesn't actually gunzip it.
+        # Thus we must create a non-gzipped tar archive.
         run: |
           cd halconfig/packer
-          tar -czf ../packer.tar.gz *
+          tar -cf ../packer.tar.gz *
       - name: Login to Google Cloud
         # Only run this on repositories in the 'spinnaker' org, not on forks.
         if: startsWith(github.repository, 'spinnaker/')
