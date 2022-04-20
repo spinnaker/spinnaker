@@ -54,6 +54,22 @@ jobs:
           GAR_JSON_KEY: ${{ secrets.GAR_JSON_KEY }}
         run: |
           ./gradlew --info publish
+      - name: Login to Google Cloud
+        # Only run this on repositories in the 'spinnaker' org, not on forks.
+        if: startsWith(github.repository, 'spinnaker/')
+        uses: 'google-github-actions/auth@v0'
+        # use service account flow defined at: https://github.com/google-github-actions/upload-cloud-storage#authenticating-via-service-account-key-json
+        with:
+          credentials_json: '${{ secrets.GAR_JSON_KEY }}'
+      - name: Upload halconfig profiles to GCS
+        # https://console.cloud.google.com/storage/browser/halconfig
+        # Only run this on repositories in the 'spinnaker' org, not on forks.
+        if: startsWith(github.repository, 'spinnaker/')
+        uses: 'google-github-actions/upload-cloud-storage@v0'
+        with:
+          path: 'halconfig/'
+          destination: 'halconfig/${{ steps.build_variables.outputs.REPO }}/${{ steps.release_info.outputs.RELEASE_VERSION }}'
+          parent: false
       - name: Login to GAR
         # Only run this on repositories in the 'spinnaker' org, not on forks.
         if: startsWith(github.repository, 'spinnaker/')
