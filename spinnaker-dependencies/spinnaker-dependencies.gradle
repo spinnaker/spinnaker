@@ -18,14 +18,13 @@ ext {
     okhttp           : "2.7.5", // CVE-2016-2402
     okhttp3          : "3.14.9",
     openapi          : "1.3.9", // this needs to be kept in sync with spring boot as it pulls in the spring-boot-dependencies BOM
-    resilience4j     : "1.0.0",
     retrofit         : "1.9.0",
     retrofit2        : "2.8.1",
     spectator        : "1.0.6",
     spek             : "1.1.5",
     spek2            : "2.0.9",
     springBoot       : "2.3.12.RELEASE",
-    springCloud      : "Hoxton.SR4",
+    springCloud      : "Hoxton.SR12",
     springfoxSwagger : "2.9.2",
     swagger          : "1.5.20", //this should stay in sync with what springfoxSwagger expects
     // tomcat (v9.0.31) was included via spring boot and upgrading spring boot
@@ -133,11 +132,6 @@ dependencies {
     api("de.danielbechler:java-object-diff:0.95")
     api("de.huxhorn.sulky:de.huxhorn.sulky.ulid:8.2.0")
     api("dev.minutest:minutest:1.13.0")
-    api("io.github.resilience4j:resilience4j-annotations:${versions.resilience4j}")
-    api("io.github.resilience4j:resilience4j-circuitbreaker:${versions.resilience4j}")
-    api("io.github.resilience4j:resilience4j-kotlin:${versions.resilience4j}")
-    api("io.github.resilience4j:resilience4j-retry:${versions.resilience4j}")
-    api("io.github.resilience4j:resilience4j-spring-boot2:${versions.resilience4j}")
     api("io.mockk:mockk:1.10.5")
     api("io.springfox:springfox-swagger-ui:${versions.springfoxSwagger}")
     api("io.springfox:springfox-swagger2:${versions.springfoxSwagger}")
