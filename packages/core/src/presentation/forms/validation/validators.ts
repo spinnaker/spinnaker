@@ -4,11 +4,15 @@ import { robotToHuman } from '../../robotToHumanFilter/robotToHuman.filter';
 import type { IValidator } from './validation';
 
 const THIS_FIELD = 'This field';
+// RCF 5322 Email Validation Regex taken from https://emailregex.com/
+const VALID_EMAIL_REGEX = new RegExp(
+  '^(([^<>()\\[\\]\\\\.,;:\\s@"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@"]+)*)|(".+"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$',
+);
 
 const emailValue = (message?: string): IValidator => {
   return function emailValue(val: string, label = THIS_FIELD) {
     message = message || `${label} is not a valid email address.`;
-    return val && !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(val) && message;
+    return val && !VALID_EMAIL_REGEX.test(val) && message;
   };
 };
 
