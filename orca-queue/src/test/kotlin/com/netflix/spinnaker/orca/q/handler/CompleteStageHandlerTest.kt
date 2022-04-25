@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
-import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spectator.api.Id
+import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.orca.DefaultStageResolver
 import com.netflix.spinnaker.orca.NoOpTaskImplementationResolver
 import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_AFTER
@@ -71,12 +72,14 @@ import com.netflix.spinnaker.spek.but
 import com.netflix.spinnaker.time.fixedClock
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.argumentCaptor
+import com.nhaarman.mockito_kotlin.atLeastOnce
 import com.nhaarman.mockito_kotlin.check
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.isA
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.reset
+import com.nhaarman.mockito_kotlin.spy
 import com.nhaarman.mockito_kotlin.times
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyZeroInteractions
@@ -101,7 +104,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
   val publisher: ApplicationEventPublisher = mock()
   val exceptionHandler: ExceptionHandler = DefaultExceptionHandler()
   val clock = fixedClock()
-  val registry = NoopRegistry()
+  val registry = spy(DefaultRegistry())
   val contextParameterProcessor: ContextParameterProcessor = mock()
 
   val emptyStage = object : StageDefinitionBuilder {
@@ -179,7 +182,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
     )
   }
 
-  fun resetMocks() = reset(queue, repository, publisher)
+  fun resetMocks() = reset(queue, repository, publisher, registry)
 
   describe("completing top level stages") {
     setOf(SUCCEEDED, FAILED_CONTINUE).forEach { taskStatus ->
@@ -507,6 +510,42 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
 
           it("signals completion of the execution") {
             verify(queue).push(CompleteExecution(pipeline))
+          }
+        }
+
+        and("stage has additional metric tags") {
+          val pipeline = pipeline {
+            stage {
+              refId = "1"
+              type = singleTaskStage.type
+              singleTaskStage.plan(this)
+              tasks[0].status = taskStatus
+              status = RUNNING
+              endTime = clock.instant().minusSeconds(2).toEpochMilli()
+              additionalMetricTags = mapOf("tag1" to "value1", "tag2" to "value2")
+            }
+          }
+          val message = CompleteStage(pipeline.stageByRef("1"))
+
+
+          beforeGroup {
+            whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+          }
+
+          afterGroup(::resetMocks)
+
+          on("receiving $message") {
+            subject.handle(message)
+          }
+
+          it("tracks result with stage tags") {
+            argumentCaptor<Id>().let {
+              verify(registry, atLeastOnce()).timer(it.capture())
+              val metricId = it.firstValue
+              assertThat(metricId.name()).isEqualTo("stage.invocations.duration")
+              assertThat(metricId.tags().any{ t -> t.key() == "tag1" && t.value() == "value1" }).isTrue
+              assertThat(metricId.tags().any{ t -> t.key() == "tag2" && t.value() == "value2" }).isTrue
+            }
           }
         }
       }

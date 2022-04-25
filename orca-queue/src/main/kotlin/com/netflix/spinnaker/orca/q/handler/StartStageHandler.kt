@@ -159,6 +159,10 @@ class StartStageHandler(
         stage.context["cloudProvider"]?.let {
           id.withTag("cloudProvider", it.toString())
         } ?: id
+      }.let { id ->
+        stage.additionalMetricTags?.let {
+          id.withTags(stage.additionalMetricTags)
+        } ?: id
       }
     registry.counter(id).increment()
   }
