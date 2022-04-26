@@ -1,5 +1,11 @@
 # halconfig
 
+# Rosco doesn't seem to pick up this configuration from /opt/rosco/rosco.yml
+# and doesn't use the default Halyard redis deployment like gate and others.
+# Instead Rosco tries and fails to connect to redis at redis://localhost:6379.
+redis:
+  connection: ${services.redis.baseUrl:redis://localhost:6379}
+
 server:
   port: ${services.rosco.port:8087}
   address: ${services.rosco.host:localhost}
