@@ -66,7 +66,7 @@ pull_request_rules:
         add: ["auto merged"]
   - name: Automatically merge autobump PRs on CI success
     conditions:
-      - base=master
+      - base~=^(master|release-)
       - status-success=build
       - "label~=autobump-*"
       - "author:spinnakerbot"
@@ -78,7 +78,7 @@ pull_request_rules:
         add: ["auto merged"]
   - name: Request reviews for autobump PRs on CI failure
     conditions:
-      - base=master
+      - base~=^(master|release-)
       - status-failure=build
       - "label~=autobump-*"
       - base=master
