@@ -28,20 +28,6 @@ pull_request_rules:
         name: default
       label:
         add: ["auto merged"]
-  # This rule exists to handle release branches that are still building using Travis CI instead of
-  # using Github actions. It can be deleted once all active release branches are running Github actions.
-  - name: Automatically merge release branch changes on Travis CI success and release manager review
-    conditions:
-      - base~=^release-
-      - status-success=continuous-integration/travis-ci/pr
-      - "label=ready to merge"
-      - "approved-reviews-by=@release-managers"
-    actions:
-      queue:
-        method: squash
-        name: default
-      label:
-        add: ["auto merged"]
   - name: Automatically merge PRs from maintainers on CI success and review
     conditions:
       - base=master
@@ -56,7 +42,7 @@ pull_request_rules:
         add: ["auto merged"]
   - name: Automatically merge autobump PRs on CI success
     conditions:
-      - base=master
+      - base~=^(master|release-)
       - status-success=build
       - "label~=autobump-*"
       - "author:spinnakerbot"
@@ -68,7 +54,7 @@ pull_request_rules:
         add: ["auto merged"]
   - name: Request reviews for autobump PRs on CI failure
     conditions:
-      - base=master
+      - base~=^(master|release-)
       - status-failure=build
       - "label~=autobump-*"
       - base=master
