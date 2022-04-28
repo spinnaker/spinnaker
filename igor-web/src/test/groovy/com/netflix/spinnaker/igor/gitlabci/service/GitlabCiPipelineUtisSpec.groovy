@@ -31,7 +31,7 @@ class GitlabCiPipelineUtisSpec extends Specification {
         String baseUrl = 'https://gitlab.com'
 
         when:
-        GenericBuild genericBuild = GitlabCiPipelineUtis.genericBuild(pipeline, repoSlug, baseUrl)
+        GenericBuild genericBuild = GitlabCiPipelineUtils.genericBuild(pipeline, baseUrl, repoSlug)
 
         then:
         !genericBuild.building

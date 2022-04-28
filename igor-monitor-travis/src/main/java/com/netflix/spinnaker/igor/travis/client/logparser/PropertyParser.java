@@ -30,7 +30,8 @@ public class PropertyParser {
 
   private static final Logger log = LoggerFactory.getLogger(PropertyParser.class);
   private static final String MAGIC_SEARCH_STRING = "SPINNAKER_PROPERTY_";
-  private static final Pattern MAGIC_SEARCH_PATTERN = Pattern.compile(MAGIC_SEARCH_STRING);
+  private static final Pattern MAGIC_SEARCH_PATTERN =
+      Pattern.compile("^\\s*" + MAGIC_SEARCH_STRING);
   private static final String MAGIC_JSON_SEARCH_STRING = "SPINNAKER_CONFIG_JSON=";
   private static final Pattern MAGIC_JSON_SEARCH_PATTERN =
       Pattern.compile("^\\s*" + MAGIC_JSON_SEARCH_STRING);

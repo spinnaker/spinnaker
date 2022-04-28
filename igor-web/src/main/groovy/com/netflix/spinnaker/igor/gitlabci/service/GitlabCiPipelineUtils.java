@@ -17,29 +17,21 @@ package com.netflix.spinnaker.igor.gitlabci.service;
 
 import com.netflix.spinnaker.igor.build.model.GenericBuild;
 import com.netflix.spinnaker.igor.gitlabci.client.model.Pipeline;
-import com.netflix.spinnaker.igor.gitlabci.client.model.Project;
 
-public class GitlabCiPipelineUtis {
-  public static String getBranchedPipelineSlug(final Project project, final Pipeline pipeline) {
-    return pipeline.isTag()
-        ? project.getPathWithNamespace() + "/tags"
-        : project.getPathWithNamespace() + "/" + pipeline.getRef();
-  }
+public class GitlabCiPipelineUtils {
 
-  public static GenericBuild genericBuild(Pipeline pipeline, String repoSlug, String baseUrl) {
+  public static GenericBuild genericBuild(
+      Pipeline pipeline, String baseUrl, String repoPathWithNamespace) {
+    String friendlyName = String.format("%s (%s)", pipeline.getRef(), pipeline.getId());
     GenericBuild genericBuild = new GenericBuild();
     genericBuild.setBuilding(GitlabCiResultConverter.running(pipeline.getStatus()));
     genericBuild.setNumber(pipeline.getId());
-    genericBuild.setDuration(pipeline.getDuration());
     genericBuild.setResult(
         GitlabCiResultConverter.getResultFromGitlabCiState(pipeline.getStatus()));
-    genericBuild.setName(repoSlug);
-    genericBuild.setUrl(url(repoSlug, baseUrl, pipeline.getId()));
-
-    if (pipeline.getFinishedAt() != null) {
-      genericBuild.setTimestamp(Long.toString(pipeline.getFinishedAt().getTime()));
-    }
-
+    genericBuild.setName(friendlyName);
+    genericBuild.setUrl(url(repoPathWithNamespace, baseUrl, pipeline.getId()));
+    genericBuild.setFullDisplayName(friendlyName);
+    genericBuild.setId(String.valueOf(pipeline.getId()));
     return genericBuild;
   }
 

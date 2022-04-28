@@ -15,27 +15,42 @@
  */
 package com.netflix.spinnaker.igor.gitlabci.client;
 
+import com.netflix.spinnaker.igor.gitlabci.client.model.Bridge;
+import com.netflix.spinnaker.igor.gitlabci.client.model.Job;
 import com.netflix.spinnaker.igor.gitlabci.client.model.Pipeline;
-import com.netflix.spinnaker.igor.gitlabci.client.model.PipelineSummary;
 import com.netflix.spinnaker.igor.gitlabci.client.model.Project;
 import java.util.List;
+import retrofit.client.Response;
 import retrofit.http.GET;
 import retrofit.http.Path;
 import retrofit.http.Query;
 
 public interface GitlabCiClient {
-  int MAX_PAGE_SIZE = 100;
 
   @GET("/api/v4/projects")
   List<Project> getProjects(
       @Query("membership") boolean limitByMembership,
       @Query("owned") boolean limitByOwnership,
-      @Query("page") int page);
+      @Query("page") int page,
+      @Query("per_page") int pageLimit);
+
+  @GET("/api/v4/projects/{projectId}")
+  Project getProject(@Path("projectId") String projectId);
 
   @GET("/api/v4/projects/{projectId}/pipelines")
-  List<PipelineSummary> getPipelineSummaries(
-      @Path("projectId") int projectId, @Query("per_page") int pageLimit);
+  List<Pipeline> getPipelineSummaries(
+      @Path("projectId") String projectId, @Query("per_page") int pageLimit);
 
   @GET("/api/v4/projects/{projectId}/pipelines/{pipelineId}")
-  Pipeline getPipeline(@Path("projectId") int projectId, @Path("pipelineId") long pipelineId);
+  Pipeline getPipeline(@Path("projectId") String projectId, @Path("pipelineId") long pipelineId);
+
+  @GET("/api/v4/projects/{projectId}/pipelines/{pipelineId}/jobs")
+  List<Job> getJobs(@Path("projectId") String projectId, @Path("pipelineId") int pipelineId);
+
+  @GET("/api/v4/projects/{projectId}/jobs/{jobId}/trace")
+  Response getJobLog(@Path("projectId") String projectId, @Path("jobId") int jobId);
+
+  // GitLabCI pipelines can spawn other child pipelines, which are linked by bridges
+  @GET("/api/v4/projects/{projectId}/pipelines/{pipelineId}/bridges")
+  List<Bridge> getBridges(@Path("projectId") String projectId, @Path("pipelineId") int pipelineId);
 }

@@ -1,5 +1,6 @@
 /*
  * Copyright 2017 Netflix, Inc.
+ * Copyright 2022 Redbox Entertainment, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +17,20 @@
 package com.netflix.spinnaker.igor.gitlabci.client.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class PipelineSummary {
-  private long id;
+public class Artifact {
+  @JsonProperty("file_type")
+  private String fileType;
 
-  public long getId() {
-    return id;
-  }
+  private long Size;
+  private String filename;
 
-  public void setId(long id) {
-    this.id = id;
-  }
+  @JsonProperty("file_format")
+  private String fileFormat;
 }

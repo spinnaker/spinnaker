@@ -164,6 +164,33 @@ that will match on output from the `jfrog rt`/`art` CLI tool.  Different regexes
 default may be configured using the `regexes` list.
 
 
+## Configuring Gitlab CI Masters
+
+In your configuration block (either in igor.yml, igor-local.yml, spinnaker.yml or spinnaker-local.yml), you can define multiple masters blocks by using the list format.
+
+To authenticate with Gitlab CI use a [Personal Access Token](https://docs.gitlab.com/ee/security/token_overview.html#personal-access-tokens) with permissions `read_api`.
+
+```
+gitlab-ci:
+  enabled: true
+  itemUpperThreshold: 1000 # Optional, default 1000.  Determines max new pipeline count before a cache cycle is rejected
+  masters:
+    - address: "https://git.mycompany.com"
+      name: mygitlab
+      privateToken: kjsdf023ofku209823
+      # Optional:
+      defaultHttpPageLength: 100 # defaults 100, page length when querying paginated Gitlab API endpoints (100 is max per Gitlab docs)
+      limitByOwnership: false # defaults false, limits API results to projects/groups owned by the token creator
+      limitByMembership: true # defaults true, limits API results to projects/groups the token creator is a member in
+      httpRetryMaxAttempts: 5 # defaults 5, # default max number of retries when hitting Gitlab APIs and errors occur
+      httpRetryWaitSeconds: 2 # defaults 2, # of seconds to wait between retries
+      httpRetryExponentialBackoff: false # deafults false, if true retries to Gitlab will increase exponentially using the httpRetryWaitSeconds option's value
+```
+
+Build properties are automatically read from successful Gitlab CI Pipelines using the pattern `SPINNAKER_PROPERTY_*=value`.  For example a log containing a line
+`SPINNAKER_PROPERTY_HELLO=world` will create a build property item `hello=world`.  Gitlab CI artifacts are not yet supported.
+
+
 ## Integration with Docker Registry
 
 Clouddriver can be [configured to poll your registries](http://www.spinnaker.io/v1.0/docs/target-deployment-configuration#section-docker-registry). When that is the case, igor can then create a poller that will list the registries indexed by clouddriver, check each one for new images and submit events to echo (hence allowing Docker triggers)

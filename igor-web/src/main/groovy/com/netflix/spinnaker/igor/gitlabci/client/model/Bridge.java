@@ -18,57 +18,15 @@ package com.netflix.spinnaker.igor.gitlabci.client.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Date;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Pipeline {
-  private int id;
-  private String sha;
-  private String ref;
-  private PipelineStatus status;
-  private boolean tag;
-  private int duration;
+public class Bridge {
+  private Pipeline pipeline;
 
-  @JsonProperty("created_at")
-  private Date createdAt;
-
-  public Date getCreatedAt() {
-    return createdAt;
-  }
-
-  public void setCreatedAt(Date createdAt) {
-    this.createdAt = createdAt;
-  }
-
-  public int getId() {
-    return id;
-  }
-
-  public void setId(int id) {
-    this.id = id;
-  }
-
-  public String getSha() {
-    return sha;
-  }
-
-  public void setSha(String sha) {
-    this.sha = sha;
-  }
-
-  public String getRef() {
-    return ref;
-  }
-
-  public void setRef(String ref) {
-    this.ref = ref;
-  }
-
-  public PipelineStatus getStatus() {
-    return status;
-  }
-
-  public void setStatus(PipelineStatus status) {
-    this.status = status;
-  }
+  @JsonProperty("downstream_pipeline")
+  private Pipeline downstreamPipeline;
 }

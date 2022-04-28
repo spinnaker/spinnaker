@@ -1,5 +1,6 @@
 /*
  * Copyright 2017 Netflix, Inc.
+ * Copyright 2022 Redbox Entertainment, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +24,9 @@ import com.netflix.spinnaker.igor.build.BuildCache;
 import com.netflix.spinnaker.igor.build.model.GenericProject;
 import com.netflix.spinnaker.igor.config.GitlabCiProperties;
 import com.netflix.spinnaker.igor.gitlabci.client.model.Pipeline;
+import com.netflix.spinnaker.igor.gitlabci.client.model.PipelineStatus;
 import com.netflix.spinnaker.igor.gitlabci.client.model.Project;
-import com.netflix.spinnaker.igor.gitlabci.service.GitlabCiPipelineUtis;
+import com.netflix.spinnaker.igor.gitlabci.service.GitlabCiPipelineUtils;
 import com.netflix.spinnaker.igor.gitlabci.service.GitlabCiResultConverter;
 import com.netflix.spinnaker.igor.gitlabci.service.GitlabCiService;
 import com.netflix.spinnaker.igor.history.EchoService;
@@ -106,8 +108,9 @@ public class GitlabCiBuildMonitor
     long startTime = System.currentTimeMillis();
 
     final List<Project> projects = gitlabCiService.getProjects();
+
     log.info(
-        "Took {} ms to retrieve {} repositories (master: {})",
+        "Took {} ms to retrieve {} repositories with CI enabled (master: {})",
         System.currentTimeMillis() - startTime,
         projects.size(),
         kv("master", master));
@@ -116,27 +119,34 @@ public class GitlabCiBuildMonitor
     projects.parallelStream()
         .forEach(
             project -> {
+              // Gitlab Pipeline API is broken up by project, check for new pipelines for each
+              // project individually
               List<Pipeline> pipelines =
                   filterOldPipelines(
                       gitlabCiService.getPipelines(project, MAX_NUMBER_OF_PIPELINES));
               for (Pipeline pipeline : pipelines) {
-                String branchedRepoSlug =
-                    GitlabCiPipelineUtis.getBranchedPipelineSlug(project, pipeline);
-
-                boolean isPipelineRunning = GitlabCiResultConverter.running(pipeline.getStatus());
-                int cachedBuildId =
-                    buildCache.getLastBuild(master, branchedRepoSlug, isPipelineRunning);
-                // In case of Gitlab CI the pipeline ids are increasing so we can use it for
-                // ordering
+                if (pipeline.getStatus() != PipelineStatus.success) {
+                  // Ignore pipelines that are running, pending, failed, etc.
+                  continue;
+                }
+                String pipelineIdCacheKey = String.valueOf(project.getId());
+                int cachedBuildId = buildCache.getLastBuild(master, pipelineIdCacheKey, false);
+                // GitLab CI pipelineIds increment; Determine if it is new using the ID
                 if (pipeline.getId() > cachedBuildId) {
                   updatedBuilds.incrementAndGet();
-                  delta.add(new BuildDelta(branchedRepoSlug, project, pipeline, isPipelineRunning));
+                  boolean isPipelineRunning = GitlabCiResultConverter.running(pipeline.getStatus());
+                  delta.add(
+                      new BuildDelta(pipelineIdCacheKey, project, pipeline, isPipelineRunning));
                 }
               }
             });
 
     if (!delta.isEmpty()) {
-      log.info("Found {} new builds (master: {})", updatedBuilds.get(), kv("master", master));
+      log.info(
+          "Found {} new builds in {} milliseconds (master: {})",
+          updatedBuilds.get(),
+          System.currentTimeMillis() - startTime,
+          kv("master", master));
     }
 
     return new BuildPollingDelta(delta, master, startTime);
@@ -148,42 +158,30 @@ public class GitlabCiBuildMonitor
     final GitlabCiService gitlabCiService =
         (GitlabCiService) buildServices.getService(delta.master);
 
-    delta.items.parallelStream()
-        .forEach(
-            item -> {
-              log.info(
-                  "Build update [{}:{}:{}] [status:{}] [running:{}]",
-                  kv("master", delta.master),
-                  item.branchedRepoSlug,
-                  item.pipeline.getId(),
-                  item.pipeline.getStatus(),
-                  item.pipelineRunning);
-              buildCache.setLastBuild(
-                  delta.master,
-                  item.branchedRepoSlug,
-                  item.pipeline.getId(),
-                  item.pipelineRunning,
-                  ttl);
-              buildCache.setLastBuild(
-                  delta.master,
-                  item.project.getPathWithNamespace(),
-                  item.pipeline.getId(),
-                  item.pipelineRunning,
-                  ttl);
-              if (sendEvents) {
-                sendEventForPipeline(
-                    item.project,
-                    item.pipeline,
-                    gitlabCiService.getAddress(),
-                    item.branchedRepoSlug,
-                    delta.master);
-              }
-            });
-
     log.info(
         "Last poll took {} ms (master: {})",
         System.currentTimeMillis() - delta.startTime,
         kv("master", delta.master));
+
+    if (delta.items.isEmpty()) {
+      return;
+    }
+
+    delta.items.parallelStream()
+        .forEach(
+            item -> {
+              log.info(
+                  "Build update [{}:{}:{}] [status:{}]",
+                  kv("master", delta.master),
+                  item.cacheKey,
+                  item.pipeline.getId(),
+                  item.pipeline.getStatus());
+              buildCache.setLastBuild(
+                  delta.master, item.cacheKey, item.pipeline.getId(), false, ttl);
+              if (sendEvents) {
+                sendEvent(item.project, item.pipeline, gitlabCiService.getAddress(), delta.master);
+              }
+            });
   }
 
   private List<Pipeline> filterOldPipelines(List<Pipeline> pipelines) {
@@ -192,8 +190,10 @@ public class GitlabCiBuildMonitor
     return pipelines.stream()
         .filter(
             pipeline ->
-                (pipeline.getFinishedAt() != null)
-                    && (pipeline.getFinishedAt().getTime() > threshold))
+                // Finished timestamp is not available without querying the pipelines individually
+                // creates at is the closest timestamp value available in the list APIs
+                (pipeline.getCreatedAt() != null)
+                    && (pipeline.getCreatedAt().getTime() > threshold))
         .collect(Collectors.toList());
   }
 
@@ -206,35 +206,23 @@ public class GitlabCiBuildMonitor
     return (int) TimeUnit.DAYS.toSeconds(gitlabCiProperties.getCachedJobTTLDays());
   }
 
-  private void sendEventForPipeline(
-      Project project,
-      final Pipeline pipeline,
-      String address,
-      final String branchedSlug,
-      String master) {
-    if (echoService.isPresent()) {
-      sendEvent(pipeline.getRef(), project, pipeline, address, master);
-      sendEvent(branchedSlug, project, pipeline, address, master);
-    }
-  }
-
-  private void sendEvent(
-      String slug, Project project, Pipeline pipeline, String address, String master) {
+  private void sendEvent(Project project, Pipeline pipeline, String address, String master) {
     if (!echoService.isPresent()) {
       log.warn("Cannot send build notification: Echo is not enabled");
       registry.counter(missedNotificationId.withTag("monitor", getName())).increment();
       return;
     }
 
-    log.info("pushing event for {}:{}:{}", kv("master", master), slug, pipeline.getId());
+    String projectId = String.valueOf(project.getId());
+    log.info("pushing event for {}:{}:{}", kv("master", master), projectId, pipeline.getId());
     GenericProject genericProject =
         new GenericProject(
-            slug,
-            GitlabCiPipelineUtis.genericBuild(pipeline, project.getPathWithNamespace(), address));
+            projectId,
+            GitlabCiPipelineUtils.genericBuild(pipeline, address, project.getPathWithNamespace()));
 
     GenericBuildContent content = new GenericBuildContent();
     content.setMaster(master);
-    content.setType("gitlab-ci");
+    content.setType(BuildServiceProvider.GITLAB_CI.name());
     content.setProject(genericProject);
 
     GenericBuildEvent event = new GenericBuildEvent();
@@ -249,6 +237,7 @@ public class GitlabCiBuildMonitor
         return host.getItemUpperThreshold();
       }
     }
+    log.warn("Failed to find upper threshold for GitLabCI partition {}", partition);
     return null;
   }
 
@@ -270,17 +259,15 @@ public class GitlabCiBuildMonitor
   }
 
   static class BuildDelta implements DeltaItem {
-    private final String branchedRepoSlug;
+    private final String cacheKey;
     private final Project project;
     private final Pipeline pipeline;
-    private final boolean pipelineRunning;
 
     public BuildDelta(
-        String branchedRepoSlug, Project project, Pipeline pipeline, boolean pipelineRunning) {
-      this.branchedRepoSlug = branchedRepoSlug;
+        String cacheKey, Project project, Pipeline pipeline, boolean pipelineRunning) {
+      this.cacheKey = cacheKey;
       this.project = project;
       this.pipeline = pipeline;
-      this.pipelineRunning = pipelineRunning;
     }
   }
 }

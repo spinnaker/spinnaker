@@ -21,10 +21,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class GitlabCiResultConverter {
-  private static Logger log = LoggerFactory.getLogger(GitlabCiPipelineUtis.class);
+  private static Logger log = LoggerFactory.getLogger(GitlabCiPipelineUtils.class);
 
-  public static Result getResultFromGitlabCiState(final PipelineStatus state) {
-    switch (state) {
+  public static Result getResultFromGitlabCiState(PipelineStatus status) {
+    switch (status) {
       case pending:
         return Result.NOT_BUILT;
       case running:
@@ -38,15 +38,14 @@ public class GitlabCiResultConverter {
       case skipped:
         return Result.NOT_BUILT;
       default:
-        log.info("could not convert " + String.valueOf(state));
-        throw new IllegalArgumentException("state: " + String.valueOf(state) + " is not known");
+        log.info("could not convert " + String.valueOf(status));
+        throw new IllegalArgumentException("status: " + String.valueOf(status) + " is not known");
     }
   }
 
   public static boolean running(PipelineStatus status) {
     switch (status) {
       case pending:
-        return true;
       case running:
         return true;
       default:

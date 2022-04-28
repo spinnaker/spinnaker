@@ -63,15 +63,15 @@ class GitlabCiBuildMonitorSpec extends Specification {
 
     @Ignore("Spock 1.3: The assertions on echoService never worked, but now 1.3 is smart enough to fail on that")
     @Unroll
-    def "send 2 events for a new build and store them in cache"() {
+    def "send 1 event for a new build and store it in cache"() {
         given:
         Project project = new Project(pathWithNamespace: 'user1/project1')
-        Pipeline pipeline = new Pipeline(id: 101, tag: false, ref: 'master', finishedAt: new Date(), status: PipelineStatus.success)
+        Pipeline pipeline = new Pipeline(id: 101, tag: false, ref: 'master', createdAt: new Date(), status: PipelineStatus.success)
 
         service.getProjects() >> [project]
-        service.getPipelines(project, _) >> [pipeline]
+        service.getPipelines(project, 1) >> [pipeline]
         buildCache.getJobNames(MASTER) >> jobsInCache
-        buildCache.getLastBuild(MASTER, _, false) >> lastBuildNr
+        buildCache.getLastBuild(MASTER, "1", false) >> lastBuildNr
 
         when:
         buildMonitor.pollSingle(new PollContext(MASTER))
@@ -99,20 +99,19 @@ class GitlabCiBuildMonitorSpec extends Specification {
 
     def "dont send events if suppressed"() {
         given:
-        Project project = new Project(pathWithNamespace: 'user1/project1')
-        Pipeline pipeline = new Pipeline(id: 101, tag: false, ref: 'master', finishedAt: new Date(), status: PipelineStatus.success)
+        Project project = new Project(pathWithNamespace: 'user1/project1', id: 999)
+        Pipeline pipeline = new Pipeline(id: 101, tag: false, ref: 'master', createdAt: new Date(), status: PipelineStatus.success)
 
         service.getProjects() >> [project]
-        service.getPipelines(project, _) >> [pipeline]
+        service.getPipelines(project, 5) >> [pipeline]
         buildCache.getJobNames(MASTER) >> jobsInCache
-        buildCache.getLastBuild(MASTER, _, false) >> lastBuildNr
+        buildCache.getLastBuild(MASTER, "999", true) >> lastBuildNr
 
         when:
         buildMonitor.pollSingle(new PollContext(MASTER).fastForward())
 
         then:
-        1 * buildCache.setLastBuild(MASTER, "user1/project1", 101, false, CACHED_JOB_TTL_SECONDS)
-        1 * buildCache.setLastBuild(MASTER, "user1/project1/master", 101, false, CACHED_JOB_TTL_SECONDS)
+        1 * buildCache.setLastBuild(MASTER, "999", 101, false, CACHED_JOB_TTL_SECONDS)
 
         and:
         0 * echoService.postEvent(_)
@@ -126,7 +125,7 @@ class GitlabCiBuildMonitorSpec extends Specification {
     def "ignore very old events"() {
         given:
         Project project = new Project(pathWithNamespace: 'user1/project1')
-        Pipeline pipeline = new Pipeline(id: 101, tag: false, ref: 'master', finishedAt: new Date(0), status: PipelineStatus.success)
+        Pipeline pipeline = new Pipeline(id: 101, tag: false, ref: 'master', createdAt: new Date(0), status: PipelineStatus.success)
 
         service.getProjects() >> [project]
         service.getPipelines(project, _) >> [pipeline]
@@ -145,10 +144,10 @@ class GitlabCiBuildMonitorSpec extends Specification {
     def "ignore previous builds"() {
         given:
         Project project = new Project(pathWithNamespace: 'user1/project1')
-        Pipeline pipeline = new Pipeline(id: 101, tag: false, ref: 'master', finishedAt: new Date(), status: PipelineStatus.success)
+        Pipeline pipeline = new Pipeline(id: 101, tag: false, ref: 'master', createdAt: new Date(), status: PipelineStatus.success)
 
         service.getProjects() >> [project]
-        service.getPipelines(project, _) >> [pipeline]
+        service.getPipelines(project, 1) >> [pipeline]
         buildCache.getJobNames(MASTER) >> ["user1/project1/master"]
         buildCache.getLastBuild(MASTER, "user1/project1/master", false) >> 102
 

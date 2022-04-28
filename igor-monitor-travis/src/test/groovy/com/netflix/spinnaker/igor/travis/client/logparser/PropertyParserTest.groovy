@@ -72,12 +72,47 @@ class PropertyParserTest extends Specification {
     }
 
     def "Do not detect json magic string if it is not first non-whitespace substring in the line"() {
-        String buildLog = "some log SPINNAKER_CONFIG_JSON={\"key1\":\"value1\"}\r"
+      String buildLog = "some log SPINNAKER_CONFIG_JSON={\"key1\":\"value1\"}\r\n"
+      buildLog += "\u001B[32;1m\$ echo \"SPINNAKER_PROPERTY_HELLO_WORLD=ello world\"\u001B[0;m\n"
 
-        when:
-        Map<String, Object> properties = PropertyParser.extractPropertiesFromLog(buildLog)
+      when:
+      Map<String, Object> properties = PropertyParser.extractPropertiesFromLog(buildLog)
 
-        then:
-        properties.size() == 0
+      then:
+      properties.size() == 0
+    }
+
+    def "Do not ExtractPropertiesFromLog if build logs have script steps before output"() {
+      String testValue = "hello world"
+      String testKey = "HELLO_WORLD"
+      String buildLog = "\$ echo \"SPINNAKER_PROPERTY_${testKey}=i should not appear\"\n"
+      buildLog += "SPINNAKER_PROPERTY_${testKey}=${testValue}"
+
+      when:
+      Map<String, Object> properties = PropertyParser.extractPropertiesFromLog(buildLog)
+
+      then:
+      properties.size() == 1
+      properties.getOrDefault(testKey.toLowerCase(), "").toString() == testValue
+    }
+
+    def "Do not ExtractPropertiesFromLog if key is not at start of file"() {
+      String buildLog = "????SPINNAKER_PROPERTY_HELLO_WORLD=hello world"
+
+      when:
+      Map<String, Object> properties = PropertyParser.extractPropertiesFromLog(buildLog)
+
+      then:
+      properties.size() == 0
+    }
+
+    def "Do ExtractPropertiesFromLog if key is not at start of file but it is only whitespace"() {
+      String buildLog = "     SPINNAKER_PROPERTY_HELLO_WORLD=hello world"
+
+      when:
+      Map<String, Object> properties = PropertyParser.extractPropertiesFromLog(buildLog)
+
+      then:
+      properties.size() == 1
     }
 }

@@ -50,9 +50,13 @@ public class GitlabCiProperties implements BuildServerProperties<GitlabCiPropert
     @NotEmpty private String name;
     @NotEmpty private String address;
     private String privateToken;
-    private boolean limitByMembership = false;
-    private boolean limitByOwnership = true;
-    private Integer itemUpperThreshold;
+    private boolean limitByMembership = true;
+    private boolean limitByOwnership = false;
+    private Integer defaultHttpPageLength = 100;
+    private Integer itemUpperThreshold = 1000;
+    private Integer httpRetryMaxAttempts = 5;
+    private Integer httpRetryWaitSeconds = 2;
+    private Boolean httpRetryExponentialBackoff = false;
     private Permissions.Builder permissions = new Permissions.Builder();
 
     public String getName() {
@@ -117,6 +121,44 @@ public class GitlabCiProperties implements BuildServerProperties<GitlabCiPropert
 
     public void setPermissions(Permissions.Builder permissions) {
       this.permissions = permissions;
+    }
+
+    public Integer getHttpRetryWaitSeconds() {
+      return httpRetryWaitSeconds;
+    }
+
+    public void setHttpRetryWaitSeconds(Integer httpRetryWaitSeconds) {
+      this.httpRetryWaitSeconds = httpRetryWaitSeconds;
+    }
+
+    public Integer getHttpRetryMaxAttempts() {
+      return httpRetryMaxAttempts;
+    }
+
+    public void setHttpRetryMaxAttempts(Integer httpRetryMaxAttempts) {
+      this.httpRetryMaxAttempts = httpRetryMaxAttempts;
+    }
+
+    public Boolean getHttpRetryExponentialBackoff() {
+      return httpRetryExponentialBackoff;
+    }
+
+    public void setHttpRetryExponentialBackoff(Boolean httpRetryExponentialBackoff) {
+      this.httpRetryExponentialBackoff = httpRetryExponentialBackoff;
+    }
+
+    public Integer getDefaultHttpPageLength() {
+      return defaultHttpPageLength;
+    }
+
+    public void setDefaultHttpPageLength(Integer defaultHttpPageLength) {
+      if (defaultHttpPageLength == null
+          || defaultHttpPageLength < 1
+          || defaultHttpPageLength > 100) {
+        throw new IllegalArgumentException(
+            "Invalid Gitlab CI config.  defaultHttpPageLength must be a valid number between 1-100");
+      }
+      this.defaultHttpPageLength = defaultHttpPageLength;
     }
   }
 }

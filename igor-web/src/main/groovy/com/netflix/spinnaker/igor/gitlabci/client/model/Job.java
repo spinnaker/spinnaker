@@ -17,27 +17,20 @@
 package com.netflix.spinnaker.igor.gitlabci.client.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Date;
+import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Pipeline {
+public class Job {
   private int id;
-  private String sha;
-  private String ref;
-  private PipelineStatus status;
-  private boolean tag;
-  private int duration;
+  private Pipeline pipeline;
+  private List<Artifact> artifacts;
 
-  @JsonProperty("created_at")
-  private Date createdAt;
-
-  public Date getCreatedAt() {
-    return createdAt;
+  public Pipeline getPipeline() {
+    return pipeline;
   }
 
-  public void setCreatedAt(Date createdAt) {
-    this.createdAt = createdAt;
+  public void setPipeline(Pipeline pipeline) {
+    this.pipeline = pipeline;
   }
 
   public int getId() {
@@ -48,27 +41,11 @@ public class Pipeline {
     this.id = id;
   }
 
-  public String getSha() {
-    return sha;
+  public List<Artifact> getArtifacts() {
+    return artifacts;
   }
 
-  public void setSha(String sha) {
-    this.sha = sha;
-  }
-
-  public String getRef() {
-    return ref;
-  }
-
-  public void setRef(String ref) {
-    this.ref = ref;
-  }
-
-  public PipelineStatus getStatus() {
-    return status;
-  }
-
-  public void setStatus(PipelineStatus status) {
-    this.status = status;
+  public void setArtifacts(List<Artifact> artifacts) {
+    this.artifacts = artifacts;
   }
 }

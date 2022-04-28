@@ -1,5 +1,6 @@
 /*
  * Copyright 2017 Netflix, Inc.
+ * Copyright 2022 Redbox Entertainment, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,41 +16,48 @@
  */
 package com.netflix.spinnaker.igor.gitlabci.service;
 
+import static net.logstash.logback.argument.StructuredArguments.kv;
+
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.igor.build.model.GenericBuild;
 import com.netflix.spinnaker.igor.build.model.GenericGitRevision;
 import com.netflix.spinnaker.igor.build.model.JobConfiguration;
+import com.netflix.spinnaker.igor.build.model.Result;
+import com.netflix.spinnaker.igor.config.GitlabCiProperties;
 import com.netflix.spinnaker.igor.gitlabci.client.GitlabCiClient;
-import com.netflix.spinnaker.igor.gitlabci.client.model.Pipeline;
-import com.netflix.spinnaker.igor.gitlabci.client.model.PipelineSummary;
-import com.netflix.spinnaker.igor.gitlabci.client.model.Project;
+import com.netflix.spinnaker.igor.gitlabci.client.model.*;
 import com.netflix.spinnaker.igor.model.BuildServiceProvider;
 import com.netflix.spinnaker.igor.service.BuildOperations;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import com.netflix.spinnaker.igor.service.BuildProperties;
+import com.netflix.spinnaker.igor.travis.client.logparser.PropertyParser;
+import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.*;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import retrofit.RetrofitError;
 
-public class GitlabCiService implements BuildOperations {
+@Slf4j
+public class GitlabCiService implements BuildOperations, BuildProperties {
   private final String name;
   private final GitlabCiClient client;
-  private final String address;
-  private final boolean limitByMembership;
-  private final boolean limitByOwnership;
+  private final GitlabCiProperties.GitlabCiHost hostConfig;
   private final Permissions permissions;
+  private final RetrySupport retrySupport = new RetrySupport();
 
   public GitlabCiService(
       GitlabCiClient client,
       String name,
-      String address,
-      boolean limitByMembership,
-      boolean limitByOwnership,
+      GitlabCiProperties.GitlabCiHost hostConfig,
       Permissions permissions) {
     this.client = client;
     this.name = name;
-    this.address = address;
-    this.limitByMembership = limitByMembership;
-    this.limitByOwnership = limitByOwnership;
+    this.hostConfig = hostConfig;
     this.permissions = permissions;
   }
 
@@ -69,13 +77,23 @@ public class GitlabCiService implements BuildOperations {
   }
 
   @Override
-  public GenericBuild getGenericBuild(String job, int buildNumber) {
-    throw new UnsupportedOperationException();
+  public GenericBuild getGenericBuild(String projectId, int pipelineId) {
+    Project project = client.getProject(projectId);
+    if (project == null) {
+      log.error("Could not find Gitlab CI Project with projectId={}", projectId);
+      return null;
+    }
+    Pipeline pipeline = client.getPipeline(projectId, pipelineId);
+    if (pipeline == null) {
+      return null;
+    }
+    return GitlabCiPipelineUtils.genericBuild(
+        pipeline, this.hostConfig.getAddress(), project.getPathWithNamespace());
   }
 
   @Override
-  public List<GenericBuild> getBuilds(String job) {
-    throw new UnsupportedOperationException();
+  public List<Pipeline> getBuilds(String job) {
+    return this.client.getPipelineSummaries(job, this.hostConfig.getDefaultHttpPageLength());
   }
 
   @Override
@@ -94,40 +112,114 @@ public class GitlabCiService implements BuildOperations {
   }
 
   public List<Project> getProjects() {
-    return getProjectsRec(new ArrayList<>(), 1);
-  }
-
-  public List<Pipeline> getPipelines(final Project project, int limit) {
-    isValidPageSize(limit);
-
-    List<PipelineSummary> pipelineSummaries = client.getPipelineSummaries(project.getId(), limit);
-
-    return pipelineSummaries.stream()
-        .map((PipelineSummary ps) -> client.getPipeline(project.getId(), ps.getId()))
+    return getProjectsRec(new ArrayList<>(), 1).parallelStream()
+        // Ignore projects that don't have Gitlab CI enabled.  It is not possible to filter this
+        // using the GitLab
+        // API. We need to filter it after retrieving all projects
+        .filter(project -> project.getBuildsAccessLevel().equals("enabled"))
         .collect(Collectors.toList());
   }
 
+  @Override
+  public Map<String, Object> getBuildProperties(String job, GenericBuild build, String fileName) {
+    if (StringUtils.isEmpty(fileName)) {
+      return new HashMap<>();
+    }
+
+    return this.getPropertyFileFromLog(job, build.getNumber());
+  }
+
+  // Gets a pipeline's jobs along with any child pipeline jobs (bridges)
+  private List<Job> getJobsWithBridges(String projectId, Integer pipelineId) {
+    List<Job> jobs = this.client.getJobs(projectId, pipelineId);
+    List<Bridge> bridges = this.client.getBridges(projectId, pipelineId);
+    bridges.parallelStream()
+        .filter(
+            bridge -> {
+              // Filter out any child pipelines that failed or are still in-progress
+              Pipeline parent = bridge.getDownstreamPipeline();
+              return parent != null
+                  && GitlabCiResultConverter.getResultFromGitlabCiState(parent.getStatus())
+                      == Result.SUCCESS;
+            })
+        .forEach(
+            bridge -> {
+              jobs.addAll(this.client.getJobs(projectId, bridge.getDownstreamPipeline().getId()));
+            });
+    return jobs;
+  }
+
+  private Map<String, Object> getPropertyFileFromLog(String projectId, Integer pipelineId) {
+    Map<String, Object> properties = new HashMap<>();
+    return retrySupport.retry(
+        () -> {
+          try {
+            Pipeline pipeline = this.client.getPipeline(projectId, pipelineId);
+            PipelineStatus status = pipeline.getStatus();
+            if (status != PipelineStatus.running) {
+              log.error(
+                  "Unable to get GitLab build properties, pipeline '{}' in project '{}' has status {}",
+                  kv("pipeline", pipelineId),
+                  kv("project", projectId),
+                  kv("status", status));
+            }
+            // Pipelines logs are stored within each stage (job), loop all jobs of this pipeline
+            // and any jobs of child pipeline's to parse all logs for the pipeline
+            List<Job> jobs = getJobsWithBridges(projectId, pipelineId);
+            for (Job job : jobs) {
+              InputStream logStream = this.client.getJobLog(projectId, job.getId()).getBody().in();
+              String log = new String(logStream.readAllBytes(), StandardCharsets.UTF_8);
+              Map<String, Object> jobProperties = PropertyParser.extractPropertiesFromLog(log);
+              properties.putAll(jobProperties);
+            }
+
+            return properties;
+
+          } catch (RetrofitError e) {
+            // retry on network issue, 404 and 5XX
+            if (e.getKind() == RetrofitError.Kind.NETWORK
+                || (e.getKind() == RetrofitError.Kind.HTTP
+                    && (e.getResponse().getStatus() == 404
+                        || e.getResponse().getStatus() >= 500))) {
+              throw e;
+            }
+            SpinnakerException ex = new SpinnakerException(e);
+            ex.setRetryable(false);
+            throw ex;
+          } catch (IOException e) {
+            log.error("Error while parsing GitLab CI log to build properties", e);
+            return properties;
+          }
+        },
+        this.hostConfig.getHttpRetryMaxAttempts(),
+        Duration.ofSeconds(this.hostConfig.getHttpRetryWaitSeconds()),
+        this.hostConfig.getHttpRetryExponentialBackoff());
+  }
+
+  public List<Pipeline> getPipelines(final Project project, int pageSize) {
+    return client.getPipelineSummaries(String.valueOf(project.getId()), pageSize);
+  }
+
+  public List<Pipeline> getPipelines(final Project project) {
+    return getPipelines(project, this.hostConfig.getDefaultHttpPageLength());
+  }
+
   public String getAddress() {
-    return address;
+    return this.hostConfig.getAddress();
   }
 
   private List<Project> getProjectsRec(List<Project> projects, int page) {
-    List<Project> slice = client.getProjects(limitByMembership, limitByOwnership, page);
+    List<Project> slice =
+        client.getProjects(
+            hostConfig.getLimitByMembership(),
+            hostConfig.getLimitByOwnership(),
+            page,
+            hostConfig.getDefaultHttpPageLength());
     if (slice.isEmpty()) {
       return projects;
     } else {
       projects.addAll(slice);
       return getProjectsRec(projects, page + 1);
-    }
-  }
-
-  private static void isValidPageSize(int perPage) {
-    if (perPage > GitlabCiClient.MAX_PAGE_SIZE) {
-      throw new IllegalArgumentException(
-          "Gitlab API call page size should be less than "
-              + GitlabCiClient.MAX_PAGE_SIZE
-              + " but was "
-              + perPage);
     }
   }
 }
