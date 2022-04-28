@@ -123,7 +123,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          file: Dockerfile.slim
+          file: Dockerfile
           push: true
           build-args: |
             "VERSION=${{ steps.release_info.outputs.RELEASE_VERSION }}"
