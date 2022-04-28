@@ -17,23 +17,21 @@
 package com.netflix.spinnaker.echo.scm.github;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.netflix.spinnaker.echo.api.events.Event;
-import java.util.Map;
 import java.util.Optional;
 import lombok.Data;
 
 @Data
 public class GithubPullRequestEvent implements GithubWebhookEvent {
-  Repository repository;
+  private Repository repository;
 
   @JsonProperty("pull_request")
-  PullRequest pullRequest;
+  private PullRequest pullRequest;
 
-  String action;
+  private String action;
 
   // `.repository.full_name`
   @Override
-  public String getFullRepoName(Event event, Map postedEvent) {
+  public String getFullRepoName() {
     return Optional.of(this)
         .map(GithubPullRequestEvent::getRepository)
         .map(Repository::getFullName)
@@ -42,7 +40,7 @@ public class GithubPullRequestEvent implements GithubWebhookEvent {
 
   // `.repository.owner.login`
   @Override
-  public String getRepoProject(Event event, Map postedEvent) {
+  public String getRepoProject() {
     return Optional.of(this)
         .map(GithubPullRequestEvent::getRepository)
         .map(Repository::getOwner)
@@ -52,7 +50,7 @@ public class GithubPullRequestEvent implements GithubWebhookEvent {
 
   // `.repository.name`
   @Override
-  public String getSlug(Event event, Map postedEvent) {
+  public String getSlug() {
     return Optional.of(this)
         .map(GithubPullRequestEvent::getRepository)
         .map(Repository::getName)
@@ -62,7 +60,7 @@ public class GithubPullRequestEvent implements GithubWebhookEvent {
   // `.pull_request.head.sha`
   // TODO
   @Override
-  public String getHash(Event event, Map postedEvent) {
+  public String getHash() {
     return Optional.of(this)
         .map(GithubPullRequestEvent::getPullRequest)
         .map(PullRequest::getHead)
@@ -73,7 +71,7 @@ public class GithubPullRequestEvent implements GithubWebhookEvent {
   // `.pull_request.head.ref`
   // TODO
   @Override
-  public String getBranch(Event event, Map postedEvent) {
+  public String getBranch() {
     // Replace on "" still returns "", which is fine
     return Optional.of(this)
         .map(GithubPullRequestEvent::getPullRequest)
@@ -82,34 +80,32 @@ public class GithubPullRequestEvent implements GithubWebhookEvent {
         .orElse("");
   }
 
-  // `.action`
-  @Override
-  public String getAction(Event event, Map postedEvent) {
-    return Optional.of(this).map(GithubPullRequestEvent::getAction).orElse("");
-  }
-
   @Data
   private static class Repository {
-    RepositoryOwner owner;
-    String name;
+    private RepositoryOwner owner;
+    private String name;
 
     @JsonProperty("full_name")
-    String fullName;
+    private String fullName;
   }
 
   @Data
   private static class RepositoryOwner {
-    String login;
+    private String login;
   }
 
   @Data
-  private static class PullRequest {
-    PullRequestHead head;
+  public static class PullRequest {
+    private PullRequestHead head;
+    private Boolean draft;
+    private int number;
+    private String state;
+    private String title;
   }
 
   @Data
   private static class PullRequestHead {
-    String ref;
-    String sha;
+    private String ref;
+    private String sha;
   }
 }

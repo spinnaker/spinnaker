@@ -427,10 +427,14 @@ class WebhooksControllerSpec extends Specification {
       """{
           "action": "opened",
           "pull_request": {
+            "number": 42,
             "head": {
               "ref": "simple-tag",
               "sha": "0000000000000000000000000000000000000000"
-            }
+            },
+            "title": "Very nice Pull Request",
+            "draft": false,
+            "state": "open"
           },
           "repository": {
             "name": "Hello-World",
@@ -451,6 +455,10 @@ class WebhooksControllerSpec extends Specification {
     event.content.slug == "Hello-World"
     event.content.branch == "simple-tag"
     event.content.action == "pull_request:opened"
+    event.content.number == "42"
+    event.content.title == "Very nice Pull Request"
+    event.content.state == "open"
+    event.content.draft == "false"
   }
 
   void 'handles non-push Github Webhook Event gracefully'() {

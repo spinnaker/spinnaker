@@ -16,19 +16,16 @@
 
 package com.netflix.spinnaker.echo.scm.github;
 
-import com.netflix.spinnaker.echo.api.events.Event;
-import java.util.Map;
-
 public interface GithubWebhookEvent {
-  String getFullRepoName(Event event, Map postedEvent);
+  String getFullRepoName();
 
-  String getRepoProject(Event event, Map postedEvent);
+  String getRepoProject();
 
-  String getSlug(Event event, Map postedEvent);
+  String getSlug();
 
-  String getHash(Event event, Map postedEvent);
+  String getHash();
 
-  String getBranch(Event event, Map postedEvent);
+  String getBranch();
 
-  String getAction(Event event, Map postedEvent);
+  String getAction();
 }

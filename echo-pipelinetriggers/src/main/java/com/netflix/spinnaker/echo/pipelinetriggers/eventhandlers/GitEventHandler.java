@@ -23,13 +23,13 @@ import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.GitEvent;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.HmacUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -120,12 +120,29 @@ public class GitEventHandler extends BaseTriggerEventHandler<GitEvent> {
 
   @Override
   protected Function<Trigger, Trigger> buildTrigger(GitEvent gitEvent) {
-    return trigger ->
-        trigger
-            .atHash(gitEvent.getHash())
-            .atBranch(gitEvent.getBranch())
-            .atEventId(gitEvent.getEventId())
-            .atAction(gitEvent.getAction());
+    return trigger -> {
+      Trigger t =
+          trigger
+              .atHash(gitEvent.getHash())
+              .atBranch(gitEvent.getBranch())
+              .atEventId(gitEvent.getEventId())
+              .atAction(gitEvent.getAction());
+
+      return t.withProperties(
+          Stream.concat(
+                  Optional.ofNullable(t.getProperties())
+                      .orElse(new HashMap<>())
+                      .entrySet()
+                      .stream(),
+                  Stream.of(
+                          new AbstractMap.SimpleEntry<>(
+                              "number", gitEvent.getContent().getNumber()),
+                          new AbstractMap.SimpleEntry<>("draft", gitEvent.getContent().getDraft()),
+                          new AbstractMap.SimpleEntry<>("state", gitEvent.getContent().getState()),
+                          new AbstractMap.SimpleEntry<>("title", gitEvent.getContent().getTitle()))
+                      .filter(entry -> entry.getValue() != null))
+              .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+    };
   }
 
   private boolean matchesPattern(String s, String pattern) {

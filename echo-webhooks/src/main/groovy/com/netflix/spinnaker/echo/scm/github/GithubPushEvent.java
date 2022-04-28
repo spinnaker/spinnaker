@@ -17,8 +17,6 @@
 package com.netflix.spinnaker.echo.scm.github;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.netflix.spinnaker.echo.api.events.Event;
-import java.util.Map;
 import java.util.Optional;
 import lombok.Data;
 
@@ -32,7 +30,7 @@ public class GithubPushEvent implements GithubWebhookEvent {
 
   // `.repository.full_name`
   @Override
-  public String getFullRepoName(Event event, Map postedEvent) {
+  public String getFullRepoName() {
     return Optional.of(this)
         .map(GithubPushEvent::getRepository)
         .map(Repository::getFullName)
@@ -41,7 +39,7 @@ public class GithubPushEvent implements GithubWebhookEvent {
 
   // `.repository.owner.name`
   @Override
-  public String getRepoProject(Event event, Map postedEvent) {
+  public String getRepoProject() {
     return Optional.of(this)
         .map(GithubPushEvent::getRepository)
         .map(Repository::getOwner)
@@ -51,7 +49,7 @@ public class GithubPushEvent implements GithubWebhookEvent {
 
   // `.repository.name`
   @Override
-  public String getSlug(Event event, Map postedEvent) {
+  public String getSlug() {
     return Optional.of(this)
         .map(GithubPushEvent::getRepository)
         .map(Repository::getName)
@@ -60,19 +58,19 @@ public class GithubPushEvent implements GithubWebhookEvent {
 
   // `.after`
   @Override
-  public String getHash(Event event, Map postedEvent) {
+  public String getHash() {
     return Optional.of(this).map(GithubPushEvent::getAfter).orElse("");
   }
 
   // `.ref`, remove `refs/heads/`
   @Override
-  public String getBranch(Event event, Map postedEvent) {
+  public String getBranch() {
     // Replace on "" still returns "", which is fine
     return Optional.of(this).map(GithubPushEvent::getRef).orElse("").replace("refs/heads/", "");
   }
 
   @Override
-  public String getAction(Event event, Map postedEvent) {
+  public String getAction() {
     return ACTION;
   }
 

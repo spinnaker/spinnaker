@@ -54,14 +54,11 @@ public class GithubWebhookEventHandler implements GitWebhookHandler {
   public void handle(Event event, Map postedEvent) {
     if (!shouldSendEvent(event)) {
       log.info(
-          "Webhook ping received from github {} {} {}",
+          "Webhook ping received from github {} {}",
+          kv("hook_id", event.content.get("hook_id")),
           kv(
-              "hook_id",
-              event.content.get("hook_id"),
-              kv(
-                      "repository",
-                      ((Map<String, Object>) event.content.get("repository")).get("full_name"))
-                  .toString()));
+              "repository",
+              ((Map<String, Object>) event.content.get("repository")).get("full_name")));
       return;
     }
 
@@ -79,14 +76,25 @@ public class GithubWebhookEventHandler implements GitWebhookHandler {
       githubEvent = "push";
     }
 
-    String fullRepoName = webhookEvent.getFullRepoName(event, postedEvent);
+    String fullRepoName = webhookEvent.getFullRepoName();
     Map<String, String> results = new HashMap<>();
-    results.put("repoProject", webhookEvent.getRepoProject(event, postedEvent));
-    results.put("slug", webhookEvent.getSlug(event, postedEvent));
-    results.put("hash", webhookEvent.getHash(event, postedEvent));
-    results.put("branch", webhookEvent.getBranch(event, postedEvent));
-    results.put(
-        "action", githubEvent.concat(":").concat(webhookEvent.getAction(event, postedEvent)));
+    results.put("repoProject", webhookEvent.getRepoProject());
+    results.put("slug", webhookEvent.getSlug());
+    results.put("hash", webhookEvent.getHash());
+    results.put("branch", webhookEvent.getBranch());
+    results.put("action", githubEvent.concat(":").concat(webhookEvent.getAction()));
+
+    if (webhookEvent instanceof GithubPullRequestEvent) {
+      GithubPullRequestEvent pullRequestEvent = (GithubPullRequestEvent) webhookEvent;
+      if (pullRequestEvent.getPullRequest() != null) {
+        GithubPullRequestEvent.PullRequest pullRequest = pullRequestEvent.getPullRequest();
+        results.put("number", String.valueOf(pullRequest.getNumber()));
+        results.put("draft", String.valueOf(pullRequest.getDraft()));
+        results.put("state", pullRequest.getState());
+        results.put("title", pullRequest.getTitle());
+      }
+    }
+
     event.content.putAll(results);
 
     log.info(
