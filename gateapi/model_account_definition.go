@@ -10,6 +10,6 @@
 package swagger
 
 type AccountDefinition struct {
-	Type_ string `json:"@type,omitempty"`
 	Name string `json:"name,omitempty"`
+	Type_ string `json:"type,omitempty"`
 }

@@ -28,7 +28,7 @@ Optional parameters are passed through a pointer to a CredentialsControllerApiCr
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **accountDefinition** | [**optional.Interface of AccountDefinition**](AccountDefinition.md)| Account definition body including a discriminator field named \&quot;@type\&quot; with the account type. | 
+ **accountDefinition** | [**optional.Interface of AccountDefinition**](AccountDefinition.md)| Account definition body including a discriminator field named \&quot;type\&quot; with the account type. | 
 
 ### Return type
 
@@ -48,8 +48,6 @@ No authorization required
 # **DeleteAccountUsingDELETE**
 > DeleteAccountUsingDELETE(ctx, accountName)
 Deletes an account definition by name.
-
-Deleted accounts can be restored via the update API. Previously deleted accounts cannot be \"created\" again to avoid conflicts with existing pipelines.
 
 ### Required Parameters
 
@@ -217,7 +215,7 @@ Optional parameters are passed through a pointer to a CredentialsControllerApiUp
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **accountDefinition** | [**optional.Interface of AccountDefinition**](AccountDefinition.md)| Account definition body including a discriminator field named \&quot;@type\&quot; with the account type. | 
+ **accountDefinition** | [**optional.Interface of AccountDefinition**](AccountDefinition.md)| Account definition body including a discriminator field named \&quot;type\&quot; with the account type. | 
 
 ### Return type
 

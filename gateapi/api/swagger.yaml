@@ -2417,7 +2417,7 @@ paths:
       - in: "body"
         name: "accountDefinition"
         description: "Account definition body including a discriminator field named\
-          \ \"@type\" with the account type."
+          \ \"type\" with the account type."
         required: false
         schema:
           $ref: "#/definitions/AccountDefinition"
@@ -2449,7 +2449,7 @@ paths:
       - in: "body"
         name: "accountDefinition"
         description: "Account definition body including a discriminator field named\
-          \ \"@type\" with the account type."
+          \ \"type\" with the account type."
         required: false
         schema:
           $ref: "#/definitions/AccountDefinition"
@@ -2520,9 +2520,6 @@ paths:
       tags:
       - "credentials-controller"
       summary: "Deletes an account definition by name."
-      description: "Deleted accounts can be restored via the update API. Previously\
-        \ deleted accounts cannot be \"created\" again to avoid conflicts with existing\
-        \ pipelines."
       operationId: "deleteAccountUsingDELETE"
       produces:
       - "*/*"
@@ -6307,7 +6304,7 @@ paths:
       tags:
       - "pipeline-controller"
       summary: "Evaluate a pipeline expression using the provided execution as context"
-      operationId: "evaluateExpressionForExecutionViaPOSTUsingPOST"
+      operationId: "evaluateExpressionForExecutionViaPOSTUsingPOST_1"
       consumes:
       - "text/plain"
       produces:
@@ -8891,14 +8888,14 @@ definitions:
   AccountDefinition:
     type: "object"
     properties:
-      '@type':
-        type: "string"
       name:
+        type: "string"
+      type:
         type: "string"
     title: "AccountDefinition"
     example:
-      '@type': "@type"
       name: "name"
+      type: "type"
   AccountDetails:
     type: "object"
     properties:

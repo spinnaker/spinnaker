@@ -31,7 +31,7 @@ type CredentialsControllerApiService service
 CredentialsControllerApiService Creates a new account definition.
  * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param optional nil or *CredentialsControllerApiCreateAccountUsingPOSTOpts - Optional Parameters:
-     * @param "AccountDefinition" (optional.Interface of AccountDefinition) -  Account definition body including a discriminator field named \&quot;@type\&quot; with the account type.
+     * @param "AccountDefinition" (optional.Interface of AccountDefinition) -  Account definition body including a discriminator field named \&quot;type\&quot; with the account type.
 
 @return AccountDefinition
 */
@@ -131,7 +131,6 @@ func (a *CredentialsControllerApiService) CreateAccountUsingPOST(ctx context.Con
 
 /* 
 CredentialsControllerApiService Deletes an account definition by name.
-Deleted accounts can be restored via the update API. Previously deleted accounts cannot be \&quot;created\&quot; again to avoid conflicts with existing pipelines.
  * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param accountName Name of account definition to delete.
 
@@ -621,7 +620,7 @@ func (a *CredentialsControllerApiService) GetAccountsUsingGET(ctx context.Contex
 CredentialsControllerApiService Updates an existing account definition.
  * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param optional nil or *CredentialsControllerApiUpdateAccountUsingPUTOpts - Optional Parameters:
-     * @param "AccountDefinition" (optional.Interface of AccountDefinition) -  Account definition body including a discriminator field named \&quot;@type\&quot; with the account type.
+     * @param "AccountDefinition" (optional.Interface of AccountDefinition) -  Account definition body including a discriminator field named \&quot;type\&quot; with the account type.
 
 @return AccountDefinition
 */
