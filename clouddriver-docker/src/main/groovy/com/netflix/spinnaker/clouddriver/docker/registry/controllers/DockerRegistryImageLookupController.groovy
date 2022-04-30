@@ -51,7 +51,7 @@ class DockerRegistryImageLookupController {
       Keys.getTaggedImageKey(account, repository, "*")
     ).sort { a, b ->
       if (credentials.sortTagsByDate) {
-        b.attributes.date <=> a.attributes.date
+        b.attributes.date.epochSecond <=> a.attributes.date.epochSecond
       } else {
         a.id <=> b.id
       }
