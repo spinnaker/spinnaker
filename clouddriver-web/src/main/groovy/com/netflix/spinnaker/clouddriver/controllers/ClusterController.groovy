@@ -25,10 +25,13 @@ import com.netflix.spinnaker.moniker.Moniker
 import groovy.transform.Canonical
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.MessageSource
 import org.springframework.security.access.prepost.PostAuthorize
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.util.StringUtils
 import org.springframework.web.bind.annotation.*
+
+import java.util.stream.Collectors
+import java.util.stream.Stream
 
 import static com.netflix.spinnaker.clouddriver.model.view.ModelObjectViewModelPostProcessor.applyExtensions
 import static com.netflix.spinnaker.clouddriver.model.view.ModelObjectViewModelPostProcessor.applyExtensionsToObject
@@ -38,14 +41,21 @@ import static com.netflix.spinnaker.clouddriver.model.view.ModelObjectViewModelP
 @RequestMapping("/applications/{application}/clusters")
 class ClusterController {
 
+  public static final Comparator<ServerGroup> OLDEST_TO_NEWEST = Comparator
+    .comparingLong({ ServerGroup sg -> sg.getCreatedTime() })
+
+  public static final Comparator<ServerGroup> BIGGEST_TO_SMALLEST = Comparator
+    .comparingInt({ ServerGroup sg ->
+      Optional.ofNullable(sg.getInstances()).map({ it.size() }).orElse(0)
+    })
+    .thenComparing(OLDEST_TO_NEWEST)
+    .reversed()
+
   @Autowired
   List<ApplicationProvider> applicationProviders
 
   @Autowired
   List<ClusterProvider> clusterProviders
-
-  @Autowired
-  MessageSource messageSource
 
   @Autowired
   RequestQueue requestQueue
@@ -63,57 +73,49 @@ class ClusterController {
   @PostAuthorize("@authorizationSupport.filterForAccounts(returnObject)")
   @RequestMapping(method = RequestMethod.GET)
   Map<String, Set<String>> listByAccount(@PathVariable String application) {
-    def apps = ((List<Application>) applicationProviders.findResults {
-      it.getApplication(application)
-    }).sort { a, b -> a.name.toLowerCase() <=> b.name.toLowerCase() }
+    List<Application> apps = applicationProviders.stream()
+      .map({ it.getApplication(application) })
+      .filter({ it != null })
+      .sorted(Comparator.comparing({ Application it -> it.getName().toLowerCase() }))
+      .collect(Collectors.toList())
 
-    def clusterNames = [:]
+    Map<String, Set<String>> clusterNames = Map.of()
     def lastApp = null
     for (app in apps) {
       if (!lastApp) {
-        clusterNames = app.clusterNames
+        clusterNames = app.getClusterNames()
       } else {
         clusterNames = mergeClusters(lastApp, app)
       }
       lastApp = app
     }
-    clusterNames
+    return clusterNames
   }
 
   private Map<String, Set<String>> mergeClusters(Application a, Application b) {
-    [a, b].inject([:]) { Map map, source ->
-      for (Map.Entry e in source.clusterNames) {
-        if (!map.containsKey(e.key)) {
-          map[e.key] = new HashSet()
-        }
-        map[e.key].addAll e.value
-      }
-      map
-    }
+    Map<String, Set<String>> map = new HashMap<>()
+
+    Stream.of(a, b)
+      .flatMap({ it.getClusterNames().entrySet().stream() })
+      .forEach({ entry ->
+        map.computeIfAbsent(entry.getKey(), { new HashSet<>() }).addAll(entry.getValue())
+      })
+    return map
   }
 
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ') && hasPermission(#account, 'ACCOUNT', 'READ')")
   @RequestMapping(value = "/{account:.+}", method = RequestMethod.GET)
   Set<ClusterViewModel> getForAccount(@PathVariable String application, @PathVariable String account) {
-    def clusters = clusterProviders.collect {
-      Collection<Cluster> clusters = applyExtensions(clusterExtensions, it.getClusters(application, account, false))
-      def clusterViews = []
-      for (cluster in clusters) {
-        clusterViews << new ClusterViewModel(
-            name: cluster.name,
-            moniker: cluster.moniker,
-            account: cluster.accountName,
-            loadBalancers: cluster.loadBalancers.collect {
-              it.name
-            },
-            serverGroups: cluster.serverGroups.collect {
-              it.name
-            },
-        )
-      }
-      clusterViews
-    }?.flatten() as Set<ClusterViewModel>
-    if (!clusters) {
+
+    Set<ClusterViewModel> clusters = clusterProviders.stream()
+      .map({ it.getClusters(application, account, false) })
+      .filter({ it != null })
+      .flatMap({
+        applyExtensions(clusterExtensions, it).stream()
+      })
+      .map({ Cluster cluster -> ClusterViewModel.from(cluster) })
+      .collect(Collectors.toSet())
+    if (clusters.isEmpty()) {
       throw new NotFoundException("No clusters found (application: ${application}, account: ${account})")
     }
     clusters
@@ -124,17 +126,20 @@ class ClusterController {
   Set<Cluster> getForAccountAndName(@PathVariable String application,
                                     @PathVariable String account,
                                     @PathVariable String name,
-                                    @RequestParam(required = false, value = 'expand', defaultValue = 'true') boolean expand) {
-    def clusters = clusterProviders.collect { provider ->
+                                    @RequestParam(required = false, value = "expand", defaultValue = "true") boolean expand) {
+    def clusters = clusterProviders.stream()
+      .map({ provider ->
         applyExtensionsToObject(clusterExtensions,
           requestQueue.execute(application, { provider.getCluster(application, account, name, expand) }))
-    }
+      })
+      .filter({ it != null })
+      .collect(Collectors.toSet())
 
-    clusters.removeAll([null])
-    if (!clusters) {
-      throw new NotFoundException("Cluster not found (application: ${application}, account: ${account}, name: ${name})")
+    if (clusters.isEmpty()) {
+      throw new NotFoundException(String.format(
+        "Cluster not found (application: %s, account: %s, name: %s)", application, account, name))
     }
-    clusters
+    return clusters
   }
 
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ') && hasPermission(#account, 'ACCOUNT', 'READ')")
@@ -143,13 +148,17 @@ class ClusterController {
                                       @PathVariable String account,
                                       @PathVariable String name,
                                       @PathVariable String type,
-                                      @RequestParam(required = false, value = 'expand', defaultValue = 'true') boolean expand) {
-    Set<Cluster> allClusters = applyExtensions(clusterExtensions, getForAccountAndName(application, account, name, expand))
-    def cluster = allClusters.find { it.type == type }
-    if (!cluster) {
-      throw new NotFoundException("No clusters found (application: ${application}, account: ${account}, type: ${type})")
-    }
-    cluster
+                                      @RequestParam(required = false, value = "expand", defaultValue = "true") boolean expand) {
+
+    Optional<Cluster> maybe = getForAccountAndName(application, account, name, expand).stream()
+      .filter({ type.equals(it.getType()) })
+      .map({ applyExtensionsToObject(clusterExtensions, it) })
+      .findFirst()
+
+    return maybe.orElseThrow({
+      new NotFoundException(String.format(
+        "No clusters found (application: %s, account: %s, type: %s)", application, account, type))
+    })
   }
 
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ') && hasPermission(#account, 'ACCOUNT', 'READ')")
@@ -159,10 +168,20 @@ class ClusterController {
                                    @PathVariable String clusterName,
                                    @PathVariable String type,
                                    @RequestParam(value = "region", required = false) String region,
-                                   @RequestParam(required = false, value = 'expand', defaultValue = 'true') boolean expand) {
+                                   @RequestParam(required = false, value = "expand", defaultValue = "true") boolean expand) {
     Cluster cluster = applyExtensionsToObject(clusterExtensions, getForAccountAndNameAndType(application, account, clusterName, type, expand))
-    def results = applyExtensions(serverGroupExtensions, region ? cluster.serverGroups.findAll { it.region == region } : cluster.serverGroups)
-    results ?: []
+
+    Stream<ServerGroup> serverGroups = cluster.getServerGroups().stream()
+
+    if (!StringUtils.isEmpty(region)) {
+      serverGroups = serverGroups.filter({ region.equals(it.getRegion()) })
+    }
+
+    def result = serverGroups
+      .map({ applyExtensionsToObject(serverGroupExtensions, it) })
+      .collect(Collectors.toSet())
+
+    return result
   }
 
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ') && hasPermission(#account, 'ACCOUNT', 'READ')")
@@ -174,27 +193,46 @@ class ClusterController {
                      @PathVariable String serverGroupName,
                      @RequestParam(value = "region", required = false) String region) {
     // we can optimize loads iff the cloud provider supports loading minimal clusters (ie. w/o instances)
-    def providers = clusterProviders.findAll { it.cloudProviderId == type }
-    if (!providers) {
-      log.warn("No cluster provider found for type (type: ${type}, account: ${account})")
+    def providers = providers(type)
+
+    if (providers.isEmpty()) {
+      log.warn("No cluster provider found for type (type: {}, account: {})", type, account)
     }
 
-    def serverGroups = providers.collect { p ->
-      def shouldExpand  = !p.supportsMinimalClusters()
-      def serverGroups = applyExtensions(serverGroupExtensions, getServerGroups(application, account, clusterName, type, region, shouldExpand)).findAll {
-        return region ? it.name == serverGroupName && it.region == region : it.name == serverGroupName
-      } ?: []
+    List<ServerGroup> serverGroups = providers.stream()
+      .flatMap({ p ->
+        boolean isExpanded = !p.supportsMinimalClusters()
+        Stream<ServerGroup> serverGroups =
+          applyExtensions(serverGroupExtensions, getServerGroups(application, account, clusterName, type, region, isExpanded))
+            .stream()
+            .filter({
+              serverGroupName.equals(it.getName()) &&
+                (StringUtils.isEmpty(region) || region.equals(it.getRegion()))
+            })
 
-      return shouldExpand ? serverGroups : serverGroups.collect { ServerGroup sg ->
-        return serverGroupController.getServerGroupByApplication(application, account, sg.region, sg.name, "true")
-      }
-    }.flatten()
+        return isExpanded
+          ? serverGroups
+          : serverGroups
+          .map({ ServerGroup sg ->
+            return serverGroupController.getServerGroupByApplication(application, account, sg.getRegion(), sg.getName(), "true")
+          })
+      })
+      .collect(Collectors.toList())
 
-    if (!serverGroups) {
-      throw new NotFoundException("Server group not found (account: ${account}, name: ${serverGroupName}, type: ${type})")
+    if (serverGroups.isEmpty()) {
+      throw new NotFoundException(String.format("Server group not found (account: %s, name: %s, type: %s)", account, serverGroupName, type))
     }
 
-    return region ? serverGroups?.getAt(0) : serverGroups
+    // TODO: maybe break up this API into 2 different routes instead of returning 2 types
+    return StringUtils.isEmpty(region)
+      ? serverGroups
+      : serverGroups.get(0)
+  }
+
+  private List<ClusterProvider> providers(String cloudProvider) {
+    return clusterProviders.stream()
+      .filter({ cloudProvider.equals(it.getCloudProviderId()) })
+      .collect(Collectors.toList())
   }
 
   /**
@@ -203,121 +241,153 @@ class ClusterController {
    */
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ') && hasPermission(#account, 'ACCOUNT', 'READ')")
   @RequestMapping(value = "/{account:.+}/{clusterName:.+}/{cloudProvider}/{scope}/serverGroups/target/{target:.+}", method = RequestMethod.GET)
-  ServerGroup getTargetServerGroup(
-      @PathVariable String application,
-      @PathVariable String account,
-      @PathVariable String clusterName,
-      @PathVariable String cloudProvider,
-      @PathVariable String scope,
-      @PathVariable String target,
-      @RequestParam(value = "onlyEnabled", required = false, defaultValue = "false") String onlyEnabled,
-      @RequestParam(value = "validateOldest", required = false, defaultValue = "true") String validateOldest) {
+  ServerGroup getTargetServerGroup(@PathVariable String application,
+                                   @PathVariable String account,
+                                   @PathVariable String clusterName,
+                                   @PathVariable String cloudProvider,
+                                   @PathVariable String scope,
+                                   @PathVariable String target,
+                                   @RequestParam(value = "onlyEnabled", required = false, defaultValue = "false") String onlyEnabled,
+                                   @RequestParam(value = "validateOldest", required = false, defaultValue = "true") String validateOldest) {
     TargetServerGroup tsg
     try {
       tsg = TargetServerGroup.fromString(target)
     } catch (IllegalArgumentException e) {
-      throw new NotFoundException("Target not found (target: ${target})")
+      throw new NotFoundException(String.format("Target not found (target: %s)", target))
     }
 
     // we can optimize loads iff the cloud provider supports loading minimal clusters (ie. w/o instances)
-    def providers = clusterProviders.findAll { it.cloudProviderId == cloudProvider }
-    if (!providers) {
-      log.warn("No cluster provider found for cloud provider (cloudProvider: ${cloudProvider}, account: ${account})")
+    def providers = providers(cloudProvider)
+    if (providers.isEmpty()) {
+      log.warn("No cluster provider found for cloud provider (cloudProvider: {}, account: {})", cloudProvider, account)
     }
 
-    def needsExpand  = [:]
+    boolean enabledOnly = Boolean.parseBoolean(onlyEnabled)
+
+    Set<ServerGroup> alreadyExpanded = new HashSet<>()
 
     // load all server groups w/o instance details (this is reasonably efficient)
-    def sortedServerGroups = providers.collect { p ->
-      def shouldExpand = !p.supportsMinimalClusters()
-      def serverGroups = getServerGroups(application, account, clusterName, cloudProvider, null /* region */, shouldExpand).findAll {
-        def scopeMatch = it.region == scope || it.zones?.contains(scope)
+    Stream<ServerGroup> filteredServerGroups = providers.stream()
+      .flatMap({ p ->
+        boolean isExpanded = !p.supportsMinimalClusters()
+        Stream<ServerGroup> serverGroups = getServerGroups(application, account, clusterName, cloudProvider, null /* region */, isExpanded)
+          .stream()
+          .filter({
+            boolean scopeMatch = scope.equals(it.getRegion()) ||
+              Optional.ofNullable(it.getZones())
+                .map({ it.contains(scope) })
+                .orElse(false)
 
-        def enableMatch
-        if (Boolean.valueOf(onlyEnabled)) {
-          enableMatch = !it.isDisabled()
-        } else {
-          enableMatch = true
-        }
+            boolean enableMatch = enabledOnly ? !it.isDisabled() : true
 
-        return scopeMatch && enableMatch
-      } ?: []
+            return scopeMatch && enableMatch
+          })
+          .map({ serverGroup ->
+            if (isExpanded) {
+              alreadyExpanded.add(serverGroup) // this is kind of gross
+            }
+            return serverGroup
+          })
 
-      if (shouldExpand) {
-        serverGroups.forEach { sg -> needsExpand[sg] = true }
-      }
+        return serverGroups
+      })
+      .filter({ it.getCreatedTime() != null })
 
-      return serverGroups
-    }.flatten()
-    .findAll { it.createdTime != null }
-    .sort { a, b -> b.createdTime <=> a.createdTime }
-
-    def expandServerGroup = { ServerGroup serverGroup ->
-      if (needsExpand[serverGroup]) {
-        // server group was already expanded on initial load
-        return serverGroup
-      }
-
-      return serverGroupController.getServerGroupByApplication(
-        application, account, serverGroup.region, serverGroup.name, "true"
-      )
-    }
-
-    if (!sortedServerGroups) {
-      throw new NotFoundException("No server groups found (account: ${account}, location: ${scope}, cluster: ${clusterName}, type: ${cloudProvider})")
-    }
+    Optional<ServerGroup> maybe = Optional.empty()
 
     switch (tsg) {
       case TargetServerGroup.CURRENT:
-        return expandServerGroup(sortedServerGroups.get(0))
+        maybe = filteredServerGroups
+          .sorted(OLDEST_TO_NEWEST.reversed())
+          .findFirst()
+        break
       case TargetServerGroup.PREVIOUS:
-        if (sortedServerGroups.size() == 1) {
+        def serverGroups = filteredServerGroups
+          .sorted(OLDEST_TO_NEWEST.reversed())
+          .limit(2)
+          .collect(Collectors.toList())
+        if (serverGroups.size() == 1) {
           throw new NotFoundException("Target not found (target: ${target})")
+        } else if (serverGroups.size() > 1) {
+          maybe = Optional.of(serverGroups.get(1))
         }
-        return expandServerGroup(sortedServerGroups.get(1))
+        break
       case TargetServerGroup.OLDEST:
         // At least two expected, but some cases just want the oldest no matter what.
-        if (Boolean.valueOf(validateOldest) && sortedServerGroups.size() == 1) {
-          throw new NotFoundException("Target not found (target: ${target})")
+        boolean validate = Boolean.parseBoolean(validateOldest)
+        def serverGroups = filteredServerGroups
+          .sorted(OLDEST_TO_NEWEST)
+          .limit(2)
+          .collect(Collectors.toList())
+        if (validate && serverGroups.size() == 1) {
+          throw new NotFoundException(String.format("Target not found (target: %s)", target))
         }
-        return expandServerGroup(sortedServerGroups.last())
+        maybe = Optional.of(serverGroups.get(0))
+        break
       case TargetServerGroup.LARGEST:
         // Choose the server group with the most instances, falling back to newest in the case of a tie.
-        return expandServerGroup(sortedServerGroups.sort { lhs, rhs ->
-          (rhs.instances?.size() ?: 0) <=> (lhs.instances?.size() ?: 0) ?:
-            rhs.createdTime <=> lhs.createdTime
-        }.get(0))
+        maybe = filteredServerGroups
+          .sorted(BIGGEST_TO_SMALLEST)
+          .findFirst()
+        break
       case TargetServerGroup.FAIL:
-        if (sortedServerGroups.size() > 1) {
-          throw new NotFoundException("More than one target found (scope: ${scope}, serverGroups: ${sortedServerGroups*.name})")
+        def serverGroups = filteredServerGroups.collect(Collectors.toList())
+        if (serverGroups.size() > 1) {
+          String names = serverGroups.stream()
+            .map({ it.getName() })
+            .collect(Collectors.joining(", "))
+          throw new NotFoundException(String.format("More than one target found (scope: %s, serverGroups: %s)", scope, names))
         }
-        return expandServerGroup(sortedServerGroups.get(0))
+        maybe = serverGroups.size() == 1 ? Optional.of(serverGroups.get(0)) : Optional.empty()
     }
+
+    ServerGroup result = maybe
+      .map({ ServerGroup serverGroup ->
+        if (alreadyExpanded.contains(serverGroup)) {
+          // server group was already expanded on initial load
+          return serverGroup
+        }
+        return serverGroupController.getServerGroupByApplication(application, account, serverGroup.getRegion(), serverGroup.getName(), "true")
+      })
+      .orElseThrow({
+        new NotFoundException(String.format(
+          "No server groups found (account: %s, location: %s, cluster: %s, type: %S)", account, scope, clusterName, cloudProvider))
+      })
+    return result
   }
 
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ') && hasPermission(#account, 'ACCOUNT', 'READ')")
   @RequestMapping(value = "/{account:.+}/{clusterName:.+}/{cloudProvider}/{scope}/serverGroups/target/{target:.+}/{summaryType:.+}", method = RequestMethod.GET)
-  Summary getServerGroupSummary(
-      @PathVariable String application,
-      @PathVariable String account,
-      @PathVariable String clusterName,
-      @PathVariable String cloudProvider,
-      @PathVariable String scope,
-      @PathVariable String target,
-      @PathVariable String summaryType,
-      @RequestParam(value = "onlyEnabled", required = false, defaultValue = "false") String onlyEnabled) {
+  Summary getServerGroupSummary(@PathVariable String application,
+                                @PathVariable String account,
+                                @PathVariable String clusterName,
+                                @PathVariable String cloudProvider,
+                                @PathVariable String scope,
+                                @PathVariable String target,
+                                @PathVariable String summaryType,
+                                @RequestParam(value = "onlyEnabled", required = false, defaultValue = "false") String onlyEnabled) {
     ServerGroup sg = getTargetServerGroup(application,
-        account,
-        clusterName,
-        cloudProvider,
-        scope,
-        target,
-        onlyEnabled,
-        "false" /* validateOldest */)
-    try {
-      return (Summary) sg.invokeMethod("get${summaryType.capitalize()}Summary".toString(), null /* args */)
-    } catch (MissingMethodException e) {
-      throw new NotFoundException("Summary not found (type: ${summaryType})")
+      account,
+      clusterName,
+      cloudProvider,
+      scope,
+      target,
+      onlyEnabled,
+      "false" /* validateOldest */)
+
+    if ("image".equalsIgnoreCase(summaryType)) {
+      return sg.getImageSummary()
+    } else if ("images".equalsIgnoreCase(summaryType)) {
+      return sg.getImagesSummary()
+    } else {
+      String method = "get" + StringUtils.capitalize(summaryType) + "Summary"
+      try {
+        // TODO: this is gross, is it used for anything besides ImageSummary?
+        log.warn("Getting summary (type: {}) may be removed unless explicit support is added", summaryType)
+        return (Summary) sg.getClass().getMethod(method).invoke(sg)
+      } catch (ReflectiveOperationException e) {
+        throw new NotFoundException(String.format("Summary not found (type: %s)", summaryType))
+      }
     }
   }
 
@@ -328,5 +398,19 @@ class ClusterController {
     Moniker moniker
     List<String> loadBalancers
     List<String> serverGroups
+
+    static ClusterViewModel from(Cluster cluster) {
+      def result = new ClusterViewModel()
+      result.setName(cluster.getName())
+      result.setAccount(cluster.getAccountName())
+      result.setMoniker(cluster.getMoniker())
+      result.setLoadBalancers(cluster.getLoadBalancers().stream()
+        .map({ it.getName() })
+        .collect(Collectors.toList()))
+      result.setServerGroups(cluster.getServerGroups().stream()
+        .map({ it.getName() })
+        .collect(Collectors.toList()))
+      return result
+    }
   }
 }

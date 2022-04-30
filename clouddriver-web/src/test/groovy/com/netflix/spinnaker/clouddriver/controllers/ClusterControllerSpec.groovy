@@ -23,6 +23,11 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import java.util.stream.Collectors
+
+import static com.netflix.spinnaker.clouddriver.controllers.ClusterController.BIGGEST_TO_SMALLEST
+import static com.netflix.spinnaker.clouddriver.controllers.ClusterController.OLDEST_TO_NEWEST
+
 class ClusterControllerSpec extends Specification {
 
   @Shared
@@ -299,5 +304,27 @@ class ClusterControllerSpec extends Specification {
 
     then:
       thrown NotFoundException
+  }
+
+  void 'sorting server groups should work as expected'() {
+    given:
+    ServerGroup a = Stub() {
+      getCreatedTime() >> 1
+      getInstances() >> [Stub(Instance), Stub(Instance)].toSet()
+    }
+    ServerGroup b = Stub() {
+      getCreatedTime() >> 2
+      getInstances() >> [Stub(Instance), Stub(Instance)].toSet()
+    }
+
+    ServerGroup c = Stub() {
+      getCreatedTime() >> 3
+      getInstances() >> [Stub(Instance)].toSet()
+    }
+
+    expect:
+    [a, c, b].stream().sorted(OLDEST_TO_NEWEST).collect(Collectors.toList()) == [a, b, c]
+    [a, c, b].stream().sorted(OLDEST_TO_NEWEST.reversed()).collect(Collectors.toList()) == [c, b, a]
+    [a, c, b].stream().sorted(BIGGEST_TO_SMALLEST).collect(Collectors.toList()) == [b, a, c]
   }
 }
