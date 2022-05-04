@@ -25,6 +25,7 @@ import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHand
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
 import retrofit.converter.JacksonConverter;
 
@@ -48,7 +49,8 @@ public class ServiceConfig {
 
   // This should be service-agnostic if more integrations than clouddriver are used
   @Bean
-  ClouddriverService clouddriverService(Ok3Client ok3Client) {
+  ClouddriverService clouddriverService(
+      Ok3Client ok3Client, RequestInterceptor spinnakerRequestInterceptor) {
     ObjectMapper objectMapper =
         new ObjectMapper()
             .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL)
@@ -56,6 +58,7 @@ public class ServiceConfig {
 
     return new RestAdapter.Builder()
         .setEndpoint(clouddriverBaseUrl)
+        .setRequestInterceptor(spinnakerRequestInterceptor)
         .setClient(ok3Client)
         .setConverter(new JacksonConverter(objectMapper))
         .setLogLevel(RestAdapter.LogLevel.valueOf(retrofitLogLevel))

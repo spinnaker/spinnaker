@@ -5,7 +5,6 @@ import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.rosco.services.ClouddriverService;
-import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -28,13 +27,7 @@ public final class ArtifactDownloaderImpl implements ArtifactDownloader {
 
   public InputStream downloadArtifact(Artifact artifact) throws IOException {
     Response response =
-        retrySupport.retry(
-            () ->
-                AuthenticatedRequest.allowAnonymous(
-                    () -> clouddriverService.fetchArtifact(artifact)),
-            5,
-            1000,
-            true);
+        retrySupport.retry(() -> clouddriverService.fetchArtifact(artifact), 5, 1000, true);
     if (response.getBody() == null) {
       throw new IOException("Failure to fetch artifact: empty response");
     }
