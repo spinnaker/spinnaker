@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.19.4](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.19.3...@spinnaker/core@0.19.4) (2022-05-05)
+
+
+### Bug Fixes
+
+* **core:** apps always display as unconfigured ([#9853](https://github.com/spinnaker/deck/issues/9853)) ([7d45ac7](https://github.com/spinnaker/deck/commit/7d45ac79ee4c68ae1d55584a789acf74616f4d0b)), closes [/github.com/spinnaker/deck/blob/master/packages/core/src/application/config/applicationAttributes.directive.js#L31](https://github.com//github.com/spinnaker/deck/blob/master/packages/core/src/application/config/applicationAttributes.directive.js/issues/L31)
+
+
+
+
+
 ## [0.19.3](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.19.2...@spinnaker/core@0.19.3) (2022-04-21)
 
 **Note:** Version bump only for package @spinnaker/core

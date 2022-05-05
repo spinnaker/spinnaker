@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.12.10](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.12.9...@spinnaker/amazon@0.12.10) (2022-05-05)
+
+**Note:** Version bump only for package @spinnaker/amazon
+
+
+
+
+
 ## [0.12.9](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.12.8...@spinnaker/amazon@0.12.9) (2022-04-21)
 
 **Note:** Version bump only for package @spinnaker/amazon
