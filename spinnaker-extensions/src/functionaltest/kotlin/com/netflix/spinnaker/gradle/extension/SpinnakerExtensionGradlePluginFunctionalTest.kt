@@ -18,8 +18,9 @@ package com.netflix.spinnaker.gradle.extension
 
 import java.io.File
 import org.gradle.testkit.runner.GradleRunner
+import org.hamcrest.CoreMatchers.containsString
+import org.junit.Assert.assertThat
 import kotlin.test.BeforeTest
-import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
@@ -29,6 +30,12 @@ const val TEST_ROOT = "build/functionaltest"
  * Functional test for the 'com.netflix.spinnaker.gradle.extension' plugin.
  */
 class SpinnakerExtensionGradlePluginFunctionalTest {
+
+  /** The version of spinnaker to test against */
+  val compatibilityTestVersion = "1.27.0"
+
+  /** The version of orca in the above spinnaker version */
+  val orcaVersion = "8.18.4"
 
   @BeforeTest
   fun cleanup() {
@@ -62,12 +69,11 @@ class SpinnakerExtensionGradlePluginFunctionalTest {
   }
 
   @Test
-  @Ignore
   fun `can run an end-to-end build, including compatibility test`() {
     TestPlugin.Builder()
       .withRootDir(TEST_ROOT)
       .withService("orca")
-      .withCompatibilityTestVersion("1.22.0")
+      .withCompatibilityTestVersion(compatibilityTestVersion)
       .build()
 
     val build = GradleRunner
@@ -91,23 +97,22 @@ class SpinnakerExtensionGradlePluginFunctionalTest {
                 {
                     "service": "orca",
                     "result": "SUCCESS",
-                    "platformVersion": "1.22.0",
-                    "serviceVersion": "2.16.0-20200817170018"
+                    "platformVersion": "${compatibilityTestVersion}",
+                    "serviceVersion": "${orcaVersion}"
                 }
             ]
       """
     ).forEach {
-      assertTrue(pluginInfo.contains(it))
+      assertThat(pluginInfo, containsString(it))
     }
   }
 
   @Test
-  @Ignore
   fun `compatibility test task fails with failing test`() {
     TestPlugin.Builder()
       .withRootDir(TEST_ROOT)
       .withService("orca")
-      .withCompatibilityTestVersion("1.22.0")
+      .withCompatibilityTestVersion(compatibilityTestVersion)
       .withTest("MyFailingTest.kt", """
         package {{ package }}
 
@@ -131,15 +136,14 @@ class SpinnakerExtensionGradlePluginFunctionalTest {
       .withProjectDir(File(TEST_ROOT))
       .buildAndFail()
 
-    assertTrue(build.output.contains("Compatibility tests failed for Spinnaker 1.22.0"))
+    assertTrue(build.output.contains("Compatibility tests failed for Spinnaker " + compatibilityTestVersion))
   }
 
   @Test
-  @Ignore
   fun `compatibility test task succeeds if failing test is not required`() {
     TestPlugin.Builder()
       .withService("orca")
-      .withCompatibilityTestVersion("1.22.0")
+      .withCompatibilityTestVersion(compatibilityTestVersion)
       .withRootBuildGradle("""
         plugins {
           id("io.spinnaker.plugin.bundler")
@@ -191,13 +195,13 @@ class SpinnakerExtensionGradlePluginFunctionalTest {
                 {
                     "service": "orca",
                     "result": "FAILURE",
-                    "platformVersion": "1.22.0",
-                    "serviceVersion": "2.16.0-20200817170018"
+                    "platformVersion": "${compatibilityTestVersion}",
+                    "serviceVersion": "${orcaVersion}"
                 }
             ]
       """
     ).forEach {
-      assertTrue(pluginInfo.contains(it))
+      assertThat(pluginInfo, containsString(it))
     }
   }
 }

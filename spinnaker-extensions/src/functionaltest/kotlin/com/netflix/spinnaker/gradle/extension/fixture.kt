@@ -62,8 +62,6 @@ internal class TestPlugin {
 
     repositories {
       mavenCentral()
-      jcenter()
-      maven { url "https://spinnaker-releases.bintray.com/jars" }
     }
 
     spinnakerPlugin {
