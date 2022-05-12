@@ -36,7 +36,7 @@ public class Pipeline implements Timestamped {
   @Getter @Setter private List<Trigger> triggers = new ArrayList<>();
   @Getter @Setter private Integer index;
 
-  private String updateTs;
+  @Getter private String updateTs;
   private String createTs;
   private String lastModifiedBy;
   private String lastModified;
