@@ -67,6 +67,11 @@ import org.springframework.util.Assert;
 @Component
 @ConditionalOnProperty(value = "auth.group-membership.service", havingValue = "google")
 public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, InitializingBean {
+  // Used to denote a pipeline permission, or manually created service account
+  public static final String SERVICE_ACCOUNT_SUFFIX = "@managed-service-account";
+  // Used to denote a shared service account, used by service account shared between pipelines by
+  // unique role
+  public static final String SHARED_SERVICE_ACCOUNT_SUFFIX = "@shared-managed-service-account";
 
   @Autowired @Setter private Config config;
 
@@ -119,6 +124,14 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
     userEmails.forEach(
         email -> {
           try {
+            // Check if this is a managed service account, we should never check google groups for
+            // these
+            if (email.endsWith(SERVICE_ACCOUNT_SUFFIX)
+                || email.endsWith(SHARED_SERVICE_ACCOUNT_SUFFIX)) {
+              // Skip over this in the batch
+              return;
+            }
+
             GroupBatchCallback callback =
                 new GroupBatchCallback().setEmailGroupsMap(emailGroupsMap).setEmail(email);
             HttpRequest request =
@@ -160,6 +173,11 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
     }
 
     String userEmail = user.getId();
+    // Check if this is a managed service account, we should never check google groups for these
+    if (userEmail.endsWith(SERVICE_ACCOUNT_SUFFIX)
+        || userEmail.endsWith(SHARED_SERVICE_ACCOUNT_SUFFIX)) {
+      return new ArrayList<>();
+    }
 
     try {
       Groups groups = getGroupsFromEmail(userEmail);
