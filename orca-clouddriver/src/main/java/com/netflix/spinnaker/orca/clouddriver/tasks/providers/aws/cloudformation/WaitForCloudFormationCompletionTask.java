@@ -160,7 +160,8 @@ public class WaitForCloudFormationCompletionTask implements OverridableTimeoutRe
       String status = getChangeSetInfo(stack, stage.getContext(), "status");
       String statusReason = getChangeSetInfo(stack, stage.getContext(), "statusReason");
       return status.equals(CloudFormationStates.FAILED.toString())
-          && statusReason.startsWith("The submitted information didn't contain changes");
+          && (statusReason.startsWith("The submitted information didn't contain changes")
+              || statusReason.equals("No updates are to be performed."));
     } else {
       return false;
     }

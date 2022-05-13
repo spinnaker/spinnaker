@@ -73,6 +73,7 @@ class WaitForCloudFormationCompletionTaskSpec extends Specification {
     false       | 'UPDATE_COMPLETE' | 'ignored'                                           | false                 || ExecutionStatus.SUCCEEDED
     false       | 'DELETE_COMPLETE' | 'ignored'                                           | false                 || ExecutionStatus.SUCCEEDED
     true        | 'FAILED'          | 'The submitted information didn\'t contain changes' | true                  || ExecutionStatus.SUCCEEDED
+    true        | 'FAILED'          | 'No updates are to be performed.'                   | true                  || ExecutionStatus.SUCCEEDED
     true        | 'CREATE_COMPLETE' | 'ignored'                                           | false                 || ExecutionStatus.SUCCEEDED
   }
 
