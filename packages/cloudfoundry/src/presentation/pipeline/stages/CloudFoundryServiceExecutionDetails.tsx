@@ -9,7 +9,7 @@ export function CloudFoundryServiceExecutionDetails(props: IExecutionDetailsSect
   const { context } = stage;
   const account = get(context, 'service.account', undefined);
   const region = get(context, 'service.region', undefined);
-  const serviceInstanceName = get(context, 'serviceInstanceName', undefined);
+  const serviceInstanceName = get(context, 'service.instance.name', undefined);
   return (
     <ExecutionDetailsSection name={props.name} current={props.current}>
       <div className="step-section-details">
