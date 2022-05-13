@@ -1,7 +1,7 @@
 {
   "name": "deck-app",
   "private": true,
-  "version": "2.2.5",
+  "version": "2.2.6",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -16,7 +16,7 @@
   "dependencies": {
     "@spinnaker/amazon": "^0.12.10",
     "@spinnaker/appengine": "^0.0.84",
-    "@spinnaker/cloudfoundry": "^0.0.172",
+    "@spinnaker/cloudfoundry": "^0.0.173",
     "@spinnaker/core": "^0.19.4",
     "@spinnaker/docker": "^0.0.130",
     "@spinnaker/ecs": "^0.0.346",

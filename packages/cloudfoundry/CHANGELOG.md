@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.173](https://github.com/spinnaker/deck/compare/@spinnaker/cloudfoundry@0.0.172...@spinnaker/cloudfoundry@0.0.173) (2022-05-13)
+
+
+### Bug Fixes
+
+* **cf:** extract service name from context for execution details ([#9843](https://github.com/spinnaker/deck/issues/9843)) ([f8b704c](https://github.com/spinnaker/deck/commit/f8b704c831e4c90b3257740e93c214f74e9ee06f))
+
+
+
+
+
 ## [0.0.172](https://github.com/spinnaker/deck/compare/@spinnaker/cloudfoundry@0.0.171...@spinnaker/cloudfoundry@0.0.172) (2022-05-05)
 
 **Note:** Version bump only for package @spinnaker/cloudfoundry
