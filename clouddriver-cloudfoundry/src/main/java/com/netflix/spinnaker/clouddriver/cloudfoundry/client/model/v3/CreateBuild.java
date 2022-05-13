@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import javax.annotation.Nullable;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -25,13 +26,22 @@ public class CreateBuild {
   @JsonProperty("package")
   private PackageId packageId;
 
-  public CreateBuild(String packageId) {
+  @JsonProperty("staging_memory_in_mb")
+  private final Integer memoryAmount;
+
+  @JsonProperty("staging_disk_in_mb")
+  private final Integer diskSizeAmount;
+
+  public CreateBuild(
+      String packageId, @Nullable Integer memoryAmount, @Nullable Integer diskSizeAmount) {
     this.packageId = new PackageId(packageId);
+    this.memoryAmount = memoryAmount == null ? 1024 : memoryAmount;
+    this.diskSizeAmount = diskSizeAmount == null ? 1024 : diskSizeAmount;
   }
 
   @RequiredArgsConstructor
   @Getter
-  private class PackageId {
+  private static class PackageId {
     private final String guid;
   }
 }

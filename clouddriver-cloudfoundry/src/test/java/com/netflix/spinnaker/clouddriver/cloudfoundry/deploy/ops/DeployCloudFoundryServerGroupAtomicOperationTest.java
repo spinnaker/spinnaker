@@ -19,8 +19,8 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.DeployCloudFoundryServerGroupAtomicOperation.convertToMb;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.artifacts.ArtifactCredentialsFromString;
@@ -128,11 +128,11 @@ class DeployCloudFoundryServerGroupAtomicOperationTest
     // Given
     final DeployCloudFoundryServerGroupDescription description =
         getDeployCloudFoundryServerGroupDescription(true);
-    final CloudFoundryClusterProvider clusterProvider = mock(CloudFoundryClusterProvider.class);
     final DeployCloudFoundryServerGroupAtomicOperation operation =
         new DeployCloudFoundryServerGroupAtomicOperation(
             new PassThroughOperationPoller(), description);
-    final Applications apps = getApplications(clusterProvider, ProcessStats.State.CRASHED);
+    final CloudFoundryClusterProvider clusterProvider = mock(CloudFoundryClusterProvider.class);
+    getApplications(clusterProvider, ProcessStats.State.CRASHED);
 
     Exception exception = null;
     // When
@@ -190,7 +190,7 @@ class DeployCloudFoundryServerGroupAtomicOperationTest
         .createPackage(eq(new CreatePackage("serverGroupId", CreatePackage.Type.BITS, null)));
     inOrder.verify(apps).uploadPackageBits(any(), any());
     inOrder.verify(serviceInstances).createServiceBinding(any());
-    inOrder.verify(apps).createBuild(any());
+    inOrder.verify(apps).createBuild(any(), any(), any());
     inOrder.verify(apps).buildCompleted(any());
     inOrder.verify(apps).findDropletGuidFromBuildId(any());
     inOrder.verify(apps).setCurrentDroplet(any(), any());
@@ -208,7 +208,7 @@ class DeployCloudFoundryServerGroupAtomicOperationTest
     inOrder.verify(apps).createApplication(any(), any(), any(), any());
     inOrder.verify(apps).createPackage(any());
     inOrder.verify(cloudFoundryClient.getServiceInstances()).createServiceBinding(any());
-    inOrder.verify(apps).createBuild(any());
+    inOrder.verify(apps).createBuild(any(), any(), any());
     inOrder.verify(processes).updateProcess("serverGroupId", null, "http", "/health", 180, null);
     inOrder.verify(processes).scaleProcess("serverGroupId", 7, 1024, 2048);
     inOrder.verify(apps, calls.get()).startApplication("serverGroupId");
@@ -252,7 +252,7 @@ class DeployCloudFoundryServerGroupAtomicOperationTest
                   Object[] args = invocation.getArguments();
                   return args[0].toString() + "_package";
                 });
-    when(apps.createBuild(any())).thenReturn("some-build");
+    when(apps.createBuild(any(), any(), any())).thenReturn("some-build");
     when(apps.buildCompleted(any())).thenReturn(true);
     when(apps.findDropletGuidFromBuildId(any())).thenReturn("droplet-guid");
     doNothing().when(apps).setCurrentDroplet(any(), any());

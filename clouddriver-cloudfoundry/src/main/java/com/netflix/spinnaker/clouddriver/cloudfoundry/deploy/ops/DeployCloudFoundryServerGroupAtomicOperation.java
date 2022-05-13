@@ -97,11 +97,13 @@ public class DeployCloudFoundryServerGroupAtomicOperation
       }
     }
 
+    // create service bindings and configure app/processes before building droplet
     createServiceBindings(serverGroup, description);
 
+    // build the app droplet
     buildDroplet(packageId, serverGroup.getId(), description);
 
-    // update process before scaling process
+    // update processes before scaling them
     updateProcess(serverGroup.getId(), description);
     scaleApplication(serverGroup.getId(), description);
 
@@ -464,7 +466,12 @@ public class DeployCloudFoundryServerGroupAtomicOperation
     CloudFoundryClient client = description.getClient();
     getTask().updateStatus(PHASE, "Building droplet for package '" + packageId + "'");
 
-    String buildId = client.getApplications().createBuild(packageId);
+    Integer memoryAmount =
+        convertToMb("memory", description.getApplicationAttributes().getMemory());
+    Integer diskSizeAmount =
+        convertToMb("disk quota", description.getApplicationAttributes().getDiskQuota());
+
+    String buildId = client.getApplications().createBuild(packageId, memoryAmount, diskSizeAmount);
 
     operationPoller.waitForOperation(
         () -> client.getApplications().buildCompleted(buildId),
@@ -559,10 +566,10 @@ public class DeployCloudFoundryServerGroupAtomicOperation
     } else {
       size = size.toLowerCase();
       if (size.endsWith("g") || size.endsWith("gb")) {
-        String value = size.substring(0, size.indexOf("g"));
+        String value = size.substring(0, size.indexOf('g'));
         if (StringUtils.isNumeric(value)) return Integer.parseInt(value) * 1024;
       } else if (size.endsWith("m") || size.endsWith("mb")) {
-        String value = size.substring(0, size.indexOf("m"));
+        String value = size.substring(0, size.indexOf('m'));
         if (StringUtils.isNumeric(value)) return Integer.parseInt(value);
       }
     }

@@ -25,7 +25,8 @@ import org.junit.jupiter.api.Test;
 class CreateBuildTest {
   @Test
   void serialize() throws JsonProcessingException {
-    assertThat(new ObjectMapper().writeValueAsString(new CreateBuild("123")))
-        .isEqualTo("{\"package\":{\"guid\":\"123\"}}");
+    assertThat(new ObjectMapper().writeValueAsString(new CreateBuild("123", 1024, 1024)))
+        .isEqualTo(
+            "{\"package\":{\"guid\":\"123\"},\"staging_memory_in_mb\":1024,\"staging_disk_in_mb\":1024}");
   }
 }
