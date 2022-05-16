@@ -48,9 +48,11 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Component
+@ConditionalOnProperty(value = "kubernetes.search.enabled", matchIfMissing = true)
 public class KubernetesSearchProvider implements SearchProvider {
   private static final Logger log = LoggerFactory.getLogger(KubernetesSearchProvider.class);
   private final KubernetesCacheUtils cacheUtils;

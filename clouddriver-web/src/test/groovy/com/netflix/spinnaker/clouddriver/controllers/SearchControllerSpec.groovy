@@ -16,6 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.controllers
 
+import com.netflix.spinnaker.clouddriver.core.services.Front50Service
+import com.netflix.spinnaker.clouddriver.search.ApplicationSearchProvider
+import com.netflix.spinnaker.clouddriver.search.NoopSearchProvider
+import com.netflix.spinnaker.clouddriver.search.ProjectSearchProvider
 import com.netflix.spinnaker.clouddriver.search.SearchProvider
 import com.netflix.spinnaker.clouddriver.search.SearchResultSet
 import spock.lang.Specification
@@ -131,6 +135,38 @@ class SearchControllerSpec extends Specification {
     1 * request.getParameterNames() >> enumeration
 
     searchResultSets == [resultSetA]
+  }
+
+  def 'search on type for which there is no search provider'() {
+    setup:
+    Front50Service front50Service = Mock(Front50Service)
+    ApplicationSearchProvider applicationSearchProvider = new ApplicationSearchProvider(front50Service)
+    ProjectSearchProvider projectSearchProvider = new ProjectSearchProvider(front50Service)
+    // none of the 3 search providers support the search type
+    searchController = new SearchController(searchProviders: [applicationSearchProvider, projectSearchProvider, new NoopSearchProvider()])
+    def filters = [
+      q: "aBC",
+      type: ['serverGroups'],
+      page: 1,
+      pageSize: 10
+    ]
+
+    when:
+    List searchResultSets = getSearchResults(filters)
+
+    then:
+    1 * request.getParameterNames() >> enumeration
+
+    searchResultSets == [
+      new SearchResultSet(
+        totalMatches: 0,
+        pageNumber: 1,
+        pageSize: 10,
+        platform: 'aws',
+        query: 'aBC',
+        results: []
+      )
+    ]
   }
 
   def "if only one search provider, don't aggregate into an aws result"() {

@@ -103,6 +103,7 @@ class CacheConfig {
   }
 
   @Bean
+  @ConditionalOnProperty(value = "caching.search.enabled", matchIfMissing = true)
   SearchProvider catsSearchProvider(CatsInMemorySearchProperties catsInMemorySearchProperties,
                                     Cache cacheView,
                                     List<SearchableProvider> providers,

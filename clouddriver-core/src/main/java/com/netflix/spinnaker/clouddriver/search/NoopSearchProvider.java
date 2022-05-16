@@ -43,6 +43,7 @@ public class NoopSearchProvider implements SearchProvider {
         .pageNumber(pageNumger)
         .pageSize(pageSize)
         .query(query)
+        .results(List.of())
         .build();
   }
 }

@@ -87,7 +87,17 @@ class SearchController {
     } else {
 
       int total = results.inject(0) { acc, item -> acc + item.totalMatches }
-      List<Map<String, String>> allResults = results.inject([]) { acc, item -> acc.addAll(item.results); acc }
+      List<Map<String, String>> allResults = results.inject([]) { acc, item ->
+        // if any of the search providers return items.results as null, then we see
+        // Ambiguous method overloading for method java.util.ArrayList#addAll.
+        //  Cannot resolve which method to invoke for [null] due to overlapping prototypes between:
+        //	[interface java.util.Collection]
+        //	[interface java.lang.Iterable]
+        //	[interface java.util.Iterator]
+        // Therefore, let's default to an empty [] in such cases.
+        acc.addAll(item.results?: [])
+        acc
+      }
 
       //TODO-cfieber: this is a temporary workaround to https://github.com/spinnaker/deck/issues/128
       [new SearchResultSet(
