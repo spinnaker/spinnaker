@@ -23,13 +23,11 @@ import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.TimeUnit
 
-@Component
 class MetricInstrumentation implements ExecutionInstrumentation {
   private final Registry registry
 
@@ -65,4 +63,3 @@ class MetricInstrumentation implements ExecutionInstrumentation {
     registry.timer(timingId.withTag('agent', agentName(agent)).withTag("success", "false")).record(elapsedMs, TimeUnit.MILLISECONDS)
   }
 }
-
