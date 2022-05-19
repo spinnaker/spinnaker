@@ -17,6 +17,7 @@ on:
 
 jobs:
   analyze:
+    if: startsWith(github.repository, 'spinnaker/')
     name: Analyze
     runs-on: ubuntu-latest
     permissions:
