@@ -9,12 +9,23 @@ jobs:
     if: startsWith(github.repository, 'spinnaker/')
     runs-on: ubuntu-latest
     steps:
+    # Halyard releases are separate from Spinnaker releases so we need to
+    # exclude Halyard from bump deps when targeting services release-* branches.
+    - name: decide bumpdep target repositories
+      id: bumpdep_targets
+      run: |
+        REPOS=clouddriver,echo,front50,gate,igor,keel,orca
+        if [ "${{ github.event.client_payload.branch }}" == "  origin/master"]; then
+          echo "on master branch, include halyard in bumpdeps target list"
+          REPOS+=",halyard"
+        fi
+        echo ::set-output name=REPOS::$(echo -e "${REPOS}")
     - uses: spinnaker/bumpdeps@master
       with:
         ref: ${{ github.event.client_payload.ref }}
         baseBranch: ${{ github.event.client_payload.branch }}
         key: fiatVersion
-        repositories: clouddriver,echo,front50,gate,halyard,igor,keel,orca
+        repositories: ${{ steps.bumpdep_targets.outputs.REPOS }}
         mavenRepositoryUrl: https://repo.maven.apache.org/maven2
         groupId: io.spinnaker.fiat
         artifactId: fiat-bom
