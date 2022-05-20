@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,6 +78,9 @@ public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map>
             .map(entry -> new Tag().withKey(entry.getKey()).withValue(entry.getValue()))
             .collect(Collectors.toList());
 
+    List<String> notificationARNs =
+        Optional.ofNullable(description.getNotificationARNs()).orElse(Collections.emptyList());
+
     boolean stackExists = stackExists(amazonCloudFormation);
 
     String stackId;
@@ -92,6 +96,7 @@ public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map>
               parameters,
               tags,
               description.getCapabilities(),
+              notificationARNs,
               changeSetType);
     } else {
       if (stackExists) {
@@ -104,7 +109,8 @@ public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map>
                 roleARN,
                 parameters,
                 tags,
-                description.getCapabilities());
+                description.getCapabilities(),
+                notificationARNs);
       } else {
         log.info("Creating new stack: {}", description);
         stackId =
@@ -115,7 +121,8 @@ public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map>
                 roleARN,
                 parameters,
                 tags,
-                description.getCapabilities());
+                description.getCapabilities(),
+                notificationARNs);
       }
     }
     return Collections.singletonMap("stackId", stackId);
@@ -128,7 +135,8 @@ public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map>
       String roleARN,
       List<Parameter> parameters,
       List<Tag> tags,
-      List<String> capabilities) {
+      List<String> capabilities,
+      List<String> notificationARNs) {
     Task task = TaskRepository.threadLocalTask.get();
     task.updateStatus(BASE_PHASE, "Preparing CloudFormation Stack");
     CreateStackRequest createStackRequest =
@@ -136,7 +144,8 @@ public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map>
             .withStackName(description.getStackName())
             .withParameters(parameters)
             .withTags(tags)
-            .withCapabilities(capabilities);
+            .withCapabilities(capabilities)
+            .withNotificationARNs(notificationARNs);
 
     if (StringUtils.hasText(templateURL)) {
       createStackRequest.setTemplateURL(templateURL);
@@ -159,7 +168,8 @@ public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map>
       String roleARN,
       List<Parameter> parameters,
       List<Tag> tags,
-      List<String> capabilities) {
+      List<String> capabilities,
+      List<String> notificationARNs) {
     Task task = TaskRepository.threadLocalTask.get();
     task.updateStatus(BASE_PHASE, "CloudFormation Stack exists. Updating it");
     UpdateStackRequest updateStackRequest =
@@ -167,7 +177,8 @@ public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map>
             .withStackName(description.getStackName())
             .withParameters(parameters)
             .withTags(tags)
-            .withCapabilities(capabilities);
+            .withCapabilities(capabilities)
+            .withNotificationARNs(notificationARNs);
 
     if (StringUtils.hasText(templateURL)) {
       updateStackRequest.setTemplateURL(templateURL);
@@ -201,6 +212,7 @@ public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map>
       List<Parameter> parameters,
       List<Tag> tags,
       List<String> capabilities,
+      List<String> notificationARNs,
       ChangeSetType changeSetType) {
     Task task = TaskRepository.threadLocalTask.get();
     task.updateStatus(BASE_PHASE, "CloudFormation Stack exists. Creating a change set");
@@ -211,6 +223,7 @@ public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map>
             .withParameters(parameters)
             .withTags(tags)
             .withCapabilities(capabilities)
+            .withNotificationARNs(notificationARNs)
             .withChangeSetType(changeSetType)
             .withIncludeNestedStacks(
                 awsConfigurationProperties.getCloudformation().getChangeSetsIncludeNestedStacks());

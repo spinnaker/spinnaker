@@ -35,6 +35,7 @@ public class DeployCloudFormationDescription extends AbstractAmazonCredentialsDe
   private Map<String, String> tags = new HashMap<>();
   private String region;
   private List<String> capabilities = new ArrayList<>();
+  private List<String> notificationARNs = new ArrayList<>();
 
   @JsonProperty("isChangeSet")
   private boolean isChangeSet;
