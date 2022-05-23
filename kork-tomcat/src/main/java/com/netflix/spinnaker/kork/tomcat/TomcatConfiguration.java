@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.kork.tomcat;
 
+import com.netflix.spinnaker.kork.tomcat.x509.SslExtensionConfigurationProperties;
 import org.apache.catalina.connector.Connector;
 import org.apache.coyote.http11.Http11NioProtocol;
 import org.slf4j.Logger;
@@ -33,15 +34,20 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@EnableConfigurationProperties({TomcatConfigurationProperties.class})
+@EnableConfigurationProperties({
+  TomcatConfigurationProperties.class,
+  SslExtensionConfigurationProperties.class
+})
 class TomcatConfiguration {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   @Bean
   TomcatConnectorCustomizer defaultTomcatConnectorCustomizer(
-      TomcatConfigurationProperties tomcatConfigurationProperties) {
-    return new DefaultTomcatConnectorCustomizer(tomcatConfigurationProperties);
+      TomcatConfigurationProperties tomcatConfigurationProperties,
+      SslExtensionConfigurationProperties sslExtensionConfigurationProperties) {
+    return new DefaultTomcatConnectorCustomizer(
+        tomcatConfigurationProperties, sslExtensionConfigurationProperties);
   }
 
   /**

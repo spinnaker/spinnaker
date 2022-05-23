@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.kork.tomcat;
 
+import com.netflix.spinnaker.kork.tomcat.x509.BlocklistingSSLImplementation;
+import com.netflix.spinnaker.kork.tomcat.x509.SslExtensionConfigurationProperties;
 import org.apache.catalina.connector.Connector;
 import org.apache.coyote.ProtocolHandler;
 import org.apache.coyote.http11.AbstractHttp11JsseProtocol;
@@ -28,16 +30,22 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.boot.web.embedded.tomcat.TomcatConnectorCustomizer;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.server.Ssl;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+@Component
 class DefaultTomcatConnectorCustomizer implements TomcatConnectorCustomizer {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   private final TomcatConfigurationProperties tomcatConfigurationProperties;
+  private final SslExtensionConfigurationProperties sslExtensionConfigurationProperties;
 
-  DefaultTomcatConnectorCustomizer(TomcatConfigurationProperties tomcatConfigurationProperties) {
+  DefaultTomcatConnectorCustomizer(
+      TomcatConfigurationProperties tomcatConfigurationProperties,
+      SslExtensionConfigurationProperties sslExtensionConfigurationProperties) {
     this.tomcatConfigurationProperties = tomcatConfigurationProperties;
+    this.sslExtensionConfigurationProperties = sslExtensionConfigurationProperties;
   }
 
   @Override
@@ -71,11 +79,15 @@ class DefaultTomcatConnectorCustomizer implements TomcatConnectorCustomizer {
           throw new RuntimeException(
               String.format("Ssl configs: found %d, expected 1.", sslConfigs.length));
         }
+        ((AbstractHttp11JsseProtocol<?>) handler)
+            .setSslImplementationName(BlocklistingSSLImplementation.class.getName());
         SSLHostConfig sslHostConfig = sslConfigs[0];
         sslHostConfig.setHonorCipherOrder(true);
         sslHostConfig.setCiphers(String.join(",", tomcatConfigurationProperties.getCipherSuites()));
         sslHostConfig.setProtocols(
             String.join(",", tomcatConfigurationProperties.getTlsVersions()));
+        sslHostConfig.setCertificateRevocationListFile(
+            sslExtensionConfigurationProperties.getCrlFile());
       }
     }
   }
