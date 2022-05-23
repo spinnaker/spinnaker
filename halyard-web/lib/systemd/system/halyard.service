@@ -4,9 +4,9 @@ Description=A tool for managing the lifecycle of a Spinnaker installation
 [Service]
 Restart=always
 RestartSec=10
-Type=forking
-ExecStart=
-ExecStart=sudo -u $(cat /var/spinnaker/config/halyard-user) -g $(cat /var/spinnaker/config/halyard-user) /opt/halyard/bin/halyard 2>&1 > /var/log/spinnaker/halyard/halyard.log &
+Type=simple
+ExecStart=/opt/halyard/bin/halyard
+User=spinnaker
 
 [Install]
 WantedBy=user.target
