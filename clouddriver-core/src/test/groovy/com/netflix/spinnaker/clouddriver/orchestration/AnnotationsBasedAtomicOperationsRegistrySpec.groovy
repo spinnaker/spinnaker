@@ -70,7 +70,8 @@ class AnnotationsBasedAtomicOperationsRegistrySpec extends Specification {
     def converter = atomicOperationsRegistry.getAtomicOperationConverter('foo', 'test-provider')
 
     then:
-    thrown(AtomicOperationConverterNotFoundException)
+    def e = thrown(AtomicOperationConverterNotFoundException)
+    e.message != null
     converter == null
   }
 

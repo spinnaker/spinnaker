@@ -22,7 +22,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class AtomicOperationConverterNotFoundException extends RuntimeException {
   public AtomicOperationConverterNotFoundException() {}
 
-  public AtomicOperationConverterNotFoundException(String message) {}
+  public AtomicOperationConverterNotFoundException(String message) {
+    super(message);
+  }
 
   public AtomicOperationConverterNotFoundException(String message, Throwable cause) {}
 
