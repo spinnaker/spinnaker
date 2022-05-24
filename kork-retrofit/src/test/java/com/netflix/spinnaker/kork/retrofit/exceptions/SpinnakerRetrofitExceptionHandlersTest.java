@@ -21,20 +21,16 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.read.ListAppender;
 import com.netflix.spinnaker.config.ErrorConfiguration;
 import com.netflix.spinnaker.config.RetrofitErrorConfiguration;
+import com.netflix.spinnaker.kork.test.log.MemoryAppender;
 import java.net.URI;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -72,20 +68,12 @@ class SpinnakerRetrofitExceptionHandlersTest {
 
   @Autowired TestRestTemplate restTemplate;
 
-  private ListAppender<ILoggingEvent> listAppender;
+  private MemoryAppender memoryAppender;
 
   @BeforeEach
-  void setup() {
-    // Looking at the logger for SpinnakerRetrofitExceptionHandlers is a way to
-    // verify which class handled the exception --
-    // SpinnakerRetrofitExceptionHandlers as opposed to
-    // GenericExceptionHandlers.
-    Logger logger = (Logger) LoggerFactory.getLogger(SpinnakerRetrofitExceptionHandlers.class);
-    logger.setLevel(Level.DEBUG);
-    listAppender = new ListAppender<>();
-    listAppender.setContext((LoggerContext) LoggerFactory.getILoggerFactory());
-    logger.addAppender(listAppender);
-    listAppender.start();
+  private void setup(TestInfo testInfo) {
+    System.out.println("--------------- Test " + testInfo.getDisplayName());
+    memoryAppender = new MemoryAppender(SpinnakerRetrofitExceptionHandlers.class);
   }
 
   @Test
@@ -94,7 +82,7 @@ class SpinnakerRetrofitExceptionHandlersTest {
 
     ResponseEntity<String> entity = restTemplate.getForEntity(uri, String.class);
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, entity.getStatusCode());
-    assertEquals(1, countLogEventsForLevel(Level.ERROR));
+    assertEquals(1, memoryAppender.countEventsForLevel(Level.ERROR));
   }
 
   @Test
@@ -103,10 +91,10 @@ class SpinnakerRetrofitExceptionHandlersTest {
 
     ResponseEntity<String> entity = restTemplate.getForEntity(uri, String.class);
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, entity.getStatusCode());
-    assertEquals(1, countLogEventsForLevel(Level.ERROR));
+    assertEquals(1, memoryAppender.countEventsForLevel(Level.ERROR));
 
     // Make sure the message is what we expect.
-    assertEquals(1, searchLogEvents(CUSTOM_MESSAGE, Level.ERROR).size());
+    assertEquals(1, memoryAppender.search(CUSTOM_MESSAGE, Level.ERROR).size());
   }
 
   @ParameterizedTest(name = "testSpinnakerHttpException status = {0}")
@@ -122,7 +110,7 @@ class SpinnakerRetrofitExceptionHandlersTest {
     // it can.
     assertEquals(
         1,
-        countLogEventsForLevel(
+        memoryAppender.countEventsForLevel(
             HttpStatus.resolve(status).is5xxServerError() ? Level.ERROR : Level.DEBUG));
   }
 
@@ -139,13 +127,14 @@ class SpinnakerRetrofitExceptionHandlersTest {
     // it can.
     assertEquals(
         1,
-        countLogEventsForLevel(
+        memoryAppender.countEventsForLevel(
             HttpStatus.resolve(status).is5xxServerError() ? Level.ERROR : Level.DEBUG));
 
     // Make sure the message is what we expect.
     assertEquals(
         1,
-        searchLogEvents(
+        memoryAppender
+            .search(
                 CUSTOM_MESSAGE,
                 HttpStatus.resolve(status).is5xxServerError() ? Level.ERROR : Level.DEBUG)
             .size());
@@ -157,23 +146,6 @@ class SpinnakerRetrofitExceptionHandlersTest {
         .path(path)
         .build()
         .toUri();
-  }
-
-  private long countLogEventsForLevel(Level level) {
-    return listAppender.list.stream().filter(event -> event.getLevel() == level).count();
-  }
-
-  public List<ILoggingEvent> searchLogEvents(String string, Level level) {
-    return listAppender.list.stream()
-        .filter(
-            event ->
-                event
-                        .toString()
-                        .contains(
-                            string) // can't use equals since the whole string includes a timestamp,
-                    // level, class, etc. in addition to the message
-                    && event.getLevel().equals(level))
-        .collect(Collectors.toList());
   }
 
   @Configuration

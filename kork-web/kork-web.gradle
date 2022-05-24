@@ -38,6 +38,7 @@ dependencies {
 
   runtimeOnly "org.hibernate.validator:hibernate-validator"
 
+  testImplementation project(":kork-test")
   testImplementation "ch.qos.logback:logback-classic"
   testImplementation "ch.qos.logback:logback-core"
   testImplementation "org.spockframework:spock-core"

@@ -1,12 +1,8 @@
 package com.netflix.spinnaker.kork.web.exceptions
 
-import ch.qos.logback.classic.spi.ILoggingEvent
 import com.netflix.spinnaker.config.ErrorConfiguration
-import org.slf4j.LoggerFactory;
+import com.netflix.spinnaker.kork.test.log.MemoryAppender
 import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.core.read.ListAppender;
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
@@ -34,14 +30,10 @@ class GenericExceptionHandlersMvcSpec extends Specification {
   @Autowired
   TestRestTemplate restTemplate
 
-  private ListAppender<ILoggingEvent> listAppender;
+  private MemoryAppender memoryAppender;
 
   def setup() {
-    Logger logger = (Logger) LoggerFactory.getLogger(GenericExceptionHandlers);
-    listAppender = new ListAppender<>();
-    listAppender.setContext((LoggerContext) LoggerFactory.getILoggerFactory());
-    logger.addAppender(listAppender);
-    listAppender.start();
+    memoryAppender = new MemoryAppender(GenericExceptionHandlers)
   }
 
   def "ok request"() {
@@ -92,14 +84,8 @@ class GenericExceptionHandlersMvcSpec extends Specification {
     entity.statusCode == HttpStatus.INTERNAL_SERVER_ERROR
 
     and: "should log an error, but no warnings"
-    countLogEventsForLevel(Level.ERROR) == 1
-    countLogEventsForLevel(Level.WARN) == 0
-  }
-
-  private int countLogEventsForLevel(Level level) {
-    return listAppender.list.findAll { event ->
-      event.getLevel() == level
-      }.size();
+    memoryAppender.countEventsForLevel(Level.ERROR) == 1
+    memoryAppender.countEventsForLevel(Level.WARN) == 0
   }
 
   @Import(ErrorConfiguration)

@@ -12,6 +12,7 @@ dependencies {
   implementation "com.squareup.retrofit:converter-jackson"
   implementation "io.zipkin.brave:brave-instrumentation-okhttp3"
 
+  testImplementation project(":kork-test")
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.spockframework:spock-spring"
   testImplementation "org.springframework.boot:spring-boot-starter-test"
