@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordi
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.model.Manifest;
 import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue;
+import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.util.List;
 import lombok.Getter;
@@ -73,19 +74,25 @@ public class ManifestController {
           boolean includeEvents) {
 
     Manifest manifest;
+    String request =
+        String.format("(account: %s, location: %s, name: %s)", account, location, name);
     try {
       manifest =
           requestQueue.execute(
               account, () -> manifestProvider.getManifest(account, location, name, includeEvents));
     } catch (Throwable t) {
-      log.warn("Failed to read manifest ", t);
-      return null;
+      String message = "Failed to read manifest: " + request;
+      log.warn(message, t);
+      throw new SpinnakerException(message, t);
     }
 
-    String request =
-        String.format("(account: %s, location: %s, name: %s)", account, location, name);
     if (manifest == null) {
       throw new NotFoundException("Manifest " + request + " not found");
+    }
+
+    // adding a check here so that it will make it easy to debug why the PostAuthorize() failed
+    if (manifest.getMoniker() == null || manifest.getMoniker().getApp() == null) {
+      log.error("could not derive a valid moniker with application for manifest: {}", request);
     }
 
     return manifest;

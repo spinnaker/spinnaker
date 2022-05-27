@@ -22,7 +22,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import com.netflix.frigga.Names;
+import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesResourceAwareNames;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.moniker.Moniker;
@@ -201,8 +201,13 @@ public class KubernetesManifestAnnotater {
   }
 
   public static Moniker getMoniker(KubernetesManifest manifest) {
-    Names parsed = Names.parseName(manifest.getName());
+    // first get the annotations
     Map<String, String> annotations = manifest.getAnnotations();
+    // attempt to get the names - this will be used in case there are no annotations
+    // use KubernetesResourceAwareNames so that it can handle special Kubernetes system resources.
+    // see KubernetesResourceAwareNames for more details
+    KubernetesResourceAwareNames parsed =
+        KubernetesResourceAwareNames.parseName(manifest.getName());
     Integer defaultSequence = parsed.getSequence();
 
     return Moniker.builder()
