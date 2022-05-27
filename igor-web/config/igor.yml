@@ -14,8 +14,6 @@ spinnaker:
     # https://github.com/spinnaker/igor/blob/master/igor-core/src/main/java/com/netflix/spinnaker/igor/IgorConfigurationProperties.java#L92
     itemUpperThreshold: 1000
 
-endpoints.health.sensitive: false
-
 spring.jackson.serialization.write_dates_as_timestamps: false
 
 server.port: 8088
