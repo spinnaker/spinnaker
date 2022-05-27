@@ -26,6 +26,8 @@ import com.netflix.spinnaker.echo.api.events.Metadata
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpHeaders
+import org.springframework.util.CollectionUtils
+import org.springframework.util.MultiValueMap
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -73,6 +75,7 @@ class WebhooksController {
     if (headers.containsKey('X-Event-Key')) {
       event.content.event_type = headers['X-Event-Key'][0]
     }
+    def filteredHeaders = CollectionUtils.toMultiValueMap(headers.findAll { headersPredicate(it) })
 
     if (type == 'git') {
       GitWebhookHandler handler
@@ -82,7 +85,7 @@ class WebhooksController {
         log.error("Unable to handle SCM source: {}", source)
         throw e
       }
-      handler.handle(event, postedEvent)
+      handler.handle(event, postedEvent, new HttpHeaders(filteredHeaders))
       // shouldSendEvent should be called after the event
       // has been processed
       sendEvent = handler.shouldSendEvent(event)
@@ -101,6 +104,11 @@ class WebhooksController {
     return sendEvent ?
       WebhookResponse.newInstance(eventProcessed: true, eventId: event.eventId) :
       WebhookResponse.newInstance(eventProcessed: false);
+  }
+
+  // If your scm implementation needs access to headers, add them as a clause to this filter predicate
+  private static boolean headersPredicate(Map.Entry<String, List<String>> header) {
+    header.key.toLowerCase().startsWith("x-github")
   }
 
   @RequestMapping(value = '/webhooks/{type}', method = RequestMethod.POST)

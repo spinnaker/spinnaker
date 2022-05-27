@@ -22,6 +22,7 @@ import com.netflix.spinnaker.echo.api.events.Event;
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
 import java.util.Map;
 import lombok.Data;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -42,7 +43,7 @@ public class GitlabWebhookEventHandler implements GitWebhookHandler {
     return true;
   }
 
-  public void handle(Event event, Map postedEvent) {
+  public void handle(Event event, Map postedEvent, HttpHeaders headers) {
     GitlabWebhookEvent gitlabWebhookEvent =
         objectMapper.convertValue(postedEvent, GitlabWebhookEvent.class);
     event.content.put("hash", gitlabWebhookEvent.after);

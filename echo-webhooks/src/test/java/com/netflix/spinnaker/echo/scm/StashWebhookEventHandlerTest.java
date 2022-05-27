@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.echo.scm;
 
-import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.entry;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,6 +13,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpHeaders;
 
 class StashWebhookEventHandlerTest {
 
@@ -34,6 +36,15 @@ class StashWebhookEventHandlerTest {
     event.content.put("event_type", "repo:push");
 
     StashWebhookEventHandler handler = new StashWebhookEventHandler();
-    assertThatCode(() -> handler.handle(event, payload)).doesNotThrowAnyException();
+    assertThatCode(() -> handler.handle(event, payload, HttpHeaders.EMPTY))
+        .doesNotThrowAnyException();
+
+    assertThat(event.content)
+        .contains(
+            entry("repoProject", "E-BLAH"),
+            entry("slug", "sample-manifests"),
+            entry("hash", "6701da6ba49197208319f3ecad71ec9c449172fa"),
+            entry("branch", "master"),
+            entry("action", ""));
   }
 }

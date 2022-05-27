@@ -18,6 +18,7 @@ package com.netflix.spinnaker.echo.scm;
 
 import com.netflix.spinnaker.echo.api.events.Event;
 import java.util.Map;
+import org.springframework.http.HttpHeaders;
 
 /**
  * GitWebhookHandler defines an interface processing incoming SCM webhook events. It is responsible
@@ -34,5 +35,5 @@ public interface GitWebhookHandler {
    * handle processes the postedEvent (typically a webhook payload) and should add repoSlug, slug,
    * hash and branch to the provided Event.
    */
-  void handle(Event event, Map postedEvent);
+  void handle(Event event, Map postedEvent, HttpHeaders headers);
 }

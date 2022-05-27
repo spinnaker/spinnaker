@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.echo.scm;
 
-import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.*;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpHeaders;
 
 class BitbucketWebhookEventHandlerTest {
 
@@ -51,6 +52,15 @@ class BitbucketWebhookEventHandlerTest {
     event.content.put("event_type", "repo:push");
 
     BitbucketWebhookEventHandler handler = new BitbucketWebhookEventHandler();
-    assertThatCode(() -> handler.handle(event, payload)).doesNotThrowAnyException();
+    assertThatCode(() -> handler.handle(event, payload, HttpHeaders.EMPTY))
+        .doesNotThrowAnyException();
+
+    assertThat(event.content)
+        .contains(
+            entry("repoProject", ""),
+            entry("slug", "bitbucketfan/test_webhooks"),
+            entry("hash", "9384d1bf6db69ea35cda200648ade30f8ea7b1a4"),
+            entry("branch", "master"),
+            entry("action", "repo:push"));
   }
 }

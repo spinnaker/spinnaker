@@ -21,12 +21,14 @@ import static net.logstash.logback.argument.StructuredArguments.kv;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.echo.api.events.Event;
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
+import com.netflix.spinnaker.echo.scm.github.GithubBranchEvent;
 import com.netflix.spinnaker.echo.scm.github.GithubPullRequestEvent;
 import com.netflix.spinnaker.echo.scm.github.GithubPushEvent;
 import com.netflix.spinnaker.echo.scm.github.GithubWebhookEvent;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -51,7 +53,7 @@ public class GithubWebhookEventHandler implements GitWebhookHandler {
     return true;
   }
 
-  public void handle(Event event, Map postedEvent) {
+  public void handle(Event event, Map postedEvent, HttpHeaders headers) {
     if (!shouldSendEvent(event)) {
       log.info(
           "Webhook ping received from github {} {}",
@@ -70,6 +72,12 @@ public class GithubWebhookEventHandler implements GitWebhookHandler {
     if (event.content.containsKey("pull_request")) {
       webhookEvent = objectMapper.convertValue(event.content, GithubPullRequestEvent.class);
       githubEvent = "pull_request";
+    } else if ("branch".equals(event.content.get("ref_type"))) {
+      GithubBranchEvent branchEvent =
+          objectMapper.convertValue(event.content, GithubBranchEvent.class);
+      branchEvent.setAction(headers.getFirst("x-github-event"));
+      webhookEvent = branchEvent;
+      githubEvent = "branch";
     } else {
       // Default to 'Push'
       webhookEvent = objectMapper.convertValue(event.content, GithubPushEvent.class);

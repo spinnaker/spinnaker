@@ -23,6 +23,7 @@ import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
 import java.util.List;
 import java.util.Map;
 import lombok.Data;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -38,7 +39,7 @@ public class StashWebhookEventHandler implements GitWebhookHandler {
     return "stash".equals(source);
   }
 
-  public void handle(Event event, Map postedEvent) {
+  public void handle(Event event, Map postedEvent, HttpHeaders headers) {
     StashWebhookEvent stashWebhookEvent =
         objectMapper.convertValue(postedEvent, StashWebhookEvent.class);
     event.content.put("hash", stashWebhookEvent.refChanges.get(0).toHash);

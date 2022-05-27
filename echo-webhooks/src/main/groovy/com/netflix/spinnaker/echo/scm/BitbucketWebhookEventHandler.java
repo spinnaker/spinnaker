@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -55,7 +56,7 @@ public class BitbucketWebhookEventHandler implements GitWebhookHandler {
     return true;
   }
 
-  public void handle(Event event, Map postedEvent) {
+  public void handle(Event event, Map postedEvent, HttpHeaders headers) {
     if (event.rawContent.isEmpty() || !event.content.containsKey("event_type")) {
       log.info("Handling Bitbucket Server ping.");
       return;
