@@ -23,7 +23,9 @@ import com.netflix.spinnaker.credentials.CompositeCredentialsRepository;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.kork.exceptions.MissingCredentialsException;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class ArtifactCredentialsRepository
     extends CompositeCredentialsRepository<ArtifactCredentials> {
 
@@ -34,8 +36,9 @@ public class ArtifactCredentialsRepository
 
   public ArtifactCredentials getCredentialsForType(String name, String artifactType) {
     if (Strings.isNullOrEmpty(name)) {
-      throw new IllegalArgumentException(
-          "An artifact account must be supplied to download this artifact: " + name);
+      String message = "An artifact account must be supplied to download this artifact: " + name;
+      log.debug(message);
+      throw new IllegalArgumentException(message);
     }
 
     return getAllCredentials().stream()

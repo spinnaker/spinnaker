@@ -15,7 +15,10 @@ dependencies {
   implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
   implementation "io.spinnaker.kork:kork-moniker"
   implementation "org.glassfish.jersey.inject:jersey-hk2:2.28"
-  implementation 'com.huawei:openstack4j:1.0.17'
+  implementation('com.huawei:openstack4j:1.0.17') {
+    // Use logback, and prevent warnings about multiple slf4j bindings
+    exclude group: 'org.slf4j', module: 'slf4j-simple'
+  }
   implementation "org.glassfish.jersey.core:jersey-client:2.22.1"
   implementation "org.glassfish.jersey.media:jersey-media-json-jackson:2.11"
   implementation "org.codehaus.groovy:groovy-all"

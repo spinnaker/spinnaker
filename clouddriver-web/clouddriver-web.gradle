@@ -59,6 +59,7 @@ dependencies {
     runtimeOnly project(":clouddriver-configserver")
   }
 
+  testImplementation "io.spinnaker.kork:kork-test"
   testImplementation "org.springframework.boot:spring-boot-starter-test"
   testImplementation "org.spockframework:spock-core"
   testImplementation "io.kubernetes:client-java:$kubernetesClientVersion"

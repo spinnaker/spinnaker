@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.controllers;
 
+import static com.netflix.spinnaker.kork.common.Header.USER;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
@@ -26,12 +28,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
+import ch.qos.logback.classic.Level;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.Main;
+import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.artifacts.helm.HelmArtifactCredentials;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
+import com.netflix.spinnaker.filters.AuthenticatedRequestFilter;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.test.log.MemoryAppender;
 import java.util.List;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
@@ -68,18 +74,37 @@ public class ArtifactControllerSpec {
 
   @Autowired private CredentialsRepository<HelmArtifactCredentials> helmCredentials;
 
+  /**
+   * This takes X-SPINNAKER-* headers from requests to clouddriver and puts them in the MDC. This is
+   * enabled when clouddriver runs normally (by WebConfig), but needs explicit mention to function
+   * in these tests.
+   */
+  @Autowired AuthenticatedRequestFilter authenticatedRequestFilter;
+
   @BeforeEach
   public void setup() throws Exception {
-    this.mvc = webAppContextSetup(webApplicationContext).build();
+    this.mvc =
+        webAppContextSetup(webApplicationContext).addFilters(authenticatedRequestFilter).build();
   }
 
   @Test
   public void testFetchWithMisconfiguredArtifact() throws Exception {
     Artifact misconfiguredArtifact = Artifact.builder().name("foo").build();
+
+    // Capture the log messages that ArtifactCredentialsRepository generates,
+    // since that's the class that logs a message when it detects a
+    // misconfigured artifact.
+    MemoryAppender memoryAppender = new MemoryAppender(ArtifactCredentialsRepository.class);
+
+    // Use USER (i.e. X-SPINNAKER-HEADER) as a request header to match what
+    // logback includes in log messages for assertions in this test to work.
+    String userValue = "some user";
+
     MvcResult result =
         mvc.perform(
                 put("/artifacts/fetch")
                     .contentType(MediaType.APPLICATION_JSON)
+                    .header(USER.getHeader(), userValue)
                     .content(objectMapper.writeValueAsString(misconfiguredArtifact)))
             .andReturn();
 
@@ -87,6 +112,9 @@ public class ArtifactControllerSpec {
         .andDo(print())
         .andExpect(status().isBadRequest())
         .andExpect(content().string(is(emptyString())));
+
+    List<String> userMessages = memoryAppender.layoutSearch("[" + userValue + "]", Level.DEBUG);
+    assertThat(userMessages).hasSize(1);
   }
 
   @Test
