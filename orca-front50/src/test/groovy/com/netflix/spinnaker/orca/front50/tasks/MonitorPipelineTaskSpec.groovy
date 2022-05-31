@@ -222,6 +222,32 @@ class MonitorPipelineTaskSpec extends Specification {
     ]
   }
 
+  def "do not propagate running child pipeline outputs"() {
+    def pipeline = pipeline {
+      application = "orca"
+      name = "a pipeline"
+      stage {
+        type = PipelineStage.PIPELINE_CONFIG_TYPE
+        name = "running stage with outputs"
+        outputs = [
+            "myVar1": "myValue1",
+            "myVar2": "myValue2"
+        ]
+        status = ExecutionStatus.RUNNING
+      }
+      status = ExecutionStatus.RUNNING
+    }
+
+    repo.retrieve(*_) >> pipeline
+
+    when:
+    def result = task.execute(stage)
+    def outputs = result.outputs
+
+    then:
+    outputs == [:]
+  }
+
   @Unroll
   def "respect #behavior behavior when monitoring multiple pipelines"() {
     ObjectMapper objectMapper = new ObjectMapper()

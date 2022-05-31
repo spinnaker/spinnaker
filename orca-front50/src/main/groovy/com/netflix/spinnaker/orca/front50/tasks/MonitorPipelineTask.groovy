@@ -125,7 +125,7 @@ class MonitorPipelineTask implements OverridableTimeoutRetryableTask {
       result.executionStatuses = pipelineStatuses
     }
 
-    if (pipelineIds.size() == 1) {
+    if (pipelineIds.size() == 1 && allPipelinesCompleted) {
       result.insertPipelineContext(firstPipeline.getContext())
     }
 
