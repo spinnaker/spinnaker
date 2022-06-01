@@ -38,7 +38,7 @@ public class ResizeAzureServerGroupAtomicOperationConverter
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   public ResizeAzureServerGroupAtomicOperationConverter() {
-    log.info("Constructor....ResizeAzureServerGroupAtomicOperationConverter");
+    log.trace("Constructor....ResizeAzureServerGroupAtomicOperationConverter");
   }
 
   @Override

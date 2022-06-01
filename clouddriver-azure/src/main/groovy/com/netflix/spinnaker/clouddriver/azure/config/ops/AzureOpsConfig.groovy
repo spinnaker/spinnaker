@@ -30,7 +30,7 @@ import groovy.util.logging.Slf4j
 class AzureOpsConfig {
 
   AzureOpsConfig() {
-    log.info("Constructor....AzureOpsConfig")
+    log.trace("Constructor....AzureOpsConfig")
   }
 
   @Bean

@@ -29,6 +29,8 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationException
 import org.springframework.beans.factory.annotation.Autowired
 
+import static com.netflix.spinnaker.clouddriver.azure.resources.servergroup.ops.CreateAzureServerGroupAtomicOperation.*
+
 class CreateAzureServerGroupWithoutLoadBalancersAtomicOperation implements AtomicOperation<Map> {
   private static final String BASE_PHASE = "CREATE_SERVER_GROUP"
 
@@ -142,6 +144,16 @@ class CreateAzureServerGroupWithoutLoadBalancersAtomicOperation implements Atomi
           "serverGroup",
           templateParameters)
 
+        def healthy = description.credentials.computeClient.waitForScaleSetHealthy(resourceGroupName, description.name, SERVER_WAIT_TIMEOUT);
+
+        if (healthy) {
+          getTask().updateStatus(BASE_PHASE, String.format(
+            "Done enabling Azure server group %s in %s.",
+            description.getName(), description.getRegion()))
+        } else {
+          errList.add("Server group did not come up in time")
+        }
+
         errList.addAll(AzureDeploymentOperation.checkDeploymentOperationStatus(task, BASE_PHASE, description.credentials, resourceGroupName, deployment.name()))
         serverGroupName = errList.isEmpty() ? description.name : null
       }
@@ -159,14 +171,14 @@ class CreateAzureServerGroupWithoutLoadBalancersAtomicOperation implements Atomi
       // cleanup any resources that might have been created prior to server group failing to deploy
       task.updateStatus(BASE_PHASE, "Cleanup any resources created as part of server group upsert")
       try {
-        if (serverGroupName) {
+        if (description.name) {
           def sgDescription = description.credentials
             .computeClient
-            .getServerGroup(resourceGroupName, serverGroupName)
+            .getServerGroup(resourceGroupName, description.name)
           if (sgDescription) {
             description.credentials
               .computeClient
-              .destroyServerGroup(resourceGroupName, serverGroupName)
+              .destroyServerGroup(resourceGroupName, description.name)
 
             // If this an Azure Market Store image, delete the storage that was created for it as well
             if (!sgDescription.image.isCustom) {

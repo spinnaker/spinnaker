@@ -32,7 +32,7 @@ class AzureApplication implements Application, Serializable {
   Map<String, String> attributes = Collections.synchronizedMap(new HashMap<String, String>())
 
   AzureApplication(String name, Map<String, String> attributes, Map<String, Set<String>> clusterNames) {
-    log.info("Constructor....AzureApplication")
+    log.trace("Constructor....AzureApplication")
 
     this.name = name
     this.attributes = attributes

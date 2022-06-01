@@ -72,7 +72,8 @@ class EnableAzureServerGroupAtomicOperation implements AtomicOperation<Void> {
                 .credentials
                 .networkClient
                 .enableServerGroupWithLoadBalancer(resourceGroupName, serverGroupDescription.loadBalancerName, serverGroupDescription.name)
-              task.updateStatus BASE_PHASE, "Done enabling Azure server group ${serverGroupDescription.name} in ${region}."
+
+              waitForHealthy(resourceGroupName, serverGroupDescription, region, errList)
             } else {
               task.updateStatus BASE_PHASE, "Azure server group ${serverGroupDescription.name} in ${region} is already enabled."
             }
@@ -82,14 +83,14 @@ class EnableAzureServerGroupAtomicOperation implements AtomicOperation<Void> {
                 .credentials
                 .networkClient
                 .enableServerGroupWithAppGateway(resourceGroupName, serverGroupDescription.appGatewayName, serverGroupDescription.name)
-              task.updateStatus BASE_PHASE, "Done enabling Azure server group ${serverGroupDescription.name} in ${region}."
+
+              waitForHealthy(resourceGroupName, serverGroupDescription, region, errList)
             } else {
               task.updateStatus BASE_PHASE, "Azure server group ${serverGroupDescription.name} in ${region} is already enabled."
             }
           } else {
             throw new RuntimeException("Azure server group with load balancer type $serverGroupDescription.loadBalancerType cannot be enabled.")
           }
-
         } catch (Exception e) {
           task.updateStatus(BASE_PHASE, "Enabling of server group ${description.name} failed: ${e.message}")
           errList.add("Failed to enable server group ${description.name}: ${e.message}")
@@ -109,5 +110,15 @@ class EnableAzureServerGroupAtomicOperation implements AtomicOperation<Void> {
     }
 
     null
+  }
+
+  private void waitForHealthy(String resourceGroupName, AzureServerGroupDescription serverGroupDescription, String region, ArrayList<String> errList) {
+    def healthy = description.credentials.computeClient.waitForScaleSetHealthy(resourceGroupName, serverGroupDescription.name, CreateAzureServerGroupAtomicOperation.SERVER_WAIT_TIMEOUT)
+
+    if (healthy) {
+      task.updateStatus BASE_PHASE, "Done enabling Azure server group ${serverGroupDescription.name} in ${region}."
+    } else {
+      errList.add("Server group ${serverGroupDescription.name} in ${region} did not come up in time.")
+    }
   }
 }

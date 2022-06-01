@@ -29,10 +29,10 @@ import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.Azure
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureVMImage
 import com.netflix.spinnaker.clouddriver.azure.security.AzureNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.model.HealthState
 import groovy.transform.Canonical
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
-
 
 @Slf4j
 @CompileStatic
@@ -193,6 +193,24 @@ public class AzureComputeClient extends AzureBaseClient {
     })
 
     instances
+  }
+
+  /**
+   * check the scale set's health status, wait for the timeout return true when healthy, false if we hit the timeout
+   */
+  Boolean waitForScaleSetHealthy(String resourceGroupName, String serverGroupName, long timeoutMillis) {
+    def instances = getServerGroupInstances(resourceGroupName, serverGroupName)
+    def now = System.nanoTime()
+    def currentTime = System.nanoTime()
+    while (currentTime - now < timeoutMillis * 1000000) {
+      if (!instances.any { it.healthState != HealthState.Up }) {
+        return true
+      }
+      Thread.sleep(100)
+      currentTime = System.nanoTime()
+    }
+
+    false
   }
 
   Map<String, List<VirtualMachineSize>> getVirtualMachineSizesByRegions(List<AzureNamedAccountCredentials.AzureRegion> regions) {

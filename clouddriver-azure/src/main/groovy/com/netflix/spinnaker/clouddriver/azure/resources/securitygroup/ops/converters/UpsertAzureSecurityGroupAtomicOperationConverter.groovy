@@ -31,7 +31,7 @@ import org.springframework.stereotype.Component
 @Component("upsertAzureSecurityGroupDescription")
 class UpsertAzureSecurityGroupAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   UpsertAzureSecurityGroupAtomicOperationConverter() {
-    log.info("Constructor....UpsertAzureSecurityGroupAtomicOperationConverter")
+    log.trace("Constructor....UpsertAzureSecurityGroupAtomicOperationConverter")
   }
 
   AtomicOperation convertOperation(Map input) {

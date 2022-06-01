@@ -31,7 +31,7 @@ import org.springframework.stereotype.Component
 @Component("destroyAzureServerGroupDescription")
 class DestroyAzureServerGroupAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   DestroyAzureServerGroupAtomicOperationConverter() {
-    log.info("Constructor....DestroyAzureServerGroupAtomicOperationConverter")
+    log.trace("Constructor....DestroyAzureServerGroupAtomicOperationConverter")
   }
 
   @Override

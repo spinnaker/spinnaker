@@ -31,7 +31,7 @@ import org.springframework.stereotype.Component
 @Component("enableAzureServerGroupDescription")
 class EnableAzureServerGroupAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport{
   EnableAzureServerGroupAtomicOperationConverter() {
-    log.info("Constructor....EnableAzureServerGroupAtomicOperationConverter")
+    log.trace("Constructor....EnableAzureServerGroupAtomicOperationConverter")
   }
 
   @Override
