@@ -38,10 +38,11 @@ public class AccountDefinitionSecretManager {
     if (authorizer.isAdmin(username)) {
       return true;
     }
-    var userRoles = authorizer.getRoles(username);
-    if (userRoles.isEmpty()) {
+
+    if (!"anonymous".equals(username) && authorizer.getRoles(username).isEmpty()) {
       return false;
     }
+
     // TODO(jvz): update with https://github.com/spinnaker/kork/pull/942
     //  to add user secrets usage tracking for time of use authz checks
     return authorizer.canAccessAccount(username, accountName);
