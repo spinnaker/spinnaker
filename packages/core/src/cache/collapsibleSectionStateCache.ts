@@ -5,6 +5,7 @@ export class CollapsibleSectionStateCacheInternal {
   private cacheFactory = new CacheFactory();
   private cacheId = 'collapsibleSectionStateCache';
   private stateCache: Cache;
+  private handlers = new Map();
 
   constructor() {
     try {
@@ -31,6 +32,16 @@ export class CollapsibleSectionStateCacheInternal {
   public setExpanded(heading: string, expanded: boolean) {
     if (heading) {
       this.stateCache.put(heading, !!expanded);
+      const handler = this.handlers.get(heading);
+      if (handler) {
+        handler(!CollapsibleSectionStateCache.isSet(heading) || CollapsibleSectionStateCache.isExpanded(heading));
+      }
+    }
+  }
+
+  public onChange(heading: string, listener: Function) {
+    if (!this.handlers.get(heading)) {
+      this.handlers.set(heading, listener);
     }
   }
 }
