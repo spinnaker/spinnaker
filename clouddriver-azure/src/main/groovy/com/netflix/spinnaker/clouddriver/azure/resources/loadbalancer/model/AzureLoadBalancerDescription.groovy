@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model
 
 import com.microsoft.azure.management.network.LoadBalancer
 import com.microsoft.azure.management.network.TransportProtocol
+import com.microsoft.azure.management.network.implementation.FrontendIPConfigurationInner
 import com.microsoft.azure.management.network.implementation.LoadBalancerInner
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
@@ -96,7 +97,11 @@ class AzureLoadBalancerDescription extends AzureResourceOpsDescription {
     description.tags.putAll(azureLoadBalancer.tags)
     description.region = azureLoadBalancer.location()
     description.internal = azureLoadBalancer.tags?.internal != null
-    description.publicIpName = AzureUtilities.getNameFromResourceId(azureLoadBalancer?.frontendIPConfigurations().first().publicIPAddress().id())
+
+    def frontendIPConfigurations = azureLoadBalancer?.frontendIPConfigurations()
+    if (frontendIPConfigurations != null && !frontendIPConfigurations.isEmpty()) {
+      description.publicIpName = AzureUtilities.getNameFromResourceId(frontendIPConfigurations?.first()?.publicIPAddress()?.id())
+    }
 
     // Each load balancer backend address pool corresponds to a server group (except the "default_LB_BAP")
     description.serverGroups = []

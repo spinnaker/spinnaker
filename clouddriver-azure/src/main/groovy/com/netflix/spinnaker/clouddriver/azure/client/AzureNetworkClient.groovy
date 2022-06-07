@@ -71,10 +71,12 @@ class AzureNetworkClient extends AzureBaseClient {
         if (item.inner().location() == region) {
           try {
             def lbItem = AzureLoadBalancerDescription.build(item.inner())
-            lbItem.dnsName = getDnsNameForPublicIp(
-              AzureUtilities.getResourceGroupNameFromResourceId(item.id()),
-              AzureUtilities.getNameFromResourceId(item.publicIPAddressIds()?.first())
-            )
+            if (item.publicIPAddressIds() && !item.publicIPAddressIds().isEmpty()) {
+              lbItem.dnsName = getDnsNameForPublicIp(
+                AzureUtilities.getResourceGroupNameFromResourceId(item.id()),
+                AzureUtilities.getNameFromResourceId(item.publicIPAddressIds()?.first())
+              )
+            }
             lbItem.lastReadTime = currentTime
             result += lbItem
           } catch (RuntimeException re) {
@@ -721,7 +723,6 @@ class AzureNetworkClient extends AzureBaseClient {
         log.error(errMsg)
         throw new RuntimeException(errMsg)
       }
-
       loadBalancer.loadBalancingRules().each { name, rule ->
         // Use reflection to modify the backend of load balancer because Azure Java SDK doesn't provide a way to do this
         Object o = loadBalancer.update()
