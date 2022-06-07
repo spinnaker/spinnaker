@@ -140,7 +140,6 @@ class AzureAppGatewayResourceTemplate {
       if (description.stack) tags.stack = description.stack
       if (description.detail) tags.detail = description.detail
       if (description.cluster) tags.cluster = description.cluster
-      if (description.serverGroups) tags.serverGroups = description.serverGroups.join(" ")
       if (description.securityGroup) tags.securityGroup = description.securityGroup
       if (description.vnet) tags.vnet = description.vnet
       if (description.subnet) tags.subnet = description.subnet

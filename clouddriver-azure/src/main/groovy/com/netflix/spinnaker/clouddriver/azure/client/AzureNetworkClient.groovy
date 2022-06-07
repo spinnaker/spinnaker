@@ -306,7 +306,6 @@ class AzureNetworkClient extends AzureBaseClient {
 
         appGateway.update()
           .withTag("cluster", parsedName.cluster)
-          .withTag("serverGroups", agDescription.serverGroups.join(" "))
           .defineBackend(serverGroupName)
           .attach()
           .apply()
@@ -349,14 +348,6 @@ class AzureNetworkClient extends AzureBaseClient {
           chain = chain.withoutTag("cluster")
         }
 
-        // TODO: debug only; remove this as part of the cleanup
-        agDescription.serverGroups?.remove(serverGroupName)
-        if (!agDescription.serverGroups || agDescription.serverGroups.isEmpty()) {
-          chain = chain.withoutTag("serverGroups")
-        } else {
-          chain = chain.withTag("serverGroups", agDescription.serverGroups.join(" "))
-        }
-
         chain.apply()
       }
 
@@ -382,10 +373,7 @@ class AzureNetworkClient extends AzureBaseClient {
     if(loadBalancer) {
       // the application gateway must have an backend address pool list (even if it might be empty)
       if (!loadBalancer.backends()?.containsKey(serverGroupName)) {
-        String sgTag = loadBalancer.tags().get("serverGroups")
-        sgTag = sgTag == null || sgTag.length() == 0 ? serverGroupName : sgTag + " " + serverGroupName
         loadBalancer.update()
-          .withTag("serverGroups", sgTag)
           .defineBackend(serverGroupName)
           .attach()
           .apply()
@@ -418,21 +406,6 @@ class AzureNetworkClient extends AzureBaseClient {
       if (lbAP) {
         def chain = loadBalancer.update()
           .withoutBackend(lbAP.name())
-
-        String sgTag = loadBalancer.tags().get("serverGroups")
-        String[] tags = sgTag.split(" ")
-        String newTag = ""
-        for(String tag: tags) {
-          if(!tag.equals(serverGroupName)) {
-            newTag = newTag.length() == 0 ? tag : newTag + " " + tag
-          }
-        }
-
-        if (newTag.length() == 0) {
-          chain = chain.withoutTag("serverGroups")
-        } else {
-          chain = chain.withTag("serverGroups", newTag)
-        }
 
         chain.apply()
       }
@@ -1168,5 +1141,4 @@ class AzureNetworkClient extends AzureBaseClient {
   String getProviderNamespace() {
     "Microsoft.Network"
   }
-
 }

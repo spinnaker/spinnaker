@@ -186,7 +186,6 @@ class AzureAppGatewayResourceTemplateSpec extends Specification {
       "stack" : "lb1",
       "detail" : "d1",
       "cluster" : "testappgw-sg1-d1",
-      "serverGroups" : "testappgw-sg1-d1-v000 testappgw-sg1-d1-v001",
       "vnet" : "vnet-testappgw-westus",
       "subnet" : "subnet-testappgw-lb1-d1",
       "vnetResourceGroup" : null
