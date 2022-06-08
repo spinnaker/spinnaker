@@ -20,9 +20,6 @@ class SpinnakerPackagePlugin implements Plugin<Project> {
           int idx = projVer.indexOf('-')
           if (project.hasProperty("ospackageRelease")) {
             extension.release = project.property("ospackageRelease")
-          } else if (project.hasProperty("bintrayPackageBuildNumber")) {
-            project.logger.warn("Property 'bintrayPackageBuildNumber' is deprecated, use 'ospackageRelease' instead")
-            extension.release = project.property("bintrayPackageBuildNumber")
           } else if (idx != -1) {
             extension.release = '1'
           }

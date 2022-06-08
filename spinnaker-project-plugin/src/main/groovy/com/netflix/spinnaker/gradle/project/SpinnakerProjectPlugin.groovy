@@ -18,7 +18,6 @@ package com.netflix.spinnaker.gradle.project
 
 import com.netflix.spinnaker.gradle.baseproject.SpinnakerBaseProjectPlugin
 import com.netflix.spinnaker.gradle.publishing.artifactregistry.ArtifactRegistryPublishPlugin
-import com.netflix.spinnaker.gradle.publishing.bintray.BintrayPublishPlugin
 import com.netflix.spinnaker.gradle.publishing.PublishingPlugin
 import com.netflix.spinnaker.gradle.publishing.nexus.NexusPublishPlugin
 import org.gradle.api.Plugin
@@ -30,7 +29,6 @@ class SpinnakerProjectPlugin implements Plugin<Project> {
   void apply(Project project) {
     project.plugins.apply(SpinnakerBaseProjectPlugin)
     project.plugins.apply(PublishingPlugin)
-    project.plugins.apply(BintrayPublishPlugin)
     project.plugins.apply(ArtifactRegistryPublishPlugin)
     project.plugins.apply(NexusPublishPlugin)
   }

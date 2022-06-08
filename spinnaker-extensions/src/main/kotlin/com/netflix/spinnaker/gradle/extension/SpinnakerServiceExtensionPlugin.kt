@@ -32,7 +32,6 @@ import java.lang.IllegalStateException
 /**
  * Gradle plugin to support spinnaker service plugin bundling aspects.
  *
- * TODO(rz): Add spinnaker bintray to repositories
  * TODO(rz): Configure plugin manifest
  * TODO(rz): Auto-add `annotationProcessor "org.pf4j:pf4j:3.2.0"`
  */
