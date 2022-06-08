@@ -1,7 +1,3 @@
-repositories {
-  maven { url "https://adxsnapshots.azurewebsites.net" }
-}
-
 dependencies {
   implementation project(":clouddriver-api")
   implementation project(":clouddriver-core")

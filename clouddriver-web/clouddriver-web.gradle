@@ -14,10 +14,6 @@ configurations.all {
   exclude group: "org.slf4j", module: "slf4j-log4j12"
 }
 
-repositories {
-  maven { url "https://adxsnapshots.azurewebsites.net" }
-}
-
 dependencies {
   implementation project(":cats:cats-core")
   implementation project(":clouddriver-api")
