@@ -1,15 +1,19 @@
 FROM alpine:3.12
 LABEL maintainer="sig-platform@spinnaker.io"
 
-ENV KUSTOMIZE_VERSION=3.8.5
+ENV KUSTOMIZE_VERSION=3.8.6
 ENV PACKER_VERSION=1.6.6
+
+
+ARG TARGETARCH
+
 
 WORKDIR /packer
 
 RUN apk --no-cache add --update bash wget curl openssl openjdk11-jre git openssh-client && \
-  wget https://releases.hashicorp.com/packer/${PACKER_VERSION}/packer_${PACKER_VERSION}_linux_amd64.zip && \
-  unzip packer_${PACKER_VERSION}_linux_amd64.zip && \
-  rm packer_${PACKER_VERSION}_linux_amd64.zip
+  wget https://releases.hashicorp.com/packer/${PACKER_VERSION}/packer_${PACKER_VERSION}_linux_${TARGETARCH}.zip && \
+  unzip packer_${PACKER_VERSION}_linux_${TARGETARCH}.zip && \
+  rm packer_${PACKER_VERSION}_linux_${TARGETARCH}.zip
 
 ENV PATH "/packer:$PATH"
 
@@ -27,7 +31,7 @@ RUN wget https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get &&
   rm get
 
 RUN mkdir kustomize && \
-  curl -s -L https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v${KUSTOMIZE_VERSION}/kustomize_v${KUSTOMIZE_VERSION}_linux_amd64.tar.gz|\
+  curl -s -L https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v${KUSTOMIZE_VERSION}/kustomize_v${KUSTOMIZE_VERSION}_linux_${TARGETARCH}.tar.gz|\
   tar xvz -C kustomize/
 
 ENV PATH "kustomize:$PATH"
