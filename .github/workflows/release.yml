@@ -26,7 +26,6 @@ jobs:
         uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-      - uses: actions/setup-java@v2
       - name: Assemble release info
         id: release_info
         env:
