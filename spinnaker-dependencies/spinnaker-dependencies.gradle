@@ -7,7 +7,7 @@ javaPlatform {
 ext {
   versions = [
     arrow            : "0.13.2",
-    aws              : "1.12.135",
+    aws              : "1.12.176",
     bouncycastle     : "1.64", // 1.64 removes CVE-2019-17359
     brave            : "5.12.3",
     groovy           : "2.5.14", //this needs to keep in sync with the version from boot... if we could get rid of groovy-all we'd no longer need this
@@ -55,7 +55,7 @@ dependencies {
   // this project and need to configure gradle plugins etc.
   api(platform("org.jetbrains.kotlin:kotlin-bom:$kotlinVersion"))
   api(platform("org.junit:junit-bom:5.6.3"))
-  api(platform("com.fasterxml.jackson:jackson-bom:2.12.3"))
+  api(platform("com.fasterxml.jackson:jackson-bom:2.12.6"))
   api(platform("io.zipkin.brave:brave-bom:${versions.brave}"))
   api(platform("org.springframework.boot:spring-boot-dependencies:${versions.springBoot}"))
   api(platform("com.amazonaws:aws-java-sdk-bom:${versions.aws}"))
