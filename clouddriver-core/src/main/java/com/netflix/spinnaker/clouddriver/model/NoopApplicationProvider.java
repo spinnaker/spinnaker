@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.model
+package com.netflix.spinnaker.clouddriver.model;
 
-class NoopInstanceProvider implements InstanceProvider<Instance, String> {
+import java.util.Set;
 
-  final String cloudProvider = "none"
+public class NoopApplicationProvider implements ApplicationProvider {
 
   @Override
-  Instance getInstance(String account, String region, String id) {
-    null
+  public Set<Application> getApplications(boolean expand) {
+    return Set.of();
   }
 
   @Override
-  String getConsoleOutput(String account, String region, String id) {
-    null
+  public Application getApplication(String name) {
+    return null;
   }
-
 }

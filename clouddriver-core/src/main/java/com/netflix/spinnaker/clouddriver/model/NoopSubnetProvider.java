@@ -14,29 +14,19 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.model
+package com.netflix.spinnaker.clouddriver.model;
 
-class NoopLoadBalancerProvider implements LoadBalancerProvider<LoadBalancer> {
+import java.util.Set;
 
-  final String cloudProvider = "noop"
+public class NoopSubnetProvider implements SubnetProvider<Subnet> {
 
   @Override
-  List<LoadBalancerProvider.Item> list() {
-    return Collections.emptyList()
+  public String getCloudProvider() {
+    return null;
   }
 
   @Override
-  LoadBalancerProvider.Item get(String name) {
-    return null
-  }
-
-  @Override
-  List<LoadBalancerProvider.Details> byAccountAndRegionAndName(String account, String region, String name) {
-    return Collections.emptyList()
-  }
-
-  @Override
-  Set<LoadBalancer> getApplicationLoadBalancers(String application) {
-    Collections.emptySet()
+  public Set<Subnet> getAll() {
+    return Set.of();
   }
 }

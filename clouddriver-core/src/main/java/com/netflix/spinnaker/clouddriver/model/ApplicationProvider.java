@@ -38,7 +38,7 @@ public interface ApplicationProvider {
   /**
    * Looks up a particular application by name
    *
-   * @param application name
+   * @param name name
    * @return an application or null if it is not known to this provider
    */
   @Nullable

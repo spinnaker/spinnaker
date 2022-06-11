@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.model
+package com.netflix.spinnaker.clouddriver.model;
 
-class NoopNetworkProvider implements NetworkProvider<Network> {
+import java.util.Set;
+
+public class NoopNetworkProvider implements NetworkProvider<Network> {
+
   @Override
-  String getCloudProvider() {
-    'noop'
+  public String getCloudProvider() {
+    return "noop";
   }
 
   @Override
-    Set<Network> getAll() {
-        Collections.emptySet()
-    }
+  public Set<Network> getAll() {
+    return Set.of();
+  }
 }

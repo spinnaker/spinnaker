@@ -25,7 +25,7 @@ interface Front50Service {
   List<Map> getCredentials()
 
   @GET('/v2/applications')
-  List<Map> searchByName(@Query("name") String applicationName,
+  List<Map<String, Object>> searchByName(@Query("name") String applicationName,
                          @Query("pageSize") Integer pageSize,
                          @QueryMap Map<String, String> filters)
 
@@ -36,7 +36,7 @@ interface Front50Service {
   Map getProject(@Path('project') String project)
 
   @GET('/v2/projects')
-  List<Map> searchForProjects(@QueryMap Map<String, String> params, @Query("pageSize") Integer pageSize)
+  List<Map<String, Object>> searchForProjects(@QueryMap Map<String, String> params, @Query("pageSize") Integer pageSize)
 
   @POST('/snapshots')
   Response saveSnapshot(@Body Map snapshot)

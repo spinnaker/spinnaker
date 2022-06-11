@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.model
+package com.netflix.spinnaker.clouddriver.model;
 
 /**
  * Describes a metric reported by a cloud provider.
  *
- * Implementations should add any fields necessary to uniquely identify a particular metric; for example, AWS
- * supplies a "namespace" field, as well as a collection of "dimensions"
+ * <p>Implementations should add any fields necessary to uniquely identify a particular metric; for
+ * example, AWS supplies a "namespace" field, as well as a collection of "dimensions"
  */
-interface CloudMetricDescriptor {
+public interface CloudMetricDescriptor {
 
-  String name
-
+  String getName();
 }

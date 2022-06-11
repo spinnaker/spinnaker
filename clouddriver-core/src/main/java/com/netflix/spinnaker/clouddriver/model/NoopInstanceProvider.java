@@ -14,11 +14,24 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.model
+package com.netflix.spinnaker.clouddriver.model;
 
-class NoopKeyPairProvider implements KeyPairProvider<KeyPair> {
-    @Override
-    Set<KeyPair> getAll() {
-        Collections.emptySet()
-    }
+public class NoopInstanceProvider implements InstanceProvider<Instance, String> {
+
+  final String cloudProvider = "none";
+
+  @Override
+  public String getCloudProvider() {
+    return null;
+  }
+
+  @Override
+  public Instance getInstance(String account, String region, String id) {
+    return null;
+  }
+
+  @Override
+  public String getConsoleOutput(String account, String region, String id) {
+    return null;
+  }
 }

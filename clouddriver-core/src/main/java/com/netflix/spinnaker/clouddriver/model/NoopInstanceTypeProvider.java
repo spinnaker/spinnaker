@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2014 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.model
+package com.netflix.spinnaker.clouddriver.model;
 
-class NoopReservationReportProvider implements ReservationReportProvider {
+import java.util.Set;
+
+public class NoopInstanceTypeProvider implements InstanceTypeProvider<InstanceType> {
+
   @Override
-  ReservationReport getReservationReport(String name, Map<String, String> filters) {
-    return null
+  public Set<InstanceType> getAll() {
+    return Set.of();
   }
 }

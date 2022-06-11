@@ -16,11 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.controllers
 
-import static java.time.temporal.ChronoUnit.HOURS
-
 import com.netflix.spinnaker.clouddriver.model.CloudMetricDescriptor
 import com.netflix.spinnaker.clouddriver.model.CloudMetricProvider
 import com.netflix.spinnaker.clouddriver.model.CloudMetricStatistics
+
+import static java.time.temporal.ChronoUnit.HOURS
+
+
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
@@ -40,9 +42,9 @@ class CloudMetricController {
 
   @RequestMapping(method = RequestMethod.GET, value = "/{cloudProvider}/{account}/{region}")
   List<CloudMetricDescriptor> findAll(@PathVariable String cloudProvider,
-                        @PathVariable String account,
-                        @PathVariable String region,
-                        @RequestParam Map<String, String> filters) {
+                                      @PathVariable String account,
+                                      @PathVariable String region,
+                                      @RequestParam Map<String, String> filters) {
 
     getProvider(cloudProvider).findMetricDescriptors(account, region, filters)
   }

@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2016 Netflix, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.model
+package com.netflix.spinnaker.clouddriver.model;
 
-class NoopSubnetProvider implements SubnetProvider<Subnet> {
+import java.util.Set;
+
+public class NoopElasticIpProvider implements ElasticIpProvider {
+
   @Override
-  String getCloudProvider() {
-    return null
+  public Set getAllByAccount(String account) {
+    return Set.of();
   }
 
   @Override
-  Set<Subnet> getAll() {
-    Collections.emptySet()
+  public Set getAllByAccountAndRegion(String account, String region) {
+    return Set.of();
   }
 }
