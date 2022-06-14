@@ -112,7 +112,7 @@ public class DescriptionAuthorizerService {
     boolean hasPermission = true;
     if (resourceTypes.contains(ResourceType.ACCOUNT)
         && account != null
-        && !secretManager.canAccessAccountWithSecrets(account)) {
+        && !secretManager.canAccessAccountWithSecrets(auth.getName(), account)) {
       hasPermission = false;
       errors.reject("authorization.account", format("Access denied to account %s", account));
     }

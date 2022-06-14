@@ -23,6 +23,7 @@ import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
@@ -58,7 +59,9 @@ public class AccountDefinitionSource<T extends CredentialsDefinition>
       AccountDefinitionRepository repository,
       Class<T> type,
       List<CredentialsDefinitionSource<T>> additionalSources) {
-    var typeName = AccountDefinitionMapper.getJsonTypeName(type);
+    String typeName = AccountDefinitionTypes.getCredentialsTypeName(type);
+    Objects.requireNonNull(
+        typeName, () -> "Class " + type + " is not annotated with type discriminator");
     List<CredentialsDefinitionSource<T>> sources = new ArrayList<>(additionalSources.size() + 1);
     sources.add(
         () ->

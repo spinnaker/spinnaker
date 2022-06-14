@@ -16,17 +16,16 @@
 
 package com.netflix.spinnaker.clouddriver.deploy
 
-
 import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spinnaker.clouddriver.security.AccountDefinitionAuthorizer
 import com.netflix.spinnaker.clouddriver.security.AccountDefinitionSecretManager
+import com.netflix.spinnaker.clouddriver.security.DefaultAccountSecurityPolicy
 import com.netflix.spinnaker.clouddriver.security.config.SecurityConfig
 import com.netflix.spinnaker.clouddriver.security.resources.AccountNameable
 import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable
 import com.netflix.spinnaker.clouddriver.security.resources.ResourcesNameable
 import com.netflix.spinnaker.fiat.model.resources.ResourceType
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
-import com.netflix.spinnaker.kork.secrets.SecretManager
+import com.netflix.spinnaker.kork.secrets.user.UserSecretManager
 import org.springframework.security.authentication.TestingAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
 import spock.lang.Specification
@@ -36,7 +35,7 @@ import spock.lang.Unroll
 class DescriptionAuthorizerServiceSpec extends Specification {
   def registry = new NoopRegistry()
   def evaluator = Mock(FiatPermissionEvaluator)
-  def secretManager = Mock(SecretManager)
+  def userSecretManager = Mock(UserSecretManager)
   def opsSecurityConfigProps
 
   @Subject
@@ -44,7 +43,7 @@ class DescriptionAuthorizerServiceSpec extends Specification {
 
   def setup() {
     opsSecurityConfigProps = new SecurityConfig.OperationsSecurityConfigurationProperties()
-    service = new DescriptionAuthorizerService(registry, Optional.of(evaluator), opsSecurityConfigProps, new AccountDefinitionSecretManager(secretManager, new AccountDefinitionAuthorizer(evaluator)))
+    service = new DescriptionAuthorizerService(registry, Optional.of(evaluator), opsSecurityConfigProps, new AccountDefinitionSecretManager(userSecretManager, new DefaultAccountSecurityPolicy(evaluator)))
   }
 
   def "should authorize passed description"() {

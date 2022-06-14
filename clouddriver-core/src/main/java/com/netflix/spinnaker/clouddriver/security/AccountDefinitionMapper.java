@@ -16,40 +16,61 @@
 
 package com.netflix.spinnaker.clouddriver.security;
 
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinition;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
-import java.util.Objects;
+import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
+import com.netflix.spinnaker.kork.secrets.SecretSession;
+import com.netflix.spinnaker.kork.secrets.user.UserSecretReference;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
 /**
  * Maps account definitions to and from strings. Only {@link CredentialsDefinition} classes
- * annotated with a {@link JsonTypeName} will be considered. {@code secret://} URIs may be used for
- * credentials values which will be replaced with an appropriate string for the secret along with
- * recording an associated account name for time of use permission checks on the user secret.
+ * annotated with a {@link com.fasterxml.jackson.annotation.JsonTypeName} will be considered. {@link
+ * UserSecretReference} URIs may be used for credentials values which will be replaced with an
+ * appropriate string for the secret along with recording an associated account name for time of use
+ * permission checks on the user secret. Traditional {@link EncryptedSecret} URIs are also
+ * supported.
  */
 @NonnullByDefault
 @RequiredArgsConstructor
 public class AccountDefinitionMapper {
 
-  /**
-   * Returns the JSON type discriminator for a given class. Types are defined via the {@link
-   * JsonTypeName} annotation.
-   */
-  public static String getJsonTypeName(Class<?> clazz) {
-    var jsonTypeName = clazz.getAnnotation(JsonTypeName.class);
-    return Objects.requireNonNull(jsonTypeName, "No @JsonTypeName for " + clazz).value();
-  }
-
   private final ObjectMapper objectMapper;
+  private final AccountDefinitionSecretManager secretManager;
+  private final SecretSession secretSession;
 
   public String serialize(CredentialsDefinition definition) throws JsonProcessingException {
     return objectMapper.writeValueAsString(definition);
   }
 
   public CredentialsDefinition deserialize(String string) throws JsonProcessingException {
-    return objectMapper.readValue(string, CredentialsDefinition.class);
+    ObjectNode account = (ObjectNode) objectMapper.readTree(string);
+    String accountName = account.required("name").asText();
+    Iterator<Map.Entry<String, JsonNode>> it = account.fields();
+    while (it.hasNext()) {
+      Map.Entry<String, JsonNode> field = it.next();
+      JsonNode node = field.getValue();
+      if (node.isTextual()) {
+        String text = node.asText();
+        Optional<String> plaintext;
+        if (UserSecretReference.isUserSecret(text)) {
+          UserSecretReference ref = UserSecretReference.parse(text);
+          plaintext = Optional.of(secretManager.getUserSecretString(ref, accountName));
+        } else if (EncryptedSecret.isEncryptedSecret(text)) {
+          plaintext = Optional.ofNullable(secretSession.decrypt(text));
+        } else {
+          plaintext = Optional.empty();
+        }
+        plaintext.map(account::textNode).ifPresent(field::setValue);
+      }
+    }
+    return objectMapper.convertValue(account, CredentialsDefinition.class);
   }
 }

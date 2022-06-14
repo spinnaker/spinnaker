@@ -9,6 +9,7 @@ dependencies {
   implementation project(":clouddriver-saga")
 
   compileOnly "org.projectlombok:lombok"
+  testCompileOnly "org.projectlombok:lombok"
   annotationProcessor "org.projectlombok:lombok"
   testAnnotationProcessor "org.projectlombok:lombok"
 

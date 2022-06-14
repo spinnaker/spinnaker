@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.config.AccountDefinitionConfiguration;
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinition;
 import com.netflix.spinnaker.fiat.model.Authorization;
 import io.spinnaker.test.security.TestAccount;
+import io.spinnaker.test.security.ValueAccount;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +55,23 @@ class AccountDefinitionMapperTest {
   }
 
   @Test
+  void canConvertJacksonizedAccountTypes() throws JsonProcessingException {
+    var account = ValueAccount.builder().name("james").value("meowth").build();
+    assertEquals(account, mapper.deserialize(mapper.serialize(account)));
+  }
+
+  @Test
   void canDecryptSecretUris() {
+    var data = "{\"type\":\"test\",\"name\":\"bar\",\"password\":\"secret://noop?v=hunter2&k=v\"}";
+    CredentialsDefinition account = assertDoesNotThrow(() -> mapper.deserialize(data));
+    assertThat(account).isInstanceOf(TestAccount.class);
+    assertThat(account.getName()).isEqualTo("bar");
+    TestAccount testAccount = (TestAccount) account;
+    assertThat(testAccount.getData().get("password")).isEqualTo("hunter2");
+  }
+
+  @Test
+  void canDecryptEncryptedUris() {
     var data = "{\"type\":\"test\",\"name\":\"bar\",\"password\":\"encrypted:noop!v:hunter2\"}";
     CredentialsDefinition account = assertDoesNotThrow(() -> mapper.deserialize(data));
     assertThat(account).isInstanceOf(TestAccount.class);

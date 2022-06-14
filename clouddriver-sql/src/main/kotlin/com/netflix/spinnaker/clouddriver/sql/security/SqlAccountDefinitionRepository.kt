@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Apple Inc.
+ * Copyright 2021, 2022 Apple Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,17 +18,17 @@ package com.netflix.spinnaker.clouddriver.sql.security
 
 import com.netflix.spinnaker.clouddriver.security.AccountDefinitionMapper
 import com.netflix.spinnaker.clouddriver.security.AccountDefinitionRepository
+import com.netflix.spinnaker.clouddriver.security.AccountDefinitionTypes
 import com.netflix.spinnaker.clouddriver.sql.read
 import com.netflix.spinnaker.clouddriver.sql.transactional
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinition
 import com.netflix.spinnaker.kork.secrets.SecretException
 import com.netflix.spinnaker.kork.sql.routing.withPool
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.apache.logging.log4j.LogManager
-import org.jooq.DSLContext
-import org.jooq.JSON
-import org.jooq.Record1
-import org.jooq.Select
+import org.jooq.*
+import org.jooq.exception.DataAccessException
 import org.jooq.impl.DSL.*
 import java.time.Clock
 
@@ -97,68 +97,140 @@ class SqlAccountDefinitionRepository(
       null
     }
 
+  private fun getCredentialsType(definition: CredentialsDefinition): String {
+    val javaClass = definition.javaClass
+    return AccountDefinitionTypes.getCredentialsTypeName(javaClass)
+      ?: throw IllegalArgumentException("No @CredentialsType annotation found on $javaClass")
+  }
+
   override fun create(definition: CredentialsDefinition) {
     withPool(poolName) {
-      jooq.transactional { ctx ->
-        val timestamp = clock.millis()
-        val user = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous")
-        val body = JSON.valueOf(mapper.serialize(definition))
-        val typeName = AccountDefinitionMapper.getJsonTypeName(definition.javaClass)
-        ctx.insertInto(accountsTable)
-          .set(idColumn, definition.name)
-          .set(typeColumn, typeName)
-          .set(bodyColumn, body)
-          .set(createdColumn, timestamp)
-          .set(lastModifiedColumn, timestamp)
-          .set(modifiedByColumn, user)
-          .execute()
-        ctx.insertInto(accountHistoryTable)
-          .set(idColumn, definition.name)
-          .set(typeColumn, typeName)
-          .set(bodyColumn, body)
-          .set(lastModifiedColumn, timestamp)
-          .set(versionColumn, findLatestVersion(definition.name))
-          .execute()
+      val name = definition.name
+      val typeName = getCredentialsType(definition)
+      val timestamp = clock.millis()
+      val user = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous")
+      val body = JSON.valueOf(mapper.serialize(definition))
+      try {
+        jooq.transactional { ctx ->
+          ctx.insertInto(accountsTable)
+            .set(idColumn, name)
+            .set(typeColumn, typeName)
+            .set(bodyColumn, body)
+            .set(createdColumn, timestamp)
+            .set(lastModifiedColumn, timestamp)
+            .set(modifiedByColumn, user)
+            .execute()
+          ctx.insertInto(accountHistoryTable)
+            .set(idColumn, name)
+            .set(typeColumn, typeName)
+            .set(bodyColumn, body)
+            .set(lastModifiedColumn, timestamp)
+            .set(versionColumn, findLatestVersion(name))
+            .execute()
+        }
+      } catch (e: DataAccessException) {
+        throw SqlAccountDefinitionException("Cannot create account with definition $body", e)
       }
+      // TODO(jvz): CredentialsDefinitionNotifier::definitionChanged for https://github.com/spinnaker/kork/pull/958
+    }
+  }
+
+  override fun save(definition: CredentialsDefinition) {
+    withPool(poolName) {
+      val name = definition.name
+      val typeName = getCredentialsType(definition)
+      val timestamp = clock.millis()
+      val user = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous")
+      val body = JSON.valueOf(mapper.serialize(definition))
+      try {
+        jooq.transactional { ctx ->
+          ctx.insertInto(accountsTable)
+            .set(idColumn, name)
+            .set(typeColumn, typeName)
+            .set(bodyColumn, body)
+            .set(createdColumn, timestamp)
+            .set(lastModifiedColumn, timestamp)
+            .set(modifiedByColumn, user)
+            .run {
+              if (jooq.dialect() == SQLDialect.POSTGRES) onConflict(idColumn).doUpdate()
+              else onDuplicateKeyUpdate()
+            }
+            .set(bodyColumn, body)
+            .set(lastModifiedColumn, timestamp)
+            .set(modifiedByColumn, user)
+            .execute()
+          ctx.insertInto(accountHistoryTable)
+            .set(idColumn, name)
+            .set(typeColumn, typeName)
+            .set(bodyColumn, body)
+            .set(lastModifiedColumn, timestamp)
+            .set(versionColumn, findLatestVersion(name))
+            .execute()
+        }
+      } catch (e: DataAccessException) {
+        throw SqlAccountDefinitionException("Cannot save account with definition $body", e)
+      }
+      // TODO(jvz): CredentialsDefinitionNotifier::definitionChanged for https://github.com/spinnaker/kork/pull/958
     }
   }
 
   override fun update(definition: CredentialsDefinition) {
     withPool(poolName) {
-      jooq.transactional { ctx ->
-        val timestamp = clock.millis()
-        val user = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous")
-        val body = JSON.valueOf(mapper.serialize(definition))
-        ctx.update(accountsTable)
-          .set(bodyColumn, body)
-          .set(lastModifiedColumn, timestamp)
-          .set(modifiedByColumn, user)
-          .where(idColumn.eq(definition.name))
-          .execute()
-        ctx.insertInto(accountHistoryTable)
-          .set(idColumn, definition.name)
-          .set(typeColumn, AccountDefinitionMapper.getJsonTypeName(definition.javaClass))
-          .set(bodyColumn, body)
-          .set(lastModifiedColumn, timestamp)
-          .set(versionColumn, findLatestVersion(definition.name))
-          .execute()
+      val name = definition.name
+      val typeName = getCredentialsType(definition)
+      val timestamp = clock.millis()
+      val user = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous")
+      val body = JSON.valueOf(mapper.serialize(definition))
+      try {
+        jooq.transactional { ctx ->
+          val rows = ctx.update(accountsTable)
+            .set(bodyColumn, body)
+            .set(lastModifiedColumn, timestamp)
+            .set(modifiedByColumn, user)
+            .where(idColumn.eq(name))
+            .execute()
+          if (rows != 1) {
+            throw NotFoundException("No account found with name $name")
+          }
+          ctx.insertInto(accountHistoryTable)
+            .set(idColumn, name)
+            .set(typeColumn, typeName)
+            .set(bodyColumn, body)
+            .set(lastModifiedColumn, timestamp)
+            .set(versionColumn, findLatestVersion(name))
+            .execute()
+        }
+      } catch (e: DataAccessException) {
+        throw SqlAccountDefinitionException("Cannot update account with definition $body", e)
       }
+      // TODO(jvz): CredentialsDefinitionNotifier::definitionChanged for https://github.com/spinnaker/kork/pull/958
     }
   }
 
   override fun delete(name: String) {
     withPool(poolName) {
-      jooq.transactional { ctx ->
-        ctx.insertInto(accountHistoryTable)
-          .set(idColumn, name)
-          .set(deletedColumn, true)
-          .set(lastModifiedColumn, clock.millis())
-          .set(versionColumn, findLatestVersion(name))
-          .execute()
-        ctx.deleteFrom(accountsTable)
+      val typeName = jooq.read { ctx ->
+        ctx.select(typeColumn)
+          .from(accountsTable)
           .where(idColumn.eq(name))
-          .execute()
+          .fetchOne(typeColumn)
+      } ?: throw NotFoundException("No account found with name $name")
+      try {
+        jooq.transactional { ctx ->
+          ctx.insertInto(accountHistoryTable)
+            .set(idColumn, name)
+            .set(deletedColumn, true)
+            .set(lastModifiedColumn, clock.millis())
+            .set(versionColumn, findLatestVersion(name))
+            .execute()
+          ctx.deleteFrom(accountsTable)
+            .where(idColumn.eq(name))
+            .execute()
+        }
+      } catch (e: DataAccessException) {
+        throw SqlAccountDefinitionException("Cannot delete account with name $name", e)
       }
+      // TODO(jvz): CredentialsDefinitionNotifier::definitionRemoved for https://github.com/spinnaker/kork/pull/958
     }
   }
 

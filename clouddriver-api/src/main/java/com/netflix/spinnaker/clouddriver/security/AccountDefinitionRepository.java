@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.clouddriver.security;
 
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinition;
-import com.netflix.spinnaker.kork.annotations.Alpha;
+import com.netflix.spinnaker.kork.annotations.Beta;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import java.util.List;
 import javax.annotation.Nullable;
 
 /** Provides CRUD persistence operations for account {@link CredentialsDefinition} instances. */
-@Alpha
+@Beta
 @NonnullByDefault
 public interface AccountDefinitionRepository {
   /**
@@ -62,17 +62,28 @@ public interface AccountDefinitionRepository {
 
   /**
    * Creates a new account definition using the provided data. Secrets should use {@code
-   * SecretEngine} encrypted URIs (e.g., {@code
-   * encrypted:secrets-manager!r:us-west-2!s:my-account-credentials}) when the underlying storage
+   * UserSecretReference} encrypted URIs (e.g., {@code
+   * secret://secrets-manager?r=us-west-2&s=my-account-credentials}) when the underlying storage
    * provider does not support row-level encryption or equivalent security features. Encrypted URIs
    * will only be decrypted when loading account definitions, not when storing them. Note that
    * account definitions correspond to the JSON representation of the underlying {@link
-   * CredentialsDefinition} object along with a JSON type discriminator field with the key
-   * {@code @type} and value of the corresponding {@code @JsonTypeName} annotation.
+   * CredentialsDefinition} object along with a JSON type discriminator field with the key {@code
+   * type} and value of the corresponding {@code @JsonTypeName} annotation. Note that in addition to
+   * user secret URIs, traditional {@code EncryptedSecret} URIs (like {@code
+   * encrypted:secrets-manager!r:us-west-2!s:my-account-credentials}) are also supported when
+   * Clouddriver is configured with global secret engines.
    *
    * @param definition account definition to store as a new account
    */
   void create(CredentialsDefinition definition);
+
+  /**
+   * Creates or updates an account definition using the provided data. This is also known as an
+   * upsert operation. See {@link #create(CredentialsDefinition)} for more details.
+   *
+   * @param definition account definition to save
+   */
+  void save(CredentialsDefinition definition);
 
   /**
    * Updates an existing account definition using the provided data. See details in {@link
@@ -91,8 +102,8 @@ public interface AccountDefinitionRepository {
   void delete(String name);
 
   /**
-   * Looks up the revision history of an account given its name. Keys correspond to ascending
-   * version numbers for each account definition update.
+   * Looks up the revision history of an account given its name. Revisions are sorted by latest
+   * version first.
    *
    * @param name account name to look up history for
    * @return history of account updates for the given account name

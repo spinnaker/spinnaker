@@ -18,7 +18,8 @@ package com.netflix.spinnaker.clouddriver.aws.security.config;
 
 import static lombok.EqualsAndHashCode.Include;
 
-import com.netflix.spinnaker.credentials.definition.CredentialsDefinition;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.netflix.spinnaker.clouddriver.security.AccessControlledAccountDefinition;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import java.util.Collections;
 import java.util.Comparator;
@@ -46,7 +47,8 @@ import lombok.EqualsAndHashCode;
 public class AccountsConfiguration {
 
   @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-  public static class Account implements CredentialsDefinition {
+  @JsonTypeName("aws")
+  public static class Account implements AccessControlledAccountDefinition {
     @Include private String name;
     @Include private String environment;
     @Include private String accountType;

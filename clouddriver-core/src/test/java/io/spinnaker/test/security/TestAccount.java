@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.netflix.spinnaker.credentials.definition.CredentialsDefinition;
+import com.netflix.spinnaker.clouddriver.security.AccessControlledAccountDefinition;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import java.util.HashMap;
@@ -29,7 +29,7 @@ import java.util.Objects;
 
 @JsonTypeName("test")
 @NonnullByDefault
-public class TestAccount implements CredentialsDefinition {
+public class TestAccount implements AccessControlledAccountDefinition {
   private final Permissions.Builder permissions = new Permissions.Builder();
   private final Map<String, Object> data = new HashMap<>();
 

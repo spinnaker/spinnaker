@@ -13,22 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.netflix.spinnaker.clouddriver.jackson;
 
+import com.fasterxml.jackson.databind.jsontype.NamedType;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.netflix.spinnaker.clouddriver.jackson.mixins.CredentialsDefinitionMixin;
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinition;
+import java.util.List;
 
 /**
  * Jackson module to register {@link CredentialsDefinition} type discriminators for the provided
- * account definition types.
+ * account definition types. Type discriminators are determined by the presence of a
+ * {@code @JsonTypeName} annotation. Plugins should export their account definition types via {@link
+ * com.netflix.spinnaker.clouddriver.security.AccountDefinitionTypeProvider} beans.
+ *
+ * @see
+ *     com.netflix.spinnaker.clouddriver.config.AccountDefinitionConfiguration#accountDefinitionModule(List)
  */
 public class AccountDefinitionModule extends SimpleModule {
 
-  private final Class<? extends CredentialsDefinition>[] accountDefinitionTypes;
+  private final NamedType[] accountDefinitionTypes;
 
-  public AccountDefinitionModule(Class<? extends CredentialsDefinition>[] accountDefinitionTypes) {
+  public AccountDefinitionModule(NamedType... accountDefinitionTypes) {
     super("Clouddriver Account Definition API");
     this.accountDefinitionTypes = accountDefinitionTypes;
   }

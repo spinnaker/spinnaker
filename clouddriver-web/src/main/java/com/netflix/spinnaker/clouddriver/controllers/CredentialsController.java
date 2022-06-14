@@ -24,8 +24,9 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.clouddriver.security.AccountDefinitionRepository;
 import com.netflix.spinnaker.clouddriver.security.AccountDefinitionService;
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinition;
-import com.netflix.spinnaker.kork.annotations.Alpha;
+import com.netflix.spinnaker.kork.annotations.Beta;
 import com.netflix.spinnaker.kork.exceptions.ConfigurationException;
+import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.util.List;
 import java.util.Map;
@@ -114,7 +115,7 @@ public class CredentialsController {
   }
 
   @GetMapping("/type/{accountType}")
-  @Alpha
+  @Beta
   public List<? extends CredentialsDefinition> listAccountsByType(
       @PathVariable String accountType,
       @RequestParam OptionalInt limit,
@@ -125,28 +126,43 @@ public class CredentialsController {
   }
 
   @PostMapping
-  @Alpha
+  @Beta
   public CredentialsDefinition createAccount(@RequestBody CredentialsDefinition definition) {
     validateAccountStorageEnabled();
     return accountDefinitionService.createAccount(definition);
   }
 
   @PutMapping
-  @Alpha
-  public CredentialsDefinition updateAccount(@RequestBody CredentialsDefinition definition) {
+  @Beta
+  public CredentialsDefinition saveAccount(@RequestBody CredentialsDefinition definition) {
     validateAccountStorageEnabled();
+    return accountDefinitionService.saveAccount(definition);
+  }
+
+  @PutMapping("/{accountName}")
+  @Beta
+  public CredentialsDefinition updateAccount(
+      @RequestBody CredentialsDefinition definition, @PathVariable String accountName) {
+    validateAccountStorageEnabled();
+    String name = definition.getName();
+    if (!accountName.equals(name)) {
+      throw new InvalidRequestException(
+          String.format(
+              "Mismatched account names. URI value: %s. Request body value: %s.",
+              accountName, name));
+    }
     return accountDefinitionService.updateAccount(definition);
   }
 
   @DeleteMapping("/{accountName}")
-  @Alpha
+  @Beta
   public void deleteAccount(@PathVariable String accountName) {
     validateAccountStorageEnabled();
     accountDefinitionService.deleteAccount(accountName);
   }
 
   @GetMapping("/{accountName}/history")
-  @Alpha
+  @Beta
   public List<AccountDefinitionRepository.Revision> getAccountHistory(
       @PathVariable String accountName) {
     validateAccountStorageEnabled();
