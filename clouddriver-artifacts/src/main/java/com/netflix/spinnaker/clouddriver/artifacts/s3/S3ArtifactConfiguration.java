@@ -35,7 +35,9 @@ class S3ArtifactConfiguration {
 
   @Bean
   public CredentialsTypeProperties<S3ArtifactCredentials, S3ArtifactAccount>
-      s3CredentialsProperties(Optional<S3ArtifactValidator> s3ArtifactValidator) {
+      s3CredentialsProperties(
+          Optional<S3ArtifactValidator> s3ArtifactValidator,
+          S3ArtifactProviderProperties s3ArtifactProviderProperties) {
     return CredentialsTypeProperties.<S3ArtifactCredentials, S3ArtifactAccount>builder()
         .type(S3ArtifactCredentials.CREDENTIALS_TYPE)
         .credentialsClass(S3ArtifactCredentials.class)
@@ -44,7 +46,8 @@ class S3ArtifactConfiguration {
         .credentialsParser(
             a -> {
               try {
-                return new S3ArtifactCredentials(a, s3ArtifactValidator);
+                return new S3ArtifactCredentials(
+                    a, s3ArtifactValidator, s3ArtifactProviderProperties);
               } catch (Exception e) {
                 log.warn("Failure instantiating s3 artifact account {}: ", a, e);
                 return null;

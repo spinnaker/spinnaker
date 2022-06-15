@@ -50,22 +50,30 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
   private final String awsSecretAccessKey;
   private final String signerOverride;
   private final Optional<S3ArtifactValidator> s3ArtifactValidator;
+  private final S3ArtifactProviderProperties s3ArtifactProviderProperties;
 
   private AmazonS3 amazonS3;
 
   S3ArtifactCredentials(
-      S3ArtifactAccount account, Optional<S3ArtifactValidator> s3ArtifactValidator) {
-    this(account, s3ArtifactValidator, null);
+      S3ArtifactAccount account,
+      Optional<S3ArtifactValidator> s3ArtifactValidator,
+      S3ArtifactProviderProperties s3ArtifactProviderProperties) {
+    this(account, s3ArtifactValidator, null, s3ArtifactProviderProperties);
   }
 
-  S3ArtifactCredentials(S3ArtifactAccount account, @Nullable AmazonS3 amazonS3) {
-    this(account, Optional.empty(), amazonS3);
+  S3ArtifactCredentials(
+      S3ArtifactAccount account,
+      @Nullable AmazonS3 amazonS3,
+      S3ArtifactProviderProperties s3ArtifactProviderProperties) {
+    this(account, Optional.empty(), amazonS3, s3ArtifactProviderProperties);
   }
 
   S3ArtifactCredentials(
       S3ArtifactAccount account,
       Optional<S3ArtifactValidator> s3ArtifactValidator,
-      @Nullable AmazonS3 amazonS3) {
+      @Nullable AmazonS3 amazonS3,
+      S3ArtifactProviderProperties s3ArtifactProviderProperties)
+      throws IllegalArgumentException {
     name = account.getName();
     apiEndpoint = account.getApiEndpoint();
     apiRegion = account.getApiRegion();
@@ -75,6 +83,7 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
     signerOverride = account.getSignerOverride();
     this.s3ArtifactValidator = s3ArtifactValidator;
     this.amazonS3 = amazonS3;
+    this.s3ArtifactProviderProperties = s3ArtifactProviderProperties;
   }
 
   private AmazonS3 getS3Client() {
@@ -83,11 +92,8 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
     }
 
     AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard();
-    if (!signerOverride.isEmpty()) {
-      ClientConfiguration configuration = PredefinedClientConfigurations.defaultConfig();
-      configuration.setSignerOverride(signerOverride);
-      builder.setClientConfiguration(configuration);
-    }
+    builder.setClientConfiguration(getClientConfiguration());
+
     if (!apiEndpoint.isEmpty()) {
       AwsClientBuilder.EndpointConfiguration endpoint =
           new AwsClientBuilder.EndpointConfiguration(apiEndpoint, apiRegion);
@@ -151,5 +157,43 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
   @Override
   public String getType() {
     return CREDENTIALS_TYPE;
+  }
+
+  private ClientConfiguration getClientConfiguration() {
+    ClientConfiguration configuration =
+        configuration = PredefinedClientConfigurations.defaultConfig();
+
+    if (!signerOverride.isEmpty()) {
+      configuration.setSignerOverride(signerOverride);
+    }
+
+    if (s3ArtifactProviderProperties.getClientExecutionTimeout() != null) {
+      configuration.setClientExecutionTimeout(
+          s3ArtifactProviderProperties.getClientExecutionTimeout());
+    }
+    if (s3ArtifactProviderProperties.getConnectionMaxIdleMillis() != null) {
+      configuration.setConnectionMaxIdleMillis(
+          s3ArtifactProviderProperties.getConnectionMaxIdleMillis());
+    }
+    if (s3ArtifactProviderProperties.getConnectionTimeout() != null) {
+      configuration.setConnectionTimeout(s3ArtifactProviderProperties.getConnectionTimeout());
+    }
+    if (s3ArtifactProviderProperties.getConnectionTTL() != null) {
+      configuration.setConnectionTTL(s3ArtifactProviderProperties.getConnectionTTL());
+    }
+    if (s3ArtifactProviderProperties.getMaxConnections() != null) {
+      configuration.setMaxConnections(s3ArtifactProviderProperties.getMaxConnections());
+    }
+    if (s3ArtifactProviderProperties.getRequestTimeout() != null) {
+      configuration.setRequestTimeout(s3ArtifactProviderProperties.getRequestTimeout());
+    }
+    if (s3ArtifactProviderProperties.getSocketTimeout() != null) {
+      configuration.setSocketTimeout(s3ArtifactProviderProperties.getSocketTimeout());
+    }
+    if (s3ArtifactProviderProperties.getValidateAfterInactivityMillis() != null) {
+      configuration.setValidateAfterInactivityMillis(
+          s3ArtifactProviderProperties.getValidateAfterInactivityMillis());
+    }
+    return configuration;
   }
 }

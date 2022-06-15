@@ -27,4 +27,55 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 final class S3ArtifactProviderProperties implements ArtifactProvider<S3ArtifactAccount> {
   private boolean enabled;
   private List<S3ArtifactAccount> accounts = new ArrayList<>();
+
+  /**
+   * See
+   * https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/ClientConfiguration.html#setClientExecutionTimeout-int-
+   */
+  private Integer clientExecutionTimeout;
+
+  /**
+   * See
+   * https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/ClientConfiguration.html#setConnectionMaxIdleMillis-long-
+   */
+  private Long connectionMaxIdleMillis;
+
+  /**
+   * See
+   * https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/ClientConfiguration.html#setConnectionTimeout-int-
+   */
+  private Integer connectionTimeout;
+
+  /**
+   * See
+   * https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/ClientConfiguration.html#setConnectionTTL-long-
+   * The units are milliseconds.
+   */
+  private Long connectionTTL;
+
+  /**
+   * See
+   * https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/ClientConfiguration.html#setMaxConnections-int-
+   */
+  private Integer maxConnections;
+
+  /**
+   * See
+   * https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/ClientConfiguration.html#setRequestTimeout-int-
+   * The units are milliseconds.
+   */
+  private Integer requestTimeout;
+
+  /**
+   * See
+   * https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/ClientConfiguration.html#setSocketTimeout-int-
+   * The units are milliseconds.
+   */
+  private Integer socketTimeout;
+
+  /**
+   * See
+   * https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/ClientConfiguration.html#setValidateAfterInactivityMillis-int-
+   */
+  private Integer validateAfterInactivityMillis;
 }
