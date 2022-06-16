@@ -26,7 +26,7 @@ dependencies {
   implementation "com.squareup.okhttp:okhttp"
   implementation "com.squareup.retrofit:retrofit"
   implementation "commons-io:commons-io"
-  implementation "org.apache.commons:commons-compress:1.20"
+  implementation "org.apache.commons:commons-compress:1.21"
   implementation "org.codehaus.groovy:groovy-all"
   implementation "org.eclipse.jgit:org.eclipse.jgit:5.7.0.202003110725-r"
   implementation "org.springframework.boot:spring-boot-actuator"
