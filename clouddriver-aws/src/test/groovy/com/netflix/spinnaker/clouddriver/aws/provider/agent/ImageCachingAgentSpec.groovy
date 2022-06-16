@@ -77,6 +77,10 @@ class ImageCachingAgentSpec extends Specification {
   }
 
   def getAgent(boolean publicImages, boolean eddaEnabled) {
+    getAgent(publicImages, eddaEnabled, List.of())
+  }
+
+  def getAgent(boolean publicImages, boolean eddaEnabled, List<String> imageStates) {
     def creds = Stub(NetflixAmazonCredentials) {
       getName() >> accountName
       it.getAccountId() >> accountId
@@ -84,6 +88,7 @@ class ImageCachingAgentSpec extends Specification {
     }
     def dcs = Stub(DynamicConfigService) {
       isEnabled(_ as String, true) >> true
+      getConfig(List, "aws.defaults.image-states", List.of()) >> imageStates
     }
     def acp = Stub(AmazonClientProvider) {
       getAmazonEC2(creds, region, _) >> ec2
@@ -121,6 +126,23 @@ class ImageCachingAgentSpec extends Specification {
     imageRelationships.size() == 2
     imageRelationships.containsAll(Keys.getImageKey('ami-1', accountName, region),
                                    Keys.getImageKey('ami-2', accountName, region))
+  }
+
+  void "include the filter corresponding to the configured image states"() {
+    given:
+    // arbitrary values for publicImages and eddaEnabled, but the expected
+    // request corresponds to them
+    def imageStates = ['available', 'failed']
+    def agent = getAgent(false, false, imageStates)
+    def request = new DescribeImagesRequest().withFilters(new Filter('is-public', ['false']), new Filter('state', imageStates))
+
+    when:
+    def result = agent.loadData(providerCache)
+
+    then:
+    // arbitrarily choose the image to return
+    1 * ec2.describeImages(request) >> new DescribeImagesResult(images: [privateImage])
+    0 * _
   }
 
   void "should include only private images"() {

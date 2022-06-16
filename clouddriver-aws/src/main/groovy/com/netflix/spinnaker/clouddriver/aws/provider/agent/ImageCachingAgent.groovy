@@ -133,6 +133,12 @@ class ImageCachingAgent implements CachingAgent, AccountAware, DriftMetric, Cust
       request.withFilters(new Filter('is-public', ['false']))
     }
 
+    List<String> imageStates = dynamicConfigService.getConfig(List, "aws.defaults.image-states", List.of());
+    if (!imageStates.isEmpty()) {
+      log.debug("using image state filter '${imageStates}'")
+      request.withFilters(new Filter('state', imageStates))
+    }
+
     List<Image> images = amazonEC2.describeImages(request).images
     Long start = null
     if (account.eddaEnabled) {
