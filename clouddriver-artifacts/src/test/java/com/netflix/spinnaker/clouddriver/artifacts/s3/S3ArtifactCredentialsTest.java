@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.s3;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.eq;
@@ -27,7 +28,15 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.S3Object;
+import com.netflix.spectator.api.Counter;
+import com.netflix.spectator.api.DefaultRegistry;
+import com.netflix.spectator.api.Functions;
+import com.netflix.spectator.api.Gauge;
+import com.netflix.spectator.api.Registry;
+import com.netflix.spectator.api.Tag;
+import com.netflix.spectator.aws.SpectatorRequestMetricCollector;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.aws.AwsComponents;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,13 +44,19 @@ import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.utility.DockerImageName;
 
-@RunWith(JUnitPlatform.class)
+@ExtendWith(SpringExtension.class)
+// Include AwsComponents for the SpectatorMetricCollector bean
+@ContextConfiguration(
+    classes = {AwsComponents.class, S3ArtifactCredentialsTest.TestConfiguration.class})
 class S3ArtifactCredentialsTest {
 
   private static DockerImageName localstackImage =
@@ -71,6 +86,8 @@ class S3ArtifactCredentialsTest {
   private final S3ArtifactProviderProperties s3ArtifactProviderProperties =
       new S3ArtifactProviderProperties();
 
+  @Autowired Registry registry;
+
   @BeforeAll
   private static void setupOnce() {
     localstack.start();
@@ -78,6 +95,8 @@ class S3ArtifactCredentialsTest {
         AmazonS3ClientBuilder.standard()
             .withEndpointConfiguration(localstack.getEndpointConfiguration(S3))
             .withCredentials(localstack.getDefaultCredentialsProvider())
+            .withRequestHandlers(
+                new S3ArtifactCredentials.S3ArtifactRequestHandler(account.getName()))
             .build();
 
     // Create a bucket so there's a place to retrieve from
@@ -95,6 +114,28 @@ class S3ArtifactCredentialsTest {
       String actual = new String(artifactStream.readAllBytes(), StandardCharsets.UTF_8);
       assertEquals(CONTENTS, actual);
     }
+
+    // Verify that metrics were reported
+    assertThat(registry.counters()).hasSize(1);
+    Counter counter = registry.counters().findFirst().orElseThrow(AssertionError::new);
+    assertThat(counter.id().name()).isEqualTo("aws.request.requestCount");
+    assertThat(counter.id().tags()).contains(Tag.of("serviceName", "Amazon S3"));
+    assertThat(counter.actualCount()).isEqualTo(1);
+    assertThat(registry.gauges()).hasSize(3);
+
+    // Verify that the tag that comes from the request handler is present on an
+    // arbitrary gauge
+    Gauge gauge =
+        registry
+            .gauges()
+            .filter(Functions.nameEquals("aws.request.httpClientPoolAvailableCount"))
+            .findFirst()
+            .orElseThrow(AssertionError::new);
+    assertThat(gauge.id().tags())
+        .contains(
+            Tag.of(
+                SpectatorRequestMetricCollector.DEFAULT_HANDLER_CONTEXT_KEY.getName(),
+                account.getName()));
   }
 
   @Test
@@ -155,6 +196,13 @@ class S3ArtifactCredentialsTest {
     @Override
     public InputStream validate(AmazonS3 amazonS3, S3Object s3obj) {
       return s3obj.getObjectContent();
+    }
+  }
+
+  static class TestConfiguration {
+    @Bean
+    Registry registry() {
+      return new DefaultRegistry();
     }
   }
 }

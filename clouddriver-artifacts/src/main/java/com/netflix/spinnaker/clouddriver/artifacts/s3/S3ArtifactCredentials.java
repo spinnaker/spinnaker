@@ -18,14 +18,17 @@ package com.netflix.spinnaker.clouddriver.artifacts.s3;
 
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.PredefinedClientConfigurations;
+import com.amazonaws.Request;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.handlers.RequestHandler2;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.S3Object;
 import com.google.common.collect.ImmutableList;
+import com.netflix.spectator.aws.SpectatorRequestMetricCollector;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
@@ -51,6 +54,7 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
   private final String signerOverride;
   private final Optional<S3ArtifactValidator> s3ArtifactValidator;
   private final S3ArtifactProviderProperties s3ArtifactProviderProperties;
+  private final S3ArtifactRequestHandler s3ArtifactRequestHandler;
 
   private AmazonS3 amazonS3;
 
@@ -84,6 +88,7 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
     this.s3ArtifactValidator = s3ArtifactValidator;
     this.amazonS3 = amazonS3;
     this.s3ArtifactProviderProperties = s3ArtifactProviderProperties;
+    s3ArtifactRequestHandler = new S3ArtifactRequestHandler(name);
   }
 
   private AmazonS3 getS3Client() {
@@ -93,6 +98,7 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
 
     AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard();
     builder.setClientConfiguration(getClientConfiguration());
+    builder.setRequestHandlers(s3ArtifactRequestHandler);
 
     if (!apiEndpoint.isEmpty()) {
       AwsClientBuilder.EndpointConfiguration endpoint =
@@ -195,5 +201,26 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
           s3ArtifactProviderProperties.getValidateAfterInactivityMillis());
     }
     return configuration;
+  }
+
+  @NonnullByDefault
+  static class S3ArtifactRequestHandler extends RequestHandler2 {
+
+    private final String value;
+
+    S3ArtifactRequestHandler(String value) {
+      this.value = value;
+    }
+
+    @Override
+    public void beforeRequest(Request<?> request) {
+      // To get connection pool metrics, differentiate our client from others.
+      // Use SpectatorRequestMetricCollector.DEFAULT_HANDLER_CONTEXT_KEY to
+      // match what SpectatorRequestMetricCollector uses.  See
+      // https://github.com/Netflix/spectator/blob/v1.0.6/spectator-ext-aws/src/main/java/com/netflix/spectator/aws/SpectatorRequestMetricCollector.java#L108
+      // and
+      // https://github.com/Netflix/spectator/blob/v1.0.6/spectator-ext-aws/src/main/java/com/netflix/spectator/aws/SpectatorRequestMetricCollector.java#L177-L186.
+      request.addHandlerContext(SpectatorRequestMetricCollector.DEFAULT_HANDLER_CONTEXT_KEY, value);
+    }
   }
 }
