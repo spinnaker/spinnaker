@@ -27,6 +27,7 @@ import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor;
 import java.util.List;
 import javax.servlet.Filter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -54,7 +55,9 @@ public class WebConfig extends WebMvcConfigurerAdapter {
   private final AsyncTaskExecutor asyncTaskExecutor;
 
   @Autowired
-  public WebConfig(Registry registry, AsyncTaskExecutor asyncTaskExecutor) {
+  public WebConfig(
+      Registry registry,
+      @Qualifier("threadPoolTaskScheduler") AsyncTaskExecutor asyncTaskExecutor) {
     this.registry = registry;
     this.asyncTaskExecutor = asyncTaskExecutor;
   }
