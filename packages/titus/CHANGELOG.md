@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.5.26](https://github.com/spinnaker/deck/compare/@spinnaker/titus@0.5.25...@spinnaker/titus@0.5.26) (2022-06-22)
+
+**Note:** Version bump only for package @spinnaker/titus
+
+
+
+
+
 ## [0.5.25](https://github.com/spinnaker/deck/compare/@spinnaker/titus@0.5.24...@spinnaker/titus@0.5.25) (2022-05-05)
 
 **Note:** Version bump only for package @spinnaker/titus

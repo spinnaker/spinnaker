@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.20.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.19.4...@spinnaker/core@0.20.0) (2022-06-22)
+
+
+### Features
+
+* **core:** Synchronize the verticalNavExpandedAtom using an atom effect ([#9859](https://github.com/spinnaker/deck/issues/9859)) ([a81f4ab](https://github.com/spinnaker/deck/commit/a81f4ab9bbcf86d31f31f52390740db62a8e7e5d))
+
+
+
+
+
 ## [0.19.4](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.19.3...@spinnaker/core@0.19.4) (2022-05-05)
 
 
