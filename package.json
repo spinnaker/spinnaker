@@ -39,7 +39,7 @@
     "human-readable-ids": "^1.0.4",
     "lodash": "4.17.21",
     "lodash-decorators": "4.5.0",
-    "lodash-es": "4.17.15",
+    "lodash-es": "4.17.21",
     "memoize-one": "^4.0.2",
     "ngimport": "^0.6.0",
     "react": "~16.14.0",
