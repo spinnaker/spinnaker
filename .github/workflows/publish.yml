@@ -10,8 +10,13 @@ on:
 env:
   NODE_VERSION: 12.16.0
 
+permissions:
+  contents: read
+
 jobs:
   publish:
+    permissions:
+      contents: none
     runs-on: ubuntu-latest
 
     steps:
