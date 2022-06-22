@@ -19,6 +19,7 @@ export class BakeCloudFoundryManifestConfigForm extends React.Component<IFormikS
     ArtifactTypePatterns.GITLAB_FILE,
     ArtifactTypePatterns.S3_OBJECT,
     ArtifactTypePatterns.HTTP_FILE,
+    ArtifactTypePatterns.ORACLE_OBJECT,
   );
 
   public componentDidMount() {

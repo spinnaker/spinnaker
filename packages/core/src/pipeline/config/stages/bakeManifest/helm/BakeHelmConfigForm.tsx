@@ -34,6 +34,7 @@ export class BakeHelmConfigForm extends React.Component<IFormikStageConfigInject
     ArtifactTypePatterns.S3_OBJECT,
     ArtifactTypePatterns.HELM_CHART,
     ArtifactTypePatterns.HTTP_FILE,
+    ArtifactTypePatterns.ORACLE_OBJECT,
   );
 
   public componentDidMount() {

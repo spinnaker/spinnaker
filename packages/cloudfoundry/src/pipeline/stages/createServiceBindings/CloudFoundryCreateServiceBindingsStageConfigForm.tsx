@@ -35,6 +35,7 @@ export class CloudFoundryCreateServiceBindingsStageConfigForm extends React.Comp
     ArtifactTypePatterns.GITLAB_FILE,
     ArtifactTypePatterns.S3_OBJECT,
     ArtifactTypePatterns.HTTP_FILE,
+    ArtifactTypePatterns.ORACLE_OBJECT,
   );
 
   private destroy$ = new Subject();
