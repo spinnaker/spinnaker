@@ -7,7 +7,7 @@ import { OrchestratedItemRunningTime } from './OrchestratedItemRunningTime';
 import type { Application } from '../../../application/application.model';
 import { SETTINGS } from '../../../config/settings';
 import { ExecutionBarLabel } from '../../config/stages/common/ExecutionBarLabel';
-import type { IExecution, IExecutionStageSummary } from '../../../domain';
+import type { IExecution, IExecutionStageSummary, IStage } from '../../../domain';
 import { logger } from '../../../utils';
 import { duration } from '../../../utils/timeFormatters';
 
@@ -94,7 +94,19 @@ export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExe
 
   public render() {
     const { stage, application, execution, active, previousStageActive, width } = this.props;
-    const stageType = (stage.activeStageType || stage.type).toLowerCase(); // support groups
+    let stageType = (stage.activeStageType || stage.type).toLowerCase(); // support groups
+    stage.stages.forEach((childStage: IStage) => {
+      if (childStage.type == 'pipeline') {
+        const childPipeline = application.executions.data.find((p: any) => p.id === childStage.context.executionId);
+        if (childPipeline != undefined) {
+          childPipeline.stages.forEach((stageToCheck: IStage) => {
+            if (stageToCheck.type == 'manualJudgment' && stageToCheck.status == 'RUNNING') {
+              stageType = 'manualjudgment';
+            }
+          });
+        }
+      }
+    });
     const pipelineStatus = this.stageStatus(stage.status.toLowerCase());
     const markerClassName = [
       stage.type !== 'group' ? 'clickable' : '',
