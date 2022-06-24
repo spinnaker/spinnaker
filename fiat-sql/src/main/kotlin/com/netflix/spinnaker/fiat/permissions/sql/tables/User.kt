@@ -54,6 +54,7 @@ class UserTable(
 
     val ID: TableField<UserTableRecord, String> = createField(DSL.name("id"), SQLDataType.VARCHAR(255).nullable(false), this, "")
     val ADMIN: TableField<UserTableRecord, Boolean> = createField(DSL.name("admin"), SQLDataType.BOOLEAN.nullable(false), this, "")
+    val ACCOUNT_MANAGER: TableField<UserTableRecord, Boolean> = createField(DSL.name("account_manager"), SQLDataType.BOOLEAN.nullable(false), this, "")
     val UPDATED_AT: TableField<UserTableRecord, Long> = createField(DSL.name("updated_at"), SQLDataType.BIGINT.nullable(false), this, "")
 
     private constructor(alias: Name, aliased: Table<UserTableRecord>?): this(alias, null, null, aliased, null)

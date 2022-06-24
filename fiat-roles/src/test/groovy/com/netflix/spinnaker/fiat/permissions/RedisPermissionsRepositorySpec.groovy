@@ -260,7 +260,8 @@ class RedisPermissionsRepositorySpec extends Specification {
                  .setAccounts([account1] as Set)
                  .setApplications([app1] as Set)
                  .setServiceAccounts([serviceAccount1] as Set)
-                 .setRoles([role1] as Set))
+                 .setRoles([role1] as Set)
+                 .setAccountManager(true))
 
     then:
     jedis.smembers("unittests:users") == ["testuser"] as Set
@@ -274,7 +275,8 @@ class RedisPermissionsRepositorySpec extends Specification {
         '{"serviceAccount":{"name":"serviceAccount","memberOf":["role1"]}}'
     getCompressed("unittests:permissions-v2:testuser:roles") ==
         '{"role1":{"name":"role1"}}'
-    !jedis.sismember ("unittests:permissions:admin","testUser")
+    !jedis.sismember ("unittests:permissions:admin","testuser")
+    jedis.sismember("unittests:accountmanagers", "testuser")
   }
 
   def "should remove permission that has been revoked"() {

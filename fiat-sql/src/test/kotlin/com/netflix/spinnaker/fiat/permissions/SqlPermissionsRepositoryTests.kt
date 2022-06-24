@@ -118,6 +118,7 @@ internal object SqlPermissionsRepositoryTests : JUnit5Minutests {
                     .setBuildServices(setOf(buildService1))
                     .setServiceAccounts(setOf(serviceAccount1))
                     .setRoles(setOf(role1))
+                    .setAccountManager(true)
 
                 // verify the user is not found initially
                 var userPermission = sqlPermissionsRepository.get(userPermission1.id)
@@ -131,6 +132,7 @@ internal object SqlPermissionsRepositoryTests : JUnit5Minutests {
                 expectThat(actual.isPresent).isTrue()
                 expectThat(actual.get().id).isEqualTo(userPermission1.id)
                 expectThat(actual.get().isAdmin).isFalse()
+                expectThat(actual.get().isAccountManager).isTrue()
                 expectThat(actual.get().accounts).containsExactly(account1)
                 expectThat(actual.get().applications).containsExactly(app1)
                 expectThat(actual.get().buildServices).containsExactly(buildService1)

@@ -11,3 +11,6 @@ databaseChangeLog:
   - include:
       file: changelog/20210324-resource-body-hash.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20220615-account-manager-flag.yml
+      relativeToChangelogFile: true

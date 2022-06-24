@@ -215,6 +215,7 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
                   .setId(userId)
                   .setRoles(userRoles)
                   .setAdmin(hasAdminRole(userRoles))
+                  .setAccountManager(hasAccountManagerRole(userRoles))
                   .addResources(getResources(userId, userRoles, hasAdminRole(userRoles)));
             })
         .collect(Collectors.toMap(UserPermission::getId, Function.identity()));

@@ -1,0 +1,20 @@
+databaseChangeLog:
+  - changeSet:
+      id: account-manager-flag
+      author: msicker
+      changes:
+        - addColumn:
+            tableName: fiat_user
+            columns:
+              - column:
+                  name: account_manager
+                  type: bool
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+      rollback:
+        - dropColumn:
+            tableName: fiat_user
+            columns:
+              - column:
+                  name: account_manager
