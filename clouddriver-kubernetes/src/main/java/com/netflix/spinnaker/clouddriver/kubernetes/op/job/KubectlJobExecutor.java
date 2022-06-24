@@ -453,8 +453,14 @@ public class KubectlJobExecutor {
             parseManifestList());
 
     if (status.getResult() != JobResult.Result.SUCCESS) {
-      throw new KubectlException(
-          "Failed to read " + kinds + " from " + namespace + ": " + status.getError());
+      boolean permissionError =
+          org.apache.commons.lang3.StringUtils.containsIgnoreCase(status.getError(), "forbidden");
+      if (permissionError) {
+        log.warn(status.getError());
+      } else {
+        throw new KubectlException(
+            "Failed to read " + kinds + " from " + namespace + ": " + status.getError());
+      }
     }
 
     if (status.getError().contains("No resources found")) {
