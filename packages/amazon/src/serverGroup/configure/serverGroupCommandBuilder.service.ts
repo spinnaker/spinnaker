@@ -65,8 +65,10 @@ angular
     ) {
       function buildNewServerGroupCommand(
         application: Application,
-        defaults: { account?: string; region?: string; subnet?: string; mode?: string } = {},
+        defaults: { account?: string; region?: string; subnet?: string; mode?: string },
       ) {
+        defaults = defaults || {};
+
         const credentialsLoader = AccountService.getCredentialsKeyedByAccount('aws');
 
         const defaultCredentials =
