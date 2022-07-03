@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.12.12](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.12.11...@spinnaker/amazon@0.12.12) (2022-07-01)
+
+
+### Bug Fixes
+
+* **aws:** Fix Create Server Group button ([#9865](https://github.com/spinnaker/deck/issues/9865)) ([bd937f9](https://github.com/spinnaker/deck/commit/bd937f9d958f5d28bdd2caababea1193aa26a17f))
+
+
+
+
+
 ## [0.12.11](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.12.10...@spinnaker/amazon@0.12.11) (2022-06-22)
 
 **Note:** Version bump only for package @spinnaker/amazon

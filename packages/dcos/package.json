@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/dcos",
   "license": "Apache-2.0",
-  "version": "0.0.50",
+  "version": "0.0.51",
   "module": "dist/index.js",
   "typings": "dist/index.d.ts",
   "private": true,
@@ -14,8 +14,8 @@
     "lib": "npm run build"
   },
   "dependencies": {
-    "@spinnaker/core": "^0.20.0",
-    "@spinnaker/docker": "^0.0.131",
+    "@spinnaker/core": "^0.20.1",
+    "@spinnaker/docker": "^0.0.132",
     "angular": "1.6.10",
     "lodash": "4.17.21",
     "ngimport": "0.6.1",
