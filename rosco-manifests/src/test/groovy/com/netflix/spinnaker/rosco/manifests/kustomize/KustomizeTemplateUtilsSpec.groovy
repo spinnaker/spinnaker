@@ -1,7 +1,11 @@
 package com.netflix.spinnaker.rosco.manifests.kustomize
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
+import com.netflix.spinnaker.rosco.jobs.BakeRecipe
 import com.netflix.spinnaker.rosco.manifests.ArtifactDownloader
+import com.netflix.spinnaker.rosco.manifests.BakeManifestEnvironment
+import com.netflix.spinnaker.rosco.manifests.BakeManifestRequest
+import com.netflix.spinnaker.rosco.manifests.config.RoscoKustomizeConfigurationProperties
 import com.netflix.spinnaker.rosco.manifests.kustomize.mapping.ConfigMapGenerator
 import com.netflix.spinnaker.rosco.manifests.kustomize.mapping.Kustomization
 import spock.lang.Specification
@@ -13,7 +17,8 @@ class KustomizeTemplateUtilsSpec extends Specification {
         def referenceBase = "https://api.github.com/repos/org/repo/contents/base"
         def artifactDownloader = Mock(ArtifactDownloader)
         def kustomizationFileReader = Mock(KustomizationFileReader)
-        def kustomizationTemplateUtils = new KustomizeTemplateUtils(kustomizationFileReader, artifactDownloader)
+        def kustomizeProperties = Mock(RoscoKustomizeConfigurationProperties)
+        def kustomizationTemplateUtils = new KustomizeTemplateUtils(kustomizationFileReader, artifactDownloader, kustomizeProperties)
         def baseArtifact = Artifact.builder()
                 .name("base/kustomization.yml")
                 .reference(referenceBase + "/kustomization.yml")
@@ -37,7 +42,8 @@ class KustomizeTemplateUtilsSpec extends Specification {
         def referenceBase = "https://api.github.com/repos/org/repo/contents/base"
         def artifactDownloader = Mock(ArtifactDownloader)
         def kustomizationFileReader = Mock(KustomizationFileReader)
-        def kustomizationTemplateUtils = new KustomizeTemplateUtils(kustomizationFileReader, artifactDownloader)
+        def kustomizeProperties = Mock(RoscoKustomizeConfigurationProperties)
+        def kustomizationTemplateUtils = new KustomizeTemplateUtils(kustomizationFileReader, artifactDownloader, kustomizeProperties)
         def baseArtifact = Artifact.builder()
                 .name("base/kustomization.yml")
                 .reference(referenceBase + "/kustomization.yml")
@@ -71,7 +77,8 @@ class KustomizeTemplateUtilsSpec extends Specification {
         def referenceBase = "https://api.github.com/repos/kubernetes-sigs/kustomize/contents"
         def artifactDownloader = Mock(ArtifactDownloader)
         def kustomizationFileReader = Mock(KustomizationFileReader)
-        def kustomizationTemplateUtils = new KustomizeTemplateUtils(kustomizationFileReader, artifactDownloader)
+        def kustomizeProperties = Mock(RoscoKustomizeConfigurationProperties)
+        def kustomizationTemplateUtils = new KustomizeTemplateUtils(kustomizationFileReader, artifactDownloader, kustomizeProperties)
         def baseArtifact = Artifact.builder()
                 .name("examples/ldap/overlays/production/kustomization.yaml")
                 .reference(referenceBase + "/examples/ldap/overlays/production/kustomization.yaml")
@@ -115,7 +122,8 @@ class KustomizeTemplateUtilsSpec extends Specification {
         def referenceBase = "https://api.github.com/repos/kubernetes-sigs/kustomize/contents"
         def artifactDownloader = Mock(ArtifactDownloader)
         def kustomizationFileReader = Mock(KustomizationFileReader)
-        def kustomizationTemplateUtils = new KustomizeTemplateUtils(kustomizationFileReader, artifactDownloader)
+        def kustomizeProperties = Mock(RoscoKustomizeConfigurationProperties)
+        def kustomizationTemplateUtils = new KustomizeTemplateUtils(kustomizationFileReader, artifactDownloader, kustomizeProperties)
         def baseArtifact = Artifact.builder()
                 .name("examples/helloWorld/kustomization.yaml")
                 .reference(referenceBase + "/examples/helloWorld/kustomization.yaml")
@@ -145,7 +153,8 @@ class KustomizeTemplateUtilsSpec extends Specification {
         def referenceBase = "https://api.github.com/repos/kubernetes-sigs/kustomize/contents"
         def artifactDownloader = Mock(ArtifactDownloader)
         def kustomizationFileReader = Mock(KustomizationFileReader)
-        def kustomizationTemplateUtils = new KustomizeTemplateUtils(kustomizationFileReader, artifactDownloader)
+        def kustomizeProperties = Mock(RoscoKustomizeConfigurationProperties)
+        def kustomizationTemplateUtils = new KustomizeTemplateUtils(kustomizationFileReader, artifactDownloader, kustomizeProperties)
         def baseArtifact = Artifact.builder()
                 .name("examples/multibases/kustomization.yaml")
                 .reference(referenceBase + "/examples/multibases/kustomization.yaml")
@@ -182,7 +191,8 @@ class KustomizeTemplateUtilsSpec extends Specification {
 
     def "isFolder checks if a string looks like a folder"() {
         given:
-        def kustomizationTemplateUtils = new KustomizeTemplateUtils(Mock(KustomizationFileReader), Mock(ArtifactDownloader))
+        def kustomizeProperties = Mock(RoscoKustomizeConfigurationProperties)
+        def kustomizationTemplateUtils = new KustomizeTemplateUtils(Mock(KustomizationFileReader), Mock(ArtifactDownloader), kustomizeProperties)
 
         when:
         def isFolder = kustomizationTemplateUtils.isFolder(path)
@@ -196,5 +206,45 @@ class KustomizeTemplateUtilsSpec extends Specification {
         "child"           | true
         "file.file"       | false
         "child/file.file" | false
+    }
+
+    def "buildBakeRecipe selects kustomize executable based on specified version"() {
+        given:
+        def referenceBase = "https://api.github.com/repos/org/repo/contents/base"
+
+        def kustomizationFileReader = Mock(KustomizationFileReader)
+        kustomizationFileReader.getKustomization(_, "kustomization.yml") >> {
+            return new Kustomization(resources: ["deployment.yml", "service.yml"], selfReference: referenceBase + "/kustomization.yml")
+        }
+
+        def artifactDownloader = Mock(ArtifactDownloader)
+        def kustomizeProperties = Mock(RoscoKustomizeConfigurationProperties)
+        def kustomizationTemplateUtils = new KustomizeTemplateUtils(kustomizationFileReader, artifactDownloader, kustomizeProperties)
+        def baseArtifact = Artifact.builder()
+                .name("base/kustomization.yml")
+                .reference(referenceBase + "/kustomization.yml")
+                .artifactAccount("github")
+                .type("github/file")
+                .build()
+
+        def request = new KustomizeBakeManifestRequest()
+        request.inputArtifact = baseArtifact
+        request.overrides = [:]
+
+        when:
+        request.templateRenderer = templateRenderer
+        BakeRecipe recipe = BakeManifestEnvironment.create().withCloseable { env ->
+            kustomizationTemplateUtils.buildBakeRecipe(env, request)
+        }
+
+        then:
+        (0..1) * kustomizeProperties.v3ExecutablePath >> "kustomize"
+        (0..1) * kustomizeProperties.v4ExecutablePath >> "kustomize4"
+        recipe.command[0] == command
+
+        where:
+        templateRenderer                                | command
+        BakeManifestRequest.TemplateRenderer.KUSTOMIZE  | "kustomize"
+        BakeManifestRequest.TemplateRenderer.KUSTOMIZE4 | "kustomize4"
     }
 }

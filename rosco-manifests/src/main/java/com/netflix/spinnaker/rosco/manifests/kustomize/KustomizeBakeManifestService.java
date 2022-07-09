@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.rosco.manifests.kustomize;
 
+import static com.netflix.spinnaker.rosco.manifests.BakeManifestRequest.TemplateRenderer;
+
+import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.rosco.jobs.BakeRecipe;
 import com.netflix.spinnaker.rosco.jobs.JobExecutor;
@@ -30,7 +33,9 @@ public class KustomizeBakeManifestService
     extends BakeManifestService<KustomizeBakeManifestRequest> {
   private final KustomizeTemplateUtils kustomizeTemplateUtils;
 
-  private static final String KUSTOMIZE = "KUSTOMIZE";
+  private static final ImmutableSet<String> supportedTemplates =
+      ImmutableSet.of(
+          TemplateRenderer.KUSTOMIZE.toString(), TemplateRenderer.KUSTOMIZE4.toString());
 
   public KustomizeBakeManifestService(
       KustomizeTemplateUtils kustomizeTemplateUtils, JobExecutor jobExecutor) {
@@ -45,7 +50,7 @@ public class KustomizeBakeManifestService
 
   @Override
   public boolean handles(String type) {
-    return type.toUpperCase().equals(KUSTOMIZE);
+    return supportedTemplates.contains(type.toUpperCase());
   }
 
   public Artifact bake(KustomizeBakeManifestRequest kustomizeBakeManifestRequest)

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.rosco
 import com.netflix.spinnaker.rosco.config.RoscoPackerConfigurationProperties
 import com.netflix.spinnaker.rosco.jobs.config.LocalJobConfig
 import com.netflix.spinnaker.rosco.manifests.config.RoscoHelmConfigurationProperties
+import com.netflix.spinnaker.rosco.manifests.config.RoscoKustomizeConfigurationProperties
 import com.netflix.spinnaker.rosco.providers.alicloud.config.RoscoAliCloudConfiguration
 import com.netflix.spinnaker.rosco.providers.aws.config.RoscoAWSConfiguration
 import com.netflix.spinnaker.rosco.providers.azure.config.RoscoAzureConfiguration
@@ -66,6 +67,7 @@ import javax.servlet.Filter
   RoscoTencentCloudConfiguration,
   RoscoPackerConfigurationProperties,
   RoscoHelmConfigurationProperties,
+  RoscoKustomizeConfigurationProperties,
   LocalJobConfig
 ])
 @EnableAutoConfiguration(exclude = [BatchAutoConfiguration, GroovyTemplateAutoConfiguration])

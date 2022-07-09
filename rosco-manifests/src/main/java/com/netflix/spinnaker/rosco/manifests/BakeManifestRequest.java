@@ -16,6 +16,7 @@ public class BakeManifestRequest {
     HELM2,
     HELM3,
     KUSTOMIZE,
+    KUSTOMIZE4,
     CF;
 
     @JsonCreator

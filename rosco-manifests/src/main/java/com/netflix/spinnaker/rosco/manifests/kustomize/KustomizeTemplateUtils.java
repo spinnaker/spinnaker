@@ -16,11 +16,14 @@
 
 package com.netflix.spinnaker.rosco.manifests.kustomize;
 
+import static com.netflix.spinnaker.rosco.manifests.BakeManifestRequest.TemplateRenderer;
+
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
 import com.netflix.spinnaker.rosco.jobs.BakeRecipe;
 import com.netflix.spinnaker.rosco.manifests.ArtifactDownloader;
 import com.netflix.spinnaker.rosco.manifests.BakeManifestEnvironment;
+import com.netflix.spinnaker.rosco.manifests.config.RoscoKustomizeConfigurationProperties;
 import com.netflix.spinnaker.rosco.manifests.kustomize.mapping.Kustomization;
 import java.io.File;
 import java.io.IOException;
@@ -44,10 +47,15 @@ public class KustomizeTemplateUtils {
   private final KustomizationFileReader kustomizationFileReader;
   private final ArtifactDownloader artifactDownloader;
 
+  private final RoscoKustomizeConfigurationProperties kustomizeConfigurationProperties;
+
   public KustomizeTemplateUtils(
-      KustomizationFileReader kustomizationFileReader, ArtifactDownloader artifactDownloader) {
+      KustomizationFileReader kustomizationFileReader,
+      ArtifactDownloader artifactDownloader,
+      RoscoKustomizeConfigurationProperties kustomizeConfigurationProperties) {
     this.kustomizationFileReader = kustomizationFileReader;
     this.artifactDownloader = artifactDownloader;
+    this.kustomizeConfigurationProperties = kustomizeConfigurationProperties;
   }
 
   public BakeRecipe buildBakeRecipe(
@@ -59,7 +67,7 @@ public class KustomizeTemplateUtils {
       throw new IllegalArgumentException("Exactly one input artifact must be provided to bake.");
     }
 
-    String artifactType = Optional.of(artifact.getType()).orElse("");
+    String artifactType = Optional.ofNullable(artifact.getType()).orElse("");
     if ("git/repo".equals(artifactType)) {
       return buildBakeRecipeFromGitRepo(env, request, artifact);
     } else {
@@ -90,8 +98,10 @@ public class KustomizeTemplateUtils {
       throw new IllegalStateException("Failed to fetch kustomize files: " + e.getMessage(), e);
     }
 
+    String executable = getKustomizeExecutableForRequest(request);
+
     List<String> command = new ArrayList<>();
-    command.add("kustomize");
+    command.add(executable);
     command.add("build");
     command.add(templatePath.getParent().toString());
 
@@ -117,8 +127,10 @@ public class KustomizeTemplateUtils {
 
     env.downloadArtifactTarballAndExtract(artifactDownloader, artifact);
 
+    String executable = getKustomizeExecutableForRequest(request);
+
     List<String> command = new ArrayList<>();
-    command.add("kustomize");
+    command.add(executable);
     command.add("build");
     command.add(env.resolvePath(kustomizeFilePath).getParent().toString());
 
@@ -233,5 +245,12 @@ public class KustomizeTemplateUtils {
 
   private boolean isFolder(String evaluate) {
     return FilenameUtils.getExtension(evaluate) == "";
+  }
+
+  private String getKustomizeExecutableForRequest(KustomizeBakeManifestRequest request) {
+    if (TemplateRenderer.KUSTOMIZE4.equals(request.getTemplateRenderer())) {
+      return kustomizeConfigurationProperties.getV4ExecutablePath();
+    }
+    return kustomizeConfigurationProperties.getV3ExecutablePath();
   }
 }
