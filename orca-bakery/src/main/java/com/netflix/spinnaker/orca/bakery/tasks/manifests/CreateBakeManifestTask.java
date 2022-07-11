@@ -131,6 +131,7 @@ public class CreateBakeManifestTask implements RetryableTask {
                 context, resolvedInputArtifacts, outputArtifactName, overrides);
         break;
       case "KUSTOMIZE":
+      case "KUSTOMIZE4":
         Artifact inputArtifact = resolvedInputArtifacts.get(0);
         request = new KustomizeBakeManifestRequest(context, inputArtifact, outputArtifactName);
         break;
