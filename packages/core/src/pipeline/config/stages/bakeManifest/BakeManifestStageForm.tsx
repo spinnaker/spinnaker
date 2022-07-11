@@ -2,7 +2,7 @@ import { isNil } from 'lodash';
 import React from 'react';
 
 import type { IFormikStageConfigInjectedProps } from '../FormikStageConfig';
-import { HELM_RENDERERS, ManifestRenderers } from './ManifestRenderers';
+import { HELM_RENDERERS, KUSTOMIZE_RENDERERS } from './ManifestRenderers';
 import { ExpectedArtifactService } from '../../../../artifact';
 import { StageConfigField } from '../common';
 import type { IExpectedArtifact } from '../../../../domain';
@@ -26,7 +26,7 @@ export function BakeManifestStageForm({ application, formik, pipeline }: IFormik
 
   // Clear renderer-specific fields when selected renderer changes
   React.useEffect(() => {
-    if (stage.templateRenderer == ManifestRenderers.KUSTOMIZE && !isNil(stage.inputArtifacts)) {
+    if (KUSTOMIZE_RENDERERS.includes(stage.templateRenderer) && !isNil(stage.inputArtifacts)) {
       formik.setFieldValue('inputArtifacts', null);
     }
     if (HELM_RENDERERS.includes(stage.templateRenderer) && !isNil(stage.inputArtifact)) {
@@ -35,7 +35,7 @@ export function BakeManifestStageForm({ application, formik, pipeline }: IFormik
   }, [stage.templateRenderer]);
 
   const templateRenderers = React.useMemo(() => {
-    return [...HELM_RENDERERS, ManifestRenderers.KUSTOMIZE];
+    return [...KUSTOMIZE_RENDERERS, ...HELM_RENDERERS];
   }, []);
 
   return (
@@ -56,7 +56,7 @@ export function BakeManifestStageForm({ application, formik, pipeline }: IFormik
             stringOptions={templateRenderers}
           />
         </StageConfigField>
-        {stage.templateRenderer === ManifestRenderers.KUSTOMIZE && (
+        {KUSTOMIZE_RENDERERS.includes(stage.templateRenderer) && (
           <BakeKustomizeConfigForm pipeline={pipeline} application={application} formik={formik} />
         )}
         {HELM_RENDERERS.includes(stage.templateRenderer) && (
