@@ -203,6 +203,22 @@ class PipelineController {
   @ApiOperation(value = "Restart a stage execution", response = HashMap.class)
   @PutMapping("/{id}/stages/{stageId}/restart")
   Map restartStage(@PathVariable("id") String id, @PathVariable("stageId") String stageId, @RequestBody Map context) {
+    Map pipelineMap = getPipeline(id)
+
+    String pipelineName = pipelineMap.get("name");
+    String application = pipelineMap.get("application");
+
+    List<Map> pipelineConfigs = front50Service.getPipelineConfigsForApplication(application, true)
+
+    if (pipelineConfigs!=null && !pipelineConfigs.isEmpty()){
+      Optional<Map> filterResult = pipelineConfigs.stream()
+        .filter({pipeline -> ((String) pipeline.get("name")) != null && ((String) pipeline.get("name")).trim().equalsIgnoreCase(pipelineName)})
+        .findFirst()
+      if (filterResult.isPresent()){
+        context = filterResult.get()
+      }
+	}
+
     pipelineService.restartPipelineStage(id, stageId, context)
   }
 
