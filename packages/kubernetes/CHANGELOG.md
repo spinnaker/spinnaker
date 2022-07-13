@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.2.16](https://github.com/spinnaker/deck/compare/@spinnaker/kubernetes@0.2.15...@spinnaker/kubernetes@0.2.16) (2022-07-11)
+
+**Note:** Version bump only for package @spinnaker/kubernetes
+
+
+
+
+
 ## [0.2.15](https://github.com/spinnaker/deck/compare/@spinnaker/kubernetes@0.2.14...@spinnaker/kubernetes@0.2.15) (2022-07-01)
 
 **Note:** Version bump only for package @spinnaker/kubernetes

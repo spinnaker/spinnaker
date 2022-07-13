@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.21.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.20.1...@spinnaker/core@0.21.0) (2022-07-11)
+
+
+### Features
+
+* **rosco:** add Kustomize 4 support ([#9868](https://github.com/spinnaker/deck/issues/9868)) ([53a05ca](https://github.com/spinnaker/deck/commit/53a05ca5aed8d1d9d99e1420a0b1a0408b331c75))
+
+
+
+
+
 ## [0.20.1](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.20.0...@spinnaker/core@0.20.1) (2022-07-01)
 
 **Note:** Version bump only for package @spinnaker/core
