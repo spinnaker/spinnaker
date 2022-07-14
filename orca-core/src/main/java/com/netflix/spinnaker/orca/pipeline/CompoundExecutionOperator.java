@@ -23,6 +23,10 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import javax.annotation.Nonnull;
@@ -117,6 +121,63 @@ public class CompoundExecutionOperator {
       repository.restartStage(executionId, stageId);
     }
     return execution;
+  }
+
+  public PipelineExecution restartStage(
+      @Nonnull String executionId, @Nonnull String stageId, Map restartDetails) {
+    PipelineExecution execution = repository.retrieve(ExecutionType.PIPELINE, executionId);
+    execution = updatePreconditionStageExpression(restartDetails, execution);
+    if (repository.handlesPartition(execution.getPartition())) {
+      runner.restart(execution, stageId);
+    } else {
+      log.info(
+          "Not pushing queue message action='restart' for execution with foreign partition='{}'",
+          execution.getPartition());
+      repository.restartStage(executionId, stageId);
+    }
+    return execution;
+  }
+
+  private PipelineExecution updatePreconditionStageExpression(
+      Map restartDetails, PipelineExecution execution) {
+    List<Map> preconditionList = getPreconditionsFromStage(restartDetails);
+    if (preconditionList.isEmpty()) {
+      return execution;
+    }
+
+    for (StageExecution stage : execution.getStages()) {
+      if (stage.getType() != null && stage.getType().equalsIgnoreCase("checkPreconditions")) {
+        if (stage.getContext().get("preconditions") != null) {
+          stage.getContext().replace("preconditions", preconditionList);
+          repository.storeStage(stage);
+          log.info("Updated preconditions for CheckPreconditions stage");
+        }
+      }
+    }
+    return execution;
+  }
+
+  private List<Map> getPreconditionsFromStage(Map restartDetails) {
+    List<Map> preconditionList = new ArrayList();
+    Map pipelineConfigMap = new HashMap(restartDetails);
+
+    List<String> keysToRetain = new ArrayList();
+    keysToRetain.add("stages");
+
+    pipelineConfigMap.keySet().retainAll(keysToRetain);
+
+    Map<String, List<Map>> pipelineStageMap = new HashMap(pipelineConfigMap);
+
+    if (pipelineStageMap != null && !pipelineStageMap.isEmpty()) {
+      List<Map> pipelineStageList = pipelineStageMap.get(keysToRetain.get(0));
+      for (Map stageMap : pipelineStageList) {
+        if (stageMap.get("type").toString().equalsIgnoreCase("checkPreconditions")) {
+          preconditionList = (List<Map>) stageMap.get("preconditions");
+          log.info("Retrieved preconditions for CheckPreconditions stage");
+        }
+      }
+    }
+    return preconditionList;
   }
 
   private PipelineExecution doInternal(

@@ -501,8 +501,8 @@ class TaskController {
   @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'EXECUTE')")
   @RequestMapping(value = "/pipelines/{id}/stages/{stageId}/restart", method = RequestMethod.PUT)
   PipelineExecution retryPipelineStage(
-    @PathVariable String id, @PathVariable String stageId) {
-    return executionOperator.restartStage(id, stageId)
+    @PathVariable String id, @PathVariable String stageId, @RequestBody Map restartDetails) {
+    return executionOperator.restartStage(id, stageId, restartDetails)
   }
 
   @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'READ')")
