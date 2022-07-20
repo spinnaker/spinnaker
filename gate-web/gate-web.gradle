@@ -42,8 +42,8 @@ dependencies {
   implementation "com.netflix.frigga:frigga"
   implementation "redis.clients:jedis"
 
-  implementation 'commons-io:commons-io'
-  implementation 'org.springframework.session:spring-session-data-redis'
+  implementation "commons-io:commons-io"
+  implementation "org.springframework.session:spring-session-data-redis"
   implementation "de.huxhorn.sulky:de.huxhorn.sulky.ulid"
   implementation "org.apache.commons:commons-lang3"
 
@@ -77,7 +77,7 @@ dependencies {
 
   // Add each included authz provider as a runtime dependency
   gradle.includedProviderProjects.each {
-    runtime project(it)
+    runtimeOnly project(it)
   }
 }
 
