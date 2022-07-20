@@ -15,8 +15,8 @@ configurations.all {
 }
 
 dependencies {
-  compile project(":rosco-core")
-  compile project(":rosco-manifests")
+  implementation project(":rosco-core")
+  implementation project(":rosco-manifests")
   implementation "io.spinnaker.kork:kork-web"
   implementation "io.swagger:swagger-annotations"
 

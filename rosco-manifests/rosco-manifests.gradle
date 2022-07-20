@@ -1,5 +1,5 @@
 dependencies {
-  compile project(":rosco-core")
+  implementation project(":rosco-core")
 
   compileOnly "org.projectlombok:lombok"
   annotationProcessor "org.projectlombok:lombok"
