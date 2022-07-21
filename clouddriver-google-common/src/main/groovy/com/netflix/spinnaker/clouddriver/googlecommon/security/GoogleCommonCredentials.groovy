@@ -28,7 +28,7 @@ import groovy.transform.CompileStatic
 class GoogleCommonCredentials {
   GoogleCredentials getCredentials() {
     // No JSON key was specified in matching config on key server, so use application default credentials.
-    GoogleCredentials.getApplicationDefault()
+    GoogleCredentials.getApplicationDefault().createScoped(Arrays.asList("https://www.googleapis.com/auth/cloud-platform"))
   }
 
   HttpTransport buildHttpTransport() {
