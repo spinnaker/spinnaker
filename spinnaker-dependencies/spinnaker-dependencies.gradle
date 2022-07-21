@@ -10,6 +10,7 @@ ext {
     aws              : "1.12.176",
     bouncycastle     : "1.64", // 1.64 removes CVE-2019-17359
     brave            : "5.12.3",
+    gcp              : "25.3.0",
     groovy           : "2.5.14", //this needs to keep in sync with the version from boot... if we could get rid of groovy-all we'd no longer need this
     jooq             : "3.13.6",
     jsch             : "0.1.54",
@@ -59,6 +60,8 @@ dependencies {
   api(platform("io.zipkin.brave:brave-bom:${versions.brave}"))
   api(platform("org.springframework.boot:spring-boot-dependencies:${versions.springBoot}"))
   api(platform("com.amazonaws:aws-java-sdk-bom:${versions.aws}"))
+  api(platform("com.google.cloud:libraries-bom:${versions.gcp}"))
+  api(platform("com.google.cloud:google-cloud-secretmanager:2.1.1"))
   api(platform("org.springframework.cloud:spring-cloud-dependencies:${versions.springCloud}"))
   api(platform("io.strikt:strikt-bom:0.31.0"))
   api(platform("org.spockframework:spock-bom:1.3-groovy-2.5"))
