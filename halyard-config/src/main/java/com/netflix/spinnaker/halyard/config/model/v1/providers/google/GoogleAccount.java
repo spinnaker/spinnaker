@@ -47,7 +47,9 @@ public class GoogleAccount extends CommonGoogleAccount implements Cloneable, Sup
   @JsonIgnore
   public GoogleNamedAccountCredentials getNamedAccountCredentials(
       String version, String jsonKey, ConfigProblemSetBuilder p) {
-    if (jsonKey == null) {
+    String serviceAccountId = getServiceAccountId();
+    String serviceAccountProject = getServiceAccountProject();
+    if (jsonKey == null && (serviceAccountId == null || serviceAccountProject == null)) {
       return null;
     } else if (jsonKey.isEmpty()) {
       p.addProblem(Problem.Severity.WARNING, "The supplied credentials file is empty.");
@@ -62,6 +64,8 @@ public class GoogleAccount extends CommonGoogleAccount implements Cloneable, Sup
       return new GoogleNamedAccountCredentials.Builder()
           .jsonKey(jsonKey)
           .project(getProject())
+          .serviceAccountId(serviceAccountId)
+          .serviceAccountProject(serviceAccountProject)
           .computeVersion(isAlphaListed() ? ComputeVersion.ALPHA : ComputeVersion.DEFAULT)
           .imageProjects(getImageProjects())
           .applicationName("halyard " + version)

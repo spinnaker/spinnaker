@@ -41,6 +41,16 @@ public class GoogleEditAccountCommand extends AbstractEditAccountCommand<GoogleA
   private String jsonPath;
 
   @Parameter(
+      names = "--service-account-id",
+      description = CommonGoogleCommandProperties.SERVICE_ACCOUNT_ID)
+  private String serviceAccountId;
+
+  @Parameter(
+      names = "--service-account-project",
+      description = CommonGoogleCommandProperties.SERVICE_ACCOUNT_PROJECT)
+  private String serviceAccountProject;
+
+  @Parameter(
       names = "--image-projects",
       variableArity = true,
       description = GoogleCommandProperties.IMAGE_PROJECTS_DESCRIPTION)
@@ -89,6 +99,10 @@ public class GoogleEditAccountCommand extends AbstractEditAccountCommand<GoogleA
   protected Account editAccount(GoogleAccount account) {
     account.setJsonPath(isSet(jsonPath) ? jsonPath : account.getJsonPath());
     account.setProject(isSet(project) ? project : account.getProject());
+    account.setServiceAccountId(
+        isSet(serviceAccountId) ? serviceAccountId : account.getServiceAccountId());
+    account.setServiceAccountProject(
+        isSet(serviceAccountProject) ? serviceAccountProject : account.getServiceAccountProject());
     account.setAlphaListed(alphaListed != null ? alphaListed : account.isAlphaListed());
     account.setUserDataFile(userDataFile != null ? userDataFile : account.getUserDataFile());
 

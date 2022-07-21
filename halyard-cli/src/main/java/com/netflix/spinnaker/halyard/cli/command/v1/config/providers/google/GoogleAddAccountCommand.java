@@ -44,6 +44,16 @@ public class GoogleAddAccountCommand extends AbstractAddAccountCommand {
   private String jsonPath;
 
   @Parameter(
+      names = "--service-account-id",
+      description = CommonGoogleCommandProperties.SERVICE_ACCOUNT_ID)
+  private String serviceAccountId;
+
+  @Parameter(
+      names = "--service-account-project",
+      description = CommonGoogleCommandProperties.SERVICE_ACCOUNT_PROJECT)
+  private String serviceAccountProject;
+
+  @Parameter(
       names = "--image-projects",
       variableArity = true,
       description = GoogleCommandProperties.IMAGE_PROJECTS_DESCRIPTION)
@@ -70,7 +80,13 @@ public class GoogleAddAccountCommand extends AbstractAddAccountCommand {
   @Override
   protected Account buildAccount(String accountName) {
     GoogleAccount account = (GoogleAccount) new GoogleAccount().setName(accountName);
-    account = (GoogleAccount) account.setJsonPath(jsonPath).setProject(project);
+    account =
+        (GoogleAccount)
+            account
+                .setJsonPath(jsonPath)
+                .setProject(project)
+                .setServiceAccountId(serviceAccountId)
+                .setServiceAccountProject(serviceAccountProject);
 
     account
         .setAlphaListed(alphaListed)

@@ -31,4 +31,6 @@ import lombok.ToString;
 public class CommonGoogleAccount extends Account {
   private String project;
   @LocalFile @SecretFile private String jsonPath;
+  private String serviceAccountId;
+  private String serviceAccountProject;
 }

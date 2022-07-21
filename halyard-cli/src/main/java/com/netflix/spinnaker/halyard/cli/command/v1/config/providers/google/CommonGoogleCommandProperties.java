@@ -26,6 +26,10 @@ public class CommonGoogleCommandProperties {
           + "or needs permissions not afforded to the VM it is running on. "
           + "See https://cloud.google.com/compute/docs/access/service-accounts for more information.";
 
+  public static final String SERVICE_ACCOUNT_ID = "The service account to be impersonated.";
+
+  public static final String SERVICE_ACCOUNT_PROJECT =
+      "The google cloud project associated with the service account to be impersonated.";
   public static final String USER_DATA_DESCRIPTION =
       "The path to user data template file. "
           + "Spinnaker has the ability to inject userdata into generated instance templates. "
