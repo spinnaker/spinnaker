@@ -23,6 +23,7 @@ import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
+import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.model.GoogleSecurityGroup
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
@@ -31,6 +32,7 @@ import com.netflix.spinnaker.clouddriver.model.SecurityGroupProvider
 import com.netflix.spinnaker.clouddriver.model.securitygroups.IpRangeRule
 import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -41,15 +43,15 @@ import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.SECU
 @Component
 class GoogleSecurityGroupProvider implements SecurityGroupProvider<GoogleSecurityGroup> {
 
-  private final AccountCredentialsProvider accountCredentialsProvider
+  private final CredentialsRepository<GoogleNamedAccountCredentials> credentialsRepository
   private final Cache cacheView
   private final ObjectMapper objectMapper
 
   final String cloudProvider = GoogleCloudProvider.ID
 
   @Autowired
-  GoogleSecurityGroupProvider(AccountCredentialsProvider accountCredentialsProvider, Cache cacheView, ObjectMapper objectMapper) {
-    this.accountCredentialsProvider = accountCredentialsProvider
+  GoogleSecurityGroupProvider(CredentialsRepository<GoogleNamedAccountCredentials> credentialsRepository, Cache cacheView, ObjectMapper objectMapper) {
+    this.credentialsRepository = credentialsRepository
     this.cacheView = cacheView
     this.objectMapper = objectMapper
   }
@@ -232,7 +234,7 @@ class GoogleSecurityGroupProvider implements SecurityGroupProvider<GoogleSecurit
   }
 
   private String deriveResourceId(String account, String resourceLink) {
-    def accountCredentials = accountCredentialsProvider.getCredentials(account)
+    def accountCredentials = credentialsRepository.getOne(account)
 
     if (!(accountCredentials instanceof GoogleNamedAccountCredentials)) {
       throw new IllegalArgumentException("Invalid credentials: $account")

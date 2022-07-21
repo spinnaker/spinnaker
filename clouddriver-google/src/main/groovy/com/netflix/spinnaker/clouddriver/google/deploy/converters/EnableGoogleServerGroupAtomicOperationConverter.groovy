@@ -19,14 +19,15 @@ package com.netflix.spinnaker.clouddriver.google.deploy.converters
 import com.netflix.spinnaker.clouddriver.google.GoogleOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.description.EnableDisableGoogleServerGroupDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.EnableGoogleServerGroupAtomicOperation
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
-import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
+import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsConverter
 import org.springframework.stereotype.Component
 
 @GoogleOperation(AtomicOperations.ENABLE_SERVER_GROUP)
 @Component("enableGoogleServerGroupDescription")
-class EnableGoogleServerGroupAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+class EnableGoogleServerGroupAtomicOperationConverter extends AbstractAtomicOperationsCredentialsConverter<GoogleNamedAccountCredentials> {
 
   @Override
   AtomicOperation convertOperation(Map input) {

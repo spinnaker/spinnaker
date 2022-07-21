@@ -20,8 +20,9 @@ import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.google.GoogleOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleAutoscalingPolicyDescription
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -29,19 +30,19 @@ import org.springframework.stereotype.Component
 @Component("resizeGoogleServerGroupDescriptionValidator")
 class ResizeGoogleServerGroupDescriptionValidator extends DescriptionValidator<Object> {
   @Autowired
-  AccountCredentialsProvider accountCredentialsProvider
+  CredentialsRepository<GoogleNamedAccountCredentials> credentialsRepository
 
   @Override
   void validate(List priorDescriptions, def description, ValidationErrors errors) {
     // If the target server group has an Autoscaler configured the converter will return an
     // UpsertGoogleAutoscalingPolicyDescription instead of a ResizeGoogleServerGroupDescription.
     if (description in UpsertGoogleAutoscalingPolicyDescription) {
-      new UpsertGoogleAutoscalingPolicyDescriptionValidator(accountCredentialsProvider: accountCredentialsProvider)
+      new UpsertGoogleAutoscalingPolicyDescriptionValidator(credentialsRepository: credentialsRepository)
         .validate(priorDescriptions, description, errors)
     } else {
       def helper = new StandardGceAttributeValidator("resizeGoogleServerGroupDescription", errors)
 
-      helper.validateCredentials(description.accountName, accountCredentialsProvider)
+      helper.validateCredentials(description.accountName, credentialsRepository)
       helper.validateServerGroupName(description.serverGroupName)
       helper.validateNotEmpty(description.targetSize ?: description.capacity?.desired, "targetSize")
       helper.validateNonNegativeLong(description.targetSize ?: description.capacity?.desired ?: 0, "targetSize")

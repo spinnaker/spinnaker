@@ -21,8 +21,10 @@ import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.google.GoogleOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleImageTagsDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleServerGroupTagsDescription
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -30,13 +32,13 @@ import org.springframework.stereotype.Component
 @Component
 class UpsertGoogleImageTagsDescriptionValidator extends DescriptionValidator<UpsertGoogleImageTagsDescription> {
   @Autowired
-  AccountCredentialsProvider accountCredentialsProvider
+  CredentialsRepository<GoogleNamedAccountCredentials> credentialsRepository
 
   @Override
   void validate(List priorDescriptions, UpsertGoogleImageTagsDescription description, ValidationErrors errors) {
     def helper = new StandardGceAttributeValidator("upsertGoogleImageTagsDescription", errors)
 
-    helper.validateCredentials(description.accountName, accountCredentialsProvider)
+    helper.validateCredentials(description.accountName, credentialsRepository)
     helper.validateImageName(description.imageName)
     helper.validateMap(description.tags, "tag")
   }

@@ -47,7 +47,7 @@ class GoogleNamedAccountCredentials extends AbstractAccountCredentials<GoogleCre
     "Intel Broadwell",
     "Intel Skylake"
   ]
-
+  public final static String CREDENTIALS_TYPE = "gce";
   final String name // aka accountName
   final String environment
   final String accountType

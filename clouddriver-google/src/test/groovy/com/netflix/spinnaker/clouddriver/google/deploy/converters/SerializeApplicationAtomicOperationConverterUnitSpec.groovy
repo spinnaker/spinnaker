@@ -21,7 +21,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.converters.snapshot.SaveS
 import com.netflix.spinnaker.clouddriver.google.deploy.description.snapshot.SaveSnapshotDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.snapshot.SaveSnapshotAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -37,11 +37,11 @@ class SerializeApplicationAtomicOperationConverterUnitSpec extends Specification
   SaveSnapshotAtomicOperationConverter converter
 
   def setupSpec() {
-    this.converter = new SaveSnapshotAtomicOperationConverter(objectMapper: mapper)
-    def accountCredentialsProvider = Mock(AccountCredentialsProvider)
+    this.converter = new SaveSnapshotAtomicOperationConverter()
+    def credentialsRepository = Mock(CredentialsRepository)
     def mockCredentials = Mock(GoogleNamedAccountCredentials)
-    accountCredentialsProvider.getCredentials(_) >> mockCredentials
-    converter.accountCredentialsProvider = accountCredentialsProvider
+    credentialsRepository.getOne(_) >> mockCredentials
+    converter.credentialsRepository = credentialsRepository
   }
 
   void "resizeGoogleServerGroupDescription type returns ResizeGoogleServerGroupDescription and ResizeGoogleServerGroupAtomicOperation"() {

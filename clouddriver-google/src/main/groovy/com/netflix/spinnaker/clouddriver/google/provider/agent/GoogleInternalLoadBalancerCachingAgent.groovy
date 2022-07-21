@@ -34,6 +34,7 @@ import com.netflix.spinnaker.clouddriver.google.provider.agent.util.PaginatedReq
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.google.batch.GoogleBatchRequest
 import groovy.util.logging.Slf4j
+import org.slf4j.LoggerFactory
 
 @Slf4j
 class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachingAgent {
@@ -174,6 +175,12 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerC
           }
         }
       }
+
+      @Override
+      void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
+        LoggerFactory.getLogger(this.class).error e.getMessage()
+      }
+
     }
 
     void cacheRemainderOfLoadBalancerResourceGraph(ForwardingRule forwardingRule) {

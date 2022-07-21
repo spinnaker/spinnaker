@@ -16,12 +16,15 @@
 
 package com.netflix.spinnaker.config
 
+
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
+import com.netflix.spinnaker.clouddriver.google.config.GoogleCredentialsConfiguration
+
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.health.GoogleHealthIndicator
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDisk
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceTypeDisk
-import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentialsInitializer
+import com.netflix.spinnaker.clouddriver.google.provider.GoogleInfrastructureProvider
 import groovy.transform.ToString
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -34,7 +37,7 @@ import org.springframework.scheduling.annotation.EnableScheduling
 @EnableScheduling
 @ConditionalOnProperty('google.enabled')
 @ComponentScan(["com.netflix.spinnaker.clouddriver.google"])
-@Import([ GoogleCredentialsInitializer ])
+@Import([ GoogleCredentialsConfiguration ])
 class GoogleConfiguration {
 
   private static final String DEFAULT_KEY = "default"
@@ -53,6 +56,11 @@ class GoogleConfiguration {
   @Bean
   GoogleOperationPoller googleOperationPoller() {
     new GoogleOperationPoller()
+  }
+
+  @Bean
+  GoogleInfrastructureProvider googleInfrastructureProvider(){
+    new GoogleInfrastructureProvider()
   }
 
   @Bean

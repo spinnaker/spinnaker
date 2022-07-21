@@ -18,12 +18,13 @@ package com.netflix.spinnaker.clouddriver.google.deploy.converters
 
 import com.netflix.spinnaker.clouddriver.google.deploy.description.CreateGoogleInstanceDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.CreateGoogleInstanceAtomicOperation
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
-import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
+import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsConverter
 import org.springframework.stereotype.Component
 
 @Component("createGoogleInstanceDescription")
-class CreateGoogleInstanceAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+class CreateGoogleInstanceAtomicOperationConverter extends AbstractAtomicOperationsCredentialsConverter<GoogleNamedAccountCredentials> {
   AtomicOperation convertOperation(Map input) {
     new CreateGoogleInstanceAtomicOperation(convertDescription(input))
   }

@@ -18,16 +18,17 @@ package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.config.GoogleConfiguration
 import com.netflix.spinnaker.clouddriver.google.deploy.description.CreateGoogleInstanceDescription
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component("createGoogleInstanceDescriptionValidator")
 class CreateGoogleInstanceDescriptionValidator extends DescriptionValidator<CreateGoogleInstanceDescription> {
   @Autowired
-  AccountCredentialsProvider accountCredentialsProvider
+  CredentialsRepository<GoogleNamedAccountCredentials> credentialsRepository
 
   @Autowired
   private GoogleConfiguration.DeployDefaults googleDeployDefaults
@@ -36,7 +37,7 @@ class CreateGoogleInstanceDescriptionValidator extends DescriptionValidator<Crea
   void validate(List priorDescriptions, CreateGoogleInstanceDescription description, ValidationErrors errors) {
     def helper = new StandardGceAttributeValidator("createGoogleInstanceDescription", errors)
 
-    helper.validateCredentials(description.accountName, accountCredentialsProvider)
+    helper.validateCredentials(description.accountName, credentialsRepository)
     helper.validateInstanceName(description.instanceName)
     helper.validateImage(description.imageSource, description.image, description.imageArtifact)
     helper.validateInstanceType(description.instanceType, description.zone, description.credentials)

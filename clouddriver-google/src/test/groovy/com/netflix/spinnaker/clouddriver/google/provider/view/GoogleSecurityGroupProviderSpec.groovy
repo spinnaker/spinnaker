@@ -31,6 +31,8 @@ import com.netflix.spinnaker.clouddriver.model.securitygroups.IpRangeRule
 import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
+import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository
+import com.netflix.spinnaker.credentials.NoopCredentialsLifecycleHandler
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -45,23 +47,19 @@ class GoogleSecurityGroupProviderSpec extends Specification {
   ObjectMapper mapper = new ObjectMapper()
 
   def setup() {
-    def credentialsRepo = new MapBackedAccountCredentialsRepository()
-    def credentialsProvider = new DefaultAccountCredentialsProvider(credentialsRepo)
-    credentialsRepo.save("test",
-                         new GoogleNamedAccountCredentials
-                           .Builder()
+    def credentialsRepo = new MapBackedCredentialsRepository(GoogleNamedAccountCredentials.CREDENTIALS_TYPE,
+      new NoopCredentialsLifecycleHandler<>())
+    credentialsRepo.save(new GoogleNamedAccountCredentials.Builder()
                            .name("test")
                            .project("my-project")
                            .credentials(new FakeGoogleCredentials())
                            .build())
-    credentialsRepo.save("prod",
-                         new GoogleNamedAccountCredentials
-                           .Builder()
+    credentialsRepo.save(new GoogleNamedAccountCredentials.Builder()
                            .name("prod")
                            .project("my-project")
                            .credentials(new FakeGoogleCredentials())
                            .build())
-    provider = new GoogleSecurityGroupProvider(credentialsProvider, cache, mapper)
+    provider = new GoogleSecurityGroupProvider(credentialsRepo, cache, mapper)
     cache.mergeAll(Keys.Namespace.SECURITY_GROUPS.ns, getAllGroups())
   }
 

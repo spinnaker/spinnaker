@@ -21,14 +21,13 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.google.compute.GoogleComputeApiFactory;
 import com.netflix.spinnaker.clouddriver.google.deploy.description.SetStatefulDiskDescription;
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.SetStatefulDiskAtomicOperation;
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider;
 import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
+import com.netflix.spinnaker.credentials.CredentialsRepository;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.Before;
@@ -53,15 +52,14 @@ public class SetStatefulDiskAtomicOperationConverterTest {
     converter =
         new SetStatefulDiskAtomicOperationConverter(clusterProvider, serverGroupManagersFactory);
 
-    AccountCredentialsProvider accountCredentialsProvider = mock(AccountCredentialsProvider.class);
+    CredentialsRepository credentialsRepository = mock(CredentialsRepository.class);
     GoogleNamedAccountCredentials accountCredentials =
         new GoogleNamedAccountCredentials.Builder()
             .name(ACCOUNT_NAME)
             .credentials(new FakeGoogleCredentials())
             .build();
-    when(accountCredentialsProvider.getCredentials(any())).thenReturn(accountCredentials);
-    converter.setAccountCredentialsProvider(accountCredentialsProvider);
-    converter.setObjectMapper(new ObjectMapper());
+    when(credentialsRepository.getOne(any())).thenReturn(accountCredentials);
+    converter.setCredentialsRepository(credentialsRepository);
   }
 
   @Test

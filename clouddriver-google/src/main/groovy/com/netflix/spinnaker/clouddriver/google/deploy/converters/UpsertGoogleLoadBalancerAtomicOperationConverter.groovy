@@ -25,14 +25,15 @@ import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.UpsertGo
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.UpsertGoogleSslLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.UpsertGoogleTcpLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
-import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
+import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsConverter
 import org.springframework.stereotype.Component
 
 @GoogleOperation(AtomicOperations.UPSERT_LOAD_BALANCER)
 @Component("upsertGoogleLoadBalancerDescription")
-class UpsertGoogleLoadBalancerAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+class UpsertGoogleLoadBalancerAtomicOperationConverter extends AbstractAtomicOperationsCredentialsConverter<GoogleNamedAccountCredentials> {
   AtomicOperation convertOperation(Map input) {
     UpsertGoogleLoadBalancerDescription description = convertDescription(input)
     switch (description.loadBalancerType) {

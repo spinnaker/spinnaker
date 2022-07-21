@@ -18,13 +18,14 @@ package com.netflix.spinnaker.clouddriver.google.deploy.converters
 
 import com.netflix.spinnaker.clouddriver.google.deploy.description.AbandonAndDecrementGoogleServerGroupDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.AbandonAndDecrementGoogleServerGroupAtomicOperation
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
-import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
+import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsConverter
 import org.springframework.stereotype.Component
 
 @Component("abandonAndDecrementGoogleServerGroupDescription")
 class AbandonAndDecrementGoogleServerGroupAtomicOperationConverter
-      extends AbstractAtomicOperationsCredentialsSupport {
+      extends AbstractAtomicOperationsCredentialsConverter<GoogleNamedAccountCredentials> {
 
   @Override
   AtomicOperation convertOperation(Map input) {

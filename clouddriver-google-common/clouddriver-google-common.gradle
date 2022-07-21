@@ -6,6 +6,7 @@ dependencies {
   implementation "com.google.api-client:google-api-client"
   implementation 'com.google.auth:google-auth-library-oauth2-http'
   implementation "io.spinnaker.kork:kork-annotations"
+  implementation "io.spinnaker.kork:kork-credentials"
   implementation "io.spinnaker.kork:kork-credentials-api"
   implementation "com.netflix.spectator:spectator-api"
   implementation "io.spinnaker.fiat:fiat-api:$fiatVersion"

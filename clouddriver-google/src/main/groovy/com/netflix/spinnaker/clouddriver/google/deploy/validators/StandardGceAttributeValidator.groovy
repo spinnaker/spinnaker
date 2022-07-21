@@ -26,7 +26,7 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleDiskType
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceTypeDisk
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 
 /**
@@ -161,10 +161,10 @@ class StandardGceAttributeValidator {
     return result
   }
 
-  def validateCredentials(String accountName, AccountCredentialsProvider accountCredentialsProvider) {
+  def validateCredentials(String accountName, CredentialsRepository<GoogleNamedAccountCredentials> credentialsRepository) {
     def result = validateNotEmpty(accountName, "credentials")
     if (result) {
-      def credentials = accountCredentialsProvider.getCredentials(accountName)
+      def credentials = credentialsRepository.getOne(accountName)
 
       if (!(credentials?.credentials instanceof GoogleCredentials)) {
         errors.rejectValue("credentials", "${context}.credentials.invalid")

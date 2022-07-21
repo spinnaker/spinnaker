@@ -25,7 +25,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.ops.UpsertGoogleAutoscali
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -50,12 +50,11 @@ class ResizeGoogleServerGroupAtomicOperationConverterUnitSpec extends Specificat
                    accountName: ACCOUNT_NAME]
       GoogleClusterProvider googleClusterProviderMock = Mock(GoogleClusterProvider)
       ResizeGoogleServerGroupAtomicOperationConverter converter =
-        new ResizeGoogleServerGroupAtomicOperationConverter(objectMapper: mapper,
-                                                            googleClusterProvider: googleClusterProviderMock)
-      def accountCredentialsProvider = Mock(AccountCredentialsProvider)
+        new ResizeGoogleServerGroupAtomicOperationConverter(googleClusterProvider: googleClusterProviderMock)
+      def credentialsRepository = Mock(CredentialsRepository)
       def mockCredentials = Mock(GoogleNamedAccountCredentials)
-      accountCredentialsProvider.getCredentials(_) >> mockCredentials
-      converter.accountCredentialsProvider = accountCredentialsProvider
+      credentialsRepository.getOne(_) >> mockCredentials
+      converter.credentialsRepository = credentialsRepository
 
     when:
       def description = converter.convertDescription(input)
@@ -84,12 +83,11 @@ class ResizeGoogleServerGroupAtomicOperationConverterUnitSpec extends Specificat
       def input = [application: "app", targetSize: desired, region: REGION]
       GoogleClusterProvider googleClusterProviderMock = Mock(GoogleClusterProvider)
       ResizeGoogleServerGroupAtomicOperationConverter converter =
-        new ResizeGoogleServerGroupAtomicOperationConverter(objectMapper: mapper,
-                                                            googleClusterProvider: googleClusterProviderMock)
-      def accountCredentialsProvider = Mock(AccountCredentialsProvider)
+        new ResizeGoogleServerGroupAtomicOperationConverter(googleClusterProvider: googleClusterProviderMock)
+      def credentialsRepository = Mock(CredentialsRepository)
       def mockCredentials = Mock(GoogleNamedAccountCredentials)
-      accountCredentialsProvider.getCredentials(_) >> mockCredentials
-      converter.accountCredentialsProvider = accountCredentialsProvider
+      credentialsRepository.getOne(_) >> mockCredentials
+      converter.credentialsRepository = credentialsRepository
 
     when:
       def description = converter.convertDescription(input)

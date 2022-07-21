@@ -21,8 +21,9 @@ import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.google.GoogleOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -31,14 +32,14 @@ import org.springframework.stereotype.Component
 class DeleteGoogleLoadBalancerDescriptionValidator extends
     DescriptionValidator<DeleteGoogleLoadBalancerDescription> {
   @Autowired
-  AccountCredentialsProvider accountCredentialsProvider
+  CredentialsRepository<GoogleNamedAccountCredentials> credentialsRepository
 
   @Override
   void validate(List priorDescriptions, DeleteGoogleLoadBalancerDescription description, ValidationErrors errors) {
     def helper = new StandardGceAttributeValidator("deleteGoogleLoadBalancerDescription", errors)
 
     def loadBalancerType = description.loadBalancerType
-    helper.validateCredentials(description.accountName, accountCredentialsProvider)
+    helper.validateCredentials(description.accountName, credentialsRepository)
     helper.validateName(description.loadBalancerName, "loadBalancerName")
     if (loadBalancerType == GoogleLoadBalancerType.NETWORK || loadBalancerType == GoogleLoadBalancerType.INTERNAL) {
       helper.validateRegion(description.region, description.credentials)

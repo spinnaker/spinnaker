@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.google.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
+import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Image
@@ -33,6 +34,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.batch.GoogleBatchRequest
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import groovy.util.logging.Slf4j
+import org.slf4j.LoggerFactory
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.IMAGES
@@ -146,6 +148,11 @@ class GoogleImageCachingAgent extends AbstractGoogleCachingAgent {
       } else {
         imageProjectToNextPageTokenMap.remove(imageProject)
       }
+    }
+
+    @Override
+    void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
+      LoggerFactory.getLogger(this.class).error e.getMessage()
     }
   }
 }

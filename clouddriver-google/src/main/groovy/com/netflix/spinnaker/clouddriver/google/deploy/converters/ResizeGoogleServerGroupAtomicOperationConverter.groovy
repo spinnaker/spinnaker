@@ -26,16 +26,17 @@ import com.netflix.spinnaker.clouddriver.google.deploy.ops.UpsertGoogleAutoscali
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.orchestration.OperationDescription
-import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
+import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsConverter
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @GoogleOperation(AtomicOperations.RESIZE_SERVER_GROUP)
 @Component("resizeGoogleServerGroupDescription")
-class ResizeGoogleServerGroupAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+class ResizeGoogleServerGroupAtomicOperationConverter extends AbstractAtomicOperationsCredentialsConverter<GoogleNamedAccountCredentials> {
 
   @Autowired
   GoogleClusterProvider googleClusterProvider

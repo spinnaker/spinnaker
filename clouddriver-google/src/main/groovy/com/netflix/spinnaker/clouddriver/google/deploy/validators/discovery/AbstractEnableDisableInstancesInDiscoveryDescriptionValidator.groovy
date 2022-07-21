@@ -20,12 +20,13 @@ import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.google.deploy.description.GoogleInstanceListDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.validators.StandardGceAttributeValidator
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import org.springframework.beans.factory.annotation.Autowired
 
 abstract class AbstractEnableDisableInstancesInDiscoveryDescriptionValidator extends DescriptionValidator<GoogleInstanceListDescription> {
   @Autowired
-  AccountCredentialsProvider accountCredentialsProvider
+  CredentialsRepository<GoogleNamedAccountCredentials> credentialsRepository
 
   @Override
   void validate(List priorDescriptions, GoogleInstanceListDescription description, ValidationErrors errors) {

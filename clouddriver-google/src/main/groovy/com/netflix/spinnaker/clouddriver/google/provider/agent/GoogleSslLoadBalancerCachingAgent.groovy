@@ -36,6 +36,7 @@ import com.netflix.spinnaker.clouddriver.google.provider.agent.util.PaginatedReq
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.google.batch.GoogleBatchRequest
 import groovy.util.logging.Slf4j
+import org.slf4j.LoggerFactory
 
 @Slf4j
 class GoogleSslLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachingAgent {
@@ -184,6 +185,11 @@ class GoogleSslLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachin
           }
         }
       }
+
+      @Override
+      void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
+        LoggerFactory.getLogger(this.class).error e.getMessage()
+      }
     }
 
     void cacheRemainderOfLoadBalancerResourceGraph(ForwardingRule forwardingRule) {
@@ -226,6 +232,14 @@ class GoogleSslLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachin
       String backendServiceName = GCEUtil.getLocalName(targetSslProxy.service)
       BackendService backendService = projectBackendServices?.find { BackendService bs -> bs.getName() == backendServiceName }
       handleBackendService(backendService, googleLoadBalancer, projectHealthChecks, groupHealthRequest)
+    }
+
+    @Override
+    void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
+      log.warn("Failed to read a component of subject ${subject}. The platform error message was:\n ${e.getMessage()}. \nReporting it as 'Failed' to the caching agent. ")
+      if (failedSubjects != null) {
+        failedSubjects << subject
+      }
     }
   }
 

@@ -20,8 +20,9 @@ import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.google.GoogleOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.description.TerminateAndDecrementGoogleServerGroupDescription
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -29,13 +30,13 @@ import org.springframework.stereotype.Component
 @Component("terminateAndDecrementGoogleServerGroupDescriptionValidator")
 class TerminateAndDecrementGoogleServerGroupDescriptionValidator extends DescriptionValidator<TerminateAndDecrementGoogleServerGroupDescription> {
   @Autowired
-  AccountCredentialsProvider accountCredentialsProvider
+  CredentialsRepository<GoogleNamedAccountCredentials> credentialsRepository
 
   @Override
   void validate(List priorDescriptions, TerminateAndDecrementGoogleServerGroupDescription description, ValidationErrors errors) {
     StandardGceAttributeValidator helper = new StandardGceAttributeValidator("terminateAndDecrementGoogleServerGroupDescription", errors)
 
-    helper.validateCredentials(description.accountName, accountCredentialsProvider)
+    helper.validateCredentials(description.accountName, credentialsRepository)
     helper.validateRegion(description.region, description.credentials)
     helper.validateInstanceIds(description.instanceIds)
     helper.validateServerGroupName(description.serverGroupName)

@@ -147,7 +147,7 @@ class GoogleSecurityGroupCachingAgent extends AbstractGoogleCachingAgent impleme
   }
 
   @Override
-  Collection<Map<String, ?>> pendingOnDemandRequests(ProviderCache providerCache) {
+  Collection<Map<String, Object>> pendingOnDemandRequests(ProviderCache providerCache) {
     def keyOwnedByThisAgent = { Map<String, String> parsedKey ->
       parsedKey && parsedKey.account == accountName && parsedKey.region == "global"
     }

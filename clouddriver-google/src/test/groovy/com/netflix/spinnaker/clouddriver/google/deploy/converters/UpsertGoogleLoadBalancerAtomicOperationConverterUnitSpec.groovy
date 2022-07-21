@@ -25,7 +25,7 @@ import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -48,11 +48,11 @@ class UpsertGoogleLoadBalancerAtomicOperationConverterUnitSpec extends Specifica
   UpsertGoogleLoadBalancerAtomicOperationConverter converter
 
   def setupSpec() {
-    this.converter = new UpsertGoogleLoadBalancerAtomicOperationConverter(objectMapper: mapper)
-    def accountCredentialsProvider = Mock(AccountCredentialsProvider)
+    this.converter = new UpsertGoogleLoadBalancerAtomicOperationConverter()
+    def credentialsRepository = Mock(CredentialsRepository)
     def mockCredentials = Mock(GoogleNamedAccountCredentials)
-    accountCredentialsProvider.getCredentials(_) >> mockCredentials
-    converter.accountCredentialsProvider = accountCredentialsProvider
+    credentialsRepository.getOne(_) >> mockCredentials
+    converter.credentialsRepository = credentialsRepository
   }
 
   void "upsertGoogleLoadBalancerDescription type returns UpsertGoogleLoadBalancerDescription and UpsertGoogleLoadBalancerAtomicOperation"() {

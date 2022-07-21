@@ -20,8 +20,9 @@ import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.google.GoogleOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.description.RegisterInstancesWithGoogleLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -30,7 +31,7 @@ import org.springframework.stereotype.Component
 class RegisterInstancesWithGoogleLoadBalancerDescriptionValidator
   extends DescriptionValidator<RegisterInstancesWithGoogleLoadBalancerDescription> {
   @Autowired
-  AccountCredentialsProvider accountCredentialsProvider
+  CredentialsRepository<GoogleNamedAccountCredentials> credentialsRepository
 
   @Override
   void validate(List priorDescriptions,
@@ -38,7 +39,7 @@ class RegisterInstancesWithGoogleLoadBalancerDescriptionValidator
     def helper = new StandardGceAttributeValidator("registerInstancesWithGoogleLoadBalancerDescription", errors)
 
     helper.validateNameList(description.loadBalancerNames, "loadBalancerName")
-    helper.validateCredentials(description.accountName, accountCredentialsProvider)
+    helper.validateCredentials(description.accountName, credentialsRepository)
     helper.validateRegion(description.region, description.credentials)
     helper.validateInstanceIds(description.instanceIds)
   }

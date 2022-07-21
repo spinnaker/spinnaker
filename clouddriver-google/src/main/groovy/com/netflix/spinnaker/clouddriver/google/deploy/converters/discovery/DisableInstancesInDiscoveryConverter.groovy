@@ -20,12 +20,13 @@ import com.netflix.spinnaker.clouddriver.google.GoogleOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.converters.GoogleAtomicOperationConverterHelper
 import com.netflix.spinnaker.clouddriver.google.deploy.description.GoogleInstanceListDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.discovery.DisableInstancesInDiscoveryOperation
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
-import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
+import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsConverter
 
 @GoogleOperation(AtomicOperations.DISABLE_INSTANCES_IN_DISCOVERY)
-class DisableInstancesInDiscoveryConverter extends AbstractAtomicOperationsCredentialsSupport {
+class DisableInstancesInDiscoveryConverter extends AbstractAtomicOperationsCredentialsConverter<GoogleNamedAccountCredentials> {
   AtomicOperation convertOperation(Map input) {
     new DisableInstancesInDiscoveryOperation(convertDescription(input))
   }

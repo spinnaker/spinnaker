@@ -21,16 +21,17 @@ import com.netflix.spinnaker.cats.agent.AgentSchedulerAware
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
+import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
+import com.netflix.spinnaker.clouddriver.security.BaseProvider
 import groovy.json.JsonOutput
 
 import static com.netflix.spinnaker.clouddriver.cache.SearchableProvider.SearchableResource
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.*
 
-class GoogleInfrastructureProvider extends AgentSchedulerAware implements SearchableProvider {
+class GoogleInfrastructureProvider extends BaseProvider implements SearchableProvider {
 
-  final Collection<Agent> agents
   final String providerName = GoogleInfrastructureProvider.name
 
   final Set<String> defaultCaches = [
@@ -47,8 +48,13 @@ class GoogleInfrastructureProvider extends AgentSchedulerAware implements Search
       SSL_CERTIFICATES.ns,
   ].asImmutable()
 
-  GoogleInfrastructureProvider(Collection<Agent> agents) {
-    this.agents = agents
+  @Override
+  String getProviderName() {
+    return providerName
+  }
+
+
+  GoogleInfrastructureProvider() {
   }
 
   final Map<String, String> urlMappingTemplates = [

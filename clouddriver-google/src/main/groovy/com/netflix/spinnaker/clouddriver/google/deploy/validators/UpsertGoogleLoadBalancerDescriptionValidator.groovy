@@ -25,8 +25,9 @@ import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBacken
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalHttpLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -40,13 +41,13 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
   private static final List<Integer> SUPPORTED_TCP_PROXY_PORTS = [25, 43, 110, 143, 195, 443, 465, 587, 700, 993, 995]
 
   @Autowired
-  AccountCredentialsProvider accountCredentialsProvider
+  CredentialsRepository<GoogleNamedAccountCredentials> credentialsRepository
 
   @Override
   void validate(List priorDescriptions, UpsertGoogleLoadBalancerDescription description, ValidationErrors errors) {
     def helper = new StandardGceAttributeValidator("upsertGoogleLoadBalancerDescription", errors)
 
-    helper.validateCredentials(description.accountName, accountCredentialsProvider)
+    helper.validateCredentials(description.accountName, credentialsRepository)
     helper.validateName(description.loadBalancerName, "loadBalancerName")
 
     switch (description.loadBalancerType) {

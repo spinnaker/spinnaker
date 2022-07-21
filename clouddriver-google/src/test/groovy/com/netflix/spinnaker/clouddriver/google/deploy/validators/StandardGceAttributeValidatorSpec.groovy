@@ -26,6 +26,9 @@ import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
+import com.netflix.spinnaker.credentials.CredentialsRepository
+import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository
+import com.netflix.spinnaker.credentials.NoopCredentialsLifecycleHandler
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import spock.lang.Shared
 import spock.lang.Specification
@@ -80,14 +83,14 @@ class StandardGceAttributeValidatorSpec extends Specification {
   ]
 
   @Shared
-  DefaultAccountCredentialsProvider accountCredentialsProvider
+  CredentialsRepository<GoogleNamedAccountCredentials> credentialsRepository
 
   @Shared
   GoogleNamedAccountCredentials credentials
 
   void setupSpec() {
-    def credentialsRepo = new MapBackedAccountCredentialsRepository()
-    accountCredentialsProvider = new DefaultAccountCredentialsProvider(credentialsRepo)
+    credentialsRepository= new MapBackedCredentialsRepository(GoogleNamedAccountCredentials.CREDENTIALS_TYPE,
+      new NoopCredentialsLifecycleHandler<>())
     credentials =
       new GoogleNamedAccountCredentials.Builder()
         .name(ACCOUNT_NAME)
@@ -95,7 +98,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
         .locationToInstanceTypesMap(VCPU_MAX_BY_LOCATION)
         .regionToZonesMap(REGION_TO_ZONES)
         .build()
-    credentialsRepo.save(ACCOUNT_NAME, credentials)
+    credentialsRepository.save(credentials)
   }
 
   void "generic non-empty ok"() {
@@ -232,7 +235,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
-      validator.validateCredentials(ACCOUNT_NAME, accountCredentialsProvider)
+      validator.validateCredentials(ACCOUNT_NAME, credentialsRepository)
     then:
       0 * errors._
   }
@@ -243,13 +246,13 @@ class StandardGceAttributeValidatorSpec extends Specification {
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
-      validator.validateCredentials(null, accountCredentialsProvider)
+      validator.validateCredentials(null, credentialsRepository)
     then:
       1 * errors.rejectValue("credentials", "${DECORATOR}.credentials.empty")
       0 * errors._
 
     when:
-      validator.validateCredentials("", accountCredentialsProvider)
+      validator.validateCredentials("", credentialsRepository)
     then:
       1 * errors.rejectValue("credentials", "${DECORATOR}.credentials.empty")
       0 * errors._
@@ -261,7 +264,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
-      validator.validateCredentials("Unknown", accountCredentialsProvider)
+      validator.validateCredentials("Unknown", credentialsRepository)
 
     then:
       1 * errors.rejectValue("credentials", "${DECORATOR}.credentials.invalid")

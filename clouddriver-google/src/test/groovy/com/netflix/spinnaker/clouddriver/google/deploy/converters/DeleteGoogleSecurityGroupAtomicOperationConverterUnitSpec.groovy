@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleS
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.DeleteGoogleSecurityGroupAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -35,11 +36,11 @@ class DeleteGoogleSecurityGroupAtomicOperationConverterUnitSpec extends Specific
   DeleteGoogleSecurityGroupAtomicOperationConverter converter
 
   def setupSpec() {
-    this.converter = new DeleteGoogleSecurityGroupAtomicOperationConverter(objectMapper: mapper)
-    def accountCredentialsProvider = Mock(AccountCredentialsProvider)
+    this.converter = new DeleteGoogleSecurityGroupAtomicOperationConverter()
+    def credentialsRepository = Mock(CredentialsRepository)
     def mockCredentials = Mock(GoogleNamedAccountCredentials)
-    accountCredentialsProvider.getCredentials(_) >> mockCredentials
-    converter.accountCredentialsProvider = accountCredentialsProvider
+    credentialsRepository.getOne(_) >> mockCredentials
+    converter.credentialsRepository = credentialsRepository
   }
 
   void "deleteGoogleSecurityGroupDescription type returns DeleteGoogleSecurityGroupDescription and DeleteGoogleSecurityGroupAtomicOperation"() {

@@ -19,15 +19,16 @@ package com.netflix.spinnaker.clouddriver.google.deploy.converters
 import com.netflix.spinnaker.clouddriver.google.GoogleOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.description.RegisterInstancesWithGoogleLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.RegisterInstancesWithGoogleLoadBalancerAtomicOperation
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
-import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
+import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsConverter
 import org.springframework.stereotype.Component
 
 @GoogleOperation(AtomicOperations.REGISTER_INSTANCES_WITH_LOAD_BALANCER)
 @Component("registerInstancesWithGoogleLoadBalancerDescription")
 class RegisterInstancesWithGoogleLoadBalancerAtomicOperationConverter
-  extends AbstractAtomicOperationsCredentialsSupport {
+  extends AbstractAtomicOperationsCredentialsConverter<GoogleNamedAccountCredentials> {
   @Override
   AtomicOperation convertOperation(Map input) {
     new RegisterInstancesWithGoogleLoadBalancerAtomicOperation(

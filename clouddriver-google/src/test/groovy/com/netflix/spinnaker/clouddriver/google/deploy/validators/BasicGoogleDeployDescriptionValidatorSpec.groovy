@@ -25,6 +25,8 @@ import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
+import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository
+import com.netflix.spinnaker.credentials.NoopCredentialsLifecycleHandler
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -63,11 +65,11 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
   void setupSpec() {
     def googleDeployDefaults = new GoogleConfiguration.DeployDefaults(instanceTypeDisks: [INSTANCE_TYPE_DISK])
     validator = new BasicGoogleDeployDescriptionValidator(googleDeployDefaults: googleDeployDefaults)
-    def credentialsRepo = new MapBackedAccountCredentialsRepository()
-    def credentialsProvider = new DefaultAccountCredentialsProvider(credentialsRepo)
+    def credentialsRepo = new MapBackedCredentialsRepository(GoogleNamedAccountCredentials.CREDENTIALS_TYPE,
+      new NoopCredentialsLifecycleHandler<>())
     def credentials = new GoogleNamedAccountCredentials.Builder().name(ACCOUNT_NAME).credentials(new FakeGoogleCredentials()).build()
-    credentialsRepo.save(ACCOUNT_NAME, credentials)
-    validator.accountCredentialsProvider = credentialsProvider
+    credentialsRepo.save(credentials)
+    validator.credentialsRepository = credentialsRepo
   }
 
   @Unroll

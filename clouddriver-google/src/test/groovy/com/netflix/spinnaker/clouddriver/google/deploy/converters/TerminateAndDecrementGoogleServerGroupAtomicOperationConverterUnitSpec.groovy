@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.google.deploy.description.TerminateAndDecrementGoogleServerGroupDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.TerminateAndDecrementGoogleServerGroupAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -36,11 +36,11 @@ class TerminateAndDecrementGoogleServerGroupAtomicOperationConverterUnitSpec ext
   TerminateAndDecrementGoogleServerGroupAtomicOperationConverter converter
 
   def setupSpec() {
-    this.converter = new TerminateAndDecrementGoogleServerGroupAtomicOperationConverter(objectMapper: mapper)
-    def accountCredentialsProvider = Mock(AccountCredentialsProvider)
+    this.converter = new TerminateAndDecrementGoogleServerGroupAtomicOperationConverter()
+    def credentialsRepository = Mock(CredentialsRepository)
     def mockCredentials = Mock(GoogleNamedAccountCredentials)
-    accountCredentialsProvider.getCredentials(_) >> mockCredentials
-    converter.accountCredentialsProvider = accountCredentialsProvider
+    credentialsRepository.getOne(_) >> mockCredentials
+    converter.credentialsRepository = credentialsRepository
   }
 
   void "terminateAndDecrementGoogleServerGroupDescription type returns TerminateAndDecrementGoogleServerGroupDescription and TerminateAndDecrementGoogleServerGroupAtomicOperation"() {

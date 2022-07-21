@@ -21,6 +21,8 @@ import com.netflix.spinnaker.clouddriver.google.GoogleExecutorTraits
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.credentials.CredentialsRepository
+import com.netflix.spinnaker.credentials.CredentialsTypeBaseConfiguration
 import groovy.transform.InheritConstructors
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -43,7 +45,7 @@ class GoogleHealthIndicator implements HealthIndicator, GoogleExecutorTraits {
   Registry registry
 
   @Autowired
-  AccountCredentialsProvider accountCredentialsProvider
+  CredentialsTypeBaseConfiguration<GoogleNamedAccountCredentials, ?> credentialsTypeBaseConfiguration
 
   private final AtomicReference<Exception> lastException = new AtomicReference<>(null)
 
@@ -60,29 +62,23 @@ class GoogleHealthIndicator implements HealthIndicator, GoogleExecutorTraits {
 
   @Scheduled(fixedDelay = 300000L)
   void checkHealth() {
-    try {
-      Set<GoogleNamedAccountCredentials> googleCredentialsSet = accountCredentialsProvider.all.findAll {
-        it instanceof GoogleNamedAccountCredentials
-      } as Set<GoogleNamedAccountCredentials>
+      try {
+        credentialsTypeBaseConfiguration.credentialsRepository?.all?.forEach({
+          try {
+            timeExecute(it.compute.projects().get(it.project),
+              "compute.projects.get",
+              TAG_SCOPE, SCOPE_GLOBAL)
+          } catch (IOException e) {
+            throw new GoogleIOException(e)
+          }
+        })
+        lastException.set(null)
+      } catch (Exception ex) {
+        LOG.warn "Unhealthy", ex
 
-      for (GoogleNamedAccountCredentials accountCredentials in googleCredentialsSet) {
-        try {
-          // This verifies that the specified credentials are sufficient to access the referenced project.
-          timeExecute(accountCredentials.compute.projects().get(accountCredentials.project),
-                      "compute.projects.get",
-                      TAG_SCOPE, SCOPE_GLOBAL)
-        } catch (IOException e) {
-          throw new GoogleIOException(e)
-        }
+        lastException.set(ex)
       }
-
-      lastException.set(null)
-    } catch (Exception ex) {
-      LOG.warn "Unhealthy", ex
-
-      lastException.set(ex)
     }
-  }
 
   @ResponseStatus(value = HttpStatus.SERVICE_UNAVAILABLE, reason = "Problem communicating with Google.")
   @InheritConstructors

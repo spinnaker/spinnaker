@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.description.CreateGoogleI
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.CreateGoogleInstanceAtomicOperation
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -38,11 +39,11 @@ class CreateGoogleInstanceAtomicOperationConverterUnitSpec extends Specification
   CreateGoogleInstanceAtomicOperationConverter converter
 
   def setupSpec() {
-    this.converter = new CreateGoogleInstanceAtomicOperationConverter(objectMapper: mapper)
-    def accountCredentialsProvider = Mock(AccountCredentialsProvider)
+    this.converter = new CreateGoogleInstanceAtomicOperationConverter()
+    def credentialsRepository = Mock(CredentialsRepository)
     def mockCredentials = Mock(GoogleNamedAccountCredentials)
-    accountCredentialsProvider.getCredentials(_) >> mockCredentials
-    converter.accountCredentialsProvider = accountCredentialsProvider
+    credentialsRepository.getOne(_) >> mockCredentials
+    converter.credentialsRepository = credentialsRepository
   }
 
   void "createGoogleInstanceDescription type returns CreateGoogleInstanceDescription and CreateGoogleInstanceAtomicOperation"() {

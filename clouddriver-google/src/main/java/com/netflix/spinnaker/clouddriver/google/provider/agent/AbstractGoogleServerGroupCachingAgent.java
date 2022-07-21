@@ -120,7 +120,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @ParametersAreNonnullByDefault
-abstract class AbstractGoogleServerGroupCachingAgent
+public abstract class AbstractGoogleServerGroupCachingAgent
     implements CachingAgent, OnDemandAgent, AccountAware {
 
   private static final ImmutableSet<AgentDataType> DATA_TYPES =
