@@ -108,6 +108,7 @@ public class WebhookStage implements StageDefinitionBuilder {
     public String canceledStatuses;
     public String terminalStatuses;
     public List<Integer> retryStatusCodes;
+    public List<Integer> webhookRetryStatusCodes;
 
     public int waitBeforeMonitor;
     /**

@@ -108,7 +108,9 @@ public class WebhookResponseProcessor {
               status.value(), executionId, stageData.url);
       executionStatus = ExecutionStatus.TERMINAL;
     } else if (status.is5xxServerError()
-        || webhookProperties.getDefaultRetryStatusCodes().contains(status.value())) {
+        || webhookProperties.getDefaultRetryStatusCodes().contains(status.value())
+        || (stageData.getWebhookRetryStatusCodes() != null
+            && stageData.getWebhookRetryStatusCodes().contains(status.value()))) {
       errorMessage =
           format(
               "Error submitting webhook for pipeline %s to %s with status code %s, will retry.",

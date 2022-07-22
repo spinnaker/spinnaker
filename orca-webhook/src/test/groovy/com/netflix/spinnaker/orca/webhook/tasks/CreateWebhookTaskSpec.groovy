@@ -119,7 +119,8 @@ class CreateWebhookTaskSpec extends Specification {
       url: "https://my-service.io/api/",
       method: "delete",
       payload: [:],
-      customHeaders: [:]
+      customHeaders: [:],
+      webhookRetryStatusCodes: [404, 401]
     ])
 
     webhookService.callWebhook(stage) >> { throwHttpException(status, null) }
@@ -141,7 +142,7 @@ class CreateWebhookTaskSpec extends Specification {
     ]
 
     where:
-    status << [HttpStatus.TOO_MANY_REQUESTS, HttpStatus.FORBIDDEN]
+    status << [HttpStatus.TOO_MANY_REQUESTS, HttpStatus.FORBIDDEN, HttpStatus.NOT_FOUND, HttpStatus.UNAUTHORIZED]
   }
 
   def "should retry on name resolution failure"() {
