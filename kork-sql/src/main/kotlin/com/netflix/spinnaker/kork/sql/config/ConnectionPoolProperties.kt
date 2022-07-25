@@ -44,10 +44,10 @@ data class ConnectionPoolProperties(
   var password: String? = null,
   var connectionTimeoutMs: Long = TimeUnit.SECONDS.toMillis(5),
   var validationTimeoutMs: Long = TimeUnit.SECONDS.toMillis(5),
-  var idleTimeoutMs: Long = TimeUnit.MINUTES.toMillis(1),
-  var maxLifetimeMs: Long = TimeUnit.SECONDS.toMillis(30),
+  var idleTimeoutMs: Long = TimeUnit.MINUTES.toMillis(3),
+  var maxLifetimeMs: Long = TimeUnit.MINUTES.toMillis(5),
   var minIdle: Int = 5,
-  var maxPoolSize: Int = 20,
+  var maxPoolSize: Int = 100,
   var default: Boolean = false,
   var registerMBeans: Boolean = false
 )

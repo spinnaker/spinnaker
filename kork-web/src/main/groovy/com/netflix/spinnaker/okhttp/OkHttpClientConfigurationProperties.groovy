@@ -25,10 +25,10 @@ import org.springframework.boot.context.properties.NestedConfigurationProperty
 @Canonical
 @ConfigurationProperties(prefix="ok-http-client")
 class OkHttpClientConfigurationProperties {
-  long connectTimeoutMs = 15000
-  long readTimeoutMs = 20000
-  int maxRequests = 64
-  int maxRequestsPerHost = 5
+  long connectTimeoutMs = 5000
+  long readTimeoutMs = 120000
+  int maxRequests = 100
+  int maxRequestsPerHost = 100
 
   boolean propagateSpinnakerHeaders = true
 
@@ -41,8 +41,8 @@ class OkHttpClientConfigurationProperties {
   String trustStorePassword = 'changeit'
 
   String secureRandomInstanceType = "NativePRNGNonBlocking"
-
-  List<String> tlsVersions = ["TLSv1.2", "TLSv1.1"]
+  // TLS1.1 isn't supported in newer JVMs... do NOT try to add back - it's also insecure
+  List<String> tlsVersions = ["TLSv1.2", "TLSv1.3"]
   //Defaults from https://wiki.mozilla.org/Security/Server_Side_TLS#Modern_compatibility
   // with some extra ciphers (non SHA384/256) to support TLSv1.1 and some non EC ciphers
   List<String> cipherSuites = [
@@ -57,9 +57,7 @@ class OkHttpClientConfigurationProperties {
     "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA",
     "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
     "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA",
-    "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA",
-    "TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
-    "TLS_DHE_RSA_WITH_AES_128_CBC_SHA"
+    "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"
   ]
 
   /**
@@ -71,7 +69,7 @@ class OkHttpClientConfigurationProperties {
 
   @Canonical
   static class ConnectionPoolProperties {
-    int maxIdleConnections = 5
+    int maxIdleConnections = 15
     int keepAliveDurationMs = 30000
   }
 
