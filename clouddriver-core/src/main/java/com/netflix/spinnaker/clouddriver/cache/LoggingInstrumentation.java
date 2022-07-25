@@ -38,7 +38,7 @@ class LoggingInstrumentation implements ExecutionInstrumentation {
   @Override
   public void executionFailed(Agent agent, Throwable cause, long durationMs) {
     logger.warn(
-        "{}:{} completed with one or more failures in  ${}s",
+        "{}:{} completed with one or more failures in {}s",
         agent.getProviderName(),
         agent.getAgentType(),
         durationMs / 1000,
