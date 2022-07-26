@@ -19,65 +19,40 @@ package com.netflix.spinnaker.fiat.roles;
 import com.netflix.spectator.api.Gauge;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.fiat.config.ResourceProvidersHealthIndicator;
-import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig;
-import com.netflix.spinnaker.fiat.model.UserPermission;
-import com.netflix.spinnaker.fiat.model.resources.Role;
-import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
-import com.netflix.spinnaker.fiat.permissions.ExternalUser;
-import com.netflix.spinnaker.fiat.permissions.PermissionResolutionException;
-import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
-import com.netflix.spinnaker.fiat.permissions.PermissionsResolver;
-import com.netflix.spinnaker.fiat.providers.ProviderException;
-import com.netflix.spinnaker.fiat.providers.ResourceProvider;
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.lock.LockManager;
 import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.actuate.health.Status;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.util.backoff.BackOffExecution;
-import org.springframework.util.backoff.FixedBackOff;
 
 @Slf4j
 @Component
 @ConditionalOnExpression("${fiat.write-mode.enabled:true}")
 public class UserRolesSyncer {
   private final DiscoveryStatusListener discoveryStatusListener;
-
   private final LockManager lockManager;
-  private final PermissionsRepository permissionsRepository;
-  private final PermissionsResolver permissionsResolver;
-  private final ResourceProvider<ServiceAccount> serviceAccountProvider;
-  private final ResourceProvidersHealthIndicator healthIndicator;
-
-  private final long retryIntervalMs;
   private final long syncDelayMs;
   private final long syncFailureDelayMs;
   private final long syncDelayTimeoutMs;
   private final String lockName;
-
   private final Registry registry;
   private final Gauge userRolesSyncCount;
+  private final UserRolesSyncStrategy syncStrategy;
 
   @Autowired
   public UserRolesSyncer(
       DiscoveryStatusListener discoveryStatusListener,
       Registry registry,
       LockManager lockManager,
-      PermissionsRepository permissionsRepository,
-      PermissionsResolver permissionsResolver,
-      ResourceProvider<ServiceAccount> serviceAccountProvider,
-      ResourceProvidersHealthIndicator healthIndicator,
-      @Value("${fiat.write-mode.retry-interval-ms:10000}") long retryIntervalMs,
+      UserRolesSyncStrategy syncStrategy,
       @Value("${fiat.write-mode.sync-delay-ms:600000}") long syncDelayMs,
       @Value("${fiat.write-mode.sync-failure-delay-ms:600000}") long syncFailureDelayMs,
       @Value("${fiat.write-mode.sync-delay-timeout-ms:30000}") long syncDelayTimeoutMs,
@@ -85,19 +60,13 @@ public class UserRolesSyncer {
     this.discoveryStatusListener = discoveryStatusListener;
 
     this.lockManager = lockManager;
-    this.permissionsRepository = permissionsRepository;
-    this.permissionsResolver = permissionsResolver;
-    this.serviceAccountProvider = serviceAccountProvider;
-    this.healthIndicator = healthIndicator;
-
-    this.retryIntervalMs = retryIntervalMs;
     this.syncDelayMs = syncDelayMs;
     this.syncFailureDelayMs = syncFailureDelayMs;
     this.syncDelayTimeoutMs = syncDelayTimeoutMs;
     this.lockName = lockName;
-
     this.registry = registry;
     this.userRolesSyncCount = registry.gauge(metricName("syncCount"));
+    this.syncStrategy = syncStrategy;
   }
 
   @Scheduled(fixedDelay = 30000L)
@@ -124,7 +93,9 @@ public class UserRolesSyncer {
         lockOptions,
         () -> {
           try {
-            timeIt("syncTime", () -> userRolesSyncCount.set(this.syncAndReturn(new ArrayList<>())));
+            timeIt(
+                "syncTime",
+                () -> userRolesSyncCount.set(syncStrategy.syncAndReturn(new ArrayList<>())));
           } catch (Exception e) {
             log.error("User roles synchronization failed", e);
             userRolesSyncCount.set(-1);
@@ -133,138 +104,7 @@ public class UserRolesSyncer {
   }
 
   public long syncAndReturn(List<String> roles) {
-    FixedBackOff backoff = new FixedBackOff();
-    backoff.setInterval(retryIntervalMs);
-    backoff.setMaxAttempts(Math.floorDiv(syncDelayTimeoutMs, retryIntervalMs) + 1);
-    BackOffExecution backOffExec = backoff.start();
-
-    // after this point the execution will get rescheduled
-    final long timeout = System.currentTimeMillis() + syncDelayTimeoutMs;
-
-    if (!isServerHealthy()) {
-      log.warn(
-          "Server is currently UNHEALTHY. User permission role synchronization and "
-              + "resolution may not complete until this server becomes healthy again.");
-    }
-
-    // Ensure we're going to reload app and service account definitions
-    permissionsResolver.clearCache();
-
-    while (true) {
-      try {
-        Map<String, Set<Role>> combo = new HashMap<>();
-        // force a refresh of the unrestricted user in case the backing repository is empty:
-        combo.put(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME, new HashSet<>());
-        Map<String, Set<Role>> temp;
-        if (!(temp = getUserPermissions(roles)).isEmpty()) {
-          combo.putAll(temp);
-        }
-        if (!(temp = getServiceAccountsAsMap(roles)).isEmpty()) {
-          combo.putAll(temp);
-        }
-
-        return updateUserPermissions(combo);
-      } catch (ProviderException | PermissionResolutionException ex) {
-        registry
-            .counter(metricName("syncFailure"), "cause", ex.getClass().getSimpleName())
-            .increment();
-        Status status = healthIndicator.health().getStatus();
-        long waitTime = backOffExec.nextBackOff();
-        if (waitTime == BackOffExecution.STOP || System.currentTimeMillis() > timeout) {
-          String cause = (waitTime == BackOffExecution.STOP) ? "backoff-exhausted" : "timeout";
-          registry.counter("syncAborted", "cause", cause).increment();
-          log.error("Unable to resolve service account permissions.", ex);
-          return 0;
-        }
-        String message =
-            new StringBuilder("User permission sync failed. ")
-                .append("Server status is ")
-                .append(status)
-                .append(". Trying again in ")
-                .append(waitTime)
-                .append(" ms. Cause:")
-                .append(ex.getMessage())
-                .toString();
-        if (log.isDebugEnabled()) {
-          log.debug(message, ex);
-        } else {
-          log.warn(message);
-        }
-
-        try {
-          Thread.sleep(waitTime);
-        } catch (InterruptedException ignored) {
-        }
-      } finally {
-        isServerHealthy();
-      }
-    }
-  }
-
-  private boolean isServerHealthy() {
-    return healthIndicator.health().getStatus() == Status.UP;
-  }
-
-  private Map<String, Set<Role>> getServiceAccountsAsMap(List<String> roles) {
-    List<UserPermission> allServiceAccounts =
-        serviceAccountProvider.getAll().stream()
-            .map(ServiceAccount::toUserPermission)
-            .collect(Collectors.toList());
-    if (roles == null || roles.isEmpty()) {
-      return allServiceAccounts.stream()
-          .collect(Collectors.toMap(UserPermission::getId, UserPermission::getRoles));
-    } else {
-      return allServiceAccounts.stream()
-          .filter(p -> p.getRoles().stream().map(Role::getName).anyMatch(roles::contains))
-          .collect(Collectors.toMap(UserPermission::getId, UserPermission::getRoles));
-    }
-  }
-
-  private Map<String, Set<Role>> getUserPermissions(List<String> roles) {
-    if (roles == null || roles.isEmpty()) {
-      return permissionsRepository.getAllById();
-    } else {
-      return permissionsRepository.getAllByRoles(roles);
-    }
-  }
-
-  public long updateUserPermissions(Map<String, Set<Role>> rolesById) {
-    if (rolesById.remove(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME) != null) {
-      timeIt(
-          "syncAnonymous",
-          () -> {
-            permissionsRepository.put(permissionsResolver.resolveUnrestrictedUser());
-            log.info("Synced anonymous user role.");
-          });
-    }
-
-    List<ExternalUser> extUsers =
-        rolesById.entrySet().stream()
-            .map(
-                entry ->
-                    new ExternalUser()
-                        .setId(entry.getKey())
-                        .setExternalRoles(
-                            entry.getValue().stream()
-                                .filter(role -> role.getSource() == Role.Source.EXTERNAL)
-                                .collect(Collectors.toList())))
-            .collect(Collectors.toList());
-
-    if (extUsers.isEmpty()) {
-      log.info("Found no non-anonymous user roles to sync.");
-      return 0;
-    }
-
-    long count =
-        timeIt(
-            "syncUsers",
-            () -> {
-              Map<String, UserPermission> values = permissionsResolver.resolve(extUsers);
-              permissionsRepository.putAllById(values);
-              return values.size();
-            });
-    log.info("Synced {} non-anonymous user roles.", count);
-    return count;
+    return syncStrategy.syncAndReturn(roles);
   }
 
   private static String metricName(String name) {

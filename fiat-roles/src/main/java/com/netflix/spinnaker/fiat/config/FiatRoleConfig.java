@@ -16,8 +16,14 @@
 
 package com.netflix.spinnaker.fiat.config;
 
+import com.netflix.spinnaker.fiat.roles.Synchronizer;
+import com.netflix.spinnaker.fiat.roles.UserRolesSyncStrategy;
+import com.netflix.spinnaker.fiat.roles.UserRolesSyncStrategy.CachedSynchronizationStrategy;
+import com.netflix.spinnaker.fiat.roles.UserRolesSyncStrategy.DefaultSynchronizationStrategy;
 import lombok.Data;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Data
@@ -26,4 +32,19 @@ import org.springframework.context.annotation.Configuration;
 public class FiatRoleConfig {
 
   private boolean orMode = false;
+
+  @Bean
+  @ConditionalOnProperty(
+      name = "fiat.role.sync-cache.enabled",
+      havingValue = "false",
+      matchIfMissing = true)
+  UserRolesSyncStrategy defaultSyncStrategy(Synchronizer synchronizer) {
+    return new DefaultSynchronizationStrategy(synchronizer);
+  }
+
+  @Bean
+  @ConditionalOnProperty(name = "fiat.role.sync-cache.enabled", havingValue = "true")
+  UserRolesSyncStrategy cachedSyncStrategy(Synchronizer synchronizer) {
+    return new CachedSynchronizationStrategy(synchronizer);
+  }
 }
