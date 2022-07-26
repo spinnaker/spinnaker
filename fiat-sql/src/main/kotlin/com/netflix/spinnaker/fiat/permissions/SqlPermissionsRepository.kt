@@ -311,7 +311,7 @@ class SqlPermissionsRepository(
 
             insert.apply {
                 chunk.forEach { resource ->
-                    values(id, resource.type, resource.name)
+                    values(id, resource.type, resource.name.toLowerCase())
                     when (jooq.dialect()) {
                         SQLDialect.POSTGRES ->
                             onConflictDoNothing()
@@ -406,7 +406,7 @@ class SqlPermissionsRepository(
 
                 insert.apply {
                     chunk.forEach {
-                        values(it.type, it.name, bodies[it], hashes[it], now)
+                        values(it.type, it.name.toLowerCase(), bodies[it], hashes[it], now)
                         when (jooq.dialect()) {
                             // https://github.com/jOOQ/jOOQ/issues/5975 means we have to duplicate field names here
                             SQLDialect.POSTGRES ->
