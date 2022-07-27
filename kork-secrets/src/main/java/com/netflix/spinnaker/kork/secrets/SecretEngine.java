@@ -50,16 +50,7 @@ public interface SecretEngine {
     throw new UnsupportedOperationException("This operation is not supported");
   }
 
-  default void validate(@Nonnull UserSecretReference reference) {
-    if (!reference
-        .getParameters()
-        .containsKey(StandardSecretParameter.ENCODING.getParameterName())) {
-      throw new InvalidSecretFormatException(
-          String.format(
-              "No encoding parameter specified (%s=...) in %s",
-              StandardSecretParameter.ENCODING.getParameterName(), reference));
-    }
-  }
+  default void validate(@Nonnull UserSecretReference reference) {}
 
   void clearCache();
 }

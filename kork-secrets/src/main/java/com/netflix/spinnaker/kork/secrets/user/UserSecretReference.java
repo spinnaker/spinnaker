@@ -1,3 +1,19 @@
+/*
+ * Copyright 2022 Apple Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.netflix.spinnaker.kork.secrets.user;
 
 import com.netflix.spinnaker.kork.secrets.InvalidSecretFormatException;
@@ -21,16 +37,15 @@ import lombok.ToString;
  * string of this URI). The engine identifier and the query string may be encoded using URL-escaping
  * for otherwise illegal characters in a URI (see {@link URI} for more details). For example, with
  * an engine identifier of {@code foo} with parameters {@code s=my-secret}, {@code r=us-north-1},
- * {@code e=yaml}, and {@code k=my-key}, the corresponding user secret URI would be {@code
- * secret://foo?s=my-secret&r=us-north-1&e=yaml&k=my-key}.
+ * and {@code k=my-key}, the corresponding user secret URI would be {@code
+ * secret://foo?s=my-secret&r=us-north-1&k=my-key}.
  *
  * <h2>Encoding Parameter</h2>
  *
  * <p>User secrets may be encoded in JSON, YAML, or CBOR, and the specific encoding format being
- * used by a user secret should be specified through the {@code e} parameter with a value of {@code
- * json}, {@code yaml}, or {@code cbor}. Secret engines may define a default encoding format if no
- * {@code e} parameter is specified. Additional encoding formats may be configured through the
- * {@link UserSecretMapper} bean.
+ * used by a user secret should be specified through the corresponding {@link UserSecretMetadata} of
+ * that secret along. Additional encoding formats and special types may be configured by registering
+ * additional {@link UserSecretSerde} beans.
  *
  * <h2>Key Parameter</h2>
  *
