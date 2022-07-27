@@ -16,18 +16,19 @@
 
 package com.netflix.spinnaker.kork.secrets.engines;
 
-import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
-import java.util.Map;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-@Component
-@ConditionalOnMissingBean(SecretsManagerClientProvider.class)
-public class DefaultSecretsManagerClientProvider implements SecretsManagerClientProvider {
-  @Override
-  public AWSSecretsManager getClientForSecretParameters(Map<String, String> parameters) {
-    String region = parameters.get(SecretsManagerSecretEngine.SECRET_REGION);
-    return AWSSecretsManagerClientBuilder.standard().withRegion(region).build();
+@Configuration
+public class SecretsManagerConfiguration {
+  @ConditionalOnMissingBean
+  @Bean
+  public SecretsManagerClientProvider secretsManagerClientProvider() {
+    return parameters ->
+        AWSSecretsManagerClientBuilder.standard()
+            .withRegion(parameters.get(SecretsManagerSecretEngine.SECRET_REGION))
+            .build();
   }
 }
