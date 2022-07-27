@@ -22,6 +22,8 @@ import dev.minutest.rootContext
 import io.mockk.every
 import io.mockk.mockk
 import java.net.URL
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.core.env.ConfigurableEnvironment
 import org.springframework.core.env.MapPropertySource
 import org.springframework.core.env.MutablePropertySources
@@ -35,7 +37,14 @@ import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.isSuccess
 
+@SpringBootTest(
+  properties = ["spring.config.location=classpath:testplugin/plugin-empty-config.yml"],
+  classes = [com.netflix.spinnaker.kork.plugins.config.SpringEnvironmentConfigResolver::class]
+)
 class SpringEnvironmentConfigResolverTest : JUnit5Minutests {
+
+  @Autowired
+  lateinit var configResolver: SpringEnvironmentConfigResolver
 
   fun tests() = rootContext<Fixture> {
     fixture {
@@ -138,6 +147,16 @@ class SpringEnvironmentConfigResolverTest : JUnit5Minutests {
             .isNotNull()
             .get { url }.isEqualTo(URL("http://localhost:9000"))
         }
+    }
+
+    test("loading repository with empty config") {
+      expectThat(
+        configResolver.resolve(
+          RepositoryConfigCoordinates(),
+          object : TypeReference<HashMap<String, PluginRepositoryProperties>>() {}
+        )
+      )
+        .isA<Map<String,String>>()
     }
   }
 
