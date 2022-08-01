@@ -117,7 +117,19 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
     if (!node.children.length) {
       return node.phase;
     }
-    return max(node.children.map((n) => this.getLastPhase(n)));
+    const result: number[] = [];
+    this.collect(node.children, result);
+    return max(result);
+  }
+
+  private collect(nodes: IPipelineGraphNode[], result: number[]) {
+    nodes.forEach((node) => {
+      if (node.children.length) {
+        this.collect(node.children, result);
+      } else {
+        result.push(node.phase);
+      }
+    });
   }
 
   private createNodes(props: IPipelineGraphProps): IPipelineGraphNode[] {
@@ -574,7 +586,7 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
                   </a>
                 </p>
               )}
-              {/* The SVG and Placholder elements need to be in the DOM even 
+              {/* The SVG and Placholder elements need to be in the DOM even
               when minimized because applyNodeHeights needs the width values */}
               <svg
                 className="pipeline-graph"

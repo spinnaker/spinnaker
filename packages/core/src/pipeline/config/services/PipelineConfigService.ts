@@ -104,22 +104,30 @@ export class PipelineConfigService {
       });
   }
 
-  public static getDownstreamStageIds(pipeline: IPipeline, stage: IStage): Array<string | number> {
-    let downstream: Array<string | number> = [];
-    const children = pipeline.stages.filter((stageToTest: IStage) => {
-      return stageToTest.requisiteStageRefIds && stageToTest.requisiteStageRefIds.includes(stage.refId);
-    });
-    if (children.length) {
-      downstream = children.map((c) => c.refId);
+  public static getDownstreamStageIds(
+    map: Map<string | number, Array<string | number>>,
+    stage: string | number,
+  ): Array<string | number> {
+    if (!map || !stage) {
+      return [];
+    }
+    let downstreamStages: Array<string | number> = [];
+
+    const children = map.get(stage);
+    if (children && children.length) {
+      downstreamStages = downstreamStages.concat(children);
       children.forEach((child) => {
-        downstream = downstream.concat(this.getDownstreamStageIds(pipeline, child));
+        downstreamStages = downstreamStages.concat(PipelineConfigService.getDownstreamStageIds(map, child));
       });
     }
-    return uniq(downstream);
+    return uniq(downstreamStages);
   }
 
   public static getDependencyCandidateStages(pipeline: IPipeline, stage: IStage): IStage[] {
-    const downstreamIds: Array<string | number> = this.getDownstreamStageIds(pipeline, stage);
+    const grouped = PipelineConfigService.groupStagesByRequisiteStageRefIds(pipeline);
+
+    const downstreamIds: Array<string | number> = PipelineConfigService.getDownstreamStageIds(grouped, stage.refId);
+
     return pipeline.stages.filter((stageToTest: IStage) => {
       return (
         stage !== stageToTest &&
@@ -129,6 +137,21 @@ export class PipelineConfigService {
         !stage.requisiteStageRefIds.includes(stageToTest.refId)
       );
     });
+  }
+
+  private static groupStagesByRequisiteStageRefIds(pipeline: IPipeline) {
+    return pipeline.stages.reduce((acc, obj) => {
+      const parent = obj['refId'];
+      obj.requisiteStageRefIds.forEach((child) => {
+        const values = acc.get(child);
+        if (values && values.length) {
+          values.push(parent);
+        } else {
+          acc.set(child, [parent]);
+        }
+      });
+      return acc;
+    }, new Map<string | number, Array<string | number>>());
   }
 
   public static getAllUpstreamDependencies(pipeline: IPipeline, stage: IStage): IStage[] {

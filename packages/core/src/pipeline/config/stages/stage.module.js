@@ -1,7 +1,8 @@
 'use strict';
 
 import { module } from 'angular';
-import { defaultsDeep, extend, omit, union } from 'lodash';
+import { defaultsDeep, extend, isEqual, omit, union } from 'lodash';
+import memoizeOne from 'memoize-one';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
@@ -111,12 +112,12 @@ module(CORE_PIPELINE_CONFIG_STAGES_STAGE_MODULE, [
           $scope.stage.expectedArtifacts = artifacts;
         });
       };
-
+      const memoizedGetDependencyCandidateStages = memoizeOne(
+        PipelineConfigService.getDependencyCandidateStages,
+        isEqual,
+      );
       $scope.updateAvailableDependencyStages = function () {
-        const availableDependencyStages = PipelineConfigService.getDependencyCandidateStages(
-          $scope.pipeline,
-          $scope.stage,
-        );
+        const availableDependencyStages = memoizedGetDependencyCandidateStages($scope.pipeline, $scope.stage);
         $scope.options.dependencies = availableDependencyStages.map(function (stage) {
           return {
             name: stage.name,

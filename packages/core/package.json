@@ -54,7 +54,7 @@
     "lodash": "4.17.21",
     "lodash-decorators": "4.5.0",
     "luxon": "1.23.0",
-    "memoize-one": "4.0.2",
+    "memoize-one": "6.0.0",
     "ngimport": "0.6.1",
     "prop-types": "15.6.1",
     "react": "16.14.0",
