@@ -43,6 +43,9 @@ public class FiatClientConfigurationProperties {
 
   @NestedConfigurationProperty private RetryConfiguration retry = new RetryConfiguration();
 
+  @NestedConfigurationProperty
+  private GrantedAuthorities grantedAuthorities = new GrantedAuthorities();
+
   public RetryConfiguration getRetry() {
     retry.setDynamicConfigService(dynamicConfigService);
     return retry;
@@ -92,5 +95,10 @@ public class FiatClientConfigurationProperties {
       return dynamicConfigService.getConfig(
           Double.class, "fiat.retry.retryMultiplier", retryMultiplier);
     }
+  }
+
+  @Data
+  public static class GrantedAuthorities {
+    private boolean enabled;
   }
 }

@@ -18,7 +18,9 @@ package com.netflix.spinnaker.fiat.model;
 
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.Locale;
 import java.util.Set;
+import javax.annotation.Nullable;
 
 public enum Authorization {
   READ,
@@ -28,4 +30,12 @@ public enum Authorization {
 
   public static final Set<Authorization> ALL =
       Collections.unmodifiableSet(EnumSet.allOf(Authorization.class));
+
+  @Nullable
+  public static Authorization parse(Object o) {
+    if (o instanceof Authorization) {
+      return (Authorization) o;
+    }
+    return o != null ? valueOf(o.toString().toUpperCase(Locale.ROOT)) : null;
+  }
 }

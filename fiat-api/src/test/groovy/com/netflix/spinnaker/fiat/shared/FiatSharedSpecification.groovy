@@ -25,6 +25,7 @@ abstract class FiatSharedSpecification extends Specification {
     Registry registry = new NoopRegistry()
     FiatStatus fiatStatus = Mock(FiatStatus) {
         _ * isEnabled() >> { return true }
+        _ * isGrantedAuthoritiesEnabled() >> { return true }
     }
 
     private static FiatClientConfigurationProperties buildConfigurationProperties() {

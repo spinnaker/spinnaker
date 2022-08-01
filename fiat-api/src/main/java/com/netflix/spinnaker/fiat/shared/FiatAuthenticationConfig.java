@@ -32,6 +32,7 @@ import lombok.val;
 import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -43,6 +44,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
+import org.springframework.security.web.authentication.AuthenticationConverter;
 import retrofit.Endpoints;
 import retrofit.RestAdapter;
 import retrofit.converter.JacksonConverter;
@@ -85,9 +87,33 @@ public class FiatAuthenticationConfig {
         .create(FiatService.class);
   }
 
+  /**
+   * When enabled, this authenticates the {@code X-SPINNAKER-USER} HTTP header using permissions
+   * obtained from {@link FiatPermissionEvaluator#getPermission(String)}. This feature is part of a
+   * larger effort to adopt standard Spring Security APIs rather than using Fiat directly where
+   * possible.
+   */
+  @ConditionalOnProperty("services.fiat.granted-authorities.enabled")
   @Bean
-  FiatWebSecurityConfigurerAdapter fiatSecurityConfig(FiatStatus fiatStatus) {
-    return new FiatWebSecurityConfigurerAdapter(fiatStatus);
+  AuthenticationConverter fiatAuthenticationFilter(FiatPermissionEvaluator permissionEvaluator) {
+    return new FiatAuthenticationConverter(permissionEvaluator);
+  }
+
+  /**
+   * Provides the previous behavior of using PreAuthenticatedAuthenticationToken with no granted
+   * authorities to indicate an authenticated user or an AnonymousAuthenticationToken with an
+   * "ANONYMOUS" role for anonymous authenticated users.
+   */
+  @ConditionalOnMissingBean
+  @Bean
+  AuthenticationConverter defaultAuthenticationConverter() {
+    return new AuthenticatedRequestAuthenticationConverter();
+  }
+
+  @Bean
+  FiatWebSecurityConfigurerAdapter fiatSecurityConfig(
+      FiatStatus fiatStatus, AuthenticationConverter authenticationConverter) {
+    return new FiatWebSecurityConfigurerAdapter(fiatStatus, authenticationConverter);
   }
 
   @Bean
@@ -97,12 +123,15 @@ public class FiatAuthenticationConfig {
     return new FiatAccessDeniedExceptionHandler(exceptionMessageDecorator);
   }
 
-  private class FiatWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
+  private static class FiatWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
     private final FiatStatus fiatStatus;
+    private final AuthenticationConverter authenticationConverter;
 
-    private FiatWebSecurityConfigurerAdapter(FiatStatus fiatStatus) {
+    private FiatWebSecurityConfigurerAdapter(
+        FiatStatus fiatStatus, AuthenticationConverter authenticationConverter) {
       super(true);
       this.fiatStatus = fiatStatus;
+      this.authenticationConverter = authenticationConverter;
     }
 
     @Override
@@ -114,7 +143,8 @@ public class FiatAuthenticationConfig {
           .anonymous()
           .and()
           .addFilterBefore(
-              new FiatAuthenticationFilter(fiatStatus), AnonymousAuthenticationFilter.class);
+              new FiatAuthenticationFilter(fiatStatus, authenticationConverter),
+              AnonymousAuthenticationFilter.class);
     }
   }
 }

@@ -21,12 +21,14 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.fiat.model.Authorization;
+import com.netflix.spinnaker.fiat.model.SpinnakerAuthorities;
 import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.Account;
 import com.netflix.spinnaker.fiat.model.resources.Authorizable;
 import com.netflix.spinnaker.fiat.model.resources.ResourceType;
 import com.netflix.spinnaker.kork.exceptions.IntegrationException;
 import com.netflix.spinnaker.kork.telemetry.caffeine.CaffeineStatsCounter;
+import com.netflix.spinnaker.security.AccessControlled;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.io.Serializable;
 import java.util.Arrays;
@@ -148,6 +150,25 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
   @Override
   public boolean hasPermission(
       Authentication authentication, Object resource, Object authorization) {
+    if (!fiatStatus.isGrantedAuthoritiesEnabled()) {
+      return false;
+    }
+    if (!fiatStatus.isEnabled()) {
+      return true;
+    }
+    if (authentication == null || resource == null) {
+      log.warn(
+          "Permission denied because at least one of the required arguments was null. authentication={}, resource={}",
+          authentication,
+          resource);
+      return false;
+    }
+    if (authentication.getAuthorities().contains(SpinnakerAuthorities.ADMIN_AUTHORITY)) {
+      return true;
+    }
+    if (resource instanceof AccessControlled) {
+      return ((AccessControlled) resource).isAuthorized(authentication, authorization);
+    }
     return false;
   }
 
@@ -223,7 +244,7 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
 
     // Service accounts don't have read/write authorizations.
     if (!r.equals(ResourceType.SERVICE_ACCOUNT)) {
-      a = Authorization.valueOf(authorization.toString());
+      a = Authorization.parse(authorization);
     }
 
     if (a == Authorization.CREATE) {

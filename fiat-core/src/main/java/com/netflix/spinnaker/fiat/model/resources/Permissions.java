@@ -25,6 +25,7 @@ import com.netflix.spinnaker.fiat.model.Authorization;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.val;
+import org.springframework.security.core.GrantedAuthority;
 
 /**
  * Representation of authorization configuration for a resource. This object is immutable, which
@@ -89,6 +90,17 @@ public class Permissions {
 
   public Set<Authorization> getAuthorizations(List<String> userRoles) {
     return getAuthorizationsFromRoles(new LinkedHashSet<>(userRoles));
+  }
+
+  public Set<Authorization> getAuthorizations(
+      Collection<? extends GrantedAuthority> userAuthorities) {
+    Set<String> userRoles =
+        userAuthorities.stream()
+            .map(GrantedAuthority::getAuthority)
+            .filter(authority -> authority.startsWith("ROLE_"))
+            .map(authority -> authority.substring("ROLE_".length()))
+            .collect(Collectors.toSet());
+    return getAuthorizationsFromRoles(userRoles);
   }
 
   private Set<Authorization> getAuthorizationsFromRoles(Set<String> userRoles) {

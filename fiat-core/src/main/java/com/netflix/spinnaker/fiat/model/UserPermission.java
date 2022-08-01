@@ -25,6 +25,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.val;
+import org.springframework.security.core.GrantedAuthority;
 
 @Data
 public class UserPermission {
@@ -152,6 +153,25 @@ public class UserPermission {
 
       this.admin = permission.isAdmin();
       this.accountManager = permission.isAccountManager();
+    }
+
+    /**
+     * Returns this user permission view as a set of granted authorities. This authority set
+     * contains the user's roles along with authorities indicating if they're Spinnaker admins or
+     * account managers.
+     */
+    public Set<GrantedAuthority> toGrantedAuthorities() {
+      Set<GrantedAuthority> authorities = new LinkedHashSet<>();
+      if (isAdmin()) {
+        authorities.add(SpinnakerAuthorities.ADMIN_AUTHORITY);
+      }
+      if (isAccountManager()) {
+        authorities.add(SpinnakerAuthorities.ACCOUNT_MANAGER_AUTHORITY);
+      }
+      for (Role.View role : getRoles()) {
+        authorities.add(SpinnakerAuthorities.forRoleName(role.getName()));
+      }
+      return authorities;
     }
   }
 }

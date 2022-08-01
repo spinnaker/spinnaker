@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.fiat.shared
 
 import com.netflix.spinnaker.fiat.model.Authorization
+import com.netflix.spinnaker.fiat.model.SpinnakerAuthorities
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Application
 import com.netflix.spinnaker.fiat.model.resources.Authorizable
@@ -49,7 +50,8 @@ class FiatPermissionEvaluatorSpec extends FiatSharedSpecification {
   )
 
   @Shared
-  def authentication = new PreAuthenticatedAuthenticationToken("testUser", null, [])
+  def authentication = new PreAuthenticatedAuthenticationToken("testUser", null,
+          [SpinnakerAuthorities.forRoleName('test group')])
 
   def cleanup() {
     MDC.clear()
@@ -290,6 +292,7 @@ class FiatPermissionEvaluatorSpec extends FiatSharedSpecification {
     configurationProperties.enabled = true
     configurationProperties.cache.maxEntries = 0
     configurationProperties.cache.expiresAfterWriteSeconds = 0
+    configurationProperties.grantedAuthorities.enabled = true
     return configurationProperties
   }
 
@@ -297,5 +300,27 @@ class FiatPermissionEvaluatorSpec extends FiatSharedSpecification {
   private static class MyExtensionResourceView implements Authorizable {
     String name
     Set<Authorization> authorizations
+  }
+
+  def "should evaluate permissions for AccessControlled objects"() {
+    given:
+    def resource = new AccessControlledResource(new Permissions.Builder().add(Authorization.READ, 'test group').build())
+
+    when:
+    def hasPermission = evaluator.hasPermission(authentication, resource, authorization)
+
+    then:
+    hasPermission == expectedHasPermission
+
+    where:
+    authorization      | expectedHasPermission
+    'read'             | true
+    "read"             | true
+    'READ'             | true
+    "READ"             | true
+    Authorization.READ | true
+    'write'            | false
+    'WRITE'            | false
+    'EXECUTE'          | false
   }
 }
