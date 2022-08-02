@@ -490,7 +490,7 @@ final class ReplacerTest {
         .flatExtracting(list -> list)
         .extracting("configMap")
         .filteredOn(Objects::nonNull)
-        .extracting("getName")
+        .extracting("name")
         .containsExactly(
             // Only the second config map should have been replaced.
             "first-config-map", "second-config-map-v003");
@@ -502,7 +502,7 @@ final class ReplacerTest {
         .flatExtracting(list -> list)
         .extracting("secret")
         .filteredOn(Objects::nonNull)
-        .extracting("getName")
+        .extracting("name")
         .containsExactly(
             // No secrets should have been replaced.
             "first-secret", "second-secret");
@@ -575,7 +575,7 @@ final class ReplacerTest {
         .flatExtracting(list -> list)
         .extracting("configMap")
         .filteredOn(Objects::nonNull)
-        .extracting("getName")
+        .extracting("name")
         .containsExactly(
             // No config maps should have been replaced.
             "first-config-map", "second-config-map");
@@ -587,7 +587,7 @@ final class ReplacerTest {
         .flatExtracting(list -> list)
         .extracting("secret")
         .filteredOn(Objects::nonNull)
-        .extracting("getName")
+        .extracting("name")
         .containsExactly(
             // Only the first secret should have been replaced.
             "first-secret-v007", "second-secret");
