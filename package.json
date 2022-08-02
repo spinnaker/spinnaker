@@ -67,15 +67,17 @@
   },
   "resolutionsPurpose": "This temporarily chooses the right versions of these libs, which are specified in both deck AND deck-kayenta",
   "resolutions": {
+    "@types/angular": "1.6.26",
     "@uirouter/react-hybrid": "1.0.2",
     "@uirouter/react": "1.0.7",
     "@uirouter/angularjs": "1.0.26",
     "@uirouter/core": "6.0.8",
+    "angular": "1.8.0",
+    "cheerio": "=1.0.0-rc.6",
+    "nth-check": "2.0.1",
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
     "rxjs": "6.6.7",
-    "angular": "1.8.0",
-    "@types/angular": "1.6.26",
     "typescript": "4.3.5"
   },
   "workspaces": [

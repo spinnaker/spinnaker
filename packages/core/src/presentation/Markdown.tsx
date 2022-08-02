@@ -21,7 +21,7 @@ export interface IMarkdownProps {
   className?: string;
 
   /** Options passed to DOMPurify. Examples: https://github.com/cure53/DOMPurify/tree/master/demos#what-is-this */
-  options?: IDOMPurifyConfig;
+  options?: DOMPurify.Config;
 }
 
 /**
@@ -44,11 +44,13 @@ export function Markdown(props: IMarkdownProps) {
   const restProps = rest as React.DOMAttributes<any>;
   const parsed = parser.parse(parseable.toString());
   const rendered = renderer.render(parsed);
-  restProps.dangerouslySetInnerHTML = { __html: DOMPurify.sanitize(rendered, props.options) };
+  restProps.dangerouslySetInnerHTML = {
+    __html: DOMPurify.sanitize(rendered, { ...props.options, RETURN_DOM_FRAGMENT: false, RETURN_DOM: false }),
+  };
 
   return React.createElement(tag, { ...restProps, className });
 }
 
-export const toMarkdown = (message: string, options: IDOMPurifyConfig = {}, inline = false) => (
+export const toMarkdown = (message: string, options: DOMPurify.Config = {}, inline = false) => (
   <Markdown message={message} tag={inline ? 'span' : 'div'} options={options} />
 );
