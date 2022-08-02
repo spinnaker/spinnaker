@@ -1,0 +1,39 @@
+databaseChangeLog:
+  - changeSet:
+      id: drop-fiat-permission-foreign-key
+      author: abedonik
+      changes:
+        - dropForeignKeyConstraint:
+            constraintName: fk_fiat_permission_resource
+            baseTableName: fiat_permission
+      rollback:
+        - addForeignKeyConstraint:
+            constraintName: fk_fiat_permission_resource
+            baseColumnNames: resource_type, resource_name
+            baseTableName: fiat_permission
+            referencedColumnNames: resource_type, resource_name
+            referencedTableName: fiat_resource
+  - changeSet:
+      id: resource-name-to-lower-case-in-fiat-resource
+      author: abedonik
+      changes:
+        - sql: UPDATE fiat_resource SET resource_name = LOWER(resource_name);
+  - changeSet:
+      id: resource-name-to-lower-case-in-fiat-permission
+      author: abedonik
+      changes:
+        - sql: UPDATE fiat_permission SET resource_name = LOWER(resource_name);
+  - changeSet:
+      id: create-fiat-permission-foreign-key
+      author: abedonik
+      changes:
+        - addForeignKeyConstraint:
+            constraintName: fk_fiat_permission_resource
+            baseColumnNames: resource_type, resource_name
+            baseTableName: fiat_permission
+            referencedColumnNames: resource_type, resource_name
+            referencedTableName: fiat_resource
+      rollback:
+        - dropForeignKeyConstraint:
+            constraintName: fk_fiat_permission_resource
+            baseTableName: fiat_permission
