@@ -11,6 +11,6 @@ export PACKAGE_BUMP_COMMIT_HASH=""
 export PEERDEP_BUMP_COMMIT_HASH=""
 
 function updateBumpHashes() {
-  export PACKAGE_BUMP_COMMIT_HASH=$(git log -1 --grep=$PACKAGE_BUMP_COMMIT_MSG --format=%H)
-  export PEERDEP_BUMP_COMMIT_HASH=$(git log -1 --grep=$PEERDEP_BUMP_COMMIT_MSG --format=%H)
+  export PACKAGE_BUMP_COMMIT_HASH=$(git log -1 --grep="$PACKAGE_BUMP_COMMIT_MSG" --format=%H)
+  export PEERDEP_BUMP_COMMIT_HASH=$(git log -1 --grep="$PEERDEP_BUMP_COMMIT_MSG" --format=%H)
 }

@@ -11,7 +11,7 @@ cd "$SCRIPT_DIR/.."
 function changelog() {
   hash=$1
 
-  git diff -u $hash packages/*/CHANGELOG.md  | \
+  git diff -u "$hash" packages/*/CHANGELOG.md  | \
     # Only process added or changed lines
     grep "^\+" | \
     # Remove the leading + characters from 'diff -u'
