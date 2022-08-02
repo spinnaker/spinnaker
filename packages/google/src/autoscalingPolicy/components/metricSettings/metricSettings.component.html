@@ -3,7 +3,7 @@
     <ng-form name="cpuUtilization">
       <div ng-if="$ctrl.showMetric('cpuUtilization')">
         <div class="row">
-          <div class="col-md-3 sm-label-right">
+          <div class="col-md-4 sm-label-right">
             Utilization Target (%)
             <help-field key="gce.serverGroup.scalingPolicy.cpuUtilization"></help-field>
           </div>
@@ -97,12 +97,13 @@
 <collapsible-section heading="Custom Metric Utilizations" expanded="true" subsection="true">
   <div class="section-body" ng-repeat="custom in $ctrl.policy.customMetricUtilizations track by $index">
     <hr ng-if="$index > 0" />
+
     <div class="row">
       <div class="col-md-3 sm-label-right">Metric Identifier</div>
-      <div class="col-md-2 content-fields">
+      <div class="col-md-3 content-fields">
         <input class="form-control input-sm" required ng-model="custom.metric" />
       </div>
-      <div class="col-md-offset-5 col-md-1">
+      <div class="col-md-offset-4 col-md-1">
         <button class="btn btn-sm btn-default" ng-click="$ctrl.deleteMetric('customMetricUtilizations', $index)">
           <span class="glyphicon glyphicon-trash visible-lg-inline"></span>
           <span class="visible-lg-inline">Delete</span>
@@ -110,32 +111,86 @@
       </div>
     </div>
     <div class="row">
-      <div class="col-md-3 sm-label-right">
-        Utilization Target
-        <help-field key="gce.serverGroup.scalingPolicy.customMetricUtilizations"></help-field>
+      <div class="col-md-3 sm-label-right">Additional Filter Expression</div>
+      <div class="col-md-3 content-fields">
+        <input class="form-control input-sm" ng-model="custom.additionalFilter" />
       </div>
-      <div class="col-md-2 content-fields">
-        <input
-          type="number"
-          name="utilizationTarget"
-          class="form-control input-sm"
-          required
-          ng-model="custom.utilizationTarget"
-        />
-      </div>
-      <div class="col-md-2">
+    </div>
+
+    <div class="row">
+      <div class="col-md-3 sm-label-right">Metric Export Scope</div>
+      <div class="col-md-3">
         <select
           class="form-control input-sm"
-          style="margin: 0px"
-          ng-options="value as displayValue for (value, displayValue) in $ctrl.targetTypesToDisplayMap"
-          ng-model="custom.utilizationTargetType"
+          ng-options="value as displayValue for (value, displayValue) in $ctrl.metricScopeTypesToDisplayMap"
+          ng-model="custom.metricExportScope"
           required
-        >
-          <option value="">-- Target Type --</option>
-        </select>
+        ></select>
       </div>
-      <div class="col-md-5 error-message" ng-if="custom.utilizationTarget <= 0">
-        Utilization target must be greater than 0.0.
+    </div>
+
+    <div ng-if="$ctrl.isSingleTimeSeriesPerGroup('SINGLE_TIME_SERIES_PER_GROUP', $index)">
+      <div class="row">
+        <div class="col-md-3 sm-label-right">Scaling Policy</div>
+        <div class="col-md-3">
+          <select
+            class="form-control input-sm"
+            ng-options="value as displayValue for (value, displayValue) in $ctrl.scalingpolicyTypesToDisplayMap"
+            ng-model="custom.scalingpolicy"
+            required
+          ></select>
+        </div>
+      </div>
+
+      <div ng-if="$ctrl.isScalingPolicySingleInstanceAssignment('SINGLE_INSTANCE_ASSIGNMENT', $index)">
+        <div class="row">
+          <div class="col-md-3 sm-label-right">Single Instance Assignment</div>
+          <div class="col-md-3 content-fields">
+            <input
+              type="number"
+              name="singleInstanceAssignment"
+              class="form-control input-sm"
+              required
+              ng-model="custom.singleInstaceAssignment"
+              min="0"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      ng-if="
+        !$ctrl.isScalingPolicySingleInstanceAssignment('SINGLE_INSTANCE_ASSIGNMENT', $index) ||
+        !$ctrl.isSingleTimeSeriesPerGroup('SINGLE_TIME_SERIES_PER_GROUP', $index)
+      "
+    >
+      <div class="row">
+        <div class="col-md-3 sm-label-right">
+          Utilization Target
+          <help-field key="gce.serverGroup.scalingPolicy.customMetricUtilizations"></help-field>
+        </div>
+        <div class="col-md-3 content-fields">
+          <input
+            type="number"
+            name="utilizationTarget"
+            class="form-control input-sm"
+            required
+            ng-model="custom.utilizationTarget"
+          />
+        </div>
+        <div class="col-md-3">
+          <select
+            class="form-control input-sm"
+            ng-options="value as displayValue for (value, displayValue) in $ctrl.targetTypesToDisplayMap"
+            ng-model="custom.utilizationTargetType"
+            required
+          >
+            <option value="">-- Target Type --</option>
+          </select>
+        </div>
+        <div class="col-md-5 error-message" ng-if="custom.utilizationTarget <= 0">
+          Utilization target must be greater than 0.0.
+        </div>
       </div>
     </div>
   </div>
@@ -143,9 +198,11 @@
     <span class="glyphicon glyphicon-plus-sign"></span> Add custom metric
   </button>
 </collapsible-section>
-<div class="col-md-12" ng-if="$ctrl.showNoMetricsWarning()">
-  <div class="alert alert-warning text-center">
-    <i class="fa fa-exclamation-triangle pull-left"></i>
-    <span>At least one metric is required.</span>
+<div class="row">
+  <div class="col-md-12" ng-if="$ctrl.showNoMetricsWarning()">
+    <div class="alert alert-warning text-center">
+      <i class="fa fa-exclamation-triangle pull-left"></i>
+      <span>At least one metric is required.</span>
+    </div>
   </div>
 </div>

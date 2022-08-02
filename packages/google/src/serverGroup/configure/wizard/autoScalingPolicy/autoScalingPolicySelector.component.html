@@ -1,0 +1,21 @@
+<div class="gce-scaling-policy-wizard">
+  <h5 class="section-heading">Basic Settings</h5>
+  <div class="section-body">
+    <gce-autoscaling-policy-basic-settings policy="$ctrl.policy" update-policy="$ctrl.updatePolicy">
+    </gce-autoscaling-policy-basic-settings>
+  </div>
+  <h5 class="section-heading">Metric Types</h5>
+  <gce-autoscaling-policy-metric-settings
+    show-no-metrics-warning="$ctrl.showNoMetricsWarning"
+    policy="$ctrl.policy"
+    update-policy="$ctrl.updatePolicy"
+  >
+  </gce-autoscaling-policy-metric-settings>
+  <h5 class="section-heading">Scaling Schedules</h5>
+  <div class="section-body">
+    <gce-autoscaling-policy-scaling-schedules
+      policy="$ctrl.policy"
+      update-policy="$ctrl.updatePolicy"
+    ></gce-autoscaling-policy-scaling-schedules>
+  </div>
+</div>

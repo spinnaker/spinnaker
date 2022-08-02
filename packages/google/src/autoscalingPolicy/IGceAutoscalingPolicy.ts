@@ -18,5 +18,5 @@ export interface IGceAutoscalingCpuUtilization {
 
 export enum GcePredictiveMethod {
   NONE = 'NONE',
-  STANDARD = 'STANDARD',
+  STANDARD = 'OPTIMIZE_AVAILABILITY',
 }

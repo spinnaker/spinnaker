@@ -35,10 +35,19 @@ const defaultScaleInControl: IGceScaleInControl = {
 
 function GceScaleInControls({ policy, updatePolicy }: IGceScaleInControlsProps) {
   function updateScaleInControl(scaleInControl: IGceScaleInControl) {
-    updatePolicy({
-      ...policy,
-      scaleInControl,
-    });
+    const scaleInControlExist = Object.keys(scaleInControl).length;
+    if (scaleInControlExist) {
+      updatePolicy({
+        ...policy,
+        scaleInControl,
+      });
+    } else {
+      const updatedPolicy: any = policy;
+      delete updatedPolicy['scaleInControl'];
+      updatePolicy({
+        ...updatedPolicy,
+      });
+    }
   }
 
   function getMaxReplicasUnit(): maxReplicasUnit {

@@ -221,6 +221,9 @@ window.spinnakerSettings = {
       defaultSecurityGroups: [],
     },
     gce: {
+      feature: {
+        predictiveAutoscaling: true,
+      },
       defaults: {
         account: 'my-google-account',
         instanceTypeStorage: {

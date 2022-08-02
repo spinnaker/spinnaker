@@ -2,7 +2,7 @@
 
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import * as angular from 'angular';
-import _ from 'lodash';
+import _, { isEmpty } from 'lodash';
 
 import { FirewallLabels, INSTANCE_TYPE_SERVICE, ModalWizard, TaskMonitor } from '@spinnaker/core';
 
@@ -61,8 +61,9 @@ angular
         securityGroups: require('./securityGroups/securityGroups.html'),
         instanceType: require('./instanceType/instanceType.html'),
         capacity: require('./capacity/capacity.html'),
-        zones: require('./capacity/zones.html'),
         autoHealingPolicy: require('./autoHealingPolicy/autoHealingPolicy.html'),
+        autoScalingPolicy: require('./autoScalingPolicy/autoScalingPolicy.html'),
+        zones: require('./capacity/zones.html'),
         advancedSettings: require('./advancedSettings/advancedSettings.html'),
       };
 
@@ -155,7 +156,8 @@ angular
               .register({ page: 'capacity', subForm: 'capacitySubForm' })
               .register({ page: 'zones', subForm: 'zonesSubForm' })
               .register({ page: 'load-balancers', subForm: 'loadBalancerSubForm' })
-              .register({ page: 'autohealing-policy', subForm: 'autoHealingPolicySubForm' });
+              .register({ page: 'autohealing-policy', subForm: 'autoHealingPolicySubForm' })
+              .register({ page: 'autoscaling-policy', subForm: 'autoScalingPolicySubForm' });
           })
           .catch((e) => {
             $log.error('Error generating server group command: ', e);
@@ -261,6 +263,7 @@ angular
       this.isValid = function () {
         const selectedZones =
           $scope.command.selectZones && _.get($scope, 'command.distributionPolicy.zones.length') >= 1;
+        const autoScalingPolicy = $scope.command.autoscalingPolicy;
         return (
           $scope.command &&
           ($scope.command.viewState.disableImageSelection || $scope.command.image) &&
@@ -272,6 +275,11 @@ angular
           $scope.command.capacity.desired !== null &&
           (!$scope.command.selectZones || selectedZones) &&
           $scope.form.$valid &&
+          (!autoScalingPolicy ||
+            (autoScalingPolicy &&
+              (!isEmpty(autoScalingPolicy.cpuUtilization) ||
+                !isEmpty(autoScalingPolicy.customMetricUtilizations) ||
+                !isEmpty(autoScalingPolicy.loadBalancingUtilization)))) &&
           ModalWizard.isComplete()
         );
       };
@@ -429,6 +437,16 @@ angular
 
       this.setAutoHealingPolicy = function (autoHealingPolicy) {
         $scope.command.autoHealingPolicy = autoHealingPolicy;
+      };
+
+      this.onEnableAutoScalingChange = function () {
+        // Prevent empty auto-scaling policies from being overwritten by those of their ancestors
+        $scope.command.overwriteAncestorAutoScalingPolicy =
+          $scope.command.autoscalingPolicy != null && $scope.command.enableAutoScaling === false;
+      };
+
+      this.setAutoScalingPolicy = function (autoScalingPolicy) {
+        $scope.command.autoscalingPolicy = autoScalingPolicy;
       };
 
       this.cancel = function () {

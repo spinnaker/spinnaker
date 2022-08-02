@@ -30,6 +30,16 @@ module(GOOGLE_AUTOSCALINGPOLICY_COMPONENTS_METRICSETTINGS_METRICSETTINGS_COMPONE
         DELTA_PER_MINUTE: 'Delta / minute',
       };
 
+      this.metricScopeTypesToDisplayMap = {
+        TIME_SERIES_PER_INSTANCE: 'Time series per instance',
+        SINGLE_TIME_SERIES_PER_GROUP: 'Single time series per group',
+      };
+
+      this.scalingpolicyTypesToDisplayMap = {
+        UTILIZATION_TARGET: 'Utilization target',
+        SINGLE_INSTANCE_ASSIGNMENT: 'singleInstanceAssignment',
+      };
+
       this.addMetric = (metricType) => {
         if (multipleAllowedFor[metricType]) {
           this.policy[metricType] = this.policy[metricType] || [];
@@ -52,6 +62,14 @@ module(GOOGLE_AUTOSCALINGPOLICY_COMPONENTS_METRICSETTINGS_METRICSETTINGS_COMPONE
         const metric = this.policy[metricType];
         // should not show policy form if the policy is undefined or an empty object.
         return !emptyOrUndefined(metric);
+      };
+
+      this.isSingleTimeSeriesPerGroup = (scopeType, index) => {
+        if (this.policy.customMetricUtilizations[index].metricExportScope === scopeType) return true;
+      };
+
+      this.isScalingPolicySingleInstanceAssignment = (policyType, index) => {
+        if (this.policy.customMetricUtilizations[index].scalingpolicy === policyType) return true;
       };
 
       this.showNoMetricsWarning = () => {

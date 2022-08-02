@@ -4,9 +4,12 @@ import { module } from 'angular';
 import { cloneDeep } from 'lodash';
 
 import { TaskMonitor } from '@spinnaker/core';
+
 import { GOOGLE_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_WRITE_SERVICE } from '../../../../autoscalingPolicy/autoscalingPolicy.write.service';
 import { GOOGLE_AUTOSCALINGPOLICY_COMPONENTS_BASICSETTINGS_BASICSETTINGS_COMPONENT } from '../../../../autoscalingPolicy/components/basicSettings/basicSettings.component';
 import { GOOGLE_AUTOSCALINGPOLICY_COMPONENTS_METRICSETTINGS_METRICSETTINGS_COMPONENT } from '../../../../autoscalingPolicy/components/metricSettings/metricSettings.component';
+import { GOOGLE_AUTOSCALINGPOLICY_COMPONENTS_SCALINGSCHEDULES_SCALINGSCHEDULES_COMPONENT } from '../../../../autoscalingPolicy/components/scalingSchedules/scalingSchedules.component';
+import { GOOGLE_SERVERGROUP_CONFIGURE_SERVERGROUP_CONFIGURE_GCE_MODULE } from '../../../configure/serverGroup.configure.gce.module';
 
 import './upsertAutoscalingPolicy.modal.less';
 
@@ -17,6 +20,7 @@ module(GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_MODAL_UPSERTAUTOSCALINGPOLIC
   GOOGLE_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_WRITE_SERVICE,
   GOOGLE_AUTOSCALINGPOLICY_COMPONENTS_BASICSETTINGS_BASICSETTINGS_COMPONENT,
   GOOGLE_AUTOSCALINGPOLICY_COMPONENTS_METRICSETTINGS_METRICSETTINGS_COMPONENT,
+  GOOGLE_AUTOSCALINGPOLICY_COMPONENTS_SCALINGSCHEDULES_SCALINGSCHEDULES_COMPONENT,
 ]).controller('gceUpsertAutoscalingPolicyModalCtrl', [
   'policy',
   'application',

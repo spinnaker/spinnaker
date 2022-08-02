@@ -101,6 +101,14 @@ const helpContents: { [key: string]: string } = {
     'Autoscaler adds or removes instances to maintain this usage of load-balancing capacity.',
   'gce.serverGroup.scalingPolicy.customMetricUtilizations':
     'Autoscaler adds or removes instances to maintain this usage for custom metric.',
+  'gce.serverGroup.scalingPolicy.cronExpression': `
+  Start time and recurrence using a cron expression. Examples: <br/>
+  Every day at 3 PM:<br/>
+   0 15 * * *<br/>
+  Every week Monday to Friday at 8:30 AM: <br/>
+  30 8 * * Mon-Fri<br/>
+  Once on 30 January 2030 at midnight: <br/>
+  0 0 30 1 * 2030`,
   'gce.serverGroup.imageName':
     '(Required) <b>Image</b> is the Google Compute Engine image. Images are restricted to the account selected.',
   'gce.serverGroup.capacity':

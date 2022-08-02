@@ -151,6 +151,12 @@ angular
                 networkReloader = refreshNetworks(command);
               }
             }
+
+            // eslint-disable-next-line no-console
+            if (command.autoScalingPolicy) {
+              command.enableAutoScaling = true;
+            }
+
             if (command.autoHealingPolicy) {
               command.enableAutoHealing = true;
             }
