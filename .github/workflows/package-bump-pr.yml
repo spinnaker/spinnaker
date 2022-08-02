@@ -51,19 +51,21 @@ jobs:
 
       - name: lerna - Bump packages
         run: |
-          npx lerna version --yes --no-push --conventional-commits
-          if [[ $(git rev-list --count @{u}..HEAD) -ne 0 ]] ; then
-            yarn
-            git add yarn.lock
-            # Update yarn.lock and fix the lerna commit message (to use conventional commits itself)
-            git commit --amend -m "$(git log -1 --pretty=%B | sed -e 's/^Publish/chore(publish): publish packages/')" yarn.lock
-          fi
+          scripts/gha_bump_packages.sh
+        env:
+          COMMIT_SHA: ${{ github.sha }}
+          RUN_NUMBER: ${{ github.run_number }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
 
       - name: gha - get bumped packages
         id: bumps
         run: |
           scripts/gha_output_bumped_packages.sh
           scripts/gha_output_changelog.sh
+        env:
+          COMMIT_SHA: ${{ github.sha }}
+          RUN_NUMBER: ${{ github.run_number }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
 
       - name: Create Pull Request
         id: createpullrequest

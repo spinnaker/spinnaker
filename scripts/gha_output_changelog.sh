@@ -1,8 +1,17 @@
 #!/usr/bin/env bash
 
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)
+
+. "$SCRIPT_DIR/gha_common.sh"
+
+# navigate to project directory root
+cd "$SCRIPT_DIR/.."
+
 # Gets any updates to the HANGELOG.md files in packages/* from the last commit
 function changelog() {
-  git diff -u HEAD^ packages/*/CHANGELOG.md  | \
+  hash=$1
+
+  git diff -u $hash packages/*/CHANGELOG.md  | \
     # Only process added or changed lines
     grep "^\+" | \
     # Remove the leading + characters from 'diff -u'
@@ -16,9 +25,15 @@ function changelog() {
     sed -e 's/^\+\+.*\/packages\/\(.*\)\/CHANGELOG.md\(#*\)/\2 \1/'
 }
 
-# If the last commit was a package bump, emit the changelog as a GHA output
-if git log -1 --pretty=%B | head -n 1 | grep "chore(publish): publish packages" ; then
-  CHANGELOG=$(changelog)
+updateBumpHashes()
+
+if [ ! -z "$PACKAGE_BUMP_COMMIT_HASH" ]; then
+  CHANGELOG=$(changelog "$PACKAGE_BUMP_COMMIT_HASH")
+
+  if [ ! -z "$PEERDEP_BUMP_COMMIT_HASH" ]; then
+    CHANGELOG+=$(changelog "$PEERDEP_BUMP_COMMIT_HASH")
+  fi
+
   # Quote newlines so the entire thing can be emitted as a single line output
   CHANGELOG="${CHANGELOG//'%'/'%25'}"
   CHANGELOG="${CHANGELOG//$'\n'/'%0A'}"
