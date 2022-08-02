@@ -81,6 +81,9 @@ class SqlStorageService(
       PLUGIN_INFO to DefaultTableDefinition(PLUGIN_INFO, "plugin_info", false),
       PLUGIN_VERSIONS to DefaultTableDefinition(PLUGIN_VERSIONS, "plugin_versions", false)
     )
+
+    private val bodyField = field("body", String::class.java)
+    private val lastModifiedField = field("last_modified_at", Long::class.java)
   }
 
   override fun supportsVersioning(): Boolean {
@@ -330,30 +333,30 @@ class SqlStorageService(
       return mutableListOf(loadObject(objectType, objectKey))
     }
 
-    val bodies = withPool(poolName) {
+    val result = withPool(poolName) {
       jooq.withRetry(sqlRetryProperties.reads) { ctx ->
         if (definitionsByType[objectType]!!.supportsHistory) {
           ctx
-            .select(field("body", String::class.java))
+            .select(bodyField, lastModifiedField)
             .from(definitionsByType[objectType]!!.historyTableName)
             .where(DSL.field("id", String::class.java).eq(objectKey))
             .orderBy(DSL.field("recorded_at").desc())
             .limit(maxResults)
             .fetch()
-            .getValues(field("body", String::class.java))
         } else {
           ctx
-            .select(field("body", String::class.java))
+            .select(bodyField, lastModifiedField)
             .from(definitionsByType[objectType]!!.tableName)
             .where(DSL.field("id", String::class.java).eq(objectKey))
             .fetch()
-            .getValues(field("body", String::class.java))
         }
       }
     }
 
-    return bodies.map {
-      objectMapper.readValue(it, objectType.clazz as Class<T>)
+    return result.map {
+      val record = objectMapper.readValue(it.get(bodyField), objectType.clazz as Class<T>)
+      record.lastModified = it.get(lastModifiedField)
+      record
     }
   }
 
