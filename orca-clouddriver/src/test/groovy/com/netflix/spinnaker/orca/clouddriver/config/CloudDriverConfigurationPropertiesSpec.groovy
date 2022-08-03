@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.config
 
 import spock.lang.Specification
-import spock.lang.Unroll;
+import spock.lang.Unroll
 
 class CloudDriverConfigurationPropertiesSpec extends Specification {
   @Unroll
@@ -50,7 +50,7 @@ class CloudDriverConfigurationPropertiesSpec extends Specification {
 
     return new CloudDriverConfigurationProperties.MultiBaseUrl(
       baseUrl: null,
-      baseUrls: baseUrls.collect { new CloudDriverConfigurationProperties.BaseUrl(baseUrl: it) }
+      baseUrls: baseUrls.collect { new CloudDriverConfigurationProperties.BaseUrl(it) }
     )
   }
 }

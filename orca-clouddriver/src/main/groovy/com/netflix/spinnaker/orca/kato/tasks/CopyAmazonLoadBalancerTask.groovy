@@ -31,7 +31,7 @@ import org.springframework.stereotype.Component
 
 import javax.annotation.Nonnull
 
-import static MortService.VPC.findForRegionAndAccount
+import static com.netflix.spinnaker.orca.clouddriver.MortService.VPC.findForRegionAndAccount
 
 @Component
 class CopyAmazonLoadBalancerTask implements Task {

@@ -14,13 +14,23 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.clouddriver
+package com.netflix.spinnaker.orca.clouddriver;
 
-import retrofit.http.GET
-import retrofit.http.Path
+import java.util.Map;
+import retrofit.client.Response;
+import retrofit.http.Body;
+import retrofit.http.POST;
+import retrofit.http.PUT;
+import retrofit.http.Path;
 
-interface CloudDriverCacheStatusService {
-  @GET("/cache/{cloudProvider}/{type}")
-  Collection<Map> pendingForceCacheUpdates(@Path("cloudProvider") String cloudProvider,
-                                           @Path("type") String type)
+public interface CloudDriverCacheService {
+
+  @POST("/cache/{cloudProvider}/{type}")
+  Response forceCacheUpdate(
+      @Path("cloudProvider") String cloudProvider,
+      @Path("type") String type,
+      @Body Map<String, ?> data);
+
+  @PUT("/admin/db/truncate/{namespace}")
+  Map<String, Object> clearNamespace(@Path("namespace") String namespace);
 }

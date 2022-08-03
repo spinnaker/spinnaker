@@ -14,32 +14,32 @@
  * limitations under the License.
  */
 
+package com.netflix.spinnaker.orca.clouddriver;
 
-package com.netflix.spinnaker.orca.clouddriver
+import retrofit.client.Response;
+import retrofit.http.Body;
+import retrofit.http.GET;
+import retrofit.http.PATCH;
+import retrofit.http.Path;
 
-import retrofit.client.Response
-import retrofit.http.Body
-import retrofit.http.GET
-import retrofit.http.PATCH
-import retrofit.http.Path
-
-interface InstanceService {
+public interface InstanceService {
   // TODO: add concrete result objects vs Response objects
   @GET("/tasks")
-  Response listTasks()
+  Response listTasks();
 
   @GET("/tasks/{id}")
-  Response listTask(@Path("id") String id)
+  Response listTask(@Path("id") String id);
 
   @PATCH("/{app}/{version}")
-  Response patchInstance(@Path("app") String app, @Path("version") String version, @Body String body)
+  Response patchInstance(
+      @Path("app") String app, @Path("version") String version, @Body String body);
 
   @GET("/{app}/current")
-  Response getCurrentVersion(@Path("app") String app)
+  Response getCurrentVersion(@Path("app") String app);
 
   @GET("/{healthCheckPath}")
-  Response healthCheck(@Path(value="healthCheckPath",encode=false) String healthCheckPath)
+  Response healthCheck(@Path(value = "healthCheckPath", encode = false) String healthCheckPath);
 
   @GET("/v1/platform/base/jars")
-  Response getJars()
+  Response getJars();
 }
