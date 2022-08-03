@@ -2,13 +2,14 @@
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)
 
-. "$SCRIPT_DIR/gha_common.sh"
-
 # navigate to project directory root
 cd "$SCRIPT_DIR/.."
 
+packageBumpCommitMsg="chore(publish): publish packages ($COMMIT_SHA)"
+peerdepBumpCommitMsg="chore(publish): publish peerdeps ($COMMIT_SHA)"
+
 # bump versions of packages
-npx lerna version --yes --no-push --conventional-commits -m "$PACKAGE_BUMP_COMMIT_MSG"
+npx lerna version --yes --no-push --conventional-commits -m "$packageBumpCommitMsg"
 if [[ $(git rev-list --count @{u}..HEAD) -ne 0 ]] ; then
   # Synchronize @spinnaker/pluginsdk-peerdeps
   cd packages/pluginsdk-peerdeps
@@ -25,5 +26,11 @@ if [[ $(git rev-list --count @{u}..HEAD) -ne 0 ]] ; then
   git commit -m "feat(peerdep-sync): Synchronize peerdependencies"
 
   # bump version of @spinnaker/pluginsdk-peerdeps
-  npx lerna version --yes --no-push --conventional-commits -m "$PEERDEP_BUMP_COMMIT_MSG"
+  npx lerna version --yes --no-push --conventional-commits -m "$peerdepBumpCommitMsg"
+
+  packageBumpCommitHash=$(git log -1 --grep="$packageBumpCommitMsg" --format=%H)
+  peerdepBumpCommitHash=$(git log -1 --grep="$peerdepBumpCommitMsg" --format=%H)
+
+  echo ::set-output name=packageBumpCommitHash::${packageBumpCommitHash}
+  echo ::set-output name=peerdepBumpCommitHash::${peerdepBumpCommitHash}
 fi

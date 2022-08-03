@@ -2,8 +2,6 @@
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)
 
-. "$SCRIPT_DIR/gha_common.sh"
-
 # navigate to project directory root
 cd "$SCRIPT_DIR/.."
 
@@ -24,8 +22,6 @@ function changelog() {
     # Extract the package name and move it after the heading markdown (##)
     sed -e 's/^\+\+.*\/packages\/\(.*\)\/CHANGELOG.md\(#*\)/\2 \1/'
 }
-
-updateBumpHashes()
 
 if [ ! -z "$PACKAGE_BUMP_COMMIT_HASH" ]; then
   CHANGELOG=$(changelog "$PACKAGE_BUMP_COMMIT_HASH")
