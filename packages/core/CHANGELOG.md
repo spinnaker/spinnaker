@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.22.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.21.0...@spinnaker/core@0.22.0) (2022-08-03)
+
+
+### Features
+
+* **dependencies:** Update vulnerable dependencies ([#9875](https://github.com/spinnaker/deck/issues/9875)) ([bf92932](https://github.com/spinnaker/deck/commit/bf92932c9396a88fb902050b52f504e4ac01aaa0))
+
+
+### Performance Improvements
+
+* **pipelinegraph:** Improve the performance of the pipeline graph rendering ([#9871](https://github.com/spinnaker/deck/issues/9871)) ([55fa5d0](https://github.com/spinnaker/deck/commit/55fa5d00beb576d9d9215923bcc4b7ead64a4fba))
+
+
+
+
+
 # [0.21.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.20.1...@spinnaker/core@0.21.0) (2022-07-11)
 
 

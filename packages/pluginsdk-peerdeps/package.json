@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/pluginsdk-peerdeps",
   "description": "Provides package dependencies to plugin developers",
-  "version": "0.0.19",
+  "version": "0.2.0",
   "license": "Apache-2.0",
   "scripts": {
     "temp": "./convert-peerdeps.js --from-peerdeps --input package.json --output package.temp.json",
@@ -18,10 +18,10 @@
     "@rollup/plugin-replace": "2.4.2",
     "@rollup/plugin-typescript": "8.2.1",
     "@rollup/plugin-url": "6.0.0",
-    "@spinnaker/core": "0.19.4",
+    "@spinnaker/core": "0.22.0",
     "@spinnaker/eslint-plugin": "3.0.1",
     "@spinnaker/pluginsdk": "*",
-    "@spinnaker/presentation": "0.1.0",
+    "@spinnaker/presentation": "0.2.0",
     "@types/react": "~16.8.0",
     "@uirouter/core": "6.0.4",
     "@uirouter/react": "1.0.2",
@@ -46,27 +46,71 @@
     "utf-8-validate": "5.0.3"
   },
   "peerDependenciesMeta": {
-    "@rollup/plugin-commonjs": { "dev": true },
-    "@rollup/plugin-json": { "dev": true },
-    "@rollup/plugin-node-resolve": { "dev": true },
-    "@rollup/plugin-replace": { "dev": true },
-    "@rollup/plugin-typescript": { "dev": true },
-    "@rollup/plugin-url": { "dev": true },
-    "@spinnaker/eslint-plugin": { "dev": true },
-    "@types/react": { "dev": true },
-    "bufferutil": { "dev": true },
-    "npm-run-all": { "dev": true },
-    "postcss": {"dev":  true},
-    "prettier": { "dev": true },
-    "pretty-quick": { "dev": true },
-    "rollup": { "dev": true },
-    "rollup-plugin-external-globals": { "dev": true },
-    "rollup-plugin-less": { "dev": true },
-    "rollup-plugin-postcss": { "dev": true },
-    "rollup-plugin-terser": { "dev": true },
-    "rollup-plugin-visualizer": { "dev": true },
-    "shx": { "dev": true },
-    "typescript": { "dev": true },
-    "utf-8-validate": { "dev": true }
+    "@rollup/plugin-commonjs": {
+      "dev": true
+    },
+    "@rollup/plugin-json": {
+      "dev": true
+    },
+    "@rollup/plugin-node-resolve": {
+      "dev": true
+    },
+    "@rollup/plugin-replace": {
+      "dev": true
+    },
+    "@rollup/plugin-typescript": {
+      "dev": true
+    },
+    "@rollup/plugin-url": {
+      "dev": true
+    },
+    "@spinnaker/eslint-plugin": {
+      "dev": true
+    },
+    "@types/react": {
+      "dev": true
+    },
+    "bufferutil": {
+      "dev": true
+    },
+    "npm-run-all": {
+      "dev": true
+    },
+    "postcss": {
+      "dev": true
+    },
+    "prettier": {
+      "dev": true
+    },
+    "pretty-quick": {
+      "dev": true
+    },
+    "rollup": {
+      "dev": true
+    },
+    "rollup-plugin-external-globals": {
+      "dev": true
+    },
+    "rollup-plugin-less": {
+      "dev": true
+    },
+    "rollup-plugin-postcss": {
+      "dev": true
+    },
+    "rollup-plugin-terser": {
+      "dev": true
+    },
+    "rollup-plugin-visualizer": {
+      "dev": true
+    },
+    "shx": {
+      "dev": true
+    },
+    "typescript": {
+      "dev": true
+    },
+    "utf-8-validate": {
+      "dev": true
+    }
   }
 }

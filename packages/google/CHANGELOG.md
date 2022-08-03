@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.2.0](https://github.com/spinnaker/deck/compare/@spinnaker/google@0.1.13...@spinnaker/google@0.2.0) (2022-08-03)
+
+
+### Features
+
+* **provider/google:** enhanced autoscaler functionality. ([#9867](https://github.com/spinnaker/deck/issues/9867)) ([dbdee6d](https://github.com/spinnaker/deck/commit/dbdee6de89f78b112d4a5464cecdbb822c8e578b))
+
+
+
+
+
 ## [0.1.13](https://github.com/spinnaker/deck/compare/@spinnaker/google@0.1.12...@spinnaker/google@0.1.13) (2022-07-11)
 
 **Note:** Version bump only for package @spinnaker/google

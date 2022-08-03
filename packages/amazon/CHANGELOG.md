@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.13.0](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.12.13...@spinnaker/amazon@0.13.0) (2022-08-03)
+
+
+### Features
+
+* **dependencies:** Update vulnerable dependencies ([#9875](https://github.com/spinnaker/deck/issues/9875)) ([bf92932](https://github.com/spinnaker/deck/commit/bf92932c9396a88fb902050b52f504e4ac01aaa0))
+
+
+
+
+
 ## [0.12.13](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.12.12...@spinnaker/amazon@0.12.13) (2022-07-11)
 
 **Note:** Version bump only for package @spinnaker/amazon

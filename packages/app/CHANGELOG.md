@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.3.0](https://github.com/spinnaker/deck/compare/deck-app@2.2.9...deck-app@2.3.0) (2022-08-03)
+
+
+### Features
+
+* **dependencies:** Update vulnerable dependencies ([#9875](https://github.com/spinnaker/deck/issues/9875)) ([bf92932](https://github.com/spinnaker/deck/commit/bf92932c9396a88fb902050b52f504e4ac01aaa0))
+* **provider/google:** enhanced autoscaler functionality. ([#9867](https://github.com/spinnaker/deck/issues/9867)) ([dbdee6d](https://github.com/spinnaker/deck/commit/dbdee6de89f78b112d4a5464cecdbb822c8e578b))
+
+
+
+
+
 ## [2.2.9](https://github.com/spinnaker/deck/compare/deck-app@2.2.8...deck-app@2.2.9) (2022-07-11)
 
 **Note:** Version bump only for package deck-app
