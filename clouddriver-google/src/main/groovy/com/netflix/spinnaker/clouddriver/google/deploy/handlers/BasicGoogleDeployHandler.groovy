@@ -645,7 +645,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
   private boolean autoscalerIsSpecified(BasicGoogleDeployDescription description) {
     return description.autoscalingPolicy?.with {
-      cpuUtilization || loadBalancingUtilization || customMetricUtilizations
+      cpuUtilization || loadBalancingUtilization || customMetricUtilizations || scalingSchedules
     }
   }
 

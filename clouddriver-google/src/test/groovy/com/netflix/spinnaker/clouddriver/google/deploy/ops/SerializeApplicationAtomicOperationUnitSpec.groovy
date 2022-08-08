@@ -72,10 +72,12 @@ class SerializeApplicationAtomicOperationUnitSpec extends Specification {
   private static final AUTOSCALING_MIN_NUM_REPLICAS = 3
   private static final AUTOSCALING_COOL_DOWN_PERIOD = 20
   private static final AUTOSCALING_CPU_TARGET = 10.0
+  private static final AUTOSCALING_CPU_PREDICTIVE_METHOD = "OPTIMIZE_AVAILABILITY"
   private static final AUTOSCALING_LOAD_BALANCER_TARGET = 25.0
   private static final AUTOSCALING_METRIC_NAME = "agent.googleapis.com/apache/connections"
   private static final AUTOSCALING_METRIC_TARGET = 5.0
   private static final AUTOSCALING_METRIC_TYPE = "GAUGE"
+  private static final AUTOSCALING_METRIC_SINGLE_INSTANCE_ASSIGNMENT = 1.0
 
   private static final LOAD_BALANCER_NAME = "spinnaker_load_balancer"
   private static final LOAD_BALANCER_IP_PROTOCOL = "TCP"
@@ -137,11 +139,13 @@ class SerializeApplicationAtomicOperationUnitSpec extends Specification {
       def autoscalingPolicy = new AutoscalingPolicy(maxNumReplicas: AUTOSCALING_MAX_NUM_REPLICAS,
                                                     minNumReplicas: AUTOSCALING_MIN_NUM_REPLICAS,
                                                     coolDownPeriodSec: AUTOSCALING_COOL_DOWN_PERIOD,
-                                                    cpuUtilization: new AutoscalingPolicyCpuUtilization(utilizationTarget: AUTOSCALING_CPU_TARGET),
+                                                    cpuUtilization: new AutoscalingPolicyCpuUtilization(utilizationTarget: AUTOSCALING_CPU_TARGET,
+                                                                                                        predictiveMethod: AUTOSCALING_CPU_PREDICTIVE_METHOD),
                                                     loadBalancingUtilization: new AutoscalingPolicyLoadBalancingUtilization(utilizationTarget: AUTOSCALING_LOAD_BALANCER_TARGET),
                                                     customMetricUtilizations: [new AutoscalingPolicyCustomMetricUtilization(metric: AUTOSCALING_METRIC_NAME,
                                                                                                                             utilizationTarget: AUTOSCALING_METRIC_TARGET,
-                                                                                                                            utilizationTargetType: AUTOSCALING_METRIC_TYPE)])
+                                                                                                                            utilizationTargetType: AUTOSCALING_METRIC_TYPE,
+                                                                                                                            singleInstanceAssignment: AUTOSCALING_METRIC_SINGLE_INSTANCE_ASSIGNMENT)])
       def serverGroup = new GoogleServerGroup(name: SERVER_GROUP_NAME,
                                               zone: SERVER_GROUP_ZONE,
                                               asg: [(GCEUtil.REGIONAL_LOAD_BALANCER_NAMES): SERVER_GROUP_LOAD_BALANCERS],
@@ -173,10 +177,12 @@ class SerializeApplicationAtomicOperationUnitSpec extends Specification {
       def autoscalingPolicyMap = [max_replicas: AUTOSCALING_MAX_NUM_REPLICAS,
                                   min_replicas: AUTOSCALING_MIN_NUM_REPLICAS,
                                   cooldown_period: AUTOSCALING_COOL_DOWN_PERIOD,
-                                  cpu_utilization: [target: AUTOSCALING_CPU_TARGET],
+                                  cpu_utilization: [target: AUTOSCALING_CPU_TARGET,
+                                                    predictive_method: AUTOSCALING_CPU_PREDICTIVE_METHOD.toLowerCase()],
                                   metric: [[name: AUTOSCALING_METRIC_NAME,
                                            target: AUTOSCALING_METRIC_TARGET,
-                                           type: AUTOSCALING_METRIC_TYPE.toLowerCase()]],
+                                           type: AUTOSCALING_METRIC_TYPE.toLowerCase(),
+                                            single_instance_assignment: AUTOSCALING_METRIC_SINGLE_INSTANCE_ASSIGNMENT]],
                                   load_balancing_utilization: [target: AUTOSCALING_LOAD_BALANCER_TARGET]]
       def autoscalingMap = [name: SERVER_GROUP_NAME,
                             target: "\${google_compute_instance_group_manager.${SERVER_GROUP_NAME}.self_link}",

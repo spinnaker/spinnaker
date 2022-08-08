@@ -406,6 +406,14 @@ class SaveSnapshotAtomicOperation implements AtomicOperation<Void> {
     if (autoscalingPolicy.cpuUtilization?.utilizationTarget) {
       autoscalerMap.autoscaling_policy.cpu_utilization = [:]
       autoscalerMap.autoscaling_policy.cpu_utilization.target = autoscalingPolicy.cpuUtilization.utilizationTarget
+      switch (autoscalingPolicy.cpuUtilization.predictiveMethod) {
+        case "NONE":
+          autoscalerMap.autoscaling_policy.cpu_utilization.predictive_method = "none"
+          break
+        case "OPTIMIZE_AVAILABILITY":
+          autoscalerMap.autoscaling_policy.cpu_utilization.predictive_method = "optimize_availability"
+          break
+      }
     }
     if (autoscalingPolicy.customMetricUtilizations) {
       autoscalerMap.autoscaling_policy.metric = []
@@ -420,6 +428,12 @@ class SaveSnapshotAtomicOperation implements AtomicOperation<Void> {
           metricMap.target = metric.utilizationTarget
         } else {
           return
+        }
+        if (metric.filter) {
+          metricMap.filter = metric.filter
+        }
+        if (metric.singleInstanceAssignment) {
+          metricMap.single_instance_assignment = metric.singleInstanceAssignment
         }
         //TODO(nwwebb) gce doesn't match terraform types
         switch(metric.utilizationTargetType) {
@@ -436,6 +450,32 @@ class SaveSnapshotAtomicOperation implements AtomicOperation<Void> {
             metricMap.type = "gauge"
         }
         autoscalerMap.autoscaling_policy.metric.add(metricMap)
+      }
+    }
+
+    if (autoscalingPolicy.scalingSchedules) {
+      autoscalerMap.autoscaling_policy.scalingSchedules = []
+      autoscalingPolicy.scalingSchedules.each {Map scalingSchedule ->
+        def scalingScheduleMap = [:]
+        if (scalingSchedule.scalingSchedule) {
+          scalingScheduleMap.name = scalingSchedule.scalingSchedule
+        }
+        if (scalingSchedule.description) {
+          scalingScheduleMap.description = scalingSchedule.description
+        }
+        if (scalingSchedule.disabled) {
+          scalingScheduleMap.disabled = scalingSchedule.disabled
+        }
+        if (scalingSchedule.durationSec) {
+          scalingScheduleMap.duration_sec = scalingSchedule.durationSec
+        }
+        if (scalingSchedule.minRequiredReplicas) {
+          scalingScheduleMap.min_required_replicas = scalingSchedule.minRequiredReplicas
+        }
+        if (scalingSchedule.timeZone) {
+          scalingScheduleMap.time_zone = scalingSchedule.timeZone
+        }
+        autoscalerMap.autoscaling_policy.scalingSchedules.add(scalingScheduleMap)
       }
     }
     if (autoscalingPolicy.loadBalancingUtilization?.utilizationTarget) {

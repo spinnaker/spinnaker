@@ -13,7 +13,10 @@ dependencies {
 
   implementation "org.codehaus.groovy:groovy-all"
   implementation "org.apache.commons:commons-lang3"
-  implementation "com.google.apis:google-api-services-compute"
+  implementation ("com.google.apis:google-api-services-compute:beta-rev20201102-1.30.10") {
+    force = true
+  }
+  implementation "com.google.guava:guava"
   implementation "com.google.apis:google-api-services-iam"
   implementation 'com.google.auth:google-auth-library-oauth2-http'
   implementation "com.netflix.frigga:frigga"

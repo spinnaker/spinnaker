@@ -729,7 +729,7 @@ class AbstractGoogleServerGroupCachingAgentTest {
             .setCpuUtilization(
                 new AutoscalingPolicyCpuUtilization()
                     .setUtilizationTarget(9.87)
-                    .setPredictiveMethod("STANDARD"))
+                    .setPredictiveMethod("OPTIMIZE_AVAILABILITY"))
             .setLoadBalancingUtilization(
                 new AutoscalingPolicyLoadBalancingUtilization().setUtilizationTarget(6.54))
             .setMaxNumReplicas(99)
@@ -740,7 +740,8 @@ class AbstractGoogleServerGroupCachingAgentTest {
                     new AutoscalingPolicyCustomMetricUtilization()
                         .setMetric("myMetric")
                         .setUtilizationTarget(911.23)
-                        .setUtilizationTargetType("GAUGE"),
+                        .setUtilizationTargetType("GAUGE")
+                        .setSingleInstanceAssignment(1.0),
                     new AutoscalingPolicyCustomMetricUtilization()))
             .setScaleInControl(
                 new AutoscalingPolicyScaleInControl()

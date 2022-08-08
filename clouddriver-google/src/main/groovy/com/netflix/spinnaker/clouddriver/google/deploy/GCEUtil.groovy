@@ -238,8 +238,8 @@ class GCEUtil {
 
     // Try to retrieve this forwarding rule in each region.
     def all_regions = executor.timeExecute(compute.regions().list(projectName),
-                                           "compute.regions.list",
-                                           executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
+      "compute.regions.list",
+      executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
     for (def region : all_regions.items) {
       try {
         return executor.timeExecute(
@@ -318,7 +318,7 @@ class GCEUtil {
         // todo(mneterval): return null instead of querying for each type once all health check payloads include `healthCheckKind`
         return queryNestedHealthCheck(projectName, account, healthCheckName, compute, cacheView, task, phase, executor) ?:
           queryLegacyHttpHealthCheck(account, healthCheckName, cacheView, task, phase) ?:
-          queryLegacyHttpsHealthCheck(projectName, healthCheckName, compute, task, phase, executor)
+            queryLegacyHttpsHealthCheck(projectName, healthCheckName, compute, task, phase, executor)
     }
   }
 
@@ -380,10 +380,10 @@ class GCEUtil {
 
     def forwardingRules = safeRetry.doRetry(
       { return executor.timeExecute(
-          compute.forwardingRules().list(projectName, region),
-          "compute.forwardingRules.list",
-          executor.TAG_SCOPE, executor.SCOPE_GLOBAL
-        ).items
+        compute.forwardingRules().list(projectName, region),
+        "compute.forwardingRules.list",
+        executor.TAG_SCOPE, executor.SCOPE_GLOBAL
+      ).items
       },
       "regional forwarding rules",
       task,
@@ -467,9 +467,9 @@ class GCEUtil {
                                                                 GoogleExecutorTraits executor) {
     return safeRetry.doRetry(
       { return executor.timeExecute(
-            credentials.compute.regionInstanceGroupManagers().get(projectName, region, serverGroupName),
-            "compute.regionInstanceGroupManagers.get",
-            executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region)
+        credentials.compute.regionInstanceGroupManagers().get(projectName, region, serverGroupName),
+        "compute.regionInstanceGroupManagers.get",
+        executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region)
       },
       "regional managed instance group",
       task,
@@ -490,9 +490,9 @@ class GCEUtil {
                                                              GoogleExecutorTraits executor) {
     return safeRetry.doRetry(
       { return executor.timeExecute(
-            credentials.compute.instanceGroupManagers().get(projectName, zone, serverGroupName),
-            "compute.instanceGroupManagers.get",
-            executor.TAG_SCOPE, executor.SCOPE_ZONAL, executor.TAG_ZONE, zone)
+        credentials.compute.instanceGroupManagers().get(projectName, zone, serverGroupName),
+        "compute.instanceGroupManagers.get",
+        executor.TAG_SCOPE, executor.SCOPE_ZONAL, executor.TAG_ZONE, zone)
       },
       "zonal managed instance group",
       task,
@@ -602,12 +602,12 @@ class GCEUtil {
 
     if (instanceTemplateProperties == null) {
       throw new GoogleOperationException("Unable to determine properties of instance template " +
-          "$instanceTemplate.name.")
+        "$instanceTemplate.name.")
     }
 
     if (instanceTemplateProperties.networkInterfaces?.size != 1) {
       throw new GoogleOperationException("Instance templates must have exactly one network interface defined. " +
-          "Instance template $instanceTemplate.name has ${instanceTemplateProperties.networkInterfaces?.size}.")
+        "Instance template $instanceTemplate.name has ${instanceTemplateProperties.networkInterfaces?.size}.")
     }
 
     def image
@@ -621,13 +621,13 @@ class GCEUtil {
         def initializeParams = attachedDisk.initializeParams
 
         new GoogleDisk(type: initializeParams.diskType,
-                       sizeGb: initializeParams.diskSizeGb,
-                       autoDelete: attachedDisk.autoDelete,
-                       labels: instanceTemplateProperties.labels)
+          sizeGb: initializeParams.diskSizeGb,
+          autoDelete: attachedDisk.autoDelete,
+          labels: instanceTemplateProperties.labels)
       }
     } else {
       throw new GoogleOperationException("Instance templates must have at least one disk defined. Instance template " +
-          "$instanceTemplate.name has ${instanceTemplateProperties.disks?.size}.")
+        "$instanceTemplate.name has ${instanceTemplateProperties.disks?.size}.")
     }
 
     def networkInterface = instanceTemplateProperties.networkInterfaces[0]
@@ -747,9 +747,9 @@ class GCEUtil {
 
     disks.findAll { it.isPersistent() }
       .eachWithIndex { disk, i ->
-      def baseDeviceName = description.baseDeviceName ?: 'device'
-      disk.deviceName = "$baseDeviceName-$i"
-    }
+        def baseDeviceName = description.baseDeviceName ?: 'device'
+        disk.deviceName = "$baseDeviceName-$i"
+      }
 
     def firstPersistentDisk = disks.find { it.persistent }
     return disks.collect { disk ->
@@ -759,14 +759,14 @@ class GCEUtil {
       if (disk.persistent) {
         sourceImage =
           disk.is(firstPersistentDisk)
-          ? bootImage
-          : queryImage(disk.sourceImage,
-                       credentials,
-                       task,
-                       phase,
-                       clouddriverUserAgentApplicationName,
-                       baseImageProjects,
-                       executor)
+            ? bootImage
+            : queryImage(disk.sourceImage,
+            credentials,
+            task,
+            phase,
+            clouddriverUserAgentApplicationName,
+            baseImageProjects,
+            executor)
       }
 
       if (sourceImage && sourceImage.diskSizeGb > disk.sizeGb) {
@@ -775,15 +775,15 @@ class GCEUtil {
 
       def attachedDiskInitializeParams =
         new AttachedDiskInitializeParams(sourceImage: sourceImage?.selfLink,
-                                         diskSizeGb: disk.sizeGb,
-                                         diskType: diskType,
-                                         labels: description.labels)
+          diskSizeGb: disk.sizeGb,
+          diskType: diskType,
+          labels: description.labels)
 
       new AttachedDisk(boot: disk.is(firstPersistentDisk),
-                       autoDelete: disk.autoDelete,
-                       deviceName: disk.deviceName,
-                       type: disk.persistent ? DISK_TYPE_PERSISTENT : DISK_TYPE_SCRATCH,
-                       initializeParams: attachedDiskInitializeParams)
+        autoDelete: disk.autoDelete,
+        deviceName: disk.deviceName,
+        type: disk.persistent ? DISK_TYPE_PERSISTENT : DISK_TYPE_SCRATCH,
+        initializeParams: attachedDiskInitializeParams)
     }
   }
 
@@ -793,7 +793,7 @@ class GCEUtil {
                                                 String accessConfigName,
                                                 String accessConfigType) {
     NetworkInterface networkInterface = new NetworkInterface(network: network.selfLink,
-                                                             subnetwork: subnet ? subnet.selfLink : null)
+      subnetwork: subnet ? subnet.selfLink : null)
 
     if (associatePublicIpAddress) {
       networkInterface.setAccessConfigs([new AccessConfig(name: accessConfigName, type: accessConfigType)])
@@ -833,48 +833,67 @@ class GCEUtil {
                                     GoogleAutoscalingPolicy autoscalingPolicy) {
     autoscalingPolicy.with {
       def gceAutoscalingPolicy = new AutoscalingPolicy(coolDownPeriodSec: coolDownPeriodSec,
-                                                       minNumReplicas: minNumReplicas,
-                                                       maxNumReplicas: maxNumReplicas,
-                                                       mode: mode ? mode.toString() : "ON"
+        minNumReplicas: minNumReplicas,
+        maxNumReplicas: maxNumReplicas,
+        mode: mode ? mode.toString() : "ON"
       )
 
       if (cpuUtilization) {
-        gceAutoscalingPolicy.cpuUtilization =
+        if (cpuUtilization.utilizationTarget) {
+          gceAutoscalingPolicy.cpuUtilization =
             new AutoscalingPolicyCpuUtilization(utilizationTarget: cpuUtilization.utilizationTarget,
-                                                predictiveMethod: cpuUtilization.predictiveMethod)
+              predictiveMethod: cpuUtilization.predictiveMethod)
+        }
       }
 
       if (loadBalancingUtilization) {
-        gceAutoscalingPolicy.loadBalancingUtilization =
+        if (loadBalancingUtilization.utilizationTarget) {
+          gceAutoscalingPolicy.loadBalancingUtilization =
             new AutoscalingPolicyLoadBalancingUtilization(utilizationTarget: loadBalancingUtilization.utilizationTarget)
+        }
       }
 
       if (customMetricUtilizations) {
         gceAutoscalingPolicy.customMetricUtilizations = customMetricUtilizations.collect {
           new AutoscalingPolicyCustomMetricUtilization(metric: it.metric,
-                                                       utilizationTarget: it.utilizationTarget,
-                                                       utilizationTargetType: it.utilizationTargetType)
+            utilizationTarget: it.utilizationTarget,
+            utilizationTargetType: it.utilizationTargetType,
+            filter: it.filter,
+            singleInstanceAssignment: it.singleInstanceAssignment)
+        }
+      }
+
+      if (scalingSchedules) {
+        gceAutoscalingPolicy.scalingSchedules = scalingSchedules.collectEntries { scalingSchedule ->
+          [scalingSchedule.scheduleName , new AutoscalingPolicyScalingSchedule(description: scalingSchedule.scheduleDescription,
+            disabled: !scalingSchedule.enabled,
+            durationSec: scalingSchedule.duration,
+            minRequiredReplicas: scalingSchedule.minimumRequiredInstances,
+            schedule: scalingSchedule.scheduleCron,
+            timeZone: scalingSchedule.timezone)]
         }
       }
 
       if (scaleInControl) {
-        def scaledInReplicasInput = scaleInControl.maxScaledInReplicas
-        FixedOrPercent maxScaledInReplicas = null
-        if (scaledInReplicasInput != null) {
-          maxScaledInReplicas = new FixedOrPercent(
-            fixed: scaledInReplicasInput.fixed,
-            percent: scaledInReplicasInput.percent
-          )
+        if (scaleInControl.maxScaledInReplicas && scaleInControl.timeWindowSec) {
+          def scaledInReplicasInput = scaleInControl.maxScaledInReplicas
+          FixedOrPercent maxScaledInReplicas = null
+          if (scaledInReplicasInput != null) {
+            maxScaledInReplicas = new FixedOrPercent(
+              fixed: scaledInReplicasInput.fixed,
+              percent: scaledInReplicasInput.percent
+            )
+          }
+          gceAutoscalingPolicy.scaleInControl =
+            new AutoscalingPolicyScaleInControl(
+              maxScaledInReplicas: maxScaledInReplicas,
+              timeWindowSec: scaleInControl.timeWindowSec)
         }
-        gceAutoscalingPolicy.scaleInControl =
-          new AutoscalingPolicyScaleInControl(
-            maxScaledInReplicas: maxScaledInReplicas,
-            timeWindowSec: scaleInControl.timeWindowSec)
       }
 
       new Autoscaler(name: serverGroupName,
-                     target: targetLink,
-                     autoscalingPolicy: gceAutoscalingPolicy)
+        target: targetLink,
+        autoscalingPolicy: gceAutoscalingPolicy)
     }
   }
 
@@ -897,8 +916,8 @@ class GCEUtil {
   // We only support zero or one service account per instance/instance-template.
   static List<ServiceAccount> buildServiceAccount(String serviceAccountEmail, List<String> authScopes) {
     return serviceAccountEmail && authScopes
-           ? [new ServiceAccount(email: serviceAccountEmail, scopes: resolveAuthScopes(authScopes))]
-           : []
+      ? [new ServiceAccount(email: serviceAccountEmail, scopes: resolveAuthScopes(authScopes))]
+      : []
   }
 
   static ServiceAccount buildScheduling(BaseGoogleInstanceDescription description) {
@@ -969,13 +988,13 @@ class GCEUtil {
 
   static def buildHttpHealthCheck(String name, UpsertGoogleLoadBalancerDescription.HealthCheck healthCheckDescription) {
     return new HttpHealthCheck(
-        name: name,
-        checkIntervalSec: healthCheckDescription.checkIntervalSec,
-        timeoutSec: healthCheckDescription.timeoutSec,
-        healthyThreshold: healthCheckDescription.healthyThreshold,
-        unhealthyThreshold: healthCheckDescription.unhealthyThreshold,
-        port: healthCheckDescription.port,
-        requestPath: healthCheckDescription.requestPath)
+      name: name,
+      checkIntervalSec: healthCheckDescription.checkIntervalSec,
+      timeoutSec: healthCheckDescription.timeoutSec,
+      healthyThreshold: healthCheckDescription.healthyThreshold,
+      unhealthyThreshold: healthCheckDescription.unhealthyThreshold,
+      port: healthCheckDescription.port,
+      requestPath: healthCheckDescription.requestPath)
   }
 
   static void addInternalLoadBalancerBackends(Compute compute,
@@ -996,9 +1015,9 @@ class GCEUtil {
     if (!internalLoadBalancersToAddTo) {
       log.warn("Cache call missed for internal load balancer, making a call to GCP")
       List<ForwardingRule> projectRegionalForwardingRules = executor.timeExecute(
-            compute.forwardingRules().list(project, region),
-            "compute.forwardingRules.list",
-            executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region
+        compute.forwardingRules().list(project, region),
+        "compute.forwardingRules.list",
+        executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region
       ).getItems()
       internalLoadBalancersToAddTo = projectRegionalForwardingRules.findAll {
         // TODO(jacobkiefer): Update this check if any other types of loadbalancers support backend services from regional forwarding rules.
@@ -1052,7 +1071,7 @@ class GCEUtil {
 
     def allFoundLoadBalancers = (httpLoadBalancersInMetadata + networkLoadBalancersInMetadata) as List<String>
     def httpLoadBalancersToAddTo = queryAllLoadBalancers(googleLoadBalancerProvider, allFoundLoadBalancers, task, phase)
-        .findAll { it.loadBalancerType == GoogleLoadBalancerType.HTTP }
+      .findAll { it.loadBalancerType == GoogleLoadBalancerType.HTTP }
     if (!httpLoadBalancersToAddTo) {
       log.warn("Cache call missed for Http load balancers ${httpLoadBalancersInMetadata}, making a call to GCP")
       List<ForwardingRule> projectGlobalForwardingRules = executor.timeExecute(
@@ -1103,14 +1122,14 @@ class GCEUtil {
   }
 
   static void addInternalHttpLoadBalancerBackends(Compute compute,
-                                          ObjectMapper objectMapper,
-                                          String project,
-                                          GoogleServerGroup.View serverGroup,
-                                          GoogleLoadBalancerProvider googleLoadBalancerProvider,
-                                          Task task,
-                                          String phase,
-                                          GoogleOperationPoller googleOperationPoller,
-                                          GoogleExecutorTraits executor) {
+                                                  ObjectMapper objectMapper,
+                                                  String project,
+                                                  GoogleServerGroup.View serverGroup,
+                                                  GoogleLoadBalancerProvider googleLoadBalancerProvider,
+                                                  Task task,
+                                                  String phase,
+                                                  GoogleOperationPoller googleOperationPoller,
+                                                  GoogleExecutorTraits executor) {
     String serverGroupName = serverGroup.name
     String region = serverGroup.region
     Metadata instanceMetadata = serverGroup?.launchConfig?.instanceTemplate?.properties?.metadata
@@ -1224,9 +1243,9 @@ class GCEUtil {
         }
         backendService.backends << backendToAdd
         def updateOp = executor.timeExecute(
-            compute.backendServices().update(project, backendServiceName, backendService),
-            "compute.backendServices.update",
-            executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
+          compute.backendServices().update(project, backendServiceName, backendService),
+          "compute.backendServices.update",
+          executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
         googleOperationPoller.waitForGlobalOperation(compute, project, updateOp.getName(), null,
           task, 'compute.backendService.update', phase)
         task.updateStatus phase, "Enabled backend for server group ${serverGroupName} in ssl load balancer backend service ${backendServiceName}."
@@ -1290,9 +1309,9 @@ class GCEUtil {
         }
         backendService.backends << backendToAdd
         def updateOp = executor.timeExecute(
-            compute.backendServices().update(project, backendServiceName, backendService),
-            "compute.backendServices.update",
-            executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
+          compute.backendServices().update(project, backendServiceName, backendService),
+          "compute.backendServices.update",
+          executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
         googleOperationPoller.waitForGlobalOperation(compute, project, updateOp.getName(), null,
           task, 'compute.backendService.update', phase)
         task.updateStatus phase, "Enabled backend for server group ${serverGroupName} in tcp load balancer backend service ${backendServiceName}."
@@ -1560,7 +1579,7 @@ class GCEUtil {
             executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
           backendService?.backends?.removeAll { Backend backend ->
             (getLocalName(backend.group) == serverGroupName) &&
-                (Utils.getRegionFromGroupUrl(backend.group) == serverGroup.region)
+              (Utils.getRegionFromGroupUrl(backend.group) == serverGroup.region)
           }
           def updateOp = executor.timeExecute(
             compute.backendServices().update(project, backendServiceName, backendService),
@@ -1575,13 +1594,13 @@ class GCEUtil {
   }
 
   static void destroyInternalHttpLoadBalancerBackends(Compute compute,
-                                              String project,
-                                              GoogleServerGroup.View serverGroup,
-                                              GoogleLoadBalancerProvider googleLoadBalancerProvider,
-                                              Task task,
-                                              String phase,
-                                              GoogleOperationPoller googleOperationPoller,
-                                              GoogleExecutorTraits executor) {
+                                                      String project,
+                                                      GoogleServerGroup.View serverGroup,
+                                                      GoogleLoadBalancerProvider googleLoadBalancerProvider,
+                                                      Task task,
+                                                      String phase,
+                                                      GoogleOperationPoller googleOperationPoller,
+                                                      GoogleExecutorTraits executor) {
     def serverGroupName = serverGroup.name
     def region = serverGroup.region
     def httpLoadBalancersInMetadata = serverGroup?.asg?.get(REGIONAL_LOAD_BALANCER_NAMES) ?: []
@@ -1821,9 +1840,9 @@ class GCEUtil {
                                         GoogleExecutorTraits executor) {
     ForwardingRule ruleToDelete = safeRetry.doRetry(
       { executor.timeExecute(
-          compute.globalForwardingRules().get(project, forwardingRuleName),
-          "compute.globalForwardingRules.get",
-          executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
+        compute.globalForwardingRules().get(project, forwardingRuleName),
+        "compute.globalForwardingRules.get",
+        executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
       },
       "global forwarding rule ${forwardingRuleName}",
       null,
@@ -1897,12 +1916,12 @@ class GCEUtil {
     }
   }
   static Operation deleteRegionalListener(Compute compute,
-                                        String project,
-                                        String region,
-                                        String forwardingRuleName,
-                                        String phase,
-                                        SafeRetry safeRetry,
-                                        GoogleExecutorTraits executor) {
+                                          String project,
+                                          String region,
+                                          String forwardingRuleName,
+                                          String phase,
+                                          SafeRetry safeRetry,
+                                          GoogleExecutorTraits executor) {
     ForwardingRule ruleToDelete = safeRetry.doRetry(
       { executor.timeExecute(
         compute.forwardingRules().get(project, region, forwardingRuleName),
@@ -2000,8 +2019,8 @@ class GCEUtil {
                                     GoogleNetworkProvider googleNetworkProvider) {
     def network = queryNetwork(accountName, securityGroupDescription.network, task, phase, googleNetworkProvider)
     def firewall = new Firewall(
-        name: securityGroupDescription.securityGroupName,
-        network: network.selfLink
+      name: securityGroupDescription.securityGroupName,
+      network: network.selfLink
     )
     def allowed = securityGroupDescription.allowed.collect {
       new Firewall.Allowed(IPProtocol: it.ipProtocol, ports: it.portRanges)
@@ -2093,9 +2112,9 @@ class GCEUtil {
       case GoogleHealthCheck.HealthCheckType.SSL:
         existingHealthCheck.sslHealthCheck.port = descriptionHealthCheck.port
         break
-      case GoogleHealthCheck.HealthCheckType.UDP:
-        existingHealthCheck.udpHealthCheck.port = descriptionHealthCheck.port
-        break
+//      case GoogleHealthCheck.HealthCheckType.UDP:
+//        existingHealthCheck.udpHealthCheck.port = descriptionHealthCheck.port
+//        break
       default:
         throw new IllegalArgumentException("Description contains illegal health check type.")
         break
@@ -2138,10 +2157,10 @@ class GCEUtil {
         newHealthCheck.type = 'SSL'
         newHealthCheck.sslHealthCheck = new SSLHealthCheck(port:  descriptionHealthCheck.port)
         break
-      case GoogleHealthCheck.HealthCheckType.UDP:
-        newHealthCheck.type = 'UDP'
-        newHealthCheck.udpHealthCheck = new UDPHealthCheck(port:  descriptionHealthCheck.port)
-        break
+//      case GoogleHealthCheck.HealthCheckType.UDP:
+//        newHealthCheck.type = 'UDP'
+//        newHealthCheck.udpHealthCheck = new UDPHealthCheck(port:  descriptionHealthCheck.port)
+//        break
       default:
         throw new IllegalArgumentException("Description contains illegal health check type.")
         break

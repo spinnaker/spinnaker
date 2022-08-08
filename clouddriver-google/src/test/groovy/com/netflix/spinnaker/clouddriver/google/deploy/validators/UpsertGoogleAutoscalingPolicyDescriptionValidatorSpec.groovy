@@ -42,7 +42,8 @@ class UpsertGoogleAutoscalingPolicyDescriptionValidatorSpec extends Specificatio
   private static final CUSTOM_METRIC_UTILIZATIONS = [new GoogleAutoscalingPolicy.CustomMetricUtilization(
     metric: METRIC,
     utilizationTargetType: UtilizationTargetType.DELTA_PER_MINUTE,
-    utilizationTarget: UTILIZATION_TARGET)]
+    utilizationTarget: UTILIZATION_TARGET,
+    singleInstanceAssignment: 1)]
   private static final MIN_NUM_REPLICAS = 1
   private static final MAX_NUM_REPLICAS = 10
   private static final COOL_DOWN_PERIOD_SEC = 60

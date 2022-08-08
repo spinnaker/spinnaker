@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.credentials.CredentialsRepository
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
+import org.springframework.scheduling.support.CronSequenceGenerator
 
 /**
  * Common validation routines for standard description attributes.
@@ -220,8 +221,8 @@ class StandardGceAttributeValidator {
     def result = true
     if (value < min || value > max) {
       errors.rejectValue(attribute,
-                         "${context}.${attribute}.rangeViolation",
-                         "${context}.${attribute} must be between ${min} and ${max}, inclusive.")
+        "${context}.${attribute}.rangeViolation",
+        "${context}.${attribute} must be between ${min} and ${max}, inclusive.")
       result = false
     }
     return result
@@ -231,8 +232,8 @@ class StandardGceAttributeValidator {
     def result = true
     if (maxValue < minValue) {
       errors.rejectValue(maxAttribute,
-                         "${context}.${maxAttribute}.lessThanMin",
-                         "${context}.${maxAttribute} must not be less than ${context}.${minAttribute}.")
+        "${context}.${maxAttribute}.lessThanMin",
+        "${context}.${maxAttribute} must not be less than ${context}.${minAttribute}.")
       result = false
     }
     return result
@@ -378,8 +379,8 @@ class StandardGceAttributeValidator {
 
       if (!persistentDiskCount) {
         errors.rejectValue("disks",
-                           "${context}.disks.missingPersistentDisk",
-                           "A persistent boot disk is required.")
+          "${context}.disks.missingPersistentDisk",
+          "A persistent boot disk is required.")
       }
     }
 
@@ -387,8 +388,8 @@ class StandardGceAttributeValidator {
     specifiedDisks.findAll { it.persistent }.eachWithIndex { persistentDisk, index ->
       if (persistentDisk.sizeGb < 10) {
         errors.rejectValue("disks",
-                           "${context}.disk${index}.sizeGb.invalidSize",
-                           "Persistent disks must be at least 10GB.")
+          "${context}.disk${index}.sizeGb.invalidSize",
+          "Persistent disks must be at least 10GB.")
       }
     }
 
@@ -399,13 +400,13 @@ class StandardGceAttributeValidator {
       if (disk.is(firstPersistentDisk)) {
         if (firstPersistentDisk.sourceImage) {
           errors.rejectValue("disks",
-                             "${context}.disk${index}.sourceImage.unexpected",
-                             "The boot disk must not specify source image, it must be specified at the top-level on the request as `image`.")
+            "${context}.disk${index}.sourceImage.unexpected",
+            "The boot disk must not specify source image, it must be specified at the top-level on the request as `image`.")
         }
       } else if (disk.persistent && !disk.sourceImage) {
         errors.rejectValue("disks",
-                           "${context}.disk${index}.sourceImage.required",
-                           "All non-boot persistent disks are required to specify source image.")
+          "${context}.disk${index}.sourceImage.required",
+          "All non-boot persistent disks are required to specify source image.")
       }
     }
 
@@ -413,22 +414,22 @@ class StandardGceAttributeValidator {
       // Shared-core instance types do not support local-ssd.
       if (!instanceTypeDisk.supportsLocalSSD) {
         errors.rejectValue("disks",
-                           "${context}.disk${index}.type.localSSDUnsupported",
-                           "Instance type $instanceTypeDisk.instanceType does not support Local SSD.")
+          "${context}.disk${index}.type.localSSDUnsupported",
+          "Instance type $instanceTypeDisk.instanceType does not support Local SSD.")
       }
 
       // local-ssd disks must be exactly 375GB.
       if (localSSDDisk.sizeGb != 375) {
         errors.rejectValue("disks",
-                           "${context}.disk${index}.sizeGb.invalidSize",
-                           "Local SSD disks must be exactly 375GB.")
+          "${context}.disk${index}.sizeGb.invalidSize",
+          "Local SSD disks must be exactly 375GB.")
       }
 
       // local-ssd disks must have auto-delete set.
       if (!localSSDDisk.autoDelete) {
         errors.rejectValue("disks",
-                           "${context}.disk${index}.autoDelete.required",
-                           "Local SSD disks must have auto-delete set.")
+          "${context}.disk${index}.autoDelete.required",
+          "Local SSD disks must have auto-delete set.")
       }
     }
   }
@@ -450,9 +451,21 @@ class StandardGceAttributeValidator {
 
         if (minNumReplicas != null && maxNumReplicas != null) {
           validateMaxNotLessThanMin(minNumReplicas,
-                                    maxNumReplicas,
-                                    "autoscalingPolicy.minNumReplicas",
-                                    "autoscalingPolicy.maxNumReplicas")
+            maxNumReplicas,
+            "autoscalingPolicy.minNumReplicas",
+            "autoscalingPolicy.maxNumReplicas")
+        }
+
+        if (cpuUtilization != null) {
+          cpuUtilization.with {
+            if (utilizationTarget != null) {
+              validateInRangeExclusive(utilizationTarget,
+                0, 1, "autoscalingPolicy.cpuUtilization.utilizationTarget")
+            }
+            if (predictiveMethod != null) {
+              validateNotEmpty(predictiveMethod, "autoscalingPolicy.cpuUtilization.predictiveMethod")
+            }
+          }
         }
 
         customMetricUtilizations.eachWithIndex { utilization, index ->
@@ -463,18 +476,36 @@ class StandardGceAttributeValidator {
 
             if (utilizationTarget <= 0) {
               errors.rejectValue("${context}.${path}.utilizationTarget",
-                                 "${context}.${path}.utilizationTarget must be greater than zero.")
+                "${context}.${path}.utilizationTarget must be greater than zero.")
             }
 
             validateNotEmpty(utilizationTargetType, "${path}.utilizationTargetType")
+
+            if (singleInstanceAssignment < 0) {
+              errors.rejectValue("${context}.${path}.singleInstanceAssignment",
+                "${context}.${path}.singleInstanceAssignment must be greater than zero.")
+            }
           }
         }
-      }
 
-      [ "cpuUtilization", "loadBalancingUtilization" ].each {
-        if (policy[it] != null && policy[it].utilizationTarget != null) {
-          validateInRangeExclusive(policy[it].utilizationTarget,
-                                   0, 1, "autoscalingPolicy.${it}.utilizationTarget")
+        scalingSchedules.each { scalingSchedule ->
+          if(scalingSchedule != null) {
+            if (scalingSchedule.duration != null) {
+              validateInRangeExclusive(scalingSchedule.duration,
+                300, Integer.MAX_VALUE, "autoscalingPolicy.scalingSchedule.duration")
+            }
+            if (scalingSchedule.scheduleCron != null) {
+              validateCronExpression(scalingSchedule.scheduleCron, "autoscalingPolicy.scalingSchedule.scheduleCron")
+            }
+            if (scalingSchedule.timezone != null) {
+              validateTimeZone(scalingSchedule.timezone, "autoscalingPolicy.scalingSchedule.timezone")
+            }
+          }
+        }
+
+        if (loadBalancingUtilization != null && loadBalancingUtilization.utilizationTarget) {
+          validateInRangeExclusive(loadBalancingUtilization.utilizationTarget,
+            0, 1, "autoscalingPolicy.loadBalancingUtilization.utilizationTarget")
         }
       }
     }
@@ -494,10 +525,10 @@ class StandardGceAttributeValidator {
             validateNonNegativeLong(fixed as int, "autoHealingPolicy.maxUnavailable.fixed")
           } else if (percent != null) {
             validateInRangeInclusive(percent as int,
-                                     0, 100, "autoHealingPolicy.maxUnavailable.percent")
+              0, 100, "autoHealingPolicy.maxUnavailable.percent")
           } else if (rejectEmptyMaxUnavailable) {
             this.errors.rejectValue("autoHealingPolicy.maxUnavailable",
-                                    "${this.context}.autoHealingPolicy.maxUnavailable.neitherFixedNorPercent")
+              "${this.context}.autoHealingPolicy.maxUnavailable.neitherFixedNorPercent")
           }
         }
       }
@@ -530,5 +561,24 @@ class StandardGceAttributeValidator {
 
   def validateAuthScopes(List<String> authScopes) {
     return validateOptionalNameList(authScopes, "authScope")
+  }
+
+  def validateCronExpression(String expression, String attribute) {
+    def result = CronSequenceGenerator.isValidExpression("* " + expression)
+    if(!result){
+      errors.rejectValue attribute, "${context}.${attribute} must be a valid CRON expression."
+    }
+    return result
+  }
+
+  def validateTimeZone(String timeZone, String attribute) {
+    def result = true
+    try {
+      result = Set.of(TimeZone.getAvailableIDs()).contains(timeZone)
+    }catch (Exception e){
+      errors.rejectValue attribute, "${context}.${attribute} must be a time zone name from the tz database."
+      result = false
+    }
+    return result
   }
 }

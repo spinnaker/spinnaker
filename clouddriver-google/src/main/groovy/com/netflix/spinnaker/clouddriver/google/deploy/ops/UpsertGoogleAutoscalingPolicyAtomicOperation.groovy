@@ -103,22 +103,22 @@ class UpsertGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
         task.updateStatus BASE_PHASE, "Updating autoscaler for $serverGroupName..."
 
         autoscaler = GCEUtil.buildAutoscaler(serverGroupName,
-                                             serverGroup.selfLink,
-                                             copyAndOverrideAncestorAutoscalingPolicy(ancestorAutoscalingPolicyDescription,
-                                                                                      description.autoscalingPolicy))
+          serverGroup.selfLink,
+          copyAndOverrideAncestorAutoscalingPolicy(ancestorAutoscalingPolicyDescription,
+            description.autoscalingPolicy))
 
         if (isRegional) {
           def updateOp = timeExecute(
-              compute.regionAutoscalers().update(project, region, autoscaler),
-              "compute.regionAutoscalers.update",
-              TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
+            compute.regionAutoscalers().update(project, region, autoscaler),
+            "compute.regionAutoscalers.update",
+            TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
           googleOperationPoller.waitForRegionalOperation(compute, project, region,
             updateOp.getName(), null, task, "autoScaler ${autoscaler.getName()} for server group $serverGroupName", BASE_PHASE)
         } else {
           def updateOp = timeExecute(
-              compute.autoscalers().update(project, zone, autoscaler),
-              "compute.autoscalers.update",
-              TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, zone)
+            compute.autoscalers().update(project, zone, autoscaler),
+            "compute.autoscalers.update",
+            TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, zone)
           googleOperationPoller.waitForZonalOperation(compute, project, zone,
             updateOp.getName(), null, task, "autoScaler ${autoscaler.getName()} for server group $serverGroupName", BASE_PHASE)
         }
@@ -126,21 +126,21 @@ class UpsertGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
         task.updateStatus BASE_PHASE, "Creating new autoscaler for $serverGroupName..."
 
         autoscaler = GCEUtil.buildAutoscaler(serverGroupName,
-                                             serverGroup.selfLink,
-                                             normalizeNewAutoscalingPolicy(description.autoscalingPolicy))
+          serverGroup.selfLink,
+          normalizeNewAutoscalingPolicy(description.autoscalingPolicy))
 
         if (isRegional) {
           def insertOp = timeExecute(
-              compute.regionAutoscalers().insert(project, region, autoscaler),
-              "compute.regionAutoscalers.insert",
-              TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
+            compute.regionAutoscalers().insert(project, region, autoscaler),
+            "compute.regionAutoscalers.insert",
+            TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
           googleOperationPoller.waitForRegionalOperation(compute, project, region,
             insertOp.getName(), null, task, "autoScaler ${autoscaler.getName()} for server group $serverGroupName", BASE_PHASE)
         } else {
           def insertOp = timeExecute(
-              compute.autoscalers().insert(project, zone, autoscaler),
-              "compute.autoscalers.insert",
-              TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, zone)
+            compute.autoscalers().insert(project, zone, autoscaler),
+            "compute.autoscalers.insert",
+            TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, zone)
           googleOperationPoller.waitForZonalOperation(compute, project, zone,
             insertOp.getName(), null, task, "autoScaler ${autoscaler.getName()} for server group $serverGroupName", BASE_PHASE)
         }
@@ -222,7 +222,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
     }
 
     // Deletes existing customMetricUtilizations if passed an empty array.
-    ["minNumReplicas", "maxNumReplicas", "coolDownPeriodSec", "customMetricUtilizations", "mode"].each {
+    ["minNumReplicas", "maxNumReplicas", "coolDownPeriodSec", "customMetricUtilizations", "mode", "scalingSchedules"].each {
       if (update[it] != null) {
         newDescription[it] = update[it]
       }
@@ -307,13 +307,13 @@ class UpsertGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
 
     List<InstanceGroupManagerAutoHealingPolicy> autoHealingPolicy = autoHealingPolicyDescription?.healthCheck
       ? [new InstanceGroupManagerAutoHealingPolicy(
-          healthCheck: autoHealingHealthCheck.selfLink,
-          initialDelaySec: autoHealingPolicyDescription.initialDelaySec)]
+      healthCheck: autoHealingHealthCheck.selfLink,
+      initialDelaySec: autoHealingPolicyDescription.initialDelaySec)]
       : null
 
     if (autoHealingPolicy && autoHealingPolicyDescription.maxUnavailable) {
       def maxUnavailable = new FixedOrPercent(fixed: autoHealingPolicyDescription.maxUnavailable.fixed as Integer,
-                                              percent: autoHealingPolicyDescription.maxUnavailable.percent as Integer)
+        percent: autoHealingPolicyDescription.maxUnavailable.percent as Integer)
 
       autoHealingPolicy[0].setMaxUnavailable(maxUnavailable)
     }

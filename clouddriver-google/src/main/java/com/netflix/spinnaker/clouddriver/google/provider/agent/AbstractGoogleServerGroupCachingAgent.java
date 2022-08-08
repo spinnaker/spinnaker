@@ -45,6 +45,7 @@ import com.google.api.services.compute.model.AutoscalingPolicyCpuUtilization;
 import com.google.api.services.compute.model.AutoscalingPolicyCustomMetricUtilization;
 import com.google.api.services.compute.model.AutoscalingPolicyLoadBalancingUtilization;
 import com.google.api.services.compute.model.AutoscalingPolicyScaleInControl;
+import com.google.api.services.compute.model.AutoscalingPolicyScalingSchedule;
 import com.google.api.services.compute.model.DistributionPolicy;
 import com.google.api.services.compute.model.Instance;
 import com.google.api.services.compute.model.InstanceGroupManager;
@@ -89,6 +90,7 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy.Cu
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy.FixedOrPercent;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy.LoadBalancingUtilization;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy.ScaleInControl;
+import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy.ScalingSchedule;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDistributionPolicy;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstances;
@@ -923,10 +925,12 @@ public abstract class AbstractGoogleServerGroupCachingAgent
         convertLoadBalancingUtilization(input.getLoadBalancingUtilization());
     List<CustomMetricUtilization> customMetrics =
         convertCustomMetricUtilizations(input.getCustomMetricUtilizations());
+    List<ScalingSchedule> scalingSchedules = convertScalingSchedules(input.getScalingSchedules());
     GoogleAutoscalingPolicy output = new GoogleAutoscalingPolicy();
     output.setCoolDownPeriodSec(input.getCoolDownPeriodSec());
     output.setCpuUtilization(cpu);
     output.setCustomMetricUtilizations(customMetrics);
+    output.setScalingSchedules(scalingSchedules);
     output.setLoadBalancingUtilization(loadBalancing);
     output.setMaxNumReplicas(input.getMaxNumReplicas());
     output.setMinNumReplicas(input.getMinNumReplicas());
@@ -1004,6 +1008,27 @@ public abstract class AbstractGoogleServerGroupCachingAgent
     output.setTimeWindowSec(input.getTimeWindowSec());
     output.setMaxScaledInReplicas(maxScaledInReplicas);
     return output;
+  }
+
+  private static List<ScalingSchedule> convertScalingSchedules(
+      @Nullable Map<String, AutoscalingPolicyScalingSchedule> map) {
+    if (map == null) {
+      return null;
+    }
+    List<ScalingSchedule> scalingSchedules = new ArrayList<>();
+    for (String key : map.keySet()) {
+      AutoscalingPolicyScalingSchedule input = map.get(key);
+      ScalingSchedule output = new ScalingSchedule();
+      output.setScheduleName(key);
+      output.setScheduleDescription(input.getDescription());
+      output.setEnabled(!input.getDisabled());
+      output.setDuration(input.getDurationSec());
+      output.setMinimumRequiredInstances(input.getMinRequiredReplicas());
+      output.setScheduleCron(input.getSchedule());
+      output.setTimezone(input.getTimeZone());
+      scalingSchedules.add(output);
+    }
+    return scalingSchedules;
   }
 
   private static <T extends Enum<T>> T valueOf(Class<T> enumType, @Nullable String value) {

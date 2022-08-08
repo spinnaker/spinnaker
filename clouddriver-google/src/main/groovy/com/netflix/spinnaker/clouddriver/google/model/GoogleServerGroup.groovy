@@ -77,6 +77,7 @@ class GoogleServerGroup implements GoogleLabeledResource {
   StatefulPolicy statefulPolicy
 
   List<String> autoscalingMessages
+  //Map<String, String> scalingSchedulingMessages
 
   @JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.PROPERTY, property="class")
   InstanceGroupManagerAutoHealingPolicy autoHealingPolicy
@@ -155,10 +156,10 @@ class GoogleServerGroup implements GoogleLabeledResource {
     ServerGroup.Capacity getCapacity() {
       def asg = GoogleServerGroup.this.asg
       asg ?
-          new ServerGroup.Capacity(min: asg.minSize ? asg.minSize as Integer : 0,
-                                   max: asg.maxSize ? asg.maxSize as Integer : 0,
-                                   desired: asg.desiredCapacity ? asg.desiredCapacity as Integer : 0) :
-          null
+        new ServerGroup.Capacity(min: asg.minSize ? asg.minSize as Integer : 0,
+          max: asg.maxSize ? asg.maxSize as Integer : 0,
+          desired: asg.desiredCapacity ? asg.desiredCapacity as Integer : 0) :
+        null
     }
 
     /**
@@ -217,12 +218,12 @@ class GoogleServerGroup implements GoogleLabeledResource {
     @Override
     ServerGroup.InstanceCounts getInstanceCounts() {
       new ServerGroup.InstanceCounts(
-          total: instances.size(),
-          up: filterInstancesByHealthState(instances, HealthState.Up)?.size() ?: 0,
-          down: filterInstancesByHealthState(instances, HealthState.Down)?.size() ?: 0,
-          unknown: filterInstancesByHealthState(instances, HealthState.Unknown)?.size() ?: 0,
-          starting: filterInstancesByHealthState(instances, HealthState.Starting)?.size() ?: 0,
-          outOfService: filterInstancesByHealthState(instances, HealthState.OutOfService)?.size() ?: 0
+        total: instances.size(),
+        up: filterInstancesByHealthState(instances, HealthState.Up)?.size() ?: 0,
+        down: filterInstancesByHealthState(instances, HealthState.Down)?.size() ?: 0,
+        unknown: filterInstancesByHealthState(instances, HealthState.Unknown)?.size() ?: 0,
+        starting: filterInstancesByHealthState(instances, HealthState.Starting)?.size() ?: 0,
+        outOfService: filterInstancesByHealthState(instances, HealthState.OutOfService)?.size() ?: 0
       )
     }
 
@@ -235,7 +236,7 @@ class GoogleServerGroup implements GoogleLabeledResource {
       ]
     }
 
-     Collection<Instance> filterInstancesByHealthState(Set<Instance> instances, HealthState healthState) {
+    Collection<Instance> filterInstancesByHealthState(Set<Instance> instances, HealthState healthState) {
       instances.findAll { Instance it -> it.getHealthState() == healthState }
     }
   }

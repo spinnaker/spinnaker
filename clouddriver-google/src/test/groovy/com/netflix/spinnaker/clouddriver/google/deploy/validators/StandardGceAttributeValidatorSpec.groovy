@@ -783,7 +783,8 @@ class StandardGceAttributeValidatorSpec extends Specification {
         loadBalancingUtilization: new GoogleAutoscalingPolicy.LoadBalancingUtilization(utilizationTarget: 0.7),
         customMetricUtilizations: [ new GoogleAutoscalingPolicy.CustomMetricUtilization(metric: "myMetric",
           utilizationTarget: 0.9,
-          utilizationTargetType: UtilizationTargetType.DELTA_PER_MINUTE) ])
+          utilizationTargetType: UtilizationTargetType.DELTA_PER_MINUTE,
+          singleInstanceAssignment: 1.0) ])
 
     when:
       validator.validateAutoscalingPolicy(scalingPolicy)
