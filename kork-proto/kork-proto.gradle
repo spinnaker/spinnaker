@@ -12,7 +12,7 @@ dependencies {
 protobuf {
   protoc {
     // TODO: figure out how to reference version in BOM.
-    artifact = "com.google.protobuf:protoc:3.9.1"
+    artifact = "com.google.protobuf:protoc:3.19.4"
   }
 }
 
