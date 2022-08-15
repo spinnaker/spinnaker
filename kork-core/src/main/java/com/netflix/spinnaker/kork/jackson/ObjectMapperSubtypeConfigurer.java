@@ -15,13 +15,11 @@
  */
 package com.netflix.spinnaker.kork.jackson;
 
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
 import java.util.List;
 import java.util.Objects;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import javax.annotation.Nonnull;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AssignableTypeFilter;
 import org.springframework.util.ClassUtils;
@@ -36,12 +34,18 @@ import org.springframework.util.ClassUtils;
  */
 public class ObjectMapperSubtypeConfigurer {
 
-  private static final Logger log = LoggerFactory.getLogger(ObjectMapperSubtypeConfigurer.class);
-
-  private boolean strictSerialization;
+  private final NamedTypeParser namedTypeParser;
 
   public ObjectMapperSubtypeConfigurer(boolean strictSerialization) {
-    this.strictSerialization = strictSerialization;
+    namedTypeParser = new JsonTypeNameParser(strictSerialization);
+  }
+
+  /**
+   * Constructs this with a custom {@link NamedTypeParser} to extract JSON type discriminator info.
+   * This is useful for supporting custom annotations for type discriminators.
+   */
+  public ObjectMapperSubtypeConfigurer(@Nonnull NamedTypeParser namedTypeParser) {
+    this.namedTypeParser = namedTypeParser;
   }
 
   public void registerSubtypes(ObjectMapper mapper, List<SubtypeLocator> subtypeLocators) {
@@ -62,22 +66,13 @@ public class ObjectMapperSubtypeConfigurer {
     return provider.findCandidateComponents(pkg).stream()
         .map(
             bean -> {
-              Class<?> cls =
-                  ClassUtils.resolveClassName(
-                      bean.getBeanClassName(), ClassUtils.getDefaultClassLoader());
-
-              JsonTypeName nameAnnotation = cls.getAnnotation(JsonTypeName.class);
-              if (nameAnnotation == null || "".equals(nameAnnotation.value())) {
-                String message =
-                    "Subtype " + cls.getSimpleName() + " does not have a JsonTypeName annotation";
-                if (strictSerialization) {
-                  throw new InvalidSubtypeConfigurationException(message);
-                }
-                log.warn(message);
+              String beanClassName = bean.getBeanClassName();
+              if (beanClassName == null) {
                 return null;
               }
-
-              return new NamedType(cls, nameAnnotation.value());
+              Class<?> type =
+                  ClassUtils.resolveClassName(beanClassName, ClassUtils.getDefaultClassLoader());
+              return namedTypeParser.parse(type);
             })
         .filter(Objects::nonNull)
         .toArray(NamedType[]::new);

@@ -17,8 +17,10 @@
 package com.netflix.spinnaker.kork.secrets.user;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import com.netflix.spinnaker.kork.secrets.SecretConfiguration;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,5 +48,13 @@ public class UserSecretManagerTest {
     var ref = UserSecretReference.parse("secret://noop?foo=bar");
     var userSecret = userSecretManager.getUserSecret(ref);
     assertEquals("bar", userSecret.getSecretString("foo"));
+  }
+
+  @Test
+  public void getTestExternalSecret() {
+    var ref = EncryptedSecret.parse("encrypted:noop!v:test");
+    assertNotNull(ref);
+    var secret = userSecretManager.getExternalSecretString(ref);
+    assertEquals("test", secret);
   }
 }

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.kork.secrets;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -57,6 +58,8 @@ public class EncryptedSecretTest {
     String secretConfig = "encrypted:s3!first:key!second:another-valu:e!3rd:yetAnothervalue";
     EncryptedSecret encryptedSecret = EncryptedSecret.parse(secretConfig);
     assertEquals("s3", encryptedSecret.getEngineIdentifier());
+    EncryptedSecret tryEncrypted = EncryptedSecret.tryParse(secretConfig).orElseThrow();
+    assertEquals(encryptedSecret, tryEncrypted);
   }
 
   @Test
@@ -106,5 +109,10 @@ public class EncryptedSecretTest {
         "Invalid encrypted secret format, keys and values must be delimited by ':'");
     EncryptedSecret encryptedSecret = new EncryptedSecret();
     encryptedSecret.update("encrypted:s3!foobar");
+  }
+
+  @Test
+  public void tryParseReturnsEmptyOnInvalidSecretFormat() {
+    assertFalse(EncryptedSecret.tryParse("encrypted:s3!foobar").isPresent());
   }
 }
