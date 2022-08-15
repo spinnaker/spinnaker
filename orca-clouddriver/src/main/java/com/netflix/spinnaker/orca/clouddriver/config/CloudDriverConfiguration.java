@@ -57,7 +57,7 @@ import retrofit.converter.JacksonConverter;
   PollerConfigurationProperties.class
 })
 @Slf4j
-class CloudDriverConfiguration {
+public class CloudDriverConfiguration {
 
   @ConditionalOnMissingBean(ObjectMapper.class)
   @Bean
