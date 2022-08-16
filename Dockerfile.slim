@@ -1,5 +1,6 @@
 FROM python:3.7-alpine3.16
 LABEL maintainer="sig-platform@spinnaker.io"
+ARG TARGETARCH
 
 # KUBECTL_RELEASE kept one minor version behind latest to maximise compatibility overlap
 ENV KUBECTL_RELEASE=1.20.6
@@ -26,19 +27,20 @@ RUN pip install --upgrade awscli==${AWS_CLI_VERSION} s3cmd==${AWS_CLI_S3_CMD} py
   && pip uninstall -y pip
 
 # Google cloud SDK
-RUN wget -nv https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-${GOOGLE_CLOUD_SDK_VERSION}-linux-x86_64.tar.gz \
+RUN [ $TARGETARCH == 'amd64' ] &&  export GCP_ARCH="x86_64" || export GCP_ARCH="arm"  \
+  && wget -nv https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-${GOOGLE_CLOUD_SDK_VERSION}-linux-${GCP_ARCH}.tar.gz \
   && mkdir -p /opt && cd /opt \
-  && tar -xzf /google-cloud-sdk-${GOOGLE_CLOUD_SDK_VERSION}-linux-x86_64.tar.gz \
-  && rm /google-cloud-sdk-${GOOGLE_CLOUD_SDK_VERSION}-linux-x86_64.tar.gz \
+  && tar -xzf /google-cloud-sdk-${GOOGLE_CLOUD_SDK_VERSION}-linux-${GCP_ARCH}.tar.gz \
+  && rm /google-cloud-sdk-${GOOGLE_CLOUD_SDK_VERSION}-linux-${GCP_ARCH}.tar.gz \
   && CLOUDSDK_PYTHON="python3" /opt/google-cloud-sdk/install.sh --usage-reporting=false --bash-completion=false  --additional-components app-engine-java app-engine-go \
   && rm -rf ~/.config/gcloud \
   && rm -rf /opt/google-cloud-sdk/.install/.backup
 
 # kubectl + AWS IAM authenticator
-RUN wget https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_RELEASE}/bin/linux/amd64/kubectl \
+RUN wget https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_RELEASE}/bin/linux/${TARGETARCH}/kubectl \
   && chmod +x kubectl \
   && mv ./kubectl /usr/local/bin/kubectl \
-  && wget -O aws-iam-authenticator https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v${AWS_AIM_AUTHENTICATOR_VERSION}/aws-iam-authenticator_${AWS_AIM_AUTHENTICATOR_VERSION}_linux_amd64 \
+  && wget -O aws-iam-authenticator https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v${AWS_AIM_AUTHENTICATOR_VERSION}/aws-iam-authenticator_${AWS_AIM_AUTHENTICATOR_VERSION}_linux_${TARGETARCH} \
 	&& chmod +x ./aws-iam-authenticator \
 	&& mv ./aws-iam-authenticator /usr/local/bin/aws-iam-authenticator\
     && ln -sf /usr/local/bin/aws-iam-authenticator /usr/local/bin/heptio-authenticator-aws
