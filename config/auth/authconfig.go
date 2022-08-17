@@ -26,6 +26,7 @@ import (
 // Config is the CLI's authentication configuration.
 type Config struct {
 	Enabled          bool           `json:"enabled" yaml:"enabled"`
+	IgnoreRedirects  bool           `json:"ignoreRedirects" yaml:"ignoreRedirects"`
 	IgnoreCertErrors bool           `json:"ignoreCertErrors" yaml:"ignoreCertErrors"`
 	X509             *x509.Config   `json:"x509,omitempty" yaml:"x509,omitempty"`
 	OAuth2           *oauth2.Config `json:"oauth2,omitempty" yaml:"oauth2,omitempty"`

@@ -14,6 +14,7 @@ type RootOptions struct {
 	configPath       string
 	gateEndpoint     string
 	ignoreCertErrors bool
+	ignoreRedirects  bool
 	quiet            bool
 	color            bool
 	outputFormat     string
@@ -40,6 +41,7 @@ func NewCmdRoot(outWriter, errWriter io.Writer) (*cobra.Command, *RootOptions) {
 	cmd.PersistentFlags().StringVar(&options.configPath, "config", "", "path to config file (default $HOME/.spin/config)")
 	cmd.PersistentFlags().StringVar(&options.gateEndpoint, "gate-endpoint", "", "Gate (API server) endpoint (default http://localhost:8084)")
 	cmd.PersistentFlags().BoolVarP(&options.ignoreCertErrors, "insecure", "k", false, "ignore certificate errors")
+	cmd.PersistentFlags().BoolVarP(&options.ignoreRedirects, "ignore-redirects", "", false, "ignore redirects")
 	cmd.PersistentFlags().StringVar(&options.defaultHeaders, "default-headers", "", "configure default headers for gate client as comma separated list (e.g. key1=value1,key2=value2)")
 
 	// UI Flags
@@ -63,6 +65,7 @@ func NewCmdRoot(outWriter, errWriter io.Writer) (*cobra.Command, *RootOptions) {
 			options.defaultHeaders,
 			options.configPath,
 			options.ignoreCertErrors,
+			options.ignoreRedirects,
 		)
 		if err != nil {
 			return err
