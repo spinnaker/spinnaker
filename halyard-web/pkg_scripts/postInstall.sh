@@ -10,8 +10,14 @@ then
   HAL_USER=$(cat /opt/spinnaker/config/halyard-user)
 else
   HAL_USER=spinnaker
+  # Temporarily prevent commands that return non-zero exit codes
+  # from causing the post installation to fail.
+  set +e
   getent passwd spinnaker > /dev/null
-  if [ $? -gt 0 ]; then
+  GETENT_RESULT=$?
+  # Reenable checking for non-zero exit codes.
+  set -e
+  if [ $GETENT_RESULT -ne 0 ]; then
     useradd -s /bin/bash $HAL_USER
   fi
   if [ ! -f "/opt/spinnaker/config/halyard-user" ];
