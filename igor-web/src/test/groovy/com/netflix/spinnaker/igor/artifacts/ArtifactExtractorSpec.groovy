@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.igor.artifacts
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.netflix.spinnaker.igor.build.model.GenericBuild
 import com.netflix.spinnaker.kork.artifacts.parsing.DefaultJinjavaFactory
 import com.netflix.spinnaker.kork.artifacts.parsing.JinjaArtifactExtractor
@@ -28,8 +29,12 @@ class ArtifactExtractorSpec extends Specification {
   def jinjaTemplateService = GroovyMock(JinjaTemplateService)
   def jinjaArtifactExtractorFactory = new JinjaArtifactExtractor.Factory(new DefaultJinjavaFactory())
 
+  void setup() {
+    objectMapper.registerModule(new JavaTimeModule())
+  }
+
   @Subject
-  def artifactExtractor = new ArtifactExtractor(jinjaTemplateService, jinjaArtifactExtractorFactory)
+  def artifactExtractor = new ArtifactExtractor(objectMapper, jinjaTemplateService, jinjaArtifactExtractorFactory)
 
   def "parses an artifact returns it artifacts"() {
     given:
