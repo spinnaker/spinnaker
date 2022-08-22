@@ -1,7 +1,7 @@
 FROM ubuntu:bionic
 LABEL maintainer="sig-platform@spinnaker.io"
 ARG TARGETARCH
-ENV GOOGLE_CLOUD_SDK_VERSION=374.0.0
+ENV GOOGLE_CLOUD_SDK_VERSION=398.0.0
 ENV PATH "$PATH:/opt/google-cloud-sdk/bin/"
 
 RUN apt-get update && apt-get install -y curl gnupg && \
