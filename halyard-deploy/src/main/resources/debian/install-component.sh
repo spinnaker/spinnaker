@@ -1,1 +1,1 @@
-apt-get install -y --force-yes --allow-unauthenticated spinnaker-{%artifact%}={%version%}
+apt-get install -y --allow-unauthenticated --allow-downgrades --allow-remove-essential --allow-change-held-packages spinnaker-{%artifact%}={%version%}

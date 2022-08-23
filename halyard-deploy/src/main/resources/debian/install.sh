@@ -39,12 +39,10 @@ else
   DISTRO=$(uname -s)
 fi
 
-# If not Ubuntu 14.xx.x or higher
-
 if [ "$DISTRO" = "Ubuntu" ]; then
   if [ "${DISTRIB_RELEASE%%.*}" -lt "14" ]; then
     echo_err "Not a supported version of Ubuntu"
-    echo_err "Version is $DISTRIB_RELEASE we require 14.04"
+    echo_err "Version is $DISTRIB_RELEASE we require 14.04 or greater."
     exit 1
   fi
 else
@@ -57,25 +55,25 @@ else
 fi
 
 function add_redis_apt_repository() {
-  add-apt-repository -y ppa:chris-lea/redis-server
+  # Only Ubuntu prior to 18.04 LTS requires this PPA
+  if [ "${DISTRIB_RELEASE%%.*}" -lt "18" ]; then
+    echo "Adding Redis PPA repository for Ubuntu version less than 18.04"
+    add-apt-repository -y ppa:chris-lea/redis-server
+  fi
 }
 
 function add_spinnaker_apt_repository() {
+  echo "Adding Spinnaker apt repository"
   REPOSITORY_HOST=$(echo $REPOSITORY_URL | cut -d/ -f3)
-  if [[ "$REPOSITORY_HOST" == "dl.bintray.com" ]]; then
-    REPOSITORY_ORG=$(echo $REPOSITORY_URL | cut -d/ -f4)
-    # Personal repositories might not be signed, so conditionally check.
-    gpg=""
-    gpg=$(curl -s -f "https://bintray.com/user/downloadSubjectPublicKey?username=$REPOSITORY_ORG") || true
-    if [[ ! -z "$gpg" ]]; then
-      echo "$gpg" | apt-key add -
-    fi
-  fi
-  echo "deb $REPOSITORY_URL $DISTRIB_CODENAME spinnaker" | tee /etc/apt/sources.list.d/spinnaker.list > /dev/null
+  echo "deb [arch=all] $REPOSITORY_URL apt main" | tee /etc/apt/sources.list.d/spinnaker.list > /dev/null
 }
 
 function add_java_apt_repository() {
-  add-apt-repository -y ppa:openjdk-r/ppa
+  # Only Ubuntu prior to 18.04 LTS requires this PPA
+  if [ "${DISTRIB_RELEASE%%.*}" -lt "18" ]; then
+    echo "Adding Java PPA repository for Ubuntu version less than 18.04"
+    add-apt-repository -y ppa:openjdk-r/ppa
+  fi
 }
 
 function install_java() {
@@ -83,19 +81,21 @@ function install_java() {
   local java_version=$(java -version 2>&1 head -1)
   set -e
 
-  if [[ "$java_version" == *1.8* ]]; then
-    echo "Java is already installed & at the right version"
+  if [[ "$java_version" == *11.0* ]]; then
+    echo "Java dependency is already installed"
     return 0;
   fi
 
-  apt-get install -y --force-yes unzip
-  apt-get install -y --force-yes openjdk-8-jdk
+  echo "Installing Java"
+  apt-get install -y --allow-downgrades --allow-remove-essential --allow-change-held-packages unzip
+  apt-get install -y --allow-downgrades --allow-remove-essential --allow-change-held-packages openjdk-11-jre-headless
 
   # https://bugs.launchpad.net/ubuntu/+source/ca-certificates-java/+bug/983302
   # It seems a circular dependency was introduced on 2016-04-22 with an openjdk-8 release, where
   # the JRE relies on the ca-certificates-java package, which itself relies on the JRE.
   # This causes the /etc/ssl/certs/java/cacerts file to never be generated, causing a startup
   # failure in Clouddriver.
+  echo "Reinstalling Java CA certificates"
   dpkg --purge --force-depends ca-certificates-java
   apt-get install ca-certificates-java
 }
