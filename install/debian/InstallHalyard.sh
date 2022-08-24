@@ -7,6 +7,47 @@ SPINNAKER_DOCKER_REGISTRY="us-docker.pkg.dev/spinnaker-community/docker"
 SPINNAKER_GCE_PROJECT="marketplace-spinnaker-release"
 CONFIG_BUCKET="halconfig"
 
+# We can only currently support limited releases
+# First guess what sort of operating system
+if [ -f /etc/lsb-release ]; then
+  # This file is Ubuntu specific
+  . /etc/lsb-release
+  DISTRO=$DISTRIB_ID
+elif [ -f /etc/debian_version ]; then
+  DISTRO=Debian
+elif [ -f /etc/redhat-release ]; then
+  if grep -iq cent /etc/redhat-release; then
+    DISTRO="CentOS"
+  elif grep -iq red /etc/redhat-release; then
+    DISTRO="RedHat"
+  fi
+else
+  DISTRO=$(uname -s)
+fi
+
+if [ "$DISTRO" = "Ubuntu" ]; then
+  if [ "${DISTRIB_RELEASE%%.*}" -lt "18" ]; then
+    echo "Not a supported version of Ubuntu"
+    echo "Version is $DISTRIB_RELEASE we require 18.04 or higher."
+    exit 1
+  fi
+elif [ "$DISTRO" = "Debian" ]; then
+  DISTRO_VERSION=$(lsb_release -rs)
+  if [ ${DISTRO_VERSION} -lt "10" ]; then
+    echo "Not a supported version of Debian"
+    echo "Version is ${DISTRO_VERSION} we require 10 or higher."
+    exit 1
+  fi
+else
+  echo "Not a supported operating system: "
+  echo "It's recommended you use either Ubuntu 18.04 or higher"
+  echo "or Debian 10 or higher."
+  echo ""
+  echo "Please file an issue against https://github.com/spinnaker/spinnaker/issues"
+  echo "if you'd like to see support for your OS and version"
+  exit 1
+fi
+
 
 function process_args() {
   while [ "$#" -gt "0" ]

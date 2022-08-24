@@ -25,11 +25,11 @@ if [[ `/usr/bin/id -u` -ne 0 ]]; then
 fi
 
 if [[ -f /etc/lsb-release ]]; then
+  # This file is Ubuntu specific
   . /etc/lsb-release
   DISTRO=$DISTRIB_ID
 elif [[ -f /etc/debian_version ]]; then
   DISTRO=Debian
-  # XXX or Ubuntu
 elif [[ -f /etc/redhat-release ]]; then
   if grep -iq cent /etc/redhat-release; then
     DISTRO="CentOS"
@@ -43,12 +43,20 @@ fi
 if [ "$DISTRO" = "Ubuntu" ]; then
   if [ "${DISTRIB_RELEASE%%.*}" -lt "18" ]; then
     echo_err "Not a supported version of Ubuntu"
-    echo_err "Version is $DISTRIB_RELEASE we require 18.04 or greater."
+    echo_err "Version is $DISTRIB_RELEASE we require 18.04 or higher."
+    exit 1
+  fi
+elif [ "$DISTRO" = "Debian" ]; then
+  DISTRO_VERSION=$(lsb_release -rs)
+  if [ ${DISTRO_VERSION} -lt "10" ]; then
+    echo_err "Not a supported version of Debian"
+    echo_err "Version is ${DISTRO_VERSION} we require 10 or higher."
     exit 1
   fi
 else
   echo_err "Not a supported operating system: " $DISTRO
-  echo_err "It's recommended you use Ubuntu 18.04 or greater."
+  echo_err "It's recommended you use either Ubuntu 18.04 or higher"
+  echo_err "or Debian 10 or higher."
   echo_err ""
   echo_err "Please file an issue against https://github.com/spinnaker/spinnaker/issues"
   echo_err "if you'd like to see support for your OS and version"

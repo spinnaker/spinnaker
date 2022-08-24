@@ -25,11 +25,11 @@ fi
 # We can only currently support limited releases
 # First guess what sort of operating system
 if [ -f /etc/lsb-release ]; then
+  # This file is Ubuntu specific
   . /etc/lsb-release
   DISTRO=$DISTRIB_ID
 elif [ -f /etc/debian_version ]; then
   DISTRO=Debian
-  # XXX or Ubuntu
 elif [ -f /etc/redhat-release ]; then
   if grep -iq cent /etc/redhat-release; then
     DISTRO="CentOS"
@@ -46,11 +46,19 @@ if [ "$DISTRO" = "Ubuntu" ]; then
     echo "Version is $DISTRIB_RELEASE we require 18.04 or higher."
     exit 1
   fi
+elif [ "$DISTRO" = "Debian" ]; then
+  DISTRO_VERSION=$(lsb_release -rs)
+  if [ ${DISTRO_VERSION} -lt "10" ]; then
+    echo "Not a supported version of Debian"
+    echo "Version is ${DISTRO_VERSION} we require 10 or higher."
+    exit 1
+  fi
 else
   echo "Not a supported operating system: "
-  echo "It's recommended you use Ubuntu 18.04 or higher."
+  echo "It's recommended you use either Ubuntu 18.04 or higher"
+  echo "or Debian 10 or higher."
   echo ""
-  echo "Please file an issue against github.com/spinnaker/halyard/issues "
+  echo "Please file an issue against https://github.com/spinnaker/spinnaker/issues"
   echo "if you'd like to see support for your OS and version"
   exit 1
 fi
