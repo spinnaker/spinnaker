@@ -653,6 +653,101 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
     }
   }
 
+  void "find by - name - two amis - different accounts - same name - same id - different tags"() {
+    given:
+    Cache cacheView = Mock(Cache)
+    def controller = new AmazonNamedImageLookupController(cacheView)
+    def amiId = 'ami-12345678'
+    def amiName = 'myAmi'
+    def accountOne = 'accountOne'
+    def accountTwo = 'accountTwo'
+    def region = 'myRegion'
+    def imageOneTags = [att1: 'value1', att2: 'value2']
+    def imageTwoTags = [att3: 'value3']
+    def soughtAfterTags = [:]
+    def query = amiName
+    // Yes, this is insanely detailed, but it's what the render method expects
+    // (and what ImageCachingAgent provides).
+    def imageIdOne = Keys.getImageKey(amiId, accountOne, region)
+    def imageIdTwo = Keys.getImageKey(amiId, accountTwo, region)
+    def namedImageIdOne = Keys.getNamedImageKey(accountOne, amiName)
+    def namedImageIdTwo = Keys.getNamedImageKey(accountTwo, amiName)
+    def tagsAsAttributesOne = imageOneTags.collect { key, value -> [key: key, value: value] }
+    def tagsAsAttributesTwo = imageTwoTags.collect { key, value -> [key: key, value: value] }
+    def Collection<CacheData> imageCacheData = [new DefaultCacheData(imageIdOne,
+                                                  [name: amiName,
+                                                   tags: tagsAsAttributesOne,
+                                                   imageId: amiId],
+                                                  [(NAMED_IMAGES.ns): [namedImageIdOne]]),
+                                                new DefaultCacheData(imageIdTwo,
+                                                  [name: amiName,
+                                                   tags: tagsAsAttributesTwo,
+                                                   imageId: amiId],
+                                                  [(NAMED_IMAGES.ns): [namedImageIdTwo]])]
+
+    def namedImageCacheAttributes = [name: amiName,
+                                     virtualizationType: 'hvm', // arbitrary
+                                     architecture: 'architecture', // arbitrary
+                                     creationDate: '2021-08-03T22:27:50.000Z'] // arbitrary
+
+    def Collection<CacheData> namedImageCacheData = [new DefaultCacheData(namedImageIdOne,
+                                                      namedImageCacheAttributes,
+                                                      [(IMAGES.ns): [imageIdOne]]),
+                                                     new DefaultCacheData(namedImageIdTwo,
+                                                       namedImageCacheAttributes,
+                                                       [(IMAGES.ns): [imageIdTwo]])]
+
+    def tagQueryParam = soughtAfterTags.collectEntries { key, value -> ["tag:${key}".toString(), value.toString()] }
+    def httpServletRequest = httpServletRequest(tagQueryParam)
+
+    when:
+    List<AmazonNamedImageLookupController.NamedImage> results = controller.list(new LookupOptions(q: query), httpServletRequest)
+
+    then:
+    // Expect an identifier lookup by name
+    1 * cacheView.filterIdentifiers(NAMED_IMAGES.ns, _) >> [amiName]
+
+    // Expect no image identifiers since the identifier lookup by name returned
+    // something
+    0 * cacheView.filterIdentifiers(IMAGES.ns, _)
+
+    // Expect a lookup by name, with the one available name, and return the ami
+    // from each account
+    1 * cacheView.getAll(NAMED_IMAGES.ns, [amiName], _) >> namedImageCacheData
+
+    // Expect a lookup by image, but with no items to look in since the
+    // identifier lookup by name returned something
+    1 * cacheView.getAll(IMAGES.ns, []) >> []
+
+    // And then in render, expect another image lookup, this time with an image
+    // id because our named images are related to at least one "real" image.
+    1 * cacheView.getAll(IMAGES.ns, [imageIdOne, imageIdTwo]) >> imageCacheData
+
+    and:
+    results.size() == 1
+    with(results[0]) {
+      imageName == amiName
+      // When there's a named image that matches the given query, these are the
+      // attributes that render populates.
+      attributes == namedImageCacheAttributes - [name: amiName]
+      // The data structure is limited here.  We'd need tagsByAccountAndImageId
+      // to include all the information.  So, the code arbitrarily chooses to
+      // use the tags for the first image it processes.
+      tagsByImageId == [(amiId): imageOneTags]
+
+      // Preserve both accounts.  This is inconsistent, as tagsByImageId only
+      // contains information from accountOne.  This is what the results showed
+      // before all these changes, and it's not clear how to properly fix this,
+      // so retain the behavior.  Querying for images in a specific account is a
+      // way to bypass the struggle here.
+      accounts == [accountOne, accountTwo] as Set
+      amis == [myRegion: [amiId] as Set]
+      // When there's a named image that matches the given query, render doesn't
+      // currently populate tags, only tagsByImageId, as tags is deprecated.
+      tags == [:]
+    }
+  }
+
   void "find by - id - two amis - different accounts - same name - same id - only one has tags"() {
     given:
     Cache cacheView = Mock(Cache)
