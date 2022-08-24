@@ -41,34 +41,6 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
     AmazonNamedImageLookupController.extractTagFilters(httpServletRequest) == ["tag1": "value1", "tag2": "value2"]
   }
 
-  void "should support filtering on 1..* tags"() {
-    given:
-    def namedImage1 = new AmazonNamedImageLookupController.NamedImage(
-      amis: ["us-east-1": ["ami-123"]],
-      tagsByImageId: ["ami-123": ["state": "released"]]
-    )
-    def namedImage2 = new AmazonNamedImageLookupController.NamedImage(
-      amis: ["us-east-1": ["ami-456"]],
-      tagsByImageId: ["ami-456": ["state": "released", "engine": "spinnaker"]]
-    )
-
-    and:
-    def controller = new AmazonNamedImageLookupController(null)
-
-    expect:
-    // single tag ... matches all
-    controller.filter([namedImage1, namedImage2], ["state": "released"]) == [namedImage1, namedImage2]
-
-    // multiple tags ... matches one (case-insensitive)
-    controller.filter([namedImage1, namedImage2], ["STATE": "released", "engine": "SpinnakeR"]) == [namedImage2]
-
-    // single tag ... matches none
-    controller.filter([namedImage1, namedImage2], ["xxx": "released"]) == []
-
-    // no tags ... matches all
-    controller.filter([namedImage1, namedImage2], [:]) == [namedImage1, namedImage2]
-  }
-
   @Unroll
   void "should prevent searches on bad ami-like query: #query"() {
     given:
@@ -1075,6 +1047,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
     1 * cacheView.getAll(IMAGES.ns, [imageIdOne, imageIdTwo]) >> imageCacheData
 
     and:
+    results.size() == 1
     with(results[0]) {
       imageName == amiName
       // When there's a named image that matches the given query, these are the
@@ -1162,6 +1135,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
     1 * cacheView.getAll(IMAGES.ns, [imageIdOne, imageIdTwo]) >> imageCacheData
 
     and:
+    results.size() == 1
     with(results[0]) {
       imageName == amiName
       // When there's a named image that matches the given query, these are the
@@ -1248,6 +1222,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
     1 * cacheView.getAll(IMAGES.ns, [imageIdOne, imageIdTwo]) >> imageCacheData
 
     and:
+    results.size() == 1
     with(results[0]) {
       imageName == amiName
       // When there's a named image that matches the given query, these are the
@@ -1336,6 +1311,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
     1 * cacheView.getAll(IMAGES.ns, [imageIdOne, imageIdTwo]) >> imageCacheData
 
     and:
+    results.size() == 1
     with(results[0]) {
       imageName == amiName
       // When there's a named image that matches the given query, these are the

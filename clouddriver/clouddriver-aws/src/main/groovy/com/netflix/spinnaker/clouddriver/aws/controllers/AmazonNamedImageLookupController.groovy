@@ -16,12 +16,16 @@
 
 package com.netflix.spinnaker.clouddriver.aws.controllers
 
+import com.google.common.collect.ImmutableMap
+import com.google.common.collect.Iterables
+import com.google.common.collect.Sets
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
+import groovy.transform.Immutable
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
@@ -89,10 +93,7 @@ class AmazonNamedImageLookupController {
 
     Map<String, String> tagFilters = extractTagFilters(request)
 
-    List<NamedImage> allFilteredImages = filter(
-      render(matchesByName, matchesByImageId, tagFilters, lookupOptions.q, lookupOptions.region),
-      tagFilters
-    )
+    List<NamedImage> allFilteredImages = render(matchesByName, matchesByImageId, tagFilters, lookupOptions.q, lookupOptions.region)
 
     return allFilteredImages.subList(0, Math.min(MAX_SEARCH_RESULTS, allFilteredImages.size()))
   }
@@ -105,11 +106,11 @@ class AmazonNamedImageLookupController {
    * @return Map of tag name to tag value.
    */
   private static Map<String, String> generateTagsFromCacheData(final CacheData cacheData) {
-    final Map<String, String> newTagsForImageId =
+    final Map<String, String> tagsForImageId =
       (cacheData.attributes.tags as List<Map.Entry<String, String>>)?.collectEntries {
         [it.key.toLowerCase(), it.value]
       }
-    return newTagsForImageId
+    return tagsForImageId
   }
 
   /**
@@ -130,40 +131,16 @@ class AmazonNamedImageLookupController {
   }
 
   /**
-   * Logic to reconcile tags for a named image.
-   * When multiple sets of tags are available, attempts to pick the best set based on input tag filter criteria.
+   * Render an http response -- a list of NamedImages from information retrieved
+   * from the cache.
    *
-   * @param amiId AMI ID for which to reconcile tags.
-   * @param tagFilters Set of tags by which to filter.
-   * @param namedImage Named image for which to update tags for the given AMI ID.
-   * @param cacheData Source of new tags to use for reconciliation.
+   * @param namedImages info from the NAMED_IMAGES cache table
+   * @param images info from the IMAGES cache table
+   * @param tagFilters tags that resulting images must contain
+   * @param requestedName the name provided in the query
+   * @param requiredRegion images must be from this region (or null to include images from all regions)
+   * @return the images to respond with
    */
-  private static void reconcileTagsForNamedImage(
-    final String amiId,
-    final Map<String, String> tagFilters,
-    final NamedImage namedImage,
-    final Map<String, String> newTagsForImageId
-  ) {
-    final Map<String, String> existingTagsForImageId = namedImage.tagsByImageId[amiId]
-
-    if(!existingTagsForImageId) {
-      // No tags set yet for this AMI ID so use the new tags.
-      // NOTE: Check against tagFilters is done only if more than one set of tags present.
-      namedImage.tagsByImageId[amiId] = newTagsForImageId
-    } else {
-      // Existing tags. If tag filtering is enabled, handle collisions to preserve relevant tags.
-      // If more than one set of matching tags, then first to set wins.
-      // If tag filtering is not enabled, then leave existing tags.
-      if (tagFilters) {
-        // If the existing tags are not a match but the new tags are, then use them.
-        // Else, either existing tags are a match or new tags are not a match. Keep existing tags.
-        if(!checkTagsForImageId(existingTagsForImageId, tagFilters) && checkTagsForImageId(newTagsForImageId, tagFilters)) {
-          namedImage.tagsByImageId[amiId] = newTagsForImageId
-        }
-      }
-    }
-  }
-
   private List<NamedImage> render(
     Collection<CacheData> namedImages,
     Collection<CacheData> images,
@@ -171,85 +148,141 @@ class AmazonNamedImageLookupController {
     String requestedName,
     String requiredRegion
   ) {
-    // Map of AMI Image Name to AMI metadata.
-    final Map<String, NamedImage> byImageName = [:].withDefault { String it -> new NamedImage(imageName: it) }
+    // Assemble NamedImage objects for each image that satisfies tagFilters.
+    // Note that it's possible to have multiple images with the same name, but
+    // also multiple images with the same ami id in different accounts, so
+    // neither image name nor image id is sufficient to track them.  It's
+    // potentially simpler to use the same cache key that IMAGES.ns uses.
+    // Currently (23-aug-22), that contains account, region, and image id.  It's
+    // not clear yet whether it's possible to have two images with the same id
+    // in different regions of the same account.  As well, an explicit key
+    // class, is, well, nicely explicit.  If we need to add region to it later,
+    // it seems straightforward to do so -- by adding a region member to AmiKey.
+    // Initial testing shows that it may not be so straightforward.
+    final Map<AmiKey, NamedImage> byAmiKey = new HashMap<>()
 
     // Generate list of AMI IDs based on the passed in collection of AMIs found by name.
     final List<String> identifiers = namedImages.collect {
       (it.relationships[IMAGES.ns] ?: []).collect { it }
     }.flatten() as List<String>
 
-    // Populate the tags for each NamedImage. Metadata from the IDs search is the source of truth for tags metadata.
-    // Track named image ids which should not be used to populate NamedImage objects due to tag filtering.
-    final Set<String> namedImageIdsToSkip = new HashSet<>();
-
+    // Populate the tags for each NamedImage. Metadata from the AMI IDs search
+    // is the source of truth for tags metadata.
     for(final CacheData cacheData : cacheView.getAll(IMAGES.ns, identifiers)) {
-      final Map<String, String> newTagsForImageId = generateTagsFromCacheData(cacheData)
+      final Map<String, String> tagsForImageId = generateTagsFromCacheData(cacheData)
 
-      // Avoid generating any metadata for a non-relevant image.
-      if(tagFilters && !checkTagsForImageId(newTagsForImageId, tagFilters)) {
-        namedImageIdsToSkip.addAll(cacheData.relationships[NAMED_IMAGES.ns])
+      // Skip images that don't satisfy the tag filter
+      if(tagFilters && !checkTagsForImageId(tagsForImageId, tagFilters)) {
         continue
       }
 
-      final String amiId = cacheData.attributes.imageId
-      final String amiName = cacheData.attributes.name
-      final NamedImage namedImage = byImageName[amiName]
+      final Map<String, String> keyParts = Keys.parse(cacheData.id)
+      final String amiId = keyParts.imageId
+      final AmiKey amiKey = new AmiKey(account: keyParts.account,
+                                       amiId: amiId)
+      NamedImage namedImage = byAmiKey.get(amiKey)
+      if (namedImage == null) {
+        final String amiName = cacheData.attributes.name
+        namedImage = new NamedImage(imageName: amiName)
+        byAmiKey.put(amiKey, namedImage)
+      }
 
-      reconcileTagsForNamedImage(amiId, tagFilters, namedImage, newTagsForImageId)
+      namedImage.tagsByImageId[amiId] = tagsForImageId
     }
 
     // Populate metadata for AMI NAME driven searches.
     for (final CacheData cacheData : namedImages) {
-      // Avoid generating any metadata for a non-relevant image.
-      if(namedImageIdsToSkip.contains(cacheData.id)) {
-        continue;
-      }
-
       final Map<String, String> keyParts = Keys.parse(cacheData.id)
-      final NamedImage thisImage = byImageName[keyParts.imageName]
-      thisImage.attributes.putAll(cacheData.attributes - [name: keyParts.imageName])
-      thisImage.accounts.add(keyParts.account)
+      final String account = keyParts.account
 
       for (final String imageKey : cacheData.relationships[IMAGES.ns] ?: []) {
         final Map<String, String> imageParts = Keys.parse(imageKey)
-        thisImage.amis[imageParts.region].add(imageParts.imageId)
+        String amiId = imageParts.imageId
+        final AmiKey amiKey = new AmiKey(account: account, amiId: amiId)
+        final NamedImage thisImage = byAmiKey[amiKey]
+        if (thisImage != null) {
+          thisImage.attributes.putAll(cacheData.attributes - [name: keyParts.imageName])
+          thisImage.accounts.add(keyParts.account)
+          thisImage.amis[imageParts.region].add(imageParts.imageId)
+        }
       }
     }
 
     // Populate metadata for AMI ID driven searches.
     for (final CacheData cacheData : images) {
-      final Map<String, String> newTagsForImageId = generateTagsFromCacheData(cacheData)
+      final Map<String, String> tagsForImageId = generateTagsFromCacheData(cacheData)
 
       // Avoid generating any metadata for a non-relevant image.
-      if(tagFilters && !checkTagsForImageId(newTagsForImageId, tagFilters)) {
+      if(tagFilters && !checkTagsForImageId(tagsForImageId, tagFilters)) {
         continue
       }
 
       final Map<String, String> amiKeyParts = Keys.parse(cacheData.id)
-      final Map<String, String> namedImageKeyParts = Keys.parse(cacheData.relationships[NAMED_IMAGES.ns][0])
-      final NamedImage thisImage = byImageName[namedImageKeyParts.imageName]
-
+      final String amiId = amiKeyParts.imageId
+      final AmiKey amiKey = new AmiKey(account: amiKeyParts.account, amiId: amiId)
+      NamedImage thisImage = byAmiKey[amiKey]
+      if (thisImage == null) {
+        final String amiName = cacheData.attributes.name
+        thisImage = new NamedImage(imageName: amiName)
+        byAmiKey.put(amiKey, thisImage)
+      }
       thisImage.attributes.virtualizationType = cacheData.attributes.virtualizationType
       thisImage.attributes.architecture = cacheData.attributes.architecture
       thisImage.attributes.creationDate = cacheData.attributes.creationDate
-      thisImage.accounts.add(namedImageKeyParts.account)
-      thisImage.amis[amiKeyParts.region].add(amiKeyParts.imageId)
+      thisImage.accounts.add(amiKeyParts.account)
+      thisImage.amis[amiKeyParts.region].add(amiId)
 
-      final String amiId = cacheData.attributes.imageId
-      reconcileTagsForNamedImage(amiId, tagFilters, thisImage, newTagsForImageId)
+      thisImage.tagsByImageId[amiId] = tagsForImageId
 
       // Deprecated tags field is only set if the query is for an AMI ID.
-      // Rely on tag reconciliation to set tagsByImageId and share the result with the deprecated tags field.
       thisImage.tags = thisImage.tagsByImageId[amiId]
     }
 
     // NOTE: Ensure a list is explicitly used to enable in place sorting below.
-    final List<NamedImage> results
-    if(requiredRegion != null && !requiredRegion.isEmpty()) {
-      results = new ArrayList<>(byImageName.values().findAll { it.amis.containsKey(requiredRegion) })
-    } else {
-      results = new ArrayList<>(byImageName.values())
+    final List<NamedImage> results = new ArrayList<>()
+
+    // Previous behavior was that each element in the response has a unique
+    // image name, so merge elements of byAmiKey that have the same name.
+    Map<String, NamedImage> byImageName = new HashMap<>()
+
+    // Iterate through byAmiKey and merge entries that have the same imageName,
+    // including only those in requiredRegion if specified.
+    byAmiKey.values().findAll { requiredRegion ? it.amis.containsKey(requiredRegion) : true }.each { NamedImage namedImage ->
+      NamedImage result = byImageName.putIfAbsent(namedImage.imageName, namedImage)
+      if (result == null) {
+        // This is the first time we've seen this image name
+        results.add(namedImage)
+      } else {
+        // We've already got an element in the results list with this image
+        // name.  Add the info from namedImage into it.
+
+        // The amiKey for namedImage is different than the one for result, but
+        // the image ids could be the same (e.g. if they're from different
+        // accounts).  So, use merge instead of putAll, and choose (arbitrarily)
+        // to keep the tags in result, as opposed to replacing them with the
+        // ones from namedImage, or combining them all.  Unless of course result
+        // has no tags at all.  In that case use the tags from namedImage.
+        def keepTags = { Map<String, String> tags1, Map<String, String> tags2 -> ImmutableMap.copyOf(tags1.isEmpty() ? tags2 : tags1) }
+        namedImage.tagsByImageId.each { String imageId, Map<String, String> tags ->
+          result.tagsByImageId.merge(imageId, tags, keepTags)
+        }
+
+        result.accounts.addAll(namedImage.accounts)
+
+        // The key of the amis map is a region. The value of the amis map is a
+        // collection of ami ids.  When both result and namedImage have
+        // information in the same region, combine the two collections together.
+        def combineImageIds = { Collection<String> imageIds1, Collection<String> imageIds2 -> Sets.newHashSet(Iterables.concat(imageIds1, imageIds2)) }
+        namedImage.amis.each { String region, Collection<String> imageIds ->
+          result.amis.merge(region, imageIds, combineImageIds)
+        }
+
+        // Similar to the tagsByImageId handling, keep the tags in result if
+        // there are any, otherwise replace them with the ones from namedImage.
+        if (result.tags.isEmpty()) {
+          result.tags = namedImage.tags
+        }
+      }
     }
 
     results.sort { a, b ->
@@ -272,43 +305,6 @@ class AmazonNamedImageLookupController {
     return results
   }
 
-  /**
-   * Apply tag-based filtering to the list of named images.
-   * <p>
-   * ie. /aws/images/find?q=PackageName&tag:engine=spinnaker&tag:stage=released
-   */
-  private static List<NamedImage> filter(List<NamedImage> namedImages, Map<String, String> tagFilters) {
-    if (!tagFilters) {
-      return namedImages
-    }
-
-    return namedImages.findResults { NamedImage namedImage ->
-      List<String> invalidImageIds = []
-
-      // Iterate over the tags for each AMI and ensure that all tag filters are present.
-      namedImage.tagsByImageId.each { String imageId, Map<String, String> tags ->
-        boolean matches = checkTagsForImageId(tags, tagFilters)
-
-        if (!matches) {
-          invalidImageIds << imageId
-        }
-      }
-
-      // If not all tag filters are present for the AMI then purge it from the response.
-      invalidImageIds.each { String imageId ->
-        // Remove all traces of any images that did not pass the filter criteria.
-        namedImage.amis.each { String region, Collection<String> imageIds ->
-          imageIds.removeAll(imageId)
-        }
-        namedImage.amis = namedImage.amis.findAll { !it.value.isEmpty() }
-        namedImage.tagsByImageId.remove(imageId)
-      }
-
-      // Generate null if the outer 'namedImages.findResults{}' should filter this namedImage.
-      return (!namedImage.tagsByImageId || namedImage.amis.values().flatten().isEmpty()) ? null : namedImage
-    }
-  }
-
   void validateLookupOptions(LookupOptions lookupOptions) {
     if (lookupOptions.q == null || lookupOptions.q.length() < MIN_NAME_FILTER) {
       throw new InvalidRequestException(EXCEPTION_REASON)
@@ -327,6 +323,16 @@ class AmazonNamedImageLookupController {
     }.collectEntries { String tagParameter ->
       [tagParameter.replaceAll("tag:", "").toLowerCase(), httpServletRequest.getParameter(tagParameter)]
     } as Map<String, String>
+  }
+
+  /**
+   * Information to uniquely identify an image.  It's possible to have two images
+   * with the same ami id in different accounts, so ami id isn't sufficient.
+   */
+  @Immutable
+  private static class AmiKey {
+    String account;
+    String amiId;
   }
 
   private static class NamedImage {
