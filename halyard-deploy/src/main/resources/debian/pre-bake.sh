@@ -29,17 +29,15 @@ else
   DISTRO=$(uname -s)
 fi
 
-# If not Ubuntu 14.xx.x or higher
-
 if [ "$DISTRO" = "Ubuntu" ]; then
-  if [ "${DISTRIB_RELEASE%%.*}" -lt "14" ]; then
+  if [ "${DISTRIB_RELEASE%%.*}" -lt "18" ]; then
     echo "Not a supported version of Ubuntu"
-    echo "Version is $DISTRIB_RELEASE we require 14.04"
+    echo "Version is $DISTRIB_RELEASE we require 18.04 or higher."
     exit 1
   fi
 else
   echo "Not a supported operating system: " $DISTRO
-  echo "It's recommended you use Ubuntu 14.04."
+  echo "It's recommended you use Ubuntu 18.04 or higher."
   echo ""
   echo "Please file an issue against https://github.com/spinnaker/spinnaker/issues"
   echo "if you'd like to see support for your OS and version"
@@ -47,47 +45,22 @@ else
 fi
 
 function add_spinnaker_apt_repository() {
-  REPOSITORY_HOST=$(echo $REPOSITORY_URL | cut -d/ -f3)
-  if [[ "$REPOSITORY_HOST" == "dl.bintray.com" ]]; then
-    REPOSITORY_ORG=$(echo $REPOSITORY_URL | cut -d/ -f4)
-    # Personal repositories might not be signed, so conditionally check.
-    gpg=""
-    gpg=$(curl -s -f "https://bintray.com/user/downloadSubjectPublicKey?username=$REPOSITORY_ORG") || true
-    if [[ ! -z "$gpg" ]]; then
-      echo "$gpg" | apt-key add -
-    fi
+  if [ ! -f /etc/apt/sources.list.d/spinnaker.list ]; then
+    echo "Adding Spinnaker apt repository"
+    REPOSITORY_HOST=$(echo $REPOSITORY_URL | cut -d/ -f3)
+    curl -fsSL https://us-apt.pkg.dev/doc/repo-signing-key.gpg | gpg --dearmor | sudo tee /usr/share/keyrings/spinnaker.gpg > /dev/null
+    echo "deb [signed-by=/usr/share/keyrings/spinnaker.gpg arch=all] $REPOSITORY_URL apt main" | tee /etc/apt/sources.list.d/spinnaker.list > /dev/null
   fi
-  echo "deb $REPOSITORY_URL $DISTRIB_CODENAME spinnaker" | tee /etc/apt/sources.list.d/spinnaker.list > /dev/null
-}
-
-function add_java_apt_repository() {
-  add-apt-repository -y ppa:openjdk-r/ppa
-}
-
-function install_java() {
-  apt-get install -y --force-yes unzip
-  apt-get install -y --force-yes openjdk-8-jdk
-
-  # https://bugs.launchpad.net/ubuntu/+source/ca-certificates-java/+bug/983302
-  # It seems a circular dependency was introduced on 2016-04-22 with an openjdk-8 release, where
-  # the JRE relies on the ca-certificates-java package, which itself relies on the JRE.
-  # This causes the /etc/ssl/certs/java/cacerts file to never be generated, causing a startup
-  # failure in Clouddriver.
-  dpkg --purge --force-depends ca-certificates-java
-  apt-get install ca-certificates-java
 }
 
 echo "Updating apt package lists..."
 
-add_java_apt_repository
 add_spinnaker_apt_repository
 {%upstart-init%}
 
 apt-get update ||:
 
 echo "Installing desired components..."
-
-install_java
 
 if [ -z "$(getent group spinnaker)" ]; then
   groupadd spinnaker

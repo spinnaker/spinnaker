@@ -2,21 +2,11 @@
 
 set -e
 
-function check_migration_needed() {
-  set +e
+SPINNAKER_REPOSITORY_URL="https://us-apt.pkg.dev/projects/spinnaker-community"
+SPINNAKER_DOCKER_REGISTRY="us-docker.pkg.dev/spinnaker-community/docker"
+SPINNAKER_GCE_PROJECT="marketplace-spinnaker-release"
+CONFIG_BUCKET="halconfig"
 
-  which dpkg &> /dev/null
-  if [ "$?" = "0" ]; then
-    dpkg -s spinnaker-halyard &> /dev/null
-
-    if [ "$?" != "1" ]; then
-      >&2 echo "Attempting to install halyard while a debian installation is present."
-      >&2 echo "Please visit: https://spinnaker.io/setup/install/halyard_migration/"
-      exit 1
-    fi
-  fi
-  set -e
-}
 
 function process_args() {
   while [ "$#" -gt "0" ]
@@ -24,15 +14,6 @@ function process_args() {
     local key="$1"
     shift
     case $key in
-      --halyard-bucket-base-url)
-        echo "halyard-bucket-base-url"
-        HALYARD_BUCKET_BASE_URL="$1"
-        shift
-        ;;
-      --download-with-gsutil)
-        echo "download-with-gsutil"
-        DOWNLOAD_WITH_GSUTIL=true
-        ;;
       --spinnaker-repository)
         echo "spinnaker-repo"
         SPINNAKER_REPOSITORY_URL="$1"
@@ -51,11 +32,6 @@ function process_args() {
       --config-bucket)
         echo "config-bucket"
         CONFIG_BUCKET="$1"
-        shift
-        ;;
-      --user)
-        echo "user"
-        HAL_USER="$1"
         shift
         ;;
       --version)
@@ -78,81 +54,29 @@ function process_args() {
   done
 }
 
-function get_user() {
-  local user
-
-  user=$(whoami)
-  if [ -z "$YES" ]; then
-    if [ "$user" = "root" ] || [ -z "$user" ]; then
-      read -p "Please supply a non-root user to run Halyard as: " user
-    fi
-  fi
-
-  echo $user
-}
-
-function get_home() {
-  getent passwd $HAL_USER | cut -d: -f6
-}
-
 function configure_defaults() {
-  if [ -z "$HAL_USER" ]; then
-    HAL_USER=$(get_user)
-  fi
-
-  if [ -z "$HAL_USER" ]; then
-    >&2 echo "You have not supplied a user to run Halyard as."
-    exit 1
-  fi
-
-  if [ "$HAL_USER" = "root" ]; then
-    >&2 echo "Halyard may not be run as root. Supply a user to run Halyard as: "
-    >&2 echo "  sudo bash $0 --user <user>"
-    exit 1
-  fi
-
-  set +e
-  getent passwd $HAL_USER &> /dev/null
-
-  if [ "$?" != "0" ]; then
-    >&2 echo "Supplied user $HAL_USER does not exist"
-    exit 1
-  fi
-  set -e
-
   if [ -z "$HALYARD_VERSION" ]; then
-    HALYARD_VERSION="stable"
+    HALYARD_VERSION=`curl -s $SPINNAKER_REPOSITORY_URL/dists/apt/main/binary-all/Packages \
+      | grep "^Filename" \
+      | grep spinnaker-halyard \
+      | awk '{print $2}' \
+      | awk -F'/' '{print $NF}' \
+      | sort -t. -k 1,1n -k 2,2n -k 3,3n \
+      | tail -1 \
+      | cut -d '_' -f 2`
   fi
 
   echo "$(tput bold)Halyard version will be $HALYARD_VERSION $(tput sgr0)"
-
-  if [ -z "$HALYARD_BUCKET_BASE_URL" ]; then
-    HALYARD_BUCKET_BASE_URL="gs://spinnaker-artifacts/halyard"
-  fi
-
-  echo "$(tput bold)Halyard will be downloaded from $HALYARD_BUCKET_BASE_URL $(tput sgr0)"
-
-  if [ -z "$CONFIG_BUCKET" ]; then
-    CONFIG_BUCKET="halconfig"
-  fi
-
-  echo "$(tput bold)Halyard config will come from bucket gs://$CONFIG_BUCKET $(tput sgr0)"
-
-  home=$(get_home)
-  local halconfig_dir="$home/.hal"
-
-  echo "$(tput bold)Halconfig will be stored at $halconfig_dir/config$(tput sgr0)"
-
-  mkdir -p $halconfig_dir
-  chown $HAL_USER $halconfig_dir
+  echo "$(tput bold)Halyard will be downloaded from the spinnaker-community repository $(tput sgr0)"
+  echo "$(tput bold)Halconfig will be stored at /home/spinnaker/.hal/config$(tput sgr0)"
 
   mkdir -p /opt/spinnaker/config
-  chmod a+rx /opt/spinnaker/config
+  chmod +rx /opt/spinnaker/config
 
   cat > /opt/spinnaker/config/halyard.yml <<EOL
 halyard:
   halconfig:
-    directory: $halconfig_dir
+    directory: /home/spinnaker/.hal
 
 spinnaker:
   artifacts:
@@ -164,13 +88,11 @@ spinnaker:
       bucket: $CONFIG_BUCKET
 EOL
 
-  echo $HAL_USER > /opt/spinnaker/config/halyard-user
-
-  cat > $halconfig_dir/uninstall.sh <<EOL
+  cat > /tmp/uninstall-halyard.sh <<EOL
 #!/usr/bin/env bash
 
 if [[ \`/usr/bin/id -u\` -ne 0 ]]; then
-  echo "$0 must be executed with root permissions; exiting"
+  echo "uninstall-halyard.sh  must be executed with root permissions; exiting"
   exit 1
 fi
 
@@ -181,23 +103,26 @@ if [ "\$yes" != "y" ] && [ "\$yes" != "Y" ]; then
   exit 0
 fi
 
+apt purge -y spinnaker-halyard
+
 rm /opt/halyard -rf
 rm /var/log/spinnaker/halyard -rf
 rm -f /usr/local/bin/hal /usr/local/bin/update-halyard
 
 echo "Deleting halconfig and artifacts"
 rm /opt/spinnaker/config/halyard* -rf
-rm $halconfig_dir -rf
+rm /home/spinnaker/.hal -rf
 EOL
 
-  chmod a+rx $halconfig_dir/uninstall.sh
-  echo "$(tput bold)Uninstall script is located at $halconfig_dir/uninstall.sh$(tput sgr0)"
+  mv /tmp/uninstall-halyard.sh /usr/local/bin/uninstall-halyard.sh
+  chmod a+rx /usr/local/bin/uninstall-halyard.sh
+  echo "$(tput bold)Uninstall script is located at /usr/local/bin/uninstall-halyard.sh$(tput sgr0)"
 }
 
 
 function print_usage() {
   cat <<EOF
-usage: $0 [-y] [--version=<version>] [--user=<user>]
+usage: $0 [-y] [--version=<version>]
     -y                              Accept all default options during install
                                     (non-interactive mode).
 
@@ -226,22 +151,18 @@ usage: $0 [-y] [--version=<version>] [--user=<user>]
 
     --version <version>             Specify the exact version of Halyard to
                                     install.
-
-    --user <user>                   Specify the user to run Halyard as. This
-                                    user must exist.
 EOF
 }
 
 function check_java() {
-
   if ! which java 2>&1 > /dev/null; then
-    echo "Couldn't find a 'java' binary in your \$PATH. Halyard requires Java to run."
-    exit 1
+    echo "$(tput bold)Installing Java...$(tput sgr0)"
+    apt-get update
+    apt-get install -y openjdk-11-jre-headless
   fi
 }
 
 function configure_bash_completion() {
-  local yes
   echo ""
   if [ -z "$YES" ]; then
     read -p "Would you like to configure halyard to use bash auto-completion? [default=Y]: " yes
@@ -250,7 +171,6 @@ function configure_bash_completion() {
   fi
 
   if [ "$yes" = "y" ] || [ "$yes = "Y" ] || [ "$yes = "yes" ] || [ "$yes" = "" ]; then
-    local home=$(get_home)
     completion_script="/etc/bash_completion.d/hal"
 
     mkdir -p $(dirname $completion_script)
@@ -259,11 +179,11 @@ function configure_bash_completion() {
     local bashrc
     if [ -z "$YES" ]; then
       echo ""
-      read -p "Where is your bash RC? [default=$home/.bashrc]: " bashrc
+      read -p "Where is your bash RC? [default=$HOME/.bashrc]: " bashrc
     fi
 
     if [ -z "$bashrc" ]; then
-      bashrc="$home/.bashrc"
+      bashrc="$HOME/.bashrc"
     fi
 
     if [ -z "$(grep $completion_script $bashrc)" ]; then
@@ -278,52 +198,13 @@ function configure_bash_completion() {
 }
 
 function install_halyard() {
-  TEMPDIR=$(mktemp -d installhalyard.XXXX)
-  pushd $TEMPDIR
-  local gcs_bucket_and_file
-
-  if [[ "$HALYARD_BUCKET_BASE_URL" != gs://* ]]; then
-    >&2 echo "Currently installing halyard is only supported from a GCS bucket."
-    >&2 echo "The --halyard-install-url parameter must start with 'gs://'."
-    exit 1
-  else
-    gcs_bucket_and_file=${HALYARD_BUCKET_BASE_URL:5}/$HALYARD_VERSION/debian/halyard.tar.gz
-  fi
-
-  if [ -n "$DOWNLOAD_WITH_GSUTIL" ]; then
-    gsutil cp gs://$gcs_bucket_and_file halyard.tar.gz
-  else
-    curl -O https://storage.googleapis.com/$gcs_bucket_and_file
-  fi
-
-  tar --no-same-owner -xvf halyard.tar.gz -C /opt
-
-
-  if which systemd-sysusers &>/dev/null; then
-    if [ ! -d "/usr/lib/sysusers.d" ]; then
-      if [ ! -L "/usr/lib/sysusers.d" ]; then
-        echo "Creating /usr/lib/sysusers.d directory."
-        install -dm755 -o root -g root /usr/lib/sysusers.d
-      fi
-    fi
-    cat > /usr/lib/sysusers.d/halyard.conf <<EOL
-g halyard - -
-g spinnaker - -
-EOL
-
-    systemd-sysusers &> /dev/null || true
-
-  else
-    groupadd halyard || true
-    groupadd spinnaker || true
-  fi
-
-  usermod -G halyard -a $HAL_USER || true
-  usermod -G spinnaker -a $HAL_USER || true
-  chown $HAL_USER:halyard /opt/halyard
-
-  mv /opt/hal /usr/local/bin
-  chmod a+rx /usr/local/bin/hal
+  curl -fsSL https://us-apt.pkg.dev/doc/repo-signing-key.gpg \
+    | gpg --dearmor \
+    | tee /usr/share/keyrings/spinnaker.gpg > /dev/null
+  echo "deb [signed-by=/usr/share/keyrings/spinnaker.gpg arch=all] ${SPINNAKER_REPOSITORY_URL} apt main" \
+    | tee /etc/apt/sources.list.d/spinnaker-community.list > /dev/null
+  apt update
+  apt install -y spinnaker-halyard
 
   if [ -f /opt/update-halyard ]; then
     mv /opt/update-halyard /usr/local/bin
@@ -331,23 +212,13 @@ EOL
   else
     echo "No update script supplied with installer..."
   fi
-
-  mkdir -p /var/log/spinnaker/halyard
-  chown $HAL_USER:halyard /var/log/spinnaker/halyard
-  chmod 755 /var/log/spinnaker /var/log/spinnaker/halyard
-
-  popd
-  rm -rf $TEMPDIR
 }
-
-check_migration_needed
 
 process_args $@
 configure_defaults
-
 check_java
 install_halyard
-
-su -l -c "hal -v" -s /bin/bash $HAL_USER
-
 configure_bash_completion
+
+HALYARD_INSTALLED_VERSION=$(hal -v)
+echo "$(tput bold)Halyard version: ${HALYARD_INSTALLED_VERSION}$(tput sgr0)"

@@ -54,7 +54,7 @@ public class LocalDebianRedisService extends RedisService implements LocalDebian
 
   @Override
   public String installArtifactCommand(DeploymentDetails deploymentDetails) {
-    return "apt-get -q -y --force-yes install redis-server && (systemctl start redis-server.service || true)";
+    return "apt-get -q -y --allow-unauthenticated --allow-downgrades --allow-remove-essential --allow-change-held-packages install redis-server && (systemctl start redis-server.service || true)";
   }
 
   @Override

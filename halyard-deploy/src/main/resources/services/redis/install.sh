@@ -1,2 +1,1 @@
-add-apt-repository -y ppa:chris-lea/redis-server
-apt-get -q -y --force-yes install redis-server={%version%} redis-tools={%version%}
+apt-get -q -y --allow-unauthenticated --allow-downgrades --allow-remove-essential --allow-change-held-packages install redis-server={%version%} redis-tools={%version%}

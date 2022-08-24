@@ -5,14 +5,15 @@
 set -e
 set -o pipefail
 
-REPOSITORY_URL="https://dl.bintray.com/spinnaker-releases/debians"
-SPINNAKER_REPOSITORY_URL="https://dl.bintray.com/spinnaker-releases/debians"
+REPOSITORY_URL="https://us-apt.pkg.dev/projects/spinnaker-community"
+SPINNAKER_REPOSITORY_URL="https://us-apt.pkg.dev/projects/spinnaker-community"
 SPINNAKER_DOCKER_REGISTRY="us-docker.pkg.dev/spinnaker-community/docker"
 SPINNAKER_GCE_PROJECT="marketplace-spinnaker-release"
-CONFIG_BUCKET="halconfig" 
+CONFIG_BUCKET="halconfig"
 
 VERSION=""
 HALYARD_STARTUP_TIMEOUT_SECONDS=120
+HAL_USER="spinnaker"
 
 if [ -z "$RELEASE_TRACK" ]; then
   >&2 echo "RELEASE_TRACK env var must be set (nightly or stable)"
@@ -23,7 +24,6 @@ fi
 
 # We can only currently support limited releases
 # First guess what sort of operating system
-
 if [ -f /etc/lsb-release ]; then
   . /etc/lsb-release
   DISTRO=$DISTRIB_ID
@@ -40,17 +40,15 @@ else
   DISTRO=$(uname -s)
 fi
 
-# If not Ubuntu 14.xx.x or higher
-
 if [ "$DISTRO" = "Ubuntu" ]; then
-  if [ "${DISTRIB_RELEASE%%.*}" -lt "14" ]; then
+  if [ "${DISTRIB_RELEASE%%.*}" -lt "18" ]; then
     echo "Not a supported version of Ubuntu"
-    echo "Version is $DISTRIB_RELEASE we require 14.04"
+    echo "Version is $DISTRIB_RELEASE we require 18.04 or higher."
     exit 1
   fi
 else
   echo "Not a supported operating system: "
-  echo "It's recommended you use Ubuntu 14.04"
+  echo "It's recommended you use Ubuntu 18.04 or higher."
   echo ""
   echo "Please file an issue against github.com/spinnaker/halyard/issues "
   echo "if you'd like to see support for your OS and version"
@@ -62,7 +60,7 @@ function print_usage() {
   cat <<EOF
 usage: $0 [-y] [--quiet] [--dependencies_only]
     [--repository <debian repository url>]
-    [--local-install] [--home_dir <path>]
+    [--local-install]
     -y                              Accept all default options during install
                                     (non-interactive mode).
 
@@ -85,9 +83,6 @@ usage: $0 [-y] [--quiet] [--dependencies_only]
     --version <version>             Specify the exact version of Halyard to 
                                     install.
 
-    --user <user>                   Specify the user to run Halyard as. This
-                                    user must exist.
-
     --dependencies_only             Do not install any Spinnaker services.
                                     Only install the dependencies. This is
                                     intended for development scenarios only.
@@ -95,12 +90,9 @@ usage: $0 [-y] [--quiet] [--dependencies_only]
     --local-install                 For Spinnaker and Java packages, download
                                     packages and install using dpkg instead of
                                     apt. Use this option only if you are having
-                                    issues with the bintray repositories.
+                                    issues with the repositories.
                                     If you use this option you must manually
-                                    install openjdk-8-jdk.
-
-    --home_dir                      Override where user home directories reside
-                                    example: /export/home vs /home.
+                                    install openjdk-11-jre-headless.
 EOF
 }
 
@@ -141,11 +133,6 @@ function process_args() {
         CONFIG_BUCKET="$1"
         shift
         ;;
-      --user)
-        echo "user"
-        HAL_USER="$1"
-        shift
-        ;;
       --version)
         echo "version"
         VERSION="$1"
@@ -166,14 +153,6 @@ function process_args() {
       --quiet|-q)
         QUIET=true
         ;;
-      --home_dir)
-        homebase="$1"
-        if [ "$(basename $homebase)" = "spinnaker" ]; then
-          echo "stripping trailing 'spinnaker' from --home_dir=$homebase"
-          homebase=$(dirname $homebase)
-        fi
-        shift
-        ;;
       --help|-help|-h)
         print_usage
         exit 13
@@ -186,38 +165,20 @@ function process_args() {
 }
 
 function add_apt_repositories() {
-  # Spinnaker
-  # DL Repo goes here
-  REPOSITORY_HOST=$(echo $REPOSITORY_URL | cut -d/ -f3)
-  if [ "$REPOSITORY_HOST" = "dl.bintray.com" ]; then
-    REPOSITORY_ORG=$(echo $REPOSITORY_URL | cut -d/ -f4)
-    # Personal repositories might not be signed, so conditionally check.
-    gpg=""
-    gpg=$(curl -s -f "https://bintray.com/user/downloadSubjectPublicKey?username=$REPOSITORY_ORG") || true
-    if [ -n "$gpg" ]; then
-      echo "$gpg" | apt-key add -
-    fi
+  if [ ! -f /etc/apt/sources.list.d/spinnaker.list ]; then
+    REPOSITORY_HOST=$(echo $REPOSITORY_URL | cut -d/ -f3)
+    curl -fsSL https://us-apt.pkg.dev/doc/repo-signing-key.gpg | gpg --dearmor | sudo tee /usr/share/keyrings/spinnaker.gpg > /dev/null
+    echo "deb [signed-by=/usr/share/keyrings/spinnaker.gpg arch=all] $REPOSITORY_URL apt main" | tee /etc/apt/sources.list.d/spinnaker.list > /dev/null
   fi
-  echo "deb $REPOSITORY_URL ${DISTRIB_CODENAME}-${RELEASE_TRACK} spinnaker" | tee /etc/apt/sources.list.d/halyard.list > /dev/null
-  # Java 8
-  # https://launchpad.net/~openjdk-r/+archive/ubuntu/ppa
-  add-apt-repository -y ppa:openjdk-r/ppa
   apt-get update ||:
 }
 
 function install_java() {
   if [ -z "$DOWNLOAD" ]; then
-    apt-get install -y --force-yes openjdk-8-jdk
-
-    # https://bugs.launchpad.net/ubuntu/+source/ca-certificates-java/+bug/983302
-    # It seems a circular dependency was introduced on 2016-04-22 with an openjdk-8 release, where
-    # the JRE relies on the ca-certificates-java package, which itself relies on the JRE. D'oh!
-    # This causes the /etc/ssl/certs/java/cacerts file to never be generated, causing a startup
-    # failure in Clouddriver.
-    dpkg --purge --force-depends ca-certificates-java
-    apt-get install ca-certificates-java
-  elif [[ "x`java -version 2>&1|head -1`" != *"1.8.0"* ]]; then
-    echo "you must manually install java 8 and then rerun this script; exiting"
+    echo "$(tput bold)Installing Java...$(tput sgr0)"
+    apt-get install -y --allow-unauthenticated --allow-downgrades --allow-remove-essential --allow-change-held-packages openjdk-11-jre-headless
+  elif [[ "x`java -version 2>&1|head -1`" != *"11.0"* ]]; then
+    echo "You must manually install Java 11 and then rerun this script; exiting"
     exit 13
   fi
 }
@@ -229,7 +190,7 @@ function install_halyard() {
   if [ -n "$VERSION" ]; then
     installed_package="$package=$VERSION"
   fi
-  apt-get install -y --force-yes --allow-unauthenticated $installed_package
+  apt-get install -y --allow-unauthenticated --allow-downgrades --allow-remove-essential --allow-change-held-packages $installed_package
   local apt_status=$?
   if [ $apt_status -ne 0 ]; then
     if [ -n "$DOWNLOAD" ] && [ "$apt_status" -eq "100" ]; then
@@ -239,10 +200,10 @@ function install_halyard() {
         version="${package}_${VERSION}_all.deb"
         debfile=$version
       else 
-        version=`curl $REPOSITORY_URL/dists/${DISTRIB_CODENAME}-${RELEASE_TRACK}/spinnaker/binary-amd64/Packages | grep "^Filename" | grep $package | awk '{print $2}' | awk -F'/' '{print $NF}' | sort -t. -k 1,1n -k 2,2n -k 3,3n | tail -1`
+        version=`curl -s $REPOSITORY_URL/dists/apt/main/binary-all/Packages | grep "^Filename" | grep $package | awk '{print $2}' | awk -F'/' '{print $NF}' | sort -t. -k 1,1n -k 2,2n -k 3,3n | tail -1`
         debfile=`echo $version | awk -F "/" '{print $NF}'`
       fi
-      filelocation=`curl $REPOSITORY_URL/dists/${DISTRIB_CODENAME}-${RELEASE_TRACK}/spinnaker/binary-amd64/Packages | grep "^Filename" | grep $version | awk '{print $2}'`
+      filelocation=`curl -s $REPOSITORY_URL/dists/apt/main/binary-all/Packages | grep "^Filename" | grep $version | awk '{print $2}'`
       curl -L -o /tmp/$debfile $REPOSITORY_URL/$filelocation
       dpkg -i /tmp/$debfile && rm -f /tmp/$debfile
     else
@@ -262,18 +223,17 @@ function configure_bash_completion() {
     yes="y"
   fi
 
-  local home=$(getent passwd $HAL_USER | cut -d: -f6)
   completion_script="/etc/bash_completion.d/hal"
   if [ "$yes" = "y" ] || [ "$yes = "Y" ] || [ "$yes = "yes" ] || [ "$yes" = "" ]; then
     local bashrc
     hal --print-bash-completion | tee $completion_script  > /dev/null
     if [ -z "$YES" ]; then
       echo ""
-      read -p "Where is your bash RC? [default=$home/.bashrc]: " bashrc
+      read -p "Where is your bash RC? [default=$HOME/.bashrc]: " bashrc
     fi
     
     if [ -z "$bashrc" ]; then
-      bashrc="$home/.bashrc"
+      bashrc="$HOME/.bashrc"
     fi
 
     if [ -z "$(grep $completion_script $bashrc)" ]; then
@@ -288,27 +248,8 @@ function configure_bash_completion() {
   
 }
 
-function get_user() {
-  local user 
-
-  user=$(who -m | awk '{print $1;}')
-  if [ -z "$YES" ]; then
-    if [ "$user" = "root" ] || [ -z "$user" ]; then
-      read -p "Please supply a non-root user to run Halyard as: " user
-    fi
-  fi
-
-  echo $user
-}
-
 function configure_halyard_defaults() {
-  home=$(getent passwd $HAL_USER | cut -d: -f6)
-  local halconfig_dir="$home/.hal"
-
-  echo "$(tput bold)Halconfig will be stored at $halconfig_dir/config$(tput sgr0)"
-
-  mkdir -p $halconfig_dir
-  chown $HAL_USER $halconfig_dir
+  echo "$(tput bold)Halconfig will be stored at /home/spinnaker/.hal/config$(tput sgr0)"
 
   mkdir -p /opt/spinnaker/config
   chmod +rx /opt/spinnaker/config
@@ -316,7 +257,7 @@ function configure_halyard_defaults() {
   cat > /opt/spinnaker/config/halyard.yml <<EOL
 halyard:
   halconfig:
-    directory: $halconfig_dir
+    directory: /home/spinnaker/.hal
 
 spinnaker:
   artifacts:
@@ -328,67 +269,38 @@ spinnaker:
       bucket: $CONFIG_BUCKET
 EOL
 
-  echo $HAL_USER > /opt/spinnaker/config/halyard-user
-
-  cat > $halconfig_dir/uninstall.sh <<EOL
+  cat > /tmp/uninstall-halyard.sh <<EOL
 #!/usr/bin/env bash
 
 if [[ \`/usr/bin/id -u\` -ne 0 ]]; then
-  echo "$0 must be executed with root permissions; exiting"
+  echo "uninstall-halyard.sh  must be executed with root permissions; exiting"
   exit 1
 fi
 
-read -p "This script uninstalls Halyard and deletes all of its artifacts, are you sure you want to continue? (Y/n): " yes
+read -p "This script uninstalls Halyard and deletes all of its artifacts, are you sure you want to continue? (y/N): " yes
 
 if [ "\$yes" != "y" ] && [ "\$yes" != "Y" ]; then
   echo "Aborted"
   exit 0
 fi
 
-apt-get purge spinnaker-halyard
+apt-get purge -y spinnaker-halyard
 
 echo "Deleting halconfig and artifacts"
 rm /opt/spinnaker/config/halyard* -rf
-rm $halconfig_dir -rf
+rm /home/spinnaker/.hal -rf
 EOL
 
-  chmod +x $halconfig_dir/uninstall.sh
-  echo "$(tput bold)Uninstall script is located at $halconfig_dir/uninstall.sh$(tput sgr0)"
+  mv /tmp/uninstall-halyard.sh /usr/local/bin/uninstall-halyard.sh
+  chmod +x /usr/local/bin/uninstall-halyard.sh
+  echo "$(tput bold)Uninstall script is located at /usr/local/bin/uninstall-halyard.sh$(tput sgr0)"
 }
 
 process_args "$@"
-
-if [ -z "$HAL_USER" ]; then 
-  HAL_USER=$(get_user)
-fi
-
-if [ -z "$HAL_USER" ]; then 
-  >&2 echo "You have not supplied a user to run Halyard as."
-  exit 1
-fi
-
-if [ "$HAL_USER" = "root" ]; then
-  >&2 echo "Halyard may not be run as root. Supply a user to run Halyard as: "
-  >&2 echo "  sudo bash $0 --user <user>"
-  exit 1
-fi
-
-set +e
-getent passwd $HAL_USER &> /dev/null
-
-if [ "$?" != "0" ]; then
-  >&2 echo "Supplied user $HAL_USER does not exist"
-  exit 1
-fi
-set -e
-
 configure_halyard_defaults
 
 echo "$(tput bold)Configuring external apt repos...$(tput sgr0)"
 add_apt_repositories
-
-echo "$(tput bold)Installing Java 8...$(tput sgr0)"
-
 install_java
 
 if [ -n "$DEPENDENCIES_ONLY" ]; then
@@ -398,9 +310,6 @@ fi
 ## Spinnaker
 echo "$(tput bold)Installing Halyard...$(tput sgr0)"
 install_halyard
-groupadd spinnaker || true
-usermod -G spinnaker -a $HAL_USER || true
-
 configure_bash_completion
 
 printf 'Waiting for the Halyard daemon to start running'
