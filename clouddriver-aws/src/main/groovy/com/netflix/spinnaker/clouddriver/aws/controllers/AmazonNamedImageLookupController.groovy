@@ -126,6 +126,7 @@ class AmazonNamedImageLookupController {
       Map<String, String> namedImageKeyParts = Keys.parse(data.relationships[NAMED_IMAGES.ns][0])
       NamedImage thisImage = byImageName[namedImageKeyParts.imageName]
       thisImage.attributes.virtualizationType = data.attributes.virtualizationType
+      thisImage.attributes.architecture = data.attributes.architecture
       thisImage.attributes.creationDate = data.attributes.creationDate
       thisImage.accounts.add(namedImageKeyParts.account)
       thisImage.amis[amiKeyParts.region].add(amiKeyParts.imageId)

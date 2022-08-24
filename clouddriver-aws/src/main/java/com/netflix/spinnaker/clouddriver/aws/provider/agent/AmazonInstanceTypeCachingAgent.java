@@ -18,9 +18,15 @@ package com.netflix.spinnaker.clouddriver.aws.provider.agent;
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
 
+import com.amazonaws.services.ec2.AmazonEC2;
+import com.amazonaws.services.ec2.model.DescribeInstanceTypesRequest;
+import com.amazonaws.services.ec2.model.DescribeInstanceTypesResult;
+import com.amazonaws.services.ec2.model.GpuInfo;
+import com.amazonaws.services.ec2.model.InstanceStorageInfo;
+import com.amazonaws.services.ec2.model.InstanceTypeInfo;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.cats.agent.AccountAware;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.agent.CachingAgent;
@@ -31,66 +37,37 @@ import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys;
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsInfrastructureProvider;
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
-import com.netflix.spinnaker.credentials.CredentialsRepository;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpHead;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
 
-public class AmazonInstanceTypeCachingAgent implements CachingAgent {
+public class AmazonInstanceTypeCachingAgent implements CachingAgent, AccountAware {
 
   private static final TypeReference<Map<String, Object>> ATTRIBUTES =
       new TypeReference<Map<String, Object>>() {};
 
-  // https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/current/us-west-2/index.json
   private final String region;
-  private final CredentialsRepository<NetflixAmazonCredentials> credentialsRepository;
-  private final URI pricingUri;
-  private final HttpHost pricingHost;
-  private final HttpClient httpClient;
-  private final ObjectMapper objectMapper =
-      new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+  private final AmazonClientProvider amazonClientProvider;
+  private final NetflixAmazonCredentials account;
+  private final ObjectMapper objectMapper;
 
   public AmazonInstanceTypeCachingAgent(
-      String region, CredentialsRepository<NetflixAmazonCredentials> credentialsRepository) {
-    this(region, credentialsRepository, HttpClients.createDefault());
-  }
-
-  // VisibleForTesting
-  AmazonInstanceTypeCachingAgent(
       String region,
-      CredentialsRepository<NetflixAmazonCredentials> credentialsRepository,
-      HttpClient httpClient) {
+      AmazonClientProvider amazonClientProvider,
+      NetflixAmazonCredentials account,
+      ObjectMapper objectMapper) {
+    this.account = account;
+    this.amazonClientProvider = amazonClientProvider;
     this.region = region;
-    this.credentialsRepository = credentialsRepository;
-    if (region.startsWith("cn-")) {
-      pricingHost = HttpHost.create("https://pricing.cn-north-1.amazonaws.com.cn");
-    } else {
-      pricingHost = HttpHost.create("https://pricing.us-east-1.amazonaws.com");
-    }
-    pricingUri = URI.create("/offers/v1.0/aws/AmazonEC2/current/" + region + "/index.json");
-    this.httpClient = httpClient;
+    this.objectMapper = objectMapper;
   }
 
   @Override
@@ -103,115 +80,136 @@ public class AmazonInstanceTypeCachingAgent implements CachingAgent {
 
   @Override
   public CacheResult loadData(ProviderCache providerCache) {
-    try {
-      Set<String> matchingAccounts =
-          credentialsRepository.getAll().stream()
-              .filter(ac -> ac.getRegions().stream().anyMatch(r -> region.equals(r.getName())))
-              .map(AccountCredentials::getName)
-              .collect(Collectors.toSet());
+    AmazonEC2 amazonEC2 = amazonClientProvider.getAmazonEC2(this.account, this.region);
+    final List<InstanceTypeInfo> instanceTypesInfo = getInstanceTypes(amazonEC2);
 
-      if (matchingAccounts.isEmpty()) {
-        return new DefaultCacheResult(Collections.emptyMap());
-      }
+    Map<String, Collection<CacheData>> cacheResults = new HashMap<>();
 
-      CacheData metadata =
-          providerCache.get(getAgentType(), "metadata", RelationshipCacheFilter.none());
-      MetadataAttributes metadataAttributes = null;
-      if (metadata != null) {
-        metadataAttributes =
-            objectMapper.convertValue(metadata.getAttributes(), MetadataAttributes.class);
-      }
+    // cache instance types for key "metadata" for backwards compatibility
+    Set<String> instanceTypes =
+        instanceTypesInfo.stream()
+            .map(InstanceTypeInfo::getInstanceType)
+            .collect(Collectors.toSet());
+    DefaultCacheData metadata = buildCacheDataForMetadataKey(providerCache, instanceTypes);
+    cacheResults.put(getAgentType(), Collections.singleton(metadata));
 
-      Set<String> instanceTypes = null;
-      if (metadataAttributes != null
-          && metadataAttributes.etag != null
-          && metadataAttributes.cachedInstanceTypes != null) {
-
-        // we have enough from a previous request to not re-request if the etag is unchanged..
-        HttpResponse headResponse = httpClient.execute(pricingHost, new HttpHead(pricingUri));
-        EntityUtils.consumeQuietly(headResponse.getEntity());
-        if (headResponse.getStatusLine().getStatusCode() != 200) {
-          throw new Exception(
-              "failed to read instance type metadata for "
-                  + region
-                  + ": "
-                  + headResponse.getStatusLine().toString());
-        }
-
-        Optional<String> etag = getEtagHeader(headResponse);
-
-        if (etag.filter(metadataAttributes.etag::equals).isPresent()) {
-          instanceTypes = metadataAttributes.cachedInstanceTypes;
-        }
-      }
-      if (instanceTypes == null) {
-        HttpResponse getResponse = httpClient.execute(pricingHost, new HttpGet(pricingUri));
-        if (getResponse.getStatusLine().getStatusCode() != 200) {
-          EntityUtils.consumeQuietly(getResponse.getEntity());
-          throw new Exception(
-              "failed to read instance type data for "
-                  + region
-                  + ": "
-                  + getResponse.getStatusLine().toString());
-        }
-        Optional<String> etag = getEtagHeader(getResponse);
-        HttpEntity entity = getResponse.getEntity();
-        instanceTypes = fromStream(entity.getContent());
-        EntityUtils.consumeQuietly(entity);
-        if (etag.isPresent()) {
-          metadataAttributes = new MetadataAttributes();
-          metadataAttributes.etag = etag.get();
-          metadataAttributes.cachedInstanceTypes = new HashSet<>(instanceTypes);
-          metadata =
-              new DefaultCacheData(
-                  "metadata",
-                  objectMapper.convertValue(metadataAttributes, ATTRIBUTES),
-                  Collections.emptyMap());
-        } else {
-          metadata = null;
-        }
-      }
-      Map<String, Collection<String>> evictions = new HashMap<>();
-      Map<String, Collection<CacheData>> cacheResults = new HashMap<>();
-      List<CacheData> instanceTypeData = new ArrayList<>();
-      cacheResults.put(Keys.Namespace.INSTANCE_TYPES.getNs(), instanceTypeData);
-      if (metadata != null) {
-        cacheResults.put(getAgentType(), Collections.singleton(metadata));
-      } else {
-        evictions.put(getAgentType(), Collections.singleton("metadata"));
-      }
-
-      for (String instanceType : instanceTypes) {
-        for (String account : matchingAccounts) {
-          Map<String, Object> instanceTypeAttributes = new HashMap<>();
-          instanceTypeAttributes.put("account", account);
-          instanceTypeAttributes.put("region", region);
-          instanceTypeAttributes.put("name", instanceType);
-          instanceTypeData.add(
-              new DefaultCacheData(
-                  Keys.getInstanceTypeKey(instanceType, region, account),
-                  instanceTypeAttributes,
-                  Collections.emptyMap()));
-        }
-      }
-
-      return new DefaultCacheResult(cacheResults, evictions);
-    } catch (Exception ex) {
-      throw new RuntimeException(ex);
+    // cache instance types info
+    if (instanceTypesInfo == null || instanceTypesInfo.isEmpty()) {
+      return new DefaultCacheResult(cacheResults);
     }
+
+    List<CacheData> instanceTypeData =
+        instanceTypesInfo.stream()
+            .map(
+                i -> {
+                  Map<String, Object> attributes = objectMapper.convertValue(i, ATTRIBUTES);
+                  attributes.put("account", account.getName());
+                  attributes.put("region", region);
+                  attributes.put("name", i.getInstanceType());
+                  attributes.put("defaultVCpus", i.getVCpuInfo().getDefaultVCpus());
+                  attributes.put("memoryInGiB", i.getMemoryInfo().getSizeInMiB() / 1024);
+                  attributes.put(
+                      "supportedArchitectures", i.getProcessorInfo().getSupportedArchitectures());
+
+                  if (i.getInstanceStorageInfo() != null) {
+                    InstanceStorageInfo info = i.getInstanceStorageInfo();
+                    Map<String, Object> instanceStorageAttributes = new HashMap<>();
+
+                    instanceStorageAttributes.put("totalSizeInGB", info.getTotalSizeInGB());
+                    if (info.getDisks() != null && info.getDisks().size() > 0) {
+                      instanceStorageAttributes.put(
+                          "storageTypes",
+                          info.getDisks().stream()
+                              .map(d -> d.getType())
+                              .collect(Collectors.joining(",")));
+                    }
+                    if (info.getNvmeSupport() != null) {
+                      instanceStorageAttributes.put("nvmeSupport", info.getNvmeSupport());
+                    }
+                    attributes.put("instanceStorageInfo", instanceStorageAttributes);
+                  }
+
+                  if (i.getGpuInfo() != null) {
+                    GpuInfo info = i.getGpuInfo();
+                    Map<String, Object> gpuInfoAttributes = new HashMap<>();
+
+                    if (info.getTotalGpuMemoryInMiB() != null) {
+                      gpuInfoAttributes.put("totalGpuMemoryInMiB", info.getTotalGpuMemoryInMiB());
+                    }
+                    if (info.getGpus() != null) {
+                      gpuInfoAttributes.put(
+                          "gpus",
+                          info.getGpus().stream()
+                              .map(
+                                  g -> {
+                                    Map<String, Object> gpuDeviceInfo = new HashMap<>();
+                                    gpuDeviceInfo.put("name", g.getName());
+                                    gpuDeviceInfo.put("manufacturer", g.getManufacturer());
+                                    gpuDeviceInfo.put("count", g.getCount());
+                                    gpuDeviceInfo.put(
+                                        "gpuSizeInMiB", g.getMemoryInfo().getSizeInMiB());
+                                    return gpuDeviceInfo;
+                                  })
+                              .collect(Collectors.toList()));
+                    }
+                    attributes.put("gpuInfo", gpuInfoAttributes);
+                  }
+
+                  if (i.getNetworkInfo() != null) {
+                    attributes.put("ipv6Supported", i.getNetworkInfo().getIpv6Supported());
+                  }
+
+                  return new DefaultCacheData(
+                      Keys.getInstanceTypeKey(i.getInstanceType(), region, account.getName()),
+                      attributes,
+                      Collections.emptyMap());
+                })
+            .collect(Collectors.toList());
+    cacheResults.put(Keys.Namespace.INSTANCE_TYPES.getNs(), instanceTypeData);
+
+    return new DefaultCacheResult(cacheResults);
   }
 
-  Optional<String> getEtagHeader(HttpResponse response) {
-    return Optional.ofNullable(response)
-        .map(r -> r.getFirstHeader("ETag"))
-        .map(Header::getElements)
-        .filter(e -> e.length > 0)
-        .map(e -> e[0].getName());
+  private DefaultCacheData buildCacheDataForMetadataKey(
+      ProviderCache providerCache, final Set<String> instanceTypes) {
+    CacheData metadata =
+        providerCache.get(getAgentType(), "metadata", RelationshipCacheFilter.none());
+    MetadataAttributes metadataAttributes;
+
+    if (metadata != null) {
+      metadataAttributes =
+          objectMapper.convertValue(metadata.getAttributes(), MetadataAttributes.class);
+    } else {
+      MetadataAttributes newMetadataAttributes = new MetadataAttributes();
+      newMetadataAttributes.cachedInstanceTypes = instanceTypes;
+      metadataAttributes = newMetadataAttributes;
+    }
+
+    return new DefaultCacheData(
+        "metadata",
+        objectMapper.convertValue(metadataAttributes, ATTRIBUTES),
+        Collections.emptyMap());
+  }
+
+  private List<InstanceTypeInfo> getInstanceTypes(AmazonEC2 ec2) {
+    final List<InstanceTypeInfo> instanceTypeInfoList = new ArrayList<>();
+    final DescribeInstanceTypesRequest request = new DescribeInstanceTypesRequest();
+    while (true) {
+      final DescribeInstanceTypesResult result = ec2.describeInstanceTypes(request);
+      instanceTypeInfoList.addAll(result.getInstanceTypes());
+      if (result.getNextToken() != null) {
+        request.withNextToken(result.getNextToken());
+      } else {
+        break;
+      }
+    }
+
+    return instanceTypeInfoList;
   }
 
   @Override
   public String getAgentType() {
-    return getClass().getSimpleName() + "/" + region;
+    return String.format("%s/%s/%s", account.getName(), region, getClass().getSimpleName());
   }
 
   @Override
@@ -219,39 +217,12 @@ public class AmazonInstanceTypeCachingAgent implements CachingAgent {
     return AwsInfrastructureProvider.PROVIDER_NAME;
   }
 
-  static class Offering {
-    public String productFamily;
-    public ComputeInstanceAttributes attributes;
-  }
-
-  static class ComputeInstanceAttributes {
-    public String instanceType;
-
-    @Override
-    public String toString() {
-      return instanceType;
-    }
-  }
-
-  static class Offerings {
-    public Map<String, Offering> products;
+  @Override
+  public String getAccountName() {
+    return account.getName();
   }
 
   static class MetadataAttributes {
-    public String etag;
     public Set<String> cachedInstanceTypes;
-  }
-
-  // visible for testing
-  Set<String> fromStream(InputStream is) throws IOException {
-    Offerings offerings = objectMapper.readValue(is, Offerings.class);
-    Set<String> instanceTypes =
-        offerings.products.values().stream()
-            .filter(o -> o.productFamily != null && o.productFamily.startsWith("Compute Instance"))
-            .map(o -> o.attributes.instanceType)
-            .filter(it -> it != null && !it.isEmpty())
-            .collect(Collectors.toSet());
-
-    return instanceTypes;
   }
 }

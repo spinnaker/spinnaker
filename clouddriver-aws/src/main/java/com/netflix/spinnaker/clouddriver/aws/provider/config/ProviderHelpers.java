@@ -73,7 +73,8 @@ public class ProviderHelpers {
       if (!scheduledAccounts.contains(credentials.getName())) {
         if (regions.add(region.getName())) {
           newlyAddedAgents.add(
-              new AmazonInstanceTypeCachingAgent(region.getName(), credentialsRepository));
+              new AmazonInstanceTypeCachingAgent(
+                  region.getName(), amazonClientProvider, credentials, amazonObjectMapper));
         }
         newlyAddedAgents.add(
             new AmazonElasticIpCachingAgent(amazonClientProvider, credentials, region.getName()));

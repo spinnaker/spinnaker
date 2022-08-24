@@ -117,12 +117,14 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
     def namedImageId = Keys.getNamedImageKey(account, amiName)
     def tagsAsAttributes = imageTags.collect { key, value -> [key: key, value: value] }
     def virtualizationType = 'virtualizationType'
+    def architecture = 'architecture'
     def creationDate = 'creationDate'
     def Collection<CacheData> imageCacheData = [new DefaultCacheData(imageId,
                                                                      [name: amiName,
                                                                       tags: tagsAsAttributes,
                                                                       imageId: amiId,
                                                                       virtualizationType: virtualizationType,
+                                                                      architecture: architecture,
                                                                       creationDate: creationDate],
                                                                      [(NAMED_IMAGES.ns): [namedImageId]])]
 
@@ -151,7 +153,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
     results.size() == 1
     with(results[0]) {
       imageName == amiName
-      attributes == [virtualizationType: virtualizationType, creationDate: creationDate]
+      attributes == [virtualizationType: virtualizationType, creationDate: creationDate, architecture: architecture]
       tagsByImageId == [(amiId): imageTags]
       accounts == [account] as Set
       amis == [region: [amiId] as Set]

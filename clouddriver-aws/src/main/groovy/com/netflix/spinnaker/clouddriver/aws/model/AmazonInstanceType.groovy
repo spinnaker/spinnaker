@@ -14,15 +14,54 @@
  * limitations under the License.
  */
 
-
-
 package com.netflix.spinnaker.clouddriver.aws.model
 import com.netflix.spinnaker.clouddriver.model.InstanceType
 import groovy.transform.Canonical
 
 @Canonical
 class AmazonInstanceType implements InstanceType {
-    String account
-    String region
-    String name
+  String account
+  String region
+  String name
+  Integer defaultVCpus
+  Long memoryInGiB
+  String hypervisor
+  AmazonInstanceStorageInfo instanceStorageInfo
+  AmazonInstanceEbsInfo ebsInfo
+  AmazonInstanceGpuInfo gpuInfo
+
+  Boolean instanceStorageSupported
+  Boolean currentGeneration
+  Boolean bareMetal
+  Boolean ipv6Supported
+  Boolean burstablePerformanceSupported
+
+  List<String> supportedArchitectures
+  List<String> supportedUsageClasses
+  List<String> supportedRootDeviceTypes
+  List<String> supportedVirtualizationTypes
+}
+
+class AmazonInstanceStorageInfo {
+  String storageTypes
+  Long totalSizeInGB
+  String nvmeSupport
+}
+
+class AmazonInstanceEbsInfo {
+  String ebsOptimizedSupport
+  String nvmeSupport
+  String encryptionSupport
+}
+
+class AmazonInstanceGpuInfo {
+  Integer totalGpuMemoryInMiB
+  List<AmazonInstanceGpuDeviceInfo> gpus
+}
+
+class AmazonInstanceGpuDeviceInfo {
+  String name
+  String manufacturer
+  Integer count
+  Integer gpuSizeInMiB
 }

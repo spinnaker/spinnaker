@@ -1,183 +1,193 @@
 package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
-import com.netflix.spinnaker.cats.agent.CacheResult
-import com.netflix.spinnaker.cats.cache.CacheData
+import com.amazonaws.services.ec2.AmazonEC2
+import com.amazonaws.services.ec2.model.DescribeInstanceTypesResult
+import com.amazonaws.services.ec2.model.InstanceTypeInfo
+import com.amazonaws.services.ec2.model.ProcessorInfo
+import com.amazonaws.services.ec2.model.VCpuInfo
+import com.amazonaws.services.ec2.model.MemoryInfo
+import com.amazonaws.services.ec2.model.InstanceStorageInfo
+import com.amazonaws.services.ec2.model.EbsInfo
+import com.amazonaws.services.ec2.model.EbsOptimizedInfo
+import com.amazonaws.services.ec2.model.NetworkInfo
+import com.amazonaws.services.ec2.model.GpuInfo
+import com.amazonaws.services.ec2.model.GpuDeviceInfo
+import com.amazonaws.services.ec2.model.GpuDeviceMemoryInfo
+import com.amazonaws.services.ec2.model.DiskInfo
+import com.amazonaws.services.ec2.model.NetworkCardInfo
+
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
-import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.cats.provider.ProviderCache
-import com.netflix.spinnaker.clouddriver.aws.TestCredential
-import com.netflix.spinnaker.credentials.CredentialsRepository
-import org.apache.http.HttpHost
-import org.apache.http.ProtocolVersion
-import org.apache.http.client.HttpClient
-import org.apache.http.client.methods.HttpGet
-import org.apache.http.client.methods.HttpHead
-import org.apache.http.entity.BasicHttpEntity
-import org.apache.http.message.BasicHttpResponse
+import com.netflix.spinnaker.clouddriver.aws.cache.Keys
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Subject
 
 class AmazonInstanceTypeCachingAgentSpec extends Specification {
-
-  static final Set<String> TEST_DATA_SET_INSTANCE_TYPES =
-    ['d2.8xlarge', 'c5.xlarge', 'h1.2xlarge', 'c4.8xlarge', 'c3.large', 'i3.metal']
-
-  static final US_WEST_2_ACCT = TestCredential.named("test",
-    [regions: [
-      [name: 'us-west-2',
-       availabilityZones: ['us-west-2a', 'us-west-2b', 'us-west-2c']
-      ]
-    ]])
-
-  CredentialsRepository repo = Stub(CredentialsRepository) {
-    getAll() >> [US_WEST_2_ACCT]
+  def region = "us-east-1"
+  def objectMapper = new ObjectMapper()
+  def amazonClientProvider = Mock(AmazonClientProvider)
+  def account = "test"
+  def credentials = Stub(NetflixAmazonCredentials) {
+    getName() >> account
   }
 
-  def httpClient = Mock(HttpClient)
-  def providerCache = Mock(ProviderCache)
+  @Shared
+  ProviderCache providerCache = Mock(ProviderCache)
 
-  def "can deserialize response payload"() {
+  @Subject
+  def agent = new AmazonInstanceTypeCachingAgent(region, amazonClientProvider, credentials, objectMapper)
+
+  @Shared
+  AmazonEC2 ec2
+
+  @Shared
+  def it1, it2
+
+  def setup() {
+    ec2 = Mock(AmazonEC2)
+    it1 = getInstanceTypeWithEbs()
+    it2 = getInstanceTypeWithGpu()
+  }
+
+  def "should cache ec2 instance types info and metadata"() {
     when:
-    def instanceTypes = getTestSubject().fromStream(cannedDataSet())
+    def result = agent.loadData(providerCache)
+    def cache = result.cacheResults
 
     then:
-    instanceTypes == TEST_DATA_SET_INSTANCE_TYPES
+    1 * amazonClientProvider.getAmazonEC2(credentials, region) >> ec2
+    1 * ec2.describeInstanceTypes(_) >> new DescribeInstanceTypesResult(instanceTypes: [it1, it2])
+
+    and:
+    cache.size() == 2
+    cache.keySet() == [agent.getAgentType(), Keys.Namespace.INSTANCE_TYPES.getNs()] as Set
+    (cache.get(agent.getAgentType())[0] as DefaultCacheData).getId() == "metadata" && cache.get(agent.getAgentType()) != null
+    cache.get(Keys.Namespace.INSTANCE_TYPES.getNs()) != null
   }
 
-  def "noop if no matching accounts"() {
-    given:
-    def agent = getTestSubject('us-east-1')
-
+  def "should cache expected attributes for instance types"() {
     when:
-    def instanceTypes = agent.loadData(providerCache)
+    def result = agent.loadData(providerCache)
+    def cache = result.cacheResults
 
     then:
-    instanceTypes.cacheResults.isEmpty()
-    instanceTypes.evictions.isEmpty()
-    0 * _
+    1 * amazonClientProvider.getAmazonEC2(credentials, region) >> ec2
+    1 * ec2.describeInstanceTypes(_) >> new DescribeInstanceTypesResult(instanceTypes: [it1, it2])
+
+    and:
+    def instanceTypesInfo = cache.get(Keys.Namespace.INSTANCE_TYPES.getNs())
+    instanceTypesInfo.size() == 2
+    def it1Result = instanceTypesInfo.find{ it.attributes.name == "test.large" }
+    it1Result != null
+    def it2Result = instanceTypesInfo.find{ it.attributes.name == "test.xlarge" }
+    it2Result != null
   }
 
-  def "skip data load if etags match"() {
-    given:
-    def agent = getTestSubject()
-
+  def "should cache a list of instance types under metadata"() {
     when:
-    def instanceTypes = agent.loadData(providerCache)
+    def result = agent.loadData(providerCache)
+    def cache = result.cacheResults
 
     then:
-    1 * providerCache.get(agent.getAgentType(), 'metadata', _ as RelationshipCacheFilter) >>
-      metadata('bacon', expectedTypes)
-    1 * httpClient.execute(_ as HttpHost, _ as HttpHead) >> basicResponse('bacon')
-    instanceTypes.evictions.isEmpty()
-    metadataMatches(agent.agentType, instanceTypes, 'bacon', expectedTypes)
-    instanceTypesMatch(instanceTypes, expectedTypes)
-    0 * _
+    1 * amazonClientProvider.getAmazonEC2(credentials, region) >> ec2
+    1 * ec2.describeInstanceTypes(_) >> new DescribeInstanceTypesResult(instanceTypes: [it1, it2])
 
-    where:
-    expectedTypes = ['m1.megabig', 't2.arnold']
+    and:
+    def metadata = cache.get(agent.getAgentType())?.head()
+    metadata != null && metadata.id == "metadata"
+    def cachedInstanceTypes = metadata.attributes.cachedInstanceTypes as Set
+    cachedInstanceTypes.size() == 2
+    cachedInstanceTypes == ["test.large", "test.xlarge"] as Set
   }
 
-  def "load data if no metadata"() {
-    given:
-    def agent = getTestSubject()
-
-    when:
-    def instanceTypes = agent.loadData(providerCache)
-
-    then:
-    1 * providerCache.get(agent.getAgentType(), 'metadata', _ as RelationshipCacheFilter) >> null
-    1 * httpClient.execute(_ as HttpHost, _ as HttpGet) >> getResponse('baloney')
-
-    instanceTypes.evictions.isEmpty()
-    metadataMatches(agent.agentType, instanceTypes, 'baloney', TEST_DATA_SET_INSTANCE_TYPES)
-    instanceTypesMatch(instanceTypes, TEST_DATA_SET_INSTANCE_TYPES)
-    0 * _
+  InstanceTypeInfo getInstanceTypeWithEbs() {
+    return new InstanceTypeInfo(
+      instanceType: "test.large",
+      currentGeneration: false,
+      supportedUsageClasses: ["on-demand","spot"],
+      supportedRootDeviceTypes: ["ebs","instance-store"],
+      supportedVirtualizationTypes: ["hvm","paravirtual"],
+      bareMetal: false,
+      hypervisor: "xen",
+      processorInfo: new ProcessorInfo(supportedArchitectures: ["i386","x86_64"], sustainedClockSpeedInGhz: 2.8),
+      vCpuInfo: new VCpuInfo(
+        defaultVCpus: 2,
+        defaultCores: 1,
+        defaultThreadsPerCore: 2,
+        validCores: [1],
+        validThreadsPerCore: [1, 2]
+      ),
+      memoryInfo: new MemoryInfo(sizeInMiB: 3840),
+      instanceStorageSupported: true,
+      instanceStorageInfo: new InstanceStorageInfo(
+        totalSizeInGB: 32,
+        disks: [new DiskInfo(sizeInGB: 16, count: 2, type: "ssd")],
+        nvmeSupport: "unsupported"
+      ),
+      ebsInfo: new EbsInfo(
+        ebsOptimizedSupport: "unsupported",
+        encryptionSupport: "supported",
+        nvmeSupport: "unsupported"
+      ),
+      networkInfo: new NetworkInfo(
+        ipv6Supported: true,
+      ),
+      burstablePerformanceSupported: false)
   }
 
-  def "load data if metadata mismatch"() {
-    given:
-    def agent = getTestSubject()
-
-    when:
-    def instanceTypes = agent.loadData(providerCache)
-
-    then:
-    1 * providerCache.get(agent.getAgentType(), 'metadata', _ as RelationshipCacheFilter) >>
-      metadata('mustard', ['t7.shouldntmatter'])
-    1 * httpClient.execute(_ as HttpHost, _ as HttpHead) >> basicResponse('baloney')
-    1 * httpClient.execute(_ as HttpHost, _ as HttpGet) >> getResponse('baloney')
-
-    instanceTypes.evictions.isEmpty()
-    metadataMatches(agent.agentType, instanceTypes, 'baloney', TEST_DATA_SET_INSTANCE_TYPES)
-    instanceTypesMatch(instanceTypes, TEST_DATA_SET_INSTANCE_TYPES)
-    0 * _
+  InstanceTypeInfo getInstanceTypeWithGpu() {
+    return new InstanceTypeInfo(
+      instanceType: "test.xlarge",
+      currentGeneration: true,
+      supportedUsageClasses: ["on-demand","spot"],
+      supportedRootDeviceTypes: ["ebs"],
+      supportedVirtualizationTypes: ["hvm"],
+      bareMetal: false,
+      hypervisor: "xen",
+      processorInfo: new ProcessorInfo(
+        supportedArchitectures: ["x86_64"],
+        sustainedClockSpeedInGhz: 2.7
+      ),
+      vCpuInfo: new VCpuInfo(
+        defaultVCpus: 32,
+        defaultCores: 16,
+        defaultThreadsPerCore: 2,
+        validCores: [1,2,3],
+        validThreadsPerCore: [1,2]
+      ),
+      memoryInfo: new MemoryInfo(sizeInMiB: 249856),
+      instanceStorageSupported: false,
+      ebsInfo: new EbsInfo(
+        ebsOptimizedSupport: "default",
+        encryptionSupport: "supported",
+        ebsOptimizedInfo: new EbsOptimizedInfo(
+          baselineBandwidthInMbps: 7000,
+          baselineThroughputInMBps: 875.0,
+          baselineIops: 40000,
+          maximumBandwidthInMbps: 7000,
+          maximumThroughputInMBps: 875.0,
+          maximumIops: 40000
+        ),
+        nvmeSupport: "unsupported"
+      ),
+      networkInfo: new NetworkInfo(
+        ipv6Supported: true,
+      ),
+      gpuInfo: new GpuInfo(
+        gpus: [
+          new GpuDeviceInfo(
+            name: "V100",
+            manufacturer: "NVIDIA",
+            count: 4,
+            memoryInfo: new GpuDeviceMemoryInfo(sizeInMiB: 16384))
+        ],
+        totalGpuMemoryInMiB: 65536
+      ),
+      burstablePerformanceSupported: false,
+    )
   }
-
-  def "evict metadata if no etag"() {
-    given:
-    def agent = getTestSubject()
-
-    when:
-    def instanceTypes = agent.loadData(providerCache)
-
-    then:
-    1 * providerCache.get(agent.getAgentType(), 'metadata', _ as RelationshipCacheFilter) >> null
-    1 * httpClient.execute(_ as HttpHost, _ as HttpGet) >> getResponse(null)
-
-    instanceTypes.evictions.get(agent.agentType).head() == 'metadata'
-    !instanceTypes.cacheResults.get(agent.agentType)
-    instanceTypesMatch(instanceTypes, TEST_DATA_SET_INSTANCE_TYPES)
-    0 * _
-
-  }
-
-  CacheData metadata(String etag, Collection<String> instanceTypes) {
-    new DefaultCacheData('metadata', [etag: etag, cachedInstanceTypes: instanceTypes], [:])
-
-  }
-
-  boolean metadataMatches(String agentType,
-                          CacheResult result,
-                          String expectedEtag,
-                          Collection<String> expectedTypes) {
-    def meta = result?.cacheResults?.get(agentType)?.head()
-    if (!meta) {
-      return false
-    }
-    meta.id == 'metadata' &&
-    meta.attributes.etag == expectedEtag &&
-    meta.attributes.cachedInstanceTypes as Set == expectedTypes as Set
-  }
-
-  boolean instanceTypesMatch(CacheResult result, Collection<String> expectedTypes) {
-    result?.cacheResults?.instanceTypes?.collect { it.id } as Set ==
-      expectedTypes.collect { "aws:instanceTypes:$it:test:us-west-2".toString() } as Set
-  }
-
-  BasicHttpResponse basicResponse(String etag, int statusCode = 200) {
-    def r = new BasicHttpResponse(
-      new ProtocolVersion('HTTP', 1, 1),
-      statusCode,
-      'because reasons')
-    if (etag) {
-      r.setHeader("ETag", etag)
-    }
-    return r
-  }
-
-  BasicHttpResponse getResponse(String etag) {
-    def r = basicResponse(etag)
-    def e = new BasicHttpEntity()
-    e.setContent(cannedDataSet())
-    r.setEntity(e)
-    return r
-  }
-
-  InputStream cannedDataSet() {
-    getClass().getResourceAsStream("us-west-2.json")
-  }
-
-  AmazonInstanceTypeCachingAgent getTestSubject(String region = 'us-west-2') {
-    return new AmazonInstanceTypeCachingAgent(region, repo, httpClient)
-  }
-
 }
