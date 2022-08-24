@@ -323,7 +323,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
     def account = 'account'
     def region = 'region'
     def imageOneTags = [att1: 'value1', att2: 'value2']
-    def imageTwoTags = [att3: 'value3', att3: 'value3']
+    def imageTwoTags = [att3: 'value3']
     def query = amiName
     // Yes, this is insanely detailed, but it's what the render method expects
     // (and what ImageCachingAgent provides).
