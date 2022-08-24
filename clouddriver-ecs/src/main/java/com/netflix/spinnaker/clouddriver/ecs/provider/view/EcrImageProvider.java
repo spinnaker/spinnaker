@@ -44,7 +44,7 @@ public class EcrImageProvider implements ImageRepositoryProvider {
   private static final Pattern REPOSITORY_NAME_PATTERN =
       Pattern.compile(
           "\\/(((?:[a-z0-9]+(?:[._-][a-z0-9]+)*\\/)*[a-z0-9]+(?:[._-][a-z0-9]+)*){2,})");
-  private static final String IDENTIFIER_PATTERN = "(:([a-z0-9._-]+)|@(sha256:[0-9a-f]{64}))";
+  private static final String IDENTIFIER_PATTERN = "(:([a-zA-Z0-9._-]+)|@(sha256:[0-9a-f]{64}))";
   private static final Pattern REGION_PATTERN = Pattern.compile("(\\w+-\\w+-\\d+)");
   static final Pattern ECR_REPOSITORY_URI_PATTERN =
       Pattern.compile(
