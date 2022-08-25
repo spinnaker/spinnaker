@@ -20,9 +20,11 @@ import com.netflix.spinnaker.orca.api.preconfigured.jobs.PreconfiguredJobStagePa
 import com.netflix.spinnaker.orca.clouddriver.service.JobService
 import com.netflix.spinnaker.orca.clouddriver.config.KubernetesPreconfiguredJobProperties
 import com.netflix.spinnaker.orca.clouddriver.tasks.job.DestroyJobTask
+import io.kubernetes.client.custom.Quantity
 import io.kubernetes.client.openapi.models.V1Container
 import io.kubernetes.client.openapi.models.V1EnvVar
 import io.kubernetes.client.openapi.models.V1Job
+import io.kubernetes.client.openapi.models.V1ResourceRequirements
 import spock.lang.Specification
 
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
@@ -266,5 +268,45 @@ class PreconfiguredJobStageSpec extends Specification {
     then:
     def ex = thrown(IllegalArgumentException)
     assert ex.getMessage().startsWith("no property undefined on")
+  }
+
+  def "should serialize kubernetes job manifest correctly"() {
+    given:
+    def stage = stage {
+      type = "test"
+      context = [account: "test"]
+    }
+
+    def requests = new HashMap<String, Quantity>()
+    requests.put("cpu", Quantity.fromString("100m"))
+
+    def limits = new HashMap<String, Quantity>()
+    limits.put("cpu", Quantity.fromString("100m"))
+
+    def resourceRequirements = new V1ResourceRequirements(requests: requests, limits: limits)
+
+    def property = new KubernetesPreconfiguredJobProperties(
+        enabled: true,
+        label: "test",
+        type: "test",
+        cloudProvider: "kubernetes",
+        parameters: [],
+        manifest: new V1Job(spec: [template: [spec: [containers: [new V1Container(resources: resourceRequirements)]]]])
+    )
+
+    def jobService = Mock(JobService) {
+      1 * getPreconfiguredStages() >> {
+        return [property]
+      }
+    }
+
+    when:
+    PreconfiguredJobStage preconfiguredJobStage = new PreconfiguredJobStage(Mock(DestroyJobTask), [], Optional.of(jobService))
+    preconfiguredJobStage.buildTaskGraph(stage)
+
+    then:
+    // verify that stage manifest has the correct requests and limits
+    stage.getContext().get("manifest").spec.template.spec.containers[0].resources.requests.cpu == "100m"
+    stage.getContext().get("manifest").spec.template.spec.containers[0].resources.limits.cpu == "100m"
   }
 }

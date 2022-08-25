@@ -17,30 +17,31 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.job
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.preconfigured.jobs.PreconfiguredJobStageProperties
 import com.netflix.spinnaker.orca.clouddriver.exception.PreconfiguredJobNotFoundException
 import com.netflix.spinnaker.orca.clouddriver.service.JobService
 import com.netflix.spinnaker.orca.clouddriver.tasks.job.DestroyJobTask
-import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
+import io.kubernetes.client.openapi.JSON
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import javax.annotation.Nonnull
-
-import java.util.List
 
 @Component
 class PreconfiguredJobStage extends RunJobStage {
 
   private JobService jobService
   private ObjectMapper objectMapper
+  private JSON json
 
   @Autowired
   PreconfiguredJobStage(DestroyJobTask destroyJobTask, List<RunJobStageDecorator> runJobStageDecorators, Optional<JobService> optionalJobService) {
     super(destroyJobTask, runJobStageDecorators)
     this.jobService = optionalJobService.orElse(null)
     this.objectMapper = new ObjectMapper()
+    this.json = new JSON()
   }
 
   @Override
@@ -60,11 +61,17 @@ class PreconfiguredJobStage extends RunJobStage {
     PreconfiguredJobStageProperties preconfiguredJob,
     String application
   ) {
+    // `manifest` field defined in `KubernetesPreconfiguredJobProperties` class has
+    // `io.kubernetes.client.openapi.models.V1Job` type. This type is defined in Kubernetes
+    // Open API models package. This package contains special JSON serializers e.g
+    // `io.kubernetes.client.custom.Quantity.QuantityAdapter`. They must be used to get correct JSON format.
+    String preconfiguredJobJson = json.getGson().toJson(preconfiguredJob)
+
     // without converting this object, assignments to `context[it]` will result in
     // references being assigned instead of values which causes the overrides in context
     // to override the underlying job. this avoids that problem by giving us a fresh "copy"
     // to work wit
-    Map<String, Object> preconfiguredMap = objectMapper.convertValue(preconfiguredJob, Map.class)
+    Map<String, Object> preconfiguredMap = objectMapper.readValue(preconfiguredJobJson, Map.class)
 
     // if we don't specify an application for this preconfigured job, assign the current one.
     if (preconfiguredMap["cluster"] != null && preconfiguredMap["cluster"].application == null) {
