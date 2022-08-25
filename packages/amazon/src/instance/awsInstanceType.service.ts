@@ -21,6 +21,54 @@ export interface IAmazonInstanceTypeCategory extends IInstanceTypeCategory {
   descriptionListOverride?: string[];
 }
 
+export interface IAmazonInstanceType extends IInstanceType {
+  defaultVCpus: number;
+  memoryInGiB: number;
+  hypervisor: string;
+  instanceStorageInfo?: IAmazonInstanceTypeStorageInfo;
+  ebsInfo?: IAmazonInstanceTypeEbsInfo;
+  gpuInfo?: IAmazonInstanceGpuInfo;
+
+  instanceStorageSupported: boolean;
+  currentGeneration: boolean;
+  bareMetal: boolean;
+  ipv6Supported?: boolean;
+  burstablePerformanceSupported: boolean;
+
+  supportedArchitectures: string[];
+  supportedUsageClasses: string[];
+  supportedRootDeviceTypes: string[];
+  supportedVirtualizationTypes: string[];
+}
+
+export interface IAmazonInstanceTypeStorageInfo {
+  storageTypes: string;
+  totalSizeInGB?: number;
+  nvmeSupport?: string;
+}
+
+export interface IAmazonInstanceTypeEbsInfo {
+  ebsOptimizedSupport: string;
+  nvmeSupport?: string;
+  encryptionSupport: string;
+}
+
+export interface IAmazonInstanceGpuInfo {
+  totalGpuMemoryInMiB: number;
+  gpus: IAmazonInstanceGpuDeviceInfo[];
+}
+
+export interface IAmazonInstanceGpuDeviceInfo {
+  name: string;
+  manufacturer: string;
+  count: number;
+  gpuSizeInMiB: number;
+}
+
+export interface IAmazonInstanceTypesByRegion extends IInstanceTypesByRegion {
+  [region: string]: IAmazonInstanceType[];
+}
+
 export const AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE = 'spinnaker.amazon.instanceType.service';
 export const name = AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE; // for backwards compatibility
 
@@ -31,16 +79,14 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
       return $q.when(categories);
     }
 
-    const getAllTypesByRegion = function getAllTypesByRegion(): PromiseLike<IInstanceTypesByRegion> {
+    const getAllTypesByRegion = function getAllTypesByRegion(): PromiseLike<IAmazonInstanceTypesByRegion> {
       return REST('/instanceTypes')
         .get()
         .then(function (types) {
           return _.chain(types)
-            .map(function (type: IInstanceType) {
+            .map(function (type: IAmazonInstanceType) {
               return {
-                region: type.region,
-                account: type.account,
-                name: type.name,
+                ...type,
                 key: [type.region, type.account, type.name].join(':'),
               };
             })
@@ -95,47 +141,57 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
       return 0;
     }
 
-    function getAvailableTypesForRegions(availableInstanceTypes: IInstanceTypesByRegion, selectedRegions: string[]) {
+    function getAvailableTypesForRegions(
+      availableInstanceTypes: IAmazonInstanceTypesByRegion,
+      selectedRegions: string[],
+    ): IAmazonInstanceType[] {
       selectedRegions = selectedRegions || [];
-      let availableTypes: string[] = [];
+      let availableTypes: IAmazonInstanceType[] = [];
 
       // prime the list of available types
       if (selectedRegions && selectedRegions.length) {
-        availableTypes = _.map(availableInstanceTypes[selectedRegions[0]], 'name');
+        availableTypes = availableInstanceTypes[selectedRegions[0]] || [];
       }
 
       // this will perform an unnecessary intersection with the first region, which is fine
       selectedRegions.forEach(function (selectedRegion) {
         if (availableInstanceTypes[selectedRegion]) {
-          availableTypes = _.intersection(availableTypes, _.map(availableInstanceTypes[selectedRegion], 'name'));
+          availableTypes = _.intersectionBy(availableTypes, availableInstanceTypes[selectedRegion], 'name');
         }
       });
 
-      return availableTypes.sort(sortTypesByFamilyAndSize);
+      return availableTypes?.sort((a, b) => sortTypesByFamilyAndSize(a.name, b.name));
     }
 
     const families: { [key: string]: string[] } = {
-      paravirtual: ['c1', 'c3', 'hi1', 'hs1', 'm1', 'm2', 'm3', 't1'],
-      hvm: ['c3', 'c4', 'd2', 'i2', 'g2', 'm3', 'm4', 'm5', 'p2', 'r3', 'r4', 'r5', 't2', 'x1'],
-      vpcOnly: ['c4', 'm4', 'm5', 'r4', 'r5', 't2', 'x1'],
+      ec2ClassicSupported: ['m1', 'm3', 't1', 'c1', 'c3', 'cc2', 'cr1', 'm2', 'r3', 'd2', 'hs1', 'i2', 'g2'], // https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-classic-platform.html#ec2-classic-instance-types
       ebsOptimized: ['c4', 'd2', 'f1', 'g3', 'i3', 'm4', 'm5', 'p2', 'r4', 'r5', 'x1'],
       burstablePerf: ['t2', 't3', 't3a', 't4g'],
     };
 
-    function filterInstanceTypes(instanceTypes: string[], virtualizationType: string, vpcOnly: boolean): string[] {
-      return instanceTypes.filter((instanceType: string) => {
-        if (virtualizationType === '*') {
+    function filterInstanceTypes(
+      instanceTypes: IAmazonInstanceType[],
+      virtualizationType: string,
+      vpcConfigured: boolean,
+      architecture: string,
+    ): IAmazonInstanceType[] {
+      return _.filter(instanceTypes, function (i) {
+        if (virtualizationType === '*' && architecture === '*') {
           // show all instance types
           return true;
         }
-        const [family] = instanceType.split('.');
-        if (!vpcOnly && families.vpcOnly.includes(family)) {
+
+        if (!vpcConfigured && !families.ec2ClassicSupported.includes(i.name.split('.')[0])) {
           return false;
         }
-        if (!families.paravirtual.includes(family) && virtualizationType === 'hvm') {
-          return true;
+        if (virtualizationType && !i.supportedVirtualizationTypes.includes(virtualizationType)) {
+          return false;
         }
-        return families[virtualizationType].includes(family);
+        if (architecture && !i.supportedArchitectures.includes(architecture)) {
+          return false;
+        }
+
+        return true;
       });
     }
 

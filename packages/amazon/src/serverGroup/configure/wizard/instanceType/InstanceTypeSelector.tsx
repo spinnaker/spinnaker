@@ -71,7 +71,7 @@ export function InstanceTypeSelector(props: IInstanceTypeSelectorProps) {
       <div className="container-fluid form-horizontal" style={{ padding: '0 15px' }}>
         <div>
           <p>
-            To configure a single instance type, use
+            Switch to
             <a className="clickable" onClick={() => handleModeChange(true)}>
               <span> Simple Mode</span>
             </a>
@@ -94,7 +94,7 @@ export function InstanceTypeSelector(props: IInstanceTypeSelectorProps) {
   return (
     <div className="container-fluid form-horizontal" style={{ padding: '0 15px' }}>
       <div>
-        <span>To configure mixed server groups with multiple instance types,</span>
+        <span>To configure mixed server groups and/or multiple instance types,</span>
         {!isLaunchTemplatesEnabled && (
           <span>
             <a

@@ -12,20 +12,132 @@ describe('Service: InstanceType', function () {
       this.awsInstanceTypeService = _awsInstanceTypeService_;
 
       this.allTypes = [
-        { account: 'test', region: 'us-west-2', name: 'm1.small', availabilityZone: 'us-west-2a' },
-        { account: 'test', region: 'us-west-2', name: 'm2.xlarge', availabilityZone: 'us-west-2b' },
-        { account: 'test', region: 'eu-west-1', name: 'hs1.8xlarge', availabilityZone: 'eu-west-1c' },
-        { account: 'test', region: 'eu-west-1', name: 'm2.xlarge', availabilityZone: 'eu-west-1c' },
-        { account: 'test', region: 'us-east-1', name: 'm4.2xlarge', availabilityZone: 'us-east-1c' },
-        { account: 'test', region: 'us-east-1', name: 't2.nano', availabilityZone: 'us-east-1c' },
-        { account: 'test', region: 'us-east-1', name: 't2.micro', availabilityZone: 'us-east-1c' },
-        { account: 'test', region: 'us-east-1', name: 'm4.xlarge', availabilityZone: 'us-east-1c' },
-        { account: 'test', region: 'us-east-1', name: 'm4.4xlarge', availabilityZone: 'us-east-1c' },
-        { account: 'test', region: 'us-east-1', name: 't2.medium', availabilityZone: 'us-east-1c' },
-        { account: 'test', region: 'us-east-1', name: 'm4.large', availabilityZone: 'us-east-1c' },
-        { account: 'test', region: 'us-east-1', name: 'm4.16xlarge', availabilityZone: 'us-east-1c' },
-        { account: 'test', region: 'us-east-1', name: 'm4.10xlarge', availabilityZone: 'us-east-1c' },
-        { account: 'test', region: 'us-east-1', name: 't2.loltiny', availabilityZone: 'us-east-1c' },
+        {
+          account: 'test',
+          region: 'us-west-2',
+          name: 'm1.small',
+          defaultVCpus: 1,
+          memoryInGiB: 1,
+          supportedArchitectures: ['i386', 'x86_64'],
+          supportedVirtualizationTypes: ['hvm', 'paravirtual'],
+        },
+        {
+          account: 'test',
+          region: 'us-west-2',
+          name: 'm2.xlarge',
+          defaultVCpus: 2,
+          memoryInGiB: 17,
+          supportedArchitectures: ['x86_64'],
+          supportedVirtualizationTypes: ['hvm', 'paravirtual'],
+        },
+        {
+          account: 'test',
+          region: 'eu-west-1',
+          name: 'hs1.8xlarge',
+          defaultVCpus: 32,
+          memoryInGiB: 256,
+          supportedArchitectures: ['i386', 'x86_64'],
+          supportedVirtualizationTypes: ['hvm', 'paravirtual'],
+        },
+        {
+          account: 'test',
+          region: 'eu-west-1',
+          name: 'm2.xlarge',
+          defaultVCpus: 2,
+          memoryInGiB: 17,
+          supportedArchitectures: ['x86_64'],
+          supportedVirtualizationTypes: ['hvm', 'paravirtual'],
+        },
+        {
+          account: 'test',
+          region: 'us-east-1',
+          name: 'm4.2xlarge',
+          defaultVCpus: 8,
+          memoryInGiB: 32,
+          supportedArchitectures: ['x86_64'],
+          supportedVirtualizationTypes: ['hvm'],
+        },
+        {
+          account: 'test',
+          region: 'us-east-1',
+          name: 't2.nano',
+          defaultVCpus: 1,
+          memoryInGiB: 0,
+          supportedArchitectures: ['i386', 'x86_64'],
+          supportedVirtualizationTypes: ['hvm'],
+        },
+        {
+          account: 'test',
+          region: 'us-east-1',
+          name: 't2.micro',
+          defaultVCpus: 1,
+          memoryInGiB: 1,
+          supportedArchitectures: ['i386', 'x86_64'],
+          supportedVirtualizationTypes: ['hvm'],
+        },
+        {
+          account: 'test',
+          region: 'us-east-1',
+          name: 'm4.xlarge',
+          defaultVCpus: 4,
+          memoryInGiB: 16,
+          supportedArchitectures: ['x86_64'],
+          supportedVirtualizationTypes: ['hvm'],
+        },
+        {
+          account: 'test',
+          region: 'us-east-1',
+          name: 'm4.4xlarge',
+          defaultVCpus: 16,
+          memoryInGiB: 64,
+          supportedArchitectures: ['x86_64'],
+          supportedVirtualizationTypes: ['hvm'],
+        },
+        {
+          account: 'test',
+          region: 'us-east-1',
+          name: 't2.medium',
+          defaultVCpus: 2,
+          memoryInGiB: 4,
+          supportedArchitectures: ['i386', 'x86_64'],
+          supportedVirtualizationTypes: ['hvm'],
+        },
+        {
+          account: 'test',
+          region: 'us-east-1',
+          name: 'm4.large',
+          defaultVCpus: 2,
+          memoryInGiB: 8,
+          supportedArchitectures: ['x86_64'],
+          supportedVirtualizationTypes: ['hvm'],
+        },
+        {
+          account: 'test',
+          region: 'us-east-1',
+          name: 'm4.16xlarge',
+          defaultVCpus: 64,
+          memoryInGiB: 256,
+          supportedArchitectures: ['x86_64'],
+          supportedVirtualizationTypes: ['hvm'],
+        },
+        {
+          account: 'test',
+          region: 'us-east-1',
+          name: 'm4.10xlarge',
+          defaultVCpus: 40,
+          memoryInGiB: 160,
+          supportedArchitectures: ['x86_64'],
+          supportedVirtualizationTypes: ['hvm'],
+        },
+        {
+          account: 'test',
+          region: 'us-east-1',
+          name: 't2.loltiny',
+          defaultVCpus: 1,
+          memoryInGiB: 0,
+          supportedArchitectures: ['i386', 'x86_64'],
+          supportedVirtualizationTypes: ['hvm'],
+        },
       ];
     }),
   );
@@ -59,7 +171,28 @@ describe('Service: InstanceType', function () {
       });
 
       await http.flush();
-      expect(results).toEqual(['m1.small', 'm2.xlarge']);
+      expect(results).toEqual([
+        {
+          account: 'test',
+          region: 'us-west-2',
+          name: 'm1.small',
+          defaultVCpus: 1,
+          memoryInGiB: 1,
+          supportedArchitectures: ['i386', 'x86_64'],
+          supportedVirtualizationTypes: ['hvm', 'paravirtual'],
+          key: 'us-west-2:test:m1.small',
+        },
+        {
+          account: 'test',
+          region: 'us-west-2',
+          name: 'm2.xlarge',
+          defaultVCpus: 2,
+          memoryInGiB: 17,
+          supportedArchitectures: ['x86_64'],
+          supportedVirtualizationTypes: ['hvm', 'paravirtual'],
+          key: 'us-west-2:test:m2.xlarge',
+        },
+      ]);
     });
 
     it('returns empty list for region with no instance types', async function () {
@@ -89,22 +222,7 @@ describe('Service: InstanceType', function () {
       });
 
       await http.flush();
-      expect(results).toEqual(['m2.xlarge']);
-    });
-
-    it('filters instance types by VPC and virtualization type', function () {
-      const types = ['c4.a', 'c3.a', 'c4.a', 'c1.a'];
-      const service = this.awsInstanceTypeService;
-      expect(service.filterInstanceTypes(types, 'hvm', true)).toEqual(['c4.a', 'c3.a', 'c4.a']);
-      expect(service.filterInstanceTypes(types, 'hvm', false)).toEqual(['c3.a']);
-      expect(service.filterInstanceTypes(types, 'paravirtual', true)).toEqual(['c3.a', 'c1.a']);
-      expect(service.filterInstanceTypes(types, 'paravirtual', false)).toEqual(['c3.a', 'c1.a']);
-    });
-
-    it('assumes HVM is supported for unknown families', function () {
-      const types = ['c400.a', 'c300.a', 'c3.a', 'c1.a'];
-      const service = this.awsInstanceTypeService;
-      expect(service.filterInstanceTypes(types, 'hvm', true)).toEqual(['c400.a', 'c300.a', 'c3.a']);
+      expect(map(results, 'name')).toEqual(['m2.xlarge']);
     });
 
     it('sorts instance types by family then class size', async function () {
@@ -119,7 +237,7 @@ describe('Service: InstanceType', function () {
       });
 
       await http.flush();
-      expect(results).toEqual([
+      expect(map(results, 'name')).toEqual([
         'm4.large',
         'm4.xlarge',
         'm4.2xlarge',
@@ -130,6 +248,81 @@ describe('Service: InstanceType', function () {
         't2.micro',
         't2.medium',
         't2.loltiny',
+      ]);
+    });
+  });
+
+  describe('filterInstanceTypes', function () {
+    const instanceTypes = [
+      {
+        account: 'test',
+        region: 'us-west-2',
+        name: 'm1.small',
+        defaultVCpus: 1,
+        memoryInGiB: 1,
+        supportedArchitectures: ['i386', 'x86_64'],
+        supportedVirtualizationTypes: ['hvm', 'paravirtual'],
+      },
+      {
+        account: 'test',
+        region: 'eu-west-1',
+        name: 'hs1.8xlarge',
+        defaultVCpus: 32,
+        memoryInGiB: 256,
+        supportedArchitectures: ['i386', 'x86_64'],
+        supportedVirtualizationTypes: ['hvm', 'paravirtual'],
+      },
+      {
+        account: 'test',
+        region: 'eu-west-1',
+        name: 'm2.xlarge',
+        defaultVCpus: 2,
+        memoryInGiB: 17,
+        supportedArchitectures: ['x86_64'],
+        supportedVirtualizationTypes: ['hvm', 'paravirtual'],
+      },
+      {
+        account: 'test',
+        region: 'us-east-1',
+        name: 'm4.2xlarge',
+        defaultVCpus: 8,
+        memoryInGiB: 32,
+        supportedArchitectures: ['x86_64'],
+        supportedVirtualizationTypes: ['hvm'],
+      },
+      {
+        account: 'test',
+        region: 'us-east-1',
+        name: 't2.nano',
+        defaultVCpus: 1,
+        memoryInGiB: 0,
+        supportedArchitectures: ['i386', 'x86_64'],
+        supportedVirtualizationTypes: ['hvm'],
+      },
+    ];
+
+    it('filters instance types by VPC, virtualization type and architecture', function () {
+      const service = this.awsInstanceTypeService;
+      expect(map(service.filterInstanceTypes(instanceTypes, 'hvm', true, 'x86_64'), 'name')).toEqual([
+        'm1.small',
+        'hs1.8xlarge',
+        'm2.xlarge',
+        'm4.2xlarge',
+        't2.nano',
+      ]);
+      expect(map(service.filterInstanceTypes(instanceTypes, 'hvm', false, 'x86_64'), 'name')).toEqual([
+        'm1.small',
+        'hs1.8xlarge',
+        'm2.xlarge',
+      ]);
+      expect(map(service.filterInstanceTypes(instanceTypes, 'hvm', true, 'i386'), 'name')).toEqual([
+        'm1.small',
+        'hs1.8xlarge',
+        't2.nano',
+      ]);
+      expect(map(service.filterInstanceTypes(instanceTypes, 'paravirtual', true, 'i386'), 'name')).toEqual([
+        'm1.small',
+        'hs1.8xlarge',
       ]);
     });
   });

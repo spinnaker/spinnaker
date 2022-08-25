@@ -89,7 +89,7 @@ export function AdvancedModeSelector(props: IAdvancedModeSelectorProps) {
         unlimitedCpuCreditsInCmd={command.unlimitedCpuCredits}
         profileDetails={instanceTypeDetails.find((p) => p.type === instanceProfile)}
         availableInstanceTypesList={
-          (command.backingData && command.backingData.filtered && command.backingData.filtered.instanceTypes) || []
+          (command.backingData && command.backingData.filtered && command.backingData.filtered.instanceTypesInfo) || []
         }
         handleInstanceTypesChange={handleInstanceTypesChange}
         setUnlimitedCpuCredits={setUnlimitedCpuCredits}

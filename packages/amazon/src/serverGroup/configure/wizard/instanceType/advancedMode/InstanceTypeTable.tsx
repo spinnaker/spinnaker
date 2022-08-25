@@ -8,6 +8,7 @@ import { Header, Heading } from './InstanceTypeTableParts';
 import { Footer } from './InstanceTypeTableParts';
 import { AWSProviderSettings } from '../../../../../aws.settings';
 import type { IAmazonInstanceTypeCategory } from '../../../../../instance/awsInstanceType.service';
+import type { IAmazonInstanceType } from '../../../../../instance/awsInstanceType.service';
 import type { IAmazonInstanceTypeOverride } from '../../../serverGroupConfiguration.service';
 
 import './advancedMode.less';
@@ -17,7 +18,7 @@ export interface IInstanceTypeTableProps {
   selectedInstanceTypesMap: Map<string, IAmazonInstanceTypeOverride>;
   unlimitedCpuCreditsInCmd: boolean;
   profileDetails: IAmazonInstanceTypeCategory;
-  availableInstanceTypesList: string[];
+  availableInstanceTypesList: IAmazonInstanceType[];
   handleInstanceTypesChange: (instanceTypes: IAmazonInstanceTypeOverride[]) => void;
   setUnlimitedCpuCredits: (unlimitedCpuCredits: boolean | undefined) => void;
 }
@@ -120,6 +121,9 @@ export function InstanceTypeTable(props: IInstanceTypeTableProps) {
           <InstanceTypeTableBody
             isCustom={isCustom}
             selectedInstanceTypesMap={selectedInstanceTypesMap}
+            selectedInstanceTypesInfo={props.availableInstanceTypesList.filter((it) =>
+              selectedInstanceTypeNames.includes(it.name),
+            )}
             addOrUpdateInstanceType={addOrUpdateInstanceType}
             removeInstanceType={removeInstanceType}
             handleSortEnd={handleSortEnd}
@@ -127,7 +131,7 @@ export function InstanceTypeTable(props: IInstanceTypeTableProps) {
           <Footer
             isCustom={isCustom}
             availableInstanceTypesList={props.availableInstanceTypesList.filter(
-              (it) => !selectedInstanceTypeNames.includes(it),
+              (it) => !selectedInstanceTypeNames.includes(it.name),
             )}
             addOrUpdateInstanceType={addOrUpdateInstanceType}
           />

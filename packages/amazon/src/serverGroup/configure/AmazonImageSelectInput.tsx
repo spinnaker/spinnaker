@@ -59,7 +59,7 @@ export class AmazonImageSelectInput extends React.Component<IAmazonImageSelector
 
     // assume that the specific image exists in the selected region
     const amis = { [region]: [imageId] };
-    const attributes = { virtualizationType: '*', creationDate: new Date().toISOString() };
+    const attributes = { virtualizationType: '*', architecture: '*', creationDate: new Date().toISOString() };
 
     return { imageName, amis, attributes } as IAmazonImage;
   }

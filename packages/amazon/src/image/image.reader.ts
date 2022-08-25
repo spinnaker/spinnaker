@@ -8,6 +8,7 @@ export interface IAmazonImage {
     [region: string]: string[];
   };
   attributes: {
+    architecture: string;
     creationDate: string;
     virtualizationType: string;
   };

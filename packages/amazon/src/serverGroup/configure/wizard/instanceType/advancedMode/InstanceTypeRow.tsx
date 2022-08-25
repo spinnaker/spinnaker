@@ -1,14 +1,19 @@
 import React, { useState } from 'react';
 import { Checkbox } from 'react-bootstrap';
 import { SortableHandle } from 'react-sortable-hoc';
-import { TextInput, Tooltip } from '@spinnaker/core';
+
+import { HoverablePopover, TextInput, Tooltip } from '@spinnaker/core';
+
+import { AmazonInstanceTypeInfoRenderer } from './AmazonInstanceTypeInfoRenderer';
 import type { IAmazonPreferredInstanceType } from '../../../../../instance/awsInstanceType.service';
+import type { IAmazonInstanceType } from '../../../../../instance/awsInstanceType.service';
 import { CostFactor } from '../../../../../instance/details/CostFactor';
 import type { IAmazonInstanceTypeOverride } from '../../../serverGroupConfiguration.service';
 
 export interface IRowProps {
   isCustom: boolean;
   selectedType?: IAmazonInstanceTypeOverride;
+  selectedTypeInfo?: IAmazonInstanceType;
   instanceTypeDetails?: IAmazonPreferredInstanceType;
   removeInstanceType?: (typeToRemove: string) => void;
   addOrUpdateInstanceType: (instanceType: string, weight: string) => void;
@@ -38,12 +43,20 @@ export function InstanceTypeRow(props: IRowProps) {
 
   let row;
   if (props.isCustom) {
+    const instanceTypeInfo = <AmazonInstanceTypeInfoRenderer instanceType={props.selectedTypeInfo} />;
     row = (
       <tr key={instanceType} className={'sortable clickable'}>
         <td>
           <DragHandle />
         </td>
-        <td>{instanceType}</td>
+        <td>
+          {`${instanceType} `}
+          <HoverablePopover placement={'right'} template={instanceTypeInfo} className={'custom-profile'}>
+            <span className="clickable help-field">
+              <i className="small glyphicon glyphicon-info-sign" />
+            </span>
+          </HoverablePopover>
+        </td>
         <td title={'Enter optional weight (allowed values: 1 to 999).'}>
           <TextInput
             className={'form-control input input-sm'}

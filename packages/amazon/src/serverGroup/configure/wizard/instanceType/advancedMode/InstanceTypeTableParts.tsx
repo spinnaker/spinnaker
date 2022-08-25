@@ -1,8 +1,11 @@
 import React from 'react';
-import type { Option } from 'react-select';
-import Select from 'react-select';
 
 import { HelpField } from '@spinnaker/core';
+
+import { InstanceTypeSelect } from './InstanceTypeSelect';
+import type { IAmazonInstanceType } from '../../../../../instance/awsInstanceType.service';
+
+import './advancedMode.less';
 
 export function Heading(props: { isCustom: boolean; profileLabel?: string; profileDescriptionArr?: string[] }) {
   let description;
@@ -28,6 +31,16 @@ export function Heading(props: { isCustom: boolean; profileLabel?: string; profi
       <h4>Instance Types</h4>
       <div className={'description'}>
         {description}
+        <p>
+          Learn about AWS recommended best practices in{' '}
+          <a
+            target="_blank"
+            href="https://spinnaker.io/docs/setup/other_config/server-group-launch-settings/aws-ec2/launch-templates/#create-a-server-group-with-aws-recommended-best-practices-for-ec2-spot"
+          >
+            examples and docs
+          </a>
+          .
+        </p>
         <i>
           <b>Note:</b>
           <ul>
@@ -94,7 +107,7 @@ export function Header(props: { isCustom: boolean; showCpuCredits?: boolean }) {
 
 export function Footer(props: {
   isCustom: boolean;
-  availableInstanceTypesList: string[];
+  availableInstanceTypesList: IAmazonInstanceType[];
   addOrUpdateInstanceType: (type: string, weight: string) => void;
 }) {
   return props.isCustom ? (
@@ -114,24 +127,3 @@ export function Footer(props: {
     </tfoot>
   ) : null;
 }
-
-const InstanceTypeSelect = (props: {
-  availableInstanceTypesList: string[];
-  addOrUpdateInstanceType: (type: string, weight: string) => void;
-}): JSX.Element => {
-  const instanceTypeListOptions = props.availableInstanceTypesList.map((instanceType) => {
-    return { label: instanceType, value: instanceType };
-  });
-
-  return (
-    <Select
-      clearable={false}
-      multi={false}
-      placeholder={'Select an instance type to add...'}
-      removeSelected={true}
-      searchable={true}
-      options={instanceTypeListOptions}
-      onChange={(o: Option<string>) => props.addOrUpdateInstanceType(o.value, undefined)}
-    />
-  );
-};

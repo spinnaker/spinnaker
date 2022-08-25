@@ -82,9 +82,12 @@ export class ServerGroupBasicSettings
     this.setState({ selectedImage: image });
 
     const virtualizationType = image && image.attributes.virtualizationType;
+    const amiArchitecture = image && image.attributes.architecture;
     const imageName = image && image.imageName;
     values.virtualizationType = virtualizationType;
+    values.amiArchitecture = amiArchitecture;
     values.amiName = imageName;
+    setFieldValue('amiArchitecture', amiArchitecture);
     setFieldValue('virtualizationType', virtualizationType);
     setFieldValue('amiName', imageName);
     values.imageChanged(values);

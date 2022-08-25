@@ -6,13 +6,17 @@ import { SortableContainer, SortableElement } from 'react-sortable-hoc';
 import type { IInstanceTypeFamily } from '@spinnaker/core';
 
 import { InstanceTypeRow } from './InstanceTypeRow';
-import type { IAmazonPreferredInstanceType } from '../../../../../instance/awsInstanceType.service';
+import type {
+  IAmazonInstanceType,
+  IAmazonPreferredInstanceType,
+} from '../../../../../instance/awsInstanceType.service';
 import type { IAmazonInstanceTypeOverride } from '../../../serverGroupConfiguration.service';
 
 export function InstanceTypeTableBody(props: {
   isCustom: boolean;
   profileFamiliesDetails?: IInstanceTypeFamily[];
   selectedInstanceTypesMap: Map<string, IAmazonInstanceTypeOverride>;
+  selectedInstanceTypesInfo?: IAmazonInstanceType[];
   addOrUpdateInstanceType: (instanceType: string, weight: string) => void;
   removeInstanceType: (instanceType: string) => void;
   handleSortEnd: (sortEnd: SortEnd) => void;
@@ -21,6 +25,7 @@ export function InstanceTypeTableBody(props: {
     <TableRows
       isCustom={props.isCustom}
       selectedInstanceTypesMap={props.selectedInstanceTypesMap}
+      selectedInstanceTypesInfo={props.selectedInstanceTypesInfo}
       removeInstanceType={props.removeInstanceType}
       addOrUpdateInstanceType={props.addOrUpdateInstanceType}
       instanceTypeDetails={
@@ -43,6 +48,7 @@ const TableRows = SortableContainer(
     isCustom: boolean;
     instanceTypeDetails?: Map<string, IAmazonPreferredInstanceType>;
     selectedInstanceTypesMap: Map<string, IAmazonInstanceTypeOverride>;
+    selectedInstanceTypesInfo?: IAmazonInstanceType[];
     removeInstanceType: (typeToRemove: string) => void;
     addOrUpdateInstanceType: (instanceType: string, weight: string) => void;
   }) => {
@@ -60,6 +66,7 @@ const TableRows = SortableContainer(
               index={index}
               isCustom={true}
               selectedType={selectedType}
+              selectedTypeInfo={props.selectedInstanceTypesInfo.find((it) => it.name === selectedType.instanceType)}
               removeInstanceType={props.removeInstanceType}
               addOrUpdateInstanceType={props.addOrUpdateInstanceType}
             />
@@ -119,6 +126,7 @@ const SortableRow = SortableElement(
   (props: {
     isCustom: boolean;
     selectedType: IAmazonInstanceTypeOverride;
+    selectedTypeInfo?: IAmazonInstanceType;
     instanceTypeDetails?: Map<string, IAmazonPreferredInstanceType>;
     removeInstanceType: (typeToRemove: string) => void;
     addOrUpdateInstanceType: (instanceType: string, weight: string) => void;
@@ -127,6 +135,7 @@ const SortableRow = SortableElement(
       key={props.selectedType.instanceType}
       isCustom={props.isCustom}
       selectedType={props.selectedType}
+      selectedTypeInfo={props.selectedTypeInfo}
       instanceTypeDetails={!props.isCustom ? props.instanceTypeDetails.get(props.selectedType.instanceType) : null}
       removeInstanceType={props.removeInstanceType}
       addOrUpdateInstanceType={props.addOrUpdateInstanceType}

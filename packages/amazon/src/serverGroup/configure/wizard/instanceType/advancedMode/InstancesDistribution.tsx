@@ -99,7 +99,10 @@ export function InstancesDistribution(props: IInstancesDistributionProps) {
         help={<HelpField id={'aws.serverGroup.spotMaxPrice'} />}
         input={(inputProps) => (
           <Tooltip value={'Recommended to leave empty and use AWS default i.e. On-Demand price'}>
-            <TextInput {...inputProps} />
+            <TextInput
+              {...inputProps}
+              placeholder={'Recommended to leave empty and use AWS default i.e. On-Demand price'}
+            />
           </Tooltip>
         )}
       />

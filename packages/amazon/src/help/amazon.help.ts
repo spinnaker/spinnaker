@@ -73,8 +73,26 @@ const helpContents: { [key: string]: string } = {
   'aws.serverGroup.odAllocationStrategy': `The only strategy / <b>default is 'prioritized'</b>. The order specified in the list of selected instance types is used to determine which instance type to use first when fulfilling On-Demand capacity.`,
   'aws.serverGroup.odBase': `Minimum amount of the Auto Scaling Group's capacity that must be fulfilled by On-Demand Instances. This base portion is provisioned first as the group scales. <b>Default: 0.</b>`,
   'aws.serverGroup.odPercentAboveBase': `Percentages of On-Demand and Spot instances for additional capacity beyond OnDemandBaseCapacity.<b>Default: 100.</b>`,
-  'aws.serverGroup.instanceTypeWeight': `The number of capacity units gives the instance type a proportional weight to other instance types. When specified, weights count towards desired capacity.`,
+  'aws.serverGroup.instanceTypeWeight': `The number of capacity units gives the instance type a proportional weight to other instance types. When specified, weights count towards desired capacity.
+Learn more in <a target="_blank" href="https://spinnaker.io/docs/setup/other_config/server-group-launch-settings/aws-ec2/launch-templates/#convert-a-server-group-with-launch-template-to-use-mixed-instances-policy-with-multiple-instance-types-and-capacity-weighting">examples and docs</a>.`,
   'aws.serverGroup.instanceTypes': `Specify up to 20 instance types.`,
+  'aws.serverGroup.instanceTypesSelect': `<p>Filter instance types on one or more criteria, comma separated:
+      <ul>
+        <li>Minimum vCPU e.g. 16vcpu</li>
+        <li>Minimum memory e.g. 32gib</li>
+        <li>Spot support</li>
+        <li>EBS support</li>
+        <li>GPU support</li>
+        <li>Instance storage type e.g. ssd</li>
+        <li>Generation with 'currentGen' / 'oldGen'</li>
+        <li>Instance family / size / type e.g. c3 / large / c3.large</li>
+      </ul>
+      Examples:
+      <ul>
+        <li>16vcpu, 32gib, spot, oldGen</li>
+        <li>medium, ebs</li>
+        <li>ssd,ebs,gpu,currentgen</li>
+      </ul>`,
   'aws.serverGroup.multipleInstanceTypes': `Instance types a server group can launch, first (highest priority) to last (lowest priority).`,
   'aws.serverGroup.unlimitedCpuCredits': `<p>CPU credits can be configured with 2 modes:</p><br/>
       <ul>
