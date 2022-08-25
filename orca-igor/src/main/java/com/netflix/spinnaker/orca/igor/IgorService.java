@@ -42,6 +42,14 @@ public interface IgorService {
       @Path(encode = false, value = "buildNumber") Integer buildNumber,
       @Body String ignored);
 
+  @PUT("/masters/{name}/jobs/stop/{queuedBuild}/{buildNumber}")
+  String stopWithJobNameAsQueryParameter(
+      @Path("name") String master,
+      @Query(value = "jobName") String jobName,
+      @Path(encode = false, value = "queuedBuild") String queuedBuild,
+      @Path(encode = false, value = "buildNumber") Integer buildNumber,
+      @Body String ignored);
+
   @PATCH("/masters/{name}/jobs/{jobName}/update/{buildNumber}")
   Response update(
       @Path("name") String master,
