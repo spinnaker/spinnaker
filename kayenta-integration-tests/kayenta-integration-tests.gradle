@@ -1,14 +1,14 @@
 dependencies {
 
-    testCompileOnly project(":kayenta-web")
-    testCompileOnly "io.rest-assured:rest-assured:4.3.2"
-    testCompileOnly "org.awaitility:awaitility:4.0.3"
-    testCompileOnly "io.micrometer:micrometer-registry-prometheus"
-    testCompileOnly "io.micrometer:micrometer-registry-graphite"
-    testCompileOnly "org.springframework.cloud:spring-cloud-starter:2.1.2.RELEASE" // needed for bootstrap phase when all embedded containers are setup
-    testCompileOnly "com.playtika.testcontainers:embedded-redis:1.89"
-    testCompileOnly "com.playtika.testcontainers:embedded-minio:1.89"
-    testCompileOnly "org.testcontainers:testcontainers"
+    testImplementation project(":kayenta-web")
+    testImplementation "io.rest-assured:rest-assured:4.3.2"
+    testImplementation "org.awaitility:awaitility:4.0.3"
+    testImplementation "io.micrometer:micrometer-registry-prometheus"
+    testImplementation "io.micrometer:micrometer-registry-graphite"
+    testImplementation "org.springframework.cloud:spring-cloud-starter:2.1.2.RELEASE" // needed for bootstrap phase when all embedded containers are setup
+    testImplementation "com.playtika.testcontainers:embedded-redis:1.89"
+    testImplementation "com.playtika.testcontainers:embedded-minio:1.89"
+    testImplementation "org.testcontainers:testcontainers"
 }
 
 test.testLogging {
