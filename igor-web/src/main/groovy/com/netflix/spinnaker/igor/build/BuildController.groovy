@@ -126,7 +126,7 @@ class BuildController {
   @PreAuthorize("hasPermission(#master, 'BUILD_SERVICE', 'READ')")
   Object getQueueLocation(@PathVariable String master, @PathVariable int item) {
     def buildService = getBuildService(master)
-    return buildService.queuedBuild(master, item);
+    return buildService.queuedBuild(master, item)
   }
 
   @RequestMapping(value = '/builds/all/{master:.+}/**')
@@ -145,7 +145,24 @@ class BuildController {
     @PathVariable String jobName,
     @PathVariable String queuedBuild,
     @PathVariable Integer buildNumber) {
+    stopJob(master, buildNumber, jobName, queuedBuild)
+    "true"
+  }
 
+  @RequestMapping(value = "/masters/{master}/jobs/stop/{queuedBuild}/{buildNumber}", method = RequestMethod.PUT)
+  @PreAuthorize("hasPermission(#master, 'BUILD_SERVICE', 'WRITE')")
+  String stopWithQueryParam(
+    @PathVariable String master,
+    @RequestParam String jobName,
+    @PathVariable String queuedBuild,
+    @PathVariable Integer buildNumber) {
+
+    stopJob(master, buildNumber, jobName, queuedBuild)
+    "true"
+  }
+
+
+  void stopJob(String master, int buildNumber, String jobName, String queuedBuild) {
     def buildService = getBuildService(master)
     if (buildService instanceof JenkinsService) {
       // Jobs that haven't been started yet won't have a buildNumber
@@ -169,7 +186,6 @@ class BuildController {
       }
     }
 
-    "true"
   }
 
   @RequestMapping(value = "/masters/{name}/jobs/**/update/{buildNumber}", method = RequestMethod.PATCH)
@@ -289,7 +305,7 @@ class BuildController {
       key = key + ":" + parameterDefinition.key + "=" + parameterDefinition.value
     }
 
-    return key;
+    return key
   }
 
   @RequestMapping(value = '/builds/properties/{buildNumber}/{fileName}/{master:.+}/**')

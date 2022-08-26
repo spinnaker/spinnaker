@@ -77,6 +77,7 @@ class BuildControllerSpec extends Specification {
   def BUILD_ID = 654321
   def QUEUED_JOB_NUMBER = 123456
   def JOB_NAME = "job/name/can/have/slashes"
+  def SIMPLE_JOB_NAME = "simpleJobName"
   def PENDING_JOB_NAME = "pendingjob"
   def FILE_NAME = "test.yml"
 
@@ -107,7 +108,7 @@ class BuildControllerSpec extends Specification {
     server = new MockWebServer()
     pendingOperationService = Mock(PendingOperationsCache)
     pendingOperationService.getAndSetOperationStatus(_, _, _) >> {
-        return new PendingOperationsCache.OperationState()
+      return new PendingOperationsCache.OperationState()
     }
 
     mockMvc = MockMvcBuilders
@@ -410,7 +411,7 @@ class BuildControllerSpec extends Specification {
     MockHttpServletResponse response = mockMvc.perform(
       patch("/masters/${JENKINS_SERVICE}/jobs/${jobName}/update/${BUILD_NUMBER}")
         .contentType(MediaType.APPLICATION_JSON)
-      .content("""
+        .content("""
 {
   "description": "this is my new description"
 }
@@ -428,4 +429,34 @@ class BuildControllerSpec extends Specification {
       "simpleJobName"
     ]
   }
+
+  void "stop a jenkins job with simple name"() {
+
+    when:
+    MockHttpServletResponse response = mockMvc.perform(
+      put("/masters/{master}/jobs/{jobNamePath}/stop/{queue_build}/{build_number}", JENKINS_SERVICE, SIMPLE_JOB_NAME, QUEUED_JOB_NUMBER, BUILD_NUMBER)
+    ).andReturn().response
+
+    then:
+    1 * jenkinsService.stopRunningBuild(SIMPLE_JOB_NAME, BUILD_NUMBER)
+    response.status == 200
+    response.contentAsString == 'true'
+
+  }
+
+  void "stop a jenkins job with name containing slashes"() {
+
+    when:
+    MockHttpServletResponse response = mockMvc.perform(
+      put("/masters/{master}/jobs/stop/{queue_build}/{build_number}", JENKINS_SERVICE, QUEUED_JOB_NUMBER, BUILD_NUMBER)
+      .param('jobName', JOB_NAME)
+    ).andReturn().response
+
+    then:
+    1 * jenkinsService.stopRunningBuild(JOB_NAME, BUILD_NUMBER)
+    response.status == 200
+    response.contentAsString == 'true'
+
+  }
+
 }
