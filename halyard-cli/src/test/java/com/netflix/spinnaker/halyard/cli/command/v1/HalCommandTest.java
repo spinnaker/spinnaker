@@ -18,6 +18,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static uk.org.webcompere.systemstubs.SystemStubs.catchSystemExit;
 
 import com.beust.jcommander.JCommander;
@@ -129,6 +130,15 @@ class HalCommandTest {
     assertThatThrownBy(() -> jc.parse(ArrayUtils.addAll(args)))
         .isInstanceOf(ParameterException.class)
         .hasMessageContaining("Only one main parameter allowed but found several");
+  }
+
+  @org.junit.jupiter.api.Test
+  void testHalyardGlobalOptionsBoolean() {
+    String[] args = {"deploy", "clean", "--quiet", "--debug", "--alpha"};
+    jc.parse(args);
+    assertTrue(GlobalOptions.getGlobalOptions().isQuiet());
+    assertTrue(GlobalOptions.getGlobalOptions().isDebug());
+    assertTrue(GlobalOptions.getGlobalOptions().isAlpha());
   }
 
   // Inspired by https://stackoverflow.com/a/46931618

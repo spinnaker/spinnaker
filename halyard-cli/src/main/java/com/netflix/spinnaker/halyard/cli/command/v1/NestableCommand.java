@@ -81,14 +81,14 @@ public abstract class NestableCommand {
   @Parameter(
       names = {"-d", "--debug"},
       description = "Show detailed network traffic with halyard daemon.")
-  public void setDebug(boolean debug) {
+  public void setDebug(Boolean debug) {
     GlobalOptions.getGlobalOptions().setDebug(debug);
   }
 
   @Parameter(
       names = {"-a", "--alpha"},
       description = "Enable alpha halyard features.")
-  public void setAlpha(boolean alpha) {
+  public void setAlpha(Boolean alpha) {
     GlobalOptions.getGlobalOptions().setAlpha(alpha);
   }
 
@@ -96,7 +96,7 @@ public abstract class NestableCommand {
       names = {"-q", "--quiet"},
       description =
           "Show no task information or messages. When set, ANSI formatting will be disabled, and all prompts will be accepted.")
-  public void setQuiet(boolean quiet) {
+  public void setQuiet(Boolean quiet) {
     GlobalOptions.getGlobalOptions().setQuiet(quiet);
     GlobalOptions.getGlobalOptions().setColor(!quiet);
   }
@@ -113,7 +113,7 @@ public abstract class NestableCommand {
       names = {"-c", "--color"},
       description = "Enable terminal color output.",
       arity = 1)
-  public void setColor(boolean color) {
+  public void setColor(Boolean color) {
     GlobalOptions.getGlobalOptions().setColor(color);
   }
 
