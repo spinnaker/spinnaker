@@ -139,6 +139,41 @@ public class Synchronizer {
     }
   }
 
+  public long syncServiceAccount(String serviceAccountId, List<String> roles) {
+    // So that fiat will pull fresh permissions
+    permissionsResolver.clearCache();
+
+    // Store this service account as a user with associated resources via `resolveAndMerge`.
+    List<Role> convertedRoles =
+        roles.stream()
+            .map(extRole -> new Role().setSource(Role.Source.EXTERNAL).setName(extRole))
+            .collect(Collectors.toList());
+    ExternalUser serviceAccount =
+        new ExternalUser().setId(serviceAccountId.toLowerCase()).setExternalRoles(convertedRoles);
+    UserPermission serviceAccountPermissions = permissionsResolver.resolveAndMerge(serviceAccount);
+    permissionsRepository.put(serviceAccountPermissions);
+
+    // Resync resource for all users with the same roles (incl the requested service account),
+    // so that they may have permissions to act on this service account
+    // Note that this is not an atomic read/write operation, but they will be synced again
+    // during the next periodic sync.
+    // The chance of collisions are quite low, but if it does occur often we should create
+    // a specific update operation on the permissionsRepository.
+    Map<String, Collection<Role>> allUsersForRoles =
+        permissionsRepository.getAllByRoles(roles).entrySet().stream()
+            .filter(
+                it ->
+                    it.getValue().stream()
+                        .map(Role::getName)
+                        .collect(Collectors.toSet())
+                        .containsAll(roles))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    Map<String, UserPermission> resolvedUsers =
+        permissionsResolver.resolveResources(allUsersForRoles);
+    permissionsRepository.putAllById(resolvedUsers);
+    return allUsersForRoles.size();
+  }
+
   private boolean isServerHealthy() {
     return healthIndicator.health().getStatus() == Status.UP;
   }

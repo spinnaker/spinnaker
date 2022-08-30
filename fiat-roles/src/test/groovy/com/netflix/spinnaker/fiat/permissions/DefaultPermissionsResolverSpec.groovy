@@ -30,6 +30,7 @@ import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
 import com.netflix.spinnaker.fiat.providers.AccessControlledResourcePermissionSource
 import com.netflix.spinnaker.fiat.providers.AggregatingResourcePermissionProvider
 import com.netflix.spinnaker.fiat.providers.DefaultAccountResourceProvider
+import com.netflix.spinnaker.fiat.providers.DefaultApplicationResourceProvider
 import com.netflix.spinnaker.fiat.providers.DefaultServiceAccountPredicateProvider
 import com.netflix.spinnaker.fiat.providers.DefaultServiceAccountResourceProvider
 import com.netflix.spinnaker.fiat.providers.ResourcePermissionProvider
@@ -313,5 +314,60 @@ class DefaultPermissionsResolverSpec extends Specification {
     1 * userRolesProvider.loadRoles({ u -> u.id == testUsername }) >> [role]
     def expected = new UserPermission().setId(testUsername).setRoles(Set.of(role)).setAccountManager(true)
     result == expected
+  }
+
+  def "should resolve resources for users and service accounts"() {
+    setup:
+    FiatAdminConfig fiatAdminConfig = new FiatAdminConfig()
+    fiatAdminConfig.getAdmin().getRoles().add("admin-role")
+
+    def role1 = new Role('role1')
+    def role2 = new Role('role2')
+    def roleAdmin = new Role('admin-role')
+
+    def testApp1 = new Application().setName("app1")
+    def testApp2 = new Application().setName("app2")
+    def testAppAdmin = new Application().setName("adminOnlyApp")
+    ResourceProvider<Application> applicationProvider = Mock(DefaultApplicationResourceProvider)
+
+    @Subject def resolver = new DefaultPermissionsResolver(userRolesProvider, serviceAccountProvider, [applicationProvider], fiatAdminConfig, new AccountManagerConfig(), new ObjectMapper())
+
+    def userToRoles = [
+            "user1": [role1],
+            "user2": [role1, role2],
+            "user3": [role1, roleAdmin],
+            "abc@managed-service-accounts": [role1],
+    ]
+
+    when:
+    applicationProvider.getAllRestricted("user1", HashSet.of(role1), false) >> [testApp1].toSet()
+    applicationProvider.getAllRestricted("user2", HashSet.of(role1, role2), false) >> [testApp2].toSet()
+    applicationProvider.getAllRestricted("user3", HashSet.of(role1, roleAdmin), true) >> [testAppAdmin].toSet()
+    applicationProvider.getAllRestricted("abc@managed-service-accounts", HashSet.of(role1), false) >> [testApp1].toSet()
+    def result = resolver.resolveResources(userToRoles)
+
+    then:
+    result == [
+            "user1": new UserPermission()
+                    .setId("user1")
+                    .setRoles([role1] as Set<Role>)
+                    .setAdmin(false)
+                    .addResources([testApp1]),
+            "user2": new UserPermission()
+                    .setId("user2")
+                    .setRoles([role1, role2] as Set<Role>)
+                    .setAdmin(false)
+                    .addResources([testApp2]),
+            "user3": new UserPermission()
+                    .setId("user3")
+                    .setRoles([role1, roleAdmin] as Set<Role>)
+                    .setAdmin(true)
+                    .addResources([testAppAdmin]),
+            "abc@managed-service-accounts": new UserPermission()
+                    .setId("abc@managed-service-accounts")
+                    .setRoles([role1] as Set<Role>)
+                    .setAdmin(false)
+                    .addResources([testApp1])
+    ]
   }
 }

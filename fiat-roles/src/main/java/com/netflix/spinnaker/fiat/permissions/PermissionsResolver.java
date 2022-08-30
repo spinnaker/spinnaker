@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.fiat.permissions;
 
 import com.netflix.spinnaker.fiat.model.UserPermission;
+import com.netflix.spinnaker.fiat.model.resources.Role;
 import java.util.Collection;
 import java.util.Map;
 
@@ -36,6 +37,11 @@ public interface PermissionsResolver {
   /** Resolves multiple user's permissions. Returned map is keyed by userId. */
   Map<String, UserPermission> resolve(Collection<ExternalUser> users)
       throws PermissionResolutionException;
+
+  /**
+   * Resolves multiple users resources without syncing group roles. Returned map is keyed by userId.
+   */
+  Map<String, UserPermission> resolveResources(Map<String, Collection<Role>> userToRoles);
 
   /** Clears resource cache: apps, service accounts,... */
   void clearCache();

@@ -21,9 +21,10 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@FunctionalInterface
 public interface UserRolesSyncStrategy {
   long syncAndReturn(List<String> roles);
+
+  long syncServiceAccount(String serviceAccountId, List<String> roles);
 
   @RequiredArgsConstructor
   class DefaultSynchronizationStrategy implements UserRolesSyncStrategy {
@@ -33,6 +34,11 @@ public interface UserRolesSyncStrategy {
     @Override
     public long syncAndReturn(List<String> roles) {
       return this.synchronizer.syncAndReturn(roles);
+    }
+
+    @Override
+    public long syncServiceAccount(String serviceAccountId, List<String> roles) {
+      return this.synchronizer.syncServiceAccount(serviceAccountId, roles);
     }
   }
 
@@ -65,6 +71,11 @@ public interface UserRolesSyncStrategy {
       } finally {
         this.callableCache.clear(roles);
       }
+    }
+
+    @Override
+    public long syncServiceAccount(String serviceAccountId, List<String> roles) {
+      return this.synchronizer.syncServiceAccount(serviceAccountId, roles);
     }
   }
 

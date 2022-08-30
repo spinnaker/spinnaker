@@ -28,6 +28,7 @@ import com.netflix.spinnaker.fiat.model.resources.Application
 import com.netflix.spinnaker.fiat.model.resources.BuildService
 import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
+import com.netflix.spinnaker.fiat.permissions.ExternalUser
 import com.netflix.spinnaker.fiat.permissions.PermissionsResolver
 import com.netflix.spinnaker.fiat.permissions.RedisPermissionRepositoryConfigProps
 import com.netflix.spinnaker.fiat.permissions.RedisPermissionsRepository
@@ -238,6 +239,93 @@ class UserRolesSyncerSpec extends Specification {
     discoveryStatusEnabled                         || shouldAcquireLock
     true                                           || true
     false                                          || false
+  }
+
+  @Unroll
+  def "syncServiceAccounts adds service accounts and updates relevant users"() {
+    setup:
+    def extRoleA = new Role("extrolea").setSource(Role.Source.EXTERNAL)
+    def extRoleB = new Role("extroleb").setSource(Role.Source.EXTERNAL)
+    def extRoleC = new Role("extrolec").setSource(Role.Source.EXTERNAL)
+    def abcResource = new ServiceAccount().setName("abc@managed-service-account").setMemberOf(["extroleb"])
+
+    def user1 = new UserPermission()
+            .setId("user1")
+            .setAccounts([new Account().setName("account1")] as Set)
+            .setRoles([extRoleA, extRoleC] as Set)
+    def user2 = new UserPermission()
+            .setId("user2")
+            .setAccounts([new Account().setName("account2")] as Set)
+            .setRoles([extRoleA] as Set)
+            .addResources([abcResource])
+    def user3 = new UserPermission()
+            .setId("user3")
+            .setAccounts([new Account().setName("account3")] as Set)
+            .setRoles([extRoleB, extRoleC] as Set)
+            .addResources([abcResource])
+    def unrestrictedUser = new UserPermission()
+            .setId(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME)
+            .setAccounts([new Account().setName("unrestrictedAccount")] as Set)
+    def abcServiceAcct = new UserPermission()
+            .setId("abc@managed-service-account")
+            .setRoles([extRoleB, extRoleC] as Set)
+            .addResources([abcResource])
+    def newServiceAccountResource = new ServiceAccount().setName("new@managed-service-account").setMemberOf([extRoleB.name, extRoleC.name])
+    def newServiceAcct = new UserPermission()
+            .setId("new@managed-service-account")
+            .setRoles([extRoleB, extRoleC] as Set)
+            .addResources([abcResource, newServiceAccountResource])
+
+    def allUsers = [user1, user2, user3, abcServiceAcct, newServiceAcct, unrestrictedUser]
+    (allUsers - [newServiceAcct]).forEach({it -> repo.put(it)})
+
+    def serviceAccountProvider = Mock(ResourceProvider)
+    def permissionsResolver = Mock(PermissionsResolver) { resolver ->
+      resolver.resolveAndMerge(new ExternalUser().setId("new@managed-service-account").setExternalRoles([extRoleB, extRoleC])) >> newServiceAcct
+      Map<String, Collection<Role>> userRoles = (allUsers - [user1, user2, unrestrictedUser]).collectEntries {[it.id, it.roles]}
+      resolver.resolveResources(userRoles) >>
+              (allUsers - [user1, user2, unrestrictedUser]).collectEntries { [it.id, it.addResources([newServiceAccountResource])]}
+    }
+
+    def lockManager = Mock(LockManager) {
+      _ * acquireLock() >> { LockManager.LockOptions lockOptions, Callable onLockAcquiredCallback ->
+        onLockAcquiredCallback.call()
+      }
+    }
+
+    @Subject
+    def syncer = new UserRolesSyncer(
+            new DiscoveryStatusListener(false),
+            registry,
+            lockManager,
+            new UserRolesSyncStrategy.DefaultSynchronizationStrategy(
+                    new Synchronizer(
+                            new AlwaysUpHealthIndicator(),
+                            permissionsResolver,
+                            repo,
+                            serviceAccountProvider,
+                            registry,
+                            1,
+                            1)),
+            1,
+            1,
+            1,
+            ""
+    )
+
+    expect:
+    repo.getAllByRoles([extRoleB.name, extRoleC.name]) == (allUsers - [user2, newServiceAcct]).collectEntries { [ it.id, it.roles]}
+
+    when:
+    syncer.syncServiceAccount("new@managed-service-account", [extRoleB.name, extRoleC.name])
+
+    then:
+    permissionsResolver.resolveUnrestrictedUser() >> unrestrictedUser
+
+    expect:
+    repo.getAllById() == allUsers.collectEntries { [ it.id, it.roles]}
+    [user1, user2, user3, newServiceAcct, abcServiceAcct, unrestrictedUser]
+            .forEach({ it -> repo.get(it.getId()).get() == it.merge(unrestrictedUser) })
   }
 
   class AlwaysUpHealthIndicator extends ResourceProvidersHealthIndicator {

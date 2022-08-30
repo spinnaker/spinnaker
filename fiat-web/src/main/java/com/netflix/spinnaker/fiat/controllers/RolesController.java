@@ -112,4 +112,14 @@ public class RolesController {
     }
     return count;
   }
+
+  @RequestMapping(value = "/sync/serviceAccount/{serviceAccountId:.+}", method = RequestMethod.POST)
+  public long syncServiceAccount(
+      @PathVariable String serviceAccountId, @RequestBody List<String> specificRoles) {
+    log.info(
+        "Service Account {} sync invoked by web request with roles: {}",
+        serviceAccountId,
+        specificRoles);
+    return syncer.syncServiceAccount(serviceAccountId, specificRoles);
+  }
 }

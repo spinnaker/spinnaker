@@ -82,6 +82,18 @@ public interface FiatService {
   long sync(@Body List<String> roles);
 
   /**
+   * Use to update a service account. As opposed to `sync`, this will not trigger a full sync for
+   * user role membership.
+   *
+   * @param serviceAccountId Name of the service account.
+   * @param roles The roles allowed for this service account.
+   * @return The number of non-anonymous users synced.
+   */
+  @POST("/roles/sync/serviceAccount/{serviceAccountId}")
+  long syncServiceAccount(
+      @Path("serviceAccountId") String serviceAccountId, @Body List<String> roles);
+
+  /**
    * @param userId The user being logged in
    * @param ignored ignored.
    * @return ignored.
