@@ -17,6 +17,6 @@ databaseChangeLog:
                   type: varchar(255)
                   constraints:
                     nullable: true
-    rollback:
-      - dropTable:
-          tableName: partition_name
+      rollback:
+        - dropTable:
+            tableName: partition_name

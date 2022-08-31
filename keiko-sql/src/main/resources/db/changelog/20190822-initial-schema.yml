@@ -243,19 +243,19 @@ databaseChangeLog:
         # Original changeset checksum
         - 8:53370973bc79095573dfe46d41cffae7
       changes:
-      - addColumn:
-          tableName: keiko_v1_messages_template
-          columns:
-            - column:
-                name: updated_at
-                type: bigint
-                defaultValue: 0
-                constraints:
-                  nullable: false
-    rollback:
-      - dropColumn:
-          tableName: keiko_v1_messages_template
-          columnName: updated_at
+        - addColumn:
+            tableName: keiko_v1_messages_template
+            columns:
+              - column:
+                  name: updated_at
+                  type: bigint
+                  defaultValue: 0
+                  constraints:
+                    nullable: false
+      rollback:
+        - dropColumn:
+            tableName: keiko_v1_messages_template
+            columnName: updated_at
 
   - changeSet:
       id: add-keiko-queue-messages-updated-idx

@@ -55,7 +55,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: deleted_at
-    rollback:
-      - dropIndex:
-          indexName: deleted_at_idx
-          tableName: deleted_executions
+      rollback:
+        - dropIndex:
+            indexName: deleted_at_idx
+            tableName: deleted_executions

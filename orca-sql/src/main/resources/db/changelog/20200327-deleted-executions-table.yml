@@ -34,6 +34,6 @@ databaseChangeLog:
         - sql:
             dbms: mysql
             sql: ALTER TABLE `deleted_executions` MODIFY COLUMN `execution_type` ENUM("pipeline", "orchestration") NOT NULL
-    rollback:
-      - dropTable:
-          tableName: deleted_executions
+      rollback:
+        - dropTable:
+            tableName: deleted_executions
