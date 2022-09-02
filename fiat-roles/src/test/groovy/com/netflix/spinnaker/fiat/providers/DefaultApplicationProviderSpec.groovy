@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.fiat.providers
 
+import com.netflix.spinnaker.fiat.config.ResourceProviderConfig.ApplicationProviderConfig
 import com.netflix.spinnaker.fiat.model.Authorization
 import com.netflix.spinnaker.fiat.model.resources.Application
 import com.netflix.spinnaker.fiat.model.resources.Permissions
@@ -38,6 +39,7 @@ class DefaultApplicationProviderSpec extends Specification {
   Front50Service front50Service = Mock(Front50Service)
   ResourcePermissionProvider<Application> defaultProvider = new AggregatingResourcePermissionProvider<>([new ApplicationResourcePermissionSource()])
   FallbackPermissionsResolver fallbackPermissionsResolver = new DefaultFallbackPermissionsResolver(Authorization.EXECUTE, Authorization.READ)
+  ApplicationProviderConfig applicationProviderConfig = new ApplicationProviderConfig();
 
   @Subject DefaultApplicationResourceProvider provider
 
@@ -66,7 +68,13 @@ class DefaultApplicationProviderSpec extends Specification {
       ]
     }
 
-    provider = new DefaultApplicationResourceProvider(front50Service, clouddriverService, defaultProvider, fallbackPermissionsResolver, allowAccessToUnknownApplications)
+    provider = new DefaultApplicationResourceProvider(
+            front50Service,
+            clouddriverService,
+            defaultProvider,
+            fallbackPermissionsResolver,
+            allowAccessToUnknownApplications,
+            applicationProviderConfig)
 
     when:
     def restrictedResult = provider.getAllRestricted("userId", [new Role(role)] as Set<Role>, false)
@@ -99,7 +107,12 @@ class DefaultApplicationProviderSpec extends Specification {
     when:
     app.setPermissions(makePerms(givenPermissions))
     provider = new DefaultApplicationResourceProvider(
-        front50Service, clouddriverService, defaultProvider, fallbackPermissionsResolver, allowAccessToUnknownApplications)
+            front50Service,
+            clouddriverService,
+            defaultProvider,
+            fallbackPermissionsResolver,
+            allowAccessToUnknownApplications,
+            applicationProviderConfig)
     def resultApps = provider.getAll()
 
     then:
@@ -125,7 +138,13 @@ class DefaultApplicationProviderSpec extends Specification {
 
     when:
     app.setPermissions(makePerms(givenPermissions))
-    provider = new DefaultApplicationResourceProvider(front50Service, clouddriverService, defaultProvider, fallbackResolver, false)
+    provider = new DefaultApplicationResourceProvider(
+            front50Service,
+            clouddriverService,
+            defaultProvider,
+            fallbackResolver,
+            false,
+            applicationProviderConfig)
     def resultApps = provider.getAll()
 
     then:
@@ -140,5 +159,62 @@ class DefaultApplicationProviderSpec extends Specification {
     R           | [:]                      || [:]
     R           | [(R): ['r']]             || [(R): ['r'], (E): ['r']]
     W           | [(R): ['r'], (W): ['w']] || [(R): ['r'], (W): ['w'], (E): ['w']]
+  }
+
+  @Unroll
+  def "enable calling Clouddriver during application load based on config"() {
+
+    setup:
+    def front50Apps = [
+            new Application().setName("front50App1")
+                    .setDetails(HashMap.of("foo", "bar", "xyz", "pqr"))
+                    .setPermissions(new Permissions.Builder().add(Authorization.READ, "role").build()),
+            new Application().setName("front50App2")
+                    .setDetails(HashMap.of("foo", "bar", "xyz", "pqr"))
+                    .setPermissions(new Permissions.Builder().add(Authorization.READ, "role").build())
+    ]
+
+    def clouddriverApps = [
+            new Application().setName("clouddriverApp1")
+                    .setDetails(HashMap.of("foo", "bar", "xyz", "pqr"))
+                    .setPermissions(new Permissions.Builder().add(Authorization.READ, "role").build()),
+            new Application().setName("clouddriverApp2")
+                    .setDetails(HashMap.of("foo", "bar", "xyz", "pqr"))
+                    .setPermissions(new Permissions.Builder().add(Authorization.READ, "role").build())
+    ]
+
+    Front50Service front50Service = Mock(Front50Service) {
+      getAllApplications() >> front50Apps
+    }
+
+    ClouddriverService clouddriverService = Mock(ClouddriverService) {
+      getApplications() >> clouddriverApps
+    }
+
+    applicationProviderConfig.clouddriver.setLoadApplications(loadApplicationsFromClouddriver)
+
+    provider = new DefaultApplicationResourceProvider(
+            front50Service,
+            clouddriverService,
+            defaultProvider,
+            fallbackPermissionsResolver,
+            false,
+            applicationProviderConfig,
+    )
+
+    when:
+    def result = provider.loadAll()
+
+    def actualAppNames = result.collect{
+      it.getName()
+    }
+
+    then:
+    actualAppNames == expectedAppNames
+
+    where:
+    loadApplicationsFromClouddriver  | expectedAppNames
+    false                            | ["front50App1", "front50App2"]
+    true                             | ["front50App1", "front50App2", "clouddriverApp1", "clouddriverApp2"]
   }
 }

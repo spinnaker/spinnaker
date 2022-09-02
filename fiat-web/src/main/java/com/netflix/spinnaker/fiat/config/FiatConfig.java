@@ -86,13 +86,15 @@ public class FiatConfig extends WebMvcConfigurerAdapter {
       ClouddriverService clouddriverService,
       ResourcePermissionProvider<Application> permissionProvider,
       FallbackPermissionsResolver executeFallbackPermissionsResolver,
-      FiatServerConfigurationProperties properties) {
+      FiatServerConfigurationProperties properties,
+      ResourceProviderConfig resourceProviderConfig) {
     return new DefaultApplicationResourceProvider(
         front50Service,
         clouddriverService,
         permissionProvider,
         executeFallbackPermissionsResolver,
-        properties.isAllowAccessToUnknownApplications());
+        properties.isAllowAccessToUnknownApplications(),
+        resourceProviderConfig.getApplication());
   }
 
   @Bean

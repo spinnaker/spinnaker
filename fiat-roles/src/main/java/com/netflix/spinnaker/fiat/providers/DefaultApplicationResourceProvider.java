@@ -21,6 +21,7 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Streams;
+import com.netflix.spinnaker.fiat.config.ResourceProviderConfig.ApplicationProviderConfig;
 import com.netflix.spinnaker.fiat.model.resources.Application;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.fiat.model.resources.Role;
@@ -42,6 +43,7 @@ public class DefaultApplicationResourceProvider extends BaseResourceProvider<App
   private final ResourcePermissionProvider<Application> permissionProvider;
   private final FallbackPermissionsResolver executeFallbackPermissionsResolver;
 
+  private final ApplicationProviderConfig applicationProviderConfig;
   private final boolean allowAccessToUnknownApplications;
 
   public DefaultApplicationResourceProvider(
@@ -49,12 +51,14 @@ public class DefaultApplicationResourceProvider extends BaseResourceProvider<App
       ClouddriverService clouddriverService,
       ResourcePermissionProvider<Application> permissionProvider,
       FallbackPermissionsResolver executeFallbackPermissionsResolver,
-      boolean allowAccessToUnknownApplications) {
+      boolean allowAccessToUnknownApplications,
+      ApplicationProviderConfig applicationProviderConfig) {
     this.front50Service = front50Service;
     this.clouddriverService = clouddriverService;
     this.permissionProvider = permissionProvider;
     this.executeFallbackPermissionsResolver = executeFallbackPermissionsResolver;
     this.allowAccessToUnknownApplications = allowAccessToUnknownApplications;
+    this.applicationProviderConfig = applicationProviderConfig;
   }
 
   @Override
@@ -71,13 +75,19 @@ public class DefaultApplicationResourceProvider extends BaseResourceProvider<App
   @Override
   protected Set<Application> loadAll() throws ProviderException {
     try {
-      List<Application> front50Applications = front50Service.getAllApplications();
-      List<Application> clouddriverApplications = clouddriverService.getApplications();
+      final List<Application> front50Applications = front50Service.getAllApplications();
+      // If enabled, load applications from Clouddriver, else use an empty list.
+      // This preserves stream concatenation logic below,
+      // ensuring that there is a non-null placeholder for Clouddriver applications.
+      final List<Application> clouddriverApplications =
+          applicationProviderConfig.getClouddriver().isLoadApplications()
+              ? clouddriverService.getApplications()
+              : Collections.emptyList();
 
       // Stream front50 first so that if there's a name collision, we'll keep that one instead of
       // the clouddriver application (since front50 might have permissions stored on it, but the
       // clouddriver version definitely won't)
-      List<Application> applications =
+      final List<Application> applications =
           Streams.concat(front50Applications.stream(), clouddriverApplications.stream())
               .filter(distinctByKey(a -> a.getName().toUpperCase()))
               // Collect to a list instead of set since we're about to modify the applications

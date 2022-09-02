@@ -16,12 +16,29 @@
 
 package com.netflix.spinnaker.fiat.providers.internal;
 
+import com.netflix.spinnaker.fiat.config.ResourceProviderConfig.ApplicationProviderConfig;
 import com.netflix.spinnaker.fiat.model.resources.Application;
 import com.netflix.spinnaker.fiat.providers.ProviderHealthTracker;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 
+@Slf4j
 public class ClouddriverApplicationLoader extends ClouddriverDataLoader<Application> {
+  ApplicationProviderConfig applicationProviderConfig;
+
   public ClouddriverApplicationLoader(
-      ProviderHealthTracker healthTracker, ClouddriverApi clouddriverApi) {
+      ProviderHealthTracker healthTracker,
+      ClouddriverApi clouddriverApi,
+      ApplicationProviderConfig applicationProviderConfig) {
     super(healthTracker, clouddriverApi::getApplications);
+    this.applicationProviderConfig = applicationProviderConfig;
+  }
+
+  @Override
+  @Scheduled(
+      fixedDelayString =
+          "${resource.provider.application.clouddriver.cacheRefreshIntervalMs:30000}")
+  protected void refreshCache() {
+    super.refreshCache();
   }
 }

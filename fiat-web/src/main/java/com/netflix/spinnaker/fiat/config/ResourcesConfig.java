@@ -31,6 +31,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
 import retrofit.Endpoints;
@@ -114,16 +115,37 @@ public class ResourcesConfig {
   }
 
   @Bean
+  @ConditionalOnProperty(
+      name = "resource.provider.application.clouddriver.load-applications",
+      havingValue = "true",
+      matchIfMissing = true)
   ClouddriverApplicationLoader clouddriverApplicationLoader(
-      ProviderHealthTracker providerHealthTracker, ClouddriverApi clouddriverApi) {
-    return new ClouddriverApplicationLoader(providerHealthTracker, clouddriverApi);
+      ProviderHealthTracker providerHealthTracker,
+      ClouddriverApi clouddriverApi,
+      ResourceProviderConfig resourceProviderConfig) {
+    return new ClouddriverApplicationLoader(
+        providerHealthTracker, clouddriverApi, resourceProviderConfig.getApplication());
   }
 
   @Bean
+  @ConditionalOnProperty(
+      name = "resource.provider.application.clouddriver.load-applications",
+      havingValue = "true",
+      matchIfMissing = true)
+  @Primary
   ClouddriverService clouddriverService(
       ClouddriverApplicationLoader clouddriverApplicationLoader,
       ClouddriverAccountLoader clouddriverAccountLoader) {
     return new ClouddriverService(clouddriverApplicationLoader, clouddriverAccountLoader);
+  }
+
+  @Bean
+  @ConditionalOnProperty(
+      name = "resource.provider.application.clouddriver.load-applications",
+      havingValue = "false")
+  ClouddriverService clouddriverServiceWithoutApplicationLoader(
+      ClouddriverAccountLoader clouddriverAccountLoader) {
+    return new ClouddriverService(clouddriverAccountLoader);
   }
 
   @Bean

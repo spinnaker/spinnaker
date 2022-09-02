@@ -18,16 +18,25 @@ package com.netflix.spinnaker.fiat.providers.internal;
 
 import com.netflix.spinnaker.fiat.model.resources.Account;
 import com.netflix.spinnaker.fiat.model.resources.Application;
+import java.util.Collections;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.lang.Nullable;
 
+@Slf4j
 public class ClouddriverService {
-  private final ClouddriverApplicationLoader clouddriverApplicationLoader;
+  @Nullable private final ClouddriverApplicationLoader clouddriverApplicationLoader;
   private final ClouddriverAccountLoader clouddriverAccountLoader;
 
   public ClouddriverService(
-      ClouddriverApplicationLoader clouddriverApplicationLoader,
+      @Nullable ClouddriverApplicationLoader clouddriverApplicationLoader,
       ClouddriverAccountLoader clouddriverAccountLoader) {
     this.clouddriverApplicationLoader = clouddriverApplicationLoader;
+    this.clouddriverAccountLoader = clouddriverAccountLoader;
+  }
+
+  public ClouddriverService(ClouddriverAccountLoader clouddriverAccountLoader) {
+    this.clouddriverApplicationLoader = null;
     this.clouddriverAccountLoader = clouddriverAccountLoader;
   }
 
@@ -36,6 +45,11 @@ public class ClouddriverService {
   }
 
   public List<Application> getApplications() {
+    if (clouddriverApplicationLoader == null) {
+      log.info("clouddriverApplicationLoader is not configured");
+      return Collections.emptyList();
+    }
+
     return clouddriverApplicationLoader.getData();
   }
 }
