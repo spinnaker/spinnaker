@@ -110,7 +110,7 @@ final class KubernetesDataProviderIntegrationTest {
       new KubernetesSpinnakerKindMap(handlers);
   private static final KubernetesCachingAgentDispatcher dispatcher =
       new KubernetesCachingAgentDispatcher(
-          objectMapper, registry, new KubernetesConfigurationProperties(), kindMap);
+          objectMapper, registry, new KubernetesConfigurationProperties(), kindMap, null);
   private static final GlobalResourcePropertyRegistry resourcePropertyRegistry =
       new GlobalResourcePropertyRegistry(
           handlers, new KubernetesUnregisteredCustomResourceHandler());

@@ -46,7 +46,8 @@ public class KubernetesCachingAgentDispatcherTest {
             new ObjectMapper(),
             null,
             new KubernetesConfigurationProperties(),
-            new KubernetesSpinnakerKindMap(new ArrayList<>()));
+            new KubernetesSpinnakerKindMap(new ArrayList<>()),
+            null);
     KubernetesNamedAccountCredentials creds = mockCredentials(1);
     Collection<KubernetesCachingAgent> agents = dispatcher.buildAllCachingAgents(creds);
 
@@ -61,7 +62,8 @@ public class KubernetesCachingAgentDispatcherTest {
             new ObjectMapper(),
             null,
             new KubernetesConfigurationProperties(),
-            new KubernetesSpinnakerKindMap(new ArrayList<>()));
+            new KubernetesSpinnakerKindMap(new ArrayList<>()),
+            null);
     KubernetesNamedAccountCredentials creds = mockCredentials(2);
     Collection<KubernetesCachingAgent> agents = dispatcher.buildAllCachingAgents(creds);
 
@@ -78,7 +80,8 @@ public class KubernetesCachingAgentDispatcherTest {
             new ObjectMapper(),
             null,
             configProperties,
-            new KubernetesSpinnakerKindMap(new ArrayList<>()));
+            new KubernetesSpinnakerKindMap(new ArrayList<>()),
+            null);
     KubernetesNamedAccountCredentials creds = mockCredentials(2);
     Collection<KubernetesCachingAgent> agents = dispatcher.buildAllCachingAgents(creds);
 

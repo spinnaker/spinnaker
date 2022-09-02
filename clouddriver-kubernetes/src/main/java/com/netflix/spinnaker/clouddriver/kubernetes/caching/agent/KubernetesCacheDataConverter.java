@@ -63,8 +63,11 @@ public class KubernetesCacheDataConverter {
   // todo(lwander) investigate if this can cause flapping in UI for on demand updates -- no
   // consensus on this yet.
   @Getter private static final List<KubernetesKind> stickyKinds = Arrays.asList(SERVICE, POD);
+
+  @Getter
   private static final ImmutableSet<SpinnakerKind> logicalRelationshipKinds =
       ImmutableSet.of(LOAD_BALANCERS, SECURITY_GROUPS, SERVER_GROUPS, SERVER_GROUP_MANAGERS);
+
   private static final ImmutableSet<SpinnakerKind> clusterRelationshipKinds =
       ImmutableSet.of(SERVER_GROUPS, SERVER_GROUP_MANAGERS);
 

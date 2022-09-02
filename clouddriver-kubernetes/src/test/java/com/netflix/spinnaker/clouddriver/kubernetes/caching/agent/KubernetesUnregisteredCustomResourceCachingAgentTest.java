@@ -35,6 +35,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.runner.JUnitPlatform;
 import org.junit.runner.RunWith;
+import org.springframework.lang.Nullable;
 
 @RunWith(JUnitPlatform.class)
 public class KubernetesUnregisteredCustomResourceCachingAgentTest {
@@ -54,7 +55,7 @@ public class KubernetesUnregisteredCustomResourceCachingAgentTest {
     configurationProperties.getCache().setCacheAll(false);
     configurationProperties.getCache().setCacheKinds(Arrays.asList("deployment", CRD_NAME));
     KubernetesUnregisteredCustomResourceCachingAgent cachingAgent =
-        createCachingAgent(getNamedAccountCredentials(), configurationProperties);
+        createCachingAgent(getNamedAccountCredentials(), configurationProperties, null);
 
     List<KubernetesKind> filteredPrimaryKinds = cachingAgent.filteredPrimaryKinds();
 
@@ -79,7 +80,8 @@ public class KubernetesUnregisteredCustomResourceCachingAgentTest {
 
   private static KubernetesUnregisteredCustomResourceCachingAgent createCachingAgent(
       KubernetesNamedAccountCredentials credentials,
-      KubernetesConfigurationProperties configurationProperties) {
+      KubernetesConfigurationProperties configurationProperties,
+      @Nullable Front50ApplicationLoader front50ApplicationLoader) {
     return new KubernetesUnregisteredCustomResourceCachingAgent(
         credentials,
         objectMapper,
@@ -88,6 +90,7 @@ public class KubernetesUnregisteredCustomResourceCachingAgentTest {
         1,
         10L,
         configurationProperties,
-        new KubernetesSpinnakerKindMap(new ArrayList<>()));
+        new KubernetesSpinnakerKindMap(new ArrayList<>()),
+        front50ApplicationLoader);
   }
 }

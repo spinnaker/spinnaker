@@ -20,6 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.op.handler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.CustomKubernetesCachingAgentFactory;
+import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.Front50ApplicationLoader;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCachingAgentFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
@@ -31,6 +32,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.model.Manifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.model.Manifest.Status;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import javax.annotation.Nonnull;
+import org.springframework.lang.Nullable;
 
 public class CustomKubernetesHandlerFactory {
   public static KubernetesHandler create(
@@ -98,7 +100,8 @@ public class CustomKubernetesHandlerFactory {
         int agentCount,
         Long agentInterval,
         KubernetesConfigurationProperties configurationProperties,
-        KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap) {
+        KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap,
+        @Nullable Front50ApplicationLoader front50ApplicationLoader) {
       return CustomKubernetesCachingAgentFactory.create(
           kubernetesKind,
           namedAccountCredentials,
@@ -108,7 +111,8 @@ public class CustomKubernetesHandlerFactory {
           agentCount,
           agentInterval,
           configurationProperties,
-          kubernetesSpinnakerKindMap);
+          kubernetesSpinnakerKindMap,
+          front50ApplicationLoader);
     }
   }
 }

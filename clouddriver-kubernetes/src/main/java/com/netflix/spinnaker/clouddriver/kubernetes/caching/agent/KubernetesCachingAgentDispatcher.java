@@ -25,12 +25,18 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesSpinna
 import com.netflix.spinnaker.clouddriver.kubernetes.description.ResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -40,17 +46,20 @@ public class KubernetesCachingAgentDispatcher {
   private final Registry registry;
   private final KubernetesConfigurationProperties configurationProperties;
   private final KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap;
+  @Nullable private final Front50ApplicationLoader front50ApplicationLoader;
 
   @Autowired
   public KubernetesCachingAgentDispatcher(
       ObjectMapper objectMapper,
       Registry registry,
       KubernetesConfigurationProperties configurationProperties,
-      KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap) {
+      KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap,
+      @Nullable Front50ApplicationLoader front50ApplicationLoader) {
     this.objectMapper = objectMapper;
     this.registry = registry;
     this.configurationProperties = configurationProperties;
     this.kubernetesSpinnakerKindMap = kubernetesSpinnakerKindMap;
+    this.front50ApplicationLoader = front50ApplicationLoader;
   }
 
   public Collection<KubernetesCachingAgent> buildAllCachingAgents(
@@ -85,7 +94,8 @@ public class KubernetesCachingAgentDispatcher {
                                 credentials.getCacheThreads(),
                                 agentInterval,
                                 configurationProperties,
-                                kubernetesSpinnakerKindMap))
+                                kubernetesSpinnakerKindMap,
+                                front50ApplicationLoader))
                     .filter(Objects::nonNull)
                     .forEach(result::add));
 

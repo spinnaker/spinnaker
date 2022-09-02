@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.core.services
 
 import com.netflix.spinnaker.clouddriver.model.EntityTags
+import com.netflix.spinnaker.clouddriver.model.Front50Application
 import retrofit.client.Response
 import retrofit.http.*
 
@@ -31,6 +32,9 @@ interface Front50Service {
 
   @GET('/v2/applications/{applicationName}')
   Map getApplication(@Path('applicationName') String applicationName)
+
+  @GET('/v2/applications?restricted=false')
+  Set<Front50Application> getAllApplicationsUnrestricted()
 
   @GET('/v2/projects/{project}')
   Map getProject(@Path('project') String project)

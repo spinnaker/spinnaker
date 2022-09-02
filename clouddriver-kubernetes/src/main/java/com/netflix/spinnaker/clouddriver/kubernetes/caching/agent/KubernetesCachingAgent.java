@@ -44,7 +44,13 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -53,6 +59,7 @@ import javax.annotation.Nonnull;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.Nullable;
 
 /**
  * A kubernetes caching agent is a class that caches part of the kubernetes infrastructure. Every
@@ -87,6 +94,7 @@ public abstract class KubernetesCachingAgent
   protected final KubernetesConfigurationProperties configurationProperties;
 
   protected final KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap;
+  @Nullable private final Front50ApplicationLoader front50ApplicationLoader;
 
   protected KubernetesCachingAgent(
       KubernetesNamedAccountCredentials namedAccountCredentials,
@@ -96,7 +104,8 @@ public abstract class KubernetesCachingAgent
       int agentCount,
       Long agentInterval,
       KubernetesConfigurationProperties configurationProperties,
-      KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap) {
+      KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap,
+      @Nullable Front50ApplicationLoader front50ApplicationLoader) {
     this.accountName = namedAccountCredentials.getName();
     this.credentials = namedAccountCredentials.getCredentials();
     this.objectMapper = objectMapper;
@@ -106,6 +115,7 @@ public abstract class KubernetesCachingAgent
     this.agentInterval = agentInterval;
     this.configurationProperties = configurationProperties;
     this.kubernetesSpinnakerKindMap = kubernetesSpinnakerKindMap;
+    this.front50ApplicationLoader = front50ApplicationLoader;
   }
 
   protected Map<String, Object> defaultIntrospectionDetails() {
@@ -270,18 +280,84 @@ public abstract class KubernetesCachingAgent
     return buildCacheResult(ImmutableMap.of(resource.getKind(), ImmutableList.of(resource)));
   }
 
-  private Predicate<KubernetesManifest> removeIgnored(boolean onlySpinnakerManaged) {
+  /**
+   * method that determines if the provided manifest should be cached or not. It makes that
+   * determination based on the following rules:
+   *
+   * <p>- if a manifest's caching properties has ignore == true, then it will not be cached.
+   *
+   * <p>- Otherwise, if account is configured to be "onlySpinnakerManaged", and
+   * "moniker.spinnaker.io/application" annotation is empty, then it will not be cached.
+   *
+   * <p>- if {@link KubernetesConfigurationProperties.Cache#isCheckApplicationInFront50()} is true,
+   * and the application name obtained from the manifest is not known to front50, then the manifest
+   * will not be cached as long as it belongs to one of the logical relationship kinds specified in
+   * {@link KubernetesCacheDataConverter#getLogicalRelationshipKinds()}.
+   *
+   * <p>- If none of the above criteria is satisfied, then the manifest will be cached.
+   *
+   * @param credentials account credentials
+   * @return true, if manifest should be cached, false otherwise
+   */
+  private Predicate<KubernetesManifest> shouldCacheManifest(KubernetesCredentials credentials) {
     return m -> {
       KubernetesCachingProperties props = KubernetesManifestAnnotater.getCachingProperties(m);
-      return !props.isIgnore() && !(onlySpinnakerManaged && props.getApplication().isEmpty());
+      if (props.isIgnore()) {
+        return false;
+      }
+
+      if (credentials.isOnlySpinnakerManaged() && props.getApplication().isEmpty()) {
+        return false;
+      }
+
+      if (configurationProperties.getCache().isCheckApplicationInFront50()) {
+        // only certain type of kinds are stored in cats_v1_applications table
+        SpinnakerKind spinnakerKind =
+            credentials.getKubernetesSpinnakerKindMap().translateKubernetesKind(m.getKind());
+        log.debug(
+            "{}: manifest: {}, kind: {}, spinnakerKind: {}, logicalRelationshipKinds: {}",
+            getAgentType(),
+            m.getFullResourceName(),
+            m.getKind(),
+            spinnakerKind,
+            KubernetesCacheDataConverter.getLogicalRelationshipKinds());
+        if (KubernetesCacheDataConverter.getLogicalRelationshipKinds().contains(spinnakerKind)) {
+          if (front50ApplicationLoader == null) {
+            return false;
+          }
+
+          String appNameFromMoniker = credentials.getNamer().deriveMoniker(m).getApp();
+
+          boolean shouldCache =
+              front50ApplicationLoader.getData().stream()
+                  .anyMatch(app -> app.equalsIgnoreCase(appNameFromMoniker));
+
+          log.debug(
+              "{}: manifest: {}, application name: {}, shouldCache: {}",
+              getAgentType(),
+              m.getFullResourceName(),
+              appNameFromMoniker,
+              shouldCache);
+
+          return shouldCache;
+        }
+      }
+      return true;
     };
   }
 
   protected CacheResult buildCacheResult(Map<KubernetesKind, List<KubernetesManifest>> resources) {
+    if (resources.isEmpty()) {
+      log.info("{} did not find anything to cache", getAgentType());
+      return new DefaultCacheResult(Map.of());
+    }
+
     KubernetesCacheData kubernetesCacheData = new KubernetesCacheData();
     Map<KubernetesManifest, List<KubernetesManifest>> relationships =
         loadSecondaryResourceRelationships(resources);
 
+    AtomicInteger successfulCachedManifests = new AtomicInteger();
+    AtomicInteger cachingFailures = new AtomicInteger();
     resources.values().stream()
         .flatMap(Collection::stream)
         .peek(
@@ -291,7 +367,7 @@ public abstract class KubernetesCachingAgent
                     .get(m.getKind())
                     .getHandler()
                     .removeSensitiveKeys(m))
-        .filter(removeIgnored(credentials.isOnlySpinnakerManaged()))
+        .filter(shouldCacheManifest(credentials))
         .forEach(
             rs -> {
               try {
@@ -303,12 +379,33 @@ public abstract class KubernetesCachingAgent
                     rs,
                     relationships.getOrDefault(rs, ImmutableList.of()),
                     credentials.isCacheAllApplicationRelationships());
+                successfulCachedManifests.incrementAndGet();
               } catch (RuntimeException e) {
-                log.warn("{}: Failure converting {}", getAgentType(), rs, e);
+                log.warn(
+                    "{}: Failure converting manifest: {}. Error: ",
+                    getAgentType(),
+                    rs.getFullResourceName(),
+                    e);
+                log.debug("{}: Failure converting {}. Error: ", getAgentType(), rs, e);
+                cachingFailures.incrementAndGet();
               }
             });
 
     Map<String, Collection<CacheData>> entries = kubernetesCacheData.toStratifiedCacheData();
+    int total = resources.values().stream().mapToInt(List::size).sum();
+    int cachedEntriesTotal = entries.values().stream().mapToInt(Collection::size).sum();
+    log.info(
+        "{}: Results: Attempted to cache {} manifests, belonging to {} kinds."
+            + " Successful: {}, Failed: {}, Skipped: {},"
+            + " Total Kubernetes caching groups: {}, containing: {} entries",
+        getAgentType(),
+        total,
+        resources.size(),
+        successfulCachedManifests.get(),
+        cachingFailures.get(),
+        total - (successfulCachedManifests.get() + cachingFailures.get()),
+        entries.size(),
+        cachedEntriesTotal);
     KubernetesCacheDataConverter.logStratifiedCacheData(getAgentType(), entries);
 
     return new DefaultCacheResult(entries);

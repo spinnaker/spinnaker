@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.artifact.ArtifactReplacer;
 import com.netflix.spinnaker.clouddriver.kubernetes.artifact.ArtifactReplacer.ReplaceResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.artifact.Replacer;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys.InfrastructureCacheKey;
+import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.Front50ApplicationLoader;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCachingAgentFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.KubernetesManifestProvider;
@@ -42,6 +43,7 @@ import java.util.*;
 import javax.annotation.Nonnull;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.lang.Nullable;
 
 public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatch {
   protected static final ObjectMapper objectMapper = new ObjectMapper();
@@ -110,7 +112,8 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatc
       int agentCount,
       Long agentInterval,
       KubernetesConfigurationProperties configurationProperties,
-      KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap) {
+      KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap,
+      @Nullable Front50ApplicationLoader front50ApplicationLoader) {
     return cachingAgentFactory()
         .buildCachingAgent(
             namedAccountCredentials,
@@ -120,7 +123,8 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatc
             agentCount,
             agentInterval,
             configurationProperties,
-            kubernetesSpinnakerKindMap);
+            kubernetesSpinnakerKindMap,
+            front50ApplicationLoader);
   }
 
   // used for stripping sensitive values

@@ -32,6 +32,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAcco
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
+import org.springframework.lang.Nullable;
 
 /**
  * Instances of this class cache kubernetes core kinds for one particular account at regular
@@ -51,7 +52,8 @@ public class KubernetesCoreCachingAgent extends KubernetesCachingAgent {
       int agentCount,
       Long agentInterval,
       KubernetesConfigurationProperties configurationProperties,
-      KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap) {
+      KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap,
+      @Nullable Front50ApplicationLoader front50ApplicationLoader) {
     super(
         namedAccountCredentials,
         objectMapper,
@@ -60,7 +62,8 @@ public class KubernetesCoreCachingAgent extends KubernetesCachingAgent {
         agentCount,
         agentInterval,
         configurationProperties,
-        kubernetesSpinnakerKindMap);
+        kubernetesSpinnakerKindMap,
+        front50ApplicationLoader);
   }
 
   @Override

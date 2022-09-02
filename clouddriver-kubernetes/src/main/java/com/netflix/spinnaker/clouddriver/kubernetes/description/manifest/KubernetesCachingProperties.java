@@ -26,7 +26,10 @@ import lombok.Value;
 @NonnullByDefault
 @Value
 public class KubernetesCachingProperties {
+  /** if true, then the kubernetes manifest will not be cached */
   private final boolean ignore;
+
+  /** this stores the application name for a kubernetes manifest */
   private final String application;
 
   @Builder
