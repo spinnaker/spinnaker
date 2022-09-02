@@ -150,15 +150,20 @@ class ClusterController {
                                       @PathVariable String type,
                                       @RequestParam(required = false, value = "expand", defaultValue = "true") boolean expand) {
 
-    Optional<Cluster> maybe = getForAccountAndName(application, account, name, expand).stream()
-      .filter({ type.equals(it.getType()) })
-      .map({ applyExtensionsToObject(clusterExtensions, it) })
-      .findFirst()
+    def clusterProvider = clusterProviders.find { it.cloudProviderId == type }
+    if (!clusterProvider) {
+      throw new NotFoundException("No cluster provider of type: ${type} found that can handle cluster: ${name} in application: ${application}, account: ${account}")
+    }
 
-    return maybe.orElseThrow({
-      new NotFoundException(String.format(
+    Cluster cluster = applyExtensionsToObject(clusterExtensions,
+      requestQueue.execute(application, { clusterProvider.getCluster(application, account, name, expand) })
+    )
+
+    if (!cluster) {
+      throw new NotFoundException(String.format(
         "No clusters found (application: %s, account: %s, type: %s)", application, account, type))
-    })
+    }
+    return cluster
   }
 
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ') && hasPermission(#account, 'ACCOUNT', 'READ')")

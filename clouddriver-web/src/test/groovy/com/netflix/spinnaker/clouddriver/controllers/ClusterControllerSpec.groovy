@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.controllers
 
+import com.netflix.spinnaker.clouddriver.aws.model.AmazonCluster
 import com.netflix.spinnaker.clouddriver.model.*
 import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
@@ -67,13 +68,29 @@ class ClusterControllerSpec extends Specification {
   void "should throw exception when looking for specific cluster that doesnt exist"() {
     setup:
       def clusterProvider1 = Mock(ClusterProvider)
+      clusterProvider1.getCloudProviderId() >> { "aws" }
       clusterController.clusterProviders = [clusterProvider1]
 
     when:
       clusterController.getForAccountAndNameAndType("app", "test", "cluster", "aws", true)
 
     then:
-      thrown NotFoundException
+      def e = thrown(NotFoundException)
+      e.getMessage() == "No clusters found (application: app, account: test, type: aws)"
+  }
+
+  void "should throw exception when no cluster provider exists for the cluster"() {
+    setup:
+    def clusterProvider1 = Mock(ClusterProvider)
+    clusterController.clusterProviders = [clusterProvider1]
+    clusterProvider1.getCloudProviderId() >> { return "some-other-cluster-provider" }
+
+    when:
+    clusterController.getForAccountAndNameAndType("app", "test", "cluster", "aws", true)
+
+    then:
+    def e = thrown(NotFoundException)
+    e.getMessage() == "No cluster provider of type: aws found that can handle cluster: cluster in application: app, account: test"
   }
 
   void "should return specific named serverGroup"() {
@@ -90,7 +107,7 @@ class ClusterControllerSpec extends Specification {
       def result = clusterController.getServerGroup("app", "account", "clusterName", "type", "clusterName-v001", null)
 
     then: "expect a collection of server groups to be returned"
-      1 * clusterProvider1.getCloudProviderId() >> { return "type" }
+      2 * clusterProvider1.getCloudProviderId() >> { return "type" }
       1 * clusterProvider1.supportsMinimalClusters() >> { return true }
       1 * clusterProvider1.getCluster("app", "account", "clusterName", false) >> {
         def cluster = Mock(Cluster)
@@ -108,7 +125,7 @@ class ClusterControllerSpec extends Specification {
       result = clusterController.getServerGroup("app", "account", "clusterName", "type", "clusterName-v001", "us-west-2")
 
     then: "expect a single server group to be returned"
-      1 * clusterProvider1.getCloudProviderId() >> { return "type" }
+      2 * clusterProvider1.getCloudProviderId() >> { return "type" }
       1 * clusterProvider1.supportsMinimalClusters() >> { return false }
       1 * clusterProvider1.getCluster("app", "account", "clusterName", true) >> {
         def cluster = Mock(Cluster)
@@ -326,5 +343,37 @@ class ClusterControllerSpec extends Specification {
     [a, c, b].stream().sorted(OLDEST_TO_NEWEST).collect(Collectors.toList()) == [a, b, c]
     [a, c, b].stream().sorted(OLDEST_TO_NEWEST.reversed()).collect(Collectors.toList()) == [c, b, a]
     [a, c, b].stream().sorted(BIGGEST_TO_SMALLEST).collect(Collectors.toList()) == [b, a, c]
+  }
+
+  void "test getForAccountAndNameAndType when multiple cluster providers are present"() {
+    setup:
+    def serverGroupController = Mock(ServerGroupController)
+
+    def clusterProvider1 = Mock(ClusterProvider)
+    clusterProvider1.getCloudProviderId() >> { return "aws" }
+    def clusterProvider2 = Mock(ClusterProvider)
+    clusterProvider2.getCloudProviderId() >> { return "some-other-type" }
+    clusterController.clusterProviders = [clusterProvider1, clusterProvider2]
+    clusterController.serverGroupController = serverGroupController
+
+    def serverGroup = [getName: { "clusterName-v001" }, getRegion: { "us-west-2" }] as ServerGroup
+
+    when:
+    def result = clusterController.getForAccountAndNameAndType("app", "account", "clusterName", "aws", true)
+
+    then: "expect that only the correct cluster provider will try to get Cluster"
+    1 * clusterProvider1.getCluster("app", "account", "clusterName", true) >> {
+      def cluster = new AmazonCluster()
+      cluster.type = "aws"
+      cluster.getServerGroups().add(serverGroup)
+      cluster
+    }
+
+    // the second cluster provider shouldn't be asked to look for the cluster
+    0 * clusterProvider2.getCluster("app", "account", "clusterName", true)
+
+    result.getServerGroups().size() == 1
+    result.type == "aws"
+    result.getServerGroups()[0] == serverGroup
   }
 }
