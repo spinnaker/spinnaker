@@ -37,6 +37,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.test.pipeline
 import com.netflix.spinnaker.orca.api.test.stage
 import com.netflix.spinnaker.orca.api.test.task
+import com.netflix.spinnaker.orca.echo.pipeline.ManualJudgmentStage
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.pipeline.DefaultStageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow
@@ -46,17 +47,16 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.tasks.WaitTask
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
-import com.netflix.spinnaker.orca.q.CompleteTask
-import com.netflix.spinnaker.orca.q.DummyCloudProviderAwareTask
 import com.netflix.spinnaker.orca.q.DummyTask
+import com.netflix.spinnaker.orca.q.singleTaskStage
+import com.netflix.spinnaker.orca.q.DummyCloudProviderAwareTask
 import com.netflix.spinnaker.orca.q.DummyTimeoutOverrideTask
+import com.netflix.spinnaker.orca.q.TasksProvider
+import com.netflix.spinnaker.orca.q.RunTask
+import com.netflix.spinnaker.orca.q.CompleteTask
+import com.netflix.spinnaker.orca.q.PauseTask
 import com.netflix.spinnaker.orca.q.InvalidTask
 import com.netflix.spinnaker.orca.q.InvalidTaskType
-import com.netflix.spinnaker.orca.q.PauseTask
-import com.netflix.spinnaker.orca.q.RunTask
-import com.netflix.spinnaker.orca.q.StageDefinitionBuildersProvider
-import com.netflix.spinnaker.orca.q.TasksProvider
-import com.netflix.spinnaker.orca.q.singleTaskStage
 import com.netflix.spinnaker.q.Queue
 import com.netflix.spinnaker.spek.and
 import com.nhaarman.mockito_kotlin.any
@@ -87,13 +87,15 @@ import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.mockito.Mockito.spy
 import org.threeten.extra.Minutes
 
 object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
   val queue: Queue = mock()
   val repository: ExecutionRepository = mock()
-  val stageNavigator: StageNavigator = mock()
+
   val task: DummyTask = mock {
     on { extensionClass } doReturn DummyTask::class.java
     on { aliases() } doReturn emptyList<String>()
@@ -105,6 +107,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
     on { extensionClass } doReturn DummyTimeoutOverrideTask::class.java
     on { aliases() } doReturn emptyList<String>()
   }
+
   val tasks = mutableListOf(task, cloudProviderAwareTask, timeoutOverrideTask)
   val exceptionHandler: ExceptionHandler = mock()
   // Stages store times as ms-since-epoch, and we do a lot of tests to make sure things run at the
@@ -114,7 +117,11 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
   val contextParameterProcessor = ContextParameterProcessor()
   val dynamicConfigService: DynamicConfigService = mock()
   val taskExecutionInterceptors: List<TaskExecutionInterceptor> = listOf(mock())
-  val stageResolver = DefaultStageResolver(StageDefinitionBuildersProvider(emptyList()))
+  val stageResolver : DefaultStageResolver = mock()
+  val manualJudgmentStage : ManualJudgmentStage = ManualJudgmentStage()
+  val stageNavigator: StageNavigator = mock()
+
+
 
   subject(GROUP) {
     whenever(dynamicConfigService.getConfig(eq(Int::class.java), eq("tasks.warningInvocationTimeMs"), any())) doReturn 0
@@ -1837,6 +1844,73 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
           verify(queue).push(message, Duration.ofMillis(backOff.expectedMaxBackOffMs))
         }
       }
+    }
+  }
+
+  describe("when a previous stage was a skipped manual judgment stage with auth propagated") {
+    given("a stage with a manual judgment type and auth propagated") {
+      val timeout = Duration.ofMinutes(5)
+      val lastModifiedUser = StageExecution.LastModifiedDetails()
+      lastModifiedUser.user = "user"
+      lastModifiedUser.allowedAccounts = listOf("user")
+
+      val pipeline = pipeline {
+        stage {
+          refId = "1"
+          type = manualJudgmentStage.type
+          manualJudgmentStage.plan(this)
+          status = SUCCEEDED
+          context["propagateAuthenticationContext"] = true
+          context["judgmentStatus"] = "continue"
+          lastModified = lastModifiedUser
+        }
+      }
+
+      val stageSkipped : StageExecution = stage {
+        refId = "2"
+        type = manualJudgmentStage.type
+        manualJudgmentStage.plan(this)
+        context["manualSkip"] = true
+        status = SKIPPED
+        requisiteStageRefIds = setOf("1")
+      }
+
+      val stageSpy = spy(stageSkipped)
+
+      val stageResult1 : com.netflix.spinnaker.orca.pipeline.util.StageNavigator.Result = mock()
+      whenever(stageResult1.stage) doReturn pipeline.stageByRef("1")
+      whenever(stageResult1.stageBuilder) doReturn manualJudgmentStage
+      val stageResult2 : com.netflix.spinnaker.orca.pipeline.util.StageNavigator.Result = mock()
+      whenever(stageResult2.stage) doReturn stageSpy
+      whenever(stageResult2.stageBuilder) doReturn manualJudgmentStage
+      pipeline.stages.add(stageSpy)
+
+      val stage = pipeline.stageByRef("2")
+      val message = RunTask(pipeline.type, pipeline.id, "foo", stage.id, "1", DummyTask::class.java)
+
+
+      beforeGroup {
+        tasks.forEach { whenever(it.extensionClass) doReturn it::class.java }
+        taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(task, stage)) doReturn stage }
+        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+        whenever(task.getDynamicTimeout(any())) doReturn timeout.toMillis()
+        whenever(stageNavigator.ancestors(stage)) doReturn listOf(stageResult2, stageResult1)
+      }
+
+      afterGroup(::resetMocks)
+
+      action("the handler receives a message") {
+        subject.handle(message)
+      }
+
+      it("marks the task as skipped") {
+        verify(queue).push(CompleteTask(message, SKIPPED))
+      }
+
+      it("verify if last authenticated user was retrieved from candidate stage") {
+        assertEquals(stageSpy.lastModified, lastModifiedUser)
+      }
+
     }
   }
 })

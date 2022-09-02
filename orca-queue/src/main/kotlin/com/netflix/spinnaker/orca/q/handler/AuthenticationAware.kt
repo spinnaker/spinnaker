@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spinnaker.orca.AuthenticatedStage
 import com.netflix.spinnaker.orca.ExecutionContext
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import com.netflix.spinnaker.security.AuthenticatedRequest
@@ -28,13 +29,7 @@ interface AuthenticationAware {
   val stageNavigator: StageNavigator
 
   fun StageExecution.withAuth(block: () -> Unit) {
-    val authenticatedUser = stageNavigator
-      .ancestors(this)
-      .firstOrNull { it.stageBuilder is AuthenticatedStage }
-      ?.let { (it.stageBuilder as AuthenticatedStage).authenticatedUser(it.stage).orElse(null) }
-
-    val currentUser = authenticatedUser ?: execution.authentication
-
+    val currentUser = retrieveAuthenticatedUser(this) ?: execution.authentication
     try {
       ExecutionContext.set(
         ExecutionContext(
@@ -55,5 +50,39 @@ interface AuthenticationAware {
     } finally {
       ExecutionContext.clear()
     }
+  }
+
+  fun retrieveAuthenticatedUser(stage: StageExecution) : PipelineExecution.AuthenticationDetails? {
+    return stageNavigator
+      .ancestors(stage)
+      .firstOrNull { it.stageBuilder is AuthenticatedStage } ?.let{
+        (it.stageBuilder as AuthenticatedStage).authenticatedUser(solveSkippedStages(it.stage)).orElse(null)
+      }
+  }
+
+
+  // When a first valid candidate is found in the ancestors chain is returned
+  // until the ancestor chain was iterated completely at the pipeline beginning
+  fun backtrackSkippedStages(stage: StageExecution): StageExecution {
+    if (stage.isManualJudgmentType &&
+      !stage.status.isSkipped &&
+      stage.withPropagateAuthentication()) {
+      return stage;
+    }
+    val previousStage = if (stageNavigator.ancestors(stage).size > 1) stageNavigator.ancestors(stage).get(1).stage else null
+    return if (previousStage == null) stage else backtrackSkippedStages(previousStage)
+  }
+
+  //Next method will look by a possible stage with authentication propagated in case that previous
+  //stage was skipped, iterating the stage ancestors. By the moment only MJ stages approved with
+  //auth propagated are considerated as candidates
+  fun solveSkippedStages(stage: StageExecution): StageExecution {
+    if (stage.isManualJudgmentType() &&
+      stage.status.isSkipped) {
+      val result = backtrackSkippedStages(stage)
+      stage.lastModified = result.lastModified
+      return result
+    }
+    return stage
   }
 }

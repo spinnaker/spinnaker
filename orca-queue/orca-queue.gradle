@@ -38,5 +38,7 @@ dependencies {
   testImplementation(project(":orca-test-kotlin"))
   testImplementation(project(":orca-queue-tck"))
   testImplementation(project(":orca-queue-redis"))
+  testImplementation(project(":orca-echo"))
+  testImplementation("org.codehaus.groovy:groovy")
   testImplementation("org.assertj:assertj-core")
 }

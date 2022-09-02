@@ -183,6 +183,10 @@ public interface StageExecution {
 
   boolean isJoin();
 
+  boolean isManualJudgmentType();
+
+  boolean withPropagateAuthentication();
+
   void appendErrorMessage(String errorMessage);
 
   @Nonnull

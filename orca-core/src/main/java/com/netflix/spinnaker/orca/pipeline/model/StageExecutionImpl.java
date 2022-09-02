@@ -803,6 +803,18 @@ public class StageExecutionImpl implements StageExecution, Serializable {
     return getRequisiteStageRefIds().size() > 1;
   }
 
+  @JsonIgnore
+  @Override
+  public boolean isManualJudgmentType() {
+    return Objects.equals(this.type, "manualJudgment");
+  }
+
+  @Override
+  public boolean withPropagateAuthentication() {
+    return context.get("propagateAuthenticationContext") != null
+        && Boolean.parseBoolean(context.get("propagateAuthenticationContext").toString());
+  }
+
   @Nonnull
   @JsonIgnore
   public List<StageExecution> downstreamStages() {
