@@ -123,16 +123,83 @@ public class KubernetesJobProvider implements JobProvider<KubernetesJobStatus> {
     return getKubernetesJob(account, location, id)
         .map(
             job -> {
+              String logContents;
               try {
-                String logContents =
+                logContents =
                     credentials.jobLogs(location, job.getMetadata().getName(), containerName);
-                return PropertyParser.extractPropertiesFromLog(logContents);
-              } catch (Exception e) {
-                log.error("Couldn't parse properties for account {} at {}", account, location);
+              } catch (Exception jobLogsException) {
+                log.error(
+                    "Failed to get logs from job: {}, container: {} in namespace: {} for account: {}. Error: ",
+                    id,
+                    containerName,
+                    location,
+                    account,
+                    jobLogsException);
                 return null;
               }
+              try {
+                if (logContents != null) {
+                  return PropertyParser.extractPropertiesFromLog(logContents);
+                }
+              } catch (Exception e) {
+                log.error(
+                    "Couldn't parse properties for job: {}, container: {} in namespace: {} for account: {}. Error: ",
+                    id,
+                    containerName,
+                    location,
+                    account,
+                    e);
+              }
+              return null;
             })
         .orElse(null);
+  }
+
+  /**
+   * This method queries a pod for logs, from which it extracts properties which it returns as a map
+   * to the caller. This is needed in cases where a pod needs to be queried directly for logs, and
+   * getFileContents() doesn't give us all the required information.
+   *
+   * @param account - account to which the pod belongs
+   * @param namespace - namespace in which the pod runs in
+   * @param podName - pod to query the logs
+   * @param containerName - containerName in the pod from which logs should be queried
+   * @return map of property file contents
+   */
+  @Nullable
+  public Map<String, Object> getFileContentsFromPod(
+      String account, String namespace, String podName, String containerName) {
+    Map<String, Object> props = null;
+    String logContents = null;
+    KubernetesCredentials credentials =
+        (KubernetesCredentials) accountCredentialsProvider.getCredentials(account).getCredentials();
+    try {
+      logContents = credentials.logs(namespace, podName, containerName);
+    } catch (Exception podLogsException) {
+      log.error(
+          "Failed to get logs from pod: {}, container: {} in namespace: {} for account: {}. Error: ",
+          podName,
+          containerName,
+          namespace,
+          account,
+          podLogsException);
+    }
+
+    try {
+      if (logContents != null) {
+        props = PropertyParser.extractPropertiesFromLog(logContents);
+      }
+    } catch (Exception e) {
+      log.error(
+          "Couldn't parse properties from pod: {}, container: {} in namespace: {} for account: {}. Error: ",
+          podName,
+          containerName,
+          namespace,
+          account,
+          e);
+    }
+
+    return props;
   }
 
   @Override
