@@ -1,0 +1,72 @@
+{
+  "application":"amahajantest",
+  "name":"Update Application: amahajantest",
+  "stages":[
+    {
+      "type":"updateApplication",
+      "application": {
+        "name": "amahajantest",
+        "dataSources": {
+          "disabled": [],
+          "enabled": [
+            "serverGroups",
+            "loadBalancers",
+            "securityGroups"
+          ]
+        }
+      },
+      "newState": {
+        "name": "amahajantest",
+        "user": "any-user@abc.com",
+        "dataSources": {
+          "disabled": [],
+          "enabled": [
+            "serverGroups",
+            "loadBalancers",
+            "securityGroups"
+          ]
+        }
+      },
+      "previousState": {
+        "instancePort": 80,
+        "lastModifiedBy": "any-user@abc.com",
+        "name": "AMAHAJANTEST",
+        "customBanners": [
+          {
+            "backgroundColor": "var(--color-alert)",
+            "text": "Test App",
+            "textColor": "var(--color-text-on-dark)",
+            "enabled": false
+          },
+          {
+            "backgroundColor": "var(--color-alert)",
+            "text": "Your custom banner text",
+            "textColor": "var(--color-text-on-dark)",
+            "enabled": false
+          }
+        ],
+        "cloudProviders": "",
+        "providerSettings": {
+          "aws": {
+            "useAmiBlockDeviceMappings": false
+          }
+        },
+        "updateTs": "1639767570728",
+        "user": "any-user@abc.com",
+        "dataSources": {
+          "disabled": [
+            "serverGroups",
+            "loadBalancers",
+            "securityGroups"
+          ],
+          "enabled": []
+        },
+        "email": "some-owner@abc.com",
+        "trafficGuards": []
+      },
+      "refId":"0",
+      "requisiteStageRefIds":[]
+    }],
+  "origin":"deck",
+  "user": "any-user@abc.com"
+}

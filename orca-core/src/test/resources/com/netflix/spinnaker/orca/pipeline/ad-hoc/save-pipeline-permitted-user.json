@@ -1,0 +1,14 @@
+{
+  "application":"amahajantest",
+  "name":"Save pipeline 'new-test-pipeline'",
+  "stages":[
+    {
+      "type":"savePipeline",
+      "pipeline":"eyJhcHBsaWNhdGlvbiI6ImFtYWhhamFudGVzdCIsImluZGV4Ijo4LCJrZWVwV2FpdGluZ1BpcGVsaW5lcyI6ZmFsc2UsImxpbWl0Q29uY3VycmVudCI6dHJ1ZSwibmFtZSI6Im5ldy10ZXN0LXBpcGVsaW5lIiwic3BlbEV2YWx1YXRvciI6InY0Iiwic3RhZ2VzIjpbXSwidHJpZ2dlcnMiOltdfQ==",
+      "staleCheck":false,
+      "refId":"0",
+      "requisiteStageRefIds":[]
+    }],
+  "origin":"deck",
+  "user": "permitted-user@abc.com"
+}

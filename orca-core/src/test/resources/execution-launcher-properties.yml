@@ -1,0 +1,9 @@
+executions:
+  blockOrchestrationExecutions: true
+  allowedOrchestrationExecutions: # only applicable when blockOrchestrationExecutions: false
+    - name: savePipeline # eg. config to show how to set the name and permittedUsers properties for an execution
+      permittedUsers:
+       - "permitted-user@abc.com"
+    - name: updateApplication # eg. config to show how to set the name and allowAllUsers properties for an execution
+      allowAllUsers: true
+    - name: saveApplication # eg. config to show how to set just the name of an execution. It defaults to allowAllUsers: true

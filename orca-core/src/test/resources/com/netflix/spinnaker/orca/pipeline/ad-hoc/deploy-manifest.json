@@ -1,0 +1,19 @@
+{
+  "application":"amahajantest",
+  "name":"Deploy manifest",
+  "stages":[{"cloudProvider":"kubernetes","manifests":[{}],
+    "relationships":{
+      "loadBalancers":[],
+      "securityGroups":[]
+    },
+    "moniker":{"app":"amahajantest"},
+    "account":"k8s-prod-deploy-v2-account",
+    "manifestArtifactAccount":"embedded-artifact",
+    "source":"text",
+    "type":"deployManifest",
+    "user":"[anonymous]",
+    "refId":"0",
+    "requisiteStageRefIds":[]
+  }],
+  "origin":"deck"
+}

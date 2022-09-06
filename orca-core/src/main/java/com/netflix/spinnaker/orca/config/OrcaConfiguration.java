@@ -87,7 +87,10 @@ import rx.schedulers.Schedulers;
   PreprocessorConfiguration.class,
   PluginsAutoConfiguration.class,
 })
-@EnableConfigurationProperties(TaskOverrideConfigurationProperties.class)
+@EnableConfigurationProperties({
+  TaskOverrideConfigurationProperties.class,
+  ExecutionConfigurationProperties.class
+})
 public class OrcaConfiguration {
   @Bean
   public Clock clock() {
