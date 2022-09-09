@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.clouddriver.aws.test;
 
 import static io.restassured.RestAssured.given;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -74,6 +75,7 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.mockito.ArgumentCaptor;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -87,7 +89,9 @@ public class CreateServerGroupSpec extends AwsBaseSpec {
   private AmazonEC2 mockEc2 = mock(AmazonEC2.class);
 
   @BeforeEach
-  public void setup() {
+  private void init(TestInfo testInfo) {
+    System.out.println("--------------- Test " + testInfo.getDisplayName());
+
     // mock EC2 responses
     when(mockRegionScopedProvider.getAmazonEC2()).thenReturn(mockEc2);
     when(mockAwsClientProvider.getAmazonEC2(
@@ -372,18 +376,17 @@ public class CreateServerGroupSpec extends AwsBaseSpec {
 
     // then
     String taskHistory2 = getTaskUpdatesAfterCompletion(taskId2);
-    assertTrue(
-        taskHistory2.contains(
+    assertThat(taskHistory2)
+        .contains(
             expectedServerGroupName
-                + " already exists and appears to be valid, but falls outside of safety window for idempotent deploy (1 hour)"));
-    assertTrue(
-        taskHistory2.contains(
-            "Orchestration failed: DeployAtomicOperation | AlreadyExistsException"));
+                + " already exists and appears to be valid, but falls outside of safety window for idempotent deploy (1 hour)");
+    assertThat(taskHistory2)
+        .contains("Orchestration failed: DeployAtomicOperation | AlreadyExistsException");
   }
 
   @DisplayName(
       "Given request to create server group that already exists "
-          + "and creation time not in safety window, fail with accurate message")
+          + "and creation time in safety window, fail with accurate message")
   @Test
   public void createServerGroup_alreadyExists_inSafetyWindow_expect_success()
       throws InterruptedException {
@@ -452,7 +455,7 @@ public class CreateServerGroupSpec extends AwsBaseSpec {
 
     // then
     String taskHistory2 = getTaskUpdatesAfterCompletion(taskId2);
-    assertTrue(taskHistory2.contains(EXPECTED_DEPLOY_SUCCESS_MSG));
+    assertThat(taskHistory2).contains(EXPECTED_DEPLOY_SUCCESS_MSG);
   }
 
   @DisplayName(
