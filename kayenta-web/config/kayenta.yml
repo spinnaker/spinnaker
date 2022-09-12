@@ -168,6 +168,9 @@ kayenta:
 
 management.endpoints.web.exposure.include: '*'
 management.endpoint.health.show-details: always
+# To fix issue with kayenta-integration-tests while upgrading spring-boot to 2.3.12
+# https://github.com/micrometer-metrics/micrometer-docs/issues/123
+management.metrics.export.graphite.graphite-tags-enabled: false
 
 keiko:
   queue:

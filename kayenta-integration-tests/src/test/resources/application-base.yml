@@ -48,6 +48,10 @@ management:
   endpoint.health.show-details: always
   server:
     port: 8081
+  metrics:
+    export:
+      graphite:
+        graphite-tags-enabled: false
 
 # Disable checking Auth headers to external resources (pollutes logs with lots of warnings)
 ok-http-client:
