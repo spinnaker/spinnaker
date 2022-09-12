@@ -27,6 +27,7 @@ import spock.mock.DetachedMockFactory
 import javax.servlet.http.HttpServletResponse
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 
 @AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(controllers = [PipelineController])
@@ -134,6 +135,41 @@ class PipelineControllerSpec extends Specification {
     then:
     response.status == HttpStatus.BAD_REQUEST.value()
     response.errorMessage == "mock validator rejection 1\nmock validator rejection 2"
+  }
+
+  @Unroll
+  def "should show updateTs field in the response"() {
+    given:
+    def testPipelineId = "123"
+    def pipelineDAO = Stub(PipelineDAO.class)
+
+    def pipeline = new Pipeline([
+      id: testPipelineId,
+      name: "test-pipeline",
+      application: "test-application",
+      lastModified: 1662644108709
+    ])
+
+    def pipelineList = [pipeline] as Collection<Pipeline>
+    pipelineDAO.history(testPipelineId, 20) >> pipelineList
+
+    def mockMvcWithController = MockMvcBuilders.standaloneSetup(new PipelineController(
+      pipelineDAO, new ObjectMapper(), Optional.empty(), [], Optional.empty()
+    )).build()
+
+    when:
+    HttpServletResponse response = mockMvcWithController
+      .perform(get("/pipelines/$testPipelineId/history"))
+      .andReturn()
+      .response
+
+    then:
+    System.out.println(response.contentAsString)
+    response.status == HttpStatus.OK.value()
+    response.contentAsString.contains("\"id\":\"123\"")
+    response.contentAsString.contains("\"name\":\"test-pipeline\"")
+    response.contentAsString.contains("\"application\":\"test-application\"")
+    response.contentAsString.contains("\"updateTs\":\"1662644108709\"")
   }
 
   @Configuration
