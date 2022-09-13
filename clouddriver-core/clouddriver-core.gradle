@@ -53,6 +53,7 @@ dependencies {
   testImplementation project(":clouddriver-core-tck")
 
   testImplementation "cglib:cglib-nodep"
+  testImplementation "com.github.stefanbirkner:system-lambda:1.2.1"
   testImplementation "io.spinnaker.kork:kork-jedis-test"
   testImplementation "org.objenesis:objenesis"
   testImplementation "org.spockframework:spock-core"
@@ -64,4 +65,6 @@ dependencies {
   testImplementation "org.mockito:mockito-core"
   testImplementation "org.springframework.boot:spring-boot-test"
   testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testImplementation "com.google.cloud:google-cloud-secretmanager"
+  testImplementation "io.spinnaker.kork:kork-cloud-config-server"
 }
