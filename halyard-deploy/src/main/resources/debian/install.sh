@@ -112,7 +112,12 @@ chown spinnaker /opt/spinnaker-monitoring/registry
 
 # so this script can be used for updates
 set +e
-service spinnaker {%service-action%}
+systemctl {%service-action%} spinnaker
 
 # Ensure apache is started for deck. Restart to ensure enabled site is loaded.
-service apache2 restart
+systemctl restart apache2
+
+# Ensure that Halyard and Spinnaker start up automatically on reboot
+systemctl daemon-reload
+systemctl enable spinnaker
+systemctl enable halyard

@@ -9,4 +9,4 @@ ExecStart=/opt/halyard/bin/halyard
 User=spinnaker
 
 [Install]
-WantedBy=user.target
+WantedBy=multi-user.target
