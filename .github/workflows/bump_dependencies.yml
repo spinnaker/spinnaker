@@ -15,7 +15,7 @@ jobs:
       id: bumpdep_targets
       run: |
         REPOS=clouddriver,echo,front50,gate,igor,keel,orca
-        if [ "${{ github.event.client_payload.branch }}" == "  origin/master" ]; then
+        if [ "${{ github.event.client_payload.branch }}" == " origin/master" ]; then
           echo "on master branch, include halyard in bumpdeps target list"
           REPOS+=",halyard"
         fi
