@@ -18,7 +18,7 @@ else
   # Reenable checking for non-zero exit codes.
   set -e
   if [ $GETENT_RESULT -ne 0 ]; then
-    useradd -s /bin/bash $HAL_USER
+    useradd -s /bin/bash $HAL_USER --create-home
   fi
   if [ ! -f "/opt/spinnaker/config/halyard-user" ];
   then
@@ -30,4 +30,4 @@ fi
 
 install --mode=755 --owner=$HAL_USER --group=$HAL_USER --directory /var/log/spinnaker/halyard
 
-service halyard restart
+systemctl restart halyard
