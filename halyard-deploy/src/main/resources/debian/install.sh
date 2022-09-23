@@ -70,7 +70,7 @@ function add_spinnaker_apt_repository() {
   if [ ! -f /etc/apt/sources.list.d/spinnaker.list ]; then
     echo "Adding Spinnaker apt repository"
     REPOSITORY_HOST=$(echo $REPOSITORY_URL | cut -d/ -f3)
-    curl -fsSL https://us-apt.pkg.dev/doc/repo-signing-key.gpg | gpg --dearmor | sudo tee /usr/share/keyrings/spinnaker.gpg > /dev/null
+    curl -fsSL https://us-apt.pkg.dev/doc/repo-signing-key.gpg | gpg --dearmor | tee /usr/share/keyrings/spinnaker.gpg > /dev/null
     echo "deb [signed-by=/usr/share/keyrings/spinnaker.gpg arch=all] $REPOSITORY_URL apt main" | tee /etc/apt/sources.list.d/spinnaker.list > /dev/null
   fi
 }
