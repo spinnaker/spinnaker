@@ -89,7 +89,7 @@ class UrlBuilderUtils {
       });
     });
 
-    if (parts.length > 0) {
+    if (parts.length > 0 && url) {
       url += (url.includes('?') ? '&' : '?') + parts.join('&');
     }
 

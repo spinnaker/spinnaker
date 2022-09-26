@@ -38,7 +38,7 @@ export class InfrastructureSearchServiceV2 {
     const makeResultSet = (searchResults: ISearchResults<any>, type: SearchResultType): ISearchResultSet => {
       // Add URLs to each search result (discard duplicate results)
       const results = uniqBy(
-        searchResults.results.map((result) => addComputedAttributes(result, type)),
+        searchResults.results.map((result) => addComputedAttributes(result, type)).filter((r) => r.href),
         (r) => r.href,
       );
       const query: string = apiParams.key as string;
