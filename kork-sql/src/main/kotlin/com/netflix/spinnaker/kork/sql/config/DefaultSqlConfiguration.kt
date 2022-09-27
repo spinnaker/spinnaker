@@ -173,13 +173,13 @@ class DefaultSqlConfiguration {
     }
 
   @Suppress("UndocumentedPublicFunction")
-  @Bean(destroyMethod = "close")
+  @Bean(destroyMethod = "")
   @ConditionalOnMissingBean(DSLContext::class)
   fun jooq(jooqConfiguration: DefaultConfiguration): DSLContext =
     DefaultDSLContext(jooqConfiguration)
 
   @Suppress("UndocumentedPublicFunction")
-  @Bean(destroyMethod = "close")
+  @Bean(destroyMethod = "")
   @Conditional(SecondaryPoolDialectCondition::class)
   fun secondaryJooq(
     connectionProvider: DataSourceConnectionProvider,

@@ -2,6 +2,6 @@ org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
   com.netflix.spinnaker.kork.configserver.autoconfig.CloudConfigAutoConfiguration, \
   com.netflix.spinnaker.kork.configserver.autoconfig.SpringCloudAwsConfiguration, \
   com.netflix.spinnaker.kork.configserver.autoconfig.SpringCloudAwsS3ResourceLoaderConfiguration, \
-  org.springframework.cloud.aws.context.config.annotation.ContextResourceLoaderConfiguration
+  io.awspring.cloud.context.config.annotation.ContextResourceLoaderConfiguration
 org.springframework.context.ApplicationListener=\
   com.netflix.spinnaker.kork.configserver.CloudConfigApplicationListener

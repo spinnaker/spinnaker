@@ -27,8 +27,8 @@ import com.netflix.spinnaker.kork.discovery.DiscoveryAutoConfiguration;
 import java.util.Map;
 import java.util.Objects;
 import javax.inject.Provider;
-import org.springframework.boot.actuate.health.HealthAggregator;
 import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.boot.actuate.health.StatusAggregator;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -104,9 +104,9 @@ public class EurekaAutoConfiguration {
   @Bean
   HealthCheckHandler healthCheckHandler(
       ApplicationInfoManager applicationInfoManager,
-      HealthAggregator healthAggregator,
+      StatusAggregator statusAggregator,
       Map<String, HealthIndicator> healthIndicators) {
-    return new BootHealthCheckHandler(applicationInfoManager, healthAggregator, healthIndicators);
+    return new BootHealthCheckHandler(applicationInfoManager, statusAggregator, healthIndicators);
   }
 
   private static class StaticProvider<T> implements Provider<T> {

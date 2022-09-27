@@ -1,11 +1,11 @@
 package com.netflix.spinnaker.kork.configserver.autoconfig;
 
+import io.awspring.cloud.context.config.annotation.ContextResourceLoaderConfiguration;
+import io.awspring.cloud.context.support.io.SimpleStorageProtocolResolverConfigurer;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.cloud.aws.context.config.annotation.ContextResourceLoaderConfiguration;
-import org.springframework.cloud.aws.context.support.io.SimpleStorageProtocolResolverConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;

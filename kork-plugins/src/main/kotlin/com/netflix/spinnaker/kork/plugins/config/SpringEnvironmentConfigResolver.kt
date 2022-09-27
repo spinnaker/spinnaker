@@ -129,6 +129,7 @@ class SpringEnvironmentConfigResolver(
     propertyNames
       .filter { it.startsWith("spinnaker.extensibility") }
       .map { it to getProperty(it) }
+      .filter{ (_,value)-> if (value is Map<*, *>) value.isNotEmpty() else true }
       .toMap()
 
   private inner class SystemConfigException(message: String) : SystemException(message)

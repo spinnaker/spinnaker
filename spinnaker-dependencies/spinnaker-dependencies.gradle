@@ -24,8 +24,8 @@ ext {
     spectator        : "1.0.6",
     spek             : "1.1.5",
     spek2            : "2.0.9",
-    springBoot       : "2.3.12.RELEASE",
-    springCloud      : "Hoxton.SR12",
+    springBoot       : "2.4.13",
+    springCloud      : "2020.0.5",
     springfoxSwagger : "2.9.2",
     swagger          : "1.5.20", //this should stay in sync with what springfoxSwagger expects
     // tomcat (v9.0.31) was included via spring boot and upgrading spring boot
