@@ -72,8 +72,7 @@ public class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
 
   private OnDemandCacheResult handle(
       OnDemandType type, Collection<OnDemandAgent> onDemandAgents, Map<String, ?> data) {
-    log.debug(
-        "Calling handle on data: {}, onDemandAgents: {}, type: {}", data, onDemandAgents, type);
+    log.debug("Calling handle onDemandAgents: {}, type: {}", onDemandAgents, type);
 
     boolean hasOnDemandResults = false;
     Map<String, List<String>> cachedIdentifiersByType = new HashMap<>();
@@ -155,12 +154,11 @@ public class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
           agent.getMetricsSupport().recordTotalRunTimeNanos(elapsed);
 
           log.info(
-              "{}/{} handled {} in {}ms. Payload: {}",
+              "{}/{} handled {} in {}ms.",
               agent.getProviderName(),
               agent.getOnDemandAgentType(),
               type,
-              TimeUnit.NANOSECONDS.toMillis(elapsed),
-              data);
+              TimeUnit.NANOSECONDS.toMillis(elapsed));
         }
 
       } catch (Exception e) {
