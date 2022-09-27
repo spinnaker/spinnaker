@@ -23,6 +23,7 @@ import org.springframework.context.ApplicationEvent
 import org.springframework.context.ApplicationListener
 import org.springframework.context.event.ApplicationEventMulticaster
 import org.springframework.core.ResolvableType
+import java.util.function.Predicate
 
 /**
  * Supports sync & async event listeners. Listeners are treated as asynchronous unless
@@ -81,6 +82,16 @@ class DelegatingApplicationEventMulticaster(
   override fun removeApplicationListenerBean(listenerBeanName: String) {
     // Bean-name based listeners are async-only.
     asyncApplicationEventMulticaster.removeApplicationListenerBean(listenerBeanName)
+  }
+
+  override fun removeApplicationListeners(predicate: Predicate<ApplicationListener<*>>) {
+    asyncApplicationEventMulticaster.removeApplicationListeners(predicate)
+    syncApplicationEventMulticaster.removeApplicationListeners(predicate)
+  }
+
+  override fun removeApplicationListenerBeans(predicate: Predicate<String>) {
+    asyncApplicationEventMulticaster.removeApplicationListenerBeans(predicate)
+    syncApplicationEventMulticaster.removeApplicationListenerBeans(predicate)
   }
 
   override fun setBeanFactory(beanFactory: BeanFactory) {
