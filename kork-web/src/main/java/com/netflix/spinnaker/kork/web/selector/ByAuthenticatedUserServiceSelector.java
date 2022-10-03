@@ -28,12 +28,13 @@ public class ByAuthenticatedUserServiceSelector implements ServiceSelector {
   private final int priority;
   private final List<Pattern> userPatterns;
 
+  @SuppressWarnings("unchecked")
   public ByAuthenticatedUserServiceSelector(
       Object service, Integer priority, Map<String, Object> config) {
     this.service = service;
     this.priority = priority;
 
-    Collection<String> users = new HashSet(((Map<String, String>) config.get("users")).values());
+    Collection<String> users = new HashSet<>(((Map<String, String>) config.get("users")).values());
     this.userPatterns = users.stream().map(Pattern::compile).collect(Collectors.toList());
   }
 

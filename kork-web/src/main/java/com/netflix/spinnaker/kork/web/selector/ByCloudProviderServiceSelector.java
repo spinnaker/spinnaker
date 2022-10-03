@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Netflix, Inc.
+ * Copyright 2022 JPMorgan Chase & Co
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -17,21 +17,41 @@
 package com.netflix.spinnaker.kork.web.selector;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class ByExecutionTypeServiceSelector implements ServiceSelector {
+/**
+ * Provides logic to select a service from a configured list of options (e.g. a Clouddriver service
+ * in Orca) using the cloudProvider as a criteria. This can be used to send traffic to a specific
+ * service endpoint based on the cloud provider the traffic is touching.
+ *
+ * <p>Example usage in Orca
+ *
+ * <pre>
+ * clouddriver:
+ *   readonly:
+ *     baseUrls:
+ *     - baseUrl: https://clouddriver-readonly-orca-1.example.com
+ *       priority: 10
+ *       config:
+ *         selectorClass: com.netflix.spinnaker.kork.web.selector.ByCloudProviderServiceSelector
+ *         cloudProviders:
+ *           - kubernetes
+ *           - titus
+ * </pre>
+ */
+public class ByCloudProviderServiceSelector implements ServiceSelector {
   private final Object service;
   private final int priority;
-  private final Set<String> executionTypes;
+  private final Set<String> cloudProviders;
 
   @SuppressWarnings("unchecked")
-  public ByExecutionTypeServiceSelector(
+  public ByCloudProviderServiceSelector(
       Object service, Integer priority, Map<String, Object> config) {
     this.service = service;
     this.priority = priority;
-    this.executionTypes =
-        new HashSet<>(((Map<String, String>) config.get("executionTypes")).values());
+    this.cloudProviders = new HashSet<>((List<String>) config.get("cloudProviders"));
   }
 
   @Override
@@ -46,6 +66,6 @@ public class ByExecutionTypeServiceSelector implements ServiceSelector {
 
   @Override
   public boolean supports(SelectableService.Criteria criteria) {
-    return executionTypes.contains(criteria.getExecutionType());
+    return cloudProviders.contains(criteria.getCloudProvider());
   }
 }

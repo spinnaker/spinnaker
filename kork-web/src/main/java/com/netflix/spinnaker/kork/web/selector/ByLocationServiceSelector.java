@@ -25,10 +25,11 @@ public class ByLocationServiceSelector implements ServiceSelector {
   private final Object service;
   private final Set<String> locations;
 
+  @SuppressWarnings("unchecked")
   public ByLocationServiceSelector(Object service, Integer priority, Map<String, Object> config) {
     this.service = service;
     this.priority = priority;
-    this.locations = new HashSet(((Map<String, String>) config.get("locations")).values());
+    this.locations = new HashSet<>(((Map<String, String>) config.get("locations")).values());
   }
 
   @Override

@@ -18,7 +18,7 @@ package com.netflix.spinnaker.kork.web.selector
 
 import spock.lang.Shared
 import spock.lang.Specification
-import spock.lang.Unroll;
+import spock.lang.Unroll
 
 class SelectableServiceSpec extends Specification {
   @Shared
@@ -37,11 +37,13 @@ class SelectableServiceSpec extends Specification {
   def bakeryService = "bakery"
 
   @Unroll
-  def "should lookup service by application or executionType"() {
+  def "should lookup service by configured criteria"() {
     given:
     def selectableService = new SelectableService(
       [
+        new ByAccountServiceSelector(oortService, 10, ["accountPattern": ".*internal.*"]),
         new ByApplicationServiceSelector(mortService, 10, ["applicationPattern": ".*spindemo.*"]),
+        new ByCloudProviderServiceSelector(oortService, 10, ["cloudProviders": ["kubernetes"]]),
         new ByExecutionTypeServiceSelector(oortService, 5, ["executionTypes": [0: "orchestration"]]),
         new ByOriginServiceSelector(instanceService, 20, ["origin": "deck", "executionTypes": [0: "orchestration"]]),
         new ByAuthenticatedUserServiceSelector(bakeryService, 25, ["users": [0: "user1@email.com", 1: ".*user2.*"]]),
@@ -70,6 +72,8 @@ class SelectableServiceSpec extends Specification {
     [application: "spintest", executionType: "orchestration", origin: "api", authenticatedUser: "user1@email.com"]       || bakeryService    // user selector is highest priority
     [application: "spintest", executionType: "orchestration", origin: "api", authenticatedUser: "user2@random.com"]      || bakeryService    // user selector is highest priority
     [location: "us-east-1"]                                                                                              || bakeryService    // selects by location
+    [account: "kubernetes-internal-2"]                                                                                   || oortService      // selects by account pattern
+    [cloudProvider: "kubernetes"]                                                                                        || oortService      // selects by cloud provider
   }
 
   def "should default to all execution types if none configured (by origin selector)"() {
@@ -79,8 +83,10 @@ class SelectableServiceSpec extends Specification {
 
   private static SelectableService.Criteria criteriaWithParams(Map<String, String> params) {
     return new SelectableService.Criteria()
+      .withAccount(params.account)
       .withApplication(params.application)
       .withAuthenticatedUser(params.authenticatedUser)
+      .withCloudProvider(params.cloudProvider)
       .withOrigin(params.origin)
       .withExecutionType(params.executionType)
       .withExecutionId(params.executionId)

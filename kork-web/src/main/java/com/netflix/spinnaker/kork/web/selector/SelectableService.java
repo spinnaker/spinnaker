@@ -27,23 +27,28 @@ public class SelectableService<T> {
   }
 
   public T getService(Criteria criteria) {
-    Assert.notNull(criteria);
+    Assert.notNull(criteria, "Criteria is required to select a service");
 
     return serviceSelectors.stream()
         .filter(it -> it.supports(criteria))
-        .sorted((a, b) -> b.getPriority() - a.getPriority())
-        .findFirst()
+        .min((a, b) -> b.getPriority() - a.getPriority())
         .map(ServiceSelector::getService)
         .orElse(serviceSelectors.get(0).getService());
   }
 
   public static class Criteria {
+    private String account;
     private String application;
     private String authenticatedUser;
+    private String cloudProvider;
     private String executionType;
     private String executionId;
     private String origin;
     private String location;
+
+    public String getAccount() {
+      return account;
+    }
 
     public String getApplication() {
       return application;
@@ -51,6 +56,10 @@ public class SelectableService<T> {
 
     public String getAuthenticatedUser() {
       return authenticatedUser;
+    }
+
+    public String getCloudProvider() {
+      return cloudProvider;
     }
 
     public String getExecutionType() {
@@ -69,6 +78,11 @@ public class SelectableService<T> {
       return location;
     }
 
+    public Criteria withAccount(String account) {
+      this.account = account;
+      return this;
+    }
+
     public Criteria withApplication(String application) {
       this.application = application;
       return this;
@@ -76,6 +90,11 @@ public class SelectableService<T> {
 
     public Criteria withAuthenticatedUser(String user) {
       this.authenticatedUser = user;
+      return this;
+    }
+
+    public Criteria withCloudProvider(String cloudProvider) {
+      this.cloudProvider = cloudProvider;
       return this;
     }
 

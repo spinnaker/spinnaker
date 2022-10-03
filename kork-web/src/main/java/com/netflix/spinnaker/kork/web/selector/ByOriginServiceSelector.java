@@ -27,13 +27,14 @@ public class ByOriginServiceSelector implements ServiceSelector {
   private final String origin;
   private final Set<String> executionTypes;
 
+  @SuppressWarnings("unchecked")
   public ByOriginServiceSelector(Object service, Integer priority, Map<String, Object> config) {
     this.service = service;
     this.priority = priority;
     this.origin = (String) config.get("origin");
 
     if (config.containsKey("executionTypes")) {
-      executionTypes = new HashSet(((Map<String, String>) config.get("executionTypes")).values());
+      executionTypes = new HashSet<>(((Map<String, String>) config.get("executionTypes")).values());
     } else {
       executionTypes = new HashSet<>(Arrays.asList("pipeline", "orchestration"));
     }
