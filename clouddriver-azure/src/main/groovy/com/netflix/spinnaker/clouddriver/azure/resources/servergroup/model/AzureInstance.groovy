@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model
 
-import com.microsoft.azure.management.compute.StatusLevelTypes
-import com.microsoft.azure.management.compute.VirtualMachineScaleSetVM
+import com.azure.resourcemanager.compute.models.StatusLevelTypes
+import com.azure.resourcemanager.compute.models.VirtualMachineScaleSetVM
 import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.model.HealthState
@@ -51,7 +51,7 @@ class AzureInstance implements Instance, Serializable {
       switch (codes[0]) {
         case "ProvisioningState":
           if (codes[1].toLowerCase() == AzureUtilities.ProvisioningState.SUCCEEDED.toLowerCase()) {
-            instance.launchTime = status.time()?.millis
+            instance.launchTime = status.time()?.toEpochSecond()
           } else {
             instance.healthState = HealthState.Failed
           }

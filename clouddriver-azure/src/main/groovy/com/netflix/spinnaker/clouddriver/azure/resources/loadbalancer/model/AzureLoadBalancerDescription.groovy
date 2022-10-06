@@ -16,10 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model
 
-import com.microsoft.azure.management.network.LoadBalancer
-import com.microsoft.azure.management.network.TransportProtocol
-import com.microsoft.azure.management.network.implementation.FrontendIPConfigurationInner
-import com.microsoft.azure.management.network.implementation.LoadBalancerInner
+import com.azure.resourcemanager.network.fluent.models.LoadBalancerInner
+import com.azure.resourcemanager.network.models.ProbeProtocol
+import com.azure.resourcemanager.network.models.TransportProtocol
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.common.AzureResourceOpsDescription
@@ -88,19 +87,19 @@ class AzureLoadBalancerDescription extends AzureResourceOpsDescription {
   static AzureLoadBalancerDescription build(LoadBalancerInner azureLoadBalancer) {
     AzureLoadBalancerDescription description = new AzureLoadBalancerDescription(loadBalancerName: azureLoadBalancer.name())
     def parsedName = Names.parseName(azureLoadBalancer.name())
-    description.stack = azureLoadBalancer.tags?.stack ?: parsedName.stack
-    description.detail = azureLoadBalancer.tags?.detail ?: parsedName.detail
-    description.appName = azureLoadBalancer.tags?.appName ?: parsedName.app
-    description.cluster = azureLoadBalancer.tags?.cluster
-    description.vnet = azureLoadBalancer.tags?.vnet
-    description.createdTime = azureLoadBalancer.tags?.createdTime?.toLong()
-    description.tags.putAll(azureLoadBalancer.tags)
+    description.stack = azureLoadBalancer.tags()?.stack ?: parsedName.stack
+    description.detail = azureLoadBalancer.tags()?.detail ?: parsedName.detail
+    description.appName = azureLoadBalancer.tags()?.appName ?: parsedName.app
+    description.cluster = azureLoadBalancer.tags()?.cluster
+    description.vnet = azureLoadBalancer.tags()?.vnet
+    description.createdTime = azureLoadBalancer.tags()?.createdTime?.toLong()
+    description.tags.putAll(azureLoadBalancer.tags())
     description.region = azureLoadBalancer.location()
-    description.internal = azureLoadBalancer.tags?.internal != null
+    description.internal = azureLoadBalancer.tags()?.internal != null
 
-    def frontendIPConfigurations = azureLoadBalancer?.frontendIPConfigurations()
+    def frontendIPConfigurations = azureLoadBalancer?.frontendIpConfigurations()
     if (frontendIPConfigurations != null && !frontendIPConfigurations.isEmpty()) {
-      description.publicIpName = AzureUtilities.getNameFromResourceId(frontendIPConfigurations?.first()?.publicIPAddress()?.id())
+      description.publicIpName = AzureUtilities.getNameFromResourceId(frontendIPConfigurations?.first()?.publicIpAddress()?.id())
     }
 
     // Each load balancer backend address pool corresponds to a server group (except the "default_LB_BAP")
@@ -134,7 +133,7 @@ class AzureLoadBalancerDescription extends AzureResourceOpsDescription {
       p.probePath = probe.requestPath()
       p.probePort = probe.port()
       p.unhealthyThreshold = probe.numberOfProbes()
-      if (probe.protocol() == TransportProtocol.TCP) {
+      if (probe.protocol() == ProbeProtocol.TCP) {
         p.probeProtocol = AzureLoadBalancerProbe.AzureLoadBalancerProbesType.TCP
       } else {
         p.probeProtocol = AzureLoadBalancerProbe.AzureLoadBalancerProbesType.HTTP

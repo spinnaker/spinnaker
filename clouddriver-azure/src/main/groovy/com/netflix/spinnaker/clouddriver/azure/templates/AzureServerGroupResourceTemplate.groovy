@@ -30,11 +30,11 @@
  */
 package com.netflix.spinnaker.clouddriver.azure.templates
 
+import com.azure.resourcemanager.compute.models.ResourceIdentityType
+import com.azure.resourcemanager.compute.models.VirtualMachineScaleSetDataDisk
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
-import com.microsoft.azure.management.compute.ResourceIdentityType
-import com.microsoft.azure.management.compute.VirtualMachineScaleSetDataDisk
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancer
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription

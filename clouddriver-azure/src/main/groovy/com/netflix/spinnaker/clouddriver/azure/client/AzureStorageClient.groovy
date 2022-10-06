@@ -16,13 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.azure.client
 
-import com.microsoft.azure.credentials.ApplicationTokenCredentials
-import com.microsoft.azure.storage.CloudStorageAccount
-import com.microsoft.azure.storage.blob.CloudBlobClient
-import com.microsoft.azure.storage.blob.CloudBlobContainer
-import com.microsoft.azure.storage.blob.CloudBlobDirectory
-import com.microsoft.azure.storage.blob.ListBlobItem
-import com.microsoft.rest.ServiceResponse
+import com.azure.core.credential.TokenCredential
+import com.azure.core.http.rest.Response
+import com.azure.core.management.profile.AzureProfile
+import com.azure.storage.blob.BlobContainerClient
+import com.azure.storage.blob.BlobContainerClientBuilder
+import com.azure.storage.blob.models.BlobItem
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureCustomImageStorage
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureCustomVMImage
 import groovy.transform.CompileStatic
@@ -33,8 +32,8 @@ import groovy.util.logging.Slf4j
 class AzureStorageClient extends AzureBaseClient {
   static final String AZURE_IMAGE_FILE_EXT = ".vhd"
 
-  AzureStorageClient(String subscriptionId, ApplicationTokenCredentials credentials, String userAgentApplicationName) {
-    super(subscriptionId, userAgentApplicationName, credentials)
+  AzureStorageClient(String subscriptionId, TokenCredential credentials, AzureProfile azureProfile) {
+    super(subscriptionId, azureProfile, credentials)
   }
 
   /**
@@ -44,7 +43,7 @@ class AzureStorageClient extends AzureBaseClient {
    * @throws RuntimeException Throws RuntimeException if operation response indicates failure
    * @return a ServiceResponse object
    */
-  ServiceResponse<Void> deleteStorageAccount(String resourceGroupName, String storageName) {
+  Response<Void> deleteStorageAccount(String resourceGroupName, String storageName) {
 
     deleteAzureResource(
       azure.storageAccounts().&deleteByResourceGroup,
@@ -68,34 +67,24 @@ class AzureStorageClient extends AzureBaseClient {
       if (storage && storage.scs && storage.blobDir && storage.osType) {
         try {
           ArrayList<String> blobDirectoryList = []
+          blobDirectoryList.addAll(storage.blobDir.split("/"))
+          final BlobContainerClient blobContainerClient = new BlobContainerClientBuilder()
+            .connectionString(storage.scs)
+            .containerName(blobDirectoryList.remove(0))
 
-          // Retrieve storage account from connection-string.
-          CloudStorageAccount storageAccount = CloudStorageAccount.parse(storage.scs)
-
-          // retrieve the blob client.
-          CloudBlobClient blobClient = storageAccount.createCloudBlobClient()
-          String dirDelimiter = blobClient.getDirectoryDelimiter()
-          blobDirectoryList.addAll(storage.blobDir.split(dirDelimiter))
-          def container = blobClient.getContainerReference(blobDirectoryList.remove(0))
-
-          if (container) {
+            .buildClient()
+          if (blobContainerClient.exists()) {
             if (blobDirectoryList.size()) {
-              def dir = blobDirectoryList.remove(0)
-              def blob = container.getDirectoryReference(dir)
+              String folderPath = blobDirectoryList.join("/")
 
-              while (blobDirectoryList.size()) {
-                dir = blobDirectoryList.remove(0)
-                blob = blob.getDirectoryReference(dir)
-              }
 
-              if (blob) {
-                getBlobsContent(blob, AZURE_IMAGE_FILE_EXT).each { String uri ->
-                  vmImages.add(getAzureCustomVMImage(uri, dirDelimiter, storage.osType, storage.region))
+                getBlobsContent(blobContainerClient.listBlobsByHierarchy(folderPath).asList(), AZURE_IMAGE_FILE_EXT).each { String uri ->
+                  vmImages.add(getAzureCustomVMImage(uri, '/', storage.osType, storage.region))
                 }
-              }
+
             } else {
-              getBlobsContent(container, AZURE_IMAGE_FILE_EXT).each { String uri ->
-                vmImages.add(getAzureCustomVMImage(uri, dirDelimiter, storage.osType, storage.region))
+              getBlobsContent(blobContainerClient, AZURE_IMAGE_FILE_EXT).each { String uri ->
+                vmImages.add(getAzureCustomVMImage(uri, "/", storage.osType, storage.region))
               }
             }
           }
@@ -113,16 +102,16 @@ class AzureStorageClient extends AzureBaseClient {
 
   /**
    * Return list of files in a CloudBlobDirectory matching a filter
-   * @param blobDir - CloudBlobDirectory to retrieve the content from
+   * @param blobItems - CloudBlobDirectory to retrieve the content from
    * @param filter - extension of the files to be retrieved
    * @return List of URI strings corresponding to the files found
    */
-  static List<String> getBlobsContent(CloudBlobDirectory blobDir, String filter) {
+  static List<String> getBlobsContent(List<BlobItem> blobItems, String filter) {
     def uriList = new ArrayList<String>()
 
-    blobDir.listBlobs().each { ListBlobItem blob ->
-      if (blob.uri.toString().toLowerCase().endsWith(filter)) {
-        uriList.add(blob.uri.toString())
+    blobItems.each { BlobItem blob ->
+      if (blob.getName().toLowerCase().endsWith(filter)) {
+        uriList.add(blob.getName())
       }
     }
 
@@ -135,39 +124,12 @@ class AzureStorageClient extends AzureBaseClient {
    * @param filter - extension of the files to be retrieved
    * @return List of URI strings corresponding to the files found
    */
-  static List<String> getBlobsContent(CloudBlobContainer container, String filter) {
+  static List<String> getBlobsContent(BlobContainerClient container, String filter) {
     def uriList = new ArrayList<String>()
 
-    container?.listBlobs()?.each { ListBlobItem blob ->
-      if (blob.uri.toString().toLowerCase().endsWith(filter)) {
-        uriList.add(blob.uri.toString())
-      }
-    }
-
-    uriList
-  }
-
-  /**
-   * Return list of files in a CloudBlobDirectory matching a filter recursively
-   * @param blobDir - CloudBlobDirectory to retrieve the content from
-   * @param filter - extension of the files to be retrieved
-   * @return List of URI strings corresponding to the files found
-   */
-  static List<String> getBlobsContentAll(CloudBlobDirectory blobDir, String filter) {
-    def uriList = new ArrayList<String>()
-
-    blobDir?.listBlobs()?.each { ListBlobItem blob ->
-      try {
-        // try converting current blob item to a CloudBlobDirectory; if conversion fails an exception is thrown
-        CloudBlobDirectory blobDirectory = blob as CloudBlobDirectory
-        if (blobDirectory) {
-          uriList.addAll(getBlobsContentAll(blobDirectory, filter))
-        }
-      } catch(Exception e) {
-        // blob must be a regular item
-        if (blob.uri.toString().toLowerCase().endsWith(filter)) {
-          uriList.add(blob.uri.toString())
-        }
+    container?.listBlobs()?.each { BlobItem blob ->
+      if (blob.getName().toLowerCase().endsWith(filter)) {
+        uriList.add(blob.getName())
       }
     }
 
@@ -180,21 +142,16 @@ class AzureStorageClient extends AzureBaseClient {
    * @param filter - extension of the files to be retrieved
    * @return List of URI strings corresponding to the files found
    */
-  static List<String> getBlobsContentAll(CloudBlobContainer container, String filter) {
+  static List<String> getBlobsContentAll(BlobContainerClient container, String filter) {
     def uriList = new ArrayList<String>()
 
-    container?.listBlobs()?.each { ListBlobItem blob ->
-      try {
-        CloudBlobDirectory blobDirectory = blob as CloudBlobDirectory
-        if (blobDirectory) {
-          uriList.addAll(getBlobsContentAll(blobDirectory, filter))
+    container?.listBlobs()?.each { BlobItem blob ->
+
+        if (blob.isPrefix()) {
+          uriList.addAll(getBlobsContentAll(container.getBlobClient(blob.getName()).getContainerClient(), filter))
+        } else if (blob.getName().toLowerCase().endsWith(filter)) {
+          uriList.add(blob.getName())
         }
-      } catch(Exception e) {
-        // blob must be a regular item
-        if (blob.uri.toString().toLowerCase().endsWith(filter)) {
-          uriList.add(blob.uri.toString())
-        }
-      }
     }
 
     uriList

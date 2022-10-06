@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.appgateway.ops
 
-import com.microsoft.azure.CloudException
-import com.microsoft.azure.management.resources.Deployment
+import com.azure.core.management.exception.ManagementException
+import com.azure.resourcemanager.resources.models.Deployment
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.common.model.AzureDeploymentOperation
 import com.netflix.spinnaker.clouddriver.azure.resources.appgateway.model.AzureAppGatewayDescription
@@ -157,7 +157,7 @@ class UpsertAzureAppGatewayAtomicOperation implements AtomicOperation<Map> {
           if (!subnetName || vnet?.subnets?.find { it.name == subnetName }) {
             // virtualNetworkName is not yet in the cache or the subnet we try to create already exists; we'll use the current vnet
             //   we just got to re-compute the next subnet
-            vnetDescription = AzureVirtualNetworkDescription.getDescriptionForVirtualNetwork(vnet)
+            vnetDescription = AzureVirtualNetworkDescription.getDescriptionForVirtualNetwork(vnet.innerModel())
             nextSubnetAddressPrefix = AzureVirtualNetworkDescription.getNextSubnetAddressPrefix(vnetDescription, rand.nextInt(vnetDescription?.maxSubnets ?: 1))
             subnetName = AzureUtilities.getSubnetName(virtualNetworkName, nextSubnetAddressPrefix)
           }
@@ -192,7 +192,7 @@ class UpsertAzureAppGatewayAtomicOperation implements AtomicOperation<Map> {
         errList = AzureDeploymentOperation.checkDeploymentOperationStatus(task, BASE_PHASE, description.credentials, resourceGroupName, deployment.name())
         loadBalancerName = description.name
       }
-    } catch (CloudException ce) {
+    } catch (ManagementException e) {
       task.updateStatus(BASE_PHASE, "One or more deployment operations have failed. Please see Azure portal for more information. Resource Group: ${resourceGroupName} Application Gateway: ${description.loadBalancerName}")
       errList.add(ce.message)
     } catch (Throwable e) {

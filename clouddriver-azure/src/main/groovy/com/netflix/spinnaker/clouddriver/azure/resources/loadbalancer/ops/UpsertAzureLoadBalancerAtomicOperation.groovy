@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.ops
 
-import com.microsoft.azure.CloudException
-import com.microsoft.azure.management.resources.Deployment
+import com.azure.core.management.exception.ManagementException
+import com.azure.resourcemanager.resources.models.Deployment
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.common.model.AzureDeploymentOperation
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancerDescription
@@ -90,7 +90,7 @@ class UpsertAzureLoadBalancerAtomicOperation implements AtomicOperation<Map> {
         "loadBalancer")
 
       errList = AzureDeploymentOperation.checkDeploymentOperationStatus(task, BASE_PHASE, description.credentials, resourceGroupName, deployment.name())
-    } catch (CloudException ce) {
+    } catch (ManagementException ce) {
       task.updateStatus(BASE_PHASE, "One or more deployment operations have failed. Please see Azure portal for more information. Resource Group: ${resourceGroupName} Load Balancer: ${description.loadBalancerName}")
       errList.add(ce.message)
     } catch (Throwable e) {

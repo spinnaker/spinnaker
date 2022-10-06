@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model
 
-import com.microsoft.azure.management.compute.InstanceViewStatus
-import com.microsoft.azure.management.compute.Sku
-import com.microsoft.azure.management.compute.VirtualMachineInstanceView
-import com.microsoft.azure.management.compute.VirtualMachineScaleSetVM
+import com.azure.resourcemanager.compute.models.InstanceViewStatus
+import com.azure.resourcemanager.compute.models.Sku
+import com.azure.resourcemanager.compute.models.VirtualMachineInstanceView
+import com.azure.resourcemanager.compute.models.VirtualMachineScaleSetVM
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import spock.lang.Specification
@@ -29,12 +29,12 @@ class AzureInstanceSpec extends Specification {
   def 'should generate a correctly structured instance'(){
     def vm = Mock(VirtualMachineScaleSetVM)
     def instanceView = Mock(VirtualMachineInstanceView)
-    def sku = Mock(Sku)
+    def sku = new Sku()
 
     def provisioningStatus = new InstanceViewStatus()
-    provisioningStatus.code = 'ProvisioningState/' + AzureUtilities.ProvisioningState.SUCCEEDED
+    provisioningStatus.withCode( 'ProvisioningState/' + AzureUtilities.ProvisioningState.SUCCEEDED)
     def powerStatus = new InstanceViewStatus()
-    powerStatus.code = 'PowerState/Running'
+    powerStatus.withCode( 'PowerState/Running')
 
     List<InstanceViewStatus> statuses = [provisioningStatus, powerStatus]
 

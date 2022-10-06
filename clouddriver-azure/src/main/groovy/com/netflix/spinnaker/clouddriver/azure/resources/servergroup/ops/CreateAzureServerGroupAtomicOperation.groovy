@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.servergroup.ops
 
-import com.microsoft.azure.management.resources.Deployment
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.common.model.AzureDeploymentOperation
 import com.netflix.spinnaker.clouddriver.azure.resources.network.model.AzureVirtualNetworkDescription
@@ -29,6 +28,8 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationException
 import org.springframework.beans.factory.annotation.Autowired
+
+import com.azure.resourcemanager.resources.models.Deployment
 
 class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
   private static final String BASE_PHASE = "CREATE_SERVER_GROUP"
@@ -133,7 +134,7 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
         if (!subnetName || vnet?.subnets?.find { it.name == subnetName }) {
           // virtualNetworkName is not yet in the cache or the subnet we try to create already exists; we'll use the current vnet
           //   we just got to re-compute the next subnet
-          vnetDescription = AzureVirtualNetworkDescription.getDescriptionForVirtualNetwork(vnet)
+          vnetDescription = AzureVirtualNetworkDescription.getDescriptionForVirtualNetwork(vnet.innerModel())
           nextSubnetAddressPrefix = AzureVirtualNetworkDescription.getNextSubnetAddressPrefix(vnetDescription, rand.nextInt(vnetDescription?.maxSubnets ?: 1))
           subnetName = AzureUtilities.getSubnetName(virtualNetworkName, nextSubnetAddressPrefix)
         }
@@ -228,7 +229,7 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
           .networkClient
           .enableServerGroupWithAppGateway(resourceGroupName, description.appGatewayName, description.name)
 
-        def healthy = description.credentials.computeClient.waitForScaleSetHealthy(resourceGroupName, description.name, SERVER_WAIT_TIMEOUT);
+        def healthy = description.credentials.computeClient.waitForScaleSetHealthy(resourceGroupName, description.name, SERVER_WAIT_TIMEOUT)
 
         if (healthy) {
           task.updateStatus BASE_PHASE, "Done enabling Azure server group ${description.name} in ${description.region}."

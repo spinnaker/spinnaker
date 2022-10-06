@@ -16,44 +16,46 @@
 
 package com.netflix.spinnaker.clouddriver.azure.client
 
+import com.azure.core.credential.TokenCredential
+import com.azure.core.http.policy.HttpLogDetailLevel
+import com.azure.core.http.rest.Response
+import com.azure.core.management.AzureEnvironment
+import com.azure.core.management.exception.ManagementException
+import com.azure.core.management.profile.AzureProfile
+import com.azure.identity.ClientSecretCredentialBuilder
+import com.azure.resourcemanager.AzureResourceManager
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
-import com.microsoft.azure.AzureEnvironment
-import com.microsoft.azure.CloudException
-import com.microsoft.azure.credentials.ApplicationTokenCredentials
-import com.microsoft.azure.management.Azure
-import com.microsoft.rest.LogLevel
-import com.microsoft.rest.ServiceResponse
+
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
 @Slf4j
 @CompileStatic
-public abstract class AzureBaseClient {
+abstract class AzureBaseClient {
   final String subscriptionId
   final static long AZURE_ATOMICOPERATION_RETRY = 5
   static ObjectMapper mapper
-  final String userAgentApplicationName
-  final Azure azure
+  final AzureResourceManager azure
 
   /**
    * Constructor
    * @param subscriptionId - the Azure subscription to use
    */
-  protected AzureBaseClient(String subscriptionId, String userAgentAppName, ApplicationTokenCredentials credentials) {
+  protected AzureBaseClient(String subscriptionId, AzureProfile azureProfile, TokenCredential credentials) {
     this.subscriptionId = subscriptionId
     mapper = new ObjectMapper().configure(SerializationFeature.INDENT_OUTPUT, true)
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-    this.userAgentApplicationName = userAgentAppName
-    this.azure = initialize(credentials, subscriptionId, userAgentAppName)
+    this.azure = initialize(credentials, subscriptionId, azureProfile)
   }
 
-  private Azure initialize(ApplicationTokenCredentials credentials, String subscriptionId, String userAgentAppName) {
-    Azure.configure()
-      .withLogLevel(LogLevel.NONE)
-      .withUserAgent(userAgentAppName)
-      .authenticate(credentials)
+  private AzureResourceManager initialize(TokenCredential credentials, String subscriptionId, AzureProfile azureProfile) {
+
+    AzureResourceManager
+      .configure()
+      .withLogLevel(HttpLogDetailLevel.NONE)
+      .authenticate(credentials, azureProfile)
       .withSubscription(subscriptionId)
   }
 
@@ -66,18 +68,29 @@ public abstract class AzureBaseClient {
    * @return
    */
 
-  static ApplicationTokenCredentials getTokenCredentials(String clientId, String tenantId, String secret, String configuredAzureEnvironment) {
-    if ( configuredAzureEnvironment == "AZURE_US_GOVERNMENT") {
-      return new ApplicationTokenCredentials(clientId, tenantId, secret, AzureEnvironment.AZURE_US_GOVERNMENT);
-    }
-    else if ( configuredAzureEnvironment == "AZURE_CHINA") {
-      return new ApplicationTokenCredentials(clientId, tenantId, secret, AzureEnvironment.AZURE_CHINA)
-    }
-    else if ( configuredAzureEnvironment == "AZURE_GERMANY") {
-      return new ApplicationTokenCredentials(clientId, tenantId, secret, AzureEnvironment.AZURE_GERMANY)
-    }
-    else {
-      return new ApplicationTokenCredentials(clientId, tenantId, secret, AzureEnvironment.AZURE)
+  static TokenCredential getTokenCredentials(String clientId, String tenantId, String secret, String configuredAzureEnvironment) {
+
+    def azureProfile = getAzureProfile(configuredAzureEnvironment)
+
+    return new ClientSecretCredentialBuilder()
+      .clientId(clientId)
+      .clientSecret(secret)
+      .tenantId(tenantId)
+      .authorityHost(azureProfile.getEnvironment().getActiveDirectoryEndpoint())
+      .build()
+
+  }
+
+  static AzureProfile getAzureProfile(String configuredAzureEnvironment) {
+    switch (configuredAzureEnvironment) {
+      case "AZURE_US_GOVERNMENT":
+        return new AzureProfile(AzureEnvironment.AZURE_US_GOVERNMENT)
+      case "AZURE_CHINA":
+        return new AzureProfile(AzureEnvironment.AZURE_CHINA)
+      case "AZURE_GERMANY":
+        return new AzureProfile(AzureEnvironment.AZURE_GERMANY)
+      default:
+        return new AzureProfile(AzureEnvironment.AZURE)
     }
   }
 
@@ -127,8 +140,8 @@ public abstract class AzureBaseClient {
    */
   private static boolean canRetry(Exception e) {
     boolean retry = false
-    if (e.class == CloudException) {
-      def code = (e as CloudException).response().code()
+    if (e.class == ManagementException) {
+      def code = (e as ManagementException).getResponse().getStatusCode()
       retry = (code == HttpURLConnection.HTTP_CLIENT_TIMEOUT
         || (code >= HttpURLConnection.HTTP_INTERNAL_ERROR && code <= HttpURLConnection.HTTP_GATEWAY_TIMEOUT))
     } else if (e.class == SocketTimeoutException) {
@@ -145,9 +158,9 @@ public abstract class AzureBaseClient {
    * @return True if the exception encountered was a 429 Response and it was handled
    */
   private static boolean handleTooManyRequestsResponse(Exception e) {
-    if (e.class == CloudException.class) {
-      if ((e as CloudException).response().code() == 429) {
-        int retryAfterIntervalSec = (e as CloudException).response().headers().get("Retry-After").toInteger()
+    if (e.class == ManagementException.class) {
+      if ((e as ManagementException).getResponse().getStatusCode() == 429) {
+        int retryAfterIntervalSec = (e as ManagementException).getResponse().getHeaderValue("Retry-After").toInteger()
         if (retryAfterIntervalSec) {
           log.warn("Received 'Too Many Requests' (429) response from Azure. Retrying in $retryAfterIntervalSec seconds")
           sleep(retryAfterIntervalSec * 1000) // convert to milliseconds
@@ -158,10 +171,10 @@ public abstract class AzureBaseClient {
     false
   }
 
-  static ServiceResponse<Void> deleteAzureResource( Closure azureOps, String resourceGroup, String resourceName, String parentResourceName, String msgRetry, String msgFail, long count = AZURE_ATOMICOPERATION_RETRY) {
+  static Response<Void> deleteAzureResource(Closure azureOps, String resourceGroup, String resourceName, String parentResourceName, String msgRetry, String msgFail, long count = AZURE_ATOMICOPERATION_RETRY) {
     // The API call might return a timeout exception or some other Azure CloudException that is not the direct result of the operation
     //   we are trying to execute; retry and if the final retry fails then throw
-    ServiceResponse<Void> result = null
+    Response<Void> result = null
     long operationRetry = 0
     while (operationRetry < count) {
       try {
@@ -173,7 +186,7 @@ public abstract class AzureBaseClient {
         }
         operationRetry = count
       }
-      catch (CloudException e) {
+      catch (ManagementException e) {
         if (resourceNotFound(e)) {
           // resource was not found; must have been deleted already
           operationRetry = count
@@ -198,7 +211,7 @@ public abstract class AzureBaseClient {
   }
 
   static Boolean resourceNotFound(Exception e) {
-    e.class == CloudException ? (e as CloudException).response().code() == HttpURLConnection.HTTP_NOT_FOUND : false
+    e.class == ManagementException ? (e as ManagementException).getResponse().getStatusCode() == HttpURLConnection.HTTP_NOT_FOUND : false
   }
 
   /***

@@ -16,11 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model
 
-import com.google.common.collect.Sets
-import com.microsoft.azure.management.compute.TerminateNotificationProfile
-import com.microsoft.azure.management.compute.ResourceIdentityType
-import com.microsoft.azure.management.compute.VirtualMachineScaleSetDataDisk
-import com.microsoft.azure.management.compute.implementation.VirtualMachineScaleSetInner
+import com.azure.resourcemanager.compute.fluent.models.VirtualMachineScaleSetInner
+import com.azure.resourcemanager.compute.models.ResourceIdentityType
+import com.azure.resourcemanager.compute.models.VirtualMachineScaleSetDataDisk
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
@@ -45,9 +43,9 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
   final String type = AzureCloudProvider.ID
   final String cloudProvider = AzureCloudProvider.ID
   Map<String, Object> launchConfig
-  ServerGroup.Capacity capacity
-  ServerGroup.ImagesSummary imagesSummary
-  ServerGroup.ImageSummary imageSummary
+  Capacity capacity
+  ImagesSummary imagesSummary
+  ImageSummary imageSummary
 
   UpgradePolicy upgradePolicy
   String loadBalancerName
@@ -159,8 +157,8 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
   }
 
   @Override
-  ServerGroup.Capacity getCapacity() {
-    new ServerGroup.Capacity(
+  Capacity getCapacity() {
+    new Capacity(
       min: 1,
       max: instances ? instances.size() : 1,
       desired: instances ? instances.size() : 1
@@ -172,17 +170,17 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
     azureSG.name = scaleSet.name()
     def parsedName = Names.parseName(scaleSet.name())
     // Get the values from the tags if they exist
-    azureSG.tags = scaleSet.tags ? scaleSet.tags : [:]
+    azureSG.tags = scaleSet.tags() ? scaleSet.tags() : [:]
     // favor tag settings then Frigga name parser
-    azureSG.appName = scaleSet.tags?.appName ?: parsedName.app
-    azureSG.stack = scaleSet.tags?.stack ?: parsedName.stack
-    azureSG.detail = scaleSet.tags?.detail ?: parsedName.detail
+    azureSG.appName = scaleSet.tags()?.appName ?: parsedName.app
+    azureSG.stack = scaleSet.tags()?.stack ?: parsedName.stack
+    azureSG.detail = scaleSet.tags()?.detail ?: parsedName.detail
     azureSG.application = azureSG.appName
-    azureSG.clusterName = scaleSet.tags?.cluster ?: parsedName.cluster
-    azureSG.securityGroupName = scaleSet.tags?.securityGroupName
-    azureSG.loadBalancerName = scaleSet.tags?.loadBalancerName
-    azureSG.enableInboundNAT = scaleSet.tags?.enableInboundNAT
-    azureSG.appGatewayName = scaleSet.tags?.appGatewayName
+    azureSG.clusterName = scaleSet.tags()?.cluster ?: parsedName.cluster
+    azureSG.securityGroupName = scaleSet.tags()?.securityGroupName
+    azureSG.loadBalancerName = scaleSet.tags()?.loadBalancerName
+    azureSG.enableInboundNAT = scaleSet.tags()?.enableInboundNAT
+    azureSG.appGatewayName = scaleSet.tags()?.appGatewayName
     if (azureSG.appGatewayName == null && azureSG.loadBalancerName == null) {
       azureSG.loadBalancerType = null
     } else if (azureSG.appGatewayName == null) {
@@ -190,7 +188,7 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
     } else {
       azureSG.loadBalancerType = AzureLoadBalancer.AzureLoadBalancerType.AZURE_APPLICATION_GATEWAY.toString()
     }
-    azureSG.appGatewayBapId = scaleSet.tags?.appGatewayBapId
+    azureSG.appGatewayBapId = scaleSet.tags()?.appGatewayBapId
 
     def networkInterfaceConfigurations = scaleSet.virtualMachineProfile()?.networkProfile()?.networkInterfaceConfigurations()
 
@@ -199,20 +197,20 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
     }
     // scaleSet.virtualMachineProfile()?.networkProfile()?.networkInterfaceConfigurations()?[0].ipConfigurations()?[0].applicationGatewayBackendAddressPools()?[0].id()
     // TODO: appGatewayBapId can be retrieved via scaleSet->networkProfile->networkInterfaceConfigurations->ipConfigurations->ApplicationGatewayBackendAddressPools
-    azureSG.subnetId = scaleSet.tags?.subnetId
+    azureSG.subnetId = scaleSet.tags()?.subnetId
     azureSG.subnet = AzureUtilities.getNameFromResourceId(azureSG.subnetId)
-    azureSG.vnet = azureSG.subnetId ? AzureUtilities.getNameFromResourceId(azureSG.subnetId) : scaleSet.tags?.vnet
-    azureSG.vnetResourceGroup = azureSG.subnetId ? AzureUtilities.getResourceGroupNameFromResourceId(azureSG.subnetId) : scaleSet.tags?.vnetResourceGroup
-    azureSG.hasNewSubnet = (scaleSet.tags?.hasNewSubnet == "true")
+    azureSG.vnet = azureSG.subnetId ? AzureUtilities.getNameFromResourceId(azureSG.subnetId) : scaleSet.tags()?.vnet
+    azureSG.vnetResourceGroup = azureSG.subnetId ? AzureUtilities.getResourceGroupNameFromResourceId(azureSG.subnetId) : scaleSet.tags()?.vnetResourceGroup
+    azureSG.hasNewSubnet = (scaleSet.tags()?.hasNewSubnet == "true")
 
-    azureSG.createdTime = scaleSet.tags?.createdTime?.toLong()
-    azureSG.image = new AzureNamedImage(isCustom: scaleSet.tags?.customImage, imageName: scaleSet.tags?.imageName)
+    azureSG.createdTime = scaleSet.tags()?.createdTime?.toLong()
+    azureSG.image = new AzureNamedImage(isCustom: scaleSet.tags()?.customImage, imageName: scaleSet.tags()?.imageName)
     if (!azureSG.image.isCustom) {
       // Azure server group which was created using Azure Market Store images will have a number of storage accounts
       //   that were created at the time the server group was created; these storage account should be in saved in the
       //   tags map under storageAccountNames key as a comma separated list of strings
       azureSG.storageAccountNames = new ArrayList<String>()
-      String storageNames = scaleSet.tags?.storageAccountNames
+      String storageNames = scaleSet.tags()?.storageAccountNames
 
       if (storageNames) azureSG.storageAccountNames.addAll(storageNames.split(","))
     }

@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.common.model
 
+import com.azure.resourcemanager.resources.fluent.models.DeploymentOperationInner
+import com.azure.resourcemanager.resources.models.DeploymentOperation
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.microsoft.azure.management.resources.DeploymentOperation
-import com.microsoft.azure.management.resources.implementation.DeploymentOperationInner
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -51,7 +51,7 @@ class AzureDeploymentOperation {
     Integer checkDeployment = 0
 
     while (checkDeployment < AZURE_DEPLOYMENT_OPERATION_STATUS_RETRIES_MAX) {
-      deploymentState = creds.resourceManagerClient.getDeployment(resourceGroupName, deploymentName).inner().properties().provisioningState()
+      deploymentState = creds.resourceManagerClient.getDeployment(resourceGroupName, deploymentName).innerModel().properties().provisioningState()
 
       creds.resourceManagerClient.getDeploymentOperations(resourceGroupName, deploymentName).each { DeploymentOperation d ->
 
@@ -60,7 +60,7 @@ class AzureDeploymentOperation {
         // acting on. The operations for all the resources created in the deployment do get returned and we can
         // identify which operation is for what resource. So for now, until we get clarity from the SDK, we will
         // ignore those operations that have a null target resource.
-        DeploymentOperationInner inner = d.inner()
+        DeploymentOperationInner inner = d.innerModel()
         if (inner.properties().targetResource()) {
           if (!resourceCompletedState.containsKey(inner.id())) {
             resourceCompletedState[inner.id()] = false

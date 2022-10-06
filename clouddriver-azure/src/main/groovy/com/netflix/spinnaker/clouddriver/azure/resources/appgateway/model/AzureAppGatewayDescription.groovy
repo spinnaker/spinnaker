@@ -16,8 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.appgateway.model
 
-import com.microsoft.azure.management.network.ApplicationGatewayProtocol
-import com.microsoft.azure.management.network.implementation.ApplicationGatewayInner
+import com.azure.resourcemanager.network.fluent.models.ApplicationGatewayInner
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.common.AzureResourceOpsDescription

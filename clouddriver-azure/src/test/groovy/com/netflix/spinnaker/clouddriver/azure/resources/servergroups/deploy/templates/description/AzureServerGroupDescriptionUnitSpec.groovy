@@ -16,15 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.servergroups.deploy.templates.description
 
-import com.microsoft.azure.management.compute.ImageReference
-import com.microsoft.azure.management.compute.Sku
-import com.microsoft.azure.management.compute.UpgradeMode
-import com.microsoft.azure.management.compute.UpgradePolicy
-import com.microsoft.azure.management.compute.VirtualMachineScaleSetOSProfile
-import com.microsoft.azure.management.compute.VirtualMachineScaleSetStorageProfile
-import com.microsoft.azure.management.compute.VirtualMachineScaleSetVMProfile
-import com.microsoft.azure.management.compute.implementation.VirtualMachineScaleSetInner
-import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
+import com.azure.resourcemanager.compute.fluent.models.VirtualMachineScaleSetInner
+import com.azure.resourcemanager.compute.models.ImageReference
+import com.azure.resourcemanager.compute.models.Sku
+import com.azure.resourcemanager.compute.models.UpgradeMode
+import com.azure.resourcemanager.compute.models.UpgradePolicy
+import com.azure.resourcemanager.compute.models.VirtualMachineScaleSetOSProfile
+import com.azure.resourcemanager.compute.models.VirtualMachineScaleSetStorageProfile
+import com.azure.resourcemanager.compute.models.VirtualMachineScaleSetVMProfile
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureNamedImage
 import spock.lang.Specification
@@ -87,12 +86,12 @@ class AzureServerGroupDescriptionUnitSpec extends Specification {
 
   private static Boolean descriptionIsValid(AzureServerGroupDescription description, VirtualMachineScaleSetInner scaleSet) {
     (description.name == scaleSet.name()
-      && description.appName == scaleSet.tags.appName
-      && description.tags == scaleSet.tags
-      && description.stack == scaleSet.tags.stack
-      && description.detail == scaleSet.tags.detail
-      && description.application == scaleSet.tags.appName
-      && description.clusterName == scaleSet.tags.cluster
+      && description.appName == scaleSet.tags().appName
+      && description.tags == scaleSet.tags()
+      && description.stack == scaleSet.tags().stack
+      && description.detail == scaleSet.tags().detail
+      && description.application == scaleSet.tags().appName
+      && description.clusterName == scaleSet.tags().cluster
       && description.region == scaleSet.location()
       && description.upgradePolicy.name().toLowerCase() == scaleSet.upgradePolicy().mode().name().toLowerCase()
       && isValidImage(description.image, scaleSet)

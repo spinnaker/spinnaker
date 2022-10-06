@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.azure.resources.servergroups.deploy.templates
+package com.netflix.spinnaker.clouddriver.azure.resources.servergroups.deploy
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -29,7 +29,11 @@ import spock.lang.Specification
 class AzureServerGroupResourceTemplateSpec extends Specification {
   ObjectMapper objectMapper
   AzureServerGroupDescription description
+  static AzureCredentials azureCredentials
 
+  def setupSpec() {
+    azureCredentials = new AzureCredentials("", "", "", "", "", "", "", "", false)
+  }
   void setup() {
     description = createDescription(false)
     objectMapper = new ObjectMapper().configure(SerializationFeature.INDENT_OUTPUT, true)
@@ -283,7 +287,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
     description.loadBalancerName = 'load-balancer-name'
     description.loadBalancerType = AzureLoadBalancer.AzureLoadBalancerType.AZURE_APPLICATION_GATEWAY.toString()
 
-    description.credentials = new AzureCredentials("", "", "", "", "", "", "", "", false)
+    description.credentials = azureCredentials
 
     description
   }

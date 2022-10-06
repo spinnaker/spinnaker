@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.network.model
 
-import com.microsoft.azure.management.network.implementation.VirtualNetworkInner
+import com.azure.resourcemanager.network.fluent.models.VirtualNetworkInner
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.common.AzureResourceOpsDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.subnet.model.AzureSubnetDescription
@@ -48,9 +48,9 @@ class AzureVirtualNetworkDescription extends AzureResourceOpsDescription {
     description.resourceId = vnet.id()
     description.resourceGroup = AzureUtilities.getResourceGroupNameFromResourceId(vnet.id())
     description.id = vnet.name()
-    if (vnet.getTags()){
+    if (vnet.tags()){
       description.tags = new HashMap<String, Object>()
-      description.tags.putAll(vnet.getTags())
+      description.tags.putAll(vnet.tags())
     }
     description.subnetAddressPrefixLength = description.subnets?.min {it.addressPrefixLength}?.addressPrefixLength ?: AzureUtilities.SUBNET_DEFAULT_ADDRESS_PREFIX_LENGTH
     description.maxSubnets = AzureUtilities.getSubnetRangeMax(

@@ -16,11 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.network.model
 
-import com.fasterxml.jackson.core.util.DefaultIndenter
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter
+import com.azure.resourcemanager.network.fluent.models.VirtualNetworkInner
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
-import com.microsoft.azure.management.network.implementation.VirtualNetworkInner
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -56,29 +54,43 @@ class AzureVirtualNetworkDescriptionSpec extends Specification {
     mapper.configure(SerializationFeature.INDENT_OUTPUT, true)
     mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
 
-    def input = [
-      name: "vnet-test-westus",
-      location: "westus",
-      id: "vnet-test-westus-id",
-      "properties.addressSpace": [
-        addressPrefixes: ["10.0.0.0/8"]
-      ],
-      "properties.subnets": [
-        [
-          name: "vnet-test-westus-subnet-10_0_1_0_24",
-          "properties.addressPrefix": "10.0.1.0/24"
-        ],
-        [
-          name: "vnet-test-westus-subnet-10_0_2_0_24",
-          "properties.addressPrefix": "10.0.2.0/24"
-        ],
-        [
-          name: "vnet-test-westus-subnet-10_0_30_0_24",
-          "properties.addressPrefix": "10.0.30.0/24"
-        ]
-      ],
-    ]
-    def vnet = mapper.convertValue(input, VirtualNetworkInner) as VirtualNetworkInner
+    String input =
+      '''
+        {
+           "location":"westus",
+           "name":"vnet-test-westus",
+           "id":"vnet-test-westus-id",
+           "properties":{
+              "addressSpace":{
+                 "addressPrefixes":[
+                    "10.0.0.0/8"
+                 ]
+              },
+              "subnets":[
+                 {
+                    "properties":{
+                       "addressPrefix":"10.0.1.0/24"
+                    },
+                    "name":"vnet-test-westus-subnet-10_0_1_0_24"
+                 },
+                 {
+                    "properties":{
+                       "addressPrefix":"10.0.2.0/24"
+                    },
+                    "name":"vnet-test-westus-subnet-10_0_2_0_24"
+                 },
+                 {
+                    "properties":{
+                       "addressPrefix":"10.0.30.0/24"
+                    },
+                    "name":"vnet-test-westus-subnet-10_0_30_0_24"
+                 }
+              ]
+           }
+        }
+      '''
+
+    def vnet = mapper.readValue(input, VirtualNetworkInner.class)
 
     when:
     def vnetDescription = AzureVirtualNetworkDescription.getDescriptionForVirtualNetwork(vnet)
@@ -88,7 +100,7 @@ class AzureVirtualNetworkDescriptionSpec extends Specification {
 
     then:
     vnetDescription instanceof AzureVirtualNetworkDescription
-    mapper.writeValueAsString(vnetDescription).replace('\r', '') == expectedFullDescription
+    mapper.writeValueAsString(vnetDescription) == expectedFullDescription
     nextSubnetAddressPrefix1 == "10.0.3.0/24"
     nextSubnetAddressPrefix2 == "10.0.31.0/24"
     nextSubnetAddressPrefix3 == "10.0.10.0/24"

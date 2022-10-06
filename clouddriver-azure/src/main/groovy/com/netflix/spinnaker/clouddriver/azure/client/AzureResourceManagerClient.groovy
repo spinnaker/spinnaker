@@ -16,14 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.azure.client
 
-import com.microsoft.azure.CloudException
-import com.microsoft.azure.credentials.ApplicationTokenCredentials
-import com.microsoft.azure.management.network.Network
-import com.microsoft.azure.management.resources.Deployment
-import com.microsoft.azure.management.resources.DeploymentMode
-import com.microsoft.azure.management.resources.DeploymentOperation
-import com.microsoft.azure.management.resources.Provider
-import com.microsoft.azure.management.resources.ResourceGroup
+import com.azure.core.credential.TokenCredential
+import com.azure.core.management.exception.ManagementException
+import com.azure.core.management.profile.AzureProfile
+import com.azure.resourcemanager.network.models.Network
+import com.azure.resourcemanager.resources.models.Deployment
+import com.azure.resourcemanager.resources.models.DeploymentMode
+import com.azure.resourcemanager.resources.models.DeploymentOperation
+import com.azure.resourcemanager.resources.models.Provider
+import com.azure.resourcemanager.resources.models.ResourceGroup
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -37,8 +38,8 @@ class AzureResourceManagerClient extends AzureBaseClient {
    * @param subscriptionId - Azure Subscription ID
    * @param credentials - Token Credentials to use for communication with Auzre
    */
-  AzureResourceManagerClient(String subscriptionId, ApplicationTokenCredentials credentials, String userAgentApplicationName = "") {
-    super(subscriptionId, userAgentApplicationName, credentials)
+  AzureResourceManagerClient(String subscriptionId, TokenCredential credentials, AzureProfile azureProfile) {
+    super(subscriptionId, azureProfile, credentials)
   }
 
 
@@ -142,8 +143,7 @@ class AzureResourceManagerClient extends AzureBaseClient {
         .getByResourceGroup(resourceGroupName, deploymentName)
         .deploymentOperations()
         .list()
-      list.loadAll()
-      list
+      list.asList()
     })
   }
 
@@ -183,7 +183,7 @@ class AzureResourceManagerClient extends AzureBaseClient {
 
     try {
       vNet = azure.networks().getByResourceGroup(resourceGroupName, virtualNetworkName)
-    } catch (CloudException ignore) {
+    } catch (ManagementException ignore) {
       // Assumes that a cloud exception means that the rest call failed to locate the vNet
       log.warn("Failed to locate Azure Virtual Network ${virtualNetworkName}")
     }

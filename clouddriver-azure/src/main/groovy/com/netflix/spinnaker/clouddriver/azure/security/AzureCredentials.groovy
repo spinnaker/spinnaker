@@ -53,14 +53,15 @@ class AzureCredentials {
     this.useSshPublicKey = useSshPublicKey
 
     def token = AzureBaseClient.getTokenCredentials(this.clientId, this.tenantId, this.appKey, this.configuredAzureEnvironment)
+    def azureProfile = AzureBaseClient.getAzureProfile(this.configuredAzureEnvironment)
 
-    resourceManagerClient = new AzureResourceManagerClient(this.subscriptionId, token, userAgentApplicationName)
+    resourceManagerClient = new AzureResourceManagerClient(this.subscriptionId, token, azureProfile)
 
-    networkClient = new AzureNetworkClient(this.subscriptionId, token, userAgentApplicationName)
+    networkClient = new AzureNetworkClient(this.subscriptionId, token, azureProfile)
 
-    computeClient = new AzureComputeClient(this.subscriptionId, token, userAgentApplicationName)
+    computeClient = new AzureComputeClient(this.subscriptionId, token, azureProfile)
 
-    storageClient = new AzureStorageClient(this.subscriptionId, token, userAgentApplicationName)
+    storageClient = new AzureStorageClient(this.subscriptionId, token, azureProfile)
 
     registerProviders()
   }

@@ -16,18 +16,19 @@
 
 package com.netflix.spinnaker.clouddriver.azure.client
 
-import com.microsoft.azure.CloudException
-import com.microsoft.azure.credentials.ApplicationTokenCredentials
-import com.microsoft.azure.management.compute.VirtualMachineScaleSet
-import com.microsoft.azure.management.compute.VirtualMachineScaleSetVMs
-import com.microsoft.azure.management.network.LoadBalancer
-import com.microsoft.azure.management.network.LoadBalancerInboundNatPool
-import com.microsoft.azure.management.network.LoadBalancingRule
-import com.microsoft.azure.management.network.Network
-import com.microsoft.azure.management.network.PublicIPAddress
-import com.microsoft.azure.management.network.TransportProtocol
-import com.microsoft.azure.management.network.implementation.NetworkSecurityGroupInner
-import com.microsoft.rest.ServiceResponse
+import com.azure.core.credential.TokenCredential
+import com.azure.core.http.rest.Response
+import com.azure.core.management.exception.ManagementException
+import com.azure.core.management.profile.AzureProfile
+import com.azure.resourcemanager.compute.models.VirtualMachineScaleSet
+import com.azure.resourcemanager.compute.models.VirtualMachineScaleSetVMs
+import com.azure.resourcemanager.network.fluent.models.NetworkSecurityGroupInner
+import com.azure.resourcemanager.network.models.LoadBalancer
+import com.azure.resourcemanager.network.models.LoadBalancerInboundNatPool
+import com.azure.resourcemanager.network.models.LoadBalancingRule
+import com.azure.resourcemanager.network.models.Network
+import com.azure.resourcemanager.network.models.PublicIpAddress
+import com.azure.resourcemanager.network.models.TransportProtocol
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.appgateway.model.AzureAppGatewayDescription
@@ -50,8 +51,8 @@ class AzureNetworkClient extends AzureBaseClient {
   private final Integer NAT_POOL_PORT_END = 59999
   private final Integer NAT_POOL_PORT_NUMBER_PER_POOL = 100
 
-  AzureNetworkClient(String subscriptionId, ApplicationTokenCredentials credentials, String userAgentApplicationName) {
-    super(subscriptionId, userAgentApplicationName, credentials)
+  AzureNetworkClient(String subscriptionId, TokenCredential credentials, AzureProfile azureProfile) {
+    super(subscriptionId, azureProfile, credentials)
   }
 
   /**
@@ -64,17 +65,17 @@ class AzureNetworkClient extends AzureBaseClient {
 
     try {
       def loadBalancers = executeOp({
-        azure.loadBalancers().list()
+        azure.loadBalancers().list().asList()
       })
       def currentTime = System.currentTimeMillis()
       loadBalancers?.each { item ->
-        if (item.inner().location() == region) {
+        if (item.innerModel().location() == region) {
           try {
-            def lbItem = AzureLoadBalancerDescription.build(item.inner())
-            if (item.publicIPAddressIds() && !item.publicIPAddressIds().isEmpty()) {
+            def lbItem = AzureLoadBalancerDescription.build(item.innerModel())
+            if (item.publicIpAddressIds() && !item.publicIpAddressIds().isEmpty()) {
               lbItem.dnsName = getDnsNameForPublicIp(
                 AzureUtilities.getResourceGroupNameFromResourceId(item.id()),
-                AzureUtilities.getNameFromResourceId(item.publicIPAddressIds()?.first())
+                AzureUtilities.getNameFromResourceId(item.publicIpAddressIds()?.first())
               )
             }
             lbItem.lastReadTime = currentTime
@@ -106,15 +107,15 @@ class AzureNetworkClient extends AzureBaseClient {
         azure.loadBalancers().getByResourceGroup(resourceGroupName, loadBalancerName)
       })
       if (item) {
-        def lbItem = AzureLoadBalancerDescription.build(item.inner())
+        def lbItem = AzureLoadBalancerDescription.build(item.innerModel())
         lbItem.dnsName = getDnsNameForPublicIp(
           AzureUtilities.getResourceGroupNameFromResourceId(item.id()),
-          AzureUtilities.getNameFromResourceId(item.publicIPAddressIds()?.first())
+          AzureUtilities.getNameFromResourceId(item.publicIpAddressIds()?.first())
         )
         lbItem.lastReadTime = currentTime
         return lbItem
       }
-    } catch (CloudException e) {
+    } catch (ManagementException e) {
       log.error("getLoadBalancer(${resourceGroupName},${loadBalancerName}) -> Cloud Exception ", e)
     }
 
@@ -127,14 +128,14 @@ class AzureNetworkClient extends AzureBaseClient {
    * @param loadBalancerName name of the load balancer to delete
    * @return a ServiceResponse object
    */
-  ServiceResponse deleteLoadBalancer(String resourceGroupName, String loadBalancerName) {
+  Response deleteLoadBalancer(String resourceGroupName, String loadBalancerName) {
     def loadBalancer = azure.loadBalancers().getByResourceGroup(resourceGroupName, loadBalancerName)
 
-    if (loadBalancer?.publicIPAddressIds()?.size() != 1) {
+    if (loadBalancer?.publicIpAddressIds()?.size() != 1) {
       throw new RuntimeException("Unexpected number of public IP addresses associated with the load balancer (should always be only one)!")
     }
 
-    def publicIpAddressName = AzureUtilities.getNameFromResourceId(loadBalancer.publicIPAddressIds()?.first())
+    def publicIpAddressName = AzureUtilities.getNameFromResourceId(loadBalancer.publicIpAddressIds()?.first())
 
     deleteAzureResource(
       azure.loadBalancers().&deleteByResourceGroup,
@@ -155,10 +156,10 @@ class AzureNetworkClient extends AzureBaseClient {
    * @param publicIpName name of the publicIp resource to delete
    * @return a ServiceResponse object
    */
-  ServiceResponse deletePublicIp(String resourceGroupName, String publicIpName) {
+  Response deletePublicIp(String resourceGroupName, String publicIpName) {
 
     deleteAzureResource(
-      azure.publicIPAddresses().&deleteByResourceGroup,
+      azure.publicIpAddresses().&deleteByResourceGroup,
       resourceGroupName,
       publicIpName,
       null,
@@ -180,10 +181,10 @@ class AzureNetworkClient extends AzureBaseClient {
         azure.applicationGateways().getByResourceGroup(resourceGroupName, appGatewayName)
       })
       if (appGateway) {
-        def agItem = AzureAppGatewayDescription.getDescriptionForAppGateway(appGateway.inner())
+        def agItem = AzureAppGatewayDescription.getDescriptionForAppGateway(appGateway.innerModel())
         agItem.dnsName = getDnsNameForPublicIp(
           AzureUtilities.getResourceGroupNameFromResourceId(appGateway.id()),
-          AzureUtilities.getNameFromResourceId(appGateway.defaultPublicFrontend().publicIPAddressId())
+          AzureUtilities.getNameFromResourceId(appGateway.defaultPublicFrontend().publicIpAddressId())
         )
         agItem.lastReadTime = currentTime
         return agItem
@@ -210,12 +211,12 @@ class AzureNetworkClient extends AzureBaseClient {
       })
 
       appGateways.each { item ->
-        if (item.inner().location() == region) {
+        if (item.innerModel().location() == region) {
           try {
-            def agItem = AzureAppGatewayDescription.getDescriptionForAppGateway(item.inner())
+            def agItem = AzureAppGatewayDescription.getDescriptionForAppGateway(item.innerModel())
             agItem.dnsName = getDnsNameForPublicIp(
               AzureUtilities.getResourceGroupNameFromResourceId(item.id()),
-              AzureUtilities.getNameFromResourceId(item.defaultPublicFrontend().publicIPAddressId())
+              AzureUtilities.getNameFromResourceId(item.defaultPublicFrontend().publicIpAddressId())
             )
             agItem.lastReadTime = currentTime
             result << agItem
@@ -239,8 +240,8 @@ class AzureNetworkClient extends AzureBaseClient {
    * @param appGatewayName name of the Application Gateway resource to delete
    * @return a ServiceResponse object or an Exception if we can't delete
    */
-  ServiceResponse deleteAppGateway(String resourceGroupName, String appGatewayName) {
-    ServiceResponse result
+  Response deleteAppGateway(String resourceGroupName, String appGatewayName) {
+    Response result
     def appGateway = executeOp({
       azure.applicationGateways().getByResourceGroup(resourceGroupName, appGatewayName)
     })
@@ -254,7 +255,7 @@ class AzureNetworkClient extends AzureBaseClient {
 
     // TODO: retrieve private IP address name when support for it is added
     // First item in the application gateway frontend IP configurations is the public IP address we are loking for
-    def publicIpAddressName = AzureUtilities.getNameFromResourceId(appGateway?.defaultPublicFrontend().publicIPAddressId())
+    def publicIpAddressName = AzureUtilities.getNameFromResourceId(appGateway?.defaultPublicFrontend().publicIpAddressId())
 
     result = deleteAzureResource(
       azure.applicationGateways().&deleteByResourceGroup,
@@ -285,7 +286,7 @@ class AzureNetworkClient extends AzureBaseClient {
     })
 
     if (appGateway) {
-      def agDescription = AzureAppGatewayDescription.getDescriptionForAppGateway(appGateway.inner())
+      def agDescription = AzureAppGatewayDescription.getDescriptionForAppGateway(appGateway.innerModel())
       def parsedName = Names.parseName(serverGroupName)
 
       if (!agDescription || (agDescription.cluster && agDescription.cluster != parsedName.cluster)) {
@@ -332,7 +333,7 @@ class AzureNetworkClient extends AzureBaseClient {
     })
 
     if (appGateway) {
-      def agDescription = AzureAppGatewayDescription.getDescriptionForAppGateway(appGateway.inner())
+      def agDescription = AzureAppGatewayDescription.getDescriptionForAppGateway(appGateway.innerModel())
 
       if (!agDescription) {
         def errMsg = "Failed to disassociate ${serverGroupName} from ${appGatewayName}; could not find ${appGatewayName}"
@@ -454,7 +455,7 @@ class AzureNetworkClient extends AzureBaseClient {
       })
 
       if (loadBalancer.inboundNatPools()?.containsKey(serverGroupName)) {
-        return loadBalancer.inboundNatPools().get(serverGroupName).inner().id()
+        return loadBalancer.inboundNatPools().get(serverGroupName).innerModel().id()
       }
       int portStart = findUnusedPortsRange(usedPortList, NAT_POOL_PORT_START, NAT_POOL_PORT_END, NAT_POOL_PORT_NUMBER_PER_POOL)
       if(portStart == -1) {
@@ -492,7 +493,7 @@ class AzureNetworkClient extends AzureBaseClient {
       }
 
       update.attach().apply()
-      return loadBalancer.inboundNatPools().get(serverGroupName).inner().id()
+      return loadBalancer.inboundNatPools().get(serverGroupName).innerModel().id()
 
     } else {
       throw new RuntimeException("Load balancer ${loadBalancerName} not found in resource group ${resourceGroupName}")
@@ -532,7 +533,7 @@ class AzureNetworkClient extends AzureBaseClient {
     String id
     if (loadBalancer) {
       if (loadBalancer.inboundNatPools()?.containsKey(serverGroupName)) {
-        id = loadBalancer.inboundNatPools().get(serverGroupName).inner().id()
+        id = loadBalancer.inboundNatPools().get(serverGroupName).innerModel().id()
 
         loadBalancer.update()
           .withoutInboundNatPool(serverGroupName)
@@ -814,11 +815,11 @@ class AzureNetworkClient extends AzureBaseClient {
    * @param securityGroupName name of the Azure network security group to delete
    * @return a ServiceResponse object
    */
-  ServiceResponse deleteSecurityGroup(String resourceGroupName, String securityGroupName) {
+  Response deleteSecurityGroup(String resourceGroupName, String securityGroupName) {
     def associatedSubnets = azure.networkSecurityGroups().getByResourceGroup(resourceGroupName, securityGroupName).listAssociatedSubnets()
 
     associatedSubnets?.each{ associatedSubnet ->
-      def subnetName = associatedSubnet.inner().name()
+      def subnetName = associatedSubnet.innerModel().name()
       associatedSubnet
         .parent()
         .update()
@@ -890,7 +891,7 @@ class AzureNetworkClient extends AzureBaseClient {
     chain.attach()
       .apply()
 
-    virtualNetwork.subnets().get(subnetName).inner().id()
+    virtualNetwork.subnets().get(subnetName).innerModel().id()
   }
 
   /**
@@ -901,7 +902,7 @@ class AzureNetworkClient extends AzureBaseClient {
    * @throws RuntimeException Throws RuntimeException if operation response indicates failure
    * @return a ServiceResponse object
    */
-  ServiceResponse<Void> deleteSubnet(String resourceGroupName, String virtualNetworkName, String subnetName) {
+  Response<Void> deleteSubnet(String resourceGroupName, String virtualNetworkName, String subnetName) {
 
     deleteAzureResource(
       {
@@ -932,9 +933,9 @@ class AzureNetworkClient extends AzureBaseClient {
       })
       def currentTime = System.currentTimeMillis()
       securityGroups?.each { item ->
-        if (item.inner().location() == region) {
+        if (item.innerModel().location() == region) {
           try {
-            def sgItem = getAzureSecurityGroupDescription(item.inner())
+            def sgItem = getAzureSecurityGroupDescription(item.innerModel())
             sgItem.lastReadTime = currentTime
             result += sgItem
           } catch (RuntimeException re) {
@@ -963,7 +964,7 @@ class AzureNetworkClient extends AzureBaseClient {
         azure.networkSecurityGroups().getByResourceGroup(resourceGroupName, securityGroupName)
       })
       def currentTime = System.currentTimeMillis()
-      def sgItem = getAzureSecurityGroupDescription(securityGroup.inner())
+      def sgItem = getAzureSecurityGroupDescription(securityGroup.innerModel())
       sgItem.lastReadTime = currentTime
 
       return sgItem
@@ -984,12 +985,12 @@ class AzureNetworkClient extends AzureBaseClient {
     sgItem.provisioningState = item.provisioningState()
     sgItem.resourceGuid = item.id()
     sgItem.resourceId = item.id()
-    sgItem.tags.putAll(item.tags)
+    sgItem.tags.putAll(item.tags())
     def parsedName = Names.parseName(item.name())
-    sgItem.stack = item.tags?.stack ?: parsedName.stack
-    sgItem.detail = item.tags?.detail ?: parsedName.detail
-    sgItem.appName = item.tags?.appName ?: parsedName.app
-    sgItem.createdTime = item.tags?.createdTime?.toLong()
+    sgItem.stack = item.tags()?.stack ?: parsedName.stack
+    sgItem.detail = item.tags()?.detail ?: parsedName.detail
+    sgItem.appName = item.tags()?.appName ?: parsedName.app
+    sgItem.createdTime = item.tags()?.createdTime?.toLong()
     sgItem.type = item.type()
     sgItem.securityRules = new ArrayList<AzureSecurityGroupDescription.AzureSGRule>()
     item.securityRules().each { rule ->
@@ -1033,9 +1034,9 @@ class AzureNetworkClient extends AzureBaseClient {
       })
       def currentTime = System.currentTimeMillis()
       vnets?.each { item ->
-        if (item.inner().location() == region) {
+        if (item.innerModel().location() == region) {
           try {
-            AzureSubnetDescription.getSubnetsForVirtualNetwork(item.inner()).each { AzureSubnetDescription subnet ->
+            AzureSubnetDescription.getSubnetsForVirtualNetwork(item.innerModel()).each { AzureSubnetDescription subnet ->
               subnet.lastReadTime = currentTime
               result += subnet
             }
@@ -1078,14 +1079,14 @@ class AzureNetworkClient extends AzureBaseClient {
       })
       def currentTime = System.currentTimeMillis()
       vnetList?.each { item ->
-        if (item.inner().location() == region) {
+        if (item.innerModel().location() == region) {
           try {
-            if (item?.inner().addressSpace()?.addressPrefixes()?.size() != 1) {
-              log.warn("Virtual Network found with ${item?.inner().addressSpace()?.addressPrefixes()?.size()} address spaces; expected: 1")
+            if (item?.innerModel().addressSpace()?.addressPrefixes()?.size() != 1) {
+              log.warn("Virtual Network found with ${item?.innerModel().addressSpace()?.addressPrefixes()?.size()} address spaces; expected: 1")
             }
 
-            def vnet = AzureVirtualNetworkDescription.getDescriptionForVirtualNetwork(item.inner())
-            vnet.subnets = AzureSubnetDescription.getSubnetsForVirtualNetwork(item.inner()).toList()
+            def vnet = AzureVirtualNetworkDescription.getDescriptionForVirtualNetwork(item.innerModel())
+            vnet.subnets = AzureSubnetDescription.getSubnetsForVirtualNetwork(item.innerModel()).toList()
 
 //            def appGateways = executeOp({ appGatewayOps.listAll() })?.body
 //            AzureSubnetDescription.getAppGatewaysConnectedResources(vnet, appGateways.findAll { it.location == region })
@@ -1095,7 +1096,7 @@ class AzureNetworkClient extends AzureBaseClient {
           } catch (RuntimeException re) {
             // if we get a runtime exception here, log it but keep processing the rest of the
             // virtual networks
-            log.error("Unable to process virtual network ${item.inner().name()}", re)
+            log.error("Unable to process virtual network ${item.innerModel().name()}", re)
           }
         }
       }
@@ -1116,9 +1117,9 @@ class AzureNetworkClient extends AzureBaseClient {
     String dnsName = "dns-not-found"
 
     try {
-      PublicIPAddress publicIp = publicIpName ?
+      PublicIpAddress publicIp = publicIpName ?
         executeOp({
-          azure.publicIPAddresses().getByResourceGroup(resourceGroupName, publicIpName)
+          azure.publicIpAddresses().getByResourceGroup(resourceGroupName, publicIpName)
         }) : null
       if (publicIp?.fqdn()) dnsName = publicIp.fqdn()
     } catch (Exception e) {

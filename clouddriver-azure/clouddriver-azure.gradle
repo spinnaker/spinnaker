@@ -13,8 +13,13 @@ dependencies {
   implementation "org.codehaus.groovy:groovy-all"
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
-  implementation 'com.microsoft.azure:adal4j:1.6.3'
-  implementation 'com.microsoft.azure:azure:1.35.0'
+  implementation "com.azure.resourcemanager:azure-resourcemanager:2.19.0"
+  implementation "com.azure:azure-identity:1.6.0"
+  implementation "com.azure:azure-storage-blob:12.19.1"
+  implementation("io.projectreactor:reactor-core:3.4.23") {
+    force = true
+  }
+
 
   testImplementation "cglib:cglib-nodep"
   testImplementation "org.objenesis:objenesis"

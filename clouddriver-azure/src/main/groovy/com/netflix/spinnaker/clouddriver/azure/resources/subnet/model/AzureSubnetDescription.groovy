@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.subnet.model
 
-import com.microsoft.azure.management.network.implementation.SubnetInner
-import com.microsoft.azure.management.network.implementation.VirtualNetworkInner
+import com.azure.resourcemanager.network.fluent.models.SubnetInner
+import com.azure.resourcemanager.network.fluent.models.VirtualNetworkInner
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.common.AzureResourceOpsDescription
 import groovy.transform.CompileStatic

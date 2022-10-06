@@ -16,15 +16,16 @@
 
 package com.netflix.spinnaker.clouddriver.azure.client
 
-import com.microsoft.azure.CloudException
-import com.microsoft.azure.credentials.ApplicationTokenCredentials
-import com.microsoft.azure.management.compute.VirtualMachineImage
-import com.microsoft.azure.management.compute.VirtualMachineOffer
-import com.microsoft.azure.management.compute.VirtualMachinePublisher
-import com.microsoft.azure.management.compute.VirtualMachineScaleSetVM
-import com.microsoft.azure.management.compute.VirtualMachineSizes
-import com.microsoft.azure.management.compute.VirtualMachineSku
-import com.microsoft.rest.ServiceResponse
+import com.azure.core.credential.TokenCredential
+import com.azure.core.http.rest.Response
+import com.azure.core.management.exception.ManagementException
+import com.azure.core.management.profile.AzureProfile
+import com.azure.resourcemanager.compute.models.VirtualMachineImage
+import com.azure.resourcemanager.compute.models.VirtualMachineOffer
+import com.azure.resourcemanager.compute.models.VirtualMachinePublisher
+import com.azure.resourcemanager.compute.models.VirtualMachineScaleSetVM
+import com.azure.resourcemanager.compute.models.VirtualMachineSizes
+import com.azure.resourcemanager.compute.models.VirtualMachineSku
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureInstance
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureVMImage
@@ -38,8 +39,8 @@ import groovy.util.logging.Slf4j
 @CompileStatic
 public class AzureComputeClient extends AzureBaseClient {
 
-  AzureComputeClient(String subscriptionId, ApplicationTokenCredentials credentials, String userAgentApplicationName) {
-    super(subscriptionId, userAgentApplicationName, credentials)
+  AzureComputeClient(String subscriptionId, TokenCredential credentials, AzureProfile azureProfile) {
+    super(subscriptionId, azureProfile, credentials)
   }
 
   /**
@@ -49,25 +50,26 @@ public class AzureComputeClient extends AzureBaseClient {
    */
   List<AzureVMImage> getVMImagesAll(String location) {
     def result = [] as List<AzureVMImage>
-
     try {
       List<VirtualMachinePublisher> publishers = executeOp({
         azure.virtualMachineImages()
           .publishers()
           .listByRegion(location)
+          .asList()
       })
+
 
       log.info("getVMImagesAll-> Found ${publishers.size()} publisher items in azure/${location}")
 
       publishers?.each { publisher ->
         List<VirtualMachineOffer> offers = executeOp({
-          publisher.offers().list()
+          publisher.offers().list().asList()
         })
         log.info("getVMImagesAll-> Found ${offers.size()} offer items for ${publisher} in azure/${location}")
 
         offers?.each { offer ->
           List<VirtualMachineSku> skus = executeOp({
-            offer.skus().list()
+            offer.skus().list().asList()
           })
           log.info("getVMImagesAll-> Found ${skus.size()} SKU items for ${publisher}/${offer} in azure/${location}")
 
@@ -75,7 +77,7 @@ public class AzureComputeClient extends AzureBaseClient {
             // Add a try/catch here in order to avoid an all-or-nothing return
             try {
               List<VirtualMachineImage> images = executeOp({
-                sku.images().list()
+                sku.images().list().asList()
               })
               log.info("getVMImagesAll-> Found ${skus.size()} version items for ${publisher}/${offer}/${sku} in azure/${location}")
 
@@ -126,7 +128,7 @@ public class AzureComputeClient extends AzureBaseClient {
       vmssList?.each { scaleSet ->
         if (scaleSet.regionName() == region) {
           try {
-            def sg = AzureServerGroupDescription.build(scaleSet.inner())
+            def sg = AzureServerGroupDescription.build(scaleSet.innerModel())
             sg.lastReadTime = lastReadTime
             serverGroups.add(sg)
           } catch (Exception e) {
@@ -146,10 +148,10 @@ public class AzureComputeClient extends AzureBaseClient {
       def vmss = executeOp({
         azure.virtualMachineScaleSets().getByResourceGroup(resourceGroupName, serverGroupName)
       })
-      def sg = AzureServerGroupDescription.build(vmss.inner())
+      def sg = AzureServerGroupDescription.build(vmss.innerModel())
       sg.lastReadTime = System.currentTimeMillis()
       return sg
-    } catch (CloudException e) {
+    } catch (ManagementException e) {
       if (resourceNotFound(e)) {
         log.warn("ServerGroup: ${e.message} (${serverGroupName} was not found)")
       } else {
@@ -165,7 +167,7 @@ public class AzureComputeClient extends AzureBaseClient {
    * @param serverGroupName - name of the server group
    * @return a ServiceResponse object
    */
-  ServiceResponse<Void> destroyServerGroup(String resourceGroupName, String serverGroupName) {
+  Response<Void> destroyServerGroup(String resourceGroupName, String serverGroupName) {
     deleteAzureResource(
       azure.virtualMachineScaleSets().&deleteByResourceGroup,
       resourceGroupName,
@@ -186,7 +188,7 @@ public class AzureComputeClient extends AzureBaseClient {
     def instances = new ArrayList<AzureInstance>()
 
     executeOp({
-      List<VirtualMachineScaleSetVM> vms = azure.virtualMachineScaleSets().getByResourceGroup(resourceGroupName, serverGroupName)?.virtualMachines()?.list()
+      List<VirtualMachineScaleSetVM> vms = azure.virtualMachineScaleSets().getByResourceGroup(resourceGroupName, serverGroupName)?.virtualMachines()?.list()?.asList()
       vms?.each {
         instances.add(AzureInstance.build(it))
       }
@@ -230,13 +232,13 @@ public class AzureComputeClient extends AzureBaseClient {
     result
   }
 
-  ServiceResponse<Void> resizeServerGroup(String resourceGroupName, String serverGroupName, int capacity) {
+  Response<Void> resizeServerGroup(String resourceGroupName, String serverGroupName, int capacity) {
     try {
       def vmss = executeOp({
         azure.virtualMachineScaleSets().getByResourceGroup(resourceGroupName, serverGroupName)
       })
       vmss.update().withCapacity(capacity).apply()
-    } catch (CloudException e) {
+    } catch (ManagementException e) {
       if (resourceNotFound(e)) {
         log.warn("ServerGroup: ${e.message} (${serverGroupName} was not found)")
       } else {
