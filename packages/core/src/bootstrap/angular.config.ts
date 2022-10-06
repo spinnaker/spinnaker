@@ -35,6 +35,7 @@ bootstrapModule.config([
     $locationProvider.html5Mode({
       enabled: SETTINGS.feature.html5Routing,
       rewriteLinks: false,
+      requireBase: false,
     });
   },
 ]);
