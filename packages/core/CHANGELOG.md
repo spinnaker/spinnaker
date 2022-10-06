@@ -3,6 +3,27 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.22.1](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.22.0...@spinnaker/core@0.22.1) (2022-10-06)
+
+
+### Bug Fixes
+
+* **core:** Do not set static document base URL ([#9890](https://github.com/spinnaker/deck/issues/9890)) ([5ac7516](https://github.com/spinnaker/deck/commit/5ac75160cf8b6099aaea8b31874ebbbb13409b2a)), closes [#9802](https://github.com/spinnaker/deck/issues/9802) [spinnaker/spinnaker#6723](https://github.com/spinnaker/spinnaker/issues/6723)
+* **search:** Error thrown when search version 2 is enabled ([#9888](https://github.com/spinnaker/deck/issues/9888)) ([af0b585](https://github.com/spinnaker/deck/commit/af0b5854dc2a35d643c06baa25a07bfc425fc154))
+
+
+
+# 3.12.0 (2022-09-09)
+
+
+### Bug Fixes
+
+* **notifications:** Added space in Google Chat notification. ([#9884](https://github.com/spinnaker/deck/issues/9884)) ([ed1d5f8](https://github.com/spinnaker/deck/commit/ed1d5f8691f7155c5c346916ad871c9993ea8363))
+
+
+
+
+
 # [0.22.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.21.0...@spinnaker/core@0.22.0) (2022-08-03)
 
 

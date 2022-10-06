@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.3.2](https://github.com/spinnaker/deck/compare/deck-app@2.3.1...deck-app@2.3.2) (2022-10-06)
+
+
+### Bug Fixes
+
+* **core:** Do not set static document base URL ([#9890](https://github.com/spinnaker/deck/issues/9890)) ([5ac7516](https://github.com/spinnaker/deck/commit/5ac75160cf8b6099aaea8b31874ebbbb13409b2a)), closes [#9802](https://github.com/spinnaker/deck/issues/9802) [spinnaker/spinnaker#6723](https://github.com/spinnaker/spinnaker/issues/6723)
+
+
+
+
+
 ## [2.3.1](https://github.com/spinnaker/deck/compare/deck-app@2.3.0...deck-app@2.3.1) (2022-08-25)
 
 **Note:** Version bump only for package deck-app
