@@ -84,13 +84,17 @@ public class ExpressionsSupport {
                 HashMap.class,
                 LinkedHashMap.class,
                 TreeMap.class,
-                TreeSet.class));
+                TreeSet.class,
+                NotEvaluableExpression.class));
     Collections.addAll(allowedReturnTypes, extraAllowedReturnTypes);
 
     expressionFunctionProviders =
         new ArrayList<>(
             Arrays.asList(
-                new JsonExpressionFunctionProvider(), new StringExpressionFunctionProvider()));
+                new FlowExpressionFunctionProvider(),
+                new JsonExpressionFunctionProvider(),
+                new StringExpressionFunctionProvider()));
+
     if (extraExpressionFunctionProviders != null) {
       expressionFunctionProviders.addAll(extraExpressionFunctionProviders);
     }
@@ -187,6 +191,32 @@ public class ExpressionsSupport {
   }
 
   @SuppressWarnings("unused")
+  public static class FlowExpressionFunctionProvider implements ExpressionFunctionProvider {
+    /**
+     * @param o represents an object to restrict expressions evaluation
+     * @return not evaluable expression
+     */
+    public static NotEvaluableExpression doNotEval(Object o) {
+      return new NotEvaluableExpression(o);
+    }
+
+    @Override
+    public String getNamespace() {
+      return null;
+    }
+
+    @Override
+    public Functions getFunctions() {
+      return new Functions(
+          new FunctionDefinition(
+              "doNotEval",
+              "Restrict expressions evaluation for an object",
+              new FunctionParameter(
+                  Object.class, "value", "An object to restrict expressions evaluation")));
+    }
+  }
+
+  @SuppressWarnings("unused")
   public static class JsonExpressionFunctionProvider implements ExpressionFunctionProvider {
     /**
      * @param o represents an object to convert to json
@@ -194,6 +224,10 @@ public class ExpressionsSupport {
      */
     public static String toJson(Object o) {
       try {
+        if (o instanceof NotEvaluableExpression) {
+          return mapper.writeValueAsString(((NotEvaluableExpression) o).getExpression());
+        }
+
         String converted = mapper.writeValueAsString(o);
         if (converted != null && converted.contains("${")) {
           throw new SpelHelperFunctionException("result for toJson cannot contain an expression");
