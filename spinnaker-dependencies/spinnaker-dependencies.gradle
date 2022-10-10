@@ -11,7 +11,7 @@ ext {
     bouncycastle     : "1.64", // 1.64 removes CVE-2019-17359
     brave            : "5.12.3",
     gcp              : "25.3.0",
-    groovy           : "2.5.14", //this needs to keep in sync with the version from boot... if we could get rid of groovy-all we'd no longer need this
+    groovy           : "2.5.15", //this needs to keep in sync with the version from boot... if we could get rid of groovy-all we'd no longer need this
     jooq             : "3.13.6",
     jsch             : "0.1.54",
     jschAgentProxy   : "0.0.9",
