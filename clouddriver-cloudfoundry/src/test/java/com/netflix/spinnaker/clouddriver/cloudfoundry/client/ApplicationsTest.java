@@ -542,7 +542,10 @@ class ApplicationsTest {
     CloudFoundryServerGroup serverGroup =
         apps.findServerGroupByNameAndSpaceId(serverGroupName, spaceId);
 
-    assertThat(serverGroup).usingRecursiveComparison().isEqualTo(expectedCloudFoundryServerGroup);
+    assertThat(serverGroup)
+        .usingRecursiveComparison()
+        .usingOverriddenEquals()
+        .isEqualTo(expectedCloudFoundryServerGroup);
     // server group should be cached because of call to "findServerGroupId"
     verify(applicationService, never()).findById(serverGroupId);
   }
