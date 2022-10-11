@@ -31,6 +31,7 @@ import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -82,7 +83,7 @@ public class InfluxDbMetricsService implements MetricsService {
     String metricSetName = canaryMetricConfig.getName();
     List<InfluxDbResult> influxDbResults = queryInfluxdb(remoteService, metricSetName, query);
 
-    return buildMetricSets(metricSetName, influxDbResults);
+    return buildMetricSets(metricSetName, influxDbResults, canaryScope, canaryMetricConfig, query);
   }
 
   private List<InfluxDbResult> queryInfluxdb(
@@ -101,8 +102,13 @@ public class InfluxDbMetricsService implements MetricsService {
   }
 
   private List<MetricSet> buildMetricSets(
-      String metricSetName, List<InfluxDbResult> influxDbResults) {
-    List<MetricSet> metricSets = new ArrayList<MetricSet>();
+      String metricSetName,
+      List<InfluxDbResult> influxDbResults,
+      CanaryScope canaryScope,
+      CanaryMetricConfig canaryMetricConfig,
+      String query) {
+    List<MetricSet> metricSetList = new ArrayList<>();
+
     if (influxDbResults != null) {
       for (InfluxDbResult influxDbResult : influxDbResults) {
         Instant endtime =
@@ -125,9 +131,25 @@ public class InfluxDbMetricsService implements MetricsService {
           metricSetBuilder.tags(tags);
         }
 
-        metricSets.add(metricSetBuilder.build());
+        metricSetList.add(metricSetBuilder.build());
       }
+    } else {
+      log.warn("Received no data from InfluxDB for query: {} scope: {}", query, canaryScope);
+      MetricSetBuilder metricSetBuilder =
+          MetricSet.builder()
+              .name(canaryMetricConfig.getName())
+              .startTimeMillis(canaryScope.getStart().toEpochMilli())
+              .startTimeIso(canaryScope.getStart().toString())
+              .endTimeMillis(canaryScope.getEnd().toEpochMilli())
+              .endTimeIso(canaryScope.getEnd().toString())
+              .stepMillis(TimeUnit.SECONDS.toMillis(canaryScope.getStep()))
+              .values(Collections.emptyList());
+
+      metricSetBuilder.attribute("query", query);
+      metricSetBuilder.tags(Collections.emptyMap());
+
+      metricSetList.add(metricSetBuilder.build());
     }
-    return metricSets;
+    return metricSetList;
   }
 }

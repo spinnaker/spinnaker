@@ -82,7 +82,8 @@ public class InfluxDbResponseConverter implements Converter {
         List<Double> values = new ArrayList<>(seriesValues.size());
         for (List<Object> valueRow : seriesValues) {
           if (valueRow.get(i) != null) {
-            values.add(Double.valueOf((Integer) valueRow.get(i)));
+            String val = valueRow.get(i).toString();
+            values.add(Double.valueOf(val));
           }
         }
         influxDbResultsList.add(new InfluxDbResult(id, firstTimeMillis, stepMillis, null, values));

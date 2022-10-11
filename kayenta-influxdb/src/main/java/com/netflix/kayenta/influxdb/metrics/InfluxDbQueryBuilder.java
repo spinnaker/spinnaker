@@ -18,8 +18,7 @@ package com.netflix.kayenta.influxdb.metrics;
 
 import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.providers.metrics.InfluxdbCanaryMetricSetQueryConfig;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -34,26 +33,31 @@ public class InfluxDbQueryBuilder {
   private static final String SCOPE_INVALID_FORMAT_MSG =
       "Scope expected in the format of 'name:value'. e.g. autoscaling_group:myapp-prod-v002, received: ";
 
-  // TODO(joerajeev): update to accept tags and groupby fields
   // TODO(joerajeev): protect against injection. Influxdb is supposed to support binding params,
   // https://docs.influxdata.com/influxdb/v1.5/tools/api/
   public String build(InfluxdbCanaryMetricSetQueryConfig queryConfig, CanaryScope canaryScope) {
-
-    validateManadtoryParams(queryConfig, canaryScope);
-
     StringBuilder query = new StringBuilder();
-    addBaseQuery(queryConfig.getMetricName(), handleFields(queryConfig), query);
-    addTimeRangeFilter(canaryScope, query);
-    addScopeFilter(canaryScope, query);
+    validateMandatoryParams(queryConfig, canaryScope);
+
+    if (!StringUtils.isEmpty(queryConfig.getCustomInlineTemplate())) {
+      buildCustomQuery(queryConfig, canaryScope, getTimeFilter(canaryScope), query);
+    } else {
+      addBaseQuery(queryConfig.getMetricName(), handleFields(queryConfig), query);
+      addTimeRangeFilter(getTimeFilter(canaryScope), query);
+      addScopeFilter(canaryScope, query);
+    }
 
     String builtQuery = query.toString();
+    validateQuery(builtQuery);
     log.debug("Built query: {} config: {} scope: {}", builtQuery, queryConfig, canaryScope);
+
     return builtQuery;
   }
 
-  private void validateManadtoryParams(
+  private void validateMandatoryParams(
       InfluxdbCanaryMetricSetQueryConfig queryConfig, CanaryScope canaryScope) {
-    if (StringUtils.isEmpty(queryConfig.getMetricName())) {
+    if (StringUtils.isEmpty(queryConfig.getMetricName())
+        && StringUtils.isEmpty(queryConfig.getCustomInlineTemplate())) {
       throw new IllegalArgumentException("Measurement is required to query metrics");
     }
     if (null == canaryScope) {
@@ -61,6 +65,15 @@ public class InfluxDbQueryBuilder {
     }
     if (null == canaryScope.getStart() || null == canaryScope.getEnd()) {
       throw new IllegalArgumentException("Start and End times are required");
+    }
+    // required variables when using customInlineTemplate
+    if (!StringUtils.isEmpty(queryConfig.getCustomInlineTemplate())) {
+      if (!queryConfig.getCustomInlineTemplate().contains("$\\{timeFilter}")) {
+        throw new IllegalArgumentException("${timeFilter} is required in query");
+      }
+      if (!queryConfig.getCustomInlineTemplate().contains("$\\{scope}")) {
+        throw new IllegalArgumentException("${scope} is required in query");
+      }
     }
   }
 
@@ -78,16 +91,13 @@ public class InfluxDbQueryBuilder {
   private void addBaseQuery(String measurement, List<String> fields, StringBuilder query) {
     query.append("SELECT ");
     query.append(fields.stream().collect(Collectors.joining(", ")));
-    query.append(" FROM ");
-    query.append(measurement);
+    query.append(" FROM " + measurement + " ");
   }
 
-  private void addScopeFilter(CanaryScope canaryScope, StringBuilder sb) {
+  private void addScopeFilter(CanaryScope canaryScope, StringBuilder query) {
     String scope = canaryScope.getScope();
     if (scope != null) {
-      String[] scopeParts = validateAndExtractScope(scope);
-      sb.append(" AND ");
-      sb.append(scopeParts[0] + "='" + scopeParts[1] + "'");
+      query.append(" AND " + getScope(canaryScope));
     }
   }
 
@@ -102,10 +112,68 @@ public class InfluxDbQueryBuilder {
     return scopeParts;
   }
 
-  private void addTimeRangeFilter(CanaryScope canaryScope, StringBuilder query) {
-    query.append(" WHERE");
-    query.append(" time >= '" + canaryScope.getStart().toString() + "'");
-    query.append(" AND");
-    query.append(" time < '" + canaryScope.getEnd().toString() + "'");
+  private String getScope(CanaryScope canaryScope) {
+    String scope = canaryScope.getScope();
+    String[] scopeParts = validateAndExtractScope(scope);
+    return scopeParts[0] + " = '" + scopeParts[1] + "'";
+  }
+
+  private void addTimeRangeFilter(String timeFilter, StringBuilder query) {
+    query.append("WHERE " + timeFilter);
+  }
+
+  private void buildCustomQuery(
+      InfluxdbCanaryMetricSetQueryConfig queryConfig,
+      CanaryScope canaryScope,
+      String timeFilter,
+      StringBuilder query) {
+    String inlineQuery = queryConfig.getCustomInlineTemplate();
+    validateQuery(inlineQuery);
+    String queryWithTimeFilter = inlineQuery.replace("$\\{timeFilter}", timeFilter);
+    String queryWithScope = queryWithTimeFilter.replace("$\\{scope}", getScope(canaryScope));
+    query.append(addOptionalStep(canaryScope, queryWithScope));
+  }
+
+  private String addOptionalStep(CanaryScope canaryScope, String query) {
+    if (query.contains("$\\{step}")) {
+      query = query.replace("$\\{step}", canaryScope.getStep().toString() + "s");
+    }
+    return query;
+  }
+
+  private String getTimeFilter(CanaryScope canaryScope) {
+    return "time >= '"
+        + canaryScope.getStart().toString()
+        + "' AND time < '"
+        + canaryScope.getEnd().toString()
+        + "'";
+  }
+
+  private void validateQuery(String query) {
+    List<String> blocked = new ArrayList<>();
+    blocked.add("SHOW CONTINUOUS QUERIES");
+    blocked.add("SHOW DATABASES");
+    blocked.add("SHOW DIAGNOSTICS");
+    blocked.add("SHOW FIELD");
+    blocked.add("SHOW TAG");
+    blocked.add("SHOW USERS");
+    blocked.add("SHOW GRANTS");
+    blocked.add("SHOW MEASUREMENT");
+    blocked.add("SHOW QUERIES");
+    blocked.add("SHOW RETENTION POLICIES");
+    blocked.add("SHOW SERIES");
+    blocked.add("SHOW SHARD");
+    blocked.add("SHOW STATS");
+    blocked.add("SHOW SUBSCRIPTIONS");
+    blocked.add(";"); // prevents having multiple queries that could lead to potential sql injection
+    blocked.add("--"); // prevents potential sql injection
+
+    blocked.stream()
+        .forEach(
+            (stmt) -> {
+              if (query.contains(stmt)) {
+                throw new IllegalArgumentException("Query type not allowed.");
+              }
+            });
   }
 }
