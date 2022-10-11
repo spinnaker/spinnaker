@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.halyard.config.validate.v1.persistentStorage;
 
-import com.microsoft.azure.storage.CloudStorageAccount;
-import com.microsoft.azure.storage.blob.CloudBlobContainer;
+import com.azure.storage.blob.BlobContainerClient;
+import com.azure.storage.blob.BlobContainerClientBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.AzsPersistentStore;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
@@ -35,11 +35,13 @@ public class AzsValidator extends Validator<AzsPersistentStore> {
             + secretSessionManager.decrypt(n.getStorageAccountKey());
 
     try {
-      CloudStorageAccount storageAccount = CloudStorageAccount.parse(connectionString);
+      final BlobContainerClient blobContainerClient =
+          new BlobContainerClientBuilder()
+              .connectionString(connectionString)
+              .containerName(n.getStorageContainerName())
+              .buildClient();
 
-      CloudBlobContainer container =
-          storageAccount.createCloudBlobClient().getContainerReference(n.getStorageContainerName());
-      container.exists();
+      blobContainerClient.exists();
     } catch (Exception e) {
       ps.addProblem(
           Problem.Severity.ERROR,
@@ -47,7 +49,6 @@ public class AzsValidator extends Validator<AzsPersistentStore> {
               + n.getStorageAccountName()
               + "\": "
               + e.getMessage());
-      return;
     }
   }
 }

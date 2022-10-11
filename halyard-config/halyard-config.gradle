@@ -24,8 +24,8 @@ dependencies {
   implementation 'com.amazonaws:aws-java-sdk-s3:1.11.534'
   implementation 'com.google.apis:google-api-services-compute'
   implementation 'com.google.apis:google-api-services-appengine:v1-rev92-1.25.0'
-  implementation 'com.microsoft.azure:adal4j:1.6.3'
-  implementation 'com.microsoft.azure:azure:1.19.0'
+  implementation "com.azure.resourcemanager:azure-resourcemanager:2.19.0"
+  implementation "com.azure:azure-storage-blob:12.19.1"
   implementation 'commons-collections:commons-collections:3.2.2'
   implementation 'org.apache.commons:commons-lang3'
   implementation 'commons-io:commons-io'
@@ -34,6 +34,8 @@ dependencies {
   implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0"
   implementation 'com.squareup.retrofit:retrofit'
   implementation "com.squareup.retrofit:converter-jackson"
+  implementation "com.squareup.retrofit2:retrofit"
+  implementation "com.squareup.retrofit2:converter-jackson"
   implementation 'com.jcraft:jsch'
   implementation 'de.huxhorn.sulky:de.huxhorn.sulky.ulid'
   implementation "net.logstash.logback:logstash-logback-encoder"

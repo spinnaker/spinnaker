@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.validate.v1.providers.azure;
 
-import com.microsoft.azure.CloudException;
+import com.azure.core.management.exception.ManagementException;
 import com.netflix.spinnaker.clouddriver.azure.client.AzureComputeClient;
 import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
@@ -47,8 +47,8 @@ public class AzureBaseImageValidator extends Validator<AzureBaseImage> {
           "westus", osSettings.getPublisher(), osSettings.getOffer(), osSettings.getSku(), version);
     } catch (Exception e) {
       String message =
-          e instanceof CloudException
-              ? CloudException.class.cast(e).body().message()
+          e instanceof ManagementException
+              ? ((ManagementException) e).getValue().getMessage()
               : e.getMessage();
       p.addProblem(
               Problem.Severity.WARNING,

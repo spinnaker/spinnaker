@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.halyard.config.validate.v1.providers.azure;
 
-import com.microsoft.azure.CloudException;
-import com.microsoft.azure.management.resources.GenericResources;
+import com.azure.core.management.exception.ManagementException;
+import com.azure.resourcemanager.resources.models.GenericResources;
 import com.netflix.spinnaker.clouddriver.azure.client.AzureResourceManagerClient;
 import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
@@ -83,8 +83,8 @@ public class AzureAccountValidator extends Validator<AzureAccount> {
       // exception, so use the cause instead
       Throwable cause = e.getCause();
       String errorMessage =
-          cause instanceof CloudException
-              ? CloudException.class.cast(cause).body().message()
+          cause instanceof ManagementException
+              ? ((ManagementException) cause).getValue().getMessage()
               : cause.getMessage();
       if (errorMessage.contains("AADSTS90002")) {
         p.addProblem(Severity.ERROR, "Tenant Id '" + tenantId + "' is invalid.", "tenantId")
