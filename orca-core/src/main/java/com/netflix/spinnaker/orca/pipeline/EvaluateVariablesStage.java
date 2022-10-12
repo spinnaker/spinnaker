@@ -50,6 +50,22 @@ public class EvaluateVariablesStage extends ExpressionAwareStageDefinitionBuilde
   }
 
   @Override
+  public void prepareStageForRestart(@Nonnull StageExecution stage) {
+    stage.getOutputs().clear();
+    EvaluateVariablesStageContext context = stage.mapTo(EvaluateVariablesStageContext.class);
+
+    List<Variable> variables =
+        Optional.ofNullable(context.getVariables()).orElse(Collections.emptyList());
+    for (Variable var : variables) {
+      if (var.sourceExpression instanceof String) {
+        var.value = var.sourceExpression.toString().replace("{", "${");
+        var.sourceExpression = null;
+      }
+    }
+    stage.getContext().put("variables", variables);
+  }
+
+  @Override
   public boolean processExpressions(
       @Nonnull StageExecution stage,
       @Nonnull ContextParameterProcessor contextParameterProcessor,

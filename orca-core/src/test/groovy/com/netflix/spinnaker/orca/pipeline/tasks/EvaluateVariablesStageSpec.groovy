@@ -81,4 +81,29 @@ class EvaluateVariablesStageSpec extends Specification {
     shouldContinue == false
     stage.context.notifications[0].address == "someone@somewhere.com"
   }
+
+  void "Should correctly clean variables in restart scenario"() {
+    setup:
+    def summary = new ExpressionEvaluationSummary()
+
+    def stage = stage {
+      refId = "1"
+      type = "evaluateVariables"
+      context["variables"] = [
+          ["key": "status", "value": "expressionToEvaluate"],
+      ]
+    }
+
+    when:
+    evaluateVariablesStage.processExpressions(stage, contextParameterProcessor, summary)
+    evaluateVariablesStage.prepareStageForRestart(stage)
+    def variables = stage.mapTo(EvaluateVariablesStage.EvaluateVariablesStageContext.class).getVariables()
+    def variablesCleaned = false
+    variables.each {
+      variablesCleaned = it.sourceExpression == null
+    }
+
+    then:
+    variablesCleaned == true
+  }
 }
