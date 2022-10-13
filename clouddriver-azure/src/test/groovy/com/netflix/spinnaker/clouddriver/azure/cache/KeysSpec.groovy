@@ -35,6 +35,9 @@ class KeysSpec extends Specification {
   static final String CLUSTER_NAME = [APP_NAME,STACK_NAME, DETAIL].join('-')
   static final String LOAD_BALANCER_NAME = [APP_NAME,STACK_NAME, DETAIL].join('-')
   static final String LOAD_BALANCER_ID = [APP_NAME,STACK_NAME, DETAIL].join('-') + 'ID'
+  static final String RESOURCE_GROUP = 'resourcegroup'
+  static final String VM_NAME = 'vmname'
+  static final String VM_OS_TYPE = 'Windows'
 
   @Unroll
   def 'namespace string generation'(Keys.Namespace ns, String expected) {
@@ -50,6 +53,7 @@ class KeysSpec extends Specification {
     AZURE_INSTANCES      | "azureInstances"
     AZURE_VMIMAGES       | "azureVmimages"
     AZURE_CUSTOMVMIMAGES | "azureCustomvmimages"
+    AZURE_MANAGEDIMAGES  | "azureManagedimages"
     AZURE_NETWORKS       | "azureNetworks"
     AZURE_SUBNETS        | "azureSubnets"
     SECURITY_GROUPS      | "securityGroups"
@@ -62,5 +66,6 @@ class KeysSpec extends Specification {
     Keys.parse(AzureCloudProvider.ID, Keys.getServerGroupKey(AzureCloudProvider.ID, SERVER_GROUP_NAME, REGION, ACCOUNT)) == [provider: PROVIDER, type: AZURE_SERVER_GROUPS.ns, application: APP_NAME, serverGroup: SERVER_GROUP_NAME, account: ACCOUNT, region: REGION, detail: DETAIL, stack: STACK_NAME]
     Keys.parse(AzureCloudProvider.ID, Keys.getLoadBalancerKey(AzureCloudProvider.ID, LOAD_BALANCER_NAME , LOAD_BALANCER_ID, APP_NAME, CLUSTER_NAME, REGION, ACCOUNT )) == [provider: PROVIDER, type: AZURE_LOAD_BALANCERS.ns, application: APP_NAME, name: LOAD_BALANCER_NAME, id: LOAD_BALANCER_ID, cluster: CLUSTER_NAME, appname: APP_NAME, account: ACCOUNT, region: REGION]
     Keys.parse(AzureCloudProvider.ID, Keys.getInstanceKey(AzureCloudProvider.ID, SERVER_GROUP_NAME, INSTANCE, REGION, ACCOUNT)) == [provider: PROVIDER, type: AZURE_INSTANCES.ns, application: APP_NAME, serverGroup: SERVER_GROUP_NAME, name: INSTANCE, region: REGION, account: ACCOUNT]
+    Keys.parse(AzureCloudProvider.ID, Keys.getManagedVMImageKey(AzureCloudProvider.ID, ACCOUNT, REGION, RESOURCE_GROUP, VM_NAME, VM_OS_TYPE)) == [provider: PROVIDER, type: AZURE_MANAGEDIMAGES.ns, account: ACCOUNT, resourceGroup: RESOURCE_GROUP, region: REGION, name:VM_NAME, osType: VM_OS_TYPE]
   }
 }

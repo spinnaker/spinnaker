@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.azure.resources.network.cache.AzureNetw
 import com.netflix.spinnaker.clouddriver.azure.resources.securitygroup.cache.AzureSecurityGroupCachingAgent
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.cache.AzureServerGroupCachingAgent
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.cache.AzureCustomImageCachingAgent
+import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.cache.AzureManagedImageCachingAgent
 import com.netflix.spinnaker.clouddriver.azure.security.AzureNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.azure.resources.common.cache.provider.AzureInfrastructureProvider
@@ -76,6 +77,8 @@ class AzureInfrastructureProviderConfig {
 //          newlyAddedAgents << new AzureSubnetCachingAgent(azureCloudProvider, creds.accountName, creds.credentials, region.name, objectMapper)
 //          newlyAddedAgents << new AzureVMImageCachingAgent(azureCloudProvider, creds.accountName, creds.credentials, region.name, objectMapper)
           newlyAddedAgents << new AzureCustomImageCachingAgent(azureCloudProvider, creds.accountName, creds.credentials, region.name, creds.vmCustomImages, objectMapper)
+          newlyAddedAgents << new AzureManagedImageCachingAgent(azureCloudProvider, creds.accountName, creds.credentials, region.name,  objectMapper)
+
           newlyAddedAgents << new AzureServerGroupCachingAgent(azureCloudProvider, creds.accountName, creds.credentials, region.name, objectMapper, registry)
           newlyAddedAgents << new AzureAppGatewayCachingAgent(azureCloudProvider, creds.accountName, creds.credentials, region.name, objectMapper, registry)
 

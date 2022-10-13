@@ -20,6 +20,7 @@ import com.azure.core.credential.TokenCredential
 import com.azure.core.http.rest.Response
 import com.azure.core.management.exception.ManagementException
 import com.azure.core.management.profile.AzureProfile
+import com.azure.resourcemanager.compute.models.VirtualMachineCustomImage
 import com.azure.resourcemanager.compute.models.VirtualMachineImage
 import com.azure.resourcemanager.compute.models.VirtualMachineOffer
 import com.azure.resourcemanager.compute.models.VirtualMachinePublisher
@@ -28,12 +29,15 @@ import com.azure.resourcemanager.compute.models.VirtualMachineSizes
 import com.azure.resourcemanager.compute.models.VirtualMachineSku
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureInstance
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription
+import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureManagedVMImage
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureVMImage
 import com.netflix.spinnaker.clouddriver.azure.security.AzureNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import groovy.transform.Canonical
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+
+import java.util.stream.Collectors
 
 @Slf4j
 @CompileStatic
@@ -42,6 +46,43 @@ public class AzureComputeClient extends AzureBaseClient {
   AzureComputeClient(String subscriptionId, TokenCredential credentials, AzureProfile azureProfile) {
     super(subscriptionId, azureProfile, credentials)
   }
+
+
+
+  /**
+   * Return list of available Managed VM images
+   * @param resourceGroup - filter by resource group
+   * @param region - filter by region
+   * @return List of AzureManagedVMImage
+   */
+  List<AzureManagedVMImage> getAllVMCustomImages(String resourceGroup, String region) {
+
+    def result = [] as List<AzureManagedVMImage>
+    try {
+      List<VirtualMachineCustomImage> virtualMachineCustomImages = executeOp({
+        azure.virtualMachineCustomImages()
+          .listByResourceGroup(resourceGroup)
+          .asList()
+          .stream()
+          .filter({ vm -> vm.regionName().equals(region) })
+          .collect(Collectors.toList())
+      })
+
+      virtualMachineCustomImages.each {vm ->
+        result += new AzureManagedVMImage(
+          name: vm.name(),
+          resourceGroup: vm.resourceGroupName(),
+          region: vm.regionName(),
+          osType: vm.osDiskImage().osType().name())
+      }
+
+    } catch (Exception e) {
+      log.error("getAllVMCustomImages -> Unexpected exception ", e)
+    }
+
+    result
+  }
+
 
   /**
    * Return list of available VM images

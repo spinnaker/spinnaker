@@ -32,6 +32,7 @@ class Keys {
     AZURE_INSTANCES,
     AZURE_VMIMAGES,
     AZURE_CUSTOMVMIMAGES,
+    AZURE_MANAGEDIMAGES,
     AZURE_ON_DEMAND,
     AZURE_EVICTIONS
 
@@ -102,6 +103,9 @@ class Keys {
         break
       case Namespace.AZURE_CUSTOMVMIMAGES.ns:
         result << [account: parts[2], region: parts[3], name: parts[4]]
+        break
+      case Namespace.AZURE_MANAGEDIMAGES.ns:
+        result << [account: parts[2], resourceGroup: parts[3], region: parts[4], name: parts[5], osType: parts[6]]
         break
       case Namespace.AZURE_SERVER_GROUPS.ns:
         def names = Names.parseName(parts[2])
@@ -193,6 +197,25 @@ class Keys {
                               String region,
                               String account) {
     "${azureCloudProviderId}:${Namespace.AZURE_NETWORKS}:${networkId}:${account}:${resourceGroup}:${region}"
+  }
+
+  static String getManagedVMImageKey(AzureCloudProvider azureCloudProvider,
+                              String account,
+                              String region,
+                              String resourceGroup,
+                              String vmImageName,
+                              String vmImageOsType)  {
+    //"$azureCloudProvider.id:${Namespace.AZURE_MANAGEDIMAGES}:${account}:${resourceGroup}:${region}:${vmImageName}:${vmImageOsType}"
+    getManagedVMImageKey(azureCloudProvider.id, account, region, resourceGroup, vmImageName, vmImageOsType)
+  }
+
+  static String getManagedVMImageKey(String azureCloudProviderId,
+                              String account,
+                              String region,
+                              String resourceGroup,
+                              String vmImageName,
+                              String vmImageOsType)  {
+    "${azureCloudProviderId}:${Namespace.AZURE_MANAGEDIMAGES}:${account}:${resourceGroup}:${region}:${vmImageName}:${vmImageOsType}"
   }
 
   static String getVMImageKey(AzureCloudProvider azureCloudProvider,
