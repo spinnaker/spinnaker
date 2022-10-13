@@ -33,7 +33,7 @@ dependencies {
   implementation(project(":orca-deploymentmonitor"))
   implementation("io.spinnaker.kork:kork-moniker")
   implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
-  implementation("io.kubernetes:client-java:11.0.2")
+  implementation("io.kubernetes:client-java")
   implementation("javax.validation:validation-api")
   implementation("org.jetbrains:annotations")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-guava")
