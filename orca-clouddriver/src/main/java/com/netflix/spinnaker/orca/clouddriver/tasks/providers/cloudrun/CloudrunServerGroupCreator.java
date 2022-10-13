@@ -27,6 +27,12 @@ public class CloudrunServerGroupCreator implements ServerGroupCreator {
   @Override
   public List<Map> getOperations(StageExecution stage) {
     Map<String, Object> operation = new HashMap();
+
+    if (stage.getContext().containsKey("cluster")) {
+      operation.putAll((Map) stage.getContext().get("cluster"));
+    } else {
+      operation.putAll(stage.getContext());
+    }
     return new ArrayList() {
       {
         add(
