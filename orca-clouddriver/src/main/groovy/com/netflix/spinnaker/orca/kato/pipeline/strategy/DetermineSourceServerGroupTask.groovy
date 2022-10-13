@@ -16,18 +16,19 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.strategy
 
-import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 
-import java.util.concurrent.TimeUnit
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
+
+import java.util.concurrent.TimeUnit
 
 import static java.net.HttpURLConnection.HTTP_FORBIDDEN
 

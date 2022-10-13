@@ -26,6 +26,8 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCache
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.WaitForDisabledServerGroupTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.WaitForRequiredInstancesDownTask
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
+import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.cloudrun.WaitForCloudrunInstancesDownTask
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.env.Environment
@@ -33,7 +35,7 @@ import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class DisableServerGroupStage extends TargetServerGroupLinearStageSupport implements ForceCacheRefreshAware {
+class DisableServerGroupStage extends TargetServerGroupLinearStageSupport implements ForceCacheRefreshAware, CloudProviderAware {
   static final String PIPELINE_CONFIG_TYPE = "disableServerGroup"
 
   private final Environment environment
@@ -45,13 +47,18 @@ class DisableServerGroupStage extends TargetServerGroupLinearStageSupport implem
 
   @Override
   protected void taskGraphInternal(StageExecution stage, TaskNode.Builder builder) {
-    builder
-      .withTask("determineHealthProviders", DetermineHealthProvidersTask)
-      .withTask("disableServerGroup", DisableServerGroupTask)
-      .withTask("monitorServerGroup", MonitorKatoTask)
-      .withTask("waitForDownInstances", WaitForRequiredInstancesDownTask)
-      .withTask("waitForServerGroupDisabled", WaitForDisabledServerGroupTask)
 
+    String cloudProvider = getCloudProvider(stage);
+    builder
+        .withTask("determineHealthProviders", DetermineHealthProvidersTask)
+        .withTask("disableServerGroup", DisableServerGroupTask)
+        .withTask("monitorServerGroup", MonitorKatoTask)
+    if ("cloudrun".equals(cloudProvider)) {
+      builder.withTask("waitForDownInstances", WaitForCloudrunInstancesDownTask)
+    } else {
+      builder.withTask("waitForDownInstances", WaitForRequiredInstancesDownTask)
+    }
+    builder.withTask("waitForServerGroupDisabled", WaitForDisabledServerGroupTask)
     if (isForceCacheRefreshEnabled(environment)) {
       builder.withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
     }

@@ -18,10 +18,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.instance;
 
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -99,7 +96,6 @@ public class WaitingForInstancesTaskHelper {
             .findFirst()
             .flatMap(Function.identity()) // unwrap the optional that was the stop looking signal
             .orElse((Map<String, List<String>>) context.get("deploy.server.groups"));
-
     return serverGroups;
   }
 }

@@ -31,6 +31,7 @@ import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
 import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import com.netflix.spinnaker.orca.kato.pipeline.strategy.CloudrunSourceServerGroupTask
 
 import javax.annotation.Nonnull
 
@@ -68,9 +69,17 @@ abstract class AbstractDeployStrategyStage extends AbstractCloudProviderAwareSta
 
   @Override
   void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
-    builder
-      .withTask("determineSourceServerGroup", DetermineSourceServerGroupTask)
-      .withTask("determineHealthProviders", DetermineHealthProvidersTask)
+
+    String cloudProvider = getCloudProvider(stage);
+    if ("cloudrun".equals(cloudProvider)) {
+      builder
+          .withTask("cloudrunSourceServerGroup", CloudrunSourceServerGroupTask)
+          .withTask("determineHealthProviders", DetermineHealthProvidersTask)
+    } else {
+      builder
+          .withTask("determineSourceServerGroup", DetermineSourceServerGroupTask)
+          .withTask("determineHealthProviders", DetermineHealthProvidersTask)
+    }
 
     correctContext(stage)
     deployStagePreProcessors.findAll { it.supports(stage) }.each {
