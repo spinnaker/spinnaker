@@ -66,6 +66,7 @@ class ServiceAccountsServiceSpec extends Specification {
       getAuthentication() >> authentication
     }
     SecurityContextHolder.setContext(securityContext)
+    fiatConfigurationProperties.isDisableRoleSyncWhenSavingServiceAccounts() >> false
     when:
     serviceAccountDAO.create(serviceAccount.id, serviceAccount) >> serviceAccount
     service.createServiceAccount(serviceAccount)
@@ -90,6 +91,7 @@ class ServiceAccountsServiceSpec extends Specification {
           "test-role-2"
         ]
       )]
+    fiatConfigurationProperties.isDisableRoleSyncWhenSavingServiceAccounts() >> false
     when:
     service.deleteServiceAccounts(serviceAccounts)
 
@@ -108,6 +110,7 @@ class ServiceAccountsServiceSpec extends Specification {
     def test2ServiceAccount = new ServiceAccount(
       name: "test-2@managed-service-account"
     )
+    fiatConfigurationProperties.isDisableRoleSyncWhenSavingServiceAccounts() >> false
     when:
     service.deleteManagedServiceAccounts(prefixes)
 
@@ -116,5 +119,32 @@ class ServiceAccountsServiceSpec extends Specification {
     1 * serviceAccountDAO.findById(test2ServiceAccount.id) >> { throw new NotFoundException(test2ServiceAccount.id) }
     1 * serviceAccountDAO.delete(test1ServiceAccount.id)
     0 * serviceAccountDAO.delete(test2ServiceAccount.id)
+  }
+
+  def "should sync service accounts only with new endpoint if configured"() {
+    given:
+    def serviceAccount = new ServiceAccount(
+            name: "test-svc-acct",
+            memberOf: [
+                    "test-role"
+            ]
+    )
+    def authentication = Mock(Authentication) {
+      getPrincipal() >> (Object)"principal"
+    }
+    def securityContext = Mock(SecurityContext) {
+      getAuthentication() >> authentication
+    }
+    SecurityContextHolder.setContext(securityContext)
+    fiatConfigurationProperties.isDisableRoleSyncWhenSavingServiceAccounts() >> true
+
+    when:
+    serviceAccountDAO.create(serviceAccount.id, serviceAccount) >> serviceAccount
+    service.createServiceAccount(serviceAccount)
+
+    then:
+    1 * fiatPermissionsEvaluator.invalidatePermission(_)
+    1 * fiatService.syncServiceAccount("test-svc-acct", ["test-role"])
+    0 * fiatService.sync(["test-role"])
   }
 }

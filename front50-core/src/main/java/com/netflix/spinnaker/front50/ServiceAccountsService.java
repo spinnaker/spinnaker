@@ -68,7 +68,11 @@ public class ServiceAccountsService {
 
   public ServiceAccount createServiceAccount(ServiceAccount serviceAccount) {
     ServiceAccount acct = serviceAccountDAO.create(serviceAccount.getId(), serviceAccount);
-    syncUsers(Collections.singletonList(acct));
+    if (fiatConfigurationProperties.isDisableRoleSyncWhenSavingServiceAccounts()) {
+      syncServiceAccount(acct);
+    } else {
+      syncUsers(Collections.singletonList(acct));
+    }
     return acct;
   }
 
@@ -134,6 +138,29 @@ public class ServiceAccountsService {
       }
     } catch (RetrofitError re) {
       log.warn("Error syncing users", re);
+    }
+  }
+
+  private void syncServiceAccount(ServiceAccount serviceAccount) {
+    if (!fiatClientConfigurationProperties.isEnabled()
+        || fiatService.isEmpty()
+        || serviceAccount == null
+        || !fiatConfigurationProperties.getRoleSync().isEnabled()) {
+      return;
+    }
+    try {
+      fiatService.get().syncServiceAccount(serviceAccount.getId(), serviceAccount.getMemberOf());
+      log.debug(
+          "Synced service account {} with roles: {}",
+          serviceAccount.getId(),
+          serviceAccount.getMemberOf());
+      // Invalidate the current user's permissions in the local cache
+      Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+      if (auth != null) {
+        fiatPermissionEvaluator.invalidatePermission((String) auth.getPrincipal());
+      }
+    } catch (RetrofitError re) {
+      log.warn("Error syncing service account with service account only endpoint", re);
     }
   }
 }

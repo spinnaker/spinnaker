@@ -23,6 +23,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class FiatConfigurationProperties {
 
   RoleSyncConfigurationProperties roleSync = new RoleSyncConfigurationProperties();
+  boolean disableRoleSyncWhenSavingServiceAccounts = false;
 
   @Data
   public static class RoleSyncConfigurationProperties {
