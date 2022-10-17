@@ -1,12 +1,6 @@
 dependencies {
-  runtimeOnly(project(":kork-actuator"))
-  runtimeOnly(project(":kork-core"))
-  runtimeOnly(project(":kork-eureka"))
-  runtimeOnly(project(":kork-retrofit"))
-  runtimeOnly(project(":kork-secrets-aws"))
-  runtimeOnly(project(":kork-secrets-gcp"))
-  runtimeOnly(project(":kork-stackdriver"))
-  runtimeOnly(project(":kork-swagger"))
-  runtimeOnly(project(":kork-tomcat"))
-  runtimeOnly(project(":kork-web"))
+  // Add each included runtime project as a runtime dependency
+  gradle.includedRuntimeProjects.each {
+    runtimeOnly project(it)
+  }
 }
