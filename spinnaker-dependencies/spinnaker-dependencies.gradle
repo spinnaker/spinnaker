@@ -167,5 +167,12 @@ dependencies {
     api("org.apache.tomcat.embed:tomcat-embed-core:${versions.tomcat}")
     api("org.apache.tomcat.embed:tomcat-embed-el:${versions.tomcat}")
     api("org.apache.tomcat.embed:tomcat-embed-websocket:${versions.tomcat}")
+    api('org.apache.ant:ant:1.10.12') {
+      because "1.9.15 is resolved transitively through Groovy, removes CVE-2021-36374, CVE-2021-36373, CVE-2020-11979, CVE-2020-15250"
+    }
+    api('org.apache.ant:ant-launcher:1.10.12'){
+      because "1.9.15 is resolved transitively through Groovy, removes CVE-2021-36374, CVE-2021-36373, CVE-2020-11979, CVE-2020-15250"
+    }
+
   }
 }
