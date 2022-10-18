@@ -256,6 +256,11 @@ describe('Service: InstanceType', function () {
     const instanceTypes = [
       {
         account: 'test',
+        region: 'us-east-1',
+        name: 'test.type.incomplete',
+      },
+      {
+        account: 'test',
         region: 'us-west-2',
         name: 'm1.small',
         defaultVCpus: 1,
@@ -301,9 +306,10 @@ describe('Service: InstanceType', function () {
       },
     ];
 
-    it('filters instance types by VPC, virtualization type and architecture', function () {
+    it('filters instance types by VPC, virtualization type and architecture, only if the information exists', function () {
       const service = this.awsInstanceTypeService;
       expect(map(service.filterInstanceTypes(instanceTypes, 'hvm', true, 'x86_64'), 'name')).toEqual([
+        'test.type.incomplete',
         'm1.small',
         'hs1.8xlarge',
         'm2.xlarge',
@@ -316,11 +322,13 @@ describe('Service: InstanceType', function () {
         'm2.xlarge',
       ]);
       expect(map(service.filterInstanceTypes(instanceTypes, 'hvm', true, 'i386'), 'name')).toEqual([
+        'test.type.incomplete',
         'm1.small',
         'hs1.8xlarge',
         't2.nano',
       ]);
       expect(map(service.filterInstanceTypes(instanceTypes, 'paravirtual', true, 'i386'), 'name')).toEqual([
+        'test.type.incomplete',
         'm1.small',
         'hs1.8xlarge',
       ]);

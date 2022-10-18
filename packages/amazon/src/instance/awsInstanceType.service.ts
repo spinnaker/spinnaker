@@ -184,10 +184,16 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
         if (!vpcConfigured && !families.ec2ClassicSupported.includes(i.name.split('.')[0])) {
           return false;
         }
-        if (virtualizationType && !i.supportedVirtualizationTypes.includes(virtualizationType)) {
+
+        if (
+          virtualizationType &&
+          i.supportedVirtualizationTypes &&
+          !i.supportedVirtualizationTypes.includes(virtualizationType)
+        ) {
           return false;
         }
-        if (architecture && !i.supportedArchitectures.includes(architecture)) {
+
+        if (architecture && i.supportedArchitectures && !i.supportedArchitectures.includes(architecture)) {
           return false;
         }
 
