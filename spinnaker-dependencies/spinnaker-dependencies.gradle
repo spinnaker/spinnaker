@@ -140,7 +140,6 @@ dependencies {
     api("net.logstash.logback:logstash-logback-encoder:4.11")
     api("net.minidev:json-smart:2.4.1") // TODO: remove this with upgrade of spring-boot version to 2.5.0 or above
     api("org.apache.commons:commons-exec:1.3")
-    api("org.apache.commons:commons-lang3:3.9")
     api("org.bouncycastle:bcpkix-jdk15on:${versions.bouncycastle}")
     api("org.bouncycastle:bcprov-jdk15on:${versions.bouncycastle}")
     api("org.codehaus.groovy:groovy-all:${versions.groovy}")
