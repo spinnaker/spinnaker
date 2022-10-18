@@ -17,13 +17,17 @@
 package com.netflix.spinnaker.clouddriver.google.config;
 
 import com.netflix.spinnaker.clouddriver.google.ComputeVersion;
+import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider;
 import com.netflix.spinnaker.clouddriver.google.GoogleExecutor;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.clouddriver.security.CredentialsInitializerSynchronizable;
 import com.netflix.spinnaker.config.GoogleConfiguration;
+import com.netflix.spinnaker.credentials.CredentialsLifecycleHandler;
+import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.credentials.CredentialsTypeBaseConfiguration;
 import com.netflix.spinnaker.credentials.CredentialsTypeProperties;
+import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository;
 import com.netflix.spinnaker.credentials.definition.AbstractCredentialsLoader;
 import com.netflix.spinnaker.credentials.poller.Poller;
 import com.netflix.spinnaker.kork.configserver.ConfigFileService;
@@ -31,6 +35,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -110,5 +115,14 @@ public class GoogleCredentialsConfiguration {
         poller.run();
       }
     };
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(
+      value = GoogleNamedAccountCredentials.class,
+      parameterizedContainer = CredentialsRepository.class)
+  public CredentialsRepository<GoogleNamedAccountCredentials> googleCredentialsRepository(
+      CredentialsLifecycleHandler<GoogleNamedAccountCredentials> eventHandler) {
+    return new MapBackedCredentialsRepository<>(GoogleCloudProvider.getID(), eventHandler);
   }
 }
