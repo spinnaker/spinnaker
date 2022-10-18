@@ -25,6 +25,7 @@ import com.netflix.spinnaker.kork.expressions.allowlist.FilteredMethodResolver;
 import com.netflix.spinnaker.kork.expressions.allowlist.FilteredPropertyAccessor;
 import com.netflix.spinnaker.kork.expressions.allowlist.MapPropertyAccessor;
 import com.netflix.spinnaker.kork.expressions.allowlist.ReturnTypeRestrictor;
+import com.netflix.spinnaker.kork.expressions.config.ExpressionProperties;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -58,15 +59,19 @@ public class ExpressionsSupport {
 
   private final Set<Class<?>> allowedReturnTypes;
   private final List<ExpressionFunctionProvider> expressionFunctionProviders;
+  private final ExpressionProperties expressionProperties;
 
-  public ExpressionsSupport(Class<?> extraAllowedReturnType) {
-    this(new Class[] {extraAllowedReturnType}, null, null);
+  public ExpressionsSupport(
+      Class<?> extraAllowedReturnType, ExpressionProperties expressionProperties) {
+    this(new Class[] {extraAllowedReturnType}, null, null, expressionProperties);
   }
 
   public ExpressionsSupport(
       Class<?>[] extraAllowedReturnTypes,
       List<ExpressionFunctionProvider> extraExpressionFunctionProviders,
-      PluginManager pluginManager) {
+      PluginManager pluginManager,
+      ExpressionProperties expressionProperties) {
+    this.expressionProperties = expressionProperties;
 
     allowedReturnTypes =
         new HashSet<>(
@@ -84,16 +89,13 @@ public class ExpressionsSupport {
                 HashMap.class,
                 LinkedHashMap.class,
                 TreeMap.class,
-                TreeSet.class,
-                NotEvaluableExpression.class));
+                TreeSet.class));
     Collections.addAll(allowedReturnTypes, extraAllowedReturnTypes);
 
     expressionFunctionProviders =
         new ArrayList<>(
             Arrays.asList(
-                new FlowExpressionFunctionProvider(),
-                new JsonExpressionFunctionProvider(),
-                new StringExpressionFunctionProvider()));
+                new JsonExpressionFunctionProvider(), new StringExpressionFunctionProvider()));
 
     if (extraExpressionFunctionProviders != null) {
       expressionFunctionProviders.addAll(extraExpressionFunctionProviders);
@@ -104,6 +106,11 @@ public class ExpressionsSupport {
     if (pluginManager != null) {
       expressionFunctionProviders.addAll(
           pluginManager.getExtensions(ExpressionFunctionProvider.class));
+    }
+
+    if (expressionProperties.getDoNotEvalSpel().isEnabled()) {
+      allowedReturnTypes.add(NotEvaluableExpression.class);
+      expressionFunctionProviders.add(new FlowExpressionFunctionProvider());
     }
   }
 

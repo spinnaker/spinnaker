@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.netflix.spinnaker.kork.expressions.config.ExpressionProperties;
 import java.util.Collections;
 import java.util.Map;
 import java.util.function.Function;
@@ -56,6 +57,9 @@ public class ExpressionsSupportTest {
 
   @Test
   public void testToJsonWhenExpressionAndEvaluationContext() {
+    ExpressionProperties expressionProperties = new ExpressionProperties();
+    expressionProperties.getDoNotEvalSpel().setEnabled(true);
+
     Map<String, Object> testContext =
         Collections.singletonMap(
             "file_json", Collections.singletonMap("owner", "managed-by-${team}"));
@@ -65,7 +69,8 @@ public class ExpressionsSupportTest {
         new ExpressionTransform(parserContext, parser, Function.identity())
             .transformString(
                 testInput,
-                new ExpressionsSupport(null).buildEvaluationContext(testContext, true),
+                new ExpressionsSupport(null, expressionProperties)
+                    .buildEvaluationContext(testContext, true),
                 new ExpressionEvaluationSummary());
 
     assertThat(evaluated).isEqualTo("{\"owner\":\"managed-by-${team}\"}");
@@ -73,6 +78,9 @@ public class ExpressionsSupportTest {
 
   @Test
   public void testToJsonWhenComposedExpressionAndEvaluationContext() {
+    ExpressionProperties expressionProperties = new ExpressionProperties();
+    expressionProperties.getDoNotEvalSpel().setEnabled(true);
+
     Map<String, Object> testContext =
         Collections.singletonMap(
             "file_json",
@@ -83,7 +91,8 @@ public class ExpressionsSupportTest {
         new ExpressionTransform(parserContext, parser, Function.identity())
             .transformString(
                 testInput,
-                new ExpressionsSupport(null).buildEvaluationContext(testContext, true),
+                new ExpressionsSupport(null, expressionProperties)
+                    .buildEvaluationContext(testContext, true),
                 new ExpressionEvaluationSummary());
 
     assertThat(evaluated).isEqualTo("{\"json_file\":\"${#toJson(#doNotEval(file_json))}\"}");

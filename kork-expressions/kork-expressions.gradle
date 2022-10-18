@@ -16,6 +16,8 @@ dependencies {
   api "org.springframework:spring-context"
   api "org.slf4j:slf4j-api"
 
+  implementation "org.springframework.boot:spring-boot"
+
   testImplementation "org.assertj:assertj-core"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
