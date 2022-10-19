@@ -39,7 +39,7 @@ class ManualJudgmentTemplateTest extends Specification {
     }
 
 
-  void "should handle fully formed notification"() {
+    void "should handle fully formed notification"() {
         given:
         Notification not = buildFullNotification()
 
@@ -55,6 +55,30 @@ class ManualJudgmentTemplateTest extends Specification {
 
         *Instructions:*
         Do the thing <http://foo>
+        '''.stripIndent()
+    }
+
+    void "should handle fully formed email notification"() {
+        given:
+        Notification not = buildFullNotification()
+        not.notificationType = "email"
+
+        when:
+        def rendered = notificationTemplateEngine.build(not, NotificationTemplateEngine.Type.BODY)
+
+        then:
+        rendered == expected
+
+        where:
+        expected = '''\
+        <html>
+        Stage <a href="SPINNAKER_URL/#/applications/testapp/executions/details/exec-id?refId=stage-id&step=1">stage-name</a> for <b>testapp</b>'s <b>exe-name</b> pipeline build #<b>12345</b> is awaiting manual judgment.
+
+        <br/>
+        <b>Instructions:</b>
+        <p>Do the <a href="http://foo">thing</a></p>
+
+        </html>
         '''.stripIndent()
     }
 
