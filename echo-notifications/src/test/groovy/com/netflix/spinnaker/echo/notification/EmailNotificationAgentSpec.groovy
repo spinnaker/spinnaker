@@ -95,6 +95,9 @@ class EmailNotificationAgentSpec extends Specification {
       context.set(ctx)
     }
 
+    and:
+    agent.spinnakerUrl = "https://foo-url"
+
     when:
     agent.sendNotifications(
       [address: address, message: message],
@@ -106,6 +109,7 @@ class EmailNotificationAgentSpec extends Specification {
 
     then:
     context.get().get("message") == message."$type.$status".text
+    context.get().get("link") == "https://foo-url/#/applications/what%20ever/executions/details/foo-id"
 
     where:
     status     | _
@@ -114,11 +118,11 @@ class EmailNotificationAgentSpec extends Specification {
     "failed"   | _
 
     type = "stage"
-    application = "whatever"
+    application = "what ever"
     address = "whoever@netflix.com"
     pipelineName = "foo-pipeline"
     stageName = "foo-stage"
-    event = new Event(content: [name: "foo-stage", execution: [name: "foo-pipeline"]])
+    event = new Event(content: [name: "foo-stage", execution: [name: "foo-pipeline", id: "foo-id"]])
     message = ["complete", "starting", "failed"].collectEntries {
       [("$type.$it".toString()): [text: "custom $it text"]]
     }

@@ -23,10 +23,12 @@ import com.netflix.spinnaker.echo.email.EmailNotificationService
 import com.netflix.spinnaker.echo.api.events.Event
 import freemarker.template.Configuration
 import freemarker.template.Template
+import java.nio.charset.StandardCharsets
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils
+import org.springframework.web.util.UriUtils
 
 import static groovy.json.JsonOutput.prettyPrint
 import static groovy.json.JsonOutput.toJson
@@ -79,7 +81,8 @@ class EmailNotificationAgent extends AbstractEventNotificationAgent {
 
     log.info('Sending email {} for {} {} {} {}', kv('address', preference.address), kv('application', application), kv('type', config.type), kv('status', status), kv('executionId', event.content?.execution?.id))
 
-    String link = "${spinnakerUrl}/#/applications/${application}/${config.type == 'stage' ? 'executions/details' : config.link }/${event.content?.execution?.id}"
+    String encodedApplication = UriUtils.encodePathSegment(application, StandardCharsets.UTF_8)
+    String link = "${spinnakerUrl}/#/applications/${encodedApplication}/${config.type == 'stage' ? 'executions/details' : config.link }/${event.content?.execution?.id}"
 
     sendMessage(
       preference.address ? [preference.address] as String[] : null,
