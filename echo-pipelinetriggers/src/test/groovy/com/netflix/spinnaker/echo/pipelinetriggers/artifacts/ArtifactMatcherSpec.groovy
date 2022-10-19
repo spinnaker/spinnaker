@@ -39,6 +39,10 @@ class ArtifactMatcherSpec extends Specification {
     "one": "o"
   ]
 
+  def invalidConstraint = [
+    "one": "[one,two"
+  ]
+
   def constraintsOR = [
     "one": ["uno", "one"]
   ]
@@ -160,6 +164,14 @@ class ArtifactMatcherSpec extends Specification {
     !result
   }
 
+  def "no match when constraint invalid"() {
+    when:
+    boolean result = ArtifactMatcher.isConstraintInPayload(invalidConstraint, matchPayload)
+
+    then:
+    !result
+  }
+
   def "matches when payload value is in a list of constraint strings"() {
     when:
     boolean result = ArtifactMatcher.isConstraintInPayload(constraintsOR, matchPayload)
@@ -219,6 +231,14 @@ class ArtifactMatcherSpec extends Specification {
   def "no match when constraint word not present using Jsonpath"() {
     when:
     boolean result = ArtifactMatcher.isJsonPathConstraintInPayload(contstraints, noMatchPayload)
+
+    then:
+    !result
+  }
+
+  def "no match when constraint not valid using Jsonpath"() {
+    when:
+    boolean result = ArtifactMatcher.isJsonPathConstraintInPayload(invalidConstraint, matchPayload)
 
     then:
     !result

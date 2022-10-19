@@ -24,6 +24,7 @@ import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
@@ -129,7 +130,19 @@ public class ArtifactMatcher {
   }
 
   private static boolean matches(String us, String other) {
-    return Pattern.compile(us).asPredicate().test(other);
+    Pattern p;
+    try {
+      p = Pattern.compile(us);
+    } catch (PatternSyntaxException ex) {
+      log.error(
+          "Invalid regex pattern for constraint, will never match any payload: \""
+              + us
+              + "\": "
+              + ex.getMessage(),
+          ex);
+      return false;
+    }
+    return p.asPredicate().test(other);
   }
 
   private static boolean anyMatch(String us, List<String> values) {
