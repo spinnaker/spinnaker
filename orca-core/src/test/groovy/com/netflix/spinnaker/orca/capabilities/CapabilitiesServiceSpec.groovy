@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.capabilities
 
+import com.netflix.spinnaker.kork.expressions.config.ExpressionProperties
 import com.netflix.spinnaker.orca.capabilities.models.ExpressionCapabilityResult
 import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator
 import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluatorSpec
@@ -27,6 +28,12 @@ class CapabilitiesServiceSpec extends Specification {
     getExtensions(_) >> []
   }
 
+  ExpressionProperties expressionProperties = Mock() {
+    ExpressionProperties.FeatureFlag featureFlag = new ExpressionProperties.FeatureFlag()
+    featureFlag.setEnabled(false) // arbitrary, the tests here don't care
+    getDoNotEvalSpel() >> featureFlag
+  }
+
   def 'should return valid data'() {
     given:
     def functionProvider = PipelineExpressionEvaluatorSpec.buildExpressionFunctionProvider("TEST_EXPRESSION_FUNCTION")
@@ -34,7 +41,7 @@ class CapabilitiesServiceSpec extends Specification {
       it.isSupported
     }).collect({ it.key })
 
-    CapabilitiesService capabilitiesService = new CapabilitiesService(Collections.singletonList(functionProvider), pluginManager)
+    CapabilitiesService capabilitiesService = new CapabilitiesService(Collections.singletonList(functionProvider), pluginManager, expressionProperties)
 
     when:
     ExpressionCapabilityResult capabilities = capabilitiesService.getExpressionCapabilities()

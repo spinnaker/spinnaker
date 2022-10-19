@@ -28,6 +28,7 @@ import com.google.common.base.Strings;
 import com.netflix.spinnaker.kork.api.expressions.ExpressionFunctionProvider;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.expressions.ExpressionEvaluationSummary;
+import com.netflix.spinnaker.kork.expressions.config.ExpressionProperties;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.Trigger;
@@ -67,15 +68,18 @@ public class ContextParameterProcessor {
                 new UserConfiguredUrlRestrictions.Builder().build(),
                 new HttpClientUtils(new UserConfiguredUrlRestrictions.Builder().build()))),
         new DefaultPluginManager(),
-        DynamicConfigService.NOOP);
+        DynamicConfigService.NOOP,
+        new ExpressionProperties());
   }
 
   public ContextParameterProcessor(
       List<ExpressionFunctionProvider> expressionFunctionProviders,
       PluginManager pluginManager,
-      DynamicConfigService dynamicConfigService) {
+      DynamicConfigService dynamicConfigService,
+      ExpressionProperties expressionProperties) {
     this.expressionEvaluator =
-        new PipelineExpressionEvaluator(expressionFunctionProviders, pluginManager);
+        new PipelineExpressionEvaluator(
+            expressionFunctionProviders, pluginManager, expressionProperties);
     this.dynamicConfigService = dynamicConfigService;
   }
 

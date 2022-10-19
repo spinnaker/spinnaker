@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.pipeline.expressions
 
 import com.netflix.spinnaker.kork.expressions.ExpressionEvaluationSummary
 import com.netflix.spinnaker.kork.api.expressions.ExpressionFunctionProvider
+import com.netflix.spinnaker.kork.expressions.config.ExpressionProperties
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import org.pf4j.PluginManager
@@ -29,6 +30,12 @@ class PipelineExpressionEvaluatorSpec extends Specification {
     getExtensions(_) >> []
   }
 
+  ExpressionProperties expressionProperties = Mock() {
+    ExpressionProperties.FeatureFlag featureFlag = new ExpressionProperties.FeatureFlag()
+    featureFlag.setEnabled(true) // arbitrary, the tests here don't care
+    getDoNotEvalSpel() >> featureFlag
+  }
+
   def 'should set execution aware functions for the given function providers'() {
 
     given: 'function providers'
@@ -38,7 +45,7 @@ class PipelineExpressionEvaluatorSpec extends Specification {
     when: 'registered with pipeline evaluator'
     PipelineExpressionEvaluator evaluator = new PipelineExpressionEvaluator(
       [expressionFunctionProvider1, expressionFunctionProvider2],
-      pluginManager
+      pluginManager, expressionProperties
     )
 
     then:
@@ -50,7 +57,7 @@ class PipelineExpressionEvaluatorSpec extends Specification {
   def "should allow comparing ExecutionStatus to string"() {
     given:
     def source = [test: testCase]
-    PipelineExpressionEvaluator evaluator = new PipelineExpressionEvaluator([], pluginManager)
+    PipelineExpressionEvaluator evaluator = new PipelineExpressionEvaluator([], pluginManager, expressionProperties)
 
     when:
     ExpressionEvaluationSummary evaluationSummary = new ExpressionEvaluationSummary()

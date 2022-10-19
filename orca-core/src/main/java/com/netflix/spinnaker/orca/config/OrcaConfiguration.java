@@ -24,6 +24,7 @@ import com.netflix.spinnaker.config.PluginsAutoConfiguration;
 import com.netflix.spinnaker.kork.api.expressions.ExpressionFunctionProvider;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import com.netflix.spinnaker.kork.expressions.config.ExpressionProperties;
 import com.netflix.spinnaker.orca.DefaultStageResolver;
 import com.netflix.spinnaker.orca.DynamicStageResolver;
 import com.netflix.spinnaker.orca.DynamicTaskImplementationResolver;
@@ -89,7 +90,8 @@ import rx.schedulers.Schedulers;
 })
 @EnableConfigurationProperties({
   TaskOverrideConfigurationProperties.class,
-  ExecutionConfigurationProperties.class
+  ExecutionConfigurationProperties.class,
+  ExpressionProperties.class
 })
 public class OrcaConfiguration {
   @Bean
@@ -151,9 +153,10 @@ public class OrcaConfiguration {
   public ContextParameterProcessor contextParameterProcessor(
       List<ExpressionFunctionProvider> expressionFunctionProviders,
       PluginManager pluginManager,
-      DynamicConfigService dynamicConfigService) {
+      DynamicConfigService dynamicConfigService,
+      ExpressionProperties expressionProperties) {
     return new ContextParameterProcessor(
-        expressionFunctionProviders, pluginManager, dynamicConfigService);
+        expressionFunctionProviders, pluginManager, dynamicConfigService, expressionProperties);
   }
 
   @Bean
