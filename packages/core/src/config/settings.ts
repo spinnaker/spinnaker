@@ -162,8 +162,7 @@ SETTINGS.analytics = SETTINGS.analytics || {};
 SETTINGS.providers = SETTINGS.providers || {};
 SETTINGS.defaultTimeZone = SETTINGS.defaultTimeZone || 'America/Los_Angeles';
 SETTINGS.dockerInsights = SETTINGS.dockerInsights || { enabled: false, url: '' };
-SETTINGS.changelogUrl =
-  SETTINGS.changelogUrl || 'https://www.spinnaker.io/community/releases/versions/:version-changelog';
+SETTINGS.changelogUrl = SETTINGS.changelogUrl || 'https://spinnaker.io/changelogs/:version-changelog';
 SETTINGS.managedDelivery = SETTINGS.managedDelivery || {
   defaultManifest: 'spinnaker.yml',
   manifestBasePath: '.spinnaker',

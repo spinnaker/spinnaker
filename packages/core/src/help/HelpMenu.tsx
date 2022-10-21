@@ -38,8 +38,7 @@ const Version = () => {
     return null;
   }
 
-  const CHANGELOG_PATH = SETTINGS.version.replace(/\./g, '-');
-  const CHANGELOG_URL = SETTINGS.changelogUrl.replace(':version', CHANGELOG_PATH);
+  const CHANGELOG_URL = SETTINGS.changelogUrl.replace(':version', SETTINGS.version);
 
   return (
     <MenuItem href={CHANGELOG_URL} target="_blank">
