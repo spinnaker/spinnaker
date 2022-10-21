@@ -21,7 +21,9 @@ abstract class SqlCacheSpec extends WriteableCacheSpec {
   HikariDataSource dataSource
 
   def cleanup() {
-    SqlTestUtil.cleanupDb(context)
+    if (context != null) {
+      SqlTestUtil.cleanupDb(context)
+    }
   }
 
   def 'should handle invalid type'() {
