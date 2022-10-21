@@ -65,7 +65,7 @@ public class CloudDriverConfigurationProperties {
   private BaseUrl kato;
   private CloudDriver clouddriver;
 
-  String getCloudDriverBaseUrl() {
+  public String getCloudDriverBaseUrl() {
     if (clouddriver != null && clouddriver.baseUrl != null) {
       return clouddriver.baseUrl;
     } else if (kato != null && kato.baseUrl != null) {
@@ -79,7 +79,7 @@ public class CloudDriverConfigurationProperties {
     return null;
   }
 
-  List<BaseUrl> getCloudDriverReadOnlyBaseUrls() {
+  public List<BaseUrl> getCloudDriverReadOnlyBaseUrls() {
     if (clouddriver != null
         && clouddriver.readonly != null
         && clouddriver.readonly.baseUrl != null) {
