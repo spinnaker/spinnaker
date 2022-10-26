@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.22.2](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.22.1...@spinnaker/core@0.22.2) (2022-10-21)
+
+
+### Bug Fixes
+
+* **links:** update link to spinnaker release changelog ([#9897](https://github.com/spinnaker/deck/issues/9897)) ([1591513](https://github.com/spinnaker/deck/commit/159151368e99da0e990d607039268e20b8b1a8b2))
+
+
+
+
+
 ## [0.22.1](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.22.0...@spinnaker/core@0.22.1) (2022-10-06)
 
 

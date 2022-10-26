@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.13.3](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.13.2...@spinnaker/amazon@0.13.3) (2022-10-21)
+
+
+### Bug Fixes
+
+* **aws:** fix instance type selector by allowing instance types that can't be validated. ([#9893](https://github.com/spinnaker/deck/issues/9893)) ([563b6f6](https://github.com/spinnaker/deck/commit/563b6f6cbfc72a3122d4cfe669ffc347c9dd7168))
+
+
+
+
+
 ## [0.13.2](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.13.1...@spinnaker/amazon@0.13.2) (2022-10-06)
 
 **Note:** Version bump only for package @spinnaker/amazon
