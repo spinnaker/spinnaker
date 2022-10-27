@@ -45,6 +45,8 @@ dependencies {
   implementation project(':halyard-core')
   implementation project(':halyard-deploy')
   implementation project(':halyard-proto')
+
+  runtimeOnly 'org.springframework.cloud:spring-cloud-starter-bootstrap'
 }
 
 def cliScript = project.tasks.create('createCliStartScripts', CreateStartScripts) {
