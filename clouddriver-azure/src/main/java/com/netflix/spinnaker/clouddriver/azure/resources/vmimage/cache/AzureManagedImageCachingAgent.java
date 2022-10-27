@@ -133,7 +133,7 @@ public class AzureManagedImageCachingAgent
                           vmImage.getResourceGroup(),
                           vmImage.getName(),
                           vmImage.getOsType()),
-                      attributes,
+                      Map.of("vmimage", attributes),
                       Map.of());
                 })
             .collect(Collectors.toList());

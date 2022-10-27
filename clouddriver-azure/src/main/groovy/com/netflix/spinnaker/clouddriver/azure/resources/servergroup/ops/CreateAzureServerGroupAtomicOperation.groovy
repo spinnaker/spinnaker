@@ -78,8 +78,8 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
           throw new RuntimeException("Invalid published image was selected; $description.image.publisher:$description.image.offer:$description.image.sku:$description.image.version does not exist")
         }
 
-        description.image.imageName ?: virtualMachineImage.name
-        description.image.ostype = virtualMachineImage?.osDiskImage?.operatingSystem
+        description.image.imageName ?: virtualMachineImage.innerModel().name()
+        description.image.ostype = virtualMachineImage?.osDiskImage()?.operatingSystem()
       }
 
       resourceGroupName = AzureUtilities.getResourceGroupName(description.application, description.region)
@@ -131,7 +131,7 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
         // we'll do a final check to make sure that the subnet can be created before we pass it in the deployment template
         def vnet = description.credentials.networkClient.getVirtualNetwork(resourceGroupName, virtualNetworkName)
 
-        if (!subnetName || vnet?.subnets?.find { it.name == subnetName }) {
+        if (!subnetName || vnet?.subnets()?.find { it.key == subnetName }) {
           // virtualNetworkName is not yet in the cache or the subnet we try to create already exists; we'll use the current vnet
           //   we just got to re-compute the next subnet
           vnetDescription = AzureVirtualNetworkDescription.getDescriptionForVirtualNetwork(vnet.innerModel())

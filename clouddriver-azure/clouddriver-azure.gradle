@@ -19,7 +19,7 @@ dependencies {
   implementation("io.projectreactor:reactor-core:3.4.23") {
     force = true
   }
-
+  implementation "com.google.guava:guava:31.1-jre"
 
   testImplementation "cglib:cglib-nodep"
   testImplementation "org.objenesis:objenesis"

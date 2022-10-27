@@ -35,7 +35,8 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationException;
 import java.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class CreateAzureServerGroupWithAzureLoadBalancerAtomicOperation implements AtomicOperation<Map> {
+public class CreateAzureServerGroupWithAzureLoadBalancerAtomicOperation
+    implements AtomicOperation<Map> {
   private static final String BASE_PHASE = "CREATE_SERVER_GROUP";
 
   private static Task getTask() {
@@ -46,7 +47,7 @@ class CreateAzureServerGroupWithAzureLoadBalancerAtomicOperation implements Atom
 
   @Autowired AzureNetworkProvider networkProvider;
 
-  CreateAzureServerGroupWithAzureLoadBalancerAtomicOperation(
+  public CreateAzureServerGroupWithAzureLoadBalancerAtomicOperation(
       AzureServerGroupDescription description) {
     this.description = description;
   }

@@ -154,7 +154,7 @@ class UpsertAzureAppGatewayAtomicOperation implements AtomicOperation<Map> {
           // we'll do a final check to make sure that the subnet can be created before we pass it in the deployment template
           def vnet = description.credentials.networkClient.getVirtualNetwork(resourceGroupName, virtualNetworkName)
 
-          if (!subnetName || vnet?.subnets?.find { it.name == subnetName }) {
+          if (!subnetName || vnet?.subnets()?.find { it.name == subnetName }) {
             // virtualNetworkName is not yet in the cache or the subnet we try to create already exists; we'll use the current vnet
             //   we just got to re-compute the next subnet
             vnetDescription = AzureVirtualNetworkDescription.getDescriptionForVirtualNetwork(vnet.innerModel())

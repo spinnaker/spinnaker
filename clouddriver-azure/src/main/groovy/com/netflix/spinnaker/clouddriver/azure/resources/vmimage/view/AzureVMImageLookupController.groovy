@@ -23,6 +23,7 @@ import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider
 import com.netflix.spinnaker.clouddriver.azure.resources.common.cache.Keys
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureCustomVMImage
+import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureManagedVMImage
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureNamedImage
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureVMImage
 import com.netflix.spinnaker.clouddriver.azure.security.AzureNamedAccountCredentials
@@ -46,14 +47,14 @@ class AzureVMImageLookupController {
   private static final int MIN_NAME_FILTER = 3
 
   private final AzureCloudProvider azureCloudProvider
+  private final AccountCredentialsProvider accountCredentialsProvider
   private final Cache cacheView
-  final ObjectMapper objectMapper
+  private final ObjectMapper objectMapper
+
 
   @Autowired
-  AccountCredentialsProvider accountCredentialsProvider
-
-  @Autowired
-  AzureVMImageLookupController(AzureCloudProvider azureCloudProvider, Cache cacheView, ObjectMapper objectMapper) {
+  AzureVMImageLookupController(AccountCredentialsProvider accountCredentialsProvider, AzureCloudProvider azureCloudProvider, Cache cacheView, ObjectMapper objectMapper) {
+    this.accountCredentialsProvider = accountCredentialsProvider
     this.azureCloudProvider = azureCloudProvider
     this.cacheView = cacheView
     this.objectMapper = objectMapper
@@ -67,12 +68,11 @@ class AzureVMImageLookupController {
     result.addAll(
       getAllMatchingKeyPattern(
         imageId,
-        Keys.Namespace.AZURE_CUSTOMVMIMAGES.ns,
+        Keys.Namespace.AZURE_CUSTOMVMIMAGES,
         Keys.getCustomVMImageKey(azureCloudProvider,
           account,
           region,
-          "*"),
-        true))
+          "*")))
 
     if (!result.isEmpty()) {
       // found at least one match
@@ -102,18 +102,32 @@ class AzureVMImageLookupController {
       return result
     }
 
+    /// Search for any matches in the Managed image cache
+    result.addAll(
+      getAllMatchingKeyPattern(
+        imageId,
+        Keys.Namespace.AZURE_MANAGEDIMAGES,
+        Keys.getManagedVMImageKey(azureCloudProvider,
+          account,
+          region,
+          "*", "*", "*")))
+
+    if (!result.isEmpty()) {
+      // found at least one match
+      return result
+    }
+
 
     /// Search for any matches in the market store VM image cache
     result.addAll(
       getAllMatchingKeyPattern(
         imageId,
-        Keys.Namespace.AZURE_VMIMAGES.ns,
+        Keys.Namespace.AZURE_VMIMAGES,
         Keys.getVMImageKey(azureCloudProvider,
           account,
           region,
           "*",
-          "*"),
-        false))
+          "*")))
 
     if (result.isEmpty()) {
       throw new ImageNotFoundException("${imageId} not found in ${account}/${region}")
@@ -130,12 +144,23 @@ class AzureVMImageLookupController {
     result.addAll(
       getAllMatchingKeyPattern(
         lookupOptions.q,
-        Keys.Namespace.AZURE_CUSTOMVMIMAGES.ns,
+        Keys.Namespace.AZURE_CUSTOMVMIMAGES,
         Keys.getCustomVMImageKey(azureCloudProvider,
           lookupOptions.account ?: '*',
           lookupOptions.region ?: '*',
-          "*"),
-        true))
+          "*")))
+
+    if (lookupOptions.managedImages) {
+      result.addAll(
+        getAllMatchingKeyPattern(
+          lookupOptions.q,
+          Keys.Namespace.AZURE_MANAGEDIMAGES,
+          Keys.getManagedVMImageKey(azureCloudProvider,
+            lookupOptions.account ?: '*',
+            lookupOptions.region ?: '*',
+            "*",
+            "*", "*")))
+    }
 
 
     if (!lookupOptions.customOnly) {
@@ -162,31 +187,42 @@ class AzureVMImageLookupController {
 
       if (!lookupOptions.configOnly && lookupOptions.q != null && lookupOptions.q.length() >= MIN_NAME_FILTER) {
         // retrieve the list of virtual machine images from the azure respective cache
+
         result.addAll(
           getAllMatchingKeyPattern(
             lookupOptions.q,
-            Keys.Namespace.AZURE_VMIMAGES.ns,
+            Keys.Namespace.AZURE_VMIMAGES,
             Keys.getVMImageKey(azureCloudProvider,
               lookupOptions.account ?: '*',
               lookupOptions.region ?: '*',
               "*",
-              "*"),
-            false))
+              "*")))
       }
     }
 
     result
   }
 
-  List<AzureNamedImage> getAllMatchingKeyPattern(String vmImagePartName, String type, String pattern, Boolean customImage) {
-    loadResults(vmImagePartName, type, cacheView.filterIdentifiers(type, pattern), customImage)
+  List<AzureNamedImage> getAllMatchingKeyPattern(String vmImagePartName, Keys.Namespace type, String pattern) {
+    loadResults(vmImagePartName, type, cacheView.filterIdentifiers(type.ns, pattern))
   }
 
-  List<AzureNamedImage> loadResults(String vmImagePartName, String type, Collection<String> identifiers, Boolean customImage) {
+  List<AzureNamedImage> loadResults(String vmImagePartName, Keys.Namespace type, Collection<String> identifiers) {
     def results = [] as List<AzureNamedImage>
-    def data = cacheView.getAll(type, identifiers, RelationshipCacheFilter.none())
+    def data = cacheView.getAll(type.ns, identifiers, RelationshipCacheFilter.none())
     data.each {cacheData ->
-      def item = customImage? fromCustomImageCacheData(vmImagePartName, cacheData) : fromVMImageCacheData(vmImagePartName, cacheData)
+      def item = null
+      if(type == Keys.Namespace.AZURE_CUSTOMVMIMAGES) {
+        item = fromCustomImageCacheData(vmImagePartName, cacheData)
+      }
+
+      if( type == Keys.Namespace.AZURE_MANAGEDIMAGES) {
+        item = fromManagedImageCacheData(vmImagePartName, cacheData)
+      }
+
+      if(type == Keys.Namespace.AZURE_VMIMAGES) {
+        item = fromVMImageCacheData(vmImagePartName, cacheData)
+      }
 
       if (item)
         results += item
@@ -251,15 +287,42 @@ class AzureVMImageLookupController {
     null
   }
 
+  AzureNamedImage fromManagedImageCacheData(String vmImagePartName, CacheData cacheData) {
+    try {
+      AzureManagedVMImage vmImage = objectMapper.convertValue(cacheData.attributes['vmimage'], AzureManagedVMImage)
+      def parts = Keys.parse(azureCloudProvider, cacheData.id)
+
+      if ((vmImage.region == parts.region) && (vmImagePartName == null || vmImage.name.toLowerCase().contains(vmImagePartName.toLowerCase()))) {
+        return new AzureNamedImage(
+          imageName: vmImage.name,
+          isCustom: true,
+          publisher: "na",
+          offer: "na",
+          sku: "na",
+          version: "na",
+          uri: "na",
+          ostype: vmImage.osType,
+          account: parts.account,
+          region: parts.region
+        )
+      }
+    } catch (Exception e) {
+      log.error("fromManagedImageCacheData -> Unexpected exception", e)
+    }
+
+    null
+  }
+
   @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = 'Image not found')
   @InheritConstructors
-  private static class ImageNotFoundException extends RuntimeException { }
+  static class ImageNotFoundException extends RuntimeException { }
 
-  private static class LookupOptions {
+  static class LookupOptions {
     String q
     String account
     String region
     Boolean configOnly = true
     Boolean customOnly = false
+    Boolean managedImages = false
   }
 }

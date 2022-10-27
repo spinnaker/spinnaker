@@ -100,7 +100,7 @@ class AzureManagedImageCachingAgentTest {
     cacheData.forEach(
         data -> {
           AzureManagedVMImage cachedManagedImage =
-              MAPPER.convertValue(data.getAttributes(), AzureManagedVMImage.class);
+              MAPPER.convertValue(data.getAttributes().get("vmimage"), AzureManagedVMImage.class);
           assertManagedImage(managedVMImage, cachedManagedImage);
           assertThat(data.getRelationships()).isEmpty();
         });

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model
 import com.azure.resourcemanager.compute.fluent.models.VirtualMachineScaleSetInner
 import com.azure.resourcemanager.compute.models.ResourceIdentityType
 import com.azure.resourcemanager.compute.models.VirtualMachineScaleSetDataDisk
+import com.google.common.collect.Sets
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
@@ -193,7 +194,7 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
     def networkInterfaceConfigurations = scaleSet.virtualMachineProfile()?.networkProfile()?.networkInterfaceConfigurations()
 
     if (networkInterfaceConfigurations && networkInterfaceConfigurations.size() > 0) {
-      azureSG.enableIpForwarding = networkInterfaceConfigurations[0].enableIPForwarding()
+      azureSG.enableIpForwarding = networkInterfaceConfigurations[0].enableIpForwarding()
     }
     // scaleSet.virtualMachineProfile()?.networkProfile()?.networkInterfaceConfigurations()?[0].ipConfigurations()?[0].applicationGatewayBackendAddressPools()?[0].id()
     // TODO: appGatewayBapId can be retrieved via scaleSet->networkProfile->networkInterfaceConfigurations->ipConfigurations->ApplicationGatewayBackendAddressPools

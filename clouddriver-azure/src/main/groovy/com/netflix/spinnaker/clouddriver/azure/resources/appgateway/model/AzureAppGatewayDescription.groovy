@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.azure.resources.appgateway.model
 
 import com.azure.resourcemanager.network.fluent.models.ApplicationGatewayInner
+import com.azure.resourcemanager.network.models.ApplicationGatewayProtocol
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.common.AzureResourceOpsDescription
@@ -75,9 +76,9 @@ class AzureAppGatewayDescription extends AzureResourceOpsDescription {
   static AzureAppGatewayDescription getDescriptionForAppGateway(ApplicationGatewayInner appGateway) {
     AzureAppGatewayDescription description = new AzureAppGatewayDescription(name: appGateway.name())
     def parsedName = Names.parseName(appGateway.name())
-    description.stack = appGateway.tags?.stack ?: parsedName.stack
-    description.detail = appGateway.tags?.detail ?: parsedName.detail
-    description.appName = appGateway.tags?.appName ?: parsedName.app
+    description.stack = appGateway.tags()?.stack ?: parsedName.stack
+    description.detail = appGateway.tags()?.detail ?: parsedName.detail
+    description.appName = appGateway.tags()?.appName ?: parsedName.app
     description.loadBalancerName = appGateway.name()
     description.sku = appGateway.sku().name().toString()
     description.tier = appGateway.sku().tier().toString()
@@ -88,8 +89,8 @@ class AzureAppGatewayDescription extends AzureResourceOpsDescription {
       description.trafficEnabledSG = AzureUtilities.getNameFromResourceId(bapActiveRuleId)
       description.cluster = Names.parseName(description.trafficEnabledSG).cluster
     } else {
-      description.trafficEnabledSG = appGateway.tags?.trafficEnabledSG
-      description.cluster = appGateway.tags?.cluster
+      description.trafficEnabledSG = appGateway.tags()?.trafficEnabledSG
+      description.cluster = appGateway.tags()?.cluster
     }
 
     // Each application gateway backend address pool corresponds to a server group (except the "defaul_BAP0")
@@ -99,15 +100,15 @@ class AzureAppGatewayDescription extends AzureResourceOpsDescription {
     }
 
     // We only support one subnet so we can just retrieve the first one
-    description.subnetResourceId = appGateway?.gatewayIPConfigurations()?.first()?.subnet()?.id()
+    description.subnetResourceId = appGateway?.gatewayIpConfigurations()?.first()?.subnet()?.id()
     description.subnet = AzureUtilities.getNameFromResourceId(description.subnetResourceId)
     description.vnet = AzureUtilities.getResourceNameFromId(description.subnetResourceId)
     description.vnetResourceGroup = AzureUtilities.getResourceGroupNameFromResourceId(description.subnetResourceId)
-    description.hasNewSubnet = appGateway.tags?.hasNewSubnet
+    description.hasNewSubnet = appGateway.tags()?.hasNewSubnet
 
-    description.publicIpName = AzureUtilities.getNameFromResourceId(appGateway?.frontendIPConfigurations().first().publicIPAddress().id())
-    description.createdTime = appGateway.tags?.createdTime?.toLong()
-    description.tags = appGateway.tags ?: [:]
+    description.publicIpName = AzureUtilities.getNameFromResourceId(appGateway?.frontendIpConfigurations().first().publicIpAddress().id())
+    description.createdTime = appGateway.tags()?.createdTime?.toLong()
+    description.tags = appGateway.tags() ?: [:]
     description.region = appGateway.location()
 
     appGateway.requestRoutingRules().each { rule ->
