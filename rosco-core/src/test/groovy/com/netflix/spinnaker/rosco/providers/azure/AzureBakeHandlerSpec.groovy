@@ -59,7 +59,7 @@ class AzureBakeHandlerSpec extends Specification implements TestDefaults{
 
   void setupSpec() {
     def azureBakeryDefaultsJson = [
-      templateFile: "azure-linux.json",
+      templateFile: "azure-linux.pkr.hcl",
       baseImages: [
         [
           baseImage: [
@@ -96,7 +96,7 @@ class AzureBakeHandlerSpec extends Specification implements TestDefaults{
             sku: IMAGE_SKU_WINDOWS,
             version: "4.0.20170111",
             packageType: "NUPKG",
-            templateFile: "azure-windows-2012-r2.json",
+            templateFile: "azure-windows.pkr.hcl",
           ]
         ]
       ]
@@ -296,7 +296,7 @@ class AzureBakeHandlerSpec extends Specification implements TestDefaults{
     String templateFileName = azureBakeHandler.getTemplateFileName(azureBakeHandler.bakeOptions.baseImages[2])
 
     then:
-    templateFileName == "azure-windows-2012-r2.json"
+    templateFileName == "azure-windows.pkr.hcl"
   }
 
   void 'image config data is serialized as expected'() {
@@ -322,7 +322,7 @@ class AzureBakeHandlerSpec extends Specification implements TestDefaults{
         package_name: PACKAGES_NAME,
         base_os: "ubuntu",
         cloud_provider_type: BakeRequest.CloudProviderType.azure,
-        template_file_name: "azure-linux.json",
+        template_file_name: "azure-linux.pkr.hcl",
         build_number: BUILD_NUMBER,
         base_name: BUILD_NAME)
       def targetImageName = "myapp"
@@ -360,7 +360,7 @@ class AzureBakeHandlerSpec extends Specification implements TestDefaults{
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
       1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages, DEB_PACKAGE_TYPE) >> null
       1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
-      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/azure-linux.json")
+      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/azure-linux.pkr.hcl")
   }
 
   void 'produces packer command with all required parameters for windows'() {
@@ -408,7 +408,7 @@ class AzureBakeHandlerSpec extends Specification implements TestDefaults{
     1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
     1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages, NUPKG_PACKAGE_TYPE) >> null
     1 * imageNameFactoryMock.buildPackagesParameter(NUPKG_PACKAGE_TYPE, osPackages) >> NUPKG_PACKAGES_NAME
-    1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/azure-windows-2012-r2.json")
+    1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/azure-windows.pkr.hcl")
   }
 
   void 'Create proper azure_image_name'() {
@@ -441,6 +441,62 @@ class AzureBakeHandlerSpec extends Specification implements TestDefaults{
     BUILD_NUMBER  | BUILD_NAME  | "this-is-a--test-withnamethatexceeds.75characters"  || IMAGE_NAME
   }
 
+  void 'Create proper image source parameters for base image'() {
+    setup:
+    def azureBakeHandler = new AzureBakeHandler(azureBakeryDefaults: azureBakeryDefaults, azureConfigurationProperties: azureConfigurationProperties)
+
+    when:
+    def bakeRequest = new BakeRequest(
+            base_os: "windows-2012-r2"
+    )
+    def azureVirtualizationSettings = azureBakeHandler.findVirtualizationSettings(REGION, bakeRequest)
+    def parameterMap = azureBakeHandler.buildParameterMap(REGION, azureVirtualizationSettings, "my-image", bakeRequest, "0001")
+
+    then:
+    parameterMap.azure_image_publisher == IMAGE_PUBLISHER_WINDOWS
+    parameterMap.azure_image_offer == IMAGE_OFFER_WINDOWS
+    parameterMap.azure_image_sku == IMAGE_SKU_WINDOWS
+    parameterMap.azure_custom_managed_image_name == null
+  }
+
+  void 'Create proper image source parameters for custom base image'() {
+    setup:
+    def azureBakeHandler = new AzureBakeHandler(azureBakeryDefaults: azureBakeryDefaults, azureConfigurationProperties: azureConfigurationProperties)
+
+    when:
+    def bakeRequest = new BakeRequest(
+            publisher: "Debian",
+            offer: "debian-10",
+            sku: "10"
+    )
+    def azureVirtualizationSettings = azureBakeHandler.findVirtualizationSettings(REGION, bakeRequest)
+    def parameterMap = azureBakeHandler.buildParameterMap(REGION, azureVirtualizationSettings, "my-image", bakeRequest, "0001")
+
+    then:
+    parameterMap.azure_image_publisher == bakeRequest.publisher
+    parameterMap.azure_image_offer == bakeRequest.offer
+    parameterMap.azure_image_sku == bakeRequest.sku
+    parameterMap.azure_custom_managed_image_name == null
+  }
+
+  void 'Create proper image source parameters for managed image'() {
+    setup:
+    def azureBakeHandler = new AzureBakeHandler(azureBakeryDefaults: azureBakeryDefaults, azureConfigurationProperties: azureConfigurationProperties)
+
+    when:
+    def bakeRequest = new BakeRequest(
+            custom_managed_image_name: "docker.io-all-1666307955578-ubuntu-1804"
+    )
+    def azureVirtualizationSettings = azureBakeHandler.findVirtualizationSettings(REGION, bakeRequest)
+    def parameterMap = azureBakeHandler.buildParameterMap(REGION, azureVirtualizationSettings, "my-image", bakeRequest, "0001")
+
+    then:
+    parameterMap.azure_image_publisher == null
+    parameterMap.azure_image_offer == null
+    parameterMap.azure_image_sku == null
+    parameterMap.azure_custom_managed_image_name == "docker.io-all-1666307955578-ubuntu-1804"
+  }
+
   void 'account selection is reflected in bake key'() {
     setup:
     def imageNameFactoryMock = Mock(ImageNameFactory)
@@ -466,5 +522,28 @@ class AzureBakeHandlerSpec extends Specification implements TestDefaults{
     then:
     bakeKey == "bake:azure:windows-2012-r2:googlechrome|javaruntime:azure-2"
     parameterMap.azure_client_id == azureConfigurationProperties?.accounts?.find { it.name == "azure-2" }?.clientId
+  }
+
+  void 'find base image template file'() {
+    setup:
+    def azureBakeHandler = new AzureBakeHandler(azureBakeryDefaults: azureBakeryDefaults, azureConfigurationProperties: azureConfigurationProperties)
+
+    when:
+    def bakeRequest = new BakeRequest(
+            os_type: osType,
+            custom_managed_image_name: customManagedImage
+    )
+    def baseImage = azureBakeHandler.findBaseImage(bakeRequest)
+
+    then:
+    baseImage.templateFile == templateFile
+
+    where:
+    osType                     | customManagedImage || templateFile
+    BakeRequest.OsType.windows | null               || "azure-windows.pkr.hcl"
+    BakeRequest.OsType.windows | "my-managed-image" || "azure-windows-managed-image.pkr.hcl"
+    BakeRequest.OsType.linux   | null               || "azure-linux.pkr.hcl"
+    BakeRequest.OsType.linux   | "my-managed-image" || "azure-linux-managed-image.pkr.hcl"
+
   }
 }

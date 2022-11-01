@@ -84,6 +84,15 @@ class BakeRequest {
 
   String spinnaker_execution_id
 
+  String publisher
+  String offer
+  String sku
+
+  OsType os_type
+  PackageType package_type
+
+  String custom_managed_image_name
+
   static enum CloudProviderType {
     alicloud, aws, azure, docker, gce, huaweicloud, oracle, tencentcloud
   }

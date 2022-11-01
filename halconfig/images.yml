@@ -123,7 +123,7 @@ aws:
 
 azure:
   bakeryDefaults:
-    templateFile: azure-linux.json
+    templateFile: azure-linux.pkr.hcl
     baseImages:
     - baseImage:
         id: ubuntu-1604
@@ -175,7 +175,7 @@ azure:
         version: 4.0.20170111
         osType: windows
         packageType: nupkg
-        templateFile: azure-windows-2012-r2.json
+        templateFile: azure-windows.pkr.hcl
 
 docker:
   bakeryDefaults:

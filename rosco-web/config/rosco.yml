@@ -283,7 +283,7 @@ azure:
   # value to true.
   enabled: ${AZURE_ENABLED:false}
   bakeryDefaults:
-    templateFile: azure-linux.json
+    templateFile: azure-linux.pkr.hcl
     baseImages:
     - baseImage:
         id: ubuntu-1604
@@ -302,6 +302,7 @@ azure:
         publisher: Canonical
         offer: UbuntuServer
         sku: 18.04-LTS
+#        sku: 18_04-lts-gen2
         version: 18.04.201804262
         osType: Linux
         packageType: deb
@@ -335,7 +336,7 @@ azure:
         version: 4.0.20170111
         osType: windows
         packageType: nupkg
-        templateFile: azure-windows-2012-r2.json
+        templateFile: azure-windows.pkr.hcl
 
 
 docker:

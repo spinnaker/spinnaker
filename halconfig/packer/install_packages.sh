@@ -24,7 +24,7 @@ packages=`echo $packages | sed 's/^"\(.*\)"$/\1/' | sed 's/,/ /g'`
 
 function ensure_jq_deb() {
   if ! dpkg-query -W jq; then
-    sudo apt-get update
+    sudo apt-get -y update
     sudo DEBIAN_FRONTEND=noninteractive apt-get install --force-yes -y jq
     uninstall_jq=true
   fi
@@ -105,7 +105,7 @@ function provision_deb() {
     echo "deb $i" | sudo tee -a /etc/apt/sources.list.d/spinnaker.list > /dev/null
   done
 
-  sudo apt-get update
+  sudo apt-get -y update
   if [[ "$upgrade" == "true" ]]; then
     sudo unattended-upgrade -v
   fi
