@@ -705,6 +705,8 @@ class AzureNetworkClient extends AzureBaseClient {
           Method setRangeMethod = o.getClass().getMethod("toBackend", String.class)
           setRangeMethod.setAccessible(true)
           setRangeMethod.invoke(o, serverGroupName)
+          LoadBalancingRule lbrule = o as LoadBalancingRule;
+          lbrule.innerModel().withBackendAddressPools(List.of(lbrule.innerModel().backendAddressPool()))
         } catch (NoSuchMethodException e) {
           log.error("Failed to use reflection to set backend of rule in Load Balancer, detail: {}", e.getMessage())
           return
@@ -763,6 +765,8 @@ class AzureNetworkClient extends AzureBaseClient {
             Method setRangeMethod = o.getClass().getMethod("toBackend", String.class)
             setRangeMethod.setAccessible(true)
             setRangeMethod.invoke(o, AzureLoadBalancerResourceTemplate.DEFAULT_BACKEND_POOL)
+            LoadBalancingRule lbrule = o as LoadBalancingRule;
+            lbrule.innerModel().withBackendAddressPools(List.of(lbrule.innerModel().backendAddressPool()))
           } catch (NoSuchMethodException e) {
             log.error("Failed to use reflection to set backend of rule in Load Balancer, detail: {}", e.getMessage())
             return
