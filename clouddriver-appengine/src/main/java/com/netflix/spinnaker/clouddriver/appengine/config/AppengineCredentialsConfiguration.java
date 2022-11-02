@@ -16,17 +16,22 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.config;
 
+import com.netflix.spinnaker.clouddriver.appengine.AppengineCloudProvider;
 import com.netflix.spinnaker.clouddriver.appengine.AppengineJobExecutor;
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.CredentialsInitializerSynchronizable;
+import com.netflix.spinnaker.credentials.CredentialsLifecycleHandler;
+import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.credentials.CredentialsTypeBaseConfiguration;
 import com.netflix.spinnaker.credentials.CredentialsTypeProperties;
+import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository;
 import com.netflix.spinnaker.credentials.definition.AbstractCredentialsLoader;
 import com.netflix.spinnaker.credentials.poller.Poller;
 import com.netflix.spinnaker.kork.configserver.ConfigFileService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,6 +40,15 @@ import org.springframework.context.annotation.Configuration;
 public class AppengineCredentialsConfiguration {
   private static final Logger log =
       LoggerFactory.getLogger(AppengineCredentialsConfiguration.class);
+
+  @Bean
+  @ConditionalOnMissingBean(
+      value = AppengineNamedAccountCredentials.class,
+      parameterizedContainer = CredentialsRepository.class)
+  public CredentialsRepository<AppengineNamedAccountCredentials> appengineCredentialsRepository(
+      CredentialsLifecycleHandler<AppengineNamedAccountCredentials> eventHandler) {
+    return new MapBackedCredentialsRepository<>(AppengineCloudProvider.getID(), eventHandler);
+  }
 
   @Bean
   public CredentialsTypeBaseConfiguration<
