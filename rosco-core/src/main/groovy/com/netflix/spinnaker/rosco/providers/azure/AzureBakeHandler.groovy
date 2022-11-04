@@ -56,7 +56,22 @@ public class AzureBakeHandler extends CloudProviderBakeHandler{
 
   @Override
   String produceProviderSpecificBakeKeyComponent(String region, BakeRequest bakeRequest) {
-    return resolveAccount(bakeRequest).name
+    String accountName = resolveAccount(bakeRequest).name
+
+    String selectedImage = null
+    if (bakeRequest.publisher) {
+      selectedImage = bakeRequest.publisher + ":" + bakeRequest.offer + ":" + bakeRequest.sku
+    }
+    if (bakeRequest.custom_managed_image_name) {
+      selectedImage = bakeRequest.custom_managed_image_name
+    }
+
+    String base_label = bakeRequest.base_label
+    String base_name = bakeRequest.base_name
+
+    def keys = [accountName, selectedImage, base_label, base_name].stream().findAll()
+
+    return keys.join(":")
   }
 
   @Override

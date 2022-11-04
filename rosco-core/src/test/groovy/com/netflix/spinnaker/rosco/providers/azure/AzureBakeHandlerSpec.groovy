@@ -497,11 +497,12 @@ class AzureBakeHandlerSpec extends Specification implements TestDefaults{
     parameterMap.azure_custom_managed_image_name == "docker.io-all-1666307955578-ubuntu-1804"
   }
 
-  void 'account selection is reflected in bake key'() {
+  void 'account selection, base label and base name is reflected in bake key'() {
     setup:
     def imageNameFactoryMock = Mock(ImageNameFactory)
     def packerCommandFactoryMock = Mock(PackerCommandFactory)
-    def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+    def bakeRequest = new BakeRequest(base_label: "release",
+                                      base_name: "my-image",
                                       package_name: NUPKG_PACKAGES_NAME,
                                       base_os: "windows-2012-r2",
                                       cloud_provider_type: BakeRequest.CloudProviderType.azure,
@@ -520,7 +521,65 @@ class AzureBakeHandlerSpec extends Specification implements TestDefaults{
     String bakeKey = azureBakeHandler.produceBakeKey(REGION, bakeRequest)
 
     then:
-    bakeKey == "bake:azure:windows-2012-r2:googlechrome|javaruntime:azure-2"
+    bakeKey == "bake:azure:windows-2012-r2:googlechrome|javaruntime:azure-2:release:my-image"
+    parameterMap.azure_client_id == azureConfigurationProperties?.accounts?.find { it.name == "azure-2" }?.clientId
+  }
+
+  void 'region, publisher, offer, sku, account name, base label and base name is reflected in bake key'() {
+    setup:
+    def imageNameFactoryMock = Mock(ImageNameFactory)
+    def packerCommandFactoryMock = Mock(PackerCommandFactory)
+    def bakeRequest = new BakeRequest(offer: "UbuntuServer",
+                                      publisher: "Canonical",
+                                      sku: "18_04-lts-gen2",
+                                      base_label: "release",
+                                      base_name: "my-image",
+                                      package_name: NUPKG_PACKAGES_NAME,
+                                      cloud_provider_type: BakeRequest.CloudProviderType.azure,
+                                      account_name: "azure-2")
+
+    @Subject
+    AzureBakeHandler azureBakeHandler = new AzureBakeHandler(configDir: configDir,
+            azureBakeryDefaults: azureBakeryDefaults,
+            imageNameFactory: imageNameFactoryMock,
+            packerCommandFactory: packerCommandFactoryMock,
+            chocolateyRepository: CHOCOLATEY_REPOSITORY,
+            azureConfigurationProperties: azureConfigurationProperties)
+
+    when:
+    def parameterMap = azureBakeHandler.buildParameterMap(REGION, null, null, bakeRequest, null)
+    String bakeKey = azureBakeHandler.produceBakeKey(REGION, bakeRequest)
+
+    then:
+    bakeKey == "bake:azure:googlechrome|javaruntime:azure-2:Canonical:UbuntuServer:18_04-lts-gen2:release:my-image"
+    parameterMap.azure_client_id == azureConfigurationProperties?.accounts?.find { it.name == "azure-2" }?.clientId
+  }
+
+  void 'custom managed image name, account name, base label and base name is reflected in bake key'() {
+    setup:
+    def imageNameFactoryMock = Mock(ImageNameFactory)
+    def packerCommandFactoryMock = Mock(PackerCommandFactory)
+    def bakeRequest = new BakeRequest(custom_managed_image_name: "docker.io-all-1666307955578-ubuntu-1804",
+                                      base_label: "release",
+                                      base_name: "my-custom-image",
+                                      package_name: NUPKG_PACKAGES_NAME,
+                                      cloud_provider_type: BakeRequest.CloudProviderType.azure,
+                                      account_name: "azure-2")
+
+    @Subject
+    AzureBakeHandler azureBakeHandler = new AzureBakeHandler(configDir: configDir,
+            azureBakeryDefaults: azureBakeryDefaults,
+            imageNameFactory: imageNameFactoryMock,
+            packerCommandFactory: packerCommandFactoryMock,
+            chocolateyRepository: CHOCOLATEY_REPOSITORY,
+            azureConfigurationProperties: azureConfigurationProperties)
+
+    when:
+    def parameterMap = azureBakeHandler.buildParameterMap(REGION, null, null, bakeRequest, null)
+    String bakeKey = azureBakeHandler.produceBakeKey(REGION, bakeRequest)
+
+    then:
+    bakeKey == "bake:azure:googlechrome|javaruntime:azure-2:docker.io-all-1666307955578-ubuntu-1804:release:my-custom-image"
     parameterMap.azure_client_id == azureConfigurationProperties?.accounts?.find { it.name == "azure-2" }?.clientId
   }
 
