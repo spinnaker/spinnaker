@@ -27,23 +27,22 @@ export class AvailabilityZoneSelector extends React.Component<
       usePreferredZones: props.usePreferredZones || !props.selectedZones || props.selectedZones.length === 0,
     };
 
-    this.setDefaultZones(props);
+    this.setDefaultZones(this.state.usePreferredZones, props);
   }
 
   public componentWillReceiveProps(nextProps: IAvailabilityZoneSelectorProps): void {
     if (nextProps.region !== this.props.region || nextProps.credentials !== this.props.credentials) {
-      this.setDefaultZones(nextProps);
+      this.setDefaultZones(this.state.usePreferredZones, nextProps);
     }
   }
 
-  private setDefaultZones(props: IAvailabilityZoneSelectorProps) {
-    const { credentials, onChange, region } = props;
-    const { usePreferredZones } = this.state;
+  private setDefaultZones(usePreferredZones: boolean, props: IAvailabilityZoneSelectorProps) {
+    const { credentials, region } = props;
 
     AccountService.getAvailabilityZonesForAccountAndRegion('aws', credentials, region).then((preferredZones) => {
       this.setState({ defaultZones: preferredZones });
       if (usePreferredZones && preferredZones) {
-        onChange(preferredZones.slice());
+        props.onChange(preferredZones.slice());
       }
     });
   }
@@ -53,7 +52,7 @@ export class AvailabilityZoneSelector extends React.Component<
     this.setState({ usePreferredZones });
 
     if (usePreferredZones) {
-      this.setDefaultZones(this.props);
+      this.setDefaultZones(usePreferredZones, this.props);
     }
   };
 
