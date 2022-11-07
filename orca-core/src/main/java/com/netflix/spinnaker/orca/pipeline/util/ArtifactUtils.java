@@ -197,11 +197,14 @@ public class ArtifactUtils {
 
   public void resolveArtifacts(Map pipeline) {
     Map<String, Object> trigger = (Map<String, Object>) pipeline.get("trigger");
+    List<?> expectedArtifactIds =
+        (List<?>) trigger.getOrDefault("expectedArtifactIds", emptyList());
     ImmutableList<ExpectedArtifact> expectedArtifacts =
         Optional.ofNullable((List<?>) pipeline.get("expectedArtifacts"))
             .map(Collection::stream)
             .orElse(Stream.empty())
             .map(it -> objectMapper.convertValue(it, ExpectedArtifact.class))
+            .filter(artifact -> expectedArtifactIds.contains(artifact.getId()))
             .collect(toImmutableList());
 
     ImmutableSet<Artifact> receivedArtifacts =

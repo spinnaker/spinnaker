@@ -79,6 +79,12 @@ class DependentPipelineStarter implements ApplicationContextAware {
           objectMapper.writeValueAsString(pipelineConfig))
     }
 
+    def expectedArtifactIds = pipelineConfig.get("triggers", []).findAll {
+      it.type == "pipeline" && it.pipeline == parentPipeline.pipelineConfigId
+    } collectMany {
+      it.expectedArtifactIds ?: []
+    }
+
     pipelineConfig.trigger = [
       type                 : "pipeline",
       user                 : authenticationDetails?.user ?: user ?: "[anonymous]",
@@ -86,7 +92,8 @@ class DependentPipelineStarter implements ApplicationContextAware {
       parentPipelineStageId: parentPipelineStageId,
       parameters           : [:],
       strategy             : suppliedParameters.strategy == true,
-      correlationId        : "${parentPipeline.id}_${parentPipelineStageId}_${pipelineConfig.id}_${parentPipeline.startTime}".toString()
+      correlationId        : "${parentPipeline.id}_${parentPipelineStageId}_${pipelineConfig.id}_${parentPipeline.startTime}".toString(),
+      expectedArtifactIds  : expectedArtifactIds
     ]
     /* correlationId is added so that two pipelines aren't triggered when a pipeline is canceled.
      * parentPipelineStageId is added so that a child pipeline (via pipeline stage)

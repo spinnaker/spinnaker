@@ -369,11 +369,11 @@ class ArtifactUtilsSpec extends Specification {
   def "resolveArtifacts sets the bound artifact on an expected artifact"() {
     given:
     def matchArtifact = Artifact.builder().type("docker/.*").build()
-    def expectedArtifact = ExpectedArtifact.builder().matchArtifact(matchArtifact).build()
+    def expectedArtifact = ExpectedArtifact.builder().id("543ef192-82a2-4805-8d0c-827f2f976a1c").matchArtifact(matchArtifact).build()
     def receivedArtifact = Artifact.builder().name("my-artifact").type("docker/image").build()
     def pipeline = [
       id: "abc",
-      trigger: [:],
+      trigger: ["expectedArtifactIds": ["543ef192-82a2-4805-8d0c-827f2f976a1c"]],
       expectedArtifacts: [expectedArtifact],
       receivedArtifacts: [receivedArtifact],
     ]
@@ -384,6 +384,34 @@ class ArtifactUtilsSpec extends Specification {
     List<ExpectedArtifact> resolvedArtifacts = objectMapper.convertValue(
       pipeline.trigger.resolvedExpectedArtifacts,
       new TypeReference<List<ExpectedArtifact>>() {})
+
+    then:
+    resolvedArtifacts.size() == 1
+    resolvedArtifacts.get(0).getBoundArtifact() == receivedArtifact
+  }
+
+  def "resolveArtifacts ignores expected artifacts from unrelated triggers"() {
+    given:
+    def matchArtifact = Artifact.builder().type("docker/.*").build()
+    def expectedArtifact1 = ExpectedArtifact.builder().id("expected-artifact-id").matchArtifact(matchArtifact).build()
+    def expectedArtifact2 = ExpectedArtifact.builder().id("irrelevant-artifact-id").matchArtifact(matchArtifact).build()
+    def receivedArtifact = Artifact.builder().name("my-artifact").type("docker/image").build()
+    def pipeline = [
+        id: "abc",
+        trigger: [
+            type: "jenkins",
+            expectedArtifactIds: ["expected-artifact-id"]
+        ],
+        expectedArtifacts: [expectedArtifact1, expectedArtifact2],
+        receivedArtifacts: [receivedArtifact],
+    ]
+    def artifactUtils = makeArtifactUtils()
+
+    when:
+    artifactUtils.resolveArtifacts(pipeline)
+    List<ExpectedArtifact> resolvedArtifacts = objectMapper.convertValue(
+        pipeline.trigger.resolvedExpectedArtifacts,
+        new TypeReference<List<ExpectedArtifact>>() {})
 
     then:
     resolvedArtifacts.size() == 1

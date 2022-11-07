@@ -353,8 +353,148 @@ class DependentPipelineStarterSpec extends Specification {
     result.trigger.artifacts.size() == 2
     result.trigger.artifacts*.name.contains(testArtifact1.name)
     result.trigger.artifacts*.name.contains(testArtifact2.name)
+    result.trigger.resolvedExpectedArtifacts.size() == 0
+  }
+
+  def "should find expected artifacts from pipeline trigger"() {
+    given:
+    def triggeredPipelineConfig = [
+        name: "triggered",
+        id: "triggered",
+        expectedArtifacts: [[
+            id: "id1",
+            matchArtifact: [
+                kind: "gcs",
+                name: "gs://test/file.yaml",
+                type: "gcs/object"
+            ]
+        ]],
+        triggers: [[
+            type: "pipeline",
+            pipeline: "5e96d1e8-a3c0-4458-b3a4-fda17e0d5ab5",
+            expectedArtifactIds: ["id1"]
+        ], [
+            type: "jenkins"
+        ]]
+    ]
+    Artifact testArtifact1 = Artifact.builder().type("gcs/object").name("gs://test/file.yaml").build()
+    Artifact testArtifact2 = Artifact.builder().type("docker/image").name("gcr.io/project/image").build()
+    def parentPipeline = pipeline {
+      name = "parent"
+      trigger = new DefaultTrigger("webhook", null, "test", [:], [testArtifact1, testArtifact2])
+      authentication = new PipelineExecution.AuthenticationDetails("parentUser", "acct1", "acct2")
+      pipelineConfigId = "5e96d1e8-a3c0-4458-b3a4-fda17e0d5ab5"
+    }
+    def executionLauncher = Mock(ExecutionLauncher)
+    def applicationContext = new StaticApplicationContext()
+    applicationContext.beanFactory.registerSingleton("pipelineLauncher", executionLauncher)
+    dependentPipelineStarter = new DependentPipelineStarter(
+        applicationContext,
+        mapper,
+        new ContextParameterProcessor(),
+        Optional.empty(),
+        Optional.of(artifactUtils),
+        new NoopRegistry()
+    )
+
+    and:
+    executionLauncher.start(*_) >> { _, p ->
+      return pipeline {
+        name = p.name
+        id = p.name
+        trigger = mapper.convertValue(p.trigger, Trigger)
+      }
+    }
+    artifactUtils.getArtifactsForPipelineId(*_) >> {
+      return new ArrayList<Artifact>();
+    }
+
+    when:
+    def result = dependentPipelineStarter.trigger(
+        triggeredPipelineConfig,
+        null,
+        parentPipeline,
+        [:],
+        null,
+        buildAuthenticatedUser("user", [])
+    )
+
+    then:
+    result.trigger.artifacts.size() == 2
+    result.trigger.artifacts*.name.contains(testArtifact1.name)
+    result.trigger.artifacts*.name.contains(testArtifact2.name)
     result.trigger.resolvedExpectedArtifacts.size() == 1
     result.trigger.resolvedExpectedArtifacts*.boundArtifact.name == [testArtifact1.name]
+  }
+
+  def "should ignore expected artifacts from unrelated trigger"() {
+    given:
+    def triggeredPipelineConfig = [
+        name: "triggered",
+        id: "triggered",
+        expectedArtifacts: [[
+            id: "id1",
+            matchArtifact: [
+                kind: "gcs",
+                name: "gs://test/file.yaml",
+                type: "gcs/object"
+            ]
+        ]],
+        triggers: [[
+            type: "pipeline",
+            pipeline: "5e96d1e8-a3c0-4458-b3a4-fda17e0d5ab5"
+        ], [
+            type: "jenkins",
+            expectedArtifactIds: ["id1"]
+        ]]
+    ]
+    Artifact testArtifact1 = Artifact.builder().type("gcs/object").name("gs://test/file.yaml").build()
+    Artifact testArtifact2 = Artifact.builder().type("docker/image").name("gcr.io/project/image").build()
+    def parentPipeline = pipeline {
+      name = "parent"
+      trigger = new DefaultTrigger("webhook", null, "test", [:], [testArtifact1, testArtifact2])
+      authentication = new PipelineExecution.AuthenticationDetails("parentUser", "acct1", "acct2")
+      pipelineConfigId = "5e96d1e8-a3c0-4458-b3a4-fda17e0d5ab5"
+    }
+    def executionLauncher = Mock(ExecutionLauncher)
+    def applicationContext = new StaticApplicationContext()
+    applicationContext.beanFactory.registerSingleton("pipelineLauncher", executionLauncher)
+    dependentPipelineStarter = new DependentPipelineStarter(
+        applicationContext,
+        mapper,
+        new ContextParameterProcessor(),
+        Optional.empty(),
+        Optional.of(artifactUtils),
+        new NoopRegistry()
+    )
+
+    and:
+    executionLauncher.start(*_) >> { _, p ->
+      return pipeline {
+        name = p.name
+        id = p.name
+        trigger = mapper.convertValue(p.trigger, Trigger)
+      }
+    }
+    artifactUtils.getArtifactsForPipelineId(*_) >> {
+      return new ArrayList<Artifact>();
+    }
+
+    when:
+    def result = dependentPipelineStarter.trigger(
+        triggeredPipelineConfig,
+        null,
+        parentPipeline,
+        [:],
+        null,
+        buildAuthenticatedUser("user", [])
+    )
+
+    then:
+    result.trigger.artifacts.size() == 2
+    result.trigger.artifacts*.name.contains(testArtifact1.name)
+    result.trigger.artifacts*.name.contains(testArtifact2.name)
+    result.trigger.resolvedExpectedArtifacts.size() == 0
   }
 
   def "should resolve expressions in trigger"() {
@@ -476,6 +616,14 @@ class DependentPipelineStarterSpec extends Specification {
         useDefaultArtifact: false,
         usePriorArtifact: true
       ]],
+      triggers: [[
+           type                : "pipeline",
+           pipeline            : "5e96d1e8-a3c0-4458-b3a4-fda17e0d5ab5",
+           expectedArtifactIds : ["28907e3a-e529-473d-bf2d-b3737c9d6dc6"]
+       ], [
+           type                : "jenkins",
+           expectedArtifactIds : ["unrelated_id"]
+       ]]
     ]
     def triggeredPipelineTemplate = mapper.convertValue([
       schema: "1",
@@ -506,6 +654,7 @@ class DependentPipelineStarterSpec extends Specification {
       name = "parent"
       trigger = new DefaultTrigger("manual", null, "user@schibsted.com", [:], [], [], false, true)
       authentication = new PipelineExecution.AuthenticationDetails("parentUser", "acct1", "acct2")
+      pipelineConfigId = "5e96d1e8-a3c0-4458-b3a4-fda17e0d5ab5"
     }
     def executionLauncher = Mock(ExecutionLauncher)
     def templateLoader = Mock(TemplateLoader)
@@ -580,7 +729,12 @@ class DependentPipelineStarterSpec extends Specification {
           ]
         ],
         schema: "1"
-      ]
+      ],
+      triggers: [[
+          type                : "pipeline",
+          pipeline            : "5e96d1e8-a3c0-4458-b3a4-fda17e0d5ab5",
+          expectedArtifactIds : ["helm-chart"]
+      ]]
     ]
     def triggeredPipelineTemplate = mapper.convertValue([
       schema: "1",
@@ -637,6 +791,7 @@ class DependentPipelineStarterSpec extends Specification {
       name = "parent"
       trigger = new DefaultTrigger("webhook", null, "test", [:], [testArtifact])
       authentication = new PipelineExecution.AuthenticationDetails("parentUser", "acct1", "acct2")
+      pipelineConfigId = "5e96d1e8-a3c0-4458-b3a4-fda17e0d5ab5"
     }
     def executionLauncher = Mock(ExecutionLauncher)
     def templateLoader = Mock(TemplateLoader)
