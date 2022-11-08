@@ -143,7 +143,7 @@ public class PipelineController {
   @PreAuthorize(
       "@fiatPermissionEvaluator.storeWholePermission() and hasPermission(#pipeline.application, 'APPLICATION', 'WRITE') and @authorizationSupport.hasRunAsUserPermission(#pipeline)")
   @RequestMapping(value = "", method = RequestMethod.POST)
-  public Pipeline save(
+  public synchronized Pipeline save(
       @RequestBody Pipeline pipeline,
       @RequestParam(value = "staleCheck", required = false, defaultValue = "false")
           Boolean staleCheck) {

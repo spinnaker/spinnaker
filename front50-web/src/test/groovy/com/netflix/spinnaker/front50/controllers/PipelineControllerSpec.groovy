@@ -1,14 +1,13 @@
 package com.netflix.spinnaker.front50.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
-
-import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
+import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline
 import com.netflix.spinnaker.front50.api.validator.PipelineValidator
 import com.netflix.spinnaker.front50.api.validator.ValidatorErrors
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
 import com.netflix.spinnaker.kork.web.exceptions.ExceptionMessageDecorator
 import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers
-import com.netflix.spinnaker.kork.web.exceptions.ValidationException
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -25,9 +24,11 @@ import spock.lang.Unroll
 import spock.mock.DetachedMockFactory
 
 import javax.servlet.http.HttpServletResponse
+import java.util.concurrent.Executors
+import java.util.stream.Collectors
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 
 @AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(controllers = [PipelineController])
@@ -41,7 +42,7 @@ class PipelineControllerSpec extends Specification {
   def "should fail to save if application is missing, empty or blank"() {
     given:
     Map pipelineData = [
-      name: "some pipeline with no application",
+      name       : "some pipeline with no application",
       application: application
     ]
 
@@ -59,14 +60,14 @@ class PipelineControllerSpec extends Specification {
     response.status == HttpStatus.UNPROCESSABLE_ENTITY.value()
 
     where:
-    application << [ null, "", "      "]
+    application << [null, "", "      "]
   }
 
   @Unroll
   def "should fail to save if pipeline name is missing, empty or blank"() {
     given:
     Map pipelineData = [
-      name: name,
+      name       : name,
       application: "some application"
     ]
 
@@ -84,7 +85,7 @@ class PipelineControllerSpec extends Specification {
     response.status == HttpStatus.UNPROCESSABLE_ENTITY.value()
 
     where:
-    name << [ null, "", "      "]
+    name << [null, "", "      "]
   }
 
   @Unroll
@@ -92,13 +93,13 @@ class PipelineControllerSpec extends Specification {
 
     given:
     Map newPipeline = [
-      name: "should-fail",
+      name       : "should-fail",
       application: "fail-app",
     ]
 
     def mockPipeline = new Pipeline([
-      id: "1",
-      name: "mock-pipeline",
+      id         : "1",
+      name       : "mock-pipeline",
       application: "test-app",
     ])
     def pipelineDAO = Stub(PipelineDAO.class)
@@ -144,9 +145,9 @@ class PipelineControllerSpec extends Specification {
     def pipelineDAO = Stub(PipelineDAO.class)
 
     def pipeline = new Pipeline([
-      id: testPipelineId,
-      name: "test-pipeline",
-      application: "test-application",
+      id          : testPipelineId,
+      name        : "test-pipeline",
+      application : "test-application",
       lastModified: 1662644108709
     ])
 
@@ -172,22 +173,133 @@ class PipelineControllerSpec extends Specification {
     response.contentAsString.contains("\"updateTs\":\"1662644108709\"")
   }
 
+  @Unroll
+  def "should create pipelines in a thread safe way"() {
+    given:
+    def pipelineDAO = new InMemoryPipelineDAO()
+    def createPipelineFirstRequest = post("/pipelines")
+      .contentType(MediaType.APPLICATION_JSON)
+      .content(new ObjectMapper().writeValueAsString([
+        id         : "1",
+        name       : "pipeline-name",
+        application: "application-name",
+      ]))
+    def createPipelineSecondRequest = post("/pipelines")
+      .contentType(MediaType.APPLICATION_JSON)
+      .content(new ObjectMapper().writeValueAsString([
+        id         : "2",
+        name       : "pipeline-name",
+        application: "application-name",
+      ]))
+
+    def mockMvcWithController = MockMvcBuilders.standaloneSetup(new PipelineController(
+      pipelineDAO, new ObjectMapper(), Optional.empty(), [], Optional.empty()
+    )).build()
+
+    when:
+
+    def all = Executors.newFixedThreadPool(2).invokeAll(List.of(
+      { -> mockMvcWithController.perform(createPipelineFirstRequest).andReturn().response },
+      { -> mockMvcWithController.perform(createPipelineSecondRequest).andReturn().response },
+    ))
+    then:
+    (all.get(0).get().status == 200 && all.get(1).get().status == 400) || (all.get(0).get().status == 400 && all.get(1).get().status == 200)
+  }
+
   @Configuration
   private static class TestConfiguration {
-      DetachedMockFactory detachedMockFactory = new DetachedMockFactory()
-      @Bean
-      PipelineDAO pipelineDAO() {
-        detachedMockFactory.Stub(PipelineDAO)
-      }
+    DetachedMockFactory detachedMockFactory = new DetachedMockFactory()
+
+    @Bean
+    PipelineDAO pipelineDAO() {
+      detachedMockFactory.Stub(PipelineDAO)
+    }
   }
 
   private class MockValidator implements PipelineValidator {
     @Override
     void validate(Pipeline pipeline, ValidatorErrors errors) {
       if (pipeline.getName() == "should-fail") {
-         errors.reject("mock validator rejection 1")
-         errors.reject("mock validator rejection 2")
+        errors.reject("mock validator rejection 1")
+        errors.reject("mock validator rejection 2")
       }
+    }
+  }
+
+
+  private class InMemoryPipelineDAO implements PipelineDAO {
+
+    private final Map<String, Pipeline> map = new HashMap<>()
+
+    @Override
+    String getPipelineId(String application, String pipelineName) {
+      map.values().stream()
+        .filter({ p -> p.getApplication().equalsIgnoreCase(application) })
+        .filter({ p -> p.getName().equalsIgnoreCase(pipelineName) })
+        .collect(Collectors.toList())
+    }
+
+    @Override
+    Collection<Pipeline> getPipelinesByApplication(String application) {
+      map.values().stream()
+        .filter({ p -> p.getApplication().equalsIgnoreCase(application) })
+        .collect(Collectors.toList())
+    }
+
+    @Override
+    Collection<Pipeline> getPipelinesByApplication(String application, boolean refresh) {
+      map.values().stream()
+        .filter({ p -> p.getApplication().equalsIgnoreCase(application) })
+        .collect(Collectors.toList())
+    }
+
+    @Override
+    Pipeline findById(String id) throws NotFoundException {
+      def get = map.get(id)
+      if (get == null) {
+        throw new NotFoundException("Didn't find Pipeline with id: " + id)
+      }
+      return get
+    }
+
+    @Override
+    Collection<Pipeline> all() {
+      return map.values()
+    }
+
+    @Override
+    Collection<Pipeline> all(boolean refresh) {
+      return map.values()
+    }
+
+    @Override
+    Collection<Pipeline> history(String id, int maxResults) {
+      throw new UnsupportedOperationException()
+    }
+
+    @Override
+    Pipeline create(String id, Pipeline item) {
+      map.put(id, item)
+    }
+
+    @Override
+    void update(String id, Pipeline item) {
+      map.put(id, item)
+    }
+
+    @Override
+    void delete(String id) {
+      map.remove(id)
+    }
+
+    @Override
+    void bulkImport(Collection<Pipeline> items) {
+      throw new UnsupportedOperationException()
+    }
+
+    @Override
+    boolean isHealthy() {
+      return true
     }
   }
 
