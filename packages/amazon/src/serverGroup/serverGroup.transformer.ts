@@ -96,6 +96,10 @@ export class AwsServerGroupTransformer {
     deployConfig.targetGroups = base.targetGroups || [];
     deployConfig.account = deployConfig.credentials;
     deployConfig.subnetType = deployConfig.subnetType || '';
+    deployConfig.instanceType =
+      deployConfig.instanceType ||
+      (deployConfig.launchTemplateOverridesForInstanceType &&
+        deployConfig.launchTemplateOverridesForInstanceType[0].instanceType); // populate instanceType for backwards compatibility
 
     if (base.viewState.mode !== 'clone') {
       delete deployConfig.source;

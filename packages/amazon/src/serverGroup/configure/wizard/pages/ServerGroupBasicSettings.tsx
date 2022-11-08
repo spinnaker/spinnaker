@@ -98,6 +98,9 @@ export class ServerGroupBasicSettings
         setFieldValue('associateIPv6Address', false);
       }
     }
+
+    // an image change might clear the single or multiple instance types previously selected with the image, validate the form to surface related errors.
+    this.props.formik.validateForm();
   };
 
   private accountUpdated = (account: string): void => {

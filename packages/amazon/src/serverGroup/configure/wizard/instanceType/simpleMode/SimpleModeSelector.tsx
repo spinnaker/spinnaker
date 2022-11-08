@@ -3,6 +3,7 @@ import React from 'react';
 import { NgReact } from '@spinnaker/core';
 
 import { CpuCreditsToggle } from '../CpuCreditsToggle';
+import { InstanceTypeWarning } from '../InstanceTypeWarning';
 import { AWSProviderSettings } from '../../../../../aws.settings';
 import type { IAmazonServerGroupCommand } from '../../../serverGroupConfiguration.service';
 
@@ -10,6 +11,7 @@ export interface ISimpleModeSelectorProps {
   command: IAmazonServerGroupCommand;
   setUnlimitedCpuCredits: (unlimitedCpuCredits: boolean | undefined) => void;
   setFieldValue: (field: keyof IAmazonServerGroupCommand, value: any, shouldValidate?: boolean) => void;
+  clearWarnings: () => void;
 }
 
 export function SimpleModeSelector(props: ISimpleModeSelectorProps) {
@@ -41,6 +43,7 @@ export function SimpleModeSelector(props: ISimpleModeSelectorProps) {
           onTypeChanged={instanceTypeChanged}
           onProfileChanged={instanceProfileChanged}
         />
+        <InstanceTypeWarning dirty={command.viewState.dirty} clearWarnings={props.clearWarnings} />
         <div style={{ padding: '0 15px' }}>
           {command.viewState.instanceProfile && command.viewState.instanceProfile !== 'custom' && (
             <InstanceTypeSelector command={command} onTypeChanged={instanceTypeChanged} />

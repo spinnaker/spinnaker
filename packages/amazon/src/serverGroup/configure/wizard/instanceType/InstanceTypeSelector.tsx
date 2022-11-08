@@ -16,51 +16,83 @@ export interface IInstanceTypeSelectorProps {
 
 export function InstanceTypeSelector(props: IInstanceTypeSelectorProps) {
   const { instanceTypeDetails } = props;
-  const { values: command, setFieldValue } = props.formik;
+  const { values, setFieldValue } = props.formik;
   const isLaunchTemplatesEnabled = AWSProviderSettings.serverGroups?.enableLaunchTemplates;
 
-  const useSimpleMode = command.viewState.useSimpleInstanceTypeSelector;
-  const [unlimitedCpuCredits, setUnlimitedCpuCredits] = useState(command.unlimitedCpuCredits);
+  const useSimpleMode = values.viewState.useSimpleInstanceTypeSelector;
+  const [unlimitedCpuCredits, setUnlimitedCpuCredits] = useState(values.unlimitedCpuCredits);
 
   useEffect(() => {
-    if (command.unlimitedCpuCredits !== unlimitedCpuCredits) {
+    if (values.unlimitedCpuCredits !== unlimitedCpuCredits) {
       setFieldValue('unlimitedCpuCredits', unlimitedCpuCredits);
     }
   }, [unlimitedCpuCredits]);
 
+  const clearWarnings = () => {
+    const { formik } = props;
+
+    // clear for both keys to support consistency between simple and advanced modes
+    formik.values.viewState.dirty['instanceType'] = null;
+    formik.values.viewState.dirty['launchTemplateOverridesForInstanceType'] = null;
+
+    formik.validateForm();
+  };
+
   const handleModeChange = (useSimpleModeNew: boolean) => {
     if (useSimpleMode !== useSimpleModeNew) {
       setFieldValue('viewState', {
-        ...command.viewState,
+        ...values.viewState,
         useSimpleInstanceTypeSelector: useSimpleModeNew,
       });
 
       // update selected instance type(s) if mode changed.
       // Simple mode uses command.instanceType to track selected type. Advanced mode uses command.launchTemplateOverridesForInstanceType to track selected types.
-      const multipleInstanceTypesInProps = command.launchTemplateOverridesForInstanceType;
-      const singleInstanceTypeInProps = command.instanceType;
+      if (useSimpleModeNew) {
+        const multipleInstanceTypesInProps = values.launchTemplateOverridesForInstanceType;
+        const dirtyMultipleInstanceTypesInProps = values.viewState.dirty.launchTemplateOverridesForInstanceType;
 
-      const toSimple = useSimpleModeNew && multipleInstanceTypesInProps?.length;
-      const toAdvanced = !useSimpleModeNew && singleInstanceTypeInProps;
-      if (toSimple) {
-        const highestPriorityNum = Math.min(...multipleInstanceTypesInProps.map((it) => it.priority));
-        const instanceTypeWithHighestPriority = multipleInstanceTypesInProps.find(
-          (it) => it.priority === highestPriorityNum,
-        ).instanceType;
+        if (multipleInstanceTypesInProps?.length) {
+          const instanceTypeWithHighestPriority = multipleInstanceTypesInProps.reduce((prev, current) => {
+            return prev.priority < current.priority ? prev : current;
+          }).instanceType;
+          setFieldValue('instanceType', instanceTypeWithHighestPriority);
+          setFieldValue('launchTemplateOverridesForInstanceType', []);
+          values.instanceTypeChanged(values);
+        }
 
-        setFieldValue('instanceType', instanceTypeWithHighestPriority);
-        setFieldValue('launchTemplateOverridesForInstanceType', []);
-        command.instanceTypeChanged(command);
-      } else if (toAdvanced) {
-        const instanceTypes: IAmazonInstanceTypeOverride[] = [
-          {
-            instanceType: singleInstanceTypeInProps,
-            priority: 1,
-          },
-        ];
-        setFieldValue('instanceType', undefined);
-        setFieldValue('launchTemplateOverridesForInstanceType', instanceTypes);
-        command.launchTemplateOverridesChanged(command);
+        if (dirtyMultipleInstanceTypesInProps?.length) {
+          const instanceTypeWithHighestPriorityDirty = dirtyMultipleInstanceTypesInProps.reduce((prev, current) => {
+            return prev.priority < current.priority ? prev : current;
+          }).instanceType;
+          setFieldValue('viewState.dirty.instanceType', instanceTypeWithHighestPriorityDirty);
+          setFieldValue('viewState.dirty.launchTemplateOverridesForInstanceType', []);
+        }
+      } else if (!useSimpleModeNew) {
+        const singleInstanceTypeInProps = values.instanceType;
+        const dirtySingleInstanceTypeInProps = values.viewState.dirty.instanceType;
+
+        if (singleInstanceTypeInProps) {
+          const instanceTypes: IAmazonInstanceTypeOverride[] = [
+            {
+              instanceType: singleInstanceTypeInProps,
+              priority: 1,
+            },
+          ];
+          setFieldValue('instanceType', undefined);
+          setFieldValue('launchTemplateOverridesForInstanceType', instanceTypes);
+          values.launchTemplateOverridesChanged(values);
+        }
+
+        if (dirtySingleInstanceTypeInProps) {
+          const dirtyInstanceTypes: IAmazonInstanceTypeOverride[] = [
+            {
+              instanceType: dirtySingleInstanceTypeInProps,
+              priority: 1,
+            },
+          ];
+          setFieldValue('viewState.dirty.instanceType', undefined);
+          setFieldValue('viewState.dirty.launchTemplateOverridesForInstanceType', dirtyInstanceTypes);
+        }
       }
     }
   };
@@ -86,6 +118,7 @@ export function InstanceTypeSelector(props: IInstanceTypeSelectorProps) {
           formik={props.formik}
           instanceTypeDetails={instanceTypeDetails}
           setUnlimitedCpuCredits={setUnlimitedCpuCredits}
+          clearWarnings={clearWarnings}
         />
       </div>
     );
@@ -124,9 +157,10 @@ export function InstanceTypeSelector(props: IInstanceTypeSelectorProps) {
         )}
       </div>
       <SimpleModeSelector
-        command={command}
+        command={values}
         setUnlimitedCpuCredits={setUnlimitedCpuCredits}
         setFieldValue={setFieldValue}
+        clearWarnings={clearWarnings}
       />
     </div>
   );

@@ -31,12 +31,22 @@ export class ServerGroupInstanceType
     const errors: FormikErrors<IAmazonServerGroupCommand> = {};
 
     if (values.viewState.useSimpleInstanceTypeSelector) {
-      if (!values.instanceType) {
+      // For the clone scenario, when values.instanceType is cleared for various reasons (see serverGroupConfiguration.service.ts),
+      // the previously selected instance type might be cleared/ unselected to fail-fast and this might look like unexpected behavior. But, there is always a reason when this happens.
+      // The error handling below adds transparency around what changed and why.
+      if (values.viewState.dirty.instanceType) {
+        errors.instanceType = 'You must confirm removed instance type and pick a compatible instance type.';
+      } else if (!values.instanceType) {
         errors.instanceType = 'Instance Type required.';
       }
     } else {
-      const advancedModeErrors = this.validateAdvancedModeFields(values, errors);
-      Object.assign(errors, { ...advancedModeErrors });
+      const prevInstanceTypes = values.viewState.dirty.launchTemplateOverridesForInstanceType;
+      if (prevInstanceTypes && prevInstanceTypes.length > 0) {
+        errors.instanceType = 'You must confirm removed instance types and/or pick more instance types.';
+      } else {
+        const advancedModeErrors = this.validateAdvancedModeFields(values, errors);
+        Object.assign(errors, { ...advancedModeErrors });
+      }
     }
 
     return errors;

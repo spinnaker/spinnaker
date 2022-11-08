@@ -3,6 +3,7 @@ import {
   chain,
   clone,
   cloneDeep,
+  difference,
   extend,
   find,
   flatten,
@@ -61,6 +62,7 @@ export type IBlockDeviceMappingSource = 'source' | 'ami' | 'default';
 
 export interface IAmazonServerGroupCommandDirty extends IServerGroupCommandDirty {
   targetGroups?: string[];
+  launchTemplateOverridesForInstanceType?: IAmazonInstanceTypeOverride[];
 }
 
 export interface IAmazonServerGroupCommandResult extends IServerGroupCommandResult {
@@ -376,11 +378,13 @@ export class AwsServerGroupConfigurationService {
 
   public configureInstanceTypes(command: IAmazonServerGroupCommand): IServerGroupCommandResult {
     const result: IAmazonServerGroupCommandResult = { dirty: {} };
+
     if (command.region && (command.virtualizationType || command.viewState.disableImageSelection)) {
       let filteredTypesInfo: IAmazonInstanceType[] = this.awsInstanceTypeService.getAvailableTypesForRegions(
         command.backingData.instanceTypesInfo,
         [command.region],
       );
+
       if (command.virtualizationType || command.amiArchitecture) {
         filteredTypesInfo = this.awsInstanceTypeService.filterInstanceTypes(
           filteredTypesInfo,
@@ -389,18 +393,35 @@ export class AwsServerGroupConfigurationService {
           command.amiArchitecture,
         );
       }
-
       const filteredTypes: string[] = map(filteredTypesInfo, 'name');
+
+      // handle incompatibility for single instance type case
       if (command.instanceType && !filteredTypes.includes(command.instanceType)) {
         result.dirty.instanceType = command.instanceType;
         command.instanceType = null;
       }
+
+      // handle incompatibility for multiple instance types case
+      const multipleInstanceTypes: string[] = map(command.launchTemplateOverridesForInstanceType, 'instanceType');
+      const validInstanceTypes: string[] = intersection(multipleInstanceTypes, filteredTypes);
+      const invalidInstanceTypes: string[] = difference(multipleInstanceTypes, validInstanceTypes);
+
+      if (command.launchTemplateOverridesForInstanceType && invalidInstanceTypes.length > 0) {
+        result.dirty.launchTemplateOverridesForInstanceType = command.launchTemplateOverridesForInstanceType.filter(
+          (it) => invalidInstanceTypes.includes(it.instanceType),
+        );
+        command.launchTemplateOverridesForInstanceType = command.launchTemplateOverridesForInstanceType.filter((it) =>
+          validInstanceTypes.includes(it.instanceType),
+        );
+      }
+
       command.backingData.filtered.instanceTypes = filteredTypes;
       command.backingData.filtered.instanceTypesInfo = filteredTypesInfo;
     } else {
       command.backingData.filtered.instanceTypes = [];
       command.backingData.filtered.instanceTypesInfo = [];
     }
+
     extend(command.viewState.dirty, result.dirty);
     return result;
   }
@@ -613,6 +634,7 @@ export class AwsServerGroupConfigurationService {
       });
       command.vpcId = subnet ? subnet.vpcId : null;
     }
+
     extend(result.dirty, this.configureInstanceTypes(command).dirty);
     return result;
   }

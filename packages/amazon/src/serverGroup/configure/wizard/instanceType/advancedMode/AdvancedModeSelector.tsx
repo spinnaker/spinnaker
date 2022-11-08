@@ -15,6 +15,7 @@ export interface IAdvancedModeSelectorProps {
   formik: FormikProps<IAmazonServerGroupCommand>;
   instanceTypeDetails: IAmazonInstanceTypeCategory[];
   setUnlimitedCpuCredits: (unlimitedCpuCredits: boolean | undefined) => void;
+  clearWarnings: () => void;
 }
 
 /**
@@ -93,6 +94,8 @@ export function AdvancedModeSelector(props: IAdvancedModeSelectorProps) {
         }
         handleInstanceTypesChange={handleInstanceTypesChange}
         setUnlimitedCpuCredits={setUnlimitedCpuCredits}
+        viewState={command.viewState}
+        clearWarnings={props.clearWarnings}
       />
     </div>
   );
