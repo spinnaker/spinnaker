@@ -43,6 +43,9 @@ public class HelmBakeManifestRequest extends BakeManifestRequest {
   @JsonProperty("rawOverrides")
   private Boolean rawOverrides;
 
+  @JsonProperty("includeCRDs")
+  private Boolean includeCRDs;
+
   @JsonProperty("helmChartFilePath")
   private String helmChartFilePath;
 
@@ -59,6 +62,7 @@ public class HelmBakeManifestRequest extends BakeManifestRequest {
     this.setNamespace(bakeManifestContext.getNamespace());
     this.setInputArtifacts(inputArtifacts);
     this.setRawOverrides(bakeManifestContext.getRawOverrides());
+    this.setIncludeCRDs(bakeManifestContext.getIncludeCRDs());
     this.setHelmChartFilePath(bakeManifestContext.getHelmChartFilePath());
   }
 }

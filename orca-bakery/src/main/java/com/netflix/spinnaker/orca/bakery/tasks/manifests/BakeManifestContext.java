@@ -35,6 +35,7 @@ public class BakeManifestContext {
   private final String outputName;
   private final String namespace;
   private final Boolean rawOverrides;
+  private final Boolean includeCRDs;
   @Nullable private final String kustomizeFilePath;
   @Nullable private final String helmChartFilePath;
   // There does not seem to be a way to auto-generate a constructor using our current version of
@@ -52,7 +53,8 @@ public class BakeManifestContext {
       @Nullable @JsonProperty("inputArtifact") CreateBakeManifestTask.InputArtifact inputArtifact,
       @Nullable @JsonProperty("kustomizeFilePath") String kustomizeFilePath,
       @Nullable @JsonProperty("helmChartFilePath") String helmChartFilePath,
-      @JsonProperty("rawOverrides") Boolean rawOverrides) {
+      @JsonProperty("rawOverrides") Boolean rawOverrides,
+      @JsonProperty("includeCRDs") Boolean includeCRDs) {
     this.inputArtifacts = Optional.ofNullable(inputArtifacts).orElse(new ArrayList<>());
     // Kustomize stage configs provide a single input artifact
     if (this.inputArtifacts.isEmpty() && inputArtifact != null) {
@@ -67,5 +69,6 @@ public class BakeManifestContext {
     this.kustomizeFilePath = kustomizeFilePath;
     this.helmChartFilePath = helmChartFilePath;
     this.rawOverrides = rawOverrides;
+    this.includeCRDs = includeCRDs;
   }
 }
