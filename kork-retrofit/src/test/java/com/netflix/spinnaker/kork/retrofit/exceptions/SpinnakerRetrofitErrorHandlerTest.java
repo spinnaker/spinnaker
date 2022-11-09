@@ -23,10 +23,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
+import org.junit.Assert;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -34,6 +36,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.HttpStatus;
 import retrofit.RestAdapter;
+import retrofit.RetrofitError;
 import retrofit.client.Response;
 import retrofit.converter.JacksonConverter;
 import retrofit.http.GET;
@@ -146,6 +149,16 @@ public class SpinnakerRetrofitErrorHandlerTest {
     SpinnakerHttpException spinnakerHttpException =
         assertThrows(SpinnakerHttpException.class, () -> retrofitService.getFoo());
     assertNull(spinnakerHttpException.getRetryable());
+  }
+
+  @Test
+  public void testSimpleSpinnakerNetworkException() {
+    String message = "my custom message";
+    IOException e = new IOException(message);
+    RetrofitError retrofitError = RetrofitError.networkError("http://localhost", e);
+    SpinnakerRetrofitErrorHandler handler = SpinnakerRetrofitErrorHandler.getInstance();
+    Throwable throwable = handler.handleError(retrofitError);
+    Assert.assertEquals(message, throwable.getMessage());
   }
 
   interface RetrofitService {

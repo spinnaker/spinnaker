@@ -45,7 +45,7 @@ public class SpinnakerServerException extends SpinnakerException {
     RetrofitErrorResponseBody body =
         (RetrofitErrorResponseBody) e.getBodyAs(RetrofitErrorResponseBody.class);
     this.rawMessage =
-        Optional.ofNullable(body).map(RetrofitErrorResponseBody::getMessage).orElse("");
+        Optional.ofNullable(body).map(RetrofitErrorResponseBody::getMessage).orElse(e.getMessage());
   }
 
   /**
