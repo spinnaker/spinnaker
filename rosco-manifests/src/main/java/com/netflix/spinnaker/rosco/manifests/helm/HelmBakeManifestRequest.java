@@ -20,6 +20,13 @@ public class HelmBakeManifestRequest extends BakeManifestRequest {
   boolean rawOverrides;
 
   /**
+   * Helm v3 adds a new flag to include custom resource definition manifests in the templated
+   * output. In the previous versions crds were usually included as part of templates, so the `helm
+   * template` command always included them in the rendered output.
+   */
+  boolean includeCRDs;
+
+  /**
    * When the helm chart is (in) a git/repo artifact, the path to the chart.
    *
    * <p>null/unspecified means the chart is in the root directory of the artifact.

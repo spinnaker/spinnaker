@@ -108,6 +108,11 @@ public class HelmTemplateUtils {
       command.add(namespace);
     }
 
+    if (request.isIncludeCRDs()
+        && request.getTemplateRenderer() == BakeManifestRequest.TemplateRenderer.HELM3) {
+      command.add("--include-crds");
+    }
+
     Map<String, Object> overrides = request.getOverrides();
     if (!overrides.isEmpty()) {
       List<String> overrideList = new ArrayList<>();
