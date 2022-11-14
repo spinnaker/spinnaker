@@ -40,6 +40,7 @@ public final class Manifest {
   private final Status status;
   private final String name;
   private final ImmutableList<String> warnings;
+  private final ImmutableList<Object> events;
 
   @Builder(toBuilder = true)
   @ParametersAreNullableByDefault
@@ -48,7 +49,8 @@ public final class Manifest {
       List<Artifact> artifacts,
       Status status,
       String name,
-      List<String> warnings) {
+      List<String> warnings,
+      List<Object> events) {
     this.manifest =
         Optional.ofNullable(manifest).map(ImmutableMap::copyOf).orElseGet(ImmutableMap::of);
     this.artifacts =
@@ -57,6 +59,8 @@ public final class Manifest {
     this.name = Optional.ofNullable(name).orElse("");
     this.warnings =
         Optional.ofNullable(warnings).map(ImmutableList::copyOf).orElseGet(ImmutableList::of);
+    this.events =
+        Optional.ofNullable(events).map(ImmutableList::copyOf).orElseGet(ImmutableList::of);
   }
 
   @JsonDeserialize(builder = Manifest.Status.StatusBuilder.class)

@@ -68,6 +68,8 @@ public class WaitForManifestStableTask
     List<Map<String, String>> stableManifests = context.getStableManifests();
     List<Map<String, String>> failedManifests = context.getFailedManifests();
     List warnings = context.getWarnings();
+    List events = context.getEvents();
+    boolean includeEvents = context.isIncludeEvents();
 
     boolean anyIncomplete = false;
     for (Map.Entry<String, List<String>> entry : deployedManifests.entrySet()) {
@@ -86,7 +88,7 @@ public class WaitForManifestStableTask
 
         Manifest manifest;
         try {
-          manifest = oortService.getManifest(account, location, name, false);
+          manifest = oortService.getManifest(account, location, name, includeEvents);
         } catch (RetrofitError e) {
           log.warn("Unable to read manifest {}", identifier, e);
           return TaskResult.builder(ExecutionStatus.RUNNING)
@@ -124,6 +126,10 @@ public class WaitForManifestStableTask
         if (!manifest.getWarnings().isEmpty()) {
           warnings.addAll(manifest.getWarnings());
         }
+
+        if (!manifest.getEvents().isEmpty()) {
+          events.addAll(manifest.getEvents());
+        }
       }
     }
 
@@ -138,6 +144,9 @@ public class WaitForManifestStableTask
     }
     if (!warnings.isEmpty()) {
       builder.put("warnings", warnings);
+    }
+    if (!events.isEmpty()) {
+      builder.put("events", events);
     }
 
     Map<String, Object> newContext = builder.build();

@@ -22,7 +22,23 @@
     "spec" : {}
   },
   "warnings" : [],
-  "events" : [],
+  "events" : [
+    {
+      "apiVersion" : "v1",
+      "count" : 1.0,
+      "firstTimestamp" : "2022-10-19T11:32:18Z",
+      "involvedObject" : 6,
+      "kind" : "Event",
+      "lastTimestamp" : "2022-10-19T11:32:18Z",
+      "message" : "A sample testing event in orca",
+      "metadata" :  5,
+      "reason" : "CreateInCluster",
+      "reportingComponent" : "",
+      "reportingInstance" :  "",
+      "source" : 1,
+      "type" : "Normal"
+    }
+  ],
   "artifacts" : [
     {
       "name" : "gcr.io/test-repo/test-image",

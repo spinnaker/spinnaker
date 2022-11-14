@@ -35,6 +35,8 @@ public class WaitForManifestStableContext extends HashMap<String, Object> {
   private final List<Map<String, String>> stableManifests;
   private final List<Map<String, String>> failedManifests;
   private final List warnings;
+  private final List<Object> events;
+  private final boolean includeEvents;
 
   // There does not seem to be a way to auto-generate a constructor using our current version of
   // Lombok (1.16.20) that
@@ -44,7 +46,9 @@ public class WaitForManifestStableContext extends HashMap<String, Object> {
       @JsonProperty("exception") Optional<Exception> exception,
       @JsonProperty("stableManifests") Optional<List<Map<String, String>>> stableManifests,
       @JsonProperty("failedManifests") Optional<List<Map<String, String>>> failedManifests,
-      @JsonProperty("warnings") Optional<List> warnings) {
+      @JsonProperty("warnings") Optional<List> warnings,
+      @JsonProperty("events") Optional<List<Object>> events,
+      @JsonProperty("includeEvents") Optional<Boolean> includeEvents) {
     this.messages = messages.orElseGet(ArrayList::new);
     this.failureMessages =
         exception
@@ -53,6 +57,8 @@ public class WaitForManifestStableContext extends HashMap<String, Object> {
     this.stableManifests = stableManifests.orElseGet(ArrayList::new);
     this.failedManifests = failedManifests.orElseGet(ArrayList::new);
     this.warnings = warnings.orElseGet(ArrayList::new);
+    this.events = events.orElseGet(ArrayList::new);
+    this.includeEvents = includeEvents.orElse(false);
   }
 
   public List<Map<String, String>> getCompletedManifests() {
