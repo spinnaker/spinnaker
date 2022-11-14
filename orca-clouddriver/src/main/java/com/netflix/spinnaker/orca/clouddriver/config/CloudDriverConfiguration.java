@@ -80,7 +80,7 @@ public class CloudDriverConfiguration {
         cloudDriverConfigurationProperties);
   }
 
-  static class ClouddriverRetrofitBuilder {
+  public static class ClouddriverRetrofitBuilder {
     ObjectMapper objectMapper;
     OkHttpClientProvider clientProvider;
     RestAdapter.LogLevel retrofitLogLevel;
@@ -100,7 +100,7 @@ public class CloudDriverConfiguration {
       this.cloudDriverConfigurationProperties = cloudDriverConfigurationProperties;
     }
 
-    <T> T buildWriteableService(Class<T> type) {
+    public <T> T buildWriteableService(Class<T> type) {
       return buildService(type, cloudDriverConfigurationProperties.getCloudDriverBaseUrl());
     }
 
