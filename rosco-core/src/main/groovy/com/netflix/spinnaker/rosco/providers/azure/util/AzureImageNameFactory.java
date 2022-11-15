@@ -21,6 +21,7 @@ import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory;
 import com.netflix.spinnaker.rosco.providers.util.PackageNameConverter;
 import java.util.List;
 import java.util.Optional;
+import org.apache.commons.lang3.StringUtils;
 
 public class AzureImageNameFactory extends ImageNameFactory {
 
@@ -43,6 +44,8 @@ public class AzureImageNameFactory extends ImageNameFactory {
             ? bakeRequest.getBase_os()
             : bakeRequest.getOs_type().name();
 
-    return String.join("-", List.of(baseName, arch, release, os));
+    List<String> nameParams = new java.util.ArrayList<>(List.of(baseName, arch, release, os));
+    nameParams.removeIf(StringUtils::isBlank);
+    return String.join("-", nameParams);
   }
 }

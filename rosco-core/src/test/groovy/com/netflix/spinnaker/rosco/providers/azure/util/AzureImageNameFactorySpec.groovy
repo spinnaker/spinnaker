@@ -56,4 +56,22 @@ class AzureImageNameFactorySpec extends Specification implements TestDefaults {
         then:
         imageName == "7zip-all-release-linux"
     }
+
+    void "Should provide a valid image name when base_name and package_name are empty"() {
+        setup:
+        def imageNameFactory = new AzureImageNameFactory()
+        def bakeRequest = new BakeRequest(
+                package_name: "",
+                base_name: null,
+                base_label: BakeRequest.Label.unstable,
+                os_type: BakeRequest.OsType.windows
+        )
+        def osPackages = parseNupkgOsPackageNames(bakeRequest.package_name)
+
+        when:
+        def imageName = imageNameFactory.buildImageName(bakeRequest, osPackages)
+
+        then:
+        imageName == "all-unstable-windows"
+    }
 }
