@@ -63,7 +63,7 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "org.springframework.cloud:spring-cloud-context"
-  implementation "org.yaml:snakeyaml:1.24"
+  implementation "org.yaml:snakeyaml"
   implementation "com.google.protobuf:protobuf-java:$protobufVersion"
   implementation "com.google.protobuf:protobuf-java-util:$protobufVersion"
   implementation "commons-fileupload:commons-fileupload:1.4"
