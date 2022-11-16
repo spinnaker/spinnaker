@@ -11,7 +11,7 @@ dependencies {
   implementation "io.spinnaker.kork:kork-security"
   implementation "commons-io:commons-io"
   implementation "org.apache.commons:commons-compress:1.21"
-  implementation "org.yaml:snakeyaml:1.25"
+  implementation "org.yaml:snakeyaml"
 
   implementation "com.squareup.retrofit:retrofit"
   testImplementation "org.assertj:assertj-core"
