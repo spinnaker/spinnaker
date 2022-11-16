@@ -55,14 +55,14 @@ public class PluginsBuildMonitor
       PluginReleaseService pluginInfoService,
       PluginCache cache,
       Optional<EchoService> echoService,
-      TaskScheduler scheduler) {
+      TaskScheduler taskScheduler) {
     super(
         igorProperties,
         registry,
         dynamicConfigService,
         discoveryStatusListener,
         lockService,
-        scheduler);
+        taskScheduler);
     this.pluginInfoService = pluginInfoService;
     this.cache = cache;
     this.echoService = echoService;

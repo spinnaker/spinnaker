@@ -73,8 +73,8 @@ class WerckerBuildMonitor extends CommonPollingMonitor<PipelineDelta, PipelinePo
       @Value('${wercker.polling.enabled:true}') boolean pollingEnabled,
       Optional<EchoService> echoService,
       WerckerProperties werckerProperties,
-      TaskScheduler scheduler) {
-        super(properties, registry, dynamicConfigService, discoveryStatusListener, lockService, scheduler)
+      TaskScheduler taskScheduler) {
+        super(properties, registry, dynamicConfigService, discoveryStatusListener, lockService, taskScheduler)
         this.cache = cache
         this.buildServices = buildServices
         this.pollingEnabled = pollingEnabled

@@ -66,8 +66,8 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
                   Optional<EchoService> echoService,
                   Optional<KeelService> keelService,
                   DockerRegistryProperties dockerRegistryProperties,
-                  TaskScheduler scheduler) {
-        super(properties, registry, dynamicConfigService, discoveryStatusListener, lockService, scheduler)
+                  TaskScheduler taskScheduler) {
+        super(properties, registry, dynamicConfigService, discoveryStatusListener, lockService, taskScheduler)
         this.cache = cache
         this.dockerRegistryAccounts = dockerRegistryAccounts
         this.echoService = echoService

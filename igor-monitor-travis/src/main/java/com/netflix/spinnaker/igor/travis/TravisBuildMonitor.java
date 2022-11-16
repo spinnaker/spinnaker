@@ -81,14 +81,14 @@ public class TravisBuildMonitor
       TravisProperties travisProperties,
       Optional<EchoService> echoService,
       Optional<LockService> lockService,
-      TaskScheduler scheduler) {
+      TaskScheduler taskScheduler) {
     super(
         properties,
         registry,
         dynamicConfigService,
         discoveryStatusListener,
         lockService,
-        scheduler);
+        taskScheduler);
     this.buildCache = buildCache;
     this.buildServices = buildServices;
     this.travisProperties = travisProperties;

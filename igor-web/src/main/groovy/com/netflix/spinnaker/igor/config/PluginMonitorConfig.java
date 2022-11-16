@@ -81,7 +81,7 @@ public class PluginMonitorConfig {
       PluginReleaseService pluginReleaseService,
       PluginCache pluginCache,
       Optional<EchoService> echoService,
-      TaskScheduler scheduler) {
+      TaskScheduler taskScheduler) {
     return new PluginsBuildMonitor(
         properties,
         registry,
@@ -91,6 +91,6 @@ public class PluginMonitorConfig {
         pluginReleaseService,
         pluginCache,
         echoService,
-        scheduler);
+        taskScheduler);
   }
 }

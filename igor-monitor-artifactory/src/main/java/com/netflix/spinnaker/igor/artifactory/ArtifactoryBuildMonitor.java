@@ -76,14 +76,14 @@ public class ArtifactoryBuildMonitor
       Optional<EchoService> echoService,
       ArtifactoryCache cache,
       ArtifactoryProperties artifactoryProperties,
-      TaskScheduler scheduler) {
+      TaskScheduler taskScheduler) {
     super(
         properties,
         registry,
         dynamicConfigService,
         discoveryStatusListener,
         lockService,
-        scheduler);
+        taskScheduler);
     this.cache = cache;
     this.artifactoryProperties = artifactoryProperties;
     this.echoService = echoService;

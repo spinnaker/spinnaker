@@ -59,14 +59,14 @@ public class HelmMonitor
       HelmCache cache,
       HelmAccounts helmAccounts,
       Optional<EchoService> echoService,
-      TaskScheduler scheduler) {
+      TaskScheduler taskScheduler) {
     super(
         properties,
         registry,
         dynamicConfigService,
         discoveryStatusListener,
         lockService,
-        scheduler);
+        taskScheduler);
     this.cache = cache;
     this.helmAccounts = helmAccounts;
     this.echoService = echoService;

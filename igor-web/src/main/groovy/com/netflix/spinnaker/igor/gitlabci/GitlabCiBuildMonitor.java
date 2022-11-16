@@ -77,14 +77,14 @@ public class GitlabCiBuildMonitor
       BuildServices buildServices,
       GitlabCiProperties gitlabCiProperties,
       Optional<EchoService> echoService,
-      TaskScheduler scheduler) {
+      TaskScheduler taskScheduler) {
     super(
         properties,
         registry,
         dynamicConfigService,
         discoveryStatusListener,
         lockService,
-        scheduler);
+        taskScheduler);
     this.buildCache = buildCache;
     this.buildServices = buildServices;
     this.gitlabCiProperties = gitlabCiProperties;

@@ -70,14 +70,14 @@ public class ConcourseBuildMonitor
       BuildServices buildServices,
       ConcourseCache cache,
       ConcourseProperties concourseProperties,
-      TaskScheduler scheduler) {
+      TaskScheduler taskScheduler) {
     super(
         properties,
         registry,
         dynamicConfigService,
         discoveryStatusListener,
         lockService,
-        scheduler);
+        taskScheduler);
     this.buildServices = buildServices;
     this.cache = cache;
     this.concourseProperties = concourseProperties;

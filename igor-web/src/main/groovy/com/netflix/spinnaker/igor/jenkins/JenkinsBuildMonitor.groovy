@@ -71,8 +71,8 @@ class JenkinsBuildMonitor extends CommonPollingMonitor<JobDelta, JobPollingDelta
                         @Value('${jenkins.polling.enabled:true}') boolean pollingEnabled,
                         Optional<EchoService> echoService,
                         JenkinsProperties jenkinsProperties,
-                        TaskScheduler scheduler) {
-        super(properties, registry, dynamicConfigService, discoveryStatusListener, lockService, scheduler)
+                        TaskScheduler taskScheduler) {
+        super(properties, registry, dynamicConfigService, discoveryStatusListener, lockService, taskScheduler)
         this.cache = cache
         this.buildServices = buildServices
         this.pollingEnabled = pollingEnabled
