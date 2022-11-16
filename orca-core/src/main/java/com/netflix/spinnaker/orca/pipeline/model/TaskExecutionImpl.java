@@ -20,6 +20,8 @@ import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT
 
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.TaskExecution;
+import java.util.HashMap;
+import java.util.Map;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -123,5 +125,12 @@ public class TaskExecutionImpl implements TaskExecution {
 
   public void setLoopEnd(boolean loopEnd) {
     this.loopEnd = loopEnd;
+  }
+
+  private Map<String, Object> taskExceptionDetails = new HashMap<>();
+
+  @Override
+  public Map<String, Object> getTaskExceptionDetails() {
+    return taskExceptionDetails;
   }
 }

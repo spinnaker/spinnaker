@@ -127,8 +127,17 @@ class CompleteStageHandler(
               return@withStage
             }
           }
-
           stage.status = status
+          if (status == FAILED_CONTINUE) {
+            (((stage.context["exception"] as? HashMap<*, *>)?.get("details") as? HashMap<*, *>)?.get("errors") as? ArrayList<Any>)
+              .apply { stage.tasks.filter { t -> t.taskExceptionDetails.isNotEmpty() }.forEach { y ->
+                val details = (y.taskExceptionDetails["exception"] as HashMap<*, *>)["details"] as HashMap<*, *>
+                this?.add(y.name + ":")
+                this?.add(details["error"] as String)
+                (details["errors"] as ArrayList<*>).forEach { t -> this?.add(t as String) }
+              }
+            }
+          }
           stage.endTime = clock.millis()
         } catch (e: Exception) {
           log.error("Failed to construct after stages for ${stage.name} ${stage.id}", e)

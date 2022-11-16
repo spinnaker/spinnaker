@@ -551,6 +551,98 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
       }
     }
 
+    describe("when a stage's task fails with FAILED_CONTINUE status and should add the taskException errors to stageContext exception") {
+      val pipeline = pipeline {
+        stage {
+          refId = "1"
+          type = multiTaskStage.type
+          multiTaskStage.plan(this)
+          tasks[0].status = FAILED_CONTINUE
+          tasks[0].taskExceptionDetails["exception"] = mapOf(
+            "timestamp" to "", "exceptionType" to "", "operation" to "", "details" to
+              mapOf(
+                "responseBody" to "",
+                "kind" to "",
+                "error" to "",
+                "errors" to arrayListOf("something"),
+                "url" to "",
+                "rootException" to "",
+                "status" to ""
+              ), "shouldRetry" to false
+          )
+          tasks[1].status = FAILED_CONTINUE
+          tasks[1].taskExceptionDetails["exception"] = mapOf(
+            "timestamp" to "", "exceptionType" to "", "operation" to "", "details" to
+              mapOf(
+                "responseBody" to "",
+                "kind" to "",
+                "error" to "",
+                "errors" to arrayListOf("one more"),
+                "url" to "",
+                "rootException" to "",
+                "status" to ""
+              ), "shouldRetry" to false
+          )
+          context["exception"]= mapOf(
+            "timestamp" to "", "exceptionType" to "", "operation" to "", "details" to
+              mapOf(
+                "responseBody" to "",
+                "kind" to "",
+                "error" to "",
+                "errors" to arrayListOf("one more"),
+                "url" to "",
+                "rootException" to "",
+                "status" to ""
+              ), "shouldRetry" to false
+          )
+          status = RUNNING
+        }
+      }
+      val message = CompleteStage(pipeline.stageByRef("1"))
+      val finalExceptionDetails=mapOf(
+        "timestamp" to "", "exceptionType" to "", "operation" to "", "details" to
+          mapOf(
+            "responseBody" to "",
+            "kind" to "",
+            "error" to "",
+            "errors" to arrayListOf("one more", "dummy1:", "", "something", "dummy2:", "", "one more"),
+            "url" to "",
+            "rootException" to "",
+            "status" to ""
+          ), "shouldRetry" to false
+      )
+
+      beforeGroup {
+        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+      }
+
+      afterGroup(::resetMocks)
+
+      on("receiving the message") {
+        subject.handle(message)
+      }
+
+      it("updates the stage context to store the task exception") {
+        verify(repository).storeStage(
+          check {
+            assertThat(it.status).isEqualTo(FAILED_CONTINUE)
+            assertThat(it.context["exception"]).isEqualTo(finalExceptionDetails)
+          }
+        )
+      }
+
+      it("publishes an event") {
+        verify(publisher).publishEvent(
+          check<StageComplete> {
+            assertThat(it.stage.execution.type).isEqualTo(pipeline.type)
+            assertThat(it.stage.execution.id).isEqualTo(pipeline.id)
+            assertThat(it.stage.id).isEqualTo(message.stageId)
+            assertThat(it.stage.status).isEqualTo(FAILED_CONTINUE)
+          }
+        )
+      }
+    }
+
     given("a stage had no synthetics or tasks") {
       val pipeline = pipeline {
         application = "foo"
@@ -1657,3 +1749,5 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
     }
   }
 })
+
+

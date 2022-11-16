@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.orca.api.pipeline.models;
 
 import com.netflix.spinnaker.kork.annotations.Beta;
+import java.util.Map;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -70,4 +71,6 @@ public interface TaskExecution {
   boolean isLoopEnd();
 
   void setLoopEnd(boolean loopEnd);
+
+  Map<String, Object> getTaskExceptionDetails();
 }

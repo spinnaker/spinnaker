@@ -596,10 +596,11 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
             )
           }
 
-          it("attaches the exception to the stage context") {
+          it("attaches the exception to the stageContext and taskExceptionDetails") {
             verify(repository).storeStage(
               check {
                 assertThat(it.context["exception"]).isEqualTo(exceptionDetails)
+                assertThat(it.tasks[0].taskExceptionDetails["exception"]).isEqualTo(exceptionDetails)
               }
             )
           }
@@ -1481,6 +1482,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         }
       }
     }
+
   }
 
   describe("expressions in the context") {

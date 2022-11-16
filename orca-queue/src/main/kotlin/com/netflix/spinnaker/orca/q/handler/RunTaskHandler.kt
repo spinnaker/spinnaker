@@ -202,6 +202,7 @@ class RunTaskHandler(
               }
               val status = stage.failureStatus(default = TERMINAL)
               stage.context["exception"] = exceptionDetails
+              taskModel.taskExceptionDetails["exception"] = exceptionDetails
               repository.storeStage(stage)
               queue.push(CompleteTask(message, status, TERMINAL))
               trackResult(stage, thisInvocationStartTimeMs, taskModel, status)
