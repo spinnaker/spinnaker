@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,6 +72,7 @@ public class TopApplicationExecutionCleanupPollingNotificationAgent
   private final Registry registry;
   private final long pollingIntervalMs;
   private final int threshold;
+  private final List<PipelineDependencyCleanupOperator> pipelineDependencyCleanupOperators;
 
   private final Id deleteCountId;
   private final Id timerId;
@@ -82,12 +84,14 @@ public class TopApplicationExecutionCleanupPollingNotificationAgent
       Registry registry,
       @Value("${pollers.top-application-execution-cleanup.interval-ms:3600000}")
           long pollingIntervalMs,
-      @Value("${pollers.top-application-execution-cleanup.threshold:2500}") int threshold) {
+      @Value("${pollers.top-application-execution-cleanup.threshold:2500}") int threshold,
+      List<PipelineDependencyCleanupOperator> pipelineDependencyCleanupOperators) {
     super(clusterLock);
     this.executionRepository = executionRepository;
     this.registry = registry;
     this.pollingIntervalMs = pollingIntervalMs;
     this.threshold = threshold;
+    this.pipelineDependencyCleanupOperators = pipelineDependencyCleanupOperators;
 
     deleteCountId = registry.createId("pollers.topApplicationExecutionCleanup.deleted");
     timerId = registry.createId("pollers.topApplicationExecutionCleanup.timing");
@@ -139,28 +143,38 @@ public class TopApplicationExecutionCleanupPollingNotificationAgent
         observable.filter(filter).map(mapper).toList().toBlocking().single();
     executions.sort(comparing(a -> (Long) Optional.ofNullable(a.get("startTime")).orElse(0L)));
     if (executions.size() > threshold) {
-      executions
-          .subList(0, (executions.size() - threshold))
-          .forEach(
-              it -> {
-                Long startTime =
-                    Optional.ofNullable((Long) it.get("startTime"))
-                        .orElseGet(() -> (Long) it.get("buildTime"));
-                log.info(
-                    "Deleting {} execution {} (startTime: {}, application: {}, pipelineConfigId: {}, status: {})",
-                    type,
-                    it.get("id"),
-                    startTime != null ? Instant.ofEpochMilli(startTime) : null,
-                    application,
-                    it.get("pipelineConfigId"),
-                    it.get("status"));
-                if (type.equals("orchestration")) {
-                  executionRepository.delete(ORCHESTRATION, (String) it.get("id"));
-                  registry.counter(deleteCountId.withTag("application", application)).increment();
-                } else {
-                  throw new IllegalArgumentException(format("Unsupported type '%s'", type));
-                }
-              });
+      List<? extends Map> removingPipelineExecutions =
+          executions.subList(0, (executions.size() - threshold));
+
+      List<String> removingPipelineExecutionIds =
+          removingPipelineExecutions.stream()
+              .map(pipelineExecution -> (String) pipelineExecution.get("id"))
+              .collect(Collectors.toList());
+
+      pipelineDependencyCleanupOperators.forEach(
+          pipelineDependencyCleanupOperator ->
+              pipelineDependencyCleanupOperator.cleanup(removingPipelineExecutionIds));
+
+      removingPipelineExecutions.forEach(
+          it -> {
+            Long startTime =
+                Optional.ofNullable((Long) it.get("startTime"))
+                    .orElseGet(() -> (Long) it.get("buildTime"));
+            log.info(
+                "Deleting {} execution {} (startTime: {}, application: {}, pipelineConfigId: {}, status: {})",
+                type,
+                it.get("id"),
+                startTime != null ? Instant.ofEpochMilli(startTime) : null,
+                application,
+                it.get("pipelineConfigId"),
+                it.get("status"));
+            if (type.equals("orchestration")) {
+              executionRepository.delete(ORCHESTRATION, (String) it.get("id"));
+              registry.counter(deleteCountId.withTag("application", application)).increment();
+            } else {
+              throw new IllegalArgumentException(format("Unsupported type '%s'", type));
+            }
+          });
     }
   }
 }

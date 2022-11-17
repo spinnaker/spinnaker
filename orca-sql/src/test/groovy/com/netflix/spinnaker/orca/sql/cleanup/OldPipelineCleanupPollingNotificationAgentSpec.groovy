@@ -73,7 +73,8 @@ abstract class OldPipelineCleanupPollingNotificationAgentSpec extends Specificat
         ["exceptionalApp"],
         50
     ),
-    new OrcaSqlProperties()
+    new OrcaSqlProperties(),
+    []
   )
 
   def setupSpec() {

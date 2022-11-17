@@ -38,6 +38,9 @@ interface BakeryService {
   @GET("/api/v1/{region}/bake/{bakeId}")
   Bake lookupBake(@Path("region") String region, @Path("bakeId") String bakeId)
 
+  @POST("/api/v1/bakes/delete-requests")
+  Void createDeleteBakesRequest(@Body DeleteBakesRequest deleteBakesRequest)
+
   //
   // Methods below this line are not supported by the Netflix Bakery, and are only available
   // iff bakery.roscoApisEnabled is true.

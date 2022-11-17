@@ -40,7 +40,8 @@ class TopApplicationPipelineExecutionCleanupPollingNotificationAgentSpec extends
       Mock(ExecutionRepository),
       new NoopRegistry(),
       5000,
-      2500
+      2500,
+      []
     ).filter
 
     expect:
@@ -70,7 +71,8 @@ class TopApplicationPipelineExecutionCleanupPollingNotificationAgentSpec extends
       Mock(ExecutionRepository),
       new NoopRegistry(),
       5000,
-      2500
+      2500,
+      []
     ).mapper
 
     expect:
@@ -92,12 +94,14 @@ class TopApplicationPipelineExecutionCleanupPollingNotificationAgentSpec extends
       1 * retrieveAllApplicationNames(_, _) >> ["app1"]
       1 * retrieveOrchestrationsForApplication("app1", _) >> rx.Observable.from(orchestrations)
     }
+    def pipelineDependencyCleanupOperator = Mock(PipelineDependencyCleanupOperator)
     def agent = new TopApplicationExecutionCleanupPollingNotificationAgent(
       Mock(NotificationClusterLock),
       executionRepository,
       new NoopRegistry(),
       5000,
-      2
+      2,
+      [pipelineDependencyCleanupOperator]
     )
 
     when:
@@ -105,6 +109,7 @@ class TopApplicationPipelineExecutionCleanupPollingNotificationAgentSpec extends
 
     then:
     1 * executionRepository.delete(ORCHESTRATION, orchestrations[0].id)
+    1 * pipelineDependencyCleanupOperator.cleanup([orchestrations[0].id])
   }
 
   private static Collection<PipelineExecutionImpl> buildExecutions(AtomicInteger stageStartTime,

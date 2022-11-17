@@ -74,7 +74,8 @@ abstract class TopApplicationExecutionCleanupPollingNotificationAgentSpec extend
             exceptionApp2 : 5
         ]
     ),
-    new OrcaSqlProperties()
+    new OrcaSqlProperties(),
+    []
   )
 
   def setupSpec() {

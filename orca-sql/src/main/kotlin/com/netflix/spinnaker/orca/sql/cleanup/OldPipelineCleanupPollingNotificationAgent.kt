@@ -21,6 +21,7 @@ import com.netflix.spinnaker.config.OldPipelineCleanupAgentConfigurationProperti
 import com.netflix.spinnaker.config.OrcaSqlProperties
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
+import com.netflix.spinnaker.orca.notifications.scheduling.PipelineDependencyCleanupOperator
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import java.time.Clock
 import java.time.Instant
@@ -45,7 +46,8 @@ class OldPipelineCleanupPollingNotificationAgent(
   registry: Registry,
   private val executionRepository: ExecutionRepository,
   private val configurationProperties: OldPipelineCleanupAgentConfigurationProperties,
-  private val orcaSqlProperties: OrcaSqlProperties
+  private val orcaSqlProperties: OrcaSqlProperties,
+  private val pipelineDependencyCleanupOperators: List<PipelineDependencyCleanupOperator>
 ) : AbstractCleanupPollingAgent(
   clusterLock,
   configurationProperties.intervalMs,
@@ -160,6 +162,8 @@ class OldPipelineCleanupPollingNotificationAgent(
       .orderBy(field("build_time").desc())
       .limit(configurationProperties.minimumPipelineExecutions, Int.MAX_VALUE)
       .fetch(field("id"), String::class.java)
+
+    pipelineDependencyCleanupOperators.forEach { it.cleanup(executionsToRemove) }
 
     executionsToRemove.chunked(configurationProperties.chunkSize).forEach { ids ->
       deletedExecutionCount.addAndGet(ids.size)

@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.bakery.api.Bake
 import com.netflix.spinnaker.orca.bakery.api.BakeRequest
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
+import com.netflix.spinnaker.orca.bakery.api.DeleteBakesRequest
 import com.netflix.spinnaker.orca.bakery.api.BaseImage
 import com.netflix.spinnaker.orca.bakery.api.manifests.BakeManifestRequest
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfigurationProperties
@@ -142,6 +143,11 @@ class BakerySelectorSpec extends Specification {
 
     @Override
     Bake lookupBake(@Path("region") String region, @Path("bakeId") String bakeId) {
+      return null
+    }
+
+    @Override
+    Void createDeleteBakesRequest(@Body DeleteBakesRequest deleteBakesRequest) {
       return null
     }
 

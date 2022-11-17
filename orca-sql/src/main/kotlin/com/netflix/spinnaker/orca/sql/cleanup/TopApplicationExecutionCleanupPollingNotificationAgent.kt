@@ -21,6 +21,7 @@ import com.netflix.spinnaker.config.OrcaSqlProperties
 import com.netflix.spinnaker.config.TopApplicationExecutionCleanupAgentConfigurationProperties
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
+import com.netflix.spinnaker.orca.notifications.scheduling.PipelineDependencyCleanupOperator
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import java.util.concurrent.atomic.AtomicInteger
 import org.jooq.DSLContext
@@ -39,7 +40,8 @@ class TopApplicationExecutionCleanupPollingNotificationAgent(
   registry: Registry,
   private val executionRepository: ExecutionRepository,
   private val configurationProperties: TopApplicationExecutionCleanupAgentConfigurationProperties,
-  private val orcaSqlProperties: OrcaSqlProperties
+  private val orcaSqlProperties: OrcaSqlProperties,
+  private val pipelineDependencyCleanupOperators: List<PipelineDependencyCleanupOperator>
 ) : AbstractCleanupPollingAgent(
   clusterLock,
   configurationProperties.intervalMs,
@@ -118,6 +120,8 @@ class TopApplicationExecutionCleanupPollingNotificationAgent(
       .fetch(DSL.field("id"), String::class.java)
 
     log.debug("Found {} old orchestrations for {}", executionsToRemove.size, application)
+
+    pipelineDependencyCleanupOperators.forEach { it.cleanup(executionsToRemove) }
 
     executionsToRemove.chunked(configurationProperties.chunkSize).forEach { ids ->
       deletedExecutionCount.addAndGet(ids.size)

@@ -102,6 +102,7 @@ public class OldPipelineCleanupPollingNotificationAgent extends AbstractPollingN
   private final long pollingIntervalMs;
   private final int thresholdDays;
   private final int minimumPipelineExecutions;
+  private final List<PipelineDependencyCleanupOperator> pipelineDependencyCleanupOperators;
 
   private final Id deletedId;
   private final Id timerId;
@@ -115,7 +116,8 @@ public class OldPipelineCleanupPollingNotificationAgent extends AbstractPollingN
       @Value("${pollers.old-pipeline-cleanup.interval-ms:3600000}") long pollingIntervalMs,
       @Value("${pollers.old-pipeline-cleanup.threshold-days:30}") int thresholdDays,
       @Value("${pollers.old-pipeline-cleanup.minimum-pipeline-executions:5}")
-          int minimumPipelineExecutions) {
+          int minimumPipelineExecutions,
+      List<PipelineDependencyCleanupOperator> pipelineDependencyCleanupOperators) {
     super(clusterLock);
     this.executionRepository = executionRepository;
     this.clock = clock;
@@ -123,6 +125,7 @@ public class OldPipelineCleanupPollingNotificationAgent extends AbstractPollingN
     this.pollingIntervalMs = pollingIntervalMs;
     this.thresholdDays = thresholdDays;
     this.minimumPipelineExecutions = minimumPipelineExecutions;
+    this.pipelineDependencyCleanupOperators = pipelineDependencyCleanupOperators;
 
     deletedId = registry.createId("pollers.oldPipelineCleanup.deleted");
     timerId = registry.createId("pollers.oldPipelineCleanup.timing");
@@ -179,14 +182,25 @@ public class OldPipelineCleanupPollingNotificationAgent extends AbstractPollingN
     }
 
     executions.sort(sorter);
-    executions
-        .subList(0, (executions.size() - minimumPipelineExecutions))
-        .forEach(
-            p -> {
-              log.info("Deleting pipeline execution " + p.id + ": " + p.toString());
-              executionRepository.delete(PIPELINE, p.id);
-              registry.counter(deletedId.withTag("application", p.application)).increment();
-            });
+
+    List<PipelineExecutionDetails> removingPipelineExecutions =
+        executions.subList(0, (executions.size() - minimumPipelineExecutions));
+
+    List<String> removingPipelineExecutionIds =
+        removingPipelineExecutions.stream()
+            .map(pipelineExecutionDetails -> pipelineExecutionDetails.id)
+            .collect(Collectors.toList());
+
+    pipelineDependencyCleanupOperators.forEach(
+        pipelineDependencyCleanupOperator ->
+            pipelineDependencyCleanupOperator.cleanup(removingPipelineExecutionIds));
+
+    removingPipelineExecutions.forEach(
+        p -> {
+          log.info("Deleting pipeline execution " + p.id + ": " + p.toString());
+          executionRepository.delete(PIPELINE, p.id);
+          registry.counter(deletedId.withTag("application", p.application)).increment();
+        });
   }
 
   private static class PipelineExecutionDetails {

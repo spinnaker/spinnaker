@@ -45,7 +45,8 @@ class OldPipelineCleanupPollingNotificationAgentSpec extends Specification {
       new NoopRegistry(),
       5000,
       1,
-      5
+      5,
+      []
     ).filter
 
     expect:
@@ -82,7 +83,8 @@ class OldPipelineCleanupPollingNotificationAgentSpec extends Specification {
       new NoopRegistry(),
       5000,
       1,
-      5
+      5,
+      []
     ).mapper
 
     expect:
@@ -122,6 +124,7 @@ class OldPipelineCleanupPollingNotificationAgentSpec extends Specification {
       1 * retrieveAllApplicationNames(PIPELINE) >> ["orca"]
       1 * retrievePipelinesForApplication("orca") >> rx.Observable.from(pipelines)
     }
+    def pipelineDependencyCleanupOperator = Mock(PipelineDependencyCleanupOperator)
     def agent = new OldPipelineCleanupPollingNotificationAgent(
       Mock(NotificationClusterLock),
       executionRepository,
@@ -129,7 +132,8 @@ class OldPipelineCleanupPollingNotificationAgentSpec extends Specification {
       new NoopRegistry(),
       5000,
       thresholdDays,
-      retain
+      retain,
+      [pipelineDependencyCleanupOperator]
     )
 
     when:
@@ -140,6 +144,7 @@ class OldPipelineCleanupPollingNotificationAgentSpec extends Specification {
     // expect D1-5 to be too old, but for the most recent 3 to be retained
     1 * executionRepository.delete(PIPELINE, '1')
     1 * executionRepository.delete(PIPELINE, '2')
+    1 * pipelineDependencyCleanupOperator.cleanup(['1', '2'])
   }
 
   private
