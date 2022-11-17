@@ -331,6 +331,13 @@ final class KubernetesDeployManifestOperationTest {
         .containsExactlyInAnyOrder("my-name-v000", "myconfig-v001");
   }
 
+  @Test
+  void deploysCrdWhereSpecIsList() {
+    KubernetesDeployManifestDescription deployManifestDescription =
+        baseDeployDescription("deploy/crd-manifest-spec-is-list.yml");
+    deploy(deployManifestDescription);
+  }
+
   private static KubernetesDeployManifestDescription baseDeployDescription(String manifest) {
     KubernetesDeployManifestDescription deployManifestDescription =
         new KubernetesDeployManifestDescription()

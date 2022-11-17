@@ -114,4 +114,19 @@ class KubernetesManifestSpec extends Specification {
     manifest.getApiVersion().toString() == CRD_API_VERSION
     manifest.getSpecTemplateAnnotations() == Optional.empty()
   }
+
+  void "correctly reads fields a custom resource where spec is a list"() {
+    when:
+    def sourceJson = KubernetesManifest.class.getResource("crd-manifest-spec-is-list.json").getText("utf-8")
+    def testPayload =  gsonObj.fromJson(sourceJson, Object)
+    KubernetesManifest manifest = objectToManifest(testPayload)
+
+    then:
+    manifest.getName() == CRD_NAME
+    manifest.getKindName() == CRD_KIND
+    manifest.getApiVersion().toString() == CRD_API_VERSION
+    manifest.getReplicas() == null
+    manifest.getSpecTemplateLabels() == Optional.empty()
+    manifest.getSpecTemplateAnnotations() == Optional.empty()
+  }
 }

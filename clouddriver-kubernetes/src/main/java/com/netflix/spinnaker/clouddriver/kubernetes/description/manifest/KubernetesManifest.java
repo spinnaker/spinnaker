@@ -190,11 +190,11 @@ public class KubernetesManifest extends HashMap<String, Object> {
   @JsonIgnore
   @SuppressWarnings("unchecked")
   public KubernetesManifestSelector getManifestSelector() {
-    if (!containsKey("spec")) {
+    Map<String, Object> spec = getSpecAsMap();
+    if (spec == null) {
       return null;
     }
 
-    Map<String, Object> spec = (Map<String, Object>) get("spec");
     if (!spec.containsKey("selector")) {
       return null;
     }
@@ -233,13 +233,26 @@ public class KubernetesManifest extends HashMap<String, Object> {
   }
 
   @JsonIgnore
-  @SuppressWarnings("unchecked")
-  public Integer getReplicas() {
+  private Map<String, Object> getSpecAsMap() {
     if (!containsKey("spec")) {
       return null;
     }
 
-    Map<String, Object> spec = (Map<String, Object>) get("spec");
+    Object specObject = get("spec");
+    if (!(specObject instanceof Map)) {
+      return null;
+    }
+
+    return (Map<String, Object>) specObject;
+  }
+
+  @JsonIgnore
+  @SuppressWarnings("unchecked")
+  public Integer getReplicas() {
+    Map<String, Object> spec = getSpecAsMap();
+    if (spec == null) {
+      return null;
+    }
     if (!spec.containsKey("replicas")) {
       return null;
     }
@@ -250,22 +263,20 @@ public class KubernetesManifest extends HashMap<String, Object> {
   @JsonIgnore
   @SuppressWarnings("unchecked")
   public void setReplicas(Number replicas) {
-    if (!containsKey("spec")) {
+    Map<String, Object> spec = getSpecAsMap();
+    if (spec == null) {
       return;
     }
-
-    Map<String, Object> spec = (Map<String, Object>) get("spec");
     spec.put("replicas", replicas.intValue());
   }
 
   @JsonIgnore
   @SuppressWarnings("unchecked")
   public Optional<Map<String, String>> getSpecTemplateLabels() {
-    if (!containsKey("spec")) {
+    Map<String, Object> spec = getSpecAsMap();
+    if (spec == null) {
       return Optional.empty();
     }
-
-    Map<String, Object> spec = (Map<String, Object>) get("spec");
     if (!spec.containsKey("template")) {
       return Optional.empty();
     }
@@ -296,11 +307,11 @@ public class KubernetesManifest extends HashMap<String, Object> {
   @JsonIgnore
   @SuppressWarnings("unchecked")
   public Optional<Map<String, String>> getSpecTemplateAnnotations() {
-    if (!containsKey("spec")) {
+    Map<String, Object> spec = getSpecAsMap();
+    if (spec == null) {
       return Optional.empty();
     }
 
-    Map<String, Object> spec = (Map<String, Object>) get("spec");
     if (!spec.containsKey("template")) {
       return Optional.empty();
     }

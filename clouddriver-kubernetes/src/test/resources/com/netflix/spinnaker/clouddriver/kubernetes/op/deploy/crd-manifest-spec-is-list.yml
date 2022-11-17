@@ -1,0 +1,9 @@
+apiVersion: test.example/v1alpha1
+kind: Custom1
+metadata:
+  name: default-custom1
+  labels:
+    app: app1
+spec:
+  - id: my-id
+    description: my-description
