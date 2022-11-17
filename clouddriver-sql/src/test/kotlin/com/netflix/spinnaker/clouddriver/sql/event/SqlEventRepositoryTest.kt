@@ -30,7 +30,9 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
 import io.mockk.mockk
+import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.springframework.context.ApplicationEventPublisher
+import org.testcontainers.DockerClientFactory
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.api.expectThrows
@@ -47,6 +49,10 @@ class SqlEventRepositoryTest : JUnit5Minutests {
   fun tests() = rootContext<Fixture> {
     fixture {
       Fixture()
+    }
+
+    beforeAll {
+      assumeTrue(DockerClientFactory.instance().isDockerAvailable)
     }
 
     after {

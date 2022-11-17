@@ -35,8 +35,10 @@ import dev.minutest.rootContext
 import org.jooq.SQLDialect
 import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.table
+import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.springframework.beans.factory.ObjectProvider
+import org.testcontainers.DockerClientFactory
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.get
@@ -47,6 +49,10 @@ class SqlUnknownAgentCleanupAgentTest : JUnit5Minutests {
 
   fun tests() = rootContext<Fixture> {
     fixture { Fixture() }
+
+    beforeAll {
+      assumeTrue(DockerClientFactory.instance().isDockerAvailable)
+    }
 
     after {
       SqlTestUtil.cleanupDb(dslContext)
@@ -273,9 +279,9 @@ class SqlUnknownAgentCleanupAgentTest : JUnit5Minutests {
   }
 
   private inner class StaticObjectProvider(val obj: ProviderRegistry) : ObjectProvider<ProviderRegistry> {
-    override fun getIfUnique(): ProviderRegistry? = obj
+    override fun getIfUnique(): ProviderRegistry = obj
     override fun getObject(vararg args: Any?): ProviderRegistry = obj
     override fun getObject(): ProviderRegistry = obj
-    override fun getIfAvailable(): ProviderRegistry? = obj
+    override fun getIfAvailable(): ProviderRegistry = obj
   }
 }

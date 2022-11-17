@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.artifacts.s3;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -50,6 +51,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.testcontainers.DockerClientFactory;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.utility.DockerImageName;
 
@@ -64,7 +66,9 @@ class S3ArtifactCredentialsTest {
           "localstack/localstack:0.12.18"); // 0.12.18 is the latest as of 1-oct-21
 
   private static LocalStackContainer localstack =
-      new LocalStackContainer(localstackImage).withServices(S3);
+      DockerClientFactory.instance().isDockerAvailable()
+          ? new LocalStackContainer(localstackImage).withServices(S3)
+          : null;
 
   private static AmazonS3 amazonS3;
 
@@ -90,6 +94,7 @@ class S3ArtifactCredentialsTest {
 
   @BeforeAll
   private static void setupOnce() {
+    assumeTrue(DockerClientFactory.instance().isDockerAvailable());
     localstack.start();
     amazonS3 =
         AmazonS3ClientBuilder.standard()

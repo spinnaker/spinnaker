@@ -19,7 +19,9 @@ import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import com.zaxxer.hikari.HikariDataSource
 import org.jooq.DSLContext
 import org.jooq.SQLDialect
+import org.testcontainers.DockerClientFactory
 import spock.lang.AutoCleanup
+import spock.lang.Requires
 import spock.lang.Shared
 import spock.lang.Unroll
 
@@ -28,6 +30,7 @@ import java.time.Instant
 import java.time.ZoneId
 
 
+@Requires({ DockerClientFactory.instance().isDockerAvailable() })
 class SqlProviderCacheSpec extends ProviderCacheSpec {
 
   @Shared

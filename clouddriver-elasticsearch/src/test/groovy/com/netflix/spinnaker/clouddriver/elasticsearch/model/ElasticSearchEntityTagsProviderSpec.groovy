@@ -30,13 +30,16 @@ import io.searchbox.indices.DeleteIndex
 import io.searchbox.indices.Refresh
 import io.searchbox.indices.template.PutTemplate
 import org.springframework.context.ApplicationContext
+import org.testcontainers.DockerClientFactory
 import org.testcontainers.elasticsearch.ElasticsearchContainer
+import spock.lang.Requires
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import java.util.function.Supplier
 
+@Requires({ DockerClientFactory.instance().isDockerAvailable() })
 class ElasticSearchEntityTagsProviderSpec extends Specification {
   @Shared
   JestClient jestClient

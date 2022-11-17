@@ -28,11 +28,14 @@ import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import org.jooq.SQLDialect
+import org.testcontainers.DockerClientFactory
+import spock.lang.Requires
 
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
 
+@Requires({ DockerClientFactory.instance().isDockerAvailable() })
 class MySqlCacheSpec extends SqlCacheSpec {
   def providerCacheConfiguration = new StaticProviderCacheConfiguration(supportsFullEviction: false)
 

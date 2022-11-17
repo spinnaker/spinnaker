@@ -30,6 +30,8 @@ import dev.minutest.rootContext
 import io.mockk.every
 import io.mockk.mockk
 import org.jooq.impl.DSL
+import org.junit.jupiter.api.Assumptions.assumeTrue
+import org.testcontainers.DockerClientFactory
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import java.sql.Timestamp
@@ -41,6 +43,10 @@ class SqlEventCleanupAgentTest : JUnit5Minutests {
   fun tests() = rootContext<Fixture> {
     fixture {
       Fixture()
+    }
+
+    beforeAll {
+      assumeTrue(DockerClientFactory.instance().isDockerAvailable)
     }
 
     before {
