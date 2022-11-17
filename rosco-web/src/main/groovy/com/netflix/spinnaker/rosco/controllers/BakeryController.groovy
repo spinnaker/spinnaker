@@ -21,6 +21,7 @@ import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeOptions
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.api.BakeStatus
+import com.netflix.spinnaker.rosco.api.DeleteBakesRequest
 import com.netflix.spinnaker.rosco.jobs.BakeRecipe
 import com.netflix.spinnaker.rosco.jobs.JobExecutor
 import com.netflix.spinnaker.rosco.jobs.JobRequest
@@ -306,6 +307,13 @@ class BakeryController {
     } else {
       throw new IllegalArgumentException("Unknown provider type '$bakeRequest.cloud_provider_type'.")
     }
+  }
+
+  @RequestMapping(value = '/api/v1/bakes/delete-requests', method = RequestMethod.POST)
+  void createDeleteBakesRequest(@RequestBody DeleteBakesRequest deleteBakesRequest) {
+    deleteBakesRequest.getPipelineExecutionIds().forEach({ pipelineExecutionId ->
+      bakeStore.deleteBakeByPipelineExecutionId(pipelineExecutionId)
+    })
   }
 
   // TODO(duftler): Synchronize this with existing bakery api.

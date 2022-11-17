@@ -70,11 +70,15 @@ class RedisBackedBakeStore implements BakeStore {
             return false
           end
         """)
-        // Expected key list: "allBakes", bake id, bake key, this instance incomplete bakes key, lock key
+        // Expected key list: "allBakes", bake id, bake key, this instance incomplete bakes key, lock key, pipeline execution key
         // Expected arg list: createdTimestampMilliseconds, region, bake request json, bake status json, bake logs json, command, rosco instance id
         storeNewBakeStatusSHA = jedis.scriptLoad("""\
           -- Delete the bake id key.
           redis.call('DEL', KEYS[2])
+
+          -- Add bake id and bake key to set identified by pipeline execution key.
+          redis.call('SADD', KEYS[6], KEYS[2])
+          redis.call('SADD', KEYS[6], KEYS[3])
 
           -- Add bake key to set of bakes.
           redis.call('ZADD', KEYS[1], ARGV[1], KEYS[3])
@@ -283,6 +287,19 @@ class RedisBackedBakeStore implements BakeStore {
 
           return ret
         """)
+        // Expected key list: pipeline execution key
+        // Expected arg list:
+        deleteBakeByPipelineExecutionKeySHA = jedis.scriptLoad("""
+          -- Get all bake entities' keys by pipeline execution key.
+          local bake_keys = redis.call('SMEMBERS', KEYS[1])
+
+          for _,key in ipairs(bake_keys)
+          do
+            redis.call('DEL', key)
+          end
+
+          redis.call('DEL', KEYS[1])
+        """)
       }
     }
   }
@@ -308,12 +325,14 @@ class RedisBackedBakeStore implements BakeStore {
   @Override
   public BakeStatus storeNewBakeStatus(String bakeKey, String region, BakeRecipe bakeRecipe, BakeRequest bakeRequest, BakeStatus bakeStatus, String command) {
     def lockKey = "lock:$bakeKey"
+    def pipelineExecutionId = getPipelineExecutionId(bakeRequest.spinnaker_execution_id)
+    def pipelineExecutionKey = getBakePipelineExecutionKey(pipelineExecutionId)
     def bakeRecipeJson = mapper.writeValueAsString(bakeRecipe)
     def bakeRequestJson = mapper.writeValueAsString(bakeRequest)
     def bakeStatusJson = mapper.writeValueAsString(bakeStatus)
     def bakeLogsJson = mapper.writeValueAsString(bakeStatus.logsContent ? [logsContent: bakeStatus.logsContent] : [:])
     def createdTimestampMilliseconds = timeInMilliseconds
-    def keyList = ["allBakes", bakeStatus.id, bakeKey, thisInstanceIncompleteBakesKey, lockKey.toString()]
+    def keyList = ["allBakes", bakeStatus.id, bakeKey, thisInstanceIncompleteBakesKey, lockKey.toString(), pipelineExecutionKey.toString()]
     def argList = [createdTimestampMilliseconds as String, region, bakeRecipeJson, bakeRequestJson, bakeStatusJson, bakeLogsJson, command, roscoInstanceId]
     def result = evalSHA("storeNewBakeStatusSHA", keyList, argList)
 
@@ -474,6 +493,13 @@ class RedisBackedBakeStore implements BakeStore {
   }
 
   @Override
+  public void deleteBakeByPipelineExecutionId(String pipelineExecutionId) {
+    def keyList = [getBakePipelineExecutionKey(pipelineExecutionId)]
+
+    evalSHA("deleteBakeByPipelineExecutionKeySHA", keyList, [])
+  }
+
+  @Override
   public boolean cancelBakeById(String bakeId) {
     def bakeStatus = new BakeStatus(id: bakeId,
                                     resource_id: bakeId,
@@ -591,5 +617,13 @@ class RedisBackedBakeStore implements BakeStore {
         throw e
       }
     }
+  }
+
+  private static String getBakePipelineExecutionKey(String pipelineExecutionId) {
+    return "bake:pipeline_execution:$pipelineExecutionId"
+  }
+
+  private static String getPipelineExecutionId(String spinnakerExecutionId) {
+    return spinnakerExecutionId.split(":")[0]
   }
 }

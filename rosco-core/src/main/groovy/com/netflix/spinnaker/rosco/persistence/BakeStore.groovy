@@ -108,6 +108,11 @@ interface BakeStore {
   public String deleteBakeByKeyPreserveDetails(String bakeKey)
 
   /**
+   * Delete the bake entities associated with the given pipeline execution id.
+   */
+  void deleteBakeByPipelineExecutionId(String pipelineExecutionId);
+
+  /**
    * Cancel the incomplete bake associated with the bake id and delete the completed bake details associated with the
    * bake id. If the bake is still incomplete, remove the bake id from the set of incomplete bakes.
    */

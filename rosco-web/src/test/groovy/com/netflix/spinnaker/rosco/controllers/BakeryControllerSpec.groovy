@@ -21,6 +21,7 @@ import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeOptions
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.api.BakeStatus
+import com.netflix.spinnaker.rosco.api.DeleteBakesRequest
 import com.netflix.spinnaker.rosco.jobs.BakeRecipe
 import com.netflix.spinnaker.rosco.persistence.RedisBackedBakeStore
 import com.netflix.spinnaker.rosco.providers.CloudProviderBakeHandler
@@ -782,4 +783,20 @@ class BakeryControllerSpec extends Specification {
       thrown BakeOptions.Exception
   }
 
+  void 'delete bakes by pipeline execution ids'() {
+    setup:
+    def bakeStoreMock = Mock(RedisBackedBakeStore)
+    def pipelineExecutionId = UUID.randomUUID().toString()
+    def deleteBakesRequest = new DeleteBakesRequest()
+    deleteBakesRequest.pipelineExecutionIds.add(pipelineExecutionId)
+
+    @Subject
+    def bakeryController = new BakeryController(bakeStore: bakeStoreMock)
+
+    when:
+    bakeryController.createDeleteBakesRequest(deleteBakesRequest)
+
+    then:
+    1 * bakeStoreMock.deleteBakeByPipelineExecutionId(pipelineExecutionId)
+  }
 }
