@@ -23,6 +23,7 @@ import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties;
 import com.netflix.spinnaker.fiat.shared.FiatStatus;
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter;
 import com.netflix.spinnaker.front50.ItemDAOHealthIndicator;
+import com.netflix.spinnaker.front50.api.validator.PipelineValidator;
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO;
 import com.netflix.spinnaker.front50.model.application.ApplicationPermissionDAO;
 import com.netflix.spinnaker.front50.model.delivery.DeliveryRepository;
@@ -31,6 +32,7 @@ import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplateDAO;
 import com.netflix.spinnaker.front50.model.project.ProjectDAO;
 import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccountDAO;
+import com.netflix.spinnaker.front50.validator.pipeline.KubernetesBlueGreenStrategyValidator;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.web.context.AuthenticatedRequestContextProvider;
 import com.netflix.spinnaker.kork.web.context.RequestContextProvider;
@@ -151,5 +153,10 @@ public class Front50WebConfig extends WebMvcConfigurerAdapter {
       Registry registry,
       FiatClientConfigurationProperties fiatClientConfigurationProperties) {
     return new FiatStatus(registry, dynamicConfigService, fiatClientConfigurationProperties);
+  }
+
+  @Bean
+  PipelineValidator kubernetesBlueGreenValidator() {
+    return new KubernetesBlueGreenStrategyValidator();
   }
 }
