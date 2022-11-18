@@ -20,6 +20,7 @@ import static com.netflix.spinnaker.kork.discovery.InstanceStatus.UP;
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.kayenta.config.OrcaCompositeHealthContributor;
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusChangeEvent;
 import com.netflix.spinnaker.kork.discovery.RemoteStatusChangedEvent;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -31,12 +32,9 @@ import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.health.CompositeHealthIndicator;
-import org.springframework.boot.actuate.health.Health;
-import org.springframework.boot.actuate.health.HealthAggregator;
-import org.springframework.boot.actuate.health.HealthIndicator;
-import org.springframework.boot.actuate.health.HealthIndicatorRegistry;
+import org.springframework.boot.actuate.health.HealthContributorRegistry;
 import org.springframework.boot.actuate.health.Status;
+import org.springframework.boot.actuate.health.StatusAggregator;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -57,7 +55,7 @@ public class PipelineController {
   private final ExecutionRepository executionRepository;
   private final ObjectMapper kayentaObjectMapper;
   private final ConfigurableApplicationContext context;
-  private final HealthIndicator healthIndicator;
+  private final OrcaCompositeHealthContributor orcaCompositeHealthContributor;
   private final ScheduledAnnotationBeanPostProcessor postProcessor;
   private Boolean upAtLeastOnce = false;
 
@@ -67,22 +65,24 @@ public class PipelineController {
       ExecutionRepository executionRepository,
       ObjectMapper kayentaObjectMapper,
       ConfigurableApplicationContext context,
-      HealthIndicatorRegistry healthIndicators,
-      HealthAggregator healthAggregator,
+      HealthContributorRegistry healthContributorRegistry,
+      StatusAggregator statusAggregator,
       ScheduledAnnotationBeanPostProcessor postProcessor) {
     this.executionLauncher = executionLauncher;
     this.executionRepository = executionRepository;
     this.kayentaObjectMapper = kayentaObjectMapper;
     this.context = context;
-    this.healthIndicator = new CompositeHealthIndicator(healthAggregator, healthIndicators);
+    this.orcaCompositeHealthContributor =
+        new OrcaCompositeHealthContributor(statusAggregator, healthContributorRegistry);
     this.postProcessor = postProcessor;
   }
+
   // TODO(duftler): Expose /inservice and /outofservice endpoints.
   @Scheduled(initialDelay = 10000, fixedDelay = 5000)
   void startOrcaQueueProcessing() {
     if (!upAtLeastOnce) {
-      Health health = healthIndicator.health();
-      if (health.getStatus() == Status.UP) {
+      Status status = orcaCompositeHealthContributor.status();
+      if (status == Status.UP) {
         upAtLeastOnce = true;
         context.publishEvent(
             new RemoteStatusChangedEvent(new DiscoveryStatusChangeEvent(STARTING, UP)));
@@ -92,7 +92,7 @@ public class PipelineController {
       } else {
         log.warn(
             "Health indicators are still reporting DOWN; not starting orca queue processing yet: {}",
-            health);
+            status);
       }
     }
   }

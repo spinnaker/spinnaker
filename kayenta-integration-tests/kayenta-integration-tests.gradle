@@ -5,9 +5,9 @@ dependencies {
     testImplementation "org.awaitility:awaitility:4.0.3"
     testImplementation "io.micrometer:micrometer-registry-prometheus"
     testImplementation "io.micrometer:micrometer-registry-graphite"
-    testImplementation "org.springframework.cloud:spring-cloud-starter:2.1.2.RELEASE" // needed for bootstrap phase when all embedded containers are setup
-    testImplementation "com.playtika.testcontainers:embedded-redis:1.89"
-    testImplementation "com.playtika.testcontainers:embedded-minio:1.89"
+    testImplementation "org.springframework.cloud:spring-cloud-starter-bootstrap" // needed for bootstrap phase when all embedded containers are setup
+    testImplementation "com.playtika.testcontainers:embedded-redis:2.2.11"
+    testImplementation "com.playtika.testcontainers:embedded-minio:2.2.11"
     testImplementation "org.testcontainers:testcontainers"
 }
 
