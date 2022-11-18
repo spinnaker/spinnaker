@@ -264,9 +264,9 @@ public class KubernetesManifestAnnotater {
   }
 
   public static void validateAnnotationsForRolloutStrategies(
-      KubernetesManifest manifest, KubernetesDeployManifestDescription.Strategy strategy) {
+      KubernetesManifest manifest, KubernetesDeployManifestDescription deployManifestDescription) {
     OptionalInt maxVersionHistory = getStrategy(manifest).getMaxVersionHistory();
-    if (strategy == KubernetesDeployManifestDescription.Strategy.RED_BLACK
+    if (deployManifestDescription.isBlueGreen()
         && maxVersionHistory.isPresent()
         && maxVersionHistory.getAsInt() < 2) {
       throw new RuntimeException(

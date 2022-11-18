@@ -39,6 +39,8 @@ public class DeployManifestIT extends BaseTest {
   private static final String DEPLOYMENT_1_NAME = "deployment1";
   private static final String REPLICASET_1_NAME = "rs1";
   private static final String SERVICE_1_NAME = "service1";
+
+  private static final String SERVICE_2_NAME = "service2";
   private static String account1Ns;
 
   @BeforeAll
@@ -1123,6 +1125,86 @@ public class DeployManifestIT extends BaseTest {
 
   @DisplayName(
       ".\n===\n"
+          + "Given a multidoc yaml with a service and replicaset\n"
+          + "  And blue/green deployment traffic strategy\n"
+          + "When sending deploy manifest request two times\n"
+          + "  And sending disable manifest one time\n"
+          + "Then there are two replicasets with only the last one receiving traffic\n===")
+  @Test
+  public void shouldDeployBlueGreenMultidoc() throws IOException, InterruptedException {
+    // ------------------------- given --------------------------
+    String appName = "blue-green-multidoc";
+    System.out.println("> Using namespace: " + account1Ns + ", appName: " + appName);
+    String selectorValue = appName + "traffichere";
+
+    Map<String, Object> replicaset =
+        KubeTestUtils.loadYaml("classpath:manifests/replicaset.yml")
+            .withValue("metadata.namespace", account1Ns)
+            .withValue("metadata.name", appName)
+            .withValue("spec.selector.matchLabels", ImmutableMap.of("label1", "value1"))
+            .withValue("spec.template.metadata.labels", ImmutableMap.of("label1", "value1"))
+            .asMap();
+    Map<String, Object> service =
+        KubeTestUtils.loadYaml("classpath:manifests/service.yml")
+            .withValue("metadata.namespace", account1Ns)
+            .withValue("metadata.name", SERVICE_2_NAME)
+            .withValue("spec.selector", ImmutableMap.of("pointer", selectorValue))
+            .withValue("spec.type", "NodePort")
+            .asMap();
+
+    // ------------------------- when --------------------------
+    List<Map<String, Object>> body =
+        KubeTestUtils.loadJson("classpath:requests/deploy_manifest.json")
+            .withValue("deployManifest.account", ACCOUNT1_NAME)
+            .withValue("deployManifest.moniker.app", appName)
+            .withValue("deployManifest.manifests", List.of(replicaset, service))
+            .withValue(
+                "deployManifest.services", Collections.singleton("service " + SERVICE_2_NAME))
+            .withValue("deployManifest.strategy", "BLUE_GREEN")
+            .withValue("deployManifest.trafficManagement.enabled", true)
+            .withValue("deployManifest.trafficManagement.options.strategy", "bluegreen")
+            .withValue("deployManifest.trafficManagement.options.enableTraffic", true)
+            .withValue("deployManifest.trafficManagement.options.namespace", account1Ns)
+            .withValue(
+                "deployManifest.trafficManagement.options.services",
+                Collections.singleton("service " + appName))
+            .asList();
+    KubeTestUtils.deployAndWaitStable(
+        baseUrl(),
+        body,
+        account1Ns,
+        "service " + SERVICE_2_NAME,
+        "replicaSet " + appName + "-v000");
+    KubeTestUtils.deployAndWaitStable(
+        baseUrl(),
+        body,
+        account1Ns,
+        "service " + SERVICE_2_NAME,
+        "replicaSet " + appName + "-v001");
+    body =
+        KubeTestUtils.loadJson("classpath:requests/disable_manifest.json")
+            .withValue("disableManifest.app", appName)
+            .withValue("disableManifest.manifestName", "replicaSet " + appName + "-v000")
+            .withValue("disableManifest.location", account1Ns)
+            .withValue("disableManifest.account", ACCOUNT1_NAME)
+            .asList();
+    KubeTestUtils.disableManifest(baseUrl(), body, account1Ns, "replicaSet " + appName + "-v000");
+
+    // ------------------------- then --------------------------
+    List<String> podNames =
+        Splitter.on(" ")
+            .splitToList(
+                kubeCluster.execKubectl(
+                    "-n "
+                        + account1Ns
+                        + " get pod -o=jsonpath='{.items[*].metadata.name}' -l=pointer="
+                        + selectorValue));
+    assertEquals(
+        1, podNames.size(), "Only one pod expected to have the label for traffic selection");
+  }
+
+  @DisplayName(
+      ".\n===\n"
           + "Given a replicaset yaml with red/black deployment traffic strategy\n"
           + "  And an existing service\n"
           + "When sending deploy manifest request two times\n"
@@ -1163,6 +1245,80 @@ public class DeployManifestIT extends BaseTest {
             .withValue("deployManifest.strategy", "RED_BLACK")
             .withValue("deployManifest.trafficManagement.enabled", true)
             .withValue("deployManifest.trafficManagement.options.strategy", "redblack")
+            .withValue("deployManifest.trafficManagement.options.enableTraffic", true)
+            .withValue("deployManifest.trafficManagement.options.namespace", account1Ns)
+            .withValue(
+                "deployManifest.trafficManagement.options.services",
+                Collections.singleton("service " + appName))
+            .asList();
+    KubeTestUtils.deployAndWaitStable(
+        baseUrl(), body, account1Ns, "replicaSet " + appName + "-v000");
+    KubeTestUtils.deployAndWaitStable(
+        baseUrl(), body, account1Ns, "replicaSet " + appName + "-v001");
+    body =
+        KubeTestUtils.loadJson("classpath:requests/disable_manifest.json")
+            .withValue("disableManifest.app", appName)
+            .withValue("disableManifest.manifestName", "replicaSet " + appName + "-v000")
+            .withValue("disableManifest.location", account1Ns)
+            .withValue("disableManifest.account", ACCOUNT1_NAME)
+            .asList();
+    KubeTestUtils.disableManifest(baseUrl(), body, account1Ns, "replicaSet " + appName + "-v000");
+
+    // ------------------------- then --------------------------
+    List<String> podNames =
+        Splitter.on(" ")
+            .splitToList(
+                kubeCluster.execKubectl(
+                    "-n "
+                        + account1Ns
+                        + " get pod -o=jsonpath='{.items[*].metadata.name}' -l=pointer="
+                        + selectorValue));
+    assertEquals(
+        1, podNames.size(), "Only one pod expected to have the label for traffic selection");
+  }
+
+  @DisplayName(
+      ".\n===\n"
+          + "Given a replicaset yaml with blue/green deployment traffic strategy\n"
+          + "  And an existing service\n"
+          + "When sending deploy manifest request two times\n"
+          + "  And sending disable manifest one time\n"
+          + "Then there are two replicasets with only the last one receiving traffic\n===")
+  @Test
+  public void shouldDeployBlueGreenReplicaSet() throws IOException, InterruptedException {
+    // ------------------------- given --------------------------
+    String appName = "blue-green";
+    System.out.println("> Using namespace: " + account1Ns + ", appName: " + appName);
+    String selectorValue = appName + "traffichere";
+
+    Map<String, Object> service =
+        KubeTestUtils.loadYaml("classpath:manifests/service.yml")
+            .withValue("metadata.namespace", account1Ns)
+            .withValue("metadata.name", SERVICE_2_NAME)
+            .withValue("spec.selector", ImmutableMap.of("pointer", selectorValue))
+            .withValue("spec.type", "NodePort")
+            .asMap();
+    kubeCluster.execKubectl("-n " + account1Ns + " apply -f -", service);
+
+    List<Map<String, Object>> manifest =
+        KubeTestUtils.loadYaml("classpath:manifests/replicaset.yml")
+            .withValue("metadata.namespace", account1Ns)
+            .withValue("metadata.name", appName)
+            .withValue("spec.selector.matchLabels", ImmutableMap.of("label1", "value1"))
+            .withValue("spec.template.metadata.labels", ImmutableMap.of("label1", "value1"))
+            .asList();
+
+    // ------------------------- when --------------------------
+    List<Map<String, Object>> body =
+        KubeTestUtils.loadJson("classpath:requests/deploy_manifest.json")
+            .withValue("deployManifest.account", ACCOUNT1_NAME)
+            .withValue("deployManifest.moniker.app", appName)
+            .withValue("deployManifest.manifests", manifest)
+            .withValue(
+                "deployManifest.services", Collections.singleton("service " + SERVICE_2_NAME))
+            .withValue("deployManifest.strategy", "BLUE_GREEN")
+            .withValue("deployManifest.trafficManagement.enabled", true)
+            .withValue("deployManifest.trafficManagement.options.strategy", "bluegreen")
             .withValue("deployManifest.trafficManagement.options.enableTraffic", true)
             .withValue("deployManifest.trafficManagement.options.namespace", account1Ns)
             .withValue(

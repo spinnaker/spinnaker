@@ -79,7 +79,7 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
             .map(
                 manifest -> {
                   KubernetesManifestAnnotater.validateAnnotationsForRolloutStrategies(
-                      manifest, description.getStrategy());
+                      manifest, description);
 
                   // Bind artifacts
                   manifest = bindArtifacts(manifest, allArtifacts.values(), result);

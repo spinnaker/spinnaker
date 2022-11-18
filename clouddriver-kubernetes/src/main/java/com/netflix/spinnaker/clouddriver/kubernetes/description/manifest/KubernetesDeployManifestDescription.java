@@ -42,6 +42,10 @@ public class KubernetesDeployManifestDescription extends KubernetesAtomicOperati
   private List<String> services;
   private Strategy strategy;
 
+  public boolean isBlueGreen() {
+    return Strategy.RED_BLACK.equals(this.strategy) || Strategy.BLUE_GREEN.equals(this.strategy);
+  }
+
   public enum Source {
     artifact,
     text
@@ -49,6 +53,7 @@ public class KubernetesDeployManifestDescription extends KubernetesAtomicOperati
 
   public enum Strategy {
     RED_BLACK,
+    BLUE_GREEN,
     HIGHLANDER,
     NONE
   }
