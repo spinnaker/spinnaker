@@ -74,6 +74,7 @@ public class DeployManifestStage extends ExpressionAwareStageDefinitionBuilder {
     if (trafficManagement.isEnabled()) {
       switch (trafficManagement.getOptions().getStrategy()) {
         case RED_BLACK:
+        case BLUE_GREEN:
           disableOldManifests(stage.getContext(), graph);
           break;
         case HIGHLANDER:

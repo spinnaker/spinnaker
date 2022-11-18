@@ -71,6 +71,9 @@ public class DeployManifestContext implements ManifestContext {
       @JsonProperty("redblack")
       RED_BLACK,
 
+      @JsonProperty("bluegreen")
+      BLUE_GREEN,
+
       @JsonProperty("highlander")
       HIGHLANDER,
 

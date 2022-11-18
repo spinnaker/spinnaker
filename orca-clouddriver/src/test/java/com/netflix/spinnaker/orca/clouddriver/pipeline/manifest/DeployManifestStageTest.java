@@ -118,6 +118,55 @@ final class DeployManifestStageTest {
   }
 
   @Test
+  void rolloutStrategyBlueGreen() {
+    when(oortService.getClusterManifests(ACCOUNT, NAMESAPCE, "replicaSet", APPLICATION, CLUSTER))
+        .thenReturn(
+            ImmutableList.of(
+                ManifestCoordinates.builder()
+                    .name("my-rs-v000")
+                    .kind("replicaSet")
+                    .namespace(NAMESAPCE)
+                    .build(),
+                ManifestCoordinates.builder()
+                    .name("my-rs-v001")
+                    .kind("replicaSet")
+                    .namespace(NAMESAPCE)
+                    .build()));
+    Map<String, Object> context =
+        getContext(
+            DeployManifestContext.builder()
+                .trafficManagement(
+                    DeployManifestContext.TrafficManagement.builder()
+                        .enabled(true)
+                        .options(
+                            DeployManifestContext.TrafficManagement.Options.builder()
+                                .strategy(ManifestStrategyType.BLUE_GREEN)
+                                .build())
+                        .build())
+                .build());
+    StageExecutionImpl stage =
+        new StageExecutionImpl(
+            new PipelineExecutionImpl(ExecutionType.PIPELINE, APPLICATION),
+            DeployManifestStage.PIPELINE_CONFIG_TYPE,
+            context);
+    assertThat(getAfterStages(stage))
+        .extracting(StageExecution::getType)
+        .containsExactly(DisableManifestStage.PIPELINE_CONFIG_TYPE);
+    assertThat(getAfterStages(stage))
+        .extracting(s -> s.getContext().get("account"))
+        .containsExactly(ACCOUNT);
+    assertThat(getAfterStages(stage))
+        .extracting(s -> s.getContext().get("app"))
+        .containsExactly(APPLICATION);
+    assertThat(getAfterStages(stage))
+        .extracting(s -> s.getContext().get("location"))
+        .containsExactly(NAMESAPCE);
+    assertThat(getAfterStages(stage))
+        .extracting(s -> s.getContext().get("manifestName"))
+        .containsExactly("replicaSet my-rs-v000");
+  }
+
+  @Test
   void rolloutStrategyHighlander() {
     when(oortService.getClusterManifests(ACCOUNT, NAMESAPCE, "replicaSet", APPLICATION, CLUSTER))
         .thenReturn(
@@ -186,6 +235,36 @@ final class DeployManifestStageTest {
                         .options(
                             DeployManifestContext.TrafficManagement.Options.builder()
                                 .strategy(ManifestStrategyType.RED_BLACK)
+                                .build())
+                        .build())
+                .build());
+    StageExecutionImpl stage =
+        new StageExecutionImpl(
+            new PipelineExecutionImpl(ExecutionType.PIPELINE, APPLICATION),
+            DeployManifestStage.PIPELINE_CONFIG_TYPE,
+            context);
+    assertThat(getAfterStages(stage)).isEmpty();
+  }
+
+  @Test
+  void rolloutStrategyBlueGreenNoClusterSiblings() {
+    when(oortService.getClusterManifests(ACCOUNT, NAMESAPCE, "replicaSet", APPLICATION, CLUSTER))
+        .thenReturn(
+            ImmutableList.of(
+                ManifestCoordinates.builder()
+                    .name("my-rs-v001")
+                    .kind("replicaSet")
+                    .namespace(NAMESAPCE)
+                    .build()));
+    Map<String, Object> context =
+        getContext(
+            DeployManifestContext.builder()
+                .trafficManagement(
+                    DeployManifestContext.TrafficManagement.builder()
+                        .enabled(true)
+                        .options(
+                            DeployManifestContext.TrafficManagement.Options.builder()
+                                .strategy(ManifestStrategyType.BLUE_GREEN)
                                 .build())
                         .build())
                 .build());
