@@ -39,7 +39,7 @@ class ArtifactRegistryPublishExtension {
     aptLocation = props.property(String).convention("us")
     aptRepository = props.property(String).convention("apt")
     aptTempGcsBucket = props.property(String).convention("spinnaker-deb-temp-uploads")
-    aptImportTimeoutSeconds = props.property(Integer).convention(60)
+    aptImportTimeoutSeconds = props.property(Integer).convention(3600)
   }
 
   Provider<Boolean> enabled() {

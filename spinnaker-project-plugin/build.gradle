@@ -5,9 +5,11 @@ dependencies {
   implementation 'org.eclipse.jgit:org.eclipse.jgit:5.4.0.201906121030-r'
   implementation 'com.netflix.nebula:gradle-ospackage-plugin:8.4.1'
   implementation 'gradle.plugin.com.google.cloud.artifactregistry:artifactregistry-gradle-plugin:2.1.1'
-  implementation 'com.google.cloud:google-cloud-storage:1.113.1'
-  implementation 'com.google.apis:google-api-services-artifactregistry:v1beta2-rev20220203-1.32.1'
-  implementation 'com.google.api-client:google-api-client:1.30.10'
+  implementation platform('com.google.cloud:libraries-bom:26.1.4')
+
+  implementation 'com.google.cloud:google-cloud-storage'
+  implementation 'com.google.apis:google-api-services-artifactregistry:v1beta2-rev20221022-2.0.0'
+  implementation 'com.google.api-client:google-api-client:2.0.0'
   implementation 'org.jetbrains.dokka:dokka-gradle-plugin:0.10.1'
   implementation 'io.github.gradle-nexus:publish-plugin:1.1.0'
 }

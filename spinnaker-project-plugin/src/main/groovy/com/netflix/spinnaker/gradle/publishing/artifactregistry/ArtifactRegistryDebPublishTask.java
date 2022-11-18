@@ -174,7 +174,7 @@ class ArtifactRegistryDebPublishTask extends DefaultTask {
 
     Stopwatch timer = Stopwatch.createStarted();
     while (!operationIsDone(operation) && !operationTimedOut(timer)) {
-      Thread.sleep(1000);
+      Thread.sleep(30000);
       operation = artifactRegistryClient.projects().locations().operations().get(operation.getName()).execute();
     }
 
