@@ -15,25 +15,21 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: git fetch --prune --unshallow
-      - uses: actions/setup-java@v1
+      - uses: actions/setup-java@v3
         with:
           java-version: 11
-      - uses: actions/cache@v1
-        with:
-          path: ~/.gradle
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
+          distribution: 'zulu'
+          cache: 'gradle'
       - name: Assemble release info
         id: release_info
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           . .github/workflows/release_info.sh ${{ github.event.repository.full_name }}
-          echo ::set-output name=CHANGELOG::$(echo -e "${CHANGELOG}")
-          echo ::set-output name=SKIP_RELEASE::${SKIP_RELEASE}
-          echo ::set-output name=IS_CANDIDATE::${IS_CANDIDATE}
-          echo ::set-output name=RELEASE_VERSION::${RELEASE_VERSION}
+          echo CHANGELOG=$(echo -e "${CHANGELOG}") >> $GITHUB_OUTPUT
+          echo SKIP_RELEASE="${SKIP_RELEASE}" >> $GITHUB_OUTPUT
+          echo IS_CANDIDATE="${IS_CANDIDATE}" >> $GITHUB_OUTPUT
+          echo RELEASE_VERSION="${RELEASE_VERSION}" >> $GITHUB_OUTPUT
       - name: Release build
         env:
           GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
