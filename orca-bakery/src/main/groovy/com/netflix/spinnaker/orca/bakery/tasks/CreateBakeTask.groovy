@@ -152,14 +152,8 @@ class CreateBakeTask implements RetryableTask {
 
   private BakeRequest bakeFromContext(StageExecution stage, SelectedService<BakeryService> bakery) {
     PackageType packageType
-    if (bakery.config.roscoApisEnabled) {
-      def baseImage = bakery.service.getBaseImage(stage.context.cloudProviderType as String,
-        stage.context.baseOs as String)
-      packageType = baseImage.packageType
-    } else {
-      packageType = new OperatingSystem(stage.context.baseOs as String).getPackageType()
-    }
-
+    packageType = stage.context.baseOs != null ? getBaseOsPackageType(bakery, stage) : getCustomPackageType(stage)
+    stage.context.packageType = packageType
     List<Artifact> artifacts = artifactUtils.getAllArtifacts(stage.getExecution())
 
     PackageInfo packageInfo = new PackageInfo(stage,
@@ -171,6 +165,10 @@ class CreateBakeTask implements RetryableTask {
       mapper)
 
     Map requestMap = packageInfo.findTargetPackage(bakery.config.allowMissingPackageInstallation as Boolean)
+
+    if (stage.context.account) {
+      requestMap.accountName = stage.context.account as String
+    }
 
     // if the field "packageArtifactIds" is present in the context, because it was set in the UI,
     // this will resolve those ids into real artifacts and then put them in List<Artifact> packageArtifacts
@@ -188,10 +186,39 @@ class CreateBakeTask implements RetryableTask {
       requestMap.remove("baseName")
     }
 
+    if (stage.context.baseOs == null) {
+      requestMap.custom_managed_image_name = stage.context.managedImage as String
+      if (stage.context.managedImage == null) {
+        requestMap.sku = stage.context.sku as String
+        requestMap.offer = stage.context.offer as String
+        requestMap.publisher = stage.context.publisher as String
+      }
+    }
+
     def request = mapper.convertValue(requestMap, BakeRequest)
     if (!bakery.config.roscoApisEnabled) {
       request.other().clear()
     }
+
     return request
+  }
+
+  private static PackageType getCustomPackageType(StageExecution stage) {
+    if(stage.context.osType != "linux") {
+      return PackageType.NUPKG
+    }
+
+    PackageType type = stage.context.packageType as PackageType
+    if (type == null) {
+      type = new OperatingSystem(stage.context.managedImage as String).getPackageType()
+    }
+
+    type
+  }
+
+  private static PackageType getBaseOsPackageType(SelectedService<BakeryService> bakery, StageExecution stage) {
+    bakery.config.roscoApisEnabled
+        ? bakery.service.getBaseImage(stage.context.cloudProviderType as String, stage.context.baseOs as String).packageType
+        : new OperatingSystem(stage.context.baseOs as String).getPackageType()
   }
 }

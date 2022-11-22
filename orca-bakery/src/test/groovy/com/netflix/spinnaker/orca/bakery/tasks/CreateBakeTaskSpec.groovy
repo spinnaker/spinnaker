@@ -86,6 +86,44 @@ class CreateBakeTaskSpec extends Specification {
   ]
 
   @Shared
+  def bakeConfigWithAzureManagedImage = [
+    region           : "us-west-1",
+    package          : "hodor",
+    user             : "bran",
+    cloudProviderType: "azure",
+    baseLabel        : "release",
+    osType           : "linux",
+    packageType      : "RPM",
+    managedImage     : "managed",
+    account          : "splat-azure"
+  ]
+
+  @Shared
+  def bakeConfigWithAzureDefaultImage = [
+    region           : "us-west-1",
+    package          : "hodor",
+    user             : "bran",
+    cloudProviderType: "azure",
+    baseOs           : "ubuntu",
+    baseLabel        : "release",
+    account          : "splat-azure"
+  ]
+
+  @Shared
+  def bakeConfigWithAzureCustomImage = [
+    region           : "us-west-1",
+    package          : "hodor",
+    user             : "bran",
+    cloudProviderType: "azure",
+    osType           : "windows",
+    sku              : "sky",
+    offer            : "offer",
+    publisher        : "pub",
+    baseLabel        : "release",
+    account          : "splat-azure"
+  ]
+
+  @Shared
   def bakeConfigWithRebake = [
     region           : "us-west-1",
     package          : "hodor",
@@ -982,6 +1020,139 @@ class CreateBakeTaskSpec extends Specification {
     bake.packageName == bakeConfigWithCloudProviderType.package
     bake.baseOs == bakeConfigWithCloudProviderType.baseOs
     bake.baseLabel == bakeConfigWithCloudProviderType.baseLabel
+  }
+
+  def "Azure managedImage is propagated"() {
+    given:
+    def pipeline = pipeline {
+      stage {
+        type = "bake"
+        context = bakeConfigWithAzureManagedImage
+      }
+    }
+    def bake
+    def bakery = Mock(BakeryService) {
+      1 * createBake(*_) >> {
+        bake = it[1]
+        runningStatus
+      }
+    }
+
+    and:
+    def selectedBakeryService = Stub(SelectableService.SelectedService) {
+      getService() >> bakery
+      getConfig() >> [
+        extractBuildDetails: false,
+        allowMissingPackageInstallation: false,
+        roscoApisEnabled: false
+      ]
+    }
+
+    task.bakerySelector = Mock(BakerySelector) {
+      select(_) >> selectedBakeryService
+    }
+
+    when:
+    task.execute(pipeline.stages.first())
+
+    then:
+    bake.cloudProviderType == BakeRequest.CloudProviderType.azure
+    bake.user == bakeConfigWithAzureManagedImage.user
+    bake.packageName == bakeConfigWithAzureManagedImage.package
+    bake.baseLabel == bakeConfigWithAzureManagedImage.baseLabel
+    bake.custom_managed_image_name == bakeConfigWithAzureManagedImage.managedImage
+    bake.osType == bakeConfigWithAzureManagedImage.osType
+    bake.packageType == bakeConfigWithAzureManagedImage.packageType as String
+    bake.accountName == bakeConfigWithAzureManagedImage.account
+  }
+
+  def "Azure defaultImage is propagated"() {
+    given:
+    def pipeline = pipeline {
+      stage {
+        type = "bake"
+        context = bakeConfigWithAzureDefaultImage
+      }
+    }
+    def bake
+    def bakery = Mock(BakeryService) {
+      1 * createBake(*_) >> {
+        bake = it[1]
+        runningStatus
+      }
+    }
+
+    and:
+    def selectedBakeryService = Stub(SelectableService.SelectedService) {
+      getService() >> bakery
+      getConfig() >> [
+        extractBuildDetails: false,
+        allowMissingPackageInstallation: false,
+        roscoApisEnabled: false
+      ]
+    }
+
+    task.bakerySelector = Mock(BakerySelector) {
+      select(_) >> selectedBakeryService
+    }
+
+    when:
+    task.execute(pipeline.stages.first())
+
+    then:
+    bake.cloudProviderType == BakeRequest.CloudProviderType.azure
+    bake.user == bakeConfigWithAzureDefaultImage.user
+    bake.packageName == bakeConfigWithAzureDefaultImage.package
+    bake.baseOs == bakeConfigWithAzureDefaultImage.baseOs
+    bake.baseLabel == bakeConfigWithAzureDefaultImage.baseLabel
+    bake.packageType == PackageType.DEB as String
+    bake.accountName == bakeConfigWithAzureManagedImage.account
+  }
+
+  def "Azure customImage is propagated"() {
+    given:
+    def pipeline = pipeline {
+      stage {
+        type = "bake"
+        context = bakeConfigWithAzureCustomImage
+      }
+    }
+    def bake
+    def bakery = Mock(BakeryService) {
+      1 * createBake(*_) >> {
+        bake = it[1]
+        runningStatus
+      }
+    }
+
+    and:
+    def selectedBakeryService = Stub(SelectableService.SelectedService) {
+      getService() >> bakery
+      getConfig() >> [
+        extractBuildDetails: false,
+        allowMissingPackageInstallation: false,
+        roscoApisEnabled: false
+      ]
+    }
+
+    task.bakerySelector = Mock(BakerySelector) {
+      select(_) >> selectedBakeryService
+    }
+
+    when:
+    task.execute(pipeline.stages.first())
+
+    then:
+    bake.cloudProviderType == BakeRequest.CloudProviderType.azure
+    bake.user == bakeConfigWithAzureCustomImage.user
+    bake.packageName == bakeConfigWithAzureCustomImage.package
+    bake.baseLabel == bakeConfigWithAzureCustomImage.baseLabel
+    bake.sku == bakeConfigWithAzureCustomImage.sku
+    bake.offer == bakeConfigWithAzureCustomImage.offer
+    bake.publisher == bakeConfigWithAzureCustomImage.publisher
+    bake.osType == bakeConfigWithAzureCustomImage.osType
+    bake.packageType == PackageType.NUPKG as String
+    bake.accountName == bakeConfigWithAzureManagedImage.account
   }
 
   @Unroll

@@ -46,6 +46,7 @@ class BakeRequest {
 
   String user
   @JsonProperty("package") String packageName
+  String packageType
   List<Artifact> packageArtifacts
   String buildHost
   String job
@@ -61,6 +62,12 @@ class BakeRequest {
   StoreType storeType
   Boolean enhancedNetworking
   String amiName
+  String accountName
+  String sku
+  String offer
+  String publisher
+  String osType
+  String custom_managed_image_name
   private String amiSuffix
 
   public void setAmiSuffix(String amiSuffix) {

@@ -63,6 +63,7 @@ class MonitorBakeTask implements OverridableTimeoutRetryableTask {
 
       TaskResult.builder(mapStatus(newStatus)).context([status: newStatus]).build()
     } catch (RetrofitError e) {
+      log.error("Monitor Error {}", e.getMessage())
       if (e.response?.status == 404) {
         return TaskResult.ofStatus(ExecutionStatus.RUNNING)
       }
