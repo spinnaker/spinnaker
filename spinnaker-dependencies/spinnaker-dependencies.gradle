@@ -124,7 +124,7 @@ dependencies {
     api("com.sun.xml.bind:jaxb-impl:2.3.2")
     api("com.vdurmont:semver4j:3.1.0")
     api("commons-configuration:commons-configuration:1.8")
-    api("commons-io:commons-io:2.7")
+    api("commons-io:commons-io:2.11.0")
     // CVE's in 3.2.1
     api("commons-collections:commons-collections:[3.2.2,3.3)")
     api("de.danielbechler:java-object-diff:0.95")
