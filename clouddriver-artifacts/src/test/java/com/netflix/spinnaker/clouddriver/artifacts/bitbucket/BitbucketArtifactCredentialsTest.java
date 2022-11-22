@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.artifacts.bitbucket;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.http.HttpHeaders.ACCEPT;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -33,6 +34,7 @@ import java.util.function.Function;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junitpioneer.jupiter.TempDirectory;
+import org.springframework.http.MediaType;
 import ru.lanwen.wiremock.ext.WiremockResolver;
 
 @ExtendWith({WiremockResolver.class, TempDirectory.class})
@@ -47,7 +49,12 @@ class BitbucketArtifactCredentialsTest {
     BitbucketArtifactAccount account =
         BitbucketArtifactAccount.builder().name("my-bitbucket-account").token("abc").build();
 
-    runTestCase(server, account, m -> m.withHeader(AUTHORIZATION, equalTo("Bearer abc")));
+    runTestCase(
+        server,
+        account,
+        m ->
+            m.withHeader(AUTHORIZATION, equalTo("Bearer abc"))
+                .withHeader(ACCEPT, equalTo(MediaType.APPLICATION_JSON_VALUE)));
   }
 
   @Test
@@ -63,7 +70,12 @@ class BitbucketArtifactCredentialsTest {
             .tokenFile(authFile.toAbsolutePath().toString())
             .build();
 
-    runTestCase(server, account, m -> m.withHeader(AUTHORIZATION, equalTo("Bearer zzz")));
+    runTestCase(
+        server,
+        account,
+        m ->
+            m.withHeader(AUTHORIZATION, equalTo("Bearer zzz"))
+                .withHeader(ACCEPT, equalTo(MediaType.APPLICATION_JSON_VALUE)));
   }
 
   @Test
@@ -79,11 +91,21 @@ class BitbucketArtifactCredentialsTest {
             .tokenFile(authFile.toAbsolutePath().toString())
             .build();
 
-    runTestCase(server, account, m -> m.withHeader(AUTHORIZATION, equalTo("Bearer zzz")));
+    runTestCase(
+        server,
+        account,
+        m ->
+            m.withHeader(AUTHORIZATION, equalTo("Bearer zzz"))
+                .withHeader(ACCEPT, equalTo(MediaType.APPLICATION_JSON_VALUE)));
 
     Files.write(authFile, "aaa".getBytes());
 
-    runTestCase(server, account, m -> m.withHeader(AUTHORIZATION, equalTo("Bearer aaa")));
+    runTestCase(
+        server,
+        account,
+        m ->
+            m.withHeader(AUTHORIZATION, equalTo("Bearer aaa"))
+                .withHeader(ACCEPT, equalTo(MediaType.APPLICATION_JSON_VALUE)));
   }
 
   @Test
