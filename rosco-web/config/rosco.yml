@@ -319,11 +319,11 @@ azure:
     - baseImage:
         id: centos
         shortDescription: 7
-        detailedDescription: OpenLogic CentOS 7.1.20150731
+        detailedDescription: OpenLogic CentOS 7.5
         publisher: OpenLogic
         offer: CentOS
-        sku: 7.1
-        version: 7.1.20150731
+        sku: 7.5
+        version: latest
         osType: Linux
         packageType: rpm
     - baseImage:
