@@ -95,18 +95,24 @@ export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExe
   public render() {
     const { stage, application, execution, active, previousStageActive, width } = this.props;
     let stageType = (stage.activeStageType || stage.type).toLowerCase(); // support groups
-    stage.stages.forEach((childStage: IStage) => {
-      if (childStage.type == 'pipeline') {
-        const childPipeline = application.executions.data.find((p: any) => p.id === childStage.context.executionId);
-        if (childPipeline != undefined) {
-          childPipeline.stages.forEach((stageToCheck: IStage) => {
-            if (stageToCheck.type == 'manualJudgment' && stageToCheck.status == 'RUNNING') {
-              stageType = 'manualjudgment';
-            }
-          });
+    if (SETTINGS.feature.manualJudgmentParentPipeline) {
+      stage.stages.forEach((childStage: IStage) => {
+        if (
+          childStage.type == 'pipeline' &&
+          application.executions != undefined &&
+          application.executions.data != undefined
+        ) {
+          const childPipeline = application.executions.data.find((p: any) => p.id === childStage.context.executionId);
+          if (childPipeline != undefined) {
+            childPipeline.stages.forEach((stageToCheck: IStage) => {
+              if (stageToCheck.type == 'manualJudgment' && stageToCheck.status == 'RUNNING') {
+                stageType = 'manualjudgment';
+              }
+            });
+          }
         }
-      }
-    });
+      });
+    }
     const pipelineStatus = this.stageStatus(stage.status.toLowerCase());
     const markerClassName = [
       stage.type !== 'group' ? 'clickable' : '',

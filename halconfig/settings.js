@@ -13,6 +13,7 @@ var defaultMetricsStore = '{%canary.defaultMetricsStore%}';
 var defaultMetricsAccountName = '{%canary.defaultMetricsAccount%}';
 var defaultStorageAccountName = '{%canary.defaultStorageAccount%}';
 var fiatEnabled = '{%features.fiat%}' === 'true';
+var manualJudgmentParentPipelineEnabled = '{%features.manualJudgmentParentPipeline%}' === 'true';
 var mineCanaryEnabled = '{%features.mineCanary%}' === 'true';
 var pipelineTemplatesEnabled = '{%features.pipelineTemplates%}' === 'true';
 var reduxLoggerEnabled = '{%canary.reduxLogger%}' === 'true';
