@@ -3,15 +3,100 @@
     <loading-spinner size="'small'"></loading-spinner>
   </div>
   <div ng-if="!viewState.loading">
+    <stage-config-field label="Account">
+      <account-select-field
+        component="stage"
+        field="account"
+        accounts="accounts"
+        provider="'azure'"
+        on-change="bakeStageCtrl.onChangeAccount()"
+      />
+    </stage-config-field>
+
     <stage-config-field label="Regions">
       <checklist items="regions" model="stage.regions" inline="true" include-select-all-button="true"></checklist>
     </stage-config-field>
+
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <label class="col-md-3 sm-label-right"></label>
+        <div class="btn-group btn-group-xs" role="group" aria-label="Source Image">
+          <button
+            class="btn btn-default"
+            aria-pressed="true"
+            ng-click="bakeStageCtrl.showDefaultImages()"
+            ng-class="{active: defaultImagesWasChosen}"
+          >
+            Default Images
+          </button>
+          <button
+            class="btn btn-default"
+            aria-pressed="true"
+            ng-click="bakeStageCtrl.showManagedImages()"
+            ng-class="{active: managedImagesWasChosen}"
+          >
+            Managed Images
+          </button>
+          <button
+            class="btn btn-default"
+            aria-pressed="true"
+            ng-click="bakeStageCtrl.showCustomImages()"
+            ng-class="{active: customImagesWasChosen}"
+          >
+            Custom Image
+          </button>
+        </div>
+      </div>
+
+      <div class="panel-body">
+        <stage-config-field label="Base OS" ng-show="defaultImagesWasChosen">
+          <bake-stage-choose-os model="stage.baseOs" base-os-options="baseOsOptions"></bake-stage-choose-os>
+        </stage-config-field>
+
+        <stage-config-field label="Managed Image" ng-show="managedImagesWasChosen">
+          <bake-stage-choose-managed-image
+            model="stage.managedImage"
+            managed-image-options="managedImageOptions"
+            on-change="onChangeManagedImage"
+          ></bake-stage-choose-managed-image>
+        </stage-config-field>
+
+        <stage-config-field label="Publisher" ng-show="customImagesWasChosen">
+          <input type="text" class="form-control input-sm" ng-model="stage.publisher" />
+        </stage-config-field>
+        <stage-config-field label="Offer" ng-show="customImagesWasChosen">
+          <input type="text" class="form-control input-sm" ng-model="stage.offer" />
+        </stage-config-field>
+        <stage-config-field label="SKU" ng-show="customImagesWasChosen">
+          <input type="text" class="form-control input-sm" ng-model="stage.sku" />
+        </stage-config-field>
+
+        <stage-config-field label="OS Type" ng-show="customImagesWasChosen">
+          <label class="radio-inline" ng-repeat="osType in osTypeOptions">
+            <input
+              type="radio"
+              ng-model="stage.osType"
+              ng-value="osType"
+              name="osType"
+              ng-change="bakeStageCtrl.onChangeOsType(value)"
+            />
+            {{osType}}
+          </label>
+        </stage-config-field>
+
+        <stage-config-field label="Package Type" ng-show="stage.osType === 'linux'">
+          <label class="radio-inline" ng-repeat="packageType in packageTypeOptions">
+            <input type="radio" ng-model="stage.packageType" ng-value="packageType" name="packageType" />
+            {{packageType}}
+          </label>
+        </stage-config-field>
+      </div>
+    </div>
+
     <stage-config-field label="Package" help-key="pipeline.config.bake.package">
       <input type="text" class="form-control input-sm" ng-model="stage.package" />
     </stage-config-field>
-    <stage-config-field label="Base OS">
-      <bake-stage-choose-os model="stage.baseOs" base-os-options="baseOsOptions"></bake-stage-choose-os>
-    </stage-config-field>
+
     <stage-config-field label="Base Label">
       <label class="radio-inline" ng-repeat="baseLabel in baseLabelOptions">
         <input type="radio" ng-model="stage.baseLabel" ng-value="baseLabel" />
