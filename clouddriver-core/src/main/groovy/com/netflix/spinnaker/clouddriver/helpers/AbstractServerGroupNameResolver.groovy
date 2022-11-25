@@ -60,6 +60,11 @@ abstract class AbstractServerGroupNameResolver extends NameBuilder {
     return latestServerGroup ? latestServerGroup.serverGroupName : null
   }
 
+  String getClusterName(String application, String stack, String details) {
+    String clusterName = combineAppStackDetail(application, stack, details);
+    return clusterName;
+  }
+
   String resolveNextServerGroupName(String application, String stack, String details, Boolean ignoreSequence) {
     Integer nextSequence = 0
     String clusterName = combineAppStackDetail(application, stack, details)
