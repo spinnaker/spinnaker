@@ -58,8 +58,12 @@ export class LaunchConfigDetailsSection extends React.Component<
             <dt>IAM Profile</dt>
             <dd>{launchConfig.iamInstanceProfile}</dd>
 
-            <dt>Instance Monitoring</dt>
-            <dd>{launchConfig.instanceMonitoring.enabled ? 'enabled' : 'disabled'}</dd>
+            {launchConfig.instanceMonitoring && (
+              <>
+                <dt>Instance Monitoring</dt>
+                <dd>{launchConfig.instanceMonitoring.enabled ? 'enabled' : 'disabled'}</dd>
+              </>
+            )}
 
             {launchConfig.spotPrice && <dt>Spot Price</dt>}
             {launchConfig.spotPrice && <dd>{launchConfig.spotPrice}</dd>}
