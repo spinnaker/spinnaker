@@ -24,6 +24,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSetting
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.*;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.deck.ApachePassphraseProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.deck.ApachePortsProfileFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.deck.ApacheSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.deck.ApacheSpinnakerProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.deck.DeckProfileFactory;
 import java.nio.file.Paths;
@@ -78,7 +79,14 @@ public abstract class DeckService extends SpinnakerService<DeckService.Deck> {
     String sitePath = "/etc/apache2/sites-available/";
     String filename = "settings.js";
     String path = Paths.get(htmlPath, filename).toString();
-    result.add(deckProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints));
+    // The Deck service runs an Apache webserver, therefore the Deck profiles
+    // must be owned by the Apache user instead of the default 'spinnaker' user
+    // otherwise the Apache webserver will not be able to access the files, which
+    // will result in HTTP 403 (Forbidden) errors.
+    result.add(
+        deckProfileFactory
+            .getProfile(filename, path, deploymentConfiguration, endpoints)
+            .setUser(ApacheSettings.APACHE_USER));
 
     filename = "passphrase";
     path = Paths.get(apache2Path, filename).toString();

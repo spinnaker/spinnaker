@@ -19,5 +19,5 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.deck;
 
 public class ApacheSettings {
-  static String APACHE_USER = "www-data";
+  public static String APACHE_USER = "www-data";
 }
