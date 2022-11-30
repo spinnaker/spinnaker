@@ -51,7 +51,7 @@ class BitbucketWebhookEventHandlerTest {
     event.content = payload;
     event.content.put("event_type", "repo:push");
 
-    BitbucketWebhookEventHandler handler = new BitbucketWebhookEventHandler();
+    BitbucketWebhookEventHandler handler = new BitbucketWebhookEventHandler(null);
     assertThatCode(() -> handler.handle(event, payload, HttpHeaders.EMPTY))
         .doesNotThrowAnyException();
 

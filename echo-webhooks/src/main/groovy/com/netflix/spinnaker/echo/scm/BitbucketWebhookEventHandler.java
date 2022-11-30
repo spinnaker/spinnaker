@@ -22,10 +22,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.echo.api.events.Event;
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
+import com.netflix.spinnaker.echo.scm.bitbucket.server.BitbucketServerEventHandler;
 import java.util.List;
 import java.util.Map;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 
@@ -33,10 +35,12 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class BitbucketWebhookEventHandler implements GitWebhookHandler {
 
-  private ObjectMapper objectMapper;
+  private final ObjectMapper objectMapper;
+  private final BitbucketServerEventHandler bitbucketServerEventHandler;
 
-  public BitbucketWebhookEventHandler() {
+  public BitbucketWebhookEventHandler(BitbucketServerEventHandler bitbucketServerEventHandler) {
     this.objectMapper = EchoObjectMapper.getInstance();
+    this.bitbucketServerEventHandler = bitbucketServerEventHandler;
   }
 
   public boolean handles(String source) {
@@ -64,8 +68,8 @@ public class BitbucketWebhookEventHandler implements GitWebhookHandler {
 
     if (looksLikeBitbucketCloud(event)) {
       handleBitbucketCloudEvent(event, postedEvent);
-    } else if (looksLikeBitbucketServer(event)) {
-      handleBitbucketServerEvent(event, postedEvent);
+    } else if (bitbucketServerEventHandler.looksLikeBitbucketServer(event)) {
+      bitbucketServerEventHandler.handleBitbucketServerEvent(event);
     } else {
       // Could not determine what type of Bitbucket event this was.
       log.info(
@@ -76,7 +80,7 @@ public class BitbucketWebhookEventHandler implements GitWebhookHandler {
 
     String fullRepoName = getFullRepoName(event);
 
-    if (fullRepoName != "") {
+    if (StringUtils.isNotEmpty(fullRepoName)) {
       log.info(
           "Webhook event received {} {} {} {} {} {}",
           kv("type", "git"),
@@ -113,11 +117,6 @@ public class BitbucketWebhookEventHandler implements GitWebhookHandler {
   private boolean looksLikeBitbucketCloud(Event event) {
     String eventType = event.content.get("event_type").toString();
     return (eventType.equals("repo:push") || eventType.equals("pullrequest:fulfilled"));
-  }
-
-  private boolean looksLikeBitbucketServer(Event event) {
-    String eventType = event.content.get("event_type").toString();
-    return (eventType.equals("repo:refs_changed") || eventType.equals("pr:merged"));
   }
 
   private String getFullRepoName(Event event) {
@@ -158,162 +157,39 @@ public class BitbucketWebhookEventHandler implements GitWebhookHandler {
     BitbucketCloudEvent bitbucketCloudEvent =
         objectMapper.convertValue(postedEvent, BitbucketCloudEvent.class);
     if (bitbucketCloudEvent.repository != null) {
-      slug = emptyOrDefault(bitbucketCloudEvent.repository.fullName, "");
+      slug = StringUtils.defaultIfEmpty(bitbucketCloudEvent.repository.fullName, "");
       if (bitbucketCloudEvent.repository.owner != null) {
-        repoProject = emptyOrDefault(bitbucketCloudEvent.repository.owner.username, "");
+        repoProject = StringUtils.defaultIfEmpty(bitbucketCloudEvent.repository.owner.username, "");
       }
     }
     if (bitbucketCloudEvent.pullRequest != null) {
       BitbucketCloudEvent.PullRequest pullRequest = bitbucketCloudEvent.pullRequest;
       if (pullRequest.mergeCommit != null) {
-        hash = emptyOrDefault(pullRequest.mergeCommit.hash, "");
+        hash = StringUtils.defaultIfEmpty(pullRequest.mergeCommit.hash, "");
       }
       if (pullRequest.destination != null && pullRequest.destination.branch != null) {
-        branch = emptyOrDefault(pullRequest.destination.branch.name, "");
+        branch = StringUtils.defaultIfEmpty(pullRequest.destination.branch.name, "");
       }
     } else if (bitbucketCloudEvent.push != null) {
       BitbucketCloudEvent.Push push = bitbucketCloudEvent.push;
       if (!push.changes.isEmpty()) {
         BitbucketCloudEvent.Change change = push.changes.get(0);
         if (change.newObj != null) {
-          branch = emptyOrDefault(change.newObj.name, "");
+          branch = StringUtils.defaultIfEmpty(change.newObj.name, "");
         }
         if (!change.commits.isEmpty()) {
           BitbucketCloudEvent.Commit commit = change.commits.get(0);
-          hash = emptyOrDefault(commit.hash, "");
+          hash = StringUtils.defaultIfEmpty(commit.hash, "");
         }
       }
     }
-    action = emptyOrDefault(event.content.get("event_type").toString(), "");
+    action = StringUtils.defaultIfEmpty(event.content.get("event_type").toString(), "");
 
     event.content.put("repoProject", repoProject);
     event.content.put("slug", slug);
     event.content.put("hash", hash);
     event.content.put("branch", branch);
     event.content.put("action", action);
-  }
-
-  private void handleBitbucketServerEvent(Event event, Map postedEvent) {
-    String repoProject = "";
-    String slug = "";
-    String hash = "";
-    String branch = "";
-
-    if (!event.content.containsKey("event_type")) {
-      return;
-    }
-
-    String eventType = event.content.get("event_type").toString();
-    if (eventType.equals("repo:refs_changed")) {
-      BitbucketServerRefsChangedEvent refsChangedEvent =
-          objectMapper.convertValue(event.content, BitbucketServerRefsChangedEvent.class);
-      if (refsChangedEvent.repository != null) {
-        repoProject = emptyOrDefault(refsChangedEvent.repository.project.key, "");
-        slug = emptyOrDefault(refsChangedEvent.repository.slug, "");
-      }
-      if (!refsChangedEvent.changes.isEmpty()) {
-        BitbucketServerRefsChangedEvent.Change change = refsChangedEvent.changes.get(0);
-        hash = emptyOrDefault(change.toHash, "");
-        if (change.ref != null) {
-          branch = emptyOrDefault(change.ref.id, "").replace("refs/heads/", "");
-        }
-      }
-    } else if (eventType.equals("pr:merged")) {
-      BitbucketServerPrMergedEvent prMergedEvent =
-          objectMapper.convertValue(event.content, BitbucketServerPrMergedEvent.class);
-      if (prMergedEvent.pullRequest != null && prMergedEvent.pullRequest.toRef != null) {
-        BitbucketServerPrMergedEvent.Ref toRef = prMergedEvent.pullRequest.toRef;
-        branch = emptyOrDefault(toRef.id, "").replace("refs/heads/", "");
-        if (toRef.repository != null) {
-          repoProject = emptyOrDefault(toRef.repository.project.key, "");
-          slug = emptyOrDefault(toRef.repository.slug, "");
-        }
-      }
-      if (prMergedEvent.pullRequest != null && prMergedEvent.pullRequest.properties != null) {
-        BitbucketServerPrMergedEvent.Properties properties = prMergedEvent.pullRequest.properties;
-        if (properties.mergeCommit != null) {
-          hash = emptyOrDefault(properties.mergeCommit.id, "");
-        }
-      }
-    }
-
-    event.content.put("repoProject", repoProject);
-    event.content.put("slug", slug);
-    event.content.put("hash", hash);
-    event.content.put("branch", branch);
-    event.content.put("action", eventType);
-  }
-
-  private String emptyOrDefault(String test, String def) {
-    return (test != null && !test.isEmpty()) ? test : def;
-  }
-
-  @Data
-  private static class BitbucketServerPrMergedEvent {
-    PullRequest pullRequest;
-
-    @Data
-    private static class Properties {
-      MergeCommit mergeCommit;
-    }
-
-    @Data
-    private static class MergeCommit {
-      String id;
-    }
-
-    @Data
-    private static class PullRequest {
-      Ref toRef;
-      Properties properties;
-    }
-
-    @Data
-    private static class Ref {
-      String id;
-      Repository repository;
-    }
-
-    @Data
-    private static class Project {
-      String key;
-    }
-
-    @Data
-    private static class Repository {
-      String name;
-      String slug;
-      Project project;
-    }
-  }
-
-  @Data
-  private static class BitbucketServerRefsChangedEvent {
-    List<Change> changes;
-    Repository repository;
-
-    @Data
-    private static class Project {
-      String key;
-    }
-
-    @Data
-    private static class Change {
-      String toHash;
-      Ref ref;
-    }
-
-    @Data
-    private static class Ref {
-      String id;
-    }
-
-    @Data
-    private static class Repository {
-      String name;
-      String slug;
-      Project project;
-    }
   }
 
   @Data

@@ -25,6 +25,7 @@ import com.netflix.spinnaker.echo.scm.GithubWebhookEventHandler
 import com.netflix.spinnaker.echo.scm.GitlabWebhookEventHandler
 import com.netflix.spinnaker.echo.scm.ScmWebhookHandler
 import com.netflix.spinnaker.echo.scm.StashWebhookEventHandler
+import com.netflix.spinnaker.echo.scm.bitbucket.server.BitbucketServerEventHandler
 import org.springframework.http.HttpHeaders
 import spock.lang.Specification
 
@@ -32,7 +33,7 @@ class WebhooksControllerSpec extends Specification {
 
   ScmWebhookHandler scmWebhookHandler = new ScmWebhookHandler(
     [
-      new BitbucketWebhookEventHandler(),
+      new BitbucketWebhookEventHandler(new BitbucketServerEventHandler()),
       new GitlabWebhookEventHandler(),
       new GithubWebhookEventHandler(),
       new StashWebhookEventHandler()]
