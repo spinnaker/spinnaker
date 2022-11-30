@@ -129,4 +129,48 @@ describe('<BakeHelmConfigForm />', () => {
     expect(component.find('.Select-value-label > span').text().includes(expectedArtifactDisplayName)).toBe(true);
     expect(component.find(StageConfigField).findWhere((x) => x.text() === helmChartFilePathFieldName).length).toBe(1);
   });
+
+  it('render the include crds checkbox if the template render is HELM3', async () => {
+    const stage = ({
+      templateRenderer: 'HELM3',
+    } as unknown) as IStage;
+
+    const props = getProps();
+
+    const component = mount(
+      <SpinFormik
+        initialValues={stage}
+        onSubmit={() => null}
+        validate={() => null}
+        render={(formik) => <BakeHelmConfigForm {...props} formik={formik} />}
+      />,
+    );
+
+    await new Promise((resolve) => setTimeout(resolve)); // wait one js tick for promise to resolve
+    component.setProps({}); // force a re-render
+
+    expect(component.find('span.label-text').findWhere((x) => x.text() === 'Include CRDs').length).toBe(1);
+  });
+
+  it('does not render the include crds checkbox if the template render is HELM2', async () => {
+    const stage = ({
+      templateRenderer: 'HELM2',
+    } as unknown) as IStage;
+
+    const props = getProps();
+
+    const component = mount(
+      <SpinFormik
+        initialValues={stage}
+        onSubmit={() => null}
+        validate={() => null}
+        render={(formik) => <BakeHelmConfigForm {...props} formik={formik} />}
+      />,
+    );
+
+    await new Promise((resolve) => setTimeout(resolve)); // wait one js tick for promise to resolve
+    component.setProps({}); // force a re-render
+
+    expect(component.find('span.label-text').findWhere((x) => x.text() === 'Include CRDs').length).toBe(0);
+  });
 });

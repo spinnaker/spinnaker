@@ -302,6 +302,8 @@ const helpContents: { [key: string]: string } = {
     <p>e.g.: <b>helm/my-chart/Chart.yaml</b></p>`,
   'pipeline.config.bake.manifest.helm.rawOverrides':
     'Use <i>--set</i> instead of <i>--set-string</i> when injecting override values. Values injected using <i>--set</i> will be converted to primitive types by Helm.',
+  'pipeline.config.bake.manifest.helm.includeCRDs':
+    '<p>Include Custom Resource Definitions in the templated output.</p>',
   'pipeline.config.bake.manifest.kustomize.filePath': `
     <p>This is the relative path to the kustomization.yaml file within your Git repo.</p>
     <p>e.g.: <b>examples/wordpress/mysql/kustomization.yaml</b></p>`,
