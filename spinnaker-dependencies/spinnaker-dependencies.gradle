@@ -28,8 +28,10 @@ ext {
     springCloud      : "2020.0.5",
     springfoxSwagger : "2.9.2",
     swagger          : "1.5.20", //this should stay in sync with what springfoxSwagger expects
-    // spring boot 2.4.13 brings in 9.0.55, but leave this here to simplify fixing future CVEs.
-    tomcat           : "9.0.55"
+    // spring boot 2.4.13 brings in 9.0.55.  Use 9.0.62 to resolve
+    // CVE-2021-43980, CVE-2022-23181, CVE-2022-42252.  Spring boot 2.5.14
+    // brings in 9.0.63.
+    tomcat           : "9.0.62"
   ]
 }
 
