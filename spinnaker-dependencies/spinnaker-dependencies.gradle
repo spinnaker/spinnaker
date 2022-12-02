@@ -157,6 +157,7 @@ dependencies {
     api("org.objenesis:objenesis:2.5.1")
     api("org.pf4j:pf4j:3.2.0")
     api("org.pf4j:pf4j-update:2.3.0")
+    api("org.yaml:snakeyaml:1.29") // safe to upgrade beyond 1.29 with spring boot >= 2.6.12.  See https://github.com/spring-projects/spring-boot/issues/32228#issue-1361858500.
     api("org.springdoc:springdoc-openapi-webmvc-core:${versions.openapi}")
     api("org.springdoc:springdoc-openapi-kotlin:${versions.openapi}")
     api("org.springframework.boot:spring-boot-configuration-processor:${versions.springBoot}")
