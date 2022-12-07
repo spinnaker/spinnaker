@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory
  */
 class SqlTask(
   private val id: String,
-  @JsonIgnore internal val ownerId: String,
+  @JsonIgnore internal var ownerId: String,
   @JsonIgnore internal val requestId: String,
   @JsonIgnore internal val startTimeMs: Long,
   private val sagaIds: MutableSet<SagaId>,
@@ -138,5 +138,27 @@ class SqlTask(
         resultObjects.addAll(task.resultObjects)
       }
     }
+  }
+
+  override fun updateOwnerId(ownerId: String?, phase: String) {
+    this.dirty.set(true)
+    if (ownerId == null ) {
+      log.debug("new owner id not provided. No update necessary.")
+      return
+    }
+
+    val previousCloudDriverHostname = this.getOwnerId().split("@")[1]
+    val currentCloudDriverHostname = ownerId.split("@")[1]
+
+    if (previousCloudDriverHostname == currentCloudDriverHostname) {
+      log.debug("new owner id is the same as the previous owner Id. No update necessary.")
+      return
+    }
+
+    val previousOwnerId = this.ownerId
+    updateStatus(phase, "Re-assigning task from: $previousOwnerId to: $ownerId")
+    this.ownerId = ownerId
+    repository.updateOwnerId(this)
+    log.debug("Updated ownerId for task id={} from {} to {}", id, previousOwnerId, ownerId)
   }
 }

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.orchestration
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.clouddriver.core.ClouddriverHostname
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.event.exceptions.DuplicateEventAggregateException
@@ -99,6 +100,7 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
     def result = getTask(clientRequestId)
     def task = result.task
     if (!result.shouldExecute) {
+      log.debug("task with id {} has the shouldExecute flag set to false - not executing the task", task.getId())
       return task
     }
 
@@ -244,6 +246,7 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
       }
       existingTask.updateStatus(TASK_PHASE, "Re-initializing Orchestration Task (failure is retryable)")
       existingTask.retry()
+      existingTask.updateOwnerId(ClouddriverHostname.ID, TASK_PHASE)
       return new GetTaskResult(existingTask, true)
     }
     return new GetTaskResult(

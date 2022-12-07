@@ -12,7 +12,7 @@ public class DefaultTask implements Task {
   private static final Logger log = Logger.getLogger(DefaultTask.class.getName());
 
   private final String id;
-  private final String ownerId = ClouddriverHostname.ID;
+  private String ownerId = ClouddriverHostname.ID;
   private final String requestId = null;
   private final Deque<Status> statusHistory = new ConcurrentLinkedDeque<Status>();
   private final Deque<Object> resultObjects = new ConcurrentLinkedDeque<Object>();
@@ -98,6 +98,28 @@ public class DefaultTask implements Task {
   @Override
   public void retry() {
     statusHistory.addLast(currentStatus().update(TaskState.STARTED));
+  }
+
+  @Override
+  public void updateOwnerId(String ownerId, String phase) {
+    if (ownerId == null) {
+      log.info("new owner id not provided. No update necessary.");
+      return;
+    }
+
+    String previousCloudDriverHostname = this.getOwnerId().split("@")[1];
+    String currentCloudDriverHostname = ownerId.split("@")[1];
+
+    if (previousCloudDriverHostname.equals(currentCloudDriverHostname)) {
+      log.info("new owner id is the same as the previous owner Id. No update necessary.");
+      return;
+    }
+
+    String previousOwnerId = this.ownerId;
+    updateStatus(phase, "Re-assigning task from: " + previousOwnerId + " to: " + ownerId);
+    this.ownerId = ownerId;
+    log.info(
+        "Updated ownerId for task id: " + id + " from: " + previousOwnerId + " to: " + ownerId);
   }
 
   public final String getId() {

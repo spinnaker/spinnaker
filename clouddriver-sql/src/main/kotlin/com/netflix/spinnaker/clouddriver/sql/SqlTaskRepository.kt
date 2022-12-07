@@ -192,6 +192,17 @@ class SqlTaskRepository(
     }
   }
 
+  fun updateOwnerId(task: Task) {
+    return withPool(poolName) {
+      jooq.transactional { ctx ->
+        ctx.update(tasksTable)
+          .set(field("owner_id"), task.ownerId)
+          .where(field("id").eq(task.id))
+          .execute()
+      }
+    }
+  }
+
   internal fun retrieveInternal(taskId: String): Task? {
     return retrieveInternal(field("id").eq(taskId), field("task_id").eq(taskId)).firstOrNull()
   }

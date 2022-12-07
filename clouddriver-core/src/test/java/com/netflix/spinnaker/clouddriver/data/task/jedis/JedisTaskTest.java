@@ -67,9 +67,10 @@ final class JedisTaskTest {
   @Test
   void statusComputedFirst() throws Exception {
     RedisTaskRepository taskRepository = mock(RedisTaskRepository.class);
+
     JedisTask task =
         new JedisTask("123", 100, taskRepository, "owner", "requestId", ImmutableSet.of(), false);
-
+    when(taskRepository.currentState(task)).thenReturn(new DefaultTaskStatus(TaskState.STARTED));
     objectMapper.writeValueAsString(task);
 
     InOrder inOrder = Mockito.inOrder(taskRepository);

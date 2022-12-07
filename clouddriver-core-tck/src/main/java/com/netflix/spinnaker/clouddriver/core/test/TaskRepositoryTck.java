@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.core.test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.netflix.spinnaker.clouddriver.core.ClouddriverHostname;
 import com.netflix.spinnaker.clouddriver.data.task.Status;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
@@ -179,6 +180,24 @@ public abstract class TaskRepositoryTck<T extends TaskRepository> {
 
     assertThat(t1.getId()).isEqualTo(t2.getId());
     assertThat(t1.getId()).isNotEqualTo(t3.getId());
+  }
+
+  @Test
+  public void testUpdateOwnerIdWithANewOwnerId() {
+    Task t1 = subject.create("Test", "Test Status", "the-key");
+    String newOwnerId = "1234@spin-clouddriver-pod-new";
+    assertThat(t1.getOwnerId()).isNotEqualTo(newOwnerId);
+    t1.updateOwnerId(newOwnerId, "ORCHESTRATION");
+    assertThat(t1.getOwnerId()).isEqualTo(newOwnerId);
+  }
+
+  @Test
+  public void testUpdateOwnerIdWithSameOwnerId() {
+    Task t1 = subject.create("Test", "Test Status", "the-key");
+    String newOwnerId = ClouddriverHostname.ID;
+    assertThat(t1.getOwnerId()).isEqualTo(newOwnerId);
+    t1.updateOwnerId(newOwnerId, "ORCHESTRATION");
+    assertThat(t1.getOwnerId()).isEqualTo(newOwnerId);
   }
 
   public class TestObject {

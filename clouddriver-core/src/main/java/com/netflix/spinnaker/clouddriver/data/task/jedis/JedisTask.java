@@ -39,7 +39,7 @@ public class JedisTask implements Task {
   @JsonIgnore private RedisTaskRepository repository;
   private final String id;
   private final long startTimeMs;
-  private final String ownerId;
+  private String ownerId;
   private final String requestId;
   private final Set<SagaId> sagaIds;
   @JsonIgnore private final boolean previousRedis;
@@ -137,6 +137,29 @@ public class JedisTask implements Task {
   public void retry() {
     checkMutable();
     repository.addToHistory(repository.currentState(this).update(TaskState.STARTED), this);
+  }
+
+  @Override
+  public void updateOwnerId(String ownerId, String phase) {
+    checkMutable();
+    if (ownerId == null) {
+      log.debug("new owner id not provided. No update necessary.");
+      return;
+    }
+
+    String previousCloudDriverHostname = this.getOwnerId().split("@")[1];
+    String currentCloudDriverHostname = ownerId.split("@")[1];
+
+    if (previousCloudDriverHostname.equals(currentCloudDriverHostname)) {
+      log.debug("new owner id is the same as the previous owner Id. No update necessary.");
+      return;
+    }
+
+    String previousOwnerId = this.ownerId;
+    updateStatus(phase, "Re-assigning task from: " + previousOwnerId + " to: " + ownerId);
+    this.ownerId = ownerId;
+    repository.set(this.id, this);
+    log.debug("Updated ownerId for task id={} from {} to {}", id, previousOwnerId, ownerId);
   }
 
   private void checkMutable() {
