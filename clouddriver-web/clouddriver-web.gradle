@@ -1,13 +1,6 @@
 apply plugin: 'io.spinnaker.package'
 
-ext {
-  springConfigLocation = System.getProperty('spring.config.additional-location', "${System.getProperty('user.home')}/.spinnaker/".toString())
-}
-
 mainClassName = 'com.netflix.spinnaker.clouddriver.Main'
-run {
-  systemProperty('spring.config.additional-location', project.springConfigLocation)
-}
 
 configurations.all {
   exclude group: 'javax.servlet', module: 'servlet-api'
