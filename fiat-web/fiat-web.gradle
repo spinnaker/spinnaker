@@ -1,14 +1,5 @@
 apply plugin: 'io.spinnaker.package'
 
-ext {
-  springConfigLocation = System.getProperty('spring.config.additional-location', "${System.getProperty('user.home')}/.spinnaker/".toString())
-  springProfiles = System.getProperty('spring.profiles.active', "test,local")
-}
-
-run {
-  systemProperty('spring.config.additional-location', project.springConfigLocation)
-  systemProperty('spring.profiles.active', project.springProfiles)
-}
 mainClassName = 'com.netflix.spinnaker.fiat.Main'
 
 configurations.all {
