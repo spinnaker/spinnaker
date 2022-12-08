@@ -16,13 +16,6 @@
 
 apply plugin: 'io.spinnaker.package'
 
-ext {
-  springConfigLocation = System.getProperty('spring.config.additional-location', "${System.getProperty('user.home')}/.spinnaker/".toString())
-}
-
-run {
-  systemProperty('spring.config.additional-location', project.springConfigLocation)
-}
 mainClassName = 'com.netflix.spinnaker.front50.Main'
 
 configurations.all {
