@@ -1441,6 +1441,32 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/$awsBakeryDefaults.templateFile")
   }
 
+  void 'getMaskedPackerParameters returns the expected default'() {
+    setup:
+      @Subject
+      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: new RoscoAWSConfiguration.AWSBakeryDefaults())
+
+    when:
+      def maskedPackerParams = awsBakeHandler.maskedPackerParameters
+
+    then:
+      maskedPackerParams == [ 'aws_access_key', 'aws_secret_key' ]
+  }
+
+  void 'getMaskedPackerParameters returns the expected default'() {
+    setup:
+      def paramsToMask = [ 'foo' ]
+      @Subject
+      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: new RoscoAWSConfiguration.AWSBakeryDefaults(maskedPackerParameters: paramsToMask))
+
+
+    when:
+      def maskedPackerParams = awsBakeHandler.maskedPackerParameters
+
+    then:
+      maskedPackerParams == paramsToMask
+  }
+
   static class NoSleepRetry extends RetrySupport {
     void sleep(long time) {}
   }

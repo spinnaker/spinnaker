@@ -75,18 +75,19 @@ class LocalJobFriendlyPackerCommandFactorySpec extends Specification implements 
     when:
       def packerCommand = packerCommandFactory.buildPackerCommand("", parameterMap, null, "")
       def jobRequest = new JobRequest(tokenizedCommand: packerCommand, maskedParameters: maskedPackerParameters, jobId: SOME_UUID)
-      def commandLine = new CommandLine(jobRequest.tokenizedCommand[0])
-      def arguments = (String []) Arrays.copyOfRange(jobRequest.tokenizedCommand.toArray(), 1, jobRequest.tokenizedCommand.size())
+      def maskedTokenizedCommand = jobRequest.maskedTokenizedCommand
+      def commandLine = new CommandLine(maskedTokenizedCommand[0])
+      def arguments = (String []) Arrays.copyOfRange(maskedTokenizedCommand.toArray(), 1, maskedTokenizedCommand.size())
       commandLine.addArguments(arguments, false)
       def g = commandLine.toString()
       def cmdLineList =  commandLine.toStrings().toList()
-
 
     then:
       cmdLineList  == expectedCommandLine
 
     where:
-      parameterMap                          | maskedPackerParameters | expectedCommandLine
-      [packages: "package1 package2"]       | []                     | ["packer", "build", "-color=false", "-var", "packages=package1 package2"]
+      parameterMap                                              | maskedPackerParameters | expectedCommandLine
+      [packages: "package1 package2"]                           | []                     | ["packer", "build", "-color=false", "-var", "packages=package1 package2"]
+      [packages: "package1 package2", secret: "mysecret"]       | ["secret"]             | ["packer", "build", "-color=false", "-var", "packages=package1 package2", "-var", "secret=******"]
   }
 }

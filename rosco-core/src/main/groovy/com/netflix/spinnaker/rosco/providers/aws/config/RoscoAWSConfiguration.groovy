@@ -58,6 +58,7 @@ class RoscoAWSConfiguration {
     String templateFile
     BakeRequest.VmType defaultVirtualizationType
     List<AWSOperatingSystemVirtualizationSettings> baseImages = []
+    List<String> maskedPackerParameters = [ 'aws_access_key', 'aws_secret_key' ]
   }
 
   static class AWSOperatingSystemVirtualizationSettings {
