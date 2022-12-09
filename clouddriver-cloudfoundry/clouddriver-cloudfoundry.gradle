@@ -39,7 +39,7 @@ dependencies {
   annotationProcessor "org.projectlombok:lombok"
   testAnnotationProcessor "org.projectlombok:lombok"
 
-  implementation "org.codehaus.groovy:groovy-all"
+  implementation "org.codehaus.groovy:groovy"
 
   implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
   implementation "org.apache.commons:commons-lang3"

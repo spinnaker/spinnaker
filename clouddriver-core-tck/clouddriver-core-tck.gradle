@@ -5,5 +5,5 @@ dependencies {
   implementation "junit:junit"
   implementation "org.apache.commons:commons-lang3"
   implementation "org.assertj:assertj-core"
-  implementation "org.codehaus.groovy:groovy-all"
+  implementation "org.codehaus.groovy:groovy"
 }

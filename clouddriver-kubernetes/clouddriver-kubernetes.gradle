@@ -61,7 +61,7 @@ dependencies {
   annotationProcessor "org.projectlombok:lombok"
   testAnnotationProcessor "org.projectlombok:lombok"
 
-  implementation "org.codehaus.groovy:groovy-all"
+  implementation "org.codehaus.groovy:groovy"
 
   implementation "com.google.code.findbugs:jsr305"
   implementation "com.google.guava:guava"

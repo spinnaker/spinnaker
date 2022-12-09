@@ -10,7 +10,7 @@ dependencies {
   implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
   implementation "io.spinnaker.kork:kork-exceptions"
   implementation "io.spinnaker.kork:kork-moniker"
-  implementation "org.codehaus.groovy:groovy-all"
+  implementation "org.codehaus.groovy:groovy"
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "com.azure.resourcemanager:azure-resourcemanager:2.19.0"
@@ -22,6 +22,7 @@ dependencies {
   implementation "com.google.guava:guava:31.1-jre"
 
   testImplementation "cglib:cglib-nodep"
+  testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation "org.objenesis:objenesis"
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.spockframework:spock-spring"

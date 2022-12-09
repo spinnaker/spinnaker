@@ -36,7 +36,7 @@ dependencies {
   implementation "commons-io:commons-io"
   implementation "io.reactivex:rxjava"
   implementation "io.swagger:swagger-annotations"
-  implementation "org.codehaus.groovy:groovy-all"
+  implementation "org.codehaus.groovy:groovy"
   implementation "org.slf4j:slf4j-api"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
   implementation "org.springframework.boot:spring-boot-starter-json"

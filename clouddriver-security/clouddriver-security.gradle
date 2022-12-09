@@ -9,7 +9,7 @@ dependencies {
   implementation "io.spinnaker.fiat:fiat-api:$fiatVersion"
   implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
   implementation "io.spinnaker.kork:kork-core"
-  implementation "org.codehaus.groovy:groovy-all"
+  implementation "org.codehaus.groovy:groovy"
   implementation "org.slf4j:jcl-over-slf4j"
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "com.github.ben-manes.caffeine:guava"

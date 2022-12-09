@@ -52,7 +52,7 @@ dependencies {
   implementation "io.reactivex:rxjava"
   implementation "org.apache.httpcomponents:httpclient"
   implementation "org.apache.httpcomponents:httpcore"
-  implementation "org.codehaus.groovy:groovy-all"
+  implementation "org.codehaus.groovy:groovy"
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation 'com.aestasit.infrastructure.sshoogr:sshoogr:0.9.25'

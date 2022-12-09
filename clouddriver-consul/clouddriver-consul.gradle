@@ -3,7 +3,8 @@ dependencies {
 
   implementation "com.squareup.okhttp:okhttp"
   implementation "com.squareup.retrofit:retrofit"
-  implementation "org.codehaus.groovy:groovy-all"
+  implementation "org.codehaus.groovy:groovy"
+  implementation "org.codehaus.groovy:groovy-json"
   implementation "org.springframework.boot:spring-boot-starter-web"
 
   testImplementation "cglib:cglib-nodep"

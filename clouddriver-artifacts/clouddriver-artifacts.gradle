@@ -51,7 +51,7 @@ dependencies {
   implementation "org.apache.commons:commons-lang3"
   implementation "org.apache.ivy:ivy:2.4.0"
   implementation "org.apache.maven:maven-resolver-provider:3.5.4"
-  implementation "org.codehaus.groovy:groovy-all"
+  implementation "org.codehaus.groovy:groovy"
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
 
