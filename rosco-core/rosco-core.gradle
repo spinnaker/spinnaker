@@ -15,7 +15,7 @@ dependencies {
   implementation "com.squareup.retrofit:retrofit"
   implementation "io.reactivex:rxjava"
   implementation "org.apache.commons:commons-exec"
-  implementation "org.codehaus.groovy:groovy-all"
+  implementation "org.codehaus.groovy:groovy"
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "redis.clients:jedis"
   implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client"
