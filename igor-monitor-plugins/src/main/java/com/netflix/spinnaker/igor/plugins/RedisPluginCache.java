@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import javax.annotation.Nonnull;
-import jline.internal.Nullable;
+import javax.annotation.Nullable;
 
 public class RedisPluginCache implements PluginCache {
 
