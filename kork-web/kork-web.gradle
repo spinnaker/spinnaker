@@ -14,7 +14,7 @@ dependencies {
   api project(":kork-core")
   api project(":kork-security")
   api project(":kork-exceptions")
-  api "org.codehaus.groovy:groovy-all"
+  api "org.codehaus.groovy:groovy"
   api "org.springframework.boot:spring-boot-starter-web"
   api "org.springframework.boot:spring-boot-starter-security"
   api "org.springframework.security:spring-security-core"

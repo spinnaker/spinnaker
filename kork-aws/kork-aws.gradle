@@ -24,7 +24,7 @@ dependencies {
   api "com.amazonaws:aws-java-sdk-core"
   api "com.amazonaws:aws-java-sdk-sns"
   api "com.amazonaws:aws-java-sdk-sqs"
-  api "org.codehaus.groovy:groovy-all"
+  api "org.codehaus.groovy:groovy"
   api "com.hubspot.jinjava:jinjava"
   api "com.jcraft:jsch.agentproxy.jsch"
   api "com.jcraft:jsch.agentproxy.connector-factory"
@@ -39,6 +39,7 @@ dependencies {
 
   runtimeOnly "com.amazonaws:aws-java-sdk-sts"
 
+  testImplementation "org.codehaus.groovy:groovy-all"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation "org.junit.jupiter:junit-jupiter-params"
   testImplementation "org.junit.platform:junit-platform-runner"
