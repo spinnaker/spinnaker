@@ -36,7 +36,7 @@ export class ManifestTrafficStageConfig extends React.Component<IKubernetesManif
           selector={selector}
           modes={[SelectorMode.Static, SelectorMode.Dynamic]}
           onChange={this.onChange}
-          includeSpinnakerKinds={['serverGroups']}
+          includeSpinnakerKinds={['serverGroups', 'serverGroupManagers']}
         />
       </div>
     );
