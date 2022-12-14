@@ -29,7 +29,8 @@ import spock.lang.Subject
 class RestEventListenerSpec extends Specification {
 
   @Subject
-  RestEventListener listener = new RestEventListener(null, null, new NoopRegistry(), new RetrySupport())
+  RestEventService restEventService = new RestEventService(new RetrySupport())
+  RestEventListener listener = new RestEventListener(null, null, restEventService, new NoopRegistry())
   Event event = new Event(content: ['uno': 'dos'])
   RestService restService
 
@@ -190,5 +191,24 @@ class RestEventListenerSpec extends Specification {
     1 * restService2.recordEvent({
       it == listener.mapper.convertValue(event, Map)
     })
+  }
+
+  void 'should send event when circuit breaker is enabled'() {
+    given:
+    RestProperties.RestEndpointConfiguration config = new RestProperties.RestEndpointConfiguration()
+
+    RestUrls.Service service = RestUrls.Service.builder()
+      .client(restService)
+      .config(config)
+      .build()
+
+    listener.circuitBreakerEnabled = true
+    listener.restUrls.services = [service]
+
+    when:
+    listener.processEvent(event)
+
+    then:
+    1 * restService.recordEvent({ it == listener.mapper.convertValue(event, Map) })
   }
 }

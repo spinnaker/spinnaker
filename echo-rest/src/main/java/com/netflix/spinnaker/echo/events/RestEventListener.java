@@ -22,8 +22,6 @@ import com.netflix.spinnaker.echo.api.events.Event;
 import com.netflix.spinnaker.echo.api.events.EventListener;
 import com.netflix.spinnaker.echo.config.RestUrls;
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
-import com.netflix.spinnaker.kork.core.RetrySupport;
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -44,8 +42,8 @@ class RestEventListener implements EventListener {
 
   private RestUrls restUrls;
   private RestEventTemplateEngine restEventTemplateEngine;
+  private RestEventService restEventService;
   private Registry registry;
-  private RetrySupport retrySupport;
 
   @Value("${rest.default-event-name:spinnaker_events}")
   private String eventName;
@@ -53,16 +51,19 @@ class RestEventListener implements EventListener {
   @Value("${rest.default-field-name:payload}")
   private String fieldName;
 
+  @Value("${rest.circuit-breaker-enabled}")
+  private boolean circuitBreakerEnabled;
+
   @Autowired
   RestEventListener(
       RestUrls restUrls,
       RestEventTemplateEngine restEventTemplateEngine,
-      Registry registry,
-      RetrySupport retrySupport) {
+      RestEventService restEventService,
+      Registry registry) {
     this.restUrls = restUrls;
     this.restEventTemplateEngine = restEventTemplateEngine;
+    this.restEventService = restEventService;
     this.registry = registry;
-    this.retrySupport = retrySupport;
   }
 
   @Override
@@ -102,12 +103,11 @@ class RestEventListener implements EventListener {
                   }
                 }
 
-                Map<String, Object> finalEventMap = eventMap;
-                retrySupport.retry(
-                    () -> service.getClient().recordEvent(finalEventMap),
-                    service.getConfig().getRetryCount(),
-                    Duration.ofMillis(200),
-                    false);
+                if (circuitBreakerEnabled) {
+                  restEventService.sendEventWithCircuitBreaker(eventMap, service);
+                } else {
+                  restEventService.sendEvent(eventMap, service);
+                }
               } catch (Exception e) {
                 if (event != null
                     && event.getDetails() != null
