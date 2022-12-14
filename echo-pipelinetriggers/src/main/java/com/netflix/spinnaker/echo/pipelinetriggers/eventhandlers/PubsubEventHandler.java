@@ -78,13 +78,26 @@ public class PubsubEventHandler extends BaseTriggerEventHandler<PubsubEvent> {
     Map parameters =
         payload.containsKey("parameters") ? (Map) payload.get("parameters") : new HashMap();
     MessageDescription description = pubsubEvent.getContent().getMessageDescription();
-    return trigger ->
-        trigger
-            .atMessageDescription(
-                description.getSubscriptionName(), description.getPubsubSystem().toString())
-            .atParameters(parameters)
-            .atPayload(payload)
-            .atEventId(pubsubEvent.getEventId());
+    return inputTrigger -> {
+      Trigger trigger =
+          inputTrigger
+              .atMessageDescription(
+                  description.getSubscriptionName(), description.getPubsubSystem().toString())
+              .atParameters(parameters)
+              .atPayload(payload)
+              .atEventId(pubsubEvent.getEventId());
+
+      Object linkTextObject = payload.get("linkText");
+      Object linkObject = payload.get("link");
+      if (linkTextObject instanceof String && linkObject instanceof String) {
+        String linkText = (String) linkTextObject;
+        String link = (String) linkObject;
+        if (StringUtils.isNotBlank(linkText) && StringUtils.isNotBlank(link)) {
+          trigger = trigger.withLink(link).withLinkText(linkText);
+        }
+      }
+      return trigger;
+    };
   }
 
   @Override

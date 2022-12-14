@@ -257,4 +257,33 @@ class PubsubEventHandlerSpec extends Specification implements RetrofitStubs {
     enabledGooglePubsubTrigger.withAttributeConstraints([key: 'value'])      | 1
     enabledGooglePubsubTrigger.withAttributeConstraints([key: 'wrongValue']) | 0
   }
+
+  @Unroll
+  def "sets link details if defined"() {
+    given:
+    def trigger = enabledGooglePubsubTrigger
+
+    def event = new PubsubEvent()
+    def description = MessageDescription.builder()
+      .pubsubSystem(PubsubSystem.GOOGLE)
+      .ackDeadlineSeconds(1)
+      .subscriptionName("projects/project/subscriptions/subscription")
+      .messagePayload(JsonOutput.toJson([key: 'value']))
+      .messageAttributes([key: 'value'])
+      .build()
+
+    when:
+    def content = new PubsubEvent.Content()
+    content.setMessageDescription(description)
+    event.content = content
+    def link = 'https://sample.com'
+    def linkText = 'someLinkText'
+    event.payload = [link: link, linkText: linkText]
+
+    def outputTrigger = eventHandler.buildTrigger(event).apply(trigger)
+
+    then:
+    outputTrigger.link.equals(link)
+    outputTrigger.linkText.equals(linkText)
+  }
 }
