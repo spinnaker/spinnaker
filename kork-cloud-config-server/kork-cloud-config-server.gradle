@@ -11,6 +11,7 @@ dependencies {
   implementation "org.springframework.cloud:spring-cloud-config-server"
   implementation "io.awspring.cloud:spring-cloud-aws-context:2.3.5"
 
+  testImplementation project(':kork-config')
   testImplementation "org.springframework.boot:spring-boot-starter-test"
   testImplementation "org.assertj:assertj-core"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
@@ -18,5 +19,8 @@ dependencies {
   testImplementation "org.junit.jupiter:junit-jupiter-params"
   testImplementation "org.mockito:mockito-core"
 
-  testRuntimeOnly "org.slf4j:slf4j-simple"
+}
+
+test {
+  useJUnitPlatform()
 }
