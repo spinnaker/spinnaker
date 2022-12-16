@@ -25,6 +25,7 @@ import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 
@@ -34,7 +35,9 @@ import retrofit.RetrofitError
 class MonitorBakeTask implements OverridableTimeoutRetryableTask {
 
   long backoffPeriod = 30000
-  long timeout = 3600000 // 1hr
+
+  @Value('${tasks.monitor-bake.timeout-millis:3600000}')
+  long timeout
 
   @Autowired(required = false)
   BakerySelector bakerySelector
