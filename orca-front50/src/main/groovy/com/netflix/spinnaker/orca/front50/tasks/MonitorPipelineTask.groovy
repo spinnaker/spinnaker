@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.front50.pipeline.MonitorPipelineStage
+import org.springframework.beans.factory.annotation.Value
 
 import java.util.concurrent.TimeUnit
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
@@ -39,7 +40,9 @@ class MonitorPipelineTask implements OverridableTimeoutRetryableTask {
   ObjectMapper objectMapper
 
   long backoffPeriod = TimeUnit.SECONDS.toMillis(15)
-  long timeout = TimeUnit.HOURS.toMillis(12)
+
+  @Value('${tasks.monitor-pipeline.timeout-millis:43200000}')
+  long timeout
 
   @Autowired
   public MonitorPipelineTask(ExecutionRepository executionRepository, ObjectMapper objectMapper) {
