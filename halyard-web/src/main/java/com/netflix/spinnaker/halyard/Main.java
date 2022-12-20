@@ -31,8 +31,7 @@ import org.springframework.context.annotation.Configuration;
 @EnableAutoConfiguration
 @EnableConfigServer
 public class Main extends SpringBootServletInitializer {
-  private static final Map<String, Object> DEFAULT_PROPS =
-      new DefaultPropertiesBuilder().property("spring.config.on-not-found", "ignore").build();
+  private static final Map<String, Object> DEFAULT_PROPS = new DefaultPropertiesBuilder().build();
 
   public static void main(String... args) {
     ConfigServerBootstrap.systemProperties("halyard");
