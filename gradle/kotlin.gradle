@@ -18,6 +18,10 @@ apply plugin: "kotlin"
 apply plugin: "kotlin-spring"
 apply plugin: "io.gitlab.arturbosch.detekt"
 
+dependencies {
+  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+}
+
 compileKotlin {
   kotlinOptions {
     languageVersion = "1.4"
