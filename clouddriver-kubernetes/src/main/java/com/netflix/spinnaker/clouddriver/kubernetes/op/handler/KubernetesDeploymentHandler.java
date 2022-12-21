@@ -30,9 +30,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesApiVersion;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
-import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifestSelector;
 import com.netflix.spinnaker.clouddriver.kubernetes.model.Manifest.Status;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1DeploymentCondition;
@@ -41,7 +39,6 @@ import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import org.springframework.stereotype.Component;
 
@@ -50,7 +47,6 @@ import org.springframework.stereotype.Component;
 public class KubernetesDeploymentHandler extends KubernetesHandler
     implements CanResize,
         CanScale,
-        HasPods,
         CanPauseRollout,
         CanResumeRollout,
         CanUndoRollout,
@@ -86,7 +82,7 @@ public class KubernetesDeploymentHandler extends KubernetesHandler
 
   @Override
   public boolean versioned() {
-    return true;
+    return false;
   }
 
   @Override
@@ -195,19 +191,5 @@ public class KubernetesDeploymentHandler extends KubernetesHandler
     }
 
     return Optional.empty();
-  }
-
-  @Override
-  public List<KubernetesManifest> pods(
-      KubernetesCredentials credentials, KubernetesManifest object) {
-    KubernetesManifestSelector selector = object.getManifestSelector();
-    return credentials
-        .list(KubernetesKind.POD, object.getNamespace(), selector.toSelectorList())
-        .stream()
-        .filter(
-            p ->
-                p.getOwnerReferences().stream()
-                    .anyMatch(or -> or.getName().equals(object.getName())))
-        .collect(Collectors.toList());
   }
 }

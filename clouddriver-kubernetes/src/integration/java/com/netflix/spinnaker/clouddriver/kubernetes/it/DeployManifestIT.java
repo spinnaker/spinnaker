@@ -35,9 +35,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 public class DeployManifestIT extends BaseTest {
+
   private static final String DEPLOYMENT_1_NAME = "deployment1";
   private static final String REPLICASET_1_NAME = "rs1";
   private static final String SERVICE_1_NAME = "service1";
+
   private static final String SERVICE_2_NAME = "service2";
   private static String account1Ns;
 
@@ -1335,154 +1337,6 @@ public class DeployManifestIT extends BaseTest {
             .withValue("disableManifest.account", ACCOUNT1_NAME)
             .asList();
     KubeTestUtils.disableManifest(baseUrl(), body, account1Ns, "replicaSet " + appName + "-v000");
-
-    // ------------------------- then --------------------------
-    List<String> podNames =
-        Splitter.on(" ")
-            .splitToList(
-                kubeCluster.execKubectl(
-                    "-n "
-                        + account1Ns
-                        + " get pod -o=jsonpath='{.items[*].metadata.name}' -l=pointer="
-                        + selectorValue));
-    assertEquals(
-        1, podNames.size(), "Only one pod expected to have the label for traffic selection");
-  }
-
-  @DisplayName(
-      ".\n===\n"
-          + "Given a deployment yaml with red/black deployment traffic strategy\n"
-          + "  and an existing service\n"
-          + "When sending deploy manifest request two times\n"
-          + "  And sending disable manifest one time\n"
-          + "Then there are two deployments with only the last one receiving traffic\n===")
-  @Test
-  public void shouldDeployRedBlackDeployment() throws IOException, InterruptedException {
-    // ------------------------- given --------------------------
-    String appName = "red-black";
-    System.out.println("> Using namespace: " + account1Ns + ", appName: " + appName);
-    String selectorValue = appName + "traffichere";
-
-    Map<String, Object> service =
-        KubeTestUtils.loadYaml("classpath:manifests/service.yml")
-            .withValue("metadata.namespace", account1Ns)
-            .withValue("metadata.name", SERVICE_2_NAME)
-            .withValue("spec.selector", ImmutableMap.of("pointer", selectorValue))
-            .withValue("spec.type", "NodePort")
-            .asMap();
-    kubeCluster.execKubectl("-n " + account1Ns + " apply -f -", service);
-
-    List<Map<String, Object>> manifest =
-        KubeTestUtils.loadYaml("classpath:manifests/deployment.yml")
-            .withValue("metadata.namespace", account1Ns)
-            .withValue("metadata.name", appName)
-            .withValue("spec.selector.matchLabels", ImmutableMap.of("label1", "value1"))
-            .withValue("spec.template.metadata.labels", ImmutableMap.of("label1", "value1"))
-            .asList();
-
-    // ------------------------- when --------------------------
-    List<Map<String, Object>> body =
-        KubeTestUtils.loadJson("classpath:requests/deploy_manifest.json")
-            .withValue("deployManifest.account", ACCOUNT1_NAME)
-            .withValue("deployManifest.moniker.app", appName)
-            .withValue("deployManifest.manifests", manifest)
-            .withValue(
-                "deployManifest.services", Collections.singleton("service " + SERVICE_2_NAME))
-            .withValue("deployManifest.strategy", "RED_BLACK")
-            .withValue("deployManifest.trafficManagement.enabled", true)
-            .withValue("deployManifest.trafficManagement.options.strategy", "redblack")
-            .withValue("deployManifest.trafficManagement.options.enableTraffic", true)
-            .withValue("deployManifest.trafficManagement.options.namespace", account1Ns)
-            .withValue(
-                "deployManifest.trafficManagement.options.services",
-                Collections.singleton("service " + appName))
-            .asList();
-    KubeTestUtils.deployAndWaitStable(
-        baseUrl(), body, account1Ns, "deployment " + appName + "-v000");
-    KubeTestUtils.deployAndWaitStable(
-        baseUrl(), body, account1Ns, "deployment " + appName + "-v001");
-    body =
-        KubeTestUtils.loadJson("classpath:requests/disable_manifest.json")
-            .withValue("disableManifest.app", appName)
-            .withValue("disableManifest.manifestName", "deployment " + appName + "-v000")
-            .withValue("disableManifest.location", account1Ns)
-            .withValue("disableManifest.account", ACCOUNT1_NAME)
-            .asList();
-    KubeTestUtils.disableManifest(baseUrl(), body, account1Ns, "deployment " + appName + "-v000");
-
-    // ------------------------- then --------------------------
-    List<String> podNames =
-        Splitter.on(" ")
-            .splitToList(
-                kubeCluster.execKubectl(
-                    "-n "
-                        + account1Ns
-                        + " get pod -o=jsonpath='{.items[*].metadata.name}' -l=pointer="
-                        + selectorValue));
-    assertEquals(
-        1, podNames.size(), "Only one pod expected to have the label for traffic selection");
-  }
-
-  @DisplayName(
-      ".\n===\n"
-          + "Given a deployment yaml with blue/green deployment traffic strategy\n"
-          + "  and an existing service\n"
-          + "When sending deploy manifest request two times\n"
-          + "  And sending disable manifest one time\n"
-          + "Then there are two deployments with only the last one receiving traffic\n===")
-  @Test
-  public void shouldDeployBlueGreenDeployment() throws IOException, InterruptedException {
-    // ------------------------- given --------------------------
-    String appName = "blue-green";
-    System.out.println("> Using namespace: " + account1Ns + ", appName: " + appName);
-    String selectorValue = appName + "traffichere";
-
-    Map<String, Object> service =
-        KubeTestUtils.loadYaml("classpath:manifests/service.yml")
-            .withValue("metadata.namespace", account1Ns)
-            .withValue("metadata.name", SERVICE_2_NAME)
-            .withValue("spec.selector", ImmutableMap.of("pointer", selectorValue))
-            .withValue("spec.type", "NodePort")
-            .asMap();
-    kubeCluster.execKubectl("-n " + account1Ns + " apply -f -", service);
-
-    List<Map<String, Object>> manifest =
-        KubeTestUtils.loadYaml("classpath:manifests/deployment.yml")
-            .withValue("metadata.namespace", account1Ns)
-            .withValue("metadata.name", appName)
-            .withValue("spec.selector.matchLabels", ImmutableMap.of("label1", "value1"))
-            .withValue("spec.template.metadata.labels", ImmutableMap.of("label1", "value1"))
-            .asList();
-
-    // ------------------------- when --------------------------
-    List<Map<String, Object>> body =
-        KubeTestUtils.loadJson("classpath:requests/deploy_manifest.json")
-            .withValue("deployManifest.account", ACCOUNT1_NAME)
-            .withValue("deployManifest.moniker.app", appName)
-            .withValue("deployManifest.manifests", manifest)
-            .withValue(
-                "deployManifest.services", Collections.singleton("service " + SERVICE_2_NAME))
-            .withValue("deployManifest.strategy", "BLUE_GREEN")
-            .withValue("deployManifest.trafficManagement.enabled", true)
-            .withValue("deployManifest.trafficManagement.options.strategy", "bluegreen")
-            .withValue("deployManifest.trafficManagement.options.enableTraffic", true)
-            .withValue("deployManifest.trafficManagement.options.namespace", account1Ns)
-            .withValue(
-                "deployManifest.trafficManagement.options.services",
-                Collections.singleton("service " + appName))
-            .asList();
-    KubeTestUtils.deployAndWaitStable(
-        baseUrl(), body, account1Ns, "deployment " + appName + "-v000");
-    KubeTestUtils.deployAndWaitStable(
-        baseUrl(), body, account1Ns, "deployment " + appName + "-v001");
-    body =
-        KubeTestUtils.loadJson("classpath:requests/disable_manifest.json")
-            .withValue("disableManifest.app", appName)
-            .withValue("disableManifest.manifestName", "deployment " + appName + "-v000")
-            .withValue("disableManifest.location", account1Ns)
-            .withValue("disableManifest.account", ACCOUNT1_NAME)
-            .asList();
-    KubeTestUtils.disableManifest(baseUrl(), body, account1Ns, "deployment " + appName + "-v000");
 
     // ------------------------- then --------------------------
     List<String> podNames =
