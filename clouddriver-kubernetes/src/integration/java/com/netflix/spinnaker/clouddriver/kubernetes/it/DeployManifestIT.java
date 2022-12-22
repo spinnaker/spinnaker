@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import org.apache.logging.log4j.util.Strings;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -587,7 +588,7 @@ public class DeployManifestIT extends BaseTest {
     // ------------------------- given --------------------------
     String appName = "bind-config-map";
     System.out.println("> Using namespace: " + account1Ns + ", appName: " + appName);
-    String cmName = "myconfig";
+    String cmName = generateManifestName("myconfig");
     String version = "v005";
 
     // deploy versioned configmap
@@ -662,7 +663,7 @@ public class DeployManifestIT extends BaseTest {
     // ------------------------- given --------------------------
     String appName = "bind-secret";
     System.out.println("> Using namespace: " + account1Ns + ", appName: " + appName);
-    String secretName = "mysecret";
+    String secretName = generateManifestName("mysecret");
     String version = "v009";
 
     // deploy versioned secret
@@ -812,7 +813,7 @@ public class DeployManifestIT extends BaseTest {
     // ------------------------- given --------------------------
     String appName = "add-config-map-version";
     System.out.println("> Using namespace: " + account1Ns + ", appName: " + appName);
-    String cmName = "myconfig";
+    String cmName = generateManifestName("myconfig");
 
     List<Map<String, Object>> manifest =
         KubeTestUtils.loadYaml("classpath:manifests/configmap.yml")
@@ -845,7 +846,7 @@ public class DeployManifestIT extends BaseTest {
     // ------------------------- given --------------------------
     String appName = "add-secret-version";
     System.out.println("> Using namespace: " + account1Ns + ", appName: " + appName);
-    String secretName = "mysecret";
+    String secretName = generateManifestName("mysecret");
 
     List<Map<String, Object>> manifest =
         KubeTestUtils.loadYaml("classpath:manifests/secret.yml")
@@ -881,7 +882,7 @@ public class DeployManifestIT extends BaseTest {
     // ------------------------- given --------------------------
     String appName = "new-config-map-version";
     System.out.println("> Using namespace: " + account1Ns + ", appName: " + appName);
-    String cmName = "myconfig";
+    String cmName = generateManifestName("myconfig");
 
     List<Map<String, Object>> manifest =
         KubeTestUtils.loadYaml("classpath:manifests/configmap.yml")
@@ -932,7 +933,7 @@ public class DeployManifestIT extends BaseTest {
     // ------------------------- given --------------------------
     String appName = "new-secret-version";
     System.out.println("> Using namespace: " + account1Ns + ", appName: " + appName);
-    String secretName = "mysecret";
+    String secretName = generateManifestName("mysecret");
 
     List<Map<String, Object>> manifest =
         KubeTestUtils.loadYaml("classpath:manifests/secret.yml")
@@ -984,7 +985,7 @@ public class DeployManifestIT extends BaseTest {
     // ------------------------- given --------------------------
     String appName = "unversioned-config-map";
     System.out.println("> Using namespace: " + account1Ns + ", appName: " + appName);
-    String cmName = "myconfig";
+    String cmName = generateManifestName("myconfig");
 
     List<Map<String, Object>> manifest =
         KubeTestUtils.loadYaml("classpath:manifests/configmap.yml")
@@ -1019,7 +1020,7 @@ public class DeployManifestIT extends BaseTest {
     // ------------------------- given --------------------------
     String appName = "unversioned-secret";
     System.out.println("> Using namespace: " + account1Ns + ", appName: " + appName);
-    String secretName = "mysecret";
+    String secretName = generateManifestName("mysecret");
 
     List<Map<String, Object>> manifest =
         KubeTestUtils.loadYaml("classpath:manifests/secret.yml")
@@ -1582,5 +1583,9 @@ public class DeployManifestIT extends BaseTest {
         .body(
             "spinnakerKindMap.'crontab.stable.example.com'.findAll{ e -> e != null }",
             hasSize(greaterThan(0)));
+  }
+
+  private static String generateManifestName(String myconfig) {
+    return myconfig + Long.toHexString(UUID.randomUUID().getLeastSignificantBits());
   }
 }
