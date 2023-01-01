@@ -74,6 +74,6 @@ dependencies {
   testImplementation "org.junit.jupiter:junit-jupiter-engine"
   testImplementation "org.junit.jupiter:junit-jupiter-params"
   testImplementation "org.mockito:mockito-core"
-  testImplementation "com.github.tomakehurst:wiremock:latest.release"
+  testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
   testImplementation "ru.lanwen.wiremock:wiremock-junit5:1.2.0"
 }

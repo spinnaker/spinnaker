@@ -55,7 +55,7 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
 
-  testImplementation "com.github.tomakehurst:wiremock:latest.release"
+  testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
   testImplementation "io.spinnaker.kork:kork-aws"
   testImplementation "org.assertj:assertj-core"
   testImplementation "org.junit-pioneer:junit-pioneer:0.3.0"
