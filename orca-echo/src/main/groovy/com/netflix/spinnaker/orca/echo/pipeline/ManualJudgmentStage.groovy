@@ -56,7 +56,7 @@ class ManualJudgmentStage implements StageDefinitionBuilder, AuthenticatedStage 
   @Override
   Optional<PipelineExecution.AuthenticationDetails> authenticatedUser(StageExecution stage) {
     def stageData = stage.mapTo(StageData)
-    if (stageData.state != StageData.State.CONTINUE || !stage.lastModified?.user || !stageData.propagateAuthenticationContext) {
+    if (stageData.state != StageData.State.CONTINUE || !stage.lastModified?.user) {
       return Optional.empty()
     }
 
