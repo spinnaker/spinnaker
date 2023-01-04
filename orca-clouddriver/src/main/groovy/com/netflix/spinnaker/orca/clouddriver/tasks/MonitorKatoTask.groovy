@@ -165,7 +165,8 @@ class MonitorKatoTask implements RetryableTask, CloudProviderAware {
         id           : katoTask.id,
         status       : katoTask.status,
         history      : katoTask.history,
-        resultObjects: katoTask.resultObjects
+        resultObjects: katoTask.resultObjects,
+        outputs      : katoTask.outputs
       ]
       if (katoTask.resultObjects?.find { it.type == "EXCEPTION" }) {
         def exception = katoTask.resultObjects.find { it.type == "EXCEPTION" }

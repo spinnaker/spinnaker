@@ -52,6 +52,7 @@ class CloudFoundryMonitorKatoServicesTaskTest {
                 taskIdString,
                 new Task.Status(completed, failed, false),
                 resultObjects,
+                Collections.emptyList(),
                 Collections.emptyList()));
 
     CloudFoundryMonitorKatoServicesTask task = new CloudFoundryMonitorKatoServicesTask(katoService);

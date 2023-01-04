@@ -51,7 +51,7 @@ class MonitorKatoTaskSpec extends Specification {
   @Unroll("result is #expectedResult if kato task is #katoStatus")
   def "result depends on Kato task status"() {
     given:
-    kato.lookupTask(taskId, false) >> new Task(taskId, new Task.Status(completed: completed, failed: failed), [], [])
+    kato.lookupTask(taskId, false) >> new Task(taskId, new Task.Status(completed: completed, failed: failed), [], [], [])
 
     and:
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "whatever", [
@@ -74,7 +74,7 @@ class MonitorKatoTaskSpec extends Specification {
   @Unroll("result is #expectedResult if katoResultExpected is #katoResultExpected and resultObject is #resultObjects")
   def "result depends on Kato task status and result object size for create/upsert operations"() {
     given:
-    kato.lookupTask(taskId, false) >> new Task(taskId, new Task.Status(completed: true), resultObjects, [])
+    kato.lookupTask(taskId, false) >> new Task(taskId, new Task.Status(completed: true), resultObjects, [], [])
 
     and:
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "whatever", [
@@ -148,7 +148,7 @@ class MonitorKatoTaskSpec extends Specification {
     notThrown(RetrofitError)
 
     when: 'task is found, but not completed'
-    1 * kato.lookupTask(taskId, false) >> new Task(taskId, new Task.Status(completed: false, failed: false), [], [])
+    1 * kato.lookupTask(taskId, false) >> new Task(taskId, new Task.Status(completed: false, failed: false), [], [], [])
     result = task.execute(stage)
 
     then: 'should reset the retry count'
@@ -158,7 +158,7 @@ class MonitorKatoTaskSpec extends Specification {
 
   def "should retry clouddriver task if classified as retryable"() {
     given:
-    def katoTask = new Task("katoTaskId", new Task.Status(true, true, true), [], [])
+    def katoTask = new Task("katoTaskId", new Task.Status(true, true, true), [], [], [])
 
     def stage = stage {
       type = "type"
@@ -206,5 +206,39 @@ class MonitorKatoTaskSpec extends Specification {
 
   def retrofit404() {
     throw RetrofitError.httpError("http://localhost", new Response("http://localhost", 404, "Not Found", [], new TypedByteArray("application/json", new byte[0])), null, Task)
+  }
+
+  @Unroll
+  def "verify task outputs"() {
+    given:
+    kato.lookupTask(taskId, false) >> new Task(
+        taskId,
+        new Task.Status(completed: true, failed: false),
+        [],
+        [],
+        [new Task.Output(manifest: manifest, phase: phase, stdOut: stdOut, stdError: stdError)]
+    )
+
+    and:
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "whatever", [
+        "kato.last.task.id": new TaskId(taskId)
+    ])
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    !result.context.isEmpty()
+    result.context.containsKey("kato.tasks")
+    result.context.get("kato.tasks").collect().size() == 1
+    result.context["kato.tasks"].collect().get(0)['outputs'] == [new Task.Output(manifest: manifest, phase: phase, stdOut: stdOut, stdError: stdError)]
+
+    where:
+    manifest        | phase                 | stdOut        | stdError
+    "some-manifest" | "Deploy K8s Manifest" | "some output" | ""
+    "some-manifest" | "Deploy K8s Manifest" | ""            | "error logs"
+    ""              | ""                    | ""            | ""
+
+    taskId = "kato-task-id"
   }
 }

@@ -15,6 +15,7 @@ public class Task {
   private Status status;
   private List<Map> resultObjects;
   private List<StatusLine> history;
+  private List<Output> outputs;
 
   @Data
   @AllArgsConstructor
@@ -31,5 +32,15 @@ public class Task {
   public static class StatusLine implements Serializable {
     private String phase;
     private String status;
+  }
+
+  @Data
+  @AllArgsConstructor
+  @NoArgsConstructor
+  static class Output implements Serializable {
+    private String manifest;
+    private String phase;
+    private String stdOut;
+    private String stdError;
   }
 }
