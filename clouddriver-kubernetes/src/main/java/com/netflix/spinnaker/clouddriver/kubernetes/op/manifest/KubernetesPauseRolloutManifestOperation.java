@@ -44,7 +44,10 @@ public class KubernetesPauseRolloutManifestOperation implements AtomicOperation<
 
   @Override
   public Void operate(List<Void> priorOutputs) {
-    getTask().updateStatus(OP_NAME, "Starting pause rollout operation...");
+    getTask()
+        .updateStatus(
+            OP_NAME,
+            "Starting pause rollout operation in account " + credentials.getAccountName() + "...");
     KubernetesCoordinates coordinates = description.getPointCoordinates();
 
     getTask().updateStatus(OP_NAME, "Looking up resource properties...");
@@ -58,8 +61,16 @@ public class KubernetesPauseRolloutManifestOperation implements AtomicOperation<
 
     CanPauseRollout canPauseRollout = (CanPauseRollout) deployer;
 
-    getTask().updateStatus(OP_NAME, "Calling pause rollout operation...");
+    getTask()
+        .updateStatus(
+            OP_NAME,
+            "Calling pause rollout operation for "
+                + coordinates.getName()
+                + " in namespace "
+                + coordinates.getName()
+                + "...");
     canPauseRollout.pauseRollout(credentials, coordinates.getNamespace(), coordinates.getName());
+    getTask().updateStatus(OP_NAME, "Pause rollout operation completed successfully");
 
     return null;
   }

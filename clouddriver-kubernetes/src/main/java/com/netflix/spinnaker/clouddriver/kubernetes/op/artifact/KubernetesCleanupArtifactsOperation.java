@@ -92,7 +92,14 @@ public class KubernetesCleanupArtifactsOperation implements AtomicOperation<Oper
           result.merge(
               properties
                   .getHandler()
-                  .delete(credentials, a.getLocation(), name, null, new V1DeleteOptions()));
+                  .delete(
+                      credentials,
+                      a.getLocation(),
+                      name,
+                      null,
+                      new V1DeleteOptions(),
+                      getTask(),
+                      OP_NAME));
         });
 
     result.setManifests(null);

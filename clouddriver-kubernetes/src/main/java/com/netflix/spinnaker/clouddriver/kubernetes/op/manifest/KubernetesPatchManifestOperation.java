@@ -56,7 +56,8 @@ public class KubernetesPatchManifestOperation implements AtomicOperation<Operati
 
   @Override
   public OperationResult operate(List<OperationResult> _unused) {
-    updateStatus("Beginning patching of manifest");
+    updateStatus(
+        "Beginning patching of manifest in account " + credentials.getAccountName() + "...");
     KubernetesCoordinates objToPatch = description.getPointCoordinates();
 
     updateStatus("Finding patch handler for " + objToPatch + "...");
@@ -79,7 +80,9 @@ public class KubernetesPatchManifestOperation implements AtomicOperation<Operati
               objToPatch.getNamespace(),
               objToPatch.getName(),
               description.getOptions(),
-              jsonPatches));
+              jsonPatches,
+              getTask(),
+              OP_NAME));
     } else {
       updateStatus("Swapping out artifacts in " + objToPatch + " from context...");
       ReplaceResult replaceResult = replaceArtifacts(objToPatch, patchHandler);
@@ -92,11 +95,15 @@ public class KubernetesPatchManifestOperation implements AtomicOperation<Operati
               objToPatch.getNamespace(),
               objToPatch.getName(),
               description.getOptions(),
-              replaceResult.getManifest()));
+              replaceResult.getManifest(),
+              getTask(),
+              OP_NAME));
       result.getBoundArtifacts().addAll(replaceResult.getBoundArtifacts());
     }
 
     result.removeSensitiveKeys(credentials.getResourcePropertyRegistry());
+
+    getTask().updateStatus(OP_NAME, "Patch manifest operation completed successfully");
     return result;
   }
 

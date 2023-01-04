@@ -67,7 +67,9 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
 
   @Override
   public OperationResult operate(List<OperationResult> _unused) {
-    getTask().updateStatus(OP_NAME, "Beginning deployment of manifest...");
+    getTask()
+        .updateStatus(
+            OP_NAME, "Beginning deployment of manifests in account " + accountName + " ...");
 
     final List<KubernetesManifest> inputManifests = getManifestsFromDescription();
     sortManifests(inputManifests);
@@ -152,15 +154,27 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
                   "Submitting manifest "
                       + holder.manifest.getFullResourceName()
                       + " to kubernetes master...");
-          log.debug("Manifest in {} to be deployed: {}", accountName, holder.manifest);
-          result.merge(deployer.deploy(credentials, holder.manifest, strategy.getDeployStrategy()));
+          result.merge(
+              deployer.deploy(
+                  credentials, holder.manifest, strategy.getDeployStrategy(), getTask(), OP_NAME));
 
           result.getCreatedArtifacts().add(holder.artifact);
+          getTask()
+              .updateStatus(
+                  OP_NAME,
+                  "Deploy manifest task completed successfully for manifest "
+                      + holder.manifest.getFullResourceName()
+                      + " in account "
+                      + accountName);
         });
 
     result.removeSensitiveKeys(credentials.getResourcePropertyRegistry());
 
-    getTask().updateStatus(OP_NAME, "Deploy manifest task completed successfully.");
+    getTask()
+        .updateStatus(
+            OP_NAME,
+            "Deploy manifest task completed successfully for all manifests in account "
+                + accountName);
     return result;
   }
 

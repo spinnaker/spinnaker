@@ -24,10 +24,12 @@ import org.jooq.impl.DSL.table
 internal val tasksTable = table("tasks")
 internal val taskStatesTable = table("task_states")
 internal val taskResultsTable = table("task_results")
+internal val taskOutputsTable = table("task_outputs")
 
 internal val tasksFields = listOf("id", "request_id", "owner_id", "created_at").map { field(it) }
 internal val taskStatesFields = listOf("id", "task_id", "created_at", "state", "phase", "status").map { field(it) }
 internal val taskResultsFields = listOf("id", "task_id", "body").map { field(it) }
+internal val taskOutputsFields = listOf("id", "task_id", "created_at", "manifest", "phase", "std_out", "std_error").map { field(it) }
 
 /**
  * Run the provided [fn] in a transaction, retrying on failures using resilience4j.retry.instances.sqlTransaction

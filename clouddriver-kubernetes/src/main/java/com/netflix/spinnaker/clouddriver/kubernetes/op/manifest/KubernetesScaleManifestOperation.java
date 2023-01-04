@@ -43,7 +43,9 @@ public class KubernetesScaleManifestOperation implements AtomicOperation<Void> {
 
   @Override
   public Void operate(List<Void> priorOutputs) {
-    getTask().updateStatus(OP_NAME, "Starting scale operation...");
+    getTask()
+        .updateStatus(
+            OP_NAME, "Starting scale operation in account " + credentials.getAccountName() + "...");
     KubernetesCoordinates coordinates = description.getPointCoordinates();
 
     getTask().updateStatus(OP_NAME, "Looking up resource properties...");
@@ -57,9 +59,26 @@ public class KubernetesScaleManifestOperation implements AtomicOperation<Void> {
 
     CanScale canScale = (CanScale) deployer;
 
-    getTask().updateStatus(OP_NAME, "Calling scale operation...");
+    getTask()
+        .updateStatus(
+            OP_NAME,
+            "Calling scale operation for "
+                + coordinates.getName()
+                + " in namespace "
+                + coordinates.getName()
+                + " with replicas "
+                + description.getReplicas()
+                + "...");
+
     canScale.scale(
-        credentials, coordinates.getNamespace(), coordinates.getName(), description.getReplicas());
+        credentials,
+        coordinates.getNamespace(),
+        coordinates.getName(),
+        description.getReplicas(),
+        getTask(),
+        OP_NAME);
+
+    getTask().updateStatus(OP_NAME, "Scale operation completed successfully");
 
     return null;
   }

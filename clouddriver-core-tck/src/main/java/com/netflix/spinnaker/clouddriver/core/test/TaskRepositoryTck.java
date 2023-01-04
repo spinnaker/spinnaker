@@ -200,6 +200,32 @@ public abstract class TaskRepositoryTck<T extends TaskRepository> {
     assertThat(t1.getOwnerId()).isEqualTo(newOwnerId);
   }
 
+  @Test
+  public void testTaskOutputStatus() {
+    Task t1 = subject.create("Test", "Test Status");
+
+    t1.updateOutput("some-manifest", "Deploy K8s Manifest", "output", "");
+
+    assertThat(t1.getOutputs()).hasSize(1);
+    assertThat(getField(t1.getOutputs().get(0), "manifest")).isEqualTo("some-manifest");
+    assertThat(getField(t1.getOutputs().get(0), "phase")).isEqualTo("Deploy K8s Manifest");
+    assertThat(getField(t1.getOutputs().get(0), "stdOut")).isEqualTo("output");
+    assertThat(getField(t1.getOutputs().get(0), "stdError")).isEqualTo("");
+  }
+
+  @Test
+  public void testTaskOutputStatusWithNullValues() {
+    Task t1 = subject.create("Test", "Test Status");
+
+    t1.updateOutput("some-manifest", "Deploy K8s Manifest", null, "");
+
+    assertThat(t1.getOutputs()).hasSize(1);
+    assertThat(getField(t1.getOutputs().get(0), "manifest")).isEqualTo("some-manifest");
+    assertThat(getField(t1.getOutputs().get(0), "phase")).isEqualTo("Deploy K8s Manifest");
+    assertThat(getField(t1.getOutputs().get(0), "stdOut")).isNull();
+    assertThat(getField(t1.getOutputs().get(0), "stdError")).isEqualTo("");
+  }
+
   public class TestObject {
     public String name;
     public String value;

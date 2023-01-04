@@ -19,10 +19,14 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.clouddriver.data.task.SagaId
 import com.netflix.spinnaker.clouddriver.data.task.Status
 import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.data.task.TaskDisplayOutput
 import com.netflix.spinnaker.clouddriver.data.task.TaskDisplayStatus
+import com.netflix.spinnaker.clouddriver.data.task.TaskOutput
 import com.netflix.spinnaker.clouddriver.data.task.TaskState
+
 import java.util.concurrent.atomic.AtomicBoolean
 import org.slf4j.LoggerFactory
+import javax.annotation.Nullable
 
 /**
  * TOOD(rz): Refactor 'river to not use an active record pattern. This sucks.
@@ -42,6 +46,7 @@ class SqlTask(
 
   private var resultObjects: MutableList<Any> = mutableListOf()
   private var history: MutableList<Status> = mutableListOf()
+  private var taskOutputs: MutableList<TaskOutput> = mutableListOf()
 
   private val dirty = AtomicBoolean(false)
 
@@ -118,6 +123,17 @@ class SqlTask(
     repository.updateState(this, TaskState.STARTED)
   }
 
+  override fun getOutputs(): List<TaskOutput> {
+    refresh()
+    return taskOutputs
+  }
+
+  override fun updateOutput(manifestName: String, phase: String, stdOut: String?, stdError: String?) {
+    this.dirty.set(true)
+    repository.updateOutput(TaskDisplayOutput(manifestName, phase, stdOut, stdError), this)
+    log.info("Updated output for task {} for manifest {} for phase {} ", id, manifestName, phase)
+  }
+
   internal fun hydrateResultObjects(resultObjects: MutableList<Any>) {
     this.dirty.set(false)
     this.resultObjects = resultObjects
@@ -128,14 +144,21 @@ class SqlTask(
     this.history = history
   }
 
+  internal fun hydrateTaskOutputs(taskOutputs: MutableList<TaskOutput>) {
+    this.dirty.set(false)
+    this.taskOutputs = taskOutputs
+  }
+
   internal fun refresh(force: Boolean = false) {
     if (this.dirty.getAndSet(false) || force) {
       val task = repository.retrieveInternal(this.id)
       if (task != null) {
         history.clear()
         resultObjects.clear()
+        taskOutputs.clear()
         history.addAll(task.history)
         resultObjects.addAll(task.resultObjects)
+        taskOutputs.addAll(task.outputs)
       }
     }
   }

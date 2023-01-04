@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.op.handler;
 
+import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.JsonPatch;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesPatchOptions;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
@@ -34,8 +35,10 @@ public interface CanPatch {
       String namespace,
       String name,
       KubernetesPatchOptions options,
-      KubernetesManifest manifest) {
-    credentials.patch(kind(), namespace, name, options, manifest);
+      KubernetesManifest manifest,
+      Task task,
+      String opName) {
+    credentials.patch(kind(), namespace, name, options, manifest, task, opName);
     return patch(namespace, name);
   }
 
@@ -44,8 +47,10 @@ public interface CanPatch {
       String namespace,
       String name,
       KubernetesPatchOptions options,
-      List<JsonPatch> patches) {
-    credentials.patch(kind(), namespace, name, options, patches);
+      List<JsonPatch> patches,
+      Task task,
+      String opName) {
+    credentials.patch(kind(), namespace, name, options, patches, task, opName);
     return patch(namespace, name);
   }
 

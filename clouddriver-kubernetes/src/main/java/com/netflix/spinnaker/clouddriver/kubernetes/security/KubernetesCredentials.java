@@ -33,6 +33,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.netflix.spectator.api.Clock;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.CustomKubernetesResource;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesAccountProperties.ManagedAccount;
@@ -514,9 +515,13 @@ public class KubernetesCredentials {
         () -> jobExecutor.jobLogs(this, namespace, jobName, containerName));
   }
 
-  public void scale(KubernetesKind kind, String namespace, String name, int replicas) {
+  public void scale(
+      KubernetesKind kind, String namespace, String name, int replicas, Task task, String opName) {
     runAndRecordMetrics(
-        "scale", kind, namespace, () -> jobExecutor.scale(this, kind, namespace, name, replicas));
+        "scale",
+        kind,
+        namespace,
+        () -> jobExecutor.scale(this, kind, namespace, name, replicas, task, opName));
   }
 
   public List<String> delete(
@@ -524,12 +529,15 @@ public class KubernetesCredentials {
       String namespace,
       String name,
       KubernetesSelectorList labelSelectors,
-      V1DeleteOptions options) {
+      V1DeleteOptions options,
+      Task task,
+      String opName) {
     return runAndRecordMetrics(
         "delete",
         kind,
         namespace,
-        () -> jobExecutor.delete(this, kind, namespace, name, labelSelectors, options));
+        () ->
+            jobExecutor.delete(this, kind, namespace, name, labelSelectors, options, task, opName));
   }
 
   /** Deprecated in favor of {@link KubernetesCredentials#topPod(KubernetesCoordinates)} */
@@ -553,36 +561,36 @@ public class KubernetesCredentials {
         () -> jobExecutor.topPod(this, coords.getNamespace(), coords.getName()));
   }
 
-  public KubernetesManifest deploy(KubernetesManifest manifest) {
+  public KubernetesManifest deploy(KubernetesManifest manifest, Task task, String opName) {
     return runAndRecordMetrics(
         "deploy",
         manifest.getKind(),
         manifest.getNamespace(),
-        () -> jobExecutor.deploy(this, manifest));
+        () -> jobExecutor.deploy(this, manifest, task, opName));
   }
 
-  private KubernetesManifest replace(KubernetesManifest manifest) {
+  private KubernetesManifest replace(KubernetesManifest manifest, Task task, String opName) {
     return runAndRecordMetrics(
         "replace",
         manifest.getKind(),
         manifest.getNamespace(),
-        () -> jobExecutor.replace(this, manifest));
+        () -> jobExecutor.replace(this, manifest, task, opName));
   }
 
-  public KubernetesManifest createOrReplace(KubernetesManifest manifest) {
+  public KubernetesManifest createOrReplace(KubernetesManifest manifest, Task task, String opName) {
     try {
-      return replace(manifest);
+      return replace(manifest, task, opName);
     } catch (KubectlNotFoundException e) {
-      return create(manifest);
+      return create(manifest, task, opName);
     }
   }
 
-  public KubernetesManifest create(KubernetesManifest manifest) {
+  public KubernetesManifest create(KubernetesManifest manifest, Task task, String opName) {
     return runAndRecordMetrics(
         "create",
         manifest.getKind(),
         manifest.getNamespace(),
-        () -> jobExecutor.create(this, manifest));
+        () -> jobExecutor.create(this, manifest, task, opName));
   }
 
   public List<Integer> historyRollout(KubernetesKind kind, String namespace, String name) {
@@ -609,20 +617,22 @@ public class KubernetesCredentials {
         () -> jobExecutor.pauseRollout(this, kind, namespace, name));
   }
 
-  public void resumeRollout(KubernetesKind kind, String namespace, String name) {
+  public void resumeRollout(
+      KubernetesKind kind, String namespace, String name, Task task, String opName) {
     runAndRecordMetrics(
         "resumeRollout",
         kind,
         namespace,
-        () -> jobExecutor.resumeRollout(this, kind, namespace, name));
+        () -> jobExecutor.resumeRollout(this, kind, namespace, name, task, opName));
   }
 
-  public void rollingRestart(KubernetesKind kind, String namespace, String name) {
+  public void rollingRestart(
+      KubernetesKind kind, String namespace, String name, Task task, String opName) {
     runAndRecordMetrics(
         "rollingRestart",
         kind,
         namespace,
-        () -> jobExecutor.rollingRestart(this, kind, namespace, name));
+        () -> jobExecutor.rollingRestart(this, kind, namespace, name, task, opName));
   }
 
   public void patch(
@@ -630,12 +640,14 @@ public class KubernetesCredentials {
       String namespace,
       String name,
       KubernetesPatchOptions options,
-      KubernetesManifest manifest) {
+      KubernetesManifest manifest,
+      Task task,
+      String opName) {
     runAndRecordMetrics(
         "patch",
         kind,
         namespace,
-        () -> jobExecutor.patch(this, kind, namespace, name, options, manifest));
+        () -> jobExecutor.patch(this, kind, namespace, name, options, manifest, task, opName));
   }
 
   public void patch(
@@ -643,12 +655,14 @@ public class KubernetesCredentials {
       String namespace,
       String name,
       KubernetesPatchOptions options,
-      List<JsonPatch> patches) {
+      List<JsonPatch> patches,
+      Task task,
+      String opName) {
     runAndRecordMetrics(
         "patch",
         kind,
         namespace,
-        () -> jobExecutor.patch(this, kind, namespace, name, options, patches));
+        () -> jobExecutor.patch(this, kind, namespace, name, options, patches, task, opName));
   }
 
   private <T> T runAndRecordMetrics(

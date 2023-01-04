@@ -33,6 +33,8 @@ import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.Tag;
 import com.netflix.spectator.api.Timer;
+import com.netflix.spinnaker.clouddriver.data.task.DefaultTask;
+import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesAccountProperties.ManagedAccount;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.AccountResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.GlobalResourcePropertyRegistry;
@@ -57,6 +59,8 @@ final class KubernetesCredentialsTest {
   private static final String ACCOUNT_NAME = "my-account";
   private static final String DEPLOYMENT_NAME = "my-deployment";
   private static final String NAMESPACE = "my-namespace";
+  private final String OP_NAME = "KubernetesCredentialsTest";
+  private final Task task = new DefaultTask("task-id");
 
   private KubernetesCredentials getCredentials(Registry registry, KubectlJobExecutor jobExecutor) {
     KubernetesCredentials.Factory factory =
@@ -92,7 +96,7 @@ final class KubernetesCredentialsTest {
     KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
     Registry registry = new DefaultRegistry();
     KubernetesCredentials credentials = getCredentials(registry, jobExecutor);
-    credentials.deploy(getManifest());
+    credentials.deploy(getManifest(), task, OP_NAME);
 
     ImmutableList<Timer> timers = registry.timers().collect(toImmutableList());
     assertThat(timers).hasSize(1);
@@ -370,11 +374,11 @@ final class KubernetesCredentialsTest {
     KubernetesManifest manifest = getManifest();
     KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
     KubernetesCredentials credentials = getCredentials(new NoopRegistry(), jobExecutor);
-    when(jobExecutor.create(credentials, manifest))
+    when(jobExecutor.create(credentials, manifest, task, OP_NAME))
         .thenThrow(new KubectlException("Create failed: Error from server (AlreadyExists)"));
-    when(jobExecutor.replace(credentials, manifest)).thenReturn(manifest);
+    when(jobExecutor.replace(credentials, manifest, task, OP_NAME)).thenReturn(manifest);
 
-    KubernetesManifest result = credentials.createOrReplace(getManifest());
+    KubernetesManifest result = credentials.createOrReplace(getManifest(), task, OP_NAME);
     assertThat(result).isEqualTo(manifest);
   }
 
@@ -383,11 +387,11 @@ final class KubernetesCredentialsTest {
     KubernetesManifest manifest = getManifest();
     KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
     KubernetesCredentials credentials = getCredentials(new NoopRegistry(), jobExecutor);
-    when(jobExecutor.replace(credentials, manifest))
+    when(jobExecutor.replace(credentials, manifest, task, OP_NAME))
         .thenThrow(new KubectlNotFoundException("Not found"));
-    when(jobExecutor.create(credentials, manifest)).thenReturn(manifest);
+    when(jobExecutor.create(credentials, manifest, task, OP_NAME)).thenReturn(manifest);
 
-    KubernetesManifest result = credentials.createOrReplace(getManifest());
+    KubernetesManifest result = credentials.createOrReplace(getManifest(), task, OP_NAME);
     assertThat(result).isEqualTo(manifest);
   }
 

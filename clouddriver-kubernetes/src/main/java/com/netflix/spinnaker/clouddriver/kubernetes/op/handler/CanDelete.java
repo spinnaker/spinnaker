@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.op.handler;
 
 import com.google.common.collect.ImmutableMap;
+import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.OperationResult;
@@ -37,10 +38,12 @@ public interface CanDelete {
       String namespace,
       String name,
       KubernetesSelectorList labelSelectors,
-      V1DeleteOptions options) {
+      V1DeleteOptions options,
+      Task task,
+      String opName) {
     options = options == null ? new V1DeleteOptions() : options;
     List<String> deletedNames =
-        credentials.delete(kind(), namespace, name, labelSelectors, options);
+        credentials.delete(kind(), namespace, name, labelSelectors, options, task, opName);
     OperationResult result = new OperationResult();
     Set<String> fullNames =
         deletedNames.stream()

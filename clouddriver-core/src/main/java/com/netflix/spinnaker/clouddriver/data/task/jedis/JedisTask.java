@@ -6,6 +6,8 @@ import com.google.common.collect.Iterables;
 import com.netflix.spinnaker.clouddriver.data.task.SagaId;
 import com.netflix.spinnaker.clouddriver.data.task.Status;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
+import com.netflix.spinnaker.clouddriver.data.task.TaskDisplayOutput;
+import com.netflix.spinnaker.clouddriver.data.task.TaskOutput;
 import com.netflix.spinnaker.clouddriver.data.task.TaskState;
 import java.util.List;
 import java.util.Set;
@@ -65,7 +67,7 @@ public class JedisTask implements Task {
   public void updateStatus(String phase, String status) {
     checkMutable();
     repository.addToHistory(repository.currentState(this).update(phase, status), this);
-    log.info("[" + phase + "] " + status);
+    log.info("[" + phase + "] Task: " + id + " Status: " + status);
   }
 
   @Override
@@ -137,6 +139,17 @@ public class JedisTask implements Task {
   public void retry() {
     checkMutable();
     repository.addToHistory(repository.currentState(this).update(TaskState.STARTED), this);
+  }
+
+  @Override
+  public void updateOutput(String manifestName, String phase, String stdOut, String stdError) {
+    log.info("[" + phase + "] Capturing output for Task " + id + ", manifest: " + manifestName);
+    repository.addOutput(new TaskDisplayOutput(manifestName, phase, stdOut, stdError), this);
+  }
+
+  @Override
+  public List<TaskOutput> getOutputs() {
+    return repository.getOutputs(this);
   }
 
   @Override

@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.core.ClouddriverHostname
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTaskStatus
 import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.data.task.TaskOutput
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.data.task.TaskState
 import com.netflix.spinnaker.clouddriver.data.task.TaskState.FAILED
@@ -192,6 +193,43 @@ class SqlTaskRepository(
     }
   }
 
+  internal fun updateOutput(taskOutput: TaskOutput, task: Task) {
+    val outputId = ulid.nextULID()
+    withPool(poolName) {
+      jooq.transactional { ctx ->
+        addToOutput(ctx, outputId, task.id, taskOutput.manifest, taskOutput.phase, taskOutput.stdOut, taskOutput.stdError)
+      }
+    }
+  }
+
+  private fun addToOutput(ctx: DSLContext, id: String, taskId: String, manifestName: String, phase: String, stdOut: String?, stdError: String?) {
+    ctx
+      .insertInto(
+        taskOutputsTable,
+        listOf(
+          field("id"),
+          field("task_id"),
+          field("created_at"),
+          field("manifest"),
+          field("phase"),
+          field("std_out"),
+          field("std_error")
+        )
+      )
+      .values(
+        listOf(
+          id,
+          taskId,
+          clock.millis(),
+          manifestName,
+          phase,
+          stdOut,
+          stdError
+        )
+      )
+      .execute()
+  }
+
   fun updateOwnerId(task: Task) {
     return withPool(poolName) {
       jooq.transactional { ctx ->
@@ -221,6 +259,8 @@ class SqlTaskRepository(
          *  (select task_id, null as owner_id, null as request_id, null as created_at, null as saga_ids, null as body, state, phase, status from task_states_copy where task_id = '01D2H4H50VTF7CGBMP0D6HTGTF')
          *  UNION ALL
          *  (select task_id, null as owner_id, null as request_id, null as created_at, null as saga_ids, body, null as state, null as phase, null as status from task_results_copy where task_id = '01D2H4H50VTF7CGBMP0D6HTGTF')
+         *  UNION ALL
+         *  (select task_id, null as owner_id, null as request_id, null as created_at, null as saga_ids, null as body, null as state, manifest, phase, stdOut, stdError, null as status  from task_outputs_copy where task_id = '01D2H4H50VTF7CGBMP0D6HTGTF')
          */
         tasks.addAll(
           ctx
@@ -233,7 +273,10 @@ class SqlTaskRepository(
               field(sql("null")).`as`("body"),
               field(sql("null")).`as`("state"),
               field(sql("null")).`as`("phase"),
-              field(sql("null")).`as`("status")
+              field(sql("null")).`as`("status"),
+              field(sql("null")).`as`("manifest"),
+              field(sql("null")).`as`("std_out"),
+              field(sql("null")).`as`("std_error")
             )
             .from(tasksTable)
             .where(condition)
@@ -248,7 +291,10 @@ class SqlTaskRepository(
                   field(sql("null")).`as`("body"),
                   field("state"),
                   field("phase"),
-                  field("status")
+                  field("status"),
+                  field(sql("null")).`as`("manifest"),
+                  field(sql("null")).`as`("std_out"),
+                  field(sql("null")).`as`("std_error")
                 )
                 .from(taskStatesTable)
                 .where(relationshipCondition ?: condition)
@@ -264,9 +310,31 @@ class SqlTaskRepository(
                   field("body"),
                   field(sql("null")).`as`("state"),
                   field(sql("null")).`as`("phase"),
-                  field(sql("null")).`as`("status")
+                  field(sql("null")).`as`("status"),
+                  field(sql("null")).`as`("manifest"),
+                  field(sql("null")).`as`("std_out"),
+                  field(sql("null")).`as`("std_error")
                 )
                 .from(taskResultsTable)
+                .where(relationshipCondition ?: condition)
+            )
+            .unionAll(
+              ctx
+                .select(
+                  field("task_id"),
+                  field(sql("null")).`as`("owner_id"),
+                  field(sql("null")).`as`("request_id"),
+                  field(sql("null")).`as`("created_at"),
+                  field(sql("null")).`as`("saga_ids"),
+                  field(sql("null")).`as`("body"),
+                  field(sql("null")).`as`("state"),
+                  field("phase"),
+                  field(sql("null")).`as`("status"),
+                  field("manifest"),
+                  field("std_out"),
+                  field("std_error")
+                )
+                .from(taskOutputsTable)
                 .where(relationshipCondition ?: condition)
             )
             .fetchTasks()

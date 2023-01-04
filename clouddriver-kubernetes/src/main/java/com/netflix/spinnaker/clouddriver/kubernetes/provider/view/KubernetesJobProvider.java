@@ -208,6 +208,7 @@ public class KubernetesJobProvider implements JobProvider<KubernetesJobStatus> {
   }
 
   private Optional<V1Job> getKubernetesJob(String account, String location, String id) {
+    log.debug("Getting kubernetesJob for account {} at {} with id {}", account, location, id);
     return Optional.ofNullable(manifestProvider.getManifest(account, location, id, false))
         .map(KubernetesManifestContainer::getManifest)
         .map(m -> KubernetesCacheDataConverter.getResource(m, V1Job.class));

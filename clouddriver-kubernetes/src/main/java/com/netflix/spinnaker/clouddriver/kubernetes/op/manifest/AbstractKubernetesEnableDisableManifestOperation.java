@@ -110,7 +110,9 @@ public abstract class AbstractKubernetesEnableDisableManifestOperation
         target.getNamespace(),
         target.getName(),
         KubernetesPatchOptions.json(),
-        patch);
+        patch,
+        getTask(),
+        OP_NAME);
 
     HasPods podHandler = null;
     try {
@@ -127,14 +129,27 @@ public abstract class AbstractKubernetesEnableDisableManifestOperation
       for (KubernetesManifest pod : pods) {
         patch = patchResource(loadBalancerHandler, loadBalancer, pod);
         credentials.patch(
-            pod.getKind(), pod.getNamespace(), pod.getName(), KubernetesPatchOptions.json(), patch);
+            pod.getKind(),
+            pod.getNamespace(),
+            pod.getName(),
+            KubernetesPatchOptions.json(),
+            patch,
+            getTask(),
+            OP_NAME);
       }
     }
   }
 
   @Override
   public OperationResult operate(List<OperationResult> priorOutputs) {
-    getTask().updateStatus(OP_NAME, "Starting " + getVerbName() + " operation...");
+    getTask()
+        .updateStatus(
+            OP_NAME,
+            "Starting "
+                + getVerbName()
+                + " operation in account "
+                + credentials.getAccountName()
+                + "...");
     KubernetesCoordinates coordinates = description.getPointCoordinates();
     KubernetesManifest target =
         Optional.ofNullable(credentials.get(coordinates))

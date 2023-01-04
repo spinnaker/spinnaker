@@ -17,6 +17,7 @@ public class DefaultTask implements Task {
   private final Deque<Status> statusHistory = new ConcurrentLinkedDeque<Status>();
   private final Deque<Object> resultObjects = new ConcurrentLinkedDeque<Object>();
   private final Deque<SagaId> sagaIdentifiers = new ConcurrentLinkedDeque<SagaId>();
+  private final Deque<TaskOutput> taskOutputs = new ConcurrentLinkedDeque<TaskOutput>();
   private final long startTimeMs = System.currentTimeMillis();
 
   public String getOwnerId() {
@@ -35,7 +36,7 @@ public class DefaultTask implements Task {
 
   public void updateStatus(String phase, String status) {
     statusHistory.addLast(currentStatus().update(phase, status));
-    log.info("[" + phase + "] - " + status);
+    log.info("[" + phase + "] - Task: " + id + " " + status);
   }
 
   public void complete() {
@@ -98,6 +99,18 @@ public class DefaultTask implements Task {
   @Override
   public void retry() {
     statusHistory.addLast(currentStatus().update(TaskState.STARTED));
+  }
+
+  @Override
+  public void updateOutput(String manifest, String phase, String stdOut, String stdError) {
+    log.info("[" + phase + "] - Capturing output for Task: " + id + ", manifest: " + manifest);
+    TaskDisplayOutput output = new TaskDisplayOutput(manifest, phase, stdOut, stdError);
+    taskOutputs.addLast(output);
+  }
+
+  @Override
+  public List<TaskOutput> getOutputs() {
+    return new ArrayList<>(taskOutputs);
   }
 
   @Override

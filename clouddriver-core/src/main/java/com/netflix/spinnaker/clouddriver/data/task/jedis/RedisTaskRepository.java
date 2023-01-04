@@ -25,7 +25,9 @@ import com.netflix.spinnaker.clouddriver.data.task.DefaultTaskStatus;
 import com.netflix.spinnaker.clouddriver.data.task.SagaId;
 import com.netflix.spinnaker.clouddriver.data.task.Status;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
+import com.netflix.spinnaker.clouddriver.data.task.TaskDisplayOutput;
 import com.netflix.spinnaker.clouddriver.data.task.TaskDisplayStatus;
+import com.netflix.spinnaker.clouddriver.data.task.TaskOutput;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.data.task.TaskState;
 import com.netflix.spinnaker.kork.exceptions.SystemException;
@@ -362,6 +364,64 @@ public class RedisTaskRepository implements TaskRepository {
               } catch (IOException e) {
                 throw new RuntimeException("Failed to convert result object to map", e);
               }
+            })
+        .collect(Collectors.toList());
+  }
+
+  public void addOutput(TaskDisplayOutput output, JedisTask task) {
+    String outputId = "taskOutput:" + task.getId();
+
+    Map<String, String> data = new HashMap<>();
+    data.put("manifest", output.getManifest());
+    data.put("phase", output.getPhase());
+    data.put("stdOut", output.getStdOut());
+    data.put("stdError", output.getStdError());
+
+    String taskOutput;
+    try {
+      taskOutput = mapper.writeValueAsString(data);
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(
+          "Failed to convert task output: " + output + " to string for task: " + task.getId(), e);
+    }
+
+    log.debug("Adding task output: {} to task {}", taskOutput, task.getId());
+    retry(
+        () ->
+            redisClientDelegate.withCommandsClient(
+                client -> {
+                  client.rpush(outputId, taskOutput);
+                  client.expire(outputId, TASK_TTL);
+                }),
+        format("Adding task output to task %s", task.getId()));
+  }
+
+  public List<TaskOutput> getOutputs(JedisTask task) {
+    String outputId = "taskOutput:" + task.getId();
+
+    return retry(
+            () ->
+                clientForTask(task)
+                    .withCommandsClient(
+                        client -> {
+                          return client.lrange(outputId, 0, -1);
+                        }),
+            format("Getting task outputs for task %s", task.getId()))
+        .stream()
+        .map(
+            o -> {
+              Map<String, String> data;
+              try {
+                data = mapper.readValue(o, HISTORY_TYPE);
+              } catch (IOException e) {
+                throw new RuntimeException(
+                    "Failed to convert task outputs to map for task: " + task.getId(), e);
+              }
+              return new TaskDisplayOutput(
+                  data.get("manifest"),
+                  data.get("phase"),
+                  data.get("stdOut"),
+                  data.get("stdError"));
             })
         .collect(Collectors.toList());
   }

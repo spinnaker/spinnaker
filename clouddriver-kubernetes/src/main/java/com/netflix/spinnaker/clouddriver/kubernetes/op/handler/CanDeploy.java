@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.op.handler;
 
+import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifestStrategy;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.OperationResult;
@@ -29,11 +30,13 @@ public interface CanDeploy {
   default OperationResult deploy(
       KubernetesCredentials credentials,
       KubernetesManifest manifest,
-      KubernetesManifestStrategy.DeployStrategy deployStrategy) {
+      KubernetesManifestStrategy.DeployStrategy deployStrategy,
+      Task task,
+      String opName) {
     // If the manifest has a generateName, we must apply with kubectl create as all other operations
     // require looking up a manifest by name, which will fail.
     if (manifest.hasGenerateName()) {
-      KubernetesManifest result = credentials.create(manifest);
+      KubernetesManifest result = credentials.create(manifest, task, opName);
       return new OperationResult().addManifest(result);
     }
 
@@ -46,16 +49,18 @@ public interface CanDeploy {
               manifest.getNamespace(),
               manifest.getName(),
               new KubernetesSelectorList(),
-              new V1DeleteOptions());
+              new V1DeleteOptions(),
+              task,
+              opName);
         } catch (KubectlJobExecutor.KubectlException ignored) {
         }
-        deployedManifest = credentials.deploy(manifest);
+        deployedManifest = credentials.deploy(manifest, task, opName);
         break;
       case REPLACE:
-        deployedManifest = credentials.createOrReplace(manifest);
+        deployedManifest = credentials.createOrReplace(manifest, task, opName);
         break;
       case APPLY:
-        deployedManifest = credentials.deploy(manifest);
+        deployedManifest = credentials.deploy(manifest, task, opName);
         break;
       default:
         throw new AssertionError(String.format("Unknown deploy strategy: %s", deployStrategy));

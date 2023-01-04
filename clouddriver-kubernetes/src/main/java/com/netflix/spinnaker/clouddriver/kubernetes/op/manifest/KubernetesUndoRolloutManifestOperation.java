@@ -44,7 +44,10 @@ public class KubernetesUndoRolloutManifestOperation implements AtomicOperation<V
 
   @Override
   public Void operate(List<Void> priorOutputs) {
-    getTask().updateStatus(OP_NAME, "Starting undo rollout operation...");
+    getTask()
+        .updateStatus(
+            OP_NAME,
+            "Starting undo rollout operation in account " + credentials.getAccountName() + "...");
     KubernetesCoordinates coordinates = description.getPointCoordinates();
 
     getTask().updateStatus(OP_NAME, "Looking up resource properties...");
@@ -80,10 +83,21 @@ public class KubernetesUndoRolloutManifestOperation implements AtomicOperation<V
       getTask().updateStatus(OP_NAME, "Picked revision " + revision + "...");
     }
 
-    getTask().updateStatus(OP_NAME, "Calling undo rollout operation...");
+    getTask()
+        .updateStatus(
+            OP_NAME,
+            "Calling undo rollout operation for "
+                + coordinates.getName()
+                + " in namespace "
+                + coordinates.getNamespace()
+                + " with revision "
+                + revision
+                + "...");
+
     canUndoRollout.undoRollout(
         credentials, coordinates.getNamespace(), coordinates.getName(), revision);
 
+    getTask().updateStatus(OP_NAME, "Undo rollout operation completed successfully");
     return null;
   }
 }

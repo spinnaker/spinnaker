@@ -51,7 +51,10 @@ public class KubernetesDeleteManifestOperation implements AtomicOperation<Operat
 
   @Override
   public OperationResult operate(List<OperationResult> priorOutputs) {
-    getTask().updateStatus(OP_NAME, "Starting delete operation...");
+    getTask()
+        .updateStatus(
+            OP_NAME,
+            "Starting delete operation in account " + credentials.getAccountName() + "...");
     List<KubernetesCoordinates> coordinates;
 
     if (description.isDynamic()) {
@@ -109,18 +112,23 @@ public class KubernetesDeleteManifestOperation implements AtomicOperation<Operat
               .updateStatus(OP_NAME, "Looking up resource properties for " + c.getKind() + "...");
           KubernetesHandler deployer =
               credentials.getResourcePropertyRegistry().get(c.getKind()).getHandler();
-          getTask().updateStatus(OP_NAME, "Calling delete operation...");
+          getTask().updateStatus(OP_NAME, "Calling delete operation for resource" + c + "...");
           result.merge(
               deployer.delete(
                   credentials,
                   c.getNamespace(),
                   c.getName(),
                   description.getLabelSelectors(),
-                  deleteOptions));
+                  deleteOptions,
+                  getTask(),
+                  OP_NAME));
           getTask()
               .updateStatus(OP_NAME, " delete operation completed successfully for " + c.getName());
         });
 
+    getTask()
+        .updateStatus(
+            OP_NAME, " delete operation completed successfully for all applicable resources");
     return result;
   }
 }

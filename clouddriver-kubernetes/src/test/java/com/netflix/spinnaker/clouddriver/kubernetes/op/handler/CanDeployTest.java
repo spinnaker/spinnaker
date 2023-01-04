@@ -19,12 +19,15 @@ package com.netflix.spinnaker.clouddriver.kubernetes.op.handler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import com.netflix.spinnaker.clouddriver.data.task.DefaultTask;
+import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifestStrategy.DeployStrategy;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.OperationResult;
@@ -38,14 +41,16 @@ import org.junit.runner.RunWith;
 @RunWith(JUnitPlatform.class)
 final class CanDeployTest {
   private final CanDeploy handler = new CanDeploy() {};
+  private final String OP_NAME = "Can Deploy Test";
+  private final Task task = new DefaultTask("task-id");
 
   @Test
   void applyMutations() {
     KubernetesCredentials credentials = mock(KubernetesCredentials.class);
     KubernetesManifest manifest = ManifestFetcher.getManifest("candeploy/deployment.yml");
-    when(credentials.deploy(manifest)).thenReturn(manifest);
-    handler.deploy(credentials, manifest, DeployStrategy.APPLY);
-    verify(credentials).deploy(manifest);
+    when(credentials.deploy(manifest, task, OP_NAME)).thenReturn(manifest);
+    handler.deploy(credentials, manifest, DeployStrategy.APPLY, task, OP_NAME);
+    verify(credentials).deploy(manifest, task, OP_NAME);
     verifyNoMoreInteractions(credentials);
   }
 
@@ -53,8 +58,9 @@ final class CanDeployTest {
   void applyReturnValue() {
     KubernetesCredentials credentials = mock(KubernetesCredentials.class);
     KubernetesManifest manifest = ManifestFetcher.getManifest("candeploy/deployment.yml");
-    when(credentials.deploy(manifest)).thenReturn(manifest);
-    OperationResult result = handler.deploy(credentials, manifest, DeployStrategy.APPLY);
+    when(credentials.deploy(manifest, task, OP_NAME)).thenReturn(manifest);
+    OperationResult result =
+        handler.deploy(credentials, manifest, DeployStrategy.APPLY, task, OP_NAME);
     assertThat(result.getManifests()).containsExactlyInAnyOrder(manifest);
   }
 
@@ -62,9 +68,9 @@ final class CanDeployTest {
   void replaceMutations() {
     KubernetesCredentials credentials = mock(KubernetesCredentials.class);
     KubernetesManifest manifest = ManifestFetcher.getManifest("candeploy/deployment.yml");
-    when(credentials.createOrReplace(manifest)).thenReturn(manifest);
-    handler.deploy(credentials, manifest, DeployStrategy.REPLACE);
-    verify(credentials).createOrReplace(manifest);
+    when(credentials.createOrReplace(manifest, task, OP_NAME)).thenReturn(manifest);
+    handler.deploy(credentials, manifest, DeployStrategy.REPLACE, task, OP_NAME);
+    verify(credentials).createOrReplace(manifest, task, OP_NAME);
     verifyNoMoreInteractions(credentials);
   }
 
@@ -72,8 +78,9 @@ final class CanDeployTest {
   void replaceReturnValue() {
     KubernetesCredentials credentials = mock(KubernetesCredentials.class);
     KubernetesManifest manifest = ManifestFetcher.getManifest("candeploy/deployment.yml");
-    when(credentials.createOrReplace(manifest)).thenReturn(manifest);
-    OperationResult result = handler.deploy(credentials, manifest, DeployStrategy.REPLACE);
+    when(credentials.createOrReplace(manifest, task, OP_NAME)).thenReturn(manifest);
+    OperationResult result =
+        handler.deploy(credentials, manifest, DeployStrategy.REPLACE, task, OP_NAME);
     assertThat(result.getManifests()).containsExactlyInAnyOrder(manifest);
   }
 
@@ -81,16 +88,18 @@ final class CanDeployTest {
   void recreateMutations() {
     KubernetesCredentials credentials = mock(KubernetesCredentials.class);
     KubernetesManifest manifest = ManifestFetcher.getManifest("candeploy/deployment.yml");
-    when(credentials.deploy(manifest)).thenReturn(manifest);
-    handler.deploy(credentials, manifest, DeployStrategy.RECREATE);
-    verify(credentials).deploy(manifest);
+    when(credentials.deploy(manifest, task, OP_NAME)).thenReturn(manifest);
+    handler.deploy(credentials, manifest, DeployStrategy.RECREATE, task, OP_NAME);
+    verify(credentials).deploy(manifest, task, OP_NAME);
     verify(credentials)
         .delete(
             eq(manifest.getKind()),
             eq(manifest.getNamespace()),
             eq(manifest.getName()),
             any(KubernetesSelectorList.class),
-            any(V1DeleteOptions.class));
+            any(V1DeleteOptions.class),
+            any(Task.class),
+            anyString());
     verifyNoMoreInteractions(credentials);
   }
 
@@ -98,8 +107,9 @@ final class CanDeployTest {
   void recreateReturnValue() {
     KubernetesCredentials credentials = mock(KubernetesCredentials.class);
     KubernetesManifest manifest = ManifestFetcher.getManifest("candeploy/deployment.yml");
-    when(credentials.deploy(manifest)).thenReturn(manifest);
-    OperationResult result = handler.deploy(credentials, manifest, DeployStrategy.RECREATE);
+    when(credentials.deploy(manifest, task, OP_NAME)).thenReturn(manifest);
+    OperationResult result =
+        handler.deploy(credentials, manifest, DeployStrategy.RECREATE, task, OP_NAME);
     assertThat(result.getManifests()).containsExactlyInAnyOrder(manifest);
   }
 
@@ -110,9 +120,9 @@ final class CanDeployTest {
         ManifestFetcher.getManifest("candeploy/deployment-generate-name.yml");
     KubernetesManifest createResult =
         ManifestFetcher.getManifest("candeploy/deployment-generate-name-result.yml");
-    when(credentials.create(manifest)).thenReturn(createResult);
-    handler.deploy(credentials, manifest, DeployStrategy.APPLY);
-    verify(credentials).create(manifest);
+    when(credentials.create(manifest, task, OP_NAME)).thenReturn(createResult);
+    handler.deploy(credentials, manifest, DeployStrategy.APPLY, task, OP_NAME);
+    verify(credentials).create(manifest, task, OP_NAME);
     verifyNoMoreInteractions(credentials);
   }
 
@@ -123,8 +133,9 @@ final class CanDeployTest {
         ManifestFetcher.getManifest("candeploy/deployment-generate-name.yml");
     KubernetesManifest createResult =
         ManifestFetcher.getManifest("candeploy/deployment-generate-name-result.yml");
-    when(credentials.create(manifest)).thenReturn(createResult);
-    OperationResult result = handler.deploy(credentials, manifest, DeployStrategy.APPLY);
+    when(credentials.create(manifest, task, OP_NAME)).thenReturn(createResult);
+    OperationResult result =
+        handler.deploy(credentials, manifest, DeployStrategy.APPLY, task, OP_NAME);
     assertThat(result.getManifests()).containsExactlyInAnyOrder(createResult);
   }
 }

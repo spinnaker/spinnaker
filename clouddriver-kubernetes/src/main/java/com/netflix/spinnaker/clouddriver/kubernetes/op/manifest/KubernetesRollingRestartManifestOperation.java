@@ -44,7 +44,12 @@ public class KubernetesRollingRestartManifestOperation implements AtomicOperatio
 
   @Override
   public Void operate(List<Void> priorOutputs) {
-    getTask().updateStatus(OP_NAME, "Starting rolling restart operation...");
+    getTask()
+        .updateStatus(
+            OP_NAME,
+            "Starting rolling restart operation in account "
+                + credentials.getAccountName()
+                + "...");
     KubernetesCoordinates coordinates = description.getPointCoordinates();
 
     getTask().updateStatus(OP_NAME, "Looking up resource properties...");
@@ -58,9 +63,17 @@ public class KubernetesRollingRestartManifestOperation implements AtomicOperatio
 
     CanRollingRestart canRollingRestart = (CanRollingRestart) deployer;
 
-    getTask().updateStatus(OP_NAME, "Calling rolling restart operation...");
+    getTask()
+        .updateStatus(
+            OP_NAME,
+            "Calling rolling restart operation for"
+                + coordinates.getName()
+                + " in namespace "
+                + coordinates.getName()
+                + "...");
     canRollingRestart.rollingRestart(
-        credentials, coordinates.getNamespace(), coordinates.getName());
+        credentials, coordinates.getNamespace(), coordinates.getName(), getTask(), OP_NAME);
+    getTask().updateStatus(OP_NAME, "Rolling rollout operation completed successfully");
 
     return null;
   }

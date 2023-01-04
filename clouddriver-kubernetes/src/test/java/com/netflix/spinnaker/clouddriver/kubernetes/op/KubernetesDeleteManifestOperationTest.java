@@ -29,6 +29,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.MapType;
 import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTask;
+import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesAccountProperties.ManagedAccount;
 import com.netflix.spinnaker.clouddriver.kubernetes.converter.manifest.KubernetesDeleteManifestConverter;
@@ -126,7 +127,9 @@ public class KubernetesDeleteManifestOperationTest {
             namespaceCaptor.capture(),
             anyString(),
             any(KubernetesSelectorList.class),
-            any(V1DeleteOptions.class));
+            any(V1DeleteOptions.class),
+            any(Task.class),
+            anyString());
 
     assertEquals(KubernetesKind.CUSTOM_RESOURCE_DEFINITION, kindCaptor.getValue());
   }
@@ -167,7 +170,9 @@ public class KubernetesDeleteManifestOperationTest {
             namespaceCaptor.capture(),
             anyString(),
             any(KubernetesSelectorList.class),
-            any(V1DeleteOptions.class));
+            any(V1DeleteOptions.class),
+            any(Task.class),
+            anyString());
 
     assertEquals(customResource, kindCaptor.getValue());
     assertEquals(namespace, namespaceCaptor.getValue());
@@ -210,7 +215,9 @@ public class KubernetesDeleteManifestOperationTest {
             anyString(),
             anyString(),
             labelSelectorsCaptor.capture(),
-            any(V1DeleteOptions.class));
+            any(V1DeleteOptions.class),
+            any(Task.class),
+            anyString());
 
     assertEquals(customResource, kindCaptor.getValue());
     assertEquals(
@@ -378,7 +385,10 @@ public class KubernetesDeleteManifestOperationTest {
             anyString(),
             anyString(),
             any(KubernetesSelectorList.class),
-            deleteOptionsCaptor.capture());
+            deleteOptionsCaptor.capture(),
+            any(Task.class),
+            anyString());
+
     return deleteOptionsCaptor.getValue();
   }
 

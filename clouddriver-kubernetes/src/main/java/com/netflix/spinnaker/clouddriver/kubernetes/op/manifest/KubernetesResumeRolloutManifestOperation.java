@@ -44,7 +44,12 @@ public class KubernetesResumeRolloutManifestOperation implements AtomicOperation
 
   @Override
   public Void operate(List<Void> priorOutputs) {
-    getTask().updateStatus(OP_NAME, "Starting resume rollout operation...");
+    getTask()
+        .updateStatus(
+            OP_NAME,
+            "Starting resume rollout operation in account "
+                + credentials.getAccountName()
+                + " ...");
     KubernetesCoordinates coordinates = description.getPointCoordinates();
 
     getTask().updateStatus(OP_NAME, "Looking up resource properties...");
@@ -58,9 +63,17 @@ public class KubernetesResumeRolloutManifestOperation implements AtomicOperation
 
     CanResumeRollout canResumeRollout = (CanResumeRollout) deployer;
 
-    getTask().updateStatus(OP_NAME, "Calling resume rollout operation...");
-    canResumeRollout.resumeRollout(credentials, coordinates.getNamespace(), coordinates.getName());
-
+    getTask()
+        .updateStatus(
+            OP_NAME,
+            "Calling resume rollout operation for "
+                + coordinates.getName()
+                + " in namespace "
+                + coordinates.getName()
+                + "...");
+    canResumeRollout.resumeRollout(
+        credentials, coordinates.getNamespace(), coordinates.getName(), getTask(), OP_NAME);
+    getTask().updateStatus(OP_NAME, "Resume rollout operation completed successfully");
     return null;
   }
 }

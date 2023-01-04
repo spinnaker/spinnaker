@@ -67,6 +67,7 @@ class SqlTaskCleanupAgent(
 
         val candidateTaskStateIds = mutableListOf<String>()
         val candidateResultIds = mutableListOf<String>()
+        val candidateOutputIds = mutableListOf<String>()
 
         if (candidateTaskIds.isNotEmpty()) {
           candidateTaskIds.chunked(properties.batchSize) { chunk ->
@@ -85,22 +86,32 @@ class SqlTaskCleanupAgent(
                 .fetch("id", String::class.java)
                 .filterNotNull()
             )
+
+            candidateOutputIds.addAll(
+              j.select(field("id"))
+                .from(taskOutputsTable)
+                .where(field("task_id").`in`(*chunk.toTypedArray()))
+                .fetch("id", String::class.java)
+                .filterNotNull()
+            )
           }
         }
 
         CleanupCandidateIds(
           taskIds = candidateTaskIds,
           stateIds = candidateTaskStateIds,
-          resultIds = candidateResultIds
+          resultIds = candidateResultIds,
+          outputIds = candidateOutputIds
         )
       }
 
       if (candidates.hasAny()) {
         log.info(
-          "Cleaning up {} completed tasks ({} states, {} result objects)",
+          "Cleaning up {} completed tasks ({} states, {} results, {} output objects)",
           candidates.taskIds.size,
           candidates.stateIds.size,
-          candidates.resultIds.size
+          candidates.resultIds.size,
+          candidates.outputIds.size
         )
 
         registry.timer(timingId).record {
@@ -115,6 +126,14 @@ class SqlTaskCleanupAgent(
           candidates.stateIds.chunked(properties.batchSize) { chunk ->
             jooq.transactional { ctx ->
               ctx.deleteFrom(taskStatesTable)
+                .where(field("id").`in`(*chunk.toTypedArray()))
+                .execute()
+            }
+          }
+
+          candidates.outputIds.chunked(properties.batchSize) { chunk ->
+            jooq.transactional { ctx ->
+              ctx.deleteFrom(taskOutputsTable)
                 .where(field("id").`in`(*chunk.toTypedArray()))
                 .execute()
             }
@@ -148,7 +167,8 @@ class SqlTaskCleanupAgent(
 private data class CleanupCandidateIds(
   val taskIds: List<String>,
   val stateIds: List<String>,
-  val resultIds: List<String>
+  val resultIds: List<String>,
+  val outputIds: List<String>
 ) {
   fun hasAny() = taskIds.isNotEmpty()
 
@@ -161,6 +181,7 @@ private data class CleanupCandidateIds(
     if (taskIds.size != other.taskIds.size || !taskIds.containsAll(other.taskIds)) return false
     if (stateIds.size != other.stateIds.size || !stateIds.containsAll(other.stateIds)) return false
     if (resultIds.size != other.resultIds.size || !resultIds.containsAll(other.resultIds)) return false
+    if (outputIds.size != other.outputIds.size || !outputIds.containsAll(other.outputIds)) return false
 
     return true
   }
@@ -169,6 +190,7 @@ private data class CleanupCandidateIds(
     var result = Arrays.hashCode(taskIds.toTypedArray())
     result = 31 * result + Arrays.hashCode(stateIds.toTypedArray())
     result = 31 * result + Arrays.hashCode(resultIds.toTypedArray())
+    result = 31 * result + Arrays.hashCode(outputIds.toTypedArray())
     return result
   }
 }

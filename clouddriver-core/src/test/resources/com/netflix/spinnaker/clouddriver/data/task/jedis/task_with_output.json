@@ -31,5 +31,12 @@
     "retryable" : false,
     "status" : "Finished deploy"
   },
-  "outputs": []
+  "outputs": [
+    {
+      "manifest":"some-manifest",
+      "phase":"DEPLOY_K8S_MANIFEST",
+      "stdOut":"output",
+      "stdError":""
+    }
+  ]
 }

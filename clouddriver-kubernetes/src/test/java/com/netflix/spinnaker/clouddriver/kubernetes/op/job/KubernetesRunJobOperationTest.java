@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.op.job;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -26,6 +27,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTask;
+import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.artifact.ResourceVersioner;
@@ -140,7 +142,7 @@ final class KubernetesRunJobOperationTest {
                 KubernetesKindProperties.withDefaultProperties(
                     invocation.getArgument(0, KubernetesKind.class)));
     when(credentialsMock.getResourcePropertyRegistry()).thenReturn(resourcePropertyRegistry);
-    when(credentialsMock.deploy(any(KubernetesManifest.class)))
+    when(credentialsMock.deploy(any(KubernetesManifest.class), any(Task.class), anyString()))
         .thenAnswer(
             invocation -> {
               KubernetesManifest result =
@@ -152,7 +154,7 @@ final class KubernetesRunJobOperationTest {
               }
               return result;
             });
-    when(credentialsMock.create(any(KubernetesManifest.class)))
+    when(credentialsMock.create(any(KubernetesManifest.class), any(Task.class), anyString()))
         .thenAnswer(
             invocation -> {
               // This simulates the fact that the Kubernetes API will add a suffix to a generated

@@ -59,7 +59,12 @@ public class KubernetesResizeServerGroupOperation implements AtomicOperation<Voi
 
     getTask().updateStatus(OP_NAME, "Calling resize operation...");
     canResize.resize(
-        credentials, coordinates.getNamespace(), coordinates.getName(), description.getCapacity());
+        credentials,
+        coordinates.getNamespace(),
+        coordinates.getName(),
+        description.getCapacity(),
+        getTask(),
+        OP_NAME);
 
     return null;
   }

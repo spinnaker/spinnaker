@@ -41,6 +41,9 @@ public class KubernetesConfigurationProperties {
 
   @Data
   public static class KubernetesJobExecutorProperties {
+    private boolean persistTaskOutput = false;
+    private boolean enableTaskOutputForAllAccounts = false;
+
     private Retries retries = new Retries();
 
     @Data

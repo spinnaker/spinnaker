@@ -26,6 +26,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Resources;
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTaskStatus;
+import com.netflix.spinnaker.clouddriver.data.task.TaskDisplayOutput;
 import com.netflix.spinnaker.clouddriver.data.task.TaskState;
 import java.nio.charset.StandardCharsets;
 import org.assertj.core.api.AssertionsForClassTypes;
@@ -57,6 +58,36 @@ final class JedisTaskTest {
     String result = objectMapper.writeValueAsString(task);
     String expectedResult =
         Resources.toString(JedisTaskTest.class.getResource("task.json"), StandardCharsets.UTF_8);
+
+    // Compare the parsed trees of the two results, which is agnostic to key order
+    AssertionsForClassTypes.assertThat(objectMapper.readTree(result))
+        .isEqualTo(objectMapper.readTree(expectedResult));
+  }
+
+  @Test
+  void taskSerializationWithOutputTest() throws Exception {
+    RedisTaskRepository taskRepository = mock(RedisTaskRepository.class);
+    JedisTask task =
+        new JedisTask("123", 100, taskRepository, "owner", "requestId", ImmutableSet.of(), false);
+
+    DefaultTaskStatus oldStatus =
+        DefaultTaskStatus.create(PHASE, "Starting deploy", TaskState.STARTED);
+    DefaultTaskStatus status =
+        DefaultTaskStatus.create(PHASE, "Finished deploy", TaskState.COMPLETED);
+    Object results =
+        ImmutableMap.of("instances", ImmutableList.of("my-instance-v000", "my-instance-v001"));
+    TaskDisplayOutput taskOutput =
+        new TaskDisplayOutput("some-manifest", "DEPLOY_K8S_MANIFEST", "output", "");
+
+    when(taskRepository.getHistory(eq(task))).thenReturn(ImmutableList.of(oldStatus, status));
+    when(taskRepository.getResultObjects(eq(task))).thenReturn(ImmutableList.of(results));
+    when(taskRepository.currentState(eq(task))).thenReturn(status);
+    when(taskRepository.getOutputs(eq(task))).thenReturn(ImmutableList.of(taskOutput));
+
+    String result = objectMapper.writeValueAsString(task);
+    String expectedResult =
+        Resources.toString(
+            JedisTaskTest.class.getResource("task_with_output.json"), StandardCharsets.UTF_8);
 
     // Compare the parsed trees of the two results, which is agnostic to key order
     AssertionsForClassTypes.assertThat(objectMapper.readTree(result))

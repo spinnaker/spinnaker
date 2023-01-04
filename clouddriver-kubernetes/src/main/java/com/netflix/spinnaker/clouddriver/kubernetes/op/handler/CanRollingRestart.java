@@ -17,13 +17,15 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.op.handler;
 
+import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 
 public interface CanRollingRestart {
   KubernetesKind kind();
 
-  default void rollingRestart(KubernetesCredentials credentials, String namespace, String name) {
-    credentials.rollingRestart(kind(), namespace, name);
+  default void rollingRestart(
+      KubernetesCredentials credentials, String namespace, String name, Task task, String opName) {
+    credentials.rollingRestart(kind(), namespace, name, task, opName);
   }
 }
