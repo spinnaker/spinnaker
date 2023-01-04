@@ -15,11 +15,22 @@
  */
 package com.netflix.spinnaker.igor.gitlabci.client.model;
 
+import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public enum PipelineStatus {
   running,
   pending,
   success,
   failed,
   canceled,
-  skipped
+  skipped,
+  created,
+  @JsonProperty("waiting_for_resource")
+  waitingForResource,
+  preparing,
+  manual,
+  scheduled,
+  @JsonEnumDefaultValue
+  unknown
 }
