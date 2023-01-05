@@ -13,6 +13,7 @@ import {
   SETTINGS,
 } from '@spinnaker/core';
 
+import { AZURE_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER } from './bakeExecutionDetails.controller';
 import { AZURE_IMAGE_IMAGE_READER } from '../../../image/image.reader';
 import { AZURE_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE } from './../../../serverGroup/configure/serverGroupCommandBuilder.service';
 
@@ -21,6 +22,7 @@ export const name = AZURE_PIPELINE_STAGES_BAKE_AZUREBAKESTAGE; // for backwards 
 module(AZURE_PIPELINE_STAGES_BAKE_AZUREBAKESTAGE, [
   AZURE_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE,
   AZURE_IMAGE_IMAGE_READER,
+  AZURE_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER,
 ])
   .config(function () {
     Registry.pipeline.registerStage({
