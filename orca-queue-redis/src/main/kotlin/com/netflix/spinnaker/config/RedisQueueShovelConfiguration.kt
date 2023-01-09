@@ -58,7 +58,7 @@ class RedisQueueShovelConfiguration {
     @Value("\${redis.connection:redis://localhost:6379}") mainConnection: String,
     @Value("\${redis.connection-previous:#{null}}") previousConnection: String?,
     @Value("\${redis.timeout:2000}") timeout: Int,
-    redisPoolConfig: GenericObjectPoolConfig<*>,
+    redisPoolConfig: GenericObjectPoolConfig<Jedis>,
     registry: Registry
   ): Pool<Jedis> {
     if (mainConnection == previousConnection) {
@@ -84,7 +84,7 @@ class RedisQueueShovelConfiguration {
     @Value("\${redis.connection-previous}") previousConnection: String,
     @Value("\${redis.timeout:2000}") timeout: Int,
     @Value("\${redis.maxattempts:4}") maxAttempts: Int,
-    redisPoolConfig: GenericObjectPoolConfig<*>,
+    redisPoolConfig: GenericObjectPoolConfig<Jedis>,
     registry: Registry
   ): JedisCluster {
     if (mainConnection == previousConnection) {

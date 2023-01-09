@@ -55,7 +55,7 @@ class RedisQueueConfiguration {
 
   @Bean
   @ConditionalOnMissingBean(GenericObjectPoolConfig::class)
-  fun redisPoolConfig() = GenericObjectPoolConfig<Any>().apply {
+  fun redisPoolConfig() = GenericObjectPoolConfig<Jedis>().apply {
     blockWhenExhausted = false
     maxWaitMillis = 2000
   }
@@ -70,7 +70,7 @@ class RedisQueueConfiguration {
   fun queueRedisPool(
     @Value("\${redis.connection:redis://localhost:6379}") connection: String,
     @Value("\${redis.timeout:2000}") timeout: Int,
-    redisPoolConfig: GenericObjectPoolConfig<Any>
+    redisPoolConfig: GenericObjectPoolConfig<Jedis>
   ) =
     URI.create(connection).let { cx ->
       val port = if (cx.port == -1) Protocol.DEFAULT_PORT else cx.port
@@ -138,7 +138,7 @@ class RedisQueueConfiguration {
     @Value("\${redis.connection:redis://localhost:6379}") connection: String,
     @Value("\${redis.timeout:2000}") timeout: Int,
     @Value("\${redis.maxattempts:4}") maxAttempts: Int,
-    redisPoolConfig: GenericObjectPoolConfig<Any>
+    redisPoolConfig: GenericObjectPoolConfig<Jedis>
   ): JedisCluster {
     URI.create(connection).let { cx ->
       val port = if (cx.port == -1) Protocol.DEFAULT_PORT else cx.port
