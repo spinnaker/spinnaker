@@ -470,6 +470,8 @@ const helpContents: { [key: string]: string } = {
       Typing into this verification field is annoying! But it serves as a reminder that you are
       changing something in an account deemed important, and prevents you from accidentally changing something
       when you meant to click on the "Cancel" button.`,
+  'pipeline.skipDownstreamOutput':
+    'when checked, the output of the child pipeline is not added to the pipeline context',
   'pipeline.waitForCompletion':
     'if unchecked, marks the stage as successful right away without waiting for the pipeline to complete',
   'jenkins.waitForCompletion':
