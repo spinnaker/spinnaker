@@ -7,7 +7,7 @@ ENV KUBECTL_RELEASE=1.20.6
 ENV AWS_CLI_VERSION=1.18.152
 ENV AWS_CLI_S3_CMD=2.0.2
 ENV AWS_AIM_AUTHENTICATOR_VERSION=0.5.5
-ENV GOOGLE_CLOUD_SDK_VERSION=398.0.0
+ENV GOOGLE_CLOUD_SDK_VERSION=412.0.0
 ENV ECR_TOKEN_VERSION=v1.0.2
 
 ENV PATH "$PATH:/usr/local/bin/:/opt/google-cloud-sdk/bin/:/usr/local/bin/aws-iam-authenticator"
@@ -32,7 +32,8 @@ RUN [ $TARGETARCH == 'amd64' ] &&  export GCP_ARCH="x86_64" || export GCP_ARCH="
   && mkdir -p /opt && cd /opt \
   && tar -xzf /google-cloud-sdk-${GOOGLE_CLOUD_SDK_VERSION}-linux-${GCP_ARCH}.tar.gz \
   && rm /google-cloud-sdk-${GOOGLE_CLOUD_SDK_VERSION}-linux-${GCP_ARCH}.tar.gz \
-  && CLOUDSDK_PYTHON="python3" /opt/google-cloud-sdk/install.sh --usage-reporting=false --bash-completion=false  --additional-components app-engine-java app-engine-go \
+  && CLOUDSDK_PYTHON="python3" /opt/google-cloud-sdk/install.sh --usage-reporting=false --bash-completion=false \
+     --additional-components app-engine-java app-engine-go gke-gcloud-auth-plugin \
   && rm -rf ~/.config/gcloud \
   && rm -rf /opt/google-cloud-sdk/.install/.backup
 
