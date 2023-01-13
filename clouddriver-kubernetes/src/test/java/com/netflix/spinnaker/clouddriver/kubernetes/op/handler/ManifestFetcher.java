@@ -42,7 +42,7 @@ public final class ManifestFetcher {
     return base;
   }
 
-  static KubernetesManifest getManifest(String basePath) {
+  public static KubernetesManifest getManifest(String basePath) {
     return getManifest(ManifestFetcher.class, basePath).get(0);
   }
 
@@ -56,7 +56,7 @@ public final class ManifestFetcher {
         .collect(ImmutableList.toImmutableList());
   }
 
-  private static String getResource(Class<?> referenceClass, String name) {
+  public static String getResource(Class<?> referenceClass, String name) {
     try {
       return Resources.toString(referenceClass.getResource(name), StandardCharsets.UTF_8);
     } catch (IOException e) {

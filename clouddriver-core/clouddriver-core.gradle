@@ -13,6 +13,9 @@ dependencies {
   annotationProcessor "org.projectlombok:lombok"
   testAnnotationProcessor "org.projectlombok:lombok"
 
+  // Because a JobRequest constructor takes a org.apache.commons.exec.CommandLine argument
+  api "org.apache.commons:commons-exec"
+
   // This is because some classes in this module use the Groovy @Immutable annotation,
   // which appears to require consumers to have core groovy on the classpath
   api "org.codehaus.groovy:groovy"
@@ -43,7 +46,6 @@ dependencies {
   implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client"
   implementation "io.reactivex:rxjava"
   implementation "net.jodah:failsafe:1.0.4"
-  implementation "org.apache.commons:commons-exec"
   implementation "org.codehaus.groovy:groovy"
   implementation "org.codehaus.groovy:groovy-templates"
   implementation "org.springframework.boot:spring-boot-actuator"

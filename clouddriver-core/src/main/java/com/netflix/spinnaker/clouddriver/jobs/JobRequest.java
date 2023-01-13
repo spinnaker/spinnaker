@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.jobs;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import lombok.Getter;
@@ -53,8 +54,8 @@ public class JobRequest {
     this(tokenizedCommand, System.getenv(), inputStream, workingDir);
   }
 
-  public JobRequest(List<String> tokenizedCommand, File workingDor) {
-    this(tokenizedCommand, System.getenv(), new ByteArrayInputStream(new byte[0]), workingDor);
+  public JobRequest(List<String> tokenizedCommand, File workingDir) {
+    this(tokenizedCommand, System.getenv(), new ByteArrayInputStream(new byte[0]), workingDir);
   }
 
   public JobRequest(
@@ -67,6 +68,15 @@ public class JobRequest {
     this.environment = environment;
     this.inputStream = inputStream;
     this.workingDir = workingDir;
+  }
+
+  // only used in tests
+  public JobRequest(CommandLine commandLine, InputStream inputStream) {
+    this.tokenizedCommand = new ArrayList<>();
+    this.commandLine = commandLine;
+    this.environment = System.getenv();
+    this.inputStream = inputStream;
+    this.workingDir = null;
   }
 
   private CommandLine createCommandLine(List<String> tokenizedCommand) {
@@ -85,6 +95,9 @@ public class JobRequest {
 
   @Override
   public String toString() {
-    return String.join(" ", tokenizedCommand);
+    if (!tokenizedCommand.isEmpty()) {
+      return String.join(" ", tokenizedCommand);
+    }
+    return commandLine.toString();
   }
 }
