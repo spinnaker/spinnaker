@@ -45,6 +45,7 @@ jobs:
         run: |
           GOARCH=amd64 GOOS=darwin go build -ldflags "${LDFLAGS}" -o dist/${{ steps.build_variables.outputs.VERSION }}/darwin/amd64/spin .
           GOARCH=amd64 GOOS=linux go build -ldflags "${LDFLAGS}" -o dist/${{ steps.build_variables.outputs.VERSION }}/linux/amd64/spin .
+          GOARCH=arm64 GOOS=linux go build -ldflags "${LDFLAGS}" -o dist/${{ steps.build_variables.outputs.VERSION }}/linux/arm64/spin .
           GOARCH=amd64 GOOS=windows go build -ldflags "${LDFLAGS}" -o dist/${{ steps.build_variables.outputs.VERSION }}/windows/amd64/spin.exe .
           GOARCH=arm64 GOOS=darwin go build -ldflags "${LDFLAGS}" -o dist/${{ steps.build_variables.outputs.VERSION }}/darwin/arm64/spin .
           dist/${{ steps.build_variables.outputs.VERSION }}/linux/amd64/spin --version
