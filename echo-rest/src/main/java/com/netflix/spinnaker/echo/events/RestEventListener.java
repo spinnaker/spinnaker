@@ -51,7 +51,7 @@ class RestEventListener implements EventListener {
   @Value("${rest.default-field-name:payload}")
   private String fieldName;
 
-  @Value("${rest.circuit-breaker-enabled}")
+  @Value("${rest.circuit-breaker-enabled:false}")
   private boolean circuitBreakerEnabled;
 
   @Autowired
