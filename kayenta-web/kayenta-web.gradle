@@ -32,6 +32,7 @@ dependencies {
 
   api "org.springframework.boot:spring-boot-starter-actuator"
   api "io.spinnaker.kork:kork-web"
+  implementation "io.spinnaker.kork:kork-config"
   implementation "io.spinnaker.kork:kork-plugins"
   runtimeOnly "io.spinnaker.kork:kork-secrets-aws"
   runtimeOnly "io.spinnaker.kork:kork-secrets-gcp"
