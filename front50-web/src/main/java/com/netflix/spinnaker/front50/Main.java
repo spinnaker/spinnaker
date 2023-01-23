@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.front50;
 
-import com.google.common.collect.ImmutableMap;
+import com.netflix.spinnaker.kork.boot.DefaultPropertiesBuilder;
 import java.util.Map;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
@@ -43,15 +43,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class Main extends SpringBootServletInitializer {
 
   private static final Map<String, Object> DEFAULT_PROPS =
-      ImmutableMap.<String, Object>builder()
-          .put("netflix.environment", "test")
-          .put("netflix.account", "${netflix.environment}")
-          .put("netflix.stack", "test")
-          .put("spring.config.additional-location", "${user.home}/.spinnaker/")
-          .put("spring.application.name", "front50")
-          .put("spring.config.name", "spinnaker,${spring.application.name}")
-          .put("spring.profiles.active", "${netflix.environment},local")
-          .build();
+      new DefaultPropertiesBuilder().property("spring.application.name", "front50").build();
 
   public static void main(String... args) {
     System.setProperty("spring.main.allow-bean-definition-overriding", "true");
