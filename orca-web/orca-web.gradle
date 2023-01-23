@@ -56,6 +56,7 @@ dependencies {
   implementation(project(":orca-remote-stage"))
   implementation(project(":orca-sql"))
   implementation(project(":orca-webhook"))
+  implementation("io.spinnaker.kork:kork-config")
   implementation("io.spinnaker.kork:kork-exceptions")
   implementation("io.spinnaker.kork:kork-web")
   implementation("io.spinnaker.kork:kork-plugins")

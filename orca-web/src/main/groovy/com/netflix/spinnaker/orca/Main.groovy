@@ -42,6 +42,7 @@ import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 import org.springframework.context.annotation.Import
 import org.springframework.scheduling.annotation.EnableAsync
+import com.netflix.spinnaker.kork.boot.DefaultPropertiesBuilder
 
 @EnableAsync
 @Import([
@@ -71,15 +72,7 @@ import org.springframework.scheduling.annotation.EnableAsync
     exclude = [BatchAutoConfiguration, GroovyTemplateAutoConfiguration, DataSourceAutoConfiguration]
 )
 class Main extends SpringBootServletInitializer {
-  static final Map<String, String> DEFAULT_PROPS = [
-    'netflix.environment'              : 'test',
-    'netflix.account'                  : '${netflix.environment}',
-    'netflix.stack'                    : 'test',
-    'spring.config.additional-location': '${user.home}/.spinnaker/',
-    'spring.application.name'          : 'orca',
-    'spring.config.name'               : 'spinnaker,${spring.application.name}',
-    'spring.profiles.active'           : '${netflix.environment},local'
-  ]
+  static final Map<String, String> DEFAULT_PROPS = new DefaultPropertiesBuilder().property("spring.application.name", "orca").build()
 
   static void main(String... args) {
     new SpringApplicationBuilder().properties(DEFAULT_PROPS).sources(Main).run(args)
