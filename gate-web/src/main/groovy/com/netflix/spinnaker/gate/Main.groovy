@@ -24,6 +24,7 @@ import org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.scheduling.annotation.EnableAsync
+import com.netflix.spinnaker.kork.boot.DefaultPropertiesBuilder
 
 @EnableAsync
 @EnableConfigurationProperties
@@ -41,15 +42,7 @@ import org.springframework.scheduling.annotation.EnableAsync
 )
 class Main {
 
-  static final Map<String, String> DEFAULT_PROPS = [
-    'netflix.environment': 'test',
-    'netflix.account': '${netflix.environment}',
-    'netflix.stack': 'test',
-    'spring.config.additional-location': '${user.home}/.spinnaker/',
-    'spring.application.name': 'gate',
-    'spring.config.name': 'spinnaker,${spring.application.name}',
-    'spring.profiles.active': '${netflix.environment},local'
-  ]
+  static final Map<String, String> DEFAULT_PROPS = new DefaultPropertiesBuilder().property("spring.application.name", "gate").build()
 
   static void main(String... args) {
     new SpringApplicationBuilder().properties(DEFAULT_PROPS).sources(Main).run(args)
