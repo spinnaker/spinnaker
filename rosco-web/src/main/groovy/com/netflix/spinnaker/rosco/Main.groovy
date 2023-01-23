@@ -40,6 +40,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.web.filter.ShallowEtagHeaderFilter
+import com.netflix.spinnaker.kork.boot.DefaultPropertiesBuilder
 
 import javax.servlet.Filter
 
@@ -74,16 +75,7 @@ import javax.servlet.Filter
 @EnableScheduling
 class Main extends SpringBootServletInitializer {
 
-  static final Map<String, String> DEFAULT_PROPS = [
-    'netflix.environment': 'test',
-    'netflix.account': '${netflix.environment}',
-    'bakeAccount': '${netflix.account}',
-    'netflix.stack': 'test',
-    'spring.config.additional-location': '${user.home}/.spinnaker/',
-    'spring.application.name': 'rosco',
-    'spring.config.name': 'spinnaker,${spring.application.name}',
-    'spring.profiles.active': '${netflix.environment},local'
-  ]
+  static final Map<String, String> DEFAULT_PROPS = new DefaultPropertiesBuilder().property("spring.application.name", "rosco").property('bakeAccount','${netflix.account}').build()
 
   static void main(String... args) {
     new SpringApplicationBuilder().properties(DEFAULT_PROPS).sources(Main).run(args)

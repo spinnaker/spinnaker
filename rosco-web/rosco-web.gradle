@@ -15,6 +15,7 @@ dependencies {
 
   implementation "org.codehaus.groovy:groovy"
   implementation "io.spinnaker.kork:kork-artifacts"
+  implementation "io.spinnaker.kork:kork-config"
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "net.logstash.logback:logstash-logback-encoder"
 
