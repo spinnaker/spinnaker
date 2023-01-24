@@ -5,9 +5,20 @@ image:https://travis-ci.org/spinnaker/spinnaker.svg?branch=master["Build Status"
 
 = Welcome to the Spinnaker Project
 
-Spinnaker is an open-source continuous delivery platform for releasing software changes with high velocity and confidence.
-Through a powerful abstraction layer, Spinnaker provides compelling tooling that empowers developers to own their application code from commit to delivery. As the most mature and widely productionalized continuous delivery platform, Spinnaker can apply the expertise of Netflix, Google, Microsoft,
- and Amazon to your SDLC. User companies include Target, Salesforce, Airbnb, Cerner, Adobe, and JPMorgan Chase.
+Spinnaker is an open-source continuous delivery platform for releasing software changes with high velocity and confidence.  Spinnaker provides a single platform that allows you to safely deploy and manage your application in multiple cloud environments (AWS, GCP, Kubernetes and more!).  With automated canary analysis and multiple ways to initiate deployments, you can safely promote your code from a git commit into a dev environment all the way through multiple production environments with confidence in ther esults.  Spinnaker is the most mature and widely productionalized continuous delivery platform built upon the work of Netflix, Google, Microsoft, Amazon and numerous other companies to allow fast, safe deploys. Used by numerous organizations including Target, Salesforce, Airbnb, Cerner, Adobe, JPMorgan Chase and more!  
+
+= Project status and updates
+
+Note that this repo is ONLY used for issue tracking across the project.  Releases are not managed here, nor are updates done to this repo regularly.  Please see the following for more information about spinnaker and it's state:
+
+- https://spinnaker.io/docs/releases/versions/[Current available versions]
+- https://join.slack.com/t/spinnakerteam/shared_invite/zt-7juwxmx0-nQ4Ud4pJcbuPykX3SXwQrg[The spinnaker slack for help and discussions around spinnaker]
+- https://github.com/spinnaker/spinnaker/issues[Issues page for bug reports, enhancements and similar]
+- https://github.com/spinnaker/governance/[Governance for the project as a whole]
+There is a lot of activity and we'd welcome nparticipation! 
+
+= More about spinnaker
+
 
 Manage your SDLC in Spinnaker using the GUI (graphical user interface), or config-as-code. View, manage, and construct https://www.spinnaker.io/docs/concepts/#application[application] workflows involving one or all of these resources:
 
