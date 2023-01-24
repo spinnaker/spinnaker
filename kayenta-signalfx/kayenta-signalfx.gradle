@@ -122,7 +122,7 @@ dependencies {
   integrationTestImplementation project(':kayenta-web')
 
   // Apache 2.0 https://github.com/rest-assured/rest-assured/blob/master/LICENSE
-  integrationTestImplementation "io.rest-assured:rest-assured:4.3.2"
+  integrationTestImplementation "io.rest-assured:rest-assured"
 
   integrationTestAnnotationProcessor platform("io.spinnaker.orca:orca-bom:$orcaVersion")
   integrationTestAnnotationProcessor "org.projectlombok:lombok"
