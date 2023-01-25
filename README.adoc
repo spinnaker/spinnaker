@@ -15,7 +15,7 @@ Note that this repo is only used for issue tracking across the various services 
 - https://join.slack.com/t/spinnakerteam/shared_invite/zt-7juwxmx0-nQ4Ud4pJcbuPykX3SXwQrg[The spinnaker slack for help and discussions around spinnaker]
 - https://github.com/spinnaker/spinnaker/issues[Issues page for bug reports, enhancements and similar]
 - https://github.com/spinnaker/governance/[Governance for the project as a whole]
-There is a lot of activity and we'd welcome nparticipation! 
+There is a lot of activity and we'd welcome participation! 
 
 = More about spinnaker
 
