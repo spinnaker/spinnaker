@@ -36,6 +36,7 @@ public class TravisCache {
   private static final String QUEUE_TYPE = ID + ":queue";
   private static final String LOG_TYPE = ID + ":log";
   private static final int LOG_EXPIRE_SECONDS = 600;
+  private static final int QUEUE_EXPIRE_SECONDS = 3600;
 
   private final RedisClientDelegate redisClientDelegate;
   private final IgorConfigurationProperties igorConfigurationProperties;
@@ -71,6 +72,7 @@ public class TravisCache {
         c -> {
           c.hset(key, "requestId", Integer.toString(requestId));
           c.hset(key, "repositoryId", Integer.toString(repositoryId));
+          c.expire(key, QUEUE_EXPIRE_SECONDS);
         });
     return requestId;
   }
