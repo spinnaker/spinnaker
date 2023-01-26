@@ -62,7 +62,12 @@ public class V3Log {
     }
     int numberOfParts = logParts.size() - 1;
     V3LogPart lastLogPart = logParts.get(numberOfParts);
-    return numberOfParts == lastLogPart.number && lastLogPart.isFinal();
+    String logContent = getContent();
+    return numberOfParts == lastLogPart.number
+        && lastLogPart.isFinal()
+        && (logContent != null
+            && (logContent.contains("Done. Your build exited with ")
+                || logContent.contains("travis_terminate")));
   }
 
   @JsonIgnoreProperties(ignoreUnknown = true)

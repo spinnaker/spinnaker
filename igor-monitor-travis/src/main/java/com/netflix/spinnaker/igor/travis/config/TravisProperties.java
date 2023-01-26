@@ -74,6 +74,14 @@ public class TravisProperties implements BuildServerProperties<TravisProperties.
 
     private Integer itemUpperThreshold;
     private Permissions.Builder permissions = new Permissions.Builder();
+    /**
+     * The Travis Builds and Jobs API supports an attribute called <code>log_complete</code> that is
+     * supposed to tell us if the log is ready to be downloaded. Igor has been using this attribute
+     * to cut down on the number of potentially expensive API calls needed towards Travis during
+     * polling. However, relying on <code>log_complete</code> has been unreliable for some Travis
+     * users, so we're disabling it by default.
+     */
+    private boolean useLogComplete = false;
 
     @Deprecated
     public void setNumberOfRepositories(int numberOfRepositories) {

@@ -83,17 +83,23 @@ public class TravisConfig {
                               igorConfigurationProperties.getClient().getTimeout(),
                               objectMapper);
 
-                      boolean useLegacyLogFetching = false;
-                      try {
-                        Root root = client.getRoot();
-                        useLegacyLogFetching = !root.hasLogCompleteAttribute();
-                        if (useLegacyLogFetching) {
-                          log.info(
-                              "It seems Travis Enterprise is older than version 2.2.9. Will use legacy log fetching.");
+                      boolean useLegacyLogFetching = true;
+                      if (host.isUseLogComplete()) {
+                        try {
+                          Root root = client.getRoot();
+                          useLegacyLogFetching = !root.hasLogCompleteAttribute();
+                          if (useLegacyLogFetching) {
+                            log.info(
+                                "It seems Travis Enterprise is older than version 2.2.9. Will use legacy log fetching.");
+                          }
+                        } catch (Exception e) {
+                          log.warn(
+                              "Could not query Travis API to check API compatibility for log_complete. "
+                                  + "Will use legacy log fetching.",
+                              e);
                         }
-                      } catch (Exception e) {
-                        log.warn("Could not query Travis API to check API compability", e);
                       }
+
                       return new TravisService(
                           travisName,
                           host.getBaseUrl(),

@@ -121,7 +121,7 @@ class TravisClientSpec extends Specification {
                 "delete_log": false
             },
             "id": 1337,
-            "content": "ERROR: An error occured while trying to parse your .travis.yml file.\\n\\nPlease make sure that the file is valid YAML.\\n\\nhttp://lint.travis-ci.org can check your .travis.yml.\\n\\nThe error was \\"undefined method `merge' for false:FalseClass\\".",
+            "content": "ERROR: An error occured while trying to parse your .travis.yml file.\\n\\nPlease make sure that the file is valid YAML.\\n\\nhttp://lint.travis-ci.org can check your .travis.yml.\\n\\nThe error was \\"undefined method `merge' for false:FalseClass\\".\\n\\nDone. Your build exited with 1.",
             "log_parts": [
                 {
                     "content": "ERROR: An error occured while trying to parse your .travis.yml file.\\n\\nPlease make sure that the file is valid YAML.\\n\\n",
@@ -129,7 +129,7 @@ class TravisClientSpec extends Specification {
                     "number": 0
                 },
                 {
-                    "content": "http://lint.travis-ci.org can check your .travis.yml.\\n\\nThe error was \\"undefined method `merge' for false:FalseClass\\".",
+                    "content": "http://lint.travis-ci.org can check your .travis.yml.\\n\\nThe error was \\"undefined method `merge' for false:FalseClass\\".\\n\\nDone. Your build exited with 1.",
                     "final": true,
                     "number": 1
                 }
