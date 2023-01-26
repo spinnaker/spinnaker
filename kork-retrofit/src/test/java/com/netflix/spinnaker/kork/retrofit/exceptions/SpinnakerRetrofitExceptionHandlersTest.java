@@ -21,6 +21,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import ch.qos.logback.classic.Level;
+import com.google.gson.Gson;
 import com.netflix.spinnaker.config.ErrorConfiguration;
 import com.netflix.spinnaker.config.RetrofitErrorConfiguration;
 import com.netflix.spinnaker.kork.test.log.MemoryAppender;
@@ -49,7 +50,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
+import retrofit.RetrofitError;
 import retrofit.client.Response;
+import retrofit.converter.GsonConverter;
 import retrofit.mime.TypedString;
 
 @SpringBootTest(
@@ -212,14 +215,24 @@ class SpinnakerRetrofitExceptionHandlersTest {
 
     @GetMapping("/chainedSpinnakerHttpException/{status}")
     void chainedSpinnakerHttpException(@PathVariable int status) {
+      // We could return a mock here, but we get better test coverage by
+      // returning a real object.  It does mean that the underlying response
+      // (e.g. cause.response) needs to be a real object too though, or at least
+      // real enough so that cause.response.getStatus() returns the specified
+      // status.
       throw new SpinnakerHttpException(CUSTOM_MESSAGE, makeSpinnakerHttpException(status));
     }
 
     SpinnakerHttpException makeSpinnakerHttpException(int status) {
-      SpinnakerHttpException spinnakerHttpException = mock(SpinnakerHttpException.class);
-      when(spinnakerHttpException.getMessage()).thenReturn("message");
-
-      // Response is a final class, so straightforward mocking fails.
+      // SpinnakerHttpException spinnakerHttpException = mock(SpinnakerHttpException.class);
+      // when(spinnakerHttpException.getMessage()).thenReturn("message");
+      // when(spinnakerHttpException.getResponseCode()).thenReturn(status);
+      // return spinnakerHttpException;
+      //
+      // would be sufficient, except in the chained case, where the return value
+      // of this method is the cause of a real SpinnakerHttpException object.
+      // There, getResponseCode needs a real underlying response, at least real
+      // enough for response.getStatus() to work.  So, go ahead and build one.
       String url = "https://some-url";
       Response response =
           new Response(
@@ -227,10 +240,11 @@ class SpinnakerRetrofitExceptionHandlersTest {
               status,
               "arbitrary reason",
               List.of(),
-              new TypedString("{ message: \"unused message due to above mock\" }"));
+              new TypedString("{ message: \"arbitrary message\" }"));
 
-      when(spinnakerHttpException.getResponse()).thenReturn(response);
-      return spinnakerHttpException;
+      // choose GsonConverter since retrofit's (private) Base class does.
+      return new SpinnakerHttpException(
+          RetrofitError.httpError(url, response, new GsonConverter(new Gson()), Response.class));
     }
   }
 }

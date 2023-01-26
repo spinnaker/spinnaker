@@ -63,7 +63,7 @@ public class SpinnakerRetrofitExceptionHandlers extends BaseExceptionHandlers {
     // We made an http request that failed and nothing else handled that
     // failure, so generate our response based on the response we received.
     storeException(request, response, e);
-    int status = e.getResponse().getStatus();
+    int status = e.getResponseCode();
     // Log server errors as errors, but client errors as debug to avoid filling
     // up the logs with someone else's problem.
     HttpStatus httpStatus = HttpStatus.resolve(status);

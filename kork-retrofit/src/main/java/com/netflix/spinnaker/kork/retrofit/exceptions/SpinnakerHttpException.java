@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.kork.retrofit.exceptions;
 
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
-import lombok.Getter;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 
@@ -25,7 +24,6 @@ import retrofit.client.Response;
  * An exception that exposes the {@link Response} of a given HTTP {@link RetrofitError} and a detail
  * message that extracts useful information from the {@link Response}.
  */
-@Getter
 @NonnullByDefault
 public class SpinnakerHttpException extends SpinnakerServerException {
   private final Response response;
@@ -49,7 +47,11 @@ public class SpinnakerHttpException extends SpinnakerServerException {
   public SpinnakerHttpException(String message, SpinnakerHttpException cause) {
     super(message, cause);
     // Note that getRawMessage() is null in this case.
-    this.response = cause.getResponse();
+    this.response = cause.response;
+  }
+
+  public int getResponseCode() {
+    return response.getStatus();
   }
 
   @Override
