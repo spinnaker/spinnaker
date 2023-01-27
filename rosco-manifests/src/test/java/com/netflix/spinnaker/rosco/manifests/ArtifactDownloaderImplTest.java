@@ -116,7 +116,7 @@ final class ArtifactDownloaderImplTest {
       // Make sure we have the message we expect, and that we wrapped the
       // underlying exception to not lose any info.
       assertThat(thrown.getMessage()).contains("Failed to download artifact");
-      assertThat(thrown.getResponse().getStatus()).isEqualTo(404);
+      assertThat(thrown.getResponseCode()).isEqualTo(404);
       assertThat(thrown.getCause()).isEqualTo(spinnakerHttpException);
     }
   }

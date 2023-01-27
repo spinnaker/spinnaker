@@ -25,6 +25,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
+import com.google.gson.Gson;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
@@ -43,7 +44,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
+import retrofit.RetrofitError;
 import retrofit.client.Response;
+import retrofit.converter.GsonConverter;
 import retrofit.mime.TypedString;
 
 @SpringBootTest(classes = Main.class)
@@ -103,10 +106,15 @@ class V2BakeryControllerTest {
   }
 
   private static SpinnakerHttpException makeSpinnakerHttpException(int status) {
-    SpinnakerHttpException spinnakerHttpException = mock(SpinnakerHttpException.class);
-    when(spinnakerHttpException.getMessage()).thenReturn("message");
-
-    // Response is a final class, so straightforward mocking fails.
+    // SpinnakerHttpException spinnakerHttpException = mock(SpinnakerHttpException.class);
+    // when(spinnakerHttpException.getMessage()).thenReturn("message");
+    // when(spinnakerHttpException.getResponseCode()).thenReturn(status);
+    // return spinnakerHttpException;
+    //
+    // would be sufficient, except in the chained case, where the return value
+    // of this method is the cause of a real SpinnakerHttpException object.
+    // There, getResponseCode needs a real underlying response, at least real
+    // enough for response.getStatus() to work.  So, go ahead and build one.
     String url = "https://some-url";
     Response response =
         new Response(
@@ -114,9 +122,9 @@ class V2BakeryControllerTest {
             status,
             "arbitrary reason",
             List.of(),
-            new TypedString("{ message: \"unused message due to above mock\" }"));
+            new TypedString("{ message: \"arbitrary message\" }"));
 
-    when(spinnakerHttpException.getResponse()).thenReturn(response);
-    return spinnakerHttpException;
+    return new SpinnakerHttpException(
+        RetrofitError.httpError(url, response, new GsonConverter(new Gson()), String.class));
   }
 }

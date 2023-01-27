@@ -422,7 +422,7 @@ final class HelmTemplateUtilsTest {
               () -> helmTemplateUtils.buildBakeRecipe(env, bakeManifestRequest));
 
       assertThat(thrown.getMessage()).contains("Failed to fetch helm template");
-      assertThat(thrown.getResponse().getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
+      assertThat(thrown.getResponseCode()).isEqualTo(HttpStatus.NOT_FOUND.value());
       assertThat(thrown.getCause()).isEqualTo(spinnakerHttpException);
     }
   }
