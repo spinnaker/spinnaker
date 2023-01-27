@@ -53,7 +53,7 @@ class LocalFileUserDataProvider implements UserDataProvider {
         }
         return Boolean.valueOf(application.legacyUdf)
       } catch (SpinnakerHttpException e) {
-        if (e.getResponse().getStatus() == HttpStatus.NOT_FOUND.value()) {
+        if (e.getResponseCode() == HttpStatus.NOT_FOUND.value()) {
           return localFileUserDataProperties.defaultLegacyUdf
         }
         throw e

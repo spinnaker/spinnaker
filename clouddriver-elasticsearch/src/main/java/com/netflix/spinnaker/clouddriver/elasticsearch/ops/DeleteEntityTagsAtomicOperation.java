@@ -56,7 +56,7 @@ public class DeleteEntityTagsAtomicOperation implements AtomicOperation<Void> {
     try {
       currentTags = front50Service.getEntityTags(entityTagsDescription.getId());
     } catch (SpinnakerHttpException e) {
-      if (e.getResponse().getStatus() == HttpStatus.NOT_FOUND.value()) {
+      if (e.getResponseCode() == HttpStatus.NOT_FOUND.value()) {
         getTask()
             .updateStatus(
                 BASE_PHASE, format("Did not find %s in Front50", entityTagsDescription.getId()));
