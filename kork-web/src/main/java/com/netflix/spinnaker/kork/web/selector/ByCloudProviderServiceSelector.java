@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.kork.web.selector;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -51,7 +50,8 @@ public class ByCloudProviderServiceSelector implements ServiceSelector {
       Object service, Integer priority, Map<String, Object> config) {
     this.service = service;
     this.priority = priority;
-    this.cloudProviders = new HashSet<>((List<String>) config.get("cloudProviders"));
+    this.cloudProviders =
+        new HashSet<>(((Map<String, String>) config.get("cloudProviders")).values());
   }
 
   @Override
