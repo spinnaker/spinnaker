@@ -227,7 +227,7 @@ class TravisBuildMonitorSpec extends Specification {
 
         then:
         2 * travisService.getLatestBuilds() >>> [ [ build ], [] ]
-        1 * buildCache.setTracking(MASTER, build.getRepository().getSlug(), 1337, TravisBuildMonitor.TRACKING_TTL)
+        1 * buildCache.setTracking(MASTER, build.getRepository().getSlug(), 1337, TravisBuildMonitor.TRACKING_TTL_SECS)
         2 * buildCache.getTrackedBuilds(MASTER) >> [ [ buildId: "1337" ] ]
         1 * travisService.getV3Build(1337) >> build
         2 * travisService.getGenericBuild(_, _) >> { V3Build b, boolean fetchLogs ->

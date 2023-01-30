@@ -94,10 +94,10 @@ public class BuildCache {
         });
   }
 
-  public void setTTL(String key, int ttl) {
+  public void setTTL(String key, int ttlSeconds) {
     redisClientDelegate.withCommandsClient(
         c -> {
-          c.expire(key, ttl);
+          c.expire(key, ttlSeconds);
         });
   }
 
@@ -157,13 +157,13 @@ public class BuildCache {
     return builds;
   }
 
-  public void setTracking(String master, String job, int buildId, int ttl) {
+  public void setTracking(String master, String job, int buildId, int ttlSeconds) {
     String key = makeTrackKey(master, job, buildId);
     redisClientDelegate.withCommandsClient(
         c -> {
           c.set(key, "marked as running");
         });
-    setTTL(key, ttl);
+    setTTL(key, ttlSeconds);
   }
 
   public void deleteTracking(String master, String job, int buildId) {
