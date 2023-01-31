@@ -37,10 +37,33 @@ class CloudDriverConfigurationPropertiesSpec extends Specification {
     baseUrls*.baseUrl == expectedBaseUrls
 
     where:
-    baseUrl                 | readOnly                                                        || expectedBaseUrls
-    "http://www.google.com" | null                                                            || ["http://www.google.com"]
-    "http://www.google.com" | multiBaseUrl(["http://www.foobar.com"])                         || ["http://www.foobar.com"]
-    "http://www.google.com" | multiBaseUrl(["http://www.foobar.com", "http://www.yahoo.com"]) || ["http://www.foobar.com", "http://www.yahoo.com"]
+    baseUrl                   | readOnly                                                                           || expectedBaseUrls
+    "http://clouddriver:7002" | null                                                                               || ["http://clouddriver:7002"]
+    "http://clouddriver:7002" | multiBaseUrl(["http://clouddriver-read:7002"])                                     || ["http://clouddriver-read:7002"]
+    "http://clouddriver:7002" | multiBaseUrl(["http://clouddriver-read-1:7002", "http://clouddriver-read-2:7002"]) || ["http://clouddriver-read-1:7002", "http://clouddriver-read-2:7002"]
+  }
+
+  @Unroll
+  def "supports 0..* write-only base urls"() {
+    given:
+    def config = new CloudDriverConfigurationProperties(
+        clouddriver: new CloudDriverConfigurationProperties.CloudDriver(
+            baseUrl: baseUrl,
+            writeonly: writeOnly
+        )
+    )
+
+    when:
+    def baseUrls = config.cloudDriverWriteOnlyBaseUrls
+
+    then:
+    baseUrls*.baseUrl == expectedBaseUrls
+
+    where:
+    baseUrl                   | writeOnly                                                                            || expectedBaseUrls
+    "http://clouddriver:7002" | null                                                                                 || ["http://clouddriver:7002"]
+    "http://clouddriver:7002" | multiBaseUrl(["http://clouddriver-write:7002"])                                      || ["http://clouddriver-write:7002"]
+    "http://clouddriver:7002" | multiBaseUrl(["http://clouddriver-write-1:7002", "http://clouddriver-write-2:7002"]) || ["http://clouddriver-write-1:7002", "http://clouddriver-write-2:7002"]
   }
 
   private static CloudDriverConfigurationProperties.MultiBaseUrl multiBaseUrl(List<String> baseUrls) {

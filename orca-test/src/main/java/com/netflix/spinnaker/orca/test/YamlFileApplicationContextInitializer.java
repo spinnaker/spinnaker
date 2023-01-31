@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.pipeline;
+package com.netflix.spinnaker.orca.test;
 
 import java.io.IOException;
 import java.util.List;

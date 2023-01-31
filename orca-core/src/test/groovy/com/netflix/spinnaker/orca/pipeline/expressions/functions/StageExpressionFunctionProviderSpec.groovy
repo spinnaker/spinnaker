@@ -111,7 +111,7 @@ class StageExpressionFunctionProviderSpec extends Specification {
     given:
     ExecutionContext.set(
         new ExecutionContext(
-            null, null, null, null, currentStageId, null, null
+            null, null, null, null, currentStageId, null, null, null, null
         )
     )
 
@@ -143,7 +143,7 @@ class StageExpressionFunctionProviderSpec extends Specification {
     where:
     executionContext << [
         new ExecutionContext(
-            null, null, null, null, "-1", null, null
+            null, null, null, null, "-1", null, null, null, null
         ),
         null
     ]

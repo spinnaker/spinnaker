@@ -36,7 +36,9 @@ class DelegatingClouddriverService<T> {
               .withAuthenticatedUser(executionContext.getAuthenticatedUser())
               .withExecutionType(executionContext.getExecutionType())
               .withExecutionId(executionContext.getExecutionId())
-              .withOrigin(executionContext.getOrigin());
+              .withOrigin(executionContext.getOrigin())
+              .withAccount(executionContext.getAccount())
+              .withCloudProvider(executionContext.getCloudProvider());
     }
 
     return (T) selectableService.getService(criteria);

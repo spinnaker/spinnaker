@@ -27,6 +27,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.config.ExecutionConfigurationProperties;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
+import com.netflix.spinnaker.orca.test.YamlFileApplicationContextInitializer;
 import java.time.Clock;
 import java.util.Map;
 import java.util.Optional;

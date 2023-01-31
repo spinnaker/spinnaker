@@ -28,6 +28,7 @@ import com.netflix.spinnaker.kork.web.selector.SelectableService;
 import com.netflix.spinnaker.kork.web.selector.ServiceSelector;
 import com.netflix.spinnaker.orca.api.operations.OperationsRunner;
 import com.netflix.spinnaker.orca.clouddriver.*;
+import com.netflix.spinnaker.orca.clouddriver.config.CloudDriverConfigurationProperties.BaseUrl;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration;
 import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog;
@@ -100,11 +101,103 @@ public class CloudDriverConfiguration {
       this.cloudDriverConfigurationProperties = cloudDriverConfigurationProperties;
     }
 
-    public <T> T buildWriteableService(Class<T> type) {
-      return buildService(type, cloudDriverConfigurationProperties.getCloudDriverBaseUrl());
+    /**
+     * Builds a {@link SelectableService} for a read Clouddriver endpoint. This method gets any
+     * readonly URLs configured in the profile and then for each constructs a {@link
+     * ServiceSelector} based on the criteria configured.
+     *
+     * @param type the class to construct
+     * @param <T> the type of class to construct
+     * @return a {@link SelectableService} configured with the {@link ServiceSelector} instances
+     *     from the profile
+     */
+    private <T> SelectableService buildReadOnlyService(Class<T> type) {
+      List<String> urls =
+          cloudDriverConfigurationProperties.getCloudDriverReadOnlyBaseUrls().stream()
+              .map(CloudDriverConfigurationProperties.BaseUrl::getBaseUrl)
+              .collect(Collectors.toList());
+
+      if (urls.isEmpty()
+          || urls.stream()
+              .allMatch(
+                  url -> url.equals(cloudDriverConfigurationProperties.getCloudDriverBaseUrl()))) {
+        log.info(
+            "readonly URL not configured for clouddriver, using default clouddriver {} for {}",
+            cloudDriverConfigurationProperties.getCloudDriverBaseUrl(),
+            type.getSimpleName());
+      }
+
+      List<ServiceSelector> selectors =
+          getServiceSelectors(
+              cloudDriverConfigurationProperties.getCloudDriverReadOnlyBaseUrls(), type);
+      return new SelectableService(selectors);
     }
 
-    private <T> T buildService(Class<T> type, String url) {
+    /**
+     * Builds a {@link SelectableService} for a write Clouddriver endpoint. This method gets any
+     * writeonly URLs configured in the profile and then for each constructs a {@link
+     * ServiceSelector} based on the criteria configured.
+     *
+     * @param type the class to construct
+     * @param <T> the type of class to construct
+     * @return a {@link SelectableService} configured with the {@link ServiceSelector} instances
+     *     from the profile
+     */
+    public <T> SelectableService buildWriteableService(Class<T> type) {
+      List<String> urls =
+          cloudDriverConfigurationProperties.getCloudDriverWriteOnlyBaseUrls().stream()
+              .map(CloudDriverConfigurationProperties.BaseUrl::getBaseUrl)
+              .collect(Collectors.toList());
+
+      if (urls.isEmpty()
+          || urls.stream()
+              .allMatch(
+                  url -> url.equals(cloudDriverConfigurationProperties.getCloudDriverBaseUrl()))) {
+        log.info(
+            "writeonly URL not configured for clouddriver, using default clouddriver {} for {}",
+            cloudDriverConfigurationProperties.getCloudDriverBaseUrl(),
+            type.getSimpleName());
+      }
+
+      List<ServiceSelector> selectors =
+          getServiceSelectors(
+              cloudDriverConfigurationProperties.getCloudDriverWriteOnlyBaseUrls(), type);
+      return new SelectableService(selectors);
+    }
+
+    private <T> List<ServiceSelector> getServiceSelectors(List<BaseUrl> baseUrls, Class<T> type) {
+      List<ServiceSelector> serviceSelectors = new ArrayList<>();
+
+      baseUrls.forEach(
+          url -> {
+            ServiceSelector selector =
+                new DefaultServiceSelector(
+                    buildService(type, url.getBaseUrl()), url.getPriority(), url.getConfig());
+
+            if (url.getConfig() != null && url.getConfig().get("selectorClass") != null) {
+              try {
+                Class<ServiceSelector> selectorClass =
+                    (Class<ServiceSelector>)
+                        Class.forName(url.getConfig().get("selectorClass").toString());
+                selector =
+                    (ServiceSelector)
+                        selectorClass.getConstructors()[0].newInstance(
+                            selector.getService(), selector.getPriority(), url.getConfig());
+              } catch (Exception e) {
+                log.error(
+                    "Failed to create selector for class {}", url.getConfig().get("selectorClass"));
+
+                throw new RuntimeException(e);
+              }
+            }
+
+            serviceSelectors.add(selector);
+          });
+
+      return serviceSelectors;
+    }
+
+    public <T> T buildService(Class<T> type, String url) {
       return new RestAdapter.Builder()
           .setRequestInterceptor(spinnakerRequestInterceptor)
           .setEndpoint(newFixedEndpoint(url))
@@ -117,55 +210,6 @@ public class CloudDriverConfiguration {
           .build()
           .create(type);
     }
-
-    private <T> SelectableService buildReadOnlyService(Class<T> type) {
-      List<String> urls =
-          cloudDriverConfigurationProperties.getCloudDriverReadOnlyBaseUrls().stream()
-              .map(CloudDriverConfigurationProperties.BaseUrl::getBaseUrl)
-              .collect(Collectors.toList());
-
-      if (urls.isEmpty()
-          || urls.stream()
-              .allMatch(
-                  url -> url.equals(cloudDriverConfigurationProperties.getCloudDriverBaseUrl()))) {
-        log.info(
-            "readonly URL not configured for clouddriver, using writeable clouddriver {} for {}",
-            cloudDriverConfigurationProperties.getCloudDriverBaseUrl(),
-            type.getSimpleName());
-      }
-
-      List<ServiceSelector> selectors = new ArrayList<>();
-      cloudDriverConfigurationProperties
-          .getCloudDriverReadOnlyBaseUrls()
-          .forEach(
-              url -> {
-                ServiceSelector selector =
-                    new DefaultServiceSelector(
-                        buildService(type, url.getBaseUrl()), url.getPriority(), url.getConfig());
-
-                if (url.getConfig() != null && url.getConfig().get("selectorClass") != null) {
-                  try {
-                    Class<ServiceSelector> selectorClass =
-                        (Class<ServiceSelector>)
-                            Class.forName(url.getConfig().get("selectorClass").toString());
-                    selector =
-                        (ServiceSelector)
-                            selectorClass.getConstructors()[0].newInstance(
-                                selector.getService(), selector.getPriority(), url.getConfig());
-                  } catch (Exception e) {
-                    log.error(
-                        "Failed to create selector for class {}",
-                        url.getConfig().get("selectorClass"));
-
-                    throw new RuntimeException(e);
-                  }
-                }
-
-                selectors.add(selector);
-              });
-
-      return new SelectableService(selectors);
-    }
   }
 
   @Bean
@@ -175,7 +219,8 @@ public class CloudDriverConfiguration {
 
   @Bean
   CloudDriverCacheService clouddriverCacheService(ClouddriverRetrofitBuilder builder) {
-    return builder.buildWriteableService(CloudDriverCacheService.class);
+    return new DelegatingClouddriverCacheService(
+        builder.buildWriteableService(CloudDriverCacheService.class));
   }
 
   @Bean
@@ -190,14 +235,14 @@ public class CloudDriverConfiguration {
   }
 
   @Bean
-  KatoRestService katoDeployService(ClouddriverRetrofitBuilder builder) {
-    return builder.buildWriteableService(KatoRestService.class);
-  }
-
-  @Bean
   CloudDriverTaskStatusService cloudDriverTaskStatusService(ClouddriverRetrofitBuilder builder) {
     return new DelegatingCloudDriverTaskStatusService(
         builder.buildReadOnlyService(CloudDriverTaskStatusService.class));
+  }
+
+  @Bean
+  KatoRestService katoDeployService(ClouddriverRetrofitBuilder builder) {
+    return new DelegatingKatoRestService(builder.buildWriteableService(KatoRestService.class));
   }
 
   @Bean
@@ -218,6 +263,7 @@ public class CloudDriverConfiguration {
 
   @Bean
   FeaturesRestService featuresRestService(ClouddriverRetrofitBuilder builder) {
-    return builder.buildWriteableService(FeaturesRestService.class);
+    return new DelegatingFeaturesRestService(
+        builder.buildWriteableService(FeaturesRestService.class));
   }
 }

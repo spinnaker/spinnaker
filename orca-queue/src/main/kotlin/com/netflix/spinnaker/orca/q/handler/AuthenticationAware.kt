@@ -30,6 +30,9 @@ interface AuthenticationAware {
 
   fun StageExecution.withAuth(block: () -> Unit) {
     val currentUser = retrieveAuthenticatedUser(this) ?: execution.authentication
+    val account = this.context.getOrDefault("account", "unknown") as String
+    val cloudProvider = this.context.getOrDefault("cloudProvider", "unknown") as String
+
     try {
       ExecutionContext.set(
         ExecutionContext(
@@ -39,6 +42,8 @@ interface AuthenticationAware {
           execution.id,
           this.id,
           execution.origin,
+          account.toLowerCase(),
+          cloudProvider.toLowerCase(),
           this.startTime
         )
       )

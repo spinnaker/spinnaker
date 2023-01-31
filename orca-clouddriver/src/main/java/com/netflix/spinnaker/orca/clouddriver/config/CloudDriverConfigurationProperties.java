@@ -28,6 +28,32 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * NB: The explicit @Getter, @Setter and @NoArgsConstructor on some of these inner classes is
  * required. Some weird behaviour going on when using @Data prevented fields from being populated.
  * See spinnaker/#6704.
+ *
+ * <p>Clouddriver sharding can be configured as below. For each option (readonly, writeonly) if no
+ * configuration is provided Orca will default to clouddriver.baseUrl.
+ *
+ * <pre>
+ * clouddriver:
+ *   baseUrl: http://clouddriver.example.com
+ *   readonly:
+ *     baseUrls:
+ *     - baseUrl: https://clouddriver-readonly-orca-1.example.com
+ *       priority: 10
+ *       config:
+ *         selectorClass: com.netflix.spinnaker.orca.clouddriver.config.ByExecutionTypeServiceSelector
+ *         executionTypes:
+ *           - orchestration
+ *     - baseUrl: https://clouddriver-readonly-orca.example.com
+ *   writeonly:
+ *     baseUrls:
+ *     - baseUrl: https://clouddriver-write-kubernetes.example.com
+ *       priority: 10
+ *       config:
+ *         selectorClass: com.netflix.spinnaker.kork.web.selector.ByCloudProviderServiceSelector
+ *         cloudProviders:
+ *           - kubernetes
+ *     - baseUrl: https://clouddriver-write-other.example.com
+ * </pre>
  */
 @Data
 @ConfigurationProperties
@@ -58,6 +84,7 @@ public class CloudDriverConfigurationProperties {
   public static class CloudDriver {
     private String baseUrl;
     private MultiBaseUrl readonly;
+    private MultiBaseUrl writeonly;
   }
 
   private BaseUrl mort;
@@ -80,15 +107,27 @@ public class CloudDriverConfigurationProperties {
   }
 
   public List<BaseUrl> getCloudDriverReadOnlyBaseUrls() {
-    if (clouddriver != null
-        && clouddriver.readonly != null
-        && clouddriver.readonly.baseUrl != null) {
-      BaseUrl url = new BaseUrl(clouddriver.readonly.baseUrl);
-      return List.of(url);
-    } else if (clouddriver != null
-        && clouddriver.readonly != null
-        && clouddriver.readonly.baseUrls != null) {
-      return clouddriver.readonly.baseUrls;
+    if (clouddriver != null && clouddriver.readonly != null) {
+      if (clouddriver.readonly.baseUrl != null) {
+        BaseUrl url = new BaseUrl(clouddriver.readonly.baseUrl);
+        return List.of(url);
+      } else if (clouddriver.readonly.baseUrls != null) {
+        return clouddriver.readonly.baseUrls;
+      }
+    }
+
+    BaseUrl url = new BaseUrl(getCloudDriverBaseUrl());
+    return List.of(url);
+  }
+
+  public List<BaseUrl> getCloudDriverWriteOnlyBaseUrls() {
+    if (clouddriver != null && clouddriver.writeonly != null) {
+      if (clouddriver.writeonly.baseUrl != null) {
+        BaseUrl url = new BaseUrl(clouddriver.writeonly.baseUrl);
+        return List.of(url);
+      } else if (clouddriver.writeonly.baseUrls != null) {
+        return clouddriver.writeonly.baseUrls;
+      }
     }
 
     BaseUrl url = new BaseUrl(getCloudDriverBaseUrl());

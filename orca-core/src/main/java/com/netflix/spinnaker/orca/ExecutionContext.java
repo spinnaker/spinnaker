@@ -25,6 +25,8 @@ public class ExecutionContext {
   private final String executionId;
   private final String stageId;
   private final String origin;
+  private final String account;
+  private final String cloudProvider;
   private final Long stageStartTime;
 
   public ExecutionContext(
@@ -34,6 +36,8 @@ public class ExecutionContext {
       String executionId,
       String stageId,
       String origin,
+      String account,
+      String cloudProvider,
       Long stageStartTime) {
     this.application = application;
     this.authenticatedUser = authenticatedUser;
@@ -41,6 +45,8 @@ public class ExecutionContext {
     this.executionId = executionId;
     this.stageId = stageId;
     this.origin = origin;
+    this.account = account;
+    this.cloudProvider = cloudProvider;
     this.stageStartTime = stageStartTime;
   }
 
@@ -78,6 +84,14 @@ public class ExecutionContext {
 
   public String getStageId() {
     return stageId;
+  }
+
+  public String getAccount() {
+    return account;
+  }
+
+  public String getCloudProvider() {
+    return cloudProvider;
   }
 
   public Long getStageStartTime() {
