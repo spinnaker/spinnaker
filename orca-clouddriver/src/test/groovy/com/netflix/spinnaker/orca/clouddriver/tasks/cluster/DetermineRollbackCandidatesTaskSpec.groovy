@@ -41,7 +41,8 @@ class DetermineRollbackCandidatesTaskSpec extends Specification {
       objectMapper,
       new RetrySupport(),
       cloudDriverService,
-      featuresService
+      featuresService,
+      true
   )
 
   def stage = stage {
@@ -54,6 +55,25 @@ class DetermineRollbackCandidatesTaskSpec extends Specification {
             cluster: "app-stack-details"
         ]
     ]
+  }
+
+  def "should use default timeout" () {
+    given: "The user preferred rollbackTimeout is not present in the context"
+
+    when: "The dynamicRollback is enabled"
+
+    then: "The rollback timeout used is the default value"
+    task.getDynamicTimeout(stage) == 300000
+  }
+
+  def "should use dynamic timeout" () {
+    given: "The user preferred rollbackTimeout is present in the context"
+    stage.context["rollbackTimeout"] = 2
+
+    when: "The dynamicRollback is enabled"
+
+    then: "The rollback timeout used is the user's choice"
+    task.getDynamicTimeout(stage) == 120000
   }
 
   def "should EXPLICIT-ly roll back to original ASG when original cluster is in context"() {
