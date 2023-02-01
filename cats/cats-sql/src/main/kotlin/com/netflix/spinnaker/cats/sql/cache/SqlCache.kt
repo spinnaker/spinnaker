@@ -699,7 +699,7 @@ class SqlCache(
       .toSet()
 
     if (sourceAgents.isEmpty()) {
-      log.warn("no relationships found for type $type")
+      log.info("no relationships found for type $type")
       return result
     }
 
