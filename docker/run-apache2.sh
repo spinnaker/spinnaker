@@ -78,6 +78,8 @@ fi
 if [ -e /opt/spinnaker/config/settings-local.js ];
 then 
 	cp /opt/spinnaker/config/settings-local.js /opt/deck/html/settings-local.js
+	# Apache user must be the owner of settings-local.js file, not spinnaker user, so that it can display custom profiles features on Deck UI
+	chown www-data /opt/deck/html/settings-local.js
 fi
 
 if [ -e /opt/spinnaker/config/plugin-manifest.json ];
