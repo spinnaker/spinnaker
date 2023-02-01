@@ -25,74 +25,76 @@ module(CORE_WIDGETS_ACCOUNTNAMESPACECLUSTERSELECTOR_COMPONENT, []).directive(
       templateUrl: require('./accountNamespaceClusterSelector.component.html'),
       controllerAs: 'vm',
       controller: function controller() {
-        this.clusterField = this.clusterField || 'cluster';
+        this.$onInit = () => {
+          this.clusterField = this.clusterField || 'cluster';
 
-        const vm = this;
-        let isTextInputForClusterFiled;
+          const vm = this;
+          let isTextInputForClusterFiled;
 
-        let namespaces;
+          let namespaces;
 
-        const setNamespaceList = () => {
-          const accountFilter = (cluster) => (cluster ? cluster.account === vm.component.credentials : true);
-          // TODO(lwander): Move away from regions to namespaces here.
-          const namespaceList = AppListExtractor.getRegions([vm.application], accountFilter);
-          vm.namespaces = namespaceList.length ? namespaceList : namespaces;
-        };
+          const setNamespaceList = () => {
+            const accountFilter = (cluster) => (cluster ? cluster.account === vm.component.credentials : true);
+            // TODO(lwander): Move away from regions to namespaces here.
+            const namespaceList = AppListExtractor.getRegions([vm.application], accountFilter);
+            vm.namespaces = namespaceList.length ? namespaceList : namespaces;
+          };
 
-        const setClusterList = () => {
-          const namespaceField = vm.component.namespaces;
-          // TODO(lwander): Move away from regions to namespaces here.
-          const clusterFilter = AppListExtractor.clusterFilterForCredentialsAndRegion(
-            vm.component.credentials,
-            namespaceField,
-          );
-          vm.clusterList = AppListExtractor.getClusters([vm.application], clusterFilter);
-        };
+          const setClusterList = () => {
+            const namespaceField = vm.component.namespaces;
+            // TODO(lwander): Move away from regions to namespaces here.
+            const clusterFilter = AppListExtractor.clusterFilterForCredentialsAndRegion(
+              vm.component.credentials,
+              namespaceField,
+            );
+            vm.clusterList = AppListExtractor.getClusters([vm.application], clusterFilter);
+          };
 
-        vm.namespaceChanged = () => {
-          setClusterList();
-          if (!isTextInputForClusterFiled && !_.includes(vm.clusterList, vm.component[this.clusterField])) {
+          vm.namespaceChanged = () => {
+            setClusterList();
+            if (!isTextInputForClusterFiled && !_.includes(vm.clusterList, vm.component[this.clusterField])) {
+              vm.component[this.clusterField] = undefined;
+            }
+          };
+
+          const setToggledState = () => {
+            vm.namespaces = namespaces;
+            isTextInputForClusterFiled = true;
+          };
+
+          const setUnToggledState = () => {
             vm.component[this.clusterField] = undefined;
-          }
-        };
+            isTextInputForClusterFiled = false;
+            setNamespaceList();
+          };
 
-        const setToggledState = () => {
-          vm.namespaces = namespaces;
-          isTextInputForClusterFiled = true;
-        };
+          vm.clusterSelectInputToggled = (isToggled) => {
+            isToggled ? setToggledState() : setUnToggledState();
+          };
 
-        const setUnToggledState = () => {
-          vm.component[this.clusterField] = undefined;
-          isTextInputForClusterFiled = false;
-          setNamespaceList();
-        };
+          vm.accountUpdated = () => {
+            vm.component[this.clusterField] = undefined;
+            setNamespaceList();
+            setClusterList();
+          };
 
-        vm.clusterSelectInputToggled = (isToggled) => {
-          isToggled ? setToggledState() : setUnToggledState();
-        };
+          const init = () => {
+            AccountService.getUniqueAttributeForAllAccounts(vm.component.cloudProviderType, 'namespaces')
+              .then((allNamespaces) => {
+                namespaces = allNamespaces;
+                return allNamespaces;
+              })
+              .then((allNamespaces) => {
+                setNamespaceList();
+                setClusterList();
+                vm.namespaces = _.includes(vm.clusterList, vm.component[this.clusterField])
+                  ? vm.namespaces
+                  : allNamespaces;
+              });
+          };
 
-        vm.accountUpdated = () => {
-          vm.component[this.clusterField] = undefined;
-          setNamespaceList();
-          setClusterList();
+          init();
         };
-
-        const init = () => {
-          AccountService.getUniqueAttributeForAllAccounts(vm.component.cloudProviderType, 'namespaces')
-            .then((allNamespaces) => {
-              namespaces = allNamespaces;
-              return allNamespaces;
-            })
-            .then((allNamespaces) => {
-              setNamespaceList();
-              setClusterList();
-              vm.namespaces = _.includes(vm.clusterList, vm.component[this.clusterField])
-                ? vm.namespaces
-                : allNamespaces;
-            });
-        };
-
-        init();
       },
     };
   },
