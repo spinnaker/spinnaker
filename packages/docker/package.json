@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/docker",
   "license": "Apache-2.0",
-  "version": "0.0.136",
+  "version": "0.0.137",
   "module": "dist/index.js",
   "typings": "dist/index.d.ts",
   "scripts": {
@@ -13,7 +13,7 @@
     "lib": "npm run build"
   },
   "dependencies": {
-    "@spinnaker/core": "^0.22.2",
+    "@spinnaker/core": "^0.23.0",
     "@uirouter/angularjs": "1.0.26",
     "angular": "1.6.10",
     "formik": "1.5.1",

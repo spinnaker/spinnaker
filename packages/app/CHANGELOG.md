@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.4.0](https://github.com/spinnaker/deck/compare/deck-app@2.3.3...deck-app@2.4.0) (2023-02-01)
+
+
+### Features
+
+* **pipeline:** added feature flag for pipeline when mj stage child ([#9914](https://github.com/spinnaker/deck/issues/9914)) ([4b6fd53](https://github.com/spinnaker/deck/commit/4b6fd53c4674b37c1c9742b9a9fdedb8e1fda5ca))
+
+
+
+
+
 ## [2.3.3](https://github.com/spinnaker/deck/compare/deck-app@2.3.2...deck-app@2.3.3) (2022-10-21)
 
 **Note:** Version bump only for package deck-app

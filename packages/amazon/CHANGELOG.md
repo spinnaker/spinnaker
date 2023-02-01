@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.13.4](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.13.3...@spinnaker/amazon@0.13.4) (2023-02-01)
+
+
+### Bug Fixes
+
+* **aws:** Fixing AWS AZ auto rebalancing section by setting the default zones ([#9902](https://github.com/spinnaker/deck/issues/9902)) ([10bec86](https://github.com/spinnaker/deck/commit/10bec860ade8de2a4c838746ff3b5b12dd0b4cfd))
+* **aws:** Fixing bugs related to clone CX when instance types are incompatible with image/region ([#9901](https://github.com/spinnaker/deck/issues/9901)) ([d7290c4](https://github.com/spinnaker/deck/commit/d7290c4d61d880c0b5dfa3abb1573e1b0550603e))
+* **aws:** Guard against missing launchConfig.instanceMonitoring ([#9917](https://github.com/spinnaker/deck/issues/9917)) ([b103ed0](https://github.com/spinnaker/deck/commit/b103ed087199aa33b83c59704f5e735f04e81244))
+
+
+
+
+
 ## [0.13.3](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.13.2...@spinnaker/amazon@0.13.3) (2022-10-21)
 
 

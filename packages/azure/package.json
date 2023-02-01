@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/azure",
   "license": "Apache-2.0",
-  "version": "0.3.31",
+  "version": "0.4.0",
   "module": "dist/index.js",
   "typings": "dist/index.d.ts",
   "scripts": {
@@ -13,7 +13,7 @@
     "lib": "npm run build"
   },
   "dependencies": {
-    "@spinnaker/core": "^0.22.2",
+    "@spinnaker/core": "^0.23.0",
     "@uirouter/angularjs": "1.0.26",
     "angular": "1.6.10",
     "angular-ui-bootstrap": "2.5.0",

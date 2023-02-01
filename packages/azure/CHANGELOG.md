@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.4.0](https://github.com/spinnaker/deck/compare/@spinnaker/azure@0.3.31...@spinnaker/azure@0.4.0) (2023-02-01)
+
+
+### Bug Fixes
+
+* **azure:** Register Azure Bake Execution Details Controller ([#9933](https://github.com/spinnaker/deck/issues/9933)) ([809475c](https://github.com/spinnaker/deck/commit/809475cb79ce5bc1048c362f3d440750151e71f6))
+
+
+### Features
+
+* **Azure:** Update UI to handle custom and managed images. ([#9910](https://github.com/spinnaker/deck/issues/9910)) ([a9057b4](https://github.com/spinnaker/deck/commit/a9057b44f035fc76a7eb461cd2c28c420791457c))
+
+
+
+
+
 ## [0.3.31](https://github.com/spinnaker/deck/compare/@spinnaker/azure@0.3.30...@spinnaker/azure@0.3.31) (2022-10-21)
 
 **Note:** Version bump only for package @spinnaker/azure

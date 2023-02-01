@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.4.0](https://github.com/spinnaker/deck/compare/@spinnaker/kubernetes@0.3.2...@spinnaker/kubernetes@0.4.0) (2023-02-01)
+
+
+### Features
+
+* **Blue/Green:** Add warning label and enhance disable/enable manifest stage with Deployment kind. ([#9928](https://github.com/spinnaker/deck/issues/9928)) ([6620787](https://github.com/spinnaker/deck/commit/66207875f1386a3271ced770cd38227b5888c1da))
+* **kubernetes:** Introduce blue/green traffic management strategy ([#9911](https://github.com/spinnaker/deck/issues/9911)) ([9fb85e1](https://github.com/spinnaker/deck/commit/9fb85e13d0e1b00bb1214c6da0a01a88a2b09fd0))
+
+
+
+
+
 ## [0.3.2](https://github.com/spinnaker/deck/compare/@spinnaker/kubernetes@0.3.1...@spinnaker/kubernetes@0.3.2) (2022-10-21)
 
 **Note:** Version bump only for package @spinnaker/kubernetes

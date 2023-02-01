@@ -3,6 +3,26 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.23.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.22.2...@spinnaker/core@0.23.0) (2023-02-01)
+
+
+### Bug Fixes
+
+* **core:** Missing config elements after Angular 1.8 update ([#9936](https://github.com/spinnaker/deck/issues/9936)) ([884665a](https://github.com/spinnaker/deck/commit/884665a78cb91bb01e533fdd8be65a3a5de19019))
+* **helm:** update tooltip to not include Chart.yaml ([#9934](https://github.com/spinnaker/deck/issues/9934)) ([a55f6f3](https://github.com/spinnaker/deck/commit/a55f6f335b51f76f3a8a79ac698884253d7b1076))
+
+
+### Features
+
+* **Azure:** Update UI to handle custom and managed images. ([#9910](https://github.com/spinnaker/deck/issues/9910)) ([a9057b4](https://github.com/spinnaker/deck/commit/a9057b44f035fc76a7eb461cd2c28c420791457c))
+* **core/bake:** support include crds flag in Helm3 ([#9903](https://github.com/spinnaker/deck/issues/9903)) ([a10f11d](https://github.com/spinnaker/deck/commit/a10f11d33f3135963786083003e33db40f3e0b18))
+* **core/pipeline:** Add missing flag `skipDownstreamOutput` in pipeline stage ([#9930](https://github.com/spinnaker/deck/issues/9930)) ([deba01e](https://github.com/spinnaker/deck/commit/deba01ed7ba275194f51bcc0cbf414bbf3266562))
+* **pipeline:** added feature flag for pipeline when mj stage child ([#9914](https://github.com/spinnaker/deck/issues/9914)) ([4b6fd53](https://github.com/spinnaker/deck/commit/4b6fd53c4674b37c1c9742b9a9fdedb8e1fda5ca))
+
+
+
+
+
 ## [0.22.2](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.22.1...@spinnaker/core@0.22.2) (2022-10-21)
 
 
