@@ -16,35 +16,49 @@
 
 package com.netflix.kayenta.prometheus.config;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.netflix.kayenta.prometheus.service.PrometheusRemoteService;
 import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.security.AccountCredentials;
 import java.util.Collections;
 import java.util.List;
 import javax.validation.constraints.NotNull;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
-@Data
-public class PrometheusManagedAccount {
-
-  @NotNull private String name;
+@Getter
+@Setter
+@SuperBuilder
+@NoArgsConstructor
+public class PrometheusManagedAccount extends AccountCredentials<PrometheusManagedAccount> {
 
   // Location of prometheus server.
-  @NotNull @Getter @Setter private RemoteService endpoint;
+  @NotNull private RemoteService endpoint;
 
   // Optional parameter for use when protecting prometheus with basic auth.
   private String username;
 
   // Optional parameter for use when protecting prometheus with basic auth.
-  private String password;
+  @JsonIgnore private String password;
 
   // Optional parameter for use when protecting prometheus with basic auth.
   private String usernamePasswordFile;
 
-  private List<AccountCredentials.Type> supportedTypes =
-      Collections.singletonList(AccountCredentials.Type.METRICS_STORE);
+  public List<Type> getSupportedTypes() {
+    return Collections.singletonList(AccountCredentials.Type.METRICS_STORE);
+  }
 
   // Optional parameter for use when protecting prometheus with bearer token.
-  private String bearerToken;
+  @JsonIgnore private String bearerToken;
+  @JsonIgnore transient PrometheusRemoteService prometheusRemoteService;
+
+  @Override
+  public String getType() {
+    return "prometheus";
+  }
+
+  @Override
+  public PrometheusManagedAccount getCredentials() {
+    return this;
+  }
 }

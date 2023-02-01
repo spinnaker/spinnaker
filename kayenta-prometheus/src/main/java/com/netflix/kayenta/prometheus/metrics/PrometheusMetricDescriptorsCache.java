@@ -16,9 +16,9 @@
 
 package com.netflix.kayenta.prometheus.metrics;
 
+import com.netflix.kayenta.prometheus.config.PrometheusManagedAccount;
 import com.netflix.kayenta.prometheus.model.PrometheusMetricDescriptor;
 import com.netflix.kayenta.prometheus.model.PrometheusMetricDescriptorsResponse;
-import com.netflix.kayenta.prometheus.security.PrometheusNamedAccountCredentials;
 import com.netflix.kayenta.prometheus.service.PrometheusRemoteService;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
@@ -76,8 +76,8 @@ public class PrometheusMetricDescriptorsCache {
 
     Map<String, List<PrometheusMetricDescriptor>> updatedCache =
         accountCredentialsSet.stream()
-            .filter(credentials -> credentials instanceof PrometheusNamedAccountCredentials)
-            .map(credentials -> (PrometheusNamedAccountCredentials) credentials)
+            .filter(credentials -> credentials instanceof PrometheusManagedAccount)
+            .map(credentials -> (PrometheusManagedAccount) credentials)
             .map(this::listMetricDescriptors)
             .filter(this::isSuccessful)
             .filter(this::hasData)
@@ -101,7 +101,7 @@ public class PrometheusMetricDescriptorsCache {
     return descriptors;
   }
 
-  private AccountResponse listMetricDescriptors(PrometheusNamedAccountCredentials credentials) {
+  private AccountResponse listMetricDescriptors(PrometheusManagedAccount credentials) {
     PrometheusRemoteService prometheusRemoteService = credentials.getPrometheusRemoteService();
     PrometheusMetricDescriptorsResponse remoteResponse =
         prometheusRemoteService.listMetricDescriptors();

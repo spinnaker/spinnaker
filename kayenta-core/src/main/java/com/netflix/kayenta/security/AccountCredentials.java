@@ -17,24 +17,31 @@
 package com.netflix.kayenta.security;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
-public interface AccountCredentials<T> {
-  String getName();
+@Getter
+@Setter
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(of = "name")
+public abstract class AccountCredentials<T> {
+  private String name;
+  @Builder.Default private List<Type> supportedTypes = new ArrayList<>();
 
-  String getType();
-
-  List<Type> getSupportedTypes();
+  public abstract String getType();
 
   /*
    * If this account provides a metrics service, return a list of valid "location" values for the metric
    * scope.  This is used as a UI hint.  If the service cannot enumerate the locations, it should return
    * an empty list, and the UI may provide an input field rather than a selection.
    */
-  default List<String> getLocations() {
-    return Collections.emptyList();
-  }
+
+  @Builder.Default private List<String> locations = Collections.emptyList();
 
   /*
    * If this account provides a recommended list of locations, this can also be used by the UI to limit
@@ -42,14 +49,12 @@ public interface AccountCredentials<T> {
    * present even if locations() returns an empty list; this would imply that there are commonly
    * used locations, but the full list is unknown by the metrics service.
    */
-  default List<String> getRecommendedLocations() {
-    return Collections.emptyList();
-  }
+  @Builder.Default private List<String> recommendedLocations = Collections.emptyList();
 
   @JsonIgnore
-  T getCredentials();
+  public abstract T getCredentials();
 
-  enum Type {
+  public enum Type {
     METRICS_STORE,
     OBJECT_STORE,
     CONFIGURATION_STORE,

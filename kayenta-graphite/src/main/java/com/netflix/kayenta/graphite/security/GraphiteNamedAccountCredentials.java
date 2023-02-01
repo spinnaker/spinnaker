@@ -21,19 +21,15 @@ import com.netflix.kayenta.canary.providers.metrics.GraphiteCanaryMetricSetQuery
 import com.netflix.kayenta.graphite.service.GraphiteRemoteService;
 import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.security.AccountCredentials;
-import java.util.List;
 import javax.validation.constraints.NotNull;
-import lombok.Builder;
-import lombok.Data;
-import lombok.Singular;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
-@Builder
-@Data
-public class GraphiteNamedAccountCredentials implements AccountCredentials<GraphiteCredentials> {
-  @NotNull private String name;
-
-  @NotNull @Singular private List<Type> supportedTypes;
-
+@Getter
+@Setter
+@SuperBuilder
+@NoArgsConstructor
+public class GraphiteNamedAccountCredentials extends AccountCredentials<GraphiteCredentials> {
   @NotNull private GraphiteCredentials credentials;
 
   @NotNull private RemoteService endpoint;

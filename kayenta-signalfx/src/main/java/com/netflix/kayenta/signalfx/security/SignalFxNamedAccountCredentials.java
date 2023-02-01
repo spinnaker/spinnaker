@@ -23,13 +23,14 @@ import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.signalfx.service.SignalFxSignalFlowRemoteService;
 import java.util.List;
 import javax.validation.constraints.NotNull;
-import lombok.Builder;
-import lombok.Data;
-import lombok.Singular;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
-@Builder
-@Data
-public class SignalFxNamedAccountCredentials implements AccountCredentials<SignalFxCredentials> {
+@Getter
+@Setter
+@SuperBuilder
+@NoArgsConstructor
+public class SignalFxNamedAccountCredentials extends AccountCredentials<SignalFxCredentials> {
 
   @NotNull private String name;
 

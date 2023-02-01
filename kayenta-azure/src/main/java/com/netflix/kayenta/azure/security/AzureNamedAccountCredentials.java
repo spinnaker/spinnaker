@@ -17,21 +17,19 @@
 package com.netflix.kayenta.azure.security;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.microsoft.azure.storage.blob.*;
+import com.microsoft.azure.storage.blob.CloudBlobContainer;
 import com.netflix.kayenta.security.AccountCredentials;
-import java.util.List;
 import javax.validation.constraints.NotNull;
-import lombok.Builder;
-import lombok.Data;
-import lombok.Singular;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
-@Builder
-@Data
-public class AzureNamedAccountCredentials implements AccountCredentials<AzureCredentials> {
-
-  @NotNull private String name;
-
-  @NotNull @Singular private List<Type> supportedTypes;
+@SuperBuilder
+@Getter
+@Setter
+@NoArgsConstructor
+public class AzureNamedAccountCredentials extends AccountCredentials<AzureCredentials> {
 
   @NotNull private AzureCredentials credentials;
 

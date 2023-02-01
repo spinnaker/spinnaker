@@ -17,7 +17,7 @@
 package com.netflix.kayenta.prometheus.health;
 
 import com.netflix.kayenta.prometheus.config.PrometheusConfigurationProperties;
-import com.netflix.kayenta.prometheus.security.PrometheusNamedAccountCredentials;
+import com.netflix.kayenta.prometheus.config.PrometheusManagedAccount;
 import com.netflix.kayenta.prometheus.service.PrometheusRemoteService;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import java.util.List;
@@ -60,8 +60,8 @@ public class PrometheusHealthJob {
                 })
             .filter(Optional::isPresent)
             .map(Optional::get)
-            .filter(credentials -> credentials instanceof PrometheusNamedAccountCredentials)
-            .map(credentials -> ((PrometheusNamedAccountCredentials) credentials))
+            .filter(credentials -> credentials instanceof PrometheusManagedAccount)
+            .map(credentials -> ((PrometheusManagedAccount) credentials))
             .map(
                 credentials -> {
                   try {

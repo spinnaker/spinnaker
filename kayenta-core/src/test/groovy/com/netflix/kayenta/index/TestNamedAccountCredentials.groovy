@@ -18,10 +18,15 @@ package com.netflix.kayenta.index
 
 import com.netflix.kayenta.security.AccountCredentials
 
-class TestNamedAccountCredentials implements AccountCredentials<TestCredentials> {
+class TestNamedAccountCredentials extends AccountCredentials<TestCredentials> {
 
-  String name = "some-account"
-  String type = "some-platform"
+  String getName() {
+    return "some-account";
+  }
+
+  String getType() {
+    return "some-platform";
+  }
 
   @Override
   List<AccountCredentials.Type> getSupportedTypes() {

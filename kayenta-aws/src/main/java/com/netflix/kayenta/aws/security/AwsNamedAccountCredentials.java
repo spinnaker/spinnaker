@@ -19,19 +19,15 @@ package com.netflix.kayenta.aws.security;
 import com.amazonaws.services.s3.AmazonS3;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.kayenta.security.AccountCredentials;
-import java.util.List;
 import javax.validation.constraints.NotNull;
-import lombok.Builder;
-import lombok.Data;
-import lombok.Singular;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
-@Builder
-@Data
-public class AwsNamedAccountCredentials implements AccountCredentials<AwsCredentials> {
-
-  @NotNull private String name;
-
-  @NotNull @Singular private List<Type> supportedTypes;
+@SuperBuilder
+@Setter
+@Getter
+public class AwsNamedAccountCredentials extends AccountCredentials<AwsCredentials> {
 
   @NotNull private AwsCredentials credentials;
 

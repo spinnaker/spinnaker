@@ -20,18 +20,17 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.kayenta.datadog.service.DatadogRemoteService;
 import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.security.AccountCredentials;
-import java.util.List;
 import javax.validation.constraints.NotNull;
-import lombok.Builder;
-import lombok.Data;
-import lombok.Singular;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
-@Builder
-@Data
-public class DatadogNamedAccountCredentials implements AccountCredentials<DatadogCredentials> {
-  @NotNull private String name;
-
-  @NotNull @Singular private List<Type> supportedTypes;
+@SuperBuilder
+@Getter
+@Setter
+@NoArgsConstructor
+public class DatadogNamedAccountCredentials extends AccountCredentials<DatadogCredentials> {
 
   @NotNull private DatadogCredentials credentials;
 

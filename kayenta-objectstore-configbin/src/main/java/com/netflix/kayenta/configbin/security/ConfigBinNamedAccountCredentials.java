@@ -20,18 +20,18 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.kayenta.configbin.service.ConfigBinRemoteService;
 import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.security.AccountCredentials;
-import java.util.List;
 import javax.validation.constraints.NotNull;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
-@Builder
-@Data
+@SuperBuilder
+@Getter
+@Setter
+@NoArgsConstructor
 public class ConfigBinNamedAccountCredentials
-    implements AccountCredentials<ConfigBinAccountCredentials> {
-
-  @NotNull private String name;
-
-  @NotNull @Singular private List<Type> supportedTypes;
+    extends AccountCredentials<ConfigBinAccountCredentials> {
 
   @NotNull private ConfigBinAccountCredentials credentials;
 

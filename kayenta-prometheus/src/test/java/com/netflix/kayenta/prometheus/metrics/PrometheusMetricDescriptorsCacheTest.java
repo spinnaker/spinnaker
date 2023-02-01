@@ -21,8 +21,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.netflix.kayenta.prometheus.config.PrometheusManagedAccount;
 import com.netflix.kayenta.prometheus.model.PrometheusMetricDescriptorsResponse;
-import com.netflix.kayenta.prometheus.security.PrometheusNamedAccountCredentials;
 import com.netflix.kayenta.prometheus.service.PrometheusRemoteService;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
@@ -71,7 +71,7 @@ public class PrometheusMetricDescriptorsCacheTest {
     when(accountCredentialRepo.getAllOf(AccountCredentials.Type.METRICS_STORE))
         .thenReturn(
             Collections.singleton(
-                PrometheusNamedAccountCredentials.builder()
+                PrometheusManagedAccount.builder()
                     .name(ACCOUNT_1)
                     .prometheusRemoteService(prometheusRemote1)
                     .build()));
@@ -98,7 +98,7 @@ public class PrometheusMetricDescriptorsCacheTest {
     when(accountCredentialRepo.getAllOf(AccountCredentials.Type.METRICS_STORE))
         .thenReturn(
             Collections.singleton(
-                PrometheusNamedAccountCredentials.builder()
+                PrometheusManagedAccount.builder()
                     .name(ACCOUNT_1)
                     .prometheusRemoteService(prometheusRemote1)
                     .build()));
@@ -119,7 +119,7 @@ public class PrometheusMetricDescriptorsCacheTest {
     when(accountCredentialRepo.getAllOf(AccountCredentials.Type.METRICS_STORE))
         .thenReturn(
             Collections.singleton(
-                PrometheusNamedAccountCredentials.builder()
+                PrometheusManagedAccount.builder()
                     .name(ACCOUNT_1)
                     .prometheusRemoteService(prometheusRemote1)
                     .build()));
@@ -147,7 +147,7 @@ public class PrometheusMetricDescriptorsCacheTest {
     when(accountCredentialRepo.getAllOf(AccountCredentials.Type.METRICS_STORE))
         .thenReturn(
             Collections.singleton(
-                PrometheusNamedAccountCredentials.builder()
+                PrometheusManagedAccount.builder()
                     .name(ACCOUNT_1)
                     .prometheusRemoteService(prometheusRemote1)
                     .build()));
@@ -164,7 +164,7 @@ public class PrometheusMetricDescriptorsCacheTest {
     when(accountCredentialRepo.getAllOf(AccountCredentials.Type.METRICS_STORE))
         .thenReturn(
             Collections.singleton(
-                PrometheusNamedAccountCredentials.builder()
+                PrometheusManagedAccount.builder()
                     .name(ACCOUNT_1)
                     .prometheusRemoteService(prometheusRemote1)
                     .build()));
@@ -193,7 +193,7 @@ public class PrometheusMetricDescriptorsCacheTest {
     verify(accountCredentialRepo).getAllOf(AccountCredentials.Type.METRICS_STORE);
   }
 
-  public static class TestAccountCredentials implements AccountCredentials<String> {
+  public static class TestAccountCredentials extends AccountCredentials<String> {
 
     @Override
     public String getName() {

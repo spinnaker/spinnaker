@@ -20,19 +20,15 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.api.services.monitoring.v3.Monitoring;
 import com.google.api.services.storage.Storage;
 import com.netflix.kayenta.security.AccountCredentials;
-import java.util.List;
 import javax.validation.constraints.NotNull;
-import lombok.Builder;
-import lombok.Data;
-import lombok.Singular;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
-@Builder
-@Data
-public class GoogleNamedAccountCredentials implements AccountCredentials<GoogleClientFactory> {
-
-  @NotNull private String name;
-
-  @NotNull @Singular private List<Type> supportedTypes;
+@Getter
+@Setter
+@SuperBuilder
+@NoArgsConstructor
+public class GoogleNamedAccountCredentials extends AccountCredentials<GoogleClientFactory> {
 
   @NotNull private GoogleClientFactory credentials;
 
@@ -48,7 +44,7 @@ public class GoogleNamedAccountCredentials implements AccountCredentials<GoogleC
   }
 
   public String getMetricsStoreType() {
-    return supportedTypes.contains(Type.METRICS_STORE) ? "stackdriver" : null;
+    return getSupportedTypes().contains(Type.METRICS_STORE) ? "stackdriver" : null;
   }
 
   @JsonIgnore private Monitoring monitoring;

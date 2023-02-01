@@ -18,20 +18,16 @@ package com.netflix.kayenta.memory.security;
 
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.storage.ObjectType;
-import java.util.List;
 import java.util.Map;
 import javax.validation.constraints.NotNull;
-import lombok.Builder;
-import lombok.Data;
-import lombok.Singular;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
-@Builder
-@Data
-public class MemoryNamedAccountCredentials implements AccountCredentials<MemoryAccountCredentials> {
-
-  @NotNull private String name;
-
-  @NotNull @Singular private List<Type> supportedTypes;
+@Getter
+@Setter
+@SuperBuilder
+@NoArgsConstructor
+public class MemoryNamedAccountCredentials extends AccountCredentials<MemoryAccountCredentials> {
 
   @NotNull private MemoryAccountCredentials credentials;
 

@@ -20,19 +20,15 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.kayenta.newrelic.service.NewRelicRemoteService;
 import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.security.AccountCredentials;
-import java.util.List;
 import javax.validation.constraints.NotNull;
-import lombok.Builder;
-import lombok.Data;
-import lombok.Singular;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
-@Builder
-@Data
-public class NewRelicNamedAccountCredentials implements AccountCredentials<NewRelicCredentials> {
-
-  @NotNull private String name;
-
-  @NotNull @Singular private List<Type> supportedTypes;
+@Getter
+@Setter
+@SuperBuilder
+@NoArgsConstructor
+public class NewRelicNamedAccountCredentials extends AccountCredentials<NewRelicCredentials> {
 
   @NotNull private NewRelicCredentials credentials;
 

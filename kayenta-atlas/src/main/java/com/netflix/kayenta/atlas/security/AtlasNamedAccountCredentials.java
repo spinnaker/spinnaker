@@ -23,17 +23,14 @@ import com.netflix.kayenta.security.AccountCredentials;
 import java.util.Collections;
 import java.util.List;
 import javax.validation.constraints.NotNull;
-import lombok.Builder;
-import lombok.Data;
-import lombok.Singular;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
-@Builder
-@Data
-public class AtlasNamedAccountCredentials implements AccountCredentials<AtlasCredentials> {
-
-  @NotNull private String name;
-
-  @NotNull @Singular private List<Type> supportedTypes;
+@SuperBuilder
+@Setter
+@Getter
+public class AtlasNamedAccountCredentials extends AccountCredentials<AtlasCredentials> {
 
   @Override
   public String getType() {

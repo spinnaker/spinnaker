@@ -19,19 +19,17 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.wavefront.service.WavefrontRemoteService;
-import java.util.List;
 import javax.validation.constraints.NotNull;
-import lombok.Builder;
-import lombok.Data;
-import lombok.Singular;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
-@Builder
-@Data
-public class WavefrontNamedAccountCredentials implements AccountCredentials<WavefrontCredentials> {
-
-  @NotNull private String name;
-
-  @NotNull @Singular private List<Type> supportedTypes;
+@Getter
+@Setter
+@SuperBuilder
+@NoArgsConstructor
+public class WavefrontNamedAccountCredentials extends AccountCredentials<WavefrontCredentials> {
 
   @NotNull private WavefrontCredentials credentials;
 
