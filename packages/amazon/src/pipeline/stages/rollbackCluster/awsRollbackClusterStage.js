@@ -2,7 +2,7 @@
 
 import { module } from 'angular';
 
-import { AccountService, Registry } from '@spinnaker/core';
+import { AccountService, Registry, SETTINGS } from '@spinnaker/core';
 
 export const AMAZON_PIPELINE_STAGES_ROLLBACKCLUSTER_AWSROLLBACKCLUSTERSTAGE =
   'spinnaker.amazon.pipeline.stage.rollbackClusterStage';
@@ -60,5 +60,7 @@ module(AMAZON_PIPELINE_STAGES_ROLLBACKCLUSTER_AWSROLLBACKCLUSTERSTAGE, [])
       if (!stage.regions.length && $scope.application.defaultRegions.aws) {
         stage.regions.push($scope.application.defaultRegions.aws);
       }
+
+      $scope.viewState.dynamicRollbackTimeout = SETTINGS.feature.dynamicRollbackTimeout;
     },
   ]);
