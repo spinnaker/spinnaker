@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.4.1](https://github.com/spinnaker/deck/compare/deck-app@2.4.0...deck-app@2.4.1) (2023-02-02)
+
+
+### Bug Fixes
+
+* **timeout:** Added feature flag for rollback timeout ui input. ([#9937](https://github.com/spinnaker/deck/issues/9937)) ([e239be3](https://github.com/spinnaker/deck/commit/e239be3dbf63dacca84de25901eec708353d3490))
+
+
+
+
+
 # [2.4.0](https://github.com/spinnaker/deck/compare/deck-app@2.3.3...deck-app@2.4.0) (2023-02-01)
 
 

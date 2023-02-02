@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.13.5](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.13.4...@spinnaker/amazon@0.13.5) (2023-02-02)
+
+
+### Bug Fixes
+
+* **timeout:** Added feature flag for rollback timeout ui input. ([#9937](https://github.com/spinnaker/deck/issues/9937)) ([e239be3](https://github.com/spinnaker/deck/commit/e239be3dbf63dacca84de25901eec708353d3490))
+
+
+
+
+
 ## [0.13.4](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.13.3...@spinnaker/amazon@0.13.4) (2023-02-01)
 
 
