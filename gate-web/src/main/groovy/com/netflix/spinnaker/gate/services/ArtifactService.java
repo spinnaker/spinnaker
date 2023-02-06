@@ -19,15 +19,13 @@ package com.netflix.spinnaker.gate.services;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector;
 import com.netflix.spinnaker.gate.services.internal.IgorService;
 import groovy.transform.CompileStatic;
-import java.io.OutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import lombok.SneakyThrows;
-import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import retrofit.client.Response;
 
 @CompileStatic
 @Component
@@ -56,11 +54,9 @@ public class ArtifactService {
     return clouddriverServiceSelector.select().getArtifactVersions(accountName, type, artifactName);
   }
 
-  @SneakyThrows
-  public void getArtifactContents(
-      String selectorKey, Map<String, String> artifact, OutputStream outputStream) {
-    Response contentResponse = clouddriverServiceSelector.select().getArtifactContent(artifact);
-    IOUtils.copy(contentResponse.getBody().in(), outputStream);
+  public InputStream getArtifactContents(String selectorKey, Map<String, String> artifact)
+      throws IOException {
+    return clouddriverServiceSelector.select().getArtifactContent(artifact).getBody().in();
   }
 
   public List<String> getVersionsOfArtifactForProvider(

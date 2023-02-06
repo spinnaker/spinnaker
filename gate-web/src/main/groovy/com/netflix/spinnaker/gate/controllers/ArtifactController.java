@@ -18,10 +18,10 @@ package com.netflix.spinnaker.gate.controllers;
 
 import com.netflix.spinnaker.gate.services.ArtifactService;
 import io.swagger.annotations.ApiOperation;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -51,10 +51,9 @@ public class ArtifactController {
   StreamingResponseBody fetch(
       @RequestBody Map<String, String> artifact,
       @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
-    return new StreamingResponseBody() {
-      public void writeTo(OutputStream outputStream) throws IOException {
-        artifactService.getArtifactContents(sourceApp, artifact, outputStream);
-        outputStream.flush();
+    return outputStream -> {
+      try (InputStream inputStream = artifactService.getArtifactContents(sourceApp, artifact)) {
+        IOUtils.copy(inputStream, outputStream);
       }
     };
   }
