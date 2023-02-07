@@ -92,6 +92,7 @@ module(ECS_MODULE, [
       commandBuilder: 'ecsServerGroupCommandBuilder',
       // configurationService: 'ecsServerGroupConfigurationService',
       scalingActivitiesEnabled: false,
+      skipUpstreamStageCheck: true,
     },
     loadBalancer: {
       transformer: EcsLoadBalancerTransformer,
