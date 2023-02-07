@@ -254,7 +254,7 @@ class SqlPermissionsRepository(
         val toStore = mutableListOf<ResourceId>() // ids that are new or changed
 
         resources.forEach {
-            val resourceId = ResourceId(it.resourceType, it.name)
+            val resourceId = ResourceId(it.resourceType, it.name.toLowerCase())
             currentPermissions.add(resourceId)
 
             if (!existingPermissions.contains(resourceId)) {
@@ -350,7 +350,7 @@ class SqlPermissionsRepository(
         val hashes = mutableMapOf<ResourceId, String>() // id to sha256(body)
 
         resources.forEach {
-            val id = ResourceId(it.resourceType, it.name)
+            val id = ResourceId(it.resourceType, it.name.toLowerCase())
             currentIds.add(id)
 
             val body: String? = objectMapper.writeValueAsString(it)
