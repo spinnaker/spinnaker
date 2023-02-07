@@ -27,7 +27,7 @@ public class AzureProvider extends HasImageProvider<AzureAccount, AzureBakeryDef
   @Override
   public AzureBakeryDefaults emptyBakeryDefaults() {
     AzureBakeryDefaults result = new AzureBakeryDefaults();
-    result.setTemplateFile("azure-linux.json");
+    result.setTemplateFile("azure-linux.pkr.hcl");
     return result;
   }
 }
