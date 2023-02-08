@@ -15,6 +15,10 @@ ext {
     jooq             : "3.13.6",
     jsch             : "0.1.54",
     jschAgentProxy   : "0.0.9",
+    // spring boot 2.5.14 specifies logback 1.2.11, but a rosco test hung with
+    // 1.2.11 from https://jira.qos.ch/browse/LOGBACK-1623 so stick with 1.2.10
+    // until 1.2.12 appears.
+    logback          : "1.2.10",
     protobuf         : "3.19.4",
     okhttp           : "2.7.5", // CVE-2016-2402
     okhttp3          : "3.14.9",
@@ -70,6 +74,9 @@ dependencies {
 
   constraints {
     api("cglib:cglib-nodep:3.3.0")
+    api("ch.qos.logback:logback-access:${versions.logback}")
+    api("ch.qos.logback:logback-classic:${versions.logback}")
+    api("ch.qos.logback:logback-core:${versions.logback}")
     api("com.amazonaws:aws-java-sdk:${versions.aws}")
     api("com.google.api-client:google-api-client:1.30.10") // TODO: Track update for CVE-2020-7692, reanalysis pending.
     api("com.google.apis:google-api-services-admin-directory:directory_v1-rev105-1.25.0")
