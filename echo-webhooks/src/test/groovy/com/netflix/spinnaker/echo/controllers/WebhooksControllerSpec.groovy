@@ -615,6 +615,54 @@ class WebhooksControllerSpec extends Specification {
     event.content.action == "pullrequest:fulfilled"
   }
 
+  void "handles Bitbucket Cloud Webhook PR Event with Project key"() {
+    def event
+
+    given:
+    WebhooksController controller = new WebhooksController(mapper: EchoObjectMapper.getInstance(), scmWebhookHandler: scmWebhookHandler)
+    controller.propagator = Mock(EventPropagator)
+    controller.artifactExtractor = Mock(ArtifactExtractor)
+    controller.artifactExtractor.extractArtifacts(_, _, _) >> []
+    HttpHeaders headers = new HttpHeaders();
+    headers.add("X-Event-Key", "pullrequest:fulfilled")
+
+    when:
+    def response = controller.forwardEvent(
+      "git",
+      "bitbucket",
+      """{
+          "repository": {
+            "full_name": "echo",
+            "owner": {
+              "display_name": "spinnaker"
+            },
+            "project": {
+                "key": "ECH"
+            }
+          },
+          "pullrequest": {
+            "merge_commit": {
+              "hash": "firstHash"
+             },
+             "destination": {
+              "branch": {"name": "master"}
+             }
+          }
+        }
+        """,headers)
+
+    then:
+    1 * controller.propagator.processEvent(_) >> {
+      event = it[0]
+    }
+
+    event.content.hash == "firstHash"
+    event.content.repoProject == "ECH"
+    event.content.slug == "echo"
+    event.content.branch == "master"
+    event.content.action == "pullrequest:fulfilled"
+  }
+
   void "handles Bitbucket Cloud Webhook Push Event"() {
     def event
 
@@ -660,6 +708,59 @@ class WebhooksControllerSpec extends Specification {
 
     event.content.hash == "firstHash"
     event.content.repoProject == "spinnaker"
+    event.content.slug == "echo"
+    event.content.branch == "master"
+    event.content.action == "repo:push"
+  }
+
+  void "handles Bitbucket Cloud Webhook Push Event with Project key"() {
+    def event
+
+    given:
+    WebhooksController controller = new WebhooksController(mapper: EchoObjectMapper.getInstance(), scmWebhookHandler: scmWebhookHandler)
+    controller.propagator = Mock(EventPropagator)
+    controller.artifactExtractor = Mock(ArtifactExtractor)
+    controller.artifactExtractor.extractArtifacts(_, _, _) >> []
+    HttpHeaders headers = new HttpHeaders();
+    headers.add("X-Event-Key", "repo:push")
+
+    when:
+    def response = controller.forwardEvent(
+      "git",
+      "bitbucket",
+      """{
+          "repository": {
+            "full_name": "echo",
+            "owner": {"display_name": "spinnaker"},
+            "project": {
+                "key": "ECH"
+            }
+          },
+          "push": {
+            "changes": [
+              {
+                "new": {
+                  "type": "branch",
+                  "name": "master"
+                },
+                "commits": [
+                  {
+                   "hash": "firstHash"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+        """,headers)
+
+    then:
+    1 * controller.propagator.processEvent(_) >> {
+      event = it[0]
+    }
+
+    event.content.hash == "firstHash"
+    event.content.repoProject == "ECH"
     event.content.slug == "echo"
     event.content.branch == "master"
     event.content.action == "repo:push"

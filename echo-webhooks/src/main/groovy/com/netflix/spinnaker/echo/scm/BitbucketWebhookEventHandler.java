@@ -161,6 +161,9 @@ public class BitbucketWebhookEventHandler implements GitWebhookHandler {
       if (bitbucketCloudEvent.repository.owner != null) {
         repoProject = StringUtils.defaultIfEmpty(bitbucketCloudEvent.repository.owner.username, "");
       }
+      if (StringUtils.isEmpty(repoProject) && bitbucketCloudEvent.repository.project != null) {
+        repoProject = StringUtils.defaultIfEmpty(bitbucketCloudEvent.repository.project.key, "");
+      }
     }
     if (bitbucketCloudEvent.pullRequest != null) {
       BitbucketCloudEvent.PullRequest pullRequest = bitbucketCloudEvent.pullRequest;
@@ -207,11 +210,18 @@ public class BitbucketWebhookEventHandler implements GitWebhookHandler {
       String fullName;
 
       Owner owner;
+
+      Project project;
     }
 
     @Data
     private static class Owner {
       String username;
+    }
+
+    @Data
+    public static class Project {
+      String key;
     }
 
     @Data

@@ -57,7 +57,7 @@ class BitbucketWebhookEventHandlerTest {
 
     assertThat(event.content)
         .contains(
-            entry("repoProject", ""),
+            entry("repoProject", "TES"),
             entry("slug", "bitbucketfan/test_webhooks"),
             entry("hash", "9384d1bf6db69ea35cda200648ade30f8ea7b1a4"),
             entry("branch", "master"),
