@@ -25,7 +25,7 @@ ext {
     spek             : "1.1.5",
     spek2            : "2.0.9",
     springBoot       : "2.4.13",
-    springCloud      : "2020.0.5",
+    springCloud      : "2020.0.6",
     springfoxSwagger : "2.9.2",
     swagger          : "1.5.20", //this should stay in sync with what springfoxSwagger expects
     // spring boot 2.4.13 brings in 9.0.55.  Use 9.0.62 to resolve
