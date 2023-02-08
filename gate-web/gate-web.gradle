@@ -66,6 +66,7 @@ dependencies {
   testImplementation "org.springframework.security:spring-security-oauth2-jose"
   testImplementation "com.unboundid:unboundid-ldapsdk"
   testImplementation "io.spinnaker.kork:kork-jedis-test"
+  testImplementation "io.spinnaker.kork:kork-test"
   testRuntimeOnly "io.spinnaker.kork:kork-retrofit"
 
   // Add each included authz provider as a runtime dependency

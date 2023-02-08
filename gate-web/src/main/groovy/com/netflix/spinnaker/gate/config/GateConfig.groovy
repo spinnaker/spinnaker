@@ -390,7 +390,7 @@ class GateConfig extends RedisHttpSessionConfiguration {
   FilterRegistrationBean authenticatedRequestFilter() {
     // no need to force the `AuthenticatedRequestFilter` to create a request id as that is
     // handled by the `RequestTimingFilter`.
-    def frb = new FilterRegistrationBean(new AuthenticatedRequestFilter(false, true, false, false))
+    def frb = new FilterRegistrationBean(new AuthenticatedRequestFilter(true, true, false, false))
     frb.order = Ordered.LOWEST_PRECEDENCE - 1
     return frb
   }
