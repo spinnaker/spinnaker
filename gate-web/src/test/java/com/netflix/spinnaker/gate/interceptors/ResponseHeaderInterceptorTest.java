@@ -24,7 +24,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
-import com.netflix.spinnaker.filters.AuthenticatedRequestFilter;
 import com.netflix.spinnaker.gate.Main;
 import com.netflix.spinnaker.kork.common.Header;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
@@ -62,12 +61,9 @@ public class ResponseHeaderInterceptorTest {
 
   private MockMvc mockMvc;
 
-  private AuthenticatedRequestFilter authenticatedRequestFilter;
-
   @BeforeEach
   private void setup() {
     AuthenticatedRequest.clear();
-    authenticatedRequestFilter = new AuthenticatedRequestFilter(true);
   }
 
   @Nested
@@ -83,8 +79,7 @@ public class ResponseHeaderInterceptorTest {
 
     @BeforeEach
     private void setup() {
-      mockMvc =
-          webAppContextSetup(webApplicationContext).addFilters(authenticatedRequestFilter).build();
+      mockMvc = webAppContextSetup(webApplicationContext).build();
     }
 
     @Test
@@ -155,8 +150,7 @@ public class ResponseHeaderInterceptorTest {
 
     @BeforeEach
     private void setup() {
-      mockMvc =
-          webAppContextSetup(webApplicationContext).addFilters(authenticatedRequestFilter).build();
+      mockMvc = webAppContextSetup(webApplicationContext).build();
     }
 
     @Test
@@ -196,8 +190,7 @@ public class ResponseHeaderInterceptorTest {
 
     @BeforeEach
     private void setup() {
-      mockMvc =
-          webAppContextSetup(webApplicationContext).addFilters(authenticatedRequestFilter).build();
+      mockMvc = webAppContextSetup(webApplicationContext).build();
     }
 
     @Test
