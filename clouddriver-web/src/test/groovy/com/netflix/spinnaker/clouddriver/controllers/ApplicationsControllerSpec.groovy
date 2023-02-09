@@ -23,7 +23,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class ApplicationControllerSpec extends Specification {
+class ApplicationsControllerSpec extends Specification {
 
   @Shared
   ApplicationsController applicationsController
@@ -121,6 +121,21 @@ class ApplicationControllerSpec extends Specification {
     1 * appProvider2.getApplication("foo") >> null
     NotFoundException e = thrown()
     e.message == "Application does not exist (name: foo)"
+  }
+
+  def "let exceptions during get bubble up"() {
+    setup:
+    def exceptionToThrow = new RuntimeException("arbitrary exception")
+    def appProvider1 = Mock(ApplicationProvider)
+    applicationsController.applicationProviders = [appProvider1]
+
+    when:
+    def result = applicationsController.get("foo")
+
+    then:
+    1 * appProvider1.getApplication("foo") >> { throw exceptionToThrow }
+    RuntimeException e = thrown()
+    e == exceptionToThrow
   }
 
   @Unroll

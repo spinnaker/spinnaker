@@ -18,9 +18,11 @@ package com.netflix.spinnaker.clouddriver.requestqueue.pooled;
 
 import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.Timer;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.MDC;
 
 class PooledRequest<T> implements Runnable {
   private final Timer timer;
@@ -32,7 +34,11 @@ class PooledRequest<T> implements Runnable {
     this.timer =
         registry.timer(registry.createId("pooledRequestQueue.enqueueTime", "partition", partition));
     this.result = new Promise<>(registry, partition);
-    this.work = work;
+
+    // Copy the MDC before doing the work.  That way information from the MDC
+    // (e.g. from X-SPINNAKER-* incoming http request headers) of the calling
+    // thread makes it into log messages.
+    this.work = wrapWithContext(work);
   }
 
   Promise<T> getPromise() {
@@ -41,6 +47,18 @@ class PooledRequest<T> implements Runnable {
 
   void cancel() {
     result.completeWithException(new CancellationException());
+  }
+
+  private <T> Callable<T> wrapWithContext(final Callable<T> callable) {
+    Map<String, String> contextMap = MDC.getCopyOfContextMap();
+    return () -> {
+      if (contextMap == null) {
+        MDC.clear();
+      } else {
+        MDC.setContextMap(contextMap);
+      }
+      return callable.call();
+    };
   }
 
   @Override

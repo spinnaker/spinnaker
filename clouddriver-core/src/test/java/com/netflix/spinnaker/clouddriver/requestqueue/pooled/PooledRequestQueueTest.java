@@ -21,8 +21,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
+import ch.qos.logback.classic.Level;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import com.netflix.spinnaker.kork.test.log.MemoryAppender;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -31,8 +35,13 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 final class PooledRequestQueueTest {
+  private static final Logger log = LoggerFactory.getLogger(PooledRequestQueueTest.class);
+
   DynamicConfigService dynamicConfigService = mock(DynamicConfigService.class);
 
   @Test
@@ -41,6 +50,37 @@ final class PooledRequestQueueTest {
         new PooledRequestQueue(dynamicConfigService, new NoopRegistry(), 1000, 1000, 1);
 
     assertThat(queue.execute("foo", () -> 12345L)).isEqualTo(12345L);
+  }
+
+  @Test
+  void includesMdcWhenExecutingOperation() throws Throwable {
+    // Capture the log messages that our test operation generates
+    MemoryAppender memoryAppender = new MemoryAppender(PooledRequestQueueTest.class);
+
+    PooledRequestQueue queue =
+        new PooledRequestQueue(dynamicConfigService, new NoopRegistry(), 1000, 1000, 1);
+
+    Callable<Long> testCallable =
+        () -> {
+          Map<String, String> contextMap = MDC.getCopyOfContextMap();
+          log.info("contextMap: {}", contextMap);
+          return 12345L;
+        };
+
+    // Put something in the MDC here, to see if it makes it into the thread that
+    // executes the operation.
+    String mdcKey = "myKey";
+    String mdcValue = "myValue";
+    MDC.put(mdcKey, mdcValue);
+    assertThat(queue.execute("foo", testCallable)).isEqualTo(12345L);
+    List<String> logMessages = memoryAppender.search(mdcKey + "=" + mdcValue, Level.INFO);
+    assertThat(logMessages).hasSize(1);
+
+    // And now clear the MDC and make sure the resulting operation gets the empty MDC.
+    MDC.clear();
+    assertThat(queue.execute("foo", testCallable)).isEqualTo(12345L);
+    List<String> emptyMdcMessages = memoryAppender.search("contextMap: null", Level.INFO);
+    assertThat(emptyMdcMessages).hasSize(1);
   }
 
   @Test

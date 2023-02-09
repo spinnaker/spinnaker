@@ -65,18 +65,14 @@ class ApplicationsController {
   @PreAuthorize("hasPermission(#name, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/{name:.+}", method = RequestMethod.GET)
   ApplicationViewModel get(@PathVariable String name) {
-    try {
-      def apps = requestQueue.execute(name, {
-        applicationProviders.collect { it.getApplication(name) }
-      }) - null
-      if (!apps) {
-        throw new NotFoundException("Application does not exist (name: ${name})")
-      } else {
-        return transform(apps)
-      }
-    } catch (e) {
+    def apps = requestQueue.execute(name, {
+      applicationProviders.collect { it.getApplication(name) }
+    }) - null
+    if (!apps) {
       throw new NotFoundException("Application does not exist (name: ${name})")
     }
+
+    return transform(apps)
   }
 
   private ApplicationViewModel transform(List<Application> apps) {
