@@ -46,11 +46,12 @@ public class MdcCopyingAsyncTaskExecutor implements AsyncTaskExecutor {
 
   private Runnable wrapWithContext(final Runnable task) {
     Map<String, String> contextMap = MDC.getCopyOfContextMap();
-    if (contextMap == null) {
-      return task;
-    }
     return () -> {
-      MDC.setContextMap(contextMap);
+      if (contextMap == null) {
+        MDC.clear();
+      } else {
+        MDC.setContextMap(contextMap);
+      }
       task.run();
     };
   }

@@ -51,7 +51,12 @@ import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-@SpringBootTest(classes = MdcCopyingAsyncTaskExecutorTest.TestConfigurationAndAsyncEndpoint.class)
+// Give the underlying thread pool one thread to make it easier to verify that
+// information from the MDC in one invocation doesn't leak into a subsequent
+// one.
+@SpringBootTest(
+    classes = MdcCopyingAsyncTaskExecutorTest.TestConfigurationAndAsyncEndpoint.class,
+    properties = {"spring.task.execution.pool.coreSize=1", "spring.task.execution.pool.maxSize=1"})
 @WebAppConfiguration
 public class MdcCopyingAsyncTaskExecutorTest {
 
@@ -94,6 +99,17 @@ public class MdcCopyingAsyncTaskExecutorTest {
     List<String> userMessages =
         memoryAppender.search(USER.getHeader() + "=" + userValue, Level.INFO);
     assertThat(userMessages).hasSize(1);
+
+    // Try again with no headers, so we expect an empty MDC.
+    MvcResult resultTwo = mvc.perform(get("/dummy/streamingResponseBody")).andReturn();
+
+    mvc.perform(asyncDispatch(resultTwo))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(content().string(is("test response")));
+
+    List<String> emptyMdcMessages = memoryAppender.search("contextMap: null", Level.INFO);
+    assertThat(emptyMdcMessages).hasSize(1);
   }
 
   @SpringBootApplication
@@ -122,7 +138,10 @@ public class MdcCopyingAsyncTaskExecutorTest {
           // Note: It's important for the log message to be inside the lambda to
           // verify that the MDC is set up properly for the AsyncTaskExecutor.
           Map<String, String> contextMap = MDC.getCopyOfContextMap();
-          log.info("streamingResponseBody: contextMap: {}", contextMap);
+          log.info(
+              "streamingResponseBody: thread id: {}, contextMap: {}",
+              Thread.currentThread().getId(),
+              contextMap);
           outputStream.write("test response".getBytes(StandardCharsets.UTF_8));
         };
       }
