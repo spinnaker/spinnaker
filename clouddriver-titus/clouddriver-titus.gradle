@@ -1,7 +1,7 @@
 apply plugin: "com.google.protobuf"
 
 ext {
-  protobufVersion = '3.19.4'
+  protobufVersion = '3.21.12'
   grpcVersion = '1.45.1'
 }
 
@@ -22,8 +22,8 @@ dependencies {
 
   implementation "javax.inject:javax.inject:1"
   implementation "com.amazonaws:aws-java-sdk"
-  implementation "com.google.protobuf:protobuf-java:$protobufVersion"
-  implementation "com.google.protobuf:protobuf-java-util:$protobufVersion"
+  implementation "com.google.protobuf:protobuf-java"
+  implementation "com.google.protobuf:protobuf-java-util"
   implementation "com.netflix.frigga:frigga"
   implementation "com.netflix.spectator:spectator-api"
   implementation "io.spinnaker.fiat:fiat-api:$fiatVersion"

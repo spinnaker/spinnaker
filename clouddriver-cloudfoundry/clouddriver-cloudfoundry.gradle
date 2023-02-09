@@ -2,7 +2,7 @@ apply plugin: 'com.google.protobuf'
 apply plugin: "org.junit.platform.gradle.plugin"
 
 ext {
-  protobufVersion = '3.19.4'
+  protobufVersion = '3.21.12'
 }
 
 protobuf {
@@ -64,8 +64,8 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "org.springframework.cloud:spring-cloud-context"
   implementation "org.yaml:snakeyaml"
-  implementation "com.google.protobuf:protobuf-java:$protobufVersion"
-  implementation "com.google.protobuf:protobuf-java-util:$protobufVersion"
+  implementation "com.google.protobuf:protobuf-java"
+  implementation "com.google.protobuf:protobuf-java-util"
   implementation "commons-fileupload:commons-fileupload:1.4"
   implementation "io.micrometer:micrometer-core:1.6.4"
 
