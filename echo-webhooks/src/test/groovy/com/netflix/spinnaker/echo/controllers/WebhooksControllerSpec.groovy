@@ -462,6 +462,56 @@ class WebhooksControllerSpec extends Specification {
     event.content.draft == "false"
   }
 
+  void 'gracefully handle Github PR Webhook Event With no Action'() {
+    def event
+
+    given:
+    WebhooksController controller = new WebhooksController(mapper: EchoObjectMapper.getInstance(), scmWebhookHandler: scmWebhookHandler)
+    controller.propagator = Mock(EventPropagator)
+    controller.artifactExtractor = Mock(ArtifactExtractor)
+    controller.artifactExtractor.extractArtifacts(_, _, _) >> []
+
+    when:
+    def response = controller.forwardEvent(
+      "git",
+      "github",
+      """{
+          "action": null,
+          "pull_request": {
+            "number": 42,
+            "head": {
+              "ref": "simple-tag",
+              "sha": "0000000000000000000000000000000000000000"
+            },
+            "title": "Very nice Pull Request",
+            "draft": false,
+            "state": "open"
+          },
+          "repository": {
+            "name": "Hello-World",
+            "owner": {
+              "login": "Codertocat"
+            }
+          }
+        }
+        """, new HttpHeaders())
+
+    then:
+    1 * controller.propagator.processEvent(_) >> {
+      event = it[0]
+    }
+
+    event.content.hash == "0000000000000000000000000000000000000000"
+    event.content.repoProject == "Codertocat"
+    event.content.slug == "Hello-World"
+    event.content.branch == "simple-tag"
+    event.content.action == "pull_request:"
+    event.content.number == "42"
+    event.content.title == "Very nice Pull Request"
+    event.content.state == "open"
+    event.content.draft == "false"
+  }
+
   void 'handles non-push Github Webhook Event gracefully'() {
     def event
 

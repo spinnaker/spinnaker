@@ -99,6 +99,42 @@ class GithubWebhookEventHandlerTest {
   }
 
   @Test
+  void canHandlePrPayloadWithNullAction() throws IOException {
+    File file = new File(getClass().getResource("/github_no_action_pr_payload.json").getFile());
+    String rawPayload = new String(Files.readAllBytes(file.toPath()));
+
+    ObjectMapper mapper = EchoObjectMapper.getInstance();
+    Map<String, Object> payload = mapper.readValue(rawPayload, new TypeReference<>() {});
+
+    Event event = new Event();
+    Metadata metadata = new Metadata();
+    metadata.setType("git");
+    metadata.setSource("github");
+    event.details = metadata;
+    event.rawContent = rawPayload;
+    event.payload = payload;
+    event.content = payload;
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.add("x-github-event", "pull_request");
+
+    GithubWebhookEventHandler handler = new GithubWebhookEventHandler();
+    assertThatCode(() -> handler.handle(event, payload, headers)).doesNotThrowAnyException();
+
+    assertThat(event.content)
+        .contains(
+            entry("repoProject", "jervi"),
+            entry("slug", "expert-waffle"),
+            entry("hash", "ba3b59b3cf776e3eda0b17a8094ce78c2f2e498c"),
+            entry("branch", "add-waffle-recipe"),
+            entry("action", "pull_request:"),
+            entry("number", "1"),
+            entry("draft", "false"),
+            entry("state", "open"),
+            entry("title", "Add waffle recipe"));
+  }
+
+  @Test
   void canHandleBranchPayload() throws IOException {
     File file = new File(getClass().getResource("/github_branch_payload.json").getFile());
     String rawPayload = new String(Files.readAllBytes(file.toPath()));

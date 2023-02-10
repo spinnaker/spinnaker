@@ -80,6 +80,11 @@ public class GithubPullRequestEvent implements GithubWebhookEvent {
         .orElse("");
   }
 
+  @Override
+  public String getAction() {
+    return action == null ? "" : action;
+  }
+
   @Data
   private static class Repository {
     private RepositoryOwner owner;
