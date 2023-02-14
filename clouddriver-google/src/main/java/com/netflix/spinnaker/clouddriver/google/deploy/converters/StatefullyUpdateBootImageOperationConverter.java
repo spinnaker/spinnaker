@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProper
 import com.netflix.spinnaker.clouddriver.google.deploy.description.StatefullyUpdateBootImageDescription;
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.StatefullyUpdateBootImageAtomicOperation;
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider;
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsConverter;
 import java.util.Map;
@@ -31,7 +32,7 @@ import org.springframework.stereotype.Component;
 @GoogleOperation(AtomicOperations.STATEFULLY_UPDATE_BOOT_IMAGE)
 @Component
 public class StatefullyUpdateBootImageOperationConverter
-    extends AbstractAtomicOperationsCredentialsConverter {
+    extends AbstractAtomicOperationsCredentialsConverter<GoogleNamedAccountCredentials> {
 
   private final GoogleClusterProvider clusterProvider;
   private final GoogleComputeApiFactory computeApiFactory;

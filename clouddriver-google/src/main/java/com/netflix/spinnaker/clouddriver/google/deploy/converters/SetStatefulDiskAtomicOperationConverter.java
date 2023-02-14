@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.google.compute.GoogleComputeApiFactory;
 import com.netflix.spinnaker.clouddriver.google.deploy.description.SetStatefulDiskDescription;
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.SetStatefulDiskAtomicOperation;
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider;
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsConverter;
 import java.util.Map;
@@ -30,7 +31,7 @@ import org.springframework.stereotype.Component;
 @GoogleOperation(AtomicOperations.SET_STATEFUL_DISK)
 @Component
 public class SetStatefulDiskAtomicOperationConverter
-    extends AbstractAtomicOperationsCredentialsConverter {
+    extends AbstractAtomicOperationsCredentialsConverter<GoogleNamedAccountCredentials> {
 
   private final GoogleClusterProvider clusterProvider;
   private final GoogleComputeApiFactory computeApiFactory;
