@@ -879,6 +879,28 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   }
 
+  void "valid autoscaler customMetricUtilizations"(){
+    setup:
+    def errors = Mock(ValidationErrors)
+    def validator = new StandardGceAttributeValidator(DECORATOR, errors)
+
+    when:
+    validator.validateAutoscalingPolicy(new GoogleAutoscalingPolicy(
+      customMetricUtilizations: [ new GoogleAutoscalingPolicy.CustomMetricUtilization(utilizationTarget: 5,
+        metric: "myMetric", utilizationTargetType: UtilizationTargetType.DELTA_PER_MINUTE,singleInstanceAssignment: null) ]))
+
+    then:
+    0 * errors._
+
+    when:
+    validator.validateAutoscalingPolicy(new GoogleAutoscalingPolicy(
+      customMetricUtilizations: [ new GoogleAutoscalingPolicy.CustomMetricUtilization(utilizationTarget: null,
+        metric: "myMetric", utilizationTargetType: null, singleInstanceAssignment: 1) ]))
+
+    then:
+    0 * errors._
+  }
+
   @Unroll
   void "valid autoHealer maxUnavailable with fixed=#fixed and percent=#percent"() {
     setup:
