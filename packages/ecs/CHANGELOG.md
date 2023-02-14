@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.356](https://github.com/spinnaker/deck/compare/@spinnaker/ecs@0.0.355...@spinnaker/ecs@0.0.356) (2023-02-07)
+
+
+### Bug Fixes
+
+* **ecs:** skip checking for upstream stages for ECS deploy ([#9945](https://github.com/spinnaker/deck/issues/9945)) ([898a595](https://github.com/spinnaker/deck/commit/898a59504ea58a456baf19e0a21a4cace683feb7))
+
+
+
+
+
 ## [0.0.355](https://github.com/spinnaker/deck/compare/@spinnaker/ecs@0.0.354...@spinnaker/ecs@0.0.355) (2023-02-02)
 
 **Note:** Version bump only for package @spinnaker/ecs
