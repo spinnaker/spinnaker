@@ -33,6 +33,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.platform.runner.JUnitPlatform;
 import org.junit.runner.RunWith;
 
@@ -59,6 +61,7 @@ final class ReplacerTest {
   private static final String NAMESPACE = "ns";
   private static final String ACCOUNT = "my-account";
   private static final String DEFAULT_DOCKER_IMAGE_BINDING = "match-name-and-tag";
+  private static final String MATCH_NAME_ONLY_ARTIFACT_BINDING_STRATEGY = "match-name-only";
 
   @Test
   void findReplicaSetDockerImages() {
@@ -1270,7 +1273,7 @@ final class ReplacerTest {
   @Test
   void findCronJobDockerImages() {
     ArtifactReplacer artifactReplacer =
-        new ArtifactReplacer(ImmutableList.of(Replacer.cronJobDockerImage()));
+        new ArtifactReplacer(ImmutableList.of(Replacer.dockerImage()));
     KubernetesManifest cronJob = getCronJob();
 
     Set<Artifact> artifacts = artifactReplacer.findAll(cronJob);
@@ -1284,7 +1287,7 @@ final class ReplacerTest {
             artifact -> {
               assertThat(artifact).isNotNull();
               assertThat(artifact.getType()).isEqualTo("docker/image");
-              assertThat(artifact.getName()).isEqualTo("gcr.io/my-repository/my-image:my-tag");
+              assertThat(artifact.getName()).isEqualTo("gcr.io/my-repository/my-image");
               assertThat(artifact.getReference()).isEqualTo("gcr.io/my-repository/my-image:my-tag");
             });
 
@@ -1302,7 +1305,7 @@ final class ReplacerTest {
   @Test
   void replaceCronJobDockerImages() {
     ArtifactReplacer artifactReplacer =
-        new ArtifactReplacer(ImmutableList.of(Replacer.cronJobDockerImage()));
+        new ArtifactReplacer(ImmutableList.of(Replacer.dockerImage()));
     KubernetesManifest cronJob = getCronJob();
 
     Artifact inputArtifact =
@@ -1340,6 +1343,50 @@ final class ReplacerTest {
     assertThat(Iterables.getOnlyElement(artifacts)).isEqualTo(inputArtifact);
   }
 
+  @ParameterizedTest(name = "{index} ==> with docker image artifact binding strategy = {0}")
+  @ValueSource(strings = {DEFAULT_DOCKER_IMAGE_BINDING, MATCH_NAME_ONLY_ARTIFACT_BINDING_STRATEGY})
+  void replaceCronJobDockerImageWithArtifactBindingStrategyUsingDockerImageReplacer(
+      String artifactBindingStrategy) {
+    ArtifactReplacer artifactReplacer =
+        new ArtifactReplacer(ImmutableList.of(Replacer.dockerImage()));
+    KubernetesManifest cronJob = getCronJobWithOneContainerWithImageTag();
+    Artifact inputArtifact =
+        Artifact.builder()
+            .type("docker/image")
+            .name("gcr.io/my-repository/my-image")
+            .reference("gcr.io/my-repository/my-image:expected-tag")
+            .build();
+    ReplaceResult replaceResult =
+        artifactReplacer.replaceAll(
+            artifactBindingStrategy, cronJob, ImmutableList.of(inputArtifact), NAMESPACE, ACCOUNT);
+
+    int expectedBoundArtifacts = 0;
+    String expectedImageAndTag = "gcr.io/my-repository/my-image:original-tag";
+    if (artifactBindingStrategy.equals(DEFAULT_DOCKER_IMAGE_BINDING)) {
+      expectedBoundArtifacts = 1;
+      expectedImageAndTag = "gcr.io/my-repository/my-image:expected-tag";
+    }
+
+    V1beta1CronJob replacedCronJob =
+        KubernetesCacheDataConverter.getResource(replaceResult.getManifest(), V1beta1CronJob.class);
+    assertThat(
+            replacedCronJob
+                .getSpec()
+                .getJobTemplate()
+                .getSpec()
+                .getTemplate()
+                .getSpec()
+                .getContainers())
+        .extracting(V1Container::getImage)
+        .containsExactly(expectedImageAndTag);
+
+    Set<Artifact> artifacts = replaceResult.getBoundArtifacts();
+    assertThat(artifacts).hasSize(expectedBoundArtifacts);
+    if (expectedBoundArtifacts > 0) {
+      assertThat(Iterables.getOnlyElement(artifacts)).isEqualTo(inputArtifact);
+    }
+  }
+
   private KubernetesManifest getCronJob() {
     String cronJob =
         json.serialize(
@@ -1356,6 +1403,29 @@ final class ReplacerTest {
                 .addNewContainer()
                 .withName("my-image-without-tag")
                 .withImage("gcr.io/my-other-repository/some-image")
+                .endContainer()
+                .endSpec()
+                .endTemplate()
+                .endSpec()
+                .endJobTemplate()
+                .endSpec()
+                .build());
+
+    return gson.fromJson(cronJob, KubernetesManifest.class);
+  }
+
+  private KubernetesManifest getCronJobWithOneContainerWithImageTag() {
+    String cronJob =
+        json.serialize(
+            new V1beta1CronJobBuilder()
+                .withNewSpec()
+                .withNewJobTemplate()
+                .withNewSpec()
+                .withNewTemplate()
+                .withNewSpec()
+                .addNewContainer()
+                .withName("my-image-with-tag")
+                .withImage("gcr.io/my-repository/my-image:original-tag")
                 .endContainer()
                 .endSpec()
                 .endTemplate()

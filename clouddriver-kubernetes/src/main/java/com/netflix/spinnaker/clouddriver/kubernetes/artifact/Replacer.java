@@ -165,6 +165,12 @@ public final class Replacer {
 
   private static final Replacer DOCKER_IMAGE =
       builder()
+          // This matches not only resources where the path is
+          // e.g. .spec.template.spec.containers.[0].image (e.g. deployments and
+          // jobs), but also where the path is
+          // .spec.jobTemplate.spec.containers[0].image (e.g. cronjobs).  The
+          // double dot at the beginning is a "descendant selector".  See
+          // https://www.ietf.org/archive/id/draft-ietf-jsonpath-base-01.html#section-3.5.7.
           .path("$..spec.template.spec['containers', 'initContainers'].[?].image")
           .legacyReplaceFilter(a -> filter(where("image").is(a.getName())))
           .replacePathFromPlaceholder("image")
@@ -278,14 +284,6 @@ public final class Replacer {
           .type(KubernetesArtifactType.ReplicaSet)
           .build();
 
-  private static final Replacer CRON_JOB_DOCKER_IMAGE =
-      builder()
-          .path("$.spec.jobTemplate.spec.template.spec.containers.[?].image")
-          .legacyReplaceFilter(a -> filter(where("image").is(a.getName())))
-          .replacePathFromPlaceholder("image")
-          .type(KubernetesArtifactType.DockerImage)
-          .build();
-
   public static Replacer dockerImage() {
     return DOCKER_IMAGE;
   }
@@ -332,9 +330,5 @@ public final class Replacer {
 
   public static Replacer hpaReplicaSet() {
     return HPA_REPLICA_SET;
-  }
-
-  public static Replacer cronJobDockerImage() {
-    return CRON_JOB_DOCKER_IMAGE;
   }
 }
