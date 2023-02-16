@@ -86,7 +86,7 @@ dependencies {
 
     testImplementation "com.squareup.okhttp:mockwebserver"
     testImplementation "io.spinnaker.kork:kork-jedis-test"
-    testImplementation "org.codehaus.groovy:groovy-all"
+    testImplementation "org.codehaus.groovy:groovy-datetime"
     testImplementation "org.junit.jupiter:junit-jupiter-api"
     testImplementation "org.assertj:assertj-core"
 
