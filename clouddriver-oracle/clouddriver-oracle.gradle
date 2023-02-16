@@ -23,7 +23,7 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-web"
 
   testImplementation "cglib:cglib-nodep"
-  testImplementation "org.codehaus.groovy:groovy-all"
+  testImplementation "org.codehaus.groovy:groovy-console"
   testImplementation "org.objenesis:objenesis"
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.spockframework:spock-spring"
