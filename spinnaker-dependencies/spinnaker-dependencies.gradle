@@ -194,5 +194,9 @@ dependencies {
       because "1.9.15 is resolved transitively through Groovy, removes CVE-2021-36374, CVE-2021-36373, CVE-2020-11979, CVE-2020-15250"
     }
 
+    api('org.owasp.esapi:esapi:2.3.0.0') {
+      because '2.1.0.1 is resolved transitively through spring-security-saml-dsl-core, removes CVE-2022-23457'
+    }
+
   }
 }
