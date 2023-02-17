@@ -70,7 +70,6 @@ subprojects {
       testImplementation "org.hamcrest:hamcrest-core"
       testRuntimeOnly "cglib:cglib-nodep"
       testRuntimeOnly "org.objenesis:objenesis"
-      testImplementation "org.codehaus.groovy:groovy-all"
     }
   }
 }
