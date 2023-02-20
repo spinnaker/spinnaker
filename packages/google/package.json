@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/google",
   "license": "Apache-2.0",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "module": "dist/index.js",
   "typings": "dist/index.d.ts",
   "scripts": {

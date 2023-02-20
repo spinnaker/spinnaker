@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.2.4](https://github.com/spinnaker/deck/compare/@spinnaker/google@0.2.3...@spinnaker/google@0.2.4) (2023-02-20)
+
+
+### Bug Fixes
+
+* **google:** Resolved typo errors in GCE Autoscaler feature ([#9947](https://github.com/spinnaker/deck/issues/9947)) ([2250a47](https://github.com/spinnaker/deck/commit/2250a477dd51cfd3695e28ad04e8c8466b5bcfe2))
+
+
+
+
+
 ## [0.2.3](https://github.com/spinnaker/deck/compare/@spinnaker/google@0.2.2...@spinnaker/google@0.2.3) (2023-02-01)
 
 **Note:** Version bump only for package @spinnaker/google

@@ -1,7 +1,7 @@
 {
   "name": "deck-app",
   "private": true,
-  "version": "2.4.2",
+  "version": "2.4.3",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -20,7 +20,7 @@
     "@spinnaker/core": "^0.23.0",
     "@spinnaker/docker": "^0.0.137",
     "@spinnaker/ecs": "^0.0.356",
-    "@spinnaker/google": "^0.2.3",
+    "@spinnaker/google": "^0.2.4",
     "@spinnaker/kayenta": "2.0.0",
     "@spinnaker/kubernetes": "^0.4.0",
     "@spinnaker/oracle": "^0.0.81",
