@@ -14,7 +14,6 @@ dependencies {
   testImplementation "com.hubspot.jinjava:jinjava"
   testImplementation project(":kork-core-tck")
   testImplementation project(":kork-jedis-test")
-  testImplementation "org.codehaus.groovy:groovy-all"
   testImplementation "org.spockframework:spock-core"
   testImplementation "junit:junit"
   testRuntimeOnly "cglib:cglib-nodep"

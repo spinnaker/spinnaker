@@ -33,7 +33,6 @@ dependencies {
   api 'com.netflix.spectator:spectator-api'
   api 'org.slf4j:slf4j-api'
 
-  testImplementation "org.codehaus.groovy:groovy-all"
   testImplementation "org.spockframework:spock-core"
   testRuntimeOnly "cglib:cglib-nodep"
   testRuntimeOnly "org.objenesis:objenesis"

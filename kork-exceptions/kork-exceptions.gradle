@@ -6,7 +6,6 @@ dependencies {
   api(platform(project(":spinnaker-dependencies")))
   api "com.google.code.findbugs:jsr305"
 
-  testImplementation "org.codehaus.groovy:groovy-all"
   testImplementation "org.spockframework:spock-core"
   testRuntimeOnly "cglib:cglib-nodep"
   testRuntimeOnly "org.objenesis:objenesis"

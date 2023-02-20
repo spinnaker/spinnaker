@@ -8,7 +8,6 @@ dependencies {
   api "com.netflix.spectator:spectator-api"
   api "com.github.ben-manes.caffeine:guava"
 
-  testImplementation "org.codehaus.groovy:groovy-all"
   testImplementation "com.hubspot.jinjava:jinjava"
   testImplementation "org.spockframework:spock-core"
   testRuntimeOnly "cglib:cglib-nodep"

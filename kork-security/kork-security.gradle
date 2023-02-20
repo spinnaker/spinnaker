@@ -13,7 +13,6 @@ dependencies {
   implementation "com.google.guava:guava"
   implementation "org.slf4j:slf4j-api"
 
-  testImplementation("org.codehaus.groovy:groovy-all")
   testImplementation "org.spockframework:spock-core"
   testRuntimeOnly "ch.qos.logback:logback-classic"
   testRuntimeOnly "cglib:cglib-nodep"
