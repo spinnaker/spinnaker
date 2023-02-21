@@ -103,7 +103,6 @@ subprojects { project ->
       testImplementation "org.spockframework:spock-spring"
       testImplementation "org.springframework:spring-test"
       testImplementation "org.hamcrest:hamcrest-core"
-      testImplementation "org.codehaus.groovy:groovy-all"
       testRuntimeOnly "cglib:cglib-nodep"
       testRuntimeOnly "org.objenesis:objenesis"
     }
