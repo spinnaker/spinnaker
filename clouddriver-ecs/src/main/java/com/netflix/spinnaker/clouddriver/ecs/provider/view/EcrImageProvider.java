@@ -89,7 +89,7 @@ public class EcrImageProvider implements ImageRepositoryProvider {
         !(identifier.startsWith("sha256:") && identifier.length() == ("sha256:".length() + 64));
     String region = extractAwsRegion(url);
 
-    NetflixAmazonCredentials credentials = getCredentials(accountId);
+    NetflixAmazonCredentials credentials = getCredentials(accountId, region);
 
     if (!isValidRegion(credentials, region)) {
       throw new IllegalArgumentException(
@@ -144,15 +144,20 @@ public class EcrImageProvider implements ImageRepositoryProvider {
         : imageIdentifier.getImageDigest().equals(identifier);
   }
 
-  private NetflixAmazonCredentials getCredentials(String accountId) {
+  private NetflixAmazonCredentials getCredentials(String accountId, String region) {
+
     for (NetflixECSCredentials credentials : credentialsRepository.getAll()) {
-      if (credentials.getAccountId().equals(accountId)) {
+      if (credentials.getAccountId().equals(accountId)
+          && (credentials.getRegions().isEmpty()
+              || credentials.getRegions().stream()
+                  .anyMatch(oneRegion -> oneRegion.getName().equals(region)))) {
         return credentials;
       }
     }
     throw new NotFoundException(
         String.format(
-            "AWS account %s was not found.  Please specify a valid account name", accountId));
+            "AWS account %s with region %s was not found.  Please specify a valid account name and region",
+            accountId, region));
   }
 
   private List<ImageIdentifier> getImageIdentifiers(

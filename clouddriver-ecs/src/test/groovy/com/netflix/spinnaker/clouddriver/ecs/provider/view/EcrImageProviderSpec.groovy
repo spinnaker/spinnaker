@@ -136,6 +136,65 @@ class EcrImageProviderSpec extends Specification {
     retrievedListOfImages == expectedListOfImages
   }
 
+  def 'should find second credential when two share account ids'() {
+    given:
+    def region = 'us-east-1'
+    def repoName = 'repositoryname'
+    def accountId = '123456789012'
+    def tag = 'arbitrary-tag'
+    def digest = 'sha256:deadbeef785192c146085da66a4261e25e79a6210103433464eb7f79deadbeef'
+    def creationDate = new Date()
+    def url = accountId + '.dkr.ecr.' + region + '.amazonaws.com/' + repoName + ':' + tag// + '@' + digest
+    def imageDetail = new ImageDetail(
+      repositoryName: repoName,
+      registryId: accountId,
+      imageDigest: digest,
+      imageTags: List.of(tag),
+      imagePushedAt: creationDate
+    )
+
+    Map<String, Object> region1 = Map.of(
+      'name', 'eu-west-1',
+      'availabilityZones', Arrays.asList('eu-west-1a', 'eu-west-1b', 'eu-west-1c')
+    )
+    Map<String, Object> overrides1 = Map.of(
+      'accountId', accountId,
+      'regions', Arrays.asList(region1)
+    )
+
+    Map<String, Object> region2 = Map.of(
+      'name', region,
+      'availabilityZones', Arrays.asList('us-east-1a', 'us-east-1b', 'us-east-1c')
+    )
+    Map<String, Object> overrides2 = Map.of(
+      'accountId', accountId,
+      'regions', Arrays.asList(region2)
+    )
+
+    credentialsRepository.getAll() >> [
+      new NetflixECSCredentials(TestCredential.named('incorrect-region', overrides1)),
+      new NetflixECSCredentials(TestCredential.named('correct-region', overrides2))]
+
+    def amazonECR = Mock(AmazonECR)
+
+    amazonClientProvider.getAmazonEcr(_, _, _) >> amazonECR
+    amazonECR.listImages(_) >> new ListImagesResult().withImageIds(Collections.emptyList())
+    amazonECR.describeImages(_) >> new DescribeImagesResult().withImageDetails(imageDetail)
+
+    def expectedListOfImages = [new EcsDockerImage(
+      region: region,
+      imageName: accountId + '.dkr.ecr.' + region + '.amazonaws.com/' + repoName + '@' + digest,
+      amis: ['us-east-1': Collections.singletonList(digest)],
+      attributes: [creationDate: creationDate]
+    )]
+
+    when:
+    def retrievedListOfImages = provider.findImage(url)
+
+    then:
+    retrievedListOfImages == expectedListOfImages
+  }
+
   def 'should throw exception due to malformed account'() {
     given:
     def region = 'us-west-1'
@@ -198,8 +257,8 @@ class EcrImageProviderSpec extends Specification {
     provider.findImage(url)
 
     then:
-    final IllegalArgumentException error = thrown()
-    error.message == "The repository URI provided does not belong to a region that the credentials have access to or the region is not valid."
+    final com.netflix.spinnaker.kork.web.exceptions.NotFoundException error = thrown()
+    error.message == String.format("AWS account %s with region %s was not found.  Please specify a valid account name and region", accountId, region)
   }
 
   def 'should find the image in a repository with a large number of images'() {
