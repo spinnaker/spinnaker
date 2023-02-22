@@ -55,6 +55,9 @@ import org.jetbrains.spek.api.dsl.on
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 import org.springframework.context.ApplicationEventPublisher
+import com.nhaarman.mockito_kotlin.times
+import com.nhaarman.mockito_kotlin.argumentCaptor
+
 
 object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
 
@@ -118,6 +121,7 @@ object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
         stage {
           refId = "1"
           status = stageStatus
+          isLimitConcurrent = true
         }
       }
       val message = CompleteExecution(pipeline)
@@ -132,7 +136,7 @@ object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
         subject.handle(message)
       }
 
-      it("triggers any waiting pipelines") {
+      it("triggers any waiting pipelines with concurrent execution is disabled") {
         verify(queue).push(StartWaitingExecutions(configId, !pipeline.isKeepWaitingPipelines))
       }
 
@@ -379,4 +383,60 @@ object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
       verify(queue).push(message, retryDelay)
     }
   }
+
+  describe("when a pipeline has branches and is running with ConcurrentExecutions disabled") {
+    val configId = UUID.randomUUID().toString()
+    val runningPipeline = pipeline {
+      pipelineConfigId = configId
+      isLimitConcurrent = true
+      status = RUNNING
+      stage {
+        refId = "11"
+        status = RUNNING
+        isLimitConcurrent = true
+      }
+      stage {
+        refId = "12"
+        status = RUNNING
+        isLimitConcurrent = true
+      }
+    }
+    val waitingPipeline = pipeline {
+      pipelineConfigId = configId
+      isLimitConcurrent = true
+      status = NOT_STARTED
+      stage {
+        refId = "21"
+        status = NOT_STARTED
+        isLimitConcurrent = true
+      }
+      stage {
+        refId = "22"
+        status = NOT_STARTED
+        isLimitConcurrent = true
+      }
+    }
+
+    val message1 = CompleteExecution(runningPipeline)
+    val message2 = CompleteExecution(waitingPipeline)
+
+    beforeGroup {
+      whenever(repository.retrieve(PIPELINE, message1.executionId)) doReturn runningPipeline
+      whenever(repository.retrieve(PIPELINE, message2.executionId)) doReturn waitingPipeline
+    }
+
+    afterGroup(::resetMocks)
+
+    on("receiving message") {
+      subject.handle(message1)
+      subject.handle(message2)
+    }
+
+    it("triggers any waiting pipelines with concurrent execution is disabled, but not the running Pipeline") {
+      verify(queue).push(message1, retryDelay)
+      verify(queue).push(message2, retryDelay)
+      verify(queue, times(1)).push(StartWaitingExecutions(configId, !waitingPipeline.isKeepWaitingPipelines))
+    }
+  }
+
 })
