@@ -84,6 +84,11 @@ class DependentPipelineStarter implements ApplicationContextAware {
     } collectMany {
       it.expectedArtifactIds ?: []
     }
+    if (!expectedArtifactIds && parentPipelineStageId) {
+      expectedArtifactIds = parentPipeline.trigger.resolvedExpectedArtifacts.collect {
+        it.id
+      }
+    }
 
     pipelineConfig.trigger = [
       type                 : "pipeline",
@@ -117,6 +122,9 @@ class DependentPipelineStarter implements ApplicationContextAware {
 
     if (parentPipelineStageId != null) {
       pipelineConfig.receivedArtifacts = artifactUtils?.getArtifacts(parentPipeline.stageById(parentPipelineStageId))
+      if (!pipelineConfig.expectedArtifacts) {
+        pipelineConfig.expectedArtifacts = parentPipeline.trigger.getOther().getOrDefault("expectedArtifacts", [])
+      }
     } else {
       pipelineConfig.receivedArtifacts = artifactUtils?.getAllArtifacts(parentPipeline)
     }

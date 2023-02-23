@@ -81,6 +81,29 @@ class ArtifactUtilsSpec extends Specification {
     artifact.name == 'build/libs/my-jar-100.jar'
   }
 
+  def "should bind stage-inlined artifacts to trigger artifacts"() {
+    setup:
+    def execution = pipeline {
+      stage {
+        name = "upstream stage"
+        type = "stage1"
+        refId = "1"
+      }
+    }
+
+    execution.trigger = new DefaultTrigger('manual')
+    execution.trigger.artifacts.add(Artifact.builder().type('http/file').name('build/libs/my-jar-100.jar').build())
+
+    when:
+    def artifact = makeArtifactUtils().getBoundArtifactForStage(execution.stages[0], null, Artifact.builder()
+        .type('http/file')
+        .name('build/libs/my-jar-\\d+.jar')
+        .build())
+
+    then:
+    artifact.name == 'build/libs/my-jar-100.jar'
+  }
+
   def "should find upstream artifacts in small pipeline"() {
     when:
     def desired = execution.getStages().find { it.name == "desired" }
@@ -392,17 +415,38 @@ class ArtifactUtilsSpec extends Specification {
 
   def "resolveArtifacts ignores expected artifacts from unrelated triggers"() {
     given:
-    def matchArtifact = Artifact.builder().type("docker/.*").build()
-    def expectedArtifact1 = ExpectedArtifact.builder().id("expected-artifact-id").matchArtifact(matchArtifact).build()
-    def expectedArtifact2 = ExpectedArtifact.builder().id("irrelevant-artifact-id").matchArtifact(matchArtifact).build()
-    def receivedArtifact = Artifact.builder().name("my-artifact").type("docker/image").build()
+    def matchArtifact = Artifact.builder()
+        .type("docker/.*")
+        .build()
+    def anotherArtifact = Artifact.builder()
+        .type("http/file")
+        .build()
+    def expectedArtifact1 = ExpectedArtifact.builder()
+        .id("expected-artifact-id")
+        .matchArtifact(matchArtifact)
+        .build()
+    def expectedArtifact2 = ExpectedArtifact.builder()
+        .id("irrelevant-artifact-id")
+        .matchArtifact(matchArtifact)
+        .build()
+    def expectedArtifact3 = ExpectedArtifact.builder()
+        .id("relevant-artifact-id")
+        .matchArtifact(anotherArtifact)
+        .defaultArtifact(anotherArtifact)
+        .useDefaultArtifact(true)
+        .build()
+    def receivedArtifact = Artifact.builder()
+        .name("my-artifact")
+        .type("docker/image")
+        .build()
+
     def pipeline = [
         id: "abc",
         trigger: [
             type: "jenkins",
             expectedArtifactIds: ["expected-artifact-id"]
         ],
-        expectedArtifacts: [expectedArtifact1, expectedArtifact2],
+        expectedArtifacts: [expectedArtifact1, expectedArtifact2, expectedArtifact3],
         receivedArtifacts: [receivedArtifact],
     ]
     def artifactUtils = makeArtifactUtils()
@@ -414,8 +458,8 @@ class ArtifactUtilsSpec extends Specification {
         new TypeReference<List<ExpectedArtifact>>() {})
 
     then:
-    resolvedArtifacts.size() == 1
-    resolvedArtifacts.get(0).getBoundArtifact() == receivedArtifact
+    resolvedArtifacts.size() == 2
+    resolvedArtifacts*.getBoundArtifact() == [receivedArtifact, anotherArtifact]
   }
 
   def "resolveArtifacts adds received artifacts to the trigger, skipping duplicates"() {
