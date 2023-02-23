@@ -92,7 +92,9 @@ class BasicAmazonDeployDescriptionValidator extends AmazonDescriptionValidationS
 
     // log warnings
     final String warnings = getWarnings(description)
-    log.warn(warnings)
+    if (!warnings.isEmpty()) {
+      log.warn(warnings)
+    }
   }
 
   /**
