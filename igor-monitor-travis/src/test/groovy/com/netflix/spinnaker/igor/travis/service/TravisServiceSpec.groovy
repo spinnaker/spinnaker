@@ -39,6 +39,10 @@ import com.netflix.spinnaker.igor.travis.client.model.v3.V3Log
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Repository
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry
 import org.assertj.core.util.Lists
+import retrofit.RetrofitError
+import retrofit.client.Response
+import retrofit.converter.JacksonConverter
+import retrofit.mime.TypedString
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -366,5 +370,39 @@ class TravisServiceSpec extends Specification {
         true              | null              | true        | true                | 1
         true              | null              | false       | true                | 1
         true              | null              | false       | false               | 0
+    }
+
+    def "should ignore expired logs from the Travis API when fetching logs"() {
+        given:
+        def v3log = new V3Log([
+            logParts: [
+                new V3Log.V3LogPart([
+                    number : 0,
+                    content: "Done. Your build exited with 0.",
+                    isFinal: true
+                ])],
+            content : "Done. Your build exited with 0."
+        ])
+
+        when:
+        def ready = service.isLogReady([1, 2])
+
+        then:
+        2 * travisCache.getJobLog("travis-ci", _) >> null
+        1 * client.jobLog(_, 1) >> v3log
+        1 * client.jobLog(_, 2) >> {
+            throw RetrofitError.httpError(
+                "https://travis-ci.com/api/job/2/log",
+                new Response("https://travis-ci.com/api/job/2/log", 403, "Forbidden", [], new TypedString(
+                    """{
+                            "@type": "error",
+                            "error_type": "log_expired",
+                            "error_message": "We're sorry, but this data is not available anymore. Please check the repository settings in Travis CI."
+                        }
+                    """)),
+                new JacksonConverter(),
+                Map)
+        }
+        !ready
     }
 }
