@@ -1588,4 +1588,192 @@ public class DeployManifestIT extends BaseTest {
   private static String generateManifestName(String myconfig) {
     return myconfig + Long.toHexString(UUID.randomUUID().getLeastSignificantBits());
   }
+
+  @DisplayName(
+      ".\n===\n"
+          + "Given a deployed manifest with an special annotation to avoid being versioned\n"
+          + "  And another annotation to avoid updating the replicas amount"
+          + "When sending an updated manifest\n"
+          + "  With a a new env var\n"
+          + "  And a different replica size\n"
+          + "The manifest is deployed with the new env var and the old replicas size\n===")
+  @Test
+  public void shouldUseSourceCapacityNonVersioned() throws IOException, InterruptedException {
+    // ------------------------- given --------------------------
+    int originalReplicasSize = 1;
+    int secondReplicasSize = 5;
+    ImmutableMap<String, String> annotations =
+        ImmutableMap.of(
+            "strategy.spinnaker.io/versioned",
+            "false" // non-versioned
+            ,
+            "strategy.spinnaker.io/use-source-capacity",
+            "true" // do not update replicas
+            );
+    String appName = "unversionedsourcepacaity-deployment";
+    System.out.println("> Using namespace: " + account1Ns + ", appName: " + appName);
+    List<Map<String, Object>> manifest =
+        KubeTestUtils.loadYaml("classpath:manifests/deployment.yml")
+            .withValue("metadata.namespace", account1Ns)
+            .withValue("metadata.name", appName)
+            .withValue("spec.selector.matchLabels.app", appName)
+            .withValue("spec.template.metadata.labels.app", appName)
+            .withValue("spec.replicas", originalReplicasSize)
+            .withValue("metadata.annotations", annotations)
+            .asList();
+    List<Map<String, Object>> body =
+        KubeTestUtils.loadJson("classpath:requests/deploy_manifest.json")
+            .withValue("deployManifest.account", ACCOUNT1_NAME)
+            .withValue("deployManifest.moniker.app", appName)
+            .withValue("deployManifest.manifests", manifest)
+            .asList();
+    System.out.println("> Using namespace: " + account1Ns + ", appName: " + appName);
+    KubeTestUtils.deployAndWaitStable(baseUrl(), body, account1Ns, "deployment " + appName);
+
+    // ------------------------- when --------------------------
+    List<Map<String, Object>> secondManifest =
+        KubeTestUtils.loadYaml("classpath:manifests/deployment.yml")
+            .withValue("metadata.namespace", account1Ns)
+            .withValue("metadata.name", appName)
+            .withValue("spec.selector.matchLabels.app", appName)
+            .withValue("spec.template.metadata.labels.app", appName)
+            .withValue("spec.replicas", secondReplicasSize)
+            .withValue(
+                "spec.template.spec.containers[0].env",
+                Collections.singletonList(
+                    ImmutableMap.of(
+                        "name", "test",
+                        "value", "test")))
+            .withValue("metadata.annotations", annotations)
+            .asList();
+    List<Map<String, Object>> secondBody =
+        KubeTestUtils.loadJson("classpath:requests/deploy_manifest.json")
+            .withValue("deployManifest.account", ACCOUNT1_NAME)
+            .withValue("deployManifest.moniker.app", appName)
+            .withValue("deployManifest.manifests", secondManifest)
+            .asList();
+    System.out.println("> Using namespace: " + account1Ns + ", appName: " + appName);
+    KubeTestUtils.deployAndWaitStable(baseUrl(), secondBody, account1Ns, "deployment " + appName);
+
+    // ------------------------- then --------------------------
+    String currentReplicas =
+        kubeCluster.execKubectl(
+            "-n " + account1Ns + " get deployment " + appName + " -o=jsonpath='{.spec.replicas}'");
+    assertEquals(
+        String.valueOf(originalReplicasSize),
+        currentReplicas,
+        "Expected "
+            + originalReplicasSize
+            + " replica for "
+            + appName
+            + " deployment. Pods:\n"
+            + currentReplicas);
+
+    String envVarValue =
+        kubeCluster.execKubectl(
+            "-n "
+                + account1Ns
+                + " get deployment "
+                + appName
+                + " -o=jsonpath='{.spec.template.spec.containers[0].env[0].value}'");
+    assertEquals("test", envVarValue, "Expected update env var for " + appName + " deployment.\n");
+  }
+
+  @DisplayName(
+      ".\n===\n"
+          + "Given a replicaset manifest with an special annotation for versioning\n"
+          + "  And another annotation to avoid updating the replicas amount"
+          + "When sending an updated manifest\n"
+          + "  With a a new env var\n"
+          + "  And a different replica size\n"
+          + "The manifest is deployed with the new env var and the replicas value from the previous version\n===")
+  @Test
+  public void shouldUseSourceCapacityVersioned() throws IOException, InterruptedException {
+    // ------------------------- given --------------------------
+    int originalReplicasSize = 1;
+    int secondReplicasSize = 5;
+    ImmutableMap<String, String> annotations =
+        ImmutableMap.of(
+            "strategy.spinnaker.io/versioned",
+            "true" // versioned
+            ,
+            "strategy.spinnaker.io/use-source-capacity",
+            "true" // do not update replicas
+            );
+    String appName = "unversionedsourcepacaity-replicaset";
+    System.out.println("> Using namespace: " + account1Ns + ", appName: " + appName);
+    List<Map<String, Object>> manifest =
+        KubeTestUtils.loadYaml("classpath:manifests/replicaset.yml")
+            .withValue("metadata.namespace", account1Ns)
+            .withValue("metadata.name", appName)
+            .withValue("spec.selector.matchLabels.app", appName)
+            .withValue("spec.template.metadata.labels.app", appName)
+            .withValue("spec.replicas", originalReplicasSize)
+            .withValue("metadata.annotations", annotations)
+            .asList();
+    List<Map<String, Object>> body =
+        KubeTestUtils.loadJson("classpath:requests/deploy_manifest.json")
+            .withValue("deployManifest.account", ACCOUNT1_NAME)
+            .withValue("deployManifest.moniker.app", appName)
+            .withValue("deployManifest.manifests", manifest)
+            .asList();
+    System.out.println("> Using namespace: " + account1Ns + ", appName: " + appName);
+    KubeTestUtils.deployAndWaitStable(
+        baseUrl(), body, account1Ns, "replicaSet " + appName + "-v000");
+
+    // ------------------------- when --------------------------
+    List<Map<String, Object>> secondManifest =
+        KubeTestUtils.loadYaml("classpath:manifests/replicaset.yml")
+            .withValue("metadata.namespace", account1Ns)
+            .withValue("metadata.name", appName)
+            .withValue("spec.selector.matchLabels.app", appName)
+            .withValue("spec.template.metadata.labels.app", appName)
+            .withValue("spec.replicas", secondReplicasSize)
+            .withValue(
+                "spec.template.spec.containers[0].env",
+                Collections.singletonList(
+                    ImmutableMap.of(
+                        "name", "test",
+                        "value", "test")))
+            .withValue("metadata.annotations", annotations)
+            .asList();
+    List<Map<String, Object>> secondBody =
+        KubeTestUtils.loadJson("classpath:requests/deploy_manifest.json")
+            .withValue("deployManifest.account", ACCOUNT1_NAME)
+            .withValue("deployManifest.moniker.app", appName)
+            .withValue("deployManifest.manifests", secondManifest)
+            .asList();
+    System.out.println("> Using namespace: " + account1Ns + ", appName: " + appName);
+    KubeTestUtils.deployAndWaitStable(
+        baseUrl(), secondBody, account1Ns, "replicaSet " + appName + "-v001");
+
+    // ------------------------- then --------------------------
+    String currentReplicas =
+        kubeCluster.execKubectl(
+            "-n "
+                + account1Ns
+                + " get replicaSet "
+                + appName
+                + "-v001"
+                + " -o=jsonpath='{.spec.replicas}'");
+    assertEquals(
+        String.valueOf(originalReplicasSize),
+        currentReplicas,
+        "Expected "
+            + originalReplicasSize
+            + " replica for "
+            + appName
+            + " replicaset. Pods:\n"
+            + currentReplicas);
+
+    String envVarValue =
+        kubeCluster.execKubectl(
+            "-n "
+                + account1Ns
+                + " get replicaSet "
+                + appName
+                + "-v001"
+                + " -o=jsonpath='{.spec.template.spec.containers[0].env[0].value}'");
+    assertEquals("test", envVarValue, "Expected update env var for " + appName + " replicaset.\n");
+  }
 }

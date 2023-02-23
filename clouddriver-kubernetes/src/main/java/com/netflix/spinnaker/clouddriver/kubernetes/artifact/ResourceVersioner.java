@@ -66,6 +66,14 @@ public final class ResourceVersioner {
     }
   }
 
+  public OptionalInt getLatestVersion(
+      KubernetesManifest manifest, KubernetesCredentials credentials) {
+    ImmutableList<Artifact> priorVersions =
+        artifactProvider.getArtifacts(
+            manifest.getKind(), manifest.getName(), manifest.getNamespace(), credentials);
+    return findLatestVersion(priorVersions);
+  }
+
   private static OptionalInt parseVersion(String versionString) {
     if (!versionString.startsWith("v")) {
       return OptionalInt.empty();
@@ -78,8 +86,15 @@ public final class ResourceVersioner {
   }
 
   private int findGreatestUnusedVersion(List<Artifact> priorVersions) {
-    int maxTaken = extractVersions(priorVersions.stream()).max().orElse(-1);
-    return maxTaken + 1;
+    OptionalInt latestVersion = findLatestVersion(priorVersions);
+    if (latestVersion.isPresent()) {
+      return latestVersion.getAsInt() + 1;
+    }
+    return 0;
+  }
+
+  private OptionalInt findLatestVersion(List<Artifact> priorVersions) {
+    return extractVersions(priorVersions.stream()).max();
   }
 
   private OptionalInt findMatchingVersion(

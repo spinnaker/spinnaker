@@ -117,8 +117,10 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
 
                   KubernetesHandler deployer = properties.getHandler();
                   if (strategy.isUseSourceCapacity() && deployer instanceof CanScale) {
+                    OptionalInt latestVersion = latestVersion(manifest, version);
                     Integer replicas =
-                        KubernetesSourceCapacity.getSourceCapacity(manifest, credentials);
+                        KubernetesSourceCapacity.getSourceCapacity(
+                            manifest, credentials, latestVersion);
                     if (replicas != null) {
                       manifest.setReplicas(replicas);
                     }
@@ -176,6 +178,15 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
             "Deploy manifest task completed successfully for all manifests in account "
                 + accountName);
     return result;
+  }
+
+  @NotNull
+  private OptionalInt latestVersion(KubernetesManifest manifest, OptionalInt version) {
+    if (version.isEmpty()) {
+      return OptionalInt.empty();
+    }
+    OptionalInt latestVersion = resourceVersioner.getLatestVersion(manifest, credentials);
+    return latestVersion;
   }
 
   @NotNull

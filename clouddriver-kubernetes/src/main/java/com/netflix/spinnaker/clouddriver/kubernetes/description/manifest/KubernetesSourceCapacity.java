@@ -19,20 +19,33 @@ package com.netflix.spinnaker.clouddriver.kubernetes.description.manifest;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
+import java.util.OptionalInt;
 
 public class KubernetesSourceCapacity {
   public static Integer getSourceCapacity(
-      KubernetesManifest manifest, KubernetesCredentials credentials) {
+      KubernetesManifest manifest, KubernetesCredentials credentials, OptionalInt currentVersion) {
+    String name = currentManifestName(manifest, currentVersion);
     KubernetesManifest currentManifest =
         credentials.get(
             KubernetesCoordinates.builder()
                 .kind(manifest.getKind())
                 .namespace(manifest.getNamespace())
-                .name(manifest.getName())
+                .name(name)
                 .build());
     if (currentManifest != null) {
       return currentManifest.getReplicas();
     }
     return null;
+  }
+
+  private static String currentManifestName(
+      KubernetesManifest manifest, OptionalInt currentVersion) {
+    if (currentVersion.isEmpty()) {
+      return manifest.getName();
+    }
+
+    int version = currentVersion.getAsInt();
+    String versionString = String.format("v%03d", version);
+    return String.join("-", manifest.getName(), versionString);
   }
 }
