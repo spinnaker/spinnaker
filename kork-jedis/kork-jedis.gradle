@@ -10,10 +10,12 @@ dependencies {
   api "com.netflix.spectator:spectator-api"
 
   implementation "com.fasterxml.jackson.core:jackson-databind"
+  implementation "org.apache.commons:commons-lang3"
 
   testImplementation "com.hubspot.jinjava:jinjava"
   testImplementation project(":kork-core-tck")
   testImplementation project(":kork-jedis-test")
+  testImplementation "org.mockito:mockito-core"
   testImplementation "org.spockframework:spock-core"
   testImplementation "junit:junit"
   testRuntimeOnly "cglib:cglib-nodep"
