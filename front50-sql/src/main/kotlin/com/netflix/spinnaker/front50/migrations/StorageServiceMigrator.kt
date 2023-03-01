@@ -60,33 +60,38 @@ class StorageServiceMigrator(
 
     val targetObjectKeys = target.listObjectKeys(objectType)
 
-    val deletableObjectKeys = targetObjectKeys.filter { e ->
-      // only cleanup "orphans" if they don't exist in source _AND_ they are at least five minutes old
-      // (accounts for edge cases around eventual consistency reads in s3)9
-      !sourceObjectKeys.containsKey(e.key) && (e.value + TimeUnit.MINUTES.toMillis(5)) < System.currentTimeMillis()
-    }
-
-    if (!deletableObjectKeys.isEmpty()) {
-      /*
-       * Handle a situation where deletes can still happen directly against the source/previous storage service.
-       *
-       * In these cases, the delete should also be reflected in the primary/target storage service.
-       */
-      log.info(
-        "Found orphaned objects in {} (keys: {})",
-        source.javaClass.simpleName,
-        deletableObjectKeys.keys.joinToString(", ")
-      )
-
-      deletableObjectKeys.keys.forEach {
-        target.deleteObject(objectType, it)
+    if (dynamicConfigService.getConfig(Boolean::class.java, "spinnaker.migration.compositeStorageService.deleteOrphans", true)) {
+      log.info("Checking for orphaned objects in {}", target.javaClass.simpleName)
+      val deletableObjectKeys = targetObjectKeys.filter { e ->
+        // only cleanup "orphans" if they don't exist in source _AND_ they are at least five minutes old
+        // (accounts for edge cases around eventual consistency reads in s3)9
+        !sourceObjectKeys.containsKey(e.key) && (e.value + TimeUnit.MINUTES.toMillis(5)) < System.currentTimeMillis()
       }
 
-      log.info(
-        "Deleted orphaned objects from {} (keys: {})",
-        target.javaClass.simpleName,
-        deletableObjectKeys.keys.joinToString(", ")
-      )
+      if (deletableObjectKeys.isNotEmpty()) {
+        /*
+         * Handle a situation where deletes can still happen directly against the source/previous storage service.
+         *
+         * In these cases, the delete should also be reflected in the primary/target storage service.
+         */
+        log.info(
+          "Found orphaned objects in {} (keys: {})",
+          source.javaClass.simpleName,
+          deletableObjectKeys.keys.joinToString(", ")
+        )
+
+        deletableObjectKeys.keys.forEach {
+          target.deleteObject(objectType, it)
+        }
+
+        log.info(
+          "Deleted orphaned objects from {} (keys: {})",
+          target.javaClass.simpleName,
+          deletableObjectKeys.keys.joinToString(", ")
+        )
+      }
+    } else {
+      log.info("Not deleting orphaned objects in {} as deleteOrphans is disabled", source.javaClass.simpleName)
     }
 
     val migratableObjectKeys = sourceObjectKeys.filter { e ->

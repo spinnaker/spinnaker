@@ -84,5 +84,6 @@ data class StorageServiceMigratorConfigurationProperties(
   var previousClass: String? = null,
   var primaryName: String? = null,
   var previousName: String? = null,
-  var writeOnly: Boolean = false
+  var writeOnly: Boolean = false,
+  var deleteOrphans: Boolean = true
 )
