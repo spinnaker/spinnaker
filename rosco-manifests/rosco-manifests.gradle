@@ -22,7 +22,3 @@ dependencies {
   testImplementation "org.mockito:mockito-core"
   testImplementation "org.spockframework:spock-core"
 }
-
-test {
-  useJUnitPlatform()
-}

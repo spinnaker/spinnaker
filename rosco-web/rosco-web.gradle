@@ -28,10 +28,6 @@ dependencies {
   testImplementation "org.objenesis:objenesis"
 }
 
-test {
-  useJUnitPlatform()
-}
-
 ospackage {
   from('../halconfig/packer') {
     into '/opt/rosco/config/packer'

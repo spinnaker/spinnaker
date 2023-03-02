@@ -21,12 +21,14 @@ subprojects {
       annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
       testAnnotationProcessor platform("io.spinnaker.kork:kork-bom:$korkVersion")
       testAnnotationProcessor "org.projectlombok:lombok"
+      testRuntimeOnly "org.junit.vintage:junit-vintage-engine"
     }
 
     test {
       testLogging {
         exceptionFormat = 'full'
       }
+      useJUnitPlatform()
     }
   }
 
