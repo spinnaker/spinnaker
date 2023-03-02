@@ -22,6 +22,16 @@ class V2InstanceArchetypeSelectorController implements IComponentController {
     const { $scope } = this;
     this.instanceTypeService.getCategories(this.command.selectedProvider).then((categories) => {
       $scope.instanceProfiles = categories;
+      // Resetting the 'unavailable' properties to avoid caching initially.
+      categories.forEach((profile) => {
+        if (profile.type === this.command.viewState.instanceProfile) {
+          profile.families.forEach((family) => {
+            family.instanceTypes.forEach((instanceType) => {
+              instanceType.unavailable = false;
+            });
+          });
+        }
+      });
       if ($scope.instanceProfiles.length % 3 === 0) {
         $scope.columns = 3;
       }
