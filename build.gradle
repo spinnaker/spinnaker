@@ -43,6 +43,7 @@ subprojects {
       }
       minHeapSize = "512m"
       maxHeapSize = "512m"
+      useJUnitPlatform()
     }
     tasks.withType(Javadoc) {
       failOnError = false
@@ -69,6 +70,7 @@ subprojects {
       testImplementation "org.springframework:spring-test"
       testImplementation "org.hamcrest:hamcrest-core"
       testRuntimeOnly "cglib:cglib-nodep"
+      testRuntimeOnly "org.junit.vintage:junit-vintage-engine"
       testRuntimeOnly "org.objenesis:objenesis"
     }
   }

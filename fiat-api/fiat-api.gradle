@@ -39,7 +39,3 @@ dependencies {
 
   testImplementation "org.slf4j:slf4j-api"
 }
-
-test {
-  useJUnitPlatform()
-}

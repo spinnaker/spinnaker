@@ -51,9 +51,3 @@ dependencies {
     // Only used for Initializing Datasource. For actual CRUD, test containers preferred.
     testImplementation "com.h2database:h2"
 }
-
-test {
-    useJUnitPlatform {
-        includeEngines "junit-vintage", "junit-jupiter"
-    }
-}
