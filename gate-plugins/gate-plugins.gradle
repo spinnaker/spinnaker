@@ -32,7 +32,3 @@ dependencies {
   implementation "org.springframework:spring-web"
   implementation "org.pf4j:pf4j-update"
 }
-
-test {
-  useJUnitPlatform()
-}
