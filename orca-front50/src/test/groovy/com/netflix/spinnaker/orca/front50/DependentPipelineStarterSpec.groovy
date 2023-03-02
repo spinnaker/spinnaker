@@ -507,7 +507,8 @@ class DependentPipelineStarterSpec extends Specification {
         triggers: [],
     ]
     Artifact testArtifact1 = Artifact.builder().type("gcs/object").name("gs://test/file.yaml").build()
-    Artifact testArtifact2 = Artifact.builder().type("docker/image").name("gcr.io/project/image").build()
+    Artifact testArtifact2 = Artifact.builder().type("docker/image").name("gcr.io/project/image").version("42").build()
+    Artifact testArtifact3 = Artifact.builder().type("docker/image").name("gcr.io/project/image").version("1337").build()
     def parentPipeline = pipeline {
       name = "parent"
       trigger = new DefaultTrigger("webhook", null, "test", [:], [testArtifact1, testArtifact2])
@@ -523,10 +524,12 @@ class DependentPipelineStarterSpec extends Specification {
         requisiteStageRefIds = ["1"]
       }
     }
+    parentPipeline.stageByRef("1").setOutputs([artifacts: [testArtifact3]])
 
     def uuid = "8f241d2a-7fee-4a95-8d84-0a508222032c"
+    def expectedImage = Artifact.builder().type("docker/image").name("gcr.io/project/image").build()
     ArrayList<ExpectedArtifact> expectedArtifacts = [
-        ExpectedArtifact.builder().id(uuid).matchArtifact(testArtifact1).build()
+        ExpectedArtifact.builder().id(uuid).matchArtifact(expectedImage).build()
     ]
     parentPipeline.trigger.setOther("expectedArtifacts", expectedArtifacts)
     parentPipeline.trigger.resolvedExpectedArtifacts = expectedArtifacts
@@ -560,17 +563,16 @@ class DependentPipelineStarterSpec extends Specification {
         null,
         parentPipeline,
         [:],
-        "stage1",
+        "stage2",
         buildAuthenticatedUser("user", [])
     )
 
     then:
-    result.trigger.artifacts.size() == 2
+    result.trigger.artifacts.size() == 3
     result.trigger.artifacts*.name.contains(testArtifact1.name)
     result.trigger.artifacts*.name.contains(testArtifact2.name)
-    result.trigger.resolvedExpectedArtifacts.size() == 1
-    result.trigger.resolvedExpectedArtifacts*.boundArtifact.name == [testArtifact1.name]
-    result.trigger.resolvedExpectedArtifacts*.id == [uuid]
+    result.trigger.artifacts*.name.contains(testArtifact3.name)
+    result.trigger.artifacts.findAll { it.name == "gcr.io/project/image" }.version.containsAll(["42", "1337"])
   }
 
   def "should resolve expressions in trigger"() {
