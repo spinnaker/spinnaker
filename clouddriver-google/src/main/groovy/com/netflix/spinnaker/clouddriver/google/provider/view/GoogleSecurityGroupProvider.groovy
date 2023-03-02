@@ -107,20 +107,21 @@ class GoogleSecurityGroupProvider implements SecurityGroupProvider<GoogleSecurit
   GoogleSecurityGroup fromCacheData(boolean includeRules, CacheData cacheData) {
     Map firewall = cacheData.attributes.firewall
     Map<String, String> parts = Keys.parse(cacheData.id)
+    def project = cacheData.attributes.project
 
-    return convertToGoogleSecurityGroup(includeRules, firewall, parts.account, parts.region)
+    return convertToGoogleSecurityGroup(includeRules, firewall, parts.account, parts.region, project)
   }
 
-  private GoogleSecurityGroup convertToGoogleSecurityGroup(boolean includeRules, Map firewall, String account, String region) {
+  private GoogleSecurityGroup convertToGoogleSecurityGroup(boolean includeRules, Map firewall, String account, String region, String project) {
     List<Rule> inboundRules = includeRules ? buildInboundIpRangeRules(firewall) : []
 
     new GoogleSecurityGroup(
-      id: deriveResourceId(account, firewall.selfLink),
+      id: deriveResourceId(project, firewall.selfLink),
       name: firewall.name,
       description: firewall.description,
       accountName: account,
       region: region,
-      network: deriveResourceId(account, firewall.network),
+      network: deriveResourceId(project, firewall.network),
       selfLink: firewall.selfLink,
       sourceTags: firewall.sourceTags,
       targetTags: firewall.targetTags,
@@ -233,14 +234,8 @@ class GoogleSecurityGroupProvider implements SecurityGroupProvider<GoogleSecurit
     } ?: []
   }
 
-  private String deriveResourceId(String account, String resourceLink) {
-    def accountCredentials = credentialsRepository.getOne(account)
+  private String deriveResourceId(String project, String resourceLink) {
 
-    if (!(accountCredentials instanceof GoogleNamedAccountCredentials)) {
-      throw new IllegalArgumentException("Invalid credentials: $account")
-    }
-
-    def project = accountCredentials.project
     def firewallProject = GCEUtil.deriveProjectId(resourceLink)
     def firewallId = GCEUtil.getLocalName(resourceLink)
 

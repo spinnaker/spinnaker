@@ -85,4 +85,44 @@ class GoogleSecurityGroupCachingAgentSpec extends Specification {
       1 * providerCache.getAll("onDemand", [keyGroupA, keyGroupB])
       0 * _
   }
+
+  void "should cache project name as an attribute along with firewalls"(){
+    setup:
+    def registry = new DefaultRegistry()
+    def computeMock = Mock(Compute)
+    def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).name(ACCOUNT_NAME).compute(computeMock).build()
+    def firewallsMock = Mock(Compute.Firewalls)
+    def firewallsListMock = Mock(Compute.Firewalls.List)
+    def securityGroupA = new Firewall(name: 'name-a',
+      selfLink: 'https://compute.googleapis.com/compute/v1/projects/my-project/global/firewalls/name-a')
+    def keyGroupA = Keys.getSecurityGroupKey(securityGroupA.name as String,
+      securityGroupA.name as String,
+      REGION,
+      ACCOUNT_NAME)
+
+    def ProviderCache providerCache = Mock(ProviderCache)
+    @Subject GoogleSecurityGroupCachingAgent agent = new GoogleSecurityGroupCachingAgent("testApplicationName",
+      credentials,
+      new ObjectMapper(),
+      registry)
+    agent.registry = registry
+
+    when:
+    def cache = agent.loadData(providerCache)
+
+    then:
+    1 * computeMock.firewalls() >> firewallsMock
+    1 * firewallsMock.list(PROJECT_NAME) >> firewallsListMock
+    1 * firewallsListMock.execute() >> new FirewallList(items: [securityGroupA])
+    with(cache.cacheResults.get(Keys.Namespace.SECURITY_GROUPS.ns)) { Collection<CacheData> cd ->
+      cd.stream().forEach( {
+        Map<String,Object> attributes= it.getAttributes()
+        attributes.get(0) == "my-project"
+      }
+      )
+    }
+    1 * providerCache.getAll("onDemand", [keyGroupA])
+    0 * _
+  }
+
 }

@@ -285,6 +285,8 @@ class GoogleSecurityGroupProviderSpec extends Specification {
       cachedValue.inboundRules[1].portRanges.endPort == [65535]
   }
 
+
+
   @Shared
   Map<String, Map<String, List<Firewall>>> firewallMap = [
     prod: [
@@ -359,7 +361,7 @@ class GoogleSecurityGroupProviderSpec extends Specification {
     firewallMap.collect { String account, Map<String, List<Firewall>> regions ->
       regions.collect { String region, List<Firewall> firewalls ->
         firewalls.collect { Firewall firewall ->
-          Map<String, Object> attributes = [firewall: firewall]
+          Map<String, Object> attributes = [firewall: firewall, project: 'my-project']
           new DefaultCacheData(Keys.getSecurityGroupKey(firewall.getName(), firewall.getName(), "global", account), attributes, [:])
         }
       }.flatten()

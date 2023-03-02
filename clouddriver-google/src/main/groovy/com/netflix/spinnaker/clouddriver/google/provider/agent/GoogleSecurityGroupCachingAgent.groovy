@@ -229,7 +229,7 @@ class GoogleSecurityGroupCachingAgent extends AbstractGoogleCachingAgent impleme
         moveOnDemandDataToNamespace(cacheResultBuilder, firewall)
       } else {
         cacheResultBuilder.namespace(SECURITY_GROUPS.ns).keep(securityGroupKey).with {
-          attributes = [firewall: firewall]
+          attributes = [firewall: firewall, project: project]
         }
       }
     }

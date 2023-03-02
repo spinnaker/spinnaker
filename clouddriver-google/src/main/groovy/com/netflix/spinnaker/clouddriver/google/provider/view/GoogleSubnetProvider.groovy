@@ -67,13 +67,14 @@ class GoogleSubnetProvider implements SubnetProvider<GoogleSubnet> {
   GoogleSubnet fromCacheData(CacheData cacheData) {
     Map subnet = cacheData.attributes.subnet
     Map<String, String> parts = Keys.parse(cacheData.id)
+    def project = cacheData.attributes.project
 
     new GoogleSubnet(
       type: this.cloudProvider,
       id: parts.id,
       name: subnet.name,
       gatewayAddress: subnet.gatewayAddress,
-      network: deriveNetworkId(parts.account, subnet),
+      network: deriveNetworkId(project, subnet),
       cidrBlock: subnet.ipCidrRange,
       account: parts.account,
       region: parts.region,
@@ -82,14 +83,8 @@ class GoogleSubnetProvider implements SubnetProvider<GoogleSubnet> {
     )
   }
 
-  private String deriveNetworkId(String account, Map subnet) {
-    def accountCredentials = accountCredentialsProvider.getCredentials(account)
+  private String deriveNetworkId(String project, Map subnet) {
 
-    if (!(accountCredentials instanceof GoogleNamedAccountCredentials)) {
-      throw new IllegalArgumentException("Invalid credentials: $account")
-    }
-
-    def project = accountCredentials.project
     def networkProject = GCEUtil.deriveProjectId(subnet.network)
     def networkId = GCEUtil.getLocalName(subnet.network)
 
