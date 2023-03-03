@@ -36,6 +36,7 @@ subprojects {
     }
     minHeapSize = "512m"
     maxHeapSize = "512m"
+    useJUnitPlatform()
   }
 
   if ([korkVersion, fiatVersion, clouddriverVersion, front50Version].any { it.endsWith("-SNAPSHOT") }) {
@@ -52,6 +53,7 @@ subprojects {
     annotationProcessor "org.projectlombok:lombok"
     testAnnotationProcessor platform("io.spinnaker.kork:kork-bom:$korkVersion")
     testAnnotationProcessor "org.projectlombok:lombok"
+    testRuntimeOnly "org.junit.vintage:junit-vintage-engine"
   }
 }
 
