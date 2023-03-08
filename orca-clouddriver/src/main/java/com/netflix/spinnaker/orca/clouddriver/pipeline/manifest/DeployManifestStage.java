@@ -108,16 +108,15 @@ public class DeployManifestStage extends ExpressionAwareStageDefinitionBuilder {
     deployedManifests.forEach(
         manifest -> {
           Map manifestMetadata = (Map) manifest.get("metadata");
-          String manifestKind = mapToNormManifestKind((String) manifest.get("kind"));
-          String manifestName = String.format("%s %s", manifestKind, manifestMetadata.get("name"));
+          String manifestName =
+              String.format("replicaSet %s", (String) manifestMetadata.get("name"));
           String namespace = (String) manifestMetadata.get("namespace");
           Map annotations = (Map) manifestMetadata.get("annotations");
           String clusterName = (String) annotations.get("moniker.spinnaker.io/cluster");
           String cloudProvider = "kubernetes";
 
           ImmutableList<String> previousManifestNames =
-              getOldManifestNames(
-                  application, account, clusterName, namespace, manifestKind, manifestName);
+              getOldManifestNames(application, account, clusterName, namespace, manifestName);
           previousManifestNames.forEach(
               name -> {
                 graph.append(
@@ -137,18 +136,8 @@ public class DeployManifestStage extends ExpressionAwareStageDefinitionBuilder {
   private List<Map<String, ?>> getNewManifests(Map<String, Object> parentContext) {
     List<Map<String, ?>> manifests = (List<Map<String, ?>>) parentContext.get("outputs.manifests");
     return manifests.stream()
-        .filter(
-            manifest ->
-                manifest.get("kind").equals("ReplicaSet")
-                    || manifest.get("kind").equals("Deployment"))
+        .filter(manifest -> manifest.get("kind").equals("ReplicaSet"))
         .collect(Collectors.toList());
-  }
-
-  private String mapToNormManifestKind(String manifestKind) {
-    if ("Deployment".equals(manifestKind)) {
-      return "deployment";
-    }
-    return "replicaSet";
   }
 
   private ImmutableList<String> getOldManifestNames(
@@ -156,10 +145,9 @@ public class DeployManifestStage extends ExpressionAwareStageDefinitionBuilder {
       String account,
       String clusterName,
       String namespace,
-      String manifestKind,
       String newManifestName) {
     return oortService
-        .getClusterManifests(account, namespace, manifestKind, application, clusterName)
+        .getClusterManifests(account, namespace, "replicaSet", application, clusterName)
         .stream()
         .filter(m -> !m.getFullResourceName().equals(newManifestName))
         .map(ManifestCoordinates::getFullResourceName)
