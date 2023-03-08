@@ -43,6 +43,7 @@ subprojects { project ->
       testLogging {
         exceptionFormat = 'full'
       }
+      useJUnitPlatform()
     }
 
     tasks.withType(JavaExec) {
@@ -70,6 +71,7 @@ subprojects { project ->
       testImplementation("org.springframework:spring-test")
       testImplementation("org.hamcrest:hamcrest-core")
       testRuntimeOnly("cglib:cglib-nodep")
+      testRuntimeOnly("org.junit.vintage:junit-vintage-engine")
       testRuntimeOnly("org.objenesis:objenesis")
     }
   }

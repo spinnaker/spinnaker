@@ -49,9 +49,3 @@ dependencies {
   testImplementation "io.mockk:mockk"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
 }
-
-test {
-  useJUnitPlatform {
-    includeEngines "junit-jupiter"
-  }
-}
