@@ -192,7 +192,6 @@ export class DeployManifestStageForm extends React.Component<
           config={stage.trafficManagement}
           onConfigChange={(config) => this.props.formik.setFieldValue('trafficManagement', config)}
           selectedAccount={stage.account}
-          isDeploymentKind={this.state.rawManifest.includes('kind: Deployment')}
         />
       </div>
     );
