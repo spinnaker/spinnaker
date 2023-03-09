@@ -65,9 +65,3 @@ dependencies {
   testImplementation "mysql:mysql-connector-java"
   testImplementation "org.postgresql:postgresql"
 }
-
-test {
-  useJUnitPlatform {
-    includeEngines "junit-vintage", "junit-jupiter"
-  }
-}
