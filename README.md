@@ -39,6 +39,10 @@ The following external resources can be specified with environment variables:
 
 For example, `API_HOST=http://spinnaker.prod.netflix.net yarn start` will run Deck with `http://spinnaker.prod.netflix.net` as the API host.
 
+## Development
+
+Deck has a combination of Angular and React, but is moving to React only. New changes made to the Deck project should use React wherever possible.
+
 ## Testing
 
 To run the tests within the application, run `yarn test`.
