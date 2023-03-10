@@ -1,0 +1,27 @@
+<div class="form-group">
+  <div class="row">
+    <div class="col-md-7">
+      <cloudrun-stage-allocation-label allocation-description="$ctrl.allocationDescription">
+      </cloudrun-stage-allocation-label>
+    </div>
+    <div class="col-md-3">
+      <div class="input-group input-group-sm">
+        <input
+          type="number"
+          ng-model="$ctrl.allocationDescription.percent"
+          required
+          class="form-control input-sm"
+          min="0"
+          ng-change="$ctrl.onAllocationChange()"
+          max="100"
+        />
+        <span class="input-group-addon">%</span>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <a class="btn btn-link sm-label" ng-click="$ctrl.removeAllocation()">
+        <span class="glyphicon glyphicon-trash"></span>
+      </a>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,43 @@
+<ng-form name="basicSettingsForm">
+  <div class="row">
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">
+        Allocations
+        <help-field key="cloudrun.loadBalancer.allocations"></help-field>
+      </div>
+      <div class="col-md-9">
+        <div ng-if="!$ctrl.forPipelineConfig">
+          <cloudrun-allocation-configuration-row
+            ng-repeat="description in $ctrl.loadBalancer.splitDescription.allocationDescriptions"
+            allocation-description="description"
+            server-group-options="$ctrl.serverGroupOptions"
+            on-allocation-change="$ctrl.updateServerGroupOptions()"
+            remove-allocation="$ctrl.removeAllocation($index)"
+          >
+          </cloudrun-allocation-configuration-row>
+        </div>
+        <div ng-if="$ctrl.forPipelineConfig">
+          <cloudrun-stage-allocation-configuration-row
+            ng-repeat="description in $ctrl.loadBalancer.splitDescription.allocationDescriptions"
+            allocation-description="description"
+            application="$ctrl.application"
+            region="{{ $ctrl.loadBalancer.region }}"
+            account="{{ $ctrl.loadBalancer.account || $ctrl.loadBalancer.credentials }}"
+            server-group-options="$ctrl.serverGroupOptions"
+            on-allocation-change="$ctrl.updateServerGroupOptions()"
+            remove-allocation="$ctrl.removeAllocation($index)"
+          >
+          </cloudrun-stage-allocation-configuration-row>
+        </div>
+        <button class="add-new col-md-11" ng-if="$ctrl.showAddButton()" ng-click="$ctrl.addAllocation()">
+          <span class="glyphicon glyphicon-plus-sign"></span> Add allocation
+        </button>
+      </div>
+    </div>
+    <div class="form-group" ng-if="$ctrl.allocationIsInvalid()">
+      <div class="col-md-12 text-center">
+        <p class="alert alert-warning">Allocations must sum to 100%.</p>
+      </div>
+    </div>
+  </div>
+</ng-form>

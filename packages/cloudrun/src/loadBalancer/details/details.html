@@ -1,0 +1,86 @@
+<div class="details-panel">
+  <div ng-if="ctrl.state.loading" class="header">
+    <div class="close-button">
+      <a class="btn btn-link" ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div class="horizontal center middle">
+      <loading-spinner size="'small'"></loading-spinner>
+    </div>
+  </div>
+
+  <div ng-if="!ctrl.state.loading" class="header">
+    <div class="close-button">
+      <a class="btn btn-link" ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div class="header-text horizontal middle">
+      <i class="fa icon-sitemap"></i>
+      <h3 class="horizontal middle space-between flex-1" select-on-dbl-click>{{ctrl.loadBalancer.name}}</h3>
+    </div>
+    <div>
+      <div class="actions">
+        <div class="dropdown" uib-dropdown dropdown-append-to-body>
+          <button type="button" class="btn btn-sm btn-primary dropdown-toggle" uib-dropdown-toggle>
+            Load Balancer Actions <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+            <li><a href ng-click="ctrl.editLoadBalancer()">Edit Load Balancer</a></li>
+            <li ng-if="ctrl.canDeleteLoadBalancer()">
+              <a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a>
+            </li>
+            <li
+              ng-if="!ctrl.canDeleteLoadBalancer()"
+              uib-tooltip="You cannot delete a default service."
+              class="disabled"
+            >
+              <a href>Delete Load Balancer</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div ng-if="!ctrl.state.loading" class="content">
+    <collapsible-section heading="Load Balancer Details" expanded="true">
+      <dl class="dl-horizontal dl-narrow">
+        <dt>In</dt>
+        <dd><account-tag account="ctrl.loadBalancer.account" pad="right"></account-tag></dd>
+        <dt>Region</dt>
+        <dd>{{ctrl.loadBalancer.region}}</dd>
+        <dt ng-if="ctrl.loadBalancer.serverGroups.length">Server Groups</dt>
+        <dd ng-if="ctrl.loadBalancer.serverGroups.length">
+          <ul>
+            <li ng-repeat="serverGroup in ctrl.loadBalancer.serverGroups | orderBy: ['isDisabled', '-name']">
+              <a
+                ui-sref="^.serverGroup({region: serverGroup.region,
+                                         accountId: serverGroup.account,
+                                         serverGroup: serverGroup.name,
+                                         provider: 'cloudrun'})"
+              >
+                {{serverGroup.name}}
+              </a>
+            </li>
+          </ul>
+        </dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Traffic Split" expanded="true">
+      <dl class="dl-horizontal dl-narrow">
+        <ul>
+          <li ng-repeat="trafficTarget in ctrl.loadBalancer.split.trafficTargets">
+            {{trafficTarget.revisionName}}:<span class="pull-right">{{trafficTarget.percent}}</span>
+          </li>
+        </ul>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="DNS" expanded="true">
+      <dl class="dl-narrow">
+        <cloudrun-component-url-details component="ctrl.loadBalancer"></cloudrun-component-url-details>
+      </dl>
+    </collapsible-section>
+  </div>
+</div>

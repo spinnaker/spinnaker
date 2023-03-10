@@ -23,6 +23,7 @@ async function buildModules() {
         'appengine',
         'azure',
         'cloudfoundry',
+        'cloudrun',
         'docker',
         'google',
         'huaweicloud',

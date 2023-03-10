@@ -1,0 +1,68 @@
+<div class="details-panel">
+  <div class="header">
+    <instance-details-header
+      health-state="ctrl.instance.healthState"
+      instance-id="ctrl.instance ? ctrl.instance.name : ctrl.instanceIdNotFound"
+      loading="ctrl.state.loading"
+      standalone="false"
+    ></instance-details-header>
+    <div ng-if="!ctrl.state.loading">
+      <div class="actions">
+        <div class="dropdown" uib-dropdown dropdown-append-to-body>
+          <button type="button" class="btn btn-sm btn-primary dropdown-toggle" uib-dropdown-toggle>
+            Instance Actions <span class="caret"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="content" ng-if="!ctrl.state.loading && ctrl.instance">
+    <collapsible-section heading="Instance Information" expanded="true">
+      <dl class="dl-horizontal dl-narrow">
+        <dt>Launched</dt>
+        <dd ng-if="ctrl.instance.launchTime">{{ctrl.instance.launchTime | timestamp}}</dd>
+        <dt>In</dt>
+        <dd><account-tag account="ctrl.instance.account" pad="right"></account-tag>{{}}</dd>
+        <dt ng-if="ctrl.instance.serverGroup">Server Group</dt>
+        <dd ng-if="ctrl.instance.serverGroup">
+          <a
+            ui-sref="^.serverGroup({region: ctrl.instance.region,
+                                     accountId: ctrl.instance.account,
+                                     serverGroup: ctrl.instance.serverGroup,
+                                     provider: 'cloudrun'})"
+            >{{ctrl.instance.serverGroup}}</a
+          >
+        </dd>
+        <dt>Region</dt>
+        <dd>{{ctrl.instance.region}}</dd>
+        <cloudrun-conditional-dt-dd
+          component="ctrl.instance"
+          key="vmZoneName"
+          label="Zone"
+        ></cloudrun-conditional-dt-dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Status" expanded="true">
+      <dl>
+        <dt>Load Balancer</dt>
+        <dd>
+          <span
+            class="pull-left"
+            uib-tooltip="{{ctrl.instance.healthState === 'Up' ? ctrl.upToolTip : ctrl.outOfServiceToolTip}}"
+            tooltip-placement="right"
+          >
+            <span class="glyphicon glyphicon-{{ctrl.instance.healthState}}-triangle"></span>
+            {{ctrl.instance.loadBalancers[0]}}
+          </span>
+        </dd>
+      </dl>
+    </collapsible-section>
+  </div>
+  <div class="content" ng-if="!ctrl.state.loading && !ctrl.instance">
+    <div class="content-section">
+      <div class="content-body text-center">
+        <h3>Instance not found.</h3>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,53 @@
+{
+  "name": "@spinnaker/cloudrun",
+  "license": "Apache-2.0",
+  "version": "0.0.1",
+  "module": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "scripts": {
+    "clean": "shx rm -rf dist",
+    "prepublishOnly": "npm run build",
+    "build": "npm run clean && spinnaker-scripts build",
+    "dev": "spinnaker-scripts start",
+    "dev:push": "spinnaker-scripts start --push",
+    "lib": "npm run build"
+  },
+  "dependencies": {
+    "@spinnaker/core": "^0.23.0",
+    "@uirouter/angularjs": "1.0.26",
+    "@uirouter/react": "1.0.7",
+    "angular": "1.6.10",
+    "angular-ui-bootstrap": "2.5.0",
+    "brace": "0.11.1",
+    "dompurify": "^2.3.10",
+    "enzyme": "3.11.0",
+    "formik": "1.5.1",
+    "js-yaml": "3.13.1",
+    "lodash": "4.17.21",
+    "luxon": "1.23.0",
+    "ngimport": "0.6.1",
+    "react": "16.14.0",
+    "react-ace": "6.4.0",
+    "react-bootstrap": "0.32.1",
+    "react-ga": "2.4.1",
+    "react-select": "1.2.1",
+    "react2angular": "3.2.1",
+    "rxjs": "6.6.7"
+  },
+  "devDependencies": {
+    "@spinnaker/eslint-plugin": "^3.0.1",
+    "@spinnaker/scripts": "^0.3.0",
+    "@types/angular": "1.6.26",
+    "@types/angular-ui-bootstrap": "0.13.41",
+    "@types/dompurify": "^2.3.3",
+    "@types/enzyme": "3.10.3",
+    "@types/js-yaml": "3.5.30",
+    "@types/lodash": "4.14.64",
+    "@types/luxon": "1.11.1",
+    "@types/react": "16.14.10",
+    "@types/react-bootstrap": "0.32.5",
+    "@types/react-select": "1.3.4",
+    "shx": "0.3.3",
+    "typescript": "4.3.5"
+  }
+}

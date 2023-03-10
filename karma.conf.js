@@ -32,6 +32,8 @@ const webpackConfig = {
       '@spinnaker/azure': path.resolve(`${MODULES_ROOT}/azure/src`),
       cloudfoundry: path.resolve(`${MODULES_ROOT}/cloudfoundry/src`),
       '@spinnaker/cloudfoundry': path.resolve(`${MODULES_ROOT}/cloudfoundry/src`),
+      cloudrun: path.resolve(`${MODULES_ROOT}/cloudrun/src`),
+      '@spinnaker/cloudrun': path.resolve(`${MODULES_ROOT}/cloudrun/src`),
       core: path.resolve(`${MODULES_ROOT}/core/src`),
       '@spinnaker/core': path.resolve(`${MODULES_ROOT}/core/src`),
       dcos: path.resolve(`${MODULES_ROOT}/dcos/src`),

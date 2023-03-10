@@ -11,6 +11,7 @@ ModuleDeps () {
       appengine) echo "core" ;;
       azure) echo "core" ;;
       cloudfoundry) echo "core" ;;
+      cloudrun) echo "core" ;;
       core) echo "presentation";;
       docker) echo "core" ;;
       ecs) echo "amazon docker core" ;;

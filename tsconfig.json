@@ -57,7 +57,10 @@
       "azure": ["azure/src"],
       "@spinnaker/ecs": ["ecs/src"],
       "ecs/*": ["ecs/src/*"],
-      "ecs": ["ecs/src"]
+      "ecs": ["ecs/src"],
+      "@spinnaker/cloudrun": ["cloudrun/src"],
+      "cloudrun/*": ["cloudrun/src/*"],
+      "cloudrun": ["cloudrun/src"],
     },
     "pretty": true,
     "removeComments": false,

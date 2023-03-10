@@ -1,0 +1,33 @@
+<div ng-controller="BaseExecutionDetailsCtrl">
+  <execution-details-section-nav sections="configSections"></execution-details-section-nav>
+  <div class="step-section-details" ng-if="detailsSection === 'editLoadBalancerConfig'">
+    <div class="row">
+      <div class="col-md-12">
+        <table class="table table-condensed">
+          <thead>
+            <tr>
+              <th>Account</th>
+              <th>Name</th>
+              <th>Region</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="loadBalancer in stage.context.loadBalancers">
+              <td>
+                <account-tag account="loadBalancer.credentials"></account-tag>
+              </td>
+              <td>{{ loadBalancer.name }}</td>
+              <td>{{ loadBalancer.region }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <stage-failure-message stage="stage" message="stage.failureMessage"></stage-failure-message>
+  </div>
+  <div class="step-section-details" ng-if="detailsSection === 'taskStatus'">
+    <div class="row">
+      <execution-step-details item="stage"></execution-step-details>
+    </div>
+  </div>
+</div>

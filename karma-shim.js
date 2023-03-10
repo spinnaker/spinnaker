@@ -34,6 +34,9 @@ testContext.keys().forEach(testContext);
 testContext = require.context('./packages/cloudfoundry/src', true, /\.spec\.(js|ts|tsx)$/);
 testContext.keys().forEach(testContext);
 
+testContext = require.context('./packages/cloudrun/src', true, /\.spec\.(js|ts|tsx)$/);
+testContext.keys().forEach(testContext);
+
 testContext = require.context('./packages/core/src', true, /\.spec\.(js|ts|tsx)$/);
 testContext.keys().forEach(testContext);
 
