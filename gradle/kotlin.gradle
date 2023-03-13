@@ -35,12 +35,6 @@ dependencies {
   testRuntimeOnly "org.spekframework.spek2:spek-runner-junit5"
 }
 
-test {
-  useJUnitPlatform {
-    includeEngines "spek2", "junit-vintage", "junit-jupiter"
-  }
-}
-
 compileKotlin {
   kotlinOptions {
     languageVersion = "1.4"

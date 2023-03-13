@@ -43,7 +43,7 @@ class SelectableServiceSpec extends Specification {
       [
         new ByAccountServiceSelector(oortService, 10, ["accountPattern": ".*internal.*"]),
         new ByApplicationServiceSelector(mortService, 10, ["applicationPattern": ".*spindemo.*"]),
-        new ByCloudProviderServiceSelector(oortService, 10, ["cloudProviders": ["kubernetes"]]),
+        new ByCloudProviderServiceSelector(oortService, 10, ["cloudProviders": [0: "kubernetes"]]),
         new ByExecutionTypeServiceSelector(oortService, 5, ["executionTypes": [0: "orchestration"]]),
         new ByOriginServiceSelector(instanceService, 20, ["origin": "deck", "executionTypes": [0: "orchestration"]]),
         new ByAuthenticatedUserServiceSelector(bakeryService, 25, ["users": [0: "user1@email.com", 1: ".*user2.*"]]),

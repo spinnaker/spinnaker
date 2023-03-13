@@ -48,7 +48,3 @@ dependencies {
   testRuntimeOnly "cglib:cglib-nodep"
   testRuntimeOnly "org.objenesis:objenesis"
 }
-
-test {
-  useJUnitPlatform()
-}

@@ -2,10 +2,6 @@ apply plugin: "java-library"
 apply from: "$rootDir/gradle/lombok.gradle"
 apply from: "$rootDir/gradle/kotlin.gradle"
 
-test {
-  useJUnitPlatform()
-}
-
 dependencies {
   api(platform(project(":spinnaker-dependencies")))
 
