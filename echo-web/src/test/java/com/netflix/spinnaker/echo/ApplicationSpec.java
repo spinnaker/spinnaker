@@ -18,6 +18,7 @@ package com.netflix.spinnaker.echo;
 
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService;
 import com.netflix.spinnaker.echo.services.Front50Service;
+import com.netflix.spinnaker.fiat.shared.FiatService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -32,6 +33,8 @@ public class ApplicationSpec {
   @MockBean Front50Service front50Service;
 
   @MockBean OrcaService orcaService;
+
+  @MockBean FiatService fiatService;
 
   @Test
   public void startupTest() {}

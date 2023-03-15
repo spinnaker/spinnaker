@@ -33,9 +33,3 @@ dependencies {
   testImplementation 'io.strikt:strikt-core'
   testImplementation "io.spinnaker.kork:kork-jedis-test"
 }
-
-test {
-  useJUnitPlatform {
-    includeEngines("junit-vintage", "junit-jupiter")
-  }
-}

@@ -22,6 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.netflix.spinnaker.echo.Application;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService;
 import com.netflix.spinnaker.echo.services.Front50Service;
+import com.netflix.spinnaker.fiat.shared.FiatService;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,6 +44,8 @@ public class TelemetrySpec {
   @MockBean Front50Service front50Service;
 
   @MockBean OrcaService orcaService;
+
+  @MockBean FiatService fiatService;
 
   @Autowired WebApplicationContext wac;
 

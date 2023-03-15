@@ -21,7 +21,3 @@ dependencies {
   testImplementation("io.mockk:mockk")
   testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
-
-test {
-  useJUnitPlatform()
-}
