@@ -19,8 +19,6 @@ package com.netflix.spinnaker.fiat.shared;
 import com.netflix.spinnaker.kork.api.exceptions.AccessDeniedDetails;
 import com.netflix.spinnaker.kork.web.exceptions.ExceptionMessageDecorator;
 import java.io.IOException;
-import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.StringJoiner;
 import javax.servlet.http.HttpServletRequest;
@@ -38,6 +36,7 @@ public class FiatAccessDeniedExceptionHandler {
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   private final DefaultErrorAttributes defaultErrorAttributes = new DefaultErrorAttributes();
+  private final HeadersRedactor headersRedactor = new HeadersRedactor();
 
   private final ExceptionMessageDecorator exceptionMessageDecorator;
 
@@ -51,7 +50,7 @@ public class FiatAccessDeniedExceptionHandler {
       throws IOException {
     storeException(request, response, e);
 
-    Map<String, String> headers = requestHeaders(request);
+    Map<String, String> headers = headersRedactor.getRedactedHeaders(request);
 
     log.error(
         "Encountered exception while processing request {}:{} with headers={}",
@@ -103,20 +102,6 @@ public class FiatAccessDeniedExceptionHandler {
     if (authorizationFailure.hasAuthorization()) {
       sj.add("- required authorization:").add(authorizationFailure.getAuthorization().toString());
     }
-  }
-
-  private Map<String, String> requestHeaders(HttpServletRequest request) {
-    Map<String, String> headers = new HashMap<>();
-
-    if (request.getHeaderNames() != null) {
-      for (Enumeration<String> h = request.getHeaderNames(); h.hasMoreElements(); ) {
-        String headerName = h.nextElement();
-        String headerValue = request.getHeader(headerName);
-        headers.put(headerName, headerValue);
-      }
-    }
-
-    return headers;
   }
 
   private void storeException(
