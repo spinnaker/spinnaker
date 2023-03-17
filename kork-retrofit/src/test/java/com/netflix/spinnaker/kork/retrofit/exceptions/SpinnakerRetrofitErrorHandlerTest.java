@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -149,6 +150,19 @@ public class SpinnakerRetrofitErrorHandlerTest {
     SpinnakerHttpException spinnakerHttpException =
         assertThrows(SpinnakerHttpException.class, () -> retrofitService.getFoo());
     assertNull(spinnakerHttpException.getRetryable());
+  }
+
+  @Test
+  public void testResponseHeadersInException() {
+    // Check response headers are retrievable from a SpinnakerHttpException
+    mockWebServer.enqueue(
+        new MockResponse()
+            .setResponseCode(HttpStatus.BAD_REQUEST.value())
+            .setHeader("Test", "true"));
+    SpinnakerHttpException spinnakerHttpException =
+        assertThrows(SpinnakerHttpException.class, () -> retrofitService.getFoo());
+    assertTrue(spinnakerHttpException.getHeaders().containsKey("Test"));
+    assertTrue(spinnakerHttpException.getHeaders().get("Test").contains("true"));
   }
 
   @Test
