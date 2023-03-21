@@ -18,6 +18,7 @@ package com.netflix.spinnaker.cats.redis.cluster;
 
 import static com.netflix.spinnaker.cats.agent.ExecutionInstrumentation.elapsedTimeMs;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.agent.AgentExecution;
@@ -79,8 +80,8 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware
   private Optional<Semaphore> runningAgents;
 
   // This code assumes that every agent being run is in exactly either the WAITING or WORKING set.
-  private static final String WAITING_SET = "WAITZ";
-  private static final String WORKING_SET = "WORKZ";
+  @VisibleForTesting static final String WAITING_SET = "WAITZ";
+  @VisibleForTesting static final String WORKING_SET = "WORKZ";
   private static final String ADD_AGENT_SCRIPT = "addAgentScript";
   private static final String VALID_SCORE_SCRIPT = "validScoreScript";
   private static final String SWAP_SET_SCRIPT = "swapSetScript";
@@ -374,7 +375,8 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware
     }
   }
 
-  private void saturatePool() {
+  @VisibleForTesting
+  void saturatePool() {
     try (Jedis jedis = jedisPool.getResource()) {
       // Occasionally repopulate the agents in case redis went down. If they already exist, this is
       // a NOOP
@@ -409,22 +411,31 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware
 
       // Loop until we either run out of threads to use, or agents (which are keys) to run.
       while (!keys.isEmpty() && runningAgents.map(Semaphore::tryAcquire).orElse(true)) {
-        String agent = keys.remove(0);
+        try {
+          String agent = keys.remove(0);
 
-        AgentWorker worker = agents.get(agent);
-        ScoreTuple score;
-        if (worker != null && (score = acquireAgent(worker.agent)) != null) {
-          // This score is used to determine if the worker thread running the agent is allowed to
-          // store its results.
-          // If on release of this agent, the scores don't match, this agent was rescheduled by a
-          // separate thread.
-          worker.setScore(score.acquireScore);
-          workers.add(worker);
+          AgentWorker worker = agents.get(agent);
+          ScoreTuple score;
+          if (worker != null && (score = acquireAgent(worker.agent)) != null) {
+            // This score is used to determine if the worker thread running the agent is allowed to
+            // store its results.
+            // If on release of this agent, the scores don't match, this agent was rescheduled by a
+            // separate thread.
+            worker.setScore(score.acquireScore);
+            if (workers.add(worker)) {
+              agentWorkPool.submit(worker);
+              continue;
+            }
+          }
+          // This agent worker has not been submitted to agentWorkPool, and the acquired permit must
+          // be released to Semaphore.
+          runningAgents.ifPresent(Semaphore::release);
+        } catch (Throwable t) {
+          log.error("Failed to submit AgentWorker to agentWorkPool", t);
+          runningAgents.ifPresent(Semaphore::release);
+          // Better to ignore(not re-throw), so that the agentWorker can be submitted to the
+          // agentWorkPool as much as possible.
         }
-      }
-
-      for (AgentWorker worker : workers) {
-        agentWorkPool.submit(worker);
       }
     }
   }
