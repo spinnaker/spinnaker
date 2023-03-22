@@ -177,11 +177,14 @@ internal object SqlStorageServiceTests : JUnit5Minutests {
           }
         }
 
+        var lastModifiedMs : Long = 100
         test("bulk load pipelines") {
           val objectKeys = mutableSetOf<String>()
+          val lastModifiedList = mutableSetOf<Long>()
           (1..10).forEach {
             val objectKey = "id-pipeline00$it"
             objectKeys.add(objectKey)
+            lastModifiedList.add(lastModifiedMs);
 
             sqlStorageService.storeObject(
               ObjectType.PIPELINE,
@@ -189,11 +192,13 @@ internal object SqlStorageServiceTests : JUnit5Minutests {
               Pipeline().apply {
                 this.setId(objectKey)
                 this.setName("pipeline00$it")
-                this.setLastModified(100)
+                this.setLastModified(lastModifiedMs)
 
                 this.setApplication("application001")
               }
             )
+
+            lastModifiedMs+=(100..1000).random()
           }
 
           val pipelines = sqlStorageService.loadObjects<Pipeline>(
@@ -203,6 +208,9 @@ internal object SqlStorageServiceTests : JUnit5Minutests {
           expectThat(
             pipelines.map { it.id }.toSet()
           ).isEqualTo(objectKeys)
+          expectThat(
+            pipelines.map { it.lastModified }.toSet()
+          ).isEqualTo(lastModifiedList)
         }
       }
 
