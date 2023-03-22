@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - include:
+      file: changelog/202303091551-create-canary-archive-table.yml
+      relativeToChangelogFile: true
+  - include:
+      file: changelog/202303091552-create-canary-config-table.yml
+      relativeToChangelogFile: true
+  - include:
+      file: changelog/202303091553-create-metric-sets-table.yml
+      relativeToChangelogFile: true
+  - include:
+      file: changelog/202303091554-create-metric-set-pairs-table.yml
+      relativeToChangelogFile: true
+  - include:
+      file: changelog/202303091555-adjust-tables-for-postgres.yml
+      relativeToChangelogFile: true

@@ -26,6 +26,7 @@ dependencies {
   api project(':kayenta-prometheus')
   api project(':kayenta-s3')
   api project(':kayenta-signalfx')
+  api project(':kayenta-sql')
   api project(':kayenta-stackdriver')
   api project(':kayenta-standalone-canary-analysis')
   api project(':kayenta-wavefront')

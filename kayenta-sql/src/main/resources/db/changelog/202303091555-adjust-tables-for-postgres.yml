@@ -1,0 +1,25 @@
+databaseChangeLog:
+  - changeSet:
+      id: adjust-tables-for-postgres
+      author: alexey.bedonik
+      preConditions:
+        - onFail: MARK_RAN
+        - dbms:
+            type: postgresql
+      changes:
+        - modifyDataType:
+            tableName: canary_archive
+            columnName: content
+            newDataType: JSONB
+        - modifyDataType:
+            tableName: canary_config
+            columnName: content
+            newDataType: JSONB
+        - modifyDataType:
+            tableName: metric_sets
+            columnName: content
+            newDataType: JSONB
+        - modifyDataType:
+            tableName: metric_set_pairs
+            columnName: content
+            newDataType: JSONB
