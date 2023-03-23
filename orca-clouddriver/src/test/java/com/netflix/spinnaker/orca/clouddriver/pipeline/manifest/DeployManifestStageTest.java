@@ -17,6 +17,9 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.manifest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -26,7 +29,11 @@ import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
+import com.netflix.spinnaker.orca.clouddriver.model.Manifest;
 import com.netflix.spinnaker.orca.clouddriver.model.ManifestCoordinates;
+import com.netflix.spinnaker.orca.clouddriver.pipeline.manifest.DeployManifestStage.GetDeployedManifests;
+import com.netflix.spinnaker.orca.clouddriver.pipeline.manifest.DeployManifestStage.ManifestOperationsHelper;
+import com.netflix.spinnaker.orca.clouddriver.pipeline.manifest.DeployManifestStage.OldManifestActionAppender;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.DeployManifestContext;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.DeployManifestContext.TrafficManagement.ManifestStrategyType;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
@@ -35,9 +42,9 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -48,12 +55,43 @@ final class DeployManifestStageTest {
   private static final String CLUSTER = "replicaSet my-rs";
   private static final String NAMESAPCE = "my-ns";
 
-  @Mock private OortService oortService;
+  private OortService oortService;
+  private ManifestOperationsHelper manifestOperationsHelper;
+  private GetDeployedManifests getDeployedManifests;
   private DeployManifestStage deployManifestStage;
+  private OldManifestActionAppender oldManifestActionAppender;
+
+  private static Map<String, Object> getContext(DeployManifestContext deployManifestContext) {
+    Map<String, Object> context =
+        objectMapper.convertValue(
+            deployManifestContext, new TypeReference<Map<String, Object>>() {});
+    context.put("moniker", ImmutableMap.of("app", APPLICATION));
+    context.put("account", ACCOUNT);
+    context.put(
+        "outputs.manifests",
+        ImmutableList.of(
+            ImmutableMap.of(
+                "kind",
+                "ReplicaSet",
+                "metadata",
+                ImmutableMap.of(
+                    "name",
+                    "my-rs-v001",
+                    "namespace",
+                    NAMESAPCE,
+                    "annotations",
+                    ImmutableMap.of("moniker.spinnaker.io/cluster", CLUSTER)))));
+    return context;
+  }
 
   @BeforeEach
   void setUp() {
-    deployManifestStage = new DeployManifestStage(oortService);
+    oortService = mock(OortService.class);
+    manifestOperationsHelper = new ManifestOperationsHelper(oortService);
+    getDeployedManifests = new GetDeployedManifests(manifestOperationsHelper);
+    oldManifestActionAppender =
+        new OldManifestActionAppender(getDeployedManifests, manifestOperationsHelper);
+    deployManifestStage = new DeployManifestStage(oldManifestActionAppender);
   }
 
   @Test
@@ -70,6 +108,7 @@ final class DeployManifestStageTest {
 
   @Test
   void rolloutStrategyRedBlack() {
+    givenManifestIsStable();
     when(oortService.getClusterManifests(ACCOUNT, NAMESAPCE, "replicaSet", APPLICATION, CLUSTER))
         .thenReturn(
             ImmutableList.of(
@@ -119,6 +158,7 @@ final class DeployManifestStageTest {
 
   @Test
   void rolloutStrategyBlueGreen() {
+    givenManifestIsStable();
     when(oortService.getClusterManifests(ACCOUNT, NAMESAPCE, "replicaSet", APPLICATION, CLUSTER))
         .thenReturn(
             ImmutableList.of(
@@ -152,6 +192,57 @@ final class DeployManifestStageTest {
     assertThat(getAfterStages(stage))
         .extracting(StageExecution::getType)
         .containsExactly(DisableManifestStage.PIPELINE_CONFIG_TYPE);
+    assertThat(getAfterStages(stage))
+        .extracting(s -> s.getContext().get("account"))
+        .containsExactly(ACCOUNT);
+    assertThat(getAfterStages(stage))
+        .extracting(s -> s.getContext().get("app"))
+        .containsExactly(APPLICATION);
+    assertThat(getAfterStages(stage))
+        .extracting(s -> s.getContext().get("location"))
+        .containsExactly(NAMESAPCE);
+    assertThat(getAfterStages(stage))
+        .extracting(s -> s.getContext().get("manifestName"))
+        .containsExactly("replicaSet my-rs-v000");
+  }
+
+  @Test
+  @DisplayName("blue/green deployment should trigger old manifest deletion if it was failed")
+  void rolloutBlueGreenStrategyDeletesOldManifest() {
+    givenManifestIsNotStable();
+    when(oortService.getClusterManifests(ACCOUNT, NAMESAPCE, "replicaSet", APPLICATION, CLUSTER))
+        .thenReturn(
+            ImmutableList.of(
+                ManifestCoordinates.builder()
+                    .name("my-rs-v000")
+                    .kind("replicaSet")
+                    .namespace(NAMESAPCE)
+                    .build(),
+                ManifestCoordinates.builder()
+                    .name("my-rs-v001")
+                    .kind("replicaSet")
+                    .namespace(NAMESAPCE)
+                    .build()));
+    Map<String, Object> context =
+        getContext(
+            DeployManifestContext.builder()
+                .trafficManagement(
+                    DeployManifestContext.TrafficManagement.builder()
+                        .enabled(true)
+                        .options(
+                            DeployManifestContext.TrafficManagement.Options.builder()
+                                .strategy(ManifestStrategyType.BLUE_GREEN)
+                                .build())
+                        .build())
+                .build());
+    StageExecutionImpl stage =
+        new StageExecutionImpl(
+            new PipelineExecutionImpl(ExecutionType.PIPELINE, APPLICATION),
+            DeployManifestStage.PIPELINE_CONFIG_TYPE,
+            context);
+    assertThat(getAfterStages(stage))
+        .extracting(StageExecution::getType)
+        .containsExactly(DeleteManifestStage.PIPELINE_CONFIG_TYPE);
     assertThat(getAfterStages(stage))
         .extracting(s -> s.getContext().get("account"))
         .containsExactly(ACCOUNT);
@@ -282,26 +373,34 @@ final class DeployManifestStageTest {
     return graph.build();
   }
 
-  private static Map<String, Object> getContext(DeployManifestContext deployManifestContext) {
-    Map<String, Object> context =
-        objectMapper.convertValue(
-            deployManifestContext, new TypeReference<Map<String, Object>>() {});
-    context.put("moniker", ImmutableMap.of("app", APPLICATION));
-    context.put("account", ACCOUNT);
-    context.put(
-        "outputs.manifests",
-        ImmutableList.of(
-            ImmutableMap.of(
-                "kind",
-                "ReplicaSet",
-                "metadata",
-                ImmutableMap.of(
-                    "name",
-                    "my-rs-v001",
-                    "namespace",
-                    NAMESAPCE,
-                    "annotations",
-                    ImmutableMap.of("moniker.spinnaker.io/cluster", CLUSTER)))));
-    return context;
+  private void givenManifestIsStable() {
+
+    var manifest =
+        Manifest.builder()
+            .status(
+                Manifest.Status.builder()
+                    .stable(Manifest.Condition.emptyTrue())
+                    .failed(Manifest.Condition.emptyFalse())
+                    .build())
+            .build();
+
+    givenManifestIs(manifest);
+  }
+
+  private void givenManifestIsNotStable() {
+    var manifest =
+        Manifest.builder()
+            .status(
+                Manifest.Status.builder()
+                    .stable(Manifest.Condition.emptyFalse())
+                    .failed(Manifest.Condition.emptyFalse())
+                    .build())
+            .build();
+
+    givenManifestIs(manifest);
+  }
+
+  private void givenManifestIs(Manifest manifest) {
+    when(oortService.getManifest(anyString(), anyString(), anyBoolean())).thenReturn(manifest);
   }
 }
