@@ -82,7 +82,7 @@ public class HelmArtifactCredentials extends BaseHttpArtifactCredentials<HelmArt
       index = downloadIndex();
       names = indexParser.findNames(index);
     } catch (IOException e) {
-      throw new NotFoundException("Failed to download chart names for '" + name + "' account");
+      throw new NotFoundException("Failed to download chart names for '" + name + "' account", e);
     }
     return names;
   }
@@ -94,7 +94,8 @@ public class HelmArtifactCredentials extends BaseHttpArtifactCredentials<HelmArt
       index = downloadIndex();
       versions = indexParser.findVersions(index, artifactName);
     } catch (IOException e) {
-      throw new NotFoundException("Failed to download chart versions for '" + name + "' account");
+      throw new NotFoundException(
+          "Failed to download chart versions for '" + name + "' account", e);
     }
     return versions;
   }
@@ -105,7 +106,8 @@ public class HelmArtifactCredentials extends BaseHttpArtifactCredentials<HelmArt
       return indexDownloadResponse.byteStream();
     } catch (IOException e) {
       throw new FailedDownloadException(
-          "Failed to download index.yaml file in '" + indexParser.getRepository() + "' repository");
+          "Failed to download index.yaml file in '" + indexParser.getRepository() + "' repository",
+          e);
     }
   }
 

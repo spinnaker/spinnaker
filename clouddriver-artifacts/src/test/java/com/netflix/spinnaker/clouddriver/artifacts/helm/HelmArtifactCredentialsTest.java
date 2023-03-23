@@ -18,11 +18,14 @@ package com.netflix.spinnaker.clouddriver.artifacts.helm;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
+import com.github.tomakehurst.wiremock.http.Fault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import com.squareup.okhttp.OkHttpClient;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -31,6 +34,7 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.function.Function;
 import org.apache.commons.io.Charsets;
+import org.assertj.core.api.Condition;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junitpioneer.jupiter.TempDirectory;
@@ -86,6 +90,40 @@ class HelmArtifactCredentialsTest {
             .build();
 
     runTestCase(server, account, m -> m.withHeader("Authorization", absent()));
+  }
+
+  @Test
+  void getArtifactNamesWithFailure(@WiremockResolver.Wiremock WireMockServer server)
+      throws IOException {
+    HelmArtifactAccount account =
+        HelmArtifactAccount.builder()
+            .repository(server.baseUrl() + "/" + REPOSITORY)
+            .name("my-helm-account")
+            .build();
+
+    runGetArtifactNamesWithFailureTestCase(
+        server, account, m -> m.withHeader("Authorization", absent()));
+  }
+
+  private void runGetArtifactNamesWithFailureTestCase(
+      WireMockServer server,
+      HelmArtifactAccount account,
+      Function<MappingBuilder, MappingBuilder> expectedAuth) {
+    HelmArtifactCredentials credentials = new HelmArtifactCredentials(account, okHttpClient);
+
+    final String indexPath = "/" + REPOSITORY + "/index.yaml";
+
+    server.stubFor(
+        expectedAuth.apply(
+            any(urlPathEqualTo(indexPath))
+                .willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER))));
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(credentials::getArtifactNames)
+        .has(
+            new Condition<>(
+                e -> e.getCause() != null && e.getCause().getCause() != null, "innerException"));
+    assertThat(server.findUnmatchedRequests().getRequests()).isEmpty();
   }
 
   private void runTestCase(
