@@ -54,6 +54,8 @@ dependencies {
   implementation("com.jayway.jsonpath:json-path:2.2.0")
   implementation("org.yaml:snakeyaml")
   implementation("org.codehaus.groovy:groovy")
+  implementation("net.javacrumbs.shedlock:shedlock-spring:4.44.0")
+  implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.44.0")
 
   compileOnly("org.projectlombok:lombok")
   annotationProcessor("org.projectlombok:lombok")

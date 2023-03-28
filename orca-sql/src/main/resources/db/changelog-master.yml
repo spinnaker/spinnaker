@@ -53,3 +53,6 @@ databaseChangeLog:
 - include:
     file: changelog/20200603-deleted-executions-table-not-mysql.yml
     relativeToChangelogFile: true
+- include:
+    file: changelog/20230309-shedlock.yml
+    relativeToChangelogFile: true

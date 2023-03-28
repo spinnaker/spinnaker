@@ -21,6 +21,7 @@ import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.interlink.events.*
+import com.netflix.spinnaker.orca.lock.RetriableLock
 import com.netflix.spinnaker.orca.pipeline.CompoundExecutionOperator
 import com.netflix.spinnaker.orca.pipeline.ExecutionRunner
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
@@ -95,22 +96,29 @@ class InterlinkSpec extends Specification {
         lastModified: stageLastModified)
     def execution = Mock(PipelineExecution)
     def repository = Mock(ExecutionRepository)
+    def lock = Mock(RetriableLock)
     def executionOperator = new CompoundExecutionOperator(
         repository,
         Mock(ExecutionRunner),
-        new RetrySupport())
+        new RetrySupport(),
+        lock
+    )
     def mapper = new ObjectMapper()
 
     and:
     def event = new PatchStageInterlinkEvent(ORCHESTRATION, "execId", "stageId",
-      mapper.writeValueAsString(
-          new StageExecutionImpl(id: 'stageId', context: [overridden: true, new_value: 42], lastModified: eventLastModified)
-      )).withObjectMapper(mapper)
+        mapper.writeValueAsString(
+            new StageExecutionImpl(id: 'stageId', context: [overridden: true, new_value: 42], lastModified: eventLastModified)
+        )).withObjectMapper(mapper)
 
     when:
     event.applyTo(executionOperator)
 
     then:
+    1 * lock.lock(_, _) >> { it ->
+      def runnable = (Runnable) it[1]
+      runnable.run()
+    }
     _ * repository.retrieve(event.executionType, event.executionId) >> execution
     1 * execution.stageById('stageId') >> stage
     1 * repository.storeStage(stage)

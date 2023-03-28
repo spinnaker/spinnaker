@@ -1,0 +1,29 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-shedlock-table-required-for-sql-based-distributed-locking
+      author: kkotula
+      changes:
+        - createTable:
+            tableName: shedlock
+            columns:
+              - column:
+                  name: name
+                  type: varchar(64)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: lock_until
+                  type: timestamp
+                  constraints:
+                    nullable: true
+              - column:
+                  name: locked_at
+                  type: timestamp
+                  constraints:
+                    nullable: true
+              - column:
+                  name: locked_by
+                  type: varchar(255)
+                  constraints:
+                    nullable: false

@@ -20,6 +20,8 @@ import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import com.netflix.spinnaker.orca.lock.RetriableLock;
+import com.netflix.spinnaker.orca.lock.RetriableLock.RetriableLockOptions;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.time.Duration;
@@ -39,9 +41,10 @@ import lombok.extern.slf4j.Slf4j;
 @Value
 @NonFinal
 public class CompoundExecutionOperator {
-  ExecutionRepository repository;
-  ExecutionRunner runner;
-  RetrySupport retrySupport;
+  private final ExecutionRepository repository;
+  private final ExecutionRunner runner;
+  private final RetrySupport retrySupport;
+  private final RetriableLock retriableLock;
 
   public void cancel(ExecutionType executionType, String executionId) {
     cancel(
@@ -52,7 +55,7 @@ public class CompoundExecutionOperator {
   }
 
   public void cancel(ExecutionType executionType, String executionId, String user, String reason) {
-    doInternal(
+    doInternalWithRetries(
         (PipelineExecution execution) -> runner.cancel(execution, user, reason),
         () -> repository.cancel(executionType, executionId, user, reason),
         "cancel",
@@ -68,7 +71,7 @@ public class CompoundExecutionOperator {
       @Nonnull ExecutionType executionType,
       @Nonnull String executionId,
       @Nullable String pausedBy) {
-    doInternal(
+    doInternalWithRetries(
         runner::reschedule,
         () -> repository.pause(executionType, executionId, pausedBy),
         "pause",
@@ -81,7 +84,7 @@ public class CompoundExecutionOperator {
       @Nonnull String executionId,
       @Nullable String user,
       @Nonnull Boolean ignoreCurrentStatus) {
-    doInternal(
+    doInternalWithRetries(
         runner::unpause,
         () -> repository.resume(executionType, executionId, user, ignoreCurrentStatus),
         "resume",
@@ -94,8 +97,7 @@ public class CompoundExecutionOperator {
       @Nonnull String executionId,
       @Nonnull String stageId,
       @Nonnull Consumer<StageExecution> stageUpdater) {
-    return doInternal(
-        runner::reschedule,
+    Runnable repositoryAction =
         () -> {
           PipelineExecution execution = repository.retrieve(executionType, executionId);
           StageExecution stage = execution.stageById(stageId);
@@ -104,10 +106,9 @@ public class CompoundExecutionOperator {
           stageUpdater.accept(stage);
 
           repository.storeStage(stage);
-        },
-        "reschedule",
-        executionType,
-        executionId);
+        };
+    return doInternalWithLocking(
+        runner::reschedule, repositoryAction, "reschedule", executionType, executionId, stageId);
   }
 
   public PipelineExecution restartStage(@Nonnull String executionId, @Nonnull String stageId) {
@@ -188,7 +189,7 @@ public class CompoundExecutionOperator {
       String executionId) {
     PipelineExecution toReturn = null;
     try {
-      runWithRetries(repositoryAction);
+      repositoryAction.run();
 
       toReturn =
           runWithRetries(
@@ -215,18 +216,51 @@ public class CompoundExecutionOperator {
     return toReturn;
   }
 
+  private PipelineExecution doInternalWithLocking(
+      Consumer<PipelineExecution> runnerAction,
+      Runnable repositoryAction,
+      String action,
+      ExecutionType executionType,
+      String executionId,
+      String stageId) {
+    var runnable = EnhancedExecution.withLocking(retriableLock, stageId, repositoryAction);
+    return doInternal(runnerAction, runnable, action, executionType, executionId);
+  }
+
+  private PipelineExecution doInternalWithRetries(
+      Consumer<PipelineExecution> runnerAction,
+      Runnable repositoryAction,
+      String action,
+      ExecutionType executionType,
+      String executionId) {
+    var runnable = EnhancedExecution.withRetries(retrySupport, repositoryAction);
+    return doInternal(runnerAction, runnable, action, executionType, executionId);
+  }
+
   private <T> T runWithRetries(Supplier<T> action) {
     return retrySupport.retry(action, 5, Duration.ofMillis(100), false);
   }
 
-  private void runWithRetries(Runnable action) {
-    retrySupport.retry(
-        () -> {
-          action.run();
-          return true;
-        },
-        5,
-        Duration.ofMillis(100),
-        false);
+  private static final class EnhancedExecution {
+
+    static Runnable withLocking(RetriableLock lock, String lockName, Runnable action) {
+      return () -> {
+        var options = new RetriableLockOptions(lockName);
+        var lockAcquired = lock.lock(options, action);
+        if (!lockAcquired) {
+          log.error("Failed to acquire lock {} in {} tries", lockName, options.getMaxRetries());
+          throw new RuntimeException("Failed to acquire lock for key: " + lockName);
+        }
+      };
+    }
+
+    static Runnable withRetries(RetrySupport retrySupport, Runnable action) {
+      Supplier<Boolean> actionSupplier =
+          () -> {
+            action.run();
+            return true;
+          };
+      return () -> retrySupport.retry(actionSupplier, 5, Duration.ofMillis(100), false);
+    }
   }
 }

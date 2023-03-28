@@ -36,6 +36,8 @@ dependencies {
   implementation("org.liquibase:liquibase-core")
   implementation("com.zaxxer:HikariCP")
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+  implementation("net.javacrumbs.shedlock:shedlock-spring:4.44.0")
+  implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.44.0")
 
   testImplementation(project(":orca-core-tck"))
   testImplementation(project(":orca-test-groovy"))

@@ -23,6 +23,8 @@ import com.netflix.spinnaker.kork.sql.config.SqlProperties
 import com.netflix.spinnaker.kork.telemetry.InstrumentedProxy
 import com.netflix.spinnaker.orca.api.pipeline.persistence.ExecutionRepositoryListener
 import com.netflix.spinnaker.orca.interlink.Interlink
+import com.netflix.spinnaker.orca.lock.RunOnLockAcquired
+import com.netflix.spinnaker.orca.lock.RunOnShedLockAcquired
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
 import com.netflix.spinnaker.orca.notifications.SqlNotificationClusterLock
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -32,20 +34,21 @@ import com.netflix.spinnaker.orca.sql.SqlHealthcheckActivator
 import com.netflix.spinnaker.orca.sql.pipeline.persistence.ExecutionStatisticsRepository
 import com.netflix.spinnaker.orca.sql.pipeline.persistence.SqlExecutionRepository
 import com.netflix.spinnaker.orca.sql.telemetry.SqlActiveExecutionsMonitor
-import java.time.Clock
-import java.util.Optional
 import liquibase.integration.spring.SpringLiquibase
+import net.javacrumbs.shedlock.core.LockProvider
+import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider
 import org.jooq.DSLContext
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.ComponentScan
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Import
-import org.springframework.context.annotation.Primary
+import org.springframework.context.annotation.*
+import java.time.Clock
+import java.util.*
+import javax.sql.DataSource
 
 @Configuration
 @ConditionalOnProperty("sql.enabled")
@@ -54,6 +57,8 @@ import org.springframework.context.annotation.Primary
 @ComponentScan("com.netflix.spinnaker.orca.sql")
 
 class SqlConfiguration {
+
+  private val log: Logger = LoggerFactory.getLogger(SqlConfiguration::class.java)
   @Bean
   fun liquibase(properties: SqlProperties): SpringLiquibase =
     SpringLiquibaseProxy(properties)
@@ -138,4 +143,18 @@ class SqlConfiguration {
     clock = clock,
     retryProperties = properties.retries.transactions
   )
+
+
+  @Bean
+  @ConditionalOnProperty("sql.external-lock.enabled")
+  fun sqlRunOnLockAcquired(lockProvider: LockProvider): RunOnLockAcquired {
+    log.info("SQL distributed locking enabled")
+    return RunOnShedLockAcquired(lockProvider)
+  }
+
+  @Bean
+  @ConditionalOnProperty("sql.external-lock.enabled")
+  fun lockProvider(datasource: DataSource): LockProvider {
+    return JdbcTemplateLockProvider(datasource)
+  }
 }
