@@ -144,6 +144,20 @@ func NewGateClient(ui output.Ui, gateEndpoint, defaultHeaders, configLocation st
 	updatedMessage := ""
 
 	if gateClient.Config.Auth != nil && gateClient.Config.Auth.OAuth2 != nil {
+		// The below will fail if the token is expired and there is no refresh token.
+		// This may happen if refresh tokens are not supported on the identity provider
+		if gateClient.Config.Auth.OAuth2.CachedToken != nil {
+			token := gateClient.Config.Auth.OAuth2.CachedToken
+
+			// The valid method below will return true if the token is set and not expired
+			// So, to check if it is expired. The token has an internal method to do this, and it is done
+			// as a part of the "Valid" method. So just use that, but ensure we are only checking if there
+			// is indeed an access token set
+			if token.AccessToken != "" && !token.Valid() && token.RefreshToken == "" {
+				gateClient.Config.Auth.OAuth2.CachedToken = nil
+			}
+		}
+
 		updatedConfig, err = authenticateOAuth2(ui.Output, httpClient, gateClient.GateEndpoint(), gateClient.Config.Auth)
 		if err != nil {
 			ui.Error(fmt.Sprintf("OAuth2 Authentication failed: %v", err))
