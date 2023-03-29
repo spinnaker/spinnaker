@@ -21,7 +21,7 @@ plugins {
 }
 
 dependencies {
-  implementation("org.gradle.crypto.checksum:org.gradle.crypto.checksum.gradle.plugin:1.2.0")
+  implementation("org.gradle.crypto.checksum:org.gradle.crypto.checksum.gradle.plugin:1.4.0")
 
   implementation(platform("com.fasterxml.jackson:jackson-bom:2.11.1"))
   implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
