@@ -22,6 +22,7 @@ import com.netflix.spinnaker.config.DefaultServiceEndpoint;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.fiat.providers.ProviderHealthTracker;
 import com.netflix.spinnaker.fiat.providers.internal.*;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,6 +69,7 @@ public class ResourcesConfig {
             new Ok3Client(
                 clientProvider.getClient(new DefaultServiceEndpoint("front50", front50Endpoint))))
         .setConverter(new JacksonConverter(objectMapper))
+        .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
         .setLogLevel(retrofitLogLevel)
         .setLog(new Slf4jRetrofitLogger(Front50Api.class))
         .build()
@@ -102,6 +104,7 @@ public class ResourcesConfig {
                 clientProvider.getClient(
                     new DefaultServiceEndpoint("clouddriver", clouddriverEndpoint))))
         .setConverter(new JacksonConverter(objectMapper))
+        .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
         .setLogLevel(retrofitLogLevel)
         .setLog(new Slf4jRetrofitLogger(ClouddriverApi.class))
         .build()
@@ -157,6 +160,7 @@ public class ResourcesConfig {
             new Ok3Client(
                 clientProvider.getClient(new DefaultServiceEndpoint("igor", igorEndpoint))))
         .setConverter(new JacksonConverter(objectMapper))
+        .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
         .setLogLevel(retrofitLogLevel)
         .setLog(new Slf4jRetrofitLogger(IgorApi.class))
         .build()

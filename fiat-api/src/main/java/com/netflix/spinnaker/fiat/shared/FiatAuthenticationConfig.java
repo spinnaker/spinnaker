@@ -24,6 +24,7 @@ import com.jakewharton.retrofit.Ok3Client;
 import com.netflix.spinnaker.config.DefaultServiceEndpoint;
 import com.netflix.spinnaker.config.ErrorConfiguration;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
 import com.netflix.spinnaker.kork.web.exceptions.ExceptionMessageDecorator;
 import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
@@ -81,6 +82,7 @@ public class FiatAuthenticationConfig {
         .setRequestInterceptor(interceptor)
         .setClient(new Ok3Client(okHttpClient))
         .setConverter(new JacksonConverter(objectMapper))
+        .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
         .setLogLevel(retrofitLogLevel)
         .setLog(new Slf4jRetrofitLogger(FiatService.class))
         .build()

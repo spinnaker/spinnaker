@@ -5,6 +5,7 @@ import com.netflix.spinnaker.config.DefaultServiceEndpoint;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.fiat.roles.github.GitHubProperties;
 import com.netflix.spinnaker.fiat.roles.github.client.GitHubClient;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -44,6 +45,7 @@ public class GitHubConfig {
                 clientProvider.getClient(
                     new DefaultServiceEndpoint("github", gitHubProperties.getBaseUrl()))))
         .setConverter(new JacksonConverter())
+        .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
         .setLogLevel(retrofitLogLevel)
         .setLog(new Slf4jRetrofitLogger(GitHubClient.class))
         .build()

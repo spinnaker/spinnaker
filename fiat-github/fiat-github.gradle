@@ -9,5 +9,6 @@ dependencies {
   implementation "com.squareup.retrofit:converter-jackson"
   implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client"
   implementation "io.spinnaker.kork:kork-web"
+  implementation "io.spinnaker.kork:kork-retrofit"
   implementation "javax.validation:validation-api"
 }
