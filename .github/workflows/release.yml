@@ -122,7 +122,7 @@ jobs:
           body: |
             ${{ steps.release_info.outputs.CHANGELOG }}
           draft: false
-          name: ${{ github.event.repository.name }} ${{ github.ref }}
+          name: ${{ github.event.repository.name }} ${{ github.ref_name }}
           prerelease: ${{ steps.release_info.outputs.IS_CANDIDATE }}
           tag_name: ${{ github.ref }}
           token: ${{ secrets.GITHUB_TOKEN }}
