@@ -10,25 +10,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
+    - uses: actions/setup-go@v4
+      with:
+        go-version-file: go.mod
+        cache: false
     - name: Ensure code formatting and style is consistent
-      uses: golangci/golangci-lint-action@v2
+      uses: golangci/golangci-lint-action@v3
       with:
         version: v1.45.2
 
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Prepare build variables
         id: build_variables
         run: |
           echo ::set-output name=REPO::${GITHUB_REPOSITORY##*/}
           echo ::set-output name=VERSION::"$(git rev-parse --short HEAD)-$(date --utc +'%Y%m%d%H%M')"
 
-      - uses: actions/setup-go@v2
+      - uses: actions/setup-go@v4
         with:
-          go-version: 1.17
+          go-version-file: go.mod
+          cache: false
       - uses: actions/cache@v2
         with:
           path: ~/go/pkg/mod
