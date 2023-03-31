@@ -65,7 +65,7 @@ jobs:
           PEERDEP_BUMP_COMMIT_HASH: ${{ steps.lerna_bump.outputs.peerdepBumpCommitHash }}
       - name: Create Pull Request
         id: createpullrequest
-        uses: peter-evans/create-pull-request@v3
+        uses: peter-evans/create-pull-request@v4
         with:
           token: '${{ secrets.SPINNAKERBOT_PERSONAL_ACCESS_TOKEN }}'
           commit-message: 'chore(package): Publish ${{ steps.bumps.outputs.bumps }}'
