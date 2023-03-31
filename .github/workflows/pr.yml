@@ -55,7 +55,7 @@ jobs:
         run: ./gradlew build
 
       - name: Build slim container image
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           context: .
           file: Dockerfile.slim
@@ -67,7 +67,7 @@ jobs:
             "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.build_variables.outputs.VERSION }}-slim"
 
       - name: Build ubuntu container image
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           context: .
           file: Dockerfile.ubuntu
