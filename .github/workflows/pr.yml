@@ -28,7 +28,7 @@ jobs:
 
       - name: Get yarn cache
         id: yarn-cache
-        run: echo "::set-output name=dir::$(yarn cache dir)"
+        run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
 
       - uses: actions/cache@v1
         with:
@@ -46,8 +46,8 @@ jobs:
       - name: Prepare build variables
         id: build_variables
         run: |
-          echo ::set-output name=REPO::${GITHUB_REPOSITORY##*/}
-          echo ::set-output name=VERSION::"$(git describe --tags --abbrev=0 --match="v[0-9]*" | cut -c2-)-dev-pr-$(git rev-parse --short HEAD)-$(date --utc +'%Y%m%d%H%M')"
+          echo REPO=${GITHUB_REPOSITORY##*/} >> $GITHUB_OUTPUT
+          echo VERSION="$(git describe --tags --abbrev=0 --match="v[0-9]*" | cut -c2-)-dev-pr-$(git rev-parse --short HEAD)-$(date --utc +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
 
       - name: Build
         env:
