@@ -35,7 +35,7 @@ jobs:
           fi
           echo "exactly one branch ($BRANCHES)"
           echo BRANCH=$BRANCHES >> $GITHUB_ENV
-      - uses: actions/setup-java@v2
+      - uses: actions/setup-java@v3
         with:
           java-version: 11
           distribution: 'zulu'
