@@ -19,7 +19,6 @@ import com.google.common.collect.Lists;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplate;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplateDAO;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Spliterators;
@@ -60,8 +59,6 @@ public class RedisPipelineTemplateDAO implements PipelineTemplateDAO {
       return StreamSupport.stream(Spliterators.spliteratorUnknownSize(c, 0), false)
           .map(e -> (PipelineTemplate) e.getValue())
           .collect(Collectors.toList());
-    } catch (IOException e) {
-      throw new RuntimeException(e);
     }
   }
 
