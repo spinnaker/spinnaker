@@ -436,7 +436,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**[]Mapstringobject**](MapÂ«string,objectÂ».md)
+[**[]Mapstringobject**](Map«string,object».md)
 
 ### Authorization
 
@@ -828,10 +828,19 @@ Name | Type | Description  | Notes
  **headersAcceptLanguageAsLocales0Variant** | **optional.String**|  | 
  **headersAcceptLanguage0Range** | **optional.String**|  | 
  **headersAcceptLanguage0Weight** | **optional.Float64**|  | 
+ **headersAcceptPatch0CharsetRegistered** | **optional.Bool**|  | 
+ **headersAcceptPatch0Concrete** | **optional.Bool**|  | 
+ **headersAcceptPatch0QualityValue** | **optional.Float64**|  | 
+ **headersAcceptPatch0Subtype** | **optional.String**|  | 
+ **headersAcceptPatch0SubtypeSuffix** | **optional.String**|  | 
+ **headersAcceptPatch0Type** | **optional.String**|  | 
+ **headersAcceptPatch0WildcardSubtype** | **optional.Bool**|  | 
+ **headersAcceptPatch0WildcardType** | **optional.Bool**|  | 
  **headersAccept0CharsetRegistered** | **optional.Bool**|  | 
  **headersAccept0Concrete** | **optional.Bool**|  | 
  **headersAccept0QualityValue** | **optional.Float64**|  | 
  **headersAccept0Subtype** | **optional.String**|  | 
+ **headersAccept0SubtypeSuffix** | **optional.String**|  | 
  **headersAccept0Type** | **optional.String**|  | 
  **headersAccept0WildcardSubtype** | **optional.Bool**|  | 
  **headersAccept0WildcardType** | **optional.Bool**|  | 
@@ -846,9 +855,12 @@ Name | Type | Description  | Notes
  **headersAllow** | [**optional.Interface of []string**](string.md)|  | 
  **headersCacheControl** | **optional.String**|  | 
  **headersConnection** | [**optional.Interface of []string**](string.md)|  | 
+ **headersContentDispositionAttachment** | **optional.Bool**|  | 
  **headersContentDispositionCharsetRegistered** | **optional.Bool**|  | 
  **headersContentDispositionCreationDate** | **optional.Time**|  | 
  **headersContentDispositionFilename** | **optional.String**|  | 
+ **headersContentDispositionFormData** | **optional.Bool**|  | 
+ **headersContentDispositionInline** | **optional.Bool**|  | 
  **headersContentDispositionModificationDate** | **optional.Time**|  | 
  **headersContentDispositionName** | **optional.String**|  | 
  **headersContentDispositionReadDate** | **optional.Time**|  | 
@@ -872,6 +884,7 @@ Name | Type | Description  | Notes
  **headersContentTypeConcrete** | **optional.Bool**|  | 
  **headersContentTypeQualityValue** | **optional.Float64**|  | 
  **headersContentTypeSubtype** | **optional.String**|  | 
+ **headersContentTypeSubtypeSuffix** | **optional.String**|  | 
  **headersContentTypeType** | **optional.String**|  | 
  **headersContentTypeWildcardSubtype** | **optional.Bool**|  | 
  **headersContentTypeWildcardType** | **optional.Bool**|  | 

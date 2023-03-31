@@ -58,7 +58,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**[]Mapstringobject**](MapÂ«string,objectÂ».md)
+[**[]Mapstringobject**](Map«string,object».md)
 
 ### Authorization
 

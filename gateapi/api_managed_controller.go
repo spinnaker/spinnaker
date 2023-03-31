@@ -2363,10 +2363,19 @@ ManagedControllerApiService processNotificationCallback
      * @param "HeadersAcceptLanguageAsLocales0Variant" (optional.String) - 
      * @param "HeadersAcceptLanguage0Range" (optional.String) - 
      * @param "HeadersAcceptLanguage0Weight" (optional.Float64) - 
+     * @param "HeadersAcceptPatch0CharsetRegistered" (optional.Bool) - 
+     * @param "HeadersAcceptPatch0Concrete" (optional.Bool) - 
+     * @param "HeadersAcceptPatch0QualityValue" (optional.Float64) - 
+     * @param "HeadersAcceptPatch0Subtype" (optional.String) - 
+     * @param "HeadersAcceptPatch0SubtypeSuffix" (optional.String) - 
+     * @param "HeadersAcceptPatch0Type" (optional.String) - 
+     * @param "HeadersAcceptPatch0WildcardSubtype" (optional.Bool) - 
+     * @param "HeadersAcceptPatch0WildcardType" (optional.Bool) - 
      * @param "HeadersAccept0CharsetRegistered" (optional.Bool) - 
      * @param "HeadersAccept0Concrete" (optional.Bool) - 
      * @param "HeadersAccept0QualityValue" (optional.Float64) - 
      * @param "HeadersAccept0Subtype" (optional.String) - 
+     * @param "HeadersAccept0SubtypeSuffix" (optional.String) - 
      * @param "HeadersAccept0Type" (optional.String) - 
      * @param "HeadersAccept0WildcardSubtype" (optional.Bool) - 
      * @param "HeadersAccept0WildcardType" (optional.Bool) - 
@@ -2381,9 +2390,12 @@ ManagedControllerApiService processNotificationCallback
      * @param "HeadersAllow" (optional.Interface of []string) - 
      * @param "HeadersCacheControl" (optional.String) - 
      * @param "HeadersConnection" (optional.Interface of []string) - 
+     * @param "HeadersContentDispositionAttachment" (optional.Bool) - 
      * @param "HeadersContentDispositionCharsetRegistered" (optional.Bool) - 
      * @param "HeadersContentDispositionCreationDate" (optional.Time) - 
      * @param "HeadersContentDispositionFilename" (optional.String) - 
+     * @param "HeadersContentDispositionFormData" (optional.Bool) - 
+     * @param "HeadersContentDispositionInline" (optional.Bool) - 
      * @param "HeadersContentDispositionModificationDate" (optional.Time) - 
      * @param "HeadersContentDispositionName" (optional.String) - 
      * @param "HeadersContentDispositionReadDate" (optional.Time) - 
@@ -2407,6 +2419,7 @@ ManagedControllerApiService processNotificationCallback
      * @param "HeadersContentTypeConcrete" (optional.Bool) - 
      * @param "HeadersContentTypeQualityValue" (optional.Float64) - 
      * @param "HeadersContentTypeSubtype" (optional.String) - 
+     * @param "HeadersContentTypeSubtypeSuffix" (optional.String) - 
      * @param "HeadersContentTypeType" (optional.String) - 
      * @param "HeadersContentTypeWildcardSubtype" (optional.Bool) - 
      * @param "HeadersContentTypeWildcardType" (optional.Bool) - 
@@ -2498,10 +2511,19 @@ type ManagedControllerApiProcessNotificationCallbackUsingPOSTOpts struct {
 	HeadersAcceptLanguageAsLocales0Variant optional.String
 	HeadersAcceptLanguage0Range optional.String
 	HeadersAcceptLanguage0Weight optional.Float64
+	HeadersAcceptPatch0CharsetRegistered optional.Bool
+	HeadersAcceptPatch0Concrete optional.Bool
+	HeadersAcceptPatch0QualityValue optional.Float64
+	HeadersAcceptPatch0Subtype optional.String
+	HeadersAcceptPatch0SubtypeSuffix optional.String
+	HeadersAcceptPatch0Type optional.String
+	HeadersAcceptPatch0WildcardSubtype optional.Bool
+	HeadersAcceptPatch0WildcardType optional.Bool
 	HeadersAccept0CharsetRegistered optional.Bool
 	HeadersAccept0Concrete optional.Bool
 	HeadersAccept0QualityValue optional.Float64
 	HeadersAccept0Subtype optional.String
+	HeadersAccept0SubtypeSuffix optional.String
 	HeadersAccept0Type optional.String
 	HeadersAccept0WildcardSubtype optional.Bool
 	HeadersAccept0WildcardType optional.Bool
@@ -2516,9 +2538,12 @@ type ManagedControllerApiProcessNotificationCallbackUsingPOSTOpts struct {
 	HeadersAllow optional.Interface
 	HeadersCacheControl optional.String
 	HeadersConnection optional.Interface
+	HeadersContentDispositionAttachment optional.Bool
 	HeadersContentDispositionCharsetRegistered optional.Bool
 	HeadersContentDispositionCreationDate optional.Time
 	HeadersContentDispositionFilename optional.String
+	HeadersContentDispositionFormData optional.Bool
+	HeadersContentDispositionInline optional.Bool
 	HeadersContentDispositionModificationDate optional.Time
 	HeadersContentDispositionName optional.String
 	HeadersContentDispositionReadDate optional.Time
@@ -2542,6 +2567,7 @@ type ManagedControllerApiProcessNotificationCallbackUsingPOSTOpts struct {
 	HeadersContentTypeConcrete optional.Bool
 	HeadersContentTypeQualityValue optional.Float64
 	HeadersContentTypeSubtype optional.String
+	HeadersContentTypeSubtypeSuffix optional.String
 	HeadersContentTypeType optional.String
 	HeadersContentTypeWildcardSubtype optional.Bool
 	HeadersContentTypeWildcardType optional.Bool
@@ -2700,6 +2726,30 @@ func (a *ManagedControllerApiService) ProcessNotificationCallbackUsingPOST(ctx c
 	if localVarOptionals != nil && localVarOptionals.HeadersAcceptLanguage0Weight.IsSet() {
 		localVarFormParams.Add("headers.acceptLanguage[0].weight", parameterToString(localVarOptionals.HeadersAcceptLanguage0Weight.Value(), ""))
 	}
+	if localVarOptionals != nil && localVarOptionals.HeadersAcceptPatch0CharsetRegistered.IsSet() {
+		localVarFormParams.Add("headers.acceptPatch[0].charset.registered", parameterToString(localVarOptionals.HeadersAcceptPatch0CharsetRegistered.Value(), ""))
+	}
+	if localVarOptionals != nil && localVarOptionals.HeadersAcceptPatch0Concrete.IsSet() {
+		localVarFormParams.Add("headers.acceptPatch[0].concrete", parameterToString(localVarOptionals.HeadersAcceptPatch0Concrete.Value(), ""))
+	}
+	if localVarOptionals != nil && localVarOptionals.HeadersAcceptPatch0QualityValue.IsSet() {
+		localVarFormParams.Add("headers.acceptPatch[0].qualityValue", parameterToString(localVarOptionals.HeadersAcceptPatch0QualityValue.Value(), ""))
+	}
+	if localVarOptionals != nil && localVarOptionals.HeadersAcceptPatch0Subtype.IsSet() {
+		localVarFormParams.Add("headers.acceptPatch[0].subtype", parameterToString(localVarOptionals.HeadersAcceptPatch0Subtype.Value(), ""))
+	}
+	if localVarOptionals != nil && localVarOptionals.HeadersAcceptPatch0SubtypeSuffix.IsSet() {
+		localVarFormParams.Add("headers.acceptPatch[0].subtypeSuffix", parameterToString(localVarOptionals.HeadersAcceptPatch0SubtypeSuffix.Value(), ""))
+	}
+	if localVarOptionals != nil && localVarOptionals.HeadersAcceptPatch0Type.IsSet() {
+		localVarFormParams.Add("headers.acceptPatch[0].type", parameterToString(localVarOptionals.HeadersAcceptPatch0Type.Value(), ""))
+	}
+	if localVarOptionals != nil && localVarOptionals.HeadersAcceptPatch0WildcardSubtype.IsSet() {
+		localVarFormParams.Add("headers.acceptPatch[0].wildcardSubtype", parameterToString(localVarOptionals.HeadersAcceptPatch0WildcardSubtype.Value(), ""))
+	}
+	if localVarOptionals != nil && localVarOptionals.HeadersAcceptPatch0WildcardType.IsSet() {
+		localVarFormParams.Add("headers.acceptPatch[0].wildcardType", parameterToString(localVarOptionals.HeadersAcceptPatch0WildcardType.Value(), ""))
+	}
 	if localVarOptionals != nil && localVarOptionals.HeadersAccept0CharsetRegistered.IsSet() {
 		localVarFormParams.Add("headers.accept[0].charset.registered", parameterToString(localVarOptionals.HeadersAccept0CharsetRegistered.Value(), ""))
 	}
@@ -2711,6 +2761,9 @@ func (a *ManagedControllerApiService) ProcessNotificationCallbackUsingPOST(ctx c
 	}
 	if localVarOptionals != nil && localVarOptionals.HeadersAccept0Subtype.IsSet() {
 		localVarFormParams.Add("headers.accept[0].subtype", parameterToString(localVarOptionals.HeadersAccept0Subtype.Value(), ""))
+	}
+	if localVarOptionals != nil && localVarOptionals.HeadersAccept0SubtypeSuffix.IsSet() {
+		localVarFormParams.Add("headers.accept[0].subtypeSuffix", parameterToString(localVarOptionals.HeadersAccept0SubtypeSuffix.Value(), ""))
 	}
 	if localVarOptionals != nil && localVarOptionals.HeadersAccept0Type.IsSet() {
 		localVarFormParams.Add("headers.accept[0].type", parameterToString(localVarOptionals.HeadersAccept0Type.Value(), ""))
@@ -2754,6 +2807,9 @@ func (a *ManagedControllerApiService) ProcessNotificationCallbackUsingPOST(ctx c
 	if localVarOptionals != nil && localVarOptionals.HeadersConnection.IsSet() {
 		localVarFormParams.Add("headers.connection", parameterToString(localVarOptionals.HeadersConnection.Value(), "multi"))
 	}
+	if localVarOptionals != nil && localVarOptionals.HeadersContentDispositionAttachment.IsSet() {
+		localVarFormParams.Add("headers.contentDisposition.attachment", parameterToString(localVarOptionals.HeadersContentDispositionAttachment.Value(), ""))
+	}
 	if localVarOptionals != nil && localVarOptionals.HeadersContentDispositionCharsetRegistered.IsSet() {
 		localVarFormParams.Add("headers.contentDisposition.charset.registered", parameterToString(localVarOptionals.HeadersContentDispositionCharsetRegistered.Value(), ""))
 	}
@@ -2762,6 +2818,12 @@ func (a *ManagedControllerApiService) ProcessNotificationCallbackUsingPOST(ctx c
 	}
 	if localVarOptionals != nil && localVarOptionals.HeadersContentDispositionFilename.IsSet() {
 		localVarFormParams.Add("headers.contentDisposition.filename", parameterToString(localVarOptionals.HeadersContentDispositionFilename.Value(), ""))
+	}
+	if localVarOptionals != nil && localVarOptionals.HeadersContentDispositionFormData.IsSet() {
+		localVarFormParams.Add("headers.contentDisposition.formData", parameterToString(localVarOptionals.HeadersContentDispositionFormData.Value(), ""))
+	}
+	if localVarOptionals != nil && localVarOptionals.HeadersContentDispositionInline.IsSet() {
+		localVarFormParams.Add("headers.contentDisposition.inline", parameterToString(localVarOptionals.HeadersContentDispositionInline.Value(), ""))
 	}
 	if localVarOptionals != nil && localVarOptionals.HeadersContentDispositionModificationDate.IsSet() {
 		localVarFormParams.Add("headers.contentDisposition.modificationDate", parameterToString(localVarOptionals.HeadersContentDispositionModificationDate.Value(), ""))
@@ -2831,6 +2893,9 @@ func (a *ManagedControllerApiService) ProcessNotificationCallbackUsingPOST(ctx c
 	}
 	if localVarOptionals != nil && localVarOptionals.HeadersContentTypeSubtype.IsSet() {
 		localVarFormParams.Add("headers.contentType.subtype", parameterToString(localVarOptionals.HeadersContentTypeSubtype.Value(), ""))
+	}
+	if localVarOptionals != nil && localVarOptionals.HeadersContentTypeSubtypeSuffix.IsSet() {
+		localVarFormParams.Add("headers.contentType.subtypeSuffix", parameterToString(localVarOptionals.HeadersContentTypeSubtypeSuffix.Value(), ""))
 	}
 	if localVarOptionals != nil && localVarOptionals.HeadersContentTypeType.IsSet() {
 		localVarFormParams.Add("headers.contentType.type", parameterToString(localVarOptionals.HeadersContentTypeType.Value(), ""))

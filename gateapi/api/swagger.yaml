@@ -2141,7 +2141,7 @@ paths:
           schema:
             type: "array"
             items:
-              $ref: "#/definitions/MapÂ«string,objectÂ»"
+              $ref: "#/definitions/Map«string,object»"
         "401":
           description: "Unauthorized"
         "403":
@@ -4120,7 +4120,7 @@ paths:
           schema:
             type: "array"
             items:
-              $ref: "#/definitions/MapÂ«string,objectÂ»"
+              $ref: "#/definitions/Map«string,object»"
         "401":
           description: "Unauthorized"
         "403":
@@ -4284,6 +4284,55 @@ paths:
         format: "double"
         x-exportParamName: "HeadersAcceptLanguage0Weight"
         x-optionalDataType: "Float64"
+      - name: "headers.acceptPatch[0].charset.registered"
+        in: "formData"
+        required: false
+        type: "boolean"
+        x-exportParamName: "HeadersAcceptPatch0CharsetRegistered"
+        x-optionalDataType: "Bool"
+      - name: "headers.acceptPatch[0].concrete"
+        in: "formData"
+        required: false
+        type: "boolean"
+        x-exportParamName: "HeadersAcceptPatch0Concrete"
+        x-optionalDataType: "Bool"
+      - name: "headers.acceptPatch[0].qualityValue"
+        in: "formData"
+        required: false
+        type: "number"
+        format: "double"
+        x-exportParamName: "HeadersAcceptPatch0QualityValue"
+        x-optionalDataType: "Float64"
+      - name: "headers.acceptPatch[0].subtype"
+        in: "formData"
+        required: false
+        type: "string"
+        x-exportParamName: "HeadersAcceptPatch0Subtype"
+        x-optionalDataType: "String"
+      - name: "headers.acceptPatch[0].subtypeSuffix"
+        in: "formData"
+        required: false
+        type: "string"
+        x-exportParamName: "HeadersAcceptPatch0SubtypeSuffix"
+        x-optionalDataType: "String"
+      - name: "headers.acceptPatch[0].type"
+        in: "formData"
+        required: false
+        type: "string"
+        x-exportParamName: "HeadersAcceptPatch0Type"
+        x-optionalDataType: "String"
+      - name: "headers.acceptPatch[0].wildcardSubtype"
+        in: "formData"
+        required: false
+        type: "boolean"
+        x-exportParamName: "HeadersAcceptPatch0WildcardSubtype"
+        x-optionalDataType: "Bool"
+      - name: "headers.acceptPatch[0].wildcardType"
+        in: "formData"
+        required: false
+        type: "boolean"
+        x-exportParamName: "HeadersAcceptPatch0WildcardType"
+        x-optionalDataType: "Bool"
       - name: "headers.accept[0].charset.registered"
         in: "formData"
         required: false
@@ -4308,6 +4357,12 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "HeadersAccept0Subtype"
+        x-optionalDataType: "String"
+      - name: "headers.accept[0].subtypeSuffix"
+        in: "formData"
+        required: false
+        type: "string"
+        x-exportParamName: "HeadersAccept0SubtypeSuffix"
         x-optionalDataType: "String"
       - name: "headers.accept[0].type"
         in: "formData"
@@ -4451,6 +4506,12 @@ paths:
           type: "string"
         collectionFormat: "multi"
         x-exportParamName: "HeadersConnection"
+      - name: "headers.contentDisposition.attachment"
+        in: "formData"
+        required: false
+        type: "boolean"
+        x-exportParamName: "HeadersContentDispositionAttachment"
+        x-optionalDataType: "Bool"
       - name: "headers.contentDisposition.charset.registered"
         in: "formData"
         required: false
@@ -4470,6 +4531,18 @@ paths:
         type: "string"
         x-exportParamName: "HeadersContentDispositionFilename"
         x-optionalDataType: "String"
+      - name: "headers.contentDisposition.formData"
+        in: "formData"
+        required: false
+        type: "boolean"
+        x-exportParamName: "HeadersContentDispositionFormData"
+        x-optionalDataType: "Bool"
+      - name: "headers.contentDisposition.inline"
+        in: "formData"
+        required: false
+        type: "boolean"
+        x-exportParamName: "HeadersContentDispositionInline"
+        x-optionalDataType: "Bool"
       - name: "headers.contentDisposition.modificationDate"
         in: "formData"
         required: false
@@ -4616,6 +4689,12 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "HeadersContentTypeSubtype"
+        x-optionalDataType: "String"
+      - name: "headers.contentType.subtypeSuffix"
+        in: "formData"
+        required: false
+        type: "string"
+        x-exportParamName: "HeadersContentTypeSubtypeSuffix"
         x-optionalDataType: "String"
       - name: "headers.contentType.type"
         in: "formData"
@@ -6304,9 +6383,9 @@ paths:
       tags:
       - "pipeline-controller"
       summary: "Evaluate a pipeline expression using the provided execution as context"
-      operationId: "evaluateExpressionForExecutionViaPOSTUsingPOST"
+      operationId: "evaluateExpressionForExecutionViaPOSTUsingPOST_1"
       consumes:
-      - "text/plain"
+      - "application/json"
       produces:
       - "*/*"
       parameters:
@@ -6321,7 +6400,7 @@ paths:
         description: "pipelineExpression"
         required: true
         schema:
-          type: "string"
+          type: "object"
         x-exportParamName: "PipelineExpression"
       responses:
         "200":
@@ -6366,7 +6445,7 @@ paths:
         schema:
           type: "array"
           items:
-            $ref: "#/definitions/MapÂ«string,stringÂ»"
+            $ref: "#/definitions/Map«string,string»"
         x-examples:
           application/json: "[{\"key\":\"a\",\"value\":\"1\"},{\"key\":\"b\",\"value\"\
             :\"2\"},{\"key\":\"sum\",\"value\":\"${a+b}\"}]"
@@ -7015,7 +7094,7 @@ paths:
           schema:
             type: "array"
             items:
-              $ref: "#/definitions/MapÂ«string,stringÂ»"
+              $ref: "#/definitions/Map«string,string»"
         "401":
           description: "Unauthorized"
         "403":
@@ -8992,7 +9071,7 @@ definitions:
       artifacts:
         type: "array"
         items:
-          $ref: "#/definitions/MapÂ«string,objectÂ»"
+          $ref: "#/definitions/Map«string,object»"
       environments:
         type: "array"
         items:
@@ -9265,7 +9344,7 @@ definitions:
       constraints:
         type: "array"
         items:
-          $ref: "#/definitions/MapÂ«string,objectÂ»"
+          $ref: "#/definitions/Map«string,object»"
       locations:
         type: "object"
         properties: {}
@@ -9282,7 +9361,7 @@ definitions:
       verifyWith:
         type: "array"
         items:
-          $ref: "#/definitions/MapÂ«string,objectÂ»"
+          $ref: "#/definitions/Map«string,object»"
     title: "Environment"
     example:
       verifyWith:
@@ -9526,9 +9605,9 @@ definitions:
         type: "object"
         properties: {}
     title: "GraphQLRequest"
-  HashMapÂ«string,objectÂ»:
+  HashMap«string,object»:
     type: "object"
-    title: "HashMapÂ«string,objectÂ»"
+    title: "HashMap«string,object»"
     additionalProperties:
       type: "object"
       properties: {}
@@ -9594,15 +9673,15 @@ definitions:
   InputStream:
     type: "object"
     title: "InputStream"
-  MapÂ«string,objectÂ»:
+  Map«string,object»:
     type: "object"
-    title: "MapÂ«string,objectÂ»"
+    title: "Map«string,object»"
     additionalProperties:
       type: "object"
       properties: {}
-  MapÂ«string,stringÂ»:
+  Map«string,string»:
     type: "object"
-    title: "MapÂ«string,stringÂ»"
+    title: "Map«string,string»"
     additionalProperties:
       type: "string"
   Notification:
