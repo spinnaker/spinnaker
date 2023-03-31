@@ -2643,13 +2643,13 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public List<byte[]> slowlogGetBinary() {
+  public List<Object> slowlogGetBinary() {
     String command = "slowlogGetBinary";
     return instrumented(command, () -> delegated.slowlogGetBinary());
   }
 
   @Override
-  public List<byte[]> slowlogGetBinary(long entries) {
+  public List<Object> slowlogGetBinary(long entries) {
     String command = "slowlogGetBinary";
     return instrumented(command, () -> delegated.slowlogGetBinary(entries));
   }

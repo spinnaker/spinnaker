@@ -22,6 +22,7 @@ import com.netflix.spinnaker.kork.web.exceptions.ExceptionMessageDecorator
 import com.netflix.spinnaker.kork.web.exceptions.ExceptionSummaryService
 import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers
 import org.springframework.beans.factory.ObjectProvider
+import org.springframework.boot.web.error.ErrorAttributeOptions
 import org.springframework.boot.web.servlet.error.DefaultErrorAttributes
 import org.springframework.boot.web.servlet.error.ErrorAttributes
 import org.springframework.context.annotation.Bean
@@ -35,10 +36,10 @@ class ErrorConfiguration {
     final DefaultErrorAttributes defaultErrorAttributes = new DefaultErrorAttributes()
     return new ErrorAttributes() {
       @Override
-      Map<String, Object> getErrorAttributes(WebRequest webRequest, boolean includeStackTrace) {
+      Map<String, Object> getErrorAttributes(WebRequest webRequest, ErrorAttributeOptions includeStackTrace) {
         // By default, Spring echoes back the user's requested path. This opens up a potential XSS vulnerability where a
         // user, for example, requests "GET /<script>alert('Hi')</script> HTTP/1.1".
-        Map<String, Object> errorAttributes = defaultErrorAttributes.getErrorAttributes(webRequest, includeStackTrace)
+        Map<String, Object> errorAttributes = defaultErrorAttributes.getErrorAttributes(webRequest, includeStackTrace.getIncludes().contains(ErrorAttributeOptions.Include.STACK_TRACE))
         errorAttributes.remove("path")
         return errorAttributes
       }

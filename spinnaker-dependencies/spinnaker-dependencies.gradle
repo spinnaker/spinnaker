@@ -11,6 +11,7 @@ ext {
     bouncycastle     : "1.70",
     brave            : "5.12.3",
     gcp              : "25.3.0",
+    groovy           : "2.5.15",
     jooq             : "3.13.6",
     jsch             : "0.1.54",
     jschAgentProxy   : "0.0.9",
@@ -22,12 +23,17 @@ ext {
     okhttp           : "2.7.5", // CVE-2016-2402
     okhttp3          : "3.14.9",
     openapi          : "1.3.9", // this needs to be kept in sync with spring boot as it pulls in the spring-boot-dependencies BOM
+    //Spring boot 2.5.14 upgrade brings io.rest-assured 4.3.3 as transitive dependency.
+    //io.rest-assured 4.3.x require groovy 3.0.2. So, pinning the nearest version
+    //using groovy 2.x. This can be removed with groovy 3.x upgrade.
+    //[https://github.com/rest-assured/rest-assured/blob/9b683130c93188cabdef850e89d0c9417d847a17/changelog.txt#L200]
+    restassured      : "4.2.0",
     retrofit         : "1.9.0",
     retrofit2        : "2.8.1",
     spectator        : "1.0.6",
     spek             : "1.1.5",
     spek2            : "2.0.9",
-    springBoot       : "2.4.13",
+    springBoot       : "2.5.14",
     springCloud      : "2020.0.6",
     springfoxSwagger : "2.9.2",
     swagger          : "1.5.20", //this should stay in sync with what springfoxSwagger expects
@@ -53,6 +59,12 @@ dependencies {
 
   api(platform("org.apache.logging.log4j:log4j-bom:2.16.0"))
 
+  //Upgrade of spring boot 2.5.x brings groovy 3.x as transitive dependency.
+  //To avoid transitive upgrade of groovy, pinning it with enforcedPlatform() closure.
+  //It forces version for internal submodules of kork as well as for all the consumer spinnaker services.
+  api(enforcedPlatform("org.codehaus.groovy:groovy-bom:${versions.groovy}")){
+     force = true
+  }
   api(platform("org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.4.3"))
   //kotlinVersion comes from gradle.properties since we have kotlin code in
   // this project and need to configure gradle plugins etc.
@@ -74,9 +86,18 @@ dependencies {
 
   constraints {
     api("cglib:cglib-nodep:3.3.0")
-    api("ch.qos.logback:logback-access:${versions.logback}")
-    api("ch.qos.logback:logback-classic:${versions.logback}")
-    api("ch.qos.logback:logback-core:${versions.logback}")
+    //A bug is reported in 1.2.11 and fixed in 1.2.12.
+    //So pinning the version to 1.2.10 untill required package is released.
+    //[https://jira.qos.ch/browse/LOGBACK-1623]
+    api("ch.qos.logback:logback-core:${versions.logback}"){
+       force = true
+    }
+    api("ch.qos.logback:logback-classic:${versions.logback}"){
+       force = true
+    }
+    api("ch.qos.logback:logback-classic:${versions.logback}"){
+       force = true
+    }
     api("com.amazonaws:aws-java-sdk:${versions.aws}")
     api("com.google.api-client:google-api-client:1.30.10") // TODO: Track update for CVE-2020-7692, reanalysis pending.
     api("com.google.apis:google-api-services-admin-directory:directory_v1-rev105-1.25.0")
@@ -140,6 +161,18 @@ dependencies {
     api("de.huxhorn.sulky:de.huxhorn.sulky.ulid:8.2.0")
     api("dev.minutest:minutest:1.13.0")
     api("io.mockk:mockk:1.10.5")
+    api("io.rest-assured:rest-assured:${versions.restassured}"){
+       force = true
+    }
+    api("io.rest-assured:rest-assured-common:${versions.restassured}"){
+       force = true
+    }
+    api("io.rest-assured:json-path:${versions.restassured}"){
+       force = true
+    }
+    api("io.rest-assured:xml-path:${versions.restassured}"){
+       force = true
+    }
     api("io.springfox:springfox-swagger-ui:${versions.springfoxSwagger}")
     api("io.springfox:springfox-swagger2:${versions.springfoxSwagger}")
     api("io.swagger:swagger-annotations:${versions.swagger}")
@@ -160,6 +193,20 @@ dependencies {
     api("org.jetbrains.spek:spek-subject-extension:${versions.spek}")
     api("org.jooq:jooq:${versions.jooq}")
     api("org.jooq:jooq-kotlin:${versions.jooq}")
+
+    // The liquibase version starting from 4.0.0 till 4.12.0
+    // has an issue w.r.t parsing the changelog file,
+    // if found at multiple places within the classpath
+    // https://github.com/liquibase/liquibase/issues/2818
+    // This duplicate changelog issue is fixed in 4.13.0,
+    // but identified another issue that gets introduced in 4.13.0.
+    // This issue(https://github.com/liquibase/liquibase/issues/3091)
+    // hinders the migration of sql scripts available in orca
+    // (https://github.com/spinnaker/orca/tree/master/orca-sql/src/main/resources/db/changelog),
+    // containing `afterColumn` construct, with a validation error for postgresql. So pin with 3.10.3
+    api("org.liquibase:liquibase-core:3.10.3"){
+       force = true
+    }
     api("org.objenesis:objenesis:2.5.1")
     api("org.pf4j:pf4j:3.2.0")
     api("org.pf4j:pf4j-update:2.3.0")

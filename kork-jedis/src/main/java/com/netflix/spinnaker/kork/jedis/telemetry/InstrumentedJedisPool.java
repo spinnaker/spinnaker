@@ -19,9 +19,7 @@ import com.netflix.spectator.api.Registry;
 import java.lang.reflect.Field;
 import java.util.Objects;
 import org.apache.commons.lang3.reflect.FieldUtils;
-import org.apache.commons.pool2.PooledObjectFactory;
 import org.apache.commons.pool2.impl.GenericObjectPool;
-import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
@@ -82,11 +80,6 @@ public class InstrumentedJedisPool extends JedisPool {
   @Override
   public boolean isClosed() {
     return delegated.isClosed();
-  }
-
-  @Override
-  public void initPool(GenericObjectPoolConfig poolConfig, PooledObjectFactory<Jedis> factory) {
-    // Explicitly not initializing the pool here, as the delegated pool will initialize itself
   }
 
   @Override
