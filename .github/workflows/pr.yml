@@ -18,7 +18,7 @@ jobs:
           ['Management', 'Swagger']
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Gradle validation step
         uses: gradle/wrapper-validation-action@v1
@@ -44,7 +44,7 @@ jobs:
         test: ['canaryAnalysisIsSuccessful', 'canaryAnalysisIsFailed']
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Gradle validation step
         uses: gradle/wrapper-validation-action@v1
@@ -63,7 +63,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: Set up QEMU
