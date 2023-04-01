@@ -16,11 +16,11 @@ jobs:
     - uses: actions/checkout@v3
     # Install Java 8 for cross-compilation support. Setting it up before
     # Java 11 means it comes later in $PATH (because of how setup-java works)
-    - uses: actions/setup-java@v2
+    - uses: actions/setup-java@v3
       with:
         java-version: 8
         distribution: 'zulu'
-    - uses: actions/setup-java@v2
+    - uses: actions/setup-java@v3
       with:
         java-version: 11
         distribution: 'zulu'
