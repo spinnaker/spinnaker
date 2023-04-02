@@ -31,7 +31,7 @@ jobs:
           git config user.email spinnakerbot@spinnaker.io
           git checkout master
 
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_VERSION  }}
 

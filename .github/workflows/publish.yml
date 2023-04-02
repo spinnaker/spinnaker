@@ -25,7 +25,7 @@ jobs:
           fetch-depth: 0
           token: '${{ secrets.SPINNAKERBOT_PERSONAL_ACCESS_TOKEN }}'
 
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_VERSION  }}
 
