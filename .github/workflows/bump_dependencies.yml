@@ -19,7 +19,7 @@ jobs:
           echo "on master branch, include halyard in bumpdeps target list"
           REPOS+=",halyard"
         fi
-        echo ::set-output name=REPOS::$(echo -e "${REPOS}")
+        echo REPOS=$(echo -e "${REPOS}") >> $GITHUB_OUTPUT
     - uses: spinnaker/bumpdeps@master
       with:
         ref: ${{ github.event.client_payload.ref }}
