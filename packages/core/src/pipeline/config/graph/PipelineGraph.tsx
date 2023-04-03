@@ -117,15 +117,22 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
     if (!node.children.length) {
       return node.phase;
     }
+    const checkedNodeIds = new Set<string | number>();
     const result: number[] = [];
-    this.collect(node.children, result);
+    this.collect(node.children, result, checkedNodeIds);
     return max(result);
   }
 
-  private collect(nodes: IPipelineGraphNode[], result: number[]) {
+  private collect(nodes: IPipelineGraphNode[], result: number[], checkedNodeIds: Set<string | number>) {
     nodes.forEach((node) => {
+      if (checkedNodeIds.has(node.id)) {
+        return;
+      } else {
+        checkedNodeIds.add(node.id);
+      }
+
       if (node.children.length) {
-        this.collect(node.children, result);
+        this.collect(node.children, result, checkedNodeIds);
       } else {
         result.push(node.phase);
       }
