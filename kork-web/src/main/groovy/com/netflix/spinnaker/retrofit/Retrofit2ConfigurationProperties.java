@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Google, Inc.
+ * Copyright 2023 OpsMx, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.kork.retrofit.exceptions;
+package com.netflix.spinnaker.retrofit;
 
-import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
-import retrofit.RetrofitError;
+import okhttp3.logging.HttpLoggingInterceptor;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-/** Wraps an exception of kind {@link RetrofitError.Kind} NETWORK. */
-@NonnullByDefault
-public final class SpinnakerNetworkException extends SpinnakerServerException {
-  public SpinnakerNetworkException(RetrofitError e) {
-    super(e);
+@ConfigurationProperties("retrofit2")
+public class Retrofit2ConfigurationProperties {
+  HttpLoggingInterceptor.Level logLevel = HttpLoggingInterceptor.Level.BASIC;
+
+  public HttpLoggingInterceptor.Level getLogLevel() {
+    return logLevel;
   }
 
-  public SpinnakerNetworkException(RetrofitException e) {
-    super(e);
+  public void setLogLevel(HttpLoggingInterceptor.Level logLevel) {
+    this.logLevel = logLevel;
   }
 }

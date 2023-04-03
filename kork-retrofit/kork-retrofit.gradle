@@ -11,6 +11,10 @@ dependencies {
   implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client"
   implementation "com.squareup.retrofit:converter-jackson"
   implementation "io.zipkin.brave:brave-instrumentation-okhttp3"
+  implementation "com.squareup.retrofit2:retrofit"
+  implementation "com.squareup.retrofit2:converter-jackson"
+  implementation "com.squareup.okhttp3:logging-interceptor"
+  implementation "com.google.guava:guava"
 
   testImplementation project(":kork-test")
   testImplementation "org.spockframework:spock-core"
@@ -20,5 +24,4 @@ dependencies {
   testImplementation "com.squareup.okhttp3:mockwebserver"
   testRuntimeOnly "cglib:cglib-nodep"
   testRuntimeOnly "org.objenesis:objenesis"
-
 }

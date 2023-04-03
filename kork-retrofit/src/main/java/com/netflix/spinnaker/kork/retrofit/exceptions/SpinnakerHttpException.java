@@ -16,23 +16,35 @@
 
 package com.netflix.spinnaker.kork.retrofit.exceptions;
 
+import com.google.common.base.Preconditions;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import org.springframework.http.HttpHeaders;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 
 /**
- * An exception that exposes the {@link Response} of a given HTTP {@link RetrofitError} and a detail
- * message that extracts useful information from the {@link Response}.
+ * An exception that exposes the {@link Response} of a given HTTP {@link RetrofitError} or {@link
+ * okhttp3.Response} of a {@link RetrofitException} if retrofit 2.x used and a detail message that
+ * extracts useful information from the {@link Response} or {@link okhttp3.Response}. Both {@link
+ * Response} and {@link okhttp3.Response} can't be set together..
  */
 @NonnullByDefault
 public class SpinnakerHttpException extends SpinnakerServerException {
   private final Response response;
   private HttpHeaders headers;
 
+  private final retrofit2.Response retrofit2Response;
+
   public SpinnakerHttpException(RetrofitError e) {
     super(e);
     this.response = e.getResponse();
+    this.retrofit2Response = null;
+  }
+
+  public SpinnakerHttpException(RetrofitException e) {
+    super(e);
+    this.response = null;
+    this.retrofit2Response = e.getResponse();
   }
 
   /**
@@ -40,6 +52,9 @@ public class SpinnakerHttpException extends SpinnakerServerException {
    * SpinnakerHttpException and throw a new one with a custom message, while still allowing
    * SpinnakerRetrofitExceptionHandlers to handle the exception and respond with the appropriate
    * http status code.
+   *
+   * <p>Validating only one of {@link Response} or {@link okhttp3.Response} is set at a time using
+   * {@link Preconditions}.checkState.
    *
    * @param message the message
    * @param cause the cause. Note that this is required (i.e. can't be null) since in the absence of
@@ -49,17 +64,37 @@ public class SpinnakerHttpException extends SpinnakerServerException {
   public SpinnakerHttpException(String message, SpinnakerHttpException cause) {
     super(message, cause);
     // Note that getRawMessage() is null in this case.
+
+    Preconditions.checkState(
+        !(cause.response != null && cause.retrofit2Response != null),
+        "Can't set both response and retrofit2Response");
+
     this.response = cause.response;
+    this.retrofit2Response = cause.retrofit2Response;
   }
 
   public int getResponseCode() {
-    return response.getStatus();
+    if (response != null) {
+      return response.getStatus();
+    } else {
+      return retrofit2Response.code();
+    }
   }
 
   public HttpHeaders getHeaders() {
     if (headers == null) {
       headers = new HttpHeaders();
-      response.getHeaders().forEach(header -> headers.add(header.getName(), header.getValue()));
+      if (response != null) {
+        response.getHeaders().forEach(header -> headers.add(header.getName(), header.getValue()));
+      } else {
+        retrofit2Response
+            .headers()
+            .names()
+            .forEach(
+                key -> {
+                  headers.addAll(key, retrofit2Response.headers().values(key));
+                });
+      }
     }
     return headers;
   }
@@ -73,8 +108,17 @@ public class SpinnakerHttpException extends SpinnakerServerException {
     if (getRawMessage() == null) {
       return super.getMessage();
     }
-    return String.format(
-        "Status: %s, URL: %s, Message: %s",
-        response.getStatus(), response.getUrl(), getRawMessage());
+
+    if (retrofit2Response != null) {
+      return String.format(
+          "Status: %s, URL: %s, Message: %s",
+          retrofit2Response.code(),
+          retrofit2Response.raw().request().url().toString(),
+          getRawMessage());
+    } else {
+      return String.format(
+          "Status: %s, URL: %s, Message: %s",
+          response.getStatus(), response.getUrl(), getRawMessage());
+    }
   }
 }

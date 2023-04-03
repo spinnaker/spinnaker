@@ -48,6 +48,14 @@ public class SpinnakerServerException extends SpinnakerException {
         Optional.ofNullable(body).map(RetrofitErrorResponseBody::getMessage).orElse(e.getMessage());
   }
 
+  public SpinnakerServerException(RetrofitException e) {
+    super(e.getCause());
+    RetrofitErrorResponseBody body =
+        (RetrofitErrorResponseBody) e.getErrorBodyAs(RetrofitErrorResponseBody.class);
+    this.rawMessage =
+        Optional.ofNullable(body).map(RetrofitErrorResponseBody::getMessage).orElse(e.getMessage());
+  }
+
   /**
    * Construct a SpinnakerServerException with a specified message, instead of deriving one from a
    * response body.
