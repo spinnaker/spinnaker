@@ -2,6 +2,7 @@
 
 gate:
   endpoint: https://my-spinnaker-gate:8084
+  retryTimeout: 300
 auth:
   enabled: true
   x509:

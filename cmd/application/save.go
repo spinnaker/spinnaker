@@ -108,7 +108,7 @@ func saveApplication(cmd *cobra.Command, options *saveOptions) error {
 		return err
 	}
 
-	err = orca_tasks.WaitForSuccessfulTask(options.GateClient, ref, 5)
+	err = orca_tasks.WaitForSuccessfulTask(options.GateClient, ref)
 	if err != nil {
 		return err
 	}

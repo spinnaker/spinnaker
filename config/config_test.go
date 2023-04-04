@@ -28,7 +28,7 @@ func TestBasicMarshalling(t *testing.T) {
 func TestYAMLRoundTrip(t *testing.T) {
 	var cfg Config
 
-	want := "auth:\n  enabled: false\n  ignoreCertErrors: true\n  ignoreRedirects: true\ngate:\n  endpoint: test\n"
+	want := "auth:\n  enabled: false\n  ignoreCertErrors: true\n  ignoreRedirects: true\ngate:\n  endpoint: test\n  retryTimeout: 900\n"
 	err := yaml.Unmarshal([]byte(want), &cfg)
 
 	if err != nil {

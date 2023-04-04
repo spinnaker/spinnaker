@@ -22,17 +22,32 @@ import (
 	"github.com/spinnaker/spin/cmd/gateclient"
 )
 
+func calculateSleepTime(now int64, lastTryTime int64, attempts int64) time.Duration {
+	sleepTime := attempts * attempts
+	if sleepTime > 20 {
+		sleepTime = 20
+	}
+	if sleepTime+now > lastTryTime {
+		sleepTime = lastTryTime - now + 1
+	}
+	return time.Duration(sleepTime) * time.Second
+}
+
 // WaitForSuccessfulTask observes an Orca task to see if it completed successfully.
-func WaitForSuccessfulTask(gateClient *gateclient.GatewayClient, taskRef map[string]interface{}, maxAttempts int) error {
+func WaitForSuccessfulTask(gateClient *gateclient.GatewayClient, taskRef map[string]interface{}) error {
 	id := idFromTaskRef(taskRef)
 	task, resp, err := gateClient.TaskControllerApi.GetTaskUsingGET1(gateClient.Context, id)
 
-	attempts := 0
-	for (task == nil || !taskCompleted(task)) && attempts < maxAttempts {
+	attempts := int64(0)
+	now := time.Now().UTC().Unix()
+	lastTryTime := now + int64(gateClient.RetryTimeout())
+	for (task == nil || !taskCompleted(task)) && now < lastTryTime {
 		attempts += 1
-		time.Sleep(time.Duration(attempts*attempts) * time.Second)
+		sleepTime := calculateSleepTime(now, lastTryTime, attempts)
+		time.Sleep(sleepTime)
 		id := idFromTaskRef(taskRef)
 		task, resp, err = gateClient.TaskControllerApi.GetTaskUsingGET1(gateClient.Context, id)
+		now = time.Now().UTC().Unix()
 	}
 
 	if err != nil {

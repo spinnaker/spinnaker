@@ -85,6 +85,9 @@ type GatewayClient struct {
 	httpClient *http.Client
 
 	ui output.Ui
+
+	// Maximum time to wait (when polling) for a task to become completed.
+	retryTimeout int
 }
 
 func (m *GatewayClient) GateEndpoint() string {
@@ -97,13 +100,24 @@ func (m *GatewayClient) GateEndpoint() string {
 	return m.Config.Gate.Endpoint
 }
 
+func (m *GatewayClient) RetryTimeout() int {
+	if m.Config.Gate.RetryTimeout == 0 && m.retryTimeout == 0 {
+		return 60
+	}
+	if m.retryTimeout != 0 {
+		return m.retryTimeout
+	}
+	return m.Config.Gate.RetryTimeout
+}
+
 // Create new spinnaker gateway client with flag
-func NewGateClient(ui output.Ui, gateEndpoint, defaultHeaders, configLocation string, ignoreCertErrors bool, ignoreRedirects bool) (*GatewayClient, error) {
+func NewGateClient(ui output.Ui, gateEndpoint, defaultHeaders, configLocation string, ignoreCertErrors bool, ignoreRedirects bool, retryTimeout int) (*GatewayClient, error) {
 	gateClient := &GatewayClient{
 		gateEndpoint:     gateEndpoint,
 		ignoreCertErrors: ignoreCertErrors,
 		ignoreRedirects:  ignoreRedirects,
 		ui:               ui,
+		retryTimeout:     retryTimeout,
 		Context:          context.Background(),
 	}
 

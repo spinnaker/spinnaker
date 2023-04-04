@@ -90,7 +90,7 @@ func deleteApplication(cmd *cobra.Command, options *deleteOptions, args []string
 		return fmt.Errorf("Encountered an error deleting application, status code: %d\n", resp.StatusCode)
 	}
 
-	err = orca_tasks.WaitForSuccessfulTask(options.GateClient, taskRef, 5)
+	err = orca_tasks.WaitForSuccessfulTask(options.GateClient, taskRef)
 	if err != nil {
 		return err
 	}
