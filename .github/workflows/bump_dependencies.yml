@@ -6,14 +6,26 @@ on:
 
 jobs:
   bump-dependencies:
+    if: startsWith(github.repository, 'spinnaker/')
     runs-on: ubuntu-latest
     steps:
+    # Halyard releases are separate from Spinnaker releases so we need to
+    # exclude Halyard from bump deps when targeting services release-* branches.
+    - name: decide bumpdep target repositories
+      id: bumpdep_targets
+      run: |
+        REPOS=clouddriver,echo,fiat,front50,gate,igor,keel,orca,rosco,swabbie
+        if [ "${{ github.event.client_payload.branch }}" == " origin/master" ]; then
+          echo "on master branch, include halyard in bumpdeps target list"
+          REPOS+=",halyard"
+        fi
+        echo REPOS=$(echo -e "${REPOS}") >> $GITHUB_OUTPUT
     - uses: spinnaker/bumpdeps@master
       with:
         ref: ${{ github.event.client_payload.ref }}
         baseBranch: ${{ github.event.client_payload.branch }}
         key: korkVersion
-        repositories: clouddriver,echo,fiat,front50,gate,halyard,igor,keel,orca,rosco,swabbie
+        repositories: ${{ steps.bumpdep_targets.outputs.REPOS }}
         mavenRepositoryUrl: https://repo.maven.apache.org/maven2
         groupId: io.spinnaker.kork
         artifactId: kork-bom
