@@ -43,7 +43,7 @@ class MetricInstrumentation implements ExecutionInstrumentation {
 
   private static String agentName(Agent agent) {
     String simpleProviderName = stripPackageName(agent.getProviderName());
-    return String.format("%s/%s", simpleProviderName, agent.getProviderName());
+    return String.format("%s/%s", simpleProviderName, agent.getAgentType());
   }
 
   @Override
