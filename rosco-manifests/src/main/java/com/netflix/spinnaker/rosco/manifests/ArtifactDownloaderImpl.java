@@ -3,35 +3,40 @@ package com.netflix.spinnaker.rosco.manifests;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
-import com.netflix.spinnaker.rosco.services.ClouddriverService;
+import com.netflix.spinnaker.rosco.services.ClouddriverRetrofit2Service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.ResponseBody;
 import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Component;
-import retrofit.client.Response;
 
 @Component
 @Slf4j
 public final class ArtifactDownloaderImpl implements ArtifactDownloader {
-  private final ClouddriverService clouddriverService;
+  private final ClouddriverRetrofit2Service clouddriverService;
   private final RetrySupport retrySupport = new RetrySupport();
 
-  public ArtifactDownloaderImpl(ClouddriverService clouddriverService) {
+  public ArtifactDownloaderImpl(ClouddriverRetrofit2Service clouddriverService) {
     this.clouddriverService = clouddriverService;
   }
 
   public InputStream downloadArtifact(Artifact artifact) throws IOException {
-    Response response =
-        retrySupport.retry(() -> clouddriverService.fetchArtifact(artifact), 5, 1000, true);
-    if (response.getBody() == null) {
+    ResponseBody response =
+        retrySupport.retry(
+            () -> Retrofit2SyncCall.execute(clouddriverService.fetchArtifact(artifact)),
+            5,
+            1000,
+            true);
+    if (response == null) {
       throw new IOException("Failure to fetch artifact: empty response");
     }
-    return response.getBody().in();
+    return response.byteStream();
   }
 
   public void downloadArtifactToFile(Artifact artifact, Path targetFile) throws IOException {

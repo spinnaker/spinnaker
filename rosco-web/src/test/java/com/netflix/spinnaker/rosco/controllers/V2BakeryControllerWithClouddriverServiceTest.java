@@ -15,10 +15,15 @@
  */
 package com.netflix.spinnaker.rosco.controllers;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.netflix.spinnaker.kork.common.Header.USER;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -26,9 +31,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
 import com.jakewharton.retrofit.Ok3Client;
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
@@ -37,13 +44,14 @@ import com.netflix.spinnaker.rosco.api.BakeStatus;
 import com.netflix.spinnaker.rosco.jobs.JobExecutor;
 import com.netflix.spinnaker.rosco.jobs.JobRequest;
 import com.netflix.spinnaker.rosco.manifests.helm.HelmBakeManifestRequest;
-import com.netflix.spinnaker.rosco.services.ClouddriverService;
+import com.netflix.spinnaker.rosco.services.ClouddriverRetrofit2Service;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
-import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -52,10 +60,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
-import retrofit.client.Header;
-import retrofit.client.Request;
-import retrofit.client.Response;
-import retrofit.mime.TypedByteArray;
 
 @SpringBootTest(classes = Main.class)
 @TestPropertySource(properties = "spring.application.name = rosco")
@@ -63,9 +67,11 @@ class V2BakeryControllerWithClouddriverServiceTest {
 
   private MockMvc webAppMockMvc;
 
+  private static WireMockServer wireMockServer;
+
   @Autowired private WebApplicationContext webApplicationContext;
 
-  @Autowired ClouddriverService clouddriverService;
+  @Autowired ClouddriverRetrofit2Service clouddriverService;
 
   /** So it's possible to verify e.g. request headers sent to clouddriver */
   @MockBean Ok3Client ok3Client;
@@ -83,6 +89,23 @@ class V2BakeryControllerWithClouddriverServiceTest {
   @Autowired AuthenticatedRequestFilter authenticatedRequestFilter;
 
   private HelmBakeManifestRequest bakeManifestRequest;
+
+  @BeforeAll
+  static void setupClass() {
+    wireMockServer = new WireMockServer(new WireMockConfiguration().port(7002));
+    wireMockServer.start();
+    WireMock.configureFor("localhost", 7002);
+  }
+
+  @AfterEach
+  void after() {
+    wireMockServer.resetAll();
+  }
+
+  @AfterAll
+  static void clean() {
+    wireMockServer.shutdown();
+  }
 
   @BeforeEach
   private void init(TestInfo testInfo) {
@@ -122,7 +145,9 @@ class V2BakeryControllerWithClouddriverServiceTest {
     // Simulate a successful response from clouddriver.  The actual response
     // isn't important since we're verifying headers in the request to
     // clouddriver.
-    when(ok3Client.execute(any(Request.class))).thenReturn(successfulResponse(""));
+    stubFor(
+        WireMock.put(urlMatching("/artifacts/fetch/"))
+            .willReturn(aResponse().withStatus(HttpStatus.OK.value()).withBody("success")));
 
     String userValue = "some user";
     webAppMockMvc
@@ -136,22 +161,9 @@ class V2BakeryControllerWithClouddriverServiceTest {
         .andDo(print())
         .andExpect(status().isOk());
 
-    // Make sure the request to clouddriver has the same headers as the request
-    // to rosco
-    ArgumentCaptor<Request> requestCaptor = ArgumentCaptor.forClass(Request.class);
-    verify(ok3Client).execute(requestCaptor.capture());
-    List<Header> headers = requestCaptor.getValue().getHeaders();
-    Header header = Iterables.getOnlyElement(headers);
-    assertEquals(USER.getHeader(), header.getName());
-    assertEquals(userValue, header.getValue());
-  }
-
-  private Response successfulResponse(String content) {
-    return new Response(
-        "",
-        HttpStatus.OK.value(),
-        "",
-        ImmutableList.of(),
-        new TypedByteArray(null, content.getBytes()));
+    // verifing request to clouddriver contains header passing to rosco
+    verify(
+        putRequestedFor(urlEqualTo("/artifacts/fetch/"))
+            .withHeader(USER.getHeader(), equalTo(userValue)));
   }
 }

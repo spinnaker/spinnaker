@@ -19,8 +19,9 @@ package com.netflix.spinnaker.rosco.manifests.kustomize;
 import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.rosco.manifests.kustomize.mapping.Kustomization;
-import com.netflix.spinnaker.rosco.services.ClouddriverService;
+import com.netflix.spinnaker.rosco.services.ClouddriverRetrofit2Service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -29,21 +30,21 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.ResponseBody;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.representer.Representer;
-import retrofit.client.Response;
 
 @Component
 @Slf4j
 public class KustomizationFileReader {
-  private final ClouddriverService clouddriverService;
+  private final ClouddriverRetrofit2Service clouddriverService;
   private final RetrySupport retrySupport = new RetrySupport();
   private static final List<String> KUSTOMIZATION_FILENAMES =
       ImmutableList.of("kustomization.yaml", "kustomization.yml", "kustomization");
 
-  public KustomizationFileReader(ClouddriverService clouddriverService) {
+  public KustomizationFileReader(ClouddriverRetrofit2Service clouddriverService) {
     this.clouddriverService = clouddriverService;
   }
 
@@ -95,8 +96,12 @@ public class KustomizationFileReader {
 
   private InputStream downloadFile(Artifact artifact) throws IOException {
     log.info("downloading kustomization file {}", artifact.getReference());
-    Response response =
-        retrySupport.retry(() -> clouddriverService.fetchArtifact(artifact), 5, 1000, true);
-    return response.getBody().in();
+    ResponseBody response =
+        retrySupport.retry(
+            () -> Retrofit2SyncCall.execute(clouddriverService.fetchArtifact(artifact)),
+            5,
+            1000,
+            true);
+    return response.byteStream();
   }
 }

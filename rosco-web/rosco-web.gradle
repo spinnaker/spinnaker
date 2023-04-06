@@ -26,6 +26,9 @@ dependencies {
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.springframework.boot:spring-boot-starter-test"
   testImplementation "org.objenesis:objenesis"
+  testImplementation "com.squareup.retrofit2:retrofit"
+  testImplementation "com.squareup.retrofit2:converter-jackson"
+  testImplementation "com.github.tomakehurst:wiremock-jre8"
 }
 
 ospackage {

@@ -25,15 +25,15 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
-import com.google.gson.Gson;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.retrofit.exceptions.RetrofitException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.rosco.Main;
 import com.netflix.spinnaker.rosco.manifests.helm.HelmBakeManifestRequest;
-import com.netflix.spinnaker.rosco.services.ClouddriverService;
+import com.netflix.spinnaker.rosco.services.ClouddriverRetrofit2Service;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
+import okhttp3.ResponseBody;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
@@ -44,10 +44,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
-import retrofit.converter.GsonConverter;
-import retrofit.mime.TypedString;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 @SpringBootTest(classes = Main.class)
 @TestPropertySource(properties = "spring.application.name = rosco")
@@ -57,7 +55,7 @@ class V2BakeryControllerTest {
 
   @Autowired private WebApplicationContext webApplicationContext;
 
-  @MockBean ClouddriverService clouddriverService;
+  @MockBean ClouddriverRetrofit2Service clouddriverService;
 
   @Autowired ObjectMapper objectMapper;
 
@@ -116,15 +114,19 @@ class V2BakeryControllerTest {
     // There, getResponseCode needs a real underlying response, at least real
     // enough for response.getStatus() to work.  So, go ahead and build one.
     String url = "https://some-url";
-    Response response =
-        new Response(
-            url,
+    retrofit2.Response retrofit2Response =
+        retrofit2.Response.error(
             status,
-            "arbitrary reason",
-            List.of(),
-            new TypedString("{ message: \"arbitrary message\" }"));
+            ResponseBody.create(
+                okhttp3.MediaType.parse("application/json"),
+                "{ \"message\": \"arbitrary message\" }"));
 
-    return new SpinnakerHttpException(
-        RetrofitError.httpError(url, response, new GsonConverter(new Gson()), String.class));
+    Retrofit retrofit =
+        new Retrofit.Builder()
+            .baseUrl(url)
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build();
+
+    return new SpinnakerHttpException(RetrofitException.httpError(retrofit2Response, retrofit));
   }
 }

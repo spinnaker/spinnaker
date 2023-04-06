@@ -18,9 +18,11 @@ package com.netflix.spinnaker.rosco.manifests.kustomize
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.rosco.manifests.kustomize.mapping.Kustomization
-import com.netflix.spinnaker.rosco.services.ClouddriverService
-import retrofit.client.Response
-import retrofit.mime.TypedString
+import com.netflix.spinnaker.rosco.services.ClouddriverRetrofit2Service
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.Call
+import retrofit2.Response
 import spock.lang.Specification
 
 class KustomizationFileReaderSpec extends Specification {
@@ -34,7 +36,16 @@ class KustomizationFileReaderSpec extends Specification {
         
         namePrefix: demo-
         """
-        def clouddriverService = Mock(ClouddriverService)
+        def mockCall = Mock(Call.class) {
+            execute() >> {
+                return  Response.success(200, ResponseBody.create(MediaType.parse("text/plain"), kustomizationYaml.stripMargin()));
+            }
+        }
+        def clouddriverService = Mock(ClouddriverRetrofit2Service) {
+            fetchArtifact(_) >> {
+                return mockCall
+            }
+        }
         def kustomizationFileReader = new KustomizationFileReader(clouddriverService)
         def baseArtifact = Artifact.builder()
             .name("base")
@@ -47,18 +58,20 @@ class KustomizationFileReaderSpec extends Specification {
         Kustomization k = kustomizationFileReader.getKustomization(baseArtifact,"kustomization.yml")
 
         then:
-        1 * clouddriverService.fetchArtifact(_ as Artifact) >> { Artifact a ->
-            return new Response("test", 200, "", [], new TypedString(kustomizationYaml.stripMargin()))
-        }
         k.getResources().sort() == ["deployment.yml", "service.yml"].sort()
         k.getSelfReference() == "https://api.github.com/repos/org/repo/contents/base/kustomization.yml"
     }
 
     def "getKustomization throws an exception if it can't find a valid kustomization file"() {
         given:
-        def clouddriverService = Mock(ClouddriverService) {
+        def mockCall = Mock(Call.class) {
+            execute() >> {
+                 return Response.error(500, ResponseBody.create(null, ""))
+            }
+        }
+        def clouddriverService = Mock(ClouddriverRetrofit2Service) {
             fetchArtifact(_) >> {
-                return new Response("test", 500, "", [], null)
+                return mockCall
             }
         }
         def kustomizationFileReader = new KustomizationFileReader(clouddriverService)

@@ -13,6 +13,8 @@ dependencies {
   implementation "io.spinnaker.kork:kork-web"
   implementation "com.squareup.retrofit:converter-jackson"
   implementation "com.squareup.retrofit:retrofit"
+  implementation "com.squareup.retrofit2:converter-jackson"
+  implementation "com.squareup.retrofit2:retrofit"
   implementation "io.reactivex:rxjava"
   implementation "org.apache.commons:commons-exec"
   implementation "org.codehaus.groovy:groovy"
