@@ -18,10 +18,9 @@ package com.netflix.spinnaker.rosco.controllers;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
-import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.netflix.spinnaker.kork.common.Header.USER;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -31,32 +30,30 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.jakewharton.retrofit.Ok3Client;
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.rosco.Main;
 import com.netflix.spinnaker.rosco.api.BakeStatus;
+import com.netflix.spinnaker.rosco.executor.BakePoller;
 import com.netflix.spinnaker.rosco.jobs.JobExecutor;
 import com.netflix.spinnaker.rosco.jobs.JobRequest;
 import com.netflix.spinnaker.rosco.manifests.helm.HelmBakeManifestRequest;
-import com.netflix.spinnaker.rosco.services.ClouddriverRetrofit2Service;
 import java.nio.charset.StandardCharsets;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
@@ -67,14 +64,14 @@ class V2BakeryControllerWithClouddriverServiceTest {
 
   private MockMvc webAppMockMvc;
 
-  private static WireMockServer wireMockServer;
+  /** See https://wiremock.org/docs/junit-jupiter/#advanced-usage---programmatic */
+  @RegisterExtension
+  static WireMockExtension wm =
+      WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
 
   @Autowired private WebApplicationContext webApplicationContext;
 
-  @Autowired ClouddriverRetrofit2Service clouddriverService;
-
-  /** So it's possible to verify e.g. request headers sent to clouddriver */
-  @MockBean Ok3Client ok3Client;
+  @MockBean BakePoller bakePoller;
 
   @Autowired ObjectMapper objectMapper;
 
@@ -90,21 +87,11 @@ class V2BakeryControllerWithClouddriverServiceTest {
 
   private HelmBakeManifestRequest bakeManifestRequest;
 
-  @BeforeAll
-  static void setupClass() {
-    wireMockServer = new WireMockServer(new WireMockConfiguration().port(7002));
-    wireMockServer.start();
-    WireMock.configureFor("localhost", 7002);
-  }
-
-  @AfterEach
-  void after() {
-    wireMockServer.resetAll();
-  }
-
-  @AfterAll
-  static void clean() {
-    wireMockServer.shutdown();
+  @DynamicPropertySource
+  static void registerClouddriverBaseUrl(DynamicPropertyRegistry registry) {
+    // Configure wiremock's random port into rosco
+    System.out.println("wiremock server url: " + wm.baseUrl());
+    registry.add("services.clouddriver.base-url", wm::baseUrl);
   }
 
   @BeforeEach
@@ -145,7 +132,7 @@ class V2BakeryControllerWithClouddriverServiceTest {
     // Simulate a successful response from clouddriver.  The actual response
     // isn't important since we're verifying headers in the request to
     // clouddriver.
-    stubFor(
+    wm.stubFor(
         WireMock.put(urlMatching("/artifacts/fetch/"))
             .willReturn(aResponse().withStatus(HttpStatus.OK.value()).withBody("success")));
 
@@ -162,7 +149,7 @@ class V2BakeryControllerWithClouddriverServiceTest {
         .andExpect(status().isOk());
 
     // verifing request to clouddriver contains header passing to rosco
-    verify(
+    wm.verify(
         putRequestedFor(urlEqualTo("/artifacts/fetch/"))
             .withHeader(USER.getHeader(), equalTo(userValue)));
   }
