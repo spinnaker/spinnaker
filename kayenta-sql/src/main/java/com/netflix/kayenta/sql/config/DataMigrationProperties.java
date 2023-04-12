@@ -14,19 +14,18 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.sql.storage.model;
+package com.netflix.kayenta.sql.config;
 
-import java.time.Instant;
-import javax.persistence.Id;
-import javax.persistence.MappedSuperclass;
 import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Data
-@MappedSuperclass
-public class SqlBaseObject {
+@ConfigurationProperties("kayenta.data-migration")
+public class DataMigrationProperties {
 
-  @Id private String id;
-  private String content;
-  private Instant createdAt;
-  private Instant updatedAt;
+  private boolean enabled;
+  private String sourceAccountName;
+  private String targetAccountName;
+  private String sourceStorageServiceClassName;
+  private String targetStorageServiceClassName;
 }

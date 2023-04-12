@@ -114,7 +114,7 @@ public class SqlStorageServiceTest {
   }
 
   @Test
-  public void testLoadObjectWhenCanaryArchiveNotFound() throws IOException {
+  public void testLoadObjectWhenCanaryArchiveNotFound() {
     var testAccountName = UUID.randomUUID().toString();
     var testObjectType = ObjectType.CANARY_RESULT_ARCHIVE;
     var testObjectKey = UUID.randomUUID().toString();
