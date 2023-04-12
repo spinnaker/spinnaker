@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.23.1](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.23.0...@spinnaker/core@0.23.1) (2023-04-03)
+
+
+### Bug Fixes
+
+* **6755:** Resolved issue regarding warning reporting when cloning a server group in AWS ([#9948](https://github.com/spinnaker/deck/issues/9948)) ([6b36cb6](https://github.com/spinnaker/deck/commit/6b36cb68112361587bfb8e3fb5c31024d10d7072))
+* UI crashes when running pipeline(s) with many stages. ([#9960](https://github.com/spinnaker/deck/issues/9960)) ([8d84d27](https://github.com/spinnaker/deck/commit/8d84d2737729d364a74c34468c874f4613d68801))
+
+
+
+
+
 # [0.23.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.22.2...@spinnaker/core@0.23.0) (2023-02-01)
 
 
