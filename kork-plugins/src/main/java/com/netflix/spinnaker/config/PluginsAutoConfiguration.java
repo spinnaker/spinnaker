@@ -237,6 +237,10 @@ public class PluginsAutoConfiguration {
   /** Not a static bean - see {@link RemotePluginsConfiguration}. */
   @Bean
   @Beta
+  @ConditionalOnProperty(
+      value = "spinnaker.extensibility.remote-plugins.cache.enabled",
+      havingValue = "true",
+      matchIfMissing = true)
   public RemotePluginInfoReleaseCache remotePluginInfoReleaseCache(
       Collection<PluginInfoReleaseSource> pluginInfoReleaseSources,
       SpringStrictPluginLoaderStatusProvider springStrictPluginLoaderStatusProvider,
