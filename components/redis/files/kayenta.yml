@@ -1,0 +1,2 @@
+redis:
+  connection: redis://redis.spinnaker:6379

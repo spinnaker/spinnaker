@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: gate
+spec:
+  ports:
+  - port: 8084
+    protocol: TCP
+    targetPort: 8084
+  type: ClusterIP

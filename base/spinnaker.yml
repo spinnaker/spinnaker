@@ -1,0 +1,35 @@
+# Enable loading properties files from subdirectories. For example
+# - /opt/spinnaker/config/clouddriver.yml
+# - /opt/spinnaker/config/mariadb/clouddriver.yml
+# - /opt/spinnaker/config/example/clouddriver.yml
+# TODO, update kork - https://github.com/spinnaker/kork/blob/08d3f2fc13c4df962c93b668762ae1f8a8dbeb6f/kork-cloud-config-server/src/main/java/com/netflix/spinnaker/kork/configserver/ConfigServerBootstrap.java#L26
+spring.config.import: optional:file:/opt/spinnaker/config/*/
+
+services:
+  clouddriver:
+    baseUrl: http://clouddriver.spinnaker:7002
+    enabled: true
+  echo:
+    baseUrl: http://echo.spinnaker:8089
+    enabled: true
+  fiat:
+    baseUrl: http://fiat.spinnaker:7003
+    enabled: true
+  front50:
+    baseUrl: http://front50.spinnaker:8080
+    enabled: true
+  igor:
+    baseUrl: http://igor.spinnaker:8088
+    enabled: true
+  kayenta:
+    baseUrl: http://kayenta.spinnaker:8090
+    enabled: false
+  keel:
+    baseUrl: http://keel.spinnaker:7010
+    enabled: false
+  orca:
+    baseUrl: http://orca.spinnaker:8083
+    enabled: true
+  rosco:
+    baseUrl: http://rosco.spinnaker:8087
+    enabled: true

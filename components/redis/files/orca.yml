@@ -1,0 +1,18 @@
+redis:
+  connection: redis://redis.spinnaker:6379
+
+keiko:
+  queue:
+    sql:
+      enabled: false
+    redis:
+      enabled: true
+
+queue:
+  zombieCheck:
+    enabled: true
+  pendingExecutionService:
+    # sql:
+      # enabled: false
+    redis:
+      enabled: true

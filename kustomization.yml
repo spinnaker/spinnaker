@@ -1,0 +1,36 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- base
+components:
+- components/mariadb
+- components/redis
+- overlays/config
+namespace: spinnaker
+images:
+- name: us-docker.pkg.dev/spinnaker-community/docker/clouddriver
+  newTag: master-latest-unvalidated
+- name: us-docker.pkg.dev/spinnaker-community/docker/deck
+  newTag: master-latest-unvalidated
+- name: us-docker.pkg.dev/spinnaker-community/docker/echo
+  newTag: master-latest-unvalidated
+- name: us-docker.pkg.dev/spinnaker-community/docker/fiat
+  newTag: master-latest-unvalidated
+- name: us-docker.pkg.dev/spinnaker-community/docker/front50
+  newTag: master-latest-unvalidated
+- name: us-docker.pkg.dev/spinnaker-community/docker/gate
+  newTag: master-latest-unvalidated
+- name: us-docker.pkg.dev/spinnaker-community/docker/igor
+  newTag: master-latest-unvalidated
+- name: us-docker.pkg.dev/spinnaker-community/docker/kayenta
+  newTag: master-latest-unvalidated
+- name: us-docker.pkg.dev/spinnaker-community/docker/keel
+  newTag: master-latest-unvalidated
+- name: us-docker.pkg.dev/spinnaker-community/docker/orca
+  newTag: master-latest-unvalidated
+- name: us-docker.pkg.dev/spinnaker-community/docker/rosco
+  newTag: master-latest-unvalidated
+labels:
+- includeSelectors: true
+  pairs:
+    app.kubernetes.io/part-of: spinnaker

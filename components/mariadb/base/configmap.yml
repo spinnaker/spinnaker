@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mariadb
+data:
+  config.cnf: |
+    [mariadb]
+    transaction_isolation=READ-COMMITTED
+
+  init.sh: |
+    #!/usr/bin/env bash
+
+    set -o errexit -o nounset -o pipefail
+
+    echo "Initialize MariaDB with databases, users and grants"
+
+    # for each database ensure an environment variable is set with the desired password.
+    # eg: clouddriver=<cdpass>, echo=<echopass>, etc
+    databases=(
+      "clouddriver"
+      "echo"
+      "fiat"
+      "front50"
+      "keel"
+      "orca"
+    )
+
+    # subsequent runs will check if $init_file exists and bail out if it does
+    # preventing changes to the database.
+    init_file=/var/lib/mysql/init.sql
+
+    if [ -f "${init_file}" ]; then
+      echo "Database should have already been initialized, exiting"
+      exit 0
+    fi
+
+    echo -e "\n# Create databases if they don't exist" >>"${init_file}"
+    for db in "${databases[@]}"; do
+      cat >>"${init_file}" <<EOF
+    CREATE DATABASE IF NOT EXISTS ${db} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+    EOF
+
+    done
+
+    echo -e "\n# Create users if they don't exist" >>"${init_file}"
+    for db in "${databases[@]}"; do
+      cat >>"${init_file}" <<EOF
+    CREATE USER IF NOT EXISTS ${db}_migrate IDENTIFIED BY '${db}';
+    CREATE USER IF NOT EXISTS ${db}_service IDENTIFIED BY '${db}';
+    EOF
+
+    done
+
+    echo -e "\n# Create grants if they don't exist" >>"${init_file}"
+    for db in "${databases[@]}"; do
+      cat >>"${init_file}" <<EOF
+    GRANT
+      SELECT, INSERT, UPDATE, DELETE, CREATE, EXECUTE, SHOW VIEW
+      ON ${db}.* TO '${db}_service'@'%' IDENTIFIED BY '${db}';
+
+    GRANT
+      SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, REFERENCES, INDEX, ALTER, LOCK TABLES, EXECUTE, SHOW VIEW
+      ON ${db}.* TO '${db}_migrate'@'%' IDENTIFIED BY '${db}';
+    EOF
+
+    done
+
+    echo -e "FLUSH PRIVILEGES;" >>"${init_file}"
+
+    echo "Initializing database from "${init_file}"..."
+    mysql --user=root --password="${MARIADB_ROOT_PASSWORD}" <"${init_file}"

@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keel
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+      - env:
+        - name: JAVA_OPTS
+          value: -XX:MaxRAMPercentage=50.0
+        - name: SPRING_PROFILES_ACTIVE
+          value: local
+        image: us-docker.pkg.dev/spinnaker-community/docker/keel:0.1.0-20210331200022-slim
+        name: keel
+        ports:
+        - name: http
+          containerPort: 7010
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+        resources:
+          requests:
+            cpu: 100m
+            memory: 1Gi
+        securityContext:
+          allowPrivilegeEscalation: false
+        volumeMounts:
+        - name: config
+          mountPath: "/opt/spinnaker/config/"
+          readOnly: true
+      securityContext:
+        runAsUser: 10111
+        runAsGroup: 10111
+        runAsNonRoot: true
+        fsGroup: 10111
+      terminationGracePeriodSeconds: 60
+      volumes:
+      - name: config
+        projected:
+          sources:
+          - configMap:
+              name: spinnaker
+          - configMap:
+              name: keel

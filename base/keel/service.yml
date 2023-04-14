@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: keel
+spec:
+  ports:
+  - port: 7010
+    protocol: TCP
+    targetPort: 7010
+  type: ClusterIP

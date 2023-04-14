@@ -1,0 +1,155 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+resources:
+- base
+
+patches:
+# Mount Spring config file per service in a subdirectories so it can be loaded
+# by `spring.config.import`.
+# Paths must match Spring naming conventions.
+# For example: {application}(-{profile}).yml
+- patch: |-
+    - op: add
+      path: /spec/template/spec/volumes/0/projected/sources/-
+      value:
+        configMap:
+          items:
+          - key: clouddriver.yml
+            path: mariadb/clouddriver.yml
+          name: clouddriver-mariadb
+    - op: add
+      path: /spec/template/spec/containers/0/env/-
+      value:
+        name: CLOUDDRIVER_MARIADB
+        value: clouddriver
+  target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: clouddriver
+
+- patch: |-
+    - op: add
+      path: /spec/template/spec/volumes/0/projected/sources/-
+      value:
+        configMap:
+          items:
+          - key: echo.yml
+            path: mariadb/echo.yml
+          name: echo-mariadb
+    - op: add
+      path: /spec/template/spec/containers/0/env/-
+      value:
+        name: ECHO_MARIADB
+        value: echo
+  target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: echo
+
+- patch: |-
+    - op: add
+      path: /spec/template/spec/volumes/0/projected/sources/-
+      value:
+        configMap:
+          items:
+          - key: fiat.yml
+            path: mariadb/fiat.yml
+          name: fiat-mariadb
+    - op: add
+      path: /spec/template/spec/containers/0/env/-
+      value:
+        name: FIAT_MARIADB
+        value: fiat
+  target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: fiat
+
+- patch: |-
+    - op: add
+      path: /spec/template/spec/volumes/0/projected/sources/-
+      value:
+        configMap:
+          items:
+          - key: front50.yml
+            path: mariadb/front50.yml
+          name: front50-mariadb
+    - op: add
+      path: /spec/template/spec/containers/0/env/-
+      value:
+        name: FRONT50_MARIADB
+        value: front50
+  target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: front50
+
+- patch: |-
+    - op: add
+      path: /spec/template/spec/volumes/0/projected/sources/-
+      value:
+        configMap:
+          items:
+          - key: keel.yml
+            path: mariadb/keel.yml
+          name: keel-mariadb
+    - op: add
+      path: /spec/template/spec/containers/0/env/-
+      value:
+        name: KEEL_MARIADB
+        value: keel
+  target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: keel
+
+- patch: |-
+    - op: add
+      path: /spec/template/spec/volumes/0/projected/sources/-
+      value:
+        configMap:
+          items:
+          - key: orca.yml
+            path: mariadb/orca.yml
+          name: orca-mariadb
+    - op: add
+      path: /spec/template/spec/containers/0/env/-
+      value:
+        name: ORCA_MARIADB
+        value: orca
+  target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: orca
+
+configMapGenerator:
+- behavior: create
+  name: clouddriver-mariadb
+  files:
+  - files/clouddriver.yml
+- behavior: create
+  name: echo-mariadb
+  files:
+  - files/echo.yml
+- behavior: create
+  name: fiat-mariadb
+  files:
+  - files/fiat.yml
+- behavior: create
+  name: front50-mariadb
+  files:
+  - files/front50.yml
+- behavior: create
+  name: keel-mariadb
+  files:
+  - files/keel.yml
+- behavior: create
+  name: orca-mariadb
+  files:
+  - files/orca.yml

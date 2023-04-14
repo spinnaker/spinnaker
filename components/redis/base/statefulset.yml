@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+spec:
+  serviceName: "redis"
+  replicas: 1
+  template:
+    spec:
+      containers:
+      - name: redis
+        image: redis:5
+        ports:
+        - name: redis
+          containerPort: 6379
+          protocol: TCP
+        livenessProbe:
+          tcpSocket:
+            port: redis
+        readinessProbe:
+          exec:
+            command:
+            - redis-cli
+            - ping
+        resources:
+          requests:
+            memory: 256Mi
+            cpu: 100m
+        securityContext:
+          allowPrivilegeEscalation: false
+        volumeMounts:
+        # - name: config
+          # mountPath: /etc
+        - name: redis
+          mountPath: /data
+      # TODO
+      # securityContext:
+      #  runAsUser: 10111
+      #  runAsGroup: 10111
+      #  runAsNonRoot: true
+      #  fsGroup: 10111
+      volumes:
+      - name: config
+        configMap:
+          name: redis
+          items:
+          - key: redis.conf
+            path: redis.conf
+  volumeClaimTemplates:
+  - metadata:
+      name: redis
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "standard"
+      resources:
+        requests:
+          storage: 1Gi
