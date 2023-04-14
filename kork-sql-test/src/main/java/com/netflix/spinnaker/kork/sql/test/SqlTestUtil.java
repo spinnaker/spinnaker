@@ -200,10 +200,16 @@ public class SqlTestUtil {
   }
 
   public static TestDatabase initDatabase(String jdbcUrl, SQLDialect dialect, String dbName) {
-    HikariConfig cpConfig = new HikariConfig();
-    cpConfig.setJdbcUrl(jdbcUrl);
-    cpConfig.setMaximumPoolSize(5);
-    HikariDataSource dataSource = new HikariDataSource(cpConfig);
+    var hikariConfig = new HikariConfig();
+    hikariConfig.setJdbcUrl(jdbcUrl);
+    hikariConfig.setMaximumPoolSize(5);
+
+    return initDatabase(hikariConfig, dialect, dbName);
+  }
+
+  public static TestDatabase initDatabase(
+      HikariConfig hikariConfig, SQLDialect dialect, String dbName) {
+    HikariDataSource dataSource = new HikariDataSource(hikariConfig);
 
     DefaultConfiguration config = new DefaultConfiguration();
     config.set(new DataSourceConnectionProvider(dataSource));
