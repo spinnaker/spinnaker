@@ -22,6 +22,7 @@ import com.netflix.spectator.api.Counter;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.Timer;
 import com.netflix.spinnaker.front50.api.model.Timestamped;
+import com.netflix.spinnaker.front50.config.StorageServiceConfigurationProperties;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import com.netflix.spinnaker.security.User;
@@ -29,7 +30,16 @@ import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import io.github.resilience4j.core.SupplierUtils;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -44,7 +54,6 @@ import rx.Observable;
 import rx.Scheduler;
 
 public abstract class StorageServiceSupport<T extends Timestamped> {
-  private static final long HEALTH_MILLIS = TimeUnit.SECONDS.toMillis(90);
   private final Logger log = LoggerFactory.getLogger(getClass());
   protected final AtomicReference<Set<T>> allItemsCache = new AtomicReference<>();
 
@@ -52,10 +61,9 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
   private final StorageService service;
   private final Scheduler scheduler;
   private final ObjectKeyLoader objectKeyLoader;
-  private final long refreshIntervalMs;
-  private final boolean shouldWarmCache;
   private final Registry registry;
   private final CircuitBreakerRegistry circuitBreakerRegistry;
+  private StorageServiceConfigurationProperties.PerObjectType configProperties;
 
   private final Timer autoRefreshTimer; // Only spontaneous refreshes in all()
   private final Timer scheduledRefreshTimer; // Only refreshes from scheduler
@@ -67,25 +75,21 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
   private final AtomicLong lastRefreshedTime = new AtomicLong();
   private final AtomicLong lastSeenStorageTime = new AtomicLong();
 
+  AtomicReference<CountDownLatch> globalLatch = new AtomicReference<>(null);
+
   public StorageServiceSupport(
       ObjectType objectType,
       StorageService service,
       Scheduler scheduler,
       ObjectKeyLoader objectKeyLoader,
-      long refreshIntervalMs,
-      boolean shouldWarmCache,
+      StorageServiceConfigurationProperties.PerObjectType configurationProperties,
       Registry registry,
       CircuitBreakerRegistry circuitBreakerRegistry) {
     this.objectType = objectType;
     this.service = service;
     this.scheduler = scheduler;
     this.objectKeyLoader = objectKeyLoader;
-    this.refreshIntervalMs = refreshIntervalMs;
-    if (refreshIntervalMs >= getHealthMillis()) {
-      throw new IllegalArgumentException(
-          "Cache refresh time must be more frequent than cache health timeout");
-    }
-    this.shouldWarmCache = shouldWarmCache;
+    this.configProperties = configurationProperties;
     this.registry = registry;
     this.circuitBreakerRegistry = circuitBreakerRegistry;
 
@@ -116,7 +120,7 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
         new ToDoubleFunction() {
           @Override
           public double applyAsDouble(Object ignore) {
-            Set itemCache = allItemsCache.get();
+            Set<T> itemCache = allItemsCache.get();
             return itemCache != null ? itemCache.size() : 0;
           }
         });
@@ -124,21 +128,37 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
         registry.createId("storageServiceSupport.cacheAge", "objectType", typeName),
         lastRefreshedTime,
         (lrt) -> Long.valueOf(System.currentTimeMillis() - lrt.get()).doubleValue());
+
+    if (configProperties.isOptimizeCacheRefreshes()) {
+      if (!service.supportsVersioning()) {
+        log.warn(
+            "Optimized refresh is not available to un-versioned {} objects since they don't support soft deletes.",
+            objectType);
+        configProperties.setOptimizeCacheRefreshes(false);
+      } else {
+        log.info("Optimized refreshes are now enabled for versioned {} objects.", objectType);
+      }
+    }
   }
 
   @PostConstruct
   void startRefresh() {
-    if (refreshIntervalMs > 0) {
-      if (shouldWarmCache) {
+    if (configProperties.getRefreshMs() >= getHealthMillis()) {
+      throw new IllegalArgumentException(
+          "Cache refresh time must be more frequent than cache health timeout");
+    }
+
+    if (configProperties.getRefreshMs() > 0) {
+      if (configProperties.isShouldWarmCache()) {
         try {
           log.info("Warming Cache");
           refresh();
         } catch (Exception e) {
-          log.error("Unable to warm cache: {}", e);
+          log.error("Unable to warm cache: ", e);
         }
       }
 
-      Observable.timer(refreshIntervalMs, TimeUnit.MILLISECONDS, scheduler)
+      Observable.timer(configProperties.getRefreshMs(), TimeUnit.MILLISECONDS, scheduler)
           .repeat()
           .subscribe(
               interval -> {
@@ -148,7 +168,7 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
                   long elapsed = System.nanoTime() - startTime;
                   scheduledRefreshTimer.record(elapsed, TimeUnit.NANOSECONDS);
                 } catch (Exception e) {
-                  log.error("Unable to refresh: {}", e);
+                  log.error("Unable to refresh: ", e);
                 }
               });
     }
@@ -163,20 +183,14 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
       return new ArrayList<>(allItemsCache.get());
     }
 
-    long lastModified = readLastModified();
-    if (lastModified > lastSeenStorageTime.get() || allItemsCache.get() == null) {
-      // only refresh if there was a modification since our last refresh cycle
-      log.debug(
-          "all() forcing refresh (lastModified: {}, lastRefreshed: {}, lastSeenStorageTime: {})",
-          value("lastModified", new Date(lastModified)),
-          value("lastRefreshed", new Date(lastRefreshedTime.get())),
-          value("lastSeenStorageTime", new Date(lastSeenStorageTime.get())));
-      long startTime = System.nanoTime();
-      refresh();
-      long elapsed = System.nanoTime() - startTime;
-      autoRefreshTimer.record(elapsed, TimeUnit.NANOSECONDS);
+    log.debug(
+        "performing cache refresh with synchronization: {}",
+        configProperties.isSynchronizeCacheRefresh());
+    if (configProperties.isSynchronizeCacheRefresh()) {
+      doSynchronizedRefresh();
+    } else {
+      doRefresh();
     }
-
     return new ArrayList<>(allItemsCache.get());
   }
 
@@ -296,7 +310,13 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
   /** Update local cache with any recently modified items. */
   protected void refresh() {
     long startTime = System.nanoTime();
-    allItemsCache.set(fetchAllItems(allItemsCache.get()));
+    if (configProperties.isOptimizeCacheRefreshes()) {
+      log.debug("Running optimized cache refresh");
+      allItemsCache.set(fetchAllItemsOptimized(allItemsCache.get()));
+    } else {
+      log.debug("Running unoptimized cache refresh");
+      allItemsCache.set(fetchAllItems(allItemsCache.get()));
+    }
     long elapsed = System.nanoTime() - startTime;
     registry
         .timer("storageServiceSupport.cacheRefreshTime", "objectType", objectType.name())
@@ -328,14 +348,14 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
     AtomicLong numRemoved = new AtomicLong();
     AtomicLong numUpdated = new AtomicLong();
 
-    Map<String, String> keyToId = new HashMap<String, String>();
+    Map<String, String> keyToId = new HashMap<>();
     for (T item : existingItems) {
       String id = item.getId();
       keyToId.put(buildObjectKey(id), id);
     }
 
-    Long refreshTime = System.currentTimeMillis();
-    Long storageLastModified = readLastModified();
+    long refreshTime = System.currentTimeMillis();
+    long storageLastModified = readLastModified();
     Map<String, Long> keyUpdateTime = objectKeyLoader.listObjectKeys(objectType);
 
     // Expanded from a stream collector to avoid DuplicateKeyExceptions
@@ -429,13 +449,10 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
           .toList()
           .toBlocking()
           .single()
-          .forEach(
-              item -> {
-                resultMap.put(buildObjectKey(item), item);
-              });
+          .forEach(item -> resultMap.put(buildObjectKey(item), item));
     }
 
-    Set<T> result = resultMap.values().stream().collect(Collectors.toSet());
+    Set<T> result = new HashSet<>(resultMap.values());
     this.lastRefreshedTime.set(refreshTime);
     this.lastSeenStorageTime.set(storageLastModified);
 
@@ -443,14 +460,97 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
     addCounter.increment(numAdded.get());
     updateCounter.increment(numUpdated.get());
     removeCounter.increment(existingSize + numAdded.get() - resultSize);
-    if (existingSize != resultSize) {
+    if (numAdded.get() > 0 || numUpdated.get() > 0 || numRemoved.get() > 0) {
       log.info(
-          "{}={} delta={}",
-          value("objectType", objectType.group),
+          "Fetched {} {} objects after adding {} objects, updating {} objects and removing {} objects with a delta of {}.",
           value("resultSize", resultSize),
+          value("objectType", objectType.group),
+          value("numAdded", numAdded.get()),
+          value("numUpdated", numUpdated.get()),
+          value("numRemoved", numRemoved.get()),
           value("delta", resultSize - existingSize));
     }
 
+    return result;
+  }
+
+  private Set<T> fetchAllItemsOptimized(Set<T> existingItems) {
+    if (existingItems == null) {
+      existingItems = new HashSet<>();
+    }
+    int existingSize = existingItems.size();
+    AtomicLong numAdded = new AtomicLong();
+    AtomicLong numRemoved = new AtomicLong();
+    AtomicLong numUpdated = new AtomicLong();
+
+    long refreshTime = System.currentTimeMillis();
+    long storageLastModified = readLastModified();
+
+    // Get lists of modified and deleted objects from the store
+    Map<String, List<T>> newerItems =
+        service.loadObjectsNewerThan(objectType, lastSeenStorageTime.get());
+    Map<String, T> modifiedItems =
+        newerItems.get("not_deleted").stream()
+            .collect(Collectors.toMap(Timestamped::getId, item -> item));
+    Map<String, T> deletedItems =
+        newerItems.get("deleted").stream()
+            .collect(Collectors.toMap(Timestamped::getId, item -> item));
+
+    // Expanded from a stream collector to avoid DuplicateKeyExceptions
+    Map<String, T> resultMap = new HashMap<>();
+    existingItems.forEach(
+        existingItem -> {
+          String existingItemId = buildObjectKey(existingItem.getId());
+          if (deletedItems.containsKey(existingItemId)) {
+            // item was deleted, skip it
+            log.debug(
+                "Item with id {} deleted from the store. Will not add to the result.",
+                existingItemId);
+            numRemoved.getAndIncrement();
+          } else if (!modifiedItems.containsKey(existingItemId)) {
+            // item was unchanged, add it back as is
+            resultMap.put(existingItemId, existingItem);
+          }
+        });
+
+    // add all modified items to the result map
+    modifiedItems.forEach(
+        (id, item) -> {
+          if (resultMap.containsKey(id)) {
+            log.debug(
+                "Item with id {} was modified in the store. Will update it in the result.", id);
+            numUpdated.getAndIncrement();
+          } else {
+            log.debug("Item with id {} was added to the store. Will add it in the result.", id);
+            numAdded.getAndIncrement();
+          }
+          resultMap.put(id, item);
+        });
+
+    if (!existingItems.isEmpty() && !modifiedItems.isEmpty()) {
+      // only log keys that have been modified/deleted after initial cache load
+      log.debug("Modified object keys: {}", value("keys", modifiedItems.keySet()));
+      log.debug("Deleted object keys: {}", value("keys", deletedItems.keySet()));
+    }
+
+    Set<T> result = new HashSet<>(resultMap.values());
+    this.lastRefreshedTime.set(refreshTime);
+    this.lastSeenStorageTime.set(storageLastModified);
+
+    int resultSize = result.size();
+    addCounter.increment(numAdded.get());
+    updateCounter.increment(numUpdated.get());
+    removeCounter.increment(numRemoved.get());
+    if (numAdded.get() > 0 || numUpdated.get() > 0 || numRemoved.get() > 0) {
+      log.info(
+          "Fetched {} {} objects after adding {} objects, updating {} objects and removing {} objects with a delta of {}.",
+          value("resultSize", resultSize),
+          value("objectType", objectType.group),
+          value("numAdded", numAdded.get()),
+          value("numUpdated", numUpdated.get()),
+          value("numRemoved", numRemoved.get()),
+          value("delta", resultSize - existingSize));
+    }
     return result;
   }
 
@@ -459,6 +559,91 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
   }
 
   protected long getHealthMillis() {
-    return HEALTH_MILLIS;
+    return TimeUnit.SECONDS.toMillis(configProperties.getCacheHealthCheckTimeoutSeconds());
+  }
+
+  /*
+   only allow those threads to refresh the cache for whom the db's lastRefreshTime precedes the time at which
+   it attempted to do a refresh.
+   We have seen that when multiple threads attempt to refresh at the same time, primarily due to writes to the db, it
+   causes DB performance to degrade. At normal loads, we have seen around 12 refreshes per min on avg. This only gets
+    worse during peak load time. This function limits which thread actually needs to do the cache refresh and which
+    thread can exit with a no-op. It works by allowing multiple threads to attempt a refresh, but only allowing one
+    thread at a time to obtain a CountDownLatch to actually perform the refresh. These other threads continuously check
+    to see if the db's lastRefreshTime > the time at which it entered this function. If yes, that means some other
+    thread has already refreshed the cache, so these threads exit with a no-op.
+  */
+  private void doSynchronizedRefresh() {
+    // this is the timestamp at which a thread attempts to refresh
+    long refreshAttemptTime = System.currentTimeMillis();
+    log.debug(
+        "Attempting to perform cache refresh at: {}",
+        value("refreshAttemptTime", new Date(refreshAttemptTime)));
+
+    while (true) {
+      boolean isRefreshAllowed = false; // flag to control which thread can refresh the cache
+      // since countdown latches can't be reset, we keep a pointer to a global latch
+      // so that others can wait on it
+      CountDownLatch localLatch;
+      synchronized (this) {
+        if (globalLatch.get() == null) {
+          log.debug("Latch obtained. Attempting to refresh cache");
+          isRefreshAllowed = true;
+          globalLatch.set(new CountDownLatch(1));
+        } else {
+          log.debug("Waiting to obtain latch");
+        }
+        localLatch = globalLatch.get();
+      }
+
+      if (isRefreshAllowed) {
+        try {
+          doRefresh();
+        } finally {
+          synchronized (this) {
+            localLatch.countDown(); // release all other threads waiting on this one
+            globalLatch.set(null);
+          }
+        }
+        break;
+      } else {
+        try {
+          localLatch.await(); // all other threads will be waiting here
+        } catch (Exception e) {
+          log.warn("current thread was interrupted while waiting to obtain the latch", e);
+        }
+        // this thread doesn't need to refresh anymore, since some other thread already refreshed
+        // the db while this was
+        // waiting
+        if (lastRefreshedTime.get() > refreshAttemptTime) {
+          log.info(
+              "Not refreshing the cache since the lastRefreshedTime: {} is later than this thread's "
+                  + "refreshAttemptTime: {}",
+              value("lastRefreshedTime", new Date(lastRefreshedTime.get())),
+              value("refreshAttemptTime", new Date(refreshAttemptTime)));
+          break;
+        }
+      }
+    }
+    log.debug("Synchronized refresh completed");
+  }
+
+  /** Refresh if the data store is empty, or has been modified since the last refresh */
+  private void doRefresh() {
+    long lastModified = readLastModified();
+    if (lastModified > lastSeenStorageTime.get() || allItemsCache.get() == null) {
+      // only refresh if there was a modification since our last refresh cycle
+      log.debug(
+          "all() forcing refresh (lastModified: {}, lastRefreshed: {}, lastSeenStorageTime: {})",
+          value("lastModified", new Date(lastModified)),
+          value("lastRefreshed", new Date(lastRefreshedTime.get())),
+          value("lastSeenStorageTime", new Date(lastSeenStorageTime.get())));
+      long startTime = System.nanoTime();
+      refresh();
+      long elapsed = System.nanoTime() - startTime;
+      autoRefreshTimer.record(elapsed, TimeUnit.NANOSECONDS);
+    } else {
+      log.info("refresh not required");
+    }
   }
 }

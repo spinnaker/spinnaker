@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.front50.model.project;
 
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.front50.config.StorageServiceConfigurationProperties;
 import com.netflix.spinnaker.front50.model.ObjectKeyLoader;
 import com.netflix.spinnaker.front50.model.ObjectType;
 import com.netflix.spinnaker.front50.model.StorageService;
@@ -31,8 +32,7 @@ public class DefaultProjectDAO extends StorageServiceSupport<Project> implements
       StorageService service,
       Scheduler scheduler,
       ObjectKeyLoader objectKeyLoader,
-      long refreshIntervalMs,
-      boolean shouldWarmCache,
+      StorageServiceConfigurationProperties.PerObjectType configurationProperties,
       Registry registry,
       CircuitBreakerRegistry circuitBreakerRegistry) {
     super(
@@ -40,8 +40,7 @@ public class DefaultProjectDAO extends StorageServiceSupport<Project> implements
         service,
         scheduler,
         objectKeyLoader,
-        refreshIntervalMs,
-        shouldWarmCache,
+        configurationProperties,
         registry,
         circuitBreakerRegistry);
   }

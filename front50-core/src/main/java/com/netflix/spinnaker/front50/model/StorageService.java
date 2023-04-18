@@ -40,6 +40,20 @@ public interface StorageService {
     throw new UnsupportedOperationException();
   }
 
+  /**
+   * Loads objects which have the last_modified_at time larger than the provided threshold
+   *
+   * @param objectType {@link ObjectType} of the objects to be loaded
+   * @param lastModifiedThreshold threshold to use for filtering based on the last_modified_at time
+   *     in ms
+   * @return {@link Map<String, List<T>>} with two keys, "deleted" and "not_deleted". Each value is
+   *     a list of fetched objects that satisfy the provided last_modified_at threshold.
+   */
+  default <T extends Timestamped> Map<String, List<T>> loadObjectsNewerThan(
+      ObjectType objectType, long lastModifiedThreshold) {
+    throw new UnsupportedOperationException();
+  }
+
   void deleteObject(ObjectType objectType, String objectKey);
 
   default void bulkDeleteObjects(ObjectType objectType, Collection<String> objectKeys) {

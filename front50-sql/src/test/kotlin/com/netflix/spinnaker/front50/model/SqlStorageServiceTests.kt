@@ -18,6 +18,7 @@ package com.netflix.spinnaker.front50.model
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.front50.api.model.Timestamped
 import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.model.application.Application
 import com.netflix.spinnaker.front50.model.tag.EntityTags
@@ -31,9 +32,13 @@ import org.jooq.SQLDialect
 import org.jooq.impl.DSL
 import strikt.api.expectThat
 import strikt.api.expectThrows
+import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEmpty
+import strikt.assertions.isNotEqualTo
 import strikt.assertions.isNotNull
+import strikt.assertions.isTrue
+import java.time.Instant
 
 internal object SqlStorageServiceTests : JUnit5Minutests {
 
@@ -212,6 +217,89 @@ internal object SqlStorageServiceTests : JUnit5Minutests {
             pipelines.map { it.lastModified }.toSet()
           ).isEqualTo(lastModifiedList)
         }
+
+        test("load pipelines newer than") {
+          // populate 10 records <= the threshold and 5 newer than the threshold
+          // make sure loadObjectsNewerThan returns 5
+          val lastModifiedThreshold: Long = Instant.now().toEpochMilli()
+          val oldObjectKeys = mutableSetOf<String>()
+          val newObjectKeys = mutableSetOf<String>()
+
+          val numOldObjects = 10
+          val numNewObjects = 5
+          expectThat(numOldObjects).isNotEqualTo(numNewObjects)
+
+          // Populate the records <= the threshold
+          (1..numOldObjects).forEach {
+            val objectKey = "old-id-pipeline00$it"
+            oldObjectKeys.add(objectKey)
+            sqlStorageService.storeObject(
+              ObjectType.PIPELINE,
+              objectKey,
+              Pipeline().apply {
+                this.setId(objectKey)
+                this.setName("old-pipeline00$it")
+                this.setLastModified(lastModifiedThreshold - (it - 1))
+                this.setApplication("application001")
+              }
+            )
+          }
+
+          // Populate the records > the threshold
+          (1..numNewObjects).forEach {
+            val objectKey = "new-id-pipeline00$it"
+            newObjectKeys.add(objectKey)
+            sqlStorageService.storeObject(
+              ObjectType.PIPELINE,
+              objectKey,
+              Pipeline().apply {
+                this.setId(objectKey)
+                this.setName("new-pipeline00$it")
+                this.setLastModified(lastModifiedThreshold + it)
+                this.setApplication("application001")
+              }
+            )
+          }
+
+          // Verify basic behavior, that it only returns the newer items
+          val newerItems: Map<String, List<Pipeline>> = sqlStorageService.loadObjectsNewerThan(
+            ObjectType.PIPELINE,
+            lastModifiedThreshold
+          )
+          verifyNewerThan(newerItems, newObjectKeys, emptySet())
+
+          // Delete a newer item and verify the behavior
+          val newIdToDelete = newObjectKeys.first()
+          expectThat(newObjectKeys.remove(newIdToDelete)).isTrue()
+          sqlStorageService.deleteObject(ObjectType.PIPELINE, newIdToDelete);
+          val afterDeleteNewer: Map<String, List<Pipeline>> = sqlStorageService.loadObjectsNewerThan(
+            ObjectType.PIPELINE,
+            lastModifiedThreshold
+          )
+          verifyNewerThan(afterDeleteNewer, newObjectKeys, setOf(newIdToDelete))
+
+          // Delete an older item and verify the behavior
+          var oldIdToDelete = oldObjectKeys.first()
+          expectThat(oldObjectKeys.remove(oldIdToDelete)).isTrue()
+          sqlStorageService.deleteObject(ObjectType.PIPELINE, oldIdToDelete);
+          val afterDeleteOlder: Map<String, List<Pipeline>> = sqlStorageService.loadObjectsNewerThan(
+            ObjectType.PIPELINE,
+            lastModifiedThreshold
+          )
+          verifyNewerThan(afterDeleteOlder, newObjectKeys, setOf(newIdToDelete, oldIdToDelete))
+
+          // Modify an older item and verify the behavior
+          val oldIdToModify = oldObjectKeys.first()
+          expectThat(oldObjectKeys.remove(oldIdToModify)).isTrue()
+          val oldItemToModify: Pipeline = sqlStorageService.loadObject(ObjectType.PIPELINE, oldIdToModify);
+          oldItemToModify.lastModified = lastModifiedThreshold + 10; // 10 is an arbitrary amount
+          sqlStorageService.storeObject(ObjectType.PIPELINE, oldIdToModify, oldItemToModify);
+          val afterModifyOlder: Map<String, List<Pipeline>> = sqlStorageService.loadObjectsNewerThan(
+            ObjectType.PIPELINE,
+            lastModifiedThreshold
+          )
+          verifyNewerThan(afterModifyOlder, newObjectKeys + oldIdToModify, setOf(newIdToDelete, oldIdToDelete))
+        }
       }
 
       context("Entity Tags") {
@@ -304,6 +392,18 @@ internal object SqlStorageServiceTests : JUnit5Minutests {
     afterAll {
       jooq.close()
     }
+
+  }
+
+  private fun <T : Timestamped> verifyNewerThan(newerThanResult: Map<String, List<T>>, expectedModifiedIds: Set<String>, expectedDeletedIds: Set<String>): Unit {
+    val modifiedItems: List<T>? = newerThanResult.get("not_deleted")
+    val deletedItems: List<T>? = newerThanResult.get("deleted")
+    expectThat(modifiedItems!!).hasSize(expectedModifiedIds.size)
+    expectThat(deletedItems!!).hasSize(expectedDeletedIds.size)
+    val modifiedIds: Set<String> = modifiedItems.map { it.id }.toSet()
+    expectThat(modifiedIds).isEqualTo(expectedModifiedIds)
+    val deletedIds: Set<String> = deletedItems.map { it.id }.toSet()
+    expectThat(deletedIds).isEqualTo(expectedDeletedIds)
   }
 
   fun tests() = rootContext<JooqConfig> {

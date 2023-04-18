@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.front50.model.plugins;
 
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.front50.config.StorageServiceConfigurationProperties;
 import com.netflix.spinnaker.front50.model.ObjectKeyLoader;
 import com.netflix.spinnaker.front50.model.ObjectType;
 import com.netflix.spinnaker.front50.model.StorageService;
@@ -32,8 +33,7 @@ public class DefaultPluginVersionPinningRepository
       StorageService service,
       Scheduler scheduler,
       ObjectKeyLoader objectKeyLoader,
-      long refreshIntervalMs,
-      boolean shouldWarmCache,
+      StorageServiceConfigurationProperties.PerObjectType configurationProperties,
       Registry registry,
       CircuitBreakerRegistry circuitBreakerRegistry) {
     super(
@@ -41,8 +41,7 @@ public class DefaultPluginVersionPinningRepository
         service,
         scheduler,
         objectKeyLoader,
-        refreshIntervalMs,
-        shouldWarmCache,
+        configurationProperties,
         registry,
         circuitBreakerRegistry);
   }

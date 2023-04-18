@@ -203,7 +203,7 @@ public class PipelineController {
     if (!pipeline.getId().equals(existingPipeline.getId())) {
       throw new InvalidRequestException(
           format(
-              "The provided id %s doesn't match the pipeline id %s",
+              "The provided id %s doesn't match the existing pipeline id %s",
               pipeline.getId(), existingPipeline.getId()));
     }
 

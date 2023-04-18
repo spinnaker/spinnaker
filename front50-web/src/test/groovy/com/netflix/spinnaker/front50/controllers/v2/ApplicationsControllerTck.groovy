@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.front50.config.FiatConfigurationProperties
+import com.netflix.spinnaker.front50.config.StorageServiceConfigurationProperties
 import com.netflix.spinnaker.front50.jackson.Front50ApiModule
 import com.netflix.spinnaker.front50.model.DefaultObjectKeyLoader
 import com.netflix.spinnaker.front50.model.SqlStorageService
@@ -415,11 +416,9 @@ class SqlApplicationsControllerTck extends ApplicationsControllerTck {
       storageService,
       scheduler,
       new DefaultObjectKeyLoader(storageService),
-      0,
-      false,
+      new StorageServiceConfigurationProperties.PerObjectType(),
       new NoopRegistry(),
       new InMemoryCircuitBreakerRegistry()
     )
   }
 }
-

@@ -17,9 +17,10 @@
 package com.netflix.spinnaker.front50.controllers
 
 import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
+import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline
 import com.netflix.spinnaker.front50.ServiceAccountsService
 import com.netflix.spinnaker.front50.api.model.pipeline.Trigger
+import com.netflix.spinnaker.front50.config.StorageServiceConfigurationProperties
 import com.netflix.spinnaker.front50.model.DefaultObjectKeyLoader
 import com.netflix.spinnaker.front50.model.SqlStorageService
 import com.netflix.spinnaker.front50.model.pipeline.DefaultPipelineDAO
@@ -27,10 +28,11 @@ import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import com.netflix.spinnaker.kork.web.exceptions.ExceptionMessageDecorator
 import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers
-import io.github.resilience4j.circuitbreaker.internal.InMemoryCircuitBreakerRegistry
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry
 import org.springframework.beans.factory.ObjectProvider
 
 import java.time.Clock
+import java.util.concurrent.Callable
 import java.util.concurrent.Executors
 import com.fasterxml.jackson.databind.ObjectMapper
 import groovy.json.JsonSlurper
@@ -46,6 +48,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 
 abstract class PipelineControllerTck extends Specification {
@@ -57,9 +60,13 @@ abstract class PipelineControllerTck extends Specification {
 
   @Subject
   PipelineDAO pipelineDAO
-  def serviceAccountsService
+  ServiceAccountsService serviceAccountsService
+  StorageServiceConfigurationProperties.PerObjectType pipelineDAOConfigProperties =
+    new StorageServiceConfigurationProperties().getPipeline()
 
   void setup() {
+    println "--------------- Test " + specificationContext.currentIteration.name
+
     this.pipelineDAO = createPipelineDAO()
     this.serviceAccountsService = Mock(ServiceAccountsService)
 
@@ -169,7 +176,7 @@ abstract class PipelineControllerTck extends Specification {
 
     then:
     response.status == BAD_REQUEST
-    response.errorMessage == "The provided id ${pipeline1.id} doesn't match the pipeline id ${pipeline2.id}"
+    response.errorMessage == "The provided id ${pipeline1.id} doesn't match the existing pipeline id ${pipeline2.id}"
   }
 
   @Unroll
@@ -347,6 +354,159 @@ abstract class PipelineControllerTck extends Specification {
       "max" | true | 0 || true || 0
       "max" | true | 5 || true || 5
   }
+
+  @Unroll
+  def "multi-threaded cache refresh with synchronizeCacheRefresh: #synchronizeCacheRefresh"() {
+    given:
+    pipelineDAOConfigProperties.setSynchronizeCacheRefresh(synchronizeCacheRefresh)
+
+    pipelineDAO.create(null, new Pipeline([
+      name: "c", application: "test"
+    ]))
+    pipelineDAO.create(null, new Pipeline([
+      name: "b", application: "test"
+    ]))
+    pipelineDAO.create(null, new Pipeline([
+      name: "a1", application: "test", index: 1
+    ]))
+    pipelineDAO.create(null, new Pipeline([
+      name: "b1", application: "test", index: 1
+    ]))
+    pipelineDAO.create(null, new Pipeline([
+      name: "a3", application: "test", index: 3
+    ]))
+
+    def results = new ArrayList(10)
+
+    when:
+    def futures = new ArrayList(10)
+    def threadPool = Executors.newFixedThreadPool(10)
+    try {
+      10.times {
+        futures.add(threadPool.submit({ ->
+          mockMvc.perform(get("/pipelines/test"))
+        } as Callable))
+      }
+      futures.each {results.add(it.get())}
+    } finally {
+      threadPool.shutdown()
+    }
+
+    then:
+    results.each {
+      it.andExpect(jsonPath('$.[*].name').value(["a1", "b1", "a3", "b", "c"]))
+        .andExpect(jsonPath('$.[*].index').value([0, 1, 2, 3, 4]))
+    }
+
+    where:
+    synchronizeCacheRefresh << [ false, true ]
+  }
+
+  @Unroll
+  def "multi-threaded cache refresh with multiple read/writes and synchronizeCacheRefresh: #synchronizeCacheRefresh"() {
+    given:
+    pipelineDAOConfigProperties.setSynchronizeCacheRefresh(synchronizeCacheRefresh)
+
+    pipelineDAO.create(null, new Pipeline([
+      name: "c", application: "test"
+    ]))
+    pipelineDAO.create(null, new Pipeline([
+      name: "b", application: "test"
+    ]))
+    pipelineDAO.create(null, new Pipeline([
+      name: "a1", application: "test", index: 1
+    ]))
+    pipelineDAO.create(null, new Pipeline([
+      name: "b1", application: "test", index: 1
+    ]))
+    pipelineDAO.create(null, new Pipeline([
+      name: "a3", application: "test", index: 3
+    ]))
+
+    def results = new ArrayList(10)
+
+    when:
+    def futures = new ArrayList(10)
+    def threadPool = Executors.newFixedThreadPool(10)
+    try {
+      10.times {
+        futures.add(threadPool.submit({ ->
+          if (it % 2 == 0) {
+            mockMvc.perform(post('/pipelines')
+              .contentType(MediaType.APPLICATION_JSON)
+              .content(new ObjectMapper().writeValueAsString([
+                name: "My Pipeline" + it,
+                application: "test" + it,
+                id: "id" + it,
+                triggers: []])))
+              .andReturn()
+              .response
+          }
+
+          mockMvc.perform(get("/pipelines/test"))
+        } as Callable))
+      }
+      futures.each {results.add(it.get())}
+    } finally {
+      threadPool.shutdown()
+    }
+
+    then:
+    results.each {
+      it.andExpect(jsonPath('$.[*].name').value(["a1", "b1", "a3", "b", "c"]))
+        .andExpect(jsonPath('$.[*].index').value([0, 1, 2, 3, 4]))
+    }
+
+    where:
+    synchronizeCacheRefresh << [ false, true ]
+  }
+
+  def "should optimally refresh the cache after updates and deletes"() {
+    given:
+    pipelineDAOConfigProperties.setOptimizeCacheRefreshes(true)
+    def pipelines = [
+      new Pipeline([name: "Pipeline1", application: "test", id: "id1", triggers: []]),
+      new Pipeline([name: "Pipeline2", application: "test", id: "id2", triggers: []]),
+      new Pipeline([name: "Pipeline3", application: "test", id: "id3", triggers: []]),
+      new Pipeline([name: "Pipeline4", application: "test", id: "id4", triggers: []]),
+    ]
+    pipelineDAO.bulkImport(pipelines)
+
+    // Test cache refreshes for additions
+    when:
+    def response = mockMvc.perform(get('/pipelines/test'))
+
+    then:
+    response.andReturn().response.status == OK
+    response.andExpect(jsonPath('$.[*].name')
+      .value(["Pipeline1", "Pipeline2", "Pipeline3", "Pipeline4"]))
+
+    // Test cache refreshes for updates
+    when:
+    // Update Pipeline 2
+    mockMvc.perform(put('/pipelines/id2')
+      .contentType(MediaType.APPLICATION_JSON)
+      .content(new ObjectMapper().writeValueAsString(pipelines[1])))
+      .andExpect(status().isOk())
+    response = mockMvc.perform(get('/pipelines/test'))
+
+    then:
+    response.andReturn().response.status == OK
+    // ordered of returned pipelines changes after update
+    response.andExpect(jsonPath('$.[*].name')
+      .value(["Pipeline1", "Pipeline3", "Pipeline4", "Pipeline2"]))
+
+    // Test cache refreshes for deletes
+    when:
+    // Update 1 pipeline
+    mockMvc.perform(delete('/pipelines/test/Pipeline1')).andExpect(status().isOk())
+    response = mockMvc.perform(get('/pipelines/test'))
+
+    then:
+    response.andReturn().response.status == OK
+    response.andExpect(jsonPath('$.[*].name')
+      .value(["Pipeline3", "Pipeline4", "Pipeline2"]))
+  }
 }
 
 class SqlPipelineControllerTck extends PipelineControllerTck {
@@ -373,14 +533,16 @@ class SqlPipelineControllerTck extends PipelineControllerTck {
       "default"
     )
 
-    return new DefaultPipelineDAO(
-      storageService,
+    pipelineDAOConfigProperties.setRefreshMs(0)
+    pipelineDAOConfigProperties.setShouldWarmCache(false)
+
+    pipelineDAO = new DefaultPipelineDAO(storageService,
       scheduler,
       new DefaultObjectKeyLoader(storageService),
-      0,
-      false,
+      pipelineDAOConfigProperties,
       new NoopRegistry(),
-      new InMemoryCircuitBreakerRegistry()
-    )
+      CircuitBreakerRegistry.ofDefaults())
+
+    return pipelineDAO
   }
 }

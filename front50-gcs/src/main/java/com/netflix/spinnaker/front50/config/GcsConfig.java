@@ -150,8 +150,7 @@ public class GcsConfig {
             Executors.newFixedThreadPool(
                 storageServiceConfigurationProperties.getApplicationPermission().getThreadPool())),
         keyLoader,
-        storageServiceConfigurationProperties.getApplicationPermission().getRefreshMs(),
-        storageServiceConfigurationProperties.getApplicationPermission().getShouldWarmCache(),
+        storageServiceConfigurationProperties.getApplicationPermission(),
         registry,
         circuitBreakerRegistry);
   }
