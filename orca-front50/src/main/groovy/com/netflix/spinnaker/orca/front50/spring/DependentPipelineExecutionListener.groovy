@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.front50.spring
 
+import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
@@ -23,6 +24,8 @@ import com.netflix.spinnaker.orca.exceptions.PipelineTemplateValidationException
 import com.netflix.spinnaker.orca.api.pipeline.ExecutionPreprocessor
 import com.netflix.spinnaker.orca.front50.DependentPipelineStarter
 import com.netflix.spinnaker.orca.front50.Front50Service
+import com.netflix.spinnaker.orca.front50.config.Front50Configuration
+import com.netflix.spinnaker.orca.front50.config.Front50ConfigurationProperties
 import com.netflix.spinnaker.orca.listeners.ExecutionListener
 import com.netflix.spinnaker.orca.listeners.Persister
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
@@ -49,17 +52,21 @@ class DependentPipelineExecutionListener implements ExecutionListener {
 
   private final ContextParameterProcessor contextParameterProcessor
 
+  private final Front50ConfigurationProperties front50ConfigurationProperties
+
   @Autowired
   DependentPipelineExecutionListener(Front50Service front50Service,
                                      DependentPipelineStarter dependentPipelineStarter,
                                      FiatStatus fiatStatus,
                                      Optional<List<ExecutionPreprocessor>> pipelinePreprocessors,
-                                     ContextParameterProcessor contextParameterProcessor) {
+                                     ContextParameterProcessor contextParameterProcessor,
+                                     Front50ConfigurationProperties front50ConfigurationProperties) {
     this.front50Service = front50Service
     this.dependentPipelineStarter = dependentPipelineStarter
     this.fiatStatus = fiatStatus
     this.executionPreprocessors = pipelinePreprocessors.orElse(null)
     this.contextParameterProcessor = contextParameterProcessor
+    this.front50ConfigurationProperties = front50ConfigurationProperties
   }
 
   @Override
@@ -69,10 +76,11 @@ class DependentPipelineExecutionListener implements ExecutionListener {
     }
 
     def status = convertStatus(execution)
-    def allPipelines = AuthenticatedRequest.allowAnonymous({front50Service.getAllPipelines()})
+    def pipelines =
+      AuthenticatedRequest.allowAnonymous({front50ConfigurationProperties.useTriggeredByEndpoint ? front50Service.getTriggeredPipelines(execution.pipelineConfigId,status) : front50Service.getAllPipelines()})
     if (executionPreprocessors) {
       // Resolve templated pipelines if enabled.
-      allPipelines = allPipelines.collect { pipeline ->
+      pipelines = pipelines.collect { pipeline ->
        if (V2Util.isV2Pipeline(pipeline)) {
          try {
            return V2Util.planPipeline(contextParameterProcessor, executionPreprocessors, pipeline)
@@ -90,7 +98,12 @@ class DependentPipelineExecutionListener implements ExecutionListener {
       }
     }
 
-    allPipelines.findAll { (it != null) && (!it.disabled) }
+    // if front50ConfigurationProperties.useTriggeredByEndpoint is true, front50 only
+    // returned relevant pipelines.  We still need to figure out which
+    // trigger(s) from these pipelines are relevant though, and to keep the code
+    // simple, retain the null and disabled checks even if they're not strictly
+    // necessary.
+    pipelines.findAll { (it != null) && (!it.disabled) }
       .each {
       it.triggers.each { trigger ->
         try {
@@ -126,7 +139,8 @@ class DependentPipelineExecutionListener implements ExecutionListener {
     }
   }
 
-  private static String convertStatus(PipelineExecution execution) {
+  @VisibleForTesting
+  static String convertStatus(PipelineExecution execution) {
     switch (execution.status) {
       case ExecutionStatus.CANCELED:
         return 'canceled'

@@ -29,8 +29,8 @@ import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationListener
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
@@ -50,6 +50,7 @@ import static retrofit.Endpoints.newFixedEndpoint
   "com.netflix.spinnaker.orca.front50.tasks",
   "com.netflix.spinnaker.orca.front50"
 ])
+@EnableConfigurationProperties(Front50ConfigurationProperties)
 @CompileStatic
 @ConditionalOnExpression('${front50.enabled:true}')
 class Front50Configuration {
@@ -64,9 +65,8 @@ class Front50Configuration {
   RequestInterceptor spinnakerRequestInterceptor
 
   @Bean
-  Endpoint front50Endpoint(
-    @Value('${front50.base-url}') String front50BaseUrl) {
-    newFixedEndpoint(front50BaseUrl)
+  Endpoint front50Endpoint(Front50ConfigurationProperties front50ConfigurationProperties) {
+    newFixedEndpoint(front50ConfigurationProperties.getBaseUrl())
   }
 
   @Bean
