@@ -29,6 +29,7 @@ import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import com.netflix.spinnaker.kork.web.exceptions.ExceptionMessageDecorator
 import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry
+import org.hamcrest.Matchers
 import org.springframework.beans.factory.ObjectProvider
 
 import java.time.Clock
@@ -47,6 +48,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
@@ -459,6 +461,114 @@ abstract class PipelineControllerTck extends Specification {
 
     where:
     synchronizeCacheRefresh << [ false, true ]
+  }
+
+  @Unroll
+  void "getTriggeredPipelines returns the appropriate pipeline (status: #status)"() {
+    given:
+    pipelineDAO.create(null, new Pipeline([
+      name       : "trigger enabled boolean true",
+      application: "test",
+      triggers   : [
+        [enabled: true, type: "pipeline", pipeline: "triggering-pipeline", status: [ "successful" ] ]
+      ]
+    ]))
+    pipelineDAO.create(null, new Pipeline([
+      name       : "valid enabled trigger in disabled pipeline",
+      application: "test",
+      disabled   : true,
+      triggers   : [
+        [enabled: true, type: "pipeline", pipeline: "triggering-pipeline", status: [ "successful" ] ]
+      ]
+    ]))
+    pipelineDAO.create(null, new Pipeline([
+      name       : "triggered by a different pipeline",
+      application: "test",
+      triggers   : [
+        [enabled: true, type: "pipeline", pipeline: "another-triggering-pipeline", status: [ "successful" ] ]
+      ]
+    ]))
+    pipelineDAO.create(null, new Pipeline([
+      name       : "trigger with no status",
+      application: "test",
+      triggers   : [
+        [enabled: true, type: "pipeline", pipeline: "triggering-pipeline" ]
+      ]
+    ]))
+    pipelineDAO.create(null, new Pipeline([
+      name       : "trigger with null status",
+      application: "test",
+      triggers   : [
+        [enabled: true, type: "pipeline", pipeline: "triggering-pipeline", status: null ]
+      ]
+    ]))
+    pipelineDAO.create(null, new Pipeline([
+      name       : "trigger status not a list",
+      application: "test",
+      triggers   : [
+        [enabled: true, type: "pipeline", pipeline: "triggering-pipeline", status: "not a list"]
+      ]
+    ]))
+    pipelineDAO.create(null, new Pipeline([
+      name       : "trigger status a list of non-strings",
+      application: "test",
+      triggers   : [
+        [enabled: true, type: "pipeline", pipeline: "triggering-pipeline", status: [ 5 ] ]
+      ]
+    ]))
+    pipelineDAO.create(null, new Pipeline([
+      name       : "trigger enabled not a boolean",
+      application: "test",
+      triggers   : [
+        [enabled: "foo", type: "pipeline", pipeline: "triggering-pipeline", status: [ "successful" ] ]
+      ]
+    ]))
+    pipelineDAO.create(null, new Pipeline([
+      name       : "trigger enabled string false",
+      application: "test",
+      triggers   : [
+        [enabled: "false", type: "pipeline", pipeline: "triggering-pipeline", status: [ "successful" ] ]
+      ]
+    ]))
+    pipelineDAO.create(null, new Pipeline([
+      name       : "trigger enabled string true",
+      application: "test",
+      triggers   : [
+        [enabled: "true", type: "pipeline", pipeline: "triggering-pipeline", status: [ "successful" ] ]
+      ]
+    ]))
+    pipelineDAO.create(null, new Pipeline([
+      name       : "trigger with no enabled",
+      application: "test",
+      triggers   : [
+        [type: "pipeline", pipeline: "triggering-pipeline", status: [ "successful" ] ]
+      ]
+    ]))
+    pipelineDAO.create(null, new Pipeline([
+      name       : "trigger with null enabled",
+      application: "test",
+      triggers   : [
+        [enabled: null, type: "pipeline", pipeline: "triggering-pipeline", status: [ "successful" ] ]
+      ]
+    ]))
+
+    when:
+    def response = mockMvc.perform(get("/pipelines/triggeredBy/triggering-pipeline/${status}/"))
+
+    then:
+    response.andReturn().response.status == OK
+    if (expectPipelineInResponse) {
+      response.andExpect(jsonPath('$.[*].name', Matchers.containsInAnyOrder("trigger enabled boolean true", "trigger enabled string true")))
+    } else {
+      // Expect an empty list, which is more specific than isEmpty, which might
+      // be an empty map({}) or totally empty.
+      response.andExpect(content().string("[]"))
+    }
+
+    where:
+    status       | expectPipelineInResponse
+    "failed"     | false
+    "successful" | true
   }
 
   def "should optimally refresh the cache after updates and deletes"() {

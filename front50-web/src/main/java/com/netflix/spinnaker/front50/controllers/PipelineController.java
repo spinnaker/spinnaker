@@ -42,6 +42,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,6 +90,49 @@ public class PipelineController {
           boolean restricted,
       @RequestParam(required = false, value = "refresh", defaultValue = "true") boolean refresh) {
     return pipelineDAO.all(refresh);
+  }
+
+  /**
+   * Get all pipelines triggered after a pipeline executes.
+   *
+   * @param id the id of the completed/triggering pipeline
+   * @param status the execution status of the pipeline (canceled/suspended/succeeded)
+   */
+  @PreAuthorize("#restricted ? @fiatPermissionEvaluator.storeWholePermission() : true")
+  @PostFilter("#restricted ? hasPermission(filterObject.name, 'APPLICATION', 'READ') : true")
+  @RequestMapping(value = "triggeredBy/{id:.+}/{status}", method = RequestMethod.GET)
+  public Collection<Pipeline> getTriggeredPipelines(
+      @PathVariable String id,
+      @PathVariable String status,
+      @RequestParam(required = false, value = "restricted", defaultValue = "true")
+          boolean restricted,
+      @RequestParam(required = false, value = "refresh", defaultValue = "true") boolean refresh) {
+
+    Collection<Pipeline> pipelines = pipelineDAO.all(refresh);
+
+    Predicate<Trigger> triggerPredicate =
+        trigger -> {
+          boolean retval =
+              trigger.getEnabled()
+                  && (trigger.getType().equals("pipeline"))
+                  && id.equals(trigger.getPipeline())
+                  && trigger.getStatus().contains(status);
+          log.debug(
+              "pipeline configuration id {} with status {} {} trigger {}",
+              id,
+              status,
+              retval ? "matches" : "does not match",
+              trigger.toString());
+          return retval;
+        };
+
+    // Return all pipelines with at least one trigger defined for the given id
+    // and status.
+    Predicate<Pipeline> pipelinePredicate =
+        pipeline ->
+            !Boolean.TRUE.equals(pipeline.getDisabled())
+                && pipeline.getTriggers().stream().anyMatch(triggerPredicate);
+    return pipelines.stream().filter(pipelinePredicate).collect(Collectors.toList());
   }
 
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
