@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: keel
 spec:
-  replicas: 1
+  replicas: 0  # FIXME: Crash loops due to configuration issue
   template:
     spec:
       containers:
