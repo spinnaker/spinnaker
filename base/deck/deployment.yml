@@ -26,8 +26,9 @@ spec:
             port: 9000
         resources:
           requests:
-            cpu: 100m
-            memory: 1Gi
+            memory: 500Mi
+          limits:
+            memory: 500Mi
         securityContext:
           allowPrivilegeEscalation: false
         volumeMounts:

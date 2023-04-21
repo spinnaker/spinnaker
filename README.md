@@ -19,13 +19,13 @@ Please contribute documentation updates to https://github.com/spinnaker/spinnake
 
 ## Prerequisites
 
-Before you start, you will need a Kubernetes cluster and `kubectl` configured
-to communicate with that cluster.
-
-Spinnaker will install with `cluster-admin` privileges.
+A Kubernetes cluster with approximately 16GB of available memory and `kubectl`
+configured to communicate with the cluster.
 
 Or, for testing you can create a development cluster with `Kind` using the
 commands below.
+
+NOTE: Spinnaker will install with `cluster-admin` privileges.
 
 ## Quick start
 
