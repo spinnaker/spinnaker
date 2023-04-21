@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
 - deployment.yml
 - service.yml
+- serviceaccount.yml
 commonLabels:
   app.kubernetes.io/name: clouddriver
 configMapGenerator:

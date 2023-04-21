@@ -33,6 +33,7 @@ spec:
         - name: config
           mountPath: "/opt/spinnaker/config/"
           readOnly: true
+      serviceAccountName: gate
       securityContext:
         runAsUser: 10111
         runAsGroup: 10111

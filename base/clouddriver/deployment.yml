@@ -32,6 +32,7 @@ spec:
         - name: config
           mountPath: "/opt/spinnaker/config/"
           readOnly: true
+      serviceAccountName: clouddriver
       securityContext:
         runAsUser: 10111
         runAsGroup: 10111
