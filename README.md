@@ -1,21 +1,7 @@
 # Spinnaker Kustomize
 
-Kustomize based installation for Spinnaker.
-
-## Goals:
-
-1. Optimize for deployment of a basic Spinnaker installation with one command.
-1. No Halyard, kleat or other tools for configuration. Use the services default
-   configuration (eg: `clouddriver.yml`) and leverage Spring Profile's for
-   customization (eg: `clouddriver-local.yml`).
-1. Minimize duplication and maintainence. Only minimal configuration and
-   patterns are defined in this repository. See
-   [spinnaker.io](https://spinnaker.io) Docs and service source code for all
-   available options.
-
-Please fork this repository and develop any customizations locally.
-
-Please contribute documentation updates to https://github.com/spinnaker/spinnaker.io
+Kustomize based installation for Spinnaker optimized for getting started and
+development.
 
 ## Prerequisites
 
@@ -25,7 +11,9 @@ configured to communicate with the cluster.
 Or, for testing you can create a development cluster with `Kind` using the
 commands below.
 
-NOTE: Spinnaker will install with `cluster-admin` privileges.
+WARNING: The default configuration grants Spinnaker `cluster-admin` privileges
+and does not enable any authentication or authorization to prevent malicious
+use. Please only install into a private development cluster.
 
 ## Quick start
 
@@ -68,9 +56,9 @@ configuration will support. See [spinnaker.io](https://spinnaker.io) for
 configuration options.
 
 1. Fork this repository
-1. (Optional) modify `./kustomization.yml`
-1. (Optional) add configuration to `./overlays/config/files/`
-1. (Optional) add components and overlays
+1. (Optional) in fork modify `./kustomization.yml`
+1. (Optional) in fork add configuration to `./overlays/config/files/`
+1. (Optional) inf fork add `./components` and `./overlays`
 
 ## Configuration
 
@@ -156,6 +144,17 @@ It is possible to replace strings so that could be suitable for some use cases.
 
 ## Contributing
 
-Pull requests in line with the stated [Goals](#goals) are most welcome.
+Pull requests in line with the below goals are most welcome.
+
+Goals:
+
+1. Optimize for deployment of a basic Spinnaker installation with one command.
+1. No Halyard, kleat or other tools for configuration. Use the services default
+   configuration (eg: `clouddriver.yml`) and leverage Spring Profile's for
+   customization (eg: `clouddriver-local.yml`).
+1. Minimize duplication and maintainence. Only minimal configuration and
+   patterns are defined in this repository. See
+   [spinnaker.io](https://spinnaker.io) Docs and service source code for all
+   available options.
 
 Please contribute documentation updates to https://github.com/spinnaker/spinnaker.io

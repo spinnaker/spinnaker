@@ -14,7 +14,7 @@ services:
     enabled: true
   fiat:
     baseUrl: http://fiat.spinnaker:7003
-    enabled: true
+    enabled: false  # FIXME: Enable basic auth by default
   front50:
     baseUrl: http://front50.spinnaker:8080
     enabled: true
