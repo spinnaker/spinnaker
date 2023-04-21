@@ -23,6 +23,7 @@ import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.model.Trigger
+import com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers.BaseTriggerEventHandler
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService
 import com.netflix.spinnaker.echo.services.Front50Service
 import com.netflix.spinnaker.echo.test.RetrofitStubs
@@ -37,6 +38,18 @@ class PipelineCacheSpec extends Specification implements RetrofitStubs {
   def orca = Mock(OrcaService)
   def registry = new NoopRegistry()
   def objectMapper = EchoObjectMapper.getInstance()
+  def pipelineCacheConfigurationProperties = new PipelineCacheConfigurationProperties()
+
+  /**
+   * To verify that PipelineCache passes the expected supportedTriggers
+   * to front50's getPipelines endpoint.
+   */
+  def supportedTrigger = "arbitrary"
+  def baseTriggerEventHandler = Mock(BaseTriggerEventHandler) {
+    supportedTriggerTypes() >> List.of(supportedTrigger)
+  }
+  def supportedTriggers = "${supportedTrigger},cron"
+  List<BaseTriggerEventHandler> triggerHandlers = List.of(baseTriggerEventHandler)
 
   @Shared
   def interval = 30
@@ -44,11 +57,8 @@ class PipelineCacheSpec extends Specification implements RetrofitStubs {
   @Shared
   def sleepMs = 100
 
-  @Shared
-  def parallelism = 8
-
   @Subject
-  def pipelineCache = new PipelineCache(Mock(ScheduledExecutorService), interval, sleepMs, parallelism, objectMapper, front50, orca, registry)
+  def pipelineCache = new PipelineCache(Mock(ScheduledExecutorService), interval, sleepMs, pipelineCacheConfigurationProperties, objectMapper, front50, orca, registry, triggerHandlers)
 
   def "keeps polling if Front50 returns an error"() {
     given:
@@ -83,6 +93,64 @@ class PipelineCacheSpec extends Specification implements RetrofitStubs {
 
     then: 'we return the updated value'
     pipelineCache.getPipelines() == [pipeline]
+  }
+
+  def "filters front50 pipelines when configured to do so"() {
+    given:
+    pipelineCacheConfigurationProperties.filterFront50Pipelines = true
+
+    when:
+    pipelineCache.start()
+    pipelineCache.pollPipelineConfigs()
+
+    then:
+    1 * front50.getPipelines(true, true, supportedTriggers) >> [] // arbitrary return value
+  }
+
+  def "getPipelineById calls front50's getPipeline endpoint"() {
+    given:
+    def pipelineId = "my-pipeline-id"
+    def application = "application"
+    def pipelineName = "my-pipeline-name"
+    def pipelineMap = [
+      application: application,
+      name       : pipelineName,
+      id         : pipelineId
+    ]
+    def pipeline = Pipeline.builder().application(application).name(pipelineName).id(pipelineId).build()
+
+    when:
+    Optional<Pipeline> result = pipelineCache.getPipelineById(pipelineId)
+
+    then:
+    1 * front50.getPipeline(pipelineId) >> pipelineMap
+    0 * front50._
+
+    assert result.isPresent()
+    result.get() == pipeline
+  }
+
+  def "getPipelineByName calls front50's getPipelineByName endpoint"() {
+    given:
+    def pipelineId = "my-pipeline-id"
+    def application = "application"
+    def pipelineName = "my-pipeline-name"
+    def pipelineMap = [
+      application: application,
+      name       : pipelineName,
+      id         : pipelineId
+    ]
+    def pipeline = Pipeline.builder().application(application).name(pipelineName).id(pipelineId).build()
+
+    when:
+    Optional<Pipeline> result = pipelineCache.getPipelineByName(application, pipelineName)
+
+    then:
+    1 * front50.getPipelineByName(application, pipelineName) >> pipelineMap
+    0 * front50._
+
+    assert result.isPresent()
+    result.get() == pipeline
   }
 
   def "we can serialize pipelines with triggers that have a parent"() {
@@ -164,4 +232,3 @@ class PipelineCacheSpec extends Specification implements RetrofitStubs {
     triggers.isEmpty()
   }
 }
-

@@ -193,6 +193,214 @@ class ManualEventHandlerSpec extends Specification implements RetrofitStubs {
     and: 'the materialized pipeline has the trigger field populated from the manual event'
     materializedPipeline.get().trigger.user == user
   }
+
+  def "doesn't retrieve the pipeline by id from front50 if it's not present in the pipeline cache, unless configured to do so"() {
+    given:
+    String application = "application"
+    String pipelineName = "my-pipeline-name"
+    String pipelineId = "my-pipeline-id"
+
+    Pipeline inputPipeline = Pipeline.builder()
+      .application(application)
+      .name(pipelineName)
+      .id(pipelineId)
+      .build()
+
+    def manualEvent = new ManualEvent()
+    manualEvent.content = new ManualEvent.Content()
+    manualEvent.content.pipelineNameOrId = inputPipeline.id
+    manualEvent.content.application = inputPipeline.application
+    manualEvent.content.trigger = Trigger.builder().build()
+
+    when:
+    List<Pipeline> pipelines = eventHandler.getMatchingPipelines(manualEvent, pipelineCache)
+
+    then:
+    1 * pipelineCache.getPipelinesSync() >> Collections.emptyList()
+    1 * pipelineCache.isFilterFront50Pipelines() >> false
+    0 * pipelineCache._
+
+    pipelines.size() == 0
+  }
+
+  def "retrieves the pipeline by name from front50 if it's not present in the pipeline cache, when configured to do so"() {
+    given:
+    String application = "application"
+    String pipelineName = "my-pipeline-name"
+    String pipelineId = "my-pipeline-id"
+
+    Pipeline inputPipeline = Pipeline.builder()
+      .application(application)
+      .name(pipelineName)
+      .id(pipelineId)
+      .build()
+
+    def manualEvent = new ManualEvent()
+    manualEvent.content = new ManualEvent.Content()
+    manualEvent.content.pipelineNameOrId = inputPipeline.name
+    manualEvent.content.application = inputPipeline.application
+    manualEvent.content.trigger = Trigger.builder().build()
+
+    when:
+    List<Pipeline> pipelines = eventHandler.getMatchingPipelines(manualEvent, pipelineCache)
+
+    then:
+    1 * pipelineCache.getPipelinesSync() >> Collections.emptyList()
+    1 * pipelineCache.isFilterFront50Pipelines() >> true
+    1 * pipelineCache.getPipelineByName(application, pipelineName) >> Optional.of(inputPipeline)
+    0 * pipelineCache._
+
+    pipelines.size() == 1
+
+    // pipelines.first() != inputPipeline because ManualEventHandler calls
+    // buildTrigger which adds a trigger.  It's enough to compare id,
+    // application, and name.  Leave examining the trigger for another test.
+    pipelines.first().id == pipelineId
+    pipelines.first().application == application
+    pipelines.first().name == pipelineName
+  }
+
+  def "retrieves the pipeline by id from front50 if it's not present in the pipeline cache, nor available by name, when configured to do so"() {
+    given:
+    String application = "application"
+    String pipelineName = "my-pipeline-name"
+    String pipelineId = "my-pipeline-id"
+
+    Pipeline inputPipeline = Pipeline.builder()
+      .application(application)
+      .name(pipelineName)
+      .id(pipelineId)
+      .build()
+
+    def manualEvent = new ManualEvent()
+    manualEvent.content = new ManualEvent.Content()
+    manualEvent.content.pipelineNameOrId = inputPipeline.id
+    manualEvent.content.application = inputPipeline.application
+    manualEvent.content.trigger = Trigger.builder().build()
+
+    when:
+    List<Pipeline> pipelines = eventHandler.getMatchingPipelines(manualEvent, pipelineCache)
+
+    then:
+    1 * pipelineCache.getPipelinesSync() >> Collections.emptyList()
+    1 * pipelineCache.isFilterFront50Pipelines() >> true
+    1 * pipelineCache.getPipelineByName(application, pipelineId) >> Optional.empty()
+    1 * pipelineCache.getPipelineById(pipelineId) >> Optional.of(inputPipeline)
+    0 * pipelineCache._
+
+    pipelines.size() == 1
+    // pipelines.first() != inputPipeline because ManualEventHandler calls
+    // buildTrigger which adds a trigger.  It's enough to compare id,
+    // application, and name.  Leave examining the trigger for another test.
+    pipelines.first().id == pipelineId
+    pipelines.first().application == application
+    pipelines.first().name == pipelineName
+  }
+
+  def "retrieves the pipeline from front50 if it's not present in the pipeline cache, and ignores it if disabled, when configured to do so"() {
+    given:
+    String application = "application"
+    String pipelineName = "my-pipeline-name"
+    String pipelineId = "my-pipeline-id"
+
+    Pipeline inputPipeline = Pipeline.builder()
+      .application(application)
+      .name(pipelineName)
+      .id(pipelineId)
+      .disabled(true)
+      .build()
+
+    def manualEvent = new ManualEvent()
+    manualEvent.content = new ManualEvent.Content()
+    manualEvent.content.pipelineNameOrId = inputPipeline.name
+    manualEvent.content.application = inputPipeline.application
+    manualEvent.content.trigger = Trigger.builder().build()
+
+    when:
+    List<Pipeline> pipelines = eventHandler.getMatchingPipelines(manualEvent, pipelineCache)
+
+    then:
+    1 * pipelineCache.getPipelinesSync() >> Collections.emptyList()
+    1 * pipelineCache.isFilterFront50Pipelines() >> true
+    1 * pipelineCache.getPipelineByName(application, pipelineName) >> Optional.of(inputPipeline)
+    0 * pipelineCache._
+
+    pipelines.size() == 0
+  }
+
+  def "retrieves the pipeline from front50 if it's not present in the pipeline cache, and rejects it if it doesn't match the trigger, when configured to do so"() {
+    given:
+    String application = "application"
+    String pipelineName = "my-pipeline-name"
+    String pipelineId = "my-pipeline-id"
+
+    Pipeline inputPipeline = Pipeline.builder()
+      .application(application)
+      .name(pipelineName)
+      .id(pipelineId)
+      .disabled(true)
+      .build()
+
+    def manualEvent = new ManualEvent()
+    manualEvent.content = new ManualEvent.Content()
+    manualEvent.content.pipelineNameOrId = inputPipeline.name
+    manualEvent.content.application = inputPipeline.application
+    manualEvent.content.trigger = Trigger.builder().build()
+
+    when:
+    List<Pipeline> pipelines = eventHandler.getMatchingPipelines(manualEvent, pipelineCache)
+
+    then:
+    1 * pipelineCache.getPipelinesSync() >> Collections.emptyList()
+    1 * pipelineCache.isFilterFront50Pipelines() >> true
+
+    // If either the name or id match, it's considered matching, so provide both
+    // a different name and different id from front50.
+    1 * pipelineCache.getPipelineByName(application, pipelineName) >> Optional.of(Pipeline.builder().application(application).name("some-other-name").id("some-other-id").build())
+    0 * pipelineCache._
+
+    pipelines.size() == 0
+  }
+
+  def "handles exceptions retrieving the pipeline from front50 if it's not present in the pipeline cache, when configured to do so"() {
+    given:
+    String application = "application"
+    String pipelineName = "my-pipeline-name"
+    String pipelineId = "my-pipeline-id"
+
+    Pipeline inputPipeline = Pipeline.builder()
+      .application(application)
+      .name(pipelineName)
+      .id(pipelineId)
+      .disabled(true)
+      .build()
+
+    RuntimeException arbitraryException = new RuntimeException("arbitrary message")
+
+    def manualEvent = new ManualEvent()
+    manualEvent.content = new ManualEvent.Content()
+    // arbitary choice whether to use id or name
+    manualEvent.content.pipelineNameOrId = inputPipeline.name
+    manualEvent.content.application = inputPipeline.application
+    manualEvent.content.trigger = Trigger.builder().build()
+
+    when:
+    List<Pipeline> pipelines = eventHandler.getMatchingPipelines(manualEvent, pipelineCache)
+
+    then:
+    1 * pipelineCache.getPipelinesSync() >> Collections.emptyList()
+    1 * pipelineCache.isFilterFront50Pipelines() >> true
+    1 * pipelineCache.getPipelineByName(application, pipelineName) >> { throw arbitraryException }
+    0 * pipelineCache._
+
+    pipelines.size() == 1
+    pipelines.first().application == application
+
+    // ManualEventHandler doesn't know whether the trigger specifies a name or
+    // id.  Because name is a required field in pipelines, it uses it as the
+    // name.  It happens to match because that's what we specified in the
+    // trigger.
+    pipelines.first().name == pipelineName
+    pipelines.first().errorMessage == arbitraryException.toString()
+  }
 }
-
-

@@ -23,6 +23,8 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.patterns.PolledMeter;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.model.Trigger;
+import com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers.BaseTriggerEventHandler;
+import com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers.TriggerEventHandler;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService;
 import com.netflix.spinnaker.echo.services.Front50Service;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
@@ -37,6 +39,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,12 +51,19 @@ import org.springframework.stereotype.Component;
 public class PipelineCache implements MonitoredPoller {
   private final int pollingIntervalMs;
   private final int pollingSleepMs;
-  private final int planParallelism;
   private final Front50Service front50;
   private final OrcaService orca;
   private final Registry registry;
   private final ScheduledExecutorService executorService;
   private final ObjectMapper objectMapper;
+  private final PipelineCacheConfigurationProperties pipelineCacheConfigurationProperties;
+
+  /**
+   * If enabled by a feature flag, query front50 for (enabled) pipelines with only these (enabled)
+   * trigger types. A comma-separated string since that's what front50 expects. Getter only for
+   * testing.
+   */
+  @Getter private final String supportedTriggerTypes;
 
   private volatile Boolean running;
   private volatile Instant lastPollTimestamp;
@@ -66,22 +76,22 @@ public class PipelineCache implements MonitoredPoller {
   public PipelineCache(
       @Value("${front50.polling-interval-ms:30000}") int pollingIntervalMs,
       @Value("${front50.polling-sleep-ms:100}") int pollingSleepMs,
-      @Value(
-              "${pipelineCache.parallelism:#{T(java.lang.Runtime).getRuntime().availableProcessors()}}")
-          int planParallelism,
+      @NonNull PipelineCacheConfigurationProperties pipelineCacheConfigurationProperties,
       ObjectMapper objectMapper,
       @NonNull Front50Service front50,
       @NonNull OrcaService orca,
-      @NonNull Registry registry) {
+      @NonNull Registry registry,
+      @NonNull List<BaseTriggerEventHandler> triggerHandlers) {
     this(
         Executors.newSingleThreadScheduledExecutor(),
         pollingIntervalMs,
         pollingSleepMs,
-        planParallelism,
+        pipelineCacheConfigurationProperties,
         objectMapper,
         front50,
         orca,
-        registry);
+        registry,
+        triggerHandlers);
   }
 
   // VisibleForTesting
@@ -89,22 +99,45 @@ public class PipelineCache implements MonitoredPoller {
       ScheduledExecutorService executorService,
       int pollingIntervalMs,
       int pollingSleepMs,
-      int planParallelism,
+      @NonNull PipelineCacheConfigurationProperties pipelineCacheConfigurationProperties,
       ObjectMapper objectMapper,
       @NonNull Front50Service front50,
       @NonNull OrcaService orca,
-      @NonNull Registry registry) {
+      @NonNull Registry registry,
+      @NonNull List<BaseTriggerEventHandler> triggerHandlers) {
     this.objectMapper = objectMapper;
     this.executorService = executorService;
     this.pollingIntervalMs = pollingIntervalMs;
     this.pollingSleepMs = pollingSleepMs;
-    this.planParallelism = planParallelism;
+    this.pipelineCacheConfigurationProperties = pipelineCacheConfigurationProperties;
     this.front50 = front50;
     this.orca = orca;
     this.registry = registry;
     this.running = false;
     this.pipelines = null;
     this.triggersByType = null;
+
+    /**
+     * triggerHandlers are the main consumers of the pipelines here. Only query front50 for
+     * (enabled) pipelines with (enabled) triggers that these handlers support, as well as cron
+     * triggers, which PipelineConfigsPollingJob and MissedPipelineTriggerCompensationJob also
+     * consume. This handles the majority of cases, but there's one missing -- manual execution of
+     * pipelines. There's additional logic in ManualEventHandler to retrieve the pipeline in
+     * question for front50 when it's not present here in the cache.
+     */
+    Stream<String> triggerTypesStream =
+        triggerHandlers.stream()
+            .map(TriggerEventHandler::supportedTriggerTypes)
+            .flatMap(List<String>::stream);
+
+    // Sort to provide a predictable order which facilitates testing.
+    this.supportedTriggerTypes =
+        Stream.concat(triggerTypesStream, Stream.of(Trigger.Type.CRON.toString()))
+            .sorted()
+            .distinct()
+            .collect(Collectors.joining(","));
+
+    log.info("supportedTriggerTypes: {}", supportedTriggerTypes);
   }
 
   @PreDestroy
@@ -131,6 +164,15 @@ public class PipelineCache implements MonitoredPoller {
     PolledMeter.using(registry)
         .withName("front50.lastPoll")
         .monitorValue(this, PipelineCache::getDurationSeconds);
+  }
+
+  /**
+   * Accessor for whether we're filtering front50 pipelines or not. Yes, this information is
+   * available via PipelineCacheConfigurationProperties, but it seems cleaner to provide it directly
+   * this way, so users of PipelineCache don't need to care how we're configured. `
+   */
+  public boolean isFilterFront50Pipelines() {
+    return pipelineCacheConfigurationProperties.isFilterFront50Pipelines();
   }
 
   private Double getDurationSeconds() {
@@ -188,13 +230,21 @@ public class PipelineCache implements MonitoredPoller {
 
   private List<Map<String, Object>> fetchRawPipelines() {
     List<Map<String, Object>> rawPipelines =
-        AuthenticatedRequest.allowAnonymous(() -> front50.getPipelines());
+        AuthenticatedRequest.allowAnonymous(
+            () -> {
+              if (pipelineCacheConfigurationProperties.isFilterFront50Pipelines()) {
+                return front50.getPipelines(
+                    true /* enabledPipelines */, true /* enabledTriggers */, supportedTriggerTypes);
+              }
+              return front50.getPipelines();
+            });
     return (rawPipelines == null) ? Collections.emptyList() : rawPipelines;
   }
 
   private List<Pipeline> fetchHydratedPipelines() {
     List<Map<String, Object>> rawPipelines = fetchRawPipelines();
-    ForkJoinPool forkJoinPool = new ForkJoinPool(this.planParallelism);
+    ForkJoinPool forkJoinPool =
+        new ForkJoinPool(this.pipelineCacheConfigurationProperties.getParallelism());
     try {
       return forkJoinPool
           .submit(
@@ -232,13 +282,15 @@ public class PipelineCache implements MonitoredPoller {
         .collect(Collectors.groupingBy(Trigger::getType));
   }
 
-  // looks up the latest version in front50 of a (potentially stale) pipeline config from the cache
-  // if anything fails during the refresh, we fall back to returning the cached version
+  /**
+   * Look up the latest version in front50 of a (potentially stale) pipeline config from the cache
+   * if anything fails during the refresh, we fall back to returning the cached version
+   */
   public Pipeline refresh(Pipeline cached) {
     try {
       Map<String, Object> pipeline = front50.getPipeline(cached.getId());
       Optional<Pipeline> processed = process(pipeline);
-      if (!processed.isPresent()) {
+      if (processed.isEmpty()) {
         log.warn(
             "Failed to process raw pipeline, falling back to cached={}\n  latestVersion={}",
             cached,
@@ -251,6 +303,52 @@ public class PipelineCache implements MonitoredPoller {
     } catch (Exception e) {
       log.error("Exception during pipeline refresh, falling back to cached={}", cached, e);
       return cached;
+    }
+  }
+
+  /**
+   * Look up the latest version in front50 of a pipeline id. If anything fails, return an empty
+   * Optional.
+   */
+  public Optional<Pipeline> getPipelineById(String id) {
+    try {
+      Map<String, Object> pipeline = front50.getPipeline(id);
+      Optional<Pipeline> processed = process(pipeline);
+      if (processed.isEmpty()) {
+        log.warn("Failed to process raw pipeline id {}, latestVersion={}", id, pipeline);
+        return Optional.empty();
+      }
+
+      // at this point, we are not updating the cache but just providing a fresh view
+      return processed;
+    } catch (Exception e) {
+      log.error("Exception during query of pipeline id {}", id, e);
+      return Optional.empty();
+    }
+  }
+
+  /**
+   * Look up the latest version in front50 of a pipeline application + name. If anything fails,
+   * return an empty Optional.
+   */
+  public Optional<Pipeline> getPipelineByName(String application, String name) {
+    try {
+      Map<String, Object> pipeline = front50.getPipelineByName(application, name);
+      Optional<Pipeline> processed = process(pipeline);
+      if (processed.isEmpty()) {
+        log.warn(
+            "Failed to process raw pipeline application {}, name {}, latestVersion={}",
+            application,
+            name,
+            pipeline);
+        return Optional.empty();
+      }
+
+      // at this point, we are not updating the cache but just providing a fresh view
+      return processed;
+    } catch (Exception e) {
+      log.error("Exception during query of pipeline application {} name {}", application, name, e);
+      return Optional.empty();
     }
   }
 

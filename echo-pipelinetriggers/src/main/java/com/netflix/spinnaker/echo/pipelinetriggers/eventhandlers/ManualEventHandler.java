@@ -109,11 +109,81 @@ public class ManualEventHandler implements TriggerEventHandler<ManualEvent> {
       return Collections.emptyList();
     }
 
-    return pipelineCache.getPipelinesSync().stream()
-        .map(p -> withMatchingTrigger(event, p))
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .collect(Collectors.toList());
+    List<Pipeline> retval =
+        pipelineCache.getPipelinesSync().stream()
+            .map(p -> withMatchingTrigger(event, p))
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .collect(Collectors.toList());
+
+    // If there's no pipeline in the cache with a matching trigger, query for
+    // it.  This is expected if PipelineCache is only caching (enabled)
+    // pipelines with (enabled) triggers of specific types.
+    if (retval.isEmpty() && pipelineCache.isFilterFront50Pipelines()) {
+      Optional<Pipeline> pipeline = getPipelineForEvent(event, pipelineCache);
+      return pipeline.map(p -> List.of(p)).orElse(List.of());
+    }
+
+    return retval;
+  }
+
+  /**
+   * Query front50 (via the pipeline cache) for a pipeline by id, and if necessary name,
+   * corresponding to a manual trigger event.
+   */
+  private Optional<Pipeline> getPipelineForEvent(ManualEvent event, PipelineCache pipelineCache) {
+    Content content = event.getContent();
+    String application = content.getApplication();
+    String pipelineNameOrId = content.getPipelineNameOrId();
+    try {
+      // Manual execution in deck specifies the pipeline name, so try that first.  If that doesn't
+      // work, query by id.
+      Optional<Pipeline> pipeline =
+          pipelineCache
+              .getPipelineByName(application, pipelineNameOrId)
+              .or(() -> pipelineCache.getPipelineById(pipelineNameOrId));
+
+      if (pipeline.isEmpty()) {
+        // no luck, we queried, but still can't find the pipeline
+        return Optional.empty();
+      }
+
+      Pipeline actualPipeline = pipeline.get();
+
+      // It's a bit of belt-and-suspenders, but since we have logic that
+      // verifies that a pipeline from the cache matches a trigger (see
+      // withMatchingTrigger call pipelineMatches), let's verify that this
+      // pipeline matches the trigger as well.  This also handles the disabled
+      // check.
+      if (!pipelineMatches(application, pipelineNameOrId, actualPipeline)) {
+        log.debug(
+            "pipeline from front50 doesn't match trigger.  trigger: {}, pipeline id {}, pipeline application, pipeline name",
+            event,
+            actualPipeline.getId(),
+            actualPipeline.getApplication(),
+            actualPipeline.getName());
+        return Optional.empty();
+      }
+
+      return Optional.of(buildTrigger(actualPipeline, content.getTrigger()));
+    } catch (Exception e) {
+      // This isn't my favorite way of doing error handling, but it's what
+      // buildTrigger does, and what TriggerMonitor.triggerMatchingPipelines
+      // expects.
+      log.error(
+          String.format(
+              "exception querying for pipeline in application %s with nameOrId %s",
+              application, pipelineNameOrId),
+          e);
+      // We don't know whether we have a pipeline name or id...but name is a
+      // required field in a pipeline, so use it there.
+      return Optional.of(
+          Pipeline.builder()
+              .application(application)
+              .name(pipelineNameOrId)
+              .errorMessage(e.toString())
+              .build());
+    }
   }
 
   private boolean pipelineMatches(String application, String nameOrId, Pipeline pipeline) {

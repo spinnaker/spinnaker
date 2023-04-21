@@ -6,6 +6,7 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.DefaultServiceEndpoint;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
+import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCacheConfigurationProperties;
 import com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers.PubsubEventHandler;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService;
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties;
@@ -32,6 +33,7 @@ import retrofit.converter.JacksonConverter;
 @ComponentScan(value = "com.netflix.spinnaker.echo.pipelinetriggers")
 @EnableConfigurationProperties({
   FiatClientConfigurationProperties.class,
+  PipelineCacheConfigurationProperties.class,
   QuietPeriodIndicatorConfigurationProperties.class
 })
 public class PipelineTriggerConfiguration {
