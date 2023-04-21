@@ -10,4 +10,6 @@ public interface PipelineDAO extends ItemDAO<Pipeline> {
   Collection<Pipeline> getPipelinesByApplication(String application);
 
   Collection<Pipeline> getPipelinesByApplication(String application, boolean refresh);
+
+  Pipeline getPipelineByName(String application, String pipelineName, boolean refresh);
 }

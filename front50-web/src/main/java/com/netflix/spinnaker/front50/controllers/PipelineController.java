@@ -37,6 +37,7 @@ import com.netflix.spinnaker.front50.model.pipeline.V2TemplateConfiguration;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import com.netflix.spinnaker.kork.web.exceptions.ValidationException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -88,8 +89,47 @@ public class PipelineController {
   public Collection<Pipeline> list(
       @RequestParam(required = false, value = "restricted", defaultValue = "true")
           boolean restricted,
-      @RequestParam(required = false, value = "refresh", defaultValue = "true") boolean refresh) {
-    return pipelineDAO.all(refresh);
+      @RequestParam(required = false, value = "refresh", defaultValue = "true") boolean refresh,
+      @RequestParam(required = false, value = "enabledPipelines") Boolean enabledPipelines,
+      @RequestParam(required = false, value = "enabledTriggers") Boolean enabledTriggers,
+      @RequestParam(required = false, value = "triggerTypes") String triggerTypes) {
+    Collection<Pipeline> pipelines = pipelineDAO.all(refresh);
+
+    if ((enabledPipelines == null) && (enabledTriggers == null) && (triggerTypes == null)) {
+      // no filtering, return all pipelines
+      return pipelines;
+    }
+
+    List<String> triggerTypeList =
+        (triggerTypes != null) ? Arrays.asList(triggerTypes.split(",")) : Collections.emptyList();
+
+    Predicate<Trigger> triggerPredicate =
+        trigger -> {
+          // trigger.getEnabled() may be null, so check that before comparing.  If
+          // trigger.getEnabled() is null, the trigger is disabled.
+          boolean triggerEnabled =
+              (trigger.getEnabled() != null) ? trigger.getEnabled().booleanValue() : false;
+          return ((enabledTriggers == null) || (triggerEnabled == enabledTriggers))
+              && ((triggerTypes == null) || triggerTypeList.contains(trigger.getType()));
+        };
+
+    Predicate<Pipeline> pipelinePredicate =
+        pipeline -> {
+          // pipeline.getDisabled may be null, so check that before comparing.  If
+          // pipeline.getDisabled is null, the pipeline is enabled.
+          boolean pipelineEnabled =
+              (pipeline.getDisabled() == null) || (pipeline.getDisabled() == false);
+
+          return ((enabledPipelines == null) || (pipelineEnabled == enabledPipelines))
+              && pipeline.getTriggers().stream().anyMatch(triggerPredicate);
+        };
+
+    List<Pipeline> retval =
+        pipelines.stream().filter(pipelinePredicate).collect(Collectors.toList());
+
+    log.debug("returning {} of {} total pipeline(s)", retval.size(), pipelines.size());
+
+    return retval;
   }
 
   /**
@@ -183,6 +223,16 @@ public class PipelineController {
   @RequestMapping(value = "{id:.+}/get", method = RequestMethod.GET)
   public Pipeline get(@PathVariable String id) {
     return pipelineDAO.findById(id);
+  }
+
+  @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
+  @PostAuthorize("hasPermission(returnObject.application, 'APPLICATION', 'READ')")
+  @RequestMapping(value = "{application:.+}/name/{name:.+}", method = RequestMethod.GET)
+  public Pipeline getByApplicationAndName(
+      @PathVariable String application,
+      @PathVariable String name,
+      @RequestParam(required = false, value = "refresh", defaultValue = "true") boolean refresh) {
+    return pipelineDAO.getPipelineByName(application, name, refresh);
   }
 
   @PreAuthorize(

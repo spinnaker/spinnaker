@@ -81,6 +81,24 @@ public class DefaultPipelineDAO extends StorageServiceSupport<Pipeline> implemen
   }
 
   @Override
+  public Pipeline getPipelineByName(String application, String pipelineName, boolean refresh) {
+    return all(refresh).stream()
+        .filter(
+            pipeline ->
+                pipeline.getApplication() != null
+                    && pipeline.getApplication().equalsIgnoreCase(application)
+                    && pipeline.getName() != null
+                    && pipeline.getName().equalsIgnoreCase(pipelineName))
+        .findFirst()
+        .orElseThrow(
+            () ->
+                new NotFoundException(
+                    String.format(
+                        "No pipeline found in cache with application %s, name %s",
+                        application, pipelineName)));
+  }
+
+  @Override
   public Pipeline create(String id, Pipeline item) {
     if (id == null) {
       id = UUID.randomUUID().toString();

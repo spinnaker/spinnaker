@@ -56,6 +56,22 @@ class RedisPipelineDAOSpec extends PipelineDAOSpec<RedisPipelineDAO> {
     foundPipelineId == newPipeline.id
 
     when:
+    def foundPipelineByName = redisPipelineDAO.getPipelineByName("app1", "pipeline1", true)
+
+    then:
+    foundPipelineByName.id == pipeline.id
+    foundPipelineByName.createTs == pipeline.createTs
+    foundPipelineByName.email == pipeline.email
+    foundPipelineByName.lastModified == pipeline.lastModified
+    foundPipelineByName.updateTs == pipeline.updateTs
+
+    when:
+    redisPipelineDAO.getPipelineByName("app1", "does-not-exist", true)
+
+    then:
+    thrown NotFoundException
+
+    when:
     def findPipelines = redisPipelineDAO.all()
 
     then:

@@ -45,6 +45,18 @@ class RedisPipelineDAO implements PipelineDAO {
   }
 
   @Override
+  public Pipeline getPipelineByName(String application, String pipelineName, boolean refresh) {
+    def retval = all(refresh).find {
+      it.application == application && it.name == pipelineName
+    }
+    if (!retval) {
+      throw new NotFoundException("No pipeline found with application '${application}', name '${pipelineName}'");
+    }
+
+    retval
+  }
+
+  @Override
   Pipeline findById(String id) throws NotFoundException {
     def results = redisTemplate.opsForHash().get(BOOK_KEEPING_KEY, id)
     if (!results) {

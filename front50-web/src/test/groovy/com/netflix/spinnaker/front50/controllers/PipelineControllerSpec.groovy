@@ -254,6 +254,14 @@ class PipelineControllerSpec extends Specification {
     }
 
     @Override
+    Pipeline getPipelineByName(String application, String pipelineName, boolean refresh) {
+      map.values().stream()
+        .filter({ p -> p.getApplication().equalsIgnoreCase(application) })
+        .filter({ p -> p.getName().equalsIgnoreCase(pipelineName) })
+        .collect(Collectors.toList())
+    }
+
+    @Override
     Pipeline findById(String id) throws NotFoundException {
       def get = map.get(id)
       if (get == null) {
