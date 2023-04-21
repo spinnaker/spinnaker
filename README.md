@@ -22,6 +22,8 @@ Please contribute documentation updates to https://github.com/spinnaker/spinnake
 Before you start, you will need a Kubernetes cluster and `kubectl` configured
 to communicate with that cluster.
 
+Spinnaker will install with `cluster-admin` privileges.
+
 Or, for testing you can create a development cluster with `Kind` using the
 commands below.
 
