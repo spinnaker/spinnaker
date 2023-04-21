@@ -1,7 +1,7 @@
 # Spinnaker Kustomize
 
-Kustomize based installation for Spinnaker optimized for getting started and
-development.
+Minimal Spinnaker installation optimized for new users and as a base for
+extension.
 
 ## Prerequisites
 
