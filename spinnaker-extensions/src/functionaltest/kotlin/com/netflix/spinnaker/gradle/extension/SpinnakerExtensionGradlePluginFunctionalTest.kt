@@ -18,6 +18,9 @@ package com.netflix.spinnaker.gradle.extension
 
 import java.io.File
 import org.gradle.testkit.runner.GradleRunner
+import org.gradle.testkit.runner.BuildResult
+import org.gradle.testkit.runner.BuildTask
+import org.gradle.testkit.runner.TaskOutcome
 import org.hamcrest.CoreMatchers.containsString
 import org.junit.Assert.assertThat
 import kotlin.test.BeforeTest
@@ -36,6 +39,23 @@ class SpinnakerExtensionGradlePluginFunctionalTest {
 
   /** The version of orca in the above spinnaker version */
   val orcaVersion = "8.18.4"
+
+  /**
+   * Assert that the specified tasks happened (or were skipped) in the order they appear
+   * @param buildResult the build result
+   * @param taskPaths paths of tasks to
+   */
+  fun assertTaskOrder(buildResult: BuildResult, vararg taskPath: String ) {
+    val taskOrder = buildResult.tasks.mapIndexed { index: Int, buildTask: BuildTask? -> buildTask?.path  }
+    assert(taskPath.size > 1)
+    var i = 0
+    while(i < taskPath.size) {
+      val firstTaskPath = taskPath[i]
+      val secondTaskPath = taskPath[++i]
+      i++
+      assert(taskOrder.indexOf(firstTaskPath) < taskOrder.indexOf(secondTaskPath))
+    }
+  }
 
   @BeforeTest
   fun cleanup() {
@@ -69,6 +89,66 @@ class SpinnakerExtensionGradlePluginFunctionalTest {
   }
 
   @Test
+  fun `can run release bundle task, excluding compatibility test`() {
+    // Setup the test build
+    val projectDir = File(TEST_ROOT)
+    TestPlugin.Builder()
+      .withRootDir(TEST_ROOT)
+      .withService("orca")
+      .withRootBuildGradle("""
+        plugins {
+          id("io.spinnaker.plugin.bundler")
+        }
+        spinnakerBundle {
+          pluginId = "Armory.TestPlugin"
+          version = "0.0.1"
+          description = "A plugin used to demonstrate that the build works end-to-end"
+          provider = "daniel.peach@armory.io"
+        }
+      """)
+      .withSubprojectBuildGradle("""
+      plugins {
+        id("org.jetbrains.kotlin.jvm")
+      }
+
+      apply plugin: "io.spinnaker.plugin.service-extension"
+
+      repositories {
+        mavenCentral()
+      }
+
+      spinnakerPlugin {
+        serviceName = "{{ service }}"
+        requires = "{{ service }}>=0.0.0"
+        pluginClass = "{{ package }}.MyPlugin"
+      }
+
+      dependencies {
+        compileOnly("org.pf4j:pf4j:3.2.0")
+
+        testImplementation("org.jetbrains.kotlin:kotlin-test")
+        testImplementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+        testImplementation("org.jetbrains.kotlin:kotlin-test")
+        testImplementation("org.jetbrains.kotlin:kotlin-test-junit")
+      }
+      """)
+      .build()
+
+    // Run the build
+    val runner = GradleRunner.create()
+    runner.forwardOutput()
+    runner.withPluginClasspath()
+    runner.withArguments("releaseBundle")
+    runner.withProjectDir(projectDir)
+    val result = runner.build()
+
+    // Verify the result
+    assert(result.task(":releaseBundle")!!.outcome == TaskOutcome.SUCCESS)
+    assert(!result.tasks.contains(":compatibilityTest"))
+    assertTrue(projectDir.resolve("build/distributions").resolve("functionaltest.zip").exists())
+  }
+
+  @Test
   fun `can run an end-to-end build, including compatibility test`() {
     TestPlugin.Builder()
       .withRootDir(TEST_ROOT)
@@ -84,7 +164,9 @@ class SpinnakerExtensionGradlePluginFunctionalTest {
       .withProjectDir(File(TEST_ROOT))
       .build()
 
-    assertTrue(build.output.contains("BUILD SUCCESSFUL"))
+    assert(build.task(":compatibilityTest")!!.outcome == TaskOutcome.SUCCESS)
+    assert(build.task(":releaseBundle")!!.outcome == TaskOutcome.SUCCESS)
+    assertTaskOrder(build, ":compatibilityTest", ":releaseBundle")
     val distributions = File(TEST_ROOT).resolve("build/distributions")
     assertTrue(distributions.resolve("functionaltest.zip").exists())
     val pluginInfo = distributions.resolve("plugin-info.json").readText()
@@ -136,7 +218,8 @@ class SpinnakerExtensionGradlePluginFunctionalTest {
       .withProjectDir(File(TEST_ROOT))
       .buildAndFail()
 
-    assertTrue(build.output.contains("Compatibility tests failed for Spinnaker " + compatibilityTestVersion))
+    assert(build.task(":compatibilityTest")!!.outcome == TaskOutcome.FAILED)
+    assert(!build.tasks.contains(":releaseBundle"))
   }
 
   @Test
@@ -184,7 +267,9 @@ class SpinnakerExtensionGradlePluginFunctionalTest {
       .withProjectDir(File(TEST_ROOT))
       .build()
 
-    assertTrue(build.output.contains("BUILD SUCCESSFUL"))
+    assert(build.task(":compatibilityTest")!!.outcome == TaskOutcome.SUCCESS)
+    assert(build.task(":releaseBundle")!!.outcome == TaskOutcome.SUCCESS)
+    assertTaskOrder(build, ":compatibilityTest", ":releaseBundle")
     val pluginInfo = File(TEST_ROOT).resolve("build/distributions/plugin-info.json").readText()
     listOf(
       """
