@@ -84,6 +84,8 @@ func savePipelineTemplate(cmd *cobra.Command, options *saveOptions) error {
 	getQueryParam := &gate.V2PipelineTemplatesControllerApiGetUsingGET2Opts{}
 	if options.tag != "" {
 		getQueryParam.Tag = optional.NewString(options.tag)
+	} else if tag, exists := templateJson["tag"]; exists && tag.(string) != "" {
+		getQueryParam.Tag = optional.NewString(tag.(string))
 	}
 
 	_, resp, queryErr := options.GateClient.V2PipelineTemplatesControllerApi.GetUsingGET2(options.GateClient.Context, templateId, getQueryParam)
