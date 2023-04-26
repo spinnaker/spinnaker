@@ -27,7 +27,7 @@ import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.RetrofitException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException;
-import com.netflix.spinnaker.rosco.services.ClouddriverRetrofit2Service;
+import com.netflix.spinnaker.rosco.services.ClouddriverService;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -40,8 +40,7 @@ import retrofit2.Response;
 
 @RunWith(JUnitPlatform.class)
 final class ArtifactDownloaderImplTest {
-  private final ClouddriverRetrofit2Service clouddriverService =
-      mock(ClouddriverRetrofit2Service.class);
+  private final ClouddriverService clouddriverService = mock(ClouddriverService.class);
   private final Call mockCall = mock(Call.class);
   private static final Artifact testArtifact =
       Artifact.builder().name("test-artifact").version("3").build();

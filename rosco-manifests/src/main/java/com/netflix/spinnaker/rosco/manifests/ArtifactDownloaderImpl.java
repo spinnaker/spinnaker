@@ -5,7 +5,7 @@ import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
-import com.netflix.spinnaker.rosco.services.ClouddriverRetrofit2Service;
+import com.netflix.spinnaker.rosco.services.ClouddriverService;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -19,10 +19,10 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public final class ArtifactDownloaderImpl implements ArtifactDownloader {
-  private final ClouddriverRetrofit2Service clouddriverService;
+  private final ClouddriverService clouddriverService;
   private final RetrySupport retrySupport = new RetrySupport();
 
-  public ArtifactDownloaderImpl(ClouddriverRetrofit2Service clouddriverService) {
+  public ArtifactDownloaderImpl(ClouddriverService clouddriverService) {
     this.clouddriverService = clouddriverService;
   }
 

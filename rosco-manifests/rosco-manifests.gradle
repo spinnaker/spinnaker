@@ -13,7 +13,6 @@ dependencies {
   implementation "org.apache.commons:commons-compress:1.21"
   implementation "org.yaml:snakeyaml"
 
-  implementation "com.squareup.retrofit:retrofit"
   implementation "com.squareup.retrofit2:retrofit"
   testImplementation "org.assertj:assertj-core"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
@@ -23,4 +22,5 @@ dependencies {
   testImplementation "org.spockframework:spock-core"
   testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
   testImplementation "com.squareup.retrofit2:converter-jackson"
+  testCompileOnly "com.squareup.retrofit:retrofit"
 }

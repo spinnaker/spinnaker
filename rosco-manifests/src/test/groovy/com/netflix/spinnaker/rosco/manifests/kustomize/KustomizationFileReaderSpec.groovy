@@ -18,7 +18,7 @@ package com.netflix.spinnaker.rosco.manifests.kustomize
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.rosco.manifests.kustomize.mapping.Kustomization
-import com.netflix.spinnaker.rosco.services.ClouddriverRetrofit2Service
+import com.netflix.spinnaker.rosco.services.ClouddriverService
 import okhttp3.MediaType
 import okhttp3.ResponseBody
 import retrofit2.Call
@@ -41,7 +41,7 @@ class KustomizationFileReaderSpec extends Specification {
                 return  Response.success(200, ResponseBody.create(MediaType.parse("text/plain"), kustomizationYaml.stripMargin()));
             }
         }
-        def clouddriverService = Mock(ClouddriverRetrofit2Service) {
+        def clouddriverService = Mock(ClouddriverService) {
             fetchArtifact(_) >> {
                 return mockCall
             }
@@ -69,7 +69,7 @@ class KustomizationFileReaderSpec extends Specification {
                  return Response.error(500, ResponseBody.create(null, ""))
             }
         }
-        def clouddriverService = Mock(ClouddriverRetrofit2Service) {
+        def clouddriverService = Mock(ClouddriverService) {
             fetchArtifact(_) >> {
                 return mockCall
             }

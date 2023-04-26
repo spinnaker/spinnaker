@@ -31,7 +31,7 @@ import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.rosco.Main;
 import com.netflix.spinnaker.rosco.manifests.helm.HelmBakeManifestRequest;
-import com.netflix.spinnaker.rosco.services.ClouddriverRetrofit2Service;
+import com.netflix.spinnaker.rosco.services.ClouddriverService;
 import java.nio.charset.StandardCharsets;
 import okhttp3.ResponseBody;
 import org.junit.jupiter.api.BeforeEach;
@@ -55,7 +55,7 @@ class V2BakeryControllerTest {
 
   @Autowired private WebApplicationContext webApplicationContext;
 
-  @MockBean ClouddriverRetrofit2Service clouddriverService;
+  @MockBean ClouddriverService clouddriverService;
 
   @Autowired ObjectMapper objectMapper;
 

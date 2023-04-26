@@ -18,6 +18,7 @@ package com.netflix.spinnaker.rosco.providers.aws
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeOptions
 import com.netflix.spinnaker.rosco.api.BakeRequest
@@ -26,6 +27,7 @@ import com.netflix.spinnaker.rosco.providers.CloudProviderBakeHandler
 import com.netflix.spinnaker.rosco.providers.aws.config.RoscoAWSConfiguration
 import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
 import com.netflix.spinnaker.rosco.services.ClouddriverService
+
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -240,7 +242,7 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
     def images = AuthenticatedRequest.allowAnonymous(
       {
         retrySupport.retry({
-          clouddriverService.findAmazonImageByName(name, account, region)
+          Retrofit2SyncCall.execute(clouddriverService.findAmazonImageByName(name, account, region))
         }, 3, Duration.ofSeconds(3), false)
       }
     )

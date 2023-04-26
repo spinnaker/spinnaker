@@ -27,6 +27,9 @@ import com.netflix.spinnaker.rosco.providers.util.PackageNameConverter
 import com.netflix.spinnaker.rosco.providers.util.PackerCommandFactory
 import com.netflix.spinnaker.rosco.providers.util.TestDefaults
 import com.netflix.spinnaker.rosco.services.ClouddriverService
+
+import retrofit2.Call
+import retrofit2.Response
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -489,7 +492,25 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
   void 'looks up base ami id from name'() {
     def packerCommandFactoryMock = Mock(PackerCommandFactory)
     def imageNameFactoryMock = Mock(ImageNameFactory)
-    def clouddriverService = Mock(ClouddriverService)
+    def mockCall = Mock(Call.class) {
+      execute() >> {
+          return Response.success(200, [
+                  new RoscoAWSConfiguration.AWSNamedImage(
+                          imageName: SOURCE_BIONIC_HVM_IMAGE_NAME,
+                          attributes: new RoscoAWSConfiguration.AWSImageAttributes(virtualizationType: BakeRequest.VmType.hvm),
+                          amis: [
+                                  (REGION): [ SOURCE_BIONIC_HVM_IMAGE_ID ]
+                          ]
+                  )
+          ])
+      }
+    }
+
+    def clouddriverService = Mock(ClouddriverService) {
+      findAmazonImageByName(_, _, _) >> {
+          return mockCall
+      }
+    }
     def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
       package_name: PACKAGES_NAME,
       base_os: "bionic",
@@ -511,16 +532,6 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
     def vmSettings = awsBakeHandler.findVirtualizationSettings(REGION, bakeRequest)
 
     then:
-    1 * clouddriverService.findAmazonImageByName(_, _, _) >> [
-      new RoscoAWSConfiguration.AWSNamedImage(
-        imageName: SOURCE_BIONIC_HVM_IMAGE_NAME,
-        attributes: new RoscoAWSConfiguration.AWSImageAttributes(virtualizationType: BakeRequest.VmType.hvm),
-        amis: [
-          (REGION): [ SOURCE_BIONIC_HVM_IMAGE_ID ]
-        ]
-      )
-    ]
-
     vmSettings.sourceAmi == SOURCE_BIONIC_HVM_IMAGE_ID
   }
 
@@ -568,9 +579,15 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
 
   void 'produces packer command with all required parameters for ubuntu, using ami lookup by name'() {
     setup:
-      def clouddriverService = Stub(ClouddriverService) {
+      def mockCall = Mock(Call.class) {
+        execute() >> {
+            return Response.success(200, searchByNameResults)
+        }
+      }
+
+      def clouddriverService = Mock(ClouddriverService) {
         findAmazonImageByName(_, _, _) >> {
-          return searchByNameResults
+            return mockCall
         }
       }
       def packerCommandFactoryMock = Mock(PackerCommandFactory)

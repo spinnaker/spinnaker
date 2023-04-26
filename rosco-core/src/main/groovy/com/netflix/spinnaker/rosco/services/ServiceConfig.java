@@ -18,17 +18,12 @@ package com.netflix.spinnaker.rosco.services;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jakewharton.retrofit.Ok3Client;
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import retrofit.RequestInterceptor;
-import retrofit.RestAdapter;
-import retrofit.converter.JacksonConverter;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
@@ -37,14 +32,6 @@ public class ServiceConfig {
   @Value("${services.clouddriver.base-url:http://localhost:7002}")
   String clouddriverBaseUrl;
 
-  @Value("${retrofit.log-level:BASIC}")
-  String retrofitLogLevel;
-
-  @Bean
-  Ok3Client okClient(OkHttp3ClientConfiguration okHttpClientConfig) {
-    return new Ok3Client(okHttpClientConfig.create().build());
-  }
-
   @Bean
   RetrySupport retrySupport() {
     return new RetrySupport();
@@ -52,30 +39,12 @@ public class ServiceConfig {
 
   // This should be service-agnostic if more integrations than clouddriver are used
   @Bean
-  ClouddriverService clouddriverService(
-      Ok3Client ok3Client, RequestInterceptor spinnakerRequestInterceptor) {
+  ClouddriverService clouddriverService(OkHttp3ClientConfiguration okHttpClientConfig) {
 
-    return new RestAdapter.Builder()
-        .setEndpoint(clouddriverBaseUrl)
-        .setRequestInterceptor(spinnakerRequestInterceptor)
-        .setClient(ok3Client)
-        .setConverter(new JacksonConverter(getObjectMapper()))
-        .setLogLevel(RestAdapter.LogLevel.valueOf(retrofitLogLevel))
-        .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
-        .build()
-        .create(ClouddriverService.class);
-  }
-
-  private ObjectMapper getObjectMapper() {
-    return new ObjectMapper()
-        .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL)
-        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-  }
-
-  /*As part of retrofit2 changes, creating clouddriverservice with retrofit2 API changes */
-  @Bean
-  ClouddriverRetrofit2Service clouddriverRetrofit2Service(
-      OkHttp3ClientConfiguration okHttpClientConfig) {
+    ObjectMapper objectMapper =
+        new ObjectMapper()
+            .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL)
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
     /*
      * ErrorHandlingExecutorCallAdapterFactory handles exceptions globally in retrofit2, similar to SpinnakerRetrofitErrorHandler with retrofit.
@@ -84,8 +53,8 @@ public class ServiceConfig {
         .baseUrl(clouddriverBaseUrl)
         .client(okHttpClientConfig.createForRetrofit2().build())
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-        .addConverterFactory(JacksonConverterFactory.create(getObjectMapper()))
+        .addConverterFactory(JacksonConverterFactory.create(objectMapper))
         .build()
-        .create(ClouddriverRetrofit2Service.class);
+        .create(ClouddriverService.class);
   }
 }

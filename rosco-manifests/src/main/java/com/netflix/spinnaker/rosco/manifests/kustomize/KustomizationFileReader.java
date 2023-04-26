@@ -21,7 +21,7 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.rosco.manifests.kustomize.mapping.Kustomization;
-import com.netflix.spinnaker.rosco.services.ClouddriverRetrofit2Service;
+import com.netflix.spinnaker.rosco.services.ClouddriverService;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -39,12 +39,12 @@ import org.yaml.snakeyaml.representer.Representer;
 @Component
 @Slf4j
 public class KustomizationFileReader {
-  private final ClouddriverRetrofit2Service clouddriverService;
+  private final ClouddriverService clouddriverService;
   private final RetrySupport retrySupport = new RetrySupport();
   private static final List<String> KUSTOMIZATION_FILENAMES =
       ImmutableList.of("kustomization.yaml", "kustomization.yml", "kustomization");
 
-  public KustomizationFileReader(ClouddriverRetrofit2Service clouddriverService) {
+  public KustomizationFileReader(ClouddriverService clouddriverService) {
     this.clouddriverService = clouddriverService;
   }
 
