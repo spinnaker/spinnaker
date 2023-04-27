@@ -40,6 +40,8 @@ dependencies {
 
   testImplementation("org.assertj:assertj-core:3.24.2")
 
+  testImplementation("org.junit.jupiter:junit-jupiter-params:5.0.0")
+
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.0.0")
 }
 

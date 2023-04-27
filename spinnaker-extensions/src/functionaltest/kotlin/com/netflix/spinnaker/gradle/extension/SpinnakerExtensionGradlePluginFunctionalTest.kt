@@ -23,8 +23,9 @@ import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.BuildTask
 import org.gradle.testkit.runner.TaskOutcome
 import kotlin.test.BeforeTest
-import kotlin.test.Test
 import kotlin.test.assertTrue
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.MethodSource
 
 const val TEST_ROOT = "build/functionaltest"
 
@@ -56,6 +57,11 @@ class SpinnakerExtensionGradlePluginFunctionalTest {
     }
   }
 
+  companion object{
+    @JvmStatic
+    fun gradleVersion() = listOf<String>("6.8.1","7.6.1")
+  }
+
   @BeforeTest
   fun cleanup() {
     File(TEST_ROOT).also {
@@ -63,8 +69,9 @@ class SpinnakerExtensionGradlePluginFunctionalTest {
     }
   }
 
-  @Test
-  fun `can run task`() {
+  @ParameterizedTest(name = "can run task: gradle version = {0}")
+  @MethodSource("gradleVersion")
+  fun `can run task`(version: String) {
     // Setup the test build
     val projectDir = File(TEST_ROOT)
     projectDir.mkdirs()
@@ -80,6 +87,7 @@ class SpinnakerExtensionGradlePluginFunctionalTest {
     runner.forwardOutput()
     runner.withPluginClasspath()
     runner.withArguments("collectPluginZips")
+    runner.withGradleVersion(version)
     runner.withProjectDir(projectDir)
     val result = runner.build()
 
@@ -87,8 +95,9 @@ class SpinnakerExtensionGradlePluginFunctionalTest {
     assertTrue(result.output.contains("BUILD SUCCESSFUL"))
   }
 
-  @Test
-  fun `can run release bundle task, excluding compatibility test`() {
+  @ParameterizedTest(name = "can run release bundle task, excluding compatibility test: gradle version = {0}")
+  @MethodSource("gradleVersion")
+  fun `can run release bundle task, excluding compatibility test`(version: String) {
     // Setup the test build
     val projectDir = File(TEST_ROOT)
     TestPlugin.Builder()
@@ -138,6 +147,7 @@ class SpinnakerExtensionGradlePluginFunctionalTest {
     runner.forwardOutput()
     runner.withPluginClasspath()
     runner.withArguments("releaseBundle")
+    runner.withGradleVersion(version)
     runner.withProjectDir(projectDir)
     val result = runner.build()
 
@@ -147,8 +157,9 @@ class SpinnakerExtensionGradlePluginFunctionalTest {
     assertTrue(projectDir.resolve("build/distributions").resolve("functionaltest.zip").exists())
   }
 
-  @Test
-  fun `can run an end-to-end build, including compatibility test`() {
+  @ParameterizedTest(name = "can run an end-to-end build, including compatibility test: gradle version = {0}")
+  @MethodSource("gradleVersion")
+  fun `can run an end-to-end build, including compatibility test`(version: String) {
     TestPlugin.Builder()
       .withRootDir(TEST_ROOT)
       .withService("orca")
@@ -160,6 +171,7 @@ class SpinnakerExtensionGradlePluginFunctionalTest {
       .forwardOutput()
       .withPluginClasspath()
       .withArguments("compatibilityTest", "releaseBundle")
+      .withGradleVersion(version)
       .withProjectDir(File(TEST_ROOT))
       .build()
 
@@ -188,8 +200,9 @@ class SpinnakerExtensionGradlePluginFunctionalTest {
     }
   }
 
-  @Test
-  fun `compatibility test task fails with failing test`() {
+  @ParameterizedTest(name = "compatibility test task fails with failing test: gradle version = {0}")
+  @MethodSource("gradleVersion")
+  fun `compatibility test task fails with failing test`(version: String) {
     TestPlugin.Builder()
       .withRootDir(TEST_ROOT)
       .withService("orca")
@@ -214,6 +227,7 @@ class SpinnakerExtensionGradlePluginFunctionalTest {
       .forwardOutput()
       .withPluginClasspath()
       .withArguments("compatibilityTest", "releaseBundle")
+      .withGradleVersion(version)
       .withProjectDir(File(TEST_ROOT))
       .buildAndFail()
 
@@ -221,8 +235,9 @@ class SpinnakerExtensionGradlePluginFunctionalTest {
     assert(!build.tasks.contains(":releaseBundle"))
   }
 
-  @Test
-  fun `compatibility test task succeeds if failing test is not required`() {
+  @ParameterizedTest(name = "compatibility test task succeeds if failing test is not required: gradle version {0}")
+  @MethodSource("gradleVersion")
+  fun `compatibility test task succeeds if failing test is not required`(version: String) {
     TestPlugin.Builder()
       .withService("orca")
       .withCompatibilityTestVersion(compatibilityTestVersion)
@@ -263,6 +278,7 @@ class SpinnakerExtensionGradlePluginFunctionalTest {
       .forwardOutput()
       .withPluginClasspath()
       .withArguments("compatibilityTest", "releaseBundle")
+      .withGradleVersion(version)
       .withProjectDir(File(TEST_ROOT))
       .build()
 
