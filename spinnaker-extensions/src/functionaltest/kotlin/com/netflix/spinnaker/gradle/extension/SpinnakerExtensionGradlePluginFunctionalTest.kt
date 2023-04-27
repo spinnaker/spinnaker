@@ -17,12 +17,11 @@
 package com.netflix.spinnaker.gradle.extension
 
 import java.io.File
+import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.BuildTask
 import org.gradle.testkit.runner.TaskOutcome
-import org.hamcrest.CoreMatchers.containsString
-import org.junit.Assert.assertThat
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertTrue
@@ -185,7 +184,7 @@ class SpinnakerExtensionGradlePluginFunctionalTest {
             ]
       """
     ).forEach {
-      assertThat(pluginInfo, containsString(it))
+      assertThat(pluginInfo).contains(it)
     }
   }
 
@@ -286,7 +285,7 @@ class SpinnakerExtensionGradlePluginFunctionalTest {
             ]
       """
     ).forEach {
-      assertThat(pluginInfo, containsString(it))
+      assertThat(pluginInfo).contains(it)
     }
   }
 }

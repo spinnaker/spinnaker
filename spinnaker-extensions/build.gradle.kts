@@ -36,7 +36,15 @@ dependencies {
   testImplementation("org.jetbrains.kotlin:kotlin-test")
 
   // Kotlin JUnit integration.
-  testImplementation("org.jetbrains.kotlin:kotlin-test-junit")
+  testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+
+  testImplementation("org.assertj:assertj-core:3.24.2")
+
+  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.0.0")
+}
+
+tasks.test {
+  useJUnitPlatform()
 }
 
 gradlePlugin {
@@ -95,15 +103,16 @@ val functionalTestSourceSet = sourceSets.create("functionaltest") {
 
 gradlePlugin.testSourceSets(functionalTestSourceSet)
 configurations.getByName("functionaltestImplementation").extendsFrom(configurations.getByName("testImplementation"))
+configurations.getByName("functionaltestRuntimeOnly").extendsFrom(configurations.getByName("testRuntimeOnly"))
 
 // Add a task to run the functional tests
 val functionalTest by tasks.creating(Test::class) {
   testClassesDirs = functionalTestSourceSet.output.classesDirs
   classpath = functionalTestSourceSet.runtimeClasspath
+  useJUnitPlatform()
 }
 
 val check by tasks.getting(Task::class) {
   // Run the functional tests as part of `check`
   dependsOn(functionalTest)
 }
-
