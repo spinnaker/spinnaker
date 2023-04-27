@@ -102,6 +102,22 @@ class KubernetesBlueGreenStrategyValidatorSpec extends Specification {
     !errors.hasErrors()
   }
 
+  def "should not return error when trafficManagement is not defined"() {
+    setup:
+    def pipeline = new Pipeline()
+    Map<String, Object> options = new LinkedHashMap<>()
+    options
+    pipeline.setStages(List.of(Map.of("cloudProvider","kubernetes", "type", "deployManifest",)))
+    def errors = new ValidatorErrors()
+
+    when:
+    PipelineValidator validator = new KubernetesBlueGreenStrategyValidator()
+    validator.validate(pipeline, errors)
+
+    then:
+    !errors.hasErrors()
+  }
+
   def "should not return error when trafficManagement not enabled"() {
     setup:
     def pipeline = new Pipeline()

@@ -21,6 +21,7 @@ import com.netflix.spinnaker.front50.api.validator.PipelineValidator;
 import com.netflix.spinnaker.front50.api.validator.ValidatorErrors;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -39,6 +40,7 @@ public class KubernetesBlueGreenStrategyValidator implements PipelineValidator {
             .filter(KubernetesBlueGreenStrategyValidator::kubernetesProvider)
             .filter(KubernetesBlueGreenStrategyValidator::deployManifestStage)
             .map(KubernetesBlueGreenStrategyValidator::getTrafficManagement)
+            .filter(Objects::nonNull)
             .filter(KubernetesBlueGreenStrategyValidator::trafficManagementEnabled)
             .map(KubernetesBlueGreenStrategyValidator::getTrafficManagementOptions)
             .anyMatch(KubernetesBlueGreenStrategyValidator::redBlackStrategy);
