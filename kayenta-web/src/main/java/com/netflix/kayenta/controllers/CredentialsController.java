@@ -21,9 +21,7 @@ import com.netflix.kayenta.security.AccountCredentialsRepository;
 import io.swagger.annotations.ApiOperation;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/credentials")
@@ -40,5 +38,10 @@ public class CredentialsController {
   @RequestMapping(method = RequestMethod.GET)
   Set<? extends AccountCredentials> list() {
     return accountCredentialsRepository.getAll();
+  }
+
+  @DeleteMapping("/{accountName}")
+  public void deleteAccount(@PathVariable String accountName) {
+    this.accountCredentialsRepository.deleteById(accountName);
   }
 }

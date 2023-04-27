@@ -49,4 +49,9 @@ public class MapBackedAccountCredentialsRepository implements AccountCredentials
   public AccountCredentials save(String name, AccountCredentials credentials) {
     return accountNameToCredentialsMap.put(credentials.getName(), credentials);
   }
+
+  @Override
+  public void deleteById(String accountName) {
+    accountNameToCredentialsMap.remove(accountName);
+  }
 }

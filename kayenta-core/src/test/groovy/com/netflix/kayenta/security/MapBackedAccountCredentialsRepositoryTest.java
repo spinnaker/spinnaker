@@ -20,12 +20,12 @@ import static com.netflix.kayenta.security.AccountCredentials.Type.CONFIGURATION
 import static com.netflix.kayenta.security.AccountCredentials.Type.METRICS_STORE;
 import static com.netflix.kayenta.security.AccountCredentials.Type.OBJECT_STORE;
 import static com.netflix.kayenta.security.AccountCredentials.Type.REMOTE_JUDGE;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
+import java.util.Set;
 import org.junit.Test;
 
 public class MapBackedAccountCredentialsRepositoryTest {
@@ -96,6 +96,30 @@ public class MapBackedAccountCredentialsRepositoryTest {
 
     assertThat(repository.getRequiredOneBy(null, METRICS_STORE)).isIn(account1, account2, account3);
     assertThat(repository.getRequiredOneBy("", METRICS_STORE)).isIn(account1, account2, account3);
+  }
+
+  @Test
+  public void deleteById_deletesTheAccount() {
+
+    AccountCredentials account1 = namedAccount("account1");
+    AccountCredentials account2 = namedAccount("account2");
+    AccountCredentials account3 = namedAccount("account3");
+    this.repository.save("account1", account1);
+    this.repository.save("account2", account2);
+    this.repository.save("account3", account3);
+    assertThat(this.repository.getAll())
+        .isNotEmpty()
+        .hasSize(3)
+        .isEqualTo(Set.of(account1, account2, account3));
+
+    this.repository.deleteById("account1");
+
+    assertThat(this.repository.getAll())
+        .isNotEmpty()
+        .hasSize(2)
+        .isEqualTo(Set.of(account2, account3));
+
+    assertThat(this.repository.getOne("account")).isEmpty();
   }
 
   @Test
