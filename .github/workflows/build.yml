@@ -52,8 +52,8 @@ jobs:
       - name: Prepare build variables
         id: build_variables
         run: |
-          echo REPO=${GITHUB_REPOSITORY##*/} >> $GIHUB_OUTPUT
-          echo VERSION="$(git describe --tags --abbrev=0 --match="v[0-9]*" | cut -c2-)-dev-${GITHUB_REF_NAME}-$(git rev-parse --short HEAD)-$(date --utc +'%Y%m%d%H%M')" >> $GIHUB_OUTPUT
+          echo REPO=${GITHUB_REPOSITORY##*/} >> $GITHUB_OUTPUT
+          echo VERSION="$(git describe --tags --abbrev=0 --match="v[0-9]*" | cut -c2-)-dev-${GITHUB_REF_NAME}-$(git rev-parse --short HEAD)-$(date --utc +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
 
       - name: Build
         env:
