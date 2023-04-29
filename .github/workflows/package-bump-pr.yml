@@ -12,7 +12,7 @@ on:
       - '@spinnaker/*'
 
 env:
-  NODE_VERSION: 12.16.0
+  NODE_VERSION: 14.21.3
 
 jobs:
   build:

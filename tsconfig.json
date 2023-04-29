@@ -8,7 +8,7 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "jsx": "react",
-    "lib": ["es2017", "dom", "ES2018.Promise"],
+    "lib": ["es2019", "dom"],
     "moduleResolution": "node",
     "module": "esnext",
     "noEmitHelpers": false,

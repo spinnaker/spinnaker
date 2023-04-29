@@ -8,7 +8,7 @@ on:
       - 'packages/*/package.json'
 
 env:
-  NODE_VERSION: 12.16.0
+  NODE_VERSION: 14.21.3
 
 permissions:
   contents: read

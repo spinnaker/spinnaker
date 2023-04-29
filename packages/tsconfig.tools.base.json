@@ -6,7 +6,7 @@
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "jsx": "react",
-    "lib": ["es2017", "dom"],
+    "lib": ["es2019", "dom"],
     "module": "esnext",
     "moduleResolution": "node",
     "noImplicitAny": true,
