@@ -62,6 +62,38 @@ const helpContents = [
     key: 'cloudrun.loadBalancer.allocations',
     value: 'An allocation is the percent of traffic directed to a server group.',
   },
+  {
+    key: 'cloudrun.manifest.source',
+    value: `
+    <p>Where the manifest file content is read from.</p>
+    <p>
+      <b>text:</b> The manifest is supplied statically to the pipeline from the below text-box.
+    </p>
+    <p>
+      <b>artifact:</b> The manifest is read from an artifact supplied/created upstream. The expected artifact must be referenced here, and will be bound at runtime.
+    </p>`,
+  },
+  {
+    key: 'cloudrun.manifest.expectedArtifact',
+    value:
+      'The artifact that is to be applied to the Cloud Run account for this stage.  The artifact should represent a valid Cloud Run manifest.',
+  },
+  {
+    key: 'cloudrun.manifest.skipExpressionEvaluation',
+    value:
+      '<p>Skip SpEL expression evaluation of the manifest artifact in this stage. Can be paired with the "Evaluate SpEL expressions in overrides at bake time" option in the Bake Manifest stage when baking a third-party manifest artifact with expressions not meant for Spinnaker to evaluate as SpEL.</p>',
+  },
+  {
+    key: 'cloudrun.manifest.requiredArtifactsToBind',
+    value:
+      'These artifacts must be present in the context for this stage to successfully complete. Artifacts specified will be <a href="https://www.spinnaker.io/reference/artifacts/in-cloudrun-v2/#binding-artifacts-in-manifests" target="_blank">bound to the deployed manifest.</a>',
+  },
+  {
+    key: 'cloudrun.manifest.account',
+    value: `
+    <p>A Spinnaker account corresponds to a physical Cloud Run cluster. If you are unsure which account to use, talk to your Spinnaker admin.</p>
+    `,
+  },
 ];
 
 helpContents.forEach((entry) => HelpContentsRegistry.register(entry.key, entry.value));

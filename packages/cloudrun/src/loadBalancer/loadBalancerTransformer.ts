@@ -42,7 +42,7 @@ export class CloudrunLoadBalancerUpsertDescription implements ILoadBalancerUpser
       split.trafficTargets,
       (acc: any, trafficTarget: any) => {
         const { revisionName, percent } = trafficTarget;
-        return acc.concat({ percent, revisionName, locatorType: 'fromExisting' });
+        return acc.concat({ percent, revisionName });
       },
       [],
     );

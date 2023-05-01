@@ -25,3 +25,21 @@
     </div>
   </div>
 </div>
+<div class="form-group">
+  <div class="well col-md-11" style="padding-top: 5px; padding-bottom: 10px">
+    <div class="row">
+      <div class="form-group">
+        <div>
+          <div class="col-md-3 sm-label-right">Cluster</div>
+          <div class="col-md-7" style="margin-bottom: 10px">
+            <input ng-model="$ctrl.allocationDescription.cluster" type="text" class="form-control input-sm" readonly />
+          </div>
+          <div class="col-md-3 sm-label-right">Target</div>
+          <div class="col-md-7">
+            <target-select model="$ctrl.allocationDescription" options="$ctrl.targets"></target-select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -2,8 +2,7 @@ import type { IComponentOptions, IController } from 'angular';
 import { module } from 'angular';
 import { uniq } from 'lodash';
 
-import type { Application } from '@spinnaker/core';
-import { AppListExtractor, StageConstants } from '@spinnaker/core';
+import { StageConstants } from '@spinnaker/core';
 
 import type { ICloudrunAllocationDescription } from '../../loadBalancerTransformer';
 
@@ -11,12 +10,28 @@ class CloudrunStageAllocationLabelCtrl implements IController {
   public inputViewValue: string;
   private allocationDescription: ICloudrunAllocationDescription;
 
+  private static mapTargetCoordinateToLabel(targetCoordinate: string): string {
+    const target = StageConstants.TARGET_LIST.find((t) => t.val === targetCoordinate);
+    if (target) {
+      return target.label;
+    } else {
+      return null;
+    }
+  }
+
   public $doCheck(): void {
     this.setInputViewValue();
   }
 
   private setInputViewValue(): void {
-    this.inputViewValue = this.allocationDescription.revisionName;
+    if (this.allocationDescription.cluster && this.allocationDescription.target) {
+      const targetLabel = CloudrunStageAllocationLabelCtrl.mapTargetCoordinateToLabel(
+        this.allocationDescription.target,
+      );
+      this.inputViewValue = `${targetLabel} (${this.allocationDescription.cluster})`;
+    } else {
+      this.inputViewValue = null;
+    }
   }
 }
 
@@ -32,13 +47,10 @@ class CloudrunStageAllocationConfigurationRowCtrl implements IController {
   public targets = StageConstants.TARGET_LIST;
   public clusterList: string[];
   public onAllocationChange: Function;
-  private application: Application;
-  private region: string;
-  private account: string;
+  private name: string;
 
   public $onInit() {
-    const clusterFilter = AppListExtractor.clusterFilterForCredentialsAndRegion(this.account, this.region);
-    this.clusterList = AppListExtractor.getClusters([this.application], clusterFilter);
+    this.allocationDescription.cluster = this.name;
   }
 
   public getServerGroupOptions(): string[] {
@@ -48,14 +60,6 @@ class CloudrunStageAllocationConfigurationRowCtrl implements IController {
       return this.serverGroupOptions;
     }
   }
-
-  public onLocatorTypeChange(): void {
-    // Prevents pipeline expressions (or non-existent server groups) from entering the dropdown.
-    if (!this.serverGroupOptions.includes(this.allocationDescription.revisionName)) {
-      delete this.allocationDescription.revisionName;
-    }
-    this.onAllocationChange();
-  }
 }
 
 const cloudrunStageAllocationConfigurationRow: IComponentOptions = {
@@ -63,6 +67,7 @@ const cloudrunStageAllocationConfigurationRow: IComponentOptions = {
     application: '<',
     region: '@',
     account: '@',
+    name: '@',
     allocationDescription: '<',
     removeAllocation: '&',
     serverGroupOptions: '<',

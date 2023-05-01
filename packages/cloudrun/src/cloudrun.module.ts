@@ -14,6 +14,7 @@ import { CLOUDRUN_LOAD_BALANCER_DETAILS_CTRL } from './loadBalancer/details/deta
 import { CLOUDRUN_LOAD_BALANCER_TRANSFORMER } from './loadBalancer/loadBalancerTransformer';
 import logo from './logo/cloudrun.logo.png';
 import { CLOUDRUN_PIPELINE_MODULE } from './pipeline/pipeline.module';
+import './pipeline/stages/deployManifest/deployStage';
 import { CLOUDRUN_SERVER_GROUP_COMMAND_BUILDER } from './serverGroup/configure/serverGroupCommandBuilder.service';
 import { ServerGroupWizard } from './serverGroup/configure/wizard/serverGroupWizard';
 import { CLOUDRUN_SERVER_GROUP_DETAILS_CTRL } from './serverGroup/details/details.controller';

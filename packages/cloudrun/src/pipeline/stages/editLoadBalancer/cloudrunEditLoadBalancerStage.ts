@@ -59,7 +59,7 @@ export const CLOUDRUN_EDIT_LOAD_BALANCER_STAGE = 'spinnaker.cloudrun.pipeline.st
 module(CLOUDRUN_EDIT_LOAD_BALANCER_STAGE, [CLOUDRUN_LOAD_BALANCER_CHOICE_MODAL_CTRL])
   .config(() => {
     Registry.pipeline.registerStage({
-      label: 'Edit Load Balancer (Cloudrun)',
+      label: 'Edit Load Balancer (Cloud Run)',
       description: 'Edits a load balancer',
       key: 'upsertCloudrunLoadBalancers',
       cloudProvider: 'cloudrun',

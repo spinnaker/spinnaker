@@ -36,11 +36,11 @@ export function ServerGroupConfigFilesSettings({ configFiles, onEnterConfig }: I
               Service Yaml
               <HelpField id="cloudrun.serverGroup.configFiles" />{' '}
             </div>
-            <div className="col-md-7" key={index}>
+            <div className="col-md-8" key={index}>
               <TextAreaInput
                 name={'text' + index}
                 value={configFile}
-                rows={6}
+                rows={10}
                 onChange={(e) => mapTabToSpaces(e, index)}
               />
             </div>

@@ -23,6 +23,7 @@
             application="$ctrl.application"
             region="{{ $ctrl.loadBalancer.region }}"
             account="{{ $ctrl.loadBalancer.account || $ctrl.loadBalancer.credentials }}"
+            name="{{ $ctrl.loadBalancer.name }}"
             server-group-options="$ctrl.serverGroupOptions"
             on-allocation-change="$ctrl.updateServerGroupOptions()"
             remove-allocation="$ctrl.removeAllocation($index)"
