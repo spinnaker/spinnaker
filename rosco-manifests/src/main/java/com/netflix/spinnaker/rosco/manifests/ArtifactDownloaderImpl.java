@@ -4,7 +4,6 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.rosco.services.ClouddriverService;
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,10 +49,8 @@ public final class ArtifactDownloaderImpl implements ArtifactDownloader {
                 artifact, e.getMessage()),
             e);
       }
-    } catch (SpinnakerHttpException e) {
-      throw new SpinnakerHttpException(downloadFailureMessage(artifact, e), e);
     } catch (SpinnakerException e) {
-      throw new SpinnakerException(downloadFailureMessage(artifact, e), e);
+      throw e.newInstance(downloadFailureMessage(artifact, e));
     }
   }
 
