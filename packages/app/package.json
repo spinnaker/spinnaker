@@ -1,7 +1,7 @@
 {
   "name": "deck-app",
   "private": true,
-  "version": "2.5.1",
+  "version": "2.5.2",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -17,7 +17,7 @@
     "@spinnaker/amazon": "^0.13.6",
     "@spinnaker/appengine": "^0.1.4",
     "@spinnaker/cloudfoundry": "^0.1.4",
-    "@spinnaker/cloudrun": "^0.0.2",
+    "@spinnaker/cloudrun": "^0.1.0",
     "@spinnaker/core": "^0.23.1",
     "@spinnaker/docker": "^0.0.138",
     "@spinnaker/ecs": "^0.0.357",
