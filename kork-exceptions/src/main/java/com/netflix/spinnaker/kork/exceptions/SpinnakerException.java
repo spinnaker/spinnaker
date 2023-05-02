@@ -77,4 +77,29 @@ public class SpinnakerException extends RuntimeException implements HasAdditiona
       String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
     super(message, cause, enableSuppression, writableStackTrace);
   }
+
+  /**
+   * Creates a new instance of the exception, but with a new message.
+   *
+   * <p>This method in and of itself is not really useful (using something like new
+   * SpinnakerException(message, e) would work). However, it becomes useful when all other child
+   * classes of SpinnakerException override it.
+   *
+   * <p>This allows a caller to use a generic catch statement to update the message, all in one
+   * line, i.e
+   *
+   * <pre>
+   *   catch (SpinnakerException e) {
+   *    // if the child class has a newInstance override, the return type will stay
+   *    // the type of the child class
+   *    return e.newInstance("new message");
+   *   }
+   * </pre>
+   *
+   * @param message
+   * @return
+   */
+  public SpinnakerException newInstance(String message) {
+    return new SpinnakerException(message, this);
+  }
 }

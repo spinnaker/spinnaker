@@ -121,4 +121,9 @@ public class SpinnakerHttpException extends SpinnakerServerException {
           response.getStatus(), response.getUrl(), getRawMessage());
     }
   }
+
+  @Override
+  public SpinnakerHttpException newInstance(String message) {
+    return new SpinnakerHttpException(message, this);
+  }
 }

@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.kork.retrofit.exceptions;
 
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
+import java.util.function.Function;
 import org.springframework.http.HttpStatus;
 import retrofit.ErrorHandler;
 import retrofit.RetrofitError;
@@ -61,5 +63,25 @@ public final class SpinnakerRetrofitErrorHandler implements ErrorHandler {
       default:
         return new SpinnakerServerException(e);
     }
+  }
+
+  /**
+   * For SpinnakerExceptions, return a new exception of the same type with the return value of
+   * handleError as its cause, with a message from messageBuilder. When handleError returns
+   * something other than SpinnakerException, this method is a no-op.
+   *
+   * @param e The {@link RetrofitError} thrown by an invocation of the {@link retrofit.RestAdapter}
+   * @param messageBuilder A function which takes in the throwable created by the handler, and
+   *     outputs an error message string. The error message string is passed to a new exception
+   *     which is then returned. This provides a mechanism to customize the string on the end
+   *     throwable.
+   * @return
+   */
+  public Throwable handleError(RetrofitError e, Function<Throwable, String> messageBuilder) {
+    Throwable exception = handleError(e);
+    if (exception instanceof SpinnakerException) {
+      return ((SpinnakerException) exception).newInstance(messageBuilder.apply(exception));
+    }
+    return exception;
   }
 }

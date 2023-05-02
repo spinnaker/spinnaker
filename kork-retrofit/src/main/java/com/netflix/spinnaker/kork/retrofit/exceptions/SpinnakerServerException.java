@@ -97,4 +97,9 @@ public class SpinnakerServerException extends SpinnakerException {
       this.message = message;
     }
   }
+
+  @Override
+  public SpinnakerServerException newInstance(String message) {
+    return new SpinnakerServerException(message, this);
+  }
 }
