@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.23.2](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.23.1...@spinnaker/core@0.23.2) (2023-05-03)
+
+
+### Bug Fixes
+
+* **angular:** fix missed AngularJS bindings ([#9989](https://github.com/spinnaker/deck/issues/9989)) ([f947bf9](https://github.com/spinnaker/deck/commit/f947bf997a03dee2f600fc72415bf141320978e4))
+
+
+
+
+
 ## [0.23.1](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.23.0...@spinnaker/core@0.23.1) (2023-04-03)
 
 

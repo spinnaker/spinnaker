@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.58](https://github.com/spinnaker/deck/compare/@spinnaker/dcos@0.0.57...@spinnaker/dcos@0.0.58) (2023-05-03)
+
+
+### Bug Fixes
+
+* **angular:** fix missed AngularJS bindings ([#9989](https://github.com/spinnaker/deck/issues/9989)) ([f947bf9](https://github.com/spinnaker/deck/commit/f947bf997a03dee2f600fc72415bf141320978e4))
+
+
+
+
+
 ## [0.0.57](https://github.com/spinnaker/deck/compare/@spinnaker/dcos@0.0.56...@spinnaker/dcos@0.0.57) (2023-04-03)
 
 **Note:** Version bump only for package @spinnaker/dcos
