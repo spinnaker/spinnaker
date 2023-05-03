@@ -2,7 +2,7 @@ import { AdditionalFields } from './AdditionalFields';
 import { DeploymentStrategyRegistry } from '../../deploymentStrategy.registry';
 
 DeploymentStrategyRegistry.registerStrategy({
-  label: 'Rolling Red/Black (Experimental)',
+  label: 'Rolling Red/Black',
   description: `Creates a new version of this server group, then incrementally resizes the new server group while disabling the same percentage in the previous server group.`,
   key: 'rollingredblack',
   providerRestricted: true,
