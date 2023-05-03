@@ -121,7 +121,6 @@ object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
         stage {
           refId = "1"
           status = stageStatus
-          isLimitConcurrent = true
         }
       }
       val message = CompleteExecution(pipeline)
@@ -136,7 +135,7 @@ object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
         subject.handle(message)
       }
 
-      it("triggers any waiting pipelines with concurrent execution is disabled") {
+      it("triggers any waiting pipelines") {
         verify(queue).push(StartWaitingExecutions(configId, !pipeline.isKeepWaitingPipelines))
       }
 
@@ -384,7 +383,7 @@ object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
     }
   }
 
-  describe("when a pipeline has branches and is running with ConcurrentExecutions disabled") {
+  describe("when a pipeline has branches and running with waiting executions") {
     val configId = UUID.randomUUID().toString()
     val runningPipeline = pipeline {
       pipelineConfigId = configId
@@ -393,12 +392,10 @@ object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
       stage {
         refId = "11"
         status = RUNNING
-        isLimitConcurrent = true
       }
       stage {
         refId = "12"
         status = RUNNING
-        isLimitConcurrent = true
       }
     }
     val waitingPipeline = pipeline {
@@ -408,12 +405,10 @@ object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
       stage {
         refId = "21"
         status = NOT_STARTED
-        isLimitConcurrent = true
       }
       stage {
         refId = "22"
         status = NOT_STARTED
-        isLimitConcurrent = true
       }
     }
 
@@ -432,10 +427,62 @@ object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
       subject.handle(message2)
     }
 
-    it("triggers any waiting pipelines with concurrent execution is disabled, but not the running Pipeline") {
+    it("triggers only waiting Pipeline, but not the running Pipeline") {
       verify(queue).push(message1, retryDelay)
       verify(queue).push(message2, retryDelay)
       verify(queue, times(1)).push(StartWaitingExecutions(configId, !waitingPipeline.isKeepWaitingPipelines))
+    }
+  }
+
+  describe("when pipeline has branches and all executions are RUNNING ") {
+    val configId = UUID.randomUUID().toString()
+    val runningPipeline1 = pipeline {
+      pipelineConfigId = configId
+      isLimitConcurrent = true
+      status = RUNNING
+      stage {
+        refId = "11"
+        status = RUNNING
+      }
+      stage {
+        refId = "12"
+        status = RUNNING
+      }
+    }
+    val runningPipeline2 = pipeline {
+      pipelineConfigId = configId
+      isLimitConcurrent = true
+      status = RUNNING
+      stage {
+        refId = "21"
+        status = RUNNING
+      }
+      stage {
+        refId = "22"
+        status = RUNNING
+      }
+    }
+
+    val message1 = CompleteExecution(runningPipeline1)
+    val message2 = CompleteExecution(runningPipeline2)
+
+    beforeGroup {
+      whenever(repository.retrieve(PIPELINE, message1.executionId)) doReturn runningPipeline1
+      whenever(repository.retrieve(PIPELINE, message2.executionId)) doReturn runningPipeline2
+    }
+
+    afterGroup(::resetMocks)
+
+    on("receiving message") {
+      subject.handle(message1)
+      subject.handle(message2)
+    }
+
+    it("never triggers RUNNING Pipeline") {
+      verify(queue).push(message1, retryDelay)
+      verify(queue).push(message2, retryDelay)
+      verify(queue, never()).push(StartWaitingExecutions(configId, !runningPipeline1.isKeepWaitingPipelines))
+      verify(queue, never()).push(StartWaitingExecutions(configId, !runningPipeline2.isKeepWaitingPipelines))
     }
   }
 
