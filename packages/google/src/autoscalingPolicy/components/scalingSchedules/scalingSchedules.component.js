@@ -16,44 +16,46 @@ module(GOOGLE_AUTOSCALINGPOLICY_COMPONENTS_SCALINGSCHEDULES_SCALINGSCHEDULES_COM
     },
     templateUrl: require('./scalingSchedules.component.html'),
     controller: function () {
-      const multipleAllowedFor = {
-        scalingSchedules: true,
-      };
+      this.$onInit = () => {
+        const multipleAllowedFor = {
+          scalingSchedules: true,
+        };
 
-      this.timezones = timezones;
+        this.timezones = timezones;
 
-      this.addSchedule = (scheduleType) => {
-        if (multipleAllowedFor[scheduleType]) {
-          this.policy[scheduleType] = this.policy[scheduleType] || [];
-          this.policy[scheduleType].push({});
-        } else if (emptyOrUndefined(this.policy[scheduleType])) {
-          this.policy[scheduleType] = {};
+        this.addSchedule = (scheduleType) => {
+          if (multipleAllowedFor[scheduleType]) {
+            this.policy[scheduleType] = this.policy[scheduleType] || [];
+            this.policy[scheduleType].push({});
+          } else if (emptyOrUndefined(this.policy[scheduleType])) {
+            this.policy[scheduleType] = {};
+          }
+        };
+
+        this.deleteSchedule = (scheduleType, index) => {
+          if (multipleAllowedFor[scheduleType]) {
+            this.policy[scheduleType].splice(index, 1);
+          } else {
+            // sending an empty object to the API deletes the policy.
+            this.policy[scheduleType] = {};
+          }
+        };
+
+        this.selectTimezone = (timezone, index) => {
+          const { scalingSchedules } = this.policy;
+          const schedule = scalingSchedules[index];
+          scalingSchedules[index] = { ...schedule, timezone };
+
+          this.updatePolicy({
+            ...this.policy,
+            scalingSchedules: [...scalingSchedules],
+          });
+        };
+
+        function emptyOrUndefined(value) {
+          return _.isEqual(value, {}) || _.isUndefined(value);
         }
       };
-
-      this.deleteSchedule = (scheduleType, index) => {
-        if (multipleAllowedFor[scheduleType]) {
-          this.policy[scheduleType].splice(index, 1);
-        } else {
-          // sending an empty object to the API deletes the policy.
-          this.policy[scheduleType] = {};
-        }
-      };
-
-      this.selectTimezone = (timezone, index) => {
-        const { scalingSchedules } = this.policy;
-        const schedule = scalingSchedules[index];
-        scalingSchedules[index] = { ...schedule, timezone };
-
-        this.updatePolicy({
-          ...this.policy,
-          scalingSchedules: [...scalingSchedules],
-        });
-      };
-
-      function emptyOrUndefined(value) {
-        return _.isEqual(value, {}) || _.isUndefined(value);
-      }
     },
   },
 );

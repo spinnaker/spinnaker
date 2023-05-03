@@ -10,8 +10,10 @@ module(DCOS_JOB_LABELS_COMPONENT, []).component('dcosLabels', {
   },
   templateUrl: require('./labels.component.html'),
   controller: function () {
-    if (this.labels === undefined || this.labels == null) {
-      this.labels = {};
-    }
+    this.$onInit = () => {
+      if (this.labels === undefined || this.labels == null) {
+        this.labels = {};
+      }
+    };
   },
 });

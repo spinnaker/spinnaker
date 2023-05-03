@@ -12,16 +12,18 @@ module(GOOGLE_LOADBALANCER_DETAILS_LOADBALANCERTYPE_LOADBALANCERTYPE_COMPONENT, 
     loadBalancer: '=',
   },
   controller: function () {
-    this.type = (function (lb) {
-      if (lb.loadBalancerType === 'HTTP') {
-        if (_.isString(lb.certificate)) {
-          return 'HTTPS';
+    this.$onInit = () => {
+      this.type = (function (lb) {
+        if (lb.loadBalancerType === 'HTTP') {
+          if (_.isString(lb.certificate)) {
+            return 'HTTPS';
+          } else {
+            return 'HTTP';
+          }
         } else {
-          return 'HTTP';
+          return lb.loadBalancerType;
         }
-      } else {
-        return lb.loadBalancerType;
-      }
-    })(this.loadBalancer);
+      })(this.loadBalancer);
+    };
   },
 });

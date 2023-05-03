@@ -10,8 +10,10 @@ module(DCOS_JOB_SCHEDULE_COMPONENT, []).component('dcosSchedule', {
   },
   templateUrl: require('./schedule.component.html'),
   controller: function () {
-    if (this.schedule === undefined || this.schedule == null) {
-      this.schedule = {};
-    }
+    this.$onInit = () => {
+      if (this.schedule === undefined || this.schedule == null) {
+        this.schedule = {};
+      }
+    };
   },
 });

@@ -19,15 +19,17 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_HOSTRULE_HOSTRULE_COMPONENT, [
   },
   templateUrl: require('./hostRule.component.html'),
   controller: function () {
-    this.loadBalancer = this.command.loadBalancer;
-    const pathRules = this.hostRule.pathMatcher.pathRules;
+    this.$onInit = () => {
+      this.loadBalancer = this.command.loadBalancer;
+      const pathRules = this.hostRule.pathMatcher.pathRules;
 
-    this.addPathRule = () => {
-      pathRules.push(new PathRuleTemplate());
-    };
+      this.addPathRule = () => {
+        pathRules.push(new PathRuleTemplate());
+      };
 
-    this.deletePathRule = (index) => {
-      pathRules.splice(index, 1);
+      this.deletePathRule = (index) => {
+        pathRules.splice(index, 1);
+      };
     };
   },
 });
