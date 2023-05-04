@@ -100,6 +100,29 @@ class LocalFileUserDataProviderSpec extends Specification {
     useLegacyUdf == localFileUserDataProvider.localFileUserDataProperties.defaultLegacyUdf
   }
 
+  void "isLegacyUdf includes the exception from front50 when failing to read the legacyUdf preference"() {
+    given:
+    // anything other than a 404/not found works here.  On 404, isLegacyUdf falls back to a default.
+    RetrofitError arbitraryRetrofitError = RetrofitError.httpError("url",
+      new Response("url", HttpStatus.INTERNAL_SERVER_ERROR.value(), "some error", [], null),
+      null, null)
+    SpinnakerHttpException spinnakerHttpException = new SpinnakerHttpException(arbitraryRetrofitError)
+    // To speed up the test by avoiding a bunch of retries, set retryable to
+    // false.
+    spinnakerHttpException.setRetryable(false)
+    LocalFileUserDataProvider localFileUserDataProvider = new LocalFileUserDataProvider()
+    localFileUserDataProvider.localFileUserDataProperties = new LocalFileUserDataProperties()
+    localFileUserDataProvider.front50Service = Mock(Front50Service)
+    localFileUserDataProvider.front50Service.getApplication(_) >> {throw spinnakerHttpException}
+
+    when:
+    localFileUserDataProvider.isLegacyUdf("test_account", "unknown_application")
+
+    then:
+    IllegalStateException ex = thrown()
+    ex.cause == spinnakerHttpException
+  }
+
   static String getRawUserData() {
     return [
       "export ACCOUNT=%%account%%",

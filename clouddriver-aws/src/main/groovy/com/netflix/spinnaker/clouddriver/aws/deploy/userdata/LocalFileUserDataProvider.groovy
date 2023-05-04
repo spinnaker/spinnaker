@@ -20,10 +20,14 @@ import com.netflix.spinnaker.clouddriver.aws.userdata.UserDataInput
 import com.netflix.spinnaker.clouddriver.aws.userdata.UserDataProvider
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting
+import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.kork.exceptions.SpinnakerException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import org.springframework.http.HttpStatus
+
+import java.time.Duration
 
 class LocalFileUserDataProvider implements UserDataProvider {
   private static final INSERTION_MARKER = '\nexport EC2_REGION='
@@ -31,6 +35,8 @@ class LocalFileUserDataProvider implements UserDataProvider {
   @VisibleForTesting LocalFileUserDataProperties localFileUserDataProperties
   @VisibleForTesting Front50Service front50Service
   @VisibleForTesting DefaultUserDataTokenizer defaultUserDataTokenizer
+
+  private final RetrySupport retrySupport = new RetrySupport()
 
   @VisibleForTesting
   LocalFileUserDataProvider(){}
@@ -42,7 +48,6 @@ class LocalFileUserDataProvider implements UserDataProvider {
     this.front50Service = front50Service
     this.defaultUserDataTokenizer = defaultUserDataTokenizer
   }
-
 
   boolean isLegacyUdf(String account, String applicationName) {
     Closure<Boolean> result = {
@@ -62,22 +67,11 @@ class LocalFileUserDataProvider implements UserDataProvider {
       }
     }
 
-    // TODO(rz) standardize retry logic
-    final int maxRetry = 5
-    final int retryBackoff = 500
-    final Set<Integer> retryStatus = [429, 500]
-    for (int i = 0; i < maxRetry; i++) {
-      try {
-        return result.call()
-      } catch (SpinnakerHttpException e) {
-        if (retryStatus.contains(e.getResponse().getStatus())) {
-          Thread.sleep(retryBackoff)
-        }
-      } catch (SpinnakerNetworkException e) {
-        Thread.sleep(retryBackoff)
-      } catch (SpinnakerServerException e) {}
+    try {
+      return retrySupport.retry(result, 5, Duration.ofMillis(500), true)
+    } catch (SpinnakerException e) {
+      throw new IllegalStateException("Failed to read legacyUdf preference from front50 for $account/$applicationName", e)
     }
-    throw new IllegalStateException("Failed to read legacyUdf preference from front50 for $account/$applicationName")
   }
 
   @Override
