@@ -1,0 +1,105 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-last-modified-at-indexes
+      author: dbyron
+      changes:
+      - createIndex:
+          indexName: last_modified_at_applications_idx
+          tableName: applications
+          columns:
+          - column:
+              name: last_modified_at
+      - createIndex:
+          indexName: last_modified_at_application_permissions_idx
+          tableName: application_permissions
+          columns:
+            - column:
+                name: last_modified_at
+      - createIndex:
+          indexName: last_modified_at_deliveries_idx
+          tableName: deliveries
+          columns:
+            - column:
+                name: last_modified_at
+      - createIndex:
+          indexName: last_modified_at_entity_tags_idx
+          tableName: entity_tags
+          columns:
+            - column:
+                name: last_modified_at
+      - createIndex:
+          indexName: last_modified_at_notifications_idx
+          tableName: notifications
+          columns:
+            - column:
+                name: last_modified_at
+      - createIndex:
+          indexName: last_modified_at_pipeline_strategies_idx
+          tableName: pipeline_strategies
+          columns:
+            - column:
+                name: last_modified_at
+      - createIndex:
+          indexName: last_modified_at_pipeline_templates_idx
+          tableName: pipeline_templates
+          columns:
+            - column:
+                name: last_modified_at
+      - createIndex:
+          indexName: last_modified_at_pipelines_idx
+          tableName: pipelines
+          columns:
+            - column:
+                name: last_modified_at
+      - createIndex:
+          indexName: last_modified_at_projects_idx
+          tableName: projects
+          columns:
+            - column:
+                name: last_modified_at
+      - createIndex:
+          indexName: last_modified_at_service_accounts_idx
+          tableName: service_accounts
+          columns:
+            - column:
+                name: last_modified_at
+      - createIndex:
+          indexName: last_modified_at_snapshots_idx
+          tableName: snapshots
+          columns:
+            - column:
+                name: last_modified_at
+      rollback:
+      - dropIndex:
+          indexName: last_modified_at_applications_idx
+          tableName: applications
+      - dropIndex:
+          indexName: last_modified_at_application_permissions_idx
+          tableName: application_permissions
+      - dropIndex:
+          indexName: last_modified_at_deliveries_idx
+          tableName: deliveries
+      - dropIndex:
+          indexName: last_modified_at_entity_tags_idx
+          tableName: entity_tags
+      - dropIndex:
+          indexName: last_modified_at_notifications_idx
+          tableName: notifications
+      - dropIndex:
+          indexName: last_modified_at_pipeline_strategies_idx
+          tableName: pipeline_strategies
+      - dropIndex:
+          indexName: last_modified_at_pipeline_templates_idx
+          tableName: pipeline_templates
+      - dropIndex:
+          indexName: last_modified_at_pipelines_idx
+          tableName: pipelines
+      - dropIndex:
+          indexName: last_modified_at_projects_idx
+          tableName: projects
+      - dropIndex:
+          indexName: last_modified_at_service_accounts_idx
+          tableName: service_accounts
+      - dropIndex:
+          indexName: last_modified_at_snapshots_idx
+          tableName: snapshots

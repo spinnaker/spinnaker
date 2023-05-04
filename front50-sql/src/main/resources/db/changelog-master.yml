@@ -50,3 +50,6 @@ databaseChangeLog:
   - include:
       file: changelog/20200428-initial-plugin-versions-schema.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20230420-add-last-modified-at-indexes.yml
+      relativeToChangelogFile: true
