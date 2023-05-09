@@ -80,8 +80,15 @@ export class EcsNetworking extends React.Component<IEcsNetworkingProps, IEcsNetw
 
   private updateNetworkMode = (newNetworkMode: Option<string>) => {
     const updatedNetworkMode = newNetworkMode.value;
+    const cmd = this.props.command;
     this.props.notifyAngular('networkMode', updatedNetworkMode);
-    this.setState({ networkMode: updatedNetworkMode });
+    this.setState({
+      networkMode: updatedNetworkMode,
+      subnetTypesAvailable:
+        cmd.backingData && cmd.backingData.filtered && cmd.backingData.filtered.subnetTypes
+          ? cmd.backingData.filtered.subnetTypes
+          : [],
+    });
   };
 
   private updateSecurityGroups = (newSecurityGroups: Option<string>) => {
