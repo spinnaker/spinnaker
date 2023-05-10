@@ -139,7 +139,7 @@
     "jquery-ui": "1.13.2",
     "js-worker-search": "^1.2.1",
     "license-checker": "^15.0.0",
-    "luxon": "1.23.0",
+    "luxon": "1.28.1",
     "npm-run-all": "4.1.5",
     "prettier": "2.1.2",
     "pretty-quick": "3.1.0",
