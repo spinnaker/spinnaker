@@ -53,7 +53,7 @@ public class KubernetesDeleteManifestValidator
 
     for (KubernetesCoordinates coordinate : coordinates) {
       if (!util.validateCredentials(
-          provider, description.getAccount(), coordinate.getKind(), coordinate.getNamespace())) {
+          provider, description.getAccount(), coordinate.getNamespace())) {
         return;
       }
     }

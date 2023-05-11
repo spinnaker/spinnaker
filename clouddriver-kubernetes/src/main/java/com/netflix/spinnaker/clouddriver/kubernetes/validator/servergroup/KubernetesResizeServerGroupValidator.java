@@ -43,10 +43,7 @@ public class KubernetesResizeServerGroupValidator
     KubernetesValidationUtil util =
         new KubernetesValidationUtil("deployKubernetesManifest", errors);
     if (!util.validateCredentials(
-        provider,
-        description.getAccount(),
-        description.getCoordinates().getKind(),
-        description.getCoordinates().getNamespace())) {
+        provider, description.getAccount(), description.getCoordinates().getNamespace())) {
       return;
     }
 

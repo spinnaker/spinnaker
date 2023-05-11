@@ -47,12 +47,7 @@ public class KubernetesRollingRestartManifestValidator
       ValidationErrors errors) {
     KubernetesValidationUtil util =
         new KubernetesValidationUtil("rollingRestartKubernetesManifest", errors);
-    if (!util.validateCredentials(
-        provider,
-        description.getAccount(),
-        description.getPointCoordinates().getKind(),
-        description.getPointCoordinates().getNamespace())) {
-      return;
-    }
+    util.validateCredentials(
+        provider, description.getAccount(), description.getPointCoordinates().getNamespace());
   }
 }

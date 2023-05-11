@@ -18,12 +18,9 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.validator;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors;
-import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials.KubernetesKindStatus;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import java.util.ArrayList;
@@ -66,17 +63,13 @@ public class KubernetesValidationUtil {
 
   public boolean validateCredentials(
       AccountCredentialsProvider provider, String accountName, KubernetesManifest manifest) {
-    KubernetesKind kind = manifest.getKind();
     String namespace = manifest.getNamespace();
-    return validateCredentials(provider, accountName, kind, namespace);
+    return validateCredentials(provider, accountName, namespace);
   }
 
   public boolean validateCredentials(
-      AccountCredentialsProvider provider,
-      String accountName,
-      KubernetesKind kind,
-      String namespace) {
-    log.info("Validating credentials for {} {} {}", accountName, kind, namespace);
+      AccountCredentialsProvider provider, String accountName, String namespace) {
+    log.info("Validating credentials for {} {}", accountName, namespace);
     if (Strings.isNullOrEmpty(accountName)) {
       reject("empty", "account");
       return false;
@@ -97,30 +90,7 @@ public class KubernetesValidationUtil {
       return false;
     }
 
-    if (!validateNamespace(namespace, (KubernetesCredentials) credentials.getCredentials())) {
-      return false;
-    }
-
-    if (!validateKind(kind, (KubernetesCredentials) credentials.getCredentials())) {
-      return false;
-    }
-
-    return true;
-  }
-
-  // When validating a kind, we'll allow kinds that are either valid or unknown. This is to support
-  // the case where a user is deploying a multi-manifest (perhaps from a Helm chart) that contains
-  // a CRD and an object using that CRD.
-  private static final ImmutableSet<KubernetesKindStatus> validKindStatuses =
-      ImmutableSet.of(KubernetesKindStatus.VALID, KubernetesKindStatus.UNKNOWN);
-
-  private boolean validateKind(KubernetesKind kind, KubernetesCredentials credentials) {
-    KubernetesKindStatus kindStatus = credentials.getKindStatus(kind);
-    if (!validKindStatuses.contains(kindStatus)) {
-      reject(kindStatus.getErrorMessage(kind), kind.toString());
-      return false;
-    }
-    return true;
+    return validateNamespace(namespace, (KubernetesCredentials) credentials.getCredentials());
   }
 
   protected boolean validateNamespace(String namespace, KubernetesCredentials credentials) {

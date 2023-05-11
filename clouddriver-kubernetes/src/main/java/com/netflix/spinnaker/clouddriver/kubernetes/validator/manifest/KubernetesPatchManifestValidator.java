@@ -56,12 +56,7 @@ public class KubernetesPatchManifestValidator
       return;
     }
 
-    if (!util.validateCredentials(
-        provider,
-        description.getAccount(),
-        description.getPointCoordinates().getKind(),
-        description.getPointCoordinates().getNamespace())) {
-      return;
-    }
+    util.validateCredentials(
+        provider, description.getAccount(), description.getPointCoordinates().getNamespace());
   }
 }

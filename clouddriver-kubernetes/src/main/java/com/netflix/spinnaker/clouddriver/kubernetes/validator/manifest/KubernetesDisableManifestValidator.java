@@ -43,10 +43,7 @@ public class KubernetesDisableManifestValidator
     KubernetesValidationUtil util =
         new KubernetesValidationUtil("disableKubernetesManifest", errors);
     if (!util.validateCredentials(
-        provider,
-        description.getAccount(),
-        description.getPointCoordinates().getKind(),
-        description.getPointCoordinates().getNamespace())) {
+        provider, description.getAccount(), description.getPointCoordinates().getNamespace())) {
       return;
     }
   }
