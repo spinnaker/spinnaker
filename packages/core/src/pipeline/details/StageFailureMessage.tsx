@@ -5,6 +5,7 @@ import React from 'react';
 
 import type { IExecutionStage, ITaskStep } from '../../domain';
 import { EventBus } from '../../event/EventBus';
+import { Overridable } from '../../overrideRegistry';
 import { Markdown, robotToHuman } from '../../presentation';
 import { ReactInjector } from '../../reactShims';
 import { TrafficGuardHelperLink } from '../../task/TrafficGuardHelperLink';
@@ -27,6 +28,7 @@ export enum StageFailureMessages {
   NO_REASON_PROVIDED = 'No reason provided.',
 }
 
+@Overridable('stageFailureMessage')
 @UIRouterContext
 export class StageFailureMessage extends React.Component<IStageFailureMessageProps, IStageFailureMessageState> {
   public static defaultProps: Partial<IStageFailureMessageProps> = {
