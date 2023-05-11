@@ -98,7 +98,7 @@ jobs:
           script: |
             const { owner, repo } = context.repo;
             const pull_number = ${{ steps.createpullrequest.outputs.pull-request-number }};
-            await github.pulls.update({ owner, repo, pull_number, state: 'closed' });
+            await github.rest.pulls.update({ owner, repo, pull_number, state: 'closed' });
 
       - name: Approve package bump
         if: ${{ steps.lerna_bump.outputs.packageBumpCommitHash != '' && steps.createpullrequest.outputs.pull-request-number != '' }}
@@ -110,9 +110,9 @@ jobs:
             const pull_number = ${{ steps.createpullrequest.outputs.pull-request-number }};
             const users = ['spinnakerbot', 'spinnakerbot2'];
 
-            const reviews = await github.pulls.listReviews({ owner, repo, pull_number });
+            const reviews = await github.rest.pulls.listReviews({ owner, repo, pull_number });
             const approved = reviews.data.some((review) => users.includes(review.user.login) && review.state == 'APPROVED');
 
             if (!approved) {
-              await github.pulls.createReview({ owner, repo, pull_number, event: 'APPROVE' });
+              await github.rest.pulls.createReview({ owner, repo, pull_number, event: 'APPROVE' });
             }
