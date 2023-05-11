@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.24.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.23.2...@spinnaker/core@0.24.0) (2023-05-11)
+
+
+### Features
+
+* **deck:** make StageFailureMessage component overridable ([#9994](https://github.com/spinnaker/deck/issues/9994)) ([39f70cc](https://github.com/spinnaker/deck/commit/39f70ccae0ce2027a63da60a7e6f2f08fe8f7240))
+
+
+
+
+
 ## [0.23.2](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.23.1...@spinnaker/core@0.23.2) (2023-05-03)
 
 
