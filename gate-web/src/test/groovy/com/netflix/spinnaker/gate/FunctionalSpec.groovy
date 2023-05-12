@@ -86,11 +86,7 @@ class FunctionalSpec extends Specification {
     serviceConfiguration = new ServiceConfiguration()
     fiatStatus = Mock(FiatStatus)
 
-
-    def sock = new ServerSocket(0)
-    def localPort = sock.localPort
-    sock.close()
-    System.setProperty("server.port", localPort.toString())
+    System.setProperty("server.port", "0") // to get a random port
     System.setProperty("saml.enabled", "false")
     System.setProperty('spring.session.store-type', 'NONE')
     System.setProperty("spring.main.allow-bean-definition-overriding", "true")
@@ -100,6 +96,7 @@ class FunctionalSpec extends Specification {
     spring.setSources([FunctionalConfiguration] as Set)
     ctx = spring.run()
 
+    def localPort = ctx.environment.getProperty("local.server.port")
     api = new RestAdapter.Builder()
         .setEndpoint("http://localhost:${localPort}")
         .setClient(new OkClient())
@@ -109,7 +106,7 @@ class FunctionalSpec extends Specification {
   }
 
   def cleanup() {
-    ctx.close()
+    ctx?.close()
   }
 
   void "should call ApplicationService for applications"() {
