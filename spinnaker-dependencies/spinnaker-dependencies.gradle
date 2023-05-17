@@ -62,8 +62,10 @@ dependencies {
   //Upgrade of spring boot 2.5.x brings groovy 3.x as transitive dependency.
   //To avoid transitive upgrade of groovy, pinning it with enforcedPlatform() closure.
   //It forces version for internal submodules of kork as well as for all the consumer spinnaker services.
-  api(enforcedPlatform("org.codehaus.groovy:groovy-bom:${versions.groovy}")){
-     force = true
+  api(enforcedPlatform("org.codehaus.groovy:groovy-bom")){
+     version {
+       strictly "${versions.groovy}"
+     }
   }
   api(platform("org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.4.3"))
   //kotlinVersion comes from gradle.properties since we have kotlin code in
@@ -89,14 +91,20 @@ dependencies {
     //A bug is reported in 1.2.11 and fixed in 1.2.12.
     //So pinning the version to 1.2.10 untill required package is released.
     //[https://jira.qos.ch/browse/LOGBACK-1623]
-    api("ch.qos.logback:logback-core:${versions.logback}"){
-       force = true
+    api("ch.qos.logback:logback-core"){
+       version {
+         strictly "${versions.logback}"
+       }
     }
-    api("ch.qos.logback:logback-classic:${versions.logback}"){
-       force = true
+    api("ch.qos.logback:logback-classic"){
+       version {
+         strictly "${versions.logback}"
+       }
     }
-    api("ch.qos.logback:logback-classic:${versions.logback}"){
-       force = true
+    api("ch.qos.logback:logback-classic"){
+       version {
+         strictly "${versions.logback}"
+       }
     }
     api("com.amazonaws:aws-java-sdk:${versions.aws}")
     api("com.google.api-client:google-api-client:1.30.10") // TODO: Track update for CVE-2020-7692, reanalysis pending.
@@ -161,17 +169,25 @@ dependencies {
     api("de.huxhorn.sulky:de.huxhorn.sulky.ulid:8.2.0")
     api("dev.minutest:minutest:1.13.0")
     api("io.mockk:mockk:1.10.5")
-    api("io.rest-assured:rest-assured:${versions.restassured}"){
-       force = true
+    api("io.rest-assured:rest-assured"){
+       version {
+         strictly "${versions.restassured}"
+       }
     }
-    api("io.rest-assured:rest-assured-common:${versions.restassured}"){
-       force = true
+    api("io.rest-assured:rest-assured-common"){
+       version {
+         strictly "${versions.restassured}"
+       }
     }
-    api("io.rest-assured:json-path:${versions.restassured}"){
-       force = true
+    api("io.rest-assured:json-path"){
+       version {
+         strictly "${versions.restassured}"
+       }
     }
-    api("io.rest-assured:xml-path:${versions.restassured}"){
-       force = true
+    api("io.rest-assured:xml-path"){
+       version {
+         strictly "${versions.restassured}"
+       }
     }
     api("io.springfox:springfox-swagger-ui:${versions.springfoxSwagger}")
     api("io.springfox:springfox-swagger2:${versions.springfoxSwagger}")
@@ -204,8 +220,10 @@ dependencies {
     // hinders the migration of sql scripts available in orca
     // (https://github.com/spinnaker/orca/tree/master/orca-sql/src/main/resources/db/changelog),
     // containing `afterColumn` construct, with a validation error for postgresql. So pin with 3.10.3
-    api("org.liquibase:liquibase-core:3.10.3"){
-       force = true
+    api("org.liquibase:liquibase-core"){
+       version {
+         strictly "3.10.3"
+       }
     }
     api("org.objenesis:objenesis:2.5.1")
     api("org.pf4j:pf4j:3.2.0")
