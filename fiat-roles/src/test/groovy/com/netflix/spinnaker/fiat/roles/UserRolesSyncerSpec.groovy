@@ -74,7 +74,7 @@ class UserRolesSyncerSpec extends Specification {
   RedisPermissionsRepository repo
 
   def setupSpec() {
-    embeddedRedis = new GenericContainer(DockerImageName.parse("redis:5-alpine")).withExposedPorts(6379)
+    embeddedRedis = new GenericContainer(DockerImageName.parse("library/redis:5-alpine")).withExposedPorts(6379)
     embeddedRedis.start()
     jedisPool = new JedisPool(embeddedRedis.host, embeddedRedis.getMappedPort(6379))
     jedis = jedisPool.getResource()

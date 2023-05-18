@@ -32,7 +32,7 @@ class RedisContainerConfig {
 
   @Bean(destroyMethod = "stop")
   GenericContainer redisContainer() {
-    def redisContainer = new GenericContainer(DockerImageName.parse("redis:5-alpine"))
+    def redisContainer = new GenericContainer(DockerImageName.parse("library/redis:5-alpine"))
       .withExposedPorts(6379);
 
     redisContainer.start()

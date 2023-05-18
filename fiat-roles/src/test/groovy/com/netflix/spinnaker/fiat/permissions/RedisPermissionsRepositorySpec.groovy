@@ -87,7 +87,7 @@ class RedisPermissionsRepositorySpec extends Specification {
   Clock clock = new TestClock()
 
   def setupSpec() {
-    embeddedRedis = new GenericContainer(DockerImageName.parse("redis:5-alpine")).withExposedPorts(6379)
+    embeddedRedis = new GenericContainer(DockerImageName.parse("library/redis:5-alpine")).withExposedPorts(6379)
     embeddedRedis.start()
     def jedisPool = new JedisPool(embeddedRedis.host, embeddedRedis.getMappedPort(6379))
     jedis = jedisPool.getResource()
