@@ -401,6 +401,7 @@ final class DeployManifestStageTest {
   }
 
   private void givenManifestIs(Manifest manifest) {
-    when(oortService.getManifest(anyString(), anyString(), anyBoolean())).thenReturn(manifest);
+    when(oortService.getManifest(anyString(), anyString(), anyString(), anyBoolean()))
+        .thenReturn(manifest);
   }
 }
