@@ -22,6 +22,8 @@ import com.netflix.spinnaker.gradle.publishing.PublishingPlugin
 import com.netflix.spinnaker.gradle.publishing.nexus.NexusPublishPlugin
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.file.DuplicatesStrategy
+import org.gradle.api.tasks.AbstractCopyTask
 
 class SpinnakerProjectPlugin implements Plugin<Project> {
 
@@ -31,5 +33,8 @@ class SpinnakerProjectPlugin implements Plugin<Project> {
     project.plugins.apply(PublishingPlugin)
     project.plugins.apply(ArtifactRegistryPublishPlugin)
     project.plugins.apply(NexusPublishPlugin)
+    project.tasks.withType(AbstractCopyTask) {
+       it.configure {setProperty("duplicatesStrategy",DuplicatesStrategy.EXCLUDE)}
+    }
   }
 }
