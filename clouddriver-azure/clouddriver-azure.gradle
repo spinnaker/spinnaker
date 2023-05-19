@@ -16,9 +16,7 @@ dependencies {
   implementation "com.azure.resourcemanager:azure-resourcemanager:2.19.0"
   implementation "com.azure:azure-identity:1.6.0"
   implementation "com.azure:azure-storage-blob:12.19.1"
-  implementation("io.projectreactor:reactor-core:3.4.23") {
-    force = true
-  }
+  implementation "io.projectreactor:reactor-core"
   implementation "com.google.guava:guava:31.1-jre"
 
   testImplementation "cglib:cglib-nodep"
@@ -31,4 +29,8 @@ dependencies {
   testImplementation 'org.assertj:assertj-core:3.23.1'
 
 
+}
+
+configurations.all {
+   resolutionStrategy.force 'io.projectreactor:reactor-core:3.4.23'
 }

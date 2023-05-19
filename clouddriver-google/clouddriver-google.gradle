@@ -14,9 +14,7 @@ dependencies {
   implementation "org.codehaus.groovy:groovy"
   implementation "org.codehaus.groovy:groovy-json"
   implementation "org.apache.commons:commons-lang3"
-  implementation ("com.google.apis:google-api-services-compute:beta-rev20201102-1.30.10") {
-    force = true
-  }
+  implementation "com.google.apis:google-api-services-compute"
   implementation "com.google.guava:guava"
   implementation "com.google.apis:google-api-services-iam"
   implementation 'com.google.auth:google-auth-library-oauth2-http'
@@ -51,4 +49,8 @@ dependencies {
   testImplementation "org.spockframework:spock-spring"
   testImplementation "org.springframework:spring-test"
   testImplementation "org.springframework.boot:spring-boot-test"
+}
+
+configurations.all {
+   resolutionStrategy.force 'com.google.apis:google-api-services-compute:beta-rev20201102-1.30.10'
 }
