@@ -78,6 +78,20 @@ class RedBlackToBlueGreenK8sPipelinesMigrationSpec extends Specification {
     0 * _
   }
 
+  def "should not migrate K8s pipeline that has no stages"() {
+    given:
+    def pipelineWithNoStages = "{\"id\":\"pipeline-1\",\"name\":null,\"application\":\"application1\",\"type\":null,\"schema\":\"1\",\"config\":null,\"triggers\":[],\"index\":null,\"updateTs\":null,\"lastModifiedBy\":null,\"lastModified\":null,\"email\":null,\"disabled\":null,\"template\":null,\"roles\":null,\"serviceAccount\":null,\"executionEngine\":null,\"stageCounter\":null,\"constraints\":null,\"payloadConstraints\":null,\"keepWaitingPipelines\":null,\"limitConcurrent\":null,\"maxConcurrentExecutions\":null,\"parameterConfig\":null,\"spelEvaluator\":null,\"any\":{},\"createdAt\":null}"
+    def pipeline = this.objectMapper.readValue(pipelineWithNoStages, Pipeline.class)
+
+    when:
+    migration.run()
+
+    then:
+    1 * pipelineDAO.all() >> { return [pipeline] }
+    0 * pipelineDAO.update("pipeline-1", _)
+    0 * _
+  }
+
   def "should migrate K8s pipeline that is using redblack strategy"() {
     given:
     def pipelineWithRedBlackStrategy = "{\"id\":\"pipeline-2\",\"name\":null,\"application\":\"application2\",\"type\":null,\"schema\":\"1\",\"config\":null,\"triggers\":[],\"index\":null,\"updateTs\":null,\"lastModifiedBy\":null,\"lastModified\":null,\"email\":null,\"disabled\":null,\"template\":null,\"roles\":null,\"serviceAccount\":null,\"executionEngine\":null,\"stageCounter\":null,\"stages\":[{\"cloudProvider\":\"kubernetes\",\"trafficManagement\":{\"options\":{\"strategy\":\"redblack\"},\"enabled\":true},\"type\":\"deployManifest\"}],\"constraints\":null,\"payloadConstraints\":null,\"keepWaitingPipelines\":null,\"limitConcurrent\":null,\"maxConcurrentExecutions\":null,\"parameterConfig\":null,\"spelEvaluator\":null,\"any\":{},\"createdAt\":null}"

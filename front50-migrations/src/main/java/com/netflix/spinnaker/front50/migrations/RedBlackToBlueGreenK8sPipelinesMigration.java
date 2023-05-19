@@ -17,10 +17,7 @@ package com.netflix.spinnaker.front50.migrations;
 
 import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Predicate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -77,7 +74,7 @@ public class RedBlackToBlueGreenK8sPipelinesMigration implements Migration {
 
   private static Predicate<Pipeline> pipelineWithRedBlackStrategyPredicate() {
     return pipeline ->
-        pipeline.getStages().stream()
+        Optional.ofNullable(pipeline.getStages()).orElseGet(ArrayList::new).stream()
             .filter(RedBlackToBlueGreenK8sPipelinesMigration::kubernetesProvider)
             .filter(RedBlackToBlueGreenK8sPipelinesMigration::deployManifestStage)
             .map(RedBlackToBlueGreenK8sPipelinesMigration::getTrafficManagement)
