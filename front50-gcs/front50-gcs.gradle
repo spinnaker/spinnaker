@@ -21,16 +21,9 @@ dependencies {
   implementation project(":front50-api")
 
   implementation "com.fasterxml.jackson.core:jackson-databind"
-  implementation ("com.google.apis:google-api-services-storage:v1-rev20200326-1.30.9") {
-       force=true
-  }
-  implementation ("com.google.auth:google-auth-library-oauth2-http:0.20.0") {
-       force=true
-  }
-  // TODO(plumpy): remove version once added to kork
-  implementation ("com.google.cloud:google-cloud-storage:1.108.0") {
-       force=true
-  }
+  implementation "com.google.apis:google-api-services-storage"
+  implementation "com.google.auth:google-auth-library-oauth2-http"
+  implementation "com.google.cloud:google-cloud-storage"
   implementation "com.google.guava:guava"
   implementation "com.netflix.spectator:spectator-api"
   implementation "io.spinnaker.kork:kork-exceptions"
@@ -48,4 +41,11 @@ dependencies {
   testImplementation "io.strikt:strikt-core"
   testImplementation "io.mockk:mockk"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
+}
+
+configurations.all {
+   resolutionStrategy.force 'com.google.apis:google-api-services-storage:v1-rev20200326-1.30.9'
+   resolutionStrategy.force 'com.google.auth:google-auth-library-oauth2-http:0.20.0'
+   // TODO(plumpy): remove version once added to kork
+   resolutionStrategy.force 'com.google.cloud:google-cloud-storage:1.108.0'
 }

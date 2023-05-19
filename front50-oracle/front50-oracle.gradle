@@ -4,13 +4,15 @@ dependencies {
 
   implementation "com.github.ben-manes.caffeine:guava"
   implementation "io.spinnaker.kork:kork-core"
-  implementation ('com.oracle.oci.sdk:oci-java-sdk-objectstorage:1.19.1'){
-        force=true
-  }
+  implementation 'com.oracle.oci.sdk:oci-java-sdk-objectstorage'
   implementation "com.sun.jersey:jersey-client:1.19.4"
   implementation "org.springframework.boot:spring-boot-autoconfigure"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
 
   testImplementation project(":front50-test")
+}
+
+configurations.all {
+   resolutionStrategy.force 'com.oracle.oci.sdk:oci-java-sdk-objectstorage:1.19.1'
 }
