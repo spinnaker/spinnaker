@@ -51,7 +51,9 @@ class GetPipelinesFromArtifactTaskSpec extends Specification {
     1 * artifactUtils.getBoundArtifactForStage(_, '123', _) >> Artifact.builder().type('http/file')
       .reference('url1').build()
     1 * oortService.fetchArtifact(_) >> Calls.response(ResponseBody.create(MediaType.parse("application/json"), pipelineJson))
-    front50Service.getPipelines(_) >> { return Calls.response([]) }
+    1 * front50Service.getPipelines("app1") >> Calls.response([])
+    1 * front50Service.getPipelines("app2") >> Calls.response([])
+    0 * front50Service._
     result.status == ExecutionStatus.SUCCEEDED
     final pipelinesToSave = ((List<Map>) result.context.get("pipelinesToSave"))
     pipelinesToSave.size() == 3
@@ -69,10 +71,11 @@ class GetPipelinesFromArtifactTaskSpec extends Specification {
     1 * artifactUtils.getBoundArtifactForStage(_, '123', _) >> Artifact.builder().type('http/file')
       .reference('url1').build()
     1 * oortService.fetchArtifact(_) >> Calls.response(ResponseBody.create(MediaType.parse("application/json"),pipelineJson))
-    front50Service.getPipelines("app1") >> { return Calls.response([]) }
-    front50Service.getPipelines("app2") >> { return Calls.response( [
+    1 * front50Service.getPipelines("app1") >> Calls.response([])
+    1 * front50Service.getPipelines("app2") >> Calls.response( [
       [name: "just judging", id: "exitingPipelineId"]
-    ]) }
+    ])
+    0 * front50Service._
     result.status == ExecutionStatus.SUCCEEDED
     final pipelinesToSave = ((List<Map>) result.context.get("pipelinesToSave"))
     pipelinesToSave.size() == 3
@@ -89,6 +92,7 @@ class GetPipelinesFromArtifactTaskSpec extends Specification {
 
     then:
     1 * artifactUtils.getBoundArtifactForStage(_, '123', _) >> null
+    0 * front50Service._
     IllegalArgumentException ex = thrown()
     ex.message == "No artifact could be bound to '123'"
   }
