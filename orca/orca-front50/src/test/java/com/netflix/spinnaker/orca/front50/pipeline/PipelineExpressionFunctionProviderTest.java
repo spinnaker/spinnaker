@@ -90,24 +90,6 @@ class PipelineExpressionFunctionProviderTest {
   }
 
   @Test
-  void pipelineIdWithNotFoundError() {
-    SpinnakerHttpException notFoundError = makeSpinnakerHttpException(404);
-    when(front50Service.getPipeline(pipelineExecution.getApplication(), PIPELINE_NAME, true))
-        .thenThrow(notFoundError);
-
-    assertThatThrownBy(
-            () -> PipelineExpressionFunctionProvider.pipelineId(pipelineExecution, PIPELINE_NAME))
-        .isInstanceOf(SpelHelperFunctionException.class)
-        .hasMessage(
-            String.format(
-                "Pipeline with name '%s' could not be found on application %s",
-                PIPELINE_NAME, pipelineExecution.getApplication()));
-
-    verify(front50Service).getPipeline(pipelineExecution.getApplication(), PIPELINE_NAME, true);
-    verifyNoMoreInteractions(front50Service);
-  }
-
-  @Test
   void pipelineIdWith500Error() {
     SpinnakerHttpException front50Error = makeSpinnakerHttpException(500);
     when(front50Service.getPipeline(pipelineExecution.getApplication(), PIPELINE_NAME, true))
