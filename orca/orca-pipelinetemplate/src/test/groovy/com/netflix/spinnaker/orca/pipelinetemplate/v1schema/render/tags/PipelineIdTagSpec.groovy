@@ -154,7 +154,16 @@ class PipelineIdTagSpec extends Specification {
     ])
     0 * front50Service._
 
-    result == "null"
+    def e = thrown(TemplateRenderException)
+    e.message == 'failed rendering jinja template'
+    e.cause.class == FatalTemplateErrorsException
+    FatalTemplateErrorsException fte = (FatalTemplateErrorsException) e.cause
+    fte.getErrors().size() == 1
+    def underlyingException = fte.getErrors()[0].getException()
+    underlyingException.class == InterpretException
+    underlyingException.message == 'Error rendering tag'
+    underlyingException.cause.class == TemplateRenderException
+    underlyingException.cause.message == "Pipeline with name 'Bake and Tag' in application 'myApp' has no id"
   }
 
   def 'should render pipeline id using variables defined in context'() {

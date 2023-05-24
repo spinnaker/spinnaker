@@ -89,7 +89,15 @@ public class PipelineIdTag implements Tag {
                         Retrofit2SyncCall.execute(front50Service.getPipelines(appName, false)))
                     .orElse(Collections.emptyList()));
     Map<String, Object> result = findPipeline(pipelines, application, name);
-    return (String) result.get("id");
+    String pipelineId = (String) result.get("id");
+    if (pipelineId == null) {
+      throw TemplateRenderException.fromError(
+          new Error()
+              .withMessage(
+                  String.format(
+                      "Pipeline with name '%s' in application '%s' has no id", name, application)));
+    }
+    return pipelineId;
   }
 
   private String checkContext(String param, Context context) {
