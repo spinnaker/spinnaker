@@ -27,7 +27,6 @@ import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import okhttp3.MediaType;
@@ -71,8 +70,9 @@ class PipelineExpressionFunctionProviderTest {
   void pipelineIdForPipelineNameThatDoesNotExist() {
     String doesNotExistPipelineName = "does-not-exist-pipeline";
     assertThat(doesNotExistPipelineName).isNotEqualTo(PIPELINE_NAME);
-    when(front50Service.getPipelines(pipelineExecution.getApplication()))
-        .thenReturn(Calls.response(Collections.emptyList()));
+    when(front50Service.getPipeline(
+            pipelineExecution.getApplication(), doesNotExistPipelineName, true))
+        .thenThrow(makeSpinnakerHttpException(404));
 
     assertThatThrownBy(
             () ->
@@ -84,29 +84,34 @@ class PipelineExpressionFunctionProviderTest {
                 "Pipeline with name '%s' could not be found on application %s",
                 doesNotExistPipelineName, pipelineExecution.getApplication()));
 
-    verify(front50Service).getPipelines(pipelineExecution.getApplication());
+    verify(front50Service)
+        .getPipeline(pipelineExecution.getApplication(), doesNotExistPipelineName, true);
     verifyNoMoreInteractions(front50Service);
   }
 
   @Test
   void pipelineIdWithNotFoundError() {
     SpinnakerHttpException notFoundError = makeSpinnakerHttpException(404);
-    when(front50Service.getPipelines(pipelineExecution.getApplication())).thenThrow(notFoundError);
+    when(front50Service.getPipeline(pipelineExecution.getApplication(), PIPELINE_NAME, true))
+        .thenThrow(notFoundError);
 
     assertThatThrownBy(
             () -> PipelineExpressionFunctionProvider.pipelineId(pipelineExecution, PIPELINE_NAME))
         .isInstanceOf(SpelHelperFunctionException.class)
-        .hasMessage("Failed to evaluate #pipelineId function")
-        .hasCause(notFoundError);
+        .hasMessage(
+            String.format(
+                "Pipeline with name '%s' could not be found on application %s",
+                PIPELINE_NAME, pipelineExecution.getApplication()));
 
-    verify(front50Service).getPipelines(pipelineExecution.getApplication());
+    verify(front50Service).getPipeline(pipelineExecution.getApplication(), PIPELINE_NAME, true);
     verifyNoMoreInteractions(front50Service);
   }
 
   @Test
   void pipelineIdWith500Error() {
     SpinnakerHttpException front50Error = makeSpinnakerHttpException(500);
-    when(front50Service.getPipelines(pipelineExecution.getApplication())).thenThrow(front50Error);
+    when(front50Service.getPipeline(pipelineExecution.getApplication(), PIPELINE_NAME, true))
+        .thenThrow(front50Error);
 
     assertThatThrownBy(
             () -> PipelineExpressionFunctionProvider.pipelineId(pipelineExecution, PIPELINE_NAME))
@@ -115,20 +120,21 @@ class PipelineExpressionFunctionProviderTest {
         .hasCause(front50Error);
 
     // There are 3 retries.
-    verify(front50Service, times(3)).getPipelines(pipelineExecution.getApplication());
+    verify(front50Service, times(3))
+        .getPipeline(pipelineExecution.getApplication(), PIPELINE_NAME, true);
     verifyNoMoreInteractions(front50Service);
   }
 
   @Test
   void pipelineIdForPipelineNameThatExists() {
-    when(front50Service.getPipelines(pipelineExecution.getApplication()))
-        .thenReturn(Calls.response(PIPELINES));
+    when(front50Service.getPipeline(pipelineExecution.getApplication(), PIPELINE_NAME, true))
+        .thenReturn(Calls.response(PIPELINE));
     String pipelineId =
         PipelineExpressionFunctionProvider.pipelineId(pipelineExecution, PIPELINE_NAME);
 
     assertThat(pipelineId).isEqualTo(PIPELINE_ID);
 
-    verify(front50Service).getPipelines(pipelineExecution.getApplication());
+    verify(front50Service).getPipeline(pipelineExecution.getApplication(), PIPELINE_NAME, true);
     verifyNoMoreInteractions(front50Service);
   }
 
@@ -136,28 +142,30 @@ class PipelineExpressionFunctionProviderTest {
   void pipelineIdOrNullForPipelineNameThatDoesNotExist() {
     String doesNotExistPipelineName = "does-not-exist-pipeline";
     assertThat(doesNotExistPipelineName).isNotEqualTo(PIPELINE_NAME);
-    when(front50Service.getPipelines(pipelineExecution.getApplication()))
-        .thenReturn(Calls.response(Collections.emptyList()));
+    when(front50Service.getPipeline(
+            pipelineExecution.getApplication(), doesNotExistPipelineName, true))
+        .thenThrow(makeSpinnakerHttpException(404));
 
     assertThat(
             PipelineExpressionFunctionProvider.pipelineIdOrNull(
                 pipelineExecution, doesNotExistPipelineName))
         .isNull();
 
-    verify(front50Service).getPipelines(pipelineExecution.getApplication());
+    verify(front50Service)
+        .getPipeline(pipelineExecution.getApplication(), doesNotExistPipelineName, true);
     verifyNoMoreInteractions(front50Service);
   }
 
   @Test
   void pipelineIdOrNullForPipelineNameThatExists() {
-    when(front50Service.getPipelines(pipelineExecution.getApplication()))
-        .thenReturn(Calls.response(PIPELINES));
+    when(front50Service.getPipeline(pipelineExecution.getApplication(), PIPELINE_NAME, true))
+        .thenReturn(Calls.response(PIPELINE));
     String pipelineId =
         PipelineExpressionFunctionProvider.pipelineIdOrNull(pipelineExecution, PIPELINE_NAME);
 
     assertThat(pipelineId).isEqualTo(PIPELINE_ID);
 
-    verify(front50Service).getPipelines(pipelineExecution.getApplication());
+    verify(front50Service).getPipeline(pipelineExecution.getApplication(), PIPELINE_NAME, true);
     verifyNoMoreInteractions(front50Service);
   }
 
@@ -165,29 +173,31 @@ class PipelineExpressionFunctionProviderTest {
   void pipelineIdInApplicationForPipelineNameThatDoesNotExist() {
     String doesNotExistPipelineName = "does-not-exist-pipeline";
     assertThat(doesNotExistPipelineName).isNotEqualTo(PIPELINE_NAME);
-    when(front50Service.getPipelines(pipelineExecution.getApplication()))
-        .thenReturn(Calls.response(Collections.emptyList()));
+    when(front50Service.getPipeline(
+            pipelineExecution.getApplication(), doesNotExistPipelineName, true))
+        .thenThrow(makeSpinnakerHttpException(404));
 
     assertThat(
             PipelineExpressionFunctionProvider.pipelineIdInApplication(
                 pipelineExecution, doesNotExistPipelineName, pipelineExecution.getApplication()))
         .isNull();
 
-    verify(front50Service).getPipelines(pipelineExecution.getApplication());
+    verify(front50Service)
+        .getPipeline(pipelineExecution.getApplication(), doesNotExistPipelineName, true);
     verifyNoMoreInteractions(front50Service);
   }
 
   @Test
   void pipelineIdInApplicationForPipelineNameThatExists() {
-    when(front50Service.getPipelines(pipelineExecution.getApplication()))
-        .thenReturn(Calls.response(PIPELINES));
+    when(front50Service.getPipeline(pipelineExecution.getApplication(), PIPELINE_NAME, true))
+        .thenReturn(Calls.response(PIPELINE));
     String pipelineId =
         PipelineExpressionFunctionProvider.pipelineIdInApplication(
             pipelineExecution, PIPELINE_NAME, pipelineExecution.getApplication());
 
     assertThat(pipelineId).isEqualTo(PIPELINE_ID);
 
-    verify(front50Service).getPipelines(pipelineExecution.getApplication());
+    verify(front50Service).getPipeline(pipelineExecution.getApplication(), PIPELINE_NAME, true);
     verifyNoMoreInteractions(front50Service);
   }
 
@@ -196,15 +206,15 @@ class PipelineExpressionFunctionProviderTest {
     String doesNotExistApplication = "does-not-exist-application";
     assertThat(doesNotExistApplication).isNotEqualTo(APPLICATION);
 
-    when(front50Service.getPipelines(doesNotExistApplication))
-        .thenReturn(Calls.response(Collections.emptyList()));
+    when(front50Service.getPipeline(doesNotExistApplication, PIPELINE_NAME, true))
+        .thenThrow(makeSpinnakerHttpException(404));
     String pipelineId =
         PipelineExpressionFunctionProvider.pipelineIdInApplication(
             pipelineExecution, PIPELINE_NAME, doesNotExistApplication);
 
     assertThat(pipelineId).isNull();
 
-    verify(front50Service).getPipelines(doesNotExistApplication);
+    verify(front50Service).getPipeline(doesNotExistApplication, PIPELINE_NAME, true);
     verifyNoMoreInteractions(front50Service);
   }
 
