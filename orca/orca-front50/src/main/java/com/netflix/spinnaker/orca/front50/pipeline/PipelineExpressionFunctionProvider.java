@@ -151,6 +151,14 @@ public class PipelineExpressionFunctionProvider implements ExpressionFunctionPro
     return (String) pipeline.get("id");
   }
 
+  /**
+   * Query front50 for a pipeline in an application
+   *
+   * @param functionName the name of the SpEL function (for logging)
+   * @param applicationName the application
+   * @param pipelineName the pipeline name
+   * @return the pipeline, or null if not found
+   */
   private static Map<String, Object> searchForPipelineInApplication(
       String functionName, String applicationName, String pipelineName) {
     if (front50Service == null) {
