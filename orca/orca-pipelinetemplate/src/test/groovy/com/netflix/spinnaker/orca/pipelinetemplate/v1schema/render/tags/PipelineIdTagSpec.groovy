@@ -49,8 +49,14 @@ class PipelineIdTagSpec extends Specification {
 
   @Unroll
   def 'should render pipeline id'() {
-    given:
-    front50Service.getPipelines('myApp', false) >>  Calls.response([
+    when:
+    renderer.render(
+      tag,
+      new DefaultRenderContext('myApp',null, [:])
+    ) == expectedId
+
+    then:
+    1 * front50Service.getPipelines('myApp', false) >>  Calls.response([
       [
         name: 'Bake and Tag',
         application: 'myApp',
@@ -76,12 +82,7 @@ class PipelineIdTagSpec extends Specification {
         stages: []
       ]
     ])
-
-    expect:
-    renderer.render(
-      tag,
-      new DefaultRenderContext('myApp',null, [:])
-    ) == expectedId
+    0 * front50Service._
 
     where:
     tag                                                      || expectedId
@@ -158,7 +159,15 @@ class PipelineIdTagSpec extends Specification {
 
   def 'should render pipeline id using variables defined in context'() {
     given:
-    front50Service.getPipelines('myApp', false) >> Calls.response([
+    RenderContext context = new DefaultRenderContext('myApp', null, [:])
+    context.variables.put("pipelineName", "Bake and Tag")
+    context.variables.put("applicationName", "myApp")
+
+    when:
+    renderer.render('{% pipelineId application=applicationName name=pipelineName %}', context) ==  '9595429f-afa0-4c34-852b-01a9a01967f9'
+
+    then:
+    1 * front50Service.getPipelines('myApp', false) >> Calls.response([
       [
         name: 'Bake and Tag',
         application: 'myApp',
@@ -166,16 +175,10 @@ class PipelineIdTagSpec extends Specification {
         stages: []
       ]
     ])
-
-    RenderContext context = new DefaultRenderContext('myApp', null, [:])
-    context.variables.put("pipelineName", "Bake and Tag")
-    context.variables.put("applicationName", "myApp")
-
-    expect:
-    renderer.render('{% pipelineId application=applicationName name=pipelineName %}', context) ==  '9595429f-afa0-4c34-852b-01a9a01967f9'
+    0 * front50Service._
   }
 
-    def 'should handle missing input params'() {
+  def 'should handle missing input params'() {
     given: 'a pipelineId tag with no app defined'
     def applicationInContext = 'myApp'
     def context = new DefaultRenderContext(applicationInContext,null, [:])
@@ -192,6 +195,7 @@ class PipelineIdTagSpec extends Specification {
         stages: []
       ]
     ])
+    0 * front50Service._
 
     when: 'template is missing required fields (name)'
     renderer.render('{% pipelineId application=myApp %}', context)
@@ -210,6 +214,7 @@ class PipelineIdTagSpec extends Specification {
 
     then:
     1 * front50Service.getPipelines(applicationInContext, false) >>  Calls.response([])
+    0 * front50Service._
     thrown(TemplateRenderException)
   }
 
