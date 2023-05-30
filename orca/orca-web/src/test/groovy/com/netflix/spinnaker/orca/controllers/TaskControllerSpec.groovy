@@ -557,6 +557,20 @@ class TaskControllerSpec extends Specification {
     results.id == ['test-1', 'test-2']
   }
 
+  void '/applications/{application}/pipelines/search when front50 returns no pipelines'() {
+    given:
+    def app = "covfefe"
+
+    when:
+    mockMvc.perform(get("/applications/${app}/pipelines/search")).andReturn().response
+
+    then:
+    1 * front50Service.getPipelines(app, false) >> Calls.response([])
+    0 * front50Service._
+    1 * executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary([], _, _, _) >> []
+    0 * executionRepository._
+  }
+
   void '/applications/{application}/pipelines/search when front50 responds with 500'() {
     given:
     def app = "covfefe"
@@ -613,6 +627,24 @@ class TaskControllerSpec extends Specification {
     0 * front50Service._
 
     results.id == ['test-2']
+  }
+
+  void '/applications/{application}/pipelines/search with a given pipeline name when front50 returns no pipelines'() {
+    given:
+    def app = "covfefe"
+
+    when:
+    def response = mockMvc.perform(get("/applications/${app}/pipelines/search?pipelineName=pipeline2")).andReturn().response
+    List results = new ObjectMapper().readValue(response.contentAsString, List)
+
+    then:
+    1 * front50Service.getPipelines(app, false) >> Calls.response([])
+    0 * front50Service._
+
+    1 * executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary([], _, _, _) >> []
+    0 * executionRepository._
+
+    results.id == []
   }
 
   void '/applications/{application}/pipelines/search with a given pipeline name when front50 responds with 500'() {
