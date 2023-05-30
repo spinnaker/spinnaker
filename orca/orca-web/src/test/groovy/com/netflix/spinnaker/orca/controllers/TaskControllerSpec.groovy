@@ -95,6 +95,7 @@ class TaskControllerSpec extends Specification {
     1 * executionRepository.retrieve(ORCHESTRATION) >> {
       return rx.Observable.empty()
     }
+    0 * executionRepository._
   }
 
   void 'should cancel a list of tasks by id'() {
@@ -114,8 +115,11 @@ class TaskControllerSpec extends Specification {
   }
 
   void 'step names are properly translated'() {
-    given:
-    executionRepository.retrieve(ORCHESTRATION) >> rx.Observable.from([orchestration {
+    when:
+    def response = mockMvc.perform(get('/tasks')).andReturn().response
+
+    then:
+    1 * executionRepository.retrieve(ORCHESTRATION) >> rx.Observable.from([orchestration {
       id = "1"
       application = "covfefe"
       stage {
@@ -124,11 +128,8 @@ class TaskControllerSpec extends Specification {
                  new TaskExecutionImpl(id:'2', name: 'jobTwo', startTime: 1L, endTime: 2L, implementingClass: 'Class' )]
       }
     }])
+    0 * executionRepository._
 
-    when:
-    def response = mockMvc.perform(get('/tasks')).andReturn().response
-
-    then:
     response.status == 200
     with(new JsonSlurper().parseText(response.contentAsString).first()) {
       steps.name == ['jobOne', 'jobTwo']
@@ -148,7 +149,8 @@ class TaskControllerSpec extends Specification {
     def response = mockMvc.perform(get('/tasks/1')).andReturn().response
 
     then:
-    executionRepository.retrieve(orchestration.type, orchestration.id) >> orchestration
+    1 * executionRepository.retrieve(orchestration.type, orchestration.id) >> orchestration
+    0 * executionRepository._
 
     new JsonSlurper().parseText(response.contentAsString).variables == [
       [key: "customOutput", value: "variable"]
@@ -197,6 +199,7 @@ class TaskControllerSpec extends Specification {
 
     then:
     1 * executionRepository.retrieve(ORCHESTRATION) >> rx.Observable.from([])
+    0 * executionRepository._
     response.status == 200
     response.contentAsString == '[]'
   }
@@ -207,6 +210,7 @@ class TaskControllerSpec extends Specification {
 
     then:
     1 * executionRepository.retrieveOrchestrationsForApplication(app, _, START_TIME_OR_ID) >> []
+    0 * executionRepository._
 
     where:
     app = "test"
@@ -229,7 +233,17 @@ class TaskControllerSpec extends Specification {
       [pipelineConfigId: "2", id: 'older3', application: app, startTime: clock.instant().minus(daysOfExecutionHistory + 1, DAYS).minus(4, HOURS).toEpochMilli()]
     ]
 
-    executionRepository.retrievePipelinesForPipelineConfigId("1", _) >> rx.Observable.from(pipelines.findAll {
+    taskControllerConfigurationProperties.excludeExecutionsOfDisabledPipelines = excludeExecutionsOfDisabledPipelines
+
+    def retrieveConfigIdOne = front50ConfigIds.any { it['id'] == "1" } ? 1 : 0
+    def retrieveConfigIdTwo = front50ConfigIds.any { it['id'] == "2" } ? 1 : 0
+
+    when:
+    def response = mockMvc.perform(get("/applications/$app/pipelines")).andReturn().response
+    List results = new ObjectMapper().readValue(response.contentAsString, List)
+
+    then:
+    retrieveConfigIdOne * executionRepository.retrievePipelinesForPipelineConfigId("1", _) >> rx.Observable.from(pipelines.findAll {
       it.pipelineConfigId == "1"
     }.collect { config ->
       pipeline {
@@ -239,7 +253,7 @@ class TaskControllerSpec extends Specification {
         pipelineConfigId = config.pipelineConfigId
       }
     })
-    executionRepository.retrievePipelinesForPipelineConfigId("2", _) >> rx.Observable.from(pipelines.findAll {
+    retrieveConfigIdTwo * executionRepository.retrievePipelinesForPipelineConfigId("2", _) >> rx.Observable.from(pipelines.findAll {
       it.pipelineConfigId == "2"
     }.collect { config ->
       pipeline {
@@ -249,15 +263,8 @@ class TaskControllerSpec extends Specification {
         pipelineConfigId = config.pipelineConfigId
       }
     })
-    taskControllerConfigurationProperties.excludeExecutionsOfDisabledPipelines = excludeExecutionsOfDisabledPipelines
+    0 * executionRepository._
 
-    executionRepository.retrievePipelineConfigIdsForApplication(app) >> { return List.of( '2')}
-
-    when:
-    def response = mockMvc.perform(get("/applications/$app/pipelines")).andReturn().response
-    List results = new ObjectMapper().readValue(response.contentAsString, List)
-
-    then:
     1 * front50Service.getPipelines(app, false, taskControllerConfigurationProperties.excludeExecutionsOfDisabledPipelines ? true : null) >> Calls.response(front50ConfigIds)
     1 * front50Service.getStrategies(app) >> Calls.response([])
     0 * front50Service._
@@ -271,17 +278,6 @@ class TaskControllerSpec extends Specification {
   }
 
   void '/applications/{application}/evaluateExpressions precomputes values'() {
-    given:
-    executionRepository.retrieve(ExecutionType.PIPELINE, "1") >> {
-      pipeline {
-        id = "1"
-        application = "doesn't matter"
-        startTime = 1
-        pipelineConfigId = "1"
-        trigger = new DefaultTrigger("manual", "id", "user", [param1: "param1Value"])
-      }
-    }
-
     when:
     def response = mockMvc.perform(
       get("/pipelines/1/evaluateExpression")
@@ -291,6 +287,17 @@ class TaskControllerSpec extends Specification {
     Map results = new ObjectMapper().readValue(response.contentAsString, Map)
 
     then:
+    1 * executionRepository.retrieve(ExecutionType.PIPELINE, "1") >> {
+      pipeline {
+        id = "1"
+        application = "doesn't matter"
+        startTime = 1
+        pipelineConfigId = "1"
+        trigger = new DefaultTrigger("manual", "id", "user", [param1: "param1Value"])
+      }
+    }
+    0 * executionRepository._
+
     results == [
       result: "param1Value",
       detail: null
@@ -309,7 +316,12 @@ class TaskControllerSpec extends Specification {
       [pipelineConfigId: "3", id: "started-5", application: "covfefe", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(2, HOURS).toEpochMilli(), id: 'old-3']
     ]
 
-    executionRepository.retrievePipelinesForPipelineConfigId("1", _) >> rx.Observable.from(pipelines.findAll {
+    when:
+    def response = mockMvc.perform(get("/pipelines?pipelineConfigIds=1,2")).andReturn().response
+    List results = new ObjectMapper().readValue(response.contentAsString, List)
+
+    then:
+    1 * executionRepository.retrievePipelinesForPipelineConfigId("1", _) >> rx.Observable.from(pipelines.findAll {
       it.pipelineConfigId == "1"
     }.collect { config ->
       pipeline {
@@ -319,7 +331,7 @@ class TaskControllerSpec extends Specification {
         pipelineConfigId = config.pipelineConfigId
       }
     })
-    executionRepository.retrievePipelinesForPipelineConfigId("2", _) >> rx.Observable.from(pipelines.findAll {
+    1 * executionRepository.retrievePipelinesForPipelineConfigId("2", _) >> rx.Observable.from(pipelines.findAll {
       it.pipelineConfigId == "2"
     }.collect { config ->
       pipeline {
@@ -329,22 +341,8 @@ class TaskControllerSpec extends Specification {
         pipelineConfigId = config.pipelineConfigId
       }
     })
-    executionRepository.retrievePipelinesForPipelineConfigId("3", _) >> rx.Observable.from(pipelines.findAll {
-      it.pipelineConfigId == "3"
-    }.collect { config ->
-      pipeline {
-        id = config.id
-        application = "covfefe"
-        startTime = config.startTime
-        pipelineConfigId = config.pipelineConfigId
-      }
-    })
+    0 * executionRepository._
 
-    when:
-    def response = mockMvc.perform(get("/pipelines?pipelineConfigIds=1,2")).andReturn().response
-    List results = new ObjectMapper().readValue(response.contentAsString, List)
-
-    then:
     results.id == ['newer-2', 'newer-1']
   }
 
@@ -385,7 +383,15 @@ class TaskControllerSpec extends Specification {
       ]
     ]
 
-    executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _ ) >> pipelines.findAll {
+    when:
+    def response = mockMvc.perform(get("/applications/${app}/pipelines/search")).andReturn().response
+    List results = new ObjectMapper().readValue(response.contentAsString, List)
+
+    then:
+    1 * front50Service.getPipelines(app, false) >> Calls.response([[id: "1"]])
+    0 * front50Service._
+
+    1 * executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _ ) >> pipelines.findAll {
         it.pipelineConfigId == "1"
       }.collect { config ->
         PipelineExecutionImpl pipeline = pipeline {
@@ -397,15 +403,8 @@ class TaskControllerSpec extends Specification {
         pipeline.setTrigger(config.trigger)
         return pipeline
       }
+    0 * executionRepository._
 
-
-    when:
-    def response = mockMvc.perform(get("/applications/${app}/pipelines/search")).andReturn().response
-    List results = new ObjectMapper().readValue(response.contentAsString, List)
-
-    then:
-    1 * front50Service.getPipelines(app, false) >> Calls.response([[id: "1"]])
-    0 * front50Service._
     results.id == ['test-1', 'test-2', 'test-3', 'test-4', 'test-5']
   }
 
@@ -433,7 +432,15 @@ class TaskControllerSpec extends Specification {
       ]
     ]
 
-    executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> pipelines.findAll {
+    when:
+    def response = mockMvc.perform(get("/applications/${app}/pipelines/search?triggerTypes=docker,jenkins")).andReturn().response
+    List results = new ObjectMapper().readValue(response.contentAsString, List)
+
+    then:
+    1 * front50Service.getPipelines(app, false) >> Calls.response([[id: "1"]])
+    0 * front50Service._
+
+    1 * executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> pipelines.findAll {
       it.pipelineConfigId == "1"
     }.collect { config ->
       PipelineExecutionImpl pipeline = pipeline {
@@ -445,14 +452,8 @@ class TaskControllerSpec extends Specification {
       pipeline.setTrigger(config.trigger)
       return pipeline
     }
+    0 * executionRepository._
 
-    when:
-    def response = mockMvc.perform(get("/applications/${app}/pipelines/search?triggerTypes=docker,jenkins")).andReturn().response
-    List results = new ObjectMapper().readValue(response.contentAsString, List)
-
-    then:
-    1 * front50Service.getPipelines(app, false) >> Calls.response([[id: "1"]])
-    0 * front50Service._
     results.id == ['test-1', 'test-4']
   }
 
@@ -482,7 +483,12 @@ class TaskControllerSpec extends Specification {
       ]
     ]
 
-    executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> pipelines.findAll {
+    when:
+    def response = mockMvc.perform(get("/applications/${app}/pipelines/search?eventId=" + eventId)).andReturn().response
+    List results = new ObjectMapper().readValue(response.contentAsString, List)
+
+    then:
+    1 * executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> pipelines.findAll {
       it.pipelineConfigId == "1"
     }.collect { config ->
       PipelineExecutionImpl pipeline = pipeline {
@@ -495,14 +501,11 @@ class TaskControllerSpec extends Specification {
       pipeline.setTrigger(config.trigger)
       return pipeline
     }
+    0 * executionRepository._
 
-    when:
-    def response = mockMvc.perform(get("/applications/${app}/pipelines/search?eventId=" + eventId)).andReturn().response
-    List results = new ObjectMapper().readValue(response.contentAsString, List)
-
-    then:
     1 * front50Service.getPipelines(app, false) >> Calls.response([[id: "1"]])
     0 * front50Service._
+
     results.id == ['test-2', 'test-4']
   }
 
@@ -524,7 +527,12 @@ class TaskControllerSpec extends Specification {
       ]
     ]
 
-    executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> pipelines.findAll {
+    when:
+    def response = mockMvc.perform(get("/applications/${app1}/pipelines/search")).andReturn().response
+    List results = new ObjectMapper().readValue(response.contentAsString, List)
+
+    then:
+    1 * executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> pipelines.findAll {
       it.pipelineConfigId == "1"
     }.collect { config ->
       PipelineExecutionImpl pipeline = pipeline {
@@ -536,14 +544,11 @@ class TaskControllerSpec extends Specification {
       pipeline.setTrigger(config.trigger)
       return pipeline
     }
+    0 * executionRepository._
 
-    when:
-    def response = mockMvc.perform(get("/applications/${app1}/pipelines/search")).andReturn().response
-    List results = new ObjectMapper().readValue(response.contentAsString, List)
-
-    then:
     1 * front50Service.getPipelines(app1, false) >> Calls.response([[id: "1"]])
     0 * front50Service._
+
     results.id == ['test-1', 'test-2']
   }
 
@@ -562,7 +567,12 @@ class TaskControllerSpec extends Specification {
       ]
     ]
 
-    executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["2"], _, _, _) >> pipelines.findAll {
+    when:
+    def response = mockMvc.perform(get("/applications/${app}/pipelines/search?pipelineName=pipeline2")).andReturn().response
+    List results = new ObjectMapper().readValue(response.contentAsString, List)
+
+    then:
+    1 * executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["2"], _, _, _) >> pipelines.findAll {
       it.pipelineConfigId == "2"
     }.collect { config ->
       PipelineExecutionImpl pipeline = pipeline {
@@ -575,14 +585,11 @@ class TaskControllerSpec extends Specification {
       pipeline.setName(config.name)
       return pipeline
     }
+    0 * executionRepository._
 
-    when:
-    def response = mockMvc.perform(get("/applications/${app}/pipelines/search?pipelineName=pipeline2")).andReturn().response
-    List results = new ObjectMapper().readValue(response.contentAsString, List)
-
-    then:
     1 * front50Service.getPipelines(app, false) >> Calls.response([[id: "2", name: "pipeline2"]])
     0 * front50Service._
+
     results.id == ['test-2']
   }
 
@@ -601,7 +608,13 @@ class TaskControllerSpec extends Specification {
       ]
     ]
 
-    executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> pipelines.findAll {
+    when:
+    String encodedTriggerParams = new String(Base64.getEncoder().encode('{"account":"test-account","repository":"test-repo","tag":"1"}'.getBytes()))
+    def response = mockMvc.perform(get("/applications/${app}/pipelines/search?trigger=${encodedTriggerParams}")).andReturn().response
+    List results = new ObjectMapper().readValue(response.contentAsString, List)
+
+    then:
+    1 * executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> pipelines.findAll {
       it.pipelineConfigId == "1"
     }.collect { config ->
       PipelineExecutionImpl pipeline = pipeline {
@@ -613,13 +626,8 @@ class TaskControllerSpec extends Specification {
       pipeline.setTrigger(config.trigger)
       return pipeline
     }
+    0 * executionRepository._
 
-    when:
-    String encodedTriggerParams = new String(Base64.getEncoder().encode('{"account":"test-account","repository":"test-repo","tag":"1"}'.getBytes()))
-    def response = mockMvc.perform(get("/applications/${app}/pipelines/search?trigger=${encodedTriggerParams}")).andReturn().response
-    List results = new ObjectMapper().readValue(response.contentAsString, List)
-
-    then:
     1 * front50Service.getPipelines(app, false) >> Calls.response([[id: "1"]])
     0 * front50Service._
     results.id == ['test-1', 'test-3']
@@ -639,19 +647,6 @@ class TaskControllerSpec extends Specification {
     pipelines[0].trigger.artifacts.addAll([Artifact.builder().name("a").version("1").build(), Artifact.builder().name("a").build()])
     pipelines[1].trigger.artifacts.addAll([Artifact.builder().name("a").build(), Artifact.builder().name("a").version("1").build()])
 
-    executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> pipelines.findAll {
-      it.pipelineConfigId == "1"
-    }.collect { config ->
-      PipelineExecutionImpl pipeline = pipeline {
-        id = config.id
-        application = app
-        startTime = config.startTime
-        pipelineConfigId = config.pipelineConfigId
-      }
-      pipeline.setTrigger(config.trigger)
-      return pipeline
-    }
-
     when:
     String encodedTriggerParams1 = new String(Base64.getEncoder().encode('{"artifacts":[{"name":"a","version":"1"},{"name":"a"}]}'.getBytes()))
     def response1 = mockMvc.perform(get("/applications/${app}/pipelines/search?trigger=${encodedTriggerParams1}")).andReturn().response
@@ -664,6 +659,21 @@ class TaskControllerSpec extends Specification {
     then:
     2 * front50Service.getPipelines(app, false) >> { return Calls.response([[id: "1"]]) }
     0 * front50Service._
+
+    2 * executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> pipelines.findAll {
+      it.pipelineConfigId == "1"
+    }.collect { config ->
+      PipelineExecutionImpl pipeline = pipeline {
+        id = config.id
+        application = app
+        startTime = config.startTime
+        pipelineConfigId = config.pipelineConfigId
+      }
+      pipeline.setTrigger(config.trigger)
+      return pipeline
+    }
+    0 * executionRepository._
+
     results1.id == ['test-1', 'test-2']
     results2.id == ['test-1', 'test-2']
   }
@@ -683,7 +693,13 @@ class TaskControllerSpec extends Specification {
       ]
     ]
 
-    executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> pipelines.findAll {
+    when:
+    String encodedTriggerParams = new String(Base64.getEncoder().encode('{"payload":{"a":"1","b":"2"}}'.getBytes()))
+    def response = mockMvc.perform(get("/applications/${app}/pipelines/search?trigger=${encodedTriggerParams}")).andReturn().response
+    List results = new ObjectMapper().readValue(response.contentAsString, List)
+
+    then:
+    1 * executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> pipelines.findAll {
       it.pipelineConfigId == "1"
     }.collect { config ->
       PipelineExecutionImpl pipeline = pipeline {
@@ -696,15 +712,11 @@ class TaskControllerSpec extends Specification {
       pipeline.setTrigger(config.trigger)
       return pipeline
     }
+    0 * executionRepository._
 
-    when:
-    String encodedTriggerParams = new String(Base64.getEncoder().encode('{"payload":{"a":"1","b":"2"}}'.getBytes()))
-    def response = mockMvc.perform(get("/applications/${app}/pipelines/search?trigger=${encodedTriggerParams}")).andReturn().response
-    List results = new ObjectMapper().readValue(response.contentAsString, List)
-
-    then:
     1 * front50Service.getPipelines(app, false) >> Calls.response([[id: "1"]])
     0 * front50Service._
+
     results.id == ['test-2', 'test-3']
   }
 
