@@ -250,8 +250,6 @@ class TaskControllerSpec extends Specification {
       }
     })
     taskControllerConfigurationProperties.excludeExecutionsOfDisabledPipelines = excludeExecutionsOfDisabledPipelines
-    front50Service.getPipelines(app, false, taskControllerConfigurationProperties.excludeExecutionsOfDisabledPipelines ? true : null) >> Calls.response(front50ConfigIds)
-    front50Service.getStrategies(app) >> Calls.response([])
 
     executionRepository.retrievePipelineConfigIdsForApplication(app) >> { return List.of( '2')}
 
@@ -260,6 +258,9 @@ class TaskControllerSpec extends Specification {
     List results = new ObjectMapper().readValue(response.contentAsString, List)
 
     then:
+    1 * front50Service.getPipelines(app, false, taskControllerConfigurationProperties.excludeExecutionsOfDisabledPipelines ? true : null) >> Calls.response(front50ConfigIds)
+    1 * front50Service.getStrategies(app) >> Calls.response([])
+    0 * front50Service._
     results.id == resultsIds
 
     where:
@@ -398,13 +399,13 @@ class TaskControllerSpec extends Specification {
       }
 
 
-    front50Service.getPipelines(app, false) >> Calls.response([[id: "1"]])
-
     when:
     def response = mockMvc.perform(get("/applications/${app}/pipelines/search")).andReturn().response
     List results = new ObjectMapper().readValue(response.contentAsString, List)
 
     then:
+    1 * front50Service.getPipelines(app, false) >> Calls.response([[id: "1"]])
+    0 * front50Service._
     results.id == ['test-1', 'test-2', 'test-3', 'test-4', 'test-5']
   }
 
@@ -445,13 +446,13 @@ class TaskControllerSpec extends Specification {
       return pipeline
     }
 
-    front50Service.getPipelines(app, false) >> Calls.response([[id: "1"]])
-
     when:
     def response = mockMvc.perform(get("/applications/${app}/pipelines/search?triggerTypes=docker,jenkins")).andReturn().response
     List results = new ObjectMapper().readValue(response.contentAsString, List)
 
     then:
+    1 * front50Service.getPipelines(app, false) >> Calls.response([[id: "1"]])
+    0 * front50Service._
     results.id == ['test-1', 'test-4']
   }
 
@@ -495,20 +496,19 @@ class TaskControllerSpec extends Specification {
       return pipeline
     }
 
-    front50Service.getPipelines(app, false) >> Calls.response([[id: "1"]])
-
     when:
     def response = mockMvc.perform(get("/applications/${app}/pipelines/search?eventId=" + eventId)).andReturn().response
     List results = new ObjectMapper().readValue(response.contentAsString, List)
 
     then:
+    1 * front50Service.getPipelines(app, false) >> Calls.response([[id: "1"]])
+    0 * front50Service._
     results.id == ['test-2', 'test-4']
   }
 
   void '/applications/{application}/pipelines/search should only return pipelines with a given application'() {
     given:
     def app1 = "app1"
-    def app2 = "app2"
     def pipelines = [
       [pipelineConfigId: "1", id: "test-1", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(2, HOURS).toEpochMilli(),
        trigger: new DockerTrigger("test-account", "test-repo", "1")
@@ -537,14 +537,13 @@ class TaskControllerSpec extends Specification {
       return pipeline
     }
 
-    front50Service.getPipelines(app1, false) >> Calls.response([[id: "1"]])
-    front50Service.getPipelines(app2, false) >> Calls.response([[id: "2"]])
-
     when:
     def response = mockMvc.perform(get("/applications/${app1}/pipelines/search")).andReturn().response
     List results = new ObjectMapper().readValue(response.contentAsString, List)
 
     then:
+    1 * front50Service.getPipelines(app1, false) >> Calls.response([[id: "1"]])
+    0 * front50Service._
     results.id == ['test-1', 'test-2']
   }
 
@@ -577,13 +576,13 @@ class TaskControllerSpec extends Specification {
       return pipeline
     }
 
-    front50Service.getPipelines(app, false) >> Calls.response([[id: "2", name: "pipeline2"]])
-
     when:
     def response = mockMvc.perform(get("/applications/${app}/pipelines/search?pipelineName=pipeline2")).andReturn().response
     List results = new ObjectMapper().readValue(response.contentAsString, List)
 
     then:
+    1 * front50Service.getPipelines(app, false) >> Calls.response([[id: "2", name: "pipeline2"]])
+    0 * front50Service._
     results.id == ['test-2']
   }
 
@@ -615,14 +614,14 @@ class TaskControllerSpec extends Specification {
       return pipeline
     }
 
-    front50Service.getPipelines(app, false) >> Calls.response([[id: "1"]])
-
     when:
     String encodedTriggerParams = new String(Base64.getEncoder().encode('{"account":"test-account","repository":"test-repo","tag":"1"}'.getBytes()))
     def response = mockMvc.perform(get("/applications/${app}/pipelines/search?trigger=${encodedTriggerParams}")).andReturn().response
     List results = new ObjectMapper().readValue(response.contentAsString, List)
 
     then:
+    1 * front50Service.getPipelines(app, false) >> Calls.response([[id: "1"]])
+    0 * front50Service._
     results.id == ['test-1', 'test-3']
   }
 
@@ -653,8 +652,6 @@ class TaskControllerSpec extends Specification {
       return pipeline
     }
 
-    front50Service.getPipelines(app, false) >> { return Calls.response([[id: "1"]]) }
-
     when:
     String encodedTriggerParams1 = new String(Base64.getEncoder().encode('{"artifacts":[{"name":"a","version":"1"},{"name":"a"}]}'.getBytes()))
     def response1 = mockMvc.perform(get("/applications/${app}/pipelines/search?trigger=${encodedTriggerParams1}")).andReturn().response
@@ -665,6 +662,8 @@ class TaskControllerSpec extends Specification {
     List results2 = new ObjectMapper().readValue(response2.contentAsString, List)
 
     then:
+    2 * front50Service.getPipelines(app, false) >> { return Calls.response([[id: "1"]]) }
+    0 * front50Service._
     results1.id == ['test-1', 'test-2']
     results2.id == ['test-1', 'test-2']
   }
@@ -698,14 +697,14 @@ class TaskControllerSpec extends Specification {
       return pipeline
     }
 
-    front50Service.getPipelines(app, false) >> Calls.response([[id: "1"]])
-
     when:
     String encodedTriggerParams = new String(Base64.getEncoder().encode('{"payload":{"a":"1","b":"2"}}'.getBytes()))
     def response = mockMvc.perform(get("/applications/${app}/pipelines/search?trigger=${encodedTriggerParams}")).andReturn().response
     List results = new ObjectMapper().readValue(response.contentAsString, List)
 
     then:
+    1 * front50Service.getPipelines(app, false) >> Calls.response([[id: "1"]])
+    0 * front50Service._
     results.id == ['test-2', 'test-3']
   }
 
