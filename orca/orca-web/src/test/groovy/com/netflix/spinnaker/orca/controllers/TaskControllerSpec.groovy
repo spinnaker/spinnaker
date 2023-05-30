@@ -21,6 +21,7 @@ import com.google.common.collect.Collections2
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.TaskControllerConfigurationProperties
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.front50.Front50Service
@@ -33,10 +34,14 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.util.ExpressionUtils
 import groovy.json.JsonSlurper
+import okhttp3.ResponseBody
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import org.springframework.web.util.NestedServletException
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
 import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -552,6 +557,23 @@ class TaskControllerSpec extends Specification {
     results.id == ['test-1', 'test-2']
   }
 
+  void '/applications/{application}/pipelines/search when front50 responds with 500'() {
+    given:
+    def app = "covfefe"
+    SpinnakerHttpException front50Error = makeSpinnakerHttpException(500)
+
+    when:
+    mockMvc.perform(get("/applications/${app}/pipelines/search")).andReturn().response
+
+    then:
+    1 * front50Service.getPipelines(app, false) >> { throw front50Error }
+    0 * front50Service._
+    0 * executionRepository._
+
+    def e = thrown NestedServletException
+    e.cause == front50Error
+  }
+
   void '/applications/{application}/pipelines/search should return executions with a given pipeline name'() {
     given:
     def app = "covfefe"
@@ -591,6 +613,23 @@ class TaskControllerSpec extends Specification {
     0 * front50Service._
 
     results.id == ['test-2']
+  }
+
+  void '/applications/{application}/pipelines/search with a given pipeline name when front50 responds with 500'() {
+    given:
+    def app = "covfefe"
+    SpinnakerHttpException front50Error = makeSpinnakerHttpException(500)
+
+    when:
+    mockMvc.perform(get("/applications/${app}/pipelines/search?pipelineName=pipeline2")).andReturn().response
+
+    then:
+    1 * front50Service.getPipelines(app, false) >> { throw front50Error }
+    0 * front50Service._
+    0 * executionRepository._
+
+    def e = thrown NestedServletException
+    e.cause == front50Error
   }
 
   void '/applications/{application}/pipelines/search should handle a trigger field that is a string'() {
@@ -1161,5 +1200,22 @@ class TaskControllerSpec extends Specification {
 
     then:
     result
+  }
+
+  static SpinnakerHttpException makeSpinnakerHttpException(int status, String message = "{ \"message\": \"arbitrary message\" }") {
+    String url = "https://front50";
+    retrofit2.Response retrofit2Response =
+        retrofit2.Response.error(
+            status,
+            ResponseBody.create(
+                okhttp3.MediaType.parse("application/json"), message))
+
+    Retrofit retrofit =
+        new Retrofit.Builder()
+            .baseUrl(url)
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build();
+
+    return new SpinnakerHttpException(retrofit2Response, retrofit)
   }
 }
