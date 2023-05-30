@@ -56,39 +56,18 @@ class PipelineIdTagSpec extends Specification {
     ) == expectedId
 
     then:
-    1 * front50Service.getPipelines('myApp', false) >>  Calls.response([
+    1 * front50Service.getPipeline('myApp', 'Bake and Tag', false) >> Calls.response(
       [
         name: 'Bake and Tag',
         application: 'myApp',
         id: '9595429f-afa0-4c34-852b-01a9a01967f9',
         stages: []
-      ],
-      [
-        name: 'Important pipeline',
-        application: 'myApp',
-        id: '1685429e-beb1-4d35-963c-02b9a01977e1',
-        stages: []
-      ],
-      [
-        name: 'pipe in different app',
-        application: 'testApp',
-        id: '1685429e-beb1-4d35-963c-02b9a01977e1',
-        stages: []
-      ],
-      [
-        name: "Rob's great pipeline",
-        application: 'myApp',
-        id: '1685429e-beb1-4d35-963c-123456789012',
-        stages: []
-      ]
-    ])
+      ])
     0 * front50Service._
 
     where:
     tag                                                      || expectedId
-    '{% pipelineId application=myApp name="Bake and Tag" %}' || '9595429f-afa0-4c34-852b-01a9a01967f9'
     "{% pipelineId name='Bake and Tag' %}"                   || '9595429f-afa0-4c34-852b-01a9a01967f9'
-    '{% pipelineId name="Rob\'s great pipeline" %}'          || '1685429e-beb1-4d35-963c-123456789012'
   }
 
   def 'throws an exception for pipeline not found'() {
@@ -99,7 +78,7 @@ class PipelineIdTagSpec extends Specification {
     renderer.render('{% pipelineId application="myApp" name="Bake and Tag" %}', context)
 
     then:
-    1 * front50Service.getPipelines('myApp', false) >> Calls.response([])
+    1 * front50Service.getPipeline('myApp', 'Bake and Tag', false) >> { throw makeSpinnakerHttpException(404) }
     0 * front50Service._
 
     def e = thrown(TemplateRenderException)
@@ -122,7 +101,7 @@ class PipelineIdTagSpec extends Specification {
     renderer.render('{% pipelineId application="myApp" name="Bake and Tag" %}', context)
 
     then:
-    1 * front50Service.getPipelines('myApp', false) >> { throw makeSpinnakerHttpException(500) }
+    1 * front50Service.getPipeline('myApp', 'Bake and Tag', false) >> { throw makeSpinnakerHttpException(500) }
     0 * front50Service._
 
     def e = thrown(TemplateRenderException)
@@ -145,13 +124,12 @@ class PipelineIdTagSpec extends Specification {
     def result = renderer.render('{% pipelineId application="myApp" name="Bake and Tag" %}', context)
 
     then:
-    1 * front50Service.getPipelines('myApp', false) >> Calls.response([
+    1 *front50Service.getPipeline('myApp', 'Bake and Tag', false) >> Calls.response(
       [
         name: 'Bake and Tag',
         application: 'myApp',
         stages: []
-      ],
-    ])
+      ])
     0 * front50Service._
 
     def e = thrown(TemplateRenderException)
@@ -176,14 +154,13 @@ class PipelineIdTagSpec extends Specification {
     renderer.render('{% pipelineId application=applicationName name=pipelineName %}', context) ==  '9595429f-afa0-4c34-852b-01a9a01967f9'
 
     then:
-    1 * front50Service.getPipelines('myApp', false) >> Calls.response([
+    1 * front50Service.getPipeline('myApp', 'Bake and Tag', false) >> Calls.response(
       [
         name: 'Bake and Tag',
         application: 'myApp',
         id: '9595429f-afa0-4c34-852b-01a9a01967f9',
         stages: []
-      ]
-    ])
+      ])
     0 * front50Service._
   }
 
@@ -196,14 +173,13 @@ class PipelineIdTagSpec extends Specification {
     renderer.render('{% pipelineId name="Bake and Tag" %}', context)
 
     then: 'application should be inferred from context'
-    1 * front50Service.getPipelines(applicationInContext, false) >>  Calls.response([
+    1 * front50Service.getPipeline(applicationInContext, 'Bake and Tag', false) >> Calls.response(
       [
         name: 'Bake and Tag',
         application: 'myApp',
         id: '9595429f-afa0-4c34-852b-01a9a01967f9',
         stages: []
-      ]
-    ])
+      ])
     0 * front50Service._
 
     when: 'template is missing required fields (name)'
@@ -222,7 +198,7 @@ class PipelineIdTagSpec extends Specification {
     renderer.render('{% pipelineId name="Bake and Tag" %}', context)
 
     then:
-    1 * front50Service.getPipelines(applicationInContext, false) >>  Calls.response([])
+    1 * front50Service.getPipeline(applicationInContext, 'Bake and Tag', false) >> Calls.response([])
     0 * front50Service._
     thrown(TemplateRenderException)
   }
