@@ -640,18 +640,32 @@ public class CreateServerGroupAtomicOperation
   }
 
   private boolean isTaggingEnabled(AmazonECS ecs) {
-    Set<String> enabledSettings =
-        ecs
-            .listAccountSettings(new ListAccountSettingsRequest().withEffectiveSettings(true))
-            .getSettings()
-            .stream()
-            .filter(e -> Objects.equals("enabled", e.getValue()))
-            .map(Setting::getName)
-            .collect(Collectors.toSet());
+    boolean isServiceLongArnFormatEnabled = false;
+    boolean isTaskLongArnFormatEnabled = false;
 
-    return enabledSettings.containsAll(
-        Set.of(
-            SettingName.ServiceLongArnFormat.toString(), SettingName.TaskLongArnFormat.toString()));
+    String nextToken = null;
+    do {
+      ListAccountSettingsRequest request =
+          new ListAccountSettingsRequest().withEffectiveSettings(true).withNextToken(nextToken);
+
+      ListAccountSettingsResult response = ecs.listAccountSettings(request);
+
+      for (Setting setting : response.getSettings()) {
+        if (setting.getName().equals(SettingName.ServiceLongArnFormat.toString())
+            && setting.getValue().equals("enabled")) {
+          isServiceLongArnFormatEnabled = true;
+        }
+
+        if (setting.getName().equals(SettingName.TaskLongArnFormat.toString())
+            && setting.getValue().equals("enabled")) {
+          isTaskLongArnFormatEnabled = true;
+        }
+      }
+
+      nextToken = response.getNextToken();
+    } while (nextToken != null);
+
+    return isServiceLongArnFormatEnabled && isTaskLongArnFormatEnabled;
   }
 
   private String registerAutoScalingGroup(
