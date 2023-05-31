@@ -567,7 +567,6 @@ class TaskControllerSpec extends Specification {
     then:
     1 * front50Service.getPipelines(app, false) >> Calls.response([])
     0 * front50Service._
-    1 * executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary([], _, _, _) >> []
     0 * executionRepository._
   }
 
@@ -640,8 +639,6 @@ class TaskControllerSpec extends Specification {
     then:
     1 * front50Service.getPipelines(app, false) >> Calls.response([])
     0 * front50Service._
-
-    1 * executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary([], _, _, _) >> []
     0 * executionRepository._
 
     results.id == []

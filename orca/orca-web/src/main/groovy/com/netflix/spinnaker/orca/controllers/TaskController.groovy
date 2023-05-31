@@ -486,6 +486,10 @@ class TaskController {
 
     List<PipelineExecution> matchingExecutions = new ArrayList<>()
 
+    if (pipelineConfigIds.isEmpty()) {
+      return []
+    }
+
     int page = 1
     while (matchingExecutions.size() < size) {
       List<PipelineExecution> executions = executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
