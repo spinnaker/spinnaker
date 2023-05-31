@@ -622,7 +622,7 @@ class TaskControllerSpec extends Specification {
     }
     0 * executionRepository._
 
-    1 * front50Service.getPipelines(app, false) >> Calls.response([[id: "2", name: "pipeline2"]])
+    1 * front50Service.getPipeline(app, 'pipeline2', false) >> Calls.response([id: "2", name: "pipeline2"])
     0 * front50Service._
 
     results.id == ['test-2']
@@ -637,7 +637,7 @@ class TaskControllerSpec extends Specification {
     List results = new ObjectMapper().readValue(response.contentAsString, List)
 
     then:
-    1 * front50Service.getPipelines(app, false) >> Calls.response([])
+    1 * front50Service.getPipeline(app, 'pipeline2', false) >> { throw makeSpinnakerHttpException(404) }
     0 * front50Service._
     0 * executionRepository._
 
@@ -653,7 +653,7 @@ class TaskControllerSpec extends Specification {
     mockMvc.perform(get("/applications/${app}/pipelines/search?pipelineName=pipeline2")).andReturn().response
 
     then:
-    1 * front50Service.getPipelines(app, false) >> { throw front50Error }
+    1 * front50Service.getPipeline(app, 'pipeline2', false) >> { throw front50Error }
     0 * front50Service._
     0 * executionRepository._
 
