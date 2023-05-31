@@ -83,18 +83,16 @@ public class EnabledPipelineValidator implements PipelineValidator {
           return;
         }
 
-        // treat other failures to fetch pipeline config as non-fatal and fallback to the
-        // previous behavior
-        // (handles the fast property case where the supplied pipeline config id does _not_
-        // actually exist)
+        // Previous behavior was to fall back to querying for all pipelines in
+        // an application.  Let's trust the query by pipeline config id and stop
+        // here.
+        throw e;
       }
     }
 
+    // If we get here, we're dealing with a strategy.
     List<Map<String, Object>> pipelines =
-        isStrategy(pipeline)
-            ? Retrofit2SyncCall.execute(front50Service.getStrategies(pipeline.getApplication()))
-            : Retrofit2SyncCall.execute(
-                front50Service.getPipelines(pipeline.getApplication(), false));
+        Retrofit2SyncCall.execute(front50Service.getStrategies(pipeline.getApplication()));
     pipelines.stream()
         .filter(it -> it.get("id").equals(pipeline.getPipelineConfigId()))
         .findFirst()
