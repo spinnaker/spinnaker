@@ -46,6 +46,7 @@ class EnabledPipelineValidatorSpec extends Specification {
     then:
     1 * front50Service.getPipeline(execution.pipelineConfigId) >> { throw notFoundError() }
     1 * front50Service.getPipelines(execution.application, false) >> Calls.response([])
+    0 * front50Service._
 
     notThrown(PipelineValidationFailed)
 
@@ -129,15 +130,15 @@ class EnabledPipelineValidatorSpec extends Specification {
   }
 
   def "allows enabled strategy to run"() {
-    given:
-    front50Service.getStrategies(execution.application) >> Calls.response([
-        [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false]
-    ])
-
     when:
     validator.checkRunnable(execution)
 
     then:
+    1 * front50Service.getStrategies(execution.application) >> Calls.response([
+        [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false]
+    ])
+    0 * front50Service._
+
     notThrown(PipelineValidationFailed)
 
     where:
@@ -150,15 +151,15 @@ class EnabledPipelineValidatorSpec extends Specification {
   }
 
   def "prevents disabled strategy from running"() {
-    given:
-    front50Service.getStrategies(execution.application) >> Calls.response([
-        [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: true]
-    ])
-
     when:
     validator.checkRunnable(execution)
 
     then:
+    1 * front50Service.getStrategies(execution.application) >> Calls.response([
+        [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: true]
+    ])
+    0 * front50Service._
+
     thrown(EnabledPipelineValidator.PipelineIsDisabled)
 
     where:
@@ -176,6 +177,7 @@ class EnabledPipelineValidatorSpec extends Specification {
 
     then:
     1 * front50Service.getPipeline(execution.pipelineConfigId) >> Calls.response([id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false])
+    0 * front50Service._
 
     notThrown(PipelineValidationFailed)
 
@@ -204,5 +206,4 @@ class EnabledPipelineValidatorSpec extends Specification {
 
     return new SpinnakerHttpException(retrofit2Response, retrofit)
   }
-
 }
