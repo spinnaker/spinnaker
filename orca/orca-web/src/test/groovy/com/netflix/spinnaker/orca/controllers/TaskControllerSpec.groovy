@@ -628,6 +628,22 @@ class TaskControllerSpec extends Specification {
     results.id == ['test-2']
   }
 
+  void '/applications/{application}/pipelines/search checks that pipelines with a given pipeline name actually have that name'() {
+    given:
+    def app = "covfefe"
+
+    when:
+    def response = mockMvc.perform(get("/applications/${app}/pipelines/search?pipelineName=pipeline2")).andReturn().response
+    List results = new ObjectMapper().readValue(response.contentAsString, List)
+
+    then:
+    1 * front50Service.getPipeline(app, 'pipeline2', false) >> Calls.response([id: "2", name: "some-other-name"])
+    0 * front50Service._
+    0 * executionRepository._
+
+    results.id == []
+  }
+
   void '/applications/{application}/pipelines/search with a given pipeline name when front50 returns no pipelines'() {
     given:
     def app = "covfefe"
