@@ -19,7 +19,7 @@ package com.netflix.spinnaker.orca.front50.pipeline;
 import static java.lang.String.format;
 
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.Trigger;
 import com.netflix.spinnaker.orca.front50.Front50Service;
@@ -31,6 +31,7 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -61,7 +62,7 @@ public class EnabledPipelineValidator implements PipelineValidator {
 
     if (!isStrategy(pipeline)) {
       try {
-        // attempt an optimized lookup via pipeline history vs fetching all pipelines for the
+        // attempt an optimized lookup via pipeline config id vs fetching all pipelines for the
         // application and filtering
         Map<String, Object> pipelineConfig =
             Retrofit2SyncCall.execute(front50Service.getPipeline(pipeline.getPipelineConfigId()));
@@ -74,8 +75,15 @@ public class EnabledPipelineValidator implements PipelineValidator {
         }
 
         return;
-      } catch (SpinnakerServerException ignored) {
-        // treat a failure to fetch pipeline config history as non-fatal and fallback to the
+      } catch (SpinnakerHttpException e) {
+        // If the pipeline doesn't exist, go ahead and return without throwing
+        // an exception.  This matches the previous behavior, and saves a call
+        // to get all pipelines in an application.
+        if (e.getResponseCode() == HttpStatus.NOT_FOUND.value()) {
+          return;
+        }
+
+        // treat other failures to fetch pipeline config as non-fatal and fallback to the
         // previous behavior
         // (handles the fast property case where the supplied pipeline config id does _not_
         // actually exist)

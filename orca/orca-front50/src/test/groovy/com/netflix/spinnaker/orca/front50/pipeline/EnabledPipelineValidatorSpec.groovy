@@ -44,7 +44,6 @@ class EnabledPipelineValidatorSpec extends Specification {
 
     then:
     1 * front50Service.getPipeline(execution.pipelineConfigId) >> { throw notFoundError() }
-    1 * front50Service.getPipelines(execution.application, false) >> Calls.response([])
     0 * front50Service._
 
     notThrown(PipelineValidationFailed)
@@ -82,7 +81,8 @@ class EnabledPipelineValidatorSpec extends Specification {
     validator.checkRunnable(execution)
 
     then:
-    1 * front50Service.getPipeline(execution.pipelineConfigId) >> { throw notFoundError() }
+    // throw an exception from getPipeline that causes a fall-through to the getPipelines call
+    1 * front50Service.getPipeline(execution.pipelineConfigId) >> { throw makeSpinnakerHttpException(503) }
     1 * front50Service.getPipelines(execution.application, false) >> { throw spinnakerHttpException }
     0 * front50Service._
 
@@ -106,7 +106,8 @@ class EnabledPipelineValidatorSpec extends Specification {
     validator.checkRunnable(execution)
 
     then:
-    1 * front50Service.getPipeline(execution.pipelineConfigId) >> { throw notFoundError() }
+    // throw an exception from getPipeline that causes a fall-through to the getPipelines call
+    1 * front50Service.getPipeline(execution.pipelineConfigId) >> { throw makeSpinnakerHttpException(503) }
     1 * front50Service.getPipelines(execution.application, false) >> Calls.response([
         [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false]
     ])
@@ -118,7 +119,8 @@ class EnabledPipelineValidatorSpec extends Specification {
     validator.checkRunnable(execution)
 
     then:
-    1 * front50Service.getPipeline(execution.pipelineConfigId) >> { throw notFoundError() }
+    // throw an exception from getPipeline that causes a fall-through to the getPipelines call
+    1 * front50Service.getPipeline(execution.pipelineConfigId) >> { throw makeSpinnakerHttpException(503) }
     1 * front50Service.getPipelines(execution.application, false) >> Calls.response([
         [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false]
     ])
@@ -148,7 +150,8 @@ class EnabledPipelineValidatorSpec extends Specification {
     validator.checkRunnable(execution)
 
     then:
-    1 * front50Service.getPipeline(execution.pipelineConfigId) >> { throw notFoundError() }
+    // throw an exception from getPipeline that causes a fall-through to the getPipelines call
+    1 * front50Service.getPipeline(execution.pipelineConfigId) >> { throw makeSpinnakerHttpException(503) }
     1 * front50Service.getPipelines(execution.application, false) >> Calls.response([
         [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: true]
     ])
