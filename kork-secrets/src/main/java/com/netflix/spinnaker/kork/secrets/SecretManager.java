@@ -23,18 +23,14 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import lombok.Getter;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class SecretManager {
 
   @Getter private final SecretEngineRegistry secretEngineRegistry;
-
-  @Autowired
-  SecretManager(SecretEngineRegistry secretEngineRegistry) {
-    this.secretEngineRegistry = secretEngineRegistry;
-  }
 
   /**
    * Decrypt will deserialize the configValue into an EncryptedSecret object and decrypted based on

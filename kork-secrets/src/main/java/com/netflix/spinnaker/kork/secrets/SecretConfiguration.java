@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -38,12 +37,6 @@ import org.springframework.core.io.ResourceLoader;
 @Configuration
 @ComponentScan
 public class SecretConfiguration {
-
-  @Bean
-  static SecretBeanPostProcessor secretBeanPostProcessor(
-      ConfigurableApplicationContext applicationContext, SecretManager secretManager) {
-    return new SecretBeanPostProcessor(applicationContext, secretManager);
-  }
 
   @Bean
   public UserSecretTypeProvider defaultUserSecretTypeProvider(ResourceLoader loader) {

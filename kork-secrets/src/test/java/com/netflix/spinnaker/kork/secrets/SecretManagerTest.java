@@ -19,22 +19,33 @@ package com.netflix.spinnaker.kork.secrets;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import org.junit.*;
+import java.util.stream.Stream;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.beans.factory.ObjectProvider;
 
+@RunWith(MockitoJUnitRunner.class)
 public class SecretManagerTest {
 
-  @Mock SecretEngineRegistry secretEngineRegistry;
+  @Mock ObjectProvider<SecretEngine> secretEngineProvider;
+
+  SecretEngineRegistry secretEngineRegistry;
 
   @Mock SecretEngine secretEngine;
 
@@ -44,11 +55,10 @@ public class SecretManagerTest {
 
   @Before
   public void setup() {
-    MockitoAnnotations.initMocks(this);
-    when(secretEngineRegistry.getEngine("s3")).thenReturn(secretEngine);
+    secretEngineRegistry = new SecretEngineRegistry(secretEngineProvider);
+    when(secretEngineProvider.orderedStream()).thenReturn(Stream.of(secretEngine));
     when(secretEngine.identifier()).thenReturn("s3");
-    secretManager = new SecretManager(secretEngineRegistry);
-    // secretManager.setSecretEngineRegistry(secretEngineRegistry);
+    secretManager = spy(new SecretManager(secretEngineRegistry));
   }
 
   @Test
@@ -60,7 +70,6 @@ public class SecretManagerTest {
 
   @Test
   public void decryptSecretEngineNotFound() throws SecretDecryptionException {
-    when(secretEngineRegistry.getEngine("does-not-exist")).thenReturn(null);
     String secretConfig = "encrypted:does-not-exist!paramName:paramValue";
     exceptionRule.expect(SecretDecryptionException.class);
     exceptionRule.expectMessage("Secret Engine does not exist: does-not-exist");
@@ -90,7 +99,6 @@ public class SecretManagerTest {
 
   @Test
   public void decryptFileSecretEngineNotFound() throws SecretDecryptionException {
-    when(secretEngineRegistry.getEngine("does-not-exist")).thenReturn(null);
     String secretConfig = "encrypted:does-not-exist!paramName:paramValue";
     exceptionRule.expect(SecretDecryptionException.class);
     exceptionRule.expectMessage("Secret Engine does not exist: does-not-exist");
@@ -109,12 +117,11 @@ public class SecretManagerTest {
 
   @Test
   public void decryptFileNoDiskSpaceMock() throws SecretDecryptionException {
-    SecretManager spy = spy(new SecretManager(secretEngineRegistry));
-    doThrow(SecretDecryptionException.class).when(spy).createTempFile(any(), any());
-    doReturn("contents").when(spy).decrypt(any());
-    doCallRealMethod().when(spy).decryptAsFile(any());
+    doThrow(SecretDecryptionException.class).when(secretManager).createTempFile(any(), any());
+    doReturn("contents".getBytes(StandardCharsets.UTF_8)).when(secretManager).decryptAsBytes(any());
+    doCallRealMethod().when(secretManager).decryptAsFile(any());
     exceptionRule.expect(SecretDecryptionException.class);
     String secretConfig = "encrypted:s3!paramName:paramValue";
-    spy.decryptAsFile(secretConfig);
+    secretManager.decryptAsFile(secretConfig);
   }
 }

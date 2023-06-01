@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.kork.secrets;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -12,34 +13,23 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.springframework.core.env.EnumerablePropertySource;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.core.env.MapPropertySource;
 
+@RunWith(MockitoJUnitRunner.class)
 public class SecretAwarePropertySourceTest {
 
-  private SecretAwarePropertySource secretAwarePropertySource;
-  private SecretManager secretManager;
-  private Map<String, String> testValues = new HashMap<>();
-
-  @Rule public ExpectedException thrown = ExpectedException.none();
+  private SecretAwarePropertySource<Map<String, Object>> secretAwarePropertySource;
+  private final SecretPropertyProcessor secretPropertyProcessor = new SecretPropertyProcessor();
+  @Mock private SecretManager secretManager;
+  private final Map<String, Object> testValues = new HashMap<>();
+  private final MapPropertySource propertySource = new MapPropertySource("testSource", testValues);
 
   @Before
   public void setup() {
-    EnumerablePropertySource source =
-        new EnumerablePropertySource("testSource") {
-          @Override
-          public String[] getPropertyNames() {
-            return new String[0];
-          }
-
-          @Override
-          public Object getProperty(String name) {
-            return testValues.get(name);
-          }
-        };
-
     testValues.put("testSecretFile", "encrypted:noop!k:testValue");
     testValues.put("testSecretPath", "encrypted:noop!k:testValue");
     testValues.put("testSecretCert", "encryptedFile:noop!k:testValue");
@@ -47,7 +37,9 @@ public class SecretAwarePropertySourceTest {
     testValues.put("testNotSoSecret", "unencrypted");
 
     secretManager = mock(SecretManager.class);
-    secretAwarePropertySource = new SecretAwarePropertySource(source, secretManager);
+    secretPropertyProcessor.setSecretManager(secretManager);
+    secretAwarePropertySource =
+        new SecretAwarePropertySource<>(propertySource, secretPropertyProcessor);
 
     when(secretManager.decryptAsFile(any())).thenReturn(Paths.get("decryptedFile"));
     when(secretManager.decrypt(any())).thenReturn("decryptedString");
@@ -92,9 +84,12 @@ public class SecretAwarePropertySourceTest {
 
   @Test
   public void noSecretManagerShouldThrowException() {
-    secretAwarePropertySource.setSecretManager(null);
-    thrown.expect(SecretException.class);
-    thrown.expectMessage("No secret manager to decrypt value of testSecretString");
-    secretAwarePropertySource.getProperty("testSecretString");
+    secretPropertyProcessor.setSecretManager(null);
+    SecretException exception =
+        assertThrows(
+            SecretException.class, () -> secretAwarePropertySource.getProperty("testSecretString"));
+    assertEquals("No secret manager to decrypt value of testSecretString", exception.getMessage());
+    verify(secretManager, never()).decrypt(any());
+    verify(secretManager, never()).decryptAsFile(any());
   }
 }

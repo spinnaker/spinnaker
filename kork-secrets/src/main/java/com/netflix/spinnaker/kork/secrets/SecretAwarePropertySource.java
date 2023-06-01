@@ -16,50 +16,41 @@
 
 package com.netflix.spinnaker.kork.secrets;
 
-import lombok.Getter;
-import lombok.Setter;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import javax.annotation.Nullable;
 import org.springframework.core.env.EnumerablePropertySource;
 
-public class SecretAwarePropertySource extends EnumerablePropertySource<EnumerablePropertySource> {
-  @Setter @Getter private SecretManager secretManager;
+/**
+ * Wraps an enumerable property source with support for decrypting {@link EncryptedSecret} URIs
+ * found in property values.
+ *
+ * @param <T> underlying source of properties being wrapped
+ */
+@NonnullByDefault
+public class SecretAwarePropertySource<T> extends EnumerablePropertySource<T> {
+  private final EnumerablePropertySource<T> delegate;
+  private final SecretPropertyProcessor secretPropertyProcessor;
 
-  public SecretAwarePropertySource(EnumerablePropertySource source, SecretManager secretManager) {
-    super(source.getName(), source);
-    this.secretManager = secretManager;
+  SecretAwarePropertySource(
+      EnumerablePropertySource<T> source, SecretPropertyProcessor secretPropertyProcessor) {
+    super(source.getName(), source.getSource());
+    this.delegate = source;
+    this.secretPropertyProcessor = secretPropertyProcessor;
   }
 
   @Override
+  @Nullable
   public Object getProperty(String name) {
-    Object o = source.getProperty(name);
-    if (o instanceof String && EncryptedSecret.isEncryptedSecret((String) o)) {
-      String propertyValue = (String) o;
-      if (secretManager == null) {
-        throw new SecretException("No secret manager to decrypt value of " + name);
-      }
-      String lName = name.toLowerCase();
-      if (isSamlFile(lName)) {
-        return "file:" + secretManager.decryptAsFile(propertyValue).toString();
-      } else if (isFile(lName) || EncryptedSecret.isEncryptedFile(propertyValue)) {
-        return secretManager.decryptAsFile(propertyValue).toString();
-      } else {
-        return secretManager.decrypt(propertyValue);
-      }
-    }
-    return o;
-  }
-
-  @Deprecated
-  private boolean isFile(String name) {
-    return name.endsWith("file") || name.endsWith("path") || name.endsWith("truststore");
-  }
-
-  @Deprecated
-  private boolean isSamlFile(String name) {
-    return name.endsWith("keystore") || name.endsWith("metadataurl");
+    return secretPropertyProcessor.processPropertyValue(name, delegate.getProperty(name));
   }
 
   @Override
   public String[] getPropertyNames() {
-    return this.source.getPropertyNames();
+    return delegate.getPropertyNames();
+  }
+
+  @Override
+  public boolean containsProperty(String name) {
+    return delegate.containsProperty(name);
   }
 }

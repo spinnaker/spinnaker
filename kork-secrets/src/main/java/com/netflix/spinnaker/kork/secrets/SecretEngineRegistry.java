@@ -16,29 +16,28 @@
 
 package com.netflix.spinnaker.kork.secrets;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import javax.annotation.PostConstruct;
-import lombok.Getter;
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.stream.Collectors;
+import javax.annotation.Nullable;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class SecretEngineRegistry {
+  private final ObjectProvider<SecretEngine> secretEngines;
 
-  @Getter private Map<String, SecretEngine> registeredEngines = new HashMap<>();
-
-  @Getter @Autowired private List<SecretEngine> secretEngineList;
-
-  @PostConstruct
-  public void init() {
-    for (SecretEngine secretEngine : secretEngineList) {
-      registeredEngines.put(secretEngine.identifier(), secretEngine);
-    }
+  public List<SecretEngine> getSecretEngineList() {
+    return secretEngines.orderedStream().collect(Collectors.toList());
   }
 
+  @Nullable
   public SecretEngine getEngine(String key) {
-    return registeredEngines.get(key);
+    return secretEngines
+        .orderedStream()
+        .filter(secretEngine -> secretEngine.identifier().equals(key))
+        .findFirst()
+        .orElse(null);
   }
 }
