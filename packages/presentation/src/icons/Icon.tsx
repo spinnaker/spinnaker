@@ -1,3 +1,4 @@
+import type { SVGComponent } from '*.svg';
 import React, { memo } from 'react';
 
 import { iconsByName } from './iconsByName';
@@ -5,7 +6,8 @@ import { iconsByName } from './iconsByName';
 export type IconNames = keyof typeof iconsByName;
 
 export type IIconProps = {
-  name: IconNames;
+  name?: IconNames;
+  reactComponent?: SVGComponent;
   appearance?: 'light' | 'neutral' | 'dark';
   size?: 'extraSmall' | 'small' | 'medium' | 'large' | 'extraLarge' | string;
   color?: string;
@@ -27,11 +29,19 @@ const throwInvalidIconError = (name: string) => {
   throw new Error(`No icon with the name ${name} exists`);
 };
 
-export const Icon = memo(({ name, appearance, size, color, className }: IIconProps) => {
-  const Component = iconsByName[name];
+const throwInvalidIconComponentError = () => {
+  throw new Error('No name or reactComponent provided in Icon props');
+};
 
-  if (!Component) {
-    throwInvalidIconError(name);
+export const Icon = memo(({ name, reactComponent, appearance, size, color, className }: IIconProps) => {
+  let Component;
+  if (name) {
+    Component = iconsByName[name];
+    if (!Component) {
+      throwInvalidIconError(name);
+    }
+  } else {
+    Component = reactComponent || throwInvalidIconComponentError();
   }
 
   const width = size ? pxDimensionsBySize[size] || size : pxDimensionsBySize[DEFAULT_SIZE];
