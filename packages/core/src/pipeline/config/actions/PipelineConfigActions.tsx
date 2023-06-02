@@ -18,6 +18,7 @@ export interface IPipelineConfigActionsProps {
 }
 
 export function PipelineConfigActions(props: IPipelineConfigActionsProps) {
+  const closeDropdown = () => document.body.click();
   const {
     pipeline,
     renamePipeline,
@@ -36,7 +37,7 @@ export function PipelineConfigActions(props: IPipelineConfigActionsProps) {
       <Dropdown.Toggle className="btn btn-sm dropdown-toggle">
         {pipeline.strategy === true ? 'Strategy' : 'Pipeline'} Actions
       </Dropdown.Toggle>
-      <Dropdown.Menu className="dropdown-menu">
+      <Dropdown.Menu className="dropdown-menu" onClick={closeDropdown}>
         {!pipeline.locked && <PipelineConfigAction name="Rename" action={renamePipeline} />}
         {!pipeline.locked && <PipelineConfigAction name="Delete" action={deletePipeline} />}
         {!pipeline.locked && pipeline.disabled && <PipelineConfigAction name="Enable" action={enablePipeline} />}
