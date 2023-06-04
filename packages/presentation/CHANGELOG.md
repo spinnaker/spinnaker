@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.3.0](https://github.com/spinnaker/deck/compare/@spinnaker/presentation@0.2.1...@spinnaker/presentation@0.3.0) (2023-06-02)
+
+
+### Features
+
+* **icons:** allow plugins to provide custom icon components ([#10001](https://github.com/spinnaker/deck/issues/10001)) ([e436465](https://github.com/spinnaker/deck/commit/e436465778437895446d0e36094296d7b96fb58d))
+
+
+
+
+
 ## [0.2.1](https://github.com/spinnaker/deck/compare/@spinnaker/presentation@0.2.0...@spinnaker/presentation@0.2.1) (2022-10-06)
 
 **Note:** Version bump only for package @spinnaker/presentation

@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.24.1](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.24.0...@spinnaker/core@0.24.1) (2023-06-02)
+
+
+### Bug Fixes
+
+* **core/pipeline:** Pipeline builder-pipeline action dropdown closing not properly ([#9999](https://github.com/spinnaker/deck/issues/9999)) ([a672a20](https://github.com/spinnaker/deck/commit/a672a208625d2551ec38f5179cf519fec4a40280))
+
+
+
+
+
 # [0.24.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.23.2...@spinnaker/core@0.24.0) (2023-05-11)
 
 
