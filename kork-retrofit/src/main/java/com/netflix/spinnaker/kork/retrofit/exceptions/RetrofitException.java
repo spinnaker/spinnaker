@@ -18,6 +18,7 @@ package com.netflix.spinnaker.kork.retrofit.exceptions;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.util.Objects;
 import okhttp3.ResponseBody;
 import retrofit2.Converter;
 import retrofit2.Response;
@@ -55,6 +56,10 @@ public class RetrofitException extends RuntimeException {
   RetrofitException(String message, Response response, Throwable exception, Retrofit retrofit) {
     super(message, exception);
     this.response = response;
+    if (response != null) {
+      // Fail fast instead of checking for null in e.g. getErrorBodyAs.
+      Objects.requireNonNull(response.errorBody());
+    }
     this.retrofit = retrofit;
   }
 
@@ -70,9 +75,10 @@ public class RetrofitException extends RuntimeException {
    *     the specified {@code type}.
    */
   public <T> T getErrorBodyAs(Class<T> type) {
-    if (response == null || response.errorBody() == null) {
+    if (response == null) {
       return null;
     }
+
     Converter<ResponseBody, T> converter = retrofit.responseBodyConverter(type, new Annotation[0]);
     try {
       return converter.convert(response.errorBody());
