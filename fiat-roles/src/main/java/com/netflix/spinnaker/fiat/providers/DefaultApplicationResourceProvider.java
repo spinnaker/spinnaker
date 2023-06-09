@@ -20,6 +20,7 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Streams;
 import com.netflix.spinnaker.fiat.config.ResourceProviderConfig.ApplicationProviderConfig;
 import com.netflix.spinnaker.fiat.model.resources.Application;
@@ -31,10 +32,13 @@ import com.netflix.spinnaker.fiat.providers.internal.Front50Service;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class DefaultApplicationResourceProvider extends BaseResourceProvider<Application>
     implements ResourceProvider<Application> {
 
@@ -93,6 +97,12 @@ public class DefaultApplicationResourceProvider extends BaseResourceProvider<App
               // Collect to a list instead of set since we're about to modify the applications
               .collect(toImmutableList());
 
+      if (applicationProviderConfig.isSuppressDetails()) {
+        log.debug(
+            "Suppressing details for the fetched applications, excluding the following: {}",
+            applicationProviderConfig.getDetailsExcludedFromSuppression());
+      }
+
       applications.forEach(
           application -> {
             Permissions permissions = permissionProvider.getPermissions(application);
@@ -102,6 +112,19 @@ public class DefaultApplicationResourceProvider extends BaseResourceProvider<App
                 executeFallbackPermissionsResolver.shouldResolve(permissions)
                     ? executeFallbackPermissionsResolver.resolve(permissions)
                     : permissions);
+
+            if (applicationProviderConfig.isSuppressDetails()) {
+              // Suppress application details to reduce the amount of data being stored
+              Map<String, Object> updatedDetails = Maps.newHashMap(application.getDetails());
+              updatedDetails
+                  .keySet()
+                  .removeIf(
+                      name ->
+                          !applicationProviderConfig
+                              .getDetailsExcludedFromSuppression()
+                              .contains(name));
+              application.setDetails(updatedDetails);
+            }
           });
 
       if (allowAccessToUnknownApplications) {

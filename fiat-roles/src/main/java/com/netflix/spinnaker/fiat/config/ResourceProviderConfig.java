@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.fiat.config;
 
+import com.google.common.collect.Sets;
+import java.util.Set;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
@@ -36,6 +38,17 @@ public class ResourceProviderConfig {
   @Data
   public static class ApplicationProviderConfig {
     @NestedConfigurationProperty private ClouddriverConfig clouddriver = new ClouddriverConfig();
+
+    /** Controls whether the application "details" are stored with the User Permission or not */
+    private boolean suppressDetails;
+
+    /**
+     * Defines the set of keys to be excluded when suppressing application details Excluding
+     * chaosMonkey by default since {@link
+     * com.netflix.spinnaker.fiat.providers.ChaosMonkeyApplicationResourcePermissionSource} is the
+     * only place where these details are accessed.
+     */
+    private Set<String> detailsExcludedFromSuppression = Sets.newHashSet("chaosMonkey");
   }
 
   @Data

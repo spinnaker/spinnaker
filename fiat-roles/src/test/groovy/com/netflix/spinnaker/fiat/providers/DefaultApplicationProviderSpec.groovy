@@ -217,4 +217,67 @@ class DefaultApplicationProviderSpec extends Specification {
     false                            | ["front50App1", "front50App2"]
     true                             | ["front50App1", "front50App2", "clouddriverApp1", "clouddriverApp2"]
   }
+
+  @Unroll
+  def "should suppress details when loading all applications"() {
+
+    setup:
+    def testApps = [
+            new Application().setName("front50App1")
+                    .setDetails(HashMap.of("foo", "bar", "xyz", "pqr"))
+                    .setPermissions(new Permissions.Builder().add(Authorization.READ, "role").build()),
+            new Application().setName("front50App2")
+                    .setDetails(HashMap.of("foo", "bar", "xyz", "pqr"))
+                    .setPermissions(new Permissions.Builder().add(Authorization.READ, "role").build())
+    ]
+
+    Set<Application> expectedApps = [
+            new Application().setName("front50App1")
+                    .setDetails(HashMap.of("foo", "bar", "xyz", "pqr"))
+                    .setPermissions(new Permissions.Builder()
+                            .add(Authorization.READ, "role")
+                            .add(Authorization.EXECUTE, "role")
+                            .build()),
+            new Application().setName("front50App2")
+                    .setDetails(HashMap.of("foo", "bar", "xyz", "pqr"))
+                    .setPermissions(new Permissions.Builder()
+                            .add(Authorization.READ, "role")
+                            .add(Authorization.EXECUTE, "role")
+                            .build()),
+    ] as Set
+
+    Front50Service front50Service = Mock(Front50Service) {
+      getAllApplications() >> testApps
+    }
+
+    ClouddriverService clouddriverService = Mock(ClouddriverService) {
+      getApplications() >> []
+    }
+
+    applicationProviderConfig.setSuppressDetails(suppressDetails)
+    applicationProviderConfig.setDetailsExcludedFromSuppression(excludeFromSupression)
+    provider = new DefaultApplicationResourceProvider(
+            front50Service,
+            clouddriverService,
+            defaultProvider,
+            fallbackPermissionsResolver,
+            true,
+            applicationProviderConfig,
+    )
+
+    when:
+    def result = provider.loadAll()
+
+    then:
+    result == expectedApps.each {
+      it.setDetails(expectedDetails)
+    }
+
+    where:
+    suppressDetails | excludeFromSupression | expectedDetails
+    false           | [] as Set             | [foo: "bar", xyz: "pqr"]
+    true            | [] as Set             | [:]
+    true            | ["foo", "xyz"] as Set | [foo: "bar", xyz: "pqr"]
+    true            | ["foo"] as Set        | [foo: "bar"]
+  }
 }
