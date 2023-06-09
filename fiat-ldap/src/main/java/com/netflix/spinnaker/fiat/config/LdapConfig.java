@@ -51,14 +51,66 @@ public class LdapConfig {
     String managerDn;
     String managerPassword;
 
-    String groupSearchBase = "";
-    MessageFormat userDnPattern = new MessageFormat("uid={0},ou=users");
+    /** Search base to be used when querying users Example: "ou=users" */
     String userSearchBase = "";
+
+    /** Search base to be used when querying groups Example: "ou=groups" */
+    String groupSearchBase = "";
+
+    /** Pattern used for fetching user distinguished names */
+    MessageFormat userDnPattern = new MessageFormat("uid={0},ou=users");
+
+    /** Search filter used for querying users' distinguished names Example: "(employeeEmail={0})" */
     String userSearchFilter;
+
+    /** Search filter used for querying groups */
     String groupSearchFilter = "(uniqueMember={0})";
+
+    /** Group attribute for parsing out the role from the fetched groups */
     String groupRoleAttributes = "cn";
+
+    /**
+     * Group attribute for parsing out the group members from the fetched groups Example: "member"
+     */
     String groupUserAttributes = "";
 
+    /**
+     * Controls the user count threshold, used for determining if ldap groups for each user should
+     * be queried individually or not. If the threshold is breached, LDAP is queried to retrieve all
+     * groups and their members and then filtered based on the provided users
+     */
     int thresholdToUseGroupMembership = 100;
+
+    /**
+     * Controls whether paging should be used when fetching all LDAP groups. This is only applicable
+     * when enableDnBasedMultiLoad is true and thresholdToUseGroupMembership is breached.
+     */
+    boolean enablePagingForGroupMembershipQueries;
+
+    /**
+     * Number of results fetched per page for group membership queries. This is only applicable when
+     * thresholdToUseGroupMembership is breached and enablePagingForGroupMembershipQueries is set to
+     * true.
+     */
+    int pageSizeForGroupMembershipQueries = 100;
+
+    /**
+     * This value is used to determine the number of users to include in every ldap query when
+     * fetching user DNs from LDAP
+     */
+    int loadUserDNsBatchSize = 100;
+
+    /**
+     * The attribute used for parsing the id of the fetched ldap user. This is the id provided to
+     * Fiat when logging in the user, eg. employee email. This attribute is used for creating a map
+     * of the user dn to user id.
+     */
+    String userIdAttribute = "employeeEmail";
+
+    /**
+     * This attribute if true, enables multi loading of roles based on user DNs fetched using
+     * batched ldap queries
+     */
+    boolean enableDnBasedMultiLoad = false;
   }
 }
