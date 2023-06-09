@@ -25,6 +25,7 @@ import lombok.Data;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.context.support.StaticApplicationContext;
 
 public class CredentialsTypeBaseConfigurationTest {
@@ -117,6 +118,24 @@ public class CredentialsTypeBaseConfigurationTest {
     config.getCredentialsLoader().load();
 
     String[] beanNames = context.getBeanNamesForType(CredentialsRepository.class);
+    assertThat(beanNames).hasSize(1);
+    assertThat(beanNames[0]).isEqualTo("customRepository");
+  }
+
+  @Test
+  void testOverrideBeanInParentContext() {
+    var childContext = new StaticApplicationContext(context);
+    config = new CredentialsTypeBaseConfiguration<>(childContext, props);
+    TestCredentialsRepository repository =
+        new TestCredentialsRepository(CREDENTIALS_TYPE, new NoopCredentialsLifecycleHandler<>());
+    context.getBeanFactory().registerSingleton("customRepository", repository);
+    config.afterPropertiesSet();
+    // This test runner ignores PostConstruct annotations
+    config.getCredentialsLoader().load();
+
+    String[] beanNames =
+        BeanFactoryUtils.beanNamesForTypeIncludingAncestors(
+            childContext, CredentialsRepository.class);
     assertThat(beanNames).hasSize(1);
     assertThat(beanNames[0]).isEqualTo("customRepository");
   }

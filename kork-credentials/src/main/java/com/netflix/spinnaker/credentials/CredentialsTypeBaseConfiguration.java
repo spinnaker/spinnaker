@@ -26,6 +26,7 @@ import java.util.Optional;
 import javax.annotation.Nullable;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -171,7 +172,8 @@ public class CredentialsTypeBaseConfiguration<
   protected <T> Optional<T> getParameterizedBean(
       ApplicationContext applicationContext, Class<T> paramClass, Class<?>... generics) {
     ResolvableType resolvableType = ResolvableType.forClassWithGenerics(paramClass, generics);
-    String[] beanNames = applicationContext.getBeanNamesForType(resolvableType);
+    String[] beanNames =
+        BeanFactoryUtils.beanNamesForTypeIncludingAncestors(applicationContext, resolvableType);
     if (beanNames.length == 1) {
       return Optional.of((T) applicationContext.getBean(beanNames[0]));
     }
