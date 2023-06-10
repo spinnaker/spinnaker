@@ -22,10 +22,7 @@ import com.netflix.spinnaker.orca.pipelinetemplate.handler.DefaultHandlerChain
 import com.netflix.spinnaker.orca.pipelinetemplate.handler.GlobalPipelineTemplateContext
 import com.netflix.spinnaker.orca.pipelinetemplate.loader.FileTemplateSchemeLoader
 import com.netflix.spinnaker.orca.pipelinetemplate.loader.TemplateLoader
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.JinjaRenderer
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderUtil
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer
 import spock.lang.Specification
 import spock.lang.Subject
@@ -37,7 +34,7 @@ class V1TemplateLoaderHandlerSpec extends Specification {
 
   Renderer renderer = new JinjaRenderer(objectMapper, Mock(Front50Service), [])
 
-  TemplateLoader templateLoader = new TemplateLoader([new FileTemplateSchemeLoader(objectMapper)])
+  TemplateLoader templateLoader = new TemplateLoader([new FileTemplateSchemeLoader(objectMapper)], objectMapper, renderer)
 
   @Subject
   def subject = new V1TemplateLoaderHandler(templateLoader, renderer, objectMapper)
@@ -83,28 +80,27 @@ class V1TemplateLoaderHandlerSpec extends Specification {
   @Unroll
   def 'should render jinja expressions contained within template variables'() {
     given:
-    def pipelineTemplate = new PipelineTemplate(variables: templateVariables.collect {
-      new PipelineTemplate.Variable(name: it.key, defaultValue: it.value)
-    })
+    def chain = new DefaultHandlerChain()
+    def context = new GlobalPipelineTemplateContext(chain, createInlinedTemplateRequest(true))
 
-    def templateConfig = new TemplateConfiguration(
-      pipeline: new TemplateConfiguration.PipelineDefinition(variables: configVariables)
-    )
-
-    def renderContext = RenderUtil.createDefaultRenderContext(
-      pipelineTemplate, templateConfig, [
-      parameters: [
+    context.request.template.variables = templateVariables.collect {
+      [
+          name        : it.key,
+          defaultValue: it.value
+      ]
+    }
+    context.request.config.pipeline.variables = configVariables
+    context.request.trigger.parameters = [
         "list"   : "us-west-2,us-east-1",
         "boolean": "true",
         "string" : "this is a string"
-      ]
-    ])
+    ]
 
     when:
-    subject.renderTemplateVariables(renderContext, pipelineTemplate)
+    subject.handle(chain, context)
 
     then:
-    pipelineTemplate.variables*.defaultValue == expectedDefaultValues
+    (context.schemaContext as V1PipelineTemplateContext).template.variables*.defaultValue == expectedDefaultValues
 
     where:
     templateVariables                                                     | configVariables       || expectedDefaultValues

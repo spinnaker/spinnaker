@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.orca.pipelinetemplate.loader;
 
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
 import java.net.URI;
+import java.util.Map;
 
 public interface TemplateSchemeLoader {
   boolean supports(URI uri);
 
-  PipelineTemplate load(URI uri);
+  Map<String, Object> load(URI uri);
 
   default boolean isJson(URI uri) {
     String uriName = uri.toString().toLowerCase();

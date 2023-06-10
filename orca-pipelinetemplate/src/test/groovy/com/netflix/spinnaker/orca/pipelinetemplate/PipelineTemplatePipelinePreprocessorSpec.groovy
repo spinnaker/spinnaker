@@ -16,7 +16,11 @@
 package com.netflix.spinnaker.orca.pipelinetemplate
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.*
+import com.netflix.spectator.api.Clock
+import com.netflix.spectator.api.Counter
+import com.netflix.spectator.api.Id
+import com.netflix.spectator.api.Registry
+import com.netflix.spectator.api.Timer
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -45,16 +49,16 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
   ObjectMapper objectMapper = new ObjectMapper()
   def oortService = Mock(OortService)
 
-  TemplateLoader templateLoader = new TemplateLoader([new FileTemplateSchemeLoader(objectMapper)])
+  Renderer renderer = new JinjaRenderer(
+      new YamlRenderedValueConverter(), objectMapper, Mock(Front50Service), []
+  )
+
+  TemplateLoader templateLoader = new TemplateLoader([new FileTemplateSchemeLoader(objectMapper)], objectMapper, renderer)
   V2TemplateLoader v2TemplateLoader = new V2TemplateLoader(oortService, objectMapper)
   ContextParameterProcessor contextParameterProcessor = new ContextParameterProcessor()
 
   ExecutionRepository executionRepository = Mock(ExecutionRepository)
   ArtifactUtils artifactUtils = Spy(ArtifactUtils, constructorArgs: [objectMapper, executionRepository, new ContextParameterProcessor()])
-
-  Renderer renderer = new JinjaRenderer(
-    new YamlRenderedValueConverter(), objectMapper, Mock(Front50Service), []
-  )
 
   Registry registry = Mock() {
     clock() >> Mock(Clock) {
@@ -332,6 +336,16 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
 
     then:
     result.limitConcurrent == false
+  }
+
+  def "should render stages dynamically with jinja if the stages block is a single string"() {
+    when:
+    def template =  createTemplateRequest('dynamic-stages-001.yml')
+    def result = subject.process(template)
+
+    then:
+    result.stages.size == 4
+    result.stages*.name.toSet() == ["Wait", "Deploy to cluster-1", "Deploy to cluster-2", "Deploy to cluster-3"].toSet()
   }
 
   Map<String, Object> createTemplateRequest(String templatePath, Map<String, Object> variables = [:], List<Map<String, Object>> stages = [], boolean plan = false) {

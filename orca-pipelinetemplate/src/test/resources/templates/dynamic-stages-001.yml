@@ -1,0 +1,35 @@
+schema: "1"
+id: simpleTemplate
+variables:
+  - name: clusters
+    type: list
+    defaultValue:
+      - cluster-1
+      - cluster-2
+      - cluster-3
+stages: | # Note the pipe here - it makes the block a string, which is needed to render Jinja expressions at the top level
+  - id: wait
+    name: Wait
+    type: wait
+    config:
+      waitTime: 5
+  {%- for cluster in clusters %}
+  - name: Deploy to {{ cluster }}
+    type: deployManifest
+    id: deploy-{{ cluster }}
+    dependsOn:
+      - wait
+    config:
+      account: "{{ cluster }}"
+      cloudProvider: kubernetes
+      manifestArtifactId: baked-manifest
+      moniker:
+        app: "${ execution['application'] }"
+      skipExpressionEvaluation: false
+      source: artifact
+      trafficManagement:
+        enabled: false
+        options:
+          enableTraffic: false
+          services: []
+  {%- endfor %}

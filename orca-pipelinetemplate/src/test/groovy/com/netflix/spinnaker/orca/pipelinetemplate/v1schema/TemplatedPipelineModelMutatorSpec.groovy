@@ -92,7 +92,7 @@ class TemplatedPipelineModelMutatorSpec extends Specification {
     subject.mutate(pipeline)
 
     then:
-    1 * templateLoader.load(_) >> { [new PipelineTemplate(
+    1 * templateLoader.load(_, _, _) >> { [new PipelineTemplate(
       schema: '1',
       configuration: new Configuration(
         expectedArtifacts: [
@@ -125,7 +125,7 @@ class TemplatedPipelineModelMutatorSpec extends Specification {
     subject.mutate(pipeline)
 
     then:
-    1 * templateLoader.load(_) >> { [new PipelineTemplate(
+    1 * templateLoader.load(_, _, _) >> { [new PipelineTemplate(
       schema: '1',
       configuration: new Configuration(
         concurrentExecutions: [
@@ -176,7 +176,7 @@ class TemplatedPipelineModelMutatorSpec extends Specification {
     subject.mutate(pipeline)
 
     then:
-    1 * templateLoader.load(_) >> { [new PipelineTemplate(
+    1 * templateLoader.load(_, _, _) >> { [new PipelineTemplate(
       schema: '1'
     )] }
     pipeline.id == pipeline.config.pipeline.pipelineConfigId
@@ -202,7 +202,7 @@ class TemplatedPipelineModelMutatorSpec extends Specification {
     subject.mutate(pipeline)
 
     then:
-    1 * templateLoader.load(_) >> { [new PipelineTemplate(
+    1 * templateLoader.load(_, _, _) >> { [new PipelineTemplate(
       schema: '1'
     )] }
     pipeline.name == pipeline.config.pipeline.name

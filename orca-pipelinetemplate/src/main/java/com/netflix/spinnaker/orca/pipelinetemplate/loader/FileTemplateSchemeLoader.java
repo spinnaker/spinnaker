@@ -16,14 +16,15 @@
 
 package com.netflix.spinnaker.orca.pipelinetemplate.loader;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateLoaderException;
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -49,7 +50,7 @@ public class FileTemplateSchemeLoader implements TemplateSchemeLoader {
   }
 
   @Override
-  public PipelineTemplate load(URI uri) {
+  public Map<String, Object> load(URI uri) {
     File templateFile = new File(uri);
 
     if (!templateFile.exists()) {
@@ -58,7 +59,7 @@ public class FileTemplateSchemeLoader implements TemplateSchemeLoader {
 
     try {
       ObjectMapper objectMapper = isJson(uri) ? jsonObjectMapper : yamlObjectMapper;
-      return objectMapper.readValue(templateFile, PipelineTemplate.class);
+      return objectMapper.readValue(templateFile, new TypeReference<>() {});
     } catch (IOException e) {
       throw new TemplateLoaderException(e);
     }

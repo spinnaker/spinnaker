@@ -15,10 +15,10 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.loader;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateLoaderException;
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.net.URI;
 import java.util.Map;
@@ -46,7 +46,7 @@ public class Front50SchemeLoader implements TemplateSchemeLoader {
   }
 
   @Override
-  public PipelineTemplate load(URI uri) {
+  public Map<String, Object> load(URI uri) {
     if (front50Service == null) {
       throw new TemplateLoaderException(
           "Cannot load templates without front50 enabled. Set 'front50.enabled: true' in your orca config.");
@@ -56,7 +56,7 @@ public class Front50SchemeLoader implements TemplateSchemeLoader {
     try {
       Map<String, Object> pipelineTemplate =
           AuthenticatedRequest.allowAnonymous(() -> front50Service.getPipelineTemplate(id));
-      return objectMapper.convertValue(pipelineTemplate, PipelineTemplate.class);
+      return objectMapper.convertValue(pipelineTemplate, new TypeReference<>() {});
     } catch (Exception e) {
       throw new TemplateLoaderException(e);
     }

@@ -222,7 +222,8 @@ public class TemplatedPipelineModelMutator implements PipelineModelMutator {
 
   private PipelineTemplate getPipelineTemplate(TemplateConfiguration configuration) {
     try {
-      return TemplateMerge.merge(templateLoader.load(configuration.getPipeline().getTemplate()));
+      return TemplateMerge.merge(
+          templateLoader.load(configuration.getPipeline().getTemplate(), configuration, null));
     } catch (TemplateLoaderException e) {
       log.error("Could not load template: {}", configuration.getPipeline().getTemplate(), e);
       return null;

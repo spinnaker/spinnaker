@@ -16,49 +16,55 @@
 
 package com.netflix.spinnaker.orca.pipelinetemplate.loader
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateLoaderException
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.JinjaRenderer
 import spock.lang.Specification
-import spock.lang.Subject;
+import spock.lang.Subject
 
 class TemplateLoaderSpec extends Specification {
   def schemeLoader = Mock(TemplateSchemeLoader)
 
+  def objectMapper = new ObjectMapper()
+
+  def renderer = new JinjaRenderer(objectMapper, Mock(Front50Service), [])
+
   @Subject
-  def templateLoader = new TemplateLoader([schemeLoader])
+  def templateLoader = new TemplateLoader([schemeLoader], objectMapper, renderer)
 
   void "should return a LIFO list of pipeline templates"() {
     when:
-    def pipelineTemplates = templateLoader.load(new TemplateConfiguration.TemplateSource(source: "template1.json"))
+    def pipelineTemplates = templateLoader.load(new TemplateConfiguration.TemplateSource(source: "template1.json"), null, null)
 
     then:
     pipelineTemplates*.id == ["3", "2", "1"]
 
-    1 * schemeLoader.load(new URI("template1.json")) >> { new PipelineTemplate(id: "1", source: "template2.json") }
-    1 * schemeLoader.load(new URI("template2.json")) >> { new PipelineTemplate(id: "2", source: "template3.json") }
-    1 * schemeLoader.load(new URI("template3.json")) >> { new PipelineTemplate(id: "3", source: null) }
+    1 * schemeLoader.load(new URI("template1.json")) >> [id: "1", source: "template2.json"]
+    1 * schemeLoader.load(new URI("template2.json")) >> [id: "2", source: "template3.json"]
+    1 * schemeLoader.load(new URI("template3.json")) >> [id: "3", source: null]
     _ * schemeLoader.supports(_) >> { return true }
     0 * _
   }
 
   void "should raise exception if cycle detected"() {
     when:
-    templateLoader.load(new TemplateConfiguration.TemplateSource(source: "template1.json"))
+    templateLoader.load(new TemplateConfiguration.TemplateSource(source: "template1.json"), null, null)
 
     then:
     def e = thrown(TemplateLoaderException)
     e.message == "Illegal cycle detected loading pipeline template 'template2.json'"
 
-    2 * schemeLoader.load(new URI("template1.json")) >> { new PipelineTemplate(id: "1", source: "template2.json") }
-    1 * schemeLoader.load(new URI("template2.json")) >> { new PipelineTemplate(id: "2", source: "template1.json") }
+    2 * schemeLoader.load(new URI("template1.json")) >> [id: "1", source: "template2.json"]
+    1 * schemeLoader.load(new URI("template2.json")) >> [id: "2", source: "template1.json"]
     _ * schemeLoader.supports(_) >> { return true }
     0 * _
   }
 
   void "should raise exception if no loader found for scheme"() {
     when:
-    templateLoader.load(new TemplateConfiguration.TemplateSource(source: "file://template1.json"))
+    templateLoader.load(new TemplateConfiguration.TemplateSource(source: "file://template1.json"), null, null)
 
     then:
     def e = thrown(TemplateLoaderException)
@@ -70,7 +76,7 @@ class TemplateLoaderSpec extends Specification {
 
   void "should raise exception if `source` is not a valid URI"() {
     when:
-    templateLoader.load(new TemplateConfiguration.TemplateSource(source: "::"))
+    templateLoader.load(new TemplateConfiguration.TemplateSource(source: "::"), null, null)
 
     then:
     def e = thrown(TemplateLoaderException)

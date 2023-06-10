@@ -51,7 +51,7 @@ class V1SchemaIntegrationSpec extends Specification {
   ObjectMapper objectMapper = OrcaObjectMapper.newInstance()
   def oortService = Mock(OortService)
 
-  TemplateLoader templateLoader = new TemplateLoader([new ResourceSchemeLoader("/integration/v1schema", objectMapper)])
+  TemplateLoader templateLoader = new TemplateLoader([new ResourceSchemeLoader("/integration/v1schema", objectMapper)], objectMapper, renderer)
   V2TemplateLoader v2TemplateLoader = new V2TemplateLoader(oortService, objectMapper)
   ContextParameterProcessor contextParameterProcessor = new ContextParameterProcessor()
 

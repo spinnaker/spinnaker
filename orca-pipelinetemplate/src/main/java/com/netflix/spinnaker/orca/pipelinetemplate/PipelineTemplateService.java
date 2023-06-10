@@ -72,7 +72,7 @@ public class PipelineTemplateService {
         // Do nothing
       }
     }
-    List<PipelineTemplate> templates = templateLoader.load(templateSource);
+    List<PipelineTemplate> templates = templateLoader.load(templateSource, null, null);
     return TemplateMerge.merge(templates);
   }
 

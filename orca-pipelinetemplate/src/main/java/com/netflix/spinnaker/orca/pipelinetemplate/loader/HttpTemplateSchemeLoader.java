@@ -18,14 +18,15 @@ package com.netflix.spinnaker.orca.pipelinetemplate.loader;
 
 import static java.lang.String.format;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateLoaderException;
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
 import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.util.Map;
 import java.util.Optional;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -63,7 +64,7 @@ public class HttpTemplateSchemeLoader implements TemplateSchemeLoader {
   }
 
   @Override
-  public PipelineTemplate load(URI uri) {
+  public Map<String, Object> load(URI uri) {
     log.debug("Resolving pipeline template: {}", uri.toString());
 
     Request request = new Request.Builder().url(convertToUrl(uri)).build();
@@ -82,7 +83,7 @@ public class HttpTemplateSchemeLoader implements TemplateSchemeLoader {
       log.debug("Loaded Template ({}):\n{}", uri, strBody);
       ObjectMapper objectMapper = isJson(uri) ? jsonObjectMapper : yamlObjectMapper;
 
-      return objectMapper.readValue(strBody, PipelineTemplate.class);
+      return objectMapper.readValue(strBody, new TypeReference<>() {});
     } catch (Exception e) {
       throw new TemplateLoaderException(e);
     }

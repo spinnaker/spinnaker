@@ -769,7 +769,7 @@ class DependentPipelineStarterSpec extends Specification {
         stages.addAll(mapper.convertValue(p.stages, type))
       }
     }
-    1 * templateLoader.load(_ as TemplateConfiguration.TemplateSource) >> [triggeredPipelineTemplate]
+    1 * templateLoader.load(_ as TemplateConfiguration.TemplateSource, _, _) >> [triggeredPipelineTemplate]
     1 * executionRepository.retrievePipelinesForPipelineConfigId("triggered", _ as ExecutionRepository.ExecutionCriteria) >>
       Observable.just(priorExecution)
 
@@ -908,7 +908,7 @@ class DependentPipelineStarterSpec extends Specification {
         stages.addAll(mapper.convertValue(execution.stages, type))
       }
     }
-    1 * templateLoader.load(_ as TemplateConfiguration.TemplateSource) >> [triggeredPipelineTemplate]
+    1 * templateLoader.load(_ as TemplateConfiguration.TemplateSource, _, _) >> [triggeredPipelineTemplate]
 
     artifactUtils.getArtifactsForPipelineId(*_) >> {
       return new ArrayList<>()
