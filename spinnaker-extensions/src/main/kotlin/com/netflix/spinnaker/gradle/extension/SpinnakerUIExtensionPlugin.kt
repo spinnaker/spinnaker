@@ -47,17 +47,10 @@ class SpinnakerUIExtensionPlugin : Plugin<Project> {
       commandLine = listOf(yarnCmd)
     }
 
-    project.tasks.create("yarnModules", Exec::class.java) {
-      group = Plugins.GROUP
-      workingDir = project.projectDir
-      commandLine = listOf(yarnCmd, "modules")
-    }
-
     project.tasks.create("yarnBuild", Exec::class.java) {
       group = Plugins.GROUP
       workingDir = project.projectDir
       commandLine = listOf(yarnCmd, "build")
-      dependsOn("yarnModules")
     }
 
     project.afterEvaluate {
