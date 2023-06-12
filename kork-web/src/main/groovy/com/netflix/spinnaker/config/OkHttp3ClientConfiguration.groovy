@@ -19,7 +19,7 @@ package com.netflix.spinnaker.config
 import com.netflix.spinnaker.okhttp.SpinnakerRequestHeaderInterceptor
 import okhttp3.Dispatcher
 import okhttp3.logging.HttpLoggingInterceptor
-import org.springframework.beans.factory.annotation.Value
+import org.springframework.beans.factory.ObjectFactory
 
 import static com.google.common.base.Preconditions.checkState
 import com.netflix.spinnaker.okhttp.OkHttp3MetricsInterceptor
@@ -48,40 +48,49 @@ import java.util.concurrent.TimeUnit
 class OkHttp3ClientConfiguration {
   private final OkHttpClientConfigurationProperties okHttpClientConfigurationProperties
   private final OkHttp3MetricsInterceptor okHttp3MetricsInterceptor
+  private final ObjectFactory<OkHttpClient.Builder> httpClientBuilderFactory
 
   /**
    * Logging level for retrofit2 client calls
   */
-  private final HttpLoggingInterceptor.Level retrofit2LogLevel;
+  private final HttpLoggingInterceptor.Level retrofit2LogLevel
 
   /**
    *  {@link okhttp3.Interceptor} which adds spinnaker auth headers to requests when retrofit2 client used
    */
-  private final SpinnakerRequestHeaderInterceptor spinnakerRequestHeaderInterceptor;
+  private final SpinnakerRequestHeaderInterceptor spinnakerRequestHeaderInterceptor
 
   @Autowired
-  OkHttp3ClientConfiguration(OkHttpClientConfigurationProperties okHttpClientConfigurationProperties, OkHttp3MetricsInterceptor okHttp3MetricsInterceptor,
-                             HttpLoggingInterceptor.Level retrofit2LogLevel, SpinnakerRequestHeaderInterceptor spinnakerRequestHeaderInterceptor) {
+  OkHttp3ClientConfiguration(OkHttpClientConfigurationProperties okHttpClientConfigurationProperties,
+                             OkHttp3MetricsInterceptor okHttp3MetricsInterceptor,
+                             HttpLoggingInterceptor.Level retrofit2LogLevel,
+                             SpinnakerRequestHeaderInterceptor spinnakerRequestHeaderInterceptor,
+                             ObjectFactory<OkHttpClient.Builder> httpClientBuilderFactory) {
     this.okHttpClientConfigurationProperties = okHttpClientConfigurationProperties
     this.okHttp3MetricsInterceptor = okHttp3MetricsInterceptor
     this.retrofit2LogLevel = retrofit2LogLevel
     this.spinnakerRequestHeaderInterceptor = spinnakerRequestHeaderInterceptor
+    this.httpClientBuilderFactory = httpClientBuilderFactory
   }
 
   public OkHttp3ClientConfiguration(OkHttpClientConfigurationProperties okHttpClientConfigurationProperties,
                                     OkHttp3MetricsInterceptor okHttp3MetricsInterceptor) {
-    this.okHttpClientConfigurationProperties = okHttpClientConfigurationProperties
-    this.okHttp3MetricsInterceptor = okHttp3MetricsInterceptor
+    this(okHttpClientConfigurationProperties, okHttp3MetricsInterceptor, null, null,
+      { new OkHttpClient.Builder() })
   }
 
   public OkHttp3ClientConfiguration(OkHttpClientConfigurationProperties okHttpClientConfigurationProperties) {
-    this.okHttpClientConfigurationProperties = okHttpClientConfigurationProperties
+    this(okHttpClientConfigurationProperties, null)
   }
 
   /**
    * @return OkHttpClient w/ <optional> key and trust stores
    */
   OkHttpClient.Builder create() {
+    if (okHttpClientConfigurationProperties.refreshableKeys.enabled) {
+      // already configured via OkHttpClientCustomizer beans
+      return httpClientBuilderFactory.object
+    }
 
     OkHttpClient.Builder okHttpClientBuilder = createBasicClient()
 
@@ -100,6 +109,10 @@ class OkHttp3ClientConfiguration {
    * @return OkHttpClient with SpinnakerRequestHeaderInterceptor as initial interceptor w/ <optional> key and trust stores
    */
   OkHttpClient.Builder createForRetrofit2() {
+    if (okHttpClientConfigurationProperties.refreshableKeys.enabled) {
+      // already configured via OkHttpClientCustomizer beans
+      return httpClientBuilderFactory.object
+    }
 
     OkHttpClient.Builder okHttpClientBuilder = createBasicClient()
 

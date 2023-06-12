@@ -26,14 +26,15 @@ import com.netflix.spinnaker.config.okhttp3.DefaultOkHttpClientBuilderProvider
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.config.okhttp3.RawOkHttpClientFactory
 import com.netflix.spinnaker.config.DefaultServiceClientProvider
+import com.netflix.spinnaker.config.OkHttpClientComponents
 import com.netflix.spinnaker.kork.client.ServiceClientFactory
 import com.netflix.spinnaker.kork.client.ServiceClientProvider
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
-import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import okhttp3.OkHttpClient
 import org.springframework.boot.autoconfigure.AutoConfigurations
+import org.springframework.boot.autoconfigure.task.TaskExecutionAutoConfiguration
 import org.springframework.boot.test.context.assertj.AssertableApplicationContext
 import org.springframework.boot.test.context.runner.ApplicationContextRunner
 import org.springframework.context.annotation.Bean
@@ -53,6 +54,8 @@ class RetrofitServiceProviderTest  : JUnit5Minutests {
         ApplicationContextRunner()
           .withConfiguration(AutoConfigurations.of(
             RetrofitServiceFactoryAutoConfiguration::class.java,
+            TaskExecutionAutoConfiguration::class.java,
+            OkHttpClientComponents::class.java,
             RetrofitConfiguration::class.java,
             TestConfiguration::class.java
           ))
@@ -95,11 +98,6 @@ private open class TestConfiguration {
   @Bean
   open fun okHttpClientProvider(okHttpClient: OkHttpClient): OkHttpClientProvider {
     return OkHttpClientProvider(listOf(DefaultOkHttpClientBuilderProvider(okHttpClient, OkHttpClientConfigurationProperties())))
-  }
-
-  @Bean
-  open fun spinnakerRequestInterceptor(): SpinnakerRequestInterceptor {
-    return SpinnakerRequestInterceptor(OkHttpClientConfigurationProperties())
   }
 
   @Bean

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.okhttp
 
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
+import java.time.Duration
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.NestedConfigurationProperty
 
@@ -77,5 +78,18 @@ class OkHttpClientConfigurationProperties {
   final ConnectionPoolProperties connectionPool = new ConnectionPoolProperties()
 
   boolean retryOnConnectionFailure = true
+
+  /**
+   * Configuration properties for supporting refreshable keys. When this is enabled, the configured
+   * keystore file will be periodically reloaded if the file changes.
+   */
+  @Canonical
+  static class RefreshableKeys {
+    boolean enabled = false
+    Duration refreshPeriod = Duration.ofMinutes(30)
+  }
+
+  @NestedConfigurationProperty
+  final RefreshableKeys refreshableKeys = new RefreshableKeys()
 
 }

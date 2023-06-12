@@ -39,6 +39,7 @@ include(
   "kork-core-tck",
   "kork-credentials",
   "kork-credentials-api",
+  "kork-crypto",
   "kork-eureka",
   "kork-exceptions",
   "kork-expressions",
