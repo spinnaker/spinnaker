@@ -22,9 +22,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import java.io.IOException;
 import java.util.List;
+import okhttp3.MediaType;
+import okhttp3.ResponseBody;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 public class SpinnakerServerExceptionTest {
   private static final String CUSTOM_MESSAGE = "custom message";
@@ -73,5 +78,26 @@ public class SpinnakerServerExceptionTest {
       assertEquals(CUSTOM_MESSAGE, newException.getMessage());
       assertEquals(e, newException.getCause());
     }
+  }
+
+  @Test
+  public void testSpinnakerHttpExceptionFromRetrofitException() {
+    final String validJsonResponseBodyString = "{\"name\":\"test\"}";
+    ResponseBody responseBody =
+        ResponseBody.create(
+            MediaType.parse("application/json" + "; charset=utf-8"), validJsonResponseBodyString);
+    retrofit2.Response response =
+        retrofit2.Response.error(HttpStatus.NOT_FOUND.value(), responseBody);
+
+    Retrofit retrofit2Service =
+        new Retrofit.Builder()
+            .baseUrl("http://localhost")
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build();
+    RetrofitException retrofitException = RetrofitException.httpError(response, retrofit2Service);
+    SpinnakerHttpException notFoundException = new SpinnakerHttpException(retrofitException);
+    assertEquals(HttpStatus.NOT_FOUND.value(), notFoundException.getResponseCode());
+    assertTrue(
+        notFoundException.getMessage().contains(String.valueOf(HttpStatus.NOT_FOUND.value())));
   }
 }
