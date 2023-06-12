@@ -97,7 +97,7 @@ public abstract class VaultServerService extends SpinnakerService<VaultServerSer
   @Data
   protected static class SealStatus {
     @SerializedName("sealed")
-    boolean sealed;
+    boolean sealStatus;
   }
 
   @Data
@@ -187,7 +187,7 @@ public abstract class VaultServerService extends SpinnakerService<VaultServerSer
       throw handleVaultError(e, "check seal status");
     }
 
-    if (sealStatus.isSealed()) {
+    if (sealStatus.isSealStatus()) {
       throw new HalException(
           Problem.Severity.FATAL, "Your vault is in a sealed state, no config can be written.");
     }
