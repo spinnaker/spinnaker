@@ -43,9 +43,9 @@ class Front50FileDownloader(
 
     val response = retry.executeCallable { okHttpClient.newCall(request).execute() }
 
-    val body = response.body()
+    val body = response.body
     if (!response.isSuccessful || body == null) {
-      throw NotFoundException("Plugin binary could not be downloaded, received HTTP ${response.code()}")
+      throw NotFoundException("Plugin binary could not be downloaded, received HTTP ${response.code}")
     }
 
     return downloadDir.resolve(Paths.get(fileUrl.path + binaryExtension).fileName).also {

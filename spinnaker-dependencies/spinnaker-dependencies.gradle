@@ -21,7 +21,7 @@ ext {
     logback          : "1.2.10",
     protobuf         : "3.21.12",
     okhttp           : "2.7.5", // CVE-2016-2402
-    okhttp3          : "3.14.9",
+    okhttp3          : "4.9.3",
     openapi          : "1.3.9", // this needs to be kept in sync with spring boot as it pulls in the spring-boot-dependencies BOM
     //Spring boot 2.5.14 upgrade brings io.rest-assured 4.3.3 as transitive dependency.
     //io.rest-assured 4.3.x require groovy 3.0.2. So, pinning the nearest version

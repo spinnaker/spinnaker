@@ -55,11 +55,11 @@ class Ok3Response(
     Optional.ofNullable(exception)
 
   override fun getStatusCode(): Int =
-    response?.code() ?: -1
+    response?.code ?: -1
 
   override fun getHeaders(): Map<String, String> =
     response
-      ?.headers()
+      ?.headers
       ?.toMultimap()
       ?.map { it.key to it.value.joinToString(",") }
       ?.toMap()
@@ -71,7 +71,7 @@ class Ok3Response(
    */
   fun finalize() {
     try {
-      response?.body()?.close()
+      response?.body?.close()
       responseBody?.close()
     } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
       log.warn("Failed to cleanup resource", e)

@@ -21,11 +21,12 @@ import com.netflix.spinnaker.kork.plugins.api.httpclient.HttpClient
 import com.netflix.spinnaker.kork.plugins.api.httpclient.Request
 import com.netflix.spinnaker.kork.plugins.api.httpclient.Response
 import java.io.IOException
-import okhttp3.Headers
-import okhttp3.HttpUrl
-import okhttp3.MediaType
+import okhttp3.Headers.Companion.toHeaders
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.slf4j.LoggerFactory
 
 /**
@@ -96,7 +97,7 @@ class Ok3HttpClient(
 
   private fun requestBuilder(request: Request): okhttp3.Request.Builder {
     val url = (baseUrl + request.path).replace("//", "/")
-    val httpUrlBuilder = HttpUrl.parse(url)?.newBuilder()
+    val httpUrlBuilder = url.toHttpUrlOrNull()?.newBuilder()
       ?: throw IntegrationException("Unable to parse url '$baseUrl'")
     request.queryParams.forEach {
       httpUrlBuilder.addQueryParameter(it.key, it.value)
@@ -104,11 +105,13 @@ class Ok3HttpClient(
     return okhttp3.Request.Builder()
       .tag("$name.${request.name}")
       .url(httpUrlBuilder.build())
-      .headers(Headers.of(request.headers))
+      .headers(request.headers.toHeaders())
   }
 
   private fun Request.okHttpRequestBody(): RequestBody =
-    RequestBody.create(MediaType.parse(contentType), objectMapper.writeValueAsString(body))
+    objectMapper.writeValueAsString(body).toRequestBody(
+      contentType.toMediaTypeOrNull()
+    )
 
   private fun okhttp3.Response.toGenericResponse(): Response {
     return Ok3Response(

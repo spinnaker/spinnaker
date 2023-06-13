@@ -29,10 +29,11 @@ import com.netflix.spinnaker.kork.plugins.remote.extension.transport.RemoteExten
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import okhttp3.Headers
 import okhttp3.HttpUrl
-import okhttp3.MediaType
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 
 /**
  * An HTTP [RemoteExtensionTransport], OkHttp for the client.
@@ -55,16 +56,15 @@ class OkHttpRemoteExtensionTransport(
         .url(url)
         .headers(buildHeaders(httpConfig.headers.invokeHeaders))
         .post(
-          RequestBody.create(
-            MediaType.parse("application/json"),
-            objectMapper.writeValueAsString(remoteExtensionPayload)
+          objectMapper.writeValueAsString(remoteExtensionPayload).toRequestBody(
+            ("application/json").toMediaType()
           )
         )
         .build()
 
       val response = client.newCall(request).execute()
       if (!response.isSuccessful) {
-        val reason = response.body()?.string() ?: "Unknown reason: ${response.code()}"
+        val reason = response.body?.string() ?: "Unknown reason: ${response.code}"
         throw OkHttpRemoteExtensionTransportException(reason)
       }
     }.call()
@@ -76,20 +76,19 @@ class OkHttpRemoteExtensionTransport(
         .url(url)
         .headers(buildHeaders(httpConfig.headers.writeHeaders))
         .post(
-          RequestBody.create(
-            MediaType.parse("application/json"),
-            objectMapper.writeValueAsString(remoteExtensionPayload)
+          objectMapper.writeValueAsString(remoteExtensionPayload).toRequestBody(
+            ("application/json").toMediaType()
           )
         )
         .build()
 
       val response = client.newCall(request).execute()
       if (!response.isSuccessful) {
-        val reason = response.body()?.string() ?: "Unknown reason: ${response.code()}"
+        val reason = response.body?.string() ?: "Unknown reason: ${response.code}"
         throw OkHttpRemoteExtensionTransportException(reason)
       }
 
-      objectMapper.readValue(response.body()?.string(), RemoteExtensionResponse::class.java)
+      objectMapper.readValue(response.body?.string(), RemoteExtensionResponse::class.java)
     }.call()
   }
 
@@ -103,16 +102,16 @@ class OkHttpRemoteExtensionTransport(
 
       val response = client.newCall(request).execute()
       if (!response.isSuccessful) {
-        val reason = response.body()?.string() ?: "Unknown reason: ${response.code()}"
+        val reason = response.body?.string() ?: "Unknown reason: ${response.code}"
         throw OkHttpRemoteExtensionTransportException(reason)
       }
 
-      objectMapper.readValue(response.body()?.string(), RemoteExtensionResponse::class.java)
+      objectMapper.readValue(response.body?.string(), RemoteExtensionResponse::class.java)
     }.call()
   }
 
   private fun buildUrl(additionalParams: Map<String, String>): HttpUrl {
-    val httpUrlBuilder = HttpUrl.parse(httpConfig.url)?.newBuilder()
+    val httpUrlBuilder = httpConfig.url.toHttpUrlOrNull()?.newBuilder()
       ?: throw IntegrationException("Unable to parse url '${httpConfig.url}'")
 
     (httpConfig.queryParams + additionalParams).forEach {

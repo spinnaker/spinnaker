@@ -26,8 +26,8 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
 import io.mockk.mockk
-import okhttp3.MediaType
-import okhttp3.ResponseBody
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.ResponseBody.Companion.toResponseBody
 import retrofit2.Call
 import retrofit2.Response
 import strikt.api.expectThat
@@ -61,7 +61,7 @@ class Front50PluginInfoReleaseSourceTest : JUnit5Minutests {
 
       val call: Call<PinnedVersions> = mockk(relaxed = true)
       every { front50Service.pinVersions(eq("orca-v000"), eq("orca"), eq("us-west-2"), any()) } returns call
-      every { call.execute() } returns Response.error(500, ResponseBody.create(MediaType.get("application/json"), "{}"))
+      every { call.execute() } returns Response.error(500, ("{}").toResponseBody(("application/json").toMediaType()))
 
       subject.processReleases(releases)
 
