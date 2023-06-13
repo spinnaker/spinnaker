@@ -16,11 +16,10 @@
 
 package com.netflix.spinnaker.kork.web.context;
 
-import java.util.Map;
+import com.netflix.spinnaker.security.AuthenticatedRequestDecorator;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
-import org.slf4j.MDC;
 import org.springframework.core.task.AsyncTaskExecutor;
 
 /**
@@ -45,26 +44,11 @@ public class MdcCopyingAsyncTaskExecutor implements AsyncTaskExecutor {
   }
 
   private Runnable wrapWithContext(final Runnable task) {
-    Map<String, String> contextMap = MDC.getCopyOfContextMap();
-    return () -> {
-      if (contextMap == null) {
-        MDC.clear();
-      } else {
-        MDC.setContextMap(contextMap);
-      }
-      task.run();
-    };
+    return AuthenticatedRequestDecorator.wrap(task);
   }
 
   private <T> Callable<T> wrapWithContext(final Callable<T> callable) {
-    Map<String, String> contextMap = MDC.getCopyOfContextMap();
-    if (contextMap == null) {
-      return callable;
-    }
-    return () -> {
-      MDC.setContextMap(contextMap);
-      return callable.call();
-    };
+    return AuthenticatedRequestDecorator.wrap(callable);
   }
 
   @Override

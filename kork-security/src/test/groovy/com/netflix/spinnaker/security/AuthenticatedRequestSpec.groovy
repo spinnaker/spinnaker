@@ -110,4 +110,30 @@ class AuthenticatedRequestSpec extends Specification {
       'X-SPINNAKER-ACCOUNTS'    : Optional.empty(),
       'X-SPINNAKER-MY-ATTRIBUTE': Optional.empty()]
   }
+
+  void "should propagate user and headers in decorator"() {
+    when:
+    AuthenticatedRequest.clear()
+    AuthenticatedRequest.user = 'fry'
+    AuthenticatedRequest.application = 'express'
+    AuthenticatedRequest.requestId = '2000'
+    def closure = AuthenticatedRequestDecorator.wrap {
+      assert AuthenticatedRequest.spinnakerUser.get() == 'fry'
+      assert AuthenticatedRequest.spinnakerApplication.get() == 'express'
+      assert AuthenticatedRequest.spinnakerRequestId.get() == '2000'
+    }
+    AuthenticatedRequest.user = 'amy'
+    AuthenticatedRequest.application = 'mars'
+    AuthenticatedRequest.requestId = '3000'
+    closure.run()
+    then:
+    // ensure previous context restored
+    AuthenticatedRequest.spinnakerUser.get() == 'amy'
+    AuthenticatedRequest.spinnakerApplication.get() == 'mars'
+    AuthenticatedRequest.spinnakerRequestId.get() == '3000'
+    when:
+    AuthenticatedRequest.clear()
+    then:
+    closure.run()
+  }
 }
