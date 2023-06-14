@@ -58,7 +58,7 @@ class SpinnakerCodeStylePlugin implements Plugin<Project> {
           @Override
           void execute(JavaExtension javaExtension) {
             javaExtension.target("src/**/*.java")
-            javaExtension.googleJavaFormat("1.8")
+            javaExtension.googleJavaFormat("1.11.0")
             javaExtension.removeUnusedImports()
             javaExtension.trimTrailingWhitespace()
             javaExtension.endWithNewline()
@@ -79,7 +79,7 @@ class SpinnakerCodeStylePlugin implements Plugin<Project> {
           spotless.kotlin(new Action<KotlinExtension>() {
             @Override
             void execute(KotlinExtension kotlinExtension) {
-              kotlinExtension.ktlint("0.37.2").userData(ktlintData)
+              kotlinExtension.ktlint("0.42.1").userData(ktlintData)
               kotlinExtension.trimTrailingWhitespace()
               kotlinExtension.endWithNewline()
             }
@@ -89,7 +89,7 @@ class SpinnakerCodeStylePlugin implements Plugin<Project> {
             @Override
             void execute(KotlinGradleExtension kotlinGradleExtension) {
               kotlinGradleExtension.target("*.gradle.kts", "**/*.gradle.kts")
-              kotlinGradleExtension.ktlint("0.37.2").userData(ktlintData)
+              kotlinGradleExtension.ktlint("0.42.1").userData(ktlintData)
               kotlinGradleExtension.trimTrailingWhitespace()
               kotlinGradleExtension.endWithNewline()
             }
