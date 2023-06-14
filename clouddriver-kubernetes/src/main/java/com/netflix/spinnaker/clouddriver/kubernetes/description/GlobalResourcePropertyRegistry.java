@@ -36,7 +36,7 @@ public class GlobalResourcePropertyRegistry implements ResourcePropertyRegistry 
   private final ImmutableMap<KubernetesKind, KubernetesResourceProperties> globalProperties;
   private ImmutableMap<KubernetesKind, KubernetesResourceProperties> crdProperties =
       ImmutableMap.of();
-  private final KubernetesResourceProperties defaultProperties;
+  private KubernetesResourceProperties defaultProperties;
 
   @Autowired
   public GlobalResourcePropertyRegistry(
@@ -48,6 +48,12 @@ public class GlobalResourcePropertyRegistry implements ResourcePropertyRegistry 
                 toImmutableMap(
                     KubernetesHandler::kind,
                     h -> new KubernetesResourceProperties(h, h.versioned())));
+    this.defaultProperties =
+        new KubernetesResourceProperties(defaultHandler, defaultHandler.versioned());
+  }
+
+  public void setDefaultHandler(
+      @Nonnull KubernetesUnregisteredCustomResourceHandler defaultHandler) {
     this.defaultProperties =
         new KubernetesResourceProperties(defaultHandler, defaultHandler.versioned());
   }
