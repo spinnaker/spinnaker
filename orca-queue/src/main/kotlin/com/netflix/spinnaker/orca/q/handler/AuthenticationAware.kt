@@ -60,33 +60,16 @@ interface AuthenticationAware {
   fun retrieveAuthenticatedUser(stage: StageExecution) : PipelineExecution.AuthenticationDetails? {
     return stageNavigator
       .ancestors(stage)
-      .firstOrNull { it.stageBuilder is AuthenticatedStage } ?.let{
-        (it.stageBuilder as AuthenticatedStage).authenticatedUser(solveAuthStages(it.stage)).orElse(null)
+      .firstOrNull {
+        it.stageBuilder is AuthenticatedStage &&
+        it.stage.isManualJudgmentType &&
+        !it.stage.status.isSkipped &&
+        it.stage.withPropagateAuthentication()
+      }?.let{
+        val authStage = it.stage
+        return if(authStage != null) {
+          (it.stageBuilder as AuthenticatedStage).authenticatedUser(authStage).orElse(null)
+        } else null
       }
-  }
-
-
-  // When a first valid candidate is found in the ancestors chain is returned
-  // until the ancestor chain was iterated completely at the pipeline beginning
-  fun backtrackStages(stage: StageExecution): StageExecution {
-    if (stage.isManualJudgmentType &&
-      !stage.status.isSkipped &&
-      stage.withPropagateAuthentication()) {
-      return stage;
-    }
-    val previousStage = if (stageNavigator.ancestors(stage).size > 1) stageNavigator.ancestors(stage).get(1).stage else null
-    return if (previousStage == null) stage else backtrackStages(previousStage)
-  }
-
-  //Next method will look by a possible stage with authentication propagated in case that previous
-  //stage brokes the auth chain, iterating the stage ancestors. By the moment only MJ stages approved with
-  //auth propagated are considerated as candidates
-  fun solveAuthStages(stage: StageExecution): StageExecution {
-    if (stage.isManualJudgmentType()) {
-      val result = backtrackStages(stage)
-      stage.lastModified = result.lastModified
-      return result
-    }
-    return stage
   }
 }
