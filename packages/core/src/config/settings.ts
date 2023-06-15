@@ -34,6 +34,7 @@ export interface IFeatures {
   executionMarkerInformationModal?: boolean;
   fiatEnabled?: boolean;
   iapRefresherEnabled?: boolean;
+  lambdaAdditionalStages?: boolean;
   managedDelivery?: boolean;
   mdGitIntegration?: boolean;
   managedServiceAccounts?: boolean;
