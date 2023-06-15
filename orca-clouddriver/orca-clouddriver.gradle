@@ -34,6 +34,7 @@ dependencies {
   implementation("io.spinnaker.kork:kork-moniker")
   implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
   implementation("io.kubernetes:client-java")
+  implementation("com.amazonaws:aws-java-sdk-lambda")
   implementation("javax.validation:validation-api")
   implementation("org.jetbrains:annotations")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-guava")
@@ -60,6 +61,10 @@ dependencies {
   testImplementation("dev.minutest:minutest")
   testImplementation("io.strikt:strikt-core")
   testImplementation("io.mockk:mockk")
+  testImplementation("ru.lanwen.wiremock:wiremock-junit5:1.3.1")
+
+  testCompileOnly("org.projectlombok:lombok")
+  testAnnotationProcessor("org.projectlombok:lombok")
 
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-api")
   testRuntimeOnly("org.junit.vintage:junit-vintage-engine")

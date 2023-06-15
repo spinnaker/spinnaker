@@ -20,6 +20,7 @@ import com.netflix.spinnaker.orca.applications.config.ApplicationConfig
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
 import com.netflix.spinnaker.orca.clouddriver.config.CloudDriverConfiguration
 import com.netflix.spinnaker.orca.clouddriver.config.ClouddriverJobConfiguration
+import com.netflix.spinnaker.orca.clouddriver.config.ClouddriverLambdaConfiguration
 import com.netflix.spinnaker.orca.config.CloudFoundryConfiguration
 import com.netflix.spinnaker.orca.config.GremlinConfiguration
 import com.netflix.spinnaker.orca.config.KeelConfiguration
@@ -55,6 +56,7 @@ import com.netflix.spinnaker.kork.boot.DefaultPropertiesBuilder
   FlexConfiguration,
   CloudDriverConfiguration,
   ClouddriverJobConfiguration,
+  ClouddriverLambdaConfiguration,
   IgorConfiguration,
   MineConfiguration,
   ApplicationConfig,
