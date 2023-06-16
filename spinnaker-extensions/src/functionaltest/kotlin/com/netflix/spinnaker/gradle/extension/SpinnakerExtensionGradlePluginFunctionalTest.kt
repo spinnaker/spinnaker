@@ -59,7 +59,7 @@ class SpinnakerExtensionGradlePluginFunctionalTest {
 
   companion object{
     @JvmStatic
-    fun gradleVersion() = listOf<String>("6.8.1","7.6.1")
+    fun gradleVersion() = listOf<String>("7.6.1")
   }
 
   @BeforeTest

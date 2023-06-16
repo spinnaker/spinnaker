@@ -69,7 +69,7 @@ class SpinnakerCompatibilityTestRunnerPluginTest {
       }
       assertNotNull(subproject.sourceSets.findByName("compatibility-$it"))
       assertNotNull(subproject.configurations.findByName("compatibility-${it}Implementation"))
-      assertNotNull(subproject.configurations.findByName("compatibility-${it}Runtime"))
+      assertNotNull(subproject.configurations.findByName("compatibility-${it}RuntimeOnly"))
     }
   }
 
@@ -105,7 +105,7 @@ class SpinnakerCompatibilityTestRunnerPluginTest {
       }
       assertNotNull(subproject.sourceSets.findByName("compatibility-$it"))
       assertNotNull(subproject.configurations.findByName("compatibility-${it}Implementation"))
-      assertNotNull(subproject.configurations.findByName("compatibility-${it}Runtime"))
+      assertNotNull(subproject.configurations.findByName("compatibility-${it}RuntimeOnly"))
     }
   }
 
@@ -159,7 +159,7 @@ class SpinnakerCompatibilityTestRunnerPluginTest {
     subproject.evaluate()
 
     compatibility.forEach { version ->
-      val runtime = subproject.configurations.findByName("compatibility-${version}Runtime")
+      val runtime = subproject.configurations.findByName("compatibility-${version}RuntimeOnly")
       assertNotNull(runtime)
 
       val bom = runtime.dependencies.find { dependency ->

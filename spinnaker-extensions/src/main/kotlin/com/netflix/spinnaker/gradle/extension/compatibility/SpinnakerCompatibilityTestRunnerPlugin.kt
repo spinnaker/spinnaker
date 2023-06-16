@@ -22,13 +22,14 @@ import com.netflix.spinnaker.gradle.extension.extensions.SpinnakerBundleExtensio
 import com.netflix.spinnaker.gradle.extension.extensions.SpinnakerPluginExtension
 import com.netflix.spinnaker.gradle.extension.extensions.VersionTestConfig
 import com.netflix.spinnaker.gradle.extension.getParent
+import com.netflix.spinnaker.gradle.extension.Plugins.RELEASE_BUNDLE_TASK_NAME
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.testing.Test
@@ -52,10 +53,10 @@ class SpinnakerCompatibilityTestRunnerPlugin : Plugin<Project> {
     val versionTestConfigs = spinnakerVersionsClient.resolveVersionAliases(bundle.compatibility.versionTestConfigs)
     versionTestConfigs.forEach { config ->
       val sourceSet = "compatibility-${config.version}"
-      val runtimeConfiguration = "${sourceSet}Runtime"
+      val runtimeConfiguration = "${sourceSet}RuntimeOnly"
       val implementationConfiguration = "${sourceSet}Implementation"
 
-      project.configurations.create(runtimeConfiguration).extendsFrom(project.configurations.getByName("${SourceSet.TEST_SOURCE_SET_NAME}Runtime"))
+      project.configurations.create(runtimeConfiguration).extendsFrom(project.configurations.getByName("${SourceSet.TEST_SOURCE_SET_NAME}RuntimeOnly"))
       project.configurations.create(implementationConfiguration).extendsFrom(project.configurations.getByName("${SourceSet.TEST_SOURCE_SET_NAME}Implementation"))
 
       project.sourceSets.create(sourceSet) {
@@ -121,6 +122,9 @@ class SpinnakerCompatibilityTestRunnerPlugin : Plugin<Project> {
       description = "Runs Spinnaker compatibility tests"
       group = GROUP
       dependsOn(versionTestConfigs.map { ":${project.name}:compatibilityTest-${project.name}-${it.version}" })
+      val releaseBundle = getParent(project).tasks.findByName(RELEASE_BUNDLE_TASK_NAME)
+      if(releaseBundle != null)
+        releaseBundle.mustRunAfter(TASK_NAME)
       doLast {
         val failedTests = getParent(project).subprojects
           .flatMap { it.tasks.withType(CompatibilityTestTask::class.java) }
@@ -142,7 +146,7 @@ class SpinnakerCompatibilityTestRunnerPlugin : Plugin<Project> {
 }
 
 internal val Project.sourceSets: SourceSetContainer
-  get() = project.convention.getPlugin(JavaPluginConvention::class.java).sourceSets
+  get() = project.extensions.getByType<JavaPluginExtension>().sourceSets
 
 internal var Dependency.force: Boolean
   get() = withGroovyBuilder { getProperty("force") as Boolean }

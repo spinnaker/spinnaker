@@ -18,9 +18,10 @@ package com.netflix.spinnaker.gradle.extension.tasks
 import com.netflix.spinnaker.gradle.extension.Plugins
 import com.netflix.spinnaker.gradle.extension.extensions.SpinnakerPluginExtension
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.bundling.Zip
+import org.gradle.kotlin.dsl.getByType
 import java.io.File
 import java.lang.IllegalStateException
 
@@ -40,7 +41,7 @@ open class AssembleJavaPluginZipTask : Zip() {
     this.archiveVersion.set("")
     this.archiveExtension.set("zip")
 
-    val sourceSets = project.convention.getPlugin(JavaPluginConvention::class.java).sourceSets
+    val sourceSets = project.extensions.getByType<JavaPluginExtension>().sourceSets
 
     val configs = listOf("implementation", "runtimeOnly").map { project.configurations.getByName(it).copy() }
     configs.forEach { it.isCanBeResolved  = true }

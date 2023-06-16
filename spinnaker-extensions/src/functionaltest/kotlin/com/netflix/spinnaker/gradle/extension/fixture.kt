@@ -22,7 +22,7 @@ internal class TestPlugin {
   var pluginPackage = "io.armory.plugins"
   var service = "orca"
   var rootDir = TEST_ROOT
-  var compatibilityTestVersion = "1.22.0"
+  var compatibilityTestVersion = "1.28.0"
 
   var settingsGradle = """
     pluginManagement {

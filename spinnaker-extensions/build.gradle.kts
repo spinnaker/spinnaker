@@ -118,3 +118,7 @@ val check by tasks.getting(Task::class) {
   // Run the functional tests as part of `check`
   dependsOn(functionalTest)
 }
+
+tasks.withType(AbstractCopyTask::class).all {
+  duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
