@@ -27,7 +27,6 @@ import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers
 import okhttp3.ResponseBody
-import okhttp3.mockwebserver.MockWebServer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
@@ -54,10 +53,6 @@ class ApplicationControllerSpec extends Specification {
   @Autowired
   GenericExceptionHandlers genericExceptionHandlers
 
-  def server = new MockWebServer()
-  void cleanup(){
-    server.shutdown()
-  }
 
   void setup(){
     front50Service = Mock(Front50Service)
@@ -72,7 +67,6 @@ class ApplicationControllerSpec extends Specification {
       front50Service,
       new ApplicationConfigurationProperties()
     )
-    server.start()
     mockMvc = MockMvcBuilders.standaloneSetup(new ApplicationController(applicationService: applicationService)).setControllerAdvice(genericExceptionHandlers)
       .build()
   }
