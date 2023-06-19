@@ -17,17 +17,20 @@
 package com.netflix.spinnaker.gate.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.config.ErrorConfiguration
 import com.netflix.spinnaker.gate.config.ApplicationConfigurationProperties
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.services.ApplicationService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import com.netflix.spinnaker.gate.services.internal.Front50Service
+import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers
 import okhttp3.mockwebserver.MockWebServer
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import org.springframework.web.util.NestedServletException
 import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -36,11 +39,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
+@SpringBootTest(classes=[ErrorConfiguration])
 class ApplicationControllerSpec extends Specification {
 
   MockMvc mockMvc
   ApplicationService applicationService
   Front50Service front50Service
+
+  @Autowired
+  GenericExceptionHandlers genericExceptionHandlers
 
   def server = new MockWebServer()
   void cleanup(){
@@ -61,7 +68,8 @@ class ApplicationControllerSpec extends Specification {
       new ApplicationConfigurationProperties()
     )
     server.start()
-    mockMvc = MockMvcBuilders.standaloneSetup(new ApplicationController(applicationService: applicationService)).build()
+    mockMvc = MockMvcBuilders.standaloneSetup(new ApplicationController(applicationService: applicationService)).setControllerAdvice(genericExceptionHandlers)
+      .build()
   }
 
   @Unroll
@@ -150,7 +158,7 @@ class ApplicationControllerSpec extends Specification {
   }
 
   @Unroll
-  void 'should return 404 on pipeline that does not exists' (){
+  void 'should return 404 for a pipeline that does not exist' (){
     given:
     def configs = [
       [
@@ -160,12 +168,15 @@ class ApplicationControllerSpec extends Specification {
       ]
     ]
     when:
-    mockMvc.perform(get(endpoint))
+    def response = mockMvc.perform(get(endpoint)
+      .accept(MediaType.APPLICATION_JSON))
 
     then:
     1 * front50Service.getPipelineConfigsForApplication('true-app', null, true) >> Calls.response(configs)
-    NestedServletException ex = thrown()
-    ex.message.contains('Pipeline config (id: some-fake-pipeline) not found for Application (id: true-app)')
+
+    and:
+    response.andExpect status().isNotFound()
+    response.andExpect status().reason("Pipeline config (id: some-fake-pipeline) not found for Application (id: true-app)")
 
     where:
     endpoint << ["/applications/true-app/pipelineConfigs/some-fake-pipeline"]
@@ -200,7 +211,7 @@ class ApplicationControllerSpec extends Specification {
   }
 
   @Unroll
-  void 'should return 404 with strategy configuration for strategy not exists' (){
+  void 'should return 404 with strategy configuration for a strategy that does not exist' (){
     given:
     def configs = [
       [
@@ -210,12 +221,15 @@ class ApplicationControllerSpec extends Specification {
       ]
     ]
     when:
-    mockMvc.perform(get(endpoint))
+    def response = mockMvc.perform(get(endpoint)
+      .accept(MediaType.APPLICATION_JSON))
 
     then:
     1 * front50Service.getStrategyConfigs('true-app') >> Calls.response(configs)
-    NestedServletException ex = thrown()
-    ex.message.contains('Strategy config (id: some-fake-strategy) not found for Application (id: true-app)')
+
+    and:
+    response.andExpect status().isNotFound()
+    response.andExpect status().reason('Strategy config (id: some-fake-strategy) not found for Application (id: true-app)')
 
     where:
     endpoint << ["/applications/true-app/strategyConfigs/some-fake-strategy"]
