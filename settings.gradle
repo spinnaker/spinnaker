@@ -22,8 +22,6 @@
   }
 }
 
-enableFeaturePreview("VERSION_ORDERING_V2")
-
 include 'echo-api',
         'echo-api-tck',
         'echo-artifacts',
