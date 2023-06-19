@@ -131,18 +131,18 @@ class ApplicationControllerSpec extends Specification {
   @Unroll
   void 'should return 200 with info on pipeline that exists with config' (){
     given:
-    def configs = [
-      [
+    def someTruePipeline = [
         name: 'some-true-pipeline',
         some: 'some-random-x',
         someY: 'some-random-y'
-      ],
-      [
+      ]
+    def someFakePipeline = [
         name: 'some-fake-pipeline',
         some: 'some-random-F',
         someY: 'some-random-Z'
-      ],
-    ]
+      ]
+    def configs = [ someTruePipeline, someFakePipeline ]
+
     when:
     def response = mockMvc.perform(get(endpoint)
       .accept(MediaType.APPLICATION_JSON))
@@ -150,7 +150,7 @@ class ApplicationControllerSpec extends Specification {
     then:
     1 * front50Service.getPipelineConfigsForApplication('true-app', null, true) >> Calls.response(configs)
     response.andExpect status().isOk()
-    response.andExpect content().string(new ObjectMapper().writeValueAsString(configs[0]))
+    response.andExpect content().string(new ObjectMapper().writeValueAsString(someTruePipeline))
 
     where:
     endpoint << ["/applications/true-app/pipelineConfigs/some-true-pipeline"]
