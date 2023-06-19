@@ -23,8 +23,6 @@ if (spinnakerGradleVersion.endsWith('-SNAPSHOT')) {
   }
 }
 
-enableFeaturePreview("VERSION_ORDERING_V2")
-
 ['kork'].each { prj ->
   String propName = "${prj}Composite"
   String projectPath = "../$prj"
