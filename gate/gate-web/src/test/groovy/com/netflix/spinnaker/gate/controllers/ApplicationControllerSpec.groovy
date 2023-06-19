@@ -24,13 +24,18 @@ import com.netflix.spinnaker.gate.services.ApplicationService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import com.netflix.spinnaker.gate.services.internal.Front50Service
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers
+import okhttp3.ResponseBody
 import okhttp3.mockwebserver.MockWebServer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
 import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -183,6 +188,32 @@ class ApplicationControllerSpec extends Specification {
   }
 
   @Unroll
+  void 'returns 500 when front50 responds with 500 when querying for a single pipeline config' (){
+    given:
+    def configs = [
+      [
+        name: 'some-true-pipeline',
+        some: 'some-random-x',
+        someY: 'some-random-y'
+      ]
+    ]
+    when:
+    def response = mockMvc.perform(get(endpoint)
+      .accept(MediaType.APPLICATION_JSON))
+
+    then:
+    1 * front50Service.getPipelineConfigsForApplication('true-app', null, true) >> { throw makeSpinnakerHttpException(500) }
+    0 * front50Service._
+
+    and:
+    response.andExpect status().isInternalServerError()
+    response.andExpect status().reason("Status: 500, Method: GET, URL: http://localhost/, Message: arbitrary message")
+
+    where:
+    endpoint << ["/applications/true-app/pipelineConfigs/some-fake-pipeline"]
+  }
+
+  @Unroll
   void 'should return 200 with strategy configuration for strategy exists' (){
     given:
     def configs = [
@@ -235,4 +266,20 @@ class ApplicationControllerSpec extends Specification {
     endpoint << ["/applications/true-app/strategyConfigs/some-fake-strategy"]
   }
 
+  static SpinnakerHttpException makeSpinnakerHttpException(int status, String message = "{ \"message\": \"arbitrary message\" }") {
+    String url = "https://front50";
+    Response retrofit2Response =
+        Response.error(
+            status,
+          ResponseBody.create(
+                okhttp3.MediaType.parse("application/json"), message))
+
+    Retrofit retrofit =
+        new Retrofit.Builder()
+            .baseUrl(url)
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build();
+
+    return new SpinnakerHttpException(retrofit2Response, retrofit)
+  }
 }
