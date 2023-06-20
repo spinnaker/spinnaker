@@ -25,6 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.config.ErrorConfiguration;
+import com.netflix.spinnaker.config.RetrofitErrorConfiguration;
 import com.netflix.spinnaker.gate.config.ApplicationConfigurationProperties;
 import com.netflix.spinnaker.gate.config.ServiceConfiguration;
 import com.netflix.spinnaker.gate.services.ApplicationService;
@@ -59,7 +60,8 @@ import retrofit2.mock.Calls;
       ApplicationController.class,
       ApplicationService.class,
       ServiceConfiguration.class,
-      ErrorConfiguration.class
+      ErrorConfiguration.class,
+      RetrofitErrorConfiguration.class
     })
 class ApplicationControllerTest {
 
@@ -141,13 +143,10 @@ class ApplicationControllerTest {
     Map<String, Object> someTruePipeline =
         Map.of(
             "name", "some-true-pipeline",
-            "some", "some-random-x",
-            "someY", "some-random-y");
-    Map<String, Object> someFakePipeline =
-        Map.of("name", "some-fake-pipeline", "some", "some-random-F", "someY", "some-random-Z");
-    List<Map<String, Object>> configs = List.of(someTruePipeline, someFakePipeline);
-    when(front50Service.getPipelineConfigsForApplication("true-app", null, true))
-        .thenReturn(Calls.response(configs));
+            "some", "some-random-x");
+    when(front50Service.getPipelineConfigByApplicationAndName(
+            "true-app", "some-true-pipeline", true))
+        .thenReturn(Calls.response(someTruePipeline));
 
     // when:
     ResultActions response =
@@ -156,7 +155,8 @@ class ApplicationControllerTest {
                 .accept(MediaType.APPLICATION_JSON));
 
     // then:
-    verify(front50Service).getPipelineConfigsForApplication("true-app", null, true);
+    verify(front50Service)
+        .getPipelineConfigByApplicationAndName("true-app", "some-true-pipeline", true);
     verifyNoMoreInteractions(front50Service);
     response.andExpect(status().isOk());
     response.andExpect(content().string(new ObjectMapper().writeValueAsString(someTruePipeline)));
@@ -165,14 +165,13 @@ class ApplicationControllerTest {
   @Test
   void getPipelineConfigForMissingPipeline() throws Exception {
     // given:
-    List<Map<String, Object>> configs =
-        List.of(
-            Map.of(
-                "name", "some-true-pipeline",
-                "some", "some-random-x",
-                "someY", "some-random-y"));
-    when(front50Service.getPipelineConfigsForApplication("true-app", null, true))
-        .thenReturn(Calls.response(configs));
+    // ApplicationService.getPipelineConfigForApplication queries front50 initially by name.  On a
+    // 404 response, it queries front50 again by id, so respond with 404 from that as well.
+    when(front50Service.getPipelineConfigByApplicationAndName(
+            "true-app", "some-fake-pipeline", true))
+        .thenThrow(makeSpinnakerHttpException(404));
+    when(front50Service.getPipelineConfigById("some-fake-pipeline"))
+        .thenThrow(makeSpinnakerHttpException(404));
 
     // when:
     ResultActions response =
@@ -181,7 +180,9 @@ class ApplicationControllerTest {
                 .accept(MediaType.APPLICATION_JSON));
 
     // then:
-    verify(front50Service).getPipelineConfigsForApplication("true-app", null, true);
+    verify(front50Service)
+        .getPipelineConfigByApplicationAndName("true-app", "some-fake-pipeline", true);
+    verify(front50Service).getPipelineConfigById("some-fake-pipeline");
     verifyNoMoreInteractions(front50Service);
 
     // and:
@@ -189,13 +190,14 @@ class ApplicationControllerTest {
     response.andExpect(
         status()
             .reason(
-                "Pipeline config (id: some-fake-pipeline) not found for Application (id: true-app)"));
+                "Pipeline configuration not found (nameOrId: some-fake-pipeline in application true-app): Status: 404, Method: GET, URL: http://localhost/, Message: arbitrary message"));
   }
 
   @Test
   void getPipelineConfigWithFront50Error() throws Exception {
     // given:
-    when(front50Service.getPipelineConfigsForApplication("true-app", null, true))
+    when(front50Service.getPipelineConfigByApplicationAndName(
+            "true-app", "some-fake-pipeline", true))
         .thenThrow(makeSpinnakerHttpException(500));
 
     // when:
@@ -205,7 +207,8 @@ class ApplicationControllerTest {
                 .accept(MediaType.APPLICATION_JSON));
 
     // then:
-    verify(front50Service).getPipelineConfigsForApplication("true-app", null, true);
+    verify(front50Service)
+        .getPipelineConfigByApplicationAndName("true-app", "some-fake-pipeline", true);
     verifyNoMoreInteractions(front50Service);
 
     // and:
