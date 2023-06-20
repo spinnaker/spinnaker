@@ -196,14 +196,14 @@ class ApplicationService {
     } catch (SpinnakerHttpException e) {
       if (e.getResponseCode() == HttpStatus.NOT_FOUND.value()) {
         log.info("front50 returned no pipeline with id ${pipelineNameOrId}")
-        throw e.newInstance("Pipeline configuration not found (id: ${pipelineNameOrId}): " + e.getMessage())
+        throw e.newInstance("Pipeline configuration not found (nameOrId: ${pipelineNameOrId} in application ${app}): " + e.getMessage())
       }
       throw e
     }
 
     // If we get here, the query by id returned a pipeline whose id didn't match
     // what we asked for.
-    throw new NotFoundException("Pipeline configuration not found (id: ${pipelineNameOrId})")
+    throw new NotFoundException("Pipeline configuration not found (nameOrId: ${pipelineNameOrId} in application ${app})")
   }
 
   List<Map<String, Object>> getStrategyConfigsForApplication(String app) {
