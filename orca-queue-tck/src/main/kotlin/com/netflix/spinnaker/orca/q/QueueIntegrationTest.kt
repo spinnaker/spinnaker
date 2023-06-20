@@ -91,6 +91,8 @@ import org.springframework.context.event.ApplicationEventMulticaster
 import org.springframework.context.event.SimpleApplicationEventMulticaster
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import org.springframework.test.context.junit4.SpringRunner
+import java.util.concurrent.TimeUnit
+import java.util.function.Predicate
 
 @SpringBootTest(
   classes = [TestConfig::class],
@@ -847,6 +849,35 @@ abstract class QueueIntegrationTest {
         assertThat(stageByRef("1>3").name).isEqualTo("onFailure2")
         assertThat(stageByRef("1>3").status).isEqualTo(SUCCEEDED)
       }
+    }
+  }
+
+  @Test
+  fun `cancelling a zombied execution sets task, stage and execution statuses to CANCELED`() {
+    val pipeline = pipeline {
+      application = "spinnaker"
+      stage {
+        refId = "1"
+        type = "dummy"
+      }
+    }
+    repository.store(pipeline)
+
+    whenever(dummyTask.execute(any())) doAnswer {
+      TaskResult.RUNNING
+    }
+
+    context.run(pipeline, runner::start)
+
+    // simulate a zombie by clearing the queue
+    queue.clear()
+
+    context.runToCompletion(pipeline, { runner.cancel(it, "anonymous", null) }, repository)
+
+    repository.retrieve(PIPELINE, pipeline.id).apply {
+      assertThat(status).isEqualTo(CANCELED)
+      assertThat(stageByRef("1").status).isEqualTo(CANCELED)
+      assertThat(stageByRef("1").tasks.all { it.status == CANCELED })
     }
   }
 }

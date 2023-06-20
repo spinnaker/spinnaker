@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.q.RescheduleExecution
 import com.netflix.spinnaker.orca.q.RunTask
 import com.netflix.spinnaker.q.Queue
 import org.springframework.stereotype.Component
+import java.time.Duration
 
 @Component
 class RescheduleExecutionHandler(
@@ -43,14 +44,14 @@ class RescheduleExecutionHandler(
           stage.tasks
             .filter { it.status == ExecutionStatus.RUNNING }
             .forEach {
-              queue.reschedule(
-                RunTask(
-                  message,
-                  stage.id,
-                  it.id,
-                  taskResolver.getTaskClass(it.implementingClass)
-                )
+              val taskMessage = RunTask(
+                message,
+                stage.id,
+                it.id,
+                taskResolver.getTaskClass(it.implementingClass)
               )
+              queue.ensure(taskMessage, Duration.ZERO)
+              queue.reschedule(taskMessage)
             }
         }
     }

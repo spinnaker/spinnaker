@@ -131,6 +131,10 @@ class InMemoryQueue(
     }
   }
 
+  override fun clear() {
+    queue.removeAll { true }
+  }
+
   override fun readState() =
     QueueState(
       depth = queue.size,

@@ -46,6 +46,18 @@ class ExecutionLatch(private val predicate: Predicate<ExecutionComplete>) :
   fun await() = latch.await(10, TimeUnit.SECONDS)
 }
 
+fun ConfigurableApplicationContext.run(execution: PipelineExecution, launcher: (PipelineExecution) -> Unit) {
+  val latch = ExecutionLatch(
+    Predicate {
+      it.executionId == execution.id
+    }
+  )
+  addApplicationListener(latch)
+  launcher.invoke(execution)
+
+  Thread.sleep(500)
+}
+
 fun ConfigurableApplicationContext.runToCompletion(execution: PipelineExecution, launcher: (PipelineExecution) -> Unit, repository: ExecutionRepository) {
   val latch = ExecutionLatch(
     Predicate {

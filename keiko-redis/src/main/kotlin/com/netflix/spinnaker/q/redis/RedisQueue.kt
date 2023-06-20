@@ -154,8 +154,13 @@ class RedisQueue(
       log.debug("Re-scheduling message: $message, fingerprint: $fingerprint to deliver in $delay")
       val status: Long = redis.zadd(queueKey, score(delay), fingerprint, zAddParams().xx())
       if (status.toInt() == 1) {
+        log.debug("Rescheduled message: $message, fingerprint: $fingerprint to deliver in $delay")
         fire(MessageRescheduled(message))
       } else {
+        log.warn(
+          "Failed to reschedule message: $message, fingerprint: $fingerprint, not found " +
+            "on queue"
+        )
         fire(MessageNotFound(message))
       }
     }
@@ -226,6 +231,12 @@ class RedisQueue(
         .also {
           fire(RetryPolled)
         }
+    }
+  }
+
+  override fun clear() {
+    pool.resource.use { redis ->
+      redis.del(messagesKey)
     }
   }
 

@@ -62,7 +62,7 @@ interface Queue {
   fun push(message: Message, delay: TemporalAmount): Unit
 
   /**
-   * Update [message] if it exists for immediate delivery.
+   * Update [message] if it exists for immediate delivery. No-op if the [message] does not exist.
    */
   fun reschedule(message: Message): Unit = reschedule(message, ZERO)
 
@@ -86,6 +86,11 @@ interface Queue {
    * scheduled in some way.
    */
   fun retry() {}
+
+  /**
+   * Used for testing zombie executions. Wipes all messages from the queue.
+   */
+  fun clear() {}
 
   /**
    * The expired time after which un-acknowledged messages will be retried.

@@ -764,6 +764,14 @@ class SqlQueue(
     fire(RetryPolled)
   }
 
+  override fun clear() {
+    withPool(poolName) {
+      withRetry(WRITE) {
+        jooq.deleteFrom(messagesTable).execute()
+      }
+    }
+  }
+
   @Scheduled(fixedDelayString = "\${queue.cleanup.frequency.ms:2000}")
   fun cleanupMessages() {
     withPool(poolName) {

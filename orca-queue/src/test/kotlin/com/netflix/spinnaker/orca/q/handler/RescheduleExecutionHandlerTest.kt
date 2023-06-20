@@ -37,6 +37,7 @@ import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.lifecycle.CachingMode
 import org.jetbrains.spek.subject.SubjectSpek
+import java.time.Duration
 
 object RescheduleExecutionHandlerTest : SubjectSpek<RescheduleExecutionHandler>({
 
@@ -101,8 +102,13 @@ object RescheduleExecutionHandlerTest : SubjectSpek<RescheduleExecutionHandler>(
       val task4 = stage2a.taskById("4")
       val task5 = stage2b.taskById("5")
 
-      verify(queue).reschedule(RunTask(message, stage2a.id, task4.id, Class.forName(task4.implementingClass) as Class<out Task>))
-      verify(queue).reschedule(RunTask(message, stage2b.id, task5.id, Class.forName(task5.implementingClass) as Class<out Task>))
+      val messageTask4 = RunTask(message, stage2a.id, task4.id, Class.forName(task4.implementingClass) as Class<out Task>)
+      val messageTask5 = RunTask(message, stage2b.id, task5.id, Class.forName(task5.implementingClass) as Class<out Task>)
+
+      verify(queue).ensure(messageTask4, Duration.ZERO)
+      verify(queue).reschedule(messageTask4)
+      verify(queue).ensure(messageTask5, Duration.ZERO)
+      verify(queue).reschedule(messageTask5)
       verifyNoMoreInteractions(queue)
     }
   }
