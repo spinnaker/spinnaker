@@ -206,7 +206,7 @@ class ApplicationService {
     throw new NotFoundException("Pipeline configuration not found (id: ${pipelineNameOrId})")
   }
 
-  List<Map> getStrategyConfigsForApplication(String app) {
+  List<Map<String, Object>> getStrategyConfigsForApplication(String app) {
     return Retrofit2SyncCall.execute(front50Service.getStrategyConfigs(app))
   }
 
