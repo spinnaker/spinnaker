@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.gate.controllers;
 
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -29,11 +28,12 @@ import com.netflix.spinnaker.config.ErrorConfiguration;
 import com.netflix.spinnaker.gate.config.ApplicationConfigurationProperties;
 import com.netflix.spinnaker.gate.config.ServiceConfiguration;
 import com.netflix.spinnaker.gate.services.ApplicationService;
+import com.netflix.spinnaker.gate.services.ExecutionHistoryService;
+import com.netflix.spinnaker.gate.services.TaskService;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector;
 import com.netflix.spinnaker.gate.services.internal.Front50Service;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
-import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers;
 import java.util.List;
 import java.util.Map;
 import okhttp3.ResponseBody;
@@ -46,40 +46,46 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 import retrofit2.mock.Calls;
 
-@SpringBootTest(classes = {ErrorConfiguration.class})
+@EnableWebMvc
+@SpringBootTest(
+    classes = {
+      ApplicationController.class,
+      ApplicationService.class,
+      ServiceConfiguration.class,
+      ErrorConfiguration.class
+    })
 class ApplicationControllerTest {
+
+  @Autowired private WebApplicationContext webApplicationContext;
 
   MockMvc mockMvc;
 
-  ApplicationService applicationService;
-
   @MockBean Front50Service front50Service;
 
-  @Autowired GenericExceptionHandlers genericExceptionHandlers;
+  @MockBean ClouddriverServiceSelector clouddriverSelector;
+
+  @MockBean ClouddriverService clouddriver;
+
+  @MockBean ApplicationConfigurationProperties applicationConfigurationProperties;
+
+  @MockBean ExecutionHistoryService executionHistoryService;
+
+  @MockBean TaskService taskService;
+
+  @MockBean PipelineController pipelineController;
 
   @BeforeEach
   void setup() {
-    ClouddriverService clouddriver = mock(ClouddriverService.class);
-    ClouddriverServiceSelector clouddriverSelector = mock(ClouddriverServiceSelector.class);
     when(clouddriverSelector.select()).thenReturn(clouddriver);
 
-    applicationService =
-        new ApplicationService(
-            new ServiceConfiguration(),
-            clouddriverSelector,
-            front50Service,
-            new ApplicationConfigurationProperties());
-    ApplicationController applicationController = new ApplicationController();
-    applicationController.setApplicationService(applicationService);
-    mockMvc =
-        MockMvcBuilders.standaloneSetup(applicationController)
-            .setControllerAdvice(genericExceptionHandlers)
-            .build();
+    mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
   }
 
   @Test
