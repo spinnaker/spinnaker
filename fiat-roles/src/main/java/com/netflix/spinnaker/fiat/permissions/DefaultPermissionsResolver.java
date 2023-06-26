@@ -209,15 +209,16 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
     return userToRoles.entrySet().stream()
         .map(
             entry -> {
-              String userId = entry.getKey();
-              Set<Role> userRoles = new HashSet<>(entry.getValue());
+              final String userId = entry.getKey();
+              final Set<Role> userRoles = new HashSet<>(entry.getValue());
+              final boolean isAdmin = hasAdminRole(userRoles);
 
               return new UserPermission()
                   .setId(userId)
                   .setRoles(userRoles)
-                  .setAdmin(hasAdminRole(userRoles))
+                  .setAdmin(isAdmin)
                   .setAccountManager(hasAccountManagerRole(userRoles))
-                  .addResources(getResources(userId, userRoles, hasAdminRole(userRoles)));
+                  .addResources(getResources(userId, userRoles, isAdmin));
             })
         .collect(Collectors.toMap(UserPermission::getId, Function.identity()));
   }

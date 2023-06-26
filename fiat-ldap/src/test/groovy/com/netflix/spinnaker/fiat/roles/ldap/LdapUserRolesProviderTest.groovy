@@ -19,6 +19,7 @@ package com.netflix.spinnaker.fiat.roles.ldap
 import com.netflix.spinnaker.fiat.config.LdapConfig
 import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.permissions.ExternalUser
+import org.apache.commons.lang3.tuple.Pair
 import org.springframework.dao.IncorrectResultSizeDataAccessException
 import org.springframework.ldap.control.PagedResultsDirContextProcessor
 import org.springframework.security.ldap.SpringSecurityLdapTemplate
@@ -26,7 +27,6 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
-import org.apache.commons.lang3.tuple.Pair
 
 import javax.naming.directory.SearchControls
 
@@ -37,7 +37,7 @@ class LdapUserRolesProviderTest extends Specification {
   def provider = new LdapUserRolesProvider()
 
   @Unroll
-  void "loadRoles should return no roles for serviceAccouts when userSearchFilter present"() {
+  void "loadRoles should return no roles for serviceAccounts when userSearchFilter present"() {
     given:
     def user = new ExternalUser(id: 'foo', externalRoles: [new Role(name: 'bar')])
 
@@ -98,14 +98,15 @@ class LdapUserRolesProviderTest extends Specification {
     def configProps = baseConfigProps()
     def provider = Spy(LdapUserRolesProvider){
       loadRoles(_ as ExternalUser) >>> [[role1], [role2]]
-    }.setConfigProps(configProps)
+    }
+    provider.setConfigProps(configProps)
 
     when:
     configProps.groupSearchBase = ""
     def roles = provider.multiLoadRoles(users)
 
     then:
-    roles == [:]
+    roles == [user1: [], user2: []]
 
     when:
     configProps.groupSearchBase = "notEmpty"
@@ -127,7 +128,8 @@ class LdapUserRolesProviderTest extends Specification {
             .setGroupUserAttributes("member")
     def provider = Spy(LdapUserRolesProvider){
       2 * loadRoles(_) >>> [[role1], [role2]]
-    }.setConfigProps(configProps)
+    }
+    provider.setConfigProps(configProps)
 
     when: "thresholdToUseGroupMembership is too high"
     configProps.thresholdToUseGroupMembership = 100

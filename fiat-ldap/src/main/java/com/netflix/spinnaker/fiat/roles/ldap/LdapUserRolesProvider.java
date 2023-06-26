@@ -21,7 +21,7 @@ import com.google.common.collect.Iterables;
 import com.netflix.spinnaker.fiat.config.LdapConfig;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.permissions.ExternalUser;
-import com.netflix.spinnaker.fiat.roles.UserRolesProvider;
+import com.netflix.spinnaker.fiat.roles.BaseUserRolesProvider;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.*;
@@ -54,14 +54,22 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @ConditionalOnProperty(value = "auth.group-membership.service", havingValue = "ldap")
-public class LdapUserRolesProvider implements UserRolesProvider {
+public class LdapUserRolesProvider extends BaseUserRolesProvider {
 
   @Autowired @Setter private SpringSecurityLdapTemplate ldapTemplate;
 
-  @Autowired @Setter private LdapConfig.ConfigProps configProps;
+  private LdapConfig.ConfigProps configProps;
+
+  @Autowired
+  public void setConfigProps(LdapConfig.ConfigProps configProps) {
+    this.configProps = configProps;
+
+    // Configure the caching layer.
+    super.setProviderCacheConfig(configProps.getCache());
+  }
 
   @Override
-  public List<Role> loadRoles(ExternalUser user) {
+  protected List<Role> loadRolesForUser(ExternalUser user) {
     String userId = user.getId();
 
     log.debug("loadRoles for user " + userId);
@@ -107,6 +115,7 @@ public class LdapUserRolesProvider implements UserRolesProvider {
         .collect(Collectors.toList());
   }
 
+  /** Mapper for mapping user ids to their groups */
   class UserGroupMapper implements AttributesMapper<List<Pair<String, Role>>> {
 
     @Override
@@ -161,9 +170,13 @@ public class LdapUserRolesProvider implements UserRolesProvider {
   }
 
   @Override
-  public Map<String, Collection<Role>> multiLoadRoles(Collection<ExternalUser> users) {
+  protected Map<String, Collection<Role>> loadRolesForUsers(Collection<ExternalUser> users) {
     if (StringUtils.isEmpty(configProps.getGroupSearchBase())) {
-      return new HashMap<>();
+      // Ensure one entry in the map per passed in user, with an empty list of roles per user.
+      // This behavior is to support consistency with the loadRolesForUser() implementation,
+      // i.e. when groupSearchBase is empty, an empty list of roles is returned for the user.
+      return users.stream()
+          .collect(Collectors.toMap(ExternalUser::getId, ignored -> new ArrayList<>()));
     }
 
     if (users.size() > configProps.getThresholdToUseGroupMembership()
@@ -224,6 +237,9 @@ public class LdapUserRolesProvider implements UserRolesProvider {
                                 addAll(newRoles);
                               }
                             })));
+    // add entries with empty roles for the missing users
+    users.parallelStream()
+        .forEach(user -> rolesForUsers.putIfAbsent(user.getId(), new ArrayList<>()));
     return rolesForUsers;
   }
 
@@ -280,7 +296,7 @@ public class LdapUserRolesProvider implements UserRolesProvider {
       log.debug(
           "Fetching user DNs from LDAP since user search filter is set to {}",
           configProps.getUserSearchFilter());
-      // Partion the list of userIds into batches of fixed sizes and process the batches one at a
+      // Partition the list of userIds into batches of fixed sizes and process the batches one at a
       // time
       Iterables.partition(userIds, configProps.getLoadUserDNsBatchSize())
           .forEach(
