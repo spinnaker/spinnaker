@@ -129,7 +129,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
       ? this.getDefaultConfig()
       : command.config;
 
-    pipelineConfig.name = command.name;
+    pipelineConfig.name = command.name.trim();
     pipelineConfig.index = this.props.application.getDataSource('pipelineConfigs').data.length;
     delete pipelineConfig.id;
 
