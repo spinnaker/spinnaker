@@ -28,6 +28,11 @@ import com.netflix.spinnaker.echo.scm.StashWebhookEventHandler
 import com.netflix.spinnaker.echo.scm.bitbucket.server.BitbucketServerEventHandler
 import org.springframework.http.HttpHeaders
 import spock.lang.Specification
+import io.cloudevents.CloudEvent
+import io.cloudevents.core.builder.CloudEventBuilder;
+
+
+import java.nio.charset.StandardCharsets
 
 class WebhooksControllerSpec extends Specification {
 
@@ -814,5 +819,41 @@ class WebhooksControllerSpec extends Specification {
     event.content.slug == "echo"
     event.content.branch == "master"
     event.content.action == "repo:push"
+  }
+
+  void "handles CDEvents Webhook Event"() {
+    def event
+
+    given:
+    WebhooksController controller = new WebhooksController(mapper: EchoObjectMapper.getInstance(), scmWebhookHandler: scmWebhookHandler)
+    controller.propagator = Mock(EventPropagator)
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.add("Ce-Id", "1234")
+    headers.add("Ce-Specversion", "1.0")
+    headers.add("Ce-Type", "dev.cdevents.artifact.packaged")
+
+    String eventData = "{\"id\": \"1234\", \"subject\": \"event\"}";
+    CloudEvent cdevent = CloudEventBuilder.v1() //
+      .withId("12345") //
+      .withType("dev.cdevents.artifact.packaged") //
+      .withSource(URI.create("https://cdevents.dev")) //
+      .withData(eventData.getBytes(StandardCharsets.UTF_8)) //
+      .build();
+
+    when:
+    def response = controller.forwardEvent("artifactPackaged",cdevent, headers)
+
+    then:
+    1 * controller.propagator.processEvent(_) >> {
+      event = it[0]
+    }
+
+    event.details.type == "cdevents"
+    event.details.source == "artifactPackaged"
+    event.rawContent == eventData
+    event.details.requestHeaders.get("Ce-Type")[0] == "dev.cdevents.artifact.packaged"
+    event.details.requestHeaders.get("Ce-Id")[0] == "1234"
+
   }
 }

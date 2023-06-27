@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright (C) 2023 Nordix Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,6 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class WebhookEvent extends WebhookContent {
-  public static final String TYPE = "WEBHOOK";
+public class CDEvent extends WebhookContent {
+  public static final String TYPE = "CDEVENTS";
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright (C) 2023 Nordix Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,26 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.echo.model.trigger;
+package com.netflix.spinnaker.echo.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.netflix.spinnaker.echo.model.WebhookContent;
+import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.util.List;
+import java.util.Map;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class WebhookEvent extends WebhookContent {
-  public static final String TYPE = "WEBHOOK";
+public class WebhookContent extends TriggerEvent {
+  private Content content;
+
+  @Data
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  public static class Content {
+    private List<Artifact> artifacts;
+    private Map<?, ?> parameters;
+  }
 }

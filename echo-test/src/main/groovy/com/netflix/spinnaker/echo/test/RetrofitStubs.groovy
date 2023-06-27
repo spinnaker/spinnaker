@@ -56,7 +56,8 @@ trait RetrofitStubs {
       .enabled(false).type('pubsub').pubsubSystem('google').subscriptionName('projects/project/subscriptions/subscription').expectedArtifactIds([]).build()
   final Trigger enabledHelmTrigger = Trigger.builder().enabled(true).type('helm').account('account').version('1.0.0').digest('digest').build()
   final Trigger disabledHelmTrigger = Trigger.builder().enabled(false).type('helm').account('account').version('1.0.0').digest('digest').build()
-
+  final Trigger enabledCDEventsTrigger = Trigger.builder().enabled(true).type('cdevents').build()
+  final Trigger disabledCDEventsTrigger = Trigger.builder().enabled(false).type('cdevents').build()
   private nextId = new AtomicInteger(1)
 
   RetrofitError unavailable() {
@@ -106,6 +107,27 @@ trait RetrofitStubs {
     res.details = new Metadata([type: WebhookEvent.TYPE, source: source])
     res.payload = payload
     res.content = EchoObjectMapper.getInstance().convertValue(payload, WebhookEvent.Content)
+    return res
+  }
+
+  CDEvent createCDEvent(final String source) {
+    return createCDEvent(source, [:])
+  }
+
+  CDEvent createCDEvent(final String source, final Map payload) {
+    def res = new CDEvent()
+    res.details = new Metadata([type: CDEvent.TYPE, source: source])
+    res.payload = payload
+    res.content = EchoObjectMapper.getInstance().convertValue(payload, CDEvent.Content)
+    return res
+  }
+
+  CDEvent createCDEventRequestHeaders(final String source, final Map payload, final TreeMap requestHeaders) {
+    def res = new CDEvent()
+    res.details = new Metadata([type: CDEvent.TYPE, source: source])
+    res.payload = payload
+    res.content = EchoObjectMapper.getInstance().convertValue(payload, CDEvent.Content)
+    res.details.requestHeaders = requestHeaders
     return res
   }
 
