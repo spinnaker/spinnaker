@@ -59,13 +59,13 @@ public class RateLimiterConfig {
   }
 
   @Bean
-  FilterRegistrationBean rateLimitingFilter(
+  FilterRegistrationBean<RateLimitingFilter> rateLimitingFilter(
       RateLimiter rateLimiter,
       Registry registry,
       RateLimitPrincipalProvider rateLimitPrincipalProvider,
       Optional<List<RequestIdentityExtractor>> requestIdentityExtractors) {
-    FilterRegistrationBean frb =
-        new FilterRegistrationBean(
+    var frb =
+        new FilterRegistrationBean<>(
             new RateLimitingFilter(
                 rateLimiter,
                 registry,

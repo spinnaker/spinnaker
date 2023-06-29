@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,8 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.gate.retrofit
+package com.netflix.spinnaker.gate.config;
 
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-import retrofit.RestAdapter
-
-class Slf4jRetrofitLogger implements RestAdapter.Log {
-    private final Logger logger
-
-    public Slf4jRetrofitLogger(Class type) {
-        this(LoggerFactory.getLogger(type))
-    }
-
-    public Slf4jRetrofitLogger(Logger logger) {
-        this.logger = logger
-    }
-
-    @Override
-    void log(String message) {
-        logger.info(message)
-    }
+public class Headers {
+  public static final String AUTHENTICATION_REDIRECT_HEADER_NAME = "X-AUTH-REDIRECT-URL";
 }

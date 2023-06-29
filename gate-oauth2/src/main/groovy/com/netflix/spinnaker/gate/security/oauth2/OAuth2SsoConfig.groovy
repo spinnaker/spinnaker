@@ -29,7 +29,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Primary
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
-import org.springframework.security.config.annotation.web.builders.WebSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.security.core.AuthenticationException
@@ -86,10 +85,6 @@ class OAuth2SsoConfig extends WebSecurityConfigurerAdapter {
     http.exceptionHandling().authenticationEntryPoint(entryPoint)
     http.addFilterBefore(new BasicAuthenticationFilter(authenticationManager()), UsernamePasswordAuthenticationFilter)
     http.addFilterBefore(externalAuthTokenFilter, AbstractPreAuthenticatedProcessingFilter.class)
-  }
-
-  void configure(WebSecurity web) throws Exception {
-    authConfig.configure(web)
   }
 
   /**

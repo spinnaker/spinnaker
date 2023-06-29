@@ -15,15 +15,15 @@
  *
  */
 package com.netflix.spinnaker.gate.config
-import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
+
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.fiat.shared.FiatStatus
-import org.springframework.boot.autoconfigure.security.SecurityProperties
 import org.springframework.security.config.annotation.ObjectPostProcessor
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.web.util.matcher.AnyRequestMatcher
 import spock.lang.Specification
+
 import java.util.stream.Collectors
 
 class AuthConfigTest extends Specification {
@@ -35,19 +35,16 @@ class AuthConfigTest extends Specification {
       requestMatcher() >> requestMatcher
     }
     def authConfig = new AuthConfig(
-      permissionRevokingLogoutSuccessHandler: Mock(AuthConfig.PermissionRevokingLogoutSuccessHandler),
-      securityProperties: Mock(SecurityProperties),
-      configProps: Mock(FiatClientConfigurationProperties),
-      fiatStatus: Mock(FiatStatus),
-      permissionEvaluator: Mock(FiatPermissionEvaluator),
-      requestMatcherProvider: mockRequestMatcherProvider,
-      securityDebug: false,
-      fiatSessionFilterEnabled: false,
-    )
+      Mock(PermissionRevokingLogoutSuccessHandler),
+      Mock(FiatStatus),
+      Mock(FiatPermissionEvaluator),
+      mockRequestMatcherProvider)
+    authConfig.securityDebug = false
+    authConfig.fiatSessionFilterEnabled = false
     def httpSecurity = new HttpSecurity(
       Mock(ObjectPostProcessor),
       Mock(AuthenticationManagerBuilder),
-      new HashMap<Class<?, Object>>()
+      [:]
     )
 
     when:
@@ -72,20 +69,17 @@ class AuthConfigTest extends Specification {
       requestMatcher() >> requestMatcher
     }
     def authConfig = new AuthConfig(
-      permissionRevokingLogoutSuccessHandler: Mock(AuthConfig.PermissionRevokingLogoutSuccessHandler),
-      securityProperties: Mock(SecurityProperties),
-      configProps: Mock(FiatClientConfigurationProperties),
-      fiatStatus: Mock(FiatStatus),
-      permissionEvaluator: Mock(FiatPermissionEvaluator),
-      requestMatcherProvider: mockRequestMatcherProvider,
-      securityDebug: false,
-      fiatSessionFilterEnabled: false,
-      webhookDefaultAuthEnabled: true,
-    )
+      Mock(PermissionRevokingLogoutSuccessHandler),
+      Mock(FiatStatus),
+      Mock(FiatPermissionEvaluator),
+      mockRequestMatcherProvider)
+    authConfig.securityDebug = false
+    authConfig.fiatSessionFilterEnabled = false
+    authConfig.webhookDefaultAuthEnabled = true
     def httpSecurity = new HttpSecurity(
       Mock(ObjectPostProcessor),
       Mock(AuthenticationManagerBuilder),
-      new HashMap<Class<?, Object>>()
+      [:]
     )
 
     when:

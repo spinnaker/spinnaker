@@ -17,11 +17,18 @@
 
 package com.netflix.spinnaker.gate.security.x509
 
+import org.bouncycastle.asn1.ASN1ObjectIdentifier
+import org.bouncycastle.asn1.DERUTF8String
+import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import javax.security.auth.x500.X500Principal
+import java.security.KeyPairGenerator
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
+import java.time.Duration
 
 class OidRolesExtractorSpec extends Specification {
 
@@ -46,5 +53,51 @@ class OidRolesExtractorSpec extends Specification {
     "no roles"                  | "memberOfNoRoles.crt"        | 0
     "one role"                  | "memberOfOneRole.crt"        | 1
     "more roles"                | "memberOfTwoRoles.crt"       | 2
+  }
+
+  def "should return roles listed in oid extension - #description"() {
+    given:
+    String roleOid = '1.2.840.10070.8.1'
+    def extractor = new OidRolesExtractor(roleOid: roleOid)
+    def certificate = generateCertificate(roleOid, roles)
+
+    when:
+    def extractedRoles = extractor.fromCertificate(certificate)
+
+    then:
+    roles.containsAll(extractedRoles) && extractedRoles.containsAll(roles)
+
+    where:
+    description    | roles
+    'empty list'   | []
+    'one group'    | ['groupA']
+    'two groups'   | ['groupA', 'groupB']
+    'three groups' | ['groupA', 'groupC', 'groupE']
+  }
+
+  private static X509Certificate generateCertificate(String roleOid, List<String> roles) {
+    // generate a P.256 keypair
+    def generator = KeyPairGenerator.getInstance('EC')
+    generator.initialize(256)
+    def keypair = generator.generateKeyPair()
+    def signer = new JcaContentSignerBuilder('SHA256withECDSA')
+      .build(keypair.private)
+    // set up a self-signed certificate that expires in an hour
+    def subject = new X500Principal('CN=spinnaker')
+    def notBefore = new Date()
+    def notAfter = Date.from(notBefore.toInstant() + Duration.ofHours(1))
+    def serial = BigInteger.valueOf(notBefore.time)
+    // standard spinnaker OID extension: encode the roles in a string separated by newlines
+    def oid = new ASN1ObjectIdentifier(roleOid)
+    def encodedRoles = new DERUTF8String(roles.join('\n'))
+    // generate a self-signed certificate with only the roles extension specified;
+    // a real certificate should also set the key usage, basic constraints, and extended key usage extensions
+    def holder = new JcaX509v3CertificateBuilder(
+        subject, serial, notBefore, notAfter, subject, keypair.public)
+      .addExtension(oid, false, encodedRoles)
+      .build(signer)
+    // convert from bouncycastle to plain java
+    CertificateFactory.getInstance('X.509')
+      .generateCertificate(new ByteArrayInputStream(holder.encoded)) as X509Certificate
   }
 }

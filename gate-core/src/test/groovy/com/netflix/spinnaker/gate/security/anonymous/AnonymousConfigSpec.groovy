@@ -21,8 +21,6 @@ import com.netflix.spinnaker.gate.services.CredentialsService
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import java.util.concurrent.CopyOnWriteArrayList
-
 class AnonymousConfigSpec extends Specification {
   @Unroll
   def "should update accounts when fiat is not enabled"() {
@@ -33,11 +31,8 @@ class AnonymousConfigSpec extends Specification {
     }
 
     and:
-    AnonymousConfig config = new AnonymousConfig(
-      anonymousAllowedAccounts: new CopyOnWriteArrayList<String>(oldAccounts),
-      credentialsService: credentialsService,
-      fiatStatus: fiatStatus
-    )
+    AnonymousConfig config = new AnonymousConfig(credentialsService, fiatStatus)
+    config.anonymousAllowedAccounts.addAll(oldAccounts)
 
     when:
     config.updateAnonymousAccounts()

@@ -48,7 +48,7 @@ public class UpstreamBadRequest extends SpinnakerException {
     return error;
   }
 
-  public static Exception classifyError(RetrofitError error) {
+  public static RuntimeException classifyError(RetrofitError error) {
     if (error.getKind() == HTTP
         && error.getResponse().getStatus() < INTERNAL_SERVER_ERROR.value()) {
       return new UpstreamBadRequest(error);
@@ -57,7 +57,7 @@ public class UpstreamBadRequest extends SpinnakerException {
     }
   }
 
-  public static Exception classifyError(
+  public static RuntimeException classifyError(
       RetrofitError error, Collection<Integer> supportedHttpStatuses) {
     if (error.getKind() == HTTP
         && supportedHttpStatuses.contains(error.getResponse().getStatus())) {

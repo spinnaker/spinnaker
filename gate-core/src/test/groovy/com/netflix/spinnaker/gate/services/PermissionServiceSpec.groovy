@@ -39,7 +39,7 @@ class PermissionServiceSpec extends Specification {
     def extendedFiatService = Stub(ExtendedFiatService) {
       getUserServiceAccounts(user) >> { throw theFailure }
     }
-    def subject = new PermissionService(extendedFiatService: extendedFiatService)
+    def subject = new PermissionService(null, extendedFiatService, null, null, null)
 
     when:
     def result = subject.lookupServiceAccounts(user)
@@ -61,7 +61,7 @@ class PermissionServiceSpec extends Specification {
     def extendedFiatService = Stub(ExtendedFiatService) {
       getUserServiceAccounts(user) >> { throw theFailure }
     }
-    def subject = new PermissionService(extendedFiatService: extendedFiatService)
+    def subject = new PermissionService(null, extendedFiatService, null, null, null)
 
     when:
     subject.lookupServiceAccounts(user)
@@ -123,11 +123,7 @@ class PermissionServiceSpec extends Specification {
     def extendedFiatService = Mock(ExtendedFiatService)
     def result = hasResult ? lookupResult : []
 
-    def subject = new PermissionService(
-      fiatStatus: fiatStatus,
-      permissionEvaluator: permissionEvaluator,
-      extendedFiatService: extendedFiatService,
-      serviceAccountFilterConfigProps: cfgProps)
+    def subject = new PermissionService(null, extendedFiatService, cfgProps, permissionEvaluator, fiatStatus)
 
     when:
     subject.getServiceAccountsForApplication(user, application)

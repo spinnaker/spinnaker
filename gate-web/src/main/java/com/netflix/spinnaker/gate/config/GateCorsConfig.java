@@ -55,16 +55,15 @@ public class GateCorsConfig {
 
   @Bean
   @ConditionalOnProperty(name = "cors.allow-mode", havingValue = "regex", matchIfMissing = true)
-  FilterRegistrationBean regExCorsFilter(OriginValidator gateOriginValidator) {
-    FilterRegistrationBean filterRegBean =
-        new FilterRegistrationBean<>(new CorsFilter(gateOriginValidator));
+  FilterRegistrationBean<CorsFilter> regExCorsFilter(OriginValidator gateOriginValidator) {
+    var filterRegBean = new FilterRegistrationBean<>(new CorsFilter(gateOriginValidator));
     filterRegBean.setOrder(Ordered.HIGHEST_PRECEDENCE);
     return filterRegBean;
   }
 
   @Bean
   @ConditionalOnProperty(name = "cors.allow-mode", havingValue = "list")
-  FilterRegistrationBean allowedOriginCorsFilter(
+  FilterRegistrationBean<org.springframework.web.filter.CorsFilter> allowedOriginCorsFilter(
       @Value("${cors.allowed-origins:*}") List<String> allowedOriginList) {
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     CorsConfiguration config = new CorsConfiguration();
@@ -74,7 +73,7 @@ public class GateCorsConfig {
     config.setMaxAge(MAX_AGE_IN_SECONDS);
     config.addAllowedMethod("*"); // Enable CORS for all methods.
     source.registerCorsConfiguration("/**", config); // Enable CORS for all paths
-    FilterRegistrationBean filterRegBean =
+    var filterRegBean =
         new FilterRegistrationBean<>(new org.springframework.web.filter.CorsFilter(source));
     filterRegBean.setOrder(Ordered.HIGHEST_PRECEDENCE);
     return filterRegBean;

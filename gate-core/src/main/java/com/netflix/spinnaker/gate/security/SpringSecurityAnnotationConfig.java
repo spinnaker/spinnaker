@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.gate.security
+package com.netflix.spinnaker.gate.security;
 
-import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 
-import java.lang.annotation.ElementType
-import java.lang.annotation.Retention
-import java.lang.annotation.RetentionPolicy
-import java.lang.annotation.Target
-
-@Target([ElementType.PARAMETER])
-@Retention(RetentionPolicy.RUNTIME)
-@AuthenticationPrincipal
-@interface SpinnakerUser {
-}
+@Configuration
+@EnableGlobalMethodSecurity(prePostEnabled = true)
+@ConditionalOnBean(annotation = SpinnakerAuthConfig.class)
+public class SpringSecurityAnnotationConfig {}

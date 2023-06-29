@@ -31,7 +31,6 @@ import org.springframework.ldap.core.DirContextAdapter
 import org.springframework.ldap.core.DirContextOperations
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
-import org.springframework.security.config.annotation.web.builders.WebSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.security.core.GrantedAuthority
@@ -96,11 +95,6 @@ class LdapSsoConfig extends WebSecurityConfigurerAdapter {
     http.formLogin()
     authConfig.configure(http)
     http.addFilterBefore(new BasicAuthenticationFilter(authenticationManager()), UsernamePasswordAuthenticationFilter)
-  }
-
-  @Override
-  void configure(WebSecurity web) throws Exception {
-    authConfig.configure(web)
   }
 
   @Component

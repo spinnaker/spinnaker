@@ -24,7 +24,7 @@ class SAMLSecurityConfigPropertiesSpec extends Specification {
   @Unroll
   def "should validate that the keystore exists and the password/alias are valid"() {
     given:
-    def ssoConfig = new SamlSsoConfig.SAMLSecurityConfigProperties(
+    def ssoConfig = new SAMLSecurityConfigProperties(
       keyStore: keyStore.toString(), keyStorePassword: keyStorePassword, keyStoreAliasName: keyStoreAliasName
     )
 

@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.gate.security
+package com.netflix.spinnaker.gate.security;
 
-import java.lang.annotation.ElementType
-import java.lang.annotation.Retention
-import java.lang.annotation.RetentionPolicy
-import java.lang.annotation.Target
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
-/**
- * Any non-anonymous Spinnaker authentication mechanism should have this annotation included on its @Configuration bean.
- */
-@Target(ElementType.TYPE)
+@Target({ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
-@interface SpinnakerAuthConfig {
-}
+@AuthenticationPrincipal
+public @interface SpinnakerUser {}

@@ -4,7 +4,6 @@ dependencies{
   implementation "io.spinnaker.fiat:fiat-api:$fiatVersion"
   implementation "io.spinnaker.kork:kork-exceptions"
   implementation "io.spinnaker.kork:kork-security"
-  implementation "com.netflix.spectator:spectator-api"
   implementation 'org.springframework:spring-context'
   implementation 'org.springframework.session:spring-session-core'
   implementation 'org.springframework.boot:spring-boot-autoconfigure'

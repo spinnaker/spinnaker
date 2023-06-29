@@ -24,7 +24,6 @@ import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
@@ -61,10 +60,5 @@ public class BasicAuthConfig extends WebSecurityConfigurerAdapter {
         .httpBasic()
         .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"));
     authConfig.configure(http);
-  }
-
-  @Override
-  public void configure(WebSecurity web) throws Exception {
-    authConfig.configure(web);
   }
 }
