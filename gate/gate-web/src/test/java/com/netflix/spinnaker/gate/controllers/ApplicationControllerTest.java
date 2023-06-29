@@ -91,6 +91,59 @@ class ApplicationControllerTest {
   }
 
   @Test
+  void getPipelineExecutionsForApplicationWithoutParams() throws Exception {
+    List<Map<String, Object>> pipelines =
+        List.of(
+            Map.of("name", "pipelineA", "executionField", "some-random-x"),
+            Map.of("name", "pipelineB", "executionField", "some-random-F"));
+    when(executionHistoryService.getPipelines("true-app", 10, null, null, null))
+        .thenReturn(pipelines);
+
+    ResultActions response =
+        mockMvc.perform(get("/applications/true-app/pipelines").accept(MediaType.APPLICATION_JSON));
+
+    verify(executionHistoryService)
+        .getPipelines(
+            "true-app", 10, null /* statuses */, null /*expand */, null /*pipelineNameFilter */);
+    verifyNoMoreInteractions(executionHistoryService);
+
+    response.andExpect(status().isOk());
+    response.andExpect(content().string(new ObjectMapper().writeValueAsString(pipelines)));
+  }
+
+  @Test
+  void getPipelineExecutionsForApplicationWithParams() throws Exception {
+    List<Map<String, Object>> pipelines =
+        List.of(
+            Map.of("name", "pipelineA", "executionField", "some-random-x"),
+            Map.of("name", "pipelineB", "executionField", "some-random-F"));
+
+    int limit = 2;
+    String statuses = "RUNNING";
+    boolean expand = false;
+    String pipelineNameFilter = "pipeline";
+    when(executionHistoryService.getPipelines(
+            "true-app", limit, statuses, expand, pipelineNameFilter))
+        .thenReturn(pipelines);
+
+    ResultActions response =
+        mockMvc.perform(
+            get("/applications/true-app/pipelines")
+                .param("limit", Integer.toString(limit))
+                .param("statuses", statuses)
+                .param("expand", Boolean.toString(expand))
+                .param("pipelineNameFilter", pipelineNameFilter)
+                .accept(MediaType.APPLICATION_JSON));
+
+    verify(executionHistoryService)
+        .getPipelines("true-app", limit, statuses, expand, pipelineNameFilter);
+    verifyNoMoreInteractions(executionHistoryService);
+
+    response.andExpect(status().isOk());
+    response.andExpect(content().string(new ObjectMapper().writeValueAsString(pipelines)));
+  }
+
+  @Test
   void getPipelineConfigsForApplicationWithoutPipelineNameFilter() throws Exception {
     // given: random configs
     List<Map<String, Object>> configs =
