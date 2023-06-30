@@ -557,6 +557,13 @@ abstract class PipelineControllerTck extends Specification {
         [enabled: null, type: "pipeline", pipeline: "triggering-pipeline", status: [ "successful" ] ]
       ]
     ]))
+    pipelineDAO.create(null, new Pipeline([
+      name       : "enabled trigger with null type",
+      application: "test",
+      triggers   : [
+        [enabled: true, type: null, pipeline: "triggering-pipeline", status: [ "successful" ] ]
+      ]
+    ]))
 
     when:
     def response = mockMvc.perform(get("/pipelines/triggeredBy/triggering-pipeline/${status}/"))

@@ -154,7 +154,8 @@ public class PipelineController {
         trigger -> {
           boolean retval =
               trigger.getEnabled()
-                  && (trigger.getType().equals("pipeline"))
+                  && (trigger.getType() != null)
+                  && trigger.getType().equals("pipeline")
                   && id.equals(trigger.getPipeline())
                   && trigger.getStatus().contains(status);
           log.debug(
