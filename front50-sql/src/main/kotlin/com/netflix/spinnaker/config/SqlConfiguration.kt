@@ -26,12 +26,14 @@ import org.jooq.DSLContext
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 
 @Configuration
 @ConditionalOnProperty("sql.enabled")
+@EnableConfigurationProperties(Front50SqlProperties::class)
 @Import(DefaultSqlConfiguration::class)
 class SqlConfiguration {
 
@@ -40,7 +42,8 @@ class SqlConfiguration {
     objectMapper: ObjectMapper,
     registry: Registry,
     jooq: DSLContext,
-    sqlProperties: SqlProperties
+    sqlProperties: SqlProperties,
+    front50SqlProperties: Front50SqlProperties
   ): SqlStorageService =
     SqlStorageService(
       objectMapper,
@@ -50,7 +53,8 @@ class SqlConfiguration {
       sqlProperties.retries,
       1000,
       if (sqlProperties.connectionPools.keys.size > 1)
-        sqlProperties.connectionPools.filter { it.value.default }.keys.first() else sqlProperties.connectionPools.keys.first()
+        sqlProperties.connectionPools.filter { it.value.default }.keys.first() else sqlProperties.connectionPools.keys.first(),
+      front50SqlProperties
     )
 
   @Bean
@@ -59,7 +63,8 @@ class SqlConfiguration {
     objectMapper: ObjectMapper,
     registry: Registry,
     @Qualifier("secondaryJooq") jooq: DSLContext,
-    sqlProperties: SqlProperties
+    sqlProperties: SqlProperties,
+    front50SqlProperties: Front50SqlProperties
   ): SqlStorageService =
     SqlStorageService(
       objectMapper,
@@ -68,6 +73,7 @@ class SqlConfiguration {
       Clock.systemDefaultZone(),
       sqlProperties.retries,
       1000,
-      sqlProperties.connectionPools.filter { !it.value.default }.keys.first()
+      sqlProperties.connectionPools.filter { !it.value.default }.keys.first(),
+      front50SqlProperties
     )
 }

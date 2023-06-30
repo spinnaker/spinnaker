@@ -18,6 +18,7 @@ package com.netflix.spinnaker.front50.model
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.config.Front50SqlProperties
 import com.netflix.spinnaker.front50.api.model.Timestamped
 import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.model.application.Application
@@ -57,7 +58,8 @@ internal object SqlStorageServiceTests : JUnit5Minutests {
       Clock.systemDefaultZone(),
       SqlRetryProperties(),
       1,
-      "default"
+      "default",
+      Front50SqlProperties()
     )
     context("For ${jooqConfig.dialect}") {
       context("Application") {

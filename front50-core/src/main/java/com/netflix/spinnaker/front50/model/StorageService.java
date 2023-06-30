@@ -71,6 +71,7 @@ public interface StorageService {
 
   long getLastModified(ObjectType objectType);
 
+  /** How frequently to refresh health information (e.g. for the health endpoint). */
   default long getHealthIntervalMillis() {
     return Duration.ofSeconds(30).toMillis();
   }

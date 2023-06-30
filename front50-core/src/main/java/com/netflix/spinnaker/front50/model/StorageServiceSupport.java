@@ -219,6 +219,16 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
     return isHealthy;
   }
 
+  /**
+   * How frequently to refresh health information (e.g. to call isHealthy() to provide info to the
+   * health endpoint).
+   *
+   * <p>By itself, this is independent from ItemDAO.getHealthIntervalMillis, but when e.g.
+   * DefaultPipelineDAO both extends this class, and implements ItemDAO (via PipelineDAO), this
+   * method serves as the override to ItemDAO.getHealthIntervalMillis.
+   *
+   * @return the period from the underlying StorageService
+   */
   public long getHealthIntervalMillis() {
     return service.getHealthIntervalMillis();
   }

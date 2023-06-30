@@ -36,6 +36,10 @@ public interface ItemDAO<T> {
 
   boolean isHealthy();
 
+  /**
+   * How frequently to refresh health information (e.g. to call isHealthy() to provide info to the
+   * health endpoint)
+   */
   default long getHealthIntervalMillis() {
     return Duration.ofSeconds(30).toMillis();
   }

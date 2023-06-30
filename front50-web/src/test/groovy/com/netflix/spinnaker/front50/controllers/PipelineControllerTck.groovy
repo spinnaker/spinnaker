@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.front50.controllers
 
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.config.Front50SqlProperties
 import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline
 import com.netflix.spinnaker.front50.ServiceAccountsService
 import com.netflix.spinnaker.front50.api.model.pipeline.Trigger
@@ -755,7 +756,8 @@ class SqlPipelineControllerTck extends PipelineControllerTck {
       Clock.systemDefaultZone(),
       new SqlRetryProperties(),
       100,
-      "default"
+      "default",
+      new Front50SqlProperties()
     )
 
     pipelineDAOConfigProperties.setRefreshMs(0)

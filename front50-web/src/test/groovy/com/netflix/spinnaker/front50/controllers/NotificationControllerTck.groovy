@@ -20,6 +20,7 @@ package com.netflix.spinnaker.front50.controllers
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.config.Front50SqlProperties
 import com.netflix.spinnaker.front50.config.StorageServiceConfigurationProperties
 import com.netflix.spinnaker.front50.model.DefaultObjectKeyLoader
 import com.netflix.spinnaker.front50.model.SqlStorageService
@@ -196,7 +197,8 @@ class SqlNotificationControllerTck extends NotificationControllerTck {
       Clock.systemDefaultZone(),
       new SqlRetryProperties(),
       100,
-      "default"
+      "default",
+      new Front50SqlProperties()
     )
 
     return new DefaultNotificationDAO(

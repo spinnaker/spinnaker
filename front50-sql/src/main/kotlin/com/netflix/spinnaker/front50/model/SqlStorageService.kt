@@ -18,6 +18,7 @@ package com.netflix.spinnaker.front50.model
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.config.Front50SqlProperties
 import com.netflix.spinnaker.front50.api.model.Timestamped
 import com.netflix.spinnaker.front50.model.ObjectType.APPLICATION
 import com.netflix.spinnaker.front50.model.ObjectType.APPLICATION_PERMISSION
@@ -63,7 +64,8 @@ class SqlStorageService(
   private val clock: Clock,
   private val sqlRetryProperties: SqlRetryProperties,
   private val chunkSize: Int,
-  private val poolName: String
+  private val poolName: String,
+  private val front50SqlProperties: Front50SqlProperties
 ) : StorageService, BulkStorageService, AdminOperations {
 
   companion object {
@@ -523,5 +525,9 @@ class SqlStorageService(
           .execute()
       }
     }
+  }
+
+  override fun getHealthIntervalMillis(): Long {
+    return front50SqlProperties.healthIntervalMillis
   }
 }
