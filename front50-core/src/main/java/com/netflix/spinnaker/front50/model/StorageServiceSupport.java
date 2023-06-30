@@ -22,6 +22,7 @@ import com.netflix.spectator.api.Counter;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.Timer;
 import com.netflix.spinnaker.front50.api.model.Timestamped;
+import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.config.StorageServiceConfigurationProperties;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
@@ -233,6 +234,32 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
     return service.getHealthIntervalMillis();
   }
 
+  /**
+   * Return true if the id of an item is not null. Log a warning if the id is null.
+   *
+   * @param item the item to check
+   */
+  private boolean isIdNotNull(T item) {
+    if (item.getId() != null) {
+      return true;
+    }
+
+    // For pipelines, log the application and name to help figure out where
+    // these are coming
+    // from.
+    if (item instanceof Pipeline) {
+      Pipeline pipeline = (Pipeline) item;
+      log.warn(
+          "{} with null id from pipeline '{}' in application '{}'",
+          objectType,
+          pipeline.getName(),
+          pipeline.getApplication());
+    } else {
+      log.warn("{} with null id", objectType);
+    }
+    return false;
+  }
+
   public T findById(String id) throws NotFoundException {
     CircuitBreaker breaker =
         circuitBreakerRegistry.circuitBreaker(
@@ -246,6 +273,7 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
             () -> service.loadObject(objectType, buildObjectKey(id)),
             e ->
                 Optional.ofNullable(allItemsCache.get()).orElseGet(HashSet::new).stream()
+                    .filter(this::isIdNotNull)
                     .filter(item -> item.getId().equalsIgnoreCase(id))
                     .findFirst()
                     .orElseThrow(
@@ -259,6 +287,20 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
   }
 
   public void update(String id, T item) {
+    // We're in this unfortunate situation where there's an id in the item as
+    // well as the separate id argument.  Or at least there's supposed to be.
+    // When hydrating an object from the data store, the id comes from the item,
+    // so if service.storeObject would succeed, and even if subsequent attempts
+    // to read the item appear to succeed, the resulting object wouldn't have an
+    // id.  So, short-circuit all that and check here.
+    //
+    // Additional checks to verify that the two ids actually match could make
+    // sense, or potentially even adding an id to the item where it's missing.
+    // For now, this is the minimal check to keep null ids out of the database.
+    if (item.getId() == null) {
+      throw new IllegalArgumentException(
+          "id is required in " + objectType + " (id argument: " + id + ")");
+    }
     item.setLastModifiedBy(AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"));
     item.setLastModified(System.currentTimeMillis());
     service.storeObject(objectType, buildObjectKey(id), item);
@@ -410,6 +452,7 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
 
       Map<String, T> objectsById =
           objects.stream()
+              .filter(this::isIdNotNull)
               .collect(Collectors.toMap(this::buildObjectKey, Function.identity(), (o1, o2) -> o1));
 
       for (String objectKey : objectKeys) {
@@ -501,9 +544,11 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
         service.loadObjectsNewerThan(objectType, lastSeenStorageTime.get());
     Map<String, T> modifiedItems =
         newerItems.get("not_deleted").stream()
+            .filter(this::isIdNotNull)
             .collect(Collectors.toMap(Timestamped::getId, item -> item));
     Map<String, T> deletedItems =
         newerItems.get("deleted").stream()
+            .filter(this::isIdNotNull)
             .collect(Collectors.toMap(Timestamped::getId, item -> item));
 
     // Expanded from a stream collector to avoid DuplicateKeyExceptions
