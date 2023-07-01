@@ -17,6 +17,7 @@ package com.netflix.spinnaker.front50.model;
 
 import static net.logstash.logback.argument.StructuredArguments.value;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.netflix.spectator.api.Counter;
 import com.netflix.spectator.api.Registry;
@@ -527,7 +528,8 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
     return result;
   }
 
-  private Set<T> fetchAllItemsOptimized(Set<T> existingItems) {
+  @VisibleForTesting
+  Set<T> fetchAllItemsOptimized(Set<T> existingItems) {
     if (existingItems == null) {
       existingItems = new HashSet<>();
     }
@@ -555,16 +557,18 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
     Map<String, T> resultMap = new HashMap<>();
     existingItems.forEach(
         existingItem -> {
-          String existingItemId = buildObjectKey(existingItem.getId());
-          if (deletedItems.containsKey(existingItemId)) {
-            // item was deleted, skip it
-            log.debug(
-                "Item with id {} deleted from the store. Will not add to the result.",
-                existingItemId);
-            numRemoved.getAndIncrement();
-          } else if (!modifiedItems.containsKey(existingItemId)) {
-            // item was unchanged, add it back as is
-            resultMap.put(existingItemId, existingItem);
+          if (isIdNotNull(existingItem)) {
+            String existingItemId = buildObjectKey(existingItem.getId());
+            if (deletedItems.containsKey(existingItemId)) {
+              // item was deleted, skip it
+              log.debug(
+                  "Item with id {} deleted from the store. Will not add to the result.",
+                  existingItemId);
+              numRemoved.getAndIncrement();
+            } else if (!modifiedItems.containsKey(existingItemId)) {
+              // item was unchanged, add it back as is
+              resultMap.put(existingItemId, existingItem);
+            }
           }
         });
 
