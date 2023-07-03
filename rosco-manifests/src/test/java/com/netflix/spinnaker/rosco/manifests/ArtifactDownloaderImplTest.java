@@ -24,7 +24,6 @@ import static org.mockito.Mockito.when;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
-import com.netflix.spinnaker.kork.retrofit.exceptions.RetrofitException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException;
 import com.netflix.spinnaker.rosco.services.ClouddriverService;
@@ -66,9 +65,7 @@ final class ArtifactDownloaderImplTest {
     try (ArtifactDownloaderImplTest.AutoDeletingFile file = new AutoDeletingFile()) {
       when(clouddriverService.fetchArtifact(testArtifact)).thenReturn(mockCall);
       when(mockCall.execute())
-          .thenThrow(
-              new SpinnakerNetworkException(
-                  RetrofitException.networkError(new IOException("timeout"))))
+          .thenThrow(new SpinnakerNetworkException(new IOException("timeout")))
           .thenReturn(successfulResponse(testContent));
       artifactDownloader.downloadArtifactToFile(testArtifact, file.path);
 
