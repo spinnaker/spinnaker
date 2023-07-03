@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.kork.retrofit;
 
-import com.netflix.spinnaker.kork.retrofit.exceptions.RetrofitException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException;
 import java.io.IOException;
 import retrofit2.Call;
@@ -34,7 +33,7 @@ public class Retrofit2SyncCall<T> {
     try {
       return call.execute().body();
     } catch (IOException e) {
-      throw new SpinnakerNetworkException(RetrofitException.networkError(e));
+      throw new SpinnakerNetworkException(e);
     }
   }
 }

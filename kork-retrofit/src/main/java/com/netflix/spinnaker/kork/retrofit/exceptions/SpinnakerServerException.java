@@ -18,36 +18,17 @@ package com.netflix.spinnaker.kork.retrofit.exceptions;
 
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
-import retrofit.RetrofitError;
 
-/** An exception that exposes the message of a {@link RetrofitError}, or a custom message. */
+/** Represents an error while attempting to execute a retrofit http client request. */
 @NonnullByDefault
 public class SpinnakerServerException extends SpinnakerException {
 
-  /**
-   * Parses the message from the {@link RetrofitError}.
-   *
-   * @param e The {@link RetrofitError} thrown by an invocation of the {@link retrofit.RestAdapter}
-   */
-  public SpinnakerServerException(RetrofitError e) {
-    super(e.getMessage(), e.getCause());
-  }
-
-  public SpinnakerServerException(RetrofitException e) {
-    super(e.getMessage(), e.getCause());
-  }
-
-  /**
-   * Construct a SpinnakerServerException with a specified message, instead of deriving one from a
-   * response body.
-   *
-   * @param message the message
-   * @param cause the cause. Note that this is required (i.e. can't be null) since in the absence of
-   *     a cause or a RetrofitError that provides the cause, SpinnakerServerException is likely not
-   *     the appropriate exception class to use.
-   */
   public SpinnakerServerException(String message, Throwable cause) {
     super(message, cause);
+  }
+
+  public SpinnakerServerException(Throwable cause) {
+    super(cause);
   }
 
   @Override

@@ -19,7 +19,6 @@ package com.netflix.spinnaker.kork.retrofit.exceptions;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.util.HashMap;
 import okhttp3.MediaType;
 import okhttp3.ResponseBody;
 import org.junit.jupiter.api.BeforeAll;
@@ -57,12 +56,5 @@ public class RetrofitExceptionTest {
 
     assertThrows(
         NullPointerException.class, () -> RetrofitException.httpError(response, retrofit2Service));
-  }
-
-  @Test
-  public void testUnexpectedErrorHasNoResponseErrorBody() {
-    Throwable cause = new Throwable("custom message");
-    RetrofitException retrofitException = RetrofitException.unexpectedError(cause);
-    assertNull(retrofitException.getErrorBodyAs(HashMap.class));
   }
 }

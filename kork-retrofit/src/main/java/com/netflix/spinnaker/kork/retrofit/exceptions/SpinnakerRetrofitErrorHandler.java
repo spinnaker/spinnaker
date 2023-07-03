@@ -59,9 +59,9 @@ public final class SpinnakerRetrofitErrorHandler implements ErrorHandler {
         }
         return retval;
       case NETWORK:
-        return new SpinnakerNetworkException(e);
+        return new SpinnakerNetworkException(e.getMessage(), e.getCause());
       default:
-        return new SpinnakerServerException(e);
+        return new SpinnakerServerException(e.getMessage(), e.getCause());
     }
   }
 

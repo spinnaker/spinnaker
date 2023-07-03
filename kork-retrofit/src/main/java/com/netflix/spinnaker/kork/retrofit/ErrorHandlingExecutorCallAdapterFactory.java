@@ -153,9 +153,9 @@ public class ErrorHandlingExecutorCallAdapterFactory extends CallAdapter.Factory
           return syncResp;
         }
       } catch (IOException e) {
-        throw new SpinnakerNetworkException(RetrofitException.networkError(e));
+        throw new SpinnakerNetworkException(e);
       } catch (Exception e) {
-        throw new SpinnakerServerException(RetrofitException.unexpectedError(e));
+        throw new SpinnakerServerException(e);
       }
       throw createSpinnakerHttpException(syncResp);
     }
@@ -260,11 +260,11 @@ public class ErrorHandlingExecutorCallAdapterFactory extends CallAdapter.Factory
 
       SpinnakerServerException exception;
       if (t instanceof IOException) {
-        exception = new SpinnakerNetworkException(RetrofitException.networkError((IOException) t));
+        exception = new SpinnakerNetworkException(t);
       } else if (t instanceof SpinnakerHttpException) {
         exception = (SpinnakerHttpException) t;
       } else {
-        exception = new SpinnakerServerException(RetrofitException.unexpectedError(t));
+        exception = new SpinnakerServerException(t);
       }
       final SpinnakerServerException finalException = exception;
       callbackExecutor.execute(

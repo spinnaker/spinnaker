@@ -33,15 +33,7 @@ import retrofit2.Retrofit;
 public class RetrofitException extends RuntimeException {
   public static RetrofitException httpError(Response response, Retrofit retrofit) {
     String message = response.code() + " " + response.message();
-    return new RetrofitException(message, response, null, retrofit);
-  }
-
-  public static RetrofitException networkError(IOException exception) {
-    return new RetrofitException(exception.getMessage(), null, exception, null);
-  }
-
-  public static RetrofitException unexpectedError(Throwable exception) {
-    return new RetrofitException(exception.getMessage(), null, exception, null);
+    return new RetrofitException(message, response, retrofit);
   }
 
   /** Response from server, which contains causes for the failure */
@@ -53,8 +45,9 @@ public class RetrofitException extends RuntimeException {
    */
   private final Retrofit retrofit;
 
-  RetrofitException(String message, Response response, Throwable exception, Retrofit retrofit) {
-    super(message, exception);
+  RetrofitException(String message, Response response, Retrofit retrofit) {
+    super(message);
+
     this.response = response;
     if (response != null) {
       // Fail fast instead of checking for null in e.g. getErrorBodyAs.
