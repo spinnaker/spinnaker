@@ -73,10 +73,10 @@ public class SecretsManagerSecretEngine implements SecretEngine {
   private final SecretsManagerClientProvider clientProvider;
 
   public SecretsManagerSecretEngine(
-      ObjectMapper mapper,
+      ObjectMapper objectMapper,
       UserSecretSerdeFactory userSecretSerdeFactory,
       SecretsManagerClientProvider clientProvider) {
-    this.mapper = mapper;
+    this.mapper = objectMapper;
     this.userSecretSerdeFactory = userSecretSerdeFactory;
     this.clientProvider = clientProvider;
   }

@@ -6,6 +6,7 @@ dependencies {
   api(platform(project(":spinnaker-dependencies")))
 
   api project(":kork-api")
+  api project(":kork-artifacts")
   api project(":kork-plugins-api")
   api project(":kork-exceptions")
   api "com.fasterxml.jackson.core:jackson-databind"
@@ -14,6 +15,7 @@ dependencies {
 
   implementation "org.springframework.boot:spring-boot"
 
+  testImplementation project(":kork-artifacts")
   testImplementation "org.assertj:assertj-core"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"

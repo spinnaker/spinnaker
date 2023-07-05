@@ -20,6 +20,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.google.common.base.Strings;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
+import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import javax.annotation.Nullable;
@@ -48,6 +50,11 @@ public final class ExpectedArtifact {
       Artifact defaultArtifact,
       String id,
       Artifact boundArtifact) {
+
+    defaultArtifact = store(defaultArtifact);
+    boundArtifact = store(boundArtifact);
+    matchArtifact = store(matchArtifact);
+
     this.matchArtifact =
         Optional.ofNullable(matchArtifact).orElseGet(() -> Artifact.builder().build());
     this.usePriorArtifact = usePriorArtifact;
@@ -65,9 +72,7 @@ public final class ExpectedArtifact {
    * @return true i.f.f. the artifacts match
    */
   public boolean matches(Artifact other) {
-    String thisType = matchArtifact.getType();
-    String otherType = other.getType();
-    if (!matches(thisType, otherType)) {
+    if (!matchTypes(matchArtifact.getType(), other.getType())) {
       return false;
     }
 
@@ -89,23 +94,57 @@ public final class ExpectedArtifact {
       return false;
     }
 
-    String thisReference = matchArtifact.getReference();
-    String otherReference = other.getReference();
-    if (!matches(thisReference, otherReference)) {
-      return false;
-    }
-
-    // Explicitly avoid matching on UUID, provenance & artifactAccount
-
-    return true;
+    return matches(matchArtifact.getReference(), other.getReference());
   }
 
   private boolean matches(@Nullable String us, @Nullable String other) {
     return StringUtils.isEmpty(us) || (other != null && patternMatches(us, other));
   }
 
+  /**
+   * Checks to see if artifact types are compatible/matchable. This handles the four known cases of:
+   *
+   * <pre>
+   * type_a matches type_b
+   * type_a is embedded/base and type_b is remote/base64
+   * type_b is embedded/base and type_a is remote/base64
+   * and false otherwise
+   * </pre>
+   */
+  private boolean matchTypes(String us, String other) {
+    if (matches(us, other)) {
+      return true;
+    }
+
+    if (us.equals(ArtifactTypes.EMBEDDED_BASE64.getMimeType())) {
+      return other.equals(ArtifactTypes.REMOTE_BASE64.getMimeType());
+    }
+
+    if (other.equals(ArtifactTypes.EMBEDDED_BASE64.getMimeType())) {
+      return us.equals(ArtifactTypes.REMOTE_BASE64.getMimeType());
+    }
+
+    return false;
+  }
+
   private boolean patternMatches(String us, String other) {
     return Pattern.compile(us).matcher(other).matches();
+  }
+
+  /** Helper store method to easily store the artifact if needed */
+  private static Artifact store(Artifact artifact) {
+    ArtifactStore storage = ArtifactStore.getInstance();
+    if (artifact == null
+        || storage == null
+        || !ArtifactTypes.EMBEDDED_BASE64.getMimeType().equals(artifact.getType())) {
+      return artifact;
+    }
+
+    if (artifact.getReference() != null && !artifact.getReference().isEmpty()) {
+      return storage.store(artifact);
+    }
+
+    return artifact;
   }
 
   @JsonPOJOBuilder(withPrefix = "")

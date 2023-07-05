@@ -29,9 +29,12 @@ import java.util.Optional;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.Builder;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.ToString;
+import lombok.extern.jackson.Jacksonized;
 
 @Getter
 @ToString
@@ -101,5 +104,17 @@ public final class Artifact {
       metadata.put(key, value);
       return this;
     }
+
+    public String getReference() {
+      return reference;
+    }
+  }
+
+  @Data
+  @Builder
+  @Jacksonized
+  @RequiredArgsConstructor
+  public static class StoredView {
+    private final String reference;
   }
 }

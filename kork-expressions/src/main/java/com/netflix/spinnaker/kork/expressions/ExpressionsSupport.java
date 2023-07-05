@@ -20,6 +20,7 @@ import static java.lang.String.format;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.api.expressions.ExpressionFunctionProvider;
+import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
 import com.netflix.spinnaker.kork.expressions.allowlist.AllowListTypeLocator;
 import com.netflix.spinnaker.kork.expressions.allowlist.FilteredMethodResolver;
 import com.netflix.spinnaker.kork.expressions.allowlist.FilteredPropertyAccessor;
@@ -163,6 +164,8 @@ public class ExpressionsSupport {
 
     StandardEvaluationContext evaluationContext = new StandardEvaluationContext(rootObject);
     evaluationContext.setTypeLocator(new AllowListTypeLocator());
+    evaluationContext.setTypeConverter(
+        new ArtifactUriToReferenceConverter(ArtifactStore.getInstance()));
     evaluationContext.setMethodResolvers(
         Collections.singletonList(new FilteredMethodResolver(returnTypeRestrictor)));
     evaluationContext.setPropertyAccessors(

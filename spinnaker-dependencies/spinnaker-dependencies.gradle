@@ -8,6 +8,7 @@ ext {
   versions = [
     arrow            : "0.13.2",
     aws              : "1.12.176",
+    awsv2            : "2.19.0",
     bouncycastle     : "1.70",
     brave            : "5.12.3",
     gcp              : "25.3.0",
@@ -78,6 +79,7 @@ dependencies {
   api(platform("com.amazonaws:aws-java-sdk-bom:${versions.aws}"))
   api(platform("com.google.protobuf:protobuf-bom:${versions.protobuf}"))
   api(platform("com.google.cloud:libraries-bom:${versions.gcp}"))
+  api(platform("software.amazon.awssdk:bom:${versions.awsv2}"))
   api(platform("com.google.cloud:google-cloud-secretmanager:2.1.7"))
   api(platform("org.springframework.cloud:spring-cloud-dependencies:${versions.springCloud}"))
   api(platform("io.strikt:strikt-bom:0.31.0"))

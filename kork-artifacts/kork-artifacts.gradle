@@ -5,11 +5,21 @@ dependencies {
   api(platform(project(":spinnaker-dependencies")))
 
   implementation project(":kork-annotations")
+  implementation project(":kork-exceptions")
+  implementation project(":kork-security")
   implementation "com.fasterxml.jackson.core:jackson-databind"
+  api 'software.amazon.awssdk:s3'
+  api 'software.amazon.awssdk:sts'
+  implementation "org.apache.httpcomponents:httpclient"
+  implementation "org.springframework.boot:spring-boot-autoconfigure"
+  implementation "org.springframework.security:spring-security-core"
+  implementation 'org.apache.logging.log4j:log4j-api'
+  implementation 'org.apache.logging.log4j:log4j-core'
   api "com.hubspot.jinjava:jinjava"
 
   testImplementation "org.assertj:assertj-core"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation "org.junit.jupiter:junit-jupiter-params"
+  testImplementation "org.mockito:mockito-core"
   testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
 }
