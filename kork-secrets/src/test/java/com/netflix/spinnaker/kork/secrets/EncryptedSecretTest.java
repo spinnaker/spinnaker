@@ -16,16 +16,14 @@
 
 package com.netflix.spinnaker.kork.secrets;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 
 public class EncryptedSecretTest {
-
-  @Rule public ExpectedException exceptionRule = ExpectedException.none();
 
   @Test
   public void isEncryptedSecretShouldReturnFalse() {
@@ -95,20 +93,25 @@ public class EncryptedSecretTest {
 
   @Test
   public void updateThrowsInvalidSecretFormatException() {
-    exceptionRule.expect(InvalidSecretFormatException.class);
-    exceptionRule.expectMessage(
-        "Invalid encrypted secret format, must have at least one parameter");
-    EncryptedSecret encryptedSecret = new EncryptedSecret();
-    encryptedSecret.update("encrypted:s3");
+    Exception exception =
+        assertThrows(
+            InvalidSecretFormatException.class, () -> new EncryptedSecret().update("encrypted:s3"));
+    assertTrue(
+        exception
+            .getMessage()
+            .contains("Invalid encrypted secret format, must have at least one parameter"));
   }
 
   @Test
   public void updateThrowsInvalidSecretFormatExceptionNoKeyValuePairs() {
-    exceptionRule.expect(InvalidSecretFormatException.class);
-    exceptionRule.expectMessage(
-        "Invalid encrypted secret format, keys and values must be delimited by ':'");
-    EncryptedSecret encryptedSecret = new EncryptedSecret();
-    encryptedSecret.update("encrypted:s3!foobar");
+    Exception exception =
+        assertThrows(
+            InvalidSecretFormatException.class,
+            () -> new EncryptedSecret().update("encrypted:s3!foobar"));
+    assertTrue(
+        exception
+            .getMessage()
+            .contains("Invalid encrypted secret format, keys and values must be delimited by ':'"));
   }
 
   @Test

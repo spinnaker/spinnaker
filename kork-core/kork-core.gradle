@@ -30,4 +30,5 @@ dependencies {
   testRuntimeOnly "cglib:cglib-nodep"
   testRuntimeOnly "org.objenesis:objenesis"
   testRuntimeOnly "org.slf4j:slf4j-simple"
+  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
 }

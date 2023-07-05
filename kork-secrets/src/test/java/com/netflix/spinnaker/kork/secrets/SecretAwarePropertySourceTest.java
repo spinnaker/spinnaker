@@ -1,25 +1,21 @@
 package com.netflix.spinnaker.kork.secrets;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.env.MapPropertySource;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class SecretAwarePropertySourceTest {
 
   private SecretAwarePropertySource<Map<String, Object>> secretAwarePropertySource;
@@ -28,7 +24,7 @@ public class SecretAwarePropertySourceTest {
   private final Map<String, Object> testValues = new HashMap<>();
   private final MapPropertySource propertySource = new MapPropertySource("testSource", testValues);
 
-  @Before
+  @BeforeEach
   public void setup() {
     testValues.put("testSecretFile", "encrypted:noop!k:testValue");
     testValues.put("testSecretPath", "encrypted:noop!k:testValue");
@@ -41,8 +37,8 @@ public class SecretAwarePropertySourceTest {
     secretAwarePropertySource =
         new SecretAwarePropertySource<>(propertySource, secretPropertyProcessor);
 
-    when(secretManager.decryptAsFile(any())).thenReturn(Paths.get("decryptedFile"));
-    when(secretManager.decrypt(any())).thenReturn("decryptedString");
+    lenient().when(secretManager.decryptAsFile(any())).thenReturn(Paths.get("decryptedFile"));
+    lenient().when(secretManager.decrypt(any())).thenReturn("decryptedString");
   }
 
   @Test

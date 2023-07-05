@@ -16,6 +16,7 @@
 
 package com.netflix.spectator.stackdriver;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -25,18 +26,14 @@ import com.google.api.services.monitoring.v3.model.MonitoredResource;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-@RunWith(JUnit4.class)
 public class MonitoredResourceBuilderTest {
 
   MonitoredResourceBuilder builder;
 
-  @Before
+  @BeforeEach
   public void setup() {
     builder = spy(new MonitoredResourceBuilder());
   }
@@ -59,8 +56,8 @@ public class MonitoredResourceBuilderTest {
     labels.put("zone", zone);
 
     MonitoredResource resource = builder.build();
-    Assert.assertEquals("gce_instance", resource.getType());
-    Assert.assertEquals(labels, resource.getLabels());
+    assertEquals("gce_instance", resource.getType());
+    assertEquals(labels, resource.getLabels());
   }
 
   @Test
@@ -72,9 +69,9 @@ public class MonitoredResourceBuilderTest {
             + " \"region\" : \"us-east-1\"\n"
             + "}";
 
-    Assert.assertEquals("the-instance", builder.matchAttribute(text, "instanceId"));
-    Assert.assertEquals("us-east-1", builder.matchAttribute(text, "region"));
-    Assert.assertEquals("", builder.matchAttribute(text, "notFound"));
+    assertEquals("the-instance", builder.matchAttribute(text, "instanceId"));
+    assertEquals("us-east-1", builder.matchAttribute(text, "region"));
+    assertEquals("", builder.matchAttribute(text, "notFound"));
   }
 
   @Test
@@ -115,8 +112,8 @@ public class MonitoredResourceBuilderTest {
     labels.put("project_id", project);
 
     MonitoredResource resource = builder.build();
-    Assert.assertEquals("aws_ec2_instance", resource.getType());
-    Assert.assertEquals(labels, resource.getLabels());
+    assertEquals("aws_ec2_instance", resource.getType());
+    assertEquals(labels, resource.getLabels());
   }
 
   @Test
@@ -131,7 +128,7 @@ public class MonitoredResourceBuilderTest {
     labels.put("project_id", project);
 
     MonitoredResource resource = builder.build();
-    Assert.assertEquals("global", resource.getType());
-    Assert.assertEquals(labels, resource.getLabels());
+    assertEquals("global", resource.getType());
+    assertEquals(labels, resource.getLabels());
   }
 }

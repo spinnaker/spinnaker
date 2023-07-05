@@ -30,7 +30,6 @@ import java.util.HashMap;
 import java.util.Map;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
-import org.junit.Assert;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -173,7 +172,7 @@ public class SpinnakerRetrofitErrorHandlerTest {
     RetrofitError retrofitError = RetrofitError.networkError("http://localhost", e);
     SpinnakerRetrofitErrorHandler handler = SpinnakerRetrofitErrorHandler.getInstance();
     Throwable throwable = handler.handleError(retrofitError);
-    Assert.assertEquals(message, throwable.getMessage());
+    assertEquals(message, throwable.getMessage());
   }
 
   @Test

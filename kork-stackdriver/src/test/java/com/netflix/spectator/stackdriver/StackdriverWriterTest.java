@@ -16,6 +16,8 @@
 
 package com.netflix.spectator.stackdriver;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.doReturn;
@@ -45,18 +47,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-@RunWith(JUnit4.class)
 public class StackdriverWriterTest {
   static class TestableStackdriverWriter extends StackdriverWriter {
     public TestableStackdriverWriter(ConfigParams params) {
@@ -160,7 +158,7 @@ public class StackdriverWriterTest {
     return result;
   }
 
-  @Before
+  @BeforeEach
   public void setup() {
     MockitoAnnotations.initMocks(this);
     when(monitoringApi.projects()).thenReturn(projectsApi);
@@ -201,7 +199,7 @@ public class StackdriverWriterTest {
             .setApplicationName(applicationName)
             .setMeasurementFilter(allowAll)
             .build();
-    Assert.assertTrue(!config.getInstanceId().isEmpty());
+    assertTrue(!config.getInstanceId().isEmpty());
   }
 
   TimeSeries makeTimeSeries(MetricDescriptor descriptor, Id id, double value, String time) {
@@ -280,10 +278,10 @@ public class StackdriverWriterTest {
     descriptorRegistrySpy.addExtraTimeSeriesLabel(
         MetricDescriptorCache.INSTANCE_LABEL, INSTANCE_ID);
 
-    Assert.assertEquals(
+    assertEquals(
         makeTimeSeries(descriptorA, idAXY, 1, timeA),
         writer.measurementToTimeSeries(descriptorA.getType(), testRegistry, timerA, measureAXY));
-    Assert.assertEquals(
+    assertEquals(
         makeTimeSeries(descriptorB, idBXY, 20.1, timeB),
         writer.measurementToTimeSeries(descriptorB.getType(), testRegistry, timerB, measureBXY));
   }
@@ -311,7 +309,7 @@ public class StackdriverWriterTest {
         ArgumentCaptor.forClass(CreateTimeSeriesRequest.class);
     verify(timeseriesApi, times(1)).create(eq("projects/test-project"), captor.capture());
     // A, B, timer count and totalTime.
-    Assert.assertEquals(4, captor.getValue().getTimeSeries().size());
+    assertEquals(4, captor.getValue().getTimeSeries().size());
   }
 
   @Test
@@ -372,8 +370,8 @@ public class StackdriverWriterTest {
     spy.writeRegistry(registry);
 
     verify(mockCreateMethod, times(2)).execute();
-    Assert.assertEquals(1, match200.found);
-    Assert.assertEquals(1, match1.found);
+    assertEquals(1, match200.found);
+    assertEquals(1, match1.found);
   }
 
   @Test
@@ -385,6 +383,6 @@ public class StackdriverWriterTest {
     // If we get the expected result then we matched the expected descriptors,
     // which means the transforms occurred as expected.
     List<TimeSeries> tsList = writer.registryToTimeSeries(testRegistry);
-    Assert.assertEquals(2, tsList.size());
+    assertEquals(2, tsList.size());
   }
 }

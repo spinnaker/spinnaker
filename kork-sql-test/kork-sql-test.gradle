@@ -8,7 +8,6 @@ dependencies {
   api("org.testcontainers:postgresql")
 
   testImplementation "org.junit.jupiter:junit-jupiter-api"
-  testImplementation "org.junit.platform:junit-platform-runner"
 
   runtimeOnly "com.h2database:h2"
 

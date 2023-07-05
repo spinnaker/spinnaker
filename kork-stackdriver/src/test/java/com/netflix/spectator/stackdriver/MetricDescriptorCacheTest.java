@@ -16,6 +16,8 @@
 
 package com.netflix.spectator.stackdriver;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.times;
@@ -36,18 +38,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-@RunWith(JUnit4.class)
 public class MetricDescriptorCacheTest {
   static class ReturnExecuteDescriptorArg implements Answer {
     private Monitoring.Projects.MetricDescriptors.Create mockCreateMethod;
@@ -142,7 +140,7 @@ public class MetricDescriptorCacheTest {
     return result;
   }
 
-  @Before
+  @BeforeEach
   public void setup() {
     MockitoAnnotations.initMocks(this);
     when(monitoringApi.projects()).thenReturn(projectsApi);
@@ -165,7 +163,7 @@ public class MetricDescriptorCacheTest {
 
   @Test
   public void descriptorTypeAreCompliant() {
-    Assert.assertEquals(
+    assertEquals(
         "custom.googleapis.com/TESTNAMESPACE/" + applicationName + "/idA",
         cache.idToDescriptorType(idA));
   }
@@ -196,7 +194,7 @@ public class MetricDescriptorCacheTest {
     when(mockGetMethod.execute()).thenReturn(origDescriptor);
     when(mockCreateMethod.execute()).thenReturn(updatedDescriptor);
 
-    Assert.assertEquals(updatedDescriptor, cache.addLabel(type, label));
+    assertEquals(updatedDescriptor, cache.addLabel(type, label));
     verify(mockGetMethod, times(1)).execute();
     verify(mockDeleteMethod, times(1)).execute();
     verify(mockCreateMethod, times(1)).execute();
@@ -229,7 +227,7 @@ public class MetricDescriptorCacheTest {
     when(mockDeleteMethod.execute()).thenThrow(new IOException("Not Found"));
     when(mockCreateMethod.execute()).thenReturn(updatedDescriptor);
 
-    Assert.assertEquals(updatedDescriptor, cache.addLabel(type, label));
+    assertEquals(updatedDescriptor, cache.addLabel(type, label));
     verify(mockGetMethod, times(1)).execute();
     verify(mockDeleteMethod, times(1)).execute();
     verify(mockCreateMethod, times(1)).execute();
@@ -261,7 +259,7 @@ public class MetricDescriptorCacheTest {
     when(mockGetMethod.execute()).thenReturn(origDescriptor);
     when(mockCreateMethod.execute()).thenThrow(new IOException("Not Found"));
 
-    Assert.assertNull(cache.addLabel(type, label));
+    assertNull(cache.addLabel(type, label));
 
     verify(mockGetMethod, times(1)).execute();
     verify(mockDeleteMethod, times(1)).execute();
@@ -288,7 +286,7 @@ public class MetricDescriptorCacheTest {
     when(descriptorsApi.create(any(), any())).thenReturn(mockCreateMethod);
 
     when(mockGetMethod.execute()).thenReturn(origDescriptor);
-    Assert.assertEquals(origDescriptor, cache.addLabel(type, label));
+    assertEquals(origDescriptor, cache.addLabel(type, label));
 
     verify(mockGetMethod, times(1)).execute();
     verify(mockDeleteMethod, times(0)).execute();

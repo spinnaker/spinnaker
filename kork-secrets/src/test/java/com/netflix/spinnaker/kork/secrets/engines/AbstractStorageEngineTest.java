@@ -16,20 +16,20 @@
 
 package com.netflix.spinnaker.kork.secrets.engines;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import com.netflix.spinnaker.kork.secrets.SecretDecryptionException;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.Arrays;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class AbstractStorageEngineTest {
   AbstractStorageSecretEngine engine;
 
-  @Before
+  @BeforeEach
   public void init() {
     engine =
         new AbstractStorageSecretEngine() {

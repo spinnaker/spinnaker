@@ -34,5 +34,6 @@ dependencies {
   compileOnly "org.springframework.boot:spring-boot-autoconfigure"
 
   testImplementation "org.mockito:mockito-core"
-  testImplementation "junit:junit"
+  testImplementation "org.junit.jupiter:junit-jupiter-api"
+  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
 }
