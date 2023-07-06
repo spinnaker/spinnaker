@@ -16,6 +16,11 @@
 
 package com.netflix.spinnaker.rosco
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore
+import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreConfiguration
+import com.netflix.spinnaker.kork.artifacts.artifactstore.EmbeddedArtifactSerializer
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.rosco.config.RoscoPackerConfigurationProperties
 import com.netflix.spinnaker.rosco.jobs.config.LocalJobConfig
 import com.netflix.spinnaker.rosco.manifests.config.RoscoHelmConfigurationProperties
@@ -29,8 +34,11 @@ import com.netflix.spinnaker.rosco.providers.huaweicloud.config.RoscoHuaweiCloud
 import com.netflix.spinnaker.rosco.providers.oracle.config.RoscoOracleConfiguration
 import com.netflix.spinnaker.rosco.providers.tencentcloud.config.RoscoTencentCloudConfiguration
 import com.netflix.spinnaker.rosco.services.ServiceConfig
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
@@ -38,6 +46,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.web.filter.ShallowEtagHeaderFilter
 import com.netflix.spinnaker.kork.boot.DefaultPropertiesBuilder
@@ -69,7 +78,8 @@ import javax.servlet.Filter
   RoscoPackerConfigurationProperties,
   RoscoHelmConfigurationProperties,
   RoscoKustomizeConfigurationProperties,
-  LocalJobConfig
+  LocalJobConfig,
+  ArtifactStoreConfiguration
 ])
 @EnableAutoConfiguration(exclude = [BatchAutoConfiguration, GroovyTemplateAutoConfiguration])
 @EnableScheduling
@@ -89,5 +99,19 @@ class Main extends SpringBootServletInitializer {
   @Bean
   Filter eTagFilter() {
     new ShallowEtagHeaderFilter()
+  }
+
+  @Bean
+  @ConditionalOnExpression('${artifact-store.enabled:false}')
+  EmbeddedArtifactSerializer artifactSerializer(ArtifactStore store, @Qualifier("artifactObjectMapper") ObjectMapper objectMapper) {
+    return new EmbeddedArtifactSerializer(objectMapper, store);
+  }
+
+  @Bean
+  @ConditionalOnBean(EmbeddedArtifactSerializer.class)
+  ObjectMapper objectMapper(Jackson2ObjectMapperBuilder builder, EmbeddedArtifactSerializer serializer) {
+    return builder.createXmlMapper(false)
+            .serializerByType(Artifact.class, serializer)
+            .build();
   }
 }

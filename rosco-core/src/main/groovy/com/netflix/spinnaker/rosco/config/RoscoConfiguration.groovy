@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.rosco.config
 
 import com.netflix.spinnaker.config.PluginsAutoConfiguration
+import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreConfiguration;
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import com.netflix.spinnaker.rosco.executor.BakePoller
@@ -39,7 +40,7 @@ import redis.clients.jedis.JedisPool
 @Configuration
 @CompileStatic
 @Slf4j
-@Import(PluginsAutoConfiguration.class)
+@Import([ PluginsAutoConfiguration.class, ArtifactStoreConfiguration.class ])
 class RoscoConfiguration {
 
   @Bean
@@ -88,5 +89,4 @@ class RoscoConfiguration {
   PackerCommandFactory localJobFriendlyPackerCommandFactory() {
     return new LocalJobFriendlyPackerCommandFactory()
   }
-
 }
