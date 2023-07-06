@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableMap;
+import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.Base64;
 import java.util.Collections;
@@ -47,7 +48,7 @@ public class DeploymentManifest {
     if (direct != null) {
       return Artifact.builder()
           .name("manifest")
-          .type("embedded/base64")
+          .type(ArtifactTypes.EMBEDDED_BASE64.getMimeType())
           .artifactAccount("embedded-artifact")
           .reference(Base64.getEncoder().encodeToString(direct.toManifestYml().getBytes()))
           .build();

@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.PluginsAutoConfiguration;
 import com.netflix.spinnaker.kork.api.expressions.ExpressionFunctionProvider;
+import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreConfiguration;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.expressions.config.ExpressionProperties;
@@ -84,11 +85,13 @@ import rx.schedulers.Schedulers;
   "com.netflix.spinnaker.orca.preprocessors",
   "com.netflix.spinnaker.orca.telemetry",
   "com.netflix.spinnaker.orca.notifications.scheduling",
-  "com.netflix.spinnaker.orca.lock"
+  "com.netflix.spinnaker.orca.lock",
+  "com.netflix.spinnaker.kork.artifacts.model",
 })
 @Import({
   PreprocessorConfiguration.class,
   PluginsAutoConfiguration.class,
+  ArtifactStoreConfiguration.class,
 })
 @EnableConfigurationProperties({
   TaskOverrideConfigurationProperties.class,

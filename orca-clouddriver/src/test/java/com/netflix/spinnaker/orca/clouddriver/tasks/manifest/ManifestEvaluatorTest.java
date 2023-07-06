@@ -27,6 +27,7 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
@@ -108,7 +109,7 @@ final class ManifestEvaluatorTest {
     Artifact manifestArtifact =
         Artifact.builder()
             .artifactAccount("my-artifact-account")
-            .type("embedded/base64")
+            .type(ArtifactTypes.EMBEDDED_BASE64.getMimeType())
             .customKind(false)
             .name("somename")
             .reference(

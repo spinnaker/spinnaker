@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.io.IOException;
 import java.util.Base64;
@@ -53,7 +54,7 @@ public class ServiceManifest {
     if (direct != null) {
       return Artifact.builder()
           .name("manifest")
-          .type("embedded/base64")
+          .type(ArtifactTypes.EMBEDDED_BASE64.getMimeType())
           .artifactAccount("embedded-artifact")
           .reference(Base64.getEncoder().encodeToString(direct.toManifestYml().getBytes()))
           .build();
