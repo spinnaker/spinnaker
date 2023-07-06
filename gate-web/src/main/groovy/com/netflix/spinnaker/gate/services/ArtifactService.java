@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gate.services;
 
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector;
 import com.netflix.spinnaker.gate.services.internal.IgorService;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import groovy.transform.CompileStatic;
 import java.io.IOException;
 import java.io.InputStream;
@@ -57,6 +58,10 @@ public class ArtifactService {
   public InputStream getArtifactContents(String selectorKey, Map<String, String> artifact)
       throws IOException {
     return clouddriverServiceSelector.select().getArtifactContent(artifact).getBody().in();
+  }
+
+  public Artifact.StoredView getStoredArtifact(String application, String hash) {
+    return clouddriverServiceSelector.select().getStoredArtifact(application, hash);
   }
 
   public List<String> getVersionsOfArtifactForProvider(

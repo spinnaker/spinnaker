@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.controllers;
 
 import com.netflix.spinnaker.gate.services.ArtifactService;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import io.swagger.annotations.ApiOperation;
 import java.io.InputStream;
 import java.util.List;
@@ -96,5 +97,13 @@ public class ArtifactController {
       @PathVariable String packageName,
       @PathVariable String version) {
     return artifactService.getArtifactByVersion(provider, packageName, version);
+  }
+
+  @ApiOperation(value = "Retrieve artifact by content hash")
+  @RequestMapping(value = "/content-address/{application}/{hash}", method = RequestMethod.GET)
+  Artifact.StoredView getStoredArtifact(
+      @PathVariable(value = "application") String application,
+      @PathVariable(value = "hash") String hash) {
+    return artifactService.getStoredArtifact(application, hash);
   }
 }
