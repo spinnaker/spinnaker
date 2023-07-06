@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -34,7 +35,11 @@ import org.apache.commons.lang3.NotImplementedException;
 final class EmbeddedArtifactCredentials implements ArtifactCredentials {
   public static final String CREDENTIALS_TYPE = "artifacts-embedded";
   @Getter private final String name;
-  @Getter private final ImmutableList<String> types = ImmutableList.of("embedded/base64");
+
+  @Getter
+  private final ImmutableList<String> types =
+      ImmutableList.of(
+          ArtifactTypes.EMBEDDED_BASE64.getMimeType(), ArtifactTypes.REMOTE_BASE64.getMimeType());
 
   @JsonIgnore private final Base64.Decoder base64Decoder;
 
@@ -45,7 +50,9 @@ final class EmbeddedArtifactCredentials implements ArtifactCredentials {
 
   public InputStream download(Artifact artifact) {
     String type = artifact.getType();
-    if (type.equals("embedded/base64")) {
+    if (ArtifactTypes.EMBEDDED_BASE64.getMimeType().equals(type)) {
+      return fromBase64(artifact);
+    } else if (ArtifactTypes.REMOTE_BASE64.getMimeType().equals(type)) {
       return fromBase64(artifact);
     } else {
       throw new NotImplementedException("Embedded type '" + type + "' is not handled.");
@@ -59,7 +66,7 @@ final class EmbeddedArtifactCredentials implements ArtifactCredentials {
 
   @Override
   public boolean handlesType(String type) {
-    return type.startsWith("embedded/");
+    return type.startsWith("embedded/") || type.startsWith("remote/");
   }
 
   @Override

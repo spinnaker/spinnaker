@@ -99,6 +99,9 @@ import com.netflix.spinnaker.credentials.definition.AbstractCredentialsLoader;
 import com.netflix.spinnaker.credentials.poller.PollerConfiguration;
 import com.netflix.spinnaker.credentials.poller.PollerConfigurationProperties;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
+import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactDeserializer;
+import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
+import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreConfiguration;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer;
@@ -108,6 +111,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import javax.inject.Provider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -128,7 +132,8 @@ import org.springframework.web.client.RestTemplate;
   RedisConfig.class,
   CacheConfig.class,
   SearchExecutorConfig.class,
-  PluginsAutoConfiguration.class
+  PluginsAutoConfiguration.class,
+  ArtifactStoreConfiguration.class,
 })
 @PropertySource(
     value = "classpath:META-INF/clouddriver-core.properties",
@@ -417,5 +422,12 @@ class CloudDriverConfig {
     threadPoolTaskScheduler.setPoolSize(threadPoolSize);
     threadPoolTaskScheduler.setThreadNamePrefix("ThreadPoolTaskScheduler");
     return threadPoolTaskScheduler;
+  }
+
+  @Bean
+  @ConditionalOnExpression("${artifact-store.enabled:false}")
+  ArtifactDeserializer artifactDeserializer(
+      ArtifactStore storage, @Qualifier("artifactObjectMapper") ObjectMapper objectMapper) {
+    return new ArtifactDeserializer(objectMapper, storage);
   }
 }

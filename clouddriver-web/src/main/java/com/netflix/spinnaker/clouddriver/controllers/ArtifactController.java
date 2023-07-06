@@ -20,6 +20,8 @@ package com.netflix.spinnaker.clouddriver.controllers;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactDownloader;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
+import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
+import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreURIBuilder;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.exceptions.MissingCredentialsException;
 import java.io.InputStream;
@@ -30,7 +32,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 @Slf4j
@@ -39,13 +48,19 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 public class ArtifactController {
   private ArtifactCredentialsRepository artifactCredentialsRepository;
   private ArtifactDownloader artifactDownloader;
+  private final ArtifactStore storage;
+  private final ArtifactStoreURIBuilder artifactStoreURIBuilder;
 
   @Autowired
   public ArtifactController(
       Optional<ArtifactCredentialsRepository> artifactCredentialsRepository,
-      Optional<ArtifactDownloader> artifactDownloader) {
+      Optional<ArtifactDownloader> artifactDownloader,
+      Optional<ArtifactStore> storage,
+      Optional<ArtifactStoreURIBuilder> artifactStoreURIBuilder) {
     this.artifactCredentialsRepository = artifactCredentialsRepository.orElse(null);
     this.artifactDownloader = artifactDownloader.orElse(null);
+    this.storage = storage.orElse(null);
+    this.artifactStoreURIBuilder = artifactStoreURIBuilder.orElse(null);
   }
 
   @RequestMapping(method = RequestMethod.GET, value = "/credentials")
@@ -70,6 +85,15 @@ public class ArtifactController {
         IOUtils.copy(artifactStream, outputStream);
       }
     };
+  }
+
+  @RequestMapping(method = RequestMethod.GET, value = "/content-address/{application}/{hash}")
+  Artifact.StoredView getStoredArtifact(
+      @PathVariable(value = "application") String application,
+      @PathVariable(value = "hash") String hash) {
+    Artifact artifact = storage.get(artifactStoreURIBuilder.buildRawURI(application, hash));
+    Artifact.StoredView view = new Artifact.StoredView(artifact.getReference());
+    return view;
   }
 
   @RequestMapping(method = RequestMethod.GET, value = "/account/{accountName}/names")

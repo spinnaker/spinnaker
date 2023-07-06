@@ -25,6 +25,7 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.DeployAppengineConfigDescription;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactDownloader;
+import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -73,7 +74,7 @@ public class DeployAppengineConfigAtomicOperationTest {
     artifactMap.put("artifactAccount", "embedded-artifact");
     artifactMap.put("id", "123abc");
     artifactMap.put("reference", "ZG9zb21ldGhpbmc=");
-    artifactMap.put("type", "embedded/base64");
+    artifactMap.put("type", ArtifactTypes.EMBEDDED_BASE64.getMimeType());
     Artifact artifact = mapper.convertValue(artifactMap, Artifact.class);
 
     Path path = null;
