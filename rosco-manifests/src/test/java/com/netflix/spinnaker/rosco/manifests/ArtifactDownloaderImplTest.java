@@ -32,12 +32,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import okhttp3.ResponseBody;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 import retrofit2.Call;
 import retrofit2.Response;
 
-@RunWith(JUnitPlatform.class)
 final class ArtifactDownloaderImplTest {
   private final ClouddriverService clouddriverService = mock(ClouddriverService.class);
   private final Call mockCall = mock(Call.class);

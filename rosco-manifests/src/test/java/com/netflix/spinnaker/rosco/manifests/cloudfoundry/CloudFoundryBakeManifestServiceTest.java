@@ -31,10 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Base64;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 
-@RunWith(JUnitPlatform.class)
 public class CloudFoundryBakeManifestServiceTest {
 
   private ArtifactDownloader artifactDownloader = mock(ArtifactDownloader.class);
