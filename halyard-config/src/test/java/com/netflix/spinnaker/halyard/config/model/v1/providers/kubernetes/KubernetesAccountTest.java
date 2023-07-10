@@ -24,11 +24,8 @@ import com.netflix.spinnaker.halyard.config.config.v1.StrictObjectMapper;
 import java.io.IOException;
 import java.io.StringWriter;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 import org.yaml.snakeyaml.Yaml;
 
-@RunWith(JUnitPlatform.class)
 final class KubernetesAccountTest {
 
   @Test
