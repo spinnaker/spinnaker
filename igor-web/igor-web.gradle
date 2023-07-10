@@ -90,7 +90,6 @@ dependencies {
     testImplementation "org.junit.jupiter:junit-jupiter-api"
     testImplementation "org.assertj:assertj-core"
 
-    testRuntimeOnly "org.junit.vintage:junit-vintage-engine"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
     testImplementation "com.github.tomakehurst:wiremock-jre8:2.22.0"
 }

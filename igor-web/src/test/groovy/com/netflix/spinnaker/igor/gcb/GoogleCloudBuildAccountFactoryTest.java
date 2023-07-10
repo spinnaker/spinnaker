@@ -20,11 +20,11 @@ import static org.mockito.Mockito.*;
 
 import com.google.auth.oauth2.GoogleCredentials;
 import com.netflix.spinnaker.igor.config.GoogleCloudBuildProperties;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class GoogleCloudBuildAccountFactoryTest {
   private final GoogleCredentialsService googleCredentialsService =
       mock(GoogleCredentialsService.class);
