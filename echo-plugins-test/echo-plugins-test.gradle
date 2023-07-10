@@ -10,6 +10,5 @@ dependencies {
   testImplementation("io.spinnaker.kork:kork-plugins")
   testImplementation("io.spinnaker.kork:kork-plugins-tck")
 
-  testRuntimeOnly("org.junit.platform:junit-platform-launcher")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 }

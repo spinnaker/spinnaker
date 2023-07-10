@@ -23,7 +23,7 @@ import com.netflix.spinnaker.kork.proto.stats.CloudProvider
 import com.netflix.spinnaker.kork.proto.stats.Event as StatsEvent
 import com.netflix.spinnaker.kork.proto.stats.Execution
 import com.netflix.spinnaker.kork.proto.stats.Status
-import org.junit.Assume.assumeTrue
+import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
