@@ -22,11 +22,8 @@ import static org.mockito.Mockito.verify;
 
 import com.netflix.spinnaker.fiat.config.ResourceProviderConfig;
 import com.netflix.spinnaker.fiat.providers.ProviderHealthTracker;
-import org.junit.Test;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
-@RunWith(JUnitPlatform.class)
 public class ClouddriverApplicationLoaderTest {
 
   @Test

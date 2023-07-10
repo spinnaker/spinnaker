@@ -39,5 +39,4 @@ dependencies {
 
   testImplementation "org.apache.commons:commons-collections4:4.1"
   testImplementation "org.testcontainers:testcontainers"
-  testImplementation "org.junit.platform:junit-platform-runner"
 }
