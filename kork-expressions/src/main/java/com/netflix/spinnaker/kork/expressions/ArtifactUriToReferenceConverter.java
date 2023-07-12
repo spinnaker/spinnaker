@@ -37,19 +37,20 @@ public class ArtifactUriToReferenceConverter implements TypeConverter {
 
   @Override
   public boolean canConvert(TypeDescriptor sourceType, @NotNull TypeDescriptor targetType) {
-    if (sourceType == null) {
-      return false;
-    }
+    return isArtifactUriType(sourceType, targetType)
+        || defaultTypeConverter.canConvert(sourceType, targetType);
+  }
 
-    return sourceType.getObjectType() == String.class && targetType.getObjectType() == String.class;
+  private boolean isArtifactUriType(TypeDescriptor sourceType, @NotNull TypeDescriptor targetType) {
+    return sourceType != null
+        && sourceType.getObjectType() == String.class
+        && targetType.getObjectType() == String.class;
   }
 
   @Override
   public Object convertValue(
       Object value, TypeDescriptor sourceType, @NotNull TypeDescriptor targetType) {
-    // For some obscene reason(s), SpEL does not use this in the
-    // FunctionReference call when calling a method. So we call it internally
-    if (!canConvert(sourceType, targetType)) {
+    if (!isArtifactUriType(sourceType, targetType)) {
       return defaultTypeConverter.convertValue(value, sourceType, targetType);
     }
 

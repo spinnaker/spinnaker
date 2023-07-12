@@ -131,6 +131,26 @@ public class ExpressionsSupportTest {
     assertThat(evaluated).isEqualTo(expectedValue);
   }
 
+  @Test
+  public void delegatesTypeConversion() {
+    // If a thing is not an artifact URI, it should delegate to StandardTypeConverter
+    ExpressionProperties expressionProperties = new ExpressionProperties();
+
+    // StandardTypeConverter does things like convert ints to longs
+    String testInput = ("${new java.util.UUID(0,0).toString()}");
+    Map<String, Object> testContext = Map.of();
+
+    String evaluated =
+        new ExpressionTransform(parserContext, parser, Function.identity())
+            .transformString(
+                testInput,
+                new ExpressionsSupport(null, expressionProperties)
+                    .buildEvaluationContext(testContext, true),
+                new ExpressionEvaluationSummary());
+
+    assertThat(evaluated).isEqualTo("00000000-0000-0000-0000-000000000000");
+  }
+
   public class MockArtifactStore extends ArtifactStore {
     public Map<String, String> cache = new HashMap<>();
 
