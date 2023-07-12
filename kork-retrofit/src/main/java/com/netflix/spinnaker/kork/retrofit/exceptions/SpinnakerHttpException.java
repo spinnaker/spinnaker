@@ -16,13 +16,10 @@
 
 package com.netflix.spinnaker.kork.retrofit.exceptions;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Preconditions;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
-import java.util.Optional;
-import lombok.Getter;
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.http.HttpHeaders;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
@@ -46,24 +43,29 @@ public class SpinnakerHttpException extends SpinnakerServerException {
    */
   private final String rawMessage;
 
+  private final Map<String, Object> responseBody;
+
   public SpinnakerHttpException(RetrofitError e) {
     super(e);
     this.response = e.getResponse();
     this.retrofit2Response = null;
-    RetrofitErrorResponseBody body =
-        (RetrofitErrorResponseBody) e.getBodyAs(RetrofitErrorResponseBody.class);
+    responseBody = (Map<String, Object>) e.getBodyAs(HashMap.class);
+
     this.rawMessage =
-        Optional.ofNullable(body).map(RetrofitErrorResponseBody::getMessage).orElse(e.getMessage());
+        responseBody != null
+            ? (String) responseBody.getOrDefault("message", e.getMessage())
+            : e.getMessage();
   }
 
   public SpinnakerHttpException(RetrofitException e) {
     super(e);
     this.response = null;
     this.retrofit2Response = e.getResponse();
-    RetrofitErrorResponseBody body =
-        (RetrofitErrorResponseBody) e.getErrorBodyAs(RetrofitErrorResponseBody.class);
+    responseBody = (Map<String, Object>) e.getErrorBodyAs(HashMap.class);
     this.rawMessage =
-        Optional.ofNullable(body).map(RetrofitErrorResponseBody::getMessage).orElse(e.getMessage());
+        responseBody != null
+            ? (String) responseBody.getOrDefault("message", e.getMessage())
+            : e.getMessage();
   }
 
   private final String getRawMessage() {
@@ -95,6 +97,7 @@ public class SpinnakerHttpException extends SpinnakerServerException {
     this.response = cause.response;
     this.retrofit2Response = cause.retrofit2Response;
     rawMessage = null;
+    this.responseBody = cause.responseBody;
   }
 
   public int getResponseCode() {
@@ -151,19 +154,7 @@ public class SpinnakerHttpException extends SpinnakerServerException {
     return new SpinnakerHttpException(message, this);
   }
 
-  @Getter
-  // Use JsonIgnoreProperties because some responses contain properties that
-  // cannot be mapped to the RetrofitErrorResponseBody class.  If the default
-  // JacksonConverter (with no extra configurations) is used to deserialize the
-  // response body and properties other than "message" exist in the JSON
-  // response, there will be an UnrecognizedPropertyException.
-  @JsonIgnoreProperties(ignoreUnknown = true)
-  private static final class RetrofitErrorResponseBody {
-    private final String message;
-
-    @JsonCreator
-    RetrofitErrorResponseBody(@JsonProperty("message") String message) {
-      this.message = message;
-    }
+  public Map<String, Object> getResponseBody() {
+    return this.responseBody;
   }
 }

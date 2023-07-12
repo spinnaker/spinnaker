@@ -17,11 +17,13 @@
 package com.netflix.spinnaker.kork.retrofit.exceptions;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import okhttp3.MediaType;
 import okhttp3.ResponseBody;
 import org.junit.jupiter.api.Test;
@@ -96,6 +98,9 @@ public class SpinnakerServerExceptionTest {
             .build();
     RetrofitException retrofitException = RetrofitException.httpError(response, retrofit2Service);
     SpinnakerHttpException notFoundException = new SpinnakerHttpException(retrofitException);
+    assertNotNull(notFoundException.getResponseBody());
+    Map<String, Object> errorResponseBody = notFoundException.getResponseBody();
+    assertEquals(errorResponseBody.get("name"), "test");
     assertEquals(HttpStatus.NOT_FOUND.value(), notFoundException.getResponseCode());
     assertTrue(
         notFoundException.getMessage().contains(String.valueOf(HttpStatus.NOT_FOUND.value())));
