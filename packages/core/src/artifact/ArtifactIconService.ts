@@ -44,6 +44,7 @@ ArtifactIconService.registerType(ArtifactTypePatterns.CUSTOM_OBJECT, unknownArti
 ArtifactIconService.registerType(ArtifactTypePatterns.DOCKER_IMAGE, dockerIcon);
 ArtifactIconService.registerType(ArtifactTypePatterns.KUBERNETES, kubernetesIcon);
 ArtifactIconService.registerType(ArtifactTypePatterns.EMBEDDED_BASE64, embeddedBase64Icon);
+ArtifactIconService.registerType(ArtifactTypePatterns.REMOTE_BASE64, embeddedBase64Icon);
 ArtifactIconService.registerType(ArtifactTypePatterns.GCS_OBJECT, gcsObjectIcon);
 ArtifactIconService.registerType(ArtifactTypePatterns.GITHUB_FILE, gitHubFileIcon);
 ArtifactIconService.registerType(ArtifactTypePatterns.GIT_REPO, gitRepoIcon);

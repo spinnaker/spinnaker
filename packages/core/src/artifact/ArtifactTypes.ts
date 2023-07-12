@@ -7,6 +7,7 @@ export const ArtifactTypePatterns: IArtifactTypePatterns = {
   CUSTOM_OBJECT: /custom\/object/,
   DOCKER_IMAGE: /docker\/image/,
   EMBEDDED_BASE64: /embedded\/base64/,
+  REMOTE_BASE64: /remote\/base64/,
   GCS_OBJECT: /gcs\/object/,
   GITHUB_FILE: /github\/file/,
   GIT_REPO: /git\/repo/,

@@ -23,3 +23,5 @@ export * from './manualExecution/TriggerTemplate';
 export * from './service/ExecutionsTransformer';
 export * from './service/execution.service';
 export * from './status/ArtifactList';
+export * from './config/stages/bakeManifest/utils/getBakedArtifacts';
+export * from './config/stages/bakeManifest/utils/getContentReference';

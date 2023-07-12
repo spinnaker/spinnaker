@@ -11,4 +11,8 @@ export class ArtifactService {
       .query({ type: type, artifactName: artifactName })
       .get();
   }
+
+  public static getArtifactByContentReference(contentRef: string): PromiseLike<{ reference: string }> {
+    return REST(`/artifacts/content-address/${contentRef}`).get();
+  }
 }

@@ -12,3 +12,6 @@ export interface IArtifact {
   kind?: string; // TODO delete
   customKind?: boolean; // TODO delete
 }
+
+export const ARTIFACT_TYPE_EMBEDDED = 'embedded/base64';
+export const ARTIFACT_TYPE_REMOTE = 'remote/base64';
