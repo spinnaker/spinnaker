@@ -23,10 +23,7 @@ import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 
-@RunWith(JUnitPlatform.class)
 final class PipelineExecutionRepositoryTest {
   private static final String APPLICATION = "myapp";
 

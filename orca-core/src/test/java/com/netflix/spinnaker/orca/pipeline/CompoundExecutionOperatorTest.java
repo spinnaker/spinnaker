@@ -35,10 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 
-@RunWith(JUnitPlatform.class)
 final class CompoundExecutionOperatorTest {
   private static final String APPLICATION = "myapp";
   private static final String PIPELINE = "mypipeline";

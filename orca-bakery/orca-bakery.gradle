@@ -36,9 +36,12 @@ dependencies {
   testImplementation("com.github.tomakehurst:wiremock:2.15.0")
   testImplementation("org.junit.jupiter:junit-jupiter-api")
   testImplementation("org.assertj:assertj-core")
-  testImplementation("org.mockito:mockito-core:2.25.0")
+  testImplementation("org.mockito:mockito-core")
 
-  testRuntimeOnly("org.junit.jupiter:junit-jupiter-api")
+  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+}
+test {
+  useJUnitPlatform()
 }
 
 sourceSets {

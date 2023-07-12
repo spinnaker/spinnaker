@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule
+import com.github.tomakehurst.wiremock.WireMockServer
 import com.netflix.spinnaker.config.ServiceEndpoint
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientBuilderProvider
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
@@ -24,21 +24,20 @@ import com.netflix.spinnaker.orca.clouddriver.config.CloudDriverConfiguration
 import com.netflix.spinnaker.orca.clouddriver.config.CloudDriverConfigurationProperties
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import okhttp3.OkHttpClient
-import org.junit.Rule
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.BeforeAll
 import retrofit.RequestInterceptor
 import retrofit.client.OkClient
 import spock.lang.Specification
 import spock.lang.Subject
 import static com.github.tomakehurst.wiremock.client.WireMock.*
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
 import static java.net.HttpURLConnection.HTTP_ACCEPTED
 import static java.net.HttpURLConnection.HTTP_OK
 import static retrofit.RestAdapter.LogLevel.FULL
 
 class KatoRestServiceSpec extends Specification {
 
-  @Rule
-  public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().dynamicPort())
+  public WireMockServer wireMockServer = new WireMockServer()
 
   @Subject
   KatoRestService service
@@ -57,7 +56,9 @@ class KatoRestServiceSpec extends Specification {
 
   private static final taskId = "e1jbn3"
 
+  @BeforeAll
   def setup() {
+    wireMockServer.start()
     def cfg = new CloudDriverConfiguration()
     def builder = cfg.clouddriverRetrofitBuilder(
       mapper,
@@ -73,9 +74,14 @@ class KatoRestServiceSpec extends Specification {
       }]),
       FULL,
       noopInterceptor,
-      new CloudDriverConfigurationProperties(clouddriver: new CloudDriverConfigurationProperties.CloudDriver(baseUrl: wireMockRule.url("/"))))
+      new CloudDriverConfigurationProperties(clouddriver: new CloudDriverConfigurationProperties.CloudDriver(baseUrl: wireMockServer.url("/"))))
     service = cfg.katoDeployService(builder)
     taskStatusService = cfg.cloudDriverTaskStatusService(builder)
+  }
+
+  @AfterAll
+  def cleanup() {
+    wireMockServer.stop()
   }
 
   def "can interpret the response from an operation request"() {

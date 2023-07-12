@@ -19,7 +19,9 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.job;
 import static com.netflix.spinnaker.orca.TestUtils.getResource;
 import static com.netflix.spinnaker.orca.TestUtils.getResourceAsStream;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -51,12 +53,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 import retrofit.client.Response;
 import retrofit.mime.TypedByteArray;
 
-@RunWith(JUnitPlatform.class)
 public final class WaitOnJobCompletionTest {
   private ObjectMapper objectMapper;
   private RetrySupport retrySupport;

@@ -73,10 +73,11 @@ import java.time.Instant.now
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit.HOURS
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.After
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
@@ -90,7 +91,7 @@ import org.springframework.context.annotation.Import
 import org.springframework.context.event.ApplicationEventMulticaster
 import org.springframework.context.event.SimpleApplicationEventMulticaster
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
-import org.springframework.test.context.junit4.SpringRunner
+import org.springframework.test.context.junit.jupiter.SpringExtension
 import java.util.concurrent.TimeUnit
 import java.util.function.Predicate
 
@@ -98,7 +99,7 @@ import java.util.function.Predicate
   classes = [TestConfig::class],
   properties = ["queue.retry.delay.ms=10"]
 )
-@RunWith(SpringRunner::class)
+@ExtendWith(SpringExtension::class)
 abstract class QueueIntegrationTest {
 
   @Autowired
@@ -116,17 +117,17 @@ abstract class QueueIntegrationTest {
   lateinit var timeZoneId: String
   private val timeZone by lazy { ZoneId.of(timeZoneId) }
 
-  @Before
+  @BeforeEach
   fun discoveryUp() {
     context.publishEvent(RemoteStatusChangedEvent(DiscoveryStatusChangeEvent(InstanceStatus.STARTING, InstanceStatus.UP)))
   }
 
-  @After
+  @AfterEach
   fun discoveryDown() {
     context.publishEvent(RemoteStatusChangedEvent(DiscoveryStatusChangeEvent(InstanceStatus.UP, InstanceStatus.OUT_OF_SERVICE)))
   }
 
-  @After
+  @AfterEach
   fun resetMocks() {
     reset(dummyTask)
     whenever(dummyTask.extensionClass) doReturn dummyTask::class.java

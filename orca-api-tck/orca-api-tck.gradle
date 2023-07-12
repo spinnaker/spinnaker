@@ -25,7 +25,6 @@ dependencies {
 
   // Test framework dependencies
   api("org.junit.jupiter:junit-jupiter-api")
-  api("org.junit.platform:junit-platform-runner")
 //  testImplementation "org.assertj:assertj-core"
   api("io.strikt:strikt-core")
   api("dev.minutest:minutest")
@@ -36,7 +35,6 @@ dependencies {
   api("org.springframework.security:spring-security-config")
   api("com.ninja-squad:springmockk")
 
-  testRuntimeOnly("org.junit.platform:junit-platform-launcher")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 }
 

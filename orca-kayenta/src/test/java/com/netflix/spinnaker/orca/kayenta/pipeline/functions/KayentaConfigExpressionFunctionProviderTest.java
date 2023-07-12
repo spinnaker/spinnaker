@@ -1,5 +1,7 @@
 package com.netflix.spinnaker.orca.kayenta.pipeline.functions;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Lists;
@@ -8,24 +10,25 @@ import com.netflix.spinnaker.orca.kayenta.KayentaCanaryConfig;
 import com.netflix.spinnaker.orca.kayenta.KayentaService;
 import java.util.Collections;
 import java.util.List;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 public class KayentaConfigExpressionFunctionProviderTest {
 
-  @Test(expected = SpelHelperFunctionException.class)
+  @Test
   public void missingName() {
     KayentaConfigExpressionFunctionProvider provider =
         new KayentaConfigExpressionFunctionProvider(Mockito.mock(KayentaService.class));
-    provider.canaryConfigNameToId(null, "myapp");
+    assertThrows(
+        SpelHelperFunctionException.class, () -> provider.canaryConfigNameToId(null, "myapp"));
   }
 
-  @Test(expected = SpelHelperFunctionException.class)
+  @Test
   public void missingApp() {
     KayentaConfigExpressionFunctionProvider provider =
         new KayentaConfigExpressionFunctionProvider(Mockito.mock(KayentaService.class));
-    provider.canaryConfigNameToId("myname", null);
+    assertThrows(
+        SpelHelperFunctionException.class, () -> provider.canaryConfigNameToId("myname", null));
   }
 
   @Test
@@ -41,10 +44,10 @@ public class KayentaConfigExpressionFunctionProviderTest {
         new KayentaConfigExpressionFunctionProvider(kayentaService);
     String configId = provider.canaryConfigNameToId("myname", "myapp");
 
-    Assert.assertEquals("myconfig", configId);
+    assertEquals("myconfig", configId);
   }
 
-  @Test(expected = SpelHelperFunctionException.class)
+  @Test
   public void nothingFound() {
     KayentaService kayentaService = Mockito.mock(KayentaService.class);
     List<KayentaCanaryConfig> canaryConfigs = Lists.newArrayList();
@@ -55,6 +58,8 @@ public class KayentaConfigExpressionFunctionProviderTest {
 
     KayentaConfigExpressionFunctionProvider provider =
         new KayentaConfigExpressionFunctionProvider(kayentaService);
-    provider.canaryConfigNameToId("someothername", "myapp");
+    assertThrows(
+        SpelHelperFunctionException.class,
+        () -> provider.canaryConfigNameToId("someothername", "myapp"));
   }
 }

@@ -16,17 +16,17 @@
 
 package com.netflix.spinnaker.orca.bakery.api
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.BeforeAll
+import com.github.tomakehurst.wiremock.WireMockServer
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import org.junit.Rule
 import retrofit.RequestInterceptor
 import retrofit.RetrofitError
 import retrofit.client.OkClient
 import spock.lang.Specification
 import spock.lang.Subject
 import static com.github.tomakehurst.wiremock.client.WireMock.*
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
 import static com.google.common.net.HttpHeaders.LOCATION
 import static java.net.HttpURLConnection.*
 import static retrofit.Endpoints.newFixedEndpoint
@@ -34,8 +34,7 @@ import static retrofit.RestAdapter.LogLevel.FULL
 
 class BakeryServiceSpec extends Specification {
 
-  @Rule
-  public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().dynamicPort())
+  public WireMockServer wireMockServer = new WireMockServer()
 
   @Subject BakeryService bakery
 
@@ -51,16 +50,23 @@ class BakeryServiceSpec extends Specification {
 
   def mapper = OrcaObjectMapper.newInstance()
 
+  @BeforeAll
   def setup() {
-    bakeURI = wireMockRule.url(bakePath)
-    statusURI = wireMockRule.url(statusPath)
+    wireMockServer.start()
+    bakeURI = wireMockServer.url(bakePath)
+    statusURI = wireMockServer.url(statusPath)
 
     bakery = new BakeryConfiguration(
       retrofitClient: new OkClient(),
       retrofitLogLevel: FULL,
       spinnakerRequestInterceptor: Mock(RequestInterceptor)
     )
-      .buildService(wireMockRule.url("/"))
+      .buildService(wireMockServer.url("/"))
+  }
+
+  @AfterAll
+  def cleanup() {
+    wireMockServer.stop()
   }
 
   def "can lookup a bake status"() {

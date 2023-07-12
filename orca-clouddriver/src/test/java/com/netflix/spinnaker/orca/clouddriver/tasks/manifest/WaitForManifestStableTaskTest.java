@@ -34,10 +34,7 @@ import java.util.Map;
 import java.util.Optional;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 
-@RunWith(JUnitPlatform.class)
 final class WaitForManifestStableTaskTest {
   private static final String UNSTABLE_MESSAGE = "manifest is unstable";
   private static final String FAILED_MESSAGE = "manifest failed";

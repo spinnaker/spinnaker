@@ -33,10 +33,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 
-@RunWith(JUnitPlatform.class)
 final class FindArtifactFromPipelineExecutionTaskTest {
   private static final String PIPELINE = "my pipeline";
   private static final Artifact ARTIFACT_A =

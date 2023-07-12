@@ -64,12 +64,10 @@ dependencies {
   testImplementation(project(":orca-test-groovy"))
   testImplementation("com.github.tomakehurst:wiremock:2.15.0")
   testImplementation("org.junit.jupiter:junit-jupiter-api")
-  testImplementation("org.junit.platform:junit-platform-runner")
   testImplementation("org.assertj:assertj-core")
   testImplementation("org.mockito:mockito-core")
   testImplementation("org.mockito:mockito-junit-jupiter")
   testImplementation("org.springframework.boot:spring-boot-starter-test")
 
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-api")
-  testRuntimeOnly "org.junit.vintage:junit-vintage-engine"
 }

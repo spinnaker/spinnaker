@@ -30,7 +30,6 @@ dependencies {
   testImplementation("com.fasterxml.jackson.dataformat:jackson-dataformat-properties")
   testImplementation "com.fasterxml.jackson.module:jackson-module-kotlin"
 
-  testRuntimeOnly("org.junit.platform:junit-platform-launcher")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 }
 
@@ -39,7 +38,5 @@ test {
     includeTestsMatching "com.netflix.spinnaker.orca.plugins.test.OrcaPluginsTest"
   }
 
-  useJUnitPlatform {
-    includeEngines("junit-jupiter", "junit-vintage")
-  }
+  useJUnitPlatform()
 }

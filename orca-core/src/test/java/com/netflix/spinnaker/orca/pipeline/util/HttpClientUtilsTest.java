@@ -21,17 +21,12 @@ import static org.assertj.core.api.Fail.fail;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.http.Fault;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions;
 import java.io.IOException;
-import org.junit.Rule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 
-@RunWith(JUnitPlatform.class)
 public class HttpClientUtilsTest {
 
   private final String host = "localhost";
@@ -41,8 +36,6 @@ public class HttpClientUtilsTest {
       new UserConfiguredUrlRestrictions.Builder();
 
   WireMockServer wireMockServer = new WireMockServer();
-
-  @Rule public WireMockRule wireMockRule = new WireMockRule(port);
 
   @BeforeEach
   public void setup() {

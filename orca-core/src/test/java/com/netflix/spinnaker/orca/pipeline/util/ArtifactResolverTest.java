@@ -25,10 +25,7 @@ import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver.ResolveResult;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 
-@RunWith(JUnitPlatform.class)
 final class ArtifactResolverTest {
   private static final Artifact DOCKER_ARTIFACT =
       Artifact.builder().name("my-docker-image").type("docker/image").build();

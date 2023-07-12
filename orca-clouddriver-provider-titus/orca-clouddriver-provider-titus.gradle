@@ -17,9 +17,7 @@
 apply from: "$rootDir/gradle/groovy.gradle"
 
 test {
-  useJUnitPlatform {
-    includeEngines "junit-vintage", "junit-jupiter"
-  }
+  useJUnitPlatform()
 }
 
 dependencies {
@@ -30,6 +28,5 @@ dependencies {
   testImplementation(project(":orca-test"))
   testImplementation(project(":orca-test-groovy"))
 
-  testRuntimeOnly("org.junit.jupiter:junit-jupiter-api")
-  testRuntimeOnly("org.junit.vintage:junit-vintage-engine")
+  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 }

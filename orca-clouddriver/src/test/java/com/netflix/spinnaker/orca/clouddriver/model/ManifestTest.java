@@ -25,10 +25,7 @@ import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import java.io.IOException;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 
-@RunWith(JUnitPlatform.class)
 final class ManifestTest {
   private static final ObjectMapper objectMapper = OrcaObjectMapper.newInstance();
 
