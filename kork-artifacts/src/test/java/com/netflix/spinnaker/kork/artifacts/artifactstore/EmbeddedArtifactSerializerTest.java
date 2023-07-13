@@ -68,8 +68,8 @@ class EmbeddedArtifactSerializerTest {
             "stored",
             "{\"type\":\"remote/base64\",\"customKind\":false,\"name\":null,\"version\":null,\"location\":null,\"reference\":\"link\",\"metadata\":{},\"artifactAccount\":null,\"provenance\":null,\"uuid\":null}",
             Artifact.builder()
-                .type(ArtifactTypes.EMBEDDED_BASE64.getMimeType())
-                .reference(Base64.encodeBase64String("foo".getBytes()))
+                .type(ArtifactTypes.REMOTE_BASE64.getMimeType())
+                .reference("link")
                 .build(),
             Artifact.builder()
                 .type(ArtifactTypes.REMOTE_BASE64.getMimeType())
