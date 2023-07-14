@@ -4,6 +4,7 @@ LABEL maintainer="sig-platform@spinnaker.io"
 ENV KUSTOMIZE_VERSION=3.8.6
 ENV KUSTOMIZE4_VERSION=4.5.5
 ENV PACKER_VERSION=1.8.1
+ENV HELMFILE_VERSION=0.153.1
 
 ARG TARGETARCH
 
@@ -40,6 +41,12 @@ RUN mkdir kustomize && \
   tar xvz -C kustomize/ && \
   mv ./kustomize/kustomize /usr/local/bin/kustomize4 && \
   rm -rf ./kustomize
+
+RUN mkdir helmfile && \
+  curl -s -L https://github.com/helmfile/helmfile/releases/download/v${HELMFILE_VERSION}/helmfile_${HELMFILE_VERSION}_linux_${TARGETARCH}.tar.gz|\
+  tar xvz -C helmfile/ && \
+  mv ./helmfile/helmfile /usr/local/bin/helmfile && \
+  rm -rf ./helmfile
 
 RUN adduser --system --uid 10111 --group spinnaker
 COPY rosco-web/build/install/rosco /opt/rosco
