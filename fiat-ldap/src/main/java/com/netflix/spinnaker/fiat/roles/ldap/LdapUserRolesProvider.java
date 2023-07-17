@@ -238,8 +238,7 @@ public class LdapUserRolesProvider extends BaseUserRolesProvider {
                               }
                             })));
     // add entries with empty roles for the missing users
-    users.parallelStream()
-        .forEach(user -> rolesForUsers.putIfAbsent(user.getId(), new ArrayList<>()));
+    users.forEach(user -> rolesForUsers.putIfAbsent(user.getId(), new ArrayList<>()));
     return rolesForUsers;
   }
 
