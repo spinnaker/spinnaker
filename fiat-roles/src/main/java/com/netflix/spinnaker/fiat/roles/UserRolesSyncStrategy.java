@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.fiat.roles;
 
+import java.util.ArrayList;
 import java.util.List;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -61,15 +62,16 @@ public interface UserRolesSyncStrategy {
 
     @Override
     public long syncAndReturn(List<String> roles) {
+      final List<String> nonNullRoles = (roles != null) ? roles : new ArrayList<>();
       try {
         return this.callableCache
-            .runAndGetResult(roles, () -> this.synchronizer.syncAndReturn(roles))
+            .runAndGetResult(nonNullRoles, () -> this.synchronizer.syncAndReturn(nonNullRoles))
             .get();
       } catch (Exception e) {
         log.error(e.getMessage());
         throw new RolesSynchronizationException();
       } finally {
-        this.callableCache.clear(roles);
+        this.callableCache.clear(nonNullRoles);
       }
     }
 

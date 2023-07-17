@@ -75,4 +75,18 @@ class CachedSynchronizationSpec extends Specification {
         then:
         1 * mockedCache.clear(["rolea", "roleb"])
     }
+
+    def "should not fail when the roles list is null"(){
+        setup:
+        def mockedSynchronizer = Mock(Synchronizer)
+        mockedSynchronizer.syncAndReturn(_ as List<String>) >> 1L
+        def cachedSynchronization = new CachedSynchronizationStrategy(mockedSynchronizer)
+
+        when:
+        cachedSynchronization.syncAndReturn(null)
+
+        then:
+        noExceptionThrown()
+    }
+
 }

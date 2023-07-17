@@ -66,6 +66,16 @@ class CallableCacheSpec extends Specification {
         firstExecution != secondExecution
     }
 
+    def "should not throw exception when null key is supplied to clear"() {
+        setup:
+        def cache = new CallableCache<String, Long>()
+        when:
+        cache.clear(null)
+
+        then:
+        noExceptionThrown()
+    }
+
     def returnValueCallable() {
         return { -> 1L }
     }

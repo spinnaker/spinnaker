@@ -57,6 +57,9 @@ public class CallableCache<Key, Result> {
   }
 
   void clear(Key key) {
+    if (key == null) {
+      return;
+    }
     try {
       lock.lock();
       var future = cache.get(key);
