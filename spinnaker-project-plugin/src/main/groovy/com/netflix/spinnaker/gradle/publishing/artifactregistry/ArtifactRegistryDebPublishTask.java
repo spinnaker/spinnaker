@@ -82,6 +82,7 @@ class ArtifactRegistryDebPublishTask extends DefaultTask {
     this.repository = repository;
   }
 
+  @Input
   public Provider<Integer> getAptImportTimeoutSeconds() {
     return aptImportTimeoutSeconds;
   }
