@@ -34,11 +34,15 @@ public class BakeManifestContext {
   private final String templateRenderer;
   private final String outputName;
   private final String namespace;
+  private final String environment;
   private final Boolean rawOverrides;
   private final Boolean includeCRDs;
   @Nullable private final String kustomizeFilePath;
   @Nullable private final String helmChartFilePath;
-  // There does not seem to be a way to auto-generate a constructor using our current version of
+  @Nullable private final String helmfileFilePath;
+
+  // There does not seem to be a way to auto-generate a constructor using our
+  // current version of
   // Lombok (1.16.20) that
   // Jackson can use to deserialize.
   public BakeManifestContext(
@@ -50,9 +54,11 @@ public class BakeManifestContext {
       @JsonProperty("templateRenderer") String templateRenderer,
       @JsonProperty("outputName") String outputName,
       @JsonProperty("namespace") String namespace,
+      @Nullable @JsonProperty("environment") String environment,
       @Nullable @JsonProperty("inputArtifact") CreateBakeManifestTask.InputArtifact inputArtifact,
       @Nullable @JsonProperty("kustomizeFilePath") String kustomizeFilePath,
       @Nullable @JsonProperty("helmChartFilePath") String helmChartFilePath,
+      @Nullable @JsonProperty("helmfileFilePath") String helmfileFilePath,
       @JsonProperty("rawOverrides") Boolean rawOverrides,
       @JsonProperty("includeCRDs") Boolean includeCRDs) {
     this.inputArtifacts = Optional.ofNullable(inputArtifacts).orElse(new ArrayList<>());
@@ -66,8 +72,10 @@ public class BakeManifestContext {
     this.templateRenderer = templateRenderer;
     this.outputName = outputName;
     this.namespace = namespace;
+    this.environment = environment;
     this.kustomizeFilePath = kustomizeFilePath;
     this.helmChartFilePath = helmChartFilePath;
+    this.helmfileFilePath = helmfileFilePath;
     this.rawOverrides = rawOverrides;
     this.includeCRDs = includeCRDs;
   }

@@ -26,6 +26,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.bakery.api.BakeryService;
 import com.netflix.spinnaker.orca.bakery.api.manifests.BakeManifestRequest;
 import com.netflix.spinnaker.orca.bakery.api.manifests.helm.HelmBakeManifestRequest;
+import com.netflix.spinnaker.orca.bakery.api.manifests.helmfile.HelmfileBakeManifestRequest;
 import com.netflix.spinnaker.orca.bakery.api.manifests.kustomize.KustomizeBakeManifestRequest;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
@@ -128,6 +129,11 @@ public class CreateBakeManifestTask implements RetryableTask {
       case "HELM2":
         request =
             new HelmBakeManifestRequest(
+                context, resolvedInputArtifacts, outputArtifactName, overrides);
+        break;
+      case "HELMFILE":
+        request =
+            new HelmfileBakeManifestRequest(
                 context, resolvedInputArtifacts, outputArtifactName, overrides);
         break;
       case "KUSTOMIZE":
