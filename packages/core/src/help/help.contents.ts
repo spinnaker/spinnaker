@@ -312,6 +312,11 @@ const helpContents: { [key: string]: string } = {
   'pipeline.config.bake.manifest.kustomize.filePath': `
     <p>This is the relative path to the kustomization.yaml file within your Git repo.</p>
     <p>e.g.: <b>examples/wordpress/mysql/kustomization.yaml</b></p>`,
+  'pipeline.config.bake.manifest.helmfile.filePath': `
+    <p>This is the relative path to the directory containing the helmfile.yaml file within your Git repo.</p>
+    <p>e.g.: <b>chart/helmfile.yml</b></p>`,
+  'pipeline.config.bake.manifest.helmfile.name':
+    '<p> Name is used to set the expected artifact in the Produces Artifact section. </p>',
   'pipeline.config.bake.cf.manifest.name':
     '<p> Name should be the same as the expected artifact in the Produces Artifact section. </p>',
   'pipeline.config.bake.cf.manifest.templateArtifact': `

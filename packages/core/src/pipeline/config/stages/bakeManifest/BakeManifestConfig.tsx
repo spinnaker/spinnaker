@@ -4,7 +4,7 @@ import React from 'react';
 
 import { BakeManifestStageForm, validateProducedArtifacts } from './BakeManifestStageForm';
 import { FormikStageConfig } from '../FormikStageConfig';
-import { HELM_RENDERERS } from './ManifestRenderers';
+import { HELM_RENDERERS, HELMFILE_RENDERER } from './ManifestRenderers';
 import type { IStageConfigProps } from '../common';
 import type { IExpectedArtifact, IStage } from '../../../../domain';
 import { FormValidator } from '../../../../presentation';
@@ -44,6 +44,9 @@ export function validateBakeManifestStage(stage: IStage): FormikErrors<IStage> {
     });
 
   if (HELM_RENDERERS.includes(stage.templateRenderer)) {
+    formValidator.field('outputName', 'Name').required();
+  }
+  if (HELMFILE_RENDERER === stage.templateRenderer) {
     formValidator.field('outputName', 'Name').required();
   }
 

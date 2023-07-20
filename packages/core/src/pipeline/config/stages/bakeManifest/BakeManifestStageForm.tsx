@@ -2,11 +2,12 @@ import { isNil } from 'lodash';
 import React from 'react';
 
 import type { IFormikStageConfigInjectedProps } from '../FormikStageConfig';
-import { HELM_RENDERERS, KUSTOMIZE_RENDERERS } from './ManifestRenderers';
+import { HELM_RENDERERS, HELMFILE_RENDERER, KUSTOMIZE_RENDERERS } from './ManifestRenderers';
 import { ExpectedArtifactService } from '../../../../artifact';
 import { StageConfigField } from '../common';
 import type { IExpectedArtifact } from '../../../../domain';
 import { BakeHelmConfigForm } from './helm/BakeHelmConfigForm';
+import { BakeHelmfileConfigForm } from './helmfile/BakeHelmfileConfigForm';
 import { BakeKustomizeConfigForm } from './kustomize/BakeKustomizeConfigForm';
 import { ReactSelectInput } from '../../../../presentation';
 import { BASE_64_ARTIFACT_ACCOUNT, BASE_64_ARTIFACT_TYPE } from '../../triggers/artifacts/base64/Base64ArtifactEditor';
@@ -32,10 +33,13 @@ export function BakeManifestStageForm({ application, formik, pipeline }: IFormik
     if (HELM_RENDERERS.includes(stage.templateRenderer) && !isNil(stage.inputArtifact)) {
       formik.setFieldValue('inputArtifact', null);
     }
+    if (HELMFILE_RENDERER === stage.templateRenderer && !isNil(stage.inputArtifact)) {
+      formik.setFieldValue('inputArtifact', null);
+    }
   }, [stage.templateRenderer]);
 
   const templateRenderers = React.useMemo(() => {
-    return [...KUSTOMIZE_RENDERERS, ...HELM_RENDERERS];
+    return [...KUSTOMIZE_RENDERERS, ...HELM_RENDERERS, HELMFILE_RENDERER];
   }, []);
 
   return (
@@ -61,6 +65,9 @@ export function BakeManifestStageForm({ application, formik, pipeline }: IFormik
         )}
         {HELM_RENDERERS.includes(stage.templateRenderer) && (
           <BakeHelmConfigForm pipeline={pipeline} application={application} formik={formik} />
+        )}
+        {HELMFILE_RENDERER === stage.templateRenderer && (
+          <BakeHelmfileConfigForm pipeline={pipeline} application={application} formik={formik} />
         )}
       </div>
     </div>
