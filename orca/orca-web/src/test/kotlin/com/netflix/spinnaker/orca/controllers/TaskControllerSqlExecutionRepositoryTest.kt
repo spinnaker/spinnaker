@@ -103,6 +103,18 @@ class TaskControllerSqlExecutionRepositoryTest : JUnit5Minutests {
         .thenReturn(Calls.response(listOf()))
     }
 
+    fun setupDataForPipelineNameFilter() {
+      setupDefaultDbData()
+      Mockito.`when`(front50Service.getPipelines("test-app", false, null, "filter"))
+        .thenReturn(
+          Calls.response(listOf(
+            mapOf("id" to "1")))
+        )
+
+      Mockito.`when`(front50Service.getStrategies("test-app"))
+        .thenReturn(Calls.response(listOf()))
+    }
+
     fun setupDefaultDbData() {
       database.context
         .insertInto(table("pipelines"),
@@ -201,6 +213,28 @@ class TaskControllerSqlExecutionRepositoryTest : JUnit5Minutests {
       testExecutionRetrieval()
     }
 
+    context("execution retrieval without optimization and pipelineNameFilter") {
+      fixture {
+        Fixture(false)
+      }
+
+      before { setupDataForPipelineNameFilter() }
+      after { cleanUp() }
+
+      testExecutionRetrievalWithPipelineNameFilter()
+    }
+
+    context("execution retrieval with optimization and pipelineNameFilter") {
+      fixture {
+        Fixture(true)
+      }
+
+      before { setupDataForPipelineNameFilter() }
+      after { cleanUp() }
+
+      testExecutionRetrievalWithPipelineNameFilter()
+    }
+
     context("test query having explicit query timeouts") {
       fixture {
         Fixture(true)
@@ -239,6 +273,21 @@ class TaskControllerSqlExecutionRepositoryTest : JUnit5Minutests {
         ).andReturn().response
         val results = OrcaObjectMapper.getInstance().readValue(response.contentAsString, object : TypeReference<List<PipelineExecution>>() {})
         val expectedOutput = listOf("1-exec-id-3","2-exec-id-1")
+        expectThat(results.size).isEqualTo(2)
+        results.forEach {
+          assert(it.id in expectedOutput)
+        }
+      }
+    }
+  }
+
+  private fun ContextBuilder<Fixture>.testExecutionRetrievalWithPipelineNameFilter() {
+    context("execution retrieval with pipelineNameFilter") {
+      test("passes param to front50 and only uses pipeline config ids from front 50") {
+        expectThat(database.context.fetchCount(table("pipelines"))).isEqualTo(5)
+        val response = subject.perform(get("/v2/applications/test-app/pipelines?limit=2&expand=false&pipelineNameFilter=filter")).andReturn().response
+        val results = OrcaObjectMapper.getInstance().readValue(response.contentAsString, object : TypeReference<List<PipelineExecution>>() {})
+        val expectedOutput = listOf("1-exec-id-2", "1-exec-id-3")
         expectThat(results.size).isEqualTo(2)
         results.forEach {
           assert(it.id in expectedOutput)
