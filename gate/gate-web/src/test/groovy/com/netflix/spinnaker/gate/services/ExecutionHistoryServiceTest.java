@@ -17,18 +17,17 @@
 package com.netflix.spinnaker.gate.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.netflix.spinnaker.gate.services.internal.OrcaService;
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -63,40 +62,22 @@ public class ExecutionHistoryServiceTest {
   }
 
   @Test
-  public void getPipelinesFiltersPipelinesByName() {
+  public void getPipelinesPassesParamsToOrca() {
     String app = "myApp";
     Integer limit = 10;
     String statuses = "SUCCESS,FAILED";
     Boolean expand = false;
     String pipelineNameFilter = "name1";
-    List<Map<String, Object>> pipelinesFromOrca =
-        List.of(Map.of("name", "testName1"), Map.of("name", "testName2"));
-    List<Map<String, Object>> expectedPipelines =
-        Collections.singletonList(pipelinesFromOrca.get(0));
-    when(orcaService.getPipelines(app, limit, statuses, expand))
-        .thenReturn(Calls.response(pipelinesFromOrca));
-
-    List<Map<String, Object>> pipelines =
-        executionHistoryService.getPipelines(app, limit, statuses, expand, pipelineNameFilter);
-
-    assertEquals(expectedPipelines, pipelines);
-  }
-
-  @ParameterizedTest(name = "getPipelinesWithNoFilterReturnsAllPipelines {argumentsWithNames}")
-  @NullAndEmptySource
-  public void getPipelinesWithNoFilterReturnsAllPipelines(String pipelineNameFilter) {
-    String app = "myApp";
-    Integer limit = 10;
-    String statuses = "SUCCESS,FAILED";
-    Boolean expand = false;
     List<Map<String, Object>> expectedPipelines =
         List.of(Map.of("name", "testName1"), Map.of("name", "testName2"));
-    when(orcaService.getPipelines(app, limit, statuses, expand))
+    when(orcaService.getPipelines(app, limit, statuses, expand, pipelineNameFilter))
         .thenReturn(Calls.response(expectedPipelines));
 
     List<Map<String, Object>> pipelines =
         executionHistoryService.getPipelines(app, limit, statuses, expand, pipelineNameFilter);
 
     assertEquals(expectedPipelines, pipelines);
+    verify(orcaService).getPipelines(app, limit, statuses, expand, pipelineNameFilter);
+    verifyNoMoreInteractions(orcaService);
   }
 }
