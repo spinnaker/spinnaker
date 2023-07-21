@@ -28,6 +28,7 @@ import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.sql.pipeline.persistence.SqlExecutionRepository
 import com.nhaarman.mockito_kotlin.mock
+import dev.minutest.ContextBuilder
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import org.jooq.exception.DataAccessException
@@ -89,7 +90,20 @@ class TaskControllerSqlExecutionRepositoryTest : JUnit5Minutests {
 
     val subject: MockMvc = MockMvcBuilders.standaloneSetup(taskController).build()
 
-    fun setup() {
+    fun setupDefaultData() {
+      setupDefaultDbData()
+      Mockito.`when`(front50Service.getPipelines("test-app", false, null))
+        .thenReturn(
+          Calls.response(listOf(
+            mapOf("id" to "1"),
+            mapOf("id" to "2")))
+        )
+
+      Mockito.`when`(front50Service.getStrategies("test-app"))
+        .thenReturn(Calls.response(listOf()))
+    }
+
+    fun setupDefaultDbData() {
       database.context
         .insertInto(table("pipelines"),
           listOf(
@@ -157,15 +171,6 @@ class TaskControllerSqlExecutionRepositoryTest : JUnit5Minutests {
           )
         )
         .execute()
-      Mockito.`when`(front50Service.getPipelines("test-app", false,null))
-        .thenReturn(
-          Calls.response(listOf(
-            mapOf("id" to "1"),
-            mapOf("id" to "2")))
-        )
-
-      Mockito.`when`(front50Service.getStrategies("test-app"))
-        .thenReturn(Calls.response(listOf()))
     }
 
     fun cleanUp() {
@@ -179,32 +184,10 @@ class TaskControllerSqlExecutionRepositoryTest : JUnit5Minutests {
         Fixture(false)
       }
 
-      before { setup() }
+      before { setupDefaultData() }
       after { cleanUp() }
 
-      test("retrieve executions with limit = 2 & expand = false") {
-        expectThat(database.context.fetchCount(table("pipelines"))).isEqualTo(5)
-        val response = subject.perform(get("/applications/test-app/pipelines?limit=2&expand=false")).andReturn().response
-        val results = OrcaObjectMapper.getInstance().readValue(response.contentAsString, object : TypeReference<List<PipelineExecution>>() {})
-        val expectedOutput = listOf("1-exec-id-2", "1-exec-id-3","2-exec-id-1")
-        expectThat(results.size).isEqualTo(3)
-        results.forEach {
-          assert(it.id in expectedOutput)
-        }
-      }
-
-      test("retrieve executions with limit = 2 & expand = false with statuses") {
-        expectThat(database.context.fetchCount(table("pipelines"))).isEqualTo(5)
-        val response = subject.perform(get(
-          "/applications/test-app/pipelines?limit=2&expand=false&statuses=RUNNING,SUSPENDED,PAUSED,NOT_STARTED")
-        ).andReturn().response
-        val results = OrcaObjectMapper.getInstance().readValue(response.contentAsString, object : TypeReference<List<PipelineExecution>>() {})
-        val expectedOutput = listOf("1-exec-id-3","2-exec-id-1")
-        expectThat(results.size).isEqualTo(2)
-        results.forEach {
-          assert(it.id in expectedOutput)
-        }
-      }
+      testExecutionRetrieval()
     }
 
     context("execution retrieval with optimization") {
@@ -212,32 +195,10 @@ class TaskControllerSqlExecutionRepositoryTest : JUnit5Minutests {
         Fixture(true)
       }
 
-      before { setup() }
+      before { setupDefaultData() }
       after { cleanUp() }
 
-      test("retrieve executions with limit = 2 & expand = false") {
-        expectThat(database.context.fetchCount(table("pipelines"))).isEqualTo(5)
-        val response = subject.perform(get("/applications/test-app/pipelines?limit=2&expand=false")).andReturn().response
-        val results = OrcaObjectMapper.getInstance().readValue(response.contentAsString, object : TypeReference<List<PipelineExecution>>() {})
-        val expectedOutput = listOf("1-exec-id-2", "1-exec-id-3","2-exec-id-1")
-        expectThat(results.size).isEqualTo(3)
-        results.forEach {
-          assert(it.id in expectedOutput)
-        }
-      }
-
-      test("retrieve executions with limit = 2 & expand = false with statuses") {
-        expectThat(database.context.fetchCount(table("pipelines"))).isEqualTo(5)
-        val response = subject.perform(get(
-          "/applications/test-app/pipelines?limit=2&expand=false&statuses=RUNNING,SUSPENDED,PAUSED,NOT_STARTED")
-        ).andReturn().response
-        val results = OrcaObjectMapper.getInstance().readValue(response.contentAsString, object : TypeReference<List<PipelineExecution>>() {})
-        val expectedOutput = listOf("1-exec-id-3","2-exec-id-1")
-        expectThat(results.size).isEqualTo(2)
-        results.forEach {
-          assert(it.id in expectedOutput)
-        }
-      }
+      testExecutionRetrieval()
     }
 
     context("test query having explicit query timeouts") {
@@ -245,7 +206,7 @@ class TaskControllerSqlExecutionRepositoryTest : JUnit5Minutests {
         Fixture(true)
       }
 
-      before { setup() }
+      before { setupDefaultData() }
       after { cleanUp() }
 
       test("it returns a DataAccessException on query timeout") {
@@ -254,6 +215,34 @@ class TaskControllerSqlExecutionRepositoryTest : JUnit5Minutests {
         }
           .isFailure()
           .isA<DataAccessException>()
+      }
+    }
+  }
+
+  private fun ContextBuilder<Fixture>.testExecutionRetrieval() {
+    context("execution retrieval") {
+      test("retrieve executions with limit = 2 & expand = false") {
+        expectThat(database.context.fetchCount(table("pipelines"))).isEqualTo(5)
+        val response = subject.perform(get("/v2/applications/test-app/pipelines?limit=2&expand=false")).andReturn().response
+        val results = OrcaObjectMapper.getInstance().readValue(response.contentAsString, object : TypeReference<List<PipelineExecution>>() {})
+        val expectedOutput = listOf("1-exec-id-2", "1-exec-id-3","2-exec-id-1")
+        expectThat(results.size).isEqualTo(3)
+        results.forEach {
+          assert(it.id in expectedOutput)
+        }
+      }
+
+      test("retrieve executions with limit = 2 & expand = false with statuses") {
+        expectThat(database.context.fetchCount(table("pipelines"))).isEqualTo(5)
+        val response = subject.perform(get(
+          "/v2/applications/test-app/pipelines?limit=2&expand=false&statuses=RUNNING,SUSPENDED,PAUSED,NOT_STARTED")
+        ).andReturn().response
+        val results = OrcaObjectMapper.getInstance().readValue(response.contentAsString, object : TypeReference<List<PipelineExecution>>() {})
+        val expectedOutput = listOf("1-exec-id-3","2-exec-id-1")
+        expectThat(results.size).isEqualTo(2)
+        results.forEach {
+          assert(it.id in expectedOutput)
+        }
       }
     }
   }
