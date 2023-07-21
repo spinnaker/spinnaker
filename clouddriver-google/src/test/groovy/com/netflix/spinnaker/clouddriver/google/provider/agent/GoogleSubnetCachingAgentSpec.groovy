@@ -43,12 +43,13 @@ class GoogleSubnetCachingAgentSpec extends Specification {
     1 * computeMock.subnetworks() >> subnetsMock
     1 * subnetsMock.list(PROJECT_NAME,REGION) >> subnetworksListMock
     1 * subnetworksListMock.execute() >> SubnetsListReal
-    with(cache.cacheResults.get(Keys.Namespace.SUBNETS.ns)) { Collection<CacheData> cd ->
-      cd.stream().forEach( {
-        Map<String,Object> attributes= it.getAttributes()
-        attributes.get(0) == "my-project"
-      })
-      cd.id.containsAll([keyGroupA])
+    def cd = cache.cacheResults.get(Keys.Namespace.SUBNETS.ns)
+    cd.id.containsAll([keyGroupA])
+    with(cd.asList().get(0)){
+      def attributes = it.attributes
+      attributes.project == "my-project"
+      attributes.subnet.name ==  "name-a"
+      attributes.subnet.selfLink ==  "https://compute.googleapis.com/compute/v1/projects/my-project/us-east1/subnetworks/name-a"
     }
   }
 

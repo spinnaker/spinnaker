@@ -86,7 +86,7 @@ class GoogleSubnetCachingAgent extends AbstractGoogleCachingAgent {
       def subnetKey = Keys.getSubnetKey(deriveSubnetId(subnet), region, accountName)
 
       cacheResultBuilder.namespace(SUBNETS.ns).keep(subnetKey).with {
-        attributes.subnet = [subnet: subnet,project: project]
+        attributes = [subnet: subnet,project: project]
       }
     }
 
