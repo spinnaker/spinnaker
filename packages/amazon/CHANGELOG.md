@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.14.0](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.13.9...@spinnaker/amazon@0.14.0) (2023-07-20)
+
+
+### Features
+
+* **lambda:** Migrate Lambda plugin to OSS ([#9988](https://github.com/spinnaker/deck/issues/9988)) ([11f1cab](https://github.com/spinnaker/deck/commit/11f1cabb8efe8d7e034faf06ae3cb455eef6369a)), closes [#9984](https://github.com/spinnaker/deck/issues/9984)
+
+
+
+
+
 ## [0.13.9](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.13.8...@spinnaker/amazon@0.13.9) (2023-06-02)
 
 **Note:** Version bump only for package @spinnaker/amazon

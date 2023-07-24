@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.5.0](https://github.com/spinnaker/deck/compare/@spinnaker/kubernetes@0.4.4...@spinnaker/kubernetes@0.5.0) (2023-07-20)
+
+
+### Features
+
+* **kubernetes:** Add Deck stage for Rolling Restart ([#10012](https://github.com/spinnaker/deck/issues/10012)) ([0b0c45f](https://github.com/spinnaker/deck/commit/0b0c45fa077265c83f7d6d495d4607932ed43680))
+
+
+
+
+
 ## [0.4.4](https://github.com/spinnaker/deck/compare/@spinnaker/kubernetes@0.4.3...@spinnaker/kubernetes@0.4.4) (2023-06-02)
 
 **Note:** Version bump only for package @spinnaker/kubernetes

@@ -3,6 +3,24 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.25.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.24.1...@spinnaker/core@0.25.0) (2023-07-20)
+
+
+### Bug Fixes
+
+* **core/pipeline:** Resolved issue getting during pipeline save with spaces in pipeline name. ([#10009](https://github.com/spinnaker/deck/issues/10009)) ([ec8d2bb](https://github.com/spinnaker/deck/commit/ec8d2bbada0192673cfede4401e5c18d884dec59))
+
+
+### Features
+
+* **artifacts:** Add support for artifact store views and calls ([#10011](https://github.com/spinnaker/deck/issues/10011)) ([b520bae](https://github.com/spinnaker/deck/commit/b520bae8296c85ed096ea6aaee022e114bb6a52f))
+* **lambda:** Migrate Lambda plugin to OSS ([#9988](https://github.com/spinnaker/deck/issues/9988)) ([11f1cab](https://github.com/spinnaker/deck/commit/11f1cabb8efe8d7e034faf06ae3cb455eef6369a)), closes [#9984](https://github.com/spinnaker/deck/issues/9984)
+* **stages/bakeManifests:** add helmfile support ([#9998](https://github.com/spinnaker/deck/issues/9998)) ([a4a0f33](https://github.com/spinnaker/deck/commit/a4a0f331d181b74d7c3a8c1b46724757be17a9f0))
+
+
+
+
+
 ## [0.24.1](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.24.0...@spinnaker/core@0.24.1) (2023-06-02)
 
 
