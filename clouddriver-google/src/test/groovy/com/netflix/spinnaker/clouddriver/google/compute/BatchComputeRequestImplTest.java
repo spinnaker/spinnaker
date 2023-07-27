@@ -42,12 +42,9 @@ import com.netflix.spectator.api.Timer;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.http.client.HttpResponseException;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-@RunWith(JUnit4.class)
 public class BatchComputeRequestImplTest {
 
   private static final String USER_AGENT = "spinnaker-test";
@@ -58,7 +55,7 @@ public class BatchComputeRequestImplTest {
 
   private Registry registry;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     registry = new DefaultRegistry();
   }

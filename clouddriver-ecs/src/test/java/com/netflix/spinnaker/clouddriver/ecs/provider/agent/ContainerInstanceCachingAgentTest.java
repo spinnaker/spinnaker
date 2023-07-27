@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.CONTAINER_INSTANCES;
-import static junit.framework.TestCase.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
@@ -35,7 +35,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import spock.lang.Subject;
 
 public class ContainerInstanceCachingAgentTest extends CommonCachingAgent {
@@ -76,24 +76,24 @@ public class ContainerInstanceCachingAgentTest extends CommonCachingAgent {
 
     // Then
     assertTrue(
+        returnedContainerInstances.size() == containerInstances.size(),
         "Expected the list to contain "
             + containerInstances.size()
             + " ECS container instances, but got "
-            + returnedContainerInstances.size(),
-        returnedContainerInstances.size() == containerInstances.size());
+            + returnedContainerInstances.size());
     for (ContainerInstance containerInstance : returnedContainerInstances) {
       assertTrue(
+          containerInstances.contains(containerInstance),
           "Expected the container instance to be in  "
               + containerInstances
               + " list but it was not. The container instance is: "
-              + containerInstance,
-          containerInstances.contains(containerInstance));
+              + containerInstance);
       assertTrue(
+          containerInstanceArns.contains(containerInstance.getContainerInstanceArn()),
           "Expected the container instance arn to be in  "
               + containerInstanceArns
               + " list but it was not. The container instance ARN is: "
-              + containerInstance.getContainerInstanceArn(),
-          containerInstanceArns.contains(containerInstance.getContainerInstanceArn()));
+              + containerInstance.getContainerInstanceArn());
     }
   }
 
@@ -123,36 +123,36 @@ public class ContainerInstanceCachingAgentTest extends CommonCachingAgent {
 
     // Then
     assertTrue(
+        dataMap.keySet().size() == 1,
         "Expected the data map to contain 1 namespace, but it contains "
             + dataMap.keySet().size()
-            + " namespaces.",
-        dataMap.keySet().size() == 1);
+            + " namespaces.");
     assertTrue(
+        dataMap.containsKey(CONTAINER_INSTANCES.toString()),
         "Expected the data map to contain "
             + CONTAINER_INSTANCES.toString()
             + " namespace, but it contains "
             + dataMap.keySet()
-            + " namespaces.",
-        dataMap.containsKey(CONTAINER_INSTANCES.toString()));
+            + " namespaces.");
     assertTrue(
+        dataMap.get(CONTAINER_INSTANCES.toString()).size() == 2,
         "Expected there to be 2 CacheData, instead there is  "
-            + dataMap.get(CONTAINER_INSTANCES.toString()).size(),
-        dataMap.get(CONTAINER_INSTANCES.toString()).size() == 2);
+            + dataMap.get(CONTAINER_INSTANCES.toString()).size());
 
     for (CacheData cacheData : dataMap.get(CONTAINER_INSTANCES.toString())) {
       Map<String, Object> attributes = cacheData.getAttributes();
       assertTrue(
+          arns.contains(attributes.get("containerInstanceArn")),
           "Expected the container instance ARN to be in the "
               + arns
               + " list, but was not. The given arn is "
-              + attributes.get("containerInstanceArn"),
-          arns.contains(attributes.get("containerInstanceArn")));
+              + attributes.get("containerInstanceArn"));
       assertTrue(
+          ec2Ids.contains(attributes.get("ec2InstanceId")),
           "Expected the EC2 instance ID to be in the "
               + ec2Ids
               + " list, but was not. The given arn is "
-              + attributes.get("ec2InstanceId"),
-          ec2Ids.contains(attributes.get("ec2InstanceId")));
+              + attributes.get("ec2InstanceId"));
     }
   }
 }

@@ -22,10 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.model.Manifest.Status;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 
-@RunWith(JUnitPlatform.class)
 final class KubernetesDaemonSetHandlerTest {
   private KubernetesDaemonSetHandler handler = new KubernetesDaemonSetHandler();
 

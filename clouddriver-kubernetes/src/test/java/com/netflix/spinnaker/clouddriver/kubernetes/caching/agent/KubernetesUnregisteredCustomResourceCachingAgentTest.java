@@ -33,11 +33,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 import org.springframework.lang.Nullable;
 
-@RunWith(JUnitPlatform.class)
 public class KubernetesUnregisteredCustomResourceCachingAgentTest {
 
   private static final String ACCOUNT = "my-account";

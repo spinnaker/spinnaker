@@ -26,10 +26,7 @@ import com.netflix.spinnaker.clouddriver.docker.registry.provider.DockerRegistry
 import com.netflix.spinnaker.clouddriver.docker.registry.provider.agent.DockerRegistryImageCachingAgent;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 
-@RunWith(JUnitPlatform.class)
 class DockerRegistryCredentialsLifecycleHandlerTest {
 
   @Test

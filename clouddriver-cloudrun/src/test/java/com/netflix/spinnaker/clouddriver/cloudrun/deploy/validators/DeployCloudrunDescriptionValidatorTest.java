@@ -13,8 +13,8 @@ import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository;
 import com.netflix.spinnaker.credentials.NoopCredentialsLifecycleHandler;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class DeployCloudrunDescriptionValidatorTest {
   DeployCloudrunDescriptionValidator deployCloudrunDescriptionValidator;
@@ -23,7 +23,7 @@ public class DeployCloudrunDescriptionValidatorTest {
   DeployCloudrunDescription description;
   ValidationErrors validationErrors;
 
-  @Before
+  @BeforeEach
   public void init() {
     deployCloudrunDescriptionValidator = new DeployCloudrunDescriptionValidator();
     validationErrors = mock(ValidationErrors.class);

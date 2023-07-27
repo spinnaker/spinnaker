@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.deploy.converters;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -28,8 +28,8 @@ import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccoun
 import com.netflix.spinnaker.credentials.CredentialsRepository;
 import java.util.HashMap;
 import java.util.Map;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class DeployAppengineConfigAtomicOperationConverterTest {
 
@@ -37,7 +37,7 @@ public class DeployAppengineConfigAtomicOperationConverterTest {
   CredentialsRepository<AppengineNamedAccountCredentials> credentialsRepository;
   AppengineNamedAccountCredentials mockCredentials;
 
-  @Before
+  @BeforeEach
   public void init() {
     converter = new DeployAppengineConfigAtomicOperationConverter();
     credentialsRepository = mock(CredentialsRepository.class);

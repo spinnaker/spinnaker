@@ -36,11 +36,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
 
-@RunWith(JUnitPlatform.class)
 public class KubernetesCredentialsLifecycleHandlerTest {
   KubernetesProvider provider;
   KubernetesCachingAgentDispatcher cachingAgentDispatcher;

@@ -52,10 +52,7 @@ import com.netflix.spinnaker.moniker.Namer;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 
-@RunWith(JUnitPlatform.class)
 final class KubernetesRunJobOperationTest {
   private static final String NAMESPACE = "my-namespace";
   private static final String GENERATE_SUFFIX = "-abcd";

@@ -58,10 +58,7 @@ import com.netflix.spinnaker.moniker.Namer;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 
-@RunWith(JUnitPlatform.class)
 final class KubernetesDeployManifestOperationTest {
   private static final String DEFAULT_NAMESPACE = "default-namespace";
   private static final ResourcePropertyRegistry resourcePropertyRegistry =

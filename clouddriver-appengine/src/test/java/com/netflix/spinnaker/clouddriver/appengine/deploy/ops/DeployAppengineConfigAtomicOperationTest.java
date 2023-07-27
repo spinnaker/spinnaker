@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.deploy.ops;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -36,8 +36,8 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.commons.io.FileUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
 public class DeployAppengineConfigAtomicOperationTest {
@@ -47,7 +47,7 @@ public class DeployAppengineConfigAtomicOperationTest {
   ObjectMapper mapper;
   ArtifactDownloader artifactDownloader = mock(ArtifactDownloader.class);
 
-  @Before
+  @BeforeEach
   public void init() {
     deployAppengineConfigAtomicOperation = new DeployAppengineConfigAtomicOperation(description);
     mapper = new ObjectMapper();

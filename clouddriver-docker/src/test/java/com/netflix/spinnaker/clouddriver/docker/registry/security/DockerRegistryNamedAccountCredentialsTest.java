@@ -39,8 +39,6 @@ import java.util.regex.Pattern;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import retrofit.client.OkClient;
@@ -48,7 +46,6 @@ import retrofit.client.Request;
 import retrofit.client.Response;
 import retrofit.mime.TypedString;
 
-@RunWith(JUnitPlatform.class)
 final class DockerRegistryNamedAccountCredentialsTest {
   private static final ObjectMapper objectMapper = new ObjectMapper();
   private static final String ACCOUNT_NAME = "test-account";

@@ -35,11 +35,8 @@ import java.nio.charset.Charset;
 import java.util.*;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 
-@RunWith(JUnitPlatform.class)
 public class KubernetesDeployManifestConverterTest {
   private static KubernetesDeployManifestConverter converter;
   private static ObjectMapper mapper;

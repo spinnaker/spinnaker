@@ -22,10 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 
-@RunWith(JUnitPlatform.class)
 final class KubernetesEnableDisableManifestDescriptionTest {
   private static final JsonNodeFactory jsonFactory = JsonNodeFactory.instance;
   private static final ObjectMapper objectMapper = new ObjectMapper();

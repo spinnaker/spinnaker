@@ -35,8 +35,6 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 
 /**
  * The goal of this class is to do a test on each of the statically-defined replacers in {@link
@@ -49,7 +47,6 @@ import org.junit.runner.RunWith;
  * (ex: do we properly filter artifacts by namespace/account) this class focuses on ensuring that
  * each static replacer works as expected.
  */
-@RunWith(JUnitPlatform.class)
 final class ReplacerTest {
   // We serialized generated Kubernetes metadata objects with JSON io.kubernetes.client.openapi.JSON
   // so that they match what we get back from kubectl.  We'll just gson from converting to a

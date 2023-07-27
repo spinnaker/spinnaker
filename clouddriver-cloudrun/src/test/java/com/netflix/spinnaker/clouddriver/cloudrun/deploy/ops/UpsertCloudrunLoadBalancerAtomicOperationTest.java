@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.clouddriver.cloudrun.deploy.ops;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -16,8 +16,8 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class UpsertCloudrunLoadBalancerAtomicOperationTest {
 
@@ -31,7 +31,7 @@ public class UpsertCloudrunLoadBalancerAtomicOperationTest {
 
   CloudrunAllocationDescription allocationDescription;
 
-  @Before
+  @BeforeEach
   public void init() {
 
     mockcredentials =

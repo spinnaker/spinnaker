@@ -13,4 +13,8 @@ dependencies {
   testImplementation project(":cats:cats-test")
 
   testImplementation "org.spockframework:spock-core"
+  testImplementation "org.junit.jupiter:junit-jupiter-api"
+}
+test{
+  useJUnitPlatform()
 }

@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.ecs.cache;
 
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASKS;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import com.amazonaws.services.ecs.model.Task;
@@ -28,7 +28,7 @@ import com.netflix.spinnaker.clouddriver.ecs.provider.agent.TaskCachingAgent;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import spock.lang.Subject;
 
 public class TaskCacheClientTest extends CommonCacheClient {
@@ -66,61 +66,61 @@ public class TaskCacheClientTest extends CommonCacheClient {
 
     // Then
     assertTrue(
-        "Expected the cluster ARN to be " + clusterArn + " but got " + ecsTask.getClusterArn(),
-        clusterArn.equals(ecsTask.getClusterArn()));
+        clusterArn.equals(ecsTask.getClusterArn()),
+        "Expected the cluster ARN to be " + clusterArn + " but got " + ecsTask.getClusterArn());
 
     assertTrue(
-        "Expected the task ARN to be " + taskArn + " but got " + ecsTask.getTaskArn(),
-        taskArn.equals(ecsTask.getTaskArn()));
+        taskArn.equals(ecsTask.getTaskArn()),
+        "Expected the task ARN to be " + taskArn + " but got " + ecsTask.getTaskArn());
 
     assertTrue(
+        task.getContainerInstanceArn().equals(ecsTask.getContainerInstanceArn()),
         "Expected the container instance ARN name to be "
             + task.getContainerInstanceArn()
             + " but got "
-            + ecsTask.getContainerInstanceArn(),
-        task.getContainerInstanceArn().equals(ecsTask.getContainerInstanceArn()));
+            + ecsTask.getContainerInstanceArn());
 
     assertTrue(
-        "Expected the group to be " + task.getGroup() + " but got " + ecsTask.getGroup(),
-        task.getGroup().equals(ecsTask.getGroup()));
+        task.getGroup().equals(ecsTask.getGroup()),
+        "Expected the group to be " + task.getGroup() + " but got " + ecsTask.getGroup());
 
     assertTrue(
+        task.getLastStatus().equals(ecsTask.getLastStatus()),
         "Expected the last status to be "
             + task.getLastStatus()
             + " but got "
-            + ecsTask.getLastStatus(),
-        task.getLastStatus().equals(ecsTask.getLastStatus()));
+            + ecsTask.getLastStatus());
 
     assertTrue(
+        task.getHealthStatus().equals(ecsTask.getHealthStatus()),
         "Expected the health status to be "
             + task.getHealthStatus()
             + " but got "
-            + ecsTask.getHealthStatus(),
-        task.getHealthStatus().equals(ecsTask.getHealthStatus()));
+            + ecsTask.getHealthStatus());
 
     assertTrue(
+        task.getDesiredStatus().equals(ecsTask.getDesiredStatus()),
         "Expected the desired status to be "
             + task.getDesiredStatus()
             + " but got "
-            + ecsTask.getDesiredStatus(),
-        task.getDesiredStatus().equals(ecsTask.getDesiredStatus()));
+            + ecsTask.getDesiredStatus());
 
     assertTrue(
+        task.getStartedAt().getTime() == ecsTask.getStartedAt(),
         "Expected the started at to be "
             + task.getStartedAt().getTime()
             + " but got "
-            + ecsTask.getStartedAt(),
-        task.getStartedAt().getTime() == ecsTask.getStartedAt());
+            + ecsTask.getStartedAt());
 
     assertTrue(
-        "Expected the task to have 0 containers but got " + task.getContainers().size(),
-        task.getContainers().size() == 0);
+        task.getContainers().size() == 0,
+        "Expected the task to have 0 containers but got " + task.getContainers().size());
 
     assertTrue(
+        task.getAvailabilityZone().equals(ecsTask.getAvailabilityZone()),
         "Expected the availability zone to be "
             + task.getAvailabilityZone()
             + " but got "
-            + ecsTask.getAvailabilityZone(),
-        task.getAvailabilityZone().equals(ecsTask.getAvailabilityZone()));
+            + ecsTask.getAvailabilityZone());
   }
 }

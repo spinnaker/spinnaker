@@ -23,7 +23,6 @@ dependencies {
 
   implementation "cglib:cglib-nodep"
   implementation "org.objenesis:objenesis"
-  implementation "org.junit.platform:junit-platform-runner"
   implementation "org.junit.jupiter:junit-jupiter-api"
   implementation "org.springframework:spring-test"
   implementation "org.springframework.boot:spring-boot-test"

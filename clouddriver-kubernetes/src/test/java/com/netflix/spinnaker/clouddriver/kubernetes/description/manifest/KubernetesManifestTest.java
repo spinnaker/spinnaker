@@ -22,10 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.HashMap;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 
-@RunWith(JUnitPlatform.class)
 final class KubernetesManifestTest {
 
   private static final String GENERATE_NAME = "my-generate-name";

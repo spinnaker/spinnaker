@@ -89,12 +89,9 @@ import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 import org.mockito.internal.stubbing.defaultanswers.ReturnsSmartNulls;
 
 @ExtendWith(SoftAssertionsExtension.class)
-@RunWith(JUnitPlatform.class)
 final class KubernetesDataProviderIntegrationTest {
   private static final String ACCOUNT_NAME = "my-account";
   private static final Registry registry = new NoopRegistry();

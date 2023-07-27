@@ -25,10 +25,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.OptionalInt;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 
-@RunWith(JUnitPlatform.class)
 final class ArtifactConverterTest {
   private static final String ACCOUNT = "my-account";
   private static final String NAMESPACE = "my-namespace";

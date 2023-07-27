@@ -27,10 +27,7 @@ import com.google.api.services.compute.model.Image;
 import java.io.IOException;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 
-@RunWith(JUnitPlatform.class)
 final class GetFirstBatchComputeRequestTest {
 
   @Test

@@ -16,8 +16,7 @@
 
 package com.netflix.spinnaker.cats.cache
 
-import org.junit.Rule
-import org.junit.rules.TestName
+import org.junit.jupiter.api.BeforeEach
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -27,10 +26,9 @@ abstract class CacheSpec extends Specification {
     @Subject
     Cache cache
 
-    @Rule TestName testName = new TestName()
-
+    @BeforeEach
     def setup() {
-        println "--------------- Test " + testName.getMethodName()
+      println "--------------- Test " + specificationContext.currentIteration.name
         cache = getSubject()
     }
 

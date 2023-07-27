@@ -51,10 +51,7 @@ import com.netflix.spinnaker.kork.configserver.CloudConfigResourceService;
 import com.netflix.spinnaker.kork.configserver.ConfigFileService;
 import java.util.HashMap;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 
-@RunWith(JUnitPlatform.class)
 final class KubernetesCredentialsTest {
   private static final String ACCOUNT_NAME = "my-account";
   private static final String DEPLOYMENT_NAME = "my-deployment";

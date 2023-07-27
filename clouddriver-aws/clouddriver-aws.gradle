@@ -65,7 +65,6 @@ dependencies {
   testImplementation "com.natpryce:hamkrest"
   testImplementation "com.google.guava:guava"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
-  testImplementation "org.junit.platform:junit-platform-runner"
   testImplementation "org.objenesis:objenesis"
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.spockframework:spock-spring"

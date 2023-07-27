@@ -25,10 +25,7 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact.ArtifactBuilder;
 import java.util.Collection;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 
-@RunWith(JUnitPlatform.class)
 final class ArtifactKeyTest {
   private static String TYPE = "docker/image";
   private static String NAME = "gcr.io/test/test-image";

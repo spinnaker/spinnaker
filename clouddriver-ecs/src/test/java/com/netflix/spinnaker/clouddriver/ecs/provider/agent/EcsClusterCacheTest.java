@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.ECS_CLUSTERS;
-import static junit.framework.TestCase.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
@@ -29,8 +29,7 @@ import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.EcsClusterCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.EcsCluster;
 import java.util.Collection;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import spock.lang.Subject;
 
 public class EcsClusterCacheTest extends CommonCachingAgent {
@@ -57,24 +56,24 @@ public class EcsClusterCacheTest extends CommonCachingAgent {
     Collection<CacheData> cacheData = cacheResult.getCacheResults().get(ECS_CLUSTERS.toString());
     EcsCluster ecsCluster = client.get(key);
 
-    assertTrue("Expected CacheData to be returned but null is returned", cacheData != null);
-    assertTrue("Expected 1 CacheData but returned " + cacheData.size(), cacheData.size() == 1);
+    assertTrue(cacheData != null, "Expected CacheData to be returned but null is returned");
+    assertTrue(cacheData.size() == 1, "Expected 1 CacheData but returned " + cacheData.size());
     String retrievedKey = cacheData.iterator().next().getId();
     assertTrue(
-        "Expected CacheData with ID " + key + " but retrieved ID " + retrievedKey,
-        retrievedKey.equals(key));
+        retrievedKey.equals(key),
+        "Expected CacheData with ID " + key + " but retrieved ID " + retrievedKey);
 
-    Assert.assertTrue(
-        "Expected cluster name to be " + CLUSTER_NAME_1 + " but got " + ecsCluster.getName(),
-        CLUSTER_NAME_1.equals(ecsCluster.getName()));
-    Assert.assertTrue(
-        "Expected cluster ARN to be " + CLUSTER_ARN_1 + " but got " + ecsCluster.getArn(),
-        CLUSTER_ARN_1.equals(ecsCluster.getArn()));
-    Assert.assertTrue(
-        "Expected cluster account to be " + ACCOUNT + " but got " + ecsCluster.getAccount(),
-        ACCOUNT.equals(ecsCluster.getAccount()));
-    Assert.assertTrue(
-        "Expected cluster region to be " + REGION + " but got " + ecsCluster.getRegion(),
-        REGION.equals(ecsCluster.getRegion()));
+    assertTrue(
+        CLUSTER_NAME_1.equals(ecsCluster.getName()),
+        "Expected cluster name to be " + CLUSTER_NAME_1 + " but got " + ecsCluster.getName());
+    assertTrue(
+        CLUSTER_ARN_1.equals(ecsCluster.getArn()),
+        "Expected cluster ARN to be " + CLUSTER_ARN_1 + " but got " + ecsCluster.getArn());
+    assertTrue(
+        ACCOUNT.equals(ecsCluster.getAccount()),
+        "Expected cluster account to be " + ACCOUNT + " but got " + ecsCluster.getAccount());
+    assertTrue(
+        REGION.equals(ecsCluster.getRegion()),
+        "Expected cluster region to be " + REGION + " but got " + ecsCluster.getRegion());
   }
 }

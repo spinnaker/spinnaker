@@ -14,8 +14,8 @@ import com.netflix.spinnaker.clouddriver.cloudrun.security.CloudrunNamedAccountC
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import java.util.ArrayList;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class DestroyCloudrunAtomicOperationTest {
 
@@ -29,7 +29,7 @@ public class DestroyCloudrunAtomicOperationTest {
 
   CloudrunServerGroup serverGroup;
 
-  @Before
+  @BeforeEach
   public void init() {
     mockcredentials =
         new CloudrunNamedAccountCredentials.Builder()

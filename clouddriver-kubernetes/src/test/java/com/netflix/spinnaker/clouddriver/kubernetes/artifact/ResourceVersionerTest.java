@@ -38,12 +38,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(JUnitPlatform.class)
 @ExtendWith(MockitoExtension.class)
 final class ResourceVersionerTest {
   private static final ObjectMapper mapper = new ObjectMapper();

@@ -28,10 +28,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 
-@RunWith(JUnitPlatform.class)
 final class KubernetesPodMetricTest {
   private static final ObjectMapper objectMapper = new ObjectMapper();
 

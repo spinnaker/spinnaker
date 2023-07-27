@@ -35,10 +35,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentia
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesSelectorList;
 import io.kubernetes.client.openapi.models.V1DeleteOptions;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 
-@RunWith(JUnitPlatform.class)
 final class CanDeployTest {
   private final CanDeploy handler = new CanDeploy() {};
   private final String OP_NAME = "Can Deploy Test";

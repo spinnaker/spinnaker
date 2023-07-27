@@ -38,10 +38,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 
-@RunWith(JUnitPlatform.class)
 final class KubernetesRawResourceProviderTest {
 
   private KubernetesRawResourceProvider provider;

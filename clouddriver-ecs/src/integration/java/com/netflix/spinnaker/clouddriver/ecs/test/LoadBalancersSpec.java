@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.ecs.test;
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.TARGET_GROUPS;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.SERVICES;
 import static io.restassured.RestAssured.get;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 import com.amazonaws.services.ecs.model.LoadBalancer;

@@ -50,10 +50,7 @@ import lombok.Value;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 
-@RunWith(JUnitPlatform.class)
 final class ArtifactReplacerTest {
   // We serialized generated Kubernetes metadata objects with JSON io.kubernetes.client.openapi.JSON
   // so that they match what we get back from kubectl.  We'll just gson from converting to a

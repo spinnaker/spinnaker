@@ -42,7 +42,6 @@ dependencies {
 
   testImplementation "cglib:cglib-nodep"
   testImplementation "org.objenesis:objenesis"
-  testImplementation "org.junit.platform:junit-platform-runner"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation "org.springframework:spring-test"
   testImplementation "org.springframework.boot:spring-boot-test"
@@ -53,6 +52,5 @@ dependencies {
   testImplementation "com.fasterxml.jackson.module:jackson-module-kotlin"
   testImplementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
 
-  testRuntimeOnly "org.junit.platform:junit-platform-launcher"
   testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
 }

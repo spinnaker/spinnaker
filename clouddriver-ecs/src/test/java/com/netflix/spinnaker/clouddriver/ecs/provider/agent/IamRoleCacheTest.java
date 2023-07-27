@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.IAM_ROLE;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyString;
@@ -38,7 +38,7 @@ import com.netflix.spinnaker.clouddriver.ecs.cache.model.IamRole;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import spock.lang.Subject;
 
 public class IamRoleCacheTest extends CommonCachingAgent {
@@ -96,15 +96,15 @@ public class IamRoleCacheTest extends CommonCachingAgent {
         cacheResult.getCacheResults().get(Keys.Namespace.IAM_ROLE.toString());
     IamRole returnedIamRole = client.get(key);
 
-    assertTrue("Expected CacheData to be returned but null is returned", cacheData != null);
-    assertTrue("Expected 1 CacheData but returned " + cacheData.size(), cacheData.size() == 1);
+    assertTrue(cacheData != null, "Expected CacheData to be returned but null is returned");
+    assertTrue(cacheData.size() == 1, "Expected 1 CacheData but returned " + cacheData.size());
     String retrievedKey = cacheData.iterator().next().getId();
     assertTrue(
-        "Expected CacheData with ID " + key + " but retrieved ID " + retrievedKey,
-        retrievedKey.equals(key));
+        retrievedKey.equals(key),
+        "Expected CacheData with ID " + key + " but retrieved ID " + retrievedKey);
 
     assertTrue(
-        "Expected the IAM Role to be " + iamRole + " but got " + returnedIamRole,
-        iamRole.equals(returnedIamRole));
+        iamRole.equals(returnedIamRole),
+        "Expected the IAM Role to be " + iamRole + " but got " + returnedIamRole);
   }
 }

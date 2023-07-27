@@ -54,8 +54,6 @@ dependencies {
   testImplementation "org.hamcrest:hamcrest-core"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation "org.junit.jupiter:junit-jupiter-engine"
-  testImplementation "org.junit.platform:junit-platform-launcher"
-  testImplementation "org.junit.vintage:junit-vintage-engine"
   testImplementation "org.objenesis:objenesis"
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.spockframework:spock-spring"

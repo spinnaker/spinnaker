@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.ecs.cache;
 
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASK_DEFINITIONS;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import com.amazonaws.services.ecs.model.ContainerDefinition;
@@ -28,7 +28,7 @@ import com.netflix.spinnaker.clouddriver.ecs.cache.client.TaskDefinitionCacheCli
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.TaskDefinitionCachingAgent;
 import java.util.Collections;
 import java.util.Map;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import spock.lang.Subject;
 
 public class TaskDefinitionCacheClientTest extends CommonCacheClient {
@@ -69,10 +69,10 @@ public class TaskDefinitionCacheClientTest extends CommonCacheClient {
 
     // Then
     assertTrue(
+        taskDefinition.equals(retrievedTaskDefinition),
         "Expected the task definition to be "
             + taskDefinition
             + " but got "
-            + retrievedTaskDefinition,
-        taskDefinition.equals(retrievedTaskDefinition));
+            + retrievedTaskDefinition);
   }
 }

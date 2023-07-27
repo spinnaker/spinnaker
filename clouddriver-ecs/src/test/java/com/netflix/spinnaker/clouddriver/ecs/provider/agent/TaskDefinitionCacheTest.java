@@ -18,7 +18,8 @@ package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.SERVICES;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASK_DEFINITIONS;
-import static junit.framework.TestCase.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
@@ -31,8 +32,7 @@ import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.TaskDefinitionCacheClient;
 import java.util.*;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import spock.lang.Subject;
 
 public class TaskDefinitionCacheTest extends CommonCachingAgent {
@@ -85,20 +85,20 @@ public class TaskDefinitionCacheTest extends CommonCachingAgent {
     // Then
     Collection<CacheData> cacheData =
         cacheResult.getCacheResults().get(TASK_DEFINITIONS.toString());
-    assertNotNull("Expected CacheData to be returned but null is returned", cacheData);
-    assertEquals("Expected 1 CacheData but returned " + cacheData.size(), 1, cacheData.size());
+    assertNotNull(cacheData, "Expected CacheData to be returned but null is returned");
+    assertEquals(1, cacheData.size(), "Expected 1 CacheData but returned " + cacheData.size());
     String retrievedKey = cacheData.iterator().next().getId();
     assertEquals(
-        "Expected CacheData with ID " + key + " but retrieved ID " + retrievedKey,
         retrievedKey,
-        key);
+        key,
+        "Expected CacheData with ID " + key + " but retrieved ID " + retrievedKey);
 
-    Assert.assertEquals(
+    assertEquals(
+        taskDefinition,
+        retrievedTaskDefinition,
         "Expected the task definition to be "
             + taskDefinition
             + " but got "
-            + retrievedTaskDefinition,
-        taskDefinition,
-        retrievedTaskDefinition);
+            + retrievedTaskDefinition);
   }
 }

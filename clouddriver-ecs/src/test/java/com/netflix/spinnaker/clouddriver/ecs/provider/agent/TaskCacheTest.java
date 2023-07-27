@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASKS;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
@@ -36,7 +36,7 @@ import com.netflix.spinnaker.clouddriver.ecs.cache.client.TaskCacheClient;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import spock.lang.Subject;
 
 public class TaskCacheTest extends CommonCachingAgent {
@@ -82,62 +82,62 @@ public class TaskCacheTest extends CommonCachingAgent {
         cacheResult.getCacheResults().get(Keys.Namespace.TASKS.toString());
     com.netflix.spinnaker.clouddriver.ecs.cache.model.Task ecsTask = client.get(key);
 
-    assertTrue("Expected CacheData to be returned but null is returned", cacheData != null);
-    assertTrue("Expected 1 CacheData but returned " + cacheData.size(), cacheData.size() == 1);
+    assertTrue(cacheData != null, "Expected CacheData to be returned but null is returned");
+    assertTrue(cacheData.size() == 1, "Expected 1 CacheData but returned " + cacheData.size());
     String retrievedKey = cacheData.iterator().next().getId();
     assertTrue(
-        "Expected CacheData with ID " + key + " but retrieved ID " + retrievedKey,
-        retrievedKey.equals(key));
+        cacheData.size() == 1,
+        "Expected CacheData with ID " + key + " but retrieved ID " + retrievedKey);
 
     assertTrue(
-        "Expected the cluster ARN to be " + CLUSTER_ARN_1 + " but got " + ecsTask.getClusterArn(),
-        CLUSTER_ARN_1.equals(ecsTask.getClusterArn()));
+        CLUSTER_ARN_1.equals(ecsTask.getClusterArn()),
+        "Expected the cluster ARN to be " + CLUSTER_ARN_1 + " but got " + ecsTask.getClusterArn());
 
     assertTrue(
-        "Expected the task ARN to be " + TASK_ARN_1 + " but got " + ecsTask.getTaskArn(),
-        TASK_ARN_1.equals(ecsTask.getTaskArn()));
+        TASK_ARN_1.equals(ecsTask.getTaskArn()),
+        "Expected the task ARN to be " + TASK_ARN_1 + " but got " + ecsTask.getTaskArn());
 
     assertTrue(
+        task.getContainerInstanceArn().equals(ecsTask.getContainerInstanceArn()),
         "Expected the container instance ARN name to be "
             + task.getContainerInstanceArn()
             + " but got "
-            + ecsTask.getContainerInstanceArn(),
-        task.getContainerInstanceArn().equals(ecsTask.getContainerInstanceArn()));
+            + ecsTask.getContainerInstanceArn());
 
     assertTrue(
-        "Expected the group to be " + task.getGroup() + " but got " + ecsTask.getGroup(),
-        task.getGroup().equals(ecsTask.getGroup()));
+        task.getGroup().equals(ecsTask.getGroup()),
+        "Expected the group to be " + task.getGroup() + " but got " + ecsTask.getGroup());
 
     assertTrue(
+        task.getLastStatus().equals(ecsTask.getLastStatus()),
         "Expected the last status to be "
             + task.getLastStatus()
             + " but got "
-            + ecsTask.getLastStatus(),
-        task.getLastStatus().equals(ecsTask.getLastStatus()));
+            + ecsTask.getLastStatus());
 
     assertTrue(
+        task.getDesiredStatus().equals(ecsTask.getDesiredStatus()),
         "Expected the desired status to be "
             + task.getDesiredStatus()
             + " but got "
-            + ecsTask.getDesiredStatus(),
-        task.getDesiredStatus().equals(ecsTask.getDesiredStatus()));
+            + ecsTask.getDesiredStatus());
 
     assertTrue(
+        task.getStartedAt().getTime() == ecsTask.getStartedAt(),
         "Expected the started at to be "
             + task.getStartedAt().getTime()
             + " but got "
-            + ecsTask.getStartedAt(),
-        task.getStartedAt().getTime() == ecsTask.getStartedAt());
+            + ecsTask.getStartedAt());
 
     assertTrue(
+        task.getAvailabilityZone() == ecsTask.getAvailabilityZone(),
         "Expected the availability zone to be "
             + task.getAvailabilityZone()
             + " but got "
-            + ecsTask.getAvailabilityZone(),
-        task.getAvailabilityZone() == ecsTask.getAvailabilityZone());
+            + ecsTask.getAvailabilityZone());
 
     assertTrue(
-        "Expected the task to have 0 containers but got " + task.getContainers().size(),
-        task.getContainers().size() == 0);
+        task.getContainers().size() == 0,
+        "Expected the task to have 0 containers but got " + task.getContainers().size());
   }
 }

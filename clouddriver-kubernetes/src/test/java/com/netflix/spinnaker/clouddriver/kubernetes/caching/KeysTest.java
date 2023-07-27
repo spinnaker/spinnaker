@@ -23,10 +23,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys.CacheKey;
 import java.util.Optional;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 
-@RunWith(JUnitPlatform.class)
 final class KeysTest {
   @ParameterizedTest
   @ValueSource(

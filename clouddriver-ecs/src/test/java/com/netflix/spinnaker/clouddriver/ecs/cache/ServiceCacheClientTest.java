@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.ecs.cache;
 
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.SERVICES;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import com.amazonaws.services.ecs.model.*;
@@ -31,7 +31,7 @@ import com.netflix.spinnaker.clouddriver.ecs.provider.agent.TestServiceCachingAg
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import spock.lang.Subject;
 
 public class ServiceCacheClientTest extends CommonCacheClient {
@@ -87,122 +87,125 @@ public class ServiceCacheClientTest extends CommonCacheClient {
 
     // Then
     assertTrue(
+        clusterName.equals(ecsService.getClusterName()),
         "Expected the cluster name to be "
             + clusterName
             + " but got "
-            + ecsService.getClusterName(),
-        clusterName.equals(ecsService.getClusterName()));
+            + ecsService.getClusterName());
 
     assertTrue(
+        service.getClusterArn().equals(ecsService.getClusterArn()),
         "Expected the cluster ARN to be "
             + service.getClusterArn()
             + " but got "
-            + ecsService.getClusterArn(),
-        service.getClusterArn().equals(ecsService.getClusterArn()));
+            + ecsService.getClusterArn());
 
     assertTrue(
+        ACCOUNT.equals(ecsService.getAccount()),
         "Expected the account of the service to be "
             + ACCOUNT
             + " but got "
-            + ecsService.getAccount(),
-        ACCOUNT.equals(ecsService.getAccount()));
+            + ecsService.getAccount());
 
     assertTrue(
-        "Expected the region of the service to be " + REGION + " but got " + ecsService.getRegion(),
-        REGION.equals(ecsService.getRegion()));
+        REGION.equals(ecsService.getRegion()),
+        "Expected the region of the service to be "
+            + REGION
+            + " but got "
+            + ecsService.getRegion());
 
     assertTrue(
+        applicationName.equals(ecsService.getApplicationName()),
         "Expected the service application name to be "
             + applicationName
             + " but got "
-            + ecsService.getApplicationName(),
-        applicationName.equals(ecsService.getApplicationName()));
+            + ecsService.getApplicationName());
 
     assertTrue(
+        serviceName.equals(ecsService.getServiceName()),
         "Expected the service name to be "
             + serviceName
             + " but got "
-            + ecsService.getServiceName(),
-        serviceName.equals(ecsService.getServiceName()));
+            + ecsService.getServiceName());
 
     assertTrue(
+        service.getServiceArn().equals(ecsService.getServiceArn()),
         "Expected the service ARN to be "
             + service.getServiceArn()
             + " but got "
-            + ecsService.getServiceArn(),
-        service.getServiceArn().equals(ecsService.getServiceArn()));
+            + ecsService.getServiceArn());
 
     assertTrue(
+        service.getRoleArn().equals(ecsService.getRoleArn()),
         "Expected the role ARN of the service to be "
             + service.getRoleArn()
             + " but got "
-            + ecsService.getRoleArn(),
-        service.getRoleArn().equals(ecsService.getRoleArn()));
+            + ecsService.getRoleArn());
 
     assertTrue(
+        service.getTaskDefinition().equals(ecsService.getTaskDefinition()),
         "Expected the task definition of the service to be "
             + service.getTaskDefinition()
             + " but got "
-            + ecsService.getTaskDefinition(),
-        service.getTaskDefinition().equals(ecsService.getTaskDefinition()));
+            + ecsService.getTaskDefinition());
 
     assertTrue(
+        service.getDesiredCount() == ecsService.getDesiredCount(),
         "Expected the desired count of the service to be "
             + service.getDesiredCount()
             + " but got "
-            + ecsService.getDesiredCount(),
-        service.getDesiredCount() == ecsService.getDesiredCount());
+            + ecsService.getDesiredCount());
 
     assertTrue(
+        service.getDeploymentConfiguration().getMaximumPercent() == ecsService.getMaximumPercent(),
         "Expected the maximum percent of the service to be "
             + service.getDeploymentConfiguration().getMaximumPercent()
             + " but got "
-            + ecsService.getMaximumPercent(),
-        service.getDeploymentConfiguration().getMaximumPercent() == ecsService.getMaximumPercent());
+            + ecsService.getMaximumPercent());
 
     assertTrue(
+        service.getDeploymentConfiguration().getMinimumHealthyPercent()
+            == ecsService.getMinimumHealthyPercent(),
         "Expected the minimum healthy percent of the service to be "
             + service.getDeploymentConfiguration().getMinimumHealthyPercent()
             + " but got "
-            + ecsService.getMinimumHealthyPercent(),
-        service.getDeploymentConfiguration().getMinimumHealthyPercent()
-            == ecsService.getMinimumHealthyPercent());
+            + ecsService.getMinimumHealthyPercent());
 
     assertTrue(
+        service.getCreatedAt().getTime() == ecsService.getCreatedAt(),
         "Expected the created at of the service to be "
             + service.getCreatedAt().getTime()
             + " but got "
-            + ecsService.getCreatedAt(),
-        service.getCreatedAt().getTime() == ecsService.getCreatedAt());
+            + ecsService.getCreatedAt());
 
     assertTrue(
-        "Expected the service to have 1 subnet but got " + ecsService.getSubnets().size(),
-        ecsService.getSubnets().size() == 1);
+        ecsService.getSubnets().size() == 1,
+        "Expected the service to have 1 subnet but got " + ecsService.getSubnets().size());
 
     assertTrue(
-        "Expected the service to have subnet subnet-id but got " + ecsService.getSubnets().get(0),
-        ecsService.getSubnets().get(0).equals("subnet-id"));
+        ecsService.getSubnets().get(0).equals("subnet-id"),
+        "Expected the service to have subnet subnet-id but got " + ecsService.getSubnets().get(0));
 
     assertTrue(
+        ecsService.getSecurityGroups().size() == 1,
         "Expected the service to have 1 security group but got "
-            + ecsService.getSecurityGroups().size(),
-        ecsService.getSecurityGroups().size() == 1);
+            + ecsService.getSecurityGroups().size());
 
     assertTrue(
+        ecsService.getSecurityGroups().get(0).equals("security-group-id"),
         "Expected the service to have security group security-group-id but got "
-            + ecsService.getSecurityGroups().get(0),
-        ecsService.getSecurityGroups().get(0).equals("security-group-id"));
+            + ecsService.getSecurityGroups().get(0));
 
     assertTrue(
+        ecsService.getLoadBalancers().size() == 1,
         "Expected the service to have 1 load balancer but got "
-            + ecsService.getLoadBalancers().size(),
-        ecsService.getLoadBalancers().size() == 1);
+            + ecsService.getLoadBalancers().size());
 
     assertTrue(
+        ecsService.getLoadBalancers().get(0).equals(loadBalancer),
         "Expected the service to have load balancer "
             + loadBalancer
             + " but got "
-            + ecsService.getLoadBalancers().get(0),
-        ecsService.getLoadBalancers().get(0).equals(loadBalancer));
+            + ecsService.getLoadBalancers().get(0));
   }
 }

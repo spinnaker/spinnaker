@@ -83,10 +83,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 
-@RunWith(JUnitPlatform.class)
 class AbstractGoogleServerGroupCachingAgentTest {
 
   private static final String ACCOUNT_NAME = "partypups";

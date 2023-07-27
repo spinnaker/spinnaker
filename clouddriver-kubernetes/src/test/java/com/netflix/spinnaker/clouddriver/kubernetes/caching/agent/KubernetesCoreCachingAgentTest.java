@@ -66,11 +66,8 @@ import lombok.Value;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
 
-@RunWith(JUnitPlatform.class)
 final class KubernetesCoreCachingAgentTest {
   private static final String ACCOUNT = "my-account";
   private static final String NAMESPACE1 = "test-namespace";

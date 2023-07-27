@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.CONTAINER_INSTANCES;
-import static junit.framework.TestCase.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
@@ -33,7 +33,7 @@ import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.ContainerInstanceCacheClient;
 import java.util.Collection;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import spock.lang.Subject;
 
 public class ContainerInstanceCacheTest extends CommonCachingAgent {
@@ -76,24 +76,24 @@ public class ContainerInstanceCacheTest extends CommonCachingAgent {
     com.netflix.spinnaker.clouddriver.ecs.cache.model.ContainerInstance ecsContainerInstance =
         client.get(key);
 
-    assertTrue("Expected CacheData to be returned but null is returned", cacheData != null);
-    assertTrue("Expected 1 CacheData but returned " + cacheData.size(), cacheData.size() == 1);
+    assertTrue(cacheData != null, "Expected CacheData to be returned but null is returned");
+    assertTrue(cacheData.size() == 1, "Expected 1 CacheData but returned " + cacheData.size());
     String retrievedKey = cacheData.iterator().next().getId();
     assertTrue(
-        "Expected CacheData with ID " + key + " but retrieved ID " + retrievedKey,
-        retrievedKey.equals(key));
+        retrievedKey.equals(key),
+        "Expected CacheData with ID " + key + " but retrieved ID " + retrievedKey);
 
     assertTrue(
+        containerInstance.getEc2InstanceId().equals(ecsContainerInstance.getEc2InstanceId()),
         "Expected the container instance to have EC2 instance ID of "
             + containerInstance.getEc2InstanceId()
             + " but got "
-            + ecsContainerInstance.getEc2InstanceId(),
-        containerInstance.getEc2InstanceId().equals(ecsContainerInstance.getEc2InstanceId()));
+            + ecsContainerInstance.getEc2InstanceId());
     assertTrue(
+        containerInstance.getContainerInstanceArn().equals(ecsContainerInstance.getArn()),
         "Expected the container instance to have the ARN "
             + containerInstance.getContainerInstanceArn()
             + " but got "
-            + ecsContainerInstance.getArn(),
-        containerInstance.getContainerInstanceArn().equals(ecsContainerInstance.getArn()));
+            + ecsContainerInstance.getArn());
   }
 }

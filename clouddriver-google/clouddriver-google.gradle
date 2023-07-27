@@ -41,7 +41,6 @@ dependencies {
   testImplementation "org.apache.httpcomponents:httpmime"
   testImplementation "org.assertj:assertj-core"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
-  testImplementation "org.junit.platform:junit-platform-runner"
   testImplementation "org.mockito:mockito-core"
   testImplementation "org.mockito:mockito-junit-jupiter"
   testImplementation "org.objenesis:objenesis"
@@ -49,6 +48,8 @@ dependencies {
   testImplementation "org.spockframework:spock-spring"
   testImplementation "org.springframework:spring-test"
   testImplementation "org.springframework.boot:spring-boot-test"
+
+  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
 }
 
 configurations.all {

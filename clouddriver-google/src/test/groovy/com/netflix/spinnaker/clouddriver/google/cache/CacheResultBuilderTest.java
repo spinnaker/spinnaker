@@ -32,10 +32,7 @@ import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder.CacheDa
 import java.util.Collection;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 
-@RunWith(JUnitPlatform.class)
 final class CacheResultBuilderTest {
 
   @Test

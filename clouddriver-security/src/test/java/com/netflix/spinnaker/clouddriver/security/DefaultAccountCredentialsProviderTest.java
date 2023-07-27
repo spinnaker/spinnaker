@@ -26,11 +26,8 @@ import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.credentials.CompositeCredentialsRepository;
 import java.util.HashSet;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 import org.mockito.AdditionalMatchers;
 
-@RunWith(JUnitPlatform.class)
 public class DefaultAccountCredentialsProviderTest {
 
   @Test

@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.IAM_ROLE;
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -34,7 +34,7 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.IamRole;
 import java.util.*;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import spock.lang.Subject;
 
 public class IamRoleCachingAgentTest extends CommonCachingAgent {
@@ -81,19 +81,19 @@ public class IamRoleCachingAgentTest extends CommonCachingAgent {
 
     // Then
     assertEquals(
+        returnedRoles.size(),
+        numberOfRoles,
         "Expected the list to contain "
             + numberOfRoles
             + " ECS IAM roles, but got "
-            + returnedRoles.size(),
-        returnedRoles.size(),
-        numberOfRoles);
+            + returnedRoles.size());
     for (IamRole iamRole : returnedRoles) {
       assertTrue(
+          iamRoles.contains(iamRole),
           "Expected the IAM role to be in  "
               + iamRoles
               + " list but it was not. The IAM role is: "
-              + iamRole,
-          iamRoles.contains(iamRole));
+              + iamRole);
     }
   }
 
@@ -125,32 +125,32 @@ public class IamRoleCachingAgentTest extends CommonCachingAgent {
 
     // Then
     assertTrue(
+        dataMap.keySet().size() == 1,
         "Expected the data map to contain 1 namespace, but it contains "
             + dataMap.keySet().size()
-            + " namespaces.",
-        dataMap.keySet().size() == 1);
+            + " namespaces.");
     assertTrue(
+        dataMap.containsKey(IAM_ROLE.toString()),
         "Expected the data map to contain "
             + IAM_ROLE.toString()
             + " namespace, but it contains "
             + dataMap.keySet()
-            + " namespaces.",
-        dataMap.containsKey(IAM_ROLE.toString()));
+            + " namespaces.");
     assertTrue(
+        dataMap.get(IAM_ROLE.toString()).size() == numberOfRoles,
         "Expected there to be "
             + numberOfRoles
             + " CacheData, instead there is  "
-            + dataMap.get(IAM_ROLE.toString()).size(),
-        dataMap.get(IAM_ROLE.toString()).size() == numberOfRoles);
+            + dataMap.get(IAM_ROLE.toString()).size());
 
     for (CacheData cacheData : dataMap.get(IAM_ROLE.toString())) {
       assertTrue(
+          keys.contains(cacheData.getId()),
           "Expected the key to be one of the following keys: "
               + keys.toString()
               + ". The key is: "
               + cacheData.getId()
-              + ".",
-          keys.contains(cacheData.getId()));
+              + ".");
     }
   }
 
@@ -166,9 +166,9 @@ public class IamRoleCachingAgentTest extends CommonCachingAgent {
 
     // then
     assertEquals(
-        "Expected region to equal " + defaultRegionName + ", but got " + actualRegionName,
         defaultRegionName,
-        actualRegionName);
+        actualRegionName,
+        "Expected region to equal " + defaultRegionName + ", but got " + actualRegionName);
   }
 
   @Test
@@ -184,8 +184,8 @@ public class IamRoleCachingAgentTest extends CommonCachingAgent {
 
     // then
     assertEquals(
-        "Expected region to equal " + expectedRegionName + ", but got " + actualRegionName,
         expectedRegionName,
-        actualRegionName);
+        actualRegionName,
+        "Expected region to equal " + expectedRegionName + ", but got " + actualRegionName);
   }
 }

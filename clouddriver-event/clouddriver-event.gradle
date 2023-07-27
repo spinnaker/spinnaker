@@ -31,7 +31,6 @@ dependencies {
 
   testImplementation "cglib:cglib-nodep"
   testImplementation "org.objenesis:objenesis"
-  testImplementation "org.junit.platform:junit-platform-runner"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation "org.springframework:spring-test"
   testImplementation "org.springframework.boot:spring-boot-test"
@@ -40,6 +39,5 @@ dependencies {
   testImplementation "dev.minutest:minutest"
   testImplementation "io.mockk:mockk"
 
-  testRuntimeOnly "org.junit.platform:junit-platform-launcher"
   testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
 }

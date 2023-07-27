@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.ecs.cache;
 
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.IAM_ROLE;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,7 +28,7 @@ import com.netflix.spinnaker.clouddriver.ecs.provider.agent.IamRoleCachingAgent;
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.IamTrustRelationship;
 import java.util.Collections;
 import java.util.Map;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import spock.lang.Subject;
 
 public class IamRoleCacheClientTest extends CommonCacheClient {
@@ -63,7 +63,7 @@ public class IamRoleCacheClientTest extends CommonCacheClient {
 
     // Then
     assertTrue(
-        "Expected the IAM Role to be " + iamRole + " but got " + returnedIamRole,
-        iamRole.equals(returnedIamRole));
+        iamRole.equals(returnedIamRole),
+        "Expected the IAM Role to be " + iamRole + " but got " + returnedIamRole);
   }
 }

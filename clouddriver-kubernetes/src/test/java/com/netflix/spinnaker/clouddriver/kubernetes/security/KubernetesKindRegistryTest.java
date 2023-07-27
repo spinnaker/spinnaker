@@ -26,10 +26,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import java.util.Collection;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 
-@RunWith(JUnitPlatform.class)
 final class KubernetesKindRegistryTest {
   private static final KubernetesApiGroup CUSTOM_API_GROUP = KubernetesApiGroup.fromString("test");
   private static final KubernetesKind CUSTOM_KIND =

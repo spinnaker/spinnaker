@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.ECS_CLUSTERS;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.SERVICES;
-import static junit.framework.TestCase.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
@@ -40,7 +40,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import spock.lang.Subject;
 
 public class ServiceCachingAgentTest extends CommonCachingAgent {
@@ -73,15 +73,15 @@ public class ServiceCachingAgentTest extends CommonCachingAgent {
 
     // Then
     assertTrue(
-        "Expected the list to contain 2 ECS services, but got " + returnedServices.size(),
-        returnedServices.size() == 2);
+        returnedServices.size() == 2,
+        "Expected the list to contain 2 ECS services, but got " + returnedServices.size());
     for (Service service : returnedServices) {
       assertTrue(
+          services.contains(service),
           "Expected the service to be in  "
               + services
               + " list but it was not. The service is: "
-              + service,
-          services.contains(service));
+              + service);
     }
   }
 
@@ -122,44 +122,44 @@ public class ServiceCachingAgentTest extends CommonCachingAgent {
 
     // Then
     assertTrue(
+        dataMap.keySet().size() == 2,
         "Expected the data map to contain 2 namespaces, but it contains "
             + dataMap.keySet().size()
-            + " namespaces.",
-        dataMap.keySet().size() == 2);
+            + " namespaces.");
     assertTrue(
+        dataMap.containsKey(SERVICES.toString()),
         "Expected the data map to contain "
             + SERVICES.toString()
             + " namespace, but it contains "
             + dataMap.keySet()
-            + " namespaces.",
-        dataMap.containsKey(SERVICES.toString()));
+            + " namespaces.");
     assertTrue(
+        dataMap.containsKey(ECS_CLUSTERS.toString()),
         "Expected the data map to contain "
             + ECS_CLUSTERS.toString()
             + " namespace, but it contains "
             + dataMap.keySet()
-            + " namespaces.",
-        dataMap.containsKey(ECS_CLUSTERS.toString()));
+            + " namespaces.");
     assertTrue(
+        dataMap.get(SERVICES.toString()).size() == 2,
         "Expected there to be 2 CacheData, instead there is  "
-            + dataMap.get(SERVICES.toString()).size(),
-        dataMap.get(SERVICES.toString()).size() == 2);
+            + dataMap.get(SERVICES.toString()).size());
 
     for (CacheData cacheData : dataMap.get(SERVICES.toString())) {
       assertTrue(
+          keys.contains(cacheData.getId()),
           "Expected the key to be one of the following keys: "
               + keys.toString()
               + ". The key is: "
               + cacheData.getId()
-              + ".",
-          keys.contains(cacheData.getId()));
+              + ".");
       assertTrue(
+          serviceArns.contains(cacheData.getAttributes().get("serviceArn")),
           "Expected the service ARN to be one of the following ARNs: "
               + serviceArns.toString()
               + ". The service ARN is: "
               + cacheData.getAttributes().get("serviceArn")
-              + ".",
-          serviceArns.contains(cacheData.getAttributes().get("serviceArn")));
+              + ".");
     }
   }
 }

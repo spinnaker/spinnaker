@@ -19,7 +19,7 @@ import com.netflix.spinnaker.clouddriver.core.test.TaskRepositoryTck;
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis;
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate;
 import java.util.Optional;
-import org.junit.After;
+import org.junit.jupiter.api.AfterEach;
 import redis.clients.jedis.JedisPool;
 
 public class RedisTaskRepositoryTest extends TaskRepositoryTck<RedisTaskRepository> {
@@ -36,7 +36,7 @@ public class RedisTaskRepositoryTest extends TaskRepositoryTck<RedisTaskReposito
     return new RedisTaskRepository(new JedisClientDelegate(jedisPool), Optional.empty());
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     Optional.ofNullable(embeddedRedis).ifPresent(EmbeddedRedis::destroy);
   }

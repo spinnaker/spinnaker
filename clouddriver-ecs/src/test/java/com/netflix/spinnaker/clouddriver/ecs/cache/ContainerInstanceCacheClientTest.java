@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.ecs.cache;
 
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.CONTAINER_INSTANCES;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import com.amazonaws.services.ecs.model.ContainerInstance;
@@ -26,7 +26,7 @@ import com.netflix.spinnaker.clouddriver.ecs.cache.client.ContainerInstanceCache
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.ContainerInstanceCachingAgent;
 import java.util.Collections;
 import java.util.Map;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import spock.lang.Subject;
 
 public class ContainerInstanceCacheClientTest extends CommonCacheClient {
@@ -57,17 +57,17 @@ public class ContainerInstanceCacheClientTest extends CommonCacheClient {
 
     // Then
     assertTrue(
+        containerInstance.getEc2InstanceId().equals(ecsContainerInstance.getEc2InstanceId()),
         "Expected the EC2 instance ID to be "
             + containerInstance.getEc2InstanceId()
             + " but got "
-            + ecsContainerInstance.getEc2InstanceId(),
-        containerInstance.getEc2InstanceId().equals(ecsContainerInstance.getEc2InstanceId()));
+            + ecsContainerInstance.getEc2InstanceId());
 
     assertTrue(
+        containerInstance.getContainerInstanceArn().equals(ecsContainerInstance.getArn()),
         "Expected the container instance ARN to be "
             + containerInstance.getContainerInstanceArn()
             + " but got "
-            + ecsContainerInstance.getArn(),
-        containerInstance.getContainerInstanceArn().equals(ecsContainerInstance.getArn()));
+            + ecsContainerInstance.getArn());
   }
 }
