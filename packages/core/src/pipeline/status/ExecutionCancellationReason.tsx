@@ -7,7 +7,7 @@ interface IExecutionCancellationReasonProps {
 }
 
 export function ExecutionCancellationReason({ cancellationReason }: IExecutionCancellationReasonProps) {
-  const [isExpanded, setIsExpanded] = React.useState(false);
+  const [isExpanded, setIsExpanded] = React.useState(true);
   return (
     <>
       <div className="execution-cancellation-reason-button">
