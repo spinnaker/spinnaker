@@ -33,19 +33,19 @@ class HikariSpectatorMetricsTracker(
   private val connectionUsageId = registry.createId("sql.pool.$poolName.connectionUsageTiming")
   private val connectionTimeoutId = registry.createId("sql.pool.$poolName.connectionTimeout")
 
-  private val idleConnectionsId = registry.createId("sql.pool.$poolName.idle")
-  private val activeConnectionsId = registry.createId("sql.pool.$poolName.active")
-  private val totalConnectionsId = registry.createId("sql.pool.$poolName.total")
-  private val blockedThreadsId = registry.createId("sql.pool.$poolName.blocked")
+  private val idleConnectionsGauge = registry.gauge("sql.pool.$poolName.idle")
+  private val activeConnectionsGauge = registry.gauge("sql.pool.$poolName.active")
+  private val totalConnectionsGauge = registry.gauge("sql.pool.$poolName.total")
+  private val blockedThreadsGauge = registry.gauge("sql.pool.$poolName.blocked")
 
   /**
    * Record the individual pool's statistics.
    */
   fun recordPoolStats() {
-    registry.gauge(idleConnectionsId).set(poolStats.idleConnections.toDouble())
-    registry.gauge(activeConnectionsId).set(poolStats.activeConnections.toDouble())
-    registry.gauge(totalConnectionsId).set(poolStats.totalConnections.toDouble())
-    registry.gauge(blockedThreadsId).set(poolStats.pendingThreads.toDouble())
+    idleConnectionsGauge.set(poolStats.idleConnections.toDouble())
+    activeConnectionsGauge.set(poolStats.activeConnections.toDouble())
+    totalConnectionsGauge.set(poolStats.totalConnections.toDouble())
+    blockedThreadsGauge.set(poolStats.pendingThreads.toDouble())
   }
 
   override fun recordConnectionAcquiredNanos(elapsedAcquiredNanos: Long) {
