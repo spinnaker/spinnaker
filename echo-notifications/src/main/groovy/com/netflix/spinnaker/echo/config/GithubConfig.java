@@ -52,7 +52,7 @@ public class GithubConfig {
             .setEndpoint(githubEndpoint)
             .setConverter(new JacksonConverter())
             .setClient(retrofitClient)
-            .setLogLevel(RestAdapter.LogLevel.FULL)
+            .setLogLevel(retrofitLogLevel != null ? retrofitLogLevel : RestAdapter.LogLevel.BASIC)
             .setLog(new Slf4jRetrofitLogger(GithubService.class))
             .build()
             .create(GithubService.class);
