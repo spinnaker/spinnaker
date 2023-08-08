@@ -35,6 +35,7 @@ import org.springframework.util.FileCopyUtils;
 public class KubernetesCluster {
 
   private static KubernetesCluster INSTANCE;
+  private static final String IMAGE = System.getenv("IMAGE");
   private static final String KIND_VERSION = "0.11.1";
   private static final String KUBECTL_VERSION = "1.20.6";
   private static final Path IT_BUILD_HOME = Paths.get(System.getenv("IT_BUILD_HOME"));
@@ -171,7 +172,11 @@ public class KubernetesCluster {
       System.out.println("Deleting old test cluster");
       runKindCmd("delete cluster --name=kube-int-tests");
     }
-    runKindCmd("create cluster --name=kube-int-tests --kubeconfig=" + KUBECFG_PATH + " --wait=10m");
+    runKindCmd(
+        "create cluster --name=kube-int-tests --kubeconfig="
+            + KUBECFG_PATH
+            + " --wait=10m --image="
+            + IMAGE);
   }
 
   private String runKindCmd(String args) throws IOException, InterruptedException {

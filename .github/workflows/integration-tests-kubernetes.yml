@@ -1,18 +1,16 @@
-name: Integration Tests
+name: Kubernetes Integration Tests
 
-on:
-  push:
-    branches:
-      - master
-  pull_request:
+on: workflow_call
 
 env:
   GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx6g -Xms6g
 
 jobs:
   it-test-kubernetes:
-    uses: ./.github/workflows/integration-tests-kubernetes.yml
-  it-test:
+    strategy:
+      matrix:
+        kubernetes-image:
+          - "kindest/node:v1.21.1@sha256:69860bda5563ac81e3c0057d654b5253219618a22ec3a346306239bba8cfa1a6"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -43,10 +41,5 @@ jobs:
           key: ${{ runner.os }}-cd-it-${{ github.event.pull_request.head.sha }}
           restore-keys: |
             ${{ runner.os }}-cd-it-${{ github.event.before }}
-      # Separating integration tests by provider allows to have separate logs
-      - name: Amazon ECS Provider Integration Tests
-        run: ./gradlew --build-cache :clouddriver-ecs:integrationTest
-      - name: Artifacts Integration Tests
-        run: ./gradlew --build-cache :clouddriver-artifacts:integrationTest
-      - name: AWS EC2 Provider Integration Tests
-        run: ./gradlew --build-cache :clouddriver-aws:integrationTest
+      - name: Kubernetes Provider Integration Tests
+        run: ./gradlew --build-cache :clouddriver-kubernetes:integrationTest -Pkubernetes-image=${{ matrix.kubernetes-image }}

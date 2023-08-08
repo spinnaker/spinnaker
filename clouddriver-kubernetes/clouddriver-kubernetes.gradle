@@ -130,6 +130,7 @@ task integrationTest(type: Test) {
   group = 'verification'
 
   environment "IT_BUILD_HOME", "$project.buildDir/it"
+  environment "IMAGE", project.getProperties().get("kubernetes-image")
   useJUnitPlatform()
 
   testClassesDirs = sourceSets.integration.output.classesDirs
