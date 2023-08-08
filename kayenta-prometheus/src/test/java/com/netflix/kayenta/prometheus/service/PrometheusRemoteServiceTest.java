@@ -27,6 +27,7 @@ import com.netflix.kayenta.prometheus.config.PrometheusResponseConverter;
 import com.netflix.kayenta.prometheus.model.PrometheusResults;
 import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.retrofit.config.RetrofitClientFactory;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.squareup.okhttp.OkHttpClient;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -42,7 +43,6 @@ import org.junit.Test;
 import org.mockserver.client.MockServerClient;
 import org.mockserver.junit.MockServerRule;
 import org.mockserver.model.MediaType;
-import retrofit.RetrofitError;
 
 public class PrometheusRemoteServiceTest {
   @Rule public MockServerRule mockServerRule = new MockServerRule(this, true);
@@ -78,7 +78,7 @@ public class PrometheusRemoteServiceTest {
         .respond(response().withStatusCode(500));
 
     assertThatThrownBy(() -> prometheusRemoteService.isHealthy())
-        .isInstanceOf(RetrofitError.class)
+        .isInstanceOf(SpinnakerServerException.class)
         .hasMessageContaining("500 Internal Server Error");
   }
 

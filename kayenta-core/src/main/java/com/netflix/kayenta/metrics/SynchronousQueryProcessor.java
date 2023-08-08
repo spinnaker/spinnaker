@@ -24,6 +24,9 @@ import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import java.io.IOException;
@@ -36,7 +39,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import retrofit.RetrofitError;
 
 @Component
 @Slf4j
@@ -88,8 +90,7 @@ public class SynchronousQueryProcessor {
             metricsService.queryMetrics(
                 metricsAccountName, canaryConfig, canaryMetricConfig, canaryScope);
         success = true;
-      } catch (RetrofitError e) {
-
+      } catch (SpinnakerServerException e) {
         boolean retryable = isRetryable(e);
         if (retryable) {
           retries++;
@@ -101,7 +102,13 @@ public class SynchronousQueryProcessor {
             Thread.sleep(backoffPeriod);
           } catch (InterruptedException ignored) {
           }
-          Object error = e.getResponse() != null ? e.getResponse().getStatus() : e.getCause();
+          Object error;
+          if (isNetworkError(e)) {
+            error = e.getCause();
+          } else {
+            SpinnakerHttpException httpError = (SpinnakerHttpException) e;
+            error = httpError.getResponseCode();
+          }
           log.warn(
               "Got {} result when querying for metrics. Retrying request (current attempt: "
                   + "{}, max attempts: {}, last backoff period: {}ms)",
@@ -146,16 +153,12 @@ public class SynchronousQueryProcessor {
         * retryConfiguration.getBackoffPeriodMultiplierMs();
   }
 
-  private boolean isRetryable(RetrofitError e) {
+  private boolean isRetryable(SpinnakerServerException e) {
     if (isNetworkError(e)) {
-      // retry in case of network errors
       return true;
     }
-    if (e.getResponse() == null) {
-      // We don't have a network error, but the response is null. It's better to not retry these.
-      return false;
-    }
-    HttpStatus responseStatus = HttpStatus.resolve(e.getResponse().getStatus());
+    SpinnakerHttpException httpError = (SpinnakerHttpException) e;
+    HttpStatus responseStatus = HttpStatus.resolve(httpError.getResponseCode());
     if (responseStatus == null) {
       return false;
     }
@@ -163,9 +166,8 @@ public class SynchronousQueryProcessor {
         || retryConfiguration.getSeries().contains(responseStatus.series());
   }
 
-  private boolean isNetworkError(RetrofitError e) {
-    return e.getKind() == RetrofitError.Kind.NETWORK
-        || (e.getResponse() == null && e.getCause() instanceof IOException);
+  private boolean isNetworkError(SpinnakerServerException e) {
+    return e instanceof SpinnakerNetworkException || (e.getCause() instanceof IOException);
   }
 
   public Map<String, ?> processQueryAndReturnMap(

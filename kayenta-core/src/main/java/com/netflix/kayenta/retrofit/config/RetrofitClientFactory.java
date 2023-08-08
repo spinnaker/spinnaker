@@ -20,6 +20,7 @@ import static retrofit.Endpoints.newFixedEndpoint;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
 import com.squareup.okhttp.Authenticator;
 import com.squareup.okhttp.Credentials;
@@ -119,6 +120,7 @@ public class RetrofitClientFactory {
         .setEndpoint(endpoint)
         .setClient(new OkClient(okHttpClient))
         .setConverter(converter)
+        .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
         .setLogLevel(RestAdapter.LogLevel.valueOf(retrofitLogLevel))
         .setLog(logger)
         .build()

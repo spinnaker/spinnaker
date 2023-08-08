@@ -20,6 +20,8 @@ import com.netflix.kayenta.atlas.model.Backend;
 import com.netflix.kayenta.atlas.service.BackendsRemoteService;
 import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.retrofit.config.RetrofitClientFactory;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import com.squareup.okhttp.OkHttpClient;
 import java.util.List;
@@ -27,7 +29,6 @@ import javax.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import retrofit.RetrofitError;
 import retrofit.converter.JacksonConverter;
 
 @Slf4j
@@ -57,11 +58,13 @@ public class BackendUpdater {
     try {
       List<Backend> backends = AuthenticatedRequest.allowAnonymous(backendsRemoteService::fetch);
       backendDatabase.update(backends);
-    } catch (RetrofitError e) {
-      log.warn("While fetching atlas backends from " + uri, e);
-      return succeededAtLeastOnce;
+      succeededAtLeastOnce = true;
+    } catch (SpinnakerHttpException e) {
+      log.warn(e.getResponseCode() + " error while fetching atlas backends from " + uri, e);
+    } catch (SpinnakerServerException e) {
+      log.warn("Error while fetching atlas backends from " + uri, e);
     }
-    succeededAtLeastOnce = true;
-    return true;
+
+    return succeededAtLeastOnce;
   }
 }

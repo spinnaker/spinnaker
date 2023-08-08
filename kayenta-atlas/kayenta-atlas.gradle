@@ -8,4 +8,6 @@ dependencies {
   api "com.squareup.okhttp:okhttp-apache"
 
   api "org.apache.commons:commons-io:1.3.2"
+
+  implementation "io.spinnaker.kork:kork-retrofit"
 }
