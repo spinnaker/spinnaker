@@ -144,13 +144,13 @@ class ApplicationControllerTest {
   }
 
   @Test
-  void getPipelineConfigsForApplicationWithoutPipelineNameFilter() throws Exception {
+  void getPipelineConfigsForApplicationWithoutParams() throws Exception {
     // given: random configs
     List<Map<String, Object>> configs =
         List.of(
             Map.of("name", "pipelineA", "some", "some-random-x"),
             Map.of("name", "pipelineB", "some", "some-random-F"));
-    when(front50Service.getPipelineConfigsForApplication("true-app", null, true))
+    when(front50Service.getPipelineConfigsForApplication("true-app", null, null, true))
         .thenReturn(Calls.response(configs));
 
     // when: "all configs are requested"
@@ -158,8 +158,8 @@ class ApplicationControllerTest {
         mockMvc.perform(
             get("/applications/true-app/pipelineConfigs").accept(MediaType.APPLICATION_JSON));
 
-    // then: "we only call front50 once, and do not pass through the pipelineNameFilter"
-    verify(front50Service).getPipelineConfigsForApplication("true-app", null, true);
+    // then: "we only call front50 once, and do not pass through the params"
+    verify(front50Service).getPipelineConfigsForApplication("true-app", null, null, true);
     verifyNoMoreInteractions(front50Service);
 
     // and: "we get all configs"
@@ -168,21 +168,21 @@ class ApplicationControllerTest {
   }
 
   @Test
-  void getPipelineConfigsForApplicationWithPipelineNameFilter() throws Exception {
+  void getPipelineConfigsForApplicationWithParams() throws Exception {
     // given: "only one config"
     List<Map<String, Object>> configs =
         List.of(Map.of("name", "pipelineA", "some", "some-random-x"));
-    when(front50Service.getPipelineConfigsForApplication("true-app", "pipelineA", true))
+    when(front50Service.getPipelineConfigsForApplication("true-app", "pipelineA", 1, true))
         .thenReturn(Calls.response(configs));
 
     // when: "configs are requested with a filter"
     ResultActions response =
         mockMvc.perform(
-            get("/applications/true-app/pipelineConfigs?pipelineNameFilter=pipelineA")
+            get("/applications/true-app/pipelineConfigs?pipelineNameFilter=pipelineA&pipelineLimit=1")
                 .accept(MediaType.APPLICATION_JSON));
 
-    // then: "we only call front50 once, and we do pass through the pipelineNameFilter"
-    verify(front50Service).getPipelineConfigsForApplication("true-app", "pipelineA", true);
+    // then: "we only call front50 once, and we do pass through the params"
+    verify(front50Service).getPipelineConfigsForApplication("true-app", "pipelineA", 1, true);
     verifyNoMoreInteractions(front50Service);
 
     // and: "only filtered configs are returned"

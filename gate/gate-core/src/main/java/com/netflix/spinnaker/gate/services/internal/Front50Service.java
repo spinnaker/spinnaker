@@ -51,6 +51,7 @@ public interface Front50Service {
   Call<List<Map<String, Object>>> getPipelineConfigsForApplication(
       @Path("app") String app,
       @Query("pipelineNameFilter") String pipelineNameFilter,
+      @Query("pipelineLimit") Integer pipelineLimit,
       @Query("refresh") boolean refresh);
 
   @GET("pipelines/{app}/name/{name}")
