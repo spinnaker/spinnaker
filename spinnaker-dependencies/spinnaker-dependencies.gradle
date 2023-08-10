@@ -17,9 +17,9 @@ ext {
     jsch             : "0.1.54",
     jschAgentProxy   : "0.0.9",
     // spring boot 2.5.14 specifies logback 1.2.11, but a rosco test hung with
-    // 1.2.11 from https://jira.qos.ch/browse/LOGBACK-1623 so stick with 1.2.10
-    // until 1.2.12 appears.
-    logback          : "1.2.10",
+    // 1.2.11 from https://jira.qos.ch/browse/LOGBACK-1623 so pinning it to 1.2.12
+    // until spring boot upgrade 2.5.15 or above.
+    logback          : "1.2.12",
     protobuf         : "3.21.12",
     okhttp           : "2.7.5", // CVE-2016-2402
     okhttp3          : "4.9.3",
@@ -91,7 +91,7 @@ dependencies {
   constraints {
     api("cglib:cglib-nodep:3.3.0")
     //A bug is reported in 1.2.11 and fixed in 1.2.12.
-    //So pinning the version to 1.2.10 untill required package is released.
+    //So pinning the version to 1.2.12 untill spring boot upgrade to 2.5.15 or above.
     //[https://jira.qos.ch/browse/LOGBACK-1623]
     api("ch.qos.logback:logback-core"){
        version {
