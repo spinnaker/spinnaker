@@ -16,12 +16,15 @@
 
 package com.netflix.spinnaker.echo.events;
 
+import com.netflix.spinnaker.echo.config.RestProperties;
 import com.netflix.spinnaker.echo.config.RestUrls;
 import com.netflix.spinnaker.kork.core.RetrySupport;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import java.time.Duration;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import net.logstash.logback.encoder.org.apache.commons.lang.StringUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -31,17 +34,46 @@ import org.springframework.stereotype.Component;
 public class RestEventService {
 
   private final RetrySupport retrySupport;
+  private final CircuitBreakerRegistry circuitBreakerRegistry;
 
-  @CircuitBreaker(name = "sendEvent")
-  public void sendEventWithCircuitBreaker(Map<String, Object> event, RestUrls.Service service) {
-    sendEvent(event, service);
+  /**
+   * Sends an event to a REST service using a Circuit Breaker.
+   *
+   * @param eventMap The event data to be sent.
+   * @param service The REST service to which the event should be sent.
+   */
+  public void sendEventWithCircuitBreaker(
+      Map<String, Object> eventMap, RestUrls.Service service, CircuitBreaker circuitBreaker) {
+    circuitBreaker.executeRunnable(() -> sendEvent(eventMap, service));
   }
 
+  /**
+   * Sends an event to a REST service with retry support.
+   *
+   * @param event The event data to be sent.
+   * @param service The REST service to which the event should be sent.
+   */
   public void sendEvent(Map<String, Object> event, RestUrls.Service service) {
     retrySupport.retry(
         () -> service.getClient().recordEvent(event),
         service.getConfig().getRetryCount(),
         Duration.ofMillis(200),
         false);
+  }
+
+  /**
+   * Retrieves or creates a Circuit Breaker instance for a specific REST service.
+   *
+   * <p>Your service event name {@link RestProperties.RestEndpointConfiguration#getEventName()}
+   * should map to the Circuit Breaker instance name {@link CircuitBreaker#getName()}
+   *
+   * @param service The REST service for which the Circuit Breaker instance is requested.
+   * @return The Circuit Breaker instance.
+   */
+  public CircuitBreaker getCircuitBreakerInstance(RestUrls.Service service) {
+    String circuitBreakerInstance =
+        StringUtils.defaultString(service.getConfig().getEventName(), "sendEvent");
+
+    return circuitBreakerRegistry.circuitBreaker(circuitBreakerInstance);
   }
 }

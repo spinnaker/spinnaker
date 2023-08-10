@@ -47,5 +47,6 @@ public class RestProperties {
     String headersFile;
     Boolean flatten = false;
     int retryCount = 1;
+    Boolean circuitBreakerEnabled = false;
   }
 }

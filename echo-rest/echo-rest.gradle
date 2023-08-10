@@ -27,6 +27,7 @@ dependencies {
   implementation "io.spinnaker.kork:kork-web"
   implementation "com.fasterxml.jackson.core:jackson-databind"
   implementation "javax.validation:validation-api"
-  testImplementation "org.spockframework:spock-spring"
+  implementation "org.apache.commons:commons-lang3"
+
   testImplementation "org.springframework.boot:spring-boot-starter-test"
 }
