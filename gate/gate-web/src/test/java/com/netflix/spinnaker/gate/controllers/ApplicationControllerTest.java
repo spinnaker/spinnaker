@@ -96,7 +96,7 @@ class ApplicationControllerTest {
         List.of(
             Map.of("name", "pipelineA", "executionField", "some-random-x"),
             Map.of("name", "pipelineB", "executionField", "some-random-F"));
-    when(executionHistoryService.getPipelines("true-app", 10, null, null, null))
+    when(executionHistoryService.getPipelines("true-app", 10, null, null, null, null))
         .thenReturn(pipelines);
 
     ResultActions response =
@@ -104,7 +104,12 @@ class ApplicationControllerTest {
 
     verify(executionHistoryService)
         .getPipelines(
-            "true-app", 10, null /* statuses */, null /*expand */, null /*pipelineNameFilter */);
+            "true-app",
+            10,
+            null /* statuses */,
+            null /*expand */,
+            null /*pipelineNameFilter */,
+            null /*pipelineLimit*/);
     verifyNoMoreInteractions(executionHistoryService);
 
     response.andExpect(status().isOk());
@@ -122,8 +127,9 @@ class ApplicationControllerTest {
     String statuses = "RUNNING";
     boolean expand = false;
     String pipelineNameFilter = "pipeline";
+    Integer pipelineLimit = 1;
     when(executionHistoryService.getPipelines(
-            "true-app", limit, statuses, expand, pipelineNameFilter))
+            "true-app", limit, statuses, expand, pipelineNameFilter, pipelineLimit))
         .thenReturn(pipelines);
 
     ResultActions response =
@@ -133,10 +139,11 @@ class ApplicationControllerTest {
                 .param("statuses", statuses)
                 .param("expand", Boolean.toString(expand))
                 .param("pipelineNameFilter", pipelineNameFilter)
+                .param("pipelineLimit", Integer.toString(pipelineLimit))
                 .accept(MediaType.APPLICATION_JSON));
 
     verify(executionHistoryService)
-        .getPipelines("true-app", limit, statuses, expand, pipelineNameFilter);
+        .getPipelines("true-app", limit, statuses, expand, pipelineNameFilter, pipelineLimit);
     verifyNoMoreInteractions(executionHistoryService);
 
     response.andExpect(status().isOk());

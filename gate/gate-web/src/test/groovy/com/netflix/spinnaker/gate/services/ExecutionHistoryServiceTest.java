@@ -68,16 +68,19 @@ public class ExecutionHistoryServiceTest {
     String statuses = "SUCCESS,FAILED";
     Boolean expand = false;
     String pipelineNameFilter = "name1";
+    Integer pipelineLimit = 1;
     List<Map<String, Object>> expectedPipelines =
         List.of(Map.of("name", "testName1"), Map.of("name", "testName2"));
-    when(orcaService.getPipelines(app, limit, statuses, expand, pipelineNameFilter))
+    when(orcaService.getPipelines(app, limit, statuses, expand, pipelineNameFilter, pipelineLimit))
         .thenReturn(Calls.response(expectedPipelines));
 
     List<Map<String, Object>> pipelines =
-        executionHistoryService.getPipelines(app, limit, statuses, expand, pipelineNameFilter);
+        executionHistoryService.getPipelines(
+            app, limit, statuses, expand, pipelineNameFilter, pipelineLimit);
 
     assertEquals(expectedPipelines, pipelines);
-    verify(orcaService).getPipelines(app, limit, statuses, expand, pipelineNameFilter);
+    verify(orcaService)
+        .getPipelines(app, limit, statuses, expand, pipelineNameFilter, pipelineLimit);
     verifyNoMoreInteractions(orcaService);
   }
 }
