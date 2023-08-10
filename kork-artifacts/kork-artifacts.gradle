@@ -14,7 +14,6 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-autoconfigure"
   implementation "org.springframework.security:spring-security-core"
   implementation 'org.apache.logging.log4j:log4j-api'
-  implementation 'org.apache.logging.log4j:log4j-core'
   api "com.hubspot.jinjava:jinjava"
 
   testImplementation "org.assertj:assertj-core"

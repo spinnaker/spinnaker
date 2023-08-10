@@ -11,6 +11,7 @@ dependencies {
   api "com.fasterxml.jackson.core:jackson-annotations"
 
   implementation "com.google.guava:guava"
+  implementation "org.apache.logging.log4j:log4j-api"
   implementation "org.slf4j:slf4j-api"
 
   testImplementation "org.spockframework:spock-core"
