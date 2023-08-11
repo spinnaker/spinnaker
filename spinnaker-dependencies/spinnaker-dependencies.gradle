@@ -198,7 +198,6 @@ dependencies {
     api("javax.xml.bind:jaxb-api:2.3.1")
     api("mysql:mysql-connector-java:8.0.20")
     api("net.logstash.logback:logstash-logback-encoder:4.11")
-    api("net.minidev:json-smart:2.4.1") // TODO: remove this with upgrade of spring-boot version to 2.5.0 or above
     api("org.apache.commons:commons-exec:1.3")
     // TODO(jvz): beginning in BC 1.71, this should use the -jdk18on artifacts
     api("org.bouncycastle:bcpkix-jdk15on:${versions.bouncycastle}")
