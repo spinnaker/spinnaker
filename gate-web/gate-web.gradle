@@ -52,6 +52,10 @@ dependencies {
 
   implementation "io.springfox:springfox-swagger2"
 
+  implementation "io.cloudevents:cloudevents-spring:2.5.0"
+  implementation "io.cloudevents:cloudevents-json-jackson:2.5.0"
+  implementation "io.cloudevents:cloudevents-http-basic:2.5.0"
+
   runtimeOnly "io.spinnaker.kork:kork-runtime"
   runtimeOnly "org.springframework.boot:spring-boot-properties-migrator"
 

@@ -38,6 +38,10 @@ dependencies {
   implementation "com.netflix.spectator:spectator-api"
   implementation "com.github.ben-manes.caffeine:guava"
   implementation "org.apache.commons:commons-lang3"
+
+  implementation "io.cloudevents:cloudevents-spring:2.5.0"
+  implementation "io.cloudevents:cloudevents-json-jackson:2.5.0"
+  implementation "io.cloudevents:cloudevents-http-basic:2.5.0"
 }
 
 sourceSets {
