@@ -103,16 +103,13 @@ class TaskControllerSqlExecutionRepositoryTest : JUnit5Minutests {
         .thenReturn(Calls.response(listOf()))
     }
 
-    fun setupDataForPipelineNameFilter() {
+    fun setupDataWithFront50ServiceParams(pipelineNameFilter: String?, pipelineLimit: Int?) {
       setupDefaultDbData()
-      Mockito.`when`(front50Service.getPipelines("test-app", false, null, "filter"))
+      Mockito.`when`(front50Service.getPipelines("test-app", false, null, pipelineNameFilter, pipelineLimit))
         .thenReturn(
           Calls.response(listOf(
             mapOf("id" to "1")))
         )
-
-      Mockito.`when`(front50Service.getStrategies("test-app"))
-        .thenReturn(Calls.response(listOf()))
     }
 
     fun setupDefaultDbData() {
@@ -183,23 +180,36 @@ class TaskControllerSqlExecutionRepositoryTest : JUnit5Minutests {
           )
         )
         .execute()
+      Mockito.`when`(front50Service.getStrategies("test-app"))
+        .thenReturn(Calls.response(listOf()))
     }
 
     fun cleanUp() {
       SqlTestUtil.cleanupDb(database.context)
     }
+
+    fun verifyExecutionRetrieval(url: String, expectedOutput: List<String>, numPipelines: Int) {
+      expectThat(database.context.fetchCount(table("pipelines"))).isEqualTo(numPipelines)
+      val response = subject.perform(get(url)).andReturn().response
+      val results = OrcaObjectMapper.getInstance().readValue(response.contentAsString, object : TypeReference<List<PipelineExecution>>() {})
+      expectThat(results.size).isEqualTo(expectedOutput.size)
+      results.forEach {
+        assert(it.id in expectedOutput)
+      }
+    }
   }
 
   fun tests() = rootContext<Fixture> {
+    fun optimizedDescription(isOptimized:Boolean): String {
+      return if (isOptimized) "[optimized]: " else "[non-optimized]: "
+    }
+
     context("execution retrieval without optimization") {
       fixture {
         Fixture(false)
       }
 
-      before { setupDefaultData() }
-      after { cleanUp() }
-
-      testExecutionRetrieval()
+      testExecutionRetrieval(optimizedDescription(false))
     }
 
     context("execution retrieval with optimization") {
@@ -207,32 +217,7 @@ class TaskControllerSqlExecutionRepositoryTest : JUnit5Minutests {
         Fixture(true)
       }
 
-      before { setupDefaultData() }
-      after { cleanUp() }
-
-      testExecutionRetrieval()
-    }
-
-    context("execution retrieval without optimization and pipelineNameFilter") {
-      fixture {
-        Fixture(false)
-      }
-
-      before { setupDataForPipelineNameFilter() }
-      after { cleanUp() }
-
-      testExecutionRetrievalWithPipelineNameFilter()
-    }
-
-    context("execution retrieval with optimization and pipelineNameFilter") {
-      fixture {
-        Fixture(true)
-      }
-
-      before { setupDataForPipelineNameFilter() }
-      after { cleanUp() }
-
-      testExecutionRetrievalWithPipelineNameFilter()
+      testExecutionRetrieval(optimizedDescription(false))
     }
 
     context("test query having explicit query timeouts") {
@@ -253,45 +238,60 @@ class TaskControllerSqlExecutionRepositoryTest : JUnit5Minutests {
     }
   }
 
-  private fun ContextBuilder<Fixture>.testExecutionRetrieval() {
+  private fun ContextBuilder<Fixture>.testExecutionRetrieval(descriptionPrefix: String) {
     context("execution retrieval") {
-      test("retrieve executions with limit = 2 & expand = false") {
-        expectThat(database.context.fetchCount(table("pipelines"))).isEqualTo(5)
-        val response = subject.perform(get("/v2/applications/test-app/pipelines?limit=2&expand=false")).andReturn().response
-        val results = OrcaObjectMapper.getInstance().readValue(response.contentAsString, object : TypeReference<List<PipelineExecution>>() {})
-        val expectedOutput = listOf("1-exec-id-2", "1-exec-id-3","2-exec-id-1")
-        expectThat(results.size).isEqualTo(3)
-        results.forEach {
-          assert(it.id in expectedOutput)
-        }
+      before { setupDefaultData() }
+      after { cleanUp() }
+      test(descriptionPrefix + "retrieve executions with limit = 2 & expand = false") {
+        verifyExecutionRetrieval(
+          "/v2/applications/test-app/pipelines?limit=2&expand=false",
+          listOf("1-exec-id-2", "1-exec-id-3","2-exec-id-1"),
+          5
+        )
       }
 
-      test("retrieve executions with limit = 2 & expand = false with statuses") {
-        expectThat(database.context.fetchCount(table("pipelines"))).isEqualTo(5)
-        val response = subject.perform(get(
-          "/v2/applications/test-app/pipelines?limit=2&expand=false&statuses=RUNNING,SUSPENDED,PAUSED,NOT_STARTED")
-        ).andReturn().response
-        val results = OrcaObjectMapper.getInstance().readValue(response.contentAsString, object : TypeReference<List<PipelineExecution>>() {})
-        val expectedOutput = listOf("1-exec-id-3","2-exec-id-1")
-        expectThat(results.size).isEqualTo(2)
-        results.forEach {
-          assert(it.id in expectedOutput)
-        }
+      test(descriptionPrefix + "retrieve executions with limit = 2 & expand = false with statuses") {
+        verifyExecutionRetrieval(
+          "/v2/applications/test-app/pipelines?limit=2&expand=false&statuses=RUNNING,SUSPENDED,PAUSED,NOT_STARTED",
+          listOf("1-exec-id-3","2-exec-id-1"),
+          5
+        )
       }
     }
-  }
 
-  private fun ContextBuilder<Fixture>.testExecutionRetrievalWithPipelineNameFilter() {
     context("execution retrieval with pipelineNameFilter") {
-      test("passes param to front50 and only uses pipeline config ids from front 50") {
-        expectThat(database.context.fetchCount(table("pipelines"))).isEqualTo(5)
-        val response = subject.perform(get("/v2/applications/test-app/pipelines?limit=2&expand=false&pipelineNameFilter=filter")).andReturn().response
-        val results = OrcaObjectMapper.getInstance().readValue(response.contentAsString, object : TypeReference<List<PipelineExecution>>() {})
-        val expectedOutput = listOf("1-exec-id-2", "1-exec-id-3")
-        expectThat(results.size).isEqualTo(2)
-        results.forEach {
-          assert(it.id in expectedOutput)
-        }
+      before { setupDataWithFront50ServiceParams("filter", null) }
+      after { cleanUp() }
+      test(descriptionPrefix + "passes pipelineNameFilter to front50 and only uses pipeline config ids from front 50") {
+        verifyExecutionRetrieval(
+          "/v2/applications/test-app/pipelines?limit=2&expand=false&pipelineNameFilter=filter",
+          listOf("1-exec-id-2", "1-exec-id-3"),
+          5
+        );
+      }
+    }
+
+    context("execution retrieval with pipelineLimit") {
+      before { setupDataWithFront50ServiceParams(null, 1) }
+      after { cleanUp() }
+      test(descriptionPrefix + "passes pipelineLimit to front50 and only uses pipeline config ids from front 50") {
+        verifyExecutionRetrieval(
+          "/v2/applications/test-app/pipelines?limit=2&expand=false&pipelineLimit=1",
+          listOf("1-exec-id-2", "1-exec-id-3"),
+          5
+        );
+      }
+    }
+
+    context("execution retrieval with pipelineLimit and pipelineNameFilter") {
+      before { setupDataWithFront50ServiceParams("filter", 1) }
+      after { cleanUp() }
+      test(descriptionPrefix + "passes pipelineLimit and pipelineNameFilter to front50 and only uses pipeline config ids from front 50") {
+        verifyExecutionRetrieval(
+          "/v2/applications/test-app/pipelines?limit=2&expand=false&pipelineLimit=1&pipelineNameFilter=filter",
+          listOf("1-exec-id-2", "1-exec-id-3"),
+          5
+        );
       }
     }
   }
