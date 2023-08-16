@@ -249,13 +249,16 @@ public class PipelineController {
               .compareToIgnoreCase(Optional.ofNullable(p2.getName()).orElse(p2.getId()));
         });
 
+    List<Pipeline> copiedPipelines = new ArrayList<>();
     int i = 0;
     for (Pipeline p : pipelines) {
-      p.setIndex(i);
+      Pipeline copied = p.clone();
+      copied.setIndex(i);
+      copiedPipelines.add(copied);
       i++;
     }
 
-    return pipelines;
+    return copiedPipelines;
   }
 
   @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
