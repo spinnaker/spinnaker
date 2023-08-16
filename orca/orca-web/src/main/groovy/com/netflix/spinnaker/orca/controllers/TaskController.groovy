@@ -53,7 +53,6 @@ import org.springframework.security.access.prepost.PostAuthorize
 import org.springframework.security.access.prepost.PostFilter
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.access.prepost.PreFilter
-import org.springframework.util.ObjectUtils
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -788,9 +787,7 @@ class TaskController {
     )
 
     // get all relevant pipeline and strategy configs from front50
-    def pipelineConfigs = ObjectUtils.isEmpty(pipelineNameFilter) && ObjectUtils.isEmpty(pipelineLimit) ?
-        Retrofit2SyncCall.execute(front50Service.getPipelines(application, false, this.configurationProperties.excludeExecutionsOfDisabledPipelines ? true : null)) :
-        Retrofit2SyncCall.execute(front50Service.getPipelines(application, false, this.configurationProperties.excludeExecutionsOfDisabledPipelines ? true : null, pipelineNameFilter, pipelineLimit))
+    def pipelineConfigs = Retrofit2SyncCall.execute(front50Service.getPipelines(application, false, this.configurationProperties.excludeExecutionsOfDisabledPipelines ? true : null, pipelineNameFilter, pipelineLimit))
     def pipelineConfigIds = pipelineConfigs*.id as List<String>
     log.debug("received ${pipelineConfigIds.size()} pipelines for application: $application from front50")
     def strategyConfigIds = Retrofit2SyncCall.execute(front50Service.getStrategies(application))*.id as List<String>

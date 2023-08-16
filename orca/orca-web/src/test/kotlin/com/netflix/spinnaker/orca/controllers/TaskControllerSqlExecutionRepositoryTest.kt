@@ -92,7 +92,7 @@ class TaskControllerSqlExecutionRepositoryTest : JUnit5Minutests {
 
     fun setupDefaultData() {
       setupDefaultDbData()
-      Mockito.`when`(front50Service.getPipelines("test-app", false, null))
+      Mockito.`when`(front50Service.getPipelines("test-app", false, null, null, null))
         .thenReturn(
           Calls.response(listOf(
             mapOf("id" to "1"),
