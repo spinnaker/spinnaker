@@ -212,6 +212,54 @@ abstract class PipelineControllerTck extends Specification {
       .andExpect(jsonPath('$.[*].index').value([0, 1, 2, 3]))
   }
 
+  void "should use pipelineLimit when getting pipelines for an application"() {
+    given:
+    for (int i = 0; i < 10; i++) {
+      def name = i % 2 == 0 ? "pipelineNameA" + i : "pipelineNameB" + i;
+      pipelineDAO.create(i.toString(), new Pipeline(application: "test", name: name, index: i))
+    }
+
+    when:
+    def response = mockMvc.perform(get("/pipelines/test?pipelineLimit=5"))
+
+    then:
+    response
+      .andExpect(jsonPath('$.[*].name').value(["pipelineNameA0", "pipelineNameB1", "pipelineNameA2", "pipelineNameB3", "pipelineNameA4"]))
+      .andExpect(jsonPath('$.[*].index').value([0, 1, 2, 3, 4]))
+  }
+
+  void "should use pipelineLimit and pipelineNameFilter when getting pipelines for an application"() {
+    given:
+    for (int i = 0; i < 10; i++) {
+      def name = i % 2 == 0 ? "pipelineNameA" + i : "pipelineNameB" + i;
+      pipelineDAO.create(i.toString(), new Pipeline(application: "test", name: name, index: i))
+    }
+
+    when:
+    def response = mockMvc.perform(get("/pipelines/test?pipelineLimit=2&pipelineNameFilter=pipelineNameA"))
+
+    then:
+    response
+      .andExpect(jsonPath('$.[*].name').value(["pipelineNameA0", "pipelineNameA2"]))
+      .andExpect(jsonPath('$.[*].index').value([0, 1]))
+  }
+
+  void "should not return error when pipelineLimit is greater than number of pipelines"() {
+    given:
+    for (int i = 0; i < 5; i++) {
+      def name = i % 2 == 0 ? "pipelineNameA" + i : "pipelineNameB" + i;
+      pipelineDAO.create(i.toString(), new Pipeline(application: "test", name: name, index: i))
+    }
+
+    when:
+    def response = mockMvc.perform(get("/pipelines/test?pipelineLimit=20"))
+
+    then:
+    response
+      .andExpect(jsonPath('$.[*].name').value(["pipelineNameA0", "pipelineNameB1", "pipelineNameA2", "pipelineNameB3", "pipelineNameA4"]))
+      .andExpect(jsonPath('$.[*].index').value([0, 1, 2, 3, 4]))
+  }
+
   void "should not rewrite the index in the cache"() {
     given:
     def pipelines = [
