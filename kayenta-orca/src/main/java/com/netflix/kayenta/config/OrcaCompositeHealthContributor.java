@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.boot.actuate.health.*;
+import org.springframework.cloud.client.discovery.health.DiscoveryCompositeHealthContributor;
 
 public class OrcaCompositeHealthContributor implements CompositeHealthContributor {
 
@@ -69,10 +70,25 @@ public class OrcaCompositeHealthContributor implements CompositeHealthContributo
   public Status status() {
     Set<Status> statuses =
         this.contributors.values().stream()
+            .filter(c -> c.getContributor() instanceof HealthIndicator)
             .map(contributor -> ((HealthIndicator) contributor.getContributor()).getHealth(false))
             .map(Health::getStatus)
             .collect(Collectors.toSet());
+    statuses.addAll(getDiscoveryStatuses());
 
     return this.statusAggregator.getAggregateStatus(statuses);
+  }
+
+  private Set<Status> getDiscoveryStatuses() {
+    NamedContributor<HealthContributor> discoveryComposite = contributors.get("discoveryComposite");
+
+    if (discoveryComposite != null) {
+      return ((DiscoveryCompositeHealthContributor) discoveryComposite.getContributor())
+          .getIndicators().values().stream()
+              .map(i -> i.health().getStatus())
+              .collect(Collectors.toSet());
+    }
+
+    return Collections.emptySet();
   }
 }

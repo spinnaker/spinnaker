@@ -4,6 +4,7 @@ dependencies {
   api "io.spinnaker.orca:orca-queue-redis"
   api "io.spinnaker.orca:orca-redis"
   api "org.springframework.boot:spring-boot-starter-actuator"
+  api "org.springframework.cloud:spring-cloud-commons"
 
   // TODO(duftler): Move these to spinnaker-dependencies.
   testImplementation "io.spinnaker.orca:orca-test"

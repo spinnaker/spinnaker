@@ -34,11 +34,6 @@ server:
 
 # Does it make sense to publish all Kayenta metrics to all datasources in integraion tests?
 spring:
-  cloud:
-    discovery:
-      client:
-        composite-indicator:
-          enabled: false
   autoconfigure:
     exclude: >
       org.springframework.boot.actuate.autoconfigure.metrics.web.tomcat.TomcatMetricsAutoConfiguration,
