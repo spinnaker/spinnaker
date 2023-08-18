@@ -22,13 +22,14 @@ import com.netflix.spinnaker.okhttp.SpinnakerRequestHeaderInterceptor
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import okhttp3.Interceptor
 import okhttp3.Request
+import org.mockito.MockedStatic
 import org.mockito.Mockito
 import spock.lang.Specification
 
 class SpinnakerRequestHeaderInterceptorTest extends Specification {
 
   def "request contains authorization header"() {
-    Mockito.mockStatic(AuthenticatedRequest.class)
+    MockedStatic<AuthenticatedRequest> mockAuthenticatedRequest = Mockito.mockStatic(AuthenticatedRequest.class)
     Map<String, Optional<String>> authHeaders = new HashMap<String, Optional<String>>(){}
     authHeaders.put(Header.USER.getHeader(), Optional.of("some user"))
     authHeaders.put(Header.ACCOUNTS.getHeader(), Optional.of("Some ACCOUNTS"))
@@ -49,5 +50,8 @@ class SpinnakerRequestHeaderInterceptorTest extends Specification {
     then: "the expected authorization header is added to the request before proceeding"
     1 * chain.proceed({ Request request -> request.headers(Header.USER.getHeader()) == ["some user"] &&
       request.headers(Header.ACCOUNTS.getHeader()) == ["Some ACCOUNTS"]})
+
+    cleanup:
+    mockAuthenticatedRequest.close()
   }
 }
