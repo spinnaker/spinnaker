@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.collect.ImmutableList;
-import com.netflix.spinnaker.config.OkHttpClientConfiguration;
 import java.io.IOException;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -30,7 +29,6 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,8 +40,6 @@ import retrofit.RestAdapter;
 /** This package is placed in fiat-core in order to be shared by fiat-web and fiat-shared. */
 @Configuration
 public class RetrofitConfig {
-
-  @Autowired @Setter private OkHttpClientConfiguration okHttpClientConfig;
 
   @Value("${ok-http-client.connection-pool.max-idle-connections:5}")
   @Setter
