@@ -2,7 +2,7 @@
 
 # Remember to also update Dockerfile.*
 # KUBECTL_RELEASE kept one minor version behind latest to maximise compatibility overlap
-KUBECTL_RELEASE=1.20.6
+KUBECTL_RELEASE=1.22.17
 
 # ubuntu
 # check that owner group exists

@@ -79,11 +79,11 @@ public class KubernetesDeleteManifestOperation implements AtomicOperation<Operat
     } else if (options.containsKey("cascading")) {
       // For compatibility with pipelines that specify cascading as true/false,
       // map to the appropriate propagation policy.  Clouddriver currently uses
-      // kubectl 1.20.6, where --cascade=true/false works, but generates a
+      // kubectl 1.22.17, where --cascade=true/false works, but generates a
       // warning.
       //
       // See
-      // https://github.com/kubernetes/kubernetes/blob/v1.20.6/staging/src/k8s.io/kubectl/pkg/cmd/delete/delete_flags.go#L243-L249
+      // https://github.com/kubernetes/kubernetes/blob/v1.22.17/staging/src/k8s.io/kubectl/pkg/cmd/delete/delete_flags.go#L243-L249
       //
       // --cascade=false --> orphan
       // --cascade=true --> background
