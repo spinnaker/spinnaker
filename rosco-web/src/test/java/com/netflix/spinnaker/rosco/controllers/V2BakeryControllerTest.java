@@ -26,7 +26,6 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import com.netflix.spinnaker.kork.retrofit.exceptions.RetrofitException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.rosco.Main;
@@ -127,6 +126,6 @@ class V2BakeryControllerTest {
             .addConverterFactory(JacksonConverterFactory.create())
             .build();
 
-    return new SpinnakerHttpException(RetrofitException.httpError(retrofit2Response, retrofit));
+    return new SpinnakerHttpException(retrofit2Response, retrofit);
   }
 }

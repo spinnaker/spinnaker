@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.rosco.manifests;
 
-import com.netflix.spinnaker.kork.retrofit.exceptions.RetrofitException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import okhttp3.MediaType;
 import okhttp3.ResponseBody;
@@ -48,6 +47,6 @@ public class ManifestTestUtils {
             .addConverterFactory(JacksonConverterFactory.create())
             .build();
 
-    return new SpinnakerHttpException(RetrofitException.httpError(retrofit2Response, retrofit));
+    return new SpinnakerHttpException(retrofit2Response, retrofit);
   }
 }
