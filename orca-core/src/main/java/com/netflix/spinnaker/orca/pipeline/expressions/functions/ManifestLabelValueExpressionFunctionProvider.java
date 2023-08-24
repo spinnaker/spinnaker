@@ -87,7 +87,11 @@ public class ManifestLabelValueExpressionFunctionProvider implements ExpressionF
           "A valid Deploy Manifest stage name is required for this function");
     }
 
-    List<Map> manifests = (List<Map>) stage.get().getContext().get("manifests");
+    // using outputs.manifests to give access to labels added by Spinnaker itself during the
+    // deployment
+    // this is safe as we assert above that we're only using successful deploy stages, so this key
+    // should always exist
+    List<Map> manifests = (List<Map>) stage.get().getContext().get("outputs.manifests");
 
     if (manifests == null || manifests.size() == 0) {
       throw new SpelHelperFunctionException(
@@ -104,7 +108,7 @@ public class ManifestLabelValueExpressionFunctionProvider implements ExpressionF
     }
 
     Map manifest = manifestOpt.get();
-    String labelPath = format("$.spec.template.metadata.labels.%s", labelKey);
+    String labelPath = format("$.spec.template.metadata.labels['%s']", labelKey);
     String labelValue;
 
     try {

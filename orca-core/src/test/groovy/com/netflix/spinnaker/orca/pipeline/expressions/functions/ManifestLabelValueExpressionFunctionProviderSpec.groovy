@@ -47,6 +47,22 @@ class ManifestLabelValueExpressionFunctionProviderSpec extends Specification {
               ]
             ]
           ]
+        ],
+        "outputs.manifests": [
+          [
+            "kind": "ReplicaSet",
+            "spec": [
+              "template": [
+                "metadata": [
+                  "labels": [
+                    "my-label-key": "my-label-value",
+                    "my-other-label-key": "my-other-label-value",
+                    "moniker.spinnaker.io/sequence": "0"
+                  ]
+                ]
+              ]
+            ]
+          ]
         ]
       )
       status = SUCCEEDED
@@ -60,9 +76,10 @@ class ManifestLabelValueExpressionFunctionProviderSpec extends Specification {
     manifestLabelValue(deployManifestPipeline, "Deploy ReplicaSet", "ReplicaSet", labelKey) == expectedLabelValue
 
     where:
-    labelKey             || expectedLabelValue
-    "my-label-key"       || "my-label-value"
-    "my-other-label-key" || "my-other-label-value"
+    labelKey                        || expectedLabelValue
+    "my-label-key"                  || "my-label-value"
+    "my-other-label-key"            || "my-other-label-value"
+    "moniker.spinnaker.io/sequence" || "0"
   }
 
   def "manifestLabelValue should raise exception if stage, manifest, or label not found"() {
