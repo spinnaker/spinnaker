@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import javax.annotation.Nonnull;
 import okhttp3.ResponseBody;
 import org.springframework.http.HttpHeaders;
@@ -54,12 +55,30 @@ public class SpinnakerHttpException extends SpinnakerServerException {
 
   private final Map<String, Object> responseBody;
 
+  private final String url;
+
+  private final int responseCode;
+
+  /**
+   * The reason from the http response. See
+   * https://datatracker.ietf.org/doc/html/rfc2616#section-6.1
+   */
+  private final String reason;
+
   public SpinnakerHttpException(RetrofitError e) {
     super(e);
+
+    // Arbitrary RetrofitErrors can have a null Response object (e.g. see
+    // RetrofitError.networkError).  But, given that RetrofitError.httpError
+    // assumes a non-null Response, let's do the same in SpinnakerHttpException.
+    Objects.requireNonNull(e.getResponse(), "SpinnakerHttpException requires a Response object");
+
     this.response = e.getResponse();
     this.retrofit2Response = null;
     responseBody = (Map<String, Object>) e.getBodyAs(HashMap.class);
-
+    url = e.getUrl();
+    responseCode = response.getStatus();
+    reason = response.getReason();
     this.rawMessage =
         responseBody != null
             ? (String) responseBody.getOrDefault("message", e.getMessage())
@@ -79,6 +98,9 @@ public class SpinnakerHttpException extends SpinnakerServerException {
       setRetryable(false);
     }
     responseBody = this.getErrorBodyAs(retrofit);
+    url = retrofit2Response.raw().request().url().toString();
+    responseCode = retrofit2Response.code();
+    reason = retrofit2Response.message();
     this.rawMessage =
         responseBody != null
             ? (String) responseBody.getOrDefault("message", retrofit2Response.message())
@@ -115,14 +137,13 @@ public class SpinnakerHttpException extends SpinnakerServerException {
     this.retrofit2Response = cause.retrofit2Response;
     rawMessage = null;
     this.responseBody = cause.responseBody;
+    this.url = cause.url;
+    this.responseCode = cause.responseCode;
+    this.reason = cause.reason;
   }
 
   public int getResponseCode() {
-    if (response != null) {
-      return response.getStatus();
-    } else {
-      return retrofit2Response.code();
-    }
+    return responseCode;
   }
 
   @Nonnull
@@ -154,17 +175,7 @@ public class SpinnakerHttpException extends SpinnakerServerException {
       return super.getMessage();
     }
 
-    if (retrofit2Response != null) {
-      return String.format(
-          "Status: %s, URL: %s, Message: %s",
-          retrofit2Response.code(),
-          retrofit2Response.raw().request().url().toString(),
-          getRawMessage());
-    } else {
-      return String.format(
-          "Status: %s, URL: %s, Message: %s",
-          response.getStatus(), response.getUrl(), getRawMessage());
-    }
+    return String.format("Status: %s, URL: %s, Message: %s", responseCode, url, getRawMessage());
   }
 
   @Override
@@ -174,6 +185,14 @@ public class SpinnakerHttpException extends SpinnakerServerException {
 
   public Map<String, Object> getResponseBody() {
     return this.responseBody;
+  }
+
+  public String getUrl() {
+    return this.url;
+  }
+
+  public String getReason() {
+    return this.reason;
   }
 
   /**

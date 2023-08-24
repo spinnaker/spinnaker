@@ -18,12 +18,14 @@
 package com.netflix.spinnaker.kork.retrofit.exceptions;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.gson.Gson;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import okhttp3.MediaType;
@@ -44,11 +46,12 @@ public class SpinnakerHttpExceptionTest {
     String url = "http://localhost";
     int statusCode = 200;
     String message = "arbitrary message";
+    String reason = "reason";
     Response response =
         new Response(
             url,
             statusCode,
-            "reason",
+            reason,
             List.of(),
             new TypedString("{ message: \"" + message + "\", name: \"test\" }"));
     RetrofitError retrofitError =
@@ -60,6 +63,8 @@ public class SpinnakerHttpExceptionTest {
     assertThat(spinnakerHttpException.getResponseCode()).isEqualTo(statusCode);
     assertThat(spinnakerHttpException.getMessage())
         .isEqualTo("Status: " + statusCode + ", URL: " + url + ", Message: " + message);
+    assertThat(spinnakerHttpException.getUrl()).isEqualTo(url);
+    assertThat(spinnakerHttpException.getReason()).isEqualTo(reason);
   }
 
   @Test
@@ -71,14 +76,19 @@ public class SpinnakerHttpExceptionTest {
     retrofit2.Response response =
         retrofit2.Response.error(HttpStatus.NOT_FOUND.value(), responseBody);
 
+    String url = "http://localhost/";
     Retrofit retrofit2Service =
         new Retrofit.Builder()
-            .baseUrl("http://localhost")
+            .baseUrl(url)
             .addConverterFactory(JacksonConverterFactory.create())
             .build();
+    assertThat(retrofit2Service.baseUrl().toString()).isEqualTo(url);
     SpinnakerHttpException notFoundException =
         new SpinnakerHttpException(response, retrofit2Service);
     assertNotNull(notFoundException.getResponseBody());
+    assertThat(notFoundException.getUrl()).isEqualTo(url);
+    assertThat(notFoundException.getReason())
+        .isEqualTo("Response.error()"); // set by Response.error
     Map<String, Object> errorResponseBody = notFoundException.getResponseBody();
     assertEquals(errorResponseBody.get("name"), "test");
     assertEquals(HttpStatus.NOT_FOUND.value(), notFoundException.getResponseCode());
@@ -88,9 +98,11 @@ public class SpinnakerHttpExceptionTest {
 
   @Test
   public void testSpinnakerHttpException_NewInstance() {
-    Response response = new Response("http://localhost", 200, "reason", List.of(), null);
+    String url = "http://localhost";
+    String reason = "reason";
+    Response response = new Response(url, 200, reason, List.of(), null);
     try {
-      RetrofitError error = RetrofitError.httpError("http://localhost", response, null, null);
+      RetrofitError error = RetrofitError.httpError(url, response, null, null);
       throw new SpinnakerHttpException(error);
     } catch (SpinnakerException e) {
       SpinnakerException newException = e.newInstance(CUSTOM_MESSAGE);
@@ -99,6 +111,21 @@ public class SpinnakerHttpExceptionTest {
       assertEquals(CUSTOM_MESSAGE, newException.getMessage());
       assertEquals(e, newException.getCause());
       assertEquals(response.getStatus(), ((SpinnakerHttpException) newException).getResponseCode());
+      SpinnakerHttpException spinnakerHttpException = (SpinnakerHttpException) newException;
+      assertThat(spinnakerHttpException.getUrl()).isEqualTo(url);
+      assertThat(spinnakerHttpException.getReason()).isEqualTo(reason);
     }
+  }
+
+  @Test
+  void testNullResponse() {
+    RetrofitError retrofitError =
+        RetrofitError.networkError("http://some-url", new IOException("arbitrary exception"));
+    assertThat(retrofitError.getResponse()).isNull();
+
+    Throwable thrown = catchThrowable(() -> new SpinnakerHttpException(retrofitError));
+
+    assertThat(thrown).isInstanceOf(NullPointerException.class);
+    assertThat(thrown.getMessage()).isNotNull();
   }
 }
