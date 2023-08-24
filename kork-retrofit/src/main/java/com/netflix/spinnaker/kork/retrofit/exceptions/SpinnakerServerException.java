@@ -31,6 +31,8 @@ public class SpinnakerServerException extends SpinnakerException {
     super(cause);
   }
 
+  public SpinnakerServerException() {}
+
   @Override
   public SpinnakerServerException newInstance(String message) {
     return new SpinnakerServerException(message, this);

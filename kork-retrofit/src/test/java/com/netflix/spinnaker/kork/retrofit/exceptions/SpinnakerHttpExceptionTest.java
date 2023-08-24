@@ -17,10 +17,12 @@
 
 package com.netflix.spinnaker.kork.retrofit.exceptions;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.gson.Gson;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import java.util.List;
 import java.util.Map;
@@ -30,11 +32,35 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
+import retrofit.converter.GsonConverter;
+import retrofit.mime.TypedString;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
 public class SpinnakerHttpExceptionTest {
   private static final String CUSTOM_MESSAGE = "custom message";
+
+  public void testSpinnakerHttpExceptionFromRetrofitError() {
+    String url = "http://localhost";
+    int statusCode = 200;
+    String message = "arbitrary message";
+    Response response =
+        new Response(
+            url,
+            statusCode,
+            "reason",
+            List.of(),
+            new TypedString("{ message: \"" + message + "\", name: \"test\" }"));
+    RetrofitError retrofitError =
+        RetrofitError.httpError(url, response, new GsonConverter(new Gson()), String.class);
+    SpinnakerHttpException spinnakerHttpException = new SpinnakerHttpException(retrofitError);
+    assertThat(spinnakerHttpException.getResponseBody()).isNotNull();
+    Map<String, Object> errorResponseBody = spinnakerHttpException.getResponseBody();
+    assertThat(errorResponseBody.get("name")).isEqualTo("test");
+    assertThat(spinnakerHttpException.getResponseCode()).isEqualTo(statusCode);
+    assertThat(spinnakerHttpException.getMessage())
+        .isEqualTo("Status: " + statusCode + ", URL: " + url + ", Message: " + message);
+  }
 
   @Test
   public void testSpinnakerHttpExceptionFromRetrofitException() {
@@ -50,8 +76,8 @@ public class SpinnakerHttpExceptionTest {
             .baseUrl("http://localhost")
             .addConverterFactory(JacksonConverterFactory.create())
             .build();
-    RetrofitException retrofitException = RetrofitException.httpError(response, retrofit2Service);
-    SpinnakerHttpException notFoundException = new SpinnakerHttpException(retrofitException);
+    SpinnakerHttpException notFoundException =
+        new SpinnakerHttpException(response, retrofit2Service);
     assertNotNull(notFoundException.getResponseBody());
     Map<String, Object> errorResponseBody = notFoundException.getResponseBody();
     assertEquals(errorResponseBody.get("name"), "test");

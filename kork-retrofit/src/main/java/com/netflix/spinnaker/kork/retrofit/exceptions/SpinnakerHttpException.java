@@ -17,25 +17,34 @@
 package com.netflix.spinnaker.kork.retrofit.exceptions;
 
 import com.google.common.base.Preconditions;
-import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import com.netflix.spinnaker.kork.annotations.NullableByDefault;
+import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Map;
+import javax.annotation.Nonnull;
+import okhttp3.ResponseBody;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
+import retrofit2.Converter;
+import retrofit2.Retrofit;
 
 /**
  * An exception that exposes the {@link Response} of a given HTTP {@link RetrofitError} or {@link
- * okhttp3.Response} of a {@link RetrofitException} if retrofit 2.x used and a detail message that
- * extracts useful information from the {@link Response} or {@link okhttp3.Response}. Both {@link
- * Response} and {@link okhttp3.Response} can't be set together..
+ * okhttp3.Response} if retrofit 2.x used and a detail message that extracts useful information from
+ * the {@link Response} or {@link okhttp3.Response}. Both {@link Response} and {@link
+ * okhttp3.Response} can't be set together.
  */
-@NonnullByDefault
+@NullableByDefault
 public class SpinnakerHttpException extends SpinnakerServerException {
+
   private final Response response;
+
   private HttpHeaders headers;
 
-  private final retrofit2.Response retrofit2Response;
+  private final retrofit2.Response<?> retrofit2Response;
 
   /**
    * A message derived from a RetrofitError's response body, or null if a custom message has been
@@ -57,18 +66,26 @@ public class SpinnakerHttpException extends SpinnakerServerException {
             : e.getMessage();
   }
 
-  public SpinnakerHttpException(RetrofitException e) {
-    super(e);
+  /**
+   * The constructor handles the HTTP retrofit2 exception, similar to retrofit logic. It is used
+   * with {@link com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory}.
+   */
+  public SpinnakerHttpException(
+      retrofit2.Response<?> retrofit2Response, retrofit2.Retrofit retrofit) {
     this.response = null;
-    this.retrofit2Response = e.getResponse();
-    responseBody = (Map<String, Object>) e.getErrorBodyAs(HashMap.class);
+    this.retrofit2Response = retrofit2Response;
+    if ((retrofit2Response.code() == HttpStatus.NOT_FOUND.value())
+        || (retrofit2Response.code() == HttpStatus.BAD_REQUEST.value())) {
+      setRetryable(false);
+    }
+    responseBody = this.getErrorBodyAs(retrofit);
     this.rawMessage =
         responseBody != null
-            ? (String) responseBody.getOrDefault("message", e.getMessage())
-            : e.getMessage();
+            ? (String) responseBody.getOrDefault("message", retrofit2Response.message())
+            : retrofit2Response.message();
   }
 
-  private final String getRawMessage() {
+  private String getRawMessage() {
     return rawMessage;
   }
 
@@ -108,6 +125,7 @@ public class SpinnakerHttpException extends SpinnakerServerException {
     }
   }
 
+  @Nonnull
   public HttpHeaders getHeaders() {
     if (headers == null) {
       headers = new HttpHeaders();
@@ -156,5 +174,25 @@ public class SpinnakerHttpException extends SpinnakerServerException {
 
   public Map<String, Object> getResponseBody() {
     return this.responseBody;
+  }
+
+  /**
+   * HTTP response body converted to specified {@code type}. {@code null} if there is no response.
+   *
+   * @throws RuntimeException wrapping the underlying IOException if unable to convert the body to
+   *     the specified {@code type}.
+   */
+  private Map<String, Object> getErrorBodyAs(Retrofit retrofit) {
+    if (retrofit2Response == null) {
+      return null;
+    }
+
+    Converter<ResponseBody, Map> converter =
+        retrofit.responseBodyConverter(Map.class, new Annotation[0]);
+    try {
+      return converter.convert(retrofit2Response.errorBody());
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.kork.retrofit;
 
-import com.netflix.spinnaker.kork.retrofit.exceptions.RetrofitException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
@@ -26,11 +25,9 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Objects;
 import java.util.concurrent.Executor;
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import okhttp3.Request;
 import okio.Timeout;
-import org.springframework.http.HttpStatus;
 import retrofit2.Call;
 import retrofit2.CallAdapter;
 import retrofit2.Callback;
@@ -157,18 +154,7 @@ public class ErrorHandlingExecutorCallAdapterFactory extends CallAdapter.Factory
       } catch (Exception e) {
         throw new SpinnakerServerException(e);
       }
-      throw createSpinnakerHttpException(syncResp);
-    }
-
-    @Nonnull
-    private SpinnakerHttpException createSpinnakerHttpException(Response<T> response) {
-      SpinnakerHttpException retval =
-          new SpinnakerHttpException(RetrofitException.httpError(response, retrofit));
-      if ((response.code() == HttpStatus.NOT_FOUND.value())
-          || (response.code() == HttpStatus.BAD_REQUEST.value())) {
-        retval.setRetryable(false);
-      }
-      return retval;
+      throw new SpinnakerHttpException(syncResp, retrofit);
     }
 
     /**
@@ -249,7 +235,7 @@ public class ErrorHandlingExecutorCallAdapterFactory extends CallAdapter.Factory
               public void run() {
                 callback.onFailure(
                     executorCallbackCall,
-                    executorCallbackCall.createSpinnakerHttpException(response));
+                    new SpinnakerHttpException(response, executorCallbackCall.retrofit));
               }
             });
       }
