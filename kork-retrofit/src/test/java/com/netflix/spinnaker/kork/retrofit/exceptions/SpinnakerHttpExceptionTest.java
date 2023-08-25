@@ -42,6 +42,7 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
 public class SpinnakerHttpExceptionTest {
   private static final String CUSTOM_MESSAGE = "custom message";
 
+  @Test
   public void testSpinnakerHttpExceptionFromRetrofitError() {
     String url = "http://localhost";
     int statusCode = 200;
