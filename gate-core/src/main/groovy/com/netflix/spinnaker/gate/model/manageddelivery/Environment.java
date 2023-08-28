@@ -28,5 +28,6 @@ public class Environment {
   Collection<Map<String, Object>> constraints;
   Collection<Notification> notifications;
   Map<String, Object> locations;
+  List<Map<String, Object>> postDeploy;
   List<Map<String, Object>> verifyWith;
 }
