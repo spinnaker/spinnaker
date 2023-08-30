@@ -65,3 +65,6 @@ databaseChangeLog:
 - include:
     file: changelog/20230309-shedlock.yml
     relativeToChangelogFile: true
+- include:
+    file: changelog/20230829-add-updated-at-column-to-compressed-executions.yaml
+    relativeToChangelogFile: true

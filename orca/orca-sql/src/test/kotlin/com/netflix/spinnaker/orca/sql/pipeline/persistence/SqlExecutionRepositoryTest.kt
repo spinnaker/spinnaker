@@ -88,13 +88,13 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
         stage {}
       }
       val pipelineId = pipelineExecution.id
-
       val testBody = "test_body" // not long enough to compress
       val testPairs = mutableMapOf(
           field("id") to testId,
           field("application") to testApplication,
           field("body") to testBody,
-          field("build_time") to currentTimeMillis()
+          field("build_time") to currentTimeMillis(),
+          field("updated_at") to currentTimeMillis()
       )
 
       val testCompressibleBody = "test_body_long_enough_to_compress"
@@ -102,7 +102,8 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
           field("id") to testId,
           field("application") to testApplication,
           field("body") to testCompressibleBody,
-          field("build_time") to currentTimeMillis()
+          field("build_time") to currentTimeMillis(),
+          field("updated_at") to currentTimeMillis()
       )
 
       test("verify assumptions") {

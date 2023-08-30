@@ -1220,10 +1220,12 @@ class SqlExecutionRepository(
         // Set uncompressed body to empty string since body is not a nullable column
         updatedInsertPairs[bodyField] = ""
         updatedUpdatePairs[bodyField] = ""
+        val updatedAt = insertPairs[field("updated_at")] as Long
         compressedExecTablePairs = mapOf(
           field("id") to id,
           field("compressed_body") to compressedBody,
-          field("compression_type") to compressionProperties.compressionType.type
+          field("compression_type") to compressionProperties.compressionType.type,
+          field("updated_at") to updatedAt
         )
         isBodyCompressed = true
       }
