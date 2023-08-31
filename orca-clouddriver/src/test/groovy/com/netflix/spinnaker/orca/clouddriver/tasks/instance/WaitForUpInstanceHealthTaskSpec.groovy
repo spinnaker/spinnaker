@@ -35,7 +35,7 @@ class WaitForUpInstanceHealthTaskSpec extends Specification {
   CloudDriverService cloudDriverService = Mock()
   def task = new WaitForUpInstanceHealthTask(cloudDriverService)
 
-  @Unroll("#interestingHealthProviderNames instance: #instance => status: #result.status")
+  @Unroll("#interestingHealthProviderNames instance: #instance => status: #shouldBeUp")
   def "test if instance with a given interested health provider name should be considered up"() {
     given:
     def inputs = new InstanceHealthCheckInputs(

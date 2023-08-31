@@ -261,7 +261,7 @@ abstract class PipelineExecutionRepositoryTck<T extends ExecutionRepository> ext
     }
   }
 
-  def "trying to retrieve an invalid #type.simpleName id throws an exception"() {
+  def "trying to retrieve an invalid #type id throws an exception"() {
     when:
     repository().retrieve(type, "invalid")
 
@@ -272,7 +272,7 @@ abstract class PipelineExecutionRepositoryTck<T extends ExecutionRepository> ext
     type << ExecutionType.values()
   }
 
-  def "trying to delete a non-existent #type.simpleName id does not throw an exception"() {
+  def "trying to delete a non-existent #type id does not throw an exception"() {
     when:
     repository().delete(type, "invalid")
 

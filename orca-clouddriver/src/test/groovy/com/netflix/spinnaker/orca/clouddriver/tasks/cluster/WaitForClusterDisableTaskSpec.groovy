@@ -124,7 +124,7 @@ class WaitForClusterDisableTaskSpec extends Specification {
   }
 
   @Unroll
-  def "fails with '#message' when clusterData=#clusterData"() {
+  def "fails with '#expectedMessage' when clusterData=#clusterData"() {
     given:
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "test", [
         cluster: clusterName,

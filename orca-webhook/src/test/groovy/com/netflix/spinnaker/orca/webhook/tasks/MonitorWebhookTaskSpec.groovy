@@ -42,7 +42,7 @@ class MonitorWebhookTaskSpec extends Specification {
   MonitorWebhookTask monitorWebhookTask = new MonitorWebhookTask(webhookService, new WebhookProperties())
 
   @Unroll
-  def "should fail if required parameter(url: #url, statusUrl: #statusEndpoint) is missing"() {
+  def "should fail if required parameter(url: #webhookurl, statusUrl: #statusEndpoint) is missing"() {
     setup:
     def stage = new StageExecutionImpl(pipeline, "webhook", [
         statusEndpoint: statusEndpoint,

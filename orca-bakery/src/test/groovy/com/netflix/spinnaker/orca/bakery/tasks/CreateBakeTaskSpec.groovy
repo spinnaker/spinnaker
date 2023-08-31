@@ -1225,7 +1225,7 @@ class CreateBakeTaskSpec extends Specification {
   }
 
   @Unroll
-  def "sets rebake query parameter to #queryParameter when trigger is #trigger"() {
+  def "sets rebake query parameter to #queryParameter when trigger is #triggerConfig"() {
     given:
     def pipeline = pipeline {
         trigger = mapper.convertValue(triggerConfig, Trigger)

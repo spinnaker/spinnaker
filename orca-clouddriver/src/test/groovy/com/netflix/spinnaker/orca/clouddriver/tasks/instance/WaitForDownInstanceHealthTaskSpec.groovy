@@ -33,7 +33,7 @@ class WaitForDownInstanceHealthTaskSpec extends Specification {
   CloudDriverService cloudDriverService = Mock()
   def task = new WaitForDownInstanceHealthTask(cloudDriverService)
 
-  @Unroll("#interestedHealthProviderNames with instance: #instance => status: #result.status")
+  @Unroll("#interestedHealthProviderNames with instance: #instance => status: #shouldBeDown")
   def "test if instance with a given interested health provider name should be considered down"() {
     given:
     def inputs = new InstanceHealthCheckInputs(
