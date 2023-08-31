@@ -4,6 +4,7 @@ import React from 'react';
 import type { Subscription } from 'rxjs';
 
 import type { Application } from '../../application';
+import type { IDefaultTagFilterConfig } from '../../application/config/defaultTagFilter/DefaultTagFilterConfig';
 import { CreatePipeline } from '../config/CreatePipeline';
 import { CreatePipelineButton } from '../create/CreatePipelineButton';
 import type { IExecution, IPipeline, IPipelineCommand } from '../../domain';
@@ -71,6 +72,16 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
   private setReloadingForFilters = (reloadingForFilters: boolean) => {
     if (this.state.reloadingForFilters !== reloadingForFilters) {
       this.setState({ reloadingForFilters });
+    }
+  };
+
+  private loadDefaultFilters = (): void => {
+    const defaultTags = this.props.app.attributes.defaultFilteredTags;
+    if (defaultTags != null) {
+      this.props.app.attributes.defaultFilteredTags.forEach((defaultTag: IDefaultTagFilterConfig) => {
+        ExecutionState.filterModel.asFilterModel.sortFilter.tags[`${defaultTag.tagName}:${defaultTag.tagValue}`] = true;
+      });
+      this.updateExecutionGroups(true);
     }
   };
 
@@ -234,6 +245,8 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
       },
       () => this.dataInitializationFailure(),
     );
+
+    this.loadDefaultFilters();
 
     $q.all([app.executions.ready(), app.pipelineConfigs.ready()]).then(() => {
       this.updateExecutionGroups();

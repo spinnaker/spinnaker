@@ -54,6 +54,15 @@
       >
       </custom-banner-config>
     </page-section>
+    <page-section key="default-filters" label="Default Filters">
+      <default-tag-filter-config
+        default-tag-filter-configs="config.application.attributes.defaultFilteredTags"
+        is-saving="config.defaultTagFilterProps.isSaving"
+        save-error="config.defaultTagFilterProps.saveError"
+        update-default-tag-filter-configs="config.updateDefaultTagFilterConfigs"
+      >
+      </default-tag-filter-config>
+    </page-section>
     <page-section key="delete" label="Delete Application">
       <delete-application-section application="config.application"></delete-application-section>
     </page-section>

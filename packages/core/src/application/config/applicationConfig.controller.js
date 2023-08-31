@@ -8,6 +8,7 @@ import { CORE_APPLICATION_CONFIG_APPLICATIONSNAPSHOTSECTION_COMPONENT } from './
 import { CHAOS_MONKEY_CONFIG_COMPONENT } from '../../chaosMonkey/chaosMonkeyConfig.component';
 import { SETTINGS } from '../../config/settings';
 import { APPLICATION_DATA_SOURCE_EDITOR } from './dataSources/applicationDataSourceEditor.component';
+import { DEFAULT_TAG_FILTER_CONFIG } from './defaultTagFilter/defaultTagFilterConfig.component';
 import { DELETE_APPLICATION_SECTION } from './deleteApplicationSection.module';
 import { CORE_APPLICATION_CONFIG_LINKS_APPLICATIONLINKS_COMPONENT } from './links/applicationLinks.component';
 import { ApplicationWriter } from '../service/ApplicationWriter';
@@ -25,6 +26,7 @@ module(CORE_APPLICATION_CONFIG_APPLICATIONCONFIG_CONTROLLER, [
   CHAOS_MONKEY_CONFIG_COMPONENT,
   TRAFFIC_GUARD_CONFIG_COMPONENT,
   CORE_APPLICATION_CONFIG_LINKS_APPLICATIONLINKS_COMPONENT,
+  DEFAULT_TAG_FILTER_CONFIG,
 ]).controller('ApplicationConfigController', [
   '$state',
   'app',
@@ -60,6 +62,30 @@ module(CORE_APPLICATION_CONFIG_APPLICATIONCONFIG_CONTROLLER, [
         .catch(() => {
           this.bannerConfigProps.isSaving = false;
           this.bannerConfigProps.saveError = true;
+        });
+    };
+
+    this.defaultTagFilterProps = {
+      isSaving: false,
+      saveError: false,
+    };
+    this.updateDefaultTagFilterConfigs = (tagConfigs /* IDefaultTagFilterConfig[] */) => {
+      const applicationAttributes = cloneDeep(this.application.attributes);
+      applicationAttributes.defaultFilteredTags = tagConfigs;
+      $scope.$applyAsync(() => {
+        this.defaultTagFilterProps.isSaving = true;
+        this.defaultTagFilterProps.saveError = false;
+      });
+      ApplicationWriter.updateApplication(applicationAttributes)
+        .then(() => {
+          $scope.$applyAsync(() => {
+            this.defaultTagFilterProps.isSaving = false;
+            this.application.attributes = applicationAttributes;
+          });
+        })
+        .catch(() => {
+          this.defaultTagFilterProps.isSaving = false;
+          this.defaultTagFilterProps.saveError = true;
         });
     };
 
