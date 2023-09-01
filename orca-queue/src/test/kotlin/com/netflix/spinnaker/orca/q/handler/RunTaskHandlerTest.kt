@@ -583,6 +583,14 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
               }
             )
           }
+
+          it("attaches the exception to the taskExceptionDetails") {
+            verify(repository).storeStage(
+              check {
+                assertThat(it.tasks[0].taskExceptionDetails["exception"]).isEqualTo(exceptionDetails)
+              }
+            )
+          }
         }
 
         and("the task should not fail the whole pipeline, only the branch") {
