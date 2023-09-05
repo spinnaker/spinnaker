@@ -18,6 +18,8 @@ package com.netflix.spinnaker.orca.pipeline.util;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Fail.fail;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.http.Fault;
@@ -26,12 +28,15 @@ import java.io.IOException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 public class HttpClientUtilsTest {
 
   private final String host = "localhost";
   private final int port = 8080;
   private final String resource = "/v1/text";
+  private final String redirectUrl = "https://spinnaker.io/";
   private final UserConfiguredUrlRestrictions.Builder config =
       new UserConfiguredUrlRestrictions.Builder();
 
@@ -104,5 +109,70 @@ public class HttpClientUtilsTest {
 
     // then:
     verify(3, getRequestedFor(urlEqualTo(resource)));
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = {301, 302})
+  public void testRedirectWithRetryEnabled(int httpStatus) throws IOException {
+    // Set up the configuration to enable retry functionality
+    config.setHttpClientProperties(
+        UserConfiguredUrlRestrictions.HttpClientProperties.builder().enableRetry(true).build());
+    // Create the HttpClientUtils instance with the configuration
+    HttpClientUtils httpClientUtils = new HttpClientUtils(config.build());
+
+    stubFor(
+        get(resource)
+            .willReturn(aResponse().withStatus(httpStatus).withHeader("Location", redirectUrl)));
+
+    // when:
+    String response =
+        httpClientUtils.httpGetAsString(String.format("http://%s:%s%s", host, port, resource));
+
+    // then:
+    assertNotNull(response);
+    verify(1, getRequestedFor(urlEqualTo(resource)));
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = {301, 302})
+  public void testRedirectWithRetryDisabled(int httpStatus) throws IOException {
+    // Set up the configuration to enable retry functionality
+    config.setHttpClientProperties(
+        UserConfiguredUrlRestrictions.HttpClientProperties.builder().enableRetry(false).build());
+    // Create the HttpClientUtils instance with the configuration
+    HttpClientUtils httpClientUtils = new HttpClientUtils(config.build());
+
+    stubFor(
+        get(resource)
+            .willReturn(aResponse().withStatus(httpStatus).withHeader("Location", redirectUrl)));
+
+    // when:
+    String response =
+        httpClientUtils.httpGetAsString(String.format("http://%s:%s%s", host, port, resource));
+
+    // then:
+    assertNotNull(response);
+    verify(1, getRequestedFor(urlEqualTo(resource)));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"192.168.1.1", "127.0.0.1"})
+  void testRedirectThrowsRetryRequestExceptionForInvalidUrl(String invalidUrl) {
+    // Set up the configuration to enable retry functionality
+    config.setHttpClientProperties(
+        UserConfiguredUrlRestrictions.HttpClientProperties.builder().enableRetry(true).build());
+    // Create the HttpClientUtils instance with the configuration
+    HttpClientUtils httpClientUtils = new HttpClientUtils(config.build());
+
+    stubFor(
+        get(invalidUrl)
+            .willReturn(aResponse().withStatus(301).withHeader("Location", redirectUrl)));
+
+    // when & then
+    assertThrows(
+        HttpClientUtils.RetryRequestException.class,
+        () -> {
+          httpClientUtils.httpGetAsString(String.format("http://%s:%s%s", host, port, resource));
+        });
   }
 }

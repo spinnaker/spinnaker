@@ -26,8 +26,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.apache.http.HttpHost;
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.ProtocolException;
+import org.apache.http.client.RedirectStrategy;
 import org.apache.http.client.ServiceUnavailableRetryStrategy;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -36,6 +39,7 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpCoreContext;
 import org.slf4j.Logger;
@@ -46,9 +50,11 @@ import org.springframework.stereotype.Component;
 public class HttpClientUtils {
 
   private CloseableHttpClient httpClient;
+  private final UserConfiguredUrlRestrictions urlRestrictions;
   private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientUtils.class);
   private static final String JVM_HTTP_PROXY_HOST = "http.proxyHost";
   private static final String JVM_HTTP_PROXY_PORT = "http.proxyPort";
+  private static final String LOCATION_HEADER = "Location";
   private static List<Integer> RETRYABLE_500_HTTP_STATUS_CODES =
       Arrays.asList(
           HttpStatus.SC_SERVICE_UNAVAILABLE,
@@ -57,6 +63,7 @@ public class HttpClientUtils {
 
   public HttpClientUtils(UserConfiguredUrlRestrictions userConfiguredUrlRestrictions) {
     this.httpClient = create(userConfiguredUrlRestrictions.getHttpClientProperties());
+    this.urlRestrictions = userConfiguredUrlRestrictions;
   }
 
   private CloseableHttpClient create(
@@ -82,11 +89,30 @@ public class HttpClientUtils {
                   (statusCode == 429 || RETRYABLE_500_HTTP_STATUS_CODES.contains(statusCode))
                       && executionCount <= httpClientProperties.getMaxRetryAttempts();
 
-              if ((statusCode >= 300) && (statusCode <= 399)) {
-                throw new RetryRequestException(
-                    String.format(
-                        "Attempted redirect from %s to %s which is not supported",
-                        currentReq.getURI(), response.getFirstHeader("LOCATION").getValue()));
+              try {
+                RedirectStrategy laxRedirectStrategy =
+                    new CustomRedirectStrategy().getLaxRedirectStrategy();
+
+                boolean isRedirected =
+                    laxRedirectStrategy.isRedirected(currentReq, response, context);
+
+                if (isRedirected) {
+                  // verify that we are not redirecting to a restricted url
+                  String redirectLocation = response.getFirstHeader(LOCATION_HEADER).getValue();
+                  urlRestrictions.validateURI(redirectLocation);
+
+                  LOGGER.info(
+                      "Attempt redirect from {} to {} ", currentReq.getURI(), redirectLocation);
+
+                  httpClientBuilder.setRedirectStrategy(laxRedirectStrategy).build();
+                  return false; // Don't allow retry for redirection
+                }
+              } catch (ProtocolException protocolException) {
+                LOGGER.error(
+                    "Failed redirect from {} to {}. Error: {}",
+                    currentReq.getRequestLine().getUri(),
+                    response.getFirstHeader(LOCATION_HEADER).getValue(),
+                    protocolException.getMessage());
               }
               if (!shouldRetry) {
                 throw new RetryRequestException(
@@ -130,10 +156,7 @@ public class HttpClientUtils {
 
     String proxyHostname = System.getProperty(JVM_HTTP_PROXY_HOST);
     if (proxyHostname != null) {
-      int proxyPort =
-          System.getProperty(JVM_HTTP_PROXY_PORT) != null
-              ? Integer.parseInt(System.getProperty(JVM_HTTP_PROXY_PORT))
-              : 8080;
+      int proxyPort = getProxyPort();
       LOGGER.info(
           "Found system properties for proxy configuration. Setting up http client to use proxy with "
               + "hostname {} and port {}",
@@ -160,9 +183,44 @@ public class HttpClientUtils {
     }
   }
 
+  private int getProxyPort() {
+    String proxyPort = System.getProperty(JVM_HTTP_PROXY_PORT);
+    int defaultProxyPort = 8080;
+
+    if (proxyPort != null) {
+      try {
+        return Integer.parseInt(proxyPort);
+      } catch (NumberFormatException e) {
+        LOGGER.warn(
+            "Invalid proxy port number: {}. Using default port: {}", proxyPort, defaultProxyPort);
+      }
+    }
+    return defaultProxyPort;
+  }
+
   class RetryRequestException extends RuntimeException {
     RetryRequestException(String cause) {
       super(cause);
+    }
+  }
+
+  class CustomRedirectStrategy {
+    public RedirectStrategy getLaxRedirectStrategy() {
+      return new LaxRedirectStrategy() {
+        @Override
+        public boolean isRedirected(
+            HttpRequest request, HttpResponse response, HttpContext context) {
+          int statusCode = response.getStatusLine().getStatusCode();
+
+          if (statusCode == HttpStatus.SC_MOVED_PERMANENTLY
+              || statusCode == HttpStatus.SC_MOVED_TEMPORARILY) {
+
+            return response.getFirstHeader(LOCATION_HEADER).getValue() != null
+                && !response.getFirstHeader(LOCATION_HEADER).getValue().isEmpty();
+          }
+          return false;
+        }
+      };
     }
   }
 }
