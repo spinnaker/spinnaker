@@ -129,4 +129,23 @@ public class SpinnakerHttpExceptionTest {
     assertThat(thrown).isInstanceOf(NullPointerException.class);
     assertThat(thrown.getMessage()).isNotNull();
   }
+
+  @Test
+  void testNonJsonErrorResponse() {
+    String url = "http://localhost";
+    int statusCode = 500;
+    String reason = "reason";
+    String body = "non-json response";
+    Response response = new Response(url, statusCode, reason, List.of(), new TypedString(body));
+    RetrofitError retrofitError =
+        RetrofitError.httpError(url, response, new GsonConverter(new Gson()), String.class);
+    SpinnakerHttpException spinnakerHttpException = new SpinnakerHttpException(retrofitError);
+    assertThat(spinnakerHttpException.getResponseBody()).isNull();
+    assertThat(spinnakerHttpException.getResponseCode()).isEqualTo(statusCode);
+    assertThat(spinnakerHttpException.getMessage())
+        .isEqualTo(
+            "Status: " + statusCode + ", URL: " + url + ", Message: " + retrofitError.getMessage());
+    assertThat(spinnakerHttpException.getUrl()).isEqualTo(url);
+    assertThat(spinnakerHttpException.getReason()).isEqualTo(reason);
+  }
 }

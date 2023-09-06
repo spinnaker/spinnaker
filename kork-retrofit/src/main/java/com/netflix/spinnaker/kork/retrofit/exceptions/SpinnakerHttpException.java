@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import javax.annotation.Nonnull;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.ResponseBody;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -39,6 +40,7 @@ import retrofit2.Retrofit;
  * okhttp3.Response} can't be set together.
  */
 @NullableByDefault
+@Slf4j
 public class SpinnakerHttpException extends SpinnakerServerException {
 
   private final Response response;
@@ -75,14 +77,35 @@ public class SpinnakerHttpException extends SpinnakerServerException {
 
     this.response = e.getResponse();
     this.retrofit2Response = null;
-    responseBody = (Map<String, Object>) e.getBodyAs(HashMap.class);
+
+    String tmpMessage = null;
+    Map<String, Object> body = null;
+    try {
+      body = (Map<String, Object>) e.getBodyAs(HashMap.class);
+    } catch (Exception responseBodyException) {
+      // This is only an error if the mime type indicates json, but then it's
+      // not spinnaker's error, it's an arguably malformed http response.  It's
+      // potentially interesting to log, but...what to include in the log
+      // message?  We've already (likely) read the response body once, so unless
+      // we copy it ahead of time, we can't depend on being able to e.g. attempt
+      // to convert it to a String and use that in a log message (or potentially
+      // even in message for this exception.  That seems like a lot to do for
+      // malformed json, and even for non-json responses (e.g. html).  So, don't
+      // try to log anything from the response body itself.
+      log.debug(
+          "unable to convert response to map ({}, {})",
+          e.getUrl(),
+          e.getMessage(),
+          responseBodyException);
+    }
+    responseBody = body;
+    if (responseBody != null) {
+      tmpMessage = (String) responseBody.get("message");
+    }
     url = e.getUrl();
     responseCode = response.getStatus();
     reason = response.getReason();
-    this.rawMessage =
-        responseBody != null
-            ? (String) responseBody.getOrDefault("message", e.getMessage())
-            : e.getMessage();
+    rawMessage = tmpMessage != null ? tmpMessage : e.getMessage();
   }
 
   /**
