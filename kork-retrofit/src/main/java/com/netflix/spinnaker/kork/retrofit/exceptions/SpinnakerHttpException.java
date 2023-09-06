@@ -105,7 +105,7 @@ public class SpinnakerHttpException extends SpinnakerServerException {
     url = e.getUrl();
     responseCode = response.getStatus();
     reason = response.getReason();
-    rawMessage = tmpMessage != null ? tmpMessage : e.getMessage();
+    rawMessage = tmpMessage != null ? tmpMessage : reason;
   }
 
   /**

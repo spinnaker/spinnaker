@@ -143,8 +143,7 @@ public class SpinnakerHttpExceptionTest {
     assertThat(spinnakerHttpException.getResponseBody()).isNull();
     assertThat(spinnakerHttpException.getResponseCode()).isEqualTo(statusCode);
     assertThat(spinnakerHttpException.getMessage())
-        .isEqualTo(
-            "Status: " + statusCode + ", URL: " + url + ", Message: " + retrofitError.getMessage());
+        .isEqualTo("Status: " + statusCode + ", URL: " + url + ", Message: " + reason);
     assertThat(spinnakerHttpException.getUrl()).isEqualTo(url);
     assertThat(spinnakerHttpException.getReason()).isEqualTo(reason);
   }
