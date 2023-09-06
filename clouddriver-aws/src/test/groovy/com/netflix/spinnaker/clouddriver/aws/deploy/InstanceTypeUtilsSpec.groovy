@@ -137,7 +137,7 @@ class InstanceTypeUtilsSpec extends Specification {
   }
 
   @Unroll
-  def 'compatibility among ami virtualization #virtualization, ami architecture #architecture and instance type is determined correctly'() {
+  def 'compatibility among ami virtualization #amiVirtualization, ami architecture #amiArchitecture and instance type is determined correctly'() {
     given:
     AmazonEC2 ec2 = Mock(AmazonEC2)
 
@@ -171,7 +171,7 @@ class InstanceTypeUtilsSpec extends Specification {
   }
 
   @Unroll
-  def 'incompatible ami virtualization #virtualization and instance family throws exception'() {
+  def 'incompatible ami virtualization #amiVirtualization and instance family throws exception'() {
     given:
     def ec2 = Mock(AmazonEC2)
 
