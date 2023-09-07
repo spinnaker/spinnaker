@@ -23,6 +23,7 @@ import com.netflix.spinnaker.front50.config.FiatConfigurationProperties;
 import com.netflix.spinnaker.front50.config.annotations.ConditionalOnAnyProviderExceptRedisIsEnabled;
 import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccount;
 import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccountDAO;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.util.Collection;
 import java.util.Collections;
@@ -35,7 +36,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import retrofit.RetrofitError;
 
 @Service
 @ConditionalOnAnyProviderExceptRedisIsEnabled
@@ -136,7 +136,7 @@ public class ServiceAccountsService {
       if (auth != null) {
         fiatPermissionEvaluator.invalidatePermission((String) auth.getPrincipal());
       }
-    } catch (RetrofitError re) {
+    } catch (SpinnakerServerException re) {
       log.warn("Error syncing users", re);
     }
   }
@@ -159,7 +159,7 @@ public class ServiceAccountsService {
       if (auth != null) {
         fiatPermissionEvaluator.invalidatePermission((String) auth.getPrincipal());
       }
-    } catch (RetrofitError re) {
+    } catch (SpinnakerServerException re) {
       log.warn("Error syncing service account with service account only endpoint", re);
     }
   }

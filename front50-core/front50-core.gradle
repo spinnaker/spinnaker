@@ -23,6 +23,7 @@ dependencies {
   implementation "org.springframework.security:spring-security-core"
   implementation "org.springframework.security:spring-security-web"
   implementation "io.spinnaker.kork:kork-web"
+  implementation "io.spinnaker.kork:kork-retrofit"
   implementation "io.reactivex:rxjava"
   implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client"
   implementation "com.squareup.retrofit:converter-jackson"
