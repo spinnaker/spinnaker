@@ -14,6 +14,9 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
+      #https://github.com/NASA-IMPACT/hls-base/pull/17/files borrowed from this....
+      - name: Create more disk space
+        run: sudo rm -rf /usr/share/dotnet && sudo rm -rf /opt/ghc && sudo rm -rf "/usr/local/share/boost" && sudo rm -rf "$AGENT_TOOLSDIRECTORY"
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0

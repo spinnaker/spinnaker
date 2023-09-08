@@ -16,6 +16,8 @@ jobs:
     if: startsWith(github.repository, 'spinnaker/')
     runs-on: ubuntu-latest
     steps:
+      - name: Create more disk space
+        run: sudo rm -rf /usr/share/dotnet && sudo rm -rf /opt/ghc && sudo rm -rf "/usr/local/share/boost" && sudo rm -rf "$AGENT_TOOLSDIRECTORY"
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
