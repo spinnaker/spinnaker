@@ -1366,12 +1366,18 @@ public class DeployManifestIT extends BaseTest {
     System.out.println("> Using namespace: " + account1Ns + ", appName: " + appName);
     String imageNoTag = "index.docker.io/library/alpine";
     String imageWithTag = "index.docker.io/library/alpine:3.12";
+    String apiVersion = "batch/v1beta1";
+
+    if (KubeTestUtils.compareVersion(KUBERNETES_VERSION, "v1.20") > 0) {
+      apiVersion = "batch/v1";
+    }
 
     List<Map<String, Object>> manifest =
         KubeTestUtils.loadYaml("classpath:manifests/cronJob.yml")
             .withValue("metadata.namespace", account1Ns)
             .withValue("metadata.name", DEPLOYMENT_1_NAME)
             .withValue("spec.jobTemplate.spec.template.spec.containers[0].image", imageNoTag)
+            .withValue("apiVersion", apiVersion)
             .asList();
     Map<String, Object> artifact =
         KubeTestUtils.loadJson("classpath:requests/artifact.json")
@@ -1407,11 +1413,14 @@ public class DeployManifestIT extends BaseTest {
 
   @DisplayName(
       ".\n===\n"
-          + "Given a v1beta1 CRD manifest\n"
+          + "Given k8s version < 1.22.0 and a v1beta1 CRD manifest\n"
           + "When sending deploy manifest request\n"
           + "Then a v1beta1 CRD is created\n===")
   @Test
-  public void shouldDeployCrdV1beta1() throws IOException, InterruptedException {
+  public void shouldDeployCrdV1beta1IfSupported() throws IOException, InterruptedException {
+    if (KubeTestUtils.compareVersion(KUBERNETES_VERSION, "v1.21") > 0) {
+      return;
+    }
     // ------------------------- given --------------------------
     final String crdName = "crontabs.stable.example.com";
     final List<Map<String, Object>> manifest =

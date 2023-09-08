@@ -41,6 +41,7 @@ public abstract class BaseTest {
   public static final String APP2_NAME = "testApp2";
   public static final String ACCOUNT1_NAME = "account1";
   public static final String ACCOUNT2_NAME = "account2";
+  public static final String KUBERNETES_VERSION = System.getenv("KUBERNETES_VERSION");
 
   @LocalServerPort int port;
 

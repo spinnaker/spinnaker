@@ -36,7 +36,7 @@ public class KubernetesCluster {
 
   private static KubernetesCluster INSTANCE;
   private static final String IMAGE = System.getenv("IMAGE");
-  private static final String KIND_VERSION = "0.11.1";
+  private static final String KIND_VERSION = "0.20.0";
   private static final String KUBECTL_VERSION = "1.22.17";
   private static final Path IT_BUILD_HOME = Paths.get(System.getenv("IT_BUILD_HOME"));
   private static final Path KUBECFG_PATH = Paths.get(IT_BUILD_HOME.toString(), "kubecfg.yml");

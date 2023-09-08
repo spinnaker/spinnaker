@@ -131,6 +131,7 @@ task integrationTest(type: Test) {
 
   environment "IT_BUILD_HOME", "$project.buildDir/it"
   environment "IMAGE", project.getProperties().get("kubernetes-image")
+  environment "KUBERNETES_VERSION", project.getProperties().get("kubernetes-version")
   useJUnitPlatform()
 
   testClassesDirs = sourceSets.integration.output.classesDirs
