@@ -19,6 +19,7 @@ dependencies {
     annotationProcessor "org.projectlombok:lombok"
     testAnnotationProcessor platform("io.spinnaker.kork:kork-bom:$korkVersion")
     testAnnotationProcessor "org.projectlombok:lombok"
+    implementation "io.spinnaker.kork:kork-retrofit"
 
     runtimeOnly "org.springframework.boot:spring-boot-properties-migrator"
     implementation "org.springframework.boot:spring-boot-starter-actuator"

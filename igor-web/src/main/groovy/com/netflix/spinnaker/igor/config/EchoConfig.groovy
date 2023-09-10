@@ -21,6 +21,7 @@ import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.history.EchoService
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
@@ -49,6 +50,7 @@ class EchoConfig {
             .setClient(new Ok3Client(okHttpClientProvider.getClient(new DefaultServiceEndpoint("echo", address))))
             .setLogLevel(retrofitLogLevel)
             .setLog(new Slf4jRetrofitLogger(EchoService))
+            .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
             .build()
             .create(EchoService)
     }
